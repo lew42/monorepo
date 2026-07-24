@@ -1,5 +1,22 @@
-import app, { div, h2, h3, p, pre, ul, li, img, input } from "/app.js";
+import app, { div, h2, h3, p, pre, ul, ol, li, img, input, el } from "/app.js";
 import { doc } from "../../ui/docs.js";
+
+app.stylesheet(import.meta, "toggle-switch.css");
+
+customElements.define("toggle-switch", class extends HTMLElement {
+  connectedCallback() {
+    const checked = this.hasAttribute("checked");
+    this.innerHTML = `
+      <label class="toggle-switch">
+        <input type="checkbox" ${checked ? "checked" : ""}>
+        <span class="slider"></span>
+      </label>
+    `;
+    this.querySelector("input").addEventListener("change", (e) => {
+      this.dispatchEvent(new CustomEvent("toggle", { detail: e.target.checked }));
+    });
+  }
+});
 
 app.$body.ac("theme-1");
 
@@ -25,6 +42,10 @@ export default {
             li("List items get sensible left padding");
             li("So the bullets are not clipped");
           });
+          ol(() => {
+            li("List items get sensible left padding");
+            li("So the bullets are not clipped");
+          })
         });
 
         h2("Full-width form fields");
@@ -45,6 +66,20 @@ export default {
             )
             .attr("alt", "Example image");
         });
+
+        h2("Custom web components");
+        p("Define once with `customElements.define()`, then use anywhere via `el(\"tag-name\")`. They're global — not scoped to this directory:");
+        div.c("demo", () => {
+          const $toggle = el("toggle-switch").attr("checked", "");
+          const $label = el("span").ac("toggle-label").text("On");
+          $toggle.on("toggle", (e) => $label.text(e.detail ? "On" : "Off"));
+        });
+        pre(`const $toggle = el("toggle-switch").attr("checked", "");
+const $label = el("span").text("On");
+
+$toggle.on("toggle", (e) =>
+  $label.text(e.detail ? "On" : "Off")
+);`);
       },
     });
   },
