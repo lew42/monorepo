@@ -73,6 +73,10 @@ export default class App {
 			if (this.page) {
 				this.$app.append(this.page);
 				// this.$root is not in the body yet
+
+				// optional protocol: "you are now THE page"
+				// (document.title, meta description, body theme — see core/Page)
+				this.page.activate?.();
 			}
 		} catch (error) {
 			// this runs on any page error...
@@ -177,3 +181,4 @@ Font.fonts = {
 
 export { App };
 export * from "../View/View.js";
+export * from "../Page/Page.class.js";

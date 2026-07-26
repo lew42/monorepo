@@ -1,0 +1,209 @@
+@layer theme {
+
+	/* definite height chain so the flex columns can fill & scroll internally
+	   (framework.css gives body only min-height:100%, which isn't enough for
+	   the child percentage heights to resolve) */
+	body:has(.page2) { height: 100%; }
+
+	/* the shell fills .app (no theme-1, so .app stays full-bleed) */
+	.app:has(.page2) { max-width: none; margin: 0; padding: 0; height: 100%; }
+
+	.page2 {
+		display: flex;
+		height: 100%;
+		position: relative;              /* anchor for the mobile sidebar + backdrop */
+		container: page2 / inline-size;  /* shell responds to its own width, not the viewport */
+		--sidebar: 13em;
+	}
+
+	/* ---- persistent left sidebar (root page + its children) ---------- */
+
+	.page2 > .sidebar {
+		flex: 0 0 var(--sidebar);
+		background: var(--bg);
+		color: #fff;
+		display: flex;
+		flex-direction: column;
+		overflow-y: auto;
+	}
+
+	.page2 .brand {
+		display: block;
+		padding: 1em 1.2em;
+		font-weight: 800;
+		font-size: 1.2em;
+		color: #fff;
+		text-decoration: none;
+	}
+
+	.page2 .sidebar-nav { display: flex; flex-direction: column; }
+
+	.page2 .sidebar-link {
+		padding: 0.6em 1.2em;
+		color: rgba(255,255,255,0.75);
+		text-decoration: none;
+		border-left: 3px solid transparent;
+	}
+	.page2 .sidebar-link:hover { background: rgba(255,255,255,0.08); color: #fff; }
+	.page2 .sidebar-link.active {
+		color: #fff;
+		border-left-color: var(--prim);
+		background: rgba(255,255,255,0.06);
+	}
+
+	/* ---- shell (topbar + columns) ------------------------------------ */
+
+	.page2 > .shell {
+		flex: 1 1 0;
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+		background: #eef0f4;
+	}
+
+	.page2 .topbar {
+		flex: 0 0 auto;
+		display: flex;
+		align-items: center;
+		gap: 0.4em;
+		padding: 0.4em 0.8em;
+		background: #fff;
+		border-bottom: 1px solid rgba(0,0,0,0.08);
+	}
+
+	.page2 .burger {
+		display: none;               /* shown only in the narrow layout */
+		cursor: pointer;
+		padding: 0.1em 0.45em;
+		font-size: 1.2em;
+		line-height: 1;
+		user-select: none;
+		border-radius: 3px;
+	}
+	.page2 .burger:hover { background: rgba(0,0,0,0.08); }
+
+	.page2 .backdrop {
+		display: none;               /* shown only when nav is open in the narrow layout */
+		position: absolute;
+		inset: 0;
+		z-index: 15;
+		background: rgba(0,0,0,0.35);
+	}
+
+	.page2 .breadcrumbs {
+		display: flex;
+		align-items: center;
+		gap: 0.4em;
+		font-size: 0.9em;
+	}
+	.page2 .crumb { color: var(--subtle); text-decoration: none; }
+	.page2 .crumb:hover { color: var(--prim); text-decoration: underline; }
+	.page2 .crumb:last-of-type { color: inherit; font-weight: 700; }
+	.page2 .crumb-sep { color: rgba(0,0,0,0.3); }
+
+	.page2 .columns {
+		flex: 1 1 0;
+		display: flex;
+		overflow: hidden;
+	}
+	.page2 .columns.loading::after {
+		content: "loading…";
+		margin: 2em;
+		color: var(--subtle);
+	}
+
+	/* ---- a column ---------------------------------------------------- */
+
+	.page2 .column {
+		flex: 1 1 0;          /* the two columns share the space equally */
+		min-width: 0;         /* allow shrinking below content width */
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+		background: #fff;
+		border-right: 1px solid rgba(0,0,0,0.08);
+	}
+	/* .secondary = the left/nav column, .active = the focus; equal by default.
+	   A single column is .active and simply fills. */
+
+	.page2 .col-bar {
+		flex: 0 0 auto;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0.4em 0.8em;
+		background: #f6f7f9;
+		border-bottom: 1px solid rgba(0,0,0,0.08);
+		font-size: 0.8em;
+	}
+	.page2 .col-path { color: var(--subtle); font-family: Consolas, monospace; }
+	.page2 .col-close { cursor: pointer; padding: 0 0.4em; border-radius: 3px; color: var(--subtle); }
+	.page2 .col-close:hover { background: rgba(0,0,0,0.1); color: #000; }
+
+	/* col-body is a query container, so demos inside can respond to it */
+	.page2 .col-body {
+		flex: 1 1 0;
+		overflow: auto;
+		container-type: inline-size;
+		container-name: col;
+	}
+
+	.page2 .page-title { font-size: 1.8em; font-weight: 800; margin-bottom: 0.5em; }
+
+	/* ---- preview cards (a parent listing its children) --------------- */
+
+	.page2 .previews {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(min(14em, 100%), 1fr));
+		gap: 0.8em;
+		margin: 1em 0;
+	}
+	.page2 .preview {
+		display: block;
+		padding: 0.9em 1em;
+		background: #fff;
+		border: 1px solid rgba(0,0,0,0.12);
+		border-radius: 0.5em;
+		text-decoration: none;
+		color: inherit;
+		transition: border-color 0.15s, box-shadow 0.15s, transform 0.05s;
+	}
+	.page2 .preview:hover {
+		border-color: var(--prim);
+		box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+	}
+	.page2 .preview:active { transform: translateY(1px); }
+	.page2 .preview-title { font-weight: 700; }
+	.page2 .preview-desc { color: var(--subtle); font-size: 0.85em; margin-top: 0.2em; }
+
+	.page2 .page-link { color: var(--prim); font-weight: 600; }
+
+	/* ---- narrow / mobile layout -------------------------------------- *
+	 * Keyed off the shell's OWN width (container query), not the viewport,
+	 * so the shell stays correct even if it's ever embedded in a smaller
+	 * region. Below the threshold: sidebar collapses to a burger overlay,
+	 * and only the active (rightmost) column shows. */
+	@container page2 (max-width: 45em) {
+
+		/* sidebar becomes an off-canvas overlay toggled by .nav-open
+		   (absolute, so it needs an explicit width — flex-basis no longer applies) */
+		.page2 > .sidebar {
+			position: absolute;
+			inset: 0 auto 0 0;
+			width: var(--sidebar);
+			max-width: 80%;
+			z-index: 20;
+			transform: translateX(-100%);
+			transition: transform 0.2s ease;
+			box-shadow: 2px 0 12px rgba(0,0,0,0.3);
+		}
+		.page2.nav-open > .sidebar { transform: translateX(0); }
+
+		.page2 .burger { display: block; }
+		.page2.nav-open .backdrop { display: block; }
+
+		/* single column: hide the secondary (nav) page, active fills */
+		.page2 .column.secondary { display: none; }
+		.page2 .column.active { flex-basis: 100%; }
+	}
+}

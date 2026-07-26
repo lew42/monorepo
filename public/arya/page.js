@@ -1,6 +1,6 @@
 import app, { el, p } from "/app.js";
 
-app.$body.ac("theme-1")
+app.$body.ac("theme-1");
 
 export default function () {
     p("My name is Arya");

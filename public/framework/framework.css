@@ -45,7 +45,7 @@
 
     hr { margin: 3em 0; }
 
-    pre, code { font-family: Consolas, 'Courier New', Monaco, monospace; }
+    pre, code { font-family: Consolas, 'Courier New', Monaco, monospace; padding: 0.25em 0.5em; background: rgba(0,0,0,0.1); }
 
     input:not([type="checkbox"], [type="radio"], [type="color"]), select, textarea {
         padding: 0.25em 0.6em;
@@ -109,4 +109,6 @@
     .uppercase { text-transform: uppercase; }
 
     textarea.auto { field-sizing: content;} /* textarea height resizes to fit content */
+
+    :first-child { margin-top: 0; }
 }
