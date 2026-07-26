@@ -25,3 +25,66 @@
 /* live style demos */
 .demo { border: 1px dashed var(--subtle); border-radius: 0.4em; padding: 1em; margin-bottom: 1em; }
 .demo.boxes > * { background: var(--prim); color: white; padding: 0.6em 1em; border-radius: 0.3em; text-align: center; }
+
+/* BEM card demo — mobile-first, fluid sizing, one breakpoint for the horizontal modifier */
+.card {
+    border: 1px solid var(--subtle);
+    border-radius: 0.5rem;
+    padding: clamp(0.5rem, 2vw, 1rem);
+}
+.card--featured {
+    border-color: var(--prim);
+    box-shadow: 0 0.25rem 1rem var(--subtle);
+}
+.card--horizontal {
+    display: flex;
+    flex-direction: column;
+}
+@media (min-width: 28rem) {
+    .card--horizontal { flex-direction: row; }
+}
+.card--horizontal > .card__image {
+    flex: 0 0 clamp(4rem, 30%, 8rem);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.card--horizontal > .card__body { flex: 1; }
+.card__image {
+    background: var(--bg);
+    padding: clamp(1rem, 4vw, 2rem);
+    text-align: center;
+    font-size: clamp(1.5rem, 4vw, 2rem);
+}
+.card__body { padding: clamp(0.5rem, 2vw, 1rem); }
+.card__title {
+    font-weight: 600;
+    color: var(--prim);
+    margin-bottom: 0.3rem;
+    font-size: clamp(1rem, 2.5vw, 1.25rem);
+}
+.card__text {
+    margin: 0;
+    color: var(--subtle);
+    font-size: clamp(0.8rem, 2vw, 0.9rem);
+}
+.card__footer { margin-top: 1rem; }
+.card__btn {
+    padding: 0.4rem 1rem;
+    border: 1px solid var(--subtle);
+    border-radius: 0.3rem;
+    cursor: pointer;
+    background: transparent;
+    font-size: clamp(0.8rem, 2vw, 1rem);
+}
+.card__btn--prim {
+    background: var(--prim);
+    color: white;
+    border-color: var(--prim);
+}
+
+/* BEM card list — responsive grid, no media queries */
+.card-list {
+    --card-min: min(16rem, 100%);
+    grid-template-columns: repeat(auto-fit, minmax(var(--card-min), 1fr));
+}
