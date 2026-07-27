@@ -1,4 +1,4 @@
-import { View, div, span } from "../View/View.js";
+import { View, div, span, a } from "../View/View.js";
 import { Page } from "../Page/Page.class.js";
 import { Pager } from "./Pager.js";
 
@@ -67,7 +67,8 @@ export class ColumnPager extends Pager {
 	sidebar(root){
 		const here = window.location.pathname;
 		div.c("sidebar", () => {
-			root.link().ac("brand");
+			// root.link().ac("brand");
+			a("Home").href("/").ac("brand");
 			div.c("sidebar-nav", () => {
 				(root.children || []).forEach(child => {
 					const link = child.link().ac("sidebar-link");

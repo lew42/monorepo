@@ -1,0 +1,27 @@
+/* Rendered markdown. framework.css already styles pre/code/lists/headings, so
+   this only handles what a generated block needs: its own vertical rhythm. */
+@layer theme {
+
+    .md > :first-child { margin-top: 0; }
+    .md > :last-child { margin-bottom: 0; }
+
+    .md pre {
+        padding: 0.75em 1em;
+        background: rgba(0,0,0,0.1);
+    }
+
+    /* the <code> inside a <pre> is already in a padded box */
+    .md pre > code { padding: 0; background: none; }
+
+    .md blockquote {
+        margin-left: 0;
+        padding-left: 1em;
+        border-left: 3px solid var(--subtle);
+        color: var(--subtle);
+    }
+
+    .md table { border-collapse: collapse; }
+    .md th, .md td { padding: 0.25em 0.75em; border: 1px solid var(--subtle); }
+
+    .md-error { color: #c00; }
+}

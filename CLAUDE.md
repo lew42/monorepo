@@ -66,6 +66,20 @@ export default new Page({ meta: import.meta, title, description, theme, content(
 - Constructor is `assign`-based: extra properties pass through as inert data.
 - Design record + deferred features (Pagers, routing, `deactivate`): `framework/core/Page/readme.md`.
 
+## Ext (`framework/ext/`)
+
+A fourth tier beside `core/`, `dev/`, `util/`: **opt-in addons, free to patch core.** Nothing in `app.js` imports one — a page opts in by importing the module directly. Vendor dependencies into the ext's own directory; no CDN imports at runtime.
+
+`ext/markdown/md.js` (vendors `marked.esm.js`) — importing it installs `View.prototype.md()`; the default export is an `md()` element factory.
+
+```js
+p().md("**inline** markdown");                          // into an existing view
+md("Hi.").ac("note");                                   // a real <p>, captured & chainable
+md.file(import.meta, "readme.md", { h1: false });        // a promise of a div.md
+```
+
+`md.file` resolves against `import.meta`, not the document (the SPA fallback makes the document url the *route*, so doc-relative fetches miss). It returns a **promise** so `View.append_promise` places it and `App.load_page` can await it before swapping — `content(){ return md.file(...) }` needs no change to `Page`. `{ h1: false }` drops the readme's leading heading, since `Page` already renders `title` as an h1. `framework/core/Pager/page.js` is the worked example: the page is nothing but its `readme.md`.
+
 ## CSS
 
 - `framework/framework.css` — loaded by App before render; defines `@layer base, theme, util` (reset, CSS custom props like `--prim`/`--bg`, utility classes like `flex`, `gap`).
@@ -78,6 +92,29 @@ export default new Page({ meta: import.meta, title, description, theme, content(
 - `Server/Server.js`: Express static over `public/`, then SPA fallback to `index.html`. Paths ending in a file extension 404 instead of falling back.
 - Plugin system via `Server.use(...)` and an `Events` base class. `DevSocket` runs a WebSocket server (chokidar file-watching → `LiveReload`).
 - Client side, `framework/dev/Socket/Socket.js` connects **only on localhost** (checked in both `App.config_socket` and `Socket.initialize`); on production hosts it stays disabled and no-ops. Keep it that way — this is part of static compatibility.
+
+### Killing a backgrounded dev server (Windows)
+
+**`pkill -f "node server.js"` does not work from Git Bash on Windows.** It silently matches nothing — the detached `node` is a native Windows process, not a bash job — so the server survives and the script reports success anyway.
+
+This matters because an orphaned dev server does not sit idle: once its parent shell exits and the console handle goes away, libuv busy-loops on the dead handle and the process **pins a full CPU core indefinitely**. Several of these accumulated once and burned ~4.7 cores continuously.
+
+If you background a server to smoke-test routes, capture the PID and kill it by PID:
+
+```bash
+PORT=8124 node server.js > /tmp/mono.log 2>&1 &
+SERVER_PID=$!
+# ... run checks ...
+taskkill //F //PID $SERVER_PID     # double slashes: MSYS path-mangling escape
+```
+
+Or from PowerShell: `Stop-Process -Id <pid> -Force`. To hunt for strays:
+
+```powershell
+Get-CimInstance Win32_Process -Filter "Name='node.exe'" | Select-Object ProcessId, CommandLine
+```
+
+Prefer reusing the already-running dev server on port 80 over starting a throwaway one.
 
 ## Deployment (Cloudflare Workers)
 

@@ -1,12 +1,19 @@
-# Page2 loading & the parent-chain problem
+# Page loading & the parent-chain problem
 
-Notes on how Page2 pages find their ancestors, why `app.js` preloads the
-michael tree, and what does / doesn't work for wiring `.parent` links.
+Notes on how pages find their ancestors and what does / doesn't work for wiring
+`.parent` links. (Historical: written while this was the `Page2` prototype;
+§1 describes an approach we since dropped — see the note under it.)
 
-## 1. `app.js` always loads `./michael/page.js`
+## 1. ~~`app.js` always loads `./michael/page.js`~~ (SUPERSEDED)
 
-`app.js` has a static `import michael from "./michael/page.js"`. Since
-`index.html` loads `app.js` on **every** URL, that one import cascades:
+> **No longer true.** `app.js` imports no pages; topics load lazily on first
+> visit, and `App.load_topic` climbs the URL to load a deep page's ancestors on
+> demand (§7). The eager-import analysis below is kept as the reasoning that led
+> there.
+
+The earlier approach: `app.js` had a static `import michael from
+"./michael/page.js"`. Since `index.html` loads `app.js` on **every** URL, that
+one import cascades:
 
 ```
 index.html → app.js
@@ -201,9 +208,10 @@ Two things fall out of the table:
   dynamic imports (bundler-hostile) and the target paints before its layout/context
   is known (async pop-in).
 
-> Note the current code pays **both** costs: `app.js` eager-imports the whole
-> michael tree (§1) AND `chain()` does computed climb-imports (§2a, redundant —
-> it just hits cache). Picking one direction removes the redundancy.
+> What the code actually does now: `app.js` imports nothing, and `App.load_topic`
+> climbs the URL importing ancestors only when a deep page needs its topic (a
+> no-op otherwise). Eager-import a topic anywhere (or bundle it) and the climb
+> never runs for it.
 
 ## 6. Passing control to the page (nested-router descent)
 
@@ -240,10 +248,10 @@ The loading decision pointed at this decomposition, which also removed the
 - **`Page` (keep minimal)** — content + `children` (data) + `link`/`preview`.
   Dormant. **No routing, no layout.** You always write `new Page(...)`.
 - **`Router` (one, small — the sane core of the old "Pager")** — owns
-  `location ↔ page` resolution + `pushState`/`popstate`, and drives the load
-  (App.ensure_topic climbs to the pager-owning topic). It calls `page.activate()`
-  (title/meta). Keep it tiny; the old Pager "got complicated" because it also
-  owned rendering and page state — don't repeat that.
+  `location ↔ page` mapping + `pushState`/`popstate`; it calls `app.load_page`.
+  The App does the load (`load_topic` climbs to the pager-owning topic) and
+  `page.activate()` (title/meta). Keep the Router tiny; the old Pager "got
+  complicated" because it also owned rendering and page state — don't repeat that.
 - **`Pager` / layout (a class — justified: columns + breadcrumbs need structure)**
   — given the chain (`topic … active`) and the topic's children, renders the
   layout. `ColumnPager` today; `Tabs`/`Grid` later. A **topic page declares its

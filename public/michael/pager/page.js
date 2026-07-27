@@ -9,7 +9,7 @@ export default new Page({
 	children: [mvp, tabs],
 	content(){
 		p("A `Pager` is a `div.pager` that holds one `.active` page and swaps it on command. No history, no URLs, no activation — just the DOM swap. That makes it useful on its own (tabs, wizards, in-app view switching) and the base for richer layouts like `ColumnPager`.");
-		p("The App creates one Pager as its main content area — every page is swapped in and out of `app.pager`.");
+		p("The App itself doesn't use a Pager — it renders pages straight into `$app`. A Pager is optional: reach for one when you want your own swap container, or extend it (like `ColumnPager`) for a richer layout.");
 		this.previews();
 	}
 });

@@ -1,15 +1,10 @@
 import App, { el, div, a } from "./framework/core/App/App.js";
-// Re-export the framework classes so pages import them from "/app.js". No page is
-// statically imported here — topics load lazily on first visit and the App climbs
-// to a page's pager-owning topic when needed (App.ensure_topic), so nothing has
-// to be registered in app.js.
-import { Page } from "./framework/core/Page/Page.class.js";
-import { Pager } from "./framework/core/Pager/Pager.js";
-import { ColumnPager } from "./framework/core/Pager/ColumnPager.js";
-import { Router } from "./framework/core/Router/Router.js";
 
 App.stylesheet("/styles.css");
 
+// The app: a nav config + the singleton. The Router is wired by App.config_router;
+// no page is imported here — topics load lazily on first visit, and the App climbs
+// to a page's pager-owning topic when needed (App.load_topic).
 const app = window.app = new App({
     nav(){
         el.c("nav", "flex gap", () => {
@@ -19,17 +14,15 @@ const app = window.app = new App({
             div.c("nav-item", a("Castin").href("/castin/"));
             div.c("nav-item", a("Edric").href("/edric/"));
             div.c("nav-item", a("Michael").href("/michael/"));
+            div.c("nav-item", a("Framework").href("/framework/"));
         })
     }
 });
 
-// opt-in: turns internal links into no-reload navigation (remove for full loads)
-app.router = new Router({ app });
-
 export default app;
 export { app };
-export * from "./framework/core/App/App.js";
-export { Page } from "./framework/core/Page/Page.class.js";
+export * from "./framework/core/App/App.js"; // App + View factories + Page
 export { Pager } from "./framework/core/Pager/Pager.js";
 export { ColumnPager } from "./framework/core/Pager/ColumnPager.js";
 export { Router } from "./framework/core/Router/Router.js";
+export * from "./framework/ext/markdown/md.js";

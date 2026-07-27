@@ -7,7 +7,7 @@ export default new Page({
 	content(){
 		p("There are no per-link handlers. The Router adds ONE click listener on `document` and upgrades a click to no-reload navigation only when it's safe:");
 
-		pre(`• we're on a re-renderable Page   (app.current instanceof Page)
+		pre(`• we're on a re-renderable Page   (app.page instanceof Page)
 • the target is a registered Page (Page.registry.has(pathname))
 • same origin, no ⌘/ctrl/shift/middle click`);
 

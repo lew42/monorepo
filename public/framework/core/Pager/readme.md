@@ -23,11 +23,12 @@ pager.show(pageB);           // swaps to pageB
 ```
 
 `show(page)` = `empty()` + `append(page)` + track `.active`. That's the whole
-class. Lifecycle (activate/deactivate, title/meta) is the Router/App's job — the
-thing that knows the URL. The Pager only owns the DOM swap.
+class. Lifecycle (activate/deactivate, title/meta) is the App's job — the thing
+that knows the URL. The Pager only owns the DOM swap.
 
-The App creates one `Pager` as its main content area (`app.pager`); every page is
-swapped in and out of it.
+The App does **not** use a Pager — it renders pages straight into `$app`. `Pager`
+is entirely optional: reach for it when *you* want a swap container (tabs, a
+wizard), and extend it (like `ColumnPager`) for a richer layout.
 
 ## ColumnPager — the drill-down layout
 
@@ -63,18 +64,17 @@ Key details:
 - Below `45em` (a container query on its own width) the sidebar collapses to a
   burger and only the active column shows.
 
-## How they nest
+## How it mounts
 
 ```
-.app
-  .pager            ← app.pager (Pager) — swaps whole "host" pages
-    .column-pager   ← a topic's ColumnPager, built by host.render()
-      .sidebar  .main(.topbar .columns)
+.app                ← App.render's container; App.load_page swaps its contents
+  .column-pager     ← a topic's ColumnPager, from host.render()
+    .sidebar  .main(.topbar .columns)
 ```
 
-`.main` is just the layout region beside the sidebar. The app Pager swaps hosts;
-a host that owns a pager renders a ColumnPager inside it. Simple pages skip the
-ColumnPager and render `body()` straight into the Pager.
+`.main` is just the layout region beside the sidebar. `App.load_page` appends
+`page.host()`: for a topic that's `new ColumnPager(topic)`; for a plain page it's
+`body()`, rendered straight into `$app`. No Pager wraps the app content.
 
 ## Building another structure
 

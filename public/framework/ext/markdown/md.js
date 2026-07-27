@@ -1,0 +1,98 @@
+import View from "../../core/View/View.js";
+import { marked } from "./marked.esm.js";
+
+View.stylesheet(import.meta, "md.css");
+
+// Tags that can hold block-level children get the full marked.parse() (which
+// wraps paragraphs in <p>). Everything else — p, h1, span, li — gets
+// parseInline(), so p().md("**hi**") doesn't nest a <p> inside a <p>.
+const block_tags = new Set(["DIV", "SECTION", "ARTICLE", "MAIN", "ASIDE", "HEADER", "FOOTER", "BLOCKQUOTE", "BODY", "FIGURE", "DETAILS", "TD"]);
+
+/**
+ * md — markdown as a View addon, not a class.
+ *
+ * Importing this module patches View.prototype.md(). That's what `ext/` is for:
+ * opt-in modules that may extend core. Nothing in app.js imports it, so pages
+ * that don't use markdown never load marked.
+ *
+ *   p().md("Some **inline** markdown");     // into an existing view
+ *   md("Hi.").ac("note");                   // a real <p>, chainable
+ *   md.c("note", "Hi.");                    // classes first, like div.c()
+ *   md("# Title");                          // a real <h1>
+ *   md("Multi\n\nblock");                   // a captured div.md
+ *   md.file(import.meta, "readme.md");      // a promise of a div.md
+ */
+
+// Inline markdown into any existing view. Tag-aware (see block_tags).
+View.prototype.md = function(content){
+	const parse = block_tags.has(this.el.tagName) ? marked.parse : marked.parseInline;
+	return this.html(parse(content));
+};
+
+// You get the element you wrote: content is parsed, and a single root block
+// (<p>, <h1>, <ul>, …) is adopted directly — so md("Hi.") behaves like p() and
+// chains. Multiple blocks are wrapped in a div.md. Either way the View captures
+// itself into View.captor like any other factory.
+export default function md(content){
+	const html = marked.parse(content).trim();
+	const template = document.createElement("template");
+	template.innerHTML = html;
+
+	if (template.content.children.length === 1)
+		return new View({ el: template.content.firstElementChild });
+
+	return new View().ac("md").html(html);
+}
+
+// md.c("note", "Some **md**") — classes first, like div.c() / p.c()
+md.c = function(classes, content){
+	return md(content).ac(classes);
+};
+
+/**
+ * md.file(import.meta, "readme.md") — fetch a markdown file and parse it.
+ *
+ * Resolved against the *module's* url, never the document's: with the SPA
+ * fallback the document url is the route (/framework/core/x has no trailing
+ * slash), so a document-relative fetch would miss. Same (meta, url) signature
+ * as View.stylesheet() and View.load().
+ *
+ * Returns a PROMISE of a div.md, deliberately — not a view that fills itself
+ * later. A promise composes with what the framework already has:
+ *
+ *   content(){ return md.file(import.meta, "readme.md"); }   // View.append_promise
+ *
+ * and it can be awaited, so App.load_page can finish loading before it swaps
+ * the DOM (that's the no-flash guarantee in App.load_page). The text is cached
+ * per url, so re-visiting a page re-parses but doesn't re-fetch.
+ *
+ * `{ h1: false }` drops a leading <h1>. A readme opens with its own title and a
+ * Page renders `title` as an h1, so rendering a readme as page content would
+ * otherwise show it twice.
+ */
+md.file = async function(meta, url, options = {}){
+	const href = new URL(url, meta.url).href;
+	const view = new View({ capture: false }).ac("md");
+
+	try {
+		const text = await (md.cache[href] ??= fetch(href).then(resp => {
+			if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`);
+			return resp.text();
+		}));
+
+		view.html(marked.parse(text));
+
+		if (options.h1 === false && view.el.firstElementChild?.tagName === "H1")
+			view.el.firstElementChild.remove();
+
+		return view;
+	} catch (error) {
+		delete md.cache[href]; // don't cache the failure
+		return view.ac("md-error").text(`Error loading ${url}: ${error.message}`);
+	}
+};
+
+// url -> Promise<string>. Populated by md.file.
+md.cache = {};
+
+export { md, marked };

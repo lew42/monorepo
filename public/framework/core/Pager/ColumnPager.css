@@ -1,11 +1,10 @@
 @layer theme {
 
-	/* full-bleed height chain: viewport → body → app → pager → column-pager.
+	/* full-bleed height chain: viewport → body → app → column-pager.
 	   framework.css gives body only min-height:100%, so pin the chain when a
 	   column-pager is present. */
 	body:has(.column-pager) { height: 100%; }
 	.app:has(.column-pager) { max-width: none; margin: 0; padding: 0; height: 100%; }
-	.pager:has(.column-pager) { height: 100%; }
 
 	.column-pager {
 		display: flex;
