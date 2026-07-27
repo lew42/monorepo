@@ -1,6 +1,6 @@
-import { Page2, p, ul, ol, li } from "/app.js";
+import { Page, p, ul, ol, li } from "/app.js";
 
-export default new Page2({
+export default new Page({
 	meta: import.meta,
 	title: "List",
 	description: "Unordered, ordered, and nested lists.",

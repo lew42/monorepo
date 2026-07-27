@@ -1,8 +1,8 @@
-import app, { Page2, div, h1, h2, h3, h4, h5, h6, p, a, button, hr, ul, li, code } from "/app.js";
+import app, { Page, div, h1, h2, h3, h4, h5, h6, p, a, button, hr, ul, li, code } from "/app.js";
 
 // app.$body.ac("theme-1"); throws?
 
-export default new Page2({
+export default new Page({
 	meta: import.meta,
 	title: "Branding",
 	content(){

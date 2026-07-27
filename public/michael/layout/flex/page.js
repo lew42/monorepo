@@ -1,4 +1,4 @@
-import { Page2, p, div } from "/app.js";
+import { Page, p, div } from "/app.js";
 
 // three labelled boxes, reused across every demo
 function boxes(n = 3){
@@ -12,7 +12,7 @@ function demo(classes, n){
 	div.c("demo " + classes, () => boxes(n));
 }
 
-export default new Page2({
+export default new Page({
 	meta: import.meta,
 	title: "Flex",
 	description: "flex and its modifiers: wrap, auto, three, v, split, centering.",

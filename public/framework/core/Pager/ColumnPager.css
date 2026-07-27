@@ -1,0 +1,196 @@
+@layer theme {
+
+	/* full-bleed height chain: viewport → body → app → pager → column-pager.
+	   framework.css gives body only min-height:100%, so pin the chain when a
+	   column-pager is present. */
+	body:has(.column-pager) { height: 100%; }
+	.app:has(.column-pager) { max-width: none; margin: 0; padding: 0; height: 100%; }
+	.pager:has(.column-pager) { height: 100%; }
+
+	.column-pager {
+		display: flex;
+		height: 100%;
+		position: relative;                    /* anchor for mobile sidebar + backdrop */
+		container: column-pager / inline-size; /* layout responds to its own width */
+		--sidebar: 13em;
+	}
+
+	/* ---- persistent left sidebar (topic + its children) -------------- */
+
+	.column-pager > .sidebar {
+		flex: 0 0 var(--sidebar);
+		background: var(--bg);
+		color: #fff;
+		display: flex;
+		flex-direction: column;
+		overflow-y: auto;
+	}
+
+	.column-pager .brand {
+		display: block;
+		padding: 1em 1.2em;
+		font-weight: 800;
+		font-size: 1.2em;
+		color: #fff;
+		text-decoration: none;
+	}
+
+	.column-pager .sidebar-nav { display: flex; flex-direction: column; }
+
+	.column-pager .sidebar-link {
+		padding: 0.6em 1.2em;
+		color: rgba(255,255,255,0.75);
+		text-decoration: none;
+		border-left: 3px solid transparent;
+	}
+	.column-pager .sidebar-link:hover { background: rgba(255,255,255,0.08); color: #fff; }
+	.column-pager .sidebar-link.active {
+		color: #fff;
+		border-left-color: var(--prim);
+		background: rgba(255,255,255,0.06);
+	}
+
+	/* ---- main (topbar + columns; the region beside the sidebar) ------ */
+
+	.column-pager > .main {
+		flex: 1 1 0;
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+		background: #eef0f4;
+	}
+
+	.column-pager .topbar {
+		flex: 0 0 auto;
+		display: flex;
+		align-items: center;
+		gap: 0.4em;
+		padding: 0.4em 0.8em;
+		background: #fff;
+		border-bottom: 1px solid rgba(0,0,0,0.08);
+	}
+
+	.column-pager .burger {
+		display: none;               /* shown only in the narrow layout */
+		cursor: pointer;
+		padding: 0.1em 0.45em;
+		font-size: 1.2em;
+		line-height: 1;
+		user-select: none;
+		border-radius: 3px;
+	}
+	.column-pager .burger:hover { background: rgba(0,0,0,0.08); }
+
+	.column-pager .backdrop {
+		display: none;               /* shown only when nav is open (narrow) */
+		position: absolute;
+		inset: 0;
+		z-index: 15;
+		background: rgba(0,0,0,0.35);
+	}
+
+	.column-pager .breadcrumbs {
+		display: flex;
+		align-items: center;
+		gap: 0.4em;
+		font-size: 0.9em;
+	}
+	.column-pager .crumb { color: var(--subtle); text-decoration: none; }
+	.column-pager .crumb:hover { color: var(--prim); text-decoration: underline; }
+	.column-pager .crumb:last-of-type { color: inherit; font-weight: 700; }
+	.column-pager .crumb-sep { color: rgba(0,0,0,0.3); }
+
+	.column-pager .columns {
+		flex: 1 1 0;
+		display: flex;
+		overflow: hidden;
+	}
+
+	/* ---- a column ---------------------------------------------------- */
+
+	.column-pager .column {
+		flex: 1 1 0;          /* the two columns share the space equally */
+		min-width: 0;         /* allow shrinking below content width */
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+		background: #fff;
+		border-right: 1px solid rgba(0,0,0,0.08);
+	}
+	/* .secondary = left/nav column, .active = focus; equal by default.
+	   A single column is .active and simply fills. */
+
+	.column-pager .col-bar {
+		flex: 0 0 auto;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0.4em 0.8em;
+		background: #f6f7f9;
+		border-bottom: 1px solid rgba(0,0,0,0.08);
+		font-size: 0.8em;
+	}
+	.column-pager .col-path { color: var(--subtle); font-family: Consolas, monospace; }
+	.column-pager .col-close { cursor: pointer; padding: 0 0.4em; border-radius: 3px; color: var(--subtle); }
+	.column-pager .col-close:hover { background: rgba(0,0,0,0.1); color: #000; }
+
+	/* col-body is a query container, so demos inside can respond to it */
+	.column-pager .col-body {
+		flex: 1 1 0;
+		overflow: auto;
+		container-type: inline-size;
+		container-name: col;
+	}
+
+	.column-pager .page-title { font-size: 1.8em; font-weight: 800; margin-bottom: 0.5em; }
+
+	/* ---- preview cards (a parent listing its children) --------------- */
+
+	.column-pager .previews {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(min(14em, 100%), 1fr));
+		gap: 0.8em;
+		margin: 1em 0;
+	}
+	.column-pager .preview {
+		display: block;
+		padding: 0.9em 1em;
+		background: #fff;
+		border: 1px solid rgba(0,0,0,0.12);
+		border-radius: 0.5em;
+		text-decoration: none;
+		color: inherit;
+		transition: border-color 0.15s, box-shadow 0.15s, transform 0.05s;
+	}
+	.column-pager .preview:hover {
+		border-color: var(--prim);
+		box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+	}
+	.column-pager .preview:active { transform: translateY(1px); }
+	.column-pager .preview-title { font-weight: 700; }
+	.column-pager .preview-desc { color: var(--subtle); font-size: 0.85em; margin-top: 0.2em; }
+
+	.column-pager .page-link { font-weight: 600; }
+
+	/* ---- narrow / mobile layout (container query on the layout's width) --- */
+	@container column-pager (max-width: 45em) {
+
+		.column-pager > .sidebar {
+			position: absolute;
+			inset: 0 auto 0 0;
+			width: var(--sidebar);
+			max-width: 80%;
+			z-index: 20;
+			transform: translateX(-100%);
+			transition: transform 0.2s ease;
+			box-shadow: 2px 0 12px rgba(0,0,0,0.3);
+		}
+		.column-pager.nav-open > .sidebar { transform: translateX(0); }
+
+		.column-pager .burger { display: block; }
+		.column-pager.nav-open .backdrop { display: block; }
+
+		.column-pager .column.secondary { display: none; }
+		.column-pager .column.active { flex-basis: 100%; }
+	}
+}

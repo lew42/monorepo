@@ -1,6 +1,6 @@
-import { Page2, p, form, fieldset, legend, label, input, textarea, select, option, button } from "/app.js";
+import { Page, p, form, fieldset, legend, label, input, textarea, select, option, button } from "/app.js";
 
-export default new Page2({
+export default new Page({
 	meta: import.meta,
 	title: "Input",
 	description: "Form controls — inputs, select, textarea, buttons.",

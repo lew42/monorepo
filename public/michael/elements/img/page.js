@@ -1,4 +1,4 @@
-import { Page2, p, img, figure, figcaption } from "/app.js";
+import { Page, p, img, figure, figcaption } from "/app.js";
 
 // a tiny inline SVG so this page needs no asset file
 const swatch = "data:image/svg+xml;utf8," + encodeURIComponent(
@@ -9,7 +9,7 @@ const swatch = "data:image/svg+xml;utf8," + encodeURIComponent(
 	 </svg>`
 );
 
-export default new Page2({
+export default new Page({
 	meta: import.meta,
 	title: "Image",
 	description: "img is display:block, max-width:100% by default.",

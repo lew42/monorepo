@@ -1,26 +1,26 @@
 @layer theme {
 
 	/* Doc-demo helpers used by the michael layout/component pages.
-	   These are michael-specific (the framework's generic Page2 shell lives in
-	   framework/core/Page/Page2.css); scoped to .page2 since that's where the
-	   michael docs render. */
+	   These are michael-specific (the framework's generic layout CSS lives in
+	   framework/core/Pager/ColumnPager.css); scoped to .column-pager since that's
+	   where the michael docs render. */
 
-	.page2 .demo > * {
+	.column-pager .demo > * {
 		background: var(--prim);
 		color: #fff;
 		padding: 0.8em 1em;
 		border-radius: 0.3em;
 	}
-	.page2 .demo.bare > * { background: rgba(0,0,0,0.06); color: inherit; }
+	.column-pager .demo.bare > * { background: rgba(0,0,0,0.06); color: inherit; }
 
-	.page2 .demo-label {
+	.column-pager .demo-label {
 		font-family: Consolas, monospace;
 		font-size: 0.8em;
 		color: var(--subtle);
 		margin: 1.4em 0 0.4em;
 	}
 
-	.page2 .card {
+	.column-pager .card {
 		border: 1px solid rgba(0,0,0,0.12);
 		border-radius: 0.5em;
 		padding: 1em;

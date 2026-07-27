@@ -1,0 +1,8 @@
+@layer theme {
+
+	/* A bare Pager is just a block container that swaps its child. It adds no
+	   look of its own, so wrapping the app content in one doesn't disturb
+	   centering / theme cards. Full-bleed sizing is opt-in per layout
+	   (see ColumnPager.css, which sizes .pager:has(.column-pager)). */
+	.pager { display: block; }
+}

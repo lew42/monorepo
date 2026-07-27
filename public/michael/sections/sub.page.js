@@ -1,14 +1,11 @@
 import { Page, p, div, h1, h2, h3, button } from "/app.js";
-import sub from "./sub.page.js";
 
 export default new Page({
 	meta: import.meta,
-	title: "Sections",
+	title: "Sub",
 	description: "Full-width compositions — hero, feature grid, CTA.",
 	content(){
 		p("Sections are elements + layout + components composed into page-scale blocks. Here they're proven together, using only framework classes.");
-
-		sub.link();
 
 		h3("Hero");
 		div.c("card", () => {

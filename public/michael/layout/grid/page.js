@@ -1,11 +1,11 @@
-import { Page2, p, div } from "/app.js";
+import { Page, p, div } from "/app.js";
 
 function boxes(n = 6){
 	for (let i = 1; i <= n; i++)
 		div(String(i));
 }
 
-export default new Page2({
+export default new Page({
 	meta: import.meta,
 	title: "Grid",
 	description: "grid.auto and grid.three — responsive columns with no media queries.",

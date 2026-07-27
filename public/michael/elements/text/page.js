@@ -1,6 +1,6 @@
-import { Page2, h1, h2, h3, h4, h5, h6, p, a, strong, em, code, blockquote, hr, small } from "/app.js";
+import { Page, h1, h2, h3, h4, h5, h6, p, a, strong, em, code, blockquote, hr, small } from "/app.js";
 
-export default new Page2({
+export default new Page({
 	meta: import.meta,
 	title: "Text",
 	description: "Headings, paragraphs, links, emphasis, quotes.",

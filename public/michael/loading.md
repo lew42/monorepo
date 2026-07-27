@@ -40,7 +40,7 @@ Rule of thumb: eager-import a subtree only when you need its objects up front
 ## 2. Two ways to walk from a page up to its ancestors
 
 Both need the same end result: from a leaf page, produce `[root … leaf]` so the
-shell can show the last two as columns and the rest as breadcrumbs.
+ColumnPager can show the last two as columns and the rest as breadcrumbs.
 
 ### (a) Climb path-by-path (current)
 
@@ -198,7 +198,7 @@ Two things fall out of the table:
   than one direct import).
 - **Bottom-up excels** at: dead-simple deep-linking (one import to the target).
   **Backfires** on anything needing ancestors — it must climb with *computed*
-  dynamic imports (bundler-hostile) and the target paints before its shell/context
+  dynamic imports (bundler-hostile) and the target paints before its layout/context
   is known (async pop-in).
 
 > Note the current code pays **both** costs: `app.js` eager-imports the whole
@@ -220,30 +220,37 @@ Why this is attractive:
 - **Imports stay literal** → bundler splits each page into its own chunk for free.
   No `import(computedString)` anywhere.
 - It generalizes the "**topic owns its subtree**" idea: the topic is the entry
-  point for loading *and* (see §7) for choosing the shell.
+  point for loading *and* (see §7) for choosing the layout (its `pager`).
 
 Cost: each page needs to map a URL segment → a child (a small `children` map or a
 naming convention), and the router needs the descent loop. More machinery than
 "framework computes `path_to_page_url` and imports it" — but that machinery buys
 literal imports and per-page control.
 
-## 7. Resulting class shape (Page / Router / Shell)
+## 7. Resulting class shape (Page / Router / Pager) — BUILT
 
-The loading decision points at a decomposition. Today `Page2` fuses three
-concerns; splitting them removes the "Page vs Page2" fork:
+> Implemented. `Page2` is gone, split into `Page` + `Pager`/`ColumnPager` +
+> `Router` exactly as below. Adoption + registry + synchronous `chain`/`host`
+> are live; the michael docs (and their own /page/ /pager/ /column-pager/
+> /router/ sections) run on it. See each class's `readme.md`.
+
+The loading decision pointed at this decomposition, which also removed the
+"Page vs Page2" fork:
 
 - **`Page` (keep minimal)** — content + `children` (data) + `link`/`preview`.
-  Dormant. **No routing, no shell.** You always write `new Page(...)`.
+  Dormant. **No routing, no layout.** You always write `new Page(...)`.
 - **`Router` (one, small — the sane core of the old "Pager")** — owns
-  `location ↔ page` resolution + `pushState`/`popstate`, and drives the top-down
-  descent (§6). It calls `page.activate()` (title/meta) on the active page. Keep
-  it tiny; the old Pager "got complicated" because it also owned rendering and
-  page state — don't repeat that.
-- **`Shell` / layout (a class — justified: columns + breadcrumbs need structure)**
+  `location ↔ page` resolution + `pushState`/`popstate`, and drives the load
+  (App.ensure_topic climbs to the pager-owning topic). It calls `page.activate()`
+  (title/meta). Keep it tiny; the old Pager "got complicated" because it also
+  owned rendering and page state — don't repeat that.
+- **`Pager` / layout (a class — justified: columns + breadcrumbs need structure)**
   — given the chain (`topic … active`) and the topic's children, renders the
-  structure. `Columns` today; `Tabs`/`Grid` later. A **topic page declares its
-  shell** (`new Page({ shell: Columns, children: […] })`); descendants inherit it.
+  layout. `ColumnPager` today; `Tabs`/`Grid` later. A **topic page declares its
+  `pager`** (`new Page({ pager: ColumnPager, children: […] })`); descendants
+  inherit it via `host()`.
 
-So: routing lives in the **Router**, not in `Page`. The multi-column behavior is
-a **Shell** the Router applies — configuration, not a `Page` subclass. One `Page`
-class, one small `Router`, swappable `Shell`s.
+So: routing lives in the **Router**, not in `Page`; the multi-column behavior is
+a **Pager** the topic declares — configuration, not a `Page` subclass. One `Page`
+class, one small `Router`, swappable `Pager`s. ("Shell" was an earlier word for
+this layout class; it's just the ColumnPager.)

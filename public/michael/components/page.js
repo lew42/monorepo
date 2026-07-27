@@ -1,6 +1,6 @@
-import { Page2, p, div, h3, button, a } from "/app.js";
+import { Page, p, div, h3, button, a } from "/app.js";
 
-export default new Page2({
+export default new Page({
 	meta: import.meta,
 	title: "Components",
 	description: "Small assembled pieces — buttons, cards, nav items.",

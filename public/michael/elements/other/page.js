@@ -1,6 +1,6 @@
-import { Page2, p, pre, table, thead, tbody, tr, th, td, details, summary } from "/app.js";
+import { Page, p, pre, table, thead, tbody, tr, th, td, details, summary } from "/app.js";
 
-export default new Page2({
+export default new Page({
 	meta: import.meta,
 	title: "Other",
 	description: "Preformatted code, tables, disclosure.",

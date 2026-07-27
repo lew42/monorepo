@@ -1,11 +1,11 @@
-import { Page2, p, div } from "/app.js";
+import { Page, p, div } from "/app.js";
 
 function boxes(n = 4){
 	for (let i = 1; i <= n; i++)
 		div(String(i));
 }
 
-export default new Page2({
+export default new Page({
 	meta: import.meta,
 	title: "Gap",
 	description: "gap and gap-2em — spacing without margins.",

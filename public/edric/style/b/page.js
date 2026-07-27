@@ -1,4 +1,4 @@
-import { p, a } from "/app.js";
+import { p, a, app } from "/app.js";
 
 app.$body.ac("theme-1");
 

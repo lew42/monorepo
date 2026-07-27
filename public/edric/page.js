@@ -1,4 +1,4 @@
-import { h1, h2, p, a, pre, div } from "/app.js";
+import { h1, h2, p, a, pre, div, app } from "/app.js";
 import b from "./style/b/page.js";
 import c from "./style/c/page.js";
 import d from "./style/d/page.js";

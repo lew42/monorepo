@@ -1,4 +1,4 @@
-import { Page2, p } from "/app.js";
+import { Page, p } from "/app.js";
 import text from "./text/page.js";
 import input from "./input/page.js";
 import button from "./button/page.js";
@@ -6,7 +6,7 @@ import img from "./img/page.js";
 import list from "./list/page.js";
 import other from "./other/page.js";
 
-export default new Page2({
+export default new Page({
 	meta: import.meta,
 	title: "Elements",
 	description: "Raw HTML elements with only framework.css base styles.",
