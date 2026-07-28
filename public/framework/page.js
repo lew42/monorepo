@@ -14,17 +14,14 @@ export default new Page({
 	children: [start, core, ext, util, dev],
 	content(){
 
-		pre(`import { Page, p } from "/app.js";
+		md("Create `/path/page.js`:");
 
-export default new Page({
-    meta: import.meta,
-    title: "Hello",
-    content(){
-        p("A page.");
-    }
-});`);
 
-		md("Save it as `page.js`. Refresh. That's the framework.");
+		pre(`import { p } from "/app.js";
+
+p("Hello world.")`);
+
+		md("That's basically it.");
 
 		this.previews();
 

@@ -1,4 +1,4 @@
-import { View, div, span, a } from "../View/View.js";
+import { View, div, span, a, img } from "../View/View.js";
 import { Pager } from "./Pager.js";
 
 View.stylesheet(import.meta, "ColumnPager.css");
@@ -25,12 +25,17 @@ View.stylesheet(import.meta, "ColumnPager.css");
  * DOM: .column-pager > (.sidebar, .backdrop, .main > (.topbar, .columns))
  *
  * ── Customizing ──────────────────────────────────────────────────────────
- * Every piece below is its own method, so a topic overrides one by subclassing:
+ * Every piece below is its own method, so a topic overrides one by subclassing.
+ * Name the subclass and you also get a CSS hook for free — classify() turns the
+ * constructor chain into classes, so `.docs-pager` scopes styles to one topic:
  *
- *   pager: class extends ColumnPager { sidebar(){ ... } }
+ *   pager: class DocsPager extends ColumnPager { nav(){ ... } }
  *
- * Per-page column width is data, not code: a page declares `col: "narrow"` and
- * those classes land on its `.column` (see ColumnPager.css).
+ * Data-only knobs on the topic, for when a subclass is overkill:
+ *   brand      text beside the logo   (default: the topic's title)
+ *   brand_url  where the logo points  (default: "/")
+ *   logo       image url              (default: the document's <link rel=icon>)
+ *   col        classes on a page's column — see ColumnPager.css
  */
 export class ColumnPager extends Pager {
 
@@ -57,8 +62,30 @@ export class ColumnPager extends Pager {
 		});
 	}
 
+	/* [ LOGO Framework ] — two links, two destinations:
+	 *   the logo  → the site root ("/", or root.brand_url)
+	 *   the text  → this topic's own url, so it's the way back to the section
+	 *
+	 * Both derive from data the topic already has (title, url), so a topic gets
+	 * a correct brand with no configuration. Override `brand` for other text. */
 	brand(){
-		return a(this.root.brand ?? "Home").href(this.root.brand_url ?? "/").ac("brand");
+		return div.c("brand", () => {
+			const logo = this.logo();
+
+			if (logo)
+				a(() => img().attr("src", logo).attr("alt", ""))
+					.href(this.root.brand_url ?? "/").ac("brand-logo");
+
+			a(this.root.brand ?? this.root.title)
+				.href(this.root.url).ac("brand-title");
+		});
+	}
+
+	/* The document already declares the site's icon — reuse it rather than
+	 * hardcoding an asset path into a framework class. `logo` on the topic wins;
+	 * a site with no <link rel=icon> just gets the text. */
+	logo(){
+		return this.root.logo ?? document.querySelector('link[rel~="icon"]')?.href;
 	}
 
 	nav(){

@@ -1,3 +1,7 @@
+/* Layer order, restated: the FIRST declaration wins and module import
+   order decides who loads first, so every stylesheet states it. */
+@layer base, theme, util;
+
 /* Rendered markdown. framework.css already styles pre/code/lists/headings, so
    this only handles what a generated block needs: its own vertical rhythm. */
 @layer theme {

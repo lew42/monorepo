@@ -1,12 +1,15 @@
-/* Site-level styles.
+/* Layer order, restated: the FIRST declaration wins and module import
+   order decides who loads first, so every stylesheet states it. */
+@layer base, theme, util;
 
-   MUST be layered. framework.css declares `@layer base, theme, util`, and in the
-   CSS cascade *unlayered rules beat every layer* — regardless of specificity. An
-   unlayered `.page { padding: 2em 6% }` here silently defeated
-   `.column-pager .column.narrow .page { … }` in ColumnPager.css, four classes
-   deep. Staying inside `theme` puts site rules in the same cascade as framework
-   components, where specificity and load order decide normally (this file loads
-   last, so an equally-specific rule here still wins). */
+/* Site-level styles — this site's skin over the framework's structure.
+
+   MUST stay inside `@layer theme`. In the CSS cascade *unlayered rules beat
+   every layer*, regardless of specificity: while this file was unlayered, a
+   one-class `.page` rule here silently defeated a four-class
+   `.column-pager .column.narrow .page` in ColumnPager.css. Inside the layer,
+   site rules sit in the same cascade as framework components and win normally —
+   this file is linked last, so an equally-specific rule here still takes it. */
 @layer theme {
 
     body.theme-1 {
@@ -18,7 +21,10 @@
 
     .app { background: #ddd; }
 
-    .page { max-width: 60em; background: white; margin-inline: auto; padding: 2em 6%; }
+    /* Page.css owns .page's structure (width, centering, padding) — that's the
+       framework's business. Backgrounds are this site's skin, so they live here.
+       Loaded last, so anything set here wins at equal specificity. */
+    .page { background: white; }
 
     .page-link-block { background: rgba(0,0,0,0.1); display: block; padding: 1em; margin-bottom: 1em; }
 }

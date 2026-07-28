@@ -1,3 +1,7 @@
+/* Layer order, restated: the FIRST declaration wins and module import
+   order decides who loads first, so every stylesheet states it. */
+@layer base, theme, util;
+
 @layer theme {
 
 	/* full-bleed height chain: viewport → body → app → column-pager.
@@ -25,14 +29,35 @@
 		overflow-y: auto;
 	}
 
+	/* [ LOGO Framework ] — the logo goes home, the text goes to this topic */
 	.column-pager .brand {
-		display: block;
-		padding: 1em 1.2em;
+		display: flex;
+		align-items: center;
+		gap: 0.55em;
+		padding: 0.9em 1.2em;
+	}
+
+	.column-pager .brand-logo {
+		flex: 0 0 auto;
+		display: flex;
+		line-height: 0;
+		opacity: 0.9;
+		transition: opacity 0.15s;
+	}
+	.column-pager .brand-logo:hover { opacity: 1; }
+	.column-pager .brand-logo img { width: 1.55em; height: 1.55em; }
+
+	.column-pager .brand-title {
+		min-width: 0;                /* so the ellipsis can happen */
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 		font-weight: 800;
-		font-size: 1.2em;
+		font-size: 1.15em;
 		color: #fff;
 		text-decoration: none;
 	}
+	.column-pager .brand-title:hover { color: rgba(255,255,255,0.75); }
 
 	.column-pager .sidebar-nav { display: flex; flex-direction: column; }
 
@@ -98,9 +123,8 @@
 		gap: 0.4em;
 		font-size: 0.9em;
 	}
-	.column-pager .crumb { color: var(--subtle); text-decoration: none; }
-	.column-pager .crumb:hover { color: var(--prim); text-decoration: underline; }
-	.column-pager .crumb.active { color: inherit; font-weight: 700; }
+	/* .crumb itself is styled in Page.css — Page.crumb() renders it. Only the
+	   separator belongs here; ColumnPager is what puts the crumbs in a row. */
 	.column-pager .crumb-sep { color: rgba(0,0,0,0.3); }
 
 	.column-pager .columns {
@@ -131,7 +155,7 @@
 
 	   `col` is just a class string; define your own alongside these. */
 
-	.column-pager .column.secondary.narrow { flex: 0 1 18em; }
+	.column-pager .column.secondary.narrow { flex: 0.6 1 0; }
 	.column-pager .column.secondary.wide   { flex: 2 1 0; }
 	.column-pager .column.secondary.half   { flex: 1 1 0; }  /* the default, named */
 
@@ -141,7 +165,7 @@
 
 	/* A narrow column is nav, not reading material — but it still renders the
 	   page's whole body. Shrink the wide, unwrappable bits so a landing page can
-	   lead with a code block and still collapse to an 18em strip. */
+	   lead with a code block and still read well once it's the narrow one. */
 	.column-pager .column.narrow .page { padding: 1.2em 1em; }
 	.column-pager .column.narrow pre,
 	.column-pager .column.narrow .demo-code { font-size: 0.7em; padding: 0.6em 0.7em; }
@@ -176,25 +200,6 @@
 	.column-pager .column:hover .col-close { opacity: 0.75; }
 	.column-pager .col-close:hover { background: rgba(0,0,0,0.1); color: #000; opacity: 1; }
 
-	/* ---- doc typography: section rhythm inside a page -----------------
-	   Scoped to `.page >` so headings inside a demo's rendered output keep
-	   their plain browser look — a demo shows what YOUR code renders. */
-
-	.column-pager .page > h2 {
-		font-size: 1.15em;
-		font-weight: 700;
-		margin: 2.2em 0 0.7em;
-		padding-bottom: 0.3em;
-		border-bottom: 1px solid rgba(0,0,0,0.1);
-	}
-	.column-pager .page > h3 {
-		font-size: 1em;
-		font-weight: 700;
-		margin: 1.6em 0 0.4em;
-	}
-	.column-pager .page > p,
-	.column-pager .page > .md { margin: 0.9em 0; }
-
 	/* col-body is a query container, so demos inside can respond to it */
 	.column-pager .col-body {
 		flex: 1 1 0;
@@ -203,52 +208,10 @@
 		container-name: col;
 	}
 
-	.column-pager .page-title {
-		font-size: 1.9em;
-		font-weight: 800;
-		letter-spacing: -0.015em;
-		margin: 0 0 0.7em;
-	}
-
-	/* ---- preview cards (a parent listing its children) --------------- */
-
-	.column-pager .previews {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(min(14em, 100%), 1fr));
-		gap: 0.8em;
-		margin: 1em 0;
-	}
-	.column-pager .preview {
-		display: block;
-		padding: 0.9em 1em;
-		background: #fff;
-		border: 1px solid rgba(0,0,0,0.12);
-		border-radius: 0.5em;
-		text-decoration: none;
-		color: inherit;
-		transition: border-color 0.15s, box-shadow 0.15s, transform 0.05s;
-	}
-	.column-pager .preview:hover {
-		border-color: var(--prim);
-		box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-	}
-	.column-pager .preview:active { transform: translateY(1px); }
-	.column-pager .preview-title { font-weight: 700; }
-	.column-pager .preview-desc { color: var(--subtle); font-size: 0.85em; margin-top: 0.2em; }
-
-	/* the preview for the page open in the next column reads as selected */
-	.column-pager .preview.active,
-	.column-pager .preview.in-path {
-		border-color: var(--prim);
-		background: color-mix(in srgb, var(--prim) 8%, #fff);
-		box-shadow: inset 3px 0 0 var(--prim);
-	}
-	.column-pager .preview.active .preview-title,
-	.column-pager .preview.in-path .preview-title { color: var(--prim); }
-
-	.column-pager .page-link { font-weight: 600; }
-	.column-pager .page-link.active,
-	.column-pager .page-link.in-path { color: var(--prim); }
+	/* .page-title, .previews/.preview, .page-link and the page's typographic
+	   rhythm all moved to Page.css — Page renders them, so they must look right
+	   outside a ColumnPager too. What stays here is this layout adapting them in
+	   its own context (see `.column.narrow .preview` above). */
 
 	/* ---- narrow / mobile layout (container query on the layout's width) --- */
 	@container column-pager (max-width: 45em) {

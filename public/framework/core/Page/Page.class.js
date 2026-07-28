@@ -1,5 +1,8 @@
 import { View, div, h1, a, span, is } from "../View/View.js";
 
+// the look of what this class renders — page, title, link/crumb/preview
+View.stylesheet(import.meta, "Page.css");
+
 /**
  * Page — a titled, linkable, dormant unit of content.
  *

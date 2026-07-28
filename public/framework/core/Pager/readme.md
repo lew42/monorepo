@@ -139,9 +139,29 @@ breadcrumbs, the container query, `close()` — is inherited. This is the answer
 *is* built in, as a **default you can replace in four lines**, and the class stays
 one file with no options object.
 
-Two escape hatches exist for trivial cases so you don't subclass for a string:
-`root.brand` and `root.brand_url` are read by `brand()`. Resist adding more —
-every knob is API surface, and the subclass already covers everything.
+**Name the subclass and CSS scoping comes free.** `classify()` walks the
+constructor chain, so `class DocsPager extends ColumnPager {}` — empty — renders
+`div.docs-pager.column-pager.pager`, and `.docs-pager > .sidebar { … }` styles
+one topic without touching the others. Before this, two ColumnPager topics were
+indistinguishable to CSS. (A class *field* — `classes = "docs"` — does **not**
+work: fields initialize after `super()` returns, and `classify()` runs inside it.)
+
+Data-only knobs, for when a subclass is overkill: `brand`, `brand_url`, `logo`
+(read by `brand()`), and `col` (read by `column()`). Resist adding more — every
+knob is API surface, and the subclass already covers everything.
+
+### `brand()` — two links, two destinations
+
+```
+[ 🖼 Framework ]
+   │      └── root.url — back to this section's landing page
+   └── "/" (or root.brand_url) — the site root
+```
+
+Both come from data the topic already has (`title`, `url`), so a topic gets a
+correct brand with zero configuration. The logo defaults to the document's own
+`<link rel="icon">` rather than a hardcoded path — a framework class shouldn't
+know a site's asset layout, and every site already declares its icon.
 
 ### 3. A new subclass — for a **different arrangement**
 
