@@ -1,7 +1,5 @@
 import { el, div, View, h1, h2, h3, p, is } from "../View/View.js";
 import Socket from "../../dev/Socket/Socket.js";
-import Page from "../Page/Page.js";
-import Router from "../Router/Router.js";
 
 // this needs to load immediately, so the layers are properly defined
 View.stylesheet(import.meta, "../../framework.css");
@@ -157,5 +155,5 @@ Font.fonts = {
 	}
 };
 
-export { App, Page, Router };
+export { App };
 export * from "../View/View.js";
