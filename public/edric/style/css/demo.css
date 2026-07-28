@@ -1,0 +1,15 @@
+.demo-highlight {
+    color: #e64980;
+    font-weight: bold;
+    text-decoration: underline wavy;
+}
+
+.demo-highlight:hover {
+    color: #ae3ec9;
+}
+
+@media (max-width: 30em) {
+    .demo-highlight {
+        font-size: 1.3em;
+    }
+}
