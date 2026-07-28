@@ -27,6 +27,24 @@
 
     .app { background: #ddd; }
 
+    /* ---- home page: sidebar + one scrolling column ----
+       The sidebar's LOOK is Sidebar.css (framework); this only says where it
+       goes — the same split ColumnPager uses. No height-pinning needed: the
+       page scrolls normally and the sidebar stretches to match. */
+
+    .home { display: flex; min-height: 100vh; }
+    .home > .sidebar { flex: 0 0 var(--sidebar); }
+    .home-main { flex: 1 1 0; min-width: 0; }
+
+    @media (max-width: 45em) {
+        .home { flex-direction: column; }
+        .home > .sidebar { flex: none; }
+        .home .sidebar-nav { flex-direction: row; flex-wrap: wrap; }
+        .home .sidebar-link { border-left: none; border-bottom: 3px solid transparent; }
+        .home .sidebar-link.active,
+        .home .sidebar-link.in-path { border-bottom-color: var(--prim); }
+    }
+
     /* Page.css owns .page's structure (width, centering, padding) — that's the
        framework's business. Backgrounds are this site's skin, so they live here.
        Loaded last, so anything set here wins at equal specificity. */

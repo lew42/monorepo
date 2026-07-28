@@ -22,6 +22,7 @@ const app = window.app = new App({
 export default app;
 export { app };
 export * from "./framework/core/App/App.js"; // App + View factories + Page
+export { Sidebar } from "./framework/core/Sidebar/Sidebar.js";
 export { Pager } from "./framework/core/Pager/Pager.js";
 export { ColumnPager } from "./framework/core/Pager/ColumnPager.js";
 export { TabPager } from "./framework/core/Pager/TabPager.js";

@@ -15,8 +15,9 @@
 		height: 100%;
 		position: relative;                    /* anchor for mobile sidebar + backdrop */
 		container: column-pager / inline-size; /* layout responds to its own width */
-		--sidebar: 13em;
 	}
+	/* --sidebar lives in framework.css :root — the home page's sidebar uses the
+	   same value, and one number in one place beats two that drift. */
 
 	/* ---- the sidebar's PLACEMENT ------------------------------------
 	   What a sidebar looks like is Sidebar.css — it isn't ours, we just render

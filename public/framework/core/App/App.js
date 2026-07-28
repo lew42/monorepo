@@ -146,6 +146,18 @@ export default class App {
 		return View.stylesheet(meta, url);
 	}
 
+	/* An ALIAS, not a second implementation — the logic lives in Page.module_url
+	 * (next to the `url` getter it inverts). The name stays because it's public
+	 * API that other code was written against: arya/lib/Router.js calls it at
+	 * runtime, and arya's + castin's doc pages describe it in prose. Deleting it
+	 * breaks their routers and makes their documentation describe a function
+	 * that doesn't exist.
+	 *
+	 * "/" → "/page.js", "/a/" → "/a/page.js", "/a/b" → "/a/b.page.js" */
+	static path_to_page_url(path) {
+		return Page.module_url(path);
+	}
+
 	static meta_path(meta, path) {
 		return new URL(path, meta.url).href;
 	}

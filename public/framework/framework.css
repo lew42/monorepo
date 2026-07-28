@@ -31,6 +31,7 @@
         --subtle: rgba(0,0,0,0.5);
         
         --column: 14em;
+        --sidebar: 13em;   /* any sidebar's width — ColumnPager's and the home page's */
     }
     
     :focus-visible {

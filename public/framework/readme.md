@@ -237,8 +237,18 @@ Low value, low cost; bundle it with something else.
   is held to.
 - **Three aliases for one function.** `View.stylesheet` (static),
   `App.stylesheet` (static), `app.stylesheet` (instance). Same for
-  `View.meta_path` / `App.meta_path`. Keep `View.stylesheet` and the `App`
-  static (used by `app.js`); the rest are noise.
+  `View.meta_path` / `App.meta_path`. It is tempting to call the extras noise —
+  **don't delete them.** `arya/lib/Page.js` calls `app.stylesheet()`, the
+  instance one. See below.
+
+- **The framework has external consumers now.** Removing a public static is a
+  breaking change, and `grep public/` before a merge does not see the branches
+  about to land. `App.path_to_page_url` was moved to `Page.module_url` while it
+  had one caller; the merge then brought in `arya/lib/Router.js`, which calls it
+  on every page load, plus two doc pages describing it in prose. It's back as a
+  one-line alias — one implementation, two names, and the second name is load-
+  bearing. The rule this buys: **rename freely inside `framework/`, alias on the
+  way out.** A dev's `lib/` is a downstream package that happens to share a repo.
 - **`instantiate()` is an unawaited async call in the constructor.** `new App()`
   returning before load is what makes `window.app = new App()` read well, and
   `app.ready` covers the wait — but a throw anywhere outside `load_page`'s own
