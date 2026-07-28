@@ -184,16 +184,35 @@ export default class View {
 
 	html(value){
 		// set
-		if (is.def(value) && value !== this.el.innerHTML){  
-									// don't re-update, important for contenteditable change events
-									// and losing focus upon re-update, etc.
-									// does touching this.el.innerHTML cause a performance hit?
-			this.el.innerHTML = value;
+		if (is.def(value) && value !== this.el.innerHTML){
+								// don't re-update, important for contenteditable change events
+								// and losing focus upon re-update, etc.
+								// does touching this.el.innerHTML cause a performance hit?
+			if (View.supports_sanitizer){
+				this.el.setHTML(value);
+			} else {
+				// fail-safe: never inject raw HTML we can't sanitize
+				console.warn("View.html(): Sanitizer API not supported, rendering as text instead of HTML");
+				this.el.textContent = value;
+			}
 			return this;
 
 		// get
 		} else {
 			return this.el.innerHTML
+		}
+	}
+
+	// raw innerHTML, no sanitization - only for content you fully trust (XSS risk otherwise)
+	html_unsafe(value){
+		// set
+		if (is.def(value) && value !== this.el.innerHTML){ // see comment in html()
+			this.el.innerHTML = value;
+			return this;
+
+		// get
+		} else {
+			return this.el.innerHTML;
 		}
 	}
 
@@ -615,6 +634,7 @@ export default class View {
 
 View.stylesheets = [];
 View.lazy = Promise.resolve();
+View.supports_sanitizer = "setHTML" in Element.prototype;
 
 export function icon(name){
 	return el.c("span", "material-icons icon", name);

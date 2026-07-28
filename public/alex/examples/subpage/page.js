@@ -5,10 +5,10 @@ app.$body.ac("theme-1");
 
 export default {
   link() {
-    return a.c("page-link", "/alex/subpage/").href("/alex/subpage/");
+    return a.c("page-link", "/alex/examples/subpage/").href("/alex/examples/subpage/");
   },
   render() {
-    a.c("page-back", "Back").href("../");
+    a.c("page-back", "Back").href("/alex/");
     h2("Alex's subpage");
     h3("Preview");
     nested.preview();
