@@ -1,17 +1,18 @@
 // Shared helpers for Alex's docs. Just functions that build Views —
 // exactly the kind of small, reusable piece the framework encourages.
-import app, { div, a, h1, h2, h3, p } from "/app.js";
+import app, { div, a, h3, p } from "/app.js";
 
 app.stylesheet("/alex/styles.css");
 
-// A doc page shell: a "Back" link, a title, then your content.
-//   doc({ title: "Framework", build(){ p("..."); } })
-export function doc({ title, back = "../", build }) {
+// A doc page shell: a "Back" link, then your content. The h1 comes from the
+// Page itself (`title` renders as h1.page-title above this shell).
+//   doc({ back: "/alex/", build(){ p("..."); } })
+export function doc({ back = "../", build }) {
   return div.c("doc", () => {
-    div.c("doc-header", () => {
-      if (back) a.c("doc-back", "Back").href(back);
-      h1(title);
-    });
+    if (back)
+      div.c("doc-header", () => {
+        a.c("doc-back", "Back").href(back);
+      });
     build();
   });
 }

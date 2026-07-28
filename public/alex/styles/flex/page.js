@@ -1,7 +1,5 @@
-import app, { div, h2, p, pre } from "/app.js";
+import { div, h2, p, pre, Page } from "/app.js";
 import { doc } from "../../ui/docs.js";
-
-app.$body.ac("theme-1");
 
 // small helper: a labelled demo row of boxes
 function row(...labels) {
@@ -10,10 +8,12 @@ function row(...labels) {
   };
 }
 
-export default {
-  render() {
+export default new Page({
+  meta: import.meta,
+  title: "Flex",
+  theme: "theme-1",
+  content() {
     doc({
-      title: "Flex",
       back: "/alex/styles/",
       build() {
         p("`.flex` turns on flexbox. Compose it with the modifier classes below. `.gap` adds spacing between children — you will use it constantly.");
@@ -48,4 +48,4 @@ export default {
       },
     });
   },
-};
+});

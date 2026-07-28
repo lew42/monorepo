@@ -1,12 +1,12 @@
-import app, { h2, p, pre } from "/app.js";
+import { h2, p, pre, Page } from "/app.js";
 import { doc } from "../../ui/docs.js";
 
-app.$body.ac("theme-1");
-
-export default {
-  render() {
+export default new Page({
+  meta: import.meta,
+  title: "View",
+  theme: "theme-1",
+  content() {
     doc({
-      title: "View",
       back: "/alex/framework/",
       build() {
         p("Every tag function returns a `View` wrapping one DOM element. You build a page by calling those functions and chaining methods on what they return.");
@@ -53,4 +53,4 @@ div.c("flex gap", () => {
       },
     });
   },
-};
+});

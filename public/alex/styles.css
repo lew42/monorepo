@@ -5,6 +5,8 @@
 .doc-header h1 { margin: 0; }
 
 .doc h1 { color: var(--prim); }
+/* the h1 is rendered by Page now (h1.page-title above .doc) — keep the accent */
+.page-title { color: var(--prim); }
 .doc h2 { margin-top: 2em; border-bottom: 1px solid var(--subtle); padding-bottom: 0.3em; }
 
 .doc-back { color: var(--prim); text-decoration: none; font-size: 0.8em; white-space: nowrap; }

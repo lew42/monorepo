@@ -1,4 +1,4 @@
-import app, { div, h2, h3, p, pre, ul, ol, li, img, input, el } from "/app.js";
+import app, { div, h2, h3, p, pre, ul, ol, li, img, input, el, Page } from "/app.js";
 import { doc } from "../../ui/docs.js";
 
 app.stylesheet(import.meta, "toggle-switch.css");
@@ -18,12 +18,12 @@ customElements.define("toggle-switch", class extends HTMLElement {
   }
 });
 
-app.$body.ac("theme-1");
-
-export default {
-  render() {
+export default new Page({
+  meta: import.meta,
+  title: "HTML basics",
+  theme: "theme-1",
+  content() {
     doc({
-      title: "HTML basics",
       back: "/alex/styles/",
       build() {
         p("You get these for free — no classes needed. `framework.css` applies them to plain tags so raw HTML already looks reasonable.");
@@ -83,4 +83,4 @@ $toggle.on("toggle", (e) =>
       },
     });
   },
-};
+});

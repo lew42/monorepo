@@ -1,12 +1,12 @@
-import app, { div, h2, p, pre, form, fieldset, legend, label, input, select, option, textarea, button } from "/app.js";
+import { div, h2, p, pre, form, fieldset, legend, label, input, select, option, textarea, button, Page } from "/app.js";
 import { doc } from "../../ui/docs.js";
 
-app.$body.ac("theme-1");
-
-export default {
-  render() {
+export default new Page({
+  meta: import.meta,
+  title: "Forms",
+  theme: "theme-1",
+  content() {
     doc({
-      title: "Forms",
       back: "/alex/styles/",
       build() {
         p("Form controls are styled straight out of the box: padded, bordered, and full-width. Buttons get a couple of opt-in color classes.");
@@ -55,4 +55,4 @@ button.c("bg", "Background");`);
       },
     });
   },
-};
+});

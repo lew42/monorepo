@@ -1,12 +1,12 @@
-import app, { div, h2, p, pre, button } from "/app.js";
+import { div, h2, p, pre, button, Page } from "/app.js";
 import { doc } from "../../ui/docs.js";
 
-app.$body.ac("theme-1");
-
-export default {
-  render() {
+export default new Page({
+  meta: import.meta,
+  title: "BEM",
+  theme: "theme-1",
+  content() {
     doc({
-      title: "BEM",
       back: "/alex/styles/",
       build() {
         p("BEM (Block, Element, Modifier) is a naming convention that keeps styles scoped to their components. Example:");
@@ -201,4 +201,4 @@ div.c("card-list", ...).style("--card-min", "min(20rem, 100%)");`);
       },
     });
   },
-};
+});

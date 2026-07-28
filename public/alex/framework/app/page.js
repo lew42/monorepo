@@ -1,12 +1,12 @@
-import app, { h2, p, pre } from "/app.js";
+import { h2, p, pre, Page } from "/app.js";
 import { doc } from "../../ui/docs.js";
 
-app.$body.ac("theme-1");
-
-export default {
-  render() {
+export default new Page({
+  meta: import.meta,
+  title: "App",
+  theme: "theme-1",
+  content() {
     doc({
-      title: "App",
       back: "/alex/framework/",
       build() {
         p("You almost never create an `App` yourself. `app.js` does it once and exposes it as the global `app`, which you can use from any page.");
@@ -22,19 +22,18 @@ export default {
         p("A trailing slash loads `page.js` inside that folder; no slash loads a sibling `name.page.js`. Whatever your `page.js` builds gets appended to the page. If the import throws, `App` shows a page-load error instead of a blank screen.");
 
         h2("What a page.js exports");
-        p("Three shapes all work as the `default` export:");
-        pre(`// 1. a function
-export default function(){ h1("Hi"); }
+        p("Prefer a `Page` — it gives you a title, a url, and registration for SPA navigation:");
+        pre(`import { Page, p } from "/app.js";
 
-// 2. an object with render()
-export default { render(){ h1("Hi"); } };
-
-// 3. nothing — just build at the top level
-h1("Hi");`);
-        p("Prefer a function or a `render()` method for anything you might want to `import` elsewhere, so it does not draw itself the moment it is imported.");
+export default new Page({
+    meta: import.meta,
+    title: "My page",
+    content(){ p("Hi"); }
+});`);
+        p("A plain function, an object with `render()`, or nothing at all (build at the top level) also work — the App duck-types them — but those pages are invisible to the Router, so links to them load the full page.");
 
         h2("Handy on every page");
-        p("`app.$body`:the `<body>` View. Add a theme class with `app.$body.ac(\"theme-1\")`.");
+        p("`app.$body`:the `<body>` View. Better: give your Page a `theme` property and the class is added while the page is active, removed when you leave.");
         p("`app.$app`:the `<div class=\"app\">` your page renders into.");
         p("`app.stylesheet(\"/alex/styles.css\")`:load a stylesheet. Everything is opt-in, so nothing but `framework.css` applies until you ask for it.");
         p("`app.font(name)`:load one of the predefined fonts.");
@@ -42,4 +41,4 @@ h1("Hi");`);
       },
     });
   },
-};
+});

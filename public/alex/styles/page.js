@@ -1,13 +1,14 @@
-import app, { p } from "/app.js";
+import { p, Page } from "/app.js";
 import { doc, cards } from "../ui/docs.js";
 
-app.$body.ac("theme-1");
-
-export default function () {
-  doc({
-    title: "Styles",
-    back: "/alex/",
-    build() {
+export default new Page({
+  meta: import.meta,
+  title: "Styles",
+  theme: "theme-1",
+  content() {
+    doc({
+      back: "/alex/",
+      build() {
       p("`framework.css` is deliberately small. It sets sensible defaults for raw HTML, then hands you a few opt-in utility classes. Nothing is themed until you add a theme class like `theme-1` to the body, so you always start from a clean slate.");
       p("The four pages below are the basics you will reach for first, each with live examples you can inspect:");
 
@@ -38,6 +39,7 @@ export default function () {
           href: "/alex/styles/bem/",
         }
       );
-    },
-  });
-}
+      },
+    });
+  },
+});

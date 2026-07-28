@@ -1,28 +1,13 @@
-import { a, h2, h3, p } from "/app.js";
+import { a, h3, p, Page } from "/app.js";
 
-app.$body.ac("theme-1");
-
-export default {
-  href: "/alex/examples/subpage/nested/",
-  link() {
-    return a.c("page-link", this.href).href("/alex/examples/subpage/nested/");
-  },
-  preview() {
-    a.c("page-link-block", () => {
-      h2("Preview");
-      p("Preview text");
-    }).href(this.href);
-  },
+export default new Page({
+  meta: import.meta,
+  title: "Nested subpage",
+  description: "Preview text",
+  theme: "theme-1",
   content() {
+    a.c("page-back", "Back").href("../");
     h3("Alex's subpage");
     p("Nested subpage content");
   },
-  full() {
-    a.c("page-back", "Back").href("../");
-    this.preview();
-    this.content();
-  },
-  render() {
-    this.full();
-  },
-};
+});

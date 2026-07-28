@@ -1,7 +1,5 @@
-import app, { div, h2, p, pre } from "/app.js";
+import { div, h2, p, pre, Page } from "/app.js";
 import { doc } from "../../ui/docs.js";
-
-app.$body.ac("theme-1");
 
 function boxes(n) {
   return () => {
@@ -9,10 +7,12 @@ function boxes(n) {
   };
 }
 
-export default {
-  render() {
+export default new Page({
+  meta: import.meta,
+  title: "Grid",
+  theme: "theme-1",
+  content() {
     doc({
-      title: "Grid",
       back: "/alex/styles/",
       build() {
         p("`.grid` turns on CSS grid. The utility classes give you responsive columns without writing any media queries.");
@@ -39,4 +39,4 @@ export default {
       },
     });
   },
-};
+});
