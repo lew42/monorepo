@@ -1,5 +1,6 @@
-import { View, div, span, a, img } from "../View/View.js";
+import { View, div, span } from "../View/View.js";
 import { Pager } from "./Pager.js";
+import { Sidebar } from "../Sidebar/Sidebar.js";
 
 View.stylesheet(import.meta, "ColumnPager.css");
 
@@ -29,13 +30,19 @@ View.stylesheet(import.meta, "ColumnPager.css");
  * Name the subclass and you also get a CSS hook for free — classify() turns the
  * constructor chain into classes, so `.docs-pager` scopes styles to one topic:
  *
- *   pager: class DocsPager extends ColumnPager { nav(){ ... } }
+ *   pager: class DocsPager extends ColumnPager {
+ *       sidebar(){ return new MySidebar({ ... }); }
+ *   }
+ *
+ * The sidebar is a `Sidebar` (core/Sidebar/), not markup of ours — so its look
+ * is shared with anything else that wants one, and overriding it means passing
+ * different data or subclassing Sidebar.
  *
  * Data-only knobs on the topic, for when a subclass is overkill:
- *   brand      text beside the logo   (default: the topic's title)
- *   brand_url  where the logo points  (default: "/")
- *   logo       image url              (default: the document's <link rel=icon>)
- *   col        classes on a page's column — see ColumnPager.css
+ *   brand   text beside the logo   (default: the topic's title)
+ *   logo    image url              (default: the document's <link rel=icon>)
+ *   home    where the logo points  (default: "/")
+ *   col     classes on a page's column — see ColumnPager.css
  */
 export class ColumnPager extends Pager {
 
@@ -54,43 +61,18 @@ export class ColumnPager extends Pager {
 		});
 	}
 
-	// ── sidebar: brand + the topic's children ──
+	/* ── sidebar ──
+	 * A `Sidebar`, not markup of our own: the logo goes to the site root while
+	 * the brand text goes to THIS topic, so it's the way back to the section.
+	 * Everything comes from data the topic already has, so a topic gets a
+	 * correct sidebar with zero configuration. */
 	sidebar(){
-		div.c("sidebar", () => {
-			this.brand();
-			this.nav();
-		});
-	}
-
-	/* [ LOGO Framework ] — two links, two destinations:
-	 *   the logo  → the site root ("/", or root.brand_url)
-	 *   the text  → this topic's own url, so it's the way back to the section
-	 *
-	 * Both derive from data the topic already has (title, url), so a topic gets
-	 * a correct brand with no configuration. Override `brand` for other text. */
-	brand(){
-		return div.c("brand", () => {
-			const logo = this.logo();
-
-			if (logo)
-				a(() => img().attr("src", logo).attr("alt", ""))
-					.href(this.root.brand_url ?? "/").ac("brand-logo");
-
-			a(this.root.brand ?? this.root.title)
-				.href(this.root.url).ac("brand-title");
-		});
-	}
-
-	/* The document already declares the site's icon — reuse it rather than
-	 * hardcoding an asset path into a framework class. `logo` on the topic wins;
-	 * a site with no <link rel=icon> just gets the text. */
-	logo(){
-		return this.root.logo ?? document.querySelector('link[rel~="icon"]')?.href;
-	}
-
-	nav(){
-		div.c("sidebar-nav", () => {
-			(this.root.children || []).forEach(child => child.link().ac("sidebar-link"));
+		return new Sidebar({
+			logo: this.root.logo,
+			logo_url: this.root.home ?? "/",
+			brand: this.root.brand ?? this.root.title,
+			brand_url: this.root.url,
+			pages: this.root.children,
 		});
 	}
 

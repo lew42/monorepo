@@ -146,22 +146,47 @@ one topic without touching the others. Before this, two ColumnPager topics were
 indistinguishable to CSS. (A class *field* — `classes = "docs"` — does **not**
 work: fields initialize after `super()` returns, and `classify()` runs inside it.)
 
-Data-only knobs, for when a subclass is overkill: `brand`, `brand_url`, `logo`
-(read by `brand()`), and `col` (read by `column()`). Resist adding more — every
-knob is API surface, and the subclass already covers everything.
+Data-only knobs, for when a subclass is overkill: `brand`, `logo`, `home` (passed
+through to the Sidebar) and `col` (read by `column()`). Resist adding more —
+every knob is API surface, and the subclass already covers everything.
 
-### `brand()` — two links, two destinations
+### The sidebar isn't ours
+
+`sidebar()` returns a **`Sidebar`** (`core/Sidebar/`), not markup of our own:
+
+```js
+sidebar(){
+    return new Sidebar({
+        logo: this.root.logo,
+        logo_url: this.root.home ?? "/",
+        brand: this.root.brand ?? this.root.title,
+        brand_url: this.root.url,
+        pages: this.root.children,
+    });
+}
+```
 
 ```
 [ 🖼 Framework ]
-   │      └── root.url — back to this section's landing page
-   └── "/" (or root.brand_url) — the site root
+   │      └── brand_url = root.url — back to this section's landing page
+   └── logo_url = "/" — the site root
 ```
 
-Both come from data the topic already has (`title`, `url`), so a topic gets a
-correct brand with zero configuration. The logo defaults to the document's own
-`<link rel="icon">` rather than a hardcoded path — a framework class shouldn't
-know a site's asset layout, and every site already declares its icon.
+Two destinations on purpose: in a drill-down the logo leaves the section and the
+text returns to the top of it. On a homepage both are `/`.
+
+It was extracted here because **a sidebar is not a ColumnPager idea.** While its
+CSS lived in `ColumnPager.css` the only way for anything else to have one was to
+copy 50 lines of it. Now `ColumnPager.css` says only where it goes:
+
+```css
+.column-pager > .sidebar { flex: 0 0 var(--sidebar); }
+```
+
+Same split as `Page.css`: the component owns its look, the layout owns its
+placement. `Sidebar.link()` is duck-typed — a `Page` brings its own `link()`,
+a plain `{title, url}` needs no import — so a sidebar can list a loaded page
+tree *or* a hardcoded list of sections a site doesn't want to eager-load.
 
 ### 3. A new subclass — for a **different arrangement**
 
