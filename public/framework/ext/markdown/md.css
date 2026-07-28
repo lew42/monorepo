@@ -1,0 +1,47 @@
+/* Layer order, restated: the FIRST declaration wins and module import
+   order decides who loads first, so every stylesheet states it. */
+@layer base, theme, util;
+
+/* Rendered markdown. framework.css already styles pre/code/lists/headings, so
+   this only handles what a generated block needs: its own vertical rhythm. */
+@layer theme {
+
+    div.md > :first-child { margin-top: 0; }
+    div.md > :last-child { margin-bottom: 0; }
+
+    /* md() adopts a single root block directly, so a <pre>/<table>/<blockquote>
+       can BE the .md element or be inside one — match both. */
+
+    .md pre, pre.md {
+        padding: 0.75em 1em;
+        background: rgba(0,0,0,0.1);
+    }
+
+    /* the <code> inside a <pre> is already in a padded box */
+    .md pre > code, pre.md > code { padding: 0; background: none; }
+
+    .md blockquote, blockquote.md {
+        margin-left: 0;
+        padding-left: 1em;
+        border-left: 3px solid var(--subtle);
+        color: var(--subtle);
+    }
+
+    .md table, table.md { border-collapse: collapse; margin: 1em 0; }
+    .md th, .md td { padding: 0.25em 0.75em; border: 1px solid rgba(0,0,0,0.2); }
+    .md th { background: rgba(0,0,0,0.04); text-align: left; }
+    .md td:first-child { white-space: nowrap; }
+
+    .md-error { color: #c00; }
+
+    /* md.details — the technical record, one click away and out of the way */
+    .md-details { margin: 2.5em 0 1em; border-top: 1px solid rgba(0,0,0,0.12); }
+    .md-details > summary {
+        padding: 0.6em 0;
+        cursor: pointer;
+        color: var(--subtle);
+        font-size: 0.9em;
+    }
+    .md-details > summary:hover { color: var(--prim); }
+    .md-details-body { padding-bottom: 1em; font-size: 0.95em; }
+}

@@ -1,0 +1,30 @@
+import { Page, p, pre, h3 } from "/app.js";
+
+export default new Page({
+	meta: import.meta,
+	title: "Anatomy",
+	description: "sidebar / breadcrumbs / columns.",
+	content(){
+		p("Look around this page — every part is the ColumnPager reading the tree:");
+
+		h3("Sidebar");
+		p("The topic (the `brand`) plus its `children`, fully data-driven. Add a child to the topic and it appears here automatically. Below 45em it collapses into the ☰ burger overlay.");
+
+		h3("Breadcrumbs");
+		p("The full `chain` from root to the current page — for climbing out when you've gone deeper than the two visible columns.");
+
+		h3("Columns");
+		p("The last two of the chain. The left column is the parent, acting as navigation; the right is the focused page. Each is filled with `page.body()` (plain content, never the ColumnPager) so a topic never recurses into itself. The ✕ closes a column and climbs to its parent.");
+
+		h3("Identical on reload");
+		p("Clicking a link and hard-reloading a URL run the same `chain` logic, so `/a/b/` looks the same either way — no per-page layout knowledge, no hash router.");
+
+		pre(`render(){
+    const leaf  = this.leaf();      // Page.registry.get(location.pathname)
+    const chain = leaf.chain;       // [root … leaf]
+    this.sidebar(chain[0]);         // topic + children
+    // breadcrumbs = chain
+    // columns     = chain.slice(-2)   (fill with pg.body())
+}`);
+	}
+});

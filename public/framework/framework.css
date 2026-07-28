@@ -26,11 +26,12 @@
 
 @layer theme {
     :root {
-        --prim: #5a57ff;
+        --prim: #FF6157;
 	    --bg: #42404B;
         --subtle: rgba(0,0,0,0.5);
         
         --column: 14em;
+        --sidebar: 13em;   /* any sidebar's width — ColumnPager's and the home page's */
     }
     
     :focus-visible {
@@ -50,7 +51,7 @@
 
     hr { margin: 3em 0; }
 
-    pre, code { font-family: Consolas, 'Courier New', Monaco, monospace; }
+    pre, code { font-family: Consolas, 'Courier New', Monaco, monospace; padding: 0.25em 0.5em; background: rgba(0,0,0,0.1); }
 
     input:not([type="checkbox"], [type="radio"], [type="color"]), select, textarea {
         padding: 0.25em 0.6em;
@@ -115,4 +116,6 @@
     .uppercase { text-transform: uppercase; }
 
     textarea.auto { field-sizing: content;} /* textarea height resizes to fit content */
+
+    :first-child { margin-top: 0; }
 }

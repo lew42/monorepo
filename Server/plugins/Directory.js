@@ -26,6 +26,10 @@ export default class Directory {
         this.watcher.on("add", this.update.bind(this));
         this.watcher.on("unlink", this.update.bind(this));
 
+        // see LiveReload — an unobserved "error" makes a wedged watcher
+        // indistinguishable from an idle one.
+        this.watcher.on("error", err => console.error("Directory watcher error:", err));
+
         this.update();
     }
 

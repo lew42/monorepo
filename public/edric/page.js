@@ -1,20 +1,20 @@
-import { h1, h2, p, a, pre, div } from "/app.js";
-import b from "./style/b/page.js";
-import c from "./style/c/page.js";
-import d from "./style/d/page.js";
-import e from "./style/e/page.js";
-import HTML from "./style/HTML/page.js";
+import { h1, h2, p, a, pre, div, img, textarea, button, ul, li } from "/app.js";
 
 app.$body.ac("theme-1");
 
 export default function() {
     div.c("pad", () => {
-        div.c("flex gap mb", () => {
-            a.c("btn prim", "Framework").href("/edric/framework/");
-            a.c("btn bg", "Style").href("/edric/style/");
+        div.c("flex split mb", () => {
+            div.c("flex gap", () => {
+                a.c("btn prim", "Framework").href("/edric/framework/");
+                a.c("btn bg", "Style").href("/edric/style/");
+                a.c("btn", "Custom Components").href("/edric/components/").style({ background: "#0ca678", color: "white" });
+            });
+
+            a.c("btn bg", "Download Framework").href("https://github.com/lew42/monorepo").attr("target", "_blank");
         });
 
-        h1("Get Started").style("color", "var(--prim)");
+        h1("Get Started").ac("mb").style("color", "var(--prim)");
 
         p("New here? No worries, this page will get you up and running in a couple of minutes. No build tools, no config files to fight with.").ac("mb");
 
@@ -24,7 +24,7 @@ export default function() {
         p("No CSS to fight: `framework.css` only gives you a reset and a few opt-in utility classes. You start from nothing and add only what you need.").ac("mb");
         p("A tiny API: really just `App` and `View`. Learn a handful of methods (`.c()`, `.ac()`, `.append()`, `.style()`...) and you can build any page.").ac("mb");
 
-        h2("Install").ac("mb").style({ "border-bottom": "1px solid var(--subtle)", "padding-bottom": "0.3em" });
+        h2("Install (Windows)").ac("mb").style({ "border-bottom": "1px solid var(--subtle)", "padding-bottom": "0.3em" });
 
         p("You'll need Node.js installed first. If you don't have it, grab it from `nodejs.org`, it only takes a minute.").ac("mb");
 
@@ -55,6 +55,56 @@ export default function() {
         p("No HTML file to write, no JSX, nothing to compile. Save, refresh your browser at `/yourname/`, and your change shows up.").ac("mb");
 
         p("The URL maps straight to the file: `/yourname/` loads `/yourname/page.js`, the same pattern this page follows.").ac("mb");
+
+        h2("Putting It Together").ac("mb").style({ "border-bottom": "1px solid var(--subtle)", "padding-bottom": "0.3em" });
+
+        p("A small notes widget, using `App` and `View` (Framework) together with `framework.css` classes (Style):").ac("mb");
+
+        div.c("pad mb", () => {
+            h2("Quick Notes").style("color", "var(--prim)").ac("mb");
+
+            div.c("flex gap mb", () => {
+                img().attr("src", "/edric/image/seagul.jpeg").style({ width: "3em", height: "3em", "border-radius": "0.3em" });
+                textarea.c("flex-1 auto").text("Ship the newsletter draft by Friday.");
+            }).style("min-width", "0");
+
+            div.c("flex gap mb", () => {
+                button("Save").ac("btn prim");
+                button("Clear").ac("btn bg");
+            });
+
+            ul(() => {
+                li("Review pull request #42");
+                li("Book flights for the meetup").ac("uppercase");
+                li("Reply to the last message");
+            });
+        }).style({ background: "var(--bg)", color: "white", "border-radius": "0.3em" });
+
+        app.loaded.then(() => console.log("Quick Notes ready"));
+
+        pre(`div.c("pad", () => {
+    h2("Quick Notes").style("color", "var(--prim)");
+
+    div.c("flex gap", () => {
+        img().attr("src", "/edric/image/seagul.jpeg").style({ width: "3em", height: "3em", "border-radius": "0.3em" });
+        textarea.c("flex-1 auto").text("Ship the newsletter draft by Friday.");
+    });
+
+    div.c("flex gap", () => {
+        button("Save").ac("btn prim");
+        button("Clear").ac("btn bg");
+    });
+
+    ul(() => {
+        li("Review pull request #42");
+        li("Book flights for the meetup").ac("uppercase");
+        li("Reply to the last message");
+    });
+}).style({ background: "var(--bg)", color: "white", "border-radius": "0.3em" });
+
+app.loaded.then(() => console.log("Quick Notes ready"));`).ac("pad mb").style({ background: "var(--bg)", color: "white", "border-radius": "0.3em" });
+
+        p("`img()`, `textarea()`, `button()`, `ul()`/`li()`, `.style()`, `.ac()`, and `app.loaded` are all `View`/`App` (Framework). `\"btn prim\"`, `\"uppercase\"`, `\"auto\"`, `\"flex\"` are all `framework.css` classes (Style).").ac("mb");
 
         p("Ready for more? The Framework and Style buttons above go deeper into what you can build with.");
     }).style({ "max-width": "40em", margin: "0 auto" });

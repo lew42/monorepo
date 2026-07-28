@@ -1,0 +1,29 @@
+@layer theme {
+
+	/* Doc-demo helpers used by the michael layout/component pages.
+	   These are michael-specific (the framework's generic layout CSS lives in
+	   framework/core/Pager/ColumnPager.css); scoped to .column-pager since that's
+	   where the michael docs render. */
+
+	.column-pager .demo > * {
+		background: var(--prim);
+		color: #fff;
+		padding: 0.8em 1em;
+		border-radius: 0.3em;
+	}
+	.column-pager .demo.bare > * { background: rgba(0,0,0,0.06); color: inherit; }
+
+	.column-pager .demo-label {
+		font-family: Consolas, monospace;
+		font-size: 0.8em;
+		color: var(--subtle);
+		margin: 1.4em 0 0.4em;
+	}
+
+	.column-pager .card {
+		border: 1px solid rgba(0,0,0,0.12);
+		border-radius: 0.5em;
+		padding: 1em;
+		margin: 0.5em 0;
+	}
+}
