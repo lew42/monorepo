@@ -109,14 +109,47 @@ export default class Page {
 	// it. Both directions of the one convention, side by side.
 	// "/" -> "/page.js", "/a/" -> "/a/page.js", "/a/b" -> "/a/b.page.js"
 	static module_url(url){
-		return url.endsWith("/") ? url + "page.js" : url + ".page.js";
+		return Page.module_urls(url)[0];
+	}
+
+	// A page can be authored two ways, so a slash-less URL has two candidates:
+	//   file page: "/a/b"  -> "/a/b.page.js"
+	//   dir  page: "/a/b"  -> "/a/b/page.js"  (same as "/a/b/")
+	// A trailing slash is unambiguous: it's always a directory page.
+	static module_urls(url){
+		if (url.endsWith("/"))
+			return [url + "page.js"];
+		// slash-less: prefer the file page, fall back to the dir page
+		return [url + ".page.js", url + "/page.js"];
+	}
+
+	// The first candidate that resolves to a real module, or null. A HEAD probe,
+	// not a bare import attempt: Cloudflare's SPA fallback answers 200 text/html
+	// for a missing file, so res.ok alone isn't enough — and a probe doesn't
+	// mask a real error inside an existing module the way a failed import would.
+	static async resolve_module_url(candidates){
+		for (const url of candidates){
+			try {
+				const res = await fetch(url, { method: "HEAD" });
+				const type = res.headers.get("content-type") || "";
+				if (res.ok && type.includes("javascript")) return url;
+			} catch (error) {
+				// network error: try the next candidate
+			}
+		}
+		return null;
 	}
 
 	// Import the page for `url`. Returns whatever the module default-exported —
 	// a Page, a view, a function, or undefined (a "bare page" that rendered
 	// itself at module top). App.load_page is the caller; it duck-types the rest.
 	static async load(url = window.location.pathname){
-		const page = (await import(Page.module_url(url))).default;
+		const module_url = await Page.resolve_module_url(Page.module_urls(url));
+
+		if (!module_url)
+			throw new Error("Page not found: " + url);
+
+		const page = (await import(module_url)).default;
 
 		if (page instanceof Page)
 			await page.load_ancestors();
