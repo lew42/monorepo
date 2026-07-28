@@ -14,18 +14,24 @@
     
     ul, ol { padding-left: 1.2em; }
 
+    form,
+    fieldset,
+    legend { border: none;margin: 0;padding: 0; }
+
     input:not([type="checkbox"], [type="radio"], [type="submit"], [type="color"], [type="button"], [type="reset"]), select, textarea {
         width: 100%;
     }
+    textarea { max-width: 100%;resize: vertical; }
 }        
 
 @layer theme {
     :root {
-        --prim: #5a57ff;
+        --prim: #FF6157;
 	    --bg: #42404B;
         --subtle: rgba(0,0,0,0.5);
         
         --column: 14em;
+        --sidebar: 13em;   /* any sidebar's width — ColumnPager's and the home page's */
     }
     
     :focus-visible {
@@ -45,7 +51,7 @@
 
     hr { margin: 3em 0; }
 
-    pre, code { font-family: Consolas, 'Courier New', Monaco, monospace; }
+    pre, code { font-family: Consolas, 'Courier New', Monaco, monospace; padding: 0.25em 0.5em; background: rgba(0,0,0,0.1); }
 
     input:not([type="checkbox"], [type="radio"], [type="color"]), select, textarea {
         padding: 0.25em 0.6em;
@@ -63,6 +69,7 @@
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='40' fill='%23555'><polygon points='0,0 60,0 30,40'/></svg>"); }
 
     .btn, button { padding: 0.25em 1em; cursor: pointer; }
+    a * {cursor: pointer;}
     button.bg, .btn.bg { background: var(--bg); color: white; }
     button.prim, .btn.prim { background: var(--prim); color: white; }
 
@@ -109,4 +116,6 @@
     .uppercase { text-transform: uppercase; }
 
     textarea.auto { field-sizing: content;} /* textarea height resizes to fit content */
+
+    :first-child { margin-top: 0; }
 }

@@ -1,31 +1,72 @@
-import app, { el, div, p, h1, h2, a, code } from "/app.js";
-import nav from "/nav.js";
+import { Page, Sidebar, md, h2, div, a } from "/app.js";
 
-app.$body.ac("theme-1");
+/* The site's sections, as plain data.
+ *
+ * Deliberately not imported Pages: a parent has to import its children to adopt
+ * them, so `children: [alex, arya, …]` would pull every dev's entire page tree
+ * into the first paint of the home page. A hardcoded title + url costs nothing
+ * and loads nothing — and Sidebar.link() is duck-typed, so it takes these or
+ * real Pages without caring which. */
+const sections = [
+	{ title: "Framework", url: "/framework/", desc: "The docs — View, Page, Pager, Router." },
+	{ title: "Alex", url: "/alex/", desc: "Pages, subpages, and nesting." },
+	{ title: "Arya", url: "/arya/", desc: "First steps with the framework." },
+	{ title: "Castin", url: "/castin/", desc: "A tree you can walk — root to leaves." },
+	{ title: "Edric", url: "/edric/", desc: "Framework and style documentation." },
+	{ title: "Michael", url: "/michael/", desc: "Elements, layout, components, and the core classes." },
+];
 
-nav();
+export default new Page({
+	meta: import.meta,
+	title: "Nice work, everyone",
+	description: "Everything is merged and live. A note to the team.",
 
-h1("Hello World");
+	// sidebar + one scrolling column. Same split as ColumnPager: the Sidebar
+	// component brings its own look, this only says where things go.
+	render(){
+		return div.c("home", () => {
+			new Sidebar({ brand: "Lew42", pages: sections });
 
-p("The GitHub repo: ", a("https://github.com/lew42/monorepo").href("https://github.com/lew42/monorepo"))
+			div.c("home-main", () => this.body());
+		});
+	},
 
-p("The Cloudflare URL: ", a("https://monorepo.lew42.workers.dev").href("https://monorepo.lew42.workers.dev"));
+	content(){
 
+		md("Everything is merged and live at [monorepo.lew42.workers.dev](https://monorepo.lew42.workers.dev).");
 
-h2("Next Task");
+		md("I've been through every page each of you wrote. You each built your own framework and styles documentation from scratch — thank you, genuinely. It's good work and it shows.");
 
-p("All pages have been merged into main.  Make sure to `git switch main` and `git pull` before re-branching.")
+		h2("Go read each other's");
 
-p("For this next project, you can use your 5 hours for the week, but please try to make it worthwhile!");
+		md("It's one site now, so spend some time in someone else's directory. You solved a lot of the same problems in different ways, and the differences are the interesting part.");
 
-p("Inside your `/<name>/` directories, you should make `/<name>/framework/` and `/<name>/styles/` to start documenting the basic framework usage (basically just `class View` and `class App`), and basic styles (html, forms, flex, grid.  See the `framework.css` and see if you can build something with these styles).  You can make note of any framework improvements you would suggest, as you go.  Try to focus on the new user experience, what are the basic things they need to know to use this framework?");
+		div.c("previews", () => {
+			sections.forEach(section => {
+				a.c("preview").href(section.url).append(() => {
+					div.c("preview-title", section.title);
+					div.c("preview-desc", section.desc);
+				});
+			});
+		});
 
-p("My goal has always been for this framework to be the simplest, easiest way to get started with web development, and I think we're pretty close.  However, as you have seen, just getting basic pages and navigation to work is a bit tricky.  Let's focus on the new-user experience here.  If we want more users (newbies and pros) to contribute, how do we make this look and feel better?  Simpler, cleaner, better.")
+		h2("Styling counts");
 
-p("Your directory is your place to build.  Don't modify files outside of your directory.  Notice I added `app.$body.ac('theme-1')` to all pages and sub pages.  This is so, by default, there are only `framework.css` styles, and everything is opt-in.  I like this minimalism approach.  You can create your own stylesheets, and import them with `app.stylesheet('/<name>/styles.css')`.  You can create your own classes and either extend View or just create a class with a `.render()` method.");
+		md("Layout, appearance and styling matter more here than they might seem to — they're most of what makes any of this feel usable. I'm working through Figma designs now, and I'm hoping to land a major visual upgrade before long.");
 
-p("If you're feeling ambitious, you could try to create a `class Page`.  I've tried a few times, but it's tricky.  Right now, we can just put `p()` inside a `page.js`, but that means you can't import that `page.js` without it auto-rendering.  Creating a `history.pushState()` router is another goal, but figuring out how/when to activate and load pages dynamically is another trick. Anyway, I gtg, good luck!")
+		h2("Sit tight");
 
-h2("Notes");
+		md("No new tasks just yet. Hold off for now and I'll have more for you shortly. When they land: `git switch main` and `git pull` before you branch, and keep to [the branch naming convention](/notes/git-branch-names).");
 
-a("Git Branch Names").href("/notes/git-branch-names");
+		h2("If you're bored");
+
+		md(`The framework picked up a lot while you were building:
+
+- **[ColumnPager](/framework/core/Pager/)** — infinite drill-down columns. Declare \`pager: ColumnPager\` on one page and its whole subtree navigates that way.
+- **[Router](/framework/core/Router/)** — no-reload page transitions. Write an ordinary \`<a href>\` and it upgrades the click for you.
+- **[Page](/framework/core/Page/)** — a titled, linkable, dormant unit of content. Importing one renders nothing, so pages can link to each other freely.
+- **[Start](/framework/start/)** — three files and a working site, if you want the short version first.`);
+
+		md("Every example on those pages is live: you see the code, and directly beneath it the thing that code rendered.");
+	}
+});

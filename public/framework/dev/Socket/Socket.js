@@ -30,6 +30,8 @@ export default class Socket {
 		this.protocol = window.location.protocol === "https:" ? "wss" : "ws";
 		this.requests = [];
 		this.fails = 0;
+		this.connected = false;
+		this.retry = null;
 		this.ready = promise();
 
 		// Only a local dev server speaks this protocol. On a static host
@@ -43,34 +45,47 @@ export default class Socket {
 		}
 	}
 	connect() {
-		this.ready = promise();
+		if (this.disabled) return;
+
+		// only one attempt in flight — clears a pending retry if something
+		// calls connect() directly.
+		clearTimeout(this.retry);
+		this.retry = null;
+
 		this.ws = new WebSocket(this.protocol + "://" + window.location.host);
 		this.ws.addEventListener("open", () => this.open());
 		this.ws.addEventListener("message", res => this.message(res));
-		this.ws.addEventListener("close", () => {
-			console.warn("Socket closed, attempting reconnect");
-			// this will refresh .ready (and won't resolve unless reconnected),
-			// which will prevent subsequent send()s until reconnected.
-			this.connect();
-		});
-		this.ws.addEventListener("error", err => {
-			console.warn("Socket error:", err, this.fails + " fails.");
 
-			if (this.fails <= 3) {
-				this.fails++;
-				console.warn(`Attempting to reconnect in ${this.fails} second(s).`);
-				setTimeout(() => this.connect(), 1000 * this.fails);
-			} else {
-				console.error("Socket error, giving up.");
-				this.ready.reject(err);
-			}
-		});
-
+		// A failed connect fires "error" AND THEN "close". Reconnecting from
+		// both is what turned a dead dev server into a connection storm, so
+		// "close" is the single reconnect path and "error" only reports.
+		this.ws.addEventListener("close", () => this.reconnect());
+		this.ws.addEventListener("error", () => console.warn("Socket error."));
 	}
 	open() {
 		console.log("%cSocket connected.", "color: green; font-weight: bold;");
 		// this.rpc("log", "connected!");
+		this.connected = true;
+		this.fails = 0;
 		this.ready.resolve();
+	}
+	reconnect() {
+		// never reject .ready — a pending promise parks send()s until we're
+		// back, which is the point. Retry forever: restarting `node server.js`
+		// is routine, and the page should pick it back up on its own.
+		if (this.disabled || this.retry) return;
+
+		// only swap in a fresh .ready if the old one was resolved, otherwise
+		// anything already awaiting it would be stranded on a dead promise.
+		if (this.connected) {
+			this.connected = false;
+			this.ready = promise();
+		}
+
+		// 250ms, 500ms, 1s, 2s ... capped at 10s
+		const delay = Math.min(250 * 2 ** this.fails++, 10000);
+		console.warn(`Socket closed, reconnecting in ${delay}ms.`);
+		this.retry = setTimeout(() => this.connect(), delay);
 	}
 	// message recieved handler
 	message(res) {

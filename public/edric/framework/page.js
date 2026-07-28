@@ -6,9 +6,9 @@ app.$body.ac("theme-1");
 
 export default function() {
     div.c("pad", () => {
-        a.c("page-back", "Back").href("../");
+        a.c("page-back btn bg mb", "Back").href("../");
 
-        h1("Framework").style("color", "var(--prim)");
+        h1("Framework").ac("mb").style("color", "var(--prim)");
 
         h2("Full Reference").ac("mb").style({ "border-bottom": "1px solid var(--subtle)", "padding-bottom": "0.3em" });
 

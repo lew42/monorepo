@@ -1,0 +1,14 @@
+<div class="flex">
+  <div class="left">left</div>
+  <div class="right">right</div>
+<!--   <div class="left">left</div> -->
+</div>
+
+<style>* { box-sizing: border-box; }
+
+.flex { display: flex; margin-bottom: 1em; flex-wrap: wrap; }
+
+.flex > * { flex: 1 1 50%; min-width: min(20em, 100%); }
+
+.left { background: blue; padding: 5em; }
+.right { background: red; }</style>

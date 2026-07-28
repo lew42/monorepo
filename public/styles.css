@@ -1,9 +1,54 @@
-body.theme-1 {
-    background: #ddd; 
+/* Layer order, restated: the FIRST declaration wins and module import
+   order decides who loads first, so every stylesheet states it. */
+@layer base, theme, util;
 
-    .app { margin: 2em auto; max-width: 60em; background: white; box-shadow: 0 0 1em rgba(0,0,0,0.1); padding: 2em; }
-    
-    code { padding: 0.25em 0.5em; background: rgba(0,0,0,0.1); }
-    
+/* Site-level styles — this site's skin over the framework's structure.
+
+   MUST stay inside `@layer theme`. In the CSS cascade *unlayered rules beat
+   every layer*, regardless of specificity: while this file was unlayered, a
+   one-class `.page` rule here silently defeated a four-class
+   `.column-pager .column.narrow .page` in ColumnPager.css. Inside the layer,
+   site rules sit in the same cascade as framework components and win normally —
+   this file is linked last, so an equally-specific rule here still takes it. */
+@layer theme {
+
+    body.theme-1 {
+        background: #ddd; 
+
+        .app { 
+            margin: 2em auto;
+            max-width: 60em;
+            background: white;
+            box-shadow: 0 0 1em rgba(0, 0, 0, 0.1);
+            padding: 2em; 
+        }
+
+    }
+
+    .app { background: #ddd; }
+
+    /* ---- home page: sidebar + one scrolling column ----
+       The sidebar's LOOK is Sidebar.css (framework); this only says where it
+       goes — the same split ColumnPager uses. No height-pinning needed: the
+       page scrolls normally and the sidebar stretches to match. */
+
+    .home { display: flex; min-height: 100vh; }
+    .home > .sidebar { flex: 0 0 var(--sidebar); }
+    .home-main { flex: 1 1 0; min-width: 0; }
+
+    @media (max-width: 45em) {
+        .home { flex-direction: column; }
+        .home > .sidebar { flex: none; }
+        .home .sidebar-nav { flex-direction: row; flex-wrap: wrap; }
+        .home .sidebar-link { border-left: none; border-bottom: 3px solid transparent; }
+        .home .sidebar-link.active,
+        .home .sidebar-link.in-path { border-bottom-color: var(--prim); }
+    }
+
+    /* Page.css owns .page's structure (width, centering, padding) — that's the
+       framework's business. Backgrounds are this site's skin, so they live here.
+       Loaded last, so anything set here wins at equal specificity. */
+    .page { background: white; }
+
     .page-link-block { background: rgba(0,0,0,0.1); display: block; padding: 1em; margin-bottom: 1em; }
 }
