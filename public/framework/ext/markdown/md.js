@@ -23,10 +23,30 @@ const block_tags = new Set(["DIV", "SECTION", "ARTICLE", "MAIN", "ASIDE", "HEADE
  *   md.file(import.meta, "readme.md");      // a promise of a div.md
  */
 
+/**
+ * Why html_unsafe() and not html() throughout this module:
+ *
+ * View.html() routes through the Sanitizer API (Element.setHTML), which Safari
+ * does not implement in any version — desktop or iOS. On those browsers html()
+ * falls back to textContent, so every doc page would render as literal markup
+ * (`<h2>`, `**bold**`) for ~a third of visitors and 100% of Apple devices.
+ *
+ * That trade is only worth making for untrusted input. Everything parsed here
+ * is the repo's own content: string literals in page.js and .md files fetched
+ * from our own origin. The trust boundary is commit access — the same boundary
+ * that already lets someone add malicious JS directly — so sanitizing buys
+ * nothing here while costing correctness everywhere Apple ships.
+ *
+ * View.html() stays fail-closed for callers who *can't* vouch for their input.
+ * If markdown ever arrives from a user (comment box, url param, CMS), this
+ * decision has to be revisited — sanitize at that entry point, or vendor
+ * DOMPurify as a fallback in core (see readme).
+ */
+
 // Inline markdown into any existing view. Tag-aware (see block_tags).
 View.prototype.md = function(content){
 	const parse = block_tags.has(this.el.tagName) ? marked.parse : marked.parseInline;
-	return this.html(parse(content));
+	return this.html_unsafe(parse(content));
 };
 
 // You get the element you wrote: content is parsed, and a single root block
@@ -42,7 +62,7 @@ export default function md(content){
 	if (template.content.children.length === 1)
 		return new View({ el: template.content.firstElementChild }).ac("md");
 
-	return new View().ac("md").html(html);
+	return new View().ac("md").html_unsafe(html);
 }
 
 // md.c("note", "Some **md**") — classes first, like div.c() / p.c()
@@ -85,7 +105,7 @@ md.file = async function(meta, url, options = {}){
 			return resp.text();
 		}));
 
-		view.html(marked.parse(text));
+		view.html_unsafe(marked.parse(text));
 
 		if (options.h1 === false && view.el.firstElementChild?.tagName === "H1")
 			view.el.firstElementChild.remove();

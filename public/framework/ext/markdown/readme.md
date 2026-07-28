@@ -50,6 +50,27 @@ md.file(import.meta, "readme.md");     // a promise of a div.md
   The site's whole thesis is files served as-is; a CDN import means every render
   blocks on a third party and breaks offline dev. ~40KB, only paid for by pages
   that import this module.
+- **This module calls `html_unsafe()`, not `html()`.** *Should markdown output go
+  through the Sanitizer API?* `View.html()` was changed to use `Element.setHTML()`
+  with a `textContent` fallback when unsupported. Options: (a) inherit it —
+  sanitized markdown; (b) `html_unsafe()` — raw; (c) vendor DOMPurify as a
+  fallback in core so both hold everywhere. Safari implements `setHTML` in **no
+  version, desktop or iOS** (~67% global support), so (a) means every doc page
+  renders as literal `<h2>`/`**bold**` for all Apple visitors — not a safe
+  degradation but an outage. The content here is repo-authored: string literals
+  in `page.js` and same-origin `.md` files, whose trust boundary is commit
+  access, which already permits adding malicious JS directly. Sanitizing buys
+  nothing and costs correctness. **Verdict: (b).** `View.html()` stays
+  fail-closed for callers that can't vouch for their input; this module opts out
+  because it can. (c) stays on the table and is the right answer the moment
+  markdown arrives from anywhere but the repo.
+- **`md()`'s single-block path uses `template.innerHTML` deliberately.** The
+  `<template>` makes parsing inert, but adopting the element into the live DOM
+  re-arms any handler attributes — it is not a sanitization step and was never
+  load-bearing as one. Under the verdict above it is simply consistent with the
+  rest of the module. Kept as-is; do not "fix" it to `html()` without revisiting
+  the entry above, or `md("Hi.")` and `md("Hi.\n\nThere.")` go back to taking
+  different paths based on block count.
 
 ## Open questions
 
@@ -61,5 +82,8 @@ md.file(import.meta, "readme.md");     // a promise of a div.md
   lazy-import an ext inside `content()` instead of at module scope.
 - `md.cache` is keyed by url and never evicted. Fine for a docs site; revisit if
   a page fetches large or changing markdown.
-- Sanitization: `marked` does not sanitize HTML. Fine for authored, in-repo
-  content. Do not pass user input through `md()` without adding a sanitizer.
+- Sanitization: `marked` does not sanitize HTML, and this module now renders via
+  `html_unsafe()` (see the decision above). Fine for authored, in-repo content.
+  Do not pass user input through `md()` or `view.md()` without adding a
+  sanitizer at that entry point — inheriting `View.html()` is not a fix, since
+  it degrades to plain text on Safari.
