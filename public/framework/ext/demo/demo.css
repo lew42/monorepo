@@ -1,0 +1,74 @@
+/* Layer order, restated: the FIRST declaration wins and module import
+   order decides who loads first, so every stylesheet states it. */
+@layer base, theme, util;
+
+/* A demo is ONE object on the page: the code, what it renders, and the sentence
+   about it, boxed together — so there's never a question of which produced which.
+
+   Reading order is code → result → caption. That's deliberate: a doc page leads
+   with code, and prose is a caption, not a preamble. */
+@layer theme {
+
+	.demo {
+		margin: 1.75em 0;
+		border: 1px solid rgba(0,0,0,0.14);
+		border-radius: 0.5em;
+		overflow: hidden;
+		background: #fff;
+	}
+
+	.demo-label {
+		padding: 0.4em 0.9em;
+		font-size: 0.85em;
+		font-weight: 600;
+		color: var(--subtle);
+		background: rgba(0,0,0,0.04);
+		border-bottom: 1px solid rgba(0,0,0,0.1);
+	}
+
+	/* Same light code style as `pre` everywhere else on the site — a second
+	   visual language for code inside demos would read as sloppy, not as
+	   design. (Dark code blocks would be nicer, but that's a site-wide call:
+	   framework.css styles `pre` for every page in the repo.) */
+	.demo-code {
+		margin: 0;
+		padding: 0.9em 1em;
+		background: rgba(0,0,0,0.06);
+		border-bottom: 1px solid rgba(0,0,0,0.08);
+		font-size: 0.85em;
+		line-height: 1.55;
+		tab-size: 4;
+	}
+	.demo-code > code { padding: 0; background: none; }
+
+	/* the result, labelled so the boundary is unmistakable */
+	.demo-render {
+		position: relative;
+		padding: 1.5em 1.1em 1.1em;
+	}
+	.demo-render::before {
+		content: "renders";
+		position: absolute;
+		top: 0.3em;
+		left: 1.1em;
+		font-size: 0.62em;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: rgba(0,0,0,0.35);
+	}
+	.demo-render > :first-child { margin-top: 0; }
+	.demo-render > :last-child { margin-bottom: 0; }
+
+	/* the caption — the sentence that belongs to THIS example */
+	.demo-note {
+		margin: 0;
+		padding: 0.7em 1.1em;
+		font-size: 0.9em;
+		color: var(--subtle);
+		background: rgba(0,0,0,0.03);
+		border-top: 1px solid rgba(0,0,0,0.08);
+	}
+	.demo-note code { background: rgba(0,0,0,0.08); }
+
+	.demo-error { padding: 0.8em 1em; color: #c00; border-color: #c00; }
+}

@@ -184,16 +184,35 @@ export default class View {
 
 	html(value){
 		// set
-		if (is.def(value) && value !== this.el.innerHTML){  
-									// don't re-update, important for contenteditable change events
-									// and losing focus upon re-update, etc.
-									// does touching this.el.innerHTML cause a performance hit?
-			this.el.innerHTML = value;
+		if (is.def(value) && value !== this.el.innerHTML){
+								// don't re-update, important for contenteditable change events
+								// and losing focus upon re-update, etc.
+								// does touching this.el.innerHTML cause a performance hit?
+			if (View.supports_sanitizer){
+				this.el.setHTML(value);
+			} else {
+				// fail-safe: never inject raw HTML we can't sanitize
+				console.warn("View.html(): Sanitizer API not supported, rendering as text instead of HTML");
+				this.el.textContent = value;
+			}
 			return this;
 
 		// get
 		} else {
 			return this.el.innerHTML
+		}
+	}
+
+	// raw innerHTML, no sanitization - only for content you fully trust (XSS risk otherwise)
+	html_unsafe(value){
+		// set
+		if (is.def(value) && value !== this.el.innerHTML){ // see comment in html()
+			this.el.innerHTML = value;
+			return this;
+
+		// get
+		} else {
+			return this.el.innerHTML;
 		}
 	}
 
@@ -519,17 +538,28 @@ export default class View {
 	 * or
 	 * View.stylesheet(import.meta, "path/file.css")
 	 */
+	/* App.load() awaits every promise in View.stylesheets before it injects $app,
+	 * so this promise MUST settle. A <link> that 404s fires `error`, not `load` —
+	 * without the error handler the promise never settles and the app never
+	 * injects: one typo'd stylesheet url = a permanently blank page.
+	 *
+	 * It resolves (not rejects) on error, so one missing stylesheet degrades to
+	 * "unstyled" rather than taking the whole page down. capture: false keeps the
+	 * <link> out of whatever view happens to be capturing at import time. */
 	static stylesheet(meta, url){
 		url = View.url(meta, url);
 
-		const prom = new Promise((res, rej) => {
-			new View({ tag: "link" }).attr("rel", "stylesheet").attr("href", url)
-				.append_to(document.head).on("load", () => {
-					res(); // if a stylesheet fails to load, the app won't render?  should probably render an error message
-					// console.log("stylesheet loaded", url);
+		const prom = new Promise(res => {
+			new View({ tag: "link", capture: false })
+				.attr("rel", "stylesheet").attr("href", url)
+				.append_to(document.head)
+				.on("load", () => res(url))
+				.on("error", () => {
+					console.warn("stylesheet failed to load:", url);
+					res(url);
 				});
 		});
-		
+
 		this.stylesheets.push(prom);
 
 		return prom;
@@ -604,6 +634,7 @@ export default class View {
 
 View.stylesheets = [];
 View.lazy = Promise.resolve();
+View.supports_sanitizer = "setHTML" in Element.prototype;
 
 export function icon(name){
 	return el.c("span", "material-icons icon", name);

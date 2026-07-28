@@ -1,0 +1,66 @@
+/* Layer order, restated: the FIRST declaration wins and module import
+   order decides who loads first, so every stylesheet states it. */
+@layer base, theme, util;
+
+/* Sidebar — the look. A layout says where it goes; this says what it is.
+   (ColumnPager.css only sets `.column-pager > .sidebar { flex: … }` and the
+   off-canvas behaviour, because placement is the layout's business.) */
+@layer theme {
+
+	.sidebar {
+		display: flex;
+		flex-direction: column;
+		overflow-y: auto;
+		background: var(--bg);
+		color: #fff;
+	}
+
+	/* [ LOGO Brand ] — the logo goes home, the text goes to its own section */
+	.sidebar .brand {
+		display: flex;
+		align-items: center;
+		gap: 0.55em;
+		padding: 0.9em 1.2em;
+	}
+
+	.sidebar .brand-logo {
+		flex: 0 0 auto;
+		display: flex;
+		line-height: 0;
+		opacity: 0.9;
+		transition: opacity 0.15s;
+	}
+	.sidebar .brand-logo:hover { opacity: 1; }
+	.sidebar .brand-logo img { width: 1.55em; height: 1.55em; }
+
+	.sidebar .brand-title {
+		min-width: 0;                /* so the ellipsis can happen */
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		font-weight: 800;
+		font-size: 1.15em;
+		color: #fff;
+		text-decoration: none;
+	}
+	.sidebar .brand-title:hover { color: rgba(255,255,255,0.75); }
+
+	.sidebar-nav { display: flex; flex-direction: column; }
+
+	.sidebar-link {
+		padding: 0.6em 1.2em;
+		color: rgba(255,255,255,0.75);
+		text-decoration: none;
+		border-left: 3px solid transparent;
+	}
+	.sidebar-link:hover { background: rgba(255,255,255,0.08); color: #fff; }
+
+	/* .active = this exact url, .in-path = an ancestor of it. Both set by
+	   App.mark_links(); a sidebar treats them the same (section highlight). */
+	.sidebar-link.active,
+	.sidebar-link.in-path {
+		color: #fff;
+		border-left-color: var(--prim);
+		background: rgba(255,255,255,0.06);
+	}
+}

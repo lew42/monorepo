@@ -1,0 +1,105 @@
+/* Layer order, restated: the FIRST declaration wins and module import
+   order decides who loads first, so every stylesheet states it. */
+@layer base, theme, util;
+
+/* Page — the look of everything `Page` renders.
+ *
+ * These lived in ColumnPager.css, scoped `.column-pager .preview` etc., which
+ * meant a preview card was only styled inside one particular layout. A card
+ * has to look like a card wherever it is: in a ColumnPager, in a TabPager, on
+ * a plain page with no layout at all.
+ *
+ * The rule this follows is the one the rest of the framework already follows —
+ * a class's CSS sits next to the class (Pager.css, ColumnPager.css,
+ * TabPager.css, md.css, demo.css). Page was the only renderer without one.
+ *
+ * A layout may still adapt these in its own context — `.column.narrow .preview`
+ * in ColumnPager.css, `.tab-pager .page` in TabPager.css. That's the layout's
+ * business. This file is the component's.
+ *
+ * Structure only, no skin: the site decides backgrounds (see /styles.css). */
+@layer theme {
+
+	/* ---- the page element ---- */
+
+	.page {
+		max-width: 60em;
+		margin-inline: auto;
+		padding: 2em 6%;
+	}
+
+	.page-title {
+		font-size: 1.9em;
+		font-weight: 800;
+		letter-spacing: -0.015em;
+		margin: 0 0 0.7em;
+	}
+
+	/* Section rhythm. Scoped to `.page >` so headings inside a demo's rendered
+	   output keep their plain browser look — a demo shows what YOUR code makes. */
+
+	.page > h2 {
+		font-size: 1.15em;
+		font-weight: 700;
+		margin: 2.2em 0 0.7em;
+		padding-bottom: 0.3em;
+		border-bottom: 1px solid rgba(0,0,0,0.1);
+	}
+	.page > h3 {
+		font-size: 1em;
+		font-weight: 700;
+		margin: 1.6em 0 0.4em;
+	}
+	.page > p,
+	.page > .md { margin: 0.9em 0; }
+
+	/* ---- the three link forms: link() / crumb() / preview() ----
+	   `.active` (this exact url) and `.in-path` (an ancestor of it) are applied
+	   by App.mark_links(), so none of these need to know the current url. */
+
+	.page-link { font-weight: 600; }
+	.page-link.active,
+	.page-link.in-path { color: var(--prim); }
+
+	.crumb { color: var(--subtle); text-decoration: none; }
+	.crumb:hover { color: var(--prim); text-decoration: underline; }
+	.crumb.active { color: inherit; font-weight: 700; }
+
+	/* preview cards — a parent listing its children */
+
+	.previews {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(min(14em, 100%), 1fr));
+		gap: 0.8em;
+		margin: 1em 0;
+	}
+
+	.preview {
+		display: block;
+		padding: 0.9em 1em;
+		background: #fff;
+		border: 1px solid rgba(0,0,0,0.12);
+		border-radius: 0.5em;
+		text-decoration: none;
+		color: inherit;
+		transition: border-color 0.15s, box-shadow 0.15s, transform 0.05s;
+	}
+	.preview:hover {
+		border-color: var(--prim);
+		box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+	}
+	.preview:active { transform: translateY(1px); }
+
+	/* the preview for the page you're on (or heading into) reads as selected */
+	.preview.active,
+	.preview.in-path {
+		border-color: var(--prim);
+		background: color-mix(in srgb, var(--prim) 8%, #fff);
+		box-shadow: inset 3px 0 0 var(--prim);
+	}
+	.preview.active .preview-title,
+	.preview.in-path .preview-title { color: var(--prim); }
+
+	.preview-title { font-weight: 700; }
+	.preview-desc { color: var(--subtle); font-size: 0.85em; margin-top: 0.2em; }
+}

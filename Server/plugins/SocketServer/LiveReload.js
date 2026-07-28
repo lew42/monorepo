@@ -19,6 +19,11 @@ export default class LiveReload extends Events {
         });
 
         this.watcher.on("change", this.changed.bind(this));
+
+        // Without this, chokidar failures are swallowed: a watcher that has
+        // wedged into a readdir/ENOENT retry loop (burning a core) looks
+        // exactly like a healthy idle one, and the log stays empty.
+        this.watcher.on("error", err => console.error("LiveReload watcher error:", err));
     }
 
     changed(path) {

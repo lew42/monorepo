@@ -1,0 +1,185 @@
+/* Layer order, restated: the FIRST declaration wins and module import
+   order decides who loads first, so every stylesheet states it. */
+@layer base, theme, util;
+
+@layer theme {
+
+	/* full-bleed height chain: viewport → body → app → column-pager.
+	   framework.css gives body only min-height:100%, so pin the chain when a
+	   column-pager is present. */
+	body:has(.column-pager) { height: 100%; }
+	.app:has(.column-pager) { max-width: none; margin: 0; padding: 0; height: 100%; }
+
+	.column-pager {
+		display: flex;
+		height: 100%;
+		position: relative;                    /* anchor for mobile sidebar + backdrop */
+		container: column-pager / inline-size; /* layout responds to its own width */
+	}
+	/* --sidebar lives in framework.css :root — the home page's sidebar uses the
+	   same value, and one number in one place beats two that drift. */
+
+	/* ---- the sidebar's PLACEMENT ------------------------------------
+	   What a sidebar looks like is Sidebar.css — it isn't ours, we just render
+	   one. All this layout gets to say is how wide it is and, in the narrow
+	   layout below, that it slides in off-canvas. */
+
+	.column-pager > .sidebar { flex: 0 0 var(--sidebar); }
+
+	/* ---- main (topbar + columns; the region beside the sidebar) ------ */
+
+	.column-pager > .main {
+		flex: 1 1 0;
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+		background: #eef0f4;
+	}
+
+	.column-pager .topbar {
+		flex: 0 0 auto;
+		display: flex;
+		align-items: center;
+		gap: 0.4em;
+		padding: 0.4em 0.8em;
+		background: #fff;
+		border-bottom: 1px solid rgba(0,0,0,0.08);
+	}
+
+	.column-pager .burger {
+		display: none;               /* shown only in the narrow layout */
+		cursor: pointer;
+		padding: 0.1em 0.45em;
+		font-size: 1.2em;
+		line-height: 1;
+		user-select: none;
+		border-radius: 3px;
+	}
+	.column-pager .burger:hover { background: rgba(0,0,0,0.08); }
+
+	.column-pager .backdrop {
+		display: none;               /* shown only when nav is open (narrow) */
+		position: absolute;
+		inset: 0;
+		z-index: 15;
+		background: rgba(0,0,0,0.35);
+	}
+
+	.column-pager .breadcrumbs {
+		display: flex;
+		align-items: center;
+		gap: 0.4em;
+		font-size: 0.9em;
+	}
+	/* .crumb itself is styled in Page.css — Page.crumb() renders it. Only the
+	   separator belongs here; ColumnPager is what puts the crumbs in a row. */
+	.column-pager .crumb-sep { color: rgba(0,0,0,0.3); }
+
+	.column-pager .columns {
+		flex: 1 1 0;
+		display: flex;
+		overflow: hidden;
+	}
+
+	/* ---- a column ---------------------------------------------------- */
+
+	.column-pager .column {
+		flex: 1 1 0;          /* the two columns share the space equally */
+		min-width: 0;         /* allow shrinking below content width */
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+		background: #fff;
+		border-right: 1px solid rgba(0,0,0,0.08);
+	}
+	/* .secondary = left/nav column, .active = focus; equal by default.
+	   A single column is .active and simply fills. */
+
+	/* ---- per-page column width ---------------------------------------
+	   A page declares `col: "narrow"` and the class lands on its .column
+	   (ColumnPager.column). It sizes the page while it's the LEFT column —
+	   i.e. while it's acting as nav. The focused column always fills, so a
+	   single-column view never leaves dead space.
+
+	   `col` is just a class string; define your own alongside these. */
+
+	.column-pager .column.secondary.narrow { flex: 0.6 1 0; }
+	.column-pager .column.secondary.wide   { flex: 2 1 0; }
+	.column-pager .column.secondary.half   { flex: 1 1 0; }  /* the default, named */
+
+	/* a narrow column's previews stack instead of gridding */
+	.column-pager .column.narrow .previews { grid-template-columns: 1fr; }
+	.column-pager .column.narrow .preview { padding: 0.6em 0.8em; }
+
+	/* A narrow column is nav, not reading material — but it still renders the
+	   page's whole body. Shrink the wide, unwrappable bits so a landing page can
+	   lead with a code block and still read well once it's the narrow one. */
+	.column-pager .column.narrow .page { padding: 1.2em 1em; }
+	.column-pager .column.narrow pre,
+	.column-pager .column.narrow .demo-code { font-size: 0.7em; padding: 0.6em 0.7em; }
+	.column-pager .column.narrow .page-title { font-size: 1.3em; }
+
+	/* Developer chrome, deliberately quiet: the breadcrumbs above already say
+	   where you are, so this is a whisper of a label plus a way out. It sits on
+	   the column background with no bar of its own. */
+	.column-pager .col-bar {
+		flex: 0 0 auto;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0.5em 0.8em 0;
+		font-size: 0.72em;
+	}
+	.column-pager .col-path {
+		color: var(--subtle);
+		opacity: 0.5;
+		font-family: Consolas, monospace;
+	}
+	.column-pager .column:hover .col-path { opacity: 0.8; }
+
+	.column-pager .col-close {
+		cursor: pointer;
+		padding: 0 0.4em;
+		border-radius: 3px;
+		color: var(--subtle);
+		opacity: 0.4;
+		transition: opacity 0.15s;
+	}
+	.column-pager .column:hover .col-close { opacity: 0.75; }
+	.column-pager .col-close:hover { background: rgba(0,0,0,0.1); color: #000; opacity: 1; }
+
+	/* col-body is a query container, so demos inside can respond to it */
+	.column-pager .col-body {
+		flex: 1 1 0;
+		overflow: auto;
+		container-type: inline-size;
+		container-name: col;
+	}
+
+	/* .page-title, .previews/.preview, .page-link and the page's typographic
+	   rhythm all moved to Page.css — Page renders them, so they must look right
+	   outside a ColumnPager too. What stays here is this layout adapting them in
+	   its own context (see `.column.narrow .preview` above). */
+
+	/* ---- narrow / mobile layout (container query on the layout's width) --- */
+	@container column-pager (max-width: 45em) {
+
+		.column-pager > .sidebar {
+			position: absolute;
+			inset: 0 auto 0 0;
+			width: var(--sidebar);
+			max-width: 80%;
+			z-index: 20;
+			transform: translateX(-100%);
+			transition: transform 0.2s ease;
+			box-shadow: 2px 0 12px rgba(0,0,0,0.3);
+		}
+		.column-pager.nav-open > .sidebar { transform: translateX(0); }
+
+		.column-pager .burger { display: block; }
+		.column-pager.nav-open .backdrop { display: block; }
+
+		.column-pager .column.secondary { display: none; }
+		.column-pager .column.active { flex-basis: 100%; }
+	}
+}
