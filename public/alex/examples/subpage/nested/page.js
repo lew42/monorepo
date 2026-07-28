@@ -3,9 +3,9 @@ import { a, h2, h3, p } from "/app.js";
 app.$body.ac("theme-1");
 
 export default {
-  href: "/alex/subpage/nested/",
+  href: "/alex/examples/subpage/nested/",
   link() {
-    return a.c("page-link", this.href).href("/alex/subpage/nested/");
+    return a.c("page-link", this.href).href("/alex/examples/subpage/nested/");
   },
   preview() {
     a.c("page-link-block", () => {
