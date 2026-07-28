@@ -6,7 +6,7 @@ export default new Page({
 	description: "Show the code, then run it — from one source.",
 	content(){
 
-		demo(() => {
+		demo("Label", () => {
 			div.c("flex gap v-center", () => {
 				p("Live.");
 				p("Really.");

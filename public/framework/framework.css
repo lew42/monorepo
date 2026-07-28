@@ -29,49 +29,119 @@
         --prim: #FF6157;
 	    --bg: #42404B;
         --subtle: rgba(0,0,0,0.5);
-        
+
         --column: 14em;
         --sidebar: 13em;   /* any sidebar's width — ColumnPager's and the home page's */
+
+        --mono: Consolas, 'Courier New', Monaco, monospace;
     }
-    
-    :focus-visible {
+
+    /* ════ everything below is wrapped in :where() ═══════════════════════════
+       :where() has ZERO specificity. Every rule in this layer therefore loses
+       to *any* rule you write — a bare element selector, one class, anything.
+       You never out-specify the framework, you just write your rule.
+
+       This is the answer to "what if I have to fight these defaults." You
+       can't fight them; they forfeit. Three independent escapes, cheapest
+       first:
+
+         h2 { font-size: 2em }              a plain selector already wins
+         .card :where(h2) { … }             scope it, still zero-specificity
+         h2 { font-size: revert-layer }     drop to whatever came before
+
+       Tokens above are deliberately NOT wrapped: custom properties don't
+       compete on specificity, they're inherited *values*. A theme overrides
+       one by being closer in the tree (`.app`, `body.theme-x`), never by
+       out-ranking `:root`. See styles/readme.md §3.
+
+       The `util` layer is also NOT wrapped — a utility class is an explicit
+       opt-in and should beat component CSS, which is what the layer order
+       already buys it. */
+
+    :where(:focus-visible) {
         /* outline: 2px solid var(--prim); don't do this, it messes with the outline's border radius??? */
         outline-color: var(--prim);
         outline-offset: 3px;
         outline-width: 2px; /* doesn't seem to have an effect */
     }
 
-    html { height: 100%; scrollbar-color: rgba(0, 0, 0, 0.2) transparent; }
-    
-    body { min-height: 100%; font-size: clamp(16px, 2vw, 20px); accent-color: var(--prim); }
+    :where(html) { height: 100%; scrollbar-color: rgba(0, 0, 0, 0.2) transparent; }
 
-    .app { height: 100%; }
-    
-    /* h1, h2, h3, h4, h5, h6 { line-height: 1.2; margin: 1em 0; } */
+    :where(body) { min-height: 100%; font-size: clamp(16px, 2vw, 20px); accent-color: var(--prim); }
 
-    hr { margin: 3em 0; }
+    :where(.app) { height: 100%; }
 
-    pre, code { font-family: Consolas, 'Courier New', Monaco, monospace; padding: 0.25em 0.5em; background: rgba(0,0,0,0.1); }
+    /* ---- the type scale: six levels, and that's the whole vocabulary --------
+       h1 Page Title · h2 Section · h3 Sub-section · h4 ANNOTATION · body · code.
 
-    input:not([type="checkbox"], [type="radio"], [type="color"]), select, textarea {
+       Each level is also a class, so any element can borrow a level without
+       lying about the outline: `p.c("h2", "…")` looks like a section title and
+       is still a paragraph. Six is enough — with a scale this small the
+       question is only ever "which one", never "what size".
+
+       Only size/weight/tracking live here. Margins are rhythm and belong to
+       whoever is arranging the content (see Page.css). */
+
+    :where(h1, .h1) { font-size: 1.9em;  font-weight: 900; letter-spacing: -0.015em; line-height: 1.2; }
+    :where(h2, .h2) { font-size: 1.4em;  font-weight: 700; line-height: 1.3; }
+    :where(h3, .h3) { font-size: 1em;    font-weight: 700; }
+    :where(h4, .h4) { font-size: 0.8em;  font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+    :where(h5, h6)  { font-size: 1em;    font-weight: 700; }
+
+    :where(hr) { margin: 3em 0; }
+
+    /* ---- code ---------------------------------------------------------
+       `pre` is a BLOCK and `code` is INLINE; one padding was never going to
+       fit both. It didn't: md.css, demo.css and syntax.css each independently
+       overrode `pre` to something roomier (0.75em / 0.9em / 0.75em), and each
+       carried its own copy of the `pre > code` reset. Four files with an
+       opinion about one box is a bug report about this one — so the block
+       gets block padding here, and the three copies are gone. */
+
+    :where(pre) { padding: 0.75em 1em; }
+    :where(code) { padding: 0.15em 0.4em; }
+    :where(pre, code) { background: rgba(0,0,0,0.1); }
+    :where(pre, code, .code) { font-family: var(--mono); }
+    :where(pre > code) { padding: 0; background: none; }   /* already in a padded box */
+
+    /* ---- block elements the UA styles badly ----------------------------
+       Generic HTML, so they belong to whoever styles HTML — not to the
+       markdown ext that happened to render them first. */
+
+    :where(blockquote) {
+        margin-left: 0;
+        padding-left: 1em;
+        border-left: 3px solid var(--subtle);
+        color: var(--subtle);
+    }
+
+    :where(table) { border-collapse: collapse; margin: 1em 0; }
+    :where(th, td) { padding: 0.25em 0.75em; border: 1px solid rgba(0,0,0,0.2); }
+    :where(th) { background: rgba(0,0,0,0.04); text-align: left; }
+
+    :where(summary) { cursor: pointer; }   /* a real UA gap */
+
+    /* ---- form controls -------------------------------------------------- */
+
+    :where(input:not([type="checkbox"], [type="radio"], [type="color"]), select, textarea) {
         padding: 0.25em 0.6em;
         border: 1px solid var(--subtle); /* adding a border affects input[type=submit] height and bg + hover, for some reason */
     }
 
-    fieldset > p:first-of-type {
+    :where(fieldset > p:first-of-type) {
         margin-top: 0;
     }
 
-    select {     appearance: none;
+    :where(select) {     appearance: none;
     background: field no-repeat 100%;
     background-size: 0.5em;
     background-origin: content-box;
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='40' fill='%23555'><polygon points='0,0 60,0 30,40'/></svg>"); }
 
-    .btn, button { padding: 0.25em 1em; cursor: pointer; }
-    a * {cursor: pointer;}
-    button.bg, .btn.bg { background: var(--bg); color: white; }
-    button.prim, .btn.prim { background: var(--prim); color: white; }
+    :where(.btn, button) { padding: 0.25em 1em; cursor: pointer; }
+    :where(a *) { cursor: pointer; }
+    :where(button.bg, .btn.bg) { background: var(--bg); color: white; }
+    :where(button.prim, .btn.prim) { background: var(--prim); color: white; }
 
 }
 
@@ -117,5 +187,10 @@
 
     textarea.auto { field-sizing: content;} /* textarea height resizes to fit content */
 
+    /* Collapse a container's outer gap to its own padding. The `:first-child`
+       half was already here and already made `.demo-render > :first-child` and
+       `div.md > :first-child` dead code; the symmetric half retires their
+       `:last-child` twins too. In `util`, so it wins over component CSS. */
     :first-child { margin-top: 0; }
+    :last-child { margin-bottom: 0; }
 }

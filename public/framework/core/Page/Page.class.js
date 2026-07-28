@@ -145,8 +145,12 @@ export default class Page {
 	// ── rendering ──
 	// render() is what a container places. If this page declares a `pager`
 	// (a layout class like ColumnPager), instantiate it; otherwise plain content.
+	//
+	// `app` is forwarded, not looked up: App assigns it to us in load_page (see
+	// the adoption note there), and a Pager needs it for `app.page` / `app.router`.
+	// A Page never uses `app` itself — it's purely a conduit to the layout tier.
 	render(){
-		return this.pager ? new this.pager({ root: this }) : this.body();
+		return this.pager ? new this.pager({ root: this, app: this.app }) : this.body();
 	}
 
 	// body() is ALWAYS the plain content (title + content). A ColumnPager fills
@@ -170,21 +174,21 @@ export default class Page {
 	}
 
 	crumb(){
-		return a.c("crumb", this.title).href(this.url);
+		return a.c("page-crumb", this.title).href(this.url);
 	}
 
 	// a preview card, for a parent to list this child
 	preview(){
-		return a.c("preview").href(this.url).append(() => {
-			div.c("preview-title", this.title);
+		return a.c("page-preview").href(this.url).append(() => {
+			div.c("page-preview-title", this.title);
 			if (this.description)
-				div.c("preview-desc", this.description);
+				div.c("page-preview-desc", this.description);
 		});
 	}
 
 	// render all children as preview cards (call inside a parent's content())
 	previews(){
-		return div.c("previews", () => {
+		return div.c("page-previews", () => {
 			(this.children || []).forEach(child => child.preview());
 		});
 	}

@@ -13,15 +13,21 @@ import { Page } from "../Page/Page.class.js";
  * target is a registered Page (a sync lookup — no import, no side effects).
  * Everything else (external, bare pages, unknown routes, modified clicks) falls
  * through to a normal full navigation — which is what keeps history honest.
+ *
+ * `this.app` is INJECTED (`new Router(this.router, { app: this })`), never read
+ * off `window.app` — see "OOP conventions" in CLAUDE.md. Beyond not assuming one
+ * App per document, it's the only thing that works during boot: `app.js` does
+ * `window.app = new App()`, so the global is still undefined while the App's own
+ * constructor is running config_router().
  */
 export class Router {
 
-	constructor(config) {
-		Object.assign(this, config); // optional config from new App({ router: {...} })
+	constructor(...args) {
+		this.assign(...args); // user config first, then what App injects — later wins
 		this.listen();
 	}
 
-	get app() { return window.app; }
+	assign(...args) { return Object.assign(this, ...args); }
 
 	listen() {
 		document.addEventListener("click", e => this.intercept(e));

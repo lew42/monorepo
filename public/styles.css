@@ -51,4 +51,9 @@
     .page { background: white; }
 
     .page-link-block { background: rgba(0,0,0,0.1); display: block; padding: 1em; margin-bottom: 1em; }
+
+    /* Docs tables lead with a keyword — keep it on one line. This lived in
+       md.css, but "my first column is a term" is an opinion about *this site's
+       writing*, not about markdown. */
+    .md td:first-child { white-space: nowrap; }
 }

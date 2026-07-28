@@ -71,8 +71,10 @@
 		gap: 0.4em;
 		font-size: 0.9em;
 	}
-	/* .crumb itself is styled in Page.css — Page.crumb() renders it. Only the
-	   separator belongs here; ColumnPager is what puts the crumbs in a row. */
+	/* .page-crumb itself is styled in Page.css — Page.crumb() renders it. Only the
+	   separator belongs here; ColumnPager is what puts the crumbs in a row.
+	   `.crumb-sep` needs no prefix: the selector already starts with this
+	   component's own class, so it can't reach anything it doesn't contain. */
 	.column-pager .crumb-sep { color: rgba(0,0,0,0.3); }
 
 	.column-pager .columns {
@@ -107,17 +109,23 @@
 	.column-pager .column.secondary.wide   { flex: 2 1 0; }
 	.column-pager .column.secondary.half   { flex: 1 1 0; }  /* the default, named */
 
-	/* a narrow column's previews stack instead of gridding */
-	.column-pager .column.narrow .previews { grid-template-columns: 1fr; }
-	.column-pager .column.narrow .preview { padding: 0.6em 0.8em; }
+	/* a narrow column's page-previews stack instead of gridding */
+	.column-pager .column.narrow .page-previews { grid-template-columns: 1fr; }
+	.column-pager .column.narrow .page-preview { padding: 0.6em 0.8em; }
 
 	/* A narrow column is nav, not reading material — but it still renders the
 	   page's whole body. Shrink the wide, unwrappable bits so a landing page can
 	   lead with a code block and still read well once it's the narrow one. */
 	.column-pager .column.narrow .page { padding: 1.2em 1em; }
-	.column-pager .column.narrow pre,
-	.column-pager .column.narrow .demo-code { font-size: 0.7em; padding: 0.6em 0.7em; }
 	.column-pager .column.narrow .page-title { font-size: 1.3em; }
+
+	/* `pre`, not `.demo-code`. This selector list used to name ext/demo's class
+	   too — core reaching into an ext, which core may not even import, so the
+	   dependency was both undeclared and undeclarable. It was also redundant:
+	   `.demo-code` IS a `<pre>` (demo.js builds `pre.c("demo-code", …)`), and at
+	   (0,3,1) this beats demo.css's (0,1,0) on its own. An element selector has
+	   no owner to depend on. */
+	.column-pager .column.narrow pre { font-size: 0.7em; padding: 0.6em 0.7em; }
 
 	/* Developer chrome, deliberately quiet: the breadcrumbs above already say
 	   where you are, so this is a whisper of a label plus a way out. It sits on
@@ -133,7 +141,7 @@
 	.column-pager .col-path {
 		color: var(--subtle);
 		opacity: 0.5;
-		font-family: Consolas, monospace;
+		font-family: var(--mono);
 	}
 	.column-pager .column:hover .col-path { opacity: 0.8; }
 
@@ -156,10 +164,10 @@
 		container-name: col;
 	}
 
-	/* .page-title, .previews/.preview, .page-link and the page's typographic
+	/* .page-title, .page-previews/.page-preview, .page-link and the page's typographic
 	   rhythm all moved to Page.css — Page renders them, so they must look right
 	   outside a ColumnPager too. What stays here is this layout adapting them in
-	   its own context (see `.column.narrow .preview` above). */
+	   its own context (see `.column.narrow .page-preview` above). */
 
 	/* ---- narrow / mobile layout (container query on the layout's width) --- */
 	@container column-pager (max-width: 45em) {

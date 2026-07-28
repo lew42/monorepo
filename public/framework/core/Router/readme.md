@@ -18,8 +18,20 @@ becomes a normal full-page load (bare pages, plain `href`s all still work).
 - **App** owns loading + rendering (`load_page`).
 - **Page** owns content + the tree.
 
-It reaches the app via `window.app` (the singleton), so construction needs no
-arguments — `new Router(this.router)` just passes along any optional config.
+It is **given** its app — it does not read `window.app`:
+
+```js
+// App.config_router
+this.router = new Router(this.router, { app: this });
+```
+
+That needed no constructor change, because the constructor is
+`Object.assign(this, ...args)` and later args win: the user's optional config
+merges first, then what App must supply lands on top. Besides not assuming one
+App per document, injection is the only thing that *works* during boot —
+`app.js` does `window.app = new App()`, so the global is still `undefined` while
+`config_router()` runs inside the App constructor. See "OOP conventions" in
+`CLAUDE.md` and `framework/readme.md` §7.
 
 ## Link interception — one delegated listener
 
@@ -39,7 +51,8 @@ Back/Forward never strand you (the bug that bites when SPA and full loads mix).
 
 ## API
 
-- `new Router(config?)` — construct + start listening (click + `popstate`).
+- `new Router(...args)` — assigns every arg onto the instance (later wins), then
+  starts listening (click + `popstate`).
 - `go(url)` — programmatic navigation (`pushState` + `app.load_page`). Used by
   e.g. a ColumnPager's close button.
 - `routes` — sorted list of registered route urls (debug — a natural seed for a

@@ -1,0 +1,107 @@
+/* Layer order, restated: the FIRST declaration wins and module import
+   order decides who loads first, so every stylesheet states it. */
+@layer base, theme, util;
+
+/* Token colors for highlight.js output.
+
+   Deliberately NOT a vendored hljs theme. Every official theme sets its own
+   `.hljs { background; color }`, which would fight framework.css's `pre, code`
+   background and demo.css's `.demo-code` — three files with an opinion about
+   one box. hljs themes are plain CSS with no functional tie to the engine, so
+   the honest thing is to own the ~20 declarations that are actually ours.
+
+   Palette follows GitHub Light, because the site's code blocks are light and
+   the association is already in everyone's head. Colors are custom props so a
+   page or a body theme class can restyle without touching selectors. */
+@layer theme {
+
+    :root {
+        --syn-comment:  #6e7781;
+        --syn-keyword:  #cf222e;   /* const, if, return, @media */
+        --syn-string:   #0a3069;   /* strings, regex, attr values */
+        --syn-number:   #0550ae;   /* numbers, literals, booleans */
+        --syn-fn:       #8250df;   /* function + class names */
+        --syn-builtin:  #953800;   /* built-ins, types, variables, params */
+        --syn-tag:      #116329;   /* tag names, selectors, md headings */
+        --syn-attr:     #0550ae;   /* attributes, object keys, css props */
+        --syn-meta:     #6e7781;   /* doctype, shebang, punctuation */
+    }
+
+    /* --- the containers ---------------------------------------------------
+       Match what framework.css already gives `pre` on this site: a light box,
+       no second visual language for code. */
+
+    /* Padding, background and the `> code` reset all come from framework.css's
+       `pre` rules — this file carried a third copy of each. What's left is the
+       two things a highlighted block actually needs. */
+    pre.syntax {
+        tab-size: 4;
+        line-height: 1.55;
+    }
+
+    /* syntax.inline() — sits in a sentence, so it keeps the inline code look
+       and must not introduce a line box of its own */
+    code.syntax-inline { white-space: nowrap; }
+
+    .syntax-error { color: #c00; background: rgba(204,0,0,0.06); }
+
+    /* --- the tokens -------------------------------------------------------
+       Grouped by what they mean, not by which grammar emits them: one color
+       decision covers js + css + html + md + json at once. */
+
+    .hljs-comment,
+    .hljs-quote            { color: var(--syn-comment); font-style: italic; }
+
+    .hljs-keyword,
+    .hljs-selector-tag,
+    .hljs-literal,
+    .hljs-doctag,
+    .hljs-formula          { color: var(--syn-keyword); }
+
+    .hljs-string,
+    .hljs-regexp,
+    .hljs-char.escape_,
+    .hljs-symbol,
+    .hljs-bullet,
+    .hljs-addition         { color: var(--syn-string); }
+
+    .hljs-number,
+    .hljs-selector-attr,
+    .hljs-selector-pseudo,
+    .hljs-template-variable,
+    .hljs-subst            { color: var(--syn-number); }
+
+    .hljs-title,
+    .hljs-title.function_,
+    .hljs-title.class_,
+    .hljs-section          { color: var(--syn-fn); font-weight: 600; }
+
+    .hljs-built_in,
+    .hljs-type,
+    .hljs-variable,
+    .hljs-variable.language_,
+    .hljs-params,
+    .hljs-deletion         { color: var(--syn-builtin); }
+
+    .hljs-name,
+    .hljs-selector-class,
+    .hljs-selector-id      { color: var(--syn-tag); }
+
+    .hljs-attr,
+    .hljs-attribute,
+    .hljs-property,
+    .hljs-link             { color: var(--syn-attr); }
+
+    /* .hljs-tag wraps the WHOLE element (`<div class="a">`) and .hljs-name /
+       .hljs-attr / .hljs-string re-color the parts inside it. So this rule only
+       ever paints what the children don't claim — the angle brackets and the
+       slash. Muted, not green: coloring the container green would tint the
+       punctuation and leave nothing to distinguish the tag name. */
+    .hljs-tag,
+    .hljs-meta,
+    .hljs-meta .hljs-keyword,
+    .hljs-punctuation      { color: var(--syn-meta); }
+
+    .hljs-emphasis         { font-style: italic; }
+    .hljs-strong           { font-weight: 700; }
+}

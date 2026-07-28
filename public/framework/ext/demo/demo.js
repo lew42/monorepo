@@ -43,7 +43,7 @@ export default function demo(...args){
 		if (label)
 			div.c("demo-label", label);
 
-		pre.c("demo-code", () => code(source(fn)));
+		pre.c("demo-code", () => source_code(source(fn)));
 		div.c("demo-render", fn);
 
 		if (note)
@@ -58,6 +58,15 @@ export default function demo(...args){
 function caption(text){
 	const view = p.c("demo-note");
 	return view.md ? view.md(text) : view.backtick_append(text);
+}
+
+/* The same deal with ext/syntax. A demo's source is always JavaScript — it's a
+ * function we just called toString() on — so there's nothing to detect. If the
+ * highlighter has been imported, use it; if not, plain text, which is what this
+ * always was. demo/ imports neither ext. */
+function source_code(src){
+	const view = code();
+	return view.syntax ? view.syntax("javascript", src) : view.text(src);
 }
 
 // fn.toString() minus the wrapper. `() => { body }` and `function(){ body }`

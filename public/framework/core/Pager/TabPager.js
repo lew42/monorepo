@@ -1,6 +1,10 @@
 import { View, div, span } from "../View/View.js";
 import { Pager } from "./Pager.js";
 
+// css dependency, declared — TabPager.css adapts .page / .page-title, which Page
+// emits and Page.css styles. See framework/styles/readme.md §8.
+import "../Page/Page.class.js";
+
 View.stylesheet(import.meta, "TabPager.css");
 
 /**

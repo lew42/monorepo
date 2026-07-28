@@ -2,6 +2,14 @@ import { View, div, span } from "../View/View.js";
 import { Pager } from "./Pager.js";
 import { Sidebar } from "../Sidebar/Sidebar.js";
 
+/* Not unused — this is a CSS dependency, declared. ColumnPager.css adapts classes
+ * that Page emits and Page.css styles; the import is what guarantees Page.css is
+ * loaded, and what makes `grep -rn Page.class.js` list everyone a rename breaks.
+ * See framework/styles/readme.md §8.
+ *
+ * css: .page, .page-title, .page-previews, .page-preview */
+import "../Page/Page.class.js";
+
 View.stylesheet(import.meta, "ColumnPager.css");
 
 /**
@@ -122,7 +130,7 @@ export class ColumnPager extends Pager {
 	// X climbs out to the column's parent
 	close(pg){
 		if (pg.parent)
-			window.app.router?.go(pg.parent.url);
+			this.app?.router?.go(pg.parent.url);
 	}
 }
 

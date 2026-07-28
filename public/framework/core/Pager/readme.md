@@ -21,16 +21,20 @@ That plus `leaf()` is the entire class. Two usage modes:
 | **manual** | you: `pager.show(page)` | unused |
 | **mounted** | a topic: `pager: ColumnPager` | `root` = the topic, `leaf()` = the page being viewed |
 
-Mounted, `Page.render()` does `new this.pager({ root: this })` — a plain
-assign-object, so **no subclass needs a constructor**. (It used to be
+Mounted, `Page.render()` does `new this.pager({ root: this, app: this.app })` —
+a plain assign-object, so **no subclass needs a constructor**. (It used to be
 `new this.pager(this)` with `constructor(root){ super({ root }) }` copy-pasted
 into every subclass. Passing the object deleted that boilerplate everywhere.)
+
+That property is also why adding `app` cost nothing. Injecting a dependency into
+an assign-based constructor is one more key in an object literal — no signature
+to change, no subclass to touch. It's the concrete payoff of the convention.
 
 ### `leaf()` — ask the App, don't read the URL
 
 ```js
 leaf(){
-    const page = window.app?.page;
+    const page = this.app?.page;
     return page?.chain?.includes(this.root) ? page : this.root;
 }
 ```
@@ -41,6 +45,12 @@ is set before `$app.append(page.host())`). A layout re-deriving it from
 to a question already answered. The `chain.includes(root)` guard means a Pager
 mounted somewhere unexpected degrades to showing its own root instead of
 rendering someone else's subtree.
+
+`this.app`, not `window.app` — the app is injected down the chain
+(`App.load_page` → `Page` → `Pager`). The optional chaining is still load-bearing
+after the change, but for a different reason: a **standalone** `new Pager()` (the
+TabPager panel, a demo on this page) has no app and never did. It falls back to
+`this.root`, same as before.
 
 This is the general rule for structures: **layouts are told, they don't ask.**
 The remaining URL knowledge in the whole layout tier is now zero — see

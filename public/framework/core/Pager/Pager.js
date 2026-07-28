@@ -15,8 +15,10 @@ View.stylesheet(import.meta, "Pager.css");
  *   MOUNTED — a topic declares one as its layout, and the App mounts it:
  *     new Page({ meta, title, children: [...], pager: ColumnPager });
  *
- * Mounted, `Page.render()` does `new this.pager({ root: this })`, so `root` is
- * the topic and `leaf()` is the page actually being viewed. A subclass's
+ * Mounted, `Page.render()` does `new this.pager({ root: this, app: this.app })`,
+ * so `root` is the topic and `leaf()` is the page actually being viewed. (`app`
+ * is injected all the way down from App.load_page; nothing here reads the
+ * `window.app` global — see "OOP conventions" in CLAUDE.md.) A subclass's
  * `render()` lays those two out however it likes — see ColumnPager (drill-down
  * columns) and TabPager (tab bar + panel). That's the whole extension point.
  *
@@ -38,8 +40,12 @@ export class Pager extends View {
 	// The page being viewed. The App already resolved it (`app.page`) before
 	// rendering us, so we don't re-derive it from the URL. Falls back to the
 	// topic itself (the topic's own url, or a Pager used outside an App).
+	//
+	// `this.app` is injected via `new this.pager({ root, app })` in Page.render —
+	// never `window.app`. It's absent for a standalone `new Pager()` (the TabPager
+	// panel, a demo), which is exactly why it's optional-chained.
 	leaf(){
-		const page = window.app?.page;
+		const page = this.app?.page;
 		return page?.chain?.includes(this.root) ? page : this.root;
 	}
 }

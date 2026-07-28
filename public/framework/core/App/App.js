@@ -28,10 +28,13 @@ export default class App {
 		this.config_router();
 	}
 
-	// opt out with `new App({ router: false })`; otherwise navigation is no-reload
+	// opt out with `new App({ router: false })`; otherwise navigation is no-reload.
+	// `this.router` may be undefined or a POJO of options; either way it merges,
+	// then `{ app: this }` lands on top. No branch, because every constructor in
+	// the framework is Object.assign-based and later args win.
 	config_router() {
 		if (this.router !== false)
-			this.router = new Router(this.router);
+			this.router = new Router(this.router, { app: this });
 	}
 
 	render() {
@@ -69,8 +72,21 @@ export default class App {
 
 		// host() = the ancestor that owns the layout, or the page itself. A bare
 		// page (no default export) already rendered itself — nothing to swap.
-		if (page)
-			this.$app.empty().append(page.host?.() ?? page);
+		if (page) {
+			const host = page.host?.() ?? page;
+
+			// Adoption — a Page learns its app from whoever renders it, exactly
+			// as a child learns its `.parent` from whoever declares it. A Page is
+			// built in userland at module scope (`export default new Page(…)`),
+			// so App has no constructor to inject into; this is the seam it does
+			// have. The host gets it too: it's the one that builds the Pager.
+			// Guarded on `.host` so bare exports are left alone — assigning a
+			// property to a default-exported *string* throws in strict mode.
+			if (page.host)
+				page.app = host.app = this;
+
+			this.$app.empty().append(host);
+		}
 
 		page?.activate?.();        // document.title / meta / theme
 		this.mark_links();

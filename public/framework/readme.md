@@ -209,21 +209,49 @@ commit.
 
 ## 7. `window.app`
 
-`Router` and `Pager` both reach `window.app`. The alternative is a static:
-
-```js
-class App { constructor(){ App.current = this; … } }
-```
+`Router` and `Pager` both reach `window.app`. Three ways to give them an app:
 
 - `window.app` — honest for a real singleton, zero plumbing, no import cycle
   (`app.js` imports `Router`, so `Router` can't import `app.js`), and it's what
   you type in the console.
-- `App.current` — namespaced, and a test can set it. But `App` *is* importable
-  from anywhere, so this is strictly more hygienic for the same cost.
+- `App.current` — a namespaced static, set in the constructor. Tidier, and a
+  test can set it. But it is the *same assumption*: one ambient App per
+  document. It relocates the global, it doesn't remove it.
+- **Inject it** — `new Router(this.router, { app: this })`, read `this.app`.
 
-**Verdict: do both** — set `App.current` in the constructor, keep `window.app`
-as the console alias, and have framework code read `App.current`. One line.
-Low value, low cost; bundle it with something else.
+**Verdict (superseded — this entry previously said "do both, read
+`App.current`"): inject the app.** Both globals encode "there is exactly one App
+per document," which forbids two apps on a page, an app in an iframe or test
+harness, and any instance that isn't the global one. That's a real constraint to
+accept in the substrate in exchange for saving one constructor argument.
+
+`window.app` stays — as a **console convenience only**. Nothing under
+`framework/` may read it. See the OOP conventions in `CLAUDE.md`: because every
+constructor is `Object.assign(this, ...args)`, injection costs one extra object
+literal at the call site and needs no constructor change at all.
+
+**Done.** `Router` takes `{ app: this }` from `config_router`; `Pager.leaf()` and
+`ColumnPager.close()` read `this.app`. Nothing under `framework/` reads the
+global now.
+
+The `Pager` half looked like the hard one — it's a `View` constructed by
+`Page.render()`, and `Page` held no app either. The resolution was to notice that
+**`Page` can't take `app` in its constructor at all**: pages are built in
+userland at module scope (`export default new Page(…)`), so there is no call site
+to inject at. `App.load_page` assigns it at *render* time instead — the same
+adoption move that already wires `child.parent`. `Page` never uses `app` itself;
+it is purely a conduit to the layout tier, which is worth knowing before someone
+"cleans up" the forwarding.
+
+Two things this does **not** buy, recorded so they aren't claimed later:
+
+- **Two Apps in one document.** The ES module registry is per-realm, so both
+  Apps import the *same* `page.js` module and get the *same* `Page` instance,
+  which can only hold one `app`. `Page.registry`, `View.captor` and
+  `View.stylesheets` are statics and would clobber each other besides. The real
+  isolation boundary for two apps is an **iframe** — separate realm, separate
+  registry, separate statics — and there `window.app` is per-frame and correct.
+- **Removing the global.** `window.app` stays, as a console convenience.
 
 ---
 
