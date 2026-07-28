@@ -3,28 +3,44 @@ import { View } from "../View/View.js";
 View.stylesheet(import.meta, "Pager.css");
 
 /**
- * Pager — a `div.pager` container that shows one page at a time and swaps it.
+ * Pager — a `div.pager` that shows one page and can swap it.
  *
- * This is deliberately dumb: no history, no URLs, no activation. It just holds a
- * `.active` page and swaps its DOM on command. That makes it useful on its own
- * (tabs, wizards, in-app view switching) and a clean base for richer layouts
- * (see ColumnPager).
+ * Deliberately dumb: no history, no URLs, no activation. Two ways to use it:
  *
- * Lifecycle (activate/deactivate, title/meta) is the Router/App's job — the
- * thing that knows the URL. The Pager only owns the DOM swap.
+ *   MANUAL — you drive it:
+ *     const pager = new Pager();
+ *     pager.show(pageA);   // renders pageA into the container
+ *     pager.show(pageB);   // swaps to pageB
  *
- *   const pager = new Pager();
- *   pager.show(pageA);   // renders pageA into the container
- *   pager.show(pageB);   // swaps to pageB
+ *   MOUNTED — a topic declares one as its layout, and the App mounts it:
+ *     new Page({ meta, title, children: [...], pager: ColumnPager });
+ *
+ * Mounted, `Page.render()` does `new this.pager({ root: this })`, so `root` is
+ * the topic and `leaf()` is the page actually being viewed. A subclass's
+ * `render()` lays those two out however it likes — see ColumnPager (drill-down
+ * columns) and TabPager (tab bar + panel). That's the whole extension point.
+ *
+ * Everything navigational stays outside: links are plain `<a href>`, the Router
+ * intercepts them globally, and the App owns activation (title/meta/theme).
  */
 export class Pager extends View {
 
+	// ── manual use ──
 	// swap the container's contents to `page` (a Page, or any view/renderable)
 	show(page){
 		this.empty();
 		this.append(page); // Page → render(); View → appended directly
 		this.active = page;
 		return this;
+	}
+
+	// ── mounted use ──
+	// The page being viewed. The App already resolved it (`app.page`) before
+	// rendering us, so we don't re-derive it from the URL. Falls back to the
+	// topic itself (the topic's own url, or a Pager used outside an App).
+	leaf(){
+		const page = window.app?.page;
+		return page?.chain?.includes(this.root) ? page : this.root;
 	}
 }
 

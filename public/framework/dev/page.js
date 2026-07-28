@@ -1,11 +1,22 @@
-import { Page, p } from "/app.js";
+import { Page, md, h2, pre } from "/app.js";
 
 export default new Page({
 	meta: import.meta,
 	title: "Dev",
-	description: "Local-only dev tooling (live reload).",
+	description: "Local-only tooling: live reload.",
+	col: "narrow",
 	content(){
-		p("Dev-only tooling, active on localhost and inert in production. `Socket` connects to the dev server's WebSocket and reloads the page when a watched file changes (chokidar watches `public/` on the server side).");
-		p("None of it ships to production — the client checks the hostname and no-ops off localhost, so the static build stays pure. That's a core constraint: nothing may depend on server-side logic at runtime.");
+
+		pre(`npm install
+node server.js      # http://localhost`);
+
+		md("Save a file, the browser reloads. That's all this tier does — the server watches `public/` and pushes a reload over a WebSocket.");
+
+		h2("It ships nothing");
+
+		pre(`if (host === "localhost" || host.endsWith(".localhost"))
+    this.socket = Socket.singleton();`);
+
+		md("The client checks the hostname and no-ops anywhere else. Production is plain static files; nothing here may become a runtime dependency. That's a hard constraint, not a preference.");
 	}
 });

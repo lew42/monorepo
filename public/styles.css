@@ -1,12 +1,24 @@
-body.theme-1 {
-    /* background: #ddd;  */
+/* Site-level styles.
 
-    .app { }
-    
+   MUST be layered. framework.css declares `@layer base, theme, util`, and in the
+   CSS cascade *unlayered rules beat every layer* — regardless of specificity. An
+   unlayered `.page { padding: 2em 6% }` here silently defeated
+   `.column-pager .column.narrow .page { … }` in ColumnPager.css, four classes
+   deep. Staying inside `theme` puts site rules in the same cascade as framework
+   components, where specificity and load order decide normally (this file loads
+   last, so an equally-specific rule here still wins). */
+@layer theme {
+
+    body.theme-1 {
+        /* background: #ddd;  */
+
+        .app { }
+
+    }
+
+    .app { background: #ddd; }
+
+    .page { max-width: 60em; background: white; margin-inline: auto; padding: 2em 6%; }
+
+    .page-link-block { background: rgba(0,0,0,0.1); display: block; padding: 1em; margin-bottom: 1em; }
 }
-
-.app { background: #ddd; }
-
-.page { max-width: 60em; background: white;  margin-inline: auto; padding: 2em 6%; }
-
-.page-link-block { background: rgba(0,0,0,0.1); display: block; padding: 1em; margin-bottom: 1em; }

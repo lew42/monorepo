@@ -7,7 +7,7 @@ Notes on how pages find their ancestors and what does / doesn't work for wiring
 ## 1. ~~`app.js` always loads `./michael/page.js`~~ (SUPERSEDED)
 
 > **No longer true.** `app.js` imports no pages; topics load lazily on first
-> visit, and `App.load_topic` climbs the URL to load a deep page's ancestors on
+> visit, and `Page#load_ancestors` climbs the URL to load a deep page's ancestors on
 > demand (§7). The eager-import analysis below is kept as the reasoning that led
 > there.
 
@@ -57,7 +57,7 @@ ColumnPager can show the last two as columns and the rest as breadcrumbs.
 framework derives it from the URL.
 
 - Pro: only loads the ancestors on the actual path; no upward imports in pages.
-- Con: `import(App.path_to_page_url(url))` is a **computed** dynamic import — a
+- Con: `import(Page.module_url(url))` is a **computed** dynamic import — a
   bundler can't statically follow it. Also async (an `await` per level).
 
 ### (b) Skip to the root + adoption (alternative)
@@ -159,7 +159,7 @@ knowable at build time:
   (a code-split point). Bundler-friendly.
 - `import(someVariable)` — **computed** → NOT analyzable. This is the one that
   hurts. Our current `Page2.chain()` does exactly this
-  (`import(App.path_to_page_url(url))`), which is why it won't bundle cleanly.
+  (`import(Page.module_url(url))`), which is why it won't bundle cleanly.
 
 ## 5. Two loading directions for `/topic/sub/leaf/`
 
@@ -208,7 +208,7 @@ Two things fall out of the table:
   dynamic imports (bundler-hostile) and the target paints before its layout/context
   is known (async pop-in).
 
-> What the code actually does now: `app.js` imports nothing, and `App.load_topic`
+> What the code actually does now: `app.js` imports nothing, and `Page#load_ancestors`
 > climbs the URL importing ancestors only when a deep page needs its topic (a
 > no-op otherwise). Eager-import a topic anywhere (or bundle it) and the climb
 > never runs for it.
@@ -232,7 +232,7 @@ Why this is attractive:
 
 Cost: each page needs to map a URL segment → a child (a small `children` map or a
 naming convention), and the router needs the descent loop. More machinery than
-"framework computes `path_to_page_url` and imports it" — but that machinery buys
+"framework computes `Page.module_url` and imports it" — but that machinery buys
 literal imports and per-page control.
 
 ## 7. Resulting class shape (Page / Router / Pager) — BUILT
@@ -249,7 +249,7 @@ The loading decision pointed at this decomposition, which also removed the
   Dormant. **No routing, no layout.** You always write `new Page(...)`.
 - **`Router` (one, small — the sane core of the old "Pager")** — owns
   `location ↔ page` mapping + `pushState`/`popstate`; it calls `app.load_page`.
-  The App does the load (`load_topic` climbs to the pager-owning topic) and
+  The App does the load (`load_ancestors` climbs to the pager-owning topic) and
   `page.activate()` (title/meta). Keep the Router tiny; the old Pager "got
   complicated" because it also owned rendering and page state — don't repeat that.
 - **`Pager` / layout (a class — justified: columns + breadcrumbs need structure)**

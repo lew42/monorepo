@@ -43,7 +43,11 @@
 		border-left: 3px solid transparent;
 	}
 	.column-pager .sidebar-link:hover { background: rgba(255,255,255,0.08); color: #fff; }
-	.column-pager .sidebar-link.active {
+
+	/* .active = this exact url, .in-path = an ancestor of it. Both set by
+	   App.mark_links(); the sidebar treats them the same (section highlight). */
+	.column-pager .sidebar-link.active,
+	.column-pager .sidebar-link.in-path {
 		color: #fff;
 		border-left-color: var(--prim);
 		background: rgba(255,255,255,0.06);
@@ -96,7 +100,7 @@
 	}
 	.column-pager .crumb { color: var(--subtle); text-decoration: none; }
 	.column-pager .crumb:hover { color: var(--prim); text-decoration: underline; }
-	.column-pager .crumb:last-of-type { color: inherit; font-weight: 700; }
+	.column-pager .crumb.active { color: inherit; font-weight: 700; }
 	.column-pager .crumb-sep { color: rgba(0,0,0,0.3); }
 
 	.column-pager .columns {
@@ -119,19 +123,77 @@
 	/* .secondary = left/nav column, .active = focus; equal by default.
 	   A single column is .active and simply fills. */
 
+	/* ---- per-page column width ---------------------------------------
+	   A page declares `col: "narrow"` and the class lands on its .column
+	   (ColumnPager.column). It sizes the page while it's the LEFT column —
+	   i.e. while it's acting as nav. The focused column always fills, so a
+	   single-column view never leaves dead space.
+
+	   `col` is just a class string; define your own alongside these. */
+
+	.column-pager .column.secondary.narrow { flex: 0 1 18em; }
+	.column-pager .column.secondary.wide   { flex: 2 1 0; }
+	.column-pager .column.secondary.half   { flex: 1 1 0; }  /* the default, named */
+
+	/* a narrow column's previews stack instead of gridding */
+	.column-pager .column.narrow .previews { grid-template-columns: 1fr; }
+	.column-pager .column.narrow .preview { padding: 0.6em 0.8em; }
+
+	/* A narrow column is nav, not reading material — but it still renders the
+	   page's whole body. Shrink the wide, unwrappable bits so a landing page can
+	   lead with a code block and still collapse to an 18em strip. */
+	.column-pager .column.narrow .page { padding: 1.2em 1em; }
+	.column-pager .column.narrow pre,
+	.column-pager .column.narrow .demo-code { font-size: 0.7em; padding: 0.6em 0.7em; }
+	.column-pager .column.narrow .page-title { font-size: 1.3em; }
+
+	/* Developer chrome, deliberately quiet: the breadcrumbs above already say
+	   where you are, so this is a whisper of a label plus a way out. It sits on
+	   the column background with no bar of its own. */
 	.column-pager .col-bar {
 		flex: 0 0 auto;
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: 0.4em 0.8em;
-		background: #f6f7f9;
-		border-bottom: 1px solid rgba(0,0,0,0.08);
-		font-size: 0.8em;
+		padding: 0.5em 0.8em 0;
+		font-size: 0.72em;
 	}
-	.column-pager .col-path { color: var(--subtle); font-family: Consolas, monospace; }
-	.column-pager .col-close { cursor: pointer; padding: 0 0.4em; border-radius: 3px; color: var(--subtle); }
-	.column-pager .col-close:hover { background: rgba(0,0,0,0.1); color: #000; }
+	.column-pager .col-path {
+		color: var(--subtle);
+		opacity: 0.5;
+		font-family: Consolas, monospace;
+	}
+	.column-pager .column:hover .col-path { opacity: 0.8; }
+
+	.column-pager .col-close {
+		cursor: pointer;
+		padding: 0 0.4em;
+		border-radius: 3px;
+		color: var(--subtle);
+		opacity: 0.4;
+		transition: opacity 0.15s;
+	}
+	.column-pager .column:hover .col-close { opacity: 0.75; }
+	.column-pager .col-close:hover { background: rgba(0,0,0,0.1); color: #000; opacity: 1; }
+
+	/* ---- doc typography: section rhythm inside a page -----------------
+	   Scoped to `.page >` so headings inside a demo's rendered output keep
+	   their plain browser look — a demo shows what YOUR code renders. */
+
+	.column-pager .page > h2 {
+		font-size: 1.15em;
+		font-weight: 700;
+		margin: 2.2em 0 0.7em;
+		padding-bottom: 0.3em;
+		border-bottom: 1px solid rgba(0,0,0,0.1);
+	}
+	.column-pager .page > h3 {
+		font-size: 1em;
+		font-weight: 700;
+		margin: 1.6em 0 0.4em;
+	}
+	.column-pager .page > p,
+	.column-pager .page > .md { margin: 0.9em 0; }
 
 	/* col-body is a query container, so demos inside can respond to it */
 	.column-pager .col-body {
@@ -141,7 +203,12 @@
 		container-name: col;
 	}
 
-	.column-pager .page-title { font-size: 1.8em; font-weight: 800; margin-bottom: 0.5em; }
+	.column-pager .page-title {
+		font-size: 1.9em;
+		font-weight: 800;
+		letter-spacing: -0.015em;
+		margin: 0 0 0.7em;
+	}
 
 	/* ---- preview cards (a parent listing its children) --------------- */
 
@@ -169,7 +236,19 @@
 	.column-pager .preview-title { font-weight: 700; }
 	.column-pager .preview-desc { color: var(--subtle); font-size: 0.85em; margin-top: 0.2em; }
 
+	/* the preview for the page open in the next column reads as selected */
+	.column-pager .preview.active,
+	.column-pager .preview.in-path {
+		border-color: var(--prim);
+		background: color-mix(in srgb, var(--prim) 8%, #fff);
+		box-shadow: inset 3px 0 0 var(--prim);
+	}
+	.column-pager .preview.active .preview-title,
+	.column-pager .preview.in-path .preview-title { color: var(--prim); }
+
 	.column-pager .page-link { font-weight: 600; }
+	.column-pager .page-link.active,
+	.column-pager .page-link.in-path { color: var(--prim); }
 
 	/* ---- narrow / mobile layout (container query on the layout's width) --- */
 	@container column-pager (max-width: 45em) {

@@ -1,100 +1,238 @@
-# Pager & ColumnPager
+# Pager, ColumnPager, TabPager
 
-A **Pager** is a `div.pager` container that shows one page at a time and swaps it.
-A **ColumnPager** is a Pager that lays a page and its ancestors out as a drill-down
-(sidebar + breadcrumbs + two columns).
+Design record. The friendly version is [`page.js`](./page.js) → `/framework/core/Pager/`.
 
-The split mirrors the framework's whole approach: `Pager` is the dumb, minimal,
-reusable core; `ColumnPager extends Pager` is one richer structure. You can build
-others (Tabs, Grid) the same way.
+A **Pager** is a `div.pager` that shows one page and can swap it. A **structure**
+is a Pager subclass whose `render()` arranges a page tree — `ColumnPager` (a
+drill-down) and `TabPager` (a tab bar) are the two that ship.
 
 ## Pager — the MVP
 
-Deliberately dumb: **no history, no URLs, no activation.** It holds a `.active`
-page and swaps its DOM on command. That makes it useful on its own (tabs, wizards,
-in-app view switching) and a clean base to extend.
+Deliberately dumb: **no history, no URLs, no activation.**
 
 ```js
-import { Pager } from "/app.js";
-
-const pager = new Pager();   // a div.pager, captured where you create it
-pager.show(pageA);           // renders pageA into the container
-pager.show(pageB);           // swaps to pageB
+show(page){ this.empty(); this.append(page); this.active = page; return this; }
 ```
 
-`show(page)` = `empty()` + `append(page)` + track `.active`. That's the whole
-class. Lifecycle (activate/deactivate, title/meta) is the App's job — the thing
-that knows the URL. The Pager only owns the DOM swap.
+That plus `leaf()` is the entire class. Two usage modes:
 
-The App does **not** use a Pager — it renders pages straight into `$app`. `Pager`
-is entirely optional: reach for it when *you* want a swap container (tabs, a
-wizard), and extend it (like `ColumnPager`) for a richer layout.
+| mode | who drives it | what `root`/`leaf()` mean |
+|---|---|---|
+| **manual** | you: `pager.show(page)` | unused |
+| **mounted** | a topic: `pager: ColumnPager` | `root` = the topic, `leaf()` = the page being viewed |
 
-## ColumnPager — the drill-down layout
+Mounted, `Page.render()` does `new this.pager({ root: this })` — a plain
+assign-object, so **no subclass needs a constructor**. (It used to be
+`new this.pager(this)` with `constructor(root){ super({ root }) }` copy-pasted
+into every subclass. Passing the object deleted that boilerplate everywhere.)
+
+### `leaf()` — ask the App, don't read the URL
 
 ```js
-import { Page, ColumnPager } from "/app.js";
+leaf(){
+    const page = window.app?.page;
+    return page?.chain?.includes(this.root) ? page : this.root;
+}
+```
 
+The App has *already* resolved the target page before it renders us (`app.page`
+is set before `$app.append(page.host())`). A layout re-deriving it from
+`window.location` + `Page.registry` was a second, independently-fallible answer
+to a question already answered. The `chain.includes(root)` guard means a Pager
+mounted somewhere unexpected degrades to showing its own root instead of
+rendering someone else's subtree.
+
+This is the general rule for structures: **layouts are told, they don't ask.**
+The remaining URL knowledge in the whole layout tier is now zero — see
+`App.mark_links` for how active states happen without it.
+
+## ColumnPager — the drill-down
+
+```js
 export default new Page({
     meta: import.meta,
     title: "Docs",
-    children: [/* … */],
-    pager: ColumnPager,   // this topic renders its subtree in the drill-down
+    children: [intro, api],
+    pager: ColumnPager,   // this subtree renders as columns
 });
 ```
 
-A **topic** declares `pager: ColumnPager`; its descendants are plain Pages. When
-any descendant is the target:
+A **topic** declares the pager; its descendants are plain Pages that know nothing
+about it. When any descendant is the target, `Page.host()` walks up to the topic,
+the App mounts the ColumnPager, and it renders `leaf().chain`.
 
-1. `Page.host()` walks up to the topic (the nearest ancestor with a `pager`).
-2. The App mounts the topic's ColumnPager (`new ColumnPager(topic)`).
-3. It reads `window.location`, resolves the target from `Page.registry`,
-   walks `.chain`, and renders the last two ancestors as columns (the rest become
-   breadcrumbs).
+Because clicking a link and hard-reloading a url run the same chain logic, `/a/b/`
+looks identical either way — no per-page layout knowledge, no hash router.
 
-Because clicking a link and hard-reloading a URL both run the same chain logic,
-`/a/b/` looks identical either way — no per-page layout knowledge, no hash router.
-
-Key details:
 - Columns are filled with `page.body()` (plain content), **never** `render()`, so
   a topic never recurses into its own ColumnPager.
-- Navigation is plain `<a href>` (from `page.link()`/`crumb()`); the Router
-  intercepts globally — no per-link handlers here.
-- Only two columns show at once; deeper paths push ancestors into the breadcrumb.
-- Below `45em` (a container query on its own width) the sidebar collapses to a
-  burger and only the active column shows.
-
-## How it mounts
+- Only the last two of the chain are columns; the rest become breadcrumbs.
+- Navigation is plain `<a href>` — the Router intercepts globally, and
+  `App.mark_links` applies `.active` / `.in-path`. No handlers, no url checks.
+- Below `45em` (a container query on its own width, not the viewport) the sidebar
+  goes off-canvas behind a burger and only the focused column shows.
 
 ```
-.app                ← App.render's container; App.load_page swaps its contents
-  .column-pager     ← a topic's ColumnPager, from host.render()
-    .sidebar  .main(.topbar .columns)
+.column-pager
+  .sidebar            brand + the topic's children
+  .backdrop           dims content behind the off-canvas sidebar
+  .main
+    .topbar           burger + breadcrumbs
+    .columns
+      .column.secondary   the parent, acting as nav
+      .column.active      the focused page
 ```
 
-`.main` is just the layout region beside the sidebar. `App.load_page` appends
-`page.host()`: for a topic that's `new ColumnPager(topic)`; for a plain page it's
-`body()`, rendered straight into `$app`. No Pager wraps the app content.
+## Extending: the three levers, cheapest first
 
-## Building another structure
+The question that drives this file: *when a layout needs to look different, what
+is the smallest thing that can change?* Three answers, and you should always try
+them in this order.
 
-A structure is just a `Pager` subclass whose `render()` lays out the chain
-differently:
+### 1. A class on the element — for **appearance**
+
+A page declares `col: "narrow"` and `ColumnPager.column()` puts it on the
+`.column`. That's the whole mechanism:
 
 ```js
-export class Tabs extends Pager {
-    constructor(root){ super({ root }); }
+.ac(pg.col)   // ColumnPager.column()
+```
+
+```css
+.column.secondary.narrow { flex: 0 1 18em; }
+.column.secondary.wide   { flex: 2 1 0; }
+```
+
+Sizing applies while the page is the **left** column — i.e. while it's acting as
+nav. The focused column always fills, so a single-column view never leaves dead
+space. That asymmetry is deliberate: "how wide is this page" is not a property of
+the page, it's a property of the *role the page is playing right now*.
+
+This covers the motivating case exactly: a page that's a heading, a line, and a
+list of previews (`/framework/`, `/framework/core/`, `/framework/util/`) shouldn't
+get half the screen; a page of prose should. Since `col` is an inert string, a
+site can define `col: "sidebar-ish"` and style it without touching either class.
+
+### 2. Override a method — for **structure**
+
+`render()` is decomposed so that every piece is its own method:
+
+```
+render → sidebar → brand
+                 → nav
+       → topbar  → crumbs
+       → columns → column → col_bar
+```
+
+A topic supplies a subclass:
+
+```js
+pager: class extends ColumnPager {
+    brand(){ return a("Acme").href("/").ac("brand"); }
+    nav(){ div.c("sidebar-nav", () => site_links.forEach(l => l.render())); }
+}
+```
+
+Only the method you name changes; everything else — chain resolution, columns,
+breadcrumbs, the container query, `close()` — is inherited. This is the answer to
+"the sidebar needs restyling, but building it into ColumnPager feels wrong": it
+*is* built in, as a **default you can replace in four lines**, and the class stays
+one file with no options object.
+
+Two escape hatches exist for trivial cases so you don't subclass for a string:
+`root.brand` and `root.brand_url` are read by `brand()`. Resist adding more —
+every knob is API surface, and the subclass already covers everything.
+
+### 3. A new subclass — for a **different arrangement**
+
+When the layout isn't the drill-down at all:
+
+```js
+export class Split extends Pager {
     render(){
-        // a tab bar of root.children + a panel for the active child
+        const [left, right] = this.leaf().chain.slice(-2);
+        div.c("left", () => left.body());
+        div.c("right", () => right.body());
     }
 }
 ```
 
-Then a topic uses `pager: Tabs`. Everything navigational (routing, links,
-activation) is unchanged — only the layout differs.
+Nothing navigational changes — links stay links, the Router still intercepts, the
+App still activates the leaf. Only the arrangement differs. `TabPager` is the
+shipped proof.
+
+## TabPager — and what it proves
+
+```js
+render(){
+    this.pages = this.pages ?? this.root?.children ?? [];
+    div.c("tab-bar", () => this.pages.forEach(page =>
+        this.tabs.push(span.c("tab", page.title).click(() => this.select(page)))));
+
+    this.panel = new Pager().ac("tab-panel");   // ← the base class, used as a part
+    this.select(...);
+}
+
+select(page){ …mark the tab…; this.panel.show(page); }
+```
+
+Twenty lines, and the panel **is** a plain `Pager`. That matters: `ColumnPager`
+extends `Pager` but never calls `show()`, which made the base class look like
+inheritance-for-its-own-sake. `TabPager` uses it by composition, which is the
+better relationship and the honest justification for `Pager` existing.
+
+**Tabs are in-page, not url-driven** — clicking swaps the panel and changes no
+url. That's the right default (tabs are usually a view state, not a location),
+and it makes tabs usable on any page with three dormant Pages and no routing at
+all. Mounted as a topic's layout it opens on `leaf()`, so a deep url still lands
+on the right tab; if you want tab clicks to push history, don't add a mode — write
+the six-line url-driven variant that renders `leaf()` the way ColumnPager does and
+leaves the links as links.
+
+## Variations worth building (and which lever each needs)
+
+| variation | lever | notes |
+|---|---|---|
+| narrow nav column | **class** (`col: "narrow"`) | shipped |
+| wide focus column | **class** (`col` on the neighbour) | shipped |
+| three visible columns | class | `.columns { --cols: 3 }` + `chain.slice(-3)`; the `slice` is the only code |
+| no sidebar (breadcrumbs only) | class | `.column-pager.no-sidebar > .sidebar { display: none }` |
+| sidebar on the right | class | `flex-direction: row-reverse` |
+| full-bleed / no chrome page | class | `col: "bare"` → hide that column's `.col-bar` |
+| collapsible sidebar sections | **method** (`nav()`) | needs grandchildren; a `nav()` override that recurses |
+| custom brand / logo | **method** (`brand()`) or `root.brand` | shipped |
+| a search box in the topbar | **method** (`topbar()`) | |
+| stacked/accordion instead of columns | **subclass** | different arrangement of the same chain |
+| tabs | **subclass** (`TabPager`) | shipped |
+| master–detail with a list, not previews | **subclass** | |
+| carousel / wizard | manual `Pager` + `show()` | no tree involved |
+
+The pattern to notice: **appearance is CSS, structure is a method, arrangement is
+a class.** If a change needs a new property on `Pager`, it's probably one of the
+first two wearing a disguise.
+
+## Open questions
+
+- **`.col-bar`** (the `/path` + `✕` strip on every column) is developer chrome. It
+  reads as an IDE, not a document. Candidate for `col: "bare"`, or for moving the
+  close affordance into the breadcrumb.
+- **`.column-pager` fights the height chain.** `body:has(.column-pager)` and
+  `.app:has(.column-pager)` in `ColumnPager.css` reach outside the component to
+  pin `height: 100%`. It works, but a component reaching up to `body` is a smell.
+  Alternative: `.app { display: grid; height: 100% }` unconditionally in
+  `framework.css`, so no layout has to opt in.
+- **Re-render granularity.** Navigating within a topic re-renders the whole
+  ColumnPager. `Pager.show()` exists precisely to swap one region — the focused
+  column could use it, keeping sidebar scroll position across navigations. Not
+  done: it needs the App to distinguish "same host" from "new host", which is the
+  first real state this tier would own.
+- **Two columns is hard-coded** (`chain.slice(-2)`). Making it `this.cols ?? 2`
+  is one line, but the container query and the `.secondary` role naming both
+  assume two. Do it when a third column is actually wanted.
 
 ## Files
 
-- `Pager.js` / `Pager.css` — the base swap container
-- `ColumnPager.js` / `ColumnPager.css` — the drill-down layout
-- Loading strategy & the tree it walks: `michael/loading.md`
+- `Pager.js` / `Pager.css` — the base: `show()` + `leaf()`
+- `ColumnPager.js` / `ColumnPager.css` — the drill-down
+- `TabPager.js` / `TabPager.css` — the tab bar
+- Loading strategy & the tree these walk: `michael/loading.md`

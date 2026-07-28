@@ -1,17 +1,22 @@
-import { Page, p } from "/app.js";
+import { Page, md, pre } from "/app.js";
 import view from "./View/page.js";
-import app from "./App/page.js";
 import page from "./Page/page.js";
 import pager from "./Pager/page.js";
 import router from "./Router/page.js";
+import app from "./App/page.js";
 
 export default new Page({
 	meta: import.meta,
 	title: "Core",
-	description: "The core classes: View, App, Page, Pager, Router.",
-	children: [view, app, page, pager, router],
+	description: "The core classes: View, Page, Pager, Router, App.",
+	col: "narrow",
+	children: [view, page, pager, router, app],
 	content(){
-		p("The core classes, each documented next to its code. `View` and `App` are the substrate — the two ideas you can't remove. `Page`, `Pager`, and `Router` are optional and layer on top.");
+
+		pre(`import { View, Page, Pager, Router } from "/app.js";`);
+
+		md("Five classes, in the order you meet them. Only the first is unavoidable.");
+
 		this.previews();
 	}
 });

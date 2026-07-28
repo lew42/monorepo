@@ -52,53 +52,45 @@ export default class App {
 	}
 
 	// ── page loading ──────────────────────────────────────────────────────
-	// The whole flow. Import the module for `url`, render it into $app, activate
-	// it. Also the navigation handler (Router calls it with a url; popstate with
-	// none). "/" → "/page.js", "/a/" → "/a/page.js", "/a/b" → "/a/b.page.js".
+	// The whole flow, and the navigation handler (the Router calls it with a url;
+	// popstate with none). Everything here is duck-typed: the default export may
+	// be a Page, a view, a function, or nothing at all.
+	//
+	// Loading happens FIRST, while the current page stays on screen; the swap is
+	// synchronous — no await between empty() and append() — so the browser never
+	// paints an empty $app. No white flash.
 	async load_page(url = window.location.pathname) {
-		// Load everything FIRST, while the current page stays on screen, then swap
-		// synchronously — empty() and append() run with no await between them, so
-		// the browser never paints an empty $app. No white flash.
-		const page = await this.import_page(url);
-		if (page instanceof Page)
-			await this.load_topic(page); // load ancestors so a deep page finds its topic
+		let page;
+		try { page = await Page.load(url); }
+		catch (error) { return this.error(error); }
 
 		this.page?.deactivate?.(); // leave the current page (its theme, etc.)
-		this.page = page;
+		this.page = page;          // set before render: a pager reads app.page
 
-		if (page instanceof Page) {
-			this.$app.empty();
-			this.$app.append(page.host()); // render the topic's layout, or the page itself
-			page.activate();               // document.title / meta / theme
-		} else if (page) {
-			this.$app.empty();
-			this.$app.append(page);        // a plain function/view default (no activate)
-		}
-		// else: a bare page (no default export) already rendered itself into $app
-		// via import side effects — nothing to swap, so don't empty.
+		// host() = the ancestor that owns the layout, or the page itself. A bare
+		// page (no default export) already rendered itself — nothing to swap.
+		if (page)
+			this.$app.empty().append(page.host?.() ?? page);
+
+		page?.activate?.();        // document.title / meta / theme
+		this.mark_links();
 	}
 
-	async import_page(url) {
-		try {
-			return (await import(App.path_to_page_url(url))).default;
-		} catch (error) {
-			this.error(error);
-		}
-	}
+	// Reflect the current url in the DOM, in one pass over the freshly rendered
+	// $app: a link to the current path gets `.active`, a link to one of its
+	// ancestors gets `.in-path`. Sidebars, breadcrumbs, preview cards and inline
+	// links all light up with no per-link logic anywhere — CSS decides what each
+	// kind of link does with the class.
+	mark_links() {
+		const here = window.location.pathname;
 
-	// A deep page (e.g. /a/b/c/) is imported alone, so its ancestors — and the
-	// layout one of them may own — aren't loaded. Climb the url importing them;
-	// adoption wires `.parent` as each constructs, so `page.host()` finds the
-	// nearest ancestor with a `pager`. A page with no such ancestor (or already
-	// loaded) just renders itself. No-op when nothing needs loading.
-	async load_topic(page) {
-		let url = page.parent_url;
-		while (!page.host().pager && url) {
-			let parent;
-			try { parent = (await import(App.path_to_page_url(url))).default; }
-			catch { break; }
-			if (!(parent instanceof Page)) break; // reached the site root / a bare page
-			url = parent.parent_url;
+		for (const a of this.$app.el.querySelectorAll("a[href]")) {
+			if (a.origin !== window.location.origin) continue;
+
+			if (a.pathname === here)
+				a.classList.add("active");
+			else if (a.pathname.endsWith("/") && here.startsWith(a.pathname))
+				a.classList.add("in-path");
 		}
 	}
 
@@ -152,11 +144,6 @@ export default class App {
 
 	static stylesheet(meta, url) {
 		return View.stylesheet(meta, url);
-	}
-
-	// "/" → "/page.js", "/a/" → "/a/page.js", "/a/b" → "/a/b.page.js"
-	static path_to_page_url(path) {
-		return path.endsWith("/") ? path + "page.js" : path + ".page.js";
 	}
 
 	static meta_path(meta, path) {

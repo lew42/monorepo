@@ -1,4 +1,4 @@
-import View from "../../core/View/View.js";
+import View, { div, details, summary } from "../../core/View/View.js";
 import { marked } from "./marked.esm.js";
 
 View.stylesheet(import.meta, "md.css");
@@ -30,16 +30,17 @@ View.prototype.md = function(content){
 };
 
 // You get the element you wrote: content is parsed, and a single root block
-// (<p>, <h1>, <ul>, …) is adopted directly — so md("Hi.") behaves like p() and
-// chains. Multiple blocks are wrapped in a div.md. Either way the View captures
-// itself into View.captor like any other factory.
+// (<p>, <h1>, <table>, …) is adopted directly — so md("Hi.") behaves like p()
+// and chains. Multiple blocks are wrapped in a div. Either way the View captures
+// itself into View.captor like any other factory, and either way it carries the
+// `md` class, so md.css can reach generated markup whichever shape it took.
 export default function md(content){
 	const html = marked.parse(content).trim();
 	const template = document.createElement("template");
 	template.innerHTML = html;
 
 	if (template.content.children.length === 1)
-		return new View({ el: template.content.firstElementChild });
+		return new View({ el: template.content.firstElementChild }).ac("md");
 
 	return new View().ac("md").html(html);
 }
@@ -66,6 +67,10 @@ md.c = function(classes, content){
  * the DOM (that's the no-flash guarantee in App.load_page). The text is cached
  * per url, so re-visiting a page re-parses but doesn't re-fetch.
  *
+ * The trade for being awaitable: it does NOT capture itself (there's nothing to
+ * place until it resolves), so the promise has to be returned or appended.
+ * `md.details()` below is the batteries-included version.
+ *
  * `{ h1: false }` drops a leading <h1>. A readme opens with its own title and a
  * Page renders `title` as an h1, so rendering a readme as page content would
  * otherwise show it twice.
@@ -90,6 +95,21 @@ md.file = async function(meta, url, options = {}){
 		delete md.cache[href]; // don't cache the failure
 		return view.ac("md-error").text(`Error loading ${url}: ${error.message}`);
 	}
+};
+
+/**
+ * md.details(import.meta, "readme.md") — the same file, collapsed.
+ *
+ * A doc page should stay calm: examples first, no wall of architecture. The
+ * technical record still belongs *with* the page, so it goes here — one click
+ * away, closed by default. Nothing is awaited: it's collapsed, so it can fill
+ * in a moment later.
+ */
+md.details = function(meta, url, text = "Design notes"){
+	return details.c("md-details", () => {
+		summary(text);
+		div.c("md-details-body").append(md.file(meta, url, { h1: false }));
+	});
 };
 
 // url -> Promise<string>. Populated by md.file.

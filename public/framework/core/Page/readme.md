@@ -63,6 +63,32 @@ This is why eager-loading a topic's subtree (a parent `import`ing its children)
 pays off: the whole tree is in the registry, and routing never needs a computed
 `import()`.
 
+## Loading — `Page.load` / `Page.module_url`
+
+Page owns **both directions** of the url ⇄ module convention, because they are
+inverses of each other and drift apart if they live in different files:
+
+```js
+page.url                      // "/docs/x.page.js"  →  "/docs/x"   (instance getter)
+Page.module_url("/docs/x")    // "/docs/x"          →  "/docs/x.page.js"
+```
+
+```js
+Page.load(url)          // import the module, then load_ancestors(); returns the default export
+page.load_ancestors()   // climb parent_url importing ancestors until host().pager exists
+```
+
+`App.load_page` is the only caller. It used to own this logic (`import_page` +
+`load_topic`), which meant App knew about `parent_url`, `host()`, and the
+`.page.js` suffix — all Page concepts. Moving it here left `load_page` as eight
+duck-typed lines and removed every `instanceof Page` from `App`.
+
+`load_ancestors` is the one concession to layouts: a deep page (`/a/b/c/`) is
+imported alone, so the ancestor that owns its `pager` isn't loaded. Climbing the
+url imports it, and **adoption** wires `.parent` as each ancestor constructs — so
+by the time `host()` runs, the chain exists. Already-loaded trees make it a
+no-op, because `import()` is cached.
+
 ## render() vs body() vs activate()
 
 - **`render()`** — what a container places. If the page declares a `pager` (a
@@ -90,8 +116,14 @@ links (full navigation). Same call, behavior scales to context.
 ## Open schema
 
 The constructor is `assign(...args)` — any extra property rides along as inert
-data. Only `title`, `description`, `theme`, `classes`, `children`, `pager`, and
-`meta`/`url` have built-in behavior.
+data. Only `title`, `description`, `theme`, `classes`, `children`, `pager`,
+`col`, and `meta`/`url` have built-in behavior.
+
+`col` is the model for how a page should influence a layout it doesn't know
+about: it's **just a class string** that the layout puts on the element it owns
+(`ColumnPager` puts it on the `.column`). The page states an intent ("I'm mostly
+nav"); the layout and the CSS decide what that means, or ignore it entirely. No
+new Page API, no layout API — one inert property and a stylesheet.
 
 ## Files
 

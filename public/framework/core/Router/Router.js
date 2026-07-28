@@ -34,9 +34,16 @@ export class Router {
 
 		const a = e.target.closest?.("a");
 		if (!a || !a.href) return;
+		if (a.target && a.target !== "_self") return;  // new tab/frame — let the browser
+		if (a.hasAttribute("download")) return;        // a download, not a navigation
 
 		const url = new URL(a.href);
 		if (url.origin !== window.location.origin) return; // external
+
+		// an in-page anchor (#section on this same path): the browser scrolls.
+		// Without this we'd preventDefault and re-render the page instead.
+		if (url.hash && url.pathname === window.location.pathname) return;
+
 		if (!(this.app.page instanceof Page)) return;      // on a bare page → full nav
 		if (!Page.registry.has(url.pathname)) return;      // unknown route → full nav
 

@@ -28,39 +28,60 @@ with a url; `popstate` calls it with none):
 
 ```js
 async load_page(url = location.pathname) {
-    this.page?.deactivate?.();          // leave the current page
-    this.$app.empty();
-    const page = this.page = await this.import_page(url);
+    let page;
+    try { page = await Page.load(url); }        // import (+ ancestors)
+    catch (error) { return this.error(error); }
 
-    if (page instanceof Page) {
-        await this.load_topic(page);    // load ancestors → a deep page finds its topic
-        this.$app.append(page.host());  // render the topic's layout, or the page itself
-        page.activate();                // title / meta / theme
-    } else if (page) {
-        this.$app.append(page);         // a plain function/view default
-    }
-    // a bare page (no default export) already rendered itself via import side effects
+    this.page?.deactivate?.();                  // leave the current page
+    this.page = page;                           // before render: a pager reads app.page
+
+    if (page)
+        this.$app.empty().append(page.host?.() ?? page);
+
+    page?.activate?.();                         // title / meta / theme
+    this.mark_links();                          // .active on links to here
 }
 ```
 
 Read it top to bottom and that's the model:
 
-- **`import_page`** — `import()` the url's module. The URL *is* the router:
-  `/a/` → `/a/page.js`, `/a/b` → `/a/b.page.js`. `import()` is cached, so
-  re-loading a page is cheap.
+- **`Page.load(url)`** — the import lives on `Page`, not here. The URL *is* the
+  router (`/a/` → `/a/page.js`, `/a/b` → `/a/b.page.js`); that mapping is
+  `Page.module_url`, the exact inverse of `Page#url`, so both directions of the
+  one convention sit in one file. `Page.load` also climbs to load a deep page's
+  ancestors (`load_ancestors`) so `host()` can find the topic that owns its
+  layout. See [`../Page/`](../Page/) and `michael/loading.md`.
 - **the default export can be anything.** A `Page`, a function, a view, a
-  string — App appends it (`View.append` dispatches) and calls `.activate?.()`
-  *if it happens to have one*. A page.js can even have **no** default export and
-  just render at module top (a "bare page"); App does nothing extra. Page is the
-  richest citizen of this open protocol, not a requirement.
-- **`load_topic`** — the one concession to the drill-down. A deep page (`/a/b/c/`)
-  is imported alone, so the ancestor that owns its layout (`pager`) isn't loaded.
-  This climbs the url importing ancestors until `page.host()` finds one. A plain
-  page, or an already-loaded topic, makes it a no-op. (See `michael/loading.md`.)
+  string — App appends it (`View.append` dispatches) and calls `host?.()` /
+  `activate?.()` *if they happen to exist*. A page.js can even have **no**
+  default export and just render at module top (a "bare page"); App does nothing
+  extra. Page is the richest citizen of this open protocol, not a requirement.
+  Every optional call is `?.` — there is no `instanceof` in this method.
 - **`page.host()`** — self for a plain page; the pager-owning ancestor for a deep
   one. App renders the host (so a deep page shows its topic's columns) and
   activates the leaf (so the title is the leaf's). Both are `Page` methods — App
   doesn't reimplement rendering; `append(page.host())` calls `host.render()`.
+- **load-then-swap.** Everything is awaited *before* `empty()`, and `empty()` and
+  `append()` run with no await between them, so the browser never paints an empty
+  `$app`. No white flash on navigation.
+
+## `mark_links` — the current url, in the DOM
+
+After each render, one pass over `$app`:
+
+```js
+a.pathname === here                                  → a.classList.add("active")
+a.pathname.endsWith("/") && here.startsWith(...)     → a.classList.add("in-path")
+```
+
+Every in-app link — sidebar links, breadcrumbs, preview cards, inline
+`page.link()`s — gets marked in one place, and CSS decides what each kind of link
+does with it. That's why no view needs to know the current url: previously the
+ColumnPager sidebar compared `location.pathname` itself, and preview cards (which
+had no such code) simply never lit up.
+
+The rule for `.in-path` is deliberately dumb string math: a directory url that is
+a prefix of the current path is an ancestor of it. Style it, or don't.
 
 ## What App does *not* do
 

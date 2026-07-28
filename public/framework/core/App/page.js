@@ -1,25 +1,62 @@
-import { Page, p, pre, h2 } from "/app.js";
+import { Page, md, h2, pre } from "/app.js";
 
 export default new Page({
 	meta: import.meta,
 	title: "App",
 	description: "Boots the page and loads whatever the URL points at.",
 	content(){
-		p("`App` is the substrate. `app.js` creates the singleton (`window.app`) and re-exports the framework, so pages import everything from `/app.js`. App builds `$app`, then loads the page for the URL.");
+
+		pre(`window.app = new App();`);
+
+		md("That's the setup. `app.js` creates it once, and re-exports the framework so every page imports from one place — see [Start](/framework/start/).");
 
 		h2("The URL is the router");
-		p("`/` → `/page.js`, `/a/` → `/a/page.js`, `/a/b` → `/a/b.page.js`. `App.load_page` imports that module, appends its default export, and calls `.activate?.()` — all duck-typed, so the default can be a Page, a function, a view, or nothing at all (a page that renders at module top).");
+
+		md(`| url | loads |
+|---|---|
+| \`/\` | \`/page.js\` |
+| \`/docs/\` | \`/docs/page.js\` |
+| \`/docs/intro\` | \`/docs/intro.page.js\` |
+
+No route table. The path *is* the file path, so adding a page registers nothing — and because the import is computed at runtime, every page is lazy-loaded for free.`);
+
+		h2("Loading a page");
 
 		pre(`async load_page(url = location.pathname){
-    this.$app.empty();
-    const page = this.page = await this.import_page(url);
-    if (page instanceof Page){
-        await this.load_topic(page);   // load ancestors for a drill-down
-        this.$app.append(page.host()); // the topic's layout, or the page
-        page.activate();               // title / meta / theme
-    } else if (page) this.$app.append(page);
+    const page = await Page.load(url);      // import the module
+
+    this.page?.deactivate?.();              // leave the old page
+    this.page = page;
+
+    if (page) this.$app.empty()
+        .append(page.host?.() ?? page);     // render it
+
+    page?.activate?.();                     // title / meta / theme
+    this.mark_links();                      // .active on links to here
 }`);
 
-		p("That's the whole flow. `load_topic` is the one concession to the ColumnPager drill-down (climb the URL to load a deep page's ancestors); everything else is dead simple.");
+		md("Every call is optional (`?.`) — there is no `instanceof` in this method. A page.js can default-export a `Page`, a plain view, a function, or nothing at all. `Page` is just the richest thing you can hand it.");
+
+		md("Everything is awaited *before* `empty()`, and `empty()` and `append()` run with nothing between them, so the browser never paints an empty app. No white flash on navigation.");
+
+		h2("Lifecycle");
+
+		pre(`config()      // socket, router
+render()      // build $app, make it the captor
+load()        // load_page() + await stylesheets & fonts
+initialize()  // your hook — empty by default
+inject()      // put $app in <body>
+ready         // a promise, resolved`);
+
+		md("Config is just assigned, so `new App({ nav(){ … } })` rides along as data. `app.ready` resolves once the first page is on screen.");
+
+		h2("Assets");
+
+		pre(`app.font("Montserrat");                      // awaited before inject
+View.stylesheet(import.meta, "my-page.css"); // same`);
+
+		md("Anything a page loads while its module runs is awaited before the app injects, so the first paint is never unstyled.");
+
+		md.details(import.meta, "readme.md");
 	}
 });

@@ -101,11 +101,49 @@ export default class Page {
 		return i <= 0 ? null : trimmed.slice(0, i + 1);
 	}
 
+	// ── loading (the filesystem router) ──
+	// The inverse of the `url` getter above: a page url → the module that defines
+	// it. Both directions of the one convention, side by side.
+	// "/" -> "/page.js", "/a/" -> "/a/page.js", "/a/b" -> "/a/b.page.js"
+	static module_url(url){
+		return url.endsWith("/") ? url + "page.js" : url + ".page.js";
+	}
+
+	// Import the page for `url`. Returns whatever the module default-exported —
+	// a Page, a view, a function, or undefined (a "bare page" that rendered
+	// itself at module top). App.load_page is the caller; it duck-types the rest.
+	static async load(url = window.location.pathname){
+		const page = (await import(Page.module_url(url))).default;
+
+		if (page instanceof Page)
+			await page.load_ancestors();
+
+		return page;
+	}
+
+	// A deep page (/a/b/c/) is imported alone, so its ancestors — and the layout
+	// one of them may own — aren't loaded. Climb the url importing them; adoption
+	// wires `.parent` as each constructs, so host() can then find the topic.
+	// A page with no pager-owning ancestor (or an already-loaded one) = no-op.
+	async load_ancestors(){
+		let url = this.parent_url;
+
+		while (!this.host().pager && url){
+			let parent;
+			try { parent = (await import(Page.module_url(url))).default; }
+			catch { break; }                      // no page.js up there — stop climbing
+			if (!(parent instanceof Page)) break; // reached the site root / a bare page
+			url = parent.parent_url;
+		}
+
+		return this;
+	}
+
 	// ── rendering ──
 	// render() is what a container places. If this page declares a `pager`
 	// (a layout class like ColumnPager), instantiate it; otherwise plain content.
 	render(){
-		return this.pager ? new this.pager(this) : this.body();
+		return this.pager ? new this.pager({ root: this }) : this.body();
 	}
 
 	// body() is ALWAYS the plain content (title + content). A ColumnPager fills

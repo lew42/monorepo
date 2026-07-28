@@ -519,17 +519,28 @@ export default class View {
 	 * or
 	 * View.stylesheet(import.meta, "path/file.css")
 	 */
+	/* App.load() awaits every promise in View.stylesheets before it injects $app,
+	 * so this promise MUST settle. A <link> that 404s fires `error`, not `load` —
+	 * without the error handler the promise never settles and the app never
+	 * injects: one typo'd stylesheet url = a permanently blank page.
+	 *
+	 * It resolves (not rejects) on error, so one missing stylesheet degrades to
+	 * "unstyled" rather than taking the whole page down. capture: false keeps the
+	 * <link> out of whatever view happens to be capturing at import time. */
 	static stylesheet(meta, url){
 		url = View.url(meta, url);
 
-		const prom = new Promise((res, rej) => {
-			new View({ tag: "link" }).attr("rel", "stylesheet").attr("href", url)
-				.append_to(document.head).on("load", () => {
-					res(); // if a stylesheet fails to load, the app won't render?  should probably render an error message
-					// console.log("stylesheet loaded", url);
+		const prom = new Promise(res => {
+			new View({ tag: "link", capture: false })
+				.attr("rel", "stylesheet").attr("href", url)
+				.append_to(document.head)
+				.on("load", () => res(url))
+				.on("error", () => {
+					console.warn("stylesheet failed to load:", url);
+					res(url);
 				});
 		});
-		
+
 		this.stylesheets.push(prom);
 
 		return prom;

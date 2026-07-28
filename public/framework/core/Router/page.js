@@ -1,17 +1,44 @@
-import { Page, p, pre, h2 } from "/app.js";
+import { Page, md, h2, pre } from "/app.js";
 
 export default new Page({
 	meta: import.meta,
 	title: "Router",
-	description: "Opt-out, no-reload navigation.",
+	description: "No-reload navigation, on by default.",
 	content(){
-		p("`Router` turns in-page links into `pushState` navigation and handles back/forward. `App.config_router` wires it by default; opt out with `new App({ router: false })` and every link becomes a normal full page load.");
 
-		h2("One delegated listener");
-		p("It catches clicks on `document` and upgrades them — no per-link wiring, pages just write ordinary `a().href(url)`. But it only upgrades a click when it's safe: you're on a real Page, and the target is a registered Page. Everything else (external links, bare pages, modified clicks) falls through to a full navigation, which is what keeps back/forward honest.");
+		pre(`a("Docs").href("/docs/");   // or: docs_page.link()`);
 
-		pre(`app.router.go("/framework/core/View/");   // programmatic navigation`);
+		md("Write an ordinary link, get no-reload navigation. One listener on `document` catches the click — nothing to wire per link, nothing to import.");
 
-		p("It owns *when* to navigate and calls `app.load_page(url)`; the App owns the loading, the Page owns the content. Three small, separate things.");
+		md("It's on by default. `new App({ router: false })` turns it off and every link goes back to a full page load.");
+
+		h2("When it stays out of the way");
+
+		pre(`external origin        →  full navigation
+⌘ / ctrl / shift / ⌥   →  new tab
+target, download       →  the browser's job
+#hash on this page     →  scroll, don't re-render
+unknown route          →  full navigation`);
+
+		md("The Router only upgrades a click when it can guarantee Back will redraw: you're on a real `Page`, and the target is a page it already knows. That restraint is the feature — you can never `pushState` into a page the app can't render, so Back and Forward never strand you.");
+
+		h2("Programmatic");
+
+		pre(`app.router.go("/framework/core/View/");   // pushState + load
+app.router.routes;                       // every known url`);
+
+		h2("Three small things");
+
+		md(`| class | owns |
+|---|---|
+| **Router** | *when* to navigate |
+| **App** | loading and rendering |
+| **Page** | the content |
+
+Delete the Router and the site still works — every link just reloads.`);
+
+		md("Next: [App](/framework/core/App/) — the substrate all three sit on.");
+
+		md.details(import.meta, "readme.md");
 	}
 });

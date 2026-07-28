@@ -12,10 +12,12 @@ Lew42 framework site: a no-build, native-ESM web framework and the static site t
 
 1. `public/index.html` is the universal fallback document. It loads one script: `/app.js`.
 2. `public/app.js` creates the `App` singleton (`window.app`) and re-exports the framework (`export * from framework/core/App/App.js`).
-3. `App.load_page()` dynamically imports the page module for the current URL via `App.path_to_page_url(window.location.pathname)`:
+3. `App.load_page()` calls `Page.load(url)`, which dynamically imports the page module for the current URL via `Page.module_url(window.location.pathname)`:
    - `/` → `/page.js`
    - `/path/` → `/path/page.js` (trailing slash = directory page)
    - `/path/sub` → `/path/sub.page.js` (no slash = sibling file with `.page.js` suffix)
+
+   `Page.module_url` is the exact inverse of the `Page#url` getter; both live in `Page.class.js` so the convention has one home.
 4. Page modules import the framework back from `"/app.js"` (same module instance via the browser's module registry). A page's default export is optional: it may be a View, a function (rendered via capture), or nothing (root-level element calls capture directly).
 5. Because the dynamic import path is computed at runtime, pages are naturally lazy-loaded — the filesystem is the router and the "chunk map." New pages are added by creating a `page.js` file; no registration anywhere.
 
@@ -27,6 +29,8 @@ Lew42 framework site: a no-build, native-ESM web framework and the static site t
 - `app.font(name)` loads predefined fonts (Montserrat, Material Icons) via the FontFace API.
 - `App.stylesheet(url)` / `View.stylesheet(import.meta, relativeUrl)` appends a `<link>` and tracks its load promise.
 - Page load errors are caught and rendered as a "Page Load Error" view.
+- `load_page()` is fully duck-typed (`page.host?.()`, `page.activate?.()`) — no `instanceof` — and sets `this.page` *before* rendering, because a mounted Pager reads `app.page` to find its leaf.
+- `App.mark_links()` runs after every render: one pass over `$app` adding `.active` (href === current path) and `.in-path` (href is a directory prefix of it) to in-app anchors. **No view should compare `window.location` itself** — sidebars, breadcrumbs, and preview cards all get their active state from this one pass, and CSS decides what each kind of link does with the class.
 
 ## The View system (`framework/core/View/View.js`)
 
@@ -64,27 +68,59 @@ export default new Page({ meta: import.meta, title, description, theme, content(
 - `meta: import.meta` derives `url` (`/docs/page.js` → `/docs/`; `/docs/x.page.js` → `/docs/x`); `link(text?)` works while dormant.
 - `render()` = build DOM: one `div.c("page")` (title h1 + content) captured wherever the page is placed; embedded sub-pages render too. Override via `new Page({ render(){} })`. `activate()` = become THE page: `document.title`, meta description, body `theme` class. `App.load_page()` appends the default export then calls `pg.activate?.()` — duck-typed, App never imports Page, and non-Page exports (strings, functions, views) still work.
 - Constructor is `assign`-based: extra properties pass through as inert data.
-- Design record + deferred features (Pagers, routing, `deactivate`): `framework/core/Page/readme.md`.
+- `Page.load(url)` / `page.load_ancestors()` / `Page.module_url(url)` — the loader lives here, not in App (see above).
+- Design record + deferred features: `framework/core/Page/readme.md`.
+
+## Pager (`framework/core/Pager/`)
+
+`Pager extends View` is a `div.pager` that shows one page: `show(page)` (manual swap) plus `leaf()` (the page being viewed). A **structure** is a Pager subclass whose `render()` arranges a page tree; a topic opts its whole subtree in with `pager: ColumnPager`, and `Page.render()` mounts it as `new this.pager({ root: this })` — an assign-object, so **subclasses need no constructor**.
+
+- `ColumnPager` — drill-down: sidebar + breadcrumbs + the last two of `leaf().chain` as columns. `render()` is decomposed into `sidebar/brand/nav/topbar/crumbs/columns/column/col_bar` so a topic can override one piece by subclassing inline.
+- `TabPager` — in-page tab bar; its panel *is* a plain `Pager`, driven by `show()`.
+- `leaf()` reads `window.app.page` (the App already resolved it). **Layouts are told, they don't ask** — nothing in this tier reads `window.location`.
+- Per-page appearance is an inert class string: `new Page({ col: "narrow" })` → `ColumnPager` puts it on the `.column`, CSS does the rest.
+- Extension order, cheapest first: **a class for appearance → an overridden method for structure → a new subclass for a different arrangement.** If a change wants a new property on `Pager`, it's usually one of the first two in disguise. Full analysis, variation table, and open questions: `framework/core/Pager/readme.md`.
 
 ## Ext (`framework/ext/`)
 
-A fourth tier beside `core/`, `dev/`, `util/`: **opt-in addons, free to patch core.** Nothing in `app.js` imports one — a page opts in by importing the module directly. Vendor dependencies into the ext's own directory; no CDN imports at runtime.
+A fourth tier beside `core/`, `dev/`, `util/`: **opt-in addons, free to patch core.** Core never imports an ext — the arrow only points one way. Vendor dependencies into the ext's own directory; no CDN imports at runtime. Opting in is an import; *this site* opts in for every page, once, in `app.js` (so `md` and `demo` are available from `/app.js` everywhere).
 
 `ext/markdown/md.js` (vendors `marked.esm.js`) — importing it installs `View.prototype.md()`; the default export is an `md()` element factory.
 
 ```js
-p().md("**inline** markdown");                          // into an existing view
-md("Hi.").ac("note");                                   // a real <p>, captured & chainable
+p().md("**inline** markdown");                           // into an existing view
+md("Hi.").ac("note");                                    // a real <p>, captured & chainable
 md.file(import.meta, "readme.md", { h1: false });        // a promise of a div.md
+md.details(import.meta, "readme.md");                    // the same, in a collapsed <details>
 ```
 
-`md.file` resolves against `import.meta`, not the document (the SPA fallback makes the document url the *route*, so doc-relative fetches miss). It returns a **promise** so `View.append_promise` places it and `App.load_page` can await it before swapping — `content(){ return md.file(...) }` needs no change to `Page`. `{ h1: false }` drops the readme's leading heading, since `Page` already renders `title` as an h1. `framework/core/Pager/page.js` is the worked example: the page is nothing but its `readme.md`.
+`md.file` resolves against `import.meta`, not the document (the SPA fallback makes the document url the *route*, so doc-relative fetches miss). It returns a **promise** so `View.append_promise` places it and `App.load_page` can await it before swapping — `content(){ return md.file(...) }` needs no change to `Page`. `{ h1: false }` drops the readme's leading heading, since `Page` already renders `title` as an h1.
+
+`ext/demo/demo.js` — `demo(fn)` renders `fn`'s source (from `fn.toString()`, de-wrapped and dedented) above the result of running it, boxed together. One source of truth, so an example cannot drift from what it renders. Strings before the function label the box; strings after caption it (`demo(fn, "caption")` — the caption renders inside the box, below the result). The caption uses `View.prototype.md` **if markdown has been imported**, falling back to `p()` backticks — a soft dependency, so `demo/` never imports `markdown/`.
+
+## Writing docs — `page.js` vs `readme.md`
+
+Two audiences, two documents, in the same directory. **Do not blur them.**
+
+**`page.js` — the reader.** It should read like a beautiful introduction: **code first, zero to hero.** They feel calm, see all the things, and understand them. The only way there is absolute simplicity: the minimal case first, then build. Someone who gets a simple foundation fast will figure out the rest themselves.
+
+- **Code first — literally.** The first thing under the title is a code block or a `demo()`, not a paragraph. No preamble, no "in this section we will".
+- **Prose is a caption, not a preamble.** Reading order is code → result → sentence. `demo(() => { … }, "the sentence")` puts the caption inside the box, so prose can never detach from the example it describes. (`demo("Label", fn)` still labels above.)
+- **SIMPLICITY FIRST. Minimalism.** The basic example before the complete one. Cut every sentence that isn't load-bearing.
+- **Zero to hero.** A section is a path, not a fan-out: each page ends by naming the next one, and the sequence gets you from nothing to a real thing. `/framework/start/` is the floor — three files, a working site — and every core page builds from there. Aim each page at one payoff demo where it all comes together.
+- **Render the example whenever you can**, and the code that produced it must be visible and **visually grouped** with it — never a rendered thing whose source the reader has to hunt for. `demo(fn)` (`ext/demo`) shows `fn`'s real source and then runs it, one box, one source of truth.
+- **Prose is markdown.** Use `md("...")`, not `p()` with backticks — `p()`'s backtick handling only does `<code>`, so bold/italic/links/tables silently don't render. Tables via `md()` beat a paragraph listing options.
+- Deep architecture, trade-offs, and rejected alternatives do **not** belong here. Link them: `md.details(import.meta, "readme.md")` puts the whole readme in a collapsed `<details>` at the bottom of the page.
+
+**`readme.md` — the maintainer (and future us).** Highly technical: the architectural dilemmas, what was tried, why the current shape won, what's still open. Not immediately relevant to an end user, so it stays out of their way. Keep it honest and specific — it's the design record, and it's what makes a later refactor cheap. Write entries as **question → options → weighing → verdict**, and record *keep* verdicts too — a written-down "we considered this and said no, because…" is what stops an idea being re-litigated. `framework/readme.md` is the cross-cutting one (open proposals live there); per-class records sit next to their class.
 
 ## CSS
 
 - `framework/framework.css` — loaded by App before render; defines `@layer base, theme, util` (reset, CSS custom props like `--prim`/`--bg`, utility classes like `flex`, `gap`).
 - `/styles.css` — site-level styles, loaded in `app.js`.
 - Pages may load their own stylesheets via `View.stylesheet(import.meta, "...")`; these are awaited before the app injects.
+- **Every stylesheet must be inside `@layer` — an unlayered rule beats every layer regardless of specificity.** This is the cascade rule that bites: an unlayered `.page { padding: … }` in `styles.css` silently defeated a four-class-deep `.column-pager .column.narrow .page` in `ColumnPager.css`. Component CSS goes in `theme`; site CSS also goes in `theme` and wins by load order (it's linked last).
+- A stylesheet that 404s no longer hangs the app (`View.stylesheet` resolves on `error` and warns), but the page renders unstyled — check the console.
 
 ## Dev server & live reload
 
