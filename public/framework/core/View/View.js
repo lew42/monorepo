@@ -204,7 +204,7 @@ export default class View {
 	}
 
 	// raw innerHTML, no sanitization - only for content you fully trust (XSS risk otherwise)
-	htmlUnsafe(value){
+	html_unsafe(value){
 		// set
 		if (is.def(value) && value !== this.el.innerHTML){ // see comment in html()
 			this.el.innerHTML = value;
