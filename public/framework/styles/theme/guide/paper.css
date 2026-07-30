@@ -1,0 +1,47 @@
+/* Layer order, restated: the FIRST declaration wins and module import
+   order decides who loads first, so every stylesheet states it. */
+@layer base, theme, util;
+
+/* THEME: paper — warm, serif, printed.
+ *
+ * Tokens only. There is not one selector in this file that names a component,
+ * because there doesn't need to be: everything downstream already reads these
+ * names. That's the whole test of a theme — if you had to write `.tab-bar`
+ * here, the tab bar was missing a token.
+ *
+ * Both modes live in this one file. `light-dark()` picks by the used value of
+ * `color-scheme`, so a token physically cannot exist in light and go missing in
+ * dark — which is the bug you find at 11pm, once, and never want again.
+ *
+ * Scoped to a class, not `:root`, so it composes: `body.theme-paper` themes the
+ * site, `div.theme-paper` themes one box, and two boxes can disagree.
+ */
+@layer theme {
+
+	.theme-paper {
+		color-scheme: light dark;
+
+		--prim:    light-dark(#9a5b28, #e0a35e);
+		--ink:     light-dark(#2c2622, #ece4d8);
+		--surface: light-dark(#fbf7f0, #1d1917);
+		--subtle:  light-dark(rgba(44,38,34,0.55), rgba(236,228,216,0.5));
+		--line:    light-dark(rgba(44,38,34,0.18), rgba(236,228,216,0.18));
+		--wash:    light-dark(rgba(44,38,34,0.055), rgba(236,228,216,0.07));
+
+		--radius: 0.5em;
+		--font: Georgia, 'Iowan Old Style', 'Times New Roman', serif;
+
+		/* The theme class paints itself rather than relying on `body { color }`,
+		   so it works at any depth. `color` is inherited as a *resolved value* —
+		   a nested div that only redefines `--ink` would change nothing. */
+		color: var(--ink);
+		background: var(--surface);
+		font-family: var(--font);
+	}
+
+	/* The mode axis. Declared per theme, not globally, because honoring it is a
+	   promise this theme is making — a theme with no `light-dark()` in it would
+	   be lying by accepting `.dark`. */
+	.theme-paper.light { color-scheme: light; }
+	.theme-paper.dark  { color-scheme: dark; }
+}

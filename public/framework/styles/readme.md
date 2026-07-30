@@ -175,17 +175,30 @@ elsewhere — so this choice doesn't change §1.
 
 ## 6. The eviction list
 
-Rules currently in `framework.css` `@layer theme` that are opinions wearing a
-baseline's clothes. Each is a candidate for deletion or for moving behind a
-class. Listed, not yet acted on, because each needs a look at what breaks.
+**Narrowed by §12.** This list was written when the base layer was "framework
+styles you might have to fight." Now that it's explicitly *the base theme* — the
+one you get free, replaced by loading another — having opinions is its job. The
+test is no longer "is this opinionated" but **"is this dead, or is it reachable
+only by a fight."** Two of the original entries survive that, two don't.
 
-- **`select`'s SVG arrow.** A data-URI triangle and `appearance: none` — a
-  whole visual design, unavoidable, in the base.
-- **`.btn, button { padding: .25em 1em }`** and the `.bg` / `.prim` color
-  variants. The variants are already opt-in classes and fine; the bare `button`
-  padding is not.
-- **`input … { border: 1px solid var(--subtle) }`.** Same shape of problem.
-- **`html { scrollbar-color: … }`** — a look, applied globally.
+Still evictable:
+
+- **`select`'s SVG arrow.** A data-URI triangle plus `appearance: none`. Not
+  because it's opinionated — because it's the one rule here a theme genuinely
+  struggles to replace: you must know to re-set `appearance` *and* clear three
+  `background-*` longhands. If any rule in the file earns a `:where()` (§9),
+  it's this one.
+- **`html { scrollbar-color: … }`** — a look with no token behind it, so a theme
+  can't retune it without a selector. Give it a token or drop it.
+
+No longer evictable (they're the base theme doing its job, and a theme overrides
+them at equal specificity):
+
+- `.btn, button { padding }` and the `.bg` / `.prim` variants.
+- `input … { border: 1px solid var(--subtle) }` — and it reads a token, so a
+  theme already controls it.
+
+Site-level, unchanged:
 - **`.app { background: #ddd }` in `/styles.css`** duplicates and fights
   `body.theme-1 .app { background: white }`. Site-level, but it's the same bug.
 
@@ -332,63 +345,52 @@ appears, which wants a visual check, not a reasoned one.
 
 ---
 
-## 9. The fightability problem — `:where()`
+## 9. `:where()` — tried, reverted
 
-**The fear, stated exactly.** Framework-level theme rules are the ones you end
-up fighting. There aren't many and they're mostly right, but when one is wrong
-for your page you're in a specificity argument with the substrate — and the
-usual escalation (more classes, `!important`, a later layer) makes the next
-person's fight worse.
+**The fear, stated exactly.** Base-theme rules are the ones you end up fighting.
+There aren't many and they're mostly right, but when one is wrong for your page
+you're in a specificity argument with the substrate — and the usual escalation
+(more classes, `!important`, a later layer) makes the next person's fight worse.
 
-**Options.**
+**What was tried.** Every selector in `framework.css`'s `@layer theme` wrapped in
+`:where()`, which carries zero specificity. The framework then loses to any rule
+you write, at any specificity, with no escalation available or needed.
 
-| | keep them fightable | delete every opinion | `@layer` alone | **`:where()`** |
-|---|---|---|---|---|
-| a bare page looks finished | yes | **no** | yes | yes |
-| overriding costs | a specificity fight | n/a | a layer, site-wide | **nothing** |
-| framework can still ship defaults | yes | no | yes | yes |
-| reversible per-rule | no | n/a | no | yes |
-
-**Weighing.** §6 (the eviction list) was the previous answer: if a default is
-fightable, delete it. That's the right instinct pointed at the wrong cause. The
-problem was never that the framework *has* opinions — it's that its opinions
-*outrank yours by default*, which is an accident of how selectors are written,
-not a design decision anyone made.
-
-`:where()` has zero specificity. Wrap a rule in it and it loses to literally any
-rule you write — a bare element selector, one class, anything. You never
-out-specify the framework; it forfeits.
-
-**Verdict: every selector in `framework.css`'s `@layer theme` is wrapped in
-`:where()`.** Three escapes now exist, cheapest first:
+**Why it was reverted.** The problem is real but *hypothetical here*. The base
+theme's selectors are already flat and single-element, so the ordinary model
+covers essentially every case:
 
 ```css
-h2 { font-size: 2em }              /* a plain selector already wins */
-.card :where(h2) { … }             /* scope it, still zero-specificity */
-h2 { font-size: revert-layer }     /* drop to whatever came before */
+framework.css    h2 { font-size: 1.4em }    /* loads first */
+your-theme.css   h2 { font-size: 2em }      /* loads later, wins */
 ```
 
-Two things are deliberately **not** wrapped:
+Equal specificity, later declaration takes it. And if that ever isn't enough,
+an unlayered rule beats every layer — heavy, but it's there.
 
-- **`:root` tokens.** Custom properties don't compete on specificity; they're
-  inherited values, overridden by tree proximity (§3). Wrapping would change
-  nothing and imply otherwise.
-- **The `util` layer.** A utility class is an explicit opt-in and *should* beat
-  component CSS — which the layer order already gives it. Zeroing its
-  specificity would be actively wrong.
+What `:where()` costs is immediate and paid by every reader: an unfamiliar
+wrapper on forty rules, and a cascade *inside* the layer that resolves by source
+order rather than selector weight — so `button.bg` stops beating `button` by
+being more specific and starts depending on being lower in the file. That's fine
+in one hand-ordered file and a trap the moment anyone forgets it.
 
-**This substantially dissolves §6.** The eviction list existed because opinions
-in the base are dangerous. Zero-specificity opinions aren't — a `select` arrow
-you can delete with one unqualified `select { appearance: auto }` is a
-convenience, not a trap. Genuinely dead rules should still go; the urgency
-doesn't survive.
+**Verdict: keep plain selectors. Reach for `:where()` if a real override fight
+happens, and then only around the rule that caused it.** Recorded so the idea
+isn't re-derived from scratch — it's a good tool aimed at a problem this file
+doesn't currently have.
 
-**Known cost, recorded:** inside this layer, equal-specificity rules now resolve
-by *source order* rather than by selector weight — `:where(button.bg)` no longer
-outranks `:where(button)`, it just comes later in the file. That is fine within
-one hand-ordered file and would not be fine spread across many. It's another
-reason not to extend `:where()` to component stylesheets, which are written and
-read independently.
+**Two obligations this verdict creates**, since the simpler model only works if
+they're honored:
+
+- **Base-theme selectors stay flat.** One element, no descendant combinators. A
+  `.page > h2` in `framework.css` would out-rank a theme's `h2` no matter when
+  the theme loaded. The low specificity is a feature that has to be maintained
+  on purpose, not an accident.
+- **"Loads later, wins" is true only at equal specificity.** `Page.css`'s
+  `.page > h2` beats a theme's `h2` regardless of order. That's correct — a
+  component adapting a heading in its own context should win — but it means a
+  theme cannot restyle every heading on the site with one flat rule. This is the
+  known sharp edge of the model.
 
 ---
 
@@ -458,11 +460,70 @@ covers the honest cases without it.
 
 ---
 
+## 12. `@layer theme` is the base theme
+
+Recorded here because it changes how the whole file reads; the full theming
+record — component looks vs. theme files, the four-rung ladder, light/dark, and
+naming — lives next to the guide, in `theme/guide/readme.md`.
+
+**The reframe.** `framework.css`'s `@layer theme` block is not "the framework's
+unavoidable styles." It is **a theme** — the one you get when you load no other.
+Using no theme is a supported, finished-looking outcome, which is the property
+that makes the theme system optional rather than mandatory.
+
+Nothing moved to make this true; it was already the case. What changed is that
+it's now stated, which settles two things that were previously arguable:
+
+- **The base is allowed to have opinions**, because a theme is what replaces
+  them. §6's eviction list stops being "delete anything opinionated" and becomes
+  "delete anything *dead*." The `select` arrow stays; it's the base theme's
+  answer to an unstylable control, and a theme may override it.
+- **Element defaults are the floor, not the skin.** A theme retunes tokens; it
+  doesn't re-specify `button` padding or the form-control block. That's what
+  keeps a theme file short enough to read in one sitting.
+
+**Token expansion, and why it isn't scope creep.** Theming needs a vocabulary,
+and the file had almost none — six tokens, none of them for surfaces or text.
+Six were added (`--ink`, `--surface`, `--line`, `--wash`, `--radius`, `--font`),
+and **every one replaces a value that was already hardcoded**, most in several
+places: `#fff` in four files, `rgba(0,0,0,0.1–0.2)` borders in about eight,
+`system-ui` in the base layer. That's the bar for the next one — a token names a
+decision that already exists, it doesn't invent one.
+
+`font-family` also moved from `@layer base` to `@layer theme`. A typeface is a
+look, and a theme has to be able to change it by loading later; in `base` it
+couldn't be reached without out-specifying a layer.
+
+**Known gap, tracked in `theme/guide/readme.md` §7:** `:root` pins
+`color-scheme: light`, so dark mode is defined but not honest — components still
+hardcode `#fff` and `rgba(0,0,0,…)`. Rewiring them to `var(--surface)` /
+`var(--line)` is mechanical, touches six stylesheets, and wants a visual pass.
+It is the highest-value thing left in this directory.
+
+---
+
 ## Still to write
 
-This page documents the strategy. The styleguide (`page.js`) is meant to grow
-until it covers **every line of `framework.css`** — each rule with its reasoning
-and, where it's visible, a before/after pair. Three exist so far (`box-sizing`,
-`font: inherit`, list indent); the pattern is a `compare()` of the same markup
-with the declaration reverted inline. Uncovered so far: focus rings, the form
-control block, `select`, buttons, every utility class, and the `zoom-*` family.
+The docs now mirror the stylesheet: `styles/page.js` is the strategy, and one
+child per layer covers its contents — [`base/`](base), [`theme/`](theme) (with
+[`theme/guide/`](theme/guide) for writing your own), [`util/`](util).
+
+Coverage as it stands:
+
+| layer | covered | not yet |
+|---|---|---|
+| `base` | all ten rules, eight with a before/after `compare()` | — |
+| `theme` | tokens, type scale, code, block elements, controls; the remainder in one table | a demo for `:focus-visible`, `scrollbar-color`, the `clamp()` body size |
+| `util` | flex, grid, spacing, text, zoom, `textarea.auto` | `zoom-responsive`, `gap-2em`, `all-pad` have no demo of their own |
+
+The before/after pattern is a local `compare()` — the same markup twice, the
+left side with one declaration reverted inline. It lives in `base/page.js`
+because that's where it earns its keep; if a second page needs it, it goes in
+`ext/demo/` rather than being copied.
+
+Bigger items, in order of value:
+
+1. **Rewire component hardcodes to tokens** (§12) — the thing standing between
+   here and working dark mode.
+2. **`app.css_audit()`** (§8) — the dev-only styled-vs-applied diff.
+3. **`.page > .md`** (§8) — the last undeclarable core→ext CSS dependency.

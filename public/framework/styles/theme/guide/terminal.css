@@ -1,0 +1,53 @@
+/* Layer order, restated: the FIRST declaration wins and module import
+   order decides who loads first, so every stylesheet states it. */
+@layer base, theme, util;
+
+/* THEME: terminal — mono, square, high contrast.
+ *
+ * Same token names as `paper`, wildly different result, and the two files never
+ * mention each other or any component. That is the payoff: adding a theme is
+ * one file and touches nothing; adding a component is one file and touches no
+ * theme.
+ *
+ * This one also carries the counter-example — the single rule at the bottom
+ * that a token could not express. Read it as a bug report, not a pattern.
+ */
+@layer theme {
+
+	.theme-terminal {
+		color-scheme: dark;
+
+		--prim:    #3ddc84;
+		--ink:     #c9d4c9;
+		--surface: #0d1117;
+		--subtle:  rgba(201,212,201,0.5);
+		--line:    rgba(61,220,132,0.28);
+		--wash:    rgba(61,220,132,0.08);
+
+		--radius: 0;                 /* square corners, everywhere, for free */
+		--font: var(--mono);
+
+		color: var(--ink);
+		background: var(--surface);
+		font-family: var(--font);
+	}
+
+	/* Dark-only on purpose: a terminal in light mode is a different idea, not
+	   this one in another mode. A theme is allowed to support one mode — it just
+	   has to say so, which is what omitting `.light` / `.dark` says. */
+
+	/* ---- tier 3: the escape hatch, and why you avoid it -------------------
+	   Markdown-style heading prefixes. No token can express "put a character
+	   in front of this element," so it's a rule — and rules are how a theme
+	   starts knowing about things it shouldn't.
+
+	   This one is safe because it names *generic HTML*, which is precisely a
+	   theme's business. The moment a rule here names a component class
+	   (`.tab-bar`, `.page-preview`), that component is missing a token and the
+	   fix belongs there, not here. See the guide's ladder. */
+
+	.theme-terminal :is(h1, h2, h3, .h1, .h2, .h3)::before {
+		content: "# ";
+		color: var(--prim);
+	}
+}

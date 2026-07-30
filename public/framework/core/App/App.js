@@ -79,13 +79,15 @@ export default class App {
 			// as a child learns its `.parent` from whoever declares it. A Page is
 			// built in userland at module scope (`export default new Page(…)`),
 			// so App has no constructor to inject into; this is the seam it does
-			// have. The host gets it too: it's the one that builds the Pager.
-			// Guarded on `.host` so bare exports are left alone — assigning a
-			// property to a default-exported *string* throws in strict mode.
+			// have. Guarded on `.host` so bare exports are left alone — assigning
+			// a property to a default-exported *string* throws in strict mode.
 			if (page.host)
 				page.app = host.app = this;
 
-			this.$app.empty().append(host);
+			// A topic defines pager() and builds it right there in its own page.js; an
+			// ordinary page has none and just renders. Both branches are one
+			// duck-typed call — nothing here knows what a Pager is.
+			this.$app.empty().append(host.pager?.() ?? host);
 		}
 
 		page?.activate?.();        // document.title / meta / theme

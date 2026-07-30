@@ -18,8 +18,13 @@ export default new Page({
 	meta: import.meta,
 	title: "Michael",
 	description: "A live, categorized tour of the framework's essential styles.",
-	pager: ColumnPager, // this topic renders its subtree as drill-down columns
 	children: [pageDoc, pagerDoc, columnPagerDoc, routerDoc, elements, layout, components, sections, branding],
+
+	// this topic renders its subtree as drill-down columns
+	pager(){
+		return new ColumnPager({ root: this, app: this.app });
+	},
+
 	content(){
 		p("Two halves. The **framework** — Page, Pager, ColumnPager, Router — documented with live MVP examples. And the **styles** — elements, layout, components, sections — every essential, shown live.");
 		p("Pick one from the sidebar, or a card below — it opens in a column to the right, and that page becomes the nav for its own children. Left-click navigates without a reload; right-click (or ctrl/⌘-click) opens it isolated in a new tab. Reloading any URL rebuilds the same columns.");

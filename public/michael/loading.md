@@ -255,7 +255,7 @@ The loading decision pointed at this decomposition, which also removed the
 - **`Pager` / layout (a class — justified: columns + breadcrumbs need structure)**
   — given the chain (`topic … active`) and the topic's children, renders the
   layout. `ColumnPager` today; `Tabs`/`Grid` later. A **topic page declares its
-  `pager`** (`new Page({ pager: ColumnPager, children: […] })`); descendants
+  `pager()`** (`new Page({ pager(){ return new ColumnPager({ root: this }); }, children: […] })`); descendants
   inherit it via `host()`.
 
 So: routing lives in the **Router**, not in `Page`; the multi-column behavior is

@@ -14,7 +14,7 @@ export default new Page({
 		p("The full `chain` from root to the current page — for climbing out when you've gone deeper than the two visible columns.");
 
 		h3("Columns");
-		p("The last two of the chain. The left column is the parent, acting as navigation; the right is the focused page. Each is filled with `page.body()` (plain content, never the ColumnPager) so a topic never recurses into itself. The ✕ closes a column and climbs to its parent.");
+		p("The last two of the chain. The left column is the parent, acting as navigation; the right is the focused page. Each is filled with plain `page.render()` — a Page never mounts its own layout (the App does), so a topic cannot recurse into itself. The ✕ closes a column and climbs to its parent.");
 
 		h3("Identical on reload");
 		p("Clicking a link and hard-reloading a URL run the same `chain` logic, so `/a/b/` looks the same either way — no per-page layout knowledge, no hash router.");
@@ -24,7 +24,7 @@ export default new Page({
     const chain = leaf.chain;       // [root … leaf]
     this.sidebar(chain[0]);         // topic + children
     // breadcrumbs = chain
-    // columns     = chain.slice(-2)   (fill with pg.body())
+    // columns     = chain.slice(-2)   (fill with pg.render())
 }`);
 	}
 });

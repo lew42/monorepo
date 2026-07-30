@@ -4,7 +4,9 @@
     *, *::before, *::after { box-sizing: border-box; }
 
     /* html { scroll-behavior: smooth; } */
-    body { margin: 0; line-height: 1.5; font-family: system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; overflow-wrap: break-word; }
+    /* font-family lives in the theme layer, not here — a typeface is a look, and
+       a theme must be able to change it by loading later. */
+    body { margin: 0; line-height: 1.5; -webkit-font-smoothing: antialiased; overflow-wrap: break-word; }
     
     img, picture, video, canvas, svg { display: block; max-width: 100%; }
     input, button, textarea, select { font: inherit; } /* not just font-family, also font-size, etc. */
@@ -25,51 +27,76 @@
 }        
 
 @layer theme {
+    /* ---- tokens: the vocabulary a theme retunes -------------------------
+       Every one of these replaces a value that was hardcoded somewhere, most
+       of them in several places at once. That's the bar for adding another:
+       a token names a decision that already exists, it doesn't invent one.
+
+       `light-dark()` takes the light value when `color-scheme` resolves to
+       light and the dark one when it resolves to dark — so a mode is one
+       declaration per token, in the same place, and a token can't exist in
+       one mode and go missing in the other. `:root` pins `light` for now:
+       components still hardcode `#fff` in a few places, so dark isn't honest
+       yet (tracked in styles/readme.md §12). A theme opts in by declaring
+       `color-scheme: light dark` on itself. */
+
     :root {
-        --prim: #FF6157;
-	    --bg: #42404B;
-        --subtle: rgba(0,0,0,0.5);
+        color-scheme: light;
+
+        --prim: #FF6157;                         /* the one accent */
+	    --bg: #42404B;                           /* dark surface — the sidebar's */
+        --subtle: light-dark(rgba(0,0,0,0.5), rgba(255,255,255,0.55));
+
+        --ink:     light-dark(#1a1a1a, #e8e8ea);            /* body text */
+        --surface: light-dark(#fff, #17161a);               /* content background */
+        --line:    light-dark(rgba(0,0,0,0.15), rgba(255,255,255,0.15));  /* borders, rules */
+        --wash:    light-dark(rgba(0,0,0,0.08), rgba(255,255,255,0.08));  /* code, th, hover fill */
+
+        --radius: 0.5em;
 
         --column: 14em;
         --sidebar: 13em;   /* any sidebar's width — ColumnPager's and the home page's */
 
+        --font: system-ui, -apple-system, sans-serif;
         --mono: Consolas, 'Courier New', Monaco, monospace;
     }
 
-    /* ════ everything below is wrapped in :where() ═══════════════════════════
-       :where() has ZERO specificity. Every rule in this layer therefore loses
-       to *any* rule you write — a bare element selector, one class, anything.
-       You never out-specify the framework, you just write your rule.
+    /* ════ this block is THE BASE THEME ══════════════════════════════════════
+       Not "the framework's unavoidable styles" — a theme, the one you get when
+       you load no other. Plain selectors, mostly one element each, deliberately
+       low specificity so the next `@layer theme` to load simply wins:
 
-       This is the answer to "what if I have to fight these defaults." You
-       can't fight them; they forfeit. Three independent escapes, cheapest
-       first:
+         framework.css    h2 { font-size: 1.4em }    loads first
+         your-theme.css   h2 { font-size: 2em }      loads later, wins
 
-         h2 { font-size: 2em }              a plain selector already wins
-         .card :where(h2) { … }             scope it, still zero-specificity
-         h2 { font-size: revert-layer }     drop to whatever came before
+       Equal specificity, later declaration takes it. That is the whole override
+       model, and it's why these selectors stay flat — a `.page > h2` here would
+       out-rank a theme's `h2` no matter when the theme loaded.
 
-       Tokens above are deliberately NOT wrapped: custom properties don't
-       compete on specificity, they're inherited *values*. A theme overrides
-       one by being closer in the tree (`.app`, `body.theme-x`), never by
-       out-ranking `:root`. See styles/readme.md §3.
+       (`:where()` wrapping was tried and reverted — see styles/readme.md §9.)
 
-       The `util` layer is also NOT wrapped — a utility class is an explicit
-       opt-in and should beat component CSS, which is what the layer order
-       already buys it. */
+       Tokens above are the vocabulary a theme retunes; the rules below are the
+       floor it inherits. Every line is documented at /framework/styles/theme/,
+       and /framework/styles/theme/guide/ is how to write your own. */
 
-    :where(:focus-visible) {
+    :focus-visible {
         /* outline: 2px solid var(--prim); don't do this, it messes with the outline's border radius??? */
         outline-color: var(--prim);
         outline-offset: 3px;
         outline-width: 2px; /* doesn't seem to have an effect */
     }
 
-    :where(html) { height: 100%; scrollbar-color: rgba(0, 0, 0, 0.2) transparent; }
+    html { height: 100%; scrollbar-color: rgba(0, 0, 0, 0.2) transparent; }
 
-    :where(body) { min-height: 100%; font-size: clamp(16px, 2vw, 20px); accent-color: var(--prim); }
+    body {
+        min-height: 100%;
+        font-size: clamp(16px, 2vw, 20px);
+        font-family: var(--font);
+        color: var(--ink);
+        accent-color: var(--prim);
+    }
 
-    :where(.app) { height: 100%; }
+    .app { height: 100%; }
 
     /* ---- the type scale: six levels, and that's the whole vocabulary --------
        h1 Page Title · h2 Section · h3 Sub-section · h4 ANNOTATION · body · code.
@@ -82,13 +109,13 @@
        Only size/weight/tracking live here. Margins are rhythm and belong to
        whoever is arranging the content (see Page.css). */
 
-    :where(h1, .h1) { font-size: 1.9em;  font-weight: 900; letter-spacing: -0.015em; line-height: 1.2; }
-    :where(h2, .h2) { font-size: 1.4em;  font-weight: 700; line-height: 1.3; }
-    :where(h3, .h3) { font-size: 1em;    font-weight: 700; }
-    :where(h4, .h4) { font-size: 0.8em;  font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
-    :where(h5, h6)  { font-size: 1em;    font-weight: 700; }
+    h1, .h1 { font-size: 1.9em;  font-weight: 900; letter-spacing: -0.015em; line-height: 1.2; }
+    h2, .h2 { font-size: 1.4em;  font-weight: 700; line-height: 1.3; }
+    h3, .h3 { font-size: 1em;    font-weight: 700; }
+    h4, .h4 { font-size: 0.8em;  font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+    h5, h6  { font-size: 1em;    font-weight: 700; }
 
-    :where(hr) { margin: 3em 0; }
+    hr { margin: 3em 0; }
 
     /* ---- code ---------------------------------------------------------
        `pre` is a BLOCK and `code` is INLINE; one padding was never going to
@@ -98,50 +125,50 @@
        opinion about one box is a bug report about this one — so the block
        gets block padding here, and the three copies are gone. */
 
-    :where(pre) { padding: 0.75em 1em; }
-    :where(code) { padding: 0.15em 0.4em; }
-    :where(pre, code) { background: rgba(0,0,0,0.1); }
-    :where(pre, code, .code) { font-family: var(--mono); }
-    :where(pre > code) { padding: 0; background: none; }   /* already in a padded box */
+    pre { padding: 0.75em 1em; }
+    code { padding: 0.15em 0.4em; }
+    pre, code { background: var(--wash); }
+    pre, code, .code { font-family: var(--mono); }
+    pre > code { padding: 0; background: none; }   /* already in a padded box */
 
     /* ---- block elements the UA styles badly ----------------------------
        Generic HTML, so they belong to whoever styles HTML — not to the
        markdown ext that happened to render them first. */
 
-    :where(blockquote) {
+    blockquote {
         margin-left: 0;
         padding-left: 1em;
         border-left: 3px solid var(--subtle);
         color: var(--subtle);
     }
 
-    :where(table) { border-collapse: collapse; margin: 1em 0; }
-    :where(th, td) { padding: 0.25em 0.75em; border: 1px solid rgba(0,0,0,0.2); }
-    :where(th) { background: rgba(0,0,0,0.04); text-align: left; }
+    table { border-collapse: collapse; margin: 1em 0; }
+    th, td { padding: 0.25em 0.75em; border: 1px solid var(--line); }
+    th { background: var(--wash); text-align: left; }
 
-    :where(summary) { cursor: pointer; }   /* a real UA gap */
+    summary { cursor: pointer; }   /* a real UA gap */
 
     /* ---- form controls -------------------------------------------------- */
 
-    :where(input:not([type="checkbox"], [type="radio"], [type="color"]), select, textarea) {
+    input:not([type="checkbox"], [type="radio"], [type="color"]), select, textarea {
         padding: 0.25em 0.6em;
         border: 1px solid var(--subtle); /* adding a border affects input[type=submit] height and bg + hover, for some reason */
     }
 
-    :where(fieldset > p:first-of-type) {
+    fieldset > p:first-of-type {
         margin-top: 0;
     }
 
-    :where(select) {     appearance: none;
+    select {     appearance: none;
     background: field no-repeat 100%;
     background-size: 0.5em;
     background-origin: content-box;
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='40' fill='%23555'><polygon points='0,0 60,0 30,40'/></svg>"); }
 
-    :where(.btn, button) { padding: 0.25em 1em; cursor: pointer; }
-    :where(a *) { cursor: pointer; }
-    :where(button.bg, .btn.bg) { background: var(--bg); color: white; }
-    :where(button.prim, .btn.prim) { background: var(--prim); color: white; }
+    .btn, button { padding: 0.25em 1em; cursor: pointer; }
+    a * { cursor: pointer; }
+    button.bg, .btn.bg { background: var(--bg); color: white; }
+    button.prim, .btn.prim { background: var(--prim); color: white; }
 
 }
 

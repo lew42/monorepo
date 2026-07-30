@@ -107,7 +107,7 @@ Turn one on and the other becomes redundant. So this isn't a tweak, it's a fork:
 
 **Verdict: keep (a) as `ColumnPager`; build (b) as a *sibling* subclass
 (`DocPager`) if it's wanted.** Not a setting, not a flag — a topic picks with
-`pager: DocPager`. This is the three-lever model doing its job: a different
+a `pager()` returning a `DocPager`. This is the three-lever model doing its job: a different
 arrangement is a different class, and both can exist. Half-merging them (tree
 sidebar *and* two columns) is the one option that's worse than either.
 

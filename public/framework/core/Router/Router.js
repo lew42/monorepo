@@ -63,8 +63,6 @@ export class Router {
 			window.history.pushState({}, "", url);
 		this.app.load_page(url);
 	}
-
-	get routes() { return [...Page.registry.keys()].sort(); } // debug
 }
 
 export default Router;

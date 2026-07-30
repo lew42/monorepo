@@ -10,9 +10,16 @@ export default new Page({
 	meta: import.meta,
 	title: "Framework",
 	description: "A no-build, native-ESM web framework — read the code, get it.",
-	pager: ColumnPager,
 	col: "narrow", // as a nav column it's a title and a list — 18em is plenty
 	children: [start, core, ext, styles, util, dev],
+
+	// This topic renders its whole subtree as drill-down columns. App.load_page
+	// calls pager() on the nearest ancestor that defines one; render() below is
+	// still just this page's own content, which is what a column shows.
+	pager(){
+		return new ColumnPager({ root: this, app: this.app });
+	},
+
 	content(){
 
 		md("Create `/path/page.js`:");

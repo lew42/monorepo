@@ -18,14 +18,15 @@ View.stylesheet(import.meta, "ColumnPager.css");
  * of the ancestor chain side by side. The left column is the parent (acting as
  * nav); the right is the focused page.
  *
- *   new Page({ meta, title, children: [...], pager: ColumnPager });
+ *   new Page({ meta, title, children: [...], pager(){ return new ColumnPager({ root: this }); } });
  *
- * A topic declares `pager: ColumnPager`; its descendants are plain Pages. When
+ * A topic defines `pager()`; its descendants are plain Pages. When
  * any descendant is the target, `Page.host()` resolves to the topic, the App
  * mounts this ColumnPager, and `leaf()` is the page being viewed.
  *
- * Columns are filled with `page.body()` (plain content), never `page.render()`,
- * so a topic that owns a ColumnPager never recurses into it.
+ * Columns are filled with plain `page.render()`. There's no separate "content
+ * only" variant to remember: a Page never mounts its own layout (the App does),
+ * so rendering a topic in a column cannot recurse into this ColumnPager.
  *
  * Navigation is plain `<a href>` (from page.link()/crumb()) — the Router
  * intercepts the clicks globally, and App.mark_links() adds `.active` /
@@ -38,8 +39,10 @@ View.stylesheet(import.meta, "ColumnPager.css");
  * Name the subclass and you also get a CSS hook for free — classify() turns the
  * constructor chain into classes, so `.docs-pager` scopes styles to one topic:
  *
- *   pager: class DocsPager extends ColumnPager {
- *       sidebar(){ return new MySidebar({ ... }); }
+ *   pager(){
+ *       return new class DocsPager extends ColumnPager {
+ *           sidebar(){ return new MySidebar({ ... }); }
+ *       }({ root: this, app: this.app });
  *   }
  *
  * The sidebar is a `Sidebar` (core/Sidebar/), not markup of ours — so its look
@@ -116,7 +119,7 @@ export class ColumnPager extends Pager {
 			.ac(pg.col) // per-page width, e.g. col: "narrow" — just classes
 			.append(() => {
 				this.col_bar(pg);
-				div.c("col-body", () => pg.body());
+				div.c("col-body", () => pg.render());
 			});
 	}
 

@@ -12,7 +12,7 @@
 	.demo {
 		margin: 1.75em 0;
 		border: 1px solid rgba(0,0,0,0.14);
-		border-radius: 0.5em;
+		border-radius: var(--radius);
 		overflow: hidden;
 		background: #fff;
 	}

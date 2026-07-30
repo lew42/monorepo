@@ -19,12 +19,47 @@ That plus `leaf()` is the entire class. Two usage modes:
 | mode | who drives it | what `root`/`leaf()` mean |
 |---|---|---|
 | **manual** | you: `pager.show(page)` | unused |
-| **mounted** | a topic: `pager: ColumnPager` | `root` = the topic, `leaf()` = the page being viewed |
+| **mounted** | a topic: `pager(){ … }` | `root` = the topic, `leaf()` = the page being viewed |
 
-Mounted, `Page.render()` does `new this.pager({ root: this, app: this.app })` —
-a plain assign-object, so **no subclass needs a constructor**. (It used to be
-`new this.pager(this)` with `constructor(root){ super({ root }) }` copy-pasted
-into every subclass. Passing the object deleted that boilerplate everywhere.)
+Mounted, the **topic builds it itself**, in its own `page.js`:
+
+```js
+pager(){ return new ColumnPager({ root: this, app: this.app }); }
+```
+
+`App.load_page` just calls `host.pager?.() ?? host`. Nothing in `App` or `Page`
+imports a Pager or knows what one is — the `new` is in the file that wanted it,
+where you'll actually look for it.
+
+The argument object is a plain assign-object, so **no subclass needs a
+constructor**. (It used to be `new this.pager(this)` with
+`constructor(root){ super({ root }) }` copy-pasted into every subclass. Passing
+the object deleted that boilerplate everywhere.)
+
+### Why `pager()` and not `render()`
+
+**The question.** A topic could just override `render()` to return its layout.
+That reads best of all — so why doesn't it work?
+
+**Because the topic is inside its own chain.** `ColumnPager.columns()` takes
+`chain.slice(-2)` and fills each column with `pg.render()`. On `/michael/` the
+chain is `[michael]`, so the single column **is** michael — and `render()` would
+build another ColumnPager inside itself, forever.
+
+**Alternatives weighed.**
+
+- **`Pager: ColumnPager` as inert data, App does the `new`.** Tried it. No
+  recursion, but the construction happens in a file you have to go hunting for —
+  you read the topic, see a class sitting there as data, and nothing tells you
+  who instantiates it. Rejected as too magic.
+- **A recursion guard in `render()`** (`if (this.mounted) …`). Strictly worse:
+  hidden state, and the bug returns the moment a second container renders a topic.
+- **`layout()`** — good name, but `michael/page.js` already imports a child page
+  called `layout`. Collisions in the one file that needs the method most.
+
+**Verdict: `pager()`.** Lowercase because it's a method returning an instance,
+named for what it returns, and it makes the two questions explicit: `render()` =
+"draw this page", `pager()` = "draw this page's whole subtree".
 
 That property is also why adding `app` cost nothing. Injecting a dependency into
 an assign-based constructor is one more key in an object literal — no signature
@@ -63,7 +98,7 @@ export default new Page({
     meta: import.meta,
     title: "Docs",
     children: [intro, api],
-    pager: ColumnPager,   // this subtree renders as columns
+    pager(){ return new ColumnPager({ root: this, app: this.app }); },
 });
 ```
 
@@ -74,7 +109,7 @@ the App mounts the ColumnPager, and it renders `leaf().chain`.
 Because clicking a link and hard-reloading a url run the same chain logic, `/a/b/`
 looks identical either way — no per-page layout knowledge, no hash router.
 
-- Columns are filled with `page.body()` (plain content), **never** `render()`, so
+- Columns are filled with plain `page.render()` — a Page never mounts its own layout, so
   a topic never recurses into its own ColumnPager.
 - Only the last two of the chain are columns; the rest become breadcrumbs.
 - Navigation is plain `<a href>` — the Router intercepts globally, and
@@ -137,9 +172,11 @@ render → sidebar → brand
 A topic supplies a subclass:
 
 ```js
-pager: class extends ColumnPager {
-    brand(){ return a("Acme").href("/").ac("brand"); }
-    nav(){ div.c("sidebar-nav", () => site_links.forEach(l => l.render())); }
+pager(){
+    return new class extends ColumnPager {
+        brand(){ return a("Acme").href("/").ac("brand"); }
+        nav(){ div.c("sidebar-nav", () => site_links.forEach(l => l.render())); }
+    }({ root: this, app: this.app });
 }
 ```
 
@@ -206,8 +243,8 @@ When the layout isn't the drill-down at all:
 export class Split extends Pager {
     render(){
         const [left, right] = this.leaf().chain.slice(-2);
-        div.c("left", () => left.body());
-        div.c("right", () => right.body());
+        div.c("left", () => left.render());
+        div.c("right", () => right.render());
     }
 }
 ```

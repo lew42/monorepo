@@ -1,4 +1,4 @@
-import { Page, Sidebar, md, h2, div, a } from "/app.js";
+import { Page, Sidebar, md, h1, h2, div, a } from "/app.js";
 
 /* The site's sections, as plain data.
  *
@@ -23,11 +23,20 @@ export default new Page({
 
 	// sidebar + one scrolling column. Same split as ColumnPager: the Sidebar
 	// component brings its own look, this only says where things go.
+	//
+	// Overriding render() means building the `.page` wrapper ourselves — Page has
+	// exactly one render path and this replaces it. Four explicit lines, which is
+	// the right trade for the one page on the site that wants custom chrome.
 	render(){
 		return div.c("home", () => {
 			new Sidebar({ brand: "Lew42", pages: sections });
 
-			div.c("home-main", () => this.body());
+			div.c("home-main", () => {
+				div.c("page", () => {
+					h1.c("page-title", this.title);
+					this.content();
+				});
+			});
 		});
 	},
 
@@ -41,11 +50,14 @@ export default new Page({
 
 		md("It's one site now, so spend some time in someone else's directory. You solved a lot of the same problems in different ways, and the differences are the interesting part.");
 
-		div.c("previews", () => {
+		// Same markup Page.preview() emits — these sections are plain data, not
+		// Pages (see above), so the cards are hand-rolled. Class names must track
+		// Page.css: `.page-preview*`, prefixed.
+		div.c("page-previews", () => {
 			sections.forEach(section => {
-				a.c("preview").href(section.url).append(() => {
-					div.c("preview-title", section.title);
-					div.c("preview-desc", section.desc);
+				a.c("page-preview").href(section.url).append(() => {
+					div.c("page-preview-title", section.title);
+					div.c("page-preview-desc", section.desc);
 				});
 			});
 		});
@@ -62,7 +74,7 @@ export default new Page({
 
 		md(`The framework picked up a lot while you were building:
 
-- **[ColumnPager](/framework/core/Pager/)** — infinite drill-down columns. Declare \`pager: ColumnPager\` on one page and its whole subtree navigates that way.
+- **[ColumnPager](/framework/core/Pager/)** — infinite drill-down columns. Declare \`Pager: ColumnPager\` on one page and its whole subtree navigates that way.
 - **[Router](/framework/core/Router/)** — no-reload page transitions. Write an ordinary \`<a href>\` and it upgrades the click for you.
 - **[Page](/framework/core/Page/)** — a titled, linkable, dormant unit of content. Importing one renders nothing, so pages can link to each other freely.
 - **[Start](/framework/start/)** — three files and a working site, if you want the short version first.`);

@@ -25,7 +25,7 @@ unknown route          →  full navigation`);
 		h2("Programmatic");
 
 		pre(`app.router.go("/framework/core/View/");   // pushState + load
-app.router.routes;                       // every known url`);
+app.router.go("/path/");                 // programmatic navigation`);
 
 		h2("Three small things");
 

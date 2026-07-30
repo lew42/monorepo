@@ -105,6 +105,8 @@
 
 	   `col` is just a class string; define your own alongside these. */
 
+	.column-pager .column.secondary { background: #eee; }
+	.column-pager .column.secondary .page { background: #eee; }
 	.column-pager .column.secondary.narrow { flex: 0.6 1 0; }
 	.column-pager .column.secondary.wide   { flex: 2 1 0; }
 	.column-pager .column.secondary.half   { flex: 1 1 0; }  /* the default, named */

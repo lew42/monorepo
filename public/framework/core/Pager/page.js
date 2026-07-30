@@ -35,7 +35,7 @@ export default new Page({
     meta: import.meta,
     title: "Docs",
     children: [intro, api],
-    pager: ColumnPager,   // this subtree renders as columns
+    pager(){ return new ColumnPager({ root: this, app: this.app }); },
 });`);
 
 		md("The drill-down you're reading this in — sidebar, breadcrumbs, and the last two levels side by side. One property opts an entire subtree in; the descendants stay plain pages that know nothing about the layout.");
@@ -53,8 +53,8 @@ export default new Page({
 		pre(`export class Split extends Pager {
     render(){
         const [left, right] = this.leaf().chain.slice(-2);
-        div.c("left", () => left.body());
-        div.c("right", () => right.body());
+        div.c("left", () => left.render());
+        div.c("right", () => right.render());
     }
 }`);
 

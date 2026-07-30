@@ -13,7 +13,7 @@ View.stylesheet(import.meta, "TabPager.css");
  * `select()` is just `panel.show(page)`.
  *
  *   new TabPager({ pages: [intro, install, api] });   // standalone, in-page
- *   new Page({ meta, title, children: [...], pager: TabPager });  // as a layout
+ *   new Page({ pager(){ return new TabPager({ root: this }); } });  // as a layout
  *
  * Unlike ColumnPager this is **in-page, not url-driven**: clicking a tab swaps
  * the panel and does not navigate. (Mounted as a topic's layout, it opens on

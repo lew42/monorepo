@@ -1,9 +1,11 @@
 import { Page, md, demo, h2, p, pre } from "/app.js";
+import simplify from "./simplify/page.js";
 
 export default new Page({
 	meta: import.meta,
 	title: "Page",
 	description: "A titled, linkable, dormant unit of content.",
+	children: [simplify],
 	content(page){ // content() receives the page, so examples can use it
 
 		pre(`import { Page, p } from "/app.js";
@@ -59,18 +61,23 @@ export default new Page({
 | \`description\` | the preview subtitle, and the meta description |
 | \`content\` | a function (captured), or a string / view |
 | \`children\` | sub-pages |
-| \`theme\` | a class added to \`<body>\` while active |
 | \`classes\` | classes added to the page element |
 | \`col\` | classes for the column a [Pager](/framework/core/Pager/) puts it in |
-| \`pager\` | a layout for this page's subtree |
+| \`Pager\` | a layout class for this page's subtree — capitalized, because it *is* a class |
 
 Anything else you pass is just assigned to the page, inert until something reads it.`);
 
 		h2("render() vs activate()");
 
-		md("`render()` builds the DOM, and runs for embedded sub-pages too. `activate()` means *you are now THE page*: document title, meta description, body theme. Only the page the url points at is activated — so composing pages can never clobber the title.");
+		md("`render()` builds the DOM — one `div.page` with the title and your content — and runs for embedded sub-pages too. `activate()` means *you are now THE page*: document title, meta description. Only the page the url points at is activated, so composing pages can never clobber the title.");
+
+		md("`Pager` is inert data: `Page` never instantiates it, `App.load_page` does. That's why `render()` has exactly one meaning and there's no second content-only variant to remember.");
 
 		md("Next: [Pager](/framework/core/Pager/) — showing one page at a time.");
+
+		md("---");
+
+		md("Design work in progress: **[Simplifying Page](/framework/core/Page/simplify/)** — a full audit of what this class carries, and three open proposals.");
 
 		md.details(import.meta, "readme.md");
 	}

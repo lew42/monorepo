@@ -3,9 +3,9 @@ import { Page, p, pre } from "/app.js";
 export default new Page({
 	meta: import.meta,
 	title: "MVP",
-	description: "Declare pager: ColumnPager on a topic.",
+	description: "Define pager() on a topic.",
 	content(){
-		p("One line turns a topic into a drill-down: declare `pager: ColumnPager`. Its descendants stay plain Pages — they never know they're in a ColumnPager.");
+		p("One method turns a topic into a drill-down: `pager()`. Its descendants stay plain Pages — they never know they're in a ColumnPager.");
 
 		pre(`import { Page, ColumnPager } from "/app.js";
 import elements from "./elements/page.js";
@@ -14,7 +14,7 @@ import layout from "./layout/page.js";
 export default new Page({
     meta: import.meta,
     title: "Docs",
-    pager: ColumnPager,          // render this subtree as columns
+    pager(){ return new ColumnPager({ root: this, app: this.app }); },
     children: [elements, layout]
 });`);
 

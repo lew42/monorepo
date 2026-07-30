@@ -15,8 +15,11 @@ View.stylesheet(import.meta, "Page.css");
  *   2. its place in a tree — children (declared) + parent (adopted, see below)
  *   3. how to link to itself — link() / crumb() / preview()
  *
- * It does NOT know about routing (that's Router) or layout/structure (that's a
- * Pager / ColumnPager). Those are separate, opt-in concerns.
+ * It does NOT know about routing (that's Router) or layout (that's a Pager). A
+ * topic opts in by defining `pager(){ return new ColumnPager({ root: this }) }`
+ * in its own page.js — Page never constructs one, and never imports a Pager.
+ * The payoff is that `render()` has exactly one meaning here: this page's own
+ * content, always.
  *
  * ── The tree & adoption ──────────────────────────────────────────────
  * A parent declares `children: [a, b]`. In the constructor it *adopts* them:
@@ -43,7 +46,7 @@ export default class Page {
 			this.children.forEach(child => child.parent = this);
 
 		// register for synchronous url → page lookup
-		if (this.meta || this._url)
+		if (this.meta)
 			Page.registry.set(this.url, this);
 	}
 
@@ -54,12 +57,7 @@ export default class Page {
 	// ── url (derived from import.meta, so links are never hard-coded) ──
 	// "/docs/page.js"   -> "/docs/"
 	// "/docs/x.page.js" -> "/docs/x"
-	set url(url){ this._url = url; }
-
 	get url(){
-		if (this._url)
-			return this._url;
-
 		const path = new URL(this.meta.url).pathname;
 
 		if (path.endsWith("/page.js"))
@@ -80,15 +78,13 @@ export default class Page {
 		return chain;
 	}
 
-	get root(){
-		let p = this;
-		while (p.parent) p = p.parent;
-		return p;
-	}
-
-	// nearest ancestor (incl. self) that owns a `pager`, else self.
-	// This is who should render when THIS page is the target: a deep page under
-	// a ColumnPager topic returns the topic; a plain page returns itself.
+	// Nearest ancestor (incl. self) that defines pager(), else self. This is who
+	// should render when THIS page is the target: a deep page under a ColumnPager
+	// topic returns the topic; a plain page returns itself.
+	//
+	// A topic writes its own `pager(){ return new ColumnPager({ root: this }) }`,
+	// so the construction is visible in the page that wants it. See the note on
+	// render() for why it can't just be render().
 	host(){
 		let p = this;
 		while (p){ if (p.pager) return p; p = p.parent; }
@@ -127,7 +123,7 @@ export default class Page {
 	// A deep page (/a/b/c/) is imported alone, so its ancestors — and the layout
 	// one of them may own — aren't loaded. Climb the url importing them; adoption
 	// wires `.parent` as each constructs, so host() can then find the topic.
-	// A page with no pager-owning ancestor (or an already-loaded one) = no-op.
+	// A page with no layout-owning ancestor (or an already-loaded one) = no-op.
 	async load_ancestors(){
 		let url = this.parent_url;
 
@@ -143,20 +139,17 @@ export default class Page {
 	}
 
 	// ── rendering ──
-	// render() is what a container places. If this page declares a `pager`
-	// (a layout class like ColumnPager), instantiate it; otherwise plain content.
+	// The ONE render path: a `div.page` holding the title and `content`. What
+	// View.append calls, what a Pager fills a column with, what a page overrides
+	// for custom chrome.
 	//
-	// `app` is forwarded, not looked up: App assigns it to us in load_page (see
-	// the adoption note there), and a Pager needs it for `app.page` / `app.router`.
-	// A Page never uses `app` itself — it's purely a conduit to the layout tier.
+	// A topic's layout goes in pager(), NOT here, and the reason is concrete:
+	// ColumnPager fills its columns with `pg.render()`, and the topic is in its
+	// own chain — on /michael/ the single column IS michael. If render() built
+	// the ColumnPager, that column would build another one, forever. Two methods
+	// because there are genuinely two questions: "draw this page" (render) and
+	// "draw this page's whole subtree" (pager).
 	render(){
-		return this.pager ? new this.pager({ root: this, app: this.app }) : this.body();
-	}
-
-	// body() is ALWAYS the plain content (title + content). A ColumnPager fills
-	// its columns with body() — never render() — so a topic that owns a pager
-	// doesn't recurse into it when shown as a column.
-	body(){
 		return this.view = div.c("page", () => {
 			if (this.title)
 				h1.c("page-title", this.title);
@@ -194,22 +187,15 @@ export default class Page {
 	}
 
 	// ── activation: document-level side effects for THE current page ──
+	// App.load_page also calls `page.deactivate?.()` on the way out. Page has no
+	// implementation — nothing here needs undoing — but the duck-typed call is
+	// kept so a page can define one.
 	activate(){
 		if (this.title)
 			document.title = this.title;
 
 		if (this.description)
 			this.describe(this.description);
-
-		if (this.theme)
-			View.body().ac(this.theme);
-
-		return this;
-	}
-
-	deactivate(){
-		if (this.theme)
-			View.body().rc(this.theme);
 
 		return this;
 	}
