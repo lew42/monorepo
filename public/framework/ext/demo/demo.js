@@ -1,4 +1,5 @@
 import View, { div, p, pre, code, is } from "../../core/View/View.js";
+import { source, dedent } from "../../util/source/source.js";
 
 View.stylesheet(import.meta, "demo.css");
 
@@ -60,39 +61,21 @@ function caption(text){
 	return view.md ? view.md(text) : view.backtick_append(text);
 }
 
-/* The same deal with ext/syntax. A demo's source is always JavaScript — it's a
- * function we just called toString() on — so there's nothing to detect. If the
- * highlighter has been imported, use it; if not, plain text, which is what this
- * always was. demo/ imports neither ext. */
+/* The same deal with ext/highlight. A demo's source is always JavaScript — it's
+ * a function we just called toString() on — so there's nothing to detect. If
+ * the highlighter has been imported it has added code.js(); if not, plain text,
+ * which is what this always was. demo/ imports neither ext.
+ *
+ * The captor here is the <pre>, so code.js() detects "pre" context and returns
+ * a bare <code> — exactly the element this used to build by hand. */
 function source_code(src){
-	const view = code();
-	return view.syntax ? view.syntax("javascript", src) : view.text(src);
+	return code.js ? code.js(src) : code(src);
 }
 
-// fn.toString() minus the wrapper. `() => { body }` and `function(){ body }`
-// give up their braces; a concise arrow (`() => div("x")`) keeps its expression.
-export function source(fn){
-	const src = String(fn);
-	const arrow = src.indexOf("=>");
-	const body = arrow === -1 ? null : src.slice(arrow + 2).trimStart();
-
-	if (body && !body.startsWith("{"))
-		return dedent(body);
-
-	const open = src.indexOf("{");
-	const close = src.lastIndexOf("}");
-
-	return dedent(open === -1 || close <= open ? src : src.slice(open + 1, close));
-}
-
-// remove the leading blank line and the common indent of the remaining lines,
-// so a body nested three tabs deep in a page.js reads as top-level code
-export function dedent(src){
-	const lines = src.replace(/^[\r\n]+/, "").replace(/\s+$/, "").split("\n");
-	const indents = lines.filter(line => line.trim()).map(line => line.match(/^[\t ]*/)[0].length);
-	const cut = indents.length ? Math.min(...indents) : 0;
-
-	return lines.map(line => line.slice(cut)).join("\n");
-}
+/* source()/dedent() moved to util/source. ext/highlight's code.fn() needs the
+   identical transform, and two copies of "where does a function body start"
+   would eventually print the same function two different ways on one page.
+   Re-exported here because that's where they've always been imported from. */
+export { source, dedent };
 
 export { demo };

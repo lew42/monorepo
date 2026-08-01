@@ -1,4 +1,15 @@
-@layer base, theme, util;
+/* Layer order. Every stylesheet in the project restates this line **in full**,
+   because the first `@layer` statement encountered fixes the order and a name
+   that first appears later gets appended at the END. Page.css's <link> is
+   actually appended before this file's (App.js imports Page at module scope),
+   so a short list anywhere would silently put `site` in the wrong place.
+
+     base    reset — browser defaults that are simply wrong
+     theme   the base theme: tokens + the default look. Components add here too.
+     site    /styles.css — this site's skin. Beats theme at ANY specificity, so
+             site CSS never has to escalate. See framework/styles/readme.md §13.
+     util    opt-in classes, last — you typed `.pad` on purpose, it should win. */
+@layer base, theme, site, util;
 
 @layer base {
     *, *::before, *::after { box-sizing: border-box; }
@@ -119,15 +130,23 @@
 
     /* ---- code ---------------------------------------------------------
        `pre` is a BLOCK and `code` is INLINE; one padding was never going to
-       fit both. It didn't: md.css, demo.css and syntax.css each independently
+       fit both. It didn't: md.css, demo.css and highlight.css each independently
        overrode `pre` to something roomier (0.75em / 0.9em / 0.75em), and each
        carried its own copy of the `pre > code` reset. Four files with an
        opinion about one box is a bug report about this one — so the block
        gets block padding here, and the three copies are gone. */
 
+    /* `--code-bg` / `--code-ink` are COMPONENT tokens — they fall back to the
+       global ones, so nobody has to set them, but a site or theme that wants
+       dark code blocks sets two values instead of fighting the three selectors
+       below. Added because that fight actually happened: a `code { background }`
+       in /styles.css lost the block case to `pre > code` and left white text on
+       a light box. The framework was missing a token; that's the fix, not a
+       stronger selector downstream. See styles/readme.md §13. */
+
     pre { padding: 0.75em 1em; }
     code { padding: 0.15em 0.4em; }
-    pre, code { background: var(--wash); }
+    pre, code { background: var(--code-bg, var(--wash)); color: var(--code-ink, inherit); }
     pre, code, .code { font-family: var(--mono); }
     pre > code { padding: 0; background: none; }   /* already in a padded box */
 

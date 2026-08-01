@@ -16,11 +16,41 @@ Lew42 framework site: a no-build, native-ESM web framework and the static site t
 
 Then wait. Small, local, obviously-correct fixes don't need this. Anything that changes an API name, a call order, or where a responsibility lives does. If the direction turns out to be wrong after the code is written, the sunk edit becomes an argument for keeping it — which is exactly the pressure to avoid.
 
+**Say a new name out loud before you write it.** A property or method name is the API and the documentation at once, and it's what every future reader has to trust. Before adding a name to a class other people touch — `View`, `Page`, `App`, `Router` — propose it and let it be corrected. This is cheap up front and expensive later: `layout` was a concept invented for what was literally `.ac(this.layout)`, and `derive()` never said *what* it derived. Both had to be unpicked across a dozen files.
+
+The test is whether the name answers **who / what / when / where / why / how** on its own, before the reader opens the method:
+
+- **Short is usually best** — `add()`, `chain()`, `container()`, `label`. A short name that's exactly right beats a long one that's merely complete.
+- **Length has to be earned**, by a thing that's rare or genuinely compound: `shared_depth()`, `load_segments()`, `seo_title()`. A rarely-called sub-method can afford syllables; something on the hot path of every page cannot.
+- **A scoping prefix is worth the characters when the bare word is contested.** `log_label()` exists precisely so `label` can stay the human-facing one.
+- **If you can't name it clearly, that's usually the design talking** — the method probably does two things, or lives on the wrong class.
+
+Aim for clarity when reading, never ambiguity. A reader who has to open the method to learn what the name meant has already paid for a bad name.
+
+**Default to checking in; autonomy has to be granted.** When the user says *"work autonomously"* or *"don't stop"*, they've left the keyboard — a question then costs an hour of nothing happening. In that mode: make the call, state the assumption plainly, and keep going.
+
+Absent that, assume you can ask. Do the investigation first, then give a short summary and the one or two decisions you actually need — rather than executing a plan they've never seen. The asymmetry is the whole point: a question asked while they're at the keyboard costs seconds, the same question asked while they're out costs the session, and a name shipped without agreement costs every reader after it.
+
+**Never add a dependency without asking. The short list in `package.json` is a feature.** Three small packages — `chokidar`, `express`, `ws` — and all three serve the dev server only; nothing in `public/` depends on anything. That's what makes `npm install` instant, the repo auditable, and "no build step" true rather than aspirational. Adding a fourth is a decision for the humans, every time, including "just a devDependency" — a devDependency is still something every dev on the team downloads.
+
+**Tooling for the person at the keyboard is not a project dependency — install it globally.** A browser driver, a profiler, a scratch test runner: these are how *you* look at the code, not what the code needs to run. `npm i -g playwright` and resolve it at runtime; don't make the whole team download a browser so one script can drive it. The test is *"would this repo be broken without it?"* — if no, it doesn't belong in `package.json`. The same goes for `scripts`: a work-in-progress prototype doesn't earn an npm script, because scripts read as blessed entry points long after the prototype is gone.
+
 **No black magic.** Black magic is behavior you cannot see from the code that implements it: a property read by a class that never mentions it, a method called by something three files away, an order of operations you have to memorize. It fails the test *"can someone read this file and know what happens?"* Self-evident code is the opposite — WYSIWYG, no hunting, nothing to remember.
 
 When something must be coordinated across files, make the coordination visible at the call site rather than clever. Prefer an explicit method call in the file that wants the behavior over an inert marker interpreted elsewhere.
 
 **A super simple base API that just works, then extend.** The default path should cover most cases with no configuration and no ceremony. Everything beyond that is an override or a subclass — declarative, opt-in, and visible in the file that opts in. Resist adding options, flags, or hooks to the base: an option is API surface forever, and the override lever usually already covers it.
+
+**Every method should read like a friendly sentence.** That's the target, and it's worth rewriting a method two or three times to hit it. Someone new to JS should be able to read a core class top to bottom and follow it without stopping.
+
+Two habits get you there:
+
+- **One line beats two** — unless two are genuinely clearer. `return this.loaded[name] = page.assign({ name, parent: this, app: this.app })` says one thing; splitting it into four statements says four. But never compress at the cost of readability: a clever `.then()` chain or a nested ternary that saves a line and costs a re-read is a bad trade, every time.
+- **Encapsulate the fiddly bit and name it.** `this.shared_depth(from, to)` reads; the `while` loop it replaces does not. The method body can be ugly — it's one small thing in one place — but the *call site* should read as prose. `find_common_ancestor(a, b)`, `link_clicked(e)`, `container()` all pass that test.
+
+**No magic getters — if it does work, make it a method.** `page.chain` reads like a stored field you're looking at; `page.chain()` tells you something is happening. The parens are the signal, and they're the only signal a reader gets — a getter hides an allocation, a tree walk, or worse behind syntax identical to a plain property.
+
+A getter is fine for a **cheap, stable alias of existing state** (`get page(){ return this.active; }`). Anything that walks, allocates, fetches, or could return a different value on two consecutive calls is a method. `App.get loaded()` is the cautionary example: it builds a fresh `Promise.all` on *every* access, which is invisible at the call site.
 
 **Too many comments junk up the base classes.** Wall-to-wall explanation in `View`, `Page`, `Pager`, `App` does not instill clarity or confidence — it reads as anxiety, and it buries the code the reader came for. Keep base-class comments to what the code genuinely can't say: a non-obvious *why*, a real gotcha. Design rationale, alternatives weighed, and history belong in the neighboring `readme.md`, which exists precisely for that.
 
@@ -51,6 +81,45 @@ this.router = new Router(this.router, { app: this });
 So there are two ways a property arrives, and they don't conflict: **constructor-assign** for what the caller knows up front, **adoption** for what only the container knows.
 
 **Construct things where someone will look for them.** If a file names a class, that file should generally be where it's constructed. An inert marker in one file, interpreted by `new` in another, is the black-magic shape above.
+
+**Name a `$prop` after the class it carries.** A `$`-prefixed property holds a View, and the property name should be the kebab-case class on that view, read back in snake_case — so `this.$sidebar_inner` is `div.c("sidebar-inner")`, and `this.$page_content` is `div.c("page-content")`. Nothing to remember: you can go from a class in the CSS to the property that holds it, and back, without opening the other file.
+
+```js
+this.$main = div.c("main", () => {
+    this.$pages = div.c("pages");        // ✓ name and class agree
+});
+
+this.$page = div.c("main-inner");        // ✗ which class is this? which prop styles it?
+```
+
+The bad line is the real one this rule came from. `$page` sounded like "the page" but held `.main-inner`, so the CSS said `.main-inner` and the JS said `$page`, and neither led to the other. If the two can't match, the class is probably wrong — rename the class, not the property.
+
+**Derive inside the class, not at the call site.** If a value can be worked out from what the object already has, the object works it out. A default applied by a caller is a rule nobody can find and everybody has to remember — and the moment there are two ways to build the thing, they disagree:
+
+```js
+// ✗ the defaulting lives OUTSIDE the class it belongs to
+add(name, page){ page.assign({ title: page.title ?? name }); }
+
+new Page({ name: "intro" })       // no title
+parent.add("intro", { … })        // title: "intro"      ← same object, two results
+```
+
+The test is *"if I build this a second way, do I get the same object?"* If no, the logic is on the wrong side of the constructor.
+
+**When a value arrives late, re-derive — don't duplicate the `??`.** Some properties genuinely can't be known at construction: a Page built inline learns its `name` and `url` only when a parent adopts it. That's not a reason to scatter fallbacks at every adoption site. Put the derivation in one named method and call it from both places:
+
+```js
+constructor(...args){ this.assign(...args); this.naming(); }
+adopt(parent, name){ this.assign({ parent, name }); this.naming(); }
+
+naming(){                       // idempotent, runs whenever inputs change
+    this.url   ??= this.meta && new URL(".", this.meta.url).pathname;
+    this.name  ??= this.url?.split("/").filter(Boolean).at(-1);
+    this.title ??= this.name;
+}
+```
+
+One place to read, one place to change, and construction and adoption cannot drift apart. The cost of getting this wrong is not a bug you'll see — it's a subtly different object depending on how it was made.
 
 > ⚠️ **UNDER DISCUSSION — do not treat as settled.** How a topic opts into a layout has changed twice and is being reconsidered. The current code has a topic define `pager(){ return new ColumnPager({ root: this, app: this.app }); }`, which `App.load_page` calls via `host.pager?.() ?? host`, with `Page.host()` walking `.parent` to find the nearest ancestor defining it. That's **three** coordinating places — App, `host()`, and `load_ancestors()`'s loop condition — which is more remembering than this codebase wants. Do not build on it or propagate the pattern until the direction is agreed. Options and the load-order trace: `framework/core/Pager/readme.md`.
 
@@ -91,6 +160,34 @@ So there are two ways a property arrives, and they don't conflict: **constructor
   });
   ```
 - `View.body()` makes `<body>` the initial captor; `App.render()` switches it to `$app`.
+
+**Capturing is synchronous. Never build DOM after an `await`.** `View.captor` is one global with a push/pop stack, and `append_fn` restores it the instant your function *returns* — which for an `async` function is at its first `await`, not when it finishes. Every factory call after that point auto-appends to whatever the captor has since become, usually `$app`. Nothing throws; the elements simply appear somewhere else in the document.
+
+```js
+// WRONG — the div is built after an await, so it lands wherever the captor now is
+async previews(){
+    const children = await Promise.all(names.map(name => this.child(name)));
+    return div.c("page-previews", () => children.forEach(child => child.preview()));
+}
+```
+
+That exact method put `.page-previews` in `body > div.app` — a sibling of `.main`, outside the page entirely.
+
+**The reliable shape: capture the container synchronously, then append into it asynchronously.** The container is placed while the captor is still correct; the data arrives later and goes into a view that already knows where it lives.
+
+```js
+// RIGHT — the div exists and is placed NOW; contents land inside it later
+previews(){
+    return div.c("page-previews", async ($previews) => {
+        const children = await Promise.all(names.map(name => this.child(name)));
+        children.forEach(child => $previews.append(child.preview()));
+    });
+}
+```
+
+Note the explicit `$previews.append(…)` — inside an async callback you must name the target, because the ambient captor is long gone. Returning a **promise** is the other blessed form, since `append_promise` awaits it and appends to `this`, a view that was placed synchronously — that's how `md.file()` works and why `content(){ return md.file(...) }` needs no support from `Page`.
+
+Assume async capturing does not work. It has never been battle-tested, and there is no reason to test it: sync-render-then-async-append covers every case and is WYSIWYG at the call site.
 
 Factories: `el(tag, ...)`, `div(...)`, `p(...)`, plus one per common HTML tag (`h1`, `a`, `button`, …), all exported from `View.js` and re-exported through `/app.js`. Each has a `.c(classes, ...)` variant, e.g. `div.c("nav-item", ...)`.
 
@@ -142,18 +239,24 @@ md.details(import.meta, "readme.md");                    // the same, in a colla
 
 `md.file` resolves against `import.meta`, not the document (the SPA fallback makes the document url the *route*, so doc-relative fetches miss). It returns a **promise** so `View.append_promise` places it and `App.load_page` can await it before swapping — `content(){ return md.file(...) }` needs no change to `Page`. `{ h1: false }` drops the readme's leading heading, since `Page` already renders `title` as an h1.
 
-`ext/demo/demo.js` — `demo(fn)` renders `fn`'s source (from `fn.toString()`, de-wrapped and dedented) above the result of running it, boxed together. One source of truth, so an example cannot drift from what it renders. Strings before the function label the box; strings after caption it (`demo(fn, "caption")` — the caption renders inside the box, below the result). The caption uses `View.prototype.md` **if markdown has been imported**, falling back to `p()` backticks — a soft dependency, so `demo/` never imports `markdown/`. The code block uses `View.prototype.syntax` on the same terms.
+`ext/demo/demo.js` — `demo(fn)` renders `fn`'s source (from `fn.toString()`, de-wrapped and dedented) above the result of running it, boxed together. One source of truth, so an example cannot drift from what it renders. Strings before the function label the box; strings after caption it (`demo(fn, "caption")` — the caption renders inside the box, below the result). The caption uses `View.prototype.md` **if markdown has been imported**, falling back to `p()` backticks — a soft dependency, so `demo/` never imports `markdown/`. The code block uses `code.js()` on the same terms.
 
-`ext/syntax/syntax.js` (vendors highlight.js 11.11.1 `es/` — js, css, xml, markdown, json) — importing it installs `View.prototype.syntax()` **and highlights every markdown code fence on the site**; the default export is a `syntax()` element factory.
+`ext/highlight/highlight.js` (vendors highlight.js 11.11.1 `es/` — js, css, xml, markdown, json) — importing it **enhances core's `code` factory in place** and **highlights every markdown code fence on the site**. `code()` and `code.c()` are untouched; the ext adds siblings:
 
 ```js
-p().syntax("js", "const x = 1");                 // into an existing view
-syntax("js", src);                               // a <pre class="syntax"><code>
-syntax.inline("js", "const x = 1");              // a bare <code> for prose
-syntax.file(import.meta, "example.js");          // a promise of a highlighted block
+code.js("const x = 1");                          // also .html .css .md .json
+code.fn(() => { … });                            // a FUNCTION, stringified, never run
+code.lang("json", src);                          // the general form
+code.file(import.meta, "example.js");            // a promise of a highlighted block
 ```
 
-Fence highlighting works by patching two `View` methods, **both synchronous, so neither can FOUC**: `html_unsafe` (markup written through a View — `.md()`, `md.file()`, multi-block `md()`) and `prerender` (markup a View *adopts* — the single-block branch of `md()` builds its DOM off a `<template>` and never touches `html_unsafe`). A `requestAnimationFrame`/`MutationObserver`/on-ready sweep would run a task later and flash plain code for one frame — that's why this is a patch, not a post-pass. No import coupling either way: `syntax/` doesn't import `markdown/`, it just recognizes the `language-*` class marked emits. An unregistered language degrades to escaped plain text, never throws. Design record: `framework/ext/syntax/readme.md`; the unbuilt textarea-overlay editor is specced in `editor.md`.
+**`code.fn()` is the one that matters.** A code example written as a string is dead text in the editor — no highlighting, completion, formatting, or syntax errors. Written as a function it's live code the IDE checks, and the page shows exactly what was checked. It stringifies via `util/source` (shared with `demo()`, so the two can't drift) and **never calls** the function — that's the whole difference from `demo(fn)`, which stringifies *and* runs.
+
+**Block-aware, from the captor — three contexts, not two.** A block parent (`div`, `section`, `td`, …) gets `<pre class="code-block"><code>`; a phrasing parent (`p`, `li`, `span`, `a`) gets a bare `<code class="code-inline">`; a `<pre>` parent gets a bare `<code>` with **no** `code-inline`, because that class carries `white-space: nowrap` and would collapse a multi-line block onto one line. The tag list mirrors `ext/markdown`'s `block_tags` deliberately. Because arguments are evaluated *before* the factory that receives them, `p("Call ", code.js("x"))` sees the grandparent as captor and guesses wrong — so a `code-block` landing in a phrasing parent is unwrapped at `append`. Guess from the captor, correct at append.
+
+**Sharp edge:** that correction discards the `<pre>` it was chained onto, so anything chained in *argument position* inside a phrasing parent is silently lost — `.ac()`, `.attr()`, and `.on()` handlers alike. Listeners can't be moved (`View.on()` keeps no registry). Argument position is for plain `code.js(src)`; to chain, put the class on the sentence (`p.c("wide", "Call ", code.js("x"))`) or use the capture form (`p(() => code.js("x").ac("wide"))`), which is correct by construction. Full analysis in `ext/highlight/readme.md`.
+
+Fence highlighting works by patching two `View` methods, **both synchronous, so neither can FOUC**: `html_unsafe` (markup written through a View — `.md()`, `md.file()`, multi-block `md()`) and `prerender` (markup a View *adopts* — the single-block branch of `md()` builds its DOM off a `<template>` and never touches `html_unsafe`). A `requestAnimationFrame`/`MutationObserver`/on-ready sweep would run a task later and flash plain code for one frame — that's why this is a patch, not a post-pass. The pass skips anything already carrying `.hljs`, because every View that *adopts* an element re-scans its whole subtree — idempotent is not the same as free. No import coupling either way: `highlight/` doesn't import `markdown/`, it just recognizes the `language-*` class marked emits. An unregistered language degrades to escaped plain text, never throws. Design record: `framework/ext/highlight/readme.md`; the unbuilt textarea-overlay editor is specced in `editor.md`.
 
 ## Writing docs — `page.js` vs `readme.md`
 
@@ -187,7 +290,9 @@ Keep it **short and code-first**, per the rules directly below — a good ext pa
 2. **A utility class** — `flex gap v-center pad h2`.
 3. **An existing component's class** — `.page-preview`, `.sidebar-link`, `.page-crumb`.
 4. **The module's own `.css` — layout only.** Where things sit, how they size, how they respond. Not color, not borders, not type. The test: *would this rule still be right if the component were dropped into a completely different site?* Flex sizing, yes; `background: #eef0f4`, no.
-5. **`/styles.css` — skin.** This site's opinion, loaded last.
+5. **`/styles.css` — skin.** This site's opinion, in `@layer site`.
+
+**Escalation is a one-way ratchet: specificity → a layer → unlayered → `!important` → inline.** Each rung works once, and spending it raises the cost for everyone after you. So: **never escalate downstream, de-escalate upstream.** When site CSS can't beat framework CSS, lower the framework (a flatter selector, a token, `:where()` around the one offending rule) — never raise the site. The framework holds the low ground on purpose so nobody downstream has to climb. This is the method behind "override = bug report"; the worked example is `--code-bg` in `framework/styles/readme.md` §13.
 
 **Layout modules provide layout, not looks.** `ColumnPager.css` says `.column-pager > .sidebar { flex: 0 0 var(--sidebar) }`; what a sidebar *looks* like is `Sidebar.css`. When a component styles content it merely contains, that content stops working anywhere else — this is why `.preview`, `.page-title` and `.crumb` moved out of `ColumnPager.css` into `Page.css`. Leave the styling to the implementor; ship the fewest defaults you can.
 
@@ -226,9 +331,11 @@ It does not detect renames — it makes the dependency greppable, which is the w
 
 Mechanics:
 
-- `framework.css` is loaded by App before render; defines `@layer base, theme, util` (reset, tokens like `--prim`/`--bg`/`--mono`, utilities like `flex`, `gap`).
+- `framework.css` defines the tokens, the base theme and the utilities.
+- **The layer order is `@layer base, theme, site, util;` and every stylesheet must restate it IN FULL.** The first `@layer` statement fixes the order and a name first seen later is appended at the *end*, so one short list drops `site` past `util`. This is not theoretical: `Page.css`'s `<link>` is appended *before* `framework.css`'s (App.js imports Page at module scope, and imports hoist above App.js's own `View.stylesheet()` call), so `Page.css` establishes the order for the whole site.
+- Component CSS goes in `theme`. Site CSS goes in `site`, which beats `theme` at any specificity — so `/styles.css` never has to escalate. `util` stays last: you typed `.pad` on purpose.
 - Pages and components load their own stylesheets via `View.stylesheet(import.meta, "...")`; these are awaited before the app injects.
-- **Every stylesheet must be inside `@layer` — an unlayered rule beats every layer regardless of specificity.** This is the cascade rule that bites: an unlayered `.page { padding: … }` in `styles.css` silently defeated a four-class-deep `.column-pager .column.narrow .page` in `ColumnPager.css`. Component CSS goes in `theme`; site CSS also goes in `theme` and wins by load order (it's linked last).
+- **Every stylesheet must be inside `@layer` — an unlayered rule beats every layer regardless of specificity.** This is the cascade rule that bites: an unlayered `.page { padding: … }` in `styles.css` silently defeated a four-class-deep `.column-pager .column.narrow .page` in `ColumnPager.css`.
 - A stylesheet that 404s no longer hangs the app (`View.stylesheet` resolves on `error` and warns), but the page renders unstyled — check the console.
 
 ## Dev server & live reload

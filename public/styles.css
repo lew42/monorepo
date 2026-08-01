@@ -1,31 +1,70 @@
-/* Layer order, restated: the FIRST declaration wins and module import
-   order decides who loads first, so every stylesheet states it. */
-@layer base, theme, util;
+/* Layer order, restated IN FULL — a short list would misplace `site`.
+   See the header of framework.css. */
+@layer base, theme, site, util;
 
 /* Site-level styles — this site's skin over the framework's structure.
-
-   MUST stay inside `@layer theme`. In the CSS cascade *unlayered rules beat
-   every layer*, regardless of specificity: while this file was unlayered, a
-   one-class `.page` rule here silently defeated a four-class
-   `.column-pager .column.narrow .page` in ColumnPager.css. Inside the layer,
-   site rules sit in the same cascade as framework components and win normally —
-   this file is linked last, so an equally-specific rule here still takes it. */
-@layer theme {
+ *
+ * `@layer site` sits above `theme` and below `util`. Site rules therefore beat
+ * the framework and every component **at any specificity**, so this file never
+ * has to escalate — and they still lose to a utility class, which is right,
+ * because you typed `.pad` on purpose.
+ *
+ * Why a named layer and not unlayered: escalation is a one-way ratchet
+ * (specificity → layer → unlayered → !important → inline). Unlayered would also
+ * beat `util`, and it spends the last cheap rung to buy nothing. §13.
+ *
+ * The rule this file should still obey: **de-escalate upstream.** If something
+ * here has to fight the framework, the framework is missing a token — go add it
+ * there. Winning by layer is available; *needing* to is a bug report.
+ */
+@layer site {
 
     body.theme-1 {
-        background: #ddd; 
+        background: #ddd;
 
-        .app { 
+        .app {
             margin: 2em auto;
             max-width: 60em;
             background: white;
             box-shadow: 0 0 1em rgba(0, 0, 0, 0.1);
-            padding: 2em; 
+            padding: 2em;
         }
 
     }
 
-    .app { background: #ddd; }
+    /* ---- dark code blocks -----------------------------------------------
+       Two token values and no selectors. `--code-bg` / `--code-ink` are read by
+       framework.css's `pre, code`, so this reaches inline code, block code,
+       markdown fences and demo code areas at once — and `pre > code` keeps
+       doing its job, so a block never gets a box inside a box.
+
+       Declared on `.app`, not `:root`, so a `.theme-paper` box further down can
+       still declare its own (§3).
+
+       The first attempt was `code { background: … }` right here, which lost the
+       block case to `pre > code` and left white text on a light box. The fix
+       was upstream: framework.css was missing the token. */
+
+    .app {
+        --code-bg:  #1f1d26;
+        --code-ink: #e6e4ef;
+
+        /* highlight.js palette retuned for the dark box. highlight.css ships
+           GitHub Light; these are GitHub Dark. Tokens again — the ext exposes
+           them precisely so a site never has to touch its selectors. */
+        --syn-comment: #8b949e;
+        --syn-keyword: #ff7b72;
+        --syn-string:  #a5d6ff;
+        --syn-number:  #79c0ff;
+        --syn-fn:      #d2a8ff;
+        --syn-builtin: #ffa657;
+        --syn-tag:     #7ee787;
+        --syn-attr:    #79c0ff;
+        --syn-meta:    #8b949e;
+        --syn-error:   #ff7b72;
+
+        background: #ddd;
+    }
 
     /* ---- home page: sidebar + one scrolling column ----
        The sidebar's LOOK is Sidebar.css (framework); this only says where it
@@ -46,8 +85,7 @@
     }
 
     /* Page.css owns .page's structure (width, centering, padding) — that's the
-       framework's business. Backgrounds are this site's skin, so they live here.
-       Loaded last, so anything set here wins at equal specificity. */
+       framework's business. Backgrounds are this site's skin, so they live here. */
     .page { background: white; }
 
     .page-link-block { background: rgba(0,0,0,0.1); display: block; padding: 1em; margin-bottom: 1em; }

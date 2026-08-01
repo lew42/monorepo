@@ -1,6 +1,6 @@
 /* Layer order, restated: the FIRST declaration wins and module import
    order decides who loads first, so every stylesheet states it. */
-@layer base, theme, util;
+@layer base, theme, site, util;
 
 /* Token colors for highlight.js output.
 
@@ -25,6 +25,7 @@
         --syn-tag:      #116329;   /* tag names, selectors, md headings */
         --syn-attr:     #0550ae;   /* attributes, object keys, css props */
         --syn-meta:     #6e7781;   /* doctype, shebang, punctuation */
+        --syn-error:    #c00;      /* the fetch-failed message */
     }
 
     /* --- the containers ---------------------------------------------------
@@ -34,16 +35,20 @@
     /* Padding, background and the `> code` reset all come from framework.css's
        `pre` rules — this file carried a third copy of each. What's left is the
        two things a highlighted block actually needs. */
-    pre.syntax {
+    pre.code-block {
         tab-size: 4;
         line-height: 1.55;
     }
 
-    /* syntax.inline() — sits in a sentence, so it keeps the inline code look
-       and must not introduce a line box of its own */
-    code.syntax-inline { white-space: nowrap; }
+    /* the inline half of block-awareness — `p("Call ", code.js("x"))`. It keeps
+       framework.css's inline `code` look and must not introduce a line box of
+       its own, or a sentence containing one would grow taller than its
+       neighbours. */
+    code.code-inline { white-space: nowrap; }
 
-    .syntax-error { color: #c00; background: rgba(204,0,0,0.06); }
+    /* A token like the rest: a site with dark code blocks needs this readable
+       too, and should not have to reach past a selector to get there. */
+    .code-error { color: var(--syn-error); background: rgba(204,0,0,0.06); }
 
     /* --- the tokens -------------------------------------------------------
        Grouped by what they mean, not by which grammar emits them: one color

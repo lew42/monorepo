@@ -29,7 +29,11 @@ export default new Page({
 
 		md("## Three layers");
 
-		md("```css\n@layer base, theme, util;\n```\n\nEvery stylesheet restates that line, because the **first** declaration wins and module import order decides who loads first.\n\n| layer | holds | |\n| --- | --- | --- |\n| [`base`](/framework/styles/base/) | the reset — ten rules fixing browser defaults | never a look |\n| [`theme`](/framework/styles/theme/) | tokens + the default look | **this is a theme**, the one you get free |\n| [`util`](/framework/styles/util/) | opt-in classes | free if unused |\n\n**An unlayered rule beats every layer, at any specificity.** A one-class `.page` in an unlayered `styles.css` once silently defeated a four-class `.column-pager .column.narrow .page`. Wrapping a file in `@layer` is not cosmetic.");
+		md("```css\n@layer base, theme, site, util;\n```\n\n| layer | holds | |\n| --- | --- | --- |\n| [`base`](/framework/styles/base/) | the reset — ten rules fixing browser defaults | never a look |\n| [`theme`](/framework/styles/theme/) | tokens + the default look; components add here too | **this is a theme**, the one you get free |\n| `site` | `/styles.css` — this site's skin | beats the framework at *any* specificity |\n| [`util`](/framework/styles/util/) | opt-in classes | last, because you typed `.pad` on purpose |\n\nEvery stylesheet restates that line **in full**. The first `@layer` statement fixes the order, and a name that first appears later is appended at the *end* — so one short list anywhere would silently drop `site` past `util`.");
+
+		md("## Escalation is a ratchet");
+
+		md("Use a cascade mechanism to win and you can't reuse it — you've spent that rung for everyone after you. There are five, and each works once:\n\n**specificity → a layer → unlayered → `!important` → inline `!important`**\n\nSo:\n\n> **Never escalate downstream. De-escalate upstream.**\n\nWhen site CSS can't beat framework CSS, don't raise the site — *lower the framework*. It has room to go down (a flatter selector, a token); downstream has nowhere to go up that doesn't cost the next person. **The framework holds the low ground on purpose so nobody downstream has to climb.**\n\nThat's the method behind *\"override = bug report\"*. The `site` layer exists so you rarely need even the first rung — and if you find yourself fighting anyway, the framework is missing a token. Go add it there.");
 
 		md("## The type scale");
 

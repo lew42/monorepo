@@ -1,6 +1,6 @@
-/* Layer order, restated: the FIRST declaration wins and module import
-   order decides who loads first, so every stylesheet states it. */
-@layer base, theme, util;
+/* Layer order, restated IN FULL — a short list would misplace `site`.
+   See the header of framework.css. */
+@layer base, theme, site, util;
 
 /* A demo is ONE object on the page: the code, what it renders, and the sentence
    about it, boxed together — so there's never a question of which produced which.
@@ -11,10 +11,10 @@
 
 	.demo {
 		margin: 1.75em 0;
-		border: 1px solid rgba(0,0,0,0.14);
+		border: 1px solid var(--line);
 		border-radius: var(--radius);
 		overflow: hidden;
-		background: #fff;
+		background: var(--surface);
 	}
 
 	.demo-label {
@@ -22,22 +22,19 @@
 		font-size: 0.85em;
 		font-weight: 600;
 		color: var(--subtle);
-		background: rgba(0,0,0,0.04);
-		border-bottom: 1px solid rgba(0,0,0,0.1);
+		background: var(--wash);
+		border-bottom: 1px solid var(--line);
 	}
 
-	/* Same light code style as `pre` everywhere else on the site — a second
-	   visual language for code inside demos would read as sloppy, not as
-	   design. (Dark code blocks would be nicer, but that's a site-wide call:
-	   framework.css styles `pre` for every page in the repo.) */
-	/* Padding and the `> code` reset come from framework.css's `pre` rules now —
-	   this file used to carry its own copy of both. The lighter background is a
-	   real difference and stays; it beats `:where(pre)` on specificity alone,
-	   with nothing to out-rank. */
+	/* Padding, background and the `> code` reset all come from framework.css's
+	   `pre` rules. The background used to be hardcoded a shade lighter here,
+	   which meant a site setting `--code-bg` restyled every code block on the
+	   page *except* the ones inside demos — the component out-ranking the site
+	   by accident, (0,1,0) against (0,0,1). A demo's code area is a `pre`; it
+	   should look like one. */
 	.demo-code {
 		margin: 0;
-		background: rgba(0,0,0,0.06);
-		border-bottom: 1px solid rgba(0,0,0,0.08);
+		border-bottom: 1px solid var(--line);
 		font-size: 0.85em;
 		line-height: 1.55;
 		tab-size: 4;
@@ -56,7 +53,8 @@
 		font-size: 0.62em;
 		letter-spacing: 0.1em;
 		text-transform: uppercase;
-		color: rgba(0,0,0,0.35);
+		color: var(--subtle);
+		opacity: 0.7;
 	}
 	/* `:first-child` / `:last-child` margin collapsing is global, in
 	   framework.css's util layer — this file's copies were already dead. */
@@ -67,10 +65,9 @@
 		padding: 0.7em 1.1em;
 		font-size: 0.9em;
 		color: var(--subtle);
-		background: rgba(0,0,0,0.03);
-		border-top: 1px solid rgba(0,0,0,0.08);
+		background: var(--wash);
+		border-top: 1px solid var(--line);
 	}
-	.demo-note code { background: rgba(0,0,0,0.08); }
 
 	.demo-error { padding: 0.8em 1em; color: #c00; border-color: #c00; }
 }

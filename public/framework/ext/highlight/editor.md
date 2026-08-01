@@ -99,7 +99,7 @@ caller.
 
 ```js
 import View, { pre, code, textarea } from "../../core/View/View.js";
-import "./syntax.js";                    // for View.prototype.syntax
+import "./highlight.js";                 // for code.js() / code.lang()
 
 View.stylesheet(import.meta, "editor.css");
 
@@ -109,8 +109,9 @@ export default class Editor extends View {
     value = "";
 
     render(){
-        this.$view = pre.c("editor-view", () => this.$code = code())
-            .attr("aria-hidden", "true");
+        // the captor inside is the <pre>, so code.lang() detects "pre" context
+        // and fills it with a bare <code> — no nested wrapper, no nowrap
+        this.$view = pre.c("editor-view").attr("aria-hidden", "true");
 
         this.$input = textarea()
             .attr("spellcheck", "false")
@@ -128,7 +129,9 @@ export default class Editor extends View {
         const src = this.$input.el.value;
 
         // <pre> swallows a trailing newline; the textarea doesn't
-        this.$code.syntax(this.lang, src.endsWith("\n") ? src + " " : src);
+        this.$view.empty().append(() =>
+            code.lang(this.lang, src.endsWith("\n") ? src + " " : src));
+
         this.onchange?.(src);
 
         return this;

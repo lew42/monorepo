@@ -1,14 +1,14 @@
 import { Page, md, pre } from "/app.js";
 import markdown from "./markdown/page.js";
 import demo from "./demo/page.js";
-import syntax from "./syntax/page.js";
+import highlight from "./highlight/page.js";
 
 export default new Page({
 	meta: import.meta,
 	title: "Ext",
 	description: "Opt-in addons. They may extend core; core never depends on them.",
 	col: "narrow",
-	children: [markdown, demo, syntax],
+	children: [markdown, demo, highlight],
 	content(){
 
 		pre(`import md from "/framework/ext/markdown/md.js";`);

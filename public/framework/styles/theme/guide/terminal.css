@@ -1,6 +1,6 @@
 /* Layer order, restated: the FIRST declaration wins and module import
    order decides who loads first, so every stylesheet states it. */
-@layer base, theme, util;
+@layer base, theme, site, util;
 
 /* THEME: terminal — mono, square, high contrast.
  *
@@ -26,6 +26,9 @@
 
 		--radius: 0;                 /* square corners, everywhere, for free */
 		--font: var(--mono);
+
+		--code-bg:  #060a0e;         /* a shade below the surface, not above */
+		--code-ink: #c9d4c9;
 
 		color: var(--ink);
 		background: var(--surface);

@@ -150,7 +150,7 @@ Revisit if a real consumer outside this repo pins a look and can't move.
 
 ## 5. When does UI become a class?
 
-**The question behind it:** `md()` and `syntax()` are functions that return
+**The question behind it:** `md()` and `code.js()` are functions that return
 views; `Sidebar` is a `View` subclass. Which is the default?
 
 **Weighing.** A `View` subclass buys three things: `classify()` (the class name
@@ -417,7 +417,7 @@ ext.
 **The `pre` finding is the strongest evidence this file has for §1's
 "overriding the framework is a bug report."** Four stylesheets had an opinion
 about one box: `framework.css` at `0.25em 0.5em`, and `md.css` (0.75/1),
-`syntax.css` (0.75/1) and `demo.css` (0.9/1) each independently overriding it —
+`highlight.css` (0.75/1) and `demo.css` (0.9/1) each independently overriding it —
 plus three verbatim copies of `pre > code { padding: 0; background: none }`.
 Nobody coordinated; three of them landed within 0.15em of each other. The base
 was simply wrong: `pre` is a block and `code` is inline, and one padding was
@@ -499,6 +499,101 @@ couldn't be reached without out-specifying a layer.
 hardcode `#fff` and `rgba(0,0,0,…)`. Rewiring them to `var(--surface)` /
 `var(--line)` is mechanical, touches six stylesheets, and wants a visual pass.
 It is the highest-value thing left in this directory.
+
+---
+
+## 13. Escalation is a ratchet — the `site` layer
+
+**The observation that started this** (and it's the sharpest one in the record):
+once you use a cascade mechanism to win, you can't reuse it. Reaching for a
+stronger tool doesn't just solve today's conflict, it *spends* that rung for
+everyone after you.
+
+There are five rungs and you get each one once:
+
+| rung | beats | what's left above |
+|---|---|---|
+| specificity | equal-specificity rules | four |
+| a layer | everything in lower layers | three |
+| unlayered | every layer, any specificity | two |
+| `!important` | everything unimportant | one |
+| inline `!important` | — | nothing |
+
+**The rule:**
+
+> **Never escalate downstream. De-escalate upstream.**
+
+When site CSS can't beat framework CSS, don't raise the site — *lower the
+framework*. The framework has room to go down (a flatter selector, a token,
+`:where()` around the one rule that caused it); downstream has nowhere to go up
+that doesn't cost the next person. **The framework holds the low ground on
+purpose so nobody downstream has to climb.**
+
+That's also the mechanism behind §1's "override = bug report," which until now
+was an exhortation with no method attached. And it's why §9 kept `:where()` in
+reserve *for `framework.css` specifically* — the asymmetry is the whole point.
+
+### The worked example
+
+A `code { background: var(--bg); color: white }` in `/styles.css`, wanting dark
+code blocks. It half-worked, which is the interesting part:
+
+| property | winner | why |
+|---|---|---|
+| inline `code` background | site | equal specificity, loads later |
+| `pre` background | framework `pre, code` | site never mentioned `pre` |
+| `pre > code` background | framework (0,0,2) | out-specifies site's `code` (0,0,1) |
+| `pre > code` **color** | **site** | uncontested — nothing else sets it |
+
+Result: white text on a light box. Note that `pre > code { background: none }`
+was *not* the villain — it prevents a double box and is correct. The trap was
+that a partial override left one property stranded from the others.
+
+Three ways to fix it, and only one is right:
+
+- **Out-specify from the site** (`.app pre > code`) — climbs a rung, and the
+  next person who wants to restyle code has to climb two.
+- **Unlayer `/styles.css`** — climbs to the top rung for a background color,
+  and takes out `util` as collateral (`.pad` would lose to a blanket site rule).
+- **De-escalate upstream** — the framework was missing a token. Added
+  `--code-bg` / `--code-ink` as component tokens falling back to the globals;
+  the site now sets two *values* and no selectors, and reaches inline code,
+  block code, fences and demo code areas at once. **Rung zero.**
+
+The same pass found `.demo-code { background: rgba(0,0,0,0.06) }` — a component
+hardcode at (0,1,0) that would have out-ranked the site's token for demo blocks
+only, i.e. the "restyled everything except that one box" bug, pre-installed. Now
+it reads `pre`'s background like everything else.
+
+### The `site` layer
+
+Even with the rule above, `/styles.css` shouldn't be in the same layer as the
+framework it's skinning. It is now `@layer site`, between `theme` and `util`:
+
+```css
+@layer base, theme, site, util;
+```
+
+**Why between, not on top.** Site rules should beat the framework and every
+component at *any* specificity — that's the point. But `util` must still win,
+because a utility class is something you typed on purpose at the element; a
+blanket `div { padding: 0 }` in the site has no business defeating `.pad`.
+
+**Why a named layer rather than unlayering.** Three reasons: unlayered beats
+`util` too; unlayered is the last cheap rung and this doesn't warrant it; and a
+named layer is *positioned*, so something can later be placed above **or** below
+it, which "on top of everything" forecloses.
+
+**The gotcha this exposed, worth knowing.** Layer order is fixed by the *first*
+`@layer` statement encountered, and a name first seen later is appended at the
+**end**. `Page.css`'s `<link>` is appended before `framework.css`'s — `App.js`
+imports `Page` at module scope, and imports are hoisted above `App.js`'s own
+`View.stylesheet()` call. So `Page.css` establishes the order for the whole
+site. Declaring `site` only in `framework.css` would have produced
+`base, theme, util, site` — site beating utilities, silently. **Every stylesheet
+now restates the full four-name list**, which is what the existing "every
+stylesheet states it" convention was always for; it just had no teeth while all
+the lists agreed.
 
 ---
 

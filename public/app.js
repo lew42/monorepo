@@ -33,10 +33,11 @@ export { Router } from "./framework/core/Router/Router.js";
 export { default as md, marked } from "./framework/ext/markdown/md.js";
 export { default as demo } from "./framework/ext/demo/demo.js";
 
-// Importing syntax is what turns highlighting on everywhere: it installs
-// View.prototype.syntax (which demo() uses if it's there) and patches
-// html_unsafe + prerender, so every markdown code fence on the site is
-// highlighted synchronously, with no flash of un-highlighted code. Neither
-// markdown/ nor demo/ imports it — drop this line and both degrade to plain
-// text. See framework/ext/syntax/readme.md.
-export { default as syntax, hljs } from "./framework/ext/syntax/syntax.js";
+// Importing highlight is what turns highlighting on everywhere: it enhances the
+// `code` factory in place (code.js/.fn/.html/.css/.md/.json, block-aware) and
+// patches html_unsafe + prerender, so every markdown code fence on the site is
+// highlighted synchronously, with no flash of un-highlighted code. `code` is
+// already exported above via `export *`, so this import is for the side effect —
+// drop it and code.js() disappears while code() keeps working. Neither markdown/
+// nor demo/ imports it. See framework/ext/highlight/readme.md.
+export { hljs, highlight } from "./framework/ext/highlight/highlight.js";

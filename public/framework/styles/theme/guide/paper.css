@@ -1,6 +1,6 @@
 /* Layer order, restated: the FIRST declaration wins and module import
    order decides who loads first, so every stylesheet states it. */
-@layer base, theme, util;
+@layer base, theme, site, util;
 
 /* THEME: paper — warm, serif, printed.
  *
@@ -30,6 +30,13 @@
 
 		--radius: 0.5em;
 		--font: Georgia, 'Iowan Old Style', 'Times New Roman', serif;
+
+		/* A theme owns its code box. Without these it would inherit whatever
+		   ancestor set them — this site's `.app` declares dark ones — and a
+		   warm paper page would sprout a black code block. A theme that renders
+		   highlighted code sets the `--syn-*` palette the same way. */
+		--code-bg:  light-dark(#f2ece0, #272220);
+		--code-ink: light-dark(#3a322b, #ece4d8);
 
 		/* The theme class paints itself rather than relying on `body { color }`,
 		   so it works at any depth. `color` is inherited as a *resolved value* —
