@@ -1,9 +1,9 @@
-import { App } from "/framework/core/new/0/App.js";
+import { App } from "/framework/core/new/starter/App.js";
 import { View, div, a } from "/framework/core/View/View.js";
 import Socket from "/framework/dev/Socket/Socket.js";
 
 export * from "/framework/core/View/View.js";
-export { Page } from "/framework/core/new/0/Page.class.js";
+export { Page } from "/framework/core/new/starter/Page.class.js";
 
 // The site's chrome. App.render() is a handful of lines on purpose — a site that
 // wants a sidebar overrides it, and everything here is built ONCE, outside
@@ -19,7 +19,7 @@ export default window.app = new App({
 	socket: Socket.singleton(),
 
 	// the site name. Page.seo_title() puts it in front of the page title.
-	title: "new/0",
+	title: "new/starter",
 
 	//  [url, text]   a link          ["Heading"]   a section label
 	nav: [
@@ -44,6 +44,12 @@ export default window.app = new App({
 		["/layouts/tabs/", "3 · Tabs", "sub"],
 		["/layouts/takeover/", "4 · Takeover", "sub"],
 
+		["Modes"],
+		["/modes/", "Three modes, one class"],
+		["/modes/flat/", "Flat columns", "sub"],
+		["/modes/bare/", "Bare", "sub"],
+		["/modes/link/", "Mode via the link?", "sub"],
+
 		["Open questions"],
 		["/state/", "Keeping state"],
 		["/areas/", "Multiple areas"],
@@ -56,7 +62,7 @@ export default window.app = new App({
 		this.$app = div.c("app", () => {
 			this.$sidebar = div.c("sidebar", () => {
 				this.$sidebar_inner = div.c("sidebar-inner", () => {
-					div.c("brand", "new/0");
+					div.c("brand", "new/starter");
 					div.c("nav", () => {
 						this.nav.forEach(([url, text, sub]) => text
 							? a.c(sub ? "nav-link sub" : "nav-link", text).href(url)
@@ -84,6 +90,21 @@ export default window.app = new App({
 	takeover(page){
 		console.log(`app.takeover(${page.log_label()}) — sidebar and $main hidden`);
 		this.$app.ac("takeover").append(page.render().ac("takeover-page"));
+	},
+
+	// ── mode: bare ────────────────────────────────────────────────────────
+	// Takeover's cheaper sibling: the chrome goes away and the page does NOT
+	// move, so it keeps its place in $pages and can still have children.
+	// See /modes/bare/.
+
+	hide_chrome(){
+		console.log("app.hide_chrome() — .no-chrome on $app, nothing moved");
+		this.$app.ac("no-chrome");
+	},
+
+	show_chrome(){
+		console.log("app.show_chrome() — chrome back");
+		this.$app.rc("no-chrome");
 	},
 
 	restore(page){

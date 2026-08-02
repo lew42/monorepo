@@ -1,4 +1,4 @@
-# new/0 — a working strip-down
+# new/starter — a working strip-down
 
 Three classes, **~210 lines**, and it runs. Nothing here is imported by the real
 site; `core/` is untouched.
@@ -19,6 +19,10 @@ site; `core/` is untouched.
       column/           2 · opt-in/ (3 columns) vs plain/ (the open problem)
       tabs/             3 · one/ two/ three/, a relocated $pages
       takeover/         4 · full/ — activate() goes straight to the App
+    modes/              replace vs columns vs bare — all one class
+      flat/             a/ a/deep/ — plain files that become equal columns
+      bare/             deep/ — chrome hidden without moving the page
+      link/             can a link choose the mode? (no)
     state/ areas/ beyond/   the open questions
   drive.mjs             Playwright — --tour=basics | layouts | smoke | reload | all
   server.js             serves site/ over public/, + DevSocket live reload
@@ -40,8 +44,8 @@ The chrome is built once in `site/app.js`'s `render()` override, **outside**
 ## Run it
 
 ```bash
-node public/framework/core/new/0/server.js        # http://localhost:8100/, with live reload
-node public/framework/core/new/0/drive.mjs        # the browser tours — see below
+node public/framework/core/new/starter/server.js        # http://localhost:8100/, with live reload
+node public/framework/core/new/starter/drive.mjs        # the browser tours — see below
 ```
 
 There is no unit-test directory. `test/` held a jsdom harness that had rotted:
@@ -55,15 +59,15 @@ The server is the repo's real `Server` + `DevSocket` plugin, not a copy — it
 subclasses `Server` to override two things and nothing else:
 
 ```js
-class New0Server extends Server {
+class StarterServer extends Server {
     initialize_express(){ /* site/ first, then public/, fallback site/index.html */ }
     listen(port = process.env.PORT || 8100, host = "0.0.0.0"){ return super.listen(port, host); }
 }
 
-New0Server.use(DevSocket);
+StarterServer.use(DevSocket);
 ```
 
-`use()` is registered on **`New0Server`, not `Server`** — `Events` gives every
+`use()` is registered on **`StarterServer`, not `Server`** — `Events` gives every
 subclass its own static `_events`, so the main dev server's plugin list is
 untouched.
 
@@ -80,12 +84,16 @@ Two things worth knowing:
   directory.** Run the server from anywhere but the repo root and it watches
   nothing, silently. `server.js` now does `process.chdir(root)` for exactly that
   reason; the static roots are absolute, so nothing else notices.
-- **`drive.mjs` sets `window.$BLOCKRELOAD`** on every tour except `reload`, so
-  saving a file mid-tour can't reload the page out from under the script. The
-  client `Socket` already honoured that flag.
+- **`drive.mjs` sets `window.$BLOCKRELOAD` on every page**, so saving a file
+  mid-tour can't reload one out from under the script. The client `Socket` already
+  honoured that flag. The live-reload step **clears it for itself**, right after its
+  `goto` — `Socket.reload()` reads the flag when the reload arrives rather than when
+  the socket connects, so clearing it there is both enough and late enough. That is
+  what lets `all` contain the step instead of excluding it; the alternative was a
+  tour-wide `if` that quietly made `all` mean "all but two".
 
-`--tour=reload` proves the chain by editing `site/styles.css` for real and putting
-it back in a `finally`:
+The live-reload step proves the chain by editing `site/styles.css` for real and
+putting it back in a `finally`:
 
 ```
 socket connected: true   ·   page reloaded on file change: true
@@ -157,13 +165,15 @@ runtime — nobody who just wants the dev server has to download a browser:
 ```bash
 npm i -g playwright && npx playwright install chromium   # once
 
-node public/framework/core/new/0/drive.mjs --step        # Enter advances each step
-node public/framework/core/new/0/drive.mjs --tour=layouts
-node public/framework/core/new/0/drive.mjs --headless --close   # just the log
+node public/framework/core/new/starter/drive.mjs --step        # Enter advances each step
+node public/framework/core/new/starter/drive.mjs --tour=layouts
+node public/framework/core/new/starter/drive.mjs --headless --close   # just the log
 ```
 
-Tours: `basics` · `layouts` · `smoke` · `reload` · `all` (default). The browser
-stays open at the end unless you pass `--close`.
+Tours: `basics` · `layouts` · `smoke` · `reload` · `all` (default), where **`all`
+is all four** — 53 steps. It used to be `basics.concat(layouts)`, so the two tours
+most likely to catch a rename were the two it silently skipped. `reload` runs last,
+because it edits a watched file. The browser stays open unless you pass `--close`.
 
 ### Every early return needs its own `groupEnd()`
 
@@ -271,12 +281,12 @@ the page it attaches to.
 |---|---|---|
 | `title` | data | the `<h1>`, and the default for the rest |
 | `label` | data | short form for links and tabs — `preview()` and `link()` use it |
-| `seo_title()` | method | `"new/0 — Four layouts"`, for `document.title` only |
+| `seo_title()` | method | `"new/starter — Four layouts"`, for `document.title` only |
 
 `title` and `label` are plain properties because that is what they are; only
 `seo_title()` computes, because it needs `app.title`, which a page cannot know at
 construction. It collapses to just the title when the two would repeat, so `/`
-reads `new/0` rather than `new/0 — new/0`.
+reads `new/starter` rather than `new/starter — new/starter`.
 
 ## `layout` → `classes`, plus an automatic `page-{name}`
 
@@ -522,7 +532,7 @@ Measured properly, following the round trip a reader actually takes:
 ```
 
 There is **one** scroll container — `.main`, part of the chrome — shared by every
-page, and nothing in `new/0` or `View` reads or writes `scrollTop` (grep it). The
+page, and nothing in `new/starter` or `View` reads or writes `scrollTop` (grep it). The
 offset simply persists across a navigation, clamped to whatever content is now in
 it. Deep's scroll position therefore follows you back up to Nesting.
 
@@ -575,7 +585,7 @@ PASS  nav exact match               [Nesting]
 PASS  root not rebuilt              [shared prefix untouched]
 
 ── dynamic /dynamic/42/ ──
-PASS  chain                         [new/0 > Dynamic urls > Item 42]
+PASS  chain                         [new/starter > Dynamic urls > Item 42]
 PASS  url set by route()
 PASS  memoized                      [same instance on revisit]
 ```
@@ -694,7 +704,7 @@ was added alongside it, so sidebar links get `.active` / `.in-path`.
 
 ## Compared to what we have now
 
-| | `core/` today | `new/0` |
+| | `core/` today | `new/starter` |
 |---|---|---|
 | loading | import the target, then **climb** ancestors | walk **down** from root |
 | finding the layout owner | `host()` walks `.parent` for a marker | no marker — a page shows its own child |
@@ -863,12 +873,157 @@ free. A naive `arrange()` re-renders every column on every navigation —
 reintroducing the exact problem this design fixed. Each layout would need to
 diff against the previous chain itself.
 
+## `new/2` — built, weighed, deleted
+
+A sibling prototype existed to answer item 1 below — how a topic arranges a subtree
+of pages that have never heard of it. It answered it. The answer was **not taken**,
+so the directory is gone and this is the whole record of it.
+
+### Rejected: option E, "resolve the arranger once per chain"
+
+Its Router resolved, in one walk down the chain, *who places each page*: an arranger
+carries forward past any page that doesn't claim its own children, so `docs` places
+`a` **and** `b` while both stay ordinary files. Nothing climbs and nothing is copied,
+which is what A and B cost. It worked — three equal columns, measured
+`299 | 299 | 299` three deep — and it cost three new names on `Page`:
+
+```js
+arrange(child){ … }    // WHERE a page below me goes
+subtree(){ … }         // HOW FAR that reaches
+arranges(){ return this.arrange !== Page.prototype.arrange; }   // did I bring my own?
+```
+
+**Verdict: no.** Three concepts to place a div, one of which is prototype
+introspection — behaviour that depends on *how* a method got onto an object, which
+is exactly the "nothing to remember" test this codebase is built around. `subtree()`
+is a scope flag on the base class, and `arranges()` is unwritable by hand: you
+cannot look at a page and say what it does without knowing what `Page.prototype`
+holds. The column problem stays open rather than being bought at that price.
+
+Two things it never said out loud, and both are why the price is higher than it
+looks. Flat columns come from the arranger appending **every** descendant into one
+grid, so the DOM stops mirroring the url. And a leaving page had its view removed
+outright — giving up the retention that makes revisits free and per-page scroll
+survive here (see "Retention is the default").
+
+### Worth keeping: the delegation shortcut provably over-propagates
+
+The cheap version of E is to let the arranger delegate up the parent link, the way
+an arrangement can. It does not work, and the counter-example is small enough to be
+worth remembering:
+
+```js
+arranger(){ return this.parent?.arranger() ?? this.parent; }   // ✗
+// plain chain root → x → y
+// y.arranger() → x.arranger() → root.arranger() → undefined ?? root  =  root
+```
+
+`y`'s arranger must be `x`, and delegation gives `root`. The default has to both
+propagate (so columns reaches `b`) and not propagate (so an ordinary page places its
+own child), and one irreducible bit tells them apart — which is exactly what
+`subtree()` was, and why it could not simply be deleted. Anyone reaching for the
+one-line version should reach for this paragraph first.
+
+### Taken: a failed import is not a missing one
+
+`Page.import()` caught everything and returned `null`, so a **syntax error in a page
+you just wrote** rendered as a 404. `Page.missing(error)` now tests the message and
+anything that isn't a genuine resolve-failure is logged loudly before the same
+`null` comes back — the fallback is unchanged, so nothing that worked stops working:
+
+```
+Page.import("/broken/page.js") — the file EXISTS but failed to load:
+  SyntaxError: Unexpected identifier 'is'
+```
+
+Message-sniffing is a heuristic, because it is the only signal a browser gives.
+A wrong guess costs one console line and never behaviour.
+
+### Deferred: two fast clicks race, and nothing guards it
+
+There is no in-flight guard. Click a link, click another before the first import
+resolves, and the slow one lands second and paints over the fast one. Measured —
+fire `/nesting/deep/` and then `/dynamic/` without waiting, and you end up on
+`/nesting/deep/`, the link you clicked first and abandoned:
+
+```
+address bar   /nesting/deep/
+on screen     page page-deep active-page      ← should be /dynamic/
+```
+
+A guard was written and backed out for being clunky. What it cost is worth
+recording, because whatever replaces it pays the same bill:
+
+- **A boolean can't do it.** "Something is loading" reads identically for the click
+  you just made and the one it superseded, so the loser cannot tell it lost. It
+  takes an identity — a counter, or a token object.
+- **`go()` needs three outcomes, not two.** It currently pushes history on a truthy
+  return and calls `location.assign()` on a falsy one. A superseded navigation is
+  neither: pushing writes the stale url into the address bar over the winner's page,
+  and assigning hard-reloads the url the user already left. So the guard cannot live
+  entirely inside `load()` — `go()` has to be able to see the difference, and that
+  is what made every version of it clunky.
+
+Not urgent: it needs two clicks inside one import, and the failure is a wrong page
+rather than a broken one. Worth solving properly rather than quickly.
+
+## SOLVED: the column problem was a CSS problem — `display: contents`
+
+Everything under "The column problem, in detail" below is still an accurate
+description of the *JS* design, and its conclusion — *"'descendants know nothing'
+and 'nothing searches or propagates' cannot both be true"* — was **wrong**,
+because it assumed the layout had to be expressed in JS at all. It doesn't. All
+four options (propagate down, search up, subclass, hand it the chain) were
+paying for something CSS gives away:
+
+```css
+.page.flat.active-ancestor { display: grid; grid-auto-flow: column;
+                             grid-auto-columns: minmax(0, 1fr); }
+
+.page.flat.active-ancestor .pages,
+.page.flat.active-ancestor .page.active-ancestor { display: contents; }
+
+.page.flat.active-ancestor > .page-content,
+.page.flat.active-ancestor .page.active-ancestor > .page-content { display: block; }
+```
+
+`display: contents` removes a box and keeps its children, so dissolving every
+wrapper between the grid and a page's content makes the **nested** DOM lay out
+as **one** grid. Measured in a 988px main, three deep:
+
+```
+nested (classes: "columns")   494 | 246 | 245     each level halves the remainder
+flat   (classes: "flat")      329 | 329 | 329     one grid, equal tracks
+```
+
+What it costs: **nothing in JS.** No base-class change, no new method, no
+`arrange()` / `subtree()` / `arranges()`, no prototype introspection. `a/` and
+`a/deep/` under `/modes/flat/` are plain `page.js` files with a title and some
+content — the same files that produced `column | plain⇄deep` before.
+
+Three things worth knowing:
+
+- **It composes.** `.page.flat.active-ancestor .page.active-ancestor` is (0,5,0)
+  and the grid rule is (0,3,0), so a `flat` page **inside** a `flat` page matches
+  the dissolve rule at higher specificity and joins the outer grid instead of
+  starting a second one. Toggling `flat` onto the root page while three deep gives
+  five equal tracks — measured `198 × 5`, home included.
+- **Retention and per-page scroll survive**, unlike rejected option E: nothing is
+  detached and every `.page-content` is still its own scroller.
+- **A dissolved box cannot be styled.** The column separator moved from
+  `.pages { border-left }` (that box is gone) onto `.page-content`. Anything that
+  wanted a background, padding or border on an intermediate `.page` has to move
+  down to the content, or that level has to stay a box.
+
+`classes: "columns"` is left in place at `/layouts/column/` — the halving is worth
+being able to see. `flat` is the one to use.
+
 ## Still unresolved
 
-1. **Columns.** A `show()` override reaches a page's direct child only —
-   grandchildren are placed by *their* parent, which is a plain page using the
-   default. **Biggest open question**; full explanation, real DOM output, and
-   four options in "The column problem, in detail" above.
+1. **~~Columns~~** — solved above, in CSS. The JS analysis is kept because the
+   reasoning about `show(child)` being a one-level relationship is still correct,
+   and because "we considered A/B/C/D/E and took none of them" is worth not
+   re-litigating.
 2. **Ancestors still render.** `render()` runs for every page in the chain even
    though ancestors' content is hidden — so `previews()` fires and loads one
    level of children per ancestor. Cheaper than today, not free. Lazy render for
@@ -876,8 +1031,62 @@ diff against the previous chain itself.
 3. **`route()` pages aren't reachable by their own children.** `route("7")`
    returns a page with no `route()` of its own, so `/docs/comments/7/replies/`
    404s. Probably fine; worth deciding.
-4. **No `activate()` hook for pages.** It's `container().show(this)` and nothing
-   else, so a page can't run its own code on entry without overriding and
-   calling super — and these are assign-objects, so there's no `super`.
+4. **No `activate()` hook for pages — and it fails silently.** `activate()` *is*
+   the mounting, so overriding it replaces it. Writing the obvious thing renders
+   a **blank page** and throws in the child a moment later:
+
+   ```js
+   activate(){ this.app.hide_chrome(); }                        // ✗ never mounted
+   activate(){ … ; return Page.prototype.activate.call(this); } // the escape hatch
+   ```
+
+   Measured while building `/modes/bare/`: `cols: []`, then
+   `Cannot read properties of undefined (reading 'el')` from the child hitting
+   `parent.$pages`. Assign-objects have no `super`, nothing says the call is
+   required, and nothing fails loudly when you forget — it's the sharpest edge in
+   the design. **A separate `enter()` / `leave()` pair called by `activate()` /
+   `deactivate()` costs two lines and deletes the trap.** Takeover only gets away
+   with the override because it deliberately mounts somewhere else.
 5. **`app.nav()`** — chrome still isn't wired. `App.render()` is deliberately
    three lines; a site that wants a header overrides `render()`.
+6. **`children` is both "declared" and "resolved".** `child()` calls `add()` on a
+   successful resolve, so a page someone merely *visited* joins `children`
+   permanently. Anything that renders `children` therefore grows as you browse —
+   `previews()` on a parent starts showing siblings the visitor happened to open.
+   A second collection, or a flag on the entry, would separate the two meanings.
+   Carried over from the superseded `new/` sketch, which is where it was first
+   written down.
+7. **Two fast clicks race.** Nothing guards an in-flight navigation, so the slower
+   of two clicks lands last and wins. Measured, and the reason a guard is harder
+   than it looks, in "Deferred: two fast clicks race" above.
+8. **`Router.click()` drops the query string.** It calls `go(link.pathname)`, so
+   `/docs/?mode=flat` arrives as `/docs/`. One word to fix (`+ link.search`), but
+   it forces a decision first: are two urls differing only by query the same page
+   for the chain diff, or not? Nothing needs it yet — `/modes/link/` argues that a
+   mode should live on the page rather than in the url — so it stays broken and
+   written down. The one thing it must not do is silently half-work.
+
+## Mode is a class, not a structure — and never a link
+
+`/modes/` is the permutation matrix: replace (nothing), columns (`classes:
+"columns"`), flat (`classes: "flat"`), bare (`activate(){ this.app.hide_chrome() }`).
+The DOM is **identical** in all four; only CSS differs. Three consequences:
+
+- **A mode can be swapped at runtime with no re-render** — the buttons on
+  `/modes/` add and remove one class, and nothing navigates or rebuilds.
+- **The home page is not a special case.** Toggling `flat` onto the root makes it
+  the first of five equal columns. The root's container is `app.$pages` rather
+  than a `.page`'s `.pages`, and that is the *only* asymmetry: the root can be an
+  arranger but never an arrangee, because nothing is above it.
+- **`bare` beats `takeover`.** Takeover *moves* the view to `$app` and removes it
+  on the way out, so a takeover page can't have children in the normal way. Bare
+  is one class on `.app` and the page never moves — `/modes/bare/deep/` works,
+  and the mode survives exactly as long as the page that declared it stays in the
+  chain, which falls out of the chain diff rather than being implemented.
+
+**Mode via the clicked link was considered and rejected** (`/modes/link/`). It's
+about four lines — read `data-mode` off the anchor, put the class on the
+destination — but the url is the only state that survives a reload, a bookmark or
+a paste, so the page you send someone is not the page they open. A mode belongs to
+the destination page, or to the url if it's genuinely the reader's choice. Never
+to the click.

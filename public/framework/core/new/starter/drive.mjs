@@ -1,10 +1,10 @@
-/* Drives new/0 in a real, visible Chromium so you can watch the load/navigate
+/* Drives new/starter in a real, visible Chromium so you can watch the load/navigate
  * sequence happen, with the page's own console mirrored into this terminal.
  *
- *   node public/framework/core/new/0/drive.mjs              # paced, hands-off
- *   node public/framework/core/new/0/drive.mjs --step       # press Enter per step
- *   node public/framework/core/new/0/drive.mjs --tour=layouts
- *   node public/framework/core/new/0/drive.mjs --headless --close
+ *   node public/framework/core/new/starter/drive.mjs              # paced, hands-off
+ *   node public/framework/core/new/starter/drive.mjs --step       # press Enter per step
+ *   node public/framework/core/new/starter/drive.mjs --tour=layouts
+ *   node public/framework/core/new/starter/drive.mjs --headless --close
  *
  * Tours: basics · layouts · smoke · reload · all (default).
  *
@@ -68,7 +68,7 @@ const say = (...parts) => console.log(...parts);
 // Colour by who logged it — the framework names itself first on every line
 // (`app.`, `page{`, `router.`), which is the only convention this relies on.
 //
-// new/0 logs plain strings, but shared code doesn't: framework/dev/Socket uses
+// new/starter logs plain strings, but shared code doesn't: framework/dev/Socket uses
 // %c styling, and Playwright hands that over as the raw format string plus its
 // css arguments. Decoding it properly needs an await, which this handler can't
 // afford (see the console listener), so strip it textually instead.
@@ -173,7 +173,8 @@ const caption = (page, text) => page.evaluate(t => {
 }, text).catch(() => {});
 
 // ── the script ────────────────────────────────────────────────────────────
-// Two tours. --tour=basics | layouts | all (default).
+// Four tours, and `all` really is all of them.
+// --tour=basics | layouts | smoke | reload | all (default).
 const tour = value("tour") ?? "all";
 
 const basics = [
@@ -373,6 +374,12 @@ const reload = [{
 		await page.goto(`${origin}/`, { waitUntil: "networkidle" });
 		await page.waitForTimeout(500);
 
+		// Every other step wants $BLOCKRELOAD set, so a stray save can't reload the page
+		// out from under it. This step is ABOUT the reload, so it clears the flag for
+		// itself. Socket.reload() reads it when the reload arrives, not when the socket
+		// connects, so clearing it here is both enough and late enough.
+		await page.evaluate(() => { delete window.$BLOCKRELOAD; });
+
 		const connected = await page.evaluate(() => !!window.app?.socket?.connected);
 		await page.evaluate(() => { window.__survived = true; });
 
@@ -398,7 +405,7 @@ const steps = tour === "basics" ? basics
 	: tour === "layouts" ? layouts
 	: tour === "smoke" ? smoke
 	: tour === "reload" ? reload
-	: basics.concat(layouts);
+	: basics.concat(layouts, smoke, reload);   // all — reload LAST, it edits a watched file
 
 // ── run ───────────────────────────────────────────────────────────────────
 const server = await serve();
@@ -410,9 +417,10 @@ const browser = await chromium.launch({
 
 const page = await browser.newPage({ viewport: null });
 
-// A file save mid-tour would reload the page out from under the script. The
-// client Socket honours this flag; the reload tour deliberately doesn't set it.
-if (tour !== "reload") await page.addInitScript(() => { window.$BLOCKRELOAD = true; });
+// A file save mid-tour would reload the page out from under the script, so every
+// page gets the flag. The live-reload step clears it for itself — which is what lets
+// `all` include that step instead of leaving it out.
+await page.addInitScript(() => { window.$BLOCKRELOAD = true; });
 
 /* Devtools indents console groups for you; a terminal does not. Playwright
  * reports the group boundaries as message types, so the nesting is rebuilt from
@@ -436,7 +444,7 @@ page.on("console", msg => {
 
 page.on("pageerror", e => say(`${c.warn}     ✖ ${e.message}${c.reset}`));
 
-say(`\n${c.bold}new/0 — ${steps.length} steps${c.reset}  ${c.dim}${step_mode ? "press Enter to advance" : `${pace}ms per step — pass --step to go one at a time`}${c.reset}`);
+say(`\n${c.bold}new/starter — ${steps.length} steps${c.reset}  ${c.dim}${step_mode ? "press Enter to advance" : `${pace}ms per step — pass --step to go one at a time`}${c.reset}`);
 
 for (const [i, step] of steps.entries()){
 	say(`\n${c.rule}${"═".repeat(74)}${c.reset}`);

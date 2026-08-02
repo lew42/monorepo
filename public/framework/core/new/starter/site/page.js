@@ -3,7 +3,7 @@ import { code, section, watch } from "./ui.js";
 
 export default new Page({
 	meta: import.meta,
-	title: "new/0",
+	title: "new/starter",
 
 	content(){
 		code(`
@@ -40,7 +40,7 @@ Open questions    what this design does NOT do, and where it stops`);
 		section("What's different from core/");
 
 		code(`
-core/ today                        new/0
+core/ today                        new/starter
 ───────────────────────────────    ─────────────────────────────
 import target, then climb up       walk down from the root
 host() hunts for a layout marker   a page shows its own child

@@ -141,9 +141,27 @@ export class Page {
 		return page ? this.add(name, page) : null;
 	}
 
+	/* A module that throws is NOT the same as a module that isn't there, and this is
+	 * the one place the distinction gets lost. Swallowing both as "no page here"
+	 * turns a syntax error in a page you just wrote into a silent 404, and you spend
+	 * an hour looking for the wrong thing.
+	 */
 	static async import(url){
-		try { return (await import(url + "page.js")).default ?? null; }
-		catch { return null; }
+		try {
+			return (await import(url + "page.js")).default ?? null;
+		} catch (error){
+			if (!Page.missing(error))
+				console.error(`Page.import("${url}page.js") — the file EXISTS but failed to load:`, error);
+			return null;
+		}
+	}
+
+	// A missing module fails to resolve the specifier itself; anything else failed
+	// while running. The message is the only signal a browser gives here, so this is
+	// a heuristic — but a wrong guess costs one console line, never behaviour.
+	static missing(error){
+		return /Failed to fetch dynamically imported module|error loading dynamically imported module|MIME type|Expected a JavaScript/i
+			.test(error?.message ?? "");
 	}
 
 	// [root … me]

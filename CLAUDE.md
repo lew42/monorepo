@@ -31,9 +31,17 @@ Aim for clarity when reading, never ambiguity. A reader who has to open the meth
 
 Absent that, assume you can ask. Do the investigation first, then give a short summary and the one or two decisions you actually need — rather than executing a plan they've never seen. The asymmetry is the whole point: a question asked while they're at the keyboard costs seconds, the same question asked while they're out costs the session, and a name shipped without agreement costs every reader after it.
 
+**Keep responses short and scannable — but never drop what matters.** Lead with the finding. Use a hierarchy of headings so a long answer can be skimmed instead of read start to finish. Keep explanations simple: detail that probably doesn't change the next decision is noise, and the reader can always ask for more.
+
+The one thing brevity does not license is silence. If something could be important, say it — a single sentence with no elaboration is enough, and lets the reader pull the thread if they want it. Short and complete beats short and tidy.
+
 **Never add a dependency without asking. The short list in `package.json` is a feature.** Three small packages — `chokidar`, `express`, `ws` — and all three serve the dev server only; nothing in `public/` depends on anything. That's what makes `npm install` instant, the repo auditable, and "no build step" true rather than aspirational. Adding a fourth is a decision for the humans, every time, including "just a devDependency" — a devDependency is still something every dev on the team downloads.
 
 **Tooling for the person at the keyboard is not a project dependency — install it globally.** A browser driver, a profiler, a scratch test runner: these are how *you* look at the code, not what the code needs to run. `npm i -g playwright` and resolve it at runtime; don't make the whole team download a browser so one script can drive it. The test is *"would this repo be broken without it?"* — if no, it doesn't belong in `package.json`. The same goes for `scripts`: a work-in-progress prototype doesn't earn an npm script, because scripts read as blessed entry points long after the prototype is gone.
+
+**Don't pollute the repo with your own scratch work.** Launcher scripts, agent transcripts, `.tmp-*` directories, throwaway harnesses, intermediate JSON — anything that exists to *run a process* rather than to be part of the site — goes in the session scratchpad, never in the working tree. `launch-council-3.sh` and `.tmp-council/` both landed at the repo root, both untracked, and both showed up in every `git status` afterwards as noise nobody could safely delete without reading first. Even under `public/`, a directory of raw agent output is scratch — it looked like a deliverable because it was long.
+
+The test is *"would someone cloning this repo need this file?"* If no, it never belonged here. A process's **conclusion** can absolutely be committed — a readme recording what was decided and why is the whole point — but the machinery that produced it, and the raw material it chewed through, are not. Write the conclusion down; throw the rest away.
 
 **No black magic.** Black magic is behavior you cannot see from the code that implements it: a property read by a class that never mentions it, a method called by something three files away, an order of operations you have to memorize. It fails the test *"can someone read this file and know what happens?"* Self-evident code is the opposite — WYSIWYG, no hunting, nothing to remember.
 

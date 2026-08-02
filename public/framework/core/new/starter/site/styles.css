@@ -194,6 +194,55 @@
 	.tab.active { color: #0a58ca; font-weight: 600; border-bottom-color: #0a58ca; }
 	.tab-panel { padding-top: 1rem; }
 
+	/* ── MODE: flat columns ─ `classes: "flat"` ──
+	   The nested version above halves the width at every level, because a 1fr
+	   track splits whatever track its parent got. `display: contents` removes a
+	   box and keeps its children, so dissolving every wrapper between the grid
+	   and a page's content makes a NESTED dom lay out as ONE grid — N equal
+	   tracks at any depth, with the descendants staying plain page.js files.
+
+	   Measured 3 deep in a 988px main:  nested 494|246|245   flat 329|329|329 */
+
+	.page.flat.active-ancestor {
+		display: grid;
+		grid-auto-flow: column;
+		/* minmax(0,1fr), never bare 1fr — see the note on .columns above */
+		grid-auto-columns: minmax(0, 1fr);
+	}
+
+	/* the slot, and every ancestor inside it, stop being boxes.
+	   (0,5,0) — which is also why a `flat` page inside a `flat` page dissolves
+	   into the outer grid instead of starting a second one.) */
+	.page.flat.active-ancestor .pages,
+	.page.flat.active-ancestor .page.active-ancestor { display: contents; }
+
+	/* an ancestor inside a flat grid keeps its content — it IS a column */
+	.page.flat.active-ancestor > .page-content,
+	.page.flat.active-ancestor .page.active-ancestor > .page-content { display: block; }
+
+	/* every track is its own scroller; the cap and centring belong to a single
+	   readable column, not to one of five */
+	.page.flat.active-ancestor .page-content {
+		max-width: none; margin-inline: 0; padding: 2rem 1.5rem 4rem;
+		border-left: 1px solid #e2e4e8;
+	}
+	.page.flat.active-ancestor > .page-content { border-left: 0; }
+
+	/* ── MODE: bare ─ `activate(){ this.app.hide_chrome() }` ──
+	   Nothing moves. Unlike takeover below, the page stays in $pages, so it can
+	   still have children and leaving is one class removal. */
+
+	.app.no-chrome > .sidebar { display: none; }
+
+	/* ── mode toggles (the /modes/ pages) ── */
+
+	.toggles { display: flex; flex-wrap: wrap; gap: .4rem; }
+	.toggles button {
+		padding: .3rem .7rem; border: 1px solid #d6dae0; border-radius: .35rem;
+		background: #fff; color: #0a58ca; font: inherit; font-size: .875rem; cursor: pointer;
+	}
+	.toggles button:hover { border-color: #0a58ca; background: #f5f9ff; }
+
 	/* ── LAYOUT 4: takeover ──
 	   The page asked the App directly, so the App hides its own chrome. */
 

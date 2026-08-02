@@ -11,7 +11,7 @@ export default new Page({
 	children: [deep],
 
 	content(){
-		p("Right now the chain is new/0 → Nesting. The root is still loaded and still in the chain — its content is just hidden.");
+		p("Right now the chain is new/starter → Nesting. The root is still loaded and still in the chain — its content is just hidden.");
 
 		section("Declaring children");
 

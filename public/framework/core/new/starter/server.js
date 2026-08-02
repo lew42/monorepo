@@ -1,6 +1,6 @@
-// Dev-only sub-site server for new/0. Not part of the deployed site.
+// Dev-only sub-site server for new/starter. Not part of the deployed site.
 //
-//   node public/framework/core/new/0/server.js        (port 8100)
+//   node public/framework/core/new/starter/server.js        (port 8100)
 //
 // Serves site/ as the web root, falling back to the repo's public/ so the
 // sketch can import the real /framework/core/View/View.js. Everything without
@@ -26,7 +26,7 @@ const root = path.resolve(here, "../../../../..");     // -> the repo root
 // nothing at all — and does it silently, which is the worst way to fail.
 process.chdir(root);
 
-class New0Server extends Server {
+class StarterServer extends Server {
 
 	// site/ first, then public/, then the SPA fallback — the base class hardcodes
 	// public/ and ../public/index.html, which is the whole reason this overrides.
@@ -52,8 +52,8 @@ class New0Server extends Server {
 
 // Registered on THIS class, not on Server — Events gives every subclass its own
 // static _events, so the main dev server's plugin list is untouched.
-New0Server.use(DevSocket);
+StarterServer.use(DevSocket);
 
-new New0Server();
+new StarterServer();
 
-console.log(`new/0 → http://localhost:${process.env.PORT || 8100}/`);
+console.log(`new/starter → http://localhost:${process.env.PORT || 8100}/`);
