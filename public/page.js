@@ -1,4 +1,4 @@
-import { Page, Sidebar, md, h1, h2, div, a } from "/app.js";
+import { Page, md, h1, h2, div, a } from "/app.js";
 
 /* The site's sections, as plain data.
  *
@@ -21,23 +21,38 @@ export default new Page({
 	title: "Nice work, everyone",
 	description: "Everything is merged and live. A note to the team.",
 
-	// sidebar + one scrolling column. Same split as ColumnPager: the Sidebar
-	// component brings its own look, this only says where things go.
-	//
-	// Overriding render() means building the `.page` wrapper ourselves — Page has
-	// exactly one render path and this replaces it. Four explicit lines, which is
-	// the right trade for the one page on the site that wants custom chrome.
-	render(){
-		return div.c("home", () => {
-			new Sidebar({ brand: "Lew42", pages: sections });
+	// Every child a url can reach must be declared — the Router walks `children`
+	// and never consults the filesystem. Lazy names, so none of these is imported
+	// until you navigate into it.
+	children: "framework alex arya castin edric michael path-1 path-2",
 
-			div.c("home-main", () => {
-				div.c("page", () => {
+	// I bring my own sidebar, so the global nav would just say it twice.
+	classes: "page-homepage hides-nav",
+
+	/* Same layout as a topic: brand, sidebar, one paper column.
+	 *
+	 * Note what this deliberately does NOT do — assign `this.$pages`. The root is
+	 * an ancestor of every url, so claiming a region would mount every section
+	 * INSIDE this page and keep this sidebar on screen for the whole site, with
+	 * each topic's own sidebar nested beside it. Children land in `app.$pages`
+	 * instead, as siblings, so this page hides completely the moment you leave. */
+	render(){
+		return this.view ??= div.c("page topic", () => {
+
+			div.c("section-nav", () => {
+				this.app.brand("LEW42", "/");
+
+				sections.forEach(section =>
+					a.c("nav-link", section.title).href(section.url));
+			});
+
+			div.c("pages papers", () => {
+				div.c("default", () => {
 					h1.c("page-title", this.title);
 					this.content();
 				});
 			});
-		});
+		}).ac(this.classes);
 	},
 
 	content(){

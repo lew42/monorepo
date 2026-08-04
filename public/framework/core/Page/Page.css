@@ -2,36 +2,73 @@
    order decides who loads first, so every stylesheet states it. */
 @layer base, theme, site, util;
 
-/* Page — the look of everything `Page` renders.
- *
- * These lived in ColumnPager.css, scoped `.column-pager .page-preview` etc., which
- * meant a preview card was only styled inside one particular layout. A card
- * has to look like a card wherever it is: in a ColumnPager, in a TabPager, on
- * a plain page with no layout at all.
- *
- * The rule this follows is the one the rest of the framework already follows —
- * a class's CSS sits next to the class (Pager.css, ColumnPager.css,
- * TabPager.css, md.css, demo.css). Page was the only renderer without one.
- *
- * A layout may still adapt these in its own context — `.column.narrow .page-preview`
- * in ColumnPager.css, `.tab-pager .page` in TabPager.css. That's the layout's
- * business. This file is the component's.
- *
- * Structure only, no skin: the site decides backgrounds (see /styles.css). */
 @layer theme {
 
-	/* ---- the page element ---- */
+	/* ── the arrangement contract ──
+	   Router.mark() writes exactly two classes — .active-page on the leaf and
+	   .active-ancestor on everything above it — and nothing else. Every
+	   arrangement on the site is these rules plus a class a page opted into.
+
+	   This is the whole of what replaced the Pager tier. */
+
+	/* A region pages mount into: App makes one, and any page can claim its own
+	   subtree with `this.$pages = div.c("pages")`. */
+	.pages { display: flex; flex: 1 1 auto; min-width: 0; min-height: 0; }
 
 	.page {
-		max-width: 60em;
-		margin-inline: auto;
-		padding: 2em 6%;
+		display: none;                                   /* not in the chain */
+		min-width: 0; min-height: 0; overflow-y: auto;   /* every page scrolls itself */
 	}
 
+	/* The leaf is always visible. An ancestor is not — that is "replace", and it
+	   is the default because it is what's left when nothing opts in. */
+	.page.active-page { display: block; flex: 1 1 auto; }
+
+	/* …unless it actually CONTAINS the leaf, in which case hiding it would hide
+	   the leaf too. Asking that directly beats making every author remember a
+	   flag: tabs + a tab stays, tabs + a non-tab goes, replace + a child goes. */
+	.page.active-ancestor:has(.page.active-page) { display: block; flex: 1 1 auto; }
+
+	/* What a region shows when none of its children is the active page — the
+	   index-route problem. A parent that owns a region usually has something of
+	   its own to say at its own url, and nowhere else to put it. */
+	.pages > .default { display: none; }
+
+	/* flex: 1 1 auto, like .page.active-page gets — `.pages` is a flex row and
+	   `.default` is not a `.page`, so without it the box sizes to its content and
+	   then SHRINKS. A <pre> is the trap: `overflow-x: auto` gives it a min-content
+	   of almost nothing, so a page whose content is mostly code collapsed to a few
+	   hundred px while one with a grid in it looked fine. */
+	.pages:not(:has(> .page.active-page)) > .default {
+		display: block; flex: 1 1 auto; min-width: 0;
+	}
+
+	/* Equal drill-down columns — the whole of what ColumnPager did.
+	   minmax(0, 1fr), never bare 1fr: `1fr` means minmax(AUTO, 1fr) and that auto
+	   floor is the item's min-content, so one long <pre> refuses to shrink and
+	   pushes the page past the viewport.
+
+	   UNUSED — nothing on the site claims `cols` today. See readme.md. */
+	.cols { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+	.cols > .page.active-ancestor { display: block; border-right: 1px solid rgba(0,0,0,0.1); }
+
+	/* ── the look of everything Page renders ──
+	   Structure only, no skin: the site decides backgrounds (see /styles.css). */
+
+	/* One page opts in, or a REGION opts its children in — same shape as `cols`,
+	   which is a class on the container governing how its children are arranged.
+	   `papers` does the same for how they look, so a topic sets it once instead
+	   of every child repeating `classes: "paper"`.
+
+	   Opt-in and not the default: paper is a LOOK (a white box, a measure), and
+	   the framework shouldn't decide that. A site that wants it everywhere says
+	   `.pages > .page { … }` in /styles.css — its call, its file. */
+	.page.paper,
+	.pages.papers > .page,
+	.pages.papers > .default { padding: 2em 6%; max-width: 60em; margin-inline: auto; background: white; }
+
 	/* Rhythm only — how far apart things sit. What a heading *looks* like is the
-	   type scale in framework.css (h1–h4 / .h1–.h4); it was duplicated here once
-	   and the two copies immediately disagreed inside `.md` blocks, which the
-	   `.page >` scoping never reached. One scale, one home. */
+	   type scale in framework.css (h1–h4 / .h1–.h4). */
 
 	.page-title { margin: 0 0 0.7em; }
 
@@ -44,17 +81,13 @@
 	.page > p,
 	.page > .md { margin: 1em 0; }
 
-	/* ---- the three link forms: link() / crumb() / preview() ----
+	/* ---- the link forms ----
 	   `.active` (this exact url) and `.in-path` (an ancestor of it) are applied
-	   by App.mark_links(), so none of these need to know the current url. */
+	   by Router.mark_links(), so none of these need to know the current url. */
 
 	.page-link { font-weight: 600; }
 	.page-link.active,
 	.page-link.in-path { color: var(--prim); }
-
-	.page-crumb { color: var(--subtle); text-decoration: none; }
-	.page-crumb:hover { color: var(--prim); text-decoration: underline; }
-	.page-crumb.active { color: inherit; font-weight: 700; }
 
 	/* preview cards — a parent listing its children */
 

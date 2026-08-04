@@ -1,4 +1,4 @@
-import { View, div, span } from "../View/View.js";
+import { View, div, span } from "../../View/View.js";
 import { Pager } from "./Pager.js";
 
 // css dependency, declared — TabPager.css adapts .page / .page-title, which Page

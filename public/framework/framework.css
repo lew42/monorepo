@@ -128,6 +128,29 @@
 
     hr { margin: 3em 0; }
 
+    /* ---- icons ---------------------------------------------------------
+       `icon("dashboard")` (View.js) emits `span.material-icons.icon`. Material
+       Icons is a LIGATURE font: the span really does contain the word
+       "dashboard" and the font's `liga` feature swaps the glyph in. Two
+       consequences worth knowing — an unloaded font shows the word rather than
+       a blank box, and `text-transform`/`letter-spacing` inherited from a
+       heading would break the ligature match, which is why they're reset here.
+       These are the font's requirements, not a look. */
+
+    .material-icons {
+        font-family: "Material Icons";
+        font-weight: normal; font-style: normal;
+        letter-spacing: normal; text-transform: none;
+        white-space: nowrap; word-wrap: normal; direction: ltr;
+        font-feature-settings: "liga";
+        -webkit-font-smoothing: antialiased;
+    }
+
+    /* Sizing is a separate class so an icon from any set can borrow it. An icon
+       rides with the text beside it: em, so it scales with that text, and
+       line-height 1 so it never grows the line box. */
+    .icon { font-size: 1.25em; line-height: 1; flex: 0 0 auto; }
+
     /* ---- code ---------------------------------------------------------
        `pre` is a BLOCK and `code` is INLINE; one padding was never going to
        fit both. It didn't: md.css, demo.css and highlight.css each independently

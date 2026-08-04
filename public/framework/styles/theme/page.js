@@ -1,5 +1,6 @@
 import { Page, md, demo, div, p, span, code, pre, blockquote, table, thead, tbody, tr, th, td, input, select, option, textarea, button, details, summary } from "/app.js";
 import guide from "./guide/page.js";
+import lew42 from "./lew42/page.js";
 
 /* No stylesheet of its own — see base/page.js. */
 
@@ -11,7 +12,7 @@ export default new Page({
 	meta: import.meta,
 	title: "theme",
 	description: "The base theme — tokens plus the default look. The layer a theme replaces.",
-	children: [guide],
+	children: [guide, lew42],
 	content(){
 
 		md("```css\n@layer theme { … }\n```\n\n**This layer is a theme** — the one you get when you load no other. That framing matters: it means using no theme is a finished-looking, supported outcome, and a theme is something you *add*, never something you must have.\n\nIt also means the override model is boring, which is the goal:");

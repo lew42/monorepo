@@ -1,6 +1,6 @@
-import { View, div, span } from "../View/View.js";
+import { View, div, span } from "../../View/View.js";
 import { Pager } from "./Pager.js";
-import { Sidebar } from "../Sidebar/Sidebar.js";
+import { Sidebar } from "../../Sidebar/Sidebar.js";
 
 /* Not unused — this is a CSS dependency, declared. ColumnPager.css adapts classes
  * that Page emits and Page.css styles; the import is what guarantees Page.css is

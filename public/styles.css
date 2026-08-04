@@ -19,6 +19,81 @@
  */
 @layer site {
 
+    /* ---- the site's chrome, and how a topic opts out of it ---------------
+       `.nav` is built once in /app.js, outside `$pages`, so navigation can
+       never touch it. */
+
+    .app { display: flex; flex-direction: column; }
+
+    .nav {
+        display: flex; gap: 1.25em; flex: 0 0 auto;
+        padding: 0.9em 6%; border-bottom: 1px solid var(--line);
+    }
+    .nav-link { text-decoration: none; color: var(--subtle); }
+    .nav-link:hover { color: var(--prim); }
+    .nav-link.active, .nav-link.in-path { color: var(--prim); font-weight: 600; }
+
+    /* A topic that brings its own navigation hides the global one — the app nav
+       is for moving BETWEEN sections, and inside one it is just noise.
+
+       An inert class on the page (`classes: "hides-nav"`), not a call in a hook.
+       Router.mark() rewrites .active-page / .active-ancestor on every navigation
+       including Back, so this unsets itself: there is no paired show/hide to keep
+       in sync, and any number of pages in the chain can carry it without the
+       first one to leave turning the nav back on. Same shape as `full`. */
+    .app:has(.page.hides-nav.active-page),
+    .app:has(.page.hides-nav.active-ancestor) { --nav-display: none; }
+    .nav { display: var(--nav-display, flex); }
+
+    /* ---- the mark ----
+       mask, not <img>: an image can't take a fill from CSS, and inlining the
+       markup would be a second copy of the artwork. The svg's own #FF8F60 is
+       ignored — the alpha channel is the shape and `--prim` is the paint, so
+       the logo retints with the theme and never drifts from the file.
+       Fallback is the artwork's own colour, for the theme that forgets. */
+
+    .logo {
+        width: 1.9em; height: 1.9em; flex: 0 0 auto;
+        background: var(--prim, #FF8F60);
+        -webkit-mask: url(/assets/img/m_svg.svg) center / contain no-repeat;
+                mask: url(/assets/img/m_svg.svg) center / contain no-repeat;
+    }
+
+    .brand { display: flex; align-items: center; gap: 0.5em; margin-bottom: 1.4em; }
+    .brand-logo { display: flex; }
+    .brand-text {
+        font-weight: 800; font-size: 1.15em; letter-spacing: 0.01em;
+        text-decoration: none; color: inherit;
+    }
+    .brand-text:hover { color: var(--prim); }
+
+    /* ---- a topic: its own nav beside its own region ----
+       A topic page overrides render(), so its `.page` element IS the row — there
+       is no wrapper div whose only job is `display: flex`. Reusable: any section
+       that brings its own navigation says `div.c("page topic")`.
+
+       padding/max-width off, because the CHILDREN are papers, not this. */
+
+    /* `display` ONLY in the states the contract already grants it.
+       A bare `.page.topic { display: flex }` sits in @layer site and so beats
+       `.page { display: none }` in @layer theme at any specificity — every topic
+       stayed on screen on every route, including the home page. The contract has
+       to keep deciding *whether* a page shows; a site rule may only say *how*. */
+    .page.topic { padding: 0; max-width: none; overflow: hidden; }
+    .page.topic.active-page,
+    .page.topic.active-ancestor:has(.page.active-page) { display: flex; }
+
+    .topic > .section-nav {
+        flex: 0 0 14em; padding: 2em 1.5em; overflow-y: auto;
+        border-right: 1px solid var(--line);
+        display: flex; flex-direction: column; gap: 0.15em;
+    }
+    .topic > .pages { flex: 1 1 0; min-width: 0; }
+    .nav-heading {
+        margin: 1.1em 0 0.3em; font-size: 0.75em; text-transform: uppercase;
+        letter-spacing: 0.08em; color: var(--subtle);
+    }
+
     body.theme-1 {
         background: #ddd;
 

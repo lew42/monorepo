@@ -7,12 +7,30 @@
    off-canvas behaviour, because placement is the layout's business.) */
 @layer theme {
 
+	/* Two component tokens — `--sidebar-bg` and `--sidebar-ink` — and every other
+	   colour below derives from the ink with color-mix. Same shape as
+	   framework.css's `--code-bg`/`--code-ink`: they fall back to globals so
+	   nobody has to set them, but a theme that must differ sets two values
+	   instead of fighting nine selectors.
+
+	   Promoted because a theme actually needed to differ (ladder rung 2, not
+	   speculation). This file used to hardcode `color: #fff` and six
+	   `rgba(255,255,255,…)` — correct on a dark panel and invisible on a light
+	   one, which is exactly the gap the theming record calls out. Deriving the
+	   tints from one ink means a theme cannot set them inconsistently, which is
+	   how that class of bug happens in the first place. */
+
 	.sidebar {
 		display: flex;
 		flex-direction: column;
 		overflow-y: auto;
-		background: var(--bg);
-		color: #fff;
+		background: var(--sidebar-bg, var(--bg));
+		color: var(--sidebar-ink, #fff);
+
+		/* Reads as a hairline when the panel is light and the page beside it is
+		   lighter still; disappears into a dark panel, which is where contrast
+		   already does the job. One declaration, right in both. */
+		border-right: 1px solid var(--line);
 	}
 
 	/* [ LOGO Brand ] — the logo goes home, the text goes to its own section */
@@ -40,27 +58,56 @@
 		white-space: nowrap;
 		font-weight: 800;
 		font-size: 1.15em;
-		color: #fff;
+		color: inherit;
 		text-decoration: none;
 	}
-	.sidebar .brand-title:hover { color: rgba(255,255,255,0.75); }
+	.sidebar .brand-title:hover { color: var(--prim); }
 
 	.sidebar-nav { display: flex; flex-direction: column; }
 
+	/* A titled run of links. Sidebar.js puts `.h4` on the title, so it borrows
+	   its size and tracking from the type scale — all this owes is rhythm and
+	   colour, and it must never invent a font-size. */
+	.sidebar-group { display: flex; flex-direction: column; }
+
+	.sidebar-group-title {
+		padding: 1.4em 1.2em 0.5em;
+		color: color-mix(in srgb, var(--sidebar-ink, #fff) 55%, transparent);
+	}
+
+	/* flex, so an icon can lead and the chevron can sit at the far end. Labels
+	   line up whether or not a given item carries an icon. */
 	.sidebar-link {
+		display: flex;
+		align-items: center;
+		gap: 0.7em;
 		padding: 0.6em 1.2em;
-		color: rgba(255,255,255,0.75);
+		color: color-mix(in srgb, var(--sidebar-ink, #fff) 75%, transparent);
 		text-decoration: none;
 		border-left: 3px solid transparent;
 	}
-	.sidebar-link:hover { background: rgba(255,255,255,0.08); color: #fff; }
+	.sidebar-link:hover {
+		background: color-mix(in srgb, var(--sidebar-ink, #fff) 8%, transparent);
+		color: var(--sidebar-ink, #fff);
+	}
 
 	/* .active = this exact url, .in-path = an ancestor of it. Both set by
-	   App.mark_links(); a sidebar treats them the same (section highlight). */
+	   Router.mark_links(); a sidebar treats them the same (section highlight). */
 	.sidebar-link.active,
 	.sidebar-link.in-path {
-		color: #fff;
+		color: var(--sidebar-ink, #fff);
 		border-left-color: var(--prim);
-		background: rgba(255,255,255,0.06);
+		background: color-mix(in srgb, var(--sidebar-ink, #fff) 6%, transparent);
+	}
+	.sidebar-link.active .icon,
+	.sidebar-link.in-path .icon { color: var(--prim); }
+
+	/* A plain character, not a Material Icons ligature: this file must not depend
+	   on a font the app may never have loaded, or a sidebar in a site that
+	   skipped it would read "chevron_right" down the margin. */
+	.sidebar-link.active::after {
+		content: "›";
+		margin-left: auto;
+		opacity: 0.55;
 	}
 }
