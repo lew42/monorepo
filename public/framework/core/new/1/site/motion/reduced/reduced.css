@@ -1,0 +1,30 @@
+@layer base, theme, site, util;
+
+@layer site {
+
+	/* A recipe that moves AND fades, so the difference between the two settings is
+	   visible rather than merely shorter. Both tokens come from motion.css; this
+	   file names neither duration nor distance, which is the point. */
+
+	.page.motion-lift,
+	.motion-stage .motion-lift {
+		opacity: 0;
+		transition: opacity var(--motion-dur) var(--motion-ease),
+		            translate var(--motion-dur) var(--motion-ease),
+		            display var(--motion-dur) allow-discrete;
+	}
+
+	.page.motion-lift.active-page,
+	.motion-stage .motion-lift.showing { opacity: 1; translate: 0; }
+
+	@starting-style {
+		.page.motion-lift.active-page,
+		.motion-stage .motion-lift.showing { opacity: 0; translate: 0 var(--motion-shift); }
+	}
+
+	.pages:has(> .page.motion-lift) { position: relative; }
+
+	/* Both clauses of the visibility contract — see discrete.css. */
+	.page.motion-lift:not(.active-page):not(.active-ancestor:has(.page.active-page)),
+	.motion-stage .motion-lift:not(.showing) { position: absolute; inset: 0; }
+}

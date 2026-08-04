@@ -17,7 +17,7 @@
 // give up their braces; a concise arrow (`() => div("x")`) keeps its expression.
 export function source(fn){
 	const src = String(fn);
-	const arrow = src.indexOf("=>");
+	const arrow = arrow_at(src);
 	const body = arrow === -1 ? null : src.slice(arrow + 2).trimStart();
 
 	if (body && !body.startsWith("{"))
@@ -27,6 +27,35 @@ export function source(fn){
 	const close = src.lastIndexOf("}");
 
 	return dedent(open === -1 || close <= open ? src : src.slice(open + 1, close));
+}
+
+/* Where an arrow's parameters end and its body begins: the first `=>` at nesting
+ * depth zero, skipping quoted text.
+ *
+ * `src.indexOf("=>")` was wrong for any ORDINARY function containing an arrow —
+ * `function(){ const f = () => 1; return f; }` sliced at the inner arrow and
+ * printed `1; return f; }`, a fragment. Silent: it renders as perfectly good
+ * code that simply isn't the code you wrote, and it hit demo() and code.fn()
+ * alike. Depth-tracking also keeps `({ a }) => body` working, which a plain
+ * "is the arrow before the first brace" test would have broken.
+ */
+function arrow_at(src){
+	let depth = 0, quote = null;
+
+	for (let i = 0; i < src.length; i++){
+		const c = src[i];
+
+		if (quote){
+			if (c === "\\") i++;
+			else if (c === quote) quote = null;
+		}
+		else if (c === '"' || c === "'" || c === "`") quote = c;
+		else if ("([{".includes(c)) depth++;
+		else if (")]}".includes(c)) depth--;
+		else if (c === "=" && src[i + 1] === ">" && depth === 0) return i;
+	}
+
+	return -1;
 }
 
 // remove the leading blank line and the common indent of the remaining lines,

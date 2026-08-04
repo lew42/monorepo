@@ -1,0 +1,42 @@
+/* Layer order, restated in full: the FIRST @layer statement fixes the order and
+   a name first seen later is appended at the end. */
+@layer base, theme, site, util;
+
+@layer site {
+
+	/* claim() — a code block with the urls it claims attached underneath. */
+	.claim { margin: 1rem 0; }
+	.claim > .code-block { margin: 0; }
+	.claim-urls { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .4rem; }
+	.claim-note { margin-top: .4rem; font-size: .875rem; color: #6b7280; }
+
+	/* A url chip is a link, so mark_links() gives it .active and .in-path for
+	   free. That is the point of the chip: the reader sees the marking rules
+	   applied to the exact urls being discussed. */
+	.claim-url {
+		font: 12px ui-monospace, Consolas, monospace;
+		padding: .2rem .5rem; border: 1px solid #d6dae0; border-radius: .3rem;
+		text-decoration: none; color: #0a58ca; background: #fff; word-break: break-all;
+	}
+	.claim-url:hover { border-color: #0a58ca; background: #f5f9ff; }
+	.claim-url.active { background: #0a58ca; border-color: #0a58ca; color: #fff; }
+	.claim-url.in-path { border-color: #0a58ca; background: #f5f9ff; }
+
+	/* The one control this section renders. A pressed state is the whole
+	   feedback of the filter demo, so it is not decoration. */
+	.row button { font: inherit; padding: .25rem .7rem; border: 1px solid #d6dae0;
+	              border-radius: .3rem; background: #fff; color: #3f4650; cursor: pointer; }
+	.row button.on { background: #0a58ca; border-color: #0a58ca; color: #fff; }
+
+	/* Markdown tables — see the import annotation in ui.js. A table is the only
+	   shape a findings list should ever take, and it must scroll itself rather
+	   than push the page sideways. */
+	/* Both selectors on purpose: md() returns the element itself when the source
+	   is a single block, so a lone table IS the .md — it is not inside one. */
+	.md table, table.md { display: block; max-width: 100%; overflow-x: auto;
+	                      border-collapse: collapse; font-size: .8125rem; }
+	.md th, .md td { border: 1px solid #e2e4e8; padding: .3rem .55rem;
+	                 text-align: left; vertical-align: top; }
+	.md thead th { background: #f6f7f9; white-space: nowrap; }
+	.md td code, .md th code { white-space: nowrap; }
+}

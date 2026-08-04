@@ -1,0 +1,149 @@
+/* Layer order restated IN FULL — a short list would append `site` after `util`.
+   See the header of framework.css. */
+@layer base, theme, site, util;
+
+@layer theme {
+
+	/* ══ MARKDOWN'S GENERIC ELEMENTS ══════════════════════════════════════════
+	   BUG REPORT, and the exact diff is in agents/content/page.js.
+
+	   site/styles.css styles `.code pre` and a global inline `code`, because
+	   until this section nothing in new/1 rendered markdown. A fence produced by
+	   marked is a plain <pre><code class="language-js">, so it arrives with no
+	   box at all AND with the inline-code background painted inside the block;
+	   `.page p { margin: 0 }` then jams every prose paragraph against the next.
+
+	   These rules belong in site/styles.css, where the rest of this tier's
+	   opinion about generic HTML already lives. They are here, scoped to `.md`,
+	   because that file is not mine to edit. `.md` is emitted by ext/markdown —
+	   the loading edge is the `md.js` import in content/page.js. */
+
+	.md p { margin: 0 0 1rem; }
+	.md > :first-child { margin-top: 0; }
+	.md > :last-child { margin-bottom: 0; }
+
+	/* md() adopts a single root block directly, so top-level prose is a <p.md> —
+	   a DIRECT child of .page, where `.page p { margin: 0 }` (0,1,1) out-ranks
+	   `.page > * + * { margin-top: 1rem }` (0,1,0) and two paragraphs in a row
+	   touch. Found by looking at a screenshot; no measurement catches this. */
+	p.md { margin: 1rem 0 0; }
+
+	.md h2 { font-size: 1.15rem; margin: 1.7rem 0 .5rem; }
+	.md h3 { font-size: 1rem; margin: 1.35rem 0 .4rem; }
+
+	.md pre {
+		margin: 1rem 0; padding: .75rem 1rem;
+		background: #fbfcfd; border: 1px solid #e2e4e8; border-radius: .45rem;
+	}
+
+	/* `code` is styled globally as an INLINE chip. Inside a <pre> that chip is
+	   wrong twice over — a background inside a background, and .9em compounding
+	   with the block's own size. framework.css does this reset; this tier has no
+	   framework.css. */
+	.md pre > code,
+	.code pre > code { background: none; padding: 0; font-size: inherit; border-radius: 0; }
+
+	/* display:block so a wide table scrolls itself instead of widening the page.
+	   Long fences are already safe — `pre { overflow-x: auto }` is in the base. */
+	table.md, .md table {
+		display: block; max-width: 100%; overflow-x: auto;
+		border-collapse: collapse; margin: 1rem 0;
+	}
+	table.md th, table.md td,
+	.md th, .md td { padding: .35rem .6rem; border: 1px solid #e2e4e8; text-align: left; vertical-align: top; }
+	table.md th, .md th { background: #f9fafb; }
+
+	.md blockquote { margin: 1rem 0; padding-left: .9rem; border-left: 3px solid #d6dae0; }
+
+	/* ══ A LIST OF POSTS ══════════════════════════════════════════════════════
+	   The shape every content index takes: blog, tag, search hits, the recipe
+	   list, the reading sequence. One renderer in list.js, one rule here. */
+
+	.post-list { display: flex; flex-direction: column; gap: .5rem; }
+
+	.post {
+		display: grid; grid-template-columns: 6.5rem minmax(0, 1fr); gap: .15rem 1rem;
+		padding: .7rem .9rem; text-decoration: none; color: inherit;
+		border: 1px solid #e2e4e8; border-radius: .45rem; background: #fff;
+	}
+	.post:hover { border-color: #0a58ca; background: #f5f9ff; }
+
+	.post-date { grid-column: 1; font-size: .8rem; color: #6b7280; }
+	.post-title { grid-column: 2; font-weight: 600; color: #0a58ca; }
+	.post-blurb { grid-column: 2; font-size: .875rem; color: #4b5563; }
+	.post-tags { grid-column: 2; display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .25rem; }
+	.post-tag { font-size: .7rem; letter-spacing: .04em; color: #6b7280; }
+	.post-tag::before { content: "#"; opacity: .5; }
+
+	.post-meta { font-size: .8rem; color: #6b7280; }
+
+	/* ══ BREADCRUMBS — the instrument for the tag experiment ══════════════════
+	   Router.mark_links() adds .active to the last crumb and .in-path to its
+	   ancestors, so nothing here reads window.location. Open one article at both
+	   its urls and this line is the whole cost of a node-per-path. */
+
+	.crumbs { display: flex; flex-wrap: wrap; align-items: baseline; gap: .3rem; font-size: .85rem; }
+	.crumb { text-decoration: none; color: inherit; opacity: .6; }
+	.crumb::after { content: "›"; margin-left: .3rem; opacity: .55; }
+	.crumb:last-child::after { content: ""; }
+	.crumb.active { opacity: 1; font-weight: 600; }
+	.crumb:hover { opacity: 1; }
+
+	/* ══ PREV / NEXT ══════════════════════════════════════════════════════════ */
+
+	.order-nav { display: flex; flex-wrap: wrap; gap: .5rem; }
+	.order-step {
+		flex: 1 1 13rem; padding: .55rem .8rem; text-decoration: none; color: inherit;
+		border: 1px solid #e2e4e8; border-radius: .45rem; background: #fff;
+	}
+	.order-step:hover { border-color: #0a58ca; background: #f5f9ff; }
+	.order-dir { font-size: .7rem; text-transform: uppercase; letter-spacing: .07em; color: #6b7280; }
+	.order-title { color: #0a58ca; }
+	.order-end { flex: 1 1 13rem; padding: .55rem .8rem; font-size: .85rem; color: #9aa1ab; }
+
+	/* ══ TABLE OF CONTENTS ════════════════════════════════════════════════════
+	   Sticky against the .page, which is its own scroll container. */
+
+	.toc-layout { display: grid; grid-template-columns: 13rem minmax(0, 1fr); gap: 2rem; align-items: start; }
+	.toc { position: sticky; top: 0; display: flex; flex-direction: column; gap: .1rem; }
+	.toc-body { min-width: 0; }
+
+	.toc-link { font-size: .82rem; text-decoration: none; color: inherit; opacity: .7; padding: .1rem 0; }
+	.toc-link:hover { opacity: 1; color: #0a58ca; }
+	.toc-h3 { padding-left: .9rem; }
+
+	/* NOT .toc-link.active — mark_links() compares pathnames, and a fragment-only
+	   href has the CURRENT pathname, so every link in this list is marked active
+	   at once. Reported; do not style it until it means something. */
+
+	@media (max-width: 62rem){
+		.toc-layout { grid-template-columns: minmax(0, 1fr); }
+		.toc { position: static; }
+	}
+
+	/* ══ SEARCH ═══════════════════════════════════════════════════════════════ */
+
+	.search-box { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+	.search-field {
+		flex: 1 1 20rem; padding: .45rem .65rem; font: inherit;
+		border: 1px solid #d6dae0; border-radius: .35rem;
+	}
+
+	/* ══ THE REST ═════════════════════════════════════════════════════════════ */
+
+	/* a bounded window onto rendered markdown — the { h1: false } A/B */
+	.content-peeks { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+	.content-peek { max-height: 17rem; overflow: auto; padding: .8rem 1rem; }
+
+	@media (max-width: 62rem){ .content-peeks { grid-template-columns: 1fr; } }
+
+	.canonical { padding-left: .8rem; border-left: 3px solid #d6dae0; }
+
+	.chapter-list { display: flex; flex-wrap: wrap; gap: .5rem; }
+	.chapter { padding-top: .5rem; }
+	.chapter-link { font-size: .82rem; }
+
+	.folded { margin-top: 1.25rem; }
+	.folded > summary { cursor: pointer; font-size: .85rem; color: #6b7280; }
+	.folded > summary:hover { color: #0a58ca; }
+}

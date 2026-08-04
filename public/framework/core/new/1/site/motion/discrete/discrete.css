@@ -1,0 +1,32 @@
+@layer base, theme, site, util;
+
+@layer site {
+
+	/* Two additions to /motion/baseline/'s four lines. Nothing in Page, Router or
+	   App changes. */
+
+	.page.motion-fade,
+	.motion-stage .motion-fade {
+		opacity: 0;
+		transition: opacity var(--motion-dur) var(--motion-ease),
+		            display var(--motion-dur) allow-discrete;
+	}
+
+	.page.motion-fade.active-page,
+	.motion-stage .motion-fade.showing { opacity: 1; }
+
+	@starting-style {
+		.page.motion-fade.active-page,
+		.motion-stage .motion-fade.showing { opacity: 0; }
+	}
+
+	/* …and the half CSS cannot do alone: a page fading out is still LAID OUT, so
+	   it needs somewhere to go. Scoped with :has() only because I don't own
+	   site/styles.css — one unconditional line there replaces it. */
+
+	.pages:has(> .page.motion-fade) { position: relative; }
+
+	/* "not displayed" takes two clauses, because the contract does */
+	.page.motion-fade:not(.active-page):not(.active-ancestor:has(.page.active-page)),
+	.motion-stage .motion-fade:not(.showing) { position: absolute; inset: 0; }
+}

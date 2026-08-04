@@ -23,6 +23,40 @@ export default window.app = new App({
 		["/full/", "Full"],
 	],
 
+	//  The Navigation Recipes library — one section per council seat. Same shape as
+	//  `nav`, rendered under its own heading so the primitives above stay the floor.
+	recipes: [
+		["/nav/", "Primitives"],
+		["/compound/", "Compound"],
+		["/deep/", "Deep & edges"],
+		["/library/", "Layout library"],
+		["/chrome/", "Chrome"],
+		["/patterns/", "Applied IA"],
+		["/motion/", "Motion"],
+		["/a11y/", "Access"],
+		["/perf/", "Cost"],
+		["/async/", "Async"],
+		["/urls/", "URL design"],
+		["/content/", "Content"],
+		["/forms/", "Forms"],
+		["/versus/", "Versus"],
+
+		//  Drifted out of this list while the tree grew — 8 sections existed and
+		//  were unreachable from the sidebar. Exactly the cost of hand-typing it;
+		//  /kit/ derives the same nav from app.root with zero modules.
+		["/compose/", "Compose"],
+		["/start/", "Start here"],
+		["/state/", "State"],
+		["/mutation/", "Mutation"],
+		["/sitemap/", "Sitemap"],
+		["/budget/", "Budget"],
+		["/kit/", "Derived chrome"],
+	],
+
+	//  The design records, one per seat. Separate from `recipes` because these
+	//  are what the council CONCLUDED, not what it built.
+	council: [["/council/", "The council"]],
+
 	render(){
 		this.$body = View.body();
 
@@ -31,6 +65,10 @@ export default window.app = new App({
 				div.c("brand", "new/1");
 				div.c("nav", () => {
 					this.nav.forEach(([url, text]) => a.c("nav-link", text).href(url));
+					div.c("nav-heading", "recipes");
+					this.recipes.forEach(([url, text]) => a.c("nav-link", text).href(url));
+					div.c("nav-heading", "records");
+					this.council.forEach(([url, text]) => a.c("nav-link", text).href(url));
 				});
 				div.c("hint", "Links are plain <a href>. The Router upgrades the click — no reload, and the console shows exactly which modules were fetched.");
 			});

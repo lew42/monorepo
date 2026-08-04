@@ -1,0 +1,47 @@
+/* Layer order, restated IN FULL — a short list would drop `site` past `util`. */
+@layer base, theme, site, util;
+
+/* Four rules. Everything else a tile needs already exists: `.page-previews` is
+   the wrapping shelf, `.page-preview` is the card and its hover, `.row` is the
+   link rows, `.cols` is the columns.
+
+   Only the frame's geometry is genuinely new, and it is all layout. */
+@layer theme {
+
+	/* A LIVE page, shrunk. 1400x800 is a real laptop, so a tile is a truthful
+	   claim about a screen rather than an arbitrary box. Measured:
+
+	     zoom .23   inner viewport 1400px, painted box 322x184, LAYOUT box 322x184
+	     scale .23  inner viewport 1400px, painted box 322x184, layout box 1400x800
+
+	   Both reproduce the real layout — /full/left/deeper/ measures 660|660 inside
+	   either, exactly as it does at full size. `zoom` wins on the second column:
+	   it shrinks the box in flow, so the shelf needs no fixed cell size and no
+	   `overflow: hidden` to clip a phantom. One property, no wrapper.
+
+	   The 1400px width is the whole trick. `zoom` reflows — a frame left to size
+	   itself computes its layout against the TILE (measured: three flex children
+	   117px each, i.e. a 350px viewport), which reflows the design instead of
+	   shrinking it. The fixed width is what makes the inner document believe it
+	   has a desktop. .23 is chosen so three cards fit the content column. */
+	.page-frame { display: block; width: 1400px; height: 800px; border: 0; zoom: .23; }
+
+	/* A tile is a picture you click THROUGH. Without this the iframe swallows the
+	   click and the card's own href never fires — and a stray click would drive
+	   the tile's inner app instead of navigating. A frame outside a card keeps its
+	   pointer events and is fully live. */
+	.page-preview .page-frame { pointer-events: none; }
+
+	/* master/detail — `.cols` with the first track pinned instead of equal.
+	   Used as `div.c("pages cols master-detail")`, so every `.cols` rule still
+	   applies and this says only what differs. */
+	.master-detail { grid-template-columns: 16rem minmax(0, 1fr); }
+
+	/* A KIND: its one live specimen, with that kind's alternates beside it.
+	   A promoted tile is 322px in a 1080px column, so stacking the links under
+	   it wasted two thirds of every row. `flex-start` is the load-bearing part —
+	   without it the links stretch to the tile's 184px and float in the middle
+	   of their own boxes. */
+	.kind { display: flex; flex-wrap: wrap; gap: .75rem; align-items: flex-start; }
+	.kind > .page-previews { flex: 1 1 14rem; }
+}

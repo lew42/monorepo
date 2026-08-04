@@ -1,0 +1,33 @@
+@layer base, theme, site, util;
+
+/* Layout for a table of numbers, and nothing else. The source box reuses
+   site/styles.css's .code, so there is no second opinion about what a code
+   block looks like on this site. */
+@layer site {
+
+	.measured-results { border-top: 1px solid #e2e4e8; overflow-x: auto; }
+	.measured-results:empty { border-top: 0; }
+
+	.metrics { border-collapse: collapse; width: 100%;
+	           font: 13px/1.5 ui-monospace, Consolas, monospace; }
+	.metrics th, .metrics td { padding: .3rem .8rem; border-bottom: 1px solid #eef0f2;
+	                           text-align: left; white-space: nowrap; }
+	.metrics th { font-weight: 600; color: #6b7280; }
+	.metrics tr:last-child td { border-bottom: 0; }
+
+	/* numbers right-align on the decimal so a column can be scanned */
+	.metrics td.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+	.run { margin: .6rem .8rem; padding: .3rem .9rem; font: inherit; cursor: pointer;
+	       border: 1px solid #d6dae0; border-radius: .35rem; background: #fff; }
+	.run:hover { border-color: #0a58ca; color: #0a58ca; }
+	.run[disabled] { cursor: default; color: #9aa1ab; }
+
+	.measured-error { padding: .6rem .8rem; color: #b42318; font-size: .85rem; }
+	.measured-note { color: #6b7280; font-size: .8rem; }
+
+	/* the verdict table on the index — same numerals, wraps its prose */
+	.claims td { white-space: normal; }
+	.hold { color: #0a7c42; font-weight: 600; }
+	.broke { color: #b42318; font-weight: 600; }
+}

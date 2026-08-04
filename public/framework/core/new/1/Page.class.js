@@ -12,6 +12,26 @@ import { div, h1, a, is } from "../../View/View.js";
  */
 export class Page {
 
+	/* Every property this class assigns after construction, declared.
+	 *
+	 * No initialisers and no behaviour change — the point is `alias()`, which
+	 * refuses to shadow an existing property with `if (!(key in this))`. That
+	 * guard was complete for the prototype and blind to these seven, so a child
+	 * named `view` or `$pages` overwrote real state and blanked the page **on a
+	 * cold load only** — it worked on a click, because the property had not been
+	 * written yet. Declaring them makes the guard true. Found by the url seat.
+	 *
+	 * The side benefit is the one that pays for the lines: a reader now learns
+	 * this class's whole mutable surface from the top of the file.
+	 */
+	view;          // built once by render(), never rebuilt
+	regions;       // named child -> container, written by tabs()
+	$pages;        // I claim the subtree below me
+	loading;       // load_all_children()'s promise
+	default_tab;   // the first tabs() set owns this page's url
+	parent;        // assigned by add(), the one place
+	app;           // assigned on the walk, in child()
+
 	constructor(...args){
 		this.assign(...args);
 		this.naming();
@@ -72,10 +92,25 @@ export class Page {
 	 * a path and moving a parent moves its whole subtree with it.
 	 */
 	add(name, child = {}){
-		const page = child instanceof Page ? child
-			: new Page(is.fn(child) || typeof child === "string" ? { content: child } : child);
+		/* Adoption goes in through the CONSTRUCTOR, not after it.
+		 *
+		 * `initialize()` runs at the end of the constructor, so an inline page
+		 * used to reach it with no parent and therefore no url — and any child it
+		 * added there computed `undefinedkid/`, silently. Every route()-built page
+		 * is in exactly that position. Passing `adopt` as a second argument works
+		 * because the constructor is `assign(...args)` and later args win, the
+		 * same shape as `new Router(this.router, { app: this })`.
+		 *
+		 * `new Page({…})` built by hand and passed in stays un-adopted until this
+		 * line, and should: you constructed it before anything adopted it, so
+		 * there was no url for it to have. Found by the url seat.
+		 */
+		const adopt = { name, parent: this, app: this.app };
 
-		page.assign({ name, parent: this, app: this.app }).naming();
+		const page = child instanceof Page ? child.assign(adopt)
+			: new Page(is.fn(child) || typeof child === "string" ? { content: child } : child, adopt);
+
+		page.naming();
 		this.children.set(name, page);
 		this.alias(name, page);
 
@@ -83,9 +118,23 @@ export class Page {
 		return page;
 	}
 
+	/* What render() READS, which is not the same as what the class assigns.
+	 *
+	 * The seven class fields above stop a child shadowing state. These three are
+	 * the other half: a child named `content` makes a page render THE CHILD as
+	 * its own content, silently, and one named `classes` throws
+	 * "arg.split is not a function". `content` is an ordinary section name.
+	 *
+	 * A Set and not three more class fields — an instance field shadows a
+	 * prototype method, so `content;` would break every
+	 * `class X extends Page { content(){ … } }`. The seven above are safe only
+	 * because none of them is ever a method.
+	 */
+	static reserved = new Set(["content", "classes", "col"]);
+
 	alias(name, page){
 		const key = name.replaceAll("-", "_");
-		if (!(key in this)) this[key] = page;
+		if (!Page.reserved.has(key) && !(key in this)) this[key] = page;
 	}
 
 	// [root … me]
@@ -123,8 +172,12 @@ export class Page {
 		 * ordering starter got stuck on: only declared names ever hit the network,
 		 * so a dynamic name costs no doomed 404, and route() structurally cannot
 		 * shadow a page.js — a file you want is a file you declared.
+		 *
+		 * `is.fn` and not `?.` — alias() writes a child onto `this` by name, so a
+		 * child called "route" makes `this.route` a Page, and `this.route?.(name)`
+		 * throws TypeError where it should have 404'd.
 		 */
-		const claimed = this.route?.(name);
+		const claimed = is.fn(this.route) && this.route(name);
 		return claimed ? this.add(name, claimed) : null;
 	}
 
@@ -158,12 +211,21 @@ export class Page {
 	 */
 	container(){
 		const mine = this.parent?.regions?.get(this.name);
-		if (mine) return mine;
+		if (mine) return this.mounts_in(mine, `region of ${this.parent.log_label()}`);
 
 		for (let page = this.parent; page; page = page.parent)
-			if (page.$pages) return page.$pages;
+			if (page.$pages) return this.mounts_in(page.$pages, `$pages of ${page.log_label()}`);
 
-		return this.app.$pages;
+		return this.mounts_in(this.app.$pages, "app.$pages");
+	}
+
+	// container() is the one step a reader of THIS file cannot see — a parent it
+	// never mentions decides where it lands. Kept (it is what makes tabs, columns
+	// and nested arrangements expressible at all), so the answer is to make the
+	// choice observable rather than declarative. Eric's request, after ten recipes.
+	mounts_in(view, claim){
+		console.log(`${this.log_label()}.container() → ${claim}`);
+		return view;
 	}
 
 	// Placement, and nothing else. Router.activate() calls this root-to-leaf over

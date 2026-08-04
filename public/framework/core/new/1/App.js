@@ -96,6 +96,17 @@ export class App {
 	// A method, not a getter — it allocates a fresh Promise.all every call.
 	loaded(){ return Promise.all(View.stylesheets.concat(this.loaders)); }
 
+	/* Stylesheets only, and it can never reject.
+	 *
+	 * Router.load() awaits this before activating so a lazily imported page's
+	 * <link> is applied before its first paint. It must NOT await `loaders`:
+	 * that list only grows (tabs() pushes a .then() chain with no .catch()), so
+	 * awaiting it per navigation means one rejected loader kills EVERY later
+	 * navigation — measured, and silently, because click() never awaits go().
+	 * allSettled, so a 404 stylesheet costs a warning and not the router.
+	 */
+	styles_loaded(){ return Promise.allSettled(View.stylesheets); }
+
 	static stylesheet(meta, url){ return View.stylesheet(meta, url); }
 }
 

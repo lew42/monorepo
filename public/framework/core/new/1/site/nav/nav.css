@@ -1,0 +1,17 @@
+/* The layer order, restated IN FULL. A name first seen later is appended at the
+   end, so one short list would drop `site` past `util`. */
+@layer base, theme, site, util;
+
+@layer site {
+
+	/* Every page here shows its whole file, which is the only version that
+	   cannot drift — but a 60-line box at the top pushes the thing the file
+	   PRODUCED below the fold, on exactly the pages where seeing it matters.
+	   So the box is capped and scrolls itself: code first, result still on
+	   screen. Layout only; it would be right on any site.
+
+	   tab-size because the source is tab-indented and the default 8 wraps the
+	   sentences inside p(). Nothing else in the site's own code blocks uses
+	   tabs, so this belongs here and not in styles.css. */
+	.nav-source pre { max-height: 17rem; overflow: auto; tab-size: 4; }
+}

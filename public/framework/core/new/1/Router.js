@@ -67,7 +67,20 @@ export class Router {
 	async load(url){
 		const page = await this.load_segments(url);
 
-		if (page) this.activate(page);
+		if (page){
+			/* A page imported on THIS navigation has just called View.stylesheet()
+			 * at module scope, and its <link> is not in document.styleSheets yet —
+			 * so without this the page's first render paints unstyled and then
+			 * snaps. Only the first visit; every later one is already resolved.
+			 *
+			 * Here and NOT inside activate(), which must stay synchronous: its
+			 * "no awaits past this point" guarantee is what lets a site wrap the
+			 * whole swap in document.startViewTransition(). Found by the motion
+			 * seat, whose missing animation was simply louder than a missing margin.
+			 */
+			await this.app.styles_loaded();
+			this.activate(page);
+		}
 		else console.log(`router.load("${url}") — 404, nothing resolves it`);
 
 		return !!page;
@@ -107,6 +120,19 @@ export class Router {
 		this.active = page;
 		this.mark();
 		document.title = page.title ?? document.title;
+
+		/* "A navigation happened." Duck-typed like page.activate?.(), so it costs
+		 * nothing until a site defines it — and the site is the only tier that
+		 * should care. Crumbs, prev/next, closing a drawer and moving focus all
+		 * need this moment and none of them can be written without it; the
+		 * alternative was a hand-written super call into mark() with no subclass,
+		 * in a file where nobody would guess why. Requested by the chrome seat.
+		 *
+		 * `from` because the hook fires on the first paint too, and two seats
+		 * independently re-derived "is this the first" — one from `from.length`,
+		 * one by counting. It is computed on line one of activate() and was
+		 * being thrown away. */
+		this.app.navigated?.(page, from);
 
 		console.log(`from   ${from.map(p => p.url).join(" › ") || "(none)"}`);
 		console.log(`to     ${to.map(p => p.url).join(" › ")}`);
@@ -157,6 +183,12 @@ export class Router {
 
 		this.root().querySelectorAll("a[href]").forEach(link => {
 			if (link.origin !== location.origin) return;
+
+			/* An in-page anchor resolves its .pathname to the page you are ON, so
+			 * every `href="#section"` matched `here` and got .active — measured 9
+			 * of 9 by the content seat. Ask the ATTRIBUTE, not the resolved url:
+			 * a fragment link is a scroll, never a destination. */
+			if (link.getAttribute("href")?.startsWith("#")) return;
 			link.classList.toggle("active", link.pathname === here);
 			link.classList.toggle("in-path",
 				link.pathname !== here && link.pathname !== "/" && here.startsWith(link.pathname));

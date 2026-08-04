@@ -1,0 +1,146 @@
+[
+	{
+		"id": 1,
+		"name": "View",
+		"kind": "core",
+		"size": 40
+	},
+	{
+		"id": 2,
+		"name": "Page",
+		"kind": "ext",
+		"size": 77
+	},
+	{
+		"id": 3,
+		"name": "Router",
+		"kind": "util",
+		"size": 114
+	},
+	{
+		"id": 4,
+		"name": "App",
+		"kind": "dev",
+		"size": 151
+	},
+	{
+		"id": 5,
+		"name": "captor",
+		"kind": "core",
+		"size": 188
+	},
+	{
+		"id": 6,
+		"name": "append_fn",
+		"kind": "ext",
+		"size": 225
+	},
+	{
+		"id": 7,
+		"name": "append_promise",
+		"kind": "util",
+		"size": 262
+	},
+	{
+		"id": 8,
+		"name": "stylesheet",
+		"kind": "dev",
+		"size": 299
+	},
+	{
+		"id": 9,
+		"name": "classify",
+		"kind": "core",
+		"size": 76
+	},
+	{
+		"id": 10,
+		"name": "prerender",
+		"kind": "ext",
+		"size": 113
+	},
+	{
+		"id": 11,
+		"name": "render",
+		"kind": "util",
+		"size": 150
+	},
+	{
+		"id": 12,
+		"name": "activate",
+		"kind": "dev",
+		"size": 187
+	},
+	{
+		"id": 13,
+		"name": "deactivate",
+		"kind": "core",
+		"size": 224
+	},
+	{
+		"id": 14,
+		"name": "container",
+		"kind": "ext",
+		"size": 261
+	},
+	{
+		"id": 15,
+		"name": "chain",
+		"kind": "util",
+		"size": 298
+	},
+	{
+		"id": 16,
+		"name": "naming",
+		"kind": "dev",
+		"size": 75
+	},
+	{
+		"id": 17,
+		"name": "declare",
+		"kind": "core",
+		"size": 112
+	},
+	{
+		"id": 18,
+		"name": "tabs",
+		"kind": "ext",
+		"size": 149
+	},
+	{
+		"id": 19,
+		"name": "previews",
+		"kind": "util",
+		"size": 186
+	},
+	{
+		"id": 20,
+		"name": "mark_links",
+		"kind": "dev",
+		"size": 223
+	},
+	{
+		"id": 21,
+		"name": "load_segments",
+		"kind": "core",
+		"size": 260
+	},
+	{
+		"id": 22,
+		"name": "shared_depth",
+		"kind": "ext",
+		"size": 297
+	},
+	{
+		"id": 23,
+		"name": "link_clicked",
+		"kind": "util",
+		"size": 74
+	},
+	{
+		"id": 24,
+		"name": "go",
+		"kind": "dev",
+		"size": 111
+	}
+]

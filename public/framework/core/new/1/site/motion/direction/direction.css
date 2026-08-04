@@ -1,0 +1,63 @@
+@layer base, theme, site, util;
+
+@layer site {
+
+	/* Slide, plus everything /motion/discrete/ established. The only new idea is
+	   that every @starting-style below is keyed on an attribute the Router wrote
+	   before it swapped anything. */
+
+	.page.motion-slide {
+		opacity: 0;
+		transition: opacity var(--motion-dur) var(--motion-ease),
+		            translate var(--motion-dur) var(--motion-ease),
+		            display var(--motion-dur) allow-discrete;
+	}
+
+	.page.motion-slide.active-page { opacity: 1; translate: 0; }
+
+	.pages:has(> .page.motion-slide) { position: relative; }
+
+	/* a drill-down leaves an .active-ancestor behind, and THAT is the page that
+	   has to step out of the flow — see discrete.css */
+	.page.motion-slide:not(.active-page):not(.active-ancestor:has(.page.active-page)) {
+		position: absolute; inset: 0;
+	}
+
+	/* No direction yet — a plain fade. Nothing moves, because nothing knows
+	   which way to move. */
+	@starting-style {
+		.page.motion-slide.active-page { opacity: 0; }
+	}
+
+	/* DEEPER — in from the right, out to the left: you pushed it off the stack. */
+	@starting-style {
+		.pages[data-direction="deeper"] > .page.motion-slide.active-page {
+			translate: var(--motion-shift);
+		}
+	}
+	.pages[data-direction="deeper"] > .page.motion-slide:not(.active-page) {
+		translate: calc(-1 * var(--motion-shift));
+	}
+
+	/* BACK — exactly mirrored, and neither page knows anything about it. */
+	@starting-style {
+		.pages[data-direction="back"] > .page.motion-slide.active-page {
+			translate: calc(-1 * var(--motion-shift));
+		}
+	}
+	.pages[data-direction="back"] > .page.motion-slide:not(.active-page) {
+		translate: var(--motion-shift);
+	}
+
+	/* ACROSS — a sideways move is not a push, so it lifts instead of sliding. */
+	@starting-style {
+		.pages[data-direction="across"] > .page.motion-slide.active-page {
+			translate: 0 var(--motion-shift);
+		}
+	}
+	.pages[data-direction="across"] > .page.motion-slide:not(.active-page) {
+		translate: 0 calc(-1 * var(--motion-shift));
+	}
+
+	.motion-level { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+}

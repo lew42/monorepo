@@ -10,6 +10,21 @@
 
 @layer theme {
 
+	/* ── tokens ──
+	   Defaults, so :root is the right place for them (a theme would override on
+	   .app, never here). These five exist because this sub-site does NOT load
+	   framework.css — so `ext/demo` and `ext/highlight`, which consume them,
+	   computed to no border and no background and rendered as unstyled text.
+	   Two seats reported it independently. Values match the palette below. */
+	:root {
+		--line: #e2e4e8;
+		--surface: #fff;
+		--wash: #f3f4f6;
+		--subtle: #5c636d;   /* was #6b7280 — 4.39:1 on the code chip, an AA fail */
+		--radius: .45rem;
+		--prim: #0a58ca;   /* md.css consumes this; it was the sixth missing token */
+	}
+
 	/* ── chrome — built once in site/app.js, outside $pages ── */
 
 	.app { display: flex; height: 100%; }
@@ -26,9 +41,20 @@
 	}
 	.nav-link:hover { background: #e8eaee; }
 	.nav-link.sub { padding-left: 1.5rem; font-size: .9rem; }
+	/* #9aa1ab measured 2.37:1 on this background — an AA fail, in the nav, found
+	   by the a11y seat. #5c636d is 4.6:1 and looks the same at .7rem. */
+	.nav-heading { margin: 1.1rem 0 .3rem; padding: 0 .6rem; font-size: .7rem;
+	               text-transform: uppercase; letter-spacing: .08em; color: #5c636d; }
 	.nav-link.in-path { color: #0a58ca; }
 	.nav-link.active { background: #fff; color: #0a58ca; font-weight: 600; border-left-color: #0a58ca; }
-	.hint { margin-top: 2rem; font-size: .8rem; color: #8b919b; }
+	.hint { margin-top: 2rem; font-size: .8rem; color: #5c636d; }
+
+	/* 15rem is 48% of a 500px window. The chrome seat's drawer is the real answer;
+	   this is the floor, so a narrow window is merely cramped rather than unusable. */
+	@media (max-width: 700px) {
+		.sidebar { flex: 0 0 9rem; padding: 1rem .75rem; }
+		.page { padding: 1.25rem 1rem 3rem; }
+	}
 
 	/* ── THE THREE MODES ──
 	   Every page is a direct child of ONE container, at every depth, so an
@@ -87,13 +113,39 @@
 
 	   Both states, because a full page stays full while one of its own children
 	   is the leaf — that's how columns end up inside it. */
+	/* overflow-y: auto, not hidden. `.page.full > .pages` scrolls a full page that
+	   arranges CHILDREN, but a full page holding ordinary content had nothing that
+	   scrolled and was silently clipped at the fold. Reported by Eric. */
 	.page.full.active-page,
-	.page.full.active-ancestor {
+	.page.full.active-ancestor:has(.page.active-page) {
 		position: fixed; inset: 0; z-index: 10;
-		background: #fff; overflow: hidden;
+		background: #fff; overflow-x: hidden; overflow-y: auto;
 		display: flex; flex-direction: column;
 	}
 	.page.full > .pages { flex: 1 1 auto; min-height: 0; }
+
+	/* Direct content of a full page, as opposed to a region of child pages.
+	   Without this it is a flex item with flex-shrink: 1 and no basis, so it
+	   collapsed to 2px and Playwright could not click a button inside it. */
+	.page.full > :not(.pages) { flex: 0 0 auto; }
+
+	/* The chrome under a full page is COVERED, not removed — so it stayed in the
+	   tab order and the AX tree. Measured: 20 focusable stops behind the overlay,
+	   every one obscured by page content (WCAG 2.2 SC 2.4.11, twenty times).
+
+	   visibility: hidden rather than `inert`, because it unsets itself. `inert`
+	   would need App to set it, keep it in sync and unset it on the way out —
+	   the exact set/sync/unset state that deleting `mode` removed. The a11y seat
+	   overturned this readme's own recommendation with the readme's own argument.
+
+	   ONE :has(), with a selector list inside it. `:has()` may NOT be nested
+	   inside `:has()` — that selector is invalid, and an invalid selector in a
+	   comma-separated list drops the WHOLE rule, silently. The first version of
+	   this rule was dead for exactly that reason: it matched in
+	   `element.matches()` while never reaching the stylesheet at all. */
+	.app:has(.pages > .page.full.active-page, .pages > .page.full.active-ancestor) .sidebar {
+		visibility: hidden;
+	}
 	.row { display: flex; flex-wrap: wrap; gap: .4rem; }
 
 	/* ── tabs — page.tabs("a b") returns this whole block ── */
@@ -126,14 +178,19 @@
 
 	.page-title { margin: 0 0 .75rem; font-size: 1.6rem; }
 	.page > * + * { margin-top: 1rem; }
-	.page p { margin: 0; }
+
+	/* :where() so this scores (0,0,1) and cannot out-rank the rhythm rule above.
+	   `.page p` is (0,1,1) and `.page > * + *` is (0,1,0), so zeroing the margin
+	   silently won and killed paragraph spacing — for markdown AND for p().
+	   Found by the content seat, by reading a screenshot rather than a number. */
+	:where(.page) p { margin: 0; }
 
 	.section { margin: 2.25rem 0 .75rem; font-size: 1.05rem; text-transform: uppercase;
-	           letter-spacing: .06em; color: #6b7280; }
+	           letter-spacing: .06em; color: #5c636d; }
 
 	.code { border: 1px solid #e2e4e8; border-radius: .45rem; overflow: hidden; background: #fbfcfd; }
 	.code-label { padding: .35rem .75rem; background: #f3f4f6; border-bottom: 1px solid #e2e4e8;
-	              font: 12px ui-monospace, Consolas, monospace; color: #6b7280; }
+	              font: 12px ui-monospace, Consolas, monospace; color: #5c636d; }
 	.code pre { padding: .75rem 1rem; }
 
 	.page-link, .page-preview {
@@ -141,9 +198,24 @@
 		border-radius: .35rem; text-decoration: none; color: #0a58ca; background: #fff;
 	}
 	.page-link:hover, .page-preview:hover { border-color: #0a58ca; background: #f5f9ff; }
+
+	/* mark_links() writes .active on EVERY in-app anchor, but only .nav-link and
+	   .tab were ever dressed — so a link to where you already are looked exactly
+	   like a link somewhere else. Every list, rail and crumb trail wants this.
+	   Reported by Eric, measured across ten compound recipes. */
+	.page-link.active, .page-preview.active {
+		border-color: #0a58ca; background: #eaf2ff; color: #0a58ca; font-weight: 600;
+	}
+	.page-link.in-path, .page-preview.in-path { border-color: #b6cdf0; }
 	.page-previews { display: flex; flex-wrap: wrap; gap: .5rem; }
 
-	.note { font-size: .875rem; color: #6b7280; }
+	.note { font-size: .875rem; color: #5c636d; }
 	code { background: #f3f4f6; padding: .1em .35em; border-radius: .25em; font-size: .9em; }
+
+	/* `code` is styled for the INLINE case, which is the common one — but a code
+	   BLOCK is a <code> inside a <pre>, so every highlighted block was getting an
+	   inline chip's background and padding striped across it. Reported by the
+	   chrome seat; the same shape as the `pre` eviction in the main framework. */
+	pre > code { background: none; padding: 0; border-radius: 0; font-size: inherit; }
 	.error { color: #b42318; }
 }

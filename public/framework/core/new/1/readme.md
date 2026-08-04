@@ -148,7 +148,9 @@ Measured, 1400px:
 /tabs/what/        panel 0, bar 0 highlights, tabs page full width
 /tabs/notes/       panel 1, bar 1 highlights
 /tabs/standalone/  tabs page GONE, standalone full width — not all-or-nothing
-/tabs/state/       2 modules (root, tabs). The tabs themselves cost none.
+/tabs/state/       3 modules — root, tabs, and OVERVIEW, because tabs() always
+                   imports its first tab to render it at the group's own url.
+                   The other tabs cost none. (Was written as 2; re-measured.)
 input value        survives switching between SETS, not just tabs
 ```
 
@@ -311,13 +313,53 @@ lazy       /  = 1 module.  Deep cold load of /columns/child/grandchild/ = 4
            (its own chain) — replace/, tabs/ and full/ never touched
 columns    360 | 360 | 360 equal tracks, region-scoped
 tabs       panel 1 -> 3 pages; input value survives a round trip
-redirect   /tabs/ -> /tabs/one/; Back lands on /, not /tabs/
 full       page 1400@0 covering the window; .app class is still just "app"
 inline     /replace/inline/ and /replace/options/ — real urls, no files
 404        App.error() renders with the chrome intact
 ```
 
-No console errors on any route. No horizontal overflow.
+No unhandled errors on any route. No horizontal overflow. (The 404 route calls
+`console.error` deliberately — "no console errors" was one word short.)
+
+**Re-measured by the perf seat: 12 of the 14 claims above held.** The two that
+did not are corrected in place — `/tabs/state/` was 2 and is 3, and a line
+describing a `/tabs/ -> /tabs/one/` redirect has been deleted, because this same
+readme records that redirect being backed out. A Measured block is worth nothing
+if it can disagree with the prose two sections down.
+
+Costs that are now numbers rather than intuitions:
+
+```
+serial walk     RTT + 16ms per SEGMENT, linear. A 5-deep cold link is 1.7s of
+                walking at 150ms RTT. Cannot be parallelised blindly — a
+                segment's children are unknown until its module runs.
+first paint     nothing paints until every loader resolves, which is the whole
+                walk: the chrome could have painted 1765ms earlier on that same
+                link. Kept anyway — an empty tab bar is the bug tabs() was
+                changed to avoid — but it is not free and should stop being
+                described as if it were.
+mark()          89us on this site (49 anchors). At 5000 anchors, 11ms — and 45%
+                of that is re-parsing link.origin/link.pathname five times per
+                anchor, not the two querySelectorAll sweeps.
+:has()          ~300x a plain recalc and still 146us at 1600 pages. You would
+                need ~183,000 pages on screen to spend one frame. Closed.
+warm nav        0.2ms median over 500 navigations.
+laziness        every cold route across all 15 sections fetched exactly its own
+                chain length and nothing more. It survived real content.
+```
+
+### The one unbounded thing
+
+`route()` views are never evicted, and it is the only memo without a ceiling.
+500 dynamic urls leave 502 live Pages and 502 `.page` elements — **+5.0 DOM
+nodes per url, forever**, while fetching zero modules. Bounded routes are exactly
+flat (555 nodes at navigation 25 and at 500), so this is specific to urls that
+are generated rather than declared.
+
+Two seats reached that independently, and the fix is three lines in the page's
+own `deactivate()` — not a framework change, because the page that generates
+unbounded urls is the page that knows they are unbounded. Measured, not
+predicted: 3 pages / 200 nodes held flat across 500 urls.
 
 ## What replaced the Pager tier
 
@@ -347,6 +389,177 @@ group is just a url that renders a bar.
 
 If a default tab is wanted later, it should be reconsidered from scratch rather
 than restored — the version that existed was built for one demo.
+
+## The council round — what was settled
+
+Fourteen seats built one section each of a navigation-recipe library under `site/`,
+in parallel, unable to read each other. Each wrote a design record to
+`agents/<seat>/`, reachable at `/council/`. **Agreement between two seats is
+evidence, because neither could have copied it.**
+
+### Applied
+
+```
+Page.class.js   alias() no longer shadows route()      is.fn(), not ?.
+                seven class fields declared            alias()'s guard was blind
+                adoption goes through the constructor  initialize() had no url
+                container() logs which claim it took   observable, not declarative
+Router.js       this.app.navigated?.(page)             requested by TWO seats
+util/source.js  arrow_at() replaces indexOf("=>")      sliced at a NESTED arrow
+styles.css      .page-link.active                      mark_links wrote it, nothing read it
+                pre > code reset                       inline chip striped every block
+                five tokens at :root                   ext/demo rendered unstyled
+                .page.full scrolls                     content was clipped at the fold
+```
+
+Two of these were silent: `initialize()` running before adoption gave every
+`route()`-built page's children a url of `undefinedkid/`, and `source()` printed
+a *fragment* of any ordinary function containing an arrow — valid code that
+simply wasn't the code you wrote.
+
+### Kept, deliberately
+
+- **`container()`, unchanged, at two levels.** Ten compound recipes: 5 needed it
+  to do something non-default, 10 were expressible only because it does, 1 was
+  confusing to read, 0 wanted a third level. The alternative — a child declaring
+  where it lands — means moving a parent edits every descendant, and a page
+  reused in two arrangements becomes impossible. It stays the one piece of black
+  magic in the three classes, and it is now observable.
+- **Tabs stay links, not `role="tab"`.** Six real properties (url, Back, reload,
+  new tab, pre-JS, announced-as-openable) would be destroyed for screen-reader
+  users only, to gain a keyboard convention that moving focus on navigation
+  gives you free.
+- **Three `<h1>`s at depth is correct.** Computing heading level from
+  `chain().length` makes the same page read differently per entry point.
+- **`previews()` stays non-deterministic.** A card is transient, a nav is
+  persistent — so a nav needs declared labels and a card does not.
+- **Removing `redirect()`/`Router.enter()` was right.** What survives is a
+  *different* need: a renamed page whose old url is in a bookmark. `route()`
+  cannot serve it, because an alias is two live urls for one state and that
+  breaks the injective encoding the design rests on. **Support redirect, not
+  alias.**
+
+### One failure mode, in four costumes
+
+The same bug was found independently by four seats, and naming it is the round's
+most useful output: **a label that depends on what happens to be imported reads
+differently depending on which url you arrived at.**
+
+```
+tabs()        a tab's title label   ← already refused, deterministically
+previews()    a card's title        ← accepted the cost, visibly
+the sidebar   a derived nav          ← Open #6
+heading level chain().length         ← rejected on the same grounds
+```
+
+The resolution is one sentence: **a nav does not need titles, it needs labels.**
+A title belongs to a *page* and arrives with its import; a label belongs to the
+parent's *list* and is there from the start. Measured: 11 of 19 sidebar labels
+are right from the name alone, 19 of 19 with `labels` declared as inert data,
+and module fetches are unchanged either way. **Open #6 needs no framework change.**
+
+### The ranked requests
+
+Nineteen, ranked by how many seats independently asked — which is the only ranking
+that means anything here, because no seat could read another while working.
+
+```
+6 seats   something runs after a navigation      ← SPLIT, see below
+5 seats   `full` is three bugs and an a11y hole
+3 seats   carry the query string through a click
+3 seats   label a lazy child without importing it ← resolved: labels, not titles
+3 seats   no in-flight guard (Open #4)
+```
+
+**Only two of the nineteen add public API surface.** That is the strongest single
+number to come out of the round.
+
+### The contradiction — and why it is two requests, not one
+
+Six seats wanted "something after a navigation." Three wrote the line, and the
+three lines are not compatible:
+
+```
+chrome     this.app.navigated?.(page)   on Router — the SITE reacts
+patterns   this.entered?.()             on Page   — the PAGE reacts
+a11y       explicitly NOT on Page, because a page is display:none until mark() runs
+```
+
+**Verdict: build the App one, refuse to merge the Page one into it.** `App.navigated`
+is applied. `Page.entered()` is recorded as a *separate, open* request with a
+different subject — and deliberately not built, because a11y's objection is
+correct on the mechanism and the two would otherwise arrive as one method with a
+flag inside a year. Two requests wearing one name is exactly the shape that
+produces an option, and an option is API surface forever.
+
+### `no registration anywhere` is true of `core/`, and false here
+
+A valid `page.js` that its parent never declared is a **404**: the server returns
+it at 200 and the Router refuses it, because `children.get(name) === undefined`
+means *not mine* and the filesystem is never consulted. That is a deliberate and
+good trade — it is what buys "only declared names ever hit the network," which is
+also why a dynamic url costs no doomed 404 and why `route()` cannot shadow a file.
+But it is the opposite of the older tier's behaviour and was documented backwards.
+
+### `p()` is not markdown, and three seats shipped `**` to the screen
+
+`p()` handles backticks only. Three separate seats — including the one whose job
+was comparing things — rendered literal asterisks, one of them 195 times, and all
+three found it by *measuring their own output* rather than reading it. Use `md()`
+for prose that wants emphasis, or write no emphasis.
+
+### The motion contract
+
+The framework animates with **zero** changes to `App`, `Page` and `Router`. Four
+rules is the whole of what an author must know:
+
+**1. "Displayed" has two clauses, not one.**
+
+```css
+.page.active-page                                  /* I am the leaf */
+.page.active-ancestor:has(.page.active-page)       /* I contain the leaf */
+```
+
+So the page that is *leaving* is
+`:not(.active-page):not(.active-ancestor:has(.page.active-page))`. The motion
+seat shipped a stylesheet mirroring only the first clause, and it was invisible
+because every opacity and duration was correct — **a screenshot caught it, no
+measurement could**. Mirror both or the rule is wrong in exactly the case that
+matters.
+
+**2. Entry is free; exit costs one line**, because `display: none` is also layout
+removal — two exiting pages otherwise split the flex row (`w553` / `w607` instead
+of `w1160` each). `@starting-style` + `transition-behavior: allow-discrete` does
+the rest, with no JS.
+
+**3. Never put a transform on a container.** A `translate` on `.pages` silently
+breaks `.full`: `1400x800 @0,0` becomes `1080x112 @280,530`, with no error.
+`position: relative` is the one safe exception, measured identical.
+
+**4. `.active-page` and `.active-ancestor` belong to `Router.mark()`**, which
+clears them across all of `$app` on every navigation. A component that borrows
+either name for its own state is silently stripped.
+
+`Router.activate()`'s *"no awaits past this point"* comment was written for a
+console group. It is also exactly the precondition `document.startViewTransition()`
+requires, which is why a site can wrap the whole swap with no framework support.
+**Do not give that guarantee up.**
+
+### Also closed
+
+- **Async capturing cannot work here**, and the blocker is external: it needs the
+  captor to follow async *context*, which requires TC39 `AsyncContext` (stage 2,
+  unshipped) or a build step. Re-open if `AsyncContext` ships; it is about three
+  lines.
+- **A live preview must be an `<iframe>`, not a second `Page` instance.** Forced
+  by four independent measurements: `import()` is memoised so every caller gets
+  the same `Page`; a page outside the chain measures 0×0; `position: fixed`
+  escapes a `zoom`ed ancestor; and the inner layout needs a desktop viewport.
+- **The captor's resting value is `app.$pages`, on every route, in every
+  arrangement** — so orphans always land in one place and the arrangement only
+  changes whether you can see them. Under a `full` page they are invisible.
+  Also: `.append()` does not *prevent* the auto-append, it *repairs* it, which
+  works only because both happen in one synchronous turn.
 
 ## Open
 

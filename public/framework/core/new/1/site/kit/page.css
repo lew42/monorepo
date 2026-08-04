@@ -1,0 +1,37 @@
+/* Layer order, restated IN FULL. */
+@layer base, theme, site, util;
+
+/* The kit's DOC page — the box the kit is shown inside, and nothing the kit
+   itself ships. kit.css is what a site adopting the kit downloads; this file
+   exists only so a shell can be looked at while it is not the document. */
+@layer site {
+
+	/* a viewport, standing in. The kit's own height belongs to .kit-document,
+	   so a shell in a box gets one from here instead. */
+	.kit-frame {
+		height: 21rem; margin: .5rem 0;
+		border: 1px solid #d6dae0; border-radius: .5rem; overflow: hidden;
+	}
+	.kit-frame > .kit-app { height: 100%; }
+
+	.kit-demo-url { font: 11px ui-monospace, Consolas, monospace; color: #9aa1ab; }
+	.kit-demo-title { font-size: 1.05rem; font-weight: 600; margin-top: .1rem; }
+	.kit-demo-kids { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .7rem; }
+
+	.kit-frame .kit-pages { padding: .85rem 1rem; overflow: auto; }
+
+	.kit-readout-box { overflow-x: auto; margin: .5rem 0 0; }
+	.kit-readout { border-collapse: collapse; font-size: .85rem; }
+	.kit-readout td {
+		text-align: left; padding: .22rem .55rem; border-bottom: 1px solid #eceef2;
+		white-space: nowrap;
+	}
+	.kit-readout td.v { font: 12px ui-monospace, Consolas, monospace; color: #0a58ca; }
+
+	/* the site's .page padding is 2rem 2.5rem; at a phone's width that plus the
+	   sidebar leaves very little. Scoped to this page only. */
+	@media (max-width: 40em) {
+		.page.kit-page { padding: 1.25rem 1rem 4rem; }
+		.kit-frame { height: 24rem; }
+	}
+}

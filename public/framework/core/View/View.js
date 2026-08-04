@@ -182,12 +182,22 @@ export default class View {
 		return this;
 	}
 
+	/* Getter or setter, decided by WHETHER a value was passed — never by whether
+	 * it differs from what's there.
+	 *
+	 * These three used to test `is.def(value) && value !== current`, so setting a
+	 * value equal to the current one fell into the getter branch and returned a
+	 * STRING. `field().text("").attr(…)` on an already-empty <textarea> threw
+	 * "attr is not a function", and the docs list all three as chainable. The
+	 * no-re-write optimization below is the part that actually wanted the
+	 * comparison; returning `this` never did. Found by the forms seat.
+	 */
 	html(value){
-		// set
-		if (is.def(value) && value !== this.el.innerHTML){
-								// don't re-update, important for contenteditable change events
-								// and losing focus upon re-update, etc.
-								// does touching this.el.innerHTML cause a performance hit?
+		if (!is.def(value)) return this.el.innerHTML;
+
+		// don't re-update: important for contenteditable change events, and for
+		// not losing focus on re-update
+		if (value !== this.el.innerHTML){
 			if (View.supports_sanitizer){
 				this.el.setHTML(value);
 			} else {
@@ -195,37 +205,24 @@ export default class View {
 				console.warn("View.html(): Sanitizer API not supported, rendering as text instead of HTML");
 				this.el.textContent = value;
 			}
-			return this;
-
-		// get
-		} else {
-			return this.el.innerHTML
 		}
+
+		return this;
 	}
 
 	// raw innerHTML, no sanitization - only for content you fully trust (XSS risk otherwise)
 	html_unsafe(value){
-		// set
-		if (is.def(value) && value !== this.el.innerHTML){ // see comment in html()
-			this.el.innerHTML = value;
-			return this;
+		if (!is.def(value)) return this.el.innerHTML;
 
-		// get
-		} else {
-			return this.el.innerHTML;
-		}
+		if (value !== this.el.innerHTML) this.el.innerHTML = value;   // see html()
+		return this;
 	}
 
 	text(value){
-		// set
-		if (is.def(value) && value !== this.el.textContent){ // see comment in html()
-			this.el.textContent = value;
-			return this;
+		if (!is.def(value)) return this.el.textContent;
 
-		// get
-		} else {
-			return this.el.textContent;
-		}
+		if (value !== this.el.textContent) this.el.textContent = value;   // see html()
+		return this;
 	}
 
 	backtick_append(...args){
