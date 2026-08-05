@@ -28,7 +28,7 @@ export default new Page({
 					h3(name);
 					p("One class does the wall: `grid gap auto`.");
 					a.c("page-link", "Read →").href("/framework/core/" + name + "/")
-						.style("textDecoration", "none");
+						.style({ textDecoration: "none", color: "var(--prim)" });
 				}).style({ ...surface, gap: "0.5em" })
 			));
 		}, "`grid gap auto` is `repeat(auto-fit, minmax(min(var(--column), 100%), 1fr))` — a responsive card wall with no media query. Resize the window.");

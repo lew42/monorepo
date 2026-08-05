@@ -13,12 +13,14 @@ export default new Page({
 
 		md("The label *wraps* its control, so the whole thing is a click target with no `for`/`id` pair to keep in sync. Everything else is the base theme: `input` already fills its container and already has padding and a border.");
 
+		md("The message is **body size, not `h4`**. `h4` is the scale's small level and it is `text-transform: uppercase`, so an error written with it SHOUTS — and the scale has nothing else below body. That gap is on the findings list.");
+
 		demo(() => {
 			div.c("flex v gap", () => {
 				label.c("flex v", () => {
 					div.c("h4", "Branch");
 					input().attr("value", "michael/dev");
-					span.c("h4", "Lower-case, one slash.").style("color", "var(--subtle)");
+					span("Lower-case, one slash.").style("color", "var(--subtle)");
 				}).style("gap", "0.4em");
 
 				label.c("flex v", () => {

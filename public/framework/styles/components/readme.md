@@ -217,6 +217,26 @@ hardcode to replace", and today there is none — which is precisely because not
 has been able to express it. Two components wanting it is not yet the bar; a diff
 view, a test report or a deploy log would settle it immediately.
 
+### 2 of 12: there is no small body level, so help text shouts
+
+```css
+h4, .h4 { font-size: 0.8em; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+```
+
+`h4` is the scale's small level and it is an **uppercase annotation**. That is
+exactly right for a field label and exactly wrong for the error message under it:
+`field` first rendered `THAT ADDRESS IS MISSING A DOMAIN.`, which reads as an alarm
+rather than as help. Below body there is nothing else, and *"never invent a
+font-size"* means a component may not reach for `0.85em` either.
+
+**Verdict for now: use body size.** Slightly large is better than shouting, and
+both `field` and `tags` do it. **Not proposed as a new level** — five levels is a
+feature and a sixth invites a seventh. The honest options are a `.small` *class*
+that borrows nothing from the outline (the same trick `.h1`–`.h4` already play), or
+splitting the annotation level into size and case so `h4` without the uppercase is
+available. Recorded rather than decided: the scale is the site's most load-bearing
+decision and this section is not the place to reopen it.
+
 ### 1 of 12: no `justify-content: flex-end`
 
 The utilities name `h-center` (`center`) and `split` (`space-between`). A dialog's
@@ -277,9 +297,26 @@ row — the half more likely to be holding something wide.
 
 ---
 
-## 6. Two naming traps found while writing this
+## 6. Three traps found while writing this
 
-Neither is a bug; both cost real minutes.
+None is a bug; all three cost real minutes.
+
+- **The index calls no `toc()`, on purpose.** `toc()` collects
+  `h2, h3, .h2, .h3` outside its skip list (`.demo, .md-details, .toc, .files,
+  .tab-bar, .sidebar, .page-previews`), and the gallery renders **real components** —
+  `card`'s `h3`, `stats`'s `.h2`, `panel`'s `.h3`. Those are the insides of an
+  example, not sections of the page, so the rail read
+  *View · 3 · 0 · 16 · Delete branch?* above the four real headings.
+
+  Everywhere else on the site this cannot happen, because every example is inside a
+  `.demo` and `.demo` is skipped. A gallery is the one shape that renders live
+  markup *outside* a demo. Options were: add the gallery's class to `toc`'s skip
+  list (an ext learning about a docs page — wrong direction); wrap the gallery in
+  `.page-previews` purely for the side effect (a class used for what it is *not*,
+  which is the black magic the house rules forbid); or drop the rail. **A wrong rail
+  is worse than none**, so the rail is dropped and this is written down. If a second
+  gallery ever appears, the fix belongs in `toc()` — probably *"skip anything inside
+  an element that carries a heading-as-class"*, or a `skip` option on the call.
 
 - **On a column, `h-center` centers *vertically*.** `.flex.h-center` is
   `justify-content: center` and `.flex.v-center` is `align-items: center`, so the
@@ -293,6 +330,14 @@ Neither is a bug; both cost real minutes.
   or an `h3` dropped into any of these components has no stray UA margin, and it is
   why `flex v` + a gap is a complete rhythm system for a component. The `.grid`
   twin exists for the same reason.
+
+- **`framework.css` has no rule for `a` at all.** Every styled link on the site is
+  styled by the component that emits it — `.page-preview`, `.tab`, `.nav-link`,
+  `.page-link` — so a link a component *doesn't* claim is UA blue and underlined.
+  `card`'s CTA therefore names its own colour (`var(--prim)`, a token) and the
+  gallery's title links name `var(--ink)`. Not a complaint: an unstyled `a` is a
+  visible reminder that a link's colour is a decision, and the alternative is a base
+  rule every theme then has to fight. It is the other half of the `.btn` finding.
 
 ---
 
@@ -342,10 +387,12 @@ ten pages, they merge.
   it still marks; the card no longer does. A `.page-preview` variant that is a
   container rather than a link would fix both sections at once, and neither section
   should invent it alone.
-- **`stats` at `--column: 7em` wraps to two columns inside a gallery cell** and
+- **`stats` at `--column: 9em` wraps to two columns inside a gallery cell** and
   four on its own page. That is `grid auto` doing its job, but it means the gallery
   is not showing quite the same arrangement the page shows. Left alone: a card wall
-  that reflowed would be lying about being responsive.
+  that reflowed would be lying about being responsive. (`7em` was the first value
+  and it gave 3 + 1 in a cell — an orphan tile. The token is a knob; this is what
+  turning it looks like.)
 - **Nothing here is imported by the framework**, which is what makes the look
   allowed (§2). If any of these ever graduates into `core/`, the look has to leave
   it — layout in the module, the rest via tokens the implementor sets.

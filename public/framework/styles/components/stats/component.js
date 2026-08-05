@@ -10,4 +10,4 @@ export default () => div.c("grid gap auto", () => stats.forEach(([label, value])
 		div.c("h4", label).style("color", "var(--subtle)");
 		div.c("h2", value);
 	}).style({ ...surface, gap: "0.1em" })
-)).style("--column", "7em");
+)).style("--column", "9em");

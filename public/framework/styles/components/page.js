@@ -1,4 +1,4 @@
-import { Page, md, demo, div, a, span, icon, code, details, summary, toc } from "/app.js";
+import { Page, md, demo, div, a, span, icon, code, details, summary } from "/app.js";
 
 import table from "./table/component.js";
 import field from "./field/component.js";
@@ -36,33 +36,34 @@ export default new Page({
 	// string of NAMES and the gallery below cannot disagree with the sidebar.
 	initialize(){ this.load_all_children(); },
 
+	/* No toc() on this page, and it is not an oversight. `toc()` scans for
+	 * `h2, h3, .h2, .h3` outside its skip list, and the gallery renders REAL
+	 * components — `card`'s `h3`, `stats`'s `.h2`, `panel`'s `.h3`. Those are the
+	 * insides of an example, not sections of this page, so the rail read
+	 * "View · 3 · 0 · 16 · Delete branch?" above the four real headings. A wrong
+	 * rail is worse than none. On the design record. */
 	content(){
 
-		toc();
+		// The gallery IS the page. Placed synchronously, then redrawn when the twelve
+		// pages land — so the labels sharpen from names to titles and the icons
+		// arrive. Same shape as Page.previews(), for the same reason.
+		div.c("grid gap auto", $gallery => {
+			this.cells();
 
-		// The gallery IS the page. Each cell renders the component's own function —
-		// full size, no zoom, because a component is already small.
-		div.c("grid gap auto", () => this.children.forEach((page, name) => {
-			const nav = this.nav_for(name);
-
-			// A `div`, not an `a`: half of these contain links and buttons of their
-			// own, and an anchor inside an anchor is invalid and swallows the click.
-			// The title carries the url instead, and `.page-link` still gets its
-			// `.active` marking from Router.mark_links().
-			div.c("flex v", () => {
-				a.c("page-link flex v-center", () => {
-					icon(nav.icon);
-					span(nav.label);
-				}).href(nav.url).style({ textDecoration: "none", gap: "0.4em" });
-
-				// `h-center` on a COLUMN is justify-content, so it centers vertically and
-				// leaves the child full width — which `v-center` would not. See readme.md §6.
-				div.c("pad flex v h-center", gallery[name])
-					.style({ ...surface, minWidth: "0", overflowX: "auto", minHeight: "6em" });
-			}).style({ gap: "0.5em", minWidth: "0" });
-		})).style("--column", "20em");
+			// The redraw builds links AFTER Router.mark() has run, so they missed the
+			// pass — `crumbs` is a whole component whose point is being marked. Same
+			// call Page.tabs() makes for the same reason.
+			this.loading?.then(() => {
+				$gallery.empty(() => this.cells());
+				this.app?.router?.mark_links();
+			});
+		}).style("--column", "20em");
 
 		md("Every cell above is a **live render** of the same function its page documents. **Eleven of the twelve ship no CSS**; the twelfth is [Tooltip](/framework/styles/components/tooltip/), and it needs five rules for a reason worth reading.");
+
+		// The compact index, and the one thing the gallery cannot do: a `.page-preview`
+		// is an anchor, so Router.mark_links() marks the card you are heading to.
+		this.previews();
 
 		md("## Utilities go a long way");
 
@@ -74,7 +75,7 @@ export default new Page({
 
 		md("## The findings");
 
-		md("A component that needs a rule is a finding, not a failure — and so is a component that needs the same *inline* declaration over and over. Ranked by how many of the twelve wanted it:\n\n| # | wanted | today you write | verdict |\n| --- | --- | --- | --- |\n| **9** | a gap under `1em` | `.style(\"gap\", \"0.4em\")` | `.gap` is a hardcoded `1em` and reads no token. The strongest candidate by far: a `.gap-sm`, or `gap: var(--gap, 1em)` |\n| **7** | a fill + hairline + radius | `surface` in `parts.js` | **keep as is** — a look is not a stylesheet's business at rung 4 |\n| **4** | `text-decoration: none` on a link | `btn` in `parts.js` | a bug report about `framework.css`: `.btn` should finish the job |\n| **2** | a status colour | not possible | the token set has **one** accent — no `--ok` / `--warn` / `--bad` |\n| **1** | `justify-content: flex-end` | `.flex.reverse`, or inline | a `.flex.end` utility. `reverse` works but reverses DOM order too |\n| **1** | `text-align: right` for a numeric column | inline, per cell | no alignment utilities exist at all |\n| **1** | an input with no border | inline, over `@layer theme` | a `.bare` opt-out in `util`. The section's **only** override of `framework.css` |\n| **1** | `min-width: 0` in a grid cell | inline | `.basis` already carries it and `.flex-1` does not — the asymmetry is the bug |\n\nNone of these is applied: this section may not edit `framework.css`. The reasoning for each, and the four components that were dropped, is on the record below.");
+		md("A component that needs a rule is a finding, not a failure — and so is a component that needs the same *inline* declaration over and over. Ranked by how many of the twelve wanted it:\n\n| # | wanted | today you write | verdict |\n| --- | --- | --- | --- |\n| **9** | a gap under `1em` | `.style(\"gap\", \"0.4em\")` | `.gap` is a hardcoded `1em` and reads no token. The strongest candidate by far: a `.gap-sm`, or `gap: var(--gap, 1em)` |\n| **7** | a fill + hairline + radius | `surface` in `parts.js` | **keep as is** — a look is not a stylesheet's business at rung 4 |\n| **4** | `text-decoration: none` on a link | `btn` in `parts.js` | a bug report about `framework.css`: `.btn` should finish the job |\n| **2** | a status colour | not possible | the token set has **one** accent — no `--ok` / `--warn` / `--bad` |\n| **2** | small body text | `h4`, which SHOUTS | the scale's small level is an uppercase annotation, so help and error text has no size to borrow |\n| **1** | `justify-content: flex-end` | `.flex.reverse`, or inline | a `.flex.end` utility. `reverse` works but reverses DOM order too |\n| **1** | `text-align: right` for a numeric column | inline, per cell | no alignment utilities exist at all |\n| **1** | an input with no border | inline, over `@layer theme` | a `.bare` opt-out in `util`. The section's **only** override of `framework.css` |\n| **1** | `min-width: 0` in a grid cell | inline | `.basis` already carries it and `.flex-1` does not — the asymmetry is the bug |\n\nNone of these is applied: this section may not edit `framework.css`. The reasoning for each, and the four components that were dropped, is on the record below.");
 
 		md("## The filler");
 
@@ -87,6 +88,29 @@ export default new Page({
 
 		md("Start at [Data table](/framework/styles/components/table/) — the component with no classes at all.");
 
-		md.details(import.meta, "readme.md", "Design record — the ladder per component, the eight findings, and what was dropped");
-	}
+		md.details(import.meta, "readme.md", "Design record — the ladder per component, the nine findings, and what was dropped");
+	},
+
+	// One cell per child, into whatever is capturing. `nav_for()` supplies the label,
+	// the icon and the url, so this list and the sidebar cannot disagree.
+	cells(){
+		this.children.forEach((page, name) => {
+			const nav = this.nav_for(name);
+
+			// A `div`, not an `a`: half of these contain links and buttons of their own,
+			// and an anchor inside an anchor is invalid and swallows the click. The
+			// title carries the url instead.
+			div.c("flex v", () => {
+				a.c("page-link flex v-center", () => {
+					if (nav.icon) icon(nav.icon);
+					span(nav.label);
+				}).href(nav.url).style({ textDecoration: "none", color: "var(--ink)", gap: "0.4em" });
+
+				// `h-center` on a COLUMN is justify-content, so it centers vertically and
+				// leaves the child full width — which `v-center` would not. readme.md §6.
+				div.c("pad flex v h-center flex-1", gallery[name])
+					.style({ ...surface, minWidth: "0", overflowX: "auto" });
+			}).style({ gap: "0.5em", minWidth: "0" });
+		});
+	},
 });

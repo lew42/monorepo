@@ -6,5 +6,8 @@ export default () => label.c("flex v", () => {
 		.attr("type", "email").attr("value", "mike@lew42")
 		.attr("aria-invalid", "true")
 		.style("borderColor", "var(--prim)");
-	span.c("h4", "That address is missing a domain.").style("color", "var(--prim)");
+
+	// Body size, NOT `h4`: the scale's small level is an uppercase annotation, and
+	// an error message that shouts is worse than one that is a touch large.
+	span("That address is missing a domain.").style("color", "var(--prim)");
 }).style("gap", "0.4em");

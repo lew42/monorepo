@@ -295,12 +295,21 @@ Found by crawling every in-app link from `/` rather than by checking a list — 
 is the only way this class of bug shows up, and the same method that caught
 `/notes/git-branch-names.page.js` last time.
 
-**None of `alex/`, `castin/`, `edric/` or `michael/` declares `children` on its index
-page.** Since declaring *is* the registration, every subpage under them 404s while
-still being linked from the page above it. Measured: 13 broken routes reachable in one
-crawl, and 40 `page.js` files that no parent names. `michael/branding/page.js` also
-calls `app.nav()`, which no longer exists — so it would render a load error rather
-than a page even once it was reachable.
+**`alex/`, `arya/`, `castin/` and `edric/` declare no `children` on their index
+pages.** Since declaring *is* the registration, every subpage under them 404s while
+still being linked from the page above it. Measured: **13 broken routes** reachable in
+one crawl, across 48 `page.js` files that no parent names.
+
+`michael/` is the exception and shows what the fix looks like — `children: [pageDoc,
+elements, layout, …]`, an eager array, so its 29 pages all resolve. One of them,
+`michael/branding/page.js`, still calls `app.nav()`, which no longer exists, so it
+renders a load error rather than a page; that one is a stale call, not a routing
+problem.
+
+> Corrected: an earlier version of this section said *none* of the four sandboxes
+> declared children, michael included. That came from a `grep` whose output was
+> truncated by a `head` — the claim was wrong in the direction of alarming, which is
+> the direction a design record must not be wrong in. Re-measured per directory.
 
 **Deliberately not fixed here.** These are other people's sandboxes, the fix is a
 judgement call per directory (some of that content is dead and should be deleted, not
