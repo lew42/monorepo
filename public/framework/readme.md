@@ -316,9 +316,23 @@ judgement call per directory (some of that content is dead and should be deleted
 declared), and restoring reachability would turn some 404s into visible load errors.
 It is a conversation, not a silent edit.
 
-**The reusable part is the method.** A crawl that follows links and asserts
-`.active-page === 1` finds every unreachable-but-linked page in one pass, and no
-amount of reading finds any of them. Worth running before anything ships.
+**The reusable part is the method, and there are two halves to it.** Both are
+scratch scripts rather than repo scripts — a work-in-progress check doesn't earn an
+npm script — but the ideas are what matter:
+
+- **Crawl the links.** Follow every in-app anchor from `/` and assert
+  `.active-page === 1` per route. This finds every unreachable-but-linked page in one
+  pass, and no amount of reading finds any of them. Retry each route once: a shared
+  browser page under load produces `networkidle` races that look exactly like real
+  failures, and five false alarms in one run is enough to make you stop trusting the
+  green.
+- **Audit the tree.** Walk `page.js` files on disk and check each one is named in its
+  parent's `children`. This is the *inverse* question — the crawl finds pages nothing
+  links to, the audit finds pages nothing declares — and it needs no browser.
+
+Run against `/framework/` today: **every page is declared by its parent**, and the
+only "undeclared" directory is `start/example/`, which is deliberate (it is a fetched
+doc fixture, not a route — see `ext/files/readme.md` §1).
 
 ## Fixed since the last pass
 

@@ -256,7 +256,12 @@
     background-origin: content-box;
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='40' fill='%23555'><polygon points='0,0 60,0 30,40'/></svg>"); }
 
+    /* `.btn` exists to make a non-button look like a button, and it was leaving the
+       UA's underline and link blue on every `<a class="btn">` — so `.page-preview`,
+       `.tab` and `.nav-link` each wrote the same two declarations to undo it. Four
+       copies of one reset is the same bug report the `pre` padding was. */
     .btn, button { padding: 0.25em 1em; cursor: pointer; }
+    .btn { text-decoration: none; color: inherit; }
     a * { cursor: pointer; }
     button.bg, .btn.bg { background: var(--bg); color: white; }
     button.prim, .btn.prim { background: var(--prim); color: white; }
@@ -272,7 +277,11 @@
     .flex { display: flex; }
     .flex.wrap, .flex.auto, .flex.three { flex-wrap: wrap; }
     .flex.auto > * { flex: 1 1 var(--column); }
-    .flex-1 { flex: 1; }
+    /* `min-width: 0` because the flexbox default is `auto`, which floors a child at its
+       MIN-CONTENT — so one `<pre>` or one long word in a flexible track pushes the row
+       wider than its container instead of shrinking. `.basis` below already carried it;
+       the asymmetry was the bug, not the fix. */
+    .flex-1 { flex: 1; min-width: 0; }
 
     /* The fixed track beside a fluid one. `.flex-1` has always named the fluid half
        and nothing named the other, so five places wrote the same declaration by hand
@@ -299,7 +308,12 @@
     .grid.three { grid-template-columns: repeat(auto-fit, 
 		minmax(clamp(100% / 3 - 1rem, (var(--column)* 3 - 100%) * 999, 100%), 1fr)); }
 
-    .gap { gap: 1em; }
+    /* `--gap`, because 9 of the 12 components in styles/components/ wanted a gap
+       under 1em and had to write `gap` by hand to get one. Reads a token the same way
+       `.basis` reads `--basis`, so `div.c("flex gap").style("--gap", ".4em")` is the
+       whole adjustment. `.flow` is not a substitute — that is page rhythm, and
+       `--flow-sub` put a card's eyebrow 32px from its own title. */
+    .gap { gap: var(--gap, 1em); }
     .gap-2em { gap: 2em; }
 
     .zoom-25 { zoom: 0.25; }

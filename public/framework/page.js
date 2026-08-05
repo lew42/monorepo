@@ -4,6 +4,7 @@ export default new Page({
 	meta: import.meta,
 	title: "Framework",
 	description: "A no-build, native-ESM web framework — read the code, get it.",
+	icon: "widgets",
 
 	// I bring my own navigation, so the global one is noise while you're in here.
 	// Inert: /styles.css decides what the class means, and Router.mark() unsets it.

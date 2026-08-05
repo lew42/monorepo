@@ -89,7 +89,33 @@ a stale highlight happens, so the spy uses its own word.
 
 ---
 
-## 6. Open
+## 6. A gallery of live components defeats the skip list
+
+Found while building `styles/components/`, and worth knowing before someone hits it
+again.
+
+`fill()` collects `h2, h3, .h2, .h3` and excludes anything inside
+`.demo, .md-details, .toc, .files, .tab-bar, .sidebar, .page-previews`. That list
+works because **every example on this site is inside a `demo()`** — a rendered
+heading is always part of an example, and an example is always skipped.
+
+A **gallery** breaks that assumption: it renders real components directly on the
+page, outside any demo. The components index's rail read
+*View · 3 · 0 · 16 · Delete branch?* — a card's `h3`, a stat tile's `.h2`, a panel's
+`.h3` — above the four headings that were actually sections.
+
+**Options.** (a) Add a `.gallery` class to the skip list — the ext learns about a
+docs-page concept it has no business knowing. (b) Use `.page-previews` for the
+gallery so the existing skip covers it — borrowing a class for a side effect, which
+is the naming rule inverted. (c) Don't call `toc()` on a gallery page.
+
+**Verdict: (c), for now.** One page, one line not written, and the rail was the least
+useful thing on a page that is itself an index. Recorded rather than fixed because
+the right fix depends on how many galleries there turn out to be: **at two, it
+belongs in `toc()`** — and the honest shape then is an explicit opt-out on the
+container (`div.c("toc-skip")`), not another guess at what docs pages look like.
+
+## 7. Open
 
 - **No `h4`.** The scale's `h4` is an uppercase annotation, not a section, and
   including it made the rail read as a list of labels. If a page ever wants three
