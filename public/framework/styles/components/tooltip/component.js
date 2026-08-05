@@ -27,6 +27,6 @@ export default () => div.c("flex v gap", () => {
 
 	div(() => {
 		span("And held open by a class, so a screenshot can see it: ");
-		tip("shown", "The same bubble, with .shown standing in for :hover.").ac("shown");
+		tip("shown", "Held open by .shown.").ac("shown");
 	});
 });

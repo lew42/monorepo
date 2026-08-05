@@ -69,6 +69,11 @@
 
         --radius: 0.5em;
 
+        /* The one error colour, paired. Replaces `#c00` hardcoded in md.css and
+           demo.css and a near-copy in highlight.css — three files with an opinion
+           about one state, and none of them readable on a dark surface. */
+        --error: light-dark(#c00, #ff7b72);
+
         /* rhythm — how far apart stacked blocks sit. Consumed by the flow rules
            in Page.css; `rem` so a theme retuning the type scale can't move them. */
         --flow: 1.25rem;          /* between blocks */
@@ -109,7 +114,13 @@
         outline-offset: 3px;
     }
 
-    html { height: 100%; scrollbar-color: rgba(0, 0, 0, 0.2) transparent; }
+    /* Paired, so the thumb doesn't vanish in dark mode. It was a bare
+       `rgba(0,0,0,0.2)` and is on styles/readme.md's eviction list for having no
+       token behind it — this is the smaller half of that fix. */
+    html {
+        height: 100%;
+        scrollbar-color: light-dark(rgba(0,0,0,0.2), rgba(255,255,255,0.25)) transparent;
+    }
 
     /* `height`, NOT `min-height`, and this one bites: a percentage height resolves
        against the parent's HEIGHT, and `min-height` doesn't give body one — so

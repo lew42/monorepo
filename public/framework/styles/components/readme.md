@@ -204,18 +204,22 @@ themselves, and so does `.nav-link` in `/styles.css`. Four independent copies of
 declaration is the same shape as the `pre` padding case that is already on the
 eviction list.
 
-### 2 of 12: there is one accent and no status axis
+### 2 of 12: the status axis is a third done
 
-`--prim --bg --ink --subtle --surface --line --wash` — nothing means *good*, *warn*
-or *bad*. So `badge` honestly offers neutral / accent / dark / outline, `alert`
-offers two tones, and green-for-passing is not available to a component, because
-naming a colour is the thing a component may not do.
+`--prim --bg --ink --subtle --surface --line --wash`, plus `--error`, which landed
+while this section was being written — to replace `#c00` hardcoded in `md.css`,
+`demo.css` and `highlight.css`, i.e. for *error boxes*, not for components. Nothing
+means *good* or *warning*. So `badge` honestly offers neutral / accent / dark /
+outline, `alert` offers two tones, and green-for-passing is not available to a
+component, because naming a colour is the thing a component may not do.
 
-**Proposal, not applied:** `--ok`, `--warn`, `--bad`, defined per theme with
-`light-dark()` like every other token. The bar for a new token is "an existing
-hardcode to replace", and today there is none — which is precisely because nothing
-has been able to express it. Two components wanting it is not yet the bar; a diff
-view, a test report or a deploy log would settle it immediately.
+**Proposal, not applied:** `--ok` and `--warn` beside `--error`, defined per theme
+with `light-dark()` like every other token. Note *how* `--error` earned its place —
+three existing hardcodes, exactly the stated bar. That is the argument for the other
+two as well and also the reason they can wait: nothing has hardcoded a green yet,
+because nothing has been able to. Two components wanting it is not the bar; a diff
+view, a test report or a deploy log would settle it immediately, and `--error`
+having arrived first is the template for how.
 
 ### 2 of 12: there is no small body level, so help text shouts
 
@@ -330,6 +334,13 @@ None is a bug; all three cost real minutes.
   or an `h3` dropped into any of these components has no stray UA margin, and it is
   why `flex v` + a gap is a complete rhythm system for a component. The `.grid`
   twin exists for the same reason.
+
+- **`flex-1` on an `input` collapses it, and `wrap` cannot save it.** `flex: 1` is
+  `flex: 1 1 0%`, so in a tight row the basis is zero and the field shrinks to a
+  couple of pixels rather than dropping to the next line — which is exactly what
+  `toolbar` did inside a gallery cell. A `min-width` is what gives `wrap` something
+  to act on. Not a missing utility, just flexbox: recorded because the symptom
+  (a 2px input) looks like a broken component and the cause is one property away.
 
 - **`framework.css` has no rule for `a` at all.** Every styled link on the site is
   styled by the component that emits it — `.page-preview`, `.tab`, `.nav-link`,

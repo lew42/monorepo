@@ -618,11 +618,40 @@ decision that already exists, it doesn't invent one.
 look, and a theme has to be able to change it by loading later; in `base` it
 couldn't be reached without out-specifying a layer.
 
-**Known gap, tracked in `theme/guide/readme.md` §7:** `:root` pins
-`color-scheme: light`, so dark mode is defined but not honest — components still
-hardcode `#fff` and `rgba(0,0,0,…)`. Rewiring them to `var(--surface)` /
-`var(--line)` is mechanical, touches six stylesheets, and wants a visual pass.
-It is the highest-value thing left in this directory.
+### 12a. Dark mode: the honest half is done, the switch is not thrown
+
+The gap used to read: *"`:root` pins `color-scheme: light`, so dark mode is defined
+but not honest — components still hardcode `#fff` and `rgba(0,0,0,…)`."*
+
+**What was actually blocking it was the syntax palette, and it was worse than a
+hardcode.** `ext/highlight`'s ten `--syn-*` tokens were light-only, while
+`--code-bg` falls back to `--wash`, which **is** mode-aware. So a dark page would
+have got a dark code box with `#cf222e` keywords painted on it — not a wrong shade,
+an unreadable one. A half-mode-aware token set is worse than a fully light one,
+because the failure is invisible until you flip the switch.
+
+Paired with `light-dark()`, so a token cannot exist in one mode and go missing in
+the other:
+
+| | |
+|---|---|
+| the ten `--syn-*` | GitHub Light / GitHub Dark |
+| `scrollbar-color` | the thumb no longer vanishes on a dark page |
+| **`--error`, new** | replaced `#c00` in `md.css`, `demo.css` and a near-copy in `highlight.css` — three files with an opinion about one state, none readable on a dark surface |
+
+**`:root { color-scheme: light }` was deliberately left alone**, and that is the
+point of stopping here. Flipping it makes every visitor's OS setting change what
+the site looks like — a taste decision with a visual pass attached, and not one to
+make on the way past. The work that had to be true *first* is now true, so the
+switch is one word instead of a project.
+
+**Measured no-op today:** `theme-lew42` already overrides all ten `--syn-*`, so the
+painted keyword colour is unchanged (`#FF8F60` before and after). What improved is
+the site that loads **no theme** — which is the whole thing this section is about.
+
+Still open, and smaller than it was: `Page.css`'s `box-shadow: rgba(0,0,0,0.08)` on
+a hover, and `/styles.css`'s `body.theme-1` block, which is legacy with real
+consumers.
 
 ---
 

@@ -1,6 +1,8 @@
 import { div, p, icon } from "/app.js";
 import { surface } from "../parts.js";
 
+// The tone arrives as a token NAME, so the component contains no colour and works
+// in a theme it has never met.
 const note = (tone, glyph, heading, body) => div.c("pad flex gap", () => {
 	icon(glyph).style("color", `var(${tone})`);
 	div.c("flex v", () => {
@@ -10,6 +12,9 @@ const note = (tone, glyph, heading, body) => div.c("pad flex gap", () => {
 }).style({ ...surface, borderLeft: `3px solid var(${tone})` });
 
 export default () => div.c("flex v gap", () => {
-	note("--prim", "info", "Heads up", "Capturing is synchronous — never build DOM after an `await`.");
-	note("--subtle", "lightbulb_outline", "Worth knowing", "A stylesheet that 404s resolves and warns; the page renders unstyled.");
+	note("--prim", "info", "Heads up",
+		"Never build DOM after an `await` — capturing is synchronous.");
+
+	note("--subtle", "lightbulb_outline", "Worth knowing",
+		"A stylesheet that 404s resolves and warns, and the page renders unstyled.");
 });

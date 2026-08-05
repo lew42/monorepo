@@ -90,5 +90,5 @@
 		border-top: 1px solid var(--line);
 	}
 
-	.demo-error { padding: 0.8em 1em; color: #c00; border-color: #c00; }
+	.demo-error { padding: 0.8em 1em; color: var(--error); border-color: var(--error); }
 }

@@ -14,7 +14,7 @@ export default new Page({
 
 		md("## Three tones, not five");
 
-		md("The token set has **one accent**. `--prim`, `--bg`, `--wash`, `--subtle`, `--surface`, `--line` — no success, no warning, no danger. So a badge honestly offers *neutral*, *accent*, *dark* and *outline*, and a component that wants green-for-passing has to name a colour, which is the thing a component may not do.\n\nThat is a finding, not a workaround: **the framework is missing a status axis.** Three tokens (`--ok`, `--warn`, `--bad`) would give every alert, badge, meter and diff row on a future site the same vocabulary. On the [design record](/framework/styles/components/).");
+		md("The token set has **one accent**. `--prim`, `--bg`, `--wash`, `--subtle`, `--surface`, `--line` — plus `--error`, which arrived for `.md-error` and friends rather than for components. Nothing means *good* or *warning*. So a badge honestly offers *neutral*, *accent*, *dark* and *outline*, and one that wants green-for-passing has to name a colour, which is the thing a component may not do.\n\nThat is a finding, not a workaround: **the status axis is a third done.** `--error` is the `bad` end of it; `--ok` and `--warn` would finish it and give every badge, alert, meter and diff row on a future site the same vocabulary. On the [design record](/framework/styles/components/).");
 
 		md("## Composed, not configured");
 

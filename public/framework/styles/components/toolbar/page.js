@@ -15,7 +15,7 @@ export default new Page({
 
 		md("`split` is `justify-content: space-between`, which spreads *three* groups into thirds and leaves the field its intrinsic width. `flex-1` on the one element that should absorb the slack does the right thing with any number of groups, and it also fixes the input: `framework.css` makes every text input `width: 100%`, which inside a flex row means \"as wide as you can\" — `flex: 1` overrides the basis and it behaves.");
 
-		md("`wrap` is the other half. At a narrow width the groups drop onto their own lines instead of crushing, with **no media query** — the same intrinsic behaviour `grid auto` uses.");
+		md("`wrap` is the other half, and it needs one thing from you: `flex: 1` is `flex-basis: 0`, so in a tight row the field **collapses to nothing** rather than dropping to the next line. A `min-width` on it is what gives `wrap` something to act on — and then the groups reflow at any width with **no media query**, the same intrinsic behaviour `grid auto` uses.");
 
 		md("## A button group");
 

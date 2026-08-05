@@ -15,17 +15,25 @@
    page or a body theme class can restyle without touching selectors. */
 @layer theme {
 
+    /* GitHub Light / GitHub Dark, paired with `light-dark()` so a token cannot exist
+       in one mode and go missing in the other.
+
+       These were light-only, and they were the real thing blocking honest dark mode:
+       `--code-bg` falls back to `--wash`, which IS mode-aware — so a dark page got a
+       dark code box with `#cf222e` keywords on it, which is unreadable. `:root` still
+       pins `color-scheme: light` in framework.css, so nothing changes today; this is
+       the half that had to be true first. See styles/readme.md §12. */
     :root {
-        --syn-comment:  #6e7781;
-        --syn-keyword:  #cf222e;   /* const, if, return, @media */
-        --syn-string:   #0a3069;   /* strings, regex, attr values */
-        --syn-number:   #0550ae;   /* numbers, literals, booleans */
-        --syn-fn:       #8250df;   /* function + class names */
-        --syn-builtin:  #953800;   /* built-ins, types, variables, params */
-        --syn-tag:      #116329;   /* tag names, selectors, md headings */
-        --syn-attr:     #0550ae;   /* attributes, object keys, css props */
-        --syn-meta:     #6e7781;   /* doctype, shebang, punctuation */
-        --syn-error:    #c00;      /* the fetch-failed message */
+        --syn-comment:  light-dark(#6e7781, #8b949e);
+        --syn-keyword:  light-dark(#cf222e, #ff7b72);   /* const, if, return, @media */
+        --syn-string:   light-dark(#0a3069, #a5d6ff);   /* strings, regex, attr values */
+        --syn-number:   light-dark(#0550ae, #79c0ff);   /* numbers, literals, booleans */
+        --syn-fn:       light-dark(#8250df, #d2a8ff);   /* function + class names */
+        --syn-builtin:  light-dark(#953800, #ffa657);   /* built-ins, types, params */
+        --syn-tag:      light-dark(#116329, #7ee787);   /* tag names, selectors, md headings */
+        --syn-attr:     light-dark(#0550ae, #79c0ff);   /* attributes, object keys, css props */
+        --syn-meta:     light-dark(#6e7781, #8b949e);   /* doctype, shebang, punctuation */
+        --syn-error:    var(--error);                   /* the fetch-failed message */
     }
 
     /* --- the containers ---------------------------------------------------
@@ -48,7 +56,10 @@
 
     /* A token like the rest: a site with dark code blocks needs this readable
        too, and should not have to reach past a selector to get there. */
-    .code-error { color: var(--syn-error); background: rgba(204,0,0,0.06); }
+    .code-error {
+        color: var(--syn-error);
+        background: color-mix(in srgb, var(--syn-error) 8%, transparent);
+    }
 
     /* --- the tokens -------------------------------------------------------
        Grouped by what they mean, not by which grammar emits them: one color

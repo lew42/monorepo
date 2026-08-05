@@ -21,7 +21,7 @@
  */
 @layer theme {
 
-    .md-error { color: #c00; }
+    .md-error { color: var(--error); }
 
     /* md.details — the technical record, one click away and out of the way.
        Generic enough to want extracting into a `core/Details/` component the
