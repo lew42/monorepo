@@ -58,6 +58,45 @@ function arrow_at(src){
 	return -1;
 }
 
+/* member(Class, name) — hold a class member's function WITHOUT calling it.
+ *
+ * `Class.prototype[name]` **executes a getter**. `App.get loaded()` builds a
+ * `Promise.all`; read it off a bare prototype, where the instance state it
+ * expects doesn't exist, and it throws "undefined is not iterable" before you
+ * ever reach toString(). A descriptor is the only way to get an accessor's
+ * function in your hand rather than its result.
+ *
+ * Statics live on the constructor, so both are searched — prototype first,
+ * because that is what a reader means by "a method".
+ *
+ * Stringify with `dedent(String(fn))`, NOT `source(fn)`: source() strips
+ * everything before the first `{`, which for a shorthand method throws away
+ * `append(...args)` — the one line a reader navigating "View → append" needs to
+ * confirm they're looking at the right thing. That stripping is correct for
+ * `demo(fn)` and `code.fn(fn)`, whose subject is an anonymous function nobody
+ * needs a signature for. It is wrong here.
+ */
+export function member(Class, name){
+	const own = Object.getOwnPropertyDescriptor(Class.prototype, name)
+	         ?? Object.getOwnPropertyDescriptor(Class, name);
+
+	const fn = own && (own.value ?? own.get ?? own.set);
+
+	return typeof fn === "function" ? fn : null;
+}
+
+/* Has this member been replaced at runtime by an ext?
+ *
+ * A shorthand method (`append(...args){}`) carries its own name. A patch —
+ * `View.prototype.append = function(...args){…}` — does not: JS infers a
+ * function's name from assignment to an *identifier*, never from assignment to
+ * a member expression, so the replacement's `.name` is "".
+ *
+ * Not a defect to hide. `ext/highlight` really does replace `View.append`, and a
+ * doc page that quietly showed the original would be lying about what runs.
+ */
+export function patched(fn, name){ return fn.name !== name; }
+
 // remove the leading blank line and the common indent of the remaining lines,
 // so a body nested three tabs deep in a page.js reads as top-level code
 export function dedent(src){

@@ -80,7 +80,7 @@ export default function() {
             });
         }).style({ background: "var(--bg)", color: "white", "border-radius": "0.3em" });
 
-        app.loaded.then(() => console.log("Quick Notes ready"));
+        app.loaded().then(() => console.log("Quick Notes ready"));
 
         pre(`div.c("pad", () => {
     h2("Quick Notes").style("color", "var(--prim)");
@@ -102,7 +102,7 @@ export default function() {
     });
 }).style({ background: "var(--bg)", color: "white", "border-radius": "0.3em" });
 
-app.loaded.then(() => console.log("Quick Notes ready"));`).ac("pad mb").style({ background: "var(--bg)", color: "white", "border-radius": "0.3em" });
+app.loaded().then(() => console.log("Quick Notes ready"));`).ac("pad mb").style({ background: "var(--bg)", color: "white", "border-radius": "0.3em" });
 
         p("`img()`, `textarea()`, `button()`, `ul()`/`li()`, `.style()`, `.ac()`, and `app.loaded` are all `View`/`App` (Framework). `\"btn prim\"`, `\"uppercase\"`, `\"auto\"`, `\"flex\"` are all `framework.css` classes (Style).").ac("mb");
 

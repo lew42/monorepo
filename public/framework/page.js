@@ -1,4 +1,4 @@
-import { Page, div, a, md, pre } from "/app.js";
+import { Page, div, a, span, icon, md, pre, code } from "/app.js";
 
 export default new Page({
 	meta: import.meta,
@@ -12,17 +12,21 @@ export default new Page({
 	// Lazy: names, not imports. Nothing below here loads until you walk to it.
 	children: "start core ext styles util dev",
 
-	// A label belongs to the parent's LIST and is there from the start; a title
-	// belongs to a page and only exists once that page is imported. Deriving the
-	// nav from titles would make it read differently depending on where you came
-	// from — the same bug tab bars already refuse.
-	labels: {
-		start: "Start here",
-		core: "Core",
-		ext: "Extensions",
-		styles: "Styles",
-		util: "Utilities",
-		dev: "Dev server",
+	/* A label belongs to the parent's LIST and is there from the start; a title
+	 * belongs to a page and only exists once that page is imported. Deriving the
+	 * nav from titles would make it read differently depending on where you came
+	 * from — the same bug tab bars already refuse.
+	 *
+	 * An icon is the same kind of thing, which is why it lives here and not on
+	 * the page: it names this ENTRY in this menu. So it costs no import, and
+	 * `previews()` below draws a complete card for a page that hasn't loaded. */
+	nav: {
+		start:  { label: "Start here", icon: "flag" },
+		core:   { label: "Core",       icon: "dashboard" },
+		ext:    { label: "Extensions", icon: "extension" },
+		styles: { label: "Styles",     icon: "palette" },
+		util:   { label: "Utilities",  icon: "build" },
+		dev:    { label: "Dev server", icon: "terminal" },
 	},
 
 	/* A LAYOUT, not a content page — so it builds its own wrapper and the `.page`
@@ -38,9 +42,16 @@ export default new Page({
 				// logo goes home; the wordmark is this section's own url
 				this.app.brand(this.title, this.url);
 
-				// names only — reading `children` imports nothing
-				this.children.forEach((page, name) =>
-					a.c("nav-link", this.labels[name] ?? name).href(this.url + name + "/"));
+				// names only — reading `children` imports nothing. nav_for() is the
+				// one place that decides how a child is presented, so this bar and
+				// the preview cards below can't disagree.
+				this.children.forEach((page, name) => {
+					const nav = this.nav_for(name);
+					a.c("nav-link").href(nav.url).append(() => {
+						if (nav.icon) icon(nav.icon);
+						span(nav.label);
+					});
+				});
 			});
 
 			// My children mount HERE, inside my own view — so the nav beside them
@@ -53,7 +64,7 @@ export default new Page({
 
 					md("Create `/path/page.js`:");
 
-					pre(`import { p } from "/app.js";
+					code.js(`import { p } from "/app.js";
 
 p("Hello world.")`);
 

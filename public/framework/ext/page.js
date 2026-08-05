@@ -1,21 +1,22 @@
-import { Page, md, pre } from "/app.js";
+import { Page, md, pre, code } from "/app.js";
 import markdown from "./markdown/page.js";
 import demo from "./demo/page.js";
 import highlight from "./highlight/page.js";
+import classdoc from "./classdoc/page.js";
 
 export default new Page({
 	meta: import.meta,
 	title: "Ext",
 	description: "Opt-in addons. They may extend core; core never depends on them.",
 	col: "narrow",
-	children: [markdown, demo, highlight],
+	children: [markdown, demo, highlight, classdoc],
 	content(){
 
-		pre(`import md from "/framework/ext/markdown/md.js";`);
+		this.previews();
+
+		code.js(`import md from "/framework/ext/markdown/md.js";`);
 
 		md("Opting in is an import. Nothing else.");
-
-		this.previews();
 
 		md("Addons are allowed to do what core won't: patch `View`, bring a vendored dependency, ship their own CSS. Two rules — **core never imports an ext**, and **vendor the dependency** (a CDN import would make every render wait on someone else's uptime).");
 

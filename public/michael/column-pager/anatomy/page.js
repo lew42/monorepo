@@ -1,10 +1,13 @@
-import { Page, p, pre, h3 } from "/app.js";
+import { Page, md, p, pre, h3 } from "/app.js";
 
 export default new Page({
 	meta: import.meta,
 	title: "Anatomy",
 	description: "sidebar / breadcrumbs / columns.",
 	content(){
+
+		md("> **This class has left core.** `Pager`, `TabPager` and `ColumnPager` now live in `framework/core/legacy/` and `/app.js` no longer exports them. An arrangement is a CSS class a page opts into — see [Page](/framework/core/Page/). The examples below still run, against the legacy class, imported directly.");
+
 		p("Look around this page — every part is the ColumnPager reading the tree:");
 
 		h3("Sidebar");

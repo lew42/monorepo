@@ -1,4 +1,4 @@
-import { Page, ColumnPager, p, View, a } from "/app.js";
+import { Page, p, div, a, h1, View, md } from "/app.js";
 import elements from "./elements/page.js";
 import layout from "./layout/page.js";
 import components from "./components/page.js";
@@ -10,8 +10,7 @@ import pagerDoc from "./pager/page.js";
 import columnPagerDoc from "./column-pager/page.js";
 import routerDoc from "./router/page.js";
 
-// michael-specific doc styles (demo boxes, cards); the generic layout CSS
-// (ColumnPager.css) is loaded by the ColumnPager class itself.
+// michael-specific doc styles (demo boxes, cards).
 View.stylesheet(import.meta, "styles.css");
 
 export default new Page({
@@ -20,9 +19,22 @@ export default new Page({
 	description: "A live, categorized tour of the framework's essential styles.",
 	children: [pageDoc, pagerDoc, columnPagerDoc, routerDoc, elements, layout, components, sections, branding],
 
-	// this topic renders its subtree as drill-down columns
-	pager(){
-		return new ColumnPager({ root: this, app: this.app });
+	// Its own nav beside its own region — the shape /framework/ uses. The
+	// ColumnPager that used to arrange this subtree is in core/legacy/.
+	classes: "hides-nav",
+
+	render(){
+		return this.view ??= div.c("page topic", () => {
+			div.c("section-nav", () => {
+				this.app.brand("Michael", "/michael/");
+				this.children.forEach((page, name) =>
+					a.c("nav-link", page?.title ?? name).href(this.url + name + "/"));
+			});
+
+			this.$pages = div.c("pages papers", () => {
+				div.c("default", () => { h1.c("page-title", this.title); this.content(); });
+			});
+		}).ac(this.classes);
 	},
 
 	content(){

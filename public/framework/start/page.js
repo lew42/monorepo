@@ -1,4 +1,4 @@
-import { Page, md, h2, pre } from "/app.js";
+import { Page, md, h2, pre, code } from "/app.js";
 
 export default new Page({
 	meta: import.meta,
@@ -15,7 +15,7 @@ export default new Page({
 
 		h2("index.html");
 
-		pre(`<!doctype html>
+		code.html(`<!doctype html>
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -28,7 +28,7 @@ export default new Page({
 
 		h2("app.js");
 
-		pre(`import App from "/framework/core/App/App.js";
+		code.js(`import App from "/framework/core/App/App.js";
 
 window.app = new App();
 
@@ -38,7 +38,7 @@ export * from "/framework/core/App/App.js";`);
 
 		h2("page.js");
 
-		pre(`import { Page, p } from "/app.js";
+		code.js(`import { Page, p } from "/app.js";
 
 export default new Page({
     meta: import.meta,
@@ -51,19 +51,20 @@ export default new Page({
 		md("Open `/`. That's the site.");
 
 		h2("Add a page");
-		md("Make a file. There is no step two.");
+		md("A folder with a `page.js` in it is a url.");
 
 		pre(`public/
     page.js          →  /
     about/
         page.js      →  /about/
-        team.page.js →  /about/team`);
+        team/
+            page.js  →  /about/team/`);
 
-		md("A folder with a `page.js` is a url. A `name.page.js` beside it is `name`. The App builds the module path from the url and imports it — so pages load only when visited, and adding one registers nothing anywhere.");
+		md("Two steps, and the second is the one people forget: **make the file, then name it in its parent's `children`.** Nothing crawls the filesystem — declaring is the registration, and a page nobody declared is a 404.\n\nThat is also what makes it lazy: a `children` entry stays a *name* until someone navigates to it, and only then is it imported.");
 
 		h2("Link them");
 
-		pre(`import about from "./about/page.js";   // dormant — nothing renders
+		code.js(`import about from "./about/page.js";   // dormant — nothing renders
 
 export default new Page({
     meta: import.meta,
@@ -82,13 +83,13 @@ export default new Page({
 |---|---|
 | **no-reload navigation** | links are upgraded automatically |
 | **lazy loading** | a page's code arrives when you visit it |
-| **breadcrumbs, previews, active links** | from \`children\` |
+| **previews and active links** | from \`children\` |
 | **live reload** | while \`node server.js\` is running |
 
 None of it was configured.`);
 
 		h2("Next");
 
-		md("[View](/framework/core/View/) is the one class you'll use on every line. Then [Page](/framework/core/Page/), then [Pager](/framework/core/Pager/) when you want a layout.");
+		md("[View](/framework/core/View/) is the one class you'll use on every line. Then [Page](/framework/core/Page/), then [Router](/framework/core/Router/) when you want more than one url.");
 	}
 });

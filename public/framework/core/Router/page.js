@@ -1,4 +1,4 @@
-import { Page, md, pre } from "/app.js";
+import { Page, md, pre, code } from "/app.js";
 
 export default new Page({
 	meta: import.meta,
@@ -7,7 +7,7 @@ export default new Page({
 
 	content(){
 
-		pre(`<a href="/docs/intro/">Intro</a>`);
+		code.html(`<a href="/docs/intro/">Intro</a>`);
 
 		md("That is the whole API. The Router upgrades the click — no reload — and hands the url to the browser only if it genuinely doesn't resolve.");
 

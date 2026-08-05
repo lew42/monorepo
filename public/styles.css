@@ -83,6 +83,14 @@
     .page.topic.active-page,
     .page.topic.active-ancestor:has(.page.active-page) { display: flex; }
 
+    /* nav-link became a row when `nav` icons landed — icon leads, label takes
+       the rest, so labels align whether or not an entry declared an icon. */
+    .section-nav .nav-link { display: flex; align-items: center; gap: 0.6em; }
+    .section-nav .nav-link .icon { color: var(--subtle); }
+    .section-nav .nav-link:hover .icon,
+    .section-nav .nav-link.active .icon,
+    .section-nav .nav-link.in-path .icon { color: var(--prim); }
+
     .topic > .section-nav {
         flex: 0 0 14em; padding: 2em 1.5em; overflow-y: auto;
         border-right: 1px solid var(--line);
@@ -107,39 +115,24 @@
 
     }
 
-    /* ---- dark code blocks -----------------------------------------------
-       Two token values and no selectors. `--code-bg` / `--code-ink` are read by
-       framework.css's `pre, code`, so this reaches inline code, block code,
-       markdown fences and demo code areas at once — and `pre > code` keeps
-       doing its job, so a block never gets a box inside a box.
+    /* ---- what this file DELETED when theme-lew42 went site-wide ----------
+       A `--code-bg` / `--code-ink` / `--syn-*` block used to live here. It is
+       gone because `.theme-lew42` now supplies all twelve, and keeping both
+       would have been the trap the theme's own record warns about (§7):
 
-       Declared on `.app`, not `:root`, so a `.theme-paper` box further down can
-       still declare its own (§3).
+       layers rank declarations competing on ONE element. While the theme sat on
+       a nested `div.theme-lew42` it won by proximity — the closer element's
+       declaration is what inherits down, and layers never enter it. The moment
+       the class moved onto `.app` itself, both rules targeted the same element
+       and `@layer site` beat `@layer theme`, silently, with a code box in the
+       wrong palette as the only symptom.
 
-       The first attempt was `code { background: … }` right here, which lost the
-       block case to `pre > code` and left white text on a light box. The fix
-       was upstream: framework.css was missing the token. */
+       The rule this file obeys: de-escalate upstream. The values belong to the
+       theme; a site that also declares them is a site fighting its own theme. */
 
-    .app {
-        --code-bg:  #1f1d26;
-        --code-ink: #e6e4ef;
-
-        /* highlight.js palette retuned for the dark box. highlight.css ships
-           GitHub Light; these are GitHub Dark. Tokens again — the ext exposes
-           them precisely so a site never has to touch its selectors. */
-        --syn-comment: #8b949e;
-        --syn-keyword: #ff7b72;
-        --syn-string:  #a5d6ff;
-        --syn-number:  #79c0ff;
-        --syn-fn:      #d2a8ff;
-        --syn-builtin: #ffa657;
-        --syn-tag:     #7ee787;
-        --syn-attr:    #79c0ff;
-        --syn-meta:    #8b949e;
-        --syn-error:   #ff7b72;
-
-        background: #ddd;
-    }
+    /* The shell the pages float on. A token, not `#ddd` — so it follows the
+       theme into dark mode instead of pinning one grey forever. */
+    .app { background: var(--wash); }
 
     /* ---- home page: sidebar + one scrolling column ----
        The sidebar's LOOK is Sidebar.css (framework); this only says where it
@@ -160,8 +153,9 @@
     }
 
     /* Page.css owns .page's structure (width, centering, padding) — that's the
-       framework's business. Backgrounds are this site's skin, so they live here. */
-    .page { background: white; }
+       framework's business. Backgrounds are this site's skin, so they live here.
+       `--surface`, not `white`, so dark mode isn't a white sheet. */
+    .page { background: var(--surface); }
 
     .page-link-block { background: rgba(0,0,0,0.1); display: block; padding: 1em; margin-bottom: 1em; }
 

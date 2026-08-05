@@ -328,3 +328,92 @@ first two wearing a disguise.
 - `ColumnPager.js` / `ColumnPager.css` — the drill-down
 - `TabPager.js` / `TabPager.css` — the tab bar
 - Loading strategy & the tree these walk: `michael/loading.md`
+
+
+---
+
+# Moved here from `framework/readme.md`
+
+These two sections sat in the cross-cutting design record presenting ColumnPager
+as the live layout tier long after it stopped being one. The *reasoning* is still
+good — the tree-vs-flat sidebar trade and the narrow-column compromise are real
+questions any future drill-down layout will face again — so it moves rather than
+being deleted. Read it as history, not as current behaviour: **nothing below
+ships.**
+
+## 2. Sidebar: flat list vs. expanded tree
+
+**Today.** The sidebar lists `root.children` — the topic's *first* level only.
+
+Trace `/framework/core/View/`:
+
+| surface | shows |
+|---|---|
+| sidebar | level 1 — Start, **Core**, Ext, Util, Dev |
+| breadcrumbs | the chain — Framework › Core › View |
+| left column | level 2 (Core), whose previews are level 3 |
+| right column | level 3 content (View) |
+
+Three nav surfaces, each showing a *different* level, all consistently
+highlighted by `mark_links`. That's coherent — better than it looks on paper.
+
+**Alternative: a tree sidebar** that expands along the current path. Six lines,
+using the override lever the Pager readme documents:
+
+```js
+nav(){ div.c("sidebar-nav", () => this.nav_items(this.root.children, 0)); }
+
+nav_items(pages, depth){
+    (pages || []).forEach(pg => {
+        pg.link().ac("sidebar-link", "depth-" + depth);
+        if (pg.children && this.chain.includes(pg))
+            this.nav_items(pg.children, depth + 1);
+    });
+}
+```
+
+**The catch nobody notices until it's built:** an expanded sidebar shows the
+active branch's children — which is *exactly* what the narrow left column shows.
+Turn one on and the other becomes redundant. So this isn't a tweak, it's a fork:
+
+- **(a) flat sidebar + previews-as-nav in the left column** — today. Progressive
+  disclosure; you see one level at a time; the columns are the point.
+- **(b) tree sidebar + a single content column** — the standard docs layout
+  (Vite, Astro, Tailwind). The whole map is always visible; more room for
+  content; but the drill-down, the framework's distinctive idea, is gone.
+
+**Verdict: keep (a) as `ColumnPager`; build (b) as a *sibling* subclass
+(`DocPager`) if it's wanted.** Not a setting, not a flag — a topic picks with
+a `pager()` returning a `DocPager`. This is the three-lever model doing its job: a different
+arrangement is a different class, and both can exist. Half-merging them (tree
+sidebar *and* two columns) is the one option that's worse than either.
+
+---
+
+---
+
+## 3. What a page renders when it's *acting as nav*
+
+**The friction.** `/framework/` wants to be a warm code-first introduction at
+full width, and an 18em nav strip when you drill in. The same `body()` has to be
+both. Today `col: "narrow"` plus a CSS rule that shrinks `pre`/`.demo-code` in
+narrow columns makes it survive, but it's a compromise.
+
+**Alternative: `ColumnPager.column()` renders `pg.nav_body()` for the secondary
+column** — title + `previews()` only — falling back to `body()` when a page
+doesn't define one.
+
+- Pro: the conflict disappears; landing pages can be as rich as they like.
+- Pro: matches how a reader actually uses that column (as a menu).
+- Con: content vanishing when you drill in is disorienting unless the breadcrumb
+  makes the way back obvious.
+- Con: a second render path on `Page` — real API growth, and `Page` is supposed
+  to know nothing about layouts.
+
+**Verdict: not yet.** The CSS compromise is holding, and this is the kind of API
+you regret. Revisit if a second landing page hits the same wall — two instances
+is evidence, one is a preference. If it happens, prefer the inert-data shape the
+rest of the framework uses (`nav_content(){ … }` beside `content(){ … }`, read by
+whoever wants it) over a new required method.
+
+---

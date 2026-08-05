@@ -43,21 +43,12 @@
 		display: block; flex: 1 1 auto; min-width: 0;
 	}
 
-	/* Equal drill-down columns — the whole of what ColumnPager did.
-	   minmax(0, 1fr), never bare 1fr: `1fr` means minmax(AUTO, 1fr) and that auto
-	   floor is the item's min-content, so one long <pre> refuses to shrink and
-	   pushes the page past the viewport.
-
-	   UNUSED — nothing on the site claims `cols` today. See readme.md. */
-	.cols { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
-	.cols > .page.active-ancestor { display: block; border-right: 1px solid rgba(0,0,0,0.1); }
 
 	/* ── the look of everything Page renders ──
 	   Structure only, no skin: the site decides backgrounds (see /styles.css). */
 
-	/* One page opts in, or a REGION opts its children in — same shape as `cols`,
-	   which is a class on the container governing how its children are arranged.
-	   `papers` does the same for how they look, so a topic sets it once instead
+	/* One page opts in, or a REGION opts its children in — a class on the
+	   container governing how its children look, so a topic sets it once instead
 	   of every child repeating `classes: "paper"`.
 
 	   Opt-in and not the default: paper is a LOOK (a white box, a measure), and
@@ -98,8 +89,12 @@
 		margin: 1em 0;
 	}
 
+	/* flex so a `nav` icon can lead and the label takes the rest — cards line up
+	   whether or not a given entry declared one. */
 	.page-preview {
-		display: block;
+		display: flex;
+		align-items: center;
+		gap: 0.6em;
 		padding: 0.9em 1em;
 		background: #fff;
 		border: 1px solid rgba(0,0,0,0.12);
@@ -123,6 +118,13 @@
 	}
 	.page-preview.active .page-preview-title,
 	.page-preview.in-path .page-preview-title { color: var(--prim); }
+
+	/* The icon takes the accent when the card is where you are or where you're
+	   heading — same signal the title already gets, so they can't disagree. */
+	.page-preview .icon { color: var(--subtle); }
+	.page-preview.active .icon,
+	.page-preview.in-path .icon,
+	.page-preview:hover .icon { color: var(--prim); }
 
 	.page-preview-title { font-weight: 700; }
 	.page-preview-desc { color: var(--subtle); font-size: 0.85em; margin-top: 0.2em; }

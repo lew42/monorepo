@@ -15,6 +15,9 @@ export default new Page({
 	children: [base, theme, util],
 	content(){
 
+		// Sub-page nav first: what's under here, before what's on here.
+		this.previews();
+
 		demo(() => {
 			div.c("flex gap v-center pad", () => {
 				div.c("h4 flex-1", "row");
@@ -53,7 +56,6 @@ export default new Page({
 
 		md("## The three layers, line by line");
 
-		this.previews();
 
 		md.details(import.meta, "readme.md", "Design record — strategy, dependencies & open questions");
 	}

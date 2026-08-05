@@ -1,25 +1,29 @@
 # Page — design record
 
-## `.cols` is unused
+## `.cols` — deleted
 
-`Page.css` defines `.cols` — equal drill-down columns, the whole of what
-`ColumnPager` used to do — and **nothing on the site claims it.**
+`Page.css` defined `.cols` — equal drill-down columns, the whole of what
+`ColumnPager` used to do. This section previously said:
 
-It was ported from the `new/1` sketch, where `/columns/` and `/framework/` both
-used it. It came out again because columns are **jumpy**: adding a column
-reflows every column already on screen, so the thing you were reading moves
-sideways while you read it. Replace plus an adaptive sidebar gives the same
-navigation with nothing shifting.
+> Kept rather than deleted because it is four lines… **If it is still unclaimed
+> next time someone reads this file, delete it** — an unused rule that survives
+> two readings is a rule nobody is going to claim.
 
-Kept rather than deleted because it is four lines, it is the only record of what
-the Pager tier did, and a drill-down is still the right answer for a wide screen
-and a shallow tree. **If it is still unclaimed next time someone reads this file,
-delete it** — an unused rule that survives two readings is a rule nobody is
-going to claim.
+It was still unclaimed. Deleted, per its own instruction.
 
-The `minmax(0, 1fr)` in it is not incidental: bare `1fr` means `minmax(AUTO, 1fr)`
-and that auto floor is the item's min-content, so one long `<pre>` refuses to
-shrink and pushes the page past the viewport.
+The reasoning that produced it is worth keeping, because the question recurs:
+columns are **jumpy**. Adding one reflows every column already on screen, so the
+thing you are reading slides sideways while you read it. Replace, plus an
+adaptive sidebar, gives the same navigation with nothing shifting.
+
+One detail to carry forward if a drill-down is ever rebuilt: use
+`minmax(0, 1fr)`, never bare `1fr`. `1fr` means `minmax(AUTO, 1fr)`, and that
+auto floor is the item's min-content — so one long `<pre>` refuses to shrink and
+pushes the page past the viewport.
+
+**A pre-committed deletion works.** Writing "delete this if it's still here"
+turned a judgement call into a mechanical one, and it survived a rewrite that
+invalidated most of the prose around it. Worth reusing on anything speculative.
 
 ## `paper` is opt-in, and so is `papers`
 
@@ -31,7 +35,8 @@ classes: "paper"                      // this page
 this.$pages = div.c("pages papers")   // every page in this region
 ```
 
-The second mirrors `cols`: a class on the container governing its children.
+The second is a class on the *container*, governing its children — the cheaper
+shape whenever a whole region wants the same thing.
 
 **Rejected: default to paper, opt out with `full`.** `full` already means
 `position: fixed; inset: 0`. Making it also mean "no measure" gives one word two

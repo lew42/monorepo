@@ -15,6 +15,9 @@ export default new Page({
 	children: [guide, lew42],
 	content(){
 
+		// Sub-page nav first: what's under here, before what's on here.
+		this.previews();
+
 		md("```css\n@layer theme { … }\n```\n\n**This layer is a theme** — the one you get when you load no other. That framing matters: it means using no theme is a finished-looking, supported outcome, and a theme is something you *add*, never something you must have.\n\nIt also means the override model is boring, which is the goal:");
 
 		md("```css\nframework.css    h2 { font-size: 1.4em }    /* loads first */\nyour-theme.css   h2 { font-size: 2em }      /* loads later, wins */\n```\n\nEqual specificity, later declaration takes it. Which is why every selector here is **flat** — one element, no descendant combinators. A `.page > h2` in the base would out-rank a theme's `h2` no matter when the theme loaded.");
@@ -30,7 +33,7 @@ export default new Page({
 			});
 		}, "The vocabulary a theme retunes. Every one of these replaces a value that was hardcoded somewhere — usually in several places at once. **That's the bar for adding another:** a token names a decision that already exists, it doesn't invent one.");
 
-		md("| token | is | names the hardcode |\n| --- | --- | --- |\n| `--prim` | the one accent color | — |\n| `--bg` | dark surface (the sidebar's) | — |\n| `--subtle` | de-emphasized text | — |\n| `--ink` | body text | the UA's black |\n| `--surface` | content background | `#fff`, in four files |\n| `--line` | borders and rules | `rgba(0,0,0,0.1–0.2)`, ~8 places |\n| `--wash` | code / `th` / hover fill | `rgba(0,0,0,0.04–0.1)` |\n| `--radius` | corner radius | `0.5em`, twice |\n| `--code-bg` `--code-ink` | the code box — falls back to `--wash` / inherit | — |\n| `--column` | flex/grid wrap width | — |\n| `--sidebar` | any sidebar's width | — |\n| `--font` | body typeface | `system-ui, …` |\n| `--mono` | code typeface | `Consolas, …`, twice |\n\nTokens live on `:root` and **cascade** — a theme overrides them on `.app` or `body.theme-x`, never back at `:root`. That single rule is what lets two variants of a page sit side by side.\n\n**Third column is the work, not a claim it's finished.** `framework.css`'s own rules read these tokens; several *components* still hardcode `#fff` and `rgba(0,0,0,…)`. Until those are rewired, dark mode is defined but not honest — which is why `:root` pins `color-scheme: light`. It's the top item in the design record.");
+		md("| token | is | names the hardcode |\n| --- | --- | --- |\n| `--prim` | the one accent color | — |\n| `--bg` | dark surface (the sidebar's) | — |\n| `--subtle` | de-emphasized text | — |\n| `--ink` | body text | the UA's black |\n| `--surface` | content background | `#fff`, in four files |\n| `--line` | borders and rules | `rgba(0,0,0,0.1–0.2)`, ~8 places |\n| `--wash` | code / `th` / hover fill | `rgba(0,0,0,0.04–0.1)` |\n| `--radius` | corner radius | `0.5em`, twice |\n| `--code-bg` `--code-ink` | the code box — falls back to `--wash` / inherit | — |\n| `--sidebar-bg` `--sidebar-ink` | the sidebar panel — falls back to `--bg` / `#fff` | `color: #fff` + six `rgba(255,255,255,…)` in `Sidebar.css` |\n| `--column` | flex/grid wrap width | — |\n| `--sidebar` | any sidebar's width | — |\n| `--font` | body typeface | `system-ui, …` |\n| `--mono` | code typeface | `Consolas, …`, twice |\n\nTokens live on `:root` and **cascade** — a theme overrides them on `.app` or `body.theme-x`, never back at `:root`. That single rule is what lets two variants of a page sit side by side.\n\n**Third column is the work, not a claim it's finished.** `framework.css`'s own rules read these tokens; several *components* still hardcode `#fff` and `rgba(0,0,0,…)`. Until those are rewired, dark mode is defined but not honest — which is why `:root` pins `color-scheme: light`. It's the top item in the design record.");
 
 		md("## The type scale");
 
@@ -90,8 +93,7 @@ export default new Page({
 
 		md("## Next");
 
-		md("Read [Writing a theme](/framework/styles/theme/guide/) for how to replace all of this — two sample themes, both modes, and why a theme should almost never contain a selector.");
+		md("Read [Writing a theme](/framework/styles/theme/guide/) for how to replace all of this — two sample themes, both modes, and why a theme should almost never contain a selector.\n\nThen [lew42](/framework/styles/theme/lew42/), the theme this site is actually wearing: a real design ported from Figma, and the one place a theme was allowed to carry behaviour (a function, never a class).");
 
-		this.previews();
 	}
 });

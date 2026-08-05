@@ -1,4 +1,4 @@
-import { Page, md, demo, h2, p, div, pre } from "/app.js";
+import { Page, md, demo, h2, p, div, pre, code } from "/app.js";
 
 export default new Page({
 	meta: import.meta,
@@ -15,7 +15,7 @@ export default new Page({
 
 		h2("Usage");
 
-		pre(`import { demo } from "/app.js";
+		code.js(`import { demo } from "/app.js";
 
 demo(() => {
     h1("Hello");

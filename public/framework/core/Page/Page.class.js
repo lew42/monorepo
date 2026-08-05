@@ -1,7 +1,7 @@
-import { View, div, h1, a, is } from "../View/View.js";
+import { View, div, h1, a, span, icon, is } from "../View/View.js";
 
-/* css: .pages, .page, .active-page, .active-ancestor, .cols, .page-title,
-   .page-link, .page-previews, .page-preview */
+/* css: .pages, .page, .active-page, .active-ancestor, .page-title,
+   .page-link, .page-previews, .page-preview, .page-preview-title */
 View.stylesheet(import.meta, "Page.css");
 
 /* A node: a url, some content, and children declared EITHER way —
@@ -299,9 +299,42 @@ export class Page {
 	 * The POJO is never stored, never adopted, never given identity — it is a
 	 * string and a url on the way to an <a>. Not the rejected stub.
 	 */
+	/* How I present a child in navigation — answerable WITHOUT importing it.
+	 *
+	 * A **label** belongs to my list and is there from the start; a **title**
+	 * belongs to the page and only exists once it's imported. An **icon** is the
+	 * same kind of thing as a label: it identifies the entry in this menu, not
+	 * the page, so it lives here. That's what makes it free — no import, and a
+	 * nav that reads the same however you arrived at it.
+	 *
+	 *     nav: {
+	 *         start: "Start here",                          // a label
+	 *         core:  { label: "Core", icon: "dashboard" },  // and an icon
+	 *     }
+	 *
+	 * Declaring nothing still works: the label falls back to an imported child's
+	 * title, then to the bare segment — so a card reads "columns" until you visit
+	 * it and "Columns" after, which is the honest cost and is visible.
+	 */
+	nav_for(name){
+		const entry = this.nav?.[name];
+
+		return {
+			url: this.url + name + "/",
+			label: this.children.get(name)?.title ?? name,
+			...(is.str(entry) ? { label: entry } : entry),
+		};
+	}
+
 	previews(){
-		return div.c("page-previews", () => this.children.forEach((page, name) =>
-			page ? page.preview() : a.c("page-preview", name).href(this.url + name + "/")));
+		return div.c("page-previews", () => this.children.forEach((page, name) => {
+			const nav = this.nav_for(name);
+
+			a.c("page-preview").href(nav.url).append(() => {
+				if (nav.icon) icon(nav.icon);
+				span.c("page-preview-title", nav.label);
+			});
+		}));
 	}
 
 	// Import every declared child. Opt-in, and the only reason to want it is
@@ -349,6 +382,9 @@ export class Page {
 		// names: a label that appears only when you happen to have visited that
 		// tab is exactly the bar-reads-differently bug.
 		const label = (name, i) => {
+			// A declared label costs no import and never changes, so it wins outright.
+			if (this.nav?.[name]) return this.nav_for(name).label;
+
 			const page = this.children.get(name);
 			return (this.loading || i === 0) && page?.title ? page.title : name;
 		};

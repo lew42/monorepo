@@ -1,5 +1,6 @@
 import App, { View, div, a } from "./framework/core/App/App.js";
 import Socket from "./framework/dev/Socket/Socket.js";
+import { lew42 } from "./framework/styles/theme/lew42/lew42.js";
 
 App.stylesheet("/styles.css");
 
@@ -41,10 +42,16 @@ const app = window.app = new App({
 		});
 	},
 
+	/* The theme's behaviour, called once by the site — not triggered by the CSS
+	 * class, which can appear any number of times on a page. See lew42.js. */
+	config(){ lew42(this); },
+
 	render(){
 		this.$body = View.body();
 
-		this.$app = div.c("app", () => {
+		// `theme-lew42` is the site's look now. It's a class on a div: swap the
+		// word and the whole site is a different theme, with no component edited.
+		this.$app = div.c("app theme-lew42", () => {
 			// $nav, matching its class. A topic hides it with `classes: "hides-nav"`
 			// — an inert class, so nothing here has to know a topic exists.
 			this.$nav = div.c("nav", () => {
@@ -71,6 +78,11 @@ export { Sidebar } from "./framework/core/Sidebar/Sidebar.js";
 // every page.js can write md("**docs**") and demo(() => …) with no extra import.
 export { default as md, marked } from "./framework/ext/markdown/md.js";
 export { default as demo } from "./framework/ext/demo/demo.js";
+
+// classdoc turns "a method has a .md file next to the page.js" into a child
+// page showing that method's real source. Imports markdown (the notes ARE
+// markdown); leans on highlight only if it's loaded. See ext/classdoc/readme.md.
+export { default as classdoc } from "./framework/ext/classdoc/classdoc.js";
 
 // Importing highlight is what turns highlighting on everywhere: it enhances the
 // `code` factory in place (code.js/.fn/.html/.css/.md/.json, block-aware) and

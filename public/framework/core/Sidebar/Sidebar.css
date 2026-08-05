@@ -2,9 +2,8 @@
    order decides who loads first, so every stylesheet states it. */
 @layer base, theme, site, util;
 
-/* Sidebar — the look. A layout says where it goes; this says what it is.
-   (ColumnPager.css only sets `.column-pager > .sidebar { flex: … }` and the
-   off-canvas behaviour, because placement is the layout's business.) */
+/* Sidebar — the look. Whatever places it says where it goes (a single
+   `flex: 0 0 var(--sidebar)`); this says what it is. Placement is never here. */
 @layer theme {
 
 	/* Two component tokens — `--sidebar-bg` and `--sidebar-ink` — and every other

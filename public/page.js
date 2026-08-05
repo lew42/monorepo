@@ -24,7 +24,7 @@ export default new Page({
 	// Every child a url can reach must be declared — the Router walks `children`
 	// and never consults the filesystem. Lazy names, so none of these is imported
 	// until you navigate into it.
-	children: "framework alex arya castin edric michael path-1 path-2",
+	children: "framework alex arya castin edric michael notes path-1 path-2",
 
 	// I bring my own sidebar, so the global nav would just say it twice.
 	classes: "page-homepage hides-nav",
@@ -83,13 +83,12 @@ export default new Page({
 
 		h2("Sit tight");
 
-		md("No new tasks just yet. Hold off for now and I'll have more for you shortly. When they land: `git switch main` and `git pull` before you branch, and keep to [the branch naming convention](/notes/git-branch-names).");
+		md("No new tasks just yet. Hold off for now and I'll have more for you shortly. When they land: `git switch main` and `git pull` before you branch, and keep to [the branch naming convention](/notes/git-branch-names/).");
 
 		h2("If you're bored");
 
 		md(`The framework picked up a lot while you were building:
 
-- **[ColumnPager](/framework/core/Pager/)** — infinite drill-down columns. Declare \`Pager: ColumnPager\` on one page and its whole subtree navigates that way.
 - **[Router](/framework/core/Router/)** — no-reload page transitions. Write an ordinary \`<a href>\` and it upgrades the click for you.
 - **[Page](/framework/core/Page/)** — a titled, linkable, dormant unit of content. Importing one renders nothing, so pages can link to each other freely.
 - **[Start](/framework/start/)** — three files and a working site, if you want the short version first.`);

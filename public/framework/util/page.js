@@ -9,10 +9,12 @@ export default new Page({
 	children: [is],
 	content(){
 
+		// Sub-page nav first: what's under here, before what's on here.
+		this.previews();
+
 		pre(`import { is } from "/app.js";`);
 
 		md("Plain functions. No classes, no state.");
 
-		this.previews();
 	}
 });

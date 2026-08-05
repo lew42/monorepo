@@ -10,9 +10,10 @@ View.stylesheet(import.meta, "Sidebar.css");
  *       pages: [{ title: "Framework", url: "/framework/" }, …]
  *   });
  *
- * Extracted from ColumnPager so it isn't owned by one layout. ColumnPager
- * renders one; so can a plain page. The look lives in Sidebar.css; a layout only
- * says where it goes (see `.column-pager > .sidebar` in ColumnPager.css).
+ * Extracted from the old ColumnPager so it isn't owned by one layout (that tier
+ * is now in core/legacy/). Any page can render one. The look lives in
+ * Sidebar.css; whatever places it only says where it goes — `flex: 0 0 var(--sidebar)`
+ * and nothing else.
  *
  * `classify()` turns the class name into the CSS class, so this renders
  * `div.sidebar` with nothing to declare.
@@ -25,7 +26,7 @@ View.stylesheet(import.meta, "Sidebar.css");
  *   pages      links — Pages, or {title, url}; an entry with its own `pages`
  *              is a titled GROUP of them
  *
- * Two link destinations on purpose: in a ColumnPager the logo goes to the site
+ * Two link destinations on purpose: inside a section the logo goes to the site
  * root while the text goes to the section you're in. On a homepage both are "/".
  *
  * Any entry may carry `icon: "dashboard"` — a Material Icons ligature name. A

@@ -1,10 +1,22 @@
-import { Page, View, md, demo, div, h1, h2, h3, p, a, ul, li, label, input, span, button } from "/app.js";
+import { Page, View, classdoc, md, demo, div, h1, h2, h3, p, a, ul, li, label, input, span, button } from "/app.js";
 
 export default new Page({
 	meta: import.meta,
 	title: "View",
 	description: "A chainable wrapper over a DOM element, with capturing.",
+
+	/* One line per documented method, each becoming a child page at
+	 * /framework/core/View/<name>/ showing the real source plus
+	 * doc/method/<name>.md. Adding a method to this string and writing the file
+	 * is the whole authoring loop. */
+	initialize(){
+		classdoc(this, View, import.meta, "append ac on style stylesheet");
+	},
+
 	content(){
+
+		// Sub-page nav first: what's under here, before what's on here.
+		this.previews();
 
 		demo(() => {
 			h1("Hello");
@@ -97,7 +109,9 @@ export default new Page({
 | \`append\` \`prepend\` \`empty\` \`remove\` \`replace\` | structure |
 | \`hide\` \`show\` \`toggle\` | visibility |
 
-Learn six of them and you can build a page.`);
+Learn six of them and you can build a page. The five linked at the top of this
+page go further — each shows its **real source** next to notes on why it is
+written that way.`);
 
 		md("Next: [Page](/framework/core/Page/) — a title, a url, and a place in a tree.");
 	}

@@ -60,7 +60,7 @@ Two habits get you there:
 
 A getter is fine for a **cheap, stable alias of existing state** (`get page(){ return this.active; }`). Anything that walks, allocates, fetches, or could return a different value on two consecutive calls is a method. `App.get loaded()` is the cautionary example: it builds a fresh `Promise.all` on *every* access, which is invisible at the call site.
 
-**Too many comments junk up the base classes.** Wall-to-wall explanation in `View`, `Page`, `Pager`, `App` does not instill clarity or confidence — it reads as anxiety, and it buries the code the reader came for. Keep base-class comments to what the code genuinely can't say: a non-obvious *why*, a real gotcha. Design rationale, alternatives weighed, and history belong in the neighboring `readme.md`, which exists precisely for that.
+**Too many comments junk up the base classes.** Wall-to-wall explanation in `View`, `Page`, `Router`, `App` does not instill clarity or confidence — it reads as anxiety, and it buries the code the reader came for. Keep base-class comments to what the code genuinely can't say: a non-obvious *why*, a real gotcha. Design rationale, alternatives weighed, and history belong in the neighboring `readme.md`, which exists precisely for that.
 
 ## OOP conventions
 
@@ -84,7 +84,7 @@ this.router = new Router(this.router, { app: this });
 
 **Never read `window.app` inside `framework/`.** It exists so you can poke at the app from the browser console, and for nothing else. Framework code that reads it hard-codes "there is exactly one App per document" — which rules out a second app, an app in an iframe or test harness, and any instance that isn't the global one. It's also simply wrong during boot: `app.js` does `window.app = new App()`, so the global is still `undefined` while the App's own constructor runs `config()`. Take the app as a constructor arg and read `this.app`.
 
-**Adoption — how `app` and `parent` get where they're going.** You assign what you know; what knows you assigns itself. A `Page` is constructed in userland at module scope (`export default new Page(…)`), so App has no constructor to inject into — instead `App.load_page` assigns `page.app = this` at the moment it renders, exactly as a parent Page assigns `child.parent = this` when it adopts its declared children. No page.js ever mentions `app`.
+**Adoption — how `app` and `parent` get where they're going.** You assign what you know; what knows you assigns itself. A `Page` is constructed in userland at module scope (`export default new Page(…)`), so App has no constructor to inject into — instead `Page.child()` assigns `app` to each page as the Router walks to it, exactly as a parent Page assigns `child.parent = this` when it adopts its declared children. No page.js ever mentions `app`.
 
 So there are two ways a property arrives, and they don't conflict: **constructor-assign** for what the caller knows up front, **adoption** for what only the container knows.
 
@@ -129,20 +129,17 @@ naming(){                       // idempotent, runs whenever inputs change
 
 One place to read, one place to change, and construction and adoption cannot drift apart. The cost of getting this wrong is not a bug you'll see — it's a subtly different object depending on how it was made.
 
-> ⚠️ **UNDER DISCUSSION — do not treat as settled.** How a topic opts into a layout has changed twice and is being reconsidered. The current code has a topic define `pager(){ return new ColumnPager({ root: this, app: this.app }); }`, which `App.load_page` calls via `host.pager?.() ?? host`, with `Page.host()` walking `.parent` to find the nearest ancestor defining it. That's **three** coordinating places — App, `host()`, and `load_ancestors()`'s loop condition — which is more remembering than this codebase wants. Do not build on it or propagate the pattern until the direction is agreed. Options and the load-order trace: `framework/core/Pager/readme.md`.
+> **RESOLVED.** The Pager tier that used to live here is gone — `pager()`, `Page.host()` and `load_ancestors()` with it. An arrangement is now a **CSS class a page opts into**, driven by two classes `Router.mark()` writes: `.active-page` on the leaf and `.active-ancestor` on everything above it. Read `framework/core/Page/Page.css` (the arrangement contract) and `Router.mark()`. The old tier and its design record are in `framework/core/legacy/Pager/`.
 
 ## How the site works
 
 1. `public/index.html` is the universal fallback document. It loads one script: `/app.js`.
 2. `public/app.js` creates the `App` singleton (`window.app`) and re-exports the framework (`export * from framework/core/App/App.js`).
-3. `App.load_page()` calls `Page.load(url)`, which dynamically imports the page module for the current URL via `Page.module_url(window.location.pathname)`:
-   - `/` → `/page.js`
-   - `/path/` → `/path/page.js` (trailing slash = directory page)
-   - `/path/sub` → `/path/sub.page.js` (no slash = sibling file with `.page.js` suffix)
+3. **The tree is walked, not computed.** `App.load()` imports exactly one module — `/page.js`, the root — and hands the url to `Router.load()`, which walks one segment at a time through `page.child(name)`. A child is `import(this.url + name + "/page.js")`, and **only names the parent declared in `children` are ever fetched** — so a bad url costs no doomed request, and nothing crawls the filesystem.
 
-   `Page.module_url` is the exact inverse of the `Page#url` getter; both live in `Page.class.js` so the convention has one home. **`App.path_to_page_url` is a one-line alias for it, not a second implementation** — kept because `arya/lib/Router.js` calls it at runtime and two doc pages describe it (see `framework/readme.md` §8: rename freely inside `framework/`, alias on the way out). Never invert the dependency: `App` imports `Page`, so `Page` importing `App` would close a cycle.
-4. Page modules import the framework back from `"/app.js"` (same module instance via the browser's module registry). A page's default export is optional: it may be a View, a function (rendered via capture), or nothing (root-level element calls capture directly).
-5. Because the dynamic import path is computed at runtime, pages are naturally lazy-loaded — the filesystem is the router and the "chunk map." New pages are added by creating a `page.js` file; no registration anywhere.
+   Every node is a directory: `/a/b/` → `/a/b/page.js`. The old `.page.js` sibling convention (`/a/b` → `/a/b.page.js`) is **gone**; a file using it is unreachable. `App.path_to_page_url` still exists as a frozen copy of the old rule for two sandbox Routers that call it, and is not the router.
+4. Page modules import the framework back from `"/app.js"` (same module instance via the browser's module registry). A default export may be a `Page`, a POJO of options, a function or a string — `Page.add()` wraps whatever it gets. **A POJO key shadows a `Page` method of the same name**, so a `render()` key must return a view or `activate()` throws; `content()` is the seam you actually want.
+5. Pages are lazy because the walk is lazy: a `children` entry is a *name* until someone navigates to it. New pages are a `page.js` **plus a `children` entry on the parent** — declaring is the registration, and an undeclared page is a 404.
 
 ### App lifecycle (`framework/core/App/App.js`)
 
@@ -151,9 +148,10 @@ One place to read, one place to change, and construction and adoption cannot dri
 - `this.loaders` collects promises (stylesheets, fonts) that must resolve before injection — pages can add more during their module execution.
 - `app.font(name)` loads predefined fonts (Montserrat, Material Icons) via the FontFace API.
 - `App.stylesheet(url)` / `View.stylesheet(import.meta, relativeUrl)` appends a `<link>` and tracks its load promise.
-- Page load errors are caught and rendered as a "Page Load Error" view.
-- `load_page()` is fully duck-typed (`page.host?.()`, `page.activate?.()`) — no `instanceof` — and sets `this.page` *before* rendering, because a mounted Pager reads `app.page` to find its leaf.
-- `App.mark_links()` runs after every render: one pass over `$app` adding `.active` (href === current path) and `.in-path` (href is a directory prefix of it) to in-app anchors. **No view should compare `window.location` itself** — sidebars, breadcrumbs, and preview cards all get their active state from this one pass, and CSS decides what each kind of link does with the class.
+- Page load errors are caught and rendered as a "Page Load Error" view, into `$pages` and never `$app` — emptying `$app` would delete the chrome, so the one page that most needs navigation would be the one page without it.
+- Navigation is duck-typed throughout (`page.activate?.()`, `is.fn(this.route)`) — no `instanceof` anywhere.
+- **`Router.mark_links()`** runs after every navigation: one pass over `$app` adding `.active` (href === current path) and `.in-path` (href is a directory prefix of it) to in-app anchors. **No view should compare `window.location` itself** — sidebars, breadcrumbs and preview cards all get their active state from this one pass, and CSS decides what each kind of link does with the class. (It lived on `App` once; `framework/readme.md` said it should stay there and it moved anyway. It is on `Router`.)
+- **Two instance methods exist only for consumers outside `framework/`** — `app.stylesheet()` and `App.path_to_page_url()`. The rewrite dropped both and 404'd `alex/`, `arya/` and `castin/`, which call `app.stylesheet()` at module scope. Rename freely in here; alias on the way out.
 
 ## The View system (`framework/core/View/View.js`)
 
@@ -216,21 +214,24 @@ import { Page, p } from "/app.js";
 export default new Page({ meta: import.meta, title, description, content(){ p("content"); } });
 ```
 
-- `meta: import.meta` derives `url` (`/docs/page.js` → `/docs/`; `/docs/x.page.js` → `/docs/x`); `link(text?)` works while dormant.
-- `render()` = build DOM: one `div.c("page")` (title h1 + content) captured wherever the page is placed; embedded sub-pages render too. `activate()` = become THE page: `document.title`, meta description. `App.load_page()` appends `host.pager?.() ?? host`, then calls `pg.activate?.()` — duck-typed, so non-Page exports (strings, functions, views) still work.
-- Constructor is `assign`-based: extra properties pass through as inert data.
-- `Page.load(url)` / `page.load_ancestors()` / `Page.module_url(url)` — the loader lives here, not in App (see above).
+- `meta: import.meta` derives `url` (`/docs/page.js` → `/docs/`); `link(text?)` works while dormant. A page adopted by a parent derives `url` from `parent.url + name` instead, so an inline page never writes a path.
+- `render()` = build DOM once, cached in `this.view`: one `div.c("page")` (title h1 + content). `activate()` = place it in its container and become THE page. **An overridden `render()` owes three things**, all silent when missed: return/assign `this.view`, carry the `.page` class, and never nest a second `.page` inside.
+- Constructor is `assign`-based: extra properties pass through as inert data (`icon`, `col`, `classes`).
+- `children` declared two ways: `"a b c"` (lazy names) or `[pageA, pageB]` (imported). **Imports flow DOWN, `.parent` links point UP** — a mutual import breaks only on deep reloads.
+- `add(name, child)`, `child(name)`, `route(name)` for urls you can't list in advance, `tabs(names)`, `previews()`.
 - Design record + deferred features: `framework/core/Page/readme.md`.
 
-## Pager (`framework/core/Pager/`)
+## Arrangement — the tier that replaced Pager
 
-`Pager extends View` is a `div.pager` that shows one page: `show(page)` (manual swap) plus `leaf()` (the page being viewed). A **structure** is a Pager subclass whose `render()` arranges a page tree; a topic opts its whole subtree in by defining `pager(){ return new ColumnPager({ root: this, app: this.app }); }` in its own page.js — an assign-object, so **subclasses need no constructor**.
+`Pager`, `ColumnPager` and `TabPager` are **dead code in `framework/core/legacy/`**. Nothing exports them; `/app.js` never did after the rewrite. Do not cite them as current.
 
-- `ColumnPager` — drill-down: sidebar + breadcrumbs + the last two of `leaf().chain` as columns. `render()` is decomposed into `sidebar/brand/nav/topbar/crumbs/columns/column/col_bar` so a topic can override one piece by subclassing inline.
-- `TabPager` — in-page tab bar; its panel *is* a plain `Pager`, driven by `show()`.
-- `leaf()` reads `window.app.page` (the App already resolved it). **Layouts are told, they don't ask** — nothing in this tier reads `window.location`.
-- Per-page appearance is an inert class string: `new Page({ col: "narrow" })` → `ColumnPager` puts it on the `.column`, CSS does the rest.
-- Extension order, cheapest first: **a class for appearance → an overridden method for structure → a new subclass for a different arrangement.** If a change wants a new property on `Pager`, it's usually one of the first two in disguise. Full analysis, variation table, and open questions: `framework/core/Pager/readme.md`.
+An arrangement is now **a CSS class a page opts into**, resolved against two classes `Router.mark()` writes on every navigation:
+
+- `.active-page` — the leaf. `.active-ancestor` — everything above it. That is the entire contract.
+- `.page` is `display: none` by default; the leaf shows, and an ancestor shows only when it actually **contains** the leaf (`:has(.page.active-page)`) — so "replace" is what you get for free and nesting is what you opt into.
+- A page claims a region for its children with `this.$pages = div.c("pages")` in an overridden `render()`. `.pages > .default` is what that region shows when none of its children is active — the index-route problem.
+- Opt-in looks: `.paper` (one page), `.papers` (a region's children), `col: "narrow"`.
+- `Page.tabs(names)` is the one built-in navigation structure: a `.tab-bar` over a `.tab-panel`. **Only the first tab is imported**, so the bar can show one real title; the rest stay names until clicked. The first tab owns the parent's url. It has no overflow handling — right for ~5 children, unusable for twenty, and nothing will warn you.
 
 ## Ext (`framework/ext/`)
 
@@ -245,7 +246,7 @@ md.file(import.meta, "readme.md", { h1: false });        // a promise of a div.m
 md.details(import.meta, "readme.md");                    // the same, in a collapsed <details>
 ```
 
-`md.file` resolves against `import.meta`, not the document (the SPA fallback makes the document url the *route*, so doc-relative fetches miss). It returns a **promise** so `View.append_promise` places it and `App.load_page` can await it before swapping — `content(){ return md.file(...) }` needs no change to `Page`. `{ h1: false }` drops the readme's leading heading, since `Page` already renders `title` as an h1.
+`md.file` resolves against `import.meta`, not the document (the SPA fallback makes the document url the *route*, so doc-relative fetches miss). It returns a **promise** so `View.append_promise` places it and the Router can await it before swapping — `content(){ return md.file(...) }` needs no change to `Page`. `{ h1: false }` drops the readme's leading heading, since `Page` already renders `title` as an h1.
 
 `ext/demo/demo.js` — `demo(fn)` renders `fn`'s source (from `fn.toString()`, de-wrapped and dedented) above the result of running it, boxed together. One source of truth, so an example cannot drift from what it renders. Strings before the function label the box; strings after caption it (`demo(fn, "caption")` — the caption renders inside the box, below the result). The caption uses `View.prototype.md` **if markdown has been imported**, falling back to `p()` backticks — a soft dependency, so `demo/` never imports `markdown/`. The code block uses `code.js()` on the same terms.
 
@@ -302,7 +303,7 @@ Keep it **short and code-first**, per the rules directly below — a good ext pa
 
 **Escalation is a one-way ratchet: specificity → a layer → unlayered → `!important` → inline.** Each rung works once, and spending it raises the cost for everyone after you. So: **never escalate downstream, de-escalate upstream.** When site CSS can't beat framework CSS, lower the framework (a flatter selector, a token, `:where()` around the one offending rule) — never raise the site. The framework holds the low ground on purpose so nobody downstream has to climb. This is the method behind "override = bug report"; the worked example is `--code-bg` in `framework/styles/readme.md` §13.
 
-**Layout modules provide layout, not looks.** `ColumnPager.css` says `.column-pager > .sidebar { flex: 0 0 var(--sidebar) }`; what a sidebar *looks* like is `Sidebar.css`. When a component styles content it merely contains, that content stops working anywhere else — this is why `.preview`, `.page-title` and `.crumb` moved out of `ColumnPager.css` into `Page.css`. Leave the styling to the implementor; ship the fewest defaults you can.
+**Layout modules provide layout, not looks.** A layout says `.thing > .sidebar { flex: 0 0 var(--sidebar) }`; what a sidebar *looks* like is `Sidebar.css`. When a component styles content it merely contains, that content stops working anywhere else — this is why `.page-preview` and `.page-title` live in `Page.css`, not in whatever happens to contain them. Leave the styling to the implementor; ship the fewest defaults you can.
 
 **If you ever override a `framework.css` rule, that's a bug report about `framework.css`.** Record it in `framework/styles/readme.md` §6 (the eviction list). The fix is to delete the rule or move it behind a class — not to out-specify it downstream. The `pre` case is the canonical one: four stylesheets independently overrode a padding that was simply wrong (`pre` is a block, `code` is inline, one value fit neither).
 
@@ -328,7 +329,7 @@ Keep it **short and code-first**, per the rules directly below — a good ext pa
 
 **Naming: a class is prefixed with its owning component** — unless the selector already starts with that component's own class. `.column-pager .crumb-sep` is fine (it can't reach outside); `.page-preview` must be prefixed, because it's styled unscoped on purpose so a card looks like a card anywhere, and an unscoped name has nothing but the name for a namespace. CSS has one global namespace and no build step to hash it, so **the class name is the registry** — a JS selector manifest would just be a second source of truth that drifts.
 
-**If your CSS styles a class you don't emit, `import` the module that emits it.** `View.stylesheet()` runs at module scope, so the import is the *loading edge*, not an annotation — `ColumnPager.css` styled `.page-preview` for months while `ColumnPager.js` never imported `Page`, working only because `App.js` happened to. Comment the import with the class names or someone will delete it as unused:
+**If your CSS styles a class you don't emit, `import` the module that emits it.** `View.stylesheet()` runs at module scope, so the import is the *loading edge*, not an annotation — a layout stylesheet styled `.page-preview` for months while its own JS never imported `Page`, working only because `App.js` happened to. Comment the import with the class names or someone will delete it as unused:
 
 ```js
 /* css: .page, .page-title, .page-previews, .page-preview */
@@ -343,7 +344,7 @@ Mechanics:
 - **The layer order is `@layer base, theme, site, util;` and every stylesheet must restate it IN FULL.** The first `@layer` statement fixes the order and a name first seen later is appended at the *end*, so one short list drops `site` past `util`. This is not theoretical: `Page.css`'s `<link>` is appended *before* `framework.css`'s (App.js imports Page at module scope, and imports hoist above App.js's own `View.stylesheet()` call), so `Page.css` establishes the order for the whole site.
 - Component CSS goes in `theme`. Site CSS goes in `site`, which beats `theme` at any specificity — so `/styles.css` never has to escalate. `util` stays last: you typed `.pad` on purpose.
 - Pages and components load their own stylesheets via `View.stylesheet(import.meta, "...")`; these are awaited before the app injects.
-- **Every stylesheet must be inside `@layer` — an unlayered rule beats every layer regardless of specificity.** This is the cascade rule that bites: an unlayered `.page { padding: … }` in `styles.css` silently defeated a four-class-deep `.column-pager .column.narrow .page` in `ColumnPager.css`.
+- **Every stylesheet must be inside `@layer` — an unlayered rule beats every layer regardless of specificity.** This is the cascade rule that bites: an unlayered `.page { padding: … }` in `styles.css` silently defeated a four-class-deep component rule.
 - A stylesheet that 404s no longer hangs the app (`View.stylesheet` resolves on `error` and warns), but the page renders unstyled — check the console.
 
 ## Dev server & live reload

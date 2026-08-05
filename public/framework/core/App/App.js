@@ -121,6 +121,26 @@ export class App {
 	styles_loaded(){ return Promise.allSettled(View.stylesheets); }
 
 	static stylesheet(meta, url){ return View.stylesheet(meta, url); }
+
+	/* ── compatibility, not API ──────────────────────────────────────────────
+	 * Both of these are aliases kept for consumers OUTSIDE framework/, per
+	 * framework/readme.md §8: rename freely in here, alias on the way out. The
+	 * rewrite dropped them and took four sections of the site down with them —
+	 * `app.stylesheet()` alone is called at module scope by alex/, arya/ and
+	 * castin/, so its absence 404'd all three.
+	 *
+	 * Neither is a second implementation and neither should grow one. */
+
+	stylesheet(meta, url){ return View.stylesheet(meta, url); }
+
+	/* The OLD url convention: `/a/` → `/a/page.js`, `/a/b` → `/a/b.page.js`.
+	 * The router no longer works this way — Page.child() walks declared children
+	 * and every node is a directory — so this cannot delegate to anything; it is
+	 * the old rule, frozen, for the sandbox Routers that still call it
+	 * (arya/lib/Router.js, alex/framework/core/Router/Router.js). Do not build on it. */
+	static path_to_page_url(path){
+		return path.endsWith("/") ? path + "page.js" : path + ".page.js";
+	}
 }
 
 export default App;
