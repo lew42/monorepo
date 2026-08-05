@@ -120,6 +120,29 @@
 		.topic > .sidebar .sidebar-nav { flex-direction: row; flex-wrap: wrap; }
 		.topic > .sidebar .sidebar-link { padding: 0.7em 1em; }
 
+		/* ONE wrap row of links, and only the group you are in.
+
+		   Stacked, the panel sits above the content, so its whole height is a wall you
+		   scroll past to reach the page — and it grew from 7 links to 30 when the nav
+		   started deriving both levels from the tree. Measured at 390px: 700px of nav
+		   before the first heading.
+
+		   `display: contents` dissolves the group so its links become items of the same
+		   wrap row as the flat entries. Keeping the group as a flex ITEM instead left it
+		   a column that the following entries wrapped beside — "Dev server" sat next to
+		   "Page", reading like a second column that wasn't one.
+
+		   The group title goes with it: with exactly one group showing, "CORE" is a
+		   heading over the only thing there is.
+
+		   The escape route is what lets this be so blunt — the brand goes to the section
+		   index, which lists every section as a card. So a phone gets "where am I" from
+		   the panel and "somewhere else" from the index, which is the split a drawer
+		   would give and needs no drawer. */
+		.topic > .sidebar .sidebar-group { display: contents; }
+		.topic > .sidebar .sidebar-group-title { display: none; }
+		.topic > .sidebar .sidebar-group:not(:has(.sidebar-link:is(.active, .in-path))) { display: none; }
+
 		/* No chevron in a row: it points at a panel that is now above, not beside. */
 		.topic > .sidebar .sidebar-link.active::after,
 		.topic > .sidebar .sidebar-link.in-path::after { content: none; }

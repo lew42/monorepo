@@ -203,7 +203,23 @@
         color: var(--subtle);
     }
 
-    table { border-collapse: collapse; }
+    /* A table can be wider than its column and, unlike `pre`, has no way to say so —
+       so it pushed the page sideways instead. Measured at 390px: a 442px table in a
+       262px column, and the whole region scrolling horizontally to accommodate it.
+
+       The three declarations work together: `max-content` keeps a small table small,
+       `max-width: 100%` makes a wrappable one fill the column and wrap, and
+       `overflow-x: auto` catches the case that genuinely cannot shrink — a cell with
+       `white-space: nowrap`, or a long unbroken string. `display: block` is what makes
+       `overflow` apply at all; the rows keep their own table display values, so
+       layout inside is unaffected. */
+    table {
+        border-collapse: collapse;
+        display: block;
+        width: max-content;
+        max-width: 100%;
+        overflow-x: auto;
+    }
     th, td { padding: 0.25em 0.75em; border: 1px solid var(--line); }
     th { background: var(--wash); text-align: left; }
 

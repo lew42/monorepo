@@ -1,4 +1,4 @@
-import { Page, md, demo, div, h3, p, a, code } from "/app.js";
+import { Page, md, demo, div, h3, p, a } from "/app.js";
 import { surface } from "../parts.js";
 import component from "./component.js";
 
@@ -33,7 +33,7 @@ export default new Page({
 			));
 		}, "`grid gap auto` is `repeat(auto-fit, minmax(min(var(--column), 100%), 1fr))` — a responsive card wall with no media query. Resize the window.");
 
-		md("The one thing to know: `pad flow` looks like the obvious inner class and is wrong. `flow` is **page** rhythm — ", code("--flow-sub"), " is `2rem`, so an eyebrow label and the title it belongs to end up 32px apart. `flex v` plus a gap is a component's own rhythm.");
+		md("One thing to know: `pad flow` looks like the obvious inner class and it is wrong. `flow` is **page** rhythm — `--flow-sub` is `2rem`, so an eyebrow label and the title it belongs to land 32px apart. `flex v` plus a small gap is a component's own rhythm.");
 
 		md("Next: [Stat tiles](/framework/styles/components/stats/) — the same surface, four across, one token retuned.");
 	}

@@ -148,7 +148,12 @@
 	/* Below this a 10em column is most of the width. Same content, stacked — the
 	   horizontal bar it becomes is the one the rules above already style. */
 	@media (max-width: 45em) {
-		.tabs.vertical { flex-direction: column; gap: 0; }
+		/* `align-items: stretch` is the one that has to be undone, and it is easy to
+		   miss: in a COLUMN container the cross axis is width, so the `flex-start`
+		   above makes each child size to its own content. Measured at 390px — the
+		   panel went to its max-content 526px inside a 262px box and scrolled
+		   sideways, with `min-width: 0` and `flex: 1 1 0` both looking correct. */
+		.tabs.vertical { flex-direction: column; gap: 0; align-items: stretch; }
 		.tabs.vertical > .tab-bar {
 			flex-direction: row; flex-wrap: wrap; flex: 0 0 auto;
 			position: static;

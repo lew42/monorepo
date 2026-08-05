@@ -9,7 +9,7 @@ export default new Page({
 	title: "Styles",
 	description: "Three layers, six type levels, twelve tokens — and as little else as possible.",
 	icon: "palette",
-	children: "base theme util elements layouts",
+	children: "base theme util elements layouts components",
 
 	// Labels and icons come from the five pages themselves. `children` stays a
 	// string of NAMES — an eager array here fetched the whole styles subtree on

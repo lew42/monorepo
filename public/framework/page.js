@@ -60,9 +60,16 @@ export default new Page({
 			 * evaluated once when the Sidebar was constructed, so re-running render()
 			 * against it drew the same flat list again. Which looked like the promise
 			 * never firing, and was measured as `versus core styles` in lower case. */
-			this.loading.then(() => this.$sidebar
-				.assign({ pages: this.sections() })
-				.empty(() => this.$sidebar.render()));
+			this.loading.then(() => {
+				this.$sidebar.assign({ pages: this.sections() })
+					.empty(() => this.$sidebar.render());
+
+				// These links were built AFTER Router.mark() ran, so they missed the
+				// pass — every row came back with no `.active` and no `.in-path`. Same
+				// re-mark `tabs()` does for the same reason, and it was invisible until
+				// a narrow-screen rule started keying off those classes.
+				this.app.router.mark_links();
+			});
 
 			// My children mount HERE, inside my own view — so the nav beside them is
 			// never rebuilt and never moves when you navigate between them. `papers`
