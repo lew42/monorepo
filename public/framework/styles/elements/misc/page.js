@@ -28,9 +28,11 @@ export default new Page({
 				div.c("pad").style({ outlineStyle: "auto", outlineColor: "var(--prim)", outlineOffset: "3px" })
 					.text("the same ring, forced on");
 			});
-		}, "`:focus-visible { outline-color: var(--prim); outline-offset: 3px; outline-width: 2px }`. **`:focus-visible` and not `:focus`** — a mouse click on a button shouldn't draw a ring, a Tab key should, and the browser already knows the difference.");
+		}, "`:focus-visible { outline-color: var(--prim); outline-offset: 3px }`. **`:focus-visible` and not `:focus`** — a mouse click on a button shouldn't draw a ring, a Tab key should, and the browser already knows the difference.");
 
-		md("Two things in that rule are worth writing down, because the file itself has a puzzled comment about them.\n\n**`outline-width: 2px` has no effect, and that's not a bug in the browser.** No `outline-style` is set, so the UA's own focus style — `outline-style: auto` — is what's drawing, and `auto` means \"the platform ring\": it ignores `outline-width` by design and honours only colour and offset.\n\n**And that's why `outline: 2px solid var(--prim)` is commented out above it.** The shorthand replaces `auto` with `solid`, and a `solid` outline does *not* follow the element's `border-radius` — it draws a rectangle around a rounded button. Losing `outline-width` is the price of keeping rounded rings, which is the right trade and now has a reason attached to it.");
+		md("**Two declarations, and it used to be three.** There was an `outline-width: 2px` beside a puzzled comment saying it didn't seem to work. It doesn't, and that isn't a browser bug: no `outline-style` is set, so the ring is drawn by the UA's own `outline-style: auto`, and `auto` means *the platform ring* — it **ignores `outline-width` by design** and honours only colour and offset.");
+
+		md("**That is also why the obvious `outline: 2px solid var(--prim)` is not used.** The shorthand replaces `auto` with `solid`, and a `solid` outline does *not* follow `border-radius` — it draws a rectangle around a rounded button. Losing control of the width is the price of keeping rounded rings, which is the right trade; the dead declaration is gone and the reason is in the file.");
 
 		md("## The ligature trap");
 

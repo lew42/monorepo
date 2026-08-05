@@ -259,6 +259,32 @@ And in components, per §1's test:
 
 ---
 
+## 6b. A doc page that quotes a rule is a claim that can be checked
+
+These pages quote real declarations — ``md("`pre` gets `padding: 0.75em 1em`")`` —
+which is what makes them useful and also what makes them rot. Four of them went stale
+**within an hour** of being written, because fixing the bugs they had just found
+changed the values they quoted.
+
+That is a checkable class of claim, and the check is about fifteen lines: pull every
+`` `prop: value` `` out of the doc pages with a regex, normalise whitespace, and assert
+the string appears in `framework.css` or `Page.css`. Run against this section it found,
+with no false negatives worth the name:
+
+- `input:not(…[type=color])` — the `:not()` list had gained `[type="range"]`
+- `dd`'s `margin-left: 40px` — no longer true, `dd` now has a rule
+- `figure`'s `margin: 1em 40px` — same
+- `outline-width: 2px` — the declaration had been deleted as a no-op
+
+The false positives are all counter-examples (`background: #eef0f4`, quoted as *"not
+this"*), which a human dismisses in seconds.
+
+**Worth knowing rather than worth automating, for now.** It is a scratch script, not a
+repo script — a work-in-progress check doesn't earn an npm script, and nothing here
+runs tests in CI. But *"the docs quote the CSS, so the docs are testable against the
+CSS"* is the useful idea, and it is the only mechanism in this repo that would have
+caught any of the four.
+
 ## 7. Why `framework.css` stays at `framework/framework.css`
 
 It's the one file every page depends on and the one people open by hand. Moving

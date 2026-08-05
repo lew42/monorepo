@@ -45,7 +45,14 @@ export default new Page({
 			div.c("flex gap auto", () => cells(6));
 		}, "`auto` wraps, each child sized `1 1 var(--column)` (14em). Resize the column — this is a responsive grid with no media query.");
 
-		md("| class | does |\n| --- | --- |\n| `flex` | `display: flex` |\n| `flex.v` | column |\n| `flex.reverse` | `row-reverse` |\n| `flex.wrap` | wrap |\n| `flex.auto` | wrap, children `1 1 var(--column)` |\n| `flex.three` | wrap to 3-up, then 1-up (no media query) |\n| `flex.all-1` | every child `flex: 1` |\n| `flex-1` | this child `flex: 1` |\n| `flex.h-center` | `justify-content: center` |\n| `flex.v-center` | `align-items: center` |\n| `flex.split` | `space-between` |\n\n`flex > * { margin: 0 }` comes along with `flex` — a paragraph's default margin has no business in a row.");
+		md("| class | does |\n| --- | --- |\n| `flex` | `display: flex` |\n| `flex.v` | column |\n| `flex.reverse` | `row-reverse` |\n| `flex.wrap` | wrap |\n| `flex.auto` | wrap, children `1 1 var(--column)` |\n| `flex.three` | wrap to 3-up, then 1-up (no media query) |\n| `flex.all-1` | every child `flex: 1` |\n| `flex-1` | this child `flex: 1` — the **fluid** track |\n| `basis` | this child `flex: 0 0 var(--basis, var(--column))` — the **fixed** track |\n| `flex.h-center` | `justify-content: center` |\n| `flex.v-center` | `align-items: center` |\n| `flex.split` | `space-between` |\n\n`flex > * { margin: 0 }` and `grid > * { margin: 0 }` come along for free — a laid-out container spaces itself with `gap`, and an inherited block margin only fights it.");
+
+		demo(() => {
+			div.c("flex gap", () => {
+				div.c("basis pad").style({ "--basis": "8em", background: "var(--wash)" }).text("basis 8em");
+				div.c("flex-1 pad").style({ background: "var(--wash)" }).text("flex-1 — takes the rest");
+			});
+		}, "**`basis` is the other half of `flex-1`.** A fixed track beside a fluid one is the commonest two-column row there is, and for a long time only the fluid half had a name — five components wrote `flex: 0 0 …` by hand, which is what earned this one. `--basis` defaults to `--column`; set it inline for anything else.");
 
 		md("## Grid");
 

@@ -56,7 +56,7 @@ export default new Page({
 				el("dt", "another");
 				el("dd", "and its definition");
 			});
-		}, "A `dl` renders, and it has **no factory and no rule** — `el(\"dl\", …)` builds it, and `dd` keeps the browser's `margin-left: 40px`: a fixed pixel indent in an `em`-scaled document, which is the exact bug `ul, ol { padding-left: 1.2em }` exists to fix. Left alone deliberately, not overlooked — see the design record on the [index](/framework/styles/elements/). A definition list is usually a two-column [table](/framework/styles/elements/table/) or a `.grid` wearing a list's clothes.");
+		}, "A `dl` renders, and it still has **no factory** — `el(\"dl\", …)` builds it. It does now have a rule: writing this page is what found that `dd` kept the browser's `margin-left: 40px`, a fixed pixel indent in an `em`-scaled document, which is the exact bug `ul, ol { padding-left: 1.2em }` was written to fix. It's `dd { margin-left: 0; padding-left: 1.2em }` now, matching the other two. A definition list is still usually a two-column [table](/framework/styles/elements/table/) or a `.grid` wearing a list's clothes.");
 
 		md("## Lists in a layout");
 

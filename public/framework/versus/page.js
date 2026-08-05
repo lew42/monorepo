@@ -13,9 +13,11 @@ export default new Page({
 
 		md("## The whole framework");
 
-		md("| | |\n| --- | --- |\n| **825** | executable lines — `View` + `Page` + `Router` + `App` |\n| **27.7 KB** | gzipped, *everything* needed to render a page, **including CSS** |\n| **0** | build steps |\n| **0** | runtime dependencies |\n| **0** | config files |\n\nAnd that 27.7 KB is **unminified source with the comments left in** — 32% of the core is comment, shipped on purpose, because the readable source is the product. Minified it would be roughly half.\n\nFor scale: React + ReactDOM alone is ~45 KB gzipped, minified, *before* a router, before a build tool, and before a line of your code.");
+		md("| | |\n| --- | --- |\n| **824** | executable lines — `View` + `Page` + `Router` + `App` |\n| **24.6 KB** | gzipped, *everything* needed to render a page, **including CSS** |\n| **0** | build steps |\n| **0** | runtime dependencies |\n| **0** | config files |\n\nAnd that 24.6 KB is **unminified source with the comments left in** — 30% of it is comment, shipped on purpose, because the readable source is the product. Minified it would be roughly half.\n\nFor scale: React + ReactDOM alone is ~45 KB gzipped, minified, *before* a router, before a build tool, and before a line of your code.");
 
-		md("*Measured 2026-08-04. Re-run it: `gzip -c` over `View.js`, `Page.class.js`, `Router.js`, `App.js`, `Font.js`, `is.js`, `framework.css`, `Page.css`.*");
+		md("*Measured 2026-08-05. Re-run it: `gzip -c` over `View.js`, `Page.class.js`, `Router.js`, `App.js`, `Font.js`, `is.js`, `framework.css`, `Page.css`.*");
+
+		md("It was 27.7 KB a day earlier, and the 3 KB came off the **comments**, not the code — the executable line count is unchanged. Design rationale moved into the `readme.md` next to each class, where it can be as long as it needs to be without standing between a reader and the method they opened the file for.");
 
 		md("## A counter, which is where reactivity usually starts");
 

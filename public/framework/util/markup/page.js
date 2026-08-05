@@ -46,7 +46,7 @@ export default new Page({
 That last one is a trap worth naming: escaping here as well is how you get
 \`&amp;lt;div&amp;gt;\` on the page.`);
 
-		md("Next: [is](/framework/util/is/) — the type checks the dispatch logic runs on.");
+		md("Next: [Dev server](/framework/dev/) — live reload, and how to run all this locally.");
 
 		md.details(import.meta, "readme.md", "Design record");
 	}

@@ -24,7 +24,7 @@ export default new Page({
 				img().attr("src", logo).attr("alt", "the lew42 mark").style({ width: "5em" });
 				figcaption("The mark — a caption is plain text, so no backticks here.");
 			});
-		}, "Neither is styled. `figure` keeps the browser's `margin: 1em 40px`, and the flow rules in `Page.css` zero only `margin-block` — so the **40px inline margins survive** and the figure sits indented from everything around it. That's the indent you're looking at. Fix it where you use it (`.style({ margin: 0 })`, or `figure.c(\"flex v gap\")`); it isn't in the base because a `figure` genuinely is a set-apart block and the framework doesn't know how far apart.");
+		}, "`figcaption` isn't styled at all. `figure` has exactly one declaration — `figure { margin: 0 }` — and finding out why it needed one is the best thing this page did: the browser's default is `margin: 1em 40px`, and the flow rules in `Page.css` zero only `margin-block`, so the **40px inline margins survived** and every figure on the site sat indented from everything around it. Set the spacing you want where you use it; the base's job was only to stop the browser inventing one.");
 
 		md("## video");
 

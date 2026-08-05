@@ -46,7 +46,7 @@ export default new Page({
 				input().attr("type", "button").attr("value", "button");
 				input().attr("type", "reset").attr("value", "reset");
 			});
-		}, "The six types held back from `width: 100%`. **And the two `:not()` lists deliberately differ:** the theme's is shorter — `input:not([type=checkbox], [type=radio], [type=color])` — so `submit`, `button` and `reset` *do* take `padding: 0.25em 0.6em` and `border: 1px solid var(--subtle)`, while a checkbox, a radio and a colour swatch take neither. The comment beside the rule is the reason it's worth knowing: adding that border changes a submit input's height, background and hover state.");
+		}, "The six types held back from `width: 100%`. **And the two `:not()` lists deliberately differ:** the theme's is shorter — `input:not([type=checkbox], [type=radio], [type=color], [type=range])` — so `submit`, `button` and `reset` *do* take `padding: 0.25em 0.6em` and `border: 1px solid var(--subtle)`, while a checkbox, a radio, a colour swatch and a slider take neither. `range` is the newest entry, added because writing this page is what revealed that a slider was being drawn with a 1px text-field border. The comment beside the rule is the reason it's worth knowing: adding that border changes a submit input's height, background and hover state.");
 
 		demo(() => {
 			div.c("flex v gap", () => {
