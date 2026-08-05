@@ -255,6 +255,7 @@ section" — while a preview card distinguishes them.
   avoid — the same call `/page.js` makes with `sections`. If it starts drifting,
   the fix is `load_all_children()` in `initialize()` and filling each group after
   first paint, the shape `tabs()` already uses.
+  **✅ Done — see §5.**
 - **A group leads with its section rather than linking its heading.** §2's verdict
   stands — a heading that navigates is a link pretending to be a heading — so
   every group's first entry is "Overview", pointing at the section's own url.
@@ -265,3 +266,60 @@ section" — while a preview card distinguishes them.
   rule forbids. It works because the site passes `header` and only one of them
   ever runs, and because this file scopes its rules to `.sidebar .brand`. It is
   still one class name short of a collision.
+
+---
+
+## 5. The nav is derived now, and two things went wrong that were the same thing
+
+`/framework/`'s sidebar was 25 hand-typed entries. It is now built from the tree —
+`load_all_children()` on the section, then on each section's children, and every
+label and icon comes from `nav_for()`. See `core/Page/readme.md` §"nav" for the
+verdict and its measured cost (+51ms to first paint).
+
+Two bugs fell out, and **both are "the sidebar is rebuilt after the pass that was
+supposed to touch it"**:
+
+- **`pages` is data, evaluated once.** The rebuild re-ran `render()` against the
+  array the Sidebar was constructed with, so it faithfully redrew the *stale* list.
+  It looked exactly like the promise never firing. Fix: `assign({ pages: … })`
+  before `render()` — recompute the data, don't just re-render.
+- **The new rows had no `.active` or `.in-path`.** `Router.mark()` had already run,
+  so the links it marked no longer existed. Fix: call `mark_links()` after the
+  rebuild — the same call `tabs()` makes, for the same reason.
+
+**The reusable rule: anything that renders links LATE must re-run `mark_links()`.**
+`tabs()` did it and this didn't, which is a good argument that a second caller means
+it belongs somewhere more obvious than a comment in two files.
+
+The second bug was invisible for a while, because nothing read those classes on a
+sidebar — `/styles.css` only styles them. It surfaced the moment a narrow-screen
+rule started *selecting* on them.
+
+## 6. Below 52em: one wrap row, and only the group you are in
+
+Stacked, the panel sits above the content, so its full height is a wall you scroll
+past to reach the page. At 7 entries that was fine; at 30 it measured **700px of nav
+before the first heading** at 390px.
+
+| option | why not |
+|---|---|
+| a hamburger drawer | needs JS, or a checkbox hack, or `<details>` restructuring — and a whole open/closed state to get right |
+| a horizontal scroll strip | 30 items in a one-line scroller, with group titles inline, is a worse index than no index |
+| **show the group you are in** | ✓ |
+
+**Verdict: `display: contents` on the group, hide the group title, and
+`:not(:has(.sidebar-link:is(.active, .in-path)))` on the rest.** ~200px, no JS, no
+state.
+
+`display: contents` rather than making the group a full-width flex item: as an item
+it stayed a *column*, and the flat entries after it wrapped up beside it — "Dev
+server" sat next to "Page", reading like a second column that wasn't one. Dissolving
+the group puts its links in the same wrap row as everything else.
+
+The title goes too. With exactly one group visible, "CORE" is a heading over the
+only thing there is.
+
+**What makes this blunt approach honest is the escape route, and it already
+existed:** the brand links to the section index, which lists every section as a
+card. So a phone gets *"where am I"* from the panel and *"somewhere else"* from the
+index — the same split a drawer would provide, without the drawer.

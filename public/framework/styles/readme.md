@@ -204,6 +204,29 @@ rules (§9a) could own rhythm, because an element selector at (0,0,1) beats a
 is nearly always rhythm in the wrong place.** Spacing belongs to whatever arranges
 the content.
 
+**`table` got a scroller, and the reason it took this long is instructive.** `pre`
+has had `overflow-x: auto` since the reset was written; `table` never did, because
+nobody had looked at a wide one in a narrow column. Measured at 390px: a 442px
+table in a 262px column, and **the whole region scrolling sideways to accommodate
+it** — so the symptom presented as "the page overflows", not as "the table is too
+wide", and every attempt to find the offending element pointed at an ancestor.
+
+```css
+table { display: block; width: max-content; max-width: 100%; overflow-x: auto; }
+```
+
+Four declarations that only work together: `max-content` keeps a small table small,
+`max-width: 100%` makes a wrappable one fill the column and wrap normally, and
+`overflow-x` catches only the case that genuinely cannot shrink — a `nowrap` cell,
+or a long unbroken string. `display: block` is what makes `overflow` apply at all;
+the rows keep their own table display values, so nothing about the layout inside
+changes.
+
+**The general lesson: an element that cannot shrink and has no scroller of its own
+will make its ancestors overflow instead.** `pre` and `table` are the two in HTML
+that do this. There is no third, which is why this list is now complete rather than
+open.
+
 Three more were found by writing `/framework/styles/elements/`, which is the
 argument for that section existing at all — documenting every element is how you
 discover the ones nobody looked at:
