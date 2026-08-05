@@ -70,5 +70,7 @@ None of it was configured.`);
 		h2("Next");
 
 		md("[View](/framework/core/View/) is the one class you'll use on every line. Then [Page](/framework/core/Page/), then [Router](/framework/core/Router/) when you want more than one url.");
+
+		md("And keep [the FAQ](/framework/faq/) open in a tab — it answers the questions you're about to have, including the five things here that fail **silently**.");
 	}
 });

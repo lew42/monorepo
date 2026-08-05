@@ -8,7 +8,7 @@ import { Page, Sidebar, md, h1, h2, div, a } from "/app.js";
  * and loads nothing — and Sidebar.link() is duck-typed, so it takes these or
  * real Pages without caring which. */
 const sections = [
-	{ title: "Framework", url: "/framework/", desc: "The docs — View, Page, Pager, Router." },
+	{ title: "Framework", url: "/framework/", desc: "The docs — View, Page, Router, App." },
 	{ title: "Alex", url: "/alex/", desc: "Pages, subpages, and nesting." },
 	{ title: "Arya", url: "/arya/", desc: "First steps with the framework." },
 	{ title: "Castin", url: "/castin/", desc: "A tree you can walk — root to leaves." },
@@ -89,10 +89,14 @@ export default new Page({
 
 		md(`The framework picked up a lot while you were building:
 
+- **[Start](/framework/start/)** — three files and a working site. Click through the real project.
+- **[FAQ](/framework/faq/)** — the questions you're about to have, answered code-first.
 - **[Router](/framework/core/Router/)** — no-reload page transitions. Write an ordinary \`<a href>\` and it upgrades the click for you.
 - **[Page](/framework/core/Page/)** — a titled, linkable, dormant unit of content. Importing one renders nothing, so pages can link to each other freely.
-- **[Start](/framework/start/)** — three files and a working site, if you want the short version first.`);
+- **[Elements](/framework/styles/elements/)** and **[Layouts](/framework/styles/layouts/)** — every element the framework styles, and eight page layouts you can click into full size.`);
 
-		md("Every example on those pages is live: you see the code, and directly beneath it the thing that code rendered.");
+		md("Every example on those pages is live: you see the code, directly beneath it the thing that code rendered, and — one click further — **the HTML it actually produced.**");
+
+		md("The old `Pager` tier is gone, by the way. An arrangement is a CSS class a page opts into now, so there's no fifth class to learn. If you built anything on it, the records are in `core/legacy/`.");
 	}
 });

@@ -43,7 +43,17 @@ export default new Page({
 
 		md("One import, once — this site does it in `app.js`. It enhances the `code` factory in place, so `code` still comes from `/app.js` like every other element. Drop the import and `code()` keeps working while `code.js()` disappears.");
 
-		md("Next: [Classdoc](/framework/ext/classdoc/) — a class's methods as pages, source included.");
+		h2("One sharp edge");
+
+		code.js(`p("Call ", code.js("x").ac("wide"), "!")     // ✗ .ac() is silently LOST
+p.c("wide", "Call ", code.js("x"), "!")      // ✓ class on the sentence
+p(() => code.js("x").ac("wide"))             // ✓ capture form`);
+
+		md("In **argument position** inside a sentence, the captor is still the grandparent — so `code.js()` guesses \"block\", builds a `<pre>`, and that `<pre>` is discarded when `append` corrects the guess. Anything you chained onto it goes with it: classes, attributes, **and `.on()` handlers**, which leaves a dead listener and nothing in the console.");
+
+		md("Both fixes are one character of effort, and the capture form is correct by construction. Full reasoning — including why the guess isn't simply deferred — in the design record below.");
+
+		md("Next: [Files](/framework/ext/files/) — a tree of real files, fetched.");
 
 		md.details(import.meta, "readme.md");
 	}
