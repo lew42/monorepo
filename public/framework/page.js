@@ -9,7 +9,7 @@ export default new Page({
 	// Inert: /styles.css decides what the class means, and Router.mark() unsets it.
 	classes: "hides-nav",
 
-	children: "start versus core ext styles util dev",
+	children: "start faq versus core ext styles util dev",
 
 	// Labels that differ from the page's own title, and nothing else. Icons live on
 	// the pages — see core/Page/readme.md §"nav".

@@ -263,9 +263,10 @@ export class Page {
 	previews(){
 		return div.c("page-previews", $previews => {
 			this.cards();
-			// `empty(fn)` sets the captor before running fn, so the redraw builds into
-			// the container that was captured synchronously — no ambient captor is
-			// trusted across the await.
+			// A CALLBACK, so the captor is re-established: `empty(fn)` routes through
+			// append_fn, which sets $previews as captor, runs fn, and restores. That is
+			// the whole trick for building DOM after an await — nothing inside cards()
+			// has to know it is being called late.
 			this.loading?.then(() => $previews.empty(() => this.cards()));
 		});
 	}

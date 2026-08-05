@@ -38,11 +38,11 @@ async previews(){
     return div.c("page-previews", () => children.forEach(c => c.preview()));
 }
 
-// RIGHT — container captured NOW, filled later, explicit target
+// RIGHT — container captured NOW, filled inside a callback that re-captures
 previews(){
     return div.c("page-previews", async ($previews) => {
         const children = await Promise.all(names.map(n => this.child(n)));
-        children.forEach(c => $previews.append(c.preview()));
+        $previews.append(() => children.forEach(c => c.preview()));
     });
 }
 ```
@@ -50,11 +50,23 @@ previews(){
 **The mechanical check: a factory call that appears after an `await` is wrong.**
 No judgment required — scan for it.
 
-Inside an async callback you must name the target (`$previews.append(…)`); the
-ambient captor is long gone. Returning a **promise** is the other blessed form —
-`append_promise` awaits it and appends to a view that was placed synchronously,
-which is why `content(){ return md.file(import.meta, "readme.md") }` works with no
-support from `Page`.
+**The fix that keeps the code reading like ordinary page code:** `append(fn)` and
+`empty(fn)` both route through `append_fn`, which sets the captor, runs `fn`, and
+restores it. So a callback **re-establishes the captor**, and everything inside it
+is written exactly the way you'd write it at module scope:
+
+```js
+$list.empty(() => names.forEach(name => p(name)));   // captor is $list again
+```
+
+That is strictly better than naming the target on every single call — one wrapper
+instead of N prefixes, and nothing to forget halfway down a loop. `Page.previews()`
+uses it for exactly this reason.
+
+Returning a **promise** is the other blessed form — `append_promise` awaits it and
+appends to a view that was placed synchronously, which is why
+`content(){ return md.file(import.meta, "readme.md") }` works with no support from
+`Page`.
 
 Assume async capturing does not work. Sync-render-then-async-append covers every
 case.

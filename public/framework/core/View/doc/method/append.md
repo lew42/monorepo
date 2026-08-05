@@ -26,11 +26,11 @@ async previews(){
     return div.c("page-previews", () => children.forEach(c => c.preview()));
 }
 
-// RIGHT — container captured NOW, filled later, target named explicitly
+// RIGHT — container captured NOW, filled inside a callback
 previews(){
     return div.c("page-previews", async ($previews) => {
         const children = await Promise.all(names.map(n => this.child(n)));
-        children.forEach(c => $previews.append(c.preview()));
+        $previews.append(() => children.forEach(c => c.preview()));
     });
 }
 ```
@@ -39,6 +39,23 @@ Nothing throws. The elements simply appear somewhere else in the document.
 
 The mechanical check: **a factory call that appears after an `await` is wrong.**
 No judgment needed — scan for it.
+
+## The fix uses this method against itself
+
+Look at what the corrected version does: it passes a **function** to `append`. Row
+two of the table above is the whole answer — `append_fn` sets the captor, runs your
+function, and restores it. So a callback **re-establishes the captor**, and the code
+inside is written exactly the way you'd write it anywhere else:
+
+```js
+$list.empty(() => names.forEach(name => p(name)));   // captor is $list again
+```
+
+`empty(fn)` is the same door (it calls `append` after clearing), which makes it the
+natural shape for "replace a placeholder with the real thing".
+
+That is better than prefixing every call with `$list.append(...)`: one wrapper
+instead of N prefixes, and nothing to forget halfway down a loop.
 
 Returning a **promise** is the other blessed shape, since `append_promise` awaits
 it and appends to a view that was placed synchronously. That is why
