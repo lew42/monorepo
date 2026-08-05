@@ -1,0 +1,44 @@
+/* Layer order, restated IN FULL — a short list would misplace `site`.
+   See the header of framework.css. */
+@layer base, theme, site, util;
+
+/* Eight rules: three the layouts needed, two for the gallery window, three for
+   the maximize view. Each of the first three is a finding — it is what the
+   utility set could not say. No colour anywhere: every box's tint is an inline
+   token value in parts.js, because a look is not this file's call.
+
+   Reasoning, and what was tried instead: readme.md. */
+@layer theme {
+
+	/* A fixed column beside a fluid one. `flex-1` names the fluid half and there
+	   is no utility for the other, so this is the rule every sidebar layout has
+	   to write. Both bases are existing tokens — no new number. */
+	.layout-side { flex: 0 0 var(--sidebar); min-width: 0; }
+	.layout-rail { flex: 0 0 var(--column); min-width: 0; }
+
+	/* A measure, centred. `max-width` alone leaves the column flush left, and
+	   `flex h-center` can't help without a width to centre. */
+	.layout-measure { max-width: 34em; margin-inline: auto; }
+
+	/* The gallery cell. `.page-preview` is the card — surface, border, hover and
+	   the `.active` state Router.mark_links() paints — so this only turns it on
+	   its side and gives the window its shape. What's inside is a live render at
+	   `zoom-25`: laid out at four times the card's width and painted back down,
+	   which is why a preview looks shrunken rather than squashed. */
+	.layout-card { flex-direction: column; align-items: stretch; }
+	.layout-thumb { aspect-ratio: 16 / 10; overflow: hidden; }
+
+	/* Maximize: out of the region's paper measure, so the layout gets the width
+	   it was drawn for. `.page.hides-nav` (in /styles.css) takes the site nav;
+	   this takes the sheet. */
+	.pages.papers > .page.layout-full { max-width: none; padding: 1.5em; }
+
+	/* …and the height, so a `flex-1` band inside a layout has something to take
+	   and a footer lands at the bottom. `.active-page` is in the selector on
+	   purpose: the arrangement contract decides *whether* a page shows, and a bare
+	   `.page.layout-full { display: flex }` would out-rank `.page { display: none }`
+	   (equal specificity, later file) and leave every maximize view on screen for
+	   every route on the site. */
+	.page.layout-full.active-page { display: flex; flex-direction: column; }
+	.page.layout-full > :last-child { flex: 1 1 auto; min-height: 0; }
+}

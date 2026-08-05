@@ -189,6 +189,41 @@ one you get free, replaced by loading another — having opinions is its job. Th
 test is no longer "is this opinionated" but **"is this dead, or is it reachable
 only by a fight."** Two of the original entries survive that, two don't.
 
+**Evicted, and what it cost to notice.** Four margins had to go before the flow
+rules (§9a) could own rhythm, because an element selector at (0,0,1) beats a
+`:where()` rule at (0,0,0):
+
+| was | why it left |
+|---|---|
+| `table { margin: 1em 0 }` | rhythm, living in the base theme |
+| `hr { margin: 3em 0 }` | same. Replaced with `border-top: 1px solid var(--line)`, which is what an `hr` actually needed |
+| `figure`'s UA `margin: 1em 40px` | never declared here at all, so every `figure` on the site sat indented 40px. The flow zeroes *block* margins only, so the inline half survived. Now `figure { margin: 0 }` in `base` |
+| `dd`'s UA `margin-left: 40px` | the exact bug `ul, ol { padding-left: 1.2em }` was already written to fix, missed because `dl` has no View factory |
+
+**The general rule this confirms: a margin on a generic element in the base theme
+is nearly always rhythm in the wrong place.** Spacing belongs to whatever arranges
+the content.
+
+Three more were found by writing `/framework/styles/elements/`, which is the
+argument for that section existing at all — documenting every element is how you
+discover the ones nobody looked at:
+
+- **`input[type=range]` took the text-field border**, because neither `:not()` list
+  named it. A 1px border around a slider is not a control anyone designed. Fixed.
+- **`audio` and `iframe` were missing** from `img, picture, video, canvas, svg
+  { display: block; max-width: 100% }`. Both have View factories; both kept the
+  inline baseline gap the rule exists to remove, and an `iframe` could overflow its
+  column. Fixed.
+- **`kbd` and `samp` were missing** from the `--mono` rule, so they rendered at a
+  visibly different size from a `code` in the same sentence. Fixed.
+- **`:focus-visible { outline-width: 2px }` genuinely did nothing**, and the reason
+  is worth keeping: no `outline-style` is set, so the ring is the UA's
+  `outline-style: auto`, which **follows `border-radius`** and by spec **ignores
+  `outline-width`**. A `solid` outline honours the width and draws a square ring
+  around a rounded control. That is also the answer to the old
+  *"messes with the border radius???"* comment beside it. Rounded rings win; the
+  declaration was deleted and the reasoning written into the file.
+
 Still evictable:
 
 - **`select`'s SVG arrow.** A data-URI triangle plus `appearance: none`. Not
@@ -399,6 +434,38 @@ they're honored:
   component adapting a heading in its own context should win — but it means a
   theme cannot restyle every heading on the site with one flat rule. This is the
   known sharp edge of the model.
+
+### 9a. The real override fight arrived — and `:where()` was the right tool
+
+The trigger this verdict was waiting for. `Page.css` had four rhythm rules
+(`.page > h2`, `.page > p`, …) which are exactly the sharp edge above: they
+out-ranked a theme's flat `h2` forever, and they were unreachable from a `.md`
+block anyway.
+
+They are now the **flow** rules, and every one is `:where()`d to specificity zero:
+
+```css
+:where(.flow, .page, .md, blockquote, .demo-render) > * + * { margin-block-start: var(--flow); }
+```
+
+Three things this buys, all of which the plain-selector model could not:
+
+- A theme or a component that genuinely wants its own spacing wins by being an
+  **ordinary class** — `.md-details` and `.demo` do exactly that. No escalation.
+- The second obligation above is retired for rhythm: `Page.css` no longer out-ranks
+  a theme's flat rules.
+- Retuning is a **token** (`--flow`, `--flow-section`, `--flow-sub`,
+  `--flow-tight`), not a selector, so a theme changes four values.
+
+The cost §9 warned about is real and is paid here: **inside the flow block, order
+decides**, because all the selectors weigh the same. That is load-bearing — the
+"heading hugs what follows" rule is written before "a heading takes air above" so
+that `h1 + h2` gets the air. It is commented in the file, and it is exactly the trap
+§9 predicted, contained to seven rules in one place instead of forty.
+
+**Verdict stands, and this is what honoring it looks like:** plain selectors by
+default, `:where()` around the rules that caused a real fight. It has now happened
+once.
 
 ---
 

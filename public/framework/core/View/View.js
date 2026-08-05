@@ -1,14 +1,21 @@
 import is from "../../util/is/is.js";
 
+/* A DOM element with a chainable API, and one idea: CAPTURING. `View.captor` is the
+ * view currently collecting children, so an element factory appends itself to it —
+ * which is what makes nested calls build nested DOM with no builder object.
+ *
+ * ⚠ **Capturing is synchronous.** `append_fn` restores the previous captor the
+ * instant your function RETURNS, which for an `async` function is its first `await`.
+ * Nothing throws; the elements simply appear somewhere else. See core/View/readme.md.
+ *
+ * `tag` and `capture` are on the prototype (bottom of the file), not class fields —
+ * a field would stop a subclass declaring `tag = "other"`.
+ */
 export default class View {
-
-	// tag = "div"; // this prevents Extension.prototype.tag = "other" 
-	// capture = true; // this is set on View.prototype at end of file
 
 	constructor(...args){
 		this.assign(...args);
 		this.prerender();
-		// this.constructor.register(this);
 		this.initialize();
 	}
 
@@ -40,8 +47,14 @@ export default class View {
 		return this;
 	}
 
+	/* The class-name chain as kebab-case CSS classes: `class FooBarView extends View`
+	 * renders `div.foo-bar`, so a subclass is styleable with nothing declared.
+	 *
+	 * ⚠ This runs inside `super()`, BEFORE a subclass's class fields initialize — so a
+	 * `classes = "docs"` field arrives too late to be seen here. Name the subclass
+	 * instead; that is what this reads. */
 	classify(){
-		this.ac(this.classes); // probably a bad idea, this won't stay sync'd...
+		this.ac(this.classes);
 
 		var cls = this.constructor;
 
@@ -182,16 +195,12 @@ export default class View {
 		return this;
 	}
 
-	/* Getter or setter, decided by WHETHER a value was passed — never by whether
-	 * it differs from what's there.
-	 *
-	 * These three used to test `is.def(value) && value !== current`, so setting a
-	 * value equal to the current one fell into the getter branch and returned a
-	 * STRING. `field().text("").attr(…)` on an already-empty <textarea> threw
-	 * "attr is not a function", and the docs list all three as chainable. The
-	 * no-re-write optimization below is the part that actually wanted the
-	 * comparison; returning `this` never did. Found by the forms seat.
-	 */
+	/* Getter or setter, decided by WHETHER a value was passed — never by whether it
+	 * differs from what is there. These three used to test both, so setting a value
+	 * equal to the current one fell into the getter branch and returned a STRING:
+	 * `field().text("").attr(…)` on an empty <textarea> threw "attr is not a
+	 * function". The skip-the-write optimization wanted the comparison; the return
+	 * never did. */
 	html(value){
 		if (!is.def(value)) return this.el.innerHTML;
 
@@ -235,39 +244,23 @@ export default class View {
 		return this;
 	}
 
-	// Author: Gemini 2.5 Flash
+	/* `code` spans from backticks, and NOTHING else — this is not markdown. Bold,
+	 * links and tables render as literal text, which is the trap: use `md()` for
+	 * anything formatted. */
 	backticks(text){
 		const regex = /`([^`]+)`/g;
-		let parts = [];
-		let lastIndex = 0;
+		const parts = [];
+		let last = 0;
 		let match;
 
-		// 1. Iterate through all matches
-		while ((match = regex.exec(text)) !== null) {
-			const fullMatch = match[0]; // e.g., '`code segment`'
-			const capturedContent = match[1]; // e.g., 'code segment'
-			const matchStart = match.index;
-			const matchEnd = matchStart + fullMatch.length;
+		while ((match = regex.exec(text)) !== null){
+			if (match.index > last) parts.push(text.slice(last, match.index));
 
-			// 2. Capture the preceding plain text
-			const precedingText = text.substring(lastIndex, matchStart);
-			if (precedingText) {
-				parts.push(precedingText);
-			}
-
-			// 3. Create and push the 'code' element
-			const codeElement = el("code", capturedContent);
-			parts.push(codeElement);
-
-			// 4. Update the index for the next segment
-			lastIndex = matchEnd;
+			parts.push(el("code", match[1]));
+			last = match.index + match[0].length;
 		}
 
-		// 5. Capture any remaining text after the last match
-		const remainingText = text.substring(lastIndex);
-		if (remainingText) {
-			parts.push(remainingText);
-		}
+		if (last < text.length) parts.push(text.slice(last));
 
 		this.append(parts);
 		return this;
@@ -309,20 +302,10 @@ export default class View {
 		return this;
 	}
 
-	/* If we have root-level content, we need to capture in series.
-	 * however, if we use default export (fn or .render), we could have .load()
-	 * work in parallel, and .lazy() work in series. 
-	 * 
-	 * I'm thinking this should NOT be async, so that we can
-	 * use div.c("thing").load(import.meta, "thing.js") inside
-	 * a capture fn.  I suppose load could be async.  But the 
-	 * problem was, view.append(div().load()) was trying to append
-	 * a promise.
-	 * 
-	 * Now that I have append_promise, maybe taht's fine?
-	 * The problem there, is that they will resolve in random
-	 * order, and append in random order. 
-	 * */
+	/* Import a module and append its default export. Not async on purpose, so
+	 * `div.c("thing").load(import.meta, "thing.js")` works inside a capture fn.
+	 * Parallel, so several resolve in whatever order they arrive — use `lazy()` when
+	 * the order on the page has to match the order you wrote. */
 	load(meta, url){
 		if (is.str(meta)){ // .load("/file.js");
 			url = meta;
@@ -334,9 +317,7 @@ export default class View {
 		return this;
 	}
 
-	/*
-	 *  Use .lazy() to capture in series.
-	 * */
+	// The same, serialized — one promise chain, so imports append in written order.
 	lazy(meta, url){
 		if (is.str(meta)){ // .load("/file.js");
 			url = meta;
@@ -361,10 +342,6 @@ export default class View {
 	}
 
 	insert(el, index){
-		// can content be an array? can you not insert multiple?
-		// maybe insert(index, ...content) is better?
-		// but upgrading all inputs ("str", num, capturing fns, views, and elements)
-		// to viable dom-worthy values is going to be tricky...
 		if (el.el)
 			el = el.el; // if you pass in a view
 
@@ -458,7 +435,6 @@ export default class View {
 		return this;
 	}
 
-	// this might be prone to recapturing
 	clone(){
 		return new this.constructor({
 			el: this.el.cloneNode(true)
@@ -531,18 +507,16 @@ export default class View {
 	}
 
 	/**
-	 * View.stylesheet("path/file.css")
-	 * or
-	 * View.stylesheet(import.meta, "path/file.css")
-	 */
-	/* App.load() awaits every promise in View.stylesheets before it injects $app,
-	 * so this promise MUST settle. A <link> that 404s fires `error`, not `load` —
-	 * without the error handler the promise never settles and the app never
-	 * injects: one typo'd stylesheet url = a permanently blank page.
+	 * View.stylesheet(import.meta, "file.css") — or a bare url.
 	 *
-	 * It resolves (not rejects) on error, so one missing stylesheet degrades to
-	 * "unstyled" rather than taking the whole page down. capture: false keeps the
-	 * <link> out of whatever view happens to be capturing at import time. */
+	 * App awaits every promise in `View.stylesheets` before it injects, so this one
+	 * MUST settle: a <link> that 404s fires `error`, not `load`, and without the
+	 * handler one typo'd url is a permanently blank page. It RESOLVES on error, so a
+	 * missing stylesheet degrades to unstyled rather than taking the page down.
+	 *
+	 * `capture: false` keeps the <link> out of whatever happens to be capturing when
+	 * the module is imported.
+	 */
 	static stylesheet(meta, url){
 		url = View.url(meta, url);
 

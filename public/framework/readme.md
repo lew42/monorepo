@@ -221,6 +221,96 @@ Worth recording because both are cheap to repeat and both changed the output.
 
 ---
 
+## 7. The documentation system — what a doc page is made of now
+
+Cross-cutting, because it changed how every page under `/framework/` is written
+rather than any one class. The brief was *"simpler, clearer, easier, on-demand —
+start super simple, but have links to more advanced examples."*
+
+**The four pieces, and what each replaced:**
+
+| piece | replaced |
+|---|---|
+| [`ext/files`](ext/files/) — a tree of real files, fetched | a wall of `code.html()` string literals showing `index.html` in full |
+| [`ext/toc`](ext/toc/) — a page's own headings, scroll-spied | scrolling to find a section |
+| `demo()`'s third pane — the real DOM, read back | "and this renders…", unverifiable |
+| `.tabs.vertical` + `classdoc.page()` — a members nav beside a panel | a grid of preview cards you had to leave the page to use |
+
+**The organising principle: a doc page should answer *"where do I click to see X"*
+in one glance.** Screen space is finite, so the three navs it can carry are
+deliberately different questions — the site sidebar is *which module*, the vertical
+tab bar is *which member of this module*, the toc rail is *which section of this
+page*. None of them duplicates another, and a page opts into the two inner ones by
+one call each.
+
+### Why the members nav is `tabs()` and not a new class
+
+`.tabs.vertical` is **CSS only** — no new JS, no new API. A bar of links beside its
+panel is a bar of links above its panel with the axis swapped, so the urls, the
+default tab, the `.active` marking and the labels are all `Page.tabs()`'s. Getting
+this for a stylesheet is the strongest evidence so far that the arrangement contract
+(`.active-page` / `.active-ancestor` and nothing else) was the right shape.
+
+It did surface one real bug in `tabs()`: the **default tab's href is the page's own
+url**, which is a prefix of every sibling's, so `mark_links()` gave it `.in-path` on
+every tab in the set — every bar on the site read as having two things selected.
+Fixed with a `tab-default` class written where `owns_url` is known, and a
+`:not(.tab-default)` in the CSS. Live and unnoticed for as long as tabs have existed,
+which is what a flat bar with one member does to your eye.
+
+### `classdoc.page()` — one call for a class page
+
+```js
+export default classdoc.page({
+    meta: import.meta, title: "View", Class: View,
+    methods: "append ac on style stylesheet",
+    content(){ … },        // the overview — becomes the first tab
+});
+```
+
+`ext/classdoc/readme.md` §5 previously decided *"neither tabs nor previews —
+`classdoc()` returns the page and the author picks"*, on the grounds that `tabs()`
+has no overflow handling and `View` has ~35 candidate methods. **That objection was
+about a horizontal bar.** A vertical one handles twenty names fine, so the verdict
+changed for the layout and not for the reasoning; the low-level
+`classdoc(page, Class, meta, names)` is still there for a page that wants to compose
+it differently.
+
+The overview being **a child page** rather than a special case is what makes it cost
+nothing: `tabs()` already renders its first child as the panel's `.default` and
+points its link at the parent url.
+
+### Trap found: a fixed rail cannot be sticky here
+
+`ext/toc` uses `position: fixed`, and the obvious `sticky` does nothing —
+**the region scrolls, not the page**, so a sticky element inside a `.page` sticks to
+a box that never moves. Same fact bit the scroll-spy listener (it has to be on
+`.pages`, not `window`) and the initial "current" marking, which read the *last*
+heading because a `display: none` page measures every rect at 0. Three separate
+symptoms, one cause, and all three are silent.
+
+## 8. Known and NOT fixed: ~40 orphaned pages in the sandboxes
+
+Found by crawling every in-app link from `/` rather than by checking a list — which
+is the only way this class of bug shows up, and the same method that caught
+`/notes/git-branch-names.page.js` last time.
+
+**None of `alex/`, `castin/`, `edric/` or `michael/` declares `children` on its index
+page.** Since declaring *is* the registration, every subpage under them 404s while
+still being linked from the page above it. Measured: 13 broken routes reachable in one
+crawl, and 40 `page.js` files that no parent names. `michael/branding/page.js` also
+calls `app.nav()`, which no longer exists — so it would render a load error rather
+than a page even once it was reachable.
+
+**Deliberately not fixed here.** These are other people's sandboxes, the fix is a
+judgement call per directory (some of that content is dead and should be deleted, not
+declared), and restoring reachability would turn some 404s into visible load errors.
+It is a conversation, not a silent edit.
+
+**The reusable part is the method.** A crawl that follows links and asserts
+`.active-page === 1` finds every unreachable-but-linked page in one pass, and no
+amount of reading finds any of them. Worth running before anything ships.
+
 ## Fixed since the last pass
 
 - **Four sections of this file described finished work as open questions.** §1

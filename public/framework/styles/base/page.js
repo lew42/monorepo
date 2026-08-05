@@ -1,4 +1,4 @@
-import { Page, md, demo, div, p, ul, li, img, input, button, textarea, form, fieldset, legend, pre } from "/app.js";
+import { Page, md, demo, div, p, ul, li, img, input, button, textarea, form, fieldset, legend, pre, toc } from "/app.js";
 
 /* No stylesheet: every box below is framework utilities. A page arguing for
  * fewer styles that shipped its own would be arguing against itself. */
@@ -21,7 +21,10 @@ export default new Page({
 	meta: import.meta,
 	title: "base",
 	description: "The reset — ten rules that fix what the browser gets wrong. Nothing here is a look.",
+	icon: "layers",
 	content(){
+
+		toc();
 
 		md("```css\n@layer base { … }\n```\n\nThe first layer, so everything beats it. Ten rules, all correcting a browser default that is simply wrong for a modern document. **Nothing in here is a look** — that's the next layer.");
 

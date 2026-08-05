@@ -4,18 +4,13 @@ export default new Page({
 	meta: import.meta,
 	title: "Ext",
 	description: "Opt-in addons. They may extend core; core never depends on them.",
-	// col: "narrow",
-	// Lazy names, not imports — an eager array pulls every child's module into
-	// this page's own load, which is the exact thing laziness exists to avoid.
-	// `nav` supplies the labels that the imports used to.
-	children: "markdown demo highlight classdoc",
+	icon: "extension",
+	children: "markdown demo highlight files toc classdoc",
 
-	nav: {
-		markdown:  { label: "Markdown",  icon: "article" },
-		demo:      { label: "Demo",      icon: "play_circle" },
-		highlight: { label: "Highlight", icon: "code" },
-		classdoc:  { label: "Classdoc",  icon: "menu_book" },
-	},
+	// No `nav` map: every label and icon here is the child's own, and this page
+	// holds all six so the tab bar can read them. Six small modules against six
+	// duplicated declarations — see core/Page/readme.md §"nav".
+	initialize(){ this.load_all_children(); },
 	content(){
 
 		code.js(`import md from "/framework/ext/markdown/md.js";`);
@@ -26,16 +21,28 @@ export default new Page({
 
 		md("This site opts in for every page, once, in `app.js` — which is why `md()` and `demo()` come straight from `/app.js` here.");
 
-		/* The one page on this site that earns a tab bar, and it is worth saying
-		 * why so nobody copies it onto a page that doesn't:
+		md(`| | |
+|---|---|
+| [markdown](/framework/ext/markdown/) | \`md()\`, \`view.md()\`, \`md.file()\` — vendors marked |
+| [demo](/framework/ext/demo/) | code, result and real HTML in one box |
+| [highlight](/framework/ext/highlight/) | \`code.js()\`, and every markdown fence on the site |
+| [files](/framework/ext/files/) | a tree of real files, fetched |
+| [toc](/framework/ext/toc/) | a page's own headings, with scroll spy |
+| [classdoc](/framework/ext/classdoc/) | a class's methods as pages, from real source |
+
+**An ext may lean on an ext** — \`demo\` renders highlighted code when
+\`highlight\` is loaded and plain code when it isn't, with no import either way. Only
+**core** may never.`);
+
+		/* The one page on this site that earns a tab bar, and it is worth saying why
+		 * so nobody copies it onto a page that doesn't:
 		 *
-		 *   four children · flat · none has children of its own · you flip
-		 *   between them rather than drilling down
+		 *   flat children · none has children of its own · you flip between them
+		 *   rather than drilling down
 		 *
-		 * The moment a child grows children, a tab bar has nowhere to show the
-		 * trail and this should go back to previews(). `tabs()` also has no
-		 * overflow handling at all — right at four, unusable at twenty, and it
-		 * will never warn you. */
+		 * The moment a child grows children, a tab bar has nowhere to show the trail
+		 * and this should go back to previews(). `tabs()` also has no overflow handling
+		 * at all — fine at six, unusable at twenty, and it will never warn you. */
 		this.$tabs = this.tabs();
 	}
 });

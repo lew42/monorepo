@@ -72,6 +72,40 @@ md.file(import.meta, "readme.md");     // a promise of a div.md
   the entry above, or `md("Hi.")` and `md("Hi.\n\nThere.")` go back to taking
   different paths based on block count.
 
+## A fetched file's relative links pointed at the route
+
+**The bug.** `styles/readme.md` contains `[base](base/)`. A browser resolves that
+against the **document**, and the SPA fallback makes the document url the *current
+route* — so on `/framework/core/Router/` it pointed at `/framework/core/Router/base/`.
+Measured by a link crawl: **40 broken routes**, all of them links that were correct in
+the file and wrong on the page.
+
+This is exactly the trap `md.file()` was already written to avoid for the *fetch*
+(resolve against `import.meta`, never the document). The fetch was right and what the
+fetch returned was not.
+
+**Options.**
+
+| | |
+|---|---|
+| make every readme link absolute | works, and re-breaks the moment someone writes a natural relative link. Also breaks the links on GitHub, where relative is correct |
+| `<base>` on the document | global, and would move every other relative url on the page |
+| **rewrite hrefs against the file's url after parsing** | ✓ |
+
+**Verdict: `md.resolve(root, base)`, called by `md.file()`.** One pass over `a[href]`
+and `img[src]`, skipping anything absolute, protocol-relative, or a fragment. The
+happy consequence: **a relative link is now the right thing to write** — the same
+`[base](base/)` works in the rendered page and in GitHub's readme view.
+
+`url.pathname + search + hash`, not `url.href`: an absolute url would make
+`Router.link_clicked()` treat it as external and hand it to the browser, costing a
+full reload for an in-app navigation.
+
+**Not fixed by this, on purpose:** a link to a real file (`[readme](../Page/readme.md)`)
+still resolves to the file and the Router still declines it — `/\.\w+$/` means "not
+ours" — so the browser fetches the raw markdown. That is the correct behaviour for a
+link to a file.
+
 ## Open questions
 
 - Export `md` from `app.js`? Convenient, but every page load would then pull the

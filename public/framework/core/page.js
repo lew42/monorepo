@@ -4,10 +4,12 @@ export default new Page({
 	meta: import.meta,
 	title: "Core",
 	description: "The core classes: View, Page, Router, App — plus one component.",
+	icon: "dashboard",
 
-	// Lazy names. The old Pager tier is gone — an arrangement is now a CSS class
-	// a page opts into, so there is no fifth class to learn.
 	children: "View Page Router App Sidebar",
+
+	// Labels and icons come from the five class pages themselves.
+	initialize(){ this.load_all_children(); },
 
 	content(){
 

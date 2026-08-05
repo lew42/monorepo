@@ -1,15 +1,33 @@
-import { Page, md, code, pre } from "/app.js";
+import { Page, md, code, pre, toc } from "/app.js";
 
 export default new Page({
 	meta: import.meta,
 	title: "Classdoc",
 	description: "A class's methods as pages: real source, plus notes from a .md file next door.",
+	icon: "menu_book",
 	content(){
 
-		code.js(`classdoc(this, View, import.meta, "append ac on style");
-this.previews();`);
+		toc();
 
-		md("Two lines in a `page.js` and every named method becomes a child page showing **the method's actual source** above prose you wrote in a file. Live example: [View](/framework/core/View/) — the five links at the top of it.");
+		code.js(`export default classdoc.page({
+    meta: import.meta,
+    title: "View",
+    Class: View,
+    methods: "append ac on style stylesheet",
+    content(){ /* the overview */ },
+});`);
+
+		md("One call is a whole class page: a **left nav of members** beside a panel they render into, each one showing **the method's actual source** above prose you wrote in a file. Live example — [View](/framework/core/View/), and the nav on the left of it.");
+
+		md("`content()` becomes the first entry, so the class's own url shows the overview and every member gets a real url of its own.");
+
+		md("## It's `tabs()`, turned on its side");
+
+		code.js(`this.tabs("overview append ac").ac("vertical")`);
+
+		md("That's the entire layout — **no new JS**. Same urls, same default, same `.active` marking as a horizontal tab bar; only the axis changes, in CSS. Which is also why the overview is an ordinary child page rather than a special case: `tabs()` already renders its first child as the panel's default.");
+
+		md("The composable form is still there for a page that wants something else — `classdoc(page, Class, meta, names)` just adds the children and returns the page.");
 
 		md("## The files");
 

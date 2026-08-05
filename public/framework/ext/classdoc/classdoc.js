@@ -1,53 +1,37 @@
-import { code } from "../../core/View/View.js";
+import { Page } from "../../core/Page/Page.class.js";
+import { div, code } from "../../core/View/View.js";
 import { member, patched, dedent } from "../../util/source/source.js";
 import md from "../markdown/md.js";
 
 /**
  * classdoc — a class's methods as pages: the real source, plus prose from a
- * sibling `.md` file.
+ * sibling `.md` file. Documenting a method is *writing a file*.
  *
- *   classdoc(this, View, import.meta, "append attr on click");
- *   this.previews();          // …or this.tabs(). The page picks its own nav.
+ *   export default classdoc.page({
+ *       meta: import.meta,
+ *       title: "View",
+ *       Class: View,
+ *       methods: "append ac on style stylesheet",
+ *       content(){ … },                 // the overview — the first tab
+ *   });
  *
- * Each name becomes a child page at `<this page's url><name>/`, rendering:
+ * Each name becomes a child page at `<url><name>/` rendering the source from
+ * `member(Class, name)` and the notes from `doc/method/<name>.md`.
  *
- *   code   member(Class, name)              — the source, signature and all
- *   notes  doc/method/<name>.md             — beside the page.js that called
- *
- * So documenting a method is *writing a file*. No UI, no registration, no
- * build step — which is the whole requirement: the author here is usually an
- * AI, and a plain file is the only interface that needs nothing else present.
- *
- * ── Why the list is hand-typed ───────────────────────────────────────────
- * `Object.getOwnPropertyNames(Class.prototype)` would keep the method list in
- * sync for free, and it is still the wrong call: it cannot know which methods
- * have PROSE, and prose is the whole point. Reflection would document
- * `append_fn` and `prepend_pojo` — private helpers — as reader-facing pages
- * with an error box where the notes should be. The list is authorial, exactly
- * like `children`, and it is a string for the same reason.
- *
- * ── Dependencies ─────────────────────────────────────────────────────────
- * Imports `ext/markdown` HARD, because a classdoc with no markdown has nothing
- * to render — the notes are the feature. Depends on `ext/highlight` SOFTLY
- * (the `code.js ??` below), the same deal `demo()` has: if the site imported
- * highlight the source is highlighted, and if it didn't it is still a code
- * block. An ext may lean on an ext; only CORE may never.
+ * Design record — why the list is typed rather than reflected, why a patched
+ * method shows the patch, and the `import { App }` trap: ext/classdoc/readme.md.
  */
 export function classdoc(page, Class, meta, names){
 
-	/* The mistake this feature invites, because every other class imports the
-	 * obvious way: `/app.js`'s DEFAULT export is the running app instance, while
-	 * the App CLASS is a named export. An instance has no prototype, so without
-	 * this the whole page module throws a TypeError naming neither. */
 	if (typeof Class !== "function" || !Class.prototype)
 		return console.warn(`classdoc: expected a class, got ${typeof Class}. ` +
 			`If this is App — import { App } from "/app.js", not the default export.`), page;
 
-	names.trim().split(/\s+/).forEach(name => {
+	classdoc.names(names).forEach(name => {
 		const fn = member(Class, name);
 
-		// Loud, because the alternative is a page that silently isn't there.
-		// A typo'd name is the likeliest error in this whole feature.
+		// Loud: a typo'd name is the likeliest error in this whole feature, and it
+		// would otherwise be a page that silently isn't there.
 		if (!fn)
 			return console.warn(`classdoc: ${Class.name} has no member "${name}" — nothing added`);
 
@@ -58,18 +42,14 @@ export function classdoc(page, Class, meta, names){
 			title: name,
 			classes: "method",
 			content(){
-				// Said before the code, because otherwise a reader compares this
-				// against the class file and concludes the docs are broken.
+				// before the code, or a reader compares this against the class file
+				// and concludes the docs are broken
 				if (note) md(note);
 
-				// code.js when ext/highlight is loaded, plain code otherwise
-				(code.js ?? code)(src);
+				(code.js ?? code)(src);   // highlighted if ext/highlight is loaded
 
-				/* Returned, not called for effect: md.file gives a PROMISE, and
-				 * View.append_promise places it into a view that was captured
-				 * synchronously. Building it after an await would land it
-				 * wherever the captor drifted to — the trap that has cost this
-				 * repo the most. */
+				// returned, not called: md.file gives a promise, and append_promise
+				// places it in a view that was captured synchronously
 				return md.file(meta, `doc/method/${name}.md`, { h1: false });
 			},
 		});
@@ -77,5 +57,39 @@ export function classdoc(page, Class, meta, names){
 
 	return page;
 }
+
+classdoc.names = names => names.trim().split(/\s+/).filter(Boolean);
+
+/**
+ * classdoc.page(options) — the whole class page in one call.
+ *
+ * A left nav of members beside a panel they render into. It is `tabs()` turned on
+ * its side, so the urls, the default, the `.active` marking and the labels are all
+ * core's; this only arranges them. The overview is the first entry and owns the
+ * page's own url.
+ */
+classdoc.page = function({ Class, methods = "", content, ...options }){
+	const names = classdoc.names(methods);
+
+	return new Page(options, {
+
+		initialize(){
+			// The overview is a child like any other, so `tabs()` can make it the
+			// default. Titled after the class, so the panel has exactly one h1.
+			this.nav = { overview: this.title, ...this.nav };
+			this.add("overview", { title: this.title, description: this.description, content });
+
+			classdoc(this, Class, this.meta, methods);
+		},
+
+		render(){
+			return this.view ??= div.c("page classdoc", () =>
+				this.tabs(["overview", ...names].join(" ")).ac("vertical"))
+				.ac("page-" + this.name)
+				.ac(this.col)
+				.ac(this.classes);
+		},
+	});
+};
 
 export default classdoc;

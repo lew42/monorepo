@@ -1,10 +1,11 @@
-import View, { div, p, pre, code, is } from "../../core/View/View.js";
+import View, { div, p, pre, code, details, summary, is } from "../../core/View/View.js";
 import { source, dedent } from "../../util/source/source.js";
+import { markup } from "../../util/markup/markup.js";
 
 View.stylesheet(import.meta, "demo.css");
 
 /**
- * demo — show the code, then run it, in one visually grouped block.
+ * demo — show the code, run it, and show the HTML it produced. One box.
  *
  *   demo(() => {
  *       div.c("card", () => {
@@ -18,15 +19,14 @@ View.stylesheet(import.meta, "demo.css");
  *
  * Strings before the function label the box; strings after caption it. The
  * caption is the important one: a doc page leads with code, and the sentence
- * that explains it reads *after* you've seen it — inside the same box, so
- * there's never a question of which prose belongs to which example.
+ * that explains it reads *after* you've seen it.
  *
- * The source is `fn.toString()`, de-wrapped and dedented — so the code you read
- * is literally the code that ran. There is no second copy to fall out of date,
- * which is the whole point: a docs example can't lie.
+ * The source is `fn.toString()`, so the code you read is literally the code that
+ * ran — there is no second copy to fall out of date. The function runs with the
+ * `.demo-render` as captor, like any capture fn, so examples are written exactly
+ * the way real page code is written.
  *
- * The function runs with the `.demo-render` as captor, like any capture fn, so
- * examples are written exactly the way real page code is written.
+ * Design record: framework/ext/demo/readme.md.
  */
 export default function demo(...args){
 	const i = args.findIndex(is.fn);
@@ -45,37 +45,57 @@ export default function demo(...args){
 			div.c("demo-label", label);
 
 		pre.c("demo-code", () => source_code(source(fn)));
-		div.c("demo-render", fn);
+
+		const $render = div.c("demo-render", fn);
+
+		html_pane($render);
 
 		if (note)
 			caption(note);
 	});
 }
 
+/**
+ * The third pane: the DOM the example actually built.
+ *
+ * Closed by default, because the answer to "what does this render" is the render —
+ * the markup is the follow-up question. Read on OPEN rather than now: a demo whose
+ * content arrives from a promise has not finished building when demo() returns, and
+ * a click is always later than that.
+ */
+function html_pane($render){
+	let $out;
+
+	const $pane = details.c("demo-html", () => {
+		summary("html");
+		$out = pre.c("demo-html-code");
+	});
+
+	return $pane.on("toggle", function(){
+		if (this.el.open)
+			$out.empty(() => source_code(markup($render.el), "html"));
+	});
+}
+
 /* The caption is prose, so it wants markdown — but demo/ must not depend on
  * markdown/. Soft dependency instead: if ext/markdown has been imported it has
- * patched View.prototype.md, so use it; otherwise fall back to p()'s backticks.
- * Two exts, no coupling, better together. */
+ * patched View.prototype.md, so use it; otherwise fall back to p()'s backticks. */
 function caption(text){
 	const view = p.c("demo-note");
 	return view.md ? view.md(text) : view.backtick_append(text);
 }
 
-/* The same deal with ext/highlight. A demo's source is always JavaScript — it's
- * a function we just called toString() on — so there's nothing to detect. If
- * the highlighter has been imported it has added code.js(); if not, plain text,
- * which is what this always was. demo/ imports neither ext.
- *
- * The captor here is the <pre>, so code.js() detects "pre" context and returns
- * a bare <code> — exactly the element this used to build by hand. */
-function source_code(src){
-	return code.js ? code.js(src) : code(src);
+/* The same deal with ext/highlight: if it's loaded the source is highlighted, if
+ * not it's a plain code block, which is what this always was. The captor here is
+ * a <pre>, so code.js() returns a bare <code> — exactly the element this used to
+ * build by hand. */
+function source_code(src, lang = "js"){
+	return code[lang] ? code[lang](src) : code(src);
 }
 
-/* source()/dedent() moved to util/source. ext/highlight's code.fn() needs the
-   identical transform, and two copies of "where does a function body start"
-   would eventually print the same function two different ways on one page.
-   Re-exported here because that's where they've always been imported from. */
+/* source()/dedent() moved to util/source — ext/highlight's code.fn() needs the
+   identical transform. Re-exported here because that's where they've always been
+   imported from. */
 export { source, dedent };
 
 export { demo };

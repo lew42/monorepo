@@ -9,8 +9,8 @@
    with code, and prose is a caption, not a preamble. */
 @layer theme {
 
+	/* No margin — a demo is a block in a flow, and the flow spaces it (Page.css). */
 	.demo {
-		margin: 1.75em 0;
 		border: 1px solid var(--line);
 		border-radius: var(--radius);
 		overflow: hidden;
@@ -58,6 +58,27 @@
 	}
 	/* `:first-child` / `:last-child` margin collapsing is global, in
 	   framework.css's util layer — this file's copies were already dead. */
+
+	/* The html pane — closed by default, so it costs one line until asked for. */
+	.demo-html { border-top: 1px solid var(--line); }
+
+	.demo-html > summary {
+		padding: 0.35em 1.1em;
+		font-size: 0.62em;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: var(--subtle);
+		background: var(--wash);
+	}
+	.demo-html > summary:hover { color: var(--prim); }
+
+	.demo-html-code {
+		margin: 0;
+		font-size: 0.8em;
+		line-height: 1.5;
+		tab-size: 2;
+		border-top: 1px solid var(--line);
+	}
 
 	/* the caption — the sentence that belongs to THIS example */
 	.demo-note {

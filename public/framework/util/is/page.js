@@ -4,6 +4,7 @@ export default new Page({
 	meta: import.meta,
 	title: "is",
 	description: "Type checks that return booleans.",
+	icon: "rule",
 	content(){
 
 		demo(() => {

@@ -1,6 +1,6 @@
 ---
 name: code-architecture
-description: Conventions, traps, and house style for writing code in the lew42 framework — a no-build, native-ESM view framework. Load before writing or editing any JS or CSS under public/, before adding a class, method, page.js, or stylesheet, and before naming anything on View/Page/App/Router/Pager. Covers assign-based OOP, the synchronous-capture trap, the CSS ladder and layer order, and the failures that never throw.
+description: Conventions, traps, and house style for writing code in the lew42 framework — a no-build, native-ESM web framework. Load before writing or editing any JS or CSS under public/, before adding a class, method, page.js, or stylesheet, and before naming anything on View/Page/App/Router/Sidebar. Covers assign-based OOP, the synchronous-capture trap, the CSS ladder and layer order, the doc-writing split, and the failures that never throw.
 ---
 
 # Code architecture
@@ -17,6 +17,10 @@ covers it.
 
 **Code is the documentation.** A short real example beats a paragraph. If you
 can't name a thing clearly, the design is wrong, not the name.
+
+> This file is house style, which ages slowly. **Facts about specific APIs live
+> in the code and in `readme.md` next to it** — when this file names a method,
+> trust the code over this file, and fix this file.
 
 ---
 
@@ -77,17 +81,18 @@ this.router = new Router(this.router, { app: this });   // user config, then wha
 
 `this.router` may be `undefined`, a POJO, or already a Router. None need a case.
 **This is why injecting a dependency costs one object key and no signature
-change** — and why a Pager subclass needs no constructor at all:
+change** — and why a subclass usually needs no constructor at all:
 
 ```js
-pager(){ return new ColumnPager({ root: this, app: this.app }); }
+new Sidebar({ header: () => this.app.brand(this.title, this.url), pages });
 ```
 
 ### Two ways a property arrives
 
 - **Constructor-assign** — what the caller knows up front.
 - **Adoption** — what only the container knows. A parent `Page` sets
-  `child.parent = this`; `App.load_page` sets `page.app = this` at render time.
+  `child.parent = this`; `app` is handed down on the walk, to the page about to
+  need it.
 
 A `page.js` never mentions `app` or `parent`. You assign what you know; what
 knows you assigns itself. Pages are built in userland at module scope, so there
@@ -122,7 +127,6 @@ idempotent method, called from every path that changes its inputs:
 
 ```js
 constructor(...args){ this.assign(...args); this.naming(); }
-adopt(parent, name){ this.assign({ parent, name }); this.naming(); }
 
 naming(){
     this.url   ??= this.meta && new URL(".", this.meta.url).pathname;
@@ -156,13 +160,21 @@ access, invisible at the call site.
 **Say a new name out loud before you write it.** A name is the API and the
 documentation at once. Short and exactly right beats long and merely complete
 (`add()`, `chain()`, `container()`); earn length with rarity (`shared_depth()`,
-`load_ancestors()`, `seo_title()`). Before adding a name to `View`, `Page`,
-`App`, `Router` or `Pager`, propose it and wait.
+`load_all_children()`, `log_label()`). A scoping prefix is worth the characters
+when the bare word is contested — `log_label()` exists precisely so `label` can
+stay the human-facing one. Before adding a name to `View`, `Page`, `App`,
+`Router` or `Sidebar`, propose it and wait.
 
 **Name a `$prop` after the class it carries.** `this.$sidebar_inner` holds
 `div.c("sidebar-inner")` — kebab class read back as snake_case, so you get from
 CSS to JS and back without opening the other file. If the two can't match, rename
 the *class*, not the property.
+
+**Every method should read like a friendly sentence.** Worth rewriting two or
+three times to hit. One line beats two unless two are genuinely clearer — but
+never compress at the cost of a re-read. When a bit is fiddly, encapsulate it and
+name it: `this.shared_depth(from, to)` reads, the `while` loop it replaces does
+not. The method body may be ugly; the *call site* must read as prose.
 
 ---
 
@@ -174,26 +186,22 @@ import { Page, p } from "/app.js";
 export default new Page({
     meta: import.meta,        // derives url; makes link() work while dormant
     title: "Text",
+    children: "intro guide",  // names — imported when navigated to
     content(){ p("Body copy."); }
 });
 ```
 
 A Page is **dormant** — creating one renders nothing, so `export default new
-Page(…)` is always import-safe. It renders when placed. You always write
-`new Page(...)`, never a subclass.
+Page(…)` is always import-safe. It renders when placed. You normally write
+`new Page(...)`, not a subclass.
 
-- `render()` — build the DOM (one `div.page`: title + content).
-- `activate()` — become THE page (`document.title`, meta). Called on the target
-  only, so embedded pages can't clobber the title.
-- The tree: a parent declares `children: [a, b]` and adopts them. **Imports flow
-  DOWN, `.parent` links point UP.**
-
-`App.load_page` is fully duck-typed — `page.host?.()`, `page.activate?.()`, no
-`instanceof` anywhere. A page module's default export may be a Page, a View, a
-function, a string, or nothing at all. Don't assume `instanceof Page`.
-
-> How a topic opts into a layout (`pager()` / `host()`) is **under discussion** —
-> three coordinating places. Don't propagate the pattern until it settles.
+- **The filesystem is the router, but declaring is the registration.** Nothing
+  crawls; a child not named in its parent's `children` is a 404.
+- **`children` is a Map, name → `Page | null`.** `null` means declared but not
+  imported yet. That's what makes laziness work, and why a nav must be
+  answerable *without* importing a child.
+- **Imports flow DOWN; `.parent` links point UP.** Never both ways (see §7).
+- Duck-typing over `instanceof`: `page.activate?.()`, `is.fn(this.route)`.
 
 ---
 
@@ -212,7 +220,8 @@ a rule "would be cleaner":
 
 The test for rung 4: *would this rule still be right if the component were
 dropped into a completely different site?* Flex sizing yes; `background: #eef0f4`
-no. **A component that ships a look has decided something that wasn't its call.**
+no. **A component that ships a look has decided something that wasn't its call**,
+and the look is what breaks when it's reused.
 
 ### The two cascade rules that fail silently
 
@@ -226,17 +235,17 @@ no. **A component that ships a look has decided something that wasn't its call.*
   silently drops `site` past `util`.
 - **Every rule must be inside a layer.** An unlayered rule beats *every* layer at
   any specificity — an unlayered `.page` in `styles.css` once defeated a
-  four-class-deep `.column-pager .column.narrow .page`.
+  four-class-deep selector in a component file.
 
 ### Ownership, and the ratchet
 
 - **A module styles the classes it emits; generic elements (`pre`, `table`, `h2`)
   belong to `framework.css`.** A theme is the exact inverse — it styles only
-  generic elements and never names a component class.
+  generic elements and never names a component class. `md.css` went from 47 lines
+  to two classes by handing `pre`/`code`/`blockquote`/`table` back.
 - **Prefix a class with its owning component** (`.page-preview`, not `.preview`)
-  unless the selector already starts with that component's own class
-  (`.column-pager .crumb-sep` is fine). CSS has one namespace and no build step —
-  **the class name is the registry.**
+  unless the selector already starts with that component's own class. CSS has one
+  namespace and no build step — **the class name is the registry.**
 - **If your CSS styles a class you don't emit, `import` the module that emits it.**
   `View.stylesheet()` runs at module scope, so the import *is* the loading edge,
   not an annotation. Comment it or someone deletes it as unused:
@@ -244,15 +253,31 @@ no. **A component that ships a look has decided something that wasn't its call.*
   /* css: .page, .page-title, .page-previews, .page-preview */
   import "../Page/Page.class.js";
   ```
+  Core still may not import an ext, so a core rule styling an ext class is
+  undeclarable and must be moved or deleted, not annotated.
 - **Overriding a `framework.css` rule is a bug report about `framework.css`.**
   Escalation (specificity → a layer → unlayered → `!important` → inline) is a
   one-way ratchet: each rung works once, and spending it raises the cost for
   everyone after you. **Never escalate downstream — de-escalate upstream**
-  (a flatter selector, a token). The framework holds the low ground on purpose.
+  (a flatter selector, a token, `:where()` around the offending rule). The
+  framework holds the low ground on purpose. Record evictions in
+  `framework/styles/readme.md`.
+- **Base-theme selectors stay flat — one element, no descendant combinators.** The
+  whole override model is "a later `@layer theme` wins at equal specificity", so a
+  `.page > h2` in `framework.css` would out-rank a theme's `h2` forever.
 - **Never invent a font-size.** The scale is the whole vocabulary: `h1 h2 h3 h4`
-  + body + `code`, each also available as a class (`p.c("h2", …)`).
+  + body + `code`, each also available as a class (`p.c("h2", …)`). The scale sets
+  size/weight/tracking only — **margins are rhythm** and belong to whatever
+  arranges the content.
 - **A token needs an existing hardcode to replace**, ideally several. Tokens are
-  public API: adding is free, renaming is breaking — alias on the way out.
+  public API: adding is free, renaming is breaking — alias on the way out. A theme
+  overrides them on `.app` or a theme class, **never at `:root`**, so two variants
+  of a page can render side by side.
+- **Light and dark are modes of one theme, not two themes** — one file,
+  `color-scheme: light dark`, `light-dark(a, b)` per token. A theme is a proper
+  noun (`paper`, `terminal`, `lew42`); an axis is an adjective (`dark`, `compact`)
+  and those combine. The test: does the variant change the *vocabulary* or only
+  the *values*? Values → a token override. Vocabulary → a new theme.
 
 ---
 
@@ -272,7 +297,7 @@ no. **A component that ships a look has decided something that wasn't its call.*
   ```
 - **`classify()` runs inside `super()`, before class fields initialize.** A
   `classes = "docs"` field arrives too late. Name the subclass instead —
-  `class DocsPager extends ColumnPager {}` renders `.docs-pager.column-pager.pager`.
+  `class DocsSidebar extends Sidebar {}` renders `.docs-sidebar.sidebar`.
 - **Resolve module-relative urls against `import.meta`, never the document.** The
   SPA fallback makes the document url the *route*, so a document-relative fetch
   from `/framework/core/x` misses. `md.file(import.meta, …)`,
@@ -287,7 +312,39 @@ no. **A component that ships a look has decided something that wasn't its call.*
 
 ---
 
-## 8. Before you add anything
+## 8. Writing docs — `page.js` vs `readme.md`
+
+Two audiences, two documents, in the same directory. **Do not blur them.** A new
+module means three files (the module, a `readme.md`, a `page.js`) plus one line in
+the parent's `children` — write them in the same commit, while you still remember
+which part was confusing.
+
+**`page.js` — the reader.** Code first, zero to hero.
+
+- **The first thing under the title is a code block or a `demo()`**, not a
+  paragraph. No preamble, no "in this section we will".
+- **Prose is a caption, not a preamble.** Reading order is code → result →
+  sentence. `demo(fn, "the sentence")` puts the caption inside the box, so prose
+  can never detach from its example.
+- **Simplicity first.** The basic example before the complete one. Cut every
+  sentence that isn't load-bearing.
+- **A section is a path, not a fan-out** — each page ends by naming the next one,
+  and each aims at one payoff demo where it all comes together.
+- **Render the example whenever you can**, visually grouped with its source.
+- **Prose is markdown** — `md("…")`, not `p()` with backticks.
+- Architecture and rejected alternatives go one click away:
+  `md.details(import.meta, "readme.md")`.
+
+**`readme.md` — the maintainer.** The dilemmas, what was tried, why the current
+shape won, what's still open. Write entries as **question → options → weighing →
+verdict**, and record *keep* verdicts too: a written-down "we considered this and
+said no, because…" is what stops an idea being re-litigated.
+`framework/readme.md` is the cross-cutting one; per-class records sit next to
+their class.
+
+---
+
+## 9. Before you add anything
 
 - **Never add an npm dependency without asking** — the three-package list is a
   feature, devDependencies included. Tooling for the person at the keyboard
@@ -301,25 +358,26 @@ no. **A component that ships a look has decided something that wasn't its call.*
   in three lines and wait — a sunk edit *presents* an unsettled direction as
   decided. (Unless autonomy was explicitly granted: then make the call, state the
   assumption, keep going.)
-- **A new module isn't done until it has a `page.js` and its parent links to it.**
-  Nothing crawls the filesystem — an unimported page does not exist.
+- **Comments: only what the code can't say.** A non-obvious *why*, a real gotcha.
+  Rationale, alternatives and history go in the `readme.md`. Walls of comments in a
+  base class bury the code the reader came for, and they are the first thing to go
+  stale.
 
 ---
 
 ## Deliberately not in this file
 
 Reference you open when you get there, not context you pay for every session:
-theming, tokens and light/dark; the `is.*` table; markdown/demo/highlight ext
-internals; the unbuilt editor; and the doc-writing split between `page.js` and
-`readme.md`, which matters when you add a module rather than when you write code.
+theming internals and the light/dark axis; the `is.*` table; markdown / demo /
+highlight / classdoc ext internals; the unbuilt editor.
 
 Each has a `readme.md` next to its code, and those records are better than a
 summary of them would be. Start with `core/<Class>/readme.md`.
 
 **`core/new/1/` is not a sketch — it is where the shipping design was proved.**
-Its `Router.js` is line-for-line the one in `core/Router/`, and `children`,
-`container()` and `Router.mark()` all arrived from it unchanged. Do not import it
-(that would be a second copy of the classes), but **do** read
-`core/new/1/readme.md` — it is the long form of the core records, with the
-measurements. `core/new/0/` and `core/new/starter/` genuinely are earlier
-sketches. `core/legacy/` is the dead Pager tier.
+`children`-as-a-Map, `container()` and `Router.mark()` all arrived from it
+unchanged. Do not import it (that would be a second copy of the classes), but
+**do** read `core/new/1/readme.md` — it is the long form of the core records, with
+the measurements. `core/new/0/` and `core/new/starter/` genuinely are earlier
+sketches. `core/legacy/` is the dead Pager tier: an arrangement is now a CSS class
+a page opts into, so there is no Pager to learn.

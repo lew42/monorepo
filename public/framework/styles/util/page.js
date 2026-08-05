@@ -1,4 +1,4 @@
-import { Page, md, demo, div, p, span, textarea } from "/app.js";
+import { Page, md, demo, div, p, span, textarea, toc } from "/app.js";
 
 /* No stylesheet of its own — see base/page.js. */
 
@@ -12,7 +12,10 @@ export default new Page({
 	meta: import.meta,
 	title: "util",
 	description: "Opt-in classes — flex, grid, spacing, zoom. Free if you don't use them.",
+	icon: "build",
 	content(){
+
+		toc();
 
 		md("```css\n@layer util { … }\n```\n\nThe last layer, so a utility beats component CSS — which is right, because you typed it on purpose. Nothing here costs anything unless you use it.\n\n**This is rung 2 of the ladder, and most \"I need a stylesheet\" moments end here.** Before writing a rule, check whether four classes already say it.");
 

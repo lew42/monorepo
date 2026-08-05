@@ -6,9 +6,11 @@ import { Font } from "./Font.js";
 // load first, so the CSS layers are defined before anything else paints
 View.stylesheet(import.meta, "../../framework.css");
 
-/* Boot, and the one flat container. App no longer resolves urls — the moment a
+/* Boot, and the one flat container. App does not resolve urls — the moment a
  * segment can need an import, that became navigation, and navigation is the
  * Router's. What is left here is the six-step lifecycle and `$pages`.
+ *
+ * Design record: core/App/readme.md.
  */
 export class App {
 
@@ -57,19 +59,19 @@ export class App {
 		console.log("app.render() — chrome built, still detached from <body>");
 	}
 
-	/* The one import that isn't behind a click. Everything below the root is a
-	 * name until the Router walks to it.
+	/* The one import that isn't behind a click. Everything below the root is a name
+	 * until the Router walks to it.
 	 *
-	 * The try covers the first navigation too, not just the import: activate()
-	 * renders every page in the chain, which runs every content() there is, and a
-	 * throw in any of them would otherwise skip inject() and paint nothing.
+	 * The try covers the first navigation too, not just the import: activate() renders
+	 * every page in the chain, which runs every content() there is, and a throw in any
+	 * of them would otherwise skip inject() and paint nothing.
 	 */
 	async load(){
 		console.log('app.load() — import("/page.js"), the walk needs an origin');
 
 		try {
-			// the only page handed `app` directly; every other page gets it from
-			// its parent on the walk, in Page.child()
+			// the only page handed `app` directly; every other page gets it from its
+			// parent on the walk, in Page.child()
 			this.root = (await Page.load("/"))?.assign({ app: this });
 			if (!this.root) throw new Error("no /page.js — the root is the one page that must exist");
 
@@ -85,17 +87,17 @@ export class App {
 
 	inject(){ this.$body.append(this.$app); }
 
-	/* Wait for a typeface before first paint. Called from config(), which runs
-	 * before render(), so the promise is on `loaders` well before load() awaits
-	 * them — a font asked for later still loads, it just isn't waited for. */
+	// Wait for a typeface before first paint. Called from config(), which runs before
+	// render(), so the promise is on `loaders` well before load() awaits them — a font
+	// asked for later still loads, it just isn't waited for.
 	font(name){
 		const loading = Font.load(name);
 		this.loaders.push(loading);
 		return loading;
 	}
 
-	// into $pages, not $app — emptying $app deletes the chrome, so the one page
-	// that most needs navigation would be the one page without it
+	// into $pages, not $app — emptying $app deletes the chrome, so the one page that
+	// most needs navigation would be the one page without it
 	error(error){
 		console.error(error);
 		this.$pages.empty(() => {
@@ -109,35 +111,25 @@ export class App {
 	// A method, not a getter — it allocates a fresh Promise.all every call.
 	loaded(){ return Promise.all(View.stylesheets.concat(this.loaders)); }
 
-	/* Stylesheets only, and it can never reject.
-	 *
-	 * Router.load() awaits this before activating so a lazily imported page's
-	 * <link> is applied before its first paint. It must NOT await `loaders`:
-	 * that list only grows (tabs() pushes a .then() chain with no .catch()), so
-	 * awaiting it per navigation means one rejected loader kills EVERY later
-	 * navigation — measured, and silently, because click() never awaits go().
-	 * allSettled, so a 404 stylesheet costs a warning and not the router.
+	/* Stylesheets only, and it can never reject. Router.load() awaits this before
+	 * activating, so a lazily imported page's <link> is applied before its first
+	 * paint. It must NOT await `loaders`: that list only grows, so awaiting it per
+	 * navigation means one rejected loader kills every later navigation — measured,
+	 * and silently, because click() never awaits go().
 	 */
 	styles_loaded(){ return Promise.allSettled(View.stylesheets); }
 
 	static stylesheet(meta, url){ return View.stylesheet(meta, url); }
 
-	/* ── compatibility, not API ──────────────────────────────────────────────
-	 * Both of these are aliases kept for consumers OUTSIDE framework/, per
-	 * framework/readme.md §8: rename freely in here, alias on the way out. The
-	 * rewrite dropped them and took four sections of the site down with them —
-	 * `app.stylesheet()` alone is called at module scope by alex/, arya/ and
-	 * castin/, so its absence 404'd all three.
-	 *
+	/* ── compatibility, not API ──
+	 * Aliases kept for consumers OUTSIDE framework/ (rename freely in here, alias on
+	 * the way out). The rewrite dropped them and took four sections of the site down.
 	 * Neither is a second implementation and neither should grow one. */
 
 	stylesheet(meta, url){ return View.stylesheet(meta, url); }
 
-	/* The OLD url convention: `/a/` → `/a/page.js`, `/a/b` → `/a/b.page.js`.
-	 * The router no longer works this way — Page.child() walks declared children
-	 * and every node is a directory — so this cannot delegate to anything; it is
-	 * the old rule, frozen, for the sandbox Routers that still call it
-	 * (arya/lib/Router.js, alex/framework/core/Router/Router.js). Do not build on it. */
+	// The OLD url convention, frozen for the sandbox Routers that still call it
+	// (arya/lib/Router.js, alex/framework/core/Router/Router.js). Do not build on it.
 	static path_to_page_url(path){
 		return path.endsWith("/") ? path + "page.js" : path + ".page.js";
 	}

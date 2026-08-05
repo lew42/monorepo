@@ -1,66 +1,45 @@
-import { Page, md, h2, pre, code } from "/app.js";
+import { Page, md, h2, code, files, toc } from "/app.js";
 
 export default new Page({
 	meta: import.meta,
 	title: "Start",
 	description: "Three files, no build step, a working site.",
+	icon: "flag",
+
 	content(){
 
-		pre(`public/
-    index.html
-    app.js
-    page.js`);
+		toc();
 
-		md("A whole site. No `package.json`, no bundler, no config. Serve the folder.");
+		md("**A whole site.** Click through it — these are real files, fetched:");
 
-		h2("index.html");
+		files(import.meta, "example/index.html example/app.js example/page.js example/about/page.js example/about/team/page.js");
 
-		code.html(`<!doctype html>
-<html>
-<head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script type="module" src="/app.js"></script>
-</head>
-<body></body>
-</html>`);
+		md("No `package.json`, no bundler, no config, no route table. Serve the folder.");
 
-		md("The body is empty, and stays empty in the file — the app fills it. This one document answers **every** url, so you never configure a route.");
+		h2("The two lines that matter");
 
-		h2("app.js");
+		code.html(`<script type="module" src="/app.js"></script>`);
 
-		code.js(`import App from "/framework/core/App/App.js";
+		md("`index.html` answers **every** url — that's the only server configuration there is, and it's one setting. The body stays empty in the file; the app fills it.");
 
-window.app = new App();
+		code.js(`window.app = new App();`);
 
-export * from "/framework/core/App/App.js";`);
+		md("That's `app.js`. It also re-exports the framework, which is why every page can write `import { Page, p } from \"/app.js\"` — one import, one place, and the browser hands out the same module instance to all of them.");
 
-		md("Three lines: create the app, and re-export the framework. That last line is why every page can `import { p } from \"/app.js\"` — one import, one place, and the browser hands out the same module instance to all of them.");
+		h2("A folder is a url");
 
-		h2("page.js");
-
-		code.js(`import { Page, p } from "/app.js";
-
-export default new Page({
-    meta: import.meta,
-    title: "Hello",
-    content(){
-        p("My first page.");
-    }
-});`);
-
-		md("Open `/`. That's the site.");
-
-		h2("Add a page");
-		md("A folder with a `page.js` in it is a url.");
-
-		pre(`public/
+		code.js(`public/
     page.js          →  /
     about/
         page.js      →  /about/
         team/
             page.js  →  /about/team/`);
 
-		md("Two steps, and the second is the one people forget: **make the file, then name it in its parent's `children`.** Nothing crawls the filesystem — declaring is the registration, and a page nobody declared is a 404.\n\nThat is also what makes it lazy: a `children` entry stays a *name* until someone navigates to it, and only then is it imported.");
+		md("Two steps, and the second is the one people forget: **make the file, then name it in its parent's `children`.**");
+
+		code.js(`children: "about"`);
+
+		md("Nothing crawls the filesystem, so declaring *is* the registration — a page nobody declared is a 404. It's also what makes it lazy: a `children` entry stays a **name** until someone navigates to it, and only then is it imported.");
 
 		h2("Link them");
 
@@ -75,15 +54,15 @@ export default new Page({
     }
 });`);
 
-		md("Importing a page doesn't render it, so you can import one just to link to it. `about.link()` knows its own url from `import.meta` — you never type a path twice.");
+		md("Importing a page doesn't render it, so you can import one just to link to it. `about.link()` knows its own url from `import.meta` — **you never type a path twice.**");
 
 		h2("What you just got");
 
 		md(`| | |
 |---|---|
-| **no-reload navigation** | links are upgraded automatically |
+| **no-reload navigation** | every link, upgraded automatically |
 | **lazy loading** | a page's code arrives when you visit it |
-| **previews and active links** | from \`children\` |
+| **preview cards and active links** | from \`children\` |
 | **live reload** | while \`node server.js\` is running |
 
 None of it was configured.`);

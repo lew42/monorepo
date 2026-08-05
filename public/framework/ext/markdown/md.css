@@ -28,7 +28,9 @@
        moment a second disclosure appears; until then a second file costs more
        than it saves. `summary { cursor: pointer }` is already in framework.css,
        since that one is a UA gap rather than a design. */
-    .md-details { margin: 2.5em 0 1em; border-top: 1px solid rgba(0,0,0,0.12); }
+    /* Its own margin, deliberately: this is the end-of-page rule, not a block in
+       the flow, so it wants more air above than the rhythm gives. */
+    .md-details { margin-block-start: 3.5rem; border-top: 1px solid var(--line); }
     .md-details > summary {
         padding: 0.6em 0;
         color: var(--subtle);

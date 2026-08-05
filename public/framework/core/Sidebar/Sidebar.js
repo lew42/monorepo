@@ -10,15 +10,10 @@ View.stylesheet(import.meta, "Sidebar.css");
  *       pages: [{ title: "Framework", url: "/framework/" }, …]
  *   });
  *
- * Extracted from the old ColumnPager so it isn't owned by one layout (that tier
- * is now in core/legacy/). Any page can render one. The look lives in
- * Sidebar.css; whatever places it only says where it goes — `flex: 0 0 var(--sidebar)`
- * and nothing else.
- *
  * `classify()` turns the class name into the CSS class, so this renders
- * `div.sidebar` with nothing to declare.
+ * `div.sidebar` with nothing to declare. Any page can render one — it is a View
+ * subclass, not a layout tier.
  *
- * ── Properties ───────────────────────────────────────────────────────────
  *   brand      text beside the logo
  *   brand_url  where that text points          (default "/")
  *   logo       image url                       (default: the document's icon)
@@ -26,26 +21,19 @@ View.stylesheet(import.meta, "Sidebar.css");
  *   pages      links — Pages, or {title, url}; an entry with its own `pages`
  *              is a titled GROUP of them
  *
- * An entry may say `label` instead of `title`, and it wins. That is not a second
- * way to spell one thing: a **label** belongs to the list it appears in, a
- * **title** to the page, and `Page.nav_for(name)` already returns the former —
- * so a parent hands its nav entries straight to `pages` and the panel, the tab
- * bar and the preview cards cannot end up naming a child three ways.
+ * An entry may say `label` instead of `title`, and it wins — `Page.nav_for(name)`
+ * returns exactly that shape, so a parent hands its nav entries straight in and the
+ * sidebar, the tab bar and the preview cards cannot name a child three ways.
  *
- * Two link destinations on purpose: inside a section the logo goes to the site
- * root while the text goes to the section you're in. On a homepage both are "/".
- *
- * A site with its own mark replaces the whole header rather than configuring it
- * — the constructor is assign-based, so passing `header` shadows the method:
+ * The constructor is assign-based, so passing a method shadows it — which is how a
+ * site with its own mark replaces the header instead of configuring it:
  *
  *     new Sidebar({ header: () => this.app.brand("Framework", this.url), pages })
  *
- * An arrow, so `this` stays the page that knows the brand. It runs while the
- * Sidebar is capturing, so whatever it builds lands in the panel.
+ * An arrow, so `this` stays the page that knows the brand. It runs while the Sidebar
+ * is capturing, so whatever it builds lands in the panel.
  *
- * Any entry may carry `icon: "dashboard"` — a Material Icons ligature name. A
- * Page takes it straight in its constructor, since extra properties pass
- * through as inert data. The app has to have loaded the font: `app.font("Material Icons")`.
+ * Design record: core/Sidebar/readme.md.
  */
 export class Sidebar extends View {
 
@@ -74,19 +62,14 @@ export class Sidebar extends View {
 		});
 	}
 
-	/* A titled run of links — "CORE", then five items. Duck-typed off `.pages`
-	 * rather than a second `groups` property, so `pages` stays the one thing to
-	 * remember and a group is just an entry that has some of its own. A flat
-	 * sidebar, a grouped one, and a mix of both are the same call.
+	/* A titled run of links — "CORE", then five items. Duck-typed off `.pages` rather
+	 * than a second `groups` property, so a flat sidebar, a grouped one, and a mix of
+	 * both are the same call.
 	 *
-	 * `.h4` on an inner SPAN, not on the padded box — the same split as
-	 * `.sidebar-label`, for the same reason and it was a real bug without it.
-	 * `.h4` is `font-size: 0.875em`, and the box's `padding: 0.4em var(--gutter)`
-	 * resolves `em` against the element that USES it: a custom property carries
-	 * the token `2.6em`, not a resolved length. So the title indented 36.5px
-	 * while every link indented 41.8px, and the one thing `--gutter` exists to
-	 * guarantee was the one thing it did not. Size the text, pad the box, never
-	 * the same element.
+	 * `.h4` on an inner SPAN, not on the padded box: `em` padding resolves against the
+	 * element that USES it, so sizing and padding the same element made group titles
+	 * indent 36.5px while every link indented 41.8px. **Size the text, pad the box,
+	 * never the same element.**
 	 */
 	group(group){
 		return div.c("sidebar-group", () => {
@@ -95,21 +78,17 @@ export class Sidebar extends View {
 		});
 	}
 
-	/* One shape serves both cases: a loaded `Page` and a plain `{title, url}`
-	 * both answer `.title` and `.url`, which is all a link needs — so a site can
-	 * list sections it does not want to eager-load. `.active`/`.in-path` come
-	 * from Router.mark_links().
+	/* One shape serves both cases: a loaded `Page` and a plain `{title, url}` both
+	 * answer `.title` and `.url`, which is all a link needs — so a site can list
+	 * sections it does not want to eager-load. `.active`/`.in-path` come from
+	 * Router.mark_links().
 	 *
-	 * Built here rather than borrowed from `page.link()`, which used to supply
-	 * the anchor when there was a Page. That handed every sidebar row a second
-	 * component's class — `.page-link` brings its own weight and its own active
-	 * colour, at the same specificity as this one's, so which won came down to
-	 * stylesheet order. A row in a sidebar is a sidebar's row.
+	 * Built here rather than borrowed from `page.link()`: that handed every row a
+	 * second component's class, and which of the two won came down to stylesheet
+	 * order. A row in a sidebar is a sidebar's row.
 	 *
-	 * The label is a span and not a text node because it carries the type size
-	 * (the comp's 18px) while the row's box stays measured against the base —
-	 * see `.sidebar-label`. Written in order, so nothing has to be prepended
-	 * into place afterwards.
+	 * The label is a span because it carries the type size while the row's box stays
+	 * measured against the base — see `.sidebar-label`.
 	 */
 	link(page){
 		return a.c("sidebar-link").href(page.url).append(() => {
@@ -118,8 +97,8 @@ export class Sidebar extends View {
 		});
 	}
 
-	/* The document already declares the site's icon — reuse it rather than
-	 * hardcoding an asset path into a framework class. */
+	// The document already declares the site's icon — reuse it rather than hardcoding
+	// an asset path into a framework class.
 	static favicon(){
 		return document.querySelector('link[rel~="icon"]')?.href;
 	}

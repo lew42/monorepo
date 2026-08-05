@@ -92,6 +92,11 @@ export { default as demo } from "./framework/ext/demo/demo.js";
 // markdown); leans on highlight only if it's loaded. See ext/classdoc/readme.md.
 export { default as classdoc } from "./framework/ext/classdoc/classdoc.js";
 
+// files() shows real files on disk, fetched — so a "here is a whole project"
+// section can't drift from the project. toc() reads a page's own headings.
+export { default as files } from "./framework/ext/files/files.js";
+export { default as toc } from "./framework/ext/toc/toc.js";
+
 // Importing highlight is what turns highlighting on everywhere: it enhances the
 // `code` factory in place (code.js/.fn/.html/.css/.md/.json, block-aware) and
 // patches html_unsafe + prerender, so every markdown code fence on the site is

@@ -1,4 +1,4 @@
-import { Page, Sidebar, md, demo, div, p } from "/app.js";
+import { Page, Sidebar, md, demo, div, p, toc } from "/app.js";
 
 /* The links point at real urls, so `.active` / `.in-path` light up on their own
  * as you navigate — nothing here compares window.location. */
@@ -19,7 +19,10 @@ export default new Page({
 	meta: import.meta,
 	title: "Sidebar",
 	description: "A brand over a list of links. Not owned by any layout — any page can render one.",
+	icon: "view_sidebar",
 	content(){
+
+		toc();
 
 		demo(() => {
 			new Sidebar({ brand: "LEW42", pages: [

@@ -4,6 +4,7 @@ export default new Page({
 	meta: import.meta,
 	title: "Dev",
 	description: "Local-only tooling: live reload.",
+	icon: "terminal",
 	col: "narrow",
 	content(){
 

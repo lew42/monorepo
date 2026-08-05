@@ -40,6 +40,7 @@ export default new Page({
 	meta: import.meta,
 	title: "lew42",
 	description: "The house theme — Montserrat, one orange, and a sidebar that reads its ink from a token.",
+	icon: "auto_awesome",
 	content(){
 
 		/* No font call here any more. It used to live on this page, because 166KB

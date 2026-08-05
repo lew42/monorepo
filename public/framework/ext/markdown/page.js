@@ -1,10 +1,13 @@
-import { Page, md, demo, h2, p, pre, code } from "/app.js";
+import { Page, md, demo, h2, p, pre, code, toc } from "/app.js";
 
 export default new Page({
 	meta: import.meta,
 	title: "Markdown",
 	description: "Markdown as a View helper — md(), view.md(), md.file().",
+	icon: "article",
 	content(){
+
+		toc();
 
 		demo(() => {
 			md("**Bold**, *italic*, `code`, and a [link](/framework/).");

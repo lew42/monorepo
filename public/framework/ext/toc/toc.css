@@ -1,0 +1,53 @@
+/* Layer order, restated IN FULL — a short list would misplace `site`.
+   See the header of framework.css. */
+@layer base, theme, site, util;
+
+@layer theme {
+
+	/* A rail in the gutter.
+	   `position: fixed` and not `sticky`, because THE REGION SCROLLS rather than
+	   the page (Page.css) — a sticky element inside a `.page` sticks to a box that
+	   never moves, which is a no-op. Fixed takes it out of the scrolling box
+	   entirely, which is what a rail wants, and the page keeps its measure with no
+	   layout surgery: this occupies space nothing else was using.
+
+	   Hidden below the width where that space stops existing — a rail overlapping
+	   the prose is worse than no rail. */
+	.toc { display: none; }
+
+	@media (min-width: 82em) {
+		.toc {
+			display: block;
+			position: fixed;
+			inset-inline-end: 1.5rem;
+			top: 7.5rem;
+			width: 13rem;
+			max-height: calc(100vh - 10rem);
+			overflow-y: auto;
+			font-size: 0.8em;
+			scrollbar-width: thin;
+		}
+	}
+
+	.toc-title { display: block; color: var(--subtle); margin-bottom: 0.6em; }
+
+	.toc-links { display: flex; flex-direction: column; }
+
+	.toc-link {
+		padding: 0.28em 0 0.28em 0.7em;
+		color: var(--subtle);
+		text-decoration: none;
+		border-inline-start: 2px solid var(--line);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.toc-link:hover { color: var(--ink); }
+
+	.toc-sub { padding-inline-start: 1.5em; }
+
+	/* `current`, not `active` — `.active` belongs to Router.mark_links(), which
+	   skips `#` hrefs and so would never clear this one. Two owners for one class
+	   is how a stale highlight happens. */
+	.toc-link.current { color: var(--prim); border-inline-start-color: var(--prim); }
+}

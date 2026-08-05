@@ -1,10 +1,13 @@
-import { Page, code, md, demo, h2, p } from "/app.js";
+import { Page, code, md, demo, h2, p, toc } from "/app.js";
 
 export default new Page({
 	meta: import.meta,
 	title: "Highlight",
 	description: "Syntax highlighting bolted onto the code element — code.js(), code.fn(), and every markdown fence.",
+	icon: "code",
 	content(){
+
+		toc();
 
 		demo(() => {
 			code.js(`const sum = (a, b) => a + b;`);

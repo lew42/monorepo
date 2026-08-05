@@ -1,5 +1,83 @@
 # Page — design record
 
+## Rhythm: one flow, not two rhythm systems
+
+**The bug, as reported:** *"in some `.md` containers we have `p` that aren't
+directly in the page. I tried some `.page > *` margins, but they failed to reach
+into these sections."*
+
+Exactly right, and there were **two** competing systems when it was found:
+
+```css
+/* Page.css, @layer theme */          .page > h2 { margin: 3em 0 1em }
+/* /styles.css, @layer site */        .page > *:not(h1,h2,h3,h4,.sidebar) { margin-bottom: 2em }
+```
+
+The site pair won by layer, so tuning the spacing meant editing whichever file you
+happened to open first — and **neither could reach a paragraph markdown generated**,
+because `md()` emits `div.md > p` (or, for a single block, an element that *is* the
+`.md`). Page copy and rendered copy sat at different rhythms with nothing to point
+at.
+
+**Options.**
+
+| | |
+|---|---|
+| `.page > *, .page > .md > *` (as proposed) | works, and stops at two levels — `details > .md`, `blockquote > p`, a `.md` inside a demo all miss |
+| margin on the elements themselves | what the UA already does, and it is the thing being fixed: `h2`'s margin in `em` compounds with the type scale, so a theme retuning `h2` silently moved every section gap |
+| **a flow scope** | ✓ |
+
+**Verdict: rhythm is a property of the container, and the container is named.**
+`.page`, `.md`, `blockquote`, `.demo-render` and an opt-in `.flow` are flows; a flow
+zeroes its children's block margins and then spaces *between* them with the owl
+selector. So `.md` nested anywhere is a flow in its own right, and depth stops
+mattering.
+
+Four rules and four tokens (`--flow`, `--flow-section`, `--flow-sub`,
+`--flow-tight`) replaced six rules across two files. Notes that cost something to
+learn:
+
+- **Every selector is `:where()`d to specificity zero.** A component that genuinely
+  wants its own spacing then wins by being an ordinary class — `.md-details` and
+  `.demo` do exactly that. Without it they would have had to out-specify a
+  framework rule, which is the ratchet the CSS doctrine forbids.
+- **Order is the mechanism.** All three heading rules are specificity-zero, so the
+  last one to match a pair decides it. `heading + *` (hug) is written *before*
+  `* + h2` (section air), which is what makes `h1 + h2` take the air.
+- **`rem`, never `em`.** `em` on a heading resolves against that heading's own
+  font-size, so the margins would scale with the type scale and compound with it.
+  When `theme-lew42` took `h2` from 1.4em to 2.25em, a `2.2em` margin silently went
+  from 49px to 79px. Rhythm is measured in *body lines*.
+- **Margins had to be evicted from generic elements upstream.** `table { margin: 1em 0 }`
+  and `hr { margin: 3em 0 }` in `framework.css` are specificity (0,0,1) and beat a
+  `:where()` rule at (0,0,0). They were rhythm living in the base theme, so they
+  were deleted rather than out-specified — de-escalate upstream. `figure`'s UA
+  `margin: 1em 40px` needed the same treatment, because the flow only zeroes
+  *block* margins and the 40px is inline.
+- **`.grid > * { margin: 0 }`** joined `.flex > *` in `util`. A laid-out container
+  owns its spacing via `gap`, and an inherited block margin only fights it.
+
+## `.pages` scrolls; `.page` does not
+
+Written down because `overflow-y` on `.page` looks obviously right and was wrong
+twice over:
+
+- A `.page` is also `max-width: 60em; margin-inline: auto` when it's a paper, so the
+  scrollbar rendered at the **sheet's** right edge — 85px inside the window,
+  floating in the grey. A scrollbar belongs to a viewport, and a sheet is not one.
+- A page inside a tab panel got its own scroller *inside* its ancestor's, so
+  `/framework/ext/markdown/` had two: an inner bar at x=586, mid-content, that you
+  had to exhaust before the outer one moved.
+
+`align-items: flex-start` on the region is the non-obvious half. The default
+`stretch` looked right and was wrong: in a single-line flex container with a
+**definite** cross size — which this has, because the `height: 100%` chain above it
+is definite — the line's cross size is the *container's*, not the content's. So
+every page was forced to exactly the region height and its content painted past the
+bottom of its own background. Measured: a page reporting `height: 900px` with
+`scrollHeight: 4241`.
+
+
 ## `.cols` — deleted
 
 `Page.css` defined `.cols` — equal drill-down columns, the whole of what
@@ -57,7 +135,72 @@ wrapper. Three things an override owes, all of them silent when missed:
 The root page hit 1 and 2 together during the migration: its `.home` wrapper sat
 pinned to the left of every url on the site.
 
-## `nav` — where an icon lives, and why not on the page
+## `nav` — where an icon lives (REVISED: on the page)
+
+> **This section's verdict was reversed.** The original argument is kept below in
+> full, because it is correct about everything except which cost matters more. Read
+> the reversal first; the rest is the record of how it was decided the other way.
+
+**What changed.** The old verdict — *"an icon identifies the entry in a menu, so it
+lives on the parent"* — is philosophically clean and produced, in practice, **every
+icon on this site declared two to three times**: once in `/framework/page.js`'s
+hand-typed sidebar, once in the section's `nav` map, and often once more in a
+sibling menu. The first time anything moved, they disagreed. The thing the argument
+optimised for (no duplication *from* a page) was achieved by duplicating *between
+parents* instead, which is the same bug with a longer commute.
+
+**The revised verdict: a page declares its own `icon`; a parent may override it.**
+`nav_for()` now resolves three sources, weakest first:
+
+```
+the url segment  →  the child's own `title` / `icon`  →  this parent's `nav` entry
+```
+
+So the common case is one declaration, on the page, and every menu follows it.
+A parent that genuinely needs a different word for one menu still has the last say
+— which is what keeps the original argument's real insight: `/framework/` labels its
+`start` child **"Start here"** while that page's title is **"Start"**, deliberately.
+
+**What pays for it: `load_all_children()`.** The old verdict's decisive objection
+was that a page's icon *cannot be known before the page is imported*, so icons
+would pop in as you browse — the bug `tabs()` already refuses. That is still true,
+and it is now answered rather than avoided: a parent that wants real titles and
+icons up front says so.
+
+```js
+initialize(){ this.load_all_children(); }
+```
+
+**Measured, on `/framework/`, which draws two levels and so loads two:**
+
+| | |
+|---|---|
+| `page.js` fetches | 1 → **28** |
+| **first paint** | 1119ms → **1170ms** (+51ms) |
+| depth | flat — `/framework/core/View/` costs the same as `/framework/` |
+
+The imports resolve *after* `inject()`, so the reader is already reading while they
+land. `+51ms` against 25 hand-maintained entries that had already drifted is not a
+close call.
+
+**The remaining rule, and it is the honest one:** eager loading is bounded to the
+levels a menu actually draws. `/framework/`'s sidebar draws two, so it loads two.
+`styles/elements/` is a third level — outside any sidebar — so it keeps a `nav` map
+with icons and imports nothing. **Declare what a menu needs before import; derive
+what the page already has.**
+
+Two implementation notes worth keeping, both found by measurement:
+
+- **Await both levels.** Awaiting only the first redrew the sidebar before the
+  grandchildren had titles, and the nav read `markdown demo highlight` in lower
+  case.
+- **Recompute the data, don't just re-render.** `Sidebar`'s `pages` is an array
+  evaluated once at construction, so re-running `render()` against it redrew the
+  same stale list. It looked exactly like the promise never firing.
+
+---
+
+### The original argument, kept
 
 **The question, as posed:** *"if each preview requires the icon, either we
 duplicate (references require icon + label + href), or we eagerly load (to dedupe

@@ -4,30 +4,19 @@ import { View, div, h1, a, span, icon, is } from "../View/View.js";
    .page-link, .page-previews, .page-preview, .page-preview-title */
 View.stylesheet(import.meta, "Page.css");
 
-/* A node: a url, some content, and children declared EITHER way —
+/* A node: a url, some content, and children declared either way —
  *
- *     import intro from "./intro/page.js";
- *     new Page({ children: [intro] })        eager — imported with me
- *     new Page({ children: "intro guide" })  lazy  — imported when walked to
+ *     children: [intro]        eager — imported with me
+ *     children: "intro guide"  lazy  — imported when walked to
  *
- * Both tiers compose at any depth. The eager tier is new/0's; the lazy tier is
- * what new/0 could not have, because its recursive adopt() assumed the whole
- * tree was already in memory.
+ * Both compose at any depth. Design record: core/Page/readme.md.
  */
 export class Page {
 
-	/* Every property this class assigns after construction, declared.
-	 *
-	 * No initialisers and no behaviour change — the point is `alias()`, which
-	 * refuses to shadow an existing property with `if (!(key in this))`. That
-	 * guard was complete for the prototype and blind to these seven, so a child
-	 * named `view` or `$pages` overwrote real state and blanked the page **on a
-	 * cold load only** — it worked on a click, because the property had not been
-	 * written yet. Declaring them makes the guard true. Found by the url seat.
-	 *
-	 * The side benefit is the one that pays for the lines: a reader now learns
-	 * this class's whole mutable surface from the top of the file.
-	 */
+	/* Declared so `alias()`'s `if (!(key in this))` guard can see them. Without
+	 * this, a child named `view` or `$pages` overwrote real state and blanked the
+	 * page ON A COLD LOAD ONLY — it worked on a click, because the property had not
+	 * been written yet. */
 	view;          // built once by render(), never rebuilt
 	regions;       // named child -> container, written by tabs()
 	$pages;        // I claim the subtree below me
@@ -40,7 +29,7 @@ export class Page {
 		this.assign(...args);
 		this.naming();
 		this.declare();
-		this.initialize?.();   // the seam for inline children — add() them here, before anything walks
+		this.initialize?.();   // the seam for inline children — add() them here
 
 		console.log(`new ${this.log_label()} — "${this.title}", children [${[...this.children.keys()].join(", ")}]`);
 	}
@@ -49,6 +38,7 @@ export class Page {
 
 	log_label(){ return `page{${this.url ?? "…"}}`; }
 
+	// Idempotent, so construction and adoption cannot produce different objects.
 	naming(){
 		this.url   ??= this.meta ? new URL(".", this.meta.url).pathname
 		             : this.parent && this.name ? this.parent.url + this.name + "/"
@@ -64,12 +54,8 @@ export class Page {
 	 *   null        declared, not loaded yet   -> import it
 	 *   Page        here                       -> use it
 	 *
-	 * Setting an existing key never moves it, so a name keeps its declared
-	 * position when it resolves — nothing has to track order separately.
-	 *
-	 *   children: "intro api"      names, loaded when asked for
-	 *   children: [intro, api]     already-imported pages
-	 *   children: [intro, "api"]   both
+	 * Setting an existing key never moves it, so a name keeps its declared position
+	 * when it resolves.
 	 */
 	declare(){
 		const list = typeof this.children === "string" ? this.children.trim().split(/\s+/)
@@ -84,31 +70,20 @@ export class Page {
 		return this;
 	}
 
-	/* Attach a child. THE one place `parent` is assigned. Three shapes, cheapest
-	 * first — the last two are how a page with no file of its own exists:
+	/* Attach a child. THE one place `parent` is assigned. Four shapes:
 	 *
 	 *   add("alpha", "just some text")              a string IS the content
 	 *   add("alpha", () => p("hi"))                 a content function
 	 *   add("alpha", { title: "A", content(){} })   options
 	 *   add("alpha", new Page({ … }))               a Page you built
 	 *
-	 * The url is MINE plus the name I'm giving it, so an inline page never writes
-	 * a path and moving a parent moves its whole subtree with it.
+	 * The url is MINE plus the name, so an inline page never writes a path and
+	 * moving a parent moves its whole subtree with it.
 	 */
 	add(name, child = {}){
-		/* Adoption goes in through the CONSTRUCTOR, not after it.
-		 *
-		 * `initialize()` runs at the end of the constructor, so an inline page
-		 * used to reach it with no parent and therefore no url — and any child it
-		 * added there computed `undefinedkid/`, silently. Every route()-built page
-		 * is in exactly that position. Passing `adopt` as a second argument works
-		 * because the constructor is `assign(...args)` and later args win, the
-		 * same shape as `new Router(this.router, { app: this })`.
-		 *
-		 * `new Page({…})` built by hand and passed in stays un-adopted until this
-		 * line, and should: you constructed it before anything adopted it, so
-		 * there was no url for it to have. Found by the url seat.
-		 */
+		// Adoption goes in through the CONSTRUCTOR, not after it: initialize() runs
+		// at the end of it, and an inline page used to reach there with no parent and
+		// therefore no url — so any child IT added computed `undefinedkid/`, silently.
 		const adopt = { name, parent: this, app: this.app };
 
 		const page = child instanceof Page ? child.assign(adopt)
@@ -122,19 +97,13 @@ export class Page {
 		return page;
 	}
 
-	/* What render() READS, which is not the same as what the class assigns.
-	 *
-	 * The seven class fields above stop a child shadowing state. These three are
-	 * the other half: a child named `content` makes a page render THE CHILD as
-	 * its own content, silently, and one named `classes` throws
-	 * "arg.split is not a function". `content` is an ordinary section name.
-	 *
-	 * A Set and not three more class fields — an instance field shadows a
-	 * prototype method, so `content;` would break every
-	 * `class X extends Page { content(){ … } }`. The seven above are safe only
-	 * because none of them is ever a method.
+	/* What render() READS, which is not the same as what the class assigns above:
+	 * a child named `content` would make a page render THE CHILD as its own
+	 * content, silently, and one named `classes` throws "arg.split is not a
+	 * function". A Set and not more class fields — an instance field shadows a
+	 * prototype method, so `content;` would break every subclass defining one.
 	 */
-	static reserved = new Set(["content", "classes", "col", "activated", "deactivated"]);
+	static reserved = new Set(["content", "classes", "col", "icon", "activated", "deactivated"]);
 
 	alias(name, page){
 		const key = name.replaceAll("-", "_");
@@ -150,13 +119,9 @@ export class Page {
 
 	/* One url segment -> a page: memory, then the filesystem, then no.
 	 *
-	 * This is also the ONE place `app` is handed down — on the walk, to the page
-	 * about to need it. Nothing recurses it over the tree at boot, so a lazy
-	 * child gets it exactly the same way an eager one does.
-	 *
-	 * Safe to call twice for the same name before the first resolves: the module
-	 * registry hands both callers the same module, so `export default new Page()`
-	 * runs once.
+	 * Also the ONE place `app` is handed down — on the walk, to the page about to
+	 * need it. Safe to call twice for the same name before the first resolves: the
+	 * module registry hands both callers the same module.
 	 */
 	async child(name){
 		const known = this.children.get(name);
@@ -169,26 +134,21 @@ export class Page {
 			return page ? this.add(name, page) : null;
 		}
 
-		/* Never declared. I may still claim it — route() is how a page owns urls
-		 * it could not list in advance (`/items/42/`).
-		 *
-		 * It runs after the DECLARATION, not after the filesystem, which is the
-		 * ordering starter got stuck on: only declared names ever hit the network,
-		 * so a dynamic name costs no doomed 404, and route() structurally cannot
-		 * shadow a page.js — a file you want is a file you declared.
+		/* Never declared. I may still claim it — route() is how a page owns urls it
+		 * could not list in advance (`/items/42/`). It runs after the DECLARATION and
+		 * before nothing, so a dynamic name costs no doomed 404 and structurally
+		 * cannot shadow a page.js.
 		 *
 		 * `is.fn` and not `?.` — alias() writes a child onto `this` by name, so a
-		 * child called "route" makes `this.route` a Page, and `this.route?.(name)`
-		 * throws TypeError where it should have 404'd.
+		 * child called "route" makes `this.route` a Page and `this.route?.(name)`
+		 * throws where it should have 404'd.
 		 */
 		const claimed = is.fn(this.route) && this.route(name);
 		return claimed ? this.add(name, claimed) : null;
 	}
 
-	/* A module that throws is NOT a module that isn't there, and this is the one
-	 * place the distinction gets lost. Swallowing both turns a syntax error in a
-	 * page you just wrote into a silent 404.
-	 */
+	// A module that throws is NOT a module that isn't there. Swallowing both turns a
+	// syntax error in a page you just wrote into a silent 404.
 	static async load(url){
 		try { return (await import(url + "page.js")).default ?? null; }
 		catch (error){
@@ -207,11 +167,7 @@ export class Page {
 	 *
 	 *   1. my parent put ME somewhere        `regions`  — one named child (a tab)
 	 *   2. an ancestor claimed the subtree   `$pages`   — everything below it
-	 *   3. the app                                       — the default, flat
-	 *
-	 * A page claims a subtree by assigning `this.$pages`; tabs() claims single
-	 * children, which is why two tab sets on one page can't share a `$pages` and
-	 * needed their own level.
+	 *   3. the app                                      — the default, flat
 	 */
 	container(){
 		const mine = this.parent?.regions?.get(this.name);
@@ -224,9 +180,8 @@ export class Page {
 	}
 
 	// container() is the one step a reader of THIS file cannot see — a parent it
-	// never mentions decides where it lands. Kept (it is what makes tabs, columns
-	// and nested arrangements expressible at all), so the answer is to make the
-	// choice observable rather than declarative. Eric's request, after ten recipes.
+	// never mentions decides where it lands. So the choice is logged rather than
+	// silent.
 	mounts_in(view, claim){
 		console.log(`${this.log_label()}.container() → ${claim}`);
 		return view;
@@ -244,21 +199,13 @@ export class Page {
 		return this;
 	}
 
-	// Router drops my classes a moment later and CSS takes me off screen, so
-	// there is nothing to undo by default.
+	// Router drops my classes a moment later and CSS takes me off screen, so there
+	// is nothing to undo by default. `activated()`/`deactivated()` are yours, for
+	// PAGE-LOCAL things — a timer, a focus, a <video> to release.
 	deactivate(){
 		this.deactivated?.();
 		return this;
 	}
-
-	/* activated() / deactivated() are yours — a timer, a focus, a fetch, a
-	 * <video> to release. PAGE-LOCAL things.
-	 *
-	 * Not global chrome: navigating UP runs neither (the page you land on never
-	 * left the chain), and a pair of show/hide calls has no depth, so two pages
-	 * both hiding something breaks when the first one leaves. Appearance that
-	 * depends on which page is active is a class — see `hides-nav`.
-	 */
 
 	// built once, so nothing is ever thrown away and rebuilt
 	render(){
@@ -268,8 +215,8 @@ export class Page {
 
 		this.view = div.c("page", () => {
 			if (this.title) h1.c("page-title", this.title);
-			// a function builds; anything else IS the content — a string, a view,
-			// an array. The capture callback's return value is appended.
+			// a function builds; anything else IS the content — a string, a view, an
+			// array. The capture callback's return value is appended.
 			return is.fn(this.content) ? this.content() : this.content;
 		})
 			.ac(this.name && "page-" + this.name)   // style THIS page
@@ -285,84 +232,82 @@ export class Page {
 
 	link(text){ return a.c("page-link", text ?? this.title).href(this.url); }
 
-	preview(){ return a.c("page-preview", this.title).href(this.url); }
-
-	/* Synchronous, and it must stay that way: awaiting child() here would import
-	 * every declared child just to read its title, which is the whole thing
-	 * laziness exists to avoid. Measured — the async version fetched all four
-	 * child modules on a cold load of "/".
+	/* How I present a child in navigation, answerable WITHOUT importing it.
 	 *
-	 * So an unresolved child is drawn from what a name already tells us: the
-	 * segment, and the url it must have. The card says "columns" until you visit
-	 * it and then says "Columns". That is the honest cost, and it is visible.
+	 *     nav: { start: "Start here" }                   // just a label
+	 *     nav: { core: { label: "Core", icon: "grid" } } // and an icon
 	 *
-	 * The POJO is never stored, never adopted, never given identity — it is a
-	 * string and a url on the way to an <a>. Not the rejected stub.
-	 */
-	/* How I present a child in navigation — answerable WITHOUT importing it.
+	 * Three sources, weakest first: the segment, then the child's own `title` and
+	 * `icon` once it is imported, then whatever I declare here. So an icon lives on
+	 * the page it belongs to — change it once and every menu follows — and a parent
+	 * that needs a different word for one menu still has the last say.
 	 *
-	 * A **label** belongs to my list and is there from the start; a **title**
-	 * belongs to the page and only exists once it's imported. An **icon** is the
-	 * same kind of thing as a label: it identifies the entry in this menu, not
-	 * the page, so it lives here. That's what makes it free — no import, and a
-	 * nav that reads the same however you arrived at it.
-	 *
-	 *     nav: {
-	 *         start: "Start here",                          // a label
-	 *         core:  { label: "Core", icon: "dashboard" },  // and an icon
-	 *     }
-	 *
-	 * Declaring nothing still works: the label falls back to an imported child's
-	 * title, then to the bare segment — so a card reads "columns" until you visit
-	 * it and "Columns" after, which is the honest cost and is visible.
+	 * Synchronous, and it must stay that way: awaiting child() here would import
+	 * every declared child just to read its title. `load_all_children()` is the
+	 * explicit way to buy that.
 	 */
 	nav_for(name){
+		const child = this.children.get(name);
 		const entry = this.nav?.[name];
 
 		return {
 			url: this.url + name + "/",
-			label: this.children.get(name)?.title ?? name,
+			label: child?.title ?? name,
+			icon: child?.icon,
 			...(is.str(entry) ? { label: entry } : entry),
 		};
 	}
 
+	// A card per child. Drawn from names now; redrawn with real titles and icons if
+	// this page opted into load_all_children().
 	previews(){
-		return div.c("page-previews", () => this.children.forEach((page, name) => {
+		return div.c("page-previews", $previews => {
+			this.cards();
+			// `empty(fn)` sets the captor before running fn, so the redraw builds into
+			// the container that was captured synchronously — no ambient captor is
+			// trusted across the await.
+			this.loading?.then(() => $previews.empty(() => this.cards()));
+		});
+	}
+
+	// one card per child, into whatever is capturing
+	cards(){
+		this.children.forEach((page, name) => {
 			const nav = this.nav_for(name);
 
 			a.c("page-preview").href(nav.url).append(() => {
 				if (nav.icon) icon(nav.icon);
 				span.c("page-preview-title", nav.label);
 			});
-		}));
+		});
 	}
 
-	// Import every declared child. Opt-in, and the only reason to want it is
-	// real titles in a tab bar — see tabs(). Call it from initialize().
+	preview(){ return a.c("page-preview", this.title).href(this.url); }
+
+	/* Import every declared child — the opt-out of laziness, and the reason to want
+	 * it is that titles and icons then live on the pages themselves instead of being
+	 * repeated by every menu that lists them. Call it from initialize().
+	 *
+	 * Nothing awaits this before first paint (there is no `app` yet inside
+	 * initialize()), so a cold load draws names first and sharpens a moment later.
+	 * `previews()` and `tabs()` both redraw off this promise.
+	 */
 	load_all_children(){
 		return this.loading = Promise.all([...this.children.keys()].map(name => this.child(name)));
 	}
 
-	/* A bar of links, and the panel those children mount into. Returns the view,
-	 * so you place it and class it:
+	/* A bar of links, and the panel those children mount into. Returns the view, so
+	 * you place it and class it:
 	 *
 	 *     this.$tabs = this.tabs("what why").ac("vertical");
-	 *     this.$more = this.tabs("state notes");
 	 *
 	 * Which children are tabs is decided HERE, at placement — not marked on the
-	 * child. So a page can have several sets, and a child in none of them is an
-	 * ordinary child that renders wherever it would have anyway.
-	 *
-	 * ONE tab is imported: the first, because it has to be rendered so that this
-	 * page's own url shows something. The rest are labelled by their declared
-	 * NAME, which is deterministic — a title would depend on which url you
-	 * happened to arrive on, and that is exactly the bar-reads-differently bug.
-	 * load_all_children() in initialize() opts into real titles for all of them.
+	 * child — so a page can have several sets, and a child in none of them renders
+	 * wherever it would have anyway.
 	 *
 	 * The first tab's link is THIS page's url, not the child's, so /tabs/ is the
 	 * default tab rather than a second url showing the same thing. Only the FIRST
-	 * set can do that — my url means one thing — so a second tabs() on the same
-	 * page is ordinary: every tab links to its own url and nothing is default.
+	 * set can do that; a second tabs() on the same page is ordinary.
 	 */
 	tabs(names){
 		const list = names ? names.trim().split(/\s+/) : [...this.children.keys()];
@@ -378,11 +323,10 @@ export class Page {
 		this.regions ??= new Map();
 		list.forEach(name => this.regions.set(name, $panel));
 
-		// The first is always loaded, so it can show its title. The rest stay
-		// names: a label that appears only when you happen to have visited that
-		// tab is exactly the bar-reads-differently bug.
+		// The first tab is always loaded so it can show its title. The rest stay
+		// NAMES unless load_all_children() was called: a label that appears only when
+		// you happen to have visited that tab is the bar-reads-differently bug.
 		const label = (name, i) => {
-			// A declared label costs no import and never changes, so it wins outright.
 			if (this.nav?.[name]) return this.nav_for(name).label;
 
 			const page = this.children.get(name);
@@ -390,13 +334,17 @@ export class Page {
 		};
 
 		const filling = Promise.resolve(this.loading ?? this.child(list[0])).then(() => {
+			// `tab-default` marks the one whose href is MY url. Every sibling url
+			// starts with it, so mark_links() gives it `.in-path` on every tab in the
+			// set — true, and the wrong signal for a flat bar. CSS reads the class;
+			// the knowledge stays here, where `owns_url` is known.
 			$bar.append(() => list.forEach((name, i) =>
 				a.c("tab", label(name, i))
+					.ac(owns_url && !i && "tab-default")
 					.href(owns_url && !i ? this.url : this.url + name + "/")));
 
-			// EVERY set renders its default — a panel whose set has nothing in the
-			// chain falls back to it, so no panel is ever blank. Which one shows is
-			// read entirely off the url, so a reload reproduces what clicking did.
+			// EVERY set renders its default, so no panel is ever blank. Which one
+			// shows is read entirely off the url, so a reload reproduces a click.
 			const first = this.children.get(list[0]);
 			if (first) $panel.append(first.render().ac("default"));
 

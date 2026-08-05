@@ -1,10 +1,13 @@
-import { Page, md, demo, code, div, p, span, button, input, ul, li } from "/app.js";
+import { Page, md, demo, code, div, p, span, button, input, ul, li, toc } from "/app.js";
 
 export default new Page({
 	meta: import.meta,
 	title: "Versus",
 	description: "The claims, with the numbers that back them — and the column where React wins.",
+	icon: "balance",
 	content(){
+
+		toc();
 
 		md("Every number here is reproducible from a clean checkout. Where this framework loses, it says so — a comparison that only wins is marketing, and marketing is not evidence.");
 

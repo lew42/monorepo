@@ -21,6 +21,7 @@ export default new Page({
 	meta: import.meta,
 	title: "Writing a theme",
 	description: "Two sample themes, both modes, and the ladder from token to rule.",
+	icon: "school",
 	content(){
 
 		demo(() => {

@@ -123,7 +123,37 @@ carries `fn.name === "append"` and
 
 ## 5. Tabs or previews for the method list?
 
-**Verdict: neither — `classdoc()` returns the page and the author picks.**
+> **Revised — a VERTICAL bar changed the arithmetic.** The verdict below stands for
+> the horizontal case and was decided on Tim's overflow objection, which is about a
+> bar that runs out of *width*. A left nav runs out of *height*, of which a docs page
+> has plenty: twenty names down the side is an API sidebar, and it reads fine.
+>
+> So `classdoc.page(options)` now builds the whole page — a vertical `tabs()` set
+> with the overview as its first tab — and it is one call:
+>
+> ```js
+> export default classdoc.page({
+>     meta: import.meta, title: "View", Class: View,
+>     methods: "append ac on style stylesheet",
+>     content(){ … },        // the overview — becomes the first tab
+> });
+> ```
+>
+> Two things that made it cheap. **`.tabs.vertical` is CSS only** — same JS, same
+> urls, same default, same marking, axis swapped. And **the overview is an ordinary
+> child page**, so `tabs()`'s existing "first child is the panel's `.default`, and its
+> link points at the parent url" behaviour is the whole feature.
+>
+> The low-level `classdoc(page, Class, meta, names)` is unchanged and still exported,
+> which is what keeps §6's objection answered: a page that wants two classes, or
+> previews instead of a nav, composes it itself.
+>
+> One bug fell out, and it had been live for as long as `tabs()` has: the default
+> tab's href **is** the page's url, so it is a prefix of every sibling's and
+> `mark_links()` gave it `.in-path` on every tab in the set. Every bar on the site
+> showed two selected tabs. Fixed with a `tab-default` class.
+
+**Original verdict: neither — `classdoc()` returns the page and the author picks.**
 
 Eric proposed `classdoc()` end with `return page.tabs()`, making the drill-down
 free. Tim's counter was decisive: `tabs()` renders every name into one bar with

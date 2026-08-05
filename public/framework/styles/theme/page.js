@@ -1,4 +1,4 @@
-import { Page, md, demo, div, p, span, code, pre, blockquote, table, thead, tbody, tr, th, td, input, select, option, textarea, button, details, summary } from "/app.js";
+import { Page, md, demo, div, p, span, code, pre, blockquote, table, thead, tbody, tr, th, td, input, select, option, textarea, button, details, summary, toc } from "/app.js";
 
 /* No stylesheet of its own — see base/page.js. */
 
@@ -10,6 +10,7 @@ export default new Page({
 	meta: import.meta,
 	title: "theme",
 	description: "The base theme — tokens plus the default look. The layer a theme replaces.",
+	icon: "brush",
 	children: "guide lew42",
 
 	nav: {
@@ -17,6 +18,8 @@ export default new Page({
 		lew42: { label: "lew42",           icon: "brush" },
 	},
 	content(){
+
+		toc();
 
 		// Sub-page nav first: what's under here, before what's on here.
 		this.previews();
@@ -92,7 +95,7 @@ export default new Page({
 
 		md("## The rest");
 
-		md("| rule | why |\n| --- | --- |\n| `:focus-visible` | accent-colored ring, offset 3px — keyboard users only |\n| `html { height: 100% }` | anchors the full-bleed height chain layouts need |\n| `html { scrollbar-color }` | a quiet scrollbar; pure look, on the eviction list |\n| `body { font-size: clamp(1rem, 0.68rem + 0.36vw, 1.25rem) }` | 16px through 1440, 20px by 2560 — see below |\n| `body { accent-color }` | themes checkboxes and radios for free |\n| `.app { height: 100% }` | continues the height chain |\n| `hr { margin: 3em 0 }` | a section break should feel like one |\n| `a * { cursor: pointer }` | children of a link don't inherit the hand |\n| `fieldset > p:first-of-type` | kills the leading gap inside a fieldset |");
+		md("| rule | why |\n| --- | --- |\n| `:focus-visible` | accent-colored ring, offset 3px — keyboard users only |\n| `html { height: 100% }` | anchors the full-bleed height chain layouts need |\n| `html { scrollbar-color }` | a quiet scrollbar; pure look, on the eviction list |\n| `body { font-size: clamp(1rem, 0.68rem + 0.36vw, 1.25rem) }` | 16px through 1440, 20px by 2560 — see below |\n| `body { accent-color }` | themes checkboxes and radios for free |\n| `.app { height: 100% }` | continues the height chain |\n| `hr { border-top: 1px solid var(--line) }` | a section break should feel like one |\n| `a * { cursor: pointer }` | children of a link don't inherit the hand |\n| `fieldset > p:first-of-type` | kills the leading gap inside a fieldset |");
 
 		md("## Next");
 

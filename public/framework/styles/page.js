@@ -1,4 +1,4 @@
-import { Page, md, demo, div, p, code, button } from "/app.js";
+import { Page, md, demo, div, p, code, button, toc } from "/app.js";
 
 /* This page ships no stylesheet, and neither does any page under it — every
  * box, column and label is built from framework.css utilities. A section
@@ -8,17 +8,18 @@ export default new Page({
 	meta: import.meta,
 	title: "Styles",
 	description: "Three layers, six type levels, twelve tokens — and as little else as possible.",
-	// col: "narrow",
-	// Lazy names. An eager array here fetched the whole styles subtree on every
-	// visit to any page under it — 8 modules for a 5-deep url, measured.
-	children: "base theme util",
+	icon: "palette",
+	children: "base theme util elements layouts",
 
-	nav: {
-		base:  { label: "base",  icon: "layers" },
-		theme: { label: "theme", icon: "palette" },
-		util:  { label: "util",  icon: "build" },
-	},
+	// Labels and icons come from the five pages themselves. `children` stays a
+	// string of NAMES — an eager array here fetched the whole styles subtree on
+	// every visit to any page under it (8 modules for a 5-deep url, measured); this
+	// holds one level, not the tree.
+	initialize(){ this.load_all_children(); },
+
 	content(){
+
+		toc();
 
 		// Sub-page nav first: what's under here, before what's on here.
 		this.previews();
