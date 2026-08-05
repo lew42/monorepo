@@ -35,6 +35,14 @@ import md from "../markdown/md.js";
  */
 export function classdoc(page, Class, meta, names){
 
+	/* The mistake this feature invites, because every other class imports the
+	 * obvious way: `/app.js`'s DEFAULT export is the running app instance, while
+	 * the App CLASS is a named export. An instance has no prototype, so without
+	 * this the whole page module throws a TypeError naming neither. */
+	if (typeof Class !== "function" || !Class.prototype)
+		return console.warn(`classdoc: expected a class, got ${typeof Class}. ` +
+			`If this is App — import { App } from "/app.js", not the default export.`), page;
+
 	names.trim().split(/\s+/).forEach(name => {
 		const fn = member(Class, name);
 

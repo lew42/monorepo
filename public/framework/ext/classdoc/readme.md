@@ -160,3 +160,36 @@ class forever.
   meaning is "nobody has written this yet." One string, not a mechanism.
 - **Deep-linking every method costs a `Page` each.** Cheap today at five. If a
   class ever documents thirty, measure before assuming it's fine.
+
+---
+
+## 8. `/app.js`'s default export is the app INSTANCE, not the App class
+
+Hit while adding classdoc to `core/App/page.js`, and it is the mistake this
+feature actively invites, because every other class is imported the obvious way.
+
+```js
+import App, { … } from "/app.js";        // ✗ the running app instance
+import { App, … } from "/app.js";        // ✓ the class
+```
+
+`public/app.js` ends with `export default app` — the singleton — while
+`export * from ".../App.js"` re-exports the **class** as a named export. So the
+default and the named export of the same word are different things.
+
+The failure is loud but the message is unhelpful: `classdoc` reads
+`Class.prototype`, an instance has none, and the whole page module throws with a
+`TypeError` that names neither `App` nor the import.
+
+**Guarded.** `classdoc()` now checks for a function with a prototype and warns by
+name, the same way an unknown method name already does — so the failure names the
+cause and the page still renders:
+
+```
+classdoc: expected a class, got object. If this is App —
+import { App } from "/app.js", not the default export.
+```
+
+The general principle it follows: **a wrong argument should cost a named warning
+and a degraded page, never a blank one.** Same reason `View.stylesheet` resolves
+on error and `Page.load` distinguishes "missing" from "threw".

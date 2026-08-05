@@ -20,5 +20,6 @@ export default new Page({
 
 		md("`Sidebar` is the odd one out — a `View` subclass, not a tier. It's here because it's shipped and documented, not because you need it.");
 
+		md("Start with [View](/framework/core/View/) — it is the one class you use on every line.");
 	}
 });

@@ -31,5 +31,7 @@ demo(() => { … }, "Caption below the result.");`);
 		md("A framework is learned by pattern, not by paragraph. If a page shows something rendered, the reader must be able to see what produced it — right there, in the same box, without scrolling or guessing.");
 
 		md("Reading order is **code → result → caption**. The prose is a caption, not a preamble.");
+
+		md("Next: [Highlight](/framework/ext/highlight/) — which is what makes those code blocks readable.");
 	}
 });

@@ -60,12 +60,18 @@ a reason that survives Steve.
 Agents work per-directory, next to the code under discussion:
 
 ```
-<work-dir>/agents/<persona>/     e.g. public/framework/core/Page/agents/steve/
+<scratchpad>/council/<persona>/     the SESSION scratchpad, never the repo
 ```
 
-That directory is the agent's scratchpad and the home of its report. Committed —
-the reports are a deliverable. Infer `<work-dir>` from the code being worked on and
-name it in the proposal so the user can correct it.
+**Reports go in the session scratchpad, not the working tree.** This used to say
+"committed — the reports are a deliverable", which contradicted `CLAUDE.md`'s rule
+that a directory of raw agent output is scratch. Two instruction sources giving
+opposite orders turns an automatic decision into a judgement call every time, so
+this one yields: `CLAUDE.md` is the project's law.
+
+What gets committed is the **conclusion** — folded into the `readme.md` next to the
+code it decided, in question → options → verdict form. That is the deliverable. The
+raw transcripts are the machinery that produced it, and machinery is scratch.
 
 ```bash
 claude --resume "$LIB" --fork-session --output-format json \
@@ -107,9 +113,12 @@ cannot buy back afterwards.
 
 ## Reports
 
-Each persona writes `<work-dir>/agents/<persona>/page.js` — what it did, decisions
-made, where it approved or dissented. Follow the repo's `page.js` conventions: code
-first, prose as caption, minimal.
+Each persona writes `<scratchpad>/council/<persona>/report.md` — what it did,
+decisions made, where it approved or dissented. Markdown, verdict-first.
+
+**Then Mike folds the conclusions into the repo's `readme.md` files** and the
+reports are left behind in the scratchpad. A report nobody reads is worse than no
+report; a report *committed* where nobody can safely delete it is worse still.
 
 **Guard against noise.** Document alternatives only where the choice was
 **contested** — an API shape, a method signature, an algorithmic split. Routine

@@ -60,15 +60,15 @@
 		/* highlight.js reads these; the ext exposes them so a theme never has to
 		   touch its selectors. Tuned for the dark box above, both modes. */
 		--syn-comment: #9d9d9d;
-		--syn-keyword: #ff8f60;
+		--syn-keyword: var(--prim);
 		--syn-string:  #9ecbff;
 		--syn-number:  #79c0ff;
 		--syn-fn:      #d2a8ff;
-		--syn-builtin: #ffc09f;
+		--syn-builtin: var(--prim);
 		--syn-tag:     #7ee787;
-		--syn-attr:    #79c0ff;
+		--syn-attr:    #fffbca;
 		--syn-meta:    #9d9d9d;
-		--syn-error:   #ff8f60;
+		--syn-error:   var(--prim);
 
 		/* Paints itself rather than leaning on `body { color }`, so it works at
 		   any depth. `color` inherits as a RESOLVED value — a nested box that

@@ -42,12 +42,10 @@ export default new Page({
 	description: "The house theme — Montserrat, one orange, and a sidebar that reads its ink from a token.",
 	content(){
 
-		/* Asked for HERE, not in the site's app.js: these two files are 166KB and
-		 * only this page needs them. Font.load memoizes, so re-rendering is free,
-		 * and a font requested after boot simply isn't awaited — the samples below
-		 * fall back for a beat on a cold load. */
-		this.app.font("Montserrat");
-		this.app.font("Material Icons");
+		/* No font call here any more. It used to live on this page, because 166KB
+		 * on every route for a theme one page used was a bad trade. The theme is
+		 * site-wide now, so app.js loads both in config() — before first paint,
+		 * which a call from content() could never be. readme.md §8. */
 
 		demo(() => {
 			div.c("theme-lew42 pad", sample);
@@ -57,14 +55,14 @@ export default new Page({
 
 		demo(() => {
 			div.c("theme-lew42 flex gap", () => {
-				sidebar().style({ flex: "0 0 14em" });
+				sidebar().style({ flex: "0 0 var(--sidebar)" });
 				div.c("pad flex-1", sample);
 			});
-		}, "Core's `Sidebar`, unmodified. The comp's white panel is `--sidebar-bg` and `--sidebar-ink`; every other colour in it — the 75% label, the hover fill, the active tint — is a `color-mix` off that one ink.");
+		}, "Core's `Sidebar`, unmodified. The comp's white panel is `--sidebar-bg` and `--sidebar-ink`; every other colour in it — the group title, the icons, the hover fill, the active row — is a `color-mix` off that one ink.");
 
 		demo(() => {
 			div.c("theme-lew42 flex gap", () => {
-				sidebar().style({ flex: "0 0 14em" });
+				sidebar().style({ flex: "0 0 var(--sidebar)" });
 				div.c("pad flex-1", sample);
 			}).style({ "--sidebar-bg": "#1f1f1f", "--sidebar-ink": "#e6e6e6" });
 		}, "The comp's other sidebar. **Two token values, no second design** — and nothing in `lew42.css` mentions `.sidebar`, because a theme that names a component class is a component missing a token.");
@@ -93,6 +91,8 @@ export default new Page({
 				div.c("theme-lew42 dark pad", sample);
 			});
 		}, "Every token is `light-dark()`, so a mode is one declaration and can't go missing on one side. The comp is light-only — the dark values are derived, and say so in the record.");
+
+		md("Next: [util](/framework/styles/util/) — the opt-in classes that mean you rarely write CSS at all.");
 
 		md.details(import.meta, "readme.md", "Design record — the Figma port, and what didn't fit");
 	}

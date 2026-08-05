@@ -114,5 +114,7 @@ page go further — each shows its **real source** next to notes on why it is
 written that way.`);
 
 		md("Next: [Page](/framework/core/Page/) — a title, a url, and a place in a tree.");
+
+		md.details(import.meta, "readme.md", "Design record — capture, and the traps");
 	}
 });

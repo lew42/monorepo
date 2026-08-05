@@ -121,7 +121,7 @@ Small, deliberate, listed so nobody re-derives them as bugs.
   as rhythm; the comp rules under the *title block* instead. Removing it is a
   change to every page on the site, not a theming call.
 - **Sizes are `em`, not the comp's px.** The comp is a fixed 1440; `body` is
-  `clamp(16px, 2vw, 20px)`, so the whole scale rides the viewport instead of
+  `clamp(1rem, 0.68rem + 0.36vw, 1.25rem)`, so the whole scale rides the viewport instead of
   pinning one width's pixels everywhere.
 - **The active chevron is `›`, not `chevron_right`.** `Sidebar.css` must not
   depend on a font the app may never have loaded, or an unstyled sidebar reads
@@ -145,6 +145,10 @@ So flipping the whole site over is one class **plus** deleting the token block i
 `/styles.css` that the theme now supersedes. Cheap, but not zero, and silent if
 you miss it — the symptom is a code box in the wrong palette and nothing else.
 
+**Done.** `app.js` renders `div.c("app theme-lew42")`, and `/styles.css`'s
+`--code-bg` / `--code-ink` / `--syn-*` block is deleted. The prediction above was
+written before the move and held exactly: the deletion was the non-obvious half.
+
 ---
 
 ## 8. Fonts: the one seam
@@ -161,7 +165,68 @@ first paint already-correct rather than a flash of system-ui at weight 900.
 theme requires the call, and the fallback stack (`system-ui, …`) means a site
 that forgets gets the right *shapes* at the wrong weight rather than nothing.
 
-The call sits on the **page**, not in `app.js`: 166KB (38 Montserrat + 128
-Material Icons) on every route, for a theme one page currently uses, is not a
-trade worth making by default. `Font.load` memoizes, so the second page to ask
-costs nothing.
+**Where the call sits changed when the theme went site-wide.** It was on the one
+page that used the theme, because 166KB (38 Montserrat + 128 Material Icons) on
+every route for one page is a bad trade. Now every route wears the theme, so the
+reason evaporated and it moved to `app.js`:
+
+```js
+config(){ lew42(this); }
+```
+
+`lew42.js` — a plain exported function, never a class. Why not a class is §9.
+
+---
+
+## 9. Can a theme carry behaviour?
+
+**Verdict: no class. A theme is CSS; its behaviour is a plain function the SITE
+calls explicitly.** Never triggered by the CSS class appearing — that would be
+invisible coordination.
+
+The decisive argument is not "inheritance is bad", it is smaller and harder:
+**a theme is designed to appear more than once on a page.** `theme/guide/page.js`
+renders `.theme-paper` and `.theme-terminal` side by side to prove it, and this
+theme's own page renders light and dark together. **Behaviour does not survive
+duplication** — two boxes run it twice. `app.font()` gets away with it only
+because `Font.load` memoizes by name, for an unrelated reason; a theme that
+attached a listener or started a timer would fire twice and break its own demo
+page.
+
+A CSS class is a *value the cascade resolves*, any number of times, at any depth.
+That is exactly the property behaviour lacks.
+
+Escalation if a function stops being enough: `ext/`, or `app.navigated?.()` which
+`Router` already calls duck-typed on every navigation. **Not** a `Theme` registry
+with lifecycle hooks — one theme, one behaviour, and an unused hook is permanent
+API surface.
+
+---
+
+## 10. The base font size was the reason "everything felt too big"
+
+Reported as *"I'm not 100% about this body 16-to-20px responsive font size, it
+feels too big, too soon, on desktop."* Correct, and the middle term was the bug:
+
+```css
+font-size: clamp(16px, 2vw, 20px);    /* 2vw hits 20px at a 1000px viewport */
+```
+
+So **every** desktop — a small laptop and a 4K monitor alike — sat pinned at the
+20px maximum. It read as "responsive" and behaved as "20px on everything that
+isn't a phone." And because this theme's scale is `em` off that number, a 25%
+overshoot on the base was a 25% overshoot on every heading.
+
+```css
+font-size: clamp(1rem, 0.68rem + 0.36vw, 1.25rem);
+```
+
+16px holds through 1440 — the width the comp was drawn at, so `h1` is now
+**exactly** the comp's 48px — then grows slowly, reaching 20px near 2560.
+`rem + vw` rather than plain `vw`, because a pure-viewport font size ignores the
+reader's browser font-size setting and cannot be zoomed out of.
+
+**The same compounding bit `Page.css`.** Heading margins were `em`, which
+resolves against *the heading's own* size — so when this theme took `h2` from
+1.4em to 2.25em, `margin: 2.2em` silently went 49px → 79px. Rhythm is measured in
+body lines, not heading sizes: those margins are `rem` now.

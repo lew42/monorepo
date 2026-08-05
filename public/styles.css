@@ -23,7 +23,9 @@
        `.nav` is built once in /app.js, outside `$pages`, so navigation can
        never touch it. */
 
-    .app { display: flex; flex-direction: column; }
+    /* `.app { display: flex; flex-direction: column }` used to live here. It is
+       framework.css's now: App.render() emits `.app` and `.pages`, so the shell's
+       own stacking is the framework's business, not this site's opinion. */
 
     .nav {
         display: flex; gap: 1.25em; flex: 0 0 auto;
@@ -59,13 +61,31 @@
                 mask: url(/assets/img/m_svg.svg) center / contain no-repeat;
     }
 
-    .brand { display: flex; align-items: center; gap: 0.5em; margin-bottom: 1.4em; }
-    .brand-logo { display: flex; }
+    /* `app.brand()` builds this, and it is only ever placed inside a Sidebar —
+       which owns the padding around it (Sidebar.css `.sidebar .brand`). No
+       `margin-bottom` here: spacing belongs to whatever holds the brand, and a
+       margin declared at this end fought the panel's padding for the 88px the
+       comp draws. */
+    .brand { display: flex; align-items: center; gap: 0.75em; padding: 1em 1.2em; }
+    .brand-logo { display: flex; font-size: 1.3em; }
     .brand-text {
-        font-weight: 800; font-size: 1.15em; letter-spacing: 0.01em;
+        font-weight: 800; font-size: 1.3em;
         text-decoration: none; color: inherit;
     }
     .brand-text:hover { color: var(--prim); }
+
+    /* On `.sidebar`, not `.sidebar-link` — it was the latter, which tuned the
+       links and left the group titles reading the component's 2.6em, so the
+       moment /framework/ grew real groups the headings sat 14px right of the
+       items they head. One knob, one column. */
+    .sidebar { --gutter: 1.75em; font-size: 0.8em; }
+    .sidebar-nav { overflow-y: auto; scrollbar-width: thin; }
+    .sidebar-link { padding-block: 0.8em; }
+    .sidebar-group { margin-block: 1em; }
+    .sidebar-link:is(.active, .in-path) .sidebar-label { font-weight: 600; }
+    .sidebar-link.active::after, .sidebar-link.in-path::after { margin-bottom: 1px; }
+
+    .code-block { padding: 2em; }
 
     /* ---- a topic: its own nav beside its own region ----
        A topic page overrides render(), so its `.page` element IS the row — there
@@ -78,29 +98,78 @@
        A bare `.page.topic { display: flex }` sits in @layer site and so beats
        `.page { display: none }` in @layer theme at any specificity — every topic
        stayed on screen on every route, including the home page. The contract has
-       to keep deciding *whether* a page shows; a site rule may only say *how*. */
-    .page.topic { padding: 0; max-width: none; overflow: hidden; }
+       to keep deciding *whether* a page shows; a site rule may only say *how*.
+
+       `background: none` because `app.$pages` is a `papers` region now: without
+       it a topic would be handed the white sheet meant for its CHILDREN and
+       paint over the shell it is supposed to sit in.
+
+       `align-self: stretch` is the important one, and it is the exact opposite of
+       what an ordinary page wants. `.pages` is `align-items: flex-start` so a
+       page can be as tall as its content and scroll the region; a topic must be
+       exactly as tall as the region, because it CLIPS and hands the scrolling to
+       its own inner `.pages`. Without this the topic grew to its content (4273px
+       on /framework/core/View/), the outer region clipped it, and 3373px of the
+       page became unreachable — a scrollbar on a box that had already been cut
+       off. Stretch is safe here precisely because the region's height is
+       definite. */
+    .page.topic { padding: 0; max-width: none; overflow: hidden; background: none; align-self: stretch; }
     .page.topic.active-page,
     .page.topic.active-ancestor:has(.page.active-page) { display: flex; }
 
-    /* nav-link became a row when `nav` icons landed — icon leads, label takes
-       the rest, so labels align whether or not an entry declared an icon. */
-    .section-nav .nav-link { display: flex; align-items: center; gap: 0.6em; }
-    .section-nav .nav-link .icon { color: var(--subtle); }
-    .section-nav .nav-link:hover .icon,
-    .section-nav .nav-link.active .icon,
-    .section-nav .nav-link.in-path .icon { color: var(--prim); }
+    /* Placement, and nothing else — the panel's look is Sidebar.css. The width
+       is the shared token, so this site and the framework cannot disagree about
+       it; it was `14em` hardcoded here against a `--sidebar` of 13em, which is
+       exactly the drift the token exists to prevent.
 
-    .topic > .section-nav {
-        flex: 0 0 14em; padding: 2em 1.5em; overflow-y: auto;
-        border-right: 1px solid var(--line);
-        display: flex; flex-direction: column; gap: 0.15em;
-    }
+       `.section-nav` and `.nav-heading` used to live here, styling markup three
+       page.js files hand-rolled while core's Sidebar sat unused. There is one
+       sidebar now. */
+    .topic > .sidebar { flex: 0 0 var(--sidebar); }
     .topic > .pages { flex: 1 1 0; min-width: 0; }
-    .nav-heading {
-        margin: 1.1em 0 0.3em; font-size: 0.75em; text-transform: uppercase;
-        letter-spacing: 0.08em; color: var(--subtle);
+
+    /* ONLY the region showing the leaf scrolls; every other one hides.
+       `.pages` is `overflow-y: scroll`, so its gutter is always reserved — right
+       for the region you are reading, wrong for an outer one, where the 15px is
+       dead space AND pushes the real scrollbar back off the window edge, undoing
+       what region-scroll was for.
+
+       Two ways a region is not the one you are reading:
+
+       1. It shows neither the leaf nor its own `.default` — so its visible child
+          is an ancestor, which clips and scrolls its own region instead.
+       2. Its leaf IS a topic, which does the same thing.
+
+       Written as `:not(:has())` twice rather than the obvious
+       `:has(> .page.topic.active-ancestor:has(.page.active-page))`, because
+       **`:has()` cannot be nested** — that selector is invalid and drops silently.
+       And the un-nested `:has(> .page.topic.active-ancestor)` is wrong for a
+       subtler reason worth writing down: the ROOT page is a topic and is an
+       active-ancestor on every route in the site, so it matched `app.$pages`
+       always — including `/notes/`, where a long page would then have clipped
+       with no scrollbar and no warning. */
+    .pages:not(:has(> .page.active-page)):not(:has(> .default)),
+    .pages:has(> .page.topic.active-page) { overflow-y: hidden; }
+
+    /* Below this the panel is most of the screen. Stack it, let it lay its links
+       out in a row, and give the page back its column. */
+    @media (max-width: 52em) {
+        .page.topic { flex-direction: column; overflow: visible; }
+        .topic > .sidebar {
+            flex: 0 0 auto; overflow: visible;
+            border-right: none; border-bottom: 1px solid var(--line);
+        }
+        .topic > .sidebar .sidebar-nav { flex-direction: row; flex-wrap: wrap; }
+        .topic > .sidebar .sidebar-link { padding: 0.7em 1em; }
+
+        /* No chevron in a row: it points at a panel that is now above, not
+           beside. Both classes, because both get the fill. */
+        .topic > .sidebar .sidebar-link.active::after,
+        .topic > .sidebar .sidebar-link.in-path::after { content: none; }
     }
+
+    .page > *:not(h1, h2, h3, h4, .sidebar) { margin-bottom: 2em; }
+    .page > :is(h1, h2, h3, h4) { margin-bottom: 1em; }
 
     body.theme-1 {
         background: #ddd;
@@ -130,32 +199,22 @@
        The rule this file obeys: de-escalate upstream. The values belong to the
        theme; a site that also declares them is a site fighting its own theme. */
 
-    /* The shell the pages float on. A token, not `#ddd` — so it follows the
-       theme into dark mode instead of pinning one grey forever. */
+    /* ---- the shell everything sits on ----
+       ONE background, on `.app`, and nothing below it paints over it: `.page` and
+       `.pages` are both transparent, so a page is a hole onto the shell. That is
+       what makes a content block — a code box, a preview card, a demo — the white
+       thing on the field. While `.page` painted `--surface`, white was the floor
+       and nothing on it could stand out; a white card on a white sheet is a
+       border and a prayer.
+
+       A token, not `#ddd`, so it follows the theme into dark mode.
+
+       Worth knowing: `.theme-lew42` paints `background: var(--surface)` on this
+       same element, so this wins by `@layer site` and not by specificity. That is
+       the trap §7 of the theme's record warns about — the two rules must keep
+       targeting the same element for the layer order to decide it, so if the
+       theme class ever moves off `.app` this silently loses. */
     .app { background: var(--wash); }
-
-    /* ---- home page: sidebar + one scrolling column ----
-       The sidebar's LOOK is Sidebar.css (framework); this only says where it
-       goes — the same split ColumnPager uses. No height-pinning needed: the
-       page scrolls normally and the sidebar stretches to match. */
-
-    .home { display: flex; min-height: 100vh; }
-    .home > .sidebar { flex: 0 0 var(--sidebar); }
-    .home-main { flex: 1 1 0; min-width: 0; }
-
-    @media (max-width: 45em) {
-        .home { flex-direction: column; }
-        .home > .sidebar { flex: none; }
-        .home .sidebar-nav { flex-direction: row; flex-wrap: wrap; }
-        .home .sidebar-link { border-left: none; border-bottom: 3px solid transparent; }
-        .home .sidebar-link.active,
-        .home .sidebar-link.in-path { border-bottom-color: var(--prim); }
-    }
-
-    /* Page.css owns .page's structure (width, centering, padding) — that's the
-       framework's business. Backgrounds are this site's skin, so they live here.
-       `--surface`, not `white`, so dark mode isn't a white sheet. */
-    .page { background: var(--surface); }
 
     .page-link-block { background: rgba(0,0,0,0.1); display: block; padding: 1em; margin-bottom: 1em; }
 

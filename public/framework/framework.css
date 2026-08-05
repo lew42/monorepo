@@ -66,7 +66,10 @@
         --radius: 0.5em;
 
         --column: 14em;
-        --sidebar: 13em;   /* any sidebar's width — shared on purpose, so two disagree never */
+        --sidebar: 19em;   /* any sidebar's width — shared on purpose, so two disagree never.
+                              307px in the July 2026 comp, drawn at 1440 where 1em = 16px.
+                              It was 13em and the only real sidebar hardcoded 14em anyway —
+                              exactly the two-numbers-drift this token exists to stop. */
 
         --font: system-ui, -apple-system, sans-serif;
         --mono: Consolas, 'Courier New', Monaco, monospace;
@@ -99,15 +102,43 @@
 
     html { height: 100%; scrollbar-color: rgba(0, 0, 0, 0.2) transparent; }
 
+    /* ---- the base size, and why the obvious clamp was wrong ----------------
+       Was `clamp(16px, 2vw, 20px)`. The middle term is the whole story: 2vw
+       reaches 20px at a **1000px viewport**, so every desktop from a small
+       laptop to a 4K monitor sat pinned at the maximum. It read as "responsive"
+       and behaved as "20px on everything that isn't a phone" — which is why the
+       whole site felt one size too big, and why every heading did too, since
+       the entire scale is `em` off this number.
+
+       Now: 16px holds through 1440 (the width the design was drawn at), then
+       grows slowly, reaching 20px around 2560. `rem + vw` rather than plain vw
+       on purpose — a pure-vw font size ignores the reader's browser font-size
+       setting and can't be zoomed out of. */
+
+    /* ---- the app shell: three boxes tall, and why they're `height` ----------
+       `min-height: 100%` here was the bug. A percentage height resolves against
+       the parent's HEIGHT, and `min-height` doesn't give body one — so `.app`'s
+       `height: 100%` was indefinite, computed to `auto`, and did nothing at all.
+       Measured: 591px inside a 900px viewport, with the shell's background
+       stopping 309px above the fold.
+
+       So body gets a real height, and the chain is definite the whole way down:
+       html → body → .app → .pages → .page, which is the one `overflow-y: auto`
+       on `.page` finally having something to overflow. That is what "every page
+       scrolls itself" (Page.css) has always claimed and never done. */
+
     body {
-        min-height: 100%;
-        font-size: clamp(16px, 2vw, 20px);
+        height: 100%;
+        font-size: clamp(1rem, 0.68rem + 0.36vw, 1.25rem);
         font-family: var(--font);
         color: var(--ink);
         accent-color: var(--prim);
     }
 
-    .app { height: 100%; }
+    /* Layout, not look, and it belongs here because App.render() emits both
+       boxes: `.app` is the shell, `.pages` inside it is the one flexible row.
+       A site that adds chrome (a nav strip) gets it stacked for free. */
+    .app { height: 100%; display: flex; flex-direction: column; }
 
     /* ---- the type scale: six levels, and that's the whole vocabulary --------
        h1 Page Title · h2 Section · h3 Sub-section · h4 ANNOTATION · body · code.

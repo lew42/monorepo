@@ -218,6 +218,7 @@ export default new Page({ meta: import.meta, title, description, content(){ p("c
 - `render()` = build DOM once, cached in `this.view`: one `div.c("page")` (title h1 + content). `activate()` = place it in its container and become THE page. **An overridden `render()` owes three things**, all silent when missed: return/assign `this.view`, carry the `.page` class, and never nest a second `.page` inside.
 - Constructor is `assign`-based: extra properties pass through as inert data (`icon`, `col`, `classes`).
 - `children` declared two ways: `"a b c"` (lazy names) or `[pageA, pageB]` (imported). **Imports flow DOWN, `.parent` links point UP** — a mutual import breaks only on deep reloads.
+- **`nav: { name: { label, icon } }`** — how a parent presents each child in navigation, *without importing it*. A label belongs to the parent's list, a title to the page; an icon is a label-shaped thing, so it lives here too and costs no import. `nav_for(name)` is the single reader, so `previews()`, `tabs()` and a topic's own sidebar cannot disagree. See `core/Page/readme.md`.
 - `add(name, child)`, `child(name)`, `route(name)` for urls you can't list in advance, `tabs(names)`, `previews()`.
 - Design record + deferred features: `framework/core/Page/readme.md`.
 
@@ -392,3 +393,4 @@ Prefer reusing the already-running dev server on port 80 over starting a throwaw
 - `public/` — the entire deployable site (framework + pages + assets).
 - `Server/` — dev-only Node server; never imported by browser code.
 - Top-level directories under `public/` named after devs (`alex/`, `arya/`, `castin/`, `edric/`) are personal sandbox pages — transient, don't treat their contents as framework conventions.
+- `framework/core/new/1/` is **not** an abandoned prototype — it is where the shipping design was proved, and its `Router.js` is line-for-line the one in `core/Router/`. Don't import it; **do** read `core/new/1/readme.md`, the long form of the core design records. `core/new/0/` and `core/new/starter/` are earlier sketches; `core/legacy/` is the dead Pager tier.

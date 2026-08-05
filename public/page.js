@@ -1,4 +1,4 @@
-import { Page, md, h1, h2, div, a } from "/app.js";
+import { Page, Sidebar, md, h1, h2, div, a } from "/app.js";
 
 /* The site's sections, as plain data.
  *
@@ -39,11 +39,11 @@ export default new Page({
 	render(){
 		return this.view ??= div.c("page topic", () => {
 
-			div.c("section-nav", () => {
-				this.app.brand("LEW42", "/");
-
-				sections.forEach(section =>
-					a.c("nav-link", section.title).href(section.url));
+			// `sections` is already {title, url} — exactly what a Sidebar link
+			// reads — so the site's nav and its cards come off one list.
+			new Sidebar({
+				header: () => this.app.brand("LEW42", "/"),
+				pages: sections,
 			});
 
 			div.c("pages papers", () => {

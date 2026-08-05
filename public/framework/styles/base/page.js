@@ -108,5 +108,7 @@ export default new Page({
 		md("## Next");
 
 		md("`base` is the floor. What things actually *look* like starts one layer up — [theme](/framework/styles/theme/).");
+
+		md("Next: [theme](/framework/styles/theme/) — tokens, the type scale, and the layer a theme replaces.");
 	}
 });

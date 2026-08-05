@@ -1,4 +1,4 @@
-import { Page, p, div, a, h1, View, md } from "/app.js";
+import { Page, Sidebar, p, div, a, h1, View, md } from "/app.js";
 import elements from "./elements/page.js";
 import layout from "./layout/page.js";
 import components from "./components/page.js";
@@ -25,10 +25,9 @@ export default new Page({
 
 	render(){
 		return this.view ??= div.c("page topic", () => {
-			div.c("section-nav", () => {
-				this.app.brand("Michael", "/michael/");
-				this.children.forEach((page, name) =>
-					a.c("nav-link", page?.title ?? name).href(this.url + name + "/"));
+			new Sidebar({
+				header: () => this.app.brand("Michael", "/michael/"),
+				pages: [...this.children.keys()].map(name => this.nav_for(name)),
 			});
 
 			this.$pages = div.c("pages papers", () => {
@@ -38,7 +37,7 @@ export default new Page({
 	},
 
 	content(){
-		p("Two halves. The **framework** — Page, Pager, ColumnPager, Router — documented with live MVP examples. And the **styles** — elements, layout, components, sections — every essential, shown live.");
+		md("Two halves. The **framework** — Page, Pager, ColumnPager, Router — documented with live MVP examples. And the **styles** — elements, layout, components, sections — every essential, shown live.");
 		p("Pick one from the sidebar, or a card below — it opens in a column to the right, and that page becomes the nav for its own children. Left-click navigates without a reload; right-click (or ctrl/⌘-click) opens it isolated in a new tab. Reloading any URL rebuilds the same columns.");
 		this.previews();
 		a("Edric").href("/edric/");

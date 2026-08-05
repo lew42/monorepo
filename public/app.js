@@ -58,7 +58,15 @@ const app = window.app = new App({
 				nav.forEach(([url, text]) => a.c("nav-link", text).href(url));
 			});
 
-			this.$pages = div.c("pages");
+			/* `papers`, so a page that lands here with no arrangement of its own
+			 * gets the measure and the white sheet from the region instead of
+			 * declaring it. Before this, `/notes/`, `/alex/` and every other
+			 * top-level section rendered flush against the viewport edge with
+			 * zero padding — invisible only because a site rule painted every
+			 * page white. That rule is gone; this is what replaced it.
+			 *
+			 * A topic opts out (`.page.topic` in /styles.css) — it IS the row. */
+			this.$pages = div.c("pages papers");
 		});
 
 		// $pages, not $app — a page's view is built by an element factory, which

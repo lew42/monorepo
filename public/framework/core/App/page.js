@@ -1,11 +1,19 @@
-import { Page, md, pre, code } from "/app.js";
+// `App` the CLASS is a named export; /app.js's DEFAULT export is the running
+// app instance, which has no .prototype for classdoc to read.
+import { App, Page, classdoc, md, pre, code } from "/app.js";
 
 export default new Page({
 	meta: import.meta,
 	title: "App",
 	description: "Boot, and the one container pages mount into.",
 
+	initialize(){
+		classdoc(this, App, import.meta, "instantiate load loaded font");
+	},
+
 	content(){
+
+		this.previews();
 
 		pre(`app.instantiate()
   config()      a Router option, a font
@@ -24,5 +32,9 @@ export default new Page({
 app.font("Material Icons");    // anywhere — icon("dashboard") needs it`);
 
 		md("`app.font(name)` loads a face from `Font.fonts` and pushes it onto `loaders`, which `instantiate()` awaits **before** `inject()` — so a font asked for in `config()` is already applied at first paint. Ask later and it still loads, it just isn't waited for. Memoized, so two pages asking share one fetch.\n\nAdd your own with `Font.fonts.Inter = { name, url, options }`. See [lew42](/framework/styles/theme/lew42/) for a theme that needs both.");
+
+		md("Next: [Sidebar](/framework/core/Sidebar/) — the one component core ships. Then [Extensions](/framework/ext/).");
+
+		md.details(import.meta, "readme.md", "Design record — boot, adoption, and the two aliases");
 	}
 });

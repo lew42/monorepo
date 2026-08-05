@@ -12,12 +12,11 @@
 	   nobody has to set them, but a theme that must differ sets two values
 	   instead of fighting nine selectors.
 
-	   Promoted because a theme actually needed to differ (ladder rung 2, not
-	   speculation). This file used to hardcode `color: #fff` and six
-	   `rgba(255,255,255,…)` — correct on a dark panel and invisible on a light
-	   one, which is exactly the gap the theming record calls out. Deriving the
-	   tints from one ink means a theme cannot set them inconsistently, which is
-	   how that class of bug happens in the first place. */
+	   Deriving is not decoration. `--wash` would have hit the comp's #f2f2f2
+	   exactly — and then painted a LIGHT fill on a panel that set only
+	   `--sidebar-bg: #1f1f1f`, which is a supported combination (lew42's record
+	   ships the sidebar both ways from one token). 7% of the ink lands on
+	   #f2f2f2 over white and stays right when the panel goes dark. */
 
 	.sidebar {
 		display: flex;
@@ -32,12 +31,19 @@
 		border-right: 1px solid var(--line);
 	}
 
-	/* [ LOGO Brand ] — the logo goes home, the text goes to its own section */
+	/* The comp's gutter, and it is the same 42px for the brand, the group titles
+	   and the links — one number, so nothing in this column can misalign.
+	   Local to `.sidebar`, so it is a value this file shares with itself rather
+	   than a token anyone else has to know about. */
+	.sidebar { --gutter: 2.6em; }
+
+	/* [ LOGO Brand ] — 88px tall in the comp, which is a 24px mark with 32px of
+	   air either side. The logo goes home, the text goes to its own section. */
 	.sidebar .brand {
 		display: flex;
 		align-items: center;
 		gap: 0.55em;
-		padding: 0.9em 1.2em;
+		padding: 2em var(--gutter);
 	}
 
 	.sidebar .brand-logo {
@@ -69,44 +75,81 @@
 	   colour, and it must never invent a font-size. */
 	.sidebar-group { display: flex; flex-direction: column; }
 
+	/* 6px above and below in the comp; the neighbouring links bring 16px of
+	   their own padding, so the visible gap is the 22px it draws. */
 	.sidebar-group-title {
-		padding: 1.4em 1.2em 0.5em;
-		color: color-mix(in srgb, var(--sidebar-ink, #fff) 55%, transparent);
+		padding: 0.4em var(--gutter);
+		color: color-mix(in srgb, var(--sidebar-ink, #fff) 60%, transparent);
 	}
 
-	/* flex, so an icon can lead and the chevron can sit at the far end. Labels
-	   line up whether or not a given item carries an icon. */
+	/* Full width, no margin, no radius — the fill runs edge to edge, which is
+	   what makes the active row read as a slab rather than a chip. flex, so an
+	   icon can lead and the chevron can sit at the far end; labels line up
+	   whether or not a given item carries an icon.
+
+	   `line-height` is pinned because it decides the row height with the label,
+	   and a theme is entitled to set a loose one for body copy — lew42's 1.8
+	   turned a 56px row into 64px. Rhythm in a fixed-height control is the
+	   control's business. */
 	.sidebar-link {
 		display: flex;
 		align-items: center;
-		gap: 0.7em;
-		padding: 0.6em 1.2em;
-		color: color-mix(in srgb, var(--sidebar-ink, #fff) 75%, transparent);
-		text-decoration: none;
-		border-left: 3px solid transparent;
-	}
-	.sidebar-link:hover {
-		background: color-mix(in srgb, var(--sidebar-ink, #fff) 8%, transparent);
+		gap: 1.3em;
+		padding: 1em 1em 1em var(--gutter);
+		line-height: 1.4;
 		color: var(--sidebar-ink, #fff);
+		text-decoration: none;
+	}
+
+	/* 18px in the comp, and it lives on the LABEL rather than the link so the
+	   box above stays measured in whole 16px ems and the icon doesn't ride the
+	   bump. Two sizes in one row is the normal case, not a special one. */
+	.sidebar-label { font-size: 1.125em; }
+
+	/* Grey icons, dark labels — the comp's split. Derived from the ink for the
+	   same reason the fills are: a global `--subtle` is wrong the moment the
+	   panel's brightness stops matching the document's. */
+	.sidebar-link .icon { color: color-mix(in srgb, var(--sidebar-ink, #fff) 60%, transparent); }
+
+	.sidebar-link:hover {
+		background: color-mix(in srgb, var(--sidebar-ink, #fff) 4%, transparent);
 	}
 
 	/* .active = this exact url, .in-path = an ancestor of it. Both set by
-	   Router.mark_links(); a sidebar treats them the same (section highlight). */
-	.sidebar-link.active,
-	.sidebar-link.in-path {
-		color: var(--sidebar-ink, #fff);
-		border-left-color: var(--prim);
-		background: color-mix(in srgb, var(--sidebar-ink, #fff) 6%, transparent);
+	   Router.mark_links().
+
+	   ONLY `.active` is selected. This file used to treat the two the same, and
+	   that was right while a sidebar was flat: the section's own entry was the
+	   only thing that could say "you are in here". A GROUPED sidebar has a
+	   heading for that, so the section entry lighting up alongside the real one
+	   left two rows looking chosen and neither of them looking more chosen —
+	   `/framework/core/View/` selected both "Overview" and "View".
+
+	   `.in-path` is deliberately left with nothing here. /styles.css gives it a
+	   semibold label, which reads as "on the way to" rather than "here", and that
+	   is the whole distinction worth drawing.
+
+	   A fill and nothing else. The 3px `border-left: var(--prim)` that used to
+	   live here is not in the comp, and it was also the only thing in this file
+	   that shifted the label by a pixel between states. */
+	.sidebar-link.active {
+		background: color-mix(in srgb, var(--sidebar-ink, #fff) 7%, transparent);
 	}
-	.sidebar-link.active .icon,
-	.sidebar-link.in-path .icon { color: var(--prim); }
+	.sidebar-link.active .icon { color: var(--prim); }
 
 	/* A plain character, not a Material Icons ligature: this file must not depend
 	   on a font the app may never have loaded, or a sidebar in a site that
-	   skipped it would read "chevron_right" down the margin. */
+	   skipped it would read "chevron_right" down the margin.
+
+	   `.active` only, matching the fill above — the two halves of one highlight
+	   must agree about which row is chosen, and they have now been wrong in both
+	   directions: first the chevron was missing from a lit row, now it would have
+	   been present on an unlit one. */
 	.sidebar-link.active::after {
 		content: "›";
 		margin-left: auto;
-		opacity: 0.55;
+		font-size: 1.4em;
+		line-height: 1;
+		opacity: 0.5;
 	}
 }

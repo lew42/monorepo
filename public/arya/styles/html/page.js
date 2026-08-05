@@ -21,7 +21,7 @@ export default new Page(import.meta, {
 		h2("Text");
 
 		demo(() => {
-			p("Body copy sits at `clamp(16px, 2vw, 20px)`, so it grows with the viewport instead of jumping at a breakpoint. Line height is 1.5 and long words wrap rather than overflow.");
+			p("Body copy sits at `clamp(1rem, 0.68rem + 0.36vw, 1.25rem)`, so it grows with the viewport instead of jumping at a breakpoint. Line height is 1.5 and long words wrap rather than overflow.");
 			p(strong("Bold"), " and ", em("italic"), " and ", a("a link").href("#"), " and ", code("inline code"), ".");
 		});
 

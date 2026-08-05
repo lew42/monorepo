@@ -41,6 +41,8 @@ else this.el.append(arg)  // string, number, node`);
 
 Edge cases (\`is.num(NaN)\` is \`true\`, and friends) are in the design notes.`);
 
+		md("Next: [Dev server](/framework/dev/) — live reload, and how to run all this locally.");
+
 		md.details(import.meta, "readme.md");
 	}
 });

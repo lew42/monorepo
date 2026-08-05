@@ -70,6 +70,8 @@ export default new Page({
 
 		md("**The test for \"is this a new theme or an axis?\"** — does it change the *vocabulary* or only the *values*? Values → an axis, or a token override on the class you already have. Vocabulary → a new theme. Almost everything is values.");
 
+		md("Next: [lew42](/framework/styles/theme/lew42/) — a real theme, ported from a Figma comp.");
+
 		md.details(import.meta, "readme.md", "Design record — theming architecture");
 	}
 });

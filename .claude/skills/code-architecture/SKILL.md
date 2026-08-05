@@ -309,12 +309,17 @@ no. **A component that ships a look has decided something that wasn't its call.*
 ## Deliberately not in this file
 
 Reference you open when you get there, not context you pay for every session:
-Router internals and the registry-gate proposal; the Pager three-lever extension
-model and its variation table; theming, tokens and light/dark; the `is.*` table;
-markdown/demo/highlight ext internals; the unbuilt editor; the `new/` and `new/starter`
-prototypes (**sketches — not the shipping framework; don't import them or take
-their APIs as current**); and the doc-writing split between `page.js` and
+theming, tokens and light/dark; the `is.*` table; markdown/demo/highlight ext
+internals; the unbuilt editor; and the doc-writing split between `page.js` and
 `readme.md`, which matters when you add a module rather than when you write code.
 
 Each has a `readme.md` next to its code, and those records are better than a
-summary of them would be.
+summary of them would be. Start with `core/<Class>/readme.md`.
+
+**`core/new/1/` is not a sketch — it is where the shipping design was proved.**
+Its `Router.js` is line-for-line the one in `core/Router/`, and `children`,
+`container()` and `Router.mark()` all arrived from it unchanged. Do not import it
+(that would be a second copy of the classes), but **do** read
+`core/new/1/readme.md` — it is the long form of the core records, with the
+measurements. `core/new/0/` and `core/new/starter/` genuinely are earlier
+sketches. `core/legacy/` is the dead Pager tier.

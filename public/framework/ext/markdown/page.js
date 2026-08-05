@@ -26,6 +26,8 @@ export default new Page({
 			"`md.file(import.meta, url)` fetches and parses a file. It returns a *promise*, which `View.append` already knows how to place — and which `App.load_page` can await before it swaps the DOM.");
 
 		code.js(`md.file(import.meta, "readme.md", { h1: false })   // as page content
+		md("Next: [Demo](/framework/ext/demo/) — show the code and run it, from one source.");
+
 md.details(import.meta, "readme.md")               // collapsed at the bottom`);
 
 		md("Resolved against the **module's** url, not the document's — with an SPA fallback the document url is a route, so a document-relative fetch would miss. `{ h1: false }` drops the file's own heading, since the page already renders `title` as the h1.");

@@ -40,6 +40,8 @@ export default new Page({
 
 		md("One import, once — this site does it in `app.js`. It enhances the `code` factory in place, so `code` still comes from `/app.js` like every other element. Drop the import and `code()` keeps working while `code.js()` disappears.");
 
+		md("Next: [Classdoc](/framework/ext/classdoc/) — a class's methods as pages, source included.");
+
 		md.details(import.meta, "readme.md");
 	}
 });

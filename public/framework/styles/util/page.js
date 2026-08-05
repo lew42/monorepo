@@ -94,5 +94,7 @@ export default new Page({
 		md("## Next");
 
 		md("That's all three layers. The [design record](/framework/styles/) has the reasoning — why the base stays minimal, how dependencies are declared, and what's still open.");
+
+		md("Next: [Utilities](/framework/util/) — the JS helpers, which are far fewer.");
 	}
 });

@@ -1,7 +1,4 @@
 import { Page, md, demo, div, p, code, button } from "/app.js";
-import base from "./base/page.js";
-import theme from "./theme/page.js";
-import util from "./util/page.js";
 
 /* This page ships no stylesheet, and neither does any page under it — every
  * box, column and label is built from framework.css utilities. A section
@@ -12,7 +9,15 @@ export default new Page({
 	title: "Styles",
 	description: "Three layers, six type levels, twelve tokens — and as little else as possible.",
 	// col: "narrow",
-	children: [base, theme, util],
+	// Lazy names. An eager array here fetched the whole styles subtree on every
+	// visit to any page under it — 8 modules for a 5-deep url, measured.
+	children: "base theme util",
+
+	nav: {
+		base:  { label: "base",  icon: "layers" },
+		theme: { label: "theme", icon: "palette" },
+		util:  { label: "util",  icon: "build" },
+	},
 	content(){
 
 		// Sub-page nav first: what's under here, before what's on here.
@@ -56,6 +61,8 @@ export default new Page({
 
 		md("## The three layers, line by line");
 
+
+		md("Next: [base](/framework/styles/base/) — the reset, line by line.");
 
 		md.details(import.meta, "readme.md", "Design record — strategy, dependencies & open questions");
 	}

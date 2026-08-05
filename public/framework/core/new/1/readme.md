@@ -1,5 +1,15 @@
 # new/1 — new/0 plus a Router, lazy children, and regions
 
+> **This is the design that shipped.** `Router.js` here is line-for-line the one
+> in `core/Router/`, and `children`-as-a-Map, `container()` and `Router.mark()`
+> all went to `core/` unchanged. Read this as the **long form** of
+> `core/App/readme.md`, `core/Page/readme.md` and `core/Router/readme.md` — it has
+> the measurements and the council round those summarise.
+>
+> The *code* in this directory is the prototype it was proved on. Don't import it:
+> `public/` is the deploy artifact, so a stray `../new/1/Page.class.js` resolves to
+> a real file and yields a second, different `Page` class, silently.
+
 Three classes, **265 lines of code**. new/0 proved the flat container by cheating:
 every child was a direct import, so the whole tree was in memory. new/1 pays that
 off, adds a Router, and replaces new/0's `mode` property with nothing at all.

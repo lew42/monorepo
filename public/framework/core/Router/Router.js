@@ -121,6 +121,24 @@ export class Router {
 		this.mark();
 		document.title = page.title ?? document.title;
 
+		/* A page you navigate to starts at the top. The REGION scrolls, not the
+		 * page (Page.css), so one scroll position is shared by everything mounted
+		 * in it — arriving halfway down a page you have never seen is not a
+		 * feature. Back lands at the top too; remembering a position per url is a
+		 * Map that has to be written on every navigation and never gets cleaned up,
+		 * and nobody has asked to return mid-page yet.
+		 *
+		 * `.closest(".pages")` and not `parentNode`: a page mounted in a tab panel
+		 * has `.tab-panel` as its parent, and the scroller is above that. `.pages`
+		 * is the arrangement contract's own class, so this asks for the contract.
+		 *
+		 * Worth knowing why this looked unnecessary: the browser clamps scrollTop
+		 * to the new content height, so navigating to a SHORT page self-corrects
+		 * and reads as working. It only misbehaves when both pages are taller than
+		 * the region — which is most docs pages, and none of the quick tests.
+		 */
+		page.view.el.closest(".pages")?.scrollTo(0, 0);
+
 		/* "A navigation happened." Duck-typed like page.activate?.(), so it costs
 		 * nothing until a site defines it — and the site is the only tier that
 		 * should care. Crumbs, prev/next, closing a drawer and moving focus all

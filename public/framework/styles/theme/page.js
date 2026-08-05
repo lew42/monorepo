@@ -1,6 +1,4 @@
 import { Page, md, demo, div, p, span, code, pre, blockquote, table, thead, tbody, tr, th, td, input, select, option, textarea, button, details, summary } from "/app.js";
-import guide from "./guide/page.js";
-import lew42 from "./lew42/page.js";
 
 /* No stylesheet of its own — see base/page.js. */
 
@@ -12,7 +10,12 @@ export default new Page({
 	meta: import.meta,
 	title: "theme",
 	description: "The base theme — tokens plus the default look. The layer a theme replaces.",
-	children: [guide, lew42],
+	children: "guide lew42",
+
+	nav: {
+		guide: { label: "Writing a theme", icon: "school" },
+		lew42: { label: "lew42",           icon: "brush" },
+	},
 	content(){
 
 		// Sub-page nav first: what's under here, before what's on here.
@@ -45,7 +48,7 @@ export default new Page({
 			p("Body copy, with ", code("code"), " in it.");
 		}, "Six levels, and the only question is ever *which one*. Each is a class as well as a tag, so anything can borrow a level without lying about the outline: `p.c(\"h2\", …)` reads as a section title and is still a paragraph.");
 
-		md("| level | is | size / weight |\n| --- | --- | --- |\n| `h1` `.h1` | page title | 1.9em / 900 |\n| `h2` `.h2` | section title | 1.4em / 700 |\n| `h3` `.h3` | sub-section | 1em / 700 |\n| `h4` `.h4` | annotation | 0.8em / 700, uppercase |\n| — | body | `clamp(16px, 2vw, 20px)` |\n| `code` `.code` | code, names, values | `var(--mono)` |\n\n`h5`/`h6` exist and match `h3` — the UA shrinks them below body size, which is never what you want.\n\n**Margins are not in the scale.** Size, weight and tracking are what a level *is*; margin is rhythm, and rhythm belongs to whatever arranges the content. That split is why the scale can apply everywhere without wrecking a demo box.");
+		md("| level | is | size / weight |\n| --- | --- | --- |\n| `h1` `.h1` | page title | 1.9em / 900 |\n| `h2` `.h2` | section title | 1.4em / 700 |\n| `h3` `.h3` | sub-section | 1em / 700 |\n| `h4` `.h4` | annotation | 0.8em / 700, uppercase |\n| — | body | `clamp(1rem, 0.68rem + 0.36vw, 1.25rem)` |\n| `code` `.code` | code, names, values | `var(--mono)` |\n\n`h5`/`h6` exist and match `h3` — the UA shrinks them below body size, which is never what you want.\n\n**Margins are not in the scale.** Size, weight and tracking are what a level *is*; margin is rhythm, and rhythm belongs to whatever arranges the content. That split is why the scale can apply everywhere without wrecking a demo box.");
 
 		md("## Code");
 
@@ -89,7 +92,7 @@ export default new Page({
 
 		md("## The rest");
 
-		md("| rule | why |\n| --- | --- |\n| `:focus-visible` | accent-colored ring, offset 3px — keyboard users only |\n| `html { height: 100% }` | anchors the full-bleed height chain layouts need |\n| `html { scrollbar-color }` | a quiet scrollbar; pure look, on the eviction list |\n| `body { font-size: clamp(16px, 2vw, 20px) }` | the whole document scales with the viewport, in one place |\n| `body { accent-color }` | themes checkboxes and radios for free |\n| `.app { height: 100% }` | continues the height chain |\n| `hr { margin: 3em 0 }` | a section break should feel like one |\n| `a * { cursor: pointer }` | children of a link don't inherit the hand |\n| `fieldset > p:first-of-type` | kills the leading gap inside a fieldset |");
+		md("| rule | why |\n| --- | --- |\n| `:focus-visible` | accent-colored ring, offset 3px — keyboard users only |\n| `html { height: 100% }` | anchors the full-bleed height chain layouts need |\n| `html { scrollbar-color }` | a quiet scrollbar; pure look, on the eviction list |\n| `body { font-size: clamp(1rem, 0.68rem + 0.36vw, 1.25rem) }` | 16px through 1440, 20px by 2560 — see below |\n| `body { accent-color }` | themes checkboxes and radios for free |\n| `.app { height: 100% }` | continues the height chain |\n| `hr { margin: 3em 0 }` | a section break should feel like one |\n| `a * { cursor: pointer }` | children of a link don't inherit the hand |\n| `fieldset > p:first-of-type` | kills the leading gap inside a fieldset |");
 
 		md("## Next");
 

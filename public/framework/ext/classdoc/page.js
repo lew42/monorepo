@@ -29,6 +29,8 @@ this.previews();`);
 
 		md("`ext/highlight` **replaces** `View.prototype.append` at import time. So on this site, `View.append`'s source *is* the patch — and [the page says so](/framework/core/View/append/) rather than quietly showing the original.\n\nA patch is detectable because JS infers a function's name from assignment to an identifier but never to a member expression: `View.prototype.append = function(){}` has `fn.name === \"\"`. That one line of trivia is the whole check.");
 
+		md("Next: [Styles](/framework/styles/) — how to write as little CSS as possible.");
+
 		md.details(import.meta, "readme.md", "Design record — the council's verdict, and what was rejected");
 	}
 });

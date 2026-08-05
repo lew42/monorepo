@@ -12,24 +12,60 @@
 	   This is the whole of what replaced the Pager tier. */
 
 	/* A region pages mount into: App makes one, and any page can claim its own
-	   subtree with `this.$pages = div.c("pages")`. */
-	.pages { display: flex; flex: 1 1 auto; min-width: 0; min-height: 0; }
+	   subtree with `this.$pages = div.c("pages")`.
+
+	   THE REGION SCROLLS, not the page. `.page` carried `overflow-y: auto` for a
+	   while and it was wrong twice over:
+
+	   - A `.page` is also `max-width: 60em; margin-inline: auto` when it's a
+	     paper, so the scrollbar rendered at the SHEET's right edge — 85px inside
+	     the window, floating in the grey. A scrollbar belongs to a viewport, and
+	     the sheet is not one.
+	   - A page inside a tab panel got its own scroller *inside* its ancestor's,
+	     so `/framework/ext/markdown/` had two: an inner bar at x=586, mid-content,
+	     that you had to exhaust before the outer one moved.
+
+	   Both go away by scrolling the box that is actually viewport-shaped. The page
+	   keeps its measure and is simply a block in a scrolling column.
+
+	   `align-items: flex-start`, and this is the correction to what this comment
+	   used to claim. The default `stretch` looked right and was wrong: in a
+	   single-line flex container with a DEFINITE cross size — which this now has,
+	   because the whole `height: 100%` chain above it is definite — the line's
+	   cross size is the CONTAINER's, not the content's. So every page was forced
+	   to exactly the region height and its content spilled out of the bottom,
+	   painting past the end of its own background. Measured: a page reporting
+	   `height: 900px` with `scrollHeight: 4241`.
+
+	   `flex-start` lets the item size to its content; `min-height: 100%` below is
+	   what keeps a SHORT page filling the region. Two declarations, because the
+	   two cases genuinely are two cases — one box cannot be told "as tall as your
+	   content, but never shorter than your parent" in one word.
+
+	   `overflow-y: scroll`, not `auto`: the gutter is then always reserved, so a
+	   page that scrolls and a page that doesn't lay out at the same width and
+	   navigation stops shifting the content sideways. */
+	.pages {
+		display: flex; align-items: flex-start;
+		flex: 1 1 auto; min-width: 0; min-height: 0;
+		overflow-y: scroll;
+	}
 
 	.page {
-		display: none;                                   /* not in the chain */
-		min-width: 0; min-height: 0; overflow-y: auto;   /* every page scrolls itself */
+		display: none;                  /* not in the chain */
+		min-width: 0; min-height: 0;
 	}
 
 	/* The leaf is always visible. An ancestor is not — that is "replace", and it
 	   is the default because it is what's left when nothing opts in. */
-	.page.active-page { display: block; flex: 1 1 auto; }
+	.page.active-page { display: block; flex: 1 1 auto; min-height: 100%; }
 
 	/* …unless it actually CONTAINS the leaf, in which case hiding it would hide
 	   the leaf too. Asking that directly beats making every author remember a
 	   flag: tabs + a tab stays, tabs + a non-tab goes, replace + a child goes. */
-	.page.active-ancestor:has(.page.active-page) { display: block; flex: 1 1 auto; }
+	.page.active-ancestor:has(.page.active-page) { display: block; flex: 1 1 auto; min-height: 100%; }
 
-	/* What a region shows when none of its children is the active page — the
+	/* What a region shows when none of its children is IN THE CHAIN — the
 	   index-route problem. A parent that owns a region usually has something of
 	   its own to say at its own url, and nowhere else to put it. */
 	.pages > .default { display: none; }
@@ -38,9 +74,32 @@
 	   `.default` is not a `.page`, so without it the box sizes to its content and
 	   then SHRINKS. A <pre> is the trap: `overflow-x: auto` gives it a min-content
 	   of almost nothing, so a page whose content is mostly code collapsed to a few
-	   hundred px while one with a grid in it looked fine. */
-	.pages:not(:has(> .page.active-page)) > .default {
-		display: block; flex: 1 1 auto; min-width: 0;
+	   hundred px while one with a grid in it looked fine.
+
+	   `min-height` for the same reason `.page.active-page` gets it — the region is
+	   `align-items: flex-start`, so without it a short default sizes to its
+	   content and stops, leaving the region's backdrop showing below it.
+
+	   No `overflow-y` though, and that is the point: while `.page` was the
+	   scroller, `.default` was page-shaped but not a `.page`, so it missed the
+	   rule and lost 445px of the home page off the bottom of a clipping topic.
+	   Now the region scrolls and `.default` is simply a block inside it — one
+	   scroller, and nothing to remember for the next page-shaped thing.
+
+	   ── `.active-ancestor` in the test, and why it has to be ──
+	   This asked only for `.active-page`, which is the wrong question: it means
+	   "does the LEAF sit directly in me", when what it needs is "is anything of
+	   mine in the chain at all". Those differ the moment a child mounts the leaf
+	   somewhere of its own — a tab panel, or its own `$pages`. On
+	   `/framework/ext/demo/` the leaf lives in ext's tab panel, so framework's
+	   region saw only `.page-ext.active-ancestor`, decided nothing was active,
+	   and showed its index page AS A FLEX SIBLING of the ext page: two columns,
+	   the index squeezed to 281px beside it.
+
+	   Long-standing, and it got louder rather than newer — `min-height: 100%`
+	   grew that stray column from its content height to the full region. */
+	.pages:not(:has(> .page.active-page, > .page.active-ancestor)) > .default {
+		display: block; flex: 1 1 auto; min-width: 0; min-height: 100%;
 	}
 
 
@@ -53,24 +112,86 @@
 
 	   Opt-in and not the default: paper is a LOOK (a white box, a measure), and
 	   the framework shouldn't decide that. A site that wants it everywhere says
-	   `.pages > .page { … }` in /styles.css — its call, its file. */
+	   `.pages > .page { … }` in /styles.css — its call, its file.
+
+	   NO BACKGROUND. This rule said `background: white`, then `var(--surface)`,
+	   and both contradicted the header four lines up: *structure only, the site
+	   decides backgrounds*. What `papers` actually gives you is a MEASURE — a
+	   column width, centred, with room to breathe — and that is structure. The
+	   sheet it used to paint is one line in /styles.css for a site that wants it,
+	   and its absence is what lets content blocks inside the page (a code box, a
+	   card) be the white things on a grey field instead of white-on-white. */
 	.page.paper,
 	.pages.papers > .page,
-	.pages.papers > .default { padding: 2em 6%; max-width: 60em; margin-inline: auto; background: white; }
+	.pages.papers > .default { padding: 3em 4em; max-width: 60em; }
 
 	/* Rhythm only — how far apart things sit. What a heading *looks* like is the
 	   type scale in framework.css (h1–h4 / .h1–.h4). */
 
-	.page-title { margin: 0 0 0.7em; }
+	/* ── tabs ──
+	   `Page.tabs()` emits `.tabs > .tab-bar + .tab-panel`, and until now nothing
+	   styled any of them — a tab bar rendered as a row of bare links, which is
+	   the kind of hole that makes a feature look unfinished when it isn't.
+
+	   Structure and tokens only, no literal colours: enough to *be* a tab bar,
+	   and every value a theme already controls. `.active` / `.in-path` come from
+	   `Router.mark_links()`, so the selected tab needs no JS. */
+
+	.tabs { display: flex; flex-direction: column; min-width: 0; }
+
+	.tab-bar {
+		display: flex; flex-wrap: wrap; gap: 0.25rem;
+		border-bottom: 1px solid var(--line);
+	}
+
+	.tab {
+		padding: 0.5rem 1rem;
+		color: var(--subtle);
+		text-decoration: none;
+		border-bottom: 2px solid transparent;
+		margin-bottom: -1px;               /* sit ON the bar's rule, not above it */
+		white-space: nowrap;
+	}
+	.tab:hover { color: var(--ink); }
+
+	.tab.active,
+	.tab.in-path { color: var(--ink); border-bottom-color: var(--prim); }
+
+	/* A set whose url isn't selected highlights its first tab, so a panel is never
+	   showing content with nothing marked. Mirrors the panel's own default rule. */
+	.tab-bar:not(:has(.tab.active)) > .tab:first-child {
+		color: var(--ink); border-bottom-color: var(--prim);
+	}
+
+	.tab-panel { padding-top: 1rem; min-width: 0; }
+
+	/* The panel's fallback: show the set's first child when the url selected none
+	   of them. Without it, navigating to a sibling set blanks this one.
+
+	   `.active-ancestor` too, for the same reason `.pages > .default` needs it —
+	   a tab whose own child is the leaf is in the chain, and asking only for
+	   `.active-page` would show the first tab's page alongside it. `tabs()` is
+	   documented for flat children so nothing hits this yet; the two rules are a
+	   pair and drifting apart is how one of them gets fixed and the other
+	   doesn't. */
+	.tab-panel:not(:has(> .page.active-page, > .page.active-ancestor)) > .page.default { display: block; }
+
+	/* Rhythm in `rem`, deliberately — NOT `em`.
+	   `em` on a heading resolves against that heading's own font-size, so these
+	   margins scale with the type scale and compound with it. When theme-lew42
+	   took `h2` from 1.4em to 2.25em, `margin: 2.2em` silently went from 49px to
+	   79px and every section grew a gap nobody asked for. Rhythm is measured in
+	   *body lines*, not in heading sizes; `rem` is the one unit here that doesn't
+	   move when a theme retunes the scale. */
+
+	.page > h1 { margin: 0 0 1.5em; }
 
 	.page > h2 {
-		margin: 2.2em 0 0.7em;
-		padding-bottom: 0.3em;
-		border-bottom: 1px solid rgba(0,0,0,0.1);
+		margin: 3em 0 1em;
 	}
-	.page > h3 { margin: 1.6em 0 0.4em; }
+	.page > h3 { margin: 2em 0 0.5em; }
 	.page > p,
-	.page > .md { margin: 1em 0; }
+	.page > .md { margin: 2em 0; }
 
 	/* ---- the link forms ----
 	   `.active` (this exact url) and `.in-path` (an ancestor of it) are applied
@@ -96,8 +217,8 @@
 		align-items: center;
 		gap: 0.6em;
 		padding: 0.9em 1em;
-		background: #fff;
-		border: 1px solid rgba(0,0,0,0.12);
+		background: var(--surface);
+		border: 1px solid var(--line);
 		border-radius: var(--radius);
 		text-decoration: none;
 		color: inherit;
@@ -113,7 +234,7 @@
 	.page-preview.active,
 	.page-preview.in-path {
 		border-color: var(--prim);
-		background: color-mix(in srgb, var(--prim) 8%, #fff);
+		background: color-mix(in srgb, var(--prim) 8%, var(--surface));
 		box-shadow: inset 3px 0 0 var(--prim);
 	}
 	.page-preview.active .page-preview-title,

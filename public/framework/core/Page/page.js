@@ -1,11 +1,17 @@
-import { Page, md, pre, code } from "/app.js";
+import { Page, classdoc, md, pre, code } from "/app.js";
 
 export default new Page({
 	meta: import.meta,
 	title: "Page",
 	description: "A node: a url, some content, and children.",
 
+	initialize(){
+		classdoc(this, Page, import.meta, "child add container activate tabs");
+	},
+
 	content(){
+
+		this.previews();
 
 		code.js(`export default new Page({
     meta: import.meta,
@@ -34,5 +40,9 @@ export default new Page({
 		md("**A label belongs to the parent's list; a title belongs to the page.** They are different things, not two copies of one — `start` is labelled *\"Start here\"* here and titled *\"Start\"* on its own page, deliberately.\n\nAn **icon is the same kind of thing**, which is why it lives here rather than on the page: it names this *entry in this menu*. That's what makes it free — no import, so a card is complete before the page it points at exists.");
 
 		md("Declare nothing and it still works: the label falls back to an imported child's `title`, then to the bare url segment. So a card reads `columns` until you visit it and `Columns` after — the honest cost, and a visible one. `load_all_children()` in `initialize()` is the opt-in that buys real titles up front, at the price of the imports.");
+
+		md("Next: [Router](/framework/core/Router/) — what turns a url into one of these.");
+
+		md.details(import.meta, "readme.md", "Design record — nav, arrangement, and .cols");
 	}
 });
