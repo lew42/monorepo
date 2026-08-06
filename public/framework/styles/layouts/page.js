@@ -10,14 +10,14 @@ import stack from "./stack/layout.js";
 import masthead from "./masthead/layout.js";
 
 /* css: .layout-side, .layout-rail, .layout-measure, .layout-card, .layout-thumb,
-   .layout-full — and `.page-preview` / `.zoom-25`, which this page borrows from
-   Page.css and framework.css (both loaded via /app.js, imported above). */
+   .layout-viewport, .layout-close — and `.page-preview` / `.zoom-25`, which this
+   page borrows from Page.css and framework.css (both loaded via /app.js). */
 View.stylesheet(import.meta, "layouts.css");
 
 /* Eight tiny modules, imported eagerly and on purpose: the gallery renders every
  * one of them, so there is nothing to defer. Each is also imported by its own
- * page.js and by its `full/` page — one function, three call sites, no second
- * copy of the markup to drift. */
+ * page.js, which draws it twice — in the demo and, through `route()`, in the
+ * viewport view. One function, no second copy of the markup to drift. */
 const gallery = {
 	"holy-grail": holy_grail,
 	sidebar,

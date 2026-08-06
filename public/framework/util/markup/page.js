@@ -38,8 +38,10 @@ export default new Page({
 
 		md(`| | |
 |---|---|
-| **phrasing content** | stays on one line — \`<a>\`, \`<code>\`, \`<strong>\`, \`<span>\`… |
+| **phrasing content** | stays inline — \`<a>\`, \`<code>\`, \`<strong>\`, \`<span>\`… |
+| **a long run of it** | *wraps* at 68 columns, like the text it is — it never breaks into one chunk per line |
 | **a block child** | forces the parent onto several lines, however short |
+| **one real tab per level** | so how wide a level reads is \`tab-size\` at the other end, not a decision made here |
 | \`pre\` \`textarea\` | copied verbatim — whitespace is content, re-indenting would change what renders |
 | **nothing is escaped** | the result is text, and everything that renders it escapes once already |
 

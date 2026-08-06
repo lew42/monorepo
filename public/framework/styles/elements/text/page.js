@@ -57,13 +57,19 @@ export default new Page({
 		md("## Links");
 
 		demo(() => {
-			p("A bare ", a("link").href("/framework/"), " takes the browser's blue underline — `framework.css` has no `a` rule at all.");
+			p("A link ", a("inside text").href("/framework/"), " keeps the body's colour and takes the accent as a heavy, lowered underline.");
 			div.c("flex gap wrap", () => {
 				a.c("page-link", "page-link").href("/framework/");
 				a.c("nav-link", "nav-link").href("/framework/");
 				a.c("tab", "tab").href("/framework/");
 			});
-		}, "The base theme's only opinion about links is `a * { cursor: pointer }` — a child of a link doesn't inherit the hand. What a link *looks* like comes from a class its component emits: `.page-link` and `.tab` (`Page.css`), `.nav-link` (`/styles.css`), `.sidebar-link` (`Sidebar.css`). `Router.mark_links()` adds `.active` and `.in-path` after every render, so **no view compares `window.location` itself** — that's why the three above are lit up.");
+		}, "Two kinds of anchor, and only the first is a *link*. `:where(p, li, td, th, dd, blockquote, .md) a` in `Page.css` styles the one in prose — `color: inherit`, `font-weight: 600`, and `text-decoration-color: var(--prim)` at `2px` thickness and `0.2em` offset. Everything on the second row is navigation, which is an anchor that already opted out of looking like a link, so the rule is scoped to **text** rather than to `a`.");
+
+		md("**Scoping it to text is the whole design.** A flat `a { font-weight: 600 }` bolds every tab, crumb, TOC row and sidebar entry — and takes the sidebar's *active* state with it, which is `600` and would have nothing left to say. `a:visited` is the worse half: it is `(0,1,1)`, which out-ranks `.sidebar-link`, `.tab` and `.nav-link` alike, so the navigation would grey out behind you as you read. The rule is `:where()`d to `(0,0,1)` for the same reason the flow rules are — any component that wants its link back wins by having a class.");
+
+		md("`:visited` gets **colour only** — a browser refuses any property you could measure back out of the layout, so weight and thickness aren't available and the state is carried by hue alone: `var(--subtle)` text, and an underline mixed halfway to it. Every declaration degrades to the unvisited look if a browser declines it.");
+
+		md("`Router.mark_links()` adds `.active` and `.in-path` after every render, so **no view compares `window.location` itself** — that's why the three above are lit up. And the base theme's one flat opinion about anchors is still `a * { cursor: pointer }`: a child of a link doesn't inherit the hand.");
 
 		md("## Blocks");
 

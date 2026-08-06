@@ -47,6 +47,30 @@ The interesting decision. `<p>Call <code>x</code> now</p>` wants one line;
 break" and "is too long to keep" stay two separate questions. The cap (68 chars)
 is a reading judgement and the only tunable number in the file.
 
+### 3a. …and then both answers went down the same path
+
+Keeping the two questions separate was worth nothing for a year, because a `null`
+and a too-long string both fell through to the same line and got one child per
+line. A sentence came out as a column of fragments:
+
+```
+<p>
+  Plain HTML with
+  <strong>no classes</strong>
+  ,
+```
+
+The fix is to let the separation do its job: a run of phrasing content never breaks
+structurally, however long — it **wraps**, filled to the same 68 columns, with the
+open and close tags hugging the text.
+
+The safety argument is the interesting part, and it is the same one that forbids
+re-indenting a `<pre>`: **every break replaces a space that was already there.**
+`wrap()` splits only at spaces outside a tag, and a newline is whitespace, so the
+wrapped form and the one-liner collapse to the identical string. Breaking anywhere
+else — or indenting the content onto its own line, which adds whitespace inside the
+element — would be a serializer whose output renders differently from its subject.
+
 The whitelist is the same idea as `ext/markdown`'s `block_tags` and
 `ext/highlight`'s `block_parents`, inverted. Three copies of "which tags are
 inline" now exist in this repo. **That is a real smell and the merge is not
@@ -98,4 +122,10 @@ own page, the best possible demonstration of what `mark_links()` does.
 - **No `<svg>` special-casing.** SVG children serialize as ordinary elements, which
   is correct but verbose; an inline icon is a wall of `<path>`.
 - **The 68-char cap is a guess.** It reads well at the font sizes on this site and
-  has no other justification.
+  has no other justification. It measures the *content*, never the content plus its
+  indent — deliberately, so it agrees with the one-line test, and because with a tab
+  per level there is no character count to add: a tab is `tab-size` wide, and that
+  belongs to whoever renders it (2 in a demo's html pane, 4 in a `pre.code-block`).
+- **`wrap()` finds a tag by scanning for `<` and `>`.** An attribute value
+  containing a literal `>` — legal, and vanishingly rare — would end the tag early
+  and let a break land inside it. A real tokenizer is not worth it for a doc pane.

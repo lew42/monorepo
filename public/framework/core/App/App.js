@@ -3,9 +3,6 @@ import { Page } from "../Page/Page.class.js";
 import { Router } from "../Router/Router.js";
 import { Font } from "./Font.js";
 
-// load first, so the CSS layers are defined before anything else paints
-View.stylesheet(import.meta, "../../framework.css");
-
 /* Boot, and the one flat container. App does not resolve urls — the moment a
  * segment can need an import, that became navigation, and navigation is the
  * Router's. What is left here is the six-step lifecycle and `$pages`.

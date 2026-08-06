@@ -120,19 +120,54 @@ Two details worth recording:
   class `/styles.css` reads) and `.layout-full` takes the region's paper measure
   and gives the layout the region's height, so a `flex-1` band has something to
   take and a footer lands at the bottom. It does **not** hide `/framework/`'s
-  sidebar. It could — one `.app:has(…) .topic > .sidebar { display: none }` — but
-  that is a layouts stylesheet reaching into a class it does not emit to overrule
-  a decision the section made, and it would leave the reader with no way back.
-  **Kept deliberately:** maximize means "the width it was drawn for", not
-  "chrome-free". Under `/framework/` the site nav is *already* hidden by the
-  section, so `hides-nav` on these pages is currently a no-op that would matter if
-  the section moved.
-- **The height rule is `.page.layout-full.active-page`, and the `.active-page` is
-  load-bearing.** A bare `.page.layout-full { display: flex }` has the same
-  specificity as `.page { display: none }` in Page.css and loads later, so it wins
-  — leaving all eight maximize views on screen for every route on the site. The
-  arrangement contract decides *whether* a page shows; a stylesheet like this one
-  may only say *how*. `/styles.css` records the identical trap for `.page.topic`.
+  sidebar — which was argued for at the time ("maximize means the width it was
+  drawn for, not chrome-free") and is the part the revision below overturned.
+
+### REVISED — the directories are gone, and "full" is now "viewport"
+
+The verdict above holds where it matters: **a url, not a class.** Everything else
+was rebuilt. Three changes, in order of how much they were worth.
+
+**The eight `full/` directories became one `route()`.** `Page.child()` already falls
+through to `this.route(name)` for any segment the parent did not declare — the seam
+that exists so a page can own urls it could not list in advance. A maximize view is
+exactly that, and the directories were never carrying information:
+
+```js
+route(name){ return name === "viewport" && viewport(this, layout); },
+viewport.link(this);
+```
+
+Eight directories and eight four-line `page.js` files deleted, and the url is
+unchanged in kind — still linkable, still leavable by Back. §7 below listed the
+eight files as the thing to cut; this is that cut, and it turned out to cost less
+than trimming to two would have.
+
+The word appears twice per page rather than being hidden inside the helper. That is
+deliberate: a page should read as *"I claim this url, and here is the link to it"*.
+A helper that silently matched its own name would be one file's behaviour decided in
+another, which is the house definition of black magic.
+
+**It is `position: fixed; inset: 0` now, not a wider measure.** The old version took
+the region's measure and kept `/framework/`'s sidebar beside it, on the argument
+that maximize means "the width it was drawn for" and not "chrome-free". In practice
+the two are the same thing at a 19em sidebar plus a docs column — the layouts most
+wanting width (holy grail, dashboard) were still cramped. So the view takes the
+window and the way out is an `×`, which also answers the objection that hiding the
+sidebar leaves no way back.
+
+**The `.active-page` workaround is deleted.** It used to be recorded here as a trap:
+
+> The height rule is `.page.layout-full.active-page`, and the `.active-page` is
+> load-bearing. A bare `.page.layout-full { display: flex }` has the same
+> specificity as `.page { display: none }` in Page.css and loads later, so it wins
+> — leaving all eight maximize views on screen for every route on the site.
+
+That is no longer true, and the entry is kept only so nobody re-derives it. The
+arrangement contract moved into `@layer util` and now out-ranks anything a component
+stylesheet or a utility class can say about `display`, so
+`.page.layout-viewport { display: flex }` is an ordinary rule that means what it
+says. See `core/Page/readme.md`, "The contract lives in `@layer util`".
 
 ---
 
@@ -238,10 +273,12 @@ click. That is fine — a layout skeleton with eight `href="#"` in it would be w
 - **`stack` and `centered` overlap.** Both are `.layout-measure` with different
   contents; `stack` earns its place only because it demonstrates `flow` and
   `textarea.auto`. If the section needs to be seven pages, these merge.
-- **The eight `full/` pages.** Two would have made the point (the brief asked for
+- **The eight `full/` pages.** ~~Two would have made the point (the brief asked for
   two); eight is 24 lines of file for consistency. Kept because an inconsistent
   affordance is worse than a repeated one, and because `full.js` means the
-  repetition is three lines with no logic in it.
+  repetition is three lines with no logic in it.~~ **Cut** — see §3, REVISED. The
+  answer was not "fewer of them"; it was that a `route()` needs no file at all, so
+  all eight keep the affordance and cost nothing.
 - **`tile()` in `parts.js`** is one call site (`dashboard`) and is a one-liner
   over `box()`. It stays because it names the thing the dashboard is *made of*,
   which is what the demo source needs to read as prose.
@@ -252,7 +289,11 @@ click. That is fine — a layout skeleton with eight `href="#"` in it would be w
   demos are therefore cramped on their own pages and correct at full size, which
   is a real argument *for* the maximize link and a mild argument that `sidebar`
   should preview at `full` by default. Left alone: a layout that only looks right
-  in a special view is worth seeing honestly.
-- **`.layout-full` picks `padding: 1.5em`.** Zero would be more honest ("nothing
+  in a special view is worth seeing honestly. Less pressing now that the demo box
+  itself has a resize handle and a zoom.
+- ~~**`.layout-full` picks `padding: 1.5em`.** Zero would be more honest ("nothing
   around it") and looked wrong — the back link ended up welded to the viewport
-  edge. If a `--page-pad` token ever exists, this should read it.
+  edge. If a `--page-pad` token ever exists, this should read it.~~ **Resolved.**
+  The token exists (`core/Page/readme.md`), and `.layout-viewport` sets
+  `--page-pad: 1.5em` rather than declaring `padding` — so the one place that
+  decides how a page is inset is the one place that decides it.

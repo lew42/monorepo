@@ -1,14 +1,20 @@
 /* Layer order. Every stylesheet in the project restates this line **in full**,
    because the first `@layer` statement encountered fixes the order and a name
-   that first appears later gets appended at the END. Page.css's <link> is
-   actually appended before this file's (App.js imports Page at module scope),
-   so a short list anywhere would silently put `site` in the wrong place.
+   that first appears later gets appended at the END.
+
+   View.js loads THIS file, so it is now reliably the first <link> in the head and
+   this is the statement that decides the order. The rule stays anyway: a sandbox
+   that imports a component directly is one entry point away from a short list
+   deciding it instead, and nothing fails loudly when that happens.
 
      base    reset — browser defaults that are simply wrong
      theme   the base theme: tokens + the default look. Components add here too.
      site    /styles.css — this site's skin. Beats theme at ANY specificity, so
              site CSS never has to escalate. See framework/styles/readme.md §13.
-     util    opt-in classes, last — you typed `.pad` on purpose, it should win. */
+     util    opt-in classes, last — you typed `.pad` on purpose, it should win.
+             ONE thing that isn't an opt-in class lives up here: the arrangement
+             contract, in Page.css. A util class sets `display`, and a page that
+             is not in the chain must out-rank it. See core/Page/Page.css. */
 @layer base, theme, site, util;
 
 @layer base {

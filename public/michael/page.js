@@ -24,7 +24,7 @@ export default new Page({
 	classes: "hides-nav",
 
 	render(){
-		return this.view ??= div.c("page topic", () => {
+		return this.view ??= div.c("page topic flex", () => {
 			new Sidebar({
 				header: () => this.app.brand("Michael", "/michael/"),
 				pages: [...this.children.keys()].map(name => this.nav_for(name)),

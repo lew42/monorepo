@@ -86,6 +86,32 @@ accessor's function rather than its result.
 conclusions about four lines of string-slicing, and the disagreement was settled
 in thirty seconds by running it. Trace less, execute more.
 
+### …and the half of it nobody measured
+
+`dedent(String(fn))` was verified on its *first line*, which is the line the
+argument was about, and shipped with every line after it a tab too deep:
+
+```
+append(...args){          ← column 0
+        const tag = …     ← still at its depth in View.js
+    }
+```
+
+`toString()` on a shorthand method starts at the **name**, so the first line's
+indent was left behind in the file. It measures zero; `dedent()` took the minimum
+across all lines; zero won, and nothing moved. Then the closing `}` — at the
+method's own depth, not the body's — sat one level in from a signature at the
+root, which is what makes it look like an indent bug rather than a *missing*
+dedent.
+
+**Fix, in `util/source`:** a first line with no leading whitespace is not evidence
+about the indent, so it is excluded from the measurement. The concise-arrow branch
+of `source()` was quietly wrong for the same reason — `trimStart()` on the body
+makes line one report zero — and got fixed by the same line.
+
+Same lesson as above, applied to the fix rather than the argument: it was visible
+on screen for the whole life of the feature and nobody read past line one.
+
 ### Limits, stated so nobody "fixes" them later
 
 - **Class fields are invisible.** `render = () => {}` lives on the instance, not

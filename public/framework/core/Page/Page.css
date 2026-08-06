@@ -1,15 +1,42 @@
 /* Layer order, restated IN FULL — the first `@layer` statement fixes the order and
-   a name first seen later is appended at the END. This file's <link> is injected
-   before framework.css's, so a short list here would misplace `site` site-wide. */
+   a name first seen later is appended at the END. View.js loads framework.css, so
+   that file gets there first now; this line stays because nothing fails loudly if
+   some other entry point ever changes that. */
 @layer base, theme, site, util;
 
-@layer theme {
+/* ── the arrangement contract ──
+   Router.mark() writes exactly two classes — .active-page on the leaf and
+   .active-ancestor on everything above it. Every arrangement on the site is these
+   rules plus a class a page opted into. Design record: core/Page/readme.md.
 
-	/* ── the arrangement contract ──
-	   Router.mark() writes exactly two classes — .active-page on the leaf and
-	   .active-ancestor on everything above it. Every arrangement on the site is
-	   these rules plus a class a page opted into. This is the whole of what
-	   replaced the Pager tier. Design record: core/Page/readme.md. */
+   ⚠ IN `util`, WHICH IS NOT WHERE A STRUCTURAL RULE BELONGS, and the reason is the
+   whole point of the arrangement: a page should be able to BE a layout —
+   `page.ac("grid gap auto")` for a dashboard, `"flex gap"` for three columns. Those
+   are util classes, util is the last layer, and `.grid { display: grid }` therefore
+   beats any `display: none` written in `theme` at any specificity. The result was
+   every inactive page on screen at once, which reads like a router bug.
+
+   So the hiding lives up here with them, and beats them on specificity instead:
+   four classes against one. Which is why the rule is phrased as "hide unless" — a
+   plain `.page { display: none }` in this layer is (0,1,0), exactly `.grid`'s, and
+   would be decided by which <link> loaded last.
+
+   The other half is that NOTHING here says `display` for a page that IS showing —
+   a `div` is already a block. Add `display: block` back and you have taken the
+   choice away from the util class again. */
+@layer util {
+
+	.page:not(.active-page, .active-ancestor:has(.page.active-page), .default) { display: none; }
+
+	/* A tab set's default is the exception: it shows precisely when it is NOT in the
+	   chain, so the test has to be about its siblings rather than about itself. Its
+	   own `.active-page` state is excluded, or navigating TO the default tab hides
+	   it — the panel would then contain an active page, which is this selector. */
+	.tab-panel:has(> .page:is(.active-page, .active-ancestor))
+		> .page.default:not(.active-page, .active-ancestor) { display: none; }
+}
+
+@layer theme {
 
 	/* A region pages mount into. THE REGION SCROLLS, NOT THE PAGE — a `.page` is
 	   also a centred `max-width`, so a scrollbar on it renders at the sheet's edge
@@ -22,29 +49,35 @@
 	   than your parent" in one word.
 
 	   `overflow-y: scroll`, not `auto`: the gutter is then always reserved, so
-	   navigation never shifts the content sideways. */
+	   navigation never shifts the content sideways.
+
+	   The measure tokens are set HERE, on every region, and not only on `.papers` —
+	   so they stop at each region boundary instead of a nested plain `.pages`
+	   inheriting a sheet width from an ancestor that happened to be papers. */
 	.pages {
 		display: flex; align-items: flex-start;
 		flex: 1 1 auto; min-width: 0; min-height: 0;
 		overflow-y: scroll;
+		--measure: none; --page-pad: 0;
 	}
 
-	.page {
-		display: none;                  /* not in the chain */
-		min-width: 0; min-height: 0;
-	}
+	.page { min-width: 0; min-height: 0; }
 
 	/* The leaf is always visible. An ancestor is not — that is "replace", and it is
-	   the default because it is what's left when nothing opts in. */
-	.page.active-page { display: block; flex: 1 1 auto; min-height: 100%; }
+	   the default because it is what's left when nothing opts in. …unless it actually
+	   CONTAINS the leaf, in which case hiding it would hide the leaf too. Asking that
+	   directly beats making every author remember a flag.
 
-	/* …unless it actually CONTAINS the leaf, in which case hiding it would hide the
-	   leaf too. Asking that directly beats making every author remember a flag. */
-	.page.active-ancestor:has(.page.active-page) { display: block; flex: 1 1 auto; min-height: 100%; }
+	   Sizing only. Whether either of these shows was decided in `util` above. */
+	.page.active-page,
+	.page.active-ancestor:has(.page.active-page) { flex: 1 1 auto; min-height: 100%; }
 
 	/* What a region shows when none of its children is IN THE CHAIN — the index-route
 	   problem. A parent that owns a region usually has something of its own to say at
 	   its own url, and nowhere else to put it.
+
+	   This one is a plain div, not a `.page` (see /framework/page.js), so it is not
+	   the contract's business and stays down here.
 
 	   The test asks for `.active-ancestor` too, and it has to: `.active-page` means
 	   "is the LEAF directly in me", where the question is "is anything of mine in the
@@ -61,11 +94,21 @@
 	/* ── the look of everything Page renders ──
 	   Structure only, no skin: the site decides backgrounds (see /styles.css). */
 
+	/* THE MEASURE, as two tokens rather than two declarations, and that is the whole
+	   design: a page opts OUT by setting them on itself, and a value set on an element
+	   beats one it inherited at any specificity, in any layer. Before this, opting out
+	   meant out-specifying `.pages.papers > .page` (0,3,0) or — what /styles.css
+	   actually did — winning from `@layer site`, which the file itself flags as a bug
+	   report about a missing token. This is the token.
+
+	   A MEASURE, not a sheet: no background, because that is the site's call. */
+	.page { max-width: var(--measure, none); padding: var(--page-pad, 0); }
+
 	/* One page opts in, or a REGION opts its children in — so a topic sets it once
-	   instead of every child repeating `classes: "paper"`. What this gives you is a
-	   MEASURE, not a sheet: no background, because that is the site's call. */
-	.page.paper,
-	.pages.papers > .page,
+	   instead of every child repeating `classes: "paper"`. */
+	.pages.papers,
+	.page.paper { --measure: 60em; --page-pad: 3em 4em; }
+
 	.pages.papers > .default { padding: 3em 4em; max-width: 60em; }
 
 	/* ── tabs ──
@@ -105,11 +148,9 @@
 
 	.tab-panel { padding-top: 1rem; min-width: 0; }
 
-	/* The panel's fallback: show the set's first child when the url selected none of
-	   them. `.active-ancestor` for the same reason `.pages > .default` needs it — the
-	   two rules are a pair, and drifting apart is how one gets fixed and the other
-	   doesn't. */
-	.tab-panel:not(:has(> .page.active-page, > .page.active-ancestor)) > .page.default { display: block; }
+	/* The panel's fallback — show the set's first child when the url selected none of
+	   them — is the second rule of the contract, at the top of this file. It has to be
+	   up there because a `.page.default` is a page, and a page may be a util layout. */
 
 	/* ── the same tab set, turned on its side ──
 	   `this.tabs("…").ac("vertical")` — a left nav. Not a second component: the JS,
@@ -201,6 +242,43 @@
 	   list item is a gap nobody asked for. Two element selectors, so it clears the UA
 	   rule without touching the flow. */
 	:where(.flow, .page, .md) :is(li, td, th) > p { margin-block: 0.35rem; }
+
+	/* ── a link in prose ──
+	   Scoped to text, not to `a`, and that is the whole decision. Every piece of
+	   navigation on this site is an anchor that has already opted out of looking
+	   like a link — a sidebar entry, a tab, a TOC row, a preview card, a crumb. A
+	   flat `a { font-weight: 600 }` bolds all of them, and it takes the sidebar's
+	   ACTIVE state with it, which is 600 and has nothing left to say. `a:visited`
+	   is the worse half: `(0,1,1)` out-ranks every one of those component classes,
+	   so the nav would grey out behind you as you read the site.
+
+	   `:where()` for the same reason as the flow rules above — `(0,0,1)`, so any
+	   component that wants its own link back wins by having a class.
+
+	   The colour is the body's and the underline carries the whole affordance,
+	   which is why the underline is stated here rather than left to the UA: the
+	   same rule that takes the blue away has to be the one that keeps the line. */
+	:where(p, li, td, th, dd, blockquote, .md) a {
+		color: inherit;
+		font-weight: 600;
+		text-decoration-line: underline;
+		text-decoration-color: var(--prim);
+		text-decoration-thickness: 0.2em;
+		text-underline-offset: 0.2em;
+	}
+
+	/* Only COLOUR properties survive on `:visited` — the browser refuses anything
+	   that could be measured back out of the layout, so weight and thickness are
+	   not available here and the state has to be carried by hue alone. Every
+	   declaration degrades to the unvisited look if a browser declines it. */
+	:where(p, li, td, th, dd, blockquote, .md) a:visited {
+		color: var(--subtle);
+		text-decoration-color: color-mix(in oklab, var(--prim) 80%, var(--subtle));
+	}
+
+	/* After `:visited`, not before — both are `(0,1,1)`, so hover only wins by
+	   being later, and a visited link has to be able to light up again. */
+	:where(p, li, td, th, dd, blockquote, .md) a:hover { color: var(--prim); }
 
 	/* ---- the link forms ----
 	   `.active` and `.in-path` are applied by Router.mark_links(), so none of these

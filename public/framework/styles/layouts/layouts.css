@@ -28,17 +28,43 @@
 	.layout-card { flex-direction: column; align-items: stretch; }
 	.layout-thumb { aspect-ratio: 16 / 10; overflow: hidden; }
 
-	/* Maximize: out of the region's paper measure, so the layout gets the width
-	   it was drawn for. `.page.hides-nav` (in /styles.css) takes the site nav;
-	   this takes the sheet. */
-	.pages.papers > .page.layout-full { max-width: none; padding: 1.5em; }
+	/* The viewport view: one layout, the whole window. `fixed` rather than a wider
+	   measure, because the question a layout page can't otherwise answer is "what
+	   does this look like at the size it was drawn for", and the region is never
+	   that. Its own url — see viewport.js.
 
-	/* …and the height, so a `flex-1` band inside a layout has something to take
-	   and a footer lands at the bottom. `.active-page` is in the selector on
-	   purpose: the arrangement contract decides *whether* a page shows, and a bare
-	   `.page.layout-full { display: flex }` would out-rank `.page { display: none }`
-	   (equal specificity, later file) and leave every maximize view on screen for
-	   every route on the site. */
-	.page.layout-full.active-page { display: flex; flex-direction: column; }
-	.page.layout-full > :last-child { flex: 1 1 auto; min-height: 0; }
+	   The tokens rather than `max-width`/`padding` directly: a value set on the
+	   element beats the one the region handed down, at any specificity. That is
+	   the documented way to leave the sheet (core/Page/Page.css).
+
+	   `display: flex` is now a plain declaration. It used to be spelled
+	   `.page.layout-full.active-page`, with the `.active-page` load-bearing — the
+	   contract lived in @layer theme, so a bare `.page.layout-full { display: flex }`
+	   tied it on specificity and left every maximize view on screen for every route
+	   on the site. The contract is in @layer util now and out-ranks this, so the
+	   workaround is gone and the rule says what it means. */
+	.page.layout-viewport {
+		--measure: none; --page-pad: 1.5em;
+		position: fixed; inset: 0; z-index: 20;
+		display: flex; flex-direction: column;
+		background: var(--wash);
+		overflow: auto;
+	}
+
+	/* …so a `flex-1` band inside a layout has something to take, and a footer lands
+	   at the bottom of the window rather than under the fold. */
+	.page.layout-viewport > :last-child { flex: 1 1 auto; min-height: 0; }
+
+	/* The way out. Over the layout rather than above it — anything in normal flow
+	   here would be a band the layout has to make room for, which is the one thing
+	   this view exists not to have. */
+	.layout-close {
+		position: absolute; top: 0.75em; right: 0.75em; z-index: 1;
+		display: flex; padding: 0.35em;
+		color: var(--subtle);
+		background: var(--surface);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+	}
+	.layout-close:hover { color: var(--prim); border-color: var(--prim); }
 }

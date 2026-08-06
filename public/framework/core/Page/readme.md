@@ -57,6 +57,66 @@ learn:
 - **`.grid > * { margin: 0 }`** joined `.flex > *` in `util`. A laid-out container
   owns its spacing via `gap`, and an inherited block margin only fights it.
 
+### The topic was a flow that isn't one
+
+Later, and the same mistake from the other side: `.page` is in the flow list
+unconditionally, but a **topic page is a layout** — `styles.css` makes it a flex row
+of `.sidebar` + `.pages`. So `.pages`, as the second child, collected
+`margin-block-start: var(--flow)`, and a region sized to exactly fill its parent
+lost 20px off the bottom. It scrolls, so nothing looked wrong until the end of a
+page.
+
+Fixed where the layout is declared — `.page.topic > * { margin-block: 0 }`, in the
+rule next to the `display: flex` that caused it. The general form, for the next one:
+**a page that overrides `render()` into a flex or grid layout owns its children's
+spacing and must say so.** `gap`, not flow.
+
+Worth naming the alternatives, because the same three keep coming back for any
+"which boxes get this treatment" question: opt-in (`.ac("flow")` everywhere, and a
+forgotten class is invisible), opt-out (this, and the list grows once per layout),
+or an inherited `--flow` token each box can zero locally (elegant, except
+inheritance isn't scoping — zeroing it on the topic zeroes it for every prose page
+*inside* the topic, so every flow root has to re-assert it and the central list
+comes back as the re-assert list). The asymmetry decides it: a missing opt-in looks
+slightly wrong everywhere and nobody reports it; a missing opt-out looks broken in
+one place and gets fixed that afternoon.
+
+## A link in prose is not the same as an anchor
+
+Same shape of question, and the answer landed in the same place: **scope to the
+container, not to the element.**
+
+The site had no `a` rule at all — bare links were UA blue and every link that
+looked designed got its look from a component class. The ask was a real treatment:
+bold, and a heavier, lower underline in `--prim`.
+
+A flat `a` rule in the base theme is the obvious home and it is wrong twice:
+
+- **`font-weight: 600` bolds the navigation**, which is all anchors — sidebar, tabs,
+  TOC, crumbs, preview cards. It also erases a state signal: `.sidebar-link.active`
+  and `.nav-link.active` say *600*, and against a 600 baseline that says nothing.
+- **`a:visited` is `(0,1,1)`.** That out-ranks `.sidebar-link`, `.tab`, `.toc-link`
+  and `.nav-link` — every class those components use to set their own colour. The
+  navigation would grey out behind you as you read the site.
+
+The base theme also forbids the fix in place: its selectors are flat by contract, so
+a scoped selector cannot live there. It lives here instead, beside the flow rules,
+because it is the same statement — *this is what a box of stacked prose looks like*:
+
+```css
+:where(p, li, td, th, dd, blockquote, .md) a { … }
+```
+
+`:where()`d to `(0,0,1)` for the flow rules' reason: a component that wants its link
+back wins by having a class, with no out-specifying.
+
+**`:visited` gets colour and nothing else.** Browsers restrict it to properties that
+can't be measured back out of the layout, so weight and thickness are unavailable
+and the state has to be carried by hue — `var(--subtle)` text and an underline mixed
+halfway to it. Every declaration was chosen to degrade to the unvisited look if a
+browser declines it, which is the only safe way to write the selector: you cannot
+verify it from `getComputedStyle`, which deliberately reports the *unvisited* values.
+
 ## `.pages` scrolls; `.page` does not
 
 Written down because `overflow-y` on `.page` looks obviously right and was wrong
@@ -103,7 +163,55 @@ pushes the page past the viewport.
 turned a judgement call into a mechanical one, and it survived a rewrite that
 invalidated most of the prose around it. Worth reusing on anything speculative.
 
-## `paper` is opt-in, and so is `papers`
+## The contract lives in `@layer util`, so a page can BE a layout
+
+**The question:** can `.page` be a grid? A dashboard page, a three-column page —
+the site already has a whole utility grammar for exactly this (`grid gap auto`,
+`flex gap`, `flex-1`, `--column`), and the obvious move is to put it on the page:
+
+```js
+div.c("page grid gap auto")
+```
+
+**What happened instead: every inactive page on screen, on every route.** `.grid`
+and `.flex` are in `@layer util`, which is the last layer, so they beat a
+`display: none` written in `theme` at *any* specificity. Nothing throws, and the
+symptom reads like a router bug rather than a cascade one.
+
+This was already known in a smaller form — `.page.topic` needed a pair of rules in
+`/styles.css` restating the contract's own selectors, and `layouts.css` had
+`.page.layout-full.active-page` where the `.active-page` was load-bearing and
+commented as such. Both were the same bug, worked around twice.
+
+**Options.**
+
+| | |
+|---|---|
+| `.page` is a slot; layouts go in a wrapper div | correct and unbreakable, but it means every layout page grows a div, and the two that already exist get refactored |
+| `display: var(--page-display, block)` | tokens the show rules — but a util `.grid` still beats `display: none`, so it fixes nothing |
+| `display: none !important` in `@layer base` | works (important declarations reverse layer order), and makes the hide unbeatable — no page transition could ever animate a page out |
+| **move the hide rule to `@layer util`** | ✓ |
+
+**Verdict: the hide rule moves up into `util`** and beats the utility classes on
+specificity instead of by layer — four classes against one. Two consequences worth
+stating, because both are load-bearing:
+
+- **It has to be phrased as "hide unless".** A plain `.page { display: none }` in
+  `util` is `(0,1,0)`, exactly `.grid`'s, and the winner would be decided by which
+  `<link>` loaded last. The `:not()` chain is what buys the margin.
+- **Nothing says `display` for a page that IS showing.** A `div` is already a block.
+  Put `display: block` back on `.page.active-page` and you have taken the choice
+  away from the utility class again.
+
+The cost is a dent in what `util` means — it was "opt-in classes you typed on
+purpose", and it is now that plus one structural rule. Recorded in framework.css's
+header so the next reader of the layer list finds it there too.
+
+What it bought, immediately: `/styles.css` lost the topic pair (a topic is now
+`div.c("page topic flex")`), and `layouts.css` lost the `.active-page` workaround.
+Two workarounds deleted, one rule moved.
+
+## `paper` is opt-in, and so is `papers` — as tokens, not declarations
 
 `paper` is a look — a white box, a measure, a centred column. The framework
 does not decide that, so there is no default. Two ways to ask for it:
@@ -121,6 +229,30 @@ shape whenever a whole region wants the same thing.
 independent meanings, so you could never ask for full-bleed-without-fixed — the
 same one-property-one-winner problem that deleting `mode` removed. A site that
 wants paper everywhere should say so in its own stylesheet.
+
+### How a page opts OUT
+
+This used to be the hard half. `.pages.papers > .page { padding; max-width }` is
+`(0,3,0)`, so leaving the sheet meant either out-specifying it
+(`.pages.papers > .page.bleed`) or winning from `@layer site` — which is what
+`/styles.css` did for `.page.topic`, and which that file's own header calls a bug
+report about a missing token.
+
+So it is a token now:
+
+```css
+.pages         { --measure: none; --page-pad: 0; }
+.pages.papers  { --measure: 60em; --page-pad: 3em 4em; }
+.page          { max-width: var(--measure, none); padding: var(--page-pad, 0); }
+```
+
+**A value set on an element beats one it inherited, at any specificity, in any
+layer** — inheritance is not a declaration on the child, so the cascade has nothing
+to compare. `.page.topic { --measure: none }` is one class and wins outright.
+
+The reset on plain `.pages` is not decoration: without it a nested region inside a
+`papers` region would inherit the sheet width from an ancestor it has nothing to do
+with. Every region declares its own, so the tokens stop at each boundary.
 
 ## Overriding `render()`
 

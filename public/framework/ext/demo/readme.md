@@ -38,11 +38,34 @@ the html output — was that made? Is it possible?"* It had not been. It is.
 rather than what was meant, so the pane cannot drift from the box above it — the
 same guarantee §1 gives the code pane, extended to the output.
 
-### Closed by default
+### Closed by default — and now a column, not a drawer
 
 The answer to "what does this render" **is the render**; the markup is the follow-up
-question. So it costs one summary line until asked for, and a `<details>` gives that
-for free with no JS and correct keyboard behaviour.
+question. So it stays hidden until asked for.
+
+It *was* a `<details>` at the bottom of the box, which was free and had correct
+keyboard behaviour. What killed it: a `<summary>` halfway down a tall box is a
+control in the middle of content, and the thing it controls appears below the fold.
+The toolbar (§7) is where a control belongs, so the pane lost its own disclosure and
+the box grew a `<>` button.
+
+Given a toggle, the arrangement question came back: **beside the JS, or under it?**
+
+| | |
+|---|---|
+| always stacked | a 900px box showing two 400px columns of nothing |
+| a `demo(fn, { split: true })` option | an option is API surface forever, and the author does not know how wide the box will be |
+| a container query | correct, and more machinery than the thing it decides |
+| **`flex-wrap` + a `22em` basis** | ✓ |
+
+**Verdict: `flex-wrap`.** Two panes at `flex: 1 1 22em` sit side by side when the box
+can hold two and stack when it can't — and "the box", not the viewport, is the width
+that actually varies here. The same demo splits maximized and stacks in a phone
+column, and nothing was configured.
+
+`.ac("stack")` is the veto, for an example whose lines are long enough that half a
+box is worse than the whole one. Nothing can measure that, so it stays a human call —
+and it costs no API, because `demo()` already returns a View.
 
 ### Read on first open, not up front
 
@@ -117,11 +140,82 @@ A demo's code area is a `pre`; it should look like one.
 
 ---
 
-## 6. Open
+## 6. ⚠ A div is not a viewport — media queries do not respond to the handle
+
+**This is the one thing to know before trusting the resize handle.** The stage is a
+`<div>`. Dragging it narrow changes what the *content* is laid out inside, so
+everything intrinsic responds correctly — `auto-fit`, `minmax`, `%`, `flex-wrap`,
+`min()`, container queries. A `@media (max-width: 45em)` inside the example does
+**not**: a media query asks the browser viewport, and the browser viewport did not
+move. Drag a demo to 390px and it will still be showing you its desktop branch.
+
+Zoom has the same shape of limit for the same reason, and `transform: scale()` would
+have been worse — a scaled box still occupies its unscaled size, so nothing re-lays
+out at all. `zoom` at least changes the element's own coordinate system, which is
+what makes the readout meaningful.
+
+**Today this is harmless and tomorrow it is a trap.** Every layout in
+`styles/layouts/` is intrinsic — checked, there is not one `@media` among the eight —
+so the handle currently tells the truth about everything it is pointed at. It stops
+telling the truth the moment someone writes a demo with a breakpoint in it, or labels
+a preset "390" and means it.
+
+**The fix, when it is wanted, is an iframe** — a real nested viewport, where media
+queries fire, `100vw` means something, and `scale()` on the iframe element gives
+honest zoom-to-fit with a truthful px readout. The cost is real: building into another
+document, injecting the framework's stylesheets there, and pointing `View.captor` at a
+foreign `document`. Deferred deliberately, not overlooked.
+
+---
+
+## 7. The toolbar, and why the stage is three boxes
+
+Every control that changes what you are looking at is in one strip at the top: the
+label, the zoom, the `<>` pane toggle, and fill-the-window. Before, the label was a
+strip, the HTML pane had its own `<summary>` halfway down, and there was no zoom or
+resize at all — three different places to look for "how do I see this differently".
+
+**Fill-the-window is a class, not a url**, and that is the deliberate half of the
+split. `requestFullscreen()` needs a user gesture and so can never be restored on a
+reload; this is the same class of thing — a way of *looking* at a box, not a place to
+be. A layout that wants a url has one: `styles/layouts/viewport.js`, which claims
+`<url>viewport/` through `route()` precisely so a live reload comes back to it.
+
+**The three boxes** — `.demo-stage` › `.demo-screen` › `.demo-render` — are not
+decoration, and two attempts to merge them both failed in ways that pass silently:
+
+- Scrolling on the **stage** clips the handle. The pill hangs 0.125em over the right
+  edge by design, and any `overflow` above it both cuts it in half and turns the
+  overhang into scrollable width. Measured: the drag stopped working entirely,
+  because the half of the handle you aim at was the clipped half.
+- `overflow-x` on the **render** forces `overflow-y` off `visible` too — the axes
+  cannot be set independently unless the value is `clip`. That put an `auto/auto`
+  scroll box around every demo on the site, which does nothing at all until someone
+  writes a tooltip or a popover that overflows on purpose.
+
+So: the stage owns the width and the handle, the screen owns the padding and the
+scrolling, and the render is the bare content box. That last one is what makes
+`.demo-size` honest — `offsetWidth` with no frame in it, and unaffected by `zoom`, so
+a 700px stage at 50% correctly reads 1400px. Deliberately not the ResizeObserver
+entry's `contentRect`: what that reports under `zoom` has moved between browser
+versions, and `offsetWidth` has not.
+
+Right-click clears a dragged width. A reset button in the toolbar would be a control
+whose only job is undoing another control, and there is no other way back to
+"whatever fits".
+
+---
+
+## 8. Open
 
 - **No way to show a demo that must not run.** `code.fn()` covers it, on the other
   ext, which is the right split — but nothing on the demo page says so loudly.
-- **The pane re-reads on every open, not live.** Close and reopen it after clicking
-  a demo and you see the new DOM — which is a nice accident of the `toggle` handler
-  rather than a designed feature. A genuinely live pane needs a `MutationObserver`
+- **The pane re-reads on show, not live.** Toggle it off and on after clicking inside
+  a demo and you see the new DOM. A genuinely live pane needs a `MutationObserver`
   and has no asker yet.
+- **No width presets.** "Mega / desktop / mobile" was asked for and is not here: a
+  preset labelled `1920` is a promise about media queries that a div cannot keep
+  (§6). Zoom percentages promise nothing they don't deliver. Presets land with the
+  iframe or not at all.
+- **`--demo-pad: 2rem` is a lot of a 262px box.** At 390px the frame is a quarter of
+  the demo's width. Pre-existing, but the stage makes it more visible.

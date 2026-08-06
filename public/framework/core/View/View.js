@@ -641,3 +641,18 @@ export { View, is };
 
 View.previous_captors = [];
 View.prototype.capture = true;
+
+/* The layer order and the base look, loaded HERE and not by App — so nothing can
+ * beat it into <head>. Every other stylesheet on the site is injected by a module
+ * that imports View, so this <link> is always the first one, and the `@layer`
+ * statement in it is the one that fixes the order for the whole document.
+ *
+ * It was App's, and Page.css got there first (App imports Page at module scope,
+ * and imports hoist) — which meant the order was decided by a file that isn't
+ * about the order. Importing View now means importing the framework's CSS; the
+ * two were never separable in practice.
+ *
+ * ⚠ DEAD LAST in this file, and it has to be: `stylesheet()` builds a View, which
+ * runs `append_fn`, which pushes onto `View.previous_captors` — declared two lines
+ * up. Higher in the file it throws "Cannot read properties of undefined". */
+View.stylesheet(import.meta, "../../framework.css");

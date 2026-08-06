@@ -37,7 +37,7 @@ export default new Page({
 	 * each topic's own sidebar nested beside it. Children land in `app.$pages`
 	 * instead, as siblings, so this page hides completely the moment you leave. */
 	render(){
-		return this.view ??= div.c("page topic", () => {
+		return this.view ??= div.c("page topic flex", () => {
 
 			// `sections` is already {title, url} — exactly what a Sidebar link
 			// reads — so the site's nav and its cards come off one list.

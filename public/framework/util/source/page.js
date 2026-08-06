@@ -47,6 +47,8 @@ export default new Page({
 
 		md("Removes the leading blank line and the common indent, so a body nested three tabs deep in a `page.js` reads as top-level code. It normalises `\\r\\n` first: `fn.toString()` hands back whatever line endings the file was checked out with, while the same text through `innerHTML` comes back `\\n` — the DOM normalises, the string doesn't.");
 
+		md("**The first line is only evidence if it begins a line.** `String(fn)` for a shorthand method starts at the name — `append(...args){` — so its indent was left behind in the file and it measures zero. Taking the minimum across every line let that zero win, and the signature sat at the root while the body stayed three tabs deep. A first line with no leading whitespace knows nothing about the indent, so it isn't asked.");
+
 		md("Next: [markup](/framework/util/markup/) — the same trick for DOM instead of functions.");
 	}
 });

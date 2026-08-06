@@ -106,10 +106,21 @@ export function dedent(src){
 	   string doesn't. Rendered output was fine either way, but two callers
 	   comparing source() results disagreed. Deterministic is worth one regex. */
 	const lines = src.replace(/\r\n?/g, "\n").replace(/^\n+/, "").replace(/\s+$/, "").split("\n");
-	const indents = lines.filter(line => line.trim()).map(line => line.match(/^[\t ]*/)[0].length);
+
+	/* The first line is only evidence if it BEGINS a line. `String(fn)` for a
+	   shorthand method starts at the name — `append(...args){` — so its indent was
+	   left behind in the file, it measures zero, and zero pinned the common indent
+	   at zero: signature at the root, every line after it still three tabs deep.
+	   Same shape for a concise arrow, whose body is trimStart()ed.
+
+	   So: a first line with no leading whitespace knows nothing. Don't ask it. */
+	const evidence = /^[\t ]/.test(lines[0]) ? lines : lines.slice(1);
+	const indents = evidence.filter(line => line.trim()).map(line => line.match(/^[\t ]*/)[0].length);
 	const cut = indents.length ? Math.min(...indents) : 0;
 
-	return lines.map(line => line.slice(cut)).join("\n");
+	// strip WHITESPACE only — a line shallower than the cut gives up all of its
+	// indent and none of its code, however the measurement was reached
+	return lines.map(line => line.replace(/^[\t ]*/, ws => ws.slice(cut))).join("\n");
 }
 
 export default source;

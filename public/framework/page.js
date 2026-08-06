@@ -45,7 +45,9 @@ export default new Page({
 	 * (core/Page/readme.md): set `this.view`, carry `.page`, never nest a second
 	 * `.page` inside. */
 	render(){
-		return this.view ??= div.c("page page-framework topic", () => {
+		// `flex` is a plain utility class, and a page may now carry one: the
+		// arrangement contract lives in @layer util and out-ranks it. See Page.css.
+		return this.view ??= div.c("page page-framework topic flex", () => {
 
 			this.$sidebar = new Sidebar({
 				// logo goes home; the wordmark is this section's own url

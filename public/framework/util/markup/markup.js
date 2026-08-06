@@ -2,9 +2,12 @@
  * markup(el) — an element's children as readable HTML source.
  *
  *   markup(view.el)   ->   <div class="card">
- *                            <h3>Title</h3>
- *                            <p>Body</p>
+ *                          	<h3>Title</h3>
+ *                          	<p>Body</p>
  *                          </div>
+ *
+ * One real tab per level, so how wide a level reads is `tab-size` at the other
+ * end — 2 in a demo's html pane, 4 in a `pre.code-block`.
  *
  * `el.innerHTML` is the same information and unreadable: one line, no indent, and
  * every whitespace text node the builder happened to leave behind. This is for a
@@ -25,7 +28,8 @@ const voids = new Set(["AREA", "BASE", "BR", "COL", "EMBED", "HR", "IMG", "INPUT
 // changes what it renders.
 const verbatim = new Set(["PRE", "TEXTAREA", "SCRIPT", "STYLE"]);
 
-// How long a one-line element may be before it gets broken up
+// The reading column: how long a line may get before it wraps, and the width
+// wrapped lines are filled to.
 const inline_max = 68;
 
 export function markup(el, indent = ""){
@@ -58,10 +62,59 @@ function node_markup(node, indent){
 
 	const flat = one_line(node);
 
-	if (flat !== null && open.length + flat.length + tag.length + 3 <= inline_max)
-		return `${indent}${open}${flat}</${tag}>`;
+	// A run of phrasing content never breaks STRUCTURALLY, however long — it wraps,
+	// the way the text it is wraps. One chunk per line turned a sentence into a
+	// column of fragments, which is the one thing this file exists to prevent.
+	if (flat !== null){
+		const line = `${open}${flat}</${tag}>`;
+		return line.length <= inline_max ? indent + line : wrap(line, indent);
+	}
 
-	return `${indent}${open}\n${markup(node, indent + "  ")}\n${indent}</${tag}>`;
+	return `${indent}${open}\n${markup(node, indent + "\t")}\n${indent}</${tag}>`;
+}
+
+/* Fill to `inline_max`, breaking only at spaces OUTSIDE a tag — the one in
+ * `class="a b"` is not a break point. Every break replaces a space that was already
+ * there, so the wrapped form and the one-liner render identically; that is what
+ * makes wrapping safe here and re-indenting a `<pre>` not. */
+function wrap(line, indent){
+	const words = [];
+	let word = "";
+	let in_tag = false;
+
+	for (const ch of line){
+		if (ch === "<") in_tag = true;
+		else if (ch === ">") in_tag = false;
+		else if (ch === " " && !in_tag){
+			if (word) words.push(word);
+			word = "";
+			continue;
+		}
+
+		word += ch;
+	}
+
+	if (word) words.push(word);
+
+	// Continuations indent, so a wrapped sentence can't be misread as siblings.
+	// The budget is the CONTENT, not the content plus its indent — same as the
+	// one-line test above, and a tab is a `tab-size` wide, not a character wide.
+	const out = [];
+	let pad = indent;
+	let line_out = "";
+
+	for (const w of words){
+		if (line_out && (line_out + " " + w).length > inline_max){
+			out.push(pad + line_out);
+			pad = indent + "\t";
+			line_out = w;
+		}
+		else line_out = line_out ? `${line_out} ${w}` : w;
+	}
+
+	out.push(pad + line_out);
+
+	return out.join("\n");
 }
 
 /* The one-line form, or null if this element has to be broken up. Null rather
