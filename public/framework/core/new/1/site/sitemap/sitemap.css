@@ -1,0 +1,15 @@
+/* Layer order, restated in full: the FIRST @layer statement fixes the order and
+   a name first seen later is appended at the end. */
+@layer base, theme, site, util;
+
+@layer site {
+
+	/* The survey report. Everything else on these pages is a markdown table,
+	   already styled by the section this page borrows its ui from. */
+	.survey { margin: 1rem 0; }
+
+	/* A crawl produces long lists of urls; they must scroll themselves rather
+	   than push the page sideways. */
+	.survey ul { margin: .5rem 0; padding-left: 1.2rem; }
+	.survey li { overflow-wrap: anywhere; }
+}

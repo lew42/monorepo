@@ -1,0 +1,51 @@
+/* Layer order, restated IN FULL — a short list would drop `site` past `util`. */
+@layer base, theme, site, util;
+
+@layer theme {
+
+	/* The five tokens ext/demo consumes (--line/--wash/--surface/--subtle/--radius)
+	   were declared here, scoped to `.forms`, because new/1/site defined none and
+	   an unresolved var() silently invalidates the whole declaration. They live at
+	   :root in site/styles.css now, so this block is deleted rather than kept as a
+	   second source of truth. */
+
+	/* framework.css pads `pre`; this site's base layer does not, and .demo-code
+	   is a `pre`. Without this the code and the result touch.
+	   css: .demo-code — emitted by ext/demo, imported by every page here. */
+	.forms .demo-code { padding: .75rem 1rem; background: #fbfcfd; }
+	.forms .demo-render > * + * { margin-top: 1rem; }
+
+	/* the page's own source, printed by this_file() — geometry only.
+	   css: .code-block — emitted by ext/highlight's code.file() */
+	.forms details { margin-top: 2rem; }
+	.forms summary { cursor: pointer; }
+	.forms .code-block { padding: .75rem 1rem; max-height: 28rem; overflow: auto; }
+
+	/* ── controls — geometry only, never a look ── */
+
+	.forms-field { display: flex; flex-direction: column; gap: .25rem; margin: .75rem 0; }
+	.forms-label { font-size: .8rem; color: #6b7280; }
+	.forms-input { width: 100%; max-width: 34rem; font: inherit; }
+	textarea.forms-input { min-height: 4.5rem; resize: vertical; }
+
+	.forms-status { font-size: .85rem; color: #6b7280; }
+	.forms-warn { color: #b42318; }
+
+	/* ── the wizard's region ──
+	   Steps mount inside their parent, so the step bar stays on screen. A nested
+	   .page would otherwise pad itself a second time. */
+	.forms-steps { display: block; }
+	.forms-steps > .page { padding: 0; overflow: visible; }
+
+	/* ── the late-failure surface ──
+	   Fixed, because the page that started the work is off screen by the time it
+	   is needed. DISCLOSED: background and border are a look, not layout — the
+	   one place this stylesheet steps off the ladder. An overlay that is not
+	   opaque is not a demo, it is a mess. */
+	.forms-toast {
+		position: fixed; right: 1.25rem; bottom: 1.25rem; z-index: 100;
+		max-width: 22rem; padding: .6rem .9rem; cursor: pointer;
+		background: #fff; border: 1px solid #e2e4e8; border-left: 3px solid #b42318;
+		border-radius: .35rem; font-size: .875rem;
+	}
+}

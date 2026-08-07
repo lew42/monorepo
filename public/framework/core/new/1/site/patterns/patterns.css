@@ -1,0 +1,49 @@
+/* Applied IA — eight miniature products, and as little CSS as they can be built
+   with. A settings screen that looks like a real settings screen because of 200
+   lines of skin would have proven nothing about navigation, so every rule here
+   is layout, every class is prefixed, and there are seven of them.
+
+   Layer order restated IN FULL: the first declaration fixes it, and an
+   unlayered rule beats every layer at any specificity. */
+@layer base, theme, site, util;
+
+@layer site {
+
+	/* `full` minus `position: fixed`.
+
+	   A documentation site wants a page that hands its height to its region —
+	   so the COLUMNS scroll and the page does not — without covering the site
+	   chrome. styles.css welds those two jobs into `.full`, which is why this
+	   class exists here instead of being used from there. The request to split
+	   them is finding 2 in agents/patterns/page.js. */
+	.page.patterns-fills.active-page,
+	.page.patterns-fills.active-ancestor:has(.page.active-page) {
+		display: flex; flex-direction: column; overflow: hidden; padding: 0;
+	}
+	.page.patterns-fills > .pages { flex: 1 1 auto; min-height: 0; }
+	.page.patterns-fills > .page-title { padding: 1.25rem 1.5rem .25rem; }
+
+	/* Many equal things under ONE url — dashboard panels, gallery thumbnails,
+	   catalogue listings. None of them is a page; see the report. */
+	.patterns-grid {
+		display: grid; gap: .75rem;
+		grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+	}
+
+	/* The one rule that is arguably a look. A dashboard's meaning is "these
+	   readings are independent of each other", and with no edge between them a
+	   grid of numbers reads as one list. Three declarations, and it is the
+	   product's point rather than its decoration. */
+	.patterns-panel { border: 1px solid #e2e4e8; border-radius: .45rem; padding: .75rem .9rem; }
+
+	/* A modal route. The page behind stays mounted, visible and scrolled where
+	   it was, so the translucency here IS the mechanism and not a style: `.full`
+	   sets an opaque background and therefore can never be a modal. */
+	.page.patterns-overlay.active-page {
+		position: fixed; inset: 0; z-index: 20; overflow-y: auto;
+		background: rgba(255, 255, 255, .96);
+	}
+
+	/* a "photo" — this section is about navigation, so an image is a rectangle */
+	.patterns-swatch { aspect-ratio: 4 / 3; border-radius: .35rem; }
+}

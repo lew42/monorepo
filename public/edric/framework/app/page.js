@@ -38,9 +38,9 @@ export default {
     console.log("app is ready");
 });`).ac("pad mb").style({ background: "var(--bg)", color: "white", "border-radius": "0.3em" });
 
-            h2("app.loaded").ac("mb").style({ "border-bottom": "1px solid var(--subtle)", "padding-bottom": "0.3em" });
+            h2("app.loaded()").ac("mb").style({ "border-bottom": "1px solid var(--subtle)", "padding-bottom": "0.3em" });
             p("A promise that resolves once every stylesheet and font has finished loading:").ac("mb");
-            pre(`app.loaded.then(() => {
+            pre(`app.loaded().then(() => {
     console.log("everything is loaded");
 });`).ac("pad mb").style({ background: "var(--bg)", color: "white", "border-radius": "0.3em" });
         }).style({ "max-width": "40em", margin: "0 auto" });

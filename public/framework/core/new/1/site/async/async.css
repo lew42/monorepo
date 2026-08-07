@@ -1,0 +1,70 @@
+/* Layer order, restated IN FULL — a short list would append `site` after `util`.
+   Every rule below is inside a layer: an unlayered rule beats every layer. */
+@layer base, theme, site, util;
+
+/* @layer theme, not @layer site. These are a module's own classes, not this
+   site's opinion about someone else's — and nothing here has to out-rank
+   styles.css, so escalating a rung would be spending a ratchet for free.
+
+   Every class is prefixed `async-`. Nine other sections are being written into
+   this one global namespace right now, and the class name is the only registry
+   there is. */
+@layer theme {
+
+	/* live() — the site's own .code block, plus the box it renders into */
+
+	.async-live > .code { border-radius: .45rem .45rem 0 0; }
+
+	.async-render {
+		position: relative;
+		padding: 1.6rem 1rem 1rem;
+		border: 1px solid #e2e4e8; border-top: 0; border-radius: 0 0 .45rem .45rem;
+		background: #fff;
+	}
+	.async-render::before {
+		content: "renders"; position: absolute; top: .35rem; left: 1rem;
+		font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; color: #9aa1ab;
+	}
+	.async-render > * + * { margin-top: .5rem; }
+
+	/* where() output. A DOM path is code, so it reads as code — red because on
+	   these pages it is usually reporting somewhere the element should not be. */
+	.async-landed {
+		font: 12px/1.5 ui-monospace, Consolas, monospace;
+		color: #b42318; word-break: break-all;
+	}
+	.async-landed.ok { color: #1a7f37; }
+
+	/* An orphan lands in app.$pages, which is display:flex — so it becomes a
+	   flex item beside every page for the rest of the session. Outlined so it
+	   cannot quietly do that. */
+	.async-orphan { outline: 2px dashed #b42318; padding: .4rem .6rem; background: #fff5f5; }
+
+	/* the skeleton — two rules, which is all a skeleton is */
+	.async-skeleton {
+		height: 1rem; border-radius: .25rem; margin-bottom: .4rem;
+		background: linear-gradient(90deg, #eceef1 25%, #f6f7f9 50%, #eceef1 75%) 0 0/300% 100%;
+		animation: async-shimmer 1.1s linear infinite;
+	}
+	@keyframes async-shimmer { to { background-position: -300% 0; } }
+
+	.async-items { display: flex; flex-wrap: wrap; gap: .35rem; }
+	.async-item {
+		padding: .2rem .55rem; border: 1px solid #d6dae0; border-radius: .3rem;
+		background: #fff; font-size: .82rem;
+	}
+	.async-item.new { border-color: #1a7f37; }
+
+	.async-scroller {
+		max-height: 11rem; overflow-y: auto;
+		border: 1px solid #e2e4e8; border-radius: .45rem; padding: .6rem;
+	}
+
+	.async-btn {
+		padding: .3rem .7rem; border: 1px solid #d6dae0; border-radius: .35rem;
+		background: #fff; cursor: pointer; font: inherit; font-size: .85rem;
+	}
+	.async-btn:hover { border-color: #0a58ca; color: #0a58ca; }
+
+	.async-num { font: 12px ui-monospace, Consolas, monospace; color: #3f4650; }
+}

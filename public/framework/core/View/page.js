@@ -1,10 +1,21 @@
-import { Page, View, md, demo, div, h1, h2, h3, p, a, ul, li, label, input, span, button } from "/app.js";
+import { View, classdoc, md, demo, div, h1, h2, h3, p, a, ul, li, label, input, span, button, toc } from "/app.js";
 
-export default new Page({
+export default classdoc.page({
 	meta: import.meta,
 	title: "View",
 	description: "A chainable wrapper over a DOM element, with capturing.",
+	icon: "image",
+
+	Class: View,
+	methods: "append ac on style stylesheet",
+	properties: "el capture",
+
+	// The design record, served: each name is a ./doc/<name>.md the readme cites.
+	notes: "capturing append-dispatch factories classify stylesheet-loading style-custom-props on-binding",
+
 	content(){
+
+		toc();
 
 		demo(() => {
 			h1("Hello");
@@ -66,7 +77,7 @@ export default new Page({
 					}).style("cursor", "pointer");
 				});
 			})
-				.style({ border: "1px solid rgba(0,0,0,.15)", borderRadius: ".5em" });
+				.style({ border: "1px solid var(--line)", borderRadius: ".5em" });
 		}, "Data in, DOM out. No template language, no directives — it's a `forEach`.");
 
 		md("That's a component. Wrap it in a function, or in a `View` subclass, and it's reusable.");
@@ -97,8 +108,12 @@ export default new Page({
 | \`append\` \`prepend\` \`empty\` \`remove\` \`replace\` | structure |
 | \`hide\` \`show\` \`toggle\` | visibility |
 
-Learn six of them and you can build a page.`);
+Learn six of them and you can build a page. **The nav on the left goes deeper** —
+five methods with their real source, two properties, and below them the design
+notes: the record of why it's written this way.`);
 
 		md("Next: [Page](/framework/core/Page/) — a title, a url, and a place in a tree.");
+
+		md.details(import.meta, "readme.md", "Design record — capture, and the traps");
 	}
 });

@@ -1,0 +1,17 @@
+@layer base, theme, site, util;
+
+@layer site {
+
+	/* The naive attempt. Every line of it is reasonable and none of it runs.
+	   ONE declaration block, two selectors: the real page the Router shows, and
+	   the card in the stage above. So the demo is the recipe, not a mock-up. */
+
+	.page.motion-naive,
+	.motion-stage .motion-naive {
+		opacity: 0;
+		transition: opacity var(--motion-dur) var(--motion-ease);
+	}
+
+	.page.motion-naive.active-page,
+	.motion-stage .motion-naive.showing { opacity: 1; }
+}

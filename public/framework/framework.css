@@ -1,18 +1,39 @@
-@layer base, theme, util;
+/* ⚠ Every stylesheet restates this line IN FULL. The first `@layer` statement
+   wins and a name first seen later is appended at the END, so a short list
+   silently drops `site` past `util`. View.js loads this file first, which makes
+   this the deciding statement — but nothing fails loudly if that ever changes.
+
+     base    reset — browser defaults that are simply wrong
+     theme   the base theme: tokens + the default look. Components add here too.
+     site    /styles.css — this site's skin. Beats theme at ANY specificity.
+     util    opt-in classes, last — you typed `.pad` on purpose, it should win.
+             Plus one thing that isn't: the arrangement contract, in Page.css,
+             which has to out-rank a `display` utility. */
+@layer base, theme, site, util;
 
 @layer base {
     *, *::before, *::after { box-sizing: border-box; }
 
     /* html { scroll-behavior: smooth; } */
-    body { margin: 0; line-height: 1.5; font-family: system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; overflow-wrap: break-word; }
+    /* font-family lives in the theme layer, not here — a typeface is a look, and
+       a theme must be able to change it by loading later. */
+    body { margin: 0; line-height: 1.5; -webkit-font-smoothing: antialiased; overflow-wrap: break-word; }
     
-    img, picture, video, canvas, svg { display: block; max-width: 100%; }
+    /* `audio` and `iframe` were missing here for a long time, and both have View
+       factories: they kept the inline baseline gap this rule exists to remove, and
+       an iframe could overflow its column. */
+    img, picture, video, canvas, svg, audio, iframe { display: block; max-width: 100%; }
     input, button, textarea, select { font: inherit; } /* not just font-family, also font-size, etc. */
     p, h1, h2, h3, h4, h5, h6 { overflow-wrap: break-word; }
 
     pre { overflow-x: auto; }
     
+    /* The UA indents these with a 40px MARGIN, which is a different quantity from
+       every other indent on the page. Same fix for all three: no margin, and an
+       `em` padding that scales with the text. */
     ul, ol { padding-left: 1.2em; }
+    dd { margin-left: 0; padding-left: 1.2em; }
+    figure { margin: 0; }
 
     form,
     fieldset,
@@ -25,42 +46,214 @@
 }        
 
 @layer theme {
+    /* ---- tokens: the vocabulary a theme retunes -------------------------
+       The bar for a new one: it must replace a value already hardcoded somewhere,
+       ideally several. A token names an existing decision.
+
+       `:root` holds DEFAULTS ONLY — a theme overrides on `.app` or its own class,
+       so two variants can render side by side. It pins `light` on purpose; a theme
+       opts into dark with `color-scheme: light dark`. */
+
     :root {
-        --prim: #FF6157;
-	    --bg: #42404B;
-        --subtle: rgba(0,0,0,0.5);
-        
+        color-scheme: light;
+
+        --prim: #FF6157;                         /* the one accent */
+	    --bg: #42404B;                           /* dark surface — the sidebar's */
+        --subtle: light-dark(rgba(0,0,0,0.5), rgba(255,255,255,0.55));
+
+        --ink:     light-dark(#1a1a1a, #e8e8ea);            /* body text */
+        --surface: light-dark(#fff, #17161a);               /* content background */
+        --line:    light-dark(rgba(0,0,0,0.15), rgba(255,255,255,0.15));  /* borders, rules */
+        --wash:    light-dark(rgba(0,0,0,0.08), rgba(255,255,255,0.08));  /* code, th, hover fill */
+
+        /* One step between them: a table head or a caption is a panel INSIDE a card,
+           and `--wash` painted it as dark as the floor two levels below. */
+        --tint:    light-dark(rgba(0,0,0,0.035), rgba(255,255,255,0.04));
+
+        --radius: 0.5em;
+
+        /* The one error colour, paired. Replaces `#c00` hardcoded in md.css and
+           demo.css and a near-copy in highlight.css — three files with an opinion
+           about one state, and none of them readable on a dark surface. */
+        --error: light-dark(#c00, #ff7b72);
+
+        /* rhythm lives with the flow rules now: ONE registered token, `--flow`,
+           declared per flow root in core/Page/Page.css so em scales an AREA's
+           rhythm without compounding with a heading's own size. Retune with
+           `--rhythm` (a raw em token) on `.app` or any container. */
+
         --column: 14em;
-        --sidebar: 13em;   /* any sidebar's width — ColumnPager's and the home page's */
+        --sidebar: 19em;   /* any sidebar's width — shared on purpose, so two can't drift.
+                              No defensive `var(--sidebar, 19em)` downstream: the sharing
+                              is the point, and a fallback reintroduces the two numbers. */
+
+        --font: system-ui, -apple-system, sans-serif;
+        --mono: Consolas, 'Courier New', Monaco, monospace;
     }
-    
+
+    /* ════ this block is THE BASE THEME ══════════════════════════════════════
+       Not "the framework's unavoidable styles" — a theme, the one you get when you
+       load no other, and a supported finished-looking outcome.
+
+       ⚠ **Selectors here stay FLAT — one element, no descendant combinators.** The
+       entire override model is "a later `@layer theme` wins at equal specificity", so
+       a `.page > h2` here would out-rank a theme's `h2` no matter when the theme
+       loaded. The low specificity is a feature to maintain on purpose.
+
+       Every line is documented at /framework/styles/layers/theme/, with the
+       reasoning in styles/readme.md (§9 on `:where()`, §12 on why this is a theme). */
+
+    /* Only `outline-color` and `outline-offset` do anything here, and that is
+       correct rather than broken. No `outline-style` is set, so the ring is drawn by
+       the UA's `outline-style: auto` — which **follows `border-radius`** and, by
+       spec, **ignores `outline-width`**. A `solid` outline honours the width and
+       draws a square ring around a rounded control. Rounded rings are worth more
+       than a controllable width, so the width declaration stays as documentation of
+       the trade rather than as a rule that does something. */
     :focus-visible {
-        /* outline: 2px solid var(--prim); don't do this, it messes with the outline's border radius??? */
         outline-color: var(--prim);
         outline-offset: 3px;
-        outline-width: 2px; /* doesn't seem to have an effect */
     }
 
-    html { height: 100%; scrollbar-color: rgba(0, 0, 0, 0.2) transparent; }
-    
-    body { min-height: 100%; font-size: clamp(16px, 2vw, 20px); accent-color: var(--prim); }
+    /* Paired, so the thumb doesn't vanish in dark mode. It was a bare
+       `rgba(0,0,0,0.2)` and is on styles/readme.md's eviction list for having no
+       token behind it — this is the smaller half of that fix. */
+    html {
+        height: 100%;
+        scrollbar-color: light-dark(rgba(0,0,0,0.2), rgba(255,255,255,0.25)) transparent;
+    }
 
-    .app { height: 100%; }
-    
-    /* h1, h2, h3, h4, h5, h6 { line-height: 1.2; margin: 1em 0; } */
+    /* `height`, NOT `min-height`, and this one bites: a percentage height resolves
+       against the parent's HEIGHT, and `min-height` doesn't give body one — so
+       `.app { height: 100% }` would be indefinite, compute to `auto`, and do nothing.
+       The whole chain html → body → .app → .pages has to be definite for the region
+       to have something to overflow.
 
-    hr { margin: 3em 0; }
+       The font-size clamp reaches its 1rem floor at every viewport up to 1440 (the
+       width the design was drawn at) and 1.25rem around 2560. `rem + vw` rather than
+       plain `vw`: a pure-vw size ignores the reader's browser font-size setting and
+       cannot be zoomed out of. The whole type scale is `em` off this number, so
+       getting it wrong makes every heading wrong too — see styles/readme.md. */
+    body {
+        height: 100%;
+        font-size: clamp(1rem, 0.68rem + 0.36vw, 1.25rem);
+        font-family: var(--font);
+        color: var(--ink);
+        accent-color: var(--prim);
+    }
 
-    pre, code { font-family: Consolas, 'Courier New', Monaco, monospace; padding: 0.25em 0.5em; background: rgba(0,0,0,0.1); }
+    /* Layout, not look, and it belongs here because App.render() emits both
+       boxes: `.app` is the shell, `.pages` inside it is the one flexible row.
+       A site that adds chrome (a nav strip) gets it stacked for free. */
+    .app { height: 100%; display: flex; flex-direction: column; }
 
-    input:not([type="checkbox"], [type="radio"], [type="color"]), select, textarea {
+    /* ---- the type scale: six levels, and that's the whole vocabulary --------
+       h1 Page Title · h2 Section · h3 Sub-section · h4 ANNOTATION · body · code.
+
+       Each level is also a class, so any element can borrow a level without
+       lying about the outline: `p.c("h2", "…")` looks like a section title and
+       is still a paragraph. Six is enough — with a scale this small the
+       question is only ever "which one", never "what size".
+
+       Only size/weight/tracking live here. Margins are rhythm and belong to
+       whoever is arranging the content (see Page.css). */
+
+    h1, .h1 { font-size: 1.9em;  font-weight: 900; letter-spacing: -0.015em; line-height: 1.2; }
+    h2, .h2 { font-size: 1.4em;  font-weight: 700; line-height: 1.3; }
+    h3, .h3 { font-size: 1em;    font-weight: 700; }
+    h4, .h4 { font-size: 0.8em;  font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+    h5, h6  { font-size: 1em;    font-weight: 700; }
+
+    /* No margins on generic blocks — spacing is rhythm, and rhythm belongs to
+       whatever arranges the content. See the flow rules in Page.css. */
+    hr { border: none; border-top: 1px solid var(--line); }
+
+    /* ---- icons ---------------------------------------------------------
+       Material Icons is a LIGATURE font: `icon("dashboard")` emits a span containing
+       the WORD dashboard, and `liga` swaps the glyph in. So an inherited
+       `text-transform` or `letter-spacing` — from a heading, say — breaks the match
+       and you get the word. These resets are the font's requirements, not a look. */
+
+    .material-icons {
+        font-family: "Material Icons";
+        font-weight: normal; font-style: normal;
+        letter-spacing: normal; text-transform: none;
+        white-space: nowrap; word-wrap: normal; direction: ltr;
+        font-feature-settings: "liga";
+        -webkit-font-smoothing: antialiased;
+    }
+
+    /* Sizing is a separate class so an icon from any set can borrow it. An icon
+       rides with the text beside it: em, so it scales with that text, and
+       line-height 1 so it never grows the line box. */
+    .icon { font-size: 1.25em; line-height: 1; flex: 0 0 auto; }
+
+    /* ---- code ---------------------------------------------------------
+       `pre` is a BLOCK and `code` is INLINE, so they get different padding. Four
+       stylesheets independently overrode a single shared value before this split;
+       that was the bug report that produced it. */
+
+    /* `--code-bg` / `--code-ink` are COMPONENT tokens, falling back to the global
+       ones — so a theme that wants dark code blocks sets two values instead of
+       fighting three selectors. The framework was missing a token and a site fought
+       it instead; that fight is what added these. styles/readme.md §13. */
+
+    pre { padding: 0.75em 1em; }
+    code { padding: 0.15em 0.4em; }
+    pre, code { background: var(--code-bg, var(--wash)); color: var(--code-ink, inherit); }
+    pre, code, kbd, samp, .code { font-family: var(--mono); }   /* kbd/samp are mono by meaning */
+    pre > code { padding: 0; background: none; }   /* already in a padded box */
+
+    /* ---- block elements the UA styles badly ----------------------------
+       Generic HTML, so they belong to whoever styles HTML — not to the
+       markdown ext that happened to render them first. */
+
+    blockquote {
+        margin-left: 0;
+        padding-left: 1em;
+        border-left: 3px solid var(--subtle);
+        color: var(--subtle);
+    }
+
+    /* A table can be wider than its column and, unlike `pre`, has no way to say so —
+       so it pushed the page sideways instead. Measured at 390px: a 442px table in a
+       262px column, and the whole region scrolling horizontally to accommodate it.
+
+       The three declarations work together: `max-content` keeps a small table small,
+       `max-width: 100%` makes a wrappable one fill the column and wrap, and
+       `overflow-x: auto` catches the case that genuinely cannot shrink — a cell with
+       `white-space: nowrap`, or a long unbroken string. `display: block` is what makes
+       `overflow` apply at all; the rows keep their own table display values, so
+       layout inside is unaffected. */
+    table {
+        border-collapse: collapse;
+        display: block;
+        width: max-content;
+        max-width: 100%;
+        overflow-x: auto;
+    }
+    th, td { padding: 0.25em 0.75em; border: 1px solid var(--line); }
+    th { background: var(--tint); text-align: left; }
+
+    /* The UA paints `mark` yellow with `canvastext` on it, and in dark mode that is
+       light text on yellow. Paired, like every other colour here. */
+    mark { background: light-dark(#fff3a3, #6b5a00); color: var(--ink); }
+
+    summary { cursor: pointer; }   /* a real UA gap */
+
+    /* ---- form controls -------------------------------------------------- */
+
+    /* `range` is excluded because a 1px border drawn around a slider is not a
+       control anyone designed — it was taking the text-field treatment purely by
+       not being named. `file` keeps it: its button half genuinely reads as a field.
+       This list and `base`'s `width: 100%` one deliberately DIFFER — a submit button
+       wants the padding and not the full width. */
+    input:not([type="checkbox"], [type="radio"], [type="color"], [type="range"]), select, textarea {
         padding: 0.25em 0.6em;
-        border: 1px solid var(--subtle); /* adding a border affects input[type=submit] height and bg + hover, for some reason */
+        border: 1px solid var(--subtle);   /* also gives input[type=submit] its height and hover */
     }
 
-    fieldset > p:first-of-type {
-        margin-top: 0;
-    }
+    fieldset > p:first-of-type { margin-top: 0; }
 
     select {     appearance: none;
     background: field no-repeat 100%;
@@ -68,23 +261,60 @@
     background-origin: content-box;
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='40' fill='%23555'><polygon points='0,0 60,0 30,40'/></svg>"); }
 
-    .btn, button { padding: 0.25em 1em; cursor: pointer; }
-    a * {cursor: pointer;}
-    button.bg, .btn.bg { background: var(--bg); color: white; }
-    button.prim, .btn.prim { background: var(--prim); color: white; }
+    /* `.btn` makes a non-button look like a button; a bare `button` matches it,
+       because that promise is only true if they do. `.prim` and `.bg` promote it.
+
+       ⚠ A CONTROL NEVER INHERITS ITS CONTRAST. This was `color: inherit` — right
+       for the `<a>` it was written for, and on a real `<button class="btn">` it
+       replaced the UA's `ButtonText` with whatever the band around it happened to
+       be. On a dark section: white on the UA's light grey. */
+    .btn, button {
+        padding: 0.25em 1em;
+        cursor: pointer;
+        background: var(--surface);
+        color: var(--ink);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        text-decoration: none;
+    }
+    .btn:hover, button:hover { border-color: var(--prim); color: var(--prim); }
+
+    a * { cursor: pointer; }
+    /* The shadow is accessibility, not decoration: white on `--prim` is ~2.2:1, and
+       a shadow lifts the edges where a letterform is thinnest. */
+    button.bg, .btn.bg { background: var(--bg); color: white; border-color: var(--bg); }
+    button.prim, .btn.prim {
+        background: var(--prim); color: white; border-color: var(--prim);
+        text-shadow: 0 1px 2px rgba(0,0,0,0.45);
+    }
+    button.bg:hover, .btn.bg:hover,
+    button.prim:hover, .btn.prim:hover { color: white; filter: brightness(1.08); }
 
 }
 
 @layer util {
 
-    .pad { padding: 1em; }
-    .all-pad > * { padding: 1em; }
+    /* `--pad`, the same move `.gap`/`--gap` makes below: the class is the request,
+       the token is the size. `.page.pad` (Page.css) steers it to 2em. */
+    .pad { padding: var(--pad, 1em); }
+    .all-pad > * { padding: var(--pad, 1em); }
     .mb { margin-bottom: 1em; }
     
     .flex { display: flex; }
     .flex.wrap, .flex.auto, .flex.three { flex-wrap: wrap; }
     .flex.auto > * { flex: 1 1 var(--column); }
-    .flex-1 { flex: 1; }
+    /* `min-width: 0` because the flexbox default is `auto`, which floors a child at its
+       MIN-CONTENT — so one `<pre>` or one long word in a flexible track pushes the row
+       wider than its container instead of shrinking. `.basis` below already carried it;
+       the asymmetry was the bug, not the fix. */
+    .flex-1 { flex: 1; min-width: 0; }
+
+    /* The fixed track beside a fluid one. `.flex-1` has always named the fluid half
+       and nothing named the other, so five places wrote the same declaration by hand
+       — a sidebar, a vertical tab bar, a file tree, and two layouts. `--basis`
+       defaults to `--column`; set it inline for anything else. `min-width: 0` because
+       the one thing that reliably breaks a fixed track is a <pre> inside it. */
+    .basis { flex: 0 0 var(--basis, var(--column)); min-width: 0; }
     .flex.all-1 > * { flex: 1; }
     .flex.v { flex-direction: column; }
     .flex.reverse { flex-direction: row-reverse; }
@@ -94,12 +324,24 @@
     .flex.three > * { flex: 1 1 calc(((var(--column) * 3) - 100%) * 999); }
     .flex > * { margin: 0; }
 
+    /* A laid-out container owns its own spacing — `gap` does it, and an inherited
+       block margin only fights it. `.flex > *` has said this for a long time; a
+       grid is the same box with a different name.
+       `:not(.page)`: a PAGE classed `grid` is the breakout sheet (Page.css), and
+       its children's rhythm is the flow — this rule would silently erase it. */
+    .grid:not(.page) > * { margin: 0; }
+
     .grid { display: grid; }
     .grid.auto { grid-template-columns: repeat(auto-fit, minmax(min(var(--column), 100%), 1fr)); }
     .grid.three { grid-template-columns: repeat(auto-fit, 
 		minmax(clamp(100% / 3 - 1rem, (var(--column)* 3 - 100%) * 999, 100%), 1fr)); }
 
-    .gap { gap: 1em; }
+    /* `--gap`, because 9 of the 12 components in styles/components/ wanted a gap
+       under 1em and had to write `gap` by hand to get one. Reads a token the same way
+       `.basis` reads `--basis`, so `div.c("flex gap").style("--gap", ".4em")` is the
+       whole adjustment. `.flow` is not a substitute — that is page rhythm, and
+       `--flow-sub` put a card's eyebrow 32px from its own title. */
+    .gap { gap: var(--gap, 1em); }
     .gap-2em { gap: 2em; }
 
     .zoom-25 { zoom: 0.25; }
@@ -117,5 +359,22 @@
 
     textarea.auto { field-sizing: content;} /* textarea height resizes to fit content */
 
+    /* The transparency board: a box with no background of its own shows the
+       checkers through, so "did the thing I rendered paint itself" is visible at
+       a glance. `--tint` is "one step down from a surface" and mode-aware, so the
+       board stays subtle in light AND dark with no literal grey. Squares are half
+       the tile. Promoted from ext/demo per its own promotion note the day the
+       gallery became its second consumer. Opt-in, (0,1,0) on purpose — a checker
+       that loses to any background wasn't asked for. */
+    .checkered {
+        background-image: repeating-conic-gradient(var(--tint) 0% 25%, transparent 0% 50%);
+        background-size: 1.5em 1.5em;
+    }
+
+    /* Collapse a container's outer gap to its own padding. The `:first-child`
+       half was already here and already made `.demo-render > :first-child` and
+       `div.md > :first-child` dead code; the symmetric half retires their
+       `:last-child` twins too. In `util`, so it wins over component CSS. */
     :first-child { margin-top: 0; }
+    :last-child { margin-bottom: 0; }
 }

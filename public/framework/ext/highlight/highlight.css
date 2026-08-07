@@ -1,0 +1,123 @@
+/* Layer order, restated: the FIRST declaration wins and module import
+   order decides who loads first, so every stylesheet states it. */
+@layer base, theme, site, util;
+
+/* Token colors for highlight.js output.
+
+   Deliberately NOT a vendored hljs theme. Every official theme sets its own
+   `.hljs { background; color }`, which would fight framework.css's `pre, code`
+   background and demo.css's `.demo-code` — three files with an opinion about
+   one box. hljs themes are plain CSS with no functional tie to the engine, so
+   the honest thing is to own the ~20 declarations that are actually ours.
+
+   Palette follows GitHub Light, because the site's code blocks are light and
+   the association is already in everyone's head. Colors are custom props so a
+   page or a body theme class can restyle without touching selectors. */
+@layer theme {
+
+    /* GitHub Light / GitHub Dark, paired with `light-dark()` so a token cannot exist
+       in one mode and go missing in the other.
+
+       These were light-only, and they were the real thing blocking honest dark mode:
+       `--code-bg` falls back to `--wash`, which IS mode-aware — so a dark page got a
+       dark code box with `#cf222e` keywords on it, which is unreadable. `:root` still
+       pins `color-scheme: light` in framework.css, so nothing changes today; this is
+       the half that had to be true first. See styles/readme.md §12. */
+    :root {
+        --syn-comment:  light-dark(#6e7781, #8b949e);
+        --syn-keyword:  light-dark(#cf222e, #ff7b72);   /* const, if, return, @media */
+        --syn-string:   light-dark(#0a3069, #a5d6ff);   /* strings, regex, attr values */
+        --syn-number:   light-dark(#0550ae, #79c0ff);   /* numbers, literals, booleans */
+        --syn-fn:       light-dark(#8250df, #d2a8ff);   /* function + class names */
+        --syn-builtin:  light-dark(#953800, #ffa657);   /* built-ins, types, params */
+        --syn-tag:      light-dark(#116329, #7ee787);   /* tag names, selectors, md headings */
+        --syn-attr:     light-dark(#0550ae, #79c0ff);   /* attributes, object keys, css props */
+        --syn-meta:     light-dark(#6e7781, #8b949e);   /* doctype, shebang, punctuation */
+        --syn-error:    var(--error);                   /* the fetch-failed message */
+    }
+
+    /* --- the containers ---------------------------------------------------
+       Match what framework.css already gives `pre` on this site: a light box,
+       no second visual language for code. */
+
+    /* Padding, background and the `> code` reset all come from framework.css's
+       `pre` rules — this file carried a third copy of each. What's left is the
+       two things a highlighted block actually needs. */
+    pre.code-block {
+        tab-size: 4;
+        line-height: 1.55;
+    }
+
+    /* the inline half of block-awareness — `p("Call ", code.js("x"))`. It keeps
+       framework.css's inline `code` look and must not introduce a line box of
+       its own, or a sentence containing one would grow taller than its
+       neighbours. */
+    code.code-inline { white-space: nowrap; }
+
+    /* A token like the rest: a site with dark code blocks needs this readable
+       too, and should not have to reach past a selector to get there. */
+    .code-error {
+        color: var(--syn-error);
+        background: color-mix(in srgb, var(--syn-error) 8%, transparent);
+    }
+
+    /* --- the tokens -------------------------------------------------------
+       Grouped by what they mean, not by which grammar emits them: one color
+       decision covers js + css + html + md + json at once. */
+
+    .hljs-comment,
+    .hljs-quote            { color: var(--syn-comment); font-style: italic; }
+
+    .hljs-keyword,
+    .hljs-selector-tag,
+    .hljs-literal,
+    .hljs-doctag,
+    .hljs-formula          { color: var(--syn-keyword); }
+
+    .hljs-string,
+    .hljs-regexp,
+    .hljs-char.escape_,
+    .hljs-symbol,
+    .hljs-bullet,
+    .hljs-addition         { color: var(--syn-string); }
+
+    .hljs-number,
+    .hljs-selector-attr,
+    .hljs-selector-pseudo,
+    .hljs-template-variable,
+    .hljs-subst            { color: var(--syn-number); }
+
+    .hljs-title,
+    .hljs-title.function_,
+    .hljs-title.class_,
+    .hljs-section          { color: var(--syn-fn); font-weight: 600; }
+
+    .hljs-built_in,
+    .hljs-type,
+    .hljs-variable,
+    .hljs-variable.language_,
+    .hljs-params,
+    .hljs-deletion         { color: var(--syn-builtin); }
+
+    .hljs-name,
+    .hljs-selector-class,
+    .hljs-selector-id      { color: var(--syn-tag); }
+
+    .hljs-attr,
+    .hljs-attribute,
+    .hljs-property,
+    .hljs-link             { color: var(--syn-attr); }
+
+    /* .hljs-tag wraps the WHOLE element (`<div class="a">`) and .hljs-name /
+       .hljs-attr / .hljs-string re-color the parts inside it. So this rule only
+       ever paints what the children don't claim — the angle brackets and the
+       slash. Muted, not green: coloring the container green would tint the
+       punctuation and leave nothing to distinguish the tag name. */
+    .hljs-tag,
+    .hljs-meta,
+    .hljs-meta .hljs-keyword,
+    .hljs-punctuation      { color: var(--syn-meta); }
+
+    .hljs-emphasis         { font-style: italic; }
+    .hljs-strong           { font-weight: 700; }
+}

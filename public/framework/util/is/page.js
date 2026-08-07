@@ -4,6 +4,7 @@ export default new Page({
 	meta: import.meta,
 	title: "is",
 	description: "Type checks that return booleans.",
+	icon: "rule",
 	content(){
 
 		demo(() => {
@@ -40,6 +41,8 @@ else this.el.append(arg)  // string, number, node`);
 | \`is.mobile()\` | mobile user-agent |
 
 Edge cases (\`is.num(NaN)\` is \`true\`, and friends) are in the design notes.`);
+
+		md("Next: [source](/framework/util/source/) — how a function becomes the code example you're reading.");
 
 		md.details(import.meta, "readme.md");
 	}

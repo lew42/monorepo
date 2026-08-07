@@ -1,0 +1,47 @@
+/* Layer order, restated IN FULL — a short list would drop `site` past `util`. */
+@layer base, theme, site, util;
+
+@layer theme {
+
+	/* The five ext/demo tokens are at :root in site/styles.css now, so this file
+	   declares none. What is still missing there is `pre` padding: framework.css
+	   supplies it and this sub-site's base layer does not, so a demo's code area
+	   and its result would touch. Two rules, scoped, until styles.css takes them.
+	   css: .demo-code, .code-block — emitted by ext/demo and ext/highlight */
+	.mutation .demo-code { padding: .75rem 1rem; background: #fbfcfd; }
+	.mutation .code-block { padding: .75rem 1rem; max-height: 28rem; overflow: auto; }
+	.mutation .demo-render > * + * { margin-top: 1rem; }
+
+	.mutation details { margin-top: 2rem; }
+	.mutation summary { cursor: pointer; }
+
+	/* Controls — geometry only, reusing site/forms' class names rather than
+	   inventing a second vocabulary for the same thing.
+
+	   These are restated rather than shared because forms.css is loaded by
+	   site/forms/page.js at module scope, and a /mutation/ url never imports it —
+	   so the labels rendered inline beside their inputs until this block existed.
+	   That is the loading edge CLAUDE.md warns about, hit from the other side.
+	   css: .forms-field, .forms-label, .forms-input — emitted by ../forms/field.js */
+	.mutation .forms-field { display: flex; flex-direction: column; gap: .25rem; margin: .75rem 0; }
+	.mutation .forms-label { font-size: .8rem; color: #6b7280; }
+	.mutation .forms-input { width: 100%; max-width: 34rem; font: inherit; }
+	.mutation textarea.forms-input { min-height: 4.5rem; resize: vertical; }
+	.mutation .forms-status { font-size: .85rem; color: #6b7280; }
+	.mutation .forms-list { margin: 0; padding-left: 1.25rem; }
+
+	/* a job that outlives its page has to render somewhere navigation cannot
+	   reach. DISCLOSED as a look, same as .forms-toast: an overlay that is not
+	   opaque is not a demo. This is request #2 standing in for itself. */
+	.mutation-job {
+		position: fixed; left: 1.25rem; bottom: 1.25rem; z-index: 100;
+		min-width: 17rem; padding: .6rem .9rem;
+		background: #fff; border: 1px solid #e2e4e8; border-left: 3px solid #0a58ca;
+		border-radius: .35rem; font-size: .85rem;
+	}
+	.mutation-bar { height: 4px; margin-top: .4rem; background: #e2e4e8; }
+	.mutation-bar > span { display: block; height: 100%; background: #0a58ca; }
+
+	/* the recovery offer — a strip above the field it is offering to fill */
+	.mutation-offer { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+}

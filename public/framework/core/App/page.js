@@ -1,62 +1,74 @@
-import { Page, md, h2, pre } from "/app.js";
+// `App` the CLASS is a named export; /app.js's DEFAULT export is the running
+// app instance, which has no .prototype for classdoc to read.
+import { App, classdoc, md, pre, code, h2, toc } from "/app.js";
 
-export default new Page({
+export default classdoc.page({
 	meta: import.meta,
 	title: "App",
-	description: "Boots the page and loads whatever the URL points at.",
+	description: "Boot, and the one container pages mount into.",
+	icon: "widgets",
+
+	Class: App,
+	methods: "instantiate load loaded font",
+
+	// The design record, served: each name is a ./doc/<name>.md the readme cites.
+	notes: "boot error-page loaders adoption fonts aliases",
+
 	content(){
 
-		pre(`window.app = new App();`);
+		toc();
 
-		md("That's the setup. `app.js` creates it once, and re-exports the framework so every page imports from one place — see [Start](/framework/start/).");
+		code.js(`import App from "/framework/core/App/App.js";
 
-		h2("The URL is the router");
+window.app = new App();`);
 
-		md(`| url | loads |
-|---|---|
-| \`/\` | \`/page.js\` |
-| \`/docs/\` | \`/docs/page.js\` |
-| \`/docs/intro\` | \`/docs/intro.page.js\` |
+		md("Two lines is a working site. `App` boots, builds one container, and walks to whatever url you opened.");
 
-No route table. The path *is* the file path, so adding a page registers nothing — and because the import is computed at runtime, every page is lazy-loaded for free.`);
+		h2("The six steps");
 
-		h2("Loading a page");
+		pre(`app.instantiate()
+  config()      a Router option, a font
+  render()      chrome + $pages, still detached
+  await load()  import /page.js, then walk to this url
+  initialize()
+  inject()      $app into <body> — first paint`);
 
-		pre(`async load_page(url = location.pathname){
-    const page = await Page.load(url);      // import the module
+		md("Nothing is on screen until `inject()`, which is what buys the no-flash first paint: fonts and stylesheets are awaited in `load()`, so the first thing the reader sees is finished.");
 
-    this.page?.deactivate?.();              // leave the old page
-    this.page = page;
+		h2("Your own chrome");
 
-    if (page) this.$app.empty()
-        .append(page.host?.() ?? page);     // render it
+		code.js(`render(){
+    this.$body = View.body();
 
-    page?.activate?.();                     // title / meta / theme
-    this.mark_links();                      // .active on links to here
+    this.$app = div.c("app", () => {
+        div.c("nav", () => a("Home").href("/"));
+        this.$pages = div.c("pages");
+    });
+
+    View.set_captor(this.$pages);
 }`);
 
-		md("Every call is optional (`?.`) — there is no `instanceof` in this method. A page.js can default-export a `Page`, a plain view, a function, or nothing at all. `Page` is just the richest thing you can hand it.");
+		md("Override `render()` and build whatever you like around `this.$pages`. Two rules: **pages mount into `$pages`**, and the captor has to end up there — a page's view is built by an element factory, and a factory appends to the captor.");
 
-		md("Everything is awaited *before* `empty()`, and `empty()` and `append()` run with nothing between them, so the browser never paints an empty app. No white flash on navigation.");
+		md("Chrome built here is built **once**. Navigation never touches it, so a sidebar can't blink and a scroll position in it can't reset.");
 
-		h2("Lifecycle");
+		h2("Fonts");
 
-		pre(`config()      // socket, router
-render()      // build $app, make it the captor
-load()        // load_page() + await stylesheets & fonts
-initialize()  // your hook — empty by default
-inject()      // put $app in <body>
-ready         // a promise, resolved`);
+		code.js(`config(){
+    this.font("Montserrat");        // awaited before first paint
+    this.font("Material Icons");    // icon("dashboard") needs it
+}`);
 
-		md("Config is just assigned, so `new App({ nav(){ … } })` rides along as data. `app.ready` resolves once the first page is on screen.");
+		md("`font()` pushes onto `loaders`, which `instantiate()` awaits **before** `inject()` — so a font asked for in `config()` is already applied at first paint. Ask later and it still loads, it just isn't waited for. Memoized, so two pages asking share one fetch.");
 
-		h2("Assets");
+		md("Add your own with `Font.fonts.Inter = { name, url, options }`. See [lew42](/framework/styles/layers/theme/lew42/) for a theme that needs both.");
 
-		pre(`app.font("Montserrat");                      // awaited before inject
-View.stylesheet(import.meta, "my-page.css"); // same`);
+		h2("What App does not do");
 
-		md("Anything a page loads while its module runs is awaited before the app injects, so the first paint is never unstyled.");
+		md("It doesn't resolve urls. The moment a segment can need an import, that became navigation — and navigation is the [Router](/framework/core/Router/)'s. `App` keeps boot and the one container, and that's the whole class.");
 
-		md.details(import.meta, "readme.md");
+		md("Next: [Sidebar](/framework/core/Sidebar/) — the one component core ships. Then [Extensions](/framework/ext/).");
+
+		md.details(import.meta, "readme.md", "Design record — boot, adoption, and the two aliases");
 	}
 });

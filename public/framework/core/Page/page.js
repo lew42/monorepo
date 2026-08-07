@@ -1,77 +1,68 @@
-import { Page, md, demo, h2, p, pre } from "/app.js";
+import { Page, classdoc, md, code, h2, toc } from "/app.js";
 
-export default new Page({
+export default classdoc.page({
 	meta: import.meta,
 	title: "Page",
-	description: "A titled, linkable, dormant unit of content.",
-	content(page){ // content() receives the page, so examples can use it
+	description: "A node: a url, some content, and children.",
+	icon: "description",
 
-		pre(`import { Page, p } from "/app.js";
+	Class: Page,
+	children: "children nav flow",
+	methods: "child add container activate tabs",
 
-export default new Page({
-    meta: import.meta,
-    title: "My Page",
-    content(){
-        p("Anything you can write in a View, you can write here.");
-    }
-});`);
+	content(){
 
-		md("A whole `page.js`. `meta: import.meta` is how the page learns its own url — so you never type a path twice.");
+		toc();
 
-		h2("Dormant");
-
-		demo(() => {
-			const hello = new Page({
-				title: "Hello",
-				content(){ p("Placed, so it rendered."); }
-			});
-
-			hello.render();
-		}, "Creating a page renders **nothing** — it renders when something places it. That's why importing a page is always safe.");
-
-		h2("Linking");
-
-		demo(() => {
-			p("This page, linking to itself: ", page.link(), ".");
-		}, "`link()`, `crumb()` and `preview()` are three views of the same page. All plain `<a href>` — the [Router](/framework/core/Router/) upgrades the click, and the App marks the one you're on `.active`.");
-
-		h2("A tree");
-
-		pre(`import intro from "./intro/page.js";
-import api from "./api/page.js";
+		code.js(`import { Page, md } from "/app.js";
 
 export default new Page({
     meta: import.meta,
-    title: "Docs",
-    children: [intro, api],
-    content(){
-        this.previews();   // a card per child
-    }
+    title: "Intro",
+    content(){ md("hello"); },
 });`);
 
-		md("The parent imports its children, so `.parent` gets wired as they construct — no registry, no cycles, no async. That tree is what sidebars, breadcrumbs and preview cards read.");
+		md("That file at `/docs/intro/page.js` is the url `/docs/intro/`. `meta` is what tells it so — one line, and the page knows its own address.");
 
-		h2("Properties");
+		h2("Children");
 
-		md(`| property | does |
-|---|---|
-| \`title\` | the h1, and \`document.title\` when active |
-| \`description\` | the preview subtitle, and the meta description |
-| \`content\` | a function (captured), or a string / view |
-| \`children\` | sub-pages |
-| \`theme\` | a class added to \`<body>\` while active |
-| \`classes\` | classes added to the page element |
-| \`col\` | classes for the column a [Pager](/framework/core/Pager/) puts it in |
-| \`pager\` | a layout for this page's subtree |
+		code.js(`children: "guide api"`);
 
-Anything else you pass is just assigned to the page, inert until something reads it.`);
+		md("Names, not imports. Each one is a folder with a `page.js` in it, and **it isn't fetched until someone navigates to it** — that's the whole of lazy loading.\n\nNothing crawls the filesystem, so this line *is* the registration. A page nobody declared is a 404.");
 
-		h2("render() vs activate()");
+		h2("A menu, without importing anything");
 
-		md("`render()` builds the DOM, and runs for embedded sub-pages too. `activate()` means *you are now THE page*: document title, meta description, body theme. Only the page the url points at is activated — so composing pages can never clobber the title.");
+		code.js(`this.previews()`);
 
-		md("Next: [Pager](/framework/core/Pager/) — showing one page at a time.");
+		md("Draws a card per child. It has to work before those children exist, so it can only use what the parent already knows — the name, and the url that name must have.");
 
-		md.details(import.meta, "readme.md");
+		code.js(`nav: {
+    guide: "The guide",                          // a label
+    api:   { label: "API", icon: "code" },       // and an icon
+}`);
+
+		md("**A label belongs to the parent's list; a title belongs to the page.** Not two copies of one thing — `start` is labelled *\"Start here\"* in its parent's menu and titled *\"Start\"* on its own page, deliberately. An icon is the same kind of thing, which is why it lives here: it names *this entry in this menu*, so it costs no import.");
+
+		md("Declare nothing and it still works: the label falls back to an imported child's `title`, then to the bare segment. A card reads `columns` until you visit it and `Columns` after — the honest cost, and a visible one.");
+
+		h2("Real titles up front");
+
+		code.js(`initialize(){ this.load_all_children(); }`);
+
+		md("Imports every declared child so the menu can read their real titles and icons. **The opt-out of laziness**, and the reason it exists: with it, a page's icon and title live on the page and nowhere else. Pay the imports, delete the duplication.\n\nThe Router waits for `loading` before showing the page, so the menu draws **once**, correct — never names first, titles later. And opt-ins compose: a child that also called it delays its parent until the grandchildren are real too, while a child that stayed lazy stays lazy.");
+
+		h2("Tabs");
+
+		code.js(`content(){ this.tabs("guide api"); }`);
+
+		md("A bar of links plus the panel those children render into. Which children are tabs is decided at *placement*, not marked on the child — so a page can have several sets, and a child in none of them renders wherever it would have anyway.");
+
+		code.js(`this.tabs("guide api").ac("vertical")`);
+
+		md("The same set, turned on its side — the left nav on this page is that call. Identical JS: same urls, same default, same active marking.");
+
+		md("Next: [Router](/framework/core/Router/) — what turns a url into one of these.");
+
+		md.details(import.meta, "readme.md", "Design record — nav, arrangement, and .cols");
 	}
 });

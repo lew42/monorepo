@@ -1,0 +1,60 @@
+/* Layer order, restated IN FULL — a short list would drop `site` past `util`. */
+@layer base, theme, site, util;
+
+/* Seven rules. A comparison needs exactly one thing site/styles.css does not
+   already provide — two code boxes that sit beside each other — and the rest of
+   this file is a table and two labels. */
+@layer site {
+
+	/* ── the only real layout here ───────────────────────────────────────────
+	   minmax(0, 1fr), never bare 1fr: `1fr` means minmax(AUTO, 1fr), and that
+	   auto floor is the item's min-content. One long line in a <pre> and the
+	   track refuses to shrink, pushing the whole page past the viewport. This is
+	   the exact trap site/styles.css documents on `.cols`, and side-by-side code
+	   is the single most likely place on this site to hit it. */
+	.pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	        gap: .75rem; align-items: start; }
+
+	/* The track can shrink; without this the BOX inside it still can't. */
+	.pair > * { min-width: 0; margin-top: 0; }
+
+	/* Below this the two columns are each narrower than a line of code, and a
+	   comparison you have to scroll horizontally twice is not a comparison. */
+	@media (max-width: 62rem) {
+		.pair { grid-template-columns: minmax(0, 1fr); }
+	}
+
+	/* ── labels: which kind of evidence is this? ─────────────────────────── */
+	.code-path { color: inherit; text-decoration: none; }
+	.code-path:hover { text-decoration: underline; }
+	.code-lines { float: right; opacity: .7; }
+	.measured > .code-label { color: #0a58ca; }
+
+	/* ── the claim, before the evidence ──────────────────────────────────── */
+	.verdict { border-left: 3px solid #0a58ca; padding: .1rem 0 .1rem .9rem; font-size: 1.05rem; }
+
+	/* ── a live probe for :nth-last-child(… of S) ────────────────────────────
+	   The selector that turns out to express "only the last two of the chain",
+	   which is the one thing ColumnPager could do that new/1 was assumed not to.
+
+	   `.chain-*` and not the real `.active-*` names for a reason worth knowing:
+	   Router.mark() does querySelectorAll(".active-page, .active-ancestor") over
+	   the WHOLE of $app and strips those classes from every element it finds —
+	   not only from pages. A probe using the real names would be blanked by the
+	   next navigation. See /versus/css/. */
+	.chain-probe { display: flex; gap: .4rem; }
+	.chain-probe > * {
+		flex: 1; padding: .5rem; border: 1px solid #d6dae0; border-radius: .35rem;
+		font: 12px ui-monospace, Consolas, monospace; text-align: center; opacity: .3;
+	}
+	.chain-probe > :nth-last-child(-n+2 of .chain-ancestor, .chain-leaf) {
+		opacity: 1; border-color: #0a58ca; background: #f5f9ff; font-weight: 600;
+	}
+
+	/* ── the ledger — every row has to end in a call ─────────────────────── */
+	.ledger { border-collapse: collapse; width: 100%; display: block; overflow-x: auto; }
+	.ledger th, .ledger td { border: 1px solid #e2e4e8; padding: .4rem .6rem;
+	                         text-align: left; vertical-align: top; font-size: .9rem; }
+	.ledger th { background: #f3f4f6; font-size: .8rem; text-transform: uppercase;
+	             letter-spacing: .05em; color: #6b7280; }
+}

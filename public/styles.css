@@ -1,54 +1,171 @@
-/* Layer order, restated: the FIRST declaration wins and module import
-   order decides who loads first, so every stylesheet states it. */
-@layer base, theme, util;
+/* Layer order, restated IN FULL — a short list would misplace `site`.
+   See the header of framework.css. */
+@layer base, theme, site, util;
 
-/* Site-level styles — this site's skin over the framework's structure.
+/* This site's skin over the framework's structure.
+ *
+ * `@layer site` sits above `theme` and below `util`, so these rules beat the
+ * framework and every component at ANY specificity — and still lose to a utility
+ * class, which is right, because you typed `.pad` on purpose.
+ *
+ * The rule this file obeys: **de-escalate upstream.** Winning by layer is
+ * available; *needing* to is a bug report about the framework missing a token.
+ * See framework/styles/readme.md §13.
+ */
+@layer site {
 
-   MUST stay inside `@layer theme`. In the CSS cascade *unlayered rules beat
-   every layer*, regardless of specificity: while this file was unlayered, a
-   one-class `.page` rule here silently defeated a four-class
-   `.column-pager .column.narrow .page` in ColumnPager.css. Inside the layer,
-   site rules sit in the same cascade as framework components and win normally —
-   this file is linked last, so an equally-specific rule here still takes it. */
-@layer theme {
+	/* ---- the site's chrome ----
+	   `.nav` is built once in /app.js, outside `$pages`, so navigation can never
+	   touch it. */
 
-    body.theme-1 {
-        background: #ddd; 
+	.nav {
+		display: flex; gap: 1.25em; flex: 0 0 auto;
+		padding: 0.9em 6%; border-bottom: 1px solid var(--line);
+	}
+	.nav-link { text-decoration: none; color: var(--subtle); }
+	.nav-link:hover { color: var(--prim); }
+	.nav-link.active, .nav-link.in-path { color: var(--prim); font-weight: 600; }
 
-        .app { 
-            margin: 2em auto;
-            max-width: 60em;
-            background: white;
-            box-shadow: 0 0 1em rgba(0, 0, 0, 0.1);
-            padding: 2em; 
-        }
+	/* A topic that brings its own navigation hides the global one — the app nav is
+	   for moving BETWEEN sections, and inside one it is noise.
 
-    }
+	   An inert class on the page (`classes: "hides-nav"`), not a call in a hook.
+	   Router.mark() rewrites the active classes on every navigation including Back,
+	   so this unsets itself: there is no paired show/hide to keep in sync, and any
+	   number of pages in the chain can carry it. */
+	.app:has(.page.hides-nav.active-page),
+	.app:has(.page.hides-nav.active-ancestor) { --nav-display: none; }
+	.nav { display: var(--nav-display, flex); }
 
-    .app { background: #ddd; }
+	/* ---- the mark ----
+	   mask, not <img>: an image can't take a fill from CSS, and inlining the markup
+	   would be a second copy of the artwork. The svg's own colour is ignored — the
+	   alpha channel is the shape and `--prim` is the paint, so the logo retints with
+	   the theme and never drifts from the file. */
+	.logo {
+		width: 1.9em; height: 1.9em; flex: 0 0 auto;
+		background: var(--prim, #FF8F60);
+		-webkit-mask: url(/assets/img/m_svg.svg) center / contain no-repeat;
+		        mask: url(/assets/img/m_svg.svg) center / contain no-repeat;
+	}
 
-    /* ---- home page: sidebar + one scrolling column ----
-       The sidebar's LOOK is Sidebar.css (framework); this only says where it
-       goes — the same split ColumnPager uses. No height-pinning needed: the
-       page scrolls normally and the sidebar stretches to match. */
+	/* `app.brand()` builds this, and it is only ever placed inside a Sidebar — which
+	   owns the padding around it. No margin here: spacing belongs to whatever holds
+	   the brand. */
+	.brand { display: flex; align-items: center; gap: 0.75em; padding: 1em 1.2em; }
+	.brand-logo { display: flex; font-size: 1.3em; }
+	.brand-text {
+		font-weight: 800; font-size: 1.3em;
+		text-decoration: none; color: inherit;
+	}
+	.brand-text:hover { color: var(--prim); }
 
-    .home { display: flex; min-height: 100vh; }
-    .home > .sidebar { flex: 0 0 var(--sidebar); }
-    .home-main { flex: 1 1 0; min-width: 0; }
+	/* On `.sidebar`, not `.sidebar-link` — it was the latter, which tuned the links
+	   and left the group titles reading the component's own gutter, so headings sat
+	   14px right of the items they head. One knob, one column. */
+	.sidebar { --gutter: 1.75em; font-size: 0.8em; }
+	.sidebar-nav { overflow-y: auto; scrollbar-width: thin; }
+	.sidebar-link { padding-block: 0.8em; }
+	.sidebar-group { margin-block: 1em; }
+	.sidebar-link:is(.active, .in-path) .sidebar-label { font-weight: 600; }
+	.sidebar-link.active::after, .sidebar-link.in-path::after { margin-bottom: 1px; }
 
-    @media (max-width: 45em) {
-        .home { flex-direction: column; }
-        .home > .sidebar { flex: none; }
-        .home .sidebar-nav { flex-direction: row; flex-wrap: wrap; }
-        .home .sidebar-link { border-left: none; border-bottom: 3px solid transparent; }
-        .home .sidebar-link.active,
-        .home .sidebar-link.in-path { border-bottom-color: var(--prim); }
-    }
+	.code-block { padding: 2em; }
 
-    /* Page.css owns .page's structure (width, centering, padding) — that's the
-       framework's business. Backgrounds are this site's skin, so they live here.
-       Loaded last, so anything set here wins at equal specificity. */
-    .page { background: white; }
+	/* ---- a topic: its own nav beside its own region ----
+	   A topic page overrides render(), so its `.page` element IS the row — there is no
+	   wrapper div whose only job is `display: flex`. Any section that brings its own
+	   navigation says `div.c("page topic flex")`.
 
-    .page-link-block { background: rgba(0,0,0,0.1); display: block; padding: 1em; margin-bottom: 1em; }
+	   `flex` is the utility, in the class string, and that is now the whole of it. It
+	   used to be a PAIR of rules here, restating the contract's own `.active-page` /
+	   `.active-ancestor:has()` selectors, because a bare `.page.topic { display: flex }`
+	   in @layer site beat `.page { display: none }` in theme and left every topic on
+	   screen for every route. The contract moved to @layer util and out-ranks a util
+	   class on specificity, so a page can simply BE a flex row and still be hidden when
+	   it isn't in the chain. See core/Page/Page.css.
+
+	   Measure and padding are tokens for the same reason — set on the element, so they
+	   beat what the region hands down without this file having to win by layer.
+
+	   `align-self: stretch` is the important one, and it is the opposite of what an
+	   ordinary page wants: `.pages` is `align-items: flex-start` so a page can size to
+	   its content, but a topic must be exactly as tall as the region because it CLIPS
+	   and hands scrolling to its own inner `.pages`. Without it the topic grew to its
+	   content (4273px) and 3373px became unreachable. */
+	.page.topic {
+		--measure: none; --page-pad: 0;
+		overflow: hidden; background: none; align-self: stretch;
+	}
+
+	/* A topic is the one page that is a LAYOUT, and it inherited page rhythm by being
+	   a `.page` — so `.pages`, as the second child, collected `margin-block-start:
+	   var(--flow)` from the flow rules in Page.css. Twenty pixels off the bottom of a
+	   region that was exactly as tall as it needed to be, and it scrolls, so nothing
+	   looked wrong until you reached the end.
+
+	   The general rule, for the next one: a page that overrides render() into a flex
+	   or grid layout owns its children's spacing, and must say so. `gap`, not flow. */
+	.page.topic > * { margin-block: 0; }
+
+	/* Placement only — the panel's look is Sidebar.css. The width is the shared
+	   token, so this site and the framework cannot disagree about it. */
+	.topic > .sidebar { flex: 0 0 var(--sidebar); }
+	.topic > .pages { flex: 1 1 0; min-width: 0; }
+
+	/* ONLY the region showing the leaf scrolls; every other one hides. `.pages` always
+	   reserves its scrollbar gutter, which is right for the region you are reading and
+	   dead space in an outer one.
+
+	   Written as `:not(:has())` twice rather than the obvious nested form because
+	   **`:has()` cannot be nested** — that selector is invalid and drops silently. And
+	   the un-nested `:has(> .page.topic.active-ancestor)` is wrong for a subtler
+	   reason: the ROOT page is a topic and is an active-ancestor on every route, so it
+	   matched `app.$pages` always. */
+	.pages:not(:has(> .page.active-page)):not(:has(> .default)),
+	.pages:has(> .page.topic.active-page) { overflow-y: hidden; }
+
+	/* Below this the topic stacks; the sidebar's own narrow behaviour (top bar +
+	   hamburger menu) lives in core/Sidebar/Sidebar.css now — this file stopped
+	   dissolving groups into a wrap row the day the burger landed. */
+	@media (max-width: 52em) {
+		.page.topic { flex-direction: column; overflow: visible; }
+		.topic > .sidebar { flex: 0 0 auto; }
+	}
+
+	/* Rhythm is NOT here. It used to be two rules in this file AND four in Page.css,
+	   and this pair won by layer — so tuning the spacing meant editing whichever file
+	   you happened to find. ONE flow token now, registered, in core/Page/Page.css —
+	   retune with `--rhythm`. See core/Page/readme.md. */
+
+	body.theme-1 {
+		background: #ddd;
+
+		.app {
+			margin: 2em auto;
+			max-width: 60em;
+			background: white;
+			box-shadow: 0 0 1em rgba(0, 0, 0, 0.1);
+			padding: 2em;
+		}
+	}
+
+	/* ---- the shell everything sits on ----
+	   ONE background, on `.app`, and nothing below it paints over it: `.page` and
+	   `.pages` are both transparent, so a page is a hole onto the shell. That is what
+	   makes a content block — a code box, a card, a demo — the white thing on the
+	   field. While `.page` painted `--surface`, white was the floor and nothing on it
+	   could stand out.
+
+	   `.theme-lew42` paints `--surface` on this same element, so this wins by
+	   `@layer site` and NOT by specificity — if the theme class ever moves off `.app`
+	   this silently loses. See styles/layers/theme/lew42/readme.md §7. */
+	.app { background: var(--wash); }
+
+	.page-link-block { background: rgba(0,0,0,0.1); display: block; padding: 1em; margin-bottom: 1em; }
+
+	/* Docs tables lead with a keyword — keep it on one line. "My first column is a
+	   term" is an opinion about *this site's writing*, not about markdown, which is
+	   why it isn't in md.css. */
+	.md td:first-child { white-space: nowrap; }
 }

@@ -21,8 +21,7 @@ export default new Page({
 		p("This gives synchronous tree-walking, no `await`:");
 
 		pre(`page.chain    // [root … page]
-page.root     // the topmost ancestor
-page.host()   // nearest ancestor that owns a pager (the topic)`);
+page.host()   // nearest ancestor declaring a Pager (the topic)`);
 
 		p("The `chain` is exactly what a ColumnPager renders as breadcrumbs + columns. The full analysis of why this beats mutual imports and dynamic-import climbing lives in the Loading section.");
 	}

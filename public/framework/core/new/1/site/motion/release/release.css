@@ -1,0 +1,20 @@
+@layer base, theme, site, util;
+
+@layer site {
+
+	/* The control in the experiment: a CSS animation. The browser will not advance
+	   it while the element is not rendered, so it stops itself the moment Router
+	   drops `.active-page` — no hook, no bookkeeping, nothing to remember. */
+
+	.motion-spinner {
+		width: 1.5rem; height: 1.5rem; border-radius: 50%;
+		border: 3px solid #d6dae0; border-top-color: #0a58ca;
+		animation: motion-spin 1s linear infinite;
+	}
+
+	@keyframes motion-spin { to { rotate: 1turn; } }
+
+	@media (prefers-reduced-motion: reduce) {
+		.motion-spinner { animation-duration: 3s; }
+	}
+}

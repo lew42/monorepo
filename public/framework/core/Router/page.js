@@ -1,44 +1,51 @@
-import { Page, md, h2, pre } from "/app.js";
+import { Router, classdoc, md, code, h2, toc } from "/app.js";
 
-export default new Page({
+export default classdoc.page({
 	meta: import.meta,
 	title: "Router",
-	description: "No-reload navigation, on by default.",
+	description: "Everything between a url changing and the DOM reflecting it.",
+	icon: "alt_route",
+
+	Class: Router,
+	methods: "go link_clicked load_segments activate mark mark_links",
+
+	// The design record, served: each name is a ./doc/<name>.md the readme cites.
+	notes: "registry-gate chain-diff marking styles-loaded navigated scroll-reset backed-out measured",
+
 	content(){
 
-		pre(`a("Docs").href("/docs/");   // or: docs_page.link()`);
+		toc();
 
-		md("Write an ordinary link, get no-reload navigation. One listener on `document` catches the click — nothing to wire per link, nothing to import.");
+		code.html(`<a href="/docs/intro/">Intro</a>`);
 
-		md("It's on by default. `new App({ router: false })` turns it off and every link goes back to a full page load.");
+		md("That is the whole API. The Router upgrades the click — no reload, no configuration, nothing to register. A link it can't resolve is handed to the browser, so an external url or a `.pdf` still behaves like a link.");
 
-		h2("When it stays out of the way");
+		h2("What a navigation does");
 
-		pre(`external origin        →  full navigation
-⌘ / ctrl / shift / ⌥   →  new tab
-target, download       →  the browser's job
-#hash on this page     →  scroll, don't re-render
-unknown route          →  full navigation`);
+		code.js(`/docs/intro/  →  root › docs › intro`);
 
-		md("The Router only upgrades a click when it can guarantee Back will redraw: you're on a real `Page`, and the target is a page it already knows. That restraint is the feature — you can never `pushState` into a page the app can't render, so Back and Forward never strand you.");
+		md("One `page.child(name)` per segment, and a miss is an `import`. So when the walk finishes, every page in the chain exists — that's why nothing needs a route table: **the walk is the loader**.");
 
-		h2("Programmatic");
+		h2("Only what changed");
 
-		pre(`app.router.go("/framework/core/View/");   // pushState + load
-app.router.routes;                       // every known url`);
+		md("Going from `/a/b/c/` to `/a/x/` leaves `root` and `a` alone. `activate()` diffs the two chains and touches the difference: deactivate deepest-first, activate shallowest-first.");
 
-		h2("Three small things");
+		h2("Two classes, and CSS does the rest");
 
-		md(`| class | owns |
-|---|---|
-| **Router** | *when* to navigate |
-| **App** | loading and rendering |
-| **Page** | the content |
+		code.css(`.page.active-page      /* the leaf */
+.page.active-ancestor  /* everything above it */`);
 
-Delete the Router and the site still works — every link just reloads.`);
+		md("That's all this tier writes. Every arrangement on this site — replace, tabs, columns, a topic with its own sidebar — is CSS reading those two classes plus one a page opted into. There is no layout tier to learn.");
 
-		md("Next: [App](/framework/core/App/) — the substrate all three sit on.");
+		h2("Links light themselves up");
 
-		md.details(import.meta, "readme.md");
+		code.css(`a.active    /* href is exactly here */
+a.in-path   /* href is a directory above here */`);
+
+		md("Applied to every in-app anchor after each navigation. **No view should ever compare `window.location` itself** — sidebars, tab bars and preview cards all get their state from this one pass, and CSS decides what each kind of link does with it.");
+
+		md("Next: [App](/framework/core/App/) — what boots all of this.");
+
+		md.details(import.meta, "readme.md", "Design record — the walk, the chain diff, and what was backed out");
 	}
 });

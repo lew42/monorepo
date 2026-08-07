@@ -12,8 +12,7 @@ const block_tags = new Set(["DIV", "SECTION", "ARTICLE", "MAIN", "ASIDE", "HEADE
  * md — markdown as a View addon, not a class.
  *
  * Importing this module patches View.prototype.md(). That's what `ext/` is for:
- * opt-in modules that may extend core. Nothing in app.js imports it, so pages
- * that don't use markdown never load marked.
+ * opt-in modules that may extend core.
  *
  *   p().md("Some **inline** markdown");     // into an existing view
  *   md("Hi.").ac("note");                   // a real <p>, chainable
@@ -21,26 +20,13 @@ const block_tags = new Set(["DIV", "SECTION", "ARTICLE", "MAIN", "ASIDE", "HEADE
  *   md("# Title");                          // a real <h1>
  *   md("Multi\n\nblock");                   // a captured div.md
  *   md.file(import.meta, "readme.md");      // a promise of a div.md
- */
-
-/**
- * Why html_unsafe() and not html() throughout this module:
  *
- * View.html() routes through the Sanitizer API (Element.setHTML), which Safari
- * does not implement in any version — desktop or iOS. On those browsers html()
- * falls back to textContent, so every doc page would render as literal markup
- * (`<h2>`, `**bold**`) for ~a third of visitors and 100% of Apple devices.
- *
- * That trade is only worth making for untrusted input. Everything parsed here
- * is the repo's own content: string literals in page.js and .md files fetched
- * from our own origin. The trust boundary is commit access — the same boundary
- * that already lets someone add malicious JS directly — so sanitizing buys
- * nothing here while costing correctness everywhere Apple ships.
- *
- * View.html() stays fail-closed for callers who *can't* vouch for their input.
- * If markdown ever arrives from a user (comment box, url param, CMS), this
- * decision has to be revisited — sanitize at that entry point, or vendor
- * DOMPurify as a fallback in core (see readme).
+ * `html_unsafe` throughout, never `html`: the Sanitizer API that `html()` uses does
+ * not exist in Safari, where it falls back to textContent — so every doc page would
+ * render as literal markup on every Apple device. Everything parsed here is the
+ * repo's own content and the trust boundary is commit access. **If markdown ever
+ * arrives from a user, this decision has to be revisited.** Full reasoning:
+ * ext/markdown/readme.md.
  */
 
 // Inline markdown into any existing view. Tag-aware (see block_tags).
@@ -62,7 +48,9 @@ export default function md(content){
 	if (template.content.children.length === 1)
 		return new View({ el: template.content.firstElementChild }).ac("md");
 
-	return new View().ac("md").html_unsafe(html);
+	// `flow`: a multi-block md is a stack of prose, and EMITTING the class is what
+	// lets core's flow rules stop naming `.md` — an ext class core can't import.
+	return new View().ac("md flow").html_unsafe(html);
 }
 
 // md.c("note", "Some **md**") — classes first, like div.c() / p.c()
@@ -73,31 +61,22 @@ md.c = function(classes, content){
 /**
  * md.file(import.meta, "readme.md") — fetch a markdown file and parse it.
  *
- * Resolved against the *module's* url, never the document's: with the SPA
- * fallback the document url is the route (/framework/core/x has no trailing
- * slash), so a document-relative fetch would miss. Same (meta, url) signature
- * as View.stylesheet() and View.load().
+ * Resolved against the MODULE's url, never the document's: the SPA fallback makes
+ * the document url a route, so a document-relative fetch would miss.
  *
- * Returns a PROMISE of a div.md, deliberately — not a view that fills itself
- * later. A promise composes with what the framework already has:
+ * Returns a PROMISE of a div.md, deliberately — a promise composes with what the
+ * framework already has, and can be awaited before a swap:
  *
  *   content(){ return md.file(import.meta, "readme.md"); }   // View.append_promise
  *
- * and it can be awaited, so App.load_page can finish loading before it swaps
- * the DOM (that's the no-flash guarantee in App.load_page). The text is cached
- * per url, so re-visiting a page re-parses but doesn't re-fetch.
+ * The trade for being awaitable: it does NOT capture itself, so the promise has to
+ * be returned or appended. `md.details()` below is the batteries-included version.
  *
- * The trade for being awaitable: it does NOT capture itself (there's nothing to
- * place until it resolves), so the promise has to be returned or appended.
- * `md.details()` below is the batteries-included version.
- *
- * `{ h1: false }` drops a leading <h1>. A readme opens with its own title and a
- * Page renders `title` as an h1, so rendering a readme as page content would
- * otherwise show it twice.
+ * `{ h1: false }` drops a leading <h1>, since a Page already renders `title` as one.
  */
 md.file = async function(meta, url, options = {}){
 	const href = new URL(url, meta.url).href;
-	const view = new View({ capture: false }).ac("md");
+	const view = new View({ capture: false }).ac("md flow");   // a file is a stack of prose
 
 	try {
 		const text = await (md.cache[href] ??= fetch(href).then(resp => {
@@ -106,6 +85,7 @@ md.file = async function(meta, url, options = {}){
 		}));
 
 		view.html_unsafe(marked.parse(text));
+		md.resolve(view.el, href);
 
 		if (options.h1 === false && view.el.firstElementChild?.tagName === "H1")
 			view.el.firstElementChild.remove();
@@ -130,6 +110,42 @@ md.details = function(meta, url, text = "Design notes"){
 		summary(text);
 		div.c("md-details-body").append(md.file(meta, url, { h1: false }));
 	});
+};
+
+/**
+ * Make a fetched file's RELATIVE links and images point where the file meant.
+ *
+ * A browser resolves `href="base/"` against the document — which the SPA fallback
+ * makes the current *route*, not the file's directory. So `[base](base/)` in
+ * `styles/readme.md` pointed at `<wherever you happen to be>/base/` and 404'd
+ * everywhere except the one url that matched. Found by a link crawl, on 40 routes.
+ *
+ * Exactly the trap the fetch itself has, so it gets the same fix, applied to what the
+ * fetch returned: resolve against the FILE, never the document. Which also means a
+ * relative link is now the *right* thing to write — the same one works on GitHub.
+ *
+ * `pathname` and not `href`, so the Router treats it as an in-app link rather than an
+ * absolute url it has to hand back to the browser.
+ */
+md.resolve = function(root, base){
+	root.querySelectorAll("a[href]").forEach(link => {
+		const href = link.getAttribute("href");
+
+		if (/^([a-z][\w+.-]*:|\/\/|\/|#)/i.test(href)) return;   // absolute, protocol, or a fragment
+
+		const url = new URL(href, base);
+		link.setAttribute("href", url.pathname + url.search + url.hash);
+	});
+
+	root.querySelectorAll("img[src]").forEach(img => {
+		const src = img.getAttribute("src");
+
+		if (/^([a-z][\w+.-]*:|\/\/|\/)/i.test(src)) return;
+
+		img.setAttribute("src", new URL(src, base).pathname);
+	});
+
+	return root;
 };
 
 // url -> Promise<string>. Populated by md.file.

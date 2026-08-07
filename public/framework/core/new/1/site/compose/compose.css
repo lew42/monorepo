@@ -1,0 +1,32 @@
+/* Layer order, restated IN FULL — a short list would drop `site` past `util`. */
+@layer base, theme, site, util;
+
+/* Six rules for eight pages. The important one is the first: `Router.mark()`
+   writes two classes about the CHAIN, and a page that is not in the chain is
+   `display: none` — so "show me something that isn't where I am" is the one
+   question the framework deliberately cannot answer. It turns out to be one
+   selector, in a stylesheet, opted into by name. That is the whole Task 2
+   result and it is why this file is short. */
+@layer site {
+
+	/* Show every page in this region, chain or no chain. Router never has to
+	   know; `.active-page` still marks which one is actually current. */
+	.show-all > .page { display: block; }
+
+	/* three instances of one factory, side by side — a card is a page, so it
+	   arrives with page padding, which is far too much at a third of the width */
+	.cards { gap: 1rem; }
+	.cards > .page { padding: 1rem 1.25rem; border: 1px solid #e2e4e8; border-radius: .45rem; }
+
+	/* a box holding a page that belongs to somebody else — dashed on purpose,
+	   because the whole lesson is that its contents can walk away */
+	.embed-box { border: 1px dashed #cbd2da; border-radius: .45rem; padding: .25rem 1.25rem 1rem; }
+	.embed-box > .page { padding: .75rem 0 0; overflow: visible; }
+
+	/* resizable panes — the split is ONE custom property, written by a drag and
+	   read by the grid. No layout code, no measurement, no reflow bookkeeping. */
+	.split { display: grid; grid-template-columns: var(--split, 1fr) .5rem 1fr; align-items: stretch; }
+	.split-handle { cursor: col-resize; background: #e2e4e8; border-radius: 2px; }
+	.pane { min-width: 0; max-height: 24rem; overflow-y: auto; }
+	.pane > .page { padding: .75rem 1rem; overflow: visible; }
+}

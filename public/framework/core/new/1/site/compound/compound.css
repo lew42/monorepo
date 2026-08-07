@@ -1,0 +1,82 @@
+/* Layer order, restated IN FULL — a short list would drop `site` past `util`. */
+@layer base, theme, site, util;
+
+/* Fourteen rules for ten recipes, and FIVE of the ten need none of them —
+   tabs-in-a-column, columns-in-full, two-bars, three-layers and tree-from-route
+   compose entirely out of `.pages`, `.cols`, `.tabs` and the two classes
+   Router.mark() writes. That is the real measurement of this stylesheet: not how
+   short it is, but how many arrangements needed nothing added at all.
+
+   Six of the fourteen are bug reports against site/styles.css and say so
+   individually. Take those upstream and this file is eight rules. */
+@layer site {
+
+	/* ── master/detail ───────────────────────────────────────────────────────
+	   `.cols` is equal tracks by design. A list only needs its own width, so
+	   this is the one arrangement `.cols` genuinely cannot express. */
+	.master-detail { display: grid; grid-template-columns: 15rem minmax(0, 1fr); }
+	.master-detail > * { min-width: 0; overflow-y: auto; }
+	.master-list { display: flex; flex-direction: column; gap: .35rem; padding: 0 1.25rem 2rem 0; }
+
+	/* The empty state steps aside the moment a detail joins the chain — the same
+	   :has() question styles.css asks about ancestors, asked about a region. Without
+	   it the detail would land in grid row 2, under the list. */
+	.master-detail:has(> .page.active-page) > .master-empty { display: none; }
+
+	/* ── full ────────────────────────────────────────────────────────────────
+	   FIXED UPSTREAM: styles.css now gives `.page.full` itself `overflow-y: auto`,
+	   so the scrolling half of this rule is gone and the nested scroller with it.
+	   What is left is line length, which was always mine. */
+	.page.full > .full-body { max-width: 62rem; }
+
+	/* `.page > * + *` gives the rhythm, and it reaches direct children only — so
+	   anything wrapped in a box of its own has to restate it. */
+	.full-body > * + * { margin-top: 1rem; }
+
+	/* ── steps ───────────────────────────────────────────────────────────────
+	   A stepper is a tab set with a numbered bar. The numbers come from a CSS
+	   counter for the same reason everything else here is derived: a "1." typed
+	   into a title is wrong the moment a step is inserted above it. */
+	.steps .tab-bar { counter-reset: step; }
+	.steps .tab::before { counter-increment: step; content: counter(step) ". "; }
+
+	/* ── crumbs ──────────────────────────────────────────────────────────────
+	   `.row` is flex with no cross-axis alignment, so a bare separator stretches
+	   to pill height and sits at the top of it. */
+	.crumbs { align-items: center; }
+
+	/* ── .tabs-drill — a tab set whose tabs go DEEPER than the tabs ───────────
+	   Opt-in by class, like `cols` and `full`. Three corrections, all of which
+	   belong upstream (BUG REPORT — see agents/eric/page.js):
+
+	   1+2. styles.css lights the first tab whenever no tab is `.active`. At
+	        /drilling-tabs/api/detail/ nothing is exact, so the bar highlights
+	        "overview" while the api panel is on screen. `.in-path` is the real
+	        answer — minus the first tab, whose href IS the group url and
+	        therefore prefixes every tab in the bar. */
+	.tabs-drill .tab.in-path:not(:first-child) {
+		color: #0a58ca; font-weight: 600; border-bottom-color: #0a58ca;
+	}
+	.tabs-drill .tab-bar:has(.tab.in-path:not(:first-child)) > .tab:first-child {
+		color: #3f4650; font-weight: 400; border-bottom-color: transparent;
+	}
+
+	/*   3. The default-tab fallback asks `:not(:has(> .page.active-page))`, which
+	        is still true when the panel's own child is an ANCESTOR of the leaf —
+	        so the default renders beside the tab you actually drilled into. The
+	        `:not(.active-ancestor)` keeps drilling from the FIRST tab working,
+	        where default and ancestor are the same element. */
+	.tabs-drill .tab-panel:has(> .page.active-ancestor) > .page.default:not(.active-ancestor) {
+		display: none;
+	}
+
+	/*   4. `.tab-panel > .page { padding: 0 }` unpads the panel's DIRECT child.
+	        A tab that drills has grandchildren, and they arrive with the full
+	        page padding inside an already-padded panel. */
+	.tabs-drill .tab-panel .pages > .page { padding: .75rem 0 0; overflow: visible; }
+
+	/* `.page-link.active` lived here and is now in styles.css, where it belongs.
+	   Deleted rather than kept: a downstream copy of a rule that landed upstream
+	   is escalation debt — it wins for no reason and drifts the first time the
+	   real one is tuned. De-escalate upstream, never escalate downstream. */
+}
