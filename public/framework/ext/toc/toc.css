@@ -4,25 +4,41 @@
 
 @layer theme {
 
-	/* A rail in the gutter.
-	   `position: fixed` and not `sticky`, because THE REGION SCROLLS rather than
-	   the page (Page.css) — a sticky element inside a `.page` sticks to a box that
-	   never moves, which is a no-op. Fixed takes it out of the scrolling box
-	   entirely, which is what a rail wants, and the page keeps its measure with no
-	   layout surgery: this occupies space nothing else was using.
-
-	   Hidden below the width where that space stops existing — a rail overlapping
-	   the prose is worse than no rail. */
+	/* A REAL COLUMN, not a rail floating over the page. It was `position: fixed`,
+	   which reserved no space — so the rail and the prose were placed by two
+	   unrelated numbers and overlapped on the way to the breakpoint that hid it. */
 	.toc { display: none; }
 
+	/* `:not(.breakouts)` — a breakout page already owns `grid-template-columns`, and
+	   both rules live in @layer theme, so the winner would be whichever <link> loaded
+	   last. They are two different page layouts and they do not combine: a breakout
+	   page is prose with escapes, a ToC page is prose with a rail. Pick one. */
+
 	@media (min-width: 82em) {
-		.toc {
+
+		.pages > .page:not(.breakouts):has(> .toc) {
+			display: grid;
+			grid-template-columns: minmax(0, 1fr) 13rem;
+			column-gap: 3rem;
+			--measure: 78em;
+		}
+
+		/* Everything that is not the rail stacks in column 1, in source order. */
+		.pages > .page:not(.breakouts):has(> .toc) > * { grid-column: 1; min-width: 0; }
+
+		/* ⚠ `span 200`, not `1 / -1`: `-1` counts back from the EXPLICIT grid, and
+		   these rows are all implicit, so it resolves to line 1 and spans nothing.
+		   ⚠ `align-self: start` is what makes sticky work — a stretched grid item is
+		   already as tall as its row and has nowhere to stick to. */
+		.pages > .page:not(.breakouts):has(> .toc) > .toc {
 			display: block;
-			position: fixed;
-			inset-inline-end: 1.5rem;
-			top: 7.5rem;
-			width: 13rem;
-			max-height: calc(100vh - 10rem);
+			grid-column: 2;
+			grid-row: 1 / span 200;
+			align-self: start;
+			position: sticky;
+			top: 2rem;
+			margin-block: 0;              /* the page's owl rule reaches column 2 too */
+			max-height: calc(100vh - 4rem);
 			overflow-y: auto;
 			font-size: 0.8em;
 			scrollbar-width: thin;

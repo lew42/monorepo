@@ -30,6 +30,9 @@ export default new Page({
 	description: "Twelve UI components, eleven of them with no stylesheet at all.",
 	icon: "widgets",
 
+	// a gallery is not prose: no measure, so the wall gets the room it has
+	classes: "dash",
+
 	children: "table field crumbs pagination card stats badge alert toolbar tags panel tooltip",
 
 	// Labels and icons come from the twelve pages themselves, so `children` stays a
@@ -57,7 +60,7 @@ export default new Page({
 				$gallery.empty(() => this.cells());
 				this.app?.router?.mark_links();
 			});
-		}).style("--column", "20em");
+		}).style({ "--column": "13em", "--gap": "1.5em" });
 
 		md("Every cell above is a **live render** of the same function its page documents. **Eleven of the twelve ship no CSS**; the twelfth is [Tooltip](/framework/styles/components/tooltip/), and it needs five rules for a reason worth reading.");
 
@@ -91,26 +94,26 @@ export default new Page({
 		md.details(import.meta, "readme.md", "Design record — the ladder per component, the nine findings, and what was dropped");
 	},
 
-	// One cell per child, into whatever is capturing. `nav_for()` supplies the label,
-	// the icon and the url, so this list and the sidebar cannot disagree.
+	/* One cell per child. `nav_for()` supplies the label, icon and url, so this list
+	   and the sidebar cannot disagree.
+
+	   `zoom-50`, so a cell reads as an ICON of the component rather than as a second
+	   place to use it — the gallery answers "which one is that" and the component's
+	   own page answers everything else. `gallery-card` (Page.css) makes the whole
+	   block one hit area and the thumbnail inert, which is what lets these be plain
+	   divs: half of them contain links, and `<a>` inside `<a>` is invalid. */
 	cells(){
 		this.children.forEach((page, name) => {
 			const nav = this.nav_for(name);
 
-			// A `div`, not an `a`: half of these contain links and buttons of their own,
-			// and an anchor inside an anchor is invalid and swallows the click. The
-			// title carries the url instead.
-			div.c("flex v", () => {
-				a.c("page-link flex v-center", () => {
-					if (nav.icon) icon(nav.icon);
-					span(nav.label);
-				}).href(nav.url).style({ textDecoration: "none", color: "var(--ink)", gap: "0.4em" });
+			div.c("page-preview gallery-card", () => {
+				div.c("gallery-thumb zoom-50 flex v h-center pad", gallery[name]);
 
-				// `h-center` on a COLUMN is justify-content, so it centers vertically and
-				// leaves the child full width — which `v-center` would not. readme.md §6.
-				div.c("pad flex v h-center flex-1", gallery[name])
-					.style({ ...surface, minWidth: "0", overflowX: "auto" });
-			}).style({ gap: "0.5em", minWidth: "0" });
+				a.c("gallery-link").href(nav.url).append(() => {
+					if (nav.icon) icon(nav.icon);
+					span.c("page-preview-title", nav.label);
+				});
+			});
 		});
 	},
 });

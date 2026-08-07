@@ -7,6 +7,7 @@ export default classdoc.page({
 	icon: "description",
 
 	Class: Page,
+	children: "children nav layouts flow",
 	methods: "child add container activate tabs",
 
 	content(){
@@ -48,7 +49,7 @@ export default new Page({
 
 		code.js(`initialize(){ this.load_all_children(); }`);
 
-		md("Imports every declared child so the menu can read their real titles and icons. **The opt-out of laziness**, and the reason it exists: with it, a page's icon and title live on the page and nowhere else. Pay the imports, delete the duplication.");
+		md("Imports every declared child so the menu can read their real titles and icons. **The opt-out of laziness**, and the reason it exists: with it, a page's icon and title live on the page and nowhere else. Pay the imports, delete the duplication.\n\nThe Router waits for `loading` before showing the page, so the menu draws **once**, correct — never names first, titles later. And opt-ins compose: a child that also called it delays its parent until the grandchildren are real too, while a child that stayed lazy stays lazy.");
 
 		h2("Tabs");
 

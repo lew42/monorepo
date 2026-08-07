@@ -649,6 +649,113 @@ switch is one word instead of a project.
 painted keyword colour is unchanged (`#FF8F60` before and after). What improved is
 the site that loads **no theme** — which is the whole thing this section is about.
 
+### 12b. The switch is thrown, and one token was lying
+
+`theme/mode.js` is the switch: one button, `auto → light → dark`, stored in
+`localStorage` and applied as inline `color-scheme` on `.app`. Not on `<html>` —
+tokens live on `.app`, and two themes render side by side on `theme/guide/`, so a
+mode forced at the root would take both.
+
+`auto` clears the override rather than storing a resolved value. The OS can change
+while the tab is open, and a stored `"light"` would outlive the reason it was
+chosen.
+
+**Throwing it exposed one bug, and it was in the tone ladder rather than in any
+component.** `theme-lew42` had:
+
+```css
+--wash: light-dark(#f2f2f2, rgba(230,230,230,0.07));
+```
+
+`.app { background: var(--wash) }`, and `body` has no background — so in dark mode
+the app painted 7% white **over the browser's white canvas**. Dark mode rendered as
+pale grey with pale text. Measured: `.app` computed to
+`rgba(230,230,230,0.07)`, `--ink` to `#e6e6e6`.
+
+**A colour that backs a whole app cannot be translucent.** The three surface tokens
+are opaque now and form one ladder, with elevation reading *lighter* on both sides
+of the switch:
+
+| | light | dark |
+|---|---|---|
+| `--wash` — the floor | `#f2f2f2` | `#171717` |
+| `--tint` — a panel in a card | `#f8f8f8` | `#1f1f1f` |
+| `--surface` — a card | `#ffffff` | `#262626` |
+
+`--tint` is new in the same pass. `th`, the demo toolbar and the demo caption were
+all painted `--wash` — the floor, two levels below the card they sit in — because
+there was no name for "one step down from a surface".
+
+**Then the whole framework section was audited in dark**, every page, looking for a
+computed background lighter than 55% luminance. Eight hits, and seven are correct:
+two `.section-band`s in the `dark` *tone* (which is the high-contrast band, and
+inverts on purpose), and five elements inside `theme/guide/`, which renders
+`theme-paper` and an explicitly-light `theme-lew42` to prove exactly that.
+
+The eighth was real: **`<mark>`** kept the UA's yellow with `canvastext` on it, so a
+highlight in dark mode was light text on yellow. Paired now, like everything else.
+
+**`:root { color-scheme: light }` still stands.** The base theme has translucent
+`--wash` for the same reason it always did, and it is honest about being light-only;
+a theme opts into both modes and `theme-lew42` now genuinely does.
+
+### 12c. The contrast pass, and what a fixed grey costs
+
+Every page in the site was walked in both modes, at 1400px and 390px, comparing
+each leaf text node's computed colour against the first opaque background above it.
+**Zero horizontal overflow and zero clipped boxes** in the framework — the structural
+work held. Contrast had four real findings.
+
+**`--subtle` was 4.24:1**, just under AA, in roughly 150 places — ToC rows, demo
+buttons, icons, `summary`, captions. Two shades darker (`#737373` → `#6a6a6a`)
+clears it without changing the grey's character. This is the highest-value single
+token change on the site, because `--subtle` is what every de-emphasised thing
+reads.
+
+**`--syn-comment` was `light-dark(…)`, and should never have been.** `--code-bg` is
+dark in *both* modes, so the "light mode" value was a dark grey on a dark box.
+Measured on `#3f3f3f`: `#9d9d9d` 3.88:1, `#b5b5b5` 5.14:1. **A token only takes
+`light-dark()` if the surface behind it actually flips.**
+
+**`<mark>` kept the UA's yellow** with `canvastext` on it — light text on yellow in
+dark mode. Paired now.
+
+**A fixed grey on a variable band is the interesting one**, because it is a *design*
+bug rather than a value bug, and it bit `styles/sections/` twice:
+
+| | was | measured |
+|---|---|---|
+| the eyebrow | `color: var(--prim)` | **1.06:1** on the `prim` band |
+| a stat label | `color: var(--subtle)` | **1.06:1** on the `prim` band |
+
+Both are the same mistake: **a colour picked against the band you were looking at.**
+A band whose fill is a variable cannot have de-emphasis that is a constant. Two
+fixes, and the second generalises:
+
+```js
+"--eyebrow": COLOURED[tone] ? "currentColor" : "var(--prim)",
+muted = { color: "color-mix(in srgb, currentColor 68%, transparent)" },
+```
+
+`currentColor` has *already* been chosen to contrast with whatever is behind it, so
+a mix of it cannot fail the same way. **De-emphasis should be derived from the ink,
+not named alongside it** — and that is the rule to reach for anywhere a component
+can land on more than one surface.
+
+### 12d. Two things the audit got wrong, which is worth more than the findings
+
+**`color(srgb 0.9 0.9 0.9)` components are 0–1, not 0–255.** The first pass divided
+them by 255 anyway, read every `color-mix`ed value as near-black, and reported the
+sidebar's icons at 1.13:1. They are about 7:1. **Thirty false positives, and the fix
+was nearly applied.** If a measurement disagrees with the screenshot, the
+measurement is on trial too.
+
+**`--prim` as *text* is 2.01–2.25:1** and is left alone deliberately — a call the
+owner of the brand made, not an oversight. It affects `.toc-link.current`, `.prim`
+labels and `.page-link.active`. Recorded so the next person does not "discover" it
+and quietly repaint the accent.
+
+
 Still open, and smaller than it was: `Page.css`'s `box-shadow: rgba(0,0,0,0.08)` on
 a hover, and `/styles.css`'s `body.theme-1` block, which is legacy with real
 consumers.

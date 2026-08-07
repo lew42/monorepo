@@ -2,11 +2,8 @@
    See the header of framework.css. */
 @layer base, theme, site, util;
 
-/* Eight rules: three the layouts needed, two for the gallery window, three for
-   the maximize view. Each of the first three is a finding — it is what the
-   utility set could not say. No colour anywhere: every box's tint is an inline
-   token value in parts.js, because a look is not this file's call.
-
+/* Each rule is a finding — what the utility set could not say. No colour: a tint
+   is an inline token value in parts.js, because a look is not this file's call.
    Reasoning, and what was tried instead: readme.md. */
 @layer theme {
 
@@ -16,34 +13,26 @@
 	.layout-side { flex: 0 0 var(--sidebar); min-width: 0; }
 	.layout-rail { flex: 0 0 var(--column); min-width: 0; }
 
-	/* A measure, centred. `max-width` alone leaves the column flush left, and
-	   `flex h-center` can't help without a width to centre. */
+	/* A measure, centred. `max-width` alone leaves the column flush left.
+	   ⚠ The `margin-inline` is DEAD inside a `.flex` — `.flex > * { margin: 0 }` is
+	   in @layer util and wins. Centre with the container (`h-center`) there. */
 	.layout-measure { max-width: 34em; margin-inline: auto; }
 
-	/* The gallery cell. `.page-preview` is the card — surface, border, hover and
-	   the `.active` state Router.mark_links() paints — so this only turns it on
-	   its side and gives the window its shape. What's inside is a live render at
-	   `zoom-25`: laid out at four times the card's width and painted back down,
-	   which is why a preview looks shrunken rather than squashed. */
-	.layout-card { flex-direction: column; align-items: stretch; }
-	.layout-thumb { aspect-ratio: 16 / 10; overflow: hidden; }
+	/* The "how should a page hold this" panel, one per layout page. See fit.js. */
+	.layout-fit {
+		background: var(--wash);
+		border-inline-start: 3px solid var(--prim);
+		border-radius: var(--radius);
+	}
+	.layout-fit-tokens { color: var(--subtle); font-family: var(--mono); font-size: 0.8em; }
 
-	/* The viewport view: one layout, the whole window. `fixed` rather than a wider
-	   measure, because the question a layout page can't otherwise answer is "what
-	   does this look like at the size it was drawn for", and the region is never
-	   that. Its own url — see viewport.js.
 
-	   The tokens rather than `max-width`/`padding` directly: a value set on the
-	   element beats the one the region handed down, at any specificity. That is
-	   the documented way to leave the sheet (core/Page/Page.css).
 
-	   `display: flex` is now a plain declaration. It used to be spelled
-	   `.page.layout-full.active-page`, with the `.active-page` load-bearing — the
-	   contract lived in @layer theme, so a bare `.page.layout-full { display: flex }`
-	   tied it on specificity and left every maximize view on screen for every route
-	   on the site. The contract is in @layer util now and out-ranks this, so the
-	   workaround is gone and the rule says what it means. */
-	.page.layout-viewport {
+	/* One layout, the whole window, at its own url — see full.js. Tokens rather
+	   than `max-width`/`padding`, which is the documented way to leave the sheet.
+	   `display: flex` needed `.active-page` welded on until the arrangement
+	   contract moved to @layer util; readme.md §3. */
+	.page.layout-full {
 		--measure: none; --page-pad: 1.5em;
 		position: fixed; inset: 0; z-index: 20;
 		display: flex; flex-direction: column;
@@ -51,13 +40,11 @@
 		overflow: auto;
 	}
 
-	/* …so a `flex-1` band inside a layout has something to take, and a footer lands
-	   at the bottom of the window rather than under the fold. */
-	.page.layout-viewport > :last-child { flex: 1 1 auto; min-height: 0; }
+	/* …so a `flex-1` band has something to take and the footer lands at the bottom. */
+	.page.layout-full > :last-child { flex: 1 1 auto; min-height: 0; }
 
-	/* The way out. Over the layout rather than above it — anything in normal flow
-	   here would be a band the layout has to make room for, which is the one thing
-	   this view exists not to have. */
+	/* The way out, OVER the layout — anything in flow would be a band the layout has
+	   to make room for, which is what this view exists not to have. */
 	.layout-close {
 		position: absolute; top: 0.75em; right: 0.75em; z-index: 1;
 		display: flex; padding: 0.35em;

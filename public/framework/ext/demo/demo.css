@@ -2,18 +2,12 @@
    See the header of framework.css. */
 @layer base, theme, site, util;
 
-/* A demo is ONE object on the page: the code, what it renders, and the sentence
-   about it, boxed together — so there's never a question of which produced which.
-
-   Reading order is code → result → caption. That's deliberate: a doc page leads
-   with code, and prose is a caption, not a preamble. */
+/* One object: the code, what it renders, and the sentence about it. Reading order
+   is code → result → caption — prose is a caption, not a preamble. */
 @layer theme {
 
-	/* No margin — a demo is a block in a flow, and the flow spaces it (Page.css).
-
-	   `--demo-pad` because several selectors have to agree on one number. In `rem`,
-	   because the panes are three different font sizes — in `em` they'd each indent
-	   by their own text and the box's left edge would come out ragged. */
+	/* No margin — the flow spaces it (Page.css). `--demo-pad` in `rem`, not `em`:
+	   the panes are three font sizes and the box's left edge has to line up. */
 	.demo {
 		--demo-pad: 2rem;
 		border: 1px solid var(--line);
@@ -31,7 +25,7 @@
 		display: flex; align-items: center; gap: 0.5em;
 		padding: 0.35em var(--demo-pad);
 		font-size: 0.85em;
-		background: var(--wash);
+		background: var(--tint);
 		border-bottom: 1px solid var(--line);
 	}
 
@@ -52,14 +46,16 @@
 	.demo-btn.on { color: var(--prim); border-color: var(--prim); }
 	.demo-btn .icon { font-size: 1.1em; }
 
-	/* `width: auto` is the whole rule that matters: framework.css gives every
-	   `select` `width: 100%` in @layer base, which in a flex bar means the control
-	   eats the row and the spacer beside it collapses to nothing. Everything else
-	   about how a select looks — the border, the arrow — is left to the framework,
-	   because a toolbar is not the place to invent a second kind of control. */
+	/* Both rules are about `select` defaults in framework.css.
+	   ⚠ `width: auto` — base gives every select `width: 100%`, which in a flex bar
+	     eats the row and collapses the spacer beside it.
+	   ⚠ `background-origin: padding-box` — theme paints the arrow at 100% of the
+	     CONTENT box, so on a shrink-to-fit select every em of padding-right moved
+	     the arrow an em LEFT, onto the text. */
 	.demo-zoom {
 		width: auto;
-		padding: 0.1em 1.3em 0.1em 0.45em;
+		padding: 0.1em 1.4em 0.1em 0.5em;
+		background-origin: padding-box;
 		font-size: 0.9em;
 		color: var(--subtle);
 		border-color: var(--line);
@@ -68,14 +64,8 @@
 	}
 	.demo-zoom:hover { color: var(--ink); border-color: var(--prim); }
 
-	/* ── the source panes ──
-	   `flex-wrap` and a basis, not a media query and not a container query: the
-	   panes go side by side when there is room for two and stack when there isn't,
-	   and "room" is the BOX's width, which is the thing that actually varies here.
-	   A demo in a narrow column stacks; the same demo maximized splits.
-
-	   `.ac("stack")` is the veto, for an example whose lines are long enough that
-	   half a box is worse than the full one. Nothing can measure that. */
+	/* `flex-wrap` and a basis, not a query: "room" is the BOX's width, which is the
+	   thing that varies. `.ac("stack")` is the veto for long lines. */
 	.demo-panes { display: flex; flex-wrap: wrap; }
 
 	.demo-code,
@@ -89,61 +79,37 @@
 		tab-size: 4;
 	}
 
-	/* Background and the `> code` reset come from framework.css's `pre` rules. The
-	   background used to be hardcoded a shade lighter here, which meant a site
-	   setting `--code-bg` restyled every code block on the page *except* the ones
-	   inside demos — the component out-ranking the site by accident, (0,1,0)
-	   against (0,0,1). A demo's code area is a `pre`; it should look like one. */
-
-	/* `tab-size: 2` is load-bearing: markup() indents with one real tab per level,
-	   so this is where "how wide is a level" is actually decided. Two, not the four
-	   the js pane uses — HTML nests about twice as deep as the code that built it. */
+	/* ⚠ `tab-size: 2` is load-bearing: markup() indents one real tab per level, so
+	   this is where "how wide is a level" is decided. Two, not the js pane's four —
+	   HTML nests about twice as deep as the code that built it. */
 	.demo-html { display: none; font-size: 0.8em; tab-size: 2; }
 	.demo.show-html .demo-html { display: block; }
 
-	/* Only when they are actually beside each other. Wrapped, the rule would be a
-	   line down the left edge of the lower pane. */
+	/* Only while they are side by side; wrapped, it would be a line down the left. */
 	.demo.show-html .demo-html { border-inline-start: 1px solid var(--line); }
 
 	.demo.stack .demo-panes { display: block; }
 
-	/* ── the stage ──
-	   What you resize: `position: relative` for the handle, and an explicit `width`
-	   arrives inline when you drag one. No padding and no overflow of its own — both
-	   belong to the screen inside it. See the comment in demo.js for why this is
-	   three boxes and not one.
-
-	   `margin-inline-end` is exactly the handle's overhang. `.demo` clips (it has a
-	   radius to keep), so at full width a pill sitting half outside this box would
-	   be half missing — and, worse, unclickable on the half that isn't drawn. */
+	/* ── the stage: what you resize ──
+	   Why three boxes and not one: demo.js.
+	   ⚠ `margin-inline-end` is exactly the handle's overhang — `.demo` clips, so a
+	   pill sitting half outside would be half missing AND half unclickable. */
 	.demo-stage {
 		position: relative;
 		margin-inline-end: 0.125em;
 		max-width: 100%;
 	}
 
-	/* The viewport. Dragging narrower than the content can go scrolls it, the way a
-	   real narrow viewport does, rather than bursting the box.
-
-	   The padding is HERE and not on `.demo-render`, and that is what makes the
-	   readout honest: the render is then the bare content box, so its `offsetWidth`
-	   is the width the example's own CSS is responding to, with no frame in it. */
+	/* The viewport. The padding is HERE, not on `.demo-render` — that is what makes
+	   the readout honest: the render is the bare content box. */
 	.demo-screen { padding: var(--demo-pad); overflow-x: auto; }
 
-	/* `.demo-render` is a flow container (the rhythm rules in Page.css name it), so
-	   it keeps its class and loses only its padding. Deliberately NO `overflow`: the
-	   x-axis alone cannot be set without forcing y off `visible` too, and a demo is
-	   allowed to overflow on purpose — a tooltip, a popover, anything sticky. */
+	/* ⚠ Deliberately NO `overflow`: the x-axis cannot be set without forcing y off
+	   `visible` too, and a demo may overflow on purpose — a tooltip, a popover. */
 	.demo-render { min-width: 0; }
 
-	/* The pill on the right edge. Small on purpose — an affordance, not a control
-	   panel — and `translate` rather than a negative margin so the 50% and the
-	   centring don't have to agree about the height.
-
-	   `--subtle` and not white: a white pill on `--surface` is invisible, and at
-	   4px wide a 1px border is most of the shape rather than an outline on it.
-	   A grip should be low-contrast and findable, which is what `--subtle` is for
-	   — and it reads on both sides of the light/dark axis without a second value. */
+	/* `--subtle`, not white: a white pill on `--surface` is invisible, and at 4px
+	   wide a border is most of the shape rather than an outline on it. */
 	.demo-handle {
 		position: absolute; top: 50%; inset-inline-end: -0.125em;
 		width: 0.25em; height: 2em;
@@ -172,24 +138,22 @@
 		padding: var(--demo-pad);
 		font-size: 0.9em;
 		color: var(--subtle);
-		background: var(--wash);
+		background: var(--tint);
 		border-top: 1px solid var(--line);
 	}
 
 	.demo-error { padding: 0.8em 1em; color: var(--error); border-color: var(--error); }
 
 	/* ── the whole window ──
-	   A toggle and not a url: `requestFullscreen()` needs a gesture and so can never
-	   be restored on load, and this is the same class of thing — a way of looking at
-	   the box, not a place. A layout that wants a url uses layouts/viewport.js.
-
-	   The toolbar comes with it, so the control that got you here is the one that
-	   takes you back, and zoom stays reachable at the size where it matters most. */
+	   A toggle, not a url — this is a way of looking at the box, not a place. A demo
+	   whose page offers `{ full: this }` gets a real link instead (demo.js). */
 	.demo.max {
 		position: fixed; inset: 0; z-index: 30;
 		display: flex; flex-direction: column;
 		border-radius: 0;
 		overflow: auto;
+		margin: 0;               /* the page's owl rule reaches a fixed box too */
 	}
 	.demo.max .demo-stage { flex: 1 1 auto; }
+	.demo.max .demo-screen { min-height: 100%; }
 }

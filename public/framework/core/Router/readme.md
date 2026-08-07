@@ -125,6 +125,12 @@ animation was simply louder than a missing margin would have been.
 It uses `allSettled`, not `all`: a 404'd stylesheet must cost a warning, not every
 subsequent navigation.
 
+The chain's `loading` promises are awaited in the same spot, for the same three
+reasons: draw once with real titles instead of names-then-sharpen, keep
+`activate()` synchronous, and never let a broken child block navigation
+(`allSettled` again). The full record — including what the redraws used to look
+like and why waiting won — is in `core/Page/readme.md` §"Draw once".
+
 ---
 
 ## 7. `app.navigated?.()` — built. `page.entered?.()` — refused.

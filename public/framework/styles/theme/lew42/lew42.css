@@ -31,10 +31,23 @@
 		--prim: #FF8F60;                          /* the mark's own orange */
 
 		--ink:     light-dark(#3f3f3f, #e6e6e6);
-		--subtle:  light-dark(#737373, #9d9d9d);
-		--line:    light-dark(#e6e6e6, rgba(230,230,230,0.16));
-		--wash:    light-dark(#f2f2f2, rgba(230,230,230,0.07));
-		--surface: light-dark(#ffffff, #1e1e1e);
+		/* #737373 measured 4.24:1 on `--wash` — under AA, in ~150 places across the
+		   site (toc rows, captions, icons, summaries). Two shades darker clears it
+		   without changing the grey's character. */
+		--subtle:  light-dark(#6a6a6a, #a8a8a8);
+		--line:    light-dark(#e6e6e6, #333333);
+
+		/* Three steps of one ladder, and elevation is LIGHTER on both sides of it:
+		   wash is the floor the app sits on, surface is a card raised off it, tint
+		   is a panel inside a card.
+
+		   ⚠ Opaque, all three. These were `rgba(230,230,230,0.07)` in dark, and
+		   `.app { background: var(--wash) }` composited that over a transparent
+		   `body` — i.e. over the browser's white. Dark mode rendered as pale grey
+		   with pale text. A colour that backs a whole app cannot be translucent. */
+		--wash:    light-dark(#f2f2f2, #171717);
+		--tint:    light-dark(#f8f8f8, #1f1f1f);
+		--surface: light-dark(#ffffff, #262626);
 
 		/* Stays dark in both modes: `--bg` is what `button.bg` paints itself,
 		   and framework.css pairs it with a hardcoded white label. A light
@@ -59,7 +72,10 @@
 
 		/* highlight.js reads these; the ext exposes them so a theme never has to
 		   touch its selectors. Tuned for the dark box above, both modes. */
-		--syn-comment: #9d9d9d;
+		/* NOT `light-dark()` — `--code-bg` is dark in both modes, so a "light mode"
+		   value here would be a dark grey on a dark box. Measured on `#3f3f3f`:
+		   #9d9d9d 3.88:1, #b5b5b5 5.14:1. */
+		--syn-comment: #b5b5b5;
 		--syn-keyword: var(--prim);
 		--syn-string:  #9ecbff;
 		--syn-number:  #79c0ff;

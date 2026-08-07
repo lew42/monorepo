@@ -10,7 +10,7 @@ export default new Page({
 	// Inert: /styles.css decides what the class means, and Router.mark() unsets it.
 	classes: "hides-nav",
 
-	children: "start faq versus core ext styles util dev",
+	children: "start faq versus core styles ext util dev",
 
 	// Labels that differ from the page's own title, and nothing else. Icons live on
 	// the pages — see core/Page/readme.md §"nav".
@@ -21,24 +21,15 @@ export default new Page({
 		dev:   "Dev server",
 	},
 
-	/* The sidebar draws TWO levels, so it needs two levels of imports: my seven
-	 * sections, and then each section's own children. Explicit and in one place,
-	 * because the cost is real and belongs where it is spent.
-	 *
-	 * Measured: 28 page.js fetches on any /framework/ url, and **+51ms to first
-	 * paint** — they resolve after `inject()`, so the reader is already reading. The
-	 * alternative was a hand-typed copy of all 25 entries, which lived here for a
-	 * while and drifted the first time anything moved.
-	 *
-	 * Both levels, not one: `previews()` and `tabs()` on a section read that
-	 * section's `loading`, and this promise is what the sidebar's redraw waits for —
-	 * awaiting only the first level redrew before the grandchildren had titles, and
-	 * the nav read `markdown demo highlight` in lower case.
-	 */
-	initialize(){
-		this.loading = this.load_all_children().then(sections =>
-			Promise.all(sections.filter(Boolean).map(page => page.loading ?? page.load_all_children())));
-	},
+	/* The sidebar draws TWO levels. Each section that has children opts into
+	 * load_all_children() itself, and opt-ins compose — so this one call settles
+	 * when every title the sidebar needs is real, and the Router waits for it
+	 * before activating me. Measured: 59 page.js fetches on any /framework/ url,
+	 * spent before first paint — the nav draws once, right, instead of drawing
+	 * names and sharpening. The alternative was a hand-typed copy of all those
+	 * entries, which lived here for a while and drifted the first time anything
+	 * moved. */
+	initialize(){ this.load_all_children(); },
 
 	/* A LAYOUT, not a content page — so it builds its own wrapper and the `.page`
 	 * element IS the row. Three things an override owes, all silent when missed
@@ -49,29 +40,12 @@ export default new Page({
 		// arrangement contract lives in @layer util and out-ranks it. See Page.css.
 		return this.view ??= div.c("page page-framework topic flex", () => {
 
+			// Both levels are already loaded — the Router waited on `loading` before
+			// activating me — so this is built once, complete, and never rebuilt.
 			this.$sidebar = new Sidebar({
 				// logo goes home; the wordmark is this section's own url
 				header: () => this.app.brand(this.title, this.url),
 				pages: this.sections(),
-			});
-
-			/* The second level arrives with the imports. Rebuilt rather than patched:
-			 * the header is identical either way, so all that visibly happens is the
-			 * sub-entries appearing.
-			 *
-			 * `pages` has to be recomputed, not just re-rendered — it is an ARRAY,
-			 * evaluated once when the Sidebar was constructed, so re-running render()
-			 * against it drew the same flat list again. Which looked like the promise
-			 * never firing, and was measured as `versus core styles` in lower case. */
-			this.loading.then(() => {
-				this.$sidebar.assign({ pages: this.sections() })
-					.empty(() => this.$sidebar.render());
-
-				// These links were built AFTER Router.mark() ran, so they missed the
-				// pass — every row came back with no `.active` and no `.in-path`. Same
-				// re-mark `tabs()` does for the same reason, and it was invisible until
-				// a narrow-screen rule started keying off those classes.
-				this.app.router.mark_links();
 			});
 
 			// My children mount HERE, inside my own view — so the nav beside them is
@@ -80,7 +54,7 @@ export default new Page({
 			this.$pages = div.c("pages papers", () => {
 
 				// what /framework/ itself shows, and only then
-				div.c("default", () => {
+				div.c("page default", () => {
 
 					md("Create `/path/page.js`:");
 
@@ -104,9 +78,6 @@ p("Hello world.")`);
 	 * children of its own. Everything comes from `nav_for()` — mine for the top
 	 * level, each section's for its own — so an icon or a label is declared once,
 	 * beside the page it names, and this file names nothing twice.
-	 *
-	 * Before the imports land a section is simply flat. The list grows downward
-	 * rather than reshaping, so the top level is correct from the first frame.
 	 */
 	sections(){
 		return [...this.children.keys()].map(name => {

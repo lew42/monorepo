@@ -34,7 +34,9 @@ export default class View {
 	// add class
 	ac(...args){
 		for (const arg of args){
-			arg && arg.split(" ").forEach(cls => this.el.classList.add(cls));
+			// filter(Boolean): a trailing or doubled space yields an empty token, and
+			// classList.add("") THROWS — so `.ac("card " + maybe)` was a live landmine
+			arg && arg.split(" ").filter(Boolean).forEach(cls => this.el.classList.add(cls));
 		}
 		return this;
 	}
@@ -42,7 +44,7 @@ export default class View {
 	// remove class
 	rc(...args){
 		for (const arg of args){
-			arg && arg.split(" ").forEach(cls => this.el.classList.remove(cls));
+			arg && arg.split(" ").filter(Boolean).forEach(cls => this.el.classList.remove(cls));
 		}
 		return this;
 	}

@@ -9,9 +9,9 @@ import centered from "./centered/layout.js";
 import stack from "./stack/layout.js";
 import masthead from "./masthead/layout.js";
 
-/* css: .layout-side, .layout-rail, .layout-measure, .layout-card, .layout-thumb,
-   .layout-viewport, .layout-close — and `.page-preview` / `.zoom-25`, which this
-   page borrows from Page.css and framework.css (both loaded via /app.js). */
+/* css: .layout-side, .layout-rail, .layout-measure, .layout-fit,
+   .layout-full, .layout-close — plus `.page-preview` / `.gallery-*` / `.zoom-25`,
+   borrowed from Page.css and framework.css (both loaded via /app.js). */
 View.stylesheet(import.meta, "layouts.css");
 
 /* Eight tiny modules, imported eagerly and on purpose: the gallery renders every
@@ -35,18 +35,16 @@ export default new Page({
 	description: "Eight page layouts, live at zoom-25 — click one for the full size and the source.",
 	icon: "dashboard_customize",
 
+	// a gallery is not prose: no measure, so the wall gets the room it has
+	classes: "dash",
+
 	children: "holy-grail sidebar cards dashboard split centered stack masthead",
 
-	nav: {
-		"holy-grail": { label: "Holy grail", icon: "view_quilt" },
-		sidebar:      { label: "Sidebar",    icon: "view_sidebar" },
-		cards:        { label: "Cards",      icon: "grid_view" },
-		dashboard:    { label: "Dashboard",  icon: "dashboard" },
-		split:        { label: "Split",      icon: "vertical_split" },
-		centered:     { label: "Centered",   icon: "format_align_center" },
-		stack:        { label: "Stack",      icon: "view_agenda" },
-		masthead:     { label: "Masthead",   icon: "web" },
-	},
+	/* No `nav` map. Every label here is the child's own `title` and every icon its
+	   own `icon`, so a layout is named in exactly one place — see
+	   core/Page/readme.md, "nav". The eight imports that costs are already paid:
+	   this page renders all eight layouts in the gallery below. */
+	initialize(){ this.load_all_children(); },
 
 	content(){
 
@@ -56,10 +54,10 @@ export default new Page({
 		div.c("grid gap auto", () => this.children.forEach((page, name) => {
 			const nav = this.nav_for(name);
 
-			a.c("page-preview layout-card").href(nav.url).append(() => {
-				div.c("layout-thumb zoom-25 flex all-1", gallery[name]);
+			div.c("page-preview gallery-card", () => {
+				div.c("gallery-thumb zoom-25 flex all-1 h-center", gallery[name]);
 
-				div.c("flex gap v-center", () => {
+				a.c("gallery-link").href(nav.url).append(() => {
 					icon(nav.icon);
 					span.c("page-preview-title", nav.label);
 				});
@@ -85,7 +83,24 @@ export default new Page({
 
 		md("Four builders, shared by all eight, so a layout file is only its layout. The tint is an inline token value rather than a class — `layouts.css` stays layout-only, which is the same call `styles/util/page.js` makes for its demo cells.");
 
-		md("Next: [Utilities](/framework/util/) — the JS helpers, which are far fewer.");
+		md("## Which page should hold it");
+
+		md(`Each layout page ends with the same two questions — what you would build with it, and how the page around it should be shaped. The four shapes are the four things \`--measure\` and \`--page-pad\` can be, and the summary is here:
+
+| layout | fit | the page says |
+|---|---|---|
+| [Holy grail](/framework/styles/layouts/holy-grail/) | **Full** | its own url, \`position: fixed\` |
+| [Sidebar](/framework/styles/layouts/sidebar/) | **Bleed** | \`--measure: none\`, \`--page-pad: 0\` |
+| [Cards](/framework/styles/layouts/cards/) | **Wide** | \`--measure: none\`, \`--page-pad: 2em\` |
+| [Dashboard](/framework/styles/layouts/dashboard/) | **Wide** | \`--measure: none\`, \`--page-pad: 2em\` |
+| [Split](/framework/styles/layouts/split/) | **Measured** | \`classes: "paper"\` |
+| [Centered](/framework/styles/layouts/centered/) | **Measured** | \`classes: "paper"\` |
+| [Stack](/framework/styles/layouts/stack/) | **Measured** | \`classes: "paper"\` |
+| [Masthead](/framework/styles/layouts/masthead/) | **Bleed** | \`--measure: none\`, \`--page-pad: 0\` |
+
+**Half of them are measured**, which is the finding: a layout is usually arranging *reading*, and reading wants a column. The two that bleed both have a band that must touch the window, and the one that goes full has five regions and a \`flex-1\` middle that only proves itself against a real viewport.`);
+
+		md("Next: [Sections](/framework/styles/sections/) — these layouts, filled with real elements and components.");
 
 		md.details(import.meta, "readme.md", "Design record — zoom vs transform, one layout three ways, maximize without a query param");
 	}

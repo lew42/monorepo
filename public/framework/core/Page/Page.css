@@ -1,59 +1,32 @@
-/* Layer order, restated IN FULL — the first `@layer` statement fixes the order and
-   a name first seen later is appended at the END. View.js loads framework.css, so
-   that file gets there first now; this line stays because nothing fails loudly if
-   some other entry point ever changes that. */
+/* Layer order, restated IN FULL — a short list silently misplaces `site`.
+   See the header of framework.css. */
 @layer base, theme, site, util;
 
-/* ── the arrangement contract ──
-   Router.mark() writes exactly two classes — .active-page on the leaf and
-   .active-ancestor on everything above it. Every arrangement on the site is these
-   rules plus a class a page opted into. Design record: core/Page/readme.md.
+/* ── the arrangement contract: the ONLY place a page's visibility is decided ──
+   Router.mark() writes `.active-page` on the leaf, `.active-ancestor` above it.
 
-   ⚠ IN `util`, WHICH IS NOT WHERE A STRUCTURAL RULE BELONGS, and the reason is the
-   whole point of the arrangement: a page should be able to BE a layout —
-   `page.ac("grid gap auto")` for a dashboard, `"flex gap"` for three columns. Those
-   are util classes, util is the last layer, and `.grid { display: grid }` therefore
-   beats any `display: none` written in `theme` at any specificity. The result was
-   every inactive page on screen at once, which reads like a router bug.
-
-   So the hiding lives up here with them, and beats them on specificity instead:
-   four classes against one. Which is why the rule is phrased as "hide unless" — a
-   plain `.page { display: none }` in this layer is (0,1,0), exactly `.grid`'s, and
-   would be decided by which <link> loaded last.
-
-   The other half is that NOTHING here says `display` for a page that IS showing —
-   a `div` is already a block. Add `display: block` back and you have taken the
-   choice away from the util class again. */
+   ⚠ In `util`, so it out-ranks the `.grid` / `.flex` a page is allowed to wear.
+   ⚠ "Hide unless", not `.page { display: none }` — that ties `.grid` at (0,1,0).
+   ⚠ Nothing sets `display` for a page that IS showing; a div is a block, and
+     saying so takes the choice back off the util class.
+   Why, at length: core/Page/readme.md. */
 @layer util {
 
 	.page:not(.active-page, .active-ancestor:has(.page.active-page), .default) { display: none; }
 
-	/* A tab set's default is the exception: it shows precisely when it is NOT in the
-	   chain, so the test has to be about its siblings rather than about itself. Its
-	   own `.active-page` state is excluded, or navigating TO the default tab hides
-	   it — the panel would then contain an active page, which is this selector. */
+	/* A tab set's default shows when it is NOT in the chain, so the test is about its
+	   siblings. Its own active state is excluded, or navigating to it hides it. */
 	.tab-panel:has(> .page:is(.active-page, .active-ancestor))
 		> .page.default:not(.active-page, .active-ancestor) { display: none; }
 }
 
 @layer theme {
 
-	/* A region pages mount into. THE REGION SCROLLS, NOT THE PAGE — a `.page` is
-	   also a centred `max-width`, so a scrollbar on it renders at the sheet's edge
-	   instead of the viewport's, and a page inside a tab panel gets a second
-	   scroller inside its ancestor's.
-
-	   `align-items: flex-start` so an item sizes to its content; `min-height: 100%`
-	   on the child is what keeps a SHORT page filling the region. Two declarations
-	   because one box cannot be told "as tall as your content, but never shorter
-	   than your parent" in one word.
-
-	   `overflow-y: scroll`, not `auto`: the gutter is then always reserved, so
-	   navigation never shifts the content sideways.
-
-	   The measure tokens are set HERE, on every region, and not only on `.papers` —
-	   so they stop at each region boundary instead of a nested plain `.pages`
-	   inheriting a sheet width from an ancestor that happened to be papers. */
+	/* THE REGION SCROLLS, NOT THE PAGE — a page is a centred measure, so a scrollbar
+	   on it would render at the sheet's edge instead of the window's.
+	   `scroll` not `auto`, so the gutter stays reserved and navigating never shifts
+	   the content sideways. The tokens sit on EVERY region, so they stop at each
+	   boundary instead of leaking into a nested one. */
 	.pages {
 		display: flex; align-items: flex-start;
 		flex: 1 1 auto; min-width: 0; min-height: 0;
@@ -63,27 +36,13 @@
 
 	.page { min-width: 0; min-height: 0; }
 
-	/* The leaf is always visible. An ancestor is not — that is "replace", and it is
-	   the default because it is what's left when nothing opts in. …unless it actually
-	   CONTAINS the leaf, in which case hiding it would hide the leaf too. Asking that
-	   directly beats making every author remember a flag.
-
-	   Sizing only. Whether either of these shows was decided in `util` above. */
+	/* Sizing only — whether these show was decided in `util` above. */
 	.page.active-page,
 	.page.active-ancestor:has(.page.active-page) { flex: 1 1 auto; min-height: 100%; }
 
-	/* What a region shows when none of its children is IN THE CHAIN — the index-route
-	   problem. A parent that owns a region usually has something of its own to say at
-	   its own url, and nowhere else to put it.
-
-	   This one is a plain div, not a `.page` (see /framework/page.js), so it is not
-	   the contract's business and stays down here.
-
-	   The test asks for `.active-ancestor` too, and it has to: `.active-page` means
-	   "is the LEAF directly in me", where the question is "is anything of mine in the
-	   chain at all". Those differ the moment a child mounts the leaf somewhere of its
-	   own, and the symptom was an index page rendering as a flex SIBLING of the real
-	   one. readme.md, last section. */
+	/* What a region shows when nothing of its own is in the chain — the index route.
+	   A plain div, not a `.page`, so not the contract's business.
+	   ⚠ `.active-ancestor` in the test is load-bearing; readme.md, last section. */
 	.pages > .default { display: none; }
 
 	.pages:not(:has(> .page.active-page, > .page.active-ancestor)) > .default {
@@ -92,30 +51,66 @@
 
 
 	/* ── the look of everything Page renders ──
-	   Structure only, no skin: the site decides backgrounds (see /styles.css). */
+	   Structure only, no skin: the site decides backgrounds (/styles.css).
 
-	/* THE MEASURE, as two tokens rather than two declarations, and that is the whole
-	   design: a page opts OUT by setting them on itself, and a value set on an element
-	   beats one it inherited at any specificity, in any layer. Before this, opting out
-	   meant out-specifying `.pages.papers > .page` (0,3,0) or — what /styles.css
-	   actually did — winning from `@layer site`, which the file itself flags as a bug
-	   report about a missing token. This is the token.
-
-	   A MEASURE, not a sheet: no background, because that is the site's call. */
+	   The measure is TOKENS, so a page opts out by setting them on itself — a value
+	   declared on an element beats an inherited one at any specificity, any layer. */
 	.page { max-width: var(--measure, none); padding: var(--page-pad, 0); }
 
-	/* One page opts in, or a REGION opts its children in — so a topic sets it once
-	   instead of every child repeating `classes: "paper"`. */
+	/* One page opts in, or a region opts all of its children in. */
 	.pages.papers,
-	.page.paper { --measure: 60em; --page-pad: 3em 4em; }
+	.page.paper { --measure: 60em; --page-pad: 3em clamp(0px, 6%, 5em); }
+
+	/* A page whose body is a vertical tab set is a rail PLUS a column, so 60em has
+	   to cover both and the reading comes out narrower than an ordinary page's. It
+	   also never carries a ToC — the rail is its table of contents. Derived from the
+	   structure rather than declared, so classdoc and anything else that grows a
+	   rail get it without a class. */
+	.page:has(> .tabs.vertical) { --measure: 78em; }
+
+	/* ── breakouts ──
+	   Prose keeps the measure; a `.wide` or `.bleed` child escapes it. Tracks, not
+	   negative margins — readme.md.
+
+	   ⚠ Its own `--gutter-x`, never `--page-pad`: that is a `padding` shorthand and
+	     usually two values, and `minmax(3em 4em, 1fr)` drops the whole template.
+	   ⚠ The main track subtracts the gutters. `min(--measure, 100%)` resolves to the
+	     FULL page width when the measure doesn't fit, and the gutters then add on
+	     top — 921px of tracks in an 857px page. */
+	.page.breakouts {
+		--measure: 60em;
+		--breakout: 7em;
+		--gutter-x: 2em;
+		--pad-y: 3em;
+
+		display: grid;
+		grid-template-columns:
+			[bleed-start] minmax(var(--gutter-x), 1fr)
+			[wide-start]  minmax(0, var(--breakout))
+			[main-start]  min(var(--measure), 100% - var(--gutter-x) * 2) [main-end]
+			              minmax(0, var(--breakout)) [wide-end]
+			              minmax(var(--gutter-x), 1fr) [bleed-end];
+
+		padding: var(--pad-y) 0;
+		max-width: none;
+	}
+
+	/* `dash` is a wall of cards; `page-full` is "the thing IS the page". */
+	.page.dash      { --measure: none; --page-pad: 2em; }
+	.page.page-full { --measure: none; --page-pad: 0; }
+
+	.page.breakouts > *      { grid-column: main; min-width: 0; }
+	.page.breakouts > .wide  { grid-column: wide; }
+	.page.breakouts > .bleed { grid-column: bleed; }
+
+	/* ⚠ No ToC rule here on purpose — both want `grid-template-columns`, and the
+	   winner would be load order. toc.css opts out with `:not(.breakouts)`. */
 
 	.pages.papers > .default { padding: 3em 4em; max-width: 60em; }
 
 	/* ── tabs ──
-	   `Page.tabs()` emits `.tabs > .tab-bar + .tab-panel`. Structure and tokens only,
-	   no literal colours: enough to *be* a tab bar, and every value a theme already
-	   controls. `.active` / `.in-path` come from Router.mark_links(), so the selected
-	   tab needs no JS. */
+	   `Page.tabs()` emits `.tabs > .tab-bar + .tab-panel`. `.active` / `.in-path`
+	   come from Router.mark_links(), so the selected tab needs no JS. */
 
 	.tabs { display: flex; flex-direction: column; min-width: 0; }
 
@@ -146,7 +141,11 @@
 		color: var(--ink); border-bottom-color: var(--prim);
 	}
 
-	.tab-panel { padding-top: 1rem; min-width: 0; }
+	/* A panel is INSIDE a page that already has the sheet, so it resets the measure
+	   tokens — they inherit, and a page mounted in here is a `.page` like any other.
+	   Without this a classdoc method page paid the 3em/4em twice and its heading
+	   started an inch and a half down the column. */
+	.tab-panel { padding-top: 1rem; min-width: 0; --measure: none; --page-pad: 0; }
 
 	/* The panel's fallback — show the set's first child when the url selected none of
 	   them — is the second rule of the contract, at the top of this file. It has to be
@@ -158,12 +157,12 @@
 	   axis changes. The bar is sticky, because the panel is usually taller and a nav
 	   you have to scroll back up to reach is not a nav. */
 
-	.tabs.vertical { flex-direction: row; align-items: flex-start; gap: 1.75rem; }
+	.tabs.vertical { flex-direction: row; align-items: flex-start; gap: 4em; }
 
 	.tabs.vertical > .tab-bar {
 		flex-direction: column; flex-wrap: nowrap; gap: 0;
-		flex: 0 0 clamp(6em, 15%, 10em); min-width: 0;
-		position: sticky; top: 0;
+		flex: 0 0 clamp(9em, 18%, 14em); min-width: 0;
+		position: sticky; top: 1em;
 		font-size: 0.95em;
 		border-bottom: none;
 		border-inline-end: 1px solid var(--line);
@@ -333,4 +332,42 @@
 
 	.page-preview-title { font-weight: 700; }
 	.page-preview-desc { color: var(--subtle); font-size: 0.85em; margin-top: 0.2em; }
+
+	/* Spans, not widths — the wall is `auto-fill`, so asking for a SHARE is the only
+	   request that survives a resize. At one column they clamp themselves. */
+	.page-preview.wide  { grid-column: span 2; }
+	.page-preview.tall  { grid-row: span 2; align-items: flex-start; }
+	.page-preview.big   { grid-column: span 2; grid-row: span 2; align-items: flex-start; }
+
+	/* A card with height is a panel: its title belongs at the top. */
+	.page-preview:is(.tall, .big) { flex-direction: column; gap: 0.3em; }
+
+	/* ── a gallery card: a preview with a live render in it ──
+	   Three indexes want it (layouts, components, sections) and it is one object.
+
+	   ⚠ The thumbnail is INERT. A live render inside a card that is itself a link is
+	   an `<a>` in an `<a>` — invalid, and the browser unnests it. `pointer-events:
+	   none` is why the card stays a div and the label below is the only link. */
+	.gallery-card {
+		position: relative;
+		display: flex; flex-direction: column; gap: 0.7em;
+		padding: 0.9em;
+	}
+
+	.gallery-thumb {
+		aspect-ratio: 16 / 10;
+		overflow: hidden;
+		background: var(--tint);
+		border-radius: var(--radius);
+		pointer-events: none;
+		user-select: none;
+	}
+
+	/* The label is the link; its ::after covers the card. */
+	.gallery-link { display: flex; align-items: center; gap: 0.45em; text-decoration: none; color: inherit; }
+	.gallery-link::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+	.gallery-link .icon { color: var(--subtle); }
+
+	.gallery-card:hover .gallery-link { color: var(--prim); }
+	.gallery-card:hover .gallery-link .icon { color: var(--prim); }
 }

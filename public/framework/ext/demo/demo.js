@@ -1,4 +1,4 @@
-import View, { div, p, pre, code, span, button, select, option, icon, is } from "../../core/View/View.js";
+import View, { div, p, pre, code, span, a, button, select, option, icon, is } from "../../core/View/View.js";
 import { source, dedent } from "../../util/source/source.js";
 import { markup } from "../../util/markup/markup.js";
 
@@ -51,9 +51,8 @@ export default function demo(...args){
 	return div.c("demo", $demo => {
 		let $html, $stage, $render, $size;
 
-		// Placed now, filled last. Every control on it points at something further
-		// down the box, and `append(fn)` re-establishes the captor — so the toolbar
-		// is written where its targets already exist, and still lands at the top.
+		// Placed now, filled last: its controls point at things further down, and
+		// `append(fn)` re-establishes the captor.
 		const $bar = div.c("demo-bar");
 
 		div.c("demo-panes", () => {
@@ -61,15 +60,10 @@ export default function demo(...args){
 			$html = pre.c("demo-html");
 		});
 
-		/* Three boxes, and each one earns itself: the STAGE is what you resize and
-		 * what the handle is positioned against, the SCREEN is the viewport that
-		 * scrolls, and the RENDER is the bare content whose width gets reported.
-		 *
-		 * They cannot be merged. Scrolling on the stage clips the handle (it hangs
-		 * over the right edge) and turns the overhang into scrollable width; and
-		 * `overflow-x` on the render forces `overflow-y` off `visible` too, which
-		 * would quietly put a scrollbar around every demo that overflows on purpose
-		 * — a tooltip, a popover, anything sticky. */
+		/* STAGE resizes, SCREEN scrolls, RENDER is the bare content that gets
+		 * measured. ⚠ They cannot be merged: overflow on the stage clips the handle
+		 * that hangs over its edge, and `overflow-x` on the render forces
+		 * `overflow-y` off `visible` for every demo on the site. */
 		div.c("demo-stage", $view => {
 			$stage = $view;
 
@@ -81,13 +75,9 @@ export default function demo(...args){
 
 		if (note) caption(note);
 
-		/* ONE function for the HTML pane, so the button and the `html: true` flag
-		 * cannot end up disagreeing about the state.
-		 *
-		 * Read on SHOW rather than now: a demo whose content arrives from a promise
-		 * has not finished building when demo() returns, and a click is always later
-		 * than that. The flag re-reads a microtask later for the same reason — the
-		 * shape toc() uses, after render() returns and before the browser paints. */
+		/* One function, so the button and the `html: true` flag cannot disagree.
+		 * Read on SHOW: a demo whose content arrives from a promise has not finished
+		 * building when demo() returns, and a click is always later than that. */
 		let $toggle;
 
 		const html = on => {
@@ -107,10 +97,16 @@ export default function demo(...args){
 
 			$toggle = btn("<>", "The HTML this built", () => html(!$demo.hc("show-html")));
 
-			btn(() => icon("open_in_full"), "Fill the window", function(){
-				this.tc("on");
-				$demo.tc("max");
-			});
+			/* A link when the page claims `<url>full/` via `route()`, so a reload lands
+			 * back on it; a toggle when it doesn't. See styles/layouts/full.js. */
+			if (opts.full)
+				a.c("demo-btn", () => icon("open_in_full"))
+					.attr("title", "Open full size").href(opts.full.url + "full/");
+			else
+				btn(() => icon("open_in_full"), "Fill the window", function(){
+					this.tc("on");
+					$demo.tc("max");
+				});
 		});
 
 		if (opts.html) queueMicrotask(() => html(true));
@@ -123,11 +119,8 @@ function btn(content, title, fn){
 	return button.c("demo-btn", content).attr("title", title).click(fn);
 }
 
-/* Zoom, as CSS `zoom` and not `transform: scale()`. Scale would look identical
- * and lie about the layout: a scaled box still occupies its unscaled size, so
- * nothing around it moves and nothing inside it re-lays-out. `zoom` really does
- * change the element's own coordinate system, which is what makes the readout
- * below mean something — the example is laid out at stage-width ÷ zoom. */
+/* CSS `zoom`, not `transform: scale()`. Scale would look identical and lie: a
+ * scaled box still occupies its unscaled size, so nothing re-lays-out. */
 const ZOOMS = [25, 50, 75, 100, 150, 200];
 
 function zoom($render, measure){
@@ -142,12 +135,9 @@ function zoom($render, measure){
 	});
 }
 
-/* Drag the stage's right edge. What you set is what you SEE; the example lays
- * out at that width divided by the zoom, which is the number `.demo-size` reports.
- *
- * Right-click clears it and the stage goes back to filling its column. That is
- * the only way back to "whatever fits" — a reset button in the toolbar would be
- * a control whose whole job is undoing another control. */
+/* Drag the stage's right edge; what you set is what you SEE, and the example lays
+ * out at that ÷ zoom. Right-click clears it — the only way back to "whatever
+ * fits", and cheaper than a toolbar button that undoes another button. */
 function resizer($stage){
 	return div.c("demo-handle")
 		.attr("title", "Drag to resize · right-click to reset")
@@ -172,13 +162,10 @@ function resizer($stage){
 		});
 }
 
-/* How wide the example is actually laid out — `offsetWidth`, which is the
- * element's OWN box and so is unaffected by `zoom`: a 700px stage at 50% reads
- * 1400. That is the number a reader wants, because it is the width the CSS inside
- * the demo is responding to.
- *
- * Deliberately not the ResizeObserver entry's `contentRect`: what that reports
- * under `zoom` has moved between browser versions, and `offsetWidth` has not. */
+/* `offsetWidth` is the element's OWN box and so is unaffected by `zoom` — a 700px
+ * stage at 50% reads 1400, which is the width the demo's CSS is responding to.
+ * ⚠ Not the ResizeObserver `contentRect`: what that reports under `zoom` has moved
+ * between browser versions. */
 function ruler($render, $size){
 	const measure = () => $size.text(Math.round($render.el.offsetWidth) + "px");
 

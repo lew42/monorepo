@@ -313,7 +313,8 @@ initialize(){ this.load_all_children(); }
 
 The imports resolve *after* `inject()`, so the reader is already reading while they
 land. `+51ms` against 25 hand-maintained entries that had already drifted is not a
-close call.
+close call. *(The "after inject()" half was later reversed — the Router now waits.
+See §"Draw once" below.)*
 
 **The remaining rule, and it is the honest one:** eager loading is bounded to the
 levels a menu actually draws. `/framework/`'s sidebar draws two, so it loads two.
@@ -321,7 +322,9 @@ levels a menu actually draws. `/framework/`'s sidebar draws two, so it loads two
 with icons and imports nothing. **Declare what a menu needs before import; derive
 what the page already has.**
 
-Two implementation notes worth keeping, both found by measurement:
+Two implementation notes, both found by measurement — **superseded** by §"Draw
+once" below, which deleted the machinery they describe, but kept because both
+name a bug class that will recur anywhere a redraw survives:
 
 - **Await both levels.** Awaiting only the first redrew the sidebar before the
   grandchildren had titles, and the nav read `markdown demo highlight` in lower
@@ -395,6 +398,52 @@ never loads its own file. Fewest concepts, worst failure.
 only thing that decides how a child is presented, so a topic's sidebar and its
 preview cards structurally cannot disagree.
 
+## Draw once — `loading` is a gate, not a redraw signal (REVISED)
+
+**Asked as:** *"why redraw? waiting ~100ms is better than FOUC/redraw."*
+
+The original shape: `load_all_children()` runs in `initialize()`, which fires
+inside the constructor — *before* adoption hands the page its `app` — so the
+promise had nowhere to be awaited and first paint could not wait for it. Every
+consumer therefore drew names first and subscribed to `loading` to redraw:
+`previews()` emptied and refilled its cards, and `/framework/page.js` rebuilt its
+whole Sidebar and re-ran `mark_links()`. The redraw was never the goal; it was
+the workaround for a promise with nowhere to go.
+
+**The reversal.** Waiting wins on both counts:
+
+- The Router already blocks activation on stylesheets so a page's first paint
+  isn't unstyled-then-snap. Titles are the same argument one layer up.
+- A post-paint redraw can never sit inside `document.startViewTransition()` — it
+  pops *after* the swap, un-animated, no matter what a site does. Draw-once puts
+  every visual change inside the one synchronous `activate()`, which is exactly
+  the shape that API demands.
+
+**Two changes, one meaning:**
+
+1. `load_all_children()` awaits each child's own `loading`, so opt-ins
+   **compose**: the promise means "my opted-in subtree is ready", however deep
+   the opt-ins go. `/framework/page.js`'s hand-chained two-level await collapsed
+   to the same one-liner every section uses.
+2. `Router.load()` awaits the entering chain's `loading` (`allSettled`, for
+   `styles_loaded()`'s reason) before `activate()`. Boot goes through the same
+   path, so cold load is covered for free, and `activate()` stays synchronous.
+
+**Rejected: full recursion** — `load_all_children()` meaning "import every
+descendant". An ancestor's one line would override a descendant's *deliberate*
+laziness three files away (a 115-child API index is the standing case), which is
+the no-black-magic failure. Composition recurses exactly as far as each page
+opted in, in its own file.
+
+**Rejected: eager `children:` by default** — already litigated in the CMS
+section below (Option 1): auto-import cannot remove the declaration, only the
+laziness, which is the part nobody was complaining about.
+
+**The honest cost:** the fetch cascade was already paid on any `/framework/` url;
+it now sits on the critical path to paint — deep links included, since their
+chain contains `/framework/`. Roughly one round-trip per opt-in level. Accepted
+deliberately: a one-time ~100ms beats watching the nav re-spell itself.
+
 ## The tab bar had no CSS at all
 
 `Page.tabs()` shipped working and **invisible**: it emits `.tabs`, `.tab-bar`,
@@ -443,6 +492,44 @@ Cost, measured: `/framework/ext/` went from 3 module fetches to 4, because
 That is the documented trade, and it is the reason the *other* three tabs cost
 nothing.
 
+### REVERSED — `/framework/ext/` is `previews()` now, and the test was incomplete
+
+The four conditions above are all still true of `/framework/ext/`, and it was
+still the wrong call. **A fifth condition was missing, and it is the one that
+matters most:**
+
+> A tab bar mounts its children **inside the hosting page**, so every child
+> inherits that page's measure.
+
+`ext` is a measured doc page at `60em`. `files` — a file tree beside a code pane —
+was therefore laid out in **847px of a 1253px region**, and the component that
+most needs width was the one with least. No amount of `breakouts` on the child can
+fix that: it can escape its parent's measure, not its parent's box.
+
+`previews()` mounts each child in the **region** instead, at the region's width,
+where a page that needs to be wide can say so. Measured after: the file browser
+went from 781px to 1187px.
+
+The second reason, which was already written down and ignored: **the section
+sidebar already lists all six children.** The bar was a second navigation for one
+set, in a section that has a perfectly good first one.
+
+**The revised test**, and the ordering is deliberate:
+
+1. Do the children need more width than this page's measure? → **previews**
+2. Does the reader drill *into* them rather than flip *between*? → **previews**
+3. Is the list open-ended? → **previews**
+4. Otherwise, and only then → tabs
+
+Where tabs are still right: a **vertical** set, which is a rail rather than a bar,
+where the host page has no prose of its own and exists to arrange its children —
+`classdoc.page()` is exactly that, and it is now the only tab set on the site.
+Those get the wide tier automatically, derived from the structure:
+
+```css
+.page:has(> .tabs.vertical) { --measure: 78em; }
+```
+
 ---
 
 ## `.default` asked "is the leaf mine?" when it meant "am I in the chain?"
@@ -478,3 +565,139 @@ wrong as soon as the tree gets a level deeper. `.tab-panel`'s twin fallback had
 the identical shape and was fixed alongside it — not because anything hits it yet
 (`tabs()` is documented for flat children) but because a pair that drifts is a
 pair where one gets fixed and the other doesn't.
+
+## Is `children: "one two three"` the right way? (the CMS question)
+
+**Asked as:** *"we have to micro-manage it, or have AI generate it, either way it
+feels bad, even if it's the easiest or cleanest way to get it done. In the future,
+what's the best way? `/directory.json` could list all files? `./page.json` could
+list nav items, per page?"*
+
+The feeling is correct and the diagnosis is worth getting exactly right, because
+the obvious fixes do not fix it.
+
+### Three jobs, and `children` does all of them in one line
+
+A parent needs three separate things, and they are usually discussed as one:
+
+| | question | who knows the answer |
+|---|---|---|
+| **discovery** | which children exist? | the filesystem |
+| **presentation** | what order, what label, what icon? | a human |
+| **laziness** | which of them do I load now? | the router, at click time |
+
+`children: "start faq versus core ext styles util dev"` answers all three with one
+string. Discovery is the list, presentation is the *order* of the list, laziness is
+that they are names and not imports. That is why it keeps winning on "easiest and
+cleanest" — it is not one decision cheaply made, it is three decisions that happen
+to collapse into one token each.
+
+**Every alternative below solves discovery and leaves the other two where they
+were.** That is the finding.
+
+### Option 1 — auto-import children
+
+Rejected, and it is worth separating two things that get called this:
+
+- *Auto-discover* — "look in the folder". A browser cannot. `import()` needs a
+  path, and there is no directory listing over HTTP. This is not a design choice;
+  it is not available without a server or a generated file, which is Option 2.
+- *Auto-import the declared names* — that already exists, as
+  `load_all_children()`, and it is opt-in because it costs one HTTP request per
+  child. Measured on `/framework/`: 28 fetches, **+51ms to first paint.**
+
+So "auto-import" cannot remove the declaration. It can only remove the laziness,
+which is the one part nobody was complaining about.
+
+**Kept as opt-in.** But with a finding: *almost every index page calls it*, because
+`previews()` and `tabs()` both want real titles. If a fourth thing ever wants it,
+the default is wrong and it should flip — with `lazy: true` as the escape.
+
+### Option 2 — `/directory.json`, the whole tree in one file
+
+The honest version of "look in the folder": a generated manifest, one fetch, every
+url on the site.
+
+**What it genuinely buys:** discovery stops being hand-maintained. Add a folder,
+regenerate, the page exists. A sitemap, a search index and a build-time link check
+all fall out of the same file. For a CMS this is not optional — a CMS *has* a
+content index, and pretending otherwise means writing one twice.
+
+**What it does not buy:** order, labels or icons. A flat list of paths is
+alphabetical, and `api` before `guide` before `intro` is not a curriculum. So the
+manifest grows entries — and an entry with a label and an order in it **is the
+`children` + `nav` declaration**, moved to a different file and now further from
+the page it describes.
+
+**And it costs a source of truth.** The declaration cannot go stale against the
+filesystem, because it *is* the registration — a name nobody declared is a 404,
+loudly, on the first click. A generated manifest can be stale in a way nothing
+detects: the file exists, the manifest doesn't mention it, the page silently
+isn't there.
+
+### Option 3 — `./page.json` beside each `page.js`
+
+The strongest of the three, and for one specific reason: **metadata you can read
+without executing code.**
+
+Today a parent cannot know a child's title without importing its `page.js`, which
+means running it. That is the whole reason `nav: { start: "Start here" }` exists —
+a parent repeating a label it could otherwise have read. Split the file:
+
+```
+about/
+  page.json   { "title": "About", "icon": "info", "children": ["team", "jobs"] }
+  page.js     content(){ … }
+```
+
+…and a nav is a fetch of a small JSON file, not an import of a module. Prefetchable,
+cacheable, inspectable, and generatable by a CMS that has no business writing JS.
+
+**The cost is two files per page**, and a rule about which one owns `title` when
+both say it. That is a real cost — this framework's whole thesis is that a page is
+one file you can read top to bottom.
+
+### The verdict, and it is not one of the three
+
+**Discovery should be generated; presentation should stay declared; and the
+generated half should be a *default*, not a source of truth.**
+
+```
+/directory.json     generated — every page.js on disk, in filesystem order
+children: "…"       optional — overrides order, and narrows the set
+nav: { … }          optional — overrides labels and icons
+```
+
+A page that says nothing gets its real children in filesystem order, which is
+right for a blog, a docs folder, a CMS collection. A page that cares says so, and
+its declaration wins. **The manifest removes the chore without removing the
+control** — and, critically, it keeps the failure loud: a declared name that isn't
+in the manifest is a 404 at build time rather than a click time.
+
+Three notes on making it real:
+
+1. **It does not need a build step to exist.** `Server/` already runs `chokidar`;
+   emitting `directory.json` on watch is a few lines, and production is a static
+   copy of whatever the dev server last wrote. The constraint is "nothing may
+   depend on server-side logic **at runtime**" — a JSON file on disk does not.
+2. **It should be fetched once, at boot, in parallel with the root page.** One
+   request for the whole tree beats one per level, and it is the same request a
+   search index would want.
+3. **The `nav` map should shrink to nothing.** With `page.json`-style metadata in
+   the manifest, a parent reads a child's real title without importing it — which
+   is the job `load_all_children()` currently pays 28 HTTP requests to do.
+
+That last point is the one that would change the code most, and it is the reason
+to build the manifest at all: not to stop typing `children`, but to stop a nav
+having to *execute* the pages it lists.
+
+### What is true today, and why it is still defensible
+
+- The declaration is the registration, so an unreferenced page fails loudly.
+- Nothing crawls, so a nav costs zero imports and laziness is free.
+- Order is explicit, which is what a curriculum needs and a filesystem cannot give.
+- It is one line, in the file that owns the decision.
+
+**Not a workaround for a missing feature — the correct small version of it.** The
+manifest is the next size up, and it should be added when the site is big enough
+that discovery is the expensive part. At ~160 pages it is not yet.

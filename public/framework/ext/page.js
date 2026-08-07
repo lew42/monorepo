@@ -34,15 +34,15 @@ export default new Page({
 \`highlight\` is loaded and plain code when it isn't, with no import either way. Only
 **core** may never.`);
 
-		/* The one page on this site that earns a tab bar, and it is worth saying why
-		 * so nobody copies it onto a page that doesn't:
+		/* previews(), not tabs(). This page carried a tab bar for a long time on the
+		 * argument that its children are flat and you flip between them — but the bar
+		 * mounts every child INSIDE this page, so each one inherited this page's
+		 * reading measure. `files` is a tree beside a code pane and wants the room;
+		 * measured, it had 847px of a 1253px region.
 		 *
-		 *   flat children · none has children of its own · you flip between them
-		 *   rather than drilling down
-		 *
-		 * The moment a child grows children, a tab bar has nowhere to show the trail
-		 * and this should go back to previews(). `tabs()` also has no overflow handling
-		 * at all — fine at six, unusable at twenty, and it will never warn you. */
-		this.$tabs = this.tabs();
+		 * Cards mount them in the region instead, at the region's width, where a page
+		 * that needs to be wide can say so. And the sidebar already lists all six, so
+		 * the bar was a second navigation for one set. */
+		this.previews();
 	}
 });

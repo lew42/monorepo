@@ -258,17 +258,11 @@ export class Page {
 		};
 	}
 
-	// A card per child. Drawn from names now; redrawn with real titles and icons if
-	// this page opted into load_all_children().
+	// A card per child. Real titles and icons if this page opted into
+	// load_all_children() — the Router waited for it before rendering me — and
+	// bare declared names forever if it stayed lazy: the honest, visible cost.
 	previews(){
-		return div.c("page-previews", $previews => {
-			this.cards();
-			// A CALLBACK, so the captor is re-established: `empty(fn)` routes through
-			// append_fn, which sets $previews as captor, runs fn, and restores. That is
-			// the whole trick for building DOM after an await — nothing inside cards()
-			// has to know it is being called late.
-			this.loading?.then(() => $previews.empty(() => this.cards()));
-		});
+		return div.c("page-previews", () => this.cards());
 	}
 
 	// one card per child, into whatever is capturing
@@ -289,12 +283,15 @@ export class Page {
 	 * it is that titles and icons then live on the pages themselves instead of being
 	 * repeated by every menu that lists them. Call it from initialize().
 	 *
-	 * Nothing awaits this before first paint (there is no `app` yet inside
-	 * initialize()), so a cold load draws names first and sharpens a moment later.
-	 * `previews()` and `tabs()` both redraw off this promise.
+	 * Each child's own `loading` is awaited too, so opt-ins COMPOSE: this promise
+	 * means "my opted-in subtree is ready", however deep the opt-ins go — and a
+	 * child that stayed lazy stays lazy. Router.load() awaits the chain's `loading`
+	 * before activating, so a page draws once, with real titles, never
+	 * names-then-sharpen.
 	 */
 	load_all_children(){
-		return this.loading = Promise.all([...this.children.keys()].map(name => this.child(name)));
+		return this.loading = Promise.all([...this.children.keys()]
+			.map(name => this.child(name).then(child => child?.loading)));
 	}
 
 	/* A bar of links, and the panel those children mount into. Returns the view, so

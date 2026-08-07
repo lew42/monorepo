@@ -1,6 +1,7 @@
 import App, { View, div, a } from "./framework/core/App/App.js";
 import Socket from "./framework/dev/Socket/Socket.js";
 import { lew42 } from "./framework/styles/theme/lew42/lew42.js";
+import mode from "./framework/styles/theme/mode.js";
 
 App.stylesheet("/styles.css");
 
@@ -67,6 +68,10 @@ const app = window.app = new App({
 			 *
 			 * A topic opts out (`.page.topic` in /styles.css) — it IS the row. */
 			this.$pages = div.c("pages papers");
+
+			// Fixed bottom-right, so it survives a topic, a full-bleed page and a
+			// maximized demo — none of which share a container with the nav.
+			this.$mode = mode(this);
 		});
 
 		// $pages, not $app — a page's view is built by an element factory, which

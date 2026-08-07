@@ -71,6 +71,12 @@ classdoc.names = names => names.trim().split(/\s+/).filter(Boolean);
 classdoc.page = function({ Class, methods = "", content, ...options }){
 	const names = classdoc.names(methods);
 
+	// Ordinary declared children join the rail too, between the overview and the
+	// methods — a guide belongs beside the class it is a guide to, and putting it
+	// anywhere else means a second nav for the same page. `children: "layouts flow"`
+	// is read here exactly as Page.declare() reads it, so there is one spelling.
+	const pages = classdoc.names(options.children ?? "");
+
 	return new Page(options, {
 
 		initialize(){
@@ -80,11 +86,14 @@ classdoc.page = function({ Class, methods = "", content, ...options }){
 			this.add("overview", { title: this.title, description: this.description, content });
 
 			classdoc(this, Class, this.meta, methods);
+
+			// so the rail shows the guides' real titles rather than their url segments
+			if (pages.length) this.load_all_children();
 		},
 
 		render(){
 			return this.view ??= div.c("page classdoc", () =>
-				this.tabs(["overview", ...names].join(" ")).ac("vertical"))
+				this.tabs(["overview", ...pages, ...names].join(" ")).ac("vertical"))
 				.ac("page-" + this.name)
 				.ac(this.col)
 				.ac(this.classes);

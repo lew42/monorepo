@@ -69,6 +69,14 @@ export class Router {
 			// which must stay synchronous so a site can wrap the swap in
 			// document.startViewTransition().
 			await this.app.styles_loaded();
+
+			// Titles too, the same argument one layer up: a page that opted into
+			// load_all_children() draws ONCE with real titles instead of drawing names
+			// and sharpening after — the outgoing page just stays up a beat longer.
+			// allSettled for styles_loaded()'s reason: a broken child must not block
+			// navigation forever.
+			await Promise.allSettled(page.chain().map(p => p.loading));
+
 			this.activate(page);
 		}
 		else console.log(`router.load("${url}") — 404, nothing resolves it`);

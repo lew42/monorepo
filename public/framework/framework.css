@@ -1,20 +1,14 @@
-/* Layer order. Every stylesheet in the project restates this line **in full**,
-   because the first `@layer` statement encountered fixes the order and a name
-   that first appears later gets appended at the END.
-
-   View.js loads THIS file, so it is now reliably the first <link> in the head and
-   this is the statement that decides the order. The rule stays anyway: a sandbox
-   that imports a component directly is one entry point away from a short list
-   deciding it instead, and nothing fails loudly when that happens.
+/* ⚠ Every stylesheet restates this line IN FULL. The first `@layer` statement
+   wins and a name first seen later is appended at the END, so a short list
+   silently drops `site` past `util`. View.js loads this file first, which makes
+   this the deciding statement — but nothing fails loudly if that ever changes.
 
      base    reset — browser defaults that are simply wrong
      theme   the base theme: tokens + the default look. Components add here too.
-     site    /styles.css — this site's skin. Beats theme at ANY specificity, so
-             site CSS never has to escalate. See framework/styles/readme.md §13.
+     site    /styles.css — this site's skin. Beats theme at ANY specificity.
      util    opt-in classes, last — you typed `.pad` on purpose, it should win.
-             ONE thing that isn't an opt-in class lives up here: the arrangement
-             contract, in Page.css. A util class sets `display`, and a page that
-             is not in the chain must out-rank it. See core/Page/Page.css. */
+             Plus one thing that isn't: the arrangement contract, in Page.css,
+             which has to out-rank a `display` utility. */
 @layer base, theme, site, util;
 
 @layer base {
@@ -53,13 +47,12 @@
 
 @layer theme {
     /* ---- tokens: the vocabulary a theme retunes -------------------------
-       The bar for adding one: it must replace a value that is already hardcoded
-       somewhere, ideally several somewheres. A token names an existing decision.
+       The bar for a new one: it must replace a value already hardcoded somewhere,
+       ideally several. A token names an existing decision.
 
-       `:root` holds DEFAULTS ONLY — a theme overrides on `.app` or its own class, so
-       two variants of a page can render side by side. `:root` also pins `light`
-       deliberately: a few components still hardcode `#fff`, so dark isn't honest yet
-       (styles/readme.md §12). A theme opts in with `color-scheme: light dark`. */
+       `:root` holds DEFAULTS ONLY — a theme overrides on `.app` or its own class,
+       so two variants can render side by side. It pins `light` on purpose; a theme
+       opts into dark with `color-scheme: light dark`. */
 
     :root {
         color-scheme: light;
@@ -73,6 +66,10 @@
         --line:    light-dark(rgba(0,0,0,0.15), rgba(255,255,255,0.15));  /* borders, rules */
         --wash:    light-dark(rgba(0,0,0,0.08), rgba(255,255,255,0.08));  /* code, th, hover fill */
 
+        /* One step between them: a table head or a caption is a panel INSIDE a card,
+           and `--wash` painted it as dark as the floor two levels below. */
+        --tint:    light-dark(rgba(0,0,0,0.035), rgba(255,255,255,0.04));
+
         --radius: 0.5em;
 
         /* The one error colour, paired. Replaces `#c00` hardcoded in md.css and
@@ -82,10 +79,11 @@
 
         /* rhythm — how far apart stacked blocks sit. Consumed by the flow rules
            in Page.css; `rem` so a theme retuning the type scale can't move them. */
-        --flow: 1.25rem;          /* between blocks */
-        --flow-section: 3rem;     /* before an h2 */
-        --flow-sub: 2rem;         /* before an h3 or h4 */
-        --flow-tight: 0.75rem;    /* after any heading */
+        --flow: 2em;          /* between blocks */
+        --flow-section: 2em;     /* before an h2 */
+        --flow-sub: 3em;         /* before an h3 or h4 */
+        --flow-tight: var(--flow); /* after any heading — deliberately equal to --flow
+                                     for now; a tighter hug read as cramped. */
 
         --column: 14em;
         --sidebar: 19em;   /* any sidebar's width — shared on purpose, so two can't drift.
@@ -238,7 +236,11 @@
         overflow-x: auto;
     }
     th, td { padding: 0.25em 0.75em; border: 1px solid var(--line); }
-    th { background: var(--wash); text-align: left; }
+    th { background: var(--tint); text-align: left; }
+
+    /* The UA paints `mark` yellow with `canvastext` on it, and in dark mode that is
+       light text on yellow. Paired, like every other colour here. */
+    mark { background: light-dark(#fff3a3, #6b5a00); color: var(--ink); }
 
     summary { cursor: pointer; }   /* a real UA gap */
 
@@ -262,15 +264,34 @@
     background-origin: content-box;
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='40' fill='%23555'><polygon points='0,0 60,0 30,40'/></svg>"); }
 
-    /* `.btn` exists to make a non-button look like a button, and it was leaving the
-       UA's underline and link blue on every `<a class="btn">` — so `.page-preview`,
-       `.tab` and `.nav-link` each wrote the same two declarations to undo it. Four
-       copies of one reset is the same bug report the `pre` padding was. */
-    .btn, button { padding: 0.25em 1em; cursor: pointer; }
-    .btn { text-decoration: none; color: inherit; }
+    /* `.btn` makes a non-button look like a button; a bare `button` matches it,
+       because that promise is only true if they do. `.prim` and `.bg` promote it.
+
+       ⚠ A CONTROL NEVER INHERITS ITS CONTRAST. This was `color: inherit` — right
+       for the `<a>` it was written for, and on a real `<button class="btn">` it
+       replaced the UA's `ButtonText` with whatever the band around it happened to
+       be. On a dark section: white on the UA's light grey. */
+    .btn, button {
+        padding: 0.25em 1em;
+        cursor: pointer;
+        background: var(--surface);
+        color: var(--ink);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        text-decoration: none;
+    }
+    .btn:hover, button:hover { border-color: var(--prim); color: var(--prim); }
+
     a * { cursor: pointer; }
-    button.bg, .btn.bg { background: var(--bg); color: white; }
-    button.prim, .btn.prim { background: var(--prim); color: white; }
+    /* The shadow is accessibility, not decoration: white on `--prim` is ~2.2:1, and
+       a shadow lifts the edges where a letterform is thinnest. */
+    button.bg, .btn.bg { background: var(--bg); color: white; border-color: var(--bg); }
+    button.prim, .btn.prim {
+        background: var(--prim); color: white; border-color: var(--prim);
+        text-shadow: 0 1px 2px rgba(0,0,0,0.45);
+    }
+    button.bg:hover, .btn.bg:hover,
+    button.prim:hover, .btn.prim:hover { color: white; filter: brightness(1.08); }
 
 }
 
