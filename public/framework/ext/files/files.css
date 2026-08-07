@@ -20,7 +20,6 @@
 		flex: 0 0 clamp(9em, 26%, 15em);
 		min-width: 0;
 		padding: 0.6em 0;
-		background: var(--wash);
 		border-inline-end: 1px solid var(--line);
 		font-size: 0.85em;
 	}
@@ -38,7 +37,7 @@
 	.file-name:hover { color: var(--prim); }
 
 	/* the selected file — the pane is showing this one */
-	.file-name.selected { color: var(--prim); font-weight: 600; background: var(--surface); }
+	.file-name.selected { color: var(--prim); font-weight: 600; background: var(--wash); }
 
 	.file-dir-name { color: var(--subtle); }
 	.file-dir-body { padding-inline-start: 0.9em; }
@@ -51,7 +50,7 @@
 	/* `min-width: 0` is the load-bearing one: a <pre> is `overflow-x: auto`, whose
 	   min-content is almost nothing, so without it a long line lets the pane
 	   collapse and the tree eat the box. */
-	.file-pane { flex: 1 1 0; min-width: 0; }
+	.file-pane { flex: 1 1 0; min-width: 0; display: flex; }
 
 	/* The pane owns the border; the code block inside it is flush. */
 	.file-pane > .code-block,
@@ -62,6 +61,7 @@
 		max-height: 26em;
 		overflow: auto;
 		font-size: 0.85em;
+		flex: 1 1 0;
 	}
 
 	@media (max-width: 40em) {

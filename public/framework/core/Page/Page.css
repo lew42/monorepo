@@ -96,7 +96,7 @@
 	}
 
 	/* `dash` is a wall of cards; `page-full` is "the thing IS the page". */
-	.page.dash      { --measure: none; --page-pad: 2em; }
+	.page.dash      { --measure: none; }
 	.page.page-full { --measure: none; --page-pad: 0; }
 
 	.page.breakouts > *      { grid-column: main; min-width: 0; }
@@ -355,7 +355,6 @@
 	}
 
 	.gallery-thumb {
-		aspect-ratio: 16 / 10;
 		overflow: hidden;
 		background: var(--tint);
 		border-radius: var(--radius);
