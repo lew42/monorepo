@@ -34,7 +34,7 @@ export default new Page({
 			});
 		}, "`--code-bg` and `--code-ink` fall back to `var(--wash)` and `inherit`, so nobody has to set them — and a site or theme that wants dark code blocks sets **two values** instead of fighting three selectors. They cascade, so setting them on any box retunes everything inside it.");
 
-		md("The token exists because the fight happened first. A bare `code { background }` in `/styles.css` lost the block case to `pre > code`, leaving `color: white` stranded on a light box. **The framework was missing a token — that's the fix, not a stronger selector downstream.** [`theme`](/framework/styles/theme/) has the values `theme-lew42` sets; the full argument is §13 of the [styles record](/framework/styles/).");
+		md("The token exists because the fight happened first. A bare `code { background }` in `/styles.css` lost the block case to `pre > code`, leaving `color: white` stranded on a light box. **The framework was missing a token — that's the fix, not a stronger selector downstream.** [`theme`](/framework/styles/layers/theme/) has the values `theme-lew42` sets; the full argument is §13 of the [styles record](/framework/styles/).");
 
 		md("## The .code class — the sixth level");
 

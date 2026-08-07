@@ -240,7 +240,7 @@ a container.
 
 **Verdict: (2), factored into `parts.js`.** `box()` writes
 `background: var(--wash); border: 1px solid var(--line); border-radius: var(--radius)`
-once, and `styles/util/page.js` already tints its demo cells the same way — so
+once, and `styles/layers/util/page.js` already tints its demo cells the same way — so
 this is the house answer, not a new one. `layouts.css` therefore contains no
 colour at all, which is the only reason the "three rules for eight layouts" count
 above means anything.

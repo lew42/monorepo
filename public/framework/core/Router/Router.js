@@ -63,18 +63,10 @@ export class Router {
 		const page = await this.load_segments(url);
 
 		if (page){
-			// A page imported on THIS navigation called View.stylesheet() at module
-			// scope a moment ago, and its <link> is not applied yet — so without this
-			// its first paint is unstyled and then snaps. Here and NOT in activate(),
-			// which must stay synchronous so a site can wrap the swap in
-			// document.startViewTransition().
+			// Styles, then titles, awaited HERE and not in activate(), which must stay
+			// synchronous (document.startViewTransition). allSettled: a broken child or
+			// a 404'd stylesheet must not block navigation. See doc/styles-loaded.md.
 			await this.app.styles_loaded();
-
-			// Titles too, the same argument one layer up: a page that opted into
-			// load_all_children() draws ONCE with real titles instead of drawing names
-			// and sharpening after — the outgoing page just stays up a beat longer.
-			// allSettled for styles_loaded()'s reason: a broken child must not block
-			// navigation forever.
 			await Promise.allSettled(page.chain().map(p => p.loading));
 
 			this.activate(page);
@@ -99,12 +91,8 @@ export class Router {
 	}
 
 	/* Make THIS the current page — and only what changed: shared leading pages are
-	 * never touched.
-	 *
-	 * `page.activate()` means the other thing, "I am entering the chain", and the two
-	 * only ever meet inside this method, which is where a reader wants to see the
-	 * relationship.
-	 */
+	 * never touched. `page.activate()` means the other thing, "I am entering the
+	 * chain"; the two only meet here. See doc/chain-diff.md. */
 	activate(page){
 		const from = this.chain();                     // /a/b/c/ -> [root, a, b, c]
 		const to = page.chain();                       // /a/x/   -> [root, a, x]
@@ -120,14 +108,13 @@ export class Router {
 		this.mark();
 		document.title = page.title ?? document.title;
 
-		// A page you navigate to starts at the top. `.closest(".pages")` and not
-		// parentNode: a page mounted in a tab panel has `.tab-panel` as its parent and
-		// the scroller is above that.
+		// The REGION scrolls, not the page — hence `.closest(".pages")`, not
+		// parentNode. Removing this looks safe (scrollTop clamps); it isn't.
+		// See doc/scroll-reset.md.
 		page.view.el.closest(".pages")?.scrollTo(0, 0);
 
-		// "A navigation happened." Duck-typed like page.activate?.(), so it costs
-		// nothing until a site defines it — and the site is the only tier that should
-		// care. `from` is passed because the hook fires on the first paint too.
+		// "A navigation happened." Duck-typed, so it costs nothing until a site
+		// defines it. `from` too — the hook fires on first paint. doc/navigated.md.
 		this.app.navigated?.(page, from);
 
 		console.log(`from   ${from.map(p => p.url).join(" › ") || "(none)"}`);
@@ -150,11 +137,7 @@ export class Router {
 	root(){ return this.app.$app.el; }
 
 	/* Wipe, then reapply down the NEW chain. A page that left needs nothing undone,
-	 * only its classes gone — which is a query, not a lifecycle call.
-	 *
-	 * Two classes and a link pass is the whole of what this tier writes; every
-	 * arrangement is CSS a page or a site opted into by name.
-	 */
+	 * only its classes gone — a query, not a lifecycle call. See doc/marking.md. */
 	mark(){
 		this.root().querySelectorAll(".active-page, .active-ancestor")
 			.forEach(node => node.classList.remove("active-page", "active-ancestor"));
@@ -165,22 +148,17 @@ export class Router {
 		this.mark_links(this.active.url);
 	}
 
-	/* `here` is the ACTIVE PAGE'S url, not location.pathname: go() pushes history
-	 * only after the load succeeds, so mid-navigation the browser still shows the url
-	 * we are leaving. The page knows where it is; ask it.
-	 *
-	 * Callable with no argument, so anything that renders links LATE can re-run it —
-	 * a tab bar filled after an import has missed the pass that mark() did.
-	 */
+	/* `here` is the ACTIVE PAGE'S url, not location.pathname — go() pushes history
+	 * only after the load succeeds. Callable with no argument, so links rendered
+	 * late (a tab bar) can re-run the pass. See doc/marking.md. */
 	mark_links(here = this.active?.url){
 		if (!here) return;
 
 		this.root().querySelectorAll("a[href]").forEach(link => {
 			if (link.origin !== location.origin) return;
 
-			// An in-page anchor resolves its .pathname to the page you are ON, so every
-			// href="#section" matched `here`. Ask the ATTRIBUTE: a fragment link is a
-			// scroll, never a destination.
+			// Ask the ATTRIBUTE: an in-page anchor resolves its .pathname to the page
+			// you are ON, so every href="#section" would match `here`.
 			if (link.getAttribute("href")?.startsWith("#")) return;
 
 			link.classList.toggle("active", link.pathname === here);

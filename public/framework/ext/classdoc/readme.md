@@ -249,3 +249,46 @@ import { App } from "/app.js", not the default export.
 The general principle it follows: **a wrong argument should cost a named warning
 and a degraded page, never a blank one.** Same reason `View.stylesheet` resolves
 on error and `Page.load` distinguishes "missing" from "threw".
+
+---
+
+## 9. Properties and notes — same machinery, less of it
+
+**The ask:** decision overload. Verbose reasoning was living in code comments and
+parent readmes; the readmes now summarize and cite `./doc/<topic>.md` — and those
+files should be *served*, not just stored. Separately, properties deserve pages
+as much as methods do.
+
+**Options.** (a) a parallel ext (`propdoc`, `notedoc`) — two more modules for two
+smaller versions of the same job; (b) reflect properties off an instance — which
+means *constructing* one, and for `App` that boots a second site; (c) two more
+declared lists on `classdoc.page`, one directory convention each.
+
+**Verdict: (c).**
+
+```
+methods:    "append ac"     source            + doc/method/<name>.md
+properties: "el capture"    declaration       + doc/property/<name>.md
+notes:      "capturing"     doc/<name>.md — the prose IS the page
+```
+
+Notes read the **top level** of `doc/`, because that is where a readme's
+"see ./doc/capturing.md" already points — one file, two readers: the maintainer
+via the readme's citation, the site via the note page. Rail order is overview,
+guides, properties, methods, notes.
+
+**What a property page can show is decided by what can be read without running
+anything** (the §3 getter trap, one door over): an accessor's function
+(`descriptor.get`), a primitive prototype/static default (`capture = true`), and
+for an instance field — nothing, honestly. The prose is the page, and that is the
+common case, not a degraded one.
+
+Two small guards, same rule as §8. A note that shares a name with a method would
+silently replace its page in the region, so `classdoc.notes` refuses the
+collision with a named warning. And `classdoc()` no longer warns about a missing
+`Class` when no methods were asked for, so a notes-only page is legal.
+
+One behaviour change rode along: `classdoc.page` now **always** calls
+`load_all_children()` — inline members resolve instantly, and `tabs()` only reads
+titles once `loading` exists, so a note is labelled "chain diff" rather than its
+url segment "chain-diff".

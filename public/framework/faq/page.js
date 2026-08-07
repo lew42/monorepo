@@ -158,7 +158,7 @@ new Sidebar({ brand: "Me", pages })  // a brand over links`);
     --font: "Inter", sans-serif;
 }`);
 
-		md("Tokens, on `.app` or a theme class — **never back at `:root`**, which holds defaults only. That's what lets two variants of a page render side by side. → [theme](/framework/styles/theme/) and the [theme guide](/framework/styles/theme/guide/)");
+		md("Tokens, on `.app` or a theme class — **never back at `:root`**, which holds defaults only. That's what lets two variants of a page render side by side. → [theme](/framework/styles/layers/theme/) and the [theme guide](/framework/styles/layers/theme/guide/)");
 
 		h2("Data and state");
 

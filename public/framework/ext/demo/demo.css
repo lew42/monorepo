@@ -144,6 +144,10 @@
 
 	.demo-error { padding: 0.8em 1em; color: var(--error); border-color: var(--error); }
 
+	/* A band demo: the one thing a full-width section is FOR is reaching the edge,
+	   so `.bleed` hands the screen's inset back. Pair with `.stack`. */
+	.demo.bleed .demo-screen { padding: 0; }
+
 	/* ── the whole window ──
 	   A toggle, not a url — this is a way of looking at the box, not a place. A demo
 	   whose page offers `{ full: this }` gets a real link instead (demo.js). */
@@ -157,3 +161,7 @@
 	.demo.max .demo-stage { flex: 1 1 auto; }
 	.demo.max .demo-screen { min-height: 100%; }
 }
+
+/* `.checkered` — the transparency board — was born here and promoted to
+   framework.css `@layer util` the day the gallery became its second consumer,
+   exactly per the note that used to sit in this spot. demo.js still emits it. */

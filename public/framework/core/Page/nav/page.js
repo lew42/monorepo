@@ -56,7 +56,7 @@ export default new Page({
 .page-preview.tall   // grid-row: span 2
 .page-preview.big    // both`);
 
-		md("[See the arrangements](/framework/core/Page/layouts/dashboard/).");
+		md("[See the arrangements](/framework/styles/layouts/fit/).");
 
 		h2("Tabs — for a fixed set");
 

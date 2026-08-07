@@ -42,19 +42,22 @@ export default new Page({
 
 			// Both levels are already loaded — the Router waited on `loading` before
 			// activating me — so this is built once, complete, and never rebuilt.
+			// `app`, so the footer can render the colour-scheme toggle.
 			this.$sidebar = new Sidebar({
+				app: this.app,
 				// logo goes home; the wordmark is this section's own url
 				header: () => this.app.brand(this.title, this.url),
 				pages: this.sections(),
 			});
 
 			// My children mount HERE, inside my own view — so the nav beside them is
-			// never rebuilt and never moves when you navigate between them. `papers`
-			// gives every one of them the measure without each declaring it.
-			this.$pages = div.c("pages papers", () => {
+			// never rebuilt and never moves when you navigate between them. The
+			// region default gives every one of them the measure (Page.css).
+			this.$pages = div.c("pages", () => {
 
-				// what /framework/ itself shows, and only then
-				div.c("page default", () => {
+				// what /framework/ itself shows, and only then. `flow`, because a
+				// hand-built default div is outside the .page flow rule's reach.
+				div.c("page default flow", () => {
 
 					md("Create `/path/page.js`:");
 

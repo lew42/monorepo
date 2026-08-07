@@ -12,7 +12,7 @@ export default tone => section(tone ?? "surface", () => {
 	eyebrow("QUESTIONS");
 	p.c("h2", "The short answers");
 
-	div.c("flow", () => QA.forEach(([q, a]) =>
+	div.c("flex v", () => QA.forEach(([q, a]) =>
 		details.c("pad", () => { summary(q); p(a).style(muted); })
 			.style({ borderBottom: "1px solid var(--line)" })));
 }).style("--section", "46em");

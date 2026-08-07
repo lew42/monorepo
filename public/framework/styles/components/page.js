@@ -1,4 +1,5 @@
 import { Page, md, demo, div, a, span, icon, code, details, summary } from "/app.js";
+import { card as cell } from "../gallery/gallery.js";   // `card` is taken — by the component
 
 import table from "./table/component.js";
 import field from "./field/component.js";
@@ -12,30 +13,35 @@ import toolbar from "./toolbar/component.js";
 import tags from "./tags/component.js";
 import panel from "./panel/component.js";
 import tooltip from "./tooltip/component.js";
+import avatar from "./avatar/component.js";
+import dialog from "./dialog/component.js";
+import progress from "./progress/component.js";
+import menu from "./menu/component.js";
 
 import { surface } from "./parts.js";
 
-/* No stylesheet here, and only one in the whole section — `tooltip/tooltip.css`,
- * loaded by the module that emits the classes it styles. A section arguing that
- * you almost never need CSS and shipping its own would be arguing against itself.
+/* No stylesheet here, and only two in the whole section — `tooltip/tooltip.css`
+ * and `menu/menu.css`, each loaded by the module that emits the classes it
+ * styles. A section arguing that you almost never need CSS and shipping its own
+ * would be arguing against itself.
  *
- * Twelve tiny modules, imported eagerly and on purpose: the gallery renders every
+ * Sixteen tiny modules, imported eagerly and on purpose: the gallery renders every
  * one of them, so there is nothing to defer. Each is also imported by its own
  * page.js — one function, two call sites, no second copy of the markup to drift. */
-const gallery = { table, field, crumbs, pagination, card, stats, badge, alert, toolbar, tags, panel, tooltip };
+const gallery = { table, field, crumbs, pagination, card, stats, badge, alert, toolbar, tags, panel, tooltip, avatar, dialog, progress, menu };
 
 export default new Page({
 	meta: import.meta,
 	title: "Components",
-	description: "Twelve UI components, eleven of them with no stylesheet at all.",
+	description: "Sixteen UI components, fourteen of them with no stylesheet at all.",
 	icon: "widgets",
 
 	// a gallery is not prose: no measure, so the wall gets the room it has
-	classes: "dash",
+	classes: "pad",
 
-	children: "table field crumbs pagination card stats badge alert toolbar tags panel tooltip",
+	children: "table field crumbs pagination card stats badge alert toolbar tags panel tooltip avatar dialog progress menu",
 
-	// Labels and icons come from the twelve pages themselves, so `children` stays a
+	// Labels and icons come from the sixteen pages themselves, so `children` stays a
 	// string of NAMES and the gallery below cannot disagree with the sidebar.
 	initialize(){ this.load_all_children(); },
 
@@ -47,7 +53,7 @@ export default new Page({
 	 * rail is worse than none. On the design record. */
 	content(){
 
-		// The gallery IS the page. Placed synchronously, then redrawn when the twelve
+		// The gallery IS the page. Placed synchronously, then redrawn when the sixteen
 		// pages land — so the labels sharpen from names to titles and the icons
 		// arrive. Same shape as Page.previews(), for the same reason.
 		div.c("grid gap auto", $gallery => {
@@ -62,7 +68,7 @@ export default new Page({
 			});
 		}).style({ "--column": "13em", "--gap": "1.5em" });
 
-		md("Every cell above is a **live render** of the same function its page documents. **Eleven of the twelve ship no CSS**; the twelfth is [Tooltip](/framework/styles/components/tooltip/), and it needs five rules for a reason worth reading.");
+		md("Every cell above is a **live render** of the same function its page documents. **Fourteen of the sixteen ship no CSS**; the exceptions are [Tooltip](/framework/styles/components/tooltip/) and [Menu](/framework/styles/components/menu/), and each needs its handful of rules for the same reason worth reading.");
 
 		// The compact index, and the one thing the gallery cannot do: a `.page-preview`
 		// is an anchor, so Router.mark_links() marks the card you are heading to.
@@ -74,7 +80,7 @@ export default new Page({
 
 		md("## What each one needed");
 
-		md("| component | built from | its own CSS |\n| --- | --- | --- |\n| [Data table](/framework/styles/components/table/) | nothing — plain `table` markup | — |\n| [Form field](/framework/styles/components/field/) | `flex v` + `h4` | — |\n| [Breadcrumbs](/framework/styles/components/crumbs/) | `flex wrap v-center h4` + `.page-link` | — |\n| [Pagination](/framework/styles/components/pagination/) | `flex wrap v-center` + `.btn` / `.prim` | — |\n| [Card](/framework/styles/components/card/) | `pad flex v` + `surface` | — |\n| [Stat tiles](/framework/styles/components/stats/) | `grid gap auto` + `--column` override | — |\n| [Badges](/framework/styles/components/badge/) | `h4` + `pill` | — |\n| [Alerts](/framework/styles/components/alert/) | `pad flex gap` + `flex-1` | — |\n| [Toolbar](/framework/styles/components/toolbar/) | `flex wrap gap v-center` + `flex-1` | — |\n| [Tag input](/framework/styles/components/tags/) | `flex wrap v-center` + `flex-1` | — |\n| [Panel](/framework/styles/components/panel/) | `pad flex` + `split` + `reverse` | — |\n| [Tooltip](/framework/styles/components/tooltip/) | a `span` and five rules | **`tooltip.css`** |\n\nThe utilities that did the most work: `flex` in **eleven of twelve**, `h4` in seven, `pad` in six, `wrap` in five. `--column` turned out to be a **knob** rather than a default twice, and `.flex.reverse` turned out to be the right-aligned action row nobody was looking for.");
+		md("| component | built from | its own CSS |\n| --- | --- | --- |\n| [Data table](/framework/styles/components/table/) | nothing — plain `table` markup | — |\n| [Form field](/framework/styles/components/field/) | `flex v` + `h4` | — |\n| [Breadcrumbs](/framework/styles/components/crumbs/) | `flex wrap v-center h4` + `.page-link` | — |\n| [Pagination](/framework/styles/components/pagination/) | `flex wrap v-center` + `.btn` / `.prim` | — |\n| [Card](/framework/styles/components/card/) | `pad flex v` + `surface` | — |\n| [Stat tiles](/framework/styles/components/stats/) | `grid gap auto` + `--column` override | — |\n| [Badges](/framework/styles/components/badge/) | `h4` + `pill` | — |\n| [Alerts](/framework/styles/components/alert/) | `pad flex gap` + `flex-1` | — |\n| [Toolbar](/framework/styles/components/toolbar/) | `flex wrap gap v-center` + `flex-1` | — |\n| [Tag input](/framework/styles/components/tags/) | `flex wrap v-center` + `flex-1` | — |\n| [Panel](/framework/styles/components/panel/) | `pad flex` + `split` + `reverse` | — |\n| [Tooltip](/framework/styles/components/tooltip/) | a `span` and five rules | **`tooltip.css`** |\n| [Avatar](/framework/styles/components/avatar/) | `flex v-center h-center` + a radius | — |\n| [Dialog](/framework/styles/components/dialog/) | native `<dialog>` + `pad flex v` + `surface` | — |\n| [Progress](/framework/styles/components/progress/) | native `<progress>`/`<meter>` + `accent-color` | — |\n| [Menu](/framework/styles/components/menu/) | `<details>` + `.btn` + five rules | **`menu.css`** |\n\nThe utilities that did the most work: `flex` in **fifteen of sixteen**, `h4` in seven, `pad` in six, `wrap` in five. `--column` turned out to be a **knob** rather than a default twice, and `.flex.reverse` turned out to be the right-aligned action row nobody was looking for.");
 
 		md("## The findings");
 
@@ -87,7 +93,7 @@ export default new Page({
 			return code.file(import.meta, "parts.js");
 		});
 
-		md("Three token-valued style objects, shared by all twelve, so a component file is only its component. The values are inline rather than a stylesheet rule because a fill, a border and a radius are a **look** — the same call `layouts/parts.js` and `styles/util/page.js` already make.");
+		md("Three token-valued style objects, shared by all sixteen, so a component file is only its component. The values are inline rather than a stylesheet rule because a fill, a border and a radius are a **look** — the same call `layouts/parts.js` and `styles/layers/util/page.js` already make.");
 
 		md("Start at [Data table](/framework/styles/components/table/) — the component with no classes at all.");
 
@@ -99,21 +105,11 @@ export default new Page({
 
 	   `zoom-50`, so a cell reads as an ICON of the component rather than as a second
 	   place to use it — the gallery answers "which one is that" and the component's
-	   own page answers everything else. `gallery-card` (Page.css) makes the whole
+	   own page answers everything else. card() (styles/gallery/) makes the whole
 	   block one hit area and the thumbnail inert, which is what lets these be plain
 	   divs: half of them contain links, and `<a>` inside `<a>` is invalid. */
 	cells(){
-		this.children.forEach((page, name) => {
-			const nav = this.nav_for(name);
-
-			div.c("page-preview gallery-card", () => {
-				div.c("gallery-thumb zoom-50 flex v h-center pad", gallery[name]);
-
-				a.c("gallery-link").href(nav.url).append(() => {
-					if (nav.icon) icon(nav.icon);
-					span.c("page-preview-title", nav.label);
-				});
-			});
-		});
+		this.children.forEach((page, name) =>
+			cell(this.nav_for(name), gallery[name], "zoom-50 pad"));
 	},
 });

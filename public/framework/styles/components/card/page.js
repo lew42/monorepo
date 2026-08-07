@@ -14,7 +14,7 @@ export default new Page({
 
 		md("## Why not a `.card` class?");
 
-		md("Rung 4 of the [ladder](/framework/styles/) is *the module's own `.css` — layout only*, and a fill, a border and a radius are a **look**. The test is whether the rule would still be right if the component were dropped into a completely different site: `flex: 0 0 var(--sidebar)`, yes; `background: var(--surface)`, that site's call.\n\nSo the surface lives in `parts.js` as a token-valued style object, which is the same call [`layouts/parts.js`](/framework/styles/layouts/) and `styles/util/page.js` already made:");
+		md("Rung 4 of the [ladder](/framework/styles/) is *the module's own `.css` — layout only*, and a fill, a border and a radius are a **look**. The test is whether the rule would still be right if the component were dropped into a completely different site: `flex: 0 0 var(--sidebar)`, yes; `background: var(--surface)`, that site's call.\n\nSo the surface lives in `parts.js` as a token-valued style object, which is the same call [`layouts/parts.js`](/framework/styles/layouts/) and `styles/layers/util/page.js` already made:");
 
 		md("```js\nexport const surface = {\n\tbackground: \"var(--surface)\",\n\tborder: \"1px solid var(--line)\",\n\tborderRadius: \"var(--radius)\",\n};\n```");
 

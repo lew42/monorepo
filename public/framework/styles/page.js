@@ -9,7 +9,7 @@ export default new Page({
 	title: "Styles",
 	description: "Three layers, six type levels, twelve tokens — and as little else as possible.",
 	icon: "palette",
-	children: "base theme util elements layouts components sections",
+	children: "layers elements layouts components sections",
 
 	// Labels and icons come from the five pages themselves. `children` stays a
 	// string of NAMES — an eager array here fetched the whole styles subtree on
@@ -38,7 +38,7 @@ export default new Page({
 
 		md("## Three layers");
 
-		md("```css\n@layer base, theme, site, util;\n```\n\n| layer | holds | |\n| --- | --- | --- |\n| [`base`](/framework/styles/base/) | the reset — ten rules fixing browser defaults | never a look |\n| [`theme`](/framework/styles/theme/) | tokens + the default look; components add here too | **this is a theme**, the one you get free |\n| `site` | `/styles.css` — this site's skin | beats the framework at *any* specificity |\n| [`util`](/framework/styles/util/) | opt-in classes | last, because you typed `.pad` on purpose |\n\nEvery stylesheet restates that line **in full**. The first `@layer` statement fixes the order, and a name that first appears later is appended at the *end* — so one short list anywhere would silently drop `site` past `util`.");
+		md("```css\n@layer base, theme, site, util;\n```\n\n| layer | holds | |\n| --- | --- | --- |\n| [`base`](/framework/styles/layers/base/) | the reset — ten rules fixing browser defaults | never a look |\n| [`theme`](/framework/styles/layers/theme/) | tokens + the default look; components add here too | **this is a theme**, the one you get free |\n| [`site`](/framework/styles/layers/site/) | `/styles.css` — this site's skin | beats the framework at *any* specificity |\n| [`util`](/framework/styles/layers/util/) | opt-in classes | last, because you typed `.pad` on purpose |\n\nEvery stylesheet restates that line **in full**. The first `@layer` statement fixes the order, and a name that first appears later is appended at the *end* — so one short list anywhere would silently drop `site` past `util`.");
 
 		md("## Escalation is a ratchet");
 
@@ -63,7 +63,7 @@ export default new Page({
 		md("## The three layers, line by line");
 
 
-		md("Next: [base](/framework/styles/base/) — the reset, line by line.");
+		md("Next: [Layers](/framework/styles/layers/) — the four layers, one page per layer.");
 
 		md.details(import.meta, "readme.md", "Design record — strategy, dependencies & open questions");
 	}

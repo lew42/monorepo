@@ -32,7 +32,7 @@ export default new Page({
 
 		md("## The reset");
 
-		md("`input, button, textarea, select { font: inherit }` is the one that matters most, and it's the least visible: form controls opt out of the document font **by default, in every browser**. `font` and not `font-family`, so size, weight and line-height come along too.\n\nThen `input:not([type=\"checkbox\"], [type=\"radio\"], [type=\"submit\"], [type=\"color\"], [type=\"button\"], [type=\"reset\"]), select, textarea { width: 100% }` — text-ish controls fill their container instead of defaulting to a mysterious 20-character `size`. The `:not()` list is every type where that would be absurd. Both are demoed against the browser default in [base](/framework/styles/base/).");
+		md("`input, button, textarea, select { font: inherit }` is the one that matters most, and it's the least visible: form controls opt out of the document font **by default, in every browser**. `font` and not `font-family`, so size, weight and line-height come along too.\n\nThen `input:not([type=\"checkbox\"], [type=\"radio\"], [type=\"submit\"], [type=\"color\"], [type=\"button\"], [type=\"reset\"]), select, textarea { width: 100% }` — text-ish controls fill their container instead of defaulting to a mysterious 20-character `size`. The `:not()` list is every type where that would be absurd. Both are demoed against the browser default in [base](/framework/styles/layers/base/).");
 
 		md("## The types the lists name");
 

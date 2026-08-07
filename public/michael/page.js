@@ -30,8 +30,8 @@ export default new Page({
 				pages: [...this.children.keys()].map(name => this.nav_for(name)),
 			});
 
-			this.$pages = div.c("pages papers", () => {
-				div.c("default", () => { h1.c("page-title", this.title); this.content(); });
+			this.$pages = div.c("pages", () => {
+				div.c("default flow", () => { h1.c("page-title", this.title); this.content(); });
 			});
 		}).ac(this.classes);
 	},

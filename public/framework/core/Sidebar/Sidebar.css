@@ -21,7 +21,6 @@
 	.sidebar {
 		display: flex;
 		flex-direction: column;
-		overflow-y: auto;
 		background: var(--sidebar-bg, var(--bg));
 		color: var(--sidebar-ink, #fff);
 
@@ -30,6 +29,14 @@
 		   already does the job. One declaration, right in both. */
 		border-right: 1px solid var(--line);
 	}
+
+	/* NO overflow on the panel itself: `.sidebar-nav` scrolls, so the bar above it
+	   and the footer below it stay put. The panel scrolling whole was the shape the
+	   footer replaced — see readme.md §8. */
+
+	/* [ header | ☰ ] — the strip the panel collapses to on a narrow screen. */
+	.sidebar-bar { display: flex; align-items: center; flex: 0 0 auto; }
+	.sidebar-bar > .brand { flex: 1 1 auto; min-width: 0; }
 
 	/* The comp's gutter, and it is the same 42px for the brand, the group titles
 	   and the links — one number, so nothing in this column can misalign.
@@ -68,7 +75,18 @@
 	}
 	.sidebar .brand-title:hover { color: var(--prim); }
 
-	.sidebar-nav { display: flex; flex-direction: column; }
+	/* nav over footer, one box — the single thing the narrow menu shows and hides */
+	.sidebar-menu {
+		flex: 1 1 auto; min-height: 0;
+		display: flex; flex-direction: column;
+	}
+
+	/* THE scroller. `min-height: 0` is what lets a flex child scroll at all. */
+	.sidebar-nav {
+		display: flex; flex-direction: column;
+		flex: 1 1 auto; min-height: 0;
+		overflow-y: auto;
+	}
 
 	/* A titled run of links. Sidebar.js puts `.h4` on the title, so it borrows
 	   its size and tracking from the type scale — all this owes is rhythm and
@@ -151,5 +169,90 @@
 		font-size: 1.4em;
 		line-height: 1;
 		opacity: 0.5;
+	}
+
+	/* ── the footer: pinned under the scrolling nav ──
+	   Derived from the ink like every other colour here — `--line` tracks the
+	   document, not the panel, and this rule must hold on a dark panel over a
+	   light page. */
+	.sidebar-footer {
+		flex: 0 0 auto;
+		display: flex; align-items: center; justify-content: space-between; gap: 0.8em;
+		padding: 0.8em var(--gutter);
+		border-top: 1px solid color-mix(in srgb, var(--sidebar-ink, #fff) 15%, transparent);
+	}
+
+	/* mode.css draws `.mode-btn` as the app's fixed bottom-right pill; in a footer it
+	   is a row item. Two classes, so this out-specifies both mode.css's `(0,1,0)` and
+	   a theme's `:is(button)` at `(0,1,1)` without leaning on load order. */
+	.sidebar-footer .mode-btn {
+		position: static;
+		padding: 0.45em;
+		box-shadow: none;
+		background: none;
+		color: color-mix(in srgb, var(--sidebar-ink, #fff) 70%, transparent);
+		border: 1px solid color-mix(in srgb, var(--sidebar-ink, #fff) 25%, transparent);
+	}
+	.sidebar-footer .mode-btn:hover { color: var(--prim); border-color: var(--prim); }
+
+	/* A placeholder — a slot for the account mark a site will want, drawn from the
+	   ink so it reads on either panel. */
+	.sidebar-avatar {
+		flex: 0 0 auto;
+		width: 2em; height: 2em;
+		border-radius: 999px;
+		background: color-mix(in srgb, var(--sidebar-ink, #fff) 14%, transparent);
+		border: 1px solid color-mix(in srgb, var(--sidebar-ink, #fff) 30%, transparent);
+	}
+
+	/* ── the hamburger: in the DOM always, a control only when narrow ──
+	   `.sidebar` prefix so the box beats a theme's `:is(button, .btn)` at (0,1,1) —
+	   lew42's uppercase-label padding would otherwise inflate it. */
+	.sidebar .sidebar-toggle {
+		display: none;
+		flex-direction: column; justify-content: center; align-items: center; gap: 0.3em;
+		flex: 0 0 auto;
+		margin-inline-end: 1em;
+		width: 2.5em; height: 2.5em; padding: 0.5em;
+		background: none; border: none; border-radius: var(--radius);
+		color: inherit;
+		cursor: pointer;
+	}
+	.sidebar .sidebar-toggle:hover { color: var(--prim); }
+
+	/* currentColor, so the bars follow the hover and the panel's ink for free. */
+	.sidebar-toggle-bar {
+		flex: 0 0 auto;
+		width: 1.2em; height: 2px;
+		border-radius: 1px;
+		background: currentColor;
+	}
+
+	/* ── below 52em: the panel IS a top bar, the nav a menu behind the burger ──
+	   Same breakpoint as the topic's stacking in /styles.css. The menu drops BELOW
+	   the bar as an overlay rather than pushing the page down — `absolute` against
+	   the sticky bar, so opening it moves nothing else. */
+	@media (max-width: 52em) {
+		.sidebar {
+			position: sticky; top: 0; z-index: 10;
+			border-right: none;
+			border-bottom: 1px solid var(--line);
+		}
+
+		.sidebar .sidebar-toggle { display: flex; }
+
+		/* the rail's 2em of air is a bar's worth of height here */
+		.sidebar .brand { padding-block: 0.7em; }
+
+		.sidebar-menu { display: none; }
+
+		.sidebar.open .sidebar-menu {
+			display: flex; flex-direction: column;
+			position: absolute; top: 100%; inset-inline: 0;
+			max-height: 75vh;
+			overflow: hidden;              /* the nav inside keeps the scrolling */
+			background: var(--sidebar-bg, var(--bg));
+			border-bottom: 1px solid var(--line);
+		}
 	}
 }

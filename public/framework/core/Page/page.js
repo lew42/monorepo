@@ -7,7 +7,7 @@ export default classdoc.page({
 	icon: "description",
 
 	Class: Page,
-	children: "children nav layouts flow",
+	children: "children nav flow",
 	methods: "child add container activate tabs",
 
 	content(){

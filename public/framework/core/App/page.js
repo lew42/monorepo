@@ -11,6 +11,9 @@ export default classdoc.page({
 	Class: App,
 	methods: "instantiate load loaded font",
 
+	// The design record, served: each name is a ./doc/<name>.md the readme cites.
+	notes: "boot error-page loaders adoption fonts aliases",
+
 	content(){
 
 		toc();
@@ -58,7 +61,7 @@ window.app = new App();`);
 
 		md("`font()` pushes onto `loaders`, which `instantiate()` awaits **before** `inject()` — so a font asked for in `config()` is already applied at first paint. Ask later and it still loads, it just isn't waited for. Memoized, so two pages asking share one fetch.");
 
-		md("Add your own with `Font.fonts.Inter = { name, url, options }`. See [lew42](/framework/styles/theme/lew42/) for a theme that needs both.");
+		md("Add your own with `Font.fonts.Inter = { name, url, options }`. See [lew42](/framework/styles/layers/theme/lew42/) for a theme that needs both.");
 
 		h2("What App does not do");
 

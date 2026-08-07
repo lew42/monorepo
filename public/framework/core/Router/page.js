@@ -9,6 +9,9 @@ export default classdoc.page({
 	Class: Router,
 	methods: "go link_clicked load_segments activate mark mark_links",
 
+	// The design record, served: each name is a ./doc/<name>.md the readme cites.
+	notes: "registry-gate chain-diff marking styles-loaded navigated scroll-reset backed-out measured",
+
 	content(){
 
 		toc();

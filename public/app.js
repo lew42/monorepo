@@ -1,7 +1,7 @@
 import App, { View, div, a } from "./framework/core/App/App.js";
 import Socket from "./framework/dev/Socket/Socket.js";
-import { lew42 } from "./framework/styles/theme/lew42/lew42.js";
-import mode from "./framework/styles/theme/mode.js";
+import { lew42 } from "./framework/styles/layers/theme/lew42/lew42.js";
+import mode from "./framework/core/App/mode.js";
 
 App.stylesheet("/styles.css");
 
@@ -59,19 +59,15 @@ const app = window.app = new App({
 				nav.forEach(([url, text]) => a.c("nav-link", text).href(url));
 			});
 
-			/* `papers`, so a page that lands here with no arrangement of its own
-			 * gets the measure and the white sheet from the region instead of
-			 * declaring it. Before this, `/notes/`, `/alex/` and every other
-			 * top-level section rendered flush against the viewport edge with
-			 * zero padding — invisible only because a site rule painted every
-			 * page white. That rule is gone; this is what replaced it.
-			 *
+			/* The measure is the REGION's default now (`.pages` in Page.css hands
+			 * every page the sheet), so there is nothing to declare here — `papers`
+			 * retired once the opt-in every region typed became the default.
 			 * A topic opts out (`.page.topic` in /styles.css) — it IS the row. */
-			this.$pages = div.c("pages papers");
+			this.$pages = div.c("pages");
 
-			// Fixed bottom-right, so it survives a topic, a full-bleed page and a
-			// maximized demo — none of which share a container with the nav.
-			this.$mode = mode(this);
+			// The toggle lives in sidebar FOOTERS now; this applies the reader's
+			// stored mode on routes that don't render one.
+			mode.apply(this);
 		});
 
 		// $pages, not $app — a page's view is built by an element factory, which

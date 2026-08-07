@@ -67,7 +67,12 @@ export default function demo(...args){
 		div.c("demo-stage", $view => {
 			$stage = $view;
 
-			div.c("demo-screen", () => { $render = div.c("demo-render", fn); });
+			// `checkered` so you can tell whether what rendered painted its own
+			// background — an unpainted box shows the board through (framework.css).
+			// `flow` on the render: examples are written like page code, so they
+			// space like page code — and emitting it here is what lets core's flow
+			// rules stop naming `.demo-render`.
+			div.c("demo-screen checkered", () => { $render = div.c("demo-render flow", fn); });
 
 			$size = div.c("demo-size");
 			resizer($stage);

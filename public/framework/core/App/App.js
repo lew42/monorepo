@@ -57,12 +57,8 @@ export class App {
 	}
 
 	/* The one import that isn't behind a click. Everything below the root is a name
-	 * until the Router walks to it.
-	 *
-	 * The try covers the first navigation too, not just the import: activate() renders
-	 * every page in the chain, which runs every content() there is, and a throw in any
-	 * of them would otherwise skip inject() and paint nothing.
-	 */
+	 * until the Router walks to it. The try covers the first navigation too — a
+	 * throw in any content() would otherwise skip inject() and paint nothing. */
 	async load(){
 		console.log('app.load() — import("/page.js"), the walk needs an origin');
 
@@ -84,9 +80,8 @@ export class App {
 
 	inject(){ this.$body.append(this.$app); }
 
-	// Wait for a typeface before first paint. Called from config(), which runs before
-	// render(), so the promise is on `loaders` well before load() awaits them — a font
-	// asked for later still loads, it just isn't waited for.
+	// Wait for a typeface before first paint — call it from config(). Asked for
+	// later it still loads, it just isn't waited for.
 	font(name){
 		const loading = Font.load(name);
 		this.loaders.push(loading);
@@ -108,20 +103,16 @@ export class App {
 	// A method, not a getter — it allocates a fresh Promise.all every call.
 	loaded(){ return Promise.all(View.stylesheets.concat(this.loaders)); }
 
-	/* Stylesheets only, and it can never reject. Router.load() awaits this before
-	 * activating, so a lazily imported page's <link> is applied before its first
-	 * paint. It must NOT await `loaders`: that list only grows, so awaiting it per
-	 * navigation means one rejected loader kills every later navigation — measured,
-	 * and silently, because click() never awaits go().
-	 */
+	/* Stylesheets only, can never reject; the Router awaits this on every
+	 * navigation. It must NOT await `loaders` — that list only grows, so one
+	 * rejected loader would silently kill every later navigation. doc/loaders.md. */
 	styles_loaded(){ return Promise.allSettled(View.stylesheets); }
 
 	static stylesheet(meta, url){ return View.stylesheet(meta, url); }
 
 	/* ── compatibility, not API ──
-	 * Aliases kept for consumers OUTSIDE framework/ (rename freely in here, alias on
-	 * the way out). The rewrite dropped them and took four sections of the site down.
-	 * Neither is a second implementation and neither should grow one. */
+	 * Aliases for consumers OUTSIDE framework/ — rename freely in here, alias on
+	 * the way out. Neither should grow an implementation. See doc/aliases.md. */
 
 	stylesheet(meta, url){ return View.stylesheet(meta, url); }
 

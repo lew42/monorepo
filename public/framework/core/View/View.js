@@ -198,11 +198,8 @@ export default class View {
 	}
 
 	/* Getter or setter, decided by WHETHER a value was passed — never by whether it
-	 * differs from what is there. These three used to test both, so setting a value
-	 * equal to the current one fell into the getter branch and returned a STRING:
-	 * `field().text("").attr(…)` on an empty <textarea> threw "attr is not a
-	 * function". The skip-the-write optimization wanted the comparison; the return
-	 * never did. */
+	 * differs from what is there: an equal-value set must still return `this`, not
+	 * a string. War story in readme.md. */
 	html(value){
 		if (!is.def(value)) return this.el.innerHTML;
 
@@ -644,15 +641,10 @@ export { View, is };
 View.previous_captors = [];
 View.prototype.capture = true;
 
-/* The layer order and the base look, loaded HERE and not by App — so nothing can
- * beat it into <head>. Every other stylesheet on the site is injected by a module
- * that imports View, so this <link> is always the first one, and the `@layer`
- * statement in it is the one that fixes the order for the whole document.
- *
- * It was App's, and Page.css got there first (App imports Page at module scope,
- * and imports hoist) — which meant the order was decided by a file that isn't
- * about the order. Importing View now means importing the framework's CSS; the
- * two were never separable in practice.
+/* The layer order and the base look, loaded HERE and not by App — importing View
+ * means importing the framework's CSS, so this <link> is always first and its
+ * `@layer` statement fixes the order for the whole document. History:
+ * doc/stylesheet-loading.md.
  *
  * ⚠ DEAD LAST in this file, and it has to be: `stylesheet()` builds a View, which
  * runs `append_fn`, which pushes onto `View.previous_captors` — declared two lines

@@ -1,6 +1,67 @@
 # Page — design record
 
-## Rhythm: one flow, not two rhythm systems
+## One flow token, registered (REVISES "Rhythm" below, and the rem-never-em rule)
+
+**Asked as:** *"If you just use ems, then the margin-top scales with the
+font-size, and it seems `--flow: 2em` could work quite well in place of all 4
+variants. Simpler = better."*
+
+The council split three ways, and the disagreement was the useful part:
+
+- **Steve:** one unregistered em token; let heading margins compound and call the
+  compounding the hierarchy. Rejected — the 96px hero h1 it produces is the exact
+  thing Mike reported as broken.
+- **Eric + Tim:** one em token, **registered** — `@property --flow { syntax:
+  "<length>"; inherits: true }` — and declared on the flow roots. A registered
+  length computes against the element that *declares* it (the container) and
+  inherits as an absolute value, so an area's `font-size` scales its whole rhythm
+  (the reason to want em) while a heading structurally cannot multiply it (the
+  recorded 49→79px trap, measured live this session at 96px on the hero h1 and
+  72px on every doc h2). **Adopted.** Verified: h2 air 72→32px, h3 68.4→48px, a
+  0.8em flow tightens to 25.6px.
+
+What it deleted: `--flow-section` and `--flow-tight` (both already tuned equal to
+`--flow`), the heading-air and heading-hug rules they powered, and `--flow-sub`
+(now `calc(var(--flow) * 1.5)` on `* + h3/h4` and after `.page-title`). Retune
+site-wide with `--rhythm` (unregistered em, inherits as a token). The "rem, never
+em" rule in the Rhythm section below is superseded by registration — em is safe
+*because* the token computes at the container now.
+
+The flow scope also stopped naming ext classes: `md()` emits `md flow` and
+`demo()`'s render box emits `demo-render flow`, so the selector is
+`:where(.flow, .page, blockquote)` and the styles/readme §8 offender is closed.
+Where `.flow` does NOT belong: inside components and sections — a laid-out box
+owns its spacing with `gap` (the sections' bands were de-flowed to `flex v gap`
+for exactly this reason).
+
+## The sheet is the default; the vocabulary is three words (REVISES "paper is opt-in" below)
+
+`papers`/`paper` retired. Every region (`.pages`) now *hands its pages the
+sheet* — `--measure: 60em; --page-pad: 3em clamp(0px, 6%, 5em)` — so **a page
+that says nothing is a readable page**, which is the product's whole pitch. The
+old verdict ("the framework does not decide paper; there is no default") died
+with its own premise: it predates `papers` losing its background, and by the end
+every region on the site had typed the opt-in — a default in disguise, minus the
+honesty. Tim dissented (keep the opt-in), and his enumeration of silent-loss
+sites became the migration checklist instead.
+
+The page-level words, each a stance on the same two tokens:
+
+```
+grid   the sheet + breakout tracks (was `breakouts`) — .wide / .bleed escape
+pad    no measure, an even inset   (was `dash`) — tokens only: util .pad reads --pad
+full   nothing                     (was `page-full`)
+```
+
+`.page.topic` and `.tab-panel` still opt out by declaring the tokens on
+themselves — a declared value beats an inherited one at any specificity, in any
+layer, which remains the entire opt-out mechanism. `toc.css` opts out with
+`:not(.grid)` now. The gallery-card rules left this file for
+`styles/gallery/` — Page emits no `.gallery-*` class, and the module that does
+now owns them; the doc trees merged the same day (`core/Page/layouts/` deleted,
+its four shape pages absorbed into `styles/layouts/fit/`).
+
+## Rhythm: one flow, not two rhythm systems (token details REVISED above)
 
 **The bug, as reported:** *"in some `.md` containers we have `p` that aren't
 directly in the page. I tried some `.page > *` margins, but they failed to reach
@@ -211,7 +272,7 @@ What it bought, immediately: `/styles.css` lost the topic pair (a topic is now
 `div.c("page topic flex")`), and `layouts.css` lost the `.active-page` workaround.
 Two workarounds deleted, one rule moved.
 
-## `paper` is opt-in, and so is `papers` — as tokens, not declarations
+## `paper` is opt-in, and so is `papers` — as tokens, not declarations (SUPERSEDED — see "The sheet is the default" above)
 
 `paper` is a look — a white box, a measure, a centred column. The framework
 does not decide that, so there is no default. Two ways to ask for it:

@@ -20,7 +20,7 @@ export default new Page({
 			p("Body copy, with `code` in it.");
 		}, "The whole vocabulary. From `framework.css`: `h1` 1.9em/900 with `-0.015em` tracking, `h2` 1.4em/700, `h3` 1em/700, `h4` 0.8em/700 uppercase with `0.05em` tracking. **Size, weight and tracking only** — margins are rhythm and belong to whatever arranges the content.");
 
-		md("What you just saw is bigger than those numbers, and that's the point: this site wears `theme-lew42`, which re-declares the same four selectors at 3em / 2.25em / 1.5em / 0.875em and wins by loading later at equal specificity. Not a typo — the override model working. The table of both is in [theme](/framework/styles/theme/).");
+		md("What you just saw is bigger than those numbers, and that's the point: this site wears `theme-lew42`, which re-declares the same four selectors at 3em / 2.25em / 1.5em / 0.875em and wins by loading later at equal specificity. Not a typo — the override model working. The table of both is in [theme](/framework/styles/layers/theme/).");
 
 		demo(() => {
 			p.c("h2", "A paragraph borrowing h2");
@@ -86,7 +86,7 @@ export default new Page({
 			p("Below.");
 		}, "`hr { border: none; border-top: 1px solid var(--line) }` — one hairline in the theme's own line colour, and **no margin**. The `--flow` rules in `Page.css` space it like any other block, so an `hr` inside a tighter container stays tight instead of carrying a fixed gap around with it.");
 
-		md("`p` and `h1`–`h6` each repeat `overflow-wrap: break-word` from `body`, so one long token can't blow out a column — the headings need their own rule because the value doesn't inherit through an element that sets it itself. Demoed side by side in [base](/framework/styles/base/).");
+		md("`p` and `h1`–`h6` each repeat `overflow-wrap: break-word` from `body`, so one long token can't blow out a column — the headings need their own rule because the value doesn't inherit through an element that sets it itself. Demoed side by side in [base](/framework/styles/layers/base/).");
 
 		md("Next: [Lists](/framework/styles/elements/lists/) — `ul`, `ol`, nesting, and the one list the reset misses.");
 	}

@@ -125,49 +125,18 @@
 	.pages:not(:has(> .page.active-page)):not(:has(> .default)),
 	.pages:has(> .page.topic.active-page) { overflow-y: hidden; }
 
-	/* Below this the panel is most of the screen. Stack it, let it lay its links out
-	   in a row, and give the page back its column. */
+	/* Below this the topic stacks; the sidebar's own narrow behaviour (top bar +
+	   hamburger menu) lives in core/Sidebar/Sidebar.css now — this file stopped
+	   dissolving groups into a wrap row the day the burger landed. */
 	@media (max-width: 52em) {
 		.page.topic { flex-direction: column; overflow: visible; }
-		.topic > .sidebar {
-			flex: 0 0 auto; overflow: visible;
-			border-right: none; border-bottom: 1px solid var(--line);
-		}
-		.topic > .sidebar .sidebar-nav { flex-direction: row; flex-wrap: wrap; }
-		.topic > .sidebar .sidebar-link { padding: 0.7em 1em; }
-
-		/* ONE wrap row of links, and only the group you are in.
-
-		   Stacked, the panel sits above the content, so its whole height is a wall you
-		   scroll past to reach the page — and it grew from 7 links to 30 when the nav
-		   started deriving both levels from the tree. Measured at 390px: 700px of nav
-		   before the first heading.
-
-		   `display: contents` dissolves the group so its links become items of the same
-		   wrap row as the flat entries. Keeping the group as a flex ITEM instead left it
-		   a column that the following entries wrapped beside — "Dev server" sat next to
-		   "Page", reading like a second column that wasn't one.
-
-		   The group title goes with it: with exactly one group showing, "CORE" is a
-		   heading over the only thing there is.
-
-		   The escape route is what lets this be so blunt — the brand goes to the section
-		   index, which lists every section as a card. So a phone gets "where am I" from
-		   the panel and "somewhere else" from the index, which is the split a drawer
-		   would give and needs no drawer. */
-		.topic > .sidebar .sidebar-group { display: contents; }
-		.topic > .sidebar .sidebar-group-title { display: none; }
-		.topic > .sidebar .sidebar-group:not(:has(.sidebar-link:is(.active, .in-path))) { display: none; }
-
-		/* No chevron in a row: it points at a panel that is now above, not beside. */
-		.topic > .sidebar .sidebar-link.active::after,
-		.topic > .sidebar .sidebar-link.in-path::after { content: none; }
+		.topic > .sidebar { flex: 0 0 auto; }
 	}
 
 	/* Rhythm is NOT here. It used to be two rules in this file AND four in Page.css,
 	   and this pair won by layer — so tuning the spacing meant editing whichever file
-	   you happened to find. One flow system now, in Page.css, retuned with `--flow*`.
-	   See core/Page/readme.md. */
+	   you happened to find. ONE flow token now, registered, in core/Page/Page.css —
+	   retune with `--rhythm`. See core/Page/readme.md. */
 
 	body.theme-1 {
 		background: #ddd;
@@ -190,7 +159,7 @@
 
 	   `.theme-lew42` paints `--surface` on this same element, so this wins by
 	   `@layer site` and NOT by specificity — if the theme class ever moves off `.app`
-	   this silently loses. See styles/theme/lew42/readme.md §7. */
+	   this silently loses. See styles/layers/theme/lew42/readme.md §7. */
 	.app { background: var(--wash); }
 
 	.page-link-block { background: rgba(0,0,0,0.1); display: block; padding: 1em; margin-bottom: 1em; }

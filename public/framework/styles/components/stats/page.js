@@ -12,7 +12,7 @@ export default new Page({
 
 		demo(component, "The same `grid gap auto` as a card wall, with `--column: 9em` set on the container. **A token override where a rule was expected:** `grid auto` reads `--column`, so shrinking it turns a two-up card grid into a four-up tile strip and no selector was written.");
 
-		md("`h4` for the label and `h2` for the number — the [type scale](/framework/styles/theme/) is the whole vocabulary, so a stat tile never invents a font-size. `--subtle` on the label is the only colour, and it is a token.");
+		md("`h4` for the label and `h2` for the number — the [type scale](/framework/styles/layers/theme/) is the whole vocabulary, so a stat tile never invents a font-size. `--subtle` on the label is the only colour, and it is a token.");
 
 		demo(() => {
 			div.c("grid gap auto", () => [

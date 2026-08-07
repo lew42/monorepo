@@ -1,7 +1,7 @@
 /* The three looks the components share, as token-valued style objects.
  *
  * Not a stylesheet: a fill, a border and a radius are a LOOK, and rung 4 of the
- * ladder is layout only. `layouts/parts.js` and `styles/util/page.js` tint their
+ * ladder is layout only. `layouts/parts.js` and `styles/layers/util/page.js` tint their
  * boxes exactly this way, so this is the house answer rather than a new one — and
  * it is why this section ships one stylesheet, for one component.
  *

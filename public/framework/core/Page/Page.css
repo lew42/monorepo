@@ -2,6 +2,25 @@
    See the header of framework.css. */
 @layer base, theme, site, util;
 
+/* ── the rhythm token, registered ──
+   ONE token now. Registration is what makes `em` safe here: a registered
+   <length> computes against the element it is DECLARED on — the flow container —
+   and inherits as an absolute length. So a heading's gap can never compound with
+   the heading's own font-size (the trap that broke the first em conversion:
+   `* + h2` at 2em of a 36px h2 measured 72px where the rhythm is 32px), and a
+   container that sets `font-size: 0.8em` tightens its whole rhythm with it,
+   which is the reason the token is em at all.
+
+   `initial-value: 0px`, not a fallback rhythm: a flow that loses its declaration
+   collapses visibly and gets fixed, instead of quietly healing to a number
+   nobody chose. An at-rule can't sit in a layer; it isn't a style rule, so the
+   every-rule-in-a-layer contract is untouched. */
+@property --flow {
+	syntax: "<length>";
+	inherits: true;
+	initial-value: 0px;
+}
+
 /* ── the arrangement contract: the ONLY place a page's visibility is decided ──
    Router.mark() writes `.active-page` on the leaf, `.active-ancestor` above it.
 
@@ -25,13 +44,19 @@
 	/* THE REGION SCROLLS, NOT THE PAGE — a page is a centred measure, so a scrollbar
 	   on it would render at the sheet's edge instead of the window's.
 	   `scroll` not `auto`, so the gutter stays reserved and navigating never shifts
-	   the content sideways. The tokens sit on EVERY region, so they stop at each
-	   boundary instead of leaking into a nested one. */
+	   the content sideways.
+
+	   The tokens sit on EVERY region — and they are the SHEET, not a reset: a
+	   region hands each of its pages the reading measure by default, and saying
+	   nothing is the arrangement most pages should have. (This retires `papers` /
+	   `paper`: the opt-in everyone typed became the default nobody types.) They
+	   still stop at each region boundary, which is why they are declared here and
+	   not once at the root. A site un-sheets a region with the same two tokens. */
 	.pages {
 		display: flex; align-items: flex-start;
 		flex: 1 1 auto; min-width: 0; min-height: 0;
 		overflow-y: scroll;
-		--measure: none; --page-pad: 0;
+		--measure: 60em; --page-pad: 3em clamp(0px, 6%, 5em);
 	}
 
 	.page { min-width: 0; min-height: 0; }
@@ -41,25 +66,38 @@
 	.page.active-ancestor:has(.page.active-page) { flex: 1 1 auto; min-height: 100%; }
 
 	/* What a region shows when nothing of its own is in the chain — the index route.
-	   A plain div, not a `.page`, so not the contract's business.
+	   A plain div, not a `.page`, so not the contract's business; it reads the
+	   region's own sheet tokens, so it and the pages beside it cannot disagree.
 	   ⚠ `.active-ancestor` in the test is load-bearing; readme.md, last section. */
 	.pages > .default { display: none; }
 
 	.pages:not(:has(> .page.active-page, > .page.active-ancestor)) > .default {
 		display: block; flex: 1 1 auto; min-width: 0; min-height: 100%;
+		max-width: var(--measure); padding: var(--page-pad);
 	}
 
 
-	/* ── the look of everything Page renders ──
+	/* ── the page vocabulary: three words, two tokens ──
 	   Structure only, no skin: the site decides backgrounds (/styles.css).
 
-	   The measure is TOKENS, so a page opts out by setting them on itself — a value
-	   declared on an element beats an inherited one at any specificity, any layer. */
+	   A bare page is the reading column (the region's sheet, above). The words:
+
+	       grid   the sheet, plus breakout tracks — a child escapes with .wide/.bleed
+	       pad    no measure, an even inset — a gallery, an index, a board
+	       full   nothing — edge to edge inside the region
+
+	   The measure is TOKENS, so anything opts out by setting them on itself — a
+	   value declared on an element beats an inherited one at any specificity, any
+	   layer. That is the whole opt-out mechanism, and it is how `.page.topic` in
+	   /styles.css and `.tab-panel` below leave the sheet. */
 	.page { max-width: var(--measure, none); padding: var(--page-pad, 0); }
 
-	/* One page opts in, or a region opts all of its children in. */
-	.pages.papers,
-	.page.paper { --measure: 60em; --page-pad: 3em clamp(0px, 6%, 5em); }
+	.page.full { --measure: none; --page-pad: 0; }
+
+	/* `pad` shares its word with the util class on purpose: a padded page IS the
+	   padded box, one size up. The util's `padding: var(--pad, 1em)` out-ranks the
+	   `.page` padding by layer, so this rule only steers tokens. */
+	.page.pad { --measure: none; --pad: 2em; }
 
 	/* A page whose body is a vertical tab set is a rail PLUS a column, so 60em has
 	   to cover both and the reading comes out narrower than an ordinary page's. It
@@ -68,7 +106,7 @@
 	   rail get it without a class. */
 	.page:has(> .tabs.vertical) { --measure: 78em; }
 
-	/* ── breakouts ──
+	/* ── grid: the measure that can let one thing out ──
 	   Prose keeps the measure; a `.wide` or `.bleed` child escapes it. Tracks, not
 	   negative margins — readme.md.
 
@@ -76,8 +114,10 @@
 	     usually two values, and `minmax(3em 4em, 1fr)` drops the whole template.
 	   ⚠ The main track subtracts the gutters. `min(--measure, 100%)` resolves to the
 	     FULL page width when the measure doesn't fit, and the gutters then add on
-	     top — 921px of tracks in an 857px page. */
-	.page.breakouts {
+	     top — 921px of tracks in an 857px page.
+	   ⚠ `--measure` is re-declared: in a region a site un-sheeted, `min(none, …)`
+	     is invalid at computed-value time and the whole template silently drops. */
+	.page.grid {
 		--measure: 60em;
 		--breakout: 7em;
 		--gutter-x: 2em;
@@ -95,18 +135,12 @@
 		max-width: none;
 	}
 
-	/* `dash` is a wall of cards; `page-full` is "the thing IS the page". */
-	.page.dash      { --measure: none; }
-	.page.page-full { --measure: none; --page-pad: 0; }
-
-	.page.breakouts > *      { grid-column: main; min-width: 0; }
-	.page.breakouts > .wide  { grid-column: wide; }
-	.page.breakouts > .bleed { grid-column: bleed; }
+	.page.grid > *      { grid-column: main; min-width: 0; }
+	.page.grid > .wide  { grid-column: wide; }
+	.page.grid > .bleed { grid-column: bleed; }
 
 	/* ⚠ No ToC rule here on purpose — both want `grid-template-columns`, and the
-	   winner would be load order. toc.css opts out with `:not(.breakouts)`. */
-
-	.pages.papers > .default { padding: 3em 4em; max-width: 60em; }
+	   winner would be load order. toc.css opts out with `:not(.grid)`. */
 
 	/* ── tabs ──
 	   `Page.tabs()` emits `.tabs > .tab-bar + .tab-panel`. `.active` / `.in-path`
@@ -143,7 +177,7 @@
 
 	/* A panel is INSIDE a page that already has the sheet, so it resets the measure
 	   tokens — they inherit, and a page mounted in here is a `.page` like any other.
-	   Without this a classdoc method page paid the 3em/4em twice and its heading
+	   Without this a classdoc method page paid the sheet twice and its heading
 	   started an inch and a half down the column. */
 	.tab-panel { padding-top: 1rem; min-width: 0; --measure: none; --page-pad: 0; }
 
@@ -212,35 +246,40 @@
 	}
 
 	/* ── rhythm: the flow ──
-	   A **flow** is a box whose children are stacked prose, and spacing belongs to the
-	   flow rather than to the things in it. `.page` is one, and so is any `.md` inside
-	   it — which is the whole reason this exists: `.page > p` could never reach a
-	   paragraph that markdown generated.
+	   A **flow** is a box whose children are stacked prose, and spacing belongs to
+	   the flow rather than to the things in it. `.page` is one; anything else opts
+	   in by EMITTING the class — `md()` and `demo()`'s render box both say
+	   `flow` in their own class strings now, so this file no longer styles ext
+	   classes it can't import (the offender styles/readme.md §8 left open).
 
-	   Every selector is `:where()`d to specificity ZERO, so a component that genuinely
-	   needs its own spacing wins by being an ordinary class. The order of the last
-	   three rules is the cascade doing the work: all equal, so the last one to match a
-	   pair decides it. Retune with `--flow*`, never by out-specifying. */
+	   ONE token, declared on the flows themselves so it computes against each
+	   AREA's font-size (see @property, top of file). `--rhythm` is the retune
+	   knob: unregistered, so it inherits as a raw em token and re-resolves inside
+	   every flow it reaches — a theme sets `--rhythm: 1.6em` on `.app` once.
 
-	:where(.flow, .page, .md, blockquote, .demo-render) > * { margin-block: 0; }
-	:where(.flow, .page, .md, blockquote, .demo-render) > * + * { margin-block-start: var(--flow); }
+	   The heading-air and heading-hug rules retired WITH the extra tokens: both
+	   had been tuned equal to `--flow`, so the owl already says what they said.
+	   Only the small headings keep a distinct gap, at a ratio rather than a token.
+	   Every selector is `:where()`d to zero, so a component that genuinely needs
+	   its own spacing wins by being an ordinary class. */
 
-	/* a heading hugs what follows it… */
-	:where(.flow, .page, .md, blockquote, .demo-render) > :is(h1, h2, h3, h4, .h1, .h2, .h3, .h4) + *
-		{ margin-block-start: var(--flow-tight); }
+	:where(.flow, .page, blockquote) { --flow: var(--rhythm, 2em); }
 
-	/* …and takes air above, which outranks the hug for `h1 + h2` */
-	:where(.flow, .page, .md, blockquote, .demo-render) > * + :is(h2, .h2) { margin-block-start: var(--flow-section); }
-	:where(.flow, .page, .md, blockquote, .demo-render) > * + :is(h3, .h3, h4, .h4) { margin-block-start: var(--flow-sub); }
+	:where(.flow, .page, blockquote) > * { margin-block: 0; }
+	:where(.flow, .page, blockquote) > * + * { margin-block-start: var(--flow); }
+
+	/* the small headings take half again — the one pair one token can't say */
+	:where(.flow, .page, blockquote) > * + :is(h3, .h3, h4, .h4)
+		{ margin-block-start: calc(var(--flow) * 1.5); }
 
 	/* The page title is the one heading that isn't a section break. A real class, so
-	   it outranks the hug above on purpose. */
-	:where(.page) > .page-title + * { margin-block-start: var(--flow-sub); }
+	   it outranks the owl above on purpose. */
+	:where(.page) > .page-title + * { margin-block-start: calc(var(--flow) * 1.5); }
 
 	/* Markdown emits `<li><p>` for a loose list, and a UA paragraph margin inside a
-	   list item is a gap nobody asked for. Two element selectors, so it clears the UA
+	   list item is a gap nobody asked for. Element selectors, so it clears the UA
 	   rule without touching the flow. */
-	:where(.flow, .page, .md) :is(li, td, th) > p { margin-block: 0.35rem; }
+	:where(.flow, .page, blockquote) :is(li, td, th) > p { margin-block: 0.35em; }
 
 	/* ── a link in prose ──
 	   Scoped to text, not to `a`, and that is the whole decision. Every piece of
@@ -289,9 +328,11 @@
 
 	/* preview cards — a parent listing its children */
 
+	/* `--column` is the same knob the util grids read, so a preview wall retunes
+	   the way every other wall on the site is retuned. */
 	.page-previews {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(min(14em, 100%), 1fr));
+		grid-template-columns: repeat(auto-fill, minmax(min(var(--column, 14em), 100%), 1fr));
 		gap: 0.8em;
 	}
 
@@ -342,31 +383,7 @@
 	/* A card with height is a panel: its title belongs at the top. */
 	.page-preview:is(.tall, .big) { flex-direction: column; gap: 0.3em; }
 
-	/* ── a gallery card: a preview with a live render in it ──
-	   Three indexes want it (layouts, components, sections) and it is one object.
-
-	   ⚠ The thumbnail is INERT. A live render inside a card that is itself a link is
-	   an `<a>` in an `<a>` — invalid, and the browser unnests it. `pointer-events:
-	   none` is why the card stays a div and the label below is the only link. */
-	.gallery-card {
-		position: relative;
-		display: flex; flex-direction: column; gap: 0.7em;
-		padding: 0.9em;
-	}
-
-	.gallery-thumb {
-		overflow: hidden;
-		background: var(--tint);
-		border-radius: var(--radius);
-		pointer-events: none;
-		user-select: none;
-	}
-
-	/* The label is the link; its ::after covers the card. */
-	.gallery-link { display: flex; align-items: center; gap: 0.45em; text-decoration: none; color: inherit; }
-	.gallery-link::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
-	.gallery-link .icon { color: var(--subtle); }
-
-	.gallery-card:hover .gallery-link { color: var(--prim); }
-	.gallery-card:hover .gallery-link .icon { color: var(--prim); }
+	/* The gallery card — a preview with a live render in it — moved to
+	   styles/gallery/: Page emits none of those classes; the module that does
+	   styles them. */
 }

@@ -13,13 +13,27 @@ export default new Page({
     meta: import.meta,
     title: "View",
     Class: View,
-    methods: "append ac on style stylesheet",
+    methods:    "append ac on style stylesheet",
+    properties: "el capture",
+    notes:      "capturing",
     content(){ /* the overview */ },
 });`);
 
-		md("One call is a whole class page: a **left nav of members** beside a panel they render into, each one showing **the method's actual source** above prose you wrote in a file. Live example — [View](/framework/core/View/), and the nav on the left of it.");
+		md("One call is a whole class page: a **left nav of members** beside a panel they render into, each one showing **the member's actual source** above prose you wrote in a file. Live example — [View](/framework/core/View/), and the nav on the left of it.");
 
 		md("`content()` becomes the first entry, so the class's own url shows the overview and every member gets a real url of its own.");
+
+		md("## Three kinds of member page");
+
+		md(`| list | the page shows | prose from |
+|---|---|---|
+| \`methods\` | the method's real source | \`doc/method/<name>.md\` |
+| \`properties\` | what can be shown without running anything | \`doc/property/<name>.md\` |
+| \`notes\` | nothing — the prose *is* the page | \`doc/<name>.md\` |`);
+
+		md("A **property** mostly has no source: an instance field assigned in the constructor leaves nothing on the prototype, so its page is the prose alone. An accessor shows its function, and a prototype default shows its one-line declaration — [capture](/framework/core/View/capture/) shows `capture = true`. Read via `getOwnPropertyDescriptor`, never `Class.prototype[name]`: reading a getter **executes** it.");
+
+		md("A **note** is prose that earned a url — a worked trap, a topic bigger than one member, **the design record**. `doc/<name>.md` is the same file the class's `readme.md` cites as *\"see ./doc/capturing.md\"*, so the record is written once and served as a page. Live example — [capturing](/framework/core/View/capturing/), at the bottom of View's rail.");
 
 		md("## It's `tabs()`, turned on its side");
 
@@ -31,7 +45,7 @@ export default new Page({
 
 		md("## The files");
 
-		md("```\ncore/View/\n    View.js\n    page.js                     ← calls classdoc()\n    doc/method/\n        append.md               ← /framework/core/View/append/\n        ac.md\n        style.md\n```\n\nDocumenting a method is **writing a file**. No registration, no UI, no build step — which is the requirement, because the author here is usually an AI and a plain file is the only interface that needs nothing else present.");
+		md("```\ncore/View/\n    View.js\n    page.js                     ← calls classdoc.page()\n    doc/\n        capturing.md            ← /framework/core/View/capturing/\n        method/\n            append.md           ← /framework/core/View/append/\n            ac.md\n        property/\n            capture.md          ← /framework/core/View/capture/\n```\n\nDocumenting a member is **writing a file**. No registration, no UI, no build step — which is the requirement, because the author here is usually an AI and a plain file is the only interface that needs nothing else present.");
 
 		md("## Why the list is hand-typed");
 

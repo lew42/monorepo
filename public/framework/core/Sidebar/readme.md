@@ -248,6 +248,9 @@ section" — while a preview card distinguishes them.
   A component that ships responsive behaviour is deciding layout, which is the
   thing §6 says it must not do — so this is probably correct, but it is
   untested against a second consumer.
+  **⟲ Reversed — see §9.** The site's media query grew into a second sidebar
+  design maintained outside the component, which is the drift §6 exists to
+  prevent. Narrow behaviour is the component's now.
 - **`/framework/`'s group data is hand-typed, and can drift.** `sidebar_nav` in
   `framework/page.js` lists five groups and twenty entries; each section's own
   `children` string lists the same names again. Reading them instead would mean
@@ -295,7 +298,7 @@ The second bug was invisible for a while, because nothing read those classes on 
 sidebar — `/styles.css` only styles them. It surfaced the moment a narrow-screen
 rule started *selecting* on them.
 
-## 6. Below 52em: one wrap row, and only the group you are in
+## 6. Below 52em: one wrap row, and only the group you are in — SUPERSEDED by §9
 
 Stacked, the panel sits above the content, so its full height is a wall you scroll
 past to reach the page. At 7 entries that was fine; at 30 it measured **700px of nav
@@ -323,3 +326,82 @@ only thing there is.
 existed:** the brand links to the section index, which lists every section as a
 card. So a phone gets *"where am I"* from the panel and *"somewhere else"* from the
 index — the same split a drawer would provide, without the drawer.
+
+> **⟲ Superseded.** It worked "sorta": one wrap row of the current group is an
+> index with no way to the *other* groups, `display: contents` breaks the a11y
+> tree in some browsers when it lands on interactive ancestors, and the row never
+> looked designed. §9 replaces it with a top bar and a real menu. The rules this
+> section describes still live in `/styles.css`'s 52em block and must be deleted
+> there — until they are, they degrade the open menu on `.topic` sidebars.
+
+---
+
+## 8. The footer: a strip that does not scroll
+
+**The question.** Where do a mode toggle and an account mark live? The app had
+pinned the toggle bottom-right, `position: fixed` over everything — reachable, but
+chrome floating over content on every page, including full-bleed ones.
+
+**Options.** (a) Keep the fixed pill. (b) A footer entry in `pages` — but a row in
+the nav scrolls away with it. (c) A `footer` slot parallel to `header`: below the
+nav, outside the scroller.
+
+**Verdict: (c).** `render()` is now `bar()` over `menu()`, and `menu()` is the nav
+over the footer; the nav is the only scroller (`flex: 1 1 auto; min-height: 0;
+overflow-y: auto`), so header and footer are pinned by structure, not by
+`position`. The panel's own `overflow-y: auto` was deleted — the panel scrolling
+whole was the shape this replaces.
+
+**The default footer is the colour-scheme toggle plus a placeholder avatar.**
+Zero-config, like `header`'s logo-and-wordmark default; a site replaces it by
+passing `footer` (same assign-shadowing), or removes it with `footer: null`. The
+toggle is `mode(app)` and mode needs the app — it styles `app.$app` — so it
+renders only when the sidebar was given one: `new Sidebar({ app: this.app, … })`.
+Absent an app it degrades to just the avatar, silently but visibly.
+
+The footer's hairline is `color-mix` off `--sidebar-ink`, not `--line` — `--line`
+tracks the *document's* brightness, and a dark panel on a light page is a
+supported combination (§3).
+
+---
+
+## 9. Below 52em, take two: a top bar and a hamburger
+
+**The question.** §6's no-JS collapse hid every group but the current one and
+dumped the survivors into one wrap row. Honest about its cost, and the cost was
+the product: no route to sibling groups, `display: contents` a11y breakage, and a
+bar that read as an accident.
+
+**Options.**
+
+| | |
+|---|---|
+| keep §6, restyle the row | the structural problems (no other groups, `contents`) survive any restyle |
+| off-canvas drawer | a second layout (slide, overlay, backdrop) and the most JS of the three |
+| **top bar + slide-down menu** | ✓ — the bar is the header the panel already had; the menu is the panel it already was |
+
+**Verdict: the panel becomes a sticky top bar; the burger drops the whole menu
+below it.** The pieces were already there: `bar()` (header + toggle) and `menu()`
+(nav + footer) exist at every width, and the media query only changes which of
+them is a strip and which is hidden. Open state is one class (`.open`) and one
+attribute (`aria-expanded`); the menu is `position: absolute; top: 100%` against
+the sticky bar, so opening it moves nothing else, and the footer rides along —
+the toggle stays reachable on a phone.
+
+Decisions worth a line each:
+
+- **A real `<button>`**, not a clickable div or a checkbox hack — focus,
+  Enter/Space, and `aria-expanded` come free. The bars are three spans painted
+  `currentColor`, so no icon-font dependency (§4's rule).
+- **CSS decides "narrow"** — the button is always in the DOM, shown by the media
+  query. No resize listener, no state to reconcile with one.
+- **Escape closes and refocuses the toggle; a link click closes** — navigation
+  happened, the menu's job is done. Both are two lines.
+- **Breakpoint 52em**, matching the topic stacking in `/styles.css`. A container
+  query would let a demo box simulate it, but the bar/border changes are on
+  `.sidebar` *itself*, which a container query cannot style. Media query, simplest.
+- **The mode import is core → core now.** `Sidebar.js` briefly imported
+  `styles/layers/theme/mode.js` for the footer default — the one core import
+  outside core/, and it broke the whole site mid-session when theme/ moved under
+  it. `mode.js` lives beside App now (`core/App/mode.js`, the Font.js precedent):
+  theme-agnostic behaviour, imported by the two things that render it.

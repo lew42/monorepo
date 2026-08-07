@@ -1,4 +1,5 @@
 import { Page, View, md, demo, div, a, span, icon, code, details, summary } from "/app.js";
+import card from "../gallery/gallery.js";
 
 import holy_grail from "./holy-grail/layout.js";
 import sidebar from "./sidebar/layout.js";
@@ -10,8 +11,9 @@ import stack from "./stack/layout.js";
 import masthead from "./masthead/layout.js";
 
 /* css: .layout-side, .layout-rail, .layout-measure, .layout-fit,
-   .layout-full, .layout-close — plus `.page-preview` / `.gallery-*` / `.zoom-25`,
-   borrowed from Page.css and framework.css (both loaded via /app.js). */
+   .layout-full, .layout-close — plus `.page-preview` (Page.css) and `.zoom-25`
+   (framework.css), both loaded via /app.js. The gallery card comes from
+   styles/gallery/, imported above, which owns the `.gallery-*` classes. */
 View.stylesheet(import.meta, "layouts.css");
 
 /* Eight tiny modules, imported eagerly and on purpose: the gallery renders every
@@ -36,9 +38,9 @@ export default new Page({
 	icon: "dashboard_customize",
 
 	// a gallery is not prose: no measure, so the wall gets the room it has
-	classes: "dash",
+	classes: "pad",
 
-	children: "holy-grail sidebar cards dashboard split centered stack masthead",
+	children: "fit holy-grail sidebar cards dashboard split centered stack masthead",
 
 	/* No `nav` map. Every label here is the child's own `title` and every icon its
 	   own `icon`, so a layout is named in exactly one place — see
@@ -50,19 +52,11 @@ export default new Page({
 
 		// The gallery first, because it IS the page. Each card is the layout's own
 		// function, run here — `nav_for()` supplies the label, icon and url, so
-		// this list and the nav above cannot disagree.
-		div.c("grid gap auto", () => this.children.forEach((page, name) => {
-			const nav = this.nav_for(name);
-
-			div.c("page-preview gallery-card", () => {
-				div.c("gallery-thumb zoom-25 flex all-1 h-center", gallery[name]);
-
-				a.c("gallery-link").href(nav.url).append(() => {
-					icon(nav.icon);
-					span.c("page-preview-title", nav.label);
-				});
-			});
-		}));
+		// this list and the nav above cannot disagree. One card() per child —
+		// the markup lives in styles/gallery/, once, for all three indexes.
+		// `fit` is a doc page, not a layout — no gallery entry, so no card.
+		div.c("grid gap auto", () => this.children.forEach((page, name) =>
+			gallery[name] && card(this.nav_for(name), gallery[name])));
 
 		md("Every card above is a **live render**, not a picture: `zoom-25` lays the layout out at four times the card's width and paints it back down, so a preview is shrunken rather than squashed. Click one for the full size and its source.");
 
@@ -81,7 +75,7 @@ export default new Page({
 			return code.file(import.meta, "parts.js");
 		});
 
-		md("Four builders, shared by all eight, so a layout file is only its layout. The tint is an inline token value rather than a class — `layouts.css` stays layout-only, which is the same call `styles/util/page.js` makes for its demo cells.");
+		md("Four builders, shared by all eight, so a layout file is only its layout. The tint is an inline token value rather than a class — `layouts.css` stays layout-only, which is the same call `styles/layers/util/page.js` makes for its demo cells.");
 
 		md("## Which page should hold it");
 
@@ -93,9 +87,9 @@ export default new Page({
 | [Sidebar](/framework/styles/layouts/sidebar/) | **Bleed** | \`--measure: none\`, \`--page-pad: 0\` |
 | [Cards](/framework/styles/layouts/cards/) | **Wide** | \`--measure: none\`, \`--page-pad: 2em\` |
 | [Dashboard](/framework/styles/layouts/dashboard/) | **Wide** | \`--measure: none\`, \`--page-pad: 2em\` |
-| [Split](/framework/styles/layouts/split/) | **Measured** | \`classes: "paper"\` |
-| [Centered](/framework/styles/layouts/centered/) | **Measured** | \`classes: "paper"\` |
-| [Stack](/framework/styles/layouts/stack/) | **Measured** | \`classes: "paper"\` |
+| [Split](/framework/styles/layouts/split/) | **Measured** | the default — no class |
+| [Centered](/framework/styles/layouts/centered/) | **Measured** | the default — no class |
+| [Stack](/framework/styles/layouts/stack/) | **Measured** | the default — no class |
 | [Masthead](/framework/styles/layouts/masthead/) | **Bleed** | \`--measure: none\`, \`--page-pad: 0\` |
 
 **Half of them are measured**, which is the finding: a layout is usually arranging *reading*, and reading wants a column. The two that bleed both have a band that must touch the window, and the one that goes full has five regions and a \`flex-1\` middle that only proves itself against a real viewport.`);

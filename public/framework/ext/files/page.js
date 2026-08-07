@@ -9,10 +9,10 @@ export default new Page({
 	/* A tree beside a code pane is two columns, and two columns do not fit in a
 	   reading measure — the pane was down to about 24em, which is narrower than the
 	   lines it holds. So the prose keeps the measure and the component escapes it:
-	   `classes: "breakouts"` plus `.ac("wide")` on the one thing that needs the room.
+	   `classes: "grid"` plus `.ac("wide")` on the one thing that needs the room.
 	   This is what the breakout grid is for, and it is the first real call site.
 	   No `toc()` — the two layouts do not combine (see ext/toc/toc.css). */
-	classes: "breakouts",
+	classes: "grid",
 
 	content(){
 

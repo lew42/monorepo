@@ -588,7 +588,7 @@ covers the honest cases without it.
 
 Recorded here because it changes how the whole file reads; the full theming
 record — component looks vs. theme files, the four-rung ladder, light/dark, and
-naming — lives next to the guide, in `theme/guide/readme.md`.
+naming — lives next to the guide, in `layers/theme/guide/readme.md`.
 
 **The reframe.** `framework.css`'s `@layer theme` block is not "the framework's
 unavoidable styles." It is **a theme** — the one you get when you load no other.
@@ -651,9 +651,10 @@ the site that loads **no theme** — which is the whole thing this section is ab
 
 ### 12b. The switch is thrown, and one token was lying
 
-`theme/mode.js` is the switch: one button, `auto → light → dark`, stored in
+`core/App/mode.js` is the switch (moved beside App — theme-agnostic behaviour,
+and core's Sidebar footer renders it): one button, `auto → light → dark`, stored in
 `localStorage` and applied as inline `color-scheme` on `.app`. Not on `<html>` —
-tokens live on `.app`, and two themes render side by side on `theme/guide/`, so a
+tokens live on `.app`, and two themes render side by side on `layers/theme/guide/`, so a
 mode forced at the root would take both.
 
 `auto` clears the override rather than storing a resolved value. The OS can change
@@ -689,7 +690,7 @@ there was no name for "one step down from a surface".
 **Then the whole framework section was audited in dark**, every page, looking for a
 computed background lighter than 55% luminance. Eight hits, and seven are correct:
 two `.section-band`s in the `dark` *tone* (which is the high-contrast band, and
-inverts on purpose), and five elements inside `theme/guide/`, which renders
+inverts on purpose), and five elements inside `layers/theme/guide/`, which renders
 `theme-paper` and an explicitly-light `theme-lew42` to prove exactly that.
 
 The eighth was real: **`<mark>`** kept the UA's yellow with `canvastext` on it, so a
@@ -986,9 +987,10 @@ about.
 
 ## Still to write
 
-The docs now mirror the stylesheet: `styles/page.js` is the strategy, and one
-child per layer covers its contents — [`base/`](base), [`theme/`](theme) (with
-[`theme/guide/`](theme/guide) for writing your own), [`util/`](util).
+The docs now mirror the stylesheet: `styles/page.js` is the strategy, and
+[`layers/`](layers) holds one child per layer — [`base/`](layers/base),
+[`theme/`](layers/theme) (with [`theme/guide/`](layers/theme/guide) for writing
+your own), [`site/`](layers/site), [`util/`](layers/util).
 
 Coverage as it stands:
 
@@ -999,7 +1001,7 @@ Coverage as it stands:
 | `util` | flex, grid, spacing, text, zoom, `textarea.auto` | `zoom-responsive`, `gap-2em`, `all-pad` have no demo of their own |
 
 The before/after pattern is a local `compare()` — the same markup twice, the
-left side with one declaration reverted inline. It lives in `base/page.js`
+left side with one declaration reverted inline. It lives in `layers/base/page.js`
 because that's where it earns its keep; if a second page needs it, it goes in
 `ext/demo/` rather than being copied.
 
@@ -1008,4 +1010,8 @@ Bigger items, in order of value:
 1. **Rewire component hardcodes to tokens** (§12) — the thing standing between
    here and working dark mode.
 2. **`app.css_audit()`** (§8) — the dev-only styled-vs-applied diff.
-3. **`.page > .md`** (§8) — the last undeclarable core→ext CSS dependency.
+3. ~~**`.page > .md`** (§8) — the last undeclarable core→ext CSS dependency.~~
+   **DONE**: the direction flipped — `md()` and `demo()` now *emit* `flow` in
+   their own class strings, and the flow selector shrank to
+   `:where(.flow, .page, blockquote)`. Core names no ext class; the ext opts its
+   boxes into a substrate concept, which is the right way round.

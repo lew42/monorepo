@@ -77,13 +77,10 @@
            about one state, and none of them readable on a dark surface. */
         --error: light-dark(#c00, #ff7b72);
 
-        /* rhythm — how far apart stacked blocks sit. Consumed by the flow rules
-           in Page.css; `rem` so a theme retuning the type scale can't move them. */
-        --flow: 2em;          /* between blocks */
-        --flow-section: 2em;     /* before an h2 */
-        --flow-sub: 3em;         /* before an h3 or h4 */
-        --flow-tight: var(--flow); /* after any heading — deliberately equal to --flow
-                                     for now; a tighter hug read as cramped. */
+        /* rhythm lives with the flow rules now: ONE registered token, `--flow`,
+           declared per flow root in core/Page/Page.css so em scales an AREA's
+           rhythm without compounding with a heading's own size. Retune with
+           `--rhythm` (a raw em token) on `.app` or any container. */
 
         --column: 14em;
         --sidebar: 19em;   /* any sidebar's width — shared on purpose, so two can't drift.
@@ -103,8 +100,8 @@
        a `.page > h2` here would out-rank a theme's `h2` no matter when the theme
        loaded. The low specificity is a feature to maintain on purpose.
 
-       Every line is documented at /framework/styles/theme/, with the reasoning in
-       styles/readme.md (§9 on `:where()`, §12 on why this is a theme). */
+       Every line is documented at /framework/styles/layers/theme/, with the
+       reasoning in styles/readme.md (§9 on `:where()`, §12 on why this is a theme). */
 
     /* Only `outline-color` and `outline-offset` do anything here, and that is
        correct rather than broken. No `outline-style` is set, so the ring is drawn by
@@ -297,8 +294,10 @@
 
 @layer util {
 
-    .pad { padding: 1em; }
-    .all-pad > * { padding: 1em; }
+    /* `--pad`, the same move `.gap`/`--gap` makes below: the class is the request,
+       the token is the size. `.page.pad` (Page.css) steers it to 2em. */
+    .pad { padding: var(--pad, 1em); }
+    .all-pad > * { padding: var(--pad, 1em); }
     .mb { margin-bottom: 1em; }
     
     .flex { display: flex; }
@@ -327,8 +326,10 @@
 
     /* A laid-out container owns its own spacing — `gap` does it, and an inherited
        block margin only fights it. `.flex > *` has said this for a long time; a
-       grid is the same box with a different name. */
-    .grid > * { margin: 0; }
+       grid is the same box with a different name.
+       `:not(.page)`: a PAGE classed `grid` is the breakout sheet (Page.css), and
+       its children's rhythm is the flow — this rule would silently erase it. */
+    .grid:not(.page) > * { margin: 0; }
 
     .grid { display: grid; }
     .grid.auto { grid-template-columns: repeat(auto-fit, minmax(min(var(--column), 100%), 1fr)); }
@@ -357,6 +358,18 @@
     .uppercase { text-transform: uppercase; }
 
     textarea.auto { field-sizing: content;} /* textarea height resizes to fit content */
+
+    /* The transparency board: a box with no background of its own shows the
+       checkers through, so "did the thing I rendered paint itself" is visible at
+       a glance. `--tint` is "one step down from a surface" and mode-aware, so the
+       board stays subtle in light AND dark with no literal grey. Squares are half
+       the tile. Promoted from ext/demo per its own promotion note the day the
+       gallery became its second consumer. Opt-in, (0,1,0) on purpose — a checker
+       that loses to any background wasn't asked for. */
+    .checkered {
+        background-image: repeating-conic-gradient(var(--tint) 0% 25%, transparent 0% 50%);
+        background-size: 1.5em 1.5em;
+    }
 
     /* Collapse a container's outer gap to its own padding. The `:first-child`
        half was already here and already made `.demo-render > :first-child` and

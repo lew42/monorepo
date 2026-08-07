@@ -5,7 +5,7 @@ import { div, p } from "/app.js";
  * Real headings and real copy, so a layout shrunk to a thumbnail on the index
  * reads as a page rather than as a wireframe. The tint is an inline token value
  * and not a stylesheet rule: layouts.css stays layout-only, and
- * styles/util/page.js tints its demo cells exactly this way.
+ * styles/layers/util/page.js tints its demo cells exactly this way.
  */
 const tint = { background: "var(--wash)", border: "1px solid var(--line)", borderRadius: "var(--radius)" };
 

@@ -1,22 +1,22 @@
-/* Layer order, restated IN FULL — a short list would misplace `site`.
+﻿/* Layer order, restated IN FULL â€” a short list would misplace `site`.
    See the header of framework.css. */
 @layer base, theme, site, util;
 
 @layer theme {
 
 	/* A REAL COLUMN, not a rail floating over the page. It was `position: fixed`,
-	   which reserved no space — so the rail and the prose were placed by two
+	   which reserved no space â€” so the rail and the prose were placed by two
 	   unrelated numbers and overlapped on the way to the breakpoint that hid it. */
 	.toc { display: none; }
 
-	/* `:not(.breakouts)` — a breakout page already owns `grid-template-columns`, and
+	/* `:not(.grid)` â€” a breakout page already owns `grid-template-columns`, and
 	   both rules live in @layer theme, so the winner would be whichever <link> loaded
 	   last. They are two different page layouts and they do not combine: a breakout
 	   page is prose with escapes, a ToC page is prose with a rail. Pick one. */
 
 	@media (min-width: 82em) {
 
-		.pages > .page:not(.breakouts):has(> .toc) {
+		.pages > .page:not(.grid):has(> .toc) {
 			display: grid;
 			grid-template-columns: minmax(0, 1fr) 13rem;
 			column-gap: 3rem;
@@ -24,13 +24,13 @@
 		}
 
 		/* Everything that is not the rail stacks in column 1, in source order. */
-		.pages > .page:not(.breakouts):has(> .toc) > * { grid-column: 1; min-width: 0; }
+		.pages > .page:not(.grid):has(> .toc) > * { grid-column: 1; min-width: 0; }
 
-		/* ⚠ `span 200`, not `1 / -1`: `-1` counts back from the EXPLICIT grid, and
+		/* âš  `span 200`, not `1 / -1`: `-1` counts back from the EXPLICIT grid, and
 		   these rows are all implicit, so it resolves to line 1 and spans nothing.
-		   ⚠ `align-self: start` is what makes sticky work — a stretched grid item is
+		   âš  `align-self: start` is what makes sticky work â€” a stretched grid item is
 		   already as tall as its row and has nowhere to stick to. */
-		.pages > .page:not(.breakouts):has(> .toc) > .toc {
+		.pages > .page:not(.grid):has(> .toc) > .toc {
 			display: block;
 			grid-column: 2;
 			grid-row: 1 / span 200;
@@ -62,7 +62,7 @@
 
 	.toc-sub { padding-inline-start: 1.5em; }
 
-	/* `current`, not `active` — `.active` belongs to Router.mark_links(), which
+	/* `current`, not `active` â€” `.active` belongs to Router.mark_links(), which
 	   skips `#` hrefs and so would never clear this one. Two owners for one class
 	   is how a stale highlight happens. */
 	.toc-link.current { color: var(--prim); border-inline-start-color: var(--prim); }

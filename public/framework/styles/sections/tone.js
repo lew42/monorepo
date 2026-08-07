@@ -20,7 +20,8 @@ export default function toned(render, start = "surface"){
 		$out.empty(() => render(tone));
 	};
 
-	return div.c("toned flow", () => {
+	// `flex v gap`, not `flow` — this box lays out its two children itself
+	return div.c("toned flex v gap", () => {
 		div.c("flex gap wrap v-center", () =>
 			TONES.forEach(tone => $btns.push(
 				Object.assign(button(tone).click(() => show(tone)), { tone }))));

@@ -41,12 +41,15 @@ export default new Page({
 
 			// `sections` is already {title, url} — exactly what a Sidebar link
 			// reads — so the site's nav and its cards come off one list.
+			// `app`, so the footer can render the colour-scheme toggle.
 			new Sidebar({
+				app: this.app,
 				header: () => this.app.brand("LEW42", "/"),
 				pages: sections,
 			});
 
-			div.c("pages papers", () => {
+			// bare `pages` — the region default IS the sheet now (Page.css)
+			div.c("pages", () => {
 				div.c("default", () => {
 					h1.c("page-title", this.title);
 					this.content();

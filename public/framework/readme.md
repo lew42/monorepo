@@ -1,7 +1,7 @@
 # Framework — design record
 
 Per-class records live next to their code (`core/Page/readme.md`,
-`ext/*/readme.md`, `styles/theme/*/readme.md`). Pager-era records are in
+`ext/*/readme.md`, `styles/layers/theme/*/readme.md`). Pager-era records are in
 `core/legacy/`. This
 file is the cross-cutting one: open questions, alternatives considered, and the
 reasoning behind calls that touch more than one class.
@@ -171,7 +171,7 @@ a three-persona council; all three landed in the same place, by different routes
 calls. Never a class, and never triggered by the class appearing.**
 
 ```js
-// styles/theme/lew42/lew42.js
+// styles/layers/theme/lew42/lew42.js
 export function lew42(app){ app.font("Montserrat"); app.font("Material Icons"); }
 
 // app.js

@@ -29,9 +29,11 @@ unbalanced, because there is nothing in it to balance.
 ```js
 export const section = (tone, ...args) =>
     div.c("section-band", () =>
-        div.c("flow", ...args).style({ maxWidth: "var(--section, 34em)", marginInline: "auto" })
+        div.c("flex v gap", ...args).style({ maxWidth: "var(--section, 34em)", marginInline: "auto" })
     ).style(band(tone));
 ```
+
+*(The inner div was `flow` until the de-flow pass — §7 below.)*
 
 Two divs, and every section on the page is them. The outer takes the full width
 and the fill; the inner holds a max-width, so the reading stays a column at any
@@ -156,3 +158,52 @@ is the one thing a "here is a real page" example must not fake.
 - **A section cannot yet be linked to on its own.** `/sections/#pricing` would be
   the obvious ask and there are no ids. `toc()` would then have something to scan,
   which it currently does not.
+
+---
+
+## 7. De-flow: a section is a layout, and a layout owns its spacing
+
+**The bug, measured before the fix:** the hero's `h1` carried **96px** of top
+margin, a feature card's `h3` **72px**, a stat tile's number **96px** — inside
+bands whose whole rhythm should be about a line of body text.
+
+The mechanism, not obvious from any one file: `section()`'s inner div was
+`.flow`, and the flow tokens in `framework.css` are **em** (`--flow: 2em`,
+`--flow-sub: 3em`) despite the comment beside them saying `rem`. An em custom
+property resolves **at the point of use** — against the heading's own font-size —
+so `heading + *`'s `--flow-tight` on a 48px `h1` is 2 × 48 = 96px. Page prose
+never shows it this badly because page headings are smaller than a hero's.
+
+**Verdict: the same rule `Page/readme.md` already states** — *a page that
+overrides render() into a flex or grid layout owns its children's spacing.
+`gap`, not flow.* A section is exactly that, one level down. `section()` is now
+`flex v gap`; `feature()`, `price()` and `stat()` are `pad flex v` with a small
+gap — the shape `card` already had, for the reason `card`'s page already
+documents. After: every measured margin is 0 and the gaps are the container's.
+
+The em-vs-rem token is the upstream half and belongs to `framework.css`, not
+this folder; reported rather than edited.
+
+## 8. Code first on every section page
+
+The per-section route pages drew the render, then the source. Reversed: the
+source (`code.file`, imports and all) now sits directly above the `toned()`
+render, because *code → result* is the site's reading order and the visible
+source is the pitch. The tone switcher stays — it is the proof that a section is
+`tone => view` and nothing else.
+
+`demo()` was the obvious tool and was not used: its source pane shows
+`fn.toString()`, which for a section is right, but the tone switcher has nowhere
+to live (the toolbar takes no custom controls) and the stage pads its render, so
+a band cannot reach an edge. What it would need is on the worker report; until
+then `code.file` + `toned()` is the same object in two boxes.
+
+## 9. Three more bands: logos, testimonials, sign up
+
+What a launch page needs and the catalogue lacked. `logos` is wordmarks in the
+type scale, dimmed with the band's own ink — no assets. `testimonials` is the
+cards layout with a real `blockquote` and the Avatar component's named export —
+a section using a component is the crossing this folder exists to show.
+`signup` is one email input beside one button, wrapping with no query. Zero new
+CSS in all three; tones chosen so no two neighbouring bands in the whole-page
+order repeat.

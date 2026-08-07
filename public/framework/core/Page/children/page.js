@@ -78,7 +78,7 @@ A flat list of paths is alphabetical, and \`api\` before \`guide\` before \`intr
 
 		md("[Sections](/framework/styles/sections/) does exactly this: nine urls, one object, **no directories**. It runs *after* the declared names, so a dynamic name costs no doomed import and structurally cannot shadow a `page.js`. When your children come from data rather than from decisions, this is the answer and `children` is the wrong tool.");
 
-		md("Next: [Page layouts](/framework/core/Page/layouts/) — what a page can be once it has some.");
+		md("Next: [Fit](/framework/styles/layouts/fit/) — what a page can be once it has some.");
 
 		md.details(import.meta, "../readme.md", "Design record — the CMS question, in full");
 	}

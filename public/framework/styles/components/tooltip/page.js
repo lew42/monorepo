@@ -34,6 +34,6 @@ export default new Page({
 			});
 		}, "`title` is a real tooltip with a real delay, real keyboard behaviour on some platforms, and zero styling. If the design doesn't insist on the bubble, this is rung 1 of the ladder — **nothing** — and the whole stylesheet above goes away.");
 
-		md("Back to [Components](/framework/styles/components/) — the gallery, and the findings.");
+		md("Next: [Avatar](/framework/styles/components/avatar/) — initials in a circle, sized by a token.");
 	}
 });

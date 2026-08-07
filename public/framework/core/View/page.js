@@ -8,6 +8,10 @@ export default classdoc.page({
 
 	Class: View,
 	methods: "append ac on style stylesheet",
+	properties: "el capture",
+
+	// The design record, served: each name is a ./doc/<name>.md the readme cites.
+	notes: "capturing append-dispatch factories classify stylesheet-loading style-custom-props on-binding",
 
 	content(){
 
@@ -105,8 +109,8 @@ export default classdoc.page({
 | \`hide\` \`show\` \`toggle\` | visibility |
 
 Learn six of them and you can build a page. **The nav on the left goes deeper** —
-each of those five shows its real source next to notes on why it's written that
-way.`);
+five methods with their real source, two properties, and below them the design
+notes: the record of why it's written this way.`);
 
 		md("Next: [Page](/framework/core/Page/) — a title, a url, and a place in a tree.");
 

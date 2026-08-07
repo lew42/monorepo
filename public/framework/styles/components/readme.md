@@ -68,7 +68,7 @@ class borrows its behaviour.
 **Verdict: (2), factored into `parts.js`.** Three objects — `surface`, `pill`,
 `btn` — every value a token, no colour named anywhere in the section. This is the
 house answer rather than a new one: `layouts/parts.js` tints its regions this way
-and `styles/util/page.js` tints its demo cells this way.
+and `styles/layers/util/page.js` tints its demo cells this way.
 
 The cost: a reader of `demo(component)` sees `surface` and not what a surface is.
 Paid for the same way layouts pays for it — a `<details>` on the index holding
@@ -173,9 +173,10 @@ distance.
 The workarounds all cost more than the missing class:
 
 - `.gap` and then override it — an override, so the ratchet, for a value.
-- `.flow` — that is **page** rhythm: `--flow` is `1.25rem` and `--flow-sub` is
-  `2rem`, so an eyebrow label and its title land 32px apart. Tried on `card`, and
-  it is why `card` is `flex v` and not `pad flow`.
+- `.flow` — that is **page** rhythm: `--flow` is `2em` and `--flow-sub` is `3em`,
+  and they are *em* — resolved against the heading's own font-size, so an eyebrow
+  label and its title land 72px apart on a 24px `h3`. Tried on `card`, and it is
+  why `card` is `flex v` and not `pad flow`.
 - Do without — the components genuinely look wrong.
 
 **Proposal, not applied.** Either a class (`.gap-sm { gap: 0.4em }`, matching the
@@ -407,3 +408,32 @@ ten pages, they merge.
 - **Nothing here is imported by the framework**, which is what makes the look
   allowed (§2). If any of these ever graduates into `core/`, the look has to leave
   it — layout in the module, the rest via tokens the implementor sets.
+
+---
+
+## 9. Four more: avatar, dialog, progress, menu
+
+The publishing set — what a site that wants sign-ins, confirmations and menus
+reaches for next. The finding is that **three of the four are the browser**:
+
+- **`avatar`** — a circle is `border-radius: 999px` and centred initials are
+  `flex v-center h-center`; `--avatar` sizes it, the same knob move as
+  `--column`. Exports the single-circle `avatar()` alongside the demo, and
+  `sections/testimonials.js` imports it — the first cross-import between the two
+  galleries, on purpose.
+- **`dialog`** — native `<dialog>` + `showModal()`. Focus trap, Esc, backdrop,
+  centring and top-layer stacking all arrive free; the file is the two calls and
+  the same `surface` tokens every card wears. One trap recorded on its page: the
+  UA sets `color: CanvasText`, which blocks the theme's ink until restated.
+  `el("dialog", …)` because `dialog` has no named factory.
+- **`progress`** — native `<progress>`/`<meter>`, themed for free because
+  `framework.css` already sets `accent-color: var(--prim)`. The vendor
+  pseudo-element route (`::-webkit-progress-bar`) is deliberately not taken.
+- **`menu`** — a `<details>` dropdown. **The second component to earn a
+  stylesheet**, and it passes tooltip's exact test: the panel is positioned
+  against its summary (a relationship) and appears on open (a state). Five rules;
+  the trigger is `.btn`, whose `display: flex` also removes the UA marker.
+  No light-dismiss — the Popover API is the recorded upgrade path.
+
+Dropped from the shortlist: a modal built from divs (re-implements the `<dialog>`
+table, wrong), and anything tab-shaped (`Page.tabs()` owns that).

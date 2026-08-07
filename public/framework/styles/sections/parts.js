@@ -32,10 +32,14 @@ export const band = tone => ({
  * `--section` rather than a second helper or a `wide` class: reading wants 34em
  * and a card wall does not, and the difference between those two is ONE NUMBER.
  * A band widens itself at the call site — `section(…).style("--section", "60em")`
- * — which is the same token-override move `--column` makes on a grid. */
+ * — which is the same token-override move `--column` makes on a grid.
+ *
+ * `flex v gap`, NOT `flow`: flow is PAGE rhythm, and its tokens are em — resolved
+ * against the heading's own font-size, which put 96px above a hero's h1 (2em on
+ * a 48px h1, measured). A laid-out container owns its spacing with `gap`. */
 export const section = (tone, ...args) =>
 	div.c("section-band", () =>
-		div.c("flow", ...args).style({ maxWidth: "var(--section, 34em)", marginInline: "auto" })
+		div.c("flex v gap", ...args).style({ maxWidth: "var(--section, 34em)", marginInline: "auto" })
 	).style(band(tone));
 
 /* De-emphasis derived from the band's own ink, never from `--subtle`: a fixed grey
@@ -51,25 +55,29 @@ export const eyebrow = text => p.c("h4", text)
  * one, and adding it to a real <button> is how the contrast bug got found. */
 export const cta = (text, kind) => button.c(kind, text);
 
+/* `pad flex v` + a small gap, never `pad flow` — the card/ page documents why:
+ * flow's `* + h3` gap resolves against the h3's own font-size, so a card title
+ * sat 72px under its icon. A component's rhythm is its own gap. */
 export const feature = (name, heading, body) =>
-	div.c("pad flow", () => {
+	div.c("pad flex v", () => {
 		icon(name);
 		p.c("h3", heading);
 		p(body).style(muted);
-	}).style(surface);
+	}).style({ ...surface, gap: "0.5em" });
 
 export const price = (plan, cost, ...lines) =>
-	div.c("pad flow", () => {
-		span.c("h4", plan).style(pill);
+	div.c("pad flex v", () => {
+		// alignSelf: a flex column stretches its items, and a stretched pill is a bar
+		span.c("h4", plan).style({ ...pill, alignSelf: "flex-start" });
 		p.c("h1", cost);
 		lines.forEach(l => p(l).style(muted));
 		cta("Choose " + plan, "prim");
-	}).style(surface);
+	}).style({ ...surface, gap: "0.5em" });
 
 export const stat = (label, value) =>
-	div.c("pad flow", () => {
+	div.c("pad flex v", () => {
 		p.c("h4", label).style(muted);
 		p.c("h1", value);
-	});
+	}).style("gap", "0.1em");
 
 export { surface, pill };

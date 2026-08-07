@@ -48,7 +48,9 @@ export default function md(content){
 	if (template.content.children.length === 1)
 		return new View({ el: template.content.firstElementChild }).ac("md");
 
-	return new View().ac("md").html_unsafe(html);
+	// `flow`: a multi-block md is a stack of prose, and EMITTING the class is what
+	// lets core's flow rules stop naming `.md` — an ext class core can't import.
+	return new View().ac("md flow").html_unsafe(html);
 }
 
 // md.c("note", "Some **md**") — classes first, like div.c() / p.c()
@@ -74,7 +76,7 @@ md.c = function(classes, content){
  */
 md.file = async function(meta, url, options = {}){
 	const href = new URL(url, meta.url).href;
-	const view = new View({ capture: false }).ac("md");
+	const view = new View({ capture: false }).ac("md flow");   // a file is a stack of prose
 
 	try {
 		const text = await (md.cache[href] ??= fetch(href).then(resp => {
