@@ -1,10 +1,13 @@
-import { Page, md, demo, h2, p, pre } from "/app.js";
+import { Page, md, demo, h2, p, pre, code, toc } from "/app.js";
 
 export default new Page({
 	meta: import.meta,
 	title: "Markdown",
 	description: "Markdown as a View helper — md(), view.md(), md.file().",
+	icon: "article",
 	content(){
+
+		toc();
 
 		demo(() => {
 			md("**Bold**, *italic*, `code`, and a [link](/framework/).");
@@ -25,12 +28,20 @@ export default new Page({
 		demo(() => md.file(import.meta, "example.md"),
 			"`md.file(import.meta, url)` fetches and parses a file. It returns a *promise*, which `View.append` already knows how to place — and which `App.load_page` can await before it swaps the DOM.");
 
-		pre(`md.file(import.meta, "readme.md", { h1: false })   // as page content
+		code.js(`md.file(import.meta, "readme.md", { h1: false })   // as page content
 md.details(import.meta, "readme.md")               // collapsed at the bottom`);
 
 		md("Resolved against the **module's** url, not the document's — with an SPA fallback the document url is a route, so a document-relative fetch would miss. `{ h1: false }` drops the file's own heading, since the page already renders `title` as the h1.");
 
 		md("A readme can be a whole page: `content(){ return md.file(import.meta, \"readme.md\", { h1: false }); }`");
+
+		h2("Relative links in a fetched file");
+
+		md("A link inside a fetched `.md` is rewritten to resolve against **the file**, not the document — so `[base](base/)` in `styles/readme.md` points where the author meant from any url you happen to be on.");
+
+		md("Without that, a browser resolves it against the document, which the SPA fallback makes the *current route*: the same link pointed somewhere different on every page, and a crawl found **40 broken routes**. The happy side effect is that a relative link is now the right thing to write — the same one works in GitHub's readme view.");
+
+		md("Next: [Demo](/framework/ext/demo/) — show the code and run it, from one source.");
 
 		md.details(import.meta, "readme.md");
 	}

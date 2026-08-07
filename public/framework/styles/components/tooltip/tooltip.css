@@ -1,0 +1,54 @@
+/* Layer order, restated IN FULL — a short list would misplace `site`.
+   See the header of framework.css. */
+@layer base, theme, site, util;
+
+/* Five rules, and this section's whole point is that they are the ONLY ones.
+   Eleven components got there with utilities and token-valued inline styles; this
+   one cannot, and the reason is worth naming precisely:
+
+     - `position: absolute` needs a positioned ancestor, which is a rule about a
+       RELATIONSHIP between two elements. An inline style can only speak about one.
+     - `:hover` / `:focus-visible` are states. There is no inline syntax for a state.
+
+   So the line is not "layout vs look" — it is "one element vs a relationship, one
+   moment vs a state". Everything on the far side of that line needs a selector.
+   Design record: readme.md §4. */
+@layer theme {
+
+	.tooltip { position: relative; }
+
+	/* Above, because a bubble below covers the line you are about to read. It is
+	   out of flow either way, so an ancestor with `overflow: hidden` clips it —
+	   `.demo` is one, which is why the examples sit away from the box edge. */
+	.tooltip-bubble {
+		position: absolute;
+		bottom: 100%;
+		left: 50%;
+		translate: -50% -0.4em;
+
+		width: max-content;
+		max-width: 18em;
+		padding: 0.4em 0.7em;
+		border-radius: var(--radius);
+
+		background: var(--bg);
+		color: white;                     /* the pairing framework.css already makes with --bg */
+		font-size: 0.85em;
+		line-height: 1.4;
+		text-transform: none;             /* so a tip inside an .h4 stays readable */
+		letter-spacing: normal;
+	}
+
+	/* Hidden by BOTH: `opacity` is what transitions, `visibility` is what takes it
+	   out of the accessibility tree and off the hit-testing map. Opacity alone
+	   leaves an invisible box swallowing clicks. */
+	.tooltip-bubble {
+		opacity: 0;
+		visibility: hidden;
+		transition: opacity 0.12s;
+	}
+
+	.tooltip:hover > .tooltip-bubble,
+	.tooltip:focus-visible > .tooltip-bubble,
+	.tooltip.shown > .tooltip-bubble { opacity: 1; visibility: visible; }
+}

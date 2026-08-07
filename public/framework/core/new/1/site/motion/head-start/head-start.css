@@ -1,0 +1,26 @@
+@layer base, theme, site, util;
+
+@layer site {
+
+	/* The whole idea, in one rule. The transition AND the changed values both live
+	   inside the .navigating condition, so on a normal page the property does not
+	   exist at all — the rule appears for the length of a wait and is then gone.
+
+	   Declaring `transition` and changing `opacity` in the same style computation
+	   still animates: a transition starts when the value changes and the
+	   after-change style lists the property. */
+
+	.pages.navigating > .page.active-page {
+		transition: opacity .2s ease, filter .2s ease, scale .2s ease;
+		opacity: .45;
+		filter: blur(1px);
+		scale: .995;
+	}
+
+	/* On the way back there is no transition declared, so the page snaps — which
+	   is correct: by then it has also lost .active-page and is being hidden. */
+
+	@media (prefers-reduced-motion: reduce) {
+		.pages.navigating > .page.active-page { filter: none; scale: 1; }
+	}
+}

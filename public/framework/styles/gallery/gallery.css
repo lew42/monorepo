@@ -1,0 +1,45 @@
+/* Layer order, restated IN FULL — a short list silently misplaces `site`.
+   See the header of framework.css. */
+@layer base, theme, site, util;
+
+/* The gallery card — a `.page-preview` with a live render in it. The card chrome
+   (border, hover, spans) is Page.css's; these rules are only what a THUMBNAIL
+   adds. Emitted by gallery.js and nothing else. */
+@layer theme {
+
+	.gallery-card {
+		position: relative;
+		display: flex; flex-direction: column; align-items: stretch; gap: 0.7em;
+		padding: 0.9em;
+	}
+	/* `stretch` is a FIX, not a default restated: `.page-preview` centres its items
+	   for the icon row, and that leaked — thumbs rendered shrink-to-fit and
+	   floating (measured 101–210px wide inside equal 240px cards). A render lays
+	   out at the full stage width or the preview lies about it. */
+
+	/* One ratio, top-anchored, bottom-cropped. The walls measured 18px to 256px of
+	   thumb in one grid — rows stretched to the tallest card and everything else
+	   floated in dead space. A fixed ratio evens the rows; anchoring the content
+	   at the TOP is what makes the crop read as a window onto the page (the
+	   centred version cropped both edges mid-content, which is why aspect-ratio
+	   was backed out the first time it was tried). */
+	.gallery-thumb {
+		aspect-ratio: 16 / 10;
+		overflow: hidden;
+		border-radius: var(--radius);
+		pointer-events: none;
+		user-select: none;
+	}
+
+	/* A card that asked for rows (`.tall` / `.big`, Page.css spans) hands its
+	   thumb the room instead of holding the ratio — a tall render shows whole. */
+	.gallery-card:is(.tall, .big) .gallery-thumb { aspect-ratio: auto; flex: 1 1 auto; }
+
+	/* The label is the link; its ::after covers the card. */
+	.gallery-link { display: flex; align-items: center; gap: 0.45em; text-decoration: none; color: inherit; }
+	.gallery-link::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+	.gallery-link .icon { color: var(--subtle); }
+
+	.gallery-card:hover .gallery-link { color: var(--prim); }
+	.gallery-card:hover .gallery-link .icon { color: var(--prim); }
+}

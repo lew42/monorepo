@@ -1,0 +1,29 @@
+@layer base, theme, site, util;
+
+@layer site {
+
+	/* Lift the leaf out of the root snapshot, so the page animates on its own and
+	   the sidebar is left to cross-fade its own link highlight. Anything NOT given
+	   a view-transition-name is captured together as ::view-transition-*(root).
+
+	   Only one element can hold a given name per capture — and only one page is
+	   .active-page at a time, so this is safe by construction rather than by
+	   bookkeeping. */
+
+	.page.motion-vt.active-page { view-transition-name: motion-page; }
+
+	::view-transition-old(motion-page) { animation: motion-vt-out .3s cubic-bezier(.4, 0, 1, 1) both; }
+	::view-transition-new(motion-page) { animation: motion-vt-in  .3s cubic-bezier(0, 0, .2, 1) both; }
+
+	@keyframes motion-vt-out { to   { opacity: 0; translate: 0 -1.25rem; } }
+	@keyframes motion-vt-in  { from { opacity: 0; translate: 0  1.25rem; } }
+
+	@media (prefers-reduced-motion: reduce) {
+		@keyframes motion-vt-out { to   { opacity: 0; } }
+		@keyframes motion-vt-in  { from { opacity: 0; } }
+	}
+
+	/* No @starting-style recipe on this page. A View Transition already animates
+	   the swap; a CSS transition on the same element animates the SNAPSHOT of it,
+	   which reads as one motion played twice. Pick one per page. */
+}

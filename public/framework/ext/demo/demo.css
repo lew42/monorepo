@@ -1,74 +1,167 @@
-/* Layer order, restated: the FIRST declaration wins and module import
-   order decides who loads first, so every stylesheet states it. */
-@layer base, theme, util;
+/* Layer order, restated IN FULL — a short list would misplace `site`.
+   See the header of framework.css. */
+@layer base, theme, site, util;
 
-/* A demo is ONE object on the page: the code, what it renders, and the sentence
-   about it, boxed together — so there's never a question of which produced which.
-
-   Reading order is code → result → caption. That's deliberate: a doc page leads
-   with code, and prose is a caption, not a preamble. */
+/* One object: the code, what it renders, and the sentence about it. Reading order
+   is code → result → caption — prose is a caption, not a preamble. */
 @layer theme {
 
+	/* No margin — the flow spaces it (Page.css). `--demo-pad` in `rem`, not `em`:
+	   the panes are three font sizes and the box's left edge has to line up. */
 	.demo {
-		margin: 1.75em 0;
-		border: 1px solid rgba(0,0,0,0.14);
-		border-radius: 0.5em;
+		--demo-pad: 2rem;
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
 		overflow: hidden;
-		background: #fff;
+		background: var(--surface);
 	}
 
-	.demo-label {
-		padding: 0.4em 0.9em;
+	/* ── the toolbar ──
+	   Everything that changes what you're looking at lives here, at the top, where
+	   a control belongs. It used to be a label strip plus a `<details>` summary
+	   halfway down the box. */
+
+	.demo-bar {
+		display: flex; align-items: center; gap: 0.5em;
+		padding: 0.35em var(--demo-pad);
 		font-size: 0.85em;
-		font-weight: 600;
-		color: var(--subtle);
-		background: rgba(0,0,0,0.04);
-		border-bottom: 1px solid rgba(0,0,0,0.1);
+		background: var(--tint);
+		border-bottom: 1px solid var(--line);
 	}
 
-	/* Same light code style as `pre` everywhere else on the site — a second
-	   visual language for code inside demos would read as sloppy, not as
-	   design. (Dark code blocks would be nicer, but that's a site-wide call:
-	   framework.css styles `pre` for every page in the repo.) */
-	.demo-code {
+	.demo-label { font-weight: 600; color: var(--subtle); }
+	.demo-spacer { flex: 1 1 auto; }
+
+	.demo-btn {
+		display: flex; align-items: center;
+		padding: 0.2em 0.5em;
+		font-size: 0.9em; font-family: var(--mono);
+		color: var(--subtle);
+		background: none;
+		border: 1px solid transparent;
+		border-radius: var(--radius);
+		cursor: pointer;
+	}
+	.demo-btn:hover { color: var(--ink); border-color: var(--line); }
+	.demo-btn.on { color: var(--prim); border-color: var(--prim); }
+	.demo-btn .icon { font-size: 1.1em; }
+
+	/* Both rules are about `select` defaults in framework.css.
+	   ⚠ `width: auto` — base gives every select `width: 100%`, which in a flex bar
+	     eats the row and collapses the spacer beside it.
+	   ⚠ `background-origin: padding-box` — theme paints the arrow at 100% of the
+	     CONTENT box, so on a shrink-to-fit select every em of padding-right moved
+	     the arrow an em LEFT, onto the text. */
+	.demo-zoom {
+		width: auto;
+		padding: 0.1em 1.4em 0.1em 0.5em;
+		background-origin: padding-box;
+		font-size: 0.9em;
+		color: var(--subtle);
+		border-color: var(--line);
+		border-radius: var(--radius);
+		cursor: pointer;
+	}
+	.demo-zoom:hover { color: var(--ink); border-color: var(--prim); }
+
+	/* `flex-wrap` and a basis, not a query: "room" is the BOX's width, which is the
+	   thing that varies. `.ac("stack")` is the veto for long lines. */
+	.demo-panes { display: flex; flex-wrap: wrap; }
+
+	.demo-code,
+	.demo-html {
+		flex: 1 1 22em; min-width: 0;
 		margin: 0;
-		padding: 0.9em 1em;
-		background: rgba(0,0,0,0.06);
-		border-bottom: 1px solid rgba(0,0,0,0.08);
+		padding: var(--demo-pad);
+		border-bottom: 1px solid var(--line);
 		font-size: 0.85em;
 		line-height: 1.55;
 		tab-size: 4;
 	}
-	.demo-code > code { padding: 0; background: none; }
 
-	/* the result, labelled so the boundary is unmistakable */
-	.demo-render {
+	/* ⚠ `tab-size: 2` is load-bearing: markup() indents one real tab per level, so
+	   this is where "how wide is a level" is decided. Two, not the js pane's four —
+	   HTML nests about twice as deep as the code that built it. */
+	.demo-html { display: none; font-size: 0.8em; tab-size: 2; }
+	.demo.show-html .demo-html { display: block; }
+
+	/* Only while they are side by side; wrapped, it would be a line down the left. */
+	.demo.show-html .demo-html { border-inline-start: 1px solid var(--line); }
+
+	.demo.stack .demo-panes { display: block; }
+
+	/* ── the stage: what you resize ──
+	   Why three boxes and not one: demo.js.
+	   ⚠ `margin-inline-end` is exactly the handle's overhang — `.demo` clips, so a
+	   pill sitting half outside would be half missing AND half unclickable. */
+	.demo-stage {
 		position: relative;
-		padding: 1.5em 1.1em 1.1em;
+		margin-inline-end: 0.125em;
+		max-width: 100%;
 	}
-	.demo-render::before {
-		content: "renders";
-		position: absolute;
-		top: 0.3em;
-		left: 1.1em;
+
+	/* The viewport. The padding is HERE, not on `.demo-render` — that is what makes
+	   the readout honest: the render is the bare content box. */
+	.demo-screen { padding: var(--demo-pad); overflow-x: auto; }
+
+	/* ⚠ Deliberately NO `overflow`: the x-axis cannot be set without forcing y off
+	   `visible` too, and a demo may overflow on purpose — a tooltip, a popover. */
+	.demo-render { min-width: 0; }
+
+	/* `--subtle`, not white: a white pill on `--surface` is invisible, and at 4px
+	   wide a border is most of the shape rather than an outline on it. */
+	.demo-handle {
+		position: absolute; top: 50%; inset-inline-end: -0.125em;
+		width: 0.25em; height: 2em;
+		transform: translateY(-50%);
+		background: var(--subtle);
+		border-radius: 1em;
+		cursor: ew-resize;
+		touch-action: none;          /* or the browser pans instead of dragging */
+	}
+	.demo-handle:hover { background: var(--prim); }
+
+	/* The width the example is laid out at, which is not the width you see when the
+	   zoom is off 100%. That gap is the whole point of having both controls. */
+	.demo-size {
+		margin-top: 0.6em;
 		font-size: 0.62em;
 		letter-spacing: 0.1em;
-		text-transform: uppercase;
-		color: rgba(0,0,0,0.35);
+		text-align: end;
+		color: var(--subtle);
+		font-family: var(--mono);
 	}
-	.demo-render > :first-child { margin-top: 0; }
-	.demo-render > :last-child { margin-bottom: 0; }
 
 	/* the caption — the sentence that belongs to THIS example */
 	.demo-note {
 		margin: 0;
-		padding: 0.7em 1.1em;
+		padding: var(--demo-pad);
 		font-size: 0.9em;
 		color: var(--subtle);
-		background: rgba(0,0,0,0.03);
-		border-top: 1px solid rgba(0,0,0,0.08);
+		background: var(--tint);
+		border-top: 1px solid var(--line);
 	}
-	.demo-note code { background: rgba(0,0,0,0.08); }
 
-	.demo-error { padding: 0.8em 1em; color: #c00; border-color: #c00; }
+	.demo-error { padding: 0.8em 1em; color: var(--error); border-color: var(--error); }
+
+	/* A band demo: the one thing a full-width section is FOR is reaching the edge,
+	   so `.bleed` hands the screen's inset back. Pair with `.stack`. */
+	.demo.bleed .demo-screen { padding: 0; }
+
+	/* ── the whole window ──
+	   A toggle, not a url — this is a way of looking at the box, not a place. A demo
+	   whose page offers `{ full: this }` gets a real link instead (demo.js). */
+	.demo.max {
+		position: fixed; inset: 0; z-index: 30;
+		display: flex; flex-direction: column;
+		border-radius: 0;
+		overflow: auto;
+		margin: 0;               /* the page's owl rule reaches a fixed box too */
+	}
+	.demo.max .demo-stage { flex: 1 1 auto; }
+	.demo.max .demo-screen { min-height: 100%; }
 }
+
+/* `.checkered` — the transparency board — was born here and promoted to
+   framework.css `@layer util` the day the gallery became its second consumer,
+   exactly per the note that used to sit in this spot. demo.js still emits it. */

@@ -1,105 +1,389 @@
-/* Layer order, restated: the FIRST declaration wins and module import
-   order decides who loads first, so every stylesheet states it. */
-@layer base, theme, util;
+/* Layer order, restated IN FULL — a short list silently misplaces `site`.
+   See the header of framework.css. */
+@layer base, theme, site, util;
 
-/* Page — the look of everything `Page` renders.
- *
- * These lived in ColumnPager.css, scoped `.column-pager .preview` etc., which
- * meant a preview card was only styled inside one particular layout. A card
- * has to look like a card wherever it is: in a ColumnPager, in a TabPager, on
- * a plain page with no layout at all.
- *
- * The rule this follows is the one the rest of the framework already follows —
- * a class's CSS sits next to the class (Pager.css, ColumnPager.css,
- * TabPager.css, md.css, demo.css). Page was the only renderer without one.
- *
- * A layout may still adapt these in its own context — `.column.narrow .preview`
- * in ColumnPager.css, `.tab-pager .page` in TabPager.css. That's the layout's
- * business. This file is the component's.
- *
- * Structure only, no skin: the site decides backgrounds (see /styles.css). */
+/* ── the rhythm token, registered ──
+   ONE token now. Registration is what makes `em` safe here: a registered
+   <length> computes against the element it is DECLARED on — the flow container —
+   and inherits as an absolute length. So a heading's gap can never compound with
+   the heading's own font-size (the trap that broke the first em conversion:
+   `* + h2` at 2em of a 36px h2 measured 72px where the rhythm is 32px), and a
+   container that sets `font-size: 0.8em` tightens its whole rhythm with it,
+   which is the reason the token is em at all.
+
+   `initial-value: 0px`, not a fallback rhythm: a flow that loses its declaration
+   collapses visibly and gets fixed, instead of quietly healing to a number
+   nobody chose. An at-rule can't sit in a layer; it isn't a style rule, so the
+   every-rule-in-a-layer contract is untouched. */
+@property --flow {
+	syntax: "<length>";
+	inherits: true;
+	initial-value: 0px;
+}
+
+/* ── the arrangement contract: the ONLY place a page's visibility is decided ──
+   Router.mark() writes `.active-page` on the leaf, `.active-ancestor` above it.
+
+   ⚠ In `util`, so it out-ranks the `.grid` / `.flex` a page is allowed to wear.
+   ⚠ "Hide unless", not `.page { display: none }` — that ties `.grid` at (0,1,0).
+   ⚠ Nothing sets `display` for a page that IS showing; a div is a block, and
+     saying so takes the choice back off the util class.
+   Why, at length: core/Page/readme.md. */
+@layer util {
+
+	.page:not(.active-page, .active-ancestor:has(.page.active-page), .default) { display: none; }
+
+	/* A tab set's default shows when it is NOT in the chain, so the test is about its
+	   siblings. Its own active state is excluded, or navigating to it hides it. */
+	.tab-panel:has(> .page:is(.active-page, .active-ancestor))
+		> .page.default:not(.active-page, .active-ancestor) { display: none; }
+}
+
 @layer theme {
 
-	/* ---- the page element ---- */
+	/* THE REGION SCROLLS, NOT THE PAGE — a page is a centred measure, so a scrollbar
+	   on it would render at the sheet's edge instead of the window's.
+	   `scroll` not `auto`, so the gutter stays reserved and navigating never shifts
+	   the content sideways.
 
-	.page {
-		max-width: 60em;
-		margin-inline: auto;
-		padding: 2em 6%;
+	   The tokens sit on EVERY region — and they are the SHEET, not a reset: a
+	   region hands each of its pages the reading measure by default, and saying
+	   nothing is the arrangement most pages should have. (This retires `papers` /
+	   `paper`: the opt-in everyone typed became the default nobody types.) They
+	   still stop at each region boundary, which is why they are declared here and
+	   not once at the root. A site un-sheets a region with the same two tokens. */
+	.pages {
+		display: flex; align-items: flex-start;
+		flex: 1 1 auto; min-width: 0; min-height: 0;
+		overflow-y: scroll;
+		--measure: 60em; --page-pad: 3em clamp(0px, 6%, 5em);
 	}
 
-	.page-title {
-		font-size: 1.9em;
-		font-weight: 800;
-		letter-spacing: -0.015em;
-		margin: 0 0 0.7em;
+	.page { min-width: 0; min-height: 0; }
+
+	/* Sizing only — whether these show was decided in `util` above. */
+	.page.active-page,
+	.page.active-ancestor:has(.page.active-page) { flex: 1 1 auto; min-height: 100%; }
+
+	/* What a region shows when nothing of its own is in the chain — the index route.
+	   A plain div, not a `.page`, so not the contract's business; it reads the
+	   region's own sheet tokens, so it and the pages beside it cannot disagree.
+	   ⚠ `.active-ancestor` in the test is load-bearing; readme.md, last section. */
+	.pages > .default { display: none; }
+
+	.pages:not(:has(> .page.active-page, > .page.active-ancestor)) > .default {
+		display: block; flex: 1 1 auto; min-width: 0; min-height: 100%;
+		max-width: var(--measure); padding: var(--page-pad);
 	}
 
-	/* Section rhythm. Scoped to `.page >` so headings inside a demo's rendered
-	   output keep their plain browser look — a demo shows what YOUR code makes. */
 
-	.page > h2 {
-		font-size: 1.15em;
-		font-weight: 700;
-		margin: 2.2em 0 0.7em;
-		padding-bottom: 0.3em;
-		border-bottom: 1px solid rgba(0,0,0,0.1);
-	}
-	.page > h3 {
-		font-size: 1em;
-		font-weight: 700;
-		margin: 1.6em 0 0.4em;
-	}
-	.page > p,
-	.page > .md { margin: 0.9em 0; }
+	/* ── the page vocabulary: three words, two tokens ──
+	   Structure only, no skin: the site decides backgrounds (/styles.css).
 
-	/* ---- the three link forms: link() / crumb() / preview() ----
-	   `.active` (this exact url) and `.in-path` (an ancestor of it) are applied
-	   by App.mark_links(), so none of these need to know the current url. */
+	   A bare page is the reading column (the region's sheet, above). The words:
+
+	       grid   the sheet, plus breakout tracks — a child escapes with .wide/.bleed
+	       pad    no measure, an even inset — a gallery, an index, a board
+	       full   nothing — edge to edge inside the region
+
+	   The measure is TOKENS, so anything opts out by setting them on itself — a
+	   value declared on an element beats an inherited one at any specificity, any
+	   layer. That is the whole opt-out mechanism, and it is how `.page.topic` in
+	   /styles.css and `.tab-panel` below leave the sheet. */
+	.page { max-width: var(--measure, none); padding: var(--page-pad, 0); }
+
+	.page.full { --measure: none; --page-pad: 0; }
+
+	/* `pad` shares its word with the util class on purpose: a padded page IS the
+	   padded box, one size up. The util's `padding: var(--pad, 1em)` out-ranks the
+	   `.page` padding by layer, so this rule only steers tokens. */
+	.page.pad { --measure: none; --pad: 2em; }
+
+	/* A page whose body is a vertical tab set is a rail PLUS a column, so 60em has
+	   to cover both and the reading comes out narrower than an ordinary page's. It
+	   also never carries a ToC — the rail is its table of contents. Derived from the
+	   structure rather than declared, so classdoc and anything else that grows a
+	   rail get it without a class. */
+	.page:has(> .tabs.vertical) { --measure: 78em; }
+
+	/* ── grid: the measure that can let one thing out ──
+	   Prose keeps the measure; a `.wide` or `.bleed` child escapes it. Tracks, not
+	   negative margins — readme.md.
+
+	   ⚠ Its own `--gutter-x`, never `--page-pad`: that is a `padding` shorthand and
+	     usually two values, and `minmax(3em 4em, 1fr)` drops the whole template.
+	   ⚠ The main track subtracts the gutters. `min(--measure, 100%)` resolves to the
+	     FULL page width when the measure doesn't fit, and the gutters then add on
+	     top — 921px of tracks in an 857px page.
+	   ⚠ `--measure` is re-declared: in a region a site un-sheeted, `min(none, …)`
+	     is invalid at computed-value time and the whole template silently drops. */
+	.page.grid {
+		--measure: 60em;
+		--breakout: 7em;
+		--gutter-x: 2em;
+		--pad-y: 3em;
+
+		display: grid;
+		grid-template-columns:
+			[bleed-start] minmax(var(--gutter-x), 1fr)
+			[wide-start]  minmax(0, var(--breakout))
+			[main-start]  min(var(--measure), 100% - var(--gutter-x) * 2) [main-end]
+			              minmax(0, var(--breakout)) [wide-end]
+			              minmax(var(--gutter-x), 1fr) [bleed-end];
+
+		padding: var(--pad-y) 0;
+		max-width: none;
+	}
+
+	.page.grid > *      { grid-column: main; min-width: 0; }
+	.page.grid > .wide  { grid-column: wide; }
+	.page.grid > .bleed { grid-column: bleed; }
+
+	/* ⚠ No ToC rule here on purpose — both want `grid-template-columns`, and the
+	   winner would be load order. toc.css opts out with `:not(.grid)`. */
+
+	/* ── tabs ──
+	   `Page.tabs()` emits `.tabs > .tab-bar + .tab-panel`. `.active` / `.in-path`
+	   come from Router.mark_links(), so the selected tab needs no JS. */
+
+	.tabs { display: flex; flex-direction: column; min-width: 0; }
+
+	.tab-bar {
+		display: flex; flex-wrap: wrap; gap: 0.25rem;
+		border-bottom: 1px solid var(--line);
+	}
+
+	.tab {
+		padding: 0.5rem 1rem;
+		color: var(--subtle);
+		text-decoration: none;
+		border-bottom: 2px solid transparent;
+		margin-bottom: -1px;               /* sit ON the bar's rule, not above it */
+		white-space: nowrap;
+	}
+	.tab:hover { color: var(--ink); }
+
+	/* `.in-path` but not on `.tab-default`, whose href IS this page's url and so is a
+	   prefix of every sibling's — it would read as selected on every tab in the set.
+	   See Page.tabs(). */
+	.tab.active,
+	.tab.in-path:not(.tab-default) { color: var(--ink); border-bottom-color: var(--prim); }
+
+	/* A set whose url isn't selected highlights its first tab, so a panel is never
+	   showing content with nothing marked. Mirrors the panel's own default rule. */
+	.tab-bar:not(:has(.tab.active)) > .tab:first-child {
+		color: var(--ink); border-bottom-color: var(--prim);
+	}
+
+	/* A panel is INSIDE a page that already has the sheet, so it resets the measure
+	   tokens — they inherit, and a page mounted in here is a `.page` like any other.
+	   Without this a classdoc method page paid the sheet twice and its heading
+	   started an inch and a half down the column. */
+	.tab-panel { padding-top: 1rem; min-width: 0; --measure: none; --page-pad: 0; }
+
+	/* The panel's fallback — show the set's first child when the url selected none of
+	   them — is the second rule of the contract, at the top of this file. It has to be
+	   up there because a `.page.default` is a page, and a page may be a util layout. */
+
+	/* ── the same tab set, turned on its side ──
+	   `this.tabs("…").ac("vertical")` — a left nav. Not a second component: the JS,
+	   the url ownership, the default and the marking are all the ones above; only the
+	   axis changes. The bar is sticky, because the panel is usually taller and a nav
+	   you have to scroll back up to reach is not a nav. */
+
+	.tabs.vertical { flex-direction: row; align-items: flex-start; gap: 4em; }
+
+	.tabs.vertical > .tab-bar {
+		flex-direction: column; flex-wrap: nowrap; gap: 0;
+		flex: 0 0 clamp(9em, 18%, 14em); min-width: 0;
+		position: sticky; top: 1em;
+		font-size: 0.95em;
+		border-bottom: none;
+		border-inline-end: 1px solid var(--line);
+	}
+
+	.tabs.vertical > .tab-bar > .tab {
+		padding: 0.35rem 0.8rem;
+		white-space: normal;
+		border-bottom: none;
+		border-inline-end: 2px solid transparent;
+		margin-bottom: 0;
+		margin-inline-end: -1px;          /* sit ON the bar's rule, not beside it */
+	}
+
+	.tabs.vertical > .tab-bar > .tab.active,
+	.tabs.vertical > .tab-bar > .tab.in-path:not(.tab-default),
+	.tabs.vertical > .tab-bar:not(:has(.tab.active)) > .tab:first-child {
+		border-inline-end-color: var(--prim);
+	}
+
+	.tabs.vertical > .tab-panel { flex: 1 1 0; min-width: 0; padding-top: 0; }
+
+	/* Below this a 10em column is most of the width. Same content, stacked — the
+	   horizontal bar it becomes is the one the rules above already style. */
+	@media (max-width: 45em) {
+		/* `align-items: stretch` is the one that has to be undone, and it is easy to
+		   miss: in a COLUMN container the cross axis is width, so the `flex-start`
+		   above makes each child size to its own content. Measured at 390px — the
+		   panel went to its max-content 526px inside a 262px box and scrolled
+		   sideways, with `min-width: 0` and `flex: 1 1 0` both looking correct. */
+		.tabs.vertical { flex-direction: column; gap: 0; align-items: stretch; }
+		.tabs.vertical > .tab-bar {
+			flex-direction: row; flex-wrap: wrap; flex: 0 0 auto;
+			position: static;
+			border-inline-end: none; border-bottom: 1px solid var(--line);
+		}
+		.tabs.vertical > .tab-bar > .tab {
+			border-inline-end: none; border-bottom: 2px solid transparent;
+			margin-inline-end: 0; margin-bottom: -1px;
+		}
+		.tabs.vertical > .tab-bar > .tab.active,
+		.tabs.vertical > .tab-bar > .tab.in-path:not(.tab-default),
+		.tabs.vertical > .tab-bar:not(:has(.tab.active)) > .tab:first-child {
+			border-bottom-color: var(--prim);
+		}
+		.tabs.vertical > .tab-panel { padding-top: 1rem; }
+	}
+
+	/* ── rhythm: the flow ──
+	   A **flow** is a box whose children are stacked prose, and spacing belongs to
+	   the flow rather than to the things in it. `.page` is one; anything else opts
+	   in by EMITTING the class — `md()` and `demo()`'s render box both say
+	   `flow` in their own class strings now, so this file no longer styles ext
+	   classes it can't import (the offender styles/readme.md §8 left open).
+
+	   ONE token, declared on the flows themselves so it computes against each
+	   AREA's font-size (see @property, top of file). `--rhythm` is the retune
+	   knob: unregistered, so it inherits as a raw em token and re-resolves inside
+	   every flow it reaches — a theme sets `--rhythm: 1.6em` on `.app` once.
+
+	   The heading-air and heading-hug rules retired WITH the extra tokens: both
+	   had been tuned equal to `--flow`, so the owl already says what they said.
+	   Only the small headings keep a distinct gap, at a ratio rather than a token.
+	   Every selector is `:where()`d to zero, so a component that genuinely needs
+	   its own spacing wins by being an ordinary class. */
+
+	:where(.flow, .page, blockquote) { --flow: var(--rhythm, 2em); }
+
+	:where(.flow, .page, blockquote) > * { margin-block: 0; }
+	:where(.flow, .page, blockquote) > * + * { margin-block-start: var(--flow); }
+
+	/* the small headings take half again — the one pair one token can't say */
+	:where(.flow, .page, blockquote) > * + :is(h3, .h3, h4, .h4)
+		{ margin-block-start: calc(var(--flow) * 1.5); }
+
+	/* The page title is the one heading that isn't a section break. A real class, so
+	   it outranks the owl above on purpose. */
+	:where(.page) > .page-title + * { margin-block-start: calc(var(--flow) * 1.5); }
+
+	/* Markdown emits `<li><p>` for a loose list, and a UA paragraph margin inside a
+	   list item is a gap nobody asked for. Element selectors, so it clears the UA
+	   rule without touching the flow. */
+	:where(.flow, .page, blockquote) :is(li, td, th) > p { margin-block: 0.35em; }
+
+	/* ── a link in prose ──
+	   Scoped to text, not to `a`, and that is the whole decision. Every piece of
+	   navigation on this site is an anchor that has already opted out of looking
+	   like a link — a sidebar entry, a tab, a TOC row, a preview card, a crumb. A
+	   flat `a { font-weight: 600 }` bolds all of them, and it takes the sidebar's
+	   ACTIVE state with it, which is 600 and has nothing left to say. `a:visited`
+	   is the worse half: `(0,1,1)` out-ranks every one of those component classes,
+	   so the nav would grey out behind you as you read the site.
+
+	   `:where()` for the same reason as the flow rules above — `(0,0,1)`, so any
+	   component that wants its own link back wins by having a class.
+
+	   The colour is the body's and the underline carries the whole affordance,
+	   which is why the underline is stated here rather than left to the UA: the
+	   same rule that takes the blue away has to be the one that keeps the line. */
+	:where(p, li, td, th, dd, blockquote, .md) a {
+		color: inherit;
+		font-weight: 600;
+		text-decoration-line: underline;
+		text-decoration-color: var(--prim);
+		text-decoration-thickness: 0.2em;
+		text-underline-offset: 0.2em;
+	}
+
+	/* Only COLOUR properties survive on `:visited` — the browser refuses anything
+	   that could be measured back out of the layout, so weight and thickness are
+	   not available here and the state has to be carried by hue alone. Every
+	   declaration degrades to the unvisited look if a browser declines it. */
+	:where(p, li, td, th, dd, blockquote, .md) a:visited {
+		color: var(--subtle);
+		text-decoration-color: color-mix(in oklab, var(--prim) 80%, var(--subtle));
+	}
+
+	/* After `:visited`, not before — both are `(0,1,1)`, so hover only wins by
+	   being later, and a visited link has to be able to light up again. */
+	:where(p, li, td, th, dd, blockquote, .md) a:hover { color: var(--prim); }
+
+	/* ---- the link forms ----
+	   `.active` and `.in-path` are applied by Router.mark_links(), so none of these
+	   needs to know the current url. */
 
 	.page-link { font-weight: 600; }
 	.page-link.active,
 	.page-link.in-path { color: var(--prim); }
 
-	.crumb { color: var(--subtle); text-decoration: none; }
-	.crumb:hover { color: var(--prim); text-decoration: underline; }
-	.crumb.active { color: inherit; font-weight: 700; }
-
 	/* preview cards — a parent listing its children */
 
-	.previews {
+	/* `--column` is the same knob the util grids read, so a preview wall retunes
+	   the way every other wall on the site is retuned. */
+	.page-previews {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(min(14em, 100%), 1fr));
+		grid-template-columns: repeat(auto-fill, minmax(min(var(--column, 14em), 100%), 1fr));
 		gap: 0.8em;
-		margin: 1em 0;
 	}
 
-	.preview {
-		display: block;
+	/* flex so a `nav` icon can lead and the label takes the rest — cards line up
+	   whether or not a given entry has one. */
+	.page-preview {
+		display: flex;
+		align-items: center;
+		gap: 0.6em;
 		padding: 0.9em 1em;
-		background: #fff;
-		border: 1px solid rgba(0,0,0,0.12);
-		border-radius: 0.5em;
+		background: var(--surface);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
 		text-decoration: none;
 		color: inherit;
 		transition: border-color 0.15s, box-shadow 0.15s, transform 0.05s;
 	}
-	.preview:hover {
+	.page-preview:hover {
 		border-color: var(--prim);
 		box-shadow: 0 2px 10px rgba(0,0,0,0.08);
 	}
-	.preview:active { transform: translateY(1px); }
+	.page-preview:active { transform: translateY(1px); }
 
-	/* the preview for the page you're on (or heading into) reads as selected */
-	.preview.active,
-	.preview.in-path {
+	/* the card for the page you're on (or heading into) reads as selected */
+	.page-preview.active,
+	.page-preview.in-path {
 		border-color: var(--prim);
-		background: color-mix(in srgb, var(--prim) 8%, #fff);
+		background: color-mix(in srgb, var(--prim) 8%, var(--surface));
 		box-shadow: inset 3px 0 0 var(--prim);
 	}
-	.preview.active .preview-title,
-	.preview.in-path .preview-title { color: var(--prim); }
+	.page-preview.active .page-preview-title,
+	.page-preview.in-path .page-preview-title { color: var(--prim); }
 
-	.preview-title { font-weight: 700; }
-	.preview-desc { color: var(--subtle); font-size: 0.85em; margin-top: 0.2em; }
+	.page-preview .icon { color: var(--subtle); }
+	.page-preview.active .icon,
+	.page-preview.in-path .icon,
+	.page-preview:hover .icon { color: var(--prim); }
+
+	.page-preview-title { font-weight: 700; }
+	.page-preview-desc { color: var(--subtle); font-size: 0.85em; margin-top: 0.2em; }
+
+	/* Spans, not widths — the wall is `auto-fill`, so asking for a SHARE is the only
+	   request that survives a resize. At one column they clamp themselves. */
+	.page-preview.wide  { grid-column: span 2; }
+	.page-preview.tall  { grid-row: span 2; align-items: flex-start; }
+	.page-preview.big   { grid-column: span 2; grid-row: span 2; align-items: flex-start; }
+
+	/* A card with height is a panel: its title belongs at the top. */
+	.page-preview:is(.tall, .big) { flex-direction: column; gap: 0.3em; }
+
+	/* The gallery card — a preview with a live render in it — moved to
+	   styles/gallery/: Page emits none of those classes; the module that does
+	   styles them. */
 }

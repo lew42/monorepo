@@ -1,0 +1,142 @@
+/* Layer order, restated IN FULL — the first @layer statement fixes the order,
+   and a name first seen later is appended at the END. */
+@layer base, theme, site, util;
+
+/* The kit's chrome. Every selector starts with a class this module emits, so
+   dropping it into a site changes nothing the site already had — including
+   `.pages` and `.page`, which stay exactly as styles.css defines them. */
+@layer site {
+
+	.kit-app {
+		display: flex;
+		position: relative;        /* the drawer and its scrim anchor here */
+		min-height: 0;
+	}
+
+	/* document mode only: the shell IS the viewport. In a demo box it is not,
+	   so the height belongs to the class build() adds, not to .kit-app. */
+	.kit-document { height: 100%; }
+
+	/* ── nav ──────────────────────────────────────────────────────────────── */
+
+	.kit-nav {
+		flex: 0 0 13rem;
+		display: flex; flex-direction: column;
+		padding: 1rem .75rem; overflow-y: auto;
+		background: #f3f4f6; border-right: 1px solid #e2e4e8;
+	}
+
+	.kit-brand {
+		padding: .1rem .55rem .8rem;
+		font-weight: 700; text-decoration: none; color: #24292f;
+	}
+
+	.kit-links { display: flex; flex-direction: column; gap: .1rem; }
+
+	.kit-link {
+		padding: .28rem .55rem; border-radius: .3rem; font-size: .9rem;
+		text-decoration: none; color: #3f4650; border-left: 2px solid transparent;
+	}
+	.kit-link:hover { background: #e8eaee; }
+
+	/* .active and .in-path are Router.mark_links()'s, and nothing here compares
+	   a url to get them. A sidebar treats both the same: you are in this section. */
+	.kit-link.in-path { color: #0a58ca; }
+	.kit-link.active {
+		background: #fff; color: #0a58ca; font-weight: 600; border-left-color: #0a58ca;
+	}
+
+	.kit-sub { display: flex; flex-direction: column; gap: .1rem; }
+	.kit-sub-link { padding-left: 1.5rem; font-size: .82rem; }
+
+	/* ── main column ──────────────────────────────────────────────────────── */
+
+	.kit-main {
+		flex: 1 1 auto; min-width: 0; min-height: 0;
+		display: flex; flex-direction: column;
+	}
+
+	.kit-bar {
+		flex: 0 0 auto;
+		display: flex; align-items: center; gap: .5rem;
+		padding: .4rem .8rem; border-bottom: 1px solid #e2e4e8; background: #fbfcfd;
+	}
+
+	.kit-burger {
+		display: none;                       /* only below the breakpoint */
+		cursor: pointer; padding: .1rem .45rem; border-radius: .3rem; user-select: none;
+	}
+	.kit-burger:hover { background: #eceef2; }
+
+	.kit-crumbs {
+		display: flex; flex-wrap: wrap; align-items: center; gap: 0 .3rem;
+		font-size: .85rem; min-width: 0;
+	}
+	/* the separator is not content: as a DOM node it is selected, copied and
+	   read aloud with the links */
+	.kit-crumbs > * + *::before { content: "›"; color: #b6bcc5; padding-right: .3rem; }
+
+	.kit-crumb { text-decoration: none; color: #3f4650; }
+	.kit-crumb:hover { color: #0a58ca; }
+	.kit-crumb.active { color: #24292f; font-weight: 600; }
+
+	.kit-pages { flex: 1 1 auto; min-width: 0; min-height: 0; }
+	.kit-pages:focus { outline: none; }     /* it is a focus TARGET, not a control */
+	.kit-pages:focus-visible { outline: 2px solid #0a58ca; outline-offset: -2px; }
+
+	.kit-steps {
+		flex: 0 0 auto;
+		display: flex; justify-content: space-between; align-items: center; gap: .5rem;
+		padding: .5rem .8rem; border-top: 1px solid #e2e4e8; background: #fbfcfd;
+	}
+	.kit-steps:empty { display: none; }
+
+	.kit-step {
+		display: inline-block; padding: .3rem .65rem; font-size: .88rem;
+		border: 1px solid #d6dae0; border-radius: .35rem;
+		text-decoration: none; color: #0a58ca; background: #fff;
+	}
+	.kit-step:hover { border-color: #0a58ca; background: #f5f9ff; }
+	.kit-step.prev::before { content: "← "; }
+	.kit-step.next::after { content: " →"; }
+
+	/* ── the parts that are only visible to a keyboard ────────────────────── */
+
+	.kit-skip {
+		position: absolute; left: -200vw; z-index: 40;
+		padding: .35rem .7rem; border-radius: 0 0 .3rem 0;
+		background: #0a58ca; color: #fff; text-decoration: none; font-size: .85rem;
+	}
+	.kit-skip:focus { left: 0; top: 0; }
+
+	/* off screen, never display:none — a region that is not rendered is not
+	   announced, and this one exists precisely to speak */
+	.kit-announcer {
+		position: absolute; width: 1px; height: 1px;
+		margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); border: 0;
+	}
+
+	.kit-toggle { position: absolute; width: 1px; height: 1px; opacity: 0; }
+	.kit-toggle:focus-visible ~ .kit-main .kit-burger { outline: 2px solid #0a58ca; }
+
+	.kit-scrim { display: none; position: absolute; inset: 0; z-index: 15; background: rgba(0,0,0,.28); }
+
+	/* ── the drawer ───────────────────────────────────────────────────────── */
+
+	@media (max-width: 700px) {
+
+		.kit-burger { display: inline-block; }
+
+		.kit-nav {
+			position: absolute; inset: 0 auto 0 0; width: 13rem; z-index: 20;
+			transform: translateX(-100%); transition: transform .2s ease;
+			box-shadow: 2px 0 12px rgba(0,0,0,.25);
+		}
+
+		/* the whole of "is it open" — one checkbox, asked rather than remembered */
+		.kit-app:has(.kit-toggle:checked) > .kit-nav { transform: none; }
+		.kit-app:has(.kit-toggle:checked) > .kit-scrim { display: block; }
+	}
+
+	@media (prefers-reduced-motion: reduce) { .kit-nav { transition: none; } }
+}

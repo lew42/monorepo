@@ -1,0 +1,34 @@
+/* Layer order restated IN FULL — a short list appends `site` after `util`. */
+@layer base, theme, site, util;
+
+/* Two rules. Everything else in /deep/ is built from classes that already
+   exist: .code and .code-label (site/styles.css), .row, .note, .page-link,
+   .section — and .code-block, which ext/highlight emits and site/styles.css's
+   `.code pre` already pads.
+
+   css: .code, .code-label, .code pre  — site/styles.css
+   css: .code-block                    — /framework/ext/highlight/highlight.js, imported by probe.js */
+@layer theme {
+
+	.probe-bar { display: flex; gap: .5rem; align-items: center; padding: .5rem .75rem; }
+
+	/* pre { white-space: pre } upstream; probe output is prose-ish and wraps */
+	.probe-out { padding: 0 1rem .75rem; max-height: 18rem; overflow: auto; white-space: pre-wrap; }
+	.probe-out:empty { display: none; }
+
+	/* BUG REPORT, not a preference — see /agents/tim/ R3b.
+
+	   `.page.full` sets `display: flex; flex-direction: column`, so every direct
+	   child becomes a flex item and shrinks. The rule assumes the only child
+	   that matters is a `.pages` region, which is given `flex: 1 1 auto`.
+	   A full page with ordinary content instead gets it crushed: measured on
+	   /deep/chrome/ before this rule, three .code boxes were 2px tall needing
+	   ~300px each, and their Run buttons could not be clicked.
+
+	   The upstream fix is one line in styles.css — `.page.full > * { flex: 0 0
+	   auto; }`. This is that rule scoped to my two pages, so it cannot change
+	   anyone else's. Same layer, no escalation.
+
+	   css: .page, .full — site/styles.css */
+	.page-chrome > *, .page-sealed > * { flex: 0 0 auto; }
+}

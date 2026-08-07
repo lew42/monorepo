@@ -1,105 +1,59 @@
-# App
+# App — design record
 
-`App` is the substrate: it boots the page, owns the `$app` container, and loads
-whatever page.js the URL points at. It's deliberately small, and it treats the
-loaded page by **duck typing** — it never requires anything to *be* a particular
-class. `Page`, `Pager`, `Router` are optional things that plug into it.
-
-## Lifecycle
-
-`new App(config)` runs `instantiate()`:
+Boot, and the one container pages mount into.
 
 ```
-config()   → sockets + router
-render()   → build $app, make it the captor
-load()     → load_page() + await stylesheets/fonts
-initialize() → subclass hook (empty)
-inject()   → put $app in <body>
-ready      → resolve the ready promise
+new App()  →  div.app
+constructor → config() → render() → await load() → initialize() → inject() → ready.resolve()
 ```
 
-`config` is `assign`-based, so `new App({ nav(){…} })` rides along as data. Opt
-out of the router with `new App({ router: false })`.
+That is the whole mental model, and it is worth defending as literally as it
+reads: `App` is an element with a lifecycle attached, not a coordinator.
 
-## `load_page` — the whole flow
+Each verdict below is the short form. The full reasoning lives in `./doc/`, one
+file per question, and the same files render as note pages under
+`/framework/core/App/`.
 
-This one method is the loader *and* the navigation handler (the Router calls it
-with a url; `popstate` calls it with none):
+## Decisions
 
-```js
-async load_page(url = location.pathname) {
-    let page;
-    try { page = await Page.load(url); }        // import (+ ancestors)
-    catch (error) { return this.error(error); }
+**What did App stop doing?** Url resolution — all of it moved to `Router` and
+`Page`. The line: the moment resolving a segment can `await` an import, it
+stopped being boot logic. `config()` and `initialize()` are empty on purpose.
+See ./doc/boot.md.
 
-    this.page?.deactivate?.();                  // leave the current page
-    this.page = page;                           // before render: a pager reads app.page
+**Why is `instantiate()` an unawaited async call in the constructor?** So
+`window.app = new App()` reads well; `app.ready` covers the wait. The cost — a
+throw outside `load()`'s try becomes a silent unhandled rejection — is recorded,
+not fixed. See ./doc/boot.md.
 
-    if (page)
-        this.$app.empty().append(page.host?.() ?? page);
+**Where does the error page render?** Into `$pages`, never `$app` — emptying
+`$app` deletes the chrome, and the one page that most needs navigation would be
+the one page without it. See ./doc/error-page.md.
 
-    page?.activate?.();                         // title / meta / theme
-    this.mark_links();                          // .active on links to here
-}
-```
+**Why two loader lists?** `loaded()` (both, once, at boot) vs `styles_loaded()`
+(stylesheets only, `allSettled`, every navigation). The Router must never await
+`loaders`: that list only grows, so one rejected loader would kill every later
+navigation — measured, and silently. And `loaded()` is a method, not a getter:
+it allocates a fresh `Promise.all` per call. See ./doc/loaders.md.
 
-Read it top to bottom and that's the model:
+**How does a page get `.app`?** Adoption, on the walk — a Page is built in
+userland at module scope, so there is no constructor to inject into. Never read
+`window.app` inside `framework/`; it is `undefined` during boot. See
+./doc/adoption.md.
 
-- **`Page.load(url)`** — the import lives on `Page`, not here. The URL *is* the
-  router (`/a/` → `/a/page.js`, `/a/b` → `/a/b.page.js`); that mapping is
-  `Page.module_url`, the exact inverse of `Page#url`, so both directions of the
-  one convention sit in one file. `Page.load` also climbs to load a deep page's
-  ancestors (`load_ancestors`) so `host()` can find the topic that owns its
-  layout. See [`../Page/`](../Page/) and `michael/loading.md`.
-- **the default export can be anything.** A `Page`, a function, a view, a
-  string — App appends it (`View.append` dispatches) and calls `host?.()` /
-  `activate?.()` *if they happen to exist*. A page.js can even have **no**
-  default export and just render at module top (a "bare page"); App does nothing
-  extra. Page is the richest citizen of this open protocol, not a requirement.
-  Every optional call is `?.` — there is no `instanceof` in this method.
-- **`page.host()`** — self for a plain page; the pager-owning ancestor for a deep
-  one. App renders the host (so a deep page shows its topic's columns) and
-  activates the leaf (so the title is the leaf's). Both are `Page` methods — App
-  doesn't reimplement rendering; `append(page.host())` calls `host.render()`.
-- **load-then-swap.** Everything is awaited *before* `empty()`, and `empty()` and
-  `append()` run with no await between them, so the browser never paints an empty
-  `$app`. No white flash on navigation.
+**Why do fonts live in `Font.js`, and why isn't it in `util/`?** `Font` is a
+class with a registry, and `util/`'s pitch is plain functions. The CDN urls are
+the one unvendored dependency — stated, not settled. See ./doc/fonts.md.
 
-## `mark_links` — the current url, in the DOM
+**Why do `app.stylesheet()` and `App.path_to_page_url()` exist?** Compatibility,
+not API — the rewrite dropped them and took four sandbox sections down. Rename
+freely inside `framework/`, alias on the way out. See ./doc/aliases.md.
 
-After each render, one pass over `$app`:
+## Open
 
-```js
-a.pathname === here                                  → a.classList.add("active")
-a.pathname.endsWith("/") && here.startsWith(...)     → a.classList.add("in-path")
-```
-
-Every in-app link — sidebar links, breadcrumbs, preview cards, inline
-`page.link()`s — gets marked in one place, and CSS decides what each kind of link
-does with it. That's why no view needs to know the current url: previously the
-ColumnPager sidebar compared `location.pathname` itself, and preview cards (which
-had no such code) simply never lit up.
-
-The rule for `.in-path` is deliberately dumb string math: a directory url that is
-a prefix of the current path is an ancestor of it. Style it, or don't.
-
-## What App does *not* do
-
-No `Pager` instance, no registry, no `pushState`. Navigation lives in the
-[`Router`](../Router/) (created by `config_router`, opt-out). Layout lives in a
-page's [`pager`](../Pager/). Content and the tree live in [`Page`](../Page/).
-Delete the router and the site still loads pages; delete the pagers and pages
-still render — plainly. The substrate stands on its own.
-
-## Other bits
-
-- `app.font(name)` — load a predefined font (Montserrat, Material Icons), awaited
-  before inject.
-- `App.stylesheet` / `View.stylesheet` — add a `<link>`, tracked so `load()`
-  waits for it.
-- `app.ready` — a promise that resolves once the first page is injected.
-
-## Files
-
-- `App.js` — the class (exported, with the View factories + Page, from `/app.js`)
-- `page.js` — the navigable doc page
+- **Nothing paints until the whole walk finishes.** The chrome could paint
+  immediately and fill in. Kept because an empty tab bar is worse, but it is a
+  real cost (1765ms on a measured 5-deep cold link) and is often described as if
+  it were free.
+- **`config()` and `initialize()` are two empty hooks.** If a year passes with
+  only `config()` ever overridden, `initialize()` should go.

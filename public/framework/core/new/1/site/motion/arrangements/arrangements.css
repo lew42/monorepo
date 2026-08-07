@@ -1,0 +1,61 @@
+@layer base, theme, site, util;
+
+@layer site {
+
+	/* COLUMNS — entry only, deliberately. A column fading OUT is still a grid
+	   item, so it takes a third track and every column narrows mid-fade.
+	   Entry-only needs no base state at all: a transition and a @starting-style. */
+
+	.motion-cols > .page.motion-col {
+		transition: opacity var(--motion-dur) var(--motion-ease),
+		            translate var(--motion-dur) var(--motion-ease);
+	}
+
+	@starting-style {
+		.motion-cols > .page.motion-col.active-page,
+		.motion-cols > .page.motion-col.active-ancestor {
+			opacity: 0;
+			translate: var(--motion-shift);
+		}
+	}
+
+	/* TABS — the same, into a block panel. Scoped to .motion-tabs, a class this
+	   page put on its own tabs() view. Entry-only again, and here it also dodges
+	   the default-tab fallback: a base `opacity: 0` would have to mirror
+	   `.tab-panel:not(:has(> .page.active-page)) > .page.default` too. */
+
+	.motion-tabs .tab-panel > .page.motion-tab {
+		transition: opacity var(--motion-dur) var(--motion-ease),
+		            translate var(--motion-dur) var(--motion-ease);
+	}
+
+	@starting-style {
+		.motion-tabs .tab-panel > .page.motion-tab.active-page {
+			opacity: 0;
+			translate: 0 calc(-.4 * var(--motion-shift));
+		}
+	}
+
+	/* FULL — the only arrangement whose EXIT is free, once the positioning stops
+	   being keyed on .active-page. site/styles.css says
+	   `.page.full.active-page, .page.full.active-ancestor { position: fixed … }`,
+	   so a full page stops being fixed the instant it stops being the leaf and
+	   drops back into the grid to fade out from there. Restated unconditionally. */
+
+	.page.motion-cover {
+		position: fixed; inset: 0; z-index: 10; background: #fff;
+		opacity: 0; scale: .985;
+		transition: opacity var(--motion-dur) var(--motion-ease),
+		            scale var(--motion-dur) var(--motion-ease),
+		            display var(--motion-dur) allow-discrete;
+	}
+
+	/* display stays on the ACTIVE states — `.page { display: none }` is the base
+	   and a two-class rule here would pin the page open forever. */
+	.page.motion-cover.active-page,
+	.page.motion-cover.active-ancestor { display: block; opacity: 1; scale: 1; }
+
+	@starting-style {
+		.page.motion-cover.active-page { opacity: 0; scale: .985; }
+	}
+}

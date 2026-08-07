@@ -1,0 +1,32 @@
+/* Layer order, restated IN FULL — a short list would append `site` after `util`.
+   @layer theme, not site: these are a module's own classes and nothing here has
+   to out-rank styles.css. Prefixed `state-`, because the class name is the only
+   registry CSS has and a dozen sections share it. */
+@layer base, theme, site, util;
+
+@layer theme {
+
+	/* Something tall enough to scroll, so scroll behaviour can be MEASURED on
+	   the page that documents it rather than asserted. */
+	.state-tall {
+		height: 60vh;
+		border: 1px dashed #d6dae0; border-radius: .45rem;
+		display: flex; align-items: center; justify-content: center;
+		color: #9aa1ab; font: 12px ui-monospace, Consolas, monospace;
+	}
+
+	/* the live survival matrix — a table of counters, so it reads as one */
+	.state-counts { white-space: pre; }
+
+	.state-input {
+		width: 100%; padding: .35rem .5rem; font: inherit;
+		border: 1px solid #d6dae0; border-radius: .35rem;
+	}
+
+	/* the banner that outstays its welcome — /state/stale/ */
+	.state-banner {
+		padding: .5rem .8rem; border-radius: .35rem;
+		border: 1px solid #f3c9c4; background: #fff5f5; color: #b42318;
+		font-size: .875rem;
+	}
+}

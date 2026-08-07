@@ -1,0 +1,75 @@
+/* Layer order, restated IN FULL — a short list would misplace `site`.
+   See the header of framework.css. */
+@layer base, theme, site, util;
+
+@layer theme {
+
+	/* A tree beside a pane. Below the breakpoint they stack, which is the same
+	   trade `.tabs.vertical` makes and for the same reason: a 12em rail is most of
+	   a phone's width. */
+	.files {
+		display: flex;
+		align-items: stretch;
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		overflow: hidden;
+		background: var(--surface);
+	}
+
+	.file-tree {
+		flex: 0 0 clamp(9em, 26%, 15em);
+		min-width: 0;
+		padding: 0.6em 0;
+		border-inline-end: 1px solid var(--line);
+		font-size: 0.85em;
+	}
+
+	.file-name,
+	.file-dir-name {
+		display: flex;
+		align-items: center;
+		gap: 0.45em;
+		padding: 0.3em 0.9em;
+		white-space: nowrap;
+	}
+
+	.file-name { cursor: pointer; }
+	.file-name:hover { color: var(--prim); }
+
+	/* the selected file — the pane is showing this one */
+	.file-name.selected { color: var(--prim); font-weight: 600; background: var(--wash); }
+
+	.file-dir-name { color: var(--subtle); }
+	.file-dir-body { padding-inline-start: 0.9em; }
+
+	.file-label { overflow: hidden; text-overflow: ellipsis; }
+
+	.file-tree .icon { font-size: 1em; opacity: 0.65; }
+	.file-name.selected .icon { opacity: 1; }
+
+	/* `min-width: 0` is the load-bearing one: a <pre> is `overflow-x: auto`, whose
+	   min-content is almost nothing, so without it a long line lets the pane
+	   collapse and the tree eat the box. */
+	.file-pane { flex: 1 1 0; min-width: 0; display: flex; }
+
+	/* The pane owns the border; the code block inside it is flush. */
+	.file-pane > .code-block,
+	.file-pane > pre {
+		margin: 0;
+		border: none;
+		border-radius: 0;
+		max-height: 26em;
+		overflow: auto;
+		font-size: 0.85em;
+		flex: 1 1 0;
+	}
+
+	@media (max-width: 40em) {
+		.files { flex-direction: column; }
+		.file-tree {
+			flex: 0 0 auto;
+			border-inline-end: none;
+			border-bottom: 1px solid var(--line);
+		}
+	}
+}

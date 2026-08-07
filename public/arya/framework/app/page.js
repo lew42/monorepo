@@ -15,7 +15,7 @@ export default new Page(import.meta, {
 			"app.$app": "the view your page renders into",
 			"app.font(name)": "load `\"Montserrat\"` or `\"Material Icons\"`",
 			"app.ready": "a promise that resolves after the app has injected itself",
-			"app.loaded": "a promise that resolves once every stylesheet and font is in"
+			"app.loaded()": "a promise that resolves once every stylesheet and font is in"
 		});
 
 		snippet(`import app, { h1 } from "/app.js";
@@ -40,7 +40,7 @@ ready`);
 
 		p(strong("Nothing is in the document until step 5."), " Your page code runs against an element tree that is still in memory, so measuring anything — `offsetWidth`, `getBoundingClientRect` — gives you zero. Wait for `app.ready` if you need real numbers.");
 
-		p(strong("A stylesheet that 404s stalls the whole app."), " `load()` awaits `app.loaded`, and a failed `<link>` never resolves its promise, so `inject()` never runs and you get a blank page with a clean console. Check the network tab first when that happens.");
+		p(strong("A stylesheet that 404s stalls the whole app."), " `load()` awaits `app.loaded()`, and a failed `<link>` never resolves its promise, so `inject()` never runs and you get a blank page with a clean console. Check the network tab first when that happens.");
 
 		h2("How your page is found");
 

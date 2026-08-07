@@ -2,168 +2,72 @@
 
 Lew42 framework site: a no-build, native-ESM web framework and the static site that hosts it.
 
-## Core constraints (do not violate)
+This file holds only what **doesn't go stale**: hard constraints, traps that fail
+silently, and how to work with the humans here. Anything about *what a method is
+called* belongs next to the code — see the map at the bottom.
 
-- **No bundler, no build step, no transpilation.** Everything in `public/` is served as-is and must run directly in the browser as native ES modules.
-- **Static compatibility.** The Node server (`server.js`) is for local dev only. Production is pure static hosting (Cloudflare Workers static assets). Nothing may depend on server-side logic at runtime.
-- Import paths must be real URLs — root-absolute (`/app.js`) or relative with explicit `.js` extensions. No bare specifiers.
+> A statement about code belongs next to that code, or it belongs nowhere.
+> `CLAUDE.md` says what to watch out for and where to look. The moment it says
+> what a method is named, it has taken on an obligation nothing can enforce —
+> there is no test that fails when this file goes stale. (Receipts:
+> `.claude/instructions-audit.md`.)
 
-## How the site works
+## Constraints (never violate)
 
-1. `public/index.html` is the universal fallback document. It loads one script: `/app.js`.
-2. `public/app.js` creates the `App` singleton (`window.app`) and re-exports the framework (`export * from framework/core/App/App.js`).
-3. `App.load_page()` calls `Page.load(url)`, which dynamically imports the page module for the current URL via `Page.module_url(window.location.pathname)`:
-   - `/` → `/page.js`
-   - `/path/` → `/path/page.js` (trailing slash = directory page)
-   - `/path/sub` → `/path/sub.page.js` (no slash = sibling file with `.page.js` suffix)
+- **No bundler, no build step, no transpilation.** Everything in `public/` is served as-is and must run in the browser as native ES modules.
+- **Static compatibility.** `server.js` is local dev only; production is pure static hosting (Cloudflare Workers static assets). Nothing may depend on server-side logic at runtime.
+- **Import paths are real URLs** — root-absolute (`/app.js`) or relative with an explicit `.js`. No bare specifiers.
+- **Never add an npm dependency without asking**, devDependencies included. The three-package list (`chokidar`, `express`, `ws`, all dev-server-only) is a feature. Tooling for the person at the keyboard — a browser driver, a profiler — installs **globally** and resolves at runtime. A work-in-progress prototype doesn't earn an npm script either.
+- **Never push to `main`** (protected). Branch `<yourname>/<branch-name>`; `git switch main && git pull` first.
+- **`framework/dev/Socket` connects only on localhost.** Keep it that way — it's part of static compatibility.
 
-   `Page.module_url` is the exact inverse of the `Page#url` getter; both live in `Page.class.js` so the convention has one home.
-4. Page modules import the framework back from `"/app.js"` (same module instance via the browser's module registry). A page's default export is optional: it may be a View, a function (rendered via capture), or nothing (root-level element calls capture directly).
-5. Because the dynamic import path is computed at runtime, pages are naturally lazy-loaded — the filesystem is the router and the "chunk map." New pages are added by creating a `page.js` file; no registration anywhere.
+## Traps that never throw
 
-### App lifecycle (`framework/core/App/App.js`)
+The highest-value lines in this file. You cannot find these by reading the code
+and you cannot find them by testing, because nothing fails loudly.
 
-`constructor` → `config()` → `render()` (creates `this.$body`, `this.$app`, sets captor) → `await load()` (page import + all loaders) → `initialize()` → `inject()` ($app into body) → `ready.resolve()`.
+- **Capturing is synchronous — never build DOM after an `await`.** `View.captor` is one global with a push/pop stack, and `append_fn` restores it the instant your function *returns*, which for an `async` function is its **first `await`**. Every factory call after that appends to whatever the captor has since become. **Mechanical check: a factory call textually after an `await` is wrong.** The fix: capture the container synchronously, then fill it inside a **callback**, which re-establishes the captor — `$box.append(() => …)` or `$box.empty(() => …)`. Returning a promise is the other blessed shape.
+- **The CSS layer order must be restated IN FULL in every stylesheet**: `@layer base, theme, site, util;`. The first `@layer` statement fixes the order, and a name first seen later is appended at the *end* — so one short list silently drops `site` past `util`.
+- **Every rule must be inside a layer.** An unlayered rule beats *every* layer at any specificity.
+- **`classify()` runs inside `super()`, before class fields initialize.** A `classes = "docs"` class field arrives too late; name the subclass instead.
+- **Resolve module-relative urls against `import.meta`, never the document.** The SPA fallback makes the document url the *route*, so a document-relative fetch misses. `md.file(import.meta, …)`, `View.stylesheet(import.meta, …)`.
+- **Mutual parent/child imports break only on deep reloads.** `import` hoists regardless of textual position, so a circular partner reads an uninitialized binding: `/a/` throws while `/a/b/` works. Imports flow **down**; the backref arrives by adoption.
+- **`p()` only handles backticks.** Bold, links and tables render as literal text — use `md()` for anything formatted.
+- **A 404 stylesheet no longer hangs the app** — it resolves and warns, and the page renders unstyled. Check the console.
+- **Windows: `pkill -f "node server.js"` silently matches nothing.** The orphan then busy-loops libuv on a dead console handle and pins a full CPU core (several once burned ~4.7 cores). Capture the PID and `taskkill //F //PID $PID`, or from PowerShell `Stop-Process -Id <pid> -Force`. Prefer reusing the dev server already on port 80.
 
-- `this.loaders` collects promises (stylesheets, fonts) that must resolve before injection — pages can add more during their module execution.
-- `app.font(name)` loads predefined fonts (Montserrat, Material Icons) via the FontFace API.
-- `App.stylesheet(url)` / `View.stylesheet(import.meta, relativeUrl)` appends a `<link>` and tracks its load promise.
-- Page load errors are caught and rendered as a "Page Load Error" view.
-- `load_page()` is fully duck-typed (`page.host?.()`, `page.activate?.()`) — no `instanceof` — and sets `this.page` *before* rendering, because a mounted Pager reads `app.page` to find its leaf.
-- `App.mark_links()` runs after every render: one pass over `$app` adding `.active` (href === current path) and `.in-path` (href is a directory prefix of it) to in-app anchors. **No view should compare `window.location` itself** — sidebars, breadcrumbs, and preview cards all get their active state from this one pass, and CSS decides what each kind of link does with the class.
+## Working agreements
 
-## The View system (`framework/core/View/View.js`)
+**Propose before major surgery.** A rename touching a core class, its callers and a dozen doc references is a design decision with a large edit attached. Ask in three lines and wait. A sunk edit *presents* an unsettled direction as decided, and then argues for itself. Small, local, obviously-correct fixes don't need this; anything changing an API name, a call order, or where a responsibility lives does.
 
-`View` wraps a DOM element (`this.el`) with a chainable API. The central concept is **capturing**:
+**Say a new name out loud before you write it.** A name is the API and the documentation at once. Short and exactly right beats long and merely complete; earn length with rarity. If you can't name it clearly, that's the design talking — the method probably does two things or lives on the wrong class.
 
-- A static `View.captor` points at the view currently collecting children. Element factory functions auto-append their result to the captor.
-- Passing a function to `append()` (or as an arg to any factory) runs it with the new view as captor (`append_fn` pushes/pops the captor stack), so nested calls build nested DOM:
-  ```js
-  el("ol", () => {
-      el("li", "First");
-      el("li", "Second");
-  });
-  ```
-- `View.body()` makes `<body>` the initial captor; `App.render()` switches it to `$app`.
+**Default to checking in; autonomy has to be granted.** Absent "work autonomously", investigate first, then give a short summary and the one or two decisions you actually need. When autonomy *is* granted the user has left the keyboard, so a question costs an hour of nothing — make the call, state the assumption plainly, keep going.
 
-Factories: `el(tag, ...)`, `div(...)`, `p(...)`, plus one per common HTML tag (`h1`, `a`, `button`, …), all exported from `View.js` and re-exported through `/app.js`. Each has a `.c(classes, ...)` variant, e.g. `div.c("nav-item", ...)`.
+**Keep responses short and scannable — but never drop what matters.** Lead with the finding. Headings, so a long answer can be skimmed. Brevity does not license silence: if something could be important, one sentence with no elaboration is enough.
 
-`append()` dispatches on argument type: views (`.el`), functions (capture), plain objects (`append_pojo` — child views assigned to named properties), arrays (flattened), promises (`append_promise`), everything else goes to `el.append()`. `p()` uses `backtick_append` — backticks in strings become `<code>` elements.
+**Write as little code as possible, and as little CSS as possible.** A super simple base API that just works, then extend. The default path covers most cases with no configuration; everything beyond is an override or a subclass, opted into visibly by the file that wants it. An option is API surface forever.
 
-Chainable methods (all return `this`): `ac`/`rc`/`tc`/`hc` (add/remove/toggle/has class), `attr`, `href`, `text`, `html`, `on`/`off`/`click`, `style` (supports `--custom-props`), `hide`/`show`/`toggle`, `empty`, `insert`, `remove`, `replace`, `load(meta, url)` (async import + append, parallel) and `lazy(meta, url)` (same but serialized to preserve order).
+**No black magic.** Behavior you can't see from the file that implements it — a property read by a class that never mentions it, an inert marker interpreted by a `new` three files away. If a file names a class, that file should generally construct it. When coordination must cross files, make it visible at the call site.
 
-Subclass auto-classing: `classify()` converts the class-name chain to kebab-case CSS classes (e.g. `class FooBarView extends View` → `foo-bar`).
+**Comments: only what the code can't say.** Walls of explanation in a core class read as anxiety and bury the code the reader came for. Design rationale, alternatives weighed and history go in the neighbouring `readme.md`. A comment that restates the line below it is worse than nothing, because it is the part that goes stale first.
 
-`framework/util/is/is.js` is the type-check utility (`is.fn`, `is.pojo`, `is.arr`, `is.dom`, `is.promise`, …) used by the dispatch logic.
+**Don't pollute the repo with your own scratch work.** Launcher scripts, agent transcripts, `.tmp-*` dirs, intermediate JSON — anything that exists to *run a process* rather than to be part of the site goes in the session scratchpad. The test: *would someone cloning this repo need this file?* A process's **conclusion** can absolutely be committed; the machinery that produced it cannot.
 
-## Page (`framework/core/Page/Page.class.js`)
+**A new module isn't done until it has a `page.js` and its parent links to it.** Nothing crawls the filesystem — an unimported page does not exist.
 
-`Page` is a titled, linkable, **dormant** unit of content — creating one renders nothing, so `export default new Page(...)` is always import-safe. It renders when placed (`View.append` calls `.render()`, or `render(target)` directly). The blessed page.js shape:
+## Where things are
 
-```js
-import { Page, p } from "/app.js";
-export default new Page({ meta: import.meta, title, description, theme, content(){ p("content"); } });
-```
+- `public/` — the entire deployable site. `public/index.html` is the universal fallback document and loads one script, `/app.js`, which constructs the App and re-exports the framework, so every page can `import { Page, p } from "/app.js"`.
+- `public/framework/core/` — `View`, `Page`, `Router`, `App`, `Sidebar`. Each has a `readme.md` (design record) and a `page.js` (the reader's introduction).
+- `public/framework/ext/` — opt-in addons, free to patch core; **core never imports an ext**. This site opts in for every page, once, in `app.js`.
+- `public/framework/styles/` — the CSS strategy, documented one page per layer.
+- `public/framework/util/`, `public/framework/dev/` — `is`, `source`; the dev-only live-reload socket.
+- `Server/` — dev-only Node server, never imported by browser code. `npm install && node server.js` (port 80; `PORT` to override). Express static over `public/`, then SPA fallback to `index.html`.
+- Top-level dirs under `public/` named after devs (`alex/`, `arya/`, `castin/`, `edric/`, `michael/`) are personal sandboxes — transient, not framework conventions. They are also **downstream consumers**: rename freely inside `framework/`, alias on the way out.
+- `public/framework/core/new/1/` is not a sketch — it's where the shipping design was proved, and its `readme.md` is the long-form record, with measurements. `new/0/` and `new/starter/` are earlier sketches; `core/legacy/` is the dead Pager tier. Don't import any of them.
+- Deploy: `wrangler.jsonc` serves `./public` with SPA fallback. `main` → https://monorepo.lew42.workers.dev/; every branch gets `<branch-with-dashes>-monorepo.lew42.workers.dev`.
 
-- `meta: import.meta` derives `url` (`/docs/page.js` → `/docs/`; `/docs/x.page.js` → `/docs/x`); `link(text?)` works while dormant.
-- `render()` = build DOM: one `div.c("page")` (title h1 + content) captured wherever the page is placed; embedded sub-pages render too. Override via `new Page({ render(){} })`. `activate()` = become THE page: `document.title`, meta description, body `theme` class. `App.load_page()` appends the default export then calls `pg.activate?.()` — duck-typed, App never imports Page, and non-Page exports (strings, functions, views) still work.
-- Constructor is `assign`-based: extra properties pass through as inert data.
-- `Page.load(url)` / `page.load_ancestors()` / `Page.module_url(url)` — the loader lives here, not in App (see above).
-- Design record + deferred features: `framework/core/Page/readme.md`.
-
-## Pager (`framework/core/Pager/`)
-
-`Pager extends View` is a `div.pager` that shows one page: `show(page)` (manual swap) plus `leaf()` (the page being viewed). A **structure** is a Pager subclass whose `render()` arranges a page tree; a topic opts its whole subtree in with `pager: ColumnPager`, and `Page.render()` mounts it as `new this.pager({ root: this })` — an assign-object, so **subclasses need no constructor**.
-
-- `ColumnPager` — drill-down: sidebar + breadcrumbs + the last two of `leaf().chain` as columns. `render()` is decomposed into `sidebar/brand/nav/topbar/crumbs/columns/column/col_bar` so a topic can override one piece by subclassing inline.
-- `TabPager` — in-page tab bar; its panel *is* a plain `Pager`, driven by `show()`.
-- `leaf()` reads `window.app.page` (the App already resolved it). **Layouts are told, they don't ask** — nothing in this tier reads `window.location`.
-- Per-page appearance is an inert class string: `new Page({ col: "narrow" })` → `ColumnPager` puts it on the `.column`, CSS does the rest.
-- Extension order, cheapest first: **a class for appearance → an overridden method for structure → a new subclass for a different arrangement.** If a change wants a new property on `Pager`, it's usually one of the first two in disguise. Full analysis, variation table, and open questions: `framework/core/Pager/readme.md`.
-
-## Ext (`framework/ext/`)
-
-A fourth tier beside `core/`, `dev/`, `util/`: **opt-in addons, free to patch core.** Core never imports an ext — the arrow only points one way. Vendor dependencies into the ext's own directory; no CDN imports at runtime. Opting in is an import; *this site* opts in for every page, once, in `app.js` (so `md` and `demo` are available from `/app.js` everywhere).
-
-`ext/markdown/md.js` (vendors `marked.esm.js`) — importing it installs `View.prototype.md()`; the default export is an `md()` element factory.
-
-```js
-p().md("**inline** markdown");                           // into an existing view
-md("Hi.").ac("note");                                    // a real <p>, captured & chainable
-md.file(import.meta, "readme.md", { h1: false });        // a promise of a div.md
-md.details(import.meta, "readme.md");                    // the same, in a collapsed <details>
-```
-
-`md.file` resolves against `import.meta`, not the document (the SPA fallback makes the document url the *route*, so doc-relative fetches miss). It returns a **promise** so `View.append_promise` places it and `App.load_page` can await it before swapping — `content(){ return md.file(...) }` needs no change to `Page`. `{ h1: false }` drops the readme's leading heading, since `Page` already renders `title` as an h1.
-
-`ext/demo/demo.js` — `demo(fn)` renders `fn`'s source (from `fn.toString()`, de-wrapped and dedented) above the result of running it, boxed together. One source of truth, so an example cannot drift from what it renders. Strings before the function label the box; strings after caption it (`demo(fn, "caption")` — the caption renders inside the box, below the result). The caption uses `View.prototype.md` **if markdown has been imported**, falling back to `p()` backticks — a soft dependency, so `demo/` never imports `markdown/`.
-
-## Writing docs — `page.js` vs `readme.md`
-
-Two audiences, two documents, in the same directory. **Do not blur them.**
-
-**`page.js` — the reader.** It should read like a beautiful introduction: **code first, zero to hero.** They feel calm, see all the things, and understand them. The only way there is absolute simplicity: the minimal case first, then build. Someone who gets a simple foundation fast will figure out the rest themselves.
-
-- **Code first — literally.** The first thing under the title is a code block or a `demo()`, not a paragraph. No preamble, no "in this section we will".
-- **Prose is a caption, not a preamble.** Reading order is code → result → sentence. `demo(() => { … }, "the sentence")` puts the caption inside the box, so prose can never detach from the example it describes. (`demo("Label", fn)` still labels above.)
-- **SIMPLICITY FIRST. Minimalism.** The basic example before the complete one. Cut every sentence that isn't load-bearing.
-- **Zero to hero.** A section is a path, not a fan-out: each page ends by naming the next one, and the sequence gets you from nothing to a real thing. `/framework/start/` is the floor — three files, a working site — and every core page builds from there. Aim each page at one payoff demo where it all comes together.
-- **Render the example whenever you can**, and the code that produced it must be visible and **visually grouped** with it — never a rendered thing whose source the reader has to hunt for. `demo(fn)` (`ext/demo`) shows `fn`'s real source and then runs it, one box, one source of truth.
-- **Prose is markdown.** Use `md("...")`, not `p()` with backticks — `p()`'s backtick handling only does `<code>`, so bold/italic/links/tables silently don't render. Tables via `md()` beat a paragraph listing options.
-- Deep architecture, trade-offs, and rejected alternatives do **not** belong here. Link them: `md.details(import.meta, "readme.md")` puts the whole readme in a collapsed `<details>` at the bottom of the page.
-
-**`readme.md` — the maintainer (and future us).** Highly technical: the architectural dilemmas, what was tried, why the current shape won, what's still open. Not immediately relevant to an end user, so it stays out of their way. Keep it honest and specific — it's the design record, and it's what makes a later refactor cheap. Write entries as **question → options → weighing → verdict**, and record *keep* verdicts too — a written-down "we considered this and said no, because…" is what stops an idea being re-litigated. `framework/readme.md` is the cross-cutting one (open proposals live there); per-class records sit next to their class.
-
-## CSS
-
-- `framework/framework.css` — loaded by App before render; defines `@layer base, theme, util` (reset, CSS custom props like `--prim`/`--bg`, utility classes like `flex`, `gap`).
-- `/styles.css` — site-level styles, loaded in `app.js`.
-- Pages may load their own stylesheets via `View.stylesheet(import.meta, "...")`; these are awaited before the app injects.
-- **Every stylesheet must be inside `@layer` — an unlayered rule beats every layer regardless of specificity.** This is the cascade rule that bites: an unlayered `.page { padding: … }` in `styles.css` silently defeated a four-class-deep `.column-pager .column.narrow .page` in `ColumnPager.css`. Component CSS goes in `theme`; site CSS also goes in `theme` and wins by load order (it's linked last).
-- A stylesheet that 404s no longer hangs the app (`View.stylesheet` resolves on `error` and warns), but the page renders unstyled — check the console.
-
-## Dev server & live reload
-
-- `npm install`, then `node server.js` (listens on port 80 by default; `PORT` env to override).
-- `Server/Server.js`: Express static over `public/`, then SPA fallback to `index.html`. Paths ending in a file extension 404 instead of falling back.
-- Plugin system via `Server.use(...)` and an `Events` base class. `DevSocket` runs a WebSocket server (chokidar file-watching → `LiveReload`).
-- Client side, `framework/dev/Socket/Socket.js` connects **only on localhost** (checked in both `App.config_socket` and `Socket.initialize`); on production hosts it stays disabled and no-ops. Keep it that way — this is part of static compatibility.
-
-### Killing a backgrounded dev server (Windows)
-
-**`pkill -f "node server.js"` does not work from Git Bash on Windows.** It silently matches nothing — the detached `node` is a native Windows process, not a bash job — so the server survives and the script reports success anyway.
-
-This matters because an orphaned dev server does not sit idle: once its parent shell exits and the console handle goes away, libuv busy-loops on the dead handle and the process **pins a full CPU core indefinitely**. Several of these accumulated once and burned ~4.7 cores continuously.
-
-If you background a server to smoke-test routes, capture the PID and kill it by PID:
-
-```bash
-PORT=8124 node server.js > /tmp/mono.log 2>&1 &
-SERVER_PID=$!
-# ... run checks ...
-taskkill //F //PID $SERVER_PID     # double slashes: MSYS path-mangling escape
-```
-
-Or from PowerShell: `Stop-Process -Id <pid> -Force`. To hunt for strays:
-
-```powershell
-Get-CimInstance Win32_Process -Filter "Name='node.exe'" | Select-Object ProcessId, CommandLine
-```
-
-Prefer reusing the already-running dev server on port 80 over starting a throwaway one.
-
-## Deployment (Cloudflare Workers)
-
-- `wrangler.jsonc`: serves `./public` as static assets with `not_found_handling: "single-page-application"` (the production equivalent of the dev server's index.html fallback).
-- `main` deploys to https://monorepo.lew42.workers.dev/. Every branch gets a preview at `<branch-with-slashes-as-dashes>-monorepo.lew42.workers.dev`.
-
-## Git workflow
-
-- Never push to `main` (it's protected). Branch names are `<yourname>/<branch-name>` (e.g. `michael/fix-whatever`) — the `/` becomes `-` in the preview URL.
-- Always `git switch main` && `git pull` before creating a branch.
-
-## Repo layout notes
-
-- `public/` — the entire deployable site (framework + pages + assets).
-- `Server/` — dev-only Node server; never imported by browser code.
-- Top-level directories under `public/` named after devs (`alex/`, `arya/`, `castin/`, `edric/`) are personal sandbox pages — transient, don't treat their contents as framework conventions.
+**For house style — assign-based OOP, naming, the CSS ladder, the doc-writing
+split — load the `code-architecture` skill.** For any specific class, read the
+`readme.md` beside it; those records are better than a summary of them would be.

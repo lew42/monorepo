@@ -1,0 +1,230 @@
+/* Layer order, restated IN FULL — the first @layer statement fixes the order,
+   and a name first seen later is appended at the END. */
+@layer base, theme, site, util;
+
+/* Chrome — the persistent shell, demonstrated inside pages.
+   Every class here is prefixed `chrome-`, because these are demos of chrome
+   living inside a site that has real chrome of its own. Nothing in this file
+   may reach .sidebar, .nav, .nav-link, .brand or .hint. */
+@layer site {
+
+	/* The five ext tokens and the `pre > code` reset both used to live here.
+	   styles.css owns them now (:root and a flat element rule), so these copies
+	   are deleted rather than kept in step — two sources of truth for one value
+	   is the thing the token existed to prevent.
+
+	   What is still ours: framework.css gives every `pre` a padding and a
+	   background, this site's base layer gives it neither, and an ext code box
+	   outside `.code` would sit flush against its own border. */
+	.chrome .demo-code,
+	.chrome pre.code-block { padding: .75rem 1rem; background: #fbfcfd; }
+
+	/* ── the stage: a box standing in for the viewport ────────────────────
+	   container-type, so the chrome inside responds to the BOX. A page is not
+	   a window; a demo that queried the window would be lying about which
+	   width made it change. */
+	.chrome-stage { container-type: inline-size; margin: .25rem 0; }
+
+	.chrome-widths { display: flex; flex-wrap: wrap; gap: .3rem; margin: .5rem 0 .25rem; }
+	.chrome-btn {
+		padding: .2rem .6rem; border: 1px solid #d6dae0; border-radius: .3rem;
+		background: #fff; color: #3f4650; font: inherit; font-size: .8rem; cursor: pointer;
+	}
+	.chrome-btn:hover { border-color: #0a58ca; color: #0a58ca; }
+	.chrome-btn.on { background: #0a58ca; border-color: #0a58ca; color: #fff; }
+
+	.chrome-box {
+		border: 1px solid #d6dae0; border-radius: .5rem;
+		overflow: hidden; background: #fff;
+	}
+
+	/* ── the shell: a miniature App ───────────────────────────────────────── */
+
+	.chrome-shell {
+		display: flex; flex-direction: column;
+		border: 1px solid #d6dae0; border-radius: .5rem; overflow: hidden;
+		background: #fff; min-height: 10rem; position: relative;
+	}
+	.chrome-sideways { flex-direction: row; }
+
+	.chrome-shell-pages { flex: 1 1 auto; min-width: 0; padding: .8rem 1rem; }
+	.chrome-shell-url { font: 11px ui-monospace, Consolas, monospace; color: #9aa1ab; }
+	.chrome-shell-title { font-size: 1.05rem; font-weight: 600; margin-top: .1rem; }
+	.chrome-shell-body { margin-top: .35rem; font-size: .88rem; color: #4b5563; }
+	.chrome-shell-kids { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .7rem; }
+
+	/* a counter the chrome prints once and never again */
+	.chrome-stamp {
+		padding: .3rem .8rem; font-size: .72rem; letter-spacing: .04em;
+		color: #8b919b; background: #f7f8fa; border-bottom: 1px solid #eceef2;
+	}
+
+	/* ── nav ──────────────────────────────────────────────────────────────── */
+
+	.chrome-nav { display: flex; flex-direction: column; gap: .1rem; padding: .55rem; background: #f3f4f6; }
+	.chrome-sideways > .chrome-nav { flex: 0 0 10rem; border-right: 1px solid #e2e4e8; }
+
+	.chrome-brand {
+		padding: .2rem .5rem .45rem; font-weight: 700;
+		text-decoration: none; color: #24292f;
+	}
+	.chrome-nav-link {
+		padding: .22rem .5rem; border-radius: .3rem; font-size: .88rem;
+		text-decoration: none; color: #3f4650; border-left: 2px solid transparent;
+	}
+	.chrome-nav-link:hover { background: #e8eaee; }
+	.chrome-nav-sub { padding-left: 1.4rem; font-size: .8rem; }
+
+	/* Two vocabularies, one look: `.active`/`.in-path` are Router.mark_links()'s,
+	   `.chrome-active`/`.chrome-in-path` are ChromeShell.mark()'s. A miniature
+	   may not borrow the real names — the real pass sweeps every anchor in $app
+	   and would clear them. */
+	.chrome-nav-link.active,
+	.chrome-nav-link.chrome-active {
+		background: #fff; color: #0a58ca; font-weight: 600; border-left-color: #0a58ca;
+	}
+	.chrome-nav-link.in-path,
+	.chrome-nav-link.chrome-in-path { color: #0a58ca; }
+
+	/* the same nav laid across the top — a top-nav site is the same links */
+	.chrome-nav.across {
+		flex-direction: row; flex-wrap: wrap; align-items: center; gap: .1rem;
+		border-bottom: 1px solid #e2e4e8;
+	}
+	.chrome-nav.across .chrome-brand { padding: .2rem .5rem; }
+	.chrome-nav.across .chrome-nav-link { border-left: 0; border-bottom: 2px solid transparent; }
+	.chrome-nav.across .chrome-nav-link.active,
+	.chrome-nav.across .chrome-nav-link.chrome-active { border-bottom-color: #0a58ca; }
+
+	/* ── crumbs ───────────────────────────────────────────────────────────── */
+
+	.chrome-crumbs {
+		display: flex; flex-wrap: wrap; align-items: center; gap: 0 .3rem;
+		padding: .4rem .7rem; font-size: .85rem;
+	}
+	/* The separator is not content. As a DOM node it is selected, copied and
+	   read aloud with the links; as a pseudo-element it is none of those. */
+	.chrome-crumbs > * + *::before { content: "›"; color: #b6bcc5; padding-right: .3rem; }
+
+	.chrome-crumb { text-decoration: none; color: #3f4650; padding: .1rem 0; }
+	.chrome-crumb:hover { color: #0a58ca; }
+	.chrome-crumb.active,
+	.chrome-crumb.chrome-active { color: #24292f; font-weight: 600; }
+	.chrome-crumb-gap { color: #b6bcc5; }
+
+	/* the counter-example on /chrome/crumbs/: real separator elements, so the
+	   pseudo-element must stand down or the trail gets two of everything */
+	.chrome-crumbs-nodes > * + *::before { content: none; }
+	.chrome-crumb-sep { color: #b6bcc5; }
+
+	/* the two alternatives to wrapping, shown side by side on the crumbs page */
+	.chrome-crumbs.scroll { flex-wrap: nowrap; overflow-x: auto; }
+	.chrome-crumbs.scroll > * { flex: 0 0 auto; }
+
+	/* ── topbar ───────────────────────────────────────────────────────────── */
+
+	.chrome-topbar {
+		display: flex; flex-wrap: wrap; align-items: baseline; gap: .35rem .8rem;
+		padding: .45rem .8rem; background: #fbfcfd; border-bottom: 1px solid #e2e4e8;
+	}
+	.chrome-topbar-title { font-weight: 700; }
+	.chrome-topbar-sibs { display: flex; flex-wrap: wrap; gap: .15rem; margin-left: auto; }
+
+	.chrome-tab {
+		padding: .18rem .55rem; border-radius: .3rem; font-size: .85rem;
+		text-decoration: none; color: #3f4650;
+	}
+	.chrome-tab:hover { background: #eceef2; }
+	.chrome-tab.active,
+	.chrome-tab.chrome-active { background: #0a58ca; color: #fff; }
+	.chrome-tab.in-path,
+	.chrome-tab.chrome-in-path { color: #0a58ca; }
+
+	/* ── prev / next ──────────────────────────────────────────────────────── */
+
+	.chrome-steps {
+		display: flex; justify-content: space-between; align-items: center; gap: .5rem;
+		padding-top: .7rem; border-top: 1px solid #e2e4e8;
+	}
+	.chrome-step {
+		display: inline-block; padding: .3rem .65rem; font-size: .88rem;
+		border: 1px solid #d6dae0; border-radius: .35rem;
+		text-decoration: none; color: #0a58ca; background: #fff;
+	}
+	.chrome-step:hover { border-color: #0a58ca; background: #f5f9ff; }
+	.chrome-step.prev::before { content: "← "; }
+	.chrome-step.next::after { content: " →"; }
+
+	/* the same pair inside a demo box — the page-bottom rule is a separator, and
+	   a box already has an edge */
+	.chrome-box > .chrome-steps { padding: .55rem .8rem; border-top: 0; }
+
+	/* ── palette ──────────────────────────────────────────────────────────── */
+
+	.chrome-palette { border: 1px solid #d6dae0; border-radius: .45rem; overflow: hidden; background: #fff; }
+	.chrome-palette-input {
+		display: block; width: 100%; padding: .5rem .75rem; font: inherit;
+		border: 0; border-bottom: 1px solid #e2e4e8; outline: none;
+	}
+	.chrome-palette-hits { max-height: 12rem; overflow-y: auto; }
+	.chrome-palette-hit {
+		display: flex; align-items: baseline; gap: .6rem;
+		padding: .3rem .75rem; text-decoration: none; color: #24292f; font-size: .9rem;
+	}
+	.chrome-palette-hit.on { background: #eef4ff; }
+	.chrome-palette-url {
+		margin-left: auto; font: 11px ui-monospace, Consolas, monospace; color: #9aa1ab;
+		white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+	}
+	.chrome-palette-empty { padding: .45rem .75rem; color: #9aa1ab; font-size: .88rem; }
+
+	/* ── active-state readout ─────────────────────────────────────────────── */
+
+	.chrome-tiles { display: flex; flex-wrap: wrap; gap: .5rem; }
+	.chrome-tile {
+		display: block; flex: 1 1 8rem; min-width: 0; padding: .45rem .7rem;
+		border: 1px solid #d6dae0; border-radius: .4rem;
+		text-decoration: none; color: #24292f; font-size: .9rem;
+	}
+	.chrome-tile.in-path { border-color: #9dbdf0; }
+	.chrome-tile.active { border-color: #0a58ca; background: #f5f9ff; font-weight: 600; }
+
+	.chrome-scroll { overflow-x: auto; }
+	.chrome-readout { border-collapse: collapse; font-size: .85rem; }
+	.chrome-readout th,
+	.chrome-readout td {
+		text-align: left; padding: .25rem .55rem; border-bottom: 1px solid #eceef2;
+		white-space: nowrap;
+	}
+	.chrome-readout th { color: #6b7280; font-weight: 600; }
+	.chrome-readout td.classes { font: 12px ui-monospace, Consolas, monospace; color: #0a58ca; }
+	.chrome-readout td.none { font: 12px ui-monospace, Consolas, monospace; color: #b6bcc5; }
+	.chrome-readout tr.chrome-row-me td { background: #eef4ff; font-weight: 600; }
+
+	/* ── focus chrome ─────────────────────────────────────────────────────── */
+
+	/* off screen until focused — the one control that must exist and must not
+	   be seen until a keyboard asks for it */
+	.chrome-skip {
+		position: absolute; left: -200vw;
+		padding: .3rem .7rem; border-radius: .3rem;
+		background: #0a58ca; color: #fff; text-decoration: none; font-size: .85rem;
+	}
+	.chrome-skip:focus { position: static; display: inline-block; }
+
+	.chrome-cover {
+		position: absolute; inset: 0; z-index: 5; padding: .9rem 1rem;
+		background: #fff; overflow: auto;
+	}
+
+	/* ── this section's pages, at a phone's width ─────────────────────────
+	   The site's .page padding is 2rem 2.5rem; at 500px the fixed 15rem sidebar
+	   leaves ~260px, and 80px of that is padding. Scoped to my own pages —
+	   every seat will want the same three lines, which is a bug report about
+	   styles.css, not a rule that belongs here. */
+	@media (max-width: 40em) {
+		.page.chrome { padding: 1.25rem 1rem 4rem; }
+		.chrome-steps { flex-direction: column; align-items: stretch; gap: .4rem; }
+		.chrome-topbar-sibs { margin-left: 0; }
+	}
+}

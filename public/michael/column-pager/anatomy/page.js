@@ -1,10 +1,13 @@
-import { Page, p, pre, h3 } from "/app.js";
+import { Page, md, p, pre, h3 } from "/app.js";
 
 export default new Page({
 	meta: import.meta,
 	title: "Anatomy",
 	description: "sidebar / breadcrumbs / columns.",
 	content(){
+
+		md("> **This class has left core.** `Pager`, `TabPager` and `ColumnPager` now live in `framework/core/legacy/` and `/app.js` no longer exports them. An arrangement is a CSS class a page opts into — see [Page](/framework/core/Page/). The examples below still run, against the legacy class, imported directly.");
+
 		p("Look around this page — every part is the ColumnPager reading the tree:");
 
 		h3("Sidebar");
@@ -14,7 +17,7 @@ export default new Page({
 		p("The full `chain` from root to the current page — for climbing out when you've gone deeper than the two visible columns.");
 
 		h3("Columns");
-		p("The last two of the chain. The left column is the parent, acting as navigation; the right is the focused page. Each is filled with `page.body()` (plain content, never the ColumnPager) so a topic never recurses into itself. The ✕ closes a column and climbs to its parent.");
+		p("The last two of the chain. The left column is the parent, acting as navigation; the right is the focused page. Each is filled with plain `page.render()` — a Page never mounts its own layout (the App does), so a topic cannot recurse into itself. The ✕ closes a column and climbs to its parent.");
 
 		h3("Identical on reload");
 		p("Clicking a link and hard-reloading a URL run the same `chain` logic, so `/a/b/` looks the same either way — no per-page layout knowledge, no hash router.");
@@ -24,7 +27,7 @@ export default new Page({
     const chain = leaf.chain;       // [root … leaf]
     this.sidebar(chain[0]);         // topic + children
     // breadcrumbs = chain
-    // columns     = chain.slice(-2)   (fill with pg.body())
+    // columns     = chain.slice(-2)   (fill with pg.render())
 }`);
 	}
 });

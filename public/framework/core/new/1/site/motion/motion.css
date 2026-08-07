@@ -1,0 +1,75 @@
+@layer base, theme, site, util;
+
+@layer site {
+
+	/* SCOPE. Every page under /motion/ carries `classes: "motion"`, and every rule
+	   in this section starts from that class. Nothing here can reach a page another
+	   seat wrote — a bare `.page { transition: … }` would animate the whole site. */
+
+	/* The two decisions, as tokens, because they are made in eight places.
+	   Reduced motion is then ONE override instead of eight, and a demo added
+	   later cannot forget to honour it — see /motion/reduced/. */
+	.page.motion {
+		--motion-dur: .32s;
+		--motion-shift: 1.5rem;
+		--motion-ease: cubic-bezier(.2, .7, .3, 1);
+
+		/* what "calm" MEANS, written once. Not "no motion" — no MOVEMENT: a fade
+		   is not vestibular, a slide is. So the distance goes to zero and the
+		   duration merely shortens. */
+		--calm-dur: .12s;
+		--calm-shift: 0rem;
+	}
+
+	/* Two ways in, one set of values, so the preview cannot drift from the real
+	   thing: the operating system's preference, and a class you can toggle on the
+	   page to see what that preference does. */
+	@media (prefers-reduced-motion: reduce) {
+		.page.motion { --motion-dur: var(--calm-dur); --motion-shift: var(--calm-shift); }
+	}
+
+	.page.motion.motion-calm { --motion-dur: var(--calm-dur); --motion-shift: var(--calm-shift); }
+
+	/* A stage: two cards swapped by a button rather than by the Router, so a
+	   transition can be re-run and measured without navigating away.
+
+	   `.showing`, never `.active-page` — Router.mark() runs
+	   `$app.querySelectorAll(".active-page, .active-ancestor")` and strips both
+	   names on every navigation, anywhere in the app. Those two words are its. */
+	.motion-stage {
+		position: relative;
+		display: flex;
+		height: 8rem;
+		border: 1px solid #e2e4e8;
+		border-radius: .45rem;
+		overflow: hidden;
+		background: #fbfcfd;
+	}
+
+	.motion-card { flex: 1 1 auto; padding: 1rem 1.25rem; display: none; }
+	.motion-card.showing { display: block; }
+	.motion-card h3 { margin: 0 0 .35rem; font-size: 1rem; }
+	.motion-card p { font-size: .85rem; color: #6b7280; }
+
+	.motion-controls { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; margin-top: .75rem; }
+
+	.motion-btn {
+		font: inherit; padding: .3rem .8rem; border: 1px solid #d6dae0;
+		border-radius: .35rem; background: #fff; color: #0a58ca; cursor: pointer;
+	}
+	.motion-btn:hover { border-color: #0a58ca; background: #f5f9ff; }
+	.motion-btn[aria-pressed="true"] { background: #0a58ca; border-color: #0a58ca; color: #fff; }
+
+	.motion-readout {
+		font: 12px/1.6 ui-monospace, Consolas, monospace; color: #6b7280;
+		white-space: pre; overflow-x: auto; padding: .5rem .75rem;
+		border: 1px solid #e2e4e8; border-radius: .35rem; background: #fbfcfd;
+	}
+
+	.motion-verdict { border-left: 3px solid #0a58ca; padding-left: .9rem; }
+	.motion-warn { border-left: 3px solid #b42318; padding-left: .9rem; }
+
+	.motion-table { border-collapse: collapse; font-size: .875rem; }
+	.motion-table th, .motion-table td { border: 1px solid #e2e4e8; padding: .35rem .6rem; text-align: left; }
+	.motion-table th { background: #f3f4f6; font-weight: 600; }
+}

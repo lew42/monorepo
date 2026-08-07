@@ -4,6 +4,7 @@ export default new Page({
 	meta: import.meta,
 	title: "Dev",
 	description: "Local-only tooling: live reload.",
+	icon: "terminal",
 	col: "narrow",
 	content(){
 
@@ -18,5 +19,7 @@ node server.js      # http://localhost`);
     this.socket = Socket.singleton();`);
 
 		md("The client checks the hostname and no-ops anywhere else. Production is plain static files; nothing here may become a runtime dependency. That's a hard constraint, not a preference.");
+
+		md("That is the whole framework. If you skipped it, [Versus](/framework/versus/) is the short argument for why it looks like this.");
 	}
 });

@@ -1,11 +1,14 @@
-import { Page, p, pre } from "/app.js";
+import { Page, md, p, pre } from "/app.js";
 
 export default new Page({
 	meta: import.meta,
 	title: "MVP",
-	description: "Declare pager: ColumnPager on a topic.",
+	description: "Define pager() on a topic.",
 	content(){
-		p("One line turns a topic into a drill-down: declare `pager: ColumnPager`. Its descendants stay plain Pages — they never know they're in a ColumnPager.");
+
+		md("> **This class has left core.** `Pager`, `TabPager` and `ColumnPager` now live in `framework/core/legacy/` and `/app.js` no longer exports them. An arrangement is a CSS class a page opts into — see [Page](/framework/core/Page/). The examples below still run, against the legacy class, imported directly.");
+
+		p("One method turns a topic into a drill-down: `pager()`. Its descendants stay plain Pages — they never know they're in a ColumnPager.");
 
 		pre(`import { Page, ColumnPager } from "/app.js";
 import elements from "./elements/page.js";
@@ -14,7 +17,7 @@ import layout from "./layout/page.js";
 export default new Page({
     meta: import.meta,
     title: "Docs",
-    pager: ColumnPager,          // render this subtree as columns
+    pager(){ return new ColumnPager({ root: this, app: this.app }); },
     children: [elements, layout]
 });`);
 
