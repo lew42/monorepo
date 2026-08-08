@@ -1,0 +1,97 @@
+@layer base, theme, site, util;
+
+/* The sidebar dropdown's own arrow (edric/page.js) replaces the native <details>
+   marker, so the default triangle is hidden here — otherwise there'd be two. */
+@layer site {
+	.sidebar-group summary { list-style: none; cursor: pointer; }
+	.sidebar-group summary::-webkit-details-marker { display: none; }
+
+	.sidebar-group summary .toggle-arrow {
+		display: inline-block;
+		transition: transform 0.15s;
+	}
+	.sidebar-group[open] summary .toggle-arrow { transform: rotate(90deg); }
+
+	/* Open a group and its own label goes --prim too, not just the arrow: the
+	   toggle state should read on the text you clicked, not only the glyph
+	   beside it. Scoped to the group's OWN summary (direct child), so opening
+	   "Custom Components" doesn't relabel "Get Started" around it, or the other
+	   way in. */
+	.sidebar-group[open] > summary .sidebar-label { color: var(--prim); font-weight: 700; }
+
+	/* Custom Components got a real href (`navigate: true`), so landing exactly
+	   on /edric/getStarted/components/ makes Router mark it .active too, which
+	   piles Sidebar.css's own fill + trailing "›" onto the row on top of the
+	   bold/--prim treatment above, wide enough that the label wraps to a
+	   second line, only on that one page. A group's toggle-arrow is already
+	   its "you're here" signal, matching "Get Started" (which never had an
+	   href to begin with, so it never faced this); Router's own active look is
+	   redundant here and the reason the two screenshots didn't match. */
+	.sidebar-group > summary .sidebar-link.active { background: none; }
+	.sidebar-group > summary .sidebar-link.active::after { content: none; }
+
+	/* Direct children only — this skips the summary's own link (the "Get Started"
+	   row), so just Framework/Style/Custom Components get pushed in, reading as
+	   nested under the header instead of flush with it. */
+	.sidebar-group > .sidebar-link { padding-left: calc(var(--gutter) + 1.5em); }
+
+	/* Custom Components nests a second <details> for its five categories. Its own
+	   summary link indents like its Framework/Style siblings (one level); its
+	   children indent one level further. Three class selectors beats the rule
+	   above's two, so this wins without touching the layer. */
+	.sidebar-group > .sidebar-group > summary .sidebar-link { padding-left: calc(var(--gutter) + 1.5em); }
+	.sidebar-group > .sidebar-group > .sidebar-link { padding-left: calc(var(--gutter) + 3em); }
+
+	/* Why the categories showed up bold with a trailing "›": the ones still on
+	   #fragments share Custom Components' own url, so when you're on that page
+	   Router.mark_links() matches `link.pathname === here` for every one of
+	   them and marks them all .active at once, Sidebar.css's fill and chevron
+	   were built for "you are exactly here", not "here is one of several
+	   fragments of the page you're on". Sidebar.css's own comment tells the
+	   same story about a flat sidebar's two rows lighting up together; the fix
+	   there was a heading, the fix here is opting fragment links back out of
+	   the .active look entirely.
+	   `[href*="#"]` on purpose, not every doubly-nested link: Basic components
+	   got promoted to a real url once its 25 items got their own pages, and a
+	   real url deserves the real .active state; only the remaining #fragment
+	   siblings (Navigation, Content / Layout, Feedback, Data / Complex,
+	   Sections) still need the opt-out. */
+	.sidebar-group > .sidebar-group > .sidebar-link[href*="#"].active { background: none; }
+	.sidebar-group > .sidebar-group > .sidebar-link[href*="#"].active::after { content: none; }
+
+	/* The real active state for the five categories: not Router's (it can't know
+	   which one you're scrolled to, only which url you're on), but a scroll-spy
+	   in components/page.js, the same "last heading whose top passed the reading
+	   line" logic ext/toc's own spy() uses. A different class name than .active
+	   on purpose, toc.js made the same call, for the same reason: Router calls
+	   mark_links() on every navigation and would fight a class it doesn't own. */
+	.sidebar-group > .sidebar-group > .sidebar-link.current {
+		background: color-mix(in srgb, var(--sidebar-ink, #fff) 7%, transparent);
+	}
+	.sidebar-group > .sidebar-group > .sidebar-link.current::after {
+		content: "›";
+		margin-left: auto;
+		font-size: 1.4em;
+		line-height: 1;
+		opacity: 0.5;
+	}
+
+	/* Custom Components: Loading spinner and Skeleton loader have no framework
+	   equivalent, and an animation is the one thing a utility class can't do,
+	   rung 4 of the ladder. Prefixed cc- since these are specific to this page. */
+	@keyframes cc-spin { to { transform: rotate(360deg); } }
+	.cc-spinner {
+		width: 1.5em; height: 1.5em;
+		border: 3px solid var(--line);
+		border-top-color: var(--prim);
+		border-radius: 999px;
+		animation: cc-spin 0.7s linear infinite;
+	}
+
+	@keyframes cc-pulse { 50% { opacity: 0.4; } }
+	.cc-skeleton {
+		background: var(--wash);
+		border-radius: var(--radius);
+		animation: cc-pulse 1.4s ease-in-out infinite;
+	}
+}
