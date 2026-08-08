@@ -1,50 +1,56 @@
-toggle-switch {
-  display: inline-flex;
-  align-items: center;
-}
+/* Restated IN FULL — the first @layer statement fixes the order. */
+@layer base, theme, site, util;
 
-toggle-switch .toggle-switch {
-  display: inline-flex;
-  align-items: center;
-  cursor: pointer;
-  gap: 0.5rem;
-}
+@layer site {
 
-toggle-switch input {
-  display: none;
-}
+	toggle-switch {
+		display: inline-flex;
+		align-items: center;
+	}
 
-toggle-switch .slider {
-  width: 2.5rem;
-  height: 1.25rem;
-  background: #ccc; /* adjust with fw variables later */
-  border-radius: 999px;
-  position: relative;
-  transition: background 0.2s;
-}
+	toggle-switch .toggle-switch {
+		display: inline-flex;
+		align-items: center;
+		cursor: pointer;
+		gap: 0.5rem;
+	}
 
-toggle-switch .slider::after {
-  content: "";
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: calc(1.25rem - 4px);
-  height: calc(1.25rem - 4px);
-  background: white;
-  border-radius: 50%;
-  transition: transform 0.2s;
-}
+	toggle-switch input {
+		display: none;
+	}
 
-toggle-switch input:checked + .slider {
-  background: var(--prim);
-}
+	toggle-switch .slider {
+		width: 2.5rem;
+		height: 1.25rem;
+		background: var(--line);
+		border-radius: 999px;
+		position: relative;
+		transition: background 0.2s;
+	}
 
-toggle-switch input:checked + .slider::after {
-  transform: translateX(calc(2.5rem - 1.25rem));
-}
+	toggle-switch .slider::after {
+		content: "";
+		position: absolute;
+		top: 2px;
+		left: 2px;
+		width: calc(1.25rem - 4px);
+		height: calc(1.25rem - 4px);
+		background: white;
+		border-radius: 50%;
+		transition: transform 0.2s;
+	}
 
-.toggle-label {
-  margin-left: 0.75rem;
-  font-weight: 600;
-  min-width: 2ch;
+	toggle-switch input:checked + .slider {
+		background: var(--prim);
+	}
+
+	toggle-switch input:checked + .slider::after {
+		transform: translateX(calc(2.5rem - 1.25rem));
+	}
+
+	.toggle-label {
+		margin-left: 0.75rem;
+		font-weight: 600;
+		min-width: 2ch;
+	}
 }

@@ -1,58 +1,52 @@
-import app, { div, h2, p, pre, form, fieldset, legend, label, input, select, option, textarea, button } from "/app.js";
-import { doc } from "../../ui/docs.js";
+import { Page, md, h2, demo, div, form, fieldset, legend, label, input, select, option, textarea, button } from "/app.js";
 
-app.$body.ac("theme-1");
+export default new Page({
+	meta: import.meta,
+	title: "Forms",
+	description: "Inputs, selects, textareas, and the button classes.",
+	icon: "edit_note",
 
-export default {
-  render() {
-    doc({
-      title: "Forms",
-      back: "/alex/styles/",
-      build() {
-        p("Form controls are styled straight out of the box: padded, bordered, and full-width. Buttons get a couple of opt-in color classes.");
+	content(){
 
-        h2("Buttons");
-        p("`button` and `.btn` are padded with a pointer cursor. Add `.prim` for the accent color or `.bg` for the dark background. `.btn` lets any element (like an `a`) look like a button.");
-        div.c("demo flex gap", () => {
-          button("Plain");
-          button.c("prim", "Primary");
-          button.c("bg", "Background");
-        });
-        pre(`button("Plain");
-button.c("prim", "Primary");
-button.c("bg", "Background");`);
+		demo(() => {
+			div.c("flex gap", () => {
+				button("Plain");
+				button.c("prim", "Primary");
+				button.c("bg", "Background");
+			});
+		}, "`button` and `.btn` are padded with a pointer cursor. `.prim` is the accent colour, `.bg` the dark background. `.btn` lets any element — an `a`, say — look like a button.");
 
-        h2("A whole form");
-        p("Wrap fields in a `fieldset` for a grouped, bordered block. Inputs, selects, and textareas fill the width automatically:");
-        div.c("demo", () => {
-          form(() => {
-            fieldset(() => {
-              legend("Sign up");
+		h2("A whole form");
 
-              label("Name");
-              input().attr("type", "text").attr("placeholder", "Ada Lovelace");
+		demo(() => {
+			form(() => {
+				fieldset(() => {
+					legend("Sign up");
 
-              label("Role").style("display", "block").style("margin-top", "0.75em");
-              select(() => {
-                option("Newbie");
-                option("Pro");
-              });
+					label("Name");
+					input().attr("type", "text").attr("placeholder", "Peter Parker");
 
-              label("About").style("display", "block").style("margin-top", "0.75em");
-              textarea.c("auto").attr("placeholder", "A few words...");
+					label("Role").style("display", "block").style("margin-top", "0.75em");
+					select(() => {
+						option("Newbie");
+						option("Pro");
+					});
 
-              div.c("flex gap", () => {
-                button.c("prim", "Submit");
-                button("Cancel");
-              }).style("margin-top", "1em");
-            });
-          });
-        });
+					label("About").style("display", "block").style("margin-top", "0.75em");
+					textarea.c("auto").attr("placeholder", "A few words...");
 
-        h2("Auto-growing textarea");
-        p("`textarea.auto` grows to fit its content as you type — that is the `.auto` class in the demo above.");
-        pre(`textarea.c("auto");`);
-      },
-    });
-  },
-};
+					div.c("flex gap", () => {
+						button.c("prim", "Submit");
+						button("Cancel");
+					}).style("margin-top", "1em");
+				});
+			});
+		}, "Wrap fields in a `fieldset` for a grouped, bordered block. Inputs, selects and textareas fill the width automatically.");
+
+		h2("Auto-growing textarea");
+
+		md("`textarea.c(\"auto\")` grows to fit its content as you type — that is the About field above.");
+
+		md("Next: [Flex](/alex/styles/flex/) — arranging what you just built.");
+	},
+});

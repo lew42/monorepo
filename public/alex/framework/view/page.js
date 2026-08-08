@@ -1,56 +1,75 @@
-import app, { h2, p, pre } from "/app.js";
-import { doc } from "../../ui/docs.js";
+import { Page, md, code, h2, demo, div, p, toc } from "/app.js";
 
-app.$body.ac("theme-1");
+export default new Page({
+	meta: import.meta,
+	title: "View",
+	description: "One DOM element, chainable. Every line you write.",
+	icon: "code",
 
-export default {
-  render() {
-    doc({
-      title: "View",
-      back: "/alex/framework/",
-      build() {
-        p("Every tag function returns a `View` wrapping one DOM element. You build a page by calling those functions and chaining methods on what they return.");
-        pre(`import { div, p } from "/app.js";
+	content(){
 
-div.c("flex gap", () => {
-    p("child 1");
-    p("child 2");
-});`);
-        p("Calling a tag function adds it to the page automatically. When you pass a function as the last argument, the tags created inside it become children.");
+		toc();
 
-        h2("Create with a class");
-        p("`div.c(\"flex gap\")`:every tag function has a `.c()` shortcut that creates the element with those classes already on it.");
+		demo(() => {
+			div.c("flex gap", () => {
+				p("child 1");
+				p("child 2");
+			});
+		}, "Calling a tag function creates the element **and puts it where you are**. Pass a function as the last argument and everything called inside it lands inside that element.");
 
-        h2("Classes");
-        p("`.ac(\"a b\")`:add class(es).");
-        p("`.rc(\"a\")`:remove class(es).");
-        p("`.hc(\"a\")`:has class? returns true/false.");
-        p("`.tc(\"a\")`:toggle class(es).");
+		md("Every tag function returns a `View` wrapping one element. `div.c(\"flex gap\")` is the shortcut for creating it with classes already on.");
 
-        h2("Content");
-        p("`.append(...)`:add children — Views, strings, DOM nodes, arrays, or a build function.");
-        p("`.prepend(...)`:same, but at the start.");
-        p("`.empty(...)`:remove all children, then optionally append new ones.");
-        p("`.text(v)` / `.html(v)`:get or set text or inner HTML.");
-        p("Inside `p(...)`, text wrapped in backticks turns into `code` automatically.");
+		h2("Classes");
 
-        h2("Attributes & events");
-        p("`.attr(name, v)`:get or set an attribute.");
-        p("`.href(url)`:shortcut for `.attr(\"href\", url)`.");
-        p("`.style(prop, v)`:get or set inline CSS. Pass an object to set several at once.");
-        p("`.on(event, cb)` / `.click(cb)`:listen for events. `cb` runs with `this` set to the View.");
+		md(`| | |
+|---|---|
+| \`.ac("a b")\` | add |
+| \`.rc("a")\` | remove |
+| \`.hc("a")\` | has? → true/false |
+| \`.tc("a")\` | toggle |`);
 
-        h2("Layout & lifecycle");
-        p("`.hide()` / `.show()` / `.toggle()`:control `display`.");
-        p("`.remove()` / `.replace(view)`:take it off the page or swap it out.");
-        p("`.load(meta, url)` / `.lazy(meta, url)`:import another module and append its default export (`lazy` waits its turn).");
+		h2("Content");
 
-        h2("Make your own");
-        p("Two ways to build a reusable piece: a plain function that builds Views, or a class with a `.render()` method. You can also `extend View` for something more stateful. The helpers on this docs site (`doc()`, `cards()`) are just the function approach.");
-        pre(`export function card(title){
-    return div.c("card", () => h2(title));
+		md(`| | |
+|---|---|
+| \`.append(…)\` | Views, strings, DOM nodes, arrays, or a build function |
+| \`.prepend(…)\` | same, at the start |
+| \`.empty(…)\` | clear, then optionally append |
+| \`.text(v)\` / \`.html(v)\` | get or set |`);
+
+		md("**A callback re-establishes the captor**, so what you write inside `.append(fn)` reads exactly like page code:");
+
+		code.js(`$list.empty(() => names.forEach(name => p(name)));`);
+
+		md("That is also the fix for the framework's nastiest trap: **capturing is synchronous, so never call a factory after an `await`.** Capture the container now, fill it in a callback.");
+
+		h2("Attributes & events");
+
+		md(`| | |
+|---|---|
+| \`.attr(name, v)\` | get or set |
+| \`.href(url)\` | shortcut for \`.attr("href", …)\` |
+| \`.style(prop, v)\` | inline CSS; pass an object to set several |
+| \`.on(event, cb)\` / \`.click(cb)\` | \`cb\` runs with \`this\` set to the View |`);
+
+		h2("Layout & lifecycle");
+
+		md(`| | |
+|---|---|
+| \`.hide()\` / \`.show()\` / \`.toggle()\` | control \`display\` |
+| \`.remove()\` / \`.replace(view)\` | take it off, or swap it |
+| \`.load(meta, url)\` / \`.lazy(meta, url)\` | import a module and append its default export |`);
+
+		h2("Make your own");
+
+		md("A plain function that builds Views is usually enough:");
+
+		code.js(`export function panel(title){
+    return div.c("panel", () => h2(title));
 }`);
-      },
-    });
-  },
-};
+
+		md("`extend View` when it needs state of its own — `Sidebar` is that. `class DocsSidebar extends Sidebar {}` renders `.docs-sidebar.sidebar`, because `classify()` reads the class name.");
+
+		md("Back to [Framework](/alex/framework/), or on to [Styles](/alex/styles/).");
+	},
+});

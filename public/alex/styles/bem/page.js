@@ -1,204 +1,123 @@
-import app, { div, h2, p, pre, button } from "/app.js";
-import { doc } from "../../ui/docs.js";
+import { Page, md, code, h2, demo, div, p, button, toc } from "/app.js";
 
-app.$body.ac("theme-1");
+export default new Page({
+	meta: import.meta,
+	title: "BEM",
+	description: "Block, Element, Modifier — keeping styles scoped to a component.",
+	icon: "style",
 
-export default {
-  render() {
-    doc({
-      title: "BEM",
-      back: "/alex/styles/",
-      build() {
-        p("BEM (Block, Element, Modifier) is a naming convention that keeps styles scoped to their components. Example:");
+	content(){
 
-        pre(`.block            /* standalone component */
+		toc();
+
+		code.css(`.block            /* standalone component */
 .block__element   /* a piece inside the block */
 .block--modifier  /* a variant of the block */`);
 
-        p("The framework makes this easy: `c()` chains classes, and the flat CSS means your selectors stay shallow and fast.");
+		md("A naming convention that keeps styles scoped to their component. `.c()` chains classes, and the flat CSS means selectors stay shallow.");
 
-        h2("A responsive card component");
-        p("A card block with `__image`, `__title`, `__body`, and `__footer` elements. Padding and font sizes scale fluidly with `clamp()` — no breakpoints needed for the card itself:");
+		h2("A responsive panel");
 
-        div.c("demo", () => {
-          div.c("card", () => {
-            div.c("card__image", "Image");
-            div.c("card__body", () => {
-              div.c("card__title", "Regular Card");
-              p.c("card__text", "A simple card with BEM-scoped styles. Resize the window to see it adapt.");
-              div.c("card__footer", () => {
-                button.c("card__btn", "Action");
-              });
-            });
-          });
-        });
+		demo(() => {
+			div.c("panel", () => {
+				div.c("panel__image", "Image");
+				div.c("panel__body", () => {
+					div.c("panel__title", "Regular Panel");
+					p.c("panel__text", "A simple panel with BEM-scoped styles. Drag the demo narrower to see it adapt.");
+					div.c("panel__footer", () => {
+						button.c("panel__btn", "Action");
+					});
+				});
+			});
+		}, "A `panel` block with `__image`, `__body`, `__title`, `__text` and `__footer` elements.");
 
-        pre(`div.c("card", () => {
-    div.c("card__image", "Image");
-    div.c("card__body", () => {
-        div.c("card__title", "Regular Card");
-        p.c("card__text", "Content here.");
-        div.c("card__footer", () => {
-            button.c("card__btn", "Action");
-        });
-    });
-});`);
+		md("Padding and font sizes scale fluidly with `clamp()` — no breakpoints needed for the panel itself:");
 
-        h2("The responsive CSS");
-        p("Fluid values via `clamp()` and `min()` replace breakpoints. The card adapts from phone to desktop in one set of rules:");
-
-        pre(`.card {
+		code.css(`.panel {
     border: 1px solid var(--subtle);
     border-radius: 0.5rem;
     padding: clamp(0.5rem, 2vw, 1rem);
 }
-.card__image {
+.panel__image {
     background: var(--bg);
+    color: white;
     padding: clamp(1rem, 4vw, 2rem);
     text-align: center;
     font-size: clamp(1.5rem, 4vw, 2rem);
 }
-.card__body {
-    padding: clamp(0.5rem, 2vw, 1rem);
-}
-.card__title {
-    font-weight: 600;
-    color: var(--prim);
-    margin-bottom: 0.3rem;
-    font-size: clamp(1rem, 2.5vw, 1.25rem);
-}
-.card__text {
-    margin: 0;
-    color: var(--subtle);
-    font-size: clamp(0.8rem, 2vw, 0.9rem);
-}
-.card__footer {
-    margin-top: 1rem;
-}
-.card__btn {
-    padding: 0.4rem 1rem;
-    border: 1px solid var(--subtle);
-    border-radius: 0.3rem;
-    cursor: pointer;
-    background: transparent;
-    font-size: clamp(0.8rem, 2vw, 1rem);
+.panel__body  { padding: clamp(0.5rem, 2vw, 1rem); }
+.panel__title { font-weight: 600; color: var(--prim); font-size: clamp(1rem, 2.5vw, 1.25rem); }
+.panel__text  { margin: 0; color: var(--subtle); font-size: clamp(0.8rem, 2vw, 0.9rem); }`);
+
+		h2("A list of them");
+
+		demo(() => {
+			div.c("panel-list grid auto gap", () => {
+				["First panel in a responsive list.", "Second — watch it reflow.", "Third fills the remaining space."]
+					.forEach((text, i) => div.c("panel", () => {
+						div.c("panel__image", "Image");
+						div.c("panel__body", () => {
+							div.c("panel__title", `Panel ${i + 1}`);
+							p.c("panel__text", text);
+						});
+					}));
+			});
+		}, "A `panel-list` block laying panels out on a grid — one column to many via `auto-fit`, the same pattern as `.grid.auto`.");
+
+		code.css(`.panel-list {
+    --panel-min: min(16rem, 100%);
+    grid-template-columns: repeat(auto-fit, minmax(var(--panel-min), 1fr));
 }`);
 
-        h2("Responsive card list");
-        p("A `card-list` block that uses grid to lay out cards. It reflows from one column to many using `auto-fit` and `min()` — the same pattern as `.grid.auto`:");
+		md("Override the minimum inline if you want wider panels: `.style(\"--panel-min\", \"min(20rem, 100%)\")`.");
 
-        div.c("demo", () => {
-          div.c("card-list grid auto gap", () => {
-            div.c("card", () => {
-              div.c("card__image", "Image");
-              div.c("card__body", () => {
-                div.c("card__title", "Card 1");
-                p.c("card__text", "First card in a responsive list.");
-              });
-            });
-            div.c("card", () => {
-              div.c("card__image", "Image");
-              div.c("card__body", () => {
-                div.c("card__title", "Card 2");
-                p.c("card__text", "Second card — watch it reflow.");
-              });
-            });
-            div.c("card", () => {
-              div.c("card__image", "Image");
-              div.c("card__body", () => {
-                div.c("card__title", "Card 3");
-                p.c("card__text", "Third card fills remaining space.");
-              });
-            });
-          });
-        });
+		h2("Layout modifier");
 
-        pre(`div.c("card-list grid auto gap", () => {
-    div.c("card", () => { /* card 1 */ });
-    div.c("card", () => { /* card 2 */ });
-    div.c("card", () => { /* card 3 */ });
-});`);
+		demo(() => {
+			div.c("panel panel--horizontal", () => {
+				div.c("panel__image", "Image");
+				div.c("panel__body", () => {
+					div.c("panel__title", "Horizontal Panel");
+					p.c("panel__text", "Image beside text on wide screens, stacked on narrow.");
+					div.c("panel__footer", () => {
+						button.c("panel__btn panel__btn--prim", "Primary");
+					});
+				});
+			});
+		}, "`--horizontal` flips the panel to a row on wide screens and stacks it on narrow. Sizing stays fluid; one breakpoint switches the direction.");
 
-        pre(`.card-list {
-    --card-min: min(16rem, 100%);
-    grid-template-columns: repeat(auto-fit, minmax(var(--card-min), 1fr));
-}
-/* Override the minimum inline if you want wider cards: */
-div.c("card-list", ...).style("--card-min", "min(20rem, 100%)");`);
+		code.css(`.panel--horizontal { display: flex; flex-direction: column; }
 
-        h2("Layout modifier: horizontal card");
-        p("A `--horizontal` modifier flips the card to a row layout on wide screens, stacking back to a column on narrow ones. Sizing stays fluid; a single breakpoint switches the direction:");
-
-        div.c("demo", () => {
-          div.c("card card--horizontal", () => {
-            div.c("card__image", "Image");
-            div.c("card__body", () => {
-              div.c("card__title", "Horizontal Card");
-              p.c("card__text", "Image beside text on wide screens, stacked on narrow. Resize to see it switch.");
-              div.c("card__footer", () => {
-                button.c("card__btn card__btn--prim", "Primary");
-              });
-            });
-          });
-        });
-
-        pre(`.card--horizontal {
-    display: flex;
-    flex-direction: column;
-}
 @media (min-width: 28rem) {
-    .card--horizontal { flex-direction: row; }
+    .panel--horizontal { flex-direction: row; }
 }
-.card--horizontal > .card__image {
-    flex: 0 0 clamp(4rem, 30%, 8rem);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.card--horizontal > .card__body { flex: 1; }`);
 
-        h2("Modifiers");
-        p("Add a modifier class alongside the block class to change appearance:");
+.panel--horizontal > .panel__image { flex: 0 0 clamp(4rem, 30%, 8rem); }
+.panel--horizontal > .panel__body  { flex: 1; }`);
 
-        div.c("demo", () => {
-          div.c("card card--featured", () => {
-            div.c("card__image", "Image");
-            div.c("card__body", () => {
-              div.c("card__title", "Featured Card");
-              p.c("card__text", "This card uses the --featured modifier.");
-              div.c("card__footer", () => {
-                button.c("card__btn card__btn--prim", "Featured Action");
-              });
-            });
-          });
-        });
+		h2("Appearance modifier");
 
-        pre(`.card--featured {
-    border-color: var(--prim);
-    box-shadow: 0 0.25rem 1rem var(--subtle);
-}
-.card__btn--prim {
-    background: var(--prim);
-    color: white;
-    border-color: var(--prim);
-}`);
+		demo(() => {
+			div.c("panel panel--featured", () => {
+				div.c("panel__image", "Image");
+				div.c("panel__body", () => {
+					div.c("panel__title", "Featured Panel");
+					p.c("panel__text", "Add a modifier class alongside the block class to change appearance.");
+					div.c("panel__footer", () => {
+						button.c("panel__btn panel__btn--prim", "Featured Action");
+					});
+				});
+			});
+		}, "`--featured` and `__btn--prim` compose independently — no cascade surprises.");
 
-        h2("Why it works here");
-        p("The framework's `View` API and BEM are a natural fit:");
+		h2("Notation rules");
 
-        p("`.c()` chains classes cleanly — `div.c('card card--horizontal')` reads like the CSS it produces.");
-        p("No CSS preprocessor needed — plain CSS selectors are flat by design with BEM.");
-        p("Fluid responsiveness — `clamp()` and `min()` handle most scaling, with a media query only where fluid math can't reach.");
-        p("Components are portable — copy a block's CSS and JS together and it works anywhere, because nothing leaks in or out.");
-        p("Modifiers compose — add `card--featured` and `card__btn--prim` independently, no cascade surprises.");
+		md(`- Two underscores for elements: \`block__element\`, never \`block-element\`.
+- Two hyphens for modifiers: \`block--modifier\`.
+- Never nest BEM selectors: \`.panel__title\`, not \`.panel .panel__title\`.
+- Mix block and modifier on the same element: \`"panel panel--featured"\`, not just the modifier.
+- Prefer \`clamp()\` and \`min()\` for responsive values; reach for a media query only when fluid math cannot express the change.`);
 
-        h2("Notation rules");
-        p("Use two underscores for elements: `block__element`, never `block-element` or `block_element`.");
-        p("Use two hyphens for modifiers: `block--modifier`, never `block-modifier`.");
-        p("Never nest BEM selectors in CSS: `.card__title` not `.card .card__title`.");
-        p("Mix block and modifier on the same element: `class=\"card card--featured\"`, not just `class=\"card--featured\"`.");
-        p("Prefer `clamp()` and `min()` for responsive values; use a media query only when fluid math can't express the change.");
-      },
-    });
-  },
-};
+		md("One caveat for this site: **every rule must live inside a layer**, and the layer list must be restated in full — `@layer base, theme, site, util;`. An unlayered rule beats every layer at any specificity. See `alex/styles.css`.");
+	},
+});
