@@ -93,6 +93,12 @@ export { default as demo } from "./framework/ext/demo/demo.js";
 // markdown); leans on highlight only if it's loaded. See ext/classdoc/readme.md.
 export { default as classdoc } from "./framework/ext/classdoc/classdoc.js";
 
+// Patches this.tabs() onto every Page — the side effect IS the export, same
+// shape as highlight below. classdoc already imports it for its own vertical
+// rail; this import is what makes `this.tabs("guide api")` work on any OTHER
+// page.js too. See ext/tabs/readme.md.
+import "./framework/ext/tabs/tabs.js";
+
 // files() shows real files on disk, fetched — so a "here is a whole project"
 // section can't drift from the project. toc() reads a page's own headings.
 export { default as files } from "./framework/ext/files/files.js";
@@ -105,3 +111,8 @@ export { default as toc } from "./framework/ext/toc/toc.js";
 // already exported above via `export *`, so this import is for the side effect.
 // See framework/ext/highlight/readme.md.
 export { hljs, highlight } from "./framework/ext/highlight/highlight.js";
+
+// The UI components, as one namespace: `ui.card()`, `ui.badge.c("accent", …)`.
+// Sixteen functions; the rest of the set is documented as copy-paste markup and
+// deliberately has nothing to import. See framework/ui/readme.md.
+export { ui } from "./framework/ui/ui.js";

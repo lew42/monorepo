@@ -1,4 +1,4 @@
-import { div, button, is } from "/app.js";
+import { div, button } from "/app.js";
 
 const TONES = ["surface", "wash", "prim", "dark"];
 

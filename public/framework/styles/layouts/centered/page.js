@@ -1,26 +1,64 @@
-import { Page, md, demo } from "/app.js";
-import layout from "./layout.js";
-import full from "../full.js";
-import fit from "../fit.js";
+import { div, md } from "/app.js";
+import Layout from "../Layout.js";
+import recipe from "../recipe.js";
+import { next } from "../../parts.js";
 
-export default new Page({
+export default new Layout({
 	meta: import.meta,
 	title: "Centered",
-	description: "A measure of prose, centred — the one rule utilities can't spell.",
+	description: "A measure of prose, centred — one utility class.",
 	icon: "format_align_center",
 
-	route(name){ return name === "full" && full(this, layout); },
+	// no fit word: the region's default sheet. No `fill` — an article scrolls.
+	classes: "flex v",
 
-	content(){
-		demo(layout, { full: this }, "`.layout-measure` is `max-width: 34em; margin-inline: auto`. Two declarations, and neither is available as a class: `max-width` alone leaves the column flush left, and `flex h-center` has nothing to centre until something has a width.");
+	layout(){
+		div.c("measure flex v gap").append(() => {
 
+			div.c("h1", "One column, centred");
 
-		md("**This is the strongest case for a new utility on the page.** A measure is the most common layout on the web, `.page.paper` already hardcodes one (`max-width: 60em`), and every doc page here is one — three hardcodes, which is the bar a token or a class has to clear.");
+			md(`Somewhere between 60 and 80 characters a line stops being comfortable to
+read — the eye loses its place on the return sweep. This column is \`34em\` and runs
+about 62 characters, which is why it reads as an article and the full width of this
+region would not.
 
-		fit("An article · A sign-in card · A changelog · An error page · Almost every docs page ever written",
-			"measured",
-			"It IS the measure, so a measured page is redundant on purpose: the layout and the page agree, and `.layout-measure` is only needed when the *page* is wider than the reading.");
+## One class
 
-		md("Next: [Stack](/framework/styles/layouts/stack/) — the same measure, with rhythm inside it.");
-	}
+\`\`\`js
+div.c("measure flex v gap")
+\`\`\`
+
+\`\`\`css
+.measure { --measure: 34em; max-width: var(--measure); margin-inline: auto; }
+\`\`\`
+
+Neither declaration is available on its own and \`max-width\` alone leaves the column
+flush left, which is why this is a class rather than two. Widen it in place —
+\`.style("--measure", "78em")\` — and the inline value beats the class.
+
+## The trap it removes
+
+\`margin-inline: auto\` used to **do nothing inside a flex container**: \`.flex > *
+{ margin: 0 }\` is in \`@layer util\` and beat any component rule, so a centred box
+dropped into a flex row silently went flush left. \`.measure\` is declared *after*
+that rule in the same layer, so it wins — and this page is an ordinary \`flex v\`
+page again.
+
+## What you would build with it
+
+- An article, a changelog, an error page
+- A sign-in card
+- Almost every documentation page ever written
+
+A measured page and this class say the same thing at two scales, so on a page that
+is already a reading column \`.measure\` is redundant on purpose. It earns its place
+the moment the *page* is wider than the reading — a \`pad\` index with one paragraph
+of introduction, or a \`full\` layout with a caption.`);
+
+			recipe(this, "No fit word — the region's default measure. The column is one utility class.");
+
+			next("[Stack](/framework/styles/layouts/stack/) — the same measure, with rhythm inside it.",
+				"styles/layouts/centered/");
+		});
+	},
 });

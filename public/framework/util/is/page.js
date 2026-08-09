@@ -12,7 +12,7 @@ export default new Page({
 			p(`is.arr([1,2])  → ${is.arr([1, 2])}`);
 			p(`is.fn(() => 1) → ${is.fn(() => 1)}`);
 			p(`is.pojo({})    → ${is.pojo({})}`);
-		}, "Fourteen one-line functions. They all return a boolean.");
+		}, "A handful of one-line functions. They all return a boolean.");
 
 		h2("Why it exists");
 

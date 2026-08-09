@@ -1,16 +1,12 @@
-/* Layer order, restated IN FULL — a short list silently misplaces `site`.
-   See the header of framework.css. */
+/* Restated IN FULL — a short list silently misplaces `site`. */
 @layer base, theme, site, util;
 
 @layer theme {
 
-	/* Bottom-right, over everything, and out of every layout's way — the pill form,
-	   for a site that renders `mode(app)` loose. In a Sidebar footer the same button
-	   is a row item; Sidebar.css out-specifies this placement with two classes.
-
-	   z-index 60 — the top of the ladder: above `.demo.max` (30) and
-	   `.layout-full` (20), because a control that changes the whole page must be
-	   reachable from every one of them. */
+	/* The loose pill form. In a Sidebar footer the same button is a row item, and
+	   Sidebar.css out-specifies this placement with two classes.
+	   ⚠ z-index 60 is the top of the ladder — above `.demo.max` (30) and
+	   `.layout-full` (20), because this control must be reachable from both. */
 	.mode-btn {
 		position: fixed; inset-block-end: 1.25em; inset-inline-end: 1.25em; z-index: 60;
 		display: flex; padding: 0.5em;

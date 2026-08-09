@@ -18,6 +18,7 @@ View.stylesheet(import.meta, "demo.css");
  *   demo(() => { … }, "Caption below the result.");
  *   demo(() => { … }, { html: true });      // the HTML pane open from the start
  *   demo(() => { … }).ac("stack");          // never put the panes side by side
+ *   demo.stage(() => { … });                // the box and its handle, no code pane
  *
  * Strings before the function label the box; strings after caption it. The
  * caption is the important one: a doc page leads with code, and the sentence
@@ -49,7 +50,7 @@ export default function demo(...args){
 	const note  = args.slice(i + 1).filter(is.str).join(" ");
 
 	return div.c("demo", $demo => {
-		let $html, $stage, $render, $size;
+		let $html;
 
 		// Placed now, filled last: its controls point at things further down, and
 		// `append(fn)` re-establishes the captor.
@@ -60,23 +61,9 @@ export default function demo(...args){
 			$html = pre.c("demo-html");
 		});
 
-		/* STAGE resizes, SCREEN scrolls, RENDER is the bare content that gets
-		 * measured. ⚠ They cannot be merged: overflow on the stage clips the handle
-		 * that hangs over its edge, and `overflow-x` on the render forces
-		 * `overflow-y` off `visible` for every demo on the site. */
-		div.c("demo-stage", $view => {
-			$stage = $view;
-
-			// `checkered` so you can tell whether what rendered painted its own
-			// background — an unpainted box shows the board through (framework.css).
-			// `flow` on the render: examples are written like page code, so they
-			// space like page code — and emitting it here is what lets core's flow
-			// rules stop naming `.demo-render`.
-			div.c("demo-screen checkered", () => { $render = div.c("demo-render flow", fn); });
-
-			$size = div.c("demo-size");
-			resizer($stage);
-		});
+		// `checkered` so you can tell whether what rendered painted its own
+		// background — an unpainted box shows the board through (framework.css).
+		const { $render, measure } = stage(fn, "checkered");
 
 		if (note) caption(note);
 
@@ -90,8 +77,6 @@ export default function demo(...args){
 			$toggle[on ? "ac" : "rc"]("on");
 			if (on) $html.empty(() => source_code(markup($render.el), "html"));
 		};
-
-		const measure = ruler($render, $size);
 
 		$bar.append(() => {
 			if (label) span.c("demo-label", label);
@@ -117,6 +102,32 @@ export default function demo(...args){
 		if (opts.html) queueMicrotask(() => html(true));
 	});
 }
+
+/* The resizable box: STAGE resizes, SCREEN scrolls, RENDER is the bare content
+ * that gets measured. ⚠ The three cannot be merged: overflow on the stage clips
+ * the handle that hangs over its edge, and `overflow-x` on the render forces
+ * `overflow-y` off `visible` for every demo on the site.
+ *
+ * `flow` on the render: examples are written like page code, so they space like
+ * page code — and emitting it here is what lets core's flow rules stop naming
+ * `.demo-render`.
+ */
+function stage(fn, board = ""){
+	let $render, $size;
+
+	const $stage = div.c("demo-stage", $view => {
+		div.c("demo-screen " + board, () => { $render = div.c("demo-render flow", fn); });
+
+		$size = div.c("demo-size");
+		resizer($view);
+	});
+
+	return { $stage, $render, measure: ruler($render, $size) };
+}
+
+/* demo.stage(fn) — the same box and drag handle with no code pane, for a wall of
+   examples that has to be squeezable but has no single source worth printing. */
+demo.stage = fn => stage(fn).$stage;
 
 /* One toolbar control. Every button here is a toggle, and `.on` is the pressed
  * state — the caller flips it, because the caller is what knows the state. */
@@ -182,7 +193,7 @@ function ruler($render, $size){
 
 /* The caption is prose, so it wants markdown — but demo/ must not depend on
  * markdown/. Soft dependency instead: if ext/markdown has been imported it has
- * patched View.prototype.md, so use it; otherwise fall back to p()'s backticks. */
+ * patched View.prototype.md, so use it; otherwise fall back to the backtick pass. */
 function caption(text){
 	const view = p.c("demo-note");
 	return view.md ? view.md(text) : view.backtick_append(text);
@@ -200,5 +211,10 @@ function source_code(src, lang = "js"){
    identical transform. Re-exported here because that's where they've always been
    imported from. */
 export { source, dedent };
+
+/* The shell, for a sibling variant: ext/demo/responsive.js builds the same box
+   with two simulated viewports in it, and imports these so the two cannot drift.
+   ⚠ One-way — that file imports this one and patches `demo.responsive`. */
+export { btn, caption, source_code };
 
 export { demo };

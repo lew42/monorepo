@@ -1,6 +1,4 @@
-The whole boot sequence, in six lines you can read at once. That is deliberate:
-if boot has an order you must memorise, it belongs in one method where you can
-see it.
+The whole boot sequence, in six lines you can read at once.
 
 ```
 config()      a Router option, a theme's behaviour, a font
@@ -11,22 +9,27 @@ inject()      $app into <body> — first paint
 ready.resolve()
 ```
 
-## It is an unawaited async call in the constructor
+## Usage
 
-`new App()` returns before loading finishes, which is what makes
+`App.js:15` — the constructor, the only caller. Never called by hand.
+
+## Necessity
+
+Essential, and deliberately one method: if boot has an order you must memorise, it
+belongs somewhere you can see all of it at once.
+
+## Simplicity
+
+Right-sized, with two costs that are real and are not the method's fault:
+
+**It is an unawaited async call in the constructor.** That is what makes
 `window.app = new App()` read well, and `app.ready` covers anyone who needs the
-wait.
+wait. The price: a throw anywhere outside `load()`'s own try/catch becomes a silent
+unhandled rejection. One `.catch(e => this.error(e))` here would fix it — recorded
+rather than done, because the try in `load()` covers the case that actually
+happens, a page module throwing.
 
-**The cost, unfixed:** a throw anywhere outside `load()`'s own try/catch becomes a
-silent unhandled rejection. One `.catch(e => this.error(e))` here would fix it.
-Recorded rather than done because the try in `load()` covers the case that
-actually happens — a page module throwing.
-
-## Nothing paints until the walk finishes
-
-`inject()` is last, so a 5-deep cold link shows nothing for the whole walk —
-measured at 1765ms on a slow connection, where the chrome could have painted
-immediately.
-
-Kept, because the alternative is worse: an empty tab bar and a jumping layout.
-But it is **not free**, and it is often described as if it were.
+**`inject()` is last, so nothing paints until the walk finishes** — measured at
+1765ms on a 5-deep cold link, where the chrome could have painted immediately.
+Kept, because an empty tab bar and a jumping layout are worse. But it is not free,
+and it is often described as if it were. [boot](/framework/core/App/docs/boot/).

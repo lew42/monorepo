@@ -1,299 +1,97 @@
 # Layouts — design record
 
-Eight page layouts, each rendered twice: full size on its own page, and small in
-the index gallery. The section exists to make one claim falsifiable — *the
-utility set is enough* — so the interesting output is not the layouts, it is the
-short list of times a rule had to be written.
+Two claims, and the section exists to make both falsifiable: **a page layout is a
+class string**, and **the utility set is enough**. So the interesting output is not
+the layouts, it is the short list of times a rule had to be written. That list is
+two lines long: the full-window overlay, and one hairline on the index's previews.
 
----
+## The shape
 
-## 1. `zoom` or `transform: scale()` for the previews?
-
-**Question.** A gallery cell is a fixed window showing a whole page layout. What
-shrinks it?
-
-**Options.**
-
-1. `zoom: 0.25` — the existing `.zoom-*` utilities in `framework.css @layer util`.
-2. `transform: scale(0.25)` with `transform-origin: top left`, on a box given an
-   explicit width four times the cell's.
-3. A screenshot per layout.
-
-**Weighing.** (3) loses immediately: a picture drifts from the code the moment
-anyone edits the layout, and this section's whole argument is that the previews
-are the same functions the pages run.
-
-Between (1) and (2) the difference is *layout*. `zoom` participates in it: a
-`width: auto` child of a zoomed box resolves against the cell width **divided by
-the zoom**, so the layout is genuinely laid out at desktop width and painted at
-card size. Everything intrinsic then behaves correctly at the larger width —
-`flex.auto` wraps where a 900px page would wrap, `grid.three` holds three
-columns, a `var(--sidebar)` rail is the right fraction of the row. `transform`
-does none of that: it scales a finished box, so the layout is laid out at the
-*cell's* 234px, where `grid.three` has already flipped to one column and every
-rail is most of the width. You would then have to hardcode `width: 936px` to undo
-it, which reintroduces the number the tokens exist to avoid.
-
-`transform` has one advantage — it needs no fresh support (Firefox only shipped
-spec'd `zoom` in 126). But `.zoom-25` is already a documented, shipped utility on
-this site; a doc page is not the place to hedge against the browser matrix its own
-utilities assume.
-
-**Verdict: `zoom`.** Two declarations of CSS for the window
-(`aspect-ratio` + `overflow: hidden`) and one utility class for the scale.
-Measured in Chromium: at a 1440 viewport `.layout-thumb` paints **234 × 146** and
-its contents lay out at **934 × 584** — exactly 4×, which is `zoom: 0.25` taking
-part in layout rather than only in paint. At a 700 viewport it paints 274 × 171 and lays out
-1096 × 685: the cards get bigger as the grid drops to 2-up, and the preview stays
-a desktop page either way. A preview looks *shrunken*, not squashed, which is the
-whole requirement — and it is the same behaviour the `util` page already
-advertises ("scales a whole subtree including its layout").
-
-**Worth knowing.** Media queries do **not** follow the zoom — they read the
-viewport. A layout that responds with a breakpoint would preview wrongly, while
-one that responds intrinsically (`flex.auto`, `grid.auto`, `grid.three`) previews
-correctly. That is an accidental but real argument for the intrinsic techniques,
-and it is why no layout here contains a media query.
-
----
-
-## 2. Why a separate `layout.js` instead of markup in the page?
-
-**Question.** Each layout is needed in three places — the demo on its own page,
-the thumbnail in the gallery, and the `full/` view. Where does it live?
-
-**Options.**
-
-1. Write the markup in `<name>/page.js` and duplicate it for the gallery.
-2. Export a builder from `<name>/layout.js` and import it three times.
-3. Put all eight in one `layouts.js`.
-
-**Weighing.** (1) is the drift the `demo()` ext exists to prevent, one directory
-up: the gallery would show a layout that no longer matched the page it links to,
-and nothing would fail. (3) is one import instead of eight, but it puts a
-layout's code somewhere other than beside the page that documents it, and
-`demo(fn)` reads `fn.toString()`, so a reader following the source would leave
-the directory.
-
-**Verdict: (2), one file per layout, default-exporting a function.** The
-functions **capture** rather than return — `div.c(…)` auto-appends to whatever is
-collecting — because every one of the three call sites is a capture position, and
-because it makes the source that `demo()` prints identical to what you would
-paste into a `page.js`. The whole point of a layout library is that the code is
-copyable.
-
-The gallery imports all eight eagerly, which is normally the thing laziness
-exists to avoid. It is correct here: the index *renders* all eight, so there is
-nothing to defer, and the modules are 8–20 lines each with one shared dependency.
-
----
-
-## 3. "Maximize", with a router that only knows path segments
-
-**Question.** A layout wants to be seen without a docs column around it. How is
-that expressed?
-
-**Options.**
-
-1. `?full` on the same url.
-2. A button that toggles a class.
-3. A child page, `<name>/full/`, rendering only the layout.
-
-**Weighing.** (1) cannot work: `Router.load_segments()` splits on `/` and
-`Page.child()` walks declared names, so `…/holy-grail/?full` **is**
-`…/holy-grail/` — the query is dead data. (2) is state that no url describes:
-not linkable, not shareable, and Back does not leave it.
-
-**Verdict: (3), a child page.** `layouts/full.js` is a three-argument factory, so
-each of the eight `full/page.js` files is three lines and there is one place that
-decides what "full" means.
-
-Two details worth recording:
-
-- **It overrides `render()`, not `content()`.** `Page.render()` draws an `h1` for
-  whatever `title` it has, and a maximize view with a heading above it is not
-  maximized. The alternative — `title: ""` to make the `if (this.title)` falsy —
-  also empties `document.title`, because `Router.activate()` does
-  `document.title = page.title ?? document.title` and `""` is not nullish. A
-  five-line `render()` override is cheaper than a lie in the tab bar.
-- **What "full" actually removes.** `hides-nav` takes the site nav (an inert
-  class `/styles.css` reads) and `.layout-full` takes the region's paper measure
-  and gives the layout the region's height, so a `flex-1` band has something to
-  take and a footer lands at the bottom. It does **not** hide `/framework/`'s
-  sidebar — which was argued for at the time ("maximize means the width it was
-  drawn for, not chrome-free") and is the part the revision below overturned.
-
-### REVISED — the directories are gone, and "full" is now "viewport"
-
-The verdict above holds where it matters: **a url, not a class.** Everything else
-was rebuilt. Three changes, in order of how much they were worth.
-
-**The eight `full/` directories became one `route()`.** `Page.child()` already falls
-through to `this.route(name)` for any segment the parent did not declare — the seam
-that exists so a page can own urls it could not list in advance. A maximize view is
-exactly that, and the directories were never carrying information:
-
-```js
-route(name){ return name === "viewport" && viewport(this, layout); },
-viewport.link(this);
+```
+page.js        the shape previews, then the wall of eight worked pages
+preview.js     one shape: a frame, empty washed regions, a name
+fit/           the long version: the two tokens, the breakout tracks
+flex/ grid/    the two arrangements, as trees — and a live toolbar at the end
+<eight>/       one worked layout each — the page IS the layout
+Layout.js      the Page subclass that makes that true
+recipe.js      the class string + the page's own source, inside the layout
+variant.js     a class string, printed as a template and rendered from the same string
+full.js        one layout, the whole window, at its own url (+ layouts.css)
 ```
 
-Eight directories and eight four-line `page.js` files deleted, and the url is
-unchanged in kind — still linkable, still leavable by Back. §7 below listed the
-eight files as the thing to cut; this is that cut, and it turned out to cost less
-than trimming to two would have.
+## The index leads with renders, not class strings
 
-The word appears twice per page rather than being hidden inside the helper. That is
-deliberate: a page should read as *"I claim this url, and here is the link to it"*.
-A helper that silently matched its own name would be one file's behaviour decided in
-another, which is the house definition of black magic.
+It used to open with a six-row table of page-shape words and a second table of
+what each layout was built from — a reference, before you had seen a single
+layout. Now the first thing under the title is a full-width wall of **shapes**:
+flex on the left, grid on the right, simplest first, each one more word than the
+one above it. The class string is each preview's `title` attribute, so it is one
+hover away and never in the way; the code is on `flex/` and `grid/`.
 
-**It is `position: fixed; inset: 0` now, not a wider measure.** The old version took
-the region's measure and kept `/framework/`'s sidebar beside it, on the argument
-that maximize means "the width it was drawn for" and not "chrome-free". In practice
-the two are the same thing at a 19em sidebar plus a docs column — the layouts most
-wanting width (holy grail, dashboard) were still cramped. So the view takes the
-window and the way out is an `×`, which also answers the objection that hiding the
-sidebar leaves no way back.
+The whole wall lives inside one `demo.stage()`, so a single drag handle squeezes
+every shape at once. That is the section's thesis in one gesture — none of them
+contains a media query, so all of them re-flow together.
 
-**The `.active-page` workaround is deleted.** It used to be recorded here as a trap:
+## Three things that will bite you
 
-> The height rule is `.page.layout-full.active-page`, and the `.active-page` is
-> load-bearing. A bare `.page.layout-full { display: flex }` has the same
-> specificity as `.page { display: none }` in Page.css and loads later, so it wins
-> — leaving all eight maximize views on screen for every route on the site.
+- **`children` is the only list.** Declared children auto-import at construction,
+  so the index's gallery renders `page.layout()` off `this.children` and the test
+  for "is this child a layout" is whether it *has* a `layout()`. There is no map to
+  keep in step — there used to be, and `fit` fell out of it silently.
+- **A layout page reaches UP for the nav, never sideways.** `this.parent.rail()`.
+  A mutual import between the index and a layout would break deep reloads only.
+- **`overflow-y` belongs to the ROW, not to the panel inside it.** A wrapping flex
+  line is sized by its content — `align-content` can grow a line, never shrink one —
+  so a scroller one level too deep never engages and a `fill` page clips with no way
+  down. Both Holy grail and Dashboard hit this; both fixed it on the row.
 
-That is no longer true, and the entry is kept only so nobody re-derives it. The
-arrangement contract moved into `@layer util` and now out-ranks anything a component
-stylesheet or a utility class can say about `display`, so
-`.page.layout-viewport { display: flex }` is an ordinary rule that means what it
-says. See `core/Page/readme.md`, "The contract lives in `@layer util`".
+## A preview's `--column` is an argument
 
----
+`preview(name, classes, regions, column)`. The frame is about twelve em wide, so
+the real `14em` would make every wall one column and every ladder look identical.
+It is an argument rather than a `.style()` on the returned view because the box
+**declares** the token, and a declaration beats anything a caller inherits down.
 
-## 4. Which layouts needed CSS
+## What `Layout` does, and why it is a subclass
 
-Three rules — the other five in `layouts.css` are the gallery window and the
-maximize view, which are this section's own machinery, not a layout's cost.
+`Page.render()` draws an `h1` for whatever `title` it has, and a heading above a
+masthead means it isn't one. `Layout` overrides `render()` to emit
+`div.c("page").ac(this.classes)` and call `this.layout()` — so `classes` is the
+page's layout, which is the thing this whole section is trying to teach, and the
+title still reaches `document.title` through the Router. Eight pages, one override.
 
-| layout | rule |
-| --- | --- |
-| cards, split, masthead | **none** |
-| holy grail, dashboard | `.layout-rail` — `flex: 0 0 var(--column)` |
-| sidebar | `.layout-side` — `flex: 0 0 var(--sidebar)` |
-| centered, stack | `.layout-measure` — `max-width: 34em; margin-inline: auto` |
+The three things an override owes, all silent when missed: set `this.view`, carry
+`.page`, never nest a second `.page` inside.
 
-### The gap: there is no utility for a flex basis
+## The long form
 
-`flex-1` names the *fluid* half of a two-column row and nothing names the fixed
-half. Every sidebar layout in existence needs both. The workarounds all cost
-more than the missing class:
+| | |
+|---|---|
+| [`doc/previews.md`](doc/previews.md) | `zoom` vs `transform` for a live thumbnail (measured), the gallery card, and the overturned per-layout `layout.js` |
+| [`doc/full-view.md`](doc/full-view.md) | maximize as a url with a router that only knows path segments; the eight `full/` directories that became one `route()` |
+| [`doc/css-cost.md`](doc/css-cost.md) | which layouts ever needed a rule, and the two gaps (`.basis`, `.measure`) that closed |
 
-- `.style({ flex: "0 0 19em" })` — inline, the top rung of the escalation
-  ratchet, and it hardcodes a number `--sidebar` already holds.
-- `grid` with `grid-template-columns` — no utility for an asymmetric template
-  either, so it is the same inline style with more syntax.
-- `flex.auto` with a `--column` override — makes the columns *equal*, which is
-  [Split](/framework/styles/layouts/split/), not a sidebar.
+## Settled this pass
 
-**Proposal, not applied** (this section may not edit `framework.css`): a `basis`
-utility reading a token, e.g. `.flex > .basis { flex: 0 0 var(--basis, var(--column)); min-width: 0 }`,
-so a sidebar is `div.c("basis").style("--basis", "var(--sidebar)")`. Worth
-discussing; three call sites in one docs section is not yet the bar.
+- **Holy grail's nav rail is `basis`, not `flex-1`.** As `flex-1` it split the row's
+  slack with the article and rendered *wider* than the reading — the one thing a
+  fixed rail must never do. The recipe rail beside it is `basis` at `17em`, because
+  a 14em panel clipped the class string it exists to show.
+- **A `Sidebar` `header:` replaces `brand()`, which is the element carrying the
+  panel's inset.** A bare `span.c("h4", "LAYOUTS")` therefore sat flush against the
+  panel edge on both Holy grail and Sidebar. Wrap it in `div.c("brand", …)`.
+- **"Honestly cramped at 900px" is overruled.** The `--sidebar` note stands for the
+  Sidebar page, which is *about* that token; Holy grail takes the default `--column`
+  and now reads correctly from 900 up.
 
-### The gap: there is no utility for a centred measure
+## Open
 
-`max-width` alone leaves the column flush left, and `flex.h-center` has nothing
-to centre until a child has a width. This one has a stronger case than the
-basis: `.page.paper` already hardcodes `max-width: 60em`, every page on this site
-is a measure, and `--column` is a token for exactly this kind of number. Two
-hardcodes plus two uses here is close to the "an existing hardcode to replace"
-bar that adding a token or class requires.
-
-### Two things the utilities did better than expected
-
-- **`--column` is a knob, not just a default.** `grid.auto` reads it, so setting
-  `--column: 8em` on the tile row turns a card wall into a stat strip with no new
-  selector, and `--column: 18em` on `flex.auto` sets a split's stacking point. A
-  token override where a rule was expected, twice.
-- **`flow` was already the answer for vertical rhythm.** `Page.css` applies it to
-  page copy; a form stack is the same thing, so [Stack](/framework/styles/layouts/stack/)
-  needed nothing but the measure.
-
----
-
-## 5. The tint, and why `layouts.css` has no colours in it
-
-**Question.** A layout demo needs its regions to be *visible*. A background and a
-border are a look, and rung 4 of the ladder is layout only.
-
-**Options.**
-
-1. A `.layout-box` class in `layouts.css` carrying background/border/radius.
-2. An inline token-valued `.style()` per box.
-3. Reuse `.page-preview`, which is already a bordered surface.
-
-**Weighing.** (1) reads best at the call site and is exactly the rule the ladder
-forbids — and a docs section is the last place to be sloppy about its own rule.
-(3) is a nav card pretending to be a region, and its `display: flex` fights being
-a container.
-
-**Verdict: (2), factored into `parts.js`.** `box()` writes
-`background: var(--wash); border: 1px solid var(--line); border-radius: var(--radius)`
-once, and `styles/layers/util/page.js` already tints its demo cells the same way — so
-this is the house answer, not a new one. `layouts.css` therefore contains no
-colour at all, which is the only reason the "three rules for eight layouts" count
-above means anything.
-
-The cost: a reader of `demo(layout)` sees `box("Nav", …)` and not what a box is.
-Paid for with a `<details>` on the index holding `parts.js` in full, via
-`code.file(import.meta, "parts.js")`.
-
----
-
-## 6. The gallery card reuses `.page-preview`
-
-`a.c("page-preview layout-card")`, and `.layout-card` is two declarations:
-`flex-direction: column; align-items: stretch`. Everything else — surface,
-border, radius, hover, `text-decoration: none`, and the accent state
-`Router.mark_links()` paints on the card for the page you are heading to — comes
-free from the class `Page.previews()` already emits. Rung 3 before rung 4, and the
-active-state marking is the part that would have been forgotten if this had been
-a new component.
-
-One constraint it imposes: **no `<a>` inside a layout.** Nav items are `p()`, not
-links, because an anchor inside the card's anchor is invalid HTML and swallows the
-click. That is fine — a layout skeleton with eight `href="#"` in it would be worse
-— but it is the reason `items()` builds paragraphs.
-
----
-
-## 7. What I would cut
-
-- **`stack` and `centered` overlap.** Both are `.layout-measure` with different
-  contents; `stack` earns its place only because it demonstrates `flow` and
-  `textarea.auto`. If the section needs to be seven pages, these merge.
-- **The eight `full/` pages.** ~~Two would have made the point (the brief asked for
-  two); eight is 24 lines of file for consistency. Kept because an inconsistent
-  affordance is worse than a repeated one, and because `full.js` means the
-  repetition is three lines with no logic in it.~~ **Cut** — see §3, REVISED. The
-  answer was not "fewer of them"; it was that a `route()` needs no file at all, so
-  all eight keep the affordance and cost nothing.
-- **`tile()` in `parts.js`** is one call site (`dashboard`) and is a one-liner
-  over `box()`. It stays because it names the thing the dashboard is *made of*,
-  which is what the demo source needs to read as prose.
-
-## 8. Open
-
-- **`--sidebar` is 19em, and at a docs measure that is 39% of the row.** The
-  demos are therefore cramped on their own pages and correct at full size, which
-  is a real argument *for* the maximize link and a mild argument that `sidebar`
-  should preview at `full` by default. Left alone: a layout that only looks right
-  in a special view is worth seeing honestly. Less pressing now that the demo box
-  itself has a resize handle and a zoom.
-- ~~**`.layout-full` picks `padding: 1.5em`.** Zero would be more honest ("nothing
-  around it") and looked wrong — the back link ended up welded to the viewport
-  edge. If a `--page-pad` token ever exists, this should read it.~~ **Resolved.**
-  The token exists (`core/Page/readme.md`), and `.layout-viewport` sets
-  `--page-pad: 1.5em` rather than declaring `padding` — so the one place that
-  decides how a page is inset is the one place that decides it.
+- **`stack` and `centered` overlap** — both are `measure` with different contents.
+  If the section ever needs to be seven pages, these merge.
+- **Media queries do not follow `zoom`**, so a layout that responded with a
+  breakpoint would preview wrongly on the index. None of them does, which is an
+  accidental but real argument for intrinsic techniques.
+- **The previews carry no toolbar.** `flex/` and `grid/` each end in one
+  (`layout()` / `layout.bar()`); putting thirteen on the index would be thirteen
+  things to point at instead of a menu. Nesting a shape inside a shape live is
+  still not possible — see `ext/layout/readme.md`.

@@ -1,0 +1,63 @@
+/* Restated IN FULL — a short list silently misplaces `site`. */
+@layer base, theme, site, util;
+
+/* A window on a board: a url strip, an optional rail, and the region a page
+   mounts in. Quiet on purpose — everything interesting inside it is a real page
+   wearing the real classes, and chrome that competed with it would be noise. */
+@layer theme {
+
+	.mini-app {
+		display: flex; flex-direction: column;
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		overflow: hidden;
+		background: var(--surface);
+	}
+
+	.mini-app-url {
+		display: flex; flex-wrap: wrap; align-items: center;
+		padding: 0.4em 0.9em;
+		font-family: var(--mono); font-size: 0.78em;
+		background: var(--tint);
+		border-bottom: 1px solid var(--line);
+	}
+
+	.mini-app-crumb { color: var(--subtle); text-decoration: none; }
+	.mini-app-crumb:hover { color: var(--prim); }
+
+	/* `aria-current`, never `.active`: Router.mark_links() runs over every anchor
+	   in the app on every navigation and would clear a borrowed class. `page` is
+	   the exact match, `location` an ancestor — mark_links()'s two answers. */
+	.mini-app-crumb[aria-current="page"] { color: var(--ink); }
+
+	.mini-app-body { display: flex; flex: 1 1 auto; min-height: 7em; }
+
+	.mini-app-nav {
+		display: flex; flex-direction: column;
+		flex: 0 0 clamp(5.5em, 30%, 9em); min-width: 0;   /* a rail, at any box width */
+		padding: 0.6em 0;
+		border-inline-end: 1px solid var(--line);
+	}
+
+	.mini-app-link {
+		display: flex; align-items: center; gap: 0.4em;
+		padding: 0.3em 0.9em;
+		font-size: 0.9em;
+		color: var(--subtle);
+		text-decoration: none;
+		border-inline-end: 2px solid transparent;
+		margin-inline-end: -1px;         /* sit ON the rail's rule, not beside it */
+	}
+	.mini-app-link:hover { color: var(--ink); }
+	.mini-app-link[aria-current] { color: var(--ink); border-inline-end-color: var(--prim); }
+	.mini-app-link .icon { font-size: 1.1em; }
+
+	/* `.pages` in miniature. ⚠ The two tokens are re-declared for the same reason
+	   `.tab-panel` re-declares them: they inherit, so a page in here would pay the
+	   whole sheet's measure and 3em inset inside a 30em box. */
+	.mini-app-pages {
+		flex: 1 1 0; min-width: 0;
+		overflow: auto;
+		--measure: none; --page-pad: 1.2em;
+	}
+}

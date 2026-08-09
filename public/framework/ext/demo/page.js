@@ -1,4 +1,15 @@
-import { Page, md, demo, h2, p, div, pre, code, toc } from "/app.js";
+import { Page, md, demo, h2, p, div, code, toc } from "/app.js";
+import "./responsive.js";
+
+const wall = () => {
+	div.c("grid gap auto", () => {
+		["Alpha", "Beta", "Gamma", "Delta", "Epsilon", "Zeta"].forEach(name =>
+			div.c("pad", () => {
+				p.c("h3", name);
+				p("A card that goes wherever it fits.");
+			}).style({ background: "var(--wash)", borderRadius: "var(--radius)" }));
+	}).style("--column", "20em");
+};
 
 export default new Page({
 	meta: import.meta,
@@ -44,6 +55,10 @@ example holds up narrow. **Right-click it to go back** to whatever fits.`);
 
 		md("The width under the box is the width the example is *laid out* at, which is not the width you see once the zoom is off 100%. That gap is why both controls exist: zoom out to 50% and a demo lays out at twice the room it's drawn in.");
 
+		md("**The box and its handle, without the code pane**, for a wall of examples with no single source worth printing — one drag re-flows all of them. The [Layouts](/framework/styles/layouts/) index is the wall it was built for.");
+
+		code.js(`demo.stage(() => { previews(); });`);
+
 		md("**A `@media` query inside an example will not respond to the handle.** The stage is a `div`, so everything intrinsic reacts — `auto-fit`, `%`, `flex-wrap`, container queries — but a media query asks the *browser* viewport, and that hasn't moved. Simulating a viewport properly needs an iframe; the design record says what that would cost.");
 
 		h2("The html pane");
@@ -63,6 +78,20 @@ demo(() => { … }).ac("stack")       // never split, however wide the box`);
 		md("It sits **beside** the code when the box is wide enough for two columns and **under** it when it isn't — `flex-wrap` and a `22em` basis, no media query and no breakpoint. Narrow this window and watch the pane above move.");
 
 		md("It serializes the live DOM via [markup()](/framework/util/markup/), so it can't drift from the box above it. One honest consequence: a class something *else* added shows up too — an `<a>` will carry `.in-path` when the current url sits under its `href`, because [Router](/framework/core/Router/) really did put it there.");
+
+		h2("Two viewports at once");
+
+		demo.responsive(wall, "The same function, twice: laid out at **3440px** on the left and **400px** on the right, each painted back down to fit its pane. Drag the divider — the panes re-split and re-scale, so both simulated widths stay honest and the two always meet at the handle.");
+
+		code.js(`import "/framework/ext/demo/responsive.js";   // once, anywhere
+
+demo.responsive(wall);
+demo.responsive(wall, { wide: 1440, narrow: 375 });
+demo.responsive(wall, "A caption, as usual.");`);
+
+		md("Each pane is `zoom: pane / simulated`, the same `zoom` the toolbar uses and for the same reason — a `transform: scale()` box still occupies its *unscaled* size, so it would take height arithmetic to keep the two panes from swallowing the caption. The readout under each pane is the width it was laid out at, and the percentage it is drawn at.");
+
+		md("**The `@media` caveat above still applies** — that reads the real window. A **container query** does respond, because the render's own box really is 3440px wide.");
 
 		h2("Why");
 

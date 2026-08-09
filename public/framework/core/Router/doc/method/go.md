@@ -1,12 +1,33 @@
 **Load first, push second.** A failed navigation leaves no history entry, which is
 what makes Back reliable after a 404.
 
-There is no synchronous *"is this a real page"* gate, and there cannot be one. The
-old Router asked `Page.registry` — a registry can only contain pages that have
-already been imported, and the pages it would need to answer for are exactly the
-ones laziness exists to avoid importing. It worked only because the old tier
-eagerly imported everything.
+## Usage
 
-So: **try the walk, and hand the url to the browser only if it genuinely doesn't
-resolve.** `location.assign(url)` is the honest fallback — a full page load, which
-is what would have happened without the framework anyway.
+- `Router.js:28` — `click()`.
+- `Page.class.js:147` — `page.go()`, the one programmatic entry point.
+
+`popstate` deliberately does **not** come through here: the browser has already
+moved history, so it calls `load()` directly (`Router.js:15`).
+
+## Necessity
+
+Essential. It is the only place `history.pushState` is called, and the only place
+that decides a url is not ours after all.
+
+There is no synchronous *"is this a real page"* gate and there cannot be one — see
+[registry gate](/framework/core/Router/docs/registry-gate/). `location.assign(url)` is the honest fallback:
+a full page load, which is what would have happened without the framework.
+
+## Simplicity
+
+Right-sized. One decision, spelled as an `if`:
+
+```js
+if (await this.load(new URL(url, location.origin).pathname))
+    history.pushState({}, "", url);
+else location.assign(url);
+```
+
+The `new URL(...).pathname` is the seam worth knowing: **the walk resolves the
+path, history keeps the whole url**, so `?q=` and `#section` survive a navigation
+that never looked at them.

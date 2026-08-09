@@ -11,10 +11,6 @@ export default new Page({
 
 	children: "base theme util site",
 
-	// Labels and icons come from the four pages themselves — the same trade
-	// styles/page.js makes, one level down.
-	initialize(){ this.load_all_children(); },
-
 	content(){
 
 		code.css(`@layer base, theme, site, util;`);

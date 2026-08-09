@@ -1,4 +1,4 @@
-import { Page, Sidebar, md, demo, code, h2, div, p, span, a, icon, toc } from "/app.js";
+import { Page, Sidebar, md, demo, code, h2, div, span, a, icon } from "/app.js";
 
 const pages = [
 	{ title: "Start", url: "#", icon: "flag" },
@@ -23,8 +23,6 @@ export default new Page({
 
 	content(){
 
-		toc();
-
 		md("Every one of these is **an anchor with a real `href`**, marked by [Router](/framework/core/Router/) rather than by the component. `mark_links()` writes `.active` on an exact match and `.in-path` on an ancestor, on every navigation including Back — so no navigation component holds state, and none of them can disagree about where you are.");
 
 		h2("The six");
@@ -42,13 +40,13 @@ export default new Page({
 
 		demo(() => {
 			new Sidebar({ brand: "Docs", pages }).style({ width: "15em", "--sidebar-bg": "var(--surface)" });
-		}, "An entry with its own `pages` is a titled **group**. Entries are `{title, url, icon}` — which is exactly what `Page.nav_for(name)` returns, so a parent hands its nav straight in and the sidebar, the tab bar and the cards cannot name a child three ways.");
+		}, "An entry with its own `pages` is a titled **group**. Entries are `{url, label, icon}` — which is exactly what `Page.nav_for(name)` returns, so a parent hands its nav straight in and the sidebar, the tab bar and the cards cannot name a child three ways.");
 
 		md("It is a `View` subclass, not a layout tier — **any page can render one**, and the page that does decides where it goes. `/framework/` puts it in a flex row; the home page does the same thing with a different list.");
 
 		h2("Previews — for an index");
 
-		md("`this.previews()` draws a card per child, and it works *before* those children exist: it can only use the name and the url that name must have. Add `load_all_children()` and the cards draw with real titles and icons — the Router waits for the imports before rendering, so there is no redraw and no name-then-title flicker.");
+		md("`this.previews()` draws a card per child, labelled and iconned from each child's own page. Declared children are imported at construction and the Router waits for them before rendering, so the cards draw **once** with real titles — no redraw, no name-then-title flicker.");
 
 		md("Cards can claim a share of the grid, which is how an index becomes a dashboard with no second component:");
 

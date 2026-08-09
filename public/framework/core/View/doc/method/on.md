@@ -1,4 +1,6 @@
-Bind an event. The one thing worth knowing is what `this` is inside the handler.
+**Usage** — 35 call sites, plus `click()` (`View.js:262`) and `stylesheet()`'s
+`load`/`error` pair (`View.js:427-428`), which is the one place a `View` listens
+for something other than a user.
 
 ```js
 p("Click me").on("click", function(){
@@ -6,29 +8,23 @@ p("Click me").on("click", function(){
 });
 ```
 
-The view, not `event.currentTarget` — so you get the whole chainable API inside a
-handler with no lookup and no closure over a variable you had to name first.
+**Necessity** — yes. Events are half of what a wrapper over an element is for.
 
-**Use `function`, not an arrow**, when you want that. An arrow captures `this`
-lexically and you will get the enclosing scope instead. This is the one place in
-the framework where the arrow/function distinction carries meaning, which is
-exactly why it is worth stating out loud.
+**Simplicity** — right-sized, and the wrapping arrow exists to rebind `this` to
+the view. **Use `function`, not an arrow**, when you want that; an arrow captures
+`this` lexically and hands you the enclosing scope. This is the one place in the
+framework where the distinction carries meaning.
 
-`click(cb)` is `on("click", cb)`, because it is most of the calls.
+## The sharp edges
 
-## The sharp edge
+`off(event, cb)` needs the **same function reference** — the DOM's rule, not this
+framework's — and the arrow wrapper here means the reference the DOM holds is
+never the one you passed. So a listener added through `on()` is **unremovable by
+`off()`**, always, not just when you pass an inline arrow. Nothing in `public/`
+has ever hit this, because nothing calls `off()`.
 
-`off(event, cb)` needs the **same function reference** you passed to `on` — the
-DOM's rule, not this framework's. An inline arrow can never be removed:
-
-```js
-view.on("scroll", () => …);     // unremovable, by construction
-```
-
-`View` keeps no listener registry, so nothing here can rescue you. If a listener
-has to come off later, hold the reference.
-
-That absence is also why chaining `.on()` onto `code.js()` in argument position
-inside a phrasing parent silently loses the handler — the `<pre>` it was chained
-to gets discarded at append time, and there is no registry to move the listener
-from. See `ext/highlight/readme.md`.
+`View` keeps no listener registry, deliberately: a registry is memory that must be
+invalidated. The cost is that a handler chained onto `code.js()` in argument
+position inside a phrasing parent is silently lost — the `<pre>` it was chained to
+is discarded at append time and there is nothing to move the listener from. See
+`ext/highlight/readme.md`.

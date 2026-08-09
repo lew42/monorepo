@@ -3,6 +3,7 @@ import { Page, md, h2, code, files, toc } from "/app.js";
 export default new Page({
 	meta: import.meta,
 	title: "Start",
+	label: "Start here",
 	description: "Three files, no build step, a working site.",
 	icon: "flag",
 
@@ -35,11 +36,11 @@ export default new Page({
         team/
             page.js  →  /about/team/`);
 
-		md("Two steps, and the second is the one people forget: **make the file, then name it in its parent's `children`.**");
+		md("**Make the file, and the url works.** Nothing to register, nothing to route.");
 
 		code.js(`children: "about"`);
 
-		md("Nothing crawls the filesystem, so declaring *is* the registration — a page nobody declared is a 404. It's also what makes it lazy: a `children` entry stays a **name** until someone navigates to it, and only then is it imported.");
+		md("That line is the **menu**: which children this page lists, and in what order. Each one is imported when the page is built, so a card or a tab can show its real title and icon. Leave a folder out and you lose the menu entry, not the url.");
 
 		h2("Link them");
 
@@ -61,7 +62,7 @@ export default new Page({
 		md(`| | |
 |---|---|
 | **no-reload navigation** | every link, upgraded automatically |
-| **lazy loading** | a page's code arrives when you visit it |
+| **a url per folder** | \`page.js\` on disk is a page on the site |
 | **preview cards and active links** | from \`children\` |
 | **live reload** | while \`node server.js\` is running |
 

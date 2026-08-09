@@ -1,4 +1,4 @@
-import { Page, md, demo, h2, p, pre, code, toc } from "/app.js";
+import { Page, md, demo, h2, p, code, toc } from "/app.js";
 
 export default new Page({
 	meta: import.meta,
@@ -17,7 +17,7 @@ export default new Page({
 			md("### A real h3");
 			md("A real `<p>`.").style("color", "green");
 			md("- multiple blocks\n- get wrapped\n\nin a `div.md`");
-		}, "You get the element you wrote: one block in, that block out — so `md(\"Hi.\")` really is a `<p>`, and chains like one.");
+		}, "You get the element you wrote: one block in, that block out — so `md(\"Hi.\")` really is a `<p>`, and chains like one — classes go on with `.ac(\"note\")`, same as everywhere.");
 
 		demo(() => {
 			p().md("Any view can take markdown: `.md()` sets its **html**.");

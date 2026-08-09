@@ -32,9 +32,10 @@ and you cannot find them by testing, because nothing fails loudly.
 - **`classify()` runs inside `super()`, before class fields initialize.** A `classes = "docs"` class field arrives too late; name the subclass instead.
 - **Resolve module-relative urls against `import.meta`, never the document.** The SPA fallback makes the document url the *route*, so a document-relative fetch misses. `md.file(import.meta, …)`, `View.stylesheet(import.meta, …)`.
 - **Mutual parent/child imports break only on deep reloads.** `import` hoists regardless of textual position, so a circular partner reads an uninitialized binding: `/a/` throws while `/a/b/` works. Imports flow **down**; the backref arrives by adoption.
-- **`p()` only handles backticks.** Bold, links and tables render as literal text — use `md()` for anything formatted.
+- **`p()` and `h1`–`h6` handle backticks — and only backticks.** The prose factories turn `` `x` `` into a `<code>` span; bold, links and tables still render as literal text — use `md()` for anything formatted. Every *other* factory appends strings raw, backticks included: a backtick in `li()`, `td()`, or a string child renders literally.
 - **A 404 stylesheet no longer hangs the app** — it resolves and warns, and the page renders unstyled. Check the console.
 - **Windows: `pkill -f "node server.js"` silently matches nothing.** The orphan then busy-loops libuv on a dead console handle and pins a full CPU core (several once burned ~4.7 cores). Capture the PID and `taskkill //F //PID $PID`, or from PowerShell `Stop-Process -Id <pid> -Force`. Prefer reusing the dev server already on port 80.
+- **Mike's machine (only) runs a "Claude Janitor"** — a scheduled task, every 15 min, that force-kills any `claude.exe`/`node.exe` sustaining >90% of a core across two consecutive checks *and* older than 12 h. It exists because idle Claude Code sessions can busy-loop and pin cores (known upstream bug; 11 once burned ~13 cores). So on that machine a long-lived Claude session or node process can die out from under you — check `C:\Users\mike\.claude\janitor\janitor.log` before suspecting your own code, and reopen killed sessions with `claude --resume`. Other devs don't have it. Remove: `Unregister-ScheduledTask -TaskName "Claude Janitor"`, then delete `C:\Users\mike\.claude\janitor\`.
 
 ## Working agreements
 
@@ -50,7 +51,11 @@ and you cannot find them by testing, because nothing fails loudly.
 
 **No black magic.** Behavior you can't see from the file that implements it — a property read by a class that never mentions it, an inert marker interpreted by a `new` three files away. If a file names a class, that file should generally construct it. When coordination must cross files, make it visible at the call site.
 
-**Comments: only what the code can't say.** Walls of explanation in a core class read as anxiety and bury the code the reader came for. Design rationale, alternatives weighed and history go in the neighbouring `readme.md`. A comment that restates the line below it is worse than nothing, because it is the part that goes stale first.
+**Comments: near zero.** A comment earns its place only by stating a trap or a constraint the code cannot show — one sentence, no history, no rationale, no restating the line below. Everything else lives in the module's `readme.md` or nowhere. This applies to CSS as much as JS. When in doubt, delete.
+
+**Readmes: a concise summary of the current state.** One screen: what the module is, and the two or three things that will bite you. Long design discussion, alternatives and history move to `doc/*.md` beside it, referenced in one line. A readme is not a running commentary on past mistakes.
+
+**Most files under 100 lines**, JS and CSS alike. A file over that is usually carrying commentary that belongs in the readme, or a second responsibility that belongs in a second file.
 
 **Don't pollute the repo with your own scratch work.** Launcher scripts, agent transcripts, `.tmp-*` dirs, intermediate JSON — anything that exists to *run a process* rather than to be part of the site goes in the session scratchpad. The test: *would someone cloning this repo need this file?* A process's **conclusion** can absolutely be committed; the machinery that produced it cannot.
 

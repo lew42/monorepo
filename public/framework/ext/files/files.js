@@ -1,5 +1,6 @@
-import View, { div, a, span, pre, code, icon } from "../../core/View/View.js";
+import View, { div, span, pre, code, icon } from "../../core/View/View.js";
 
+/* css: .basis — framework.css's fixed-track utility, worn by `.file-tree` below. */
 View.stylesheet(import.meta, "files.css");
 
 /**
@@ -7,16 +8,11 @@ View.stylesheet(import.meta, "files.css");
  *
  *   files(import.meta, "example/index.html example/app.js example/page.js")
  *
- * The files are FETCHED, so what you read is what is on disk. That is the whole
- * point: a "here is a whole project" section written as string literals is three
- * copies of a project that nobody runs, and it rots. This one cannot — delete the
- * file and the pane says so.
+ * The files are FETCHED, so what you read is what is on disk. The longest common
+ * directory is stripped for display, so a doc folder reads as a project.
  *
- * Paths resolve against `import.meta`, never the document (the SPA fallback makes
- * the document url a route). The longest common directory is stripped for
- * display, so a doc folder shows as a project: `example/app.js` reads as `app.js`.
- *
- * Design record: framework/ext/files/readme.md.
+ * ⚠ Paths resolve against `import.meta`, never the document — the SPA fallback makes
+ * the document url a route. Design record: framework/ext/files/readme.md.
  */
 export default function files(meta, names){
 	const paths = names.trim().split(/\s+/).filter(Boolean);
@@ -25,13 +21,12 @@ export default function files(meta, names){
 	let $pane, $tree;
 
 	const view = div.c("files", () => {
-		$tree = div.c("file-tree", () => tree(nest(paths, cut)));
+		$tree = div.c("file-tree basis", () => tree(nest(paths, cut)));
 		$pane = div.c("file-pane");
 	});
 
-	// One handler on the tree rather than one per row, and it reads the path off
-	// the row. An index into `paths` would have been wrong: nest() groups by
-	// directory, so tree order is not declaration order the moment two paths
+	// ⚠ Reads the path off the row, never an index into `paths`: nest() groups by
+	// directory, so tree order stops being declaration order the moment two paths
 	// interleave folders.
 	$tree.on("click", e => {
 		const row = e.target.closest(".file-name");

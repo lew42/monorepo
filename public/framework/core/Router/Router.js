@@ -1,12 +1,7 @@
-/* Everything between "a url changed" and "the DOM reflects it".
- *
- * App keeps boot and the one container; Router keeps the url. Design record —
- * the walk, the chain diff, and what was backed out: core/Router/readme.md.
- */
 export class Router {
 
 	constructor(...args){
-		this.assign(...args);   // user config first, then what App injects — later wins
+		this.assign(...args);
 		this.listen();
 		console.log("router.listen() — click + popstate wired");
 	}
@@ -27,7 +22,10 @@ export class Router {
 
 		e.preventDefault();
 		console.log(`── CLICK ${link.pathname} ${"─".repeat(39)}`);
-		this.go(link.pathname);
+
+		// ⚠ The whole url — `pathname` alone silently ATE the fragment on a
+		// cross-page link. Where it LANDS is still the top; readme.md's Open list.
+		this.go(link.pathname + link.search + link.hash);
 	}
 
 	// the anchor this click should navigate — or null, meaning "not ours"
@@ -44,13 +42,13 @@ export class Router {
 		return link;
 	}
 
-	// Load first, push second: a failed navigation leaves no history entry. There is
-	// no synchronous "is this a real page" gate — that cannot be answered for a child
-	// nobody has imported, which is exactly the pages laziness exists for.
+	// Load first, push second, so a failed navigation leaves no history entry. There
+	// is no synchronous "is this a real page" gate — see doc/registry-gate.md.
 	async go(url){
 		console.log(`router.go("${url}")`);
 
-		if (await this.load(url)){
+		// The walk resolves the PATH; history keeps the whole url.
+		if (await this.load(new URL(url, location.origin).pathname)){
 			history.pushState({}, "", url);
 			console.log(`  ↳ history.pushState("${url}")`);
 		} else {
@@ -63,9 +61,9 @@ export class Router {
 		const page = await this.load_segments(url);
 
 		if (page){
-			// Styles, then titles, awaited HERE and not in activate(), which must stay
-			// synchronous (document.startViewTransition). allSettled: a broken child or
-			// a 404'd stylesheet must not block navigation. See doc/styles-loaded.md.
+			// Awaited HERE, never in activate(), which must stay synchronous for
+			// document.startViewTransition(). allSettled: a broken child or a 404'd
+			// stylesheet must not block navigation. doc/styles-loaded.md.
 			await this.app.styles_loaded();
 			await Promise.allSettled(page.chain().map(p => p.loading));
 
@@ -76,9 +74,8 @@ export class Router {
 		return !!page;
 	}
 
-	// The walk IS the loader. Each hop awaits page.child(name), which imports on a
-	// miss — so when this returns, every page in the chain exists, root-to-leaf, with
-	// parent and app already assigned.
+	// The walk IS the loader: each hop awaits page.child(name), which imports on a
+	// miss — so when this returns the whole chain exists, with parent and app set.
 	async load_segments(url){
 		let page = this.app.root;
 
@@ -90,9 +87,7 @@ export class Router {
 		return page;
 	}
 
-	/* Make THIS the current page — and only what changed: shared leading pages are
-	 * never touched. `page.activate()` means the other thing, "I am entering the
-	 * chain"; the two only meet here. See doc/chain-diff.md. */
+	// Only what changed: shared leading pages are never touched. doc/chain-diff.md.
 	activate(page){
 		const from = this.chain();                     // /a/b/c/ -> [root, a, b, c]
 		const to = page.chain();                       // /a/x/   -> [root, a, x]
@@ -108,13 +103,11 @@ export class Router {
 		this.mark();
 		document.title = page.title ?? document.title;
 
-		// The REGION scrolls, not the page — hence `.closest(".pages")`, not
-		// parentNode. Removing this looks safe (scrollTop clamps); it isn't.
-		// See doc/scroll-reset.md.
+		// ⚠ The REGION scrolls, not the page — hence `.closest(".pages")`. Removing
+		// this looks safe (scrollTop clamps); it isn't. doc/scroll-reset.md.
 		page.view.el.closest(".pages")?.scrollTo(0, 0);
 
-		// "A navigation happened." Duck-typed, so it costs nothing until a site
-		// defines it. `from` too — the hook fires on first paint. doc/navigated.md.
+		// Duck-typed, so it costs nothing until a site defines it. doc/navigated.md.
 		this.app.navigated?.(page, from);
 
 		console.log(`from   ${from.map(p => p.url).join(" › ") || "(none)"}`);
@@ -132,12 +125,12 @@ export class Router {
 		return i;
 	}
 
-	// Scoped to $app, never `document`. On a cold load $app is still detached — a
-	// document query would find zero links and nothing would light up.
+	// ⚠ Scoped to $app, never `document`: on a cold load $app is still detached, so
+	// a document query would find zero links and nothing would light up.
 	root(){ return this.app.$app.el; }
 
-	/* Wipe, then reapply down the NEW chain. A page that left needs nothing undone,
-	 * only its classes gone — a query, not a lifecycle call. See doc/marking.md. */
+	// Wipe, then reapply down the NEW chain. A page that left needs nothing undone,
+	// only its classes gone — a query, not a lifecycle call. doc/marking.md.
 	mark(){
 		this.root().querySelectorAll(".active-page, .active-ancestor")
 			.forEach(node => node.classList.remove("active-page", "active-ancestor"));
@@ -148,17 +141,16 @@ export class Router {
 		this.mark_links(this.active.url);
 	}
 
-	/* `here` is the ACTIVE PAGE'S url, not location.pathname — go() pushes history
-	 * only after the load succeeds. Callable with no argument, so links rendered
-	 * late (a tab bar) can re-run the pass. See doc/marking.md. */
+	// ⚠ `here` is the ACTIVE PAGE'S url, not location.pathname — go() pushes history
+	// only after the load succeeds. Callable bare, so links rendered late can re-run.
 	mark_links(here = this.active?.url){
 		if (!here) return;
 
 		this.root().querySelectorAll("a[href]").forEach(link => {
 			if (link.origin !== location.origin) return;
 
-			// Ask the ATTRIBUTE: an in-page anchor resolves its .pathname to the page
-			// you are ON, so every href="#section" would match `here`.
+			// ⚠ Ask the ATTRIBUTE: an in-page anchor resolves its .pathname to the
+			// page you are ON, so every href="#section" would match `here`.
 			if (link.getAttribute("href")?.startsWith("#")) return;
 
 			link.classList.toggle("active", link.pathname === here);

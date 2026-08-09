@@ -1,5 +1,5 @@
 import { div, p } from "/app.js";
-import { section, eyebrow, cta, surface } from "./parts.js";
+import { section, eyebrow, cta } from "./parts.js";
 
 export default tone => section(tone ?? "wash", () => {
 	div.c("flex gap auto v-center", () => {
@@ -10,11 +10,11 @@ export default tone => section(tone ?? "wash", () => {
 			cta("See an example", "prim").style("align-self", "flex-start");
 		});
 
-		div.c("pad flex v", () => {
+		div.c("pad flex v surface", () => {
 			p.c("h4", "page.js");
 			p("export default new Page({").style({ fontFamily: "var(--mono)", fontSize: "0.85em" });
 			p("  title: \"Intro\",").style({ fontFamily: "var(--mono)", fontSize: "0.85em" });
 			p("});").style({ fontFamily: "var(--mono)", fontSize: "0.85em" });
-		}).style({ ...surface, gap: "0.2em" });
+		}).style("gap", "0.2em");
 	});
 }).style("--section", "62em");

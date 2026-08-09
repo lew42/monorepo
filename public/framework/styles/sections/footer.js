@@ -1,5 +1,5 @@
 import { div, a, p, span } from "/app.js";
-import { section , muted } from "./parts.js";
+import { section } from "./parts.js";
 
 /* Holy grail's bottom band, on its own: `flex wrap split` puts the mark at one
  * end and the links at the other, and wraps them into a column when the row
@@ -11,10 +11,10 @@ export default tone => {
 
 			div.c("flex gap wrap", () => {
 				["Framework", "Layouts", "Components", "Source"].forEach(t =>
-					a.c("page-link", t).href("#").style({ color: "inherit" }));
+					a.c("page-link", t).href("#"));
 			});
 		});
 
-		p("Built with the thing it documents.").style(muted);
+		p.c("muted", "Built with the thing it documents.");
 	}).style("--section", "62em");
 };

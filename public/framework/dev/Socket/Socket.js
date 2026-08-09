@@ -34,9 +34,8 @@ export default class Socket {
 		this.retry = null;
 		this.ready = promise();
 
-		// Only a local dev server speaks this protocol. On a static host
-		// (production deploy) there's nothing to connect to, so don't even
-		// try — just stay disabled and let send()/request() no-op.
+		// ⚠ LOCALHOST ONLY — production is static hosting with nothing to connect
+		// to. Keep this gate: it is part of static compatibility.
 		if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.hostname.endsWith(".localhost")) {
 			this.connect();
 		} else {
@@ -47,8 +46,7 @@ export default class Socket {
 	connect() {
 		if (this.disabled) return;
 
-		// only one attempt in flight — clears a pending retry if something
-		// calls connect() directly.
+		// only one attempt in flight
 		clearTimeout(this.retry);
 		this.retry = null;
 
@@ -56,27 +54,25 @@ export default class Socket {
 		this.ws.addEventListener("open", () => this.open());
 		this.ws.addEventListener("message", res => this.message(res));
 
-		// A failed connect fires "error" AND THEN "close". Reconnecting from
-		// both is what turned a dead dev server into a connection storm, so
-		// "close" is the single reconnect path and "error" only reports.
+		// ⚠ A failed connect fires "error" AND THEN "close". Reconnecting from both
+		// turned a dead dev server into a connection storm, so "close" is the single
+		// reconnect path and "error" only reports.
 		this.ws.addEventListener("close", () => this.reconnect());
 		this.ws.addEventListener("error", () => console.warn("Socket error."));
 	}
 	open() {
 		console.log("%cSocket connected.", "color: green; font-weight: bold;");
-		// this.rpc("log", "connected!");
 		this.connected = true;
 		this.fails = 0;
 		this.ready.resolve();
 	}
 	reconnect() {
-		// never reject .ready — a pending promise parks send()s until we're
-		// back, which is the point. Retry forever: restarting `node server.js`
-		// is routine, and the page should pick it back up on its own.
+		// ⚠ Never reject `.ready` — a pending promise parks send()s until we are
+		// back, and restarting `node server.js` is routine.
 		if (this.disabled || this.retry) return;
 
-		// only swap in a fresh .ready if the old one was resolved, otherwise
-		// anything already awaiting it would be stranded on a dead promise.
+		// ⚠ Only swap in a fresh `.ready` if the old one resolved, or anything
+		// already awaiting it is stranded on a dead promise.
 		if (this.connected) {
 			this.connected = false;
 			this.ready = promise();
@@ -87,18 +83,14 @@ export default class Socket {
 		console.warn(`Socket closed, reconnecting in ${delay}ms.`);
 		this.retry = setTimeout(() => this.connect(), delay);
 	}
-	// message recieved handler
+	// A reply to a pending request(), or the server calling a method on us.
 	message(res) {
-		// debugger;
-		// console.log(res);
 		const data = JSON.parse(res.data);
 
-		// does the index exist
 		if (data?.index in this.requests) {
 			this.requests[data.index](data);
 		} else {
 			data.args = data.args || [];
-			// console.log(data.method + "(", ...data.args, ")");
 			if (this[data.method])
 				this[data.method](...data.args);
 		}
@@ -106,12 +98,10 @@ export default class Socket {
 	reload() {
 		if (!window.$BLOCKRELOAD)
 			window.location.reload();
-		// debugger;
 	}
 
 	async send(obj) {
 		if (this.disabled) return;
-		// console.trace("sending", obj);
 		await this.ready;
 		this.ws.send(JSON.stringify(obj));
 	}
@@ -123,7 +113,6 @@ export default class Socket {
 		});
 
 		await this.send(obj);
-
 
 		return response;
 	}
@@ -139,10 +128,6 @@ export default class Socket {
 	ls(dir) {
 		return this.request({ method: "ls", args: [dir] });
 	}
-
-	// ls_response(data){
-	// 	new FSView({ data })
-	// }
 
 	cmd(res) {
 		console.log("cmd response:", res);
@@ -160,15 +145,3 @@ export default class Socket {
 		return this.request({ method: "rm", args: [dir] });
 	}
 }
-
-/*
-
-await socket.request() -> fulfills with response
-
-request(){
-	this.send({ request, id })
-
-	this.response = new Promise()
-}
-
-*/

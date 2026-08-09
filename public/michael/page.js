@@ -4,6 +4,7 @@ import layout from "./layout/page.js";
 import components from "./components/page.js";
 import sections from "./sections/page.js";
 import branding from "./branding/page.js";
+import previews from "./previews/page.js";
 // framework class docs (Page / Pager / ColumnPager / Router)
 import pageDoc from "./page/page.js";
 import pagerDoc from "./pager/page.js";
@@ -17,14 +18,14 @@ export default new Page({
 	meta: import.meta,
 	title: "Michael",
 	description: "A live, categorized tour of the framework's essential styles.",
-	children: [pageDoc, pagerDoc, columnPagerDoc, routerDoc, elements, layout, components, sections, branding],
+	children: [previews, pageDoc, pagerDoc, columnPagerDoc, routerDoc, elements, layout, components, sections, branding],
 
 	// Its own nav beside its own region — the shape /framework/ uses. The
 	// ColumnPager that used to arrange this subtree is in core/legacy/.
 	classes: "hides-nav",
 
 	render(){
-		return this.view ??= div.c("page topic flex", () => {
+		return this.view ??= div.c("page topic flex fill", () => {
 			new Sidebar({
 				header: () => this.app.brand("Michael", "/michael/"),
 				pages: [...this.children.keys()].map(name => this.nav_for(name)),

@@ -97,6 +97,13 @@ disagreement, do not buy it at the cheapest tier. `claude-sonnet-5` at `high` is
 the default; escalate a *single contested question* to opus rather than re-running
 the whole council.
 
+**`claude-opus-5` is the ceiling for spawned seats and workers — never fan out on
+Fable.** A full-Fable council (3 personas + 4 workers, 2026-08-07) produced real
+disagreement but consumed a 5-hour session window in ~27 minutes and a visible
+slice of the weekly Fable cap. Fable is Master Mike's own seat; the seats he
+spawns top out at Opus 5, and at most one deadlocked question earns a single
+Fable fork.
+
 ## Arbitration
 
 - Frame the disagreement; don't resolve it with your own preference.

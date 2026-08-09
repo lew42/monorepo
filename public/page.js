@@ -1,12 +1,7 @@
 import { Page, Sidebar, md, h1, h2, div, a } from "/app.js";
 
-/* The site's sections, as plain data.
- *
- * Deliberately not imported Pages: a parent has to import its children to adopt
- * them, so `children: [alex, arya, …]` would pull every dev's entire page tree
- * into the first paint of the home page. A hardcoded title + url costs nothing
- * and loads nothing — and Sidebar.link() is duck-typed, so it takes these or
- * real Pages without caring which. */
+// Plain {title, url} data on purpose — declaring these as `children` would
+// auto-import every section's tree (and its side effects) into the home page.
 const sections = [
 	{ title: "Framework", url: "/framework/", desc: "The docs — View, Page, Router, App." },
 	{ title: "Alex", url: "/alex/", desc: "Pages, subpages, and nesting." },
@@ -21,10 +16,8 @@ export default new Page({
 	title: "Nice work, everyone",
 	description: "Everything is merged and live. A note to the team.",
 
-	// Every child a url can reach must be declared — the Router walks `children`
-	// and never consults the filesystem. Lazy names, so none of these is imported
-	// until you navigate into it.
-	children: "framework alex arya castin edric michael notes path-1 path-2",
+	// No children declared: the sidebar and cards below are hand-rolled, and any
+	// /section/ url resolves from disk when visited.
 
 	// I bring my own sidebar, so the global nav would just say it twice.
 	classes: "page-homepage hides-nav",
@@ -37,7 +30,7 @@ export default new Page({
 	 * each topic's own sidebar nested beside it. Children land in `app.$pages`
 	 * instead, as siblings, so this page hides completely the moment you leave. */
 	render(){
-		return this.view ??= div.c("page topic flex", () => {
+		return this.view ??= div.c("page topic flex fill", () => {
 
 			// `sections` is already {title, url} — exactly what a Sidebar link
 			// reads — so the site's nav and its cards come off one list.

@@ -198,7 +198,7 @@ import { Page, p } from "/app.js";
 export default new Page({
     meta: import.meta,        // derives url; makes link() work while dormant
     title: "Text",
-    children: "intro guide",  // names — imported when navigated to
+    children: "intro guide",  // names, in nav order — auto-imported on construction
     content(){ p("Body copy."); }
 });
 ```
@@ -207,11 +207,12 @@ A Page is **dormant** — creating one renders nothing, so `export default new
 Page(…)` is always import-safe. It renders when placed. You normally write
 `new Page(...)`, not a subclass.
 
-- **The filesystem is the router, but declaring is the registration.** Nothing
-  crawls; a child not named in its parent's `children` is a 404.
+- **The filesystem is the router; `children` is the navigation.** Declared
+  children auto-import at construction (so menus get real titles and icons), and
+  an undeclared `sub-path/page.js` still resolves when routed to — forgetting to
+  declare costs the menu entry, not the url.
 - **`children` is a Map, name → `Page | null`.** `null` means declared but not
-  imported yet. That's what makes laziness work, and why a nav must be
-  answerable *without* importing a child.
+  resolved yet.
 - **Imports flow DOWN; `.parent` links point UP.** Never both ways (see §7).
 - Duck-typing over `instanceof`: `page.activate?.()`, `is.fn(this.route)`.
 
@@ -314,8 +315,10 @@ and the look is what breaks when it's reused.
   SPA fallback makes the document url the *route*, so a document-relative fetch
   from `/framework/core/x` misses. `md.file(import.meta, …)`,
   `View.stylesheet(import.meta, …)`, `View.load(import.meta, …)`.
-- **`p()` only handles backticks.** Bold, links and tables render as literal text.
-  Use `md()` for anything with formatting.
+- **`p()` and `h1`–`h6` handle backticks — and only backticks.** The prose
+  factories turn `` `x` `` into a `<code>` span; bold, links and tables still
+  render as literal text — `md()` for anything formatted. Every other factory
+  appends strings raw, backticks included.
 - **A stylesheet that 404s no longer hangs the app** — it resolves and warns, and
   the page renders unstyled. Check the console.
 - **Windows: `pkill -f "node server.js"` silently matches nothing.** The orphan
@@ -370,10 +373,12 @@ their class.
   in three lines and wait — a sunk edit *presents* an unsettled direction as
   decided. (Unless autonomy was explicitly granted: then make the call, state the
   assumption, keep going.)
-- **Comments: only what the code can't say.** A non-obvious *why*, a real gotcha.
-  Rationale, alternatives and history go in the `readme.md`. Walls of comments in a
-  base class bury the code the reader came for, and they are the first thing to go
-  stale.
+- **Comments: near zero.** A line earns its place only by stating a trap or a
+  constraint the code cannot show, in one sentence. Rationale, alternatives and
+  history go in a concise `readme.md` (deep discussion in `doc/*.md` beside it) —
+  never inline. No narrating past decisions or mistakes in code. Most files stay
+  under 100 lines; a file over that is usually carrying comments that belong in
+  the readme, or a second responsibility.
 
 ---
 

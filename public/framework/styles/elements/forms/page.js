@@ -7,6 +7,7 @@ export default new Page({
 	meta: import.meta,
 	title: "Forms",
 	description: "Controls, and the two `:not()` lists that deliberately disagree about what a button is.",
+	icon: "check_box",
 	content(){
 
 		toc();

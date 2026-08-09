@@ -1,4 +1,4 @@
-import { Page, md, demo, div, p, a, h2, ul, li, blockquote, pre, strong, em, table, thead, tbody, tr, th, td } from "/app.js";
+import { Page, md, demo, p, a, h2, ul, li, blockquote, pre, strong, em, table, thead, tbody, tr, th, td } from "/app.js";
 
 /* No stylesheet, here or in any child — see base/page.js. An element reference
  * that shipped CSS would be documenting itself instead of the framework. */
@@ -9,16 +9,6 @@ export default new Page({
 	description: "Every element the framework styles, rendered beside the rule that styles it.",
 	icon: "text_fields",
 	children: "text lists code table forms media misc",
-
-	nav: {
-		text:  { label: "Text",   icon: "text_fields" },
-		lists: { label: "Lists",  icon: "format_list_bulleted" },
-		code:  { label: "Code",   icon: "code" },
-		table: { label: "Table",  icon: "grid_on" },
-		forms: { label: "Forms",  icon: "check_box" },
-		media: { label: "Media",  icon: "image" },
-		misc:  { label: "Misc",   icon: "more_horiz" },
-	},
 
 	content(){
 

@@ -1,0 +1,76 @@
+/* Layer order, restated IN FULL — a short list silently misplaces `site`. */
+@layer base, theme, site, util;
+
+@layer theme {
+
+	/* The box owns the space; the bar hovers in its corner, so the widget adds no
+	   height to whatever it is dropped into. */
+	.layout { position: relative; }
+
+	.layout-bar {
+		display: flex; flex-wrap: wrap; align-items: center;
+		gap: 0.3em;
+		padding: 0.25em;
+		font-size: 0.8em;
+		border: 1px solid transparent;
+		border-radius: var(--radius);
+		opacity: 0.4;
+		transition: opacity 0.12s;
+	}
+
+	/* Inside a `.layout` it is floating chrome and starts invisible; on its own it
+	   is a strip in the flow and starts quiet. Both light up when pointed at.
+	   ⚠ `bottom: 100%`, not `top: 0` — over the corner it covered the content of any
+	   box shorter than the bar, which is most of them. Above the corner it sits in
+	   the flow gap and occludes nothing. */
+	.layout > .layout-bar {
+		position: absolute; bottom: 100%; inset-inline-end: 0; z-index: 1;
+		margin-bottom: 0.25em;
+		background: var(--surface);
+		border-color: var(--line);
+		opacity: 0;
+	}
+
+	.layout:hover > .layout-bar,
+	.layout:focus-within > .layout-bar,
+	.layout-bar:hover,
+	.layout-bar:focus-within { opacity: 1; }
+
+	/* ⚠ A touch screen has no hover to reveal it with. */
+	@media (hover: none) { .layout-bar, .layout > .layout-bar { opacity: 1; } }
+
+	.layout-btn {
+		padding: 0.15em 0.6em;
+		font-family: var(--mono);
+		color: var(--subtle);
+		background: none;
+		border: 1px solid transparent;
+		border-radius: var(--radius);
+		cursor: pointer;
+	}
+	.layout-btn:hover { color: var(--ink); border-color: var(--line); }
+	.layout-btn.on { color: var(--prim); border-color: var(--prim); }
+
+	/* Both declarations are about `select` defaults in framework.css.
+	   ⚠ `width: auto` — base gives every select `width: 100%`, which in a flex bar
+	     eats the row.
+	   ⚠ `background-origin` — theme paints the arrow at 100% of the CONTENT box, so
+	     on a shrink-to-fit select the padding-right walks it onto the text. */
+	.layout-pick {
+		width: auto;
+		padding: 0.1em 1.4em 0.1em 0.5em;
+		background-origin: padding-box;
+		color: var(--subtle);
+		border-color: var(--line);
+		border-radius: var(--radius);
+		cursor: pointer;
+	}
+
+	.layout-knob { display: flex; align-items: center; gap: 0.3em; cursor: pointer; }
+
+	/* ⚠ base gives every input `width: 100%` and does not except `range`. */
+	.layout-range { width: 5em; }
+
+	.layout-tag { color: var(--subtle); }
+	.layout-out { min-width: 3.2em; font-family: var(--mono); color: var(--subtle); }
+}

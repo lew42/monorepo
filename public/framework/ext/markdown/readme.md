@@ -106,6 +106,32 @@ still resolves to the file and the Router still declines it — `/\.\w+$/` means
 ours" — so the browser fetches the raw markdown. That is the correct behaviour for a
 link to a file.
 
+## Proposed
+
+Findings from the every-member audit. **Not applied.**
+
+**`md.c(classes, content)` has no caller.** Zero call sites in `public/`,
+sandboxes included; the only occurrences are its own definition (`md.js:46`) and
+two mentions in this file. It exists for symmetry with `div.c()` / `p.c()`, and
+the symmetry is real — but `md("…").ac("note")` is the same length, already
+works, and is what every page actually writes.
+*Options:* (a) keep for symmetry; (b) delete; (c) keep and use it somewhere, so
+it is at least exercised.
+*Weighing:* symmetry with the element factories is worth something — a reader
+who knows `p.c()` will reach for `md.c()` — but `md()` is not an element
+factory, it is a parser, and `.c()` on it promises a shape it cannot always
+deliver (multi-block content is a wrapper div, so the classes land on the
+wrapper rather than on anything you wrote). **Recommendation: (b)**, and say in
+the page that classes go on with `.ac()`.
+
+**`marked` is re-exported twice and imported by nobody.** `md.js:128` exports
+it, `public/app.js` re-exports it again, and no file in the repo imports it.
+*Options:* (a) keep — an escape hatch for a page that wants a parser option;
+(b) drop it from `app.js` and keep it on `md.js`; (c) drop both.
+**Recommendation: (b).** A vendored parser is worth being able to reach from
+the module that vendors it; putting it on the site's own `/app.js` surface
+suggests it is part of the framework's API, which it is not.
+
 ## Open questions
 
 - Export `md` from `app.js`? Convenient, but every page load would then pull the

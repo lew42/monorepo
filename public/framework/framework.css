@@ -77,10 +77,8 @@
            about one state, and none of them readable on a dark surface. */
         --error: light-dark(#c00, #ff7b72);
 
-        /* rhythm lives with the flow rules now: ONE registered token, `--flow`,
-           declared per flow root in core/Page/Page.css so em scales an AREA's
-           rhythm without compounding with a heading's own size. Retune with
-           `--rhythm` (a raw em token) on `.app` or any container. */
+        /* rhythm lives with the flow rules (theme layer, below): one em token,
+           `--flow: 2em`, declared per flow root. */
 
         --column: 14em;
         --sidebar: 19em;   /* any sidebar's width — shared on purpose, so two can't drift.
@@ -129,14 +127,16 @@
        The whole chain html → body → .app → .pages has to be definite for the region
        to have something to overflow.
 
-       The font-size clamp reaches its 1rem floor at every viewport up to 1440 (the
-       width the design was drawn at) and 1.25rem around 2560. `rem + vw` rather than
-       plain `vw`: a pure-vw size ignores the reader's browser font-size setting and
-       cannot be zoomed out of. The whole type scale is `em` off this number, so
-       getting it wrong makes every heading wrong too — see styles/readme.md. */
+       The font-size clamp is two ramps bent at 1920, where both lines equal exactly
+       16px: 14px up to ~590, the shallow ramp to 16px at 1920, the steep one to 18px
+       at ~2490 — `max()` of two lines because those three anchors aren't collinear.
+       `rem + vw` rather than plain `vw`: a pure-vw size ignores the reader's browser
+       font-size setting and cannot be zoomed out of. The whole type scale is `em`
+       off this number, so getting it wrong makes every heading wrong too — see
+       styles/readme.md. */
     body {
         height: 100%;
-        font-size: clamp(1rem, 0.68rem + 0.36vw, 1.25rem);
+        font-size: clamp(0.875rem, max(0.82rem + 0.15vw, 0.58rem + 0.35vw), 1.125rem);
         font-family: var(--font);
         color: var(--ink);
         accent-color: var(--prim);
@@ -167,6 +167,26 @@
     /* No margins on generic blocks — spacing is rhythm, and rhythm belongs to
        whatever arranges the content. See the flow rules in Page.css. */
     hr { border: none; border-top: 1px solid var(--line); }
+
+    /* ---- surfaces, as classes ------------------------------------------
+       The three looks every card, band and caption on the site was writing by
+       hand as an inline style object (`styles/parts.js`). Token-valued, so a
+       theme retints them and nothing downstream names a colour.
+
+       ⚠ `.surface` sets `color` on purpose — A BOX THAT PAINTS ITS OWN FILL OWNS
+       ITS OWN INK. Without it a card on a coloured band inherits that band's
+       white and renders white-on-white. */
+    .surface {
+        background: var(--surface);
+        color: var(--ink);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+    }
+    .wash { background: var(--wash); }
+
+    /* De-emphasis derived from the band's own ink, never from a fixed grey:
+       `--subtle` on a `prim` band measures 1.06:1. */
+    .muted { color: color-mix(in srgb, currentColor 65%, transparent); }
 
     /* ---- icons ---------------------------------------------------------
        Material Icons is a LIGATURE font: `icon("dashboard")` emits a span containing
@@ -302,7 +322,10 @@
     
     .flex { display: flex; }
     .flex.wrap, .flex.auto, .flex.three { flex-wrap: wrap; }
-    .flex.auto > * { flex: 1 1 var(--column); }
+    /* `min-width: 0` for the same reason `.flex-1` and `.basis` carry it: the
+       flexbox default floors a child at its MIN-CONTENT, so one `<pre>` or one
+       long word pushes the row wider than its container. */
+    .flex.auto > * { flex: 1 1 var(--column); min-width: 0; }
     /* `min-width: 0` because the flexbox default is `auto`, which floors a child at its
        MIN-CONTENT — so one `<pre>` or one long word in a flexible track pushes the row
        wider than its container instead of shrinking. `.basis` below already carried it;
@@ -324,6 +347,14 @@
     .flex.three > * { flex: 1 1 calc(((var(--column) * 3) - 100%) * 999); }
     .flex > * { margin: 0; }
 
+    /* A centred column, inside anything. It DECLARES `--measure` rather than
+       reading the region's, so a 34em block inside a 60em sheet is 34em; override
+       it inline (`.style("--measure", "78em")`) and the inline value wins.
+       ⚠ Declared AFTER `.flex > * { margin: 0 }` on purpose — equal specificity,
+       same layer, so `margin-inline: auto` survives inside a flex container. That
+       one line of order is what retired `.layout-measure`. */
+    .measure { --measure: 34em; max-width: var(--measure); margin-inline: auto; }
+
     /* A laid-out container owns its own spacing — `gap` does it, and an inherited
        block margin only fights it. `.flex > *` has said this for a long time; a
        grid is the same box with a different name.
@@ -336,7 +367,7 @@
     .grid.three { grid-template-columns: repeat(auto-fit, 
 		minmax(clamp(100% / 3 - 1rem, (var(--column)* 3 - 100%) * 999, 100%), 1fr)); }
 
-    /* `--gap`, because 9 of the 12 components in styles/components/ wanted a gap
+    /* `--gap`, because 9 of the 12 components in framework/ui/ wanted a gap
        under 1em and had to write `gap` by hand to get one. Reads a token the same way
        `.basis` reads `--basis`, so `div.c("flex gap").style("--gap", ".4em")` is the
        whole adjustment. `.flow` is not a substitute — that is page rhythm, and
@@ -344,11 +375,19 @@
     .gap { gap: var(--gap, 1em); }
     .gap-2em { gap: 2em; }
 
+    /* A ladder rather than `.zoom` + `--zoom`, which is the shape `.pad`, `.gap`
+       and `.basis` all take — and it was audited as exactly that mistake, "a scale
+       nobody asked for". The census says otherwise: EIGHT of these nine have real
+       call sites (the gallery's thumbs at 25/50/75, the util page's own demo, and
+       three dev sandboxes at 100–200 and responsive). A scale that is used is not
+       a scale nobody asked for, so it stays.
+       ⚠ FROZEN at these eight. A new zoom level is not a new rung — it is
+       `.style("zoom", …)` at the call site, or the `--zoom` token this would have
+       to become. `.zoom-125` is deleted: the one rung with no user anywhere. */
     .zoom-25 { zoom: 0.25; }
     .zoom-50 { zoom: 0.5; }
     .zoom-75 { zoom: 0.75; }
     .zoom-100 { zoom: 1; }
-    .zoom-125 { zoom: 1.25; }
     .zoom-150 { zoom: 1.5; }
     .zoom-175 { zoom: 1.75; }
     .zoom-200 { zoom: 2; }
@@ -377,4 +416,80 @@
        `:last-child` twins too. In `util`, so it wins over component CSS. */
     :first-child { margin-top: 0; }
     :last-child { margin-bottom: 0; }
+}
+
+/* ── the rhythm token ──
+   Moved from Page.css: two of the three flow selectors were never Page's
+   (`blockquote`, `.flow`), so this is generic prose, the substrate's job — the
+   same statement the type scale above already makes. `.page` opts in by
+   EMITTING the class in render() now, exactly like `.md` and `.demo-render` —
+   which is what let this selector stop naming an ext class it could not import
+   (styles/readme.md §8, closed). */
+@layer theme {
+
+    /* A **flow** is a box whose children are stacked prose, and spacing belongs
+       to the flow rather than to the things in it. `--flow` is an unregistered
+       em token, so it inherits as `2em` and resolves at each child — a heading's
+       gap scales with the heading's own font-size. Every selector is `:where()`d
+       to zero, so a component that genuinely needs its own spacing wins by
+       being an ordinary class. */
+
+    :where(.flow, blockquote) { --flow: 2em; }
+
+    :where(.flow, blockquote) > * { margin-block: 0; }
+    :where(.flow, blockquote) > * + * { margin-block-start: var(--flow); }
+
+    /* the small headings take half again — the one pair one token can't say */
+    :where(.flow, blockquote) > * + :is(h3, .h3, h4, .h4)
+        { margin-block-start: calc(var(--flow) * 1.5); }
+
+    /* The page title is the one heading that isn't a section break. A real
+       class, so it outranks the owl above on purpose — moved with `.flow`
+       rather than staying in Page.css, since `.page-title` only exists on a
+       flow. */
+    .page-title + * { margin-block-start: calc(var(--flow) * 1.5); }
+
+    /* Markdown emits `<li><p>` for a loose list, and a UA paragraph margin
+       inside a list item is a gap nobody asked for. */
+    :where(.flow) :is(li, td, th) > p { margin-block: 0.35em; }
+
+    /* ── a link in prose ──
+       Scoped to text, not to `a`, and that is the whole decision. Every piece
+       of navigation on this site is an anchor that has already opted out of
+       looking like a link — a sidebar entry, a tab, a TOC row, a preview card,
+       a crumb. A flat `a { font-weight: 600 }` bolds all of them, and it takes
+       the sidebar's ACTIVE state with it, which is 600 and has nothing left to
+       say. `a:visited` is the worse half: `(0,1,1)` out-ranks every one of
+       those component classes, so the nav would grey out behind you as you
+       read the site.
+
+       `:where()` for the same reason as the flow rules above — `(0,0,1)`, so
+       any component that wants its own link back wins by having a class.
+
+       The colour is the body's and the underline carries the whole affordance,
+       which is why the underline is stated here rather than left to the UA:
+       the same rule that takes the blue away has to be the one that keeps the
+       line. */
+    :where(p, li, td, th, dd, blockquote, .md) a {
+        color: inherit;
+        font-weight: 600;
+        text-decoration-line: underline;
+        text-decoration-color: var(--prim);
+        text-decoration-thickness: 0.2em;
+        text-underline-offset: 0.2em;
+    }
+
+    /* Only COLOUR properties survive on `:visited` — the browser refuses
+       anything that could be measured back out of the layout, so weight and
+       thickness are not available here and the state has to be carried by hue
+       alone. Every declaration degrades to the unvisited look if a browser
+       declines it. */
+    :where(p, li, td, th, dd, blockquote, .md) a:visited {
+        color: var(--subtle);
+        text-decoration-color: color-mix(in oklab, var(--prim) 80%, var(--subtle));
+    }
+
+    /* After `:visited`, not before — both are `(0,1,1)`, so hover only wins by
+       being later, and a visited link has to be able to light up again. */
+    :where(p, li, td, th, dd, blockquote, .md) a:hover { color: var(--prim); }
 }

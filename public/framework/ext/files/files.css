@@ -1,12 +1,8 @@
-/* Layer order, restated IN FULL — a short list would misplace `site`.
-   See the header of framework.css. */
+/* Restated IN FULL — a short list silently misplaces `site`. */
 @layer base, theme, site, util;
 
 @layer theme {
 
-	/* A tree beside a pane. Below the breakpoint they stack, which is the same
-	   trade `.tabs.vertical` makes and for the same reason: a 12em rail is most of
-	   a phone's width. */
 	.files {
 		display: flex;
 		align-items: stretch;
@@ -16,9 +12,9 @@
 		background: var(--surface);
 	}
 
+	/* The tree wears `basis` (framework.css), so this only says how wide. */
 	.file-tree {
-		flex: 0 0 clamp(9em, 26%, 15em);
-		min-width: 0;
+		--basis: clamp(9em, 26%, 15em);
 		padding: 0.6em 0;
 		border-inline-end: 1px solid var(--line);
 		font-size: 0.85em;
@@ -36,7 +32,6 @@
 	.file-name { cursor: pointer; }
 	.file-name:hover { color: var(--prim); }
 
-	/* the selected file — the pane is showing this one */
 	.file-name.selected { color: var(--prim); font-weight: 600; background: var(--wash); }
 
 	.file-dir-name { color: var(--subtle); }
@@ -47,9 +42,8 @@
 	.file-tree .icon { font-size: 1em; opacity: 0.65; }
 	.file-name.selected .icon { opacity: 1; }
 
-	/* `min-width: 0` is the load-bearing one: a <pre> is `overflow-x: auto`, whose
-	   min-content is almost nothing, so without it a long line lets the pane
-	   collapse and the tree eat the box. */
+	/* ⚠ `min-width: 0` is load-bearing: a <pre> is `overflow-x: auto`, whose
+	   min-content is almost nothing, so a long line lets the pane collapse. */
 	.file-pane { flex: 1 1 0; min-width: 0; display: flex; }
 
 	/* The pane owns the border; the code block inside it is flush. */
@@ -64,10 +58,12 @@
 		flex: 1 1 0;
 	}
 
+	/* ⚠ `--basis: auto`, not a `flex` override: `.basis` lives in `util` and would
+	   win by layer. A token declared on the element beats an inherited value. */
 	@media (max-width: 40em) {
 		.files { flex-direction: column; }
 		.file-tree {
-			flex: 0 0 auto;
+			--basis: auto;
 			border-inline-end: none;
 			border-bottom: 1px solid var(--line);
 		}

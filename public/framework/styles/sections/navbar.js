@@ -7,7 +7,7 @@ export default tone => section(tone ?? "surface", () => {
 
 		div.c("flex gap wrap v-center", () => {
 			["Docs", "Layouts", "Components", "Source"].forEach(t =>
-				a.c("page-link", t).href("#").style({ color: "inherit", textDecoration: "none" }));
+				a.c("page-link", t).href("#").style({ textDecoration: "none" }));
 			cta("Get started", "prim");
 		});
 	});

@@ -1,51 +1,28 @@
-/* Layer order, restated: the FIRST declaration wins and module import
-   order decides who loads first, so every stylesheet states it. */
+/* Restated IN FULL — a short list silently misplaces `site`. */
 @layer base, theme, site, util;
 
-/* Sidebar — the look. Whatever places it says where it goes (a single
-   `flex: 0 0 var(--sidebar)`); this says what it is. Placement is never here. */
 @layer theme {
 
-	/* Two component tokens — `--sidebar-bg` and `--sidebar-ink` — and every other
-	   colour below derives from the ink with color-mix. Same shape as
-	   framework.css's `--code-bg`/`--code-ink`: they fall back to globals so
-	   nobody has to set them, but a theme that must differ sets two values
-	   instead of fighting nine selectors.
-
-	   Deriving is not decoration. `--wash` would have hit the comp's #f2f2f2
-	   exactly — and then painted a LIGHT fill on a panel that set only
-	   `--sidebar-bg: #1f1f1f`, which is a supported combination (lew42's record
-	   ships the sidebar both ways from one token). 7% of the ink lands on
-	   #f2f2f2 over white and stays right when the panel goes dark. */
-
+	/* Two component tokens, and every other colour here derives from the ink with
+	   color-mix — so a theme cannot set them inconsistently, and a dark panel over a
+	   light page (a supported combination) stays right. Placement is never here. */
 	.sidebar {
 		display: flex;
 		flex-direction: column;
 		background: var(--sidebar-bg, var(--bg));
 		color: var(--sidebar-ink, #fff);
-
-		/* Reads as a hairline when the panel is light and the page beside it is
-		   lighter still; disappears into a dark panel, which is where contrast
-		   already does the job. One declaration, right in both. */
 		border-right: 1px solid var(--line);
 	}
 
-	/* NO overflow on the panel itself: `.sidebar-nav` scrolls, so the bar above it
-	   and the footer below it stay put. The panel scrolling whole was the shape the
-	   footer replaced — see readme.md §8. */
+	/* ⚠ No overflow on the panel: `.sidebar-nav` scrolls, so the bar above it and
+	   the footer below it stay put by structure rather than by `position`. */
 
-	/* [ header | ☰ ] — the strip the panel collapses to on a narrow screen. */
 	.sidebar-bar { display: flex; align-items: center; flex: 0 0 auto; }
 	.sidebar-bar > .brand { flex: 1 1 auto; min-width: 0; }
 
-	/* The comp's gutter, and it is the same 42px for the brand, the group titles
-	   and the links — one number, so nothing in this column can misalign.
-	   Local to `.sidebar`, so it is a value this file shares with itself rather
-	   than a token anyone else has to know about. */
+	/* One number for the brand, the group titles and the links. */
 	.sidebar { --gutter: 2.6em; }
 
-	/* [ LOGO Brand ] — 88px tall in the comp, which is a 24px mark with 32px of
-	   air either side. The logo goes home, the text goes to its own section. */
 	.sidebar .brand {
 		display: flex;
 		align-items: center;
@@ -81,34 +58,23 @@
 		display: flex; flex-direction: column;
 	}
 
-	/* THE scroller. `min-height: 0` is what lets a flex child scroll at all. */
+	/* THE scroller. ⚠ `min-height: 0` is what lets a flex child scroll at all. */
 	.sidebar-nav {
 		display: flex; flex-direction: column;
 		flex: 1 1 auto; min-height: 0;
 		overflow-y: auto;
 	}
 
-	/* A titled run of links. Sidebar.js puts `.h4` on the title, so it borrows
-	   its size and tracking from the type scale — all this owes is rhythm and
-	   colour, and it must never invent a font-size. */
 	.sidebar-group { display: flex; flex-direction: column; }
 
-	/* 6px above and below in the comp; the neighbouring links bring 16px of
-	   their own padding, so the visible gap is the 22px it draws. */
 	.sidebar-group-title {
 		padding: 0.4em var(--gutter);
 		color: color-mix(in srgb, var(--sidebar-ink, #fff) 60%, transparent);
 	}
 
-	/* Full width, no margin, no radius — the fill runs edge to edge, which is
-	   what makes the active row read as a slab rather than a chip. flex, so an
-	   icon can lead and the chevron can sit at the far end; labels line up
-	   whether or not a given item carries an icon.
-
-	   `line-height` is pinned because it decides the row height with the label,
-	   and a theme is entitled to set a loose one for body copy — lew42's 1.8
-	   turned a 56px row into 64px. Rhythm in a fixed-height control is the
-	   control's business. */
+	/* ⚠ `line-height` is pinned: it decides the row height together with the label,
+	   and a theme is entitled to a loose one for body copy — lew42's 1.8 turned a
+	   56px row into 64px. Rhythm in a fixed-height control is the control's. */
 	.sidebar-link {
 		display: flex;
 		align-items: center;
@@ -119,62 +85,35 @@
 		text-decoration: none;
 	}
 
-	/* 18px in the comp, and it lives on the LABEL rather than the link so the
-	   box above stays measured in whole 16px ems and the icon doesn't ride the
-	   bump. Two sizes in one row is the normal case, not a special one. */
+	/* ⚠ On the LABEL, never the padded row: `em` resolves against the element that
+	   uses it, so sizing and padding the same element misaligns the column. */
 	.sidebar-label { font-size: 1.125em; }
 
-	/* Grey icons, dark labels — the comp's split. Derived from the ink for the
-	   same reason the fills are: a global `--subtle` is wrong the moment the
-	   panel's brightness stops matching the document's. */
 	.sidebar-link .icon { color: color-mix(in srgb, var(--sidebar-ink, #fff) 60%, transparent); }
 
 	.sidebar-link:hover {
 		background: color-mix(in srgb, var(--sidebar-ink, #fff) 4%, transparent);
 	}
 
-	/* .active = this exact url, .in-path = an ancestor of it. Both set by
-	   Router.mark_links().
-
-	   ONLY `.active` is selected. This file used to treat the two the same, and
-	   that was right while a sidebar was flat: the section's own entry was the
-	   only thing that could say "you are in here". A GROUPED sidebar has a
-	   heading for that, so the section entry lighting up alongside the real one
-	   left two rows looking chosen and neither of them looking more chosen —
-	   `/framework/core/View/` selected both "Overview" and "View".
-
-	   `.in-path` is deliberately left with nothing here. /styles.css gives it a
-	   semibold label, which reads as "on the way to" rather than "here", and that
-	   is the whole distinction worth drawing.
-
-	   A fill and nothing else. The 3px `border-left: var(--prim)` that used to
-	   live here is not in the comp, and it was also the only thing in this file
-	   that shifted the label by a pixel between states. */
+	/* ⚠ `.active` only. A grouped sidebar has a heading for "you are in here", so
+	   lighting `.in-path` too left two rows looking chosen. /styles.css gives
+	   `.in-path` a semibold label instead. Both classes are Router.mark_links()'. */
 	.sidebar-link.active {
 		background: color-mix(in srgb, var(--sidebar-ink, #fff) 7%, transparent);
 	}
 	.sidebar-link.active .icon { color: var(--prim); }
 
-	/* A plain character, not a Material Icons ligature: this file must not depend
-	   on a font the app may never have loaded, or a sidebar in a site that
-	   skipped it would read "chevron_right" down the margin.
-
-	   `.active` only, matching the fill above — the two halves of one highlight
-	   must agree about which row is chosen, and they have now been wrong in both
-	   directions: first the chevron was missing from a lit row, now it would have
-	   been present on an unlit one. */
+	/* ⚠ A plain character, not a Material Icons ligature — this file must not depend
+	   on a font the app may never have loaded. And an ESCAPE, never the literal:
+	   the deployed host serves CSS with no charset, so a raw › decodes as "â€º". */
 	.sidebar-link.active::after {
-		content: "›";
+		content: "\203A";
 		margin-left: auto;
 		font-size: 1.4em;
 		line-height: 1;
 		opacity: 0.5;
 	}
 
-	/* ── the footer: pinned under the scrolling nav ──
-	   Derived from the ink like every other colour here — `--line` tracks the
-	   document, not the panel, and this rule must hold on a dark panel over a
-	   light page. */
 	.sidebar-footer {
 		flex: 0 0 auto;
 		display: flex; align-items: center; justify-content: space-between; gap: 0.8em;
@@ -182,8 +121,7 @@
 		border-top: 1px solid color-mix(in srgb, var(--sidebar-ink, #fff) 15%, transparent);
 	}
 
-	/* mode.css draws `.mode-btn` as the app's fixed bottom-right pill; in a footer it
-	   is a row item. Two classes, so this out-specifies both mode.css's `(0,1,0)` and
+	/* ⚠ Two classes, so this out-specifies both mode.css's `(0,1,0)` fixed pill and
 	   a theme's `:is(button)` at `(0,1,1)` without leaning on load order. */
 	.sidebar-footer .mode-btn {
 		position: static;
@@ -195,8 +133,7 @@
 	}
 	.sidebar-footer .mode-btn:hover { color: var(--prim); border-color: var(--prim); }
 
-	/* A placeholder — a slot for the account mark a site will want, drawn from the
-	   ink so it reads on either panel. */
+	/* a slot for the account mark a site will want */
 	.sidebar-avatar {
 		flex: 0 0 auto;
 		width: 2em; height: 2em;
@@ -205,9 +142,7 @@
 		border: 1px solid color-mix(in srgb, var(--sidebar-ink, #fff) 30%, transparent);
 	}
 
-	/* ── the hamburger: in the DOM always, a control only when narrow ──
-	   `.sidebar` prefix so the box beats a theme's `:is(button, .btn)` at (0,1,1) —
-	   lew42's uppercase-label padding would otherwise inflate it. */
+	/* ⚠ `.sidebar` prefix so the box beats a theme's `:is(button, .btn)` at (0,1,1). */
 	.sidebar .sidebar-toggle {
 		display: none;
 		flex-direction: column; justify-content: center; align-items: center; gap: 0.3em;
@@ -220,7 +155,6 @@
 	}
 	.sidebar .sidebar-toggle:hover { color: var(--prim); }
 
-	/* currentColor, so the bars follow the hover and the panel's ink for free. */
 	.sidebar-toggle-bar {
 		flex: 0 0 auto;
 		width: 1.2em; height: 2px;
@@ -228,10 +162,9 @@
 		background: currentColor;
 	}
 
-	/* ── below 52em: the panel IS a top bar, the nav a menu behind the burger ──
-	   Same breakpoint as the topic's stacking in /styles.css. The menu drops BELOW
-	   the bar as an overlay rather than pushing the page down — `absolute` against
-	   the sticky bar, so opening it moves nothing else. */
+	/* Below 52em the panel IS a top bar. ⚠ Same breakpoint as the topic's stacking
+	   in /styles.css. The menu is absolute against the sticky bar, so opening it
+	   moves nothing else. */
 	@media (max-width: 52em) {
 		.sidebar {
 			position: sticky; top: 0; z-index: 10;
@@ -241,7 +174,6 @@
 
 		.sidebar .sidebar-toggle { display: flex; }
 
-		/* the rail's 2em of air is a bar's worth of height here */
 		.sidebar .brand { padding-block: 0.7em; }
 
 		.sidebar-menu { display: none; }

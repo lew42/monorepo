@@ -1,4 +1,4 @@
-import { Page, md, demo, div, p, span, a, button, br, details, summary, section, article, aside, header, footer, main, nav, icon, toc } from "/app.js";
+import { Page, md, demo, div, p, span, a, button, br, details, summary, section, article, aside, header, footer, icon, toc } from "/app.js";
 
 /* No stylesheet — see base/page.js. */
 
@@ -6,6 +6,7 @@ export default new Page({
 	meta: import.meta,
 	title: "Misc",
 	description: "Disclosure, focus rings, the ligature trap, and the long list of elements with no rule at all.",
+	icon: "more_horiz",
 	content(){
 
 		toc();
@@ -47,7 +48,7 @@ export default new Page({
 
 		demo(() => {
 			p("One line,", br(), "then another — inside one paragraph.");
-		}, "No rule, no reset. Worth listing only to say the obvious out loud: a `br` is a line break *inside* a run of text, not a spacer. Space between blocks is the `--flow` rhythm in `Page.css`, and space in a row is `gap`.");
+		}, "No rule, no reset. Worth listing only to say the obvious out loud: a `br` is a line break *inside* a run of text, not a spacer. Space between blocks is the `--flow` rhythm in `framework.css`, and space in a row is `gap`.");
 
 		md("## Elements with no rule at all");
 
@@ -71,9 +72,9 @@ export default new Page({
 		md("## A trap worth repeating");
 
 		demo(() => {
-			p("`p()` handles backticks — and **that's all it handles**.");
+			p("`p()` and headings handle backticks — and **that's all they handle**.");
 			span("A span does not: `nothing happens here`.");
-		}, "`p()` runs `backtick_append`, which turns `` `x` `` into a `<code>` element and leaves everything else as literal text. So **bold, italics, links and tables silently render as the characters you typed** — `**that's all it handles**` above is the proof, and the asterisks are right there on the page. Prose with any formatting in it wants `md(\"…\")`.");
+		}, "`p()` and `h1`–`h6` run `backtick_append`, which turns `` `x` `` into a `<code>` element and leaves everything else as literal text. So **bold, italics, links and tables silently render as the characters you typed** — `**that's all they handle**` above is the proof, and the asterisks are right there on the page. Every other factory appends strings raw, backticks included — the `span` proves it. Prose with any formatting in it wants `md(\"…\")`.");
 
 		md("That's the element reference. Back to [Styles](/framework/styles/) for the strategy — the ladder, the layer order, and the escalation ratchet that all of this exists to keep you off.");
 	}

@@ -8,6 +8,7 @@ export default new Page({
 	meta: import.meta,
 	title: "Text",
 	description: "Six type levels, and the twenty inline elements the framework deliberately leaves alone.",
+	icon: "text_fields",
 	content(){
 
 		toc();
@@ -63,7 +64,7 @@ export default new Page({
 				a.c("nav-link", "nav-link").href("/framework/");
 				a.c("tab", "tab").href("/framework/");
 			});
-		}, "Two kinds of anchor, and only the first is a *link*. `:where(p, li, td, th, dd, blockquote, .md) a` in `Page.css` styles the one in prose — `color: inherit`, `font-weight: 600`, and `text-decoration-color: var(--prim)` at `2px` thickness and `0.2em` offset. Everything on the second row is navigation, which is an anchor that already opted out of looking like a link, so the rule is scoped to **text** rather than to `a`.");
+		}, "Two kinds of anchor, and only the first is a *link*. `:where(p, li, td, th, dd, blockquote, .md) a` in `framework.css` styles the one in prose — `color: inherit`, `font-weight: 600`, and `text-decoration-color: var(--prim)` at `0.2em` thickness and `0.2em` offset. Everything on the second row is navigation, which is an anchor that already opted out of looking like a link, so the rule is scoped to **text** rather than to `a`.");
 
 		md("**Scoping it to text is the whole design.** A flat `a { font-weight: 600 }` bolds every tab, crumb, TOC row and sidebar entry — and takes the sidebar's *active* state with it, which is `600` and would have nothing left to say. `a:visited` is the worse half: it is `(0,1,1)`, which out-ranks `.sidebar-link`, `.tab` and `.nav-link` alike, so the navigation would grey out behind you as you read. The rule is `:where()`d to `(0,0,1)` for the same reason the flow rules are — any component that wants its link back wins by having a class.");
 
@@ -84,7 +85,7 @@ export default new Page({
 			p("Above.");
 			hr();
 			p("Below.");
-		}, "`hr { border: none; border-top: 1px solid var(--line) }` — one hairline in the theme's own line colour, and **no margin**. The `--flow` rules in `Page.css` space it like any other block, so an `hr` inside a tighter container stays tight instead of carrying a fixed gap around with it.");
+		}, "`hr { border: none; border-top: 1px solid var(--line) }` — one hairline in the theme's own line colour, and **no margin**. The `--flow` rules in `framework.css` space it like any other block, so an `hr` inside a tighter container stays tight instead of carrying a fixed gap around with it.");
 
 		md("`p` and `h1`–`h6` each repeat `overflow-wrap: break-word` from `body`, so one long token can't blow out a column — the headings need their own rule because the value doesn't inherit through an element that sets it itself. Demoed side by side in [base](/framework/styles/layers/base/).");
 

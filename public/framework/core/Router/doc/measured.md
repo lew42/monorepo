@@ -13,10 +13,11 @@ serial walk         RTT + 16ms per SEGMENT, linear. A 5-deep cold link is
                     1.7s of walking at 150ms RTT
 ```
 
-**Laziness, re-measured on the live site after the eager-`children` fix:** every
-cold route fetches **exactly its chain length** and nothing more. Inline pages
-(`add()`, `route()`, `classdoc`) cost **zero** modules — `/framework/core/View/append/`
-is five segments and four fetches.
+**What a cold route now fetches:** its chain, **plus each page in that chain's
+declared children** — they are imported at construction so menus can draw once with
+real titles. Measured on `/framework/`, which draws two levels: 1 → **28** `page.js`
+fetches, **+51ms to first paint**, flat with depth. Inline pages (`add()`, `route()`,
+`classdoc`) still cost **zero** modules.
 
 The serial walk is the honest cost and it **cannot be parallelised blindly**: a
 segment's children are unknown until its module has run. Prefetching would need a

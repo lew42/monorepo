@@ -1,4 +1,4 @@
-import { div, p, h1 } from "/app.js";
+import { div, p } from "/app.js";
 import { section, eyebrow, cta } from "./parts.js";
 
 /* Masthead, filled. A band that bleeds, a measure inside it, and the two

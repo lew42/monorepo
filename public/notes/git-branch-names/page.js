@@ -3,6 +3,7 @@ import { Page, md } from "/app.js";
 export default new Page({
 	meta: import.meta,
 	title: "Git branch names",
+	icon: "account_tree",
 	description: "Short-lived branches, named <yourname>/<branch>, and the preview url each one gets.",
 	content(){
 

@@ -1,4 +1,4 @@
-import { Page, classdoc, md, code, h2, toc } from "/app.js";
+import { Page, classdoc, md, demo, code, p, h2 } from "/app.js";
 
 export default classdoc.page({
 	meta: import.meta,
@@ -8,61 +8,69 @@ export default classdoc.page({
 
 	Class: Page,
 	children: "children nav flow",
-	methods: "child add container activate tabs",
+	overview: "demos",
+
+	// Every member, in the order a reader meets them: the tree, then rendering,
+	// then the derivation the constructor does, then the plumbing and the statics.
+	methods: "child add previews link nav_for chain container activate render "
+		+ "naming declare load_all_children go preview deactivate "
+		+ "mounts_in log_label assign load missing",
+
+	properties: "meta title children content url name label icon card classes "
+		+ "description parent app view loading route regions",
+
+	notes: "declaring labels layout",
 
 	content(){
-
-		toc();
 
 		code.js(`import { Page, md } from "/app.js";
 
 export default new Page({
     meta: import.meta,
     title: "Intro",
-    content(){ md("hello"); },
+    content(){ md("Hello."); },
 });`);
 
-		md("That file at `/docs/intro/page.js` is the url `/docs/intro/`. `meta` is what tells it so — one line, and the page knows its own address.");
+		md("Save that as `/docs/intro/page.js` and `/docs/intro/` **is** a page. `meta: import.meta` is the line that tells it its own address — the folder is the route, and nothing registers anything.");
 
 		h2("Children");
 
-		code.js(`children: "guide api"`);
+		code.js(`export default new Page({
+    meta: import.meta,
+    title: "Docs",
+    children: "intro guide api",   // child folder names, in menu order
+    content(){ this.previews(); },
+});`);
 
-		md("Names, not imports. Each one is a folder with a `page.js` in it, and **it isn't fetched until someone navigates to it** — that's the whole of lazy loading.\n\nNothing crawls the filesystem, so this line *is* the registration. A page nobody declared is a 404.");
+		md("`children` names the folders under this one, **in the order a menu should show them**. Each is imported the moment this page is constructed, so `previews()` can draw a card per child with its real title and icon — once, correct, never names-first-then-titles.");
 
-		h2("A menu, without importing anything");
+		md("It is navigation, not registration. `/docs/faq/` still works when nobody declared `faq`, because looking up a child falls through to the filesystem. **Forgetting to declare costs the menu entry, not the url.**");
 
-		code.js(`this.previews()`);
+		h2("Titles and labels");
 
-		md("Draws a card per child. It has to work before those children exist, so it can only use what the parent already knows — the name, and the url that name must have.");
+		code.js(`export default new Page({
+    meta: import.meta,
+    title: "Start",         // the h1 on this page
+    label: "Start here",    // what every menu calls it
+    icon: "flag",           // and the glyph beside it
+});`);
 
-		code.js(`nav: {
-    guide: "The guide",                          // a label
-    api:   { label: "API", icon: "code" },       // and an icon
-}`);
+		md("All three live on the page they describe, so the sidebar, the tab bar and the preview cards cannot name it three different ways. `title` alone is the common case; `label` is for when a menu entry and a page heading are genuinely different sentences.");
 
-		md("**A label belongs to the parent's list; a title belongs to the page.** Not two copies of one thing — `start` is labelled *\"Start here\"* in its parent's menu and titled *\"Start\"* on its own page, deliberately. An icon is the same kind of thing, which is why it lives here: it names *this entry in this menu*, so it costs no import.");
+		h2("A page is dormant");
 
-		md("Declare nothing and it still works: the label falls back to an imported child's `title`, then to the bare segment. A card reads `columns` until you visit it and `Columns` after — the honest cost, and a visible one.");
+		demo(() => {
+			const intro = new Page({ url: "/docs/intro/", title: "Intro" });
 
-		h2("Real titles up front");
+			p("Constructed, never rendered — and still linkable: ", intro.link());
+		}, "Constructing a `Page` renders nothing, so `export default new Page(…)` is always import-safe. It renders when the Router places it.");
 
-		code.js(`initialize(){ this.load_all_children(); }`);
+		md("**[Demos](/framework/core/Page/overview/demos/)** — the same class, rendered: children, labels, `add()`, four levels of depth and a page wearing a layout, each one a tree you can click around inside.");
 
-		md("Imports every declared child so the menu can read their real titles and icons. **The opt-out of laziness**, and the reason it exists: with it, a page's icon and title live on the page and nowhere else. Pay the imports, delete the duplication.\n\nThe Router waits for `loading` before showing the page, so the menu draws **once**, correct — never names first, titles later. And opt-ins compose: a child that also called it delays its parent until the grandchildren are real too, while a child that stayed lazy stays lazy.");
-
-		h2("Tabs");
-
-		code.js(`content(){ this.tabs("guide api"); }`);
-
-		md("A bar of links plus the panel those children render into. Which children are tabs is decided at *placement*, not marked on the child — so a page can have several sets, and a child in none of them renders wherever it would have anyway.");
-
-		code.js(`this.tabs("guide api").ac("vertical")`);
-
-		md("The same set, turned on its side — the left nav on this page is that call. Identical JS: same urls, same default, same active marking.");
+		md("Every method and property on the left has its own page: the real source, who calls it, and an honest note on whether it should exist at all.");
 
 		md("Next: [Router](/framework/core/Router/) — what turns a url into one of these.");
 
-		md.details(import.meta, "readme.md", "Design record — nav, arrangement, and .cols");
-	}
+		md.details(import.meta, "readme.md", "Design record — children, labels, and what should change");
+	},
 });

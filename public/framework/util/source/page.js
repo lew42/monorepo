@@ -1,5 +1,5 @@
 import { Page, md, code, h2, demo, div, p, toc } from "/app.js";
-import { source, dedent, member, patched } from "./source.js";
+import { source } from "./source.js";
 
 export default new Page({
 	meta: import.meta,
@@ -50,5 +50,7 @@ export default new Page({
 		md("**The first line is only evidence if it begins a line.** `String(fn)` for a shorthand method starts at the name — `append(...args){` — so its indent was left behind in the file and it measures zero. Taking the minimum across every line let that zero win, and the signature sat at the root while the body stayed three tabs deep. A first line with no leading whitespace knows nothing about the indent, so it isn't asked.");
 
 		md("Next: [markup](/framework/util/markup/) — the same trick for DOM instead of functions.");
+
+		md.details(import.meta, "readme.md", "Design record — why it's in util/, and the two ways to stringify");
 	}
 });

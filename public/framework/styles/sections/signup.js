@@ -1,5 +1,5 @@
 import { p, form, input } from "/app.js";
-import { section, eyebrow, cta, muted } from "./parts.js";
+import { section, eyebrow, cta } from "./parts.js";
 
 /* One input and one button. framework.css already gives the input its border and
  * padding; `flex: 1 1 12em` beside a fixed button is the row wrapping itself on
@@ -16,5 +16,5 @@ export default tone => section(tone ?? "dark", () => {
 		cta("Subscribe", "prim");
 	}).on("submit", e => e.preventDefault());
 
-	p("No build step in the newsletter either.").style({ ...muted, fontSize: "0.85em" });
+	p.c("muted", "No build step in the newsletter either.").style({ fontSize: "0.85em" });
 }).style("--section", "40em");

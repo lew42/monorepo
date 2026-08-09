@@ -1,35 +1,14 @@
-/* Layer order, restated: the FIRST declaration wins and module import
-   order decides who loads first, so every stylesheet states it. */
+/* Restated IN FULL — a short list silently misplaces `site`. */
 @layer base, theme, site, util;
 
-/* Rendered markdown needs almost no CSS, and that is the point.
- *
- * Markdown emits plain HTML — `pre`, `code`, `blockquote`, `table`, `h2`. Those
- * are HTML's looks, not markdown's, so they belong to whoever styles HTML:
- * framework.css. This file used to own them, which meant the site had two
- * blockquote designs (one for markdown, one for a hand-written `blockquote()`)
- * and four opinions about `pre` padding.
- *
- * What's left is the only thing that is genuinely md's: the two classes md.js
- * actually emits. Both are prefixed, both are styled nowhere else.
- *
- * Retired here, and where each went:
- *   .md > :first/:last-child   → framework.css `util` (global, symmetric)
- *   .md pre / pre > code       → framework.css `pre` block padding
- *   .md blockquote, .md table  → framework.css, as plain element rules
- *   .md td:first-child         → /styles.css — a docs opinion, not a markdown one
- */
+/* Two classes: the only two md.js emits. The generic elements markdown produces —
+   `pre`, `code`, `blockquote`, `table` — are HTML's looks, not markdown's, and
+   belong to framework.css. readme.md records what was handed back. */
 @layer theme {
 
     .md-error { color: var(--error); }
 
-    /* md.details — the technical record, one click away and out of the way.
-       Generic enough to want extracting into a `core/Details/` component the
-       moment a second disclosure appears; until then a second file costs more
-       than it saves. `summary { cursor: pointer }` is already in framework.css,
-       since that one is a UA gap rather than a design. */
-    /* Its own margin, deliberately: this is the end-of-page rule, not a block in
-       the flow, so it wants more air above than the rhythm gives. */
+    /* Its own margin, deliberately: an end-of-page rule, not a block in the flow. */
     .md-details { margin-block-start: 3.5rem; border-top: 1px solid var(--line); }
     .md-details > summary {
         padding: 0.6em 0;

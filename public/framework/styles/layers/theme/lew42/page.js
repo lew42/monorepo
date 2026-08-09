@@ -1,6 +1,12 @@
-import { Page, View, Sidebar, md, demo, div, p, button, pre, span, icon } from "/app.js";
+import { Page, Sidebar, md, demo, div, p, button, pre, span, icon } from "/app.js";
 
-View.stylesheet(import.meta, "lew42.css");
+/* css: .theme-lew42 — and the IMPORT is the loading edge, not the annotation.
+ * This page used to call `View.stylesheet(import.meta, "lew42.css")` itself,
+ * which `lew42.js` already does at module scope. `View.stylesheet()` does not
+ * dedupe — it appends a <link> per call — so the site got two identical <link>s
+ * and boot awaited two promises for one file. Importing the module that owns the
+ * CSS is the rule everywhere else; it applies here too. */
+import "./lew42.js";
 
 /* One block of markup, rendered under the theme and under nothing. Same DOM,
  * same classes, no theme-aware code — which is the claim, so it had better be
@@ -40,7 +46,7 @@ export default new Page({
 	meta: import.meta,
 	title: "lew42",
 	description: "The house theme — Montserrat, one orange, and a sidebar that reads its ink from a token.",
-	icon: "auto_awesome",
+	icon: "brush",
 	content(){
 
 		/* No font call here any more. It used to live on this page, because 166KB

@@ -1,4 +1,4 @@
-The chain diff. **Only what changed** — shared leading pages are never touched.
+The chain diff. **Only what changed.**
 
 ```
 from   /a/b/c/   [root, a, b, c]
@@ -6,23 +6,34 @@ to     /a/x/     [root, a, x]
 shared 2         root and a are left completely alone
 ```
 
-So a sidebar built by `a` is not rebuilt, does not lose scroll position, and does
-not flicker. Reversed on the way out and forward on the way in, because a
-container must exist before its child mounts into it, and must not be torn down
-before its child has left.
+## Usage
 
-## No awaits past the group
+`Router.js:70` — `load()`, the only caller.
 
-`await this.app.styles_loaded()` happens in `load()`, one level up, deliberately.
-**`activate()` must stay synchronous**: that "no awaits past this point" guarantee
-is what lets a site wrap the whole swap in `document.startViewTransition()`.
+## Necessity
 
-Found by a seat whose missing animation was simply louder than a missing margin
-would have been.
+Essential — the one place a page is shown or hidden. Deactivate deepest-first and
+activate shallowest-first, because a container must exist before its child mounts
+into it and must not be torn down before its child has left. A sidebar built by an
+ancestor is never rebuilt, never loses scroll position and cannot flicker.
+[chain-diff](/framework/core/Router/docs/chain-diff/).
 
-## `navigated?.(page, from)`
+Four other things ride along in the same eleven lines, and each is here because it
+has to happen exactly once per navigation: `this.active`, `mark()`,
+`document.title`, and the scroll reset.
 
-Duck-typed, so it costs nothing until a site defines it. `from` is passed as well
-as `page` because the hook fires on first paint too, and two people independently
-re-derived "is this the first navigation" — one from `from.length`, one by
-counting — while it was already computed on line one and being thrown away.
+## Simplicity
+
+**No awaits past the group.** The comment on `Router.js:96` is the constraint that
+shapes the whole method — a site can wrap this in `document.startViewTransition()`
+only because nothing here suspends. That is why the two awaits live one level up,
+in [`load`](/framework/core/Router/api/load/).
+
+It does more than its name says, and the candidates for a split are the title and
+the scroll reset. Neither is worth a method: both are one line, both are once per
+navigation, and moving them means a second thing to call in the right order.
+[scroll-reset](/framework/core/Router/docs/scroll-reset/) says why deleting the scroll
+line only *looks* safe.
+
+`this.app.navigated?.(page, from)` is duck-typed, so it costs nothing until a site
+defines it. [navigated](/framework/core/Router/docs/navigated/).

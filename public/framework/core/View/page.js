@@ -1,4 +1,4 @@
-import { View, classdoc, md, demo, div, h1, h2, h3, p, a, ul, li, label, input, span, button, toc } from "/app.js";
+import { View, classdoc, md, demo, h1, h3, p, ul, li, div, span, button, label, input } from "/app.js";
 
 export default classdoc.page({
 	meta: import.meta,
@@ -7,62 +7,47 @@ export default classdoc.page({
 	icon: "image",
 
 	Class: View,
-	methods: "append ac on style stylesheet",
-	properties: "el capture",
 
-	// The design record, served: each name is a ./doc/<name>.md the readme cites.
-	notes: "capturing append-dispatch factories classify stylesheet-loading style-custom-props on-binding",
+	// Every member, in the order a reader meets them: the everyday API, then the
+	// lifecycle, then the plumbing under append(), then the statics.
+	methods: "append ac style attr text html on click empty "
+		+ "prepend rc tc hc href off remove replace hide show toggle "
+		+ "render prerender initialize classify assign "
+		+ "append_to prepend_to append_fn append_promise append_pojo append_prop "
+		+ "backtick_append backticks has_class toggle_class html_unsafe "
+		+ "load lazy clone repeat compute ctrl "
+		+ "stylesheet elements body url meta_path set_captor restore_captor",
+
+	properties: "el capture tag classes name parent captor previous_captors stylesheets supports_sanitizer",
+
+	notes: "capturing lifecycle",
 
 	content(){
-
-		toc();
 
 		demo(() => {
 			h1("Hello");
 			p("A paragraph.");
-		}, "Every HTML tag is a function. Call it, and the element appears.");
-
-		md("Every box on this page is live — that code ran here, in this page's `content()`.");
-
-		h2("Nesting");
+		}, "Every HTML tag is a function. Call it, and the element appears — that box is this code, running here.");
 
 		demo(() => {
 			ul(() => {
 				li("First");
 				li("Second");
 			});
-		}, "Pass a **function** and whatever it creates goes inside.");
-
-		demo(() => {
-			div(() => {
-				h3("Card");
-				p("Body");
-				a("A link").href("/framework/");
-			});
-		}, "Nest as deep as you like. This is the one idea in `View` — *capturing*: while your function runs, the new element is the one collecting children.");
-
-		h2("Classes");
+		}, "Pass a **function** and whatever it creates goes *inside*. That is the one idea in `View`, and it nests as deep as you like.");
 
 		demo(() => {
 			div.c("flex gap", () => {
 				button.c("prim", "Save");
 				button("Cancel");
 			});
-		}, "`.c()` on any tag: classes first, then children.");
-
-		h2("Chaining");
+		}, "`.c()` on any tag takes classes first, then children.");
 
 		demo(() => {
 			p("Click me")
 				.style("cursor", "pointer")
 				.click(function(){ this.text("Clicked.").style("color", "green"); });
-		}, "Every method returns the view, so they chain. Inside an event, `this` is the view.");
-
-		demo(() => {
-			p("2 + 2 = ", 2 + 2, ". And a ", a("link").href("/"), " inline.");
-		}, "Strings, numbers and other views are all just arguments.");
-
-		h2("Put it together");
+		}, "Every method returns the view, so they chain. Inside a handler, `this` **is** the view — so use `function`, not an arrow.");
 
 		demo(() => {
 			const todos = ["Write a page", "Save the file", "Refresh"];
@@ -80,10 +65,6 @@ export default classdoc.page({
 				.style({ border: "1px solid var(--line)", borderRadius: ".5em" });
 		}, "Data in, DOM out. No template language, no directives — it's a `forEach`.");
 
-		md("That's a component. Wrap it in a function, or in a `View` subclass, and it's reusable.");
-
-		h2("Your own views");
-
 		demo(() => {
 			class NoteView extends View {
 				render(){
@@ -93,27 +74,12 @@ export default classdoc.page({
 			}
 
 			new NoteView({ note: "I am a div.note" }).ac("pad");
-		}, "Subclass `View`, write `render()`. The class name becomes the CSS class, kebab-cased — so `NoteView` renders `div.note`, ready to style.");
+		}, "Subclass `View`, write `render()`. The class name becomes the CSS class, kebab-cased — `NoteView` renders `div.note` — and it captures like any tag function, so it drops straight into a layout beside `div()` and `p()`.");
 
-		md("It captures like any tag function, so `new NoteView(…)` drops straight into a layout beside `div()` and `p()`.");
-
-		h2("The methods");
-
-		md(`| method | does |
-|---|---|
-| \`ac\` \`rc\` \`tc\` \`hc\` | add / remove / toggle / has class |
-| \`text\` \`html\` | get or set content |
-| \`attr\` \`href\` \`style\` | attributes and inline styles |
-| \`on\` \`off\` \`click\` | events (\`this\` is the view) |
-| \`append\` \`prepend\` \`empty\` \`remove\` \`replace\` | structure |
-| \`hide\` \`show\` \`toggle\` | visibility |
-
-Learn six of them and you can build a page. **The nav on the left goes deeper** —
-five methods with their real source, two properties, and below them the design
-notes: the record of why it's written this way.`);
+		md("Every method and property on the left has its own page: the real source, who calls it, and an honest note on whether it should exist at all.");
 
 		md("Next: [Page](/framework/core/Page/) — a title, a url, and a place in a tree.");
 
-		md.details(import.meta, "readme.md", "Design record — capture, and the traps");
-	}
+		md.details(import.meta, "readme.md", "Design record — capture, and what should be deleted");
+	},
 });

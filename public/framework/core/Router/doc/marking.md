@@ -12,7 +12,9 @@ nothing undone, only its classes gone** — which is a query, not a lifecycle ca
 and that is why there is no teardown protocol to get wrong.
 
 Every arrangement on the site is these two classes plus one a page opted into by
-name (`paper`, `papers`, `full`). The Router does not know any of those names.
+name (`grid`, `pad`, `full`, `fill`). The Router does not know any of those names —
+which is why that list can be rewritten, as it has been: `paper`/`papers` were the
+words here until the sheet became the region's default.
 
 **Scoped to `$app`, never `document`.** On a cold load `$app` is still detached,
 so a document-wide query finds zero links and nothing lights up.

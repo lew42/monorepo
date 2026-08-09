@@ -1,27 +1,12 @@
-/* Layer order, restated: the FIRST declaration wins and module import
-   order decides who loads first, so every stylesheet states it. */
+/* Restated IN FULL — a short list silently misplaces `site`. */
 @layer base, theme, site, util;
 
-/* THEME: lew42 — the house look. Montserrat, one orange, a lot of grey.
+/* THEME: lew42 — Montserrat, one orange, a lot of grey. Design record: readme.md.
  *
- * Ported from Figma (July 2026, "app-class-*"). The design's four variables map
- * onto tokens that already existed, which is the whole reason this file is short:
- *
- *     prim  #ff8f60  →  --prim        light  #e6e6e6  →  --line / --wash
- *     dark  #3f3f3f  →  --ink / --bg  med    #737373  →  --subtle
- *
- * Not one selector here names a component. The sidebar in the comp is core's
- * `Sidebar`, retuned through `--sidebar-bg` / `--sidebar-ink` — if this file had
- * to say `.sidebar`, that component was missing a token and the fix belonged
- * there. It did, once; it doesn't now.
- *
- * The type scale IS a rule block rather than tokens (ladder rung 3). It names
- * only generic HTML, which is precisely a theme's business, and the alternative
- * was inventing eight speculative size tokens to replace one hardcode each.
- * See readme.md.
- *
- * Requires `app.font("Montserrat")` — the family is named here, the file is
- * fetched by App. That split is the one seam in this file; readme.md §3.
+ * ⚠ Requires `app.font("Montserrat")`: the family is named here, the file is fetched
+ *   by App, and CSS cannot make that call.
+ * ⚠ Not one selector here names a component. If it ever needs to, that component is
+ *   missing a token and the fix belongs there.
  */
 @layer theme {
 
@@ -31,20 +16,15 @@
 		--prim: #FF8F60;                          /* the mark's own orange */
 
 		--ink:     light-dark(#3f3f3f, #e6e6e6);
-		/* #737373 measured 4.24:1 on `--wash` — under AA, in ~150 places across the
-		   site (toc rows, captions, icons, summaries). Two shades darker clears it
-		   without changing the grey's character. */
+		/* ⚠ Not the comp's #737373 — that measured 4.24:1 on `--wash`, under AA, in
+		   ~150 places. Two shades darker clears it without changing the character. */
 		--subtle:  light-dark(#6a6a6a, #a8a8a8);
 		--line:    light-dark(#e6e6e6, #333333);
 
-		/* Three steps of one ladder, and elevation is LIGHTER on both sides of it:
-		   wash is the floor the app sits on, surface is a card raised off it, tint
-		   is a panel inside a card.
-
-		   ⚠ Opaque, all three. These were `rgba(230,230,230,0.07)` in dark, and
-		   `.app { background: var(--wash) }` composited that over a transparent
-		   `body` — i.e. over the browser's white. Dark mode rendered as pale grey
-		   with pale text. A colour that backs a whole app cannot be translucent. */
+		/* Three steps of one ladder — wash is the floor, surface a card raised off
+		   it, tint a panel inside a card. Elevation is LIGHTER on both sides.
+		   ⚠ OPAQUE, all three: `.app { background: var(--wash) }` composited a
+		   translucent value over the browser's white and dark mode rendered pale. */
 		--wash:    light-dark(#f2f2f2, #171717);
 		--tint:    light-dark(#f8f8f8, #1f1f1f);
 		--surface: light-dark(#ffffff, #262626);
@@ -54,27 +34,19 @@
 		   `--bg` in dark mode would be white-on-grey. */
 		--bg: light-dark(#3f3f3f, #4a4a4a);
 
-		/* The comp ships the sidebar two ways — white in the overview frames,
-		   near-black in the tabbed ones. That's one token, not two designs:
-		   `--sidebar-bg: #1f1f1f` on any box gives the other. */
+		/* The comp ships the sidebar white and near-black. One token, not two designs. */
 		--sidebar-bg:  light-dark(#ffffff, #141414);
 		--sidebar-ink: light-dark(#3f3f3f, #e6e6e6);
 
 		--radius: 0.25em;                         /* barely rounded, per the comp */
 		--font: Montserrat, system-ui, -apple-system, sans-serif;
 
-		/* A dark code box under a light page, which is what the comp draws. A
-		   theme owns this or it inherits whatever ancestor set one — and this
-		   site's `.app` declares its own, so without these a lew42 box sitting
-		   inside it would wear the site's palette instead. */
+		/* A dark code box under a light page, which is what the comp draws. */
 		--code-bg:  light-dark(#3f3f3f, #191919);
 		--code-ink: #e6e6e6;
 
-		/* highlight.js reads these; the ext exposes them so a theme never has to
-		   touch its selectors. Tuned for the dark box above, both modes. */
-		/* NOT `light-dark()` — `--code-bg` is dark in both modes, so a "light mode"
-		   value here would be a dark grey on a dark box. Measured on `#3f3f3f`:
-		   #9d9d9d 3.88:1, #b5b5b5 5.14:1. */
+		/* ⚠ The --syn-* below are NOT light-dark(): `--code-bg` is dark in both modes,
+		   so a "light mode" value would be a dark grey on a dark box. */
 		--syn-comment: #b5b5b5;
 		--syn-keyword: var(--prim);
 		--syn-string:  #9ecbff;
@@ -86,37 +58,25 @@
 		--syn-meta:    #9d9d9d;
 		--syn-error:   var(--prim);
 
-		/* Paints itself rather than leaning on `body { color }`, so it works at
-		   any depth. `color` inherits as a RESOLVED value — a nested box that
-		   only redefined `--ink` would change nothing. */
+		/* ⚠ Paints itself rather than leaning on `body { color }`: `color` inherits as
+		   a RESOLVED value, so a nested box redefining only `--ink` would change
+		   nothing. */
 		color: var(--ink);
 		background: var(--surface);
 		font-family: var(--font);
 
-		/* Montserrat Medium, and copy set loose. Both inherit, so they are the
-		   body half of the scale; the headings below reset line-height because
-		   1.8 on a 3em display face is a paragraph gap, not a heading. */
 		font-weight: 500;
-		line-height: 1.8;
+		line-height: 1.8;   /* the headings below reset it — 1.8 on a 3em face is a gap */
 	}
 
-	/* The mode axis. Declared here, not globally, because honoring it is a
-	   promise — a theme with no `light-dark()` in it would be lying by accepting
-	   the class. Every token above has both values, so this one is honest.
-
-	   Note the comp itself is light-only: the dark values are derived, not
-	   drawn. readme.md §4. */
+	/* ⚠ Declared here, not globally: honouring the mode axis is a promise, and a theme
+	   with no light-dark() would be lying by accepting the class. */
 	.theme-lew42.light { color-scheme: light; }
 	.theme-lew42.dark  { color-scheme: dark; }
 
-	/* ---- the type scale ------------------------------------------------
-	   Montserrat Black / Bold / SemiBold / Bold-uppercase, straight off the
-	   comp's text styles. Generic elements only — and each level is matched
-	   with its class, exactly as framework.css pairs them, so `p.c("h2", …)`
-	   still borrows the level without lying about the outline.
-
-	   Sizes are em, so the whole scale rides `body`'s clamp(16px, 2vw, 20px)
-	   instead of pinning the 1440px comp's pixels onto every viewport. */
+	/* The type scale, straight off the comp. Generic elements only, each level paired
+	   with its class as framework.css pairs them. Sizes are `em`, so the whole scale
+	   rides `body`'s clamp instead of pinning the 1440 comp's pixels everywhere. */
 
 	.theme-lew42 :is(h1, .h1) {
 		font-size: 3em; font-weight: 900;
@@ -134,8 +94,7 @@
 		letter-spacing: 0.09em; text-transform: uppercase;
 	}
 
-	/* Consolas Bold 14 in the comp. `.code` too, since framework.css treats it
-	   as the sixth level of the scale. */
+	/* `.code` too, since framework.css treats it as the sixth level of the scale. */
 	.theme-lew42 :is(code, pre, .code) { font-size: 0.875em; font-weight: 700; }
 
 	/* Buttons read as small uppercase labels — "READ GUIDE", "VIEW DOCS". Same

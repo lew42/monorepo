@@ -3,14 +3,11 @@ import { Page, md, code, h2 } from "/app.js";
 export default new Page({
 	meta: import.meta,
 	title: "Util",
+	label: "Utilities",
 	description: "Small, dependency-free helpers. Plain functions, no classes, no state.",
 	icon: "handyman",
 
 	children: "is source markup",
-
-	// Labels and icons come from the pages themselves; this holds the three so the
-	// cards can read them.
-	initialize(){ this.load_all_children(); },
 
 	content(){
 

@@ -1,11 +1,17 @@
 Whether this view hands itself to the current captor when constructed.
 
-`true` on View's **prototype** — not a class field, which would shadow whatever a
-subclass declared. Pass `{ capture: false }` to build something that must stay
-out of the tree it is built inside: `View.stylesheet()` does exactly that for its
-`<link>`, so importing a module mid-capture cannot drop a stylesheet into the
-page.
+**Usage** — read once, in `prerender()` (`View.js:22`). Set to `false` in exactly
+two places, both of which must escape the captor: `stylesheet()`'s `<link>`
+(`View.js:424`) and `View.body()` (`View.js:489`).
 
-⚠ Like everything `prerender()` reads, it is read inside `super()` — a subclass
-class field `capture = false` initializes too late to be seen. A constructor
-argument or a prototype assignment, never a field.
+**Necessity** — yes. Without it, importing a module mid-render would drop that
+module's `<link>` into whatever paragraph was being built.
+
+**Simplicity** — right-sized, with one placement rule that fails silently:
+
+> It lives on View's **prototype** (`View.js:519`), not as a class field. A field
+> would shadow whatever a subclass declared, and — like everything `prerender()`
+> reads — it is read inside `super()`, so a subclass's `capture = false` field
+> initializes too late to be seen. A constructor argument or a prototype
+> assignment, never a field.
+

@@ -1,407 +1,150 @@
 # Sidebar — design record
 
-A brand over a list of links. The only component `core/` ships, and the only one
-that has to justify being there at all.
+A brand over a list of links, over a footer that stays put. The only component
+`core/` ships, and the only one that has to justify being there at all.
 
----
+Long form in `./doc/`, one file per question, each also served as a note page under
+`/framework/core/Sidebar/`: `entries.md` (what an entry is, and where labels come
+from), `placement.md` (why this file has no width), `views.md` (the four `$`
+handles), `tokens.md` (the two tokens and the derivations), `narrow.md` (below 52em),
+`comp.md` (porting the July 2026 comp, with the two em traps it caught).
+**Every member also has its own file** — `./doc/method/<name>.md` and
+`./doc/property/<name>.md`, three concerns each: usage, necessity, simplicity.
 
-## 1. Why a component tier exists for exactly one thing
+## Decisions
 
-`core/` is four classes you meet — `View`, `Page`, `Router`, `App` — and then
-this, which is none of them. It is a `View` subclass, so it adds no tier and
-nothing depends on it.
+**Why a component tier for exactly one thing?** Because a sidebar is the one piece
+of chrome that is genuinely the same everywhere, and it was extracted from the old
+`ColumnPager` precisely so no layout would own it. It is a `View` subclass, so it
+adds no tier. **The test if a second is proposed:** does every site want it, and does
+it work with no configuration? A tab bar failed (which children are tabs is a
+*placement* decision, so it is a method on `Page`); a card failed (a card is a link
+with a border, so it is `.page-preview`).
 
-**It stays because a sidebar is the one piece of chrome that is genuinely the
-same everywhere**, and because it was extracted from the old `ColumnPager`
-precisely so it wouldn't be owned by one layout. Any page can render one.
+**One `pages` property, or a second `groups`?** One. An entry with its own `pages`
+**is** a group, duck-typed — a flat sidebar, a grouped one and a mix are the same
+call, and it nests without a new concept. The cost is that a group heading can never
+also be a link, which is correct anyway: a heading that navigates is a link
+pretending to be a heading.
 
-**The test if a second component is ever proposed:** does every site want it, and
-does it work with no configuration? A tab bar failed that test — it's a method on
-`Page`, because which children are tabs is a *placement* decision. A card failed
-it — that's `.page-preview`, a class, because a card is a link with a border.
-
----
-
-## 2. `pages` is one property, and a group is just an entry with pages
-
-```js
-new Sidebar({ brand: "LEW42", pages: [
-    { title: "Framework", pages: [               // a GROUP
-        { title: "Core", url: "/core/", icon: "dashboard" },
-    ]},
-    { title: "Flat", url: "/flat/" },            // an ITEM
-]});
-```
-
-**Options.** (a) A second `groups` property. (b) Duck-type off `.pages`.
-
-**Verdict: (b).** `pages` stays the one thing to remember, a flat sidebar and a
-grouped one are the same call, and it nests without a new concept. The cost is
-that an entry with a `pages` key can never also be a link — which is correct
-anyway: a group heading that navigates is a link pretending to be a heading.
-
-Entries are **duck-typed**, so a real `Page` (which knows its url from
-`import.meta`) and a plain `{title, url}` both work — both answer `.title` and
-`.url`, which is all a row needs. That is how a site lists sections it does not
-want to eager-load.
-
-### 2a. `link()` builds its own anchor now
-
-`Sidebar.link()` used to borrow the anchor from `page.link()` when the entry was
-a real `Page`. That handed a sidebar row a **second component's class**:
-`.page-link` brings `font-weight: 600` and its own `.active { color: --prim }`,
-at the same specificity as `.sidebar-link`'s — so which one won came down to
-stylesheet load order, and a Page-derived row and a POJO-derived row in the same
-panel could render differently.
-
-**Verdict: build it here.** A row in a sidebar is a sidebar's row. The cost is
-one line of anchor construction; the win is that one panel has one look.
-
-### 2b. An entry may say `label` instead of `title`
-
-`page.label ?? page.title`. Not two spellings of one thing — **a label belongs to
-the list it appears in, a title belongs to the page** (the distinction
-`core/Page/readme.md` argues at length, and the reason `nav` exists at all).
-
-`Page.nav_for(name)` already returns `{url, label, icon}`, so a parent hands its
-nav entries straight to `pages`:
+**What is an entry?** Anything answering `.label ?? .title` and `.url`. So a real
+`Page` and a plain POJO both work — and `Page.nav_for(name)` returns exactly that
+shape, which is how a parent hands its whole nav in:
 
 ```js
 pages: [...this.children.keys()].map(name => this.nav_for(name))
 ```
 
-That is `/framework/`'s entire navigation, and it means the panel, the tab bar
-and the preview cards read **one** source. Before this, `/framework/` hand-rolled
-its nav from `nav_for()` while `/michael/` hand-rolled its own from `page.title`
-— two menus over the same tree, already disagreeing.
+That is `/framework/`'s entire navigation, and it means the panel, the tab bar and
+the preview cards read **one** source. Before it, `/framework/` and `/michael/`
+hand-rolled two menus over the same tree and already disagreed. See ./doc/entries.md.
 
-### 2c. `header` is replaced, not configured
+**Where do labels and icons come from?** The child page's own `title` / `icon` —
+and a menu name that differs from the title is `label` **on the child**, not a map
+on the parent. There is no relabelling table: one was tried and removed, because it
+put a child's name in two files and the parent's copy won silently when they
+drifted. This section has now said the opposite twice and cited the file that had
+already reversed it — **a cross-reference is not a check.** See
+`core/Page/doc/labels.md` and ./doc/entries.md.
 
-A site with its own mark passes `header`, and the assign-based constructor makes
-that shadow the method:
+**Is `header` configured or replaced?** Replaced. The assign-based constructor makes
+a passed `header` shadow the method, and the same is true of `footer` (`footer: null`
+for none). **Accepting a View instead is the trap:** a View built to be passed in is
+constructed *before* the Sidebar captures, so it lands wherever the captor happened
+to be and then gets moved — the async-capture failure in synchronous clothing. A
+function runs *while* the Sidebar is capturing. Use an arrow, so `this` stays the
+page that knows the brand.
 
-```js
-new Sidebar({ header: () => this.app.brand("Framework", this.url), pages })
-```
+**Where does the footer go?** Below the nav, outside the scroller. `render()` is
+`bar()` over `menu()`, and `menu()` is the nav over the footer; the nav is the only
+scroller (`flex: 1 1 auto; min-height: 0; overflow-y: auto`), so the header and
+footer are pinned **by structure, not by `position`**. It replaced a
+`position: fixed` mode pill that floated over every page, full-bleed ones included.
 
-**Options.** (a) `logo` / `logo_url` / `brand` / `brand_url` grow until they
-cover every mark. (b) Accept a View. (c) Replace the method.
+**Why is the chevron `›` and not `chevron_right`?** `Sidebar.css` must not depend on
+a font the app may never have loaded, or an un-themed sidebar reads
+**"chevron_right"** down its margin. A ligature font fails *legibly*, which is a
+virtue everywhere except in CSS `content`, where nobody chose to load it. It is
+written `"\203A"`, never the literal — the deployed host serves CSS with no charset,
+so a raw multi-byte character decodes as Windows-1252 and renders `â€º`.
 
-**Verdict: (c),** with (a) kept as the zero-config default. (b) is the trap: a
-View built to be passed in is constructed *before* the Sidebar captures, so it
-lands wherever the captor happened to be and then gets moved — the async-capture
-failure mode, in synchronous clothing. A function runs while the Sidebar is
-capturing, so what it builds is simply in the right place. An arrow keeps `this`
-as the page that knows the brand.
+## Traps
 
----
+- **Size the text, pad the box, never the same element.** Both em bugs in this
+  component were this bug: `--gutter: 2.6em` measured 36.5px on a `.h4` group title
+  and 41.8px on every link. A custom property carries a **token**, not a resolved
+  length. ./doc/comp.md.
+- **Placement is not its business** — one line at the call site, and always the
+  shared token with **no fallback**. ./doc/placement.md.
+- **Anything that renders links late must re-run `mark_links()`.** `Router.mark()`
+  has already been and gone. No view compares `window.location` itself.
+- **A sidebar built without `app` has no mode toggle and says nothing.** Fine when
+  meant; invisible when not — and it happens by accident inside a `classdoc`
+  overview, where `this.app` is `undefined`. `core/App/doc/adoption.md`.
 
-## 3. Two component tokens, and everything else is `color-mix`
+## Proposed
 
-This file used to hardcode `color: #fff` plus **six** `rgba(255,255,255,…)`
-values — correct on a dark panel, invisible on a light one. The lew42 comp has a
-white sidebar, which is what forced the fix.
+Not applied. Each touches a core class, so it wants a critique first.
 
-```css
-background: var(--sidebar-bg,  var(--bg));
-color:      var(--sidebar-ink, #fff);
+**Should `$bar`, `$menu` and `$mode` be dropped?** Measured: assigned, never read,
+by anything, anywhere. `$toggle` is read twice and stays.
+*Options:* (a) drop the three; (b) keep all four on consistency — a component's
+parts are public by convention, and a subclass shouldn't have to `querySelector`;
+(c) drop all four and let `open()` find the toggle by query.
+*Weighing:* (c) trades a stored reference for a DOM query on every toggle, for
+nothing. (b) is defensible but nobody has ever subclassed `Sidebar`, so it is
+speculative surface. (a) makes the one remaining handle *mean* something.
+**Recommendation: (a).** Three lines shorter, and the note in ./doc/views.md becomes
+unnecessary.
 
-.sidebar-link.active { background: color-mix(in srgb, var(--sidebar-ink, #fff) 7%, transparent); }
-```
+**Should the Escape handler live in `toggle()` rather than `render()`?**
+`render()` is four lines, three of which are a keydown listener about narrow-screen
+behaviour.
+*Options:* (a) leave it; (b) move it into `toggle()`, beside the button it refocuses.
+*Weighing:* the listener is on the sidebar, not the button — Escape has to work from
+anywhere inside the panel — so (b) would attach a listener to `this` from inside a
+method that builds a child, which is worse than the thing it fixes.
+**Recommendation: (a), and stop calling it a wart.**
 
-**Verdict: promote exactly two tokens, derive the rest.** Ladder rung 2, and the
-promotion is justified because a theme *actually needed* to differ — not
-speculation. Deriving the group title, icons, hover and active tints from one ink
-means a theme **cannot set them inconsistently**, which is how that class of bug
-happens.
+**Should the four header properties collapse?** `brand`, `brand_url`, `logo`,
+`logo_url` — the widest surface on the class, and **two of them have never been
+set** in five sandboxes and the whole framework.
+*Options:* (a) keep all four; (b) drop `brand_url` and `logo_url`, on the grounds
+that a site with an opinion about either should pass `header`; (c) collapse to
+`brand: { text, url, logo, logo_url }`.
+*Weighing:* (c) is one option instead of four and reads worse at every call site.
+(b) removes two `??` from a line that has to exist anyway, and the case they serve
+is real — `framework/page.js` needs a wordmark pointing at the section, and meets it
+by replacing `header` entirely, which is the evidence for (b).
+**Recommendation: (a), recorded** — the cost of keeping them is two `??`, and the
+cost of removing them is a breaking change for a case that will come. Revisit if a
+year passes with neither set.
 
-The comp's two sidebar treatments — white and near-black — are the same component
-two token values apart. There is no second design.
+**Should nested groups recurse, or be refused?** A group inside a group reaches
+`link()` with an entry that has no `url` and renders `href="undefined"`, silently.
+*Options:* (a) recurse in `nav()`; (b) `console.warn` on an entry with `pages`
+inside a group; (c) leave it.
+*Weighing:* (a) is one line and invites a nesting depth nobody has asked for, which
+the CSS does not indent anyway. (c) is the current silent failure. (b) costs one
+line and turns an invisible bug into a message.
+**Recommendation: (b).**
 
-### 3a. Why the active fill isn't `--wash`
+**Should `open()` drop the computed method name?** `this[on ? "ac" : "rc"]("open")`
+reads twice; `on ? this.ac("open") : this.rc("open")` is the same length.
+**Recommendation: rename it to the plain ternary.** Local, obvious, no caller
+affected.
 
-The comp's active row is `#f2f2f2`, which is exactly `--wash` under theme-lew42.
-Using it directly would have been one word shorter and **wrong**: `--wash` tracks
-the document's brightness, and `--sidebar-bg: #1f1f1f` on a light page is a
-supported combination this very record ships (§3). A light fill would have landed
-on a dark panel.
+## Open
 
-`color-mix(… var(--sidebar-ink) 7%, transparent)` over white resolves to
-`#f2f2f2` — the comp's value, arrived at by derivation rather than declared. The
-general principle: **when a literal and a derivation agree, take the derivation.**
-They only agree in the case you happened to be looking at.
-
----
-
-## 3b. Porting the July 2026 comp
-
-Frame `110:436`, 307×1316, drawn at 1440 where 1em = 16px.
-
-| | comp | here |
-|---|---|---|
-| panel width | 307 | `--sidebar: 19em` |
-| row | 307×56, x=0 | full width, no margin, no radius |
-| row padding | 16 / 16 / 16 / 42 | `1em 1em 1em var(--gutter)` |
-| label | 18px | `.sidebar-label { font-size: 1.125em }` |
-| active fill | `#f2f2f2` | 7% of the ink (§3a) |
-| active icon | `#ff8f60` | `var(--prim)` |
-
-Two deltas, both deliberate:
-
-- **No left accent bar.** The comp doesn't draw one, and the `border-left: 3px`
-  it replaces was the only thing in this file that moved the label by a pixel
-  between states.
-- **Icons stay at `1.25em` of the base (20px), not the comp's 24.** Asked for
-  directly — the label going to 18px shouldn't drag the icon up with it.
-
-**The 18px lives on the label, not on the row.** Put it on `.sidebar-link` and
-every box value below it is suddenly an em of 18 — `16px` becomes `0.89em`, `42px`
-becomes `2.33em`, and the file reads as arbitrary numbers. A span costs one
-element and keeps the box measured against the base while the type does what the
-comp asks. Two sizes in one row is the normal case.
-
-### 3c. `--gutter` is `em`, and that nearly defeated the whole point
-
-The gutter is one number — 42px for the brand, the group titles and the links —
-declared locally as `.sidebar { --gutter: 2.6em }` with the comment *"one number,
-so nothing in this column can misalign."* It was wrong when it was written.
-
-**A custom property carries a TOKEN, not a resolved length.** For an unregistered
-property the substituted value is the literal string `2.6em`, and `em` resolves
-against the element that *uses* it. `.sidebar-group-title` carried `.h4`
-(`font-size: 0.875em`), so its `2.6em` measured 36.5px while every link measured
-41.8px. The single knob quietly had two values.
-
-**Options.** (a) `@property --gutter { syntax: "<length>" }`, which computes the
-value once at declaration and inherits it as an absolute length. (b) Switch to
-`rem`. (c) Stop sizing text on the padded box.
-
-**Verdict: (c)** — the fix already used one section above for exactly the same
-reason. `.h4` moves to an inner span, the padded div stays at the base size, and
-`2.6em` means one thing everywhere. (b) would work and would also stop the gutter
-tracking `framework.css`'s body clamp, since `rem` is the root's 16px and the
-clamp is on `body`. (a) is correct and is real machinery for one value.
-
-**The rule that generalises: size the text, pad the box, never the same element.**
-Both bugs in this file were the same bug.
-
-`line-height` is pinned on the row for the same class of reason: it decides the
-row height together with the label, and a theme is entitled to a loose one for
-body copy. lew42's `1.8` turned the 56px row into 64px.
-
----
-
-## 4. The chevron is `›`, not `chevron_right`
-
-An active item gets a chevron. Material Icons would be the obvious source and is
-the wrong one: `Sidebar.css` must not depend on a font the app may never have
-loaded, or an un-themed sidebar reads **"chevron_right"** down its margin.
-
-A ligature font fails *legibly*, which is a virtue everywhere except in CSS
-`content`, where nobody chose to load it.
-
----
-
-## 5. Icons are on the entry, not on the page
-
-`icon: "dashboard"` sits in the `pages` array, which is parent-side data — the
-same call as `Page`'s `nav` map, for the same reason.
-
-An icon identifies **this entry in this menu**, not the page. So it costs no
-import, and a sidebar is complete before any of the pages it lists exist. See
-`core/Page/readme.md` for the long form; the trilemma it dissolves (duplicate /
-eager-load / neither) is the interesting part.
-
----
-
-## 6. Placement is not its business
-
-```css
-.topic > .sidebar { flex: 0 0 var(--sidebar); }
-```
-
-One line, at the call site, and always the shared token — **no
-`var(--sidebar, 19em)` fallback.** The sharing is the point: a fallback
-reintroduces exactly the two-numbers-that-drift problem the token exists to
-solve.
-
-It drifted anyway, without a fallback, by a route worth recording: `/styles.css`
-styled a `.section-nav` it hand-rolled at `flex: 0 0 14em` while `--sidebar` sat
-at `13em` and this component went unrendered. **A token cannot keep two things in
-agreement if one of them isn't using it.** The fix wasn't the number; it was
-deleting the second sidebar.
-
-`.active` / `.in-path` come from `Router.mark_links()`. **No view compares
-`window.location` itself**; one pass sets both classes and CSS decides what each
-kind of link does with them. A sidebar treats them the same — both mean "this
-section" — while a preview card distinguishes them.
-
----
-
-## 7. Open
-
-- **The favicon is the default logo.** `Sidebar.favicon()` reads the document's
-  `<link rel="icon">` rather than hardcoding an asset path. Neat, and slightly
-  magic — it reads DOM the class doesn't own. Nothing has needed otherwise.
-- **No mobile behaviour.** The old ColumnPager had an off-canvas burger; this has
-  none, and `/styles.css` handles the one case on this site with a media query.
-  A component that ships responsive behaviour is deciding layout, which is the
-  thing §6 says it must not do — so this is probably correct, but it is
-  untested against a second consumer.
-  **⟲ Reversed — see §9.** The site's media query grew into a second sidebar
-  design maintained outside the component, which is the drift §6 exists to
-  prevent. Narrow behaviour is the component's now.
-- **`/framework/`'s group data is hand-typed, and can drift.** `sidebar_nav` in
-  `framework/page.js` lists five groups and twenty entries; each section's own
-  `children` string lists the same names again. Reading them instead would mean
-  importing all five sections at `/framework/`, which is what laziness exists to
-  avoid — the same call `/page.js` makes with `sections`. If it starts drifting,
-  the fix is `load_all_children()` in `initialize()` and filling each group after
-  first paint, the shape `tabs()` already uses.
-  **✅ Done — see §5.**
-- **A group leads with its section rather than linking its heading.** §2's verdict
-  stands — a heading that navigates is a link pretending to be a heading — so
-  every group's first entry is "Overview", pointing at the section's own url.
-  This is what the comp draws, and without it a grouped sidebar has no way to
-  reach `/framework/core/` at all.
 - **`.brand` has two owners.** `Sidebar.header()` emits it and so does the site's
-  `app.brand()` — same class, two components, which is exactly what the naming
-  rule forbids. It works because the site passes `header` and only one of them
-  ever runs, and because this file scopes its rules to `.sidebar .brand`. It is
-  still one class name short of a collision.
-
----
-
-## 5. The nav is derived now, and two things went wrong that were the same thing
-
-`/framework/`'s sidebar was 25 hand-typed entries. It is now built from the tree —
-`load_all_children()` on the section, then on each section's children, and every
-label and icon comes from `nav_for()`. See `core/Page/readme.md` §"nav" for the
-verdict and its measured cost (+51ms to first paint).
-
-Two bugs fell out, and **both are "the sidebar is rebuilt after the pass that was
-supposed to touch it"**:
-
-- **`pages` is data, evaluated once.** The rebuild re-ran `render()` against the
-  array the Sidebar was constructed with, so it faithfully redrew the *stale* list.
-  It looked exactly like the promise never firing. Fix: `assign({ pages: … })`
-  before `render()` — recompute the data, don't just re-render.
-- **The new rows had no `.active` or `.in-path`.** `Router.mark()` had already run,
-  so the links it marked no longer existed. Fix: call `mark_links()` after the
-  rebuild — the same call `tabs()` makes, for the same reason.
-
-**The reusable rule: anything that renders links LATE must re-run `mark_links()`.**
-`tabs()` did it and this didn't, which is a good argument that a second caller means
-it belongs somewhere more obvious than a comment in two files.
-
-The second bug was invisible for a while, because nothing read those classes on a
-sidebar — `/styles.css` only styles them. It surfaced the moment a narrow-screen
-rule started *selecting* on them.
-
-## 6. Below 52em: one wrap row, and only the group you are in — SUPERSEDED by §9
-
-Stacked, the panel sits above the content, so its full height is a wall you scroll
-past to reach the page. At 7 entries that was fine; at 30 it measured **700px of nav
-before the first heading** at 390px.
-
-| option | why not |
-|---|---|
-| a hamburger drawer | needs JS, or a checkbox hack, or `<details>` restructuring — and a whole open/closed state to get right |
-| a horizontal scroll strip | 30 items in a one-line scroller, with group titles inline, is a worse index than no index |
-| **show the group you are in** | ✓ |
-
-**Verdict: `display: contents` on the group, hide the group title, and
-`:not(:has(.sidebar-link:is(.active, .in-path)))` on the rest.** ~200px, no JS, no
-state.
-
-`display: contents` rather than making the group a full-width flex item: as an item
-it stayed a *column*, and the flat entries after it wrapped up beside it — "Dev
-server" sat next to "Page", reading like a second column that wasn't one. Dissolving
-the group puts its links in the same wrap row as everything else.
-
-The title goes too. With exactly one group visible, "CORE" is a heading over the
-only thing there is.
-
-**What makes this blunt approach honest is the escape route, and it already
-existed:** the brand links to the section index, which lists every section as a
-card. So a phone gets *"where am I"* from the panel and *"somewhere else"* from the
-index — the same split a drawer would provide, without the drawer.
-
-> **⟲ Superseded.** It worked "sorta": one wrap row of the current group is an
-> index with no way to the *other* groups, `display: contents` breaks the a11y
-> tree in some browsers when it lands on interactive ancestors, and the row never
-> looked designed. §9 replaces it with a top bar and a real menu. The rules this
-> section describes still live in `/styles.css`'s 52em block and must be deleted
-> there — until they are, they degrade the open menu on `.topic` sidebars.
-
----
-
-## 8. The footer: a strip that does not scroll
-
-**The question.** Where do a mode toggle and an account mark live? The app had
-pinned the toggle bottom-right, `position: fixed` over everything — reachable, but
-chrome floating over content on every page, including full-bleed ones.
-
-**Options.** (a) Keep the fixed pill. (b) A footer entry in `pages` — but a row in
-the nav scrolls away with it. (c) A `footer` slot parallel to `header`: below the
-nav, outside the scroller.
-
-**Verdict: (c).** `render()` is now `bar()` over `menu()`, and `menu()` is the nav
-over the footer; the nav is the only scroller (`flex: 1 1 auto; min-height: 0;
-overflow-y: auto`), so header and footer are pinned by structure, not by
-`position`. The panel's own `overflow-y: auto` was deleted — the panel scrolling
-whole was the shape this replaces.
-
-**The default footer is the colour-scheme toggle plus a placeholder avatar.**
-Zero-config, like `header`'s logo-and-wordmark default; a site replaces it by
-passing `footer` (same assign-shadowing), or removes it with `footer: null`. The
-toggle is `mode(app)` and mode needs the app — it styles `app.$app` — so it
-renders only when the sidebar was given one: `new Sidebar({ app: this.app, … })`.
-Absent an app it degrades to just the avatar, silently but visibly.
-
-The footer's hairline is `color-mix` off `--sidebar-ink`, not `--line` — `--line`
-tracks the *document's* brightness, and a dark panel on a light page is a
-supported combination (§3).
-
----
-
-## 9. Below 52em, take two: a top bar and a hamburger
-
-**The question.** §6's no-JS collapse hid every group but the current one and
-dumped the survivors into one wrap row. Honest about its cost, and the cost was
-the product: no route to sibling groups, `display: contents` a11y breakage, and a
-bar that read as an accident.
-
-**Options.**
-
-| | |
-|---|---|
-| keep §6, restyle the row | the structural problems (no other groups, `contents`) survive any restyle |
-| off-canvas drawer | a second layout (slide, overlay, backdrop) and the most JS of the three |
-| **top bar + slide-down menu** | ✓ — the bar is the header the panel already had; the menu is the panel it already was |
-
-**Verdict: the panel becomes a sticky top bar; the burger drops the whole menu
-below it.** The pieces were already there: `bar()` (header + toggle) and `menu()`
-(nav + footer) exist at every width, and the media query only changes which of
-them is a strip and which is hidden. Open state is one class (`.open`) and one
-attribute (`aria-expanded`); the menu is `position: absolute; top: 100%` against
-the sticky bar, so opening it moves nothing else, and the footer rides along —
-the toggle stays reachable on a phone.
-
-Decisions worth a line each:
-
-- **A real `<button>`**, not a clickable div or a checkbox hack — focus,
-  Enter/Space, and `aria-expanded` come free. The bars are three spans painted
-  `currentColor`, so no icon-font dependency (§4's rule).
-- **CSS decides "narrow"** — the button is always in the DOM, shown by the media
-  query. No resize listener, no state to reconcile with one.
-- **Escape closes and refocuses the toggle; a link click closes** — navigation
-  happened, the menu's job is done. Both are two lines.
-- **Breakpoint 52em**, matching the topic stacking in `/styles.css`. A container
-  query would let a demo box simulate it, but the bar/border changes are on
-  `.sidebar` *itself*, which a container query cannot style. Media query, simplest.
-- **The mode import is core → core now.** `Sidebar.js` briefly imported
-  `styles/layers/theme/mode.js` for the footer default — the one core import
-  outside core/, and it broke the whole site mid-session when theme/ moved under
-  it. `mode.js` lives beside App now (`core/App/mode.js`, the Font.js precedent):
-  theme-agnostic behaviour, imported by the two things that render it.
+  `app.brand()` — same class, two components, which the naming rule forbids. It works
+  because the site passes `header` so only one ever runs, and because this file scopes
+  to `.sidebar .brand`. Still one class name short of a collision.
+- **The favicon is the default logo.** `Sidebar.favicon()` reads the document's
+  `<link rel="icon">` rather than hardcoding an asset path. Neat, and slightly magic —
+  it reads DOM the class doesn't own.
+- **The avatar is a placeholder.** A styled empty box with `title="Account"` that
+  does nothing. The only speculative piece of the component.
+- **A group leads with its section rather than linking its heading.** Every group's
+  first entry is "Overview", pointing at the section's own url. Without it a grouped
+  sidebar has no way to reach `/framework/core/` at all.

@@ -1,0 +1,14 @@
+/* Restated IN FULL — a short list silently misplaces `site`. */
+@layer base, theme, site, util;
+
+@layer theme {
+
+	/* The sheet the top bar spans. Each group below sets its own column, so the bar
+	   stays one width while the panel under it changes shape. */
+	.page.classdoc { --measure: 78em; }
+
+	/* Prose, not a rail plus a column — the one group that reads rather than refers.
+	   ⚠ Beats tabs.css's `.page:where(:has(> .tabs.vertical))`, which is `:where()`d
+	     to (0,1,0) precisely so this two-class rule can win without escalating. */
+	.classdoc-group.page-overview { --measure: 64em; }
+}

@@ -1,0 +1,22 @@
+/* Layer order, restated IN FULL — a short list silently misplaces `site`. */
+@layer base, theme, site, util;
+
+@layer theme {
+
+	.demo-sims { display: flex; align-items: flex-start; }
+
+	/* The right-hand pane takes whatever the left one and the handle leave. */
+	.demo-sim { flex: 1 1 0; min-width: 0; overflow: hidden; padding-bottom: 0.4em; }
+
+	.demo-sim > .demo-size { padding-inline: 0.5em; }
+
+	.demo-split {
+		flex: 0 0 0.4em;
+		align-self: stretch;
+		min-height: 4em;
+		background: var(--line);
+		cursor: col-resize;
+		touch-action: none;          /* or the browser pans instead of dragging */
+	}
+	.demo-split:hover { background: var(--prim); }
+}

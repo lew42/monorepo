@@ -6,6 +6,7 @@ export default new Page({
 	meta: import.meta,
 	title: "Lists",
 	description: "One declaration is the entire list stylesheet — and `dl` isn't in it.",
+	icon: "format_list_bulleted",
 	content(){
 
 		demo(() => {
@@ -45,7 +46,7 @@ export default new Page({
 				li(() => p("A list item whose content is a paragraph."));
 				li(() => p("Markdown emits exactly this shape for a loose list."));
 			});
-		}, "`:where(.flow, .page, .md) :is(li, td, th) > p { margin-block: 0.35rem }` in `Page.css` — a UA paragraph margin inside a list item is a gap nobody asked for. Two element selectors, so it clears the UA rule without disturbing the flow around it.");
+		}, "`:where(.flow) :is(li, td, th) > p { margin-block: 0.35em }` in `framework.css` — a UA paragraph margin inside a list item is a gap nobody asked for. Two element selectors, so it clears the UA rule without disturbing the flow around it.");
 
 		md("## The list the reset misses");
 

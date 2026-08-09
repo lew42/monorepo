@@ -9,10 +9,15 @@ export default classdoc.page({
 	icon: "widgets",
 
 	Class: App,
-	methods: "instantiate load loaded font",
 
-	// The design record, served: each name is a ./doc/<name>.md the readme cites.
-	notes: "boot error-page loaders adoption fonts aliases",
+	properties: "$app $pages root router ready $body",
+
+	methods: "instantiate config render load initialize inject error " +
+	         "font loaded styles_loaded stylesheet path_to_page_url assign log_label",
+
+	// Each name is a ./doc/<name>.md the readme cites. `mode` and `fonts` cover the
+	// two sibling modules — mode.js and Font.js — which are not members of App.
+	notes: "constructor boot error-page loaders adoption fonts mode aliases",
 
 	content(){
 
@@ -22,18 +27,18 @@ export default classdoc.page({
 
 window.app = new App();`);
 
-		md("Two lines is a working site. `App` boots, builds one container, and walks to whatever url you opened.");
+		md("Two lines is a working site. `App` boots, builds one container, and walks to whatever url you opened. You never write a route.");
 
-		h2("The six steps");
+		h2("Six steps, in order");
 
 		pre(`app.instantiate()
-  config()      a Router option, a font
+  config()      a font, a theme's behaviour, a Router option
   render()      chrome + $pages, still detached
   await load()  import /page.js, then walk to this url
   initialize()
   inject()      $app into <body> — first paint`);
 
-		md("Nothing is on screen until `inject()`, which is what buys the no-flash first paint: fonts and stylesheets are awaited in `load()`, so the first thing the reader sees is finished.");
+		md("**Nothing is on screen until `inject()`.** Fonts and stylesheets are awaited in `load()`, so the first thing the reader sees is finished — no flash, no reflow. The same fact is the cost: a deep cold link waits for the whole walk.");
 
 		h2("Your own chrome");
 
@@ -48,7 +53,7 @@ window.app = new App();`);
     View.set_captor(this.$pages);
 }`);
 
-		md("Override `render()` and build whatever you like around `this.$pages`. Two rules: **pages mount into `$pages`**, and the captor has to end up there — a page's view is built by an element factory, and a factory appends to the captor.");
+		md("Override `render()` and build whatever you like around `this.$pages`. Two rules, both silent when broken: **pages mount into `$pages`**, and **the captor has to end up there** — a page's view is built by an element factory, and a factory appends to the captor.");
 
 		md("Chrome built here is built **once**. Navigation never touches it, so a sidebar can't blink and a scroll position in it can't reset.");
 
@@ -59,15 +64,11 @@ window.app = new App();`);
     this.font("Material Icons");    // icon("dashboard") needs it
 }`);
 
-		md("`font()` pushes onto `loaders`, which `instantiate()` awaits **before** `inject()` — so a font asked for in `config()` is already applied at first paint. Ask later and it still loads, it just isn't waited for. Memoized, so two pages asking share one fetch.");
+		md("Asked for in `config()`, a font is already applied at first paint. Ask later and it still loads, it just isn't waited for. Add your own with `Font.fonts.Inter = { name, url, options }`.");
 
-		md("Add your own with `Font.fonts.Inter = { name, url, options }`. See [lew42](/framework/styles/layers/theme/lew42/) for a theme that needs both.");
+		md("That is the whole class. It doesn't resolve urls — the moment a segment can need an import, that became navigation, and navigation is the [Router](/framework/core/Router/)'s.");
 
-		h2("What App does not do");
-
-		md("It doesn't resolve urls. The moment a segment can need an import, that became navigation — and navigation is the [Router](/framework/core/Router/)'s. `App` keeps boot and the one container, and that's the whole class.");
-
-		md("Next: [Sidebar](/framework/core/Sidebar/) — the one component core ships. Then [Extensions](/framework/ext/).");
+		md("Next: [Sidebar](/framework/core/Sidebar/) — the one component core ships.");
 
 		md.details(import.meta, "readme.md", "Design record — boot, adoption, and the two aliases");
 	}

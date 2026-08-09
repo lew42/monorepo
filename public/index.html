@@ -1,6 +1,13 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
+	<!-- charset FIRST, and inside the first 1024 bytes: the deployed host serves
+	     without a charset header, so a document that doesn't declare one is decoded
+	     as Windows-1252. That shipped once already, as `â€º` — see framework/report/. -->
+	<meta charset="utf-8">
+	<!-- Router.activate() writes the real title on every navigation; this is what
+	     the tab reads during the walk, before the first page resolves. -->
+	<title>lew42</title>
 	<link rel="icon" type="image/png" href="/assets/img/favicon.png">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<script type="module" src="/app.js"></script>

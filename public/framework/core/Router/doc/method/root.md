@@ -1,0 +1,27 @@
+The element every DOM query in this class is scoped to.
+
+```js
+root(){ return this.app.$app.el; }
+```
+
+## Usage
+
+- `Router.js:135` — `mark()`, wiping the two page classes.
+- `Router.js:149` — `mark_links()`, the anchor sweep.
+
+## Necessity
+
+Keep, and it earns its line by existing at all: **scoped to `$app`, never
+`document`.** On a cold load `$app` is still detached from the document, so a
+document-wide query finds zero links and nothing lights up. Two callers, one rule,
+one place for the rule to live.
+
+## Simplicity
+
+**The name is contested.** `app.root` is the root **Page**; `router.root()` is the
+app's root **element** — same word, two different things, one class apart, and
+`load_segments()` reads `this.app.root` on line 80, eleven lines above the method
+called `root`.
+
+Proposal (readme): rename to `scope()`. Same length, says what it is for, and
+stops answering a question it doesn't answer.

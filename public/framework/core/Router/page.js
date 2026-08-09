@@ -1,4 +1,4 @@
-import { Router, classdoc, md, code, h2, toc } from "/app.js";
+import { Router, classdoc, md, code, h2, a, div, demo, toc } from "/app.js";
 
 export default classdoc.page({
 	meta: import.meta,
@@ -7,10 +7,14 @@ export default classdoc.page({
 	icon: "alt_route",
 
 	Class: Router,
-	methods: "go link_clicked load_segments activate mark mark_links",
 
-	// The design record, served: each name is a ./doc/<name>.md the readme cites.
-	notes: "registry-gate chain-diff marking styles-loaded navigated scroll-reset backed-out measured",
+	properties: "active app",
+
+	methods: "go load load_segments activate mark mark_links " +
+	         "click link_clicked listen chain shared_depth root assign",
+
+	notes: "constructor registry-gate chain-diff marking styles-loaded " +
+	       "navigated scroll-reset fragment backed-out measured",
 
 	content(){
 
@@ -18,31 +22,32 @@ export default classdoc.page({
 
 		code.html(`<a href="/docs/intro/">Intro</a>`);
 
-		md("That is the whole API. The Router upgrades the click — no reload, no configuration, nothing to register. A link it can't resolve is handed to the browser, so an external url or a `.pdf` still behaves like a link.");
+		md("That is the whole API. No reload, nothing to register, no route table. A link the Router can't resolve is handed back to the browser, so an external url or a `.pdf` still behaves like a link.");
 
-		h2("What a navigation does");
+		h2("A url is a path through the tree");
 
 		code.js(`/docs/intro/  →  root › docs › intro`);
 
-		md("One `page.child(name)` per segment, and a miss is an `import`. So when the walk finishes, every page in the chain exists — that's why nothing needs a route table: **the walk is the loader**.");
+		md("One `page.child(name)` per segment, and a miss is an `import`. When the walk finishes, every page in the chain exists — **the walk is the loader.** Going somewhere else touches only the difference between the two chains, so a sidebar an ancestor built is never rebuilt.");
 
-		h2("Only what changed");
-
-		md("Going from `/a/b/c/` to `/a/x/` leaves `root` and `a` alone. `activate()` diffs the two chains and touches the difference: deactivate deepest-first, activate shallowest-first.");
-
-		h2("Two classes, and CSS does the rest");
+		h2("It writes four classes, and CSS does the rest");
 
 		code.css(`.page.active-page      /* the leaf */
-.page.active-ancestor  /* everything above it */`);
+.page.active-ancestor  /* everything above it */
 
-		md("That's all this tier writes. Every arrangement on this site — replace, tabs, columns, a topic with its own sidebar — is CSS reading those two classes plus one a page opted into. There is no layout tier to learn.");
+a.active               /* href is exactly here */
+a.in-path              /* href is a directory above here */`);
 
-		h2("Links light themselves up");
+		demo(() => {
+			div.c("flex gap v-center", () => {
+				a.c("page-link", "/framework/").href("/framework/");
+				a.c("page-link", "/framework/core/").href("/framework/core/");
+				a.c("page-link", "/framework/core/Router/").href("/framework/core/Router/");
+				a.c("page-link", "/elsewhere/").href("/elsewhere/");
+			});
+		}, "Four real anchors, rendered by this page. The last one is dark; the other three lit themselves up — two `.in-path`, one `.active`. **No view compares `window.location` itself**: one pass after every navigation writes the classes, and CSS decides what each kind of link does with them.");
 
-		code.css(`a.active    /* href is exactly here */
-a.in-path   /* href is a directory above here */`);
-
-		md("Applied to every in-app anchor after each navigation. **No view should ever compare `window.location` itself** — sidebars, tab bars and preview cards all get their state from this one pass, and CSS decides what each kind of link does with it.");
+		md("Those four classes are everything this tier writes to the DOM. Every arrangement on this site — replace, tabs, columns, a topic with its own sidebar — is CSS reading them plus one class a page opted into. There is no layout tier to learn.");
 
 		md("Next: [App](/framework/core/App/) — what boots all of this.");
 

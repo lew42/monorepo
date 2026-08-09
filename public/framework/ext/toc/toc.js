@@ -5,23 +5,13 @@ View.stylesheet(import.meta, "toc.css");
 /**
  * toc — this page's own headings, as a nav, with the current one marked.
  *
- *   content(){
- *       toc();
- *       h2("One");  …
- *   }
+ *   content(){ toc(); h2("One"); … }
  *
- * Call it wherever; it finds the headings itself. Nothing is declared, nothing is
- * registered, and adding a section to a page adds it to the nav.
- *
- * ── Why it fills itself one microtask later ──
- * The headings do not exist yet when `toc()` runs — `content()` is still on its
- * first line. So this places the container SYNCHRONOUSLY (while the captor is
- * still right) and fills it in a microtask, naming its target explicitly. That is
- * the one blessed shape for late content in this framework; the microtask runs
- * after `render()` returns and **before the browser paints**, so the rail is never
- * on screen empty.
- *
- * Design record: framework/ext/toc/readme.md.
+ * ⚠ The headings do not exist yet when this runs — `content()` is still on its first
+ * line. So the container is placed SYNCHRONOUSLY, while the captor is still right,
+ * and filled in a microtask that names its target. The microtask lands after
+ * `render()` returns and before the browser paints, so the rail is never empty
+ * on screen. Design record: framework/ext/toc/readme.md.
  */
 export default function toc(...args){
 	const $toc = el.c("nav", "toc", () => {
@@ -33,10 +23,10 @@ export default function toc(...args){
 	return $toc;
 }
 
-/* Headings that are SECTIONS of this page — not headings that happen to be on it.
- * A demo renders `h1("Hello")` as its subject, a file tree has labels, a readme in
- * `md.details` has its own outline; none of those is a place to navigate to. */
-const skip = ".demo, .md-details, .toc, .files, .tab-bar, .sidebar, .page-previews";
+// Headings that are SECTIONS of this page, not headings that happen to be on it.
+// `.toc-skip` is the opt-out for what this list cannot guess — a page rendering a
+// REAL component whose `.h2` is a value rather than a section title.
+const skip = ".demo, .md-details, .toc, .files, .tab-bar, .sidebar, .page-previews, .toc-skip";
 
 function fill($toc){
 	const page = $toc.el.closest(".page");
@@ -63,13 +53,9 @@ function fill($toc){
 	spy($toc, page, headings);
 }
 
-/* Which heading you are reading: the last one whose top has passed the reading
- * line. Deliberately not an IntersectionObserver — between two widely spaced
- * headings nothing is intersecting, and "no section is current" is never the
- * answer a reader wants.
- *
- * THE REGION SCROLLS, not the page (Page.css), so the scroll events and the
- * geometry both come from `.pages`. A window listener would never fire. */
+// Which heading you are reading: the last one past the reading line.
+// ⚠ THE REGION SCROLLS, not the page, so the events and the geometry both come from
+// `.pages` — a window listener would never fire.
 function spy($toc, page, headings){
 	const scroller = page.closest(".pages");
 
@@ -79,11 +65,9 @@ function spy($toc, page, headings){
 	const links = [...$toc.el.querySelectorAll(".toc-link")];
 
 	const update = () => {
-		/* A hidden page measures every rect at 0,0 — so every heading is "above the
-		 * line" and the LAST one wins, which is how the rail first shipped showing
-		 * the bottom section selected on arrival. `offsetParent` is null exactly
-		 * when an ancestor is `display: none`, which is the whole of the case:
-		 * `.page` is display:none until it is in the chain. */
+		// ⚠ A hidden page measures every rect at 0,0, so every heading reads as
+		// "above the line" and the LAST one wins. A `.page` is display:none until
+		// it is in the chain, and `offsetParent` is null exactly then.
 		if (!page.offsetParent)
 			return;
 
@@ -95,14 +79,27 @@ function spy($toc, page, headings){
 		});
 
 		links.forEach((link, i) => link.classList.toggle("current", i === current));
+		reveal($toc.el, links[current]);
 	};
 
 	scroller.addEventListener("scroll", update, { passive: true });
 
-	// Now for the common case, and again after layout for the one where this page
-	// is built while still off-screen — a tab panel's default, or a cold load.
+	// Twice: now, and after layout for a page built while still off-screen — a tab
+	// panel's default, or a cold load.
 	update();
 	requestAnimationFrame(update);
+}
+
+// Nudge the rail by exactly the overhang, never centring, so a rail that already
+// shows the current row does nothing at all.
+function reveal(rail, link){
+	if (!link) return;
+
+	const box = rail.getBoundingClientRect();
+	const row = link.getBoundingClientRect();
+
+	if (row.top < box.top) rail.scrollTop += row.top - box.top;
+	else if (row.bottom > box.bottom) rail.scrollTop += row.bottom - box.bottom;
 }
 
 function slug(text){

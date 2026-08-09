@@ -101,8 +101,10 @@
 	}
 
 	/* The viewport. The padding is HERE, not on `.demo-render` — that is what makes
-	   the readout honest: the render is the bare content box. */
-	.demo-screen { padding: var(--demo-pad); overflow-x: auto; }
+	   the readout honest: the render is the bare content box.
+	   ⚠ The fallback is for a bare `demo.stage()`, which has no `.demo` above it to
+	   inherit the token from — without it the padding resolves to nothing at all. */
+	.demo-screen { padding: var(--demo-pad, 1.5rem); overflow-x: auto; }
 
 	/* ⚠ Deliberately NO `overflow`: the x-axis cannot be set without forcing y off
 	   `visible` too, and a demo may overflow on purpose — a tooltip, a popover. */
@@ -135,6 +137,7 @@
 	/* the caption — the sentence that belongs to THIS example */
 	.demo-note {
 		margin: 0;
+		max-width: var(--measure, none);   /* a demo is a box; its caption is prose */
 		padding: var(--demo-pad);
 		font-size: 0.9em;
 		color: var(--subtle);

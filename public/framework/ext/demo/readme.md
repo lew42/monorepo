@@ -200,22 +200,64 @@ a 700px stage at 50% correctly reads 1400px. Deliberately not the ResizeObserver
 entry's `contentRect`: what that reports under `zoom` has moved between browser
 versions, and `offsetWidth` has not.
 
+### `demo.stage(fn)` — the same three boxes, no code pane
+
+`styles/layouts` wanted one drag handle over a wall of thirteen shape previews:
+squeezing it re-flows every one of them at once, which is the section's whole
+argument in one gesture. There is no single source worth printing above that, so
+`demo()` was the wrong box.
+
+Options were a second copy of `resizer`/`ruler` in that module (two
+implementations of "how wide is this really"), or exposing the middle third. The
+three boxes came out into a private `stage(fn, board)` that `demo()` now calls, and
+`demo.stage` is that with the checkerboard off — a wall of framed previews on a
+board reads as noise. **Nothing about `demo()` changed**, which is the point of
+extracting rather than parameterising.
+
+The one thing a bare stage does not inherit is `--demo-pad`, declared on `.demo`.
+`.demo-screen` therefore reads `var(--demo-pad, 1.5rem)`; inside a `.demo` the
+fallback never applies.
+
 Right-click clears a dragged width. A reset button in the toolbar would be a control
 whose only job is undoing another control, and there is no other way back to
 "whatever fits".
 
 ---
 
-## 8. Open
+## 8. `demo.responsive` — the same builder at two widths
+
+`responsive.js`, a sibling of `demo.js`, in the shape `ext/highlight` uses on `code`:
+importing it patches `demo.responsive`. It is a second file because it is a second
+responsibility, and one-way — it imports `btn`, `caption` and `source_code` from
+`demo.js` so the two boxes cannot drift, and `demo.js` never imports it back (a
+mutual pair would break only on deep reloads).
+
+- **`zoom`, not `transform: scale()`**, per §6 — and here it also removes work: a
+  scaled box occupies its unscaled size, so the sketch this started from needed
+  height-clipped wrappers and a `height = content × factor` pass, both of which
+  simply do not exist under `zoom`.
+- **The panes always meet at the handle.** The left pane gets `flex: 0 0 <share>%`
+  and the right one takes the rest, and each pane's factor is then measured —
+  `clientWidth / simulated` — rather than derived from the share. So the handle's
+  width, a scrollbar, anything, is already accounted for.
+- **The `ResizeObserver` is width-guarded.** `fit()` changes the row's height, which
+  would otherwise call it straight back on every pass.
+- **The media-query caveat is unchanged** (§6): a 3440px pane is 3440px of *layout*,
+  not a viewport. Container queries respond; `@media` does not.
+
+---
+
+## 9. Open
 
 - **No way to show a demo that must not run.** `code.fn()` covers it, on the other
   ext, which is the right split — but nothing on the demo page says so loudly.
 - **The pane re-reads on show, not live.** Toggle it off and on after clicking inside
   a demo and you see the new DOM. A genuinely live pane needs a `MutationObserver`
   and has no asker yet.
-- **No width presets.** "Mega / desktop / mobile" was asked for and is not here: a
-  preset labelled `1920` is a promise about media queries that a div cannot keep
-  (§6). Zoom percentages promise nothing they don't deliver. Presets land with the
-  iframe or not at all.
+- **No width presets on the main box.** "Mega / desktop / mobile" was asked for and
+  is not there: a preset labelled `1920` is a promise about media queries that a div
+  cannot keep (§6). Zoom percentages promise nothing they don't deliver.
+  `demo.responsive` (§8) names two widths and inherits the same caveat — it is a
+  layout comparison, not a viewport. Real presets land with the iframe or not at all.
 - **`--demo-pad: 2rem` is a lot of a 262px box.** At 390px the frame is a quarter of
   the demo's width. Pre-existing, but the stage makes it more visible.

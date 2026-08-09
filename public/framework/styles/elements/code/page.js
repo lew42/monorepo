@@ -6,6 +6,7 @@ export default new Page({
 	meta: import.meta,
 	title: "Code",
 	description: "A block and an inline are two boxes — and one padding was never going to fit both.",
+	icon: "code",
 	content(){
 
 		toc();

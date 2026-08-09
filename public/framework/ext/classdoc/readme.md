@@ -1,294 +1,91 @@
 # classdoc — design record
 
-Built from a three-persona design council (Simple Steve / Elegant Eric /
-Technical Tim). Where they disagreed, the disagreement is recorded — and in one
-case **both were wrong and the code settled it.**
-
-Format as everywhere: **question → options → weighing → verdict.**
-
----
-
-## 1. How does a page discover which methods have notes?
-
-No build step, no filesystem at runtime, a static host with no directory
-listing. Options considered:
-
-| option | why not |
-|---|---|
-| directory listing | does not exist on a static host. Out by construction. |
-| a generated `index.json` | needs a build step, or it's hand-maintained anyway — a worse string, with JSON syntax |
-| probe every method name, catch the 404s | N requests per page load to learn what a human already knows; and `fetch` resolves `ok:false` on 404 rather than throwing, so the "optimized" HEAD version becomes an unhandled rejection nobody sees |
-| **a declared string** | ✓ |
-
-**Verdict: a hand-typed string, exactly like `children`.** All three personas
-reached this independently, which is about as strong a signal as this process
-produces.
-
-The framework already refuses to crawl anything — *"nothing crawls the
-filesystem, so a page nobody imported does not exist"*. A method-doc list is that
-same question with that same answer.
-
----
-
-## 2. Reflect the method list, or type it too?
-
-**This is where the council split.**
-
-- **Tim:** derive the method list from
-  `Object.getOwnPropertyNames(Class.prototype)`. A hand-typed list goes stale
-  *silently* — add a method, forget the list, the page just never shows it. No
-  error, forever. Reflection removes that failure mode for free.
-- **Steve and Eric:** type it. Reflection documents `append_fn`, `prepend_pojo`,
-  `backtick_append` — private helpers nobody should read — and it *still*
-  cannot tell you which have prose, so you need the second list anyway.
-
-**Verdict: type it — one list, not two.** Tim's drift bug is real but it is the
-*cheaper* failure: a method missing from the docs is visible to anyone reading
-the docs. Reflection's failure is a page of noise with an error box where the
-notes should be, and it doesn't remove the curation problem, it defers it.
-
-Recording Tim's dissent properly, because it has a trigger: **if a class ever
-gets a "document everything" page**, reflection is right for that page and this
-verdict does not apply to it.
-
----
-
-## 3. `method.toString()` — what it gives you, and what's wrong
-
-The council contradicted itself here, so the tie was broken by running it.
-
-- **Steve:** `source()` strips everything before the first `{` and so drops the
-  method's name and parameters.
-- **Tim:** *"I traced it, it works — it correctly strips the `methodName(...)`
-  prefix."*
-
-**Steve was right.** Measured:
+A class's members as pages: real source, plus prose from a sibling `.md` file.
+Documenting a member is *writing a file*.
 
 ```
-source(View.prototype.append)   →  "for (const arg of args){ … "     ← signature GONE
-dedent(String(fn))              →  "append(...args){ … "             ← correct
+content()               Overview          /View/
+overview: "demos"       Overview's rail   /View/overview/demos/   ← overview/demos/page.js
+children: "guide"       a top tab         /View/guide/            ← guide/page.js
+properties: "el"        API               /View/api/el/           + doc/property/el.md
+methods:    "append"    API               /View/api/append/       + doc/method/append.md
+notes:      "capturing" Docs              /View/docs/capturing/   = doc/capturing.md
 ```
 
-`source()` is *correct for what it was built for* — `demo(fn)` and `code.fn(fn)`,
-whose subject is an anonymous function nobody needs a signature for. It is wrong
-for a method, where `append(...args)` is the one line confirming you're in the
-right place. So `member()` is a sibling, not a patch: two existing callers depend
-on `source()` behaving exactly as it does.
+Two levels of `tabs()`: `this.tabs("overview api docs")` on the class page, and
+`this.tabs().ac("vertical")` inside each group. A group is an ordinary `Page` whose
+children are the rail, so both levels are real urls.
 
-**Tim was right about the other one, and it is worse.**
-`Class.prototype[name]` **executes a getter.** `App.get loaded()` builds a
-`Promise.all`; read it off a bare prototype, where the instance state doesn't
-exist, and it throws `undefined is not iterable` before `toString()` is ever
-reached. Verified. `Object.getOwnPropertyDescriptor` is the only way to hold an
-accessor's function rather than its result.
+Long form: `./doc/rail.md` (the grouping, and why a rail rather than previews),
+`./doc/reflection.md` (why the lists are typed, with the `toString()` measurements).
 
-**The lesson worth keeping:** two experienced reviewers reached opposite
-conclusions about four lines of string-slicing, and the disagreement was settled
-in thirty seconds by running it. Trace less, execute more.
+## Decisions
 
-### …and the half of it nobody measured
+**How do three tabs sit above a rail?** As **pages**, not as a view mode. A group
+(`overview`, `api`, `docs`) is a `Page` added in `initialize()`, and `tabs()` already
+makes a page's children a bar plus a panel — so the second level cost no JS at all.
+The alternative, one page rendering two navs over one flat set of children, cannot
+work: `Page.container()` mounts a child in `parent.regions`, and a page that is not in
+the active chain is `display: none`, rail and all. **Nesting has to follow the chain.**
 
-`dedent(String(fn))` was verified on its *first line*, which is the line the
-argument was about, and shipped with every line after it a tab too deep:
+**Where do the groups' names come from?** Fixed: `overview`, `api`, `docs`, labelled
+`Overview`, `API`, `Docs`. Named groups (`groups: { … }`) were rejected — it is API
+surface forever for a page shape that is the same on every class, and the whole point
+is that a call site lists *members* and never says "tab".
 
-```
-append(...args){          ← column 0
-        const tag = …     ← still at its depth in View.js
-    }
-```
+**Member urls moved** — `/View/append/` is now `/View/api/append/`. Weighed against
+keeping them flat by making the groups view-only: flat urls cost the tab bar its
+marking, its history, and its reload. A url per tab was the requirement.
 
-`toString()` on a shorthand method starts at the **name**, so the first line's
-indent was left behind in the file. It measures zero; `dedent()` took the minimum
-across all lines; zero won, and nothing moved. Then the closing `}` — at the
-method's own depth, not the body's — sat one level in from a signature at the
-root, which is what makes it look like an indent bug rather than a *missing*
-dedent.
+**`content()` is a child of its own group, not the group itself.** So a class with sub
+pages and a class without are one shape — the rail's first entry is the overview, and
+`tabs()`'s existing "first child is the panel's `.default`, and its link is the parent's
+url" does the rest. The cost is one url nobody links to, `/View/overview/overview/`.
 
-**Fix, in `util/source`:** a first line with no leading whitespace is not evidence
-about the indent, so it is excluded from the measurement. The concise-arrow branch
-of `source()` was quietly wrong for the same reason — `trimStart()` on the body
-makes line one report zero — and got fixed by the same line.
+**Declared `children` stay top-level tabs.** A declared child resolves from
+`<class>/<name>/page.js`; moving it under a group would mean moving the directory. So
+`children:` is a peer tab and `overview:` is the sub page — one key per shape, both
+resolved by the filesystem, neither breaking a url that already exists.
 
-Same lesson as above, applied to the fix rather than the argument: it was visible
-on screen for the whole life of the feature and nobody read past line one.
+**An empty group has no tab.** A class with no notes has no Docs; no members, no API.
+`ext/classdoc`'s own page is the live case — no `Class`, so no API tab.
 
-### Limits, stated so nobody "fixes" them later
+**Reflect the method list?** No — one list, not two. Reflection would document
+`append_fn`, `prepend_pojo`, `backtick_append`, and it *still* cannot tell you which
+have prose. Recorded with its trigger: a hand-typed list goes stale **silently**, so
+**if a class ever gets a "document everything" page, reflection is right for that page**
+(`core/View` is now close to one). `./doc/reflection.md`.
 
-- **Class fields are invisible.** `render = () => {}` lives on the instance, not
-  the prototype — `member()` will not find it, and the symptom is identical to
-  "no notes yet." Every method in `framework/core/` is prototype shorthand, per
-  this repo's constructor convention, so this doesn't bite today.
-- **Statics are searched second**, after the prototype, so `View.stylesheet`
-  documents correctly. If a class ever has both a static and a method of one
-  name, the method wins and the static is unreachable. No such class exists.
+**A patched method shows the patch, labelled.** `ext/highlight` replaces
+`View.prototype.append` at import time, and a doc page that reads a live object is
+documenting the *running program*. Detection is one line of trivia: JS infers a
+function's name from assignment to an identifier, never to a member expression.
 
----
+**Rejected: a `ClassDoc extends Page` subclass.** It has no named parts to override —
+the whole job is *add some children* — and a subclass would fix the page's identity to
+one class forever, where a function composes. `classdoc(page, Class, meta, names)` stays
+exported for a page that wants two classes.
 
-## 4. Should a patched method show the original or the patch?
+## Traps
 
-`ext/highlight` replaces `View.prototype.append` at import time. Found by
-building the feature — `/framework/core/View/append/` rendered a function nobody
-recognised.
+- **⚠ `Class.prototype[name]` executes a getter.** `App.get loaded()` builds a
+  `Promise.all`; read off a bare prototype it throws before `toString()` is reached.
+  `Object.getOwnPropertyDescriptor` is the only way to hold an accessor's *function*.
+- **⚠ `/app.js`'s default export is the app INSTANCE, not the class.** `import { App }`
+  gets the class. Guarded with a named warning, because the raw failure is a `TypeError`
+  naming neither `App` nor the import.
+- **⚠ Class fields are invisible.** `render = () => {}` lives on the instance, and the
+  symptom is identical to "no notes yet".
+- **⚠ Statics are searched second.** A static and a method of one name: the method wins.
+- **⚠ Every function owns `name`, `length` and `prototype`.** The static fallback in
+  `declaration()` answered `name = "View"` — `Function.name` — for a documented
+  *instance* property called `name`, and it read as a real declaration. Those five
+  names now skip the fallback, so the page is prose alone, which is the honest answer.
+- **⚠ A note sharing a name with a method** no longer collides — they are in different
+  groups — but a note sharing a name with *another note* still does. Warned.
 
-**Options.** (a) Show the original by reaching for the pre-patch source — there
-isn't one at runtime, so this means hard-coding. (b) Show the patch silently.
-(c) Show the patch, labelled.
+## Open
 
-**Verdict: (c).** A doc page that reads a live object is documenting the *running
-program*, and on this site the running `View.append` really is highlight's
-wrapper. Showing the original would be a lie that reads as truth; showing the
-patch unlabelled makes a reader think the docs are broken when they compare
-against `View.js`.
-
-Detection is one line of trivia: JS infers a function's name from assignment to
-an **identifier**, never to a **member expression**. So a shorthand method
-carries `fn.name === "append"` and
-`View.prototype.append = function(…){}` carries `fn.name === ""`.
-
----
-
-## 5. Tabs or previews for the method list?
-
-> **Revised — a VERTICAL bar changed the arithmetic.** The verdict below stands for
-> the horizontal case and was decided on Tim's overflow objection, which is about a
-> bar that runs out of *width*. A left nav runs out of *height*, of which a docs page
-> has plenty: twenty names down the side is an API sidebar, and it reads fine.
->
-> So `classdoc.page(options)` now builds the whole page — a vertical `tabs()` set
-> with the overview as its first tab — and it is one call:
->
-> ```js
-> export default classdoc.page({
->     meta: import.meta, title: "View", Class: View,
->     methods: "append ac on style stylesheet",
->     content(){ … },        // the overview — becomes the first tab
-> });
-> ```
->
-> Two things that made it cheap. **`.tabs.vertical` is CSS only** — same JS, same
-> urls, same default, same marking, axis swapped. And **the overview is an ordinary
-> child page**, so `tabs()`'s existing "first child is the panel's `.default`, and its
-> link points at the parent url" behaviour is the whole feature.
->
-> The low-level `classdoc(page, Class, meta, names)` is unchanged and still exported,
-> which is what keeps §6's objection answered: a page that wants two classes, or
-> previews instead of a nav, composes it itself.
->
-> One bug fell out, and it had been live for as long as `tabs()` has: the default
-> tab's href **is** the page's url, so it is a prefix of every sibling's and
-> `mark_links()` gave it `.in-path` on every tab in the set. Every bar on the site
-> showed two selected tabs. Fixed with a `tab-default` class.
-
-**Original verdict: neither — `classdoc()` returns the page and the author picks.**
-
-Eric proposed `classdoc()` end with `return page.tabs()`, making the drill-down
-free. Tim's counter was decisive: `tabs()` renders every name into one bar with
-**no overflow handling at all**, and `View` has ~35 candidate methods. A bar is
-right for five and unusable for twenty, and nothing in `tabs()` will ever tell
-you which side of that line you're on.
-
-Since both are one call, the author makes it:
-
-```js
-classdoc(this, View, import.meta, "append ac on style stylesheet");
-this.previews();          // …or this.tabs() when there are few enough
-```
-
----
-
-## 6. Rejected: a `ClassDoc extends Page` subclass
-
-Tim's call-site sketch was `new ClassDoc({ cls: View, notes: "…" })`. Steve's
-objection stands: a subclass buys nothing here. It has no named parts to
-override — the whole job is *add some children* — and `Page` already is a
-titled, linkable, lazily-loading tree.
-
-A function that takes a page and adds to it composes with everything (a page can
-call it twice, for two classes); a subclass would fix the page's identity to one
-class forever.
-
----
-
-## 7. Open
-
-- **A missing `.md` renders `md.file`'s `.md-error` box.** Correct — it fails
-  visibly rather than silently — but the copy reads like a fault when the honest
-  meaning is "nobody has written this yet." One string, not a mechanism.
-- **Deep-linking every method costs a `Page` each.** Cheap today at five. If a
-  class ever documents thirty, measure before assuming it's fine.
-
----
-
-## 8. `/app.js`'s default export is the app INSTANCE, not the App class
-
-Hit while adding classdoc to `core/App/page.js`, and it is the mistake this
-feature actively invites, because every other class is imported the obvious way.
-
-```js
-import App, { … } from "/app.js";        // ✗ the running app instance
-import { App, … } from "/app.js";        // ✓ the class
-```
-
-`public/app.js` ends with `export default app` — the singleton — while
-`export * from ".../App.js"` re-exports the **class** as a named export. So the
-default and the named export of the same word are different things.
-
-The failure is loud but the message is unhelpful: `classdoc` reads
-`Class.prototype`, an instance has none, and the whole page module throws with a
-`TypeError` that names neither `App` nor the import.
-
-**Guarded.** `classdoc()` now checks for a function with a prototype and warns by
-name, the same way an unknown method name already does — so the failure names the
-cause and the page still renders:
-
-```
-classdoc: expected a class, got object. If this is App —
-import { App } from "/app.js", not the default export.
-```
-
-The general principle it follows: **a wrong argument should cost a named warning
-and a degraded page, never a blank one.** Same reason `View.stylesheet` resolves
-on error and `Page.load` distinguishes "missing" from "threw".
-
----
-
-## 9. Properties and notes — same machinery, less of it
-
-**The ask:** decision overload. Verbose reasoning was living in code comments and
-parent readmes; the readmes now summarize and cite `./doc/<topic>.md` — and those
-files should be *served*, not just stored. Separately, properties deserve pages
-as much as methods do.
-
-**Options.** (a) a parallel ext (`propdoc`, `notedoc`) — two more modules for two
-smaller versions of the same job; (b) reflect properties off an instance — which
-means *constructing* one, and for `App` that boots a second site; (c) two more
-declared lists on `classdoc.page`, one directory convention each.
-
-**Verdict: (c).**
-
-```
-methods:    "append ac"     source            + doc/method/<name>.md
-properties: "el capture"    declaration       + doc/property/<name>.md
-notes:      "capturing"     doc/<name>.md — the prose IS the page
-```
-
-Notes read the **top level** of `doc/`, because that is where a readme's
-"see ./doc/capturing.md" already points — one file, two readers: the maintainer
-via the readme's citation, the site via the note page. Rail order is overview,
-guides, properties, methods, notes.
-
-**What a property page can show is decided by what can be read without running
-anything** (the §3 getter trap, one door over): an accessor's function
-(`descriptor.get`), a primitive prototype/static default (`capture = true`), and
-for an instance field — nothing, honestly. The prose is the page, and that is the
-common case, not a degraded one.
-
-Two small guards, same rule as §8. A note that shares a name with a method would
-silently replace its page in the region, so `classdoc.notes` refuses the
-collision with a named warning. And `classdoc()` no longer warns about a missing
-`Class` when no methods were asked for, so a notes-only page is legal.
-
-One behaviour change rode along: `classdoc.page` now **always** calls
-`load_all_children()` — inline members resolve instantly, and `tabs()` only reads
-titles once `loading` exists, so a note is labelled "chain diff" rather than its
-url segment "chain-diff".
+- **A missing `.md` renders `md.file`'s `.md-error` box.** Correct — it fails visibly —
+  but the copy reads like a fault when the honest meaning is "nobody has written this
+  yet." One string, not a mechanism.

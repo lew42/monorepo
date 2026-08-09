@@ -1,0 +1,130 @@
+/* Restated IN FULL — a short list silently misplaces `site`. */
+@layer base, theme, site, util;
+
+/* Structure and tokens only, no literal colour: a theme retunes the whole set
+   without touching a selector. `.active` / `.in-path` come from
+   Router.mark_links(), so the selected tab needs no JS. */
+
+@layer util {
+
+	/* ⚠ In `util` beside the arrangement contract it belongs to (Page.css), and for
+	   the same reason: a `.page.default` is a page, and a page may wear a `display`
+	   utility. ⚠ Reads BOTH `.active-page` and `.active-ancestor` — one question
+	   asked two ways, and a rule reading one breaks a level deeper. */
+	.tab-panel:has(> .page:is(.active-page, .active-ancestor))
+		> .page.default:not(.active-page, .active-ancestor) { display: none; }
+}
+
+@layer theme {
+
+	.tabs { display: flex; flex-direction: column; min-width: 0; }
+
+	/* ⚠ One strip that scrolls, never a wrapping block: a fifty-member rail flipped to
+	   a wrapped bar was 500px of links above the content it navigates. */
+	.tab-bar {
+		display: flex; flex-wrap: nowrap;
+		overflow: auto; scrollbar-width: none;
+		border-bottom: 1px solid var(--line);
+	}
+
+	/* Quiet by construction: a text label, a hairline under the set, a 2px mark under
+	   the selected one. No box, no fill, no gap between tabs — the strip is the group. */
+	.tab {
+		padding: 0.5rem 0.9rem;
+		font-size: 0.95em;
+		font-weight: 500;
+		color: var(--subtle);
+		text-decoration: none;
+		border-bottom: 2px solid transparent;
+		margin-bottom: -1px;               /* sit ON the bar's rule, not above it */
+		white-space: nowrap;
+	}
+	.tab:hover { color: var(--ink); }
+
+	/* ⚠ `.in-path` but NOT on `.tab-default`, whose href is this page's own url and
+	   so is a prefix of every sibling's — it would read as selected on every tab. */
+	.tab.active,
+	.tab.in-path:not(.tab-default) { color: var(--ink); border-bottom-color: var(--prim); }
+
+	/* A set with NOTHING of its own in the url highlights its first tab, so a panel is
+	   never showing content with nothing marked. Mirrors the panel's own default rule.
+	   ⚠ `in-path` counts as selected here: a nested set puts the url two levels down,
+	     so the outer bar has no `.active` at all and lit two tabs — the first and the
+	     one actually in the path. */
+	.tab-bar:not(:has(.tab.active, .tab.in-path:not(.tab-default))) > .tab:first-child {
+		color: var(--ink); border-bottom-color: var(--prim);
+	}
+
+	/* ⚠ Resets Page's measure tokens: they inherit, and a panel sits inside a page
+	   that already has the sheet — without this a method page paid it twice. */
+	.tab-panel { padding-top: 1rem; min-width: 0; --measure: none; --page-pad: 0; }
+
+	/* A rail of one is not a rail: the panel is still a region, the bar is noise.
+	   Also covers the window before the bar is filled. */
+	.tab-bar:not(:has(> .tab + .tab)) { display: none; }
+
+	/* A rail PLUS a column needs more than 60em. Derived from the structure, so
+	   anything that grows a rail gets it without a class.
+	   ⚠ `:where()` holds this at (0,1,0) so a host page can narrow one of its sets
+	     with a plain class — classdoc's overview does. */
+	.page:where(:has(> .tabs.vertical)) { --measure: 78em; }
+
+	/* The same set, turned on its side — only the axis changes. The bar is sticky
+	   because the panel is usually taller. */
+	.tabs.vertical { flex-direction: row; align-items: flex-start; gap: 4em; }
+
+	/* ⚠ NOT framework.css's `.basis` utility: `.tabs` is a COLUMN and
+	   `.tabs.vertical` is a ROW, so `flex-basis` — the MAIN size — would give every
+	   horizontal tab bar a fixed 14em HEIGHT. A utility class cannot be conditional.
+	   ⚠ The max-height is what makes `sticky` mean anything: a rail taller than the
+	     viewport sticks its top and puts its own last members out of reach forever. */
+	.tabs.vertical > .tab-bar {
+		flex-direction: column;
+		flex: 0 0 clamp(9em, 18%, 14em); min-width: 0;
+		position: sticky; top: 1em;
+		max-height: calc(100vh - 2em);
+		border-bottom: none;
+		border-inline-end: 1px solid var(--line);
+	}
+
+	.tabs.vertical > .tab-bar > .tab {
+		padding: 0.35rem 0.8rem;
+		white-space: normal;
+		border-bottom: none;
+		border-inline-end: 2px solid transparent;
+		margin-bottom: 0;
+		margin-inline-end: -1px;          /* sit ON the bar's rule, not beside it */
+	}
+
+	.tabs.vertical > .tab-bar > .tab.active,
+	.tabs.vertical > .tab-bar > .tab.in-path:not(.tab-default),
+	.tabs.vertical > .tab-bar:not(:has(.tab.active, .tab.in-path:not(.tab-default))) > .tab:first-child {
+		border-inline-end-color: var(--prim);
+	}
+
+	.tabs.vertical > .tab-panel { flex: 1 1 0; min-width: 0; padding-top: 0; }
+
+	/* ⚠ `64em`, not the rail's own 9–14em: this set can sit inside a topic's region
+	   (viewport minus a 19em sidebar), so the breakpoint has to clear both boxes. */
+	@media (max-width: 64em) {
+		/* ⚠ `align-items: stretch` is the easy one to miss: in a COLUMN container the
+		   cross axis is width, so the `flex-start` above sizes each child to its own
+		   content — the panel went to max-content inside a 262px box and scrolled. */
+		.tabs.vertical { flex-direction: column; gap: 0; align-items: stretch; }
+		.tabs.vertical > .tab-bar {
+			flex-direction: row; flex: 0 0 auto;
+			position: static; max-height: none;
+			border-inline-end: none; border-bottom: 1px solid var(--line);
+		}
+		.tabs.vertical > .tab-bar > .tab {
+			border-inline-end: none; border-bottom: 2px solid transparent;
+			margin-inline-end: 0; margin-bottom: -1px;
+		}
+		.tabs.vertical > .tab-bar > .tab.active,
+		.tabs.vertical > .tab-bar > .tab.in-path:not(.tab-default),
+		.tabs.vertical > .tab-bar:not(:has(.tab.active, .tab.in-path:not(.tab-default))) > .tab:first-child {
+			border-bottom-color: var(--prim);
+		}
+		.tabs.vertical > .tab-panel { padding-top: 1rem; }
+	}
+}

@@ -25,6 +25,10 @@ export default new Page({
 
 		md("A heading that is *part of an example* is not a section of the page. So `demo()` blocks, the collapsed `md.details` readme, file trees, tab bars and sidebars are all excluded — otherwise every `h1(\"Hello\")` in a demo would show up as a destination.");
 
+		code.js(`div.c("grid gap auto toc-skip", () => stats())   // not sections`);
+
+		md("`toc-skip` is the opt-out for the case that list cannot guess: a page rendering a **real component** rather than an example of one. A stat tile's value is an `.h2` because it is big, not because it is a section — [Versus](/framework/versus/) had `827 · 28 KB · 0 · 0 · 0` in its rail until it said so.");
+
 		h2("Scroll spy");
 
 		md("The current section is the last heading whose top has passed the reading line. **Not an `IntersectionObserver`** — between two widely spaced headings nothing is intersecting at all, and *\"no section is current\"* is never the answer a reader wants.");

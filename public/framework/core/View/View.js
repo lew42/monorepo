@@ -1,16 +1,8 @@
 import is from "../../util/is/is.js";
 
-/* A DOM element with a chainable API, and one idea: CAPTURING. `View.captor` is the
- * view currently collecting children, so an element factory appends itself to it —
- * which is what makes nested calls build nested DOM with no builder object.
- *
- * ⚠ **Capturing is synchronous.** `append_fn` restores the previous captor the
- * instant your function RETURNS, which for an `async` function is its first `await`.
- * Nothing throws; the elements simply appear somewhere else. See core/View/readme.md.
- *
- * `tag` and `capture` are on the prototype (bottom of the file), not class fields —
- * a field would stop a subclass declaring `tag = "other"`.
- */
+// ⚠ Capturing is synchronous: `append_fn` restores the previous captor the instant
+// your function RETURNS, which for an `async` function is its first `await`. Nothing
+// throws — the elements simply appear somewhere else. doc/capturing.md.
 export default class View {
 
 	constructor(...args){
@@ -31,17 +23,15 @@ export default class View {
 		this.classify && this.classify();
 	}
 
-	// add class
+	// ⚠ filter(Boolean): a doubled or trailing space yields an empty token, and
+	// classList.add("") THROWS — so `.ac("card " + maybe)` was a live landmine.
 	ac(...args){
 		for (const arg of args){
-			// filter(Boolean): a trailing or doubled space yields an empty token, and
-			// classList.add("") THROWS — so `.ac("card " + maybe)` was a live landmine
 			arg && arg.split(" ").filter(Boolean).forEach(cls => this.el.classList.add(cls));
 		}
 		return this;
 	}
 
-	// remove class
 	rc(...args){
 		for (const arg of args){
 			arg && arg.split(" ").filter(Boolean).forEach(cls => this.el.classList.remove(cls));
@@ -49,12 +39,8 @@ export default class View {
 		return this;
 	}
 
-	/* The class-name chain as kebab-case CSS classes: `class FooBarView extends View`
-	 * renders `div.foo-bar`, so a subclass is styleable with nothing declared.
-	 *
-	 * ⚠ This runs inside `super()`, BEFORE a subclass's class fields initialize — so a
-	 * `classes = "docs"` field arrives too late to be seen here. Name the subclass
-	 * instead; that is what this reads. */
+	// ⚠ Runs inside `super()`, BEFORE a subclass's class fields initialize — a
+	// `classes = "docs"` field arrives too late. Name the subclass instead.
 	classify(){
 		this.ac(this.classes);
 
@@ -85,7 +71,6 @@ export default class View {
 			} else if (is.promise(arg)){
 				this.append_promise(arg);
 			} else {
-				// DOM, str, undefined, null, etc
 				this.el.append(arg);
 			}
 		}
@@ -97,16 +82,11 @@ export default class View {
 			if (arg && arg.el){
 				arg.parent = this;
 				this.el.prepend(arg.el);
-			} else if (is.pojo(arg)){
-				this.prepend_pojo(arg);
-			} else if (is.obj(arg)){
-				console.error("maybe not");
 			} else if (is.arr(arg)){
 				this.prepend.apply(this, arg);
-			} else if (is.fn(arg)){
-				this.prepend_fn(arg); // this will be tricky, this fn does not exist right now
+			} else if (is.fn(arg) || is.obj(arg)){
+				console.warn("View.prepend() takes a view, an array or a node — use append() for", arg);
 			} else {
-				// DOM, str, undefined, null, etc
 				this.el.prepend(arg);
 			}
 		}
@@ -197,19 +177,16 @@ export default class View {
 		return this;
 	}
 
-	/* Getter or setter, decided by WHETHER a value was passed — never by whether it
-	 * differs from what is there: an equal-value set must still return `this`, not
-	 * a string. War story in readme.md. */
+	// ⚠ Getter or setter by WHETHER a value was passed, never by whether it differs
+	// from what is there — an equal-value set must still return `this`, not a string.
+	// The `!==` skips the write only: contenteditable loses focus on a re-set.
 	html(value){
 		if (!is.def(value)) return this.el.innerHTML;
 
-		// don't re-update: important for contenteditable change events, and for
-		// not losing focus on re-update
 		if (value !== this.el.innerHTML){
 			if (View.supports_sanitizer){
 				this.el.setHTML(value);
 			} else {
-				// fail-safe: never inject raw HTML we can't sanitize
 				console.warn("View.html(): Sanitizer API not supported, rendering as text instead of HTML");
 				this.el.textContent = value;
 			}
@@ -218,18 +195,18 @@ export default class View {
 		return this;
 	}
 
-	// raw innerHTML, no sanitization - only for content you fully trust (XSS risk otherwise)
+	// ⚠ Raw innerHTML, unsanitized — only for content you fully trust.
 	html_unsafe(value){
 		if (!is.def(value)) return this.el.innerHTML;
 
-		if (value !== this.el.innerHTML) this.el.innerHTML = value;   // see html()
+		if (value !== this.el.innerHTML) this.el.innerHTML = value;
 		return this;
 	}
 
 	text(value){
 		if (!is.def(value)) return this.el.textContent;
 
-		if (value !== this.el.textContent) this.el.textContent = value;   // see html()
+		if (value !== this.el.textContent) this.el.textContent = value;
 		return this;
 	}
 
@@ -243,9 +220,8 @@ export default class View {
 		return this;
 	}
 
-	/* `code` spans from backticks, and NOTHING else — this is not markdown. Bold,
-	 * links and tables render as literal text, which is the trap: use `md()` for
-	 * anything formatted. */
+	// ⚠ `code` spans and NOTHING else. Bold, links and tables render as literal
+	// text — use `md()` for anything formatted.
 	backticks(text){
 		const regex = /`([^`]+)`/g;
 		const parts = [];
@@ -266,14 +242,12 @@ export default class View {
 	}
 
 	attr(name, value){
-		// set
-		if (is.def(value)){ // see comment in html()
+		if (is.def(value)){
 			if (value !== this.el.getAttribute(name)){
 				this.el.setAttribute(name, value);
 			}
 			return this;
 
-		// get // we can't set attr to undefined...
 		} else {
 			return this.el.getAttribute(name);
 		}
@@ -301,55 +275,23 @@ export default class View {
 		return this;
 	}
 
-	/* Import a module and append its default export. Not async on purpose, so
-	 * `div.c("thing").load(import.meta, "thing.js")` works inside a capture fn.
-	 * Parallel, so several resolve in whatever order they arrive — use `lazy()` when
-	 * the order on the page has to match the order you wrote. */
+	// Import a module and append its default export. Not async on purpose, so it
+	// works inside a capture fn. Parallel — `lazy()` when written order matters.
 	load(meta, url){
-		if (is.str(meta)){ // .load("/file.js");
-			url = meta;
-		} else { // .load(import.meta, "file.js");
-			url = new URL(url, meta.url).href;
-		}
-		
-		this.append_promise(import(url).then(mod => mod.default));
+		this.append_promise(import(View.url(meta, url)).then(mod => mod.default));
 		return this;
 	}
 
-	// The same, serialized — one promise chain, so imports append in written order.
 	lazy(meta, url){
-		if (is.str(meta)){ // .load("/file.js");
-			url = meta;
-		} else { // .load(import.meta, "file.js");
-			url = new URL(url, meta.url).href;
-		}
+		url = View.url(meta, url);
 
-		// promise chain, might be perf issue en masse
 		View.lazy = View.lazy.then(async () => {
 			View.set_captor(this);
 			let mod = await import(url);
 			if (is.def(mod.default))
 				this.append(mod.default);
 			View.restore_captor();
-		}); // we have to capture in series, so wait for the last one
-		return this;
-	}
-
-	// returns index of self relative to parentNode.children
-	index(){
-		return Array.prototype.indexOf.call(this.el.parentNode.children, this.el);
-	}
-
-	insert(el, index){
-		if (el.el)
-			el = el.el; // if you pass in a view
-
-		if (index >= this.el.children.length){
-			this.append(el);
-		} else {
-			this.el.insertBefore(el, this.el.children[index]);
-		}
-
+		});
 		return this;
 	}
 
@@ -359,16 +301,14 @@ export default class View {
 		return this;
 	}
 
-	// inline styles
+	// ⚠ `--x` needs setProperty: `el.style["--x"] = v` silently does nothing.
 	style(prop, value){
-		// set with object
 		if (is.obj(prop)){
 			for (var p in prop){
 				this.style(p, prop[p]);
 			}
 			return this;
 
-		// set with "prop", "value"
 		} else if (prop && is.def(value)) {
 
 			if (prop.startsWith("--")){
@@ -378,7 +318,6 @@ export default class View {
 			}
 			return this;
 
-		// get with "prop"
 		} else if (prop) {
 			if (prop.startsWith("--")){
 				return this.el.style.getPropertyValue(prop);
@@ -386,7 +325,6 @@ export default class View {
 				return this.el.style[prop];
 			}
 
-		// get all
 		} else if (!arguments.length){
 			return this.el.style;
 		} else {
@@ -404,7 +342,7 @@ export default class View {
 		this.el.style.display = "";
 		return this;
 	}
-	// this doesn't work if css display: none is the starting point...
+	// ⚠ Reads the computed style, so a view already hidden by CSS toggles to hidden.
 	toggle(){
 		if (getComputedStyle(this.el).display === "none")
 			return this.show();
@@ -419,18 +357,6 @@ export default class View {
 
 	replace(view){
 		this.el.replaceWith(view.el ? view.el : view);
-		return this;
-	}
-
-	buffer(){
-		this._buffer_clone = this.el.cloneNode(true);
-		this.el.replaceWith(this._buffer_clone);
-		return this;
-	}
-
-	flush(){
-		this._buffer_clone.replaceWith(this.el);
-		delete this._buffer_clone;
 		return this;
 	}
 
@@ -464,24 +390,7 @@ export default class View {
 			}
 		});
 
-		// maybe return the .class-ctrls, breaking chaining?
 		return this;
-	}
-
-	static lookup(el){
-		return this.registry.get(el);
-	}
-
-	static register(view){
-		if (this.inspect){
-			// console.log("registering view");
-			this.registry.set(view.el, view);
-		}
-	}
-
-	static get registry(){
-		if (!this._registry) this._registry = new WeakMap();
-		return this._registry;
 	}
 
 	static set_captor(view){
@@ -505,17 +414,9 @@ export default class View {
 		}
 	}
 
-	/**
-	 * View.stylesheet(import.meta, "file.css") — or a bare url.
-	 *
-	 * App awaits every promise in `View.stylesheets` before it injects, so this one
-	 * MUST settle: a <link> that 404s fires `error`, not `load`, and without the
-	 * handler one typo'd url is a permanently blank page. It RESOLVES on error, so a
-	 * missing stylesheet degrades to unstyled rather than taking the page down.
-	 *
-	 * `capture: false` keeps the <link> out of whatever happens to be capturing when
-	 * the module is imported.
-	 */
+	// ⚠ App awaits every promise in `View.stylesheets`, so this one MUST settle: a
+	// <link> that 404s fires `error`, not `load`, and an unsettled promise is a
+	// permanently blank page. It RESOLVES on error — unstyled, not down.
 	static stylesheet(meta, url){
 		url = View.url(meta, url);
 
@@ -544,9 +445,6 @@ export default class View {
 			div(){
 				return new View().append(...arguments);
 			},
-			p(){
-				return new View({ tag: "p" }).backtick_append(...arguments);
-			},
 			style(){
 				return new View({ tag: "style" }).append(...arguments).append_to(document.head);
 			}
@@ -560,12 +458,17 @@ export default class View {
 			return new View().ac(classes).append(...args);
 		};
 
-		fns.p.c = function(classes, ...args){
-			return new View({ tag: "p" }).ac(classes).backtick_append(...args);
-		};
-		
-		
-		["h1", "h2", "h3", "h4", "h5", "h6", "span", "ul", "ol", "li", "pre", "code", "button", "a", "section", "nav", "footer", "header", "main", "article", "aside", "form", "label", "input", "textarea", "select", "option", "fieldset", "legend", "img", "video", "audio", "iframe", "table", "thead", "tbody", "tr", "th", "td", "blockquote", "cite", "dfn", "em", "i", "kbd", "mark", "q", "s", "samp", "small", "strong", "u", "br", "hr", "b", "abbr", "del", "ins", "sub", "sup", "time", "meter", "progress", "data", "details", "summary", "figure", "figcaption"].forEach(tag => {
+		["p", "h1", "h2", "h3", "h4", "h5", "h6"].forEach(tag => {
+			fns[tag] = function(){
+				return new View({ tag }).backtick_append(...arguments);
+			};
+
+			fns[tag].c = function(classes, ...args){
+				return new View({ tag }).ac(classes).backtick_append(...args);
+			};
+		});
+
+		["span", "ul", "ol", "li", "pre", "code", "button", "a", "section", "nav", "footer", "header", "main", "article", "aside", "form", "label", "input", "textarea", "select", "option", "fieldset", "legend", "img", "video", "audio", "iframe", "table", "thead", "tbody", "tr", "th", "td", "blockquote", "cite", "dfn", "em", "i", "kbd", "mark", "q", "s", "samp", "small", "strong", "u", "br", "hr", "b", "abbr", "del", "ins", "sub", "sup", "time", "meter", "progress", "data", "details", "summary", "figure", "figcaption"].forEach(tag => {
 			fns[tag] = function(){
 				return new View({ tag }).append(...arguments);
 			};
@@ -578,7 +481,6 @@ export default class View {
 		return fns;
 	}
 
-	// setup body as captor
 	static body(){
 		if (View._body){
 			return View._body;
@@ -610,43 +512,15 @@ export function icon(name){
 	return el.c("span", "material-icons icon", name);
 }
 
-export function append(...args){
-	View.captor.append(...args);
-}
-
-export async function load(meta, url){
-	if (is.str(meta)){ // .load("/file.js");
-		url = meta;
-	} else { // .load(import.meta, "file.js");
-		url = new URL(url, meta.url).href;
-	}
-
-	const placeholder = div.c("load");
-
-	const mod = await import(url);
-
-	if (mod.default?.el){
-		// no extra div.load
-		placeholder.replace(mod.default);
-	} else {
-		// if a function or other is exported, .replace doesn't work
-		placeholder.append(mod.default);
-	}
-
-}
-
 export const { el, div, p, style, h1, h2, h3, h4, h5, h6, span, ul, ol, li, pre, code, button, a, section, nav, footer, header, main, article, aside, form, label, input, textarea, select, option, fieldset, legend, img, video, audio, iframe, table, thead, tbody, tr, th, td, blockquote, cite, dfn, em, i, kbd, mark, q, s, samp, small, strong, u, br, hr, b, abbr, del, ins, sub, sup, time, meter, progress, data, details, summary, figure, figcaption } = View.elements();
 export { View, is };
 
+// ⚠ On the prototype, not class fields — a field would stop a subclass declaring
+// `tag = "other"`, and `capture` has to be readable before the constructor body.
 View.previous_captors = [];
 View.prototype.capture = true;
 
-/* The layer order and the base look, loaded HERE and not by App — importing View
- * means importing the framework's CSS, so this <link> is always first and its
- * `@layer` statement fixes the order for the whole document. History:
- * doc/stylesheet-loading.md.
- *
- * ⚠ DEAD LAST in this file, and it has to be: `stylesheet()` builds a View, which
- * runs `append_fn`, which pushes onto `View.previous_captors` — declared two lines
- * up. Higher in the file it throws "Cannot read properties of undefined". */
+// framework.css loads HERE so that importing View fixes the document's @layer order.
+// ⚠ DEAD LAST in this file, and it has to be: `stylesheet()` builds a View, which
+// pushes onto `View.previous_captors` — declared two lines up.
 View.stylesheet(import.meta, "../../framework.css");

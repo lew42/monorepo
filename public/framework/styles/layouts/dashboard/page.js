@@ -1,26 +1,78 @@
-import { Page, md, demo } from "/app.js";
-import layout from "./layout.js";
-import full from "../full.js";
-import fit from "../fit.js";
+import { div, span, md } from "/app.js";
+import Layout from "../Layout.js";
+import recipe from "../recipe.js";
+import { next } from "../../parts.js";
 
-export default new Page({
+const tile = (label, value) => div.c("pad flex v gap surface").style("--gap", "0.2em").append(() => {
+	span.c("h1", value);
+	span.c("h4 muted", label);
+});
+
+export default new Layout({
 	meta: import.meta,
 	title: "Dashboard",
 	description: "Stat tiles over a wide panel and a rail — a grid retuned by one token.",
 	icon: "dashboard",
 
-	route(name){ return name === "full" && full(this, layout); },
+	/* `fill` is earned here: the panel row is `flex-1`, which is a no-op on a page
+	   sized to its content, and a board that stops halfway down the region is not a
+	   board. Both panels own their `overflow-y`, so `fill`'s clip costs nothing. */
+	classes: "pad fill flex v gap",
 
-	content(){
-		demo(layout, { full: this }, "The tile row is the *same* `grid gap auto` as [Cards](/framework/styles/layouts/cards/), with `--column` set to `8em` so four tiles fit where two cards would. **A token override, not a rule** — and it stays responsive, because `auto-fit` is still doing the counting.");
+	layout(){
+		// one wrapper, so a 3440 monitor gets a board and not a spreadsheet. `flex-1`
+		// carries the page's `fill` height down; `min-height: 0` lets the row scroll.
+		div.c("measure flex v gap flex-1").style({ "--measure": "78em", minHeight: "0" }).append(() => {
 
+			// `--column: 8em` is the whole difference between a tile and a card
+			div.c("grid gap auto").style("--column", "8em").append(() => {
+				tile("Layouts", this.parent.rail().length);
+				tile("CSS rules", "0");
+				tile("Media queries", "0");
+				tile("Dependencies", "0");
+			});
 
-		md("The panel row is `flex gap flex-1`: the chart takes what's left, the rail is `.layout-rail`. Two arrangements, one stylesheet rule between them.");
+			/* ⚠ The `overflow-y` is on the ROW, not on the panel inside it. A WRAPPING
+			   flex line is sized by its content and `align-content` can only grow one,
+			   so a scroller on the panel never engages — the row is the last box with a
+			   definite height. Without this, `fill` clips with no way down. */
+			div.c("flex gap wrap flex-1").style({ minHeight: "0", overflowY: "auto" }).append(() => {
 
-		fit("A metrics overview · An analytics home · A status board · An order summary",
-			"wide",
-			"The same call as Cards, for the same reason: tiles are not prose. `--column: 8em` is what makes them tiles rather than cards, and it is a token override, not a rule.");
+				div.c("pad flex v gap surface").style({ flex: "1 1 22em", minWidth: "0" }).append(() => {
+					md(`## A board is two grids
 
-		md("Next: [Split](/framework/styles/layouts/split/) — two panes that stack themselves.");
-	}
+The tiles across the top are \`grid gap auto\` with \`--column: 8em\`. The row below is
+\`flex gap wrap\`: this panel takes what is left, the rail beside it holds \`14em\`.
+Two arrangements, **no stylesheet.**
+
+## The numbers are real
+
+The first tile counts the layouts nav this page read off its parent, so a dashboard's
+one job — not lying about a number — is structural rather than promised.
+
+## Why the panel row is \`flex-1\`
+
+The page wears \`fill\`, so it is the region's height rather than its content's, and
+\`flex-1\` on this row hands it everything the tiles did not take. That is what makes
+a board reach the bottom of the screen instead of floating above it, and it is the
+part of this layout a screenshot cannot show you.
+
+Scroll this panel: the tiles stay put and the footer stays put, because the row
+between them is the only box that moves.
+
+## What you would build with it
+
+- A metrics overview or an analytics home
+- A status board
+- An order summary, with the rail as the activity feed`);
+				});
+
+				div.c("basis").style("maxWidth", "100%").append(() =>
+					recipe(this, "Tiles, then a row that takes the slack. `--column: 8em` is the only difference from a card wall."));
+			});
+
+			next("[Split](/framework/styles/layouts/split/) — two panes that stack themselves.",
+				"styles/layouts/dashboard/");
+		});
+	},
 });

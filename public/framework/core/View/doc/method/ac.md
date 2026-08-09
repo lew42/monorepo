@@ -1,6 +1,7 @@
-Add a class. The workhorse of the chainable API, and the reason `.c()` exists on
-every factory — `div.c("flex gap")` is just `div().ac("flex gap")` with fewer
-parens.
+**Usage** — the most-called method in the framework: ~477 `.ac(` call sites across
+`public/`. Internally it is how `classify()` writes the class chain
+(`View.js:45,50,55`), how every `.c()` factory spends its first argument
+(`View.js:456-476`), and half of `toggle_class()` (`View.js:170`).
 
 ```js
 div().ac("flex gap");           // space-separated, one call
@@ -8,20 +9,15 @@ div().ac("flex", "gap");        // or several args
 div().ac(cond && "active");     // falsy args are skipped, so no ternary
 ```
 
-That last line is why the loop guards with `arg &&` rather than trusting
-`split`. `undefined.split` throws, and the natural way to write a conditional
-class produces exactly `undefined`.
+**Necessity** — essential. It is rung 2 of the CSS ladder made callable, and
+`.c()` on every tag factory is this with fewer parens.
 
-## Why classes and not styles
+**Simplicity** — right-sized. The `arg &&` guard and the `filter(Boolean)` both
+look defensive and both are load-bearing: `undefined.split` throws, and
+`classList.add("")` throws, so `.ac("card " + maybe)` was a live landmine before
+the filter. `rc` removes, `tc` toggles, `hc` asks — same shape, and only `hc`
+ends a chain.
 
-The CSS ladder says stop at the first rung that works, and rung 2 is *a utility
-class*. `ac` is how you spend that rung. Reach for `.style()` only when the value
-is computed at runtime — a width from a measurement, a colour from data. A
-literal in `.style()` is a rule that no stylesheet can ever override, because
-inline styles sit above every layer including `!important` ones.
+Reach for `style()` only when a value is computed at runtime. A literal inline
+style is a rule no stylesheet can ever override.
 
-## Siblings
-
-`rc` removes, `tc` toggles, `hc` asks. All four take the same space-separated
-form, and the first three return `this` so they chain; `hc` returns a boolean, so
-it ends a chain.

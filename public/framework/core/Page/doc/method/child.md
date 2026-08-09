@@ -1,26 +1,46 @@
-One url segment → a page: **memory, then the filesystem, then no.**
+One url segment → a page: **memory, then `route()`, then the filesystem.**
+
+**Usage** — the walk *is* the loader. `Router.walk()` calls it once per segment
+(`framework/core/Router/Router.js:83`), `load_all_children()` calls it per declared
+name (`Page.class.js:180`), and `ext/tabs` calls it to guarantee the first tab's
+label is real (`framework/ext/tabs/tabs.js:40`).
 
 ```
 children.get(name)  →  a Page      here already
-                    →  null        declared, not loaded  → import it
-                    →  undefined   never declared        → route() may claim it
+                    →  null        declared, not resolved yet  → Page.load()
+                    →  undefined   never declared              → route(), then Page.load()
 ```
 
-Three states in one Map, and the third slot is what makes the whole loader work.
-An earlier version tried the filesystem first and fell back to `route()`, so
-**every dynamic url paid a doomed 404** before being claimed. Checking `route()`
-first is worse: a greedy one silently shadows a real file.
+**Necessity** — the class. Everything else about routing is a consequence of this
+one method.
 
-Declared children give the third slot, and with it two properties for free:
-**only declared names ever hit the network**, and **`route()` structurally cannot
-shadow a `page.js`** — because a file you want is a file you declared.
+**Simplicity** — right-sized, and the ordering is the design, not an accident.
+Three states in one Map, and the third slot keeps `route()` honest: it is tried
+**only** for a name nobody declared, so a greedy route structurally cannot shadow a
+`page.js`. The reverse order was tried and is worse — filesystem first made **every
+dynamic url pay a doomed 404** before being claimed.
+
+## An undeclared folder still resolves
+
+The last step is a probe: `Page.load(this.url + name + "/")`. So a `page.js` on disk
+that nobody put in a `children` list is reachable — **forgetting to declare costs
+the menu entry, not the url.** It used to be a hard 404, on the theory that a loud
+failure keeps the list honest; a 404 for a file you can see in the folder is a
+puzzle, not a report.
+
+The probe costs one failed import per genuine miss, and nothing for a url that
+resolves. `Page.load()` separates *missing* from *broken*, so a syntax error in a
+page you just wrote is an error in the console rather than a silent 404.
 
 ## Also the one place `app` is handed down
 
-Assigned here, on the walk, to the page about to need it. Nothing recurses it over
-the tree at boot, so a lazy child gets `app` exactly the way an eager one does.
+`known.assign({ app: this.app })`, on the walk, to the page about to need it.
+Nothing recurses it over the tree at boot. Note the asymmetry: the memory branch
+assigns `app`, and the two branches that go through `add()` get it from the adopt
+object instead — same result, two code paths.
 
 ## Safe to call twice
 
 Two callers racing for the same name both get the same module — the browser's
 module registry deduplicates, so `export default new Page()` runs once.
+
