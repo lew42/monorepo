@@ -1,4 +1,4 @@
-import { Page, Sidebar, View, div, h1, md } from "/app.js";
+import { Page, Sidebar, View, div, main, a, h1, md } from "/app.js";
 
 // The Router walks every segment, so reaching /alex/styles/bem/ has already
 // imported this file — one stylesheet for the whole section.
@@ -28,11 +28,14 @@ export default new Page({
 
 			new Sidebar({
 				app: this.app,
-				header: () => this.app.brand(this.title, this.url),
+				header: () => div.c("brand", () => {
+					a.c("brand-logo", () => this.app.logo()).href("/").attr("aria-label", "Home");
+					a.c("brand-text", this.title).href(this.url);
+				}),
 				pages: [...this.children.keys()].map(name => this.nav_for(name)),
 			});
 
-			this.$pages = div.c("pages", () => {
+			this.$pages = main.c("pages", () => {
 				div.c("page default flow", () => {
 					h1.c("page-title", this.title);
 					this.content();

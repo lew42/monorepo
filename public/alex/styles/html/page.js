@@ -7,7 +7,7 @@ customElements.define("toggle-switch", class extends HTMLElement {
 		const checked = this.hasAttribute("checked");
 		this.innerHTML = `
       <label class="toggle-switch">
-        <input type="checkbox" ${checked ? "checked" : ""}>
+        <input type="checkbox" aria-label="Toggle" ${checked ? "checked" : ""}>
         <span class="slider"></span>
       </label>
     `;
@@ -48,7 +48,8 @@ export default new Page({
 		h2("Full-width form fields");
 
 		demo(() => {
-			input().attr("type", "text").attr("placeholder", "I fill the width automatically");
+			input().attr("type", "text").attr("aria-label", "Full-width text field")
+				.attr("placeholder", "I fill the width automatically");
 		}, "Text inputs, selects and textareas stretch to fill their container, which keeps forms tidy with no extra CSS.");
 
 		h2("Responsive image");

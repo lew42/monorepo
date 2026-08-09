@@ -23,17 +23,17 @@ export default new Page({
 				fieldset(() => {
 					legend("Sign up");
 
-					label("Name");
-					input().attr("type", "text").attr("placeholder", "Peter Parker");
+					label("Name").attr("for", "signup-name");
+					input().attr("id", "signup-name").attr("type", "text").attr("placeholder", "Peter Parker");
 
-					label("Role").style("display", "block").style("margin-top", "0.75em");
+					label("Role").attr("for", "signup-role").style("display", "block").style("margin-top", "0.75em");
 					select(() => {
 						option("Newbie");
 						option("Pro");
-					});
+					}).attr("id", "signup-role");
 
-					label("About").style("display", "block").style("margin-top", "0.75em");
-					textarea.c("auto").attr("placeholder", "A few words...");
+					label("About").attr("for", "signup-about").style("display", "block").style("margin-top", "0.75em");
+					textarea.c("auto").attr("id", "signup-about").attr("placeholder", "A few words...");
 
 					div.c("flex gap", () => {
 						button.c("prim", "Submit");
