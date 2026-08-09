@@ -1,0 +1,15 @@
+/* Restated IN FULL — the first @layer statement fixes the order. */
+@layer base, theme, site, util;
+
+@layer site {
+
+	/* reserved before the first draw, so the chart arriving shifts nothing */
+	.chart-plot { width: 100%; min-height: 160px; }
+
+	/* A bare <path> is invisible, so this file does ship one colour — as the
+	   theme's token, which is why light and dark need no redraw. */
+	.chart-line { fill: none; stroke: var(--prim); stroke-width: 2; }
+
+	.chart-note { color: var(--subtle); }
+	.chart-note-error { color: var(--error); }
+}
