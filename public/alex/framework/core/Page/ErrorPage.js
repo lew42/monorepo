@@ -1,3 +1,6 @@
+/* DEPRECATED — archived for reference, does not run. The `../View/View.js`
+ * import below does not resolve at this path. See ../readme.md. */
+
 import { el, h1 } from "../View/View.js";
 import Page from "./Page.js";
 

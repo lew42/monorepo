@@ -1,3 +1,8 @@
+/* DEPRECATED — archived for reference, does not run. Nothing imports it, and its
+ * Page imports are themselves broken. It is one of the two remaining callers of
+ * the frozen `App.path_to_page_url` url convention — do not build on either.
+ * Use the core `Router` (/framework/core/Router/Router.js). See ../readme.md. */
+
 import Page from "../Page/Page.js";
 import ErrorPage from "../Page/ErrorPage.js";
 
