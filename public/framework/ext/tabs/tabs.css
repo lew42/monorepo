@@ -17,7 +17,9 @@
 
 @layer theme {
 
-	.tabs { display: flex; flex-direction: column; min-width: 0; }
+	/* `--tab-pad-x` is exposed so a host can pull the strip left by exactly one tab's
+	   padding and land the LABELS on its own text axis — classdoc's well does. */
+	.tabs { display: flex; flex-direction: column; min-width: 0; --tab-pad-x: 0.9rem; }
 
 	/* ⚠ One strip that scrolls, never a wrapping block: a fifty-member rail flipped to
 	   a wrapped bar was 500px of links above the content it navigates. */
@@ -30,7 +32,9 @@
 	/* Quiet by construction: a text label, a hairline under the set, a 2px mark under
 	   the selected one. No box, no fill, no gap between tabs — the strip is the group. */
 	.tab {
-		padding: 0.5rem 0.9rem;
+		/* ⚠ The fallback is not redundant: `styles/elements/text` shows a BARE `.tab`
+		   with no `.tabs` above it, and an undeclared var takes `padding` to 0. */
+		padding: 0.5rem var(--tab-pad-x, 0.9rem);
 		font-size: 0.95em;
 		font-weight: 500;
 		color: var(--subtle);
@@ -42,16 +46,19 @@
 	.tab:hover { color: var(--ink); }
 
 	/* ⚠ `.in-path` but NOT on `.tab-default`, whose href is this page's own url and
-	   so is a prefix of every sibling's — it would read as selected on every tab. */
+	   so is a prefix of every sibling's — it would read as selected on every tab.
+	   ⚠ `[aria-current]` is the third mark: a stand-in app (ext/demo's demo.app) has no
+	   Router to set the two classes. Same exclusion for the same reason — and on the
+	   default's own url nothing matches, so the fallback below lights it instead. */
 	.tab.active,
-	.tab.in-path:not(.tab-default) { color: var(--ink); border-bottom-color: var(--prim); }
+	.tab:is(.in-path, [aria-current]):not(.tab-default) { color: var(--ink); border-bottom-color: var(--prim); }
 
 	/* A set with NOTHING of its own in the url highlights its first tab, so a panel is
 	   never showing content with nothing marked. Mirrors the panel's own default rule.
 	   ⚠ `in-path` counts as selected here: a nested set puts the url two levels down,
 	     so the outer bar has no `.active` at all and lit two tabs — the first and the
 	     one actually in the path. */
-	.tab-bar:not(:has(.tab.active, .tab.in-path:not(.tab-default))) > .tab:first-child {
+	.tab-bar:not(:has(.tab.active, .tab:is(.in-path, [aria-current]):not(.tab-default))) > .tab:first-child {
 		color: var(--ink); border-bottom-color: var(--prim);
 	}
 
@@ -62,6 +69,41 @@
 	/* A rail of one is not a rail: the panel is still a region, the bar is noise.
 	   Also covers the window before the bar is filled. */
 	.tab-bar:not(:has(> .tab + .tab)) { display: none; }
+
+	/* `block` — folder tabs: the selected one is a box open onto the page below.
+	   ⚠ The rule moves off the bar and ONTO the tabs, so under the selected tab it is
+	     absent rather than covered. Unfilled by default, so the tab's interior simply
+	     IS the page — `--tab-fill` is for a host that tints the strip and needs the
+	     selected tab to cut back to whatever its content sits on. */
+	.tabs.block > .tab-bar { border-bottom: none; }
+
+	/* carries the rule past the last tab; collapses to nothing once the strip scrolls */
+	.tabs.block > .tab-bar::after { content: ""; flex: 1; border-bottom: 1px solid var(--line); }
+
+	/* Folder tabs wear the scale's `h4` — the annotation level, which is what a strip of
+	   section labels is. ⚠ Restated rather than handed to the element as `.h4`: the
+	   variant is a class on the SET and `.tab` is emitted by this module's JS, so no
+	   call site can put the level on the anchor. Keep in step with framework.css. */
+	.tabs.block { --tab-pad-x: 1.35rem; }
+
+	.tabs.block > .tab-bar > .tab {
+		font-size: 0.8em; font-weight: 700;
+		letter-spacing: 0.05em; text-transform: uppercase;
+		border: 1px solid transparent;
+		border-top-width: 2px;             /* reserved on EVERY tab: the accent must not shift one label */
+		border-bottom-color: var(--line);
+		border-radius: var(--radius) var(--radius) 0 0;
+		margin-bottom: 0;
+	}
+
+	.tabs.block > .tab-bar > .tab.active,
+	.tabs.block > .tab-bar > .tab:is(.in-path, [aria-current]):not(.tab-default),
+	.tabs.block > .tab-bar:not(:has(.tab.active, .tab:is(.in-path, [aria-current]):not(.tab-default))) > .tab:first-child {
+		border-color: var(--line);
+		border-top-color: var(--prim);
+		border-bottom-color: transparent;
+		background: var(--tab-fill, transparent);
+	}
 
 	/* A rail PLUS a column needs more than 60em. Derived from the structure, so
 	   anything that grows a rail gets it without a class.
@@ -97,8 +139,8 @@
 	}
 
 	.tabs.vertical > .tab-bar > .tab.active,
-	.tabs.vertical > .tab-bar > .tab.in-path:not(.tab-default),
-	.tabs.vertical > .tab-bar:not(:has(.tab.active, .tab.in-path:not(.tab-default))) > .tab:first-child {
+	.tabs.vertical > .tab-bar > .tab:is(.in-path, [aria-current]):not(.tab-default),
+	.tabs.vertical > .tab-bar:not(:has(.tab.active, .tab:is(.in-path, [aria-current]):not(.tab-default))) > .tab:first-child {
 		border-inline-end-color: var(--prim);
 	}
 
@@ -121,8 +163,8 @@
 			margin-inline-end: 0; margin-bottom: -1px;
 		}
 		.tabs.vertical > .tab-bar > .tab.active,
-		.tabs.vertical > .tab-bar > .tab.in-path:not(.tab-default),
-		.tabs.vertical > .tab-bar:not(:has(.tab.active, .tab.in-path:not(.tab-default))) > .tab:first-child {
+		.tabs.vertical > .tab-bar > .tab:is(.in-path, [aria-current]):not(.tab-default),
+		.tabs.vertical > .tab-bar:not(:has(.tab.active, .tab:is(.in-path, [aria-current]):not(.tab-default))) > .tab:first-child {
 			border-bottom-color: var(--prim);
 		}
 		.tabs.vertical > .tab-panel { padding-top: 1rem; }

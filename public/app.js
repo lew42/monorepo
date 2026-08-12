@@ -13,6 +13,7 @@ App.stylesheet("/styles.css");
 const nav = [
 	["/", "Home"],
 	["/framework/", "Framework"],
+	["/web/", "Web"],
 	["/alex/", "Alex"],
 	["/arya/", "Arya"],
 	["/castin/", "Castin"],
@@ -88,6 +89,15 @@ export { Sidebar } from "./framework/core/Sidebar/Sidebar.js";
 export { default as md, marked } from "./framework/ext/markdown/md.js";
 export { default as demo } from "./framework/ext/demo/demo.js";
 
+// Patches demo.app() on: a real Page tree playing App and Router inside a box.
+// The side effect IS the export — same shape as tree and tabs below.
+import "./framework/ext/demo/app.js";
+
+// Patches demo.exhibit(), demo.page() and demo.tree() on: a demo as a PAGE — the
+// render, a layout bar over it, its definition. The side effect IS the export —
+// same shape as tabs below. It imports ext/Layout, the one control surface.
+import "./framework/ext/demo/exhibit.js";
+
 // classdoc turns "a method has a .md file next to the page.js" into a child
 // page showing that method's real source. Imports markdown (the notes ARE
 // markdown); leans on highlight only if it's loaded. See ext/classdoc/readme.md.
@@ -98,6 +108,10 @@ export { default as classdoc } from "./framework/ext/classdoc/classdoc.js";
 // rail; this import is what makes `this.tabs("guide api")` work on any OTHER
 // page.js too. See ext/tabs/readme.md.
 import "./framework/ext/tabs/tabs.js";
+
+// Patches this.catalog() the same way: previews() as a persistent rail beside
+// the region the children mount in. classdoc's Overview tab is built on it.
+import "./framework/ext/catalog/catalog.js";
 
 // files() shows real files on disk, fetched — so a "here is a whole project"
 // section can't drift from the project. toc() reads a page's own headings.
@@ -112,7 +126,7 @@ export { default as toc } from "./framework/ext/toc/toc.js";
 // See framework/ext/highlight/readme.md.
 export { hljs, highlight } from "./framework/ext/highlight/highlight.js";
 
-// The UI components, as one namespace: `ui.card()`, `ui.badge.c("accent", …)`.
-// Sixteen functions; the rest of the set is documented as copy-paste markup and
-// deliberately has nothing to import. See framework/ui/readme.md.
+// The UI components, as one namespace: `ui.table(head, rows)`, `ui.timeline(…)`,
+// `ui.keys("Ctrl", "K")`. Three functions — the other sixteen are documented as
+// copy-paste markup and deliberately have nothing to import. See ui/readme.md.
 export { ui } from "./framework/ui/ui.js";

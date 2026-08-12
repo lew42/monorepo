@@ -4,6 +4,7 @@ import { Page, Sidebar, md, h1, h2, div, a } from "/app.js";
 // auto-import every section's tree (and its side effects) into the home page.
 const sections = [
 	{ title: "Framework", url: "/framework/", desc: "The docs — View, Page, Router, App." },
+	{ title: "Web", url: "/web/", desc: "The guide — how to build things on the web, shown live." },
 	{ title: "Alex", url: "/alex/", desc: "Pages, subpages, and nesting." },
 	{ title: "Arya", url: "/arya/", desc: "First steps with the framework." },
 	{ title: "Castin", url: "/castin/", desc: "A tree you can walk — root to leaves." },
@@ -61,9 +62,9 @@ export default new Page({
 
 		md("It's one site now, so spend some time in someone else's directory. You solved a lot of the same problems in different ways, and the differences are the interesting part.");
 
-		// Same markup Page.preview() emits — these sections are plain data, not
-		// Pages (see above), so the cards are hand-rolled. Class names must track
-		// Page.css: `.page-preview*`, prefixed.
+		// These sections are plain data, not Pages (see above), so the cards are
+		// hand-rolled: an `<a.page-preview>`, where Page.preview() emits a div with
+		// the link inside. Borrowed class names — they must track Page.css.
 		div.c("page-previews", () => {
 			sections.forEach(section => {
 				a.c("page-preview").href(section.url).append(() => {

@@ -17,35 +17,34 @@ css(`@layer theme {
 	}
 
 	.ui-timeline-line { border-inline-start: 1px solid color-mix(in srgb, currentColor 25%, transparent); }
-	.ui-timeline-entry { flex: 1 1 0; min-width: 0; padding-bottom: 1.8em; }
-	.ui-timeline-entry.last { padding-bottom: 0; }
+	.ui-timeline-entry { flex: 1 1 0; min-width: 0; padding-bottom: 1.8em; --gap: 0.2em; }
+
+	/* The run has to STOP: a line trailing off below the final entry reads as a
+	   loading state. Which row is last is the DOM's question, not JS's. */
+	.ui-timeline-row:last-child .ui-timeline-line { border: none; }
+	.ui-timeline-row:last-child .ui-timeline-entry { padding-bottom: 0; }
 }`);
 
 /**
  * timeline(["Aug 2026", "The sheet is the default", "A region hands every page the
  * measure."], …) — a date, a rail of dots, an entry.
  *
- * The last row omits the line, which is what makes the run stop. On a column,
- * `v-center` centres *horizontally* — that is what puts the dots and the line on
- * one axis.
+ * On a column, `v-center` centres *horizontally* — that is what puts the dots and
+ * the line on one axis.
  */
 export const timeline = component((...items) => div.c("ui-timeline flex v", () =>
-	items.forEach(([when, what, note], i) => {
-		const last = i === items.length - 1;
+	items.forEach(([when, what, note]) => div.c("ui-timeline-row flex gap", () => {
+		p.c("ui-timeline-when h4 muted", when);
 
-		div.c("ui-timeline-row flex gap", () => {
-			p.c("ui-timeline-when h4 ui-muted", when);
-
-			div.c("ui-timeline-rail flex v v-center", () => {
-				span.c("ui-timeline-dot");
-				if (!last) div.c("ui-timeline-line flex-1");
-			});
-
-			div.c("ui-timeline-entry flex v gap", () => {
-				p.c("h3", what);
-				p.c("ui-muted", note);
-			}).style("--gap", "0.2em").ac(last && "last");
+		div.c("flex v v-center", () => {
+			span.c("ui-timeline-dot");
+			div.c("ui-timeline-line flex-1");
 		});
-	})));
+
+		div.c("ui-timeline-entry flex v gap", () => {
+			p.c("h3", what);
+			p.c("muted", note);
+		});
+	}))));
 
 export default timeline;

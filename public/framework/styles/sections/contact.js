@@ -1,5 +1,5 @@
-import { div, p, form, label, input, textarea, icon } from "/app.js";
-import { section, eyebrow, cta } from "./parts.js";
+import { div, p, form, label, input, textarea, button, icon } from "/app.js";
+import { band } from "./tone.js";
 
 /* Split, filled: the channels on one side, a real form on the other, and
  * `flex gap auto` stacks them the moment the row runs out of room.
@@ -21,25 +21,27 @@ const channel = (glyph, title, line) => div.c("flex gap", () => {
 	}).style("gap", "0.1em");
 });
 
-export default tone => section(tone ?? "wash", () => {
-	div.c("flex gap auto", () => {
+export default (tone = "wash") =>
+	div.c("section-band", () =>
+		div.c("measure flex gap auto", () => {
 
-		div.c("flex v gap", () => {
-			eyebrow("GET IN TOUCH");
+			div.c("flex v gap", () => {
+				p.c("h4", "GET IN TOUCH").style("color", "var(--eyebrow, var(--prim))");
 
-			p.c("h2", "Ask anything");
+				p.c("h2", "Ask anything");
 
-			channel("forum", "Discussions", "Design questions, and why something is the way it is.");
-			channel("bug_report", "Issues", "A page that broke, with the url you were on.");
-			channel("alternate_email", "Email", "Anything that does not belong in public.");
-		});
+				channel("forum", "Discussions", "Design questions, and why something is the way it is.");
+				channel("bug_report", "Issues", "A page that broke, with the url you were on.");
+				channel("alternate_email", "Email", "Anything that does not belong in public.");
+			});
 
-		form.c("flex v gap", () => {
-			field("Name", () => input().attr("type", "text").attr("placeholder", "Ada K."));
-			field("Email", () => input().attr("type", "email").attr("placeholder", "you@example.com"));
-			field("Message", () => textarea().ac("auto").attr("rows", "3").attr("placeholder", "What are you building?"));
+			form.c("flex v gap", () => {
+				field("Name", () => input().attr("type", "text").attr("placeholder", "Ada K."));
+				field("Email", () => input().attr("type", "email").attr("placeholder", "you@example.com"));
+				field("Message", () => textarea().ac("auto").attr("rows", "3").attr("placeholder", "What are you building?"));
 
-			cta("Send", "prim").style("align-self", "flex-start");
-		}).on("submit", e => e.preventDefault());
-	});
-}).style("--section", "62em");
+				button.c("prim", "Send").style("align-self", "flex-start");
+			}).on("submit", e => e.preventDefault());
+
+		}).style("--measure", "62em")
+	).style(band(tone));

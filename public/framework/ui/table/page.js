@@ -1,4 +1,4 @@
-import { Page, md, demo, a } from "/app.js";
+import { Page, md, demo, div, a } from "/app.js";
 import { palette } from "../parts.js";
 import { table } from "./table.js";
 
@@ -10,7 +10,6 @@ export default new Page({
 	title: "Data table",
 	description: "A head row and a body — the base theme had already finished this one.",
 	icon: "table_chart",
-	classes: "grid",
 
 	content(){
 
@@ -45,4 +44,6 @@ export default new Page({
 
 		md("Next: [Form field](/framework/ui/field/) — the first one that is a template rather than a function.");
 	},
+
+	preview(nav){ return this.preview_card(nav, () => div.c("zoom-75 pad", () => table(head, rows))); },
 });

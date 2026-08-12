@@ -51,6 +51,21 @@ a 2px mark under the selected one, every value a token — `--line`, `--subtle`,
 tab bar that ships a box, a fill and a radius has decided something that was not its
 call. `.vertical` stays a variant because it changes the **axis**, not the skin.
 
+**`.block` is a style option, not a second component** — folder tabs, opted into at the
+call site (`classdoc`'s top bar; its member rails stay `vertical`). It is the one shape
+that carries **type**: the labels take the scale's `h4` — the annotation level, which is
+what a strip of section names is — with `--tab-pad-x` widened to match. Restated rather
+than handed to the anchor as `.h4`, because the variant is a class on the *set* and the
+anchor is emitted by this module; keep it in step with `framework.css`. The underline
+default is untouched. It ships no fill either: the hairline moves off the bar and onto the tabs, so under the selected one it
+is *absent* rather than covered, which is the only way a tab can merge with a page whose
+background this module is not allowed to know. **`--tab-fill` is the one way out**
+(2026-08-12): a host that *tints* the strip needs the selected tab to cut back to
+whatever its content sits on, so it names that ground and the tab fills with it —
+default `transparent`, so an untinted bar is exactly what it always was. `--tab-pad-x`
+arrived with it, for a host that wants the tab *labels* on its own text axis rather
+than the tab boxes.
+
 **The panel rule is about the panel, not the group.** Every set renders its first
 child as the panel's `.default`, so no panel is ever blank, and which one shows is
 read entirely off the url — clicking produces byte-identical output to reloading.
@@ -68,6 +83,16 @@ selected the selected *look* on its first tab, mirroring the panel's own `.defau
 fallback. The third is **a rail of one is not a rail** — the panel is still a region and
 the child still mounts, but a bar with one entry is noise. It is what makes an overview
 with no sub pages look like a plain page.
+
+**`[aria-current]` counts as selected too, in all three shapes.** A stand-in app —
+`ext/demo`'s `demo.app` — has no Router to set the two classes, and `mark_links()`
+would clear a borrowed one anyway, so both the selected-state selectors and the
+first-tab fallback read the attribute as a third mark. The alternative was a
+`.demo-app .tab[aria-current]` block in `ext/demo`, which lost because it restated
+this module's look in a later layer once per shape and still left `.vertical`
+unmarked. Purely additive, and that is the reason it was cheap: the real Router
+never sets `aria-current`, so no real tab gains or loses a mark. `ext/catalog`'s
+rail fallback reads it the same way, for the same reason.
 
 **Overflow: one strip that scrolls, never a wrapping block.** This was the module's
 headline trap for as long as it existed — *"right at ~5 children, unusable at twenty"* —

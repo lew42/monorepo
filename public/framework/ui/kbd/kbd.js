@@ -13,21 +13,12 @@ css(`@layer theme {
 	.ui-keys-sep { color: var(--subtle); font-size: 0.75em; }
 }`);
 
-// key("Ctrl") — one real <kbd>, boxed.
-export const key = component(text => kbd.c("ui-key ui-surface", text));
-
 /* keys("Ctrl", "K") — the separator is a span, so each key stays a real <kbd>
  * and a screen reader still reads two of them. */
 export const keys = component((...names) => div.c("ui-keys flex v-center gap", () =>
 	names.forEach((name, i) => {
 		if (i) span.c("ui-keys-sep", "+");
-		key(name);
+		kbd.c("ui-key surface", name);
 	})).style("--gap", "0.3em"));
-
-// shortcut("Command palette", "Ctrl", "K") — label at one end, keys at the other.
-export const shortcut = component((label, ...names) => div.c("ui-shortcut flex gap v-center split", () => {
-	span(label);
-	keys(...names);
-}));
 
 export default keys;

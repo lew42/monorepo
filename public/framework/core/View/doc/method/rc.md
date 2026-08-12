@@ -1,7 +1,7 @@
-**Usage** — 6 live call sites: `framework/ext/layout/layout.js:20,36,61`,
-`framework/ui/parts.js:41`, and `View.js:170` inside `toggle_class()`. The
-`ext/layout` calls are all one idiom — clear a set of mutually exclusive words,
-then add one:
+**Usage** — 9 live call sites: `framework/ext/layout/` (`layout.js`, `panel.js`,
+`controls.js`), `framework/ui/parts.js:41`, and `View.js:170` inside
+`toggle_class()`. The mode switchers there are one idiom — clear a set of mutually
+exclusive words, then add one — and the rest drop a single state class:
 
 ```js
 $box.rc(MODES.join(" ")).ac(mode);

@@ -7,9 +7,9 @@ Split out of `readme.md`. Both gaps below are now closed — `.basis` and
 
 Three rules for the layouts themselves — `layouts.css` also carries the
 maximize-view rules (`.layout-full`, `.layout-close`), this section's own
-machinery, not a layout's cost. The gallery-card rules that used to sit here
-moved out entirely, to `styles/gallery/gallery.css` — three indexes draw that
-card now, not just this one, so it earned its own module.
+machinery, not a layout's cost. The preview-card rules that used to sit here
+moved out entirely, to `core/Page/Page.css` — every index draws that card now,
+not just this one, so it belongs to the class that emits it.
 
 | layout | rule |
 | --- | --- |

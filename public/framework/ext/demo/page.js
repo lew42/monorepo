@@ -1,5 +1,6 @@
 import { Page, md, demo, h2, p, div, code, toc } from "/app.js";
 import "./responsive.js";
+import { web } from "./web.js";
 
 const wall = () => {
 	div.c("grid gap auto", () => {
@@ -9,6 +10,13 @@ const wall = () => {
 				p("A card that goes wherever it fits.");
 			}).style({ background: "var(--wash)", borderRadius: "var(--radius)" }));
 	}).style("--column", "20em");
+};
+
+const hero = () => {
+	div.c("wash pad flex v gap v-center", () => {
+		p.c("h2", "Ship it");
+		p("A band, and the whole of a leaf page.");
+	}).style("--pad", "3em");
 };
 
 export default new Page({
@@ -55,11 +63,46 @@ example holds up narrow. **Right-click it to go back** to whatever fits.`);
 
 		md("The width under the box is the width the example is *laid out* at, which is not the width you see once the zoom is off 100%. That gap is why both controls exist: zoom out to 50% and a demo lays out at twice the room it's drawn in.");
 
-		md("**The box and its handle, without the code pane**, for a wall of examples with no single source worth printing — one drag re-flows all of them. The [Layouts](/framework/styles/layouts/) index is the wall it was built for.");
+		h2("The stage");
 
-		code.js(`demo.stage(() => { previews(); });`);
+		// ⚠ `toc-skip`, or the rail reads "Ship it" — the band's `.h2` is the
+		// example's own title, not a section of this page.
+		demo.stage(hero).ac("toc-skip");
+
+		code.js(`demo.stage(hero);               // the box, the handle, the zoom — no code
+demo.stage(hero).ac("bleed");   // a leaf page: edge to edge, no inset`);
+
+		md("**The resizable box on its own** — no code pane, no bar, no border. Drag the right edge; pick a zoom in the corner beside the width readout. That corner is the whole chrome, which is what makes the stage usable as a *page* and not just as the inside of a box.");
+
+		md("It is the same three boxes `demo()` renders into, so there is one implementation of \"how wide is this really\". `demo.stage` was built for a wall of examples with no single source worth printing — one drag re-flows all of them; the [Layouts](/framework/styles/layouts/) index is that wall.");
 
 		md("**A `@media` query inside an example will not respond to the handle.** The stage is a `div`, so everything intrinsic reacts — `auto-fit`, `%`, `flex-wrap`, container queries — but a media query asks the *browser* viewport, and that hasn't moved. Simulating a viewport properly needs an iframe; the design record says what that would cost.");
+
+		h2("A leaf page");
+
+		code.js(`import { Page, demo } from "/app.js";
+import hero from "./hero.js";
+
+export default new Page({
+    meta: import.meta,
+    title: "Hero",
+    content(){
+        demo.stage(hero).ac("bleed");
+        demo.source(hero);
+    }
+});`);
+
+		md("**Two lines, and the render is the page.** The stage goes full-bleed above the fold; the code sits under it in a closed `details`. `standard` is every page's default shape, which is what gives `.bleed` a track to take — see [Fit](/framework/styles/layouts/fit/).");
+
+		demo.source(hero);
+
+		md("`demo.source()` opens **closed** and belongs **below** the render. A code block stacked above the thing is exactly what pushes the render off the screen, which is the cost `demo()` pays on every page and a leaf page should not.");
+
+		code.js(`demo.source(hero);                          // the summary reads "Source"
+demo.source(hero, "The whole band");        // your own summary
+demo.source.file(import.meta, "hero.js");   // a file — the summary is its name`);
+
+		md("Same source as the code pane (`fn.toString()`, so it can't drift) and the same soft dependency: highlighted when [Highlight](/framework/ext/highlight/) is loaded, a plain `pre` when it isn't.");
 
 		h2("The html pane");
 
@@ -81,7 +124,7 @@ demo(() => { … }).ac("stack")       // never split, however wide the box`);
 
 		h2("Two viewports at once");
 
-		demo.responsive(wall, "The same function, twice: laid out at **3440px** on the left and **400px** on the right, each painted back down to fit its pane. Drag the divider — the panes re-split and re-scale, so both simulated widths stay honest and the two always meet at the handle.");
+		demo.responsive(wall, "The same function, twice: **3440px** on the left, **400px** on the right, each painted down to fit its pane. Drag the divider and both simulated widths follow it — the shrinking pane reflows down toward mobile as the growing one reflows up toward wide, meeting as twins in the middle and trading ends at the far side. What you're watching is layout, not scale.");
 
 		code.js(`import "/framework/ext/demo/responsive.js";   // once, anywhere
 
@@ -92,6 +135,31 @@ demo.responsive(wall, "A caption, as usual.");`);
 		md("Each pane is `zoom: pane / simulated`, the same `zoom` the toolbar uses and for the same reason — a `transform: scale()` box still occupies its *unscaled* size, so it would take height arithmetic to keep the two panes from swallowing the caption. The readout under each pane is the width it was laid out at, and the percentage it is drawn at.");
 
 		md("**The `@media` caveat above still applies** — that reads the real window. A **container query** does respond, because the render's own box really is 3440px wide.");
+
+		h2("A tree in a box");
+
+		demo.stage(() => demo.app(web(), { nav: true }).style("height", "20em")).ac("toc-skip");
+
+		code.js(`import { demo } from "/app.js";
+import { web } from "/framework/ext/demo/web.js";
+
+demo.app(web())                   // opens at the root
+demo.app(laces, { nav: true })    // opens deep, with a rail`);
+
+		md("`demo.app()` plays **App and Router for one tree**: a url strip that is also a breadcrumb, an optional rail, and the region the pages mount in. The pages inside are ordinary `Page`s doing their own `render()` and `previews()`, and the clicks never reach the real Router — the url in your address bar stays put. The [Page demos](/framework/core/Page/) are fourteen of these. ⚠ A title is address enough (`Web` → `/web/`) — and object children only; a name string probes the server for a `page.js`.");
+
+		md("`web()` is the shared sample tree — nine children, three of them a level deeper — so a demo that needs *a tree* takes this one and overrides the root. What changes between demos is then exactly the thing each demo teaches: [Navigation](/framework/core/Page/nav/) shows the same nine children as a wall, a rail, a sidebar and a set of crumbs, one `web()` each.");
+
+		h2("A demo as a page");
+
+		code.js(`export default new Page(demo.tree({
+    meta: import.meta,
+    tree: shop,              // () => new Page({ … }) — a function, so the card
+}));                         // and the stage don't share one render`);
+
+		md("**Every detail page on the site is one assembly** — `demo.exhibit()`, which `demo.tree()` and `demo.page()` both call. Three things, in this order: the thing running on a stage you can drag, a [layout bar](/framework/ext/Layout/) wired to it, and **the definition** — `tree` or `fn` stringified, so the reader gets the lesson and not the imports around it. A `meta` adds the whole file as a link beside the summary.");
+
+		md("**The card in a rail is the tree at half size**, and the sign over its door stays there: on a stage the specimen's own `h1` is off, because the page it is an example on already has a title. The [Page overview](/framework/core/Page/) rail is fourteen of them.");
 
 		h2("Why");
 

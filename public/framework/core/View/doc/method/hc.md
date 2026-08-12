@@ -1,6 +1,7 @@
-**Usage** — 6 live call sites: `framework/core/Sidebar/Sidebar.js:29,67`,
-`framework/ext/demo/demo.js:103`, `framework/ext/layout/layout.js:54,55`, and
-`View.js:381` inside `ctrl()`. All of them ask a question mid-expression:
+**Usage** — 10 live call sites: `framework/core/Sidebar/Sidebar.js:29,67`,
+`framework/ext/demo/demo.js:90`, `framework/ext/layout/` (`layout.js`,
+`controls.js`, `panel.js`), and `View.js:381` inside `ctrl()`. All of them ask a
+question mid-expression:
 
 ```js
 .click(() => this.open(!this.hc("open")));

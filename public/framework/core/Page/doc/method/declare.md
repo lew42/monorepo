@@ -5,8 +5,8 @@ Turn whatever `children:` was into one Map.
 (`framework/ext/classdoc/classdoc.js:114`) so a declared guide and a generated
 member page join one rail.
 
-**Necessity** — yes. It is what lets `children: "intro guide api"` and
-`children: [somePage]` be the same declaration.
+**Necessity** — yes. It is what lets `children: "intro guide api"`,
+`children: [somePage]` and `children: { HTML(){ … } }` be the same declaration.
 
 **Simplicity** — right-sized, and the Map is the good part:
 
@@ -20,5 +20,8 @@ thing would be worse — but it means `this.children.length` is `undefined` and
 `[...this.children.keys()]` is the idiom everywhere.
 
 A non-string entry goes straight to `add()`, which is what makes an inline
-`new Page(…)` in the list work.
+`new Page(…)` in the list work. A POJO is `Object.entries()`'d first: the key is
+the child's **title**, `Page.slug(key)` its url segment, and a value that is not a
+function, string, plain object, `Page` or `null` **throws** — `JS: md("…")` ran
+eagerly under the wrong captor, and a silent one is worse than a stack trace.
 

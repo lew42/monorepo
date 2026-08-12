@@ -19,7 +19,7 @@ export const component = fn => Object.assign(fn, {
 export const palette = (...items) => div.c("ui-palette grid gap auto", () =>
 	items.forEach(([label, render, url]) => div.c("flex v gap", () => {
 		div.c("ui-stage", render);
-		url ? a.c("page-link h4", label).href(url) : span.c("h4 ui-muted", label);
+		url ? a.c("page-link h4", label).href(url) : span.c("h4 muted", label);
 	}).style("--gap", "0.4em"))).style("--column", "14em");
 
 /**
@@ -44,18 +44,7 @@ export const copy = (fn, lang = "js") => {
 };
 
 css(`@layer theme {
-	.ui-surface {
-		background: var(--surface);
-		color: var(--ink);
-		border: 1px solid var(--line);
-		border-radius: var(--radius);
-	}
-
 	.ui-pill { background: var(--wash); border-radius: 999px; padding: 0.15em 0.7em; }
-
-	/* Derived from the ink it sits on, never from --subtle: a fixed grey is only
-	   readable on the surfaces it was picked against. */
-	.ui-muted { color: color-mix(in srgb, currentColor 65%, transparent); }
 
 	.ui-stage {
 		display: flex;
@@ -69,4 +58,9 @@ css(`@layer theme {
 	.ui-copy { position: relative; }
 	.ui-copy-btn { position: absolute; top: 0.5em; right: 0.5em; padding: 0.2em 0.4em; }
 	.ui-copy-btn.ui-copied { border-color: var(--prim); color: var(--prim); }
+}
+@layer util {
+	/* ⚠ util, not theme: the rule it opts out of is input:not(…), whose :not()
+	   carries an attribute selector's specificity. A later layer wins regardless. */
+	.ui-tags-input { border: none; background: none; padding: 0; min-width: 7em; }
 }`);

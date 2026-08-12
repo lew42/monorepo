@@ -36,8 +36,8 @@ something new is to write no CSS at all.
 card, band and caption in `styles/` used to spread inline from `styles/parts.js`.
 `.surface` sets `color` on purpose: a box that paints its own fill owns its own
 ink, or a card on a coloured band renders white on white. `parts.js` still exports
-the objects for consumers outside `styles/` (`framework/report/`,
-`framework/ui/`, which has since grown its own).
+the objects, though their outside consumers are gone (`framework/report/` is now
+`framework/ai/2026-08-08/` and wears the class; `framework/ui/` grew its own).
 
 **`.measure` closed a gap this file had listed as open twice.** A centred column —
 `--measure: 34em; max-width: var(--measure); margin-inline: auto` — could not be
@@ -68,9 +68,9 @@ Per-module records sit next to their code: [`layouts/readme.md`](layouts/readme.
 [`sections/readme.md`](sections/readme.md), [`elements/readme.md`](elements/readme.md),
 [`layers/theme/guide/readme.md`](layers/theme/guide/readme.md),
 [`layers/theme/lew42/readme.md`](layers/theme/lew42/readme.md).
-`gallery/` has none — its two exports (`card`, `wall`) are argued for on
-[its own page](/framework/styles/gallery/), which is where the `wide`-not-`bleed`
-decision is recorded.
+The preview card is core's (Aug 2026), and so is the `wide`-not-`bleed` decision
+it carried — `previews()` picks the track, which is why [`doc/audits.md`](doc/audits.md)
+§6b calls that guard structural.
 
 ## Open
 

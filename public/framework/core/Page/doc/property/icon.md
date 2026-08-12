@@ -4,9 +4,9 @@ A Material Icons ligature name, for menus that draw icons.
 icon: "code"
 ```
 
-**Usage** — read by `nav_for()` (`Page.class.js:159`) and rendered by `previews()`
-(`Page.class.js:168`), `Sidebar` (`framework/core/Sidebar/Sidebar.js:104`) and
-`styles/gallery/gallery.js:58`. Declared on most section and class pages.
+**Usage** — read by `nav()` (`Page.class.js:152`), carried by `nav_for()`, and rendered
+by `preview_link()` (`Page.class.js:187`) and `Sidebar`
+(`framework/core/Sidebar/Sidebar.js:104`). Declared on most section and class pages.
 
 **Necessity** — yes, given the site has icon menus at all. What it replaced is the
 argument: an icon declared on the parent's entry was declared two to three times per

@@ -6,7 +6,7 @@ import demo, { btn, caption, source_code } from "./demo.js";
    shell (demo.css), whose module is imported above. */
 View.stylesheet(import.meta, "responsive.css");
 
-const WIDE = 3440, NARROW = 400, SPLIT = 0.72;
+const WIDE = 3440, NARROW = 400, MIN = 0.25, SPLIT = 1 - MIN;
 
 /* demo.responsive(fn) · (fn, "caption") · (fn, { wide: 1440, narrow: 375 })
    ⚠ Importing this file is what puts `responsive` on `demo`. readme.md §8. */
@@ -17,6 +17,7 @@ demo.responsive = function(...args){
 
 	const opts = args.find(is.pojo) ?? {};
 	const note = args.filter(is.str).join(" ");
+	const wide = opts.wide ?? WIDE, narrow = opts.narrow ?? NARROW;
 
 	return div.c("demo demo-responsive", $demo => {
 		const $bar = div.c("demo-bar");
@@ -26,12 +27,16 @@ demo.responsive = function(...args){
 		let panes;
 
 		const $sims = div.c("demo-sims", () => {
-			panes = [pane(opts.wide ?? WIDE, fn)];
+			panes = [pane(fn)];
 			handle(split);
-			panes.push(pane(opts.narrow ?? NARROW, fn));
+			panes.push(pane(fn));
 		});
 
 		if (note) caption(note);
+
+		// Log-spaced between the named widths, mirrored around the middle: centered,
+		// the panes are twins; either extreme is exactly `wide` beside `narrow`.
+		const simulated = share => Math.round(narrow * (wide / narrow) ** ((share - MIN) / (1 - 2 * MIN)));
 
 		// ⚠ `zoom`, not `transform: scale()` — a scaled box keeps its unscaled size,
 		// which would leave each pane overlapping whatever is under it.
@@ -45,10 +50,16 @@ demo.responsive = function(...args){
 			});
 		}
 
-		// The left pane takes a share, the right one takes the rest — so they meet at
-		// the handle, and each pane's factor is measured rather than derived.
+		// The drag re-simulates as it re-splits: both widths follow the handle, in
+		// opposite directions, and each pane's factor is measured rather than derived.
 		function split(share){
-			panes[0].$box.style("flex", `0 0 ${(Math.min(0.95, Math.max(0.05, share)) * 100).toFixed(2)}%`);
+			share = Math.min(1 - MIN, Math.max(MIN, share));
+
+			panes[0].width = simulated(share);
+			panes[1].width = simulated(1 - share);
+			panes.forEach(sim => sim.$view.style("width", sim.width + "px"));
+
+			panes[0].$box.style("flex", `0 0 ${(share * 100).toFixed(2)}%`);
 			fit();
 		}
 
@@ -65,15 +76,15 @@ demo.responsive = function(...args){
 	});
 };
 
-function pane(width, fn){
+function pane(fn){
 	let $view, $size;
 
 	const $box = div.c("demo-sim checkered", () => {
-		$view = div.c("demo-render flow", fn).style("width", width + "px");
+		$view = div.c("demo-render flow", fn);
 		$size = div.c("demo-size");
 	});
 
-	return { $box, $view, $size, width };
+	return { $box, $view, $size, width: 0 };
 }
 
 function handle(split){

@@ -13,9 +13,9 @@
 
 @layer theme {
 
-	/* THE REGION SCROLLS, NOT THE PAGE — a page is a centred measure, so its own
-	   scrollbar would render at the sheet's edge. `scroll`, not `auto`, so the
-	   gutter stays reserved and navigating never shifts content sideways.
+	/* THE REGION SCROLLS, NOT THE PAGE — a page is a measure inside a wider region,
+	   so its own scrollbar would render at the sheet's edge. `scroll`, not `auto`, so
+	   the gutter stays reserved and navigating never shifts content sideways.
 	   The two tokens stop at each region boundary, which is why they are here. */
 	.pages {
 		display: flex; align-items: flex-start;
@@ -24,6 +24,8 @@
 		--measure: 60em; --page-pad: 3em clamp(0px, 6%, 5em);
 	}
 
+	/* ⚠ No auto margins: every shape shares ONE left edge, so a page narrower than
+	   its region stays flush left rather than finding its own centre. */
 	.page { min-width: 0; min-height: 0; }
 
 	.page.active-page,
@@ -40,7 +42,7 @@
 	}
 
 
-	/* The page vocabulary — `grid`, `pad`, `full`, `fill`. Structure only, no skin.
+	/* The page vocabulary — `standard`, `pad`, `full`, `fill`. Structure only, no skin.
 	   Anything opts out by declaring the tokens on itself: a declared value beats
 	   an inherited one at any specificity, in any layer. */
 	.page { max-width: var(--measure, none); padding: var(--page-pad, 0); }
@@ -61,31 +63,39 @@
 	   ⚠ `--measure` is re-declared because `min(none, …)` is invalid at
 	     computed-value time and silently drops the template.
 	   ⚠ 52em, not the sheet's 60em: tracks pay no padding, so the two numbers
-	     measure 17% apart. 52em is where they agree. */
-	.page.grid {
+	     measure 17% apart. 52em is where they agree.
+	   ⚠ `align-content: start`: a page shorter than its region still carries
+	     `min-height: 100%`, and the default `normal` hands that slack to the rows —
+	     a 51px `h1` painted 130px.
+	   ⚠ `--breakout`'s `100%` is the GRID's width, not the window's, so a grid
+	     nested in a tab panel or a catalog breaks out of the right box.
+	   ⚠ ONE LEFT EDGE: `main` and `wide` start on the same line and every leftover
+	     pixel is spent on the right, so a wider block grows rightward only.
+	     `--gutter-x` IS that edge — the wall's inset below lands on it. */
+	.page.standard {
 		--measure: 52em;
-		--breakout: 7em;
-		--gutter-x: 2em;
+		--breakout: max(7em, (100% - 96em) / 4);
+		--gutter-x: clamp(2em, 4%, 5em);
 		--pad-y: 3em;
 
 		display: grid;
 		grid-template-columns:
-			[bleed-start] minmax(var(--gutter-x), 1fr)
-			[wide-start]  minmax(0, var(--breakout))
-			[main-start]  min(var(--measure), 100% - var(--gutter-x) * 2) [main-end]
-			              minmax(0, var(--breakout)) [wide-end]
-			              minmax(var(--gutter-x), 1fr) [bleed-end];
+			[bleed-start]           var(--gutter-x)
+			[wide-start main-start] min(var(--measure), 100% - var(--gutter-x) * 2) [main-end]
+			                        minmax(0, var(--breakout)) [wide-end]
+			                        minmax(var(--gutter-x), 1fr) [bleed-end];
+		align-content: start;
 
 		padding: var(--pad-y) 0;
 		max-width: none;
 	}
 
-	.page.grid > *      { grid-column: main; min-width: 0; }
-	.page.grid > .wide  { grid-column: wide; }
-	.page.grid > .bleed { grid-column: bleed; }
+	.page.standard > *      { grid-column: main; min-width: 0; }
+	.page.standard > .wide  { grid-column: wide; }
+	.page.standard > .bleed { grid-column: bleed; }
 
 	/* ⚠ No ToC rule here — both want `grid-template-columns` and the winner would
-	   be load order. toc.css opts out with `:not(.grid)` instead. */
+	   be load order. toc.css opts out with `:not(.standard)` instead. */
 
 	/* `.active` / `.in-path` are applied by Router.mark_links().
 	   ⚠ `color: inherit` is load-bearing: without it six call sites wrote it
@@ -94,57 +104,120 @@
 	.page-link.active,
 	.page-link.in-path { color: var(--prim); }
 
-	.page-previews {
+	/* ⚠ `start`, not the default `stretch`: a cell is as tall as what it shows, and
+	     stretching hands the short ones their dead space straight back.
+	   ⚠ `auto-fill`, not `auto-fit` — two children must not become two enormous
+	     cards.
+	   ⚠ `bleed`, not `wide` (previews() adds it): the widest track still lands
+	     inside the page's own inset, never against the sidebar — measured, in
+	     doc/layout.md, which is where the older claim to the contrary died. */
+	/* ⚠ `:where(:not(.page))` — `render()` stamps `page-<name>` on every page, so a
+	     page in a directory called `previews/` wears the WALL's class and silently
+	     grids itself. `:where()` keeps this at (0,1,0), so catalog.css's overrides
+	     do not become a load-order tie. */
+	.page-previews:where(:not(.page)) {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(min(var(--column, 14em), 100%), 1fr));
-		gap: 0.8em;
+		gap: var(--gap, 0.8em);
+		align-items: start;
+		grid-auto-flow: dense;
 	}
 
+	/* A child's `group:` heads the run it starts — a whole row, so the cards on
+	   either side of it keep counting their own columns.
+	   ⚠ With more than one column, `grid-auto-flow: dense` above can backfill the
+	   gap a heading leaves at the end of the previous row with a card from the run
+	   BELOW it. Fine in a one-column rail, which is the only consumer today. */
+	.page-previews > .page-previews-group { grid-column: 1 / -1; margin-block-start: 0.6em; }
+	.page-previews > .page-previews-group:first-child { margin-block-start: 0; }
+
+	/* ⚠ `bleed` spends the grid's gutter tracks, so a top-level wall would sit flush
+	     against the sidebar and the window edge — this hands that inset back, and a
+	     nested wall (walls(), a ladder) is left alone by the child combinator. */
+	.page.standard > :is(.page-previews, .page-walls) { padding-inline: var(--gutter-x); }
+
+	/* ⚠ `stretch`: a live thumb that shrink-to-fits lies about its own width.
+	   ⚠ The ring is drawn on EVERY card and starts transparent, so hover and the mark
+	     below set nothing but `outline-color` — one declaration to restate wherever a
+	     card is lit without the Router (ext/catalog's first-card fallback,
+	     ext/demo's `aria-current`). It rings the whole card, thumb and label
+	     together, which is the one mark a bare card can wear. */
 	.page-preview {
+		position: relative;
 		display: flex;
-		align-items: center;
+		flex-direction: column;
+		align-items: stretch;
 		gap: 0.6em;
+		text-decoration: none;
+		color: inherit;
+		border-radius: var(--radius);
+		outline: 2px solid transparent;
+		outline-offset: 3px;
+		transition: outline-color 0.15s, transform 0.05s;
+	}
+
+	/* A card with a thumb IS its render, so it goes bare — a surface and a border
+	   around a picture are two frames too many. Only the card with nothing but a
+	   label to show wears chrome. */
+	.page-preview:not(:has(> .page-preview-thumb)) {
 		padding: 0.9em 1em;
 		background: var(--surface);
 		border: 1px solid var(--line);
-		border-radius: var(--radius);
-		text-decoration: none;
-		color: inherit;
-		transition: border-color 0.15s, box-shadow 0.15s, transform 0.05s;
 	}
-	.page-preview:hover {
-		border-color: var(--prim);
-		box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-	}
+
+	.page-preview:hover { outline-color: color-mix(in srgb, var(--prim) 45%, transparent); }
+
 	.page-preview:active { transform: translateY(1px); }
 
-	.page-preview.active,
-	.page-preview.in-path {
-		border-color: var(--prim);
-		background: color-mix(in srgb, var(--prim) 8%, var(--surface));
-		box-shadow: inset 3px 0 0 var(--prim);
+	/* A thumb is its render's natural height, up to a ceiling — which is why no page
+	   declares a size. The token sits on the wall, so one wall picks its own scale in
+	   one place; roughly `--column × 0.65`.
+	   ⚠ No floor: a short render used to be padded out to one, and what showed in the
+	     dead space was the card's own background.
+	   ⚠ INERT: the label is the card's link, so a live render in here would be an
+	     `<a>` inside an `<a>` — invalid, and silently un-nested by the browser. */
+	.page-preview-thumb {
+		max-height: var(--thumb-max, 12em);
+		overflow: hidden;
+		border-radius: var(--radius);
+		pointer-events: none;
+		user-select: none;
 	}
-	.page-preview.active .page-preview-title,
-	.page-preview.in-path .page-preview-title { color: var(--prim); }
 
-	.page-preview .icon { color: var(--subtle); }
-	.page-preview.active .icon,
-	.page-preview.in-path .icon,
-	.page-preview:hover .icon { color: var(--prim); }
+	/* The only real link in the card; its ::after covers the rest of it. */
+	.page-preview-link {
+		display: flex;
+		align-items: center;
+		gap: 0.45em;
+		text-decoration: none;
+		color: inherit;
+	}
+	.page-preview-link::after { content: ""; position: absolute; inset: 0; }
 
 	.page-preview-title { font-weight: 700; }
+	.page-preview .icon { color: var(--subtle); }
 
-	.page-preview.wide  { grid-column: span 2; }
-	.page-preview.tall  { grid-row: span 2; align-items: flex-start; }
-	.page-preview.big   { grid-column: span 2; grid-row: span 2; align-items: flex-start; }
+	/* ⚠ `mark_links()` only touches anchors, so `.active` / `.in-path` land on the
+	     LINK and the card has to ask.
+	   ⚠ `:has(> a…)`, never `:has(a…)`: a live thumb can hold marked links of its own. */
+	.page-preview:is(.active, .in-path, :has(> a:is(.active, .in-path))) { outline-color: var(--prim); }
 
-	.page-preview:is(.tall, .big) { flex-direction: column; gap: 0.3em; }
+	.page-preview:hover :is(.page-preview-title, .icon),
+	.page-preview:is(.active, .in-path, :has(> a:is(.active, .in-path))) :is(.page-preview-title, .icon) {
+		color: var(--prim);
+	}
+
+	/* The two claims a page makes on the wall it appears in, from `card:`. `tall`
+	   doubles the ceiling for a render that only reads whole; `wide` takes a second
+	   column. Derived from `--thumb-max` rather than a third token. */
+	.page-preview:is(.wide, .big) { grid-column: span 2; }
+	.page-preview:is(.tall, .big) .page-preview-thumb { max-height: calc(var(--thumb-max, 12em) * 2); }
 
 	/* ⚠ Spans do NOT clamp themselves: `auto-fill` must generate at least as many
 	   tracks as the widest span asks for, so a `.wide` card forces a second track
 	   at one column and the wall overflows. Column spans only — a row span never
 	   widens a track. */
 	@media (max-width: 28em) {
-		.page-preview.wide, .page-preview.big { grid-column: span 1; }
+		.page-preview:is(.wide, .big) { grid-column: span 1; }
 	}
 }

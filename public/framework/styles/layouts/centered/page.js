@@ -1,23 +1,25 @@
-import { div, md } from "/app.js";
-import Layout from "../Layout.js";
-import recipe from "../recipe.js";
+import { Page, div, md } from "/app.js";
+import detail from "../detail.js";
 import { next } from "../../parts.js";
 
-export default new Layout({
+export default new Page(detail({
 	meta: import.meta,
 	title: "Centered",
 	description: "A measure of prose, centred — one utility class.",
 	icon: "format_align_center",
 
-	// no fit word: the region's default sheet. No `fill` — an article scrolls.
-	classes: "flex v",
+	note: "No fit word — the region's default measure. The column is one utility class, and it is the one page here that is *supposed* to look narrow.",
 
 	layout(){
-		div.c("measure flex v gap").append(() => {
 
-			div.c("h1", "One column, centred");
+		// no fit word: the region's default sheet. No `fill` — an article scrolls.
+		return div.c("page flex v", () => {
 
-			md(`Somewhere between 60 and 80 characters a line stops being comfortable to
+			div.c("measure flex v gap").append(() => {
+
+				div.c("h1", "One column, centred");
+
+				md(`Somewhere between 60 and 80 characters a line stops being comfortable to
 read — the eye loses its place on the return sweep. This column is \`34em\` and runs
 about 62 characters, which is why it reads as an article and the full width of this
 region would not.
@@ -29,12 +31,13 @@ div.c("measure flex v gap")
 \`\`\`
 
 \`\`\`css
-.measure { --measure: 34em; max-width: var(--measure); margin-inline: auto; }
+.measure { --measure: 34em; max-width: min(var(--measure), 100%); margin-inline: auto; }
 \`\`\`
 
 Neither declaration is available on its own and \`max-width\` alone leaves the column
 flush left, which is why this is a class rather than two. Widen it in place —
-\`.style("--measure", "78em")\` — and the inline value beats the class.
+\`.style("--measure", "78em")\` — and the inline value beats the class. Every band in
+[Sections](/framework/styles/sections/) does exactly that.
 
 ## The trap it removes
 
@@ -55,10 +58,9 @@ is already a reading column \`.measure\` is redundant on purpose. It earns its p
 the moment the *page* is wider than the reading — a \`pad\` index with one paragraph
 of introduction, or a \`full\` layout with a caption.`);
 
-			recipe(this, "No fit word — the region's default measure. The column is one utility class.");
-
-			next("[Stack](/framework/styles/layouts/stack/) — the same measure, with rhythm inside it.",
-				"styles/layouts/centered/");
+				next("[Stack](/framework/styles/layouts/stack/) — the same measure, with rhythm inside it.",
+					"styles/layouts/centered/");
+			});
 		});
 	},
-});
+}));

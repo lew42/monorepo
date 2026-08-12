@@ -39,7 +39,7 @@ socket.reload()             // …lands here, on your instance`);
 
 		md("The other direction — `send`, `request`, `rpc`, and the `ls`/`rm`/`write` wrappers over them — is **wired but unused**: `server.js:6` has the plugin that answers them commented out. [wire](/framework/dev/Socket/docs/wire/) has the frame format and the honest accounting.");
 
-		md("**And that is the whole framework.** Start building — or read [Versus](/framework/versus/), the short argument for why it looks like this, or the [Report](/framework/report/) on how it got here.");
+		md("**And that is the whole framework.** Start building — or read [Versus](/framework/versus/), the short argument for why it looks like this, or the [session log](/framework/ai/) on how it got here.");
 
 		md.details(import.meta, "readme.md", "Design record — the singleton, the reconnect storm, and the dead half");
 	},

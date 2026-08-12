@@ -1,38 +1,38 @@
-import { Page, md, demo, div, img } from "/app.js";
-import { palette } from "../parts.js";
-import { avatar, avatars } from "./avatar.js";
+import { Page, md, demo, div, span, img } from "/app.js";
+import { palette, copy } from "../parts.js";
+
+// The template, verbatim — rendered in the palette AND handed to copy(), so the
+// code on the page is the code that ran.
+const stack = () => div.c("ui-avatars", () => {
+	span.c("ui-avatar", "ML");
+	span.c("ui-avatar accent", "AK");
+	span.c("ui-avatar wash", "+4");
+});
+
+const sizes = () => div.c("flex gap v-center", () => {
+	span.c("ui-avatar", "ml").style("--avatar", "1.75em");
+	span.c("ui-avatar", "ML");
+	span.c("ui-avatar accent", "ML").style("--avatar", "3.5em");
+});
 
 export default new Page({
 	meta: import.meta,
 	title: "Avatar",
-	description: "Initials in a circle — one class, sized by a token.",
+	description: "One class, sized by a token — and the circle, the ring and the overlap are all CSS.",
 	icon: "account_circle",
 
 	content(){
 
 		palette(
-			["ui.avatar(…)", () => avatar("ML")],
-			["accent", () => avatar.c("accent", "AK")],
-			["three sizes, one token", () => div.c("flex gap v-center", () => {
-				avatar("ml").style("--avatar", "1.75em");
-				avatar("ML");
-				avatar.c("accent", "ML").style("--avatar", "3.5em");
-			})],
-			["ui.avatars(…) — the stack", () => avatars(() => {
-				["ML", "AK", "RB"].forEach(t => avatar(t));
-				avatar.c("wash", "+4");
-			})],
+			["the stack", stack],
+			["three sizes, one token", sizes],
 		);
 
-		md("## Calling it");
+		md("## Copy it");
 
-		demo(() => {
-			avatars(() => {
-				avatar("ML");
-				avatar.c("accent", "AK");
-				avatar.c("wash", "+4");
-			});
-		}, "`avatar()` is one circle; `avatars()` is the overlapped stack. `flex` centres the letters, `border-radius: 999px` makes the box a circle, and every value is a token.");
+		copy(stack);
+
+		md("**There is no `ui.avatar()` and no `ui.avatars()`.** Both were one-call passthroughs to `span.c()` and `div.c()`, and the two places on this site that actually draw an avatar — [team](/framework/styles/sections/team/) and [testimonials](/framework/styles/sections/testimonials/) — now write the span. The component is `.ui-avatar`, and it always was.");
 
 		md("## `--avatar` is the size");
 
@@ -40,14 +40,16 @@ export default new Page({
 
 		demo(() => {
 			div.c("flex gap v-center", () => [1.5, 2.5, 4].forEach(size =>
-				avatar("ML").style("--avatar", size + "em")));
+				span.c("ui-avatar", "ML").style("--avatar", size + "em")));
 		}, "`.style(\"--avatar\", \"4em\")`. A variant class would have to pick the sizes for you; a token lets the caller.");
 
-		md("## The stack is two rules, and they moved");
+		md("## The ring, and the overlap");
 
 		md("```css\n.ui-avatars > .ui-avatar { border: 2px solid var(--surface); }\n.ui-avatars > .ui-avatar + .ui-avatar { margin-inline-start: -0.6em; }\n```");
 
-		md("The ring is the **surface** colour, so an overlap reads as a hole onto whatever the stack sits on and retints with the theme. Before the move to `ui/` both declarations were inline, applied per circle by the caller with an `i ? … : 0` on the margin — the `+` selector says the same thing once and cannot get the first one wrong.");
+		md("The ring is the **surface** colour, so an overlap reads as a hole onto whatever the stack sits on and retints with the theme. Both declarations were inline once, applied per circle by the caller with an `i ? … : 0` on the margin — the `+` selector says the same thing once and cannot get the first one wrong. That is the half of this component a template could not carry, which is exactly why `avatar.js` still exists.");
+
+		md("The fill is `var(--ink)` and the letters `var(--surface)`. It was `var(--bg)` and a literal `white` until the review — **naming a colour is the thing a component may not do**, and `--ink`/`--surface` is the pair the theme already guarantees contrast between, in both modes. `accent` and `wash` override the fill and inherit the rest.");
 
 		md("## An image avatar is the same circle");
 
@@ -55,11 +57,13 @@ export default new Page({
 
 		demo(() => {
 			div.c("flex gap v-center", () => {
-				avatar(() => img().attr("src", face).attr("alt", ""));
-				avatar(() => img().attr("src", face).attr("alt", "")).style("--avatar", "3.5em");
+				span.c("ui-avatar", () => img().attr("src", face).attr("alt", ""));
+				span.c("ui-avatar", () => img().attr("src", face).attr("alt", "")).style("--avatar", "3.5em");
 			});
 		}, "`overflow: hidden` and `object-fit: cover` on the child are already in the class, so an `img` needs nothing — and the initials stay the alt path rather than becoming a second component.");
 
 		md("Next: [Dialog](/framework/ui/dialog/) — where the browser is the component.");
 	},
+
+	preview(nav){ return this.preview_card(nav, () => div.c("zoom-75 pad", stack)); },
 });

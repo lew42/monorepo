@@ -12,14 +12,6 @@ export const next = (link, path) => div.c("flex v-center split wrap gap", () => 
 });
 
 /* The looks that used to live here as style objects are classes now — `.surface`,
- * `.wash`, `.muted` in framework.css. `surface` stays for `framework/report/`,
- * which quotes it; `pill` has one call site and no class yet.
- */
-export const surface = {
-	background: "var(--surface)",
-	color: "var(--ink)",
-	border: "1px solid var(--line)",
-	borderRadius: "var(--radius)",
-};
-
-export const pill = { background: "var(--wash)", borderRadius: "999px", padding: "0.15em 0.7em" };
+ * `.wash`, `.muted` in framework.css. `surface` and `pill` went with their last
+ * importers (`styles/sections/parts.js`, deleted); a band writes its own three
+ * declarations inline where it wants a pill. */

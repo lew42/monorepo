@@ -27,13 +27,15 @@ unbalanced, because there is nothing in it to balance.
 ## 2. The one idea: a band bleeds, the words don't
 
 ```js
-export const section = (tone, ...args) =>
+export default (tone = "dark") =>
     div.c("section-band", () =>
-        div.c("flex v gap", ...args).style({ maxWidth: "var(--section, 34em)", marginInline: "auto" })
+        div.c("measure flex v gap", () => { … }).style("--measure", "62em")
     ).style(band(tone));
 ```
 
-*(The inner div was `flow` until the de-flow pass — §7 below.)*
+*(The inner div was `flow` until the de-flow pass — §7. It was a `section()` helper
+in `parts.js` until §11, and the max-width was an inline pair until `.measure`
+landed in `framework.css` and said the same thing in one word.)*
 
 Two divs, and every section on the page is them. The outer takes the full width
 and the fill; the inner holds a max-width, so the reading stays a column at any
@@ -58,11 +60,17 @@ grid came out two-up in a 544px column on a 1400px screen — cramped, and visib
 the wrong call. Measured before the fix: every band 544px inside a 1352px page.
 
 **Reading wants 34em and a card wall does not, and the difference between those
-two is one number.** So `--section`, overridden at the call site:
+two is one number.** So the token, overridden at the call site — `--section` at the
+time, `--measure` now that `.measure` in `framework.css` says the same thing and the
+band stopped writing its own `max-width`:
 
 ```js
-section("surface", () => { … }).style("--section", "62em");
+div.c("measure flex v gap", () => { … }).style("--measure", "62em");
 ```
+
+⚠ `.measure` **declares** `--measure`, so the override has to be inline **on that
+div** — a value set on the band around it is inherited, and a declaration beats an
+inherited value at any specificity. That is the idiom `framework.css` documents.
 
 Rejected: a `wide_section()` twin (two names for one idea), and a `.wide` class
 (a stylesheet, for one declaration). The token is the same move `--column` already
@@ -93,7 +101,7 @@ gives that thing nowhere to go.
 
 `.section-band` is emitted and never styled — it exists so the DOM is readable and
 so a site can reach these bands if it wants to. Every visual decision is a
-token-valued style object in `parts.js`:
+token-valued style object — `band(tone)`, in `tone.js` (§11):
 
 ```js
 export const band = tone => ({
@@ -128,47 +136,75 @@ and that turned out to be the better page.
 
 ---
 
-## 5. Kept: a registry, where `layouts/` moved to `children`
+## 5. REVERSED — inline children, where this kept a registry
 
-Each band is a module exporting one function, and `catalogue.js` is the list of
-them: a name, a label, an icon, a tone, a render. `route()` builds a page per entry
-on demand, so fifteen urls cost no directories.
+**Question.** Fifteen bands, one module each. A registry (`catalogue.js`: name →
+title, icon, tone, render) plus a `route()` that builds a page per entry — or
+fifteen **inline object children** in `children:`?
 
-`layouts/` had the superficially identical shape — eight modules plus an import map
-— and it was **wrong there**, so this needs a reason. The difference is that
-layouts/'s map sat *beside* a `children` string that listed the same eight names:
-two lists, and `fit` fell between them. There is one list here. And a layout is a
-whole page you navigate to, while a section is a **fragment** — the composition
-demo renders all fifteen in order, which is what the array of render functions is
-for.
+**The registry's case**, as this file argued it, and it was not silly: there was
+exactly *one* list. `layouts/` had the superficially identical shape and was wrong
+there only because its map sat *beside* a `children` string naming the same eight,
+and `fit` fell between them. A section is also a **fragment** rather than a page,
+and the whole-page demo wants the bands in order, which is what an array of render
+functions is for.
 
-**Revisit if a section ever needs page-shaped things** — its own children, a
-`nav` entry, a description. At that point `children` is the answer and each band
-becomes a `<name>/page.js`, exactly as the layouts did.
+**What decided it.** The one list is `children` itself. Routing, nav order,
+titles and icons, and **a preview card per child** all come free from `Page`,
+and the registry was re-implementing three of them — the gallery card, `route()`,
+and the composition order — from a second source of truth that could disagree with
+the page. The "fragment" argument also expired: each band has had a url with its
+own source, tones and a back link for a while now, which is a page.
 
-`demo(page)` also shows the *real* source of the whole composition, which is the
-one thing a "here is a real page" example must not fake.
+**Verdict: inline object children.** An entry *is* the page, so there is no
+second list to fall out of:
+
+```js
+children: [
+    { ...band, name: "hero", title: "Hero", icon: "campaign", tone: "dark", section: hero, card: "wide" },
+    …
+],
+```
+
+- **`band` is the shared half**, spread in: `classes`, `preview()` and `content()`
+  are identical for all fifteen, so they are written once, visibly, above the list.
+  A method in an object child *is* the method — never a name string, which would
+  send the router to the server looking for a page.
+- **`section:`, not `render:`** — `render()` is `Page`'s own, and a child that
+  overwrote it would blank itself. `this.section(this.tone)` reads as what it is.
+- `whole()` walks `children` for the composition demo and the `full` route, so the
+  order on screen is the order in the list. `full` is a `route()` child with no
+  band, so it draws no card and `whole()` asks with `?.`.
+
+`demo(() => this.whole())` still shows the *real* source of the whole composition,
+which is the one thing a "here is a real page" example must not fake.
 
 ---
 
 ## 6. Open
 
-- **The five bands are one page, and a real site would want them separately.**
-  `hero()` on its own is a legitimate thing to reach for, and nothing here says so
-  — the page reads as a single composition rather than a menu of parts.
-- **`price()` and `feature()` are near-duplicates of `ui/card`.** They are
-  here because a card with a price in it is a different *content* shape, not a
-  different component. If a third one appears, the three should collapse back into
-  `card` with slots.
+- ~~**The bands are one page, and a real site would want them separately.**~~
+  **Closed by §5.** Every band is a child with its own url, its own card in the
+  index's rail, and its own source — a menu of parts that still composes into one
+  page. The index became a `catalog()` on 2026-08-11, so a band now opens *beside*
+  its fourteen siblings instead of replacing them; this page's own prose is the
+  rail's first card (`ext/catalog/readme.md`).
+- ~~**`price()` and `feature()` are near-duplicates of `ui/card`.**~~ **Closed by
+  §11 the other way:** neither is shared any more, so neither is a candidate to
+  collapse into anything. Each is a `const` in the one band that calls it, beside
+  the three that were always local (`quote`, `person`, `channel`). A card with a
+  price in it is a different *content* shape, and a content shape belongs to its
+  content.
 - ~~**No dark-mode check.**~~ **Checked, and it inverts.** `--ink` as a background
   becomes `#e6e6e6` with `#1e1e1e` text, so the "dark" band is the *high-contrast*
   band rather than a literally dark one — which is the correct reading of a
   `light-dark()` token and the reason the tone is named for its role. All four
   hold their contrast. The one that does not move is `prim`, which is the brand
   and should not.
-- **A section cannot yet be linked to on its own.** `/sections/#pricing` would be
-  the obvious ask and there are no ids. `toc()` would then have something to scan,
-  which it currently does not.
+- **A band inside the whole-page demo still cannot be linked to.**
+  `/sections/pricing/` is the band's url now, but `/sections/#pricing` — a
+  position in the composition — has no id to aim at, and `toc()` still has
+  nothing to scan.
 
 ---
 
@@ -202,19 +238,31 @@ The em-vs-rem token was the upstream half and belonged to `framework.css`, not
 this folder; it was reported rather than edited, and registering `--flow` is what
 came back.
 
-## 8. Code first on every section page
+## 8. REVERSED AGAIN — render first, and no control above the fold
 
-The per-section route pages drew the render, then the source. Reversed: the
-source (`code.file`, imports and all) now sits directly above the `toned()`
-render, because *code → result* is the site's reading order and the visible
-source is the pitch. The tone switcher stays — it is the proof that a section is
-`tone => view` and nothing else.
+This page has now been both ways. It shipped render-then-source; §8 reversed it to
+source-then-render on *code → result is the site's reading order*; and a leaf demo
+page is the case where that rule breaks, because the code block is a screen tall
+and pushes the only thing worth looking at below the fold.
 
-`demo()` was the obvious tool and was not used: its source pane shows
-`fn.toString()`, which for a section is right, but the tone switcher has nowhere
-to live (the toolbar takes no custom controls) and the stage pads its render, so
-a band cannot reach an edge. What it would need is on the worker report; until
-then `code.file` + `toned()` is the same object in two boxes.
+**Verdict: the band first, full-bleed, at its home tone.** Then one caption line,
+then `demo.source.file(import.meta, name + ".js")` — a `details`, **closed**. The
+source is unchanged in kind (the real file, imports and all); it is one click and
+a scroll away instead of first. It is also in the panel, so the two shapes can be
+compared by use.
+
+~~**No stage on a leaf band.**~~ **REVERSED by §11** — on the stated condition.
+The argument was that the stage frames and pads its render while a band's entire
+point is reaching the window's edge, and the verdict said *revisit if the stage ever
+grows a flush mode.* It did: `.demo-stage.bleed .demo-screen { padding: 0 }`, so the
+render really touches the window and the drag handle comes free.
+
+**The tone switcher is panel content now** (`tone.js`, ~20 lines): four chips
+registered with `layout.context()`, so nothing above the fold is a control. Same
+mechanic as the old buttons — re-run `tone => view` — and the chosen tone lands on
+the page, so a re-opened panel agrees with what is on screen. The one thing to know
+is that a click inside a region selects the *child* under the pointer, so the chips
+are registered on the `.section-band` as well as on the box that holds it.
 
 ## 9. Three more bands: logos, testimonials, sign up
 
@@ -255,3 +303,59 @@ place against a band already in the catalogue:
 [Data table](/framework/ui/table/), composed, teaching neither
 again) and a cookie/consent bar (a position, a state and a stylesheet — the one
 band that could not make this folder's point).
+
+## 11. The exhibit, and the end of `parts.js` (2026-08-12)
+
+Two changes on one day, and the second is a consequence of the first.
+
+### The detail page is `demo.exhibit()` now
+
+This folder hand-rolled its own: a `layout bleed` band holding the render, a
+`layout.bar()`, the tone chips, and `demo.source.file()` under it. That is the
+assembly `ext/demo/readme.md` §15 built once, so the hand-roll went and the config
+is four keys — `stage`, `def`, `file`, `note`. What changed for a reader:
+
+- **The band is on a stage you can drag.** §8's objection expired (see the reversal
+  above); the handle is the thing this folder most wanted and never had, because
+  *"every band re-lays-out on its own, none of them contains a media query"* was a
+  claim you previously had to take on trust unless you resized the whole window.
+- **The source is the band's own function, not the file.** `def: this.section`
+  prints `hero.js`'s export; the whole file is one click away beside the summary.
+  §15's argument, unchanged: the lesson is the function, and the imports are
+  harness the reader has no use for.
+- **The tone chips did not move.** They were already `layout.context()` panel
+  content (§8), so integrating them cost one line: the exhibit's `steer` hands the
+  render to `layout.bar()` and to `tones()` in the same callback. **One control
+  surface** — the bar and its panel — rather than a bar plus a chip row. A chip row
+  inside the stage chrome was the alternative and would have been a second control
+  surface on the one page arguing there is only ever one.
+
+### `parts.js` is deleted
+
+**The question** (Mike): *"we don't want these defined in `/sections/` — either we
+don't need them (preferred, if we can just define them more explicitly with raw
+`div.c()`), or they should be moved to `ui/` if they're useful."*
+
+The change above is what made it obvious: **a band's source is now the displayed
+lesson**, so anything it builds that lives in another file is a hole in the lesson.
+Per part:
+
+| | outcome | |
+|---|---|---|
+| `section(tone, …)` | **eliminated** | fifteen bands write the two divs out. `.measure` in `framework.css` already *was* the inner one, so inlining removed the inline `max-width`/`margin-inline` pair rather than duplicating it |
+| `eyebrow(text)` | **eliminated** | `p.c("h4", "WHY").style("color", "var(--eyebrow, var(--prim))")`. One declaration, and it puts the `--eyebrow` handoff at the call site instead of leaving a band setting a variable a helper three files away reads. The invented tracking and opacity went with it — `h4` already tracks |
+| `cta(text, kind)` | **eliminated** | `button.c("prim", "…")`. Its own comment said *"this IS a button"* |
+| `feature()` | **local const** in `features.js` | one caller |
+| `price()` | **local const** in `pricing.js` | one caller; `pill` was its only importer and became three declarations there, so `styles/parts.js` lost that export too |
+| `stat()` | **local const** in `stats.js` | one caller — and the copy `ui/stats/page.js` names as one of three reasons there is no `ui.stats()` |
+| `band(tone)` | **moved to `tone.js`** | the only survivor, and not markup: a four-way token map plus the `--eyebrow` contrast handoff, read by all fifteen. `tone.js` already owned the four names and the switcher, so it now owns everything a tone is |
+
+**Nothing moved to `ui/`.** The test was "does this carry irreducible logic", and
+five of the seven carried none — they were markup with a name on it. The one that
+does (`band`) is a style object, not a component, and its home is the module that
+already answers "what is a tone".
+
+The cost is honest and small: a band is three or four lines longer, and the two-div
+sandwich is written fifteen times instead of once. That is the trade §11 accepts —
+**a lesson you can read top to bottom beats a lesson with one import in it**, and
+the sandwich is two lines that the page's own "The one idea" section quotes in full.

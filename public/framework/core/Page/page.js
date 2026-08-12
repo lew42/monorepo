@@ -1,4 +1,4 @@
-import { Page, classdoc, md, demo, code, p, h2 } from "/app.js";
+import { Page, classdoc, md, demo, code, p, h2, div } from "/app.js";
 
 export default classdoc.page({
 	meta: import.meta,
@@ -7,14 +7,20 @@ export default classdoc.page({
 	icon: "description",
 
 	Class: Page,
-	children: "children nav flow",
-	overview: "demos",
+	children: "nav children previews shell flow",
+
+	// The rail, in order — one directory each, under overview/. The headings come
+	// from the `group:` every demo declares in its own page.js.
+	overview: "page children add labels route shapes "
+		+ "wall catalog dashboard strip deep "
+		+ "landing docs site",
 
 	// Every member, in the order a reader meets them: the tree, then rendering,
 	// then the derivation the constructor does, then the plumbing and the statics.
-	methods: "child add previews link nav_for chain container activate render "
-		+ "naming declare load_all_children go preview deactivate "
-		+ "mounts_in log_label assign load missing",
+	methods: "child add move previews walls preview preview_card preview_link link nav nav_for "
+		+ "chain container activate render "
+		+ "naming declare load_all_children go deactivate "
+		+ "mounts_in log_label assign load missing slug",
 
 	properties: "meta title children content url name label icon card classes "
 		+ "description parent app view loading route regions",
@@ -23,13 +29,19 @@ export default classdoc.page({
 
 	content(){
 
-		code.js(`import { Page, md } from "/app.js";
+		div.c("flex auto", code.js(`import { Page, md } from "/app.js";
 
 export default new Page({
     meta: import.meta,
     title: "Intro",
     content(){ md("Hello."); },
-});`);
+});`), demo.stage(() => {
+		new Page({
+		meta: import.meta,
+		title: "Intro",
+		content(){ md("Hello."); },
+	}).render().style("display", "block");
+}));
 
 		md("Save that as `/docs/intro/page.js` and `/docs/intro/` **is** a page. `meta: import.meta` is the line that tells it its own address — the folder is the route, and nothing registers anything.");
 
@@ -45,6 +57,18 @@ export default new Page({
 		md("`children` names the folders under this one, **in the order a menu should show them**. Each is imported the moment this page is constructed, so `previews()` can draw a card per child with its real title and icon — once, correct, never names-first-then-titles.");
 
 		md("It is navigation, not registration. `/docs/faq/` still works when nobody declared `faq`, because looking up a child falls through to the filesystem. **Forgetting to declare costs the menu entry, not the url.**");
+
+		h2("A card is drawn by the page it points at");
+
+		code.js(`export default new Page({
+    meta: import.meta,
+    title: "Dashboard",
+
+    // one line, and this page's card on the index above is a live render of it
+    preview(nav){ return this.preview_card(nav, () => div.c("zoom-25", () => this.layout())); }
+});`);
+
+		md("`previews()` arranges; `preview(nav)` draws. The default card is an icon and a label with the whole card clickable, so a page that says nothing still gets one — and a page that wants to show itself overrides the one method. ⚠ The thumb is **inert**: the label is the card's only link, because an `<a>` inside an `<a>` is invalid and the browser silently un-nests it.");
 
 		h2("Titles and labels");
 
@@ -65,9 +89,9 @@ export default new Page({
 			p("Constructed, never rendered — and still linkable: ", intro.link());
 		}, "Constructing a `Page` renders nothing, so `export default new Page(…)` is always import-safe. It renders when the Router places it.");
 
-		md("**[Demos](/framework/core/Page/overview/demos/)** — the same class, rendered: children, labels, `add()`, four levels of depth and a page wearing a layout, each one a tree you can click around inside.");
+		md("**The cards on the left are the demos** — fourteen live trees, in three groups, each one the same class running at half size. Click one: the tree opens here with the `page.js` that defines it, and the rail stays put. **Basics** is six ways to build a tree — children, `add()`, labels, `route()`, the shape a page wears; **Arrangements** is five ways to show one; **Sites** is three whole sites: a page of section bands, a documentation site, and both together.");
 
-		md("Every method and property on the left has its own page: the real source, who calls it, and an honest note on whether it should exist at all.");
+		md("Every method and property has its own page under **API**: the real source, who calls it, and an honest note on whether it should exist at all.");
 
 		md("Next: [Router](/framework/core/Router/) — what turns a url into one of these.");
 

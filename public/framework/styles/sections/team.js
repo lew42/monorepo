@@ -1,6 +1,8 @@
-import { div, p } from "/app.js";
-import { section, eyebrow } from "./parts.js";
-import { avatar } from "/framework/ui/avatar/avatar.js";
+import { div, p, span } from "/app.js";
+import { band } from "./tone.js";
+
+/* css: .ui-avatar — the circle ships from ui/, and this import is the loading edge. */
+import "/framework/ui/avatar/avatar.js";
 
 /* A team wall is a card wall with a circle at the top of each card, and
  * `grid gap auto` re-counts the row at every width. */
@@ -15,7 +17,7 @@ const PEOPLE = [
 
 const person = (initials, name, role, note) =>
 	div.c("pad flex v surface", () => {
-		avatar(initials).style("--avatar", "3em");
+		span.c("ui-avatar", initials).style("--avatar", "3em");
 		p.c("h3", name);
 		// `--prim` and not the band's `--eyebrow`: this text is inside a card that
 		// repainted `--surface`, so the accent is readable again whatever the band is.
@@ -23,10 +25,13 @@ const person = (initials, name, role, note) =>
 		p.c("muted", note);
 	}).style("gap", "0.4em");
 
-export default tone => section(tone ?? "wash", () => {
-	eyebrow("WHO");
+export default (tone = "wash") =>
+	div.c("section-band", () =>
+		div.c("measure flex v gap", () => {
+			p.c("h4", "WHO").style("color", "var(--eyebrow, var(--prim))");
 
-	p.c("h2", "Small enough to fit in a room");
+			p.c("h2", "Small enough to fit in a room");
 
-	div.c("grid gap auto", () => PEOPLE.forEach(who => person(...who)));
-}).style("--section", "62em");
+			div.c("grid gap auto", () => PEOPLE.forEach(who => person(...who)));
+		}).style("--measure", "62em")
+	).style(band(tone));

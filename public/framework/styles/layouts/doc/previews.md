@@ -1,9 +1,10 @@
 # Previews — how a thumbnail can be the page
 
-Split out of `readme.md`. **Scope:** the index's *gallery thumbnails* — a live
-`page.layout()` painted down inside a card. The schematic shapes at the top of the
-index are a different thing entirely (`preview.js`, no content, no live page); they
-are covered in `readme.md`.
+Split out of `readme.md`. **Scope:** what goes *inside* a card. Two kinds of thumb
+sit in the same card shape now — a live `page.frame()` painted down (`detail.js`;
+it was `Layout.js` and a `page.layout()` until the exhibit conversion — readme.md),
+and a schematic shape with no content at all (`preview.js`, drawn by `word.js`).
+The card itself is core's, and §6 records why it stopped being this section's.
 
 ## 1. `zoom` or `transform: scale()` for the previews?
 
@@ -55,20 +56,36 @@ and it is why no layout here contains a media query.
 
 ---
 
-## 6. The gallery card reuses `.page-preview`
+## 6. The card is core's — this section only supplies the thumb
 
-`a.c("page-preview layout-card")`, and `.layout-card` is two declarations:
-`flex-direction: column; align-items: stretch`. Everything else — surface,
-border, radius, hover, `text-decoration: none`, and the accent state
-`Router.mark_links()` paints on the card for the page you are heading to — comes
-free from the class `Page.previews()` already emits. Rung 3 before rung 4, and the
-active-state marking is the part that would have been forgotten if this had been
-a new component.
+It started as `a.c("page-preview layout-card")`: a couple of declarations over the
+class `Page.previews()` already emitted. Rung 3 before rung 4, and reusing the class
+is what kept the accent state `Router.mark_links()` paints on the card you are
+heading to.
 
-One constraint it imposes: **no `<a>` inside a layout.** Nav items are `p()`, not
-links, because an anchor inside the card's anchor is invalid HTML and swallows the
-click. That is fine — a layout skeleton with eight `href="#"` in it would be worse
-— but it is the reason `items()` builds paragraphs.
+That reuse became the whole answer. The gallery module is gone and `Page.preview_card(nav,
+thumb)` is the one card shape; a page that wants a live render **overrides
+`preview()`**, which in `detail.js` is one line:
+
+```js
+preview(nav){ return this.preview_card(nav, () => div.c("zoom-25", () => this.frame())); }
+```
+
+*(`frame()` and not `layout()` since the exhibit conversion: the card paints down
+the layout **in its `.page` box**, so a thumbnail wears the same `full`/`pad`/`fill`
+as the page it links to and the two cannot disagree about the page shape.)*
+
+Two constraints the card imposes, both silent when broken:
+
+- **No `<a>` inside a layout.** The label is the card's only link and its `::after`
+  covers the card, so a thumb is `pointer-events: none` and an anchor inside it
+  would be an `<a>` in an `<a>` — invalid, and un-nested by the browser. That is why
+  `items()` builds paragraphs.
+- **A schematic thumb needs `surface`.** A card with a thumb is bare as of Aug 2026 —
+  no board, no card background — so a shape whose whole subject is empty boxes has
+  nothing to sit on. `word.js` adds the one utility class. (Before the cards went
+  bare the same line was needed for the opposite reason: the checkered floor meant
+  "this render painted nothing", which was misleading here.)
 
 ---
 
@@ -85,10 +102,10 @@ guard on every read of them. `fit` fell through that guard and silently missed t
 wall for months.
 
 The layout function was never a separate concern from the page — it *was* the
-page's content. Each one is now a `layout()` method on a `Layout` page, the page
-renders it at full size and the index renders the same method inside a gallery
-card. One list (`children`, auto-imported), and the test for "is this a layout" is
-`page.layout` rather than a map somebody has to remember to extend.
+page's content. Each one is now a `layout()` method in a `detail()` config, the page
+shows it on a stage at full size and the index renders the same method inside a
+gallery card. One list (`children`, auto-imported), and the test for "is this a
+layout" is `page.layout` rather than a map somebody has to remember to extend.
 
 ## 2. Why a separate `layout.js` instead of markup in the page?
 

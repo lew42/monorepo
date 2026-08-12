@@ -1,4 +1,4 @@
-import { Page, md, demo, code } from "/app.js";
+import { Page, md, demo, div, code } from "/app.js";
 import { palette } from "../parts.js";
 import { timeline } from "./timeline.js";
 
@@ -11,10 +11,9 @@ const RELEASES = [
 export default new Page({
 	meta: import.meta,
 	title: "Timeline",
-	description: "Releases down a rail — the line is a border on an empty box.",
+	description: "Releases down a rail — one of three components that kept its function.",
 	icon: "timeline",
 	card: "tall",
-	classes: "grid",
 
 	content(){
 
@@ -34,14 +33,18 @@ export default new Page({
 
 		md("## The line, without a pseudo-element");
 
-		code.js(`div.c("ui-timeline-rail flex v v-center", () => {
+		code.js(`div.c("flex v v-center", () => {
     span.c("ui-timeline-dot");
-    if (!last) div.c("ui-timeline-line flex-1");
+    div.c("ui-timeline-line flex-1");
 });`);
 
 		md("The reflex is `::before` with `position: absolute`, and that needs a selector twice over — a pseudo-element cannot be reached from an inline style, and positioning is a *relationship* between two elements ([the line this library draws](/framework/ui/tooltip/)). A zero-width box with one border is the same hairline, in the flow, owned by the row that draws it.");
 
-		md("`flex-1` is what makes it reach: the dot is `flex: 0 0 auto`, so the empty box takes every pixel of row height left over. **Omitting it on the last row is what stops the run** — a line trailing off below the final entry reads as a loading state.");
+		md("`flex-1` is what makes it reach: the dot is `flex: 0 0 auto`, so the empty box takes every pixel of row height left over.");
+
+		md("**The run has to stop** — a line trailing off below the final entry reads as a loading state. That used to be an index compared against `items.length`, a `last` flag and a class; it is now two `:last-child` rules, because *which row is last* is a question the DOM can answer:");
+
+		md("```css\n.ui-timeline-row:last-child .ui-timeline-line { border: none; }\n.ui-timeline-row:last-child .ui-timeline-entry { padding-bottom: 0; }\n```");
 
 		md("On a column, `v-center` centres *horizontally* — `align-items` is the cross axis, and `flex v` swaps which axis that is. It is what puts the dots and the line on one axis, and it is the trap that reads as broken twice a year.");
 
@@ -53,4 +56,6 @@ export default new Page({
 
 		md("Next: [Keys](/framework/ui/kbd/) — the one element the base theme half-styles.");
 	},
+
+	preview(nav){ return this.preview_card(nav, () => div.c("zoom-75 pad", () => timeline(...RELEASES))); },
 });

@@ -1,6 +1,5 @@
-import { div, span, md, input, textarea, button } from "/app.js";
-import Layout from "../Layout.js";
-import recipe from "../recipe.js";
+import { Page, div, span, md, input, textarea, button } from "/app.js";
+import detail from "../detail.js";
 import { next } from "../../parts.js";
 
 const field = (label, control) => div.c("flex v gap").style("--gap", "0.3em").append(() => {
@@ -8,37 +7,41 @@ const field = (label, control) => div.c("flex v gap").style("--gap", "0.3em").ap
 	control();
 });
 
-export default new Layout({
+export default new Page(detail({
 	meta: import.meta,
 	title: "Stack",
 	description: "Vertical rhythm, and a form that needed none of its own CSS.",
 	icon: "view_agenda",
 
-	// no fit word: a form is prose with inputs in it. No `fill` — a long form scrolls.
-	classes: "flex v",
+	note: "No fit word — the region's default measure. The column is `measure`; the spacing is `gap` inside it and `--flow` outside.",
 
 	layout(){
-		div.c("measure flex v gap").append(() => {
 
-			div.c("h1", "A stack is spacing, and nothing else");
+		// the page is the region; the narrowness belongs to the `.measure` column inside
+		// it, not to the page. No `fill` — a long form scrolls.
+		return div.c("page full flex v", () => {
 
-			md(`Every box below is a plain element in a column. Nothing sets a margin, nothing
+			div.c("measure flex v gap").append(() => {
+
+				div.c("h1", "A stack is spacing, and nothing else");
+
+				md(`Every box below is a plain element in a column. Nothing sets a margin, nothing
 sets a height, and no control here carries a class of its own — the arrangement is the
 container's job and the look is the theme's.`);
 
-			div.c("pad flex v gap surface", () => {
-				div.c("h3", "Tell us what you're building");
+				div.c("pad flex v gap surface", () => {
+					div.c("h3", "Tell us what you're building");
 
-				field("Email", () => input().attr("type", "email").attr("placeholder", "you@example.com"));
-				field("Message", () => textarea.c("auto").attr("rows", "3"));
+					field("Email", () => input().attr("type", "email").attr("placeholder", "you@example.com"));
+					field("Message", () => textarea.c("auto").attr("rows", "3"));
 
-				div.c("flex gap wrap", () => {
-					button.c("prim", "Send");
-					button("Cancel");
+					div.c("flex gap wrap", () => {
+						button.c("prim", "Send");
+						button("Cancel");
+					});
 				});
-			});
 
-			md(`## The rhythm is a token
+				md(`## The rhythm is a token
 
 \`flow\` is the class \`Page.render()\` already puts on every page:
 
@@ -70,10 +73,9 @@ That is a complete sign-up form with **no stylesheet in this folder.**
 - A settings panel
 - Any page that is a sequence rather than an arrangement`);
 
-			recipe(this, "No fit word — the region's default measure. The column is `measure`; the spacing is `gap` inside it and `--flow` outside.");
-
-			next("[Masthead](/framework/styles/layouts/masthead/) — where it all comes together.",
-				"styles/layouts/stack/");
+				next("[Masthead](/framework/styles/layouts/masthead/) — where it all comes together.",
+					"styles/layouts/stack/");
+			});
 		});
 	},
-});
+}));

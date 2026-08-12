@@ -1,0 +1,30 @@
+/* Restated IN FULL — a short list silently misplaces `site`. */
+@layer base, theme, site, util;
+
+@layer theme {
+
+	/* The bar sits under the render it steers and takes the same gutter a framed
+	   exhibit takes (`.demo-stage.bleed`, stage.css). A bar indented to the reading
+	   measure under a full-width render reads as belonging to something else. */
+	.page.standard > .demo-steer.bleed { padding-inline: var(--gutter-x); }
+
+	/* One title per surface. On a stage the box is an example ON a page, and that
+	   page's `h1` is the lesson's name — so the specimen's own name stays in the url
+	   strip and the rail, where it reads as the sign over the door instead of as a
+	   second title. In a CARD it is exactly that sign, and stays.
+	   ⚠ Children keep their `h1`: on half these demos it is the thing being taught.
+	   css: `.demo-app-root` is app.js's, `.demo-stage` stage.js's — both imported. */
+	.demo-stage .demo-app-root > .page-title { display: none; }
+
+	/* ⚠ And the flow gap it left behind: `display: none` takes the box out of the
+	   layout but NOT out of `* + *`, so the first paragraph kept a title's worth of
+	   margin above it (framework.css, `:where(.flow) > * + *`). */
+	.demo-stage .demo-app-root > .page-title + * { margin-block-start: 0; }
+
+	/* The card in a rail IS the tree, at half size — so a 18em card lays the site
+	   out at 36em and shows it whole.
+	   ⚠ The zoom rides the MINI APP, never the thumb: `em` inside a zoomed box
+	   computes in zoomed units, so `--thumb-max` on a zoomed thumb would crop at
+	   half the ems it names. Page.css keeps the crop; this only shrinks. */
+	.tree-preview > .page-preview-thumb > .demo-app { zoom: 0.5; }
+}

@@ -59,8 +59,9 @@ Page.prototype.tabs = function(names){
 		Promise.resolve(this.app?.ready).then(() => reveal($bar));
 	});
 
-	// so a cold load waits for the bar instead of painting an empty one
-	this.app?.loaders.push(filling);
+	// so a cold load waits for the bar instead of painting an empty one. ⚠ `loaders?.`
+	// too: a stand-in app (ext/demo's DemoApp) has no first-paint queue to wait on.
+	this.app?.loaders?.push(filling);
 
 	return $tabs;
 };

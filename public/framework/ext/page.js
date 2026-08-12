@@ -6,7 +6,7 @@ export default new Page({
 	label: "Extensions",
 	description: "Opt-in addons. They may extend core; core never depends on them.",
 	icon: "extension",
-	children: "markdown demo highlight files toc classdoc tabs layout",
+	children: "markdown demo highlight files toc classdoc tabs catalog Layout",
 
 	content(){
 

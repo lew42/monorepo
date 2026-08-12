@@ -1,5 +1,5 @@
-import { p } from "/app.js";
-import { section, eyebrow } from "./parts.js";
+import { div, p } from "/app.js";
+import { band } from "./tone.js";
 import { timeline } from "/framework/ui/timeline/timeline.js";
 
 /* The Timeline component with real releases in it — one function, two call
@@ -12,12 +12,15 @@ const RELEASES = [
 	["May 2026", "Layers landed", "base, theme, site, util — and a rule that says which one you are in."],
 ];
 
-export default tone => section(tone ?? "surface", () => {
-	eyebrow("SHIPPED");
+export default (tone = "surface") =>
+	div.c("section-band", () =>
+		div.c("measure flex v gap", () => {
+			p.c("h4", "SHIPPED").style("color", "var(--eyebrow, var(--prim))");
 
-	p.c("h2", "What changed, and when");
+			p.c("h2", "What changed, and when");
 
-	timeline(...RELEASES);
+			timeline(...RELEASES);
 
-	p.c("muted", "Every entry is a commit you can read — there is no compiled artefact to diff against.");
-}).style("--section", "46em");
+			p.c("muted", "Every entry is a commit you can read — there is no compiled artefact to diff against.");
+		}).style("--measure", "46em")
+	).style(band(tone));

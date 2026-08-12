@@ -1,4 +1,4 @@
-import { View, div, h1, a, span, icon, is } from "../View/View.js";
+import { View, div, h1, h2, h4, a, span, icon, is } from "../View/View.js";
 
 View.stylesheet(import.meta, "Page.css");
 
@@ -21,6 +21,7 @@ export class Page {
 	naming(){
 		this.url   ??= this.meta ? new URL(".", this.meta.url).pathname
 		             : this.parent && this.name ? this.parent.url + this.name + "/"
+		             : this.title ? "/" + Page.slug(this.title) + "/"
 		             : undefined;
 		this.name  ??= this.url?.split("/").filter(Boolean).at(-1);
 		this.title ??= this.name;
@@ -28,15 +29,30 @@ export class Page {
 	}
 
 	// One Map, in declaration order: undefined = not mine, null = declared, Page = here.
+	// A POJO declares by title — the key is the title, Page.slug(key) the url segment.
 	declare(){
-		const list = typeof this.children === "string" ? this.children.trim().split(/\s+/)
-		           : this.children ?? [];
+		const source = this.children ?? [];
+		const list = is.str(source) ? source.trim().split(/\s+/)
+		           : is.arr(source) ? source
+		           : Object.entries(source);
 
 		this.children = new Map();
 
-		list.forEach(child => typeof child === "string"
-			? this.children.set(child, null)
-			: this.add(child.name, child));
+		list.forEach(child => {
+			if (is.str(child)) return this.children.set(child, null);
+			if (!is.arr(child)) return this.add(child.name, child);
+
+			const [title, value] = child;
+			const name = Page.slug(title);
+
+			if (value === null) return this.children.set(name, null);
+			if (value instanceof Page) return this.add(name, value.assign({ title: value.title ?? title }));
+			if (is.fn(value) || is.str(value)) return this.add(name, { title, content: value });
+			if (is.pojo(value)) return this.add(name, { title, ...value });
+
+			// The eager form ran under whatever captor was current at declaration time.
+			throw new Error(`children.${title} — got a value, not a function; write ${title}(){ … } so content runs when the page renders`);
+		});
 
 		return this;
 	}
@@ -49,12 +65,25 @@ export class Page {
 		const page = child instanceof Page ? child.assign(adopt)
 			: new Page(is.fn(child) || typeof child === "string" ? { content: child } : child, adopt);
 
+		// The url is MINE plus the name — a page built standalone (its url derived
+		// from its own title) moves here, resolved children included.
+		if (this.url) page.move(this.url + name + "/");
+
 		page.naming();
 		if (page.loading === undefined) page.load_all_children();   // built standalone — its url only just arrived
 		this.children.set(name, page);
 
 		console.log(`${this.log_label()}.add("${name}") → ${page.log_label()}`);
 		return page;
+	}
+
+	// Adoption hands a page a new address; the resolved subtree moves with it.
+	move(url){
+		if (this.url === url) return this;
+
+		this.url = url;
+		this.children.forEach((child, name) => child?.move(url + name + "/"));
+		return this;
 	}
 
 	// [root … me]
@@ -92,6 +121,11 @@ export class Page {
 	static missing(error){
 		return /Failed to fetch dynamically imported module|error loading dynamically imported module|MIME type|Expected a JavaScript/i
 			.test(error?.message ?? "");
+	}
+
+	// "Default Page Title" → "default-page-title"
+	static slug(title){
+		return String(title).toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 	}
 
 	// A region, an ancestor's $pages, or the app — most specific claim first.
@@ -133,12 +167,13 @@ export class Page {
 
 		console.groupCollapsed(`${this.log_label()}.render() — first build`);
 
+		// `standard` is the default page shape; a declared `classes` replaces it whole.
 		this.view = div.c("page flow", () => {
 			if (this.title) h1.c("page-title", this.title);
 			return is.fn(this.content) ? this.content() : this.content;
 		})
 			.ac(this.name && "page-" + this.name)
-			.ac(this.classes);
+			.ac(this.classes ?? "standard");
 
 		console.groupEnd();
 		return this.view;
@@ -148,30 +183,70 @@ export class Page {
 
 	link(text){ return a.c("page-link", text ?? this.title).href(this.url); }
 
-	// Weakest first: the segment, the child's own title, the child's `label`.
+	// One menu entry: mine.
+	nav(){ return { url: this.url, label: this.label ?? this.title, icon: this.icon, card: this.card }; }
+
+	// The child's own entry, at the url this list gives it. Weakest label last: the
+	// child's `label`, its title, then the segment — a declared child may still be null.
 	nav_for(name){
 		const child = this.children.get(name);
 
-		return {
-			url: this.url + name + "/",
-			label: child?.label ?? child?.title ?? name,
-			icon: child?.icon,
-			card: child?.card,
-		};
+		return { ...child?.nav(), url: this.url + name + "/", label: child?.label ?? child?.title ?? name };
 	}
 
+	// A card per child, drawn BY the child. A declared-but-unresolved one has no
+	// page to ask, so its entry gets the default card. A child may claim a `group`
+	// the way it claims a `card`, and each run of one gets a heading — categories
+	// before specifics, on a wall or in a rail.
 	previews(){
-		return div.c("page-previews", () => this.children.forEach((page, name) => {
-			const nav = this.nav_for(name);
+		let group;
 
-			a.c("page-preview").href(nav.url).append(() => {
-				if (nav.icon) icon(nav.icon);
-				span.c("page-preview-title", nav.label);
-			});
+		return div.c("page-previews bleed", () => this.children.forEach((page, name) => {
+			if (page?.group && page.group !== group)
+				h4.c("page-previews-group", group = page.group);
+
+			const nav = this.nav_for(name);
+			page ? page.preview(nav) : this.preview_card(nav);
 		}));
 	}
 
-	preview(){ return a.c("page-preview", this.title).href(this.url); }
+	// One rung per child: its name as a link, then ITS children as cards. An index of
+	// indexes — `previews()` is my children, `walls()` is my grandchildren under their
+	// parent's name. Depth 1 on purpose, and a childless child has no rung: a heading
+	// over nothing is this method quietly turning back into `previews()`.
+	walls(){
+		return div.c("page-walls bleed flex v gap", () => this.children.forEach((page, name) => {
+			if (!page?.children.size) return;
+
+			const nav = this.nav_for(name);
+
+			div.c("page-wall flex v gap", () => {
+				h2.c("page-wall-title", () => a.c("page-link", nav.label).href(nav.url));
+				page.previews();
+			}).style("--gap", "1em");
+		})).style("--gap", "3em");
+	}
+
+	// The one card shape. A page that wants a live render overrides this method:
+	// `preview(nav){ return this.preview_card(nav, () => div.c("zoom-25", () => this.layout())); }`
+	preview(nav){ return this.preview_card(nav); }
+
+	// ⚠ The thumb is INERT (Page.css): the label below it is a link, so a live render
+	// in here would be an `<a>` inside an `<a>` — invalid, and the browser un-nests it.
+	preview_card(nav = this.nav(), thumb){
+		return div.c("page-preview", () => {
+			if (thumb) div.c("page-preview-thumb", thumb);
+			this.preview_link(nav);
+		}).ac(nav.card);
+	}
+
+	// The card's only real link — Page.css spreads its ::after over the whole card.
+	preview_link(nav){
+		return a.c("page-preview-link", () => {
+			if (nav.icon) icon(nav.icon);
+			span.c("page-preview-title", nav.label);
+		}).href(nav.url);
+	}
 
 	// Awaiting each child's own `loading` makes this mean "my subtree is ready";
 	// Router.load() awaits it, so a page draws once, complete.

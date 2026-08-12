@@ -6,7 +6,7 @@ import { palette, copy } from "../parts.js";
 const field = () => label.c("flex v gap", () => {
 	div.c("h4", "Email");
 	input().attr("type", "email").attr("value", "mike@lew42");
-	span.c("ui-muted", "We never send anything.");
+	span.c("muted", "We never send anything.");
 }).style("--gap", "0.4em");
 
 const invalid = () => label.c("flex v gap", () => {
@@ -57,4 +57,6 @@ export default new Page({
 
 		md("Next: [Breadcrumbs](/framework/ui/crumbs/) — a row of links that marks itself.");
 	},
+
+	preview(nav){ return this.preview_card(nav, () => div.c("zoom-75 pad", field)); },
 });

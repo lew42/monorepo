@@ -1,34 +1,48 @@
-import { Page, md, demo, div, p, span, code } from "/app.js";
-import { palette } from "../parts.js";
-import { key, keys, shortcut } from "./kbd.js";
+import { Page, md, demo, div, p, span, kbd, code } from "/app.js";
+import { palette, copy } from "../parts.js";
+import { keys } from "./kbd.js";
+
+// The template, verbatim — rendered in the palette AND handed to copy(), so the
+// code on the page is the code that ran.
+const shortcut = (label, ...names) => div.c("flex gap v-center split", () => {
+	span(label);
+	keys(...names);
+});
+
+const list = () => div.c("surface pad flex v gap", () => {
+	shortcut("Command palette", "Ctrl", "K");
+	shortcut("Go to file", "Ctrl", "P");
+	shortcut("Dismiss", "Esc");
+}).style("--gap", "0.6em");
 
 export default new Page({
 	meta: import.meta,
 	title: "Keys",
-	description: "A real <kbd>, given the one thing the base theme leaves it without.",
+	description: "keys() is the one function here — the box and the row are markup.",
 	icon: "keyboard",
 
 	content(){
 
 		palette(
-			["ui.key(…)", () => key("Esc")],
 			["ui.keys(…)", () => keys("Ctrl", "Shift", "P")],
-			["ui.shortcut(…)", () => shortcut("Command palette", "Ctrl", "K")],
-			["a shortcut list", () => div.c("ui-surface pad flex v gap", () => {
-				shortcut("Command palette", "Ctrl", "K");
-				shortcut("Go to file", "Ctrl", "P");
-				shortcut("Dismiss", "Esc");
-			}).style("--gap", "0.6em")],
+			["a shortcut list", list],
 		);
 
-		md("## Calling it");
+		md("## Copy it");
+
+		copy(list);
+
+		md("**`keys()` stays; `key()` and `shortcut()` are gone.** The interleave loop that puts a `+` *between* keys is real logic — `key()` wrapped two class names, and `shortcut()` was a flex row with a label at one end. One boxed key is `kbd.c(\"ui-key surface\", \"Esc\")`, and the site's one real key rendering used a bare `kbd(\"Ctrl\")` anyway.");
+
+		md("## The separator is markup, not text");
 
 		demo(() => {
 			div.c("flex v gap", () => {
-				shortcut("Command palette", "Ctrl", "K");
-				shortcut("Dismiss", "Esc");
+				keys("Ctrl", "Shift", "P");
+				keys("⌘", "K");
+				keys("Esc");
 			}).style("--gap", "0.6em");
-		}, "Three functions, smallest first: `key()` is one boxed `<kbd>`, `keys()` joins them with a `+`, `shortcut()` puts a label at one end and the keys at the other. **`split` is the utility this component was waiting for** — a two-part row needs no basis and no `flex-1`.");
+		}, "`keys(...names)` puts a `+` **span** between real `<kbd>` elements rather than baking the separator into the text — so a screen reader still reads three keys, and the plus can be `--subtle` without dimming them. That interleave is the whole reason there is a function here at all.");
 
 		md("## What `framework.css` already decided");
 
@@ -39,22 +53,23 @@ export default new Page({
 		demo(() => {
 			div.c("flex v gap", () => {
 				p(() => { span("Bare: press "); span.c("code", "Ctrl"); span(" then "); span.c("code", "K"); });
-				p(() => { span("Keyed: press "); key("Ctrl"); span(" then "); key("K"); });
+				p(() => { span("Keyed: press "); kbd.c("ui-key surface", "Ctrl"); span(" then "); kbd.c("ui-key surface", "K"); });
 			}).style("--gap", "0.8em");
-		}, "The same words twice. Above, `kbd`'s inherited mono; below, `ui-key ui-surface` — the shared surface plus three declarations. **The lip is the whole illusion**, and it is one of them: `border-bottom-width: 2px`.");
-
-		md("## The separator is markup, not text");
-
-		demo(() => {
-			div.c("flex v gap", () => {
-				keys("Ctrl", "Shift", "P");
-				keys("⌘", "K");
-				keys("Esc");
-			}).style("--gap", "0.6em");
-		}, "`keys(...names)` puts a `+` **span** between real `<kbd>` elements rather than baking the separator into the text — so a screen reader still reads three keys, and the plus can be `--subtle` without dimming them.");
+		}, "The same words twice. Above, `kbd`'s inherited mono; below, `ui-key surface` — the shared surface plus three declarations. **The lip is the whole illusion**, and it is one of them: `border-bottom-width: 2px`.");
 
 		md("The size is the one judgement call: `0.85em`, which is the optical correction `.demo-code` already makes for a mono pane, not a new level in the [type scale](/framework/styles/layers/theme/). Mono at body size reads a size larger than the words beside it.");
 
+		md("## And the row");
+
+		md("`flex gap v-center split` is the shortcut row — a label at one end, the keys at the other, no basis and no `flex-1`. It was a function called `shortcut()`; it is three words, and above it is a `const` in this file, which is where a two-line helper belongs.");
+
 		md("Back to [UI](/framework/ui/) — the wall, and the encapsulation rule.");
+	},
+
+	preview(nav){
+		return this.preview_card(nav, () => div.c("zoom-75 pad", () => div.c("flex v gap", () => {
+			shortcut("Command palette", "Ctrl", "K");
+			shortcut("Dismiss", "Esc");
+		})));
 	},
 });

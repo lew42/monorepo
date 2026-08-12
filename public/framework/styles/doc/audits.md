@@ -153,7 +153,7 @@ page the author was editing. This is the pass, and it is short so that it happen
 
 | url | breaks here first |
 |---|---|
-| `/framework/ui/` | `grid` + the gallery wall — where the gutter bug shipped |
+| `/framework/ui/` | `grid` + the previews wall — where the gutter bug shipped |
 | `/framework/styles/layouts/` | the same pair, one level up |
 | `/framework/styles/layouts/fit/` | `wide` and `bleed` side by side, as documentation |
 | `/framework/styles/sections/hero/` | a `route()` page, and a band that *should* bleed |
@@ -181,8 +181,8 @@ file was found there.
 is not an overflow and not a blank area; it is a page that looks fine unless you
 know what to compare it to. Nothing in a checklist covers that class, which is
 why the guard for it is structural: **the choice of breakout track lives in
-`wall()`** (`styles/gallery/gallery.js`), so an index page cannot pick `bleed` by
-hand and lose the gutter. Keep it that way — see §6c.
+`previews()`** (`core/Page/Page.class.js`), so an index page cannot pick `bleed`
+by hand and lose the gutter. Keep it that way — see §6c.
 
 ---
 
@@ -193,7 +193,7 @@ The obvious structural guard for the gutter bug is a floor the region owns:
 and never the chrome. It was designed and **rejected**.
 
 `bleed` has four call sites. Two are its own documentation (`layouts/fit/`), one
-was the bug (a gallery wall, now `wall()`'s `wide`), and one is
+was the bug (an index wall, now `previews()`'s `wide`), and one is
 `sections/page.js` — a section band, whose comment reads *"`bleed` and not
 `wide`, because touching the window is the one thing a section is for."* A region
 floor would put 1.25em of white down both sides of every section band on the
@@ -201,7 +201,7 @@ site. **It breaks the only correct consumer to guard against a misuse that no
 longer has a call site.**
 
 The same objection kills the cheaper variant (`--bleed-floor` inside
-`.page.grid`'s padding), for the same reason and to the same degree.
+`.page.standard`'s padding), for the same reason and to the same degree.
 
 So: no CSS. `bleed` means what it says, `wall()` is where the walls get their
 track, and the vocabulary page (`layouts/fit/`) states the rule at the point the

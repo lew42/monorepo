@@ -46,24 +46,6 @@
 	.demo-btn.on { color: var(--prim); border-color: var(--prim); }
 	.demo-btn .icon { font-size: 1.1em; }
 
-	/* Both rules are about `select` defaults in framework.css.
-	   ⚠ `width: auto` — base gives every select `width: 100%`, which in a flex bar
-	     eats the row and collapses the spacer beside it.
-	   ⚠ `background-origin: padding-box` — theme paints the arrow at 100% of the
-	     CONTENT box, so on a shrink-to-fit select every em of padding-right moved
-	     the arrow an em LEFT, onto the text. */
-	.demo-zoom {
-		width: auto;
-		padding: 0.1em 1.4em 0.1em 0.5em;
-		background-origin: padding-box;
-		font-size: 0.9em;
-		color: var(--subtle);
-		border-color: var(--line);
-		border-radius: var(--radius);
-		cursor: pointer;
-	}
-	.demo-zoom:hover { color: var(--ink); border-color: var(--prim); }
-
 	/* `flex-wrap` and a basis, not a query: "room" is the BOX's width, which is the
 	   thing that varies. `.ac("stack")` is the veto for long lines. */
 	.demo-panes { display: flex; flex-wrap: wrap; }
@@ -90,49 +72,12 @@
 
 	.demo.stack .demo-panes { display: block; }
 
-	/* ── the stage: what you resize ──
-	   Why three boxes and not one: demo.js.
-	   ⚠ `margin-inline-end` is exactly the handle's overhang — `.demo` clips, so a
-	   pill sitting half outside would be half missing AND half unclickable. */
-	.demo-stage {
-		position: relative;
-		margin-inline-end: 0.125em;
-		max-width: 100%;
-	}
-
-	/* The viewport. The padding is HERE, not on `.demo-render` — that is what makes
-	   the readout honest: the render is the bare content box.
-	   ⚠ The fallback is for a bare `demo.stage()`, which has no `.demo` above it to
-	   inherit the token from — without it the padding resolves to nothing at all. */
-	.demo-screen { padding: var(--demo-pad, 1.5rem); overflow-x: auto; }
-
-	/* ⚠ Deliberately NO `overflow`: the x-axis cannot be set without forcing y off
-	   `visible` too, and a demo may overflow on purpose — a tooltip, a popover. */
-	.demo-render { min-width: 0; }
-
-	/* `--subtle`, not white: a white pill on `--surface` is invisible, and at 4px
-	   wide a border is most of the shape rather than an outline on it. */
-	.demo-handle {
-		position: absolute; top: 50%; inset-inline-end: -0.125em;
-		width: 0.25em; height: 2em;
-		transform: translateY(-50%);
-		background: var(--subtle);
-		border-radius: 1em;
-		cursor: ew-resize;
-		touch-action: none;          /* or the browser pans instead of dragging */
-	}
-	.demo-handle:hover { background: var(--prim); }
-
-	/* The width the example is laid out at, which is not the width you see when the
-	   zoom is off 100%. That gap is the whole point of having both controls. */
-	.demo-size {
-		margin-top: 0.6em;
-		font-size: 0.62em;
-		letter-spacing: 0.1em;
-		text-align: end;
-		color: var(--subtle);
-		font-family: var(--mono);
-	}
+	/* `quoted` — the veto on the `wide` demo() and demo.stage() carry: this box is a
+	   quoted aside, not an exhibit, so it stays on the page's reading measure.
+	   ⚠ Four classes deep on purpose — `.page.standard > .wide` is three, and at a tie
+	     the winner would be whichever stylesheet the browser linked last. */
+	.page.standard > .demo.quoted,
+	.page.standard > .demo-stage.quoted { grid-column: main; }
 
 	/* the caption — the sentence that belongs to THIS example */
 	.demo-note {
@@ -147,7 +92,21 @@
 
 	.demo-error { padding: 0.8em 1em; color: var(--error); border-color: var(--error); }
 
-	/* A band demo: the one thing a full-width section is FOR is reaching the edge,
+	/* `demo.source()` — the code under a leaf page's render, closed. The `pre`'s
+	   padding and the `summary` cursor are framework.css's already; these are what a
+	   source block adds, and they match the `.demo-code` pane above. */
+	.demo-source > summary { font-size: 0.85em; color: var(--subtle); }
+	.demo-source > summary:hover { color: var(--prim); }
+	.demo-source > pre { tab-size: 4; line-height: 1.55; }
+
+	/* The whole file, for the reader who wants the imports the lesson leaves out. */
+	.demo-file { margin-inline-start: 0.8em; font-family: var(--mono); }
+
+	/* ── the stage, from inside a `.demo` ──
+	   `.demo-stage` / `.demo-screen` are stage.js's, styled in stage.css; the three
+	   rules below only steer them. demo.js imports that module.
+
+	   A band demo: the one thing a full-width section is FOR is reaching the edge,
 	   so `.bleed` hands the screen's inset back. Pair with `.stack`. */
 	.demo.bleed .demo-screen { padding: 0; }
 

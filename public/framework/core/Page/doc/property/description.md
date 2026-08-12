@@ -14,7 +14,7 @@ Three ways out, and the choice is a design decision rather than a cleanup:
 | | |
 |---|---|
 | `render()` emits it under the `h1` | every page that declared one gets a subtitle, and 130 that didn't look bare |
-| `nav_for()` carries it, and cards show it | the card wall becomes a summary — but `.page-preview` is a 60px row |
+| `nav()` carries it, and cards show it | the card wall becomes a summary — and a card is now a stack, so there is room under the label |
 | delete it | 30 pages lose a line that was never rendered |
 
 **Recommendation: pick one and write it down.** A property this widely declared and

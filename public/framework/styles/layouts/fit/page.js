@@ -22,18 +22,17 @@ export default new Page({
 	description: "How a page holds a layout: the default sheet, and the four words that change it.",
 	icon: "crop_free",
 
-	// this page IS its subject — the wide and bleed blocks below really do escape
-	// the measure you are reading in
-	classes: "grid",
+	// this page IS its subject — it declares no classes, so it wears the default
+	// grid, and the wide and bleed blocks below really do escape the measure
 
 	content(){
 
-		md("A page is a `div.page` in a region, and **saying nothing gives you the reading column** — every region hands its pages a 60em measure and an inset by default. Everything else is one word.");
+		md("A page is a `div.page` in a region, and **saying nothing gives you the grid page** — a centred reading column with breakout tracks either side of it. Everything else is one word.");
 
 		md(`| | \`--measure\` | inset | reach for it when |
 |---|---|---|---|
-| **default** | \`60em\` | \`3em clamp(0px, 6%, 5em)\` | prose. Most pages, including this one's neighbours |
-| **\`grid\`** | \`60em\` for prose | grid tracks | prose that occasionally needs a wide demo or a banner |
+| **\`grid\` — the default** | \`52em\` prose track | grid tracks | prose that sometimes needs a wide demo or a banner. Most pages, including this one |
+| **the sheet** | \`60em\` | \`3em clamp(0px, 6%, 5em)\` | what any *other* \`classes:\` falls back to — plain centred prose, no breakouts |
 | **\`pad\`** | none | \`2em\` | a wall of cards, a gallery, an index |
 | **\`full\`** | none | none | the thing IS the page — a layout, a canvas, a map |
 | **\`fill\`** | *unchanged* | *unchanged* | something must reach the **bottom** of the region |`);
@@ -54,14 +53,13 @@ this.$pages = div.c("pages").style("--measure", "none")     // a whole region do
 
 		md("There is no background here either. A `.page` is a **hole onto the shell** — the site decides what colour that is, and the framework decides only how wide the reading is.");
 
-		h2("`grid` — breaking out of the measure");
+		h2("`standard` — breaking out of the measure");
 
 		md("The hard case: a page of prose that wants **one** wide thing in the middle of it. Negative margins are the reflex and they are a trap — `margin-inline: -8em` is identical until the window is narrower than the measure, and then it is horizontal overflow on every page that used it.");
 
-		md("`classes: \"grid\"` makes the page a **five-track grid** instead. Prose lands in the middle track; a child marked `.wide` or `.bleed` takes more. The outer tracks are `1fr` and `minmax(0, …)`, so they collapse to nothing before the measure gives up a pixel — it cannot overflow.");
+		md("The default page is a **five-track grid** instead. Prose lands in the middle track; a child marked `.wide` or `.bleed` takes more. The outer tracks are `1fr` and `minmax(0, …)`, so they collapse to nothing before the measure gives up a pixel — it cannot overflow. ⚠ Declaring `classes:` forfeits the default *whole* — a standard page with an extra word writes `classes: \"standard extra\"`.");
 
-		code.js(`classes: "grid",
-content(){
+		code.js(`content(){                          // standard is the default — declare nothing
     md("Ordinary prose sits in the measure.");
     demo(chart).ac("wide");             // wider
     div.c("bleed", () => banner());     // edge to edge
@@ -84,7 +82,7 @@ content(){
 
 		md("An index, a gallery, a wall of anything. **No measure**, because nothing here is prose. The [Cards](/framework/styles/layouts/cards/) and [Dashboard](/framework/styles/layouts/dashboard/) pages are this word — both then cap their content with `measure` at `78em`, because a card wall thirteen columns wide is not a wall.");
 
-		md("The [Layouts](/framework/styles/layouts/) index is **`grid`** instead, and the difference is worth knowing: it is a wall *and* prose. `pad` would throw the measure away for the paragraphs too. `grid` keeps the reading column and lets the wall out to `wide` — decided once inside `wall()` (see [Gallery](/framework/styles/gallery/)) rather than typed per page.");
+		md("The [Layouts](/framework/styles/layouts/) index is **`standard`** instead, and the difference is worth knowing: it is a wall *and* prose. `pad` would throw the measure away for the paragraphs too. `standard` keeps the reading column and lets the wall out to `wide` — decided once inside [`Page.previews()`](/framework/core/Page/) rather than typed per page.");
 
 		h2("`full` and `fill`");
 

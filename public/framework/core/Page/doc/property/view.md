@@ -2,7 +2,7 @@ The built view. Memoised — a page builds **once**.
 
 **Usage** — assigned and returned by `render()` (`Page.class.js:132,136`), appended
 by `activate()` (`Page.class.js:120`), and read by anything that restyles a page
-after the fact (`framework/ext/layout/layout.js:36,41`).
+after the fact (`framework/ext/layout/layout.js:45,50,53,58`).
 
 **Necessity** — yes. It is what makes navigation cheap: leaving a page does not
 destroy it, so coming back is a class change, not a rebuild.

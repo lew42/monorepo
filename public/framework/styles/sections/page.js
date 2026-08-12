@@ -1,10 +1,45 @@
-import { Page, md, demo, code, h2, div, a } from "/app.js";
-import card, { wall } from "../gallery/gallery.js";
-import catalogue from "./catalogue.js";
-import toned from "./tone.js";
+import { Page, md, demo, code, h2, div } from "/app.js";
 import full from "../layouts/full.js";
+import tones from "./tone.js";
 
-const page = tone => Object.values(catalogue).forEach(s => s.render(tone));
+import navbar from "./navbar.js";
+import hero from "./hero.js";
+import logos from "./logos.js";
+import features from "./features.js";
+import split from "./split.js";
+import stats from "./stats.js";
+import testimonials from "./testimonials.js";
+import pricing from "./pricing.js";
+import faq from "./faq.js";
+import team from "./team.js";
+import changelog from "./changelog.js";
+import contact from "./contact.js";
+import signup from "./signup.js";
+import callout from "./callout.js";
+import footer from "./footer.js";
+
+/* What every band page is, spread into each child below: `demo.exhibit()` — the
+ * band on a stage you can drag, the layout bar wired to it, and the band's own
+ * function as the source. The four tones ride the same bar's panel (`tone.js`),
+ * registered on the render, so there is exactly one control surface. */
+const band = {
+	classes: "standard",
+
+	preview(nav){ return this.preview_card(nav, () => div.c("zoom-25", () => this.section(this.tone))); },
+
+	content(){
+		demo.exhibit({
+			stage: steer => demo.stage(() => this.section(this.tone), $render => {
+				steer($render);
+				tones(this, $render);
+			}).ac("bleed"),
+
+			def: this.section,
+			file: new URL(this.name + ".js", import.meta.url).pathname,
+			note: `\`${this.name}.js\` **running**, not a picture of it — drag the stage, click into the band, and the panel offers its four tones.`,
+		});
+	},
+};
 
 export default new Page({
 	meta: import.meta,
@@ -12,74 +47,69 @@ export default new Page({
 	description: "The layouts, filled with real elements and components — a whole page, composed.",
 	icon: "view_day",
 
-	/* Fifteen urls, no directories: every entry in `catalogue.js` is a name, a
-	   label, an icon and a render function, which is everything the gallery needs
-	   and everything a page needs. See readme.md for why this one keeps a registry
-	   where layouts/ moved to `children`. */
-	route(name){
-		if (name === "full") return full(this, page);
+	/* Fifteen urls, no directories: an inline child is a `page.js` that didn't earn a
+	   folder, and it buys routing, nav and a preview card that a registry could not.
+	   The order is the whole page's order, and no two neighbours share a tone —
+	   alternation is what makes the seams read. */
+	children: [
+		{ ...band, name: "navbar",       title: "Nav bar",      icon: "menu",           tone: "surface", section: navbar },
+		{ ...band, name: "hero",         title: "Hero",         icon: "campaign",       tone: "dark",    section: hero, card: "wide" },
+		{ ...band, name: "logos",        title: "Logo wall",    icon: "domain",         tone: "wash",    section: logos },
+		{ ...band, name: "features",     title: "Features",     icon: "grid_view",      tone: "surface", section: features },
+		{ ...band, name: "split",        title: "Split",        icon: "vertical_split", tone: "wash",    section: split },
+		{ ...band, name: "stats",        title: "Numbers",      icon: "insights",       tone: "prim",    section: stats },
+		{ ...band, name: "testimonials", title: "Testimonials", icon: "format_quote",   tone: "surface", section: testimonials },
+		{ ...band, name: "pricing",      title: "Pricing",      icon: "sell",           tone: "wash",    section: pricing },
+		{ ...band, name: "faq",          title: "FAQ",          icon: "help",           tone: "surface", section: faq },
+		{ ...band, name: "team",         title: "Team",         icon: "groups",         tone: "wash",    section: team, card: "tall" },
+		{ ...band, name: "changelog",    title: "Changelog",    icon: "history",        tone: "surface", section: changelog, card: "tall" },
+		{ ...band, name: "contact",      title: "Contact",      icon: "forum",          tone: "wash",    section: contact },
+		{ ...band, name: "signup",       title: "Sign up",      icon: "mail",           tone: "dark",    section: signup },
+		{ ...band, name: "callout",      title: "Call out",     icon: "bolt",           tone: "prim",    section: callout },
+		{ ...band, name: "footer",       title: "Footer",       icon: "call_to_action", tone: "dark",    section: footer },
+	],
 
-		const entry = catalogue[name];
+	/* `full` is the one url with no band behind it — route() sees undeclared names
+	   only. The page it makes is still a child, so it draws no card, and `whole()`
+	   asks every child for a band it may not have. */
+	route(name){ if (name === "full") return { ...full(this, () => this.whole()), preview(){} }; },
 
-		if (!entry) return;
+	whole(){ this.children.forEach(page => page.section?.(page.tone)); },
 
-		return {
-			title: entry.title,
-			icon: entry.icon,
+	// Fifteen live bands as the rail, this page as its first card.
+	initialize(){ this.catalog(); },
 
-			// `grid`, so the prose and the source keep the reading measure while the
-			// band alone leaves it — `bleed`, because touching the window is the one
-			// thing a section is for.
-			classes: "grid",
-
-			content(){
-				md(`\`${name}.js\`, complete — imports and all. The band below it is this file **running**, not a picture of it.`);
-
-				// ⚠ code.file() returns a PROMISE — the placed div is what fills.
-				div(code.file(import.meta, name + ".js"));
-
-				toned(entry.render, entry.tone).ac("bleed");
-
-				md("The buttons re-run the function above with a different `tone` — there is no state to keep and no stylesheet to toggle, which is why the switcher is nine lines.");
-
-				a.c("page-link", "← All sections").href("/framework/styles/sections/");
-			},
-		};
-	},
-
-	// No toc(): the gallery renders REAL bands, so the rail read a hero's h1 and six
-	// logo wordmarks as sections of this page. A wrong rail is worse than none.
+	// No toc(): the bands are REAL, so the rail read a hero's h1 and six logo
+	// wordmarks as sections of this page. A wrong rail is worse than none.
 	content(){
 
 		md("A layout says where things go. A **section** is a layout with real content in it — and it is the unit a page is actually built from.");
 
-		md("Every band below is one of the eight [layouts](/framework/styles/layouts/), filled with [elements](/framework/styles/elements/) and [components](/framework/ui/). **There is no stylesheet in this folder.**");
-
-		this.gallery();
-
-		md("Click one for its source and its four tones.");
+		md("Every card in the rail is one of the eight [layouts](/framework/styles/layouts/), filled with [elements](/framework/styles/elements/) and [components](/framework/ui/), live at a quarter size. Click one for the band on a stage, the panel one click away, and the function that built it open underneath. **There is no stylesheet in this folder.**");
 
 		h2("The whole page");
 
-		demo(page, { full: this }, "All fifteen, in order. Drag the handle: every band re-lays-out on its own, because none of them contains a media query.");
+		demo(() => this.whole(), { full: this }, "All fifteen, in order. Drag the handle: every band re-lays-out on its own, because none of them contains a media query.");
 
 		h2("The one idea");
 
-		code.js(`export const section = (tone, ...args) =>
+		code.js(`export default (tone = "dark") =>
     div.c("section-band", () =>
-        div.c("flex v gap", ...args).style({ maxWidth: "var(--section, 34em)", marginInline: "auto" })
+        div.c("measure flex v gap", () => { … }).style("--measure", "62em")
     ).style(band(tone));`);
 
-		md("**A band bleeds; the words don't.** The outer div takes the full width and the fill; the inner one holds a max-width, so the reading stays a column no matter how wide the window gets.\n\n`flex v gap`, not `flow` — flow is *page* rhythm, sized for a column of prose, and a band's rhythm is its own. (`--flow` resolves against each child's own font-size: 2em of a 48px hero `h1` is 96px, which no band wants.)");
+		md("**A band bleeds; the words don't.** The outer div takes the full width and the fill; `.measure` inside it holds the max-width, so the reading stays a column no matter how wide the window gets. `--measure` is declared by the class, so a band that wants a card wall rather than a column sets it inline and the inline value wins.\n\n`flex v gap`, not `flow` — flow is *page* rhythm, sized for a column of prose, and a band's rhythm is its own. (`--flow` resolves against each child's own font-size: 2em of a 48px hero `h1` is 96px, which no band wants.)");
+
+		md("**Every band writes that sandwich out.** There is no `section()` helper and no `eyebrow()` or `cta()` — a band's source is the lesson now, so nothing it builds may live in a file the reader has to go and open. The only import is `band(tone)`, a style object, because a four-way token map cannot be written fifteen times.");
 
 		h2("Four tones, and no fifth");
 
-		code.js(`section("dark", () => { … })     // --ink,     text --surface
-section("prim", () => { … })     // --prim,    text --surface
-section("wash", () => { … })     // --wash
-section("surface", () => { … })  // --surface`);
+		code.js(`band("dark")      // --ink,     text --surface
+band("prim")      // --prim,    text --surface
+band("wash")      // --wash
+band("surface")   // --surface`);
 
-		md("They are the surfaces the theme already defines, so alternating them keeps a page in palette **by construction** — and a theme swap retints every band with nothing edited here. A section module is `tone => view`, so **switching a tone is re-running the function.**");
+		md("They are the surfaces the theme already defines, so alternating them keeps a page in palette **by construction** — and a theme swap retints every band with nothing edited here. A section module is `tone => view`, so **switching a tone is re-running the function**, which is all the panel's tone chips do.");
 
 		md("**Nothing in this folder names a colour.** That is the test rung 4 of the ladder asks — would this rule still be right in a different site — and a hex value fails it every time.");
 
@@ -88,7 +118,7 @@ section("surface", () => { … })  // --surface`);
 		md(`| band | layout | what it needed |
 |---|---|---|
 | Nav bar | [Masthead](/framework/styles/layouts/masthead/) | \`flex gap wrap v-center split\` |
-| Hero | [Masthead](/framework/styles/layouts/masthead/) | \`section()\`'s gap + \`flex gap wrap\` for the buttons |
+| Hero | [Masthead](/framework/styles/layouts/masthead/) | the measure column's own gap + \`flex gap wrap\` for the buttons |
 | Logo wall | [Centered](/framework/styles/layouts/centered/) | \`flex gap wrap v-center h-center\` |
 | Features | [Cards](/framework/styles/layouts/cards/) | \`grid gap auto\` — the wall re-counts itself |
 | Split | [Split](/framework/styles/layouts/split/) | \`flex gap auto v-center\` |
@@ -107,15 +137,6 @@ Fifteen sections, seven layouts, **zero new CSS rules.** The surfaces are \`.sur
 
 		md("Next: [Page shapes](/framework/styles/layouts/fit/) — how the page *around* these sections is shaped.");
 
-		md.details(import.meta, "readme.md", "Design record — what a section is, the catalogue, and why there is no stylesheet");
-	},
-
-	// One card() per catalogue entry — styles/gallery/ owns the markup for every
-	// index on the site: an inert thumbnail, and a label that is the only link.
-	gallery(){
-		wall(() => Object.entries(catalogue).forEach(([name, s]) =>
-			card({ url: this.url + name + "/", label: s.title, icon: s.icon, card: s.card },
-				() => s.render(s.tone))))
-			.style({ "--column": "15em", "--thumb-min": "5em", "--thumb-max": "10em" });
+		md.details(import.meta, "readme.md", "Design record — what a section is, why the registry became children, and why there is no parts.js");
 	},
 });

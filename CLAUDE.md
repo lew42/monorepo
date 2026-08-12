@@ -12,6 +12,17 @@ called* belongs next to the code — see the map at the bottom.
 > there is no test that fails when this file goes stale. (Receipts:
 > `.claude/instructions-audit.md`.)
 
+## The prime objective
+
+Everything the framework offers — layouts, sections, elements, components,
+pages — is **organized, visual, and browsable**: you find any thing by clicking
+through previews, in the fewest possible clicks. Every thing has its own
+`/path/` and full docs there (basic usage, variants, advanced usage,
+overrides). The set of building blocks is small, robust, and reusable — and
+every layout works from mobile to mega (3440): widescreen space gets *used*
+(unstacked), not left as gutters. Everything else in this file serves this.
+(Mike, 2026-08-12.)
+
 ## Constraints (never violate)
 
 - **No bundler, no build step, no transpilation.** Everything in `public/` is served as-is and must run in the browser as native ES modules.
@@ -34,12 +45,15 @@ and you cannot find them by testing, because nothing fails loudly.
 - **Mutual parent/child imports break only on deep reloads.** `import` hoists regardless of textual position, so a circular partner reads an uninitialized binding: `/a/` throws while `/a/b/` works. Imports flow **down**; the backref arrives by adoption.
 - **`p()` and `h1`–`h6` handle backticks — and only backticks.** The prose factories turn `` `x` `` into a `<code>` span; bold, links and tables still render as literal text — use `md()` for anything formatted. Every *other* factory appends strings raw, backticks included: a backtick in `li()`, `td()`, or a string child renders literally.
 - **A 404 stylesheet no longer hangs the app** — it resolves and warns, and the page renders unstyled. Check the console.
+- **A backtick anywhere inside a `` css(`…`) `` template literal — including in a CSS comment — terminates the string.** Three files shipped it in one session and every page on the site died with `missing ) after argument list`. Before trusting the browser after editing one, copy the file to `.mjs` and `node --check` it.
 - **Windows: `pkill -f "node server.js"` silently matches nothing.** The orphan then busy-loops libuv on a dead console handle and pins a full CPU core (several once burned ~4.7 cores). Capture the PID and `taskkill //F //PID $PID`, or from PowerShell `Stop-Process -Id <pid> -Force`. Prefer reusing the dev server already on port 80.
 - **Mike's machine (only) runs a "Claude Janitor"** — a scheduled task, every 15 min, that force-kills any `claude.exe`/`node.exe` sustaining >90% of a core across two consecutive checks *and* older than 12 h. It exists because idle Claude Code sessions can busy-loop and pin cores (known upstream bug; 11 once burned ~13 cores). So on that machine a long-lived Claude session or node process can die out from under you — check `C:\Users\mike\.claude\janitor\janitor.log` before suspecting your own code, and reopen killed sessions with `claude --resume`. Other devs don't have it. Remove: `Unregister-ScheduledTask -TaskName "Claude Janitor"`, then delete `C:\Users\mike\.claude\janitor\`.
 
 ## Working agreements
 
 **Propose before major surgery.** A rename touching a core class, its callers and a dozen doc references is a design decision with a large edit attached. Ask in three lines and wait. A sunk edit *presents* an unsettled direction as decided, and then argues for itself. Small, local, obviously-correct fixes don't need this; anything changing an API name, a call order, or where a responsibility lives does.
+
+**A recorded decision is not a law.** Verdicts in readmes, proposals and memory were the best call on that day's evidence — reopen them when the evidence changes or they fight what's in front of you, and never argue from the record against the person at the keyboard. When *writing* one down, give it only the firmness it earned: "never" and "always" belong to things that actually break (the constraints and traps above). Everything else states its reasoning and its weight, so a later reader can tell a load-bearing rule from that day's preference. Over-firm documentation trains the reader to obey rules that never needed to exist.
 
 **Say a new name out loud before you write it.** A name is the API and the documentation at once. Short and exactly right beats long and merely complete; earn length with rarity. If you can't name it clearly, that's the design talking — the method probably does two things or lives on the wrong class.
 
@@ -48,6 +62,16 @@ and you cannot find them by testing, because nothing fails loudly.
 **Keep responses short and scannable — but never drop what matters.** Lead with the finding. Headings, so a long answer can be skimmed. Brevity does not license silence: if something could be important, one sentence with no elaboration is enough.
 
 **Write as little code as possible, and as little CSS as possible.** A super simple base API that just works, then extend. The default path covers most cases with no configuration; everything beyond is an override or a subclass, opted into visibly by the file that wants it. An option is API surface forever.
+
+**One demo system, five blocks.** Anything that shows an example is built from:
+a `Page` (demos are pages — a directory, or an inline object child, declared in
+`children:`), the gallery `card()`/`wall()` (the only preview — clickable, above
+the fold, no code), the `ext/demo` stage (the only resizable viewport), the
+`ext/layout` panel (the only interactive control surface), and the utility
+vocabulary. Before writing a new helper that previews, frames, or arranges an
+example, name which block it extends — a new sibling helper with its own styles
+is a proposal, not a commit. The census that forced this rule (fourteen
+mechanisms, four of them preview cards): `framework/ai/2026-08-09/proposal.md`.
 
 **No black magic.** Behavior you can't see from the file that implements it — a property read by a class that never mentions it, an inert marker interpreted by a `new` three files away. If a file names a class, that file should generally construct it. When coordination must cross files, make it visible at the call site.
 

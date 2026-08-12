@@ -1,39 +1,40 @@
-import { Sidebar, div, span, md } from "/app.js";
-import Layout from "../Layout.js";
-import recipe from "../recipe.js";
+import { Page, Sidebar, div, span, md } from "/app.js";
+import detail from "../detail.js";
 import { next } from "../../parts.js";
 
-export default new Layout({
+export default new Page(detail({
 	meta: import.meta,
 	title: "Sidebar",
 	description: "A fixed panel beside fluid content — two utility classes, no rule.",
 	icon: "view_sidebar",
 
-	/* `full`, because a navigation panel that stops short of the region's edge is a
-	   list, not a rail. NO `fill`, and that was measured: a wrapping flex row sizes
-	   its line to its CONTENT, so `fill`'s clip would cut the bottom of the article
-	   with nothing to scroll it. The page grows and the region scrolls. */
-	classes: "full flex v",
+	note: "One row, edge to edge. The panel is `basis` at `--sidebar`; the article is a `22em` basis, so the pair re-flows on its own width.",
 
 	layout(){
 
-		/* `wrap` plus a `22em` basis on the article, and no breakpoint: 19em + 22em
-		   fits at 1440 and at 1000, and runs out at 390, where the panel drops above
-		   the reading. The Sidebar's own query turns it into a top bar at 52em, so the
-		   stacked result is a bar over an article. */
-		div.c("flex gap wrap flex-1").style("minHeight", "0").append(() => {
+		/* `full`, because a navigation panel that stops short of the region's edge is a
+		   list, not a rail. NO `fill`, and that was measured: a wrapping flex row sizes
+		   its line to its CONTENT, so `fill`'s clip would cut the bottom of the article
+		   with nothing to scroll it. The page grows and the region scrolls. */
+		return div.c("page full flex v", () => {
 
-			/* ⚠ The header REPLACES Sidebar's `brand()`, which is the element carrying
-			   the panel's inset — a bare span sits flush against the edge. */
-			new Sidebar({
-				pages: this.parent.rail(),
-				header: () => div.c("brand", () => span.c("h4", "LAYOUTS")),
-				footer: null,
-			}).ac("basis").style("--basis", "var(--sidebar)");
+			/* `wrap` plus a `22em` basis on the article, and no breakpoint: 19em + 22em
+			   fits at 1440 and at 1000, and runs out at 390, where the panel drops above
+			   the reading. The Sidebar's own query turns it into a top bar at 52em, so the
+			   stacked result is a bar over an article. */
+			div.c("flex gap wrap flex-1").style("minHeight", "0").append(() => {
 
-			div.c("pad flex v gap").style({ flex: "1 1 22em", minWidth: "0" }).append(() => {
+				/* ⚠ The header REPLACES Sidebar's `brand()`, which is the element carrying
+				   the panel's inset — a bare span sits flush against the edge. */
+				new Sidebar({
+					pages: this.parent.rail(),
+					header: () => div.c("brand", () => span.c("h4", "LAYOUTS")),
+					footer: null,
+				}).ac("basis").style("--basis", "var(--sidebar)");
 
-				md(`## A panel beside the reading
+				div.c("pad flex v gap").style({ flex: "1 1 22em", minWidth: "0" }).append(() => {
+
+					md(`## A panel beside the reading
 
 The panel is as tall as the page, the column beside it holds the words, and the whole
 thing scrolls as one. That last part is a choice: to make the rail hold still while
@@ -75,11 +76,10 @@ To stack it deliberately instead of intrinsically, swap the fixed basis for \`fl
 auto\`: every child gets \`flex: 1 1 var(--column)\` and the two panes become equals.
 That is [Split](/framework/styles/layouts/split/).`);
 
-				recipe(this, "One row, edge to edge. The panel is `basis` at `--sidebar`; the article is a `22em` basis, so the pair re-flows on its own width.");
-
-				next("[Cards](/framework/styles/layouts/cards/) — the one that needs no CSS at all.",
-					"styles/layouts/sidebar/");
+					next("[Cards](/framework/styles/layouts/cards/) — the one that needs no CSS at all.",
+						"styles/layouts/sidebar/");
+				});
 			});
 		});
 	},
-});
+}));

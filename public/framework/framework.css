@@ -145,7 +145,16 @@
     /* Layout, not look, and it belongs here because App.render() emits both
        boxes: `.app` is the shell, `.pages` inside it is the one flexible row.
        A site that adds chrome (a nav strip) gets it stacked for free. */
-    .app { height: 100%; display: flex; flex-direction: column; }
+    /* `--drawer` is the inline-end rail the shell yields to a drawer that wants to
+       PUSH rather than cover — the chrome and the region both narrow (ext/Layout).
+       ⚠ Self-limiting on purpose: a 19rem push on a phone would leave no page, so the
+         reservation stops at whatever is left above a 26rem reading column. `rem`,
+         not `em` — the body font-size is a viewport clamp, so `em` here is fluid. */
+    .app {
+        height: 100%; display: flex; flex-direction: column;
+        padding-inline-end: min(var(--drawer, 0px), max(0px, 100% - 26rem));
+        transition: padding-inline-end 0.18s;
+    }
 
     /* ---- the type scale: six levels, and that's the whole vocabulary --------
        h1 Page Title · h2 Section · h3 Sub-section · h4 ANNOTATION · body · code.
@@ -352,15 +361,19 @@
        it inline (`.style("--measure", "78em")`) and the inline value wins.
        ⚠ Declared AFTER `.flex > * { margin: 0 }` on purpose — equal specificity,
        same layer, so `margin-inline: auto` survives inside a flex container. That
-       one line of order is what retired `.layout-measure`. */
-    .measure { --measure: 34em; max-width: var(--measure); margin-inline: auto; }
+       one line of order is what retired `.layout-measure`.
+       ⚠ `min(…, 100%)` is load-bearing: those auto margins opt the box out of
+         flex/grid stretch, and a shrink-to-fit box floors at its MIN-CONTENT — one
+         `<pre>` then holds it at the full 34em inside a 352px column. `min-width: 0`
+         cannot lower that floor; only a max-width can. */
+    .measure { --measure: 34em; max-width: min(var(--measure), 100%); margin-inline: auto; }
 
     /* A laid-out container owns its own spacing — `gap` does it, and an inherited
        block margin only fights it. `.flex > *` has said this for a long time; a
-       grid is the same box with a different name.
-       `:not(.page)`: a PAGE classed `grid` is the breakout sheet (Page.css), and
-       its children's rhythm is the flow — this rule would silently erase it. */
-    .grid:not(.page) > * { margin: 0; }
+       grid is the same box with a different name. The default page shape is
+       `.page.standard` (Page.css), a class of its own, so `grid` on a page means
+       here exactly what it means anywhere else. */
+    .grid > * { margin: 0; }
 
     .grid { display: grid; }
     .grid.auto { grid-template-columns: repeat(auto-fit, minmax(min(var(--column), 100%), 1fr)); }

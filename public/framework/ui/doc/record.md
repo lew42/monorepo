@@ -17,15 +17,15 @@ findings (§5) and the traps (§6) stands.
 ## 1. Why a separate `component.js` instead of markup in the page?
 
 **Question.** Each component is needed twice — the `demo()` on its own page and
-the cell in the index gallery. Where does it live?
+the card on the index wall. Where does it live?
 
 **Options.**
 
-1. Write the markup in `<name>/page.js` and duplicate it for the gallery.
+1. Write the markup in `<name>/page.js` and duplicate it for the wall.
 2. Export a builder from `<name>/component.js` and import it twice.
 3. Put all twelve in one `components.js`.
 
-**Weighing.** (1) is the exact drift `demo()` exists to prevent: the gallery would
+**Weighing.** (1) is the exact drift `demo()` exists to prevent: the wall would
 show a component that no longer matched the page it links to, and nothing would
 fail. (3) puts a component's code somewhere other than beside the page that
 documents it, and `demo(fn)` prints `fn.toString()`, so a reader following the
@@ -33,8 +33,8 @@ source would leave the directory.
 
 **Verdict: (2), one file per component, default-exporting a function.** Identical
 to `styles/layouts/`, deliberately — the same problem had the same answer one
-directory up, and two shapes for "a thing rendered on its own page and in a
-gallery" would be one shape too many.
+directory up, and two shapes for "a thing rendered on its own page and on a
+wall" would be one shape too many.
 
 The functions **capture** rather than return: `div.c(…)` auto-appends to whatever
 is collecting, and both call sites are capture positions. It also makes the source
@@ -304,7 +304,7 @@ component" is the honest first answer.
 .flex-1 { flex: 1; }                              /* as it stood */
 ```
 
-The index gallery's grid cells need `min-width: 0` or a wide child (a table) makes
+The index wall's grid cells need `min-width: 0` or a wide child (a table) makes
 the whole page scroll sideways — `min-width: auto` is the default for a flex and
 grid item, and it resolves to min-content. `.basis` carried the fix; its
 counterpart did not.
@@ -336,6 +336,10 @@ None is a bug; all three cost real minutes.
   gallery ever appears, the fix belongs in `toc()` — probably *"skip anything inside
   an element that carries a heading-as-class"*, or a `skip` option on the call.
 
+  **Resolved by construction (Aug 2026).** The wall is `previews()` now, so it *is*
+  a `.page-previews` and `toc()` skips it for what it is rather than as a trick.
+  The rail could come back; it has not been tried.
+
 - **On a column, `h-center` centers *vertically*.** `.flex.h-center` is
   `justify-content: center` and `.flex.v-center` is `align-items: center`, so the
   names describe the *property*, not the visual axis — and `flex.v` swaps which
@@ -359,8 +363,8 @@ None is a bug; all three cost real minutes.
 - **`framework.css` has no rule for `a` at all.** Every styled link on the site is
   styled by the component that emits it — `.page-preview`, `.tab`, `.nav-link`,
   `.page-link` — so a link a component *doesn't* claim is UA blue and underlined.
-  `card`'s CTA therefore names its own colour (`var(--prim)`, a token) and the
-  gallery's title links name `var(--ink)`. Not a complaint: an unstyled `a` is a
+  `card`'s CTA therefore names its own colour (`var(--prim)`, a token) and a
+  preview card's title link takes `color: inherit`. Not a complaint: an unstyled `a` is a
   visible reminder that a link's colour is a decision, and the alternative is a base
   rule every theme then has to fight. It is the other half of the `.btn` finding.
 
@@ -502,3 +506,48 @@ CSS, which this section has demonstrated eighteen times, and its one finding (th
 `h-center` axis trap) is recorded in §6 where it is more useful. Re-adding it
 would overturn a written verdict with no new evidence, which is the thing these
 records exist to prevent.
+
+---
+
+## 11. The review — sixteen of nineteen demoted (Aug 2026)
+
+One independent Opus review per module, judged against the bar in `readme.md`.
+The table, the one-line case per module and the tally live in
+`framework/ai/2026-08-09/proposal.md`; only what it changed is recorded here.
+
+**Kept: `table`, `timeline` (simplified), `keys`.** All three are a loop.
+`timeline`'s last-row bookkeeping — an index against `items.length`, a `last`
+flag, a class — became two `:last-child` rules, and the unmatched
+`ui-timeline-rail` class went with it. Its signature is unchanged and
+`sections/changelog.js` was not touched.
+
+**Demoted: the other sixteen.** Each function's body became the copy-paste
+template on its own page, rendered by the same `const` its `palette()`,
+its `copy()` and its `preview()` use — so the wall still cannot show something a
+page doesn't. Nine kept a `<name>.js` holding one `css()` call, because a
+relationship or a state needs a selector (§4's test, applied to all nineteen
+instead of to one). Seven kept no `.js` at all: `.ui-card`, `.ui-alert-body`,
+`.ui-tags`/`.ui-tag`, `.ui-pagination`, `.ui-stats`/`.ui-stat`, `.ui-shortcut`
+and `.ui-timeline-rail` were classes styled **nowhere**, so they were dropped
+rather than preserved. `.ui-tags-input` moved to `parts.js`, where a general
+opt-out belongs.
+
+**Four things the review found that the set had not.** `alert` shadowed
+`window.alert`, and `alert("msg")` failed silently by rendering its message as a
+material ligature. `menu` collided by name with `ext/layout`'s `menu()`. `dialog`'s
+own `.c()` form re-armed the trap the component existed to avoid, by putting the
+caller's classes on the `<dialog>`. And **three hardcoded `white`s** —
+tooltip's bubble, avatar's circle, badge's two filled tones — all over `var(--bg)`,
+all readable, all naming a colour a component may not name; they read
+`var(--ink)` / `var(--surface)` now, which is a pair rather than a literal and is
+correct in dark mode as well.
+
+**§2's verdict partly reverses.** `.ui-surface` and `.ui-muted` were
+`framework.css`'s `.surface` and `.muted` character for character — the class
+form of §2 was right, but a *second copy* of it was not. Both are deleted;
+every template writes the upstream class. `.ui-pill` stays, having no
+counterpart there.
+
+**What did not change.** §5's findings are still open, §6's traps still bite, and
+the argument in §2 for a class over an inline style object still stands — the
+review narrowed *whose* class, not whether.

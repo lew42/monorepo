@@ -1,10 +1,13 @@
-import { View, div, code } from "../../core/View/View.js";
+import { View, div, h1, code } from "../../core/View/View.js";
 import { Page } from "../../core/Page/Page.class.js";
 import { member, patched, dedent } from "../../util/source/source.js";
 import md from "../markdown/md.js";
-import "../tabs/tabs.js";   // this.tabs() below — ext leaning on ext, the allowed direction
+import "../tabs/tabs.js";      // this.tabs() below — ext leaning on ext, the allowed direction
+import "../catalog/catalog.js";   // this.catalog() — the Overview group is one
 
-/* css: .classdoc, .classdoc-group, .page-overview — all emitted below. */
+/* css: .classdoc, .classdoc-well, .classdoc-title, .classdoc-group — all emitted below.
+   Also .tab-bar (../tabs) and .page-catalog-pages / .page-intro / .page-title
+   (../catalog and core/Page) — every emitter is imported above. */
 View.stylesheet(import.meta, "classdoc.css");
 
 /**
@@ -12,9 +15,11 @@ View.stylesheet(import.meta, "classdoc.css");
  *
  *   classdoc.page({ meta: import.meta, title: "View", Class: View,
  *       methods: "append ac", properties: "el", notes: "capturing",
- *       overview: "demos", content(){ … } });
+ *       overview: demos, content(){ … } });
  *
  * Overview | …declared children… | API | Docs, derived — a call site never says "tab".
+ * `overview` is demo children for the Overview's card rail: an array of configs,
+ * or names of sibling directories.
  * Design record: ext/classdoc/readme.md.
  */
 export function classdoc(page, Class, meta, names){
@@ -36,7 +41,6 @@ export function classdoc(page, Class, meta, names){
 
 		page.add(name, {
 			title: name,
-			classes: "method",
 			content(){
 				if (note) md(note);
 
@@ -62,7 +66,6 @@ classdoc.properties = function(page, Class, meta, names){
 
 		page.add(name, {
 			title: name,
-			classes: "property",
 			content(){
 				if (src) (code.js ?? code)(src);
 				return md.file(meta, `doc/property/${name}.md`, { h1: false });
@@ -101,7 +104,6 @@ classdoc.notes = function(page, meta, names){
 
 		page.add(name, {
 			title: name.replaceAll("-", " "),
-			classes: "note",
 			content(){ return md.file(meta, `doc/${name}.md`, { h1: false }); },
 		});
 	});
@@ -135,11 +137,23 @@ classdoc.page = function({ Class, methods = "", properties = "", notes = "", ove
 		initialize(){
 			const meta = this.meta;
 
-			// The overview is a child of its own group, so a set with sub pages and a
-			// set without are one shape. Titled after the class: one h1 in the panel.
+			// The group is a CATALOG: the demos as a rail of live cards, and catalog()
+			// makes `content` the rail's first card — the intro, wearing the group's
+			// title, label and icon — so a set with demos and a set without are one
+			// shape. `overview` may hand the demos straight in as child configs (an
+			// array) or name a sibling directory.
+			const demos = Array.isArray(overview) ? overview : classdoc.names(overview);
+
 			classdoc.group(this, "overview", "Overview", {
 				title: this.title,
-				children: [{ name: "overview", title: this.title, content }, ...classdoc.names(overview)],
+				icon: this.icon,
+				content,
+				children: demos,
+				initialize(){ this.catalog(); },
+				render(){
+					return this.view ??= div.c("page classdoc-group", () => this.content())
+						.ac("page-" + this.name);
+				},
 			});
 
 			if (classdoc.names(`${properties} ${methods}`).length)
@@ -157,8 +171,10 @@ classdoc.page = function({ Class, methods = "", properties = "", notes = "", ove
 		},
 
 		render(){
-			return this.view ??= div.c("page classdoc", () =>
-				this.tabs(bar.filter(name => this.children.has(name)).join(" ")))
+			return this.view ??= div.c("page classdoc", () => {
+				div.c("classdoc-well", () => h1.c("classdoc-title h2", this.title));
+				this.tabs(bar.filter(name => this.children.has(name)).join(" ")).ac("block");
+			})
 				.ac("page-" + this.name)
 				.ac(this.classes);
 		},

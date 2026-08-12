@@ -57,9 +57,9 @@ and was fixed alongside it — a pair that drifts is a pair where one gets fixed
 
 `overflow-y` on `.page` looks obviously right and is wrong twice:
 
-- A `.page` is a centred measure, so the scrollbar rendered at the **sheet's** right
-  edge — 85px inside the window, floating in the grey. A scrollbar belongs to a
-  viewport, and a sheet is not one.
+- A `.page` is a measure inside a wider region, so the scrollbar rendered at the
+  **sheet's** right edge — 85px inside the window, floating in the grey. A scrollbar
+  belongs to a viewport, and a sheet is not one.
 - A page inside a tab panel got its own scroller *inside* its ancestor's:
   `/framework/ext/markdown/` had an inner bar at x=586, mid-content, that you had to
   exhaust before the outer one moved.
@@ -81,11 +81,37 @@ nothing is a readable page**, which is the product's whole pitch. The old verdic
 premise: by the end, every region on the site had typed the opt-in.
 
 ```
-grid   the sheet + breakout tracks — a child escapes with .wide / .bleed
-pad    no measure, an even inset — a gallery, an index, a board
-full   nothing — edge to edge inside the region
-fill   BE the region's height rather than sizing to content
+standard   the sheet + breakout tracks — a child escapes with .wide / .bleed
+pad        no measure, an even inset — a gallery, an index, a board
+full       nothing — edge to edge inside the region
+fill       BE the region's height rather than sizing to content
 ```
+
+**`standard` is the default shape (Aug 2026), not just the first word.** `render()`
+applies `this.classes ?? "standard"`, so a page that says nothing is the *standard*
+page — the measure plus the `.wide` / `.bleed` breakout tracks — and a
+declared `classes:` opts out whole. What forced it: half the site's pages declared
+the shape and the other half sat 60em wide and **left-aligned** in the
+region, because a flex item with a `max-width` parks at `flex-start` while the
+grid centred itself with its own `1fr` gutters. Two fixes shipped together: the
+default, and `margin-inline: auto` on `.page`, so the shapes that do opt out
+agreed with the grid about where the middle was. **The auto margins were reversed
+four days later** — the grid no longer centres, so agreeing with it means flush
+left (*One axis*, below). The default lives in `render()`
+rather than `naming()` so a custom `render()` that never reads `classes` — the
+classdoc root, the topic pages — is untouched. One trap, recorded in
+`doc/property/classes.md`: declaring `classes: "anything"` **forfeits** the shape;
+a standard page with extras writes `classes: "standard extra"`.
+
+**It was called `grid` until Aug 2026, and the word was the wrong one.** An
+opinionated three-track template with a measure is not what `grid` means anywhere
+else on the site — `.grid` in `util` is `display: grid` and nothing more — and the
+page shape was squatting on it, which is why `framework.css` carried a
+`.grid:not(.page)` carve-out for the margin reset. Renaming the shape retired the
+carve-out: `page.ac("grid")` now means what it says. Cost: every rule keyed on
+`.page.grid` had to move with it, `ext/toc`'s `:not(.grid)` opt-out included —
+that one would have silently applied the ToC's own `grid-template-columns` on top
+of the default template, and a dropped template does not throw.
 
 **Rejected: default to paper, opt out with `full`.** `full` already means "no
 measure"; making it also mean `position: fixed` would give one word two independent
@@ -105,8 +131,91 @@ consumers is the bar a new word clears. All three declarations are load-bearing:
 `min-height` makes a SHORT page fill, `overflow` stops a TALL one pushing its footer
 off the region.
 
-**`.page.grid`'s `--measure` is 52em, not 60.** Tracks pay no padding, so `60em`
+**`.page.standard`'s `--measure` is 52em, not 60.** Tracks pay no padding, so `60em`
 there measured 17% wider than the sheet's `60em` — 108 characters against 92.
+
+## One axis, and it is the left one
+
+**The diagnosis.** A page was running two compositions at once. The title and the
+prose sat on a centred measure; the walls and exhibits took `wide` or `bleed`,
+packed from the left, and read as left-anchored. Two axes on one page, so there
+was no stable edge to read down — and it recursed: a `demo.app` is a miniature
+site having the identical fight inside a box that is already off the outer axis.
+
+**Verdict (blessed by Mike, 2026-08-12): title, prose, walls and exhibits share
+ONE left edge; wider blocks grow rightward only.** The opt-in
+`.page.standard.left` variant *became* the template. The gutter is fixed —
+`--gutter-x: clamp(2em, 4%, 5em)`, so 400px pays 32px and never more than 5em —
+`main` and `wide` start on the same grid line, and the whole leftover `1fr` is
+spent on the right. `.page` lost its `margin-inline: auto` in the same change: a
+shape that opts out of the template (`pad`, `full`, a page in a tab panel) agrees
+with the grid by staying flush left, which is now what the grid does too.
+
+**`--gutter-x` IS the axis**, which is why the wall pays back exactly it
+(`.page.standard > .page-previews { padding-inline: var(--gutter-x) }`) — a
+bleeding wall's padded edge lands *on* `main`'s edge rather than near it.
+
+**Weight: revisable like everything here — but this one settles a fight that
+machinery alone could not.** The centred default was defensible on its own terms,
+and the standing counter-argument is real: a left-anchored page on a 3440 monitor
+leaves the right half empty. That is a `--breakout` problem — the exhibits should
+take the room — not a case for a second axis. Reopen this with evidence about the
+right half, not about the left edge.
+
+**A FRAMED exhibit joins the edge; an unframed band does not.** A demo stage or a
+`Layout` panel is a box with its own border sitting in a prose flow, so it pays the
+gutter back exactly as the wall does — `.page.standard > .demo-stage.bleed` in
+`ext/demo/stage.css`, `.page.standard > .layout.bleed` in `ext/Layout/layout.css`,
+each rule living in the ext that owns the class. A bare `div.c("bleed")` holding
+colour bands or sections keeps the whole region: with no frame of its own there is
+nothing for an inset to square up, and that is what `.bleed` means for it.
+
+⚠ `.bleed` still *spans* the whole page — the payback is padding a framed exhibit
+opts into, not a change to the track. `.page-catalog` bleeds and is deliberately
+left alone: a catalog is a **region**, not an exhibit — it hides the page's own
+title, so there is no in-page edge to join, and the axis recurses into the standard
+page it holds.
+
+⚠ **The rail inside it was the exception (Aug 2026, Mike).** The region keeps the
+whole width, but its cards sat 9px off the app sidebar and read as glued to it, so
+`.page.standard > .page-catalog > .page-previews` pays `--gutter-x` back as a
+`margin-inline-start` — a margin, so `--rail` still measures the cards. Scoped to a
+direct child of `.page.standard`, because a catalog in a classdoc group is already
+inset by the group's own `--page-pad` and would pay twice; and dropped again in the
+`< 64em` strip, which is a scrollport across the whole region.
+
+⚠ Measuring this: **demo apps are zoomed**, so `getBoundingClientRect()` returns
+scaled pixels while `getComputedStyle()` returns unscaled ones. Mixing the two
+invents an 8–10px misalignment that is not there. Compare rects to rects.
+
+## The breakout scales; the measure never does
+
+**The question**, asked from a 3440 monitor: *"`styles/elements/forms` is way too
+narrow — and it's a major problem with a lot of the pages."* The cause is one
+line in `framework.css`: the type ramp tops out at `1.125rem` at a **~2491px
+viewport**, and every width on this site is expressed in `em`. Past that point
+the region keeps widening and the content is frozen. Measured across 166 routes,
+average fill was 81% at 1600 and **63% at 3440**.
+
+| | |
+|---|---|
+| a step at 2500px → `--measure: 60em` | 52em at the 18px ceiling is already 936px ≈ **104 characters**. This widens the one thing that is right |
+| `clamp()` on `--measure` | the same objection, continuously |
+| **leave `--measure` alone; make `--breakout` responsive** | ✓ |
+
+**Verdict: the main track never scales. `--breakout: max(7em, (100% - 96em) / 4)`.**
+A `.wide` block measures 1024px at 1600 — *byte-identical* to the old `7em`,
+because the `max()` floor holds until a ~1700px viewport, so no laptop sees any
+change — and 1655px at 3440, up from 1188. Nobody has ever complained that a
+paragraph was too narrow; the complaints are *"the exhibit is too narrow"* and
+*"the page is empty"*, and both of those are the breakout's job. **Record this as
+a keep verdict** — it will be re-litigated.
+
+The `100%` resolves against the **grid**, not the window, so a grid nested in a
+tab panel or a catalog region breaks out of the right box. ⚠ A percentage inside
+`minmax()` is exactly the class of thing that silently drops a whole template:
+after touching this, re-measure that `main` is still 936px at 3440 and that the
+gutters never fall below `2em`.
 
 ## Rhythm: one flow token, and registration reversed
 
@@ -177,6 +286,31 @@ list comes back as the re-assert list). The asymmetry decides it: a missing opt-
 looks slightly wrong everywhere and nobody reports it; a missing opt-out looks broken
 in one place and gets fixed that afternoon.
 
+## Choosing, and combining
+
+The strategies are one vocabulary, not competing systems: a **shape** is a class
+on the page, an **arrangement** is the parent's `content()`, and they nest through
+regions. The whole decision:
+
+| you want | reach for |
+|---|---|
+| prose, with the odd wide band | nothing — the default `standard`; `.wide` / `.bleed` on the band |
+| a gallery or board, no measure | `classes: "pad"` |
+| an edge-to-edge screen | `classes: "full"`, plus `fill` to own the height |
+| children as an index | `content(){ this.previews(); }` — the wall |
+| children as persistent nav beside a detail | `this.catalog()` — cards (`ext/catalog`); or `this.tabs().ac("vertical")` — a text rail, better past ~10 entries |
+| sections of one doc as top tabs | `this.tabs("a b c")` |
+| a live tree in a box, urls and all | `demo.app(tree)` — `ext/demo`, fictional urls only |
+
+**They combine by nesting, and nesting follows the chain.** A tab panel or a
+catalog region is a region; the page inside it is again a default standard page, so
+the vocabulary recurses with nothing declared. The region resets the sheet tokens
+at its boundary (`--measure`, `--page-pad` — declared beats inherited), which is
+why a page inside a panel never pays the sheet twice. The worked example is any
+classdoc: top `tabs()` on the root, a `catalog()` **or** vertical `tabs()` inside
+each group, an ordinary standard page in every panel — three levels, all real urls,
+and the leaf still escapes with `.bleed` when its demo wants the full width.
+
 ## A link in prose is not the same as an anchor
 
 Same shape of question, same answer: **scope to the container, not the element.**
@@ -202,9 +336,40 @@ it would strip the accent underline off every `page.link()` in a sentence.
 
 ## The cards
 
-`.page-previews` is `auto-fill` off `--column`, the same knob every other wall on the
-site reads. `.page-preview` is flex so a `nav` icon can lead and the label takes the
-rest, and `.active` / `.in-path` come free from `Router.mark_links()`.
+One card, three classes: `.page-preview` is the shell, `.page-preview-thumb` the
+optional crop, `.page-preview-link` the label. `.page-previews` is the wall —
+`auto-fill` off `--column`, the same knob every other wall on the site reads.
+
+**`auto-fill`, not `auto-fit`.** The utility `.grid.auto` picks `auto-fit` because a
+wall that centres its own content reads better at the wide end; a wall of *cards* wants
+the opposite, or two children render as two enormous cards.
+
+**The wall takes `bleed`, and hands its own inset back.** `previews()` used to add
+`wide`, which at 3440 froze `/framework/ui/`'s nineteen cards at three columns with
+six below the fold. On `bleed` the same wall is eight columns and **all nineteen are
+one screen**; every wall on the site gains a column at 1600 and none loses one. Card
+width barely moves, because `auto-fill` holds the track near `--column`.
+
+The comment this overturned claimed `bleed` *"would spend the page's own inset and put
+the left column against the sidebar."* Half right — it does spend it, and measured,
+the cards sat flush against the sidebar at 3440 and against the window edge at 400,
+where the page title stayed inset and the wall did not. So `.page.standard >
+.page-previews` pays `--gutter-x` back. **The child combinator is load-bearing:** a
+wall nested inside another wall (`walls()`, a ladder) is already inside the inset and
+must not pay it twice. The cost is two pixels' worth of a column at 3440 — nine fit
+flush, eight fit inset — and the inset is worth more than the ninth.
+
+**`align-items: start`.** A cell is as tall as what it shows, so stretching would hand
+the short ones their dead space straight back. That is also why nothing here sets a card
+height, and why the thumb's `--thumb-max` ceiling replaced an `aspect-ratio`: one ratio
+was a single box for nineteen unrelated shapes, so most of a wall was blank and the one
+genuinely tall render was cropped.
+
+**The floor went with the chrome (Aug 2026).** `--thumb-min` padded a short render out
+to 4em, and what filled the difference was the transparency board — so a one-line
+component read as a bare checkered strip with a label under it. Auto height, ceiling
+only. The token is gone rather than defaulted to `0`; `ext/catalog` had been zeroing it
+by hand for the same reason.
 
 **Spans, not widths** — the wall is `auto-fill`, so asking for a *share* is the only
 request that survives a resize. And **spans do not clamp themselves**, which an
@@ -212,10 +377,46 @@ earlier comment claimed they did: `auto-fill` must generate at least as many tra
 as the widest span demands, so a `.wide` card forces a second track even at one
 column and the wall overflows — 94px of horizontal scroll at 320px, 29px at 390px. A
 row span is harmless (it never widens a track); only the column spans need the
-`28em` floor.
+`28em` floor. `grid-auto-flow: dense` earns its place the moment one card spans two
+columns: the span cannot start mid-row, so it leaves a one-cell hole behind it.
 
-The gallery card — a preview with a live render in it — lives in `styles/gallery/`.
-Page emits none of those classes.
+**The thumb is inert, and the label is the only link.** A live render inside a card that
+was itself an `<a>` would be an anchor inside an anchor — invalid, and the browser
+un-nests it silently. So the card is a `div`, the thumb takes `pointer-events: none`, and
+`.page-preview-link::after` covers the card at `inset: 0`. **The label below the thumb is
+structural, not decoration** — it is the anchor, and `Router.mark_links()` only marks
+anchors.
+
+**A card with a thumb goes bare (Aug 2026).** Surface, border, inset *and* a checkered
+board around a render that already has its own edges is four frames; the verdict was
+that the hybrid read as busy. So the chrome is scoped to
+`.page-preview:not(:has(> .page-preview-thumb))` — the plain icon-and-label card, which
+has nothing else to show and still wants one. Two consequences worth knowing:
+
+- **The states split, then un-split into one ring (Aug 2026).** The first pass left the
+  marked rule alone — `border-color` inert without a border-style, plus a tint and an
+  `inset 3px` bar — and gave hover its own 1px outline on the *thumb*. On a bare card
+  that mark paints nothing you can see: the thumb covers the bar and the tint, so all
+  that survived was a lit strip under the picture, reading as a highlighted label
+  detached from the render above it. **Now every card carries `outline: 2px solid
+  transparent` at `outline-offset: 3px`, and hover and the mark set only
+  `outline-color`** — 45% `--prim` for hover, solid for marked. The ring encloses thumb
+  and label together, which is the one mark a card with no frame can wear, and it makes
+  the restatement a single declaration wherever a card is lit without the Router
+  (`ext/catalog`'s first-card fallback, `ext/demo`'s `aria-current`). The chrome card's
+  hover shadow went with it; a ring works in dark, a `rgba(0,0,0,0.08)` lift does not.
+- **`checkered` left the card, not the site.** It stays in `framework.css` for the
+  `ext/demo` stage, where "did this render paint its own background?" is the actual
+  question. On a card it was answering a question nobody had asked.
+
+**Marking follows from that.** `Router.mark_links()` only touches anchors, so `.active` /
+`.in-path` land on the link and the card asks
+`:has(> a:is(.active, .in-path))`. **The child combinator is load-bearing** — a live
+thumb can hold marked links of its own, and `:has(a.active)` would light the card up for
+one of them.
+
+All of it arrived from the deleted gallery module, whose `card()` / `wall()` this
+replaces (Aug 2026). The verdict and the reasoning: `../readme.md`.
 
 ## `.cols` — deleted
 

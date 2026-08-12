@@ -7,7 +7,7 @@ const bars = () => {
 	const row = (label, bar, value) => div.c("flex v gap", () => {
 		div.c("flex split v-center", () => {
 			div.c("h4", label);
-			if (value) div.c("h4 ui-muted", value);
+			if (value) div.c("h4 muted", value);
 		});
 		bar().style("width", "100%");
 	}).style("--gap", "0.3em");
@@ -25,7 +25,6 @@ export default new Page({
 	title: "Progress",
 	description: "A template, not a function — the component is <progress>, and the browser wrote it.",
 	icon: "donut_large",
-	classes: "grid",
 
 	content(){
 
@@ -61,4 +60,6 @@ export default new Page({
 
 		md("Next: [Menu](/framework/ui/menu/) — the second component to earn a selector.");
 	},
+
+	preview(nav){ return this.preview_card(nav, () => div.c("zoom-75 pad", bars)); },
 });

@@ -64,6 +64,7 @@
 		color: var(--ink);
 		background: var(--surface);
 		font-family: var(--font);
+		accent-color: var(--prim);
 
 		font-weight: 500;
 		line-height: 1.8;   /* the headings below reset it — 1.8 on a 3em face is a gap */
@@ -105,4 +106,37 @@
 		padding: 0.7em 1.4em;
 		border: none; border-radius: var(--radius);
 	}
+
+	/* A slider is a line with a handle — the same grammar as the demo stage's
+	   resizer: surface thumb, hairline border, a lift. `appearance: none`
+	   forfeits the UA's parts, so BOTH vendor sets restate every one; the two
+	   cannot share a selector — a browser drops the whole rule on the pseudo it
+	   doesn't know. */
+	.theme-lew42 input[type="range"] { appearance: none; height: 1.4em; background: none; }
+
+	.theme-lew42 input[type="range"]::-webkit-slider-runnable-track {
+		height: 4px; background: var(--line); border-radius: 999px;
+	}
+	.theme-lew42 input[type="range"]::-webkit-slider-thumb {
+		appearance: none;
+		width: 1.1em; height: 1.1em;
+		margin-top: calc(2px - 0.55em);
+		background: var(--surface);
+		border: 1px solid var(--subtle);
+		border-radius: 50%;
+		box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+	}
+	.theme-lew42 input[type="range"]:hover::-webkit-slider-thumb { border-color: var(--prim); }
+
+	.theme-lew42 input[type="range"]::-moz-range-track {
+		height: 4px; background: var(--line); border-radius: 999px;
+	}
+	.theme-lew42 input[type="range"]::-moz-range-thumb {
+		width: 1.1em; height: 1.1em;
+		background: var(--surface);
+		border: 1px solid var(--subtle);
+		border-radius: 50%;
+		box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+	}
+	.theme-lew42 input[type="range"]:hover::-moz-range-thumb { border-color: var(--prim); }
 }

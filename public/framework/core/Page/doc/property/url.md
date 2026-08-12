@@ -7,13 +7,14 @@ it (`Page.class.js:77`), `nav_for()` builds every menu entry
 
 **Necessity** — the class. A Page without a url is a fragment.
 
-**Simplicity** — right-sized, and the derivation is where the care is. Three
+**Simplicity** — right-sized, and the derivation is where the care is. Four
 sources, in `naming()`, all `??=`:
 
 ```
 this.meta                 → new URL(".", meta.url).pathname     a real file
 this.parent + this.name   → parent.url + name + "/"             an inline page
-neither                   → undefined                           standalone, legal
+this.title                → "/" + Page.slug(title) + "/"        a standalone root
+none of them              → undefined                           still legal
 ```
 
 **The trailing slash is load-bearing.** Every path is built by concatenation
@@ -21,7 +22,8 @@ neither                   → undefined                           standalone, le
 `/docsintro/`. Nothing validates this; a hand-written `url: "/docs"` is a bug that
 shows up one level down.
 
-`undefined` is a real state, not an error: a page built standalone has no url until
-`add()` adopts it, which is why the constructor guards `if (this.url)` before
-loading children.
+A title-derived url is **provisional**: `add()` overwrites it on adoption
+(`move()`, subtree included), because a child's address is its parent's plus its
+name. `undefined` remains a real state — a standalone page with no title — and is
+why the constructor guards `if (this.url)` before loading children.
 

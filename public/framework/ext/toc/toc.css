@@ -10,12 +10,12 @@
 
 	@media (min-width: 82em) {
 
-		/* ⚠ `:not(.grid)` - a breakout page already owns `grid-template-columns`, and
+		/* ⚠ `:not(.standard)` - a breakout page already owns `grid-template-columns`, and
 		   both rules are in @layer theme, so the winner would be whichever <link>
 		   loaded last. The two layouts do not combine; pick one.
 		   ⚠ 15rem, not 13: at 13 the rail was 208px of 0.8em text and thirteen of the
 		   FAQ's twenty-eight entries ellipsized. */
-		.pages > .page:not(.grid):has(> .toc) {
+		.pages > .page:not(.standard):has(> .toc) {
 			display: grid;
 			grid-template-columns: minmax(0, 1fr) 15rem;
 			column-gap: 3rem;
@@ -23,7 +23,7 @@
 		}
 
 		/* Everything that is not the rail stacks in column 1, in source order. */
-		.pages > .page:not(.grid):has(> .toc) > * { grid-column: 1; min-width: 0; }
+		.pages > .page:not(.standard):has(> .toc) > * { grid-column: 1; min-width: 0; }
 
 		/* ⚠ `span 200`, not `1 / -1`: `-1` counts back from the EXPLICIT grid and
 		   these rows are all implicit, so it resolves to line 1 and spans nothing.
@@ -32,7 +32,7 @@
 		   ⚠ `scrollbar-width: none`: a 32px overflow bought a full-height second bar
 		   one gutter from the window's real one. toc.js keeps the current section in
 		   view, which is what makes hiding it honest. */
-		.pages > .page:not(.grid):has(> .toc) > .toc {
+		.pages > .page:not(.standard):has(> .toc) > .toc {
 			display: block;
 			grid-column: 2;
 			grid-row: 1 / span 200;

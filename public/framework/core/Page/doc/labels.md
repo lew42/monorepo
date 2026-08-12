@@ -85,12 +85,15 @@ three parallel maps was folding it into one — and then deleting the one.
 ## `card` — a page's claim on the wall it sits in
 
 `card: "wide" | "tall" | "big"`, carried through `nav_for()` exactly like `icon`, and
-applied by `styles/gallery/`'s `card()`. Deliberately **not** applied by
-`previews()`: those are flat 60px link rows, and forcing a two-row span onto one left
-a 72px hole beside it every time. A wall wants the span; a link list never does.
+applied by `preview_card()` — which puts the bare word on the card, so `Page.css` reads
+it as `.page-preview.wide`.
 
-Three declarations, one reader. It is the weakest of the four and is named as such in
-`./property/card.md`.
+It used to be deliberately **ignored** by `previews()`: those cards were flat 60px link
+rows, and forcing a two-row span onto one left a 72px hole beside it every time. That
+reversed when `previews()` became the wall (Aug 2026) — a wall wants the span. `tall` is
+no longer a row span either; it doubles the thumb's ceiling. `./property/card.md`.
+
+Three declarations. It is the weakest of the four and is named as such there.
 
 ## Downstream: an entry is duck-typed
 

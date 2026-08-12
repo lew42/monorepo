@@ -5,15 +5,16 @@ Documenting a member is *writing a file*.
 
 ```
 content()               Overview          /View/
-overview: "demos"       Overview's rail   /View/overview/demos/   ← overview/demos/page.js
+overview: demos         Overview's rail   /Page/overview/<demo>/  demo configs (array) or dir names
 children: "guide"       a top tab         /View/guide/            ← guide/page.js
 properties: "el"        API               /View/api/el/           + doc/property/el.md
 methods:    "append"    API               /View/api/append/       + doc/method/append.md
 notes:      "capturing" Docs              /View/docs/capturing/   = doc/capturing.md
 ```
 
-Two levels of `tabs()`: `this.tabs("overview api docs")` on the class page, and
-`this.tabs().ac("vertical")` inside each group. A group is an ordinary `Page` whose
+`this.tabs("overview api docs")` on the class page; `this.tabs().ac("vertical")`
+inside API and Docs; `this.catalog()` inside Overview — the demos as a rail of
+live cards, the intro as the region's default. A group is an ordinary `Page` whose
 children are the rail, so both levels are real urls.
 
 Long form: `./doc/rail.md` (the grouping, and why a rail rather than previews),
@@ -37,10 +38,46 @@ is that a call site lists *members* and never says "tab".
 keeping them flat by making the groups view-only: flat urls cost the tab bar its
 marking, its history, and its reload. A url per tab was the requirement.
 
-**`content()` is a child of its own group, not the group itself.** So a class with sub
-pages and a class without are one shape — the rail's first entry is the overview, and
-`tabs()`'s existing "first child is the panel's `.default`, and its link is the parent's
-url" does the rest. The cost is one url nobody links to, `/View/overview/overview/`.
+**`content()` is a child of its own group, not the group itself.** So a class with
+demos and a class without are one shape — the intro (`name: "intro"`, labelled
+Overview, wearing the class's icon) is the rail's first card and the region's
+`.default`; a rail of one hides itself, so a class with no demos just shows its
+intro. The cost is one url few will link to, `/View/overview/intro/`.
+
+**That move now belongs to `catalog()`, not here.** It turned out to be the thing
+standing between every other index on the site and a rail, so it was lifted into
+`Page.prototype.catalog()` (2026-08-11) and the group config lost its hand-built
+child list: the group declares `content`, `title` and `icon`, calls
+`this.catalog()` in `initialize()`, and gets the same intro it always had.
+`ext/catalog/readme.md` carries the verdict.
+
+**The Overview is a catalog, and the doc is full width.** The groups rendered
+`tabs().ac("vertical")` and the doc capped itself at 78em (64em for the overview).
+Now `.page.classdoc` is `--measure: none`, the top bar spans the window, every
+leaf — member pages included — renders on the standard page grid, and the Overview
+group is a catalog: live cards in a persistent rail, the detail full width beside
+them, which is the room a demo needs to render first and print its source
+underneath. `overview:` takes the demo configs as an array or names sibling
+directories — `core/Page/page.js` now names fourteen, one per demo. The `method` / `property` /
+`note` classes died in the same pass — styled by nothing, and declaring `classes:`
+forfeits the grid default a leaf now wants.
+
+**The header is a well** (2026-08-12). The class name and the tab strip share **one
+row** in a full-bleed band a shade darker than the page — title at the gutter, strip
+bottom-aligned on the band's edge so the selected tab's notch still reaches the content.
+`.tabs` is `display: contents` so the strip is a flex sibling of the title rather than
+a box below it, and the panel takes a `100%` basis to claim its own line; below roughly
+`title + 24em` the strip wraps under the title on its own, no media query. The fill is a
+*shadow* (`light-dark(rgba(0,0,0,0.06), rgba(0,0,0,0.35))`), not a palette colour, so it
+composites over whatever ground the host paints, and it darkens in both modes where this
+theme's `wash → tint → surface` ladder only goes lighter. The selected tab fills with
+`--wash`, the app's own ground, so tab and content read as one lighter surface cut into
+the band. Type comes off the scale, never invented: the title is an `h1` wearing `.h2`,
+the labels are `ext/tabs`' `.block` variant at the `h4` level. **One axis** — the title
+and the content below both sit on `--gutter-x`, and the strip's single inset
+(`gutter − tab-padding`) reads as a gutter-wide gap beside the title *and* lands the
+labels on the axis once it wraps. Worth reopening if the theme ever grows a recessed
+token — this is the only place on the site that wants one.
 
 **Declared `children` stay top-level tabs.** A declared child resolves from
 `<class>/<name>/page.js`; moving it under a group would mean moving the directory. So

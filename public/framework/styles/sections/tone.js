@@ -1,35 +1,53 @@
-import { div, button } from "/app.js";
+import { div, span } from "/app.js";
+import layout from "../../ext/Layout/layout.js";
+import { pick } from "../../ext/Layout/controls.js";
 
-const TONES = ["surface", "wash", "prim", "dark"];
-
-/* A section, and the four tones it can be worn in.
+/* Everything a tone is, in one file: the four names, what each one paints, and the
+ * chips that switch between them. Design record: readme.md §3, §4, §11.
  *
- *     toned(hero)
- *
- * Every section module is `tone => view`, so switching one is re-running it —
- * there is no state to keep and no stylesheet to toggle. The four names are the
- * four surfaces the theme defines, so this control cannot produce a colour the
- * rest of the site does not already use.
+ * The four surfaces the theme already defines. A fifth would be a section inventing
+ * a colour the rest of the site does not have.
  */
-export default function toned(render, start = "surface"){
-	let $out;
-	const $btns = [];
+export const TONES = ["surface", "wash", "prim", "dark"];
 
-	const show = tone => {
-		$btns.forEach($b => $b[$b.tone === tone ? "ac" : "rc"]("prim"));
-		$out.empty(() => render(tone));
+const COLOURED = { dark: 1, prim: 1 };
+
+/* band(tone) — the style object a band wears. The one thing a band module does NOT
+ * spell out inline, because a four-way token map cannot be written fifteen times.
+ *
+ * ⚠ An accent needs somewhere to be an accent. `--prim` text on a `prim` band
+ * measures 1.06:1 — invisible — so a coloured band hands down `currentColor` and
+ * every eyebrow on it stops trying.
+ */
+export const band = tone => ({
+	background: tone === "dark"  ? "var(--ink)"
+	          : tone === "prim"  ? "var(--prim)"
+	          : tone === "wash"  ? "var(--wash)"
+	          : "var(--surface)",
+	color: COLOURED[tone] ? "var(--surface)" : "inherit",
+
+	"--eyebrow": COLOURED[tone] ? "currentColor" : "var(--prim)",
+
+	padding: "3.5em 2em",
+});
+
+/* The tone chips, as contextual panel content: `tones(page, $box)`, where `$box` is
+ * the region the section renders into. A section module is `tone => view`, so
+ * switching one is RE-RUNNING it — no state to keep, no stylesheet to toggle. The
+ * choice lands on the page, so the band and a re-opened panel cannot disagree.
+ *
+ * Registered once, on the exhibit's render: the panel draws the nearest registration
+ * at or above the selection, so clicking anything in the band finds these chips, and
+ * a re-run cannot strand them.
+ */
+export default function tones(page, $box){
+	const choose = tone => {
+		page.tone = tone;
+		$box.empty(() => page.section(tone));
 	};
 
-	// `flex v gap`, not `flow` — this box lays out its two children itself
-	return div.c("toned flex v gap", () => {
-		div.c("flex gap wrap v-center", () =>
-			TONES.forEach(tone => $btns.push(
-				Object.assign(button(tone).click(() => show(tone)), { tone }))));
-
-		$out = div.c("toned-out");
-
-		show(start);
+	layout.context($box, () => {
+		span.c("layout-tag", "tone");
+		div.c("layout-chips flex wrap", () => pick(TONES, choose, page.tone));
 	});
 }
-
-export { toned, TONES };

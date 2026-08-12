@@ -1,76 +1,93 @@
-import { Page, md, code, h2 } from "/app.js";
+import { Page, md, demo, code, h2 } from "/app.js";
+import web from "/framework/ext/demo/web.js";
 
 export default new Page({
 	meta: import.meta,
 	title: "Children",
-	description: "How a page knows what is under it — and what a manifest would change.",
+	description: "The filesystem is the router: how a tree is defined, imported and walked.",
 	icon: "account_tree",
 
 	content(){
 
-		code.js(`children: "guide api"`);
+		code(`docs/
+    page.js              /docs/
+    intro/page.js        /docs/intro/
+    guide/
+        page.js          /docs/guide/
+        api/page.js      /docs/guide/api/`);
 
-		md("Names, not imports — and every one of them **is** imported, at construction. So a menu can read its children's real titles and icons, and [Router](/framework/core/Router/) waits for the whole chain before it shows anything: the menu draws **once**, correct, never names-first-then-titles.");
+		md("**A directory with a `page.js` in it is a page.** No registry, no route table, nothing to keep in sync — you make a folder, and the url exists.");
 
-		h2("Not a registration");
+		code.js(`import { Page, md } from "/app.js";
 
-		md("`child()` resolves a segment in three steps: **memory, then `route()`, then a filesystem probe** for `<url><name>/page.js`. So a folder nobody declared still works when you navigate to it.");
-
-		md("**Forgetting to declare costs the menu entry, not the url.** That is a deliberate reversal — this line used to be the registration, and a name nobody declared was a loud 404. A 404 for a `page.js` that plainly exists on disk turned out to be the wrong loudness: not a report, a puzzle, with the same one-line fix every time.");
-
-		h2("So what is the line for?");
-
-		md("**Navigation: which children, and in what order.** That is the one job a filesystem cannot do — `api` before `guide` before `intro` is alphabetical, and alphabetical is not a curriculum.");
-
-		md(`| | the question | who knows |
-|---|---|---|
-| **discovery** | which children exist? | the filesystem — now probed |
-| **presentation** | what order? what label, what icon? | a human — this line for order, each page for the rest |
-| ~~laziness~~ | ~~which do I load *now*?~~ | gone: all of them, up front |`);
-
-		h2("Can't it just read the folder?");
-
-		md("**No, and this is not a design choice.** A browser has no directory listing. `import()` takes a path; there is no way to ask a static host what is in `/docs/`. The probe guesses one name at a time because that is the only thing available without a generated file.");
-
-		h2("A label belongs to the parent's list; a title belongs to the page");
-
-		md("**One declaration, on the page it describes.** Every menu that lists it follows — there is no map on the parent.");
-
-		code.js(`export default new Page({
+export default new Page({
     meta: import.meta,
-    title: "Start",         // the h1 on this page
-    label: "Start here",    // what every menu calls it
-    icon: "flag",
+    title: "Intro",
+    content(){ md("Hello."); },
 });`);
 
-		md("`start` is labelled *\"Start here\"* in `/framework/`'s menu and titled *\"Start\"* on its own page, deliberately — a menu entry and a page heading are different sentences. A parent that wants a different word in *its own* list spreads over the entry where you can see it happen: `{ ...this.nav_for(name), label: \"Overview\" }`.");
+		md("`meta: import.meta` is the line that tells a page its own address — `naming()` reads `new URL(\".\", meta.url).pathname`. Everything else derives from it: `name` is the last segment, `title` falls back to `name`. That file **is** the whole definition; editing a page means editing it.");
 
-		h2("What a manifest would change");
+		h2("children: the menu, not the registration");
 
-		md("The reasonable next idea is a generated `/directory.json` — every page on disk, one fetch. It is the right idea and it does **not** replace this line.");
+		code.js(`children: "intro guide api"   // child folder names, in menu order`);
 
-		md(`| | discovery | presentation |
-|---|---|---|
-| \`children: "…"\` | not needed — probed | ✅ order is the list |
-| \`/directory.json\` | ✅ generated, checkable at build time | ❌ alphabetical |
-| \`./page.json\` per page | ❌ still declared | ✅ **readable without executing** |
+		md("Names, not imports — and every one of them **is** imported, at construction. So a menu can read its children's real titles and icons, and [Router](/framework/core/Router/) awaits the whole chain before it shows anything: the menu draws **once**, correct, never names-first-then-titles.");
 
-A flat list of paths is alphabetical, so a manifest grows entries — and **an entry with a label and an order in it is this declaration, moved further from the page it describes.**`);
+		md("`child(name)` resolves a segment in three steps: **memory, then `route()`, then a filesystem probe** for `<url><name>/page.js`. So a folder nobody declared still works when you navigate to it — **forgetting to declare costs the menu entry, not the url.**");
 
-		md("The one thing a manifest buys that nothing else does: **a parent could read a child's title without executing it.** That is the job the eager imports pay one HTTP request per child to do, and it is the real argument for building one.");
+		md("Which leaves the line one job, and it is the one a filesystem cannot do: **which children, and in what order.** `api` before `guide` before `intro` is alphabetical, and alphabetical is not a curriculum.");
 
-		md("The shape that keeps both: **discovery generated, presentation declared, the generated half a *default*.** The full weighing is in the design record below.");
+		md("A browser cannot list a directory. `import()` takes a path; there is no way to ask a static host what is in `/docs/`, so the probe guesses one name at a time. That is also why an index is *declared* rather than crawled — nothing here reads the disk.");
+
+		h2("A child written in place");
+
+		code.js(`children: {
+    HTML(){ md("Every element is a word."); },    // a function is content
+    CSS: { icon: "palette", content(){ } },       // an object is options
+    JS: null,                                     // null is a bare name again
+}`);
+
+		md("**The key is the title, and `Page.slug(key)` is the url segment** — the same derivation a page with no folder makes from its own title, so `HTML` is `/html/`. A `title:` inside an object value wins over the key. Every demo tree on this site is one of these: real pages, real urls, nothing on disk.");
+
+		md("⚠ **The value must be deferred.** `JS: md(\"…\")` calls `md()` at *declaration* time, under whatever captor was current — the synchronous-capture trap in value position, so `declare()` throws rather than let the output land somewhere quietly. And **integer-like keys hoist**: `{ 2(){}, 1(){} }` declares `1` first, because JS sorts numeric keys ahead of every other. Numeric names go in the string form.");
+
+		h2("Imports flow down; the tree points back up");
+
+		code.js(`// docs/page.js — a parent never imports a child by hand
+export default new Page({ meta: import.meta, children: "intro guide" });
+
+// docs/intro/page.js — and a child never imports its parent
+export default new Page({ meta: import.meta, title: "Intro" });`);
+
+		md("`add()` is the one place `parent` is assigned and `child()` is the one place `app` is handed down — **adoption**, on the walk, to the page about to need it. A `page.js` names neither.");
+
+		md("⚠ **Mutual imports break only on deep reloads.** `import` hoists regardless of textual position, so a child importing its parent reads an uninitialized binding: `/docs/` throws while `/docs/intro/` works. Imports flow **down**; the backref arrives by adoption.");
+
+		h2("What a click does");
+
+		demo(() => {
+			demo.app(web(), { nav: true }).style("height", "20em");
+		}, "The strip on top is `chain()`, the rail is `nav_for()` per child, the box is the region. **Click anything.** This is the Router's walk in miniature — the same class, the same methods, a tree held in memory.");
+
+		md(`1. **\`click()\`** catches an ordinary \`<a href>\` — no component asked to be navigable.
+2. **\`load_segments()\`** walks the url one segment at a time, \`await page.child(name)\` per hop. The walk **is** the loader: a miss imports.
+3. **\`activate()\`** touches only what changed — deactivate deepest-first, activate shallowest-first, shared leading pages never rebuilt. Your sidebar does not flicker because it is never re-rendered.
+4. **\`container()\`** decides where each page mounts: a region my parent set for me, else the nearest ancestor with a \`$pages\`, else the app's.
+5. **\`mark()\`** writes \`.active-page\` on the leaf and \`.active-ancestor\` on its chain, then \`.active\` / \`.in-path\` on every anchor.`);
+
+		md("**Step 5 is the whole arrangement system.** A `.page` is hidden unless it is marked, in `@layer util`, so *which* page shows is CSS reading two classes — and every layout on this site is a page opting into a shape, not a component switching one on.");
 
 		h2("Urls with no folder at all");
 
 		code.js(`route(name){
     const entry = catalogue[name];
-    return entry && { title: entry.title, content(){ … } };
+    return entry && { title: entry.title, content(){ } };
 }`);
 
-		md("[Sections](/framework/styles/sections/) does exactly this: nine urls, one object, **no directories**. It runs for **undeclared** names only, so it structurally cannot shadow a `page.js`. When your children come from data rather than from decisions, this is the answer and `children` is the wrong tool.");
+		md("It runs for **undeclared** names only, so it structurally cannot shadow a `page.js`, and it is tried before the probe, so a dynamic name costs no doomed request. **`route()` is for children that come from data; `children` is for children that come from decisions.**");
 
-		md("Next: [Fit](/framework/styles/layouts/fit/) — what a page can be once it has some.");
+		md("Next: [Previews](/framework/core/Page/previews/) — how a tree shows itself: the parent's wall, the child's card.");
 
 		md.details(import.meta, "../doc/declaring.md", "Design record — the reversal, and the CMS question in full");
 	}

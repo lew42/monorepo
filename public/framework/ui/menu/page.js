@@ -1,30 +1,41 @@
-import { Page, md, demo, div, code } from "/app.js";
-import { palette } from "../parts.js";
-import { menu } from "./menu.js";
+import { Page, md, demo, div, details, summary, a, span, icon, code } from "/app.js";
+import { palette, copy } from "../parts.js";
+
+// The template, verbatim — rendered in the palette AND handed to copy(), so the
+// code on the page is the code that ran.
+const menu = () => details.c("ui-menu", $menu => {
+	summary.c("ui-menu-trigger btn flex v-center", () => {
+		span("Actions");
+		icon("arrow_drop_down");
+	});
+
+	div.c("ui-menu-list flex v", () => {
+		a.c("ui-menu-item", "Rename").href("#").click(() => $menu.el.removeAttribute("open"));
+		a.c("ui-menu-item", "Duplicate").href("#").click(() => $menu.el.removeAttribute("open"));
+		a.c("ui-menu-item", "Delete").href("/delete/");
+	});
+});
+
+const two = () => div.c("flex gap wrap v-center", () => { menu(); menu(); });
 
 export default new Page({
 	meta: import.meta,
 	title: "Menu",
-	description: "A <details> dropdown — the second component to earn a selector.",
+	description: "A <details> dropdown — the panel earns a selector, not a function.",
 	icon: "arrow_drop_down_circle",
-	classes: "grid",
 
 	content(){
 
 		palette(
-			["ui.menu(…)", () => menu("Actions", "Rename", "Duplicate", "Move to…", "Delete")],
-			["items with urls", () => menu("Go", ["Core", "/framework/core/"], ["Styles", "/framework/styles/"])],
-			["two of them", () => div.c("flex gap wrap v-center", () => {
-				menu("Actions", "Rename", "Delete");
-				menu("View", "Compact", "Comfortable");
-			})],
+			["a dropdown", menu],
+			["two of them", two],
 		);
 
-		md("## Calling it");
+		md("## Copy it");
 
-		demo(() => {
-			menu("Actions", "Rename", "Duplicate", ["Delete", "/delete/"]);
-		}, "A label, then the items — a bare string has no url, a `[text, url]` pair does. **Open/closed is the element's own `open` attribute**, so there is no state in JS; the one listener closes the panel after a pick.");
+		copy(menu);
+
+		md("**There is no `ui.menu()`.** Its one line of logic — close the panel after a pick — is a line you want *per item*, because a real menu's items run handlers, and the function's items could only be strings and urls: its own showcase rendered five dead links. It also collided by name with `ext/layout`'s `menu()`, live, in a codebase where the class name is the registry.");
 
 		md("⚠ The panel is `position: absolute`, so an ancestor with `overflow: hidden` clips it — `.demo` is one, same as [Tooltip](/framework/ui/tooltip/).");
 
@@ -36,12 +47,14 @@ export default new Page({
 
 		div(code.file(import.meta, "menu.js"));
 
-		md("The shadow is `color-mix(in srgb, var(--ink) 14%, transparent)` rather than an `rgba` literal — the same derivation [Panel](/framework/ui/panel/) uses, so it stays right in dark mode. That was a literal `rgba(0,0,0,0.12)` before the move to `ui/`.");
+		md("The shadow is `color-mix(in srgb, var(--ink) 14%, transparent)` rather than an `rgba` literal — the same derivation [Panel](/framework/ui/panel/) uses, so it stays right in dark mode.");
 
 		md("## What it deliberately doesn't do");
 
-		md("**Light dismiss.** A `<details>` stays open until something closes it; clicking elsewhere does nothing. The native upgrade is the [Popover API](https://developer.mozilla.org/en-US/docs/Web/API/Popover_API) — `popover` plus invoker buttons, which brings light-dismiss and top-layer stacking for free. This component stays `<details>` because it needs zero JS to *be* a disclosure, and a nav dropdown rarely needs more.");
+		demo(two, "**Light dismiss.** A `<details>` stays open until something closes it; open both of these and both stay open. The native upgrade is the [Popover API](https://developer.mozilla.org/en-US/docs/Web/API/Popover_API) — `popover` plus invoker buttons, which brings light-dismiss and top-layer stacking (and with it the clip cure) for free. `<details>` stays the template because it needs zero JS to *be* a disclosure.");
 
 		md("Next: [Accordion](/framework/ui/accordion/) — the same element, and the attribute that makes a group exclusive.");
 	},
+
+	preview(nav){ return this.preview_card(nav, () => div.c("zoom-75 pad", menu)); },
 });

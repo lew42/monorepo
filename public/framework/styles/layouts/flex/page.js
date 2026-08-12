@@ -1,6 +1,7 @@
 import { Page, md, demo, code, h2, div } from "/app.js";
-import variant from "../variant.js";
-import layout from "../../../ext/layout/layout.js";
+import word from "../word.js";
+
+const n = count => Array(count).fill("");
 
 // three visible boxes — the same three in every comparison below
 const boxes = () => ["one", "two", "three"].forEach(t => div.c("pad wash", t).style("--pad", "0.5em"));
@@ -8,46 +9,48 @@ const boxes = () => ["one", "two", "three"].forEach(t => div.c("pad wash", t).st
 export default new Page({
 	meta: import.meta,
 	title: "Flex",
-	description: "A row, and the seven one-word steps away from it.",
+	description: "A row, and the eight one-word steps away from it.",
 	icon: "view_week",
-	classes: "grid",
+
+	// Inline object children: nine real pages, nine urls, no directories. Each one
+	// draws its own card (word.js) and the wall below is those cards.
+	children: [
+		word({ name: "row", label: "A row", words: "flex", kids: n(3),
+			note: "`flex` and nothing else. No gap, so the boxes touch — and they squeeze rather than wrap, at any width." }),
+
+		word({ name: "gap", label: "A row with air in it", words: "flex gap", kids: n(3),
+			note: "`gap` — two utility classes, no stylesheet, and the start of every layout on this site." }),
+
+		word({ name: "v", label: "A column", words: "flex v gap", kids: n(3),
+			note: "`v` — a column. Same gap, other axis." }),
+
+		word({ name: "v-center", label: "Middles lined up", words: "flex gap v-center", kids: ["h1", "", ""],
+			note: "`v-center` — unequal heights line up on their middles." }),
+
+		word({ name: "split", label: "Ends apart, middle empty", words: "flex gap split", kids: n(2),
+			note: "`split` — `space-between`. A title left, a control right: this is every toolbar." }),
+
+		word({ name: "auto", label: "Equal peers, that wrap", words: "flex gap auto", kids: n(3), column: "3em",
+			note: "`auto` — every child asks for `--column` and takes an equal share, so peers are equal without being measured. This is [Split](/framework/styles/layouts/split/)." }),
+
+		// `words` is the title everywhere else; this one shares it with `gap`, and the
+		// two item classes are what actually differ.
+		word({ name: "basis", title: "flex gap › basis + flex-1", label: "A fixed rail, a fluid rest",
+			words: "flex gap", kids: ["basis", "flex-1"],
+			note: "`basis` beside `flex-1` — the fixed track and the fluid one. This is [Sidebar](/framework/styles/layouts/sidebar/), and with a second `basis` it is [Holy grail](/framework/styles/layouts/holy-grail/)." }),
+
+		word({ name: "wrap", label: "Wraps to a second line", words: "flex gap wrap", kids: n(6),
+			note: "`wrap` — boxes drop to a second line instead of squeezing. **Drag the handle.** Add it to anything that could ever be narrow, which is everything." }),
+
+		word({ name: "three", label: "Three, then straight to one", words: "flex gap three", kids: n(3), column: "3em",
+			note: "`three` — three columns, then straight to one. Two columns is the width nobody designed for." }),
+	],
 
 	content(){
 
-		demo(() => {
-			div.c("flex gap", () => {
-				div.c("pad wash", "one");
-				div.c("pad wash", "two");
-				div.c("pad wash", "three");
-			});
-		}, "`flex gap` — a row with air in it. Two utility classes, no stylesheet, and the start of every layout on this site.");
+		this.previews().style({ "--column": "13em", "--gap": "1.2em" });
 
-		md("Everything below is **one word** away from that line. None of them is a component or a function: copy the class string. Every rendered box also wears `pad wash` so you can see it — that is the only difference between the template and the picture.");
-
-		h2("One word away");
-
-		div.c("grid gap auto", () => {
-			variant("flex gap wrap", ["", "", ""],
-				"`wrap` — boxes drop to a second line instead of squeezing. Add it to anything that could ever be narrow, which is everything.");
-
-			variant("flex v gap", ["", "", ""],
-				"`v` — a column. Same gap, other axis.");
-
-			variant("flex gap v-center", ["h1", "", ""],
-				"`v-center` — unequal heights line up on their middles.");
-
-			variant("flex gap split", ["", ""],
-				"`split` — `space-between`. A title left, a control right: this is every toolbar.");
-
-			variant("flex gap auto", ["", ""],
-				"`auto` — every child asks for `--column` and takes an equal share, so peers are equal without being measured. This is [Split](/framework/styles/layouts/split/).");
-
-			variant("flex gap wrap", ["basis", "flex-1"],
-				"`basis` beside `flex-1` — the fixed track and the fluid one. This is [Sidebar](/framework/styles/layouts/sidebar/), and with a second `basis` it is [Holy grail](/framework/styles/layouts/holy-grail/).");
-
-			variant("flex gap three", ["", "", ""],
-				"`three` — three columns, then straight to one. Two columns is the width nobody designed for.");
-		}).ac("wide").style("--column", "21em");
+		md("**Nine class strings, each one word from its neighbour.** Click any of them: the shape opens at real size on a stage you can drag, the source is under it, and clicking a box opens the panel with the words it is wearing. Nothing here is a component or a function — you copy the string.");
 
 		h2("Where the same markup breaks");
 
@@ -80,12 +83,6 @@ export default new Page({
 				});
 			});
 		}, "Same three boxes, three break behaviours: no wrap at all, a whole line at once, or one child holding its width while its neighbours re-flow around it. Pick the one that matches what the content *is* — a fixed rail is fixed, a set of peers is peers.").ac("wide");
-
-		h2("Turn the knobs yourself");
-
-		layout(boxes).ac("wide pad surface");
-
-		md("Point at the panel: a toolbar fades in above its top-right corner. Flip it to `grid` and the same two tokens still mean the same two things — [Layout](/framework/ext/layout/) is the widget.");
 
 		h2("The four templates");
 

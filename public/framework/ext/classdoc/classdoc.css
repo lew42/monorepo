@@ -3,12 +3,71 @@
 
 @layer theme {
 
-	/* The sheet the top bar spans. Each group below sets its own column, so the bar
-	   stays one width while the panel under it changes shape. */
-	.page.classdoc { --measure: 78em; }
+	/* Full width: the top bar spans the window and every panel under it hands its
+	   pages the standard grid — the sheet belongs to the LEAF now, not the doc.
+	   ⚠ `--gutter-x` restates `.page.standard`'s clamp because that page declares its
+	     own and never sees an inherited one. The two values must agree — it is the
+	     axis the title, the tab labels and every leaf below them land on.
+	   ⚠ `--well` is a SHADOW, not a palette colour: it composites over whatever ground
+	     the host paints, and it darkens in both modes where this theme's
+	     wash → tint → surface ladder only goes lighter. Design record: readme.md. */
+	.page.classdoc {
+		display: flex; flex-wrap: wrap; align-content: flex-start;
 
-	/* Prose, not a rail plus a column — the one group that reads rather than refers.
-	   ⚠ Beats tabs.css's `.page:where(:has(> .tabs.vertical))`, which is `:where()`d
-	     to (0,1,0) precisely so this two-class rule can win without escalating. */
-	.classdoc-group.page-overview { --measure: 64em; }
+		--measure: none;
+		--page-pad: 0;
+		--gutter-x: clamp(2em, 4%, 5em);
+		--well: light-dark(rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.35));
+		--tab-fill: var(--wash);
+	}
+
+	/* ⚠ `display: contents` — the title and the strip have to share ONE flex line, and
+	     the strip arrives wrapped in `.tabs`. Selectors match the DOM, not the box tree,
+	     so `.tabs.block > .tab-bar` is unaffected. */
+	.page.classdoc > .tabs { display: contents; }
+
+	.classdoc-well {
+		background: var(--well);
+		display: flex; align-items: center;
+		padding: 0.5em 0 0.5em var(--gutter-x);
+	}
+	.classdoc-title { margin: 0; }
+
+	/* ⚠ The same fill as `.classdoc-well`: the band is one well in two boxes, and any
+	     drift between them draws a seam across it.
+	   ⚠ `flex-end`, because the box stretches to the title's line height — the strip has
+	     to sit on the band's BOTTOM edge or the notch stops reaching the content.
+	   ⚠ One inset serves both shapes: beside the title it reads as a gutter-wide gap,
+	     and once the basis no longer fits and the strip wraps to its own line, it lands
+	     the LABELS on the axis (the tab boxes hang one tab-padding to their left). */
+	.page.classdoc > .tabs > .tab-bar {
+		background: var(--well);
+		flex: 1 1 24em; min-width: 0;
+		align-items: flex-end;
+		padding-inline-start: calc(var(--gutter-x) - var(--tab-pad-x));
+	}
+
+	.page.classdoc > .tabs > .tab-panel { flex: 0 0 100%; min-width: 0; }
+
+	/* The well prints the class name; the catalog's intro would print it again.
+	   ⚠ The successor's margin goes with it — a `display: none` element still matches
+	     `.page-title + *`, so the 3em the heading occupied stayed behind. */
+	.page.classdoc .page-catalog-pages > .page-intro > .page-title { display: none; }
+	.page.classdoc .page-catalog-pages > .page-intro > .page-title + * { margin-block-start: 0; }
+
+	/* ⚠ Beats tabs.css's `.page:where(:has(> .tabs.vertical))` 78em, which is
+	   `:where()`d to (0,1,0) precisely so a host can override without escalating.
+	   The gutter is steered as a token, never as `padding` — `.page`'s own shorthand
+	   would win or lose on load order. */
+	.classdoc-group { --measure: none; --page-pad: 0 var(--gutter-x); }
+
+	/* The group already paid the gutter; a `.page.standard` inside one would pay it
+	   twice. Same move tabs.css makes with `--page-pad`.
+	   ⚠ (0,3,0) so it beats `.page.standard`'s own declaration on specificity, not on
+	     load order — and ext/demo's app.css goes one higher again to give a page inside
+	     a demo app its own inset back. The two are a pair; edit them together.
+	   ⚠ `0px`, never a bare `0`: the template reads `100% - var(--gutter-x) * 2`, and a
+	     unitless zero makes that percentage-minus-number — invalid at computed-value
+	     time, which drops the WHOLE grid template and leaves two ragged tracks. */
+	.classdoc-group .page.standard { --gutter-x: 0px; }
 }

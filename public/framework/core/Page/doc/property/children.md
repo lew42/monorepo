@@ -6,8 +6,8 @@ children: "intro guide api"     // folder names, in menu order
 
 **Usage** — read by `declare()` in the constructor (`Page.class.js:32`), which
 turns it into a Map; from then on every reader uses the Map —
-`load_all_children()` (`:179`), `child()` (`:70`), `nav_for()` (`:153`),
-`previews()` (`:164`), `ext/tabs` (`framework/ext/tabs/tabs.js:18,35,45`),
+`load_all_children()` (`:194`), `child()` (`:69`), `nav_for()` (`:157`),
+`previews()` (`:165`), `ext/tabs` (`framework/ext/tabs/tabs.js:18,35,45`),
 `ext/classdoc` (`framework/ext/classdoc/classdoc.js:114`). Declared on ~60 pages.
 
 **Necessity** — yes, for the one job a filesystem cannot do: **order**. `api` before
@@ -18,13 +18,35 @@ so an undeclared folder still resolves — *forgetting to declare costs the menu
 not the url.* See the [Children](/framework/core/Page/children/) guide, which is this
 property's long form.
 
-**Simplicity** — one line, three accepted shapes (a space-separated string, an array
-of names, an array of Pages or option objects), and one wart:
+**Simplicity** — one line, four accepted shapes: a space-separated string, an array
+of names, an array of Pages or option objects, and **a plain object keyed by title**.
+
+```js
+children: {
+    HTML(){ md("…"); },                          // a function is content
+    CSS: { icon: "palette", content(){ … } },    // an object is options
+    JS: null,                                    // declared only, like a bare name
+}
+```
+
+The key **is** the title, and `Page.slug(key)` is the url segment — the same
+derivation `naming()` makes for a standalone page, so `HTML` lands at `…/html/`.
+A `title:` inside an object value wins over the key. Three warts:
 
 > **The property changes type.** You write a string and read back a `Map`. So
 > `this.children.length` is `undefined`, and `[...this.children.keys()]` is the
 > idiom everywhere. Two names for the two states would be worse; this is the
 > cheaper of two costs, not a free choice.
+
+> **Integer-like keys jump to the front.** JS hoists `"1"`, `"2"`, `"10"` above
+> every other key and sorts them numerically, whatever order you wrote — and this
+> repo has numeric page names. A POJO that mixes them silently reorders your menu;
+> use the string or array form for those.
+
+> **A value must be deferred.** `JS: md("…")` calls `md()` at *declaration* time,
+> under whatever captor was current — the synchronous-capture trap in value
+> position. `declare()` throws on anything that is not a function, string, plain
+> object, `Page` or `null`. Write `JS(){ md("…") }`.
 
 Declared children are imported **at construction**, which is what lets a menu draw
 once with real titles and icons. Measured: on `/framework/`, 1 → 28 `page.js`

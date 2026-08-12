@@ -1,11 +1,11 @@
-import { Page, md, demo, div, p, button } from "/app.js";
-import { palette } from "../parts.js";
-import { dialog } from "./dialog.js";
+import { Page, md, demo, div, el, p, button } from "/app.js";
+import { palette, copy } from "../parts.js";
 
-// The opener and the dialog are built together: the button is what knows which
-// dialog it opens, so the pair is the smallest honest example.
-const confirmation = () => div.c("flex v", () => {
-	const $dialog = dialog(() => {
+// The template, verbatim — rendered in the palette AND handed to copy(), so the
+// code on the page is the code that ran. The opener is part of it: the button is
+// what knows which dialog it opens.
+const confirm = () => div.c("flex v", () => {
+	const $dialog = el.c("dialog", "ui-dialog surface pad", () => div.c("flex v gap", () => {
 		p.c("h3", "Delete branch?");
 		p("This cannot be undone. The branch and its four commits go away.");
 
@@ -13,33 +13,37 @@ const confirmation = () => div.c("flex v", () => {
 			button.c("prim", "Delete").click(() => $dialog.el.close("delete"));
 			button("Cancel").click(() => $dialog.el.close());
 		});
-	});
+	}));
 
 	button("Open the dialog").click(() => $dialog.el.showModal()).style("alignSelf", "flex-start");
+});
+
+// A closed dialog renders nothing, so anything that has to SHOW one — the palette
+// and this page's card on the index — draws what showModal() shows.
+const opened = () => div.c("surface pad flex v gap", () => {
+	p.c("h3", "Delete branch?");
+	p("This cannot be undone.");
+	div.c("flex gap reverse", () => { button.c("prim", "Delete"); button("Cancel"); });
 });
 
 export default new Page({
 	meta: import.meta,
 	title: "Dialog",
-	description: "Native <dialog> — the browser is the component.",
+	description: "Native <dialog> — the browser is the component, and the CSS is the trap.",
 	icon: "picture_in_picture",
 
 	content(){
 
 		palette(
-			["ui.dialog(…) + an opener", confirmation],
-			["what it looks like open", () => div.c("ui-surface pad flex v gap", () => {
-				p.c("h3", "Delete branch?");
-				p("This cannot be undone.");
-				div.c("flex gap reverse", () => { button.c("prim", "Delete"); button("Cancel"); });
-			})],
+			["open it, press Esc, tab around it", confirm],
+			["what it looks like open", opened],
 		);
 
-		md("Open it, press **Esc**, tab around it.");
+		md("## Copy it");
 
-		md("## Calling it");
+		copy(confirm);
 
-		demo(confirmation, "`ui.dialog()` returns the view, so the caller keeps it and calls `showModal()` on `.el`. The focus trap, the dismiss key and the dimmed backdrop arrive with that one call — there is no JS here beyond it.");
+		md("**There is no `ui.dialog()`.** It wrapped one `el.c(\"dialog\", …)` with no listener and nothing unique to mint — and the wrapper's own `.c()` form *re-armed the trap it existed to avoid*, because a class handed to it landed on the `<dialog>` itself. `el` has no `dialog` factory, which is the only reason it looks unusual.");
 
 		md("## What the browser gives away");
 
@@ -47,16 +51,18 @@ export default new Page({
 
 		md("## Three traps, all of them silent");
 
-		md("**The UA sets `color: CanvasText`**, which blocks inheritance — a themed page shows black ink in dark mode until the ink is restated. One declaration, from the token.");
+		md("**The UA sets `color: CanvasText`**, which blocks inheritance — a themed page shows black ink in dark mode until the ink is restated. One declaration, from the token, in `dialog.js`.");
 
-		md("**Never put a `display` class on the `<dialog>` itself.** The UA hides a closed one with `dialog:not([open]) { display: none }`, and an author rule beats a UA rule at *any* layer — so a layout class keeps the \"closed\" dialog on screen, invisibly eating clicks. Found by a click that timed out, not by an error. That is why `ui.dialog()` puts `flex v gap` on an inner div, and why you should not add one.");
+		md("**Never put a `display` class on the `<dialog>` itself.** The UA hides a closed one with `dialog:not([open]) { display: none }`, and an author rule beats a UA rule at *any* layer — so a layout class keeps the \"closed\" dialog on screen, invisibly eating clicks. Found by a click that timed out, not by an error. That is why `flex v gap` goes on an inner div above, and why you should not move it out.");
 
 		md("**`margin: auto` is the UA's centring, and `.flex > * { margin: 0 }` erases it** the moment a dialog sits inside a flex column. So `.ui-dialog { margin: auto }` is declared a second time in `@layer util` — the one place in this library where a later layer is used to win an argument, and the argument is with a utility, not with the theme.");
 
 		md("## `close(value)` carries the answer");
 
-		md("The Delete button passes `\"delete\"`, and the caller reads `$dialog.el.returnValue` in a `close` listener. A `<form method=\"dialog\">` does the same with no JS at all. The one look this component doesn't own is the backdrop: `::backdrop` is a pseudo-element, so a site that wants its own dim writes one rule in `@layer site`.");
+		demo(opened, "The Delete button passes `\"delete\"`, and the caller reads `$dialog.el.returnValue` in a `close` listener. A `<form method=\"dialog\">` does the same with no JS at all. The one look this component doesn't own is the backdrop: `::backdrop` is a pseudo-element, so a site that wants its own dim writes one rule in `@layer site`.");
 
-		md("Next: [Progress](/framework/ui/progress/) — the last of the three templates, and the shortest.");
+		md("Next: [Progress](/framework/ui/progress/) — where the browser wrote the element too.");
 	},
+
+	preview(nav){ return this.preview_card(nav, () => div.c("zoom-75 pad", opened)); },
 });

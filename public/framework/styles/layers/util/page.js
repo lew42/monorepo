@@ -94,7 +94,7 @@ export default new Page({
 				div.c("pad").style({ background: "var(--surface)" }).text("painted — hides the board");
 				div.c("pad").text("unpainted — the board shows through");
 			}).style("border", "1px solid var(--line)");
-		}, "The transparency board: a box with no background of its own shows the checkers through, so *did the thing I rendered paint itself* is visible at a glance. `--tint`-based, so it stays subtle in both modes, and `(0,1,0)` on purpose — a checker that lost to any background wasn't asked for. **Every `demo()` stage on this site wears it**, and so does every gallery thumbnail.");
+		}, "The transparency board: a box with no background of its own shows the checkers through, so *did the thing I rendered paint itself* is visible at a glance. `--tint`-based, so it stays subtle in both modes, and `(0,1,0)` on purpose — a checker that lost to any background wasn't asked for. **Every `demo()` stage on this site wears it**, and so does every preview thumb.");
 
 		md("## Text");
 
@@ -111,7 +111,7 @@ export default new Page({
 				div.c("zoom-100 pad").style({ background: "var(--wash)" }).text("100%");
 				div.c("zoom-150 pad").style({ background: "var(--wash)" }).text("150%");
 			});
-		}, "`zoom-25`, `-50`, `-75`, `-100`, `-150`, `-175`, `-200`, plus `zoom-responsive`. Scales a whole subtree **including its layout** — which is why the [gallery](/framework/styles/gallery/) uses it to render whole pages into thumbnails, and `transform: scale()` cannot: a scaled box still occupies its unscaled size, so nothing re-lays-out.\n\n**Eight rungs, frozen.** This is the one place the house pattern — a class plus a token, like `pad`/`--pad` — was deliberately *not* used, and an audit flagged it as a scale nobody asked for. A census found eight of the nine had real call sites, so it stays; the ninth (`zoom-125`) had none and is gone. A level that is not on the ladder is `.style(\"zoom\", …)` at the call site, not a tenth rule.");
+		}, "`zoom-25`, `-50`, `-75`, `-100`, `-150`, `-175`, `-200`, plus `zoom-responsive`. Scales a whole subtree **including its layout** — which is why a [preview card](/framework/core/Page/) uses it to render whole pages into thumbnails, and `transform: scale()` cannot: a scaled box still occupies its unscaled size, so nothing re-lays-out.\n\n**Eight rungs, frozen.** This is the one place the house pattern — a class plus a token, like `pad`/`--pad` — was deliberately *not* used, and an audit flagged it as a scale nobody asked for. A census found eight of the nine had real call sites, so it stays; the ninth (`zoom-125`) had none and is gone. A level that is not on the ladder is `.style(\"zoom\", …)` at the call site, not a tenth rule.");
 
 		md("## Forms");
 

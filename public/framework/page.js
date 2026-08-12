@@ -9,7 +9,7 @@ export default new Page({
 	// Inert: /styles.css decides what the class means, and Router.mark() unsets it.
 	classes: "hides-nav",
 
-	children: "start faq versus core styles ui ext util dev report",
+	children: "start faq versus core styles ui ext util dev ai",
 
 	/* A LAYOUT, not a content page. Three things an override owes, all silent when
 	 * missed (core/Page/readme.md): set `this.view`, carry `.page`, never nest a
@@ -31,22 +31,33 @@ export default new Page({
 
 				// ⚠ `default flow`, never `page` — a second `.page` inside this one is
 				// what core/Page/doc/method/activate.md says never to do.
+				// ⚠ `--measure: none` declared HERE beats the sheet width this would
+				//   otherwise inherit, which capped the landing at 1080px; the prose
+				//   takes its own measure back below.
 				div.c("default flow", () => {
 
-					md("Create `/path/page.js`:");
+					div.c("flow", () => {
 
-					code.js(`import { p } from "/app.js";
+						md("Create `/path/page.js`:");
+
+						code.js(`import { p } from "/app.js";
 
 p("Hello world.")`);
 
-					md("That's basically it.");
+						md("That's basically it.");
+					}).style("max-width", "52em");
 
-					this.previews();
+					// The tree: every section, and every page inside it. A section with
+					// no children of its own is a leaf, and lives in the nav beside this.
+					this.walls();
 
-					md("Start at [Start here](/framework/start/) — three files and a working site.");
+					div.c("flow", () => {
 
-					md.details(import.meta, "readme.md", "Design record — open questions & alternatives");
-				});
+						md("Start at [Start here](/framework/start/) — three files and a working site. Then [FAQ](/framework/faq/) and [Versus](/framework/versus/).");
+
+						md.details(import.meta, "readme.md", "Design record — open questions & alternatives");
+					}).style("max-width", "52em");
+				}).style("--measure", "none");
 			});
 		}).ac(this.classes);   // `classes: "hides-nav"` still applies
 	},

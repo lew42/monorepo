@@ -1,0 +1,94 @@
+/* Restated IN FULL — a short list silently misplaces `site`. */
+@layer base, theme, site, util;
+
+/* A window on a board: a url strip, an optional rail, and the region a page
+   mounts in. Quiet on purpose — everything interesting inside it is a real page
+   wearing the real classes, and chrome that competed with it would be noise. */
+@layer theme {
+
+	.demo-app {
+		display: flex; flex-direction: column;
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		overflow: hidden;
+		background: var(--surface);
+	}
+
+	.demo-app-url {
+		display: flex; flex-wrap: wrap; align-items: center;
+		padding: 0.4em 0.9em;
+		font-family: var(--mono); font-size: 0.78em;
+		background: var(--tint);
+		border-bottom: 1px solid var(--line);
+	}
+
+	.demo-app-crumb { color: var(--subtle); text-decoration: none; }
+	.demo-app-crumb:hover { color: var(--prim); }
+
+	/* `aria-current`, never `.active`: Router.mark_links() runs over every anchor
+	   in the app on every navigation and would clear a borrowed class. `page` is
+	   the exact match, `location` an ancestor — mark_links()'s two answers. */
+	.demo-app-crumb[aria-current="page"] { color: var(--ink); }
+
+	.demo-app-body { display: flex; flex: 1 1 auto; min-height: 7em; }
+
+	.demo-app-nav {
+		display: flex; flex-direction: column;
+		flex: 0 0 clamp(5.5em, 30%, 9em); min-width: 0;   /* a rail, at any box width */
+		padding: 0.6em 0;
+		border-inline-end: 1px solid var(--line);
+	}
+
+	.demo-app-link {
+		display: flex; align-items: center; gap: 0.4em;
+		padding: 0.3em 0.9em;
+		font-size: 0.9em;
+		color: var(--subtle);
+		text-decoration: none;
+		border-inline-end: 2px solid transparent;
+		margin-inline-end: -1px;         /* sit ON the rail's rule, not beside it */
+	}
+	.demo-app-link:hover { color: var(--ink); }
+	.demo-app-link[aria-current] { color: var(--ink); border-inline-end-color: var(--prim); }
+	.demo-app-link .icon { font-size: 1.1em; }
+
+	/* `.pages` in miniature. ⚠ The two tokens are re-declared for the same reason
+	   `.tab-panel` re-declares them: they inherit, so a page in here would pay the
+	   whole sheet's measure and 3em inset inside a 30em box. */
+	.demo-app-pages {
+		flex: 1 1 0; min-width: 0;
+		overflow: auto;
+		--measure: none; --page-pad: 1.2em;
+	}
+
+	/* ⚠ The default page shape declares its OWN tokens (`.page.standard`, Page.css), so
+	   the region's reset above cannot reach them by inheritance. Gutters and pads
+	   only — NEVER `--measure: none` here: the template's `min(var(--measure), …)`
+	   is invalid at computed-value time with `none` and silently DROPS the whole
+	   template, exiling every child to implicit columns. 52em is far past any box
+	   this size, so the `100%` arm already wins. */
+	/* ⚠ Three classes on purpose: outer chrome retunes the same tokens with two
+	   (classdoc zeroes `--gutter-x` for its region), and a page inside a demo app
+	   must answer to the demo app, not to whatever surrounds it. */
+	.demo-app .demo-app-pages .page.standard { --gutter-x: 1.2em; --pad-y: 1.2em; }
+
+	/* Demo chrome a stage may hand the strip (exhibit.js): pushed to the end. */
+	.demo-app-url > .demo-zoom { margin-inline-start: auto; }
+	.demo-app-url > .demo-btn { padding: 0.1em 0.3em; }
+}
+
+/* Borrowed components, re-marked. There is no Router in here, so `aria-current`
+   (app.js) is the only selection mark — mark_links() runs over every anchor in
+   the app and would clear a borrowed class. A component that reads the attribute
+   itself needs nothing here: ext/tabs and ext/catalog both do.
+
+   ⚠ `site`, not `theme`: these beat the "nothing selected yet" fallback that would
+   otherwise light a first entry beside the one you are actually on.
+
+   css: `.page-link` and `.page-preview` are Page.css's — app.js imports it. */
+@layer site {
+
+	.demo-app .page-link[aria-current] { color: var(--prim); }
+
+	.demo-app .page-preview:has(> .page-preview-link[aria-current]) { outline-color: var(--prim); }
+}

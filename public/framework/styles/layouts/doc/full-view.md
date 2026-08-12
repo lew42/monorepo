@@ -87,12 +87,14 @@ stylesheet or a utility class can say about `display`, so
 `.page.layout-full { display: flex }` is an ordinary rule that means what it
 says. See `core/Page/readme.md`, "The contract lives in `@layer util`".
 
-**Since superseded again:** [Holy grail](/framework/styles/layouts/holy-grail/)
-converted a second time this session — it no longer uses `route("full")` at
-all. The page **is** the layout now, at its own plain url, with `classes: "full
-fill flex v"` in place of a fixed overlay. `full.js` and this `route()` seam are
-unchanged and still serve the other seven layouts (staged conversion) and
-`styles/sections/`. See `core/Page/readme.md`, "Round 2".
+**Since superseded again:** none of the eight layout pages uses `route("full")` any
+more. They stopped needing a fixed overlay when the page became its own layout at
+its own plain url, and stopped being the layout at all on 2026-08-12, when each one
+moved onto a `demo.exhibit()` stage — a resizable box with a "fill the window"
+sibling, which is the same capability without a second url (`ext/demo/readme.md`
+§7). `full.js` and this `route()` seam are unchanged and still serve
+`styles/sections/`, whose fifteen bands compose into one page that genuinely wants
+one. See `core/Page/readme.md`, "Round 2", and `layouts/readme.md`.
 
 ---
 

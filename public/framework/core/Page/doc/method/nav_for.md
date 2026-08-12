@@ -1,9 +1,8 @@
 One entry for a menu: `{ url, label, icon, card }`.
 
 **Usage** — the single source every navigation component reads.
-`previews()` (`Page.class.js:165`), `Sidebar`'s `pages` array
-(`framework/page.js:59,69`), `styles/gallery/gallery.js:58` and
-`framework/styles/layouts/page.js:46,80`.
+`previews()` (`Page.class.js:166`), `Sidebar`'s `pages` array
+(`framework/page.js:59,69`) and `framework/styles/layouts/page.js:46,80`.
 
 ```js
 pages: [...this.children.keys()].map(name => this.nav_for(name))
@@ -13,8 +12,10 @@ pages: [...this.children.keys()].map(name => this.nav_for(name))
 ways. One method resolves it, so a topic's sidebar, its tab bar and its preview
 cards structurally agree.
 
-**Simplicity** — right-sized, and *simpler than it used to be*. There is no `nav:`
-relabeling map on the parent any more: the label falls back weakest-last —
+**Simplicity** — right-sized, and *simpler than it used to be*. It spreads the child's
+own `nav()` and overrides the two things a **list** decides — the url the entry appears
+at, and the label when the child is not there to say. There is no `nav:` relabeling map
+on the parent any more: the label falls back weakest-last —
 
 ```
 child.label  →  child.title  →  the url segment
@@ -31,7 +32,8 @@ spreads over the entry at the call site, which is visible where it happens:
 The one asymmetry left: it takes a **name** rather than a child, and reads
 `this.children` itself, so it cannot answer for a page that is not a child. That is
 correct — an entry belongs to the list it appears in — but it means a caller holding
-a `Page` must know its name to ask.
+a `Page` must know its name to ask. A page that only wants to describe *itself* asks
+`nav()`, which is the half of this that needs no list.
 
 See the `labels` note for where each of title, label, icon and card lives, and why
 that was reversed three times.

@@ -1,7 +1,7 @@
 import { Page, md, demo, div, button, input, icon } from "/app.js";
 import { palette, copy } from "../parts.js";
 
-const toolbar = () => div.c("ui-surface pad flex wrap gap v-center", () => {
+const toolbar = () => div.c("surface pad flex wrap gap v-center", () => {
 	div.c("flex v-center gap", () => {
 		button.c("prim", "New");
 		button("Import");
@@ -33,7 +33,6 @@ export default new Page({
 	title: "Toolbar",
 	description: "A template, not a function — groups, a growing field, and why `flex-1` beats `split`.",
 	icon: "tune",
-	classes: "grid",
 
 	content(){
 
@@ -60,4 +59,6 @@ export default new Page({
 
 		md("Next: [Tag input](/framework/ui/tags/) — the one component that opts out of a base rule.");
 	},
+
+	preview(nav){ return this.preview_card(nav, () => div.c("zoom-75 pad", toolbar)); },
 });

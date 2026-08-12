@@ -1,0 +1,128 @@
+/* Layer order, restated IN FULL — a short list would misplace `site`.
+   See the header of framework.css. */
+@layer base, theme, site, util;
+
+/* The stage: what you resize. Why three boxes and not one: stage.js. */
+@layer theme {
+
+	/* ⚠ `margin-inline-end` is exactly the handle's overhang — `.demo` clips, so a
+	   pill sitting half outside would be half missing AND half unclickable. */
+	.demo-stage {
+		position: relative;
+		margin-inline-end: 0.125em;
+		max-width: 100%;
+	}
+
+	/* The viewport. The padding is HERE, not on `.demo-render` — that is what makes
+	   the readout honest: the render is the bare content box.
+	   ⚠ The fallback is for a bare `demo.stage()`, which has no `.demo` above it to
+	   inherit the token from — without it the padding resolves to nothing at all. */
+	.demo-screen { padding: var(--demo-pad, 1.5rem); overflow-x: auto; }
+
+	/* A leaf page's render IS the page: `.bleed` takes the widest grid track
+	   (Page.css) and this hands back the screen's own inset. */
+	.demo-stage.bleed .demo-screen { padding: 0; }
+
+	/* A FRAMED exhibit joins the page's left edge — the same gutter the wall hands
+	   back in Page.css. Unframed `.bleed` bands keep the region, which is what the
+	   class means for them. */
+	.page.standard > .demo-stage.bleed { padding-inline: var(--gutter-x); }
+
+	/* ⚠ Deliberately NO `overflow`: the x-axis cannot be set without forcing y off
+	   `visible` too, and a demo may overflow on purpose — a tooltip, a popover. */
+	.demo-render { min-width: 0; }
+
+	/* `--subtle`, not white: a white pill on `--surface` is invisible, and at 4px
+	   wide a border is most of the shape rather than an outline on it. */
+	.demo-handle {
+		position: absolute; top: 50%; inset-inline-end: -0.125em;
+		width: 0.25em; height: 2em;
+		transform: translateY(-50%);
+		background: var(--subtle);
+		border-radius: 1em;
+		cursor: ew-resize;
+		touch-action: none;          /* or the browser pans instead of dragging */
+	}
+	.demo-handle:hover { background: var(--prim); }
+
+	/* The stage's own corner. Inside a `demo()` it carries the readout alone — the
+	   zoom lives up in the bar with the other controls; a bare stage has no bar, so
+	   `demo.stage()` puts the zoom here beside it. */
+	.demo-tools {
+		display: flex; align-items: center; justify-content: flex-end; gap: 0.5em;
+		margin-top: 0.6em;
+	}
+
+	/* The width the example is laid out at, which is not the width you see when the
+	   zoom is off 100%. That gap is the whole point of having both controls.
+	   ⚠ Keeps its own margin because `demo.responsive` puts one under each simulated
+	   pane, where nothing else provides the gap; the corner row hands it back. */
+	.demo-size {
+		margin-top: 0.6em;
+		font-size: 0.62em;
+		letter-spacing: 0.1em;
+		text-align: end;
+		color: var(--subtle);
+		font-family: var(--mono);
+	}
+	.demo-tools > .demo-size { margin-top: 0; }
+
+	/* Both rules are about `select` defaults in framework.css.
+	   ⚠ `width: auto` — base gives every select `width: 100%`, which in a flex bar
+	     eats the row and collapses the spacer beside it.
+	   ⚠ `background-origin: padding-box` — theme paints the arrow at 100% of the
+	     CONTENT box, so on a shrink-to-fit select every em of padding-right moved
+	     the arrow an em LEFT, onto the text. */
+	.demo-zoom {
+		width: auto;
+		padding: 0.1em 1.4em 0.1em 0.5em;
+		background-origin: padding-box;
+		font-size: 0.9em;
+		color: var(--subtle);
+		border-color: var(--line);
+		border-radius: var(--radius);
+		cursor: pointer;
+	}
+	.demo-zoom:hover { color: var(--ink); border-color: var(--prim); }
+
+	/* ── bare: a framed render needs no field around it ──
+	   The frame IS the edge, so the handle rides it — bigger, since it sits on a
+	   real border now — and the readout becomes a pill centred ON the bottom
+	   border. tree.js pairs this with the frame's own titlebar carrying the zoom. */
+	.demo-stage.bare { margin-inline-end: 0.2em; }
+	.demo-stage.bare .demo-screen { padding: 0; }
+
+	/* On a real border the pill reads as part of the frame, so it dresses like
+	   one: surface fill, a line, a lift. Hover keeps the fill and lights the line. */
+	.demo-stage.bare .demo-handle {
+		width: 0.4em; height: 3em;
+		inset-inline-end: -0.2em;
+		background: var(--surface);
+		border: 1px solid var(--line);
+		box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+	}
+	.demo-stage.bare .demo-handle:hover { background: var(--surface); border-color: var(--prim); }
+
+	.demo-stage.bare .demo-tools {
+		position: absolute; bottom: 0; inset-inline-start: 50%;
+		transform: translate(-50%, 50%);
+		margin: 0;
+	}
+
+	.demo-stage.bare .demo-size {
+		margin: 0;
+		padding: 0.1em 0.7em;
+		background: var(--surface);
+		border: 1px solid var(--line);
+		border-radius: 999px;
+	}
+
+	/* ── max: the whole window — a way of LOOKING at the box, not a place.
+	   Same rationale as `.demo.max` (demo.css §7). */
+	.demo-stage.max {
+		position: fixed; inset: 0; z-index: 30;
+		margin: 0; padding: 1.5em;
+		background: var(--wash);
+		overflow: auto;
+	}
+}

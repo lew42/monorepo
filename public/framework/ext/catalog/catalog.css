@@ -1,0 +1,109 @@
+/* Restated IN FULL — a short list silently misplaces `site`. */
+@layer base, theme, site, util;
+
+@layer theme {
+
+	/* ⚠ `:where(:not(.page))` for Page.css's reason: `render()` stamps `page-<name>` on
+	   every page, so THIS module's own doc page — a directory called `catalog/` — wore
+	   the region's class and took its `gap: 2em` between every paragraph. `:where()`
+	   keeps the rule at (0,1,0), so nothing below becomes a load-order tie. */
+	.page-catalog:where(:not(.page)) { display: flex; align-items: flex-start; gap: 2em; }
+
+	/* The rail's first entry IS the page's own content, heading and all — so the shell
+	   around it must not print the same title again. ⚠ `.page-title` is Page.css's;
+	   catalog.js imports the module that emits it.
+	   ⚠ A hidden child still counts as a sibling: `.page-title + *` (framework.css) was
+	     handing the catalog 1.5 × `--flow` on top of the page's own `--pad-y`, so every
+	     standard catalog paid its top inset twice — 108px where a plain page paid 54. */
+	.page:has(> .page-catalog) > .page-title { display: none; }
+	.page > .page-catalog { margin-block-start: 0; }
+
+	/* The wall turned on its side: one column of the same cards, pinned beside the
+	   region and scrolling on its own, so navigating cannot move it.
+	   ⚠ Not `.basis`: previews() is a GRID (Page.css), so the one-column template
+	   and the flex sizing have to arrive together.
+	   ⚠ The cap may not exceed the scrollport: sticky at `top: 0` puts anything
+	   taller below the region's bottom edge, unreachable by either scrollbar. */
+	.page-catalog > .page-previews {
+		grid-template-columns: 1fr;
+		flex: 0 0 var(--rail, 19em); min-width: 0;
+		padding: 0.5em;
+		--thumb-max: none;
+
+		/* ⚠ `row-gap`, not `--gap`: the wall's knob INHERITS, so a live thumb's own
+		   `.gap` utilities would retune themselves to the rail's rhythm. */
+		row-gap: 1.2em;
+
+		position: sticky; top: 0;
+		max-height: 100dvh;
+		overflow-y: auto; scrollbar-width: thin;
+	}
+
+	/* The catalog bleeds, so the rail's cards sat 9px off the app sidebar. It pays the
+	   page's axis back, the way `.page.standard > .page-previews` does (Page.css) — as a
+	   MARGIN, so `--rail` still measures the cards rather than the inset.
+	   ⚠ A direct child of `.page.standard` only: a catalog in a classdoc group is
+	     already inset by the group's own `--page-pad`, and would pay it twice. */
+	.page.standard > .page-catalog > .page-previews { margin-inline-start: var(--gutter-x); }
+
+	/* ⚠ A card's WALL claim has to be dropped here: `.wide`/`.big` span two tracks
+	   (Page.css), and a span invents the track it asks for — so one `big` child turned
+	   the whole rail two columns wide and ragged. `tall` is a height and still applies. */
+	.page-catalog > .page-previews > .page-preview { grid-column: auto; }
+
+	/* A rail of one is not a rail — the region is still filled, the card is noise. */
+	.page-catalog > .page-previews:not(:has(> * + *)) { display: none; }
+
+	.page-catalog-pages { flex: 1 1 0; min-width: 0; }
+
+	/* Nothing marked yet — light the first card, so what the region is showing has
+	   a lit entry. Mirrors .tab-bar's first-tab rule; the declaration is Page.css's
+	   lit card, restated because a fallback cannot share its selector.
+	   ⚠ `:has(> .page-preview > a…)`, never `:has(a…)`: a live thumb holds real links
+	   of its own, and a back-link pointing at the page you are on marked the rail as
+	   "something is selected" — so no card lit at all.
+	   ⚠ `[aria-current]` is the third mark: a rail inside a demo app has no Router to
+	   set the two classes, and without it the first card lit beside the real one. */
+	.page-catalog > .page-previews:not(:has(> .page-preview > a:is(.active, .in-path, [aria-current]))) > .page-preview:first-child {
+		outline-color: var(--prim);
+	}
+
+	/* The rail becomes a strip when the row cannot fit — the same cards, scrolling
+	   sideways above the detail. 64em for tabs.css's reason: this set can sit in a
+	   region already missing a 19em sidebar. */
+	@media (max-width: 64em) {
+		.page-catalog { flex-direction: column; align-items: stretch; }
+
+		/* ⚠ The thumb ceiling has to come down with it: one row means the tallest card
+		   sets the height for all of them, so a full-size live thumb scrolled off to
+		   the right was reserving 250px of empty strip above the fold. */
+		/* ⚠ Unpinned: a strip stuck to the top of the region would cover the detail
+		   it heads, and there is nothing beside it to stay level with. */
+		.page-catalog > .page-previews {
+			flex: 0 0 auto;
+			grid-template-columns: none;
+			grid-auto-flow: column; grid-auto-columns: minmax(11em, 1fr);
+			position: static; max-height: none; overflow-x: auto;
+			--thumb-max: 4em;
+		}
+
+		/* ⚠ The axis payback comes off with it: the strip is a scrollport across the
+		   whole region, so an inset start spends a phone's width on nothing and the
+		   left edge goes ragged the moment it scrolls. */
+		.page.standard > .page-catalog > .page-previews { margin-inline-start: 0; }
+
+		/* ⚠ A group heading spans a ROW (Page.css), and there are no rows left here —
+		   `1 / -1` against an implicit grid put the headings in a column of their own
+		   and dealt the cards out beside them. Nor can it become a column: a label
+		   would spend 11em of a phone's scrollport. The strip is cards only. */
+		.page-catalog > .page-previews > .page-previews-group { display: none; }
+	}
+}
+
+@layer util {
+
+	/* The .tab-panel contract (tabs.css): the default hides the moment a real
+	   child shows. ⚠ Reads BOTH marks — one question asked two ways. */
+	.page-catalog-pages:has(> .page:is(.active-page, .active-ancestor))
+		> .page.default:not(.active-page, .active-ancestor) { display: none; }
+}
