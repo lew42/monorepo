@@ -1,7 +1,6 @@
 import { Page, md, demo, div, p, button, icon } from "/app.js";
-import { palette, copy } from "../parts.js";
 
-// The template, verbatim — rendered in the palette AND handed to copy(), so the
+// The template, verbatim — rendered on the stage AND printed as the source, so the
 // code on the page is the code that ran.
 const panel = () => div.c("ui-panel surface", () => {
 	div.c("ui-panel-head pad flex v-center split gap", () => {
@@ -28,18 +27,20 @@ export default new Page({
 	description: "A template plus three rules — and `reverse`, the right-aligned action row nobody expects.",
 	icon: "crop_square",
 
+	children: [
+		demo.page("raised", headless, {
+			note: "A literal `rgba(0,0,0,0.14)` is invisible on a dark surface and too heavy on a light one. Mixing the **ink token** means the shadow is always a percentage of whatever the theme decided contrast is — the same move `Sidebar.css` makes for all of its fills. It is a variant rather than the default because most panels sit on a page, not above one. Omitting the header takes its hairline with it." }),
+	],
+
 	content(){
 
-		palette(
-			["all three rows", panel],
-			["no header, raised", headless],
-		);
-
-		md("## Copy it");
-
-		copy(panel);
-
-		md("**There is no `ui.panel()`.** It took three slots by position — `panel(null, body, foot)` was a real call — and the one page on this site that actually wanted a panel wrote its own rather than import it. Omitting a row is now deleting three lines, which is both shorter and impossible to get backwards.");
+		demo.exhibit({
+			page: this,
+			stage: steer => demo.stage(panel, steer).ac("bleed"),
+			def: panel,
+			file: new URL("page.js", import.meta.url).pathname,
+			note: "**There is no `ui.panel()`.** It took three slots by position — `panel(null, body, foot)` was a real call — and the one page on this site that actually wanted a panel wrote its own rather than import it. Omitting a row is now deleting three lines, which is both shorter and impossible to get backwards.",
+		});
 
 		md("## Three rules, and they are all relationships");
 
@@ -53,10 +54,6 @@ export default new Page({
 
 		md("The trade is real and worth stating: **the DOM order reverses too**, so the primary action comes first in the source and first in the tab order. For a confirm dialog that is arguably correct; for a wizard's *Back / Next* it is not, and then `justify-content: flex-end` is one inline declaration. A `.flex.end` utility is on the [record](/framework/ui/).");
 
-		md("## The elevation is derived, not literal");
-
-		demo(headless, "A literal `rgba(0,0,0,0.14)` is invisible on a dark surface and too heavy on a light one. Mixing the **ink token** means the shadow is always a percentage of whatever the theme decided contrast is — the same move `Sidebar.css` makes for all of its fills. It is a variant rather than the default because most panels sit on a page, not above one.");
-
 		md("## Not a modal");
 
 		md("There is no backdrop, no focus trap and no `<dialog>` here on purpose — that is [Dialog](/framework/ui/dialog/), and it is the browser's. What a panel is *made of* is this: a surface, three rows and two hairlines.");
@@ -64,5 +61,5 @@ export default new Page({
 		md("Next: [Tooltip](/framework/ui/tooltip/) — the component whose CSS is the whole component.");
 	},
 
-	preview(nav){ return this.preview_card(nav, () => div.c("zoom-75 pad", panel)); },
+	preview(nav){ return this.preview_card(nav, () => div.c("zoom-50 pad", panel)); },
 });

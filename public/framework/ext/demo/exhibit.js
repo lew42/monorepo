@@ -1,6 +1,6 @@
-import View, { div, a, button, icon } from "../../core/View/View.js";
+import View, { div, a, h2 } from "../../core/View/View.js";
 import demo, { caption } from "./demo.js";
-import { stage, zoom } from "./stage.js";
+import { stage } from "./stage.js";
 
 /* Patches demo.app() on — the box demo.tree() builds. The side effect IS the import. */
 import "./app.js";
@@ -10,14 +10,14 @@ import "./app.js";
    detail pages won't have. An ext may lean on an ext; only core may never. */
 import layout from "../Layout/layout.js";
 
-/* css: .demo-steer — the slot the bar is drawn into, and redrawn into when the
-   render moves. Also .tree-preview; the shell around it keeps .page-preview,
-   which Page.css owns. */
+/* css: .demo-exhibit, .demo-exhibit-render, .demo-exhibit-def, .demo-steer — the band
+   and the slot the bar is drawn into. Also .tree-preview; the shell around it keeps
+   .page-preview, which Page.css owns. */
 View.stylesheet(import.meta, "exhibit.css");
 
 /**
- * demo.exhibit({ stage, def, file, note }) — a demo as a PAGE, and the only shape
- * one has. Three things, in this order, always:
+ * demo.exhibit({ page, stage, def, file, note }) — a demo as a PAGE, and the only
+ * shape one has. Three things, in this order, always:
  *
  *   1. the thing running, on a stage you can drag narrower;
  *   2. a layout bar wired to it — inspect it, toggle its words;
@@ -30,22 +30,41 @@ View.stylesheet(import.meta, "exhibit.css");
  * `def` is a FUNCTION and its source is the lesson: the reader gets the tree or
  * the render in front of them, not the imports and the `export default` wrapped
  * around it. `file` is for whoever wants those too.
+ *
+ * `page` is the page being built — hand it `this` and its children become the
+ * Variants wall below. One band holds the render and the definition, so on a
+ * wide monitor the code moves beside the thing instead of under it (exhibit.css).
  */
-demo.exhibit = ({ stage, def, file, note }) => {
+demo.exhibit = ({ page, stage, def, file, note }) => {
 	let $bar, target;
 
 	// ⚠ The render first, so the stage lands above the bar — `steer` fires inside
 	// it, before `$bar` exists, and the slot draws the first bar itself.
 	const steer = next => { target = next; $bar?.empty(() => layout.bar(target)); };
 
-	stage(steer);
+	div.c("demo-exhibit bleed", () => {
+		div.c("demo-exhibit-render", () => {
+			stage(steer);
+			$bar = div.c("demo-steer", () => { if (target) layout.bar(target); });
+		});
 
-	$bar = div.c("demo-steer bleed", () => { if (target) layout.bar(target); });
+		div.c("demo-exhibit-def", () => {
+			demo.source(def, "Source", file).attr("open", "");
+			if (note) caption(note);
+		});
+	});
 
-	demo.source(def, "Source", file).attr("open", "");
-
-	if (note) caption(note);
+	if (page?.children.size) variants(page);
 };
+
+/* The simple example IS the category for the complex ones: a demo page's children
+   are its variants, drawn with the ONE card system rather than a wall of its own.
+   ⚠ Called after the band, as direct children of the page — `previews()` carries
+   `bleed`, and both the track and its gutter payback need the child combinator. */
+function variants(page){
+	h2("Variants");
+	return page.previews();
+}
 
 /**
  * demo.page(name, fn, config) — a function as a demo page: the visual-ToC entry.
@@ -58,6 +77,8 @@ demo.exhibit = ({ stage, def, file, note }) => {
  * line that builds it. The title derives from the name, so a demo is called what
  * its url is called; `file:` in the config adds the "whole file" link, for a demo
  * whose function is worth reading in its own module.
+ *
+ * `children:` in the config makes this demo the category for its own variants.
  */
 demo.page = (name, fn, config) => ({
 	name,
@@ -66,6 +87,7 @@ demo.page = (name, fn, config) => ({
 
 	content(){
 		demo.exhibit({
+			page: this,
 			stage: steer => demo.stage(fn, steer).ac("bleed"),
 			def: fn,
 			file: this.file,
@@ -105,6 +127,7 @@ demo.tree = config => ({
 
 	content(){
 		demo.exhibit({
+			page: this,
 			stage: steer => this.stage(steer),
 			def: this.tree,
 			file: this.meta && new URL("page.js", this.meta.url).pathname,
@@ -113,16 +136,12 @@ demo.tree = config => ({
 	},
 
 	// The stage, bare: no field around the tree, the handle on its edge, the width
-	// pill on its bottom border — and the controls in the demo app's own titlebar.
+	// pill on its bottom border. The controls are the stage's own strip above it —
+	// they were in the demo app's titlebar while a bare stage had nowhere to put
+	// them, and they pointed at the page region rather than at the box, so the
+	// readout could not report what a width had simulated. Both fixed by moving out.
 	stage(steer){
-		let app;
-		const { $stage, measure } = stage(() => { app = this.box(this.height, steer); });
-
-		app.$url.append(() => {
-			zoom(app.$pages, measure);   // the page region, not the box — the titlebar stays put
-			button.c("demo-btn", () => icon("open_in_full")).attr("title", "Fill the window")
-				.click(function(){ this.tc("on"); $stage.tc("max"); });
-		});
+		const { $stage } = stage(() => { this.box(this.height, steer); });
 
 		return $stage.ac("bare");
 	},

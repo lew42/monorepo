@@ -83,9 +83,16 @@
 	.demo-note {
 		margin: 0;
 		max-width: var(--measure, none);   /* a demo is a box; its caption is prose */
-		padding: var(--demo-pad);
 		font-size: 0.9em;
 		color: var(--subtle);
+	}
+
+	/* ⚠ Inside a box the caption is the box's last strip; on a PAGE (demo.exhibit)
+	   it is a paragraph under the source, and a tinted band with a hairline over it
+	   would be drawing an edge onto nothing. The padding is `--demo-pad`, which only
+	   `.demo` declares — unscoped it resolved to nothing and the strip had none. */
+	.demo > .demo-note {
+		padding: var(--demo-pad);
 		background: var(--tint);
 		border-top: 1px solid var(--line);
 	}
@@ -98,6 +105,10 @@
 	.demo-source > summary { font-size: 0.85em; color: var(--subtle); }
 	.demo-source > summary:hover { color: var(--prim); }
 	.demo-source > pre { tab-size: 4; line-height: 1.55; }
+
+	/* ⚠ `inline-flex`, and it must come after `.demo-btn`: a flex button in a
+	   `<summary>` takes the whole line and drops the label above it. */
+	.demo-copy { display: inline-flex; vertical-align: -0.25em; padding: 0.1em 0.35em; }
 
 	/* The whole file, for the reader who wants the imports the lesson leaves out. */
 	.demo-file { margin-inline-start: 0.8em; font-family: var(--mono); }

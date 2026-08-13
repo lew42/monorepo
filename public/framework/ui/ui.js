@@ -20,6 +20,6 @@ export const ui = { table, timeline, keys };
 
 export { table, timeline, keys };
 
-export { css, component, palette, copy } from "./parts.js";
+export { css, component } from "./parts.js";
 
 export default ui;

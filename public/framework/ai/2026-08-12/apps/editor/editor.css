@@ -1,0 +1,33 @@
+/* Restated IN FULL — a short list silently misplaces `site`. */
+@layer base, theme, site, util;
+
+/* Three regions and a selection ring. Everything the panels look like is `surface`,
+   `wash` and `pad` off framework.css — what is left here is the scrolling and the
+   one state no utility carries. */
+@layer theme {
+
+	/* Chrome is sized by its region, never by its content — so the height is the
+	   component's, and a call site retunes the token rather than restating `height`. */
+	.apps-editor { height: var(--apps-height, 26em); overflow: hidden; }
+
+	/* ⚠ `min-height: 0` is what `flex-1` does not carry: without it the panels grow
+	   to their content and the chrome outgrows the height the stage gave it. */
+	.apps-body { flex: 1 1 0; min-height: 0; }
+
+	.apps-panel { overflow-y: auto; }
+	.apps-canvas { overflow: auto; }
+
+	/* A `.layout-btn` is a centred row; a layer is a line in a list. */
+	.apps-layer { justify-content: flex-start; width: 100%; }
+
+	.apps-off { display: none; }
+
+	/* ⚠ Outline, not border: it takes no space, so selecting cannot reflow the thing
+	   you are editing. ⚠ Offset INWARD — nodes nest, and an outward ring on a child
+	   sits on top of its parent's.
+	   Not ext/Layout's `.layout-selected`: that class is the right drawer's mark and
+	   `panel.js` owns when it goes on. */
+	.apps-node { outline: 2px solid transparent; outline-offset: -2px; }
+	.apps-node:hover { outline-color: color-mix(in srgb, var(--prim) 45%, transparent); }
+	.apps-node.on { outline-color: var(--prim); }
+}

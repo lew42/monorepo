@@ -1,7 +1,7 @@
 import View, { div, p, pre, code, span, a, button, details, summary, icon, is } from "../../core/View/View.js";
 import { source, dedent } from "../../util/source/source.js";
 import { markup } from "../../util/markup/markup.js";
-import { stage, zoom } from "./stage.js";
+import { stage } from "./stage.js";
 
 /* css: `.page.standard > .demo.quoted` — the opt-out reads Page.css's own track names,
    so this import is the loading edge for it, not an annotation. */
@@ -76,7 +76,7 @@ export default function demo(...args){
 
 		// `checkered` so you can tell whether what rendered painted its own
 		// background — an unpainted box shows the board through (framework.css).
-		const { $render, measure } = stage(fn, "checkered");
+		const { $render } = stage(fn, "checkered");
 
 		if (note) caption(note);
 
@@ -96,20 +96,15 @@ export default function demo(...args){
 
 			div.c("demo-spacer");
 
-			zoom($render, measure);
-
 			$toggle = btn("<>", "The HTML this built", () => html(!$demo.hc("show-html")));
 
-			/* A link when the page claims `<url>full/` via `route()`, so a reload lands
-			 * back on it; a toggle when it doesn't. See styles/layouts/full.js. */
+			/* A LINK, and only when the page claims `<url>full/` via `route()`, so a
+			 * reload lands back on it. Filling the window is the stage's own control
+			 * now — one strip below this one, and it has the render, not the box.
+			 * See styles/layouts/full.js. */
 			if (opts.full)
 				a.c("demo-btn", () => icon("open_in_full"))
 					.attr("title", "Open full size").href(opts.full.url + "full/");
-			else
-				btn(() => icon("open_in_full"), "Fill the window", function(){
-					this.tc("on");
-					$demo.tc("max");
-				});
 		});
 
 		if (opts.html) queueMicrotask(() => html(true));
@@ -117,21 +112,19 @@ export default function demo(...args){
 }
 
 /**
- * demo.stage(fn) — the stage on its own: the resizable box, the width readout and
- * the zoom, with no code pane, no bar and no border. This is a leaf demo page's
- * entire render; it carries `wide` like any exhibit, and `.ac("bleed")` is what
- * takes it the rest of the way to the window's edge.
+ * demo.stage(fn) — the stage on its own: its strip, the resizable box and the width
+ * readout, with no code pane and no border. This is a leaf demo page's entire
+ * render; it carries `wide` like any exhibit, and `.ac("bleed")` is what takes it
+ * the rest of the way to the window's edge.
  *
  * `steer`, if given, is handed the render — the box a toolbar over this stage
  * points at. `demo.exhibit()` is the caller that has one (exhibit.js).
  *
- * The pieces are stage.js's; `demo()` above composes the same ones. ⚠ `stage()` is
- * the raw one and stays bare — exhibit.js builds its own band and must not double up.
+ * The pieces are stage.js's, strip included; `demo()` above composes the same ones.
  */
 demo.stage = (fn, steer) => {
-	const { $stage, $tools, $render, measure } = stage(fn);
+	const { $stage, $render } = stage(fn);
 
-	$tools.append(() => { zoom($render, measure); });
 	steer?.($render);
 
 	return $stage.ac("wide");
@@ -159,10 +152,27 @@ demo.source.file = (meta, url, label = url) =>
 
 function source_details(label, body, file){
 	return details.c("demo-source", $source => {
-		summary(() => { span(label); if (file) file_link(file); });
+		summary(() => { span(label); if (file) file_link(file); copy_btn($source); });
 		body($source);
 	});
 }
+
+/* The source block is the one place code is handed over, so the copy button rides
+   it rather than living beside a second code block (ui/parts.js had one).
+   ⚠ Reads the rendered `<pre>` at click time, not the function: `demo.source.file`
+   fetches, so there is nothing to hold until it lands — and copying what you can
+   see cannot drift from it.
+   ⚠ `preventDefault` is the load-bearing one: a click anywhere inside a `<summary>`
+   toggles it, and that is the element's default action, not a listener. */
+const copy_btn = $source => btn(() => icon("content_copy"), "Copy the source", function(e){
+	e.preventDefault();
+	e.stopPropagation();
+
+	navigator.clipboard.writeText($source.el.querySelector("pre")?.textContent ?? "");
+
+	this.empty(() => icon("check")).ac("on");
+	setTimeout(() => this.empty(() => icon("content_copy")).rc("on"), 1400);
+}).ac("demo-copy");
 
 /* ⚠ `target` and `stopPropagation` are both load-bearing: the Router ignores a link
    that carries a target (`link_clicked`), and a click that reached the `<summary>`

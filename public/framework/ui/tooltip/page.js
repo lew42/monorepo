@@ -1,9 +1,11 @@
 import { Page, md, demo, div, p, span, code } from "/app.js";
-import { palette, copy } from "../parts.js";
 
-// The template, verbatim — rendered in the palette AND handed to copy(), so the
-// code on the page is the code that ran.
-const tooltip = () => p(() => {
+/* The template, verbatim — rendered on the stage AND printed as the source, so the
+ * code on the page is the code that ran.
+ * ⚠ The `pad` wrapper is part of it: the bubble is out of flow and every stage,
+ *   demo box and card crops, so a tooltip at the very top edge is a tooltip you
+ *   cannot see. */
+const tooltip = () => div.c("pad", () => p(() => {
 	span("Capturing is ");
 
 	span.c("ui-tooltip", () => {
@@ -12,12 +14,19 @@ const tooltip = () => p(() => {
 	}).attr("tabindex", "0");
 
 	span(", so a factory call after an await lands somewhere else.");
-});
+}));
 
-const shown = () => p(() => span.c("ui-tooltip shown", () => {
+const shown = () => div.c("pad", () => p(() => span.c("ui-tooltip shown", () => {
 	span.c("ui-tooltip-word", "held open");
 	span.c("ui-tooltip-bubble", "In the reveal list with :hover and :focus-visible, so this is screenshot-testable.");
-}));
+})));
+
+const native = () => p(() => {
+	span("Native, and it costs nothing: ");
+	span("hover this").attr("title", "The UA tooltip. No CSS, no positioning, no clipping.")
+		.style({ borderBottom: "1px dotted var(--subtle)", cursor: "help" });
+	span(" — the `title` attribute.");
+});
 
 export default new Page({
 	meta: import.meta,
@@ -25,18 +34,23 @@ export default new Page({
 	description: "Three spans and a stylesheet — the CSS is the whole component.",
 	icon: "help_outline",
 
+	children: [
+		demo.page("shown", shown, {
+			note: "`.shown` is in the reveal list beside `:hover` and `:focus-visible` — **one selector list**, so the keyboard path can never drift from the pointer path, and a screenshot test has something to point at." }),
+
+		demo.page("native", native, {
+			note: "`title` is a real tooltip with a real delay and no styling at all. If the design doesn't insist on the bubble, this is rung 1 of the [ladder](/framework/styles/) — **nothing** — and the whole stylesheet goes away." }),
+	],
+
 	content(){
 
-		palette(
-			["hover it, or tab to it", tooltip],
-			["held open by `.shown`", shown],
-		);
-
-		md("## Copy it");
-
-		copy(tooltip);
-
-		md("**There is no `ui.tooltip()`** — it was two spans inside a span, and every interesting thing about a tooltip is in the stylesheet the markup can't reach. `tabindex=\"0\"` is what makes the keyboard path possible at all, and it is visible here rather than buried.");
+		demo.exhibit({
+			page: this,
+			stage: steer => demo.stage(tooltip, steer).ac("bleed"),
+			def: tooltip,
+			file: new URL("page.js", import.meta.url).pathname,
+			note: "Hover the dotted word, or tab to it. **There is no `ui.tooltip()`** — it was two spans inside a span, and every interesting thing about a tooltip is in the stylesheet the markup can't reach. `tabindex=\"0\"` is what makes the keyboard path possible at all, and it is visible here rather than buried.",
+		});
 
 		md("## Where the line actually is");
 
@@ -54,23 +68,12 @@ export default new Page({
 
 		md("The bubble is `var(--ink)` on `var(--surface)` ink, inverted. It said `color: white` over `var(--bg)` until the review: readable, but a **literal colour**, which is the one thing a component may not name — and in dark mode the bubble sat two shades off the page behind it.");
 
-		md("⚠ The bubble is out of flow, so an ancestor with `overflow: hidden` **clips** it. `.demo` is one, which is why the examples on this page sit away from the box edge.");
-
-		md("## And the free version");
-
-		demo(() => {
-			p(() => {
-				span("Native, and it costs nothing: ");
-				span("hover this").attr("title", "The UA tooltip. No CSS, no positioning, no clipping.")
-					.style({ borderBottom: "1px dotted var(--subtle)", cursor: "help" });
-				span(" — the `title` attribute.");
-			});
-		}, "`title` is a real tooltip with a real delay and no styling at all. If the design doesn't insist on the bubble, this is rung 1 of the [ladder](/framework/styles/) — **nothing** — and the whole stylesheet above goes away.");
+		md("⚠ The bubble is out of flow, so an ancestor with `overflow: hidden` **clips** it — a stage's screen and a `.demo` box both are, which is why the template above carries a `pad` wrapper and why its card shows the tooltip at rest.");
 
 		md("Next: [Avatar](/framework/ui/avatar/) — initials in a circle, sized by a token.");
 	},
 
 	// ⚠ Never `.shown` here: the bubble is out of flow and the thumb crops, so a
 	// held-open one renders as a sliver. A card shows the tooltip at rest.
-	preview(nav){ return this.preview_card(nav, () => div.c("zoom-75 pad", tooltip)); },
+	preview(nav){ return this.preview_card(nav, () => div.c("zoom-50 pad", tooltip)); },
 });

@@ -1,5 +1,4 @@
 import { Page, md, demo, div, code } from "/app.js";
-import { palette } from "../parts.js";
 import { timeline } from "./timeline.js";
 
 const RELEASES = [
@@ -8,6 +7,13 @@ const RELEASES = [
 	["Jun 2026", "The Pager tier died", "An arrangement is a class a page opts into. Four core classes left."],
 ];
 
+const releases = () => timeline(
+	["Aug 2026", "The sheet is the default", "A region hands every page the reading measure."],
+	["Jul 2026", "One flow token", "`--flow: 2em`, one em token in place of four."],
+	["Jun 2026", "The Pager tier died", "An arrangement is a class a page opts into."]);
+
+const single = () => timeline(RELEASES[0]);
+
 export default new Page({
 	meta: import.meta,
 	title: "Timeline",
@@ -15,21 +21,20 @@ export default new Page({
 	icon: "timeline",
 	card: "tall",
 
+	children: [
+		demo.page("single", single, {
+			note: "**The run has to stop** — a line trailing off below the final entry reads as a loading state, and with one entry the whole rail is that case. It used to be an index compared against `items.length`, a `last` flag and a class; it is now two `:last-child` rules, because *which row is last* is a question the DOM can answer." }),
+	],
+
 	content(){
 
-		palette(
-			["ui.timeline(…)", () => timeline(...RELEASES)],
-			["one entry — no line", () => timeline(RELEASES[0])],
-			["two", () => timeline(RELEASES[0], RELEASES[2])],
-		);
-
-		md("## Calling it");
-
-		demo(() => {
-			timeline(
-				["Aug 2026", "The sheet is the default", "A region hands every page the measure."],
-				["Jun 2026", "The Pager tier died", "An arrangement is a class a page opts into."]);
-		}, "`[when, what, note]` triples. Three flex columns per row — the date, the rail, the entry — and the connecting line is the inline-start border of an empty `flex-1` div sitting under each dot.");
+		demo.exhibit({
+			page: this,
+			stage: steer => demo.stage(releases, steer).ac("bleed"),
+			def: releases,
+			file: new URL("timeline.js", import.meta.url).pathname,
+			note: "`[when, what, note]` triples. Three flex columns per row — the date, the rail, the entry — and the connecting line is the inline-start border of an empty `flex-1` div sitting under each dot.",
+		});
 
 		md("## The line, without a pseudo-element");
 
@@ -41,8 +46,6 @@ export default new Page({
 		md("The reflex is `::before` with `position: absolute`, and that needs a selector twice over — a pseudo-element cannot be reached from an inline style, and positioning is a *relationship* between two elements ([the line this library draws](/framework/ui/tooltip/)). A zero-width box with one border is the same hairline, in the flow, owned by the row that draws it.");
 
 		md("`flex-1` is what makes it reach: the dot is `flex: 0 0 auto`, so the empty box takes every pixel of row height left over.");
-
-		md("**The run has to stop** — a line trailing off below the final entry reads as a loading state. That used to be an index compared against `items.length`, a `last` flag and a class; it is now two `:last-child` rules, because *which row is last* is a question the DOM can answer:");
 
 		md("```css\n.ui-timeline-row:last-child .ui-timeline-line { border: none; }\n.ui-timeline-row:last-child .ui-timeline-entry { padding-bottom: 0; }\n```");
 
@@ -57,5 +60,5 @@ export default new Page({
 		md("Next: [Keys](/framework/ui/kbd/) — the one element the base theme half-styles.");
 	},
 
-	preview(nav){ return this.preview_card(nav, () => div.c("zoom-75 pad", () => timeline(...RELEASES))); },
+	preview(nav){ return this.preview_card(nav, () => div.c("zoom-50 pad", () => timeline(...RELEASES))); },
 });

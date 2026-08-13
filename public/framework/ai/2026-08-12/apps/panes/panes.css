@@ -1,0 +1,24 @@
+/* Restated IN FULL — a short list silently misplaces `site`. */
+@layer base, theme, site, util;
+
+/* A pane system is one relationship — every box takes an equal share of its own
+   axis, and a divider between two of them takes none. That is the whole stylesheet;
+   what a pane LOOKS like is `surface` and `wash` off framework.css. */
+@layer theme {
+
+	/* Chrome is sized by its region, never by its content — so the height is the
+	   component's, and a call site retunes the token rather than restating `height`. */
+	.apps-panes { height: var(--apps-height, 24em); }
+
+	/* ⚠ `1 1 0`, not `flex-1`: the util class carries no `min-height`, and a pane
+	   whose body scrolls needs one at every level of the nesting. */
+	.apps-split, .apps-pane { flex: 1 1 0; min-width: 0; min-height: 0; }
+
+	.apps-pane { overflow: hidden; }
+	.apps-pane-body { min-height: 0; overflow: auto; }
+
+	/* `flex-basis` is the main axis in both directions, so one rule sizes a vertical
+	   divider and a horizontal one — only the cursor has to know which it is. */
+	.apps-grip { flex: 0 0 0.4em; cursor: col-resize; }
+	.apps-split.v > .apps-grip { cursor: row-resize; }
+}

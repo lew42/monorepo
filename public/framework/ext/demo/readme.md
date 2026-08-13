@@ -549,10 +549,420 @@ crop is simply correct.
 - **The pane re-reads on show, not live.** Toggle it off and on after clicking inside
   a demo and you see the new DOM. A genuinely live pane needs a `MutationObserver`
   and has no asker yet.
-- **No width presets on the main box.** "Mega / desktop / mobile" was asked for and
-  is not there: a preset labelled `1920` is a promise about media queries that a div
-  cannot keep (§6). Zoom percentages promise nothing they don't deliver.
-  `demo.responsive` (§10) names two widths and inherits the same caveat — it is a
-  layout comparison, not a viewport. Real presets land with the iframe or not at all.
+- ~~**No width presets on the main box.**~~ **Reversed 2026-08-12 — §17.** The
+  argument was that a preset labelled `1920` promises media queries a div cannot
+  keep (§6). It stands, and the answer turned out to be labelling: the number is a
+  *layout* width, which is exactly what the stage delivers and what the readout
+  reads back. `demo.responsive` (§10) had been naming two widths on that basis all
+  along.
 - **`--demo-pad: 2rem` is a lot of a 262px box.** At 390px the frame is a quarter of
   the demo's width. Pre-existing, but the stage makes it more visible.
+
+---
+
+## 17. The stage can only shrink — simulated widths, and one control
+
+**The question** (Mike, 2026-08-12): the stage renders at 100% of its container and
+the handle only ever makes it *narrower*. On a laptop that puts every desktop and
+ultrawide layout out of reach — the widths the site's own doctrine (§14) argues
+hardest about are the ones a reader cannot see.
+
+**Verdict: `zoom()` picks a WIDTH or a percentage.** A width lays the render out at
+390 / 810 / 1440 / 3440 and computes `zoom = room ÷ width` so it fits where it is —
+the arithmetic `demo.responsive` has always used, now `simulate()` in `stage.js` and
+imported by `responsive.js` so there is one copy of it and one place the
+`zoom`-not-`scale` trap is written down.
+
+### The widths, and why the label leads with the number
+
+`390 · mobile`, `810 · tablet`, `1440 · desktop`, `3440 · mega` — a current phone
+(not the 375 of an iPhone 8), a tablet held upright, the width nearly every desktop
+comp is drawn at, and the monitor §14 was written on. §16 refused presets because
+`1920` promises media-query behaviour a `<div>` cannot deliver, and that objection
+is still true (§6). What answers it is the *order of the words*: the number is a
+layout width, the stage really does lay out at it, and the readout says so. The
+device word is the mnemonic, second, and it is doing the same job the words `wide`
+and `narrow` already do on `demo.responsive`.
+
+### One control, not two — *superseded the same day by §20*
+
+| | |
+|---|---|
+| a preset row of four buttons in `$tools` | four controls where there was one, and the corner of a `bare` stage is a pill on a border with no room for them |
+| a preset `<select>` beside the zoom `<select>` | two dials answering one question — "how am I looking at this" — and in a `demo()` they would sit in two different places (§7's whole point is one strip) |
+| **widths and percentages in the one `<select>`, two `<optgroup>`s** | ✓ |
+
+**Verdict: merge.** Every option does the same thing to the render — sets a zoom —
+and half of them also name the width it is computed from. `100%` is the neutral
+entry, so the way back was already in the list and no `Fit` had to be invented.
+
+The merge is also what makes "zero new API on the callers" true: `demo()`,
+`demo.stage()`, `demo.exhibit()` and `demo.tree()` **already** call `zoom($view,
+measure)`, each into the right place for its own chrome, so all four got widths
+without a line changing in `demo.js` or `exhibit.js`. A control built into `$tools`
+by `stage()` itself would have put a second dial in `demo()`'s corner, below the bar
+that already has one.
+
+### Never magnified, and never centred
+
+`zoom` is capped at 1: `room = min(container, width)`. A 390px layout in a 1200px
+stage at 3× is a magnifying glass, not a phone — the one thing a reader can check
+against reality is 1:1, and the whole feature exists to show the *layout*, which 3×
+does not change. Below 1 there is no cap: `mega` in a 900px stage draws at 26%,
+which is small and honest.
+
+The 810px of empty stage that leaves beside a phone is **not** centred, deliberately:
+today's axis verdict (`core/Page/doc/layout.md`) puts everything on one left edge,
+and a box that re-centres its contents restarts that argument inside a stage. A
+phone on the left with room to its right is what a phone in a desktop window is.
+
+### The handle wins ties
+
+A drag makes the width the reader's own, so a simulated one lets go rather than
+fighting it, and the handle keeps meaning what it has always meant: *this is the
+width the example lays out at*. Re-fitting a preset to a dragged stage was the
+alternative and it demotes the handle to a zoom slider — the readout would sit at
+`1440px` through the whole drag and nothing would reflow, which is this repo's
+least favourite failure mode. Right-click still clears everything, the percentage
+included.
+
+The two halves are 30 lines apart in `stage.js` and talk through one `demo-release`
+event on `.demo-stage` — the element the handle and the control are sure to share,
+including in `demo()`, where the control lives up in the bar and outside the stage,
+and in `demo.tree()`, where it points at the demo app's page region rather than at
+the render.
+
+### The readout, checked
+
+`offsetWidth` is the element's own box and ignores `zoom` (§7), and under a preset it
+is the number that was picked, exactly — measured in Chrome: `1440px · 60%`,
+`3440px · 25%`, `390px` at 1:1, `1731px · 50%` for a manual half-zoom of an 866px
+stage. The computed factor now rides along whenever it isn't 1, because under a
+preset nothing else on screen says what the render was scaled to. Same format
+`demo.responsive` prints under each pane.
+
+### Kept: the stage still opens at 100%
+
+Mike floated rendering it a little under 100% so there would be room to drag it
+*larger*. Weighed and declined: it would shrink every demo on the site by default to
+buy an affordance the widths now provide outright, one click and with a number
+attached — and §14 had just spent the `wide` track making these boxes bigger.
+
+---
+
+## 18. Two-up drag: one re-simulation per frame
+
+**The problem.** `demo.responsive`'s split handle re-simulated on every
+`pointermove`: two width writes, then `fit()` measuring both panes and re-zooming
+them, each a full relayout of a live render. Fans spin.
+
+**Measured, Chrome, `/framework/ext/demo/`** — 200 `pointermove`s dispatched inside
+one turn of the loop (what a 240Hz pointer, or any pointer faster than the handler,
+actually delivers):
+
+| | main thread | re-simulations |
+|---|---:|---:|
+| before | **781–807 ms** | 200 |
+| after | **0.4–2 ms** | 1 |
+
+Three fixes, all of them removing work rather than deferring it:
+
+1. **rAF coalescing** — `drag(el, move)` in `stage.js` keeps the last event and runs
+   `move` once per frame. The stage's own handle uses it too: it was reading
+   `getBoundingClientRect()` per move, a forced layout of the whole document.
+2. **Unchanged widths do nothing.** `split()` computes both simulated widths and
+   returns if neither moved — which is every frame the pointer spends past the ¼/¾
+   clamp, and the reason two of the three passes above cost zero.
+3. **Read both rooms, then write both panes.** Interleaved, the second
+   `clientWidth` read re-lays-out the document the first write just dirtied — two
+   forced layouts per pass where one will do.
+
+**The trailing debounce was not needed and not taken.** It was the third candidate:
+let the flex split track the pointer live and re-zoom ~100ms later. It changes the
+feel — the panes would lag their own divider — and with the numbers above there is
+nothing left to defer.
+
+### Open
+
+- ~~**`demo.tree()`'s pill doesn't report the simulated width.**~~ **Closed by §20**
+  — the controls left the demo app's titlebar for the stage's own strip, so they
+  point at the render the ruler measures.
+- **`demo.responsive` doesn't carry `wide`.** §14 gave the doctrine to `demo()` and
+  `demo.stage()`; the two-up is the widest exhibit on the site and was missed.
+- **A simulated width is still not a viewport** (§6). `@media` reads the real
+  window; everything intrinsic responds. The iframe remains the only honest answer
+  to *that* question, and these labels are careful not to make the promise.
+
+---
+
+## 19. The exhibit is a band, `ui/` joined it, and a demo can carry variants
+
+Three changes, one thesis: *one page system everywhere.* `demo.exhibit()` was four
+loose siblings on the page grid; it is now one block that can lay itself out, and
+the last section still doing its own thing joined it.
+
+### 19.1 Why the four siblings became one band
+
+`stage`, `steer bar`, `source` and `caption` were direct children of `.page.standard`,
+so each picked its own track: the stage took `bleed`, the source took `main`. **On a
+3440 monitor that is a 3020px render above a 936px code block with 2000px of grey
+beside it** — the exact complaint `--breakout` was made responsive for
+(`core/Page/doc/layout.md`), one level down.
+
+| | |
+|---|---|
+| put the source on `bleed` too | a `<pre>` of 80-character lines in a 3020px box is the same grey, differently arranged |
+| a container query on the page | correct, and it needs a wrapper anyway — so the wrapper is the actual answer |
+| explicit `grid-row` / `grid-column` per sibling on the page template | four rules coupling `ext/demo` to Page.css's track names, and one that breaks the moment a caller adds a fifth block |
+| **one `.demo-exhibit` band, `flex-wrap` inside it** | ✓ |
+
+**Verdict: `demo.exhibit()` emits one `bleed` band holding a render column and a
+definition column.** `flex-wrap` + a basis, not a query — §2's verdict applied to a
+page, and for §2's reason: the width that varies is the *band's*, and the band is
+the thing that knows. `84em + 32em + the gutter` is ~121em, deliberately past
+`--breakout`'s own 96em knee, so:
+
+| viewport | band | render | definition |
+|---|---|---|---|
+| 390 | 390 | **390** (flush) | 390, inset |
+| 810 | 810 | 745 | 745 |
+| 1440 | 839 | 772 | 772 |
+| 3440 | 2698 | **1767** | **661, beside it** |
+
+Measured, all four. **Nothing below ~2.5K moves at all** — 1440 is byte-identical to
+what it was — and the mega monitor stops spending its right third on nothing.
+
+**The phone gets the other half of the fix.** `--gutter-x` bottoms out at `2em`,
+which is 16% of a 390px screen spent on axis. Under `36em` the band pays none of it
+and the render is the full width; only the definition column keeps the inset,
+because that column is *text*. That bends `doc/layout.md`'s one-left-edge rule
+exactly as far as §14 already does — the measure is for reading, and a render is
+not reading.
+
+⚠ **Two rules moved with the DOM.** `.page.standard > .demo-stage.bleed` and
+`.page.standard > .demo-steer.bleed` (the gutter payback) no longer match, because
+neither is a direct child of the page any more; the band pays it once instead.
+`stage.css`'s rule still serves `styles/layouts/word.js`, which composes a stage
+without the assembly. And `demo.tree()`'s **bare** stage, which had no track class
+at all and was therefore capped at `main` (936px), is now a render column — a mini
+app lays out at desktop width rather than at reading width. That is the intent;
+the letterbox it produces for a `height: "18em"` tree on a 3440 is open below.
+
+### 19.2 The source block grew a copy button
+
+`ui/parts.js` shipped `copy(fn)` — a second code block with a clipboard button —
+beside every `demo.source()` on the site. One of two things showing you the same
+code is always the stale one, so the affordance moved into the block that was
+already there and `copy()` was deleted.
+
+⚠ It reads the **rendered `<pre>` at click time**, not the function: `demo.source.file`
+fetches, so there is nothing to hold until it lands — and copying what you can see
+cannot drift from it. ⚠ `preventDefault()` is load-bearing: a click anywhere inside
+a `<summary>` toggles it, and that is the element's *default action*, not a listener,
+so `stopPropagation()` alone leaves the reader closing the box they just opened.
+
+### 19.3 `Variants` — a demo page's children, under the exhibit
+
+**The question** (this session's brief): any demo page should be able to carry
+child variants — *the simple example IS the category for the complex ones.*
+
+| | |
+|---|---|
+| a `variants: [...]` config of render functions | a fifteenth preview mechanism, and none of them would have a url |
+| a `Page.prototype.variants()` beside `previews()` | a second wall, differing from the first by a heading |
+| **`page.children` → `h2("Variants")` + `previews()`** | ✓ |
+
+**Verdict: hand the assembly the page.** `demo.exhibit({ page: this, … })` renders
+`h2("Variants")` and `this.previews()` when the page has children, and stops when it
+doesn't — so `styles/sections` and `styles/layouts` gained the capability by adding
+one word each and changed no pixels. Zero new preview mechanisms: the cards are
+`Page.css`'s, the same ones the rail is made of.
+
+⚠ **The heading and the wall are emitted as direct children of the page, outside the
+band.** `previews()` carries `bleed`, and both that track and its `--gutter-x`
+payback are written with a child combinator — inside the band they would silently
+be a `main`-width wall with no inset.
+
+⚠ **`page`, not `this`.** `demo.exhibit()` is called, never bound, so the page has
+to arrive as a named key. It reads `page.children` and `page.previews()` and nothing
+else, which is what keeps it out of the black-magic column.
+
+### 19.4 What `ui/` looked like before, and what it is now
+
+`ui/` was the last section outside the system: a `previews()` wall with three token
+overrides for an index, and nineteen detail pages that were `palette()` +
+`copy()` + prose + loose `demo()` boxes. The `ai/2026-08-11` census had already
+named `palette()` the fourth preview mechanism and pre-committed the fix; this is it.
+
+- **The index is `initialize(){ this.catalog(); }`** — the same one line
+  `styles/sections`, `styles/layouts` and `styles/elements/forms` wear.
+- **Every leaf leads with `demo.exhibit()`**: the component live on a stage, the
+  layout bar wired to it, the template open beside it with a copy button.
+- **`palette()` and `copy()` are deleted.** Every runnable example on those pages
+  is now either *the* exhibit or a variant child page — 29 of them, all real urls.
+- The per-page calls are in `ui/readme.md`.
+
+### 19.5 Also fixed here
+
+**`.demo-note` had no padding outside a `.demo`.** It read `padding: var(--demo-pad)`
+with no fallback, and only `.demo` declares that token — so on every exhibit page the
+caption was a tinted, hairlined strip with its text against both edges. Invalid at
+computed-value time is not an error anybody sees. The box treatment is now scoped to
+`.demo > .demo-note`; on a page the caption is just muted prose under the source,
+which is what it always meant.
+
+### 19.6 Open, from this session
+
+- **A tall bare stage letterboxes on a mega monitor.** A `demo.tree()` with
+  `height: "18em"` in a 1900px render column is a 7:1 strip. The render column caps
+  nothing on purpose (§19.1); if this bites, the cap belongs on the *tree*, which is
+  the thing that knows it wanted a window.
+- **The definition column does not stick.** Beside a tall render on a 3440 you scroll
+  the code out of view. `position: sticky` is three lines and no asker yet.
+- **`/web/layout/tracks/` still hand-rolls its exhibit** — it overrides `demo.tree()`'s
+  `content()` to bleed the stage and print the file rather than the definition. It is
+  the last page on the site outside the assembly, and it is a `web/` guide page whose
+  lesson genuinely is the page template.
+- **The `Variants` heading is a fixed word.** "Related" was the other candidate; a
+  config key for it would be API surface forever, so the word is the API. Rename it
+  in one place if it turns out wrong.
+
+---
+
+## 20. The strip is the stage's own
+
+**Mike, on seeing §17** (2026-08-12, same day): the widths belong in a **toggle**,
+centred; the zoom belongs **top right**; there should be a **fullscreen** button
+beside it and **one** of those on the site, not the three there were; and the zoom
+wants a **magnifier you can drag**, the way a design tool does it.
+
+That is one verdict with four parts, and it reverses §17's "merge into the one
+select" the same day it was written. §17 merged because a second control meant a
+second *place* — `demo()`'s bar and a bare stage's corner. **What actually fixes
+that is giving the stage its own strip**, which is the thing neither §7 nor §8 was
+willing to do.
+
+| | |
+|---|---|
+| the caller places the controls (§17) | four call sites, three different places, and a centred toggle in `demo()` would have to be centred in `demo.css`'s bar — a file this module does not own |
+| a fifth block, "the stage toolbar", beside the five | the census again — and it is not a new block, it is the stage's own chrome |
+| **`stage()` builds the strip** | ✓ |
+
+**Verdict: every stage builds `[ · | mobile tablet desktop mega | 🔍 zoom ⤢ ]`
+itself.** `demo()`, `demo.stage()`, `demo.exhibit()` and `demo.tree()` do nothing
+but build a stage, and all four are identical because there is one implementation
+and no wiring left to get wrong. Three tracks (`1fr auto 1fr`) so the widths are
+centred on **the stage**, not on whatever the dials happen to weigh; a `1fr` floors
+at its own content, so the dials keep their corner when the strip runs out of room
+and the toggle wraps inside its own cell.
+
+### What that cost the other files, and what it bought
+
+Three deletions, no additions:
+
+- **`demo()`'s bar** loses its zoom and its fill-the-window toggle, and is now
+  `[label … <>]`. §7's rule survives with a sharper edge: **the bar controls the
+  box, the strip controls the render.** The `opts.full` **link** stays — it is a
+  url, not a toggle (`styles/layouts/full.js` claims `<url>full/` so a reload lands
+  back on it), which is the same distinction §7 drew in the first place.
+- **`demo.tree()`'s titlebar** loses the zoom and the fullscreen button it was
+  given when a bare stage had nowhere to put them. They pointed at `app.$pages`
+  while the ruler measured the render — so the readout could not report what a
+  width had simulated (§18, open). Now a width simulates **the whole demo app**,
+  rail included, which is what "this app at phone width" should have meant, and the
+  pill reports it.
+- **The `demo-release` event is gone.** §17 needed it because the handle and the
+  control were built by different callers; now they are built four lines apart in
+  one closure, so `resizer($stage, release)` just takes the callback. An invented
+  event name that survived one day is the right lifetime for one.
+
+### Widths as a toggle, and what it fixed
+
+A segmented row of four `.demo-btn`s, pressed state `.on` — the same button and the
+same pressed state every other demo control uses, so this is one flex rule of new
+CSS. It beats the `<optgroup>` on the thing a `<select>` is worst at: **which width
+is active is visible without opening anything**, and re-pressing the pressed one
+releases it, which is the natural "off" a dropdown had to fake with a `100%` entry.
+
+The select gets its short list back, and is a zoom control again.
+
+⚠ The device word is now the whole label, where §17 argued the *number* should lead.
+The honesty lives one line down instead: the button's `title` is `390px of layout —
+a width, not a device`, and the readout under the render prints `390px` or
+`1440px · 59%` the whole time. §6's caveat is unchanged and unchangeable — a div is
+not a viewport.
+
+### Zoom on top of a width, not instead of it
+
+§17 made a percentage clear the simulated width. That was wrong in the way that
+only shows up once you have both: **scrubbing into a 1440 layout to read it is the
+point**, and clearing the width to do it throws away the thing you were reading.
+So the two are now orthogonal — a width sets the layout, a zoom sets the drawing —
+and the render scrolls inside the screen when the product is bigger than the room.
+
+The bookkeeping that makes that safe is one flag, `fitted`: the container-resize
+re-fit only runs while the zoom is still the one the width computed, so a reader's
+own zoom is never stomped by a window resize. And it is the same flag that decides
+what a release takes with it:
+
+| | |
+|---|---|
+| press the pressed width | width off, and the zoom it computed goes with it |
+| drag the handle | width off; a *computed* zoom goes, a *scrubbed* one stays — the reader chose that one |
+| right-click the handle | everything: width, zoom, and the dragged stage width |
+| click the magnifier | show it whole — the current width's fit, or 1:1 if there is none |
+
+⚠ A released width **must** take its computed zoom with it, or letting go of `mega`
+leaves the render laid out at whatever ¼ of the room happened to be — measured, and
+fixed, before this was written down.
+
+### The magnifier multiplies
+
+`factor × 2 ** (dx / 240)`, clamped to 0.1–4: zoom is logarithmic, so 240px of drag
+doubles it whether you started at 25% or 200%, and a linear scrub would be unusable
+at one end or the other. It rides the same `drag()` rAF helper as §18's fix, so a
+240Hz pointer still re-zooms once per frame. The `<select>` beside it grows a
+hidden `<option>` that is shown, labelled and selected only when the zoom is off the
+list — so the control never displays a step it isn't on, and never a blank.
+
+### One fullscreen
+
+There were three: `demo()`'s bar toggled `.max` on the whole box (code pane
+included), `demo.tree()`'s titlebar toggled it on the stage, `demo.responsive()`
+toggles it on its own box. The first two are now the strip's one button, toggling
+`.demo-stage.max`, with the icon flipping to `close_fullscreen` so the way out is
+the way in. `demo.responsive` keeps its own: it has no stage — two simulated panes
+are not a render — and that is the honest reason a fourth would have been wrong.
+
+⚠ **`stage.js` emits `.demo-btn`, which `demo.css` owns.** The rule is "import the
+module that emits the class", and this module cannot: `demo.js` imports `stage.js`,
+so the pair would be a cycle — the failure that only shows up on a deep reload. The
+class arrives with whoever built the stage, which is `demo.js` or `exhibit.js` in
+every case there is, and the `css:` note in the file says so.
+
+### Narrow: a container query, and where it has to sit
+
+Three tracks need room. Under one, the `auto` middle track collapses to its
+min-content and the four-button toggle stacks **four rows tall** above a 294px
+render — measured at a 400px window before it was fixed. The fix is one
+`@container (max-width: 34em)` on `.demo-stage` that makes the strip a single
+centred column, and it is a *container* query on purpose: what runs out of room is
+the stage, which is the one width `@media` cannot see. This file spends §6 saying
+that about the example; it turns out to be just as true of the chrome.
+
+⚠ **It has to sit after the rules it overrides.** Same specificity, same layer, so
+it wins on document order alone — written above them, the tracks did not move and
+only `justify-items` took, which reads exactly like "container queries are broken".
+
+### Open
+
+- **The strip shows on every stage, including the ones nobody will touch.** A card
+  preview at `zoom-50` renders a stage with four device buttons on it. Cheap and
+  inert, but it is chrome on a thumbnail — a `.demo-stage.quiet` would be the fix if
+  it ever grates.
+- **`demo()` now has two strips**, its bar and the stage's. Justified by what each
+  controls, but a box with a label and a `<>` in a full-width bar is a lot of bar
+  for two things.
+- **Nothing keys Escape out of fullscreen.** The button is in the strip and the
+  strip is inside the stage, so it is always on screen — but a keyboard user has no
+  second way out.

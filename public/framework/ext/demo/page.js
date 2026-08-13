@@ -50,18 +50,22 @@ demo(() => { … }, "Caption below the result.");`);
 
 		h2("The toolbar");
 
-		md("Every control that changes what you're looking at is in one strip at the top:");
+		md("Every control that changes what you're looking at is in the stage's own strip — the widths centred, the dials on the right. The box's bar above it keeps only what is about the *box*, the `<>` pane.");
 
 		md(`| | |
 |---|---|
-| **zoom** | CSS \`zoom\` on the render, so the example really re-lays-out |
-| **\`<>\`** | the HTML this built, as a second column |
+| **mobile · tablet · desktop · mega** | lay the render out at 390 / 810 / 1440 / 3440 and draw it at the \`zoom\` that fits. Press the pressed one to let go |
+| **🔍** | **drag it** to zoom continuously; click it to see the whole thing again |
+| **zoom** | the same thing in steps, on top of any simulated width |
 | **⤢** | fill the window |
+| **\`<>\`** | the HTML this built, as a second column |
 
 And on the right edge of the render, a **drag handle** — pull it to test how the
 example holds up narrow. **Right-click it to go back** to whatever fits.`);
 
-		md("The width under the box is the width the example is *laid out* at, which is not the width you see once the zoom is off 100%. That gap is why both controls exist: zoom out to 50% and a demo lays out at twice the room it's drawn in.");
+		md("The width under the box is the width the example is *laid out* at, which is not the width you see once the zoom is off 100%. That gap is the whole point of the readout: zoom out to 50% and a demo lays out at twice the room it's drawn in.");
+
+		md("**The handle only shrinks a stage — a width is how you go bigger.** `desktop` lays the render out at 1440 and computes the zoom that fits it into the room there is; `mobile` renders at 1:1, never magnified. Then zoom *on top of* that width to lean into the layout. A drag of the handle hands the width back, because the handle is the width dial too.");
 
 		h2("The stage");
 
@@ -69,10 +73,10 @@ example holds up narrow. **Right-click it to go back** to whatever fits.`);
 		// example's own title, not a section of this page.
 		demo.stage(hero).ac("toc-skip");
 
-		code.js(`demo.stage(hero);               // the box, the handle, the zoom — no code
+		code.js(`demo.stage(hero);               // the strip, the box, the handle — no code
 demo.stage(hero).ac("bleed");   // a leaf page: edge to edge, no inset`);
 
-		md("**The resizable box on its own** — no code pane, no bar, no border. Drag the right edge; pick a zoom in the corner beside the width readout. That corner is the whole chrome, which is what makes the stage usable as a *page* and not just as the inside of a box.");
+		md("**The resizable box on its own** — no code pane, no border, and the same strip every stage has. Drag the right edge; press a width; drag the magnifier. That strip plus the readout is the whole chrome, which is what makes the stage usable as a *page* and not just as the inside of a box.");
 
 		md("It is the same three boxes `demo()` renders into, so there is one implementation of \"how wide is this really\". `demo.stage` was built for a wall of examples with no single source worth printing — one drag re-flows all of them; the [Layouts](/framework/styles/layouts/) index is that wall.");
 
@@ -160,6 +164,10 @@ demo.app(laces, { nav: true })    // opens deep, with a rail`);
 		md("**Every detail page on the site is one assembly** — `demo.exhibit()`, which `demo.tree()` and `demo.page()` both call. Three things, in this order: the thing running on a stage you can drag, a [layout bar](/framework/ext/Layout/) wired to it, and **the definition** — `tree` or `fn` stringified, so the reader gets the lesson and not the imports around it. A `meta` adds the whole file as a link beside the summary.");
 
 		md("**The card in a rail is the tree at half size**, and the sign over its door stays there: on a stage the specimen's own `h1` is off, because the page it is an example on already has a title. The [Page overview](/framework/core/Page/) rail is fourteen of them.");
+
+		md("**The assembly is one band, and it lays itself out.** Render and definition are two columns of one `bleed` block — stacked at every laptop width, side by side once the band is wide enough for both, and edge-to-edge on a phone, where a 2em gutter is 16% of the screen. No option, no media query on the split: `flex-wrap` and a basis, because the width that varies is the band's.");
+
+		md("**Hand it the page and its children become variants.** `demo.exhibit({ page: this, … })` draws a `Variants` heading and `previews()` under the exhibit when the page has children — the same cards a rail is made of, so a demo can be the category for the complex ones without a second preview mechanism. [Form field](/framework/ui/field/) is three of them.");
 
 		h2("Why");
 

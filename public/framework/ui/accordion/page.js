@@ -1,7 +1,6 @@
 import { Page, md, demo, div, details, summary, span, p, code } from "/app.js";
-import { palette, copy } from "../parts.js";
 
-// The template, verbatim — rendered in the palette AND handed to copy(), so the
+// The template, verbatim — rendered on the stage AND printed as the source, so the
 // code on the page is the code that ran.
 const faq = () => {
 	const QA = [
@@ -38,18 +37,20 @@ export default new Page({
 	description: "One at a time, with no JS — the exclusivity is an attribute you can see.",
 	icon: "expand_more",
 
+	children: [
+		demo.page("markers", markers, {
+			note: "The triangle exists because `summary { display: list-item }` — measured, on both rows. Give the summary a flex class to put a badge at the far end and the marker goes with it; that is exactly how [Menu](/framework/ui/menu/) gets a clean button out of the same element. Want both, put the flex on an inner `div`." }),
+	],
+
 	content(){
 
-		palette(
-			["one open at a time", faq],
-			["the marker belongs to the summary", markers],
-		);
-
-		md("## Copy it");
-
-		copy(faq);
-
-		md("**There is no `ui.accordion()`.** Its whole logic was a module-scope counter minting `name=\"ui-accordion-3\"` so two accordions on a page stayed independent — and the two real FAQ builders on this site hand-rolled raw `details` and chose *non*-exclusive anyway. **A visible `name=\"faq\"` beats an invisible counter**: you can read it, you can share it on purpose, and you can delete it when you want them all open at once.");
+		demo.exhibit({
+			page: this,
+			stage: steer => demo.stage(faq, steer).ac("bleed"),
+			def: faq,
+			file: new URL("page.js", import.meta.url).pathname,
+			note: "**There is no `ui.accordion()`.** Its whole logic was a module-scope counter minting `name=\"ui-accordion-3\"` so two accordions on a page stayed independent — and the two real FAQ builders on this site hand-rolled raw `details` and chose *non*-exclusive anyway. **A visible `name=\"faq\"` beats an invisible counter**: you can read it, you can share it on purpose, and you can delete it when you want them all open at once.",
+		});
 
 		md("## The attribute is the component");
 
@@ -66,10 +67,6 @@ export default new Page({
 
 		md("A hairline **between** items and a margin under a summary are both relationships, so `accordion.js` survives as those two lines and nothing else. The `+` is what keeps the first item from wearing a rule above it.");
 
-		md("## The marker belongs to the summary, not to you");
-
-		demo(markers, "The triangle exists because `summary { display: list-item }` — measured, on both rows. Give the summary a flex class to put a badge at the far end and the marker goes with it; that is exactly how [Menu](/framework/ui/menu/) gets a clean button out of the same element. Want both, put the flex on an inner `div`.");
-
 		md("## What it deliberately doesn't do");
 
 		md("**Animate.** A height transition needs `::details-content` and `interpolate-size`, which is a stylesheet of its own. **Nest.** An accordion inside an accordion is two `name` groups and reads as a filesystem — that is [Sidebar](/framework/core/Sidebar/)'s job. **Remember.** Reload and the first panel is closed again, because the state is markup and the markup is rebuilt.");
@@ -77,5 +74,5 @@ export default new Page({
 		md("Next: [Timeline](/framework/ui/timeline/) — a rail, a run of dots, and no pseudo-element.");
 	},
 
-	preview(nav){ return this.preview_card(nav, () => div.c("zoom-75 pad", faq)); },
+	preview(nav){ return this.preview_card(nav, () => div.c("zoom-50 pad", faq)); },
 });

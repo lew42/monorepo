@@ -3,10 +3,46 @@
 
 @layer theme {
 
-	/* The bar sits under the render it steers and takes the same gutter a framed
-	   exhibit takes (`.demo-stage.bleed`, stage.css). A bar indented to the reading
-	   measure under a full-width render reads as belonging to something else. */
-	.page.standard > .demo-steer.bleed { padding-inline: var(--gutter-x); }
+	/* ── the band ──
+	   One bleeding block holding the render, its bar and its definition, rather than
+	   four siblings each picking their own grid track. That is what lets the
+	   definition move BESIDE the render when there is room for both.
+
+	   `flex-wrap` + a basis, not a query — readme §2's verdict, applied to a page:
+	   the widths that vary here are the band's, and 84em + 32em + the gutter is
+	   ~121em, past `--breakout`'s own 96em knee. So nothing below a ~2.5K monitor
+	   moves at all, and a 3440 spends its right third on the code instead of on grey.
+	   ⚠ `min-width: 0` on both: a `<pre>` floors a flex item at its min-content and
+	     one long line would push the band past the page. */
+	.demo-exhibit {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-start;
+		gap: 1.5em var(--gutter-x, 2em);
+		padding-inline: var(--gutter-x, 0px);
+	}
+
+	.demo-exhibit-render { flex: 3 1 84em; min-width: 0; }
+
+	.demo-exhibit-def {
+		flex: 1 1 32em; min-width: 0;
+		display: flex; flex-direction: column; gap: 0.8em;
+	}
+
+	/* The bar sits under the render it steers, inside its column — the band pays the
+	   gutter, so a bar indented again under a full-width render would read as
+	   belonging to something else. */
+	.demo-steer { margin-block-start: 0.6em; }
+
+	/* ⚠ The exhibit is what you came to LOOK at, and `--gutter-x` bottoms out at 2em
+	   — 16% of a 390px screen spent on nothing. So on a phone the render takes the
+	   whole width and only the definition keeps the axis, because that column is
+	   text. The doctrine it bends is `core/Page/doc/layout.md`'s one left edge, which
+	   is about reading; §14 here is the other half of the same sentence. */
+	@media (max-width: 36em) {
+		.demo-exhibit { padding-inline: 0; }
+		.demo-exhibit-def { padding-inline: var(--gutter-x, 0px); }
+	}
 
 	/* One title per surface. On a stage the box is an example ON a page, and that
 	   page's `h1` is the lesson's name — so the specimen's own name stays in the url

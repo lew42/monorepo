@@ -1,7 +1,6 @@
 import { Page, md, demo, div, a, span, icon } from "/app.js";
-import { palette, copy } from "../parts.js";
 
-// The template, verbatim — rendered in the palette AND handed to copy(), so the
+// The template, verbatim — rendered on the stage AND printed as the source, so the
 // code on the page is the code that ran.
 const crumbs = () => div.c("ui-crumbs flex wrap v-center h4 gap", () => {
 	a.c("page-link", "Framework").href("/framework/");
@@ -28,18 +27,20 @@ export default new Page({
 	description: "A template, not a function — a trail derives from where you are, not from typed pairs.",
 	icon: "chevron_right",
 
+	children: [
+		demo.page("chevrons", chevrons, {
+			note: "A slash, a chevron, an icon root — the thing a function has to decide for you and the reason there isn't one. `icon()` is a ligature span with `flex: 0 0 auto` and `line-height: 1`, so it never grows the line." }),
+	],
+
 	content(){
 
-		palette(
-			["a trail", crumbs],
-			["chevrons, an icon root", chevrons],
-		);
-
-		md("## Copy it");
-
-		copy(crumbs);
-
-		md("**There is no `ui.crumbs()`.** It was a loop over `[text, url]` pairs you typed by hand — and a trail that is typed can be *wrong*, which is the one thing a breadcrumb may not be. Three hand-rolled trails exist on this site and not one of them imported the helper. When a real one is needed it should derive from `Page.chain()`, which already knows the ancestry; until then the row is five lines you can see.");
+		demo.exhibit({
+			page: this,
+			stage: steer => demo.stage(crumbs, steer).ac("bleed"),
+			def: crumbs,
+			file: new URL("page.js", import.meta.url).pathname,
+			note: "**There is no `ui.crumbs()`.** It was a loop over `[text, url]` pairs you typed by hand — and a trail that is typed can be *wrong*, which is the one thing a breadcrumb may not be. When a real one is needed it should derive from `Page.chain()`, which already knows the ancestry; until then the row is five lines you can see.",
+		});
 
 		md("## It marks itself");
 
@@ -49,12 +50,10 @@ export default new Page({
 
 		md("## The separator is yours");
 
-		demo(chevrons, "A slash, a chevron, an icon root — the thing a function has to decide for you and the reason there isn't one. `icon()` is a ligature span with `flex: 0 0 auto` and `line-height: 1`, so it never grows the line.");
-
 		md("The only CSS is `.ui-crumbs a { text-decoration: none }`, in `crumbs.js`, because a descendant rule is the one thing the markup cannot say about itself. `.page-link` sets a weight and nothing else — [`framework.css` has no rule for `a` at all](/framework/styles/), so a link's colour is always somebody's explicit call.");
 
 		md("Next: [Pagination](/framework/ui/pagination/) — the same row, with a current item.");
 	},
 
-	preview(nav){ return this.preview_card(nav, () => div.c("zoom-75 pad", crumbs)); },
+	preview(nav){ return this.preview_card(nav, () => div.c("zoom-50 pad", crumbs)); },
 });

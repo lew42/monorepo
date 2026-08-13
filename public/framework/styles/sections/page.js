@@ -29,6 +29,7 @@ const band = {
 
 	content(){
 		demo.exhibit({
+			page: this,
 			stage: steer => demo.stage(() => this.section(this.tone), $render => {
 				steer($render);
 				tones(this, $render);

@@ -45,18 +45,56 @@
 	}
 	.demo-handle:hover { background: var(--prim); }
 
-	/* The stage's own corner. Inside a `demo()` it carries the readout alone — the
-	   zoom lives up in the bar with the other controls; a bare stage has no bar, so
-	   `demo.stage()` puts the zoom here beside it. */
+	/* The strip, above the render. Three tracks so the widths are centred on the
+	   STAGE rather than on whatever the dials happen to measure — the middle cell is
+	   `auto`, both sides `1fr`, and a `1fr` floors at its own content so the dials
+	   never lose their corner. The inset matches the screen's, so the strip lines up
+	   with the render under it. */
 	.demo-tools {
-		display: flex; align-items: center; justify-content: flex-end; gap: 0.5em;
-		margin-top: 0.6em;
+		display: grid;
+		grid-template-columns: 1fr auto 1fr;
+		align-items: center;
+		gap: 0.5em;
+		padding-inline: var(--demo-pad, 1.5rem);
+		margin-bottom: 0.6em;
+	}
+	.demo-stage.bleed .demo-tools,
+	.demo-stage.bare .demo-tools { padding-inline: 0; }
+
+	.demo-devices {
+		grid-column: 2;
+		display: flex; flex-wrap: wrap; justify-content: center; gap: 0.15em;
 	}
 
+	.demo-dials {
+		grid-column: 3;
+		display: flex; align-items: center; justify-content: flex-end; gap: 0.25em;
+	}
+
+	/* ⚠ A CONTAINER query, not `@media`: what runs out of room is the stage, which is
+	   the one width a media query cannot see (§6 — where that sentence is usually
+	   about the example rather than the chrome around it). Three tracks become one
+	   centred column, because a four-button toggle in a squeezed `auto` track stacks
+	   four rows tall.
+	   ⚠ Must come AFTER the two rules above: same specificity, same layer, so this
+	   wins on order — placed before them the tracks stayed put and only
+	   `justify-items` took, which reads as "container queries don't work".
+	   ⚠ `container-type: inline-size` is safe here only because a stage's width never
+	   comes from its contents — it is a block, a dragged px width, or `max`. */
+	.demo-stage { container-type: inline-size; }
+
+	@container (max-width: 34em) {
+		.demo-tools { grid-template-columns: 1fr; justify-items: center; }
+		.demo-devices, .demo-dials { grid-column: 1; }
+	}
+
+	/* ⚠ `touch-action` or the browser pans instead of scrubbing, same as the handle. */
+	.demo-scrub { cursor: ew-resize; touch-action: none; }
+
 	/* The width the example is laid out at, which is not the width you see when the
-	   zoom is off 100%. That gap is the whole point of having both controls.
+	   zoom is off 100%. That gap is the whole point of printing both.
 	   ⚠ Keeps its own margin because `demo.responsive` puts one under each simulated
-	   pane, where nothing else provides the gap; the corner row hands it back. */
+	   pane, where nothing else provides the gap. */
 	.demo-size {
 		margin-top: 0.6em;
 		font-size: 0.62em;
@@ -65,7 +103,6 @@
 		color: var(--subtle);
 		font-family: var(--mono);
 	}
-	.demo-tools > .demo-size { margin-top: 0; }
 
 	/* Both rules are about `select` defaults in framework.css.
 	   ⚠ `width: auto` — base gives every select `width: 100%`, which in a flex bar
@@ -88,7 +125,7 @@
 	/* ── bare: a framed render needs no field around it ──
 	   The frame IS the edge, so the handle rides it — bigger, since it sits on a
 	   real border now — and the readout becomes a pill centred ON the bottom
-	   border. tree.js pairs this with the frame's own titlebar carrying the zoom. */
+	   border. The strip sits above the frame, like every other stage's. */
 	.demo-stage.bare { margin-inline-end: 0.2em; }
 	.demo-stage.bare .demo-screen { padding: 0; }
 
@@ -103,13 +140,10 @@
 	}
 	.demo-stage.bare .demo-handle:hover { background: var(--surface); border-color: var(--prim); }
 
-	.demo-stage.bare .demo-tools {
+	/* On a real border the pill reads as part of the frame, so it dresses like one. */
+	.demo-stage.bare .demo-size {
 		position: absolute; bottom: 0; inset-inline-start: 50%;
 		transform: translate(-50%, 50%);
-		margin: 0;
-	}
-
-	.demo-stage.bare .demo-size {
 		margin: 0;
 		padding: 0.1em 0.7em;
 		background: var(--surface);

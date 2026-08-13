@@ -7,7 +7,7 @@ export default classdoc.page({
 	icon: "description",
 
 	Class: Page,
-	children: "nav children previews shell flow",
+	children: "nav children previews shell flow layout",
 
 	// The rail, in order — one directory each, under overview/. The headings come
 	// from the `group:` every demo declares in its own page.js.
@@ -90,6 +90,8 @@ export default new Page({
 		}, "Constructing a `Page` renders nothing, so `export default new Page(…)` is always import-safe. It renders when the Router places it.");
 
 		md("**The cards on the left are the demos** — fourteen live trees, in three groups, each one the same class running at half size. Click one: the tree opens here with the `page.js` that defines it, and the rail stays put. **Basics** is six ways to build a tree — children, `add()`, labels, `route()`, the shape a page wears; **Arrangements** is five ways to show one; **Sites** is three whole sites: a page of section bands, a documentation site, and both together.");
+
+		md("**[Layout](/framework/core/Page/layout/)** is the other library: ten whole-page layouts — document, docs, dashboard, mail, chat, an app shell — each card showing the same page at 390 **and** at 3440, side by side. One content object renders under all ten, and every region a layout has is a checkbox rather than a second page.");
 
 		md("Every method and property has its own page under **API**: the real source, who calls it, and an honest note on whether it should exist at all.");
 

@@ -1,6 +1,7 @@
 import View, { div, pre, icon, is } from "../../core/View/View.js";
 import { source } from "../../util/source/source.js";
 import demo, { btn, caption, source_code } from "./demo.js";
+import { simulate, watch, drag } from "./stage.js";
 
 /* css: .demo-responsive, .demo-sims, .demo-sim, .demo-split — plus the `.demo`
    shell (demo.css), whose module is imported above. */
@@ -38,27 +39,33 @@ demo.responsive = function(...args){
 		// the panes are twins; either extreme is exactly `wide` beside `narrow`.
 		const simulated = share => Math.round(narrow * (wide / narrow) ** ((share - MIN) / (1 - 2 * MIN)));
 
-		// ⚠ `zoom`, not `transform: scale()` — a scaled box keeps its unscaled size,
-		// which would leave each pane overlapping whatever is under it.
+		// Each pane's factor is measured — `clientWidth / simulated` — rather than
+		// derived from the share, so the handle's own width is already accounted for.
+		// ⚠ Both rooms read BEFORE either pane is written: interleaved, the second
+		// read re-lays-out the document the first write just dirtied.
 		function fit(){
 			if (!$sims.el.clientWidth) return;   // not laid out yet — the observer is coming
 
-			panes.forEach(sim => {
-				const factor = sim.$box.el.clientWidth / sim.width;
-				sim.$view.style("zoom", factor);
-				sim.$size.text(sim.width + "px · " + Math.round(factor * 100) + "%");
-			});
+			// Capped at 1:1, the verdict the width presets took — a phone pane in a wide
+		// room shows at phone size, never magnified.
+		const rooms = panes.map(sim => Math.min(sim.$box.el.clientWidth, sim.width));
+
+			panes.forEach((sim, i) => sim.$size.text(sim.width + "px · "
+				+ Math.round(simulate(sim.$view, sim.width, rooms[i]) * 100) + "%"));
 		}
 
 		// The drag re-simulates as it re-splits: both widths follow the handle, in
-		// opposite directions, and each pane's factor is measured rather than derived.
+		// opposite directions.
+		// ⚠ Unchanged widths mean there is nothing to do, and that is every frame the
+		// pointer spends past the clamp — the expensive half must not run for them.
 		function split(share){
 			share = Math.min(1 - MIN, Math.max(MIN, share));
 
-			panes[0].width = simulated(share);
-			panes[1].width = simulated(1 - share);
-			panes.forEach(sim => sim.$view.style("width", sim.width + "px"));
+			const widths = [simulated(share), simulated(1 - share)];
 
+			if (widths.every((width, i) => width === panes[i].width)) return;
+
+			panes.forEach((sim, i) => sim.width = widths[i]);
 			panes[0].$box.style("flex", `0 0 ${(share * 100).toFixed(2)}%`);
 			fit();
 		}
@@ -72,7 +79,7 @@ demo.responsive = function(...args){
 		});
 
 		split(SPLIT);
-		watch($sims, fit);
+		watch($sims.el, fit);
 	});
 };
 
@@ -96,28 +103,13 @@ function handle(split){
 
 			// the row is the handle's own parent, and only its height moves as you drag
 			const row = this.el.parentElement.getBoundingClientRect();
-			const drag = ev => split((ev.clientX - row.left) / row.width);
 
-			this.el.addEventListener("pointermove", drag);
-			this.el.addEventListener("pointerup",
-				() => this.el.removeEventListener("pointermove", drag), { once: true });
+			drag(this.el, ev => split((ev.clientX - row.left) / row.width));
 		})
 		.on("contextmenu", function(e){
 			e.preventDefault();
 			split(SPLIT);
 		});
-}
-
-// ⚠ Width only: `fit()` changes the row's HEIGHT, which would otherwise call it
-// back for no reason on every pass.
-function watch($sims, fit){
-	let last = -1;
-
-	new ResizeObserver(() => {
-		if ($sims.el.clientWidth === last) return;
-		last = $sims.el.clientWidth;
-		fit();
-	}).observe($sims.el);
 }
 
 export default demo.responsive;

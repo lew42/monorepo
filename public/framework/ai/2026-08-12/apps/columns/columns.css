@@ -1,0 +1,53 @@
+/* Restated IN FULL — a short list silently misplaces `site`. */
+@layer base, theme, site, util;
+
+/* The trail: a column per level, laid left to right, each one scrolling itself.
+   Nothing here is a look a consumer would want changed — a column is a fixed track
+   and a row is a line — so `columns.js` ships no skin beyond the selected row.
+
+   css: `.page` and `.page-title` are Page.css's; `/app.js` imports the module that
+   emits both. A page whose content IS the trail must not print its title twice —
+   the crumb strip above the box already says where you are (catalog.css does the
+   same for its rail's first entry). */
+@layer theme {
+
+	/* ⚠ `0 0 auto` and no `min-width`: every page in the trail is a flex item of the
+	   column before it, and a shrinking one would compress the trail instead of
+	   overflowing it. The overflow is the point — the scroller is the demo region. */
+	.apps-page { flex: 0 0 auto; }
+	.apps-page > .page-title { display: none; }
+
+	/* ⚠ A hidden child is still a sibling: `.page-title + *` (framework.css) was
+	   handing every level of the trail 1.5 × `--flow`, so each column started
+	   45px lower than the one before it. catalog.css pays the same bill. */
+	.apps-page > .apps-cols { margin-block-start: 0; }
+
+	.apps-cols { align-items: flex-start; }
+	.apps-next { display: flex; flex: 0 0 auto; }
+
+	.apps-col {
+		flex: 0 0 var(--apps-column, 12em);
+		border-inline-end: 1px solid var(--line);
+	}
+
+	.apps-detail { width: var(--apps-detail, 24em); }
+
+	/* One height for every column at every depth, so the trail reads as one strip. */
+	.apps-col, .apps-detail { height: var(--apps-height, 21em); overflow-y: auto; }
+
+	.apps-row {
+		display: flex; align-items: center; gap: 0.4em;
+		padding: 0.35em 0.7em;
+		color: inherit; text-decoration: none;
+	}
+
+	.apps-row:hover { background: var(--tint); }
+	.apps-row .icon { color: var(--subtle); }
+
+	/* ⚠ `aria-current`, never `.active`: `demo.app.mark()` writes the attribute on
+	   every anchor in the box, and the real Router.mark_links() would clear a class.
+	   Both of its answers light — the exact page and every ancestor of it ARE the
+	   trail. */
+	.apps-row[aria-current] { background: var(--wash); color: var(--prim); }
+	.apps-row[aria-current] .icon { color: var(--prim); }
+}

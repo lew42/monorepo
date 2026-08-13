@@ -1,7 +1,6 @@
 import { Page, md, demo, div, span, icon } from "/app.js";
-import { palette, copy } from "../parts.js";
 
-// The template, verbatim — rendered in the palette AND handed to copy(), so the
+// The template, verbatim — rendered on the stage AND printed as the source, so the
 // code on the page is the code that ran.
 const badges = () => div.c("flex wrap v-center gap", () => {
 	span.c("ui-badge ui-pill h4", "default");
@@ -24,18 +23,20 @@ export default new Page({
 	description: "A template plus five variant classes — the class name is the component.",
 	icon: "label",
 
+	children: [
+		demo.page("icons", composed, {
+			note: "An icon badge is the same span with utility classes added and a body function instead of a string. No `icon` option, no variants map — the class attribute is the whole extension mechanism, which is the argument for handing you the markup." }),
+	],
+
 	content(){
 
-		palette(
-			["five variants", badges],
-			["with an icon", composed],
-		);
-
-		md("## Copy it");
-
-		copy(badges);
-
-		md("**There is no `ui.badge()`.** Its body was one `span.c()` — the class list *is* the component, so the function was a second way to spell three words. `ui-badge ui-pill h4` is the pill: `h4` is already a small, tracked, uppercase label, `ui-pill` is `--wash` with a `999px` radius, and `.ui-badge` exists so the five variants have something to hang off.");
+		demo.exhibit({
+			page: this,
+			stage: steer => demo.stage(badges, steer).ac("bleed"),
+			def: badges,
+			file: new URL("page.js", import.meta.url).pathname,
+			note: "**There is no `ui.badge()`.** Its body was one `span.c()` — the class list *is* the component, so the function was a second way to spell three words. `ui-badge ui-pill h4` is the pill: `h4` is already a small, tracked, uppercase label, `ui-pill` is `--wash` with a `999px` radius, and `.ui-badge` exists so the five variants have something to hang off.",
+		});
 
 		md("## The variants, which is all `badge.js` is now");
 
@@ -53,12 +54,8 @@ export default new Page({
 
 		md("The token set has **one accent**. `--prim --bg --wash --subtle --surface --line`, plus `--error`, which arrived to replace `#c00` in three stylesheets rather than for components. Nothing means *good* or *warning*. So a badge honestly offers neutral, accent, dark and outline, and one that wants green-for-passing would have to name a colour.\n\nThat is a finding, not a workaround: **the status axis is a third done.** `--ok` and `--warn` beside `--error` would finish it for every badge, alert, meter and diff row after. On the [record](/framework/ui/).");
 
-		md("## Composed, not configured");
-
-		demo(composed, "An icon badge is the same span with utility classes added and a body function instead of a string. No `icon` option, no variants map — the class attribute is the whole extension mechanism, which is the argument for handing you the markup.");
-
 		md("Next: [Alerts](/framework/ui/alert/) — the same idea at block scale.");
 	},
 
-	preview(nav){ return this.preview_card(nav, () => div.c("zoom-75 pad", badges)); },
+	preview(nav){ return this.preview_card(nav, () => div.c("zoom-50 pad", badges)); },
 });

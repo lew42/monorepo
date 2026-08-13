@@ -28,6 +28,7 @@ export default config => ({
 
 	content(){
 		demo.exhibit({
+			page: this,
 			stage: steer => demo.stage(() => this.frame(), steer).ac("bleed"),
 			def: this.layout,
 			file: new URL("page.js", this.meta.url).pathname,

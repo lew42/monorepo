@@ -1,7 +1,6 @@
 import { Page, md, demo, div, icon } from "/app.js";
-import { palette, copy } from "../parts.js";
 
-// The template, verbatim — rendered in the palette AND handed to copy(), so the
+// The template, verbatim — rendered on the stage AND printed as the source, so the
 // code on the page is the code that ran.
 const stats = () => {
 	const items = [["npm deps", "3"], ["build steps", "0"], ["core classes", "5"], ["tokens", "16"]];
@@ -24,6 +23,12 @@ const with_icons = () => div.c("grid gap auto", () => [
 	div.c("h2", value);
 }).style("--gap", "0.1em"))).style("--column", "10em");
 
+const summary = () => div.c("grid gap auto", () => [["p95", "84ms"], ["deploys", "37"]].forEach(([label, value]) =>
+	div.c("surface pad flex v gap", () => {
+		div.c("h4 muted", label);
+		div.c("h2", value);
+	}).style("--gap", "0.1em"))).style("--column", "16em");
+
 export default new Page({
 	meta: import.meta,
 	title: "Stat tiles",
@@ -31,30 +36,27 @@ export default new Page({
 	icon: "bar_chart",
 	card: "wide",
 
+	children: [
+		demo.page("icons", with_icons, {
+			note: "The label row becomes a `flex v-center gap` with an `icon()` in it — the change that made the old `ui.stats()` function useless to its own documentation page, because a function has no room in it for a row you didn't anticipate." }),
+
+		demo.page("summary", summary, {
+			note: "`.style(\"--column\", \"16em\")` and the same markup is a two-up summary. A utility that reads a token is a knob, and this codebase has repeatedly found that more useful than a new class." }),
+	],
+
 	content(){
 
-		palette(
-			["four tiles", stats],
-			["with an icon", with_icons],
-		);
-
-		md("## Copy it");
-
-		copy(stats);
-
-		md("**There is no `ui.stats()`.** It had zero call sites while **three** hand-rolled copies of the tile existed on this site — `sections/parts.js`'s `stat()`, the versus page, and the demo two boxes above, which abandoned the function the moment it wanted an icon in the label row. A function that its own documentation page stops using is finished.");
+		demo.exhibit({
+			page: this,
+			stage: steer => demo.stage(stats, steer).ac("bleed"),
+			def: stats,
+			file: new URL("page.js", import.meta.url).pathname,
+			note: "**There is no `ui.stats()`.** It had zero call sites while **three** hand-rolled copies of the tile existed on this site — `sections/parts.js`'s `stat()`, the versus page, and one on this very page, which abandoned the function the moment it wanted an icon in the label row. A function that its own documentation page stops using is finished.",
+		});
 
 		md("## A token override where a rule was expected");
 
-		md("`grid auto` wraps on `--column`, so **shrinking that token is what turns a two-up card grid into a four-up tile strip** — `9em` here instead of the `14em` default, and no selector was written:");
-
-		demo(() => {
-			div.c("grid gap auto", () => [["p95", "84ms"], ["deploys", "37"]].forEach(([label, value]) =>
-				div.c("surface pad flex v gap", () => {
-					div.c("h4 muted", label);
-					div.c("h2", value);
-				}).style("--gap", "0.1em"))).style("--column", "16em");
-		}, "`.style(\"--column\", \"16em\")` and the same markup is a two-up summary. A utility that reads a token is a knob, and this codebase has repeatedly found that more useful than a new class.");
+		md("`grid auto` wraps on `--column`, so **shrinking that token is what turns a two-up card grid into a four-up tile strip** — `9em` above instead of the `14em` default, and no selector was written. Drag the stage and the strip re-counts its own columns.");
 
 		md("`h4` for the label and `h2` for the number — the [type scale](/framework/styles/layers/theme/) is the whole vocabulary, so a tile never invents a font-size. `muted` is the only colour, and it is derived from the ink it sits on rather than named.");
 
@@ -65,5 +67,5 @@ export default new Page({
 		md("Next: [Badges](/framework/ui/badge/) — and the first thing the token set cannot do.");
 	},
 
-	preview(nav){ return this.preview_card(nav, () => div.c("zoom-75 pad", stats)); },
+	preview(nav){ return this.preview_card(nav, () => div.c("zoom-50 pad", stats)); },
 });

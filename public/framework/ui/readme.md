@@ -71,34 +71,70 @@ counterpart upstream.
 
 ## Shared
 
-`parts.js` holds `.ui-pill`, `.ui-tags-input` and four helpers: `css(rules)` (the
-`<style>` tag, layer statement written for you), `component(fn)` (the `.c()` form
-every View factory has), `palette(…)` (the variants side by side — every page
-opens with one) and `copy(fn)` (a code block with a copy button).
-
-**Pass `copy()` the function that rendered the example** and the two cannot
-drift: the reader copies the code that ran.
+`parts.js` holds `.ui-pill`, `.ui-tags-input` and two helpers: `css(rules)` (the
+`<style>` tag, layer statement written for you) and `component(fn)` (the `.c()`
+form every View factory has).
 
 `parts.js` and every `<name>.js` import from `../../core/View/View.js`, never
 `/app.js`: `app.js` exports `ui`, so importing back through it would be a cycle
 that breaks on deep reloads only. `page.js` is loaded by the Router long after
 that, so it uses `/app.js` like any page.
 
-## The index wall
+## The unification (2026-08-12)
 
-`page.js` is `this.previews().style(SCALE)` and nothing else above the fold.
-**Every one of the nineteen pages overrides `preview()`**, one line, always the
-same shape — and always over the same `const` its `palette()` and its `copy()`
-use, so a card cannot show something its page doesn't:
+**The question.** `ui/` was the last section outside the site's one page system.
+Its index was a `previews()` wall with three token overrides; its nineteen leaves
+were `palette()` + `copy()` + prose + loose `demo()` boxes, while every other
+detail page on the site had converged on `catalog()` rail + `demo.exhibit()`.
+Different pages doing similar things means one of them is always stale — and
+`ai/2026-08-11`'s census had already named `palette()` the **fourth preview
+mechanism** and pre-committed its removal.
 
-```js
-preview(nav){ return this.preview_card(nav, () => div.c("zoom-75 pad", card)); },
-```
+| | |
+|---|---|
+| leave `palette()`, add an exhibit above it | two previews of the same component on one page, and the wall would be the stale one |
+| keep `copy()` beside the exhibit's source | two code blocks showing the same function — the exact drift `demo(fn)` exists to prevent |
+| **exhibit as THE assembly; variants become child pages** | ✓ |
 
-Two pages declare a claim on the wall (`card: "wide"` on stats, `card: "tall"` on
-timeline) and both say so in their own `page.js`. There is no second copy of
-those calls: `/michael/previews/` (a sandbox comparing three wall scales) calls
-`previews()` on this page.
+**Verdict, in three parts.**
+
+1. **The index is `initialize(){ this.catalog(); }`** — one line, the same one
+   `styles/sections`, `styles/layouts` and `styles/elements/forms` wear. The page's
+   own prose becomes the rail's first card, so nothing was lost to gain the rail.
+2. **Every leaf leads with `demo.exhibit({ page: this, … })`** — the component live
+   on a stage you can drag, the layout bar wired to it, the template open beside it.
+   `def` is the same `const` the card renders, so a card still cannot show something
+   its page doesn't.
+3. **Every other runnable example is a child page** — 29 of them, real urls, drawn
+   under a `Variants` heading with the same cards the rail is made of.
+   `/framework/ui/field/invalid/` is a url, a card and a stage.
+
+`palette()` and `copy()` are deleted. The clipboard did not go with them: it moved
+onto `demo.source()`, so *every* detail page on the site copies its own code now
+(`ext/demo/readme.md` §19.2).
+
+### The per-page calls
+
+Every page took the same assembly; what differed is what became a variant.
+
+| page | variants | note |
+|---|---|---|
+| `table` `timeline` `kbd` | `num` `cells` · `single` · `keys` `bare` | the three functions — `file:` points at the component's own `.js`, not `page.js`, because that file *is* the lesson |
+| `field` | `invalid` `select` `form` | its in-prose "two fields is a form" demo became the third variant rather than staying a box |
+| `card` `stats` `alert` `pagination` `tags` `avatar` `progress` | 2 each | the palette's second entry plus the page's own trailing `demo()` — in five of the seven those were already **the same function**, so nothing was invented |
+| `crumbs` `badge` `toolbar` `panel` `menu` `accordion` | 1 each | palette entry and trailing demo were literally the same `const`; one variant, no duplicate |
+| `dialog` | `open` | the primary is the real modal (open it, press Esc); the variant is what `showModal()` shows, because a closed `<dialog>` renders nothing on a card |
+| `tooltip` `menu` | — | ⚠ **the templates carry a `pad` wrapper.** The bubble and the panel are out of flow and every stage, box and thumb crops; on a flush `bleed` render they would be invisible rather than merely clipped. It is in the template, not around it, because that is the honest markup |
+| `stats` `timeline` | — | keep their wall claims (`card: "wide"`, `card: "tall"`), which the rail already knows to reinterpret |
+
+**Card zoom dropped `zoom-75` → `zoom-50`.** A rail is 19em with `--thumb-max: none`,
+so twenty three-quarter-scale renders made a rail four screens tall. `zoom-50` is
+also what `demo.page()`'s card uses, so a component card and a variant card are now
+the same size.
+
+**Nothing here is "mostly prose".** The brief allowed a page to keep prose where the
+render+code assembly would be forced; nineteen for nineteen had a real render, so
+nineteen took the exhibit.
 
 ## Two things that will bite
 
@@ -106,7 +142,7 @@ those calls: `/michael/previews/` (a sandbox comparing three wall scales) calls
   page of the site. A dozen small style elements, measured as noise; the
   alternative was a second import in every page that wants a badge.
 - **A tooltip or a menu panel is out of flow**, so an ancestor with
-  `overflow: hidden` clips it — `.demo` is one.
+  `overflow: hidden` clips it — a `.demo` box and a stage's screen both are.
 
 The long record — the ladder per component, the nine findings the set produced,
 and the review outcome — is in `doc/record.md` beside this file.
