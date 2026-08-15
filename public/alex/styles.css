@@ -32,13 +32,6 @@
 	@media (min-width: 28rem) {
 		.panel--horizontal { flex-direction: row; }
 	}
-	.panel--horizontal > .panel__image {
-		flex: 0 0 clamp(4rem, 30%, 8rem);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-	.panel--horizontal > .panel__body { flex: 1; }
 	.panel__image {
 		background: var(--bg);
 		color: white;   /* --bg stays dark in both modes, like button.bg */
@@ -46,7 +39,16 @@
 		text-align: center;
 		font-size: clamp(1.5rem, 4vw, 2rem);
 	}
+	/* Element modifiers, so no selector reaches down from `panel--horizontal`.
+	   Each must follow its element — same specificity, so order decides. */
+	.panel__image--aside {
+		flex: 0 0 clamp(4rem, 30%, 8rem);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
 	.panel__body { padding: clamp(0.5rem, 2vw, 1rem); }
+	.panel__body--fill { flex: 1; }
 	.panel__title {
 		font-weight: 600;
 		color: var(--prim);

@@ -10,9 +10,10 @@ export default new Page({
 
 		toc();
 
-		code.css(`.block            /* standalone component */
-.block__element   /* a piece inside the block */
-.block--modifier  /* a variant of the block */`);
+		code.css(`.block                     /* standalone component */
+.block__element            /* a piece inside the block */
+.block--modifier           /* a variant of the block */
+.block__element--modifier  /* a variant of the element */`);
 
 		md("A naming convention that keeps styles scoped to their component. `.c()` chains classes, and the flat CSS means selectors stay shallow.");
 
@@ -75,8 +76,8 @@ export default new Page({
 
 		demo(() => {
 			div.c("panel panel--horizontal", () => {
-				div.c("panel__image", "Image");
-				div.c("panel__body", () => {
+				div.c("panel__image panel__image--aside", "Image");
+				div.c("panel__body panel__body--fill", () => {
 					div.c("panel__title", "Horizontal Panel");
 					p.c("panel__text", "Image beside text on wide screens, stacked on narrow.");
 					div.c("panel__footer", () => {
@@ -84,7 +85,7 @@ export default new Page({
 					});
 				});
 			});
-		}, "`--horizontal` flips the panel to a row on wide screens and stacks it on narrow. Sizing stays fluid; one breakpoint switches the direction.");
+		}, "`--horizontal` flips the panel to a row on wide screens and stacks it on narrow. The children carry their own modifiers — `__image--aside`, `__body--fill` — so nothing reaches down from the block.");
 
 		code.css(`.panel--horizontal { display: flex; flex-direction: column; }
 
@@ -92,8 +93,9 @@ export default new Page({
     .panel--horizontal { flex-direction: row; }
 }
 
-.panel--horizontal > .panel__image { flex: 0 0 clamp(4rem, 30%, 8rem); }
-.panel--horizontal > .panel__body  { flex: 1; }`);
+/* after .panel__image and .panel__body — same specificity, so order decides */
+.panel__image--aside { flex: 0 0 clamp(4rem, 30%, 8rem); }
+.panel__body--fill   { flex: 1; }`);
 
 		h2("Appearance modifier");
 
