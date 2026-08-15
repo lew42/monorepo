@@ -1,10 +1,10 @@
 import { Page, demo, md, div } from "/app.js";
-import web from "/framework/ext/demo/web.js";
+import sample from "/framework/ext/demo/sample.js";
 
-/* The same nine-child sample site every demo borrows (ext/demo/web.js), wearing a
+/* The same nine-child sample site every demo borrows (ext/demo/sample.js), wearing a
    catalog: the wall turned on its side, beside the region its children mount in.
    ⚠ Opened one level down, so a card is lit and the region is full. */
-const dash = () => web({
+const dash = () => sample({
 	title: "Console",
 	icon: "dashboard",
 

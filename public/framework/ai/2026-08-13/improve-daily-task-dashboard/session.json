@@ -1,0 +1,18 @@
+{
+	"group": "ai-log",
+	"session_id": "b74885e4-6df1-4d0e-874c-ba716e546347",
+	"tab": "Improve daily task dashboard",
+	"request": "Fix the daily dashboard UI (mixed fonts in task cards, iffy tokens/window% readout, mystery 3 checkmarks above Task Previews; make it read as a real dashboard of running tasks, progress, objectives) and author a new layout-design skill covering final-thing column count, preview sizing on the parent page, wide-screen (3-4 column) utilization, and vertical rhythm.",
+	"requested_at": "2026-08-13T21:00:00-05:00",
+	"landed_at": "2026-08-13T22:30:00-05:00",
+	"model": "claude-fable-5",
+	"tokens": 220733,
+	"window": { "before": 0.01, "after": 0.15 },
+	"links": [
+		{ "url": "/framework/ai/2026-08-13/", "label": "day dashboard" },
+		{ "url": "/framework/ext/AISession/", "label": "ext/AISession" }
+	],
+	"now": "landed",
+	"outcome": "Dashboard rebuilt — one type size, 3-region rows (who | objective + now + links | aligned figures), 3 columns at 3440, running-first — and the layout-design skill authored.\n\n- Checkmarks mystery: task-previews' own `preview()` checklist demo — retired; the bridge stays for genuinely viewable output.\n- Day page no longer doubles the dashboard with a `previews()` wall.\n- Meters labeled (5h session / weekly — all models / weekly — Fable).\n- `links` chips added to the manifest schema.\n- Feed/replay drop `isMeta` skill-injection turns (readme §3 fixed).\n- Trap fixed in new-task skill: a declared child with no page.js skips route() and 404s — leave task dirs undeclared.\n- `.claude/skills/layout-design/SKILL.md`: the three sizing questions + vertical rhythm (.flow prose vs flex-v-gap UI) + type-in-a-block.",
+	"agents": []
+}

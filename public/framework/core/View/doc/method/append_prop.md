@@ -1,4 +1,4 @@
-**Usage** — one internal caller: `append_pojo()` (`View.js:127`), which is itself
+**Usage** — one internal caller: `append_pojo()` (`View.js:102`), which is itself
 called from one place. Effectively unreachable from any file in `public/`.
 
 **Necessity** — no, on current evidence. It exists to give `append({ header: … })`

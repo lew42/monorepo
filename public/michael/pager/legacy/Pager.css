@@ -1,0 +1,6 @@
+@layer base, theme, site, util;
+
+@layer theme {
+
+	.pager { display: block; }
+}

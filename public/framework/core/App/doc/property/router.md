@@ -8,7 +8,7 @@ this.router = new Router(this.router, { app: this });   // App.js:63
 
 - `App.js:63` — constructed, from whatever was already there.
 - `App.js:65` — `this.router.load(location.pathname)`, the first navigation.
-- `Page.class.js:147` — `page.go()` is `this.app.router.go(this.url)`.
+- Site code — `app.router.go(url)`, the one programmatic navigation.
 - `ext/tabs/tabs.js:53`, `framework/ui/page.js:29` — `app?.router?.mark_links()`,
   for links rendered after `mark()` ran.
 

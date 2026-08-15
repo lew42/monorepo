@@ -46,6 +46,8 @@ export function classdoc(page, Class, meta, names){
 
 				(code.js ?? code)(src);   // highlighted if ext/highlight is loaded
 
+				classdoc.overrides(Class, name, `${name}(){ … }`);
+
 				// ⚠ Returned, not called: md.file gives a promise, and append_promise
 				// places it in a view that was captured synchronously.
 				return md.file(meta, `doc/method/${name}.md`, { h1: false });
@@ -68,12 +70,24 @@ classdoc.properties = function(page, Class, meta, names){
 			title: name,
 			content(){
 				if (src) (code.js ?? code)(src);
+				classdoc.overrides(Class, name, `${name}: …`);
 				return md.file(meta, `doc/property/${name}.md`, { h1: false });
 			},
 		});
 	});
 
 	return page;
+};
+
+// The framework's own override lever, and the only one a member page can name from what
+// it knows: every constructor here is `Object.assign`-based, so an assigned member
+// shadows the prototype's. A static has no instance to assign to, so it gets no line.
+// ⚠ Every function owns `name`, `length` and `prototype` — declaration()'s trap.
+classdoc.overrides = function(Class, name, call){
+	if (typeof Class !== "function" || !Class.prototype) return;
+
+	if (!Object.hasOwn(Class, name) || Object.hasOwn(Class.prototype, name) || /^(name|length|prototype)$/.test(name))
+		md(`**Overrides:** \`new ${Class.name}({ ${call} })\` — an assigned member shadows the prototype's, for that instance only. A subclass changes it for every instance.`);
 };
 
 // ⚠ Descriptor, never `Class.prototype[name]` — reading an accessor off the

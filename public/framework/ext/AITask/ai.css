@@ -1,0 +1,194 @@
+/* Restated IN FULL — a short list silently misplaces `site`. */
+@layer base, theme, site, util;
+
+/* Layout and the expando mechanism only — the looks are `surface` / `wash` /
+   `muted` off framework.css. */
+@layer theme {
+
+	.ai-log { display: flex; flex-direction: column; gap: 1em; min-width: 0; }
+
+	.ai-header { display: flex; align-items: baseline; gap: .5em; flex-wrap: wrap; }
+
+	.ai-columns { display: grid; grid-template-columns: minmax(22em, 38em) minmax(0, 1fr); gap: 1em; align-items: start; }
+	@media (width < 60em) { .ai-columns { grid-template-columns: 1fr; } }
+
+	.ai-rail { display: flex; flex-direction: column; gap: .75em; min-width: 0; }
+
+	.ai-thread { padding: .5em .75em; cursor: pointer; }
+	.ai-thread .ai-meta { display: flex; gap: .5em; align-items: baseline; }
+
+	/* Sticky so a long thread reads beside the rail, not below it. */
+	.ai-detail { position: sticky; top: 0; max-height: 100dvh; overflow-y: auto; display: flex; flex-direction: column; gap: .75em; min-width: 0; }
+
+	.ai-fold-bar { cursor: pointer; padding: .25em .75em; }
+	.ai-fold-body { display: none; }
+	.ai-fold.open > .ai-fold-body { display: block; }
+
+	.ai-msg { overflow-wrap: anywhere; }
+	.ai-msg.sidechain { margin-inline-start: 2em; }
+
+	.ai-tool, .ai-result { overflow-x: auto; max-height: 20em; white-space: pre-wrap; }
+
+	.ai-img { max-width: 100%; }
+
+	/* Dashboard: usage meters + task rows. --pct and --at are written inline by usage.js.
+	   ⚠ Auto-fit, not a column: at board width a stacked meter is a 3000px-long bar
+	   whose label and figure are a screen apart. Three meters become three columns
+	   and fall back to one inside the rail, the way `.ai-cards` does. */
+	.ai-usage {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(22em, 100%), 1fr));
+		gap: .9em 2em;
+	}
+	.ai-meter { display: flex; flex-direction: column; gap: .15em; min-width: 0; }
+	.ai-pct { font-weight: 700; font-variant-numeric: tabular-nums; }
+	.ai-note { font-size: .9em; }
+
+	/* The marker is the clock, the fill is spend — fill behind marker = under pace.
+	   The gauge's top padding is the triangle's headroom. */
+	.ai-gauge { position: relative; padding-top: .5em; }
+	.ai-mark {
+		position: absolute; top: 0; left: var(--at, 0%); translate: -50% 0;
+		width: 0; height: 0; opacity: .75;
+		border-inline: .3em solid transparent;
+		border-top: .35em solid currentColor;
+	}
+	.ai-mark.hidden { display: none; }
+
+	.ai-track { height: .4em; border-radius: 999px; background: color-mix(in srgb, currentColor 12%, transparent); }
+	.ai-fill { height: 100%; width: var(--pct, 0%); border-radius: inherit; background: var(--prim);
+		transition: width .3s ease, background-color .3s ease; }
+	.ai-fill.calm { background: var(--ok); }
+	.ai-fill.warm { background: var(--warn); }
+	.ai-fill.hot { background: var(--hot); }
+	.ai-fill.burning { background: var(--error); }
+
+	/* Steps as segments — the bar jumps a notch per step, which is what it measures.
+	   Running tasks only; a dormant task shows none at all. */
+	.ai-steps { display: flex; gap: .2em; }
+	.ai-seg { flex: 1; height: .3em; border-radius: 999px;
+		background: color-mix(in srgb, currentColor 12%, transparent); }
+	.ai-seg.done { background: var(--ok); }
+	.ai-seg.now { background: var(--ok); animation: ai-pulse 1.6s ease-in-out infinite; }
+
+	.ai-checklist { display: flex; flex-direction: column; gap: .3em; margin-block-start: .6em; }
+	.ai-check { display: flex; gap: .6em; align-items: baseline; color: var(--subtle); }
+	.ai-box { flex: 0 0 auto; width: .85em; height: .85em; border-radius: .2em;
+		border: 1px solid currentColor; translate: 0 .1em; }
+	.ai-check.done { color: inherit; }
+	.ai-check.done .ai-box { background: var(--ok); border-color: var(--ok); }
+	.ai-check.now { color: inherit; font-weight: 700; }
+	.ai-check.now .ai-box { border-color: var(--ok); animation: ai-pulse 1.6s ease-in-out infinite; }
+
+	/* Start work from the board (compose.js). Layout only — the box is `surface`.
+	   ⚠ `width: auto`: framework.css sizes every select to 100%, so two of them
+	   in a row is two stacked full-width bars. */
+	.ai-compose-effort, .ai-compose-model { width: auto; }
+	.ai-compose-name { width: auto; flex: 1 1 10em; min-width: 0; }
+
+	.ai-group { display: flex; flex-direction: column; gap: .4em; }
+	.ai-group-title { font-weight: 700; font-size: .9em; letter-spacing: .04em; text-transform: uppercase; }
+
+	.ai-dot { width: .55em; height: .55em; border-radius: 999px; background: var(--prim); flex: 0 0 auto; }
+	.ai-dot.idea { background: color-mix(in srgb, currentColor 30%, transparent); }
+	.ai-dot.live { animation: ai-pulse 1.6s ease-in-out infinite; }
+	@keyframes ai-pulse { 50% { opacity: .35; } }
+
+	/* ⚠ Unframed `.bleed` bands keep the region — hand the inset back, the
+	   pattern demo/stage.css and ext/layout use. */
+	.page.standard > .ai-dashboard.bleed { padding-inline: var(--gutter-x); }
+
+	/* One track per ~44em: a single full row on a laptop, 2 at 1920, 3 at 3440 —
+	   the width becomes columns, not gutter. */
+	.ai-cards {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(min(44em, 100%), 1fr));
+		gap: .6em;
+		align-items: start;
+		container-type: inline-size;
+	}
+
+	/* One card, three regions — who | what | figures. The title's ::after spreads
+	   the row's link; anything that must stay clickable sits above it (.ai-links). */
+	.ai-card {
+		position: relative;
+		display: grid;
+		grid-template-columns: minmax(15em, 22em) minmax(0, 1fr) max-content;
+		gap: .3em 1.5em;
+		align-items: start;
+		padding: .7em 1em;
+	}
+	.ai-card-title { font-weight: 700; color: inherit; text-decoration: none; }
+	.ai-card-title::after { content: ""; position: absolute; inset: 0; }
+	.ai-card:hover .ai-card-title { color: var(--prim); }
+
+	.ai-line { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+	.ai-links { position: relative; z-index: 1; }
+	/* ⚠ A pill may not wrap. A label like "Site audit — before/after per element"
+	   broke over three lines inside its own outline and read as a shape, not a
+	   chip — five of them made one card 419px against a 148px median, which on a
+	   grid is a ragged row. One line, clipped; the detail page has the full set. */
+	.ai-link { padding: 0 .6em; border-radius: 999px; color: inherit; text-decoration: none;
+		outline: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+		white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 14em; }
+	.ai-link:hover { color: var(--prim); outline-color: var(--prim); }
+
+	.ai-figures { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+	/* ⚠ Container, not viewport: in the rail the card is narrow while the screen is
+	   wide. `auto-fill minmax(min(44em,100%),1fr)` means a track is either ≥44em or
+	   the container's full width — so the container's width IS the card's here. */
+	@container (width < 44em) {
+		.ai-card { grid-template-columns: 1fr; }
+		.ai-figures { text-align: left; white-space: normal; display: flex; flex-wrap: wrap; gap: 0 1em; }
+	}
+
+	.ai-nested { margin-inline-start: 2em; }
+
+	/* The rail IS the dashboard (framework/ai/'s previews() override), so it takes
+	   catalog's rail treatment itself — wide enough for a card, sticky, scrolling
+	   on its own. Mirrors `.page-catalog > .timeline` in Timeline.css. */
+	.page-catalog > .ai-index-rail {
+		flex: 0 0 min(34em, 45%); min-width: 0;
+		position: sticky; top: 0; max-height: 100dvh; overflow-y: auto; scrollbar-width: thin;
+	}
+
+	/* ⚠ The catalog BLEEDS, and catalog.css pays the inset back to `.page-previews`
+	   only — this rail is a different class, so it fell through and sat flush on the
+	   region's raw edge. Swapping the rail's class means restating the payback. */
+	.page.standard > .page-catalog > .ai-index-rail { margin-inline-start: var(--gutter-x); }
+	@media (max-width: 64em) {
+		.page-catalog > .ai-index-rail { flex: 0 0 auto; position: static; max-height: none; }
+	}
+
+	/* Nothing selected yet — then the rail IS the page, and takes the whole region
+	   with the intro above it. A 34em rail beside an empty pane spent 2300px of a
+	   3440 screen on gutter; at full width `.ai-cards` turns that into three columns
+	   on its own. This is catalog's own "is anything showing?" (catalog.css), asked
+	   in the negative — so the split returns the instant a task is opened. */
+	.page-catalog:has(> .ai-index-rail):not(:has(> .page-catalog-pages > .page:is(.active-page, .active-ancestor))) {
+		flex-direction: column;
+
+		/* ⚠ `overflow: visible` with it: a board is not a scrollport — the page
+		   scrolls. Leaving the rail's `overflow-y: auto` behind kept it a region
+		   of its own, which LayoutTool reads as an edge owing a gutter. */
+		> .ai-index-rail {
+			flex: 1 1 auto; width: 100%;
+			position: static; max-height: none; overflow: visible;
+			margin-inline-start: 0; padding-inline: var(--gutter-x);
+		}
+		> .page-catalog-pages { order: -1; flex: 0 0 auto; }
+	}
+}
+
+@layer util {
+
+	/* ⚠ A plain Page sets no `$pages`, so a routed task mounts in the catalog's
+	   region as its DAY'S SIBLING, not inside it — both would render at once.
+	   The day steps aside while one of its tasks is showing: the .tab-panel
+	   contract (catalog.css), one tier down. `~` is safe — activate() runs
+	   root-to-leaf, so the ancestor is always the earlier sibling. */
+	.page-catalog:has(> .ai-index-rail) > .page-catalog-pages
+		> .page.active-ancestor:has(~ .page.active-page) { display: none; }
+}

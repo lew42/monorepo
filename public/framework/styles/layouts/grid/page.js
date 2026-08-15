@@ -11,6 +11,7 @@ export default new Page({
 	title: "Grid",
 	description: "A wall that counts its own columns, and the one number that retunes it.",
 	icon: "grid_on",
+	group: "Vocabulary",
 
 	// Inline object children: three real pages, three urls, no directories. Each one
 	// draws its own card (word.js) and the wall below is those cards.
@@ -56,7 +57,7 @@ export default new Page({
 					div.c("grid gap auto").style("--column", column).append(cells);
 				});
 			});
-		}, "**Drag the handle.** `cells` is the six `div.c(\"pad wash\")` above. At a 900px stage: six across, four, then two. The `20em` wall is a card wall, the `7em` one is a stat strip, and the difference between them is a number — this is [Cards](/framework/styles/layouts/cards/) and [Dashboard](/framework/styles/layouts/dashboard/), which are the same class.").ac("wide");
+		}, "**Drag the handle.** `cells` is the six `div.c(\"pad wash\")` above. At a 900px stage: six across, four, then two. The `20em` wall is a card wall, the `7em` one is a stat strip, and the difference between them is a number — this is [Gallery](/framework/styles/layouts/gallery/)'s wall and [Dashboard](/framework/styles/layouts/dashboard/)'s numbers, which are the same class.").ac("wide");
 
 		h2("`auto-fit` or `auto-fill`");
 
@@ -73,6 +74,6 @@ div.c("grid gap three", () => { … })                      // three, then one`)
 
 		md("For the asymmetric case — a fixed rail beside fluid content — reach for [Flex](/framework/styles/layouts/flex/) instead: `basis` and `flex-1` say it in two words, and there is no utility for a hand-written `grid-template-columns` because every one of them is a different template.");
 
-		md("Next: [Holy grail](/framework/styles/layouts/holy-grail/) — both of these, in one page.");
+		md("Next: [App shell](/framework/styles/layouts/shell/) — both of these, in one page.");
 	},
 });

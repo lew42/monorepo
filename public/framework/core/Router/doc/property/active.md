@@ -12,8 +12,9 @@ Written once, read four times, never by anything outside this class:
 
 ## Necessity
 
-Essential: it is the Router's only state. Everything else is derived from it or
-from the DOM.
+Essential: with [`marked`](/framework/core/Router/api/marked/) it is all the state
+this class holds, and the only half a reader needs. Everything else is derived from
+it or from the DOM.
 
 **It holds the page, not the url**, and that is load-bearing. `mark_links()` reads
 `active.url` rather than `location.pathname` because `go()` pushes history only

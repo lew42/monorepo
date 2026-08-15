@@ -26,11 +26,10 @@ it** — the fix was deleting the second sidebar, not changing the number.
 | call site | placement |
 |---|---|
 | `framework/page.js:22` | `.topic > .sidebar` in `/styles.css` |
-| `styles/layouts/sidebar/page.js:49` | `.ac("basis").style("--basis", "var(--sidebar)")` |
-| `styles/layouts/holy-grail/page.js:38` | the same, beside a second `basis` |
+| `styles/layouts/sidebar/page.js` | `.ac("basis").style("--basis", "var(--sidebar)")` |
 | the demos on this page | `.style({ width: "13em" })`, because a demo box is not a layout |
 
-Four placements, one component, no `width` in `Sidebar.css`.
+Three placements, one component, no `width` in `Sidebar.css`.
 
 ## The corollary
 

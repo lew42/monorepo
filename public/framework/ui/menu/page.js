@@ -37,7 +37,7 @@ export default new Page({
 			stage: steer => demo.stage(menu, steer).ac("bleed"),
 			def: menu,
 			file: new URL("page.js", import.meta.url).pathname,
-			note: "**There is no `ui.menu()`.** Its one line of logic — close the panel after a pick — is a line you want *per item*, because a real menu's items run handlers, and the function's items could only be strings and urls: its own showcase rendered five dead links. It also collided by name with `ext/Layout`'s `menu()`, live, in a codebase where the class name is the registry.",
+			note: "**There is no `ui.menu()`.** Its one line of logic — close the panel after a pick — is a line you want *per item*, because a real menu's items run handlers, and the function's items could only be strings and urls: its own showcase rendered five dead links. It also collided by name with `ext/layout`'s `menu()`, live, in a codebase where the class name is the registry.",
 		});
 
 		md("## Why this one gets CSS");

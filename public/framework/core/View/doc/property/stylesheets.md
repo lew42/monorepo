@@ -1,6 +1,6 @@
 Every stylesheet promise, in load order.
 
-**Usage** — pushed by `View.stylesheet()` (`View.js:434`); awaited by
+**Usage** — pushed by `View.stylesheet()` (`View.js:379`); awaited by
 `App.styles_loaded()` before the first page is shown.
 
 **Necessity** — yes. It is the whole reason the site does not flash unstyled

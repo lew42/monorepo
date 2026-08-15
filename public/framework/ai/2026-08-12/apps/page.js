@@ -20,7 +20,7 @@ export default new Page({
 
 		md(`| | the shape | the claim it tests |
 |---|---|---|
-| [Editor](/framework/ai/2026-08-12/apps/editor/) | layers · canvas · properties | a properties panel can be **\`ext/Layout\`'s own controls in a box** — one vocabulary, not a second one |
+| [Editor](/framework/ai/2026-08-12/apps/editor/) | layers · canvas · properties | a properties panel can be **\`ext/layout\`'s own controls in a box** — one vocabulary, not a second one |
 | [Panes](/framework/ai/2026-08-12/apps/panes/) | recursive splits, drag to resize | a Blender pane system is four lines, because \`flex\` already nests |
 | [Columns](/framework/ai/2026-08-12/apps/columns/) | Miller columns | \`children\` **is** the data, \`$pages\` is the next column, and \`container()\` walks to it |
 | [Navigation](/framework/ai/2026-08-12/apps/navigation/) | rail vs wall vs columns | one tree, three arrangements, switchable — so the trade is felt rather than argued |`).ac("wide");
@@ -29,7 +29,7 @@ export default new Page({
 
 		demo.stage(editor).ac("bleed");
 
-		md("Click a box on the canvas, or a row in the layers list. The chips, the knobs and the flex/grid pick are **`layout.words` and `controls.js`** — ext/Layout's own registry, drawn into a region of the demo instead of into the app's right drawer. The line at the top of the panel is the call that would build the selection. The two panels are titlebar toggles, because *a panel on or off is not a second example page*.");
+		md("Click a box on the canvas, or a row in the layers list. The chips, the knobs and the flex/grid pick are **`layout.words` and `controls.js`** — ext/layout's own registry, drawn into a region of the demo instead of into the app's right drawer. The line at the top of the panel is the call that would build the selection. The two panels are titlebar toggles, because *a panel on or off is not a second example page*.");
 
 		h2("Recursion is the whole pane system");
 
@@ -41,8 +41,8 @@ export default new Page({
 
 		md(`| | found by | verdict |
 |---|---|---|
-| **an interactive demo fights its own stage.** \`demo.stage(fn, steer)\` makes the render an \`ext/Layout\` region, so every control click inside opens the right drawer on that control | the editor, which opened **two** properties panels on one chip click | \`widget($el)\` in \`apps/parts.js\` — the box stops its own click and hover, the bar still steers the render whole. Two lines, four callers. Whether it belongs to \`ext/demo\` or \`ext/Layout\` is the open question |
-| \`ext/Layout\`'s four control primitives are **module-internal** — \`pick\`, \`chips\`, \`knob\`, \`menu\`, \`btn\` live in \`controls.js\` and only \`layout.words\` is public | the editor's properties panel, which needs chips ext/Layout has no word for | these pages import \`controls.js\` directly. **Propose \`layout.controls\`** — one re-export from \`layout.js\`, so the next in-box panel is not a copy |
+| **an interactive demo fights its own stage.** \`demo.stage(fn, steer)\` makes the render an \`ext/layout\` region, so every control click inside opens the right drawer on that control | the editor, which opened **two** properties panels on one chip click | \`widget($el)\` in \`apps/parts.js\` — the box stops its own click and hover, the bar still steers the render whole. Two lines, four callers. Whether it belongs to \`ext/demo\` or \`ext/layout\` is the open question |
+| \`ext/layout\`'s four control primitives are **module-internal** — \`pick\`, \`chips\`, \`knob\`, \`menu\`, \`btn\` live in \`controls.js\` and only \`layout.words\` is public | the editor's properties panel, which needs chips ext/layout has no word for | these pages import \`controls.js\` directly. **Propose \`layout.controls\`** — one re-export from \`layout.js\`, so the next in-box panel is not a copy |
 | **no \`hidden\` utility.** \`View.hide()\` writes inline \`display\`, the top rung of the ratchet | every panel toggle here | each family shipped its own one-line \`.apps-off\`. The View record already proposes \`.hidden\`; this is a third caller for it |
 | \`flex-1\` carries \`min-width: 0\` and **not** \`min-height: 0\` | every scrolling pane, at every nesting level | four of the ~15 CSS lines in this exploration exist only to restate it. Either \`flex-1\` should carry both, or the pair wants its own word |
 | a card's live thumb has **no way to be told a size** — \`demo.tree()\` calls \`this.box()\` with no height | the columns card, which is 21em of trail inside a 12em ceiling | worked around with \`card: "tall"\`. The unify session's size vocabulary is the real fix |
@@ -55,12 +55,12 @@ export default new Page({
 |---|---|---|
 | **Columns** | \`core/Page/overview/columns/\`, in the **Arrangements** run beside \`catalog\` and \`deep\` | it is a page-tree arrangement, it is 40 lines, and it is the missing third answer next to wall and rail. The strongest of the four |
 | **Navigation** | \`ext/catalog/\` — as the record's *"which arrangement"* page, or a \`core/Page/doc/\` note | it argues a design question rather than teaching an API, and it is the page to send someone who asks "rail or wall?" |
-| **Editor** | \`ext/Layout/\`, once \`layout.controls\` is public | it is the best argument for the drawer's vocabulary that exists: the same controls, in someone else's box |
+| **Editor** | \`ext/layout/\`, once \`layout.controls\` is public | it is the best argument for the drawer's vocabulary that exists: the same controls, in someone else's box |
 | **Panes** · **Split** | stay here for now | nothing on the site is a pane system yet, and a demo with no consumer is a component waiting to be invented. Promote when a real page wants one |`).ac("wide");
 
 		h2("Open");
 
-		md("**Nothing was added to `ext/Layout`.** Every control on these pages is one it already had — which was the test, and it passed. The one thing it cannot do is put its panel *inside* something: the drawer is one per document and pushes the whole app, so the editor draws its own region and reuses only the controls. That is the right split, but it means the panel's **layout** is copied and its **vocabulary** is not.");
+		md("**Nothing was added to `ext/layout`.** Every control on these pages is one it already had — which was the test, and it passed. The one thing it cannot do is put its panel *inside* something: the drawer is one per document and pushes the whole app, so the editor draws its own region and reuses only the controls. That is the right split, but it means the panel's **layout** is copied and its **vocabulary** is not.");
 
 		md("**The columns trail scrolls itself on click** (`requestAnimationFrame`, then `scrollTo` on the nearest `.demo-app-pages`). That is the one place these pages reach for an element by class outside their own render, and it does nothing outside a demo box — but it is a real coupling and it should die when a scroll-into-view helper exists.");
 

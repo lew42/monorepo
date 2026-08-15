@@ -1,4 +1,4 @@
-**Usage** — one live caller: `toggle()` (`View.js:348`). Nothing else in `public/`.
+**Usage** — one live caller: `toggle()` (`View.js:315`). Nothing else in `public/`.
 
 **Necessity** — only as `hide()`'s inverse.
 

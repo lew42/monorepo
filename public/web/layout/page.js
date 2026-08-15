@@ -18,6 +18,6 @@ export default new Page({
 
 		md("[flow](/web/layout/flow/) and [measure](/web/layout/measure/) are what prose needs and nothing else. [flex](/web/layout/flex/) and [grid](/web/layout/grid/) are the two arrangers, and there is no third. [tracks](/web/layout/tracks/) is how one page holds a reading column *and* a wide exhibit; [respond](/web/layout/respond/) is why none of this needs a media query; [screens](/web/layout/screens/) is the case where there is no prose to protect.");
 
-		md("The words themselves live in the reference — [Layouts](/framework/styles/layouts/) is the catalog of eight, [Flex](/framework/styles/layouts/flex/) and [Grid](/framework/styles/layouts/grid/) are the vocabulary, [Layout](/framework/ext/Layout/) is the toolbar. This tier is about which one a page wants.");
+		md("The words themselves live in the reference — [Layouts](/framework/styles/layouts/) is the catalog of twelve whole pages, [Flex](/framework/styles/layouts/flex/) and [Grid](/framework/styles/layouts/grid/) are the vocabulary, [Layout](/framework/ext/layout/) is the toolbar. This tier is about which one a page wants.");
 	},
 });

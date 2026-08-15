@@ -2,6 +2,7 @@ import View, { div, p, pre, code, span, a, button, details, summary, icon, is } 
 import { source, dedent } from "../../util/source/source.js";
 import { markup } from "../../util/markup/markup.js";
 import { stage } from "./stage.js";
+import { two } from "./two.js";
 
 /* css: `.page.standard > .demo.quoted` — the opt-out reads Page.css's own track names,
    so this import is the loading edge for it, not an annotation. */
@@ -28,10 +29,12 @@ View.stylesheet(import.meta, "demo.css");
  * The two halves also stand alone:
  *
  *   demo.stage(fn).ac("bleed");             // the render, full-bleed, no chrome
+ *   demo.stage.two(fn);                     // the same render at two widths
  *   demo.source(fn);                        // the code, closed, BELOW the render
  *
  * A demo PAGE is those two plus a control bar, assembled once — `demo.exhibit()`
- * in exhibit.js, which is also where `demo.page()` and `demo.tree()` live.
+ * in exhibit.js, which is also where `demo.page()` and `demo.tree()` live;
+ * `demo.layout()` is the third sugar, in layout.js.
  *
  * Strings before the function label the box; strings after caption it. The
  * caption is the important one: a doc page leads with code, and the sentence
@@ -42,12 +45,12 @@ View.stylesheet(import.meta, "demo.css");
  * so examples are written exactly the way real page code is written.
  *
  * ⚠ The stage is a DIV: a `@media` query inside an example reads the real browser
- * viewport and will not move with the handle. stage.js, readme.md §6.
+ * viewport and will not move with the handle. stage.js, doc/record.md §6.
  *
  * A demo is an exhibit, so the box carries `wide` and leaves the reading measure on
- * its own — the doctrine lives here rather than on thirty pages. readme.md §14.
+ * its own — the doctrine lives here rather than on thirty pages. doc/record.md §14.
  *
- * Design record: framework/ext/demo/readme.md.
+ * Design record: readme.md, and doc/record.md for the long form.
  */
 export default function demo(...args){
 	const i = args.findIndex(is.fn);
@@ -131,21 +134,39 @@ demo.stage = (fn, steer) => {
 };
 
 /**
+ * demo.stage.two(fn) — the stage's two-up mode: the same builder at two simulated
+ * widths with one handle between them, which is the width dial. `{ wide, narrow }`
+ * names the two ends; `level: true` floors the shorter pane to the taller one.
+ *
+ * A mode rather than a door of its own, so the fullscreen in its strip is the
+ * site's one fullscreen. two.js.
+ */
+demo.stage.two = (fn, steer, opts) => {
+	const { $stage, $views } = two(fn, opts);
+
+	steer?.($views[0]);
+
+	return $stage.ac("wide");
+};
+
+/**
  * demo.source(fn) — the code, closed, BELOW the render.
  *
  *   demo.source(hero);                          // summary reads "Source"
  *   demo.source(hero, "The whole page");
  *   demo.source(tree, "Source", "/x/page.js");  // + the whole file, one click away
+ *   demo.source(template, "Source");            // a STRING, already built
  *   demo.source.file(import.meta, "hero.js");   // summary reads "hero.js"
  *
  * A leaf page shows the thing first and answers "how" only when asked, so this
  * opens closed and belongs under the render — never above it.
  *
  * What prints is the FUNCTION, which on a demo page is the lesson; the third
- * argument is the file it lives in, for the reader who wants the imports too.
+ * argument is the file it lives in, for the reader who wants the imports too. A
+ * string prints as-is, for code a page assembled rather than ran.
  */
-demo.source = (fn, label = "Source", file) =>
-	source_details(label, () => { pre(() => { source_code(source(fn)); }); }, file);
+demo.source = (src, label = "Source", file) =>
+	source_details(label, () => { pre(() => { source_code(is.fn(src) ? source(src) : src); }); }, file);
 
 demo.source.file = (meta, url, label = url) =>
 	source_details(label, $source => { $source.append(source_file(meta, url)); });
@@ -222,9 +243,9 @@ function source_file(meta, url){
    imported from. */
 export { source, dedent };
 
-/* The shell, for a sibling variant: ext/demo/responsive.js builds the same box
-   with two simulated viewports in it, and imports these so the two cannot drift.
-   ⚠ One-way — that file imports this one and patches `demo.responsive`. */
+/* The shell, for whoever composes one: exhibit.js and layout.js build demo PAGES
+   out of these, and import them so the boxes cannot drift.
+   ⚠ One-way — those files import this one and patch `demo.*`. */
 export { btn, caption, source_code };
 
 export { demo };

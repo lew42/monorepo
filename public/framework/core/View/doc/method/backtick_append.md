@@ -1,5 +1,5 @@
 **Usage** — one call site, and it is the reason the method exists: the prose-tag
-loop in `elements()` (`View.js:461`), which builds `p` and `h1`–`h6` plus their
+loop in `elements()` (`View.js:406`), which builds `p` and `h1`–`h6` plus their
 `.c` variants. `p("Call `x` first")` and `h2("`add()` — sub pages")` route here so
 prose can carry inline code with no second call.
 

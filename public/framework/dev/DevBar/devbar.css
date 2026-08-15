@@ -1,0 +1,118 @@
+/* Restated IN FULL — a short list silently misplaces `site`. */
+@layer base, theme, site, util;
+
+@layer theme {
+
+	/* The rail's width lives here once. `--devbar` is what the shell reserves at its
+	   inline end (`.app`, framework.css) and what the panel is wide, and `dev-open` is
+	   the only state there is — DevBar.js toggles that class and nothing else.
+	   ⚠ On :root rather than `.app`: there is one dev rail per DOCUMENT, and the
+	     panel itself hangs off <body>, outside `.app`, so it could not inherit. */
+	:root { --dev-rail: 17rem; }
+	html.dev-open { --devbar: var(--dev-rail); }
+
+	/* ⚠ `color-scheme: dark` IS the dark theme: every token in framework.css is a
+	   `light-dark()` pair that resolves against the element using it, so one line
+	   retunes ink, surface, line, wash and subtle together. Nothing here names a
+	   colour. Outside `.app`, so the site's theme never reaches it. */
+	.dev-bar {
+		position: fixed; inset-block: 0; inset-inline-end: 0; z-index: 50;
+		width: min(var(--dev-rail), 100%);
+		color-scheme: dark;
+		color: var(--ink);
+		background: var(--surface);
+		border-inline-start: 1px solid var(--line);
+		font-family: var(--mono);
+		font-size: 0.8rem;
+		transform: translateX(100%);
+		transition: transform 0.18s;
+	}
+	html.dev-open .dev-bar { transform: none; }
+
+	/* The head is pinned and the body scrolls under it — a rail whose ✕ scrolls away
+	   is a rail you cannot shut. */
+	.dev-head {
+		flex: 0 0 auto;
+		gap: 0.5em;
+		padding: 0.7em 0.9em;
+		border-block-end: 1px solid var(--line);
+	}
+	.dev-title { font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--prim); }
+	.dev-hint { margin-inline-end: auto; color: var(--subtle); }
+
+	.dev-x {
+		padding: 0 0.4em;
+		color: var(--subtle);
+		background: none;
+		border: 1px solid transparent;
+		border-radius: var(--radius);
+	}
+	.dev-x:hover { color: var(--prim); border-color: var(--prim); }
+
+	.dev-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; gap: 1.25em; padding: 0.9em; }
+
+	.dev-sect { gap: 0.35em; }
+	.dev-sect-title { font-size: 0.85em; letter-spacing: 0.12em; color: var(--subtle); }
+
+	.dev-row { display: grid; grid-template-columns: 3.6em 1fr; gap: 0.5em; }
+	.dev-key { color: var(--subtle); }
+	.dev-val { overflow-wrap: anywhere; }
+	.dev-val.ok { color: var(--ok); }
+	.dev-val.warn { color: var(--warn); }
+	.dev-val.off { color: var(--subtle); }
+
+	.dev-crumbs, .dev-links { gap: 0.3em; }
+
+	.dev-crumb, .dev-link {
+		padding: 0.1em 0.5em;
+		color: var(--ink);
+		text-decoration: none;
+		background: var(--wash);
+		border-radius: var(--radius);
+	}
+	.dev-crumb:hover, .dev-link:hover { color: var(--prim); }
+
+	.dev-knob { display: flex; align-items: center; gap: 0.5em; cursor: pointer; }
+
+	/* Four equal targets on one row — the set is fixed at four, so they divide the
+	   rail rather than wrapping. `.on` is the width the page is actually at. */
+	.dev-sizes { gap: 0.35em; }
+
+	.dev-size {
+		display: flex; align-items: center; justify-content: center;
+		flex: 1 1 0; min-width: 0;
+		padding: 0.3em 0;
+		color: var(--subtle);
+		background: var(--wash);
+		border: 1px solid transparent;
+		border-radius: var(--radius);
+		cursor: pointer;
+	}
+	/* ⚠ `rem`, not `em`: the rail's text is 0.8rem, so an em icon lands at 12.8px. */
+	.dev-size .icon { font-size: 1.15rem; }
+	.dev-size:hover:not(:disabled), .dev-size.on { color: var(--prim); border-color: var(--prim); }
+	.dev-size:disabled { opacity: 0.3; cursor: not-allowed; }
+
+	.dev-ai { gap: 0.5em; min-width: 0; }
+	.dev-threads { gap: 0.3em; }
+
+	/* A `.dev-link` that is a button rather than an anchor. */
+	.dev-thread { font: inherit; border: 1px solid transparent; cursor: pointer; }
+	.dev-thread:hover, .dev-thread.on { color: var(--prim); border-color: var(--prim); }
+	.dev-thread-new { display: flex; align-items: center; padding-inline: 0.35em; }
+	.dev-thread-new .icon { font-size: 1rem; }
+
+	/* The rail is a column, not a page: ext/Ask's 30em transcript would bury every
+	   section under it, and the input is the half that has to stay on screen. */
+	.dev-bar .chat-list { max-height: 14em; }
+	.dev-bar .chat-form { flex-direction: column; align-items: stretch; }
+
+	/* The resize edge is grip.css, loaded by grip.js beside it. */
+
+	/* The one X-ray a layout question needs, and outlines rather than borders so
+	   nothing reflows. The rail excepts itself: it has to stay readable while it is
+	   the thing drawing the boxes. */
+	html.dev-outline body :not(.dev-bar, .dev-bar *) {
+		outline: 1px solid color-mix(in srgb, var(--prim) 35%, transparent);
+	}
+}

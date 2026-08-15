@@ -7,13 +7,14 @@ so there is no constructor for App to inject into.
 - **`.app`** — assigned in `child()`, on the walk, to the page about to need it.
   Nothing recurses it over the tree at boot.
 
-A Page reads `.app` in exactly two places: `activate()` (for `container()`) and
-`go()`. Everything else — `link()`, `preview()`, `previews()`, `render()`,
-`chain()`, `naming()` — never touches it.
+A Page reads `.app` in one place: `activate()`, for `container()`. Everything else —
+`link()`, `preview()`, `previews()`, `render()`, `chain()`, `naming()` — never
+touches it.
 
-**The cost:** an eager child you have never navigated to has no `.app`, so
-`unvisited.go()` would throw. `link()` is a plain `<a href>` and covers that case,
-which is why it is the one used everywhere.
+**The cost:** an eager child you have never navigated to has no `.app`, so anything
+reaching through it — `app.router.go(page.url)` from site code, an ext reading
+`app.loaders` — has nothing to reach through. `link()` is a plain `<a href>` and
+needs none of it, which is why it is the one used everywhere.
 
 **Never read `window.app` inside `framework/`.** It is a console convenience, it
 hard-codes one App per document, and it is `undefined` during boot — `app.js` runs

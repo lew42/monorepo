@@ -1,7 +1,7 @@
 **Usage** — the most-called method in the framework: ~477 `.ac(` call sites across
 `public/`. Internally it is how `classify()` writes the class chain
 (`View.js:45,50,55`), how every `.c()` factory spends its first argument
-(`View.js:456-476`), and half of `toggle_class()` (`View.js:170`).
+(`View.js:401-421`), and half of `toggle_class()` (`View.js:145`).
 
 ```js
 div().ac("flex gap");           // space-separated, one call

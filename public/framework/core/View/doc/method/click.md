@@ -1,7 +1,7 @@
 **Usage** — 34 call sites, roughly the same as every other event combined. Demo
 toggles, `Sidebar`'s open button (`framework/core/Sidebar/Sidebar.js:67`), the
 copy button in `framework/ui/parts.js:40`, `ctrl()`'s checkboxes
-(`View.js:386`).
+(`View.js:335`).
 
 **Necessity** — sugar over `on("click", cb)`, and it has earned the shorthand:
 clicks outnumber all other events on this site.

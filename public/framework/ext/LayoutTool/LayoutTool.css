@@ -1,0 +1,136 @@
+/* ⚠ Restated IN FULL — the first `@layer` statement fixes the order, and a
+   short list silently drops `site` past `util`. */
+@layer base, theme, site, util;
+
+@layer theme {
+
+	/* The verdict line: a grade, where it came from, the number. */
+	.lt-card { border: 1px solid var(--line); border-radius: var(--radius); padding: 0.7em 1em; }
+
+	.lt-grade {
+		flex: 0 0 auto; min-width: 2.2em; padding: 0.15em 0;
+		font-size: 1.5em; font-weight: 800; text-align: center;
+		border-radius: var(--radius);
+	}
+
+	.lt-where { font-weight: 600; }
+	.lt-score { margin-inline-start: auto; font-size: 1.5em; font-variant-numeric: tabular-nums; }
+
+	.lt-badge { padding: 0.1em 0.5em; border-radius: var(--radius); font-weight: 700; }
+
+	/* Grade colours are the framework's status tokens, not new ones. */
+	.lt-ok    { color: var(--ok); }
+	.lt-warn  { color: var(--warn); }
+	.lt-bad   { color: var(--error); }
+
+	.lt-metrics { --column: 9em; }
+
+	.lt-metric { gap: 0.1em; padding: 0.6em 0.8em; background: var(--tint); border-radius: var(--radius); }
+	.lt-metric-value { font-size: 1.15em; font-weight: 700; font-variant-numeric: tabular-nums; }
+	.lt-metric-name { font-weight: 600; }
+	.lt-metric-why { font-size: 0.85em; }
+
+	.lt-issue { gap: 0.4em; padding: 0.8em 1em; border: 1px solid var(--line); border-radius: var(--radius); }
+
+	.lt-sev { padding: 0.05em 0.45em; border-radius: var(--radius); font-weight: 700; font-size: 0.8em; }
+	.lt-sev-error  { color: var(--error); }
+	.lt-sev-warn   { color: var(--warn); }
+	.lt-sev-subtle { color: var(--subtle); }
+
+	.lt-rule { margin-inline-start: auto; font-family: var(--mono); font-size: 0.85em; }
+
+	.lt-instances { margin: 0; padding-inline-start: 1.2em; }
+	.lt-instances > li { margin-block: 0.15em; }
+
+	.lt-fix { padding-block-start: 0.3em; border-block-start: 1px solid var(--line); }
+
+	/* The suite's own chrome. */
+	.lt-run { padding-block: 0.5em; }
+	.lt-out { margin-block-start: 1em; }
+
+	/* Before / after: two live frames of the same page, one with the fix applied.
+	   ⚠ Exactly TWO tracks, declared. `.grid.auto` is `auto-fit` + `1fr`, which
+	     generated a THIRD empty track at 1700px and left the pair huddled in the
+	     left two-thirds — a pair is a pair at every width, or it stacks. */
+	.lt-twin {
+		grid-template-columns: repeat(auto-fit, minmax(min(26em, 100%), 1fr));
+		align-items: start;
+	}
+
+	@media (min-width: 56em) {
+		.lt-twin { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+	}
+	.lt-pane { gap: 0.4em; min-width: 0; }
+	.lt-pane-head { font-weight: 700; }
+
+	/* ⚠ The frame inside renders at the AUDIT width and is scaled down, so the
+	   window clips it and owns the height its script computes. */
+	.lt-shot {
+		overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius);
+		background: var(--surface);
+	}
+	.lt-shot > iframe { border: 0; display: block; }
+
+	/* Full width WITH a gutter — the two tokens, declared. `.page.full` would zero
+	   them and strand the page title in the corner. */
+	.page.lt-page { --measure: none; --page-pad: 2.5em clamp(1.5em, 3%, 3.5em); }
+
+	.lt-audit { padding: 0; }
+	.lt-problems { margin-block: 1em; }
+	.lt-eg { font-family: var(--mono); font-size: 0.85em; }
+
+	/* The element itself, twice, at its own size. The stage is bounded and scrolls
+	   — a cloned page section can be any height at all. */
+	.lt-mirror { margin-block-start: 0.6em; }
+	.lt-mirror-pair { grid-template-columns: repeat(auto-fit, minmax(min(20em, 100%), 1fr)); }
+	.lt-mirror-pane { min-width: 0; }
+
+	.lt-mirror-stage {
+		padding: 1em; max-height: 24em; overflow: auto;
+		border: 1px solid var(--line); border-radius: var(--radius);
+		background: var(--surface);
+	}
+
+	/* The "before" is marked, not restyled — the whole point is that it renders
+	   exactly as it does on the page it came from. */
+	.lt-mirror-stage:has([data-lt-before]) { outline: 2px solid color-mix(in srgb, var(--error) 40%, transparent); }
+	.lt-mirror-note { padding-block-start: 0.4em; }
+	.lt-path { font-size: 0.8em; color: var(--subtle); word-break: break-all; }
+	.lt-show { margin-block-start: 0.4em; }
+
+	/* A case beside its live score. One column below 60em, two above — the
+	   "sidebar and body" arrangement from styles/rules/robust/, and the one
+	   place a media query earns its keep: a rail should STACK below a threshold
+	   and sit beside above it, and no intrinsic sizing expresses that.
+	   ⚠ `minmax(0, 1fr)` on the body track, never `1fr` — the case may hold a
+	     deliberately unbreakable box, and `1fr`'s auto floor would let it push
+	     the rail off screen. */
+	.lt-case { grid-template-columns: minmax(0, 1fr); align-items: start; }
+	.lt-case-body { min-width: 0; }
+
+	@media (min-width: 60em) {
+		.lt-case { grid-template-columns: minmax(0, 1fr) 17em; }
+		.lt-case-rail { position: sticky; top: 1em; }
+	}
+
+	.lt-live-panel {
+		padding: 0.9em 1em;
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		background: var(--tint);
+		font-size: 0.9em;
+	}
+
+	.lt-live-head { gap: 0.15em; }
+	.lt-live-label { font-weight: 700; }
+	.lt-live-body { gap: 0.5em; }
+	.lt-live-meta { font-size: 0.85em; font-variant-numeric: tabular-nums; }
+	.lt-live-issue { gap: 0.1em; }
+	.lt-live-detail { font-size: 0.85em; }
+
+	.lt-vision { margin-block: 1em; }
+	.lt-reply { padding: 0.7em 0.9em; background: var(--tint); border-radius: var(--radius); white-space: pre-wrap; }
+	.lt-reply:empty { display: none; }
+	.lt-detail { margin-block-start: 1.5em; }
+	.lt-decl { display: block; white-space: pre-wrap; padding: 0.7em 0.9em; }
+}

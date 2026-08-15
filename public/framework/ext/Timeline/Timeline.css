@@ -1,0 +1,132 @@
+/* Restated IN FULL — a short list silently misplaces `site`. */
+@layer base, theme, site, util;
+
+@layer theme {
+
+	/* One property write zooms (--em-per-hour); one class swap flips the axis. */
+	.timeline { display: flex; overflow: auto; scrollbar-width: thin; }
+	.timeline.h { flex-direction: column; }
+	.timeline.v { flex-direction: row; }
+
+	.timeline-ruler, .timeline-track { position: relative; flex: 0 0 auto; }
+
+	.timeline.h > :is(.timeline-ruler, .timeline-track) {
+		width: calc(var(--dur) * var(--em-per-hour));
+		background-image: repeating-linear-gradient(to right, var(--line) 0 1px, transparent 1px var(--em-per-hour));
+	}
+	.timeline.v > :is(.timeline-ruler, .timeline-track) {
+		height: calc(var(--dur) * var(--em-per-hour));
+		background-image: repeating-linear-gradient(to bottom, var(--line) 0 1px, transparent 1px var(--em-per-hour));
+	}
+
+	.timeline.h > .timeline-ruler { height: 1.4em; }
+	.timeline.v > .timeline-ruler { width: 3.6em; background-image: none; }
+	.timeline.h > .timeline-track { height: calc(var(--lanes, 1) * var(--em-per-lane)); }
+
+	/* v's cross axis is WIDTH, and a page never scrolls sideways — so unlike h
+	   (whose height may grow freely), the track fills whatever width its flex
+	   parent gives it (a catalog rail: half the region) and lanes divide that
+	   as percentages, not fixed ems. */
+	.timeline.v > .timeline-track { flex: 1 1 auto; min-width: 4em; }
+
+	.timeline-tick { position: absolute; font-size: 0.75em; color: var(--subtle); white-space: nowrap; font-variant-numeric: tabular-nums; }
+	.timeline.h > .timeline-ruler > .timeline-tick { top: 0.2em; left: calc(var(--t) * var(--em-per-hour) + 0.3em); }
+	.timeline.h.reverse > .timeline-ruler > .timeline-tick { left: auto; right: calc(var(--t) * var(--em-per-hour) + 0.3em); }
+	.timeline.v > .timeline-ruler > .timeline-tick { left: 0.3em; top: calc(var(--t) * var(--em-per-hour) + 0.15em); }
+	.timeline.v.reverse > .timeline-ruler > .timeline-tick { top: auto; bottom: calc(var(--t) * var(--em-per-hour) + 0.15em); }
+
+	/* Every top-level item: position along the time axis, resolved once from --t/--d/--lane. */
+	.timeline-track > .timeline-item {
+		position: absolute;
+		display: block;
+		border-radius: var(--radius);
+		text-decoration: none; color: inherit;
+		z-index: 1;
+	}
+
+	.timeline.h > .timeline-track > .timeline-item {
+		left: calc(var(--t) * var(--em-per-hour));
+		width: calc(var(--d) * var(--em-per-hour));
+		top: calc(var(--lane) * var(--em-per-lane));
+		height: var(--em-per-lane);
+	}
+	.timeline.h.reverse > .timeline-track > .timeline-item { left: auto; right: calc(var(--t) * var(--em-per-hour)); }
+
+	/* Cross axis as a percentage of --lanes, not a fixed em — see the track note above. */
+	.timeline.v > .timeline-track > .timeline-item {
+		top: calc(var(--t) * var(--em-per-hour));
+		height: calc(var(--d) * var(--em-per-hour));
+		left: calc(var(--lane) * (100% / var(--lanes, 1)));
+		width: calc(100% / var(--lanes, 1));
+	}
+	.timeline.v.reverse > .timeline-track > .timeline-item { top: auto; bottom: calc(var(--t) * var(--em-per-hour)); }
+
+	/* A dot is its own fixed mark, centered ON --t rather than starting there. */
+	.timeline.h > .timeline-track > .timeline-item.dot {
+		width: 0.7em; height: 0.7em; min-width: 0;
+		left: calc(var(--t) * var(--em-per-hour) - 0.35em);
+		top: calc(var(--lane) * var(--em-per-lane) + (var(--em-per-lane) - 0.7em) / 2);
+	}
+	.timeline.h.reverse > .timeline-track > .timeline-item.dot { left: auto; right: calc(var(--t) * var(--em-per-hour) - 0.35em); }
+	.timeline.v > .timeline-track > .timeline-item.dot {
+		width: 0.7em; height: 0.7em; min-width: 0;
+		top: calc(var(--t) * var(--em-per-hour) - 0.35em);
+		left: calc(var(--lane) * (100% / var(--lanes, 1)) + (100% / var(--lanes, 1) - 0.7em) / 2);
+	}
+	.timeline.v.reverse > .timeline-track > .timeline-item.dot { top: auto; bottom: calc(var(--t) * var(--em-per-hour) - 0.35em); }
+
+	/* window/day span the whole cross axis, behind the lanes — no lane of their own. */
+	.timeline-item:is(.window, .day) { z-index: 0; }
+	.timeline.h > .timeline-track > .timeline-item:is(.window, .day) { top: 0; height: 100%; }
+	.timeline.v > .timeline-track > .timeline-item:is(.window, .day) { left: 0; width: 100%; }
+
+	.timeline-item-label {
+		position: absolute; inset: 0.2em 0.4em;
+		overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+		font-size: 0.85em;
+		pointer-events: none;
+	}
+
+	/* Nested children: relative to the PARENT bar's own box, never reversed —
+	   the bar already flipped itself, so its interior is an ordinary LTR/top-down box. */
+	.timeline-item-children { position: absolute; inset: 0; }
+	.timeline-item-children > .timeline-item { position: absolute; border-radius: var(--radius); z-index: 1; }
+	.timeline.h .timeline-item-children > .timeline-item {
+		top: 50%; transform: translateY(-50%);
+		left: calc(var(--t) * var(--em-per-hour));
+		width: max(calc(var(--d) * var(--em-per-hour)), 0.4em);
+		height: 0.4em;
+	}
+	.timeline.v .timeline-item-children > .timeline-item {
+		left: 50%; transform: translateX(-50%);
+		top: calc(var(--t) * var(--em-per-hour));
+		height: max(calc(var(--d) * var(--em-per-hour)), 0.4em);
+		width: 0.4em;
+	}
+	.timeline.h .timeline-item-children > .timeline-item.dot { left: calc(var(--t) * var(--em-per-hour) - 0.2em); width: 0.4em; height: 0.4em; border-radius: 999px; }
+	.timeline.v .timeline-item-children > .timeline-item.dot { top: calc(var(--t) * var(--em-per-hour) - 0.2em); width: 0.4em; height: 0.4em; border-radius: 999px; }
+
+	.timeline-now { position: absolute; background: var(--prim); z-index: 2; pointer-events: none; }
+	.timeline.h > .timeline-track > .timeline-now { top: 0; bottom: 0; width: 2px; left: calc(var(--t) * var(--em-per-hour)); }
+	.timeline.h.reverse > .timeline-track > .timeline-now { left: auto; right: calc(var(--t) * var(--em-per-hour)); }
+	.timeline.v > .timeline-track > .timeline-now { left: 0; right: 0; height: 2px; top: calc(var(--t) * var(--em-per-hour)); }
+	.timeline.v.reverse > .timeline-track > .timeline-now { top: auto; bottom: calc(var(--t) * var(--em-per-hour)); }
+
+	/* Kinds — one accent each, off the single --prim token. */
+	.timeline-item.bar { background: color-mix(in srgb, var(--prim) 14%, var(--surface)); border: 1px solid color-mix(in srgb, var(--prim) 40%, var(--line)); overflow: hidden; }
+	.timeline-item.bar:hover { border-color: var(--prim); }
+	.timeline-item.bar:is(.active, .in-path) { outline: 2px solid var(--prim); outline-offset: 1px; }
+	.timeline-item.agent { background: color-mix(in srgb, var(--prim) 30%, var(--surface)); }
+	.timeline-item.dot { background: var(--subtle); }
+	.timeline-item.dot:is(.action, .log) { background: var(--prim); }
+	.timeline-item.window { background: color-mix(in srgb, var(--prim) 8%, transparent); border-inline: 1px solid color-mix(in srgb, var(--prim) 18%, transparent); }
+	.timeline-item.window > .timeline-item-label { color: var(--subtle); font-weight: 600; }
+	.timeline-item.day { background: color-mix(in srgb, currentColor 5%, transparent); border-inline-start: 2px dashed var(--line); }
+
+	/* Even split with catalog: the rail IS the timeline (framework/ai/'s previews() override). */
+	.page-catalog > .timeline { flex: 1 1 0; min-width: 0; position: sticky; top: 0; max-height: 100dvh; }
+
+	@media (max-width: 64em) {
+		.page-catalog > .timeline { position: static; max-height: 40vh; }
+	}
+}

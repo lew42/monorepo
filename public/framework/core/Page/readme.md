@@ -15,7 +15,7 @@ rail**: one directory each under `overview/`, listed in order by `overview:` in
 running at half size; every demo page is that tree with its own `page.js` open
 beneath it. Record: `overview/readme.md`. Long form, one file per
 question: `./doc/declaring.md` (the children list and the CMS question),
-`./doc/labels.md` (titles, labels, icons, cards), `./doc/layout.md` (the whole CSS
+`./doc/labels.md` (titles, labels, icons, cards), `./doc/css.md` (the whole CSS
 record — visibility, the sheet, rhythm, the cards).
 
 ## Decisions
@@ -75,14 +75,14 @@ The hard-won parts came from the gallery module this replaces (Aug 2026): the
 thumb is **inert**, because an `<a>` inside an `<a>` is invalid and the browser
 silently un-nests it; the label below it is the only real link and its `::after`
 covers the card; a cell is its render's natural height up to `--thumb-max`, which
-is why no page declares a size. `./doc/layout.md`.
+is why no page declares a size. `./doc/css.md`.
 
 **A card with a thumb wears no chrome** (Aug 2026). Surface, border, inset and a
 checkered board around a render is four frames, and it read as busy. The chrome
 now belongs to the plain icon-and-label card only — `:not(:has(> .page-preview-thumb))`
 — the thumb's `min-height` floor is gone (it was padding short renders out to a
 strip of board), and hover on a bare card outlines the thumb instead of the card.
-`./doc/layout.md` has the states.
+`./doc/css.md` has the states.
 
 **Every page is a `standard` page unless it says otherwise** (Aug 2026). `render()`
 applies `this.classes ?? "standard"`, so the default page is the standard shape — a
@@ -98,7 +98,7 @@ grow rightward only** (Mike, 2026-08-12). A page used to run two compositions at
 once — a centred measure for the text, a left-packed edge for the walls — which
 reads broken at every scale and recurses inside a `demo.app`. So the template's
 gutter is fixed (`--gutter-x: clamp(2em, 4%, 5em)`), all the slack goes right, and
-`.page` carries no auto margins. `./doc/layout.md` has the diagnosis and the one
+`.page` carries no auto margins. `./doc/css.md` has the diagnosis and the one
 counter-argument worth reopening it with.
 
 The shape was called `grid` until Aug 2026, which was the utility word doing an
@@ -149,6 +149,16 @@ seven class fields declared only to be visible to a guard, and a cold-load-only
 blanking bug when a child was named `view`. **A convenience that needs a deny-list is
 not a convenience.**
 
+**`go()` — deleted** (Aug 2026). It had no caller anywhere, and it was the
+*imperative* way to do the one thing this framework does declaratively: navigation is
+a real `<a href>` that `Router.click()` upgrades. `app.router.go(url)` is one property
+longer and says which object is doing the work.
+
+**`description` is a card's second line.** Declared ~30 times and read nowhere until
+Aug 2026; `nav()` now carries it and `preview_card()` renders it, clamped, on a card
+with no thumb. A widely declared property with no behaviour behind it gets "fixed"
+three different ways, so this is the one way.
+
 **Where does a page mount?** `container()`, most specific claim first: a `regions`
 entry my parent set for me, then the nearest ancestor with a `$pages`, then
 `app.$pages`. It is the one step a reader of `Page.class.js` cannot see, which is
@@ -169,7 +179,7 @@ borrow from the real app:
 | | why not | instead |
 |---|---|---|
 | the Router's clicks | a fictional url handed to `go()` would 404 the site | `preventDefault()` on its own subtree, for urls under its root only — `link_clicked()` bails on `defaultPrevented` |
-| `.active-page`, `.active` | `mark()` and `mark_links()` wipe both across the **whole app** on every navigation, this widget included | `.default` — the arrangement contract's own "shown without being routed to" — and `aria-current` |
+| `.active-page`, `.active` | `mark_links()` sweeps every anchor under `$app` on every navigation, this widget's included; and a page in here is not a page the Router routes to | `.default` — the arrangement contract's own "shown without being routed to" — and `aria-current` |
 
 `mark()` puts `.default` on **every page in `chain()` whose view contains the leaf's** —
 `.active-ancestor:has(.page.active-page)` written in JS. That one test covers both
@@ -206,7 +216,12 @@ child gets no rung at all.
   of this mine". A rule that reads one and not the other breaks as soon as the tree
   gets a level deeper.
 - **`.page` visibility is decided in `@layer util`**, not `theme`, so it out-ranks the
-  `.grid` / `.flex` a page is allowed to wear. `./doc/layout.md`.
+  `.grid` / `.flex` a page is allowed to wear. `./doc/css.md`.
+- **A page placed with no mark and no `default` is `display: none`**, and nothing
+  throws — the arrangement contract. `activate()` now says so on localhost:
+  `warn_if_hidden()` re-checks on a microtask, after whatever marks the chain has
+  run, and stays quiet when a sibling in the same box is marked (an ancestor
+  standing aside). Off localhost it does nothing at all.
 - **`children` changes type.** You write a string, you read a `Map`.
 - **A page built for a demo must not name its children as a string.** `children: "a b"`
   is a filesystem declaration: it probes the *server* for `<url>a/page.js`. A POJO
@@ -218,26 +233,7 @@ child gets no rung at all.
 Findings from the every-member audit. **None of these are applied** — they are for
 Mike and other agents to shoot at.
 
-### 1. `go()` has no callers anywhere
-
-Not the framework, not an ext, not a sandbox. It is also the *imperative* way to do
-the one thing this framework deliberately does declaratively: navigation is a real
-`<a href>` that `Router.click()` upgrades, which is why Back works and why nothing
-holds navigation state.
-
-**Recommendation: delete.** `app.router.go(url)` is one property longer and says
-which object is doing the work.
-
-### 2. `description` is declared 30 times and read zero times
-
-`Page` never touches it. `ext/classdoc` copies it onto the overview child, where
-nothing reads it either. Framework-shaped API with no framework behaviour behind it.
-
-Options: render it under the `h1`; carry it through `nav_for()` so cards can show it;
-or delete it. **Recommendation: pick one and write it down** — a property this widely
-declared and never read gets "fixed" by three people in three different ways.
-
-### 3. `mounts_in()` is a public member whose whole job is a `console.log`
+### 1. `mounts_in()` is a public member whose whole job is a `console.log`
 
 It returns its first argument. It exists so `container()` reads as three claims in
 priority order rather than three claims interleaved with logging, which is the
@@ -248,16 +244,17 @@ with an imperative name that reads like a question.
 load-bearing: `container()` is the one piece of black magic left, and the log is what
 makes it observable rather than merely declarative.
 
-### 4. Two `parent` properties, one dot apart
+### 2. Two `parent` properties, one dot apart
 
 `Page.parent` is tree position; `View.parent` is DOM containment, written by
 `append()` and read by nothing. A Page's `view` is a View, so `page.parent` and
 `page.view.parent` answer different questions with the same word.
 
-**Recommendation: delete `View.parent`** (see `core/View/readme.md` §8). Nothing
+**Recommendation: delete `View.parent`** (see `core/View/readme.md`, Proposed —
+`View.parent`). Nothing
 reads it, and its absence removes the collision entirely.
 
-### 5. `load_all_children()` could be `load_children()`
+### 3. `load_all_children()` could be `load_children()`
 
 The `all` distinguished it from the lazy tier, and there is no lazy tier. Two call
 sites, both in this file.
@@ -266,7 +263,7 @@ sites, both in this file.
 subtree*, not just my direct children — and a rename touching a core method for four
 characters is not worth the churn. Recorded so it stops being re-proposed.
 
-### 6. `nav_for(name)` takes a name, not a child
+### 4. `nav_for(name)` takes a name, not a child
 
 It reads `this.children` itself, so it cannot answer for a page that is not a child,
 and a caller holding a `Page` must know its name to ask. That is arguably correct —
@@ -275,26 +272,6 @@ threads names rather than pages through its call sites.
 
 **Recommendation: keep, and document the constraint** (done, in
 `./doc/method/nav_for.md`). Revisit if a fourth consumer has to thread names.
-
-### 7. `Router.mark()` wipes marks the Router does not own
-
-Found by building the demos. `mark()` clears `.active-page` / `.active-ancestor` from
-**every node under `$app`** and `mark_links()` does the same to `.active` / `.in-path`
-— on every navigation, including the one that first renders the widget. So anything
-rendering a real `Page` outside the router's chain is blanked the next time anyone
-clicks anything: a `.page` with no mark is `display: none` by the arrangement
-contract, and nothing throws. `app.js` sidesteps it with `.default` and
-`aria-current`, which is fine for doc machinery and wrong as the general answer.
-
-| | |
-|---|---|
-| scope the wipe to `from`, the chain `activate()` already holds | one more thing `activate()` must pass along; misses a page removed some other way |
-| bless `.default` as the opt-out, in `doc/layout.md` | free, but it makes "shown without being routed to" mean two things |
-| leave it | the next widget that renders a page finds this the hard way |
-
-**Recommendation: scope the wipe.** It is the same *only what changed* discipline
-`activate()` follows two lines above, and a query across every node in the app to
-undo three classes is doing it the expensive way as well as the surprising one.
 
 ## Open
 

@@ -1,17 +1,16 @@
-import { Page, div, span, md, input, textarea, button } from "/app.js";
-import detail from "../detail.js";
-import { next } from "../../parts.js";
+import { Page, demo, div, span, md, input, textarea, button } from "/app.js";
 
 const field = (label, control) => div.c("flex v gap").style("--gap", "0.3em").append(() => {
 	span.c("h4", label);
 	control();
 });
 
-export default new Page(detail({
+export default new Page(demo.layout({
 	meta: import.meta,
 	title: "Stack",
 	description: "Vertical rhythm, and a form that needed none of its own CSS.",
 	icon: "view_agenda",
+	group: "Pages",
 
 	note: "No fit word — the region's default measure. The column is `measure`; the spacing is `gap` inside it and `--flow` outside.",
 
@@ -72,9 +71,6 @@ That is a complete sign-up form with **no stylesheet in this folder.**
 - A form, a checkout flow, an onboarding step
 - A settings panel
 - Any page that is a sequence rather than an arrangement`);
-
-				next("[Masthead](/framework/styles/layouts/masthead/) — where it all comes together.",
-					"styles/layouts/stack/");
 			});
 		});
 	},

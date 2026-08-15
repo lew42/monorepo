@@ -161,7 +161,7 @@ second list to fall out of:
 
 ```js
 children: [
-    { ...band, name: "hero", title: "Hero", icon: "campaign", tone: "dark", section: hero, card: "wide" },
+    { ...band, name: "hero", title: "Hero", icon: "campaign", tone: "dark", section: hero, card: "two" },
     …
 ],
 ```
@@ -312,7 +312,7 @@ Two changes on one day, and the second is a consequence of the first.
 
 This folder hand-rolled its own: a `layout bleed` band holding the render, a
 `layout.bar()`, the tone chips, and `demo.source.file()` under it. That is the
-assembly `ext/demo/readme.md` §15 built once, so the hand-roll went and the config
+assembly `ext/demo/doc/record.md` §15 built once, so the hand-roll went and the config
 is four keys — `stage`, `def`, `file`, `note`. What changed for a reader:
 
 - **The band is on a stage you can drag.** §8's objection expired (see the reversal

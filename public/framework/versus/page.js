@@ -1,4 +1,5 @@
 import { Page, md, demo, code, h2, div, span, button, ul, li, toc } from "/app.js";
+import { stats } from "../stats.js";
 
 /* Token-valued style objects, the house answer (framework/ui/parts.js) — a page
    arguing that you rarely need CSS ships none. */
@@ -7,13 +8,6 @@ const surface = {
 	border: "1px solid var(--line)",
 	borderRadius: "var(--radius)",
 };
-
-/* The tile framework/ui/stats/ documents. ⚠ `h2`, not `h1`: at weight 900 a
-   two-word value ("21 KB") broke across two lines inside a 9em track. */
-const stat = (label, value) => div.c("pad flex v", () => {
-	div.c("h4", label).style("color", "var(--subtle)");
-	div.c("h2", value);
-}).style({ ...surface, gap: "0.1em" });
 
 const panel = (title, body) => div.c("pad flex v", () => {
 	div.c("h4", title).style("color", "var(--subtle)");
@@ -34,17 +28,9 @@ export default new Page({
 
 		h2("The whole framework");
 
-		// ⚠ `toc-skip`, or the rail reads "714 · 21 KB · 0 · 0 · 0" — these `.h2`
-		// values are numbers, not sections.
-		// ⚠ Recount before editing, and recount the prose below with them: one
-		// claim in two places. The method is the code block underneath.
-		div.c("grid gap auto toc-skip", () => {
-			stat("executable lines", "714");
-			stat("gzipped, with CSS", "21 KB");
-			stat("build steps", "0");
-			stat("runtime deps", "0");
-			stat("config files", "0");
-		}).style("--column", "9em");
+		// ⚠ The figures live in framework/stats.js — the landing renders the same
+		// row. Recount there, and recount the prose below with them.
+		stats();
 
 		md("714 lines is `View` + `Page` + `Router` + `App` with blanks and comments stripped — the whole framework. Left in, those four files are **993 lines**: a comment here has to earn its place by stating a trap the code cannot show, and everything else lives in the `readme.md` beside it. The 21 KB is *everything* needed to render a page, **including the CSS**, gzipped but not minified. Minified it would be roughly half.");
 

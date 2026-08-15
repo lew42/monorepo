@@ -97,6 +97,10 @@
 		   and dealt the cards out beside them. Nor can it become a column: a label
 		   would spend 11em of a phone's scrollport. The strip is cards only. */
 		.page-catalog > .page-previews > .page-previews-group { display: none; }
+
+		/* ⚠ The description goes with them (Page.css): two clamped lines under every
+		   card is the strip's whole height spent above the detail it heads. */
+		.page-catalog > .page-previews > .page-preview > .page-preview-desc { display: none; }
 	}
 }
 

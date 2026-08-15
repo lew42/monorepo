@@ -42,7 +42,7 @@ import { is } from "/app.js";
 Findings from the every-member audit. **Not applied.**
 
 **Seven of the fifteen checks have zero callers.** Counted across all of
-`public/`, sandboxes included, excluding `core/new/` and `core/legacy/`:
+`public/`, sandboxes included, excluding `core/new/`:
 
 | used | `is.fn` 12 · `is.def` 9 · `is.arr` 6 · `is.obj` 4 · `is.str` 2 · `is.pojo` 2 · `is.dom` 2 · `is.promise` 1 |
 |---|---|

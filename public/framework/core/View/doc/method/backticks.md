@@ -1,4 +1,4 @@
-**Usage** — one caller: `backtick_append()` (`View.js:216`).
+**Usage** — one caller: `backtick_append()` (`View.js:191`).
 
 **Necessity** — yes, as the implementation under `p()` and `h1`–`h6`. Not as
 public API — nothing calls it by name.

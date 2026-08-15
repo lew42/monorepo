@@ -3,7 +3,7 @@ framework.**
 
 **Usage** — read in `prerender()` (`View.js:22`), which is what makes an element
 factory append to the enclosing box. Written only by `set_captor()` /
-`restore_captor()` (`View.js:397,402`). Read directly once outside the class, by
+`restore_captor()` (`View.js:346,351`). Read directly once outside the class, by
 `framework/ext/highlight/highlight.js:53`, which needs to know where a block will
 land before it lands.
 

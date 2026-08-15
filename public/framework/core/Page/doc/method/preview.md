@@ -1,9 +1,8 @@
 **THE card** — one shape, and the only override point.
 
 **Usage** — `previews()` calls it once per resolved child (`Page.class.js:194`), passing
-that child's entry from `nav_for()`. Five sandbox pages call it bare and three of those
-override it: `alex/examples/subpage/page.js:14`, `path-2/page.js:18,20,24`,
-`path-2/a/page.js:22`, `path-2/b/page.js:22`.
+that child's entry from `nav_for()`. Sandbox pages call it bare, and one overrides it:
+`alex/examples/subpage/page.js:14`.
 
 ```js
 // the default — icon, label, the whole card clickable

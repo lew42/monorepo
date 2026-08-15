@@ -1,6 +1,6 @@
 import { div, span } from "/app.js";
-import layout from "../../ext/Layout/layout.js";
-import { pick } from "../../ext/Layout/controls.js";
+import layout from "../../ext/layout/layout.js";
+import { pick } from "../../ext/layout/controls.js";
 
 /* Everything a tone is, in one file: the four names, what each one paints, and the
  * chips that switch between them. Design record: readme.md §3, §4, §11.

@@ -12,8 +12,8 @@ Downstream, it is the escape hatch, and it is meant to be used:
 
 **Necessity** — the class.
 
-**Simplicity** — right-sized. It never changes for the life of the view: `clone()`
-builds a new element on a new view rather than swapping this one out. That is the
-design — **`View` wraps the element, it does not hide it** — and it is why there is
-no `compute()`-style method per DOM API worth having.
+**Simplicity** — right-sized. It never changes for the life of the view. That is
+the design — **`View` wraps the element, it does not hide it** — and it is why
+there is no mirror method per DOM API worth having: for anything the class does
+not wrap, reach through `el` and call the DOM.
 

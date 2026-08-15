@@ -12,6 +12,18 @@ called* belongs next to the code — see the map at the bottom.
 > there is no test that fails when this file goes stale. (Receipts:
 > `.claude/instructions-audit.md`.)
 
+## Precedence — this file rules
+
+**When anything dissents from `CLAUDE.md`, `CLAUDE.md` prevails.** Skills,
+readmes, `doc/*.md`, proposals, memory, a subagent's brief, and a confident
+paragraph from a previous session are all *downstream* — they elaborate the
+rules here, they do not amend them. A skill that contradicts a constraint above
+is a bug in the skill; say so and fix it rather than following it.
+
+Only the person at the keyboard outranks this file, and when they do, the
+change lands **here** in the same breath — otherwise the next session inherits
+the old rule and the correction evaporates. (Mike, 2026-08-14.)
+
 ## The prime objective
 
 Everything the framework offers — layouts, sections, elements, components,
@@ -65,8 +77,8 @@ and you cannot find them by testing, because nothing fails loudly.
 
 **One demo system, five blocks.** Anything that shows an example is built from:
 a `Page` (demos are pages — a directory, or an inline object child, declared in
-`children:`), the gallery `card()`/`wall()` (the only preview — clickable, above
-the fold, no code), the `ext/demo` stage (the only resizable viewport), the
+`children:`), the gallery `preview()`/`previews()` (the only preview — clickable,
+above the fold, no code), the `ext/demo` stage (the only resizable viewport), the
 `ext/layout` panel (the only interactive control surface), and the utility
 vocabulary. Before writing a new helper that previews, frames, or arranges an
 example, name which block it extends — a new sibling helper with its own styles
@@ -85,16 +97,44 @@ mechanisms, four of them preview cards): `framework/ai/2026-08-09/proposal.md`.
 
 **A new module isn't done until it has a `page.js` and its parent links to it.** Nothing crawls the filesystem — an unimported page does not exist.
 
+**If you're going to change the repo, open a task first.** Run the `new-task`
+skill *before the first edit* — building anything, changing anything, fixing
+anything, a refactor, a doc pass, a design change. Not "when it feels big
+enough": the dashboard at `/framework/ai/` is how Mike sees what's in flight,
+and work that never opened a task is invisible to him. Exempt: answering a
+question, reading/investigating, and preparation — the moment that research
+turns into an edit, open the task. When genuinely unsure, open one; a thin task
+log costs nothing, a missing one costs the whole record. (Mike, 2026-08-15 —
+this was being skipped.)
+
+**The log is the channel.** `new-task` gives you `framework/ai/<date>/<slug>/`
+and an append-only `task.jsonl` the day dashboard renders live. Log as you work
+— `assign` for state, `log`/`action` lines for findings and deeds — and prefer
+a log line over a chat paragraph: the log is browsable, the chat scrolls away.
+(Convention adopted 2026-08-14; format: `ext/JSONL/readme.md`.)
+
+**Where a log lives is moving: beside its page, not under a date.** Mike's call,
+2026-08-15 — the date is a *field* (`requested_at`), not a path, and a task that
+spans two days has to lie about one. The destination is `<page>/ai/<slug>/task.jsonl`
+with the same `TaskJSONL` format, the dir listing as the index, and the aggregate
+board at `/ai/`. **Half-landed:** the dev rail already opens and chats threads
+there (`dev/DevBar/ask.js`), and every Ask RPC now takes a `task` path under
+`public/`. Still to come, as the `ext/AI` task: the browsable `<page>/ai/` route,
+the board crawling `*/ai/*/task.jsonl` everywhere, and the move off
+`/framework/ai/`. Until that lands **`new-task` is still correct** — open new
+tasks under `framework/ai/<date>/<slug>/`, because that is what the board reads.
+
 ## Where things are
 
 - `public/` — the entire deployable site. `public/index.html` is the universal fallback document and loads one script, `/app.js`, which constructs the App and re-exports the framework, so every page can `import { Page, p } from "/app.js"`.
 - `public/framework/core/` — `View`, `Page`, `Router`, `App`, `Sidebar`. Each has a `readme.md` (design record) and a `page.js` (the reader's introduction).
 - `public/framework/ext/` — opt-in addons, free to patch core; **core never imports an ext**. This site opts in for every page, once, in `app.js`.
 - `public/framework/styles/` — the CSS strategy, documented one page per layer.
+- `public/framework/ai/` — the AI working log: a dir per day (`day.jsonl` + task dirs), a task dir per piece of work (`task.jsonl`). `ext/JSONL` assembles the logs; `ext/AITask` renders the dashboards; `ext/Timeline` draws the when; the `new-task` skill opens a task. `usage.json` is generated and gitignored.
 - `public/framework/util/`, `public/framework/dev/` — `is`, `source`; the dev-only live-reload socket.
 - `Server/` — dev-only Node server, never imported by browser code. `npm install && node server.js` (port 80; `PORT` to override). Express static over `public/`, then SPA fallback to `index.html`.
 - Top-level dirs under `public/` named after devs (`alex/`, `arya/`, `castin/`, `edric/`, `michael/`) are personal sandboxes — transient, not framework conventions. They are also **downstream consumers**: rename freely inside `framework/`, alias on the way out.
-- `public/framework/core/new/1/` is not a sketch — it's where the shipping design was proved, and its `readme.md` is the long-form record, with measurements. `new/0/` and `new/starter/` are earlier sketches; `core/legacy/` is the dead Pager tier. Don't import any of them.
+- `public/framework/core/new/1/` is not a sketch — it's where the shipping design was proved, and its `readme.md` is the long-form record, with measurements. `new/0/` and `new/starter/` are earlier sketches. Don't import any of them. The Pager tier that lived at `core/legacy/` is deleted; `Pager` itself is vendored at `michael/pager/legacy/` for that sandbox's demos.
 - Deploy: `wrangler.jsonc` serves `./public` with SPA fallback. `main` → https://monorepo.lew42.workers.dev/; every branch gets `<branch-with-dashes>-monorepo.lew42.workers.dev`.
 
 **For house style — assign-based OOP, naming, the CSS ladder, the doc-writing

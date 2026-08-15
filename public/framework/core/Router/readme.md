@@ -29,7 +29,9 @@ See ./doc/chain-diff.md.
 
 **What does the Router write to the DOM?** Two classes (`.active-page`,
 `.active-ancestor`) and a link pass (`.active`, `.in-path`); every arrangement is
-CSS a page opted into. Scoped to `$app`, never `document`. See ./doc/marking.md.
+CSS a page opted into. Scoped to `$app`, never `document` — and `mark()` unmarks
+only the views it marked last time, so a page a widget renders outside the chain
+keeps whatever mark it gave itself. See ./doc/marking.md.
 
 **Why await styles and titles in `load()`, not one line later in `activate()`?**
 `activate()` must stay synchronous so a site can wrap the swap in

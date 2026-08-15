@@ -14,10 +14,14 @@ View.stylesheet(import.meta, "stage.css");
  *
  * The strip is the stage's own and every consumer gets it — widths centred, dials
  * on the right, and nothing to wire up: `demo()`, `demo.stage()`, `demo.exhibit()`
- * and `demo.tree()` each just build a stage. readme.md §20.
+ * and `demo.tree()` each just build a stage. doc/record.md §20.
+ *
+ * `two.js` composes the same shell with two simulated panes and only the filler in
+ * its strip, which is why `filler()` is exported and the split handle is that
+ * stage's width dial.
  *
  * ⚠ A div is not a viewport — a `@media` query inside an example answers the real
- * window, not the handle and not a simulated width. readme.md §6, §17.
+ * window, not the handle and not a simulated width. doc/record.md §6, §17.
  *
  * `flow` on the render: examples are written like page code, so they space like
  * page code — and emitting it here is what lets core's flow rules stop naming
@@ -95,7 +99,7 @@ const btn = (content, title) => button.c("demo-btn", content).attr("title", titl
  * out at 390–3440 and computes the zoom that fits the room it has, capped at 1;
  * the magnifier and the select then zoom on top of that width, so you can lean into
  * a phone layout instead of only looking at it. Returns what releases a width —
- * the handle owns the stage's width and cannot share it. readme.md §20.
+ * the handle owns the stage's width and cannot share it. doc/record.md §20.
  */
 function tools($tools, $render, $stage, measure){
 	let width = 0, fitted = true, $devices, $zoom, $custom;
@@ -190,8 +194,8 @@ function magnifier(set, zoomed, whole){
 /* One fill-the-window, and it lives on the stage: `demo()` used to carry its own,
  * which filled the screen with the code pane too. ⚠ A way of LOOKING, not a place —
  * `requestFullscreen()` needs a gesture and can never be restored on a reload, so a
- * layout that wants a url claims one instead (styles/layouts/full.js). readme §7. */
-function filler($stage){
+ * layout that wants a url claims one instead (styles/layouts/full.js). doc/record.md §7. */
+export function filler($stage){
 	return btn(() => icon("open_in_full"), "Fill the window").click(function(){
 		$stage.tc("max");
 		this.tc("on").empty(() => icon($stage.hc("max") ? "close_fullscreen" : "open_in_full"));

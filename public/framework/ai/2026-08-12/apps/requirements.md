@@ -4,7 +4,7 @@ Session: 2026-08-12 (second session, orchestrated). Your pages live UNDER
 `public/framework/ai/2026-08-12/apps/` (this exploration ships as session pages
 first; propose promotion targets in your summary). You create new files only —
 do NOT edit `ext/demo/*`, `ext/classdoc/*`, `ext/catalog/*`, `styles/*` (sibling
-agents own them this session). `ext/Layout` additions need a strong case; prefer
+agents own them this session). `ext/layout` additions need a strong case; prefer
 consuming it. Do not edit `framework/ai/2026-08-12/page.js`.
 
 ## Before writing any code
@@ -23,7 +23,7 @@ demo stage, layout bar, utility words). Four families:
 
 1. **Figma-like** — left panel with layers + pages, center viewport, right
    properties panel. The properties panel should be REAL: selecting a thing in
-   the viewport shows its properties as live toggles/knobs (note `ext/Layout`'s
+   the viewport shows its properties as live toggles/knobs (note `ext/layout`'s
    drawer already does exactly this for utility words — reuse or imitate its
    pattern rather than a parallel one).
 2. **Blender-like** — a flexible panel system: recursive split (rows/columns),

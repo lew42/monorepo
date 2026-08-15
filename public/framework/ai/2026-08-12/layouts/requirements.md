@@ -14,7 +14,7 @@ edit `framework/ai/2026-08-12/page.js`.
    `ext/classdoc/readme.md` + `classdoc.js`, `styles/layouts/page.js` +
    `detail.js` (the model for a unified rail + detail section),
    `styles/sections/page.js`, `ext/demo/responsive.js` (the two-up),
-   `ext/Layout/readme.md` (the control surface / right drawer),
+   `ext/layout/readme.md` (the control surface / right drawer),
    `ext/catalog/` (previews as a persistent rail).
 
 ## The goal
@@ -60,7 +60,7 @@ it under every layout. The point Mike named: one page structure renderable in
 **Checkboxes, not variants:** where a layout feature is modular (top header
 on/off, footer, left rail, right rail, sticky headings, toolbar), it's a toggle
 on the detail page, not a with/without sibling page. Put the toggles where the
-site already puts controls: the `ext/Layout` bar / right drawer is "the only
+site already puts controls: the `ext/layout` bar / right drawer is "the only
 interactive control surface" — extend it or hand it the layout's toggles rather
 than building a new panel. If a page-thing (Sidebar, $pages, nav rail, tabs) has
 properties, those are toggles in a right sidebar, not hard-coded extra examples.

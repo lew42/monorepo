@@ -7,14 +7,18 @@ View.stylesheet(import.meta, "files.css");
  * files — a small file browser: a tree of real files, and the one you clicked.
  *
  *   files(import.meta, "example/index.html example/app.js example/page.js")
+ *   files(import.meta, names, { about: path => md.file(meta, `doc/file/${path}.md`) })
  *
  * The files are FETCHED, so what you read is what is on disk. The longest common
  * directory is stripped for display, so a doc folder reads as a project.
  *
+ * `about` is anything to render BESIDE the source — a view or a promise of one, per
+ * path. ext/doc's Files tab passes the `.md` written about each file.
+ *
  * ⚠ Paths resolve against `import.meta`, never the document — the SPA fallback makes
  * the document url a route. Design record: framework/ext/files/readme.md.
  */
-export default function files(meta, names){
+export default function files(meta, names, { about } = {}){
 	const paths = names.trim().split(/\s+/).filter(Boolean);
 	const cut = common_dir(paths);
 
@@ -37,7 +41,12 @@ export default function files(meta, names){
 		$tree.el.querySelectorAll(".file-name")
 			.forEach(row => row.classList.toggle("selected", row.dataset.path === path));
 
-		$pane.empty(() => file_pane(meta, path));
+		// ⚠ The hook's path is the DECLARED one, not the display name — a caller keying
+		// a sidecar file off it needs the same string it handed in.
+		$pane.empty(() => {
+			if (about) div.c("file-about md flow").append(about(path));
+			file_pane(meta, path);
+		});
 	}
 
 	show(paths[0]);

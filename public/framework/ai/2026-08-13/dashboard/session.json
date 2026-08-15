@@ -1,0 +1,12 @@
+{
+	"group": "ai-log",
+	"session_id": "51c5ac4b-ed59-4c55-9fec-593d1b0addd4",
+	"request": "make the daily page a dashboard of current/past/proposed work by project; session.json takes all the info we have (tokens, agents); task pages show requirements + nested log; usage.json written by the check skill; task cards full-row, most recently active first",
+	"requested_at": "2026-08-13T14:05-05:00",
+	"landed_at": "2026-08-13T15:00-05:00",
+	"model": "claude-fable-5",
+	"tab": "Build draggable panel sy…",
+	"window": { "before": 0.42, "after": 0.5, "note": "built inline by the orchestrator — no minions; the approved ext rename wave stayed held under the 75% ceiling." },
+	"outcome": "**ext/ai grew the day tier**: `dashboard.js` (full-row task cards, most recent first, live pulse while running; usage strip from `usage.json`), `AISession` renders the brief in a fold + a `tokens` column + nested agent replays, manifests carry totals, task `page.js` is optional (dynamic `AISession({src})` and dashboard-day routes), and the check-claude-usage skill writes the usage snapshot. Verified in a real browser: cards sort/pulse, both dynamic routes, zero script errors.",
+	"agents": []
+}

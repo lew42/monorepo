@@ -1,0 +1,162 @@
+/* Restated IN FULL — a short list silently misplaces `site`. */
+@layer base, theme, site, util;
+
+/* A template's LOOK is its payload — the one sanctioned exception to "a module's
+   css is layout only". Every size is a container-query unit against `.panel-body`
+   (container-type: size), so one rule set reads from a 200px sliver to a 3440
+   monitor. No keyframe uses a cq unit: percentages animate, cq units in
+   `@keyframes` are not worth the bet. */
+@layer theme {
+
+	/* ⚠ `min-block-size: 100cqh`, NOT `100%`: the panel body is a grid of `min-content`
+	   rows, so a percentage height resolves against the template's own content and a
+	   scene with no text collapses to nothing. `block-size` stays for the plain-block
+	   parents (a page, a demo box) that do give a definite height. */
+	.panel-t {
+		position: relative;
+		display: grid;
+		place-content: center;
+		place-items: center;
+		inline-size: 100%;
+		block-size: 100%;
+		min-block-size: 100cqh;
+		overflow: hidden;
+	}
+
+	.panel-t-layer { position: absolute; inset: 0; }
+
+	/* word — one huge centred wordmark */
+
+	.panel-t-word {
+		grid-auto-flow: column;
+		font-size: clamp(1.5em, min(21cqw, 55cqh), 32em);
+		font-weight: 900;
+		line-height: 1;
+		letter-spacing: -0.05em;
+		color: var(--ink);
+	}
+	.panel-t-accent { color: var(--prim); }
+
+	/* wall — four numbers that re-count their own columns */
+
+	/* Four tiles look composed at 1, 2 or 4 across and ragged at 3, which is exactly
+	   what `auto-fit` gives you — so the count is chosen, not computed. An unnamed
+	   `@container` resolves to `.panel-body`; where there is no container the
+	   two-column default stands. */
+	.panel-t-wall {
+		grid-template-columns: repeat(2, 1fr);
+		max-inline-size: min(100%, 170cqh);
+		margin-inline: auto;
+		gap: 3cqmin 5cqmin;
+		padding: 5cqmin;
+	}
+	@container (max-width: 15em) { .panel-t-wall { grid-template-columns: 1fr; } }
+	@container (min-aspect-ratio: 9/5) { .panel-t-wall { grid-template-columns: repeat(4, 1fr); } }
+	.panel-t-stat { text-align: center; }
+	.panel-t-n {
+		font-size: clamp(1.4em, min(9cqw, 15cqh), 11em);
+		font-weight: 900; line-height: 1;
+		color: var(--prim);
+	}
+	.panel-t-l {
+		font-size: clamp(0.55em, min(2.4cqw, 4cqh), 1.6em);
+		color: var(--subtle);
+		text-transform: uppercase; letter-spacing: 0.14em;
+	}
+
+	/* clock */
+
+	.panel-t-clock { gap: 2cqmin; }
+	.panel-t-time {
+		font-size: clamp(1.4em, min(17cqw, 38cqh), 26em);
+		font-weight: 200; line-height: 1; letter-spacing: -0.03em;
+		font-variant-numeric: tabular-nums;
+		white-space: nowrap;
+		color: var(--ink);
+	}
+	.panel-t-date {
+		font-size: clamp(0.55em, min(3cqw, 7cqh), 2.4em);
+		color: var(--subtle);
+		text-transform: uppercase; letter-spacing: 0.2em;
+	}
+
+	/* haze — the tone-aware one: `--haze` is the panel's tone, two glows over it.
+	   Every radius below is `max(cqmin, cqw)`: sized on the short side a glow reads
+	   at a sliver, and an ultra-wide panel gets one lit corner and a lot of nothing. */
+
+	.panel-t-haze {
+		background:
+			radial-gradient(max(90cqmin, 62cqw) max(70cqmin, 55cqh) at 22% 18%, color-mix(in oklab, var(--prim) 45%, transparent), transparent 68%),
+			radial-gradient(max(85cqmin, 58cqw) max(65cqmin, 52cqh) at 80% 82%, color-mix(in oklab, var(--surface) 55%, transparent), transparent 68%),
+			var(--haze, var(--surface));
+	}
+
+	/* aurora — three blurred lights over a night ground, in both schemes */
+
+	.panel-t-aurora { background: #0b0a14; }
+	.panel-t-aurora .panel-t-layer { filter: blur(7cqmin); mix-blend-mode: screen; }
+	.panel-t-aurora .panel-t-layer:nth-child(1) {
+		background: radial-gradient(max(42cqmin, 26cqw) max(42cqmin, 40cqh) at 32% 34%, var(--prim), transparent 68%);
+		animation: panel-t-swim-a 19s ease-in-out infinite alternate;
+	}
+	.panel-t-aurora .panel-t-layer:nth-child(2) {
+		background: radial-gradient(max(46cqmin, 28cqw) max(46cqmin, 44cqh) at 70% 62%, #3d7bff, transparent 68%);
+		animation: panel-t-swim-b 27s ease-in-out infinite alternate;
+	}
+	.panel-t-aurora .panel-t-layer:nth-child(3) {
+		background: radial-gradient(max(38cqmin, 24cqw) max(38cqmin, 36cqh) at 55% 80%, #b14dff, transparent 68%);
+		animation: panel-t-swim-c 33s ease-in-out infinite alternate;
+	}
+
+	/* drift — three parallax star sheets. Two tiles per sheet at sizes that share no
+	   factor, or a single tiled dot reads as polka dots. `alternate` so the loop
+	   never jumps. */
+
+	.panel-t-drift { background: radial-gradient(max(120cqmin, 85cqw) max(80cqmin, 70cqh) at 50% 118%, #1b2140, #05060d 70%); }
+	.panel-t-drift .panel-t-layer {
+		background-image:
+			radial-gradient(circle, #fff 0 max(0.6px, 0.075cqmin), transparent max(1.4px, 0.19cqmin)),
+			radial-gradient(circle, #fff 0 max(0.5px, 0.06cqmin), transparent max(1.1px, 0.15cqmin));
+		background-position: 0 0, 37% 61%;
+	}
+	.panel-t-drift .panel-t-layer:nth-child(1) { background-size: 5cqmin 5cqmin,   3.7cqmin 6.3cqmin;  opacity: 0.9; animation: panel-t-float 34s ease-in-out infinite alternate; }
+	.panel-t-drift .panel-t-layer:nth-child(2) { background-size: 9cqmin 9cqmin,   6.1cqmin 11.3cqmin; opacity: 0.6; animation: panel-t-float 58s ease-in-out infinite alternate; }
+	.panel-t-drift .panel-t-layer:nth-child(3) { background-size: 17cqmin 17cqmin, 12.7cqmin 21.1cqmin; opacity: 0.4; animation: panel-t-float 88s ease-in-out infinite alternate; }
+
+	/* depth — a real perspective floor, with the camera panning */
+
+	.panel-t-depth {
+		perspective: 55cqmin;
+		perspective-origin: 50% 44%;
+		background: linear-gradient(#07060f 42%, #1a1136);
+		animation: panel-t-pan 26s ease-in-out infinite alternate;
+	}
+	.panel-t-depth .panel-t-layer:nth-child(1) {
+		background: radial-gradient(max(58cqmin, 34cqw) max(26cqmin, 22cqh) at 50% 52%, color-mix(in oklab, var(--prim) 65%, transparent), transparent 72%);
+		animation: panel-t-pulse 11s ease-in-out infinite alternate;
+	}
+	.panel-t-depth .panel-t-layer:nth-child(2) {
+		inset: 52% -70% -40% -70%;
+		transform-origin: 50% 0;
+		transform: rotateX(76deg);
+		background-image:
+			repeating-linear-gradient(to right,  color-mix(in oklab, var(--prim) 60%, transparent) 0 1px, transparent 1px 7cqmin),
+			repeating-linear-gradient(to bottom, color-mix(in oklab, var(--prim) 60%, transparent) 0 1px, transparent 1px 7cqmin);
+		mask-image: linear-gradient(transparent, #000 38%);
+	}
+
+	@keyframes panel-t-swim-a { from { transform: translate(-9%, -7%) scale(1);    } to { transform: translate(11%, 8%) scale(1.3); } }
+	@keyframes panel-t-swim-b { from { transform: translate(8%, 6%) scale(1.15);   } to { transform: translate(-10%, -9%) scale(0.9); } }
+	@keyframes panel-t-swim-c { from { transform: translate(4%, 9%) scale(0.95);   } to { transform: translate(-7%, -11%) scale(1.25); } }
+	@keyframes panel-t-float  { from { transform: translate(-3%, 2%);              } to { transform: translate(3%, -2%); } }
+	@keyframes panel-t-pan    { from { perspective-origin: 42% 44%;                } to { perspective-origin: 58% 44%; } }
+	@keyframes panel-t-pulse  { from { opacity: 0.55;                              } to { opacity: 1; } }
+
+	/* Equal specificity, stated later — the escalation ratchet stays unspent. */
+	@media (prefers-reduced-motion: reduce) {
+		.panel-t-depth { animation: none; }
+		.panel-t-aurora .panel-t-layer:nth-child(n),
+		.panel-t-drift  .panel-t-layer:nth-child(n),
+		.panel-t-depth  .panel-t-layer:nth-child(n) { animation: none; }
+	}
+}

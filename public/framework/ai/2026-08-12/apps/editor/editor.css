@@ -25,7 +25,7 @@
 	/* ⚠ Outline, not border: it takes no space, so selecting cannot reflow the thing
 	   you are editing. ⚠ Offset INWARD — nodes nest, and an outward ring on a child
 	   sits on top of its parent's.
-	   Not ext/Layout's `.layout-selected`: that class is the right drawer's mark and
+	   Not ext/layout's `.layout-selected`: that class is the right drawer's mark and
 	   `panel.js` owns when it goes on. */
 	.apps-node { outline: 2px solid transparent; outline-offset: -2px; }
 	.apps-node:hover { outline-color: color-mix(in srgb, var(--prim) 45%, transparent); }

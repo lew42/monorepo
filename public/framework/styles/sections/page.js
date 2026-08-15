@@ -54,7 +54,7 @@ export default new Page({
 	   alternation is what makes the seams read. */
 	children: [
 		{ ...band, name: "navbar",       title: "Nav bar",      icon: "menu",           tone: "surface", section: navbar },
-		{ ...band, name: "hero",         title: "Hero",         icon: "campaign",       tone: "dark",    section: hero, card: "wide" },
+		{ ...band, name: "hero",         title: "Hero",         icon: "campaign",       tone: "dark",    section: hero, card: "two" },
 		{ ...band, name: "logos",        title: "Logo wall",    icon: "domain",         tone: "wash",    section: logos },
 		{ ...band, name: "features",     title: "Features",     icon: "grid_view",      tone: "surface", section: features },
 		{ ...band, name: "split",        title: "Split",        icon: "vertical_split", tone: "wash",    section: split },
@@ -118,21 +118,21 @@ band("surface")   // --surface`);
 
 		md(`| band | layout | what it needed |
 |---|---|---|
-| Nav bar | [Masthead](/framework/styles/layouts/masthead/) | \`flex gap wrap v-center split\` |
-| Hero | [Masthead](/framework/styles/layouts/masthead/) | the measure column's own gap + \`flex gap wrap\` for the buttons |
-| Logo wall | [Centered](/framework/styles/layouts/centered/) | \`flex gap wrap v-center h-center\` |
-| Features | [Cards](/framework/styles/layouts/cards/) | \`grid gap auto\` — the wall re-counts itself |
-| Split | [Split](/framework/styles/layouts/split/) | \`flex gap auto v-center\` |
+| Nav bar | [Landing](/framework/styles/layouts/landing/)'s top band | \`flex gap wrap v-center split\` |
+| Hero | [Landing](/framework/styles/layouts/landing/) | the measure column's own gap + \`flex gap wrap\` for the buttons |
+| Logo wall | [Flex](/framework/styles/layouts/flex/) | \`flex gap wrap v-center h-center\` |
+| Features | [grid gap auto](/framework/styles/layouts/grid/auto/) | \`grid gap auto\` — the wall re-counts itself |
+| Split | [flex gap auto](/framework/styles/layouts/flex/auto/) | \`flex gap auto v-center\` |
 | Numbers | [Dashboard](/framework/styles/layouts/dashboard/) | the same grid, \`--column: 9em\` |
-| Testimonials | [Cards](/framework/styles/layouts/cards/) | \`grid gap auto\` + the Avatar component |
-| Pricing | [Split](/framework/styles/layouts/split/) | \`flex gap auto\` — two equal panes that stack |
+| Testimonials | [grid gap auto](/framework/styles/layouts/grid/auto/) | \`grid gap auto\` + the Avatar component |
+| Pricing | [flex gap auto](/framework/styles/layouts/flex/auto/) | \`flex gap auto\` — two equal panes that stack |
 | FAQ | [Stack](/framework/styles/layouts/stack/) | \`flex v\` + \`details\` |
-| Team | [Cards](/framework/styles/layouts/cards/) | \`grid gap auto\` + the Avatar component |
+| Team | [grid gap auto](/framework/styles/layouts/grid/auto/) | \`grid gap auto\` + the Avatar component |
 | Changelog | [Stack](/framework/styles/layouts/stack/) | the Timeline component, whole |
-| Contact | [Split](/framework/styles/layouts/split/) | \`flex gap auto\` — channels beside a form |
+| Contact | [flex gap auto](/framework/styles/layouts/flex/auto/) | \`flex gap auto\` — channels beside a form |
 | Sign up | [Stack](/framework/styles/layouts/stack/) | \`flex gap wrap\` — a field that wraps under its button |
-| Call out | [Masthead](/framework/styles/layouts/masthead/) | \`flex gap wrap v-center split\` |
-| Footer | [Holy grail](/framework/styles/layouts/holy-grail/)'s bottom band | \`flex wrap split v-center\` |
+| Call out | [Landing](/framework/styles/layouts/landing/)'s CTA band | \`flex gap wrap v-center split\` |
+| Footer | [App shell](/framework/styles/layouts/shell/)'s status bar | \`flex wrap split v-center\` |
 
 Fifteen sections, seven layouts, **zero new CSS rules.** The surfaces are \`.surface\` / \`.wash\` / \`.muted\` in \`framework.css\`; the arrangement is entirely utilities.`);
 

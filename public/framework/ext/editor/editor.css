@@ -1,0 +1,42 @@
+/* Restated IN FULL - the first @layer statement fixes the order, and a short list
+   silently drops `site` past `util`. ASCII only, comments included. */
+@layer base, theme, site, util;
+
+@layer theme {
+
+	/* The frame around the panel workspace: five scrolling regions need something to
+	   scroll inside, and ext/Panel sizes itself from this token. */
+	.editor {
+		--panel-height: min(80vh, 44em);
+		border: 1px solid var(--subtle);
+		border-radius: var(--radius);
+		overflow: hidden;
+	}
+
+	/* A panel body is a grid that centres what it is handed; a region is a full-width
+	   column of chrome, positioned by the panel's own `align` instead. */
+	.editor-region { inline-size: 100%; }
+
+	/* The strip that names a block and is the only thing you can grab it by. */
+	.editor-bar {
+		display: flex;
+		align-items: center;
+		gap: 0.2em;
+		font-size: 0.7em;
+		color: var(--subtle);
+	}
+
+	/* Selection is state, not decoration - it has to read at a glance and it must not
+	   move anything, so it is an outline rather than a border. */
+	.editor-node.on { outline: 2px solid var(--prim); outline-offset: 1px; border-radius: var(--radius); }
+	.editor-node.on > .editor-bar { color: var(--prim); }
+
+	.editor-layer { justify-content: flex-start; inline-size: 100%; text-align: start; }
+	.editor-text { inline-size: 100%; }
+
+	.editor-status { font-size: 0.75em; color: var(--subtle); }
+	.editor-warn { color: var(--error); }
+
+	/* The wall card is a picture of the document, not a second editor. */
+	.editor-thumb { pointer-events: none; }
+}

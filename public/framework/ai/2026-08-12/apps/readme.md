@@ -3,7 +3,7 @@
 Four application shapes as browsable demos: an editor (Figma), a pane system
 (Blender), Miller columns, and the rail-vs-wall-vs-columns comparison. Everything
 here is assembled from the five blocks — `Page`, the card, the `demo` stage, the
-`ext/Layout` bar, and the utility words. Nothing new previews, frames or arranges.
+`ext/layout` bar, and the utility words. Nothing new previews, frames or arranges.
 
 ~15 lines of CSS across three stylesheets, all of it a layout relationship
 (`min-height: 0` at every nesting level, a fixed track, a divider that takes no
@@ -11,7 +11,7 @@ space) plus one selection ring, for which no rung of the ladder had an answer.
 
 ## Decisions
 
-**Should the properties panel be `ext/Layout`'s drawer, or a region of the demo?**
+**Should the properties panel be `ext/layout`'s drawer, or a region of the demo?**
 
 | option | weighing |
 |---|---|
@@ -20,13 +20,13 @@ space) plus one selection ring, for which no rung of the ladder had an answer.
 | **a region of the demo, drawn from `layout.words` and `controls.js`** | ✓ |
 
 **Verdict: reuse at the control level, not at the panel level.** The editor's right
-panel is `layout.words.mode / gap / column / pad` and `chips()` — ext/Layout's own
+panel is `layout.words.mode / gap / column / pad` and `chips()` — ext/layout's own
 registry, its own knobs, its own `.layout-btn` — drawn into a `flex` column inside
 the box. So there is exactly one answer to *"what is a property here"*, and the only
 thing copied is where the box sits.
 
 The cost, stated plainly: **`pick`, `chips`, `knob`, `menu` and `btn` are not public.**
-Only `layout.words` is. These pages import `ext/Layout/controls.js` by url, which
+Only `layout.words` is. These pages import `ext/layout/controls.js` by url, which
 works and is visible, but it reaches past the module's front door. The fix is one
 line in `layout.js` — `layout.controls = { pick, menu, toggle, chips, knob, btn }` —
 and it is a proposal, not something an example page gets to decide.
@@ -68,7 +68,7 @@ first version opened *two* properties panels on one chip click.
 | suppress the container section when `layout.context()` is registered | the black magic the Layout record explicitly refuses — an unrelated call deleting controls |
 | **the box stops its own pointer events** (`widget()`, `parts.js`) | ✓ two lines, at the call site, and the bar still steers the render as a whole |
 
-Whether `widget()` belongs in `ext/demo` or `ext/Layout` is open. It is two lines
+Whether `widget()` belongs in `ext/demo` or `ext/layout` is open. It is two lines
 here on purpose: a fourth caller is the signal, not a third.
 
 **Where the lesson lives.** Three of the four pages are

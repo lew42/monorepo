@@ -93,7 +93,7 @@
 
 	/* The width the example is laid out at, which is not the width you see when the
 	   zoom is off 100%. That gap is the whole point of printing both.
-	   ⚠ Keeps its own margin because `demo.responsive` puts one under each simulated
+	   ⚠ Keeps its own margin because the two-up (two.js) puts one under each simulated
 	   pane, where nothing else provides the gap. */
 	.demo-size {
 		margin-top: 0.6em;
@@ -152,7 +152,7 @@
 	}
 
 	/* ── max: the whole window — a way of LOOKING at the box, not a place.
-	   Same rationale as `.demo.max` (demo.css §7). */
+	   The one fullscreen on the site (doc/record.md §20). */
 	.demo-stage.max {
 		position: fixed; inset: 0; z-index: 30;
 		margin: 0; padding: 1.5em;

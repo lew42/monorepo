@@ -40,15 +40,19 @@ function arrow_at(src){
 	return -1;
 }
 
-/* Hold a class member's function WITHOUT calling it.
+/* Hold a member's function WITHOUT calling it. The subject is whatever owns it —
+ * a class (prototype first, then statics), a function with properties (`md.file`),
+ * or a plain namespace object.
  *
- * ⚠ A descriptor, because `Class.prototype[name]` EXECUTES a getter.
+ * ⚠ A descriptor, because `subject.prototype[name]` EXECUTES a getter.
+ * ⚠ Guard `subject.prototype`: a plain object has none, and
+ *   `getOwnPropertyDescriptor(undefined, name)` throws.
  * ⚠ Stringify with `dedent(String(fn))`, never `source(fn)` — source() strips
  *   everything before the first `{`, which throws away a method's signature.
  */
-export function member(Class, name){
-	const own = Object.getOwnPropertyDescriptor(Class.prototype, name)
-	         ?? Object.getOwnPropertyDescriptor(Class, name);
+export function member(subject, name){
+	const own = (subject.prototype && Object.getOwnPropertyDescriptor(subject.prototype, name))
+	         ?? Object.getOwnPropertyDescriptor(subject, name);
 
 	const fn = own && (own.value ?? own.get ?? own.set);
 

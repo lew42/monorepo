@@ -1,5 +1,6 @@
 import App, { View, div, a } from "./framework/core/App/App.js";
 import Socket from "./framework/dev/Socket/Socket.js";
+import devbar from "./framework/dev/DevBar/DevBar.js";
 import { lew42 } from "./framework/styles/layers/theme/lew42/lew42.js";
 import mode from "./framework/core/App/mode.js";
 
@@ -71,10 +72,17 @@ const app = window.app = new App({
 			mode.apply(this);
 		});
 
+		// Ctrl + \ — the dev rail, on <body> beside the shell rather than inside it.
+		devbar(this);
+
 		// $pages, not $app — a page's view is built by an element factory, which
 		// auto-appends to the captor, so the captor has to be where pages live.
 		View.set_captor(this.$pages);
 	},
+
+	// Router's seam, called after every navigation. The rail's route section reads
+	// the url at render time, so it is stale until something says so.
+	navigated(){ devbar.refresh(); },
 });
 
 export default app;
@@ -95,8 +103,12 @@ import "./framework/ext/demo/app.js";
 
 // Patches demo.exhibit(), demo.page() and demo.tree() on: a demo as a PAGE — the
 // render, a layout bar over it, its definition. The side effect IS the export —
-// same shape as tabs below. It imports ext/Layout, the one control surface.
+// same shape as tabs below. It imports ext/layout, the one control surface.
 import "./framework/ext/demo/exhibit.js";
+
+// Patches demo.layout() on: the third exhibit sugar — a whole page as a demo page,
+// with the two-up card and the `parts:` chips. Same side-effect shape.
+import "./framework/ext/demo/layout.js";
 
 // classdoc turns "a method has a .md file next to the page.js" into a child
 // page showing that method's real source. Imports markdown (the notes ARE
@@ -125,6 +137,10 @@ export { default as toc } from "./framework/ext/toc/toc.js";
 // already exported above via `export *`, so this import is for the side effect.
 // See framework/ext/highlight/readme.md.
 export { hljs, highlight } from "./framework/ext/highlight/highlight.js";
+
+// AITask renders a task's session.json — the spend, the agents, a transcript
+// replay off the dev server. See ext/AITask/readme.md.
+export { AITask } from "./framework/ext/AITask/AITask.js";
 
 // The UI components, as one namespace: `ui.table(head, rows)`, `ui.timeline(…)`,
 // `ui.keys("Ctrl", "K")`. Three functions — the other sixteen are documented as

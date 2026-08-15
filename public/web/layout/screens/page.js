@@ -45,7 +45,7 @@ const depot = () => new Page({
 	icon: "warehouse",
 
 	children: [
-		{ name: "board", title: "Board", icon: "dashboard", classes: "pad fill flex v gap", content(){
+		{ name: "board", title: "Board", icon: "dashboard", classes: "full fill flex v gap pad", content(){
 			div.c("grid gap auto", tiles).style("--column", "8.5em");
 
 			div.c("flex gap wrap flex-1", () => {
@@ -54,14 +54,14 @@ const depot = () => new Page({
 			}).style({ minHeight: "0", overflowY: "auto" });
 		} },
 
-		{ name: "bays", title: "Bays", icon: "grid_view", classes: "pad fill flex v gap", content(){
+		{ name: "bays", title: "Bays", icon: "grid_view", classes: "full fill flex v gap pad", content(){
 			p.c("h4", "Forty-eight bays, one wall — `grid gap auto` at `--column: 7em`");
 			div.c("flex-1", bays).style({ minHeight: "0", overflowY: "auto" });
 		} },
 	],
 
 	// The shell the whole console lives in: a rail that never moves, and the one
-	// region that swaps. Both children are ordinary pages wearing `pad fill flex v gap`.
+	// region that swaps. Both children are ordinary pages wearing `full fill flex v gap pad`.
 	render(){
 		return this.view ??= div.c("page full fill flex", () => {
 			div.c("basis flex v gap pad", () => {
@@ -90,10 +90,10 @@ export default new Page(demo.tree({
 		this.stage().ac("bleed");
 		demo.source.file(import.meta, "page.js", "Source").attr("open", "");
 
-		md("**Some pages have no prose to protect.** A console, a catalog, a split pane — the content *is* the screen, so the measure has nothing to do and the right answer is to fill the region. `classes: \"pad fill flex v gap\"` is the whole stance: no measure, an even inset, and `fill` so the page is the region's height rather than its content's. Click **Bays** for the other half of it — forty-eight tiles that turn a 3440px monitor into eight columns instead of leaving two-thirds of it grey.");
+		md("**Some pages have no prose to protect.** A console, a catalog, a split pane — the content *is* the screen, so the measure has nothing to do and the right answer is to fill the region. `classes: \"full fill flex v gap pad\"` is the whole stance: no measure, an even inset, and `fill` so the page is the region's height rather than its content's. Click **Bays** for the other half of it — forty-eight tiles that turn a 3440px monitor into eight columns instead of leaving two-thirds of it grey.");
 
 		md("`fill` has to be earned, and both declarations are load-bearing: `min-height` makes a short page fill, `overflow: hidden` stops a tall one pushing its own footer off the region. That is why the panel row below the tiles carries `flex-1` and owns its own `overflow-y` — a board that stops halfway down the region is not a board.");
 
-		md("Reference: [Dashboard](/framework/styles/layouts/dashboard/) — this shape at full size · [Layouts](/framework/styles/layouts/) — the other seven.");
+		md("Reference: [Dashboard](/framework/styles/layouts/dashboard/) — this shape at full size · [Layouts](/framework/styles/layouts/) — the other eleven.");
 	},
 }));

@@ -25,7 +25,7 @@ ui.keys("Ctrl", "K");`);
 
 		md("Only [Data table](/framework/ui/table/), [Timeline](/framework/ui/timeline/) and `keys()` on [Keys](/framework/ui/kbd/) are functions, and each is a **loop** — the one thing markup cannot express. The other sixteen pages hand you the markup with a copy button: some ship a class or two of CSS beside it, and several ship none at all.");
 
-		md("The bar for exporting a function is **logic a user shouldn't have to carry**: a loop over rows, a listener, a name that has to be unique, a trap that costs an afternoon. Everything else is markup, and markup is better handed over than hidden. Sixteen of nineteen failed that bar in an [independent review](/framework/ai/2026-08-09/) — and the strongest evidence was the site itself: where a page genuinely needed a panel, a stat tile, a crumb trail or an FAQ, its author wrote the markup by hand rather than import the helper.");
+		md("The bar for exporting a function is **logic a user shouldn't have to carry**: a loop over rows, a listener, a name that has to be unique, a trap that costs an afternoon. Everything else is markup, and markup is better handed over than hidden. Sixteen of nineteen failed that bar in an independent review — and the strongest evidence was the site itself: where a page genuinely needed a panel, a stat tile, a crumb trail or an FAQ, its author wrote the markup by hand rather than import the helper.");
 
 		md("## A component's variants are its children");
 

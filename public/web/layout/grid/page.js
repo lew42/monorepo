@@ -1,6 +1,6 @@
 import { Page, demo, md, div } from "/app.js";
-import layout from "/framework/ext/Layout/layout.js";
-import { toggle } from "/framework/ext/Layout/controls.js";
+import layout from "/framework/ext/layout/layout.js";
+import { toggle } from "/framework/ext/layout/controls.js";
 
 const cells = () => [1, 2, 3, 4, 5, 6, 7, 8].forEach(x =>
 	div.c("pad wash", "cell " + x).style("--pad", "0.9em"));
@@ -33,6 +33,6 @@ export default new Page({
 
 		md("`three` is the other stance: exactly three, then straight to one, because two columns is the width nobody designed for. And `mode` flips the same box to `flex` — both arrangers read the same two tokens, so `--gap` and `--column` mean the same thing on either side of the switch. Reach for grid when the tracks matter more than the order; reach for [flex](/web/layout/flex/) when one child is fixed and the rest are fluid.");
 
-		md("Reference: [Grid](/framework/styles/layouts/grid/) — `auto-fit` vs `auto-fill`, and the span trap · [Cards](/framework/styles/layouts/cards/) — the same class as a card wall.");
+		md("Reference: [Grid](/framework/styles/layouts/grid/) — `auto-fit` vs `auto-fill`, and the span trap · [Gallery](/framework/styles/layouts/gallery/) — the same class as a whole page's wall.");
 	},
 });

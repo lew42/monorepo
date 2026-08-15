@@ -1,5 +1,5 @@
 import View, { div, p, span, ul, li, code } from "/app.js";
-import { menu } from "/framework/ext/Layout/controls.js";
+import { menu } from "/framework/ext/layout/controls.js";
 
 View.stylesheet(import.meta, "panes.css");
 

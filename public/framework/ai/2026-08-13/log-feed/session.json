@@ -1,0 +1,14 @@
+{
+	"session_id": "51c5ac4b-ed59-4c55-9fec-593d1b0addd4",
+	"tab": "Build draggable panel sy…",
+	"group": "ai-log",
+	"request": "display the task log in reverse chronological order, new comments at top, not collapsed — could become a socket feed",
+	"requested_at": "2026-08-13T15:55-05:00",
+	"landed_at": "2026-08-13T16:40-05:00",
+	"model": "claude-fable-5",
+	"tokens": 158103,
+	"outcome": "**Landed:** `ext/ai/feed.js` + `feed.css` — the task log as a reverse-chronological, always-expanded feed, now the default view in `AISession.report()` (the old rail/thread `replay()` stays beneath, collapsed). Socket-ready: `ingest(state, $list, line)` takes one parsed transcript line and prepends/folds it in place; a refresh button + localhost-only 5s poll drive it today. Verified against the real transcript (`/ai-logs/7554e7f0-…`, 372 lines) — 10 turns, both color schemes, zero script errors (global-playwright). Design calls + open items in `ext/ai/readme.md` §2.",
+	"agents": [
+		{ "kind": "agent", "task": "build ext/ai/feed.js — reverse-chron expanded log", "model": "claude-sonnet-5", "tokens": 158103, "duration_ms": 831073, "used": true, "outcome": "feed.js + feed.css shipped, AISession.report() wired to it, readme §2 recorded the design calls; verified live against the real 372-line transcript in both themes with a playwright pass, zero script errors." }
+	]
+}

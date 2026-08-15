@@ -82,5 +82,5 @@ config(){ lew42(this); }
 ```
 
 The tab bar in the comp is worth one note: it is not a fresh design.
-`legacy/Pager/TabPager.css` had `.tab-bar` / `.tab`, and `Page.tabs()` still exists (in
+the legacy `TabPager.css` had `.tab-bar` / `.tab`, and `Page.tabs()` still exists (in
 `ext/tabs/` now). That is a *revival* question, not a theming one.

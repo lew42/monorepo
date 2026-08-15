@@ -3,17 +3,13 @@ export class Router {
 	constructor(...args){
 		this.assign(...args);
 		this.listen();
-		console.log("router.listen() — click + popstate wired");
 	}
 
 	assign(...args){ return Object.assign(this, ...args); }
 
 	listen(){
 		document.addEventListener("click", e => this.click(e));
-		window.addEventListener("popstate", () => {
-			console.log(`── POPSTATE ${location.pathname} ${"─".repeat(36)}`);
-			this.load(location.pathname);
-		});
+		window.addEventListener("popstate", () => this.load(location.pathname));
 	}
 
 	click(e){
@@ -21,7 +17,6 @@ export class Router {
 		if (!link) return;
 
 		e.preventDefault();
-		console.log(`── CLICK ${link.pathname} ${"─".repeat(39)}`);
 
 		// ⚠ The whole url — `pathname` alone silently ATE the fragment on a
 		// cross-page link. Where it LANDS is still the top; readme.md's Open list.
@@ -45,14 +40,10 @@ export class Router {
 	// Load first, push second, so a failed navigation leaves no history entry. There
 	// is no synchronous "is this a real page" gate — see doc/registry-gate.md.
 	async go(url){
-		console.log(`router.go("${url}")`);
-
 		// The walk resolves the PATH; history keeps the whole url.
 		if (await this.load(new URL(url, location.origin).pathname)){
 			history.pushState({}, "", url);
-			console.log(`  ↳ history.pushState("${url}")`);
 		} else {
-			console.log(`  ↳ load failed — handing "${url}" to the browser`);
 			location.assign(url);
 		}
 	}
@@ -69,7 +60,6 @@ export class Router {
 
 			this.activate(page);
 		}
-		else console.log(`router.load("${url}") — 404, nothing resolves it`);
 
 		return !!page;
 	}
@@ -93,9 +83,7 @@ export class Router {
 		const to = page.chain();                       // /a/x/   -> [root, a, x]
 		const shared = this.shared_depth(from, to);    // 2 — root, a stay
 
-		// no awaits past this point, so the group is guaranteed to close
-		console.groupCollapsed(`router.activate(${page.log_label()})`);
-
+		// no awaits past this point — activate() must stay synchronous
 		from.slice(shared).reverse().forEach(p => p.deactivate());   // deepest first
 		to.slice(shared).forEach(p => p.activate());                 // shallowest first
 
@@ -109,11 +97,6 @@ export class Router {
 
 		// Duck-typed, so it costs nothing until a site defines it. doc/navigated.md.
 		this.app.navigated?.(page, from);
-
-		console.log(`from   ${from.map(p => p.url).join(" › ") || "(none)"}`);
-		console.log(`to     ${to.map(p => p.url).join(" › ")}`);
-		console.log(`shared ${shared} untouched`);
-		console.groupEnd();
 	}
 
 	chain(){ return this.active ? this.active.chain() : []; }
@@ -129,13 +112,13 @@ export class Router {
 	// a document query would find zero links and nothing would light up.
 	root(){ return this.app.$app.el; }
 
-	// Wipe, then reapply down the NEW chain. A page that left needs nothing undone,
-	// only its classes gone — a query, not a lifecycle call. doc/marking.md.
+	// Unmark what I marked, then mark the new chain — a page that left needs nothing
+	// undone, only its classes gone. ⚠ Never a query across $app: it would also strip
+	// the marks a widget wrote on a page of its own. doc/marking.md.
 	mark(){
-		this.root().querySelectorAll(".active-page, .active-ancestor")
-			.forEach(node => node.classList.remove("active-page", "active-ancestor"));
+		this.marked?.forEach(view => view.rc("active-page active-ancestor"));
 
-		this.chain().forEach(page =>
+		this.marked = this.chain().map(page =>
 			page.view.ac(page === this.active ? "active-page" : "active-ancestor"));
 
 		this.mark_links(this.active.url);

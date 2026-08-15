@@ -46,9 +46,6 @@ export default {
                     p("`.append(...)`: add children, views, text, DOM nodes, arrays, or a function that builds them.").ac("mb");
                     pre(`div().append(p("hello"), " ", a("link").href("/"));`).ac("pad mb").style({ background: "var(--bg)", color: "white", "border-radius": "0.3em" });
 
-                    p("`.prepend(...)`: same as `.append()`, but adds to the start.").ac("mb");
-                    pre(`div().prepend(p("this goes first"));`).ac("pad mb").style({ background: "var(--bg)", color: "white", "border-radius": "0.3em" });
-
                     p("`.empty(...)`: clear all children, optionally append new ones.").ac("mb");
                     pre(`div().empty(p("fresh content"));`).ac("pad mb").style({ background: "var(--bg)", color: "white", "border-radius": "0.3em" });
 
@@ -74,7 +71,7 @@ export default {
                     p("`.style(prop, value)`: get or set inline CSS. Pass an object to set several at once.").ac("mb");
                     pre(`div().style({ padding: "1em", color: "red" });`).ac("pad mb").style({ background: "var(--bg)", color: "white", "border-radius": "0.3em" });
 
-                    p("`.on(event, cb)` / `.off(event, cb)`: add or remove an event listener.").ac("mb");
+                    p("`.on(event, cb)`: add an event listener. It cannot be removed — `on()` registers a wrapper, and the DOM removes by reference.").ac("mb");
                     pre(`const log = () => console.log("clicked");
 button("Click me").on("click", log);`).ac("pad mb").style({ background: "var(--bg)", color: "white", "border-radius": "0.3em" });
 
@@ -91,13 +88,7 @@ box.show();`).ac("pad mb").style({ background: "var(--bg)", color: "white", "bor
                     p("`.remove()`: remove it from the page.").ac("mb");
                     pre(`div().remove();`).ac("pad mb").style({ background: "var(--bg)", color: "white", "border-radius": "0.3em" });
 
-                    p("`.replace(view)`: swap it out for another view.").ac("mb");
-                    pre(`oldView.replace(newView);`).ac("pad mb").style({ background: "var(--bg)", color: "white", "border-radius": "0.3em" });
-
-                    p("`.clone()` / `.repeat(n)`: duplicate it.").ac("mb");
-                    pre(`div.c("item").repeat(3); // three copies`).ac("pad mb").style({ background: "var(--bg)", color: "white", "border-radius": "0.3em" });
-
-                    p("`.append_to(view)` / `.prepend_to(view)`: attach it somewhere else instead of where it was created.").ac("mb");
+                    p("`.append_to(view)`: attach it somewhere else instead of where it was created.").ac("mb");
                     pre(`p("Hello").append_to(app.$app);`).ac("pad mb").style({ background: "var(--bg)", color: "white", "border-radius": "0.3em" });
 
                     h2("Loading other files").ac("mb").style({ "border-bottom": "1px solid var(--subtle)", "padding-bottom": "0.3em" });

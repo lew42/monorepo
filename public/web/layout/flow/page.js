@@ -1,5 +1,5 @@
 import { Page, demo, md, div, p, h3 } from "/app.js";
-import layout from "/framework/ext/Layout/layout.js";
+import layout from "/framework/ext/layout/layout.js";
 
 const article = () => {
 	h3("Blocks stack, for free");

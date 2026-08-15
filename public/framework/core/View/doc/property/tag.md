@@ -1,8 +1,8 @@
 The element name to create. Defaults to `div`.
 
 **Usage** — read in `prerender()` (`View.js:21`) and in `append_prop()`
-(`View.js:138`), which builds each named child with the *parent's* tag. Written by
-every factory (`new View({ tag })`, `View.js:443-476`) and by `stylesheet()`
+(`View.js:113`), which builds each named child with the *parent's* tag. Written by
+every factory (`new View({ tag })`, `View.js:388-421`) and by `stylesheet()`
 (`tag: "link"`).
 
 **Necessity** — yes. It is what makes 60 tag functions one class.

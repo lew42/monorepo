@@ -1,6 +1,6 @@
 **Usage** — the method everything else routes through. `initialize()` calls
 `this.append(this.render)` (`View.js:15`), every element factory ends in
-`.append(...)` (`View.js:443-476`), and `empty()`, `append_to()`, `append_fn()`,
+`.append(...)` (`View.js:388-421`), and `empty()`, `append_to()`, `append_fn()`,
 `append_promise()`, `append_pojo()` and `load()` all funnel back into it. Roughly
 100 direct call sites across `public/`, plus one replacement: `ext/highlight`
 swaps the whole method at import (`framework/ext/highlight/highlight.js:108`), so

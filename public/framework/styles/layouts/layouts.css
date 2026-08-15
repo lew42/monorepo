@@ -3,7 +3,7 @@
 @layer base, theme, site, util;
 
 /* Two things, and neither is a layout page: the full-window view (full.js) and the
-   shape thumbnails (preview.js). The eight layout pages ship no CSS at all.
+   shape thumbnails (preview.js). The twelve layout pages ship no CSS at all.
    Reasoning, and what was tried instead: readme.md. */
 @layer theme {
 

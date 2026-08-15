@@ -6,7 +6,7 @@ export default new Page({
 	description: "Define pager() on a topic.",
 	content(){
 
-		md("> **This class has left core.** `Pager`, `TabPager` and `ColumnPager` now live in `framework/core/legacy/` and `/app.js` no longer exports them. An arrangement is a CSS class a page opts into — see [Page](/framework/core/Page/). The examples below still run, against the legacy class, imported directly.");
+		md("> **This class is history.** `Pager`, `TabPager` and `ColumnPager` left core, and the framework tree no longer ships them — an arrangement is a CSS class a page opts into, see [Page](/framework/core/Page/). Nothing here runs; the code below is a record of how the drill-down worked.");
 
 		p("One method turns a topic into a drill-down: `pager()`. Its descendants stay plain Pages — they never know they're in a ColumnPager.");
 

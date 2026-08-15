@@ -11,12 +11,12 @@ export default classdoc.page({
 	// Every member, in the order a reader meets them: the everyday API, then the
 	// lifecycle, then the plumbing under append(), then the statics.
 	methods: "append ac style attr text html on click empty "
-		+ "prepend rc tc hc href off remove replace hide show toggle "
+		+ "rc tc hc href remove hide show toggle "
 		+ "render prerender initialize classify assign "
-		+ "append_to prepend_to append_fn append_promise append_pojo append_prop "
+		+ "append_to append_fn append_promise append_pojo append_prop "
 		+ "backtick_append backticks has_class toggle_class html_unsafe "
-		+ "load lazy clone repeat compute ctrl "
-		+ "stylesheet elements body url meta_path set_captor restore_captor",
+		+ "load lazy ctrl "
+		+ "stylesheet elements body url set_captor restore_captor",
 
 	properties: "el capture tag classes name parent captor previous_captors stylesheets supports_sanitizer",
 

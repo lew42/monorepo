@@ -1,5 +1,5 @@
-**Usage** — 3 internal call sites: `load()` (`View.js:281`), `lazy()`
-(`View.js:286`) and `stylesheet()` (`View.js:421`). Every module-relative URL in
+**Usage** — 3 internal call sites: `load()` (`View.js:251`), `lazy()`
+(`View.js:256`) and `stylesheet()` (`View.js:366`). Every module-relative URL in
 the framework resolves through here.
 
 ```js

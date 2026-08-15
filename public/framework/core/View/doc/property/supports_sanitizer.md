@@ -1,7 +1,7 @@
 Whether this browser has the Sanitizer API (`Element.prototype.setHTML`).
 
-**Usage** — read once, by `html()` (`View.js:187`). Computed once at module load
-(`View.js:507`).
+**Usage** — read once, by `html()` (`View.js:162`). Computed once at module load
+(`View.js:454`).
 
 **Necessity** — only because `html()` exists. Nothing else in `public/` asks the
 question, and the three modules that actually set markup use `html_unsafe()`.

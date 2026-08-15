@@ -20,8 +20,7 @@ export default new Page({
 	description: "A live, categorized tour of the framework's essential styles.",
 	children: [previews, pageDoc, pagerDoc, columnPagerDoc, routerDoc, elements, layout, components, sections, branding],
 
-	// Its own nav beside its own region — the shape /framework/ uses. The
-	// ColumnPager that used to arrange this subtree is in core/legacy/.
+	// Its own nav beside its own region — the shape /framework/ uses.
 	classes: "hides-nav",
 
 	render(){

@@ -1,5 +1,5 @@
 **Usage** — called exactly once, on the last line of the class file
-(`View.js:515`), and its result is destructured into ~60 named exports. Every
+(`View.js:460`), and its result is destructured into ~60 named exports. Every
 `div()`, `p()`, `h2()`, `a()` in `public/` is one of them. `castin/framework/page.js:70`
 calls it a second time, to list the tags.
 

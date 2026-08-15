@@ -13,7 +13,7 @@ export default new Page({
     title: "Start",         // the h1 on this page
     label: "Start here",    // what every menu calls it
     icon: "flag",           // the glyph beside it
-    card: "wide",           // and, on a wall of cards, its share of the grid
+    card: "two",           // and, on a wall of cards, its share of the grid
 });`);
 
 		md("All four live on **the page they describe**, and `nav_for(name)` is the one method that reads them — so a sidebar, a tab bar and a preview card structurally cannot disagree. The fallback is `label → title → the url segment`, weakest last; `icon` and `card` come straight off the child with none. [See it running.](/framework/core/Page/overview/labels/)");
@@ -29,7 +29,7 @@ export default new Page({
 				title: "Web",
 
 				children: {
-					CSS: { icon: "palette", card: "wide",
+					CSS: { icon: "palette", card: "two",
 						preview(nav){ return this.preview_card(nav, () => div.c("flex v gap wash pad", () =>
 							[1, 2, 3].forEach(() => div.c("surface").style("height", "0.8em")))); },
 						content(){ md("This card is a render, not a label — one method, on the page it shows."); } },
@@ -44,7 +44,7 @@ export default new Page({
 
 		h2("The shape of the page itself");
 
-		code.js(`classes: "pad"          // no measure, an even inset: a board
+		code.js(`classes: "full pad"     // no measure, an even inset: a board
 classes: "full fill"    // edge to edge, and BE the region's height`);
 
 		md("**Every page is a `standard` page unless it says otherwise** — a left-anchored measure, with `.wide` and `.bleed` growing rightward off the same edge. Declaring `classes:` opts out **whole**, which is why it is one word and not a list of flags. [Walk the three shapes.](/framework/core/Page/overview/shapes/)");

@@ -3,7 +3,8 @@
 Split out of `readme.md`; format is question → options → weighing → verdict.
 
 > **`ColumnPager` and `TabPager` were the layout tier when most of this was
-> written.** They are dead code in `core/legacy/` now, and an arrangement is a CSS
+> written.** That tier is gone (`Pager` survives, vendored, in
+> `michael/pager/legacy/`), and an arrangement is a CSS
 > class a page opts into. **The reasoning is still live** — every rule about
 > ownership, layers and escalation applies unchanged, and the Pager cases are the
 > best worked examples these records have. Read those names as *"a layout

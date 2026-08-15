@@ -7,7 +7,7 @@ export default new Page({
 	description: "Local-only tooling: live reload.",
 	icon: "terminal",
 
-	children: "Socket",
+	children: "Socket DevBar",
 
 	content(){
 
@@ -28,6 +28,6 @@ node server.js      # http://localhost`);
 
 		md("`chokidar`, `express`, `ws`. **The short list is the feature** — `server.js` is a static file server with a watcher bolted on, and `public/` is served as-is because that is what production does too. If it needs a build to run locally, it is not this framework.");
 
-		md("Next: [Socket](/framework/dev/Socket/) — the one class in here.");
+		md("Next: [Socket](/framework/dev/Socket/), the class that reloads you — or [DevBar](/framework/dev/DevBar/), the rail `Ctrl + \\\\` opens on every page.");
 	}
 });

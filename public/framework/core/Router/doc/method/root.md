@@ -6,14 +6,14 @@ root(){ return this.app.$app.el; }
 
 ## Usage
 
-- `Router.js:135` — `mark()`, wiping the two page classes.
-- `Router.js:149` — `mark_links()`, the anchor sweep.
+- `Router.js:149` — `mark_links()`, the anchor sweep. The only caller: `mark()`
+  unmarks the views it remembers rather than querying for them.
 
 ## Necessity
 
 Keep, and it earns its line by existing at all: **scoped to `$app`, never
 `document`.** On a cold load `$app` is still detached from the document, so a
-document-wide query finds zero links and nothing lights up. Two callers, one rule,
+document-wide query finds zero links and nothing lights up. One caller, one rule,
 one place for the rule to live.
 
 ## Simplicity

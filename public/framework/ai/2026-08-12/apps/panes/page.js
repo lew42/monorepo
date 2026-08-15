@@ -1,5 +1,4 @@
-import { Page, div, is } from "/app.js";
-import detail from "/framework/styles/layouts/detail.js";
+import { Page, demo, div, is } from "/app.js";
 import { pane, grip } from "./panes.js";
 import { widget } from "../parts.js";
 
@@ -16,7 +15,7 @@ function panes(){
 	return widget(div.c("apps-panes flex pad", () => build(LAYOUT))).style("--pad", "0.5em");
 }
 
-export default new Page(detail({
+export default new Page(demo.layout({
 	meta: import.meta,
 	title: "Panes",
 	description: "Rows inside columns, each pane a switchable editor — the Blender shape.",

@@ -1,0 +1,927 @@
+{
+  "model": "claude-opus-5",
+  "session_id": "d79b2988-26df-4332-8858-9b644b8f067b",
+  "method": "One cold claude -p CLI session (claude-opus-5), resumed once per image with the identical analysis prompt used for the Sonnet run, against the SAME 15 PNGs in ../vision-sonnet/shots/. Per-image numbers are the CLI reported usage for that turn. No capture phase preceded analysis; first turn carries the one-time system-prompt cache write.",
+  "shots_source": "../vision-sonnet/shots/",
+  "images": [
+    {
+      "file": "fit-400.png",
+      "url": "http://localhost/framework/styles/layouts/fit/",
+      "viewport_width": 400,
+      "image_px": "400x800",
+      "file_bytes": 23459,
+      "analysis_tokens": {
+        "input": 3176,
+        "cache_write": 32731,
+        "cache_read": 28993,
+        "output": 2083,
+        "total": 66983
+      },
+      "analysis_cost_usd": 0.41056950000000003,
+      "api_ms": 31175,
+      "wall_ms": 32151,
+      "findings": {
+        "regions": [
+          "Fixed top header bar (white): orange mountain logo + wordmark 'Framework' at left, hamburger icon at far right",
+          "Large empty band of page background beneath the header",
+          "Horizontal sibling-nav rail of pill/card buttons: 'Layouts', 'Fit' (active — orange border, orange label, icon), and a third card 'Flex…' clipped at the right viewport edge",
+          "Tall empty vertical gap (~130px) between the nav rail and the page title",
+          "Page title 'Fit' (large bold heading)",
+          "Intro paragraph with an inline code chip `div.page` and bolded phrase, wrapping to 4 lines",
+          "Start of a bordered comparison table: header row (blank first cell, `--measure` code chip, 'inset' clipped at right), then first body row ('standard — the default' | '52em prose track' | 'grid t…' clipped)",
+          "Image ends mid-table; further rows are below the captured area"
+        ],
+        "width_use": "Single stacked column, no side-by-side content — the sidebar is collapsed behind the hamburger, which is correct at 400px. Prose sits in a ~345px column with ~28px left/right gutters, giving roughly 45-50 characters per line, a comfortable mobile measure. The two structural elements that are NOT stacked both exceed the viewport: the nav rail runs off the right edge mid-card, and the 3-column table is only ~2.2 columns visible before being cut at x=400 with no visible scrollbar or fade affordance. The table also breaks the page gutter — it starts at the same left inset as the paragraph but has no right inset at all.",
+        "issues": [
+          {
+            "severity": "high",
+            "what": "The comparison table overflows the viewport horizontally. The third column header ('inset') and its cell ('grid t…') are sliced off at the right edge, with no scrollbar, fade, or other affordance signalling that content continues.",
+            "where": "Table beginning ~y=485, columns at x≈32-215 (label), 215-322 (--measure), 322-400+ (inset, clipped)"
+          },
+          {
+            "severity": "high",
+            "what": "The sibling-nav rail overflows the viewport the same way — the third card is cut mid-word ('Flex…') at the right edge with no visible scroll cue, so the user cannot tell more siblings exist.",
+            "where": "Nav rail, y≈95-155, third card starting x≈340"
+          },
+          {
+            "severity": "medium",
+            "what": "Large unexplained vertical dead space: ~45px between header and nav rail, then ~130px between the nav rail and the 'Fit' heading. At a 400px viewport this pushes the title most of the way down the first screen and wastes scarce vertical room.",
+            "where": "Between y≈50-95 and y≈155-285"
+          },
+          {
+            "severity": "medium",
+            "what": "The table ignores the page's right gutter that the paragraph respects, so the content edge is inconsistent — prose stops at x≈372 while the table runs to x=400 and beyond.",
+            "where": "Table vs. intro paragraph, y≈360-485 compared to y≈485+"
+          },
+          {
+            "severity": "low",
+            "what": "Table cells are extremely tall relative to their content — the first body row is ~250px high for one short label and a two-line cell, because narrow columns force wrapping while row height is driven by the tallest cell.",
+            "where": "First table body row, y≈545-795"
+          }
+        ],
+        "quality": "The prose column adapts well to 400px — good measure, sensible gutters, sidebar correctly collapsed — but the layout fails at its two horizontal elements: both the sibling-nav rail and the three-column table are clipped at the right edge with no scroll affordance, so content is silently lost. Combined with ~175px of empty space above the title, the first screen delivers little content and hides some of what it does show."
+      }
+    },
+    {
+      "file": "fit-1920.png",
+      "url": "http://localhost/framework/styles/layouts/fit/",
+      "viewport_width": 1920,
+      "image_px": "1920x1080",
+      "file_bytes": 163401,
+      "analysis_tokens": {
+        "input": 1396,
+        "cache_write": 3978,
+        "cache_read": 67754,
+        "output": 3814,
+        "total": 76942
+      },
+      "analysis_cost_usd": 0.175987,
+      "api_ms": 60086,
+      "wall_ms": 61487,
+      "findings": {
+        "regions": [
+          "Left column: fixed site sidebar — 'Framework' logo at top, then grouped nav lists ('Start Here' → FAQ/Versus; 'CORE' → Overview, View, Page, Router, App, Sidebar, Item, List; 'STYLES' → Overview, Layers, Elements, Layouts, Sections)",
+          "Middle column: a vertical card rail — a 'Layouts' parent chip at top, a 'VOCABULARY' section label, three stacked preview cards ('Fit' active with orange outline + description, 'Flex', 'Grid'), then a 'PAGES' section label with two thumbnail preview cards ('Document', 'Docs')",
+          "Right column (main content): H1 'Fit'",
+          "Intro paragraph running the full content width in two lines",
+          "A four-column comparison table (label / `--measure` / `inset` / 'reach for it when') with ~5 body rows: 'standard — the default', 'the sheet', 'full', 'fill'",
+          "H2 'The measure is two tokens'",
+          "Two dark code blocks placed side by side",
+          "Body paragraph beneath the code blocks, three lines full-width",
+          "Page appears to end shortly below; total scroll height is roughly 1.1× the viewport height"
+        ],
+        "width_use": "Three side-by-side columns filling the full 1920px — no centred max-width wrapper on the page as a whole. Approximate split: sidebar ~0-310px (16%), card rail ~335-910px (30%), main content ~960-1900px (49%). Nothing is stacked; the widescreen space is genuinely used rather than left as gutters. Within the main column, prose is NOT constrained to a reading measure — the intro paragraph and the closing paragraph both run the full ~900px column, well past 100 characters per line. The table also spans the full 900px, with its fourth column ('reach for it when') carrying the widest text. The two code blocks are the only side-by-side sub-layout inside the content column. Left gutter between rail and content is ~50px; the right page margin is much tighter (~20px), so the content column reads as pushed against the right edge.",
+        "issues": [
+          {
+            "severity": "high",
+            "what": "Prose runs the full ~900px content column — roughly 110-130 characters per line, far beyond a comfortable measure and directly contradicting the 52em prose track this very page documents. The page describes a centred reading column but does not appear to use one for its own body text.",
+            "where": "Intro paragraph under the H1, and the closing paragraph under 'The measure is two tokens'"
+          },
+          {
+            "severity": "medium",
+            "what": "The middle card rail is allocated ~575px (30% of the viewport) for a single stacked column of three short vocabulary cards, so each card is ~530px wide holding two lines of description. That column could be narrower, or the cards laid 2-up, without losing anything.",
+            "where": "Middle column, cards 'Fit'/'Flex'/'Grid', x≈335-910"
+          },
+          {
+            "severity": "medium",
+            "what": "Asymmetric page margins: the gap between the card rail and the content column is roughly 50px, while the right edge of the content sits only ~20px from the viewport edge, making the whole layout look shifted right.",
+            "where": "Right edge of main content column vs. its left gutter"
+          },
+          {
+            "severity": "low",
+            "what": "The two code blocks side by side occupy only part of the content width and are short, leaving a noticeably empty band to their right relative to the full-width table above them.",
+            "where": "Code block pair under 'The measure is two tokens', y≈200-235 of the render"
+          },
+          {
+            "severity": "low",
+            "what": "The left nav column's list ends partway down, leaving a tall empty band at the bottom-left while the content column continues — vertical space in the sidebar is unused.",
+            "where": "Below 'Sections' in the STYLES group, lower-left of the page"
+          }
+        ],
+        "quality": "A genuinely widescreen three-column layout that fills 1920px with real content instead of gutters — sidebar, browsable card rail, and main column all pull their weight, and the whole page fits in about one and a bit screens. The clear failure is measure: body prose stretches the full ~900px content column, which is both hard to read and at odds with the 52em reading column the page is documenting."
+      }
+    },
+    {
+      "file": "fit-3440.png",
+      "url": "http://localhost/framework/styles/layouts/fit/",
+      "viewport_width": 3440,
+      "image_px": "3440x1440",
+      "file_bytes": 236211,
+      "analysis_tokens": {
+        "input": 4,
+        "cache_write": 4557,
+        "cache_read": 77458,
+        "output": 3161,
+        "total": 85180
+      },
+      "analysis_cost_usd": 0.16334400000000002,
+      "api_ms": 47054,
+      "wall_ms": 48522,
+      "findings": {
+        "regions": [
+          "Left column: site sidebar — 'Framework' logo, then nav groups ('Start here' → FAQ, Versus; 'CORE' → Overview, View, Page, Router, App, Sidebar, Item, List; 'STYLES' → Overview, Layers, Elements, Layouts, Sections; a further group → Overview, UI, Data table, Form field, Breadcrumb, Pagination, Card, Stat tiles, Badges…), with a small control at the bottom-left",
+          "Second column: vertical card rail — 'Layouts' parent chip, 'VOCABULARY' label, three preview cards stacked ('Fit' active with orange border and description, 'Flex', 'Grid'), then a 'PAGES' label with four thumbnail preview cards (one unlabelled, 'Document', 'Docs', 'Landing')",
+          "Third column (main content): H1 'Fit'",
+          "Intro paragraph, two lines, running the full content-column width",
+          "Four-column comparison table (label / `--measure` / `inset` / 'reach for it when') with four body rows: 'standard — the default', 'the sheet', 'full', 'fill'",
+          "H2 'The measure is two tokens'",
+          "First dark code block, full content-column width",
+          "Body paragraph, three lines full-width",
+          "Second dark code block, full content-column width",
+          "H2 'Why a measure at all' at the bottom of the capture",
+          "Fourth 'column': a large empty band of page background occupying the entire right side of the viewport, from the content column's right edge to x=3440, running the full page height"
+        ],
+        "width_use": "Three occupied columns plus a very large empty right region. Approximate split: sidebar ~0-340px (10%), card rail ~360-860px (15%), main content ~940-1900px (28%), then ~1900-3440px (≈45%, ~1540px) of nothing. The content column is roughly 960px wide — the same absolute width it occupies at narrower viewports — so the layout does not grow into the extra space; the extra 1520px all becomes right-hand dead area. Inside the content column nothing is stacked that could be side by side: the table spans full width with four columns, and the two code blocks are each full-width and stacked vertically. Prose lines run the full ~880px column, roughly 110-125 characters per line. Gutter between rail and content ≈80px. Total scroll height is about 1440px — roughly one screen.",
+        "issues": [
+          {
+            "severity": "high",
+            "what": "Roughly 1540px — about 45% of the viewport — is empty page background to the right of the content column. The layout stops growing at ~1900px and converts every additional pixel into gutter rather than into columns, wider tracks, or a second content lane.",
+            "where": "Entire right side of the page, x≈1900-3440, full height"
+          },
+          {
+            "severity": "high",
+            "what": "Prose still runs the full ~880px content column at ~110-125 characters per line — no reading measure is applied — which is both hard to read and inconsistent with the 52em prose track the page itself documents. The abundant free width to the right makes this worse, not better: there is room to narrow the measure and put the breakout content beside it.",
+            "where": "Intro paragraph under the H1, and the paragraph between the two code blocks"
+          },
+          {
+            "severity": "medium",
+            "what": "The two dark code blocks are stacked full-width even though the viewport is 3440px. Two short snippets sit one above the other consuming vertical space while ~1540px sits unused horizontally.",
+            "where": "Under 'The measure is two tokens', the two code blocks"
+          },
+          {
+            "severity": "medium",
+            "what": "The card rail keeps a single stacked column at this width — three vocabulary cards and four page thumbnails all one-up in a ~500px column — so the browsable gallery is as tall at 3440px as it would be on a narrow screen.",
+            "where": "Second column, x≈360-860, 'VOCABULARY' and 'PAGES' sections"
+          },
+          {
+            "severity": "low",
+            "what": "The table's fourth column ('reach for it when') carries multi-line prose in a narrow track while the page has ample unused width, so those cells wrap to 3-4 lines each and drive tall rows.",
+            "where": "Comparison table, rightmost column, rows 'standard' through 'fill'"
+          }
+        ],
+        "quality": "Everything renders correctly and the three-column structure is sound, but the layout simply stops at ~1900px and leaves the outer 45% of a 3440px screen as blank background — the exact 'widescreen space left as gutters' failure this page is meant to be about. Combined with an unconstrained ~120-character prose measure, the ultrawide viewport is actively worse than a 1920 one: more emptiness, same line length."
+      }
+    },
+    {
+      "file": "flex-400.png",
+      "url": "http://localhost/framework/styles/layouts/flex/",
+      "viewport_width": 400,
+      "image_px": "400x800",
+      "file_bytes": 11934,
+      "analysis_tokens": {
+        "input": 4,
+        "cache_write": 3933,
+        "cache_read": 85917,
+        "output": 1296,
+        "total": 91150
+      },
+      "analysis_cost_usd": 0.11470849999999999,
+      "api_ms": 21029,
+      "wall_ms": 22501,
+      "findings": {
+        "regions": [
+          "Fixed top header bar (white): orange mountain logo + 'Framework' wordmark at left, hamburger icon at far right",
+          "Empty band of page background below the header (~45px)",
+          "Horizontal sibling-nav rail of card buttons, scrolled/clipped on BOTH sides: a card cut off at the left edge showing only 'ts' (i.e. 'Layouts'), then 'Fit', then 'Flex' (active — orange border, orange label, three-bar icon) cut off at the right edge",
+          "Tall empty vertical gap (~130px) between the nav rail and the page title",
+          "Page title 'Flex' (large bold heading)",
+          "Demo figure 1: a bordered box containing three narrow cells packed at the left and a large empty area to the right, with caption 'A row' below",
+          "Demo figure 2: a bordered box with three narrow cells separated by visible gaps, again left-packed with empty space to the right, caption 'A row with air in it' below",
+          "Demo figure 3: a bordered box containing three full-width horizontal bars stacked vertically, caption 'A column' below",
+          "Image ends here; further demos are below the captured area"
+        ],
+        "width_use": "Single stacked column. The sidebar is collapsed behind the hamburger, which is correct at 400px. Page gutters are ~28px left and ~32px right; the demo figures span the full ~340px content width, so they use the available width well. There is almost no body prose visible in this capture — only short bold captions — so no reading measure can be assessed. The demo boxes themselves are internally left-packed: each 'row' demo places its three cells in roughly the left 130px and leaves ~210px (about 60% of the box) empty, which is the flex behaviour being demonstrated rather than a layout defect. The nav rail is the one element that is not stacked, and it overflows the viewport in both directions.",
+        "issues": [
+          {
+            "severity": "high",
+            "what": "The sibling-nav rail is clipped on both the left and right edges — the left card is cut mid-word showing only 'ts', and the active 'Flex' card is sliced at the right edge — with no visible scrollbar, fade, or arrow affordance indicating that it scrolls or that more siblings exist.",
+            "where": "Nav rail, y≈95-155, spanning the full viewport width"
+          },
+          {
+            "severity": "medium",
+            "what": "Large vertical dead space above the content: ~45px between header and nav rail, then ~130px between the nav rail and the 'Flex' heading. At 400px that pushes the title to y≈290 and leaves the first screen carrying only a title and one demo.",
+            "where": "y≈50-95 and y≈155-260"
+          },
+          {
+            "severity": "medium",
+            "what": "The active card ('Flex') is the one clipped at the right edge, so the item indicating the current page is the least readable in the rail — its orange border is cut and its right side is missing.",
+            "where": "Nav rail, active card starting x≈240"
+          },
+          {
+            "severity": "low",
+            "what": "The three demo figures have no visible label distinguishing them as demos other than a caption beneath, and the caption sits tight under the box with a much larger gap above the next figure, giving uneven vertical rhythm between the demo groups.",
+            "where": "Between 'A row' caption (y≈473) and the next figure (y≈500), versus similar transitions below"
+          }
+        ],
+        "quality": "The single-column stack is correct for 400px and the demo figures use the full content width with sensible gutters, so the substance of the page reads fine. The weak point is chrome, not content: the sibling-nav rail is silently clipped on both sides with no scroll affordance, and ~175px of empty space above the title wastes the top of a small screen."
+      }
+    },
+    {
+      "file": "flex-1920.png",
+      "url": "http://localhost/framework/styles/layouts/flex/",
+      "viewport_width": 1920,
+      "image_px": "1920x1080",
+      "file_bytes": 134502,
+      "analysis_tokens": {
+        "input": 126,
+        "cache_write": 4328,
+        "cache_read": 91921,
+        "output": 1693,
+        "total": 98068
+      },
+      "analysis_cost_usd": 0.13219550000000002,
+      "api_ms": 27591,
+      "wall_ms": 29088,
+      "findings": {
+        "regions": [
+          "Left column: fixed site sidebar (white, ~240px) — 'Framework' logo, nav groups: Start here / FAQ / Versus, 'CORE' → Overview, View, Page, Router, App, Sidebar, Item, List, 'STYLES' → Overview, Layers, Elements, Layouts, Sections, 'UI' → Overview, UI, Data table, Form field (list continues past the fold); a gear button and a round toggle pinned at the bottom-left",
+          "Second column: vertical card rail (~320-720px) — 'Layouts' parent chip, 'VOCABULARY' label, three preview cards stacked ('Fit', 'Flex' active with orange border, 'Grid'), then 'PAGES' label with thumbnail cards 'Document' and 'Docs' (screenshot previews)",
+          "Third column (main content, starts x≈805): H1 'Flex'",
+          "Demo gallery: nine captioned demo tiles in a 4-column grid — row 1: 'A row', 'A row with air in it', 'A column', 'Middles lined up'; row 2: 'Ends apart, middle empty', 'Equal peers, that wrap', 'A fixed rail, a fluid rest', 'Wraps to a second line'; row 3: 'Three, then straight to one' alone",
+          "Body paragraph beneath the gallery (bold lead-in 'Nine class strings, each one word from its neighbour.'), three lines",
+          "H2 'Where the same markup breaks'",
+          "Paragraph with inline code chip `--column`, two lines",
+          "Start of a bordered panel with a '<>' source-toggle icon at its top-right, cut off at the bottom of the capture"
+        ],
+        "width_use": "Three side-by-side columns, no stacking. Sidebar 0-240px (12.5%), card rail ~320-720px (21%), main content ~805-1875px (56%). Content column ≈1070px. The demo gallery genuinely exploits the width: nine tiles laid 4-up at ~250px each with ~20px gutters, so eight of the nine demos are above the fold — this is the strongest use of horizontal space on the page. Prose, by contrast, is capped at roughly 830px (~95-105 characters per line) and left-aligned in the content column, leaving a ~240px unused strip on the right beside every paragraph. The rail is a single stacked column of full-width cards (~400px each). Gutter between sidebar and rail ≈80px; between rail and content ≈85px; right page margin ≈45px.",
+        "issues": [
+          {
+            "severity": "medium",
+            "what": "Prose measure is ~95-105 characters per line — too long for comfortable reading, and it is set by a cap that is narrower than the content column, so paragraphs neither fill the column nor sit at a proper measure. The result is a ragged ~240px empty strip to the right of every paragraph while the demo grid beside it runs to the full width.",
+            "where": "Paragraph under the demo gallery (y≈730-790) and under 'Where the same markup breaks' (y≈965-995), text ending ~x=1640 vs. gallery ending x=1875"
+          },
+          {
+            "severity": "medium",
+            "what": "The last gallery row is orphaned: 'Three, then straight to one' sits alone in a 4-column grid, leaving three empty tile slots (~800px) to its right.",
+            "where": "Gallery row 3, y≈535-680, x≈1075-1875"
+          },
+          {
+            "severity": "low",
+            "what": "The card rail keeps one card per row at ~400px wide, so three short vocabulary cards plus the page thumbnails run past the fold vertically while there is width to place them 2-up.",
+            "where": "Second column, 'VOCABULARY' cards (y≈195-620) and 'PAGES' thumbnails (y≈655+)"
+          },
+          {
+            "severity": "low",
+            "what": "Gutters are inconsistent: ~80px sidebar→rail and ~85px rail→content, but only ~45px from the content column to the right viewport edge, so the page reads as slightly crowded on the right.",
+            "where": "Right edge of the demo gallery, x≈1875 vs. viewport 1920"
+          },
+          {
+            "severity": "low",
+            "what": "The sidebar nav overflows the viewport height (the 'UI' group is cut mid-list at 'Form field') while the rail and content columns still have room, and the bottom-left gear/toggle controls overlap that cut edge.",
+            "where": "Sidebar, y≈1010-1080"
+          }
+        ],
+        "quality": "Strong widescreen layout — the three columns each carry real content and the 4-up demo gallery puts eight of nine examples above the fold, which is exactly what this page needs to do. The remaining weaknesses are prose-side: a ~100-character measure that still leaves a dead strip to its right, and an orphaned single tile in the last gallery row."
+      }
+    },
+    {
+      "file": "flex-3440.png",
+      "url": "http://localhost/framework/styles/layouts/flex/",
+      "viewport_width": 3440,
+      "image_px": "3440x1440",
+      "file_bytes": 213701,
+      "analysis_tokens": {
+        "input": 4,
+        "cache_write": 2558,
+        "cache_read": 101095,
+        "output": 1870,
+        "total": 105527
+      },
+      "analysis_cost_usd": 0.12289749999999999,
+      "api_ms": 29414,
+      "wall_ms": 31069,
+      "findings": {
+        "regions": [
+          "Left column: fixed site sidebar — 'Framework' logo, nav groups (Start here / FAQ / Versus; 'CORE' → Overview, View, Page, Router, App, Sidebar, Item, List; 'STYLES' → Overview, Layers, Elements, Layouts, Sections; a further group → Overview, UI, Data table, Form field, Breadcrumb, Pagination, Card, Stat tiles, Badges…), with a small control pinned bottom-left",
+          "Second column: vertical card rail — 'Layouts' parent chip, 'VOCABULARY' label, three preview cards stacked ('Fit', 'Flex' active with orange border, 'Grid'), then 'PAGES' label with four thumbnail preview cards ('Document', 'Docs', 'Landing', and one above)",
+          "Third column (main content): H1 'Flex'",
+          "Demo gallery: all nine captioned demo tiles laid out in a SINGLE row across the content width — 'A row', 'A row with air in it', 'A column', 'Middles lined up', 'Ends apart, middle empty', 'Equal peers, that wrap', 'A fixed rail, a fluid rest', 'Wraps to a second line', 'Three, then straight to one'",
+          "Body paragraph beneath the gallery (bold lead-in 'Nine class strings, each one word from its neighbour.'), three lines",
+          "H2 'Where the same markup breaks'",
+          "Paragraph with inline code chip `--column`, two lines",
+          "A dark code block with a '<>' toggle at its top-right",
+          "A toolbar strip beneath the code block (tab-like labels, a control at the right)",
+          "A stacked demo sequence: '--COLUMN: 10EM' label with a row of cells ('one', 'two', 'three'), then '--COLUMN: 16EM' with the same cells, then '--COLUMN: 26EM' at the bottom edge of the capture, each with a narrow vertical marker bar at the right",
+          "A tall empty band of page background occupying the right portion of the viewport below the demo gallery"
+        ],
+        "width_use": "Three occupied columns: sidebar ~0-340px (10%), card rail ~360-860px (15%), main content ~950-3360px (70%). The demo gallery is the one element that fully exploits the ultrawide viewport — all nine tiles fit on one line at ~250px each, so the entire vocabulary is visible at once with no scrolling. Everything below the gallery, however, collapses back to a much narrower measure: the prose runs to roughly x≈1670 and the code block plus the --column demo sequence stop at roughly x≈2100, leaving a ~1250-2400px empty band down the right side of the page for the whole lower half. Prose lines are ~95-105 characters. The lower demos ('--COLUMN: 10EM/16EM/26EM') are stacked vertically, one variant per row, each row only ~1150px wide.",
+        "issues": [
+          {
+            "severity": "high",
+            "what": "Below the demo gallery the layout abandons the width it just used. Prose ends at ~x=1670 and the code block and --column demo sequence end at ~x=2100, so roughly 1300-1750px (38-50% of the viewport) is empty background running the entire lower half of the page — while the gallery immediately above it reaches x=3360.",
+            "where": "Right of the paragraph at y≈115-135, and right of the code block / --column demos from y≈220 to the bottom of the capture"
+          },
+          {
+            "severity": "medium",
+            "what": "The three --column breakpoint demos (10EM, 16EM, 26EM) are stacked vertically, one per row, each occupying only ~1150px. On a 3440px screen they could sit side by side for direct comparison — which is the entire point of showing three breakpoints — instead of forcing a vertical scroll between them.",
+            "where": "Lower demo sequence, y≈295-360, x≈950-2100"
+          },
+          {
+            "severity": "medium",
+            "what": "Prose measure is still ~95-105 characters per line despite the enormous free width, and it is capped narrower than the content column, so paragraphs neither reach a comfortable measure nor fill their column.",
+            "where": "Paragraph under the gallery (y≈115-135) and under 'Where the same markup breaks' (y≈182-192)"
+          },
+          {
+            "severity": "low",
+            "what": "The 'Three, then straight to one' caption is the only gallery caption that wraps to two lines, breaking the alignment of the caption baseline across the otherwise even single row of nine tiles.",
+            "where": "Last gallery tile, x≈3270-3360, y≈90-102"
+          },
+          {
+            "severity": "low",
+            "what": "The card rail stays one card per row at this width — three vocabulary cards plus four page thumbnails run the full page height in a ~500px column, so the browsable gallery is as tall here as on a narrow screen.",
+            "where": "Second column, x≈360-860, full height"
+          }
+        ],
+        "quality": "The demo gallery is a genuine ultrawide win — all nine flex variants on one line, the whole vocabulary visible in a single glance with no scroll. But the page splits in half: everything below the gallery reverts to a ~1150-2100px column and leaves 38-50% of the screen as blank background for the entire lower section, with the three --column breakpoint demos stacked vertically when comparing them side by side is exactly what the width is for."
+      }
+    },
+    {
+      "file": "grid-400.png",
+      "url": "http://localhost/framework/styles/layouts/grid/",
+      "viewport_width": 400,
+      "image_px": "400x800",
+      "file_bytes": 14523,
+      "analysis_tokens": {
+        "input": 4,
+        "cache_write": 2642,
+        "cache_read": 106264,
+        "output": 1320,
+        "total": 110230
+      },
+      "analysis_cost_usd": 0.112572,
+      "api_ms": 19696,
+      "wall_ms": 21155,
+      "findings": {
+        "regions": [
+          "Fixed top header bar (white): orange mountain logo + 'Framework' wordmark at left, hamburger icon at far right",
+          "Empty band of page background below the header (~45px)",
+          "Horizontal sibling-nav rail of card buttons, clipped on BOTH sides: a blank card sliced at the left edge, then 'Flex', then 'Grid' (active — orange border, orange label, grid icon) sliced at the right edge",
+          "Tall empty vertical gap (~130px) between the nav rail and the page title",
+          "Page title 'Grid' (large bold heading)",
+          "Demo figure 1: a bordered box holding three full-width horizontal bars stacked vertically, caption 'A single column' below",
+          "Demo figure 2: a bordered box holding six equal narrow columns spanning the full box width, caption 'A wall that counts itself' below",
+          "Demo figure 3: a bordered box holding three equal columns spanning the full box width, caption 'Three, then straight to one' below",
+          "Image ends here; further demos are below the captured area"
+        ],
+        "width_use": "Single stacked column, sidebar correctly collapsed behind the hamburger. Page gutters ~28px left, ~32px right; the three demo figures span the full ~342px content width. Unlike the flex page's left-packed rows, every grid demo here fills its box edge to edge — one column, six columns, three columns — so no horizontal space is wasted inside the figures. No body prose is visible in this capture, only short bold captions, so no reading measure can be assessed. The nav rail is the only non-stacked element and it overflows the viewport in both directions.",
+        "issues": [
+          {
+            "severity": "high",
+            "what": "The sibling-nav rail is clipped on both left and right edges — the leftmost card is sliced to a blank sliver and the active 'Grid' card is cut at the right edge — with no scrollbar, fade, or arrow indicating that it scrolls or that more siblings exist.",
+            "where": "Nav rail, y≈95-155, full viewport width"
+          },
+          {
+            "severity": "high",
+            "what": "Demo figure 2 renders six columns at ~48px each inside a 342px box at a 400px viewport. Each cell is far too narrow to hold content, so the 'wall that counts itself' demo does not appear to be counting down to a mobile-appropriate column count.",
+            "where": "Second demo figure, y≈500-600, caption 'A wall that counts itself'"
+          },
+          {
+            "severity": "medium",
+            "what": "Demo figure 3, captioned 'Three, then straight to one', is still showing three columns (~110px each) at a 400px viewport rather than the promised single column — the caption and the rendering disagree at this size.",
+            "where": "Third demo figure, y≈650-750"
+          },
+          {
+            "severity": "medium",
+            "what": "Large vertical dead space above the content: ~45px between header and nav rail, then ~130px between the nav rail and the 'Grid' heading, pushing the title to y≈290 so the first screen carries only a title and one demo.",
+            "where": "y≈50-95 and y≈155-260"
+          },
+          {
+            "severity": "low",
+            "what": "The active card ('Grid') is the one clipped at the right edge, so the element marking the current page is the least legible in the rail — its orange border is cut off.",
+            "where": "Nav rail, active card starting x≈240"
+          }
+        ],
+        "quality": "The page stack itself is correct for 400px — full-width figures, sensible gutters, collapsed sidebar — but the demos undercut their own captions: a six-column wall at 48px per cell and a 'three, then straight to one' figure still showing three columns suggest the grid is not reflowing at this viewport. Add the both-sides-clipped nav rail and the first screen is both misleading and mostly empty."
+      }
+    },
+    {
+      "file": "grid-1920.png",
+      "url": "http://localhost/framework/styles/layouts/grid/",
+      "viewport_width": 1920,
+      "image_px": "1920x1080",
+      "file_bytes": 145877,
+      "analysis_tokens": {
+        "input": 4,
+        "cache_write": 4352,
+        "cache_read": 111001,
+        "output": 1778,
+        "total": 117135
+      },
+      "analysis_cost_usd": 0.14349050000000002,
+      "api_ms": 25879,
+      "wall_ms": 28086,
+      "findings": {
+        "regions": [
+          "Left column: fixed site sidebar (white, ~240px) — 'Framework' logo, nav groups: Start here / FAQ / Versus, 'CORE' → Overview, View, Page, Router, App, Sidebar, Item, List, 'STYLES' → Overview, Layers, Elements, Layouts, Sections, 'UI' → Overview, UI, Data table, Form field (cut at the fold); a gear button and round toggle pinned bottom-left",
+          "Second column: vertical card rail (~320-720px) — 'Layouts' parent chip, 'VOCABULARY' label, three preview cards stacked ('Fit', 'Flex', 'Grid' active with orange border), then 'PAGES' label with thumbnail screenshot cards 'Document' and 'Docs'",
+          "Third column (main content, starts x≈805): H1 'Grid'",
+          "Demo gallery: three captioned tiles in one row — 'A single column' (3 stacked bars), 'A wall that counts itself' (4 cells on top, 2 + gap below), 'Three, then straight to one' (3 equal columns)",
+          "Body paragraph with bold lead-in 'Three class strings, and one token between them.' and inline code chip `--column`, three lines",
+          "A single-line light code block: `.grid.auto { grid-template-columns: repeat(auto-fit, minmax(min(var(--column), 100%), 1fr)); }`",
+          "Explanatory paragraph with four inline code chips (`auto-fit`, `minmax(…, 1fr)`, `min(var(--column), 100%)`, `15em`), four lines",
+          "H2 'A cell that wants more'",
+          "A demo stage panel: light header strip with a '<>' source toggle at its right, a dark code block showing div.c(...) source, and a bottom toolbar with viewport presets (MOBILE / TABLET / DESKTOP / MEGA), a zoom control at '100%', and an expand icon — the stage's rendered output is below the capture edge"
+        ],
+        "width_use": "Three side-by-side columns, nothing stacked. Sidebar 0-240px (12.5%), card rail ~320-720px (21%), main content ~805-1875px (56%), content column ≈1070px. The demo gallery lays its three tiles 3-up at ~250px each, all above the fold. Prose is capped at roughly 830px (~95-105 characters per line) and left-aligned, leaving a ~240px unused strip to the right of every paragraph while the gallery and code blocks beside it reach further right. The two code blocks use different widths: the one-line CSS rule runs to x≈1635 and the dark source block runs to x≈1745, neither matching the gallery's x≈1600 nor the stage panel's x≈1745. The rail is one card per row at ~400px.",
+        "issues": [
+          {
+            "severity": "medium",
+            "what": "Prose measure is ~95-105 characters per line — long for reading — and the cap is narrower than the content column, so paragraphs neither reach a proper measure nor fill their column, leaving a ragged ~240px empty strip down the right of every text block.",
+            "where": "Paragraphs at y≈385-455 and y≈575-680, text ending ~x=1635 vs. content column edge x≈1875"
+          },
+          {
+            "severity": "medium",
+            "what": "Right-edge alignment is inconsistent across the content column: the demo gallery ends at x≈1600, the one-line CSS code block at x≈1635, the dark source block and stage panel at x≈1745, and none reach the column's own right edge. Four different right margins in one column.",
+            "where": "Gallery (y≈195-310), CSS block (y≈497-537), stage panel (y≈838+)"
+          },
+          {
+            "severity": "medium",
+            "what": "The demo gallery has only three tiles at 3-up, ending at x≈1600 and leaving ~275px of empty space beside it, while the flex sibling page fits four across the same column — the row is under-filled rather than sized to the content.",
+            "where": "Gallery row, y≈195-340, x≈1600-1875"
+          },
+          {
+            "severity": "low",
+            "what": "The 'A wall that counts itself' demo renders an uneven grid — four cells in the top row but only two cells plus a wide empty gap in the bottom row — so the preview reads as a broken wall rather than a filled one at a glance.",
+            "where": "Second gallery tile, x≈1078-1330, y≈195-310"
+          },
+          {
+            "severity": "low",
+            "what": "The sidebar nav overflows the viewport height (the 'UI' group is cut mid-list at 'Form field') and the bottom-left gear/toggle controls sit over that cut edge.",
+            "where": "Sidebar, y≈1010-1080"
+          }
+        ],
+        "quality": "A solid three-column widescreen layout — sidebar, card rail and content all carry weight, and the demo gallery plus the interactive stage panel sit above or near the fold. It is let down by right-edge discipline inside the content column: prose caps at ~100 characters with a dead strip beside it, and the gallery, code blocks and stage panel each stop at a different x."
+      }
+    },
+    {
+      "file": "grid-3440.png",
+      "url": "http://localhost/framework/styles/layouts/grid/",
+      "viewport_width": 3440,
+      "image_px": "3440x1440",
+      "file_bytes": 211079,
+      "analysis_tokens": {
+        "input": 4,
+        "cache_write": 2521,
+        "cache_read": 120162,
+        "output": 1835,
+        "total": 124522
+      },
+      "analysis_cost_usd": 0.131186,
+      "api_ms": 25907,
+      "wall_ms": 27435,
+      "findings": {
+        "regions": [
+          "Left column: fixed site sidebar — 'Framework' logo, nav groups (Start here / FAQ / Versus; 'CORE' → Overview, View, Page, Router, App, Sidebar, Item, List; 'STYLES' → Overview, Layers, Elements, Layouts, Sections; a further group → Overview, UI, Data table, Form field, Breadcrumb, Pagination, Card, Stat tiles, Badges…), with a small control pinned bottom-left",
+          "Second column: vertical card rail — 'Layouts' parent chip, 'VOCABULARY' label, three preview cards stacked ('Fit', 'Flex', 'Grid' active with orange border), then 'PAGES' label with four thumbnail preview cards ('Document', 'Docs', 'Landing', and one above)",
+          "Third column (main content): H1 'Grid'",
+          "Demo gallery: three captioned tiles in one row — 'A single column', 'A wall that counts itself', 'Three, then straight to one' — occupying only the left portion of the content column",
+          "Body paragraph with bold lead-in 'Three class strings, and one token between them.' and an inline `--column` chip, three lines",
+          "A single-line light code block: `.grid.auto { grid-template-columns: repeat(auto-fit, minmax(min(var(--column), 100%), 1fr)); }`",
+          "Explanatory paragraph with four inline code chips (`auto-fit`, `minmax(…, 1fr)`, `min(var(--column), 100%)`, `15em`), four lines",
+          "H2 'A cell that wants more'",
+          "A demo stage panel: light header strip with a '<>' toggle at its right, a dark code block of `div.c(...)` source, a toolbar with viewport presets (MOBILE / TABLET / DESKTOP / MEGA) and a zoom control at '100%', then the rendered stage output showing cells 'span 2', 'two', 'three' with a vertical marker bar at its right",
+          "A very large empty band of page background occupying the right half of the viewport for the full page height"
+        ],
+        "width_use": "Three occupied columns and a large empty right region. Sidebar ~0-340px (10%), card rail ~360-860px (15%), main content ~950-2100px (33%), then ~2100-3440px (≈39%, ~1340px) of empty background. Unlike the flex sibling page, nothing here expands to fill the ultrawide viewport: the demo gallery stays at three tiles ending around x≈1780, prose caps at ~1870, the one-line CSS rule runs to ~1690, and the stage panel is the widest element at ~2100. Prose lines are ~95-105 characters. The three demo tiles are unequal — 'A single column' and 'A wall that counts itself' are similar widths but 'Three, then straight to one' is narrower and its caption wraps to two lines. Total scroll height is roughly 1440px, about one screen.",
+        "issues": [
+          {
+            "severity": "high",
+            "what": "Roughly 1340px — about 39% of the viewport — is empty page background down the entire right side. No element in the content column grows past ~2100px, so every pixel beyond that becomes gutter rather than columns, wider demo tiles, or a second lane.",
+            "where": "Right side of the page, x≈2100-3440, full height"
+          },
+          {
+            "severity": "high",
+            "what": "The demo gallery does not scale with the viewport: still only three tiles ending at x≈1780, leaving ~1660px of unused width beside a gallery whose whole purpose is browsable previews. The flex sibling page fits nine tiles across the same viewport.",
+            "where": "Gallery row, y≈180-400 (real), x≈1780-3440 empty"
+          },
+          {
+            "severity": "medium",
+            "what": "Prose measure stays at ~95-105 characters per line despite the free width — long for reading — and it is capped narrower than the content column, so paragraphs neither reach a comfortable measure nor fill their lane.",
+            "where": "Paragraph at y≈460-530 and the four-line paragraph at y≈675-790"
+          },
+          {
+            "severity": "medium",
+            "what": "Right edges disagree across the content column: gallery ends ~x=1780, one-line CSS block ~x=1690, prose ~x=1870, stage panel ~x=2100. Four different right margins stacked vertically.",
+            "where": "Content column, from the gallery down through the stage panel"
+          },
+          {
+            "severity": "low",
+            "what": "The third gallery caption 'Three, then straight to one' wraps to two lines while the other two captions are single-line, breaking the caption baseline alignment across the row.",
+            "where": "Third gallery tile caption, x≈1490-1780"
+          },
+          {
+            "severity": "low",
+            "what": "The card rail stays one card per row at this width — three vocabulary cards plus four page thumbnails run the full page height in a ~500px column.",
+            "where": "Second column, x≈360-860, full height"
+          }
+        ],
+        "quality": "This is the weakest of the three layout pages at 3440: nothing grows into the width, so ~39% of the screen is blank background and the three-tile gallery sits marooned with 1660px of empty space beside it. The content that is there is well ordered, but the page simply stops at ~2100px and treats the rest of an ultrawide screen as margin."
+      }
+    },
+    {
+      "file": "document-400.png",
+      "url": "http://localhost/framework/styles/layouts/document/",
+      "viewport_width": 400,
+      "image_px": "400x800",
+      "file_bytes": 28276,
+      "analysis_tokens": {
+        "input": 126,
+        "cache_write": 2604,
+        "cache_read": 125257,
+        "output": 1620,
+        "total": 129607
+      },
+      "analysis_cost_usd": 0.1297985,
+      "api_ms": 25473,
+      "wall_ms": 26894,
+      "findings": {
+        "regions": [
+          "Fixed top header bar (white): orange mountain logo + 'Framework' wordmark at left, hamburger icon at far right",
+          "Empty band of page background below the header (~45px)",
+          "Horizontal sibling-nav rail, clipped on both sides: a blank card sliced at the left edge, then 'Grid', then the active 'Document' card (orange border, orange label) sliced at the right edge — the active card is taller than its neighbours and carries two screenshot thumbnails plus a row of small dots",
+          "Tall empty vertical gap (~120px) between the nav rail and the page title",
+          "Page title 'Document' (large bold heading)",
+          "A small diagonal resize/expand icon centred above the stage, at y≈368",
+          "A demo stage occupying the full viewport width, with a small left-pointing arrow at its far left edge, containing two side-by-side scaled-down renders of the same document page: a very small one at ~9% on the left and a taller, more legible one at ~24% on the right (showing 'Aurora — one structure, many layouts', a CTA button, and sections Overview / Layout / Type / Colour)",
+          "Stage footer strip on a checkerboard (transparency) background with two viewport readouts: '3440px · 9%' and '390px · 24%'",
+          "A control bar at the very bottom, clipped by the image edge: labels 'FLEX', '48TB'(?), 'gap', a toggle, '1em', 'column', a second toggle, '14em'",
+          "Image ends here"
+        ],
+        "width_use": "Single stacked column for the page chrome, sidebar correctly collapsed behind the hamburger. But the stage breaks out to the full 400px viewport width with zero gutters (x=0 to x=400), unlike the title and nav which sit at a ~28px inset. Inside the stage the width is split into two unequal side-by-side previews: the 3440px render is scaled to 9% and occupies roughly the left 300px (mostly empty white with a tiny illegible thumbnail floating near its centre-right), while the 390px render at 24% occupies only the right ~100px. So at a 400px viewport the layout is showing two desktop previews side by side rather than stacking them.",
+        "issues": [
+          {
+            "severity": "high",
+            "what": "The stage shows two previews side by side at a 400px viewport instead of stacking. The 3440px render at 9% scale is completely illegible — a ~55px-wide grey smudge — and the 390px render at 24% is only ~100px wide. Neither preview is readable, and roughly 240px of the stage is blank white filler around the 9% thumbnail.",
+            "where": "Stage region, y≈390-735, left preview x≈0-295, right preview x≈300-400"
+          },
+          {
+            "severity": "high",
+            "what": "The bottom control bar is cut off by the viewport/capture edge — 'FLEX', 'gap', '1em', 'column', '14em' and two toggles are only half visible, and the row appears to extend past x=400. The interactive control surface is unusable at this width.",
+            "where": "Bottom control bar, y≈765-800, spanning full width and clipped"
+          },
+          {
+            "severity": "medium",
+            "what": "The sibling-nav rail is clipped on both left and right edges with no scroll affordance, and the active 'Document' card — the tallest item, carrying two thumbnails — is the one sliced at the right edge.",
+            "where": "Nav rail, y≈90-195"
+          },
+          {
+            "severity": "medium",
+            "what": "The stage ignores the page gutters entirely, running edge to edge from x=0 to x=400 while the title and prose sit at a ~28px inset, so the page has two conflicting content edges.",
+            "where": "Stage left/right edges vs. 'Document' heading at x=28"
+          },
+          {
+            "severity": "low",
+            "what": "Large vertical dead space above the content: ~45px between header and rail, then ~120px between the rail and the 'Document' title, leaving the first screen carrying only a title.",
+            "where": "y≈50-90 and y≈195-260"
+          },
+          {
+            "severity": "low",
+            "what": "The resize/expand affordance is a small unlabelled diagonal icon floating alone in whitespace above the stage rather than attached to the stage frame.",
+            "where": "y≈368, centred at x≈199"
+          }
+        ],
+        "quality": "This page fails at 400px: the stage keeps two desktop previews side by side at 9% and 24% scale — both illegible — and the control bar beneath it is clipped mid-row, so neither the demo nor its controls work at this width. The surrounding page chrome (collapsed sidebar, title, gutters) is fine, which makes the edge-to-edge stage and its unstacked contents the clear defect."
+      }
+    },
+    {
+      "file": "document-1920.png",
+      "url": "http://localhost/framework/styles/layouts/document/",
+      "viewport_width": 1920,
+      "image_px": "1920x1080",
+      "file_bytes": 151674,
+      "analysis_tokens": {
+        "input": 4,
+        "cache_write": 2781,
+        "cache_read": 130376,
+        "output": 1722,
+        "total": 134883
+      },
+      "analysis_cost_usd": 0.136068,
+      "api_ms": 27928,
+      "wall_ms": 29422,
+      "findings": {
+        "regions": [
+          "Left column: fixed site sidebar (white) — 'Framework' logo, nav groups: Start here / FAQ / Versus, 'CORE' → Overview, View, Page, Router, App, Sidebar, Item, List, 'STYLES' → Overview, Layers, Elements, Layouts, Sections, 'UI' → Overview, UI, Data table, Form field; gear button and round toggle pinned bottom-left",
+          "Second column: vertical card rail — 'Layouts' parent chip, 'VOCABULARY' label, three preview cards stacked ('Fit', 'Flex', 'Grid'), then 'PAGES' label with two screenshot thumbnail cards: 'Document' (active — orange border, orange label) and 'Docs'",
+          "Third column (main content): H1 'Document'",
+          "A small diagonal resize/expand icon at the top-right of the stage area",
+          "A demo stage spanning the remainder of the content width, with a left-pointing arrow at its far-left edge, containing two side-by-side scaled renders of the same Aurora document page: a small illegible one on the left (~2px type, showing 'Aurora — one structure, many layouts' with Overview / Layout / Type / Colour headings) and a much larger, legible one on the right showing the full page — nav bar (AURORA, Product, Docs, Pricing, Changelog), orange 'GET AURORA' button, 'AURORA 3.0' eyebrow, headline 'Aurora — one structure, many layouts', body paragraph, START / READ THE DOCS buttons, then Overview / Layout / Type sections",
+          "Image ends mid-stage; the stage footer readouts and control bar are below the captured area"
+        ],
+        "width_use": "Three side-by-side columns. Sidebar ~0-240px (12.5%), card rail ~310-720px (21%), main content ~800-1890px (57%). Inside the content column the stage occupies nearly the full width (~x=800 to x=1890) and splits into two unequal side-by-side previews: the wide-viewport render on the left takes roughly 800px but its content is scaled so small the type is a few pixels tall, while the narrow-viewport render on the right takes only ~260px and is the only legible one. Roughly 400px of the left preview (x≈800-1120) is blank white with nothing in it. No body prose is visible in this capture, so no reading measure can be assessed. The rail is one card per row at ~400px, with the two page thumbnails rendered as wide screenshot previews.",
+        "issues": [
+          {
+            "severity": "high",
+            "what": "The stage's left preview is illegible — the wide-viewport render is scaled down so far that its body type is roughly 2px tall and only the headline is readable. It occupies ~800px, three times the width of the right preview, yet conveys almost nothing.",
+            "where": "Stage, left preview, x≈800-1600, y≈115-540"
+          },
+          {
+            "severity": "high",
+            "what": "The two previews are wildly unequal in scale and neither is labelled in the visible area — the left is a whole-page-at-tiny-scale, the right is near full size — so there is no visible indication of what the comparison is or at which viewport each renders. The scale readouts appear only below the captured area.",
+            "where": "Stage, both previews, y≈115-540"
+          },
+          {
+            "severity": "medium",
+            "what": "Roughly 400px of blank white sits at the left edge of the stage before the small preview's content begins, so the stage's most valuable horizontal space is empty.",
+            "where": "Stage, x≈800-1120, full stage height"
+          },
+          {
+            "severity": "medium",
+            "what": "The stage runs to the far right edge of the content column (x≈1890, ~30px from the viewport edge) while the 'Document' H1 sits at x≈403 — the heading and the stage do not share a left edge either, giving the content column two conflicting content edges.",
+            "where": "H1 at x≈403 vs. stage left edge x≈800"
+          },
+          {
+            "severity": "low",
+            "what": "The resize/expand affordance is a small unlabelled diagonal icon floating in whitespace above the stage's top-right corner rather than attached to the stage frame.",
+            "where": "y≈107, x≈922 (scaled render coordinates), above the stage's right edge"
+          },
+          {
+            "severity": "low",
+            "what": "The card rail keeps one card per row, and the two 'PAGES' thumbnails are large screenshot cards (~410x85px each) that push the rail past the fold while width remains for a 2-up arrangement.",
+            "where": "Second column, 'PAGES' section, y≈345-540"
+          }
+        ],
+        "quality": "The three-column shell works well at 1920 — sidebar, rail and a wide content column all carry content — but the stage inside it wastes its space: the left preview is scaled to illegibility with ~400px of blank white beside it, while the only readable render is squeezed into a ~260px strip on the right. The comparison the stage exists to show is not actually readable at this viewport."
+      }
+    },
+    {
+      "file": "document-3440.png",
+      "url": "http://localhost/framework/styles/layouts/document/",
+      "viewport_width": 3440,
+      "image_px": "3440x1440",
+      "file_bytes": 297011,
+      "analysis_tokens": {
+        "input": 4,
+        "cache_write": 2463,
+        "cache_read": 135917,
+        "output": 1863,
+        "total": 140247
+      },
+      "analysis_cost_usd": 0.1391835,
+      "api_ms": 29130,
+      "wall_ms": 30547,
+      "findings": {
+        "regions": [
+          "Left column: fixed site sidebar — 'Framework' logo, nav groups (Start here / FAQ / Versus; 'CORE' → Overview, View, Page, Router, App, Sidebar, Item, List; 'STYLES' → Overview, Layers, Elements, Layouts, Sections; a further group → Overview, UI, Data table, Form field, Breadcrumb, Pagination, Card, Stat tiles, Badges…), small control pinned bottom-left",
+          "Second column: vertical card rail — 'Layouts' parent chip, 'VOCABULARY' label, three preview cards ('Fit', 'Flex', 'Grid'), then 'PAGES' label with four screenshot thumbnail cards: 'Document' (active — orange border, orange label), 'Docs', 'Landing', and one more",
+          "Third column (main content): H1 'Document'",
+          "Small diagonal resize/expand icon above the stage's top-right corner",
+          "A demo stage containing two side-by-side renders of the same Aurora document page: a small illegible wide-viewport render on the left (headline 'Aurora — one structure, many layouts' with Overview / Layout / Type / Colour headings at ~2px type), and a narrow-viewport render on the right showing the full page legibly — AURORA nav (Product, Docs, Pricing, Changelog), orange 'GET AURORA' button, 'AURORA 3.0' eyebrow, headline, body paragraph, START / READ THE DOCS buttons, then an 'Overview' section",
+          "Fourth column, top-right: a dark code panel with a 'Source: page.js' header, syntax-highlighted JS, followed by two lines of explanatory prose ('Four words on the page, two on the column. Drag the handle: the measure holds its width at 3440 while the header wraps on its own at 380, and there is no media query in either.') and an 'Overrides:' line with an inline `--measure` chip",
+          "A tall empty band of page background beneath the code panel on the right, running to the bottom of the capture"
+        ],
+        "width_use": "Four side-by-side lanes — this is the only page in the set that opens a genuine fourth column at 3440. Approximate split: sidebar ~0-340px (10%), card rail ~360-860px (15%), stage ~950-2600px (48%), source/prose panel ~2700-3400px (20%). The stage itself splits into two unequal previews: the wide-viewport render occupies roughly 950-2200px but is scaled so far down that its body type is ~2px and only the headline reads, while the legible narrow render takes only ~2230-2600px. Inside the right panel, prose is set at roughly 55-65 characters — the tightest measure in the whole set, and the only one that reads as a proper column. The narrow preview's own body copy wraps at ~30 characters, and its headline breaks mid-word ('structur / e, many layouts'). Below the code panel the right lane is empty for roughly the lower 45% of the page height.",
+        "issues": [
+          {
+            "severity": "high",
+            "what": "The stage's left preview is illegible at this width — the wide-viewport render's body type is roughly 2px tall, so ~1250px of the widest lane on the page shows a grey smudge with only the headline readable. It gets nearly 4x the width of the legible right preview.",
+            "where": "Stage, left preview, x≈950-2200"
+          },
+          {
+            "severity": "medium",
+            "what": "The narrow preview's headline breaks mid-word — 'structur' / 'e, many layouts' — indicating a forced word-break in a column too narrow for the type size.",
+            "where": "Right preview inside the stage, headline block, x≈2230-2600"
+          },
+          {
+            "severity": "medium",
+            "what": "The right lane holds content only in its upper ~55%: the code panel and its two prose lines end partway down, leaving a ~700px-tall empty band beneath while the stage beside it continues to the bottom of the page.",
+            "where": "Fourth column, x≈2700-3400, below the 'Overrides:' line"
+          },
+          {
+            "severity": "low",
+            "what": "Three different content edges in the main area: the H1 sits at x≈950, the stage's actual rendered content begins around x≈1300 after a band of blank white, and the code panel starts at x≈2700 — so the eye gets no consistent left rule.",
+            "where": "H1 'Document' vs. stage interior vs. source panel"
+          },
+          {
+            "severity": "low",
+            "what": "The resize/expand affordance remains a small unlabelled diagonal icon floating in whitespace above the stage's top-right corner rather than attached to the stage frame.",
+            "where": "Above the stage, near x≈2600"
+          },
+          {
+            "severity": "low",
+            "what": "The card rail keeps one card per row — three vocabulary cards plus four screenshot thumbnails run the full page height in a ~500px column with room to go 2-up.",
+            "where": "Second column, x≈360-860, full height"
+          }
+        ],
+        "quality": "The best widescreen behaviour in the set: at 3440 this page opens a real fourth lane for the source panel and annotation, so the width buys content rather than gutter, and its prose is the only text on the site set to a sane ~60-character measure. The unresolved problem is inside the stage — the wide-viewport preview is scaled to illegibility across ~1250px while the readable render is squeezed into a column so narrow its headline breaks mid-word."
+      }
+    },
+    {
+      "file": "docs-400.png",
+      "url": "http://localhost/framework/styles/layouts/docs/",
+      "viewport_width": 400,
+      "image_px": "400x800",
+      "file_bytes": 25480,
+      "analysis_tokens": {
+        "input": 4,
+        "cache_write": 2636,
+        "cache_read": 140984,
+        "output": 1552,
+        "total": 145176
+      },
+      "analysis_cost_usd": 0.13567200000000001,
+      "api_ms": 22551,
+      "wall_ms": 24038,
+      "findings": {
+        "regions": [
+          "Fixed top header bar (white): orange mountain logo + 'Framework' wordmark at left, hamburger icon at far right",
+          "Empty band of page background below the header (~45px)",
+          "Horizontal sibling-nav rail, clipped on both sides: a blank card sliced at the left edge, then 'Document' (screenshot thumbnails + label), then the active 'Docs' card (orange border, orange label) sliced at the right edge — both visible cards carry two small screenshot thumbnails and a row of dots",
+          "Tall empty vertical gap (~120px) between the nav rail and the page title",
+          "Page title 'Docs' (large bold heading)",
+          "Small diagonal resize/expand icon centred above the stage, at y≈368",
+          "A demo stage spanning the full viewport width edge to edge (x=0 to x=400), with a small left-pointing arrow at its far-left edge, containing two side-by-side scaled renders of the same Aurora docs page: a tiny illegible wide-viewport render on the left (a nav sliver at the far left, then a small block of orange-underlined links and headings around x≈15-95) with a large blank white area beside it, and a taller, more legible narrow render on the right (x≈300-400) showing an AURORA header, an orange CTA, a bulleted link list, then Overview / Layout / Type / Colour / Motion sections and a footer",
+          "Image ends at the bottom edge of the stage; the stage footer readouts and control bar are below the captured area"
+        ],
+        "width_use": "Single stacked column for the page chrome — sidebar correctly collapsed behind the hamburger, title inset ~28px from the left. The stage, however, breaks out to the full 400px viewport with zero gutters and keeps two previews side by side rather than stacking them. The split is heavily unequal: the wide-viewport render takes roughly the left 295px but its actual content occupies only ~80px of that (the rest is blank white), while the legible narrow render is squeezed into the right ~100px. Neither preview is readable at this size — the left one's type is roughly 1-2px, the right one's ~3-4px. No body prose is visible in the capture, so no reading measure can be assessed.",
+        "issues": [
+          {
+            "severity": "high",
+            "what": "The stage keeps two previews side by side at a 400px viewport instead of stacking. Both are illegible — the left wide-viewport render's type is ~1-2px, the right narrow render's ~3-4px in a ~100px-wide strip — so the demo the page exists to show conveys nothing at this width.",
+            "where": "Stage, y≈385-800, left preview x≈0-295, right preview x≈300-400"
+          },
+          {
+            "severity": "high",
+            "what": "Roughly 200px of the stage — half the viewport — is blank white filler to the right of the left preview's tiny content block, so the scarcest resource at 400px is spent on emptiness.",
+            "where": "Stage, x≈100-295, from y≈430 to the bottom of the stage"
+          },
+          {
+            "severity": "medium",
+            "what": "The sibling-nav rail is clipped on both left and right edges with no scrollbar, fade, or arrow affordance, and the active 'Docs' card is the one sliced at the right edge.",
+            "where": "Nav rail, y≈90-195"
+          },
+          {
+            "severity": "medium",
+            "what": "The stage ignores the page gutters entirely, running edge to edge from x=0 to x=400 while the 'Docs' heading sits at a ~28px inset — two conflicting content edges on one page.",
+            "where": "Stage left/right edges vs. H1 at x=28"
+          },
+          {
+            "severity": "low",
+            "what": "Large vertical dead space above the content: ~45px between header and rail, then ~120px between the rail and the title, so the first screen carries only a heading.",
+            "where": "y≈50-90 and y≈195-260"
+          },
+          {
+            "severity": "low",
+            "what": "The resize/expand affordance is a small unlabelled diagonal icon floating alone in whitespace above the stage rather than attached to the stage frame.",
+            "where": "y≈368, centred at x≈199"
+          }
+        ],
+        "quality": "Same failure as the Document page and slightly worse: at 400px the stage stays side-by-side, so both Aurora renders are too small to read and about half the viewport width is blank white padding inside the stage. The page chrome around it — collapsed sidebar, title, gutters — is fine, which isolates the defect squarely in the stage's refusal to stack."
+      }
+    },
+    {
+      "file": "docs-1920.png",
+      "url": "http://localhost/framework/styles/layouts/docs/",
+      "viewport_width": 1920,
+      "image_px": "1920x1080",
+      "file_bytes": 146532,
+      "analysis_tokens": {
+        "input": 4,
+        "cache_write": 4584,
+        "cache_read": 145947,
+        "output": 1844,
+        "total": 152379
+      },
+      "analysis_cost_usd": 0.1649335,
+      "api_ms": 26874,
+      "wall_ms": 28360,
+      "findings": {
+        "regions": [
+          "Left column: fixed site sidebar (white, ~240px) — 'Framework' logo, nav groups: Start here / FAQ / Versus, 'CORE' → Overview, View, Page, Router, App, Sidebar, Item, List, 'STYLES' → Overview, Layers, Elements, Layouts, Sections, 'UI' → Overview, UI, Data table, Form field (cut at the fold); gear button and round toggle pinned bottom-left",
+          "Second column: vertical card rail (~320-720px) — 'Layouts' parent chip, 'VOCABULARY' label, three preview cards ('Fit', 'Flex', 'Grid'), then 'PAGES' label with two large screenshot thumbnail cards: 'Document' and 'Docs' (active — orange border, orange label)",
+          "Third column (main content, starts x≈805): H1 'Docs'",
+          "Small diagonal resize/expand icon at the stage's top-right corner (x≈1845, y≈212)",
+          "Demo stage, two side-by-side renders of the same Aurora docs page: LEFT — a wide-viewport render scaled to ~1/6, showing a thin top nav, a tiny left link rail, and Overview / Layout / Type / Colour / Motion headings with body text at ~2px, plus a second tiny rail at its far right; RIGHT — a narrow-viewport render at near-full scale showing the AURORA logo, nav (Product, Docs, Pricing, Changelog), an orange 'GET AURORA' button, a bordered section-link list (Overview, Layout, Type, Colour, Motion, Tokens, Icons, Forms) with chevrons, then Overview / Layout / Type / Colour headings each with a three-line paragraph, continuing past the fold at 'Motion'",
+          "A large blank white area filling the lower two-thirds of the left preview",
+          "Image ends mid-stage; the stage footer readouts and control bar are below the captured area"
+        ],
+        "width_use": "Three side-by-side columns. Sidebar 0-240px (12.5%), card rail ~320-720px (21%), main content ~805-1875px (56%). Inside the content column the stage spans ~805-1875px and splits into two very unequal previews: the wide-viewport render takes roughly 805-1610px (~805px) but its content is scaled so small the body type is ~2px, while the legible narrow render occupies only ~1615-1875px (~260px). Below y≈390 the entire left preview is blank white — roughly 800x690px of nothing — while the right preview keeps producing content for another 700px. Inside the right preview, prose wraps at roughly 40-45 characters, which is a genuinely tight column, but it is the demo's measure, not the page's. No page-level body prose is visible, so the site's own reading measure cannot be assessed here.",
+        "issues": [
+          {
+            "severity": "high",
+            "what": "The stage's left preview is illegible — the wide-viewport render is scaled to roughly 1/6, putting body type at ~2px, so ~805px of the widest lane on the page shows only faint grey lines. It receives three times the width of the one preview that can actually be read.",
+            "where": "Stage, left preview, x≈805-1610, y≈240-390"
+          },
+          {
+            "severity": "high",
+            "what": "Roughly 800x690px of blank white — about 40% of the stage area — sits beneath the left preview's content, because the wide render is short at that scale while the narrow render is tall. The stage does not size to its tallest column's useful content.",
+            "where": "Stage, x≈805-1610, y≈390-1080"
+          },
+          {
+            "severity": "medium",
+            "what": "No visible labels or scale readouts identify the two previews in this capture, so there is nothing in view saying which viewport each render represents or why they differ. The readouts appear only below the captured area.",
+            "where": "Stage, both previews, y≈240-1080"
+          },
+          {
+            "severity": "medium",
+            "what": "The stage's left edge (x≈805) does not align with the H1 'Docs' (x≈808) content but the stage runs to x≈1875 while nothing else in the content column establishes a right edge — and the right preview is pinned to that far edge, so the readable content sits in a narrow strip at the extreme right of a 1920px screen.",
+            "where": "Right preview, x≈1615-1875, vs. H1 at x≈808"
+          },
+          {
+            "severity": "low",
+            "what": "The resize/expand affordance is a small unlabelled diagonal icon floating in whitespace above the stage's top-right corner rather than attached to the stage frame.",
+            "where": "y≈212, x≈1845"
+          },
+          {
+            "severity": "low",
+            "what": "The card rail keeps one card per row and the 'PAGES' thumbnails are large screenshot cards (~410x150px), pushing the rail past the fold while width remains for a 2-up arrangement.",
+            "where": "Second column, 'PAGES' section, y≈700-1080"
+          }
+        ],
+        "quality": "The three-column shell is sound, but the stage inside it is badly proportioned: the wide-viewport render gets 805px and is unreadable at ~2px type, the only legible render is compressed into a 260px strip at the far right edge, and roughly 40% of the stage is blank white below the short left preview. The comparison this page exists to demonstrate is not readable at 1920."
+      }
+    },
+    {
+      "file": "docs-3440.png",
+      "url": "http://localhost/framework/styles/layouts/docs/",
+      "viewport_width": 3440,
+      "image_px": "3440x1440",
+      "file_bytes": 297688,
+      "analysis_tokens": {
+        "input": 126,
+        "cache_write": 2587,
+        "cache_read": 155406,
+        "output": 1889,
+        "total": 160008
+      },
+      "analysis_cost_usd": 0.15142799999999998,
+      "api_ms": 26410,
+      "wall_ms": 27901,
+      "findings": {
+        "regions": [
+          "Left column: fixed site sidebar — 'Framework' logo, nav groups (Start here / FAQ / Versus; 'CORE' → Overview, View, Page, Router, App, Sidebar, Item, List; 'STYLES' → Overview, Layers, Elements, Layouts, Sections; a further group → Overview, UI, Data table, Form field, Breadcrumb, Pagination, Card, Stat tiles, Badges…), small control pinned bottom-left",
+          "Second column: vertical card rail — 'Layouts' parent chip, 'VOCABULARY' label, three preview cards ('Fit', 'Flex', 'Grid'), then 'PAGES' label with four screenshot thumbnail cards ('Document', 'Docs' active with orange border and orange label, 'Landing', and one more)",
+          "Third column (main content): H1 'Docs'",
+          "Small diagonal resize/expand icon above the stage's top-right corner",
+          "Demo stage with two side-by-side renders of the same Aurora docs page: LEFT — a wide-viewport render scaled down, showing a tiny left link rail, Overview / Layout / Type / Colour / Motion headings with ~2px body text, an orange chip at its top-right, and a second tiny rail at its far right; RIGHT — a narrow-viewport render at near-full scale showing the AURORA logo, nav (Product, Docs, Pricing, Changelog), orange 'GET AURORA' button, a bordered section-link list (Overview, Layout, Type, Colour, Motion, Tokens, Icons, Forms), then Overview / Layout / Type sections each with a four-line paragraph",
+          "A very large blank white area filling the lower ~75% of the left preview",
+          "Fourth column, top-right: a dark code panel with a 'Source: page.js' header and syntax-highlighted JS, followed by three lines of explanatory prose with inline chips ('Two rails at 3440 and an arrow at 1440…'), and an 'Overrides:' line with an inline code chip",
+          "A tall empty band of page background beneath the code panel on the right, running to the bottom of the capture"
+        ],
+        "width_use": "Four side-by-side lanes — like the Document page, this one opens a genuine fourth column at 3440 rather than leaving the width as gutter. Approximate split: sidebar ~0-340px (10%), card rail ~360-860px (15%), stage ~950-2600px (48%), source/annotation panel ~2700-3400px (20%). Inside the stage the two previews are very unequal: the wide-viewport render occupies roughly 950-2230px but is scaled so far down that its body type is ~2px, while the legible narrow render takes only ~2240-2600px and wraps its prose at roughly 40-45 characters. The right-hand annotation prose sits at roughly 55-65 characters — the tightest and most readable measure on the page. Below the left preview's short content the stage is blank white for roughly 1280x1000px, and the fourth column is empty below its code panel for roughly the lower 55% of the page.",
+        "issues": [
+          {
+            "severity": "high",
+            "what": "The stage's left preview is illegible — the wide-viewport render's body type is roughly 2px, so ~1280px (the widest lane on the page) shows only faint grey rules and headings. It gets ~3.5x the width of the one render that can actually be read.",
+            "where": "Stage, left preview, x≈950-2230"
+          },
+          {
+            "severity": "high",
+            "what": "Roughly 1280x1000px of blank white — the majority of the stage area — sits beneath the left preview's content, because the wide render is short at that scale while the narrow render is tall. The stage does not reclaim that space.",
+            "where": "Stage, x≈950-2230, below y≈560"
+          },
+          {
+            "severity": "medium",
+            "what": "The fourth column holds content only in its upper ~45%: the code panel and its three prose lines end partway down, leaving a ~800px-tall empty band beneath while the stage beside it continues to the bottom of the page.",
+            "where": "Fourth column, x≈2700-3400, below the 'Overrides:' line"
+          },
+          {
+            "severity": "medium",
+            "what": "The one readable render is squeezed into a ~360px strip wrapping prose at ~40-45 characters, while 1280px of illegible thumbnail sits beside it — the width allocation is inverted relative to legibility.",
+            "where": "Stage, right preview, x≈2240-2600"
+          },
+          {
+            "severity": "low",
+            "what": "Three different content edges in the main area: the H1 sits at x≈950, the stage's actual rendered content begins around x≈1030, and the code panel starts at x≈2700, with no consistent left rule.",
+            "where": "H1 'Docs' vs. stage interior vs. source panel"
+          },
+          {
+            "severity": "low",
+            "what": "The card rail keeps one card per row — three vocabulary cards plus four screenshot thumbnails run the full page height in a ~500px column with room to go 2-up.",
+            "where": "Second column, x≈360-860, full height"
+          }
+        ],
+        "quality": "The page-level structure is the good kind of widescreen — a real fourth lane for source and annotation, with the only sanely-measured prose on the site — but the stage inside it is the worst-proportioned in the set: ~1280px goes to a preview whose type is 2px tall with roughly 1280x1000px of blank white under it, while the sole legible render is confined to a 360px strip."
+      }
+    }
+  ],
+  "analysis_totals": {
+    "images_analyzed": 15,
+    "input": 4990,
+    "cache_write": 79255,
+    "cache_read": 1624452,
+    "output": 29340,
+    "total": 1738037,
+    "cost_usd": 2.364
+  }
+}

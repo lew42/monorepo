@@ -7,7 +7,7 @@ export default classdoc.page({
 	icon: "description",
 
 	Class: Page,
-	children: "nav children previews shell flow layout",
+	children: "nav children previews shell flow",
 
 	// The rail, in order — one directory each, under overview/. The headings come
 	// from the `group:` every demo declares in its own page.js.
@@ -18,14 +18,14 @@ export default classdoc.page({
 	// Every member, in the order a reader meets them: the tree, then rendering,
 	// then the derivation the constructor does, then the plumbing and the statics.
 	methods: "child add move previews walls preview preview_card preview_link link nav nav_for "
-		+ "chain container activate render "
-		+ "naming declare load_all_children go deactivate "
+		+ "chain container activate render warn_if_hidden "
+		+ "naming declare load_all_children deactivate "
 		+ "mounts_in log_label assign load missing slug",
 
 	properties: "meta title children content url name label icon card classes "
 		+ "description parent app view loading route regions",
 
-	notes: "declaring labels layout",
+	notes: "declaring labels css",
 
 	content(){
 
@@ -91,7 +91,7 @@ export default new Page({
 
 		md("**The cards on the left are the demos** — fourteen live trees, in three groups, each one the same class running at half size. Click one: the tree opens here with the `page.js` that defines it, and the rail stays put. **Basics** is six ways to build a tree — children, `add()`, labels, `route()`, the shape a page wears; **Arrangements** is five ways to show one; **Sites** is three whole sites: a page of section bands, a documentation site, and both together.");
 
-		md("**[Layout](/framework/core/Page/layout/)** is the other library: ten whole-page layouts — document, docs, dashboard, mail, chat, an app shell — each card showing the same page at 390 **and** at 3440, side by side. One content object renders under all ten, and every region a layout has is a checkbox rather than a second page.");
+		md("For whole-page shapes — document, docs, dashboard, mail, chat, an app shell — the library is **[Layouts](/framework/styles/layouts/)**, where each card shows the same page at 390 **and** at 3440, side by side, and every region a layout has is a checkbox rather than a second page.");
 
 		md("Every method and property has its own page under **API**: the real source, who calls it, and an honest note on whether it should exist at all.");
 

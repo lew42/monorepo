@@ -396,5 +396,6 @@ summary of them would be. Start with `core/<Class>/readme.md`.
 unchanged. Do not import it (that would be a second copy of the classes), but
 **do** read `core/new/1/readme.md` — it is the long form of the core records, with
 the measurements. `core/new/0/` and `core/new/starter/` genuinely are earlier
-sketches. `core/legacy/` is the dead Pager tier: an arrangement is now a CSS class
-a page opts into, so there is no Pager to learn.
+sketches. The `core/legacy/` Pager tier is deleted (`Pager` is vendored at
+`michael/pager/legacy/` for that sandbox): an arrangement is now a CSS class a page
+opts into, so there is no Pager to learn.

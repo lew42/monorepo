@@ -6,7 +6,7 @@ export default new Page({
 	description: "The core classes. All but `Router` are an element you can point at in the inspector.",
 	icon: "dashboard",
 
-	children: "View Page Router App Sidebar",
+	children: "View Page Router App Sidebar Item List",
 
 	content(){
 
@@ -29,6 +29,8 @@ new App()    →  <div class="app">`);
 | [Router](/framework/core/Router/) | url → which pages are showing | never, directly |
 | [App](/framework/core/App/) | boot, and the one container | once, in \`app.js\` |
 | [Sidebar](/framework/core/Sidebar/) | a brand over links | when you want one |
+| [Item](/framework/core/Item/) | a persistent node: data, items, one saver | a document tree |
+| [List](/framework/core/List/) | the ordered collection behind \`item.items\` | never, directly |
 
 **Only the first is unavoidable.** A single-page thing is \`View\` and nothing else.`);
 

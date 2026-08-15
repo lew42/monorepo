@@ -1,5 +1,5 @@
 **Usage** — every stylesheet on the site loads through it, at module scope. Core:
-`View.js:524` (`framework.css`), `Page.class.js:3`, `Sidebar.js`, `App.js`. Exts:
+`View.js:471` (`framework.css`), `Page.class.js:3`, `Sidebar.js`, `App.js`. Exts:
 `tabs`, `demo`, `files`, `markdown`, `highlight`, `classdoc`. Plus
 `App.stylesheet("/styles.css")` in `app.js:6`.
 

@@ -43,7 +43,7 @@ const pocket = () => new Page({
 			div.c("flex flex-1", () => {
 
 				/* ⚠ `--drawer` on `.app` is how the real one pushes (framework.css,
-				   ext/Layout) — a shell this size can just be a flex row. */
+				   ext/layout) — a shell this size can just be a flex row. */
 				$drawer = div.c("basis flex v gap pad wash", () => this.children.forEach((page, name) => {
 					const nav = this.nav_for(name);
 					a.c("page-link", nav.label).href(nav.url);
@@ -61,5 +61,5 @@ export default new Page(demo.tree({
 	tree: pocket,
 	height: "26em",
 
-	note: "**A drawer is a [sidebar](/web/nav/sidebar/) that admits it does not always fit.** Push keeps the page readable and is what `ext/Layout`'s panel does — one `--drawer` token, and the shell yields a rail (`framework.css`). Overlay costs no width and is the only option under about 26rem, which is why the real one is self-limiting rather than breakpointed. The button that opens it must be persistent even when the drawer is not.",
+	note: "**A drawer is a [sidebar](/web/nav/sidebar/) that admits it does not always fit.** Push keeps the page readable and is what `ext/layout`'s panel does — one `--drawer` token, and the shell yields a rail (`framework.css`). Overlay costs no width and is the only option under about 26rem, which is why the real one is self-limiting rather than breakpointed. The button that opens it must be persistent even when the drawer is not.",
 }));

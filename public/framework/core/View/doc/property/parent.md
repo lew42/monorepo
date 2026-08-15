@@ -1,8 +1,8 @@
 The view this one was appended to.
 
-**Usage** — **written and never read.** `append()` sets it (`View.js:61`) and
-`prepend()` sets it (`View.js:83`); no member of `View`, and no file in
-`framework/`, ever reads it back. Every `.parent` read in the framework is
+**Usage** — **written and never read.** `append()` sets it (`View.js:61`); no
+member of `View`, and no file in `framework/`, ever reads it back. Every
+`.parent` read in the framework is
 `Page.parent`, which is a **different property on a different class**, assigned by
 `Page.add()`.
 

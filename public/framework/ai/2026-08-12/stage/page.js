@@ -1,7 +1,6 @@
 import { Page, md, h2, div, p, a, demo } from "/app.js";
-import "../../../ext/demo/responsive.js";
 
-const FILES = ["stage.js", "stage.css", "responsive.js", "readme.md"];
+const FILES = ["stage.js", "stage.css", "two.js", "readme.md"];
 
 // six cards that answer to the width of their own box and nothing else
 const wall = () => {
@@ -34,7 +33,8 @@ export default new Page({
 
 		h2("Two-up: 200 re-simulations became one");
 
-		demo.responsive(wall, "Drag the divider. Both simulated widths still follow it in opposite directions — at most once per frame now.");
+		demo.stage.two(wall).ac("toc-skip");
+		md("Drag the divider. Both simulated widths still follow it in opposite directions — at most once per frame now.");
 
 		md(`| 200 \`pointermove\`s in one turn of the loop | main thread | re-simulations |
 |---|---:|---:|
@@ -48,7 +48,7 @@ export default new Page({
 		div.c("flex gap wrap", () => FILES.forEach(name =>
 			a.c("demo-file", name).href("/framework/ext/demo/" + name).attr("target", "_blank")));
 
-		md("`simulate()`, `watch()` and `drag()` live in `stage.js` and `responsive.js` imports them, so the `zoom`-never-`transform: scale()` arithmetic has one copy — and the magnifier scrubs on the same rAF helper as the two-up. The design record — the widths, the cap, the strip, the release table, the numbers — is [demo §17, §18 and §20](/framework/ext/demo/).");
+		md("`simulate()`, `watch()` and `drag()` live in `stage.js` and `two.js` imports them, so the `zoom`-never-`transform: scale()` arithmetic has one copy — and the magnifier scrubs on the same rAF helper as the two-up. The design record — the widths, the cap, the strip, the release table, the numbers — is [demo §17, §18 and §20](/framework/ext/demo/).");
 
 		h2("Open");
 
@@ -56,6 +56,6 @@ export default new Page({
 - **The strip shows on every stage**, including a card preview nobody will touch. Cheap and inert, but it is chrome on a thumbnail.
 - **\`demo()\` now has two strips** — its bar (label, \`<>\`) and the stage's. Justified by what each controls; still a lot of bar for two things.
 - **Nothing keys Escape out of fullscreen.** The button is always on screen, but a keyboard user has no second way out.
-- **\`demo.responsive\` doesn't carry \`wide\`** — §14 gave that to \`demo()\` and \`demo.stage()\`, and the widest exhibit on the site was missed.`);
+- **The two-up is a stage mode now** — \`demo.stage.two()\`, which is what deleted the fourth fullscreen \`demo.responsive\` used to carry.`);
 	},
 });

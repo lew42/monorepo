@@ -1,0 +1,36 @@
+/* Restated IN FULL - the first @layer statement fixes the order, and a short list
+   silently drops `site` past `util`. ASCII only, comments included. */
+@layer base, theme, site, util;
+
+@layer theme {
+
+	/* Severity is the only colour on this page, and it is a rail rather than a fill:
+	   a list of thirty rows in three background colours is a rash, not a signal. */
+	.review-row {
+		border-inline-start: 3px solid var(--line);
+		border-radius: var(--radius);
+		background: var(--wash);
+		gap: 0.4em;
+	}
+	.review-row.high { border-inline-start-color: var(--error); }
+	.review-row.med { border-inline-start-color: var(--prim); }
+
+	.review-title { font-weight: 600; }
+
+	.review-tag, .review-where {
+		font-family: var(--mono);
+		font-size: 0.7em;
+		color: var(--subtle);
+	}
+	.review-tag { text-transform: uppercase; letter-spacing: 0.06em; }
+	.review-kind { color: var(--prim); }
+
+	/* The two filter rows are one control each, so the label anchors a fixed column
+	   and the chips start at the same x whichever row you are reading. */
+	.review-label { min-inline-size: 4em; }
+	.review-group { gap: 0.25em; }
+
+	/* The rail is the row's own left edge, so a nested details must not repeat it. */
+	.review-row details { font-size: 0.9em; }
+	.review-row summary { color: var(--subtle); cursor: pointer; }
+}

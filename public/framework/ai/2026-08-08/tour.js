@@ -19,9 +19,9 @@ export default () => new Page({
 		},
 		{
 			name: "shapes", title: "Shape words", label: "Layouts", icon: "dashboard_customize",
-			classes: "pad",
+			classes: "full pad",
 			content(){
-				md("`pad` on this page: no reading measure, an even inset. Below is `grid gap auto`, which counts its own columns.");
+				md("`full pad` on this page: no reading measure, an even inset. Below is `grid gap auto`, which counts its own columns.");
 
 				div.c("grid gap auto", () => "12345678".split("").forEach(digit => div.c("pad wash h4", digit)))
 					.style({ "--column": "3.2em", "--gap": "0.6em" });

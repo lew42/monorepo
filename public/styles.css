@@ -163,19 +163,4 @@
 	   why it isn't in md.css. */
 	.md td:first-child { white-space: nowrap; }
 
-	/* ---- `.page-preview-desc` — THIS SITE'S class, not the framework's ----
-	   `Page.previews()` builds a card out of a title and an icon; it has never
-	   emitted a description. The one place on the site that does is `/page.js`,
-	   which hand-rolls the same markup for its section cards because those
-	   sections are plain data rather than Pages.
-
-	   So the rule belongs here: a module styles the classes it EMITS, and the
-	   emitter is the site. It sat in `core/Page/Page.css` next to the rules for
-	   the classes `Page` really does emit — core styling a class it cannot import
-	   the emitter of, which is the undeclarable dependency `styles/readme.md` §8
-	   exists to prevent.
-
-	   The copy that sat in `core/Page/Page.css` is deleted; this is the only
-	   spelling. (F7 in `core-audit.md`.) */
-	.page-preview-desc { color: var(--subtle); font-size: 0.85em; margin-top: 0.2em; }
 }

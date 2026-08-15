@@ -1,0 +1,58 @@
+/* Restated IN FULL — a short list silently misplaces `site`. */
+@layer base, theme, site, util;
+
+/* The rail's resize edge. No permanent splitter: a hover strip straddling the edge,
+   and a pill that appears at the pointer's Y. Design record: readme.md. */
+@layer theme {
+
+	/* ⚠ `rem`, never `em`, for every size here: the rail's text is 0.8rem, so an `em`
+	   pill measured 3.2 × 12.8 instead of 4 × 16. A grab target does not scale with
+	   the type beside it. */
+	.dev-grip {
+		position: absolute; inset-block: 0; inset-inline-start: 0; z-index: 1;
+		width: 2rem;
+		transform: translateX(-50%);
+		cursor: ew-resize;
+		touch-action: none;   /* ⚠ a touch drag scrolls the page without it */
+	}
+
+	/* The whole edge lights, so the target is findable before the pill is. */
+	.dev-grip::before {
+		content: ""; position: absolute; inset-block: 0; inset-inline-start: 50%;
+		width: 2px;
+		transform: translateX(-50%);
+		background: var(--prim);
+		opacity: 0;
+		transition: opacity 0.12s;
+	}
+
+	/* ⚠ A hue, not `--subtle`: this straddles the boundary, so it is drawn on the
+	   page's background as much as on the rail's, and only a hue reads on both. */
+	.dev-grip-pill {
+		position: absolute; inset-inline-start: 50%; top: var(--grip-y, 50%);
+		width: 0.375rem; height: 2rem;
+		transform: translate(-50%, -50%);
+		background: var(--prim);
+		border-radius: 999px;
+		box-shadow: 0 1px 4px rgba(0,0,0,0.45);
+		opacity: 0;
+		transition: opacity 0.12s;
+		pointer-events: none;   /* the strip is the target; this is only the sign */
+	}
+
+	.dev-grip:hover::before,
+	html.dev-sizing .dev-grip::before { opacity: 0.45; }
+	.dev-grip:hover .dev-grip-pill,
+	html.dev-sizing .dev-grip-pill { opacity: 1; }
+
+	html.dev-sizing .dev-grip::before { opacity: 0.7; }
+	html.dev-sizing .dev-grip-pill { height: 3rem; }
+
+	/* ⚠ `--rail-ease` rather than a rule naming `.app`: the shell eases its push, and
+	   a drag writes the width every frame — eased, it trails the pointer by 0.18s. */
+	html.dev-sizing {
+		--rail-ease: 0s;
+		cursor: ew-resize;
+		user-select: none;
+	}
+}

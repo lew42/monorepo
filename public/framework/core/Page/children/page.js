@@ -1,5 +1,5 @@
 import { Page, md, demo, code, h2 } from "/app.js";
-import web from "/framework/ext/demo/web.js";
+import sample from "/framework/ext/demo/sample.js";
 
 export default new Page({
 	meta: import.meta,
@@ -67,7 +67,7 @@ export default new Page({ meta: import.meta, title: "Intro" });`);
 		h2("What a click does");
 
 		demo(() => {
-			demo.app(web(), { nav: true }).style("height", "20em");
+			demo.app(sample(), { nav: true }).style("height", "20em");
 		}, "The strip on top is `chain()`, the rail is `nav_for()` per child, the box is the region. **Click anything.** This is the Router's walk in miniature — the same class, the same methods, a tree held in memory.");
 
 		md(`1. **\`click()\`** catches an ordinary \`<a href>\` — no component asked to be navigable.

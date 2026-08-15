@@ -1,5 +1,5 @@
 import { Page, Sidebar, md, demo, code, h2, div, span } from "/app.js";
-import web from "/framework/ext/demo/web.js";
+import sample from "/framework/ext/demo/sample.js";
 
 export default new Page({
 	meta: import.meta,
@@ -10,7 +10,7 @@ export default new Page({
 	content(){
 
 		demo(() => {
-			demo.app(web({
+			demo.app(sample({
 				content(){ this.previews().style({ "--column": "8em", "--gap": "0.5em" }); },
 			})).style("height", "21em");
 		}, "`content(){ this.previews() }` — the whole index. **Click a card.** Each was drawn by the child it points at, and the wall counted its own columns; the two tokens only set how big a cell wants to be.");
@@ -20,13 +20,13 @@ export default new Page({
 		h2("A rail that stays put");
 
 		demo(() => {
-			demo.app(web({ initialize(){ this.catalog(); } })).style("height", "26em");
+			demo.app(sample({ initialize(){ this.catalog(); } })).style("height", "26em");
 		}, "`this.catalog()` — the same cards as a column, beside a region this page holds. Click one: **only the region swapped.** Master–detail in one call, because a child mounts in the nearest ancestor's `$pages` and this page declared one.");
 
 		h2("A sidebar, for a section you live in");
 
 		demo(() => {
-			const site = web({
+			const site = sample({
 				content(){
 					div.c("flex", () => {
 						new Sidebar({

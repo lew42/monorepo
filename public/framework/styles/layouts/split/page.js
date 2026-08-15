@@ -1,60 +1,36 @@
-import { Page, div, md } from "/app.js";
-import detail from "../detail.js";
-import { next } from "../../parts.js";
+import { Page, demo, div, span } from "/app.js";
+import { site } from "../web.js";
 
-const pane = (title, body) => div.c("pad flex v gap surface").style("--gap", "0.5em").append(() => {
-	div.c("h3", title);
-	md(body);
-});
-
-export default new Page(detail({
+export default new Page(demo.layout({
 	meta: import.meta,
-	title: "Split",
-	description: "Two equal panes that stack themselves — no CSS, no breakpoint.",
+	title: "List · detail",
+	description: "A list beside what it selects — two scrollers side by side, one above the other when they stop fitting.",
 	icon: "vertical_split",
+	group: "Apps",
 
-	note: "The page is the region; the split is one utility class and a `--column` override. Drag the stage past 36em and the panes stack themselves.",
+	twin: true,
+	parts: "header toolbar",
+
+	note: "**Two independent scrollers, and the wrap is the hard part.** Side by side each pane is stretched to the row and scrolls itself; wrapped, the panes go content-tall and the ROW scrolls them — which is why `overflow-y: auto` is on all three boxes and not on one.",
 
 	layout(){
 
-		// `full`, because a split shown at the reading measure is not a split — it was
-		// 900px of a 3166px region. No `fill` — nothing here must reach the bottom.
-		return div.c("page full flex v gap", () => {
+		return div.c("page full fill flex v", () => {
 
-			/* `flex gap auto` gives every child `flex: 1 1 var(--column)`. Equal basis,
-			   equal grow, so the panes are equal — and when two `18em` panes no longer
-			   fit, they wrap. `--column` is the only number, and it is a token. */
-			div.c("flex gap auto").style("--column", "18em").append(() => {
+			if (this.shows("header")) site.topbar();
 
-				pane("Intrinsic", `This pair responds to the width of **this box**, not of the
-window. Drag the stage narrower and the panes stack — but they also stack inside a
-sidebar-narrowed region, and inside the \`zoom-25\` thumbnail on the
-[Layouts](/framework/styles/layouts/) index, at the same two-panes-no-longer-fit
-moment.
+			div.c("flex gap wrap flex-1", () => {
 
-One rule, and it is correct in every container it is ever dropped into.`);
+				div.c("basis", () => site.rows(10))
+					.style({ "--basis": "22em", overflowY: "auto" });
 
-				pane("A media query", `A breakpoint reads the **viewport**. It cannot see the
-box, so a component that stacks at \`max-width: 40em\` stays side by side in a 300px
-column on a 1440px screen, and stacks in a 900px column on a phone-sized window.
+				div.c("flow pad", () => {
+					if (this.shows("toolbar")) site.toolbar();
+					span.c("h4 muted", "SELECTED");
+					site.sections(2);
+				}).style({ flex: "1 1 26em", minWidth: "0", overflowY: "auto" });
 
-Every place the component is reused is a new number somebody has to maintain.`);
-			});
-
-			// the panes are the band that reaches the edge; everything explaining them
-			// carries its own inset, the way a masthead's bands do
-			div.c("pad flex v gap", () => {
-
-				md(`**Equal basis, equal grow.** \`.flex.auto > * { flex: 1 1 var(--column); min-width: 0 }\`
-is the whole of it: both panes ask for the same width and both take the same share of
-what is left over, so they are the same size without either one being measured.
-Nothing in this layout knows there are two of them — add a third pane and you get
-thirds. Where the same markup can be made to break differently:
-[Flex](/framework/styles/layouts/flex/).`);
-
-				next("[Centered](/framework/styles/layouts/centered/) — the one thing flexbox can't hand you.",
-					"styles/layouts/split/");
-			});
+			}).style({ minHeight: "0", overflowY: "auto" });
 		});
 	},
 }));

@@ -1,0 +1,194 @@
+[
+	{
+		"model": "claude-haiku-4-5-20251001",
+		"case": "cramped-card",
+		"verdict": "fine",
+		"problem": "none",
+		"cost": 0.0336282,
+		"ms": 6747
+	},
+	{
+		"model": "claude-haiku-4-5-20251001",
+		"case": "wide-measure",
+		"verdict": "broken",
+		"problem": "Text lines span nearly full viewport width with minimal margins, making measure far too long for comfortable reading.",
+		"cost": 0.033583199999999994,
+		"ms": 6536
+	},
+	{
+		"model": "claude-haiku-4-5-20251001",
+		"case": "clipped-rail",
+		"verdict": "fine",
+		"problem": "none",
+		"cost": 0.0345342,
+		"ms": 11132
+	},
+	{
+		"model": "claude-haiku-4-5-20251001",
+		"case": "overlapping-cells",
+		"verdict": "broken",
+		"problem": "Elements overlap, causing text to be obscured and cut off.",
+		"cost": 0.0336232,
+		"ms": 7173
+	},
+	{
+		"model": "claude-haiku-4-5-20251001",
+		"case": "broken-rhythm",
+		"verdict": "broken",
+		"problem": "Inconsistent vertical spacing between text blocks breaks the rhythm—large gap in the middle disrupts the regular cadence.",
+		"cost": 0.0329682,
+		"ms": 6270
+	},
+	{
+		"model": "claude-haiku-4-5-20251001",
+		"case": "tap-targets",
+		"verdict": "broken",
+		"problem": "The tap target buttons (SAVE, CANCEL, MORE) are spaced too closely together, violating minimum spacing for touch targets.",
+		"cost": 0.034010200000000004,
+		"ms": 8232
+	},
+	{
+		"model": "claude-haiku-4-5-20251001",
+		"case": "good-prose",
+		"verdict": "fine",
+		"problem": "none",
+		"cost": 0.0332992,
+		"ms": 6221
+	},
+	{
+		"model": "claude-haiku-4-5-20251001",
+		"case": "good-cards",
+		"verdict": "fine",
+		"problem": "none",
+		"cost": 0.0332372,
+		"ms": 6726
+	},
+	{
+		"model": "claude-sonnet-5",
+		"case": "cramped-card",
+		"verdict": "fine",
+		"problem": "none",
+		"cost": 0.5222495,
+		"ms": 13169
+	},
+	{
+		"model": "claude-sonnet-5",
+		"case": "wide-measure",
+		"verdict": "broken",
+		"problem": "The paragraph text stretches to roughly 90+ characters per line, far exceeding a readable measure.",
+		"cost": 0.1558565,
+		"ms": 4625
+	},
+	{
+		"model": "claude-sonnet-5",
+		"case": "clipped-rail",
+		"verdict": "broken",
+		"problem": "A third card is cut off at the edge of its container, showing only a sliver instead of the full card.",
+		"cost": 0.1559375,
+		"ms": 4217
+	},
+	{
+		"model": "claude-sonnet-5",
+		"case": "overlapping-cells",
+		"verdict": "broken",
+		"problem": "Two content boxes overlap, hiding and cutting off the text of the box underneath.",
+		"cost": 0.15343249999999997,
+		"ms": 3584
+	},
+	{
+		"model": "claude-sonnet-5",
+		"case": "broken-rhythm",
+		"verdict": "broken",
+		"problem": "The line spacing is inconsistent — tight even gaps within the first group of three lines but a much larger, uneven gap before the second group of two lines.",
+		"cost": 0.1538965,
+		"ms": 4108
+	},
+	{
+		"model": "claude-sonnet-5",
+		"case": "tap-targets",
+		"verdict": "broken",
+		"problem": "The SAVE/CANCEL/MORE buttons are far too small (tiny tap targets barely taller than their text) for the large page.",
+		"cost": 0.15623150000000002,
+		"ms": 4305
+	},
+	{
+		"model": "claude-sonnet-5",
+		"case": "good-prose",
+		"verdict": "fine",
+		"problem": "none",
+		"cost": 0.1526615,
+		"ms": 3477
+	},
+	{
+		"model": "claude-sonnet-5",
+		"case": "good-cards",
+		"verdict": "fine",
+		"problem": "none",
+		"cost": 0.1550465,
+		"ms": 3986
+	},
+	{
+		"model": "claude-opus-5",
+		"case": "cramped-card",
+		"verdict": "broken",
+		"problem": "The cards have no padding, so their heading and body text sit flush against the card borders.",
+		"cost": 0.341682,
+		"ms": 4849
+	},
+	{
+		"model": "claude-opus-5",
+		"case": "wide-measure",
+		"verdict": "broken",
+		"problem": "Body text runs nearly the full ~960px width (~150 characters per line), far past a readable measure, while the page title sits flush against the top-left edge with no padding.",
+		"cost": 0.08395250000000001,
+		"ms": 4444
+	},
+	{
+		"model": "claude-opus-5",
+		"case": "clipped-rail",
+		"verdict": "broken",
+		"problem": "The third card is clipped to a sliver by an overflow-hidden rail even though there is ample empty space to its right.",
+		"cost": 0.08356850000000002,
+		"ms": 4393
+	},
+	{
+		"model": "claude-opus-5",
+		"case": "overlapping-cells",
+		"verdict": "broken",
+		"problem": "The \"On top\" card sits directly over the \"Underneath\" card, clipping its heading and body text.",
+		"cost": 0.0836085,
+		"ms": 4324
+	},
+	{
+		"model": "claude-opus-5",
+		"case": "broken-rhythm",
+		"verdict": "broken",
+		"problem": "The stack of identical lines has inconsistent vertical spacing — a large unexplained gap splits the third and fourth lines while the rest sit tight.",
+		"cost": 0.0872275,
+		"ms": 6845
+	},
+	{
+		"model": "claude-opus-5",
+		"case": "tap-targets",
+		"verdict": "broken",
+		"problem": "The Save/Cancel/More buttons are tiny (~20px tall with almost no padding), far below a usable tap-target size.",
+		"cost": 0.08331249999999998,
+		"ms": 4796
+	},
+	{
+		"model": "claude-opus-5",
+		"case": "good-prose",
+		"verdict": "fine",
+		"problem": "none",
+		"cost": 0.0825725,
+		"ms": 3692
+	},
+	{
+		"model": "claude-opus-5",
+		"case": "good-cards",
+		"verdict": "fine",
+		"problem": "none",
+		"cost": 0.0990075,
+		"ms": 15720
+	}
+]

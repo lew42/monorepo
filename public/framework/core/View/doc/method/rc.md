@@ -1,5 +1,5 @@
 **Usage** — 9 live call sites: `framework/ext/layout/` (`layout.js`, `panel.js`,
-`controls.js`), `framework/ui/parts.js:41`, and `View.js:170` inside
+`controls.js`), `framework/ui/parts.js:41`, and `View.js:145` inside
 `toggle_class()`. The mode switchers there are one idiom — clear a set of mutually
 exclusive words, then add one — and the rest drop a single state class:
 

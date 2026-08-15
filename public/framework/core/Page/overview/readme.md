@@ -14,7 +14,7 @@ run of one. The card in the rail **is** the tree at half size; the page is the
 one detail assembly every catalog on the site now uses — the tree on a stage, a
 layout bar wired to the page it is showing, and **the tree function's own source**
 open beneath, with `page.js` linked beside the summary
-(`demo.exhibit()`, `ext/demo/readme.md` §15).
+(`demo.exhibit()`, `ext/demo/doc/record.md` §15).
 
 | group | demos |
 |---|---|
@@ -23,7 +23,7 @@ open beneath, with `page.js` linked beside the summary
 | Sites | `landing` `docs` `site` |
 
 `demo.tree()` and `demo.app()` both live in `ext/demo/` — they were born here and
-moved, per the five-block census. Their record is `ext/demo/readme.md` (§11, §15).
+moved, per the five-block census. Their record is `ext/demo/doc/record.md` (§11, §15).
 
 ## Decisions
 
@@ -103,7 +103,7 @@ compete with the specimen's: `labels` above a box whose first line was a
 url strip (`/guide/`), and the rail's first entry where there is one. In a
 **card** it stays a heading, because a thumbnail is the sign over the door and
 naming all fourteen roots differently is what stopped the rail reading as
-fourteen grey rectangles. Mechanism: `ext/demo/readme.md` §15.
+fourteen grey rectangles. Mechanism: `ext/demo/doc/record.md` §15.
 
 **One idea per demo, and the order reads without opening anything.**
 
@@ -134,8 +134,8 @@ import lines are the one thing the printed definition loses, so `landing` says
 where the bands come from in its own prose and `site` says it in a comment inside
 the tree.
 
-**Hand-built trees, not `ext/demo/web.js`.** Here the *source is the lesson*, and
-a source that opens with an import teaches the import. The prebuilt `web()` stays
+**Hand-built trees, not `ext/demo/sample.js`.** Here the *source is the lesson*, and
+a source that opens with an import teaches the import. The prebuilt `sample()` stays
 for pages that just need *a tree* — `ext/catalog`, `ext/demo`'s own page, the
 Page `nav` page, the AI logs.
 

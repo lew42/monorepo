@@ -1,7 +1,6 @@
-import { Page, View, div, span, h4, code, icon } from "/app.js";
-import detail from "/framework/styles/layouts/detail.js";
-import layout from "/framework/ext/Layout/layout.js";
-import { chips, btn } from "/framework/ext/Layout/controls.js";
+import { Page, demo, View, div, span, h4, code, icon } from "/app.js";
+import layout from "/framework/ext/layout/layout.js";
+import { chips, btn } from "/framework/ext/layout/controls.js";
 import { widget } from "../parts.js";
 
 View.stylesheet(import.meta, "editor.css");
@@ -91,7 +90,7 @@ const layers = (nodes, select, $sel) => nodes.forEach(({ spec, depth, $view }) =
 		.ac("apps-layer").ac($view === $sel && "on")
 		.style("padding-inline-start", 0.4 + depth * 0.9 + "em"));
 
-/* The panel is ext/Layout's, in the box: the same word registry (`layout.words`),
+/* The panel is ext/layout's, in the box: the same word registry (`layout.words`),
    the same chips, and the line that would build the selection at the top. A parallel
    vocabulary here would be a second answer to "what is this box". */
 function properties($el){
@@ -113,7 +112,7 @@ function properties($el){
 const row = fn => div.c("flex wrap gap", fn).style("--gap", "0.3em");
 const words_of = $el => [...$el.el.classList].filter(word => word !== "apps-node" && word !== "on").join(" ");
 
-export default new Page(detail({
+export default new Page(demo.layout({
 	meta: import.meta,
 	title: "Editor",
 	description: "Layers, a canvas, and a properties panel that really edits — the Figma shape.",
@@ -121,7 +120,7 @@ export default new Page(detail({
 
 	layout: editor,
 
-	note: "**Click a box on the canvas** — or a row in the layers list — and the right panel fills with the words that box wears. The chips and knobs are `ext/Layout`'s own (`layout.words`, `chips()`), so a property here is a real class or token on a real element, and the line at the top of the panel is what you would paste into a page. The two panels are toggles in the titlebar, not two example pages.",
+	note: "**Click a box on the canvas** — or a row in the layers list — and the right panel fills with the words that box wears. The chips and knobs are `ext/layout`'s own (`layout.words`, `chips()`), so a property here is a real class or token on a real element, and the line at the top of the panel is what you would paste into a page. The two panels are toggles in the titlebar, not two example pages.",
 }));
 
 export { editor };

@@ -46,7 +46,7 @@ export const sitemap = () => new Page({
 		Layout: branch("dashboard", {
 			Flex: leaf("Nine class strings, each one word from its neighbour."),
 			Grid: leaf("Three strings and one token between them."),
-			Shapes: leaf("`standard`, `pad`, `full`, `fill` — four stances on two tokens."),
+			Shapes: leaf("`standard`, `full`, `fill` — three stances on two tokens."),
 		}),
 
 		Motion: branch("animation", {

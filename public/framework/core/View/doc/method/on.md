@@ -1,5 +1,5 @@
-**Usage** — 35 call sites, plus `click()` (`View.js:262`) and `stylesheet()`'s
-`load`/`error` pair (`View.js:427-428`), which is the one place a `View` listens
+**Usage** — 35 call sites, plus `click()` (`View.js:235`) and `stylesheet()`'s
+`load`/`error` pair (`View.js:372-373`), which is the one place a `View` listens
 for something other than a user.
 
 ```js
@@ -17,11 +17,11 @@ framework where the distinction carries meaning.
 
 ## The sharp edges
 
-`off(event, cb)` needs the **same function reference** — the DOM's rule, not this
-framework's — and the arrow wrapper here means the reference the DOM holds is
-never the one you passed. So a listener added through `on()` is **unremovable by
-`off()`**, always, not just when you pass an inline arrow. Nothing in `public/`
-has ever hit this, because nothing calls `off()`.
+**A listener added through `on()` cannot be taken off again.** Removal needs the
+**same function reference** — the DOM's rule, not this framework's — and the
+reference the DOM holds is the wrapper arrow, never the function you passed. If a
+handler must come off, add it with `this.el.addEventListener` and keep the
+reference yourself.
 
 `View` keeps no listener registry, deliberately: a registry is memory that must be
 invalidated. The cost is that a handler chained onto `code.js()` in argument

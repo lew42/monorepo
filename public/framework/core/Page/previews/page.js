@@ -70,10 +70,10 @@ preview_link(nav)                       // the link — icon + label`);
     meta: import.meta,
     title: "Dashboard",
     group: "Arrangements",   // heads the run of cards this one starts
-    card: "wide",            // "wide" | "tall" | "big" — its footprint on the wall
+    card: "two",            // "two" | "tall" | "big" — its footprint on the wall
 });`);
 
-		md("Both are **claims a child makes that the wall reads**. `previews()` drops an `h4` whenever `group` changes, so a run of children sharing a word gets one heading — categories before specifics, on a wall or in a rail. `card` rides along in `nav()`: `wide` takes two columns, `tall` doubles the thumb's ceiling, `big` does both. A size is a claim, not a width — the wall still counts its own columns.");
+		md("Both are **claims a child makes that the wall reads**. `previews()` drops an `h4` whenever `group` changes, so a run of children sharing a word gets one heading — categories before specifics, on a wall or in a rail. `card` rides along in `nav()`: `two` takes two columns, `tall` doubles the thumb's ceiling, `big` does both. A size is a claim, not a width — the wall still counts its own columns.");
 
 		md("Retune a wall where it is built: `this.previews().style({ \"--column\": \"18em\", \"--thumb-max\": \"15em\" })`. The tokens sit on the wall, so one index picks its own scale in one place.");
 

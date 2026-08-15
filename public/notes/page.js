@@ -4,7 +4,7 @@ export default new Page({
 	meta: import.meta,
 	title: "Notes",
 	description: "Short working notes for the team.",
-	children: "git-branch-names auth",
+	children: "git-branch-names auth team-note",
 
 	content(){
 		this.previews();

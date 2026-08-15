@@ -8,7 +8,7 @@ export default new Page({
     title: "Start",         // the h1 on this page
     label: "Start here",    // what every menu calls it
     icon: "flag",           // the glyph beside it
-    card: "wide",           // and, on a gallery wall, its share of the grid
+    card: "two",           // and, on a gallery wall, its share of the grid
 });
 ```
 
@@ -84,9 +84,9 @@ three parallel maps was folding it into one — and then deleting the one.
 
 ## `card` — a page's claim on the wall it sits in
 
-`card: "wide" | "tall" | "big"`, carried through `nav_for()` exactly like `icon`, and
+`card: "two" | "tall" | "big"`, carried through `nav_for()` exactly like `icon`, and
 applied by `preview_card()` — which puts the bare word on the card, so `Page.css` reads
-it as `.page-preview.wide`.
+it as `.page-preview.two`.
 
 It used to be deliberately **ignored** by `previews()`: those cards were flat 60px link
 rows, and forcing a two-row span onto one left a 72px hole beside it every time. That

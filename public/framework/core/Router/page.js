@@ -8,7 +8,7 @@ export default classdoc.page({
 
 	Class: Router,
 
-	properties: "active app",
+	properties: "active marked app",
 
 	methods: "go load load_segments activate mark mark_links " +
 	         "click link_clicked listen chain shared_depth root assign",

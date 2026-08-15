@@ -1,13 +1,17 @@
 Placement, and nothing else.
 
-**Usage** — one caller: `Router.activate()` (`framework/core/Router/Router.js:100`),
-which runs it over the entering slice **shallowest-first**, so my ancestors — and
-their regions — already exist by the time I look for a container.
+**Usage** — two callers, both walking a chain **shallowest-first**, so my ancestors —
+and their regions — already exist by the time I look for a container:
+`Router.activate()` (`framework/core/Router/Router.js:100`) and `demo.app`'s
+`show()` (`framework/ext/demo/app.js:92`).
 
 ```js
 if (this.render().el.parentNode !== container.el)
     container.append(this.view);
 ```
+
+It ends by calling [`warn_if_hidden()`](/framework/core/Page/api/warn_if_hidden/),
+which is a `console.warn` on localhost and nothing anywhere else.
 
 **Necessity** — yes. It is the whole of what "showing a page" means here.
 

@@ -7,7 +7,7 @@ const admin = () => new Page({
 	// stolen from the card the moment the page itself was shown.
 	children: {
 		html: {
-			card: "wide",
+			card: "two",
 			preview(nav){
 				return this.preview_card(nav, () => div.c("wash pad h3", "1.2k elements"));
 			},

@@ -1,0 +1,15 @@
+{
+	"session_id": "51c5ac4b-ed59-4c55-9fec-593d1b0addd4",
+	"tab": "Build draggable panel sy…",
+	"group": "ai-log",
+	"request": "redesign the daily/task preview cards — best-possible status summary per card; task page.js contributes UI up the tree (day dashboard, ai index)",
+	"requested_at": "2026-08-13T15:55-05:00",
+	"landed_at": "2026-08-13T17:15-05:00",
+	"model": "claude-fable-5",
+	"tokens": 228707,
+	"now": "landed",
+	"outcome": "**Richer dashboard cards (agents done/total, window %) + a page.js preview() bridge**: a declared task's `preview()` override draws its own row on the day dashboard, and a day's own override turns its `/framework/ai/` tile into a live glance — both via `Page.preview_card()`'s existing `thumb` slot, zero core edits. Demoed live on this task itself (a checklist card) and on `2026-08-13/page.js` (a running/landed/idea glance). Playwright-verified on `/framework/ai/2026-08-13/` and `/framework/ai/`, both schemes: zero new console errors (one pre-existing, out-of-ownership 404 for a sibling task's missing `log-feed/page.js`), sort order intact. Fields the card needs vs. what page-owned UI should own — and the tiers doc — are in `notes.md`.",
+	"agents": [
+		{ "kind": "agent", "task": "richer cards + page.js preview bridge", "model": "claude-sonnet-5", "tokens": 228707, "duration_ms": 1476848, "outcome": "dashboard.js enriched + card()/glance() bridge; day + task page.js additive edits; task-previews/page.js demo; ext/ai/readme.md §1; notes.md; verified zero new script errors, both schemes", "used": true }
+	]
+}

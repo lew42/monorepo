@@ -45,10 +45,10 @@ Page.prototype.catalog = function(){
 
 // What the page renders once it is a catalog.
 function screen(){
-	let $pages;
+	let $pages, $rail;
 
 	const $catalog = div.c("page-catalog bleed", () => {
-		this.previews();
+		$rail = this.previews();
 		this.$pages = $pages = div.c("page-catalog-pages");
 	});
 
@@ -60,12 +60,25 @@ function screen(){
 
 		// ⚠ the cards were built after mark() ran, so they missed the pass
 		this.app?.router?.mark_links();
+
+		// ⚠ after inject() — a detached element scrolls nothing — and NOT returned:
+		// `filling` is a first-paint loader, and `ready` resolves only after those.
+		Promise.resolve(this.app?.ready).then(() => reveal($rail));
 	});
 
 	// so a cold load waits for the region instead of painting an empty one
 	this.app?.loaders?.push(filling);
 
 	return $catalog;
+}
+
+// A deep link lands with the rail at its top and the lit card below the fold. ⚠ `nearest`
+// on both axes: a card already showing is left where it is, and one call serves the rail
+// (which scrolls down) and the strip (across), neither knowing its own top inset.
+// ⚠ `:scope >` and `> a`, for Page.css's reason — a live thumb holds marked links of its own.
+function reveal($rail){
+	$rail.el.querySelector(":scope > .page-preview:has(> a:is(.active, .in-path))")
+		?.scrollIntoView({ block: "nearest", inline: "nearest" });
 }
 
 export default Page.prototype.catalog;

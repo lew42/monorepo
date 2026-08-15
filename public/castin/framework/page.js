@@ -131,25 +131,18 @@ export default {
     p("- ", code("View.href"), " sets the href attribute. Shorthand for ", code("attr('href', url)"));
 
     h6.c("underline", "Events");
-    p("- ", code("View.on"), " adds an event listener");
-    p("- ", code("View.off"), " removes an event listener");
+    p("- ", code("View.on"), " adds an event listener. It cannot be removed — the DOM removes by reference, and ", code("on"), " registers a wrapper.");
     p("- ", code("View.click"), " is a shorthand for", code(`on('click', cb)`));
 
     h6.c("underline", "DOM operations");
     p("Some methods for provided for DOM operations include;");
-    p("- ", code("View.insert"), " inserts a child at a given index.");
-    p("- ", code("View.index"), " returns this view's position among it's parents children.");
     p("- ", code("View.remove"), " removes the element from the DOM.");
-    p("- ", code("View.replace"), " replaces this element with another view or element.");
-    p("- ", code("View.clone"), " returns a new View wrapping a deep clone of the element.");
-    p("- ", code("View.repeat"), " clones the view n times");
-    p("- ", code("View.buffer"), " swaps the live element for a static clone");
     p("- ", code("View.empty"), " clears all children");
 
     h6.c("underline", "Content");
     p("- ", code("View.text"), " get or set textContent.");
     p("- ", code("View.html"), " get or set innerHTML.");
-    p("- ", code("View.append"), " / ", code("View.prepend"), " add children (polymorphic — see captor section).");
+    p("- ", code("View.append"), " adds children (polymorphic — see captor section).");
     p("- ", code("View.backtick_append"), " appends text, turning `backtick` spans into <code> elements — this is what p() uses.");
   },
 

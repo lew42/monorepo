@@ -1,6 +1,5 @@
-import { Page, div } from "/app.js";
-import detail from "/framework/styles/layouts/detail.js";
-import { btn } from "/framework/ext/Layout/controls.js";
+import { Page, demo, div } from "/app.js";
+import { btn } from "/framework/ext/layout/controls.js";
 import { pane, grip } from "../panes.js";
 import { widget } from "../../parts.js";
 
@@ -34,7 +33,7 @@ function splits(){
 	return $root;
 }
 
-export default new Page(detail({
+export default new Page(demo.layout({
 	meta: import.meta,
 	title: "Split",
 	description: "The same panes, cut and closed at runtime — the tree is the state.",

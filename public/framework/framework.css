@@ -77,6 +77,15 @@
            about one state, and none of them readable on a dark surface. */
         --error: light-dark(#c00, #ff7b72);
 
+        /* Its passing twin. Replaces two greens invented the same day in
+           core/Item/page.js and ext/Saver/page.js. */
+        --ok: light-dark(#15803d, #4ade80);
+
+        /* The two rungs between them, for a scale rather than a state — the
+           usage rail reads --ok → --warn → --hot → --error as one ramp. */
+        --warn: light-dark(#a16207, #fbbf24);
+        --hot:  light-dark(#c2410c, #fb923c);
+
         /* rhythm lives with the flow rules (theme layer, below): one em token,
            `--flow: 2em`, declared per flow root. */
 
@@ -145,15 +154,23 @@
     /* Layout, not look, and it belongs here because App.render() emits both
        boxes: `.app` is the shell, `.pages` inside it is the one flexible row.
        A site that adds chrome (a nav strip) gets it stacked for free. */
-    /* `--drawer` is the inline-end rail the shell yields to a drawer that wants to
-       PUSH rather than cover — the chrome and the region both narrow (ext/Layout).
+    /* `--drawer` and `--devbar` are the inline-end rails the shell yields to a panel
+       that wants to PUSH rather than cover — the chrome and the region both narrow.
+       Two, because two can be open at once and they stack: a drawer opened by a
+       selection (ext/layout) and the dev rail (dev/DevBar).
        ⚠ Self-limiting on purpose: a 19rem push on a phone would leave no page, so the
-         reservation stops at whatever is left above a 26rem reading column. `rem`,
-         not `em` — the body font-size is a viewport clamp, so `em` here is fluid. */
+         reservation stops at whatever is left above a `--rail-floor` reading column.
+         `rem`, not `em` — the body font-size is a viewport clamp, so `em` here is fluid.
+       ⚠ A rail sized DELIBERATELY drops the floor to 0 (dev/DevBar does, for its
+         viewport presets): the floor guards a default width against a small screen,
+         and a width computed FROM the viewport needs no guarding. Without that, a
+         "390" preset silently lands on 416 and the button lies. */
     .app {
         height: 100%; display: flex; flex-direction: column;
-        padding-inline-end: min(var(--drawer, 0px), max(0px, 100% - 26rem));
-        transition: padding-inline-end 0.18s;
+        padding-inline-end: min(calc(var(--drawer, 0px) + var(--devbar, 0px)), max(0px, 100% - var(--rail-floor, 26rem)));
+        /* `--rail-ease` so a rail being DRAGGED can turn the easing off — a width
+           written every frame trails the pointer by 0.18s and reads as lag. */
+        transition: padding-inline-end var(--rail-ease, 0.18s);
     }
 
     /* ---- the type scale: six levels, and that's the whole vocabulary --------
@@ -324,7 +341,7 @@
 @layer util {
 
     /* `--pad`, the same move `.gap`/`--gap` makes below: the class is the request,
-       the token is the size. `.page.pad` (Page.css) steers it to 2em. */
+       the token is the size. */
     .pad { padding: var(--pad, 1em); }
     .all-pad > * { padding: var(--pad, 1em); }
     .mb { margin-bottom: 1em; }
@@ -367,6 +384,17 @@
          `<pre>` then holds it at the full 34em inside a 352px column. `min-width: 0`
          cannot lower that floor; only a max-width can. */
     .measure { --measure: 34em; max-width: min(var(--measure), 100%); margin-inline: auto; }
+
+    /* ⚠ `.measure` CENTRES, and this site's other rule is that every shape shares
+       ONE LEFT EDGE (see Page.css). So a capped intro block above left-aligned
+       content lands centred over it — three layouts shipped that way and each
+       worked around it with an inline `max-width: 34em`, which is the hardcode a
+       utility is supposed to replace.
+       Additive on purpose: `.measure` has eight call sites that DO want centring
+       (the section band vocabulary), so the default stands and the exception is
+       spelled. Whether the default is the right way round is Mike's call —
+       see styles/rules/readme.md. */
+    .measure.start { margin-inline: 0; }
 
     /* A laid-out container owns its own spacing — `gap` does it, and an inherited
        block margin only fights it. `.flex > *` has said this for a long time; a

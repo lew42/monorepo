@@ -1,5 +1,5 @@
-**Usage** — 4 live call sites: `append_fn()` (`View.js:106`), `lazy()`
-(`View.js:289`), `App.render()` (`framework/core/App/App.js:48`) and the site's
+**Usage** — 4 live call sites: `append_fn()` (`View.js:81`), `lazy()`
+(`View.js:259`), `App.render()` (`framework/core/App/App.js:48`) and the site's
 own `app.js:75`. The last two are the same statement — *pages mount into
 `$pages`, so the captor has to end up there* — because a page's view is built by
 an element factory, and a factory appends to the captor.

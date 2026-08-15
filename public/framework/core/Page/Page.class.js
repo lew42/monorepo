@@ -1,6 +1,10 @@
-import { View, div, h1, h2, h4, a, span, icon, is } from "../View/View.js";
+import { View, div, p, h1, h2, h4, a, span, icon, is } from "../View/View.js";
 
 View.stylesheet(import.meta, "Page.css");
+
+// ⚠ Localhost only, the gate dev/Socket keeps: nothing below may ship behaviour.
+const dev = ["localhost", "127.0.0.1"].includes(location.hostname) || location.hostname.endsWith(".localhost");
+const marked = el => el?.matches(".page.active-page, .page.active-ancestor, .page.default");
 
 export class Page {
 
@@ -10,8 +14,6 @@ export class Page {
 		this.declare();
 		this.initialize?.();
 		if (this.url) this.load_all_children();   // no url yet = standalone; add() re-triggers on adoption
-
-		console.log(`new ${this.log_label()} — "${this.title}", children [${[...this.children.keys()].join(", ")}]`);
 	}
 
 	assign(...args){ return Object.assign(this, ...args); }
@@ -72,8 +74,6 @@ export class Page {
 		page.naming();
 		if (page.loading === undefined) page.load_all_children();   // built standalone — its url only just arrived
 		this.children.set(name, page);
-
-		console.log(`${this.log_label()}.add("${name}") → ${page.log_label()}`);
 		return page;
 	}
 
@@ -139,11 +139,8 @@ export class Page {
 		return this.mounts_in(this.app.$pages, "app.$pages");
 	}
 
-	// Logged, not silent: a parent this file never mentions decided the answer.
-	mounts_in(view, claim){
-		console.log(`${this.log_label()}.container() → ${claim}`);
-		return view;
-	}
+	// The claim string names the parent that decided — the seam to log when debugging.
+	mounts_in(view, claim){ return view; }
 
 	// Router.activate() calls this root-to-leaf, so my ancestors — and their
 	// regions — already exist by the time I look for a container.
@@ -154,7 +151,22 @@ export class Page {
 			container.append(this.view);
 
 		this.activated?.();
+		this.warn_if_hidden();
 		return this;
+	}
+
+	// Dev only: an unmarked `.page` is `display: none` by the arrangement contract and
+	// nothing throws. Deferred, so whatever marks it — the Router or a demo box — has
+	// run; quiet when a sibling in the same box is marked, which is an ancestor
+	// standing aside rather than a mistake.
+	warn_if_hidden(){
+		if (!dev) return;
+
+		queueMicrotask(() => {
+			if (marked(this.view.el) || [...this.view.el.parentNode?.children ?? []].some(marked)) return;
+
+			console.warn(`${this.log_label()} was placed with no mark, so the arrangement contract hides it — add \`default\`, or route to it.`);
+		});
 	}
 
 	deactivate(){
@@ -165,8 +177,6 @@ export class Page {
 	render(){
 		if (this.view) return this.view;
 
-		console.groupCollapsed(`${this.log_label()}.render() — first build`);
-
 		// `standard` is the default page shape; a declared `classes` replaces it whole.
 		this.view = div.c("page flow", () => {
 			if (this.title) h1.c("page-title", this.title);
@@ -175,16 +185,13 @@ export class Page {
 			.ac(this.name && "page-" + this.name)
 			.ac(this.classes ?? "standard");
 
-		console.groupEnd();
 		return this.view;
 	}
-
-	go(){ return this.app.router.go(this.url); }
 
 	link(text){ return a.c("page-link", text ?? this.title).href(this.url); }
 
 	// One menu entry: mine.
-	nav(){ return { url: this.url, label: this.label ?? this.title, icon: this.icon, card: this.card }; }
+	nav(){ return { url: this.url, label: this.label ?? this.title, icon: this.icon, card: this.card, description: this.description }; }
 
 	// The child's own entry, at the url this list gives it. Weakest label last: the
 	// child's `label`, its title, then the segment — a declared child may still be null.
@@ -214,9 +221,12 @@ export class Page {
 	// indexes — `previews()` is my children, `walls()` is my grandchildren under their
 	// parent's name. Depth 1 on purpose, and a childless child has no rung: a heading
 	// over nothing is this method quietly turning back into `previews()`.
+	// ⚠ `leaf` opts a child out whole: it presents ITSELF, not its children — and a
+	// child that overrode `previews()` into something else entirely (a rail, a
+	// timeline) would otherwise render that thing here, on someone else's index.
 	walls(){
 		return div.c("page-walls bleed flex v gap", () => this.children.forEach((page, name) => {
-			if (!page?.children.size) return;
+			if (!page?.children.size || page.leaf) return;
 
 			const nav = this.nav_for(name);
 
@@ -237,6 +247,7 @@ export class Page {
 		return div.c("page-preview", () => {
 			if (thumb) div.c("page-preview-thumb", thumb);
 			this.preview_link(nav);
+			if (!thumb && nav.description) p.c("page-preview-desc", nav.description);
 		}).ac(nav.card);
 	}
 

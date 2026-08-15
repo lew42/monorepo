@@ -34,7 +34,7 @@ export default new Page({
 	title: "Stat tiles",
 	description: "A template, not a function — a card wall with one token retuned.",
 	icon: "bar_chart",
-	card: "wide",
+	card: "two",
 
 	children: [
 		demo.page("icons", with_icons, {

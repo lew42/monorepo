@@ -2,10 +2,9 @@ A page's claim on the wall it sits in: `"wide" | "tall" | "big"`.
 
 **Usage** — carried by `nav_for()` and applied by `preview_card()`
 (`Page.class.js:181`), which puts the bare word on the card so `Page.css` reads it as
-`.page-preview.wide`. Declared three times in `public/`:
-`framework/styles/layouts/holy-grail/page.js:13` (`"big"`),
-`framework/ui/stats/page.js:12` (`"wide"`), `framework/ui/timeline/page.js:16`
-(`"tall"`).
+`.page-preview.tall`. Live declarations: `framework/styles/layouts/{shell,mail,chat}/page.js`
+(`"tall"`), `framework/ui/stats/page.js` (`"two"`), `framework/ui/timeline/page.js`
+(`"tall"`), and a run of them in `framework/styles/sections/page.js`.
 
 **Necessity** — marginal, and honest about it: three declarations. It survives because
 the alternative is a parent hand-listing which of its children are wide, which is the

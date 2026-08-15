@@ -77,31 +77,6 @@ export default class View {
 		return this;
 	}
 
-	prepend(...args){
-		for (const arg of args){
-			if (arg && arg.el){
-				arg.parent = this;
-				this.el.prepend(arg.el);
-			} else if (is.arr(arg)){
-				this.prepend.apply(this, arg);
-			} else if (is.fn(arg) || is.obj(arg)){
-				console.warn("View.prepend() takes a view, an array or a node — use append() for", arg);
-			} else {
-				this.el.prepend(arg);
-			}
-		}
-		return this;
-	}
-
-	prepend_to(view){
-		if (is.dom(view)){
-			view.prepend(this.el);
-		} else {
-			view.prepend(this);
-		}
-		return this;
-	}
-
 	append_fn(fn){
 		View.set_captor(this);
 		const return_value = fn.call(this, this);
@@ -270,11 +245,6 @@ export default class View {
 		return this;
 	}
 
-	off(event, cb){
-		this.el.removeEventListener(event, cb);
-		return this;
-	}
-
 	// Import a module and append its default export. Not async on purpose, so it
 	// works inside a capture fn. Parallel — `lazy()` when written order matters.
 	load(meta, url){
@@ -331,9 +301,6 @@ export default class View {
 			throw "whaaaat";
 		}
 	}
-	compute(){
-		return getComputedStyle(this.el);
-	}
 	hide(){
 		this.el.style.display = "none";
 		return this;
@@ -352,24 +319,6 @@ export default class View {
 	}
 	remove(){
 		this.el.parentNode?.removeChild(this.el);
-		return this;
-	}
-
-	replace(view){
-		this.el.replaceWith(view.el ? view.el : view);
-		return this;
-	}
-
-	clone(){
-		return new this.constructor({
-			el: this.el.cloneNode(true)
-		});
-	}
-
-	repeat(n){
-		for (let i = 0; i < n; i++){
-			this.clone();
-		}
 		return this;
 	}
 
@@ -402,15 +351,11 @@ export default class View {
 		View.captor = View.previous_captors.pop();
 	}
 
-	static meta_path(meta, path){
-		return new URL(path, meta.url).href;
-	}
-
 	static url(meta, path){
 		if (is.str(meta)){ // url("/file.js");
 			return meta;
 		} else { // url(import.meta, "file.js");
-			return View.meta_path(meta, path);
+			return new URL(path, meta.url).href;
 		}
 	}
 

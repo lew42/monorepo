@@ -1,0 +1,34 @@
+/* Restated IN FULL - the first @layer statement fixes the order, and a short
+   list silently drops `site` past `util`. ASCII only, comments included. */
+@layer base, theme, site, util;
+
+@layer theme {
+
+	/* touch-action, or the browser pans instead of dragging. */
+	.drag-handle { cursor: grab; touch-action: none; user-select: none; }
+	.dragging, .dragging .drag-handle { cursor: grabbing; }
+
+	/* The live node keeps its pointer-events - hit-testing filters it out by hand -
+	   but it is not what you look at mid-drag. */
+	.drag-source { display: none; }
+
+	/* The ONE element that is pointer-events:none, so elementsFromPoint sees past it. */
+	.drag-ghost {
+		position: fixed;
+		pointer-events: none;
+		z-index: 50;
+		margin: 0;
+		opacity: 0.85;
+	}
+
+	/* The landing slot. Its outline is its whole job, so the border stays here. */
+	.drag-placeholder {
+		box-sizing: border-box;
+		border: 2px dashed var(--prim);
+		border-radius: var(--radius);
+	}
+
+	/* An empty container has no height, so there is nothing to drop onto - the
+	   single most common "drag doesn't work" report. */
+	.drag-items { min-height: 1.75em; }
+}

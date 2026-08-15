@@ -1,6 +1,6 @@
 import { Page, md, h2, div, demo } from "/app.js";
 import preview from "../../styles/layouts/preview.js";
-import layout from "../../ext/Layout/layout.js";
+import layout from "../../ext/layout/layout.js";
 import tour from "./tour.js";
 
 const n = count => Array(count).fill("");

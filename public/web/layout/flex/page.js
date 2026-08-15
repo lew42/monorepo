@@ -1,6 +1,6 @@
 import { Page, demo, md, div, p } from "/app.js";
-import layout from "/framework/ext/Layout/layout.js";
-import { toggle } from "/framework/ext/Layout/controls.js";
+import layout from "/framework/ext/layout/layout.js";
+import { toggle } from "/framework/ext/layout/controls.js";
 
 const box = (title, body) => div.c("pad surface", () => { p.c("h4", title); p(body); });
 
@@ -42,6 +42,6 @@ export default new Page({
 
 		md("Nine of these strings are the whole of flex on this site, each one word from its neighbour. Click a box to open the panel: it reads back the words the element is wearing and the two tokens behind them, which is the string you paste into a page.");
 
-		md("Reference: [Flex](/framework/styles/layouts/flex/) — the nine strings, one page each · [Layout](/framework/ext/Layout/) — the toolbar, and `layout.words`.");
+		md("Reference: [Flex](/framework/styles/layouts/flex/) — the nine strings, one page each · [Layout](/framework/ext/layout/) — the toolbar, and `layout.words`.");
 	},
 });

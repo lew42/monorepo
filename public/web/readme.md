@@ -37,7 +37,7 @@ clicking it. The cost is real: inside a demo app there is no `Router`, so
 selected itself, rather than this directory restating six rules to fix it.
 
 **No new components.** Everything on `/web/nav/` is built from the five blocks:
-a `Page`, `card()`/`wall()`, the `ext/demo` stage, the `ext/Layout` panel, and the
+a `Page`, `preview()`/`previews()`, the `ext/demo` stage, the `ext/layout` panel, and the
 utility vocabulary. Where a pattern needed a shell — a bar, a rail, a drawer — the
 demo's own root overrides `render()`, which is exactly what `/framework/page.js`
 and `/page.js` do for real. The shell *is* the lesson, so it is written out in

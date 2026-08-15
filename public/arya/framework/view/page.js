@@ -56,13 +56,10 @@ export default new Page(import.meta, {
 
 		api({
 			".append(...)": "add children, same rules as the constructor",
-			".prepend(...)": "the same, at the start",
 			".empty(...)": "remove every child, then optionally append",
 			".text(value)": "get or set `textContent`",
 			".html(value)": "get or set `innerHTML` — never hand this user input",
-			".remove()": "detach from the DOM",
-			".replace(view)": "swap this element for another",
-			".clone()": "a copy, including children"
+			".remove()": "detach from the DOM"
 		});
 
 		h2("Attributes, style and events");

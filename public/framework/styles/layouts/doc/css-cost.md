@@ -1,5 +1,8 @@
 # What the utilities could not say
 
+The ledger of the eight layouts this folder held before the merge; six of those
+pages are gone and the accounting below is why it cost nothing to fold them in.
+
 Split out of `readme.md`. Both gaps below are now closed — `.basis` and
 `.measure` are in `framework.css`, and the eight layouts ship no CSS at all.
 
@@ -28,7 +31,7 @@ more than the missing class:
 - `grid` with `grid-template-columns` — no utility for an asymmetric template
   either, so it is the same inline style with more syntax.
 - `flex.auto` with a `--column` override — makes the columns *equal*, which is
-  [Split](/framework/styles/layouts/split/), not a sidebar.
+  [flex gap auto](/framework/styles/layouts/flex/auto/), not a sidebar.
 
 **Applied since.** `.basis { flex: 0 0 var(--basis, var(--column)); min-width: 0 }`
 shipped in `framework.css` — `div.c("basis").style("--basis", "var(--sidebar)")`

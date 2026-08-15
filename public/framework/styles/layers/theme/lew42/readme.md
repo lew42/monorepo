@@ -92,7 +92,7 @@ Heading margins were `em`, which resolves against *the heading's own* size — s
 theme took `h2` from 1.4em to 2.25em, `margin: 2.2em` silently went 49px → 79px. They
 went to `rem`, then to a registered `--flow`, and both were reversed: rhythm is one
 unregistered `--flow: 2em` now, resolving at each child on purpose, because a heading
-*should* take air in proportion to its own type size. `core/Page/doc/layout.md` has the
+*should* take air in proportion to its own type size. `core/Page/doc/css.md` has the
 whole arc — it is the same trade-off argued three times.
 
 ## What wasn't built, and why that's the right stopping point

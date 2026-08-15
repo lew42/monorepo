@@ -1,12 +1,11 @@
-import { Page, Sidebar, div, span, md } from "/app.js";
-import detail from "../detail.js";
-import { next } from "../../parts.js";
+import { Page, demo, Sidebar, div, span, md } from "/app.js";
 
-export default new Page(detail({
+export default new Page(demo.layout({
 	meta: import.meta,
 	title: "Sidebar",
 	description: "A fixed panel beside fluid content — two utility classes, no rule.",
 	icon: "view_sidebar",
+	group: "Apps",
 
 	note: "One row, edge to edge. The panel is `basis` at `--sidebar`; the article is a `22em` basis, so the pair re-flows on its own width.",
 
@@ -74,10 +73,7 @@ the alternatives: [Flex](/framework/styles/layouts/flex/).
 
 To stack it deliberately instead of intrinsically, swap the fixed basis for \`flex gap
 auto\`: every child gets \`flex: 1 1 var(--column)\` and the two panes become equals.
-That is [Split](/framework/styles/layouts/split/).`);
-
-					next("[Cards](/framework/styles/layouts/cards/) — the one that needs no CSS at all.",
-						"styles/layouts/sidebar/");
+That is [flex gap auto](/framework/styles/layouts/flex/auto/).`);
 				});
 			});
 		});

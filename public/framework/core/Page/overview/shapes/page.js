@@ -14,9 +14,9 @@ const studio = () => new Page({
 		},
 		CSS: {
 			icon: "palette",
-			classes: "pad",
+			classes: "full pad",
 			content(){
-				md("`classes: \"pad\"` — no measure, an even inset: a board.");
+				md("`classes: \"full pad\"` — no measure, an even inset: a board.");
 
 				div.c("grid gap auto", () => "abcdef".split("").forEach(() =>
 					div.c("wash").style({ height: "2.5em", borderRadius: "var(--radius)" })))

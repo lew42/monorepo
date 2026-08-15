@@ -1,5 +1,5 @@
-import { div, md, code, details, summary, demo } from "/app.js";
-import layout from "../../ext/Layout/layout.js";
+import { div, md, demo } from "/app.js";
+import layout from "../../ext/layout/layout.js";
 import { shape } from "./preview.js";
 
 /* word(child) — one class string, as an inline child page.
@@ -38,21 +38,27 @@ export default function word(child){
 			layout.bar($box);
 
 			md(this.note);
-			source(this);
+			overrides(this);
+			demo.source(template(this));
 		},
 	};
 }
 
+/* The tokens the class string reads (framework.css) — on a shape whose whole definition
+   is its words, they are the only thing there is to override. A string that reads none
+   gets no line. */
+const TOKENS = { gap: "--gap", pad: "--pad", "all-pad": "--pad", auto: "--column",
+	three: "--column", basis: "--basis", measure: "--measure", flow: "--flow" };
+
+function overrides({ words, kids }){
+	const tokens = [...new Set([...words.split(" "), ...kids].map(word => TOKENS[word]).filter(Boolean))];
+
+	if (tokens.length)
+		md(`**Overrides:** ${tokens.map(token => `\`${token}\``).join(", ")} — declared on the box with \`.style()\`, and inherited by every child.`);
+}
+
 const boxes = ({ words, kids }) =>
 	div.c(words, () => kids.forEach(kid => div.c("pad wash " + kid, kid || "box").style("--pad", "0.5em")));
-
-/* `.demo-source` is ext/demo's own closed-details block, borrowed so every source on
-   the site looks alike. `demo.source()` itself takes a function; this code is a
-   string, built from the two arguments the box above was built from. */
-const source = child => details.c("demo-source", () => {
-	summary("Source");
-	code.js(template(child));
-});
 
 const template = ({ words, kids }) => `div.c("${words}", () => {`
 	+ kids.map(kid => `\n    div.c("pad wash${kid && " " + kid}", "…");`).join("")

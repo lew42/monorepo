@@ -20,16 +20,12 @@ export class App {
 	log_label(){ return "app"; }
 
 	async instantiate(){
-		console.log(`app.instantiate() ${location.pathname} ${"─".repeat(40)}`);
-
 		this.config();
 		this.render();
 		await this.load();
 		this.initialize();
 		this.inject();
 		this.ready.resolve();
-
-		console.log("  ↳ app.inject() — $app appended to <body>, first paint");
 	}
 
 	// Empty on purpose — the seams a site overrides.
@@ -46,14 +42,11 @@ export class App {
 		// ⚠ $pages, NOT $app: a page's view is built by an element factory, which
 		// auto-appends to the captor, so the captor has to be where pages live.
 		View.set_captor(this.$pages);
-		console.log("app.render() — chrome built, still detached from <body>");
 	}
 
 	// ⚠ The try covers the first navigation too — a throw in any content() would
 	// otherwise skip inject() and paint nothing at all.
 	async load(){
-		console.log('app.load() — import("/page.js"), the walk needs an origin');
-
 		try {
 			// the only page handed `app` directly; every other gets it from its
 			// parent on the walk, in Page.child()

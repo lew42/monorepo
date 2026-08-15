@@ -1,5 +1,5 @@
 **Usage** — the mirror of `set_captor`, from the same places: `append_fn()`
-(`View.js:108`) and `lazy()` (`View.js:293`). `App` and `app.js` deliberately
+(`View.js:83`) and `lazy()` (`View.js:263`). `App` and `app.js` deliberately
 **do not** call it — they set the captor once and leave it set for the life of the
 document.
 

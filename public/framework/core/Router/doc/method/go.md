@@ -4,7 +4,8 @@ what makes Back reliable after a 404.
 ## Usage
 
 - `Router.js:28` — `click()`.
-- `Page.class.js:147` — `page.go()`, the one programmatic entry point.
+- Site code, as `app.router.go(url)` — the one programmatic entry point. `Page.go()`
+  was a one-line wrapper over it, with no callers, and is deleted.
 
 `popstate` deliberately does **not** come through here: the browser has already
 moved history, so it calls `load()` directly (`Router.js:15`).

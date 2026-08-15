@@ -27,7 +27,7 @@ export default new Page({
 
 		code.js(`div.c("grid gap auto toc-skip", () => stats())   // not sections`);
 
-		md("`toc-skip` is the opt-out for the case that list cannot guess: a page rendering a **real component** rather than an example of one. A stat tile's value is an `.h2` because it is big, not because it is a section — [Versus](/framework/versus/) had `827 · 28 KB · 0 · 0 · 0` in its rail until it said so.");
+		md("`toc-skip` is the opt-out for the case that list cannot guess: a page rendering a **real component** rather than an example of one. A stat tile's value is an `.h2` because it is big, not because it is a section — [Versus](/framework/versus/) had `714 · 21 KB · 0 · 0 · 0` in its rail until it said so.");
 
 		h2("Scroll spy");
 

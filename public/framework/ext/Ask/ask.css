@@ -1,0 +1,25 @@
+/* Restated IN FULL — a short list silently misplaces `site`. */
+@layer base, theme, site, util;
+
+/* Layout only. Looks come from `surface` / `wash` / `muted` off framework.css. */
+@layer theme {
+
+	.chat { display: flex; flex-direction: column; gap: .75em; min-width: 0; }
+
+	.chat-list { display: flex; flex-direction: column; gap: .75em; min-width: 0; max-height: 30em; overflow-y: auto; }
+
+	.chat-turn { display: flex; flex-direction: column; gap: .25em; padding: .5em .75em; border-radius: var(--radius); background: var(--wash); min-width: 0; }
+	.chat-user { background: color-mix(in srgb, var(--prim) 10%, transparent); }
+
+	.chat-role { font-size: .8em; text-transform: uppercase; letter-spacing: .05em; }
+	.chat-body { display: flex; flex-direction: column; gap: .5em; min-width: 0; }
+	.chat-body > * { margin: 0; }
+
+	.chat-cost { font-size: .8em; }
+	.chat-error { color: var(--error, crimson); }
+
+	.chat-form { display: flex; gap: .5em; align-items: flex-end; }
+	.chat-input { flex: 1; min-width: 0; resize: vertical; font: inherit; padding: .5em; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--ink); }
+	.chat-send { padding: .5em 1em; }
+	.chat-send:disabled { opacity: .5; }
+}

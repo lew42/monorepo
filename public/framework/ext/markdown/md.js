@@ -78,7 +78,12 @@ md.file = async function(meta, url, options = {}){
 		return view;
 	} catch (error) {
 		delete md.cache[href]; // don't cache the failure
-		return view.ac("md-error").text(`Error loading ${url}: ${error.message}`);
+
+		// A 404 is nearly always "nobody has written this yet", which is not a fault —
+		// it still fails visibly, it just stops reading like a broken page.
+		return view.ac("md-error").text(error.message.startsWith("404")
+			? `Not written yet — ${url}`
+			: `Error loading ${url}: ${error.message}`);
 	}
 };
 

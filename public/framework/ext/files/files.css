@@ -4,6 +4,7 @@
 @layer theme {
 
 	.files {
+		container-type: inline-size;   /* the `about` pane stacks on the BOX, not the window */
 		display: flex;
 		align-items: stretch;
 		border: 1px solid var(--line);
@@ -56,6 +57,28 @@
 		overflow: auto;
 		font-size: 0.85em;
 		flex: 1 1 0;
+	}
+
+	/* The prose written ABOUT the file, beside its source — ext/doc's Files tab.
+	   ⚠ `min-width: 0` for the same reason the pane needs it. */
+	.file-about {
+		flex: 1 1 24em; min-width: 0;
+		padding: 0 1.1em;
+		border-inline-end: 1px solid var(--line);
+		overflow: auto;
+		font-size: 0.9em;
+	}
+
+	/* ⚠ A CONTAINER query, not a media query: the browser is as likely to be inside a
+	   demo stage or a split pane as on the page, and the window's width says nothing
+	   about either. `.files` opts in below. */
+	@container (max-width: 56em) {
+		.file-pane { flex-direction: column; }
+		.file-about {
+			flex: 0 1 auto; max-height: 12em;
+			border-inline-end: none;
+			border-block-end: 1px solid var(--line);
+		}
 	}
 
 	/* ⚠ `--basis: auto`, not a `flex` override: `.basis` lives in `util` and would

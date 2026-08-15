@@ -1,0 +1,35 @@
+@layer base, theme, site, util;
+
+@layer theme {
+
+    /* The instrument: the text stays put, the shots scroll past it.
+       ⚠ Both tracks carry a REAL basis, never `.flex-1` — `flex: 1 1 0%` in a wrapping
+         row shrinks instead of wrapping, and the ruler measured 80px wide at 430.
+         That is the `fluid` trap this page documents, met on the page itself. */
+    .space { align-items: flex-start; }
+
+    .space-panel { position: sticky; top: 0; flex: 1 1 22em; max-width: 30em; }
+
+    .space-text { font-family: var(--mono); min-height: 15em; resize: vertical; white-space: pre; }
+
+    /* Every readout on this page is a number you compare against the one below it. */
+    .space-tag { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+    .space-out { flex: 1 1 26em; min-width: 0; max-height: 82vh; overflow-y: auto; }
+
+    /* A wrapping ROW, not a column: each shot is at most its own real width, so a
+       wide room packs the narrow screens side by side instead of leaving 1800px of
+       gutter beside a phone. Each shot's basis is written by ruler.js. */
+    .space-ruler { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 1.6em; }
+    .space-shot { display: flex; flex-direction: column; gap: 0.35em; }
+
+    /* ⚠ The clip is what makes a shot a shot: `zoom` lays the render out at its real
+       width, and this box shows however much room there was for it. */
+    .space-screen { overflow: hidden; }
+
+    /* One tile is one seed, cropped to a common height so the wall reads as a wall.
+       The render inside is inert — the whole tile is the control. */
+    .space-seed { height: 11em; overflow: hidden; cursor: pointer; }
+    .space-seed > * { pointer-events: none; }
+    .space-seed:hover { border-color: var(--prim); }
+}

@@ -147,8 +147,8 @@ by looking, and the two that shipped — a gallery wall flush against the sideba
 a `.tabs.vertical` panel scrolling sideways at 390px — were both invisible on the
 page the author was editing. This is the pass, and it is short so that it happens.
 
-**The urls.** Between them they exercise every page word (`default`, `grid`,
-`pad`, `full`, `fill`, `flow`), both breakout tracks (`wide`, `bleed`), a
+**The urls.** Between them they exercise every page word (`default`, `standard`,
+`full`, `fill`, `flow`), both breakout tracks (`wide`, `bleed`), a
 `route()`-synthesised page, and a `.topic` region:
 
 | url | breaks here first |
@@ -157,7 +157,7 @@ page the author was editing. This is the pass, and it is short so that it happen
 | `/framework/styles/layouts/` | the same pair, one level up |
 | `/framework/styles/layouts/fit/` | `wide` and `bleed` side by side, as documentation |
 | `/framework/styles/sections/hero/` | a `route()` page, and a band that *should* bleed |
-| `/framework/styles/layouts/holy-grail/` | `full fill flex v`, a nested `Sidebar`, a scrolling row |
+| `/framework/styles/layouts/shell/` | `full fill flex v`, five regions, a scrolling row |
 | `/framework/core/View/` | a deep doc page — `classdoc` → a vertical `tabs` rail inside `.topic` |
 
 **The widths: 1600 and 900.** 1600 is a real desktop; 900 is where a sidebar plus

@@ -42,7 +42,7 @@
 	}
 
 
-	/* The page vocabulary — `standard`, `pad`, `full`, `fill`. Structure only, no skin.
+	/* The page vocabulary — `standard`, `full`, `fill`. Structure only, no skin.
 	   Anything opts out by declaring the tokens on itself: a declared value beats
 	   an inherited one at any specificity, in any layer. */
 	.page { max-width: var(--measure, none); padding: var(--page-pad, 0); }
@@ -52,9 +52,6 @@
 	/* ⚠ All three are load-bearing: `min-height` makes a SHORT page fill,
 	   `overflow` stops a TALL one pushing its own footer off the region. */
 	.page.fill { align-self: stretch; overflow: hidden; min-height: 100%; }
-
-	/* The util `.pad` out-ranks `.page`'s padding by layer, so this steers tokens. */
-	.page.pad { --measure: none; --pad: 2em; }
 
 	/* ⚠ Its own `--gutter-x`, never `--page-pad`: that is a padding shorthand, and
 	     `minmax(3em 4em, 1fr)` drops the whole template.
@@ -110,7 +107,7 @@
 	     cards.
 	   ⚠ `bleed`, not `wide` (previews() adds it): the widest track still lands
 	     inside the page's own inset, never against the sidebar — measured, in
-	     doc/layout.md, which is where the older claim to the contrary died. */
+	     doc/css.md, which is where the older claim to the contrary died. */
 	/* ⚠ `:where(:not(.page))` — `render()` stamps `page-<name>` on every page, so a
 	     page in a directory called `previews/` wears the WALL's class and silently
 	     grids itself. `:where()` keeps this at (0,1,0), so catalog.css's overrides
@@ -197,6 +194,20 @@
 	.page-preview-title { font-weight: 700; }
 	.page-preview .icon { color: var(--subtle); }
 
+	/* The plain card's second line — a thumbed card IS its render and stays bare
+	   (preview_card() draws this only without a thumb).
+	   ⚠ Clamped, not truncated: a card sets its row's height, so one long
+	     description would deal every card beside it the same dead space. */
+	.page-preview-desc {
+		margin: 0;
+		color: var(--subtle);
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+		line-clamp: 2;
+		overflow: hidden;
+	}
+
 	/* ⚠ `mark_links()` only touches anchors, so `.active` / `.in-path` land on the
 	     LINK and the card has to ask.
 	   ⚠ `:has(> a…)`, never `:has(a…)`: a live thumb can hold marked links of its own. */
@@ -208,16 +219,17 @@
 	}
 
 	/* The two claims a page makes on the wall it appears in, from `card:`. `tall`
-	   doubles the ceiling for a render that only reads whole; `wide` takes a second
-	   column. Derived from `--thumb-max` rather than a third token. */
-	.page-preview:is(.wide, .big) { grid-column: span 2; }
+	   doubles the ceiling for a render that only reads whole; `two` takes a second
+	   column. Derived from `--thumb-max` rather than a third token.
+	   ⚠ `two`, not `wide`: `wide` is the page track, and a card is not on one. */
+	.page-preview:is(.two, .big) { grid-column: span 2; }
 	.page-preview:is(.tall, .big) .page-preview-thumb { max-height: calc(var(--thumb-max, 12em) * 2); }
 
 	/* ⚠ Spans do NOT clamp themselves: `auto-fill` must generate at least as many
-	   tracks as the widest span asks for, so a `.wide` card forces a second track
+	   tracks as the widest span asks for, so a `.two` card forces a second track
 	   at one column and the wall overflows. Column spans only — a row span never
 	   widens a track. */
 	@media (max-width: 28em) {
-		.page-preview:is(.wide, .big) { grid-column: span 1; }
+		.page-preview:is(.two, .big) { grid-column: span 1; }
 	}
 }

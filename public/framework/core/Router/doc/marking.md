@@ -7,12 +7,18 @@
 .active-ancestor   everything above it
 ```
 
-Wipe across `$app`, then reapply down the new chain. **A page that left needs
-nothing undone, only its classes gone** — which is a query, not a lifecycle call,
-and that is why there is no teardown protocol to get wrong.
+Unmark the views I marked last time, then mark the new chain. **A page that left
+needs nothing undone, only its classes gone** — two `classList` calls, not a
+lifecycle call, and that is why there is no teardown protocol to get wrong.
+
+**Only what I marked.** `this.marked` holds the views wearing my two classes, and it
+is the whole wipe. ⚠ Never widen this back to a `$app` query: it would clear the
+marks a widget wrote on a page of its own, and the arrangement contract would then
+hide that page on the next click anywhere — `display: none`, nothing thrown. Same
+*only what changed* discipline `activate()` follows.
 
 Every arrangement on the site is these two classes plus one a page opted into by
-name (`grid`, `pad`, `full`, `fill`). The Router does not know any of those names —
+name (`standard`, `full`, `fill`). The Router does not know any of those names —
 which is why that list can be rewritten, as it has been: `paper`/`papers` were the
 words here until the sheet became the region's default.
 

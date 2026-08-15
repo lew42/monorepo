@@ -1,7 +1,5 @@
 import { Page, md, p, pre, div, button, h3 } from "/app.js";
-// Pager left core — /app.js stopped exporting it. Imported from where it
-// actually lives so this page keeps demonstrating the real class.
-import { Pager } from "/framework/core/legacy/Pager/Pager.js";
+import { Pager } from "../legacy/Pager.js";
 
 export default new Page({
 	meta: import.meta,
@@ -9,7 +7,7 @@ export default new Page({
 	description: "new Pager() + show() — live.",
 	content(){
 
-		md("> **This class has left core.** `Pager`, `TabPager` and `ColumnPager` now live in `framework/core/legacy/` and `/app.js` no longer exports them. An arrangement is a CSS class a page opts into — see [Page](/framework/core/Page/). The examples below still run, against the legacy class, imported directly.");
+		md("> **This class is history.** `Pager`, `TabPager` and `ColumnPager` left core, and the framework tree no longer ships them — an arrangement is a CSS class a page opts into, see [Page](/framework/core/Page/). The demo below still runs: `Pager` is vendored beside these pages, in `michael/pager/legacy/`.");
 
 		p("`show(page)` empties the container and renders a page into it. That's the whole class.");
 

@@ -1,0 +1,37 @@
+/* ⚠ Restated IN FULL — the first `@layer` statement fixes the order, and a
+   short list silently drops `site` past `util`. */
+@layer base, theme, site, util;
+
+@layer theme {
+
+	/* Layout only. The cards below borrow `--surface` and `--line` rather than
+	   inventing a look, because a rules page that ships its own skin is not
+	   following its own rules. */
+	.rules-demo { margin-block: 1em; }
+
+	.rules-row { align-items: start; }
+	.rules-cell { min-width: 0; gap: 0.4em; }
+
+	.rules-card {
+		background: var(--surface);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+	}
+
+	.rules-card > * { margin: 0; }
+	.rules-card > * + * { margin-block-start: 0.4em; }
+
+	.rules-verdict { font-size: 0.85em; font-variant-numeric: tabular-nums; }
+
+	.rules-nest { gap: 0.4em; }
+	.rules-name { font-weight: 700; }
+
+	/* The proportion rule, applied to this page's own frames — a rules page that
+	   fails its own rule is not evidence of anything. */
+	.rules-stage {
+		padding: clamp(0.75em, 3.5%, 3.5em);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		overflow: hidden;
+	}
+}

@@ -1,0 +1,33 @@
+{"log": {"at": "2026-08-14T12:10:06-05:00", "task": "vision-sonnet", "msg": "task opened — Sonnet screenshots 5 layouts pages at 400/1920/3440, then per-image layout analysis with token metering"}}
+{"log": {"at": "2026-08-14T12:20:39-05:00", "task": "vision-sonnet", "msg": "landed — 15/15 sonnet analyses in layout-analysis.json; $2.53 worker spend, window 46->57%"}}
+{"log": {"at": "2026-08-14T12:20:39-05:00", "task": "vision-haiku-opus", "msg": "task opened — haiku + opus analyze the same 15 shots, fresh CLI sessions, same per-image metering"}}
+{"log": {"at": "2026-08-14T12:26:21-05:00", "task": "ai-page", "msg": "landed — ext/Timeline + ai catalog page + AITask rename; 316,680 worker tokens over ~32m; duplicate-root defect caught in seam check and fixed"}}
+{"log": {"at": "2026-08-14T12:26:21-05:00", "task": "timeline", "msg": "landed — design → build → verify complete; /framework/ai/ is now the split timeline page"}}
+{"log": {"at": "2026-08-14T12:29:52-05:00", "task": "vision-haiku-opus", "msg": "landed — haiku $0.33 + opus $2.36 on the same 15 shots; window 57->64%"}}
+{"log": {"at": "2026-08-14T12:29:52-05:00", "task": "vision-report", "msg": "task opened — cross-model comparison of token cost and finding quality"}}
+{"log": {"at": "2026-08-14T12:32:32-05:00", "task": "vision-report", "msg": "landed — report.md: haiku/sonnet/opus at ~$0.02/$0.10/$0.14 per shot; consensus on nav-rail clipping, 400px stage compression, 3440 dead space; haiku unreliable at 1920, opus fix-ready"}}
+{"log": {"at": "2026-08-14T15:21:04-05:00", "task": "ai-dashboard", "msg": "task opened — usage rail with pace coloring, step-based task cards, task detail template"}}
+{"log": {"at": "2026-08-14T16:40:00-05:00", "task": "ai-dashboard", "msg": "landed — usage rail reads as pace (▼ = clock, bar = spend); tasks carry steps/step driving card bar + detail checklist; AITask is now an overridable template"}}
+{"log": {"at": "2026-08-14T16:19:34-05:00", "task": "layout-tool", "msg": "task opened — ext/LayoutTool: numeric layout analysis, test corpus, vision calibration, site audit"}}
+{"log": {"at": "2026-08-14T16:22:00-05:00", "task": "browser-cli-bridge", "msg": "task opened — socket→CLI bridge: chat with a Claude session from the browser, exchange lands in task.jsonl"}}
+{"log": {"at": "2026-08-14T17:05:00-05:00", "task": "browser-cli-bridge", "msg": "landed — ext/Ask: chat with a Claude session from any page, exchange recorded as `chat` lines; `shot` lets a turn look at an element"}}
+{"log": {"at": "2026-08-14T21:45:00-05:00", "task": "layout-tool", "msg": "landed — ext/LayoutTool: 64/64 on its corpus, 116-page site audit finds over-wide prose on 76 pages; beat Sonnet and Haiku on the case it was built for"}}
+{"log": {"at": "2026-08-14T22:30:00-05:00", "task": "layout-system", "msg": "task opened — fortify LayoutTool + layout-design into a system: rules, robust layouts, nesting ruling, css-strategy skill"}}
+{"log": {"at": "2026-08-14T20:20:00-05:00", "task": "figma-layouts", "msg": "task opened — port the July-2026 Figma layout documentation system into styles/layouts/"}}
+{"log": {"at": "2026-08-14T21:42:00-05:00", "task": "figma-layouts", "msg": "landed — hero, pricing, carousel and overlay ported from the Figma layout documentation system; no stylesheet, two analyzer gaps reported"}}
+{"log": {"at": "2026-08-15T01:10:00-05:00", "task": "layout-system", "msg": "landed — polish tier + element-level before/after + styles/rules/ + css-strategy skill; site grades now spread F:20 D:35 C:48 B:17 A:1"}}
+{"log": {"at": "2026-08-14T21:44:30-05:00", "task": "dev-toolbar", "msg": "task opened — site-wide right dev toolbar: Ctrl+\\ toggle, localStorage state, dark UI"}}
+{"log": {"at": "2026-08-14T22:35:00-05:00", "task": "dev-toolbar", "msg": "landed — Ctrl+\\ dev rail site-wide, dark, persistent, beside ext/layout's drawer rather than under it"}}
+{"log": {"at": "2026-08-14T22:02:00-05:00", "task": "editor-panel-review", "msg": "task opened — review ext/editor + ext/Panel, rule on the rename, ship an interactive findings page that is actually linked"}}
+{"log": {"at": "2026-08-14T22:01:10-05:00", "task": "framework-clock", "msg": "task opened — put the live ext/Panel clock on the /framework/ front door"}}
+{"log": {"at": "2026-08-14T22:12:10-05:00", "task": "framework-clock", "msg": "landed — live clock band on /framework/; panel() now takes a T name, and the band's height is what sizes the clock"}}
+{"log": {"at": "2026-08-15T00:15:00-05:00", "task": "editor-panel-review", "msg": "landed — 27 findings as a filterable ledger; the capital E is earned by the split, not a git mv; deliverable-linking rule added to new-task"}}
+{"log": {"at": "2026-08-14T22:58:47-05:00", "task": "layout-space", "msg": "task opened — a layout becomes a string, so the space can be sampled instead of authored"}}
+{"log": {"at": "2026-08-14T23:00:51-05:00", "task": "efforts", "msg": "task opened — make the effort (a thread spanning days) the top unit on the ai index rail"}}
+{"log": {"at": "2026-08-14T23:11:27-05:00", "task": "layout-space", "msg": "landed — a layout is a string: text format, seed generator, five-screen ruler, seed wall at /framework/styles/layouts/space/"}}
+{"log": {"at": "2026-08-14T23:16:00-05:00", "task": "efforts", "msg": "landed — effort is the top unit; 31 tasks in 7 efforts, and the board fills the screen instead of leaving 2300px of gutter"}}
+{"log":{"at":"2026-08-14T23:21:55-05:00","task":"read-public-framework-ext","msg":"task opened from the board — Read public/framework/ext/AITask/readme.md and append ONE log line to your own task.jsonl "}}
+{"log": {"at": "2026-08-14T23:24:30-05:00", "task": "board-smoke", "msg": "renamed from read-public-framework-ext — the first task ever started from the board, kept as the smoke-test record"}}
+{"log": {"at": "2026-08-14T23:25:00-05:00", "task": "board-start", "msg": "task opened — start work from the browser: rpc:start scaffolds a task dir and spawns a session"}}
+{"log":{"at":"2026-08-14T23:25:06-05:00","task":"board-start-check","msg":"task opened from the board — Append ONE log line to your own task.jsonl saying the compose box works, then stamp landed"}}
+{"log": {"at": "2026-08-14T23:30:00-05:00", "task": "board-start", "msg": "landed — start a task from the browser; rpc:start scaffolds the dir and spawns the session, verified end to end twice"}}

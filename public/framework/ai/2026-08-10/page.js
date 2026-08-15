@@ -1,5 +1,5 @@
 import { Page, md, h2, demo } from "/app.js";
-import { web } from "/framework/ext/demo/web.js";
+import { sample } from "/framework/ext/demo/sample.js";
 
 export default new Page({
 	meta: import.meta,
@@ -21,12 +21,12 @@ export default new Page({
 
 		h2("One tree, many renderings");
 
-		demo.app(web(), { nav: true }).ac("wide").style("height", "20em");
+		demo.app(sample(), { nav: true }).ac("wide").style("height", "20em");
 
-		md("`web()` — nine children, three of them deeper — is the shared sample tree in [ext/demo](/framework/ext/demo/), where `mini_app()` also lives now (promoted from the Page demos by the five-block census: it frames a render, so it extends the stage block). The four arrangement demos are one `web()` each with a different root, which is itself the lesson: an arrangement is only the parent's `content()`. The basics demos keep their bespoke minimal trees, because there the *source* is the lesson.");
+		md("`sample()` — nine children, three of them deeper — is the shared sample tree in [ext/demo](/framework/ext/demo/), where `mini_app()` also lives now (promoted from the Page demos by the five-block census: it frames a render, so it extends the stage block). The four arrangement demos are one `sample()` each with a different root, which is itself the lesson: an arrangement is only the parent's `content()`. The basics demos keep their bespoke minimal trees, because there the *source* is the lesson.");
 
 		md("Verified with a playwright crawl at 1600 and 900: the classdoc surfaces, the demo rail (click-through included), the ui kit and the layouts pages — no console errors, no failed requests, no horizontal overflow.");
 
-		md("Combining all of it — shapes, walls, catalogs, tabs, miniatures — is now written down once: [Page › Docs › layout](/framework/core/Page/docs/layout/).");
+		md("Combining all of it — shapes, walls, catalogs, tabs, miniatures — is now written down once: [Page › Docs › css](/framework/core/Page/docs/css/).");
 	},
 });

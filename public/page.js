@@ -1,24 +1,16 @@
-import { Page, Sidebar, md, h1, h2, div, a } from "/app.js";
+import { Page, Sidebar, md, h1, div, a } from "/app.js";
 
 // Plain {title, url} data on purpose — declaring these as `children` would
 // auto-import every section's tree (and its side effects) into the home page.
 const sections = [
-	{ title: "Framework", url: "/framework/", desc: "The docs — View, Page, Router, App." },
+	{ title: "Framework", url: "/framework/", desc: "The docs — View, Page, Router, App, and the CSS layers." },
 	{ title: "Web", url: "/web/", desc: "The guide — how to build things on the web, shown live." },
-	{ title: "Alex", url: "/alex/", desc: "Pages, subpages, and nesting." },
-	{ title: "Arya", url: "/arya/", desc: "First steps with the framework." },
-	{ title: "Castin", url: "/castin/", desc: "A tree you can walk — root to leaves." },
-	{ title: "Edric", url: "/edric/", desc: "Framework and style documentation." },
-	{ title: "Michael", url: "/michael/", desc: "Elements, layout, components, and the core classes." },
 ];
 
 export default new Page({
 	meta: import.meta,
-	title: "Nice work, everyone",
-	description: "Everything is merged and live. A note to the team.",
-
-	// No children declared: the sidebar and cards below are hand-rolled, and any
-	// /section/ url resolves from disk when visited.
+	title: "lew42",
+	description: "A web framework with no build step — and the site it builds.",
 
 	// I bring my own sidebar, so the global nav would just say it twice.
 	classes: "page-homepage hides-nav",
@@ -54,13 +46,7 @@ export default new Page({
 
 	content(){
 
-		md("Everything is merged and live at [monorepo.lew42.workers.dev](https://monorepo.lew42.workers.dev).");
-
-		md("I've been through every page each of you wrote. You each built your own framework and styles documentation from scratch — thank you, genuinely. It's good work and it shows.");
-
-		h2("Go read each other's");
-
-		md("It's one site now, so spend some time in someone else's directory. You solved a lot of the same problems in different ways, and the differences are the interesting part.");
+		md("**A web framework with no build step.** Native ES modules, served exactly as written: you add a `page.js`, the browser runs it. This site is that framework documenting itself, so every example on it is live code you can click into.");
 
 		// These sections are plain data, not Pages (see above), so the cards are
 		// hand-rolled: an `<a.page-preview>`, where Page.preview() emits a div with
@@ -72,28 +58,8 @@ export default new Page({
 					div.c("page-preview-desc", section.desc);
 				});
 			});
-		});
+		}).style("--column", "24em");
 
-		h2("Styling counts");
-
-		md("Layout, appearance and styling matter more here than they might seem to — they're most of what makes any of this feel usable. I'm working through Figma designs now, and I'm hoping to land a major visual upgrade before long.");
-
-		h2("Sit tight");
-
-		md("No new tasks just yet. Hold off for now and I'll have more for you shortly. When they land: `git switch main` and `git pull` before you branch, and keep to [the branch naming convention](/notes/git-branch-names/).");
-
-		h2("If you're bored");
-
-		md(`The framework picked up a lot while you were building:
-
-- **[Start](/framework/start/)** — three files and a working site. Click through the real project.
-- **[FAQ](/framework/faq/)** — the questions you're about to have, answered code-first.
-- **[Router](/framework/core/Router/)** — no-reload page transitions. Write an ordinary \`<a href>\` and it upgrades the click for you.
-- **[Page](/framework/core/Page/)** — a titled, linkable, dormant unit of content. Importing one renders nothing, so pages can link to each other freely.
-- **[Elements](/framework/styles/elements/)** and **[Layouts](/framework/styles/layouts/)** — every element the framework styles, and eight page layouts you can click into full size.`);
-
-		md("Every example on those pages is live: you see the code, directly beneath it the thing that code rendered, and — one click further — **the HTML it actually produced.**");
-
-		md("The old `Pager` tier is gone, by the way. An arrangement is a CSS class a page opts into now, so there's no fifth class to learn. If you built anything on it, the records are in `core/legacy/`.");
+		md("Also here: short working [notes](/notes/), and five personal sandboxes — [Alex](/alex/), [Arya](/arya/), [Castin](/castin/), [Edric](/edric/), [Michael](/michael/).");
 	}
 });

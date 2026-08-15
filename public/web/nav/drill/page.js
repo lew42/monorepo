@@ -1,5 +1,5 @@
 import { Page, demo, md, div, a, span, h4 } from "/app.js";
-import web from "/framework/ext/demo/web.js";
+import sample from "/framework/ext/demo/sample.js";
 
 // A column of cards, beside the region whatever you pick mounts in.
 const rail = (page, basis) => {
@@ -13,7 +13,7 @@ const cards = site => site.children.forEach(page => { if (page.children.size) pa
 
 /* (a) descend the rail — the rail stays at the top level forever. */
 const depot = () => {
-	const site = web({ title: "Depot", content(){ div.c("flex gap", () => rail(this, "8.5em")); } });
+	const site = sample({ title: "Depot", content(){ div.c("flex gap", () => rail(this, "8.5em")); } });
 	cards(site);
 	return site.children.get("html");
 };
@@ -21,7 +21,7 @@ const depot = () => {
 /* (b) re-root the rail — every node reports where it is, the rail follows, and the
    trail above is the only way back up. */
 const vault = () => {
-	const site = web({
+	const site = sample({
 		title: "Vault",
 
 		content(){
@@ -57,7 +57,7 @@ const vault = () => {
 
 /* (c) a rail per level — the parent's rail stays because the child mounts inside it. */
 const rack = () => {
-	const site = web({ title: "Rack", content(){ div.c("flex gap", () => rail(this, "7em")); } });
+	const site = sample({ title: "Rack", content(){ div.c("flex gap", () => rail(this, "7em")); } });
 
 	site.children.forEach(page => { if (page.children.size)
 		page.content = function(){ div.c("flex gap", () => rail(this, "7em")); }; });

@@ -1,4 +1,4 @@
-**Usage** — one internal caller: `tc()` (`View.js:175`), which loops it over a
+**Usage** — one internal caller: `tc()` (`View.js:151`), which loops it over a
 space-separated list. Nothing in `public/` calls it directly.
 
 **Necessity** — no, as a public name. As a body, yes — it is the single-class step

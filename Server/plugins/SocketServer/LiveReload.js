@@ -1,5 +1,6 @@
 import Events from "../../Events.js";
 import chokidar from "chokidar";
+import path from "path";
 
 export default class LiveReload extends Events {
 
@@ -9,6 +10,7 @@ export default class LiveReload extends Events {
 
     initialize() {
 		console.log("Initializing LiveReload");
+        this.muted = new Map();
         this.watcher = chokidar.watch("public", {
             ignored: (path, stats) => {
                 if (stats && stats.isDirectory()) return false;
@@ -26,10 +28,20 @@ export default class LiveReload extends Events {
         this.watcher.on("error", err => console.error("LiveReload watcher error:", err));
     }
 
-    changed(path) {
-        console.log(`File changed: ${path}. Sending reload to ${this.socket_server.sockets.length} sockets.`);
+    /* A socket that writes a file shouldn't be reloaded by its own write — it
+     * already has the content. Everyone else still reloads. */
+    mute(file, socket) {
+        this.muted.set(path.resolve(file), { socket, at: Date.now() });
+    }
+
+    // ⚠ Directory.js calls this with no path — every caller is not a file watcher.
+    changed(file) {
+        const mute = file && this.muted.get(path.resolve(file));
+        const skip = mute && Date.now() - mute.at < 5000 ? mute.socket : null;
+
+        console.log(`File changed: ${file}. Sending reload to ${this.socket_server.sockets.length - (skip ? 1 : 0)} sockets.`);
         for (const socket of this.socket_server.sockets) {
-            socket.rpc("reload");
+            if (socket !== skip) socket.rpc("reload");
         }
     }
 }

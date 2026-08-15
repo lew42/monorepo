@@ -59,7 +59,7 @@ the same `.page-previews`, so a child styles its card once and it is right on th
 wall, in the rail, and in a strip. No second card, per the five-block rule.
 
 Two of a card's *wall* claims cannot survive the turn, and both were found by
-converting `styles/layouts`: `.wide`/`.big` span two tracks, and **a span invents
+converting `styles/layouts`: `.two`/`.big` span two tracks, and **a span invents
 the track it asks for** — so one `card: "big"` child made the whole rail two
 columns wide and ragged. And in the `< 64em` strip the cards are one row, so the
 tallest sets the height for all of them; a full-size live thumb scrolled off to the
@@ -78,9 +78,17 @@ chains into the region and pins it flush — which is why `top` is `0` and not t
 inset (the inset varies: 3em + `--flow` on a standard page, a tab bar's height
 inside a classdoc group).
 
+**`reveal()` — the deep-link case, closed.** The lit card is scrolled into view once,
+after `app.ready`, with `scrollIntoView({ block: "nearest", inline: "nearest" })`: one
+call for the rail (which scrolls down) and the strip (across), a card already showing is
+left alone, and neither shape has to know its own top inset — which is what makes it hold
+inside a classdoc group, where the rail sits in a tab panel. `tabs()` bans that same call
+on its bar, because a bar is in the flow and reaching a tab must not move the region; a
+sticky full-height rail *wants* the remainder, since taking it is what pins the rail flush.
+
 **The rail's own shape, tuned against the four catalogs (Aug 2026, Mike).** It pays
 `--gutter-x` back as a `margin-inline-start` so it starts on the page's axis instead
-of 9px off the app sidebar (`doc/layout.md`'s axis section carries the carve-out);
+of 9px off the app sidebar (`doc/css.md`'s axis section carries the carve-out);
 `row-gap` is `1.2em` — the rail's own, never `--gap`, which inherits and would retune
 a live thumb's `.gap` utilities; the scrollbar is `thin`; and the page's hidden
 `.page-title` gets its flow margin reclaimed, because `.page-title + *` was handing
@@ -113,9 +121,6 @@ would spend 11em of a phone's scrollport.
 
 ## Open
 
-- **No `reveal()`.** A deep link to a card far down a long rail arrives with the
-  rail scrolled to its top, the lit card below the fold. `tabs()` solved this;
-  port when it bites.
 - The rail width is `--rail` (19em), sized to the Page overview's live tree cards:
   18em of thumb plus the rail's own padding. Six consumers now, none fighting it;
   the first one that does is the signal to make it a documented token.

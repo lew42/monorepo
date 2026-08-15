@@ -1,0 +1,15 @@
+/* Restated IN FULL — a short list silently misplaces `site`. */
+@layer base, theme, site, util;
+
+/* Layout only — turn/meta/flow spacing. Looks are wash/muted off framework.css. */
+@layer theme {
+
+	.ai-feed { display: flex; flex-direction: column; gap: .75em; min-width: 0; }
+
+	.ai-feed-list { display: flex; flex-direction: column; gap: .75em; min-width: 0; }
+
+	.ai-turn { display: flex; flex-direction: column; gap: .5em; padding: .5em .75em; }
+	.ai-turn .ai-meta { display: flex; gap: .5em; align-items: baseline; flex-wrap: wrap; }
+
+	.ai-turn-flow { display: flex; flex-direction: column; gap: .5em; min-width: 0; }
+}

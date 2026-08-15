@@ -1,5 +1,5 @@
 import { Page, md, code, demo, p } from "/app.js";
-import { web } from "/framework/ext/demo/web.js";
+import { sample } from "/framework/ext/demo/sample.js";
 
 export default new Page({
 	meta: import.meta,
@@ -17,7 +17,7 @@ export default new Page({
     content(){ p("Nine topics, one rail."); },
 });`);
 
-		demo.stage(() => demo.app(web({
+		demo.stage(() => demo.app(sample({
 			initialize(){ this.catalog(); },
 			content(){ p("Nine topics, one rail."); },
 		})).style("height", "24em")).ac("wide");
@@ -28,7 +28,7 @@ export default new Page({
 
 		md("The [Page overview](/framework/core/Page/) is a catalog — its demos are the rail — and so is every classdoc Overview tab. The [same arrangement built by hand](/framework/core/Page/overview/catalog/) is five lines of `flex gap basis flex-1`; `catalog()` is those five lines plus the default-fill and marking a permanent page deserves.");
 
-		md("Next: [Layout](/framework/ext/Layout/) — the toolbar that pushes arrangements around.");
+		md("Next: [Layout](/framework/ext/layout/) — the toolbar that pushes arrangements around.");
 
 		md.details(import.meta, "readme.md", "Design record — why a method, and what it must not grow");
 	},

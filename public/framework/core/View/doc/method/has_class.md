@@ -1,5 +1,5 @@
 **Usage** — two internal callers and nothing else in `public/`: `hc()`
-(`View.js:166`) and `toggle_class()` (`View.js:170`). No page, ext or sandbox
+(`View.js:141`) and `toggle_class()` (`View.js:145`). No page, ext or sandbox
 calls it by this name.
 
 **Necessity** — no. It is the long spelling of `hc`, and the codebase has voted:

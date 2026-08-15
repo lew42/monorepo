@@ -97,7 +97,7 @@ exactly as written: one word in `skip`, and the opting-out visible at the call s
 that causes it.
 
 ```js
-div.c("grid gap auto toc-skip", () => stats());
+div.c("grid gap auto toc-skip", () => …);   // framework/stats.js
 ```
 
 **A pre-committed verdict has now worked twice** (`.cols` in `Page.css` was the other):

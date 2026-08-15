@@ -1,0 +1,19 @@
+{
+	"session_id": "ec7e50f0-6ca4-428c-aff0-42e5c66dced8",
+	"request": "ok, finish the renames task — the ext rename wave approved 2026-08-13 (class exts get capitalized dirs: ext/Saver, ext/Draggable, ext/AISession, ext/Panel; Panel.class.js → Panel.js; panel.js splits into workspace.js + PanelDrag.js) and held for the usage window. Dispatched 2026-08-14 as the planned single Sonnet worker; all four dirs still untracked, so the case-only git mv hazard is moot.",
+	"requested_at": "2026-08-14T10:30-05:00",
+	"landed_at": "2026-08-14T10:56-05:00",
+	"model": "claude-fable-5",
+	"tab": "Finish the renames task",
+	"now": "landed",
+	"outcome": "**Renamed:** `ext/saver`→`ext/Saver`, `ext/draggable`→`ext/Draggable`, `ext/ai`→`ext/AISession`, `ext/panel`→`ext/Panel`; `Panel.class.js`→`Panel.js`; `panel.js` split into `workspace.js` + `PanelDrag.js`. The Windows case-collision trap fired live mid-rename (renaming `Panel.class.js`→`Panel.js` destroyed the pre-existing `panel.js`) — no data lost, content had already been read. Swept every live reference across `public/` (imports, `app.js`, `ext/page.js`'s `children`, prose links, css comments, readmes, plus two live-rendered `ai/2026-08-13/` docs). `node --check` clean on all touched JS; Playwright pass on 6 pages (Panel, Panel/full, editor, day dashboard, ext index, this task's own page) — zero console/page errors, Panel workspace mounts 7 panels, `/full/` mounts 13.",
+	"links": [
+		{ "url": "/framework/ext/Panel/", "label": "ext/Panel" },
+		{ "url": "/framework/ext/Saver/", "label": "ext/Saver" },
+		{ "url": "/framework/ext/Draggable/", "label": "ext/Draggable" },
+		{ "url": "/framework/ext/AISession/", "label": "ext/AISession" }
+	],
+	"agents": [
+		{ "kind": "agent", "task": "worker: the four dir renames, Panel.js split, full reference sweep, node --check, 6-page Playwright pass", "model": "claude-sonnet-5", "tokens": 297087, "duration_ms": 1281574, "outcome": "all deliverables A-E; hit the NTFS case-fold collision live (Panel.class.js→Panel.js ate panel.js — content already captured, nothing lost); zero stale runtime refs, zero console errors", "used": true }
+	]
+}

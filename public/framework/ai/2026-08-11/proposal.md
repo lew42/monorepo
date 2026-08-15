@@ -70,7 +70,7 @@ unit that stopped growing at 2491px.
 
 | fill | route | ink | what it is |
 |---|---|---|---|
-| **14%** | `/framework/ext/Layout/` | 432px | the page documenting the layout widget renders 432px of content in a 3166px region |
+| **14%** | `/framework/ext/layout/` | 432px | the page documenting the layout widget renders 432px of content in a 3166px region |
 | **19%** | `/framework/styles/layouts/centered/` | 612px | `.measure` = 34em (correct — it *is* the centered layout) |
 | **19%** | `/framework/styles/layouts/stack/` | 612px | same, but stack is not about being narrow |
 | **28%** | `/framework/styles/layouts/split/` | 900px | **a two-pane split layout, demonstrated 900px wide on a 3440 monitor** |
@@ -216,7 +216,7 @@ markup, source}`, `faq/`, `versus/`, and all 19 `ui/*` leaves (each opens with a
 | `styles/layouts/stack/` | `classes: "flex v"` → 612px | keep `.measure` inside, but the page goes `full`; the stack is not the narrowness |
 | `styles/layouts/centered/` | `classes: "flex v"` → 612px | **correct as-is** — the page *is* the centered layout. Record it as a deliberate exception, or the next audit will "fix" it |
 | `styles/layouts/{cards,dashboard}/` | `pad …` → 1404px via a `.measure` 78em wrapper | fine, but the 78em wrapper is a fourth width vocabulary; fold into `--measure` |
-| `ext/Layout/` | 432px ink, 14% | the widget page must demonstrate the widget at width — see T7 |
+| `ext/layout/` | 432px ink, 14% | the widget page must demonstrate the widget at width — see T7 |
 | `/framework/` | 1080px, left-aligned, 72% empty | see Part B |
 | `styles/layouts/`, `layouts/flex/`, `layouts/grid/` | `classes: "grid"` | **no-ops** — the grid is the default since 2026-08-10. Delete all three. (Eleven such redundancies were deleted then; these three were missed.) |
 
@@ -256,7 +256,7 @@ are four again, because three of them predate it and were never converted.
 
 | # | collision | evidence |
 |---|---|---|
-| 1 | **Thirteen pages answer "how do I lay out a page"** | `styles/layouts/fit`, `styles/layouts/`, the 8 layout leaves, `layouts/flex`+`grid`, `styles/layers/util`, `styles/sections`, `styles/`, `core/page.js` §"There is no layout tier", `core/Page/flow`, `core/Page/docs/layout`, `core/Page/overview/shapes`, `ext/Layout`. Six of them teach the identical five words. |
+| 1 | **Thirteen pages answer "how do I lay out a page"** | `styles/layouts/fit`, `styles/layouts/`, the 8 layout leaves, `layouts/flex`+`grid`, `styles/layers/util`, `styles/sections`, `styles/`, `core/page.js` §"There is no layout tier", `core/Page/flow`, `core/Page/docs/layout`, `core/Page/overview/shapes`, `ext/layout`. Six of them teach the identical five words. |
 | 2 | `styles/layouts/split` ⟷ `styles/sections/split` | **same name, same class string (`flex gap auto`), two urls** |
 | 3 | `styles/layouts/cards` ⟷ `ui/card` ⟷ `Page.previews()` | same picture, three implementations. `cards/page.js:6` and `ui/card/page.js:6` are the *same five classes in a different order*. Neither links to the other |
 | 4 | `styles/layouts/dashboard` ⟷ `core/Page/overview/dashboard` | two `/dashboard/` urls in one docs site, unrelated content |
@@ -390,7 +390,7 @@ the house rule on naming, and because it adds a method to `Page`.
 | `styles/layouts/` | 11 (3 doc + 8 layouts) | **highest** | two ladders in a 546px stage + a wall | **convert to `catalog()`** — a rail of 8 live layout thumbs beside the layout at full size is the single best previews-as-nav case on the site. Un-nest the ladders from the stage. Fold `flex`+`grid`'s 12 words onto one page (rule 3) |
 | `styles/sections/` | 15 bands | **highest** | wall | **convert to `catalog()`.** 15 bands, each a screen — a rail is what you want while comparing them |
 | `ui/` | 19 | **highest** | wall @18em | wall → bleed (19/19 above fold). Then **fold `palette()` into `previews()`**: a component's variants become inline object children, so ui becomes recursive and the fourth preview mechanism dies |
-| `ext/` | 9 | low | wall | wall → bleed. `ext/Layout/` is the worst page on the site (14%) — T7 |
+| `ext/` | 9 | low | wall | wall → bleed. `ext/layout/` is the worst page on the site (14%) — T7 |
 | `util/` | 3 | none | wall | keep as-is |
 | `dev/` | **1** | none | wall of one card | **absorb `Socket` into `dev/`** (rule 2) |
 | `start/`, `faq/`, `versus/` | 0 | some | `toc()` + prose | prose pages, correctly. `versus/` hand-rolls a stat grid — see overlap #5 |
@@ -457,8 +457,8 @@ three no-op `classes: "grid"` declarations in `styles/layouts/page.js:19`,
 pages have two width behaviours (screen, and the one deliberate measure) instead
 of four.
 
-### T7 — `ext/Layout` demonstrates itself — **M**
-`public/framework/ext/Layout/page.js` is the worst-filling page on the site
+### T7 — `ext/layout` demonstrates itself — **M**
+`public/framework/ext/layout/page.js` is the worst-filling page on the site
 (432px ink of a 3166px region, 14%) and its subject is a widget for controlling
 layout. Rebuild it render-first: the widget on a bleed stage above the fold,
 prose below. Un-nest `styles/layouts/page.js`'s two ladders from their 546px
@@ -537,7 +537,7 @@ and A2's keep verdict says the main track never scales, so 936px of a 3166px
 region is **the design, not a violation**. They average 32%; **the other 149
 routes average 82%.** Even a perfect 100% on all 149 caps the all-routes average
 at 92%. The honest number to track is the 82%, and the remaining lift belongs to
-T3, T7 and T8 — `ext/Layout/` is still 30% at 3440, exactly as T7 says.
+T3, T7 and T8 — `ext/layout/` is still 30% at 3440, exactly as T7 says.
 
 ### The two anomalies, chased
 

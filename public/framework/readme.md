@@ -2,7 +2,7 @@
 
 The cross-cutting one: calls that touch more than one class. Per-class records live
 next to their code (`core/*/readme.md`, `ext/*/readme.md`,
-`styles/layers/theme/*/readme.md`); Pager-era records are in `core/legacy/`.
+`styles/layers/theme/*/readme.md`); Pager-era records are in `michael/pager/legacy/`.
 
 Format: **question → options → weighing → verdict.** A verdict of *keep* is as
 valuable as a change — it stops the same idea being re-litigated.
@@ -50,10 +50,10 @@ click to see X"* in one glance** — the site sidebar is *which module*, the rai
 
 ## Traps that cross files
 
-- **`instanceof` across `core/` and `core/legacy/`.** Both directories ship —
-  `public/` *is* the deploy artifact — so a typo'd `../legacy/Page/Page.class.js`
-  resolves successfully, to a real file, and yields a *different class with the same
-  name*. Nothing throws. `Page.add()` does the one internal `instanceof` to watch.
+- **`instanceof` across `core/` and `core/new/`.** Both directories ship — `public/`
+  *is* the deploy artifact — so a typo'd `../new/0/Page.class.js` resolves
+  successfully, to a real file, and yields a *different class with the same name*.
+  Nothing throws. `Page.add()` does the one internal `instanceof` to watch.
 - **A POJO default export whose key collides with a `Page` method shadows it.**
   `{ render(){ … } }` in capture style returns nothing, and `activate()` then reads
   `.el` of `undefined`. `content()` is the seam that shape wants.

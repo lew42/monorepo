@@ -1,6 +1,5 @@
-import { Page, div, md, demo } from "/app.js";
-import detail from "/framework/styles/layouts/detail.js";
-import { pick } from "/framework/ext/Layout/controls.js";
+import { Page, demo, div, md } from "/app.js";
+import { pick } from "/framework/ext/layout/controls.js";
 import { sitemap, lead, widget } from "../parts.js";
 import { columns } from "../columns/columns.js";
 
@@ -28,7 +27,7 @@ function navigation(){
 
 const open = name => demo.app(dress[name]()).style({ height: "24em", "--rail": "12em" });
 
-export default new Page(detail({
+export default new Page(demo.layout({
 	meta: import.meta,
 	title: "Navigation",
 	description: "One tree, three ways — a rail, a wall that swaps, and columns.",

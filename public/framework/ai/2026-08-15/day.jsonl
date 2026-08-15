@@ -1,0 +1,5 @@
+{"log": {"at": "2026-08-15T12:20:00-05:00", "task": "fix-split-screen-layout", "msg": "task opened — the two-up's checkerboard is the wrong box, and a demo with no edge against the page"}}
+{"log": {"at": "2026-08-15T12:50:00-05:00", "task": "fix-split-screen-layout", "msg": "landed — the two-up sits on a --bg ground, the board is gone, and both panes fill at every handle position"}}
+{"log":{"at":"2026-08-15T12:29:42-05:00","task":"devbar-ai","msg":"task opened — devbar viewport presets, LocalStorageSaver settings, and a per-page Ask section storing threads at <page>/ai/<slug>/"}}
+{"log":{"at":"2026-08-15T12:45:49-05:00","task":"devbar-ai","msg":"landed — four viewport presets, rail settings on ext/Saver, and a per-page Ask section storing threads at <page>/ai/<slug>/"}}
+{"log": {"at": "2026-08-15T13:38:00-05:00", "task": "doc-system", "msg": "task opened — generalize classdoc into a Doc class, add a documentation skill, fan out a framework-wide doc audit"}}

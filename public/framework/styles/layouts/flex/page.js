@@ -11,6 +11,7 @@ export default new Page({
 	title: "Flex",
 	description: "A row, and the eight one-word steps away from it.",
 	icon: "view_week",
+	group: "Vocabulary",
 
 	// Inline object children: nine real pages, nine urls, no directories. Each one
 	// draws its own card (word.js) and the wall below is those cards.
@@ -31,13 +32,13 @@ export default new Page({
 			note: "`split` — `space-between`. A title left, a control right: this is every toolbar." }),
 
 		word({ name: "auto", label: "Equal peers, that wrap", words: "flex gap auto", kids: n(3), column: "3em",
-			note: "`auto` — every child asks for `--column` and takes an equal share, so peers are equal without being measured. This is [Split](/framework/styles/layouts/split/)." }),
+			note: "`auto` — every child asks for `--column` and takes an equal share, so peers are equal without being measured. Two panes that stack themselves, with no breakpoint and no number outside the token." }),
 
 		// `words` is the title everywhere else; this one shares it with `gap`, and the
 		// two item classes are what actually differ.
 		word({ name: "basis", title: "flex gap › basis + flex-1", label: "A fixed rail, a fluid rest",
 			words: "flex gap", kids: ["basis", "flex-1"],
-			note: "`basis` beside `flex-1` — the fixed track and the fluid one. This is [Sidebar](/framework/styles/layouts/sidebar/), and with a second `basis` it is [Holy grail](/framework/styles/layouts/holy-grail/)." }),
+			note: "`basis` beside `flex-1` — the fixed track and the fluid one. This is [Sidebar](/framework/styles/layouts/sidebar/), and with a second `basis` it is [App shell](/framework/styles/layouts/shell/)." }),
 
 		word({ name: "wrap", label: "Wraps to a second line", words: "flex gap wrap", kids: n(6),
 			note: "`wrap` — boxes drop to a second line instead of squeezing. **Drag the handle.** Add it to anything that could ever be narrow, which is everything." }),

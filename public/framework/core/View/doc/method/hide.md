@@ -1,4 +1,4 @@
-**Usage** — two live callers: `toggle()` (`View.js:349`) and
+**Usage** — two live callers: `toggle()` (`View.js:317`) and
 `alex/framework/core/Router/Router.js:132`, which hides the app while a reload is
 pending.
 

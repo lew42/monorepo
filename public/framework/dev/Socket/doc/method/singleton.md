@@ -3,7 +3,6 @@
 One call site, and it is the whole public API of this module:
 
 - `public/app.js:25` — `socket: Socket.singleton()`, inside the `new App({…})`.
-- `framework/core/legacy/App/App.js:127` — the dead Pager tier, same line.
 
 ## Necessity
 

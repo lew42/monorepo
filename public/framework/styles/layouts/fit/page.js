@@ -9,7 +9,7 @@ const card = (label, name, cls) =>
 
 const wall = () => div.c("grid gap auto", () => {
 	card("Big — spans two by two", "dashboard", "big");
-	card("Wide", "view_week", "wide");
+	card("Two columns", "view_week", "two");
 	card("Ordinary", "description");
 	card("Tall", "view_day", "tall");
 	card("Ordinary", "description");
@@ -21,20 +21,20 @@ export default new Page({
 	title: "Fit",
 	description: "How a page holds a layout: the default sheet, and the four words that change it.",
 	icon: "crop_free",
+	group: "Vocabulary",
 
 	// this page IS its subject — it declares no classes, so it wears the default
 	// grid, and the wide and bleed blocks below really do escape the measure
 
 	content(){
 
-		md("A page is a `div.page` in a region, and **saying nothing gives you the grid page** — a centred reading column with breakout tracks either side of it. Everything else is one word.");
+		md("A page is a `div.page` in a region, and **saying nothing gives you the standard page** — a centred reading column with breakout tracks either side of it. Everything else is one word.");
 
 		md(`| | \`--measure\` | inset | reach for it when |
 |---|---|---|---|
-| **\`grid\` — the default** | \`52em\` prose track | grid tracks | prose that sometimes needs a wide demo or a banner. Most pages, including this one |
+| **\`standard\` — the default** | \`52em\` prose track | grid tracks | prose that sometimes needs a wide demo or a banner. Most pages, including this one |
 | **the sheet** | \`60em\` | \`3em clamp(0px, 6%, 5em)\` | what any *other* \`classes:\` falls back to — plain centred prose, no breakouts |
-| **\`pad\`** | none | \`2em\` | a wall of cards, a gallery, an index |
-| **\`full\`** | none | none | the thing IS the page — a layout, a canvas, a map |
+| **\`full\`** | none | none | the thing IS the page — a layout, a canvas, a map. Add the \`pad\` **utility** for a wall, a gallery, an index |
 | **\`fill\`** | *unchanged* | *unchanged* | something must reach the **bottom** of the region |`);
 
 		h2("The measure is two tokens");
@@ -44,7 +44,7 @@ export default new Page({
 
 		md("The words are nothing but stances on these two — and a value declared on an element always beats one it inherited, at any specificity, in any layer. Set them on a **region** and every page in it follows; set them on a **page** and that page wins. No specificity ladder, no `@layer` fight:");
 
-		code.js(`classes: "pad"                                             // this page leaves the measure
+		code.js(`classes: "full"                                            // this page leaves the measure
 this.$pages = div.c("pages").style("--measure", "none")     // a whole region does`);
 
 		h2("Why a measure at all");
@@ -65,7 +65,7 @@ this.$pages = div.c("pages").style("--measure", "none")     // a whole region do
     div.c("bleed", () => banner());     // edge to edge
 }`);
 
-		demo(wall, "This box is `.ac(\"wide\")` — it starts left of the paragraph above it and ends right of it. The wall inside is `grid gap auto`, with three cards asking for a share via `.wide`, `.tall` and `.big`.").ac("wide");
+		demo(wall, "This box is `.ac(\"wide\")` — it starts left of the paragraph above it and ends right of it. The wall inside is `grid gap auto`, with three cards asking for a share via `.two`, `.tall` and `.big`.").ac("wide");
 
 		md("…and **`.bleed`** takes everything, edge to edge, including the page's own inset. **That inset is the gutter against the sidebar**, so `bleed` is for the one thing a band is for — touching the window — and never for a wall that merely wants more room:");
 
@@ -76,20 +76,17 @@ this.$pages = div.c("pages").style("--measure", "none")     // a whole region do
 
 		md("And prose resumes in the measure, with nothing to reset — a breakout is a *column assignment*, not a state.");
 
-		h2("`pad` — the wall");
-
-		code.js(`classes: "pad"   // --measure: none, padding: 2em`);
-
-		md("An index, a gallery, a wall of anything. **No measure**, because nothing here is prose. The [Cards](/framework/styles/layouts/cards/) and [Dashboard](/framework/styles/layouts/dashboard/) pages are this word — both then cap their content with `measure` at `78em`, because a card wall thirteen columns wide is not a wall.");
-
-		md("The [Layouts](/framework/styles/layouts/) index is **`standard`** instead, and the difference is worth knowing: it is a wall *and* prose. `pad` would throw the measure away for the paragraphs too. `standard` keeps the reading column and lets the wall out to `wide` — decided once inside [`Page.previews()`](/framework/core/Page/) rather than typed per page.");
-
 		h2("`full` and `fill`");
 
 		code.js(`classes: "full"        // --measure: none, --page-pad: 0
+classes: "full pad"    // …with the pad utility handing back an even inset
 classes: "full fill"   // …and BE the region's height`);
 
-		md("`full` is edge to edge **inside the region** — the layout supplies its own padding, or wants none. `fill` is the other half: without it a page is as tall as its content, so a `flex-1` band has no slack to take and a footer floats halfway up. It carries `overflow: hidden`, which is why a page that is reliably *taller* than the region ([Masthead](/framework/styles/layouts/masthead/)) must not wear it.");
+		md("`full` is edge to edge **inside the region** — the layout supplies its own padding, or wants none. Add the `pad` utility and it gets an even one instead: that is the wall stance, for an index, a gallery, a board. Cap the content with `measure` at something like `78em` when you take it, because a card wall thirteen columns wide is not a wall.");
+
+		md("The [Layouts](/framework/styles/layouts/) index is **`standard`** instead, and the difference is worth knowing: it is a wall *and* prose. `full` would throw the measure away for the paragraphs too. `standard` keeps the reading column and lets the wall out to `wide` — decided once inside [`Page.previews()`](/framework/core/Page/) rather than typed per page.");
+
+		md("`fill` is the other half of `full`: without it a page is as tall as its content, so a `flex-1` band has no slack to take and a footer floats halfway up. It carries `overflow: hidden`, which is why a page that is reliably *taller* than the region ([Sidebar](/framework/styles/layouts/sidebar/), [Stack](/framework/styles/layouts/stack/)) must not wear it.");
 
 		md("And when the region itself is too small a stage, a page can hand one layout the whole window at its own url:");
 

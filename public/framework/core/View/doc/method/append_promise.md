@@ -1,5 +1,5 @@
 **Usage** — called from `append()`'s promise branch (`View.js:72`) and directly by
-`load()` (`View.js:281`). Every `content(){ return md.file(…) }` on this site goes
+`load()` (`View.js:251`). Every `content(){ return md.file(…) }` on this site goes
 through it — that is the shape that lets a page return markdown with no support
 from `Page`.
 

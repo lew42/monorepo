@@ -111,7 +111,7 @@ mechanism** and pre-committed its removal.
 
 `palette()` and `copy()` are deleted. The clipboard did not go with them: it moved
 onto `demo.source()`, so *every* detail page on the site copies its own code now
-(`ext/demo/readme.md` §19.2).
+(`ext/demo/doc/record.md` §19.2).
 
 ### The per-page calls
 
@@ -125,7 +125,7 @@ Every page took the same assembly; what differed is what became a variant.
 | `crumbs` `badge` `toolbar` `panel` `menu` `accordion` | 1 each | palette entry and trailing demo were literally the same `const`; one variant, no duplicate |
 | `dialog` | `open` | the primary is the real modal (open it, press Esc); the variant is what `showModal()` shows, because a closed `<dialog>` renders nothing on a card |
 | `tooltip` `menu` | — | ⚠ **the templates carry a `pad` wrapper.** The bubble and the panel are out of flow and every stage, box and thumb crops; on a flush `bleed` render they would be invisible rather than merely clipped. It is in the template, not around it, because that is the honest markup |
-| `stats` `timeline` | — | keep their wall claims (`card: "wide"`, `card: "tall"`), which the rail already knows to reinterpret |
+| `stats` `timeline` | — | keep their wall claims (`card: "two"`, `card: "tall"`), which the rail already knows to reinterpret |
 
 **Card zoom dropped `zoom-75` → `zoom-50`.** A rail is 19em with `--thumb-max: none`,
 so twenty three-quarter-scale renders made a rail four screens tall. `zoom-50` is

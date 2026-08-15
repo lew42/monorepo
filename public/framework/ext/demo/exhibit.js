@@ -5,14 +5,16 @@ import { stage } from "./stage.js";
 /* Patches demo.app() on — the box demo.tree() builds. The side effect IS the import. */
 import "./app.js";
 
-/* ext/Layout is the site's one control surface, so the assembly hard-imports it
+/* ext/layout is the site's one control surface, so the assembly hard-imports it
    rather than feature-testing: a bar every page has to remember is a bar half the
    detail pages won't have. An ext may lean on an ext; only core may never. */
-import layout from "../Layout/layout.js";
+import layout from "../layout/layout.js";
 
 /* css: .demo-exhibit, .demo-exhibit-render, .demo-exhibit-def, .demo-steer — the band
    and the slot the bar is drawn into. Also .tree-preview; the shell around it keeps
-   .page-preview, which Page.css owns. */
+   .page-preview, which Page.css owns. And the ground under a `bleed` stage, which is
+   stage.js's box but this page's decision — a specimen with no edge is an exhibit
+   problem, not a stage one. */
 View.stylesheet(import.meta, "exhibit.css");
 
 /**
@@ -34,6 +36,9 @@ View.stylesheet(import.meta, "exhibit.css");
  * `page` is the page being built — hand it `this` and its children become the
  * Variants wall below. One band holds the render and the definition, so on a
  * wide monitor the code moves beside the thing instead of under it (exhibit.css).
+ *
+ * Three sugars are config over this: `demo.page()` and `demo.tree()` below, and
+ * `demo.layout()` in layout.js — a function, a site tree and a whole page.
  */
 demo.exhibit = ({ page, stage, def, file, note }) => {
 	let $bar, target;
@@ -51,11 +56,25 @@ demo.exhibit = ({ page, stage, def, file, note }) => {
 		div.c("demo-exhibit-def", () => {
 			demo.source(def, "Source", file).attr("open", "");
 			if (note) caption(note);
+			overrides(def);
 		});
 	});
 
 	if (page?.children.size) variants(page);
 };
+
+/* What a consumer can change, read off the definition itself: the argument it takes —
+   `source()` prints an arrow's BODY, so a parameter is otherwise never shown — and the
+   tokens it sets. Neither, and there is no line rather than a boilerplate one. */
+function overrides(def){
+	const src = String(def);
+	const args = src.match(/^[\w\s]*\(([^)]*)\)/)?.[1].trim();
+	const tokens = [...new Set([...src.matchAll(/["'](--[\w-]+)["']\s*[,:]/g)].map(m => `\`${m[1]}\``))];
+	const has = [args && `its argument \`${args}\``,
+		tokens.length && `the token${tokens.length > 1 ? "s" : ""} ${tokens.join(", ")}`].filter(Boolean);
+
+	if (has.length) caption(`**Overrides:** ${has.join(", ")} — in the source above.`);
+}
 
 /* The simple example IS the category for the complex ones: a demo page's children
    are its variants, drawn with the ONE card system rather than a wall of its own.

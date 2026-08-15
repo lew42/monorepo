@@ -1,6 +1,6 @@
 **Usage** — ~147 call sites, the third-busiest member. `href()` is a one-line
-wrapper over it (`View.js:257`), `stylesheet()` sets `rel` and `href` with it
-(`View.js:425`), and every `input().attr("type", "checkbox")` on the site is one.
+wrapper over it (`View.js:232`), `stylesheet()` sets `rel` and `href` with it
+(`View.js:370`), and every `input().attr("type", "checkbox")` on the site is one.
 
 ```js
 view.attr("href", "/docs/");   // set, chainable

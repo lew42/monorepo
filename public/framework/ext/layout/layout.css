@@ -1,0 +1,141 @@
+/* Layer order, restated IN FULL — a short list silently misplaces `site`. */
+@layer base, theme, site, util;
+
+@layer theme {
+
+	/* The box owns the space; the bar hovers in its corner, so the widget adds no
+	   height to whatever it is dropped into. */
+	.layout { position: relative; }
+
+	/* A FRAMED exhibit joins the page's left edge — the same gutter the wall hands
+	   back in Page.css. Unframed `.bleed` bands keep the region. */
+	.page.standard > .layout.bleed { padding-inline: var(--gutter-x); }
+
+	.layout-bar {
+		display: flex; flex-wrap: wrap; align-items: center;
+		gap: 0.3em;
+		padding: 0.25em;
+		font-size: 0.8em;
+		border: 1px solid transparent;
+		border-radius: var(--radius);
+		opacity: 0.4;
+		transition: opacity 0.12s;
+	}
+
+	/* Inside a `.layout` it is floating chrome and starts invisible; on its own it
+	   is a strip in the flow and starts quiet. Both light up when pointed at.
+	   ⚠ `bottom: 100%`, not `top: 0` — over the corner it covered the content of any
+	   box shorter than the bar, which is most of them. Above the corner it sits in
+	   the flow gap and occludes nothing. */
+	.layout > .layout-bar {
+		position: absolute; bottom: 100%; inset-inline-end: 0; z-index: 1;
+		margin-bottom: 0.25em;
+		background: var(--surface);
+		border-color: var(--line);
+		opacity: 0;
+	}
+
+	.layout:hover > .layout-bar,
+	.layout:focus-within > .layout-bar,
+	.layout-bar:hover,
+	.layout-bar:focus-within { opacity: 1; }
+
+	/* ⚠ A touch screen has no hover to reveal it with. */
+	@media (hover: none) { .layout-bar, .layout > .layout-bar { opacity: 1; } }
+
+	.layout-btn {
+		display: flex; align-items: center; gap: 0.3em;
+		padding: 0.15em 0.6em;
+		font-family: var(--mono);
+		color: var(--subtle);
+		background: none;
+		border: 1px solid transparent;
+		border-radius: var(--radius);
+		cursor: pointer;
+	}
+	.layout-btn:hover { color: var(--ink); border-color: var(--line); }
+	.layout-btn.on { color: var(--prim); border-color: var(--prim); }
+
+	/* Both declarations are about `select` defaults in framework.css.
+	   ⚠ `width: auto` — base gives every select `width: 100%`, which in a flex bar
+	     eats the row.
+	   ⚠ `background-origin` — theme paints the arrow at 100% of the CONTENT box, so
+	     on a shrink-to-fit select the padding-right walks it onto the text. */
+	.layout-pick {
+		width: auto;
+		padding: 0.1em 1.4em 0.1em 0.5em;
+		background-origin: padding-box;
+		color: var(--subtle);
+		border-color: var(--line);
+		border-radius: var(--radius);
+		cursor: pointer;
+	}
+
+	.layout-knob { display: flex; align-items: center; gap: 0.3em; cursor: pointer; }
+
+	/* ⚠ base gives every input `width: 100%` and does not except `range`. */
+	.layout-range { width: 5em; }
+
+	.layout-tag { color: var(--subtle); }
+	.layout-out { min-width: 3.2em; font-family: var(--mono); color: var(--subtle); }
+
+	/* ⚠ Outlines, not borders: an outline takes no space, so nothing reflows. */
+	.layout-hot { outline: 1px dashed var(--line); outline-offset: 2px; }
+	.layout-selected { outline: 2px solid var(--prim); outline-offset: 2px; }
+
+	/* ⚠ A touch screen has no hover to show what is tappable with. */
+	@media (hover: none) {
+		.layout-region,
+		.layout-region > *,
+		.layout-region :is(.flex, .grid) > * { outline: 1px dashed var(--line); outline-offset: 2px; }
+	}
+
+	/* ---- the drawer ----
+	   It PUSHES: `--drawer` is the inline-end rail `.app` yields (framework.css), set
+	   by panel.js on the same element this inherits it from, so the reserved strip and
+	   the panel are one number.
+	   ⚠ `rem`, not `em` — the padding resolves against `.app`'s font-size and the width
+	     against this panel's 0.85em, so an `em` value would reserve the wrong strip.
+	   ⚠ z-index 40 sits between `.demo.max` (30) and the mode button (60): the drawer
+	     has to reach over a full-screen demo without burying the scheme toggle. */
+	.layout-panel {
+		position: fixed; inset-block: 0; z-index: 40;
+		/* Beside the dev rail, not under it — both dock at this edge and the shell
+		   already reserves the sum of the two (framework.css). */
+		inset-inline-end: var(--devbar, 0px);
+		width: min(var(--drawer, 19rem), 100%);
+		gap: 0.8em;
+		padding: 0.9em;
+		font-size: 0.85em;
+		background: var(--surface);
+		color: var(--ink);
+		border-inline-start: 1px solid var(--line);
+		transform: translateX(100%);
+		transition: transform 0.18s;
+	}
+	.layout-panel.on { transform: none; }
+
+	/* The head is pinned and the body scrolls under it — a drawer whose ✕ scrolls
+	   away is a drawer you cannot shut. */
+	.layout-head { flex: 0 0 auto; gap: 0.5em; }
+	.layout-body { flex: 1 1 auto; min-height: 0; overflow: auto; gap: 1em; }
+
+	.layout-name { font-family: var(--mono); font-weight: 700; }
+	.layout-code { display: block; padding: 0.5em 0.6em; overflow-wrap: anywhere; }
+
+	.layout-chips { gap: 0.3em; }
+	.layout-sect { gap: 0.5em; }
+	.layout-empty { color: var(--subtle); }
+
+	/* One grid for every knob in the drawer, so the names line up down the left and
+	   the values down the right — the reason a wide panel reads and a wide bar does
+	   not. Scoped, because the bar wants its knobs shrink-to-fit and inline. */
+	.layout-panel .layout-knob {
+		display: grid;
+		grid-template-columns: 5.4em 1fr 3.4em;
+		gap: 0.4em;
+	}
+	.layout-panel .layout-knob > .layout-tag { white-space: nowrap; }
+	.layout-panel .layout-range { width: 100%; }
+	.layout-panel .layout-out { min-width: 0; text-align: end; }
+}

@@ -1,8 +1,9 @@
 # Previews — how a thumbnail can be the page
 
 Split out of `readme.md`. **Scope:** what goes *inside* a card. Two kinds of thumb
-sit in the same card shape now — a live `page.frame()` painted down (`detail.js`;
-it was `Layout.js` and a `page.layout()` until the exhibit conversion — readme.md),
+sit in the same card shape now — a live `page.frame()` painted down (`demo.layout()`,
+`ext/demo/layout.js`; it was `Layout.js`, then this directory's own `detail.js`,
+until the exhibit conversion — readme.md),
 and a schematic shape with no content at all (`preview.js`, drawn by `word.js`).
 The card itself is core's, and §6 records why it stopped being this section's.
 
@@ -65,14 +66,14 @@ heading to.
 
 That reuse became the whole answer. The gallery module is gone and `Page.preview_card(nav,
 thumb)` is the one card shape; a page that wants a live render **overrides
-`preview()`**, which in `detail.js` is one line:
+`preview()`**, which in `demo.layout()` is one line:
 
 ```js
 preview(nav){ return this.preview_card(nav, () => div.c("zoom-25", () => this.frame())); }
 ```
 
 *(`frame()` and not `layout()` since the exhibit conversion: the card paints down
-the layout **in its `.page` box**, so a thumbnail wears the same `full`/`pad`/`fill`
+the layout **in its `.page` box**, so a thumbnail wears the same `standard`/`full`/`fill`
 as the page it links to and the two cannot disagree about the page shape.)*
 
 Two constraints the card imposes, both silent when broken:

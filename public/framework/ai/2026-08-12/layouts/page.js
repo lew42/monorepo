@@ -1,7 +1,7 @@
 import { Page, md, h2, div, code } from "/app.js";
-import docs from "/framework/core/Page/layout/docs/page.js";
-import shell from "/framework/core/Page/layout/shell/page.js";
-import mail from "/framework/core/Page/layout/mail/page.js";
+import docs from "/framework/styles/layouts/docs/page.js";
+import shell from "/framework/styles/layouts/shell/page.js";
+import mail from "/framework/styles/layouts/mail/page.js";
 
 export default new Page({
 	meta: import.meta,
@@ -11,12 +11,12 @@ export default new Page({
 
 	content(){
 
-		md("**[/framework/core/Page/layout/](/framework/core/Page/layout/)** — a ninth tab on the `Page` class page, between Page flow and API. Ten whole-page layouts, one content object under all ten, and **every card is the layout twice: a whole 390px phone screen beside a whole 3440px monitor screen, both live, neither cropped.** Three of them, running, right here:");
+		md("**[/framework/styles/layouts/](/framework/styles/layouts/)** — a ninth tab on the `Page` class page, between Page flow and API. Ten whole-page layouts, one content object under all ten, and **every card is the layout twice: a whole 390px phone screen beside a whole 3440px monitor screen, both live, neither cropped.** Three of them, running, right here:");
 
 		div.c("page-previews wide", () => [docs, shell, mail].forEach(page => page.preview(page.nav())))
 			.style({ "--column": "20em", "--gap": "1em" });
 
-		md("Click one: the pair opens on a stage with the handle between them, and dragging it moves both simulated widths in opposite directions. **The stage is auto-height** — the taller pane sets it and the shorter page grows to meet it, so you get the whole layout at both widths instead of a strip. The layout bar is wired to the wide pane, the source is open below, and **the layout's regions are chips in the right drawer** — [App shell](/framework/core/Page/layout/shell/) has five, and turning all five off leaves you looking at [Document](/framework/core/Page/layout/document/).");
+		md("Click one: the pair opens on a stage with the handle between them, and dragging it moves both simulated widths in opposite directions. **The stage is auto-height** — the taller pane sets it and the shorter page grows to meet it, so you get the whole layout at both widths instead of a strip. The layout bar is wired to the wide pane, the source is open below, and **the layout's regions are chips in the right drawer** — [App shell](/framework/styles/layouts/shell/) has five, and turning all five off leaves you looking at [Document](/framework/styles/layouts/document/).");
 
 		h2("Second pass — the four things review caught");
 
@@ -56,13 +56,13 @@ export default new Page({
     });
 }`);
 
-		md("That is the whole of [Docs](/framework/core/Page/layout/docs/) — `detail.js` hands `site` in, so **no layout page imports content and no layout page writes any.** The only non-utility declarations in the directory are `overflow-y` and `position: sticky`, inline, because they are per-layout state rather than a look.");
+		md("That is the whole of [Docs](/framework/styles/layouts/docs/) — `detail.js` hands `site` in, so **no layout page imports content and no layout page writes any.** The only non-utility declarations in the directory are `overflow-y` and `position: sticky`, inline, because they are per-layout state rather than a look.");
 
 		h2("What actually broke between 390 and 3440");
 
 		md(`| symptom | cause |
 |---|---|
-| a pane with \`overflow-y: auto\` stops scrolling the moment the row wraps | a flex LINE sizes to its content, so a scroller one level deeper never engages. The band that wraps is the band that scrolls — and where two panes genuinely want their own bars ([List · detail](/framework/core/Page/layout/split/), [Mail](/framework/core/Page/layout/mail/)), all three boxes declare it |
+| a pane with \`overflow-y: auto\` stops scrolling the moment the row wraps | a flex LINE sizes to its content, so a scroller one level deeper never engages. The band that wraps is the band that scrolls — and where two panes genuinely want their own bars ([List · detail](/framework/styles/layouts/split/), [Mail](/framework/styles/layouts/mail/)), all three boxes declare it |
 | a sticky rail that never sticks | a stretched flex item has nothing left to stick to. \`align-self: flex-start\` |
 | a nav rail wider than the article it serves | it was \`flex-1\`, the FLUID half of a row. A rail is the fixed half — \`basis\` |
 | the 3440 pane a third the height of the phone beside it, board showing under it | one rendered height paints at two zooms. \`level()\` reads back the zoom the fit just wrote and floors the short page to the tall one's visual height |
@@ -78,6 +78,6 @@ export default new Page({
 
 		md("Verified in a real browser: all ten detail pages plus the tab index at **390, 900, 1440, 1600 and 3440** — no console errors, no failed requests, no horizontal overflow, both panes level at every width, and the part chips toggling a rail in and out of a live render and back. The load sequence was sampled frame by frame at 120–3100ms: **one card state throughout**, where it used to be three.");
 
-		md("Record: [readme.md beside the pages](/framework/core/Page/layout/) · sibling sessions [stage](/framework/ai/2026-08-12/stage/), [apps](/framework/ai/2026-08-12/apps/), [unify](/framework/ai/2026-08-12/unify/).");
+		md("Record: [readme.md beside the pages](/framework/styles/layouts/) · sibling sessions [stage](/framework/ai/2026-08-12/stage/), [apps](/framework/ai/2026-08-12/apps/), [unify](/framework/ai/2026-08-12/unify/).");
 	},
 });

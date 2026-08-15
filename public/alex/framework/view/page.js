@@ -29,7 +29,6 @@ div.c("flex gap", () => {
 
         h2("Content");
         p("`.append(...)`:add children — Views, strings, DOM nodes, arrays, or a build function.");
-        p("`.prepend(...)`:same, but at the start.");
         p("`.empty(...)`:remove all children, then optionally append new ones.");
         p("`.text(v)` / `.html(v)`:get or set text or inner HTML.");
         p("Inside `p(...)`, text wrapped in backticks turns into `code` automatically.");
@@ -42,7 +41,7 @@ div.c("flex gap", () => {
 
         h2("Layout & lifecycle");
         p("`.hide()` / `.show()` / `.toggle()`:control `display`.");
-        p("`.remove()` / `.replace(view)`:take it off the page or swap it out.");
+        p("`.remove()`:take it off the page.");
         p("`.load(meta, url)` / `.lazy(meta, url)`:import another module and append its default export (`lazy` waits its turn).");
 
         h2("Make your own");
