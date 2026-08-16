@@ -8,9 +8,12 @@ plainly — the models were the calibration, not the detector.
 
 | Rule | Measurement | high | medium | low |
 |---|---|---|---|---|
+| `unreachable` | hidden overflow ÷ the box, with no scrollbar | `≥ 1.0` and `≥ 200px` | — | — |
 | `cramped` | text-to-frame ÷ font-size at that edge | `< 0.12` | — | `< 0.35` |
+| `cramped` (a cell) | the same, `td`/`th` only | `< 0.12` | — | — |
 | `measure` | characters per line | `> 95` | `85–95` | — |
-| `measure` (ladder) | characters per line over ≥ 5 lines | `< 12` | — | — |
+| `measure` (ladder) | characters per line over ≥ 5 lines, outside a cell | `< 12` | — | — |
+| `empty` | characters of text in the content region | `< 64` | `< 96` | `< 128` |
 | `illegible` | font-size × scale, in px | `< 7` | `< 10.5` | — |
 | `line-height` | line-height ÷ font-size | — | `< 1.10` | outside `1.25–2.2` |
 | `clipped` | overflow px past a non-scrolling parent | `> 24px` | `> 2px` | — |
@@ -42,13 +45,26 @@ cannot be reached.
 | `whitespace` | empty space below the last child ÷ box height | `> 50%` | `> 25%` |
 | `invisible` | 3+ groups of blocks with < 2 painted surfaces | — | always |
 
-Score: `100 − Σ min(25, weight × (1 + log₂ n))` per rule, with
-`high 12 · med 5 · low 1.5`. Grades A ≥ 90, B ≥ 80, C ≥ 70, D ≥ 60.
+Score: `100 − Σ min(cap, weight × (1 + log₂ n))` per rule, with
+`high 12 · med 5 · low 1.5` and `cap 25`. Grades A ≥ 90, B ≥ 80, C ≥ 70, D ≥ 60.
 
-**Repeated siblings collapse onto their parent.** Eight paragraphs each running
-96 characters is one mistake, and it is not in any of the paragraphs — it is the
-container that never bounded them. Three or more siblings sharing a rule become
-one finding on the parent, carrying the worst instance's numbers.
+### Two findings are weighted by the RULE, not by severity
+
+| Rule | Weight | Cap | Why severity cannot say it |
+|---|---|---|---|
+| `unreachable` | 75 | 90 | `/web/nav/drill/` hides 4099px of a 900px region with no scrollbar and scored **82/B** — one 12-point `high`, indistinguishable from a 3% clip. 75 puts it at the bottom of F (measured: 19) and leaves its other findings room to order the tail. |
+| `empty` | 30 | 90 | A dead url fires no rule at all and scored **94/A**. 30 lands it at 60–64/D: below the site median, visibly not a page, and not claiming to be worse than a layout nobody can read. |
+
+The alternative was a fourth severity tier. It lost: `counts.high` is read by
+the corpus, by `report()` and by the DevBar rail, and a `critical` that those
+three do not know about is a number that quietly stops adding up. Weighting the
+*rule* leaves every tier meaning exactly what it meant before.
+
+**Repeated findings collapse — twice.** Siblings sharing a rule collapse onto
+their parent (eight paragraphs at 96 characters is one container that never
+bounded them). Then the same *structure* collapses wherever it repeats, because
+the sibling pass cannot see a row drawn three hundred times when each offender
+is the only child of its own row.
 
 ## Where the numbers came from
 
@@ -78,14 +94,22 @@ nothing".
 **1500px for `dead-space`** is where "the window is the constraint" stops being
 true. Below it, a narrow column is the window's doing.
 
+**128 characters for `empty`** is the one threshold with almost no margin, and
+it is stated here so nobody widens it casually. Measured on this site: the three
+dead urls sampled hold **63–64 characters** in their content region; the
+sparsest live page holds **141**. Anything between is unmeasured ground.
+
 ## Calibration result
 
-The corpus (`tests/`) is sixteen layouts with declared verdicts — twelve broken
-in one named way, four that should score clean.
+The corpus (`tests/`) is twenty-three layouts with declared verdicts — fifteen
+broken in one named way, eight that should score clean, four of those eight
+existing to prove a **guard** rather than a rule.
 
-**64 / 64 at 400, 1280, 1920 and 3440px.** Every `bad` case trips its named
-rule at every width it applies to; no `good` case produces a single
-high-severity finding at any width.
+**92 / 92 at 400, 1280, 1920 and 3440px**, re-run after the measuring frame's
+`max-width` clamp was fixed, so the two wide columns are real for the first
+time. Every `bad` case trips its named rule at every width it applies to; no
+`good` case produces a high-severity finding, and none of the four guard cases
+lets its exempted rule fire at all.
 
 That is a detection test, not a severity test — nothing yet checks that a
 score lands in the right *band*. See the readme's Open section.

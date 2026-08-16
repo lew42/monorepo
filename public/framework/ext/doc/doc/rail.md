@@ -1,8 +1,8 @@
 # The rail — tabs, previews, or neither
 
-## Original verdict: neither — `classdoc()` returns the page and the author picks
+## Original verdict: neither — `Doc()` returns the page and the author picks
 
-Eric proposed `classdoc()` end with `return page.tabs()`, making the drill-down free.
+Eric proposed `Doc()` end with `return page.tabs()`, making the drill-down free.
 Tim's counter was decisive: `tabs()` renders every name into one bar with **no overflow
 handling at all**, and `View` has ~35 candidate methods. A bar is right for five and
 unusable for twenty, and nothing in `tabs()` will ever tell you which side of that line
@@ -19,7 +19,7 @@ default, same marking, axis swapped. And **the overview is an ordinary child pag
 `tabs()`'s existing "first child is the panel's `.default`, and its link points at the
 parent url" behaviour is the whole feature.
 
-The low-level `classdoc(page, Class, meta, names)` is unchanged and still exported,
+The low-level `Doc(page, Class, meta, names)` is unchanged and still exported,
 which is what keeps the original objection answered: a page that wants two classes, or
 previews instead of a rail, composes it itself.
 

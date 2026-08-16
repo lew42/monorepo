@@ -19,15 +19,20 @@ export default new AITask({
 
 		h2("What shipped");
 
-		md(`| file | what it is |
+		md(`*The file map below is kept current rather than frozen — updated 2026-08-15, after the toolbar/grip/random splits.*
+
+| file | what it is |
 |---|---|
 | \`Panel.js\` | \`class Panel extends Item\` — two verbs (\`divide\`, \`close\`) plus \`absorb\` |
-| \`workspace.js\` | \`panel(fn)\`, \`workspace()\`, the recursive view, the bar, \`scatter()\` |
-| \`PanelDrag.js\` | \`PanelDrag\`, the grip, \`coalesce()\` |
-| \`panel.css\` | structure only |
-| \`templates.js\` + \`templates.css\` | the **T** vocabulary: 23 entries, all fifteen [section bands](/framework/styles/sections/) plus scenes |`).ac("wide");
+| \`workspace.js\` | \`panel(fn)\`, \`workspace()\`, the recursive view, \`paint()\`/\`repaint()\`, focus |
+| \`toolbar.js\` | the bar that floats over a panel, \`handle()\`, \`place()\` |
+| \`grip.js\` | the divider, its hug/fill menu, \`coalesce()\` |
+| \`random.js\` | what \`random\` means: \`scatter()\` and \`resolve()\` |
+| \`PanelDrag.js\` | \`PanelDrag extends Sortable\` — drag, drop, the edge zones |
+| \`panel.css\` + \`toolbar.css\` + \`grip.css\` | structure only |
+| \`templates.js\` + \`templates.css\` | the **T** vocabulary: 28 entries, all fifteen [section bands](/framework/styles/sections/) plus scenes |`).ac("wide");
 
-		md("**No new mechanism.** A panel is an [`Item`](/framework/core/Item/); a drag is one `item.move()` through [`Sortable`](/framework/ext/Draggable/); the bar reuses [`ext/layout`](/framework/ext/layout/)'s own `pick`/`menu`/`btn` and drops `layout.bar($body)` into every leaf; the document writes through a [`Saver`](/framework/ext/Saver/).");
+		md("**No new mechanism.** A panel is an [`Item`](/framework/core/Item/); a drag is one `item.move()` through [`Sortable`](/framework/ext/Draggable/); the bar is Panel's own `toolbar.js` (the 2026-08-15 overhaul removed every ext/layout dependency, `layout.bar` included); the document writes through a [`Saver`](/framework/ext/Saver/).");
 
 		h2("One verb does the thing Mike asked for twice");
 
@@ -56,7 +61,7 @@ export default new AITask({
 
 		h2("Open questions, and one dissent");
 
-		md(`- **Two live workspaces on one document.** \`/framework/ext/Panel/\` and its \`/full/\` route each \`Item.open()\` the same path, and \`Page\` caches views, so after visiting both there are two mounted documents and the last writer wins. The editor has the same property. A shared-document registry is the fix if it bites.
+		md(`- **Three live workspaces on one document** (this page is the third). \`/framework/ext/Panel/\`, its \`/full/\` route and this task page each \`Item.open()\` the same path, and \`Page\` caches views, so after visiting them the last writer wins. The editor has the same property. A shared-document registry is the fix if it bites.
 - **"Intelligent" fill is not built.** \`scatter()\` runs before any element exists, so it has nothing to measure. A size-aware roll wants a second pass after layout — a design, not a tweak.
 - **Dissent, recorded:** the ruling said the default \`template\` is \`"random"\`. Shipped as **\`"blank"\`**. With \`"random"\` as the default, every \`divide()\` handed its new sibling a panel that then rolled itself into a random sub-split — one click produced three nested columns. \`"random"\` is what *seeding* and the **T** menu ask for, and both now ask explicitly.
 - **Dissent, minor:** the drag handle is the grip icon, not the whole bar. A bar-wide handle makes \`pointerdown\` on every button start a drag, and \`grab()\`'s \`preventDefault\` eats the click. The tone menu is also always on a leaf's bar rather than only for tone-aware templates — making it conditional means deleting a \`<select>\` from inside its own change handler.

@@ -1,9 +1,11 @@
 `page{/url/}` — how a page names itself in the console.
 
-**Usage** — eight call sites, all logging, all in this file plus
-`framework/core/Router/Router.js:97`. `App` implements the same method
+**Usage** — three call sites, all logging, all in this file: `container()`'s two
+region-claim messages (`Page.class.js:134,137`) and `warn_if_hidden()`
+(`Page.class.js:168`). `App` implements the same method
 (`framework/core/App/App.js:20`) returning `"app"`, so the two log the same way
-without sharing a base class.
+without sharing a base class. Confirmed against `core/App/doc/method/log_label.md`,
+which counts the same three from the other side.
 
 **Necessity** — yes, and the *name* is the necessity. It exists precisely so that
 `label` can stay the human-facing property — a page's menu label — without the

@@ -4,8 +4,8 @@
 
 Two callers, both internal:
 
-- `Router.js:92` — `activate()`, as `from`.
-- `Router.js:138` — `mark()`, to walk the pages that get a class.
+- `Router.js:82` — `activate()`, as `from`.
+- `Router.js:121` — `mark()`, to walk the pages that get a class.
 
 ## Necessity
 

@@ -17,7 +17,7 @@ serial walk         RTT + 16ms per SEGMENT, linear. A 5-deep cold link is
 declared children** — they are imported at construction so menus can draw once with
 real titles. Measured on `/framework/`, which draws two levels: 1 → **28** `page.js`
 fetches, **+51ms to first paint**, flat with depth. Inline pages (`add()`, `route()`,
-`classdoc`) still cost **zero** modules.
+`Doc`) still cost **zero** modules.
 
 The serial walk is the honest cost and it **cannot be parallelised blindly**: a
 segment's children are unknown until its module has run. Prefetching would need a

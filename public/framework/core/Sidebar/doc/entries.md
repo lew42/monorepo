@@ -52,7 +52,7 @@ No second `groups` property. A flat sidebar, a grouped one and a mix are the sam
 call. The cost is that **a group heading can never also be a link** — correct
 anyway, since a heading that navigates is a link pretending to be a heading — and
 the convention that pays for it is a first entry called "Overview" pointing at the
-section's own url (`framework/page.js:68`).
+section's own url (`framework/page.js:100`).
 
 **Nesting is one level and nothing enforces it.** A group inside a group reaches
 `link()` with an entry that has no `url`, and renders `href="undefined"` silently.

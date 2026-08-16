@@ -12,20 +12,25 @@ export const scrolls = ov => ov === "auto" || ov === "scroll";
  * `inline-block` and `inline-flex` DO have real boxes and stay in. */
 export const boxed = n => n.display !== "inline" && n.display !== "contents";
 
+// A box cropping on purpose: a bounded height, or a line clamp with none.
+export const crops = n => n.maxh || n.clamp;
+
 /* A child outside its parent's padding box. `hidden` means the parent clips it
  * with no scrollbar — the content is simply unreachable, which is the difference
  * between an ugly layout and a broken one.
  *
  * ⚠ The two axes are not symmetric. Sideways spill is worth reporting whether
  * the parent clips or not; DOWNWARD spill is normal (parents grow) and only
- * matters when the parent hides it — and even then a parent carrying max-height
- * is cropping on purpose (a preview thumb, a line-clamp), so every card on the
- * site would otherwise read as broken. */
+ * matters when the parent hides it — and even then a parent that CROPS on
+ * purpose (a preview thumb, a line-clamped description) is doing its job, so
+ * every card on the site would otherwise read as broken. */
 export function spill(m){
 	const out = [];
 
+	// ⚠ `boxed()` at BOTH ends. A `display: contents` child reports a 0×0 rect at
+	// the origin, which reads as the whole of its parent's gutter escaped.
 	for (const n of m.nodes){
-		if (n.parent < 0 || loose(n)) continue;
+		if (n.parent < 0 || loose(n) || !boxed(n)) continue;
 
 		const p = m.nodes[n.parent];
 		if (!boxed(p)) continue;
@@ -35,7 +40,7 @@ export function spill(m){
 		const y = n.y + n.h - (box.y + box.h);
 
 		const clip_x = !scrolls(p.ovx) && x > 2;
-		const clip_y = !clip_x && !scrolls(p.ovy) && y > 2 && !p.maxh
+		const clip_y = !clip_x && !scrolls(p.ovy) && y > 2 && !crops(p)
 			&& (p.ovy === "hidden" || p.ovy === "clip");
 		if (!clip_x && !clip_y) continue;
 
@@ -122,6 +127,34 @@ export function text_bounds(m){
 	}
 
 	return box;
+}
+
+// Characters of text below each node, in the same one reverse pass — how much
+// there is to lay out, which is the question `empty` asks.
+export function text_chars(m){
+	const sum = new Array(m.nodes.length).fill(0);
+
+	for (let i = m.nodes.length - 1; i >= 0; i--){
+		const n = m.nodes[i];
+		if (n.text) sum[i] += n.text.chars;
+		if (n.parent >= 0) sum[n.parent] += sum[i];
+	}
+
+	return sum;
+}
+
+/* The box a reader's content actually lives in: the OUTERMOST thing that scrolls
+ * vertically and is nearly as wide as the root, or the root when nothing is.
+ *
+ * ⚠ Shallowest, not largest. A `pre` scrolling 2200px of code outgrew the page
+ * region that held it and was measured as the page. ⚠ And vertical only, or a
+ * sidebar's own scroller reads as the content. */
+export function region(m){
+	const root = m.nodes[0];
+	if (!root) return null;
+
+	return m.nodes.filter(n => scrolls(n.ovy) && n.h > 200 && n.w >= root.w * 0.6)
+		.sort((a, b) => a.depth - b.depth || b.h - a.h)[0] ?? root;
 }
 
 const clips = n => n.ovx !== "visible" || n.ovy !== "visible";

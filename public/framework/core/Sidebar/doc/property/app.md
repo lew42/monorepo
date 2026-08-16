@@ -8,7 +8,7 @@ One read, in `footer()`:
 if (this.app) this.$mode = mode(this.app);   // Sidebar.js:113
 ```
 
-Set by `framework/page.js:23` (`app: this.app`) and by the Sidebar demo pages.
+Set by `framework/page.js:25` (`app: this.app`) and by the Sidebar demo pages.
 Nothing else in the class touches it.
 
 ## Necessity
@@ -30,7 +30,7 @@ meant it, invisible when you didn't.
 
 It has happened by accident once, and the shape is worth remembering: a page
 rendered *without being routed to* — a default tab — used to be adopted before
-`app` existed, so `new Sidebar({ app: this.app })` inside a `classdoc` overview
+`app` existed, so `new Sidebar({ app: this.app })` inside a `Doc` overview
 silently lost its toggle and worked when you opened the child's own url.
 `ext/tabs` now hands `app` down itself. `core/App/doc/adoption.md`.
 

@@ -2,8 +2,10 @@ The `App` this page belongs to.
 
 **Usage** — read by `container()` for the default mount (`Page.class.js:105`) and by
 `ext/tabs` for `app.router.mark_links()` and `app.loaders`
-(`framework/ext/tabs/tabs.js:50,58`). Handed down in two places, both on the walk:
-`child()` (`Page.class.js:72`) and `add()`'s adopt object (`:47`).
+(`framework/ext/tabs/tabs.js:55,64`). Handed down in two places, both on the walk:
+`child()` (`Page.class.js:72`) and `add()`'s adopt object (`:47`). A page that
+claims a subtree assigns its own `$pages`: `framework/page.js:32`,
+`michael/page.js:34`.
 
 **Necessity** — yes, and the *mechanism* is the point. Pages are built in userland
 at module scope, so there is no constructor for `App` to inject into — adoption is

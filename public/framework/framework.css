@@ -405,8 +405,40 @@
 
     .grid { display: grid; }
     .grid.auto { grid-template-columns: repeat(auto-fit, minmax(min(var(--column), 100%), 1fr)); }
-    .grid.three { grid-template-columns: repeat(auto-fit, 
+    .grid.three { grid-template-columns: repeat(auto-fit,
 		minmax(clamp(100% / 3 - 1rem, (var(--column)* 3 - 100%) * 999, 100%), 1fr)); }
+
+    /* Two masonry walls, and the ONLY difference that matters is reading order.
+       Both read `--column` and `--gap`, so a `grid auto gap` wall converts by
+       swapping one word. Worked both ways, measured:
+       styles/layouts/masonry/.
+       ⚠ Neither is `grid-template-rows: masonry` — still flagged everywhere, and
+         `@supports` can adopt it later without either of these changing. */
+
+    /* `.masonry` — CSS columns. Zero JS, correct at every width on its own.
+       ⚠ It flows TOP-TO-BOTTOM within each column, so item 2 sits BELOW item 1 and
+         the whole sequence reshuffles every time the column count changes. Right
+         for a wall nobody reads in order; wrong for anything ranked or alphabetical. */
+    .masonry { columns: var(--column); gap: var(--gap, 1em); }
+    .masonry > * { break-inside: avoid; margin-block-end: var(--gap, 1em); }
+
+    /* `.packed` — the same wall keeping left-to-right DOM order, bought with a
+       measuring pass. The row unit is small so a measured height rounds to a span
+       with no visible drift, and the ROW gap is 0 because the span carries it.
+       ⚠ `align-self: start` is what makes the measurement stable: the item keeps
+         its content height whatever span it is given, so re-measuring can never
+         feed back on itself. Take it off and the packer oscillates.
+       ⚠ The `span 40` default is deliberate — unwired, this degrades to a plain
+         grid of roomy rows rather than 4px of clipped nothing. The spans are set by
+         `styles/layouts/masonry/masonry.js`, which is the only thing that should
+         ever type this class. */
+    .packed {
+        display: grid;
+        grid-auto-rows: 4px;
+        gap: 0 var(--gap, 1em);
+        grid-template-columns: repeat(auto-fill, minmax(min(var(--column), 100%), 1fr));
+    }
+    .packed > * { grid-row-end: span 40; align-self: start; }
 
     /* `--gap`, because 9 of the 12 components in framework/ui/ wanted a gap
        under 1em and had to write `gap` by hand to get one. Reads a token the same way

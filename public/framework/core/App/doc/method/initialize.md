@@ -3,8 +3,8 @@ screen"*.
 
 ## Usage
 
-`App.js:28` — `instantiate()`, step four. **Nothing in this repository overrides
-it.** `config()` has one override (`app.js:48`); this one has zero, in five
+`App.js:27` — `instantiate()`, step four. **Nothing in this repository overrides
+it.** `config()` has one override (`app.js:50`); this one has zero, in five
 sandboxes and the whole framework.
 
 ## Necessity

@@ -7,7 +7,7 @@ the document.
 
 ## Usage
 
-`App.js:29` — `instantiate()`, step five. Nothing else.
+`App.js:28` — `instantiate()`, step five. Nothing else.
 
 ## Necessity
 

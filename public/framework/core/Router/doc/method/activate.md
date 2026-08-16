@@ -8,7 +8,7 @@ shared 2         root and a are left completely alone
 
 ## Usage
 
-`Router.js:70` — `load()`, the only caller.
+`Router.js:61` — `load()`, the only caller.
 
 ## Necessity
 
@@ -24,7 +24,7 @@ has to happen exactly once per navigation: `this.active`, `mark()`,
 
 ## Simplicity
 
-**No awaits past the group.** The comment on `Router.js:96` is the constraint that
+**No awaits past the group.** The comment on `Router.js:86` is the constraint that
 shapes the whole method — a site can wrap this in `document.startViewTransition()`
 only because nothing here suspends. That is why the two awaits live one level up,
 in [`load`](/framework/core/Router/api/load/).

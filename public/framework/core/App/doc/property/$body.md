@@ -3,9 +3,9 @@ it.
 
 ## Usage
 
-- `App.js:40` — assigned in `render()`; `app.js:51` — reassigned by this site's
+- `App.js:41` — assigned in `render()`; `app.js:53` — reassigned by this site's
   override, identically.
-- `App.js:73` — `inject()`, the only read.
+- `App.js:71` — `inject()`, the only read.
 
 One write, one read, both inside this class.
 

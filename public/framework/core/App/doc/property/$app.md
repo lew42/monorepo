@@ -3,12 +3,12 @@ detached from the document until `inject()`.
 
 ## Usage
 
-Built at `App.js:42` (or by a site's own `render()`, `app.js:55`), then read by
+Built at `App.js:43` (or by a site's own `render()`, `app.js:57`), then read by
 three different tiers:
 
-- `App.js:73` — `inject()` appends it to `<body>`.
-- `Router.js:130` — `root()`, the element **every** Router query is scoped to.
-- `App/mode.js:42` — `apply()` sets `color-scheme` on it.
+- `App.js:71` — `inject()` appends it to `<body>`.
+- `Router.js:113` — `root()`, the element **every** Router query is scoped to.
+- `App/mode.js:41` — `apply()` sets `color-scheme` on it.
 
 ## Necessity
 

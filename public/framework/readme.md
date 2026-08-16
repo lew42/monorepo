@@ -43,7 +43,7 @@ with lifecycle hooks. `./doc/theme-behaviour.md`.
 **What is a doc page made of?** Four pieces, each replacing something worse:
 `ext/files` (a tree of real files) for a wall of `code.html()` literals; `ext/toc` for
 scrolling to find a section; `demo()`'s third pane (the real DOM, read back) for "and
-this renders…"; `classdoc.page()`'s vertical rail for a grid of cards you had to leave
+this renders…"; `new Doc()`'s vertical rail for a grid of cards you had to leave
 the page to use. **The organising principle: a doc page should answer *"where do I
 click to see X"* in one glance** — the site sidebar is *which module*, the rail is
 *which member*, the toc is *which section*. `./doc/docs-system.md`.
@@ -74,7 +74,7 @@ click to see X"* in one glance** — the site sidebar is *which module*, the rai
   four lines of string-slicing in `util/source`. Running it took thirty seconds and
   settled it — the one who had "traced it carefully" was wrong. Any claim about what
   code *does* is cheaper to test than to argue.
-- **The best answer was nobody's.** `classdoc` needed one seat's
+- **The best answer was nobody's.** `Doc` needed one seat's
   `dedent(String(fn))`, another's `getOwnPropertyDescriptor`, and a third's one-call
   shape. Each found one; none found all three. That is the argument for a council —
   not that any member is smarter, but that they *look in different places*.

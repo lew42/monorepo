@@ -7,80 +7,93 @@
 @layer theme {
 
 	/* Chrome is sized by its region, never by its content: a `flex: 1 1 0` child of a
-	   heightless box collapses to nothing, so a call site retunes the token. */
-	.panel-workspace { height: var(--panel-height, 34em); }
+	   heightless box collapses to nothing, so a call site retunes the token. `--panel-hug`
+	   is the other one: the extent a hugging panel takes on the axis its content cannot
+	   measure. */
+	.panel-workspace { height: var(--panel-height, 34em); --panel-hug: 16em; }
 
 	/* `1 1 0`, not `flex-1`: the util carries no `min-height`, and every level of this
 	   nesting holds something that scrolls. */
 	.panel-workspace, .panel, .panel-items, .panel-body { flex: 1 1 0; min-width: 0; min-height: 0; }
 
+	/* The slot a panel is handed, and the only stable reference a declared extent can cap
+	   itself against (`100cqi`/`100cqb` below; the nearer one wins). ⚠ These two boxes and
+	   no other here: both are sized from above and never by their contents - where `.panel`
+	   hugging is `0 0 auto` and containment would measure it as 0. */
+	.panel-workspace, .panel-items { container-type: size; }
+
 	/* The grip writes fractions here, so a split keeps its proportions at any width. */
 	.panel { flex-grow: var(--panel-grow, 1); overflow: hidden; position: relative; }
-	/* ⚠ Both levels, measured: a `flex: 1 1 0` body inside a panel that is itself
-	   `0 0 auto` resolves to ZERO height and clips its own content away. Hug means
-	   content-sized, and a body with flex-basis 0 has no content size to offer. */
-	.panel.hug, .panel.hug > .panel-body { flex: 0 0 auto; }
 
-	.panel-bar { flex: 0 0 auto; position: relative; font-size: 0.8em; }
+	/* ⚠ The basis, and only the basis: a `flex: 1 1 0` body inside a panel that is itself
+	   `0 0 auto` resolves to ZERO height and clips its own content away, measured. Grow and
+	   shrink stay as above, so a panel hugging the width of a row still fills the row's
+	   height and scrolls rather than clipping. */
+	.panel.hug { flex: 0 0 auto; }
+	.panel.hug > .panel-body { flex-basis: auto; min-inline-size: min(var(--panel-hug), 100cqi); }
 
 	/* One full-width column, so a section band can take the whole panel, with the
 	   picker moving the content inside it - which is what `align-content` and
-	   `justify-items` respectively do. */
+	   `justify-items` respectively do.
+
+	   ⚠ `safe`, on both axes and around the picker's own tokens: centred overflow spills
+	   out of BOTH ends and the near end is unreachable by scrolling - measured, a control
+	   surface put its first row 75px above its panel. `safe` degrades to `start` exactly
+	   when the content no longer fits, so nothing that fits moves a pixel. */
 	.panel-body {
 		display: grid;
 		grid-template-columns: 100%;
 		grid-auto-rows: min-content;
-		align-content: var(--panel-y, center);
-		justify-items: var(--panel-x, center);
+		align-content: safe var(--panel-y, center);
+		justify-items: safe var(--panel-x, center);
 		overflow: auto;
 	}
+
+	/* One class is the whole contract for "my top edge holds controls": the body reserves
+	   the bar's published height (`--panel-bar-h`, toolbar.css) and the overlay can never
+	   land on the first row it lights over. ⚠ Not emitted here — properties.js puts
+	   `.panel-controls` on the inspector's root, which workspace.js reaches through
+	   templates.js; any other control surface adopts it the same way, with no second rule. */
+	.panel-body:has(> .panel-controls) { padding-block-start: var(--panel-bar-h); }
 
 	/* A band is full-width by definition and carries its own inner measure, so the
 	   picker positions THAT rather than shrink-wrapping the band. `.section-band` is
 	   styles/sections' class, reaching a panel through templates.js's lazy import. */
 	.panel-body > .section-band { width: 100%; }
 
-	/* The 3440 story: a template sizes itself in `cq` units and is centred and scaled
-	   at any panel size. Size containment needs a box the content does not decide, so
-	   a HUGGING panel - sized by its own content - can only offer the inline axis. */
+	/* The 3440 story: a template sizes itself in `cq` units and is centred and scaled at
+	   any panel size. Size containment needs a box the content does not decide - a filling
+	   panel is one, and so is a hugging panel holding a `cq` SCENE, which has no content
+	   size to hug and takes `--panel-hug` instead. ⚠ Measured: containment reports an empty
+	   box, so without a declared extent a hugged scene is 0px wide. A hugging panel holding
+	   real content - a band, a call site's own drawing - measures its own block axis, and
+	   only its inline axis can be contained. ⚠ The `min()` on both extents is the cap: a
+	   slot narrower than 16em cannot honour it, and `cq` reads the SLOT above (rule near
+	   the top), never this box - reading the panel would be the same self-measuring loop.
+	   (`.panel-t` is templates.js's class, and workspace.js imports it beside this sheet.) */
 	.panel:not(.hug) > .panel-body { container-type: size; }
-	.panel.hug > .panel-body { container-type: inline-size; }
+	.panel.hug > .panel-body:has(> .panel-t) { container-type: size; block-size: min(var(--panel-hug), 100cqb); }
+	.panel.hug > .panel-body:not(:has(> .panel-t)) { container-type: inline-size; }
 
-	/* `flex-basis` is the main axis in both directions, so one rule sizes a vertical
-	   divider and a horizontal one - only the cursor has to know which it is. */
-	.panel-grip { flex: 0 0 0.5em; cursor: col-resize; touch-action: none; }
-	.panel-items.v > .panel-grip { cursor: row-resize; }
+	/* The focused panel - a selection, never saved, and the one thing an inspector in
+	   another region needs to see. Drawn as a pseudo-element so it costs the panel no
+	   border box, over the content but under the bar (z-index 3), and inert.
+
+	   The `:has(.panel-props)` guard is GONE (2026-08-16). It existed so a workspace with no
+	   inspector never marked a selection nothing was acting on — but the properties rail is
+	   a document-level surface now (tools.js opens ext/drawer on `panel-focus`), so there is
+	   always a reader and the guard only hid the ring. ext/editor is unaffected either way:
+	   none of its five regions carries `focus: true`, so no panel in it ever takes focus. */
+	.panel-workspace .panel.focus::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+		z-index: 2;
+		box-shadow: inset 0 0 0 2px var(--prim);
+		pointer-events: none;
+	}
 
 	/* The landing slot, sized on the axis it lands in. Its outline is draggable.css's;
 	   Sortable's px height is cleared in PanelDrag.start(). */
 	.panel-items > .drag-placeholder { flex: 0 0 4em; }
-
-	/* Out of flow, so its slot in the bar costs nothing and DOM order is free. */
-	.panel-pop {
-		position: absolute; top: 100%; inset-inline-start: 0; z-index: 3;
-		display: none; grid-template-columns: repeat(3, 1fr); gap: 0.15em;
-		padding: 0.25em;
-		background: var(--surface);
-		border: 1px solid var(--line);
-		border-radius: var(--radius);
-	}
-	.panel-pop.on { display: grid; }
-	.panel-pop .layout-btn { padding: 0.15em 0.35em; }
-
-	.panel-tag { font-family: var(--mono); opacity: 0.6; }
-
-	/* ext/layout's own bar, floated into the corner of the panel that steers it -
-	   workspace.js imports the module that emits this class. Hidden until pointed at, the
-	   way `.layout > .layout-bar` is: a panel body is content, not a control surface,
-	   and a permanent strip sits on top of whatever the panel is showing. */
-	.panel > .layout-bar {
-		position: absolute; inset-inline-end: 0.25em; bottom: 0.25em; z-index: 2;
-		opacity: 0;
-	}
-	.panel:hover > .layout-bar,
-	.panel:focus-within > .layout-bar,
-	.panel > .layout-bar:hover { opacity: 1; }
-
-	/* A touch screen has no hover to reveal it with. */
-	@media (hover: none) { .panel > .layout-bar { opacity: 1; } }
 }

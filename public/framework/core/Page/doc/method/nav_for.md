@@ -26,7 +26,8 @@ page it describes.** A parent that genuinely wants a different word in its own l
 spreads over the entry at the call site, which is visible where it happens:
 
 ```js
-{ ...this.nav_for(name), label: "Overview" }    // framework/page.js:68
+const entry = this.nav_for(name);
+{ ...entry, label: "Overview" }    // framework/page.js:92,101
 ```
 
 The one asymmetry left: it takes a **name** rather than a child, and reads

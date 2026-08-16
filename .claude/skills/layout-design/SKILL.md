@@ -11,6 +11,15 @@ each, in the plan, before the first factory call. The vocabulary is
 `core/Page/Page.css` (page tracks, preview cards) and `framework.css`
 (grid/flex utilities); nothing here requires new CSS.
 
+**Before writing one, look at it: `/framework/ext/LayoutTool/library/`.** Eleven
+arrangements the site is built from — reading column, reading grid, tile wall,
+gallery, stat strip, rail + content, list · detail, section band, dashboard row,
+wide table, toolbar — each with its declaration, a live render, and its score at
+400 / 1280 / 1920 / 3440 measured on the page as it renders. **The ten
+don'ts are beside them** (`library/bad/`), each naming the rule it trips, the
+width where it stops working, and the entry that replaces it. Copy an entry
+before inventing one; the catalog is the answer to most of this file.
+
 ## 1. How wide is the thing itself — one column, or 2+?
 
 `.page.standard` puts every child in the `main` track: `--measure: 52em`,
@@ -19,8 +28,16 @@ anything else — a grid, table, or dashboard left in `main` squeezes multiple
 columns into prose measure, which is the single most common "displays
 awkwardly" bug. Decide, per block:
 
-- **Prose** — `main` track (the default). Never wider: 52em IS the measure.
-  A deliberately narrow block: `.measure` (34em).
+- **Prose** — `main` track (the default). Never wider. A deliberately narrow
+  block: `.measure` (34em).
+  ⚠ **52em is not 75 characters on this site — it is 83 to 103**, depending on
+  the copy, and `measure` reports the high end. Measured in Montserrat at every
+  width (the em box scales with the root font, so the ratio never moves). The
+  ceiling that is safe for *any* copy is about **42em**; `38em` gives ~75. The
+  house track straddles the 85 mark, which is why the rule fires on some prose
+  pages and not others — **the token is the finding, not the page**, and
+  changing it is a site-wide type decision.
+  `ext/LayoutTool/knowledge/characters-per-line.md`.
 - **2+ columns of content** — claim `wide` (main + breakout, grows rightward).
 - **A wall, board, or full experience** — claim `bleed` (edge to edge; hand
   the gutter back with `padding-inline: var(--gutter-x)` if framed content).
@@ -63,13 +80,25 @@ real `--column` and let one auto grid do it.
   `--column: 40em` reading grid measured **112 characters a line at 1280px** —
   this exact advice used to live here, and `ext/LayoutTool` failed a test case
   built from it. `1fr` is for tiles; prose needs a ceiling.
-- **Full-row items** (dashboard rows, feeds): keep the row, and grid its
-  INSIDE — identity | detail | figures — so width turns into legibility
-  instead of a 3000px line of crammed text.
+- **Full-row items** (dashboard rows, feeds): keep the row, and give its
+  INSIDE places — identity | detail | figures — so width turns into legibility
+  instead of a 3000px line of crammed text. ⚠ **The inside has to be able to
+  stack too**: as a fixed three-track grid this laddered at 400 with the detail
+  column crushed to 16px. `flex-wrap` plus a `20em` basis is the same three
+  places above ~34em and one column below, with no breakpoint written down.
+- **Rail + article uses a laptop and wastes a mega monitor** (measured: 18% of
+  3440). The site's answer is a **third** region — that is the whole difference
+  between the Document and Docs layouts, and it is a checkbox, not a rewrite.
+- **Widening a column is never the fix for dead space.** It trades a
+  `dead-space` medium for a `measure` high, and one of those is content nobody
+  can read. What each shape actually uses of 3440:
+  `ext/LayoutTool/knowledge/widescreen.md`.
 
-**Check three widths, not thirty: ~1280, 1920, 3440.** If it reads at those
-three, the clamps and auto grids cover the rest. A layout shipped unseen at
-3440 is unfinished.
+**Check four widths: 400, ~1280, 1920, 3440.** ⚠ **1280 is not decoration** —
+half of the recorded failures are clean at 400 *and* at 1920 and broken in
+between, because an unbounded reading track only fails in the band where it
+holds ONE column (roughly 1100–1300px here). A layout shipped unseen at 3440 is
+unfinished; one shipped unseen at 400 is usually the one that ladders.
 
 ## Measure it — `ext/LayoutTool`
 
@@ -78,11 +107,22 @@ browser and returns a grade, ranked findings, and a proposed declaration for
 each. **No AI at runtime**; vision was used only to calibrate the thresholds.
 
 ```js
-import { analyze, frame } from "/framework/ext/LayoutTool/LayoutTool.js";
+import { analyze, rate, frame } from "/framework/ext/LayoutTool/LayoutTool.js";
 
-analyze(document.querySelector(".page.active-page"));   // this page, now
+analyze(document.querySelector(".page.active-page"));   // what is BROKEN
+rate(document.querySelector(".page.active-page"));      // how GOOD it is
 frame("/framework/styles/layouts/grid/", 3440);         // any url, any width
 ```
+
+**Ask both, and expect them to disagree.** `analyze()` reports failures, so a
+page with nothing wrong scores 100 and two clean pages are indistinguishable —
+useless the moment you are *choosing* between layouts. `rate()`
+([`taste/`](/framework/ext/LayoutTool/taste/)) grades eleven ideal ranges with
+weights — measure, padding against what a box that size should have, gap,
+alignment, repetition, how much of the width got spent — and pays partial
+credit, so it can rank. Its `weakest` three are the shortest useful answer to
+"what would I change first". ⚠ It proposes no fix and rings no element; a rating
+ranks, only a rule repairs.
 
 From a terminal, the same module through Playwright (installed **globally** —
 never add it to `package.json`):
@@ -94,10 +134,27 @@ await page.evaluate(async () => {
 });
 ```
 
-Or just open the pages: **`/framework/ext/LayoutTool/audit/`** ranks every
-framework page worst-first and shows a **before/after** pair of live frames for
-each proposal; **`/framework/ext/LayoutTool/tests/`** runs the 16-case corpus at
-a width of your choosing.
+Or just open the pages: **`/framework/ext/LayoutTool/library/`** is the catalog
+and the don'ts, every entry measured at four widths as it renders;
+**`/framework/ext/LayoutTool/audit/`** ranks every framework page worst-first
+and shows a **before/after** pair of live frames for each proposal;
+**`/framework/ext/LayoutTool/tests/`** runs the 16-case corpus at a width of
+your choosing; **`/framework/ext/LayoutTool/taste/`** is the rulebook itself,
+eleven live bands with the evidence behind each number.
+
+⚠ **A tab an agent drives is a HIDDEN tab, and hidden tabs do not lay out.**
+No `requestAnimationFrame`, no `ResizeObserver` delivery — so anything a page
+sizes from those is frozen, and `getBoundingClientRect()` hands you the frozen
+number with no error. It cost half an hour on `styles/layouts/space/`, where
+five screens that should have measured 390–3440 all read 4184px and scored
+identically. Check `document.visibilityState`; use `mcp__site__shot` or headless
+Playwright when you need real geometry.
+
+⚠ **`frame()` was clamped to the host window** by `framework.css`'s
+`iframe { max-width: 100% }` reset — a 3440 run from a 1920 browser measured
+1920 and labelled it 3440. Fixed in `LayoutTool.css`; **any wide number you find
+recorded from before that fix is suspect**, including the corpus's and the
+audit's 3440 columns. Headless Playwright at a real viewport was never affected.
 
 **Read the finding, then fix the cause.** Every issue names a ratio and the
 element that failed it — `cramped` is text-to-frame over font-size, `measure` is
@@ -116,6 +173,23 @@ make a sound measurement meaningless (inline, `display: contents`, scrollers,
 deliberate crops, full-bleed shells, code, scaled miniatures, pseudo-element hit
 areas), and every one of them was a real bug in the analyzer first.
 
+**Three findings you can discount, and one silence you cannot.** Read these
+before "fixing" a report:
+
+- **An `alignment` cluster at one repeated offset is padding**, not a wobble.
+  Divide the offset by the box's font size — if it lands on `0.5`, `0.6`,
+  `0.75` or `0.8em`, that is the container's own inset and the finding is the
+  tool's. (`knowledge/alignment-vs-padding.md`.)
+- **`dead-space` needs four text blocks over 20 characters**, so it reports a
+  full-width *table* as 13% used, and cannot see a hero or a toolbar waste any
+  width at all.
+- **`pad-scale` stops at 85% of the viewport**, and `gutter` measures against
+  the font size — so a 3300px band with a 20px inset passes both. That one is a
+  hole, not a pass.
+- **A clean score is not proof.** Vertical overflow of a box whose `overflow` is
+  `visible` trips no rule at any width; the detector for it is `sweep()`.
+  (`knowledge/blind-spots.md`.)
+
 **For the CSS itself — where a declaration belongs, which layer, container or
 item, token or rule — load the `css-strategy` skill.** The long form, with live
 examples the analyzer measures as they render, is `/framework/styles/rules/`:
@@ -123,6 +197,16 @@ cascade, proportion, nesting, robust, reuse.
 
 ## The one-line versions
 
+- **Every track needs a floor AND a ceiling.** One bound instead of two is
+  nearly every layout that breaks at an unchecked width: `1fr` with no ceiling
+  ran 128 characters a line at 1280, `minmax(0, 18em)` with no floor collapsed
+  to 62px at 400. `min(x, 100%)` is the floor that cannot overflow; `minmax(0,
+  …)` and `min-width: 0` are the same declaration in two syntaxes.
+  `ext/LayoutTool/knowledge/bounds.md`.
+- **A scroller cannot live in a wrapping row** — a flex line sizes to its
+  content, so `overflow-y: auto` has nothing to do once the row wraps. Where
+  two panes genuinely want their own scrollbars, **all three** boxes declare it,
+  so the row scrolls when wrapped and the panes scroll when they are not.
 - **Constrain the container, never the items.** A property on a leaf must be
   unset on every exception; a property on a container is overridden by the one
   child that wants out.

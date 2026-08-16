@@ -1,95 +1,110 @@
-import { Page, md, h2, code } from "/app.js";
+import { Page, div, span, h1, input, button } from "/app.js";
+import panel, { Panel } from "/framework/ext/Panel/workspace.js";
 
-/* A card here is often two screens side by side, so it wants more room than a rail
-   of single thumbs does — `--rail` is ext/catalog's own knob and this is the one
-   page that turns it. A token on the page, not a rule in catalog.css. */
-const RAIL = "26em";
+/* The index is a BROWSER, not a reading page: every layout as a card, grouped by the
+   `group:` each child declares, beside a rail that filters them. Both halves are
+   ext/Panel leaves, so the seam between them drags — and `panel()` carries no saver,
+   so nothing a visitor rearranges survives a reload. The prose that used to live here
+   is `model/`, the first card. Design record: readme.md. */
 
 export default new Page({
 	meta: import.meta,
 	title: "Layouts",
-	description: "Sixteen whole-page layouts and the twelve words they are built from.",
+	description: "Seventeen whole-page layouts and the twelve words they are built from — one browsable wall.",
 	icon: "dashboard_customize",
 
-	// The whole catalog, in one list: the words first, then the pages. Each child
-	// declares the `group:` that heads its run.
-	children: "space "
+	// The whole catalog, in one list. Each child declares the `group:` that heads its
+	// run, and previews() turns each run into a section — nothing here orders sections.
+	children: "model "
 		+ "fit flex grid "
+		+ "space 400 "
 		+ "document docs landing hero pricing stack "
-		+ "shell dashboard split overlay gallery sidebar "
+		+ "shell dashboard split overlay gallery sidebar masonry "
 		+ "feed carousel mail chat",
 
-	// Every layout as a live card in the rail, this page as its first.
-	initialize(){ this.catalog(); },
-
-	render(){ return Page.prototype.render.call(this).style("--rail", RAIL); },
+	/* ⚠ Page.render() emits the h1 OUTSIDE content(), and `full` zeroes the gutter that
+	   would sit it anywhere sane — so this replaces the view rather than patching it,
+	   the way Doc.render() does, and the title rides the filter rail instead. */
+	render(){
+		return this.view ??= div.c("page full fill flex v", () => this.content())
+			.ac(this.name && "page-" + this.name);
+	},
 
 	content(){
+		let $wall, $none;
+		const state = { group: "", text: "" };
 
-		md("**The whole layout model is seven sentences.**\n\n"
-			+ "1. **A page is three tracks** — `main | wide | bleed`. Everything you write lands in a 52em reading column unless it claims `wide` (a breakout) or `bleed` (edge to edge). One left edge; the slack goes right.\n"
-			+ "2. **The page's own shape is one word.** Say nothing and you get those tracks (`standard`); `full` drops the measure and the inset, so the layout *is* the page; `fill` hands it the region's height to divide.\n"
-			+ "3. **Inside a track, arrange with the utility words** — `flex grid gap auto wrap basis measure pad surface wash muted`, about a dozen of them, all in `framework.css`. A module's own CSS is layout only, and rare: not one layout in this catalog ships a stylesheet.\n"
-			+ "4. **Responsiveness is intrinsic.** Tracks, `clamp()`, `auto-fit` and `flex-wrap` answer to the width of the *box*, so no layout here holds a media query and one class string is right in a card, in a sidebar, and across a 3440 monitor.\n"
-			+ "5. **A page declares `children:`**, a child mounts in the nearest `$pages` region, and the router marks the active chain — anything shown *without* being routed to wears `default`, and that is the whole arrangement contract.\n"
-			+ "6. **Every child draws its own `preview()`.** A parent arranges those cards as a wall (`previews()`) or as a rail beside the live child (`catalog()` — the one you are looking at).\n"
-			+ "7. **A detail page is one `demo.exhibit()`** — stage, layout bar, definition. `demo.layout()` is the config that makes a whole-page layout into one; a quoted example inside prose is `demo()`.");
+		// ⚠ A wall filtered down to nothing is a dead end with no way back — the search
+		// that emptied it is off in the other panel, and the reader sees a blank region.
+		const apply = () => { if ($wall) $none.style("display", sift($wall, state) ? "none" : ""); };
 
-		md("| | | |\n|---|---|---|\n"
-			+ "| **tracks** | `main` `wide` `bleed` | where a child of a `standard` page lands. `main` is the default, and it is the 52em measure |\n"
-			+ "| **shapes** | `standard` `full` `fill` | the page itself — tracks, edge to edge inside the region, or the region's full height ([Fit](/framework/styles/layouts/fit/)) |\n"
-			+ "| **arrange** | `flex` `grid` `gap` `auto` `wrap` `three` `v` `v-center` `split` `basis` `flex-1` | each one word from its neighbour: nine at [Flex](/framework/styles/layouts/flex/), three at [Grid](/framework/styles/layouts/grid/) |\n"
-			+ "| **box** | `pad` `measure` `surface` `wash` `muted` `flow` `zoom-*` | an inset, a centred column, the three looks, prose rhythm, and a live thumbnail |\n"
-			+ "| **previews** | `preview()` `previews()` `catalog()` | one card · a wall of them · that wall as a rail, beside the live child |\n"
-			+ "| **demo** | `demo()` `demo.stage()` `demo.exhibit()` `demo.app()` | a quoted box · a bare resizable render · a whole detail page · a `Page` tree playing app |");
+		/* ⚠ `align: "tl"` on both. A panel body centres what it is handed, and a wall
+		   taller than the panel then spills out of BOTH ends with the near end outside
+		   the scrollable region entirely — the first section heading was unreachable. */
+		const tree = new Panel({ data: { dir: "row" } });
+		tree.add(new Panel({ data: { template: "filters", mode: "hug", align: "tl" } }));
+		tree.add(new Panel({ data: { template: "wall", grow: 8, align: "tl" } }));
 
-		h2("The rail");
+		/* ⚠ Rides the tree and never serializes (ext/Panel readme). A private vocabulary
+		   is also what withholds `random` from the T menu — offered, it would roll this
+		   index into a second arrangement nobody asked for. */
+		tree.templates = {
+			filters: { icon: "filter_list", draw: () => this.filters(state, apply) },
 
-		md("**Every card in the rail is a live page, not a picture.** Click one and it opens beside the rail on a stage you can drag narrower, with the layout bar wired to it and the function that built it open underneath — the same [exhibit](/framework/ext/demo/) every detail page on this site is.");
+			/* ⚠ `$wall` is the GRID, never the padded box around it — tag() and sift()
+			   both walk `.page-previews`'s own children, and a wrapper would hand them
+			   one child that is never a card. */
+			wall: { icon: "grid_view", draw: () => {
+				/* ⚠ `width: 100%`. A panel body is a grid with `justify-items: safe start`
+				   (the alignment picker's own token), which SHRINK-WRAPS whatever it is
+				   handed — the wall then sized to its content and left 2500px of a 3440
+				   screen empty. Declaring the width is how a section band already answers
+				   this (`.panel-body > .section-band`, panel.css): the picker positions
+				   what is INSIDE the full-width box. */
+				div.c("pad", () => {
+					$wall = tag(this.previews());
+					$none = span.c("muted", "Nothing matches. Clear the search, or pick Everything.");
+				}).style({ "--pad": "1em", width: "100%" });
 
-		md("Most of the cards are the layout **twice**: a whole 390px phone screen on the left, a whole 3440px monitor screen on the right, both live, neither cropped. The two panes run the same function at two widths, which is the only honest way to show a layout with no breakpoints in it — and the stage behind them is that pair with a handle between it.");
+				apply();
+			} },
+		};
 
-		h2("One content object, many arrangements");
+		return panel(tree).style("--panel-height", "100%");
+	},
 
-		md("`web()` is the fictional site the whole-page layouts render — a header, a menu, a hero, sections, a table of contents, cards, rows, tiles and a footer. Every one of them imports the same `site` and **writes no content of its own**. What differs between two of these pages is where the boxes go, and that is a class string:");
+	// The inner left sidebar: the page's own title, a search, and one row per section.
+	filters(state, apply){
+		const pages = [...this.children.values()];
+		const groups = [...new Set(pages.map(page => page?.group).filter(Boolean))];
 
-		code.js(`layout(){
-    return div.c("page full fill flex v", () => {
-        site.topbar();
+		return div.c("flex v gap pad", () => {
+			h1.c("h3", this.title);
 
-        div.c("flex gap wrap flex-1", () => {
-            div.c("basis pad", () => site.menu()).style("--basis", "15em");
-            div.c("flow pad", () => site.sections(8)).style({ flex: "1 1 24em" });
-            div.c("basis pad", () => site.toc()).style("--basis", "13em");
-        }).style({ minHeight: "0", overflowY: "auto" });
+			input().attr("type", "search").attr("placeholder", `Search ${pages.length} layouts`)
+				.on("input", e => { state.text = e.target.value; apply(); });
 
-        site.footer();
-    });
-}`);
+			div.c("flex v gap", () => {
+				row("Everything", "", pages.length);
+				groups.forEach(group => row(group, group, pages.filter(page => page?.group === group).length));
+			}).style("--gap", "0.15em");
+		}).style({ "--gap": "0.8em", "--pad": "1em", width: "100%" });
 
-		md("That is the whole of [Docs](/framework/styles/layouts/docs/) — and a layout's regions are **checkboxes in the right drawer**, not sibling pages. Turn the rail, the toc and the footer off and the same article is [Document](/framework/styles/layouts/document/), live, without leaving the page.");
+		function row(label, group, count){
+			const $row = button.c("flex gap v-center split", () => {
+				span(label);
+				span.c("muted", String(count));
+			})
+				.ac(state.group === group && "prim")
+				.click(() => {
+					state.group = group;
+					[...$row.el.parentElement.children].forEach(el => el.classList.remove("prim"));
+					$row.ac("prim");
+					apply();
+				});
 
-		h2("The two arrangements");
-
-		md("[Flex](/framework/styles/layouts/flex/) is nine class strings, each one word from its neighbour. [Grid](/framework/styles/layouts/grid/) is three, and one token between them. **Every layout in the rail is built out of those twelve words and nothing else** — not one of them ships a stylesheet, which is the claim the whole catalog exists to make falsifiable.");
-
-		md("Not one of them contains a media query: they respond to the width of the *box*, which is why the same class string is correct in a sidebar, in a card, and across a 3440px monitor. Open the panel on any layout and drag `--column` — the break widths are a consequence, never a design.");
-
-		md("A page layout is a class string too. Saying nothing gives you the reading column; `standard`, `full` and `fill` are the three stances on the two tokens behind it, and they combine with the utility words — `full fill flex v` is a five-region application page. [Page shapes](/framework/styles/layouts/fit/) is the long version, with the breakout tracks.");
-
-		h2("What the two extremes actually cost");
-
-		md("Three things break between 390 and 3440, and all three are in the rail:\n\n- **A wrapping row cannot hold a scroller inside it.** A flex line sizes to its content, so a pane with `overflow-y: auto` stops scrolling the moment the row wraps. The band that wraps is the band that scrolls — and where two panes genuinely want their own scrollbars ([List · detail](/framework/styles/layouts/split/), [Mail](/framework/styles/layouts/mail/)), *all three* boxes declare it.\n- **A sticky rail must not be stretched.** `align-self: flex-start` is what gives it somewhere to stick to.\n- **A rail is the fixed half of a row.** `basis`, never `flex-1` — as `flex-1` a nav splits the slack with the article and renders wider than the reading.");
-
-		md("And one that is not about CSS at all: **the same words stack about four times taller at 390 than at 3440**, so the phone always sets the height of a two-up. `web()`'s prose is one sentence per section for that reason — every extra line costs the stage four of its own.");
-
-		h2("Sixteen samples of a space that does not end");
-
-		md("Every `layout()` in this rail is the same tree — a nest of class strings whose leaves call parts of `web.js`. So a layout is a **string**, and [Layout space](/framework/styles/layouts/space/) is that claim as an instrument: type six lines of text, watch them render live on five screens at once, or take an integer and get a layout back. The sixteen directories here are the curriculum; that page is the search.");
-
-		md("Next: [Sections](/framework/styles/sections/) — these layouts, filled with real elements and components.");
-
-		md.details(import.meta, "readme.md", "Design record — what survived the merge and why, the card that is two screens");
+			return $row;
+		}
 	},
 
 	/* The layouts nav, as plain entries — handed to whichever layout draws one, so a
@@ -101,3 +116,62 @@ export default new Page({
 			.map(([name]) => this.nav_for(name));
 	},
 });
+
+/* previews() emits one flat run — heading, its cards, the next heading — so the group a
+   card belongs to is the last heading above it. Recorded on the way past, once, rather
+   than re-derived on every keystroke.
+
+   ⚠ The search text is the card's own title, description and url — NEVER its
+   `textContent`. Most cards here hold a live render of a whole fictional site, so a
+   card's text includes "email", "Pricing" and every nav word in it: searching `mail`
+   matched Stack and Sidebar, which contain a form and a menu. */
+function tag($wall){
+	let group = "";
+
+	for (const el of $wall.el.children){
+		if (el.classList.contains("page-previews-group")) group = el.textContent;
+
+		el.dataset.group = group;
+		el.dataset.find = [
+			el.querySelector(".page-preview-title")?.textContent,
+			el.querySelector(".page-preview-desc")?.textContent,
+			el.querySelector("a")?.getAttribute("href"),
+		].filter(Boolean).join(" ").toLowerCase();
+	}
+
+	return $wall;
+}
+
+/* ⚠ Inline `display`, not `hidden` and not a class: `.page-preview` declares
+   `display: flex` (Page.css), which beats the UA's `[hidden]` outright — and this
+   directory ships no stylesheet to put a class in. Per-element state, not a look. */
+function sift($wall, { group, text }){
+	const kids = [...$wall.el.children];
+	const needle = text.trim().toLowerCase();
+	const heading = el => el.classList.contains("page-previews-group");
+	let shown = 0;
+
+	kids.forEach(el => {
+		if (heading(el)) return;
+
+		const hit = (!group || el.dataset.group === group)
+			&& (!needle || el.dataset.find.includes(needle));
+
+		el.style.display = hit ? "" : "none";
+		if (hit) shown++;
+	});
+
+	// ⚠ Then the headings, each answering to the run below it — a section heading left
+	// standing over nothing reads as a section whose cards failed to render.
+	kids.forEach((el, i) => {
+		if (!heading(el)) return;
+
+		let any = false;
+		for (let j = i + 1; j < kids.length && !heading(kids[j]); j++)
+			if (kids[j].style.display !== "none") { any = true; break; }
+
+		el.style.display = any ? "" : "none";
+	});
+
+	return shown;
+}

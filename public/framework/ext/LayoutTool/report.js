@@ -1,5 +1,6 @@
 import { View, div, p, h3, h4, span, code, ul, li, button } from "/app.js";
 import mirror from "./mirror.js";
+import { aim, locate } from "./highlight.js";
 import { defer, deferrable } from "./defer.js";
 
 View.stylesheet(import.meta, "LayoutTool.css");
@@ -8,11 +9,11 @@ const SEV = { high: "error", med: "warn", low: "subtle" };
 
 /* A report as a view. `report(data)` is the whole panel; `report.card(data)` is
  * the one-line verdict a gallery or an audit row shows instead. */
-export default function report(data, { limit = 6 } = {}){
+export default function report(data, { limit = 6, root } = {}){
 	return div.c("lt-report flex v gap").append(() => {
 		report.card(data);
 		metrics(data.metrics);
-		issues(data, limit);
+		issues(data, limit, root);
 	});
 }
 
@@ -35,6 +36,7 @@ function metrics(m){
 		["frame gap", m.pad_em === null ? "—" : `${m.pad_em}× fs`, "text to frame, as a multiple of its font size"],
 		["frame gap", m.pad_pct === null ? "—" : `${m.pad_pct}%`, "the same gap as a percentage of box width"],
 		["width used", m.width_used === null ? "—" : `${m.width_used}%`, "content span across the viewport"],
+		["content", `${m.text} ch`, "text in the content region — a dead url reads under 128"],
 		["nodes", String(m.nodes), `${m.depth} levels deep`],
 	];
 
@@ -46,7 +48,7 @@ function metrics(m){
 		})));
 }
 
-function issues(data, limit){
+function issues(data, limit, root){
 	if (!data.issues.length) return void p("No issues — every rule passed.").ac("muted");
 
 	const by_rule = new Map();
@@ -59,29 +61,37 @@ function issues(data, limit){
 		const worst = list.reduce((a, b) => (rank(b.sev) > rank(a.sev) ? b : a));
 
 		div.c("lt-issue flex v").append(() => {
-			div.c("flex gap v-center wrap").append(() => {
+			// Every line that names an element points at it: hover rings it, a click
+			// keeps the ring. ⚠ Only with a live `root` — a path is exact relative to
+			// the root it was walked from, and the audit page's is a frame long gone.
+			const at = ($view, i) => (root ? aim($view, () => locate(root, i.path), i.sel) : $view);
+
+			at(div.c("flex gap v-center wrap").append(() => {
 				span(worst.sev).ac(`lt-sev lt-sev-${SEV[worst.sev]}`);
 				h4(worst.title);
-				span(`${list.length}×`).ac("muted");
+				span(`${list.reduce((n, i) => n + (i.count ?? 1), 0)}×`).ac("muted");
 				span(rule).ac("lt-rule muted");
-			});
+			}), worst);
 
 			ul.c("lt-instances").append(() => list.slice(0, limit).forEach(i =>
-				li(() => {
+				at(li(() => {
 					code(i.sel).ac("lt-sel");
 					span(` — ${i.detail}`);
-				})));
+				}), i)));
 
 			if (list.length > limit) p(`…and ${list.length - limit} more`).ac("muted");
 			if (worst.fix) fix(worst.fix);
 
 			div.c("lt-actions flex gap v-center wrap").append($slot => {
-				// The element itself, broken beside fixed — built on demand,
-				// because each one costs a page load in a hidden frame.
-				if (data.url) button("Show me this element, before and after")
+				// The element itself, broken beside fixed — built on demand, because
+				// without a live `root` each one costs a page load in a hidden frame.
+				if (data.url || root) button("Show me this element, before and after")
 					.on("click", ev => {
 						ev.target.remove();
-						$slot.append(() => mirror(data.url, worst, data.viewport?.w ?? 1280, data.root_path));
+						$slot.append(() => mirror(worst, {
+							url: data.url, width: data.viewport?.w ?? 1280,
+							root_path: data.root_path, root,
+						}));
 					});
 
 				if (deferrable(worst)) button("Not a problem here")

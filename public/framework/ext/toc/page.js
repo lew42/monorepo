@@ -1,10 +1,13 @@
-import { Page, md, code, h2, h3, toc } from "/app.js";
+import { Doc, md, code, h2, h3, toc } from "/app.js";
 
-export default new Page({
+export default new Doc({
 	meta: import.meta,
 	title: "Toc",
 	description: "This page's own headings, as a nav, with the current one marked.",
 	icon: "toc",
+
+	notes: "skip-list",
+	files: "toc.js toc.css page.js readme.md",
 
 	content(){
 
@@ -27,7 +30,7 @@ export default new Page({
 
 		code.js(`div.c("grid gap auto toc-skip", () => stats())   // not sections`);
 
-		md("`toc-skip` is the opt-out for the case that list cannot guess: a page rendering a **real component** rather than an example of one. A stat tile's value is an `.h2` because it is big, not because it is a section — [Versus](/framework/versus/) had `714 · 21 KB · 0 · 0 · 0` in its rail until it said so.");
+		md("`toc-skip` is the opt-out for the case that list cannot guess: a page rendering a **real component** rather than an example of one. A stat tile's value is an `.h2` because it is big, not because it is a section — [Versus](/framework/versus/) had `714 · 21 KB · 0 · 0 · 0` in its rail until it said so. Full story, including the gallery this defeated first: [Skip list](/framework/ext/toc/docs/skip-list/).");
 
 		h2("Scroll spy");
 
@@ -41,7 +44,11 @@ export default new Page({
 
 		md("That's the one blessed shape for late content here, and the timing matters: a microtask runs after `render()` returns and **before the browser paints**, so the rail is never on screen empty.");
 
-		md("Next: [Classdoc](/framework/ext/classdoc/) — a class's methods as pages.");
+		h2("Only on a plain reading page");
+
+		md("Every current caller is a page with **no `overview:` rail of its own** — `toc()` is the only right-side nav they get. A `Doc` that *does* declare `overview:` already has a left rail (the catalog), and `toc()` there wouldn't add a second nav so much as build one that never shows: the catalog's active child mounts one grid level too deep for `toc.css`'s selector to ever match, so the rail would build, scan and spy in silence. Nobody has hit this yet — see the readme for the exact selector.");
+
+		md("Next: [Doc](/framework/ext/doc/) — a module documented as a page.");
 
 		md.details(import.meta, "readme.md", "Design record — fixed vs sticky, and the observer that didn't work");
 	}

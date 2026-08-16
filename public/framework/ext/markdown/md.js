@@ -27,6 +27,25 @@ View.prototype.md = function(content){
 	return this.html_unsafe(parse(content));
 };
 
+/* A fence may NAME the file it came from — ```js /app.js — and marked keeps only the
+ * first word of the info string. The name is the most useful thing a doc snippet can
+ * carry (an `import App` block means nothing until you know it is `/app.js`), so the
+ * rest is kept as `data-file` on the <pre>; ext/highlight's stylesheet draws it, and
+ * ext/highlight's own `code.js(src, file)` emits the same attribute.
+ *
+ * ⚠ The default renderer is CALLED, not replaced — escaping a fence's body correctly
+ * is marked's job, and re-implementing it is how a doc site grows an XSS. */
+const fenced = marked.Renderer.prototype.code;
+
+marked.use({ renderer: {
+	code(token){
+		const html = fenced.call(this, token);
+		const file = (token.lang ?? "").trim().split(/\s+/)[1];
+
+		return file ? html.replace("<pre>", `<pre data-file="${file.replaceAll('"', "&quot;")}">`) : html;
+	},
+} });
+
 // A single root block is adopted directly, so md("Hi.") behaves like p() and
 // chains; multiple blocks are wrapped in a div. Either shape carries `md`.
 export default function md(content){

@@ -128,7 +128,7 @@ children: "intro guide api",`);
 
 		md("*Those numbers are dated on purpose.* They have now been wrong three times — stale after a pass that deleted uncalled code, then stale again after a pass that moved the design record out of the source and into the readmes. **A number in prose is a claim with nothing to make it fail**, which is the same reason this site prefers a rendered `demo()` to a description of one. The method is the code block above; recount it when you doubt it.");
 
-		md("That is why [Classdoc](/framework/ext/classdoc/) can show a method's real source beside its notes, and why every `demo()` on this site is the code that ran rather than a copy of it: **there is no build step to get in the way.** A framework you can read end to end in an afternoon has a different relationship with its users than one you take on faith.");
+		md("That is why [Classdoc](/framework/ext/doc/) can show a method's real source beside its notes, and why every `demo()` on this site is the code that ran rather than a copy of it: **there is no build step to get in the way.** A framework you can read end to end in an afternoon has a different relationship with its users than one you take on faith.");
 
 		md("Next: [Start](/framework/start/) — three files and a working site. Or [FAQ](/framework/faq/), if you already have questions.");
 	}

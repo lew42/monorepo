@@ -75,7 +75,7 @@ export class Timeline extends View {
 			if (lane === -1){
 				const free = ends.findIndex(end => end <= start);
 				lane = names.size + (free === -1 ? ends.length : free);
-				ends[lane - names.size] = it.to !== undefined ? stamp(it.to) : start;
+				ends[lane - names.size] = this.end(it, start);
 			}
 
 			this.item(it, base, lane);
@@ -84,10 +84,16 @@ export class Timeline extends View {
 		return names.size + ends.length;
 	}
 
+	// Open (`to`-less) spans run to "now" — lay() calls this too, so a lane
+	// can't free before the bar it's drawing actually closes.
+	end(it, start){
+		return it.from === undefined ? start : it.to !== undefined ? stamp(it.to) : Date.now();
+	}
+
 	item(it, base, lane){
 		const start = stamp(it.from ?? it.at);
 		const instant = it.from === undefined;
-		const end = instant ? start : it.to !== undefined ? stamp(it.to) : Date.now();
+		const end = this.end(it, start);
 		const labeled = !instant || it.kind === "window" || it.kind === "day";
 
 		const $item = (it.url ? a : div).c(["timeline-item", instant ? "dot" : "bar", it.kind].filter(Boolean).join(" "), () => {

@@ -65,7 +65,8 @@ had exactly one job left: a parent wanting a different word in its own list. Tha
 now a spread at the call site, where you can see it happening:
 
 ```js
-{ ...this.nav_for(name), label: "Overview" }    // framework/page.js:68
+const entry = this.nav_for(name);
+{ ...entry, label: "Overview" }    // framework/page.js:92,101
 ```
 
 **What that bought.** One fewer concept, one fewer place a label can live, and no

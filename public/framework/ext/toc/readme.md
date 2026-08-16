@@ -55,6 +55,49 @@ to the breakpoint that hid it. The rail is a **real column** now — a grid trac
 as tall as its track and has nothing to stick within. `fixed` is recorded in `toc.css`
 as the bug, not the fix.
 
+## The skip list
+
+`fill()` only ever indexes headings that are sections of *this* page — a demo, a file
+tree, a gallery card are all excluded by a fixed selector, plus `.toc-skip` as the
+opt-out the selector can't guess. It's earned that opt-out twice already, most recently
+when a stat tile's own big number read as a section. Long form, with the two-galleries
+story and the pre-committed trigger that made the second call one word instead of a
+redesign: [`doc/skip-list.md`](./doc/skip-list.md).
+
+## Who calls it
+
+Grepped across all of `public/`: **20 pages** call `toc();` as the first line of
+`content()`, every one a page with no `overview:` rail of its own. Same call, same
+reason, everywhere — there is no variant usage to distinguish.
+
+| page | url |
+|---|---|
+| ext/toc *(this page)* | `/framework/ext/toc/` |
+| core/App | `/framework/core/App/` |
+| core/Sidebar | `/framework/core/Sidebar/` |
+| core/Router | `/framework/core/Router/` |
+| core | `/framework/core/` |
+| ext/demo | `/framework/ext/demo/` |
+| ext/markdown | `/framework/ext/markdown/` |
+| ext/highlight | `/framework/ext/highlight/` |
+| styles | `/framework/styles/` |
+| styles/layers/base | `/framework/styles/layers/base/` |
+| styles/layers/theme | `/framework/styles/layers/theme/` |
+| styles/layers/util | `/framework/styles/layers/util/` |
+| styles/elements/code | `/framework/styles/elements/code/` |
+| styles/elements/text | `/framework/styles/elements/text/` |
+| styles/elements/misc | `/framework/styles/elements/misc/` |
+| util/source | `/framework/util/source/` |
+| util/markup | `/framework/util/markup/` |
+| faq | `/framework/faq/` |
+| start | `/framework/start/` |
+| versus | `/framework/versus/` |
+
+`.toc-skip` (the opt-out, not `toc()` itself) has two more consumers that never call
+`toc()` in their own file: `framework/stats.js` (a stat tile's value) and a prototype
+at `framework/ai/2026-08-12/stage/page.js`. No file imports `toc` without calling it —
+this module has no dead importers.
+
 ## Traps
 
 - **⚠ A hidden page measures every rect at 0,0**, so every heading reads as "above the
@@ -66,43 +109,15 @@ as the bug, not the fix.
 - **⚠ `toc.css` is ASCII only, comments included.** A host that serves CSS with no
   charset decodes UTF-8 as Windows-1252; this file once shipped double-encoded
   em-dashes in every heading.
-
-## A gallery of live components defeats the skip list
-
-`fill()` collects `h2, h3, .h2, .h3` and excludes anything inside `.demo, .md-details,
-.toc, .files, .tab-bar, .sidebar, .page-previews`. That list works because **every
-example on this site is inside a `demo()`** — a rendered heading is always part of an
-example, and an example is always skipped.
-
-A **gallery** breaks the assumption: it renders real components directly on the page.
-The components index's rail read *View · 3 · 0 · 16 · Delete branch?* — a card's `h3`,
-a stat tile's `.h2`, a panel's `.h3` — above the four headings that were actually
-sections.
-
-**Options.** (a) Add a `.gallery` class to the skip list — the ext learns about a
-docs-page concept it has no business knowing. (b) Reuse `.page-previews` for the
-gallery so the existing skip covers it — borrowing a class for a side effect, which is
-the naming rule inverted. (c) Don't call `toc()` on a gallery page.
-
-**Verdict at the time: (c)**, with a pre-committed trigger — *at two galleries it
-belongs in `toc()`, as an explicit opt-out on the container, not another guess at what
-docs pages look like.*
-
-**The second one arrived, so `.toc-skip` exists.** `/framework/versus/` renders the
-stat tile from [`framework/ui/stats/`](/framework/ui/stats/) — five real tiles, not a
-demo of one — and a tile's value is an `.h2` because it is big. The rail read
-**`714 · 21 KB · 0 · 0 · 0`** above the seven real sections. Unlike the components
-index, that page *wants* a rail, so (c) was unavailable and the verdict came due
-exactly as written: one word in `skip`, and the opting-out visible at the call site
-that causes it.
-
-```js
-div.c("grid gap auto toc-skip", () => …);   // framework/stats.js
-```
-
-**A pre-committed verdict has now worked twice** (`.cols` in `Page.css` was the other):
-the decision was made while the trade-off was fresh, and the second reader only had to
-recognise the trigger. Worth reusing on anything held back for a threshold.
+- **⚠ `toc()` silently no-ops inside a `Doc` that also declares `overview:`.** A
+  catalog's active child mounts into the section's own `$pages` (`ext/catalog`'s
+  `screen()`), not the site's — so its rendered `.page` is never a *direct* child of
+  `.pages`, and `.pages > .page:not(.standard):has(> .toc)` — the only rule that turns
+  `display: none` back on — never matches. The rail builds, scans and spies, and shows
+  nothing; nothing errors. Verified against the only two `overview:`-declaring `Doc`s
+  on the site today (`core/Page/page.js`, `ext/doc/page.js`) — neither imports `toc`,
+  so nobody has hit this yet. The first page that wants both needs this line, not a
+  repeat of the debugging.
 
 ## Open
 
@@ -116,3 +131,7 @@ recognise the trigger. Worth reusing on anything held back for a threshold.
 - **One listener per toc, never removed.** Bounded by pages visited, not by
   navigations. Measured as nothing; written down in case a future `Page` starts
   discarding views.
+- **The `overview:` + `toc()` pairing (see Traps) has no guard.** Whether the fix
+  belongs in `Doc.overview_section()` — skip `toc()`'s effect structurally, or warn —
+  or stays a documented rule for the call site, is undecided. Recorded as a
+  recommendation in the audit, not applied here: `ext/doc` is a different module.

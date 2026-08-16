@@ -1,14 +1,14 @@
 // `App` the CLASS is a named export; /app.js's DEFAULT export is the running
-// app instance, which has no .prototype for classdoc to read.
-import { App, classdoc, md, pre, code, h2, toc } from "/app.js";
+// app instance, which has no .prototype for Doc to read.
+import { App, Doc, md, pre, code, h2, toc } from "/app.js";
 
-export default classdoc.page({
+export default new Doc({
 	meta: import.meta,
 	title: "App",
 	description: "Boot, and the one container pages mount into.",
 	icon: "widgets",
 
-	Class: App,
+	subject: App,
 
 	properties: "$app $pages root router ready $body",
 
@@ -18,6 +18,8 @@ export default classdoc.page({
 	// Each name is a ./doc/<name>.md the readme cites. `mode` and `fonts` cover the
 	// two sibling modules — mode.js and Font.js — which are not members of App.
 	notes: "constructor boot error-page loaders adoption fonts mode aliases",
+
+	files: "App.js Font.js mode.js mode.css page.js readme.md",
 
 	content(){
 

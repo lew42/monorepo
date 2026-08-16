@@ -103,6 +103,22 @@ export function tail_activity(lines){
  */
 export const state = m => m?.landed_at ? "landed" : m?.requested_at ? "running" : "proposed";
 
+/* Nothing server-side knows a task stalled, so a running card says it from the log
+   it already holds: newest line older than this and the task reads as quiet. */
+const QUIET_AFTER = 30 * 60 * 1000;
+
+const stamps = m => [m.requested_at, ...(m.logs ?? []), ...(m.actions ?? []), ...(m.chats ?? [])]
+	.map(x => Date.parse(typeof x === "string" ? x : x?.at))
+	.filter(Boolean);
+
+/** How long a running task has been silent — "45m", "2h 5m" — or null while it's warm. */
+export function quiet(m){
+	if (!m || m.landed_at) return null;
+	const last = Math.max(...stamps(m), 0);
+	const idle = Date.now() - last;
+	return last && idle > QUIET_AFTER ? dur(idle) : null;
+}
+
 /**
  * A task's step outline as progress. `steps` is the outline declared at launch,
  * `step` the 1-based index of the one underway — so `1..step-1` are done and

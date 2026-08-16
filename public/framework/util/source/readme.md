@@ -1,121 +1,72 @@
-# source — design record
+# source
 
-`source(fn)`, `member(Class, name)`, `patched(fn, name)`, `dedent(src)`. The
-verdicts; the traps live as comments beside the code they bite, because each one
-is a *why* for the line under it rather than a decision anyone re-litigates.
-
----
-
-## 1. Why `util/`, and not inside `ext/demo`
-
-`demo(fn)` was the first caller and would have been a fine home. The test that
-moved it is the same one `markup` passes (`util/markup/readme.md` §2): **two
-callers that must agree.** `demo(fn)` prints a function's body above its result;
-`code.fn(fn)` prints the same body on its own. If those two disagreed about where
-a body starts or how far to dedent, **the same function would print two ways on
-one page** — which is exactly the drift the "show real source" idea exists to
-prevent.
-
-**Verdict: one copy, in `util/`, imported by both.** A helper with one caller
-belongs in that caller. `source` is the precedent `markup` was later measured
-against.
-
----
-
-## 2. Why examples are functions and not strings
-
-The reason every `demo()` on this site takes a callback:
+Four functions for turning running code into readable text: `source(fn)`,
+`member(subject, name)`, `patched(fn, name)`, `dedent(src)`. Every example on
+this site and every method page in [`ext/doc`](/framework/ext/doc/) goes
+through one of these — the reason they're one file is that two callers
+already needed to agree, and a second copy is how they'd have drifted.
 
 ```js
-demo(() => { div.c("card", () => p("hi")); }, "the caption");
+import { source, member, patched, dedent } from "/framework/util/source/source.js";
 ```
 
-A string is dead text in the editor. A function body gets highlighting,
-completion, formatting and syntax errors from the IDE for free — and then
-`fn.toString()` hands the page **the exact text the IDE checked**. There is no
-build step to desynchronise the two, which is the whole reason this works here
-and does not work in a bundled framework.
+Each function has its own page under [API](/framework/util/source/api/): the
+real source, who calls it, what bites. This file stays conceptual.
 
-**The cost, accepted:** the example must be valid JS in the surrounding scope. An
-example that *shouldn't* run, or that needs an import the page doesn't have, is a
-`code.js()` string instead — see `ext/tabs/page.js`, whose demo box says so out
-loud rather than faking a render.
+## Why `util/`, not inside `ext/demo`
 
----
+`demo(fn)` was the first caller and would have been a fine home. The test
+that moved it: **two callers that must agree.** `demo(fn)` prints a
+function's body above its result; `code.fn(fn)` prints the same body alone.
+If they disagreed about where a body starts, the same function would print
+two ways on one page. `source` is the precedent [`markup`](/framework/util/markup/)
+was later measured against.
 
-## 3. `source(fn)` strips the signature; `member()` must not
+## Why examples are functions, not strings
 
-Two callers wanted "this function as text" and wanted **different** text.
+The reason every `demo()` on this site takes a callback instead of a code
+string — a function body gets highlighting, completion and syntax errors
+from the IDE for free, and `fn.toString()` hands the page exactly the text
+the IDE checked. One paragraph version; the cost accepted and the "when not
+to" case are in [functions-not-strings](/framework/util/source/docs/functions-not-strings/).
 
-| caller | subject | wants |
+## Used by
+
+| function | caller | for |
 |---|---|---|
-| `demo(fn)` / `code.fn(fn)` | an anonymous example | the body — `() => {` is noise |
-| `classdoc` | `View.append` | the body **and** `append(...args)` |
+| `source`, `dedent` | [ext/demo](/framework/ext/demo/) | `demo(fn)`'s code pane |
+| `source` | [ext/highlight](/framework/ext/highlight/) | `code.fn(fn)` |
+| `member`, `patched`, `dedent` | [ext/doc](/framework/ext/doc/) | every method page's source pane and patch banner |
 
-`source()` slices from the first `{`, which is right for the first row and throws
-away the one line a reader navigating *"View → append"* needs to confirm they are
-in the right place.
+`core/new/1/` — the proving-ground sandbox, not live framework code — has
+its own ~13 call sites importing `source` directly for the same reason:
+functions as examples, no build step to keep two copies in sync.
 
-**Verdict: two entry points, not an option.** `source(fn)` for an example;
-`dedent(String(fn))` for a member. An `{ signature: true }` flag would have been
-one function with a flag inside a year, and the two subjects are genuinely
-different — which is the same call `Router`'s record makes about `navigated` vs
-`entered`.
+## Decisions
 
----
+- **One copy, in `util/`, imported by every caller.** Not duplicated per call
+  site.
+- **`source(fn)` and `member(subject, name)` are two entry points, not one
+  function with a flag.** They want genuinely different text — `source()`
+  strips the wrapper; `member()` must keep a method's signature line, since
+  that's the one thing confirming a reader is looking at the right member.
+- **`member()` reads a property descriptor, never `subject[name]`** — reading
+  a getter executes it. Generalized today (2026-08-15) from "takes a class"
+  to "takes any subject that owns the member" — a class, a function with
+  properties (`md.file`), or a plain namespace object (`is.arr`) — for
+  `ext/doc`, which needed all three shapes. Full account on
+  [member's page](/framework/util/source/api/member/).
 
-## 4. `member()` reads a descriptor because reading a property *runs* it
+## Traps
 
-`Class.prototype[name]` **executes a getter.** `App.loaded` was a getter that
-built a `Promise.all`; read off a bare prototype, where the instance state it
-expects does not exist, it threw *"undefined is not iterable"* before `toString()`
-was ever reached.
+Each is written up on the function it bites, not restated here:
+[dedent's CRLF trap](/framework/util/source/api/dedent/),
+[source's arrow-finding trap](/framework/util/source/api/source/),
+[patched's blind spot](/framework/util/source/api/patched/).
 
-**Verdict: `getOwnPropertyDescriptor`, always.** It is the only way to hold an
-accessor's *function* rather than its result. Prototype is searched before the
-constructor, because that is what a reader means by "a method".
+## Open
 
-This is also the concrete argument behind the no-magic-getters rule in
-`CLAUDE.md`: a getter that allocates is invisible at the call site, and the first
-thing to discover it was a documentation tool.
-
----
-
-## 5. `patched()` is one line of trivia, kept deliberately
-
-JS infers a function's name from assignment to an **identifier**, never to a
-member expression. So `append(...args){}` carries `fn.name === "append"` and
-`View.prototype.append = function(…){}` carries `""`.
-
-**Verdict: surface it, don't hide it.** `ext/highlight` really does replace
-`View.append`, and on this site the running `View.append` *is* the patch — a doc
-page that quietly showed the original would be lying about what runs. `classdoc`
-prints a banner instead.
-
-**The sharp edge:** it cannot distinguish *"an ext replaced a core method"* from
-*"an ext added a method core never had"*. `Page.prototype.tabs` is the second kind
-and is assigned anonymously, so `patched()` would call it a replacement. Nothing
-asks it today (`ext/tabs` has no classdoc page); if one is ever added, name the
-function — `= function tabs(names){` — rather than teach `patched()` a second
-concept.
-
----
-
-## 6. Open
-
-- **`dedent()` normalises CRLF and that is load-bearing.** `fn.toString()` returns
-  whatever line endings the file was checked out with, while the same text through
-  `innerHTML` comes back `\n` — the DOM normalises, the string does not. Rendered
-  output was fine either way; two callers *comparing* results were not.
-- **The first line is only evidence if it begins a line.** `String(fn)` for a
-  shorthand method starts at the name, so its indent was left behind in the file
-  and it measures zero — and zero pinned the common indent at zero, putting the
-  signature at the root with the body still three tabs deep. A first line with no
-  leading whitespace knows nothing about the indent, so it is not asked.
-- **`arrow_at()` tracks depth and quotes rather than using `indexOf("=>")`.** The
-  naive version sliced any ordinary function containing an arrow at the *inner*
-  arrow: `function(){ const f = () => 1; return f; }` printed `1; return f; }`.
-  Silent, because a fragment of valid code renders as perfectly good code that
-  simply is not what you wrote. It reached `demo()` and `code.fn()` alike. Two
-  personas once reached opposite conclusions about these four lines by reading
-  them; running it settled it in thirty seconds (`framework/readme.md` §6).
+None outstanding. The class-only assumption `member()` used to carry is gone;
+this file's own `page.js` and [`is/page.js`](/framework/util/is/) both
+exercise the plain-namespace-object path immediately, so it isn't
+theoretical.

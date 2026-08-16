@@ -1,4 +1,4 @@
-import { Page, View, md, demo, div, p, a, button, pre, code, span } from "/app.js";
+import { Doc, View, md, demo, div, p, a, button, pre, code, span } from "/app.js";
 
 View.stylesheet(import.meta, "paper.css");
 View.stylesheet(import.meta, "terminal.css");
@@ -17,11 +17,12 @@ const sample = () => {
 	});
 };
 
-export default new Page({
+export default new Doc({
 	meta: import.meta,
 	title: "Writing a theme",
 	description: "Two sample themes, both modes, and the ladder from token to rule.",
 	icon: "school",
+	files: "page.js paper.css terminal.css readme.md",
 	content(){
 
 		demo(() => {

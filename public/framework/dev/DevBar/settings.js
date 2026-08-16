@@ -13,7 +13,7 @@ export const MIN = 200;
  * ⚠ `restore()` settles on a MICROTASK, and microtasks drain before the first paint
  *   — so the rail comes back the way you left it with no flash, despite `load()`
  *   being a promise. Anything that needs the state must chain onto it. */
-export const settings = { open: false, width: null, knobs: [], threads: {} };
+export const settings = { open: false, width: null, tab: "page", knobs: [], threads: {} };
 
 export function set(values){
 	Object.assign(settings, values);

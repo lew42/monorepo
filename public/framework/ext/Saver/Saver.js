@@ -17,13 +17,19 @@ export default class Saver {
 	async drain(){
 		let wrote = false;
 
-		while (this.pending !== undefined){
-			const item = this.pending;
-			this.pending = undefined;
-			wrote = await this.write(item);
+		try {
+			while (this.pending !== undefined){
+				const item = this.pending;
+				this.pending = undefined;
+				wrote = await this.write(item);
+			}
+		} catch (error){
+			console.warn("Saver: write() rejected — that save is lost, but the queue recovers.", error);
+			wrote = false;
+		} finally {
+			this.writing = null;
 		}
 
-		this.writing = null;
 		return wrote;
 	}
 

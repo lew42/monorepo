@@ -128,9 +128,45 @@
 	.lt-live-issue { gap: 0.1em; }
 	.lt-live-detail { font-size: 0.85em; }
 
+	/* Where a finding IS. One box over the page — an outline written onto the
+	   element would be one more thing the next analysis reads back. Under the dev
+	   rail's z-index 50 on purpose: the rail occludes the page it is measuring.
+	   ⚠ Lives on <body>, outside `.app` — every token here is a :root one. */
+	.lt-spot {
+		position: fixed; z-index: 40; display: none; pointer-events: none;
+		outline: 2px solid var(--prim);
+		outline-offset: 1px;
+		background: color-mix(in srgb, var(--prim) 12%, transparent);
+	}
+	.lt-spot.on { display: block; }
+
+	.lt-spot-tag {
+		position: absolute; inset-block-end: 100%; inset-inline-start: 0;
+		padding: 0.1em 0.4em;
+		font-family: var(--mono); font-size: 0.7rem; white-space: nowrap;
+		color: var(--surface); background: var(--prim);
+	}
+	.lt-spot-tag:empty { display: none; }
+
+	/* A finding that points at something looks like it does. Written onto views this
+	   module does not build — the rail's rows, the live panel's, the report's. */
+	.lt-aim { cursor: pointer; border-radius: var(--radius); }
+	.lt-aim:hover { background: var(--tint); }
+	.lt-aimed, .lt-aimed:hover { background: color-mix(in srgb, var(--prim) 14%, transparent); }
+
 	.lt-vision { margin-block: 1em; }
 	.lt-reply { padding: 0.7em 0.9em; background: var(--tint); border-radius: var(--radius); white-space: pre-wrap; }
 	.lt-reply:empty { display: none; }
 	.lt-detail { margin-block-start: 1.5em; }
 	.lt-decl { display: block; white-space: pre-wrap; padding: 0.7em 0.9em; }
+}
+
+@layer util {
+
+	/* ⚠ THE MEASURING FRAME MUST NOT BE CLAMPED. `framework.css`'s base reset is
+	   `iframe { max-width: 100% }`, so `frame(url, 3440)` from a 1920 window laid
+	   out at 1920 and reported it as 3440 — silently, on every wide run of the
+	   suite, the audit and the library. Measured: identical scores and an
+	   identical `width_used` for the 1920 and 3440 rows. */
+	iframe[data-layout-ignore] { max-width: none; }
 }

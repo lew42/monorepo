@@ -34,7 +34,7 @@ export function sample(root){
 			} },
 
 			JS: { icon: "data_object", content(){ this.previews(); }, children: {
-				Syntax: { icon: "code_blocks", content(){ p("The grammar under everything else."); } },
+				Syntax: { icon: "code", content(){ p("The grammar under everything else."); } },
 				DOM: { icon: "account_tree", content(){ p("The page, as an object you can hold."); } },
 				Events: { icon: "bolt", content(){ p("What happened, and who is listening."); } },
 			} },

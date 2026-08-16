@@ -57,7 +57,10 @@ Page.prototype.tabs = function(names){
 		// ⚠ after inject(): on a cold load every view here is still detached, and a
 		// detached element measures zero.
 		Promise.resolve(this.app?.ready).then(() => reveal($bar));
-	});
+	})
+		// ⚠ loaders is read once, at boot; after that nothing ever awaits `filling`
+		// again, so an uncaught rejection here would be silent on every later nav.
+		.catch(error => console.error(`${this.log_label()}.tabs() failed to fill:`, error));
 
 	// so a cold load waits for the bar instead of painting an empty one. ⚠ `loaders?.`
 	// too: a stand-in app (ext/demo's DemoApp) has no first-paint queue to wait on.

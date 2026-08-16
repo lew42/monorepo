@@ -99,7 +99,7 @@ agreed with the grid about where the middle was. **The auto margins were reverse
 four days later** — the grid no longer centres, so agreeing with it means flush
 left (*One axis*, below). The default lives in `render()`
 rather than `naming()` so a custom `render()` that never reads `classes` — the
-classdoc root, the topic pages — is untouched. One trap, recorded in
+Doc root, the topic pages — is untouched. One trap, recorded in
 `doc/property/classes.md`: declaring `classes: "anything"` **forfeits** the shape;
 a standard page with extras writes `classes: "standard extra"`.
 
@@ -180,7 +180,7 @@ page it holds.
 whole width, but its cards sat 9px off the app sidebar and read as glued to it, so
 `.page.standard > .page-catalog > .page-previews` pays `--gutter-x` back as a
 `margin-inline-start` — a margin, so `--rail` still measures the cards. Scoped to a
-direct child of `.page.standard`, because a catalog in a classdoc group is already
+direct child of `.page.standard`, because a catalog in a Doc group is already
 inset by the group's own `--page-pad` and would pay twice; and dropped again in the
 `< 64em` strip, which is a scrollport across the whole region.
 
@@ -307,7 +307,7 @@ catalog region is a region; the page inside it is again a default standard page,
 the vocabulary recurses with nothing declared. The region resets the sheet tokens
 at its boundary (`--measure`, `--page-pad` — declared beats inherited), which is
 why a page inside a panel never pays the sheet twice. The worked example is any
-classdoc: top `tabs()` on the root, a `catalog()` **or** vertical `tabs()` inside
+Doc: top `tabs()` on the root, a `catalog()` **or** vertical `tabs()` inside
 each group, an ordinary standard page in every panel — three levels, all real urls,
 and the leaf still escapes with `.bleed` when its demo wants the full width.
 

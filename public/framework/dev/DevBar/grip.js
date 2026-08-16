@@ -5,7 +5,7 @@ View.stylesheet(import.meta, "grip.css");
 
 const html = document.documentElement;
 
-/* The grip — a strip straddling the rail's inline edge. There is no permanent
+/* The grip — a strip just inside the rail's inline edge. There is no permanent
  * handle: the pill exists only while your pointer is near that edge, and it rides
  * the pointer's Y, so the control is always already under your hand and the rail
  * is otherwise a clean line.

@@ -1,19 +1,21 @@
 import Socket from "./Socket.js";
-import { classdoc, md, code, h2 } from "/app.js";
+import { Doc, md, code, h2 } from "/app.js";
 
-export default classdoc.page({
+export default new Doc({
 	meta: import.meta,
 	title: "Socket",
 	description: "One WebSocket to the dev server, and the reload it pushes.",
 	icon: "cable",
 
-	Class: Socket,
+	subject: Socket,
 
 	properties: "ready disabled connected",
 
-	methods: "singleton initialize connect open reconnect message reload send request rpc",
+	methods: "singleton initialize connect open reconnect message reload changed eval send request rpc",
 
 	notes: "localhost backoff wire",
+
+	files: "Socket.js page.js readme.md",
 
 	content(){
 
@@ -35,9 +37,15 @@ else { this.disabled = true; this.ready.resolve(); }`);
 		code.js(`socket.rpc("reload")        // Server/plugins/SocketServer/LiveReload.js
 socket.reload()             // …lands here, on your instance`);
 
-		md("A frame is `{ method, args }`, and [`message()`](/framework/dev/Socket/api/message/) looks the method up on `this`. `reload()` is the only one the shipped server ever sends — and `window.$BLOCKRELOAD` is the escape hatch when you are mid-edit in a form.");
+		md("A frame is `{ method, args }`, and [`message()`](/framework/dev/Socket/api/message/) looks the method up on `this` — so adding a server command is adding a method. `window.$BLOCKRELOAD` is the escape hatch when you are mid-edit in a form.");
 
-		md("The other direction — `send`, `request`, `rpc`, and the `ls`/`rm`/`write` wrappers over them — is **wired but unused**: `server.js:6` has the plugin that answers them commented out. [wire](/framework/dev/Socket/docs/wire/) has the frame format and the honest accounting.");
+		h2("A save reloads the tabs that loaded the file");
+
+		code.js(`socket.changed(["/framework/core/Page/Page.css", "/app.js"])`);
+
+		md("Each path is checked against what this tab actually fetched. Never loaded it? **Nothing happens.** A `.css` it has as a `<link>`? The `?t=` on that same element is bumped and the sheet re-fetches — no navigation, no lost state. Anything else? One reload for the whole batch. [`changed`](/framework/dev/Socket/api/changed/) has the decision table and the `@layer` trap that makes *same element* load-bearing.");
+
+		md("A `.jsonl` never reaches `changed` at all — appends arrive as `jsonl` frames and [JSONL](/framework/ext/JSONL/) applies them in place. [wire](/framework/dev/Socket/docs/wire/) is the whole protocol, both directions.");
 
 		md("**And that is the whole framework.** Start building — or read [Versus](/framework/versus/), the short argument for why it looks like this, or the [development log](/framework/ai/) on how it got here.");
 

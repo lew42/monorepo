@@ -19,6 +19,11 @@ export const rules = [...broken, ...polish];
 
 export { probe };
 
+/* The third tier, from the same door. `analyze()` says what is BROKEN; `rate()` says
+ * how GOOD it is — and unlike a score built from findings it can rank two layouts that
+ * are both clean, which is the only thing a generator can search on. taste/readme.md. */
+export { rate } from "./taste/taste.js";
+
 /* `target` is an element, or a probe model captured earlier — the rules never
  * touch the DOM, so a report can be recomputed from a JSON capture with no
  * browser at all. */
@@ -63,7 +68,10 @@ export function judge(model){
  * twice the problem and point at the wrong element both times. */
 const FLOCK = 2;
 
-function roll_up(issues, model){
+// Siblings first, then the same structure wherever it repeats.
+const roll_up = (issues, model) => repeats(siblings(issues, model));
+
+function siblings(issues, model){
 	const flocks = new Map();
 
 	for (const i of issues){
@@ -87,12 +95,36 @@ function roll_up(issues, model){
 		out.push({
 			...worst,
 			sel: parent.sel, node: parent.i, path: parent.path, children: flock.length,
+			count: flock.reduce((sum, i) => sum + (i.count ?? 1), 0),
 			detail: `${flock.length} children of ${parent.sel} share this — worst is ${worst.sel}, ${worst.detail}`,
 			fix: worst.fix && { sel: parent.sel, decl: parent_fix(worst) },
 		});
 	}
 
 	return [...issues.filter(i => !rolled.has(i)), ...out];
+}
+
+/* And the same STRUCTURE wherever it repeats. The sibling pass cannot see a row
+ * drawn three hundred times, because each offender is the only child of its own
+ * row — `div.ai-line` × 300 on one dashboard, `span.sidebar-label` × 2504
+ * site-wide, from one Sidebar declaration. One selector tripping one rule is one
+ * mistake, however many times the page draws it. */
+function repeats(issues){
+	const by = new Map();
+
+	for (const i of issues){
+		const key = `${i.rule}:${i.sel}`;
+		by.set(key, [...(by.get(key) ?? []), i]);
+	}
+
+	return [...by.values()].map(list => {
+		if (list.length < FLOCK) return list[0];
+
+		const worst = list.reduce((a, b) => (RANK[b.sev] > RANK[a.sev] ? b : a));
+		const count = list.reduce((sum, i) => sum + (i.count ?? 1), 0);
+
+		return { ...worst, count, detail: `${count} × ${worst.sel} — worst is ${worst.detail}` };
+	});
 }
 
 // The child's fix applied to the container. `max-width` on eight paragraphs is
@@ -113,13 +145,25 @@ function tally(issues){
 
 /* The same analysis on another document, at a width this window doesn't have.
  * Same-origin, so the iframe's modules are this module — one implementation,
- * whether the caller is a page, a report, or a headless driver. */
-export function frame(url, width, { height = 900, settle = 350, root = ".app" } = {}){
+ * whether the caller is a page, a report, or a headless driver.
+ *
+ * ⚠ `max-width: none` is load-bearing. `framework.css`'s base reset is
+ * `iframe { max-width: 100% }`, so a 3440 frame opened from a 1920 window laid
+ * out at 1920 and reported 3440 — identical rows for the two widths, and nothing
+ * threw. LayoutTool.css says the same thing for a frame someone else builds.
+ *
+ * ⚠ And a timeout, or a url whose `onload` never fires hangs the caller forever:
+ * three of B's site sweeps did exactly that, inside `page.evaluate`, with no way
+ * to tell a slow page from a stuck one. */
+export function frame(url, width, { height = 900, settle = 350, root = ".app", timeout = 15000 } = {}){
 	return new Promise((resolve, reject) => {
 		const el = document.createElement("iframe");
 		el.setAttribute("data-layout-ignore", "");
-		el.style.cssText = `position:fixed;left:-10000px;top:0;border:0;width:${width}px;height:${height}px`;
+		el.style.cssText = "position:fixed;left:-10000px;top:0;border:0;max-width:none;"
+			+ `width:${width}px;height:${height}px`;
 		el.src = url;
+
+		const clock = setTimeout(() => finish(reject, new Error(`${url} at ${width}px timed out`)), timeout);
 
 		el.onerror = () => finish(reject, new Error(`could not load ${url}`));
 
@@ -132,6 +176,6 @@ export function frame(url, width, { height = 900, settle = 350, root = ".app" } 
 
 		document.body.append(el);
 
-		function finish(done, value){ el.remove(); done(value); }
+		function finish(done, value){ clearTimeout(clock); el.remove(); done(value); }
 	});
 }

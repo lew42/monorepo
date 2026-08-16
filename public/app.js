@@ -4,6 +4,11 @@ import devbar from "./framework/dev/DevBar/DevBar.js";
 import { lew42 } from "./framework/styles/layers/theme/lew42/lew42.js";
 import mode from "./framework/core/App/mode.js";
 
+/* ⚠ The default resource-timing buffer holds ~250 entries and then silently stops
+ * recording, so a long-lived tab would stop recognising its own files as loaded
+ * and Socket.changed() would stop reloading it. Raise it before anything fetches. */
+performance.setResourceTimingBufferSize(100000);
+
 App.stylesheet("/styles.css");
 
 /* The site's chrome, built ONCE outside $pages so navigation can never touch it.
@@ -80,9 +85,15 @@ const app = window.app = new App({
 		View.set_captor(this.$pages);
 	},
 
-	// Router's seam, called after every navigation. The rail's route section reads
-	// the url at render time, so it is stale until something says so.
-	navigated(){ devbar.refresh(); },
+	/* Router's seam, called after every navigation. The rail's route section reads
+	 * the url at render time, so it is stale until something says so — and the dev
+	 * server addresses a tab by the page it last announced, which an SPA navigation
+	 * (no new socket) would otherwise leave at wherever the tab connected.
+	 * Off localhost `rpc` no-ops. dev/Socket/doc/wire.md. */
+	navigated(page){
+		this.socket.rpc("hello", page.url);
+		devbar.refresh();
+	},
 });
 
 export default app;
@@ -110,20 +121,28 @@ import "./framework/ext/demo/exhibit.js";
 // with the two-up card and the `parts:` chips. Same side-effect shape.
 import "./framework/ext/demo/layout.js";
 
-// classdoc turns "a method has a .md file next to the page.js" into a child
-// page showing that method's real source. Imports markdown (the notes ARE
-// markdown); leans on highlight only if it's loaded. See ext/classdoc/readme.md.
-export { default as classdoc } from "./framework/ext/classdoc/classdoc.js";
+// Doc turns "a member has a .md file next to the page.js" into a child page
+// showing that member's real source. A Page subclass, so a module with a
+// different shape overrides a method instead of the config growing an option.
+// Imports markdown (the notes ARE markdown) and files (the Files tab); leans on
+// highlight only if it's loaded. See ext/doc/readme.md.
+export { Doc } from "./framework/ext/doc/Doc.js";
 
 // Patches this.tabs() onto every Page — the side effect IS the export, same
-// shape as highlight below. classdoc already imports it for its own vertical
+// shape as highlight below. ext/doc already imports it for its own vertical
 // rail; this import is what makes `this.tabs("guide api")` work on any OTHER
 // page.js too. See ext/tabs/readme.md.
 import "./framework/ext/tabs/tabs.js";
 
 // Patches this.catalog() the same way: previews() as a persistent rail beside
-// the region the children mount in. classdoc's Overview tab is built on it.
+// the region the children mount in. ext/doc's Overview tab is built on it.
 import "./framework/ext/catalog/catalog.js";
+
+// The right rail, one per document: drawer(($slot, $body) => …) opens it, its own ✕
+// shuts it, and nothing else does. Here rather than inside ext/layout — which owned it
+// until 2026-08-16 and could only open it for its own selection — so a panel's
+// properties and a selected element's words are the same surface. See ext/drawer.
+export { default as drawer } from "./framework/ext/drawer/drawer.js";
 
 // files() shows real files on disk, fetched — so a "here is a whole project"
 // section can't drift from the project. toc() reads a page's own headings.

@@ -6,9 +6,23 @@ Each verdict below is the short form. The long reasoning lives in `./doc/`, one
 file per question, and the same files render as note pages under
 `/framework/core/Router/`. **Every member also has its own file** —
 `./doc/method/<name>.md` and `./doc/property/<name>.md`, three concerns each
-(usage, necessity, simplicity) — rendered under its real source by `classdoc`.
+(usage, necessity, simplicity) — rendered under its real source by `Doc`.
 A verdict of *keep* is as valuable as a change: it stops the same idea being
 re-litigated.
+
+## Who uses this
+
+One real importer — everything else reaches the running instance through `app`.
+
+- [`core/App`](/framework/core/App/) constructs the one Router (`App.js:56`), awaits
+  `router.load(location.pathname)` for first paint (`App.js:58`), and re-exports the
+  class so a site can `import { Router } from "/app.js"`.
+- [`ext/tabs`](/framework/ext/tabs/), [`ext/catalog`](/framework/ext/catalog/) and
+  [`ext/AITask`](/framework/ai/) each call `app.router.mark_links()` bare, for the
+  same reason: they render anchors *after* `mark()` has already run for this
+  navigation, so `.active`/`.in-path` would otherwise never land on them. No other
+  module reaches into the Router — see each method's own Usage section for the
+  exact call site.
 
 ## Decisions
 
@@ -77,8 +91,9 @@ spells one idea with two.
 *Options:* (a) leave it; (b) `this.active?.chain() ?? []`.
 **Recommendation: (b).** Identical behaviour, no other file touched.
 
-**Who re-runs `mark_links()` for links rendered late?** Three callers, and two are
-saying *"I built anchors after you ran"* (`ext/tabs`, `framework/ui/page.js`).
+**Who re-runs `mark_links()` for links rendered late?** Three external callers, and
+all three are saying *"I built anchors after you ran"* — `ext/tabs`, `ext/catalog`,
+`ext/AITask`.
 *Options:* (a) keep the manual re-run; (b) a `MutationObserver` on `$app` that
 re-marks added anchors; (c) let `app.navigated?.()` own it, so an ext hooks the
 moment instead of the method.

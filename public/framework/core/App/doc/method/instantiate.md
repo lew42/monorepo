@@ -24,10 +24,11 @@ Right-sized, with two costs that are real and are not the method's fault:
 
 **It is an unawaited async call in the constructor.** That is what makes
 `window.app = new App()` read well, and `app.ready` covers anyone who needs the
-wait. The price: a throw anywhere outside `load()`'s own try/catch becomes a silent
-unhandled rejection. One `.catch(e => this.error(e))` here would fix it — recorded
-rather than done, because the try in `load()` covers the case that actually
-happens, a page module throwing.
+wait. The price used to be real: a throw anywhere outside `load()`'s own try/catch
+became a silent unhandled rejection and left `app.ready` pending forever. Fixed by
+wrapping the method's own body in try/catch — `catch` calls `error()`, which logs
+and renders the error page — with `ready.resolve()` moved to run unconditionally
+after, so `await app.ready` always settles.
 
 **`inject()` is last, so nothing paints until the walk finishes** — measured at
 1765ms on a 5-deep cold link, where the chrome could have painted immediately.

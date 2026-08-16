@@ -6,10 +6,11 @@ log_label(){ return "app"; }
 
 **None.** Zero callers, in `framework/` and in every sandbox.
 
-`Page.log_label()` is called seven times (`Page.class.js:14, 56, 100, 103, 110,
-134`, `Router.js:97`). This one — the `App` copy — is called nowhere. The nearest
-thing is `Page.container()`, which logs the string `"app.$pages"` as a **literal**
-rather than asking the app what it is called (`Page.class.js:105`).
+`Page.log_label()` is called three times (`Page.class.js:134, 137, 168`), all
+inside `container()` and its arrangement warning. This one — the `App` copy — is
+called nowhere. The nearest thing is `Page.container()`, which logs the string
+`"app.$pages"` as a **literal** rather than asking the app what it is called
+(`Page.class.js:139`).
 
 ## Necessity
 

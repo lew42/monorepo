@@ -1,4 +1,4 @@
-import { Page, md, code, div, span, h4, input, icon, View } from "/app.js";
+import { Doc, md, code, div, span, h4, input, icon, View } from "/app.js";
 import Item from "/framework/core/Item/Item.js";
 import Sortable from "/framework/ext/Draggable/Sortable.js";
 import FileSaver from "/framework/ext/Saver/FileSaver.js";
@@ -218,12 +218,15 @@ function editor(root){
 
 	/* This workspace's T vocabulary: five regions and an empty one, each closing over
 	   the editor above. Nothing about editor state reaches ext/Panel's global templates,
-	   and a region the arrangement drops simply stops being painted. */
+	   and a region the arrangement drops simply stops being painted. ⚠ `panel-controls`
+	   is a payload's claim that its top edge holds controls, which `panel.css` answers by
+	   reserving the hover bar's height — the canvas abstains because it is the document,
+	   and the status strip because a badge is read while the pointer is somewhere else. */
 	const REGIONS = {
 		blank: { draw(){ region("pad", () => { span.c("muted", "Empty — pick a region from T."); }); } },
 
 		palette: { draw(){
-			region("flex v gap pad", () => {
+			region("panel-controls flex v gap pad", () => {
 				Object.keys(BLOCKS).forEach(name => btn(name, () => insert(BLOCKS[name])));
 				row(() => {
 					$undo = btn(() => icon("undo"), () => history.undo()).attr("title", "Ctrl+Z");
@@ -235,8 +238,8 @@ function editor(root){
 		} },
 
 		canvas: { draw(){ $canvas = region("pad"); draw(); } },
-		layers: { draw(){ $layers = region("flex v"); layers(); } },
-		properties: { draw(){ $props = region("flex v gap pad").on("click", sync).on("input", sync); properties(); } },
+		layers: { draw(){ $layers = region("panel-controls flex v"); layers(); } },
+		properties: { draw(){ $props = region("panel-controls flex v gap pad").on("click", sync).on("input", sync); properties(); } },
 		status: { draw(){ $status = region("flex v-center gap pad"); badge(); } },
 	};
 
@@ -251,16 +254,26 @@ function editor(root){
 		e.shiftKey ? history.redo() : history.undo();
 	});
 
+	// ⚠ No changed() here — that would save on every visit, edited or not. badge()
+	// already ran (via the status region's draw) showing "…"; only a real edit saves.
 	listen();
-	changed();
 	return $workspace;
 }
 
-export default new Page({
+export default new Doc({
 	meta: import.meta,
 	title: "Editor",
 	description: "A drag-and-drop builder on this stack and nothing else — the prototype the whole thing points at.",
 	icon: "design_services",
+
+	// The only real class in the module — History.js. blocks.js's five Block
+	// subclasses are documented via doc/file/blocks.js.md instead: Doc takes one
+	// subject, and this is the one with behavior worth an API tab.
+	subject: History,
+	properties: "past future",
+	methods:    "act undo redo step can_undo can_redo read restore",
+	notes:      "shell",
+	files:      "blocks.js History.js editor.css page.js",
 
 	content(){
 
@@ -270,7 +283,7 @@ export default new Page({
 
 		md("**Drag a block into a nested container and reload the page — it is still there.** **Ctrl+Z** undoes the drag; **Ctrl+Shift+Z** redoes it.");
 
-		md("**The shell is a [panel workspace](/framework/ext/Panel/).** Split a region with the two icons on its bar, drag one beside another by its grip, drag a divider, close one and put it back from `T` — that arrangement reloads too, out of a second file nothing about the document knows.");
+		md("**The shell is a [panel workspace](/framework/ext/Panel/).** Point at a region and its bar fades in over the top of it — split it with the two icons, drag one beside another by its grip, drag a divider, close one and put it back from `T`. That arrangement reloads too, out of a second file nothing about the document knows.");
 
 		code.js(`const store = (path, key) => dev ? new FileSaver({ path }) : new LocalStorageSaver({ key });
 

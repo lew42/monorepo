@@ -159,4 +159,181 @@
 		.panel-t-drift  .panel-t-layer:nth-child(n),
 		.panel-t-depth  .panel-t-layer:nth-child(n) { animation: none; }
 	}
+
+	/* space — a whole generated page (generate.js) instead of a scene: the screen FILLS
+	   the body rather than centring in it. Equal specificity to `.panel-t`, restated
+	   later in the same file — an ordering, not a load-order bet. */
+	.panel-t-space { place-content: stretch; place-items: stretch; }
+
+	/* ⚠ `block-size: 100cqh` AND `grid-template-rows: 100%`, both measured: a generated
+	   page is a `fill` page whose regions scroll inside it, and neither an auto row nor
+	   a `min-block-size` CAPS one — a `bands` layout laid itself out 1145px tall in an
+	   820px panel and simply ran off the bottom. Two definite heights, and the page's
+	   own `scroll` regions engage the way they would on a real screen.
+	   ⚠ `font-size`, not `zoom`: every measure a layout uses is `em` (`--basis`, the
+	   pads, the type scale), so one inherited size scales the whole arrangement — and
+	   a stretched grid item's `zoom` would be applied after its area was already sized.
+	   A 300px panel reads as roughly a 600px screen; past ~1070px the panel IS the
+	   screen. */
+	.panel-t-screen {
+		display: grid;
+		grid-template-rows: 100%;
+		block-size: 100cqh;
+		overflow: hidden;
+		font-size: clamp(0.5em, 1.5cqw, 1em);
+	}
+
+	/* The seed is an address, so it stays legible — quiet until pointed at.
+	   ⚠ The FAR corner: `.panel-bar` is a full-width strip floating over the top of
+	   every panel, and it hit-tests as soon as the panel is hovered. */
+	.panel-t-dial {
+		position: absolute; inset-block-end: 0.3em; inset-inline-end: 0.3em; z-index: 2;
+		display: flex; align-items: center; gap: 0.1em;
+		padding: 0.1em 0.25em;
+		font-size: 0.8em;
+		background: var(--surface);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		opacity: 0.4;
+		transition: opacity 0.12s;
+	}
+	.panel-t-space:hover .panel-t-dial,
+	.panel-t-dial:focus-within { opacity: 1; }
+	@media (hover: none) { .panel-t-dial { opacity: 1; } }
+
+	.panel-t-seed {
+		padding-inline: 0.15em;
+		font-family: var(--mono);
+		font-variant-numeric: tabular-nums;
+		color: var(--subtle);
+	}
+
+	/* Three controls that read as one readout. ⚠ Three classes, for the reason
+	   toolbar.css spells out: a theme styles every `button` at 0-2-0 and pads it to
+	   0.7em/1.4em, which balloons a 1em glyph to 39x31. Only the box is reclaimed. */
+	.panel .panel-t-space .panel-t-dial button {
+		padding: 0 0.25em;
+		color: var(--subtle);
+		background: none;
+		border-color: transparent;
+	}
+	.panel .panel-t-space .panel-t-dial button:hover { color: var(--prim); border-color: transparent; }
+
+	/* ⚠ Material Icons is a LIGATURE font: a name the font does not carry renders as
+	   the whole WORD. The bar and the inspector both clamp; the dial was the one that
+	   did not, and a miss here would size the whole readout. */
+	.panel-t-dial .icon { width: 1em; overflow: hidden; }
+
+	/* rail / toc / brand — page FURNITURE, the three parts `structure(seed)` translates
+	   that no section band covers. Sized like the scenes (one clamp against the body's
+	   container) and painted in tokens only, so a 190px generated rail and a full-bleed
+	   one are the same drawing. `place-items: stretch` is equal specificity to
+	   `.panel-t`'s `center`, restated later in this file — an ordering, not a bet.
+
+	   ⚠ Each `cqw` is measured against the widest LINE, not guessed: a rail row is the
+	   longest word plus an icon, a gap and the pad (~7.4em), a toc's is its 0.72em
+	   letter-spaced heading (~8.1em), a wordmark is ~4.9em. A first pass at 4cqw drew a
+	   232px rail at 9px — legible, and two thirds of the panel left empty. */
+
+	.panel-t-rail {
+		place-items: stretch;
+		gap: 0.15em;
+		padding: 0.8em;
+		font-size: clamp(0.5em, min(8cqw, 7cqh), 2.5em);
+		color: var(--ink);
+	}
+	.panel-t-link {
+		display: flex;
+		align-items: center;
+		gap: 0.4em;
+		padding: 0.35em 0.7em;
+		border-radius: var(--radius);
+		white-space: nowrap;
+	}
+	.panel-t-link .icon { font-size: 1em; color: var(--subtle); }
+	.panel-t-link.on { background: var(--wash); color: var(--prim); }
+	.panel-t-link.on .icon { color: var(--prim); }
+
+	.panel-t-toc {
+		place-items: stretch;
+		gap: 0.3em;
+		padding: 0.9em;
+		font-size: clamp(0.5em, min(7cqw, 6cqh), 2em);
+		color: var(--subtle);
+		white-space: nowrap;
+	}
+	.panel-t-head {
+		font-size: 0.72em;
+		letter-spacing: 0.18em;
+		margin-block-end: 0.4em;
+	}
+	.panel-t-line.on { color: var(--prim); }
+
+	.panel-t-brand {
+		grid-auto-flow: column;
+		gap: 0.3em;
+		font-size: clamp(0.7em, min(17cqw, 30cqh), 12em);
+		font-weight: 900;
+		line-height: 1;
+		letter-spacing: 0.02em;
+		white-space: nowrap;
+		color: var(--ink);
+	}
+	.panel-t-brand .icon { font-size: 0.9em; color: var(--prim); }
+
+	/* properties - the inspector. Not a scene: it is a control surface, so it reads in
+	   `em` at the panel's own text size rather than scaling in `cq` units, and it fills
+	   the body's column instead of being placed by the alignment picker.
+
+	   Clearing the bar is NOT this rule's job: properties.js also wears `.panel-controls`,
+	   and panel.css pads the BODY by the bar's own `--panel-bar-h`. One class, one token,
+	   and the next control surface gets the same clearance without a second reserve. */
+	.panel-props {
+		display: flex;
+		flex-direction: column;
+		gap: 0.6em;
+		inline-size: 100%;
+		padding: 0.6em;
+		font-size: 0.8em;
+	}
+
+	.panel-props-empty { padding: 0.4em; }
+
+	.panel-props-head {
+		display: flex;
+		align-items: center;
+		gap: 0.35em;
+		font-family: var(--mono);
+		color: var(--ink);
+	}
+
+	.panel-props-row { display: grid; gap: 0.25em; }
+
+	.panel-props-tag {
+		font-family: var(--mono);
+		font-size: 0.85em;
+		letter-spacing: 0.08em;
+		color: var(--subtle);
+	}
+
+	/* ⚠ `auto` tracks, never `1fr`. The buttons are square and fixed since 2026-08-16, and a
+	   fixed item in a `1fr` track leaves the rest of the track as gap — the align 3×3 spread
+	   itself across a 40em region and stopped reading as a picture of nine placements
+	   (measured: 1000px between corners). Tracks the size of a button, packed to the start. */
+	.panel-props-set {
+		display: grid;
+		grid-template-columns: repeat(var(--panel-cols, 3), auto);
+		justify-content: start;
+		gap: 0.15em;
+	}
+
+	/* The SHELF - a 28-picture picker in a 40em region should not be six buttons of 6em.
+	   Only the template row is marked, and properties.js passes that mark explicitly: an
+	   `align` that auto-fills is no longer a picture of the nine placements. */
+	.panel-props-icons { grid-template-columns: repeat(auto-fill, minmax(2.2em, 1fr)); }
+
+	/* The inspector's buttons are `.panel-btn`, defined once in toolbar.css - the same box
+	   the bar and a seam's menu wear. The near-identical copy that used to live here, and
+	   its own ligature clamp, are both gone (2026-08-16); `.panel-props-btn` no longer
+	   exists as a class. */
 }

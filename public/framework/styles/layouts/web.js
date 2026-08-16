@@ -85,6 +85,17 @@ export function web(config){
 			div.c("wash").style({ aspectRatio: i % 5 === 0 ? "1" : "4 / 3", borderRadius: "var(--radius)" })))
 			.style({ "--column": column, "--gap": "0.5em" }),
 
+		/* The one RAGGED part, and the only reason it exists: every other part here is
+		   uniform by design, and a masonry wall of uniform children is a grid with extra
+		   steps. Bare, like `sections()` — the WALL is the caller's class string.
+		   ⚠ A fixed cycle, never random: two panes of a twin card render this twice, and
+		     a wall that reshuffles per render cannot be compared between two widths. */
+		notes: (count = 14) => times(count, i =>
+			div.c("surface pad flex v gap", () => {
+				span.c("h4 muted", words("topics")[i % 8]);
+				p(site.blurb.slice(0, LENGTHS[i % LENGTHS.length]) + "…");
+			}).style({ "--gap": "0.35em", "--pad": "0.9em" })),
+
 		toolbar: () => div.c("flex gap wrap v-center pad wash", () => {
 			"search filter_list sort swap_vert tune".split(" ").forEach(name => button(() => icon(name)));
 			span.c("muted", words("topics")[1]);
@@ -102,6 +113,11 @@ export function web(config){
 }
 
 const times = (count, fn) => { for (let i = 0; i < count; i++) fn(i); };
+
+// How far into `blurb` each note reads. Eight values, coprime with the 8 topics only
+// by accident — what matters is that the tallest is ~5× the shortest, which is the
+// ratio where a masonry wall stops looking like a grid that failed.
+const LENGTHS = [38, 124, 71, 205, 52, 96, 158, 29];
 
 export const site = web();
 export default web;

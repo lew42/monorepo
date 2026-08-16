@@ -83,12 +83,18 @@ function render(view, lang, src){
 }
 
 // The general form. Returns the <pre> in block context and the <code> inline.
-code.lang = function(name, src){
+// `file` names the file the snippet lives in — `code.js(src, "/app.js")` — and is
+// drawn as a label on the block. Ignored inline, which has no room for one; the
+// markdown spelling is a fence's info string (```js /app.js), emitted by ext/markdown.
+code.lang = function(name, src, file){
 	switch (context()){
 		case "pre":    return render(code(), name, src);
 		case "inline": return render(code.c("code-inline"), name, src);
-		default:       return pre.c("code-block", () => render(code(), name, src));
 	}
+
+	const $pre = pre.c("code-block", () => render(code(), name, src));
+
+	return file ? $pre.attr("data-file", file) : $pre;
 };
 
 /**
@@ -141,7 +147,7 @@ for (const [name, language] of Object.entries(accessors)){
 		continue;
 	}
 
-	code[name] = src => code.lang(language, src);
+	code[name] = (src, file) => code.lang(language, src, file);
 }
 
 /**

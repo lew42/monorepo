@@ -8,7 +8,7 @@ export default new Doc({
 
 	subject: Doc,
 	properties: "intrinsic",
-	methods:    "sections section member_page bar is_class declaration",
+	methods:    "sections section api members member_page bar wall is_class declaration",
 	notes:      "rail reflection files",
 	overview:   "urls",
 	files:      "Doc.js doc.css page.js readme.md overview/urls/page.js",
@@ -24,7 +24,7 @@ export default new Doc({
     notes:      "capturing",
     files:      "View.js View.css page.js",
     content(){ /* the overview */ },
-});`);
+});`, "framework/core/View/page.js");
 
 		md("One call is a whole module page: **Overview · API · Docs · Files** across the top, and inside each one a **left rail of sub sections**. Live example — [View](/framework/core/View/). This page is one too, documenting `Doc` with `Doc`.");
 
@@ -66,6 +66,8 @@ subject: ui       // a plain namespace object
 		md("## Files — the module as a pseudo-IDE");
 
 		md("The [Files](/framework/ext/doc/files/) tab is [ext/files](/framework/ext/files/) with an `about` hook: the tree, then `doc/file/<path>.md`, then the fetched source. **What a file is for, beside what it says.** `doc/` and `ai/` are never listed — they are the documentation, not the module.");
+
+		md("Those three regions are [ext/Panel](/framework/ext/Panel/) leaves, so the seams between them are grips — **drag one** on this page's own Files tab. `Doc.browser()` is still one call and one hook; `doc.css` only says how tall, because here the browser is the whole tab rather than a figure inside a page.");
 
 		md("The list is hand-typed for the same reason `methods` is, and for one more: `directory.json` is gitignored, so a crawler-driven tab would be blank in production and nobody who could fix it would ever see it break. [Why the file list is declared](/framework/ext/doc/docs/files/).");
 

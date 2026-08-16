@@ -71,8 +71,10 @@
 	     time, which drops the WHOLE grid template and leaves two ragged tracks. */
 	.doc-section .page.standard { --gutter-x: 0px; }
 
-	/* The Files section is one browser, not a rail: give it the height a pane needs.
+	/* The Files section is one browser, not a rail — and the browser is a panel
+	   workspace, so the height is its token rather than a flex line. Taller than the
+	   default: this is the whole tab, not a figure inside a page.
 	   ⚠ `min-height: 0` on the flex child, or the <pre> inside refuses to scroll. */
 	.doc-files { display: flex; padding-block: 1em; }
-	.doc-files > .files { flex: 1 1 auto; min-height: 0; }
+	.doc-files > .files { flex: 1 1 auto; min-height: 0; --panel-height: min(74vh, 42em); }
 }

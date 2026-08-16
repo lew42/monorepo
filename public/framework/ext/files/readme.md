@@ -1,104 +1,125 @@
 # files — design record
 
-**question → options → weighing → verdict**, as everywhere.
+A small file browser: a tree of real files on disk, fetched, the prose written
+about the one you clicked, and its source. Since 2026-08-16 those three are
+**[ext/Panel](/framework/ext/Panel/) leaves** rather than flex columns, so the
+seams between them are grips you drag and any region can be split, moved or
+closed. `files()` is still the only door; `panels.js` is what it arranges.
 
----
+```js
+files(import.meta, "example/index.html example/app.js example/page.js")
+files(import.meta, names, { about: path => md.file(meta, `doc/file/${path}.md`) })
+```
 
-## 1. Where does the example project live?
+Two regions or three: the prose pane exists only where a caller passed `about`,
+which is how `ext/doc`'s Files tab turns a module's directory into a pseudo-IDE.
 
-The `/framework/start/` page used to show `index.html`, `app.js` and `page.js` as
-string literals inside `code.html(...)` / `code.js(...)` calls. Three problems, all
-of them real:
+## Fetched, not literal
 
-- **It rots.** Nothing runs those strings. `app.js`'s three lines were correct when
-  written and nobody would ever find out if they stopped being.
-- **It reads as a wall.** A full `index.html`, doctype and all, is fifteen lines of
-  which two matter — and the reader has to find them.
-- **It cannot show structure.** "A folder with a `page.js` in it is a url" is the
-  central idea, and a code block cannot show a folder.
+The files are `fetch`ed at view time, never pasted in as string literals — a
+literal rots the moment the real file changes and nobody notices. The cost is a
+directory of files nobody imports; the payment is that the shown file cannot be
+wrong. Full record, including why the example files still don't become routes:
+[fetched](./doc/fetched.md).
 
-| option | why not |
-|---|---|
-| keep the literals | the three problems above |
-| generate the page from the filesystem at build time | there is no build step, by constitution |
-| a JSON manifest of file contents | a hand-maintained second copy, in the worst format for the job |
-| **fetch real files** | ✓ |
+## The tree
 
-**Verdict: real files, fetched at view time.** `public/framework/start/example/` is
-a working site — five files, correct, importable if you pointed a server at it.
-The doc page shows the file that is actually there.
+Paths are grouped into a nested object, the longest shared directory is
+stripped so `example/app.js` reads as `app.js`, and a click is resolved by
+reading `data-path` off the row rather than an index into the declared list —
+the index approach broke the moment two paths interleaved directories. Folders
+render open and stay open; there is no expand/collapse. Full record:
+[tree](./doc/tree.md).
 
-The cost is honest and small: a directory of files nobody imports. Its payment is
-that the "getting started" page cannot be wrong about the getting-started files.
+## The panels
 
-### Why they don't become routes
+One workspace, seeded once per call and saved nowhere. The selection is the
+only shared state: a click anywhere in the workspace reads `data-path` off the
+row and `repaint()`s every leaf that draws the selected file, so two source
+panels side by side both track it. Full record, including the axis question a
+phone asks: [panels](./doc/panels.md).
 
-`example/page.js` looks exactly like a page module, because it is one. It is not
-reachable, because **nothing crawls the filesystem** — a page exists only if its
-parent named it in `children`, and `/framework/start/`'s children do not include
-`example`. The file is served as a static asset (which is what `fetch` wants) and
-never imported.
+## `about` — prose beside the source
 
----
+`about` is called once per shown path and its return — a view, or a promise of
+one — fills the `about` region. It is optional (`{ about } = {}`), so every
+existing caller is unaffected. Full record, including the "returned, not
+called" capture trap: [about](./doc/about.md).
 
-## 2. Tabs across the top, or a tree down the side?
+## Decisions
 
-- **Tabs** reuse `.tab-bar` and cost no CSS. They also cannot show a directory,
-  and they run out of room: this ext exists partly to show `about/team/page.js`.
-- **A tree** shows nesting, which is the thing being taught.
+- **Fetch real files, never string literals.** See [fetched](./doc/fetched.md).
+- **A tree, not tabs.** Tabs cannot show nesting, and nesting — "a folder with a
+  `page.js` is a url" — is the thing this module exists to teach. Peers-only
+  tab bars are already served by `Page.tabs()`.
+- **No expand/collapse.** These trees run three to six entries by construction;
+  a doc example that needs collapsing is too big for one. `<details>` already
+  does this with no JS, the day one genuinely does.
+- **Panels replaced the flex columns everywhere, not just on `Doc`**
+  (2026-08-16, Mike's call). The ask was `ext/doc`'s Files tab; keeping the old
+  arrangement for `/framework/start/` would have left two ways to spell one
+  browser, and the CSS that went — a container query, a media query, two
+  `max-height`s and four `min-width: 0`s — was all of it answering questions
+  ext/Panel answers by construction. What a reader gains is a resizable seam on
+  a page that always wanted one; what the module loses is 40 lines of layout.
+- **`panels.js` is a second file, and it is imported lazily.** `app.js`
+  re-exports `files` for the whole site, so a static import would have loaded
+  the dozen-module Panel stack on every page to serve the handful that draw a
+  browser. `files()` places its box synchronously and fills it from
+  `import("./panels.js")` — which is also what keeps this file under a screen.
+- **No saver.** `MemorySaver`, so a rearrangement lives as long as the page and
+  every visit gets the seeded one. A persisted layout would mean a document per
+  module (or one shared by all of them, which `Page`'s view cache makes a
+  last-writer-wins race — ext/Panel's own open issue). Arranging is exploring
+  here, not authoring.
+- **The tree wears `panel-controls`; the prose and the source do not.** The bar
+  is an overlay that lights on hover, and the tree's top edge is a click target
+  — without the class the bar lands on the first file in the list, measured.
+  The other two abstain for the reason `ext/editor`'s canvas does: they are
+  documents, not control surfaces.
 
-**Verdict: a tree.** The tab bar is right when the files are peers and there are
-four of them, and that case is already served by `Page.tabs()` — a second way to
-spell it would be the API bloat and not the feature.
+## Traps
 
----
+- **⚠ Paths resolve against `import.meta`, never the document.** The SPA
+  fallback makes the document url a *route*, so a document-relative fetch
+  misses.
+- **⚠ A click reads `data-path` off the row, never an index into the declared
+  list.** `nest()` groups by directory, so tree order stops being declaration
+  order the moment two paths interleave folders. [tree](./doc/tree.md) has the
+  bug this replaced.
+- **⚠ The tree is never repainted on a selection — only its mark moves.** A
+  redraw throws away the scroll position of the row just clicked, so `mark()`
+  toggles the class across every live tree instead. A tree that left the DOM
+  drops out of the set on the next pass.
+- **⚠ The plain-text fallback pane never checks `resp.ok`.** `code.file()` (the
+  `ext/highlight` path) does; the fallback in `source()` does not, so a missing
+  file renders whatever the SPA fallback served — usually `index.html`'s
+  markup — as if it were the file's contents, with no error. Masked today
+  because `app.js` always imports `ext/highlight`; not masked for a caller who
+  uses `files()` without it. See
+  [doc/file/files.js.md](./doc/file/files.js.md).
+- **⚠ A region name that is not in `REGIONS` draws nothing and warns** —
+  `blank` exists solely because `Panel.defaults.template` is `"blank"` and a
+  reader who splits a panel would otherwise get a silent void.
 
-## 3. How does the display path get shortened?
+## Open
 
-The files live at `example/app.js` and must read as `app.js`, or the tree teaches
-the doc folder's layout instead of a site's.
+- **The axis is chosen once, at seed time.** A browser seeded wide and then
+  dragged narrow keeps its three columns, because a split holds its axis at
+  every width (ext/Panel's decision, not this module's). The reader can drag;
+  nothing re-rolls.
+- No line numbers, and no deep link to a line — wanted the moment a file is
+  long enough to discuss a specific line, not wanted yet.
+- The tree's share of the row is a fraction (`1.5` of `8`), so on a 3440 screen
+  it is 560px of file names. Every declared filename on the site fits at 1440
+  with room to spare (measured), and a cap would be a second sizing currency
+  beside `grow` — reopen if a wide screen starts reading as wasted.
 
-- **An option** (`files(meta, { base: "example/", … })`) — API surface forever, and
-  the caller has to say the same directory twice.
-- **Strip the longest common directory** — one rule, no options, and it does the
-  right thing on every input anyone has tried. Adding `example/about/page.js` to
-  the set still leaves the common prefix at `example/`, so the tree grows an
-  `about/` folder exactly when the author adds a file in one.
+## Who uses it
 
-**Verdict: strip the common directory.** Segment-wise, never character-wise —
-a character comparison of `app.js` and `app2.js` would cut mid-name.
-
----
-
-## 4. Selection: index into the list, or read it off the row?
-
-The first version matched a clicked row to its path by index into the declared
-list. It was wrong, and it is the kind of wrong that works in every test you would
-think to write: `nest()` groups paths by directory, so tree order is declaration
-order **until two paths interleave folders** —
-`"sub/b.js a.js sub/c.js"` renders `b.js c.js a.js` and every click after the
-first is off by one.
-
-**Verdict: the row carries its own `data-path`.** The leaf of the nested map holds
-the fetchable path rather than `null`, so the thing that knows the answer is the
-thing that is asked.
-
----
-
-## 5. Kept: no expand/collapse
-
-Folders render open and stay open. A disclosure triangle is the obvious next
-feature and it should not be built: these trees have three to six entries by
-construction — a doc example that needs collapsing is a doc example that is too
-big. If one ever genuinely does, `<details>` already does this with no JS.
-
----
-
-## 6. Open
-
-- **No line numbers, and no deep link to a line.** Both are wanted the moment a
-  file gets long enough to discuss a specific line, and neither is wanted now.
-- **`max-height: 26em` on the pane** is a guess that reads well for the five
-  example files. A long file scrolls inside the box, which is right; a very short
-  one leaves the tree taller than the pane, which looks slightly odd and has not
-  been worth a rule.
+- [`/framework/start/`](/framework/start/) — the "three real files, no build
+  step" walkthrough. No `about`, so two regions.
+- `ext/doc`'s Files tab (`Doc.browser()` in
+  [`ext/doc/Doc.js`](/framework/ext/doc/)) — every `Doc` module page's Files
+  tab, `about` wired to `doc/file/<path>.md`. This page's own Files tab is an
+  instance of it, documenting itself.

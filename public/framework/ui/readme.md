@@ -33,7 +33,7 @@ author wrote the markup by hand rather than import the helper.
 
 | | |
 | --- | --- |
-| **exported (3)** | `table` — two nested loops and the `width: max-content` shrink-wrap trap · `timeline` — a loop, and the rail is not obvious · `keys` — the interleave that puts a `+` *between* real `<kbd>`s |
+| **exported (3)** | `table` — two nested loops and the `width: max-content` shrink-wrap trap · `timeline` — a loop, and the rail is not obvious (**not** [`ext/Timeline`](/framework/ext/Timeline/) — a different, larger component with the same English name; see "Not `ext/Timeline`" below) · `keys` — the interleave that puts a `+` *between* real `<kbd>`s |
 | **template + CSS (9)** | `crumbs` `badge` `alert` `panel` `tooltip` `avatar` `dialog` `menu` `accordion` — a rule about a **relationship or a state**, which markup cannot say about itself |
 | **template only (7)** | `field` `toolbar` `progress` `card` `stats` `pagination` `tags` — no `.js` in the directory at all |
 
@@ -136,13 +136,110 @@ the same size.
 render+code assembly would be forced; nineteen for nineteen had a real render, so
 nineteen took the exhibit.
 
-## Two things that will bite
+## Not `ext/Timeline`
+
+[`ext/Timeline`](/framework/ext/Timeline/) is a zoomable h/v axis with lanes,
+live updates and its own `--t`/`--em-per-hour` positioning model — a
+different, much larger component that happens to share `timeline`'s English
+name and nothing else. `ui.timeline()` is a static dated list with no scale
+and no axis. Both readmes now cross-link; full weighing in the
+[audit](/framework/audit/modules/ui.md), "Where this module overlaps others."
+
+## Who uses it
+
+`ui.js`'s three functions and `parts.js`'s `css()`/`component()` helpers are
+the only parts of this module anything outside it imports — none of the
+sixteen templates has a caller, which is the finding the review already made
+and this list confirms again.
+
+| caller | uses | page |
+|---|---|---|
+| `styles/sections/changelog.js` | `timeline()`, imported directly from `ui/timeline/timeline.js` (not via `ui.js`) | [/framework/styles/sections/](/framework/styles/sections/) |
+| `styles/sections/team.js`, `styles/sections/testimonials.js` | the single-circle `avatar()` export | [/framework/styles/sections/](/framework/styles/sections/) |
+| `styles/elements/forms/page.js` | `css()` from `parts.js`, for its own unrelated stylesheet | [/framework/styles/elements/forms/](/framework/styles/elements/forms/) |
+| `ext/AITask/AITask.js` | `ui.table()` | wherever a task's `AITask` renders |
+| `ext/LayoutTool/tests/page.js`, `ext/LayoutTool/audit/page.js` | `ui.table()` | [/framework/ext/LayoutTool/](/framework/ext/LayoutTool/) |
+| `dev/DevBar/page.js` | `ui.keys("Ctrl", "\\")` | the dev rail (localhost only) |
+| several `framework/ai/*/page.js` task logs | `ui.table()`, `ui.timeline()` | the AI task dashboards |
+
+## Three things that will bite
 
 - **`ui/` is imported by `app.js`**, so every surviving stylesheet loads on every
   page of the site. A dozen small style elements, measured as noise; the
   alternative was a second import in every page that wants a badge.
 - **A tooltip or a menu panel is out of flow**, so an ancestor with
   `overflow: hidden` clips it — a `.demo` box and a stage's screen both are.
+- **A css-only component's own `page.js` never imports its sibling `<name>.js`.**
+  `alert/page.js` has no `import "./alert.js"` anywhere in it — the styling
+  reaches the page only because `ui.js` imported it for the side effect, and
+  `ui.js` is loaded by every page via `app.js`. Add a twentieth css-only
+  component and forget the line in `ui.js`, and its page renders with no error
+  and no style, exactly like the rest of this file's silent-failure traps.
+
+## `page.js` is a `Doc` now; the nineteen leaves stay `Page`
+
+The module index (2026-08-15) documents `ui.table`, `ui.timeline`, `ui.keys`
+via `subject: ui`, and gains a Files tab covering all 35 files in the module
+from one tree. The nineteen component pages are deliberately **not**
+converted — they are the site's one demo system (`demo.exhibit()`, variants as
+children, a live `preview()`), and wrapping each in `Doc` would show every
+variant twice: once as `demo.exhibit()`'s own "Variants" wall, once again as a
+`Doc`-derived top tab. Full case in the
+[audit](/framework/audit/modules/ui.md), "Where this module overlaps others."
+
+⚠ **That binding reversed, and this file's `content()` did not follow** (fixed
+2026-08-16). `Doc.overview_section()` used to call `content()` bound to the
+*section*, so the fix here was `this.parent.previews()`. `ext/doc` then bound
+it back to the module's own `Doc` — which is correct, and which silently made
+`this.parent` the **framework landing**: this page's wall was drawing Start
+here · AI · FAQ · Core · Styles, on the UI page, with nothing in the console.
+It is `this.wall()` now. **The lesson is the shape of the bug, not the line:** a
+`this.parent` that resolves to *something* can never fail loudly.
+
+## The nineteen are a grid, not nineteen tabs (2026-08-16, Mike)
+
+`Doc.bar()` puts every declared child between the Overview and the reference
+sections, which is right at three or four and a wall of chrome at nineteen. This
+module overrides `bar()` to `Doc.SECTIONS` — **Overview · API · Docs · Files and
+nothing else** — and the components are the Overview's preview grid, which is
+where a reader compares them anyway. A reading of *this* module's shape, not a
+change to the contract: `core/Page` (5), `ext/LayoutTool` (5) and `ext/catalog`
+(4) still tab their children, and `ext/doc`'s own page is unmoved.
+
+⚠ **Shortening the strip is two changes, not one.** `tabs()` registers a child's
+mount region from the same list it draws the strip from, so the nineteen also
+lost their `regions` entry — and `Page.container()` then walks up to
+`/framework/`'s `$pages`, rendering a component **over the framework sidebar**
+instead of inside this doc. `render()` here re-registers them against the
+Overview's panel. Verified: `/framework/ui/table/` still mounts inside
+`.page-ui`'s own `.tab-panel`.
+
+### And that grid is packed (2026-08-16)
+
+The cards are live renders of nineteen unrelated components — a badge row
+against a data table against a timeline — so a uniform grid made every row as
+tall as its tallest card and left holes under the short ones. The wall is
+`pack(this.wall().ac("packed"))` now:
+[`packed`](/framework/styles/layouts/masonry/packed/), **not**
+[`masonry`](/framework/styles/layouts/masonry/), and the deciding fact is not
+reading order — `stats` claims `card: "two"` (`grid-column: span 2`), and
+`.masonry` is CSS multicolumn, where that declaration is inert and the wide card
+would silently narrow. `.packed` stays a real grid, so the span, the `dense`
+backfill and a `group:` heading's `grid-column: 1 / -1` all keep working, and the
+DOM order the prose leans on ("Start at Data table") survives.
+
+Two knock-on facts, neither of them a bug:
+
+- **`dense` backfills, so the sequence jumps.** Page.css has always set
+  `grid-auto-flow: dense` on a wall; against real spans it is also what buys the
+  tight pack — sparse placement cannot move a card above the previous one's row,
+  which levels the columns back into pseudo-rows. The order stays broadly
+  left-to-right and a card lands wherever it first fits.
+- **The gap grew, 0.8em → 1em.** `.packed` declares `gap: 0 var(--gap, 1em)` and
+  the wall does **not** set `--gap` — deliberately. That custom property inherits,
+  and every card here contains a live component render that reads it, so pinning
+  the wall's gutter would quietly retune nineteen components' internal spacing.
+  A wall 3px airier than the site's others is the cheaper of the two.
 
 The long record — the ladder per component, the nine findings the set produced,
 and the review outcome — is in `doc/record.md` beside this file.

@@ -1,12 +1,12 @@
-import { Page, classdoc, md, demo, code, p, h2, div } from "/app.js";
+import { Page, Doc, md, demo, code, p, h2, div } from "/app.js";
 
-export default classdoc.page({
+export default new Doc({
 	meta: import.meta,
 	title: "Page",
 	description: "A node: a url, some content, and children.",
 	icon: "description",
 
-	Class: Page,
+	subject: Page,
 	children: "nav children previews shell flow",
 
 	// The rail, in order — one directory each, under overview/. The headings come
@@ -26,6 +26,14 @@ export default classdoc.page({
 		+ "description parent app view loading route regions",
 
 	notes: "declaring labels css",
+
+	files: "Page.class.js Page.css children/page.js flow/page.js nav/page.js "
+		+ "previews/page.js shell/page.js page.js readme.md overview/readme.md "
+		+ "overview/page/page.js overview/children/page.js overview/add/page.js "
+		+ "overview/labels/page.js overview/route/page.js overview/shapes/page.js "
+		+ "overview/wall/page.js overview/catalog/page.js overview/dashboard/page.js "
+		+ "overview/strip/page.js overview/deep/page.js overview/landing/page.js "
+		+ "overview/docs/page.js overview/site/page.js",
 
 	content(){
 

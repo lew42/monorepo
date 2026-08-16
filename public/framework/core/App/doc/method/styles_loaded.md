@@ -6,7 +6,7 @@ Stylesheets only, settled not resolved. The navigation-time half of the pair.
 
 ## Usage
 
-`Router.js:67` — `load()`, before every activation, on every navigation. The only
+`Router.js:58` — `load()`, before every activation, on every navigation. The only
 caller anywhere.
 
 ## Necessity

@@ -11,7 +11,7 @@ export default new Page({
 	// Inert: /styles.css decides what the class means, and Router.mark() unsets it.
 	classes: "hides-nav",
 
-	children: "start ai faq versus core styles ui ext util dev",
+	children: "start ai faq versus core styles ui ext util dev audit",
 
 	/* A LAYOUT, not a content page. Three things an override owes, all silent when
 	 * missed (core/Page/readme.md): set `this.view`, carry `.page`, never nest a
@@ -63,7 +63,7 @@ p("Hello world.")`);
 						.style("--panel-height", "clamp(20em, 26vw, 48em)"));
 
 					div.c("flow", () => {
-						md("That band is a live [`ext/Panel`](/framework/ext/Panel/), and the clock is one of twenty-three entries in its **T** menu — split the band, retint it, or trade it for any of the other twenty-two.");
+						md("That band is a live [`ext/Panel`](/framework/ext/Panel/), and the clock is one of twenty-eight entries in its **T** menu — split the band, retint it, or trade it for any of the other twenty-seven.");
 					}).style("max-width", "52em");
 
 					// The tree: every section, and every page inside it. A section with

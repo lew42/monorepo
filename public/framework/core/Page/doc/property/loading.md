@@ -1,8 +1,8 @@
 A promise for "my declared subtree has been imported".
 
 **Usage** — assigned by `load_all_children()` (`Page.class.js:179`); read by
-`Router.load()` (`framework/core/Router/Router.js:68`), by `ext/tabs` to guarantee
-real tab labels (`framework/ext/tabs/tabs.js:34,40`), by
+`Router.load()` (`framework/core/Router/Router.js:59`), by `ext/tabs` to guarantee
+real tab labels (`framework/ext/tabs/tabs.js:37,40`), by
 `load_all_children()` itself (each child's own `loading` is awaited), and by
 `add()` — where `page.loading === undefined` is the test for *"built standalone, its
 url only just arrived"* (`Page.class.js:53`).

@@ -60,11 +60,16 @@ export class Doc extends Page {
 	// `content` the rail's first card — the intro, wearing my title, label and icon — so
 	// a module with demos and one without are the same shape. `overview:` hands the demos
 	// in as child configs (an array) or names sibling directories (a string).
+	// ⚠ `content` is BOUND to me, not to the section. catalog() makes it the intro
+	// child's and would otherwise call it with the section as `this` — but it was
+	// written as a method of THIS config, beside the helpers it calls, so `this.look()`
+	// has to mean what the author typed. Two audit agents wrote exactly that and both
+	// pages threw; the binding was the bug, not the pages.
 	overview_section(){
 		return this.section("overview", "Overview", {
 			title: this.title,
 			icon: this.icon,
-			content: this.content,
+			content: typeof this.content === "function" ? this.content.bind(this) : this.content,
 			children: Array.isArray(this.overview) ? this.overview : Doc.names(this.overview),
 			initialize(){ this.catalog(); },
 			render(){
@@ -108,28 +113,44 @@ export class Doc extends Page {
 		});
 	}
 
-	// Properties first, then methods — what a thing IS before what it DOES.
+	// What fills the API tab. One subject is the whole job for most modules; a module
+	// with a SECOND class overrides this and calls members() again — the seam this
+	// class exists for. `prefix` keeps the two sets from colliding, in the url and in
+	// the filename both:
+	//
+	//   api(section){
+	//       super.api(section);
+	//       this.members(section, History, { methods: "push undo", prefix: "History." });
+	//   }
 	api(section){
-		Doc.names(this.properties).forEach(name => this.member_page(section, name, {
-			source: Doc.declaration(this.subject, name),
+		return this.members(section, this.subject, { properties: this.properties, methods: this.methods });
+	}
+
+	// Every listed member of ONE subject, as pages. Properties first, then methods —
+	// what a thing IS before what it DOES.
+	members(section, subject, { properties = "", methods = "", prefix = "" } = {}){
+		Doc.names(properties).forEach(name => this.member_page(section, prefix + name, {
+			source: Doc.declaration(subject, name),
+			subject,
 			call: `${name}: …`,
-			file: `doc/property/${name}.md`,
+			file: `doc/property/${prefix}${name}.md`,
 		}));
 
-		Doc.names(this.methods).forEach(name => {
-			const fn = this.subject && member(this.subject, name);
+		Doc.names(methods).forEach(name => {
+			const fn = subject && member(subject, name);
 
 			// ⚠ Names the App trap: /app.js's default export is the app INSTANCE, and an
 			// instance carries no prototype, so every member page would come up empty.
-			if (!fn) return console.warn(`Doc: ${Doc.label(this.subject)} has no member "${name}" — nothing added. ` +
+			if (!fn) return console.warn(`Doc: ${Doc.label(subject)} has no member "${name}" — nothing added. ` +
 				`If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.`);
 
-			this.member_page(section, name, {
+			this.member_page(section, prefix + name, {
 				source: dedent(String(fn)),
+				subject,
 				call: `${name}(){ … }`,
-				banner: patched(fn, name) &&
-					`> Replaced at runtime — an ext has patched \`${Doc.label(this.subject)}.${name}\`, and what you see below is the replacement. That is what actually runs.`,
-				file: `doc/method/${name}.md`,
+				banner: Doc.declared(subject, name) && patched(fn, name) &&
+					`> Replaced at runtime — an ext has patched \`${Doc.label(subject)}.${name}\`, and what you see below is the replacement. That is what actually runs.`,
+				file: `doc/method/${prefix}${name}.md`,
 			});
 		});
 
@@ -150,7 +171,7 @@ export class Doc extends Page {
 	}
 
 	// The one member page shape: an optional banner, an optional source pane, the prose.
-	member_page(section, name, { title = name, source, call, banner, file }){
+	member_page(section, name, { title = name, source, subject, call, banner, file }){
 		const doc = this;
 
 		return section.add(name, {
@@ -158,7 +179,7 @@ export class Doc extends Page {
 			content(){
 				if (banner) md(banner);
 				if (source) (code.js ?? code)(source);   // highlighted if ext/highlight is loaded
-				if (call) doc.overrides(name, call);
+				if (call) doc.overrides(subject, name, call);
 
 				// ⚠ Returned, not called: md.file gives a promise, and append_promise
 				// places it in a view that was captured synchronously.
@@ -171,8 +192,7 @@ export class Doc extends Page {
 	// what it knows: every constructor here is Object.assign-based, so an assigned member
 	// shadows the prototype's. A static has no instance to assign to, so it gets no line —
 	// and a subject that is not a class has no constructor to speak of at all.
-	overrides(name, call){
-		const subject = this.subject;
+	overrides(subject, name, call){
 		if (!Doc.is_class(subject)) return;
 
 		// ⚠ Every function owns `name`, `length` and `prototype` — Doc.intrinsic's trap.
@@ -183,10 +203,15 @@ export class Doc extends Page {
 	// Overview first and the reference sections last, whatever order they were added in;
 	// a declared child sits between. Filtered, because an empty section was never added.
 	bar(){
-		const ends = ["overview", "api", "docs", "files"];
-
-		return ["overview", ...[...this.children.keys()].filter(name => !ends.includes(name)), "api", "docs", "files"]
+		return ["overview", ...[...this.children.keys()].filter(name => !Doc.SECTIONS.includes(name)), "api", "docs", "files"]
 			.filter(name => this.children.has(name));
+	}
+
+	// My declared children as a wall, WITHOUT the sections I derived — those are the tab
+	// strip, and a module previewing them on its own Overview is previewing its own
+	// chrome. `/framework/ui/` drew four extra cards that way.
+	wall(){
+		return this.previews(new Map([...this.children].filter(([name]) => !Doc.SECTIONS.includes(name))));
 	}
 
 	// The title and the tab strip share one row in a full-bleed band. See readme.md.
@@ -202,9 +227,15 @@ export class Doc extends Page {
 	}
 }
 
+// The sections this class derives, as opposed to the children a call site declared.
+// One list, two readers: `bar()` orders the strip by it, `wall()` subtracts it.
+Doc.SECTIONS = ["overview", "api", "docs", "files"];
+
 Doc.names = names => (names ?? "").trim().split(/\s+/).filter(Boolean);
 
-Doc.label = subject => subject?.name ?? "the subject";
+// ⚠ `||`, never `??`: a factory built as `fns[tag] = function(){}` has `name === ""`,
+// which `??` happily accepts — so the warning named nothing at all.
+Doc.label = subject => subject?.name || "the subject";
 
 // ⚠ Not `typeof subject === "function"`: `md` and `demo` are functions too, and every
 // function owns a `prototype`. Only a real class has instances for an assigned member
@@ -212,6 +243,19 @@ Doc.label = subject => subject?.name ?? "the subject";
 Doc.is_class = subject => typeof subject === "function" && /^class[\s{]/.test(String(subject));
 
 Doc.intrinsic = /^(name|length|prototype|caller|arguments)$/;
+
+/**
+ * Was this member DECLARED in a class body? Which is the only case where an empty
+ * `fn.name` means "an ext replaced it".
+ *
+ * ⚠ Without this, every method of a function-with-properties subject claimed to be
+ * patched. `md.file = async function(){}` is a member-expression assignment, so
+ * `md.file.name` is `""` natively — the exact signal patched() reads. Every page
+ * under `subject: md` carried a false "Replaced at runtime" banner.
+ */
+Doc.declared = function(subject, name){
+	return !!subject?.prototype && Object.hasOwn(subject.prototype, name);
+};
 
 /**
  * What can be shown of a property without RUNNING anything. Most have no honest

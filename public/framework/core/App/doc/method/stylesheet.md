@@ -5,11 +5,11 @@ static stylesheet(meta, url){ return View.stylesheet(meta, url); }
        stylesheet(meta, url){ return View.stylesheet(meta, url); }
 ```
 
-(The panel above shows the instance one — `classdoc` reads the prototype first.)
+(The panel above shows the instance one — `Doc` reads the prototype first.)
 
 ## Usage
 
-- `app.js:6` — `App.stylesheet("/styles.css")`, the static form, the site's own
+- `app.js:7` — `App.stylesheet("/styles.css")`, the static form, the site's own
   sheet.
 - `alex/styles/html/page.js:4`, `alex/ui/docs.js:5`, `arya/lib/Page.js:7`,
   `castin/navigation.js:3`, `edric/style/css/page.js:4` — the instance form, all

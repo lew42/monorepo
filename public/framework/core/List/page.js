@@ -1,5 +1,6 @@
-import { Page, md, h2, code, div, span, button } from "/app.js";
+import { Doc, md, h2, code, div, span, button } from "/app.js";
 import Item from "../Item/Item.js";
+import List from "./List.js";
 
 const build = () => Item.hydrate({
 	type: "Item", id: "root", data: {},
@@ -12,11 +13,17 @@ function outline(item, depth = 0){
 	item.items.each(kid => outline(kid, depth + 1));
 }
 
-export default new Page({
+export default new Doc({
 	meta: import.meta,
 	title: "List",
 	description: "The ordered collection behind `item.items` — and why userland never touches it.",
 	icon: "reorder",
+
+	subject: List,
+	properties: "children owner length",
+	methods: "assign adopt append insert_before remove notify each find index_of toJSON",
+	notes: "adoption",
+	files: "List.js readme.md page.js",
 
 	content(){
 
@@ -26,7 +33,7 @@ list.each(fn)  list.find(fn)  list.index_of(child)
 list.adopt(child)   //  child.parent = owner ?? this
 list.toJSON()       //  a bare array`);
 
-		md("That is the whole class — about fifty lines, zero imports. Every [Item](/framework/core/Item/) owns one as `item.items`, with itself as the `owner`.");
+		md("That is the whole class — about fifty lines, zero imports. Every [Item](/framework/core/Item/) owns one as `item.items`, with itself as the `owner`. Every member above has its own page in **API**, with the source and the trap it carries.");
 
 		h2("Userland mutates through Item verbs");
 
@@ -36,7 +43,7 @@ item.items.append(kid)      // ✗ — works, and skips nothing, but says the wr
 
 		md("**`List` is an implementation detail of `Item`, not a second API.** The rule is not a guard — `append()` adopts and notifies correctly either way — it is about there being *one* place a document changes. Reach past the Item and every future reader has two vocabularies to learn and two places to search.");
 
-		md("`owner` is what makes that safe: `adopt()` sets `child.parent = this.owner ?? this`, so a child's parent is the **Item**, never the list. The backref stays one hop, and walking up for a saver or a root never has to step over a collection. It also deletes a whole class of subclass — the version of this that set `parent` to the list needed a no-op override on every list to undo it.");
+		md("`owner` is what makes that safe: `adopt()` sets `child.parent = this.owner ?? this`, so a child's parent is the **Item**, never the list. The backref stays one hop, and walking up for a saver or a root never has to step over a collection. Full argument, including the workaround it deleted: [doc/adoption](/framework/core/List/docs/adoption/).");
 
 		h2("A position, never an index");
 
@@ -67,5 +74,7 @@ item.items.append(kid)      // ✗ — works, and skips nothing, but says the wr
 		md("⚠ **No derived or reactive lists.** `filter_reactive`, `sort_reactive`, `group_by_reactive` were executed and cut: each subscribes to every item it sees and has no disposal path, so a long-lived document leaks a listener per row per view. Derive with `[...list].filter(…)` at the call site and redraw from the root event.");
 
 		md("Back to [Item](/framework/core/Item/) — the node that owns one of these.");
+
+		md.details(import.meta, "readme.md", "Design record — the Array dissent, and what was cut");
 	}
 });

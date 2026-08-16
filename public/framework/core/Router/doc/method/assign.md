@@ -4,7 +4,7 @@
 one that goes *through* it, in `App`:
 
 ```js
-this.router = new Router(this.router, { app: this });   // App.js:63
+this.router = new Router(this.router, { app: this });   // App.js:56
 ```
 
 ## Necessity

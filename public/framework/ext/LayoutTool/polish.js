@@ -204,9 +204,14 @@ export const polish = [
 			const outer = Math.min(p.pad[1], p.pad[3]);
 			if (inner < 6 || outer < 6) return [];
 
-			// Only when the child actually fills its parent — a card in a padded
-			// grid is two boxes, not one box padded twice.
-			if (n.w < p.cw - outer - 4) return [];
+			/* Only when the child actually fills its parent — a card in a padded
+			 * grid is two boxes, not one box padded twice.
+			 *
+			 * ⚠ The parent's CONTENT width. Measured against `cw − outer` the test
+			 * read "child ≥ parent minus one inset" while a filling child is parent
+			 * minus TWO, so it demanded `outer ≤ 4` and the rule above demands
+			 * `outer ≥ 6`. Unsatisfiable — 0 findings in 854 site runs. */
+			if (n.w < p.cw - p.pad[1] - p.pad[3] - 4) return [];
 			if (n.bg !== p.bg || n.framed !== p.framed) return [];
 
 			const total = inner + outer;

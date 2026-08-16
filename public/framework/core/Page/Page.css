@@ -121,11 +121,17 @@
 	}
 
 	/* A child's `group:` heads the run it starts — a whole row, so the cards on
-	   either side of it keep counting their own columns.
-	   ⚠ With more than one column, `grid-auto-flow: dense` above can backfill the
-	   gap a heading leaves at the end of the previous row with a card from the run
-	   BELOW it. Fine in a one-column rail, which is the only consumer today. */
+	   either side of it keep counting their own columns. */
 	.page-previews > .page-previews-group { grid-column: 1 / -1; margin-block-start: 0.6em; }
+
+	/* ⚠ `dense` backfills the gap a heading leaves at the end of the previous row with
+	   a card from the run BELOW it, so a grouped wall renders its sections one heading
+	   out of step — measured on styles/layouts/, where Fit and Flex rendered above the
+	   VOCABULARY heading that owns them. This was predicted here as a known limit while
+	   a one-column rail was the only consumer; the multi-column consumer arrived
+	   2026-08-16. Only a GROUPED wall pays: dense still earns its place on a plain wall,
+	   where `.two`/`.big` cards leave holes worth backfilling. */
+	.page-previews:where(:not(.page)):has(> .page-previews-group) { grid-auto-flow: row; }
 	.page-previews > .page-previews-group:first-child { margin-block-start: 0; }
 
 	/* ⚠ `bleed` spends the grid's gutter tracks, so a top-level wall would sit flush

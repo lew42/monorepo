@@ -14,7 +14,11 @@
 	/* ⚠ `color-scheme: dark` IS the dark theme: every token in framework.css is a
 	   `light-dark()` pair that resolves against the element using it, so one line
 	   retunes ink, surface, line, wash and subtle together. Nothing here names a
-	   colour. Outside `.app`, so the site's theme never reaches it. */
+	   colour. Outside `.app`, so the site's theme never reaches it.
+	   ⚠ `100%` clears the whole rail ONLY because the grip lives inside this box
+	     (grip.css). It straddled the edge until 2026-08-16, and anything hanging
+	     outside survives a 100% slide as an invisible ew-resize strip down the page —
+	     one that pointer-captures the whole gesture, not just the click. */
 	.dev-bar {
 		position: fixed; inset-block: 0; inset-inline-end: 0; z-index: 50;
 		width: min(var(--dev-rail), 100%);
@@ -38,7 +42,11 @@
 		border-block-end: 1px solid var(--line);
 	}
 	.dev-title { font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--prim); }
-	.dev-hint { margin-inline-end: auto; color: var(--subtle); }
+	/* The slack in the head, so everything after it rides the inline end.
+	   ⚠ `flex-grow`, NOT the `margin-inline-end: auto` that stood here and never
+	     worked: `.flex > * { margin: 0 }` is `@layer util`, and a later layer beats
+	     any specificity in `theme`. Grow is not a margin, so nothing zeroes it. */
+	.dev-hint { flex-grow: 1; color: var(--subtle); }
 
 	.dev-x {
 		padding: 0 0.4em;
@@ -48,6 +56,25 @@
 		border-radius: var(--radius);
 	}
 	.dev-x:hover { color: var(--prim); border-color: var(--prim); }
+
+	/* One row of tabs, pinned like the head. The rail is a 17rem column and its
+	   sections are long, so what is not on screen is not scrolled past — it is not
+	   built. ⚠ Which also makes the `layout` tab the gate on downloading and running
+	   ext/LayoutTool at all (DevBar.js). */
+	.dev-tabs { flex: 0 0 auto; gap: 0.35em; padding: 0.5em 0.9em 0; }
+
+	.dev-tab {
+		flex: 1 1 0; min-width: 0;
+		padding: 0.25em 0.5em;
+		color: var(--subtle);
+		background: var(--wash);
+		border: 1px solid transparent;
+		border-radius: var(--radius);
+		font: inherit;
+		cursor: pointer;
+	}
+	.dev-tab:hover { color: var(--prim); }
+	.dev-tab.on { color: var(--prim); border-color: var(--prim); }
 
 	.dev-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; gap: 1.25em; padding: 0.9em; }
 
@@ -102,10 +129,32 @@
 	.dev-thread-new { display: flex; align-items: center; padding-inline: 0.35em; }
 	.dev-thread-new .icon { font-size: 1rem; }
 
+	/* LayoutTool's verdict, in a 17rem column — the rows carry the numbers and one
+	   block carries each finding. Everything here is emitted by `layout.js`. */
+	.dev-layout { gap: 0.5em; }
+	.dev-layout-out { gap: 0.35em; }
+
+	/* What is being measured — `.app`, or the panel that was clicked, with the way
+	   back to the page beside it. */
+	.dev-target > .dev-val { flex: 1 1 auto; min-width: 0; }
+	.dev-target > button { flex: 0 0 auto; padding: 0 0.5em; font: inherit; }
+
+	.dev-layout-acts { gap: 0.35em; }
+	.dev-val.bad { color: var(--error); }
+
+	.dev-issue {
+		gap: 0.1em;
+		padding-block-start: 0.35em;
+		border-block-start: 1px solid var(--line);
+	}
+
 	/* The rail is a column, not a page: ext/Ask's 30em transcript would bury every
-	   section under it, and the input is the half that has to stay on screen. */
+	   section under it, and the input is the half that has to stay on screen.
+	   LayoutTool's full report is docked the same way — a selector written for a
+	   page has to break mid-word in a rail. */
 	.dev-bar .chat-list { max-height: 14em; }
 	.dev-bar .chat-form { flex-direction: column; align-items: stretch; }
+	.dev-bar .lt-report { overflow-wrap: anywhere; }
 
 	/* The resize edge is grip.css, loaded by grip.js beside it. */
 

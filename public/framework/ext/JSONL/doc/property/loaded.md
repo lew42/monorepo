@@ -1,0 +1,3 @@
+Set `true` inside `load()` only after a fetch both succeeds *and* isn't the SPA fallback's `index.html` — the one signal a caller can trust that the file actually existed. Never set at all otherwise: there is no `this.loaded = false`, so a fresh instance and a failed load look identical (`undefined`), and the check is always `if (t.loaded)`, never `if (t.loaded === false)`.
+
+Read by every real caller before touching anything else the log produced: `ext/AITask` (`AITask.js`, `dashboard.js`), `ext/Timeline`'s `ai.js`, and this module's own live demo. See the `load()` trap in [readme.md](../readme.md#traps).

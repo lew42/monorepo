@@ -1,13 +1,20 @@
-import { Page, code, md, demo, h2, p, toc } from "/app.js";
+import { Doc, code, md, demo, h2, p } from "/app.js";
 
-export default new Page({
+export default new Doc({
 	meta: import.meta,
 	title: "Highlight",
 	description: "Syntax highlighting bolted onto the code element — code.js(), code.fn(), and every markdown fence.",
 	icon: "code",
-	content(){
 
-		toc();
+	subject: code,
+	methods:    "lang fn file ext",
+	properties: "cache",
+	notes:      "choice hooks chaining",
+	files:      "highlight.js highlight.css example.js page.js readme.md editor.md "
+		+ "hljs/core.min.js hljs/languages/css.min.js hljs/languages/javascript.min.js "
+		+ "hljs/languages/json.min.js hljs/languages/markdown.min.js hljs/languages/xml.min.js",
+
+	content(){
 
 		demo(() => {
 			code.js(`const sum = (a, b) => a + b;`);
@@ -28,9 +35,21 @@ export default new Page({
 			md("```css\n.page { background: white }\n```");
 		}, "And mostly you won't call it at all: importing the ext highlights **every markdown code fence on the site**, so a fence in any `readme.md` is already done.");
 
+		h2("Labelling a block with its file");
+
+		demo(() => {
+			code.js(`import { App, Router } from "/app.js";\n\nnew App({ router: new Router() });`, "/app.js");
+		}, "A trailing FILENAME argument draws a label on the block's top edge — `code.js(src, \"/app.js\")`, or the general form `code.lang(name, src, file)`. Every accessor takes it the same way: `code.css(src, file)`, `code.html(src, file)`, `code.md(src, file)` — it's the same third parameter everywhere.");
+
+		demo(() => {
+			md("```js /framework/ext/highlight/highlight.js\nView.prototype.append = function(...args){ … };\n```");
+		}, "The same label from markdown — a fence's info string's **second** word (the first is still the language). [`ext/markdown`](/framework/ext/markdown/docs/file-labels/) reads it and sets the identical `data-file` attribute, so one `highlight.css` rule draws both.");
+
+		md("Only a block that owns its own `<pre>` gets a label — one already inside a hand-built `<pre>`, or inline in a sentence, silently ignores the third argument. Why, and the one case where a label can still be lost after the fact: [Chaining](docs/chaining/).");
+
 		h2("Languages");
 
-		md("| accessor | grammar |\n| --- | --- |\n| `code.js` `code.javascript` | javascript |\n| `code.html` `code.xml` | xml |\n| `code.css` | css |\n| `code.md` `code.markdown` | markdown |\n| `code.json` | json |\n\n`code.lang(name, src)` is the general form. Anything unregistered renders as plain text — an unknown language is never an error.");
+		md("| accessor | grammar |\n| --- | --- |\n| `code.js` `code.javascript` | javascript |\n| `code.html` `code.xml` | xml |\n| `code.css` | css |\n| `code.md` `code.markdown` | markdown |\n| `code.json` | json |\n\n`code.lang(name, src, file)` is the general form behind all of them. Anything unregistered renders as plain text — an unknown language is never an error.");
 
 		h2("From a file");
 
@@ -45,13 +64,12 @@ export default new Page({
 
 		h2("One sharp edge");
 
-		code.js(`p("Call ", code.js("x").ac("wide"), "!")     // ✗ .ac() is silently LOST
-p.c("wide", "Call ", code.js("x"), "!")      // ✓ class on the sentence
-p(() => code.js("x").ac("wide"))             // ✓ capture form`);
+		code.js(`p.c("wide", "Call ", code.js("x"), "!")      // ✓ class on the sentence
+p(() => code.js("x").ac("wide"))              // ✓ capture form, correct by construction`);
 
-		md("In **argument position** inside a sentence, the captor is still the grandparent — so `code.js()` guesses \"block\", builds a `<pre>`, and that `<pre>` is discarded when `append` corrects the guess. Anything you chained onto it goes with it: classes, attributes, **and `.on()` handlers**, which leaves a dead listener and nothing in the console.");
+		md("In **argument position** inside a sentence, the captor is still the grandparent — so `code.js()` guesses \"block\", builds a `<pre>`, and that `<pre>` is discarded when `append` corrects the guess. Anything chained onto it goes with it: classes, attributes, **and `.on()` handlers**, which leaves a dead listener and nothing in the console. Full reasoning and every workaround: [Chaining](docs/chaining/).");
 
-		md("Both fixes are one character of effort, and the capture form is correct by construction. Full reasoning — including why the guess isn't simply deferred — in the design record below.");
+		md("Every method and property below reads the running program — including where an ext's own naming quirks make the API tab's banner render oddly. That's flagged where it happens, not swept under it.");
 
 		md("Next: [Files](/framework/ext/files/) — a tree of real files, fetched.");
 

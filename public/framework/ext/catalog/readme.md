@@ -1,126 +1,115 @@
-# catalog — design record
+# catalog
 
 `Page.prototype.catalog()`, patched on the way `tabs()` is: `previews()` as a
-persistent rail, a `$pages` region beside it, the first child rendered `.default`
-so the region is never blank. ~30 lines of JS; the CSS is the rail template and
-two contracts copied from neighbours.
+persistent rail, a `$pages` region beside it, the first child rendered
+`.default` so the region is never blank. One line converts any index:
 
 ```js
-initialize(){ this.catalog(); }   // the whole conversion, on any index
+initialize(){ this.catalog(); }
 ```
+
+It is not a component with an API of its own — it is a rearrangement of
+`Page`'s existing tree and its existing `previews()` wall, ~60 lines of JS
+(`catalog.js`) and one CSS file (`catalog.css`) that turns the wall on its
+side and pins it. There is no class here; `page.js` documents it as a
+patched `Page` method (`subject: Page`), the same way a patched `View`
+method gets documented on `View`'s own page.
+
+## What it does
+
+`catalog()` moves this page's own `content()` into a new first child,
+`"intro"`, wearing this page's title/label/icon — a real child at a real
+url, so it gets a card, a deep link, and the marking every other entry has.
+Everything else that was already a child keeps its name, order and `Page`
+instance. `content` is then replaced with a renderer that draws the rail
+(`this.previews()`, one column) beside a `$pages` region the children mount
+into. Full mechanism: [`doc/method/catalog.md`](./doc/method/catalog.md).
+
+## Why `initialize()`, not `content()`
+
+A child only has a url once the router has walked it, and `render()` — where
+`content()` runs — happens long after that. `initialize()` runs inside the
+`Page` constructor, before children resolve, which is the one place adding a
+real routable child is safe. The full fork, including what almost shipped
+instead (`intro:` as a config key): [`doc/decisions.md`](./doc/decisions.md).
+
+## The rail is `previews()`, turned sideways
+
+One `grid-template-columns: 1fr` on the same `.page-previews`, `position:
+sticky` so the rail scrolls itself instead of getting thrown to the top on
+every navigation, and a `< 64em` breakpoint that turns the column back into
+a horizontal strip above the detail. No second card shape exists anywhere in
+this file — a card styled once is right on a wall, in a rail, and in a
+strip. Full CSS tour: [`doc/file/catalog.css.md`](./doc/file/catalog.css.md).
+
+## Who calls it
+
+Grepped across all of `public/`. Direct callers — `initialize(){
+this.catalog(); }` on their own page:
+
+| page | url | rail of |
+|---|---|---|
+| `framework/ui/page.js` | `/framework/ui/` | 19 components |
+| `framework/ai/page.js` | `/framework/ai/` | one entry per working day |
+| `framework/styles/sections/page.js` | `/framework/styles/sections/` | 15 page bands |
+| `framework/styles/layouts/400/page.js` | `/framework/styles/layouts/400/` | 5 specs, one column at 400px |
+| `framework/styles/elements/forms/page.js` | `/framework/styles/elements/forms/` | every form control |
+| `web/nav/page.js` | `/web/nav/` | 11 nav patterns — also the page's own subject |
+| `web/layout/page.js` | `/web/layout/` | 7 layout principles |
+| `core/Page/nav/page.js` | `/framework/core/Page/nav/` | a live demo, inside a `demo()` box |
+
+**`styles/layouts/` gave this up on 2026-08-16** and is worth reading as the boundary:
+a rail is right for a tier you read *through*, and wrong for a tier you *choose from* —
+twenty-three cards in one column, six visible at a time, on a page whose whole argument
+is that layouts use their width. It is a sectioned `previews()` wall in an `ext/Panel`
+now. `styles/layouts/readme.md` has the reasoning; nothing about this method changed.
+
+And one structural caller that fans out to every module with docs:
+**`ext/doc/Doc.js`** imports `catalog.js` directly and calls
+`this.catalog()` from `overview_section()` — so every `Doc`'s Overview tab
+*is* this method, `overview: "a b c"` being sugar for naming sibling
+directories as the children it rails. Eight `Doc` pages exist today
+(`core/App`, `core/View`, `core/Page`, `core/Router`, `core/Sidebar`,
+`dev/Socket`, `ext/doc` and this page), and every one of them is a caller
+by inheritance rather than by import.
+
+`app.js` is the only unconditional importer (`import
+"./framework/ext/catalog/catalog.js";`), which is what makes the direct
+callers above able to write `this.catalog()` without importing anything
+themselves — the same shape `tabs()` uses.
 
 ## Decisions
 
-**Where does the page's own prose go?** `catalog()` replaces the body, so an index
-with a paragraph of introduction had nowhere to put it — which is why only two
-pages on the site were rails while sixteen were walls.
-
-| option | weighing |
+| question | verdict |
 |---|---|
-| prose above the rail, `catalog()` still called from `content()` | the reading measure and the rail's full-bleed screen are two different page kinds stacked; and each converting page re-invents where its prose sits |
-| a second config key — `intro: () => …` | an option is API surface forever, and it says nothing `content()` doesn't already say |
-| **the page's own `content()` becomes the rail's first entry** | ✓ |
+| where does the page's own prose go once `catalog()` owns `content`? | it becomes the rail's first card — no `intro:` config key |
+| call from `content()` or `initialize()`? | `initialize()` — children must exist before the router walks |
+| hand-build the rail per site, or a shared method? | a method, once three real users pasted the same recipe |
+| let the rail scroll with the page, or pin it? | pinned (`sticky`) — the region scroller was throwing a scrolled rail back to the top on every click |
+| core or ext? | ext — arrangements are opt-in, core owns what a page *is* |
 
-**Verdict: `content()` becomes the intro.** classdoc had already invented this for
-its Overview tab (an inline `intro` child, first in the rail, labelled and iconed
-like its parent) and it was the only reason previews-as-nav worked there. Lifted
-into `catalog()`, it makes the conversion **one line on any index** — which was
-the whole of the 08-11 proposal's §4. `classdoc.js` now declares `content` on the
-group and calls `this.catalog()`; the duplicate is gone.
+Full reasoning for each: [`doc/decisions.md`](./doc/decisions.md).
 
-**So the call moved from `content()` to `initialize()`.** The intro has to be a
-*real child at a real url* — otherwise its card links nowhere and a deep link 404s
-— and children are only routable if they exist before the router walks. `render()`
-is far too late. `initialize()` is where classdoc already added its groups, and
-the call site reads as what it means: this page **is** a catalog, rather than
-draws one.
+## Traps
 
-Two consequences worth knowing. The moved `content` **keeps its original `this`** —
-it was written as a method of the page, and `styles/sections` proved the point by
-calling `this.whole()` inside it. And the page's own `h1` is hidden by
-`catalog.css`, because the intro entry carries the title now; that mirrors what
-classdoc's group render was doing by hand.
-
-**A method, not a recipe.** The demos record (`core/Page/overview/readme.md`)
-proved master–detail *buildable* with `flex gap` + `basis` + `$pages` and said no
-new API was needed. Three real users later — the Page overview's demo rail, every
-classdoc Overview tab, and the demos teaching page itself — the hand-built version
-was about to be pasted a third time, each paste needing the same default-fill and
-mark_links() repair. The recipe stays (it is the [catalog demo](/framework/core/Page/overview/catalog/),
-and the honest minimum); the method is the recipe plus the two things a permanent
-page owes: a filled region on load, and marks on links built after the pass.
-
-**An ext, not core.** Same line tabs sits behind: core owns *what a page is*,
-arrangements are opt-in. `app.js` imports it once for the site; classdoc imports
-it for itself.
-
-**The rail is `previews()` unchanged.** One column via `grid-template-columns` on
-the same `.page-previews`, so a child styles its card once and it is right on the
-wall, in the rail, and in a strip. No second card, per the five-block rule.
-
-Two of a card's *wall* claims cannot survive the turn, and both were found by
-converting `styles/layouts`: `.two`/`.big` span two tracks, and **a span invents
-the track it asks for** — so one `card: "big"` child made the whole rail two
-columns wide and ragged. And in the `< 64em` strip the cards are one row, so the
-tallest sets the height for all of them; a full-size live thumb scrolled off to the
-right was reserving 250px of empty strip above the fold. The rail drops the span
-and lowers `--thumb-max`; `tall` still means what it means.
-
-**The rail is pinned, and it scrolls itself** (`sticky` + `max-height: 100dvh` +
-`overflow-y`). This reverses "just let them flow, we can limit them later"
-(2026-08-11) because it bit the same day: the only scroller was the region, and
-`Router` scrolls that to the top on every navigation — so scrolling a 16-card
-rail and clicking a card threw the rail back to the top with everything else. The
-narrow strip never had the bug, because `overflow-x: auto` had already made it
-its own scroll container; the wide rail just never got the same. At rest the
-rail's foot sits below the fold by the page's top padding, and a wheel over it
-chains into the region and pins it flush — which is why `top` is `0` and not the
-inset (the inset varies: 3em + `--flow` on a standard page, a tab bar's height
-inside a classdoc group).
-
-**`reveal()` — the deep-link case, closed.** The lit card is scrolled into view once,
-after `app.ready`, with `scrollIntoView({ block: "nearest", inline: "nearest" })`: one
-call for the rail (which scrolls down) and the strip (across), a card already showing is
-left alone, and neither shape has to know its own top inset — which is what makes it hold
-inside a classdoc group, where the rail sits in a tab panel. `tabs()` bans that same call
-on its bar, because a bar is in the flow and reaching a tab must not move the region; a
-sticky full-height rail *wants* the remainder, since taking it is what pins the rail flush.
-
-**The rail's own shape, tuned against the four catalogs (Aug 2026, Mike).** It pays
-`--gutter-x` back as a `margin-inline-start` so it starts on the page's axis instead
-of 9px off the app sidebar (`doc/css.md`'s axis section carries the carve-out);
-`row-gap` is `1.2em` — the rail's own, never `--gap`, which inherits and would retune
-a live thumb's `.gap` utilities; the scrollbar is `thin`; and the page's hidden
-`.page-title` gets its flow margin reclaimed, because `.page-title + *` was handing
-the catalog 1.5 × `--flow` on top of `--pad-y` and every standard catalog paid its
-top inset twice.
-
-**A catalog is a screen, so `bleed` is the method's, not the call site's.**
-`styles/elements/forms` was the one page that knew to write `.ac("bleed")`, with a
-comment explaining the doctrine beside it — a rule living at one of its call sites
-is a rule the next call site will miss. The block knows what it is.
-
-**Two contracts are restated, with their sources named.**
-The default-hide rule is `.tab-panel`'s, re-anchored to `.page-catalog-pages`.
-The first-card-lit fallback is `.tab-bar`'s first-tab rule, and its declaration is
-`Page.css`'s lit card verbatim — a fallback cannot share the selector it falls back
-from. Change the lit look in `Page.css`, then here. It costs **one** declaration now
-(`outline-color`) because the card's ring is always drawn and only ever recoloured.
-⚠ It asks `:has(> .page-preview > a…)`, the same child combinator `Page.css` warns
-about: with a bare `:has(a…)` a live thumb's own back-link marked the whole rail
-as "something is selected", and no card lit at all on three of the six catalogs.
-
-**A rail can be headed, and the headings are `previews()`'s.** A child that
-declares `group:` makes `previews()` emit an `h4` at the top of that run
-(`Page.class.js`), so the fourteen near-identical cards on the Page overview read
-as Basics / Arrangements / Sites instead of as a list of nothing. Nothing here
-knows about it — it is the same wall, the same cards, and the rail is that wall
-in one column. ⚠ **The strip hides them** (`< 64em`): a full-row span has no row
-to span once the rail is one row of columns, and a label in a column of its own
-would spend 11em of a phone's scrollport.
+- **⚠ Must run from `initialize()`.** Calling it from `content()` builds the
+  intro as an unroutable child — its card would link to a 404.
+- **⚠ The moved `content` keeps its original `this`.** It was written as a
+  page method before the move; `catalog()` wraps it, it doesn't rebind it.
+- **⚠ A second call isn't guarded.** Nothing on the site calls `catalog()`
+  twice, but nothing stops it either — it would re-wrap an already-wrapped
+  `content` and insert a second `"intro"` over the first. See
+  [`doc/file/catalog.js.md`](./doc/file/catalog.js.md) for the one-line fix.
+- **⚠ `--rail` (19em) and `row-gap` (1.2em) are un-named magic numbers**,
+  tuned by eye against four real catalogs rather than derived from a token.
 
 ## Open
 
-- The rail width is `--rail` (19em), sized to the Page overview's live tree cards:
-  18em of thumb plus the rail's own padding. Six consumers now, none fighting it;
-  the first one that does is the signal to make it a documented token.
+- **`--rail`'s width has no token yet.** More pages render a visible
+  multi-card rail than the six the original tuning pass (Aug 2026) checked
+  against — none fighting the default yet; the first one that does is the
+  signal to promote it (`catalog.css`). Not every caller above shows a rail:
+  a `Doc` whose Overview has no `overview:` key gets a single hidden-rail
+  intro, same as a rail of one anywhere else.
+- **No guard against calling `catalog()` on a page that's already one.**
+  Theoretical today — recorded so it isn't rediscovered the hard way.

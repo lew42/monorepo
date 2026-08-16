@@ -10,6 +10,21 @@ it is over-built. The two cross-cutting notes are `./doc/capturing.md` (the mode
 and the bug it has shipped most) and `./doc/lifecycle.md` (assign → prerender →
 initialize → render, and the three class-field traps in it).
 
+## Used by
+
+Everything. `View` is the file every other file in `framework/` imports first.
+Directly: the other three core classes (`App`, `Sidebar`, `Page.class.js`) are
+built from it, and close to fifty more files import it by name — every `ext/`
+module that renders anything (`doc`, `demo`, `layout`, `highlight`, `markdown`,
+`files`, `tabs`, `toc`, `AITask`, `Timeline`, `Panel`, `Draggable`, `catalog`,
+`Ask`), the whole `dev/DevBar/` rail, and the shared `ui/` library. Indirectly:
+every `page.js` on the site, because `import { div, p, h1 } from "/app.js"`
+resolves through `app.js → App.js → export * from "../View/View.js"` — so a
+factory call anywhere on the site is always this file, one hop away.
+
+`core/new/0`, `core/new/starter` and `core/new/1` also import it, but they are
+frozen sketches, not live consumers — see `framework/readme.md`.
+
 ## Decisions
 
 **Can capture survive an `await`?** No, and don't try — `append_fn` restores the

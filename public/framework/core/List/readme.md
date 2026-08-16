@@ -19,7 +19,7 @@ list.toJSON()       //  a bare array
   whole reason `owner` exists: a child's parent is the **Item**, so walking up
   for a saver or a root never steps over a collection. The version that set
   `parent = list` needed a no-op `adopt` override on every list subclass to undo
-  itself.
+  itself. Full argument: [doc/adoption.md](doc/adoption.md).
 - **⚠ `insert_before` takes a NODE, not an index**, and a `ref` that is `null` or
   absent from this list appends. That is what makes `item.move()` node-relative,
   which is what makes off-by-one impossible.
@@ -52,6 +52,17 @@ data.
 **`toJSON()` returns a bare array**, not `{ children }` — so an Item's envelope
 reads `"items": [ … ]` with no wrapper, and `JSON.stringify` recurses with no
 custom logic at the call site.
+
+## Used by
+
+- **[`Item`](../Item/)** — the only real caller. Every `Item` builds
+  `this.items = new List({ owner: this })` in its constructor; nothing else in
+  the framework constructs a `List` directly. **A class with one caller, and
+  that caller is the class it was extracted from** — see this pair's audit for
+  whether that earns `List` its own module.
+- **[`ext/Draggable`](/framework/ext/Draggable/)** — its demo page imports
+  `List` only to assert `root.items instanceof List` in a check; `Draggable`
+  and `Sortable` themselves import neither `Item` nor `List`.
 
 ## Open
 

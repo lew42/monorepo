@@ -1,0 +1,60 @@
+/* Restated IN FULL - a short list silently misplaces `site`. */
+@layer base, theme, site, util;
+
+/* `display` on a panel: the mode classes, layout only; and the overlay that draws them,
+   structure only — never a colour of its own, always a token. Record: readme.md. */
+@layer theme {
+
+	/* Compound with `.panel-body` on purpose: two classes beat the base rule's one at equal
+	   specificity, in either load order, with no layer trick spent. */
+	.panel-body.panel-d-block { display: block; }
+	.panel-body.panel-d-flex { display: flex; flex-direction: row; gap: 0.5em; }
+	.panel-body.panel-d-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(8em, 1fr)); gap: 0.5em; }
+
+	/* Over the body, under the bar — a sibling, same formula `.panel-align` sits at, so the
+	   two overlays never fight for the strip the bar owns. Inert throughout: it never sits
+	   above the align grid's own tools, only below them. */
+	.panel-display {
+		position: absolute;
+		inset: var(--panel-bar-h) 0 0 0;
+		z-index: 1;
+		overflow: hidden;
+		pointer-events: none;
+	}
+
+	.panel-display-axis {
+		position: absolute;
+		inset-inline: 0.5em;
+		inset-block-start: 50%;
+		block-size: 1px;
+		background: var(--line);
+	}
+
+	.panel-display-axis::after {
+		content: "";
+		position: absolute;
+		inset-inline-end: -1px;
+		inset-block-start: 50%;
+		translate: 0 -50%;
+		border-block: 0.3em solid transparent;
+		border-inline-start: 0.4em solid var(--line);
+	}
+
+	.panel-display-line {
+		position: absolute;
+		inset-block: 0;
+		inline-size: 1px;
+		background: var(--line);
+	}
+
+	.panel-display-badge {
+		position: absolute;
+		font: 0.65em var(--mono);
+		line-height: 1.4;
+		color: var(--subtle);
+		background: var(--surface);
+		border: 1px solid var(--line);
+		border-radius: calc(var(--radius) / 2);
+		padding: 0 0.3em;
+	}
+}

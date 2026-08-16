@@ -1,7 +1,12 @@
 ## Usage
 
-**No caller in `public/`.** `write()` (`Socket.js:137`) wraps it; `write()` has
-no caller either.
+**One real direct caller: `FileSaver.delete()`** (`ext/Saver/FileSaver.js:38`
+— `socket.rpc("rm", this.path)`), reached from [Saver](/framework/ext/Saver/),
+[editor](/framework/ext/editor/) and [Panel](/framework/ext/Panel/). It calls
+`rpc()` straight, not through the `write()` (`Socket.js:137`) or `rm()`
+(`Socket.js:145`) wrapper methods — both of those remain callers-zero, which
+is worth noting: the caller that exists spells its own method name rather
+than reaching for the convenience wrapper built for it.
 
 Its mirror image on the server is live, and is worth reading as the shape this
 one would take: `Server/plugins/SocketServer/LiveReload.js:32` calls
@@ -10,11 +15,11 @@ changes. Same frame, same idea, opposite direction.
 
 ## Necessity
 
-Currently unexercised. It is the fire-and-forget half — send `{ method, args }`
-and never look back — and it is the right default of the two: most of what a
-browser would tell a dev server ("I saved this file", "log this") wants no
-answer, and a `request()` that nobody awaits is a resolver leaked into
-`this.requests` forever.
+No longer purely theoretical — see above. It is the fire-and-forget half —
+send `{ method, args }` and never look back — and it is the right default of
+the two: most of what a browser would tell a dev server ("I saved this file",
+"log this") wants no answer, and a `request()` that nobody awaits is a
+resolver leaked into `this.requests` forever.
 
 ## Simplicity
 

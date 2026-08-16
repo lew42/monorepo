@@ -1,6 +1,7 @@
-import { Page, md, code, demo, div, span, icon } from "/app.js";
+import { Doc, md, code, demo, div, span, icon } from "/app.js";
 import Item from "/framework/core/Item/Item.js";
 import List from "/framework/core/List/List.js";
+import Draggable from "./Draggable.js";
 import Sortable from "./Sortable.js";
 
 /* ⚠ The descendant guard. Without it, dropping a container into its own child
@@ -53,11 +54,48 @@ function tree(){
 	return root;
 }
 
-export default new Page({
+// The four stubs Draggable leaves blank (start/move/drop/restore), filled in for a
+// single drop target — no ghost, no placeholder, no list. What Sortable automates
+// for a whole collection, done here by hand for one chip and one bin.
+function bare(){
+	let $chip, $bin, drops = 0;
+
+	class Chip extends Draggable {
+		move(dx, dy){ this.view.style("transform", `translate(${dx}px, ${dy}px)`); }
+		drop(){ $bin.text(`Dropped ${++drops}x`); this.restore(); }
+		restore(){ this.view.style("transform", ""); }
+	}
+
+	const $wrap = div.c("flex gap pad v-center", () => {
+		$chip = div.c("surface pad").text("Drag me").style("cursor", "grab");
+		$bin  = div.c("wash pad flex-1 flex h-center v-center").text("Bin").style("min-height", "4em");
+	}).style("--gap", "1em");
+
+	new Draggable({ view: $bin, handle: false });
+	new Chip({ view: $chip });
+
+	return $wrap;
+}
+
+export default new Doc({
 	meta: import.meta,
 	title: "Draggable",
 	description: "Grab a node and drop it somewhere else — reorder, cross-list and nest on one code path.",
 	icon: "drag_indicator",
+
+	subject: Draggable,
+	properties: "view handle dragging registry",
+	methods: "assign initialize grab drag release cancel end under drop_check start move drop restore destroy",
+	notes: "sortable verdicts",
+	files: "Draggable.js Sortable.js draggable.css page.js",
+
+	overview: [{ title: "Draggable alone", icon: "pan_tool", content(){
+
+		demo(bare, "No `Sortable`, no ghost, no placeholder — just the four stubs `Draggable` leaves blank, filled in by hand. Drag the chip onto the bin; let go anywhere else and it springs back.");
+
+		md("The main card is what filling in those same four stubs looks like for a whole *list* — `Sortable`. This one is the base class on its own, nothing borrowed from the subclass.");
+
+	} }],
 
 	content(){
 
@@ -82,6 +120,6 @@ export default new Page({
 
 		md("Next: [Item](/framework/core/Item/) — the tree this page is dragging.");
 
-		md.details(import.meta, "readme.md", "Design record — capture, hit-testing, and what `locate()` returns");
+		md.details(import.meta, "readme.md", "Design record — traps, verdicts, and what's deferred");
 	}
 });

@@ -4,9 +4,10 @@ import { btn } from "./controls.js";
 import { select, context } from "./panel.js";
 
 /* css: .layout, .layout-box, .layout-bar, .layout-region, .layout-hot, .layout-selected,
-   .layout-panel, .layout-head, .layout-body, .layout-name, .layout-btn, .layout-pick,
-   .layout-knob, .layout-range, .layout-tag, .layout-out, .layout-sect, .layout-chips,
-   .layout-code, .layout-empty — plus `flex`/`grid`/`gap`/`auto`, framework.css. */
+   .layout-name, .layout-btn, .layout-pick, .layout-knob, .layout-range, .layout-tag,
+   .layout-out, .layout-sect, .layout-chips, .layout-code, .layout-empty — plus
+   `flex`/`grid`/`gap`/`auto`, framework.css. The RAIL those last few draw into is
+   `ext/drawer`'s (`.drawer*`), reached through panel.js. */
 View.stylesheet(import.meta, "layout.css");
 
 /* layout(fn) — a box you can re-arrange, under a toolbar that stays out of the way

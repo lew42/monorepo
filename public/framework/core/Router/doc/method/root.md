@@ -6,7 +6,7 @@ root(){ return this.app.$app.el; }
 
 ## Usage
 
-- `Router.js:149` — `mark_links()`, the anchor sweep. The only caller: `mark()`
+- `Router.js:132` — `mark_links()`, the anchor sweep. The only caller: `mark()`
   unmarks the views it remembers rather than querying for them.
 
 ## Necessity
@@ -20,8 +20,8 @@ one place for the rule to live.
 
 **The name is contested.** `app.root` is the root **Page**; `router.root()` is the
 app's root **element** — same word, two different things, one class apart, and
-`load_segments()` reads `this.app.root` on line 80, eleven lines above the method
-called `root`.
+`load_segments()` reads `this.app.root` (`Router.js:70`) not far above the method
+called `root` (`Router.js:113`).
 
 Proposal (readme): rename to `scope()`. Same length, says what it is for, and
 stops answering a question it doesn't answer.

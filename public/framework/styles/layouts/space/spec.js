@@ -22,7 +22,10 @@ import { site } from "../web.js";
  * keep it. Design record: readme.md.
  */
 
-export const PARTS = "topbar toolbar brand hero menu toc sections cards rows tiles footer".split(" ");
+/* ⚠ `notes` is the one RAGGED part, and the only reason it is in the list: every
+   other part here is uniform by design, and a `masonry` wall of uniform children is
+   a grid with extra steps. Without it the format could not reach that shape at all. */
+export const PARTS = "topbar toolbar brand hero menu toc sections cards rows tiles notes footer".split(" ");
 
 /* Three declaration sets that fail silently, as one word each. Expanded here rather
    than added to framework.css: a spec word is this format's vocabulary, not the
@@ -37,6 +40,24 @@ const WORDS = {
 	scroll: { minHeight: "0", overflowY: "auto" },
 	stick: { position: "sticky", top: "0", alignSelf: "flex-start" },
 	fluid: { flex: "1 1 24em", minWidth: "0" },
+
+	/* A TRANSLUCENT ground, and the translucency is the whole point: two boxes deep
+	   composites visibly darker than one, so a random NESTING can be read at a glance.
+	   Nothing else can show depth — an opaque ground makes ten levels look like one.
+
+	   `--tone` is a TOKEN REFERENCE and it INHERITS, which is what makes it a scheme
+	   rather than a rainbow: a section declares one, and its whole subtree deepens
+	   that one colour. It was a random `oklch` hue until 2026-08-16, which meant every
+	   roll invented colours the site does not own; the vocabulary is `model.js`'s
+	   TONES — `--ink`, `--subtle`, `--prim` — so a retheme moves every generated
+	   layout with it.
+
+	   ⚠ It cannot be `wash`/`tint`/`surface`. That three-step ladder is OPAQUE by
+	     decision (`styles/layers/theme/lew42/lew42.css`), so nesting it cannot
+	     composite and ten levels look like one. A mix at 9% needs no mode branch
+	     either — `--ink` is `light-dark()`, so the stack lightens in dark mode and
+	     darkens in light, which is the ladder's own rule. */
+	tone: { background: "color-mix(in oklab, var(--tone, var(--ink)) 9%, transparent)" },
 };
 
 export function render(text){

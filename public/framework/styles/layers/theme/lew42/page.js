@@ -1,4 +1,4 @@
-import { Page, Sidebar, md, demo, div, p, button, pre, span, icon } from "/app.js";
+import { Doc, Sidebar, md, demo, div, p, button, pre, span, icon } from "/app.js";
 
 /* css: .theme-lew42 — and the IMPORT is the loading edge, not the annotation.
  * This page used to call `View.stylesheet(import.meta, "lew42.css")` itself,
@@ -42,11 +42,12 @@ const sidebar = () => new Sidebar({
 	],
 });
 
-export default new Page({
+export default new Doc({
 	meta: import.meta,
 	title: "lew42",
 	description: "The house theme — Montserrat, one orange, and a sidebar that reads its ink from a token.",
 	icon: "brush",
+	files: "page.js lew42.css lew42.js readme.md",
 	content(){
 
 		/* No font call here any more. It used to live on this page, because 166KB

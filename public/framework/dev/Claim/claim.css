@@ -1,0 +1,69 @@
+/* Restated IN FULL — a short list silently misplaces `site`. */
+@layer base, theme, site, util;
+
+/* The claim ring. `util`, because an unmissable overlay that a page could restyle
+   would not be unmissable. Nothing here is loaded unless `claim.js` is imported. */
+@layer util {
+
+	.claim-ring {
+		position: fixed;
+		inset: 0;
+		z-index: 2147483000;
+		pointer-events: none;
+		border: 6px solid var(--prim);
+		box-shadow:
+			inset 0 0 0 1px color-mix(in srgb, var(--prim) 50%, transparent),
+			inset 0 0 42px color-mix(in srgb, var(--prim) 22%, transparent);
+		animation: claim-breathe 2.6s ease-in-out infinite;
+	}
+
+	@keyframes claim-breathe {
+		0%, 100% { opacity: 1; }
+		50%      { opacity: 0.55; }
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.claim-ring { animation: none; }
+	}
+
+	/* Top centre, inside the ring: the one place no rail, bar or scrollbar on this
+	   site occupies. */
+	.claim-tag {
+		position: absolute;
+		top: 0;
+		left: 50%;
+		translate: -50% 0;
+		display: flex;
+		align-items: center;
+		gap: 0.5em;
+		padding: 0.25em 0.9em 0.3em;
+		border-radius: 0 0 var(--radius) var(--radius);
+		background: var(--prim);
+		color: #241206;
+		font-size: 0.75rem;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		white-space: nowrap;
+	}
+
+	.claim-dot {
+		width: 0.5em;
+		height: 0.5em;
+		border-radius: 50%;
+		background: #241206;
+		animation: claim-blink 1.3s steps(1, end) infinite;
+	}
+
+	@keyframes claim-blink {
+		0%, 60% { opacity: 1; }
+		61%, 100% { opacity: 0.25; }
+	}
+
+	.claim-note {
+		font-weight: 500;
+		letter-spacing: 0.04em;
+		text-transform: none;
+		opacity: 0.75;
+	}
+}

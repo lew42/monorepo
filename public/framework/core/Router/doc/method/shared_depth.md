@@ -2,7 +2,7 @@ How many leading pages two chains have in common.
 
 ## Usage
 
-`Router.js:94` — `activate()`, the only caller.
+`Router.js:84` — `activate()`, the only caller.
 
 ## Necessity
 

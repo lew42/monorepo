@@ -3,7 +3,7 @@ Everything the first paint waits for: stylesheets, plus whatever pages pushed on
 
 ## Usage
 
-- `App.js:70` — `load()`, once, at boot.
+- `App.js:68` — `load()`, once, at boot.
 - `edric/page.js:83`, `edric/framework/app/page.js:43` — a sandbox awaiting the app.
 
 ## Necessity

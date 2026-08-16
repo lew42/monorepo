@@ -2,7 +2,7 @@
 
 `App.js:14` — the constructor, and nowhere else.
 
-The call that matters is the one it enables, at `app.js:23`:
+The call that matters is the one it enables, at `app.js:25`:
 
 ```js
 const app = window.app = new App({

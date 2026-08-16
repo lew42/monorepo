@@ -1,12 +1,12 @@
-import { Router, classdoc, md, code, h2, a, div, demo, toc } from "/app.js";
+import { Router, Doc, md, code, h2, a, div, demo, toc } from "/app.js";
 
-export default classdoc.page({
+export default new Doc({
 	meta: import.meta,
 	title: "Router",
 	description: "Everything between a url changing and the DOM reflecting it.",
 	icon: "alt_route",
 
-	Class: Router,
+	subject: Router,
 
 	properties: "active marked app",
 
@@ -15,6 +15,8 @@ export default classdoc.page({
 
 	notes: "constructor registry-gate chain-diff marking styles-loaded " +
 	       "navigated scroll-reset fragment backed-out measured",
+
+	files: "Router.js page.js readme.md",
 
 	content(){
 

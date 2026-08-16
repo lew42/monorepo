@@ -42,7 +42,13 @@ export class Page {
 
 		list.forEach(child => {
 			if (is.str(child)) return this.children.set(child, null);
-			if (!is.arr(child)) return this.add(child.name, child);
+
+			if (!is.arr(child)) {
+				const name = child.name ?? Page.slug(child.title);
+				if (this.children.has(name))
+					console.warn(`${this.log_label()} — two children named "${name}"; only the last survives. Give one an explicit \`name\`.`);
+				return this.add(name, child);
+			}
 
 			const [title, value] = child;
 			const name = Page.slug(title);
@@ -205,10 +211,13 @@ export class Page {
 	// page to ask, so its entry gets the default card. A child may claim a `group`
 	// the way it claims a `card`, and each run of one gets a heading — categories
 	// before specifics, on a wall or in a rail.
-	previews(){
+	// `pages` defaults to all of mine; a caller hands in a subset when some children are
+	// chrome rather than content — a Doc's derived Overview/API/Docs/Files sections are
+	// the case that asked for it (ext/doc's `wall()`).
+	previews(pages = this.children){
 		let group;
 
-		return div.c("page-previews bleed", () => this.children.forEach((page, name) => {
+		return div.c("page-previews bleed", () => pages.forEach((page, name) => {
 			if (page?.group && page.group !== group)
 				h4.c("page-previews-group", group = page.group);
 

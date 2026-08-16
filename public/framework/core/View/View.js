@@ -88,8 +88,13 @@ export default class View {
 		return this;
 	}
 
+	// ⚠ A promise appended before an `empty()` belongs to content that is gone — it may
+	// not land on whatever replaced it, so the epoch it was started in has to still hold.
 	async append_promise(promise){
+		const epoch = this.epoch;
 		const return_value = await promise;
+
+		if (this.epoch !== epoch) return this;
 
 		if (is.def(return_value))
 			this.append(return_value);
@@ -266,6 +271,7 @@ export default class View {
 	}
 
 	empty(...args){
+		this.epoch = (this.epoch ?? 0) + 1;
 		this.el.innerHTML = "";
 		this.append(...args);
 		return this;

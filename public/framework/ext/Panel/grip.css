@@ -1,0 +1,74 @@
+/* Restated IN FULL - a short list silently misplaces `site`. */
+@layer base, theme, site, util;
+
+/* The divider. Zero-width in flow, so two panels touch; the seam is a drawn hairline and
+   the target is an overlay strip straddling it. Paint is tokens only, so dark comes free.
+   Design record: readme.md. */
+@layer theme {
+
+	/* ⚠ The box-shadow IS the seam: a 0.5px spread around a zero-width box is a 1px line,
+	   and the same declaration draws the horizontal one - no axis to branch on, and not
+	   one pixel of gap, because a shadow costs no layout.
+	   ⚠ `z-index` is what lets the strip reach over the NEXT panel: siblings paint in DOM
+	   order, so without it half the target is buried. Under `.panel-bar`'s 3 on purpose,
+	   so a bar stays clickable where the two cross. */
+	.panel-grip {
+		flex: 0 0 0;
+		position: relative;
+		z-index: 2;
+		box-shadow: 0 0 0 0.5px var(--line);
+		cursor: col-resize;
+		touch-action: none;   /* ⚠ a touch drag scrolls the page without it */
+		transition: box-shadow 0.12s;
+	}
+	.panel-items.v > .panel-grip { cursor: row-resize; }
+	.panel-grip:hover, .panel-grip.on { box-shadow: 0 0 0 1px var(--prim); }
+
+	/* The target, and the only thing here that hit-tests: 1.25rem straddling the seam, on
+	   whichever axis the grip is flat. ⚠ `rem`, never `em` - a panel's content sets the
+	   font size, so an `em` strip is a different grab target in every panel. */
+	.panel-grip::before { content: ""; position: absolute; inset: -0.625rem; }
+
+	/* Always already under your hand: the pill rides the pointer along the seam rather
+	   than sitting somewhere you have to travel to. One rule positions both axes - the
+	   grip writes only the property its own axis moves along, and the other half falls
+	   back to the middle of a zero-length side, which is the seam. */
+	.panel-grip-pill {
+		position: absolute;
+		top: var(--grip-y, 50%); left: var(--grip-x, 50%);
+		width: 0.3rem; height: 2rem;
+		transform: translate(-50%, -50%);
+		background: var(--prim);
+		border-radius: 999px;
+		opacity: 0;
+		transition: opacity 0.12s;
+		pointer-events: none;   /* the strip is the target; this is only the sign */
+	}
+	.panel-items.v > .panel-grip .panel-grip-pill { width: 2rem; height: 0.3rem; }
+	.panel-grip:hover .panel-grip-pill, .panel-grip.on .panel-grip-pill { opacity: 1; }
+
+	/* toolbar.css's popover, hung off the pill instead of a bar button - so WHERE it opens
+	   is all this overrides. It lands under the pointer with no gap to cross, because
+	   leaving the grip closes it. */
+	.panel-grip > .panel-pop {
+		inset-block-start: var(--grip-y, 50%);
+		inset-inline-start: var(--grip-x, 50%);
+		grid-template-columns: auto auto auto;
+		transform: translate(-50%, -0.4rem);
+		font-size: 0.8rem;
+	}
+
+	.panel-grip-side { display: flex; align-items: center; justify-content: center; color: var(--subtle); }
+
+	/* The button itself is toolbar.css's — one definition for the bar, this menu and the
+	   inspector, since 2026-08-16. What used to be a near-identical copy here is deleted;
+	   the two hug/fill rows are icon buttons now (arrows in, arrows out), so they need the
+	   square box the shared rule already gives them. */
+
+	/* No hover to reveal it with, so the pill stands - and a finger needs more strip than
+	   a pointer does. */
+	@media (hover: none) {
+		.panel-grip::before { inset: -1rem; }
+		.panel-grip-pill { opacity: 1; }
+	}
+}

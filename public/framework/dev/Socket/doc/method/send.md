@@ -1,18 +1,22 @@
 ## Usage
 
-**No caller in `public/`** — sandboxes included. Inside the class it is what
-`rpc()` (`Socket.js:125`) and `request()` (`Socket.js:115`) are built from, and
-neither of those has a caller either.
+**No direct caller** — this one stays internal by design, since `disabled` and
+`ready` both have to be checked before a frame goes out. Inside the class it
+is what `rpc()` (`Socket.js:125`) and `request()` (`Socket.js:115`) are built
+from, and both of *those* now have real callers: `FileSaver` and
+`LayoutTool/audit/twin.js` (see [wire](/framework/dev/Socket/docs/wire/)). So
+this method runs on every save from an editor, even though nothing names it
+directly.
 
-The live traffic on this socket goes the other way: the server calls
+The live traffic on this socket also goes the other way: the server calls
 [`message()`](/framework/dev/Socket/api/message/), which calls
 [`reload()`](/framework/dev/Socket/api/reload/).
 
 ## Necessity
 
-Currently unexercised. It is the correct shape for the job, and the job has not
-arrived — see [wire](/framework/dev/Socket/docs/wire/) for the accounting and the
-readme's `## Proposed` for what to do about it.
+No longer purely theoretical. It is the correct shape for the job, and the job
+has arrived — see [wire](/framework/dev/Socket/docs/wire/) for the accounting
+and the readme's `## Proposed` for what to do about the surrounding names.
 
 The two lines it *does* have are both load-bearing the moment anything calls it:
 

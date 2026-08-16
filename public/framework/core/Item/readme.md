@@ -14,7 +14,8 @@ doc.save();
 
 The wire format is four keys — `{ type, id, data, items }`, `items` omitted when
 empty. `page.js` asserts every claim below on load; red there is a broken
-framework.
+framework. Full treatment of the envelope, unknown types, and what's
+deliberately excluded from it: [doc/envelope.md](doc/envelope.md).
 
 ## Traps
 
@@ -65,6 +66,23 @@ re-render, History restore and duplicate-block all need a stable handle, and
 Root autosave is then one listener. Undo is *not* here: it is app-level
 `History` in `ext/editor`, whole-document snapshots restored through this same
 hydrate path, so every Ctrl+Z is a live test of the round trip.
+
+## Used by
+
+- **[`ext/Panel`](/framework/ext/Panel/)** — `Panel extends Item` (`Panel.js`);
+  the workspace document (`workspace.js`) is `Item.open(store)`. The split
+  panel tree *is* an Item tree.
+- **[`ext/editor`](/framework/ext/editor/)** — `Block extends Item`
+  (`blocks.js`); the editor's document lifecycle (`page.js`) is
+  `Item.hydrate`/`Item.open`, and `History` restores snapshots through
+  `Item.hydrate`.
+- **[`ext/Draggable`](/framework/ext/Draggable/)** — its demo page imports
+  `Item` and `List` to show that `Draggable`/`Sortable` themselves import
+  neither: the coupling is `item.move(parent, before)` plus the caller's own
+  `contains()` guard.
+- **[`ext/Saver`](/framework/ext/Saver/)** deliberately does **not** import
+  `Item` — a saver's `save(item)` takes anything `JSON.stringify` can read, so
+  the two sides are decoupled on purpose.
 
 ## Open
 

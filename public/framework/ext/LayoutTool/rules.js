@@ -11,10 +11,13 @@
  * characters a line identically — and those are not the same bug. */
 
 import {
-	boxed, each_child, gaps, overlap, padding_box, scrolls, spill, text_bounds, under_scroller,
+	boxed, each_child, gaps, overlap, padding_box, region, scrolls, spill,
+	text_bounds, text_chars, under_scroller,
 } from "./ratios.js";
 
 const CODE = new Set(["pre", "code", "kbd", "samp"]);
+const CELL = new Set(["td", "th"]);
+const TABLE = new Set(["table", "thead", "tbody", "tfoot", "tr"]);
 const rule = (id, cat, title, scan) => ({ id, cat, title, scan });
 const issue = (n, sev, value, detail, fix) =>
 	({ sel: n.sel, node: n.i, path: n.path, sev, value, detail, fix });
@@ -26,8 +29,18 @@ const under = (v, low, med, high) => (v <= high ? "high" : v <= med ? "med" : v 
 
 export const rules = [
 
+	/* More hidden than shown, and no scrollbar anywhere: the reader cannot get to
+	 * it by any means. Its own rule rather than `clipped`'s top band because a
+	 * severity tier cannot say this — `/web/nav/drill/` hides 4099px of a 900px
+	 * region and scored 82/B as one 12-point `high`. score.js weights it by RULE. */
+	rule("unreachable", "overflow", "Content clipped away with no way to scroll to it", m =>
+		spill(m).filter(gone).map(s => issue(s.child, "high", s.ratio,
+			`${s.over}px of ${s.parent.sel} is past its own ${side(s)} (${pct(s.ratio)}) and `
+			+ `overflow is ${s.axis === "x" ? s.parent.ovx : s.parent.ovy} — there is no scrollbar to reach it`,
+			{ sel: s.parent.sel, decl: s.axis === "x" ? "overflow-x: auto" : "overflow-y: auto" }))),
+
 	rule("clipped", "overflow", "Content cut off with no way to reach it", m =>
-		spill(m).filter(s => s.hidden).flatMap(s => {
+		spill(m).filter(s => s.hidden && !gone(s)).flatMap(s => {
 			const sev = over(s.ratio, 0.02, 0.08, 0.25) ?? (s.over > 24 ? "med" : "low");
 			return [issue(s.child, sev, s.ratio,
 				`${s.over}px past ${s.parent.sel} (${pct(s.ratio)} of its ${side(s)}), which is overflow:hidden`,
@@ -70,12 +83,19 @@ export const rules = [
 		const still = n => n.ovx === "visible" && n.ovy === "visible";
 		const shell = n => n.w >= m.viewport.w - 2;
 
+		/* ⚠ A table's insets belong to the CELL, so measuring a `<tr>` reports a
+		 * padding it cannot hold — and a cell's 4px row rhythm is not a cramped
+		 * card, which was 175 identical findings on one page. Cells stay in at the
+		 * touching band only, which still catches `padding: 0`. */
 		return m.nodes
-			.filter(n => n.framed && n.w > 24 && boxed(n) && still(n) && !shell(n) && bounds[n.i])
+			.filter(n => n.framed && n.w > 24 && boxed(n) && still(n) && !shell(n) && bounds[n.i]
+				&& !TABLE.has(n.tag))
 			.flatMap(n => {
 				const [gap, fs] = nearest(padding_box(n), bounds[n.i]);
 				const ratio = gap / fs;
 				const sev = under(ratio, 0.35, 0.2, 0.08);
+
+				if (CELL.has(n.tag) && sev !== "high") return [];
 
 				return sev && gap >= -2 ? [issue(n, sev, ratio,
 					`nearest text sits ${Math.round(gap)}px from the frame — ${ratio.toFixed(2)}× its `
@@ -131,9 +151,11 @@ export const rules = [
 				`~${ch} characters per line (readable is 45–85)`,
 				{ sel: n.sel, decl: "max-width: 52em" })];
 
-			// Laddering: two words a line over five lines. A card description, a
-			// table cell and a stat tile all run 18–24 legitimately.
-			if (n.text.lines < 5) return [];
+			/* Laddering: two words a line over five lines. A card description, a
+			 * table cell and a stat tile all run 18–24 legitimately — and a cell
+			 * is the one of the three the rule cannot see is narrow on purpose,
+			 * so it authored 173 of 203 high findings site-wide. */
+			if (n.text.lines < 5 || in_cell(m, n)) return [];
 			const thin = under(ch, 20, 15, 11);
 
 			return thin ? [issue(n, thin, ch,
@@ -172,11 +194,15 @@ export const rules = [
 
 	/* ⚠ Asks the text BOUNDS, not the node's own text: the common shape is a
 	 * collapsed wrapper whose paragraph is a block child, so the wrapper itself
-	 * never counts as a text block and the rule saw nothing. */
+	 * never counts as a text block and the rule saw nothing.
+	 *
+	 * ⚠ And `boxed()`, or a `display: contents` wrapper — which HAS no box, by
+	 * design — reads as one collapsed to nothing. `div.tabs.block` alone was 360
+	 * of the site's 371 findings here. */
 	rule("zero-size", "overflow", "Collapsed to nothing", m => {
 		const bounds = text_bounds(m);
 
-		return m.nodes.filter(n => bounds[n.i] && n.parent >= 0 && (n.w < 1 || n.h < 1))
+		return m.nodes.filter(n => bounds[n.i] && n.parent >= 0 && boxed(n) && (n.w < 1 || n.h < 1))
 			.map(n => issue(n, "high", 0,
 				`a ${n.w}×${n.h} box still holding text — its content occupies no space`,
 				{ sel: n.sel, decl: "min-height: 1em" }));
@@ -186,18 +212,23 @@ export const rules = [
 	 * sized by the line, not by anyone's choice; and a control whose `::after` is
 	 * stretched over its card has a hit area its own rect knows nothing about.
 	 * Without them this rule fired 4274 times across 116 pages. */
+	/* ⚠ One control, reported once. `input.layout-range` is 60×17 wherever it
+	 * appears, and the panel puts eight on a page — 437 findings site-wide for a
+	 * single CSS line. Identical selector at an identical size is one declaration,
+	 * so the rule counts them and reports the count. */
 	rule("hit-size", "spacing", "Too small to tap", m =>
-		m.nodes.filter(n => n.interactive && n.w > 0 && n.h > 0
+		distinct(m.nodes.filter(n => n.interactive && n.w > 0 && n.h > 0
 			&& n.display !== "inline" && !n.stretched).flatMap(n => {
 			// At its own scale: a control inside a miniature is a picture of a
 			// control, and the design under it may be fine.
 			const w = n.w / n.escale, h = n.h / n.escale;
 			const sev = under(Math.min(w, h), 24, 18, 12);
 
-			return sev ? [issue(n, sev, Math.min(w, h),
+			return sev ? [{ ...issue(n, sev, Math.min(w, h),
 				`${Math.round(w)}×${Math.round(h)} at its own scale — under the 24px minimum target`,
-				{ sel: n.sel, decl: "min-height: 24px; min-width: 24px" })] : [];
-		})),
+				{ sel: n.sel, decl: "min-height: 24px; min-width: 24px" }),
+				key: `${n.sel}|${Math.round(w)}×${Math.round(h)}` }] : [];
+		}))),
 
 	/* A gap far larger than its neighbours is the "72px under a card icon" bug:
 	 * `.flow`'s heading margin resolving against a heading's own font-size inside
@@ -235,7 +266,39 @@ export const rules = [
 			+ `${Math.round(m.viewport.w - right)}px of dead space on the right`,
 			{ sel: m.nodes[0].sel, decl: "--column: 40em  /* on a .grid.auto */" })] : [];
 	}),
+
+	/* Not geometry — the absence of it. A page with nothing on it trips no rule,
+	 * so seven dead urls scored 90–94/A against a site median of 66.
+	 *
+	 * ⚠ The thinnest threshold in the module: dead urls hold 63–64 characters and
+	 * the sparsest live page holds 141. knowledge/thresholds.md carries the spread. */
+	rule("empty", "content", "Nothing here to lay out", m => {
+		const box = region(m);
+		if (!box || box.h < 320) return [];
+
+		const chars = text_chars(m)[box.i];
+		const sev = under(chars, 128, 96, 64);
+
+		return sev ? [issue(box, sev, chars,
+			`${chars} characters of text in a ${Math.round(box.w)}×${Math.round(box.h)} region — `
+			+ `a dead url, or content that never arrived`,
+			{ sel: box.sel, decl: "/* nothing to fix here: check the url resolves */" })] : [];
+	}),
 ];
+
+// More hidden than shown, and enough of it to matter.
+const gone = s => s.hidden && s.ratio >= 1 && s.over >= 200;
+
+/* One finding per distinct `key`, carrying how many boxes share it. A repeated
+ * component is one declaration however many times the page draws it. */
+function distinct(list){
+	const by = new Map();
+	for (const i of list) by.set(i.key, [...(by.get(i.key) ?? []), i]);
+
+	return [...by.values()].map(([{ key, ...first }, ...rest]) => rest.length
+		? { ...first, count: rest.length + 1, detail: `${first.detail} — ${rest.length + 1} of them` }
+		: first);
+}
 
 // The closest approach on any of four edges, with the font size of the text that
 // reached it — so a 45px heading and a 13px caption are each judged against
@@ -248,11 +311,14 @@ function nearest(box, t){
 	return edges.reduce((a, b) => (a[0] / a[1] <= b[0] / b[1] ? a : b));
 }
 
-function in_code(m, n){
+function within(m, n, tags){
 	for (let at = n; at; at = at.parent >= 0 ? m.nodes[at.parent] : null)
-		if (CODE.has(at.tag)) return true;
+		if (tags.has(at.tag)) return true;
 	return false;
 }
+
+const in_code = (m, n) => within(m, n, CODE);
+const in_cell = (m, n) => within(m, n, CELL);
 
 const pct = r => `${Math.round(r * 100)}%`;
 const side = s => (s.axis === "x" ? "width" : "height");

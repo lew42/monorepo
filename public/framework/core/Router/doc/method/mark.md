@@ -8,7 +8,7 @@ Unmark what I marked, then mark the new chain. Two classes, and that is the
 
 ## Usage
 
-`Router.js:103` — `activate()`, the only caller. It calls
+`Router.js:91` — `activate()`, the only caller. It calls
 [`mark_links`](/framework/core/Router/api/mark_links/) in turn, which is the half that
 other code does re-run.
 

@@ -3,8 +3,8 @@ before anything is built.
 
 ## Usage
 
-- `App.js:25` — `instantiate()`, step one.
-- `app.js:48` — this site's override: `config(){ lew42(this); }`, which loads two
+- `App.js:24` — `instantiate()`, step one.
+- `app.js:50` — this site's override: `config(){ lew42(this); }`, which loads two
   fonts and the theme's behaviour.
 
 ## Necessity

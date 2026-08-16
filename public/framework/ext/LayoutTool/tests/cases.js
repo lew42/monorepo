@@ -12,7 +12,7 @@
  * 32px right of the page title and misaligned the two. The page already has a
  * gutter. If a declaration here is not the thing being shown, delete it. */
 
-import { div, p, h2, h3, a, button, span } from "/app.js";
+import { div, p, h2, h3, a, button, span, table, thead, tbody, tr, th, td } from "/app.js";
 
 const PROSE = "The framework has no build step, so everything under public/ is served exactly "
 	+ "as written and runs in the browser as native ES modules. That constraint is the whole "
@@ -135,6 +135,38 @@ export const cases = [
 	},
 
 	{
+		title: "Unreachable content", verdict: "bad", rule: "unreachable", classes: "standard",
+		why: "A 300px box with overflow:hidden holding ten sections. Several times more is hidden than "
+			+ "shown and there is no scrollbar anywhere — the heaviest finding the tool has, because "
+			+ "a reader cannot get to it by any means.",
+		build(){
+			div().style({ height: "300px", overflow: "hidden" })
+				.append(() => cards(10, { padding: "1em", border: "1px solid var(--line)", marginBottom: "1em" }));
+		},
+	},
+
+	{
+		title: "Nested padding", verdict: "bad", rule: "double-pad", classes: "standard",
+		why: "1.5em of inset inside 1.5em of inset, both boxes painting identically. The second one "
+			+ "marks nothing — the content just sits further in than anyone meant.",
+		build(){
+			div().style({ padding: "1.5em" }).append(() =>
+				div().style({ padding: "1.5em" }).append(() => { h3("Inset twice"); p(PROSE); }));
+		},
+	},
+
+	{
+		title: "Unmarked structure", verdict: "bad", rule: "invisible", classes: "standard",
+		why: "Three groups of three blocks and not one surface between them. The grouping is real and "
+			+ "the reader has to infer it from whitespace alone.",
+		build(){
+			div().append(() => Array.from({ length: 3 }, (_, g) =>
+				div().append(() => Array.from({ length: 3 }, (_, i) =>
+					div().append(() => { h3(`Group ${g + 1} · block ${i + 1}`); p(WORDS); })))));
+		},
+	},
+
+	{
 		title: "Dead widescreen", verdict: "bad", rule: "dead-space", classes: "lt-page", from: 1500,
 		why: "Content pinned to 420px whatever the window does. At 3440 that leaves 87% of the screen as background. "
 			+ "Not a finding below 1500px, where 420px is a reasonable column.",
@@ -142,6 +174,69 @@ export const cases = [
 			div().style({ width: "420px" }).append(() => {
 				h2("Fixed at 420px"); p(PROSE); p(PROSE); p(WORDS); p(WORDS);
 			});
+		},
+	},
+
+	/* ── ground truth for the GUARDS: shapes a rule used to misread ───────────
+	 *
+	 * `quiet` names rules that must not fire at all, which is a stronger claim
+	 * than "no high findings" and the only way to test an exemption. Each of
+	 * these was a real false-positive class on the site, counted in
+	 * knowledge/false-positives.md. */
+
+	{
+		title: "Data table", verdict: "good", quiet: "cramped measure", classes: "standard",
+		why: "A plain table as `framework.css` draws it: 4px of vertical cell padding, a rule between "
+			+ "rows, and one narrow column that ladders. A row cannot hold an inset and a narrow cell "
+			+ "is a column — 175 findings on one page before the guard.",
+		build(){
+			table.c("md").append(() => {
+				thead(() => tr(() => { th("Rule"); th("What it measures"); th("Notes"); }));
+				tbody(() => ["cramped", "measure", "rhythm", "gutter"].forEach(name =>
+					tr(() => {
+						td(name);
+						td("A ratio, never a pixel count.");
+						td(WORDS);
+					})));
+			});
+		},
+	},
+
+	{
+		title: "Contents wrapper", verdict: "good", quiet: "zero-size", classes: "standard",
+		why: "`display: contents` — a wrapper that deliberately generates no box. Its 0×0 rect still "
+			+ "holds text, which is 360 of the site's 371 `zero-size` findings.",
+		build(){
+			div().style({ display: "contents" }).append(() => {
+				h3("Two children, one absent wrapper");
+				p(PROSE);
+			});
+		},
+	},
+
+	{
+		title: "Clamped card", verdict: "good", quiet: "clipped", classes: "standard",
+		why: "A description clamped to two lines with `-webkit-line-clamp` and no `max-height` to show "
+			+ "for it. The inline `code` lands on line four, outside a box that is cropping on purpose.",
+		build(){
+			div().style({ width: "18em" }).append(() => {
+				h3("A preview description");
+				p(PROSE + " It ends on a `token` several lines down.").style({
+					display: "-webkit-box", WebkitBoxOrient: "vertical", WebkitLineClamp: "2",
+					overflow: "hidden",
+				});
+			});
+		},
+	},
+
+	{
+		title: "Repeated rows", verdict: "good", at_most: { alignment: 1 }, classes: "standard",
+		why: "Twenty rows, each with one child sitting 5px off the lane the other nineteen share. "
+			+ "Twenty wobbles, one declaration — and each offender is an only child, so only the "
+			+ "structure roll-up can collapse them.",
+		build(){
+			div().append(() => Array.from({ length: 20 }, (_, i) =>
+				div().append(() => div(`Row ${i + 1} — measured, not eyeballed.`).style({ marginLeft: "5px" }))));
 		},
 	},
 

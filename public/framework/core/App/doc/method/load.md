@@ -9,7 +9,7 @@ if (!await this.router.load(location.pathname)) throw new Error("404");
 
 ## Usage
 
-`App.js:27` — `instantiate()`, step three. Nothing else calls it.
+`App.js:26` — `instantiate()`, step three. Nothing else calls it.
 
 ## Necessity
 

@@ -1,11 +1,15 @@
 # DevBar
 
-A right-docked rail of developer chrome, on every page. `Ctrl + \` toggles it, the
-`✕` shuts it, its inline edge and four preset buttons resize it, and everything it
-remembers is one `localStorage` document. Seven files: the shell (`DevBar.js`),
-what it shows (`tools.js`), this page's AI threads (`ask.js`), the rendering
-vocabulary (`parts.js`), what it remembers (`settings.js`), the resize edge
-(`grip.js`), the look (`devbar.css`).
+A right-docked rail of developer chrome, on every page, in three tabs — **page**
+(viewport, route, dev server, x-ray, go), **layout** (this page's score), **ai**
+(this page's threads). `Ctrl + \` toggles it, the `✕` at the head's inline end
+shuts it, `block` beside it holds `window.$BLOCKRELOAD`, that edge and four
+preset buttons resize it, and everything else it remembers is one
+`localStorage` document, the open tab included. Eleven files: the shell
+(`DevBar.js`), what it shows (`tools.js`), its rendering vocabulary
+(`parts.js`), this page's AI threads (`ask.js`), this page's layout score
+(`layout.js`), what it remembers (`settings.js`), the resize edge (`grip.js` +
+`grip.css`), the look (`devbar.css`).
 
 ```js
 import devbar from "./framework/dev/DevBar/DevBar.js";
@@ -14,143 +18,161 @@ render(){ …; devbar(this); },
 navigated(){ devbar.refresh(); },
 ```
 
+## Who uses this
+
+One caller — `public/app.js`, in `render()` and `navigated()` — which is also
+the whole public surface: every page on the site gets the rail through those
+two calls, and nothing else in the framework imports `DevBar.js` directly.
+`Socket`, `ext/Ask`, `ext/JSONL` and `ext/LayoutTool` are pulled *in* by this
+module (`tools.js`, `ask.js`, `layout.js`), not the other way around;
+`ext/layout` is not imported at all — the two only share a CSS contract, see
+[docking](/framework/dev/DevBar/docs/docking/).
+
 ## The three things that will bite you
 
-- **`dev-open` on `<html>` is the entire state.** The slide, the shell's push and
-  what the `✕` undoes are all CSS off that one class. So anything that wants to
-  react to the rail reads a class or a token — never a property on this module.
-- **A preset drops `--rail-floor` to 0, permanently.** `.app` normally stops its
-  push above a 26rem reading column, which floors the page at 416px and makes a
-  "390" button a liar. Any deliberate width — a preset or a drag — clears that
-  floor, so afterwards a drag can squeeze the page below 26rem too. `MIN` (200px,
-  `settings.js`) is the only guard left, on both sides.
-- **The rail renders during `App.render()`**, before the router exists and before
-  the socket connects. Everything it shows is read at render time, which is why
-  `refresh()` exists and why `navigated()` has to call it.
+- **`dev-open` on `<html>` is the entire state.** The slide, the shell's push
+  and what the `✕` undoes are all CSS off that one class. Anything that wants
+  to react to the rail reads a class or a token — never a property on this
+  module. Full mechanism: [docking](/framework/dev/DevBar/docs/docking/).
+- **A preset drops `--rail-floor` to 0, permanently.** `.app` normally stops
+  its push above a 26rem reading column; a deliberate width — a preset or a
+  drag — clears that floor for the rest of the session, so a later drag can
+  squeeze the page below 26rem too. `MIN` (200px) is the only guard left, on
+  both sides. Detail: [sizing](/framework/dev/DevBar/docs/sizing/).
+- **The rail renders during `App.render()`**, before the router exists and
+  before the socket connects. Everything it shows is read at render time,
+  which is why [`refresh()`](/framework/dev/DevBar/api/refresh/) exists and
+  why `navigated()` has to call it.
 
 ## Decisions
 
-**Sizing the page by sizing the rail.** The rail is the only thing between the
-window and the page, so a preset is one subtraction: `--dev-rail = innerWidth -
-target`. Nothing new measures anything, and the `viewport` section that already
-*reported* the width is where the buttons that *set* it belong — one section, not
-two about the same number. A target the window can't hold (3440 on a 1920 screen)
-has no rail width that reaches it, so that button disables itself and says which
-window it needs, rather than clamping and quietly missing. The lit state reads
-`settings.width`, **not** a measurement: `.app` eases its push over 0.18s, so
-anything measured right after a click reads mid-transition.
+**One `localStorage` document, not one key per setting.** `open` and `width`
+were two raw keys in two files and x-ray wasn't remembered at all. Now one
+`LocalStorageSaver` document (`settings.js`) — every piece of state is a class
+or a custom property on `<html>`, so restoring is only writing them back.
+Knobs are remembered as a list of class names (`["dev-outline"]`, not
+`{xray: true}`) for the same reason: the class already *is* the state.
 
-**One document, not one key per setting.** `open` and `width` were two raw
-`localStorage` keys in two files, and x-ray wasn't remembered at all. They are now
-one `LocalStorageSaver` document (`settings.js`), which is also the first place a
-new knob costs nothing to persist. Every piece of it is a class or a custom
-property on `<html>`, so restoring is only writing them back — nothing in the rail
-holds state of its own. `load()` resolves on a **microtask**, and microtasks drain
-before the first paint, so there is no flash despite the promise.
+**`block` writes `window.$BLOCKRELOAD` and stores nothing.** Every other knob
+is a class on `<html>` that `settings.js` remembers; this one is a global
+`Socket` reads live, in `reload()` and `changed()`. Routing it through `knob()`
+would put the same boolean in two stores — the black magic this module avoids —
+and persisting it is worse than useless: a block that quietly survived a reload
+reads as live reload being broken, which is a bug report, not a feature. It
+lives in the *head* rather than a tab because you reach for it mid-edit, with
+whatever tab you were on still open.
 
-**Knobs are remembered as a list of class names.** `settings.knobs` is
-`["dev-outline"]`, not `{xray: true}`. The class already *is* the state (a redraw
-reads it back off `<html>`), so storing the class name adds remembering and
-nothing else — and a new knob is one `check()` call with no schema to update.
+**The `✕` is pinned by `flex-grow` on the hint, not by an auto margin.**
+`.dev-hint { margin-inline-end: auto }` stood in `devbar.css` for months and
+never did anything: `.flex > * { margin: 0 }` is in `@layer util`, and a later
+layer beats any specificity in `theme` — so the `✕` sat wherever the text
+happened to end. Growing the hint is not a margin, so nothing zeroes it. Same
+trap `.measure` works around by declaring itself after that rule in the same
+layer (`framework/styles/readme.md`).
 
-**`ai` — the threads live beside the page, not under a date.** A thread is
-`<page>ai/<slug>/task.jsonl`. See `ask.js` and the ext/Ask record for why a chat
-is the same thing as a task; what matters here is that the **dir listing is the
-index**, so the rail reads `/directory.json` and nothing declares or crawls
-anything. The section remembers which thread you were last in *per page*
-(`settings.threads`), because otherwise every visit opens with a click that only
-re-selects where you already were.
+**Naming a thread is a native `prompt()`.** Crude on purpose — it happens a
+couple of times a week, and an inline form is a whole control surface for two
+words. See [threads](/framework/dev/DevBar/docs/threads/).
 
-**Naming a thread is a native `prompt()`.** Crude on purpose: it happens twice a
-week, and an inline form is a whole control surface — with its own validation,
-its own escape key and its own styles — for two words. Revisit if thread creation
-ever becomes frequent.
+**`parts.js` exists only to avoid an import cycle.** `ask.js` needs
+`section()`, which lived in `tools.js` — but `tools.js` imports `ask.js` to
+put it in `sections`. Three functions moved to their own file with no imports
+of their own, and the flow is one-way again.
 
-**`parts.js` exists to avoid a cycle.** `section()`/`row()`/`check()` were private
-to `tools.js`, and `ask.js` needs `section()` — but `tools.js` imports `ask.js` to
-put it in `sections`, so `ask.js` importing `tools.js` back would be the mutual
-import that breaks only on deep reloads. Three functions in their own module, and
-imports flow one way again.
+**Mounts on `<body>`, and reserves a rail summed with `ext/layout`'s
+drawer.** Both decisions, and the dark-without-a-palette trick that goes with
+them, are one topic: [docking](/framework/dev/DevBar/docs/docking/). Built
+during `render()` but appended only on `styles_loaded()` — `inject()` holds
+`$app` back for stylesheets, but nothing holds `<body>`, and an eagerly
+mounted bar painted unstyled, then visibly slid away as `devbar.css` landed.
 
-**The rail is the first `dev` → `ext` import in the repo.** The constraint is that
-**core** never imports an ext; `dev` is downstream of both and opts in the same way
-`app.js` does. Named because it is a direction nothing had taken before, not
-because it is a problem.
-
-**Where does it mount — inside `.app`, or on `<body>`?**
-`ext/layout`'s drawer is inside `.app` and documents why: `color-scheme` is forced
-there, so a panel on `<body>` would render light while the page is dark, and
-`--drawer` is only read on `.app`. Neither applies here — this rail forces its own
-`color-scheme: dark`, and `--devbar` is declared on `:root`. **Verdict: `<body>`.**
-Outside `.app` it is also outside `.theme-lew42`, so the site's type scale, its
-uppercase buttons and its Montserrat never reach it — a dev tool that changes size
-when you change the site's theme is a dev tool you cannot trust. The cost is real
-and worth naming: this rail cannot borrow a component class from the theme.
-
-**Dark, without a palette.** Every colour token in `framework.css` is a
-`light-dark()` pair, and `light-dark()` resolves against the element that *uses*
-the token. So `color-scheme: dark` on `.dev-bar` is the whole dark theme — ink,
-surface, line, wash and subtle all retune together and this stylesheet names no
-colour at all. Same mechanism `App/mode.js` uses on `.app`.
-
-**Two rails at one edge.** `--drawer` was the shell's only reservation, and a
-second panel sharing it would silently lose its push the first time `deselect()`
-cleared the token. `.app` sums `--drawer + --devbar` now (`framework.css`), the
-layout panel insets itself by `--devbar` so the two sit side by side, and the
-`.mode-btn` pill clears it too. Three one-line edits, and the clamp above a 26rem
-reading column still governs the total — at 480px the reservation collapses to
-64px and the rail covers, which is what a drawer is supposed to do down there.
-`--devbar` is on `:root` rather than `.app` because there is one rail per
-*document* and the rail itself hangs off `<body>`, where it could not inherit it.
-
-**No handle when closed.** `/web/nav/drawer/` says the button that opens a drawer
-must be persistent — that rule is about reader-facing navigation. This is dev
-chrome behind a keystroke, and a permanent tab on the right edge of every page is
-a visible cost paid by everyone to remind one person of a shortcut they know.
-Open question rather than a settled one: if the rail is ever hard to find, a
-low-opacity edge tab is the fix.
-
-**The grip has no resting state.** A splitter is normally a permanent bar, which
-costs a visible seam on every page for a gesture used once a session. This one is
-a 2rem hover strip straddling the edge with nothing in it: the pill appears where
-your pointer already is and rides its Y, so you never aim. Half the strip hangs
-over the page and swallows clicks in its rightmost ~16px — that is the price of a
-hit area you don't have to find, and it is paid only while the rail is open.
-
-**The pill is `--prim`, and that is not decoration.** It straddles the boundary,
-so it is drawn on the page's light background as much as on the rail's dark one —
-the first version used `--subtle` (translucent white) and was genuinely invisible
-on its left half. Only a hue reads on both. The whole edge lights at 45% under the
-same hover for the same reason: findability is the affordance, not the dot.
-Sizes are `rem`, never `em` — the rail's text is `0.8rem`, so an `em` pill came out
-3.2 × 12.8 instead of 4 × 16. A grab target does not scale with the type beside it.
-(It is 6 × 32 now; 4 × 16 was too small to see. Mike, 2026-08-14.)
-
-**Dragging turns the shell's easing off** via `--rail-ease`, a token `framework.css`
-reads on `.app`'s transition. Not a rule naming `.app` from here: the width is
-written every frame, and an eased push trails the pointer by 0.18s and reads as
-lag. The token is the same contract shape as `--devbar`.
+**Four presets, sized by subtracting from the window.** The math, the
+disabled-when-unreachable state, and why the lit button reads a setting
+rather than a live measurement: [sizing](/framework/dev/DevBar/docs/sizing/).
 
 **Deliberately not a registry.** `sections` is a plain array in `tools.js`. A
 `DevBar.tool(name, fn)` API would be the moment other modules start pushing
-themselves in from a distance, which is exactly the black magic this codebase
-avoids — and the array is one line to edit.
+themselves in from a distance — the black magic this codebase avoids. Adding
+a section is a function and one array entry. `layout.js` is the proof: a whole
+LayoutTool integration cost one import and one word in that array.
 
-## Known limits
+**Tabs, because one section is expensive.** The rail was seven sections in one
+scroll, and `layout` is the one that reads every rect on the page — on every
+navigation of every session with the rail open. `refresh()` renders only the
+open tab, so the cost is now something you ask for. The grouping is one array in
+`tools.js`; the `on` tab is one more key in the settings document, like every
+other knob. ⚠ It gates the *work*, not the download, on this site: every page
+under `/framework/` already imports LayoutTool because its doc page is a
+declared child ([measuring](/framework/dev/DevBar/docs/measuring/)).
 
-- The socket row settles once, on `socket.ready`. If the dev server dies *while*
-  the rail is open the row keeps saying `connected` until something refreshes it.
-  Live-reload restarts the page anyway, so this has never been visible.
-- A resize redraws the whole body. Cheap, but it does drop focus — **and the `ai`
-  section is focus-sensitive now**: resizing the window mid-sentence loses what you
-  had typed. The preset buttons repaint only themselves for this reason; the
-  window `resize` listener still does not.
-- A preset is computed at click time, so **resizing the window afterwards leaves
-  the page at the old width** — no preset stays lit, which is honest, but nothing
-  re-derives either. Re-click to re-fit.
-- **A thread carries `requested_at` and never `landed_at`**, so once the board
-  crawls these it will read every chat as permanently "running". How a chat thread
-  displays is the ext/AI task's call, not something to guess at here.
-- **The thread list is one `/directory.json` fetch per rail redraw** — that is
-  every navigation. It is a dev-only file the server already keeps warm, but a
-  cache is the obvious next move if it ever shows.
+**The `layout` tab reports two grades, and they disagree on purpose.** `grade` is
+`analyze()` — whether anything is *broken*. `taste` is `rate()`
+([`LayoutTool/taste/`](/framework/ext/LayoutTool/taste/)) — how *good* it is
+against eleven ideal ranges, with the three weakest named under it. A page with
+nothing wrong can still be dull, and only the second number can say so. One
+`import()`, one extra pass over the same probe.
+
+**The `layout` tab measures `.app`, not the active page — or the panel you
+clicked.** `.app` is the root `ext/LayoutTool`'s own audit uses, so a grade in
+the rail and a row in the audit table are the same number, and the rail keeps
+itself out of the reading with `data-layout-ignore` rather than by choosing a
+narrower root. Clicking an `ext/Panel` retargets it at that panel and Escape
+puts it back: two document events (`panel-focus`, `panel-unfocus`) and a class,
+with no import in either direction. The 200ms settle that makes a drag cost one
+analysis, the generation counter, the hidden-page trap, and why
+`LayoutTool/live.js` is not reused:
+[measuring](/framework/dev/DevBar/docs/measuring/).
+
+**The grip lives inside the rail, and cannot straddle its edge.** `.pages` is
+`overflow-y: scroll`, so the page region always reserves a scroll gutter flush
+against the rail's inline-start edge — there is no room on the page side of
+that line, and a 2rem strip centred on it covered every pixel of the scrollbar
+for as long as the grip existed (measured 2026-08-16: gutter 1931→1946, grip
+1931→1963). `0.75rem` at `inset-inline-start: 0` lands on the dead strip the
+rail already has — 1px border plus `0.9em` padding on head, tabs and body — so
+the target covers no content and nothing else moved. The cost is a 12px target
+where the straddle offered 32. Full record:
+[grip.css](/framework/dev/DevBar/files/).
+
+**No handle when closed.** `/web/nav/drawer/` requires a persistent open
+button for reader-facing navigation; this is dev chrome behind a keystroke,
+and a permanent tab on every page's right edge is a cost paid by everyone to
+remind one person of a shortcut they know. Open question rather than settled:
+a low-opacity edge tab is the fix if the rail ever proves hard to find.
+⚠ This was aspirational until 2026-08-16: there *was* a handle when closed —
+an invisible one, the same overhang, capturing pointer gestures down every
+page's right edge. Both halves of that bug are gone, and the slide is a plain
+`translateX(100%)` again; see [docking](/framework/dev/DevBar/docs/docking/).
+
+## Open
+
+- The socket row (`tools.js`) settles once, on `socket.ready`. If the dev
+  server dies *while* the rail is open, the row keeps saying "connected"
+  until something refreshes it — never visible in practice, since live-reload
+  restarts the page anyway.
+- A resize redraws the whole body, which drops focus. The `ai` section is
+  focus-sensitive — resizing mid-sentence loses what you typed — so the
+  preset buttons repaint only themselves; the window `resize` listener still
+  redraws everything. Tabs narrow the blast radius (only the open tab is
+  rebuilt) without fixing it.
+- **A thread carries `requested_at` and never `landed_at`**, so once a board
+  crawls these it will read every chat as permanently "running." How a
+  thread displays is `ext/AI`'s call, not something to guess at here.
+- **The thread list is one `/directory.json` fetch per rail redraw** — every
+  navigation. Dev-only and already warm on the server, but the obvious next
+  move if it ever shows.
+- **A grab snaps the rail's edge to the pointer**, so grabbing at the strip's
+  far side lands up to 12px narrow — 0 at the lit line, which is where you
+  aim. `grip.js` writes `innerWidth - e.clientX` with no grab offset; the
+  straddle had the same discontinuity at ±16px, so this is not new. Three
+  lines (remember the offset on `pointerdown`, subtract it on move) if it ever
+  reads as a jump.
+- **`follow the resize` is cheap now, and the number is one drag behind.**
+  Every resize event restarts a 200ms timer, so a 40-event drag measures once,
+  when it stops — where it used to measure nine times and cost ~180ms on a
+  680-node page. What that trades away is the number changing *while* you drag,
+  which was the original point of the knob; nobody has asked for it back yet.
+
+Design detail that outgrew this page: [docking](/framework/dev/DevBar/docs/docking/),
+[sizing](/framework/dev/DevBar/docs/sizing/), [threads](/framework/dev/DevBar/docs/threads/),
+[measuring](/framework/dev/DevBar/docs/measuring/).

@@ -6,8 +6,8 @@ else ever waits for.
 ## Usage
 
 - `App.js:9` — created, before `assign()`, so a passed `loaders` is discarded.
-- `App.js:78` — `font()` pushes.
-- `App.js:95` — `loaded()` reads it, once, at boot.
+- `App.js:76` — `font()` pushes.
+- `App.js:93` — `loaded()` reads it, once, at boot.
 - `ext/tabs/tabs.js` — `this.app?.loaders?.push(filling)`, so a cold load waits
   for a tab bar rather than painting an empty one. ⚠ Both `?.`: a stand-in app
   (`ext/demo`'s `DemoApp`) has no first-paint queue, and only the App need have one.

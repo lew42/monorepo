@@ -20,11 +20,16 @@ export class App {
 	log_label(){ return "app"; }
 
 	async instantiate(){
-		this.config();
-		this.render();
-		await this.load();
-		this.initialize();
-		this.inject();
+		try {
+			this.config();
+			this.render();
+			await this.load();
+			this.initialize();
+			this.inject();
+		}
+		catch (error){ this.error(error); }
+		// ⚠ resolve() stays outside the catch — a throw above must still settle
+		// ready, or await app.ready hangs forever.
 		this.ready.resolve();
 	}
 

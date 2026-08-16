@@ -1,13 +1,17 @@
-import { Page, md, code, div, p, span, button } from "/app.js";
-import { ask, available } from "./Ask.js";
+import { Doc, md, code, div, p, span, button } from "/app.js";
+import * as Ask from "./Ask.js";
 import { chat } from "./chat.js";
 
-export default new Page({
+export default new Doc({
 	meta: import.meta,
 	title: "Ask",
-	label: "Ask",
 	description: "Chat with a Claude Code session from the browser — one socket message, one headless CLI turn.",
 	icon: "forum",
+
+	subject: Ask,
+	methods: "ask thread start available",
+	notes: "task process fork shot record",
+	files: "Ask.js ask.css chat.js page.js readme.md",
 
 	content(){
 
@@ -29,10 +33,17 @@ export default new Page({
 
 		code.js(`await ask("What is wrong with this element's layout?", { shot: ".chat-form" });`);
 
-		md("A string is a selector on **this** page; `{url, selector, width, height}` reaches any other. The dev server drives globally-installed playwright, hands the turn a png, and the turn reads it — so a page can ask about how it looks, not just what it says.");
+		md("A string is a selector on **this** page; `{url, selector, width, height}` reaches any other. The dev server drives globally-installed playwright, hands the turn a png, and the turn reads it — so a page can ask about how it looks, not just what it says. Full mechanism: [shot](docs/shot/).");
 
 		this.asker("Ask about the input above", "In ONE sentence: what is this element, and what is its most obvious layout problem?",
 			{ model: "haiku", shot: ".chat-form" });
+
+		md("### Opening a thread, and starting a whole task");
+
+		code.js(`await thread("framework/styles/layouts/ai/rhythm");   // a dir + one log line, no process
+await start("fix the audit page's severity sort", { group: "layout" });  // scaffolds AND spawns a session`);
+
+		md("`thread()` opens `<page>ai/<slug>/task.jsonl` beside a page — that's what `+` does in the [dev rail](/framework/dev/DevBar/)'s thread panel, and what every `chat()` above is really appending to once a `task` is passed. `start()` is the other door: it scaffolds `framework/ai/<date>/<slug>/` exactly like the `new-task` skill would and spawns a **whole session** to work it, not a turn — that's the compose box on [the board](/framework/ai/). Neither is demoed live here: both write real files, and their live demos are the pages that already use them. Path shape and the fence both take: [task](docs/task/).");
 
 		md(`### The arguments
 
@@ -43,9 +54,11 @@ export default new Page({
 | \`task\` | a thread's path under \`public/\`; the exchange lands in its log |
 | \`shot\` | a selector, or \`{url, selector}\` — a picture for the turn to read |
 | \`on\` | \`{text}\` / \`{tool}\` as the turn streams |
-| \`model\`, \`tools\` | per call; \`tools: ""\` is a pure-text turn |
+| \`model\`, \`tools\` | per call; \`tools: ""\` is a pure-text turn |`);
 
-Design record, and why the first message on a task forks rather than resumes: [readme.md](readme.md).`);
+		md("See it live: the compose box on [the board](/framework/ai/), the thread panel in the [dev rail](/framework/dev/DevBar/), or [vision](/framework/ext/LayoutTool/) asking a second opinion about a layout report.");
+
+		md.details(import.meta, "readme.md", "Design record — the fence, the fork, and what's still open");
 	},
 
 	// A button IS the API — the smallest possible caller, and it costs one haiku turn.
@@ -55,13 +68,13 @@ Design record, and why the first message on a task forks rather than resumes: [r
 			button.c("chat-send", label).click(async () => {
 				$out.empty(() => span("thinking…"));
 				try {
-					const r = await ask(prompt, opts);
+					const r = await Ask.ask(prompt, opts);
 					$out.empty(() => span(`${r.text} — $${r.cost_usd.toFixed(3)}, ${Math.round(r.duration_ms / 1000)}s`));
 				} catch (e){
 					$out.empty(() => span(e.message));
 				}
 			});
-			$out = p.c("muted", available() ? "—" : "No dev server: the bridge is absent, not broken.");
+			$out = p.c("muted", Ask.available() ? "—" : "No dev server: the bridge is absent, not broken.");
 		});
 	},
 });

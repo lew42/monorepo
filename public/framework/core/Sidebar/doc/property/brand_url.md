@@ -12,7 +12,7 @@ or replaces `header` entirely.
 
 Keep, and the reason is the case the default gets wrong. A section sidebar wants
 its wordmark to point at *the section*, not at the site root — which is exactly what
-`framework/page.js:24` does, via a replaced header:
+`framework/page.js:26` does, via a replaced header:
 `this.app.brand(this.title, this.url)`.
 
 So the need is real and demonstrated; this property is the cheap way to meet it

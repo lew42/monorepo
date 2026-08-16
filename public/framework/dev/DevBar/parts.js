@@ -25,13 +25,14 @@ export function row(key, value, cls){
 }
 
 // A checkbox bound to a class on <html>: the class IS the state, so a redraw reads
-// it back rather than remembering anything. `knob()` adds surviving a reload.
-export function check(text, cls){
+// it back rather than remembering anything. `knob()` adds surviving a reload, and
+// `changed` is for a knob whose section has to redraw itself to obey it.
+export function check(text, cls, changed){
 	const on = document.documentElement.classList.contains(cls);
 
 	label.c("dev-knob", () => {
 		const $box = input().attr("type", "checkbox")
-			.on("change", function(){ knob(cls, this.el.checked); });
+			.on("change", function(){ knob(cls, this.el.checked); changed?.(); });
 
 		if (on) $box.attr("checked", true);
 

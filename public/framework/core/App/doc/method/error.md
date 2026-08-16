@@ -3,7 +3,7 @@ been.
 
 ## Usage
 
-`App.js:68` — `load()`'s `catch`, the only caller.
+`App.js:66` — `load()`'s `catch`, the only caller.
 
 ## Necessity
 

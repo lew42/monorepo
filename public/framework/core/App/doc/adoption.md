@@ -27,7 +27,7 @@ A child added from inside the **constructor** — which `initialize()` is — is
 therefore adopted with `app: undefined`, and only a later `child()` fixes it.
 
 **A default tab is never routed to**, so that later `child()` never happens: a
-`classdoc` overview is rendered straight out of `children.get(name)`. For a while
+`Doc` overview is rendered straight out of `children.get(name)`. For a while
 `this.app` was simply `undefined` inside an overview's `content()`, and every use
 of it was a silent no-op — `new Sidebar({ app: this.app })` rendered without its
 mode toggle, and *worked* if you opened the child's own url. That is the worst

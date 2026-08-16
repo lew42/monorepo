@@ -2,7 +2,7 @@ Returns the anchor this click should navigate, or `null` meaning *"not ours"*.
 
 ## Usage
 
-`Router.js:20` — `click()`, the only caller.
+`Router.js:16` — `click()`, the only caller.
 
 ## Necessity
 

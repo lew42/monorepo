@@ -1,4 +1,5 @@
 import { View, div, p, h4, span, code } from "/app.js";
+import { locate } from "./address.js";
 
 View.stylesheet(import.meta, "LayoutTool.css");
 
@@ -9,27 +10,27 @@ View.stylesheet(import.meta, "LayoutTool.css");
  * the difference is a few pixels somewhere. This answers the actual question:
  * *what exactly is wrong, and what exactly fixes it.*
  *
- * ⚠ Clones come from a same-origin iframe into THIS document, where they pick up
- * the same stylesheets — which is the only reason a detached node still renders
- * as itself. A cross-origin page could not do this at all. */
-export default function mirror(url, issue, width = 1280, root_path = ""){
+ * ⚠ Clones render as themselves only because they are same-origin: dropped into
+ * this document they pick up the same stylesheets. A cross-origin page could not
+ * do this at all. */
+export default function mirror(issue, { url, width = 1280, root_path = "", root } = {}){
 	return div.c("lt-mirror flex v gap").append($out => {
 		$out.append(() => p(`Locating ${issue.sel}…`).ac("muted"));
-		find(url, issue, width, root_path).then(
+		find(issue, { url, width, root_path, root }).then(
 			pair => $out.empty(() => pair ? show(pair, issue) : missing(issue)),
 			e => $out.empty(() => p(`Could not isolate it — ${e.message}`).ac("muted")),
 		);
 	});
 }
 
-/* Loads the page in a hidden frame at the audit's width and resolves the issue's
- * recorded PATH against it.
- *
- * ⚠ Not the walk index. A page whose content arrives asynchronously walks in a
- * different order on the next visit, and every issue then points at the wrong
- * element — which is how this came back with "p is no longer at that position"
- * on a classdoc page. `:nth-child()` is exact. */
-function find(url, issue, width, root_path){
+/* ⚠ Resolved against the SAME root the analysis walked from, or a page-relative
+ * path finds a real element at the wrong address. The dev rail measures the live
+ * document and hands that element over; only a caller who has nothing but a url
+ * — the audit page, reporting on a frame that is long gone — reloads and guesses
+ * the root back from `root_path`. */
+function find(issue, { url, width, root_path, root }){
+	if (root) return Promise.resolve(pair(locate(root, issue.path), issue));
+
 	return new Promise((resolve, reject) => {
 		const el = document.createElement("iframe");
 		el.setAttribute("data-layout-ignore", "");
@@ -41,18 +42,7 @@ function find(url, issue, width, root_path){
 		el.onload = () => setTimeout(() => {
 			try {
 				const doc = el.contentDocument;
-
-				/* ⚠ The SAME root the analysis used. A node path is relative to
-				 * it, so resolving a page-relative path against `.app` finds a
-				 * real element at the wrong address — this cloned the sidebar and
-				 * captioned it "cramped card". */
-				const root = (root_path && doc.documentElement.querySelector(root_path))
-					?? doc.querySelector(".app") ?? doc.body;
-
-				// An empty path IS the root — the analysis root is its own address.
-				const target = issue.path ? root.querySelector(issue.path) : root;
-
-				done(resolve, target && { html: target.outerHTML, at: issue.path || "(the analysis root)" });
+				done(resolve, pair(locate(root_of(doc, root_path), issue.path), issue));
 			} catch (e){ done(reject, e); }
 		}, 400);
 
@@ -60,6 +50,11 @@ function find(url, issue, width, root_path){
 		function done(fn, value){ el.remove(); fn(value); }
 	});
 }
+
+// ⚠ `||`, not `??` — an empty `root_path` means "unknown", and `""` is not nullish.
+const root_of = (doc, path) => (path && locate(doc.documentElement, path)) || doc.querySelector(".app") || doc.body;
+
+const pair = (target, issue) => target && { html: target.outerHTML, at: issue.path || "(the analysis root)" };
 
 function show({ html, at }, issue){
 	div.c("lt-mirror-pair grid gap").append(() => {

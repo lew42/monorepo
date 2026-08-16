@@ -68,7 +68,7 @@
 	   template, exiling every child to implicit columns. 52em is far past any box
 	   this size, so the `100%` arm already wins. */
 	/* ⚠ Three classes on purpose: outer chrome retunes the same tokens with two
-	   (classdoc zeroes `--gutter-x` for its region), and a page inside a demo app
+	   (ext/doc zeroes `--gutter-x` for its section), and a page inside a demo app
 	   must answer to the demo app, not to whatever surrounds it. */
 	.demo-app .demo-app-pages .page.standard { --gutter-x: 1.2em; --pad-y: 1.2em; }
 

@@ -24,18 +24,30 @@ export async function sweep(url, { from = 360, to = 3440, stride = 64, precision
 	return { url, from, to, stride, samples, edges, loads: samples.length + edges.length * 6 };
 }
 
-/* Discrete facts only.
+/* Discrete facts only, and only the ones that mean REARRANGEMENT.
  *
  * ⚠ A continuous metric does not become discrete by bucketing it. The first
  * version included `width_used` in 5% buckets and reported four edges on a
  * layout with one: content width drifts smoothly, so it crosses a bucket
  * boundary every few hundred pixels and every crossing read as a reflow.
- * A signature must only change when the layout REARRANGES. */
-function signature(report){
-	const rules = [...new Set(report.issues.map(i => i.rule))].sort().join(",");
-	const cut = report.issues.filter(i => i.rule === "clipped" || i.rule === "escape").length;
+ *
+ * ⚠ Nor does RULE PRESENCE, on its own. A rule whose threshold a page sits near
+ * flips on and off as the width drifts: at 1272px five site pages "changed" only
+ * because a LOW `line-height` finding dropped out, which is a rounding and not a
+ * reflow. What counts is a rule that fires when boxes stop fitting, a finding
+ * severe enough that its arrival is the layout failing, and the band the measure
+ * sits in — whose boundaries are the numbers `measure` itself judges by. */
+const STRUCTURAL = new Set(["unreachable", "clipped", "escape", "doc-overflow", "collision", "zero-size"]);
+const CUT = new Set(["unreachable", "clipped", "escape"]);
+const BANDS = [45, 85, 100, 130];
 
-	return [rules, report.metrics.scrolls_sideways ? "scroll" : "-", cut].join("|");
+function signature(report){
+	const counts = i => STRUCTURAL.has(i.rule) || i.sev === "high";
+	const rules = [...new Set(report.issues.filter(counts).map(i => i.rule))].sort().join(",");
+	const cut = report.issues.filter(i => CUT.has(i.rule)).length;
+	const band = BANDS.filter(b => (report.metrics.measure ?? 0) >= b).length;
+
+	return [rules, report.metrics.scrolls_sideways ? "scroll" : "-", cut, band].join("|");
 }
 
 async function sample(look, width){

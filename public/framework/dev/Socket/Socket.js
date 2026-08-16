@@ -30,6 +30,7 @@ export default class Socket {
 		this.protocol = window.location.protocol === "https:" ? "wss" : "ws";
 		this.requests = [];
 		this.fails = 0;
+		this.swaps = 0;
 		this.connected = false;
 		this.retry = null;
 		this.ready = promise();
@@ -65,6 +66,7 @@ export default class Socket {
 		this.connected = true;
 		this.fails = 0;
 		this.ready.resolve();
+		this.rpc("hello", window.location.pathname);
 	}
 	reconnect() {
 		// ⚠ Never reject `.ready` — a pending promise parks send()s until we are
@@ -98,6 +100,78 @@ export default class Socket {
 	reload() {
 		if (!window.$BLOCKRELOAD)
 			window.location.reload();
+	}
+
+	// ⚠ Called BY the server, like reload() — this is MCP's `eval` tool, and it
+	// must never throw: message() has no catch, so one bad expression would take
+	// down every frame after it.
+	eval(code, token) {
+		const reply = result => this.rpc("eval_result", token, result);
+		const text = value => {
+			try { return JSON.stringify(value) ?? String(value); }
+			catch { return String(value); }
+		};
+
+		// The tab may have navigated since it connected.
+		this.rpc("hello", window.location.pathname);
+
+		try {
+			Promise.resolve((0, eval)(code)).then(
+				value => reply({ value: text(value) }),
+				e => reply({ error: String(e?.message || e) })
+			);
+		} catch (e) {
+			reply({ error: String(e?.message || e) });
+		}
+	}
+
+	// ⚠ Called BY the server, like reload(). No `paths` — or a null inside one —
+	// means "unknown", which is the old reload-everything.
+	changed(paths) {
+		if (window.$BLOCKRELOAD) return;
+		if (!paths || paths.includes(null)) return this.reload();
+
+		const loaded = this.loaded();
+		let stale = false;
+
+		for (const path of paths) {
+			if (!loaded.has(path)) continue;
+			if (!(loaded.get(path) && this.restyle(path))) stale = true;
+		}
+
+		if (stale) this.reload();
+	}
+
+	// Every same-origin url this tab fetched, pathname → still hot-swappable.
+	// ⚠ False once something read the file as data — ext/files shows sources, and
+	// swapping a <link> would leave that copy stale on screen.
+	loaded() {
+		const paths = new Map();
+		for (const entry of performance.getEntriesByType("resource")) {
+			const { origin, pathname } = new URL(entry.name, window.location.href);
+			if (origin !== window.location.origin) continue;
+			const swappable = entry.initiatorType !== "fetch" && entry.initiatorType !== "xmlhttprequest";
+			paths.set(pathname, swappable && (paths.get(pathname) ?? true));
+		}
+		return paths;
+	}
+
+	// ⚠ Bumps `?t=` on the SAME <link> element. A replacement element registers
+	// its @layer at the END of the cascade and silently reorders the whole site.
+	restyle(path) {
+		const links = [...document.querySelectorAll('link[rel="stylesheet"]')].filter(link => {
+			const url = new URL(link.href);
+			return url.origin === window.location.origin && url.pathname === path;
+		});
+		if (!links.length) return false;
+
+		this.swaps++;
+		links.forEach(link => {
+			const url = new URL(link.href);
+			url.searchParams.set("t", this.swaps);
+			link.href = url.href;
+		});
+		return true;
 	}
 
 	async send(obj) {

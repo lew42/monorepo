@@ -18,6 +18,29 @@ question: `./doc/declaring.md` (the children list and the CMS question),
 `./doc/labels.md` (titles, labels, icons, cards), `./doc/css.md` (the whole CSS
 record — visibility, the sheet, rhythm, the cards).
 
+## Who uses this
+
+Every `page.js` on the site — around 160 of them — constructs a `Page` (or is one,
+via `class X extends Page`) as its default export, almost always through
+`import { Page } from "/app.js"`. That is the module's real caller list, and it is
+too large to enumerate; the more useful list is the dozen files that import
+`Page.class.js` **directly**, bypassing the re-export, because those are the ones
+that have to exist before `/app.js` itself can be trusted:
+
+| file | why it imports directly |
+|---|---|
+| `core/App/App.js` | adopts the routed root page in `App.load()` |
+| `ext/doc/Doc.js` | `class Doc extends Page` — the class-page system this audit itself runs on |
+| `ext/AITask/AITask.js` | `class AITask extends Page` — the AI dashboard |
+| `ext/catalog/catalog.js`, `ext/demo/{app,demo,sample}.js`, `ext/tabs/{page,tabs}.js` | the arrangement exts — each fills or reads `$pages` / `regions`, the two properties `container()` looks for |
+| `styles/page.js`, `versus/page.js` | build demo trees outside `/app.js`'s own re-export |
+| `alex/framework/core/Page/ErrorPage.js` | a sandbox subclass |
+
+**A module with no callers is a finding; this one's finding is the opposite one.**
+`Page` is the single most depended-on class in the framework, reached through
+exactly two doors — the re-export almost everything uses, and the direct import
+the infrastructure above needs because it runs before `/app.js` has finished.
+
 ## Decisions
 
 **Are declared children eager or lazy?** **Eager.** `children: "a b c"` imports
@@ -42,6 +65,10 @@ title. The POJO is the lean form for children with no folder, which is every dem
 tree here. It **throws** on a value that is not a function, string, plain object,
 `Page` or `null`: `JS: md("…")` is the synchronous-capture trap in value position,
 and must fail loudly. Warts in `doc/property/children.md` — integer-like keys hoist.
+An option object *inside the array* form is the same idea one level down — no
+`name:`, it derives one from `Page.slug(title)`, and two that derive the same name
+warn instead of the earlier one silently losing (fixed 2026-08-15 — `ext/Timeline`'s
+two-card `overview:` was rendering one).
 
 **Where do a label and an icon live?** On the page they describe, as `label:` and
 `icon:`. The `nav:` map on the parent is **gone** (Aug 2026) — with `label` on the
@@ -90,7 +117,7 @@ measure with `.wide` and `.bleed` tracks — and declaring `classes:` opts
 out *whole*. Before, half the site's pages declared the shape and the rest
 sat 60em wide in the region, and the split read as two different sites. The
 default lives in `render()`, not `naming()`, so a custom `render()` that never
-reads `classes` is untouched — which is exactly the classdoc root and the topic
+reads `classes` is untouched — which is exactly the Doc root and the topic
 pages.
 
 **One axis: title, prose, walls and exhibits share one left edge, and wider blocks
@@ -135,7 +162,7 @@ would call.
 **`catalog()` is an ext, like `tabs()`.** `previews()` as a persistent rail beside
 a `$pages` region — the recipe the catalog demo proved by hand, promoted to a
 method when a third consumer was about to paste it. The Page overview's demo rail
-and every classdoc Overview are catalogs. `ext/catalog/readme.md`.
+and every Doc Overview are catalogs. `ext/catalog/readme.md`.
 
 **`nav()` — my own menu entry.** `nav_for(name)` is still the parent's method, and
 still takes a name, because an entry belongs to the list it appears in. `nav()` is
@@ -290,7 +317,7 @@ threads names rather than pages through its call sites.
   level, deep links included. Accepted deliberately; not free.
 - **`children` gets a property page and a guide page, at two urls.** `/api/children/`
   is the audit entry; `/children/` is the long form. That only works because
-  `classdoc` now nests members under an `api` group — before the split, a property
+  `Doc` now nests members under an `api` group — before the split, a property
   named `children` was added *before* `load_all_children()` ran and shadowed the
   guide entirely. Worth remembering the next time a member and a guide share a word.
 - **A directory named after a class `Page.css` styles collides with it.** `render()`

@@ -9,7 +9,7 @@ written rather than any one class.
 | `ext/files` — a tree of real files, fetched | a wall of `code.html()` string literals showing `index.html` in full |
 | `ext/toc` — a page's own headings, scroll-spied | scrolling to find a section |
 | `demo()`'s third pane — the real DOM, read back | "and this renders…", unverifiable |
-| `.tabs.vertical` + `classdoc.page()` — a members rail beside a panel | a grid of preview cards you had to leave the page to use |
+| `.tabs.vertical` + `new Doc()` — a members rail beside a panel | a grid of preview cards you had to leave the page to use |
 
 **The organising principle: a doc page should answer *"where do I click to see X"* in
 one glance.** Screen space is finite, so the three navs a page can carry are
@@ -32,7 +32,7 @@ class written where `owns_url` is known, plus a `:not(.tab-default)` in the CSS.
 and unnoticed for as long as tabs have existed, which is what a flat bar with one member
 does to your eye.
 
-`ext/classdoc/doc/rail.md` has the reversal in full: the "no overflow handling" objection
+`ext/doc/doc/rail.md` has the reversal in full: the "no overflow handling" objection
 was about a *horizontal* bar, and a vertical one handles twenty names fine.
 
 ## Trap: sticky needs a scrolling ancestor and a grid item that isn't stretched
@@ -63,6 +63,6 @@ Two audiences, two documents, in the same directory, and blurring them is the fa
   screen; long history moves to `doc/*.md` beside it, cited in one line. A readme is not
   a running commentary on past mistakes.
 
-`classdoc`'s `notes:` list serves those same `doc/*.md` files as pages, so a record is
+`Doc`'s `notes:` list serves those same `doc/*.md` files as pages, so a record is
 **written once and read twice**: by the maintainer through the readme's citation, and by
 a visitor at a real url.

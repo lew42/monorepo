@@ -21,7 +21,8 @@ for chrome and `config()` for a Router option, a theme's behaviour, or a font.
 `new App()` returning before load is what makes `window.app = new App()` read
 well, and `app.ready` covers the wait.
 
-**The cost, unfixed:** a throw anywhere outside `load()`'s own try/catch becomes
-a silent unhandled rejection. One `.catch(e => this.error(e))` in the constructor
-would fix it. Recorded rather than done because the try in `load()` covers the
-case that actually happens (a page module throwing).
+**The cost, fixed:** a throw anywhere outside `load()`'s own try/catch used to
+become a silent unhandled rejection and leave `app.ready` pending forever.
+`instantiate()` now wraps its own body in try/catch — `catch` calls `error()`
+(logs, renders the error page) — with `ready.resolve()` moved after so it always
+runs.

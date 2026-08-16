@@ -1,15 +1,15 @@
 The `Router`. Also the *options for* the Router, before `load()` runs.
 
 ```js
-this.router = new Router(this.router, { app: this });   // App.js:63
+this.router = new Router(this.router, { app: this });   // App.js:61
 ```
 
 ## Usage
 
-- `App.js:63` — constructed, from whatever was already there.
-- `App.js:65` — `this.router.load(location.pathname)`, the first navigation.
+- `App.js:61` — constructed, from whatever was already there.
+- `App.js:63` — `this.router.load(location.pathname)`, the first navigation.
 - Site code — `app.router.go(url)`, the one programmatic navigation.
-- `ext/tabs/tabs.js:53`, `framework/ui/page.js:29` — `app?.router?.mark_links()`,
+- `ext/tabs/tabs.js:55`, `ext/catalog/catalog.js:62` — `app?.router?.mark_links()`,
   for links rendered after `mark()` ran.
 
 ## Necessity
@@ -26,6 +26,6 @@ router: {…} })`, or an already-built Router. Later args win, so App's injectio
 layers on top with no branch and no case analysis.
 
 The cost is that the property has two types over its lifetime, and the window
-between them is inside one method. Nothing reads it before line 63, so it has never
+between them is inside one method. Nothing reads it before line 68, so it has never
 mattered — but it is the reason `router` is not documented as *"a Router"* without
 qualification.

@@ -14,7 +14,12 @@ capturing trap: passing a function routes through `append`, which makes `$list`
 the captor while the function runs, so the code inside is written exactly as you
 would write it at module scope.
 
-**Simplicity** — right-sized. Three lines, and it inherits the whole of `append`'s
+**Simplicity** — right-sized. Four lines, and it inherits the whole of `append`'s
 dispatch by calling it. `innerHTML = ""` is the fastest clear and drops listeners
 with the nodes — deliberate, since `View` keeps no listener registry to clean up.
+
+⚠ **It also bumps `this.epoch`**, which is how `append_promise` knows its
+resolution belongs to content that is gone. Without it, switching a lazily-imported
+region twice inside one cold-cache import window rendered *both* — the abandoned
+one landing last, on top. See `append_promise` in `doc/method/append.md`.
 

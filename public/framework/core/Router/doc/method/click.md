@@ -1,6 +1,6 @@
 ## Usage
 
-`Router.js:12` — the document listener, the only caller. Every navigation on the
+`Router.js:11` — the document listener, the only caller. Every navigation on the
 site that isn't a reload or a Back starts here.
 
 ## Necessity
@@ -20,6 +20,6 @@ the half that is still open (where it *lands* is still the top).
 
 ## Simplicity
 
-Right-sized. A third of the body is a `console.log`, which is true of most of this
-class and is a deliberate trade — the log line is how a navigation is debugged
-without a debugger.
+Right-sized: guard, then act, nothing else. There is no debug logging here or
+anywhere else in the class — a navigation is traced with the browser's own
+Network/Performance tools, not a bespoke log line.

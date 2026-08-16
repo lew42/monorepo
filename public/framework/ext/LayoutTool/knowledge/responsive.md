@@ -66,6 +66,40 @@ is the argument for the sweep existing at all.
 ⚠ **A continuous metric does not become discrete by bucketing it.** The first
 signature included `width_used` in 5% buckets and reported four edges where
 there was one: content width drifts smoothly, so it crosses a bucket boundary
-every few hundred pixels and every crossing read as a reflow. The signature is
-now the firing rule-set, the sideways-scroll flag, and the clipped count —
-things that only change when the layout rearranges.
+every few hundred pixels and every crossing read as a reflow.
+
+## A rule firing is not a rearrangement either
+
+The same mistake, one level up, and it took a 174-edge site sweep to see it.
+**Rule presence is discrete and still not stable**: a page whose measure sits
+near 85 characters, or whose line-height rounds either side of 1.25, flips a rule
+on and off as the width drifts by eight pixels. At **1272px five separate pages
+"changed"** — every one of them only because `line-height` dropped out of the
+firing set. That is a rounding, reported as a breakpoint.
+
+The signature now keeps only what moves when boxes stop fitting:
+
+- the **structural** rules that fired (`unreachable`, `clipped`, `escape`,
+  `doc-overflow`, `collision`, `zero-size`), at any severity
+- **plus any rule firing at `high`**, whatever tier it belongs to. A low finding
+  arriving is a threshold being grazed; a high one arriving is the layout
+  failing, and dropping typography wholesale would have lost the worked example
+  below — an `illegible` band that exists only between two widths.
+- whether the document **scrolls sideways**
+- the **cut count** — how many boxes are clipped, escaping or unreachable
+- the **measure band**, `< 45 / 45–85 / 85–100 / 100–130 / > 130`, whose
+  boundaries are the numbers the `measure` rule already judges by
+
+⚠ The general form: **a signature term earns its place by naming a thing the
+layout DID, not a threshold it happens to sit near.** Anything continuous under
+the hood will produce edges nobody chose, which is exactly the finding the sweep
+exists to report — so a noisy signature does not merely add noise, it
+counterfeits the deliverable.
+
+## Give it a timeout
+
+⚠ **Three of twenty site sweeps hung outright**, inside `page.evaluate` with no
+way to tell a slow page from a stuck one — `frame()` waits on an `onload` that a
+url can simply never fire. `frame()` now rejects after 15s (`timeout:`), so a
+sweep fails loudly instead of taking the driver with it. Before wiring `sweep()`
+into any page that runs unattended, check the caller handles that rejection.

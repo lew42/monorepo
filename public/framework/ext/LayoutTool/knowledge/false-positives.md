@@ -15,10 +15,17 @@ other box.
   reads as escaping a zero-width parent. Highlighted code inside a `<pre>` —
   one `span.hljs-*` per token — produced *hundreds* of these on one page.
 - **`display: contents` has no box at all**, same result. One wrapper on the
-  classdoc page reported its two children as "1280px outside a 0px parent".
+  Doc page reported its two children as "1280px outside a 0px parent".
 
 Both are handled by one predicate, `boxed()`: `display` is neither `inline` nor
 `contents`. `inline-block` and `inline-flex` do have real boxes and stay in.
+
+⚠ **`boxed()` has to be applied at both ends, and to every rule.** The same
+`div.tabs.block` wrapper was **360 of the site's 371 `zero-size` findings** —
+a rule reading "a box under 1px still holding text" and meeting a box that is
+absent on purpose — and, as a *child*, its 0×0 rect at the origin read as its
+parent's entire gutter escaped. Three rules and two ends, one predicate: check
+it whenever a rule asks a node for its size.
 
 ## Measurements taken against the wrong thing
 
@@ -95,6 +102,41 @@ at its own width.
 here is the tool learning to read geometry correctly; this one is a decision
 about scope, and it is reversible by passing `{ ignore: "[data-layout-ignore]" }`.
 
+## A table is not a stack of cards
+
+The 854-measurement crawl of 2026-08-15 found **3277 of 3414 `cramped` findings
+on `tr`, `td` and `th`**, and **173 of 203 high `measure` findings inside a
+cell**. Neither is a layout anyone can fix, because a table's insets do not live
+where the rule is looking:
+
+- **A `<tr>` draws a border and holds no padding** — the cell's padding is the
+  row's inset, so measuring the row reports a declaration that would have no
+  effect. Same for `thead`, `tbody`, `table`. All exempt.
+- **A cell's vertical padding is row rhythm, not a frame gap.** 4px on 16px text
+  is `0.25×` — under the rule's 0.35 floor and identical on all 175 cells of one
+  page. Cells stay in **at the touching band only** (`< 0.08×`), which still
+  catches the `padding: 0` table the rule was written for.
+- **A narrow cell is a column, not a broken paragraph.** The `measure` ladder
+  branch already said so in a comment — "a card description, a table cell and a
+  stat tile all run 18–24 legitimately" — and nothing enforced it. Now the
+  branch skips anything inside a cell, ancestors included.
+
+## One component is one declaration
+
+Not a misreading — a **counting** error, and it distorts a score the same way.
+`input.layout-range` is 60×17 wherever the layout panel puts it, and `hit-size`
+reported it **437 times across 71 pages** for a single CSS line. A finding is
+worth one entry per *thing an author would change*:
+
+- **Identical selector at an identical size collapses**, count carried
+  (`distinct()` in `rules.js`).
+- **The same structure repeated collapses**, wherever it repeats. The old
+  roll-up only merged siblings of one parent, so a row drawn three hundred times
+  — each offender the only child of its own row — never merged at all:
+  `div.ai-line` × 300 on one dashboard, **`span.sidebar-label` × 2504
+  site-wide**, from one `Sidebar` declaration. `repeats()` in `LayoutTool.js`
+  now groups by rule × selector after the sibling pass.
+
 ## Deliberate is not broken
 
 - **A negative margin is a request to overlap.** Stacked avatars tripped the
@@ -103,6 +145,12 @@ about scope, and it is reversible by passing `{ ignore: "[data-layout-ignore]" }
   and line-clamped descriptions. Only the *vertical* axis gets this exemption:
   sideways clipping is essentially never deliberate, and when it is, the box
   scrolls.
+- **A line clamp is a crop with no `max-height` to show for it.** The exemption
+  above tested `max-height` alone, and `p.page-preview-desc` clamps to two lines
+  with `max-height: none` — so every inline `<code>` that landed on line three
+  reported as high-severity content cut off, **12 of the site's 79
+  `clipped:high` findings**. The probe now reads `-webkit-line-clamp` directly
+  and `crops()` is the two facts together.
 - **A full-bleed shell is a background, not a frame.** `.app` spans the
   viewport, so its "edge" is the window's and text touching it is the design.
   Skipped when width ≥ viewport width.
@@ -201,7 +249,16 @@ Before adding or defending a rule, check whether the box it measures is one of:
 7. **scaled content** — a miniature is a picture, not a design
 8. **a stretched hit area** — a pseudo-element the rect cannot see
 
-Those eight cover every false positive found so far.
+9. **a table** — the row cannot hold the inset and the cell is narrow on purpose
+10. **a repeat** — one component drawn forty times is one declaration
+
+Those ten cover every false positive found so far.
+
+⚠ **And check the arithmetic, not only the geometry.** Removing the four
+score-affecting classes above moved the site median from **66 to 79** and F
+grades from 269/854 to 61/854. The ranking the tool published before that was
+mostly authored by its own bugs — which is the strongest argument in this file
+for reading raw output against a page a human would call fine.
 
 ## And the counter-rule
 

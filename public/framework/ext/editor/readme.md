@@ -1,12 +1,12 @@
 # editor — design record
 
-A drag-and-drop builder assembled from the wave-1 stack and nothing else: a
+A drag-and-drop builder assembled from the wave-1 stack and nothing else: an
 [`Item`](../../core/Item/) tree, one [`Sortable`](../Draggable/) per node,
 [`ext/layout`](../layout/)'s word vocabulary as the properties region, a
 [`Saver`](../Saver/) holding the document — and a second, separate `Saver`
-holding the shell, which is a [`panel`](../Panel/) workspace. Four files —
+holding the shell, which is a [`Panel`](../Panel/) workspace. Four source files —
 `blocks.js` (the palette), `History.js` (undo), `editor.css`, and `page.js` (the
-editor and its doc page).
+widget and its doc page, at 318 lines the largest in the framework).
 
 ```
 palette --> insert()  --.
@@ -24,34 +24,34 @@ props   --> ext/layout words --> sync() ----------'
 
 Undo runs the arrow backwards: `history.restore(snapshot)` calls the editor's
 `swap()`, which hydrates a **new tree**, re-attaches the saver, re-binds the
-listeners, redraws, and re-resolves the selection by id.
+listeners, redraws and re-resolves the selection by id.
 
-## Traps
+## The shell is a panel workspace
 
-- **⚠ Selection is an id, never a node.** `Item.hydrate` returns a new tree, so
-  after one undo every object in the document is a different object and a
-  remembered `$node` or `Item` is detached. `nodes` (id → view) is rebuilt by
-  every `draw()`; `doc.find(id)` recovers the Item from any tree.
-- **⚠ `swap()` is one function on purpose.** The saver, the autosave listener,
-  the canvas and the selection all move onto the new tree together. A half-done
-  swap is a live editor writing to a document nobody can see.
-- **⚠ `handle: false`, not `null`.** `Draggable` fills the handle with `??=`, so
-  the document root — which is a drop site with nothing to grab — needs a real
-  `false`. `grip && $bar` produces one; `item.parent && $bar` would produce
-  `undefined` and give the whole canvas a grip.
-- **⚠ Only structural events redraw.** `change` saves but must not redraw, or a
-  chip click would replace the very element the properties panel is holding.
-- **⚠ The properties panel writes to the ELEMENT, not the Item** — that is
-  `ext/layout`'s whole contract. `sync()`, on the panel's own bubble-phase
-  `click`/`input`, copies the element's classes and inline style back onto
-  `data.words` / `data.css`, which is what serializes. `drag-items` is filtered:
-  it is `Sortable`'s mark, re-added on every render, and persisting it would grow
-  the class string by a word per reload.
-- **⚠ `blocks.js` is imported for its side effect.** Its last line registers the
-  four types; an unregistered type is an unimported one and hydrates as a plain
-  `Item` (preserved and warned, never dropped).
+`workspace({ saver, templates, seed })` — the editor's five regions are a
+**workspace-local** `T` vocabulary rather than entries in `ext/Panel`'s global
+one, so no editor state ever reaches a module that must not know the editor
+exists. Full record, including the two rejected alternatives and the shared drag
+registry: [`doc/shell.md`](./doc/shell.md).
 
-## Verdicts
+## Who uses it
+
+**Nothing.** No code outside this directory imports `History`, any of
+`Block`/`Section`/`Grid`/`Card`/`Text`, or `BLOCKS` — all zero-caller — and the
+`editor()` widget in `page.js` is not exported at all, so it cannot be embedded,
+constructed, or named in an import from anywhere else. The only thing that wires
+this module into the site is [`framework/ext/page.js`](../)'s `children:` string,
+which is what makes `/framework/ext/editor/` a route. [`ext/LayoutTool`](../LayoutTool/)'s
+audit crawl lists that url, and a handful of `ai/` task pages and
+[`ext/Panel/page.js`](../Panel/)'s "Next:" line link to it in prose — none of that
+is code calling in. (One near-miss: `ai/2026-08-12/apps/page.js` imports a
+same-named `editor` — that's an unrelated sandbox file, `apps/editor/page.js`, a
+grep false positive, not a caller of this module.)
+
+This module is consumed exactly one way: as a page a person visits. See the
+audit's verdict on what that means for where it should live.
+
+## Decisions
 
 **Undo: whole-document snapshots** (council ruling 11). `act(fn)` pushes *before*
 mutating and restores through the same `hydrate` path a reload takes — so every
@@ -84,79 +84,44 @@ snapshot. Property edits persist but are **not** undoable: a slider fires fifty
 `input` events and each one would be its own snapshot. Recorded rather than
 solved — see Open.
 
-## The shell is a panel workspace
+## Traps
 
-### Where does an editor region's `draw` live?
-
-**Options.** (a) Put `palette`/`canvas`/… into `ext/Panel/templates.js`, the
-global `T` vocabulary. (b) Assign a `draw` onto each hydrated `Panel` by
-template name after `Item.open`. (c) Hand `workspace()` a workspace-local
-registry.
-
-**Verdict: (c),** `workspace({ saver, templates, seed })` — three keys, one
-call. (a) puts editor state in a module that must not know the editor exists,
-and shows `canvas` in the `T` menu of every panel on the site. (b) fights
-`paint()`, which resolves `item.data.template ? template.draw : item.draw` — a
-region has to *persist* its name, so it must go through `data.template`, and
-then only a registry can answer it. In `ext/Panel` the registry is one instance
-property on the **root** `Panel` (`root.templates`), read by `vocab(item)` =
-`item.root().templates ?? templates`; it never serializes, exactly like `saver`
-and `parent`.
-
-Two behaviours fall out of the same predicate, `vocab(item) === templates`:
-a workspace with its own regions is offered **no `random`** (rolling would give
-an editor two canvases) and **no per-body `layout.bar`** (its regions carry the
-controls, and the floating bar sits over the corner they use).
-
-### Editor state stays in the closure
-
-Each region is `{ draw(){ … } }` closing over `doc / sel / nodes / history`, and
-its first act is to assign the `$var` the painters write to. So **every painter
-is guarded** (`$layers?.empty(…)`): a region the arrangement does not currently
-show has no body, and closing the canvas must not stop the layers list working.
-Verified — with `canvas` closed, layers, properties and the badge all still run.
-
-### Two drag systems, one registry
-
-`Draggable.registry` is a single `WeakMap` for the document, so `locate()`
-happily offered a `Panel` an editor `Block` as a drop target and vice versa —
-one `item.move()` and the two trees cross. The guard is one clause in each
-`drop_check`: `target.item?.root() === this.item.root()`. It also closes a live
-defect on `/framework/ext/Panel/`, where a workspace panel could be dropped into
-the `panel(fn)` demo lower down the same page.
-
-### The saver chooser is now a two-line helper
-
-`store(path, key)` applied twice, rather than the ternary written out twice.
-Ruling 15 wants the `LocalStorageSaver` mount **visible in one line**; it is,
-and there is one of it instead of two to keep in step.
+- **⚠ Selection is an id, never a node.** `Item.hydrate` returns a new tree, so
+  after one undo every object in the document is a different object and a
+  remembered `$node` or `Item` is detached. `nodes` (id → view) is rebuilt by
+  every `draw()`; `doc.find(id)` recovers the Item from any tree.
+- **⚠ `swap()` is one function on purpose.** The saver, the autosave listener,
+  the canvas and the selection all move onto the new tree together. A half-done
+  swap is a live editor writing to a document nobody can see.
+- **⚠ `handle: false`, not `null`.** `Draggable` fills the handle with `??=`, so
+  the document root — which is a drop site with nothing to grab — needs a real
+  `false`. `grip && $bar` produces one; `item.parent && $bar` would produce
+  `undefined` and give the whole canvas a grip.
+- **⚠ Only structural events redraw.** `change` saves but must not redraw, or a
+  chip click would replace the very element the properties panel is holding.
+- **⚠ The properties panel writes to the ELEMENT, not the Item** — that is
+  `ext/layout`'s whole contract. `sync()`, on the panel's own bubble-phase
+  `click`/`input`, copies the element's classes and inline style back onto
+  `data.words` / `data.css`, which is what serializes. `drag-items` is filtered:
+  it is `Sortable`'s mark, re-added on every render, and persisting it would grow
+  the class string by a word per reload.
+- **⚠ `blocks.js` is imported for its side effect.** Its last line registers the
+  four types; an unregistered type is an unimported one and hydrates as a plain
+  `Item` (preserved and warned, never dropped).
 
 ## Open
 
-- **A hugging panel's body measured 0px** until `panel.css` gained
-  `.panel.hug > .panel-body { flex: 0 0 auto }` — the status strip was invisible.
-  That is a change to another module's stylesheet, forced by measurement.
-- **Two canvases over one document** is undefined behaviour, as the brief
-  allowed: the last one drawn owns `$canvas`, the other goes stale until the next
-  structural redraw. A region registry keyed by *instance* rather than by name is
-  the fix if it ever matters.
-- **Three bars of chrome** stack above the palette (root, row, leaf). Every
-  `Panel` draws a bar, including splits, and an editor is four levels deep.
+- **`page.js` is 318 lines carrying three jobs** (widget, regions, doc page) —
+  see [`doc/file/page.js.md`](./doc/file/page.js.md) for the split this argues
+  for, and the fact that it is also the fix for "no importable door."
+- **Property edits are not undoable** (Decisions, above). The fix is a snapshot
+  per *gesture* — `pointerdown` on the panel — which also pushes for a
+  pointerdown that edits nothing. Neither shape has earned its way in yet.
 - **A first-ever load logs one 404** for `/data/editor-panels.json` before the
-  seed is written. `FileSaver.load()` is a plain `fetch`; `/framework/ext/Panel/`
-  has had the same property since it shipped.
-- **Property edits are not undoable** (above). The fix is a snapshot per
-  *gesture* — `pointerdown` on the panel — which also pushes for a pointerdown on
-  panel chrome. Neither shape earned its way in yet.
-- **`page.js` is 318 lines**, the longest in the framework, because it carries the
-  editor widget, its six regions *and* its doc page. The natural split is
-  `editor.js` beside a thin `page.js`; it was not made because this module
-  shipped as a fixed five-file set, and the region registry makes the case
-  stronger, not weaker.
-- **Two redraws per drag.** `item.move()` emits `remove` then `add`, and both are
-  bound to `draw()`. Correct, and one frame wasteful.
-- **One `keydown` listener per document, never removed.** An `isConnected` check
-  keeps a routed-away editor from eating the shortcut; a real teardown would need
-  a Page lifecycle hook that does not exist.
+  seed is written. `FileSaver.load()` is a plain `fetch`; `ext/Panel` has had the
+  same property since it shipped.
 - **Multi-select, copy/paste, and the multi-document UX** (`/data/index.json` as
   an Item document) are deferred by the council spec, not by this file.
+
+Fuller, ranked ledger across this module and `ext/Panel` together, with severity
+and status per item: [Editor × Panel review](/framework/ai/2026-08-14/editor-panel-review/).

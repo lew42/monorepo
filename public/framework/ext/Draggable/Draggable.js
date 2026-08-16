@@ -86,6 +86,7 @@ export default class Draggable {
 	restore(){}
 
 	destroy(){
+		this.cancel();   // an in-flight gesture must not outlive the instance
 		for (const type in this.handlers ?? {})
 			this.handle.el.removeEventListener(type, this.handlers[type]);
 		window.removeEventListener("keydown", this.escape);

@@ -13,7 +13,7 @@ its call.
 **A group heading can never also be a link.** That is a real cost and it is the
 correct one — a heading that navigates is a link pretending to be a heading. The
 convention that pays for it is a first entry called "Overview" pointing at the
-section's own url (`framework/page.js:68`); without one, a grouped sidebar has no
+section's own url (`framework/page.js:100`); without one, a grouped sidebar has no
 way to reach `/framework/core/` at all.
 
 ## Simplicity

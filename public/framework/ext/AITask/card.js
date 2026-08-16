@@ -1,13 +1,12 @@
 import { div, span, a } from "../../core/View/View.js";
 import { Page } from "../../core/Page/Page.class.js";
-import { progress, spend, state } from "./stats.js";
+import { progress, quiet, spend, state } from "./stats.js";
 
 /* One task, as a row — who | what | figures, at one type size: hierarchy is
    weight and muted color, never a second size. A running task also gets its
    step outline as segments; a dormant one gets no bar at all. */
 
 const when = iso => iso ? new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "…";
-const day_of = url => url.split("/").filter(Boolean).at(-2);
 const first = m => (m?.outcome ?? m?.request ?? "").split("\n")[0].replaceAll("**", "");
 const short_model = id => id?.replaceAll("claude-", "");
 
@@ -24,14 +23,21 @@ const status = t => {
    outcome — agents are appended at dispatch, so that IS the current sub-task. */
 const current = m => m.now ?? m.agents?.findLast?.(a => !a.outcome)?.task;
 
+/* The category tag: the effort this task claimed, linking to the board filtered
+   to it. A task claiming none is untagged rather than filed under a fake slug. */
+const tag = t => t.m?.group &&
+	a.c("ai-tag", t.m.group.replaceAll("-", " ")).href("/framework/ai/effort/" + t.m.group + "/");
+
 // [value, label] pairs, so the figures column aligns instead of cramming a dotted line.
 const figures = m => {
 	if (!m) return [];
 	const done = m.agents?.filter(x => x.outcome).length ?? 0, total = m.agents?.length;
+	const idle = quiet(m);
 	return [
 		spend(m),
 		m.window?.after != null && [Math.round(m.window.after * 100) + "%", "of window"],
 		total && [done < total ? `${done}/${total}` : String(total), total === 1 ? "agent" : "agents"],
+		idle && [idle, "quiet"],
 	].filter(Boolean);
 };
 
@@ -46,7 +52,7 @@ function steps_of(m){
 
 	segments(pr);
 	div.c("ai-step-line", () => {
-		span.c("ai-step-n", pr.step + "/" + pr.total + " ");
+		span.c("ai-step-n", pr.done + "/" + pr.total + " ");
 		span(pr.current ?? "");
 	});
 	return pr;
@@ -54,12 +60,15 @@ function steps_of(m){
 
 /* The title's ::after spreads the link over the whole row; anything that must
    stay clickable sits above it (.ai-links). */
-export const manifest_card = (t, show_day) => div.c("ai-card surface", () => {
-	div.c("flex gap v-center", () => {
+export const manifest_card = t => div.c("ai-card surface", () => {
+	div.c("ai-who flex gap", () => {
 		span.c("ai-dot").ac(DOT[state(t.m)]);
 		div.c("flex v", () => {
 			a.c("ai-card-title", t.title).href(t.url);
-			span.c("muted", [show_day && day_of(t.url), status(t), t.m?.tab].filter(Boolean).join(" — "));
+			div.c("flex gap wrap v-center", () => {
+				span.c("muted", [status(t), t.m?.tab].filter(Boolean).join(" — "));
+				tag(t);
+			}).style("--gap", ".5em");
 		});
 	}).style("--gap", "0.6em");
 
@@ -79,8 +88,8 @@ export const manifest_card = (t, show_day) => div.c("ai-card surface", () => {
 });
 
 // The bridge: a declared child whose OWN preview() is overridden draws its own row.
-export const card = (t, show_day) => t.child?.preview && t.child.preview !== Page.prototype.preview
+export const card = t => t.child?.preview && t.child.preview !== Page.prototype.preview
 	? t.child.preview(t.nav)
-	: manifest_card(t, show_day);
+	: manifest_card(t);
 
 export default card;

@@ -2,9 +2,9 @@ Build the view, once. Memoised in `this.view`.
 
 **Usage** — one caller in core: `activate()` (`Page.class.js:119`). Also
 `ext/tabs`, which renders the default tab into its panel
-(`framework/ext/tabs/tabs.js:47`). **Overridden** by every page that is a layout —
-`framework/page.js:30`, `michael/page.js:34`, `ext/classdoc`'s class page
-(`framework/ext/classdoc/classdoc.js:133`), and each `styles/layouts/*` variant.
+(`framework/ext/tabs/tabs.js:52`). **Overridden** by every page that is a layout —
+`framework/page.js:19`, `michael/page.js:34`, `ext/doc`'s class page
+(`framework/ext/doc/Doc.js:133`), and each `styles/layouts/*` variant.
 
 **Necessity** — the class. It is where `content` becomes DOM.
 

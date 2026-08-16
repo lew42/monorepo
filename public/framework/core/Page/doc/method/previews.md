@@ -1,12 +1,16 @@
 A card per child — arranged here, **drawn by the child**.
 
-**Usage** — 20 call sites, and it is what an index page *is* on this site:
-`framework/core/page.js:21`, `framework/ext/page.js:17`, `framework/page.js:44`,
-`framework/styles/page.js:19`, `framework/ui/page.js:46`, `framework/util/page.js:16`,
-and the rest of the section indexes.
+**Usage** — dozens of call sites, and it is what an index page *is* on this site:
+`framework/core/page.js:21`, `framework/ext/page.js:17`,
+`framework/styles/page.js:19`, `framework/ui/page.js:46`,
+`framework/util/page.js:16`, and most section indexes. ⚠ Not `framework/page.js`
+any more — the site landing moved to [`walls()`](/framework/core/Page/api/walls/)
+(Aug 2026, see `../../readme.md`), which is `previews()` one level up: a heading
+per section, that section's own `previews()` under it.
 
 ```js
 content(){ this.previews(); }
+content(){ this.previews(subset); }   // a Map — when some children are chrome
 ```
 
 **Necessity** — yes. One declaration (`children`), and every menu on the site follows
@@ -21,6 +25,19 @@ built from the nav entry alone.
 Because declared children are imported at construction and `Router.load()` awaits them,
 the cards draw **once**, with real titles. The redraw machinery this used to need is
 gone.
+
+**`pages` defaults to all of mine** (Aug 2026). The one parameter, and it exists because
+a page's `children` can hold things that are not content: a [`Doc`](/framework/ext/doc/)
+adds Overview · API · Docs · Files as real children, so a Doc calling this on its own
+Overview previewed its own tab strip. `Doc.wall()` hands in the subset rather than this
+method growing a filter, a flag or a second wall — **one wall mechanism on the site**
+is the point, and a `Map` is what `children` already is.
+
+⚠ **A wall grouped by `group:` turns `grid-auto-flow: dense` off** (`Page.css`, via
+`:has(> .page-previews-group)`). Dense backfills the gap a heading leaves at the end of
+the previous row with a card from the run *below* it — so `styles/layouts/` rendered Fit
+and Flex above the VOCABULARY heading that owns them. An **ungrouped** wall keeps dense,
+where `.two`/`.big` cards leave holes worth backfilling.
 
 **`group:` heads a run.** A child may claim a group the way it claims a `card`, and
 each *run* of one gets an `h4.page-previews-group` spanning the wall — categories

@@ -7,7 +7,7 @@ for (const name of url.split("/").filter(Boolean))
 
 ## Usage
 
-`Router.js:61` — `load()`, the only caller.
+`Router.js:52` — `load()`, the only caller.
 
 ## Necessity
 

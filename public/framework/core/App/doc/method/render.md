@@ -14,8 +14,8 @@ render(){
 
 ## Usage
 
-- `App.js:26` — `instantiate()`, step two.
-- `app.js:50` — this site's override: a nav strip above `$pages`, and
+- `App.js:25` — `instantiate()`, step two.
+- `app.js:52` — this site's override: a nav strip above `$pages`, and
   `theme-lew42` on `$app`.
 
 ## Necessity

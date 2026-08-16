@@ -4,9 +4,12 @@ import Saver from "./Saver.js";
 export default class FileSaver extends Saver {
 
 	// A missing document is `null`, not an error — the first save creates it.
+	// Anything else that goes wrong REJECTS instead, so a caller can tell
+	// "not saved yet" apart from "couldn't check."
 	async load(){
 		const response = await fetch(this.path);
-		if (!response.ok) return null;
+		if (response.status === 404) return null;
+		if (!response.ok) throw new Error(`FileSaver: ${this.path} failed to load (${response.status}).`);
 
 		try {
 			return await response.json();

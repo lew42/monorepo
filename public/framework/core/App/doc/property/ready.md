@@ -7,7 +7,9 @@ this.ready = Object.assign(promise, { resolve });   // App.js:11-12
 
 ## Usage
 
-- `App.js:30` — `this.ready.resolve()`, the last line of `instantiate()`.
+- The last line of `instantiate()`, `this.ready.resolve()`, runs unconditionally
+  after that method's own try/catch — reached whether or not `config()`,
+  `render()`, `initialize()` or `inject()` threw.
 - Nothing in `framework/` awaits it.
 - Documented as the way to wait in four sandbox pages (`alex/framework/app/`,
   `arya/framework/app/`, `castin/framework/`, `edric/framework/app/`); `edric/`
@@ -33,10 +35,10 @@ shape nothing else in this framework uses.
 The alternative is two properties (`ready` and a private resolver), which is more
 honest and one line longer. Weighed in the readme.
 
-**It never rejects, and it can hang.** A failure `load()` catches resolves it just
-the same — the error page renders and `ready` fires — so `await app.ready` means
-*"boot finished"*, not *"boot succeeded"*. A throw **outside** that try (in
-`config()` or `render()`) skips `ready.resolve()` entirely and leaves it pending
-forever, alongside the silent unhandled rejection from
-[`instantiate`](/framework/core/App/api/instantiate/). Both are the same missing
-`.catch()`.
+**It never rejects.** A failure `load()` catches resolves it just the same — the
+error page renders and `ready` fires — so `await app.ready` means *"boot
+finished"*, not *"boot succeeded"*. A throw in `config()`, `render()`,
+`initialize()` or `inject()` used to skip `ready.resolve()` entirely and hang it
+forever; [`instantiate()`](/framework/core/App/api/instantiate/) now wraps its own
+body in try/catch, so every one of those throws also logs, renders the error
+page, and still resolves `ready`.

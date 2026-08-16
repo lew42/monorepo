@@ -12,15 +12,11 @@ const CHIPS = {
 };
 const ITEM = "flex-1 basis measure";
 
-export function head($el, close){
-	div.c("layout-head flex v-center split", () => {
-		span.c("layout-name", $el ? name_of($el) : "nothing selected");
-
-		row(() => {
-			$el && btn("copy", function(){ copy(this, $el); });
-			btn("✕", close).attr("title", "Close");
-		});
-	});
+// ⚠ No ✕ here — the rail draws its own and never hands it over, so nothing this file
+// does can leave the reader with no way to shut it (ext/drawer, 2026-08-16).
+export function head($el){
+	span.c("layout-name", $el ? name_of($el) : "nothing selected");
+	$el && row(() => btn("copy", function(){ copy(this, $el); }));
 }
 
 export function body($el, extras, redraw){

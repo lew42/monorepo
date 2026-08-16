@@ -17,7 +17,7 @@ microtask 2          id=true    panel h2 count = 4     ← ext/toc assigned the 
 rAF                  id=true                            (but this is after paint)
 ```
 
-Two hops, and **both belong to exts** — `ext/tabs` fills a classdoc panel in one
+Two hops, and **both belong to exts** — `ext/tabs` fills a Doc panel in one
 microtask, `ext/toc` assigns heading ids in another. Landing on the target means
 either:
 

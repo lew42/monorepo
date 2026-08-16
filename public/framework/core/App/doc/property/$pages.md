@@ -3,12 +3,12 @@ against.
 
 ## Usage
 
-Built at `App.js:43` (or by a site's own `render()`, `app.js:66`), then:
+Built at `App.js:44` (or by a site's own `render()`, `app.js:68`), then:
 
-- `App.js:48` — `View.set_captor(this.$pages)`, the line that makes page code work.
-- `App.js:86` — `error()` empties it, deliberately *not* `$app`.
-- `Page.class.js:103, 105` — `container()`, the last claim in the chain: a region,
-  then an ancestor's `$pages`, then this.
+- `App.js:49` — `View.set_captor(this.$pages)`, the line that makes page code work.
+- `App.js:84` — `error()` empties it, deliberately *not* `$app`.
+- `Page.class.js:134, 137, 139` — `container()`, the last claim in the chain: a
+  region, then an ancestor's `$pages`, then this.
 
 ## Necessity
 

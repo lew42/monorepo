@@ -3,7 +3,7 @@ Logo and wordmark. **Also the name of the property that replaces it.**
 ## Usage
 
 - `Sidebar.js:39` — `bar()`, the only internal caller.
-- `framework/page.js:24` — replaced:
+- `framework/page.js:26` — replaced:
   `header: () => this.app.brand(this.title, this.url)`.
 
 That second line is how the site's own brand gets into core's component without

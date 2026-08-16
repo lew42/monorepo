@@ -1,11 +1,12 @@
-import View, { div, span, button } from "../../core/View/View.js";
-import { sections } from "./tools.js";
-import { restore, set } from "./settings.js";
+import View, { div, span, button, label, input } from "../../core/View/View.js";
+import { tabs } from "./tools.js";
+import { restore, set, settings } from "./settings.js";
+import { reclaim } from "../Claim/claim.js";
 import grip from "./grip.js";
 
 View.stylesheet(import.meta, "devbar.css");
 
-let $bar, $body, app;
+let $bar, $tabs, $body, app;
 
 /* The dev rail — chrome for whoever is building the site, on every page.
  *
@@ -23,17 +24,39 @@ export default function devbar(a){
 		div.c("dev-head flex v-center", () => {
 			span.c("dev-title", "dev");
 			span.c("dev-hint", "ctrl + \\");
+
+			// ⚠ The global IS the state — Socket reads it live — and this is the one
+			// knob deliberately not persisted through settings.js. Why: readme.md.
+			label.c("dev-knob", () => {
+				const $box = input().attr("type", "checkbox")
+					.on("change", function(){ window.$BLOCKRELOAD = this.el.checked; });
+
+				if (window.$BLOCKRELOAD) $box.attr("checked", true);
+				span("block");
+			}).attr("title", "Block live reload — window.$BLOCKRELOAD");
+
 			button.c("dev-x", "✕")
 				.attr("title", "Close (Ctrl + \\)")
 				.attr("aria-label", "Close the dev rail")
 				.click(() => toggle(false));
 		});
 
+		$tabs = div.c("dev-tabs flex");
 		$body = div.c("dev-body flex v");
 
-		// Last, so the pill paints over the edge it straddles.
 		grip();
-	}).append_to(View.body());
+	});
+
+	// ⚠ Dev chrome, not the page: ext/LayoutTool's probe skips anything marked
+	// this, so the rail never turns up in a measurement of the page beside it.
+	$bar.attr("data-layout-ignore", "");
+
+	// ⚠ After styles — inject() holds $app back for stylesheets, but nothing holds
+	// <body>: mounted bare, the bar paints unstyled, then visibly slides away as
+	// devbar.css's transform and its transition arrive in one style update.
+	// ⚠ And the claim ring with it: an agent editing files reloads its own claimed tab
+	// every few seconds, so the ring has to come back on boot. dev/Claim/readme.md.
+	app.styles_loaded().then(() => { $bar.append_to(View.body()); reclaim(); });
 
 	// ⚠ `code`, not only `key`: the character a backslash key produces moves with the
 	// keyboard layout; the physical key does not.
@@ -49,11 +72,28 @@ export default function devbar(a){
 	return $bar;
 }
 
-// Everything in here reads the world at render time, so a navigation or a resize
-// makes it a lie. App calls this from `navigated()` — Router's documented seam.
+/* Everything in here reads the world at render time, so a navigation or a resize
+ * makes it a lie. App calls this from `navigated()` — Router's documented seam.
+ *
+ * ⚠ Only the open tab renders. That is what keeps `layout` from downloading
+ * ext/LayoutTool and measuring the page on every navigation of every session. */
 devbar.refresh = function(){
-	if (open()) $body?.empty(() => sections.forEach(section => section(app)));
+	if (!open()) return;
+
+	const [name, shown] = tabs.find(([n]) => n === settings.tab) ?? tabs[0];
+
+	$tabs?.empty(() => tabs.forEach(([n]) =>
+		button.c("dev-tab", n).ac(n === name && "on").click(() => tab(n))));
+
+	$body?.empty(() => shown.forEach(section => section(app)));
 };
+
+function tab(name){
+	set({ tab: name });
+	devbar.refresh();
+}
+
+devbar.tab = tab;
 
 const html = document.documentElement;
 

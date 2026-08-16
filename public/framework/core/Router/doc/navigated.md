@@ -20,3 +20,22 @@ an option, and an option is API surface forever.**
 two seats independently re-derived "is this the first navigation" — one from
 `from.length`, one by counting. It was already computed on line one of
 `activate()` and was being thrown away.
+
+## What this site does with it
+
+Two things, both in `/app.js`, and the second is why the hook earns its keep:
+
+```js /app.js
+navigated(page){
+	this.socket.rpc("hello", page.url);
+	devbar.refresh();
+},
+```
+
+The dev server addresses a tab by the page it last announced, and an SPA
+navigation changes the url with no new socket — so without a sender here, `pages`
+and `eval --path` keep reporting where the tab *connected*. The announcement lives
+in the site's own file, not in `Router`: **core knows nothing about sockets**, by
+a decision that predates this hook, and `page.url` (not `location.pathname`) is
+what gets announced because `go()` pushes history only *after* the load succeeds.
+Protocol: [wire](/framework/dev/Socket/docs/wire/).

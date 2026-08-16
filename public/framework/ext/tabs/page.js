@@ -1,19 +1,16 @@
-import { Page, md, code, h2 } from "/app.js";
+import { Page, Doc, md, code, demo, h2 } from "/app.js";
+import sample from "/framework/ext/demo/sample.js";
 
-export default new Page({
+export default new Doc({
 	meta: import.meta,
 	title: "Tabs",
 	description: "A bar of links and the panel they fill — one ext, patched onto every Page.",
 	icon: "tab",
 
-	// Four real pages, so both bars below are the live component. `title: ""` drops the
-	// panel's own h1 — a demo of a bar must not read as a second document.
-	children: {
-		what:  { label: "what",  title: "", content(){ md("This panel is `/framework/ext/tabs/what/` — a real page, mounted in its parent's region. Reload it."); } },
-		why:   { label: "why",   title: "", content(){ md("The selected tab is read off the url, so clicking produces byte-identical output to reloading."); } },
-		state: { label: "state", title: "", content(){ md("The same set, wearing `block` — same urls, same marking, same panel. Only the bar's skin changed."); } },
-		notes: { label: "notes", title: "", content(){ md("The selected tab has no fill: its interior **is** the page, so it merges on any background, in light and dark."); } },
-	},
+	subject: Page,
+	methods: "tabs",
+	notes: "usage overflow extraction",
+	files: "tabs.js tabs.css page.js readme.md",
 
 	content(){
 
@@ -21,11 +18,18 @@ export default new Page({
 
 content(){ this.tabs("what why"); }`);
 
-		this.tabs("what why");
+		demo(() => {
+			demo.app(sample({
+				title: "",
+				children: {
+					what: { label: "what", title: "", content(){ md("This panel is a real page, mounted in its parent's region. Reload it."); } },
+					why:  { label: "why",  title: "", content(){ md("The selected tab is read off the url, so clicking produces byte-identical output to reloading."); } },
+				},
+				content(){ this.tabs("what why"); },
+			})).style("height", "10em");
+		}, "`this.tabs()` reads like a `Page` method because it is one — this module patches it onto `Page.prototype` the moment it's imported, the same move [Highlight](/framework/ext/highlight/) makes on `code`. The [API](/framework/ext/tabs/api/tabs/) tab above shows the live patch, banner and all — a site that never imports `tabs.js` ships neither the JS nor the CSS.");
 
-		md("`this.tabs()` reads like a `Page` method because it is one — this module patches it onto `Page.prototype` the moment it's imported, the same move [Highlight](/framework/ext/highlight/) makes on `code`. A site that never imports it ships neither the JS nor the CSS.");
-
-		md("**Every tab is a url.** `/framework/ext/tabs/what/` is a real page with nothing on disk behind it, and the selected tab is read off the url — clicking produces byte-identical output to reloading.");
+		md("**Every tab is a url**, with nothing on disk behind it — the two panels above are inline child configs, not directories.");
 
 		h2("Which children are tabs is decided at placement");
 
@@ -36,10 +40,10 @@ this.tabs("state notes").ac("block");  // …and the one below`);
 
 		h2("Nesting is nesting pages, not nesting sets");
 
-		code.js(`this.tabs("overview api docs")     // the class page
-this.tabs().ac("vertical")         // …inside the API group's own render()`);
+		code.js(`this.tabs("overview api docs")     // a Doc's own top bar
+this.tabs().ac("vertical")         // …inside one section's own render()`);
 
-		md("A tab whose panel wants its own tabs is just a `Page` with children that calls `tabs()` too. Both levels get real urls, real marking and a real back button, because the only mechanism involved is `Page.container()` reading `parent.regions` — **there is nothing in this file about depth.** [Classdoc](/framework/ext/classdoc/) is two levels of it, and is the site's only caller.");
+		md("A tab whose panel wants its own tabs is just a `Page` with children that calls `tabs()` too. Both levels get real urls, real marking and a real back button, because the only mechanism involved is `Page.container()` reading `parent.regions` — **there is nothing in this file about depth.** [Doc](/framework/ext/doc/) does exactly this, twice over, for every module page on this site — the [usage](/framework/ext/tabs/docs/usage/) note has the rest of the caller picture.");
 
 		h2("A quiet bar is the default, not a variant");
 
@@ -51,11 +55,16 @@ this.tabs().ac("vertical")         // …inside the API group's own render()`);
 
 		h2("Block: the same set as a folder tab");
 
-		code.js(`this.tabs("state notes").ac("block")   // folder tabs`);
-
-		this.tabs("state notes").ac("block");
-
-		md("A **style option**, opted into at the call site — the underline stays the default. The hairline moves off the bar and onto the tabs, so under the selected one it is *absent* rather than covered: nothing is filled, so nothing has to guess the host's page background, and the tab's interior is simply the page. [Classdoc](/framework/ext/classdoc/)'s top bar wears it; its member rails stay `vertical`.");
+		demo(() => {
+			demo.app(sample({
+				title: "",
+				children: {
+					state: { label: "state", title: "", content(){ md("The same set, wearing `block` — same urls, same marking, same panel. Only the bar's skin changed."); } },
+					notes: { label: "notes", title: "", content(){ md("The selected tab has no fill: its interior **is** the page, so it merges on any background, in light and dark."); } },
+				},
+				content(){ this.tabs("state notes").ac("block"); },
+			})).style("height", "10em");
+		}, "A **style option**, opted into at the call site — the underline stays the default. The hairline moves off the bar and onto the tabs, so under the selected one it is *absent* rather than covered: nothing is filled, so nothing has to guess the host's page background. [Doc](/framework/ext/doc/)'s top bar wears it; its member rails stay `vertical`.");
 
 		md("It is also the one shape that carries **type** — the labels take the scale's `h4`, the annotation level, which is what a strip of section names is. A host that tints the strip hands the selected tab `--tab-fill` so its notch cuts back to whatever the content sits on; unset, it stays transparent and the tab is still just a hole onto the page.");
 
@@ -65,19 +74,13 @@ this.tabs().ac("vertical")         // …inside the API group's own render()`);
 
 		md("Identical JS — same urls, same default, same marking. Only the axis changes, and under `64em` the rail flips back to a strip.");
 
-		h2("Overflow, which used to be the headline trap");
+		h2("Overflow");
 
-		md("*\"Right for ~5 children, unusable at twenty\"* stopped being theoretical when [View](/framework/core/View/api/) documented fifty members: flipped to a bar, fifty wrapping links were 500px of nav above the content they navigate.");
-
-		md("So a bar is **one strip that scrolls** — `flex-wrap: nowrap`, `overflow: auto`, and a `max-height` on the rail so `position: sticky` means something. A rail taller than the viewport sticks its top and puts its own last entries out of reach forever.");
-
-		md("The scrollbar is hidden, so `reveal()` scrolls the selected tab into the strip on the way in — the same bargain [ToC](/framework/ext/toc/) makes. Hiding a scrollbar is only honest if something keeps the current item in view.");
+		md("*\"Right for ~5 children, unusable at twenty\"* stopped being theoretical when [View](/framework/core/View/api/) documented fifty members. A bar is **one strip that scrolls**, never a wrapping block — the [overflow](/framework/ext/tabs/docs/overflow/) note has the physics and the hidden-scrollbar bargain.");
 
 		h2("Where it lived, and why it left");
 
-		md("`tabs()` was 47 lines of `Page.class.js` and its CSS was 30% of `Page.css` — for a component with **one live caller on the whole site**, and that caller (`classdoc`) is itself an ext. A newcomer reading `Page` top to bottom had to pass a tab bar's url-ownership rules to reach `render()`.");
-
-		md("Moving the JS was the easy half. The CSS took its `@layer util` panel rule with it, because leaving it behind in `Page.css` would have made core name a class only an ext emits — the exact undeclarable dependency this framework's CSS doctrine forbids.");
+		md("`tabs()` was 47 lines of `Page.class.js` and its CSS was 30% of `Page.css`, moved out whole to `ext/tabs/` so core never has to name a class only an ext emits. The [extraction](/framework/ext/tabs/docs/extraction/) note has the measurements and the options weighed.");
 
 		md("Next: [Utilities](/framework/util/) — the JS helpers underneath all of this.");
 

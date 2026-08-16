@@ -17,6 +17,31 @@ file per question, and the same files render as note pages under
 (usage, necessity, simplicity). The two sibling modules in this directory are
 covered as notes: `./doc/fonts.md` is `Font.js`, `./doc/mode.md` is `mode.js`.
 
+## Who uses this
+
+Framework-wide grep, 2026-08-15. **Exactly one production caller**, plus two
+teaching copies that import the same live file:
+
+- **`/app.js`** (site root) — the only production boot:
+  `import App, { View, div, a } from "./framework/core/App/App.js"` and
+  `import mode from "./framework/core/App/mode.js"`, then `App.stylesheet(…)`
+  and `new App({ config(), render(), … })`. Every page on the site runs through
+  this one construction.
+- **[`Sidebar`](/framework/core/Sidebar/)** (`Sidebar.js:4`) —
+  `import mode from "../App/mode.js"`, used once in `footer()` to render the
+  colour-scheme toggle.
+- **[`/framework/start/`](/framework/start/)**'s worked example
+  (`start/example/app.js`) — a second, real `import App from ".../App.js"; new
+  App();`, fetched and shown as the minimal two-line boot.
+
+Nothing else imports `App.js`, `Font.js`, `mode.js` or `mode.css` directly.
+`core/new/0/`, `core/new/1/` and `core/new/starter/` each vendor their **own**
+`App.js` — a different file, not this one — and every other mention found
+(`core/page.js`, `core/Page/shell/page.js`, sandbox pages, other modules' docs)
+quotes `new App()` inside a code example rather than importing it live. **Not
+"no callers," but as close as a core class gets**: one real boot, exercised by
+every page, and no second API surface anywhere to drift out of sync with.
+
 ## Decisions
 
 **What did App stop doing?** Url resolution — all of it moved to `Router` and
@@ -26,8 +51,11 @@ See ./doc/boot.md.
 
 **Why is `instantiate()` an unawaited async call in the constructor?** So
 `window.app = new App()` reads well; `app.ready` covers the wait. The cost — a
-throw outside `load()`'s try becomes a silent unhandled rejection *and* leaves
-`ready` pending forever — is recorded, not fixed. See ./doc/constructor.md.
+throw outside `load()`'s own try became a silent unhandled rejection *and* left
+`ready` pending forever — is fixed: `instantiate()`'s body now runs inside its own
+try/catch, `catch` calls `error()` (logs and renders the error page), and
+`ready.resolve()` runs unconditionally after, so `await app.ready` always settles.
+See ./doc/constructor.md.
 
 **Where does the error page render?** Into `$pages`, never `$app` — emptying
 `$app` deletes the chrome, and the one page that most needs navigation would be
@@ -69,7 +97,7 @@ freely inside `framework/`, alias on the way out. See ./doc/aliases.md.
 
 Not applied. Each is a change to a core class, so it wants a critique first.
 
-**Should `initialize()` go?** Empty hook, called once (`App.js:28`), **overridden
+**Should `initialize()` go?** Empty hook, called once (`App.js:27`), **overridden
 by nobody** — five sandboxes and the whole framework. The standing test written
 here was *"if a year passes with only `config()` ever overridden, `initialize()`
 should go"*, and that year has passed.
@@ -81,7 +109,7 @@ better. A hook is API surface forever.
 **Recommendation: (b).** One line out, and `app.ready` named as the replacement.
 
 **Should `log_label()` go, or be wired up?** Zero callers anywhere.
-`Page.log_label()` has seven; this copy has none, and `Page.container()` logs the
+`Page.log_label()` has three; this copy has none, and `Page.container()` logs the
 string `"app.$pages"` as a hardcoded literal one line from where it would be used.
 *Options:* (a) delete; (b) use it — `this.mounts_in(this.app.$pages,
 this.app.log_label() + ".$pages")`.
@@ -112,7 +140,7 @@ theoretical. Revisit if anything outside `instantiate()` ever resolves it.
 
 **Should `styles_loaded()` be renamed?** It reads like a boolean and it resolves
 whether or not the sheets arrived (`allSettled`). `styles_settled()` is truer.
-*Weighing:* one caller (`Router.js:67`), inside `framework/`. Cheap.
+*Weighing:* one caller (`Router.js:58`), inside `framework/`. Cheap.
 **Recommendation: rename**, low priority, bundled with any other Router work.
 
 ## Open

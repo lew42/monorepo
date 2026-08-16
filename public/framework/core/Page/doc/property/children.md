@@ -8,7 +8,7 @@ children: "intro guide api"     // folder names, in menu order
 turns it into a Map; from then on every reader uses the Map —
 `load_all_children()` (`:194`), `child()` (`:69`), `nav_for()` (`:157`),
 `previews()` (`:165`), `ext/tabs` (`framework/ext/tabs/tabs.js:18,35,45`),
-`ext/classdoc` (`framework/ext/classdoc/classdoc.js:114`). Declared on ~60 pages.
+`ext/doc` (`framework/ext/doc/Doc.js:114`). Declared on ~60 pages.
 
 **Necessity** — yes, for the one job a filesystem cannot do: **order**. `api` before
 `guide` before `intro` is alphabetical, and alphabetical is not a curriculum.
@@ -20,6 +20,9 @@ property's long form.
 
 **Simplicity** — one line, four accepted shapes: a space-separated string, an array
 of names, an array of Pages or option objects, and **a plain object keyed by title**.
+An option object in the array form derives its `name` from `Page.slug(title)` when
+it declares no `name` of its own — `overview: [{ title: "A", … }, { title: "B", … }]`
+without a `name:` on either still gets two distinct cards.
 
 ```js
 children: {

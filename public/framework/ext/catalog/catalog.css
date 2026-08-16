@@ -42,7 +42,7 @@
 	/* The catalog bleeds, so the rail's cards sat 9px off the app sidebar. It pays the
 	   page's axis back, the way `.page.standard > .page-previews` does (Page.css) — as a
 	   MARGIN, so `--rail` still measures the cards rather than the inset.
-	   ⚠ A direct child of `.page.standard` only: a catalog in a classdoc group is
+	   ⚠ A direct child of `.page.standard` only: a catalog in a Doc section is
 	     already inset by the group's own `--page-pad`, and would pay it twice. */
 	.page.standard > .page-catalog > .page-previews { margin-inline-start: var(--gutter-x); }
 

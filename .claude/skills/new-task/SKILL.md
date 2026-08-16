@@ -68,6 +68,15 @@ under *loose*, which is a fine answer for a true one-off.
 transcript to fetch and renders no log at all — the one field whose absence
 costs the whole session record.
 
+⚠ **Never write a `.jsonl` with PowerShell's `Out-File`/`Set-Content -Encoding
+utf8`** — 5.1 prepends a UTF-8 BOM, `JSON.parse` throws on `﻿{`, and
+`TaskJSONL` silently drops line 1. The manifest then has no `requested_at`, so
+`state()` files the task under **Proposed** and it never appears in Active —
+on a dashboard that looks completely normal (hit 2026-08-16). Use the **Write
+tool** for the launch line; append later lines with `Add-Content` (which does
+not re-BOM an existing file) or `[IO.File]::AppendAllText`. Check with
+`xxd file | head -1`: a line starting `efbb bf` is the bug.
+
 ### `steps` — the outline IS the progress bar
 
 `requirements.md` documents the ask; the **proposal** in it is an outline of
@@ -135,8 +144,14 @@ line every few seconds is a page that will not sit still to be read.
   the card displays it.
 - `{"log": {"at": "<ISO>", "msg": "…"}}` — findings, decisions, verification
   results.
-- `{"action": {"at": "<ISO>", "did": "write|edit|run", "files": ["…"]}}` —
-  deeds, batched per wave rather than per keystroke.
+- `{"action": {"at": "<ISO>", "did": "run", "files": ["…"]}}` — deeds,
+  batched per wave rather than per keystroke. ⚠ **Edits log themselves — IF
+  the hooks are wired.** Check `.claude/settings.json` for a `hooks` key: when
+  present, a `PostToolUse` hook appends an `action` line the first time this
+  task touches any file, and a `did: "edit"` line you write yourself is a
+  duplicate — hand-write `action` only for `run` deeds. When absent (the block
+  in `.claude/hooks/readme.md` awaits Mike's paste), log edits by hand exactly
+  as before (`did: "write|edit|run"`).
 - `{"assign": {"links": [{"url": "…", "label": "…"}]}}` — as soon as an
   output is viewable, not at landing. `assign` replaces the whole array —
   resend the full list. A task whose output is genuinely *viewable* can go

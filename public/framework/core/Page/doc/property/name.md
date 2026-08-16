@@ -1,5 +1,5 @@
 > ⚠ The declaration above says `name = "Page"`. That is `Function.name`, not this
-> property — `classdoc` falls back to a static descriptor and finds the class's own
+> property — `Doc` falls back to a static descriptor and finds the class's own
 > name. A real `name` is an **instance** property and leaves nothing on the
 > prototype to show. Fix recorded in `readme.md` §Open.
 

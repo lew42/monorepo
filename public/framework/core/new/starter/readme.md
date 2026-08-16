@@ -4,7 +4,7 @@ Three classes, **~210 lines**, and it runs. Nothing here is imported by the real
 site; `core/` is untouched.
 
 ```
-0/
+starter/
   App.js                boot, and the root page's container
   Page.class.js         a node: content, children, and how it places itself
   Router.js             url -> page, and the swap

@@ -1,11 +1,14 @@
-import { Page, md, code, h2, demo, div, h3, p, a, toc } from "/app.js";
+import { Doc, md, code, h2, demo, div, h3, p, a, toc } from "/app.js";
 import { markup } from "./markup.js";
 
-export default new Page({
+export default new Doc({
 	meta: import.meta,
 	title: "markup",
 	description: "An element's children as readable HTML source.",
 	icon: "html",
+
+	notes: "design",
+	files: "markup.js page.js readme.md",
 
 	content(){
 
@@ -30,7 +33,7 @@ export default new Page({
 
 		h2("It reads the live DOM");
 
-		md("Which is the whole value — it reports what *is* there, not what was meant, so a doc page showing markup cannot drift from the thing it's showing. It's what [demo()](/framework/ext/demo/)'s `html` pane calls.");
+		md("Which is the whole value — it reports what *is* there, not what was meant, so a doc page showing markup cannot drift from the thing it's showing. It's what [demo()](/framework/ext/demo/)'s `html` pane calls — the only caller today.");
 
 		md("The honest consequence: a class something else added shows up too. An `<a>` inside a demo will carry `.in-path` if the current url happens to sit under its `href`, because [Router](/framework/core/Router/) really did put it there.");
 

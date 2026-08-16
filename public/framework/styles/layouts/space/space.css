@@ -2,26 +2,43 @@
 
 @layer theme {
 
-    /* The instrument: the text stays put, the shots scroll past it.
-       ⚠ Both tracks carry a REAL basis, never `.flex-1` — `flex: 1 1 0%` in a wrapping
-         row shrinks instead of wrapping, and the ruler measured 80px wide at 430.
+    /* The instrument: the controls ABOVE, the ruler underneath at full bleed. It was
+       the other way round — a text panel beside a 26em column of shots — and the five
+       screens could not be seen at once, which is the whole point of the thing. */
+    .space-bar { align-items: flex-start; }
+
+    /* ⚠ Both tracks carry a REAL basis, never `.flex-1` — `flex: 1 1 0%` in a wrapping
+         row shrinks instead of wrapping, and this ruler once measured 80px wide at 430.
          That is the `fluid` trap this page documents, met on the page itself. */
-    .space { align-items: flex-start; }
+    .space-text { flex: 1 1 26em; max-width: 42em; font-family: var(--mono);
+        min-height: 12em; resize: vertical; white-space: pre; }
 
-    .space-panel { position: sticky; top: 0; flex: 1 1 22em; max-width: 30em; }
+    .space-dials { flex: 1 1 20em; }
 
-    .space-text { font-family: var(--mono); min-height: 15em; resize: vertical; white-space: pre; }
-
-    /* Every readout on this page is a number you compare against the one below it. */
+    /* Every readout on this page is a number you compare against the one beside it. */
     .space-tag { font-variant-numeric: tabular-nums; white-space: nowrap; }
 
-    .space-out { flex: 1 1 26em; min-width: 0; max-height: 82vh; overflow-y: auto; }
+    /* The depth and chaos dials. The theme already draws `input[type=range]` — this
+       only bounds them, so they stop eating the whole dials column at 3440. */
+    .space-depth { flex: 0 1 12em; min-width: 7em; }
 
-    /* A wrapping ROW, not a column: each shot is at most its own real width, so a
-       wide room packs the narrow screens side by side instead of leaving 1800px of
-       gutter beside a phone. Each shot's basis is written by ruler.js. */
-    .space-ruler { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 1.6em; }
-    .space-shot { display: flex; flex-direction: column; gap: 0.35em; }
+    /* One shot's rating, under the shot it belongs to. `ext/LayoutTool`'s taste tier
+       turns the ruler into an instrument that answers rather than one that shows. */
+    .space-mark { display: inline-flex; align-items: baseline; gap: 0.45em; }
+    .space-grade { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+    /* compose/ — the stage declares its OWN height, because a Doc tab has none to give
+       (a `fill` page inside one measures 0). `flex`, so the workspace is stretched to it
+       rather than resolving a percentage against an `auto` parent — which is what left
+       the page blank with fourteen panels in the DOM. */
+    .space-compose { display: flex; height: min(72vh, 48em); }
+
+    /* FIVE IN ONE ROW: `nowrap`, and each shot's width is written by ruler.js as its
+       own screen's share of the room. Below the scale floor the row scrolls rather
+       than shrinking the phone to a smudge. */
+    .space-row { display: flex; flex-wrap: nowrap; align-items: flex-start;
+        gap: 1.2em; overflow-x: auto; }
+    .space-shot { flex: 0 0 auto; min-width: 0; display: flex; flex-direction: column; gap: 0.35em; }
 
     /* ⚠ The clip is what makes a shot a shot: `zoom` lays the render out at its real
        width, and this box shows however much room there was for it. */
@@ -29,7 +46,33 @@
 
     /* One tile is one seed, cropped to a common height so the wall reads as a wall.
        The render inside is inert — the whole tile is the control. */
-    .space-seed { height: 11em; overflow: hidden; cursor: pointer; }
+    .space-seed { height: 11em; overflow: hidden; cursor: pointer; position: relative; }
     .space-seed > * { pointer-events: none; }
     .space-seed:hover { border-color: var(--prim); }
+
+    /* The tile's own grade, over its bottom-right corner — so the wall can be read by
+       QUALITY and not only by seed. Absolute, because the tile is a fixed crop of a
+       much taller render and there is no flow to sit in. */
+    .space-seed-grade {
+        position: absolute; right: 0; bottom: 0;
+        padding: 0.1em 0.45em 0.15em;
+        border-radius: var(--radius) 0 0 0;
+        background: var(--bg); color: #fff;
+        font-size: 0.7rem; font-weight: 700;
+        font-variant-numeric: tabular-nums;
+    }
+
+    /* One word per card, one picture under it — the reference sheet at space/words/.
+       The picture is a spec, so that page is written in the language it documents.
+       ⚠ `align-self`, because `code` carries a ground: as a flex child it stretches to
+         the card's full width and reads as a bar rather than a name. */
+    /* ⚠ NOT `.grid.auto` — that is `auto-fit` with an unbounded `1fr`, so the
+         four-card family stretched into eleven tracks at 3440 and its notes measured
+         ~100 characters a line. A reference wall wants `auto-fill` and a track
+         CEILING, which is the same call `Page.previews()` makes for the same reason. */
+    .space-words { grid-template-columns: repeat(auto-fill, minmax(min(15em, 100%), 22em)); }
+
+    .space-word > code { align-self: flex-start; }
+    .space-word > p { font-size: 0.92em; }
+    .space-word-shot { height: 7em; overflow: hidden; }
 }

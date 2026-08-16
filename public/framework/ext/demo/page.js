@@ -1,4 +1,4 @@
-import { Page, md, demo, h2, p, div, code, toc } from "/app.js";
+import { Doc, md, demo, h2, p, div, code, toc } from "/app.js";
 import { sample } from "./sample.js";
 
 const wall = () => {
@@ -18,11 +18,17 @@ const hero = () => {
 	}).style("--pad", "3em");
 };
 
-export default new Page({
+export default new Doc({
 	meta: import.meta,
 	title: "Demo",
 	description: "Show the code, then run it — from one source. Four doors.",
 	icon: "play_circle",
+
+	subject: demo,
+	methods: "stage exhibit page tree layout app source",
+	notes:   "record",
+	files:   "app.css app.js demo.css demo.js exhibit.css exhibit.js layout.js page.js readme.md sample.js stage.css stage.js twin.js two.css two.js",
+
 	content(){
 
 		toc();
@@ -47,7 +53,8 @@ export default new Page({
 
 Everything else is one of those four with its config filled in: \`demo.page()\`,
 \`demo.tree()\` and \`demo.layout()\` are exhibit sugar, and \`demo.source()\` is the
-block the exhibit closes under its render.`);
+block the exhibit closes under its render. The [API](/framework/ext/demo/api/) tab
+has all seven, each with its real source.`);
 
 		h2("demo() — a quoted box");
 

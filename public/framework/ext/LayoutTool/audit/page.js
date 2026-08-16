@@ -26,6 +26,13 @@ export default new Page({
 				+ "Nothing is cached and **nothing is edited** — a finding is a proposal until you accept "
 				+ "it, and accepting appends to a review queue, never to a stylesheet.");
 
+			md("The table ranks; it does not explain. The written audit does — the whole site crawled at "
+				+ "400/1920/3440, the worst twenty checked against their screenshots, and a proposed "
+				+ "declaration per family: [layout-hunt](/framework/ai/2026-08-15/layout-hunt/).");
+
+			md.details(import.meta, "/framework/ai/2026-08-15/layout-hunt/audit.md",
+				"The 2026-08-15 site audit — ranked worst-first, screenshot-verified");
+
 			this.$run = div.c("lt-run flex gap v-center wrap");
 			this.$out = div.c("lt-out");
 			this.$detail = div.c("lt-detail");

@@ -1,8 +1,59 @@
-﻿/* Every page.js under framework/, minus the ai logs and the core/new sketches.
- * Generated once by walking the filesystem; nothing crawls at runtime. */
+/* The audit corpus: every directory under public/ that holds a page.js, in the
+ * crawl scope (/, /framework/, /notes/, /web/), minus the personal sandboxes and
+ * minus the core/new sketch SUBTREES — 308 pages of superseded sketch would
+ * outnumber the shipping site two to one, so only their four entry points stay.
+ *
+ * ⚠ GENERATED, not hand-typed. The hand-typed list had drifted both ways: two
+ * urls no longer resolved (`ext/classdoc`, renamed `ext/doc`) and 63 pages were
+ * missing — all of /notes/ and /web/, every ai day, /framework/audit/, the root.
+ * Regenerate by walking the tree for page.js; the crawler behind
+ * findings.json does exactly that (ai/2026-08-15/layout-hunt/).
+ *
+ * ⚠ A page.js walk alone is not the corpus either. The LayoutTool library
+ * declares its 21 entries as inline POJO children (`patterns.map(entry)`), so
+ * they route at `library/<Page.slug(title)>/` with no directory to find; the
+ * generator reads their titles from `library/patterns.js` and `library/bad/traps.js`.
+ *
+ * ⚠ Still NOT the whole routable surface. ext/doc mints a url per member and per
+ * file (/framework/core/View/api/append/), and ai task pages render from
+ * task.jsonl — neither has a page.js OR a declared title to read. Those are
+ * measured through their parent, not listed here.
+ *
+ * Generated 2026-08-15 — 205 pages.
+ */
 
 export const PAGES = [
+	"/",
 	"/framework/",
+	"/framework/ai/",
+	"/framework/ai/2026-08-08/",
+	"/framework/ai/2026-08-09/",
+	"/framework/ai/2026-08-10/",
+	"/framework/ai/2026-08-11/",
+	"/framework/ai/2026-08-12/",
+	"/framework/ai/2026-08-12/apps/",
+	"/framework/ai/2026-08-12/apps/columns/",
+	"/framework/ai/2026-08-12/apps/editor/",
+	"/framework/ai/2026-08-12/apps/navigation/",
+	"/framework/ai/2026-08-12/apps/panes/",
+	"/framework/ai/2026-08-12/apps/panes/split/",
+	"/framework/ai/2026-08-12/layouts/",
+	"/framework/ai/2026-08-12/stage/",
+	"/framework/ai/2026-08-12/strategy/",
+	"/framework/ai/2026-08-12/unify/",
+	"/framework/ai/2026-08-13/",
+	"/framework/ai/2026-08-13/editor-panels/",
+	"/framework/ai/2026-08-13/manifest-vs-log/",
+	"/framework/ai/2026-08-13/panel/",
+	"/framework/ai/2026-08-13/persistence/",
+	"/framework/ai/2026-08-13/renames/",
+	"/framework/ai/2026-08-13/sessions/",
+	"/framework/ai/2026-08-13/task-previews/",
+	"/framework/ai/2026-08-14/",
+	"/framework/ai/2026-08-14/editor-panel-review/",
+	"/framework/audit/",
+	"/framework/audit/overview/organization/",
+	"/framework/audit/overview/priorities/",
 	"/framework/core/",
 	"/framework/core/App/",
 	"/framework/core/Item/",
@@ -30,30 +81,58 @@ export const PAGES = [
 	"/framework/core/Router/",
 	"/framework/core/Sidebar/",
 	"/framework/core/View/",
+	"/framework/core/new/",
+	"/framework/core/new/0/",
+	"/framework/core/new/1/",
+	"/framework/core/new/starter/",
 	"/framework/dev/",
+	"/framework/dev/DevBar/",
 	"/framework/dev/Socket/",
 	"/framework/ext/",
 	"/framework/ext/AITask/",
 	"/framework/ext/Ask/",
-	"/framework/ext/catalog/",
-	"/framework/ext/classdoc/",
-	"/framework/ext/classdoc/overview/urls/",
-	"/framework/ext/demo/",
 	"/framework/ext/Draggable/",
-	"/framework/ext/editor/",
-	"/framework/ext/files/",
-	"/framework/ext/highlight/",
 	"/framework/ext/JSONL/",
-	"/framework/ext/layout/",
 	"/framework/ext/LayoutTool/",
 	"/framework/ext/LayoutTool/audit/",
 	"/framework/ext/LayoutTool/knowledge/",
+	"/framework/ext/LayoutTool/library/",
+	"/framework/ext/LayoutTool/library/bad/",
+	"/framework/ext/LayoutTool/library/bad/band-with-no-gutter/",
+	"/framework/ext/LayoutTool/library/bad/chosen-height/",
+	"/framework/ext/LayoutTool/library/bad/fixed-track-wall/",
+	"/framework/ext/LayoutTool/library/bad/pixel-padding/",
+	"/framework/ext/LayoutTool/library/bad/prose-with-no-ceiling/",
+	"/framework/ext/LayoutTool/library/bad/rail-that-never-wraps/",
+	"/framework/ext/LayoutTool/library/bad/scroller-in-a-wrapping-row/",
+	"/framework/ext/LayoutTool/library/bad/stacked-forever/",
+	"/framework/ext/LayoutTool/library/bad/table-with-no-scroller/",
+	"/framework/ext/LayoutTool/library/bad/unbreakable-child/",
+	"/framework/ext/LayoutTool/library/dashboard-row/",
+	"/framework/ext/LayoutTool/library/list-and-detail/",
+	"/framework/ext/LayoutTool/library/media-gallery/",
+	"/framework/ext/LayoutTool/library/rail-and-content/",
+	"/framework/ext/LayoutTool/library/reading-column/",
+	"/framework/ext/LayoutTool/library/reading-grid/",
+	"/framework/ext/LayoutTool/library/section-band/",
+	"/framework/ext/LayoutTool/library/stat-strip/",
+	"/framework/ext/LayoutTool/library/tile-wall/",
+	"/framework/ext/LayoutTool/library/toolbar-cluster/",
+	"/framework/ext/LayoutTool/library/wide-table/",
 	"/framework/ext/LayoutTool/tests/",
-	"/framework/ext/markdown/",
 	"/framework/ext/Panel/",
 	"/framework/ext/Saver/",
-	"/framework/ext/tabs/",
 	"/framework/ext/Timeline/",
+	"/framework/ext/catalog/",
+	"/framework/ext/demo/",
+	"/framework/ext/doc/",
+	"/framework/ext/doc/overview/urls/",
+	"/framework/ext/editor/",
+	"/framework/ext/files/",
+	"/framework/ext/highlight/",
+	"/framework/ext/layout/",
+	"/framework/ext/markdown/",
+	"/framework/ext/tabs/",
 	"/framework/ext/toc/",
 	"/framework/faq/",
 	"/framework/start/",
@@ -94,6 +173,7 @@ export const PAGES = [
 	"/framework/styles/layouts/pricing/",
 	"/framework/styles/layouts/shell/",
 	"/framework/styles/layouts/sidebar/",
+	"/framework/styles/layouts/space/",
 	"/framework/styles/layouts/split/",
 	"/framework/styles/layouts/stack/",
 	"/framework/styles/rules/",
@@ -123,7 +203,31 @@ export const PAGES = [
 	"/framework/util/markup/",
 	"/framework/util/source/",
 	"/framework/versus/",
+	"/notes/",
+	"/notes/auth/",
+	"/notes/git-branch-names/",
+	"/notes/team-note/",
+	"/web/",
+	"/web/layout/",
+	"/web/layout/flex/",
+	"/web/layout/flow/",
+	"/web/layout/grid/",
+	"/web/layout/measure/",
+	"/web/layout/respond/",
+	"/web/layout/screens/",
+	"/web/layout/tracks/",
+	"/web/nav/",
+	"/web/nav/bar/",
+	"/web/nav/crumbs/",
+	"/web/nav/drawer/",
+	"/web/nav/drill/",
+	"/web/nav/footer/",
+	"/web/nav/jumps/",
+	"/web/nav/links/",
+	"/web/nav/rail/",
+	"/web/nav/sidebar/",
+	"/web/nav/tabs/",
+	"/web/nav/wall/",
 ];
 
 export default PAGES;
-

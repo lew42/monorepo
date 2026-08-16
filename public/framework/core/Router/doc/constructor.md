@@ -5,13 +5,13 @@ constructor(...args){
 }
 ```
 
-Documented here rather than as a member page because `classdoc` renders a member's
+Documented here rather than as a member page because `Doc` renders a member's
 real source, and a class's `constructor` descriptor **is the class** — the panel
 would print the whole file.
 
 ## Usage
 
-`App.js:63`, once per document:
+`App.js:56`, once per document:
 
 ```js
 this.router = new Router(this.router, { app: this });
@@ -37,6 +37,3 @@ built in a test is a Router intercepting that document's clicks.
 the same click and navigate twice. Only `App` constructs one, which is why it has
 never bitten — see the readme for whether that should be enforced or just written
 down.
-
-The `console.log` on `Router.js:6` describes `listen()`'s work from the
-constructor. It belongs in `listen()`, or nowhere.

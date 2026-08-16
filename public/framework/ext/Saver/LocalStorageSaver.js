@@ -20,8 +20,15 @@ export default class LocalStorageSaver extends Saver {
 
 	write(item){
 		const local = store();
-		if (local) local.setItem(this.key, JSON.stringify(item));
-		return Promise.resolve(!!local);
+		if (!local) return Promise.resolve(false);
+
+		try {
+			local.setItem(this.key, JSON.stringify(item));
+			return Promise.resolve(true);
+		} catch (error){
+			console.warn(`LocalStorageSaver: "${this.key}" did not save (${error.message}).`, error);
+			return Promise.resolve(false);
+		}
 	}
 
 	delete(){

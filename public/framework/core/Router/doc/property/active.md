@@ -5,10 +5,10 @@ navigation completes.
 
 Written once, read four times, never by anything outside this class:
 
-- `Router.js:102` — `activate()`, the only write.
-- `Router.js:119` — `chain()`.
-- `Router.js:139` — `mark()`, to tell the leaf from its ancestors.
-- `Router.js:141`, `146` — `mark_links()`, as `here`.
+- `Router.js:90` — `activate()`, the only write.
+- `Router.js:102` — `chain()`.
+- `Router.js:122` — `mark()`, to tell the leaf from its ancestors.
+- `Router.js:129` — `mark_links()`, as the default for `here`.
 
 ## Necessity
 

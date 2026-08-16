@@ -77,7 +77,7 @@ function measure(el, cs, parent, depth, win){
 		bor: [px(cs.borderTopWidth), px(cs.borderRightWidth), px(cs.borderBottomWidth), px(cs.borderLeftWidth)],
 		display: cs.display, position: cs.position,
 		ovx: cs.overflowX, ovy: cs.overflowY,
-		maxh: cs.maxHeight !== "none",
+		maxh: cs.maxHeight !== "none", clamp: clamped(cs),
 		bg: cs.backgroundColor, framed: framed(cs), scale: scale(cs),
 		interactive, stretched: interactive && stretched(el, win),
 		text: null,
@@ -181,6 +181,14 @@ function line_height(cs){
 	return round(Number.isFinite(n) ? n : parseFloat(cs.fontSize) * 1.2);
 }
 
+/* ⚠ A line clamp is a crop with no `max-height` to show for it. `.page-preview-desc`
+ * clamps to two lines and every inline `<code>` on line three reported as content
+ * cut off — 12 of the site's 79 `clipped:high` findings. */
+function clamped(cs){
+	const n = cs.webkitLineClamp ?? cs.lineClamp;
+	return !!n && n !== "none";
+}
+
 // Does this box draw an edge the text could butt against?
 function framed(cs){
 	const bg = cs.backgroundColor;
@@ -205,7 +213,7 @@ function label(el){
 /* A real address, not an index.
  *
  * ⚠ An index into the walk is NOT stable across page loads. A page whose
- * content arrives asynchronously (a classdoc tab, a fetched markdown file) walks
+ * content arrives asynchronously (a Doc tab, a fetched markdown file) walks
  * in a different order on the next visit, and every issue then points at the
  * wrong element — which is exactly how the before/after mirror came back with
  * "p is no longer at that position". `:nth-child()` is exact and survives it. */

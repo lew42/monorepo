@@ -1,9 +1,9 @@
 One url segment → a page: **memory, then `route()`, then the filesystem.**
 
-**Usage** — the walk *is* the loader. `Router.walk()` calls it once per segment
-(`framework/core/Router/Router.js:83`), `load_all_children()` calls it per declared
-name (`Page.class.js:180`), and `ext/tabs` calls it to guarantee the first tab's
-label is real (`framework/ext/tabs/tabs.js:40`).
+**Usage** — the walk *is* the loader. `Router.load_segments()` calls it once per
+segment (`framework/core/Router/Router.js:73`), `load_all_children()` calls it per
+declared name (`Page.class.js:180`), and `ext/tabs` calls it to guarantee the first
+tab's label is real (`framework/ext/tabs/tabs.js:40`).
 
 ```
 children.get(name)  →  a Page      here already

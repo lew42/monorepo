@@ -5,7 +5,7 @@ The pinned strip under the nav: the colour-scheme toggle and a placeholder avata
 
 `Sidebar.js:80` — `menu()`, called optionally (`this.footer?.()`), so `footer:
 null` means *no footer*. No caller in the repo replaces it; the site's `/framework/`
-sidebar uses the default (`framework/page.js:22`).
+sidebar uses the default (`framework/page.js:24`).
 
 ## Necessity
 

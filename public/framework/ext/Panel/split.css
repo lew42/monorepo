@@ -1,0 +1,45 @@
+/* Restated IN FULL - a short list silently misplaces `site`. */
+@layer base, theme, site, util;
+
+/* The four edge targets, and the ghost of the panel about to arrive. Record: readme.md. */
+@layer theme {
+
+	/* ⚠ Under the 3×3 (z-index 2) on purpose: the corner arrows overlap these strips, and an
+	   arrow is a discrete target while the rest of the edge is the split zone.
+
+	   ⚠ `--clear` is the whole reason this works, and it is SPATIAL, not z-order. A shared
+	   edge already belongs to the grip, whose target straddles it by 0.625rem either way
+	   (grip.css) — measured, the grip won three of four edges and the bar's own centred
+	   button won the fourth, so a click here reached nothing at all. Dragging a seam to
+	   resize and clicking an edge to split are both worth keeping, so they get bands rather
+	   than a fight: the outer 0.7rem stays the grip's, this starts after it, and the top
+	   strip starts below the bar so no icon sits on it. */
+	.panel-edge { position: absolute; z-index: 1; --edge: 0.9rem; --clear: 0.7rem; cursor: crosshair; }
+
+	.panel-edge-t { inset-block-start: var(--panel-bar-h); inset-inline: var(--clear); block-size: var(--edge); }
+	.panel-edge-b { inset-block-end: var(--clear); inset-inline: var(--clear); block-size: var(--edge); }
+	.panel-edge-l { inset-inline-start: var(--clear); inset-block: var(--panel-bar-h) var(--clear); inline-size: var(--edge); }
+	.panel-edge-r { inset-inline-end: var(--clear); inset-block: var(--panel-bar-h) var(--clear); inline-size: var(--edge); }
+
+	/* Only while the panel is the one under the pointer — otherwise every ancestor's edge
+	   strip stacks over the leaf you are aiming at, the same reason only one bar lights. */
+	.panel-edge { pointer-events: none; }
+	.panel:hover:not(:has(.panel:hover)) > .panel-edge { pointer-events: auto; }
+
+	/* Half the panel, on the side the pointer is on — a picture of the split, at the size
+	   the split will actually be, because `divide()` gives the arrival an even share. */
+	.panel-ghost {
+		position: absolute; z-index: 4;
+		background: color-mix(in srgb, var(--prim) 22%, transparent);
+		box-shadow: inset 0 0 0 2px var(--prim);
+		pointer-events: none;
+	}
+
+	.panel-ghost-row { inset-block: 0; inline-size: 50%; }
+	.panel-ghost-row.before { inset-inline-start: 0; }
+	.panel-ghost-row.after  { inset-inline-end: 0; }
+
+	.panel-ghost-col { inset-inline: 0; block-size: 50%; }
+	.panel-ghost-col.before { inset-block-start: 0; }
+	.panel-ghost-col.after  { inset-block-end: 0; }
+}

@@ -9,7 +9,7 @@ const url_of = c => `/framework/ext/LayoutTool/tests/${Page.slug(c.title)}/`;
 export default new Page({
 	meta: import.meta,
 	title: "Test corpus",
-	description: "Sixteen layouts with a declared verdict — twelve broken on purpose, four that should score clean.",
+	description: "Twenty-three layouts with a declared verdict — fifteen broken on purpose, eight that should score clean.",
 
 	/* Each case renders beside a live score that recomputes as you drag the
 	 * window — the only way to see WHERE a layout stops working, rather than
@@ -84,7 +84,7 @@ export default new Page({
 			["Case", "Expected", "Score", "Detected", ""],
 			scored.map(r => [
 				() => a(r.c.title).attr("href", url_of(r.c)),
-				r.n_a ? `n/a below ${r.c.from}px` : r.c.verdict === "bad" ? `bad — ${r.c.rule}` : "clean",
+				expected(r.c, r.n_a),
 				r.error ? "—" : `${r.report.grade} ${r.report.score}`,
 				r.error ? r.error : top_rules(r.report),
 				r.pass ? "✓" : "✗",
@@ -96,14 +96,33 @@ export default new Page({
 /* A `bad` case passes when its named rule fired; a `good` case passes when
  * nothing high-severity did. A `bad` case declaring `from:` is only a finding at
  * that width and above — 420px of content is not dead space on a phone — so
- * below it, passing means staying QUIET. */
+ * below it, passing means staying QUIET.
+ *
+ * ⚠ Two extra claims, and they are the only way to test a GUARD. `quiet` names
+ * rules that must not fire at all — an exemption that merely lowers a severity
+ * still passes "no highs" — and `at_most` bounds how many findings one rule may
+ * produce, which is what a roll-up is for. */
 function verdict({ c, report, error }, width){
 	if (error) return { pass: false };
 
-	if (c.verdict === "good") return { pass: report.counts.high === 0 };
-	if (c.from && width < c.from) return { pass: !report.issues.some(i => i.rule === c.rule), n_a: true };
+	const fired = rule => report.issues.filter(i => i.rule === rule).length;
+	const guards = (c.quiet ?? "").split(" ").filter(Boolean).every(rule => !fired(rule))
+		&& Object.entries(c.at_most ?? {}).every(([rule, n]) => fired(rule) <= n);
 
-	return { pass: report.issues.some(i => i.rule === c.rule) };
+	if (c.verdict === "good") return { pass: report.counts.high === 0 && guards };
+	if (c.from && width < c.from) return { pass: !fired(c.rule) && guards, n_a: true };
+
+	return { pass: fired(c.rule) > 0 && guards };
+}
+
+function expected(c, n_a){
+	const claims = [
+		n_a ? `n/a below ${c.from}px` : c.verdict === "bad" ? `bad — ${c.rule}` : "clean",
+		...(c.quiet ? [`no ${c.quiet.split(" ").join("/")}`] : []),
+		...Object.entries(c.at_most ?? {}).map(([rule, n]) => `≤${n} ${rule}`),
+	];
+
+	return claims.join(", ");
 }
 
 function top_rules(report){

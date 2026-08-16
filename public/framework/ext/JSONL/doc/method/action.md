@@ -1,0 +1,1 @@
+`this.actions.push(value)` — identical shape to [`log`](./log.md), a second bucket for a second verb. The split exists so a reader (`ext/Timeline`'s `ai.js`) can draw two kinds of dot without inspecting each entry's fields to tell them apart.

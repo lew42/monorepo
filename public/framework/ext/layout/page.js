@@ -1,4 +1,4 @@
-import { Page, md, code, h2, div, p } from "/app.js";
+import { Doc, md, code, h2, div, p } from "/app.js";
 import layout from "./layout.js";
 import { toggle, knob } from "./controls.js";
 
@@ -16,11 +16,18 @@ const boxes = () => {
 	box("Zeta", "Whatever you settle on is a class string you can paste.");
 };
 
-export default new Page({
+export default new Doc({
 	meta: import.meta,
 	title: "Layout",
 	description: "A toolbar over anything, and a drawer that pushes the page over to make room.",
 	icon: "tune",
+
+	subject:    layout,
+	methods:    "bar context",
+	properties: "words",
+	notes:      "vocabulary drawer selection controls",
+	files:      "layout.js panel.js body.js words.js controls.js layout.css page.js readme.md",
+
 	content(){
 
 		// The widget IS the first screen: a page about arranging things, demonstrated
@@ -85,9 +92,9 @@ layout.bar($strip, "mode gap column radius");`);
 			layout.bar($strip, "mode gap column radius");
 		});
 
-		md("`layout.words` is the whole control vocabulary — one word, one control over the target. Assign a word and every bar and panel group that names it can draw it. The second argument to `layout.bar()` is the list, in the order you want them; leave it out and a page gets its shape words, anything else gets `mode gap column`.");
+		md("`layout.words` is the whole control vocabulary — one word, one control over the target. Assign a word and every bar and panel group that names it can draw it. The second argument to `layout.bar()` is the list, in the order you want them; leave it out and a page gets its shape words, anything else gets `mode gap column`. Misspell a word in that list and the bar just draws one control short — an unregistered word is skipped, never thrown.");
 
-		md("[Flex](/framework/styles/layouts/flex/) and [Grid](/framework/styles/layouts/grid/) both carry a bar, which is what lets those pages end in a box you can actually push around.");
+		md("[Flex](/framework/styles/layouts/flex/) and [Grid](/framework/styles/layouts/grid/) both carry a bar, which is what lets those pages end in a box you can actually push around. **API**, above, has `layout.bar`, `layout.context` and `layout.words` each at their own url; **Docs** has the vocabulary registry, the push drawer, what's selectable, and `controls.js`'s four primitives in full.");
 
 		md("Next: [Layouts](/framework/styles/layouts/) — eight real pages built from the classes this widget writes.");
 

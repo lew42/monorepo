@@ -158,7 +158,7 @@ page the author was editing. This is the pass, and it is short so that it happen
 | `/framework/styles/layouts/fit/` | `wide` and `bleed` side by side, as documentation |
 | `/framework/styles/sections/hero/` | a `route()` page, and a band that *should* bleed |
 | `/framework/styles/layouts/shell/` | `full fill flex v`, five regions, a scrolling row |
-| `/framework/core/View/` | a deep doc page — `classdoc` → a vertical `tabs` rail inside `.topic` |
+| `/framework/core/View/` | a deep doc page — `Doc` → a vertical `tabs` rail inside `.topic` |
 
 **The widths: 1600 and 900.** 1600 is a real desktop; 900 is where a sidebar plus
 a measure stops fitting. 390 is worth a third look — every measured bug in this

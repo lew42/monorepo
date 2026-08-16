@@ -1,0 +1,69 @@
+/* Restated IN FULL - a short list silently misplaces `site`. */
+@layer base, theme, site, util;
+
+/* The "+" bar a split offers at the gap nearest the pointer. Record: readme.md. */
+@layer theme {
+
+	/* ⚠ `.panel-items` carries no `position` of its own — nothing needed one before this
+	   bar arrived to anchor against. workspace.js emits the class; grip.css already reads
+	   its `.v` modifier the same way, from outside, so this follows that precedent. */
+	.panel-items { position: relative; }
+
+	/* z-index 5: above the split ghost (4), a neighbour's bar (3) and a grip (2) it may
+	   visually straddle at the same gap — it is shown only on hover-intent to insert and
+	   must win that click outright, never fight another overlay for it. */
+	/* ⚠ A STUB at the head of the seam, not a bar down the whole of it (Mike, 2026-08-16).
+	   Full-height, it covered the grip for the seam's entire length and the resize handle
+	   could never appear — and its own edges were invisible, so there was nothing to aim at.
+	   Now it takes `--insert-run` at the start and the grip keeps the rest, and it is drawn
+	   as a real object: a surface, a border, and a shadow that lifts it off the seam. */
+	.panel-insert {
+		position: absolute;
+		z-index: 5;
+		--insert-run: 2.2rem;
+		inset-block-start: 0;
+		block-size: var(--insert-run);
+		inset-inline-start: var(--insert-at, 50%);
+		inline-size: 1.4rem;
+		translate: -50% 0;
+		display: grid;
+		place-items: center;
+		font-size: 0.8em;
+		color: var(--subtle);
+		background: var(--surface);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		box-shadow: 0 1px 4px color-mix(in srgb, var(--ink) 18%, transparent);
+		cursor: pointer;
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity 0.12s, color 0.12s, background 0.12s;
+	}
+
+	/* `dir: "col"` stacks rows, so `.panel-items` wears `.v` (workspace.js) and the stub sits
+	   at the start of a horizontal seam instead — same box, the other axis. */
+	.panel-items.v > .panel-insert {
+		inset-block-start: var(--insert-at, 50%);
+		inset-inline-start: 0;
+		block-size: 1.4rem;
+		inline-size: var(--insert-run);
+		translate: 0 -50%;
+	}
+
+	.panel-insert:hover {
+		color: var(--prim);
+		background: color-mix(in srgb, var(--prim) 15%, transparent);
+	}
+
+	/* Innermost wins — but ⚠ NOT the leaf idiom the other overlays use. A split CONTAINS
+	   panels by definition, so `.panel:hover:not(:has(.panel:hover))` is false for every
+	   split that has ever been hovered, and this bar could never appear. The question here
+	   is a different one: is this the DEEPEST split under the pointer? So the test is on the
+	   items box against a nested items box.
+	   ⚠ `.on` is insert.js's: a split of one has no interior gap, so there is nothing to
+	   offer and the stub must not appear at all. */
+	.panel-items:hover:not(:has(.panel-items:hover)) > .panel-insert.on {
+		opacity: 1;
+		pointer-events: auto;
+	}
+}

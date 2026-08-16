@@ -40,10 +40,19 @@ export class AITask extends Page {
 		});
 	}
 
-	// task.jsonl first, then the legacy session.json snapshot.
+	// task.jsonl first, then the legacy session.json snapshot. It streams on the
+	// dev server, so a running task's own page follows its log.
 	async session(){
-		const t = await new TaskJSONL({ url: this.base() + "task.jsonl" }).load();
-		return t.loaded ? t : this.legacy();
+		const t = new TaskJSONL({ url: this.base() + "task.jsonl" });
+		await t.live(() => this.$live && this.refresh(t));
+		if (t.loaded) return t;
+
+		// ⚠ A legacy task's task.jsonl never appears, so the probe would stand as a
+		// dead subscription; a dir with NEITHER file keeps its stream — that log is
+		// about to be written.
+		const old = await this.legacy();
+		if (old) t.unsubscribe();
+		return old;
 	}
 
 	// `src` points the viewer at a manifest not beside its own meta — dynamic routes.
@@ -64,11 +73,28 @@ export class AITask extends Page {
 	report(m, req){
 		this.head(m, req);
 		if (!m) return;
-		this.checklist(m);
-		this.extra(m);
-		this.figures(m);
+		this.$live = div.c("ai-live flow");
+		this.refresh(m);
 		this.chat(m);
 		this.log(m);
+	}
+
+	/* The manifest's own part of the page, redrawn in place on every streamed
+	   append — the chat panel and the feed hold state a redraw would wipe. */
+	refresh(m){
+		this.$live.empty(() => {
+			this.checklist(m);
+			this.unparsed(m);
+			this.extra(m);
+			this.figures(m);
+		});
+	}
+
+	/* Lines that failed `JSON.parse` — whatever state they carried is missing from
+	   everything on this page, so say so instead of rendering a plausible record. */
+	unparsed(m){
+		if (m.unparsed) p.c("muted",
+			`⚠ ${m.unparsed} unparsed line${m.unparsed > 1 ? "s" : ""} — this record is incomplete. The console has the first one.`);
 	}
 
 	head(m, req){

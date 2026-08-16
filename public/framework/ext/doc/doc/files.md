@@ -1,8 +1,9 @@
 # Why the file list is declared
 
-The Files tab shows the module's real files: the tree on the left,
-`doc/file/<path>.md` beside the source. The list of paths is **hand-typed** in the
-page's `files:` string. Two other answers were available and both lose.
+The Files tab shows the module's real files: the tree, `doc/file/<path>.md`, and
+the source — three [ext/Panel](/framework/ext/Panel/) leaves with grips between
+them. The list of paths is **hand-typed** in the page's `files:` string. Two other
+answers were available and both lose.
 
 ## `directory.json` — rejected
 

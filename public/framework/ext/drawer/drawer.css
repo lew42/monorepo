@@ -1,0 +1,54 @@
+/* Restated IN FULL - a short list silently misplaces `site`. */
+@layer base, theme, site, util;
+
+/* The right rail. Structure and the one thing a fixed panel cannot leave to the theme:
+   a surface, so it reads over whatever the page happens to be showing. Every colour is
+   a token. What a caller draws INSIDE it is that caller's own look. Record: readme.md. */
+@layer theme {
+
+	/* It PUSHES: `--drawer` is the inline-end strip `.app` yields (framework.css), written
+	   by drawer.js on the same element this inherits its width from, so the reserved strip
+	   and the rail are one number.
+	   ⚠ `rem`, not `em` — the shell's padding resolves against `.app`'s font-size and this
+	     width against the rail's own 0.85em, so an `em` value reserves the wrong strip.
+	   ⚠ z-index 40 sits between `.demo.max` (30) and the mode button (60): the rail has to
+	     reach over a full-screen demo without burying the scheme toggle. */
+	.drawer {
+		position: fixed; inset-block: 0; z-index: 40;
+		/* Beside the dev rail, not under it — both dock at this edge, and the shell already
+		   reserves the sum of the two (framework.css). */
+		inset-inline-end: var(--devbar, 0px);
+		inline-size: min(var(--drawer, 19rem), 100%);
+		gap: 0.8em;
+		padding: 0.9em;
+		font-size: 0.85em;
+		background: var(--surface);
+		color: var(--ink);
+		border-inline-start: 1px solid var(--line);
+		transform: translateX(100%);
+		transition: transform 0.18s;
+	}
+	.drawer.on { transform: none; }
+
+	/* The head is pinned and the body scrolls under it — a rail whose ✕ scrolls away is a
+	   rail you cannot shut. */
+	.drawer-head { flex: 0 0 auto; gap: 0.5em; }
+	.drawer-slot { gap: 0.5em; min-inline-size: 0; }
+	.drawer-body { flex: 1 1 auto; min-block-size: 0; overflow: auto; gap: 1em; }
+
+	/* ⚠ Two classes, so it clears the theme's `:is(button, .btn)` at 0-2-0 — which pads
+	   every button to 0.7em/1.4em and would make the ✕ four times the box it needs. */
+	.drawer .drawer-x {
+		flex: 0 0 auto;
+		display: flex; align-items: center; justify-content: center;
+		inline-size: 1.7em; block-size: 1.7em;
+		padding: 0;
+		font-size: 1em;
+		color: var(--subtle);
+		background: none;
+		border: 0;
+		border-radius: calc(var(--radius) / 2);
+		cursor: pointer;
+	}
+	.drawer .drawer-x:hover { color: var(--ink); background: var(--wash); }
+}

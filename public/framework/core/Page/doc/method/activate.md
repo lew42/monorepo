@@ -2,7 +2,7 @@ Placement, and nothing else.
 
 **Usage** — two callers, both walking a chain **shallowest-first**, so my ancestors —
 and their regions — already exist by the time I look for a container:
-`Router.activate()` (`framework/core/Router/Router.js:100`) and `demo.app`'s
+`Router.activate()` (`framework/core/Router/Router.js:88`) and `demo.app`'s
 `show()` (`framework/ext/demo/app.js:92`).
 
 ```js

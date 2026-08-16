@@ -1,12 +1,12 @@
-import { View, classdoc, md, demo, h1, h3, p, ul, li, div, span, button, label, input } from "/app.js";
+import { View, Doc, md, demo, h1, h3, p, ul, li, div, span, button, label, input } from "/app.js";
 
-export default classdoc.page({
+export default new Doc({
 	meta: import.meta,
 	title: "View",
 	description: "A chainable wrapper over a DOM element, with capturing.",
 	icon: "image",
 
-	Class: View,
+	subject: View,
 
 	// Every member, in the order a reader meets them: the everyday API, then the
 	// lifecycle, then the plumbing under append(), then the statics.
@@ -21,6 +21,8 @@ export default classdoc.page({
 	properties: "el capture tag classes name parent captor previous_captors stylesheets supports_sanitizer",
 
 	notes: "capturing lifecycle",
+
+	files: "View.js page.js readme.md",
 
 	content(){
 

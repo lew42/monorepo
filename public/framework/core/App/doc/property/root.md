@@ -2,9 +2,9 @@ The root `Page` — whatever `/page.js` exports. The origin of every walk.
 
 ## Usage
 
-- `App.js:60` — assigned in `load()`, and it is **the only page handed `app`
+- `App.js:58` — assigned in `load()`, and it is **the only page handed `app`
   directly**: `(await Page.load("/"))?.assign({ app: this })`.
-- `Router.js:80` — `load_segments()` starts here, on every navigation.
+- `Router.js:70` — `load_segments()` starts here, on every navigation.
 
 Two lines, two files, and that is the entire life of this property.
 

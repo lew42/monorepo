@@ -1,4 +1,4 @@
-import { Sidebar, classdoc, md, demo, div, h2, toc } from "/app.js";
+import { Sidebar, Doc, md, demo, div, h2, toc } from "/app.js";
 
 /* Real urls, so `.active` / `.in-path` light up on their own as you navigate —
  * nothing here compares window.location. */
@@ -15,19 +15,21 @@ const pages = [
 	]},
 ];
 
-export default classdoc.page({
+export default new Doc({
 	meta: import.meta,
 	title: "Sidebar",
 	description: "A brand over a list of links. Not owned by any layout — any page can render one.",
 	icon: "view_sidebar",
 
-	Class: Sidebar,
+	subject: Sidebar,
 
 	properties: "pages brand brand_url logo logo_url app",
 
 	methods: "render bar header toggle open menu nav group link footer favicon",
 
 	notes: "entries placement views tokens narrow comp",
+
+	files: "Sidebar.js Sidebar.css page.js readme.md",
 
 	content(){
 

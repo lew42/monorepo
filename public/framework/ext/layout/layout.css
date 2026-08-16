@@ -90,36 +90,11 @@
 		.layout-region :is(.flex, .grid) > * { outline: 1px dashed var(--line); outline-offset: 2px; }
 	}
 
-	/* ---- the drawer ----
-	   It PUSHES: `--drawer` is the inline-end rail `.app` yields (framework.css), set
-	   by panel.js on the same element this inherits it from, so the reserved strip and
-	   the panel are one number.
-	   ⚠ `rem`, not `em` — the padding resolves against `.app`'s font-size and the width
-	     against this panel's 0.85em, so an `em` value would reserve the wrong strip.
-	   ⚠ z-index 40 sits between `.demo.max` (30) and the mode button (60): the drawer
-	     has to reach over a full-screen demo without burying the scheme toggle. */
-	.layout-panel {
-		position: fixed; inset-block: 0; z-index: 40;
-		/* Beside the dev rail, not under it — both dock at this edge and the shell
-		   already reserves the sum of the two (framework.css). */
-		inset-inline-end: var(--devbar, 0px);
-		width: min(var(--drawer, 19rem), 100%);
-		gap: 0.8em;
-		padding: 0.9em;
-		font-size: 0.85em;
-		background: var(--surface);
-		color: var(--ink);
-		border-inline-start: 1px solid var(--line);
-		transform: translateX(100%);
-		transition: transform 0.18s;
-	}
-	.layout-panel.on { transform: none; }
-
-	/* The head is pinned and the body scrolls under it — a drawer whose ✕ scrolls
-	   away is a drawer you cannot shut. */
-	.layout-head { flex: 0 0 auto; gap: 0.5em; }
-	.layout-body { flex: 1 1 auto; min-height: 0; overflow: auto; gap: 1em; }
-
+	/* ---- what a selection reads as, inside the rail ----
+	   The RAIL is `ext/drawer`'s now (2026-08-16) — its shell, its push, its pinned head
+	   and its ✕ all left this file with it. What stays here is the look of the content
+	   this module draws into it. ⚠ The `.drawer` selectors below style a class this
+	   module does not emit; `panel.js` imports `ext/drawer`, which is the loading edge. */
 	.layout-name { font-family: var(--mono); font-weight: 700; }
 	.layout-code { display: block; padding: 0.5em 0.6em; overflow-wrap: anywhere; }
 
@@ -130,12 +105,12 @@
 	/* One grid for every knob in the drawer, so the names line up down the left and
 	   the values down the right — the reason a wide panel reads and a wide bar does
 	   not. Scoped, because the bar wants its knobs shrink-to-fit and inline. */
-	.layout-panel .layout-knob {
+	.drawer .layout-knob {
 		display: grid;
 		grid-template-columns: 5.4em 1fr 3.4em;
 		gap: 0.4em;
 	}
-	.layout-panel .layout-knob > .layout-tag { white-space: nowrap; }
-	.layout-panel .layout-range { width: 100%; }
-	.layout-panel .layout-out { min-width: 0; text-align: end; }
+	.drawer .layout-knob > .layout-tag { white-space: nowrap; }
+	.drawer .layout-range { width: 100%; }
+	.drawer .layout-out { min-width: 0; text-align: end; }
 }

@@ -3,9 +3,16 @@ import Socket from "../Socket/Socket.js";
 import { MIN, settings, rail, set } from "./settings.js";
 import { section, row, check } from "./parts.js";
 import ask from "./ask.js";
+import layout from "./layout.js";
 
-// What the rail shows, in order. Each one renders itself into the captor.
-export const sections = [viewport, route, ask, server, xray, jump];
+/* What the rail shows, in order, one array per tab. Each section renders itself into
+   the captor. ⚠ `layout` is alone on a tab on purpose — it is the one section that
+   downloads 45KB and measures the page, and a tab nobody opened does neither. */
+export const tabs = [
+	["page", [viewport, route, server, xray, jump]],
+	["layout", [layout]],
+	["ai", [ask]],
+];
 
 // icon, the page width it aims at, what to call it.
 const SIZES = [

@@ -1,54 +1,8 @@
 import Draggable from "/framework/ext/Draggable/Draggable.js";
 import Sortable from "/framework/ext/Draggable/Sortable.js";
-import { div } from "/framework/core/View/View.js";
+import Panel from "./Panel.js";
 
-/* css: .panel-grip — panel.css, loaded by workspace.js's View.stylesheet(). */
-
-const EDGE = 0.2, MIN = 40;
-
-/* The divider. It reads pixels and writes GROW FRACTIONS to both neighbours, so the
-   split keeps its proportions when the window changes size. */
-export function grip(){
-	return div.c("panel-grip").on("pointerdown", function(e){
-		e.preventDefault();
-
-		const el = this.el, prev = el.previousElementSibling, next = el.nextElementSibling;
-		const a = Draggable.registry.get(prev)?.item, b = Draggable.registry.get(next)?.item;
-		if (!a || !b) return;
-
-		const row = !el.parentElement.classList.contains("v");
-		const from = row ? e.clientX : e.clientY;
-		const [pa, pb] = [prev, next].map(node => row ? node.offsetWidth : node.offsetHeight);
-		const total = a.get("grow") + b.get("grow");
-
-		let ga = a.get("grow"), gb = b.get("grow");
-		el.setPointerCapture(e.pointerId);
-
-		coalesce(el, ev => {
-			const delta = Math.max(MIN - pa, Math.min(pb - MIN, (row ? ev.clientX : ev.clientY) - from));
-			ga = round(total * (pa + delta) / (pa + pb));
-			gb = round(total - ga);
-			prev.style.setProperty("--panel-grow", ga);
-			next.style.setProperty("--panel-grow", gb);
-		});
-
-		el.addEventListener("pointerup", () => { a.set("grow", ga); b.set("grow", gb); }, { once: true });
-	});
-}
-
-const round = n => Math.round(n * 1000) / 1000;
-
-/* ⚠ A pointer outruns the screen: a 240Hz mouse fires four moves per paint and one
-   move here re-lays-out the whole workspace. Lifted from ext/demo/stage.js rather than
-   imported — a widget has no business depending on the demo chrome. */
-export function coalesce(el, move){
-	let event, frame;
-
-	const track = ev => { event = ev; frame ??= requestAnimationFrame(() => { frame = null; move(event); }); };
-
-	el.addEventListener("pointermove", track);
-	el.addEventListener("pointerup", () => el.removeEventListener("pointermove", track), { once: true });
-}
+const EDGE = 0.2;
 
 /* A panel is a row you can grab and a box rows land in. ⚠ The handle is the grip
    alone, never the bar — a handle owning the bar swallows every button click. */
@@ -69,15 +23,34 @@ export class PanelDrag extends Sortable {
 		this.ghost.style.transform = `translate(${dx}px, ${dy}px)`;
 
 		const edge = this.edge(e);
-		edge ? this.show_edge(edge) : this.show(this.locate(e));
+		if (edge) return this.show_edge(edge);
+
+		const into = this.centre(e);
+		return into ? this.show_centre(into) : this.show(this.locate(e));
 	}
 
+	/* ⚠ Alt is read at DROP, not at grab — a copy is a decision you make once you can see
+	   where it is going, and reading `pointerup` means `Draggable` needs no new state and no
+	   modifier tracking of its own. Alt-dropping leaves the original where it was and lands
+	   a LIVE duplicate: `Panel.mirror()` shares what it holds and how it looks, never its
+	   share of the row it lands in. Only the EDGE path copies — a plain reorder is
+	   `Sortable`'s and moving one row within its own list is never a duplicate. */
 	release(e){
 		const edge = this.edge(e);
-		if (!edge) return super.release(e);
+		const into = edge ? null : this.centre(e);
+		if (!edge && !into) return super.release(e);
 
 		this.end();
-		edge.panel.divide(edge.dir, this.item, edge.before);
+		const arrival = e.altKey
+			? new Panel({ data: { grow: this.item.get("grow") } }).mirror(this.item)
+			: this.item;
+
+		// The MIDDLE nests: the target becomes a container holding what it already had and
+		// the arrival beside it. `split()`, never `divide()` — a drop aimed at the inside of
+		// a panel must not become a sibling just because the parent happened to run that way.
+		if (into) return void into.item.split(into.item.get("dir"), arrival);
+
+		edge.panel.divide(edge.dir, arrival, edge.before);
 	}
 
 	// The axis is the destination's, so one scan reads a row of columns or a column of
@@ -108,6 +81,23 @@ export class PanelDrag extends Sortable {
 
 		const down = Math.min(y, 1 - y) < Math.min(x, 1 - x);
 		return { target, panel: target.item, dir: down ? "col" : "row", before: down ? y < 0.5 : x < 0.5 };
+	}
+
+	/* Drop INSIDE the middle: the target becomes a container. Tested after `edge()` and
+	   before `locate()`, which the enclosing split would otherwise always answer — the same
+	   ordering the edge zones already needed, for the same reason. ⚠ A LEAF only: a split
+	   already is a container, and dropping into the middle of one means the row, not a
+	   second nesting nobody asked for. */
+	centre(e){
+		const target = this.under(e, box => box.$body && this.drop_check(box, e));
+		return target && !target.item.items.length ? target : null;
+	}
+
+	// A frame rather than a half — it says "inside this", where the edge preview says
+	// "beside it", and the two must never read as the same drop.
+	show_centre(target){
+		Object.assign(this.placeholder.style, { position: "absolute", inset: "15%" });
+		target.$body.el.append(this.placeholder);
 	}
 
 	// The placeholder IS the preview in both modes — `.panel-body` contains its own

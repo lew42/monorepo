@@ -11,6 +11,29 @@ handles), `tokens.md` (the two tokens and the derivations), `narrow.md` (below 5
 **Every member also has its own file** — `./doc/method/<name>.md` and
 `./doc/property/<name>.md`, three concerns each: usage, necessity, simplicity.
 
+## Who uses it
+
+Seven real `import { Sidebar }` sites, all constructing it directly (never
+subclassed):
+
+| caller | for | url |
+|---|---|---|
+| `framework/page.js` | the site's own section nav — `header` replaced with `app.brand()`, `pages: this.sections()` | `/framework/` |
+| `page.js` (site root) | the homepage's nav, over plain `{title, url}` data | `/` |
+| `michael/page.js` | a sandbox's own section nav | `/michael/` |
+| `styles/layers/theme/lew42/page.js` | the theme comp, exercising both `brand` and grouped `pages` | `/framework/styles/layers/theme/lew42/` |
+| `styles/layouts/sidebar/page.js` | the "no-rule" placement demo — `.ac("basis").style("--basis", "var(--sidebar)")` | `/framework/styles/layouts/sidebar/` |
+| `core/Page/nav/page.js` | a nested demo showing `nav_for()` feeding a Sidebar | `/framework/core/Page/nav/` |
+| `core/Sidebar/page.js` | this module's own three demos | `/framework/core/Sidebar/` |
+
+A dozen more files (`faq/`, `ui/accordion/`, `web/nav/sidebar/`, `core/App/page.js`,
+`core/page.js`, `core/Page/shell/page.js`, the layout galleries) **link to or
+quote** `Sidebar` in prose without constructing one — not counted above.
+
+**Not a module with no callers** — the opposite finding: it is the site's real
+navigation chrome, in production at `/` and `/framework/`, not just a demo of
+itself.
+
 ## Decisions
 
 **Why a component tier for exactly one thing?** Because a sidebar is the one piece
@@ -79,8 +102,17 @@ so a raw multi-byte character decodes as Windows-1252 and renders `â€º`.
 - **Anything that renders links late must re-run `mark_links()`.** `Router.mark()`
   has already been and gone. No view compares `window.location` itself.
 - **A sidebar built without `app` has no mode toggle and says nothing.** Fine when
-  meant; invisible when not — and it happens by accident inside a `classdoc`
+  meant; invisible when not — and it happens by accident inside a `Doc`
   overview, where `this.app` is `undefined`. `core/App/doc/adoption.md`.
+- **⚠ One bad `icon:` on one child page WIDENS THE WHOLE SIDEBAR** — and nothing
+  throws. Material Icons is a ligature font, so a name it does not carry renders as
+  the literal *word*; that word is unbreakable, so it sets the link's min-content
+  width, and a flex item's `min-width: auto` refuses to shrink below it. The
+  `flex-basis` still reads the correct `19em` while the box renders wider, which is
+  what makes it so hard to find. Measured 2026-08-16: `icon: "right_panel_open"` on
+  one new ext page took the framework sidebar from **231px to 344px**, and everything
+  else on the page shrank to pay for it. **Measure a name against the loaded font
+  before using it** — render it at 24px and check the width is 24, not 384.
 
 ## Proposed
 

@@ -41,10 +41,13 @@ for an assigned member to shadow. `Doc.is_class` tests the source text rather th
 ## Files — the module as a pseudo-IDE
 
 `files:` lists the module's real files (never `doc/` or `ai/` — those are the
-documentation, not the module). The tab is `ext/files` with its new `about` hook:
-the tree on the left, `doc/file/<path>.md` in the middle, the fetched source on the
-right — so what a file *is for* sits beside what it *says*. Why a declared list and
-not `directory.json`: [`doc/files.md`](./doc/files.md).
+documentation, not the module). The tab is `ext/files` with its `about` hook: the
+tree, `doc/file/<path>.md`, and the fetched source — so what a file *is for* sits
+beside what it *says*. Since 2026-08-16 those three are **ext/Panel leaves**, so
+the seams are grips a reader drags; `Doc.browser()` is unchanged by that (one call,
+one hook) and `doc.css` only retunes `--panel-height`, because this browser is the
+whole tab rather than a figure inside a page. Why a declared list and not
+`directory.json`: [`doc/files.md`](./doc/files.md).
 
 ## The rail, and why the Overview is a catalog
 
@@ -54,14 +57,28 @@ argument in full, including why a rail beat a wall of preview cards.
 
 ## Decisions
 
-**It is a class now** (2026-08-15, Mike). `classdoc` was a function, and the
-record here argued against a subclass on the grounds that it had *"no named parts
-to override."* That was true of a page shape fixed at three tabs. It stopped being
-true the moment a module could want a fourth: `Doc` names `sections()`,
-`section()`, each `*_section()`, `api()`, `docs()`, `member_page()`, `bar()`,
-`well()` and `render()`, and a module with a different shape overrides one of them
-instead of the config growing an option. The composable `classdoc(page, Class,
-meta, names)` form went with it — zero callers, and `api(section)` is the seam now.
+**A Doc's sections are children, so a Doc's own wall has to subtract them**
+(2026-08-16). `sections()` adds Overview, API, Docs and Files to `this.children`
+because they *are* pages — that is what buys a member a url and a back button. The
+cost surfaced on `/framework/ui/`, whose Overview draws its nineteen components:
+`previews()` drew twenty-three, the last four being the page's own tab strip. Three
+answers were weighed — mark the sections with an inert flag `previews()` reads (the
+black-magic marker RULE#8 forbids), swap `this.children` around the call (a mutation
+window inside a render), or give `previews()` the subset. **Verdict: `wall()`**, one
+line over a `previews(pages)` parameter that defaults to `this.children`, so there is
+still exactly one wall mechanism on the site. `Doc.SECTIONS` is now the single list
+`bar()` orders by and `wall()` subtracts — it was inlined in `bar()` before.
+
+**It is a class now, and it documents more than classes** (2026-08-15, Mike). This
+module was `ext/classdoc`, a function, and the record here argued against a
+subclass on the grounds that it had *"no named parts to override."* That was true
+of a page shape fixed at three tabs, and it stopped being true the moment a module
+could want a fourth. `Doc` names `sections()`, `section()`, each `*_section()`,
+`api()`, `docs()`, `member_page()`, `bar()`, `well()` and `render()` — a module
+with a different shape overrides one of them instead of the config growing an
+option. `Class:` became `subject:` in the same pass, because a class was never the
+only thing worth documenting. The composable `classdoc(page, Class, meta, names)`
+form went with it — zero callers, and `api(section)` is the seam now.
 
 **⚠ No class fields in `Doc.js`.** A field initializes *after* `super()` returns,
 and `initialize()` runs *inside* it — so a field would arrive after the sections it
@@ -100,6 +117,12 @@ function's name from assignment to an identifier, never to a member expression.
 
 ## Traps
 
+- **⚠ `bar()` and the mount region are the same list.** `tabs()` registers a child's
+  region from the names it draws the strip from (`ext/tabs`), so a name dropped from
+  `bar()` also loses its `regions` entry — and `Page.container()` then walks up to the
+  nearest ancestor `$pages` and renders that child **over the surrounding page**. A Doc
+  shortening its strip has to re-register the dropped names against the panel
+  (`this.regions.get("overview")`), which is what `/framework/ui/` does.
 - **⚠ `subject.prototype[name]` executes a getter.** `App.get loaded()` builds a
   `Promise.all`; read off a bare prototype it throws before `toString()` is reached.
   `Object.getOwnPropertyDescriptor` is the only way to hold an accessor's *function*.
@@ -114,9 +137,25 @@ function's name from assignment to an identifier, never to a member expression.
   *instance* property called `name`, and it read as a real declaration. Those five
   names (`Doc.intrinsic`) skip the fallback, so the page is prose alone.
 - **⚠ A note sharing a name with another note** collides. Warned.
+- **`content()` is bound to the `Doc`** — *fixed the day it was found.* It used to
+  run bound to the Overview **section**, because `catalog()` makes `content` the
+  intro child's and the intro belongs to the section. Three auditors hit it within
+  the hour: `ui`'s lost time to `this.previews()` silently drawing nothing, and
+  `ext/LayoutTool`'s and `ext/Ask`'s pages both **threw** on `this.look()` /
+  `this.asker()` — helpers they had written on the config, one line above the call.
+  Three independent readers expecting the same thing is the design telling you
+  which binding is right. `overview_section()` now binds it. ⚠ The consequence:
+  `this.parent` inside `content()` is the module's parent, not the section.
 
 ## Open
 
 - **`files:` goes stale silently** — a file added to the module and not to the list
   is simply absent from the tab. The trade is recorded in [`doc/files.md`](./doc/files.md);
   the check belongs in the `documentation` skill, not in a crawler.
+- **Every tab has two `h1`s.** `well()` emits `h1.doc-title` and the routed page
+  emits its own `h1.page-title` — so `ext/LayoutTool` reports `hierarchy: 2 level-1
+  headings on one page` on every Doc on the site, at every width. Found on
+  `styles/layouts/space/words/` (2026-08-16) and reproduced on `/framework/ext/doc/`
+  itself, so it is this module's and not any page's. The well's title is the one
+  that is really the page's top; the fix is probably `h2` markup wearing the `h1`
+  look, or the section suppressing the child's. Mike's call which.

@@ -18,7 +18,7 @@
 @layer theme {
 
 	/* `--tab-pad-x` is exposed so a host can pull the strip left by exactly one tab's
-	   padding and land the LABELS on its own text axis — classdoc's well does. */
+	   padding and land the LABELS on its own text axis — ext/doc's well does. */
 	.tabs { display: flex; flex-direction: column; min-width: 0; --tab-pad-x: 0.9rem; }
 
 	/* ⚠ One strip that scrolls, never a wrapping block: a fifty-member rail flipped to
@@ -108,7 +108,7 @@
 	/* A rail PLUS a column needs more than 60em. Derived from the structure, so
 	   anything that grows a rail gets it without a class.
 	   ⚠ `:where()` holds this at (0,1,0) so a host page can narrow one of its sets
-	     with a plain class — classdoc's overview does. */
+	     with a plain class — ext/doc's overview does. */
 	.page:where(:has(> .tabs.vertical)) { --measure: 78em; }
 
 	/* The same set, turned on its side — only the axis changes. The bar is sticky

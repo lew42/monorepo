@@ -10,13 +10,13 @@ constructor(...args){
 }
 ```
 
-Documented here rather than as a member page because `classdoc` renders a member's
+Documented here rather than as a member page because `Doc` renders a member's
 real source, and a class's `constructor` descriptor **is the class** — the panel
 would print the whole file.
 
 ## Usage
 
-`app.js:23` — `window.app = new App({ … })`, once per document. That is the only
+`app.js:25` — `window.app = new App({ … })`, once per document. That is the only
 construction in the repository.
 
 ## Necessity
@@ -31,12 +31,12 @@ Essential, and every line is load-bearing:
 
 ## Simplicity
 
-Right-sized, with one recorded cost. **The async call is not awaited**, which is
-what makes `window.app = new App()` read well — and means a throw anywhere outside
-`load()`'s own try/catch becomes a silent unhandled rejection *and* leaves
-`app.ready` pending forever. One `.catch(e => this.error(e))` here fixes both.
-Recorded rather than done, because the try in `load()` covers the failure that
-actually happens: a page module throwing. [boot](/framework/core/App/docs/boot/).
+Right-sized, with one cost that used to be unfixed. **The async call is not
+awaited**, which is what makes `window.app = new App()` read well — and meant a
+throw anywhere outside `load()`'s own try/catch became a silent unhandled
+rejection *and* left `app.ready` pending forever. `instantiate()` now wraps its
+own body in a try/catch that calls `error()` on the way out, with
+`ready.resolve()` moved after the catch so it always runs. [boot](/framework/core/App/docs/boot/).
 
 The ordering trap, stated once: `assign()` runs **after** `loaders` and `ready` are
 set, so `new App({ loaders: [x] })` is silently discarded. Nobody has tried it.

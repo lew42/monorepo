@@ -72,6 +72,46 @@ The preview card is core's (Aug 2026), and so is the `wide`-not-`bleed` decision
 it carried — `previews()` picks the track, which is why [`doc/audits.md`](doc/audits.md)
 §6b calls that guard structural.
 
+## Who uses this
+
+Not a leaf module — the two token-and-layer files (`framework.css`, this
+directory's `layers/theme/lew42/lew42.css`) back every page on the site, and
+several modules import this directory's *content* directly rather than only
+linking to it:
+
+- **`/app.js`** imports `layers/theme/lew42/lew42.js` and calls it in
+  `config()` — the house theme is wired site-wide from here, not opted into
+  per page.
+- **`core/Page/overview/landing/page.js`** and **`overview/site/page.js`**
+  import section-band functions from `sections/*.js` (`hero`, `features`,
+  `pricing`, `footer`, `contact`, `logos`, `faq`, `callout`, `team`) directly,
+  to compose Page's own "what a real site looks like" demos.
+  `core/Page/flow/page.js` and `core/Page/page.js` link to `layouts/fit/` and
+  `layouts/` as the canonical next reads for rhythm and whole-page shape.
+- **`ext/Panel/templates.js`** dynamically `import()`s every file in
+  `sections/` by name, at runtime, to build the **T** template menu — the one
+  consumer that imports this directory's files *by string*, so a section
+  rename here is silent there (`ext/Panel/doc/templates.md`).
+- **`ext/LayoutTool/audit/pages.js`** lists roughly thirty urls under
+  `/framework/styles/` in the corpus it sweeps at four widths — this is the
+  module most exercised by that tool, and `rules/demos.js` calls
+  `analyze()` directly to grade its own live examples.
+- **`ext/catalog`, `ext/demo`, `ext/layout`, `ext/toc`** all cite pages here
+  (`sections/`, `layouts/`, `elements/forms/`, `layers/util/`) as the primary
+  worked examples in their own readmes and doc pages.
+- **`framework/ui/`** (`avatar`, `card`, `crumbs`, `kbd`, `stats`, `tooltip`)
+  and **`web/layout/*`** (the guide tier) each link back here for the
+  reference behind a decision they made.
+- **`core/Sidebar`** links `/framework/styles/` from the site's own nav, and
+  its readme cites two pages here (`layers/theme/lew42/`, `layouts/sidebar/`)
+  as the live demos its own doc page points at.
+
+One stale link, found while tracing these: `core/Page/overview/landing/`
+(via `framework/ai/2026-08-12/unify/page.js`) links
+`/framework/styles/layouts/cards/`, a directory this module's own readme
+records as deleted in the 2026-08-12 merge. Outside this directory's fence to
+fix; noted in the audit report.
+
 ## Open
 
 - **`app.css_audit()`** — a dev-only styled-vs-applied class diff. ~30 lines,

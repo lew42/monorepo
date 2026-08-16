@@ -4,7 +4,8 @@ Two classes. `Draggable` is grab-and-move: pointer capture, hit-testing, a
 `drop_check` on the dragging instance, and a `cancel()` that commits nothing.
 `Sortable extends Draggable` is reorder-a-collection: a ghost, a placeholder, and
 `locate(e)` → a **position** rather than a target, so reorder, cross-list and nest
-are one code path ending in `item.move(parent, before)`.
+are one code path ending in `item.move(parent, before)`. What each adds on top of
+the other: [`doc/sortable.md`](./doc/sortable.md).
 
 Neither file imports `Item` or `List`. The whole coupling is `item.move()` and
 whatever `drop_check` you write. `page.js` imports both, because a demo needs
@@ -27,50 +28,24 @@ new Sortable({ view: $node, handle: false, $items, item });  // drop site only �
   is false — so the working guard is both halves:
   `target !== this && !this.item.contains(target.item)`. Without it, dropping a
   container into its own child makes a cycle inside ten minutes.
+- **One `Draggable.registry` for the whole document.** A page with more than one
+  `Sortable` tree needs a *third* clause — `target.item?.root() === this.item.root()`
+  — or a drag can cross from one tree into the other. Both real callers
+  (`ext/Panel`, `ext/editor`) add it; this module's own demo doesn't need to,
+  because it only ever shows one tree. Copy the three-part version, not the demo's.
 - **Nothing real moves during a drag.** The ghost and the placeholder move; the
   live node just wears `.drag-source`. That is why `cancel()` is four lines.
 - **A re-render leaves orphaned instances.** Rebuilding the view drops the old
   elements, and the registry is a `WeakMap`, so they collect. Call `destroy()`
   only when you keep the element and want the drag off it.
 
-## Verdicts
+## Decisions
 
-**Pointer capture, or document listeners?** Options: capture (all later events
-return to the handle) vs. binding `document` on pointerdown. **Capture, held for
-the whole drag** — there is no listener to leak and no teardown to get wrong. The
-cost is that `e.target` becomes the handle, which forces the next decision.
-
-**Hit-testing: `e.target`, or `elementsFromPoint`?** `e.target` is free but wrong
-under capture, and the usual fix — `pointer-events: none` on the live element —
-mutates the thing being dragged and lies to anything else reading the DOM.
-**`document.elementsFromPoint`, filtering out the dragged view by hand.** It also
-gives "innermost registered container" for free: the returned chain is already
-ordered innermost-first. The one element that *is* `pointer-events: none` is the
-ghost, which exists only to be looked at.
-
-**Where does the filter live — a target-side `accepts`, or a dragging-side
-`drop_check`?** **On the dragging instance.** One override covers type checks,
-capacity, modifier keys and the cycle guard; a target-side filter would need every
-container to know every payload. `Sortable.locate()` routes each candidate
-container through `drop_check`, so a single override governs both the placeholder
-you see and the move that commits — the preview cannot disagree with the drop.
-
-**Does `pointercancel` commit?** Options: treat it as a drop, or as an abort.
-**Abort** — a cancelled gesture is the OS saying the user did not mean it. Escape
-rides the same `cancel()`, so there is one restore path, not two.
-
-**One class or two?** Merging them was proposed. **Two.** Grab-and-move and
-reorder-a-collection are different jobs, not versions: `Sortable` overrides
-`release()` outright because it commits a *position*, and never uses
-`Draggable.drop()`.
-
-**What does `locate()` return?** `{ list, before }`, where `before` is an `Item`
-or `null` (append) — never an index, so off-by-ones cannot exist. `list` is the
-destination **`Sortable`**, not its Item: the registry holds Sortables, "the
-innermost registered container" is literally what was found, and the container is
-also what knows its own rows (`before()`, `row()`). Commit reads `list.item`.
-Mixed types in one pair is the cost; the alternative was an Item→element map that
-nothing else needed.
+Pointer capture over document listeners, `elementsFromPoint` over `e.target`,
+the filter living on the dragging instance rather than the target, `pointercancel`
+as an abort not a drop, two classes rather than one, and what `locate()` returns
+and why — each one weighed, with the alternative and its cost:
+[`doc/verdicts.md`](./doc/verdicts.md).
 
 ## Deferred
 
@@ -83,3 +58,14 @@ than as flags on this one.
 
 Also deferred: horizontal lists (the midpoint test is `clientY` only),
 multi-select, and auto-scroll when the cursor nears the edge of a scrolling box.
+
+## Who uses this
+
+- **[`ext/Panel`](/framework/ext/Panel/)** — `PanelDrag.js` extends `Sortable`
+  outright and reads `Draggable.registry` directly to find the panel on either
+  side of a drop, for the drag-to-repane gesture.
+- **[`ext/editor`](/framework/ext/editor/)** — `page.js`'s `Node` extends
+  `Sortable` to reorder and reparent the demo tree the editor shell shows.
+
+Both are real subclasses, not callers of a public function — `Sortable` is meant
+to be extended, not configured, and these are the only two places that do.

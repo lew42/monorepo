@@ -16,7 +16,7 @@ are required and neither is obvious: `FontFace.load()` fetches the file,
 the other fails silently in opposite directions.
 
 **`static load(name)`** (`Font.js:15`) — the real entry point. Called by
-`App.font()` (`App.js:77`), and by nothing else. **Memoized** on `Font.loading`, so
+`App.font()` (`App.js:74`), and by nothing else. **Memoized** on `Font.loading`, so
 two pages asking for Montserrat share one fetch. Throws on an unknown name, which
 is the right loudness: a typo'd font is a design bug you want at boot.
 

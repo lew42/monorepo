@@ -1,4 +1,4 @@
-**Usage** — one caller: `Router.activate()` (`framework/core/Router/Router.js:99`),
+**Usage** — one caller: `Router.activate()` (`framework/core/Router/Router.js:87`),
 over the leaving slice, **deepest-first**. Nothing in `public/` defines a
 `deactivated()` hook for it to call.
 

@@ -4,9 +4,9 @@ Resolve a path, wait for what the new page needs, activate it. Returns a boolean
 
 Three callers, and they are the three ways a url changes:
 
-- `App.js:65` — the first paint.
-- `Router.js:15` — `popstate` (Back/Forward).
-- `Router.js:51` — `go()`, i.e. a click.
+- `App.js:58` — the first paint.
+- `Router.js:12` — `popstate` (Back/Forward).
+- `Router.js:44` — `go()`, i.e. a click.
 
 ## Necessity
 

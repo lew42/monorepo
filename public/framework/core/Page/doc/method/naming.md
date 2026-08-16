@@ -22,5 +22,5 @@ overwrites it (`move()`), because a child's address is its parent's plus its nam
 
 **`this.name` is the last path segment**, and it is also the CSS hook: `render()`
 writes `.page-<name>`. It is missing from the rail as a property page only because
-`classdoc` would show `Function.name` there instead — see `readme.md` §Open.
+`Doc` would show `Function.name` there instead — see `readme.md` §Open.
 

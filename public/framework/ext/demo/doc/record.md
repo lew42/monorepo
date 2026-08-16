@@ -388,7 +388,7 @@ becomes a **visual table of contents**.
 | | |
 |---|---|
 | `Page.prototype.demo(fn)` | a method renders one block, but the ask is a page *shape* — preview + content + note as one unit |
-| `class DemoPage extends Page` | classdoc already weighed a subclass and said no: no named parts to override, and a class fixes identity where a function composes. `Layout` earns its subclass by overriding `render()` itself |
+| `class DemoPage extends Page` | Doc already weighed a subclass and said no: no named parts to override, and a class fixes identity where a function composes. `Layout` earns its subclass by overriding `render()` itself |
 | **a config factory, `demo.page(name, fn, {note, icon})`** | ✓ the `tree()` / `word()` precedent — spread-overridable, no new identity |
 
 The card is the render at `zoom-50`, fresh per call (a cached render would be

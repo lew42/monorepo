@@ -1,7 +1,7 @@
 The `App` this Router belongs to. Injected, never looked up.
 
 ```js
-this.router = new Router(this.router, { app: this });   // App.js:63
+this.router = new Router(this.router, { app: this });   // App.js:56
 ```
 
 ## Usage
@@ -9,10 +9,10 @@ this.router = new Router(this.router, { app: this });   // App.js:63
 Four reads, four different things — which is the whole of what the Router needs
 from the outside world:
 
-- `Router.js:67` — `app.styles_loaded()`, awaited before every activation.
-- `Router.js:80` — `app.root`, the page the walk starts from.
-- `Router.js:111` — `app.navigated?.()`, the post-navigation hook.
-- `Router.js:130` — `app.$app`, the element every query is scoped to.
+- `Router.js:58` — `app.styles_loaded()`, awaited before every activation.
+- `Router.js:70` — `app.root`, the page the walk starts from.
+- `Router.js:99` — `app.navigated?.()`, the post-navigation hook.
+- `Router.js:113` — `app.$app`, the element every query is scoped to.
 
 ## Necessity
 

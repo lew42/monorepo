@@ -40,8 +40,11 @@ export default class Directory {
             fs.writeFileSync("./public/directory.json", JSON.stringify({ files: this.build_dir("./public/") }, null, "\t"));
             fs.writeFileSync("./public/framework/directory.json", JSON.stringify({ files: this.build_dir("./public/framework/") }, null, "\t"));
 
-            if (this.server.socket_server?.live_reload) {
-                this.server.socket_server.live_reload.changed(e);
+            const live_reload = this.server.socket_server?.live_reload;
+            if (live_reload) {
+                live_reload.changed("./public/directory.json");
+                live_reload.changed("./public/framework/directory.json");
+                if (e) live_reload.changed(e);
             }
 
             this.rebuilding = null;

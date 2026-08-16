@@ -1,10 +1,10 @@
 import View, { div, span, pre, code, icon } from "../../core/View/View.js";
 
-/* css: .basis — framework.css's fixed-track utility, worn by `.file-tree` below. */
 View.stylesheet(import.meta, "files.css");
 
 /**
- * files — a small file browser: a tree of real files, and the one you clicked.
+ * files — a small file browser: a tree of real files, and the one you clicked, each
+ * region a panel you can resize, drag, split or close.
  *
  *   files(import.meta, "example/index.html example/app.js example/page.js")
  *   files(import.meta, names, { about: path => md.file(meta, `doc/file/${path}.md`) })
@@ -13,7 +13,8 @@ View.stylesheet(import.meta, "files.css");
  * directory is stripped for display, so a doc folder reads as a project.
  *
  * `about` is anything to render BESIDE the source — a view or a promise of one, per
- * path. ext/doc's Files tab passes the `.md` written about each file.
+ * path. Given one, the browser is three panels rather than two. ext/doc's Files tab
+ * passes the `.md` written about each file.
  *
  * ⚠ Paths resolve against `import.meta`, never the document — the SPA fallback makes
  * the document url a route. Design record: framework/ext/files/readme.md.
@@ -22,52 +23,37 @@ export default function files(meta, names, { about } = {}){
 	const paths = names.trim().split(/\s+/).filter(Boolean);
 	const cut = common_dir(paths);
 
-	let $pane, $tree;
-
-	const view = div.c("files", () => {
-		$tree = div.c("file-tree basis", () => tree(nest(paths, cut)));
-		$pane = div.c("file-pane");
-	});
-
-	// ⚠ Reads the path off the row, never an index into `paths`: nest() groups by
-	// directory, so tree order stops being declaration order the moment two paths
-	// interleave folders.
-	$tree.on("click", e => {
-		const row = e.target.closest(".file-name");
-		if (row) show(row.dataset.path);
-	});
-
-	function show(path){
-		$tree.el.querySelectorAll(".file-name")
-			.forEach(row => row.classList.toggle("selected", row.dataset.path === path));
-
-		// ⚠ The hook's path is the DECLARED one, not the display name — a caller keying
-		// a sidecar file off it needs the same string it handed in.
-		$pane.empty(() => {
-			if (about) div.c("file-about md flow").append(about(path));
-			file_pane(meta, path);
-		});
-	}
-
-	show(paths[0]);
-
-	return view;
+	// ⚠ The box is placed NOW and the arrangement arrives in a callback — a factory call
+	// after the await appends wherever the captor has since drifted. Lazy because the
+	// Panel stack is a dozen modules and app.js re-exports this door on every page.
+	return div.c("files", () =>
+		import("./panels.js").then(m => () => m.panels({ meta, paths, cut, about })));
 }
 
-/* ext/highlight, softly — the same deal demo() and classdoc make. With it loaded
- * a file arrives highlighted and cached; without it, the text in a <pre>. An ext
- * may lean on an ext; only core may never. */
-function file_pane(meta, path){
+/* The tree, marked with the file that is showing. A row carries the DECLARED path
+ * rather than an index into the list: nest() groups by directory, so tree order stops
+ * being declaration order the moment two paths interleave folders. */
+export const tree = (paths, cut, selected) => div.c("file-tree", () => rows(nest(paths, cut), selected));
+
+/* ext/highlight, softly — the same deal demo() and ext/doc make. With it loaded a file
+ * arrives highlighted and cached; without it, the text in a <pre>. An ext may lean on
+ * an ext; only core may never. */
+export function source(meta, path){
 	if (code.file)
 		return code.file(meta, path);
 
+	// ⚠ `resp.ok`, which code.file() and md.file() both check and this branch did not:
+	// a missing file falls through to the SPA fallback, so `resp.text()` alone renders
+	// index.html AS THOUGH IT WERE THE FILE. Masked on this site — app.js always loads
+	// ext/highlight, so this branch never runs — which is exactly why it stayed wrong.
 	return pre.c("code-block", () => code().append(
-		fetch(new URL(path, meta.url).href).then(resp => resp.text())));
+		fetch(new URL(path, meta.url).href)
+			.then(resp => resp.ok ? resp.text() : `Error loading ${path}: ${resp.status} ${resp.statusText}`)));
 }
 
-/* How much of the front of every path is the same directory. Character-wise
- * would happily cut "app" out of "app.js" and "app2.js", so this compares whole
- * segments and only ever cuts at a slash. */
+/* How much of the front of every path is the same directory. Character-wise would
+ * happily cut "app" out of "app.js" and "app2.js", so this compares whole segments
+ * and only ever cuts at a slash. */
 function common_dir(paths){
 	const dirs = paths.map(path => path.split("/").slice(0, -1));
 	let shared = 0;
@@ -98,20 +84,20 @@ function nest(paths, cut){
 	return root;
 }
 
-function tree(node){
+function rows(node, selected){
 	for (const [name, child] of Object.entries(node)){
 		if (typeof child === "string")
 			div.c("file-name", () => {
 				icon("description");
 				span.c("file-label", name);
-			}).attr("data-path", child);
+			}).attr("data-path", child).ac(child === selected && "selected");
 		else
 			div.c("file-dir", () => {
 				div.c("file-dir-name", () => {
 					icon("folder");
 					span.c("file-label", name);
 				});
-				div.c("file-dir-body", () => tree(child));
+				div.c("file-dir-body", () => rows(child, selected));
 			});
 	}
 }

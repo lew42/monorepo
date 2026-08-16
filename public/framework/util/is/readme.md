@@ -1,79 +1,72 @@
 # is
 
-Type-checking helpers. All return booleans.
+Fifteen one-line type checks, all returning booleans, gathered because two call
+sites need to agree on the same answer — `View.append()`'s dispatch and
+`Page.class.js`'s child normalization both branch on *"is this an array, a
+function, a plain object, a promise?"*, and a second copy of that logic is how
+the two silently disagree.
 
 ```js
-import is from "/framework/util/is/is.js";
-// or, on a site whose app.js re-exports the framework
 import { is } from "/app.js";
+// or directly: import is from "/framework/util/is/is.js";
 ```
 
-## Helpers
+Every check has its own page in the [API tab](/framework/util/is/api/) — the
+real source, who calls it, and whether it earns its place. This file stays
+short on purpose; the table that used to live here is now fifteen pages.
 
-| helper | returns true when |
-|--------|------------------|
-| `is.arr(v)` | `Array.isArray(v)` |
-| `is.obj(v)` | truthy, typeof "object", not an array |
-| `is.str(v)` | typeof "string" (empty string → true) |
-| `is.num(v)` | typeof "number" (NaN and Infinity → true) |
-| `is.bool(v)` | exactly `true` or `false` |
-| `is.fn(v)` | typeof "function" (classes → true) |
-| `is.def(v)` | not undefined (null → true, it's a value) |
-| `is.undef(v)` | exactly undefined |
-| `is.class(v)` | constructable function (has prototype); false for arrows |
-| `is.pojo(v)` | plain object literal — constructor === Object |
-| `is.proto(v)` | is a constructor's `.prototype` object |
-| `is.promise(v)` | duck-typed thenable |
-| `is.dom(v)` | has nodeType > 0 (browser only) |
-| `is.el(v)` | has nodeType === 1 (browser only) |
-| `is.mobile()` | mobile user-agent check (browser only) |
+## Used by
 
-## Edge cases worth knowing
+Grepped across `public/`, excluding `core/new/` (a proving-ground sandbox) and
+this module's own docs:
 
-- `is.num(NaN)` → **true** — NaN is typeof "number" in JS. Use `Number.isNaN()` if you need to exclude it.
-- `is.obj(new Date())` → **true** — anything non-null, non-array, typeof "object" qualifies.
-- `is.class(function() {})` → **true** — regular functions are constructable. Only arrow functions return false.
-- `is.pojo(Object.create(null))` → **false** — no constructor means `constructor !== Object`.
-- `is.def(null)` → **true** — null is a defined value (typeof "object", not undefined).
-- `is.proto(Array.prototype)` → **false** — `Array.prototype` is itself an exotic Array, so `is.obj()` returns false for it. Known gap.
-
-## Proposed
-
-Findings from the every-member audit. **Not applied.**
-
-**Seven of the fifteen checks have zero callers.** Counted across all of
-`public/`, sandboxes included, excluding `core/new/`:
-
-| used | `is.fn` 12 · `is.def` 9 · `is.arr` 6 · `is.obj` 4 · `is.str` 2 · `is.pojo` 2 · `is.dom` 2 · `is.promise` 1 |
+| check | real callers |
 |---|---|
-| **unused** | `is.num` · `is.bool` · `is.undef` · `is.class` · `is.proto` · `is.el` · `is.mobile` |
+| `is.fn` | [View](/framework/core/View/) `append()` · [Page](/framework/core/Page/) (×3) · [ext/catalog](/framework/ext/catalog/) · [ext/demo](/framework/ext/demo/) |
+| `is.def` | [View](/framework/core/View/) — eight call sites |
+| `is.str` | [View](/framework/core/View/) · [Page](/framework/core/Page/) |
+| `is.arr` | [View](/framework/core/View/) · [Page](/framework/core/Page/) |
+| `is.pojo` | [View](/framework/core/View/) · [Page](/framework/core/Page/) |
+| `is.obj` | [View](/framework/core/View/) |
+| `is.dom` | [View](/framework/core/View/) `append_to()` |
+| `is.promise` | [View](/framework/core/View/) `append()` |
+| `is.num` `is.bool` `is.undef` `is.class` `is.proto` `is.el` `is.mobile` | none found |
 
-*Options:* (a) keep the set complete — a type-check table with holes in it is
-worse than one with spares; (b) delete the seven; (c) delete only the two that
-are actively misleading.
+The `alex/` sandbox and a handful of `ai/*/` task demos also call `is.fn` /
+`is.def` / `is.arr` on their own copies — real usage, just downstream of the
+framework rather than in it. `core/new/1/` imports `source`/`member` but not
+`is`.
 
-*Weighing:* this module's stated bar is **two callers that must agree**
-(`framework/util/page.js:20`), and by that bar seven rows fail it and one
-(`is.promise`) passes by a single caller. Against that: each is one line, they
-are pure, and the whole file is 54 lines — deleting them buys almost nothing in
-bytes and costs the property that makes the table useful, which is that you can
-guess a name and it exists.
+## Decisions
 
-Two of the seven are worse than merely unused. **`is.proto(Array.prototype)` is
-`false`** — the readme already records it as a known gap — so the check answers
-wrongly on the most obvious input anyone would try. And **`is.mobile()` is a
-user-agent sniff**, which the platform has been trying to kill for a decade; a
-container query or `pointer: coarse` is the answer to every question it gets
-asked.
+**Seven checks have zero callers in the framework itself** (table above). The
+bar this module sets for itself (`framework/util/page.js`: "two callers that
+must agree") isn't met by any of the seven, yet none of them are wrong to
+have — each is one line, pure, and the value of the table is that a caller
+can guess a name and it exists.
 
-**Recommendation: (c).** Delete `is.proto` (wrong on `Array.prototype`, no
-callers) and `is.mobile` (wrong technique, no callers, browser-only in a file
-that is otherwise environment-free). Keep `is.num`, `is.bool`, `is.undef`,
-`is.class`, `is.el` — they cost one line each and complete a table whose value
-is being complete. Record the deletions in `util/is/page.js`'s table in the same
-edit, or the page starts lying.
+Two are worse than merely unused, and are the actual recommendation:
+**`is.proto(Array.prototype)` answers `false`** on the most obvious input
+anyone would try ([its trap](/framework/util/is/api/proto/)), and
+**`is.mobile()`** is a user-agent sniff, a technique the platform has spent
+a decade trying to retire. Delete those two; keep the other five — `is.num`,
+`is.bool`, `is.undef`, `is.class`, `is.el` cost one line each and complete a
+table whose whole value is completeness. **Not applied** — a recommendation,
+not a change; see the audit at `public/framework/audit/modules/util.md`.
 
-There was an `is.node.test.js` here. It imported `../../Test/3/Test3.js`, which
-does not exist anywhere in the repo, so it threw on import and nothing imported
-it — a suite that could never have run and could never have failed. Deleted; every
-case it asserted is a row above. If a runner ever lands, this list is the spec.
+## Traps
+
+- **`is.class` does not test for the `class` keyword.** Every ordinary
+  function has a `.prototype`, so `is.class(function(){})` is `true` — only
+  arrows return `false`. `ext/doc` needed the real question and wrote its own
+  stricter check rather than trust this one: [`Doc.is_class`](/framework/ext/doc/api/is_class/).
+  Full story on [its page](/framework/util/is/api/class/).
+- **`is.num(NaN)` is `true`.** `NaN` really is `typeof "number"`.
+- **`is.proto(Array.prototype)` is `false`.** [Full story](/framework/util/is/api/proto/).
+
+## Open
+
+- Should `is.class` be renamed to say what it actually tests (`is.constructable`),
+  or should a second, stricter check join it? No caller has needed the
+  distinction yet — `Doc.is_class` solved it locally instead of importing this
+  module.

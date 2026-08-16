@@ -1,0 +1,45 @@
+/* Restated IN FULL - a short list silently misplaces `site`. */
+@layer base, theme, site, util;
+
+/* The tools that sit ON a panel rather than in its bar. Structure and placement only;
+   the BUTTON is toolbar.css's `.panel-btn`, the same box every other control wears.
+   Record: readme.md. */
+@layer theme {
+
+	/* Over the body, under the bar (3). ⚠ `inset-block-start` clears `--panel-bar-h`: the
+	   top row of arrows and the bar both want the top edge, and the bar wins — so the row
+	   sits just below it rather than underneath it. */
+	.panel-align {
+		position: absolute;
+		inset: var(--panel-bar-h) 0 0 0;
+		z-index: 2;
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		grid-template-rows: repeat(3, 1fr);
+		padding: var(--panel-tool-pad, 0.5em);
+		opacity: 0;
+		transition: opacity 0.12s;
+
+		/* ⚠ The overlay covers the whole body, so it must never hit-test — only its nine
+		   buttons do, or every click meant for the content under it dies here. */
+		pointer-events: none;
+	}
+
+	/* A cell IS its placement: the button aligns inside its own cell to the corner or edge
+	   its code names, so the grid's padding is what holds an arrow off the very corner and
+	   nothing computes a position. */
+	.panel-align > .panel-tool {
+		align-self: var(--tool-y);
+		justify-self: var(--tool-x);
+		pointer-events: auto;
+	}
+
+	/* Innermost wins, exactly as the bar does — hovering a leaf hovers every ancestor of
+	   it, and four sets of nine arrows in one box is not a tool. */
+	.panel:hover:not(:has(.panel:hover)) > .panel-align,
+	.panel:focus-within:not(:has(.panel:focus-within)) > .panel-align { opacity: 1; }
+
+	/* ⚠ `touch-action`, or the browser pans instead of scrubbing. `ew-resize` says the
+	   gesture is sideways before you try it. */
+	.panel-zoom { cursor: ew-resize; touch-action: none; }
+}

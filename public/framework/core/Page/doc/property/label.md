@@ -26,6 +26,7 @@ A parent that genuinely wants a different word in *its* list overrides at the ca
 site, where it is visible:
 
 ```js
-{ ...this.nav_for(name), label: "Overview" }    // framework/page.js:68
+const entry = this.nav_for(name);
+{ ...entry, label: "Overview" }    // framework/page.js:92,101
 ```
 

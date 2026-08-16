@@ -1,3 +1,5 @@
+import { stream, drop } from "./live.js";
+
 /**
  * An append-only .jsonl log, assembled back into object state.
  *
@@ -11,6 +13,8 @@
  * runs — so the assembled log quacks like the POJO it replaces. `log` and
  * `action` append. Reading is tolerant: a torn line or an unknown verb loses
  * that line, never the log.
+ *
+ * `load()` fetches it once; `live()` streams it from the dev server instead.
  */
 export class JSONL {
 	static verbs = ["assign", "log", "action"];
@@ -18,17 +22,29 @@ export class JSONL {
 	logs = [];
 	actions = [];
 	skipped = [];
+	unparsed = 0;
 
 	constructor(...args){ this.assign(...args); }
 	assign(...args){ return Object.assign(this, ...args); }
 
-	static parse(text){
+	/** Text in, entries out. Anything that isn't JSON lands in `bad`, never in the log. */
+	static parse(text, bad = []){
 		const entries = [];
 		for (const line of text.split("\n")){
 			if (!line.trim()) continue;
 			try { entries.push(JSON.parse(line)); }
-			catch { console.warn("JSONL: bad line skipped —", line); }
+			catch { bad.push(line); }
 		}
+		return entries;
+	}
+
+	/* ⚠ A dropped line is silent otherwise: one illegal escape in a landing line
+	   read as "still running" for a day. Counted here, warned once per file. */
+	parse(text){
+		const bad = [];
+		const entries = this.constructor.parse(text, bad);
+		if (bad.length && !this.unparsed) console.warn(`JSONL: unparsed line in ${this.url} —`, bad[0]);
+		this.unparsed += bad.length;
 		return entries;
 	}
 
@@ -37,11 +53,32 @@ export class JSONL {
 		const res = await fetch(this.url).catch(() => null);
 		if (!res?.ok || res.headers.get("content-type")?.includes("html")) return this;
 		this.loaded = true;
-		return this.read(JSONL.parse(await res.text()));
+		return this.read(this.parse(await res.text()));
 	}
+
+	/**
+	 * Stream the file over the dev socket instead of fetching it — explicit
+	 * opt-in, resolving exactly as `load()` does, then calling `changed(this)`
+	 * once per appended batch. Off localhost there is no socket and this IS
+	 * `load()`, so nothing on the site depends on the server. See live.js.
+	 */
+	live(changed){ return stream(this, changed); }
+
+	/** Stop streaming — this reader is done, or the file is never going to exist. */
+	unsubscribe(){ drop(this); return this; }
 
 	read(entries){
 		entries.forEach(entry => this.apply(entry));
+		return this;
+	}
+
+	/** Forget everything replayed — the file was rewritten, not appended to. */
+	reset(){
+		this.logs = [];
+		this.actions = [];
+		this.skipped = [];
+		this.unparsed = 0;
+		delete this.loaded;
 		return this;
 	}
 
@@ -77,6 +114,12 @@ export class TaskJSONL extends JSONL {
 
 	// One browser turn: {at, role, text}. Written by Server/plugins/Ask.js.
 	chat(value){ this.chats.push(value); }
+
+	reset(){
+		this.agents = [];
+		this.chats = [];
+		return super.reset();
+	}
 }
 
 export default JSONL;

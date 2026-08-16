@@ -1,20 +1,27 @@
 ## Usage
 
-**No caller in `public/`.** Inside the class, `ls()` (`Socket.js:129`),
-`rm()` (`Socket.js:145`) and `async_rpc()` (`Socket.js:121`) all wrap it — and
-none of those three has a caller either.
+**No direct caller in `public/`, but no longer unreached either.** Inside the
+class, `ls()` (`Socket.js:129`) and `rm()` (`Socket.js:145`) wrap it and still
+have no caller of their own. `async_rpc()` (`Socket.js:121`) also wraps it —
+and `async_rpc()` **is** called for real, by `FileSaver.write()`
+(`ext/Saver/FileSaver.js:23`) and `LayoutTool/audit/twin.js`'s `accept()`. So a
+`write` frame built by this method now leaves the browser from two live
+features: [Saver](/framework/ext/Saver/) (and its `editor`/`Panel` consumers)
+and [LayoutTool audit](/framework/ext/LayoutTool/audit/).
 
-The server half that would answer it exists and is **switched off**:
+The server half that would answer it is now wired in:
 `Server/plugins/SocketServer/Runtime.js:20-23` registers `rpc:write`, `rpc:ls`
-and `rpc:rm` handlers, and `server.js:6` reads
-`// DevSocket.Socket.use(Runtime);`.
+and `rpc:rm` handlers, and `server.js` reads `DevSocket.Socket.use(Runtime);`
+— uncommented 2026-08-15, the same day this page was written. See
+[wire](/framework/dev/Socket/docs/wire/) for the full accounting; this audit
+did not start the dev server to confirm a round trip completes.
 
 ## Necessity
 
-Currently unexercised. It is the ask-and-wait half of the protocol, and the
-mechanism is sound: a resolver is pushed onto `this.requests`, its **array index
-becomes the correlation id**, and the server echoes that index back on the reply
-(`Runtime.js:42` — `this.socket.send({ response: files, index })`).
+No longer purely theoretical. It is the ask-and-wait half of the protocol, and
+the mechanism is sound: a resolver is pushed onto `this.requests`, its **array
+index becomes the correlation id**, and the server echoes that index back on
+the reply (`Runtime.js:42` — `this.socket.send({ response: files, index })`).
 
 Using the array index as the id is a genuinely nice trick — no counter to keep
 in sync with the array, and `message()`'s lookup is a subscript. It is also

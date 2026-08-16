@@ -10,7 +10,7 @@ new Sidebar({ pages: [
 ## Usage
 
 - `Sidebar.js:86` — `nav()`, the only read: group or link, per entry.
-- `framework/page.js:25` — the real one: `pages: this.sections()`, built from
+- `framework/page.js:27` — the real one: `pages: this.sections()`, built from
   `nav_for()`.
 
 ## Necessity

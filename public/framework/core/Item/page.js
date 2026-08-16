@@ -1,4 +1,4 @@
-import { Page, md, h2, code, div, span, icon } from "/app.js";
+import { Doc, md, h2, code, div, span, icon } from "/app.js";
 import Item from "./Item.js";
 
 class DemoCard extends Item {}
@@ -117,11 +117,17 @@ function row([label, fn]){
 	);
 }
 
-export default new Page({
+export default new Doc({
 	meta: import.meta,
 	title: "Item",
 	description: "A persistent node: `data`, `items`, one saver per document.",
 	icon: "data_object",
+
+	subject: Item,
+	properties: "id data items parent saver",
+	methods: "assign get set add remove move root walk find contains on off emit save delete toJSON wire hydrate register open",
+	notes: "envelope",
+	files: "Item.js readme.md page.js",
 
 	content(){
 
@@ -135,9 +141,7 @@ doc.save();`);
 
 		code.json(`{ "type": "Item", "id": "…", "data": { }, "items": [ ] }`);
 
-		md("Those four keys are the whole wire format, `items` omitted when empty. **All user state lives under `data`** — so a key of your own called `items` cannot collide with the tree. `parent` and `saver` are instance properties and instance properties are never serialized, which makes a backref impossible by construction; hydrate restores it by adoption.");
-
-		md("`Item.register(Class, name = Class.name)` is the last line of the module that defines a block type, and the optional second argument is the rename seam — the class on this page is `DemoCard` on the wire name `demo-card`. **An unregistered type is an unimported one**, so a document's owner imports its block types explicitly. An unknown type is never dropped and never throws: it hydrates as a plain `Item` with its wire name kept, warns once, and re-saves losslessly.");
+		md("Those four keys are the whole wire format, `items` omitted when empty. **All user state lives under `data`** — so a key of your own called `items` cannot collide with the tree. `parent` and `saver` are instance properties and instance properties are never serialized, which makes a backref impossible by construction; hydrate restores it by adoption. More on the envelope, unknown types, and what's deliberately excluded: [doc/envelope](/framework/core/Item/docs/envelope/).");
 
 		h2("The verbs");
 
@@ -147,9 +151,7 @@ item.move(parent, before = null)      // reorder AND reparent — node-relative
 item.on(ev, fn)  item.emit(ev, …)     // emit bubbles up the parent chain
 item.save()  item.delete()            // delegate up to the document's saver`);
 
-		md("**`move()` is the builder's one mutation verb.** It takes a *position* — a parent and the node to sit before, `null` to append — so index arithmetic off-by-ones cannot exist, and reorder, reparent and nest are one code path. Guard a drop with `!this.contains(target)`; ten minutes of nesting otherwise produce a cycle.");
-
-		md("**`save()` delegates up.** A child has no saver, so it asks its parent, and the document's own saver writes the whole document. That is the fix for the defect the council executed: a child saving used to overwrite the document with its own subtree.");
+		md("**`move()` is the builder's one mutation verb.** It takes a *position* — a parent and the node to sit before, `null` to append — so index arithmetic off-by-ones cannot exist, and reorder, reparent and nest are one code path. Guard a drop with `!this.contains(target)`; ten minutes of nesting otherwise produce a cycle. Every verb has its own page in **API**, above, with the trap it carries.");
 
 		md("⚠ **No I/O in any constructor.** Construction is pure and synchronous. `await Item.open(saver)` is the one async entry — it loads, hydrates synchronously, attaches the saver and hands back the root.");
 
@@ -165,5 +167,7 @@ item.save()  item.delete()            // delegate up to the document's saver`);
 		Promise.all(done).then(oks => $tally.text(`${oks.filter(Boolean).length} / ${oks.length} passing`));
 
 		md("Next: [List](/framework/core/List/) — the collection behind `item.items`, and why userland never touches it.");
+
+		md.details(import.meta, "readme.md", "Design record — the council ruling, and what was cut");
 	}
 });

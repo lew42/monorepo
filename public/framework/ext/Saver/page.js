@@ -1,4 +1,5 @@
-import { Page, md, code, div, span, h2, icon } from "/app.js";
+import { Doc, md, code, div, span, h2, icon } from "/app.js";
+import Saver from "./Saver.js";
 import MemorySaver from "./MemorySaver.js";
 
 const pause = ms => new Promise(res => setTimeout(res, ms));
@@ -49,11 +50,17 @@ const line = ({ ok, label, detail }) =>
 		if (detail) span.c("muted", detail);
 	}).style({ "--gap": "0.4em", color: ok ? "var(--ok)" : "var(--error)" });
 
-export default new Page({
+export default new Doc({
 	meta: import.meta,
 	title: "Saver",
 	description: "Where a document goes. Three methods, one write queue, four backends.",
 	icon: "save",
+
+	subject: Saver,
+	properties: "writing pending",
+	methods:    "save load delete drain saving write assign",
+	notes:      "backends",
+	files:      "Saver.js FileSaver.js LocalStorageSaver.js MemorySaver.js page.js",
 
 	content(){
 
@@ -67,7 +74,7 @@ const json = await saver.load();    // the stored JSON, or null`);
 
 		h2("The queue is the whole base class");
 
-		md("`Saver` itself writes nothing. It holds **one write in flight and one pending**, and every save that arrives between them collapses into that pending slot. So a keystroke-per-save UI writes twice, not fifty times — and the save you made *during* a write is never the one that gets dropped.");
+		md("[`Saver`](/framework/ext/Saver/api/save/) itself writes nothing. It holds **one write in flight and one pending** ([`writing`](/framework/ext/Saver/api/writing/) / [`pending`](/framework/ext/Saver/api/pending/)), and every save that arrives between them collapses into that pending slot. So a keystroke-per-save UI writes twice, not fifty times — and the save you made *during* a write is never the one that gets dropped. [`drain`](/framework/ext/Saver/api/drain/) is the whole mechanism, in one re-checked `while`.");
 
 		md("These run in your browser right now:");
 
@@ -80,20 +87,13 @@ const json = await saver.load();    // the stored JSON, or null`);
 
 		h2("The four backends");
 
-		md("Each one implements the same three hooks — `load()`, `write(item)`, `delete()` — and inherits the queue.");
+		md("Each one implements the same three hooks — `load()`, `write(item)`, `delete()` — and inherits the queue above.");
 
 		md("- **`MemorySaver`** — a plain object. Counts writes in `save_count`, which is what the checks above read.\n- **`LocalStorageSaver`** — one key, one document. Guarded on `typeof localStorage`, so importing it headless is safe.\n- **`FileSaver`** — a real `.json` file on disk, over the dev socket.\n- **`Saver`** — the base, whose hooks resolve and do nothing.");
 
-		h2("FileSaver only works on localhost");
+		md("**`FileSaver` only works on localhost** — off localhost, `write()` warns once and resolves `false`; `load()` keeps working everywhere, because a `.json` file is a static asset. The full comparison, the read-only badge every real caller should show, and the one-line idiom `ext/editor`, `ext/Panel` and `dev/DevBar` each repeat to pick a backend: [backends](/framework/ext/Saver/docs/backends/).");
 
-		code.js(`const saver = new FileSaver({ path: "/data/doc.json" });   // localhost
-const saver = new LocalStorageSaver({ key: "doc" });       // anywhere`);
-
-		md("`FileSaver.write()` is a `write` RPC over [`dev/Socket`](/framework/dev/), and that socket **only connects on localhost** — production here is static hosting with no server to answer. So off localhost the write **warns once and resolves `false`**. It never throws, never retries, and never fails silently: an editor reads that `false` and shows a read-only badge.");
-
-		md("`load()` still works everywhere — a `.json` file is a static asset, so a deployed page can *read* the document it can't write. **A 404 is `null`, not an error**: the first save creates the file, and the server mkdirs the path on the way.");
-
-		md("The deployed demo therefore mounts a `LocalStorageSaver` — one visible line choosing a backend, and the public editor genuinely persists.");
+		md("Next: [Item](/framework/core/Item/) — the document this queue is meant to sit under.");
 
 		md.details(import.meta, "readme.md", "Design record — why the queue is the base class");
 	}
