@@ -1,7 +1,3 @@
-/* Layer order, restated: the FIRST declaration wins and module import
-   order decides who loads first, so every stylesheet states it. */
-@layer base, theme, site, util;
-
 /* THEME: paper — warm, serif, printed.
  *
  * Tokens only. There is not one selector in this file that names a component,

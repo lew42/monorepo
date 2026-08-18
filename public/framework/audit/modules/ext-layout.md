@@ -138,8 +138,8 @@ rather than coincidental.
 - **`files:` and `readme.md` — the skill's own worked example disagrees with its
   own reference implementation.** The skill's `page.js` template
   (`## 1. page.js`) shows `files: "View.js View.css page.js"` — no `readme.md`.
-  But `ext/doc`'s *own* `page.js` (the thing the skill tells you to read in Step
-  0) lists `files: "Doc.js doc.css page.js readme.md overview/urls/page.js"` —
+  But `ext/Doc`'s *own* `page.js` (the thing the skill tells you to read in Step
+  0) lists `files: "Doc.js Doc.css page.js readme.md overview/urls/page.js"` —
   `readme.md` included, with a `doc/file/readme.md.md` on disk to match. I
   followed the reference implementation over the worked example (readme.md is
   a real file in the module, and its own design deserves a Files-tab page like

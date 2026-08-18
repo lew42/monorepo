@@ -1,5 +1,6 @@
 import { div, span, button, icon } from "/app.js";
-import { ALIGN, COMPASS, DIR, DISPLAY, MODE, SWATCHES, TONES, glyph } from "./glyphs.js";
+import { ALIGN, COMPASS, DIR, DISPLAY, extent, LENGTHS, MODE, POSITION, SEATS, SIZES, SWATCHES, TONES, glyph } from "./glyphs.js";
+import { self_axes } from "./size.js";
 import { focused, repaint, vocab } from "./workspace.js";
 
 /* The inspector: one panel showing the FOCUSED panel's words as live controls — the wide
@@ -58,7 +59,16 @@ export function fields(target){
 	words(target, "tone", TONES, 2, SWATCHES);
 	words(target, "display", Object.keys(DISPLAY), 3, DISPLAY);
 	words(target, "align", ALIGN, 3, COMPASS);
-	words(target, "mode", Object.keys(MODE), 2, MODE);
+
+	/* Before the two size rows, because it says what they MEAN: in flow an extent is a flex
+	   basis, out of flow it is a declared box. A split is not offered it, the same withholding
+	   `mode`/`w`/`h` already make — a split gets its axis and nothing else. */
+	words(target, "position", Object.keys(POSITION), 2, POSITION);
+	size_words(target, "w", "width");
+	size_words(target, "h", "height");
+
+	// LAST, under the two rows that gate it: pick an extent and watch this grid open or close.
+	self_words(target);
 }
 
 /* One word of a set. `set()` raises `change`, which is what re-renders every inspector
@@ -72,6 +82,63 @@ const words = (target, key, names, cols, entries, shelf) => div.c("panel-props-r
 			.attr("title", name)
 			.click(() => { target.set(key, name); repaint(target); });
 	})).style("--panel-cols", cols);
+});
+
+/* Width and height: the same row `words()` draws, but a fixed extent writes TWO keys, so
+   it earns its own two lines rather than a flag on `words()` for one caller. */
+const size_words = (target, axis, tag) => div.c("panel-props-row", () => {
+	span.c("panel-props-tag", tag);
+
+	div.c("panel-props-set").append(() => SIZES.forEach(name => {
+		button.c("panel-btn", glyph(MODE[name], name))
+			.ac(extent(target, axis) === name && "on")
+			.attr("title", name)
+			.click(() => {
+				const fixed = LENGTHS.includes(name);
+				target.set(axis, fixed ? "fixed" : name);
+				if (fixed) target.set(axis + "_at", name);
+				repaint(target);
+			});
+	})).style("--panel-cols", 3);
+});
+
+/* The OTHER 3×3: `align` moves a leaf's content inside its body, `self` moves the panel
+   inside the slot its split hands it — so its picture is a frame with the panel in it, not
+   the align row's arrows again. Its columns and rows go live independently, and a button is
+   clickable only where BOTH hold: this panel does not FILL that axis, and the slot's display
+   mode lets a child place itself on it at all (`self_axes()`). Shown, never hidden — the
+   grid narrows to the strip of placements that are real, a dead button greys and says why
+   on hover, and the line underneath says it with no hover at all. Record: doc/file/size.js.md. */
+const self_words = target => div.c("panel-props-row", () => {
+	const axes = self_axes(target);
+	const code = target.get("self") ?? "tl";
+	const because = [axes.x, axes.y].filter(axis => !axis.live).map(axis => axis.why).join(" · ");
+
+	span.c("panel-props-tag", "self");
+
+	const $set = div.c("panel-props-set panel-self").style("--panel-cols", 3);
+
+	$set.append(() => ALIGN.forEach(name => {
+		const dead = (!axes.x.live && name[1] !== "c") || (!axes.y.live && name[0] !== "c");
+
+		const $btn = button.c("panel-btn", glyph(SEATS[name], name))
+			/* Only the LIVE halves decide what reads `on`. The stored code keeps whatever it
+			   said about an axis nobody can move, so a default `tl` in a flex row lights `tc` —
+			   which is where the panel genuinely is. */
+			.ac(!dead && (!axes.x.live || name[1] === code[1]) && (!axes.y.live || name[0] === code[0]) && "on")
+			.attr("title", dead ? `${name} — unavailable: ${because}` : `Sit ${name}`);
+
+		if (dead) return $btn.attr("disabled", "disabled");
+
+		$btn.click(function(){
+			$set.el.querySelectorAll(".panel-btn.on").forEach(el => el.classList.remove("on"));
+			this.ac("on");
+			target.set("self", name);
+			repaint(target);
+		});
+	}));
+
+	if (because) span.c("muted", because);
 });
 
 export default properties;

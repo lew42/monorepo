@@ -1,16 +1,16 @@
 /* Live examples for the rules. Every verdict on these pages is MEASURED by
- * ext/LayoutTool at render time, not asserted in prose — so a rule that stops
+ * ext/DesignTool at render time, not asserted in prose — so a rule that stops
  * being true stops claiming to be true. */
 
 import { View, div, p, h3, h4, span, code, table, thead, tbody, tr, th, td } from "/app.js";
-import { analyze } from "/framework/ext/LayoutTool/LayoutTool.js";
+import { analyze } from "/framework/ext/DesignTool/DesignTool.js";
 
 View.stylesheet(import.meta, "rules.css");
 
 const WORDS = "A card holds a heading and a sentence or two. The question is how much room "
 	+ "the frame should leave around them, and whether that answer changes with the width.";
 
-/* Mike's question, rendered: "when you have a card with 20px padding, that's
+/* The owner's question, rendered: "when you have a card with 20px padding, that's
  * 1000px wide, it looks off". Three widths, the same 20px, then the same three
  * with padding that scales — and the measured ratio under each. */
 export function padding_ladder(){

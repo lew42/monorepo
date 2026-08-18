@@ -46,7 +46,7 @@ never a new repo file.
 
 ## Verification bar
 
-Load `/framework/dev/Socket/docs/wire/` at 1600 in the live server: zero
+Load `/framework/dev/Socket/doc/wire/` at 1600 in the live server: zero
 console errors, no `.md-error`, no horizontal overflow, every fenced example
 verifiably from your captures (log the capture in task.jsonl as you take it).
 Leave every tap uninstalled (eval a cleanup; confirm by re-reading).

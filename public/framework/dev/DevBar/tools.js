@@ -1,32 +1,27 @@
-import { div, a, button, icon } from "../../core/View/View.js";
+import { div, a } from "../../core/View/View.js";
 import Socket from "../Socket/Socket.js";
-import { MIN, settings, rail, set } from "./settings.js";
 import { section, row, check } from "./parts.js";
 import ask from "./ask.js";
 import layout from "./layout.js";
+import structure from "./structure.js";
 
 /* What the rail shows, in order, one array per tab. Each section renders itself into
    the captor. ⚠ `layout` is alone on a tab on purpose — it is the one section that
-   downloads 45KB and measures the page, and a tab nobody opened does neither. */
+   downloads 45KB and measures the page, and a tab nobody opened does neither.
+   ⚠ There is no `viewport` section any more: its four presets and its three number
+   rows were the same state as the layout tab's readout, on a different screen and
+   in a different unit. Both live in the head now — width.js. */
 export const tabs = [
-	["page", [viewport, route, server, xray, jump]],
+	["page", [route, server, xray, structure, jump]],
 	["layout", [layout]],
 	["ai", [ask]],
-];
-
-// icon, the page width it aims at, what to call it.
-const SIZES = [
-	["smartphone", 390, "mobile"],
-	["tablet", 810, "tablet"],
-	["desktop_windows", 1920, "desktop"],
-	["tv", 3440, "mega"],
 ];
 
 const LINKS = [
 	["/framework/", "framework"],
 	["/framework/ai/", "ai log"],
 	["/framework/styles/", "styles"],
-	["/framework/ext/LayoutTool/", "layout tool"],
+	["/framework/ext/DesignTool/", "layout tool"],
 	["/web/", "web"],
 ];
 
@@ -45,47 +40,6 @@ function route(app){
 
 		row("page", page?.title ?? "—");
 	});
-}
-
-/* The window in `em` is the number this site's layouts are actually written in —
-   every breakpoint, measure and column token is em off the body clamp. */
-function viewport(){
-	const px = parseFloat(getComputedStyle(document.body).fontSize);
-
-	section("viewport", () => {
-		sizes();
-		row("size", `${innerWidth} × ${innerHeight}`);
-		row("font", `${px.toFixed(1)}px`);
-		row("em", `${(innerWidth / px).toFixed(1)}em`);
-	});
-}
-
-/* The rail is the only thing between the window and the page, so sizing the PAGE is
-   sizing the rail: `innerWidth - target`. A target this window cannot hold has no
-   rail width that reaches it — that button says so rather than quietly missing.
-
-   ⚠ Lit off `settings.width`, not off a measurement: `.app` eases its push over
-     0.18s, so anything measured right after a click reads mid-transition. */
-function sizes(){
-	const marks = [];
-	const mark = () => marks.forEach(([$size, target]) =>
-		$size.rc("on").ac(settings.width === innerWidth - target && "on"));
-
-	div.c("dev-sizes flex gap", () => SIZES.forEach(([name, target, label]) => {
-		const width = innerWidth - target;
-		const $size = button.c("dev-size", () => icon(name)).attr("aria-label", `${label} — ${target}px`);
-		marks.push([$size, target]);
-
-		if (width < MIN){
-			$size.attr("title", `${label} ${target} — needs a ${target + MIN}px window`);
-			$size.el.disabled = true;
-		} else {
-			$size.attr("title", `${label} — ${target}px`);
-			$size.click(() => { set({ width: rail(width) }); mark(); });
-		}
-	}));
-
-	mark();
 }
 
 function server(){

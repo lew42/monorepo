@@ -1,5 +1,5 @@
 The usage windows as pace meters — `usage_rail(u)` renders one `.ai-meter`
-per limit in a `usage.json` snapshot. Full read: [pace](/framework/ext/AITask/docs/pace/).
+per limit in a `usage.json` snapshot. Full read: [pace](/framework/ext/AITask/doc/pace/).
 
 ## The one DOM-after-tick trap this file names for itself
 

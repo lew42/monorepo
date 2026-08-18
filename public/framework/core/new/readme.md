@@ -52,11 +52,11 @@ for the actual cost of keeping each one.
 Grepped across `public/`: zero live imports. Every hit outside `core/new/` itself
 is a citation — `core/App/readme.md`, `core/View/readme.md`, `core/Router/doc/measured.md`,
 `util/is/readme.md`, `util/source/readme.md`, `ext/markdown/readme.md`,
-`ext/LayoutTool/audit/pages.js` (which explicitly excludes these sketches from its
+`ext/DesignTool/audit/pages.js` (which explicitly excludes these sketches from its
 crawl), and the framework readme's `instanceof` trap, which names this exact
 directory as the hazard. `core/page.js` does not list `new` in its `children:`,
 so this tree is deliberately outside the live site's navigation, the same way
-`ext/LayoutTool`'s audit deliberately excludes it — not an oversight to fix by
+`ext/DesignTool`'s audit deliberately excludes it — not an oversight to fix by
 adding a link, but the existing convention for a proving ground.
 
 ## Running one

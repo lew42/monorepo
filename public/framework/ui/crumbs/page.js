@@ -1,4 +1,4 @@
-import { Page, md, demo, div, a, span, icon } from "/app.js";
+import { Page, md, demo, div, a, span, icon, h2 } from "/app.js";
 
 // The template, verbatim — rendered on the stage AND printed as the source, so the
 // code on the page is the code that ran.
@@ -20,6 +20,13 @@ const chevrons = () => div.c("ui-crumbs flex wrap v-center gap", () => {
 		a.c("page-link", url.split("/").at(-2)).href(url);
 	});
 }).style("--gap", "0.3em");
+
+/* The card's own context — the trail above the page heading it belongs to, since
+   the trail alone was one thin line at zoom-50 (wall-polish, 2026-08-17). */
+const context = () => div.c("pad flex v gap", () => {
+	crumbs();
+	h2("Breadcrumbs");
+}).style("--gap", "0.4em");
 
 export default new Page({
 	meta: import.meta,
@@ -55,5 +62,5 @@ export default new Page({
 		md("Next: [Pagination](/framework/ui/pagination/) — the same row, with a current item.");
 	},
 
-	preview(nav){ return this.preview_card(nav, () => div.c("zoom-50 pad", crumbs)); },
+	preview(nav){ return this.preview_card(nav, () => div.c("zoom-50", context)); },
 });

@@ -1,4 +1,4 @@
-# ext/doc
+# ext/Doc
 
 **The module this audit was built to create, audited by the session that wrote it —
 so read this one knowing its author is not independent.** `Doc extends Page` turns a
@@ -10,7 +10,7 @@ as sub sections. It replaced `ext/classdoc` on 2026-08-15.
 
 | | |
 |---|---|
-| files | 5 module files (`Doc.js` 216, `doc.css` 82, `page.js`, `readme.md`, one overview page) |
+| files | 5 module files (`Doc.js` 216, `Doc.css` 82, `page.js`, `readme.md`, one overview page) |
 | callers | 6 at migration (`core/View`, `core/Page`, `core/App`, `core/Router`, `core/Sidebar`, `dev/Socket`), ~25 after the audit |
 | docs | readme, 3 notes, 8 method pages, 1 property page, 5 file docs |
 

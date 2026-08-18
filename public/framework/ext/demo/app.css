@@ -1,6 +1,3 @@
-/* Restated IN FULL — a short list silently misplaces `site`. */
-@layer base, theme, site, util;
-
 /* A window on a board: a url strip, an optional rail, and the region a page
    mounts in. Quiet on purpose — everything interesting inside it is a real page
    wearing the real classes, and chrome that competed with it would be noise. */
@@ -68,7 +65,7 @@
 	   template, exiling every child to implicit columns. 52em is far past any box
 	   this size, so the `100%` arm already wins. */
 	/* ⚠ Three classes on purpose: outer chrome retunes the same tokens with two
-	   (ext/doc zeroes `--gutter-x` for its section), and a page inside a demo app
+	   (ext/Doc zeroes `--gutter-x` for its section), and a page inside a demo app
 	   must answer to the demo app, not to whatever surrounds it. */
 	.demo-app .demo-app-pages .page.standard { --gutter-x: 1.2em; --pad-y: 1.2em; }
 

@@ -31,7 +31,7 @@ live update reach in with a child selector instead of holding a reference.
 const on = document.documentElement.classList.contains(cls);
 ```
 
-Consistent with [docking](/framework/dev/DevBar/docs/docking/)'s rule that a
+Consistent with [docking](/framework/dev/DevBar/doc/docking/)'s rule that a
 knob's class *is* the state: a redraw asks `<html>` rather than being told,
 so there's nothing here that can go stale relative to what's actually
 applied.

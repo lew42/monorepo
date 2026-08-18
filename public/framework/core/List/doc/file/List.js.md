@@ -1,7 +1,7 @@
 The class, entire — 57 lines, zero imports, headless. Ten methods and one
 getter over one array (`children`), plus `owner` for the adoption trick that
 lets `Item` treat `parent` as always-an-Item. See
-[doc/adoption](/framework/core/List/docs/adoption/) for why that indirection
+[doc/adoption](/framework/core/List/doc/adoption/) for why that indirection
 exists.
 
 ## What's genuinely here versus what's a wrapper
@@ -25,9 +25,9 @@ gap.
 ## Improvements
 
 1. **`Symbol.iterator` is invisible to the API tab** — see above. Not fixable
-   inside this file (it's a `Doc`/`ext/doc` limitation), but worth flagging so
+   inside this file (it's a `Doc`/`ext/Doc` limitation), but worth flagging so
    whoever tightens `Doc.member()` next has a real example to test against.
-   *(medium, useful — belongs to `ext/doc`, not this module.)*
+   *(medium, useful — belongs to `ext/Doc`, not this module.)*
 2. **`assign()` is a byte-for-byte duplicate of `Item.assign()`.** Both are
    `Object.assign(this, ...args)`. Not worth a shared base for two lines today,
    but if a third persistence class appears wanting the same constructor

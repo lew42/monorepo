@@ -141,7 +141,7 @@ console errors 0`);
 		section("What the library found, none of it mine");
 
 		code(`
-util/source/source.js   source(fn) printed a FRAGMENT          FIXED by Mike
+util/source/source.js   source(fn) printed a FRAGMENT          FIXED by the owner
 site/forms/field.js     every url under /forms/ threw          FIXED by that seat
 site/content/           loaded a content.css that did not exist FIXED by its author
 site/styles.css         a full page with no region hides its child   accepted, deferred

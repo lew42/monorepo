@@ -25,7 +25,7 @@ those four undocumented as prose alone in a note.
    Not this file's bug — `Doc.member_page()`'s `patched()` check — but it is
    this file's declaration (`subject: md`) that exercises it on a live page.
    See the audit report's top recommendation. *(medium, important — belongs
-   to `ext/doc`, not here)*.
+   to `ext/Doc`, not here)*.
 2. **No `overview:` rail split.** The Overview is one `content()` with five
    demos in a row rather than several sibling `overview:` cards. Acceptable
    at this size (five short demos read fine as one scroll), but the module

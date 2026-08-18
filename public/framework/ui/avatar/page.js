@@ -10,9 +10,6 @@ const stack = () => div.c("ui-avatars", () => {
 	span.c("ui-avatar wash", "+4");
 });
 
-const sizes = () => div.c("flex gap v-center", () => [1.5, 2.5, 4].forEach(size =>
-	span.c("ui-avatar", "ML").style("--avatar", size + "em")));
-
 const photos = () => div.c("flex gap v-center", () => {
 	span.c("ui-avatar", () => img().attr("src", FACE).attr("alt", ""));
 	span.c("ui-avatar", () => img().attr("src", FACE).attr("alt", "")).style("--avatar", "3.5em");
@@ -25,11 +22,8 @@ export default new Page({
 	icon: "account_circle",
 
 	children: [
-		demo.page("sizes", sizes, {
-			note: "`.style(\"--avatar\", \"4em\")`. One declaration serves a 1.5em chip and a 4em profile header — there is no `size` option and no `small`/`large` variant, because a variant class would have to pick the sizes for you and a token lets the caller." }),
-
 		demo.page("photos", photos, {
-			note: "`overflow: hidden` and `object-fit: cover` on the child are already in the class, so an `img` needs nothing — and the initials stay the alt path rather than becoming a second component." }),
+			note: "`overflow: hidden` and `object-fit: cover` on the child are already in the class, so an `img` needs nothing — and the initials stay the alt path rather than becoming a second component. The second circle is `--avatar: 3.5em`: **size is a token, never a variant** — there is no `small`/`large`, because a variant class would have to pick the sizes for you." }),
 	],
 
 	content(){

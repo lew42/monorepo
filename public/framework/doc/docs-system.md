@@ -32,7 +32,7 @@ class written where `owns_url` is known, plus a `:not(.tab-default)` in the CSS.
 and unnoticed for as long as tabs have existed, which is what a flat bar with one member
 does to your eye.
 
-`ext/doc/doc/rail.md` has the reversal in full: the "no overflow handling" objection
+`ext/Doc/doc/rail.md` has the reversal in full: the "no overflow handling" objection
 was about a *horizontal* bar, and a vertical one handles twenty names fine.
 
 ## Trap: sticky needs a scrolling ancestor and a grid item that isn't stretched

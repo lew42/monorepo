@@ -32,7 +32,7 @@ export default new Page({
 
 		md("## Four layers");
 
-		md("```css\n@layer base, theme, site, util;\n```\n\n| layer | holds | |\n| --- | --- | --- |\n| [`base`](/framework/styles/layers/base/) | the reset — ten rules fixing browser defaults | never a look |\n| [`theme`](/framework/styles/layers/theme/) | tokens + the default look; components add here too | **this is a theme**, the one you get free |\n| [`site`](/framework/styles/layers/site/) | `/styles.css` — this site's skin | beats the framework at *any* specificity |\n| [`util`](/framework/styles/layers/util/) | opt-in classes | last, because you typed `.pad` on purpose |\n\nEvery stylesheet restates that line **in full**. The first `@layer` statement fixes the order, and a name that first appears later is appended at the *end* — so one short list anywhere would silently drop `site` past `util`.");
+		md("```css\n@layer base, theme, site, util;\n```\n\n| layer | holds | |\n| --- | --- | --- |\n| [`base`](/framework/styles/layers/base/) | the reset — ten rules fixing browser defaults | never a look |\n| [`theme`](/framework/styles/layers/theme/) | tokens + the default look; components add here too | **this is a theme**, the one you get free |\n| [`site`](/framework/styles/layers/site/) | `/styles.css` — this site's skin | beats the framework at *any* specificity |\n| [`util`](/framework/styles/layers/util/) | opt-in classes | last, because you typed `.pad` on purpose |\n\nThat line lives once, in `framework.css`, which `app.js` loads first in every document — so no other stylesheet restates it. A rule just names its layer; a name outside the four is appended at the *end*, past `util`.");
 
 		md("## Escalation is a ratchet");
 
@@ -60,6 +60,6 @@ export default new Page({
 
 		md("Next: [Layers](/framework/styles/layers/) — the four layers, one page per layer.");
 
-		md.details(import.meta, "readme.md", "Design record — the ladder, the cascade, the audits");
+		md.details(import.meta, "readme.md", "Readme");
 	}
 });

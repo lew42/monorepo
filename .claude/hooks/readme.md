@@ -16,7 +16,8 @@ only answers questions never opens one, and that is correct.
 | Event | Wired as | Appends |
 | --- | --- | --- |
 | `SessionStart` | matcher `resume` | `{"log": {…, "msg": "session resumed"}}`. A fresh start appends nothing — the launch `assign` already says it. |
-| `PostToolUse` | matcher `Edit\|Write\|NotebookEdit` | `{"action": {…, "did": "edit", "files": ["<repo-relative>"]}}`, **once per file per task**. |
+| `PostToolUse` | matcher `Edit|Write|NotebookEdit` | `{"action": {…, "did": "edit", "files": ["<repo-relative>"]}}`, **once per file per task**. |
+| `PostToolUse` | matcher `Skill` | `{"log": {…, "msg": "skill: <name>"}}` — every skill call, so trigger skills are auditable. |
 | `Stop` | every turn | Nothing. Reads merged `assign` state and blocks with `{"decision": "block", "reason": …}` when `steps` exist, `step < steps.length`, and there is no `landed_at`. |
 | `SessionEnd` | every reason | `{"log": {…, "msg": "session ended (<reason>) without landing"}}`, only when `landed_at` is absent. |
 
@@ -64,7 +65,8 @@ what makes a bare `node` safe from a PowerShell-spawned process):
     { "matcher": "resume", "hooks": [ { "type": "command", "command": "node", "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/ledger.mjs", "session-start"], "timeout": 15 } ] }
   ],
   "PostToolUse": [
-    { "matcher": "Edit|Write|NotebookEdit", "hooks": [ { "type": "command", "command": "node", "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/ledger.mjs", "post-tool-use"], "timeout": 15 } ] }
+    { "matcher": "Edit|Write|NotebookEdit", "hooks": [ { "type": "command", "command": "node", "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/ledger.mjs", "post-tool-use"], "timeout": 15 } ] },
+    { "matcher": "Skill", "hooks": [ { "type": "command", "command": "node", "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/ledger.mjs", "post-tool-use"], "timeout": 15 } ] }
   ],
   "Stop": [
     { "hooks": [ { "type": "command", "command": "node", "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/ledger.mjs", "stop"], "timeout": 15 } ] }

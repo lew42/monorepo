@@ -1,107 +1,25 @@
-# demo
+# demo — show the code and run it from one source; the site's one example mechanism, for any page that shows a thing
 
-Show the code, run it, and let the reader push it around — from **one** source.
-`demo(fn)` stringifies `fn` *and calls it*, so the code shown and the thing
-rendered cannot be two different things.
+## Use
+```js
+import { demo } from "/app.js";
 
-## Four doors
-
-| | |
-|---|---|
-| `demo(fn)` | a quoted example inside a page about something else — code pane, render, caption, `<>` HTML pane |
-| `demo.stage(fn)` | the render on its own: the site's one resizable viewport. `.two(fn)` is its two-up mode |
-| `demo.exhibit({…})` | a detail PAGE: the stage, a layout bar wired to it, the definition open below |
-| `demo.app(tree)` | a `Page` tree playing App and Router inside a box |
-
-Everything else is one of those with its config filled in:
-
-- **`demo.page(name, fn, config)`** — a function as a demo page (`exhibit.js`)
-- **`demo.tree(config)`** — a site tree as one (`exhibit.js`)
-- **`demo.layout(config)`** — a whole page as one, with `twin:` and `parts:` (`layout.js`)
-- **`demo.source(fn | string)`** — the code, closed, below a render (`demo.js`)
-- **`sample(root)`** — the shared nine-child fictional site, for anything needing *a* tree
-
-## The files
-
+demo(() => { h1("Hello"); }, "Caption — the code shown IS the code that ran.");
+demo.stage(hero);                                                    // the render alone: the one resizable viewport
+demo.exhibit({ page: this, stage: s => demo.stage(hero, s), def: hero });   // a detail page: stage, layout bar, definition
+demo.app(sample());                                                  // a Page tree playing App and Router in a box
 ```
-demo.js       demo(), demo.stage(), demo.stage.two(), demo.source()
-stage.js      the three boxes, the strip, the handle, the ruler — one viewport
-two.js        the two-up: one builder, two simulated widths, one handle
-exhibit.js    demo.exhibit() + demo.page() + demo.tree()
-layout.js     demo.layout() — a whole page as a demo page
-app.js        demo.app() — App and Router for one in-memory tree
-twin.js       the two-pane card: a 390 phone beside a 3440 monitor
-sample.js     the shared sample tree
-```
+`demo.page()`, `demo.tree()`, `demo.layout()` are exhibit sugar; `demo.source()` is the closed code block under a render — all seven at [/framework/ext/demo/api/](/framework/ext/demo/api/).
 
-## Who uses it
+## Watch out
+- A div is not a viewport: a `@media` query inside an example ignores the handle and the simulated width; only an iframe would — [doc/record.md](./doc/record.md) §6.
+- The three boxes `.demo-stage › .demo-screen › .demo-render` cannot be merged: `overflow` on the wrong one clips the handle or every render — [doc/decisions.md](./doc/decisions.md).
+- `stage.js` must not import `demo.js` (a cycle breaks only on deep reloads), and `demo/` imports neither markdown nor highlight — feature-test, don't import — [doc/decisions.md](./doc/decisions.md).
+- The API tab's "Replaced at runtime" banner is wrong on all seven members: unnamed member-expression assignments — [doc/decisions.md](./doc/decisions.md).
 
-Framework-wide — this is the site's one example mechanism, not a module some
-pages opt into. Live counts (excluding this directory and the dead `core/new/`
-tree): `demo()` in ~61 files, `demo.stage()` in 35, `demo.exhibit()` in 31,
-`demo.tree()` in 28, `demo.page()` and `demo.layout()` in 23 each, `demo.app()`
-in 17, `demo.source()` in 3. Every page under [Layouts](/framework/styles/layouts/),
-[Sections](/framework/styles/sections/), [Components](/framework/ui/), the
-[Page overview](/framework/core/Page/) and [`/web/`](/web/) is built on one of
-these doors. Enumerating each caller one line at a time (the usual form of this
-section) would be a wall exceeding this module's own doctrine against walls —
-the meaningful fact is the count, and that it touches nearly every catalog leaf
-on the site. A caller worth naming individually: [Form field](/framework/ui/field/)
-is the one place `demo.exhibit({ page })`'s Variants wall gets three levels deep.
-
-## Three things that will bite you
-
-- **A div is not a viewport.** Everything intrinsic responds to the handle and to a
-  simulated width — `auto-fit`, `%`, `flex-wrap`, container queries. A
-  `@media (max-width: 45em)` inside an example does **not**: it asks the browser
-  viewport, which did not move. Drag a demo to 390px and it still shows its desktop
-  branch. The fix, when it is wanted, is an iframe; the cost is in `doc/record.md` §6.
-- **The three boxes cannot be merged.** `.demo-stage` › `.demo-screen` › `.demo-render`.
-  `overflow` on the stage clips the handle that hangs over its edge (measured: the
-  drag stopped working); `overflow-x` on the render forces `overflow-y` off `visible`
-  for every demo on the site.
-- **`stage.js` emits `.demo-btn`, which `demo.css` owns.** It cannot import `demo.js` —
-  `demo.js` imports it, so the pair would be a cycle, and a cycle breaks only on deep
-  reloads. The class arrives with whoever built the stage.
-- **⚠ The API tab's "Replaced at runtime" banner is wrong on all seven members.**
-  `demo.stage = (fn) => {…}` and the other six are function expressions assigned to a
-  *member* expression, which never gets its name inferred (confirmed:
-  `demo.stage.name === ""`) — so `Doc`'s `patched()` check (`fn.name !== name`) reads
-  every one of them as a runtime patch, when none of them are. Filed as the audit's
-  top recommendation; the fix is in `demo.js` / `exhibit.js` / `app.js` / `layout.js`
-  (name each assignment: `demo.stage = function stage(fn){…}`), not in this readme.
-
-## Two soft dependencies, and why they stay soft
-
-`demo/` imports neither `ext/markdown` nor `ext/highlight`, and works better with
-each: `view.md ? … : …`, `code[lang] ? … : …`, `code.file ? … : fetch(…)`. Each ext
-patches its target at import time, so **the feature test is the dependency check**.
-An ext may lean on an ext; only core may never.
-
-`ext/layout` is the exception and is hard-imported by `exhibit.js`: it is the site's
-one control surface, and a bar every page has to remember is a bar half the detail
-pages would not have.
-
-## Open
-
-- **`demo.tree()` and `demo.layout()` are both config-only page factories over
-  `demo.exhibit()`, `demo.page()` is a name-first triple.** Worth deciding whether
-  that's a real inconsistency or two legitimately different shapes — the audit
-  takes a position.
-- **A tall bare stage letterboxes on a wide monitor** (`demo.tree()` with an
-  explicit `height:`, `doc/record.md` §19.6) — unfixed, the cap belongs on the
-  tree, which is the thing that knows it wanted a window.
-- **The definition column doesn't stick** beside a tall render on a wide screen —
-  `position: sticky` is three lines and no asker yet (§19.6).
-- **A div is still not a viewport** (see Traps) — the iframe that would fix it is
-  costed but deliberately not built (§6).
-
-Full list, with every reversal and measurement: `doc/record.md`'s own Open
-subsections (§16, §18, §19.6, §21).
-
-## The long form
-
-[`doc/record.md`](doc/record.md) — twenty sections of question → options → weighing →
-verdict: the HTML pane, the toolbar, the width presets and the reversal that moved
-them into the stage's own strip (§17 → §20), the two-up's 800ms → 2ms drag, the
-exhibit band's measurements at 390/810/1440/3440, and every open question.
+## More
+- [Overview](/framework/ext/demo/) · [API](/framework/ext/demo/api/) — the seven doors, each with its real source
+- [doc/record.md](./doc/record.md) — twenty sections of question → options → verdict: the HTML pane, the toolbar, the width presets, the two-up's drag, the exhibit band at 390/810/1440/3440, every open question
+- [doc/decisions.md](./doc/decisions.md) — the retired readme: who uses it (counts), trap detail, the two soft dependencies, open items
+- `doc/method/*.md`, `doc/file/*.md` — one page per door and per file (the Doc's `methods:` / `files:`)
+- Files that matter: `demo.js` (demo, stage, source), `exhibit.js` (exhibit, page, tree), `stage.js` (the one viewport)

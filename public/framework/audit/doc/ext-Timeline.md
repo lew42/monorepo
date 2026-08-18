@@ -8,7 +8,7 @@ place as a *live* module: nothing on the site renders one. It was wired into
 `framework/ai/page.js` for a few hours on 2026-08-14 and was deliberately
 replaced the same day by `ext/AITask`'s step/cost card rail — `ai.js`, this
 module's own AI-log adapter, has zero callers today. The single most
-important thing to do to it: **decide, with Mike, whether `ai.js` gets
+important thing to do to it: **decide, with the owner, whether `ai.js` gets
 re-wired or deleted** — a correct, unreachable adapter is a standing trap for
 the next reader, who will otherwise re-derive "wait, does anything call
 this?" from scratch. Second most important: a real packing bug in `lay()`

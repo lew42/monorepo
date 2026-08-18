@@ -1,6 +1,3 @@
-/* Layer order, restated IN FULL — a short list silently misplaces `site`. */
-@layer base, theme, site, util;
-
 @layer theme {
 
 	.demo-sims { display: flex; align-items: flex-start; }

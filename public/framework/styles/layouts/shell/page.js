@@ -8,7 +8,6 @@ export default new Page(demo.layout({
 	icon: "view_quilt",
 	group: "Apps",
 
-	card: "tall",
 
 	twin: true,
 	parts: "header toolbar rail aside footer",

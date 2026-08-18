@@ -10,7 +10,7 @@ by name from the server through `message()`'s method lookup.
 { "method": "eval_result", "args": ["<token>", { "value": "\"Page\"" }] }
 ```
 
-The server correlates by token with a 10s timeout — [wire](/framework/dev/Socket/docs/wire/)
+The server correlates by token with a 10s timeout — [wire](/framework/dev/Socket/doc/wire/)
 documents both directions and the correlation.
 
 ## Necessity

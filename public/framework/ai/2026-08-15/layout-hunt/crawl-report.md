@@ -6,7 +6,7 @@ Deliverables: `scan.jsonl` (672 lines: url · width · score · grade · nodes �
 
 ## The page list, de-drifted
 
-Old hand-typed list: 2 dead urls (`ext/classdoc` renamed to `ext/doc`, still linked from five ai log pages), **63 pages missing** — all of `/notes/` and `/web/`, every ai day, `/framework/audit/`, the root. Beyond page.js dirs the routable surface is ~561 urls: `ext/doc` mints one per member/file (225), ai task pages render from task.jsonl with no directory (154). Stratified 42-url sample: ai task pages are the worst family (median 42–50), doc api/docs/files members 52–72, doc notes 90–94.
+Old hand-typed list: 2 dead urls (`ext/classdoc` renamed to `ext/Doc`, still linked from five ai log pages), **63 pages missing** — all of `/notes/` and `/web/`, every ai day, `/framework/audit/`, the root. Beyond page.js dirs the routable surface is ~561 urls: `ext/Doc` mints one per member/file (225), ai task pages render from task.jsonl with no directory (154). Stratified 42-url sample: ai task pages are the worst family (median 42–50), doc api/docs/files members 52–72, doc notes 90–94.
 
 ## The 20 worst (min score across 400/1920/3440) — UNDER THE V1 RULES
 
@@ -31,7 +31,7 @@ Old hand-typed list: 2 dead urls (`ext/classdoc` renamed to `ext/doc`, still lin
 | 17 | 26 | /framework/ai/2026-08-13/manifest-vs-log/ | 26/67/67 | rhythm — 13× |
 | 18 | 26 | /framework/core/Page/ | 26/46/46 | rhythm — 12.8× |
 | 19 | 27 | /framework/ext/LayoutTool/ | 46/27/27 | zero-size — 0×0 box holding text |
-| 20 | 28 | /framework/ext/doc/ | 28/57/57 | rhythm — 10.4× |
+| 20 | 28 | /framework/ext/Doc/ | 28/57/57 | rhythm — 10.4× |
 
 400px is the worst width (57 F of 182); 3440 the best median (partly structural: dead-space caps at medium, so a widescreen miss costs at most ~4 points).
 
@@ -62,7 +62,7 @@ All four score-affecting guards together: **median 66 → 79, F grades 269/854 �
 - Recurring chosen edges (+8px bisect grain, 15px scrollbar): 840→52em, 896→56em, 976→60em, 1032→64em, 648→40em.
 - Edges nobody chose, recurring: **368px** (5 pages), **624px** (4), **1080px** (3), **1272px** (5).
 - Method caveat: most edges are a single borderline rule crossing its threshold (at 1272px five pages "changed" only because `line-height` dropped out). Signature treats rule presence as discrete; real rearrangements would move `cut` count or scroll flag, which barely move. `frame()` is deterministic (6/6 repeats identical); this is a signature-design issue.
-- Three sweeps hung (`ext/LayoutTool`, `ext/doc`, `ai/2026-08-12/apps/navigation`) — in-page `sweep()` via `page.evaluate` has no timeout; wire a timeout before the audit page ever calls sweep.
+- Three sweeps hung (`ext/LayoutTool`, `ext/Doc`, `ai/2026-08-12/apps/navigation`) — in-page `sweep()` via `page.evaluate` has no timeout; wire a timeout before the audit page ever calls sweep.
 
 ## Anomalies
 

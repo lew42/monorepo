@@ -16,7 +16,7 @@ this is the handle to it.
 
 Everything below it is a **name** until the Router walks there. Nothing recurses
 the tree at boot, so `app.root` is not a registry and cannot be used as one.
-[adoption](/framework/core/App/docs/adoption/).
+[adoption](/framework/core/App/doc/adoption/).
 
 ## Simplicity
 

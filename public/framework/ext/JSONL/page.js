@@ -10,7 +10,7 @@ export default new Doc({
 	subject: JSONL,
 	properties: "verbs logs actions skipped loaded offset unparsed",
 	methods:    "parse load live unsubscribe read apply log action skip reset",
-	notes:      "task-jsonl live",
+	notes:      "task-jsonl live decisions",
 	files:      "JSONL.js live.js page.js readme.md",
 
 	overview: [
@@ -32,7 +32,7 @@ agent(value){
 				p(`${task.agents.length} agent — ${task.agents[0].outcome}, ${task.agents[0].tokens.toLocaleString()} tokens`);
 			}, "Dispatched once, landed later — merged by task into one row, never two.");
 
-			md("`chat` (one browser turn) and a `steps`/`step` progress pair follow the same rule: an extra verb or an extra assigned field, never a second file. [TaskJSONL](/framework/ext/JSONL/docs/task-jsonl/) has the full shape, including the subclassing trap the static `verbs` list sets.");
+			md("`chat` (one browser turn), `shot` (one screenshot taken outside the repo — path, url, viewport width, label), and a `steps`/`step` progress pair follow the same rule: an extra verb or an extra assigned field, never a second file. [TaskJSONL](/framework/ext/JSONL/doc/task-jsonl/) has the full shape, including the subclassing trap the static `verbs` list sets.");
 		} },
 		{ title: "Streaming", icon: "sensors", description: "A real task.jsonl, streamed from the dev server.", content(){
 
@@ -82,6 +82,6 @@ await task.live(show);   // resolves like load(), then calls show() per appended
 
 		md("Next: [AITask](/framework/ext/AITask/) — the viewer these logs feed.");
 
-		md.details(import.meta, "readme.md", "Design record — the verb format, the traps, and who uses it");
+		md.details(import.meta, "readme.md", "Readme");
 	}
 });

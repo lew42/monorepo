@@ -13,7 +13,7 @@ export default new Page({
 
 		section("The ranked list — status after eleven applied changes");
 
-		note("Independently means: no seat could read another's work when it wrote this. Rank is seat count first, then how cheap the fix is. **Re-run after Master Mike applied eleven changes** — seven requests closed, one was ruled deliberately half-open, eleven survive. Verified against the source, not against the changelog.");
+		note("Independently means: no seat could read another's work when it wrote this. Rank is seat count first, then how cheap the fix is. **Re-run after the owner applied eleven changes** — seven requests closed, one was ruled deliberately half-open, eleven survive. Verified against the source, not against the changelog.");
 
 		ledger(["#", "request", "seats", "status"], [
 			["1", "**Something runs after a navigation completes.** Six seats, and three named three different lines.", "**6**", "**HALF CLOSED, on purpose.** `Router.activate()` now ends `this.app.navigated?.(page)`. `Page.entered()` refused as a separate request — the right call, see below."],

@@ -16,7 +16,7 @@ Essential. It is the only place `history.pushState` is called, and the only plac
 that decides a url is not ours after all.
 
 There is no synchronous *"is this a real page"* gate and there cannot be one — see
-[registry gate](/framework/core/Router/docs/registry-gate/). `location.assign(url)` is the honest fallback:
+[registry gate](/framework/core/Router/doc/registry-gate/). `location.assign(url)` is the honest fallback:
 a full page load, which is what would have happened without the framework.
 
 ## Simplicity

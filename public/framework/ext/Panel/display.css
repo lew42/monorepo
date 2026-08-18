@@ -1,6 +1,3 @@
-/* Restated IN FULL - a short list silently misplaces `site`. */
-@layer base, theme, site, util;
-
 /* `display` on a panel: the mode classes, layout only; and the overlay that draws them,
    structure only — never a colour of its own, always a token. Record: readme.md. */
 @layer theme {
@@ -19,8 +16,15 @@
 		inset: var(--panel-bar-h) 0 0 0;
 		z-index: 1;
 		overflow: hidden;
+		opacity: 0;
+		transition: opacity 0.12s;
 		pointer-events: none;
 	}
+
+	/* Innermost wins, exactly as the align grid and the bar do — otherwise every ancestor
+	   of a hovered leaf draws its own axis line and badges on top of one another. */
+	.panel:hover:not(:has(.panel:hover)) > .panel-display,
+	.panel:focus-within:not(:has(.panel:focus-within)) > .panel-display { opacity: 1; }
 
 	.panel-display-axis {
 		position: absolute;

@@ -10,7 +10,7 @@ export default new Doc({
 
 	subject: Ask,
 	methods: "ask thread start available",
-	notes: "task process fork shot record",
+	notes: "task process fork shot record decisions",
 	files: "Ask.js ask.css chat.js page.js readme.md",
 
 	content(){
@@ -56,9 +56,9 @@ await start("fix the audit page's severity sort", { group: "layout" });  // scaf
 | \`on\` | \`{text}\` / \`{tool}\` as the turn streams |
 | \`model\`, \`tools\` | per call; \`tools: ""\` is a pure-text turn |`);
 
-		md("See it live: the compose box on [the board](/framework/ai/), the thread panel in the [dev rail](/framework/dev/DevBar/), or [vision](/framework/ext/LayoutTool/) asking a second opinion about a layout report.");
+		md("See it live: the compose box on [the board](/framework/ai/), the thread panel in the [dev rail](/framework/dev/DevBar/), or [vision](/framework/ext/DesignTool/) asking a second opinion about a layout report.");
 
-		md.details(import.meta, "readme.md", "Design record — the fence, the fork, and what's still open");
+		md.details(import.meta, "readme.md", "Readme");
 	},
 
 	// A button IS the API — the smallest possible caller, and it costs one haiku turn.

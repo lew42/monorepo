@@ -102,10 +102,11 @@ export class JSONL {
  * once) and `step` (the 1-based index underway). See `stats.js`'s `progress()`.
  */
 export class TaskJSONL extends JSONL {
-	static verbs = [...JSONL.verbs, "agent", "chat"];
+	static verbs = [...JSONL.verbs, "agent", "chat", "shot"];
 
 	agents = [];
 	chats = [];
+	shots = [];
 
 	agent(value){
 		const known = this.agents.find(a => a.task === value.task);
@@ -115,9 +116,13 @@ export class TaskJSONL extends JSONL {
 	// One browser turn: {at, role, text}. Written by Server/plugins/Ask.js.
 	chat(value){ this.chats.push(value); }
 
+	// One screenshot taken outside the repo: {at, path, url, width, label}. See ext/JSONL/readme.md.
+	shot(value){ this.shots.push(value); }
+
 	reset(){
 		this.agents = [];
 		this.chats = [];
+		this.shots = [];
 		return super.reset();
 	}
 }

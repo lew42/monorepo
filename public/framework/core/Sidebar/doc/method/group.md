@@ -28,6 +28,6 @@ div.c("sidebar-group-title", () => span.c("h4", group.title));
 element that *uses* it, so sizing and padding the same element misaligns the
 column — `--gutter: 2.6em` measured 36.5px on the `.h4` title and 41.8px on every
 link beneath it. A custom property carries a **token**, not a resolved length.
-**Size the text, pad the box.** [comp](/framework/core/Sidebar/docs/comp/).
+**Size the text, pad the box.** [comp](/framework/core/Sidebar/doc/comp/).
 
 The extra `<span>` is one element to buy an invariant that nothing else can check.

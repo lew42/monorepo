@@ -1,0 +1,290 @@
+{
+  "note": "The per-image visual scoring baseline -- the source of truth for visual quality on this site. Scored 2026-08-17 by claude-opus-5[1m] looking at each image directly, against the rubric below. Keyed by `hash` (sha256-16 of the PNG bytes): a re-run is free and a re-score happens only when the pixels actually changed. Images live in the session scratchpad, never the repo (RULE#12) -- absolute paths are recorded here and as `log` lines in task.jsonl. This file is a conclusion, so it belongs in the repo; it will move into the DesignTool module when the rename lands, so it is deliberately self-contained and wired into no page.",
+  "generated_at": "2026-08-17T11:20:00-05:00",
+  "scorer": "claude-opus-5[1m]",
+  "shot": {
+    "width": 1280,
+    "height": 800,
+    "mode": "viewport",
+    "why": "Every one of the 18 pages reports document.documentElement.scrollHeight === 800 and scrollWidth === 1280 -- the app is a fixed-viewport shell whose scrolling happens inside panes, so a fullPage shot returns identical pixels. Uniform across all 18 by construction, and legible at 1:1 with no vision downscale, which matters because typography and contrast are two of the five dimensions.",
+    "harness": "global Playwright 1.62.1 chromium headless, one context, dsf 1, addInitScript window.$BLOCKRELOAD=true, goto waitUntil:'load', +500ms, await document.fonts.ready, assert document.visibilityState==='visible', +250ms, screenshot"
+  },
+  "rubric": {
+    "dimensions": {
+      "layout": "Structure, alignment to a visible grid, grouping, whether the 1280 gets used or left as gutters.",
+      "typography": "Type scale, measure (line length), leading, whether heading levels out-rank their body.",
+      "contrast": "Legibility of text on its ground, whether emphasis actually reads, anything washed out or harsh.",
+      "density": "Information per screen -- cramped jumble vs empty stage; is the whitespace grouping or just padding.",
+      "hierarchy": "Can you tell what this page IS and where to look first, in one second; does the eye have a path.",
+      "overall": "A holistic judgement of how the page looks, informed by the five but NOT their mean."
+    },
+    "rejected": "polish -- it overlaps all five and becomes a fudge factor. 5 axes, not 12 (RULE#18).",
+    "why_hierarchy": "Mike named layout, contrast, density, typography. hierarchy earns the fifth slot because it is the single thing that most separates a 60 from a 90 and no other axis covers it: a page can have good type, fine contrast, right density and still be a flat undifferentiated wall.",
+    "anchors": {
+      "30": "Unfinished. You would not show it. Elements visibly misalign or collide; a wall of undifferentiated text, or scattered boxes on no grid; one type size doing every job; text you squint at; either a cramped jumble or ~70% empty screen with a strip of content in it. No path for the eye -- you cannot say what the page is for in three seconds.",
+      "60": "Competent, undesigned. Nothing is broken. A consistent grid and a readable type scale exist. But something obvious holds it back: dead space where content should be, a heading that does not out-rank its body, a measure running long, uniform grey where emphasis is needed, or a layout ignoring half the width. Reads as a developer's page -- functional, not designed.",
+      "90": "Designed. Clear first read: you know what the page is and where to look within a second. Deliberate alignment, whitespace that groups rather than pads, a type scale with real contrast between levels, comfortable measure, one or two accents doing work, the full 1280 used without stretching prose to it. Only nits remain.",
+      "extremes": "<=20 = actually broken (overlap, error state). >=95 = nothing I would change. 100 is not awarded."
+    }
+  },
+  "shots_dir": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/c6315543-dde2-46c6-b052-c819794f42e8/scratchpad/shots",
+  "rows": [
+    {
+      "url": "/framework/",
+      "image": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/c6315543-dde2-46c6-b052-c819794f42e8/scratchpad/shots/framework.png",
+      "hash": "889e9993e40979c0",
+      "overall": 80,
+      "scores": { "layout": 76, "typography": 78, "contrast": 85, "density": 78, "hierarchy": 88 },
+      "feedback": {
+        "layout": "Sidebar plus content reads cleanly and the five stat cards use the width, but the page has two right edges -- prose wraps at ~1026 while the cards and code block run to 1074, and the last ~200px of the 1280 is dead grey.",
+        "typography": "Strong display h1 against a well-leaded 16px body and neat dark inline code chips, but the measure is ~100 characters and the h1 is big enough to wrap to two lines and eat 130px of the fold.",
+        "contrast": "Best-in-set: near-black display heading on light grey, dark body, dark syntax-coloured code block, and the inline chips read as chips; only the small-caps CORE/STYLES rail labels sit light.",
+        "density": "Filled top to bottom with no dead bands -- headline, pitch, numbers, code, all earning their vertical space.",
+        "hierarchy": "You know in under a second: this is a framework landing page, here is the claim, here are the numbers, here is hello world. The clearest first read of the eighteen."
+      },
+      "note": "The one page where taste (49) is badly wrong and math (70) is the closer of the two."
+    },
+    {
+      "url": "/framework/ext/LayoutTool/tests/",
+      "image": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/c6315543-dde2-46c6-b052-c819794f42e8/scratchpad/shots/framework_ext_LayoutTool_tests.png",
+      "hash": "fb97adb5c8dc2caa",
+      "overall": 77,
+      "scores": { "layout": 70, "typography": 78, "contrast": 80, "density": 82, "hierarchy": 82 },
+      "feedback": {
+        "layout": "The 4-column card grid is clean and spans 273->1235, and every block shares one left edge -- but the top tab bar is CLIPPED at the viewport edge, cutting DOCS to 'DOC' mid-word, which is a visible defect not a nit.",
+        "typography": "Tidy: bold 15px card titles over mid-grey descriptions, dark bad/good pills doing real work in the intro; the intro measure runs ~95 characters and every card description truncates at two lines, so no card is ever complete.",
+        "contrast": "Solid throughout; card descriptions are mid-grey on white and sit at the light end of comfortable, and the 'Run the suite at' label is faint.",
+        "density": "Well judged -- twelve airy cards, four width buttons and a two-line intro fill the fold without crowding.",
+        "hierarchy": "Tabs, title, intro, controls, grid: an unambiguous top-to-bottom path with the grid clearly the payload."
+      }
+    },
+    {
+      "url": "/web/nav/sidebar/",
+      "image": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/c6315543-dde2-46c6-b052-c819794f42e8/scratchpad/shots/web_nav_sidebar.png",
+      "hash": "0a5990c4a269835a",
+      "overall": 64,
+      "scores": { "layout": 64, "typography": 66, "contrast": 58, "density": 60, "hierarchy": 68 },
+      "feedback": {
+        "layout": "The demo stage is nicely framed and the h1 aligns to it, but the 340px pattern rail is mostly postage-stamp thumbnails, and the pair at y~440-530 are unlabelled illegible smudges.",
+        "typography": "The display h1 and the type inside the stage are fine; the rail previews render an 837px page at ~270px, so their body copy is microtype nobody can read -- previews that fail as previews.",
+        "contrast": "The bottom control strip is the failure: 'standard' in a grey select, FILL in light grey, FLOW in pale orange, an unlabelled slider dot and '52em' in grey. A functional control surface you can barely see.",
+        "density": "Uneven -- a dense illegible rail, then ~250px of blank white inside the stage below the Regions content, then a near-invisible strip.",
+        "hierarchy": "You can tell it is a sidebar pattern demo, but the eye is pulled three ways between h1, rail thumbs and stage, and the controls compete without ranking."
+      }
+    },
+    {
+      "url": "/framework/ext/toc/",
+      "image": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/c6315543-dde2-46c6-b052-c819794f42e8/scratchpad/shots/framework_ext_toc.png",
+      "hash": "a1ba9bf8fcaccef7",
+      "overall": 63,
+      "scores": { "layout": 62, "typography": 60, "contrast": 72, "density": 62, "hierarchy": 64 },
+      "feedback": {
+        "layout": "Content stops at 1053 and the right ~225px is dead grey, with another ~75px dead band between the tab bar and the code block -- a single prose column in a 1050px field.",
+        "typography": "The worst measure in the set at ~102 characters, and the inline chip rash is real: six dark chips across two lines of one paragraph fragment the reading line into a stutter.",
+        "contrast": "Strong to a fault -- the type is crisp, but the chips are near-black blobs at maximum contrast dropped mid-sentence, so emphasis stops meaning anything.",
+        "density": "Generous vertical rhythm between sections is right, but the dead right quarter and the dead band under the tabs are not spacing, they are absence.",
+        "hierarchy": "The h2/h3 scale is clear, but the page OPENS on a dark code block with no sentence above it -- you land on a rectangle without being told what Toc is."
+      },
+      "note": "taste (63) hits this exactly; math (77) is 14 high."
+    },
+    {
+      "url": "/framework/ui/panel/",
+      "image": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/c6315543-dde2-46c6-b052-c819794f42e8/scratchpad/shots/framework_ui_panel.png",
+      "hash": "c90ab4127bf511f1",
+      "overall": 68,
+      "scores": { "layout": 66, "typography": 74, "contrast": 62, "density": 62, "hierarchy": 74 },
+      "feedback": {
+        "layout": "A ~60px dead band sits between the Panel h1 and the viewport row, the demo's 10px near-black frame is visually louder than the dialog inside it, and a stray scrollbar thumb and a clipped px badge poke out at the right edge.",
+        "typography": "Genuinely good: display h1, a 20px medium dialog title, 16px body, small-caps buttons -- a real scale with real steps.",
+        "contrast": "The dialog is excellent (ghost CANCEL against a solid coral DELETE), but the control strip beneath it -- FLEX, GRID, gap, two unlabelled dots, 1em, 14em -- is near-invisible grey on grey.",
+        "density": "The dialog is well spaced, but the dead band above it and the empty field right of the h1 leave a third of the upper fold doing nothing.",
+        "hierarchy": "The dialog is unmistakably the hero and that is right; the path from h1 to controls to demo has a hole in the middle."
+      }
+    },
+    {
+      "url": "/framework/ui/tags/",
+      "image": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/c6315543-dde2-46c6-b052-c819794f42e8/scratchpad/shots/framework_ui_tags.png",
+      "hash": "7767f3952d201e8c",
+      "overall": 65,
+      "scores": { "layout": 64, "typography": 74, "contrast": 62, "density": 58, "hierarchy": 62 },
+      "feedback": {
+        "layout": "A 10px black frame wrapped around a 70px-tall input reads as a thick band around a thin bar, and a scrollbar thumb plus a clipped badge break the frame's right edge.",
+        "typography": "The pills are well made -- rounded, light ground, small-caps bold label, muted x -- and the display h1 is strong; the closing prose runs ~95 characters.",
+        "contrast": "Pills and code block are fine; the FLEX/GRID/gap/column control strip is again grey on grey and effectively unreadable.",
+        "density": "The thinnest payload in the set inside the most grey -- one 90px input, then a 230px code block, in an 800px fold.",
+        "hierarchy": "Inverted: the source listing is nearly three times the height of the component it documents, so the code out-ranks the demo on a page whose job is to show the component."
+      },
+      "note": "taste (65) hits this exactly; math (81) is 16 high."
+    },
+    {
+      "url": "/web/layout/flow/",
+      "image": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/c6315543-dde2-46c6-b052-c819794f42e8/scratchpad/shots/web_layout_flow.png",
+      "hash": "f69243398bb933ed",
+      "overall": 44,
+      "scores": { "layout": 38, "typography": 66, "contrast": 48, "density": 40, "hierarchy": 42 },
+      "feedback": {
+        "layout": "Three separate failures at once: the h1 sits at x=400 while the content it heads starts at x=614, so the title aligns with nothing; the whole band x=330-614 is empty for the full height; and below the rail's framed preview, two blocks of scaled-down demo text sit ON THE PAGE GROUND with no card, no border and no label, at two DIFFERENT left offsets (x=64 and x=118). A lone '\u25bc Source' floats at the bottom aligned to neither column.",
+        "typography": "The main column is the best-set prose in the eighteen -- ~55-60 character measure, 18px, generous leading, chips used sparingly. It is the only thing holding this score up.",
+        "contrast": "The escaped rail text is ~8px teal on light grey and cannot be read at all, and scattered mid-sentence words in the main column are tinted as if they were links when they are not, so emphasis reads as noise.",
+        "density": "Over half the viewport is empty grey: a 280px dead centre band, a 245px dead right margin, and a rail whose lower half is unframed debris.",
+        "hierarchy": "No entry point. The h1 is detached from its content, the rail is unlabelled, the one control is orphaned -- you cannot say what this page wants you to do."
+      },
+      "note": "THE CALIBRATION BUG. math scores this 96 (grade A, zero medium findings); it is the worst-looking page in the corpus by 19 points. taste (67) is 23 high but less than half the error."
+    },
+    {
+      "url": "/framework/core/Page/",
+      "image": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/c6315543-dde2-46c6-b052-c819794f42e8/scratchpad/shots/framework_core_Page.png",
+      "hash": "6b12bc16698ec259",
+      "overall": 71,
+      "scores": { "layout": 64, "typography": 72, "contrast": 76, "density": 72, "hierarchy": 74 },
+      "feedback": {
+        "layout": "Three columns at 1280 is tight and it shows: the tab bar clips FILES to 'FIL', the four-item viewport row WRAPS so MEGA drops to its own line, and the code-left/output-right pair is lopsided -- a dense dark block against a white cell holding two words.",
+        "typography": "Clean small-caps tabs and a strong display h1 on the rendered output; the 'Save that as' paragraph runs ~95 characters and carries three near-black chips in one line.",
+        "contrast": "Good across the board; only the viewport labels sit light, and a stray scrollbar thumb is visible at the right edge.",
+        "density": "The fold is honestly full, and the rail's preview cards are legible at heading size even if their body copy is not.",
+        "hierarchy": "Tabs, rail, then code beside its result -- a good idea, well ranked, undercut by the two clipping defects."
+      }
+    },
+    {
+      "url": "/framework/ext/layout/",
+      "image": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/c6315543-dde2-46c6-b052-c819794f42e8/scratchpad/shots/framework_ext_layout.png",
+      "hash": "9cc8564209d748d1",
+      "overall": 74,
+      "scores": { "layout": 70, "typography": 68, "contrast": 80, "density": 78, "hierarchy": 78 },
+      "feedback": {
+        "layout": "The 4-up then 2-up card grid is genuinely well formed -- the wide cards span columns 1-2 and 3-4 exactly -- but the page then runs two competing right edges: cards to 1240, prose and code to ~1052, a 190px disagreement in one column.",
+        "typography": "Card titles at 24px over 16px descriptions is a clear step; the prose below is ~100 characters and carries five dark chips in four lines, which is a rash.",
+        "contrast": "Strong -- crisp card titles, readable mid-grey descriptions, a well-coloured code block.",
+        "density": "Six cards, a paragraph and a code block fill the fold with no dead bands; the whitespace is grouping, not padding.",
+        "hierarchy": "The card grid is unmistakably the payload and the eye lands on Alpha first. Clear."
+      }
+    },
+    {
+      "url": "/web/nav/wall/",
+      "image": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/c6315543-dde2-46c6-b052-c819794f42e8/scratchpad/shots/web_nav_wall.png",
+      "hash": "fa3256602b1da481",
+      "overall": 75,
+      "scores": { "layout": 74, "typography": 76, "contrast": 70, "density": 74, "hierarchy": 78 },
+      "feedback": {
+        "layout": "The h1 aligns to the stage edge, the stage's 3-across card rows are evenly gridded and use the width -- but an empty white strip sits at the very top of the rail, containing nothing.",
+        "typography": "The demo is well set: underlined section headings with real presence, 16px medium card labels beside icons, and one prose line at ~90 characters. The rail's Setup preview is microtype.",
+        "contrast": "Good inside the stage; the rail previews are unreadable at 270px, the viewport labels are faint, and the 837px badge is tiny grey.",
+        "density": "The stage is filled with three sections of three cards and reads as a real gallery; the rail is patchy around the blank strip.",
+        "hierarchy": "h1, then the stage, then Prints/Paint/Glass ranked by underlined headings -- you know what it is and where to look."
+      }
+    },
+    {
+      "url": "/framework/styles/layers/theme/lew42/",
+      "image": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/c6315543-dde2-46c6-b052-c819794f42e8/scratchpad/shots/framework_styles_layers_theme_lew42.png",
+      "hash": "81b8db88c3f54fee",
+      "overall": 68,
+      "scores": { "layout": 68, "typography": 66, "contrast": 68, "density": 66, "hierarchy": 64 },
+      "feedback": {
+        "layout": "The demo frame stops at 1157 leaving 123px of dead grey, its own top bar is a 45px empty strip holding one tiny '<>' glyph at the far right, and the page's prose below introduces a third right edge at 975.",
+        "typography": "The failure is the scale: 'App' at ~48px and 'Overview' at ~40px are too close to read as h1 and h2, and 'ANNOTATION' as bare small-caps text next to a solid READ GUIDE button does not read as a control at all.",
+        "contrast": "The type is crisp, but the checkerboard transparency ground runs directly behind the body copy and adds noise under every line of it.",
+        "density": "The frame's interior is well filled; the empty top bar, the dead band under the tab bar and the dead right 123px are not.",
+        "hierarchy": "Muddy -- with page chrome, frame chrome and demo chrome stacked, it takes a moment to work out which heading belongs to the page and which to the demo."
+      }
+    },
+    {
+      "url": "/web/nav/crumbs/",
+      "image": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/c6315543-dde2-46c6-b052-c819794f42e8/scratchpad/shots/web_nav_crumbs.png",
+      "hash": "7a2c02f8cde839cc",
+      "overall": 70,
+      "scores": { "layout": 70, "typography": 74, "contrast": 62, "density": 64, "hierarchy": 70 },
+      "feedback": {
+        "layout": "h1 and stage share a left edge, which is right -- but the rail opens on two clipped, unlabelled preview cards above the first section label, so the page begins mid-thought, and the stage's lower ~130px is empty white.",
+        "typography": "The demo is the best-typeset thing on the page: a 44px display title, an orange underlined crumb trail, a bold-lead paragraph closing on a well-judged italic. Measure ~95 characters; the rail is microtype.",
+        "contrast": "The control strip is the failure again -- FLOW in pale orange is essentially invisible, FILL is light grey, the slider is unlabelled.",
+        "density": "The stage's content stops a third of the way down and leaves white below it, and the code block below is cut mid-first-line by the fold.",
+        "hierarchy": "Two display-weight titles compete (page 'crumbs', demo 'Letters'), though the frame does enough to separate page from demo."
+      }
+    },
+    {
+      "url": "/framework/core/Page/overview/children/",
+      "image": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/c6315543-dde2-46c6-b052-c819794f42e8/scratchpad/shots/framework_core_Page_overview_children.png",
+      "hash": "4cf821cf560f9c5d",
+      "overall": 72,
+      "scores": { "layout": 68, "typography": 78, "contrast": 66, "density": 72, "hierarchy": 76 },
+      "feedback": {
+        "layout": "The demo's three cards leave a conspicuous empty cell in the second row of a two-column grid, the code block's text runs off the right edge mid-word with no visible scrollbar, and the tab bar clips FILES again.",
+        "typography": "The best measure in the corpus at ~75 characters, 17px with good leading, and a display h1 with real presence -- this is what the rest of the site's prose should look like.",
+        "contrast": "Fine in the stage; the standard/FILL/FLOW/measure control strip is near-invisible, and the rail previews are microtype below heading size.",
+        "density": "Honestly full -- rail, stage, cards, code -- with the empty grid cell the only hole.",
+        "hierarchy": "h1, stage, cards, source: a clear descending path, and 'Click one.' tells you what to do."
+      }
+    },
+    {
+      "url": "/framework/audit/",
+      "image": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/c6315543-dde2-46c6-b052-c819794f42e8/scratchpad/shots/framework_audit.png",
+      "hash": "96f07eb32343f5be",
+      "overall": 79,
+      "scores": { "layout": 74, "typography": 80, "contrast": 84, "density": 74, "hierarchy": 84 },
+      "feedback": {
+        "layout": "The prose column and the table are well placed and use the width, but the sidenote rail reads as three cards scattered with ~160px holes between them, and both card descriptions truncate mid-phrase.",
+        "typography": "Assured: large display h2s with a real step down to 16px body, a ~78 character measure, and a clean table with a proper header row. Chips are used sparingly enough to still mean something.",
+        "contrast": "The strongest emphasis system in the set -- orange underlined links read unmistakably as links, dark chips as code, bold as bold, and nothing is washed out.",
+        "density": "The main column is full and paced; the rail's vertical holes are the only slack.",
+        "hierarchy": "Excellent first read -- you know it is an audit report, the h2s rank cleanly, and the table is visibly the evidence."
+      }
+    },
+    {
+      "url": "/framework/core/Page/nav/",
+      "image": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/c6315543-dde2-46c6-b052-c819794f42e8/scratchpad/shots/framework_core_Page_nav.png",
+      "hash": "5c90228c14a48099",
+      "overall": 72,
+      "scores": { "layout": 70, "typography": 74, "contrast": 76, "density": 64, "hierarchy": 70 },
+      "feedback": {
+        "layout": "The 6+3 icon-card grid inside the demo is even and uses its width, but the frame stops at 1157 leaving 123px dead, its top bar is another empty strip with one '<>' glyph, and a scrollbar thumb sits on the frame edge.",
+        "typography": "A strong display h1 and clean 16px medium card labels -- but there is no prose at all above the fold, so the page shows a result without ever saying what it is.",
+        "contrast": "Good; the icon cards read crisply against the checkerboard ground and only the viewport labels sit light.",
+        "density": "The demo card holds ~150px of empty white below its last row, and with the empty top bar the frame is close to 40% air.",
+        "hierarchy": "Inverted at the top: the dark code block is the loudest thing on the page, so the source out-ranks the rendered nav it produced."
+      }
+    },
+    {
+      "url": "/framework/styles/layers/util/",
+      "image": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/c6315543-dde2-46c6-b052-c819794f42e8/scratchpad/shots/framework_styles_layers_util.png",
+      "hash": "aaa5f55a0224f98c",
+      "overall": 72,
+      "scores": { "layout": 70, "typography": 78, "contrast": 82, "density": 58, "hierarchy": 78 },
+      "feedback": {
+        "layout": "Four right edges on one page -- prose 1050, code 1052, demo frame 1157, viewport 1280 -- and the demo's own top bar is another empty strip with a lone '<>'.",
+        "typography": "Well handled: a 40px display h1 stepping to a 32px h2, a ~78 character measure, and a bold lead paragraph that actually leads.",
+        "contrast": "Crisp -- the '@layer util { ... }' block with its orange keyword is the clearest code sample in the corpus.",
+        "density": "The failure: the Flex demo puts four 50x60 cells at the far left of an 870px checkerboard area, leaving roughly 90% of it empty. Technically correct, and it reads as unfinished.",
+        "hierarchy": "Title, definition, then a named section with its demo -- a clean descending path."
+      }
+    },
+    {
+      "url": "/notes/git-branch-names/",
+      "image": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/c6315543-dde2-46c6-b052-c819794f42e8/scratchpad/shots/notes_git-branch-names.png",
+      "hash": "c06b55bc591c6960",
+      "overall": 78,
+      "scores": { "layout": 72, "typography": 82, "contrast": 88, "density": 68, "hierarchy": 82 },
+      "feedback": {
+        "layout": "Nothing is broken and every block shares one left edge -- but the content column ends at 833, so 447px of the 1280 is empty grey: 35% of the viewport left as gutter, which is exactly what the prime objective forbids. There is also no nav of any kind, so the page is unmoored from the site.",
+        "typography": "The cleanest setting in the corpus -- a clear h1/h2 step, generous leading, and a code block whose '#' comments are column-aligned. One misfire: the h2 'Why <name>/<branch>?' renders a dark code chip at display size, so a 264px black bar dwarfs the words 'Why' and '?' around it.",
+        "contrast": "The best in the set: near-black display type on light grey, an orange underlined link that is unmistakably a link, dark chips that read as code.",
+        "density": "Calm rather than empty inside the column, but a third of the screen carries nothing, and a stray rule above the table's first row reads as an empty header.",
+        "hierarchy": "Immediate: title, the command you want, the explanation, then two named sections. Only the oversized chip in the h2 disturbs the ranking."
+      },
+      "note": "Both tiers call this the best page in the corpus (taste 91, math 96) and it IS the cleanest -- but it is 35% dead width with no navigation, and neither tier charges it for that."
+    },
+    {
+      "url": "/framework/ai/",
+      "image": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/c6315543-dde2-46c6-b052-c819794f42e8/scratchpad/shots/framework_ai.png",
+      "hash": "54fe1ea165f8b436",
+      "overall": 72,
+      "scores": { "layout": 74, "typography": 70, "contrast": 74, "density": 78, "hierarchy": 66 },
+      "feedback": {
+        "layout": "The three-cell task card is consistent and the segmented progress bars are a genuinely good device, but the middle column's text truncates while a 60px gap sits before the model label, so the card is tight in the wrong place.",
+        "typography": "Nothing inside a card out-ranks anything else: slug, request quote, step line and status line all sit at similar weight, and the LEAST important element -- the long verbatim request -- is the largest text on the card.",
+        "contrast": "Readable throughout; the status line's grey and the progress bar's empty segments are at the light end, and the outlined VISION pill is a nice piece of emphasis.",
+        "density": "Well filled -- five cards' worth of real state in a fold, without crowding.",
+        "hierarchy": "'ACTIVE 5' is a clear section label, but the timestamps float OUTSIDE and above each card while repeating the 'running since' inside it, so the page opens on redundant strays."
+      }
+    }
+  ]
+}

@@ -1,6 +1,3 @@
-/* Restated IN FULL - a short list silently misplaces `site`. */
-@layer base, theme, site, util;
-
 /* The "+" bar a split offers at the gap nearest the pointer. Record: readme.md. */
 @layer theme {
 
@@ -12,7 +9,7 @@
 	/* z-index 5: above the split ghost (4), a neighbour's bar (3) and a grip (2) it may
 	   visually straddle at the same gap — it is shown only on hover-intent to insert and
 	   must win that click outright, never fight another overlay for it. */
-	/* ⚠ A STUB at the head of the seam, not a bar down the whole of it (Mike, 2026-08-16).
+	/* ⚠ A STUB at the head of the seam, not a bar down the whole of it (the owner, 2026-08-16).
 	   Full-height, it covered the grip for the seam's entire length and the resize handle
 	   could never appear — and its own edges were invisible, so there was nothing to aim at.
 	   Now it takes `--insert-run` at the start and the grip keeps the rest, and it is drawn

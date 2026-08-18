@@ -1,6 +1,3 @@
-/* Restated IN FULL — a short list silently misplaces `site`. */
-@layer base, theme, site, util;
-
 @layer theme {
 
 	/* Two component tokens, and every other colour here derives from the ink with

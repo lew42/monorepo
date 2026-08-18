@@ -9,7 +9,7 @@ export default new Doc({
 	subject: md,
 	properties: "cache",
 	methods:    "file details c resolve",
-	notes:      "sanitization relative-links file-labels proposed",
+	notes:      "decisions sanitization relative-links file-labels proposed",
 	files:      "example.md marked.esm.js md.css md.js page.js readme.md",
 
 	content(){
@@ -51,7 +51,7 @@ md.details(import.meta, "readme.md")               // collapsed at the bottom`);
 
 		h2("Relative links in a fetched file");
 
-		md("A link inside a fetched `.md` is rewritten to resolve against **the file**, not the document — so `[base](base/)` in `styles/readme.md` points where the author meant from any url you happen to be on. Without it, a crawl once found 40 broken routes. Full record: [Relative links](/framework/ext/markdown/docs/relative-links/).");
+		md("A link inside a fetched `.md` is rewritten to resolve against **the file**, not the document — so `[base](base/)` in `styles/readme.md` points where the author meant from any url you happen to be on. Without it, a crawl once found 40 broken routes. Full record: [Relative links](/framework/ext/markdown/doc/relative-links/).");
 
 		md("Next: [Demo](/framework/ext/demo/) — show the code and run it, from one source. Or [ext/highlight](/framework/ext/highlight/), the other half of the file-label feature above.");
 

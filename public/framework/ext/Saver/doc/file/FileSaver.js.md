@@ -9,7 +9,7 @@ still ends in `false`, never a throw.
 socket" warning fires once per page load no matter how many `FileSaver`
 instances exist or how many times they try to write — deliberate, because a
 save-on-every-keystroke UI off localhost would otherwise fill the console on
-the first idle save loop. See [backends](/framework/ext/Saver/docs/backends/)
+the first idle save loop. See [backends](/framework/ext/Saver/doc/backends/)
 for why FileSaver is dev-only by design, not by oversight.
 
 ## `load()` distinguishes absent from failed

@@ -5,6 +5,11 @@ import { Page, Sidebar, md, h1, div, a } from "/app.js";
 const sections = [
 	{ title: "Framework", url: "/framework/", desc: "The docs — View, Page, Router, App, and the CSS layers." },
 	{ title: "Web", url: "/web/", desc: "The guide — how to build things on the web, shown live." },
+	{ title: "Résumé", url: "/resume/", desc: "Design engineer, 12+ years — and a 3D parallax scroll running underneath it." },
+
+	// ⚠ Trailing slash is load-bearing: `/fly/` is a real index.html outside the SPA,
+	// and the dev server's `express.static` won't redirect `/fly` onto it.
+	{ title: "Fly", url: "/fly/", desc: "A three.js flight demo — drag to fly, space to boost." },
 ];
 
 export default new Page({

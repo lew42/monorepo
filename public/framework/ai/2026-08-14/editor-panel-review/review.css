@@ -1,7 +1,3 @@
-/* Restated IN FULL - the first @layer statement fixes the order, and a short list
-   silently drops `site` past `util`. ASCII only, comments included. */
-@layer base, theme, site, util;
-
 @layer theme {
 
 	/* Severity is the only colour on this page, and it is a rail rather than a fill:

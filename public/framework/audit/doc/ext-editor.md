@@ -56,7 +56,7 @@ its "no callers" problem all in one move.
    The closure is already shaped like a class (11 methods, 7 fields, currently
    `let`) — this is a transcription, not a redesign. *Cost:* touches 4 files
    outside this directory (`ext/page.js`, `ext/Panel/page.js`'s one link label,
-   `ext/LayoutTool/audit/pages.js`, `core/Item/readme.md`) plus the Windows
+   `ext/DesignTool/audit/pages.js`, `core/Item/readme.md`) plus the Windows
    two-step directory rename trap already documented. **medium, important — already
    proposed and scoped in [Editor × Panel review](/framework/ai/2026-08-14/editor-panel-review/),
    waiting on "propose, wait"**

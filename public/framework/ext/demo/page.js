@@ -26,7 +26,7 @@ export default new Doc({
 
 	subject: demo,
 	methods: "stage exhibit page tree layout app source",
-	notes:   "record",
+	notes:   "record decisions",
 	files:   "app.css app.js demo.css demo.js exhibit.css exhibit.js layout.js page.js readme.md sample.js stage.css stage.js twin.js two.css two.js",
 
 	content(){
@@ -180,6 +180,6 @@ demo.app(laces, { nav: true })    // opens deep, with a rail`);
 
 		md("Next: [Highlight](/framework/ext/highlight/) — which is what makes those code blocks readable.");
 
-		md.details(import.meta, "readme.md", "Design record — the four doors, the three-box stage, and why a div is not a viewport");
+		md.details(import.meta, "readme.md", "Readme");
 	}
 });

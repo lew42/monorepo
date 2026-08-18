@@ -8,13 +8,13 @@ place — it is the single most cross-referenced module in the framework (every
 theming, layout and element decision elsewhere links back here) and its actual CSS
 footprint is tiny by design: 363 lines across six stylesheets back a whole site.
 **The single most important thing to do to it**: none of its 95 files had a
-`doc/file/*.md`, and none of its `page.js` files used `ext/doc`'s `Doc` — this
+`doc/file/*.md`, and none of its `page.js` files used `ext/Doc`'s `Doc` — this
 audit wrote 43 file-docs and wired three of them into real Files tabs, but stopped
 short of wiring the other 36 (covering `styles/`, `rules/`, `layers/`,
 `layers/theme/`, `elements/`, `layouts/`) because doing so cascades a persistent
 tab bar across every url in that subtree — a structural change, not a doc fix, and
 one this audit could not visually verify without a browser. That decision is
-Mike's; the content is written and waiting. See Recommendation 1.
+The owner's; the content is written and waiting. See Recommendation 1.
 
 ## State
 
@@ -23,7 +23,7 @@ Mike's; the content is written and waiting. See Recommendation 1.
 | files | 95 (64 JS, 24 md, 6 css, 1 `ai/…/task.jsonl` excluded from documentation per the brief) |
 | lines of JS / CSS | 4,094 / 363 |
 | lines of pre-existing markdown (readmes + `doc/*.md`) | 3,433 — this module was already the most heavily documented in the framework |
-| callers | Not a leaf module. `app.js` (imports the `lew42` theme function and calls it in `config()`); `core/Page/overview/landing/` and `overview/site/` (import nine `sections/*.js` band functions directly); `ext/Panel/templates.js` (dynamically `import()`s every file in `sections/` by name, at runtime, for the **T** template menu); `ext/LayoutTool/audit/pages.js` (~30 urls under this module in its four-width sweep corpus); `ext/catalog`, `ext/demo`, `ext/layout`, `ext/toc`, `ext/highlight` (cite pages here as their canonical worked examples); `ui/avatar`, `ui/card`, `ui/crumbs`, `ui/kbd`, `ui/stats`, `ui/tooltip` (link back for the reference behind a decision); `core/Sidebar` (links `/framework/styles/` from the site nav, cites two pages as its own demos); `web/layout/*` (the guide tier links back to every vocabulary page here); `core/Page/doc/*.md` and `core/View/doc/*.md` (cite files here as worked examples in their own member docs). Full list, with urls, in `styles/readme.md`'s new "Who uses this" section. |
+| callers | Not a leaf module. `app.js` (imports the `lew42` theme function and calls it in `config()`); `core/Page/overview/landing/` and `overview/site/` (import nine `sections/*.js` band functions directly); `ext/Panel/templates.js` (dynamically `import()`s every file in `sections/` by name, at runtime, for the **T** template menu); `ext/DesignTool/audit/pages.js` (~30 urls under this module in its four-width sweep corpus); `ext/catalog`, `ext/demo`, `ext/layout`, `ext/toc`, `ext/highlight` (cite pages here as their canonical worked examples); `ui/avatar`, `ui/card`, `ui/crumbs`, `ui/kbd`, `ui/stats`, `ui/tooltip` (link back for the reference behind a decision); `core/Sidebar` (links `/framework/styles/` from the site nav, cites two pages as its own demos); `web/layout/*` (the guide tier links back to every vocabulary page here); `core/Page/doc/*.md` and `core/View/doc/*.md` (cite files here as worked examples in their own member docs). Full list, with urls, in `styles/readme.md`'s new "Who uses this" section. |
 | docs before | `readme.md` present at 6 levels (root, `rules/`, `elements/`, `layouts/`, `sections/`, `layers/theme/guide/`, `layers/theme/lew42/`); 24 `doc/*.md` design records already written, several thousand words, all in the question→options→weighing→verdict shape; **zero** `doc/file/*.md` anywhere; **zero** `page.js` files using `Doc` (all plain `Page`); zero `classdoc` references (already fixed upstream of this pass — confirmed by `git diff` on `doc/audits.md`, not this audit's doing) |
 | docs after | 43 new `doc/file/*.md` (one per file in `rules/`, root, `layers/`, `layers/theme/`, `elements/`'s own files, `layouts/`'s own files, plus full coverage for the three directories converted to `Doc`); 3 `page.js` converted to `Doc` (`layers/theme/guide/`, `layers/theme/lew42/`, `layouts/space/` — all leaves with no `children:`, so the change is local to one page each); a new "Who uses this" section added to the root `readme.md`; the 5 root `doc/*.md` and `elements/doc/framework-css.md` and the 4 `layouts/doc/*.md` remain written but unwired (see Recommendation 1) |
 
@@ -41,7 +41,7 @@ Mike's; the content is written and waiting. See Recommendation 1.
   grep in the table above, including one stale-link finding (see Recommendations).
 - **Attempted, then reverted**: converting the six hub `page.js` files
   (`styles/page.js`, `rules/page.js`, `layers/page.js`, `layers/theme/page.js`,
-  `elements/page.js`, `layouts/page.js`) to `Doc`. Reading `ext/doc/Doc.js` and
+  `elements/page.js`, `layouts/page.js`) to `Doc`. Reading `ext/Doc/Doc.js` and
   `ext/tabs/tabs.js` closely after making the change showed that `Doc.render()`
   mounts a persistent `.tab-bar` + `.tab-panel`, and every descendant route mounts
   *inside* that panel — so converting a hub with `children:` wraps its entire
@@ -81,7 +81,7 @@ Mike's; the content is written and waiting. See Recommendation 1.
    link lives in `core/Page/` and `framework/ai/`) — a two-minute fix for whoever
    owns those files. *(simple, important.)*
 4. **`rules/robust.md`'s nesting table is hand-written while `nesting.md`'s
-   identical-shaped table is measured live via `ext/LayoutTool`.** Already named
+   identical-shaped table is measured live via `ext/DesignTool`.** Already named
    as the module's own priority in two places (`rules/readme.md`'s Open list and
    this audit's `robust.md.md`); applying the same `analyze()`-driven pattern
    would remove the one remaining asserted-rather-than-measured claim among the
@@ -93,7 +93,7 @@ Mike's; the content is written and waiting. See Recommendation 1.
    reasoning for not shipping it yet. *(simple, speculative.)*
 6. **Outside-the-box one, ranked last on purpose**: `layouts/space/`'s seed → spec
    generator already turns "does this layout work from mobile to mega" into
-   something sampleable. Its own readme names "Score" (running `ext/LayoutTool`
+   something sampleable. Its own readme names "Score" (running `ext/DesignTool`
    over each of the five ruler shots) as an open phase-2 item. Taken further: the
    generator could become the *source* of `rules/robust.md`'s and
    `rules/nesting.md`'s live examples too — instead of eight hand-built
@@ -102,7 +102,7 @@ Mike's; the content is written and waiting. See Recommendation 1.
    catalog's samples from one address space, closing Recommendation 4 and the
    layout-generator's own "Score" item in the same stroke. Speculative and a real
    redesign, not a doc fix — flagged because the two modules are already reading
-   from the same `ext/LayoutTool` and the same idea of "measured, not asserted,"
+   from the same `ext/DesignTool` and the same idea of "measured, not asserted,"
    and currently do it with two separate fixture sets. *(large, speculative.)*
 
 ## Where this module overlaps others
@@ -112,23 +112,23 @@ Mike's; the content is written and waiting. See Recommendation 1.
   an agent loads," and `rules/` is "the long form a human argues with." This
   audit cross-checked every claim in `css-strategy` against `rules/` and found no
   disagreement; where they could drift (the padding formula, the layer order, the
-  nesting table) the module keeps a live `ext/LayoutTool`-backed demo specifically
+  nesting table) the module keeps a live `ext/DesignTool`-backed demo specifically
   so a drift would be visible rather than silent. Not a duplicate to merge — a
   skill and a page necessarily serve different readers (one loaded into a prompt,
   one clicked into a browser) and this module already treats the split as
   deliberate, stating it directly in `rules/readme.md`.
-- **`layouts/space/` and `ext/LayoutTool` are closer to being one thing than
+- **`layouts/space/` and `ext/DesignTool` are closer to being one thing than
   either module's readme quite says.** `space/` generates and renders layout
   specs and asks a human (or a future automated pass) to judge them visually;
-  `ext/LayoutTool` grades a rendered box numerically against named rules
+  `ext/DesignTool` grades a rendered box numerically against named rules
   (`cramped`, `pad-scale`, `gutter`, …). `space/readme.md`'s own "What the
-  analyzer said" section already runs `LayoutTool` over `space/`'s output by
+  analyzer said" section already runs `DesignTool` over `space/`'s output by
   hand and reports the score — the missing piece, named in both readmes
-  independently (`space/readme.md`'s "Score" item, `LayoutTool/readme.md`'s own
+  independently (`space/readme.md`'s "Score" item, `DesignTool/readme.md`'s own
   stated ambitions) is wiring the analyzer to run automatically over every seed
   a reader generates, which would turn `space/` from a sampler into a search.
 - **The five-block demo system (`Page`, `preview()`/`previews()`, the `ext/demo`
-  stage, the `ext/layout` panel, the utility vocabulary) and `ext/doc`'s `Doc`
+  stage, the `ext/layout` panel, the utility vocabulary) and `ext/Doc`'s `Doc`
   are two competing answers to "how does a module present its own examples,"
   and this module is the clearest evidence that the split is currently a real
   seam, not a settled decision.** Every directory here (`rules/`, `elements/`,
@@ -152,7 +152,7 @@ Mike's; the content is written and waiting. See Recommendation 1.
 **The single strongest piece of feedback**: the `documentation` skill's
 six-artifact checklist states "doc/file/<path>.md — one for EVERY file in the
 module" as a flat, unconditional rule, but never states — anywhere in the skill,
-in `ext/doc/readme.md`, or in `Doc.js`'s own comments — that writing one only
+in `ext/Doc/readme.md`, or in `Doc.js`'s own comments — that writing one only
 pays off once the owning `page.js` is a `Doc`, and that becoming a `Doc` is not a
 config tweak but a navigational change that cascades to every descendant url. The
 skill's own worked example (`View`, a leaf-ish class page) never surfaces this,
@@ -170,7 +170,7 @@ would meaningfully change how the next agent scopes a module like this one.
 Second: the skill's "Auditing an existing module" checklist (steps 1–8) never
 asks *"does this module's shape even want `Doc`?"* — it assumes the answer is yes
 throughout, treating any pre-existing non-`Doc` page.js as simply not-yet-migrated
-rather than as a possibly-deliberate choice. `ext/doc/readme.md` itself states
+rather than as a possibly-deliberate choice. `ext/Doc/readme.md` itself states
 "a module whose shape genuinely differs subclasses `Doc`... or documents itself
 with `notes:` and `files:` and never passes [a subject]" — but the audit skill
 never asks the auditor to weigh "should this stay a plain `Page`" as a real,

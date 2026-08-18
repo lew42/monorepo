@@ -1,20 +1,30 @@
 import Events from "../../Events.js";
 import { WebSocketServer } from "ws";
 import Socket from "./Socket.js";
+import { loopback } from "../MCP.js";
 
-/* ⚠ A WebSocket upgrade is NOT subject to the same-origin policy: without this
- * check, any page in any tab can open ws://localhost and speak this protocol —
- * which includes `rpc:cmd` (exec), `rpc:write` and `rpc:ask` (a Claude turn).
- * Any site visited while the dev server runs could therefore run commands on
- * this machine. A browser always sends Origin; a CLI tool sends none, and a
- * local process already has everything this would protect. */
+/* Two checks, two different attackers. This wire carries `rpc:cmd` (exec),
+ * `rpc:write` and `rpc:ask` (a Claude turn), so both have to stand.
+ *
+ * ⚠ Origin alone is worth nothing off-host: only a browser is obliged to send
+ * one, and any other client omits it or forges `http://localhost`. The peer
+ * address is the one field the caller cannot choose.
+ * ⚠ Loopback alone is worth nothing in-browser: a WebSocket upgrade is NOT
+ * subject to the same-origin policy, so any site visited in a local tab can
+ * open ws://localhost FROM loopback. Origin is what refuses that one. */
 const LOCAL = /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/;
 
-function local_only({ origin }){
-    if (!origin) return true;
-    if (LOCAL.test(origin)) return true;
-    console.warn(`socket: refused a connection from ${origin}`);
-    return false;
+function local_only({ origin, req }){
+    const from = req.socket.remoteAddress;
+    if (!loopback(from)){
+        console.warn(`socket: REFUSED an upgrade from ${from} — loopback only.`);
+        return false;
+    }
+    if (origin && !LOCAL.test(origin)){
+        console.warn(`socket: REFUSED an upgrade from origin ${origin}.`);
+        return false;
+    }
+    return true;
 }
 
 export default class SocketServer extends Events {

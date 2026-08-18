@@ -13,6 +13,7 @@ export default new Page({
 
 		md("**A whole site.** Click through it — these are real files, fetched:");
 
+		// `example/` is intentionally not in `children:` — fetched as static text, never routed. See /framework/ext/files/doc/fetched/.
 		files(import.meta, "example/index.html example/app.js example/page.js example/about/page.js example/about/team/page.js");
 
 		md("No `package.json`, no bundler, no config, no route table. Serve the folder.");

@@ -24,7 +24,7 @@ what makes that visible without a comment saying so.
 
 `Item.types`, `Item.names`, `Item.warned` are assigned *after* the class body,
 not as class-static fields inside it — a stylistic choice consistent with "no
-class fields" appearing elsewhere in this framework (see `ext/doc`'s own
+class fields" appearing elsewhere in this framework (see `ext/Doc`'s own
 `Doc.js` for the same avoidance, for the same reason: fields initialize after
 `super()`, and nothing here wants that ordering risk even though `Item` has no
 subclass-timing hazard itself). `Item.register(Item)` on the last line

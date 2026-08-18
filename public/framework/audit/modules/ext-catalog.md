@@ -16,7 +16,7 @@ today, the least-documented thing depending on it.
 |---|---|
 | files | 4 (`catalog.js`, `catalog.css`, `page.js`, `readme.md`) — no subdirectories |
 | lines of JS / CSS | 84 (`catalog.js`) / 113 (`catalog.css`); `page.js` 78, `readme.md` 109 |
-| callers | 8 direct (`framework/ui`, `framework/ai`, `framework/styles/sections`, `framework/styles/layouts`, `framework/styles/elements/forms`, `web/nav`, `web/layout`, `core/Page/nav` demo) + 1 structural (`ext/doc/Doc.js`, which makes every `Doc` Overview tab a caller by inheritance — 8 `Doc` pages today) |
+| callers | 8 direct (`framework/ui`, `framework/ai`, `framework/styles/sections`, `framework/styles/layouts`, `framework/styles/elements/forms`, `web/nav`, `web/layout`, `core/Page/nav` demo) + 1 structural (`ext/Doc/Doc.js`, which makes every `Doc` Overview tab a caller by inheritance — 8 `Doc` pages today) |
 | docs before | `readme.md` existed as a genuinely good, long-form dated design record — but zero `doc/*.md`, so every claim in it was unlinkable prose. `page.js` was a plain `Page`, not a `Doc` — ironic for the module that makes `Doc`'s own Overview tab work, and it meant the module had no Files/API tabs at all. |
 | docs after | `page.js` → `Doc` (`subject: Page`, `methods: "catalog"`, `notes: "decisions"`, `files:` all four); `readme.md` restructured to the skill's shape (overview, short sections, a compact Decisions table, Traps, Open, a re-derived caller table); `doc/decisions.md` (the old readme's full narrative, relocated and preserved); `doc/method/catalog.md`; `doc/file/{catalog.js,catalog.css,page.js,readme.md}.md`, each ending in a ranked Improvements list |
 
@@ -26,7 +26,7 @@ today, the least-documented thing depending on it.
   since `catalog()` is a method patched onto `Page.prototype` by an ext (core
   never imports an ext), `subject: Page` on *this* page is what makes the API
   tab show the real, currently-patched source with the "replaced at runtime"
-  banner `ext/doc` already knows how to draw. No other module needed to
+  banner `ext/Doc` already knows how to draw. No other module needed to
   change for this to work.
 - Overview now opens with the live demo (unchanged in spirit from before),
   then adds a side-by-side wall-vs-rail comparison with the one differing
@@ -35,7 +35,7 @@ today, the least-documented thing depending on it.
   this method, so a reader who came here from the skill sees the closed
   loop.
 - Grepped all of `public/` for callers (Step 2). Found and documented 8
-  direct call sites and the structural relationship through `ext/doc/Doc.js`
+  direct call sites and the structural relationship through `ext/Doc/Doc.js`
   that neither the old readme nor the module's own docs mentioned at all.
 - Broke the old readme's nine-decision narrative out to `doc/decisions.md`,
   summarized as a 5-row table in the readme, linked, and added to `notes:`.
@@ -90,7 +90,7 @@ flat or vertical strip, `catalog()` for a set you browse by *looking* at each
 one (a live card) rather than by *reading its name*. `Doc` uses both at once:
 `tabs()` for its four top-level sections, `catalog()` inside the Overview
 section for the rail. Neither should absorb the other; the real overlap
-worth naming is narrower: **`ext/doc`'s `overview_section()` and this
+worth naming is narrower: **`ext/Doc`'s `overview_section()` and this
 module's `screen()` do first-paint sequencing and default-child selection
 twice, in two different vocabularies** (`.tab-panel`'s contract vs.
 `.page-catalog-pages`'s), because `Doc` is built on `catalog()` but the CSS

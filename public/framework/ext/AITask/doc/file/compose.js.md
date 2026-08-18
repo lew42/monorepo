@@ -1,7 +1,7 @@
 The "start work" box on `/framework/ai/`: an ask, an optional name, an
 effort, a model, one submit handler that posts `rpc:start` and waits for a
 directory + a slug back — not for the work itself. Full flow, including the
-mute and the fallback slug: [starting-work](/framework/ext/AITask/docs/starting-work/).
+mute and the fallback slug: [starting-work](/framework/ext/AITask/doc/starting-work/).
 
 ## Absent by design, not broken
 

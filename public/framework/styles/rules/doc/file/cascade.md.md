@@ -17,6 +17,6 @@ learn.
 ## Improvements
 
 1. **Nothing ranked.** The prose, the CSS-strategy skill, and the live
-   `LayoutTool` `gutter` rule all agree, which is the thing §6d of the root
+   `DesignTool` `gutter` rule all agree, which is the thing §6d of the root
    `doc/audits.md` says is checkable and worth automating — not this file's
    job to build, but worth knowing it's covered elsewhere.

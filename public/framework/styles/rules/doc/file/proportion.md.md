@@ -9,7 +9,7 @@ helper's `.then()` chain.
 
 The `double-pad` test — "does the paint change, not is there a background" —
 is the sharpest single idea in the chapter, and it is stated as a rule
-`ext/LayoutTool` also enforces, so a violation here and a violation the tool
+`ext/DesignTool` also enforces, so a violation here and a violation the tool
 flags cannot silently disagree.
 
 ## Improvements

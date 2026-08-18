@@ -1,4 +1,4 @@
-import { Page, md, demo, div, el, p, button } from "/app.js";
+import { Page, md, demo, div, el, p, button, form, input } from "/app.js";
 
 /* The template, verbatim — rendered on the stage AND printed as the source, so the
  * code on the page is the code that ran. The opener is part of it: the button is
@@ -25,6 +25,24 @@ const opened = () => div.c("surface pad flex v gap", () => {
 	div.c("flex gap reverse", () => { button.c("prim", "Delete"); button("Cancel"); });
 });
 
+/* The same modal with no listener in it at all: a form whose method is `dialog` closes
+   the dialog on submit and sets `returnValue` from the button that submitted. */
+const asking = () => div.c("flex v", () => {
+	const $dialog = el.c("dialog", "ui-dialog surface pad", () => form(() => {
+		div.c("flex v gap", () => {
+			p.c("h3", "Rename branch");
+			input().attr("name", "branch").attr("value", "michael/dev");
+
+			div.c("flex gap reverse", () => {
+				button.c("prim", "Rename").attr("value", "rename");
+				button("Cancel").attr("value", "").attr("formnovalidate", "");
+			});
+		});
+	}).attr("method", "dialog"));
+
+	button("Open the form").click(() => $dialog.el.showModal()).style("alignSelf", "flex-start");
+});
+
 export default new Page({
 	meta: import.meta,
 	title: "Dialog",
@@ -32,6 +50,9 @@ export default new Page({
 	icon: "picture_in_picture",
 
 	children: [
+		demo.page("form", asking, {
+			note: "`<form method=\"dialog\">` — **no listener anywhere in this variant.** Submitting closes the dialog and sets `returnValue` to the submitter's `value`, so the caller reads one string in a `close` listener instead of wiring a handler per button. `formnovalidate` on Cancel is what lets it out past a required field." }),
+
 		demo.page("open", opened, {
 			note: "What `showModal()` shows, drawn inline so there is something to look at. The Delete button passes `\"delete\"` to `close()`, and the caller reads `$dialog.el.returnValue` in a `close` listener — a `<form method=\"dialog\">` does the same with no JS at all." }),
 	],

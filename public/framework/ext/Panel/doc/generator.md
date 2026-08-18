@@ -140,8 +140,8 @@ layout it is *showing*; anywhere else rolls a fresh one. So the intended path is
 dial → find one you like → dice, and a second dice on the result rolls again.
 
 It is handed in through `T` (`sow:`), like `roll` and `repaint` — `toolbar.js`
-still imports nothing of `ext/Panel`. `workspace.js` withholds it from a
-workspace running its own vocabulary, the same predicate that withholds
+still imports nothing of `ext/Panel`. `vocab.js`'s `standard()` withholds it from
+a workspace running its own vocabulary, the same predicate that withholds
 `random`: a structure roll in `ext/editor` would replace its five regions with
 marketing bands.
 

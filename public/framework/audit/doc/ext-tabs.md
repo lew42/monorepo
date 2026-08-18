@@ -16,7 +16,7 @@ no non-`page.js` `.js`); they need a follow-up pass that can touch code.
 |---|---|
 | files | 4 (`tabs.js`, `tabs.css`, `page.js`, `readme.md`) |
 | lines of JS / CSS | 81 / 172 |
-| callers | **1 functional call site** — `ext/doc/Doc.js` (`this.tabs().ac("vertical")` per section, `this.tabs(this.bar()…).ac("block")` for the top bar) — but it backs **8** `Doc`-based module pages today (App, Page, Router, Sidebar, View, `dev/Socket`, `ext/doc` ×2). `app.js` imports `tabs.js` a second time specifically so any *other* `page.js` can call `this.tabs()` directly; nothing has yet. Two files use it only as a **prose code sample** (`core/Page/nav/page.js`, `framework/faq/page.js`); one (`web/nav/tabs/page.js`) reuses only the **CSS classes**, hand-built, because its sandbox has no Router for the real method. |
+| callers | **1 functional call site** — `ext/Doc/Doc.js` (`this.tabs().ac("vertical")` per section, `this.tabs(this.bar()…).ac("block")` for the top bar) — but it backs **8** `Doc`-based module pages today (App, Page, Router, Sidebar, View, `dev/Socket`, `ext/Doc` ×2). `app.js` imports `tabs.js` a second time specifically so any *other* `page.js` can call `this.tabs()` directly; nothing has yet. Two files use it only as a **prose code sample** (`core/Page/nav/page.js`, `framework/faq/page.js`); one (`web/nav/tabs/page.js`) reuses only the **CSS classes**, hand-built, because its sandbox has no Router for the real method. |
 | docs before | `readme.md` existed and was already well-shaped (a real design record with Decisions/Traps, unlike some sibling modules); `doc/extraction.md` existed; `page.js` was a plain `Page`, hand-built with `h2`/`code`/`md` — not a `Doc`. Zero `doc/method/*.md`, zero `doc/property/*.md`, zero `doc/file/*.md`. The readme's own "only caller on the site" claim (about `Doc`) was true when written and stale today. |
 | docs after | `readme.md` trimmed — the "which page earns a tab bar" test broken out to `doc/usage.md`, a new **Who calls it** section (table + the caller nuance above), the stale "only caller" line corrected, the two live bugs flagged, an **Open** section added. Two new notes (`doc/usage.md`, `doc/overflow.md`); `doc/extraction.md` kept as-is (a historical decision record, still accurate for the moment it describes). One `doc/method/tabs.md`. Four `doc/file/*.md` (one per module file). `page.js` rewritten as `new Doc({ subject: Page, methods: "tabs", notes: "usage overflow extraction", files: "tabs.js tabs.css page.js readme.md" })`, with two live `demo.app()` demos replacing the old four-real-declared-children shape. |
 
@@ -39,7 +39,7 @@ no non-`page.js` `.js`); they need a follow-up pass that can touch code.
   `Page.prototype.tabs` live, and because `Page.prototype.tabs = function(){...}`
   is a member-expression assignment, `patched()` correctly detects it as replaced
   at runtime — so the API tab shows the real patch, banner and all, the same trick
-  `ext/doc/page.js` documents for `highlight`. Two `demo.app(sample({...}))` demos
+  `ext/Doc/page.js` documents for `highlight`. Two `demo.app(sample({...}))` demos
   replaced the old four-real-declared-children shape, keeping "every tab is a
   real, reloadable url" provable rather than asserted.
 - `public/framework/audit/modules/ext-tabs.md` — this file.
@@ -52,7 +52,7 @@ comments (lines 21, 111) are named, not fixed — see Recommendations.
 1. **Bug: `tabs.css:21` and `tabs.css:111` still say "classdoc."** *(`--tab-pad-x is
    exposed so a host can pull the strip left … classdoc's well does`* and
    *"…with a plain class — classdoc's overview does"* — `ext/classdoc` became
-   `ext/doc` today and these two comments were missed. **simple, important** — a
+   `ext/Doc` today and these two comments were missed. **simple, important** — a
    two-word edit, blocked this pass only by the no-`.css` fence.
 2. **Bug: the tab fill's promise has no `.catch()`.** `tabs.js:40-60` — `filling`
    is built from `Promise.resolve(...).then(fill)` and handed to
@@ -65,7 +65,7 @@ comments (lines 21, 111) are named, not fixed — see Recommendations.
    `.js`-outside-`page.js` fence.
 3. **Reuse the `subject: <class it doesn't own>` pattern for `ext/highlight`
    once it migrates to `Doc`.** `highlight.js` patches `code` the same way
-   `tabs.js` patches `Page.prototype.tabs`, and `ext/doc/page.js`'s own prose
+   `tabs.js` patches `Page.prototype.tabs`, and `ext/Doc/page.js`'s own prose
    already claims highlight "shows what actually runs" — but `highlight/page.js`
    is still a plain `Page` today, asserting that in words instead of proving it
    the way this pass just made `tabs`'s own page do. **medium, useful** — not this
@@ -75,7 +75,7 @@ comments (lines 21, 111) are named, not fixed — see Recommendations.
    measured against one topic-region shape. Worth a synthetic stress case (a
    `Doc` module manufactured with 200 members) once there's a harness to run it
    in. **medium, speculative** — nothing is broken; nothing has tested it either.
-5. **Outside-the-box: fold `ext/tabs` into `ext/doc` as a private implementation
+5. **Outside-the-box: fold `ext/tabs` into `ext/Doc` as a private implementation
    detail, and stop patching `Page.prototype` globally.** The redundant `app.js`
    import exists to let *any* `page.js` reach for `this.tabs()` directly — but in
    the time since extraction, exactly zero modules have. If that stays true, the
@@ -106,10 +106,10 @@ mark aria-current" plumbing is worth factoring out before it's copied a third ti
 ## Skill feedback
 
 - **The skill's own `page.js` template omits `readme.md` from `files:`, but the
-  convention (confirmed only by reading `ext/doc`'s own dogfooded `page.js`) is
+  convention (confirmed only by reading `ext/Doc`'s own dogfooded `page.js`) is
   that it belongs there.** Quote: *"files: 'View.js View.css page.js', // → Files
-  tab + doc/file/<path>.md"* — no `readme.md`. `ext/doc/page.js` itself lists
-  `files: "Doc.js doc.css page.js readme.md overview/urls/page.js"` and ships
+  tab + doc/file/<path>.md"* — no `readme.md`. `ext/Doc/page.js` itself lists
+  `files: "Doc.js Doc.css page.js readme.md overview/urls/page.js"` and ships
   `doc/file/readme.md.md`. I only found this by cross-checking a real module
   instead of the skill text, which never says explicitly whether the readme (or
   the page.js itself) counts as one of "every file in the module." One sentence

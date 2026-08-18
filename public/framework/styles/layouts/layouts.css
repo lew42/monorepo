@@ -1,10 +1,7 @@
-/* Layer order, restated IN FULL — a short list would misplace `site`.
-   See the header of framework.css. */
-@layer base, theme, site, util;
-
 /* Two things, and neither is a layout page: the full-window view (full.js) and the
-   shape thumbnails (preview.js). The twelve layout pages ship no CSS at all.
-   Reasoning, and what was tried instead: readme.md. */
+   shape thumbnails (preview.js). The index's rail and wall moved to ext/catalog's
+   browse.css when `ui/` took the same mechanism. The layout pages themselves ship no
+   CSS at all. Reasoning, and what was tried instead: readme.md. */
 @layer theme {
 
 	/* A preview region is a shape, not a card. The outline is what makes a `flex`
@@ -14,9 +11,15 @@
 
 	/* Tokens rather than `max-width`/`padding`, which is the documented way to
 	   leave the sheet. */
+	/* ⚠ `position: fixed` puts its containing block at the viewport, so it never sees
+	   `.app`'s `padding-inline-end` push (framework.css) — restated here so the rail
+	   still displaces this layout instead of covering it. Keep the two formulas in
+	   sync; readme.md proposes hoisting this into a shared token. */
 	.page.layout-full {
 		--measure: none; --page-pad: 1.5em;
 		position: fixed; inset: 0; z-index: 20;
+		inset-inline-end: min(calc(var(--drawer, 0px) + var(--devbar, 0px)), max(0px, 100% - var(--rail-floor, 26rem)));
+		transition: inset-inline-end var(--rail-ease, 0.18s);
 		display: flex; flex-direction: column;
 		background: var(--wash);
 		overflow: auto;

@@ -1,0 +1,60 @@
+@layer theme {
+
+	/* A ceiling, not a centred column — the page TITLE (rendered outside this
+	   div, by Page's own render()) stays flush left, so centring .dt-vb would
+	   strand it under a gutter of its own. Capped so a 3440 screen doesn't
+	   stretch every row's meta line into an unreadable strip; the leftover
+	   space on the right is the accepted gutter (`layout` skill). */
+	.dt-vb { max-width: 78em; }
+
+	.dt-vb-filters { padding-block-end: .8em; border-block-end: 1px solid var(--line); margin-block-end: .8em; }
+	.dt-vb-compare-btn { margin-inline-start: auto; }
+
+	/* framework.css's base layer makes every select 100% wide (a form's default
+	   is one field per row) — a filter bar wants them shoulder to shoulder. */
+	.dt-vb-select { width: auto; }
+
+	.dt-vb-runlist { padding-inline-start: 1.2em; }
+	.dt-vb-runlist li { margin-block: .3em; }
+
+	.dt-vb-row { align-items: flex-start; }
+	.dt-vb-nested { margin-inline-start: 3em; border-inline-start: 2px solid var(--line); padding-inline-start: 1em; }
+
+	/* Thumb: a FIXED column, deliberately no intrinsic size from the image — a
+	   page shot and a region crop have different aspect ratios, so a fixed box +
+	   object-fit avoids the layout shift a real width/height attr would elsewhere. */
+	.dt-vb-thumb {
+		flex: 0 0 14em; width: 14em; aspect-ratio: 4 / 3;
+		display: block; overflow: hidden; border-radius: var(--radius);
+		outline: 2px solid transparent;
+	}
+	.dt-vb-thumb:hover { outline-color: var(--prim); }
+	.dt-vb-img { display: block; width: 100%; height: 100%; object-fit: cover; background: var(--tint); }
+
+	/* Body — the prose column. Bounded, not full width: "prose is the measure". */
+	.dt-vb-body { flex: 1 1 28em; max-width: 46em; min-width: 0; }
+
+	.dt-vb-url { font-weight: 600; }
+	.dt-vb-meta, .dt-vb-stats { font-size: .85em; }
+	.dt-vb-findings { margin-block-start: .3em; }
+	.dt-vb-finding { display: block; max-width: 42em; }
+	.dt-vb-fix { margin-block-start: .2em; font-weight: 400; }
+	.dt-vb-retracted { text-decoration: line-through; opacity: .55; }
+
+	.dt-vb-decl { margin-block-start: .35em; font-weight: 400; }
+	.dt-vb-decl-chip { font-size: .8em; }
+	.dt-vb-rung { font-size: .7em; text-transform: uppercase; letter-spacing: .04em; }
+
+	.dt-vb-compare { align-items: start; }
+	.dt-vb-panel { --flow: .6em; min-width: 0; }
+
+	.dt-vb-prompt { font-size: .9em; }
+	.dt-vb-prompt > summary { font-weight: 600; }
+	.dt-vb-prompt > :not(summary) { margin-block-start: .5em; }
+
+	.dt-vb-ask { align-items: flex-end; margin-block-start: .3em; }
+	.dt-vb-ask-input {
+		flex: 1; min-width: 0; resize: vertical; font: inherit; color: var(--ink);
+		padding: .4em .6em; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface);
+	}
+}

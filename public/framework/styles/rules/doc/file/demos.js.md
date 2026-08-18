@@ -4,7 +4,7 @@ The live proof behind two of the five rule pages. `padding_ladder()` (used by
 Proportion) renders the same card at three widths, twice — once at a fixed
 20px padding, once at `clamp(0.75em, 3.5%, 3.5em)` — and prints the measured
 ratio under each. `nesting_table()` (used by Nesting) builds all six of the
-nesting table's row combinations and runs `ext/LayoutTool`'s `analyze()` on
+nesting table's row combinations and runs `ext/DesignTool`'s `analyze()` on
 each one live.
 
 ## The measurement is read off the DOM, not computed

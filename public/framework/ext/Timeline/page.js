@@ -10,7 +10,7 @@ export default new Doc({
 	subject: Timeline,
 	properties: "orientation reverse zoom lane from to items",
 	methods: "render span lay end item ruler live",
-	notes: "phase-2",
+	notes: "phase-2 decisions",
 	files: "Timeline.js Timeline.css ai.js page.js readme.md",
 
 	overview: [{ title: "Orientation & lanes", icon: "swap_vert", content(){
@@ -130,6 +130,6 @@ new Timeline({ orientation: "h", zoom: 6, items: [
 
 		md("Next: [ext/AITask](/framework/ext/AITask/) — the AI dashboard this Timeline fed for part of one day, before the step/cost card rail replaced it. This module still stands on its own; its `ai.js` adapter has no callers today.");
 
-		md.details(import.meta, "readme.md", "Design record — the CSS-var approach, the lane algorithm, the two `lane`s, what's phase 2");
+		md.details(import.meta, "readme.md", "Readme");
 	},
 });

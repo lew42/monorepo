@@ -263,7 +263,7 @@ and the word means on a stage what it means everywhere else on the site.
 ## 9. `demo.source()` — the code, closed, below the render
 
 **The question** (`ai/2026-08-09`, open question 1): on a leaf page, does the source
-go below the render on the page, or only into `ext/layout`'s panel? **Mike's
+go below the render on the page, or only into `ext/layout`'s panel? **the owner's
 verdict, same day: both** — a `details` on the page for copy-paste *and* a Source
 tab in the panel, built in parallel so the better one can win by being seen. This
 module owns the first half.
@@ -332,7 +332,7 @@ mutual pair would break only on deep reloads).
 
 ## 11. `demo.app()` — a tree in a box, promoted from the Page demos
 
-**Renamed from `mini_app()` (Mike, 2026-08-12):** `mini-app.{js,css}` → `app.{js,css}`,
+**Renamed from `mini_app()` (the owner, 2026-08-12):** `mini-app.{js,css}` → `app.{js,css}`,
 `MiniApp` → `DemoApp`, `.mini-app*` → `.demo-app*`, and it is reached the way
 `demo.tree` is — `import { demo } from "/app.js"`, then `demo.app(tree, { nav })`.
 The box was never *mini*; it is this tier's app, and the name now matches the
@@ -380,7 +380,7 @@ dependency for nine one-liners.
 
 ## 13. `demo.page()` — a demo as a child page, and why it isn't a class
 
-**The question** (Mike, Aug 2026): pages with many demos bury them down a scroll —
+**The question** (the owner, Aug 2026): pages with many demos bury them down a scroll —
 the range slider on the forms page took real scrolling to find. Direction: *use
 previews as nav whenever possible* — each demo a sub page, so the catalog rail
 becomes a **visual table of contents**.
@@ -436,7 +436,7 @@ composes `stage()` directly owns its own track, which is the reason the two door
 
 ## 15. `demo.exhibit()` — one detail page, built once
 
-**The question** (Mike, Aug 2026): *"I wish I could conclude on a consistent demo
+**The question** (the owner, Aug 2026): *"I wish I could conclude on a consistent demo
 UX."* Every catalog detail page on the site was assembling its own: `styles/sections`
 hand-rolled a stage plus a file source, `styles/layouts` did it without a bar,
 `demo.page()` and `demo.tree()` each had a third arrangement, and the Page overview
@@ -458,7 +458,7 @@ another — which also keeps `ext/layout` off every page that only wanted a `dem
 ### The source is the DEFINITION, not the file
 
 `demo.tree()` used to print its own `page.js`, imports and
-`export default new Page(demo.tree({…}))` included. Mike: *"clear and good, except
+`export default new Page(demo.tree({…}))` included. The owner: *"clear and good, except
 for a newcomer the extra imports and `export default new Page(demo.tree(…))` is all
 quite confusing."*
 
@@ -565,7 +565,7 @@ crop is simply correct.
 
 ## 17. The stage can only shrink — simulated widths, and one control
 
-**The question** (Mike, 2026-08-12): the stage renders at 100% of its container and
+**The question** (the owner, 2026-08-12): the stage renders at 100% of its container and
 the handle only ever makes it *narrower*. On a laptop that puts every desktop and
 ultrawide layout out of reach — the widths the site's own doctrine (§14) argues
 hardest about are the ones a reader cannot see.
@@ -646,7 +646,7 @@ preset nothing else on screen says what the render was scaled to. Same format
 
 ### Kept: the stage still opens at 100%
 
-Mike floated rendering it a little under 100% so there would be room to drag it
+The owner floated rendering it a little under 100% so there would be room to drag it
 *larger*. Weighed and declined: it would shrink every demo on the site by default to
 buy an affordance the widths now provide outright, one click and with a number
 attached — and §14 had just spent the `wide` track making these boxes bigger.
@@ -833,7 +833,7 @@ which is what it always meant.
 
 ## 20. The strip is the stage's own
 
-**Mike, on seeing §17** (2026-08-12, same day): the widths belong in a **toggle**,
+**The owner, on seeing §17** (2026-08-12, same day): the widths belong in a **toggle**,
 centred; the zoom belongs **top right**; there should be a **fullscreen** button
 beside it and **one** of those on the site, not the three there were; and the zoom
 wants a **magnifier you can drag**, the way a design tool does it.

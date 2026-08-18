@@ -1,0 +1,14 @@
+@layer base, theme, site, util;
+
+@layer theme {
+	.page-vision-browse { padding: 3em clamp(2em, 4%, 5em); }
+
+	.vision-rank { font-weight: 700; font-variant-numeric: tabular-nums; }
+	.vision-overall-n { font-size: 1.6em; font-weight: 900; font-variant-numeric: tabular-nums; }
+
+	.vision-shot, .vision-gone { flex: 1 1 34em; max-width: 42em; min-width: 0; }
+	.vision-shot { display: block; outline: 2px solid transparent; }
+	.vision-shot:hover { outline-color: var(--prim); }
+	.vision-img { width: 100%; height: auto; border-radius: var(--radius); }
+	.vision-gone { aspect-ratio: 1280 / 800; display: flex; align-items: center; justify-content: center; text-align: center; }
+}

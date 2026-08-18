@@ -36,4 +36,4 @@ the same thing more plainly.
 **`requests` only ever grows** (`Socket.js:113` pushes, nothing splices), so a
 long session with many `request()` calls keeps every resolved resolver alive.
 Measured as nothing today, because nothing calls `request()` — see
-[wire](/framework/dev/Socket/docs/wire/). It is a real leak the moment something does.
+[wire](/framework/dev/Socket/doc/wire/). It is a real leak the moment something does.

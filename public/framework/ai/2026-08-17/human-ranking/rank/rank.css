@@ -1,0 +1,31 @@
+/* Restated IN FULL — a short list silently drops `site` past `util`. */
+@layer base, theme, site, util;
+
+/* Layout only: `surface`, `muted` and the type scale carry the looks. */
+@layer theme {
+
+	/* `bleed` spends the page's gutter tracks, so the gutter is handed back here. */
+	.rank { display: flex; flex-direction: column; gap: 1.5em; min-width: 0; padding-inline: var(--gutter-x); }
+
+	.rank-say { max-width: var(--measure); }
+
+	/* One basis and no breakpoint. The basis is deliberately small: a comparison
+	   needs BOTH shots visible at once, so the pair goes side by side from ~42em of
+	   region and only stacks — each then at full region width — below that. Capped
+	   at the screenshot's own width so a wide screen renders it 1:1, never upscaled. */
+	.rank-duel { display: flex; flex-wrap: wrap; gap: 1em; justify-content: center; }
+	.rank-side { display: flex; flex-direction: column; gap: .4em; flex: 1 1 20em; min-width: 0; max-width: var(--shot); }
+
+	/* `surface` frames it — a 1280 shot of a light page has to read as an object
+	   rather than as more page. The outline is reserved so hover shifts nothing. */
+	.rank-shot { cursor: pointer; overflow: hidden; outline: 2px solid transparent; }
+	.rank-shot:hover { outline-color: var(--prim); }
+	.rank-img { display: block; width: 100%; height: auto; }
+
+	.rank-standings { display: flex; flex-direction: column; gap: .35em; }
+	.rank-row { padding: .4em .7em; --gap: .8em; }
+	.rank-row.nudgeable { cursor: pointer; }
+	.rank-place { min-width: 2.6em; font-variant-numeric: tabular-nums; }
+	.rank-url { min-width: 0; overflow-wrap: anywhere; }
+	.rank-nudge { margin-inline-start: auto; }
+}

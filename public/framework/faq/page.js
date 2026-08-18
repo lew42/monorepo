@@ -153,13 +153,11 @@ new Sidebar({ brand: "Me", pages })  // a brand over links`);
 
 		md("Almost always one of two things, and both fail silently.");
 
-		code.css(`@layer base, theme, site, util;   /* all four, in full, in every file */
-
-@layer theme { .thing { … } }     /* and every rule inside one */`);
+		code.css(`@layer theme { .thing { … } }     /* every rule inside a layer — one of base, theme, site, util */`);
 
 		md("**1. Your rule isn't in a layer.** An unlayered rule beats *every* layer at any specificity — including yours, later, when you didn't mean it to.");
 
-		md("**2. You wrote a short layer list.** The first `@layer` statement fixes the order, and a name first seen later is appended at the **end** — so `@layer base, theme;` silently moves `site` past `util`.");
+		md("**2. You named a layer that isn't one of the four.** The order is fixed once, in `framework.css` (View.js loads it first); a name it doesn't list is appended at the **end**, past `util`.");
 
 		md("And if you are fighting a `framework.css` rule, that is a bug report about `framework.css`. **De-escalate upstream** — the framework holds the low ground on purpose. → [Layers](/framework/styles/layers/)");
 

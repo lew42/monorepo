@@ -16,7 +16,7 @@ invisible even to a reader who knew to look.
 |---|---|
 | files | 425 (`0/` 20, `1/` 359, `starter/` 46) |
 | lines of JS / CSS | 30,994 / 2,208 (362 JS/mjs files, 31 CSS files) |
-| callers | **0 live imports**, framework-wide (grepped). Every other hit is a citation: `core/App/readme.md`, `core/Page` and `core/Router` docs, `core/Router/doc/measured.md`, `util/is/readme.md`, `util/source/readme.md`, `ext/markdown/readme.md`, `ext/LayoutTool/audit/pages.js` (explicitly excludes this tree from its crawl), and `framework/readme.md`'s `instanceof` trap, which names this exact directory. `core/page.js` does not list `new` in `children:` — deliberately outside site nav. |
+| callers | **0 live imports**, framework-wide (grepped). Every other hit is a citation: `core/App/readme.md`, `core/Page` and `core/Router` docs, `core/Router/doc/measured.md`, `util/is/readme.md`, `util/source/readme.md`, `ext/markdown/readme.md`, `ext/DesignTool/audit/pages.js` (explicitly excludes this tree from its crawl), and `framework/readme.md`'s `instanceof` trap, which names this exact directory. `core/page.js` does not list `new` in `children:` — deliberately outside site nav. |
 | docs before | no top-level `readme.md`, no `page.js` anywhere in the tree. Each tier (`0/`, `1/`, `starter/`) already had an excellent, current, self-auditing `readme.md` (the design record CLAUDE.md itself points to) |
 | docs after | `readme.md` + `page.js` at `core/new/`, `0/`, `1/`, `starter/` (4 new page.js, 1 new readme); 15 `doc/file/*.md` for the handful of files worth opening per tier (`App.js`, `Page.class.js`, `Router.js` where present, `server.js`, `readme.md`); one bug fixed in `starter/readme.md` (its own tree diagram was labelled `0/`, copy-pasted from the sibling tier) |
 
@@ -65,7 +65,7 @@ invisible even to a reader who knew to look.
    purpose.** *(simple, useful)* Right now `core/new/page.js` exists and is
    correct but is an orphan from the live site's perspective (my fences
    forbid editing `core/page.js` to fix this myself). The existing convention
-   — `ext/LayoutTool`'s crawl audit explicitly excludes `core/new/`, and
+   — `ext/DesignTool`'s crawl audit explicitly excludes `core/new/`, and
    `core/page.js` never listed it — reads as *deliberate*, not an oversight,
    so the honest recommendation is: leave it unlinked, and say so in one line
    in `core/page.js`'s own doc/audit, rather than silently fixing it as a

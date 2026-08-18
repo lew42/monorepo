@@ -12,7 +12,7 @@ patch) carries `fn.name === ""`. That gap is the entire check.
 `ext/highlight` really does replace `View.prototype.append` at import time,
 so on this site the running `View.append` **is** the patch. A doc page that
 quietly showed the original source would be documenting code that no longer
-runs. [`Doc`](/framework/ext/doc/) prints a banner instead of staying silent.
+runs. [`Doc`](/framework/ext/Doc/) prints a banner instead of staying silent.
 
 ## The sharp edge
 
@@ -23,5 +23,5 @@ calls it against that second case today; if one does, name the function
 
 ## Used by
 
-`Doc.api()` in [`Doc.js`](/framework/ext/doc/files/) — the banner on a
+`Doc.api()` in [`Doc.js`](/framework/ext/Doc/files/) — the banner on a
 documented method's page.

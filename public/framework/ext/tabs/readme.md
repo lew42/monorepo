@@ -1,115 +1,28 @@
-# Tabs — design record
+# Tabs — a bar of links and the panel its children mount into; `this.tabs()` on every `Page`, for pages that flip *between* children
 
-A bar of links, and the panel those children mount into. An ext that patches
-`Page.prototype`, so `this.tabs("guide api")` reads exactly as it did when it lived
-in core.
+## Use
 
-Long form: [`doc/extraction.md`](./doc/extraction.md) — why it left `core/Page`, the
-options weighed, and the physics checked before shipping.
+```js
+import "/framework/ext/tabs/tabs.js";          // once, anywhere — app.js already does
 
-## Which page earns a tab bar
+content(){ this.tabs("guide api"); }          // children by name; the first is the default panel
+this.tabs("guide api").ac("vertical");       // same set as a left rail; .ac("block") for folder tabs
+```
 
-A page with no prose of its own that exists to arrange its children — flipped
-*between*, not drilled *into* — and only once its children fit inside the hosting
-page's own measure, because a tab bar mounts them **there**, not in the region.
-[`doc/usage.md`](./doc/usage.md) has the four-condition test and the `ext/` mistake
-that forced the fifth.
+## Watch out
 
-## Who calls it
+- Only the first `tabs()` on a page can own the parent's url; two sets sharing a child name collide silently — [doc/decisions.md](./doc/decisions.md)
+- A tab bar suits a page with no prose of its own whose children flip *between* and fit its measure; otherwise `previews()` — [doc/usage.md](./doc/usage.md)
+- A bar is one strip that scrolls, never a wrapping block; past ~fifty members it is untested — [doc/overflow.md](./doc/overflow.md)
+- A nested set with no `app` never highlights on a cold load; anything rendering links late owes `mark_links()` — [doc/decisions.md](./doc/decisions.md)
+- Under a stand-in app (`demo.app`) `[aria-current]` is the third selected mark — [doc/decisions.md](./doc/decisions.md)
 
-| caller | what for | url |
-|---|---|---|
-| [`ext/doc/Doc.js`](/framework/ext/doc/) | both levels of every `Doc` page — the top section bar (`.block`) and each section's vertical member rail | every module page below, e.g. [View](/framework/core/View/) |
-| [`ext/tabs/page.js`](/framework/ext/tabs/) (this page) | its own two demo sets, underline and `.block` | `/framework/ext/tabs/` |
+## More
 
-`Doc` is the only **functional** caller in framework code today, but it is not the
-only *route* to `this.tabs()`: `app.js` imports `tabs.js` a second time, on its own
-line, specifically so any other `page.js` can reach for it without depending on
-`Doc` — the same shape `highlight` uses for `code`. Nothing else has taken that up
-yet. Two more files reach for the method only as a **prose example**, not a live
-call: [`core/Page/nav/page.js`](/framework/core/Page/nav/) and
-[`framework/faq/page.js`](/framework/faq/). One file,
-[`web/nav/tabs/page.js`](/web/nav/tabs/), reuses the **CSS classes** by hand
-(`.tabs`, `.tab-bar`, `.tab-panel`) without importing `tabs.js` at all, because its
-demo has no Router for the real method to talk to.
-
-Eight module pages route through `Doc` as of today (App, Page, Router, Sidebar,
-View, `dev/Socket`, `ext/doc` and its own `overview/urls`), each rendering a
-top `.block` bar plus one vertical rail per section — so the DOM footprint is
-already much larger than "one caller" suggests, even though there is still exactly
-one call site.
-
-## Decisions
-
-**Which children are tabs is decided at placement, not marked on the child.** So a
-page can have several sets, and a child in none of them renders wherever it would
-have anyway — nothing on a `Page` ever says *"I am a tab."*
-
-**A set nests by nesting pages, not by nesting sets.** A tab whose panel needs its own
-tabs is a `Page` with children that calls `tabs()` in its own `render()`. Both levels
-then get real urls, real `.active` marking and a real back button for free, because the
-only mechanism involved is `Page.container()` reading `parent.regions`. There is nothing
-in this file about depth.
-
-**The look is the default, not a variant.** A flat text label, a hairline under the set,
-a 2px mark under the selected one, every value a token — `--line`, `--subtle`, `--ink`,
-`--prim`. A `.minimal` class was rejected: the quiet version *is* the component, and a
-tab bar that ships a box, a fill and a radius has decided something that was not its
-call. `.vertical` stays a variant because it changes the **axis**, not the skin.
-
-**`.block` is a style option, not a second component** — folder tabs, opted into at the
-call site (`Doc`'s top bar; its member rails stay `vertical`). It is the one shape
-that carries **type**: the labels take the scale's `h4` — the annotation level, which is
-what a strip of section names is — with `--tab-pad-x` widened to match. Restated rather
-than handed to the anchor as `.h4`, because the variant is a class on the *set* and the
-anchor is emitted by this module; keep it in step with `framework.css`. The underline
-default is untouched. It ships no fill either: the hairline moves off the bar and onto
-the tabs, so under the selected one it is *absent* rather than covered, which is the
-only way a tab can merge with a page whose background this module is not allowed to
-know. **`--tab-fill` is the one way out** (2026-08-12): a host that *tints* the strip
-needs the selected tab to cut back to whatever its content sits on, so it names that
-ground and the tab fills with it — default `transparent`, so an untinted bar is exactly
-what it always was. `--tab-pad-x` arrived with it, for a host that wants the tab
-*labels* on its own text axis rather than the tab boxes.
-
-**The panel rule is about the panel, not the group.** Every set renders its first
-child as the panel's `.default`, so no panel is ever blank, and which one shows is
-read entirely off the url — clicking produces byte-identical output to reloading.
-
-**`[aria-current]` counts as selected too, in all three shapes.** A stand-in app —
-`ext/demo`'s `demo.app` — has no Router to set the two classes, and `mark_links()`
-would clear a borrowed one anyway, so both the selected-state selectors and the
-first-tab fallback read the attribute as a third mark. `ext/catalog`'s rail fallback
-reads it the same way, for the same reason.
-
-**`regions` and `default_tab` stayed on `Page`.** `Page.container()` reads
-`this.parent?.regions?.get(this.name)` directly, so `regions` is Page's own concept
-(*where do my named children mount?*) and `tabs()` is only ever one of its writers.
-
-## Traps, none of which warn
-
-- **The first tab owns the parent's url**, so a second `tabs()` on one page cannot
-  also be default. Only the first set can.
-- **Two sets sharing a child name** collide in `regions`, silently; the second call's
-  panel wins.
-- **A label must not depend on which tab you arrived at.** Declared children are
-  imported at construction and the Router awaits them, so every title is real — this
-  used to be a live bug reported as *"the first tab's label changes depending on which
-  tab renders."* `label` is read before `title`, so a child relabels itself for every
-  nav on the site with `new Page({ label: "…" })`.
-- **`app` reaches a default child only because `tabs()` hands it over.** A default is
-  rendered without ever being routed to, so `Page.child()` never runs on it — and a
-  *nested* set with no `app` cannot call `mark_links()`, which reads as "the inner rail
-  never highlights on a cold load".
-- **Links built after `mark()` ran missed the pass** — `tabs()` calls `mark_links()`
-  itself. Anything else rendering links late owes the same call.
-- **⚠ `tabs.css` still says "classdoc" twice** (the `--tab-pad-x` comment and the
-  `:where()` one) — leftover from before `ext/classdoc` became `ext/doc`. Named at the
-  top of [the audit](/framework/audit/modules/ext-tabs.md) because this file cannot
-  fix its own CSS.
-
-## Open
-
-- **Overflow has no test past "it looks fine at fifty."** No page on the site has
-  pushed a *vertical* rail past `core/View`'s fifty members, and the `64em` breakpoint
-  was measured against one topic region. [`doc/overflow.md`](./doc/overflow.md).
+- [Overview](/framework/ext/tabs/) — live demos: underline, `.block`, `.vertical`
+- [doc/decisions.md](./doc/decisions.md) — placement not marking, nest pages not sets, the quiet default, `.block`/`--tab-fill`, traps, caller census
+- [doc/usage.md](./doc/usage.md) — which page earns a tab bar (the four-condition test)
+- [doc/overflow.md](./doc/overflow.md) — one strip that scrolls; the hidden-scrollbar bargain
+- [doc/extraction.md](./doc/extraction.md) — why it left `core/Page`: measurements, options weighed
+- `doc/method/tabs.md`, `doc/file/*.md` — API and per-file notes, rendered by the `Doc` page
+- Files: `tabs.js` (the prototype patch), `tabs.css` (three shapes, tokens), `page.js` (demos, Doc index)

@@ -18,7 +18,7 @@ both is decided by whichever sheet loaded last, which is not a decision anyone m
 
 `page.label ?? page.title` is where an entry's two spellings resolve, and the order
 matters: **a label belongs to the list it appears in, a title to the page.** They
-are not two names for one thing. [entries](/framework/core/Sidebar/docs/entries/).
+are not two names for one thing. [entries](/framework/core/Sidebar/doc/entries/).
 
 ## Simplicity
 

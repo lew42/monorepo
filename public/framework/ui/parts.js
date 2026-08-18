@@ -1,10 +1,6 @@
 import View from "../core/View/View.js";
 
-/* A <style> tag, with the layer statement written for you — a short `@layer`
- * list silently drops `site` past `util`, so no caller gets to forget it. */
-export const css = rules => new View({ tag: "style", capture: false })
-	.text("@layer base, theme, site, util;\n" + rules)
-	.append_to(document.head);
+export const css = rules => new View({ tag: "style", capture: false }).text(rules).append_to(document.head);
 
 // A component function, plus the `.c("classes", …)` form every View factory has.
 export const component = fn => Object.assign(fn, {

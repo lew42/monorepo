@@ -8,7 +8,7 @@ and [`MemorySaver.js`](/framework/ext/Saver/files/).
 nothing has been saved yet. **A 404 / missing key / empty store is `null`, not a
 rejection** — a document that does not exist yet is the normal first run, and a
 caller checks `=== null` rather than wrapping the call in `try/catch`. See
-[backends](/framework/ext/Saver/docs/backends/) for what "missing" means per
+[backends](/framework/ext/Saver/doc/backends/) for what "missing" means per
 backend.
 
 **Usage** — `core/Item.open(saver)` is the intended caller (documented, not yet

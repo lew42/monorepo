@@ -7,7 +7,7 @@ row of icon controls, plus `handle()` (the drag grip in the bar), `place()`
 
 ## It imports `View` and nothing else
 
-Not `ext/layout` — [Decisions](/framework/ext/Panel/docs/decisions/) records what
+Not `ext/layout` — [Decisions](/framework/ext/Panel/doc/decisions/) records what
 one line of that cost — and nothing of `ext/Panel` either, so `workspace.js`
 reads this file one way and the two can never circle. The price is that the
 vocabulary arrives as an argument:

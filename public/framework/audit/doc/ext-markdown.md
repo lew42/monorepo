@@ -3,14 +3,14 @@
 `ext/markdown` is six files that turn `marked` (a vendored parser) into a
 `View` addon: `md()` as a captured factory, `view.md()` patched onto every
 view, and a promise-returning file-loading half (`md.file`, `md.details`)
-that the entire `ext/doc` system is built on top of. It earns its place
+that the entire `ext/Doc` system is built on top of. It earns its place
 completely — this is not a module in question, it is close to the single
 most-imported piece of the framework, reached by nearly every `page.js` via
 `app.js`'s re-export. The single most important thing to do to it is **not
-in this directory**: `ext/doc`'s `patched()` check gives a false "Replaced at
+in this directory**: `ext/Doc`'s `patched()` check gives a false "Replaced at
 runtime" banner on every method this module documents, purely because of how
 a "function with properties" subject has to assign its members. That is a
-systemic `ext/doc` bug this audit surfaces but cannot fix (out of fence).
+systemic `ext/Doc` bug this audit surfaces but cannot fix (out of fence).
 
 ## State
 
@@ -18,7 +18,7 @@ systemic `ext/doc` bug this audit surfaces but cannot fix (out of fence).
 |---|---|
 | files | 6 (`example.md`, `marked.esm.js`, `md.css`, `md.js`, `page.js`, `readme.md`) |
 | lines of JS / CSS | 212 / 20 (`md.js` 152 + `page.js` 60 / `md.css` 20) — plus `marked.esm.js`, 77 lines, ~41KB, vendored and never edited |
-| callers | ~197 files. 164 files do `import { md } from "/app.js"` (prose, framework-wide — effectively every `page.js`). 33 files import `md.js` directly for `.file`/`.details`: `ext/doc/Doc.js` (every `Doc`-based module's member pages, files-tab "about" pane, notes); `ext/Ask/chat.js` (chat bubbles, [/framework/ext/Ask/](/framework/ext/Ask/)); `ext/AITask/{AITask,message,feed,replay}.js` (task prose, replay, [/framework/ext/AITask/](/framework/ext/AITask/)); 27 files under `core/new/1/**` (the earlier design-proof sketch, not part of the live nav) |
+| callers | ~197 files. 164 files do `import { md } from "/app.js"` (prose, framework-wide — effectively every `page.js`). 33 files import `md.js` directly for `.file`/`.details`: `ext/Doc/Doc.js` (every `Doc`-based module's member pages, files-tab "about" pane, notes); `ext/Ask/chat.js` (chat bubbles, [/framework/ext/Ask/](/framework/ext/Ask/)); `ext/AITask/{AITask,message,feed,replay}.js` (task prose, replay, [/framework/ext/AITask/](/framework/ext/AITask/)); 27 files under `core/new/1/**` (the earlier design-proof sketch, not part of the live nav) |
 | docs before | `readme.md` present but long (150 lines, five "Design decisions" plus a full incident writeup, no breakouts). `page.js` was a plain `Page`, not a `Doc` — no Files tab, no API tab, no per-member `.md`. Zero files under `doc/`. |
 | docs after | `readme.md` rewritten to ~120 lines with a "Who uses this" table and four linked breakouts; `page.js` rewritten as `new Doc({ subject: md, … })`; 14 new files under `doc/` — 6 `doc/file/*.md`, 4 `doc/method/*.md` + `doc/property/cache.md`, 4 `doc/*.md` notes |
 
@@ -45,7 +45,7 @@ systemic `ext/doc` bug this audit surfaces but cannot fix (out of fence).
 
 ## Recommendations
 
-1. **`ext/doc`'s `patched()` check false-positives on every method of a
+1. **`ext/Doc`'s `patched()` check false-positives on every method of a
    "function with properties" `subject`.** *(claim)* `util/source/source.js:64`
    defines `patched(fn, name){ return fn.name !== name; }` — correct for a
    class method, where an ext replacing `View.prototype.append` really does
@@ -55,7 +55,7 @@ systemic `ext/doc` bug this audit surfaces but cannot fix (out of fence).
    the only legal way to attach a property to a function object — which
    gives the same empty `.name` for a completely unrelated reason. I
    confirmed this directly: `const o={}; o.file = async function(){}; o.file.name === ""`.
-   `ext/doc/Doc.js:130-131` then renders "> Replaced at runtime — an ext has
+   `ext/Doc/Doc.js:130-131` then renders "> Replaced at runtime — an ext has
    patched `md.file`" on a page where nothing ever patched anything. This is
    not a one-off: `demo.js` has the identical shape (`demo.stage = (fn) => …`),
    so any module documented with `subject: demo` inherits the same false
@@ -65,7 +65,7 @@ systemic `ext/doc` bug this audit surfaces but cannot fix (out of fence).
    method at all" (e.g. skip the check unless `Doc.is_class(subject)`, since
    only a class's *instances* have a prototype default for an assignment to
    shadow in the first place). *(simple, important — file:
-   `public/framework/ext/doc/Doc.js:130`, root cause
+   `public/framework/ext/Doc/Doc.js:130`, root cause
    `public/framework/util/source/source.js:64`, both out of this audit's fence)*.
 2. **`md.c(classes, content)` has no caller.** Re-verified today: zero call
    sites in `public/` outside its own definition and its own docs. Delete
@@ -106,7 +106,7 @@ sync). If a third emitter ever wants a file label, that convention needs a
 name and probably a shared one-line helper, not a third copy of the
 `data-file` string.
 
-**`ext/doc` is this module's biggest consumer, not an overlap** — `Doc.js`
+**`ext/Doc` is this module's biggest consumer, not an overlap** — `Doc.js`
 imports `md` directly and its whole Files/Docs tab machinery *is* `md.file()`
 calls. No shared responsibility to question there, just a real, heavy
 dependency worth knowing about before touching either file.
@@ -124,7 +124,7 @@ dependency worth knowing about before touching either file.
   screen" budget on a caller list, or guesses (as I did) that aggregating is
   fine.
 - **The relative-link trap almost bit *this documentation itself*, and
-  nothing in the skill or `ext/doc/readme.md` warns about it.** A link
+  nothing in the skill or `ext/Doc/readme.md` warns about it.** A link
   inside a `doc/*.md` file resolves (via `md.resolve`) against the *fetched
   file's own path*, which mirrors the `doc/` folder tree — not against the
   route a section actually renders at (`/api/<name>/`, `/docs/<name>/`).
@@ -133,7 +133,7 @@ dependency worth knowing about before touching either file.
   wrong, because `../resolve/` from `doc/method/file.md` resolves to
   `doc/resolve/`, a url that isn't a route (the real one is `/api/resolve/`).
   Caught it by reasoning through `md.resolve`'s own mechanics, not because
-  anything in the skill flagged it — worth one line in `ext/doc/readme.md`
+  anything in the skill flagged it — worth one line in `ext/Doc/readme.md`
   or the skill's "rules that keep biting": *cross-links inside `doc/*.md`
   must be absolute; only a link to a real file (not a member page) may stay
   relative.*
@@ -141,7 +141,7 @@ dependency worth knowing about before touching either file.
   mechanically but the skill doesn't say how** — I used `find . -maxdepth 1
   -type f` plus `find doc -type f` and eyeballed the diff against `files:`,
   `properties:`, `methods:`, `notes:`. A one-line shell recipe in the skill
-  (or in `ext/doc/readme.md`'s Open section, which already flags that this
+  (or in `ext/Doc/readme.md`'s Open section, which already flags that this
   check "belongs in the `documentation` skill, not in a crawler") would save
   every future agent from re-deriving it.
 - Everything else in the skill was accurate and sufficient — the six-artifact

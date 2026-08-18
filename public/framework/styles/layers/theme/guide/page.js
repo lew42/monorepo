@@ -22,6 +22,7 @@ export default new Doc({
 	title: "Writing a theme",
 	description: "Two sample themes, both modes, and the ladder from token to rule.",
 	icon: "school",
+	notes: "decisions",
 	files: "page.js paper.css terminal.css readme.md",
 	content(){
 
@@ -74,6 +75,6 @@ export default new Doc({
 
 		md("Next: [lew42](/framework/styles/layers/theme/lew42/) — a real theme, ported from a Figma comp.");
 
-		md.details(import.meta, "readme.md", "Design record — theming architecture");
+		md.details(import.meta, "readme.md", "Readme");
 	}
 });

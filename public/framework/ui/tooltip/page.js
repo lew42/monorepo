@@ -25,8 +25,24 @@ const native = () => p(() => {
 	span("Native, and it costs nothing: ");
 	span("hover this").attr("title", "The UA tooltip. No CSS, no positioning, no clipping.")
 		.style({ borderBottom: "1px dotted var(--subtle)", cursor: "help" });
-	span(" — the `title` attribute.");
+	// ⚠ `code()`, not a backtick in a string: only `p()` and `h1`–`h6` read backticks —
+	// every other factory appends raw, so this rendered the tick marks literally.
+	span(" — the ", code("title"), " attribute.");
 });
+
+/* The card's own context — a real control, not this page's self-referential prose,
+   which read as illegible grey mush at zoom-50 (wall-polish, 2026-08-17). */
+const context = () => div.c("pad flex v gap", () => {
+	span.c("h4", "Auto-save");
+	p.c("muted", () => {
+		span("Runs every ");
+		span.c("ui-tooltip", () => {
+			span.c("ui-tooltip-word", "30 seconds");
+			span.c("ui-tooltip-bubble", "Changes sync to the server on this interval.");
+		}).attr("tabindex", "0");
+		span(" while you type.");
+	});
+}).style("--gap", "0.4em");
 
 export default new Page({
 	meta: import.meta,
@@ -75,5 +91,5 @@ export default new Page({
 
 	// ⚠ Never `.shown` here: the bubble is out of flow and the thumb crops, so a
 	// held-open one renders as a sliver. A card shows the tooltip at rest.
-	preview(nav){ return this.preview_card(nav, () => div.c("zoom-50 pad", tooltip)); },
+	preview(nav){ return this.preview_card(nav, () => div.c("zoom-50", context)); },
 });

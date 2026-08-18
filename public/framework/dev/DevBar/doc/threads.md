@@ -39,7 +39,7 @@ div.c("dev-ai flex v", async $ai => {
 ```
 
 `threads()` is async, and [capturing is
-synchronous](/framework/core/View/docs/capturing/) — the `await` above drops
+synchronous](/framework/core/View/doc/capturing/) — the `await` above drops
 the global captor the instant it suspends. `panel(url, found)` is built
 inside a **callback** passed to `$ai.append()`, which re-establishes the
 captor before the callback runs, rather than being called directly after the

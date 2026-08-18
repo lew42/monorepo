@@ -1,34 +1,26 @@
 import View, { div, span, button } from "/framework/core/View/View.js";
 import { glyph } from "./glyphs.js";
+import { level_of, FIELDS, tracked, record, box, fresh, text_observe } from "./persist.js";
 
-/* Text inside a panel body, made selectable and stylable. `text_layers($body)` marks
-   what's pointable with ONE delegated listener — a body can hold hundreds of text
+/* Text inside a panel body, made selectable, stylable and typed on directly. `text_layers`
+   marks what's pointable with ONE delegated listener — a body can hold hundreds of text
    nodes, and a listener per one of them does not scale, and survives every redraw
    `paint()` does since `$body` itself is never recreated, only emptied.
    `text_fields($el)` draws the controls for whichever one is selected — something
    outside this file listens for `panel-text` and calls it, the shape `tools.js`
    already uses for `panel-focus`.
-   css: .panel-text-hot, .panel-text-on. */
+
+   Every edit here mutates a drawing the TEMPLATE owns, and `paint()` throws that drawing
+   away on every tone, template and mirror change — `persist.js` underneath is what writes
+   each edit down as an overlay on `panel.data.text` and replays it once the redraw has
+   landed. One direction only: this file calls into `persist.js`, never the reverse.
+   css: .panel-text-hot, .panel-text-on — plus `.panel-text-box`/`.panel-text-new`, drawn by
+   persist.js and styled here. */
 View.stylesheet(import.meta, "text.css");
 
 export const TEXT = { on: true };
 
 const SELECTOR = "p, h1, h2, h3, h4, h5, h6, li, blockquote, span.h1, span.h2, span.h3, span.h4";
-
-const LEVELS = ["h1", "h2", "h3", "h4", "body"];
-
-/* Weight and tracking write DIRECT inline styles, not custom properties: nothing else
-   on the page would ever read a `--text-weight` token, so one would be plumbing with
-   no second end — the same call `tools.js`'s `zoom_scrub` already made for `zoom`.
-   Each "normal" is the empty string on purpose: picking it clears the override
-   instead of fighting whatever the level's own weight already is. */
-const WEIGHT = { normal: "", medium: "600", bold: "800" };
-const TRACK  = { tight: "-0.02em", normal: "", wide: "0.08em" };
-const ALIGN  = { left: "", center: "center", right: "right", justify: "justify" };
-const ALIGN_ICON = {
-	left: "format_align_left", center: "format_align_center",
-	right: "format_align_right", justify: "format_align_justify",
-};
 
 const viewed = el => el && new View({ el, capture: false });
 
@@ -72,7 +64,9 @@ function gauge(el){
 	$gauge.classList.toggle("wide", lines > 1 && ch > 75);
 	$gauge.classList.toggle("narrow", lines > 1 && ch < 45);
 	$gauge.classList.add("on");
-	$gauge.style.insetInlineStart = box.left + "px";
+	// ⚠ Clamped like the top edge below — an element near the right edge would otherwise
+	// push the badge's own width straight past `innerWidth`.
+	$gauge.style.insetInlineStart = Math.max(0, Math.min(box.left, innerWidth - $gauge.offsetWidth)) + "px";
 	$gauge.style.insetBlockStart = Math.max(0, box.top - 22) + "px";
 }
 
@@ -80,10 +74,9 @@ function gauge(el){
 // would walk past it to whatever real heading wraps the panel itself.
 const inside = (root, el) => el && root.contains(el) ? el : null;
 
-export function text_layers($body){
-	if (!TEXT.on) return;
-
+export function text_layers($body, item){
 	const root = $body.el;
+	const dispose = text_observe($body, item);
 
 	root.addEventListener("mouseover", e => mark(inside(root, e.target.closest(SELECTOR))));
 	root.addEventListener("mouseleave", () => mark(null));
@@ -98,6 +91,10 @@ export function text_layers($body){
 		e.stopPropagation();
 		select(el === selected?.el ? null : el);
 	});
+
+	// ⚠ `text_observe()`'s dispose, passed straight through — persist.js is what
+	// `owners`/the `MutationObserver` belong to, so it is also what releases them.
+	return dispose;
 }
 
 /* Type on the thing itself. `contenteditable` rather than an input in the rail, because a
@@ -122,11 +119,14 @@ export function edit(el){
 	getSelection().removeAllRanges();
 	getSelection().addRange(range);
 
+	// ⚠ The class goes BEFORE the write: `record()` saves, which repaints every mirror, and
+	// a body still wearing `.panel-text-edit` would be committed by the paint it just caused.
 	const done = () => {
 		el.removeAttribute("contenteditable");
 		el.classList.remove("panel-text-edit");
 		el.removeEventListener("blur", done);
 		el.removeEventListener("keydown", key);
+		record(el, { text: el.textContent });
 	};
 
 	// ⚠ Escape ends it; Enter does NOT — a heading may legitimately wrap, and a layout tool
@@ -140,17 +140,16 @@ export function edit(el){
 
 /* Wrap a text layer in a container it does not have — the "put this in a box" move every
    layout tool has, and the one thing you cannot do by styling the element itself. The
-   wrapper takes the layer's place in the flow and adopts it, so nothing moves. */
+   wrapper takes the layer's place in the flow and adopts it, so nothing moves. Selection
+   stays on the RUN: the box is derived from the run's record and has no address to save
+   styling of its own against. */
 export function wrap(el, tag = "div"){
 	if (!el?.parentElement) return null;
 
-	const box = document.createElement(tag);
-	box.className = "panel-text-box";
-	el.replaceWith(box);
-	box.append(el);
-
-	select(box);
-	return box;
+	const made = box(el, tag);
+	record(el, { box: tag });
+	select(el);
+	return made;
 }
 
 /* The panel under the pointer, and the run of text in it that is selected or first. `T` is
@@ -163,48 +162,28 @@ export function type_here(){
 	if (selected?.el?.isConnected) return start(selected.el);
 
 	const $body = document.querySelector(".panel:hover:not(:has(.panel:hover)) .panel-body");
-	if (!$body) return null;
+	// ⚠ `tracked()` answers only for bodies `text_observe` bound — the one place a
+	// workspace with `tools.text` off is invisible to T, with no per-workspace check of its own.
+	if (!$body || !tracked($body)) return null;
 
 	/* ⚠ On ANY panel, which means a panel holding no prose at all has to grow some — a scene
 	   or a clock matches nothing in `SELECTOR`, and T doing nothing there is T being broken
-	   three times out of four. The new line is DOM, like every other edit here: a template
-	   redraw takes it, because a panel's body belongs to its template until `data` learns to
-	   carry copy. */
+	   three times out of four. */
 	return start($body.querySelector(SELECTOR) ?? fresh($body));
 }
 
 const start = el => { select(el); return edit(el); };
 
-function fresh($body){
-	const p = document.createElement("p");
-	p.className = "panel-text-new";
-	p.textContent = "Text";
-	$body.append(p);
-	return p;
-}
-
 /* ⚠ Bound once, at module scope, and it checks `typing()` first — without that the `T` that
    starts a session would be caught again by the next keystroke and restart it. Ignored while
    the focus is in a real field, or typing a `t` into the rail would jump to a panel. */
 document.addEventListener("keydown", e => {
-	if (!TEXT.on || e.key !== "t" || e.metaKey || e.ctrlKey || e.altKey) return;
+	if (e.key !== "t" || e.metaKey || e.ctrlKey || e.altKey) return;
 	if (typing() || /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName)) return;
 	if (document.activeElement?.isContentEditable) return;
 
 	if (type_here()) e.preventDefault();
 });
-
-const level_of = $el => LEVELS.find(l => l !== "body" && $el.hc(l)) ?? "body";
-const set_level = ($el, name) => LEVELS.forEach(l => l !== "body" && $el[l === name ? "ac" : "rc"](l));
-
-const weight_of = $el => Object.keys(WEIGHT).find(k => $el.style("fontWeight") === WEIGHT[k]) ?? "normal";
-const set_weight = ($el, name) => $el.style("fontWeight", WEIGHT[name]);
-
-const track_of = $el => Object.keys(TRACK).find(k => $el.style("letterSpacing") === TRACK[k]) ?? "normal";
-const set_track = ($el, name) => $el.style("letterSpacing", TRACK[name]);
-
-const align_of = $el => Object.keys(ALIGN).find(k => $el.style("textAlign") === ALIGN[k]) ?? "left";
-const set_align = ($el, name) => $el.style("textAlign", ALIGN[name]);
 
 const row = (names, icons, active, pick) => div.c("flex gap wrap", () => {
 	names.forEach(name => {
@@ -221,13 +200,15 @@ export function text_fields($el){
 		return;
 	}
 
-	const set = (setter, name) => { setter($el, name); announce($el); };
-
 	div.c("flex gap v", () => {
-		row(LEVELS, null, level_of($el), name => set(set_level, name));
-		row(Object.keys(WEIGHT), null, weight_of($el), name => set(set_weight, name));
-		row(Object.keys(TRACK), null, track_of($el), name => set(set_track, name));
-		row(Object.keys(ALIGN), ALIGN_ICON, align_of($el), name => set(set_align, name));
+		for (const name in FIELDS){
+			const field = FIELDS[name];
+			row(field.names, field.icons, field.of($el), pick => {
+				field.set($el, pick);
+				record($el.el, { [name]: pick });
+				announce($el);
+			});
+		}
 
 		// The two verbs that change the element rather than its look.
 		div.c("flex gap wrap", () => {

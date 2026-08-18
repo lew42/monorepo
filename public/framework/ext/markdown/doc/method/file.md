@@ -48,7 +48,7 @@ being stuck showing the old error forever.
 Before returning, the view is passed through
 [`md.resolve`](/framework/ext/markdown/api/resolve/) so a relative `href`/`src`
 in the fetched markdown resolves against **the file**, not the document. See
-[Relative links](/framework/ext/markdown/docs/relative-links/) for the bug
+[Relative links](/framework/ext/markdown/doc/relative-links/) for the bug
 this fixed.
 
 ⚠ A link inside *this very file* pointing at another member page has to be

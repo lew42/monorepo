@@ -8,4 +8,4 @@ through `get()`. Nothing in this module needs that distinction today; a
 caller that does would have to bypass `get()` and read `data` directly.
 
 Why defaults live on the class instead of in `data`: see
-[Decisions](/framework/ext/Panel/docs/decisions/).
+[Decisions](/framework/ext/Panel/doc/decisions/).

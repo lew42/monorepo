@@ -21,6 +21,6 @@ on the *content*: one block adopts that block, multiple blocks wrap in a
 `div.md`. `md.c("note", "a\n\nb")` puts `.note` on the wrapper `div.md`, not on
 anything you wrote — a promise `.c()` can't always keep.
 
-See [Proposed](/framework/ext/markdown/docs/proposed/) — this is a live
+See [Proposed](/framework/ext/markdown/doc/proposed/) — this is a live
 finding, not yet acted on: keep for symmetry, or delete and say classes go on
 with `.ac()`.

@@ -23,7 +23,7 @@ where an internal seam belongs.
 The `content()` demo is the plain call, unchanged from before this page was a
 `Doc`. The one added rail card, **With about**, points `about` at
 `doc/file/<path>.md` for this module's *own* files — the same wiring
-`ext/doc`'s Files tab uses — so the hook is shown doing the exact job it was
+`ext/Doc`'s Files tab uses — so the hook is shown doing the exact job it was
 built for, on the files a reader is already looking at.
 
 The two demos now carry a second job as well: the plain call is a **two-region**
@@ -37,7 +37,7 @@ neither demo had to say it.
    five files rendered two different ways** (as a standalone demo, and as the
    page chrome around it). Slightly redundant on a page this small; harmless,
    and it's the cheapest possible proof the feature isn't just wired for
-   `ext/doc`. *(simple, speculative — a note, not a defect.)*
+   `ext/Doc`. *(simple, speculative — a note, not a defect.)*
 2. **Three panel workspaces mount on this page at once** — the two demos and
    the Files tab — each with its own `MemorySaver`. They share no document, so
    nothing races; they do each pull the Panel stack's stylesheets, which are

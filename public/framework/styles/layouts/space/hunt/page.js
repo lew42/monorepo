@@ -5,7 +5,7 @@ import { gen } from "../gen.js";
 import { sweep, credit, proposal, WIDTHS } from "../search.js";
 
 /* The generator, searched rather than sampled — and the page where the model gets
- * BETTER. It rolls N seeds, rates each one at three widths with `ext/LayoutTool`'s
+ * BETTER. It rolls N seeds, rates each one at three widths with `ext/DesignTool`'s
  * taste tier, ranks them by their WORST width, and then reports which draws the good
  * ones had in common. That second table is the point: it is `model.js`'s weights,
  * measured. Design record: ../readme.md, "The loop".
@@ -32,7 +32,7 @@ export default new Page({
 	content(){
 
 		div.c("pad flow measure start", () => {
-			md("**A generator with a score is a search.** Every roll below is rated by [`ext/LayoutTool`'s taste tier](/framework/ext/LayoutTool/taste/) at 390, 1280 and 3440, and ranked by its **worst** width — a layout that is an A at 1280 and an F on a phone is not a B layout.");
+			md("**A generator with a score is a search.** Every roll below is rated by [`ext/DesignTool`'s taste tier](/framework/ext/DesignTool/taste/) at 390, 1280 and 3440, and ranked by its **worst** width — a layout that is an A at 1280 and an F on a phone is not a B layout.");
 
 			md("The second table is the one that matters. It groups every *draw* the generator made — which shape, which masthead, screen or page — by the mean fitness of the layouts that drew it. Those numbers are what [`model.js`](/framework/styles/layouts/space/)'s weights are a claim about, and where a weight and its column disagree, the column is the evidence.");
 

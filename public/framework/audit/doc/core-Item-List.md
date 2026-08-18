@@ -158,21 +158,21 @@ never surfaces there.
 
 Second: the skill's audit checklist (`## Auditing an existing module`) doesn't
 mention `doc/file/<path>.md` for `readme.md` and `page.js` themselves, and I
-had to find that convention by example (`ext/doc`'s own `doc/file/readme.md.md`
+had to find that convention by example (`ext/Doc`'s own `doc/file/readme.md.md`
 and `doc/file/page.js.md`) rather than from the skill text, which only says
 "one for EVERY file in the module (never for `doc/` or `ai/`)" — technically
 correct once you notice `readme.md` and `page.js` count as "every file," but
 easy to read as being about source files only, and I initially drafted this
 audit assuming only `Item.js`/`List.js` needed file docs before checking
-`ext/doc` and finding otherwise. A one-line example in the skill (the way it
+`ext/Doc` and finding otherwise. A one-line example in the skill (the way it
 already gives `View.js.md` → `View.js`) would have saved that detour.
 
 Third, smaller: the skill's own worked "Improvements" example
 (`## Auditing an existing module` → `doc/file` template) is the only doc/file
-sample shown with a ranked list; `ext/doc`'s real `doc/file/Doc.js.md` — the
+sample shown with a ranked list; `ext/Doc`'s real `doc/file/Doc.js.md` — the
 system's own reference implementation — has **no** Improvements section at
 all. An auditor following the skill literally and an auditor following the
 nearest real example get different answers about whether that section is
 required. I followed the skill's literal text (it's a "must," stated plainly)
-over the example's precedent, but it's worth the skill and `ext/doc` agreeing
+over the example's precedent, but it's worth the skill and `ext/Doc` agreeing
 with each other.

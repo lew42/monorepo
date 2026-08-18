@@ -19,7 +19,7 @@ View.stylesheet(import.meta, "catalog.css");
  * turned into a column that stays put while the active child renders beside it. The
  * intro fills the region from the start, exactly as a tab set fills its panel.
  *
- * A catalog is a screen, never a block of reading: it takes `bleed` — the whole
+ * A catalog is a screen, never a block of reading: it takes `wide` — the whole
  * region rather than the measure — and no call site gets to decide otherwise.
  *
  * Design record: readme.md.
@@ -47,7 +47,7 @@ Page.prototype.catalog = function(){
 function screen(){
 	let $pages, $rail;
 
-	const $catalog = div.c("page-catalog bleed", () => {
+	const $catalog = div.c("page-catalog wide", () => {
 		$rail = this.previews();
 		this.$pages = $pages = div.c("page-catalog-pages");
 	});

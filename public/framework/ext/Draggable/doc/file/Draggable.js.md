@@ -11,7 +11,7 @@ the [API tab](/framework/ext/Draggable/api/).
 Grab-and-move and reorder-a-collection are different jobs, not versions of the
 same one — `Sortable` overrides `release()` outright rather than extending it.
 Splitting the files keeps that visible: this one has no ghost, no placeholder,
-no idea what a list is. Full reasoning: [`doc/verdicts.md`](/framework/ext/Draggable/docs/verdicts/).
+no idea what a list is. Full reasoning: [`doc/verdicts.md`](/framework/ext/Draggable/doc/verdicts/).
 
 ## The registry is the one piece of shared state
 

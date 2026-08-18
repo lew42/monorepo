@@ -35,7 +35,7 @@ export default new Page({
 
 		md("Four independent agents flagged the same class of thing without being asked about each other:");
 
-		md("- **`ext/toc` + a `Doc` `overview:` renders nothing at all** — the catalog mounts its child one DOM level deeper than `toc.css`'s selector reaches, so the rail builds, scans and scroll-spies entirely inert. Latent today (no page does both), loud tomorrow.\n- **`ext/layout` fails silently by design** — an unregistered word, an unresolvable target. Its auditor flagged it in four separate doc files it was writing, which is itself the evidence.\n- **`ext/tabs`' `filling` promise has no `.catch()`** — a throwing child `content()` leaves the bar blank with no console trace.\n- **`ext/doc`'s `api_section()` guard defeats an `api()` override** — a subclass whose members come entirely from `members()` calls gets no tab, and nothing warns.");
+		md("- **`ext/toc` + a `Doc` `overview:` renders nothing at all** — the catalog mounts its child one DOM level deeper than `toc.css`'s selector reaches, so the rail builds, scans and scroll-spies entirely inert. Latent today (no page does both), loud tomorrow.\n- **`ext/layout` fails silently by design** — an unregistered word, an unresolvable target. Its auditor flagged it in four separate doc files it was writing, which is itself the evidence.\n- **`ext/tabs`' `filling` promise has no `.catch()`** — a throwing child `content()` leaves the bar blank with no console trace.\n- **`ext/Doc`'s `api_section()` guard defeats an `api()` override** — a subclass whose members come entirely from `members()` calls gets no tab, and nothing warns.");
 
 		md("## 3 — Duplication small enough to actually fix");
 
@@ -48,7 +48,7 @@ export default new Page({
 | the three-clause drag cycle guard | \`ext/Draggable\`'s demo, \`PanelDrag\`, \`ext/editor\` | the base class's \`drop_check\` should carry it |
 | sticky-rail CSS, four times with unexplained drift | \`Sidebar\`, \`Doc\`'s member rail, \`ext/toc\`, \`ext/files\` | one shared rail stylesheet |`);
 
-		md("That last one is the closest thing to a real unification finding, and **two auditors reached it independently** — `ext/toc`'s and `ext/doc`'s — counting the same four implementations without knowing about each other. Nobody thinks the components should merge; the \"current\" logic genuinely differs. The CSS does not.");
+		md("That last one is the closest thing to a real unification finding, and **two auditors reached it independently** — `ext/toc`'s and `ext/Doc`'s — counting the same four implementations without knowing about each other. Nobody thinks the components should merge; the \"current\" logic genuinely differs. The CSS does not.");
 
 		md("## 4 — Dead code, verified by grep");
 
@@ -58,11 +58,11 @@ export default new Page({
 
 		md("- `List.find(fn)` is flat and one-level; `Item.find(id)` is recursive. Same name, unrelated contracts, and `List.find` has no real callers — free to rename **today**.\n- `Router.root()` collides with `app.root` (a Page vs an Element). The readme already proposes `scope()`; two call sites.");
 
-		md("## 6 — Structural, and needing Mike");
+		md("## 6 — Structural, and needing the owner");
 
 		md("These are the \"propose before major surgery\" cases. Each is written up in full in its module's report; none should be started without a decision.");
 
-		md("- **`ext/editor` is an application, not a module** — zero code callers, integrated only by being a route. Its auditor wants `page.js` split into `Editor.js` plus a thin page, which is the prerequisite for the `ext/Editor` rename a prior review already ruled for.\n- **`core/List` may be one idea wearing two names** — its readme overruled a bare-Array dissent on \"adopt/owner have to live somewhere\", which is true, but that somewhere did not have to be a class, a file, a readme and a doc tree. Two private methods on `Item` would do it. It is a load-bearing seam for three modules, so this is Mike's call.\n- **`ext/LayoutTool` may belong in `dev/`, not `ext/`** — 26 files of browser tooling under a directory CLAUDE.md defines as *opt-in addons the site imports*.\n- **`core/new` is 425 files of dead sketches** — a large fraction of the framework by file count, none of it importable by rule.");
+		md("- **`ext/editor` is an application, not a module** — zero code callers, integrated only by being a route. Its auditor wants `page.js` split into `Editor.js` plus a thin page, which is the prerequisite for the `ext/Editor` rename a prior review already ruled for.\n- **`core/List` may be one idea wearing two names** — its readme overruled a bare-Array dissent on \"adopt/owner have to live somewhere\", which is true, but that somewhere did not have to be a class, a file, a readme and a doc tree. Two private methods on `Item` would do it. It is a load-bearing seam for three modules, so this is the owner's call.\n- **`ext/DesignTool` may belong in `dev/`, not `ext/`** — 26 files of browser tooling under a directory CLAUDE.md defines as *opt-in addons the site imports*.\n- **`core/new` is 425 files of dead sketches** — a large fraction of the framework by file count, none of it importable by rule.");
 
 		md("Next: [Organization](/framework/audit/overview/organization/) — the question this audit was really for.");
 	}

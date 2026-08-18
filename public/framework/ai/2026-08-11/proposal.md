@@ -228,7 +228,7 @@ declare X" is unenforceable for 15 of 87 pages. That is a second reason to put
 the rule in the *blocks*.
 
 **Two anomalies to verify, not yet asserted:**
-`/framework/core/View/docs/` and `/framework/dev/Socket/` both reported *no active
+`/framework/core/View/doc/` and `/framework/dev/Socket/` both reported *no active
 page* at both widths (their sub-routes render fine). And discovery turned up a
 live route `/framework/styles/sections/readme.md/` rendering a 900px default —
 almost certainly a relative markdown link that the router accepted.
@@ -256,7 +256,7 @@ are four again, because three of them predate it and were never converted.
 
 | # | collision | evidence |
 |---|---|---|
-| 1 | **Thirteen pages answer "how do I lay out a page"** | `styles/layouts/fit`, `styles/layouts/`, the 8 layout leaves, `layouts/flex`+`grid`, `styles/layers/util`, `styles/sections`, `styles/`, `core/page.js` §"There is no layout tier", `core/Page/flow`, `core/Page/docs/layout`, `core/Page/overview/shapes`, `ext/layout`. Six of them teach the identical five words. |
+| 1 | **Thirteen pages answer "how do I lay out a page"** | `styles/layouts/fit`, `styles/layouts/`, the 8 layout leaves, `layouts/flex`+`grid`, `styles/layers/util`, `styles/sections`, `styles/`, `core/page.js` §"There is no layout tier", `core/Page/flow`, `core/Page/doc/layout`, `core/Page/overview/shapes`, `ext/layout`. Six of them teach the identical five words. |
 | 2 | `styles/layouts/split` ⟷ `styles/sections/split` | **same name, same class string (`flex gap auto`), two urls** |
 | 3 | `styles/layouts/cards` ⟷ `ui/card` ⟷ `Page.previews()` | same picture, three implementations. `cards/page.js:6` and `ui/card/page.js:6` are the *same five classes in a different order*. Neither links to the other |
 | 4 | `styles/layouts/dashboard` ⟷ `core/Page/overview/dashboard` | two `/dashboard/` urls in one docs site, unrelated content |
@@ -508,7 +508,7 @@ implementation.
 Crawl `/framework/` at 3440 / 1600 / 400: no console errors, no failed requests,
 **no horizontal overflow** (the current crawl reports zero — keep it that way),
 and re-run the fill measurement. Target: average fill at 3440 above **80%**, from
-today's 63%. Chase the two anomalies in A6 (`core/View/docs/`, `dev/Socket/`
+today's 63%. Chase the two anomalies in A6 (`core/View/doc/`, `dev/Socket/`
 reporting no active page; the stray `/framework/styles/sections/readme.md/`
 route). Wire this file into `public/framework/ai/2026-08-11/page.js` with
 `md.file(import.meta, "proposal.md")` — **it is not linked from anywhere yet.**
@@ -541,7 +541,7 @@ T3, T7 and T8 — `ext/layout/` is still 30% at 3440, exactly as T7 says.
 
 ### The two anomalies, chased
 
-**`core/View/docs/` and `dev/Socket/` reporting no active page — not a bug.** Both
+**`core/View/doc/` and `dev/Socket/` reporting no active page — not a bug.** Both
 render correctly at every width; the report was a **measurement artifact**. The
 crawler waited 500ms after `.page.active-page` appeared, and these two classdoc
 trees occasionally exceeded the 6s selector timeout on a cold navigation. At a

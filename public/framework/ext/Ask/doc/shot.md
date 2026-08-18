@@ -27,7 +27,7 @@ going quietly blind; `ask()` lets that error surface as the turn's own
 ".chat-form"}` — rewritten in `ask()` before the request goes out (see
 [ask](/framework/ext/Ask/api/ask/)). Passing the full `{url, selector, width, height}`
 reaches any other page, including one this tab never opened; `width` defaults
-to the caller's own `report.viewport?.w ?? 1280` in `ext/LayoutTool/vision.js`
+to the caller's own `report.viewport?.w ?? 1280` in `ext/DesignTool/vision.js`
 so a screenshot matches the viewport the numeric report was scored against.
 
 ## Measured

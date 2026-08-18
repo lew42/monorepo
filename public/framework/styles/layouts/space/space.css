@@ -1,5 +1,3 @@
-@layer base, theme, site, util;
-
 @layer theme {
 
     /* The instrument: the controls ABOVE, the ruler underneath at full bleed. It was
@@ -22,7 +20,7 @@
        only bounds them, so they stop eating the whole dials column at 3440. */
     .space-depth { flex: 0 1 12em; min-width: 7em; }
 
-    /* One shot's rating, under the shot it belongs to. `ext/LayoutTool`'s taste tier
+    /* One shot's rating, under the shot it belongs to. `ext/DesignTool`'s taste tier
        turns the ruler into an instrument that answers rather than one that shows. */
     .space-mark { display: inline-flex; align-items: baseline; gap: 0.45em; }
     .space-grade { font-weight: 700; font-variant-numeric: tabular-nums; }

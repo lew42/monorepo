@@ -20,7 +20,7 @@ written down, and still unapplied.
 |---|---|
 | files | 3 module files (`View.js`, `page.js`, `readme.md`) + 56 doc files = 59 |
 | lines of JS / CSS | 471 (`View.js`) + 87 (`page.js`) = 558 JS / 0 CSS (no stylesheet of its own) |
-| callers | ~50+ direct importers across `framework/` (every core class, ~30 `ext/` modules, `ui/`, `dev/DevBar/`), plus every `page.js` on the site indirectly via `/app.js`'s `export * from "../View/View.js"` chain. Representative: `core/App/App.js`, `core/Page/Page.class.js`, `core/Sidebar/Sidebar.js`, `ext/doc/Doc.js`, `ext/demo/*`, `ext/layout/*`, `ext/highlight/highlight.js`, `ext/markdown/md.js` |
+| callers | ~50+ direct importers across `framework/` (every core class, ~30 `ext/` modules, `ui/`, `dev/DevBar/`), plus every `page.js` on the site indirectly via `/app.js`'s `export * from "../View/View.js"` chain. Representative: `core/App/App.js`, `core/Page/Page.class.js`, `core/Sidebar/Sidebar.js`, `ext/Doc/Doc.js`, `ext/demo/*`, `ext/layout/*`, `ext/highlight/highlight.js`, `ext/markdown/md.js` |
 | docs before | `readme.md` (Decisions/Traps/Proposed/Open, already excellent), `page.js` (`Doc`, no `files:`), 41/41 `doc/method/*.md`, 10/10 `doc/property/*.md`, 2 notes (`capturing.md`, `lifecycle.md`), **0** `doc/file/*.md` |
 | docs after | + `files: "View.js page.js readme.md"` in `page.js`, + `doc/file/View.js.md`, `doc/file/page.js.md`, `doc/file/readme.md.md`, + `## Used by` section in `readme.md` |
 
@@ -94,9 +94,9 @@ brief calls out, just caught one level lower (inside `core/`, not between exts).
 ## Skill feedback
 
 **Strongest point:** the skill's own worked example (`doc/file/*.md` in
-`ext/doc/`) quietly **contradicts its own stated structure**. §4 says every file
+`ext/Doc/`) quietly **contradicts its own stated structure**. §4 says every file
 doc ends with "a ranked list of improvements last" and gives a two-item example —
-but none of the five actual `doc/file/*.md` files shipped in `ext/doc/` (the
+but none of the five actual `doc/file/*.md` files shipped in `ext/Doc/` (the
 module the skill tells you to read first, per the brief's step 0.3) has an
 `## Improvements` section at all. I followed the shipped precedent (omit it when
 there's nothing worth ranking; write it when there is) rather than the prose,
@@ -115,7 +115,7 @@ category — the finding that matters is the shape of the usage, not the count"*
 would remove that guess.
 
 Third, minor: the skill never states whether `readme.md` itself needs a
-`doc/file/readme.md.md`. I only knew to write one because `ext/doc/`'s own
+`doc/file/readme.md.md`. I only knew to write one because `ext/Doc/`'s own
 directory does (`doc/file/readme.md.md` exists there) — the brief's step 3 says
 "one for EVERY file in the module," which does technically cover it, but it reads
 at first as being about code files, and I'd have skipped it without that example.

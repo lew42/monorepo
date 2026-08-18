@@ -35,7 +35,7 @@ export function ruler(screens = SCREENS){
 		/* ⚠ The marker goes on the ROW, and it has to. A shot is a picture of another
 		     layout at another viewport — without any marker this page reported 542
 		     findings, every one of them shrunken text. But marking only the screens
-		     leaves the row itself measurable, and ext/LayoutTool then reads a
+		     leaves the row itself measurable, and ext/DesignTool then reads a
 		     2986×579 box holding 51 characters of caption: `empty`, at HIGH, meaning
 		     "a dead url, or content that never arrived". The row is a picture too.
 		     ⚠ It is the whole ROW and not the wall around it: the seed wall marks its

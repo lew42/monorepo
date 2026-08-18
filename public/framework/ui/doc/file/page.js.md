@@ -21,7 +21,7 @@ the component's own url rather than filling a region beside the rail.
 inside `content()` would therefore draw an empty wall. The fix in this file is
 `this.parent.previews()` — `this.parent` is the section's adopting parent, which
 *is* this Doc, and owns the real children. Commented at the call site; flagged
-in the audit as a trap worth recording in `ext/doc`'s own docs.
+in the audit as a trap worth recording in `ext/Doc`'s own docs.
 
 ## The 19-tab question
 
@@ -32,7 +32,7 @@ Recommendations rather than settled here.
 
 ## Improvements
 
-1. **The `this.parent` trap belongs in `ext/doc/readme.md`'s Traps section,**
+1. **The `this.parent` trap belongs in `ext/Doc/readme.md`'s Traps section,**
    not just this file's comment — the next module to reach for `this.previews()`
    inside `content()` will hit it fresh. *(simple, important)*
 2. **Whether nineteen top tabs is the right shape for this module** — full

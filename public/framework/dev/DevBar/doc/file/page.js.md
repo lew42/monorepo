@@ -1,5 +1,5 @@
 The module's `Doc` — migrated from a plain `Page` on 2026-08-15, the same day
-`ext/doc` replaced `ext/classdoc`. `subject: devbar` documents the two names
+`ext/Doc` replaced `ext/classdoc`. `subject: devbar` documents the two names
 `DevBar.js` exports as properties of the default function (`refresh`,
 `toggle`) the same way `md.file` gets documented elsewhere — `devbar` is a
 function with properties, not a class, so it gets no *Overrides* line and no

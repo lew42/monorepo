@@ -45,7 +45,7 @@ export default new Page({
 	/* ⚠ 1, where the lab defaults to 3. A panel holds a REAL band, not a picture of
 	     one, and a band does not reflow — so a depth-3 tree at 3440 gives leaves ~80px
 	     and `changelog`'s heading ladders one letter per line (measured: ~1.9
-	     characters per line, `ext/LayoutTool` high). The slider still reaches 10; the
+	     characters per line, `ext/DesignTool` high). The slider still reaches 10; the
 	     page just does not open on a broken one. */
 	depth: 1,
 

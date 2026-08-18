@@ -20,7 +20,7 @@ if (this.app) this.$mode = mode(this.app);
 **Quietly absent when the sidebar wasn't given an app**, which is correct — `mode()`
 styles `app.$app` and has nothing to write to otherwise — and is also the failure
 mode most likely to confuse: a sidebar built without `app: this.app` simply has no
-toggle, with nothing in the console. [views](/framework/core/Sidebar/docs/views/) has
+toggle, with nothing in the console. [views](/framework/core/Sidebar/doc/views/) has
 the measured case where that happens by accident.
 
 Outside the scroller, so it stays put while the nav scrolls, and inside `menu()`,

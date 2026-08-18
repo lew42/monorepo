@@ -8,9 +8,9 @@ export default new Doc({
 	icon: "view_sidebar",
 
 	subject: Page,
-	methods: "catalog",
+	methods: "catalog browse",
 	notes: "decisions",
-	files: "catalog.js catalog.css page.js readme.md",
+	files: "catalog.js catalog.css browse.js browse.css page.js readme.md",
 
 	content(){
 
@@ -33,7 +33,7 @@ export default new Doc({
 
 		md("## The one line that decides wall or rail");
 
-		div.c("flex gap wide", () => {
+		div.c("flex gap wide auto", () => {
 			demo.app(sample({
 				content(){ p("Nine topics, one wall."); },
 			})).style("height", "16em");
@@ -47,11 +47,21 @@ export default new Doc({
 		code.js(`content(){ this.previews(); }     // left  — a wall: every card, once, on arrival
 initialize(){ this.catalog(); }   // right — a rail: the same cards, pinned beside a region`);
 
-		md("Same tree, same cards, same `previews()` underneath both. A wall answers *what is here*; a rail answers that once and then stays, so clicking one card never re-asks it. **This is the call to reach for** when a module's variants would otherwise be a wall of `demo()` boxes stacked down the page: `overview:` on a [`Doc`](/framework/ext/doc/) is this same method, spelled for sibling directories instead of a hand call.");
+		md("Same tree, same cards, same `previews()` underneath both. A wall answers *what is here*; a rail answers that once and then stays, so clicking one card never re-asks it. **This is the call to reach for** when a module's variants would otherwise be a wall of `demo()` boxes stacked down the page: `overview:` on a [`Doc`](/framework/ext/Doc/) is this same method, spelled for sibling directories instead of a hand call.");
+
+		md("## …and `browse()` is the third answer");
+
+		code.js(`const BANDS = { Surfaces: "card toolbar panel", Data: "table timeline" };
+
+content(){ return this.browse(BANDS, { "--column": "18em" }); }`);
+
+		md("A wall answers *what is here* and a rail answers it once — but at twenty peers a wall is a scroll and a rail is a column six cards tall. [`browse()`](/framework/ext/catalog/api/browse/) is the same `previews()` cards **banded and filterable**: a sticky rail of band counts and a search on the left, one grid per band on the right, every card visible at once. Two pages are one call to it — [Layouts](/framework/styles/layouts/) (29 cards, four bands) and [UI](/framework/ui/) (19 components, four bands).");
+
+		md("The distinction against `catalog()` is whether the reader is **choosing from** the set or **reading it in order**. ⚠ Band sizes are load-bearing: a band is its own grid and `auto-fit` stretches it to fill the row, so a band of three on a 2750px wall draws three cards a thousand pixels wide.");
 
 		md("## `overview:` *is* this method");
 
-		code.js(`// ext/doc/Doc.js — overview_section()
+		code.js(`// ext/Doc/Doc.js — overview_section()
 content: this.content,
 initialize(){ this.catalog(); },`);
 
@@ -61,7 +71,7 @@ initialize(){ this.catalog(); },`);
 
 		md(`| page | children |
 |---|---|
-| [UI](/framework/ui/) | 19 components, string-declared |
+| [UI](/framework/ui/) | one intro — the 19 components are a browse() wall inside it |
 | [AI](/framework/ai/) | one entry per working day |
 | [Sections](/framework/styles/sections/) | fifteen page bands |
 | [400](/framework/styles/layouts/400/) | five specs, one column at 400px |
@@ -73,6 +83,6 @@ initialize(){ this.catalog(); },`);
 
 		md("Next: [Layout](/framework/ext/layout/) — the toolbar that pushes arrangements around.");
 
-		md.details(import.meta, "readme.md", "Design record — why a method, and what it must not grow");
+		md.details(import.meta, "readme.md", "Readme");
 	},
 });

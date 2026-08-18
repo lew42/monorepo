@@ -13,7 +13,7 @@ View.stylesheet(import.meta, "files.css");
  * directory is stripped for display, so a doc folder reads as a project.
  *
  * `about` is anything to render BESIDE the source — a view or a promise of one, per
- * path. Given one, the browser is three panels rather than two. ext/doc's Files tab
+ * path. Given one, the browser is three panels rather than two. ext/Doc's Files tab
  * passes the `.md` written about each file.
  *
  * ⚠ Paths resolve against `import.meta`, never the document — the SPA fallback makes
@@ -35,7 +35,7 @@ export default function files(meta, names, { about } = {}){
  * being declaration order the moment two paths interleave folders. */
 export const tree = (paths, cut, selected) => div.c("file-tree", () => rows(nest(paths, cut), selected));
 
-/* ext/highlight, softly — the same deal demo() and ext/doc make. With it loaded a file
+/* ext/highlight, softly — the same deal demo() and ext/Doc make. With it loaded a file
  * arrives highlighted and cached; without it, the text in a <pre>. An ext may lean on
  * an ext; only core may never. */
 export function source(meta, path){

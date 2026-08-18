@@ -11,7 +11,6 @@ export default new Page({
 	content(){
 
 		code.css(`/* /styles.css */
-@layer base, theme, site, util;
 
 @layer site {
     .app { background: var(--wash); }
@@ -31,13 +30,9 @@ export default new Page({
 
 		md("The position is the design:\n\n- **Above `theme`**, so the site beats the framework and every component at any specificity — no climbing.\n- **Below `util`**, because a utility class is something you typed *on the element, on purpose*. A blanket `div { padding: 0 }` in the site has no business defeating `.pad`.\n\nAnd it is a **named layer rather than unlayered** on purpose: unlayered would beat `util` too, spend the last cheap rung of the ratchet, and — being unpositioned — foreclose ever placing anything above or below it.");
 
-		md("## The one obligation");
+		md("## The one thing to know");
 
-		md("Restate the full order at the top, like every stylesheet:");
-
-		code.css(`@layer base, theme, site, util;`);
-
-		md("`site` is the name most at risk from a short list — a stylesheet that omits it gets it appended at the *end*, past `util`, and the site silently starts beating utility classes. See [Layers](/framework/styles/layers/) for why nothing warns you.");
+		md("The order is declared once, in `framework.css`, which `app.js` loads first in every document. A stylesheet just names its layer — a name outside the four is appended at the *end*, past `util`, and nothing warns you. See [Layers](/framework/styles/layers/).");
 
 		md("Next: [util](/framework/styles/layers/util/) — the one layer that outranks you, and why that's right.");
 	}

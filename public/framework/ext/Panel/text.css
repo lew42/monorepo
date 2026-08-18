@@ -1,6 +1,3 @@
-/* Restated IN FULL — a short list silently misplaces `site`. */
-@layer base, theme, site, util;
-
 /* Outlines only — they take no space, so marking hundreds of text nodes never
    reflows the panel body underneath them. Same move as ext/layout/layout.css's
    `.layout-hot`/`.layout-selected`. Every colour is a token. */

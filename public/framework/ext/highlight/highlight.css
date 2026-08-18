@@ -1,6 +1,3 @@
-/* Restated IN FULL — a short list silently misplaces `site`. */
-@layer base, theme, site, util;
-
 /* ⚠ Deliberately NOT a vendored hljs theme: every official one sets its own
    `.hljs { background; color }`, which would fight framework.css's `pre, code` and
    demo.css's `.demo-code`. readme.md has the reasoning. */

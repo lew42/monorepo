@@ -67,7 +67,7 @@ and `Page.class.js`) since those docs were written, one citation pointed at a
    `Page.log_label()`'s three. The readme already proposes deleting it or wiring
    `Page.container()`'s hardcoded `"app.$pages"` string through it; either is a
    one-line change outside my fences. Leaving it in its current unresolved state
-   is, per the readme's own words, "the only wrong answer." *(simple, useful — needs Mike)*
+   is, per the readme's own words, "the only wrong answer." *(simple, useful — needs the owner)*
 5. **Outside-the-box:** `mode.js` and `Font.js` are each covered by exactly one
    `notes:` entry (`mode`, `fonts`) rather than getting their own `subject:`-style
    member breakdown, because neither is a member of `App`. That's the right call
@@ -104,7 +104,7 @@ citation in the module's docs against the real file"* — would have made this a
 checklist item instead of something I stumbled into.
 
 Second, smaller: **the skill doesn't say whether `readme.md` itself gets a
-`doc/file/readme.md.md`.** I only got it right because I checked `ext/doc`'s own
+`doc/file/readme.md.md`.** I only got it right because I checked `ext/Doc`'s own
 precedent (`doc/file/readme.md.md` exists there) before writing anything — and a
 sibling module's audit (`core/Page`) independently made the same check and
 flagged the exact same ambiguity as its own top Improvement. Two auditors

@@ -70,7 +70,7 @@ the same guess independently rather than being told.
 
 Second, sharper piece of feedback: **"`doc/file/<path>.md` — one for EVERY file in
 the module" doesn't say whether `readme.md` documents itself.** I resolved it by
-precedent (`ext/doc/doc/file/readme.md.md` exists) rather than instruction, and
+precedent (`ext/Doc/doc/file/readme.md.md` exists) rather than instruction, and
 `core/Sidebar`'s audit file records hitting the exact same ambiguity independently.
 Two audits rediscovering the same unstated rule in one pass is the skill's own
 signal to spell it out: *"`readme.md` gets `doc/file/readme.md.md` too."*

@@ -8,6 +8,7 @@ export default new Doc({
 
 	subject: is,
 	methods: "arr obj str num bool fn def undef class pojo proto dom el promise mobile",
+	notes: "decisions",
 	files: "is.js page.js readme.md",
 
 	content(){

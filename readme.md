@@ -6,6 +6,7 @@
 - No bundler or build (pure static hosting)
 - Native ESM `imports`
 - Simple `div()` view system with capturing
+- No new npm dependencies (`chokidar`, `express`, `ws` are the dev server); `npx` and globally-installed tools are fine
 
 ## Cloudflare Previews
 

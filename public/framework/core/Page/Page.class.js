@@ -213,7 +213,7 @@ export class Page {
 	// before specifics, on a wall or in a rail.
 	// `pages` defaults to all of mine; a caller hands in a subset when some children are
 	// chrome rather than content — a Doc's derived Overview/API/Docs/Files sections are
-	// the case that asked for it (ext/doc's `wall()`).
+	// the case that asked for it (ext/Doc's `wall()`).
 	previews(pages = this.children){
 		let group;
 

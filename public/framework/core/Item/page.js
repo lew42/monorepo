@@ -126,7 +126,7 @@ export default new Doc({
 	subject: Item,
 	properties: "id data items parent saver",
 	methods: "assign get set add remove move root walk find contains on off emit save delete toJSON wire hydrate register open",
-	notes: "envelope",
+	notes: "envelope decisions",
 	files: "Item.js readme.md page.js",
 
 	content(){
@@ -141,7 +141,7 @@ doc.save();`);
 
 		code.json(`{ "type": "Item", "id": "…", "data": { }, "items": [ ] }`);
 
-		md("Those four keys are the whole wire format, `items` omitted when empty. **All user state lives under `data`** — so a key of your own called `items` cannot collide with the tree. `parent` and `saver` are instance properties and instance properties are never serialized, which makes a backref impossible by construction; hydrate restores it by adoption. More on the envelope, unknown types, and what's deliberately excluded: [doc/envelope](/framework/core/Item/docs/envelope/).");
+		md("Those four keys are the whole wire format, `items` omitted when empty. **All user state lives under `data`** — so a key of your own called `items` cannot collide with the tree. `parent` and `saver` are instance properties and instance properties are never serialized, which makes a backref impossible by construction; hydrate restores it by adoption. More on the envelope, unknown types, and what's deliberately excluded: [doc/envelope](/framework/core/Item/doc/envelope/).");
 
 		h2("The verbs");
 
@@ -168,6 +168,6 @@ item.save()  item.delete()            // delegate up to the document's saver`);
 
 		md("Next: [List](/framework/core/List/) — the collection behind `item.items`, and why userland never touches it.");
 
-		md.details(import.meta, "readme.md", "Design record — the council ruling, and what was cut");
+		md.details(import.meta, "readme.md", "Readme");
 	}
 });

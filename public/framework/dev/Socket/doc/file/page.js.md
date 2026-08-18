@@ -22,7 +22,7 @@ absent, and neither absence is visible on the page:
 Boot line, then the guard that makes it safe (`h2("The guard is in the
 class")`), then the protocol (`h2("The server calls a method on you")`), then
 what a save actually does (`h2("A save reloads the tabs that loaded the
-file")`) with [wire](/framework/dev/Socket/docs/wire/) as the full contract.
+file")`) with [wire](/framework/dev/Socket/doc/wire/) as the full contract.
 Each block leads with a code sample and captions it — the shape the skill asks
 for.
 

@@ -29,7 +29,7 @@ export function select($el){
 	show();
 }
 
-/* ⚠ Deselecting no longer CLOSES the rail (Mike, 2026-08-16). It used to, and clicking
+/* ⚠ Deselecting no longer CLOSES the rail (the owner, 2026-08-16). It used to, and clicking
    anywhere on the page then threw away the reader's scroll position along with whatever
    they were reading. The selection clears, the rail says so, and only its ✕ shuts it —
    which is also why this no longer opens a rail that was already closed. */

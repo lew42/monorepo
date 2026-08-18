@@ -1,6 +1,3 @@
-/* Restated IN FULL — a short list silently misplaces `site`. */
-@layer base, theme, site, util;
-
 @layer theme {
 
 	/* One property write zooms (--em-per-hour); one class swap flips the axis. */

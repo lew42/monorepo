@@ -1,7 +1,3 @@
-/* ⚠ Restated IN FULL — the first `@layer` statement fixes the order, and a
-   short list silently drops `site` past `util`. */
-@layer base, theme, site, util;
-
 @layer theme {
 
 	/* Layout only. The cards below borrow `--surface` and `--line` rather than

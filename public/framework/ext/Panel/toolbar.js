@@ -1,9 +1,12 @@
 import View, { div, span, button, icon } from "/framework/core/View/View.js";
-import { ALIGN, COMPASS, DISPLAY, MODE, PLACE, SWATCHES, TONES, glyph } from "./glyphs.js";
+import { ALIGN, COMPASS, DISPLAY, MODE, PLACE, SIZES, LENGTHS, SWATCHES, TONES, extent, glyph } from "./glyphs.js";
+import { sizing } from "./size.js";
 
-/* The bar that floats over a panel. Imports flow one way — workspace.js reads this
-   file, and this file reads only `glyphs.js` (which reads View and nothing else), so
-   no two of them circle.
+/* The bar that floats over a panel. Imports flow one way — `workspace.js` and `paint.js`
+   read this file (the bar, and `place()`),
+   and this file reads `glyphs.js` (which reads View and nothing else) plus `size.js`'s
+   `sizing()`, the one writer of `$panel`'s own size classes — neither reads ANYTHING of
+   ext/Panel back, so no two of them circle.
    css: .panel-bar, .panel-btn, .panel-handle, .panel-gap, .panel-pop, .panel-fold,
    .panel-browse, .panel-more — plus `--panel-bar-h`, the bar's published height.
    Record: readme.md. */
@@ -78,15 +81,29 @@ export function toolbar(item, $panel, $body, T){
 				$display.says(() => { icon(DISPLAY[name]); });
 			}, item.get("display"), DISPLAY));
 
-		/* The trigger IS the mode the panel wears — arrows inward for hug, outward for fill —
-		   so a bar says how its panel sizes without a label, exactly as the template trigger
-		   says what it holds. */
-		const $size = pop(() => { icon(MODE[item.get("mode")]); }, "Fill or hug", 2, () =>
-			pick(Object.keys(MODE), mode => {
-				$panel[mode === "hug" ? "ac" : "rc"]("hug");
-				item.set("mode", mode);
-				$size.says(() => { icon(MODE[mode]); });
-			}, item.get("mode"), MODE));
+		/* Width and height, as two triggers rather than one: `size.js` reads them per axis,
+		   so one popover could no longer say both at once. Each trigger IS the extent that
+		   axis wears — arrows for fill/hug, the length itself when fixed (`glyph()`'s own
+		   text fallback) — exactly as the old single `mode` trigger did.
+		   ⚠ `sizing()` is called BY HAND after every pick: it is the one writer of `$panel`'s
+		   own classes, and nothing redraws it on a plain `change` the way a mirror gets
+		   `repaint()`'d — the old mode toggle reached into `$panel` for the same reason. */
+		const size_pop = (axis, title) => {
+			const label = () => glyph(MODE[extent(item, axis)], extent(item, axis));
+			const $size = pop(label(), title, 3, () =>
+				pick(SIZES, name => {
+					const fixed = LENGTHS.includes(name);
+					item.set(axis, fixed ? "fixed" : name);
+					if (fixed) item.set(axis + "_at", name);
+					sizing(item, $panel);
+					T.repaint();
+					$size.says(label());
+				}, extent(item, axis), MODE));
+			return $size;
+		};
+
+		size_pop("w", "Width");
+		size_pop("h", "Height");
 
 		// A live duplicate beside me — the same gesture alt-dropping makes, for a panel you
 		// would rather not drag.
@@ -106,7 +123,7 @@ export function toolbar(item, $panel, $body, T){
 		btn(() => { icon("more_horiz"); }, () => { pops.forEach($pop => $pop.rc("on")); $fold.tc("on"); })
 			.ac("panel-more").attr("title", "More controls");
 
-		/* ⚠ The fold is a popover only while the container query says so. Widen past 19em
+		/* ⚠ The fold is a popover only while the container query says so. Widen past 26em
 		   and it becomes `display: contents` while `more_horiz` — the one control that
 		   closes it — becomes `display: none`, so a stale `on` reopens it on the way back
 		   with nobody having clicked. The chrome closes with the pointer, as a grip's

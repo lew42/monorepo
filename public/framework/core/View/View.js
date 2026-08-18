@@ -470,8 +470,3 @@ export { View, is };
 // `tag = "other"`, and `capture` has to be readable before the constructor body.
 View.previous_captors = [];
 View.prototype.capture = true;
-
-// framework.css loads HERE so that importing View fixes the document's @layer order.
-// ⚠ DEAD LAST in this file, and it has to be: `stylesheet()` builds a View, which
-// pushes onto `View.previous_captors` — declared two lines up.
-View.stylesheet(import.meta, "../../framework.css");

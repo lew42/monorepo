@@ -1,6 +1,3 @@
-/* Restated IN FULL — a short list silently misplaces `site`. */
-@layer base, theme, site, util;
-
 /* Layout only — turn/meta/flow spacing. Looks are wash/muted off framework.css. */
 @layer theme {
 

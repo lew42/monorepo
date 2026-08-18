@@ -3,7 +3,7 @@ whichever one is open. The first `dev` → `ext` import in the repo — it reach
 into `ext/JSONL` and `ext/Ask`, which is allowed (core never imports an ext;
 `dev` is downstream of both) but hadn't happened before this file.
 
-Full design: [threads](/framework/dev/DevBar/docs/threads/).
+Full design: [threads](/framework/dev/DevBar/doc/threads/).
 
 ## The shape: `threads()` finds them, `panel()` shows them
 
@@ -18,7 +18,7 @@ whichever thread is selected (remembered per page in
 `section("ai", …)`'s body and `panel()`'s `show()` both go async
 (`threads()`, `TaskJSONL.load()`) and both rebuild their view inside an
 `.append(() => …)` callback rather than directly after the `await` — see
-[threads](/framework/dev/DevBar/docs/threads/#the-captor-trap-this-file-has-to-dodge)
+[threads](/framework/dev/DevBar/doc/threads/#the-captor-trap-this-file-has-to-dodge)
 for why the direct form would silently misplace the DOM.
 
 ## The 404-detection trick

@@ -6,7 +6,7 @@ export default new Page({
 	label: "The model",
 	description: "Seven sentences, twelve words, three page shapes — the whole system, before any of the layouts.",
 	icon: "menu_book",
-	group: "Read this first",
+	group: "Guides",
 
 	content(){
 
@@ -16,7 +16,7 @@ export default new Page({
 			+ "3. **Inside a track, arrange with the utility words** — `flex grid gap auto wrap basis measure pad surface wash muted`, about a dozen of them, all in `framework.css`. A module's own CSS is layout only, and rare: not one layout in this catalog ships a stylesheet.\n"
 			+ "4. **Responsiveness is intrinsic.** Tracks, `clamp()`, `auto-fit` and `flex-wrap` answer to the width of the *box*, so no layout here holds a media query and one class string is right in a card, in a sidebar, and across a 3440 monitor.\n"
 			+ "5. **A page declares `children:`**, a child mounts in the nearest `$pages` region, and the router marks the active chain — anything shown *without* being routed to wears `default`, and that is the whole arrangement contract.\n"
-			+ "6. **Every child draws its own `preview()`.** A parent arranges those cards as a wall (`previews()`), grouped into sections by each child's `group:` — which is exactly what [the index](/framework/styles/layouts/) is.\n"
+			+ "6. **Every child draws its own `preview()`.** A parent arranges those cards as a wall (`previews()`), and a run of children sharing a `group:` gets a heading. [The index](/framework/styles/layouts/) is four such walls, one per band, beside a rail that filters them.\n"
 			+ "7. **A detail page is one `demo.exhibit()`** — stage, layout bar, definition. `demo.layout()` is the config that makes a whole-page layout into one; a quoted example inside prose is `demo()`.");
 
 		md("| | | |\n|---|---|---|\n"

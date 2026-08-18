@@ -7,7 +7,7 @@ discontinuity at some width nobody checked.
 
 This is the shortlist of arrangements that survive the whole range with no media
 query. Each one is a single declaration block, and each is measured by
-`ext/LayoutTool`'s corpus at 400 / 1280 / 1920 / 3440.
+`ext/DesignTool`'s corpus at 400 / 1280 / 1920 / 3440.
 
 ## The seven
 
@@ -77,7 +77,7 @@ gap: 1em;
 ```
 Two panes that become one. **Exactly two** wants `repeat(2, minmax(0, 1fr))`
 above a breakpoint — `auto-fit` will happily make a third empty track in a wide
-container, which is how the LayoutTool's own before/after pair ended up huddled
+container, which is how the DesignTool's own before/after pair ended up huddled
 in the left two-thirds of the page.
 
 ### 7. Full-bleed band with a gutter

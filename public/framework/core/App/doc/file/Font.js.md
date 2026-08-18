@@ -19,7 +19,7 @@ which is the right loudness for a design bug.
    in the framework that breaks `ext/`'s "vendor the dependency" rule. Offline,
    these fall back silently with no warning. Stated in `../fonts.md` and the
    readme, not settled: vendoring costs ~166KB for a look most sites won't load.
-   *(medium, useful — a decision for Mike, not a bug.)*
+   *(medium, useful — a decision for the owner, not a bug.)*
 2. **The instance could collapse into a single function.** Three properties, one
    method; it stays a class because `Font.fonts` reads as data about *fonts* and a
    face has an identity that outlives its load. Recorded, not a real cost.

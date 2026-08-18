@@ -1,6 +1,3 @@
-/* Restated IN FULL — a short list silently misplaces `site`. */
-@layer base, theme, site, util;
-
 /* A pane system is one relationship — every box takes an equal share of its own
    axis, and a divider between two of them takes none. That is the whole stylesheet;
    what a pane LOOKS like is `surface` and `wash` off framework.css. */

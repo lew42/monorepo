@@ -34,7 +34,7 @@ it's already settled; reading `settings.width` synchronously right after
 ## `rail()` is the one number two different UIs write
 
 Called from `tools.js`'s preset buttons and `grip.js`'s drag handler alike —
-see [sizing](/framework/dev/DevBar/docs/sizing/) for the formula and the
+see [sizing](/framework/dev/DevBar/doc/sizing/) for the formula and the
 floor-clearing side effect.
 
 ## Improvements

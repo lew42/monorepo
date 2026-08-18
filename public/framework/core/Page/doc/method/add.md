@@ -9,8 +9,8 @@ add("alpha", new Page({ … }))               // a Page you built
 
 **Usage** — called by `declare()` for a non-string entry (`Page.class.js:39`), by
 `child()` for both the `route()` and filesystem branches (`Page.class.js:75,78`),
-and by `ext/doc`, which builds a page per class member with it
-(`framework/ext/doc/Doc.js:37,63,99,126`).
+and by `ext/Doc`, which builds a page per class member with it
+(`framework/ext/Doc/Doc.js:37,63,99,126`).
 
 **Necessity** — yes. It is the single adoption point, and the single place a child
 gets `name`, `parent` and `app`.

@@ -1,7 +1,3 @@
-/* Restated IN FULL - the first @layer statement fixes the order, and a short list
-   silently drops `site` past `util`. ASCII only, comments included. */
-@layer base, theme, site, util;
-
 @layer theme {
 
 	/* The frame around the panel workspace: five scrolling regions need something to
@@ -36,7 +32,4 @@
 
 	.editor-status { font-size: 0.75em; color: var(--subtle); }
 	.editor-warn { color: var(--error); }
-
-	/* The wall card is a picture of the document, not a second editor. */
-	.editor-thumb { pointer-events: none; }
 }

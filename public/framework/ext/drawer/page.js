@@ -10,6 +10,7 @@ export default new Doc({
 	icon: "view_sidebar",
 
 	files: "drawer.js drawer.css page.js readme.md",
+	notes: "decisions",
 
 	content(){
 

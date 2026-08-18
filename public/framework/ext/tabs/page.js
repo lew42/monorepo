@@ -9,7 +9,7 @@ export default new Doc({
 
 	subject: Page,
 	methods: "tabs",
-	notes: "usage overflow extraction",
+	notes: "usage overflow extraction decisions",
 	files: "tabs.js tabs.css page.js readme.md",
 
 	content(){
@@ -43,7 +43,7 @@ this.tabs("state notes").ac("block");  // …and the one below`);
 		code.js(`this.tabs("overview api docs")     // a Doc's own top bar
 this.tabs().ac("vertical")         // …inside one section's own render()`);
 
-		md("A tab whose panel wants its own tabs is just a `Page` with children that calls `tabs()` too. Both levels get real urls, real marking and a real back button, because the only mechanism involved is `Page.container()` reading `parent.regions` — **there is nothing in this file about depth.** [Doc](/framework/ext/doc/) does exactly this, twice over, for every module page on this site — the [usage](/framework/ext/tabs/docs/usage/) note has the rest of the caller picture.");
+		md("A tab whose panel wants its own tabs is just a `Page` with children that calls `tabs()` too. Both levels get real urls, real marking and a real back button, because the only mechanism involved is `Page.container()` reading `parent.regions` — **there is nothing in this file about depth.** [Doc](/framework/ext/Doc/) does exactly this, twice over, for every module page on this site — the [usage](/framework/ext/tabs/doc/usage/) note has the rest of the caller picture.");
 
 		h2("A quiet bar is the default, not a variant");
 
@@ -64,7 +64,7 @@ this.tabs().ac("vertical")         // …inside one section's own render()`);
 				},
 				content(){ this.tabs("state notes").ac("block"); },
 			})).style("height", "10em");
-		}, "A **style option**, opted into at the call site — the underline stays the default. The hairline moves off the bar and onto the tabs, so under the selected one it is *absent* rather than covered: nothing is filled, so nothing has to guess the host's page background. [Doc](/framework/ext/doc/)'s top bar wears it; its member rails stay `vertical`.");
+		}, "A **style option**, opted into at the call site — the underline stays the default. The hairline moves off the bar and onto the tabs, so under the selected one it is *absent* rather than covered: nothing is filled, so nothing has to guess the host's page background. [Doc](/framework/ext/Doc/)'s top bar wears it; its member rails stay `vertical`.");
 
 		md("It is also the one shape that carries **type** — the labels take the scale's `h4`, the annotation level, which is what a strip of section names is. A host that tints the strip hands the selected tab `--tab-fill` so its notch cuts back to whatever the content sits on; unset, it stays transparent and the tab is still just a hole onto the page.");
 
@@ -76,14 +76,14 @@ this.tabs().ac("vertical")         // …inside one section's own render()`);
 
 		h2("Overflow");
 
-		md("*\"Right for ~5 children, unusable at twenty\"* stopped being theoretical when [View](/framework/core/View/api/) documented fifty members. A bar is **one strip that scrolls**, never a wrapping block — the [overflow](/framework/ext/tabs/docs/overflow/) note has the physics and the hidden-scrollbar bargain.");
+		md("*\"Right for ~5 children, unusable at twenty\"* stopped being theoretical when [View](/framework/core/View/api/) documented fifty members. A bar is **one strip that scrolls**, never a wrapping block — the [overflow](/framework/ext/tabs/doc/overflow/) note has the physics and the hidden-scrollbar bargain.");
 
 		h2("Where it lived, and why it left");
 
-		md("`tabs()` was 47 lines of `Page.class.js` and its CSS was 30% of `Page.css`, moved out whole to `ext/tabs/` so core never has to name a class only an ext emits. The [extraction](/framework/ext/tabs/docs/extraction/) note has the measurements and the options weighed.");
+		md("`tabs()` was 47 lines of `Page.class.js` and its CSS was 30% of `Page.css`, moved out whole to `ext/tabs/` so core never has to name a class only an ext emits. The [extraction](/framework/ext/tabs/doc/extraction/) note has the measurements and the options weighed.");
 
 		md("Next: [Utilities](/framework/util/) — the JS helpers underneath all of this.");
 
-		md.details(import.meta, "readme.md", "Design record — why it left Page, and the physics of the move");
+		md.details(import.meta, "readme.md", "Readme");
 	}
 });

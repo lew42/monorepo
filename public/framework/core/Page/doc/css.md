@@ -142,7 +142,7 @@ packed from the left, and read as left-anchored. Two axes on one page, so there
 was no stable edge to read down — and it recursed: a `demo.app` is a miniature
 site having the identical fight inside a box that is already off the outer axis.
 
-**Verdict (blessed by Mike, 2026-08-12): title, prose, walls and exhibits share
+**Verdict (blessed by the owner, 2026-08-12): title, prose, walls and exhibits share
 ONE left edge; wider blocks grow rightward only.** The opt-in
 `.page.standard.left` variant *became* the template. The gutter is fixed —
 `--gutter-x: clamp(2em, 4%, 5em)`, so 400px pays 32px and never more than 5em —
@@ -176,7 +176,7 @@ left alone: a catalog is a **region**, not an exhibit — it hides the page's ow
 title, so there is no in-page edge to join, and the axis recurses into the standard
 page it holds.
 
-⚠ **The rail inside it was the exception (Aug 2026, Mike).** The region keeps the
+⚠ **The rail inside it was the exception (Aug 2026, the owner).** The region keeps the
 whole width, but its cards sat 9px off the app sidebar and read as glued to it, so
 `.page.standard > .page-catalog > .page-previews` pays `--gutter-x` back as a
 `margin-inline-start` — a margin, so `--rail` still measures the cards. Scoped to a

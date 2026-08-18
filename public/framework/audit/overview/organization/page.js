@@ -27,7 +27,7 @@ export default new Page({
 
 		md("## `ext/editor` is not a module");
 
-		md("**Zero lines of code anywhere in the framework import anything it exports.** Its only integration is a word in `ext/page.js`'s `children:` string, which makes it a route. It is an application shelved under a directory CLAUDE.md defines as *opt-in addons*. Same charge, weaker, against `ext/LayoutTool`: 26 files of browser tooling that looks a lot more like `dev/` than `ext/`.");
+		md("**Zero lines of code anywhere in the framework import anything it exports.** Its only integration is a word in `ext/page.js`'s `children:` string, which makes it a route. It is an application shelved under a directory CLAUDE.md defines as *opt-in addons*. Same charge, weaker, against `ext/DesignTool`: 26 files of browser tooling that looks a lot more like `dev/` than `ext/`.");
 
 		md("## What the audit actually found: four small duplications");
 
@@ -35,7 +35,7 @@ export default new Page({
 
 		md("1. **The dev/localStorage saver chooser**, byte-identical in three files. One helper in `ext/Saver`.\n2. **`coalesce()`**, rAF drag throttling, lifted verbatim between `ext/Panel`'s `grip.js` and `ext/demo` — and `dev/DevBar/grip.js` *declines the same pattern in a comment*, which is three independent encounters with one missing utility. One `raf_drag()` in `framework/util/`.\n3. **The three-clause drag cycle guard**, hand-written in three files because `Draggable.registry` is one document-wide `WeakMap`. Belongs in the base class's `drop_check`.\n4. **Sticky-rail CSS, four times with unexplained drift** — `scrollbar-width: none` here, `thin` there.");
 
-		md("That fourth one is the strongest finding on this page, because **two auditors reached it independently** — `ext/toc`'s and `ext/doc`'s — each counting the same four implementations (`Sidebar`, `Doc`'s member rail, `ext/toc`, `ext/files`' tree) without knowing the other existed. Nobody argues the components should merge; the \"which one is current\" logic genuinely differs per source. The CSS does not, and it drifted.");
+		md("That fourth one is the strongest finding on this page, because **two auditors reached it independently** — `ext/toc`'s and `ext/Doc`'s — each counting the same four implementations (`Sidebar`, `Doc`'s member rail, `ext/toc`, `ext/files`' tree) without knowing the other existed. Nobody argues the components should merge; the \"which one is current\" logic genuinely differs per source. The CSS does not, and it drifted.");
 
 		md("## Where the framework should shed weight");
 

@@ -19,7 +19,6 @@ export default new Page({
 	title: "Timeline",
 	description: "Releases down a rail — one of three components that kept its function.",
 	icon: "timeline",
-	card: "tall",
 
 	children: [
 		demo.page("single", single, {

@@ -5,7 +5,7 @@ import Panel from "./Panel.js";
    following the pointer and flipping to whichever side of the midline it is on. Left click
    commits, right click or Escape cancels. One gesture where a strip of edge buttons was
    three, and the edge you pointed at is the argument — `divide()` already takes exactly
-   the two things a click on an edge knows (Mike, 2026-08-16).
+   the two things a click on an edge knows (the owner, 2026-08-16).
    css: .panel-edge, .panel-ghost. Record: readme.md. */
 View.stylesheet(import.meta, "split.css");
 
@@ -20,8 +20,6 @@ export const SPLIT = { edges: true };
 let live;   // one preview per document — a second edge click cancels the first
 
 export function edges(item, $panel){
-	if (!SPLIT.edges) return;
-
 	Object.keys(AXIS).forEach(side => div.c("panel-edge panel-edge-" + side)
 		.attr("title", AXIS[side] === "row" ? "Click to split into columns" : "Click to split into rows")
 		.click(() => begin(item, $panel, side)));

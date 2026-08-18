@@ -4,7 +4,7 @@
 `ready` both have to be checked before a frame goes out. Inside the class it
 is what `rpc()` (`Socket.js:125`) and `request()` (`Socket.js:115`) are built
 from, and both of *those* now have real callers: `FileSaver` and
-`LayoutTool/audit/twin.js` (see [wire](/framework/dev/Socket/docs/wire/)). So
+`DesignTool/audit/twin.js` (see [wire](/framework/dev/Socket/doc/wire/)). So
 this method runs on every save from an editor, even though nothing names it
 directly.
 
@@ -15,7 +15,7 @@ The live traffic on this socket also goes the other way: the server calls
 ## Necessity
 
 No longer purely theoretical. It is the correct shape for the job, and the job
-has arrived — see [wire](/framework/dev/Socket/docs/wire/) for the accounting
+has arrived — see [wire](/framework/dev/Socket/doc/wire/) for the accounting
 and the readme's `## Proposed` for what to do about the surrounding names.
 
 The two lines it *does* have are both load-bearing the moment anything calls it:

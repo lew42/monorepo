@@ -1,10 +1,3 @@
-The short conceptual overview and the two decisions worth knowing before
-touching this file. The long design record — seven numbered questions, with
-the options actually weighed — is [doc/design.md](/framework/util/markup/docs/design/),
-reachable from here and from its own Docs tab.
+# readme.md
 
-## Improvements
-
-1. **None outstanding** — this is the file that used to *be* the whole
-   design record; splitting it into a short readme plus `doc/design.md` was
-   this audit's one structural change to the module.
+The reader's index for this module — as short and simple as it can be (law #1): one line what it is, **Use** (the common case), **Watch out** (past problems, each linked to its doc), **More** (every doc, the page url, the files that matter). The record — decisions, traps in full, open questions — is [`doc/decisions.md`](../decisions.md).

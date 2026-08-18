@@ -1,7 +1,3 @@
-/* Layer order, restated: the FIRST declaration wins and module import
-   order decides who loads first, so every stylesheet states it. */
-@layer base, theme, site, util;
-
 /* THEME: terminal — mono, square, high contrast.
  *
  * Same token names as `paper`, wildly different result, and the two files never

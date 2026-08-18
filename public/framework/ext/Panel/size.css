@@ -1,0 +1,128 @@
+/* `w`/`h`, each fill | hug | fixed, on top of panel.css's base `flex: 1 1 0`. MAIN is the
+   axis this panel's own PARENT split runs along (row or root → inline is main; col → block
+   is main) — flex-grow/shrink/basis are the ONLY properties that ever touch it. CROSS is the
+   other one, governed by `align-self` plus an explicit size. The two never collide, which is
+   the whole trick: w and h can disagree with no shorthand war. `size.js` is the one writer
+   of every class below. Record: readme.md, doc/file/size.js.md.
+
+   Two regimes, made mutually exclusive by `:not(.panel-pos-absolute)` rather than by the
+   cascade: IN FLOW, where flex carries the main axis, and OUT OF FLOW at the bottom of this
+   file, where nothing flex says applies and every extent is restated. Excluding is stronger
+   than overriding here — one leaked declaration (`align-self` written with the INLINE code
+   in a `.v` slot) collapses a floating panel to its content, and a reader should not have to
+   prove the other six are harmless. */
+@layer theme {
+
+	/* MAIN, row/root context (w is main). ⚠ The floor lands on the structural CHILD, never on
+	   `.panel` itself: `.panel` is `flex: 0 0 auto` here and reports no content size of its
+	   own — `.panel-body` (leaf) or `.panel-items` (split) is what the auto-basis calculation
+	   actually reads, and `cqi` — not `%` — is required here because a percentage would
+	   resolve against `.panel`'s own width, which is the very thing being computed.
+
+	   `justify-self` rides along on the SAME rules, and only these: it is inert in flex, so a
+	   flex row's main axis stays the parent's call exactly as before, and it is the whole
+	   control the moment the slot is a grid. Being on the non-filling rules is what makes
+	   "a filling panel has nothing left to align" true with no test anywhere. */
+	:is(.panel-workspace, .panel-items:not(.v)) > .panel.panel-w-hug:not(.panel-pos-absolute) { flex: 0 0 auto; justify-self: var(--panel-self-x, start); }
+	:is(.panel-workspace, .panel-items:not(.v)) > .panel.panel-w-hug:not(.panel-pos-absolute) > :is(.panel-body, .panel-items) {
+		flex-basis: auto;
+		min-inline-size: min(var(--panel-hug), 100cqi);
+	}
+
+	/* MAIN, col context (h is main) — the same rule, the other axis. No `justify-self` twin:
+	   `.panel-items.v` is written flex by workspace.js and by nothing else, so a grid there
+	   is not a shape this module can make. */
+	.panel-items.v > .panel.panel-h-hug:not(.panel-pos-absolute) { flex: 0 0 auto; }
+	.panel-items.v > .panel.panel-h-hug:not(.panel-pos-absolute) > :is(.panel-body, .panel-items) {
+		flex-basis: auto;
+		min-block-size: min(var(--panel-hug), 100cqb);
+	}
+
+	/* MAIN, fixed: an exact length, so `flex-basis` alone carries it — no floor-on-a-child
+	   trick needed, because a chosen length is never "auto". `min(x, 100%)` is the owner's idiom:
+	   `%` here is fine (not `cq`) because it resolves against `.panel`'s own containing block
+	   (`.panel-items`/`.panel-workspace`), never against `.panel` itself. */
+	:is(.panel-workspace, .panel-items:not(.v)) > .panel.panel-w-fixed:not(.panel-pos-absolute) { flex: 0 1 min(var(--panel-w-at, var(--panel-hug)), 100%); justify-self: var(--panel-self-x, start); }
+	.panel-items.v > .panel.panel-h-fixed:not(.panel-pos-absolute) { flex: 0 1 min(var(--panel-h-at, var(--panel-hug)), 100%); }
+
+	/* CROSS: a value directly on `.panel`, never a floor on a child — `.panel` is never a
+	   query container so this is never a self-measuring loop, and `align-self` alone clears
+	   the ancestor's `stretch`. This is the per-axis win: a ROW of panels can hug its BLOCK
+	   axis with no collapse, because nothing here touches the MAIN-axis flex properties.
+
+	   ⚠ WHICH axis `align-self` means is the container's call, not ours: in flex it is the
+	   CROSS axis (block in a row, INLINE in a column), in grid always the block one. Each
+	   rule below is already scoped to one context, so each reads the half of `self` its own
+	   context makes it mean. The `start` fallback is what these rules hardcoded before
+	   `self` existed, so a panel that never chose is where it always was. */
+	:is(.panel-workspace, .panel-items:not(.v)) > .panel.panel-h-hug:not(.panel-pos-absolute) { align-self: var(--panel-self-y, start); block-size: min(var(--panel-hug), 100%); }
+	:is(.panel-workspace, .panel-items:not(.v)) > .panel.panel-h-fixed:not(.panel-pos-absolute) { align-self: var(--panel-self-y, start); block-size: min(var(--panel-h-at, var(--panel-hug)), 100%); }
+
+	.panel-items.v > .panel.panel-w-hug:not(.panel-pos-absolute) { align-self: var(--panel-self-x, start); inline-size: min(var(--panel-hug), 100%); }
+	.panel-items.v > .panel.panel-w-fixed:not(.panel-pos-absolute) { align-self: var(--panel-self-x, start); inline-size: min(var(--panel-w-at, var(--panel-hug)), 100%); }
+
+	/* OUT OF FLOW — the whole of what the `position` word means here, and the second regime
+	   this file holds. The containing block is bounded on both paths and neither is assumed:
+	   a nested panel lands in its parent split's `.panel-items`, which insert.css already
+	   positions, and a root leaf in `.panel-workspace`, a size query container and therefore
+	   a containing block for absolutely positioned descendants. Measured, both are the
+	   workspace's own box — so a floating panel can never leave the workspace. ⚠ `fixed` is
+	   NOT that story and is not offered: measured, it resolves against the viewport from both
+	   of those places and lands over the site.
+
+	   Every extent is restated because the rules above carry a MAIN-axis extent on
+	   `flex-basis` and on a floor on a child, and both are inert for a box that is not a flex
+	   item. `%` on an abspos box resolves against the containing block and never against this
+	   one, so `min(x, 100%)` is the cap with no self-measuring loop — the same idiom, for once
+	   without the `cq` detour.
+
+	   ⚠ `justify-self`/`align-self` ride the NON-FILLING rules exactly as they do above, and
+	   here that has teeth rather than being merely tidy: an alignment other than normal/stretch
+	   makes an abspos box shrink-to-fit, so writing one on a filling axis IS the collapse. Out
+	   of flow they always mean the containing block's inline and block axes — never the flex
+	   axes the rules above are written against — so there is ONE pair here, not one per context.
+
+	   ⚠ `z-index`, because a floating panel that paints under the chrome is not floating:
+	   `.panel-grip` is `position: relative; z-index: 2` and a bar is 3, and every panel in a
+	   workspace shares one stacking context (`.panel` never makes one, `.panel-workspace`
+	   does). */
+	.panel-workspace .panel.panel-pos-absolute { position: absolute; inset: 0; z-index: 4; }
+
+	.panel-workspace .panel.panel-pos-absolute.panel-w-hug { inline-size: min(var(--panel-hug), 100%); justify-self: var(--panel-self-x, start); }
+	.panel-workspace .panel.panel-pos-absolute.panel-w-fixed { inline-size: min(var(--panel-w-at, var(--panel-hug)), 100%); justify-self: var(--panel-self-x, start); }
+	.panel-workspace .panel.panel-pos-absolute.panel-h-hug { block-size: min(var(--panel-hug), 100%); align-self: var(--panel-self-y, start); }
+	.panel-workspace .panel.panel-pos-absolute.panel-h-fixed { block-size: min(var(--panel-h-at, var(--panel-hug)), 100%); align-self: var(--panel-self-y, start); }
+
+	/* The control that draws all of the above — properties.js's second 3×3, tagged `self`.
+	   Here rather than in templates.css because the RULE is this file's: an axis that fills,
+	   or one its slot owns, has no placement to give, and a greyed button is that sentence
+	   made visible. `.panel-seat` is glyphs.js's picture — a dot in a frame, where the panel
+	   would sit — deliberately not the align row's arrows, so two 3×3s one above the other
+	   cannot be mistaken for each other. */
+	.panel-props-set.panel-self .panel-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+	/* A seat is the third picture a `.panel-btn` can hold, and toolbar.css's own
+	   "a button holding a picture is a square" rule now names it directly
+	   (`:has(> .icon, > .panel-swatch, > .panel-seat)`) — so the scoped duplicate that
+	   used to live here is gone, and the rule is stated once. */
+
+	/* `font-size`, not a width: 1.25em is exactly what framework.css gives `.icon`, so a seat
+	   and an arrow are the same size in every context either of them can be drawn in. */
+	.panel-seat {
+		display: inline-grid;
+		vertical-align: middle;
+		font-size: 1.25em;
+		inline-size: 1em; block-size: 1em;
+		padding: 1px;
+		border: 1px solid currentColor;
+		border-radius: calc(var(--radius) / 2);
+		align-content: var(--panel-seat-y, center);
+		justify-content: var(--panel-seat-x, center);
+	}
+
+	.panel-seat::before {
+		content: "";
+		inline-size: 0.3em; block-size: 0.3em;
+		background: currentColor;
+	}
+}

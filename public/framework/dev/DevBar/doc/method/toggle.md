@@ -19,7 +19,7 @@ default, so calling it with no argument **flips**; every caller that wants a
 specific state (`✕`, the demo button) passes one explicitly.
 
 Three lines, three jobs: toggle the class (`dev-open` on `<html>` is the
-entire visible state — see [docking](/framework/dev/DevBar/docs/docking/)),
+entire visible state — see [docking](/framework/dev/DevBar/doc/docking/)),
 persist it (`set({ open: on })`), redraw (`devbar.refresh()`, which no-ops if
 the rail just closed since `open()` now reads `false`).
 

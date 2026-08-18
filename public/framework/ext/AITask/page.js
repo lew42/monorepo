@@ -11,9 +11,9 @@ export default new Doc({
 
 	subject: AITask,
 	properties: "src",
-	methods:    "content session legacy base requirements report refresh head checklist unparsed extra figures chat log",
-	notes:      "manifest effort starting-work pace template waves",
-	files:      "AITask.js ai.css board.js card.js compose.js dashboard.js effort.js feed.js feed.css message.js prompt.js replay.js stats.js usage.js page.js readme.md",
+	methods:    "content session legacy base requirements report refresh outcome links head status checklist unparsed extra shots figures chat log",
+	notes:      "manifest effort starting-work pace template waves decisions",
+	files:      "AITask.js ai.css board.js card.js compose.js dashboard.js effort.js feed.js feed.css message.js prompt.js replay.js shots.js stats.js usage.js page.js readme.md",
 	overview:   [
 		{ title: "Task card", content(){
 			demo(() => {
@@ -70,6 +70,6 @@ export default new AITask({
 
 		md("Live: [the AI board](/framework/ai/) · [a day](/framework/ai/2026-08-13/) · [a task with an `extra()`](/framework/ai/2026-08-13/panel/) · [a plain manifest](/framework/ai/2026-08-13/sessions/).");
 
-		md.details(import.meta, "readme.md", "Design record — schema, the effort mechanism, pace, sharp edges");
+		md.details(import.meta, "readme.md", "Readme");
 	}
 });

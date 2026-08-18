@@ -3,7 +3,7 @@ import { Page, md, code, h2, demo, div, span, toc } from "/app.js";
 export default new Page({
 	meta: import.meta,
 	title: "Core",
-	description: "The core classes. All but `Router` are an element you can point at in the inspector.",
+	description: "The core classes. Four are an element you can point at in the inspector; three are not.",
 	icon: "dashboard",
 
 	children: "View Page Router App Sidebar Item List",
@@ -16,7 +16,9 @@ export default new Page({
 new Page()   →  <div class="page">
 new App()    →  <div class="app">`);
 
-		md("**That is the whole mental model.** Every class in here but one is an element you can point at in the inspector, and everything else is a method on it. The exception is `Router` — it has no element, it owns the url.");
+		md("**That is the whole mental model** for four of the seven: `View`, `Page`, `App` and `Sidebar` are an element you can point at in the inspector, and everything else about them is a method on it.");
+
+		md("**Three are not.** `Router` has no element — it owns the url. And `Item` and `List` have no DOM at all: `List` imports nothing, `Item` imports only `List`, and [`Item`'s own record](/framework/core/Item/) opens with *no view, no transport, no DOM — it runs in node*. They are the data tier, and they are here because the persistence stack is core rather than an opt-in.");
 
 		this.previews();
 
@@ -64,5 +66,7 @@ export default new Page({                  // a url and some content
 		}, "`Router` writes exactly these two classes and nothing else. Every arrangement on this site — replace, tabs, columns, a section with its own sidebar — is CSS reading them, plus one class a page opted into.");
 
 		md("Start with [View](/framework/core/View/) — the one class you use on every line. Then [Page](/framework/core/Page/), then [Router](/framework/core/Router/) when you want more than one url, then [App](/framework/core/App/) when you want your own chrome around it all.");
+
+		md.details(import.meta, "readme.md", "Readme");
 	}
 });

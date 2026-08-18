@@ -9,7 +9,7 @@ from before this pass except for the wrapper it's inside.
 
 `demo` is a plain function with seven properties hung directly off it
 (`demo.stage`, `.exhibit`, `.page`, `.tree`, `.layout`, `.app`, `.source`) — the
-same shape `ext/doc`'s own readme names for `md.file`/`md.details`. `Doc`'s
+same shape `ext/Doc`'s own readme names for `md.file`/`md.details`. `Doc`'s
 member lookup checks `subject.prototype` first (empty, since `demo` isn't a
 class) and falls back to `subject` itself, which is what makes all seven
 resolve with no special-casing.

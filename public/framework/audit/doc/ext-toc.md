@@ -7,7 +7,7 @@ it, the design record is unusually careful (five recorded decisions, three
 recorded traps, all still accurate), and the code itself needed no fixes. The
 single most important thing to do to it isn't in the module at all: the
 audit's extra question surfaced a real, currently-latent defect at the
-*seam* with `ext/doc` (below) that deserves a structural guard, not just a
+*seam* with `ext/Doc` (below) that deserves a structural guard, not just a
 paragraph in a readme.
 
 ## State
@@ -27,10 +27,10 @@ paragraph in a readme.
   loose functions" shape). Added a new closing section, "Only on a plain
   reading page", stating the `overview:` + `toc()` collision found below
   directly on the page, not only in the collapsed design record. Fixed the
-  dead "Next: [Classdoc]" link to point at `/framework/ext/doc/`.
+  dead "Next: [Classdoc]" link to point at `/framework/ext/Doc/`.
 - `readme.md` — added "Who calls it" (the grep in Step 2, as a table) and a
   fourth Trap (the `overview:` collision, verified against actual source of
-  `ext/doc/Doc.js` and `ext/catalog/catalog.js`). Broke the "gallery defeats
+  `ext/Doc/Doc.js` and `ext/catalog/catalog.js`). Broke the "gallery defeats
   the skip list" section out to `doc/skip-list.md`, summarized to one
   paragraph, linked, added to `notes:`.
 - `doc/skip-list.md` (new) — the two-galleries story in full.
@@ -51,7 +51,7 @@ not by accident if it ever does.**
 I checked every `Doc` on the site that declares `overview:` (a left catalog
 rail on its *Overview* tab specifically — the only tab `content()`, and so
 `toc()`, ever runs on). There are exactly two: `core/Page/page.js` and
-`ext/doc/page.js` itself. **Neither imports `toc`.** Every one of the 20 real
+`ext/Doc/page.js` itself. **Neither imports `toc`.** Every one of the 20 real
 `toc()` callers is a page with no `overview:` — there `toc()` is a genuine
 third nav (sidebar + tabs + toc), not a fourth, and it's doing real work: it's
 the only index of that page's own prose.
@@ -128,7 +128,7 @@ any module with real design history. It says "Keep the whole readme to **one
 screen**," then lists what it carries: "the conceptual overview... Decisions
 ... Traps... Open" — and Decisions alone, argued honestly (question →
 options weighed → verdict), routinely runs past one screen. This module's
-readme did before I touched it, and `ext/doc/readme.md` — the reference
+readme did before I touched it, and `ext/Doc/readme.md` — the reference
 implementation, rewritten today — is ~125 lines for the same reason. I
 matched the reference rather than the literal instruction, but I had to
 *choose*; the skill should say plainly that Decisions/Traps/Open are exempt
@@ -137,7 +137,7 @@ file.
 
 **Second:** whether a module's own `readme.md` belongs in `files:` (and thus
 needs a `doc/file/readme.md.md`) is never stated — only inferable by noticing
-`ext/doc/page.js` itself lists `"readme.md"` in its `files:`. A one-line
+`ext/Doc/page.js` itself lists `"readme.md"` in its `files:`. A one-line
 example line ("`files:` includes every real file in the module root,
 `readme.md` included") would have saved reverse-engineering it from a peer
 module.

@@ -40,7 +40,7 @@ export default new Page({
 
 		h2("A class page is Overview | API | Docs");
 
-		md("Two levels of real `tabs()` pages: a quiet strip across the top, a vertical rail inside each. Both levels are urls, so Back works and a member is a link you can send — [`View.append()`](/framework/core/View/api/append/), [`Router`'s marking note](/framework/core/Router/docs/marking/). A rail of one hides itself; a rail of fifty scrolls.");
+		md("Two levels of real `tabs()` pages: a quiet strip across the top, a vertical rail inside each. Both levels are urls, so Back works and a member is a link you can send — [`View.append()`](/framework/core/View/api/append/), [`Router`'s marking note](/framework/core/Router/doc/marking/). A rail of one hides itself; a rail of fifty scrolls.");
 
 		h2("The nitty gritty");
 

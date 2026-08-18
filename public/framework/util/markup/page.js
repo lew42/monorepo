@@ -7,7 +7,7 @@ export default new Doc({
 	description: "An element's children as readable HTML source.",
 	icon: "html",
 
-	notes: "design",
+	notes: "design decisions",
 	files: "markup.js page.js readme.md",
 
 	content(){
@@ -53,6 +53,6 @@ That last one is a trap worth naming: escaping here as well is how you get
 
 		md("Next: [Dev server](/framework/dev/) — live reload, and how to run all this locally.");
 
-		md.details(import.meta, "readme.md", "Design record");
+		md.details(import.meta, "readme.md", "Readme");
 	}
 });

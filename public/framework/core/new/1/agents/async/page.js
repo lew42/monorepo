@@ -147,7 +147,7 @@ REQUEST — make the exts usable here. Cheapest first:
 2. or ext/demo ships fallbacks: var(--line, #e2e4e8). Colour, not shared
    geometry, so the "no defensive fallback" rule does not bite.
 
-I did NOT do (1): styles.css is Master Mike's file.`);
+I did NOT do (1): styles.css is the owner's file.`);
 
 		section("The loaders / skeleton asymmetry — measured, and overstated by everyone including me");
 
@@ -328,7 +328,7 @@ activate(){ this.mount(); this.start_ticking(); return this; }`,
    These are a module's own classes and nothing here has to out-rank
    styles.css. CLAUDE.md: escalation is a one-way ratchet, and spending a
    rung with no override fight to point at raises the cost for everyone
-   after me. If Master Mike wants site/, it is a one-word change.
+   after me. If the owner wants site/, it is a one-word change.
 
 2. I did not use ext/demo, against the brief's lean — for the measured
    token reason above, not a preference. If styles.css defines the five

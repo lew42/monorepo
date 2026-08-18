@@ -22,12 +22,14 @@ node server.js      # http://localhost`);
 
 		code.js(`socket: Socket.singleton(),   // app.js — unconditional`);
 
-		md("The environment check is **inside the socket**, not at the call site, so a site wires it once and never writes an `if (dev)`. Off localhost nothing connects and `send()`/`request()` no-op. Production is plain static files; nothing here may become a runtime dependency. That is a hard constraint, not a preference — [localhost](/framework/dev/Socket/docs/localhost/) is the argument.");
+		md("The environment check is **inside the socket**, not at the call site, so a site wires it once and never writes an `if (dev)`. Off localhost nothing connects and `send()`/`request()` no-op. Production is plain static files; nothing here may become a runtime dependency. That is a hard constraint, not a preference — [localhost](/framework/dev/Socket/doc/localhost/) is the argument.");
 
 		h2("Three packages, all dev-only");
 
 		md("`chokidar`, `express`, `ws`. **The short list is the feature** — `server.js` is a static file server with a watcher bolted on, and `public/` is served as-is because that is what production does too. If it needs a build to run locally, it is not this framework.");
 
 		md("Next: [Socket](/framework/dev/Socket/), the class that reloads you — or [DevBar](/framework/dev/DevBar/), the rail `Ctrl + \\\\` opens on every page. [Claim](/framework/dev/Claim/) is the third: a ring an agent draws around a tab it is driving.");
+
+		md.details(import.meta, "readme.md", "Readme");
 	}
 });

@@ -4,7 +4,7 @@ The browser half of the `.jsonl` wire protocol: it patches `Socket` with the two
 methods the dev server calls (`jsonl`, `jsonl_reset`), keeps the registry of who
 is reading what, and exports `stream()` — the engine behind
 [`JSONL.live()`](/framework/ext/JSONL/api/live/). The whole design record is
-[live](/framework/ext/JSONL/docs/live/); this page is what the file itself is for.
+[live](/framework/ext/JSONL/doc/live/); this page is what the file itself is for.
 
 ## An ext patching core, visibly
 
@@ -67,7 +67,7 @@ nothing.
    `Page.deactivate()` is the obvious seam. *(simple, useful)*
 2. **A frame carries only its end offset.** With two readers at different offsets,
    the second one's replay-from-0 is re-applied by the first if it is mid-file —
-   see the last paragraph of [live](/framework/ext/JSONL/docs/live/). A `from`
+   see the last paragraph of [live](/framework/ext/JSONL/doc/live/). A `from`
    in the `jsonl` message would close it exactly; it is a protocol change, so it
    needs the server side in the same breath. *(medium, speculative)*
 3. **`WAIT` is a module constant, not an option.** Right, for now — an option is

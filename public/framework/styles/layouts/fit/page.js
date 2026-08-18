@@ -21,7 +21,7 @@ export default new Page({
 	title: "Fit",
 	description: "How a page holds a layout: the default sheet, and the four words that change it.",
 	icon: "crop_free",
-	group: "Vocabulary",
+	group: "Guides",
 
 	// this page IS its subject — it declares no classes, so it wears the default
 	// grid, and the wide and bleed blocks below really do escape the measure

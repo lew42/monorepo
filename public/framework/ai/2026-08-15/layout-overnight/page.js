@@ -1,6 +1,6 @@
 import { Page, div, h2, md } from "/app.js";
 import tier400 from "/framework/styles/layouts/400/page.js";
-import widths from "/framework/ext/LayoutTool/widths/page.js";
+import widths from "/framework/ext/DesignTool/widths/page.js";
 
 export default new Page({
 	meta: import.meta,

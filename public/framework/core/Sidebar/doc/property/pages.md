@@ -27,7 +27,7 @@ pages: [...this.children.keys()].map(name => this.nav_for(name))
 ```
 
 That is `/framework/`'s entire navigation, and it means the panel, the tab bar and
-the preview cards read **one** source. [entries](/framework/core/Sidebar/docs/entries/).
+the preview cards read **one** source. [entries](/framework/core/Sidebar/doc/entries/).
 
 ## Simplicity
 

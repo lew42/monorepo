@@ -1,6 +1,3 @@
-/* Restated IN FULL — a short list silently misplaces `site`. */
-@layer base, theme, site, util;
-
 @layer theme {
 
 	/* The frame around the workspace. ext/Panel sizes itself from `--panel-height` and
@@ -53,7 +50,7 @@
 		font-size: 0.85em;
 	}
 
-	/* The prose written ABOUT the file, beside its source — ext/doc's Files tab. */
+	/* The prose written ABOUT the file, beside its source — ext/Doc's Files tab. */
 	.file-about { padding: 0 1.1em; font-size: 0.9em; }
 
 	.file-blank { font-size: 0.85em; }

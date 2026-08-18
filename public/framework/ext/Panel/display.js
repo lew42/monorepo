@@ -2,7 +2,7 @@ import View, { div, span } from "/framework/core/View/View.js";
 
 /* `display` as a panel word: the class a leaf's body actually lays its children out with,
    plus an overlay that draws what that mode is doing — on by default like every other
-   surface here (Mike, 2026-08-16): "we want the panel to visually represent all the layout
+   surface here (the owner, 2026-08-16): "we want the panel to visually represent all the layout
    dynamics." css: .panel-d-block, .panel-d-flex, .panel-d-grid, .panel-display*.
    Record: readme.md. */
 View.stylesheet(import.meta, "display.css");
@@ -19,15 +19,13 @@ export function live_axes(mode, dir){
 	return { x: false, y: false };
 }
 
-/* ⚠ The CLASS is not written here — `workspace.js`'s `show()` is its single writer, so this
+/* ⚠ The CLASS is not written here — `paint.js`'s `show()` is its single writer, so this
    file only ever DRAWS what the class already did; reading `item.get("display")` rather than
-   the class keeps one source of truth regardless. ⚠ The first `draw()` runs before `$body` is
-   ever attached — `isConnected` only starts meaning something once an observer fires AFTER
-   that, which is also the one signal a panel torn down by a full-tree redraw reliably sends:
-   a detached box resizes to nothing. */
+   the class keeps one source of truth regardless. ⚠ Returns a DISPOSE function rather than
+   waiting for a `ResizeObserver` to notice the box is gone — that never fires for a body that
+   was 0×0 or never laid out. `overlays.js` holds it and `draw()` drains it before the next
+   structural redraw discards this `$body`. */
 export function display_overlay(item, $body){
-	if (!DISPLAY.on) return;
-
 	const mode = () => (MODES.includes(item.get("display")) ? item.get("display") : "block");
 	const $overlay = div.c("panel-display");
 
@@ -39,29 +37,18 @@ export function display_overlay(item, $body){
 		});
 	};
 
-	const on_change = key => key === "display" && wake();
+	const on_change = key => key === "display" && draw();
 
-	function wake(){
-		if (!$body.el.isConnected) return stop();
-		draw();
-	}
-
-	function stop(){
-		watch.disconnect();
-		seen.disconnect();
-		item.off("change", on_change);
-	}
-
-	const watch = new ResizeObserver(wake);
+	const watch = new ResizeObserver(draw);
 	watch.observe($body.el);
 
-	const seen = new MutationObserver(wake);
+	const seen = new MutationObserver(draw);
 	seen.observe($body.el, { childList: true });
 
 	item.on("change", on_change);
 	draw();
 
-	return $overlay;
+	return () => { watch.disconnect(); seen.disconnect(); item.off("change", on_change); };
 }
 
 // One line, one arrowhead — flex's row never varies, so nothing about it reads a child.

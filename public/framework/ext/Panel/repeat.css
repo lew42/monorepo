@@ -1,0 +1,26 @@
+/* The "+" appended to a repeating run's own container — a real sibling in normal flow,
+   not an overlay, so a grid or flex row sizes it exactly like the items beside it and
+   nothing here needs a z-index. Record: readme.md. */
+@layer theme {
+
+	.panel-repeat-add {
+		display: grid;
+		place-items: center;
+		min-block-size: 2.4em;
+		min-inline-size: 2.4em;
+		padding: 0;
+		font: inherit;
+		color: var(--subtle);
+		background: none;
+		border: 1px dashed var(--line);
+		border-radius: var(--radius);
+		cursor: pointer;
+		transition: color 0.12s, border-color 0.12s, background 0.12s;
+	}
+
+	.panel-repeat-add:hover {
+		color: var(--prim);
+		border-color: var(--prim);
+		background: color-mix(in srgb, var(--prim) 10%, transparent);
+	}
+}

@@ -17,7 +17,7 @@ Added 2026-08-15. `marked.use({ renderer: { code(token){ … } } })` **calls**
 the stock renderer rather than replacing it, then splices a `data-file`
 attribute onto the resulting `<pre>` when a fence's info string carries a
 second word (```` ```js /app.js ````). Full record:
-[File labels](/framework/ext/markdown/docs/file-labels/).
+[File labels](/framework/ext/markdown/doc/file-labels/).
 
 ## `md.file`, `md.details`, `md.resolve`, `md.cache` (line 69–150)
 
@@ -30,14 +30,14 @@ their own pages: [`file`](/framework/ext/markdown/api/file/),
 ## `html_unsafe`, never `html`
 
 Every write to the DOM in this file goes through `html_unsafe` (lines 27, 42,
-72). Full reasoning: [Sanitization](/framework/ext/markdown/docs/sanitization/).
+72). Full reasoning: [Sanitization](/framework/ext/markdown/doc/sanitization/).
 
 ## Improvements
 
 1. **`patched()` false-positives on every method of a "function with
    properties" `subject`.** Not a bug in this file — the root cause lives in
    `util/source/source.js`'s `patched()` and is exercised by
-   `ext/doc/Doc.js`'s `member_page()` — but it manifests here: every method
+   `ext/Doc/Doc.js`'s `member_page()` — but it manifests here: every method
    this module documents (`md.file`, `md.details`, `md.c`, `md.resolve`) is
    necessarily assigned via `md.x = function(){}`, a member-expression
    assignment, which JS gives an empty inferred `.name` — the exact signal
@@ -52,4 +52,4 @@ Every write to the DOM in this file goes through `html_unsafe` (lines 27, 42,
    a one-line regex instead of a literal string match would be sturdier)*.
 3. **`md.c` and the `marked` re-export in `app.js` have no callers.** Carried
    from a prior audit, re-verified today, not yet acted on:
-   [Proposed](/framework/ext/markdown/docs/proposed/). *(simple, useful)*.
+   [Proposed](/framework/ext/markdown/doc/proposed/). *(simple, useful)*.

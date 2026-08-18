@@ -11,7 +11,7 @@ would otherwise be typing by hand.
 `scroll`, `stick`, `fluid` and `tone` are declaration sets (`WORDS`), not
 utilities in `framework.css` — the comment states why: they are this
 format's vocabulary until promoting any of them to a real utility class is
-made, which is explicitly Mike's call and not this file's. `fluid` is the
+made, which is explicitly the owner's call and not this file's. `fluid` is the
 trap among the first three: `.flex-1` is `flex: 1 1 0%`, which shrinks to
 nothing in a *wrapping* row instead of pushing siblings to a new line —
 measured at 390px, where the naive substitution rendered an article one

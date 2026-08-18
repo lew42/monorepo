@@ -14,7 +14,7 @@ You are auditing and documenting ONE module of the lew42 framework:
    literally. Note every place it is unclear, wrong, missing, or made you guess.
 2. Read `CLAUDE.md` at the repo root. It outranks everything else, including the
    skill.
-3. Read `public/framework/ext/doc/readme.md` and `public/framework/ext/doc/page.js`
+3. Read `public/framework/ext/Doc/readme.md` and `public/framework/ext/Doc/page.js`
    — the `Doc` system you will be using. It replaced `ext/classdoc` today; if you
    find any reference to `classdoc` anywhere in your directory, that is a bug to fix.
 

@@ -6,7 +6,7 @@ shouldn't tabs be a component, not defined in Page.css?"*
 Measured before moving anything: `.tabs` / `.tab-bar` / `.tab` / `.tab-panel` (plus
 `.vertical` and its narrow-screen query) was **~100 lines, 30% of `Page.css`**, and
 `Page.tabs()` was 47 lines of `Page.class.js` — for a component with **one live caller
-on the whole site**, and that caller (`ext/doc`) is itself an ext. A newcomer
+on the whole site**, and that caller (`ext/Doc`) is itself an ext. A newcomer
 reading `Page` top to bottom had no reason to learn a tab bar's url-ownership rules
 before reaching `render()`.
 
@@ -41,7 +41,7 @@ forbidden kind.
 ## Physics, checked before shipping
 
 - `View.stylesheet()` runs at module scope in `tabs.js`, so the `import` **is** the
-  loading edge. `ext/doc/Doc.js` imports it, and `app.js` imports it a
+  loading edge. `ext/Doc/Doc.js` imports it, and `app.js` imports it a
   second time (a side-effect import, same shape as `highlight`) so any `page.js` can
   call `this.tabs(…)` without importing `Doc` for it.
 - Both import sites are ext → ext or site → ext. **Core never imports this module** —

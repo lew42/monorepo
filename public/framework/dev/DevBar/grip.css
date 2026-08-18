@@ -1,6 +1,3 @@
-/* Restated IN FULL — a short list silently misplaces `site`. */
-@layer base, theme, site, util;
-
 /* The rail's resize edge. No permanent splitter: a hover strip just inside the edge,
    and a pill that appears at the pointer's Y. Design record: readme.md. */
 @layer theme {
@@ -59,4 +56,8 @@
 		cursor: ew-resize;
 		user-select: none;
 	}
+
+	/* ⚠ Below 34em the rail is a bottom sheet (devbar.css) — an `ew-resize` strip down
+	   its inline edge resizes nothing, and it is a pointer trap on a touch screen. */
+	@media (width < 34em) { .dev-grip { display: none; } }
 }

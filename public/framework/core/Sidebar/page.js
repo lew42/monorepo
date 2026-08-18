@@ -27,7 +27,7 @@ export default new Doc({
 
 	methods: "render bar header toggle open menu nav group link footer favicon",
 
-	notes: "entries placement views tokens narrow comp",
+	notes: "entries placement views tokens narrow comp decisions",
 
 	files: "Sidebar.js Sidebar.css page.js readme.md",
 
@@ -63,10 +63,10 @@ export default new Doc({
 
 		h2("What it doesn't decide");
 
-		md("- **Where it goes.** No width, no position — one line at the call site: `.topic > .sidebar { flex: 0 0 var(--sidebar) }`. [Placement](/framework/core/Sidebar/docs/placement/)\n- **What a narrow screen does.** Below `52em` the panel becomes a sticky top bar with a burger; CSS decides, so there is no resize listener. **Shrink this window** to watch it. [Narrow](/framework/core/Sidebar/docs/narrow/)\n- **What the top and bottom contain.** Passing `header` or `footer` *replaces* them — pass a function, never a View. The default footer is the colour-scheme toggle and an avatar slot; it needs `app: this.app`.");
+		md("- **Where it goes.** No width, no position — one line at the call site: `.topic > .sidebar { flex: 0 0 var(--sidebar) }`. [Placement](/framework/core/Sidebar/doc/placement/)\n- **What a narrow screen does.** Below `52em` the panel becomes a sticky top bar with a burger; CSS decides, so there is no resize listener. **Shrink this window** to watch it. [Narrow](/framework/core/Sidebar/doc/narrow/)\n- **What the top and bottom contain.** Passing `header` or `footer` *replaces* them — pass a function, never a View. The default footer is the colour-scheme toggle and an avatar slot; it needs `app: this.app`.");
 
 		md("Next: [Extensions](/framework/ext/) — everything core deliberately refused to do.");
 
-		md.details(import.meta, "readme.md", "Design record — two tokens, and why a group is just an entry");
+		md.details(import.meta, "readme.md", "Readme");
 	}
 });

@@ -18,7 +18,7 @@ Keep. It is the boot half of a deliberate pair, and the pair is the point:
 The Router must never await this one. `loaders` only ever grows — `tabs()` pushes a
 `.then()` chain with no `.catch()` — so awaiting it per navigation means **one
 rejected loader kills every later navigation.** Measured, and silently, because
-`click()` never awaits `go()`. [loaders](/framework/core/App/docs/loaders/).
+`click()` never awaits `go()`. [loaders](/framework/core/App/doc/loaders/).
 
 ## Simplicity
 

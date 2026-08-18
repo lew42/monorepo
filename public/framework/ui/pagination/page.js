@@ -1,4 +1,4 @@
-import { Page, md, demo, div, span, button } from "/app.js";
+import { Page, md, demo, div, span, button, p } from "/app.js";
 
 // The template, verbatim — rendered on the stage AND printed as the source, so the
 // code on the page is the code that ran.
@@ -26,9 +26,13 @@ const wired = () => div.c("flex v gap", () => {
 		.style("--gap", "0.3em");
 });
 
-const rows = () => div.c("flex v gap", () => ["1", "6", "12"].forEach(current =>
-	div.c("flex wrap v-center gap", () => ["1", "6", "12"].forEach(label =>
-		button.c(label === current && "prim", label))).style("--gap", "0.3em")));
+/* The card's own context — the row under the short list it pages through, since
+   the row alone floated with nothing above it at zoom-50 (wall-polish, 2026-08-17). */
+const context = () => div.c("pad flex v gap", () => {
+	div.c("flex v gap", () => ["Alpha release", "Beta release", "Release candidate"].forEach(label => p(label)))
+		.style("--gap", "0.3em");
+	pager();
+}).style("--gap", "0.6em");
 
 export default new Page({
 	meta: import.meta,
@@ -38,10 +42,7 @@ export default new Page({
 
 	children: [
 		demo.page("wired", wired, {
-			note: "The same row with a handler on each button. A component holding the current page on your behalf is the thing this template exists to avoid — the caller already has that number." }),
-
-		demo.page("current", rows, {
-			note: "`.c(cond && \"prim\", …)` is the whole of *which one is current* — a falsy class is dropped. Three rows, three current pages, and no component holding state on anyone's behalf." }),
+			note: "The same row with a handler on each button, and a readout under it. A component holding the current page on your behalf is the thing this template exists to avoid — the caller already has that number, and `.c(cond && \"prim\", …)` is the whole of *which one is current*, because a falsy class is dropped." }),
 	],
 
 	content(){
@@ -63,5 +64,5 @@ export default new Page({
 		md("Next: [Card](/framework/ui/card/) — the shape every other component is made of.");
 	},
 
-	preview(nav){ return this.preview_card(nav, () => div.c("zoom-50 pad", pager)); },
+	preview(nav){ return this.preview_card(nav, () => div.c("zoom-50", context)); },
 });

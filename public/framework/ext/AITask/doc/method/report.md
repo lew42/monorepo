@@ -1,6 +1,6 @@
 The outline itself — call order, not content. Full design record, including
 why a task's own `page.js` overrides one of the parts below rather than
-this method: [template](/framework/ext/AITask/docs/template/).
+this method: [template](/framework/ext/AITask/doc/template/).
 
 `head()` first; then the `.ai-live` box, whose three parts (`checklist`,
 `extra`, `figures`) are drawn by [`refresh()`](/framework/ext/AITask/api/refresh/)

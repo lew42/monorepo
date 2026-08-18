@@ -11,7 +11,7 @@ export default new Doc({
 
 	subject,
 	methods: "source member patched dedent",
-	notes: "functions-not-strings",
+	notes: "functions-not-strings decisions",
 	files: "source.js page.js readme.md",
 
 	content(){
@@ -34,6 +34,6 @@ export default new Doc({
 
 		md("Next: [markup](/framework/util/markup/) — the same trick for DOM instead of functions.");
 
-		md.details(import.meta, "readme.md", "Design record — why it's in util/, and the two ways to stringify");
+		md.details(import.meta, "readme.md", "Readme");
 	}
 });

@@ -18,7 +18,7 @@ starter/   first real Router — lazy children, found the column layout's limit
 
 		md("**⚠ Don't import anything under here.** `public/` is the deploy artifact, so a stray `../new/1/Page.class.js` resolves to a real file and yields a *second, different* `Page` class — same name, silently wrong instance. That's the one framework-wide trap this directory is named in: see `instanceof across core/ and core/new/` in [the framework readme](/framework/).");
 
-		md("Nobody imports this tree — grepped, zero live callers — and `core/`'s own page does not list `new` as a child, so it sits outside the site's navigation on purpose, the same way [`ext/LayoutTool`](/framework/ext/LayoutTool/)'s audit explicitly excludes it from its crawl. This page and its children exist to be read, not browsed to by accident.");
+		md("Nobody imports this tree — grepped, zero live callers — and `core/`'s own page does not list `new` as a child, so it sits outside the site's navigation on purpose, the same way [`ext/DesignTool`](/framework/ext/DesignTool/)'s audit explicitly excludes it from its crawl. This page and its children exist to be read, not browsed to by accident.");
 
 		md.details(import.meta, "readme.md", "What each tier proved, and why three instead of one");
 	}

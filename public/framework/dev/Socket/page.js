@@ -13,7 +13,7 @@ export default new Doc({
 
 	methods: "singleton initialize connect open reconnect message reload changed eval send request rpc",
 
-	notes: "localhost backoff wire",
+	notes: "localhost backoff wire decisions",
 
 	files: "Socket.js page.js readme.md",
 
@@ -30,7 +30,7 @@ new App({ socket: Socket.singleton() });`);
 		code.js(`if (host === "localhost" || host.endsWith(".localhost")) this.connect();
 else { this.disabled = true; this.ready.resolve(); }`);
 
-		md("Off localhost it opens no connection, and every method that would talk returns immediately. So the line above is safe to ship, and a static host gets a static site — the hard constraint this module exists inside. [localhost](/framework/dev/Socket/docs/localhost/) is the long version.");
+		md("Off localhost it opens no connection, and every method that would talk returns immediately. So the line above is safe to ship, and a static host gets a static site — the hard constraint this module exists inside. [localhost](/framework/dev/Socket/doc/localhost/) is the long version.");
 
 		h2("The server calls a method on you");
 
@@ -45,10 +45,10 @@ socket.reload()             // …lands here, on your instance`);
 
 		md("Each path is checked against what this tab actually fetched. Never loaded it? **Nothing happens.** A `.css` it has as a `<link>`? The `?t=` on that same element is bumped and the sheet re-fetches — no navigation, no lost state. Anything else? One reload for the whole batch. [`changed`](/framework/dev/Socket/api/changed/) has the decision table and the `@layer` trap that makes *same element* load-bearing.");
 
-		md("A `.jsonl` never reaches `changed` at all — appends arrive as `jsonl` frames and [JSONL](/framework/ext/JSONL/) applies them in place. [wire](/framework/dev/Socket/docs/wire/) is the whole protocol, both directions.");
+		md("A `.jsonl` never reaches `changed` at all — appends arrive as `jsonl` frames and [JSONL](/framework/ext/JSONL/) applies them in place. [wire](/framework/dev/Socket/doc/wire/) is the whole protocol, both directions.");
 
 		md("**And that is the whole framework.** Start building — or read [Versus](/framework/versus/), the short argument for why it looks like this, or the [development log](/framework/ai/) on how it got here.");
 
-		md.details(import.meta, "readme.md", "Design record — the singleton, the reconnect storm, and the dead half");
+		md.details(import.meta, "readme.md", "Readme");
 	},
 });

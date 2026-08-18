@@ -35,7 +35,7 @@ padding: clamp(0.75em, 3.5%, 3.5em);
 ceiling stops it running away. Percentage padding resolves against the
 container's inline size, so it tracks the box at every width with no query.
 
-`ext/LayoutTool`'s `pad-scale` rule measures exactly this, and `cramped`
+`ext/DesignTool`'s `pad-scale` rule measures exactly this, and `cramped`
 measures the legibility floor. A box has to clear both.
 
 ## Padding inside padding

@@ -5,7 +5,7 @@ Five call sites now, all asking for the same instance:
 - `public/app.js:25` — `socket: Socket.singleton()`, inside the `new App({…})`. The one that boots it.
 - `ext/Ask/Ask.js` — three call sites, gating and driving the dev-only browser→CLI bridge.
 - `ext/Saver/FileSaver.js` — `write()` and `delete()`, each grabbing the instance to check `disabled` and send.
-- `ext/LayoutTool/audit/twin.js` — `accept()`, queuing an accepted layout fix.
+- `ext/DesignTool/audit/twin.js` — `accept()`, queuing an accepted layout fix.
 
 Every one of them gets the connection `public/app.js` already opened —
 that's the point of a singleton, and why the count above doesn't change the

@@ -9,7 +9,7 @@ export default new Doc({
 	subject: code,
 	methods:    "lang fn file ext",
 	properties: "cache",
-	notes:      "choice hooks chaining",
+	notes:      "choice hooks chaining decisions",
 	files:      "highlight.js highlight.css example.js page.js readme.md editor.md "
 		+ "hljs/core.min.js hljs/languages/css.min.js hljs/languages/javascript.min.js "
 		+ "hljs/languages/json.min.js hljs/languages/markdown.min.js hljs/languages/xml.min.js",
@@ -43,7 +43,7 @@ export default new Doc({
 
 		demo(() => {
 			md("```js /framework/ext/highlight/highlight.js\nView.prototype.append = function(...args){ … };\n```");
-		}, "The same label from markdown — a fence's info string's **second** word (the first is still the language). [`ext/markdown`](/framework/ext/markdown/docs/file-labels/) reads it and sets the identical `data-file` attribute, so one `highlight.css` rule draws both.");
+		}, "The same label from markdown — a fence's info string's **second** word (the first is still the language). [`ext/markdown`](/framework/ext/markdown/doc/file-labels/) reads it and sets the identical `data-file` attribute, so one `highlight.css` rule draws both.");
 
 		md("Only a block that owns its own `<pre>` gets a label — one already inside a hand-built `<pre>`, or inline in a sentence, silently ignores the third argument. Why, and the one case where a label can still be lost after the fact: [Chaining](docs/chaining/).");
 

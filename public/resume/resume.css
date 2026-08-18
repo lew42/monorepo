@@ -1,0 +1,129 @@
+/* Restated IN FULL - a short list silently misplaces `site`.
+   ! This statement has been stripped from this file THREE times on 2026-08-17
+   by something outside this session. It is load-bearing: the first @layer
+   statement in the document fixes the order, and a name first seen later is
+   appended at the END - so dropping it silently sorts `site` past `util`.
+   Do not 'deduplicate' it. */
+@layer base, theme, site, util;
+
+/* ASCII ONLY, comments included - same reason as toc.css. */
+@layer site {
+
+	/* THE PAGE IS THE SCENE AND NOTHING ELSE - no background of its own. A scene
+	   never transforms (perspective applies to its CHILDREN), so making the page
+	   the card too left the card as the one flat thing on a page about depth. Its
+	   padding is the grey gutter that lifts the sheet off the region's edges, and
+	   it stays SMALL - the breathing room belongs to the cards, not to the body.
+
+	   NOT `.standard`: that class makes the page a grid whose `main` TRACK is the
+	   measure while the page stays full width and flush left, which centres
+	   nothing. A plain flow column takes `max-width` itself. */
+	.page-resume {
+		--measure: 64em;
+		--page-pad: clamp(1em, 2.5%, 2em);
+
+		/* Tuned against the trade in depth.css: displacement is `d * z/(P - z)` and
+		   growth is `P/(P - z)` - the SAME factor - so the only way to get "comes
+		   toward you" without "flies off the top" is a low flatten (let the growth
+		   through) plus a low step (keep z small), and then buy the motion back
+		   from the pointer, which costs no displacement at all. */
+		--depth-perspective: 1100;
+		--depth-step: 30;
+		--depth-flatten: 0.25;
+		--depth-lean: 220;
+
+		/* x3 nested tiers = 3deg total at motion 1, which is the budget. */
+		--depth-tilt: 1deg;
+
+		max-width: min(var(--measure), 100%);
+		margin-inline: auto;
+	}
+
+	/* THE TIER TABLE. `--depth` lives HERE, one selector per tier, never as an
+	   inline `.depth(n)` — that is the whole point of calling `.depth()` bare in
+	   page.js. Retuning every heading, every card or every section is one number.
+
+	   ⚠ It COMPOSES: a value is relative to its parent layer, so the numbers below
+	   stack to card 2, head 2.5, section 3, job 3.5, headings 3.5/4.
+
+	   The elevation ladder runs the SAME WAY as the depth — LIGHTER IS CLOSER,
+	   which is the theme's own rule for --wash/--surface/--tint. Built with
+	   color-mix off the two theme tokens rather than hardcoded greys, so it inverts
+	   correctly in dark mode instead of going backwards. The root card is the
+	   darkest thing on the page so the cards on it read as lifted off it.
+
+	   Every tier's inset grows with the viewport, and the breathing room lives HERE
+	   rather than on the page, so a nested card reads as a layer, not a border. */
+	.resume-card {
+		--depth: 2;
+		background: color-mix(in srgb, var(--surface) 78%, var(--ink));
+		border-radius: var(--radius);
+		padding: clamp(1.75em, 4.5%, 3.5em);
+		--depth-shadow: 8px;
+
+		/* `.flow` spaces the sections, and this is the one token that does it. */
+		--flow: 2.75em;
+	}
+
+	.resume-head,
+	.resume-section {
+		background: color-mix(in srgb, var(--surface) 99%, var(--ink));
+		border-radius: var(--radius);
+		--pad: clamp(1.75em, 4.5%, 3.25em);
+		--depth-shadow: 6px;
+	}
+
+	.resume-section { --depth: 1; }
+
+	/* Half, so the name's card reacts to the Depth slider more gently than the
+	   sections do — it is the one block that is already closest to the reader. */
+	.resume-head { --depth: 0.5; }
+
+	.resume-job {
+		--depth: 0.5;
+		background: var(--surface);
+		border-radius: var(--radius);
+		padding: clamp(1.5em, 4%, 2.75em);
+		--depth-shadow: 4px;
+	}
+	.resume-job + .resume-job { margin-block-start: 1.75em; }
+
+	/* All the headings at once — the thing an inline `--depth` made impossible. */
+	.page-resume :is(h1, h2) { --depth: 1; }
+
+	/* Bullets are the bulk of a resume and they were running together.
+	   NOTE: the last one is zeroed by `:last-child { margin-bottom: 0 }` in
+	   @layer util, which is what stops this adding a gap inside every card. */
+	.page-resume li { margin-block-end: 0.5em; }
+
+	/* The sliders sit OUTSIDE the sheet, on the grey, so they need their own fill.
+	   Not a layer - a control that leans with the page is a control you cannot aim
+	   at. Centred over the sheet with auto margins on both sides. */
+	.resume-depth {
+		position: sticky; top: 0; z-index: 2;
+
+		/* ⚠ `display: flex`, overriding the ext's `inline-flex`. AUTO MARGINS DO NOT
+		   CENTRE AN INLINE-LEVEL BOX - `margin-inline: auto` on the inline-flex it
+		   ships with is simply inert, and nothing warns. */
+		display: flex;
+		width: fit-content; margin-inline: auto;
+		background: var(--surface);
+		border: 1px solid var(--line); border-radius: var(--radius);
+	}
+
+	.resume-head h1 { margin-block-end: 0.1em; }
+
+	.resume-role { font-size: 1.1em; }
+
+	/* A `p`, not a `div` - framework.css scopes its link treatment to
+	   `:where(p, li, td, th, dd, blockquote, .md) a` on purpose, so every anchor
+	   that is NAVIGATION opts out by default. A bare `a` in a `div` renders as UA
+	   blue with no underline colour, which is what these were. */
+	.resume-contact {
+		display: flex; flex-wrap: wrap; gap: 0.2em 1.1em;
+		font-size: 0.9em;
+	}
+	.resume-contact > * { margin: 0; }
+
+	.resume-meta { margin-block: 0.1em 0.6em; }
+}

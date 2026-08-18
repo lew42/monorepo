@@ -21,7 +21,7 @@ change. That works because the search is *"the nearest ancestor with `$pages`"*,
 
 The error page renders here rather than into `$app` because emptying `$app` would
 delete the chrome — the one page that most needs navigation would be the one page
-without it. [error-page](/framework/core/App/docs/error-page/).
+without it. [error-page](/framework/core/App/doc/error-page/).
 
 ## Simplicity
 

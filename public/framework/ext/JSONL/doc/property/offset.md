@@ -16,4 +16,4 @@ server sends that frame to the whole socket, readers included.
 
 `reset()` does not clear it (the transport sets it to 0 alongside), because
 `offset` belongs to the wire and the rest of the class does not know the socket
-exists. Full contract: [live](/framework/ext/JSONL/docs/live/).
+exists. Full contract: [live](/framework/ext/JSONL/doc/live/).

@@ -60,8 +60,8 @@ swappable no matter what its extension says.
    the defaults block. *(simple, useful — readme's `## Proposed #2`.)*
 2. **The client → server half is no longer theoretical, and its shape should
    follow its callers.** `server.js` now wires `Runtime` in (see
-   [wire](/framework/dev/Socket/docs/wire/) for the current accounting), and
-   `FileSaver.write()`/`delete()` and `LayoutTool/audit/twin.js` already call
+   [wire](/framework/dev/Socket/doc/wire/) for the current accounting), and
+   `FileSaver.write()`/`delete()` and `DesignTool/audit/twin.js` already call
    `async_rpc`/`rpc` for real. `async_rpc` duplicates `request`; `ls`/`cmd`/
    `log` have never been called by anything. Trimming to `send`/`request`/
    `rpc` and one `write` wrapper (the one real caller's actual shape) would

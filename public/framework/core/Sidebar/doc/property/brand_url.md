@@ -21,7 +21,7 @@ without replacing the header, and it has one read and a `??`.
 **It is also the narrow-screen escape route.** Below 52em the panel is a bar, and
 the brand is the only link that is always visible — pointing it at the section index
 is what gives a phone *"somewhere else"* to go.
-[narrow](/framework/core/Sidebar/docs/narrow/).
+[narrow](/framework/core/Sidebar/doc/narrow/).
 
 ## Simplicity
 

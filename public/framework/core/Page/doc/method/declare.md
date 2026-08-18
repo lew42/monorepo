@@ -1,8 +1,8 @@
 Turn whatever `children:` was into one Map.
 
-**Usage** — one caller: the constructor (`Page.class.js:10`). `ext/doc` reads
+**Usage** — one caller: the constructor (`Page.class.js:10`). `ext/Doc` reads
 `options.children` with the same splitting rule
-(`framework/ext/doc/Doc.js:114`) so a declared guide and a generated
+(`framework/ext/Doc/Doc.js:114`) so a declared guide and a generated
 member page join one rail.
 
 **Necessity** — yes. It is what lets `children: "intro guide api"`,

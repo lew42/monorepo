@@ -1,6 +1,3 @@
-/* Restated IN FULL - a short list silently misplaces `site`. */
-@layer base, theme, site, util;
-
 /* The divider. Zero-width in flow, so two panels touch; the seam is a drawn hairline and
    the target is an overlay strip straddling it. Paint is tokens only, so dark comes free.
    Design record: readme.md. */
@@ -71,4 +68,13 @@
 		.panel-grip::before { inset: -1rem; }
 		.panel-grip-pill { opacity: 1; }
 	}
+
+	/* ⚠ A floating panel has no slot, so a seam beside it separates NOTHING and dragging it
+	   resizes a neighbour against thin air. Measured across all seven arrangements of three
+	   panels: a middle panel taken out of flow leaves two grips at the SAME x, and a floating
+	   FIRST child leaves one at x=0 with nothing on its low side. The second selector is that
+	   second case — a grip with no in-flow panel anywhere before it. `position` is size.js's
+	   word; this is the divider agreeing with it. */
+	.panel-items > .panel-grip:has(+ .panel.panel-pos-absolute),
+	.panel-items > .panel-grip:not(.panel:not(.panel-pos-absolute) ~ .panel-grip) { display: none; }
 }

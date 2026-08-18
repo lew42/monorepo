@@ -21,7 +21,7 @@ only an ext emits. Moving it back would put an undeclarable dependency in core.
 ## ⚠ Two comments still say "classdoc"
 
 Lines 21 and 111 read *"classdoc's well does"* and *"classdoc's overview does"* —
-`ext/classdoc` became `ext/doc` today, and this file was not part of that rename
+`ext/classdoc` became `ext/Doc` today, and this file was not part of that rename
 because CSS is outside this audit's fences. Flagged at the top of
 [the audit report](/framework/audit/modules/ext-tabs.md); the fix is a two-word
 edit whenever a `.css` file is back in scope.

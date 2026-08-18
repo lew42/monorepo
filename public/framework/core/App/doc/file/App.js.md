@@ -37,7 +37,7 @@ unlike `Page.log_label()`'s three. See `doc/method/log_label.md`.
    standing test for removing it has been met. Removing a public hook is exactly
    the kind of change this module's fences (rightly) forbid an audit from making;
    it is recorded here as agreeing with the readme's Proposed verdict, not as new
-   information. *(simple, important — needs Mike.)*
+   information. *(simple, important — needs the owner.)*
 3. **`path_to_page_url()` encodes a url convention this framework no longer has**,
    and its only real caller is `arya/lib/Router.js`. The readme's proposal to move
    it there stands. *(medium, useful — needs coordination with arya.)*

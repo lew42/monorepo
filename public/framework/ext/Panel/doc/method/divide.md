@@ -23,4 +23,4 @@ and `before` supplied from where the pointer landed — there is no second
 code path for a drag-initiated split.
 
 The verb-not-mode decision, and the alternative considered:
-[Decisions](/framework/ext/Panel/docs/decisions/).
+[Decisions](/framework/ext/Panel/doc/decisions/).

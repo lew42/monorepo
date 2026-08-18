@@ -1,7 +1,3 @@
-/* Layer order, restated IN FULL — a short list would misplace `site`.
-   See the header of framework.css. */
-@layer base, theme, site, util;
-
 /* One object: the code, what it renders, and the sentence about it. Reading order
    is code → result → caption — prose is a caption, not a preamble. */
 @layer theme {

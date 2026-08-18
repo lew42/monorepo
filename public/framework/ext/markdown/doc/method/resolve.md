@@ -11,7 +11,7 @@ the SPA fallback the document url *is* the current route, so a relative link
 that's correct in the file (`[base](base/)` in a readme) pointed somewhere
 different depending on which page happened to render it — a link crawl once
 found **40 broken routes** this way, every one correct in its source file and
-wrong on the page. Full story: [Relative links](/framework/ext/markdown/docs/relative-links/).
+wrong on the page. Full story: [Relative links](/framework/ext/markdown/doc/relative-links/).
 
 ## What it deliberately skips
 

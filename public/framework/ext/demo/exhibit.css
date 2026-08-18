@@ -1,6 +1,3 @@
-/* Restated IN FULL — a short list silently misplaces `site`. */
-@layer base, theme, site, util;
-
 @layer theme {
 
 	/* ── the band ──
@@ -31,7 +28,7 @@
 	   the SCREEN's, not the page's: the prose above and below keeps reading on the
 	   page's own colour.
 	   `--bg` is the site's dark surface, the sidebar's — so a specimen reads as a
-	   screen on a canvas, which is what it is, and the token is one Mike picked from
+	   screen on a canvas, which is what it is, and the token is one the owner picked from
 	   `--line` rendered beside it.
 	   ⚠ Four classes: `.demo-stage.bleed .demo-screen` zeroes this padding at three,
 	     and a tie is decided by whichever stylesheet the browser linked last. */
@@ -40,6 +37,14 @@
 		background: var(--bg);
 		border-radius: var(--radius);
 	}
+
+	/* ⚠ The canvas above is `--bg`, and in light mode `--bg` and `--ink` are the SAME
+	   colour (`#3f3f3f`) — so a specimen that paints no ground of its own renders
+	   dark-on-dark and vanishes. Measurable in the DOM, invisible on screen, nothing
+	   thrown. The screen is a canvas; the specimen mounted on it is the SCREEN, and a
+	   screen has a surface. 2026-08-18 — the owner reported it on
+	   `styles/elements/text/scale/` and `table/data/`. */
+	.demo-exhibit .demo-stage.bleed .demo-screen > * { background: var(--surface); }
 
 	/* The width readout sits ON the ground now, and `--subtle` there is dark on dark.
 	   A literal white, because `--bg` is a dark surface in BOTH modes — this is the

@@ -1,0 +1,4 @@
+{
+	"critique-full-v1": "This is a screenshot of a web page. Read only the picture — do not open any files or read any code.\n\nGive design feedback across several angles: layout and spacing, visual hierarchy, contrast, alignment, empty or dead space, missing backgrounds or boundaries, general UI/UX, and imagery. Write three to six sentences of plain prose describing what you actually see, naming specific elements.\n\nThen list findings as a JSON block. Each finding is `{class, what, where, sel, decl}` — `class` is `\"broken\"` for something clearly wrong or `\"maybe\"` for something that might be better. `sel` is your best guess at the CSS selector; `decl` is a proposed one-line fix if you have one, else null. No overall score.",
+	"critique-v1": "This is a screenshot of a web page. Looking only at the picture, what stands out — good or bad? Be specific and brief, three or four sentences. Do not read any files."
+}

@@ -25,7 +25,7 @@ export default new Doc({
 	subject:    layout,
 	methods:    "bar context",
 	properties: "words",
-	notes:      "vocabulary drawer selection controls",
+	notes:      "vocabulary drawer selection controls decisions",
 	files:      "layout.js panel.js body.js words.js controls.js layout.css page.js readme.md",
 
 	content(){
@@ -98,6 +98,6 @@ layout.bar($strip, "mode gap column radius");`);
 
 		md("Next: [Layouts](/framework/styles/layouts/) — eight real pages built from the classes this widget writes.");
 
-		md.details(import.meta, "readme.md", "Design record — one toolbar for three targets, the push drawer, and what counts as selectable");
+		md.details(import.meta, "readme.md", "Readme");
 	}
 });

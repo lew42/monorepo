@@ -20,7 +20,7 @@ rect on the page.
 ## The whole state is one class
 
 `dev-open` on `<html>` is it — see
-[docking](/framework/dev/DevBar/docs/docking/) for the CSS side. `devbar()`
+[docking](/framework/dev/DevBar/doc/docking/) for the CSS side. `devbar()`
 never holds an "is it open" boolean; `open()` here is a three-line function
 that asks the DOM.
 
@@ -30,7 +30,7 @@ that asks the DOM.
 $bar.attr("data-layout-ignore", "");
 ```
 
-[`ext/LayoutTool`](/framework/ext/LayoutTool/)'s probe skips anything under
+[`ext/DesignTool`](/framework/ext/DesignTool/)'s probe skips anything under
 that attribute, and this is dev chrome rather than part of the page. One
 attribute with no import — the same contract `styles/layouts/space/ruler.js`
 uses for its miniatures — so it holds for *every* run: the rail's own `layout`

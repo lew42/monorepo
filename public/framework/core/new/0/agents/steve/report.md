@@ -22,7 +22,7 @@ it back up — not before.
 
 ## 2. Divergence from what was decided
 
-Everything on Master Mike's list matches the code — I checked each of the nine
+Everything on the owner's list matches the code — I checked each of the nine
 lines against `App.js`/`Page.class.js` line by line and none of them are wrong.
 Two things not on that list, and not in my proposal either, slipped in:
 

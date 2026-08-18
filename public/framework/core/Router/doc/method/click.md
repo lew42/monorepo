@@ -15,7 +15,7 @@ this.go(link.pathname + link.search + link.hash);
 ```
 
 `pathname` alone silently ate the fragment on a cross-page link — the url in the
-address bar came out short and nothing threw. See [fragment](/framework/core/Router/docs/fragment/) for
+address bar came out short and nothing threw. See [fragment](/framework/core/Router/doc/fragment/) for
 the half that is still open (where it *lands* is still the top).
 
 ## Simplicity

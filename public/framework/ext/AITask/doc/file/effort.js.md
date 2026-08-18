@@ -1,6 +1,6 @@
 Regroups a flat task list by `group` — the effort a task names itself as
 belonging to. No registry: the association lives entirely in the one field
-that already knows it. Full mechanism: [effort](/framework/ext/AITask/docs/effort/).
+that already knows it. Full mechanism: [effort](/framework/ext/AITask/doc/effort/).
 
 ## Derivation only, since the board stopped grouping
 

@@ -46,11 +46,11 @@ Paired rows (728): median Δ +12. Biggest drops all `/web/` (84→21); biggest r
 
 ## Dead-url census — complete (scratchpad: dead-final.json, census.json)
 
-> **Correction (agent D, same day):** 181 is really **143** — 38 "dead" urls are the census normalising a live `.md`/`.png` link down to its directory (the file itself returns 200). The "36 urls from ext/doc nav" family below is that artifact. The real families, re-ranked by linking pages, are in `audit.md` §dead-links, including the actual `undefined`-href emitter (`ext/tabs/tabs.js:46` when `this.url` is undefined for a Page the Router never adopted).
+> **Correction (agent D, same day):** 181 is really **143** — 38 "dead" urls are the census normalising a live `.md`/`.png` link down to its directory (the file itself returns 200). The "36 urls from ext/Doc nav" family below is that artifact. The real families, re-ranked by linking pages, are in `audit.md` §dead-links, including the actual `undefined`-href emitter (`ext/tabs/tabs.js:46` when `this.url` is undefined for a Page the Router never adopted).
 
 **1325 link-only urls checked, 181 dead** (`empty` fires; the 404 shell is exactly 14 nodes). Caveat: text-marker detection over-reports — 56 *live* ai pages quote the phrase in their logs; `empty` is the reliable signal. 46 dead urls are linked directly from corpus pages:
 
-- `<module>/doc/` + `doc/{file,property,method}/` — **36 urls** emitted by ext/doc nav across 18 modules; `/framework/ext/LayoutTool/doc/` alone linked from 27 pages.
+- `<module>/doc/` + `doc/{file,property,method}/` — **36 urls** emitted by ext/Doc nav across 18 modules; `/framework/ext/LayoutTool/doc/` alone linked from 27 pages.
 - `<module>/overview/docs/<name>/` — **43 urls** (docs/shot ×14, docs/task ×14, docs/chaining ×13) — a doc-nav relative-url bug.
 - **`undefined` in the href — 18 urls** (`/framework/ext/tabs/undefinedwhy/` …) — a template emitting `undefined` where a segment belongs.
 - `/web/` topic stubs — 12 urls linked from core/Page/* and ext/catalog (`/web/html/`, `/web/css/`, …).

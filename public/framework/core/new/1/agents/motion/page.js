@@ -282,7 +282,7 @@ async load(url){
 
 		p("Two caveats, both real. The await is in `load()`, before `activate()`, so `activate()` stays synchronous and the View Transitions story is untouched — this must stay that way. And `app.loaders` is an array that only grows, so awaiting it on every navigation is O(total loaders); they are all settled, so the cost is a microtask, but a narrower `Promise.all(View.stylesheets)` would do the same job.").ac("note");
 
-		p("Applied by Master Mike in `Router.load()`, with the reasoning in the comment. Re-verified after the change: a cold first visit now animates, so this section is history rather than a request.").ac("note motion-verdict");
+		p("Applied by the owner in `Router.load()`, with the reasoning in the comment. Re-verified after the change: a cold first visit now animates, so this section is history rather than a request.").ac("note motion-verdict");
 
 		section("BUG 2 — Router.mark() owns two class names document-wide");
 

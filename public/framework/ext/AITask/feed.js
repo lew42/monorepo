@@ -1,12 +1,12 @@
 import { View, div, p, pre, button, small } from "../../core/View/View.js";
 import md from "../markdown/md.js";
 import { parse, command, harness, trivial } from "./prompt.js";
-import { message } from "./message.js";
+import { message, fold } from "./message.js";
 import { ref, clock, dur, elapsed } from "./stats.js";
 
 View.stylesheet(import.meta, "feed.css");
 
-const POLL_MS = 5000;
+const POLL_MS = 30000;   /* was 5000 — every poll re-fetched the whole transcript (3 MB) until Range landed */
 const LOCAL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) || location.hostname.endsWith(".localhost");
 
 /**
@@ -17,7 +17,7 @@ const LOCAL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) || location.h
  */
 export function feed(session_id){
 	if (!session_id) return;
-	const state = { seen: 0, pending: null };
+	const state = { seen: 0, pending: null, bytes: 0, tail: "", lines: [] };
 	let $list, $stamp;
 
 	const $feed = div.c("ai-feed", () => {
@@ -39,7 +39,7 @@ export function feed(session_id){
 		}
 	}
 	async function sync(){
-		const lines = await load(session_id);
+		const lines = await load(session_id, state);
 		if (!lines){
 			$stamp.text("unavailable");
 			if (!state.seen) $list.empty(() => p("Transcript unavailable — feeds are served by the dev server only."));
@@ -51,14 +51,21 @@ export function feed(session_id){
 	}
 }
 
-async function load(id){
-	const res = await fetch("/ai-logs/" + id).catch(() => null);
+/* Incremental: asks for `Range: bytes=<seen>-`; a 206 appends only the new
+   bytes (a partial trailing line waits in `state.tail`), a 200 (server without
+   Range support, or a rewritten file) starts over. Measured 2026-08-17: the
+   5 s poll re-downloaded a 3 MB transcript every time. */
+async function load(id, state = { bytes: 0, tail: "", lines: [] }){
+	const res = await fetch("/ai-logs/" + id, { headers: { Range: "bytes=" + state.bytes + "-" } }).catch(() => null);
 	// The SPA fallback answers unknown paths with index.html and a 200 — a miss, not a hit.
 	if (!res?.ok || (res.headers.get("content-type") ?? "").includes("html")) return null;
 	const text = await res.text();
-	return text.split("\n").filter(Boolean).flatMap(line => {
-		try { return [JSON.parse(line)] } catch { return [] }
-	});
+	if (res.status !== 206){ state.bytes = 0; state.tail = ""; state.lines = []; }
+	state.bytes += new TextEncoder().encode(text).length;
+	const parts = (state.tail + text).split("\n");
+	state.tail = parts.pop() ?? "";
+	parts.filter(Boolean).forEach(line => { try { state.lines.push(JSON.parse(line)) } catch {} });
+	return state.lines;
 }
 
 /* ⚠ `!l.isMeta` — a Skill load's injected body is a "user" text line with no
@@ -73,19 +80,39 @@ function is_prompt(l){
 	return typeof c === "string" || c.some?.(b => b.type === "text");
 }
 
-/** One parsed line: prepend a new turn, or fold into the currently open one. */
+/** One parsed line: prepend a new turn, or fold into the currently open one.
+    A turn shows its prompt only — the owner's message IS the feed; the tool flow
+    behind it (`fold`, same expando `message.js` uses for a thinking block)
+    opens on click, so 2,400 lines of tool noise don't cost 235,000px. */
 function ingest(state, $list, raw){
 	if (!is_talk(raw)) return;
 	if (is_prompt(raw)){
 		finalize(state);
 		state.pending = open_turn($list, { prompt: raw, flow: [] });
-	} else if (state.pending){
-		state.pending.t.flow.push(raw);
-		state.pending.$flow.append(() => message(raw));
-		state.pending.$meta.empty(() => meta_row(state.pending.t));
 	} else {
-		state.pending = open_turn($list, { prompt: null, flow: [raw] });
+		if (!state.pending) state.pending = open_turn($list, { prompt: null, flow: [] });
+		push_flow(state.pending, raw);
 	}
+}
+
+function push_flow(turn, raw){
+	turn.t.flow.push(raw);
+	if (turn.$flow) turn.$flow.append(() => message(raw));
+	else turn.$turn.append(() => fold_flow(turn));
+	turn.$bar.text(flow_label(turn.t.flow.length));
+	turn.$meta.empty(() => meta_row(turn.t));
+}
+
+const flow_label = n => n === 1 ? "1 tool step" : n + " tool steps";
+
+/* Lazy: a turn with no tool flow yet (the common last message of a run) gets
+   no fold row at all, not an empty one. */
+function fold_flow(turn){
+	div.c("ai-fold", () => {
+		turn.$bar = div.c("ai-fold-bar wash", flow_label(turn.t.flow.length))
+			.on("click", e => e.currentTarget.parentElement.classList.toggle("open"));
+		turn.$flow = div.c("ai-fold-body ai-turn-flow", () => turn.t.flow.forEach(message));
+	});
 }
 
 /* A trivial prompt (no prose, no command) that never picked up any flow is
@@ -98,14 +125,13 @@ function finalize(state){
 }
 
 function open_turn($list, t){
-	let $meta, $flow;
-	const $turn = div.c("ai-turn wash", () => {
-		$meta = div.c("ai-meta muted", () => meta_row(t));
+	const turn = { t };
+	turn.$turn = div.c("ai-turn wash", () => {
+		turn.$meta = div.c("ai-meta muted", () => meta_row(t));
 		if (t.prompt) prompt_body(t.prompt);
-		$flow = div.c("ai-turn-flow", () => t.flow.forEach(message));
 	});
-	$list.el.insertBefore($turn.el, $list.el.firstChild);
-	return { t, $turn, $meta, $flow };
+	$list.el.insertBefore(turn.$turn.el, $list.el.firstChild);
+	return turn;
 }
 
 function meta_row(t){

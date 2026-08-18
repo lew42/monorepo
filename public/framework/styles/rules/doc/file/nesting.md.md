@@ -3,7 +3,7 @@
 The third chapter, and the one with the closed-form list: a block-level box in
 normal flow containing block-level boxes in normal flow cannot break, and
 there are exactly six departures from that. `nesting_table()` in `demos.js`
-builds all six live below the prose and reports what `ext/LayoutTool`
+builds all six live below the prose and reports what `ext/DesignTool`
 actually finds in each.
 
 ## The one line worth memorizing

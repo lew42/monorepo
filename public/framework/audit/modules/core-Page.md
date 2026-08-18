@@ -18,7 +18,7 @@ that hadn't been updated since the code it described was simplified.
 |---|---|
 | files | 70 before this pass, 94 after (+24 `doc/file/*.md`) |
 | lines of JS / CSS | 1387 / 235 |
-| callers | ~160 `page.js` files via `import { Page } from "/app.js"` (the overwhelming majority); a dozen direct `Page.class.js` importers (`core/App/App.js`, `ext/doc/Doc.js` — `class Doc extends Page` — `ext/AITask/AITask.js`, `ext/catalog`, `ext/demo/{app,demo,sample}.js`, `ext/tabs`, `styles/page.js`, `versus/page.js`, sandbox subclasses). Full table in `readme.md`'s new "Who uses this" section. |
+| callers | ~160 `page.js` files via `import { Page } from "/app.js"` (the overwhelming majority); a dozen direct `Page.class.js` importers (`core/App/App.js`, `ext/Doc/Doc.js` — `class Doc extends Page` — `ext/AITask/AITask.js`, `ext/catalog`, `ext/demo/{app,demo,sample}.js`, `ext/tabs`, `styles/page.js`, `versus/page.js`, sandbox subclasses). Full table in `readme.md`'s new "Who uses this" section. |
 | docs before | `readme.md` (238 lines, Decisions/Traps/Proposed/Open, three already-broken-out `doc/*.md` notes); `page.js` already a `Doc` (not `classdoc`) with `properties`/`methods`/`notes`/`overview`/`children` all present and — checked against the live class — **100% accurate**: all 26 methods, 17 properties, 3 notes, 5 declared children and 14 overview demos had a `.md`/directory on disk, no orphans, no gaps. **Zero `doc/file/*.md`, no `files:` key.** |
 | docs after | added `files:` (24 entries) + 24 `doc/file/*.md`; fixed one factually-wrong property doc and 9 files' worth of stale `file:line` citations (2 of which named a caller relationship that no longer exists, not just a wrong line number); added "Who uses this" to `readme.md` |
 
@@ -65,7 +65,7 @@ that hadn't been updated since the code it described was simplified.
    files (`Router.js`, `tabs.js`, `framework/page.js`) and 9 of them were wrong —
    a ~70% hit rate on a sample I picked semi-randomly while reading. Roughly 30
    more citations in this module's `doc/method/*.md`/`doc/property/*.md` point
-   into `App.js`, `ext/doc/Doc.js`, sandbox pages and others I did not re-verify.
+   into `App.js`, `ext/Doc/Doc.js`, sandbox pages and others I did not re-verify.
    **The claim: this is not a handful of typos, it's a maintenance model that
    doesn't hold up** — a citation is prose, not a check, and nothing re-runs it
    when the cited file changes. *(medium, important — a script that greps every
@@ -84,7 +84,7 @@ that hadn't been updated since the code it described was simplified.
    Proposed's content into this audit file (where 3 of its 4 items already
    overlap with my own Recommendations) would leave `readme.md` as a pure
    decision log. *(medium, useful — not applied; restructuring a readme beyond
-   what Step 3 asks for is a design call for Mike, not mine to make unasked.)*
+   what Step 3 asks for is a design call for the owner, not mine to make unasked.)*
 4. **Outside-the-box: publish the file:line citation problem as a lint, not a
    habit.** Every module in this codebase writes `` `Page.class.js:194` `` style
    citations by hand, and every one of them starts rotting the moment the cited
@@ -116,7 +116,7 @@ rail + region, `ext/catalog`), `tabs()` (a bar + panel, `ext/tabs`), and
 of the same underlying fact — *here are my children, and here is where you are*
 — and `core/Page/nav/page.js` already has the comparison table naming exactly
 this ("which one to reach for") rather than pretending they're five unrelated
-features. `ext/doc`'s `Doc extends Page` doesn't add a sixth: its Overview is a
+features. `ext/Doc`'s `Doc extends Page` doesn't add a sixth: its Overview is a
 `catalog()` and its API/Docs sections are `tabs().ac("vertical")`, so the class
 this whole documentation system runs on is itself proof the five compose rather
 than sprawl. The one genuinely open seam: `Sidebar.link()` and `Page.link()`
@@ -140,7 +140,7 @@ citation check instead.
 
 **Second, sharper:** "`doc/file/<path>.md` — one for EVERY file... never for
 `doc/` or `ai/`" does not say whether **`readme.md` itself** gets one. I inferred
-yes, on the grounds that `ext/doc`'s own module (the reference implementation)
+yes, on the grounds that `ext/Doc`'s own module (the reference implementation)
 has `doc/file/readme.md.md`, and wrote one. A sibling audit running on
 `core/Sidebar` in parallel read the same sentence, inferred **no**, and said so
 explicitly in its own skill feedback — two agents, same rule, opposite answers,

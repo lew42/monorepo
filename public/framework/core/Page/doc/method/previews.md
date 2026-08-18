@@ -27,17 +27,17 @@ the cards draw **once**, with real titles. The redraw machinery this used to nee
 gone.
 
 **`pages` defaults to all of mine** (Aug 2026). The one parameter, and it exists because
-a page's `children` can hold things that are not content: a [`Doc`](/framework/ext/doc/)
+a page's `children` can hold things that are not content: a [`Doc`](/framework/ext/Doc/)
 adds Overview · API · Docs · Files as real children, so a Doc calling this on its own
 Overview previewed its own tab strip. `Doc.wall()` hands in the subset rather than this
 method growing a filter, a flag or a second wall — **one wall mechanism on the site**
 is the point, and a `Map` is what `children` already is.
 
-⚠ **A wall grouped by `group:` turns `grid-auto-flow: dense` off** (`Page.css`, via
-`:has(> .page-previews-group)`). Dense backfills the gap a heading leaves at the end of
-the previous row with a card from the run *below* it — so `styles/layouts/` rendered Fit
-and Flex above the VOCABULARY heading that owns them. An **ungrouped** wall keeps dense,
-where `.two`/`.big` cards leave holes worth backfilling.
+⚠ **`grid-auto-flow: dense` is gone** (2026-08-17, with the `:has(> .page-previews-group)`
+rule that existed only to switch it back off). Dense backfilled the gap a heading leaves
+at the end of the previous row with a card from the run *below* it — so `styles/layouts/`
+rendered Fit and Flex above the VOCABULARY heading that owns them. The holes it existed
+to fill were the `.two`/`.big` column span's, and that is gone too: DOM order now.
 
 **`group:` heads a run.** A child may claim a group the way it claims a `card`, and
 each *run* of one gets an `h4.page-previews-group` spanning the wall — categories

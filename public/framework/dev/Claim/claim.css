@@ -1,6 +1,3 @@
-/* Restated IN FULL — a short list silently misplaces `site`. */
-@layer base, theme, site, util;
-
 /* The claim ring. `util`, because an unmissable overlay that a page could restyle
    would not be unmissable. Nothing here is loaded unless `claim.js` is imported. */
 @layer util {

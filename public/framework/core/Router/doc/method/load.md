@@ -21,10 +21,10 @@ Both are here rather than one line later in `activate()`, on purpose —
 `activate()` must stay synchronous so a site can wrap the swap in
 `document.startViewTransition()`. `allSettled` both times, so a 404'd stylesheet
 or a broken child costs a warning rather than every later navigation.
-[styles-loaded](/framework/core/Router/docs/styles-loaded/).
+[styles-loaded](/framework/core/Router/doc/styles-loaded/).
 
 **It returns a boolean, not the page.** It used to return the page, to let a
-`redirect()` chain off it; that was [backed out](/framework/core/Router/docs/backed-out/) and the boolean
+`redirect()` chain off it; that was [backed out](/framework/core/Router/doc/backed-out/) and the boolean
 is the verdict.
 
 ## Simplicity

@@ -1,9 +1,3 @@
-The maintainer's document: why capturing works the way it does, why nine other
-methods deliberately don't exist, and a ranked backlog — `## Proposed` — from an
-every-member audit that nobody has applied yet. The reader's document is
-`page.js`; this one is for whoever next has to change `View.js` and needs to know
-what was already tried.
+# readme.md
 
-It is served twice, same as every module's readme: cited by a maintainer reading
-the directory, and collapsed at the bottom of the Overview via
-`md.details(import.meta, "readme.md", …)`.
+The reader's index for this module — as short and simple as it can be (law #1): one line what it is, **Use** (the common case), **Watch out** (past problems, each linked to its doc), **More** (every doc, the page url, the files that matter). The record — decisions, traps in full, open questions — is [`doc/decisions.md`](../decisions.md).

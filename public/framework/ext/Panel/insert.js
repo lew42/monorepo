@@ -13,8 +13,6 @@ export const INSERT = { on: true };
    never guessed from the DOM — `dir === "row"` means the children are columns, so the bar
    stands tall and narrow; `dir === "col"` means rows, so it lies wide and short. */
 export function insert_bar(item, $items){
-	if (!INSERT.on) return;
-
 	let ref = null;
 	const $bar = div.c("panel-insert", () => icon("add")).attr("title", "Click to insert a panel here");
 
@@ -29,7 +27,7 @@ export function insert_bar(item, $items){
 		};
 
 		/* INTERIOR gaps only — between each pair, never before the first or after the last
-		   (Mike, 2026-08-16). Those two are the panel's own edges, and an edge already means
+		   (the owner, 2026-08-16). Those two are the panel's own edges, and an edge already means
 		   something better: clicking it opens the split preview, which is one gesture for the
 		   same result. A `+` sitting there hid the gesture instead of adding to it. */
 		let best;

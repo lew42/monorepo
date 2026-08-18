@@ -22,7 +22,7 @@ again as a `Doc`-derived top tab) for no reader benefit.
 |---|---|
 | files | 36 (35 in the module + `doc/record.md`) |
 | lines of JS / CSS | 1612 JS (20 files); 0 standalone `.css` — every rule lives inline via `css()` inside a `<name>.js` |
-| callers | `styles/sections/changelog.js` (`timeline()`), `styles/sections/team.js` + `testimonials.js` (`avatar()`), `styles/elements/forms/page.js` (`css()` from `parts.js`), `ext/AITask/AITask.js`, `ext/LayoutTool/tests/` + `audit/` (`ui.table()`), `dev/DevBar/page.js` (`ui.keys()`), several `framework/ai/*/page.js` task logs (`ui.table()`, `ui.timeline()`). **None of the sixteen templates has a caller anywhere in `public/`** — confirmed again by this pass's grep, matching the 2026-08-09 review's own finding. |
+| callers | `styles/sections/changelog.js` (`timeline()`), `styles/sections/team.js` + `testimonials.js` (`avatar()`), `styles/elements/forms/page.js` (`css()` from `parts.js`), `ext/AITask/AITask.js`, `ext/DesignTool/tests/` + `audit/` (`ui.table()`), `dev/DevBar/page.js` (`ui.keys()`), several `framework/ai/*/page.js` task logs (`ui.table()`, `ui.timeline()`). **None of the sixteen templates has a caller anywhere in `public/`** — confirmed again by this pass's grep, matching the 2026-08-09 review's own finding. |
 | docs before | `readme.md` — already excellent, one screen plus a 525-line `doc/record.md` breakout. `page.js` — a plain `Page` with `initialize(){ this.catalog(); }` (pre-`Doc`). `doc/*.md`: 1 file (`record.md`). No `doc/file/`, no `doc/method/`, no `notes:`/`files:` wiring. |
 | docs after | `readme.md` — added a "Who uses it" caller table, an `ext/Timeline` disambiguation, and a note on the `Doc` conversion + the trap it surfaced. `page.js` — rewritten as `new Doc({ subject: ui, methods: "table timeline keys", notes: "record", files: <all 35>, children: <unchanged 19> })`. `doc/method/table.md`, `timeline.md`, `keys.md` — new. `doc/file/*.md` — 35 new files, one per file in the module, centralized under `ui/doc/file/` mirroring the tree (`ui/doc/file/accordion/accordion.js.md`, etc.) rather than fragmented per component directory. The 19 leaf `page.js` files are **unchanged**. |
 
@@ -42,7 +42,7 @@ again as a `Doc`-derived top tab) for no reader benefit.
    other way) silently draws the section's own — usually empty — children
    instead of the module's real ones. I hit this live building `ui/page.js`
    and worked around it with `this.parent.previews()`. It belongs in
-   `ext/doc/readme.md`'s own Traps list, not just a comment in this one
+   `ext/Doc/readme.md`'s own Traps list, not just a comment in this one
    file, since the next module to reach for a live preview inside its
    Overview will hit it fresh. *(simple, important)*
 2. **Don't convert a demo-system page to `Doc` just because it has a
@@ -63,9 +63,9 @@ again as a `Doc`-derived top tab) for no reader benefit.
    available to verify the result) and added `this.parent.previews()` to
    the Overview so the visual, click-through browsing the site's prime
    objective wants doesn't depend on the tab strip at all. The honest fix is
-   upstream: `ext/doc` gaining a documented way to declare "a real routed
+   upstream: `ext/Doc` gaining a documented way to declare "a real routed
    child that gets a preview card but not a top tab." *(medium, important —
-   a shared-infrastructure change, needs Mike's sign-off per "propose before
+   a shared-infrastructure change, needs the owner's sign-off per "propose before
    major surgery")*
 4. **`ui.js`'s nine css-only imports are the only thing standing between a
    component and rendering unstyled with no error.** No leaf `page.js`
@@ -137,7 +137,7 @@ again as a `Doc`-derived top tab) for no reader benefit.
   `children:` is already a Variants wall — do not also wrap it in `Doc`,
   because the two mechanisms both turn `children` into a preview wall and
   you get it twice. Only the module's own index page needs `Doc`.
-- **A real, silent trap in `ext/doc` that the skill's own "rules that keep
+- **A real, silent trap in `ext/Doc` that the skill's own "rules that keep
   biting" section doesn't mention:** `content()` inside a `Doc` config runs
   bound to the Overview *section* Page, not the `Doc` instance itself, the
   moment that section is built by `overview_section()`. Every other rule in
@@ -148,7 +148,7 @@ again as a `Doc`-derived top tab) for no reader benefit.
 - **No guidance on where `doc/file/*.md` should live for a module with its
   own nested subdirectories that each have a `page.js`.** I inferred the
   answer — one centralized `doc/file/` tree at the module's root, mirroring
-  `ext/doc`'s own precedent (`doc/file/overview/urls/page.js.md`) — but had
+  `ext/Doc`'s own precedent (`doc/file/overview/urls/page.js.md`) — but had
   to reverse-engineer it from an example rather than being told. Worth a
   line: "for a module whose components live in their own directories, a
   centralized `doc/file/` at the root beats one `doc/` per component,

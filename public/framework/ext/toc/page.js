@@ -6,7 +6,7 @@ export default new Doc({
 	description: "This page's own headings, as a nav, with the current one marked.",
 	icon: "toc",
 
-	notes: "skip-list",
+	notes: "skip-list decisions",
 	files: "toc.js toc.css page.js readme.md",
 
 	content(){
@@ -30,7 +30,7 @@ export default new Doc({
 
 		code.js(`div.c("grid gap auto toc-skip", () => stats())   // not sections`);
 
-		md("`toc-skip` is the opt-out for the case that list cannot guess: a page rendering a **real component** rather than an example of one. A stat tile's value is an `.h2` because it is big, not because it is a section — [Versus](/framework/versus/) had `714 · 21 KB · 0 · 0 · 0` in its rail until it said so. Full story, including the gallery this defeated first: [Skip list](/framework/ext/toc/docs/skip-list/).");
+		md("`toc-skip` is the opt-out for the case that list cannot guess: a page rendering a **real component** rather than an example of one. A stat tile's value is an `.h2` because it is big, not because it is a section — [Versus](/framework/versus/) had `714 · 21 KB · 0 · 0 · 0` in its rail until it said so. Full story, including the gallery this defeated first: [Skip list](/framework/ext/toc/doc/skip-list/).");
 
 		h2("Scroll spy");
 
@@ -48,8 +48,8 @@ export default new Doc({
 
 		md("Every current caller is a page with **no `overview:` rail of its own** — `toc()` is the only right-side nav they get. A `Doc` that *does* declare `overview:` already has a left rail (the catalog), and `toc()` there wouldn't add a second nav so much as build one that never shows: the catalog's active child mounts one grid level too deep for `toc.css`'s selector to ever match, so the rail would build, scan and spy in silence. Nobody has hit this yet — see the readme for the exact selector.");
 
-		md("Next: [Doc](/framework/ext/doc/) — a module documented as a page.");
+		md("Next: [Doc](/framework/ext/Doc/) — a module documented as a page.");
 
-		md.details(import.meta, "readme.md", "Design record — fixed vs sticky, and the observer that didn't work");
+		md.details(import.meta, "readme.md", "Readme");
 	}
 });

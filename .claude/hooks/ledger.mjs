@@ -43,18 +43,58 @@ const walk = function* (dir) {
 	}
 };
 
-const find_task = session => {
+// An edit's path is ground truth: the first task.jsonl walking up owns it, no
+// session match needed. Null outside every task dir falls through below.
+const find_task_by_path = file => {
+	let dir = path.dirname(path.resolve(file));
+	while (dir === root || dir.startsWith(root + path.sep)) {
+		const candidate = path.join(dir, "task.jsonl");
+		if (fs.existsSync(candidate)) return candidate;
+		if (path.dirname(dir) === dir) return null;
+		dir = path.dirname(dir);
+	}
+	return null;
+};
+
+/* Fallback for paths outside every task dir: subagents inherit the parent's
+   session_id, so many tasks share one session and matching by session alone is a
+   guess. `newest` picks by CREATION, never mtime — this hook's own appends keep
+   bumping whichever file it already chose, so mtime self-pins. */
+const find_task = (session, newest) => {
 	if (!session) return null;
-	const cache = path.join(os.tmpdir(), `claude-ledger-${String(session).replace(/[^\w-]/g, "_")}.txt`);
+	const key = newest ? "edit" : "run";
+	const cache = path.join(os.tmpdir(), `claude-ledger-${key}-${String(session).replace(/[^\w-]/g, "_")}.txt`);
 	try {
-		const hit = fs.readFileSync(cache, "utf8").trim();
-		if (hit.startsWith(root) && fs.existsSync(hit)) return hit;
+		if (Date.now() - fs.statSync(cache).mtimeMs < 60000) {
+			const hit = fs.readFileSync(cache, "utf8").trim();
+			if (hit.startsWith(root) && fs.existsSync(hit)) return hit;
+		}
 	} catch {}
-	for (const file of walk(path.join(root, "public"))) {
+
+	const born = [];
+	for (const file of walk(path.join(root, "public")))
+		try { const s = fs.statSync(file); born.push([s.birthtimeMs || s.mtimeMs, file]); } catch {}
+	born.sort((a, b) => newest ? b[0] - a[0] : a[0] - b[0]);
+
+	for (const [, file] of born) {
 		if (lines(file).find(e => e.assign)?.assign.session_id !== session) continue;
 		try { fs.writeFileSync(cache, file); } catch {}
 		return file;
 	}
+	return null;
+};
+
+// An edit or a stop must never resolve to a task another agent is still working
+// in: the only safe source beyond an edit's own path is THIS agent's own prior
+// path-based resolution — never the session guess, which can land on a
+// sibling's live task. Null means "no ground truth yet for this agent".
+const agent_cache = id => path.join(os.tmpdir(), `claude-ledger-agent-${String(id).replace(/[^\w-]/g, "_")}.txt`);
+const cached_task = (agent_id, session) => {
+	if (!agent_id) return null;
+	try {
+		const hit = fs.readFileSync(agent_cache(agent_id), "utf8").trim();
+		if (hit.startsWith(root) && fs.existsSync(hit) && lines(hit).find(e => e.assign)?.assign.session_id === session) return hit;
+	} catch {}
 	return null;
 };
 
@@ -75,11 +115,9 @@ const run = async () => {
 	// Blocking again after our own block loops the session forever.
 	if (event === "stop" && input.stop_hook_active) return;
 
-	const task = find_task(input.session_id);
-	if (!task) return; // A session that never opened a task is not an error.
-
-	if (event === "sessionstart") {
-		if (input.source === "resume") append(task, { log: { at: now(), msg: "session resumed" } });
+	if (event === "posttooluse" && input.tool_name === "Skill") {
+		const task = cached_task(input.agent_id, input.session_id) || find_task(input.session_id, true);
+		if (task && input.tool_input?.skill) append(task, { log: { at: now(), msg: `skill: ${input.tool_input.skill}` } });
 		return;
 	}
 
@@ -87,18 +125,32 @@ const run = async () => {
 		const file = input.tool_input?.file_path || input.tool_input?.notebook_path;
 		const r = file && rel(file);
 		if (!r || skip.has(path.basename(r))) return;
+		const by_path = find_task_by_path(file);
+		const task = by_path || cached_task(input.agent_id, input.session_id) || find_task(input.session_id, true);
+		if (!task) return;
+		if (by_path && input.agent_id) try { fs.writeFileSync(agent_cache(input.agent_id), by_path); } catch {}
 		if (lines(task).some(e => e.action?.files?.includes(r))) return; // first touch only
 		append(task, { action: { at: now(), did: "edit", files: [r] } });
 		return;
 	}
 
 	if (event === "stop") {
+		const task = cached_task(input.agent_id, input.session_id) || find_task(input.session_id, false);
+		if (!task) return;
 		const s = state(task);
 		if (s.landed_at || !Array.isArray(s.steps) || !(Number(s.step) < s.steps.length)) return;
 		console.log(JSON.stringify({
 			decision: "block",
 			reason: `Your task ledger says step ${s.step} of ${s.steps.length} with no landed_at. Finish the remaining steps and bump step, or land it by appending ONE line to ${rel(task)}: {"assign": {"step": ${s.steps.length}, "landed_at": "<ISO with local offset>", "outcome": "**what landed** — …"}} — landed_at and outcome go INSIDE assign, never as their own verb.`
 		}));
+		return;
+	}
+
+	const task = find_task(input.session_id, false);
+	if (!task) return;
+
+	if (event === "sessionstart") {
+		if (input.source === "resume") append(task, { log: { at: now(), msg: "session resumed" } });
 		return;
 	}
 

@@ -60,7 +60,7 @@ needs more than one member.
 
 A production socket would want all four, plus an ack per frame. That is a
 different class with a different name — this one is gated to localhost
-([localhost](/framework/dev/Socket/docs/localhost/)) and should stay small
+([localhost](/framework/dev/Socket/doc/localhost/)) and should stay small
 enough to read in one sitting.
 
 The `console.warn` on every attempt is deliberate noise. A socket quietly

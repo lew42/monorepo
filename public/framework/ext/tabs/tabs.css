@@ -1,6 +1,3 @@
-/* Restated IN FULL — a short list silently misplaces `site`. */
-@layer base, theme, site, util;
-
 /* Structure and tokens only, no literal colour: a theme retunes the whole set
    without touching a selector. `.active` / `.in-path` come from
    Router.mark_links(), so the selected tab needs no JS. */
@@ -18,11 +15,15 @@
 @layer theme {
 
 	/* `--tab-pad-x` is exposed so a host can pull the strip left by exactly one tab's
-	   padding and land the LABELS on its own text axis — ext/doc's well does. */
+	   padding and land the LABELS on its own text axis — ext/Doc's well does. */
 	.tabs { display: flex; flex-direction: column; min-width: 0; --tab-pad-x: 0.9rem; }
 
 	/* ⚠ One strip that scrolls, never a wrapping block: a fifty-member rail flipped to
-	   a wrapped bar was 500px of links above the content it navigates. */
+	   a wrapped bar was 500px of links above the content it navigates.
+	   ⚠ The edge fade (`--tab-fade`, a two-layer `mask-image`) was REMOVED 2026-08-18 at
+	     the owner's call — misplaced on `.tab-bar`. What it was for, and what comes back
+	     without it, is [`doc/overflow.md`](/framework/ext/tabs/doc/overflow.md).
+	     Don't re-add it without asking. */
 	.tab-bar {
 		display: flex; flex-wrap: nowrap;
 		overflow: auto; scrollbar-width: none;
@@ -108,7 +109,7 @@
 	/* A rail PLUS a column needs more than 60em. Derived from the structure, so
 	   anything that grows a rail gets it without a class.
 	   ⚠ `:where()` holds this at (0,1,0) so a host page can narrow one of its sets
-	     with a plain class — ext/doc's overview does. */
+	     with a plain class — ext/Doc's overview does. */
 	.page:where(:has(> .tabs.vertical)) { --measure: 78em; }
 
 	/* The same set, turned on its side — only the axis changes. The bar is sticky
@@ -120,11 +121,15 @@
 	   horizontal tab bar a fixed 14em HEIGHT. A utility class cannot be conditional.
 	   ⚠ The max-height is what makes `sticky` mean anything: a rail taller than the
 	     viewport sticks its top and puts its own last members out of reach forever. */
+	/* ⚠ `mask-image: none`: the fade is a RIGHT-edge fade, and a column rail's right
+	     edge is its rule and its wrapped labels, not its overflow. It comes back in
+	     the query below, where this bar is a row again. */
 	.tabs.vertical > .tab-bar {
 		flex-direction: column;
 		flex: 0 0 clamp(9em, 18%, 14em); min-width: 0;
 		position: sticky; top: 1em;
 		max-height: calc(100vh - 2em);
+		mask-image: none;
 		border-bottom: none;
 		border-inline-end: 1px solid var(--line);
 	}

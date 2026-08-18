@@ -9,7 +9,7 @@ debounces chokidar's writes and broadcasts one frame:
 ```
 
 Paths on the wire are **url-paths** — forward slashes, root-absolute, never
-`public/…`. [wire](/framework/dev/Socket/docs/wire/) is the full protocol.
+`public/…`. [wire](/framework/dev/Socket/doc/wire/) is the full protocol.
 
 ## Necessity
 

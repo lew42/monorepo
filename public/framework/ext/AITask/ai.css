@@ -1,6 +1,3 @@
-/* Restated IN FULL — a short list silently misplaces `site`. */
-@layer base, theme, site, util;
-
 /* Layout and the expando mechanism only — the looks are `surface` / `wash` /
    `muted` off framework.css. */
 @layer theme {
@@ -8,6 +5,24 @@
 	.ai-log { display: flex; flex-direction: column; gap: 1em; min-width: 0; }
 
 	.ai-header { display: flex; align-items: baseline; gap: .5em; flex-wrap: wrap; }
+
+	/* One line each, ellipsis past the fold; `title` carries what this clips.
+	   ⚠ It lives on `wide` now (`.ai-timeline`, dashboard.js) — clipping a
+	     one-line row inside the 40em `main` track cut every entry at x≈910 at
+	     390, 1280 AND 3440 (vision-after, 2026-08-17). A row that will not wrap
+	     must be given the width it is not allowed to wrap in.
+	   ⚠ A line naming a task IS that task's link now — an <a>, so it wears link
+	     colour. As grey <p> text it read as the task list and wasn't one. */
+	.ai-day-line { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+		min-width: 0; text-decoration: none; }
+	.ai-day-line:hover { color: var(--prim); }
+
+	/* A disclosure marker, because "timeline — 111 log lines today" read as a
+	   caption: `card-ux-v1` could not tell whether it navigated, was a stat, or
+	   did nothing. The triangle says "there is more inside me" without pretending
+	   to be a link, which is exactly what it is. */
+	.ai-timeline .ai-fold-bar::before { content: "▸ "; }
+	.ai-timeline .ai-fold.open .ai-fold-bar::before { content: "▾ "; }
 
 	.ai-columns { display: grid; grid-template-columns: minmax(22em, 38em) minmax(0, 1fr); gap: 1em; align-items: start; }
 	@media (width < 60em) { .ai-columns { grid-template-columns: 1fr; } }
@@ -30,6 +45,19 @@
 	.ai-tool, .ai-result { overflow-x: auto; max-height: 20em; white-space: pre-wrap; }
 
 	.ai-img { max-width: 100%; }
+
+	/* The screenshot wall — lazy `<img loading=lazy>`, so 100 logged shots cost one
+	   request each only once scrolled near. `.missing` (off localhost, or a shot
+	   whose file 404s before a restart) swaps the frame for a plain swatch instead
+	   of a broken-image icon — shots.js never even creates the <img> off localhost. */
+	.ai-shots { display: grid; grid-template-columns: repeat(auto-fill, minmax(9em, 1fr)); gap: .6em; }
+	.ai-shot-frame { display: flex; aspect-ratio: 4 / 3; overflow: hidden; border-radius: .3em;
+		background: color-mix(in srgb, currentColor 6%, transparent); }
+	.ai-shot-img { width: 100%; height: 100%; object-fit: cover; }
+	.ai-shot-fallback { display: none; flex: 1; align-items: center; justify-content: center; font-size: .8em; }
+	.ai-shot.missing .ai-shot-img { display: none; }
+	.ai-shot.missing .ai-shot-fallback { display: flex; }
+	.ai-shot-label { margin-block-start: .3em; font-size: .8em; }
 
 	/* Dashboard: usage meters + task rows. --pct and --at are written inline by usage.js.
 	   ⚠ Auto-fit, not a column: at board width a stacked meter is a 3000px-long bar
@@ -69,7 +97,10 @@
 	.ai-seg { flex: 1; height: .3em; border-radius: 999px;
 		background: color-mix(in srgb, currentColor 12%, transparent); }
 	.ai-seg.done { background: var(--ok); }
-	.ai-seg.now { background: var(--ok); animation: ai-pulse 1.6s ease-in-out infinite; }
+	/* ⚠ `--prim`, not `--ok`: the pulse says "now" while you watch it, and says
+	     nothing at all in a screenshot — `ux-v1` read 0/7 with one green segment
+	     as one step done. Now the running colour is the running dot's colour. */
+	.ai-seg.now { background: var(--prim); animation: ai-pulse 1.6s ease-in-out infinite; }
 
 	.ai-checklist { display: flex; flex-direction: column; gap: .3em; margin-block-start: .6em; }
 	.ai-check { display: flex; gap: .6em; align-items: baseline; color: var(--subtle); }
@@ -86,6 +117,15 @@
 	.ai-compose-effort, .ai-compose-model { width: auto; }
 	.ai-compose-name { width: auto; flex: 1 1 10em; min-width: 0; }
 
+	/* The date is a LABEL, not a headline. `ux-v1` named the 48px `2026-08-17` at
+	   900, 1440 AND 3440 as taking a quarter of the first screen — and it is the
+	   one thing up there that is neither a link nor a number.
+	   ⚠ `.page-title + *` (framework.css) adds 1.5 × `--flow` after it, so at 3em
+	     the page opened with a 53px heading over a 48px gap over the first row
+	     worth clicking. Both come down together or neither is worth doing. */
+	.page:has(> .ai-dashboard) > .page-title { font-size: 1.4em; }
+	.page:has(> .ai-dashboard) > .page-title + * { margin-block-start: var(--flow); }
+
 	.ai-group { display: flex; flex-direction: column; gap: .4em; }
 	.ai-group-title { font-weight: 700; font-size: .9em; letter-spacing: .04em; text-transform: uppercase; }
 
@@ -94,9 +134,10 @@
 	.ai-dot.live { animation: ai-pulse 1.6s ease-in-out infinite; }
 	@keyframes ai-pulse { 50% { opacity: .35; } }
 
-	/* ⚠ Unframed `.bleed` bands keep the region — hand the inset back, the
-	   pattern demo/stage.css and ext/layout use. */
-	.page.standard > .ai-dashboard.bleed { padding-inline: var(--gutter-x); }
+	/* DELETED, 2026-08-17 (day-page-ux): `.page > .ai-dashboard { grid-column: wide }`,
+	   the fourth and last copy of the `bleed` payback rule. `dashboard.js` says `wide`
+	   itself now, which is what the rule was standing in for while that file was
+	   another task's to edit. */
 
 	/* One card per row — the board is a list on a time spine, not a wall, so the
 	   width goes into the card's own three regions instead of a second track.
@@ -115,15 +156,34 @@
 
 	/* One card, three regions — who | what | figures. The title's ::after spreads
 	   the row's link; anything that must stay clickable sits above it (.ai-links). */
+	/* ⚠ `line-height: 1.4`, against the theme's 1.8 (lew42.css) — that is READING
+	     leading, and a card is a row of facts, not a paragraph. Measured
+	     2026-08-17: 1.8 cost ~11px on every one of a card's six lines, which over
+	     four running tasks was the whole difference between LANDED being on the
+	     first screen at 1440 and being below it. */
 	.ai-card {
 		position: relative;
 		display: grid;
-		grid-template-columns: minmax(15em, 22em) minmax(0, 1fr) max-content;
+		/* ⚠ The middle track is CAPPED at 60em, not an open `1fr` (2026-08-17). One
+		     card per row means the row is as wide as the screen, and at 3440 that
+		     made the headline a 150-character line with its figures stranded 1,500px
+		     to the right — `ux-v1` called both `broken` there and neither at 1440.
+		     60em is a headline's measure, not prose's 40em: these lines are clamped
+		     to one or two, and the whole line is read at once. Below ~1500px the cap
+		     never binds and nothing changes. */
+		grid-template-columns: minmax(15em, 22em) minmax(0, 60em) max-content;
 		gap: .3em 1.5em;
 		align-items: start;
-		padding: .7em 1em;
+		padding: .55em 1em;
+		line-height: 1.4;
 	}
-	.ai-card-title { font-weight: 700; color: inherit; text-decoration: none; }
+	/* ⚠ NOT `color: inherit` (2026-08-17, day-page-ux). It was, and `card-ux-v1`
+	     reached the same verdict from a whole page and from one cropped card:
+	     "the pill-outlined effort tags read as the interactive elements while the
+	     actual primary entry point reads as inert label text". The title IS the
+	     card — its `::after` covers the whole row — so it is the one thing here
+	     that has to look like the link it is. */
+	.ai-card-title { font-weight: 700; color: var(--prim); text-decoration: none; }
 	.ai-card-title::after { content: ""; position: absolute; inset: 0; }
 	.ai-card:hover .ai-card-title { color: var(--prim); }
 
@@ -134,7 +194,12 @@
 	.ai-who { align-items: start; }
 	.ai-who .ai-dot { translate: 0 calc((1lh - 100%) / 2); }
 
-	.ai-line { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+	.ai-line { display: -webkit-box; -webkit-line-clamp: var(--clamp, 2); -webkit-box-orient: vertical; overflow: hidden; }
+
+	/* A landed row is a receipt: one line of the outcome, its pills, its figures —
+	   the rest is on the task page one click away. Two lines × thirty landed tasks
+	   is 1,400px of a day page spent restating work that is already finished. */
+	.ai-compact { --clamp: 1; }
 
 	.ai-links { position: relative; z-index: 1; }
 	/* ⚠ A pill may not wrap. A label like "Site audit — before/after per element"
@@ -157,7 +222,9 @@
 	   wide. `auto-fill minmax(min(44em,100%),1fr)` means a track is either ≥44em or
 	   the container's full width — so the container's width IS the card's here. */
 	@container (width < 44em) {
-		.ai-card { grid-template-columns: 1fr; }
+		/* ⚠ Bare `1fr` keeps its content-based auto-minimum — `.ai-who`'s title+tag
+		   row doesn't shrink and spills past the card. `minmax(0, …)` floors it. */
+		.ai-card { grid-template-columns: minmax(0, 1fr); }
 		.ai-figures { text-align: left; white-space: normal; display: flex; flex-wrap: wrap; gap: 0 1em; }
 	}
 
@@ -165,18 +232,86 @@
 
 	/* The rail IS the dashboard (framework/ai/'s previews() override), so it takes
 	   catalog's rail treatment itself — wide enough for a card, sticky, scrolling
-	   on its own. Mirrors `.page-catalog > .timeline` in Timeline.css. */
+	   on its own. Mirrors `.page-catalog > .timeline` in Timeline.css.
+	   ⚠ `41%`, not the sitewide default's `45%` (2026-08-17, ai-rail): 45% put 474px
+	   of a 1051px catalog box into nav at 1280, squeezing content to 506px. Bounded
+	   lower — but not lower still: a generated task page's `code`/`td` spans use
+	   framework.css's fixed px padding, not scaled to box width, and widening the
+	   content column past ~550px trips its `pad-share` band into a letter-grade
+	   drop (measured: 40%→80/B, 38%→78/C) — a framework.css fix, not this file's
+	   budget. `ai/2026-08-17/ai-rail/` has the sweep. */
+	/* ⚠ These five declarations ARE `core/Page/Page.css`'s `.rail`, arrived at
+	     independently here and a third time in `browse.css` — the sticky pin, the
+	     `min-width: 0`, the `100dvh` ceiling, the scrollport and the thin bar. The
+	     primitive exists now, and adopting it is one word in `dashboard.js:130`
+	     (`"ai-index-rail flow"` → `"ai-index-rail rail flow"`), at which point only
+	     the width below is this file's own opinion. `dashboard.js` is outside this
+	     task's fence (ai-board-fix holds it), so the declarations stay stated here for
+	     one more pass rather than being half-migrated. Named so the next agent can
+	     finish it in one line.
+	   ⚠ The two `:has()` rules below do NOT fold into `.rail`, and that is a real
+	     limit rather than an oversight: they say "hidden when a day is routed" and
+	     "the whole page when nothing is" — an arrangement question the primitive has
+	     no opinion about. Forcing them in would have been the sixth word. */
 	.page-catalog > .ai-index-rail {
-		flex: 0 0 min(34em, 45%); min-width: 0;
+		flex: 0 0 min(34em, 41%); min-width: 0;
 		position: sticky; top: 0; max-height: 100dvh; overflow-y: auto; scrollbar-width: thin;
 	}
 
-	/* ⚠ The catalog BLEEDS, and catalog.css pays the inset back to `.page-previews`
-	   only — this rail is a different class, so it fell through and sat flush on the
-	   region's raw edge. Swapping the rail's class means restating the payback. */
-	.page.standard > .page-catalog > .ai-index-rail { margin-inline-start: var(--gutter-x); }
-	@media (max-width: 64em) {
-		.page-catalog > .ai-index-rail { flex: 0 0 auto; position: static; max-height: none; }
+	/* DELETED, 2026-08-17 (layout-primitives): the third copy of one payback rule.
+	   The catalog claimed `bleed` and spent the page's gutter tracks, so anything
+	   placed in it — `.page-previews`, this rail, the report's bands — restated
+	   `var(--gutter-x)` by hand. `catalog.js` claims `wide` now and the tracks survive,
+	   so all three rules went at once. */
+
+	/* GONE, not shrunk, at every width (2026-08-17, ai-board-fix): a routed
+	   day or task doesn't want the whole archive above or beside it — that's
+	   the entire board, showing twice on one screen (proposal.md §3.1). The
+	   34dvh strip this replaced was a resize, not a fix: still every task of
+	   every day, just squeezed into a smaller box the day repeated below. */
+	.page-catalog:has(> .page-catalog-pages > .page:is(.active-page, .active-ancestor)) > .ai-index-rail {
+		display: none;
+	}
+
+	/* ── ONE SCROLL REGION (2026-08-17, day-page-ux) ──
+	   The owner: "that first page has 2 scrollbars." Measured at 1440 on
+	   /framework/ai/2026-08-17/: `.pages` 900/900 and `.page-catalog-pages`
+	   900/9640 — a dead bar at the sheet's edge and a live one inset beside it.
+	   Every ordinary page has exactly one, and it is `.pages` (/framework/styles/
+	   900/4971, the bare /framework/ai/ index 900/25782).
+
+	   Cause, in three files and none of them wrong on its own: `Page.css` reserves
+	   the sheet's gutter unconditionally (`overflow-y: scroll`, so navigating never
+	   shifts content sideways); `catalog.css:47` caps a routed catalog page at the
+	   region height and `catalog.css:119` makes the region the scrollport instead —
+	   correct for a SPLIT, where the rail and the region each cap their own height.
+	   But the rule directly above has already hidden this rail, so what is left is
+	   a wrapper around one region, still paying for a split it no longer is.
+
+	   So: hand the scroll back to the sheet, which is the same verdict the board
+	   mode below reaches for the same reason — a board is not a scrollport, the
+	   page scrolls. Scoped by `> .ai-index-rail` to THIS catalog, so every other
+	   catalog on the site keeps the bounded split its rail needs. */
+	.pages > .page:has(> .page-catalog > .ai-index-rail):has(> .page-catalog > .page-catalog-pages > .page:is(.active-page, .active-ancestor)) {
+		overflow: visible;
+		grid-template-rows: none;
+
+		/* ⚠ NESTED, so `&` carries this selector's (0,8,0) — as its own top-level
+		     rule it read (0,6,0) and lost to catalog.css's own (0,8,0), which the
+		     computed style then reported as an unchanged `overflow-y: auto`.
+		   ⚠ And it is not cosmetic: `auto` on a flex item is an automatic minimum
+		     size of ZERO (spec), so with the ceiling above now released there was
+		     nothing left to shrink FROM and `flex: 1 1 0` took the region to 0 —
+		     a 622×0 box holding 8,669px, blank at 900 and fine at 1440. The exact
+		     collapse catalog.css:99 documents, met from the other side. */
+		/* ⚠ `flex: 1 1 auto`, and this is the SAME bug one regime over: below 64em
+		     catalog.css turns the row into a column, where `flex: 1 1 0` is a
+		     HEIGHT basis of zero — fine while the ceiling gave the column a
+		     definite height to grow into, zero the moment it doesn't. Measured at
+		     900: 622×0 again, and fine at 1100. A basis of `auto` is the content
+		     height in the column and still takes the whole row in the row, because
+		     the rail beside it is `display: none` and there is nothing to share with. */
+		> .page-catalog > .page-catalog-pages { overflow-y: visible; flex: 1 1 auto; }
 	}
 
 	/* Nothing selected yet — then the rail IS the page, and takes the whole region
@@ -189,11 +324,11 @@
 
 		/* ⚠ `overflow: visible` with it: a board is not a scrollport — the page
 		   scrolls. Leaving the rail's `overflow-y: auto` behind kept it a region
-		   of its own, which LayoutTool reads as an edge owing a gutter. */
+		   of its own, which DesignTool reads as an edge owing a gutter. */
 		> .ai-index-rail {
 			flex: 1 1 auto; width: 100%;
 			position: static; max-height: none; overflow: visible;
-			margin-inline-start: 0; padding-inline: var(--gutter-x);
+			margin-inline-start: 0;
 		}
 		/* ⚠ `align-self`: catalog.css sets `align-items: flex-start`, which was the
 		   MAIN axis until this block turned the row into a column — so the intro

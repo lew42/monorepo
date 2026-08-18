@@ -9,6 +9,11 @@ import mode from "./framework/core/App/mode.js";
  * and Socket.changed() would stop reloading it. Raise it before anything fetches. */
 performance.setResourceTimingBufferSize(100000);
 
+// framework.css goes FIRST in <head>: its @layer statement fixes the layer order for every
+// stylesheet after it, including the ones core modules loaded during import.
+App.stylesheet("/framework/framework.css");
+document.head.prepend(document.head.lastElementChild);
+
 App.stylesheet("/styles.css");
 
 /* The site's chrome, built ONCE outside $pages so navigation can never touch it.
@@ -125,18 +130,22 @@ import "./framework/ext/demo/layout.js";
 // showing that member's real source. A Page subclass, so a module with a
 // different shape overrides a method instead of the config growing an option.
 // Imports markdown (the notes ARE markdown) and files (the Files tab); leans on
-// highlight only if it's loaded. See ext/doc/readme.md.
-export { Doc } from "./framework/ext/doc/Doc.js";
+// highlight only if it's loaded. See ext/Doc/readme.md.
+export { Doc } from "./framework/ext/Doc/Doc.js";
 
 // Patches this.tabs() onto every Page — the side effect IS the export, same
-// shape as highlight below. ext/doc already imports it for its own vertical
+// shape as highlight below. ext/Doc already imports it for its own vertical
 // rail; this import is what makes `this.tabs("guide api")` work on any OTHER
 // page.js too. See ext/tabs/readme.md.
 import "./framework/ext/tabs/tabs.js";
 
 // Patches this.catalog() the same way: previews() as a persistent rail beside
-// the region the children mount in. ext/doc's Overview tab is built on it.
+// the region the children mount in. ext/Doc's Overview tab is built on it.
 import "./framework/ext/catalog/catalog.js";
+
+// …and this.browse(), its sibling: the same previews() cards as a filterable wall of
+// bands rather than a rail. `styles/layouts/` and `ui/` are both one call to it.
+import "./framework/ext/catalog/browse.js";
 
 // The right rail, one per document: drawer(($slot, $body) => …) opens it, its own ✕
 // shuts it, and nothing else does. Here rather than inside ext/layout — which owned it

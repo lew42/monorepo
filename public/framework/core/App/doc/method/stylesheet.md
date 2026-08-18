@@ -23,7 +23,7 @@ static stylesheet(meta, url){ return View.stylesheet(meta, url); }
 **The instance method is compatibility, not API.** The rewrite dropped it and
 `alex/`, `arya/` and `castin/` all 404'd, because they call it at module scope. The
 rule *"rename freely inside `framework/`, alias on the way out"* was already written
-down and was not followed. [aliases](/framework/core/App/docs/aliases/).
+down and was not followed. [aliases](/framework/core/App/doc/aliases/).
 
 The static one is a genuine convenience: `app.js` needs a sheet before an App
 exists to own one.

@@ -11,7 +11,7 @@ import { FAMILIES, SILENT, DECLARATIONS, PARTS, spec } from "./words.js";
 const wall = fill => div.c("grid gap space-words", fill).style("--gap", "1em");
 
 /* ⚠ `data-layout-ignore` goes on the MINIATURE, never on the wall around it. On the
- *   wall it hides the cards' real text too, and ext/LayoutTool then reads the whole
+ *   wall it hides the cards' real text too, and ext/DesignTool then reads the whole
  *   wall as one 625px gap in the page's rhythm — a `high` finding, from the marker.
  *   The seed tiles on the Overview mark the wall because a tile is *only* a
  *   miniature; a card here is a name and a line as well.

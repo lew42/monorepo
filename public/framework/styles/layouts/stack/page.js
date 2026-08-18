@@ -1,4 +1,5 @@
-import { Page, demo, div, span, md, input, textarea, button } from "/app.js";
+import { Page, demo, div, span, h2, input, textarea, button } from "/app.js";
+import { site } from "../web.js";
 
 const field = (label, control) => div.c("flex v gap").style("--gap", "0.3em").append(() => {
 	span.c("h4", label);
@@ -12,66 +13,38 @@ export default new Page(demo.layout({
 	icon: "view_agenda",
 	group: "Pages",
 
-	note: "No fit word — the region's default measure. The column is `measure`; the spacing is `gap` inside it and `--flow` outside.",
+	twin: true,
+	parts: "header footer",
+
+	note: "**`flow` is the class every page already carries** (`Page.render()`), so `--flow` spaces the column below on its own — nothing here sets a margin. A laid-out container owns its spacing with `gap` instead, which is what the form uses: `.flex > * { margin: 0 }` beats the flow owl, so the two never fight. The controls are `framework.css` defaults — no stylesheet in this folder.",
 
 	layout(){
 
 		// the page is the region; the narrowness belongs to the `.measure` column inside
-		// it, not to the page. No `fill` — a long form scrolls.
-		return div.c("page full flex v", () => {
+		// it, not to the page — the region's DEFAULT measure, no override.
+		return div.c("page full fill flex v", () => {
 
-			div.c("measure flex v gap").append(() => {
+			if (this.shows("header")) site.topbar();
 
-				div.c("h1", "A stack is spacing, and nothing else");
+			div.c("flex-1", () => {
+				div.c("measure flow", () => {
 
-				md(`Every box below is a plain element in a column. Nothing sets a margin, nothing
-sets a height, and no control here carries a class of its own — the arrangement is the
-container's job and the look is the theme's.`);
+					h2("Tell us what you're building");
 
-				div.c("pad flex v gap surface", () => {
-					div.c("h3", "Tell us what you're building");
+					div.c("pad flex v gap surface", () => {
+						field("Email", () => input().attr("type", "email").attr("placeholder", "you@example.com"));
+						field("Message", () => textarea.c("auto").attr("rows", "3"));
 
-					field("Email", () => input().attr("type", "email").attr("placeholder", "you@example.com"));
-					field("Message", () => textarea.c("auto").attr("rows", "3"));
+						div.c("flex gap wrap", () => {
+							button.c("prim", "Send");
+							button("Cancel");
+						});
+					}).style("--gap", "0.9em");
 
-					div.c("flex gap wrap", () => {
-						button.c("prim", "Send");
-						button("Cancel");
-					});
-				});
+				}).style({ padding: "2em" });
+			}).style({ minHeight: "0", overflowY: "auto" });
 
-				md(`## The rhythm is a token
-
-\`flow\` is the class \`Page.render()\` already puts on every page:
-
-\`\`\`css
-:where(.flow, blockquote) > * + * { margin-block-start: var(--flow); }
-\`\`\`
-
-One em token, \`--flow: 2em\`, declared per flow root — so a container that sets
-\`font-size: 0.8em\` tightens its whole rhythm with it. The declaration is \`:where()\`d
-to zero, so retuning a whole site is one ordinary rule: \`.flow { --flow: 1.6em }\`.
-
-**A laid-out container owns its spacing with \`gap\` instead**, which is what the form
-above uses: \`.flex > * { margin: 0 }\` is in \`@layer util\` and beats the flow owl, so
-the two never fight. Rhythm for prose, gap for arrangements — that is the whole
-division, and it is why the card holds together at any width.
-
-## The controls brought nothing
-
-\`framework.css\` gives every text input, select and textarea \`width: 100%\`, a padding
-and a hairline; \`.btn\`/\`button\` get the same treatment and \`prim\` promotes one of
-them to the accent. \`textarea.auto\` is \`field-sizing: content\` — the box follows the
-text, so a stack never needs a scrollbar inside a field.
-
-That is a complete sign-up form with **no stylesheet in this folder.**
-
-## What you would build with it
-
-- A form, a checkout flow, an onboarding step
-- A settings panel
-- Any page that is a sequence rather than an arrangement`);
-			});
+			if (this.shows("footer")) site.footer();
 		});
 	},
 }));

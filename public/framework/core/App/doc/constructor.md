@@ -36,7 +36,7 @@ awaited**, which is what makes `window.app = new App()` read well — and meant 
 throw anywhere outside `load()`'s own try/catch became a silent unhandled
 rejection *and* left `app.ready` pending forever. `instantiate()` now wraps its
 own body in a try/catch that calls `error()` on the way out, with
-`ready.resolve()` moved after the catch so it always runs. [boot](/framework/core/App/docs/boot/).
+`ready.resolve()` moved after the catch so it always runs. [boot](/framework/core/App/doc/boot/).
 
 The ordering trap, stated once: `assign()` runs **after** `loaders` and `ready` are
 set, so `new App({ loaders: [x] })` is silently discarded. Nobody has tried it.

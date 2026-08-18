@@ -1,6 +1,3 @@
-/* Layer order, restated IN FULL — a short list silently misplaces `site`. */
-@layer base, theme, site, util;
-
 @layer theme {
 
 	/* The box owns the space; the bar hovers in its corner, so the widget adds no

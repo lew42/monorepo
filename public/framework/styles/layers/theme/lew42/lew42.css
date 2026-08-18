@@ -1,6 +1,3 @@
-/* Restated IN FULL — a short list silently misplaces `site`. */
-@layer base, theme, site, util;
-
 /* THEME: lew42 — Montserrat, one orange, a lot of grey. Design record: readme.md.
  *
  * ⚠ Requires `app.font("Montserrat")`: the family is named here, the file is fetched
@@ -14,10 +11,23 @@
 		color-scheme: light dark;
 
 		--prim: #FF8F60;                          /* the mark's own orange */
+		/* The same orange, taken down until it reads as INK. #FF8F60 is 2.25:1 on
+		   white and 2.01:1 on `--wash`; #B84A24 is 5.19:1 and 4.64:1, over AA on
+		   both. Only the light half moves — on the dark surfaces the orange is
+		   already 7.98:1, and darkening it there would be the wrong direction.
+		   ⚠ TEXT only. Every fill, outline and 2px active bar still says `--prim`:
+		     the accent is doing its job as a fill, and this is the same hue. */
+		--prim-ink: light-dark(#B84A24, #FF8F60);
 
 		--ink:     light-dark(#3f3f3f, #e6e6e6);
 		/* ⚠ Not the comp's #737373 — that measured 4.24:1 on `--wash`, under AA, in
-		   ~150 places. Two shades darker clears it without changing the character. */
+		   ~150 places. Two shades darker clears it without changing the character.
+		   ⚠ THIS is the value that ships, not `framework.css:66` — `:root` there is
+		     overridden by this class, so wave 2's 0.5 → 0.55 bump (#737373, 4.74:1 /
+		     4.62:1) never reached one pixel of this site. Left alone on purpose:
+		     #6a6a6a is 5.41:1 on white and 4.83:1 on `--wash`, already darker than
+		     the bump and over AA on both. The contrast defect the sweep found is
+		     `.muted`, a different mechanism. */
 		--subtle:  light-dark(#6a6a6a, #a8a8a8);
 		--line:    light-dark(#e6e6e6, #333333);
 

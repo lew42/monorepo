@@ -40,12 +40,16 @@ demo.layout = config => ({
 
 	shows(part){ return !this.off.has(part); },
 
-	// A twin card simulates two SCREENS, so its layout fills a device viewport; a
-	// plain card is the shape at quarter size, framed exactly as the page is.
+	/* The card is a whole SCREEN at quarter size — `56em` against a card four times
+	   narrower than the layout it draws is roughly 16:10, so a `fill` shape pins its
+	   footer and the wall crops nothing. Its natural height would instead be the top
+	   fifth of a 4000px document, cut mid-sentence, which is what read as unfinished.
+	   ⚠ NEVER the twin, whatever `twin:` says: two device panes in one card are half a
+	     card wide each, and a 3440 screen at a fourteenth of size is a grey smudge —
+	     "too hard to see" (the owner, 2026-08-17). `twin:` still steers the STAGE, which is
+	     where a two-up has the room to earn its keep. */
 	preview(nav){
-		return this.preview_card(nav, () => this.twin
-			? twin(() => this.frame("100%"))
-			: div.c("zoom-25", () => this.frame()));
+		return this.preview_card(nav, () => div.c("zoom-25", () => this.frame("56em")));
 	},
 
 	content(){

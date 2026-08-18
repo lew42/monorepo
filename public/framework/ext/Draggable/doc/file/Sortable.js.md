@@ -3,7 +3,7 @@
 `Sortable extends Draggable`: the ghost-and-placeholder visuals, and
 `locate(e)` → `{ list, before }`, a **position** rather than a target — the one
 idea that lets reorder, cross-list move, and nest share a single `release()`
-override. 83 lines. Full walkthrough: [`doc/sortable.md`](/framework/ext/Draggable/docs/sortable/).
+override. 83 lines. Full walkthrough: [`doc/sortable.md`](/framework/ext/Draggable/doc/sortable/).
 
 ## The comment at the top is load-bearing
 

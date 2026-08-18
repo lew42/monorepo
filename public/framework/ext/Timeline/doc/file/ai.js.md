@@ -11,7 +11,7 @@ window band.
 Built and wired into `framework/ai/page.js`'s `previews()` on 2026-08-14
 (the [`ai-page`](/framework/ai/2026-08-14/ai-page/) task), it was replaced
 the same day by [`ai-dashboard`](/framework/ai/2026-08-14/ai-dashboard/)'s
-step/cost card rail — Mike wanted progress-by-step over a time axis for that
+step/cost card rail — the owner wanted progress-by-step over a time axis for that
 page. Nothing imports `ai_timeline` or this file's default export anywhere
 on the site now. The code is correct and current (it was verified working
 before the revert); it simply has nowhere to run. See the readme's "Used
@@ -41,7 +41,7 @@ actually running.
    page opts into a Timeline-shaped AI view) or delete it — a correct,
    unreachable adapter is dead weight a future reader has to read and
    discount every time they audit this module. **medium, important** — the
-   call belongs to Mike, not this pass; recorded as the audit's top
+   call belongs to the owner, not this pass; recorded as the audit's top
    module-level finding.
 2. **If kept, de-duplicate `json()`/`manifest()` against
    `ext/AITask/dashboard.js`'s copies** rather than maintaining two forks of

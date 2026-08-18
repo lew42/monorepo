@@ -35,4 +35,4 @@ code, it is in the shape — the walk is **serial**, RTT + ~16ms per segment, an
 cannot be parallelised blindly because a segment's children are unknown until its
 module has run. Knowing them in advance needs a manifest, which is the build step
 this framework doesn't have. Numbers in
-[measured](/framework/core/Router/docs/measured/).
+[measured](/framework/core/Router/doc/measured/).

@@ -98,6 +98,12 @@ function share(words){
 export function sow(item, seed, depth = item.root().depth){
 	const made = structure(seed ?? address(item), depth);
 
+	/* ⚠ The FIFTH verb that replaces `data` wholesale, and it widows live duplicates exactly
+	   as `split()` did until 2026-08-16: a master keeps its id and still resolves, while
+	   holding none of the shared keys, so every copy of it reads blank. Hand the mastership
+	   on FIRST — before the keys are gone — and each copy is promoted rather than emptied. */
+	item.walk(panel => panel.bequeath());
+
 	[...item.items].forEach(kid => item.remove(kid));
 	item.data = { ...made.data, grow: item.get("grow") };
 	delete item.draw;

@@ -1,6 +1,3 @@
-/* Restated IN FULL — a short list silently misplaces `site`. */
-@layer base, theme, site, util;
-
 /* The trail: a column per level, laid left to right, each one scrolling itself.
    Nothing here is a look a consumer would want changed — a column is a fixed track
    and a row is a line — so `columns.js` ships no skin beyond the selected row.

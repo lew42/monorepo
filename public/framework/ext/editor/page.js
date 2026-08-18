@@ -75,12 +75,6 @@ const row = fn => div.c("flex wrap gap", fn).style("--gap", "0.3em");
 // render — persisting it would grow the class string by one word per reload.
 const words_of = $body => [...$body.el.classList].filter(word => word !== "drag-items").join(" ");
 
-// Inert: no bar, no Sortable, no selection — a picture of the document, for preview().
-const sketch = item => div.c(item.get("words"), () => {
-	if (item.leaf?.()) span(item.get("text"));
-	else item.items.each(kid => sketch(kid));
-}).attr("style", item.get("css") ?? "");
-
 function editor(root){
 	let doc = root, sel, saved, $canvas, $layers, $props, $status, $undo, $redo;
 	const nodes = new Map();   // id → { item, $node, $body }, rebuilt by every draw()
@@ -238,12 +232,18 @@ function editor(root){
 		} },
 
 		canvas: { draw(){ $canvas = region("pad"); draw(); } },
-		layers: { draw(){ $layers = region("panel-controls flex v"); layers(); } },
+		layers: { draw(){ $layers = region("panel-controls flex v pad"); layers(); } },
 		properties: { draw(){ $props = region("panel-controls flex v gap pad").on("click", sync).on("input", sync); properties(); } },
 		status: { draw(){ $status = region("flex v-center gap pad"); badge(); } },
 	};
 
-	const $workspace = workspace({ saver: panels, templates: REGIONS, seed }).ac("editor");
+	// ⚠ Every ext/Panel authoring tool off: none of the five regions are template content
+	// a visitor picks and arranges — they're fixed editor chrome, and canvas besides is a
+	// document, not a panel to align, zoom, edge-split or type straight into.
+	const $workspace = workspace({
+		saver: panels, templates: REGIONS, seed,
+		tools: { align: false, zoom: false, inspect: false, edges: false, insert: false, text: false, display: false },
+	}).ac("editor");
 
 	// ⚠ One window listener for the life of the document — a Page caches its view, so
 	// content() runs once. The connected check keeps a routed-away editor from eating
@@ -272,7 +272,7 @@ export default new Doc({
 	subject: History,
 	properties: "past future",
 	methods:    "act undo redo step can_undo can_redo read restore",
-	notes:      "shell",
+	notes:      "shell decisions",
 	files:      "blocks.js History.js editor.css page.js",
 
 	content(){
@@ -316,7 +316,7 @@ workspace({ saver: panels, templates: REGIONS, seed });`);
 
 		md("Where this module stands — and the ruling on the capital E: [Editor × Panel review](/framework/ai/2026-08-14/editor-panel-review/).");
 
-		md.details(import.meta, "readme.md", "Design record — the doc swap, selection by id, and how the shell became a workspace");
+		md.details(import.meta, "readme.md", "Readme");
 
 		return Item.open(saver).then(doc => {
 			if (!doc.get("words")) doc.set("words", "flex v gap pad");
@@ -325,9 +325,6 @@ workspace({ saver: panels, templates: REGIONS, seed });`);
 		});
 	},
 
-	// The parent wall's card: the saved document, small and inert. One fetch, no drag.
-	preview(nav){
-		return this.preview_card(nav, () => div.c("zoom-25 editor-thumb", $thumb =>
-			saver.load().then(json => { $thumb.empty(() => { sketch(Item.hydrate(json ?? {})); }); })));
-	},
+	// No preview() override: a live thumb here broke (Traps below). The wall gets
+	// the plain default card — icon, title, description.
 });

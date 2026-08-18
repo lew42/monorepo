@@ -21,7 +21,7 @@ capped backoff forever, in every visitor's tab.
 **Why here and not at the call site.** `public/app.js:25` is unconditional —
 `socket: Socket.singleton()` — and that is the point. A site adopting this
 framework writes no environment check, and cannot write one wrong. See
-[localhost](/framework/dev/Socket/docs/localhost/) for the full argument and what it forbids.
+[localhost](/framework/dev/Socket/doc/localhost/) for the full argument and what it forbids.
 
 `this.ready.resolve()` on the disabled branch is not cosmetic: `send()` awaits
 `ready` (`Socket.js:105`), so a permanently pending promise would park every

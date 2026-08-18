@@ -8,7 +8,6 @@ export default new Page(demo.layout({
 	icon: "forum",
 	group: "Streams",
 
-	card: "tall",
 
 	twin: true,
 	parts: "header rail aside",

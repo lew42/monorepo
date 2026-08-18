@@ -80,7 +80,7 @@ promises — captured against a tab that had SPA-navigated to `/framework/ai/`:
 `eval` runs arbitrary JS in your browser and `shot` drives a headless chromium, so
 two gates guard the door and **both** must hold. First, the tab connects only on
 localhost and the ws server refuses any non-local `Origin`
-([localhost](/framework/dev/Socket/docs/localhost/), `SocketServer.js`). Second,
+([localhost](/framework/dev/Socket/doc/localhost/), `SocketServer.js`). Second,
 `POST /mcp` reads `req.socket.remoteAddress` and refuses anything that is not
 loopback (`127.0.0.1` / `::1`) with a 403:
 
@@ -238,7 +238,7 @@ from `Runtime.js` — four `Socket` plugins over the one WebSocket.
 The browser→server file commands (`write`, `ls`, `rm`) are no longer the dead half
 they once were: `FileSaver` (persistence for [Saver](/framework/ext/Saver/),
 [editor](/framework/ext/editor/), [Panel](/framework/ext/Panel/)) and
-[LayoutTool audit](/framework/ext/LayoutTool/audit/)'s `twin.js` both call in — each
+[DesignTool audit](/framework/ext/DesignTool/audit/)'s `twin.js` both call in — each
 spelling its own `rpc("rm", …)` / `async_rpc("write", …)` rather than the `write()`
 / `rm()` / `ls()` wrapper methods on the class, which stay callers-zero.
 

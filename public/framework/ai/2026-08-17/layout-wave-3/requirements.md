@@ -1,0 +1,20 @@
+# layout-wave-3 — the sweep's rules, fixed at the cause; the reach-through proven or stopped
+
+Laws: less is more · clarity · prioritize. **Deliverable: the broken clusters of [`../sweep-harvest/proposal.md`](../sweep-harvest/proposal.md) fixed with the fewest rules, each on the accept screen with a one-line revert, and a re-shoot of the six named pages proving it. Final message ≤ 30 lines.**
+
+The harvest: 280 findings on 19 pages → 10 clusters. Mike: *"Do not monkey patch … more CSS, more complex cascade, complex selectors — smells"* · *"you find me improvements, I rubberstamp them"*.
+
+## Do, in this order
+
+1. **#1 reach-through (45 mentions) — the structural one.** `Page.css:96` `.page > .wide` is a child combinator; `md()` (`ext/markdown/md.js:62`), `AITask.js:76` `.ai-task`, `tabs.css:77` `.tab-panel` each wrap content one level down, so nothing inside them can ever claim `wide` — `main` caps at 40em at every width (the 3440 waste is this, not authoring). Fix it as **one rule in `Page.css`, no new class if you can**: the wrapper becomes a pass-through — `display: grid; grid-template-columns: subgrid; grid-column: bleed` (children default to `main`, `.wide`/`.bleed` claim their tracks) or `display: contents` (loses the wrapper's box — say what breaks). Prove at 390/1280/3440 on `/framework/core/Page/doc/` (the `declaring` table claims `wide` — the harvest's chosen preview) and `/web/`. **If it needs more than three rules or a sixth layout word, stop, write it up as the proposal, and go on to #2.** Add it to the accept screen as **maybe** with Before/After.
+2. **#2** `Page.css:291` `:not(:has(> .page-preview-thumb))` — delete the guard; a thumbed card keeps its surface. Prove on `/framework/ui/` @1280 (was 8× "caption reads as heading").
+3. **#3** `.muted` — `framework.css:219` `color-mix(currentColor 65%)` → **75%**; measure the ratio on white and `--wash` before/after. **And** the trap: `styles/layers/theme/lew42/lew42.css:18` overrides `:root` so wave 2's `--subtle` bump in `framework.css:66` never applied — apply it where it actually cascades (the theme file), one value, and log both files' before/after values.
+4. **#4** `ext/tabs/tabs.css:36` fade both edges (the strip auto-scrolls; left hard-cuts `SHELL` → `ELL`).
+5. **#5–#9 as the harvest lists them**, each one line where possible: `table` overflow fallback (`framework.css` beside `pre`'s) · `auto-fill` → `auto-fit` in the wall (orphan tracks) · inline code takes `--wash` (`lew42.css:42`) · a text-safe `--prim` twin for prim-as-text (2.25:1) — token, not rule · `--pad-y: clamp(1.5em, 4%, 3em)` (**maybe** — the 390 nav gap; accept-screen row). Skip #10 (heading step) unless it is one token.
+6. **Accept screen** — `layout-primitives/changes.js`: one row per change (WAVE 3 badge), one-line revert each; the reach-through and `--pad-y` rows are `maybe`, the rest `broken`.
+7. **Re-shoot** the six: `/framework/core/Page/doc/` · `/framework/ui/` · `/framework/ai/` · `/web/` · `/framework/ai/2026-08-17/mastermind-shots/` · `/framework/styles/layouts/` × 390/1280/3440, page-level, Sonnet, `critique-full-v1` → `--out public/framework/ai/2026-08-17/layout-wave-3` (~18 asks ≈ $1.30, ceiling $2). Report broken per page vs the sweep's numbers for the same pages, and which clusters the prose still names. Verify no agent is editing before you shoot (`git status --short | wc -l` twice, a minute apart, equal).
+
+## Rules
+
+- Files: `core/Page/Page.css`, `public/framework/framework.css` (tokens/one rule), `styles/layers/theme/lew42/lew42.css`, `ext/tabs/tabs.css`, `ai/2026-08-17/layout-primitives/changes.js` (+ page.js only if a row needs it), this dir. **Not** `ext/markdown`, `ext/AITask`, `ext/DesignTool` (except running `run.mjs`) — if the pass-through needs a wrapper to carry a class, stop at step 1 and write it up.
+- `css` skill before CSS; `documentation` (`styles/doc/layout-system.md` if the pass-through lands); `finish-task`. Log in `task.jsonl` (bash `printf`; timestamps from `date -Iseconds`); bump step. Every append reloads Mike's tab — batch. Never Mike's live tabs.

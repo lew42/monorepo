@@ -7,7 +7,7 @@ a three-control dial stepping the seed. `structure(seed)` is the translator:
 the same spec walked into a real `Panel` tree. `sow(item, seed)` is the bar's
 verb for it. `templates.js` holds only the lazy import; everything else is these
 hundred lines. Full record:
-[The layout generator](/framework/ext/Panel/docs/generator/).
+[The layout generator](/framework/ext/Panel/doc/generator/).
 
 ## The seed is the whole state
 
@@ -98,7 +98,7 @@ A spec sizes a track two ways (`flex-1`, `--basis:15em`) and `Panel` has one
 track claiming nothing takes one. That last constant is the load-bearing one — it
 is what makes a topbar a band rather than a hairline (1:8:1 gives a 40em panel a
 4em bar). Measured against the real page in
-[The layout generator](/framework/ext/Panel/docs/generator/).
+[The layout generator](/framework/ext/Panel/doc/generator/).
 
 ## The dial is bottom-right, and that is forced
 

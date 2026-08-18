@@ -1,5 +1,5 @@
 import { Doc, div, span, button, input, textarea, icon, md, h2 } from "/app.js";
-import { rate } from "/framework/ext/LayoutTool/taste/taste.js";
+import { rate } from "/framework/ext/DesignTool/taste/taste.js";
 import { ruler } from "./ruler.js";
 import { render } from "./spec.js";
 import { gen } from "./gen.js";
@@ -17,21 +17,16 @@ export default new Doc({
 	group: "Instrument",
 
 	children: "words compose hunt",
-	notes: "syntax",
+	notes: "syntax decisions",
 	files: "page.js spec.js gen.js model.js draw.js search.js presets.js ruler.js space.css readme.md",
 
-	seed: 7,      // the lab's current point, and the card's
+	seed: 7,      // the lab's current point on load
 	depth: 3,     // the MAX nesting depth; each section draws its own below it (gen.js)
 	chaos: 0.2,   // 0 is strictly the model, 1 is uniform noise (draw.js)
 	from: 100,    // the wall's first tile
 
 	// One object, so the two dials reach the generator through exactly one path.
 	dialled(){ return { depth: this.depth, chaos: this.chaos }; },
-
-	preview(nav){
-		return this.preview_card(nav, () =>
-			div.c("zoom-25", () => render(gen(this.seed, this.dialled())).style("height", "42em")));
-	},
 
 	content(){
 
@@ -47,9 +42,9 @@ export default new Doc({
 
 		md("**`depth` is a ceiling, not a count.** Every top-level section draws *its own* depth from 0 to it, so one dial gives a page of flat bands, a page of deep nests, or the uneven mix most real pages actually are. Blocks are painted with `tone` — a **translucent** ground, so two boxes deep composites darker than one and the nesting can be read at a glance. A section declares one colour and its subtree inherits it, which makes a scheme rather than a rainbow — and the colours are the site's own tokens now, not invented hues.");
 
-		md("**`chaos` is the distance from the model.** At 0 the generator draws strictly from [`model.js`](/framework/styles/layouts/space/): the nine shapes the rail is actually built from, a part only in a role it belongs to, and every size inside the band [the rulebook](/framework/ext/LayoutTool/taste/) asks for. At 1 it is uniform over everything the format can say — a `footer` in a rail, a fixed measure on a nav — which is where this generator was before it had a model at all. The interesting rolls are in between.");
+		md("**`chaos` is the distance from the model.** At 0 the generator draws strictly from [`model.js`](/framework/styles/layouts/space/): the nine shapes the rail is actually built from, a part only in a role it belongs to, and every size inside the band [the rulebook](/framework/ext/DesignTool/taste/) asks for. At 1 it is uniform over everything the format can say — a `footer` in a rail, a fixed measure on a nav — which is where this generator was before it had a model at all. The interesting rolls are in between.");
 
-		md("Under the five screens is what [`ext/LayoutTool`'s taste tier](/framework/ext/LayoutTool/taste/) makes of each one. It is not the `analyze()` score: that says whether a layout is *broken*, and two clean rolls both score 100, which cannot rank anything. This one rates eleven ideal ranges — measure, padding as a share of its box, gap, alignment, repetition, how much of the width got spent — so a roll can be better than another roll. Hover a grade for its three weakest bands. **[Hunt](hunt/) is that turned into a search**: a hundred rolls, ranked by their worst width, and a read-back of which draws the good ones had in common.");
+		md("Under the five screens is what [`ext/DesignTool`'s taste tier](/framework/ext/DesignTool/taste/) makes of each one. It is not the `analyze()` score: that says whether a layout is *broken*, and two clean rolls both score 100, which cannot rank anything. This one rates eleven ideal ranges — measure, padding as a share of its box, gap, alignment, repetition, how much of the width got spent — so a roll can be better than another roll. Hover a grade for its three weakest bands. **[Hunt](hunt/) is that turned into a search**: a hundred rolls, ranked by their worst width, and a read-back of which draws the good ones had in common.");
 
 		h2("Twelve at once");
 
@@ -63,9 +58,9 @@ export default new Doc({
 
 		md("**[Words](words/)** is the full list with a picture beside each one; **[Syntax](docs/syntax/)** is the format itself, in one page. The parts are `topbar toolbar brand hero menu toc sections cards rows tiles notes footer` — [`web.js`](/framework/styles/layouts/), unchanged, the same object every page in this rail draws.");
 
-		md("**`scroll`, `stick` and `fluid` are this format's own three words**, expanded in `spec.js` rather than in `framework.css`. The first two are the layouts readme's own traps; the third has no utility at all, and `presets.js` uses it nine times. Promoting any of them is a proposal and it is Mike's call — the argument is in the readme.");
+		md("**`scroll`, `stick` and `fluid` are this format's own three words**, expanded in `spec.js` rather than in `framework.css`. The first two are the layouts readme's own traps; the third has no utility at all, and `presets.js` uses it nine times. Promoting any of them is a proposal and it is the owner's call — the argument is in the readme.");
 
-		md.details(import.meta, "readme.md", "Design record — why a layout became a string, and what it does not replace");
+		md.details(import.meta, "readme.md", "Readme");
 
 		md("How this page happened — the ask verbatim, the finding, the night's log: [layout-space](/framework/ai/2026-08-14/layout-space/), [improve-space-page](/framework/ai/2026-08-16/improve-space-page/).");
 	},
@@ -144,7 +139,7 @@ export default new Doc({
 	wall(){
 		const $wall = div.c("space-wall bleed flex v gap", () => {
 
-			// ⚠ The marker goes on the WALL, not only on each tile: ext/LayoutTool reads a
+			// ⚠ The marker goes on the WALL, not only on each tile: ext/DesignTool reads a
 			//   container's text from its descendants, so the grid itself reported 110
 			//   characters a line — of `site` prose, at quarter size, inside the tiles.
 			this.$tiles = div.c("grid gap auto")

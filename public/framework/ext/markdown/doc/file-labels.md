@@ -1,6 +1,6 @@
 # A fence can name its file
 
-Added 2026-08-15, alongside `ext/doc`. A fenced code block's info string can
+Added 2026-08-15, alongside `ext/Doc`. A fenced code block's info string can
 carry a **second word** naming the file it's from:
 
 ````

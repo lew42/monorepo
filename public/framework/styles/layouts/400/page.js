@@ -20,15 +20,15 @@ export default new Page({
 			+ "how do the same boxes look at 390 and at 3440.");
 
 		md("Nothing here is new CSS. Each card is a curated point in the shipped vocabulary, citing the "
-			+ "[library](/framework/ext/LayoutTool/library/) arrangement it echoes and the `bad/` trap it steps "
+			+ "[library](/framework/ext/DesignTool/library/) arrangement it echoes and the `bad/` trap it steps "
 			+ "around. **Column is the exception** — it *is* that trap, kept live so the other four have "
 			+ "something to answer.");
 
 		h2("Measured");
 
-		md("Every card wires a bare `/full/` url — no stage, no `zoom` — so [Layout library](/framework/ext/LayoutTool/library/)'s "
+		md("Every card wires a bare `/full/` url — no stage, no `zoom` — so [Layout library](/framework/ext/DesignTool/library/)'s "
 			+ "`frame()` can read it in a real viewport at 400, 1280, 1920 and 3440. The readme has the numbers.");
 
-		md.details(import.meta, "readme.md", "Design record — the five, the measurements, and Column's one deliberate finding");
+		md.details(import.meta, "readme.md", "Readme");
 	},
 });

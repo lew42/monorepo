@@ -4,7 +4,7 @@ The inspector: one panel drawing the **focused** panel's words as live controls.
 It is a `T` entry's payload like `generate.js` is — big enough to earn a file,
 lazily imported by `templates.js`, and the second entry that reads something
 outside the panel it is drawn in. Design record:
-[Focus, and the panel that reads it](/framework/ext/Panel/docs/focus/).
+[Focus, and the panel that reads it](/framework/ext/Panel/doc/focus/).
 
 ## It reads focus, and so never takes it
 
@@ -75,16 +75,67 @@ re-renders every inspector on the page, this one included, so the element the
 handler is running on is gone by the time `repaint()` returns. That is harmless
 in this order and would be a bug in any other.
 
-## `ALIGN` is generated, not listed
+## The vocabulary is `glyphs.js`'s, not this file's
+
+`ALIGN`, `COMPASS`, `PLACE`, `SEATS`, `MODE`, `SIZES`, `DIR`, `DISPLAY`,
+`SWATCHES` and `glyph()` all come from `glyphs.js`, which imports `View` and
+nothing else — so the bar, a seam's menu and this inspector can never draw a
+different picture for the same word, and none of the three can circle through
+the others. The nine align codes *are* their two axes and are generated there,
+not listed.
+
+## The second 3×3: `self`, and the two conditions that gate it
 
 ```js properties.js
-const ALIGN = ["t", "c", "b"].flatMap(y => ["l", "c", "r"].map(x => y + x));
+const dead = (!axes.x.live && name[1] !== "c") || (!axes.y.live && name[0] !== "c");
 ```
 
-The nine codes *are* their two axes, and `toolbar.js` keeps its own copy of the
-same list for its 3×3 popover. Two derivations of one idea rather than two
-literals — and this file stays out of `toolbar.js`, which by design reads nothing
-of `ext/Panel` and is read by everybody.
+`align` moves a leaf's **content** inside its body — that grid lives on the
+panel (`tools.js`'s `align_grid()`). `self` moves the **panel** inside the slot
+its split hands it, and it lives here rather than on the panel because two
+identical 3×3s on one surface would be unreadable. Its picture is a `SEATS`
+frame with a dot in it, never `COMPASS`'s arrows, for the same reason one level
+up.
+
+It is drawn **last**, under `width` and `height`, because those two rows are
+what gate it: an axis that fills has nothing left to align, so picking an
+extent above visibly opens or closes the grid below. `size.js`'s `self_axes()`
+answers both halves — the fill test and `display.js`'s `live_axes()` truth
+table, read off the slot's **real** computed display.
+
+## `position` sits above `width`, because it says what those rows mean
+
+```js properties.js
+words(target, "position", Object.keys(POSITION), 2, POSITION);
+```
+
+In flow an extent is a flex basis; out of flow it is a declared box. Ordering
+the row above the two it governs is the same reading that puts `self` below
+them. A **split** is not offered it, the same withholding `mode`/`w`/`h`
+already make above — a split gets its axis and nothing else, and its extents
+are not editable here anyway, so a floating split could only ever be
+`inset: 0`.
+
+Switching to `absolute` opens the `self` grid on both axes at once, because out
+of flow the slot's display mode has no say — only the fill test is left. That is
+one branch in `self_axes()`; nothing in this file tests it.
+
+**Shown, never hidden.** A dead axis honours nothing but its middle, so the
+grid narrows to the strip of placements that are real: a column in a flex row,
+a row in a flex column, one dot in a block slot, all nine in a grid. The dead
+buttons stay in place, greyed and `disabled`, each carrying the reason in its
+`title`, and the same sentence sits under the grid so it can be read with no
+hover at all.
+
+⚠ **Only the LIVE halves decide what reads `on`.** The stored code keeps
+whatever it said about an axis nobody can move — the default is `tl` — so a
+projection is what makes `tc` light up in a flex row, which is where the panel
+genuinely is. Without it the default would highlight a disabled button.
+
+The `on` swap is done by hand in the click handler (`querySelectorAll(".on")`,
+then `ac("on")`), the same idiom `tools.js`'s `align_grid()` and `toolbar.js`'s
+`pick()` use: the drawer rail is refilled on `panel-focus`, not on `change`, so
+nothing else would move the highlight there.
 
 ## Improvements
 

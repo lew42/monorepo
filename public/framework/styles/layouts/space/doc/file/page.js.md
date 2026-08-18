@@ -5,7 +5,7 @@ a layout spec, a seed stepper, two dials (depth and chaos) and nine presets —
 a live "ruler" of that spec on five real screens at once underneath, a rating
 strip under the row, and a wall of twelve seeded layouts below that. It is
 the manual explorer; `hunt/` runs the same model as an automated search
-(`search.js`), ranked by `ext/LayoutTool`'s taste tier.
+(`search.js`), ranked by `ext/DesignTool`'s taste tier.
 
 ## An integer is a link
 
@@ -42,13 +42,13 @@ updates both dial captions, then coalesces regeneration to one
 `requestAnimationFrame` per drag — a `range` fires `input` once per pixel of
 travel, and one fire would otherwise redraw five whole pages. `dialled()` is
 the seam that keeps both dials reaching `gen()` as exactly one object
-(`{ depth, chaos }`), shared by `preview()`, `tiles()` and `level()` alike.
-The wall is heavier still (twelve renders, not five), so it listens on
-`change` (pointer release) rather than `input`.
+(`{ depth, chaos }`), shared by `tiles()` and `level()` alike. The wall is
+heavier still (twelve renders, not five), so it listens on `change` (pointer
+release) rather than `input`.
 
 ## The rating strip reads the same shots it sits under
 
-`grade()` calls `ext/LayoutTool`'s `taste.rate()` on each of the five
+`grade()` calls `ext/DesignTool`'s `taste.rate()` on each of the five
 rendered shots and prints a grade beneath the row, debounced 220ms and
 deferred past the paint that produced them — rating a layout before the
 browser has laid it out would grade stale geometry. ⚠ Every call passes

@@ -1,0 +1,228 @@
+{
+	"note": "The four candidate scoring tiers, frozen for exactly the 18 hashes in vision-baseline/baseline.json, so this page's comparison cannot drift when a source regenerates. Keyed by `hash`: the tier score belongs to those pixels, not to that url. Every number is copied, none recomputed.",
+	"generated_at": "2026-08-17T17:08:29.554Z",
+	"width": 1280,
+	"tiers": [
+		{
+			"key": "opus_a",
+			"label": "Opus baseline",
+			"note": "claude-opus-5[1m] pass A, judged `overall`. The designated source of truth -- which reproduces itself at ICC 0.510.",
+			"source": "ai/2026-08-17/vision-baseline/baseline.json",
+			"generated_at": "2026-08-17T11:20:00-05:00"
+		},
+		{
+			"key": "opus_b",
+			"label": "Opus pass B",
+			"note": "The same model blind re-scoring the same pixels. Here as the honesty check: it shows how far the reference moves between two passes of itself.",
+			"source": "ai/2026-08-17/rubric-v2/pass-b.json",
+			"generated_at": null
+		},
+		{
+			"key": "sonnet",
+			"label": "Sonnet",
+			"note": "claude-sonnet-5, rubric v1, mean of the five axes, averaged over the three completed v1 passes -- the configuration rubric-v2 recommended shipping. The most repeatable scorer measured (ICC 0.711 single-pass).",
+			"source": "ai/2026-08-17/rubric-v2/experiment.json",
+			"generated_at": "2026-08-17T17:00:11.921Z",
+			"passes": 3
+		},
+		{
+			"key": "taste",
+			"label": "taste",
+			"note": "ext/DesignTool rate() -- eleven weighted ideal ranges, no AI. Right level (bias -1.33), ordering inside noise, and its width-used band is dead on 17 of 18 pages.",
+			"source": "ext/DesignTool/audit/taste.json",
+			"generated_at": "2026-08-17T05:52:08.000Z"
+		},
+		{
+			"key": "math",
+			"label": "math",
+			"note": "ext/DesignTool analyze() -- a findings counter. Anti-correlated with appearance (Pearson -0.393) and it never emits below 70.",
+			"source": "ext/DesignTool/audit/findings.json",
+			"generated_at": "2026-08-17T05:52:08.000Z"
+		}
+	],
+	"renamed_urls": {
+		"/framework/ext/LayoutTool/tests/": "/framework/ext/DesignTool/tests/"
+	},
+	"rows": [
+		{
+			"url": "/framework/",
+			"hash": "889e9993e40979c0",
+			"image": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/c6315543-dde2-46c6-b052-c819794f42e8/scratchpad/shots/framework.png",
+			"opus_a": 80,
+			"opus_b": 82,
+			"sonnet": 82.1,
+			"taste": 49,
+			"math": 70
+		},
+		{
+			"url": "/framework/ext/LayoutTool/tests/",
+			"hash": "fb97adb5c8dc2caa",
+			"image": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/c6315543-dde2-46c6-b052-c819794f42e8/scratchpad/shots/framework_ext_LayoutTool_tests.png",
+			"opus_a": 77,
+			"opus_b": 70,
+			"sonnet": 77.7,
+			"taste": 57,
+			"math": 81
+		},
+		{
+			"url": "/web/nav/sidebar/",
+			"hash": "0a5990c4a269835a",
+			"image": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/c6315543-dde2-46c6-b052-c819794f42e8/scratchpad/shots/web_nav_sidebar.png",
+			"opus_a": 64,
+			"opus_b": 60,
+			"sonnet": 67.9,
+			"taste": 60,
+			"math": 82
+		},
+		{
+			"url": "/framework/ext/toc/",
+			"hash": "a1ba9bf8fcaccef7",
+			"image": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/c6315543-dde2-46c6-b052-c819794f42e8/scratchpad/shots/framework_ext_toc.png",
+			"opus_a": 63,
+			"opus_b": 60,
+			"sonnet": 77.7,
+			"taste": 63,
+			"math": 77
+		},
+		{
+			"url": "/framework/ui/panel/",
+			"hash": "c90ab4127bf511f1",
+			"image": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/c6315543-dde2-46c6-b052-c819794f42e8/scratchpad/shots/framework_ui_panel.png",
+			"opus_a": 68,
+			"opus_b": 72,
+			"sonnet": 82.5,
+			"taste": 64,
+			"math": 83
+		},
+		{
+			"url": "/framework/ui/tags/",
+			"hash": "7767f3952d201e8c",
+			"image": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/c6315543-dde2-46c6-b052-c819794f42e8/scratchpad/shots/framework_ui_tags.png",
+			"opus_a": 65,
+			"opus_b": 70,
+			"sonnet": 80.8,
+			"taste": 65,
+			"math": 81
+		},
+		{
+			"url": "/web/layout/flow/",
+			"hash": "f69243398bb933ed",
+			"image": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/c6315543-dde2-46c6-b052-c819794f42e8/scratchpad/shots/web_layout_flow.png",
+			"opus_a": 44,
+			"opus_b": 48,
+			"sonnet": 59.8,
+			"taste": 67,
+			"math": 96
+		},
+		{
+			"url": "/framework/core/Page/",
+			"hash": "6b12bc16698ec259",
+			"image": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/c6315543-dde2-46c6-b052-c819794f42e8/scratchpad/shots/framework_core_Page.png",
+			"opus_a": 71,
+			"opus_b": 56,
+			"sonnet": 77.5,
+			"taste": 69,
+			"math": 81
+		},
+		{
+			"url": "/framework/ext/layout/",
+			"hash": "9cc8564209d748d1",
+			"image": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/c6315543-dde2-46c6-b052-c819794f42e8/scratchpad/shots/framework_ext_layout.png",
+			"opus_a": 74,
+			"opus_b": 60,
+			"sonnet": 83.9,
+			"taste": 69,
+			"math": 74
+		},
+		{
+			"url": "/web/nav/wall/",
+			"hash": "fa3256602b1da481",
+			"image": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/c6315543-dde2-46c6-b052-c819794f42e8/scratchpad/shots/web_nav_wall.png",
+			"opus_a": 75,
+			"opus_b": 66,
+			"sonnet": 78.8,
+			"taste": 70,
+			"math": 83
+		},
+		{
+			"url": "/framework/styles/layers/theme/lew42/",
+			"hash": "81b8db88c3f54fee",
+			"image": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/c6315543-dde2-46c6-b052-c819794f42e8/scratchpad/shots/framework_styles_layers_theme_lew42.png",
+			"opus_a": 68,
+			"opus_b": 60,
+			"sonnet": 80.2,
+			"taste": 71,
+			"math": 76
+		},
+		{
+			"url": "/web/nav/crumbs/",
+			"hash": "7a2c02f8cde839cc",
+			"image": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/c6315543-dde2-46c6-b052-c819794f42e8/scratchpad/shots/web_nav_crumbs.png",
+			"opus_a": 70,
+			"opus_b": 60,
+			"sonnet": 72.8,
+			"taste": 72,
+			"math": 83
+		},
+		{
+			"url": "/framework/core/Page/overview/children/",
+			"hash": "4cf821cf560f9c5d",
+			"image": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/c6315543-dde2-46c6-b052-c819794f42e8/scratchpad/shots/framework_core_Page_overview_children.png",
+			"opus_a": 72,
+			"opus_b": 64,
+			"sonnet": 78.7,
+			"taste": 74,
+			"math": 79
+		},
+		{
+			"url": "/framework/audit/",
+			"hash": "96f07eb32343f5be",
+			"image": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/c6315543-dde2-46c6-b052-c819794f42e8/scratchpad/shots/framework_audit.png",
+			"opus_a": 79,
+			"opus_b": 68,
+			"sonnet": 70.1,
+			"taste": 75,
+			"math": 83
+		},
+		{
+			"url": "/framework/core/Page/nav/",
+			"hash": "5c90228c14a48099",
+			"image": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/c6315543-dde2-46c6-b052-c819794f42e8/scratchpad/shots/framework_core_Page_nav.png",
+			"opus_a": 72,
+			"opus_b": 66,
+			"sonnet": 80.3,
+			"taste": 76,
+			"math": 84
+		},
+		{
+			"url": "/framework/styles/layers/util/",
+			"hash": "aaa5f55a0224f98c",
+			"image": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/c6315543-dde2-46c6-b052-c819794f42e8/scratchpad/shots/framework_styles_layers_util.png",
+			"opus_a": 72,
+			"opus_b": 64,
+			"sonnet": 76.2,
+			"taste": 78,
+			"math": 83
+		},
+		{
+			"url": "/notes/git-branch-names/",
+			"hash": "c06b55bc591c6960",
+			"image": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/c6315543-dde2-46c6-b052-c819794f42e8/scratchpad/shots/notes_git-branch-names.png",
+			"opus_a": 78,
+			"opus_b": 62,
+			"sonnet": 71.9,
+			"taste": 91,
+			"math": 96
+		},
+		{
+			"url": "/framework/ai/",
+			"hash": "54fe1ea165f8b436",
+			"image": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/c6315543-dde2-46c6-b052-c819794f42e8/scratchpad/shots/framework_ai.png",
+			"opus_a": 72,
+			"opus_b": 80,
+			"sonnet": 81.8,
+			"taste": 70,
+			"math": 82
+		}
+	]
+}

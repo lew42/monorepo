@@ -234,7 +234,7 @@ Navigation, not layout. Ordered by how many pages carry the link.
 | 20 | 10 | `undefined` in the href — `/framework/ext/tabs/undefinedwhy/` | `ext/tabs/tabs.js:46`: `.href(… this.url + name + "/")` where `this.url` is undefined for a Page inside a demo tree that the real Router never adopted. Guard it |
 | 17 | 84 | singles | `ext/AISession/` (renamed to `ext/AITask`, 67 pages), `core/Pager/`, `styles/layouts/cards/`, `ext/LayoutTool/addressing/`, four `ext/Draggable/doc/*` |
 
-**Correction to `recrawl-report.md`.** Its top family — "36 urls emitted by ext/doc
+**Correction to `recrawl-report.md`.** Its top family — "36 urls emitted by ext/Doc
 nav across 18 modules" — is neither. The census normalised every url to a
 directory (there is not one `.md`, `.png` or `.json` url in `dead-final.json`),
 so `<module>/doc/` is the stripped form of a link nobody writes. What the site

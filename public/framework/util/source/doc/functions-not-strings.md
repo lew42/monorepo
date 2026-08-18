@@ -23,7 +23,7 @@ rather than faking a render.
 
 ## What this bought later
 
-`ext/doc`'s method pages are the same idea one level up: `member(subject,
+`ext/Doc`'s method pages are the same idea one level up: `member(subject,
 name)` reads the **actual running function** off a class or namespace object,
 so a patched method ([`patched()`](/framework/util/source/api/patched/))
 shows the patch, not a stale original. Same guarantee, same reason: no copy

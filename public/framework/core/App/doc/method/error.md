@@ -10,7 +10,7 @@ been.
 Essential, and the reason is the placement: **into `$pages`, never `$app`.**
 Emptying `$app` deletes the chrome, so the one page that most needs navigation
 would be the one page without it.
-[error-page](/framework/core/App/docs/error-page/).
+[error-page](/framework/core/App/doc/error-page/).
 
 It covers two failures that look identical from the outside — no `/page.js`, and a
 `content()` that threw — and both would otherwise skip `inject()` and paint a blank

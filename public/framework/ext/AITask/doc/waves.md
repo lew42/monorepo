@@ -44,7 +44,7 @@ page UI own" schema audit are in that task's `notes.md`.
 
 **Revised 2026-08-13 (improve-daily-task-dashboard):** the checklist override
 is retired — an unexplained checklist among uniform manifest rows read as
-noise, not status (Mike, twice). The bridge stays, reserved for tasks whose
+noise, not status (the owner, twice). The bridge stays, reserved for tasks whose
 output is genuinely *viewable* (a live thumb); anything *linkable* goes in the
 manifest's `links` instead. The day page also stopped calling `previews()`
 below the dashboard — the same tasks rendered twice. Open: a date with no

@@ -5,7 +5,7 @@ const width = innerWidth - target;   // tools.js — the rail IS the difference
 ```
 
 The rail is the only thing between the window and the page (see
-[docking](/framework/dev/DevBar/docs/docking/)), so aiming the *page* at a
+[docking](/framework/dev/DevBar/doc/docking/)), so aiming the *page* at a
 width is one subtraction: how wide the rail has to be for the page to be
 `target` px, at whatever size the window actually is. Four presets —
 `390 810 1920 3440` — mobile through mega, matching the sizes named

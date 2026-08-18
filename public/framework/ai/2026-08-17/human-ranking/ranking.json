@@ -1,0 +1,12 @@
+{
+	"note": "Mike's own best-to-worst ordering of the 18 frozen 1280x800 screenshots, by eye. Keyed by `hash` (sha256-16 of the PNG bytes), never by path: a page that changes gets a new hash and honestly falls out of this ranking rather than inheriting an old verdict. `order` is DERIVED — the record is `verdicts` (consumed by a binary insertion sort) and `revisions` (pairs re-judged afterwards, applied by promoting `better` above `worse`, inert when it already is). Rebuild it with `build()` from rank/rank.js. This file is the seed: empty until Mike ranks, and rewritten by /framework/ai/2026-08-17/human-ranking/rank/ on every pick.",
+	"who": "mike",
+	"corpus": "framework/ai/2026-08-17/vision-baseline/baseline.json",
+	"started_at": null,
+	"updated_at": null,
+	"complete": false,
+	"order": [],
+	"pages": [],
+	"verdicts": [],
+	"revisions": []
+}

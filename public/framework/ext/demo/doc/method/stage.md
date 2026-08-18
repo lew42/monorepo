@@ -20,7 +20,7 @@ container queries — because the stage really does lay its content out narrower
 A `@media` query inside the example does not: it asks the real browser viewport,
 which never moved. Drag a demo to 390px and it will still render its desktop
 branch. The fix, when it's wanted, is an iframe — deferred deliberately, costed
-in [the design record](/framework/ext/demo/docs/record/) §6.
+in [the design record](/framework/ext/demo/doc/record/) §6.
 
 ## `demo.stage.two(fn, steer, opts)` — a mode, not a fifth door
 

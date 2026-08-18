@@ -1,0 +1,17 @@
+# Layout caveats — what has bitten
+
+One line each; the detail is where the link points.
+
+- **52em is not 75 characters here — it is 83–103** in Montserrat; the safe ceiling for any copy is ~42em. The token is the finding, not the page. `ext/DesignTool/knowledge/characters-per-line.md`.
+- **`.grid.auto` with a large `--column` is wrong for prose** — its `1fr` maximum is unbounded and one column takes the whole width (112 chars/line at 1280). `1fr` is for tiles; prose needs a ceiling. `ext/DesignTool/knowledge/bounds.md`.
+- **A full-row item's inside must be able to stack** — a fixed three-track grid crushed the detail column to 16px at 400; `flex-wrap` + a `20em` basis is the same three places above ~34em, one column below.
+- **Rail + article wastes a mega monitor** (18% of 3440 used) — the answer is a third region, a checkbox in the Docs layout, not a rewrite. `ext/DesignTool/knowledge/widescreen.md`.
+- **A preview that renders a live thing breaks on cold paint** — `zoom` has no stable width while the wall lays out (`ext/editor` was the only live thumb and the only broken one). Take the default card or screenshot it.
+- **A scroller cannot live in a wrapping row** — a flex line sizes to content, so `overflow-y: auto` has nothing to do once the row wraps; all three boxes declare it.
+- **`.page.full` zeroes `--measure` and `--page-pad`**, and the title renders outside `content()` — declare the two tokens instead. `core/Page/readme.md`.
+- **A tab an agent drives is HIDDEN, and hidden tabs do not lay out** — no rAF, no ResizeObserver, frozen `getBoundingClientRect()`. Check `document.visibilityState`; measure headless or with `mcp__site__shot`. Claim a tab you drive (`/framework/dev/Claim/`, `import("/framework/dev/Claim/claim.js").then(m => m.claim("claude", "<slug>"))`) so the owner knows it's yours, and release it when the task lands.
+- **`frame()` was clamped by `framework.css`'s `iframe { max-width: 100% }`** — a 3440 run in a 1920 browser measured 1920; wide numbers recorded before the DesignTool.css fix are suspect.
+- **`analyze()` and `rate()` disagree on purpose** — analyze reports failures (a clean page scores 100), rate ranks; ask both. Discount an `alignment` cluster at one repeated em offset (it is padding); `dead-space` needs four text blocks; a clean score is not proof of no vertical overflow (`sweep()`). `ext/DesignTool/knowledge/false-positives.md`, `blind-spots.md`.
+- **Never measure a repo while agents are editing it** — a page read 92, 87, 84 across three passes under an uncommitted diff.
+
+- 2026-08-18 (figma-spec-sheet): a page built through `demo.layout()` cannot paint its ground inline. `frame()` re-styles what `layout()` returns with `background: ""` (unless `twin:`), which wipes an inline value — and a bare `.page` is transparent, so on the demo stage's dark board every line of prose was `--ink` on near-`--ink`: present, measurable, invisible. Use the **`.surface`/`.wash` class**, which survives the re-style. Worth a line beside "a class that does not exist paints nothing".

@@ -4,7 +4,7 @@ hide.
 ## Usage
 
 `Sidebar.js:26` — `render()`, the only caller. Assigns `this.$menu`, which nothing
-reads. [views](/framework/core/Sidebar/docs/views/).
+reads. [views](/framework/core/Sidebar/doc/views/).
 
 ## Necessity
 

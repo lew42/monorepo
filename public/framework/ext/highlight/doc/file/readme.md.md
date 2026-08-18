@@ -1,11 +1,3 @@
-The maintainer's document — every decision behind *why highlight.js*, why the
-API is a namespace bolted onto `code` rather than a new top-level word, and
-the sharp edge that costs the most support time. Three sections are broken
-out to their own url because they run well past two paragraphs:
-`doc/choice.md` (the highlighter comparison), `doc/hooks.md`
-(block-awareness and the FOUC timing argument), `doc/chaining.md` (the
-argument-position sharp edge, with the workarounds).
+# readme.md
 
-Served twice, same as every module's readme: cited by a maintainer reading
-the directory, and collapsed at the bottom of the Overview tab via
-`md.details(import.meta, "readme.md")`.
+The reader's index for this module — as short and simple as it can be (law #1): one line what it is, **Use** (the common case), **Watch out** (past problems, each linked to its doc), **More** (every doc, the page url, the files that matter). The record — decisions, traps in full, open questions — is [`doc/decisions.md`](../decisions.md).

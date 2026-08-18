@@ -24,7 +24,7 @@ reaches for it.
 **A pane is as wide a share of the card as its device is wide a share of its own
 height** (`flex: 390/844` beside `flex: 3440/1440`), so fitting both by width lands
 them on one height with **nothing cropped and no dead space**. The first shape
-cropped the phone to the monitor's height with `position: absolute`, and Mike's
+cropped the phone to the monitor's height with `position: absolute`, and the owner's
 review named it exactly: *"they don't render correctly — the cards are cutting
 content."* The geometry does what a second measured pass would otherwise have to,
 and the cost is an honest one — a phone really is 16% as wide as a 3440 monitor is
@@ -75,7 +75,7 @@ the frame paints a ground. The option deciding which is the honest cost, and it 
 one word on ten pages.
 
 **The stage is AUTO-HEIGHT: the tallest pane sets it, the short one grows to
-meet it.** The first shape gave both panes a fixed 440px strip of screen, and Mike's
+meet it.** The first shape gave both panes a fixed 440px strip of screen, and the owner's
 verdict was the plain one — *"we lose half the site."* A layout page is not 440px
 tall at 390 wide, and a preview that hides most of it is not a preview.
 

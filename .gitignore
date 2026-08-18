@@ -9,3 +9,6 @@ public/data/
 
 # live usage snapshot for the ai dashboard — written by the check-claude-usage skill
 public/framework/ai/usage.json
+
+# bulk screenshot dirs under the ai log — browsable on the dev server, never committed (Mike, 2026-08-17)
+public/framework/ai/**/shots/

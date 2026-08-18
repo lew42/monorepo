@@ -1,7 +1,3 @@
-/* Layer order, restated IN FULL — a short list would misplace `site`.
-   See the header of framework.css. */
-@layer base, theme, site, util;
-
 /* This site's skin over the framework's structure.
  *
  * `@layer site` sits above `theme` and below `util`, so these rules beat the
@@ -70,7 +66,10 @@
 	.sidebar-link:is(.active, .in-path) .sidebar-label { font-weight: 600; }
 	.sidebar-link.active::after, .sidebar-link.in-path::after { margin-bottom: 1px; }
 
-	.code-block { padding: 2em; }
+	/* ⚠ The token, not `2em` (2026-08-17): a two-line snippet under 2em of padding
+	     reads as an empty dark void with some text in a corner — vision-after #7,
+	     new at 1280. `--pad` is the size everything else on this site is padded by. */
+	.code-block { padding: var(--pad, 1em); }
 
 	/* ---- a topic: its own nav beside its own region ----
 	   A topic page overrides render(), so its `.page` element IS the row — there is no
@@ -87,10 +86,40 @@
 	   found by measuring a topic first: without it the region grew to the topic's
 	   content (4273px) and 3373px became unreachable.
 
-	   Only `--measure`/`--page-pad` (tokens, so they beat what the region hands
-	   down without a layer fight) and `background: none` (a site look) are left
-	   here — everything else is now a class two other things also wear. */
-	.page.topic { --measure: none; --page-pad: 0; background: none; }
+	   Only `--measure` (a token, so it beats what the region hands down without a
+	   layer fight) and `background: none` (a site look) are left here — everything
+	   else is now a class two other things also wear. */
+	/* ⚠ `40em`, never `none` (2026-08-17). `--measure: none` removes the ceiling, not
+	     the width: this shell measured 104 characters a line at 1280 and worse above
+	     it — the single most-reported layout defect in both vision runs. A block that
+	     genuinely wants the room says so below, one selector, instead of every page
+	     under this shell losing its reading column. */
+	/* ⚠ `padding: 0`, NOT `--page-pad: 0` (2026-08-17, day-page-ux). The owner: "there's 0
+	     space between the viewport top and the date header?!" — and there was none on
+	     ANY page under this shell. `--page-pad` INHERITS (Page.css says so in its own
+	     comment, one level down from where this bit): the shell's own opt-out was
+	     handed to every `.page` nested inside it, so `padding: var(--page-pad,
+	     var(--pad-y) 0)` resolved to `0` sitewide and `--pad-y: 3em` never once fired.
+	     Saying `padding: 0` opts THIS box out and leaves the token alone. Measured at
+	     1440: /framework/styles/ and /framework/ai/2026-08-17/ both go 0px → 45.84px,
+	     first element y=0 → y=46 / y=92. Twelve model reads of these pages never
+	     flagged it — a heading flush to the top edge reads as "already scrolled". */
+	.page.topic { --measure: 40em; padding: 0; background: none; }
+
+	/* ---- the framework landing ----
+	   Its content is ONE `.default` block, not a grid page, so `.pages`' measure caps
+	   the whole thing — the clock band and the tree included. So the block takes the
+	   region and its prose takes the measure. Replaces three hand-typed inline
+	   `max-width: 52em` and an inline `--measure: none` in `framework/page.js`. */
+	.page-framework > .pages > .default { max-width: none; }
+	.page-framework > .pages > .default > .flow { max-width: var(--measure); }
+
+	/* The stat strip — the landing's one `.grid` child. Five 9em tiles are 49em with
+	   their gaps, so in the 40em reading column the fifth stranded itself on a row of
+	   its own at 1280 and 3440 (measured, and the vision run called it broken at all
+	   three widths). A wall of numbers takes the width its own count needs, then stops
+	   — full region would leave the five hugging the left of a 3000px row instead. */
+	.page-framework > .pages > .default > .grid { max-width: 50em; }
 
 	/* A topic USED to inherit page rhythm unconditionally, because the old flow
 	   selector matched any `.page` — so `.pages`, as the second child, collected

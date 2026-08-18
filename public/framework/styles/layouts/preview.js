@@ -1,4 +1,4 @@
-import { View, div, span } from "/app.js";
+import { View, div } from "/app.js";
 
 /* css: .preview */
 View.stylesheet(import.meta, "layouts.css");
@@ -24,21 +24,4 @@ export function shape(classes, regions, column = "4em"){
 		.append(() => regions.forEach(region => div.c("pad wash").ac(region)));
 }
 
-/* preview(name, classes, regions, column) — a shape on a surface, under its name,
- * with the class string as the `title` attribute. A wall of class strings read as a
- * reference rather than a menu, which is why the name is the visible half.
- */
-export default function preview(name, classes, regions, column){
-	return div.c("flex v gap").style("--gap", "0.45em").append(() => {
-
-		div.c("pad surface").style("--pad", "0.8em").append(() => shape(classes, regions, column));
-
-		span.c("h4 muted", name).attr("title", label(classes, regions));
-	});
-}
-
-const label = (classes, regions) => regions.filter(Boolean).length
-	? `${classes} › ${[...new Set(regions.filter(Boolean))].join(" + ")}`
-	: classes;
-
-export { preview };
+export default shape;

@@ -148,7 +148,7 @@ task's lifecycle at all.
 - **The Files-tab convention (`about` hook fetching `doc/file/<path>.md`)
   works well, but the skill never says what "one for EVERY file" means for a
   file this deep in subdirectory structure** — I had to infer from
-  `ext/doc/readme.md`'s own line ("mirror the module's tree") rather than
+  `ext/Doc/readme.md`'s own line ("mirror the module's tree") rather than
   from the `documentation` skill itself, which only shows a flat example
   (`overview/urls/page.js` → `doc/file/overview/urls/page.js.md` — that
   example *is* nested, but the skill's own prose doesn't call out the mirror

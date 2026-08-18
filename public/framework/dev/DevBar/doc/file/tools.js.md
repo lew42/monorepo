@@ -2,7 +2,7 @@ What the rail shows, in order, one array per tab:
 
 ```js
 export const tabs = [
-    ["page",   [viewport, route, server, xray, jump]],
+    ["page",   [route, server, xray, jump]],
     ["layout", [layout]],
     ["ai",     [ask]],
 ];
@@ -12,8 +12,8 @@ export const tabs = [
 function renders itself into whatever the captor is at the time — none of them
 return anything the caller uses.
 
-Two of the seven live in their own file — `ask.js` and `layout.js` — because
-they are big enough to have a design of their own. The other five are here.
+Two of the six live in their own file — `ask.js` and `layout.js` — because
+they are big enough to have a design of their own. The other four are here.
 
 ## `layout` is alone on a tab, and that is the point
 
@@ -22,7 +22,7 @@ rect on the page — and imports ~45KB to do it — so putting it behind a tab i
 not tidiness, it is the gate on doing that work at all. Before tabs it ran on
 every navigation of every session with the rail open. (What the tab does *not*
 save is the download on this site: see
-[measuring](/framework/dev/DevBar/docs/measuring/).)
+[measuring](/framework/dev/DevBar/doc/measuring/).)
 
 ## Deliberately not a registry
 
@@ -43,22 +43,15 @@ const page = app?.router?.active;
 where the app actually is. `app.router.active` is the page that's really
 showing.
 
-## `sizes()` is the one function with real logic; see [sizing](/framework/dev/DevBar/docs/sizing/)
+## `viewport` is gone, and so is `sizes()`
 
-The four-preset math, the disabled-when-unreachable state, and why the lit
-button reads `settings.width` rather than a live measurement are covered
-there in full — this file is the caller.
-
-## `viewport()`'s `em` row is the one number worth reading twice
-
-```js
-row("em", `${(innerWidth / px).toFixed(1)}em`);
-```
-
-Every breakpoint, measure and column token across this site's layouts is
-written in `em`, off the body's clamped font size — not `px`. This row is
-the only place in the framework's own UI that shows a reader what window
-size they're actually looking at, in the unit the layouts are written in.
+That section held the four presets plus `size`, `font` and `em` — the same state
+the `layout` tab reported as a different number on a different screen, 272px
+apart, neither labelled as which. All of it is one line in the rail's **head**
+now, on every tab: [`width.js`](/framework/dev/DevBar/files/). `size` and `font`
+are deleted outright; `em` rides along on that line, because every breakpoint,
+measure and column token across this site's layouts is written in `em` off the
+body's clamped font size, and that is the unit worth reading twice.
 
 ## Improvements
 
@@ -66,8 +59,8 @@ size they're actually looking at, in the unit the layouts are written in.
    the first time the section renders while the socket is still
    connecting.** A later disconnect-then-reconnect doesn't re-arm it —
    correct today because reconnecting reloads the page (see
-   `dev/Socket/docs/backoff.md`), but the function doesn't say that's why
+   `dev/Socket/doc/backoff.md`), but the function doesn't say that's why
    it's safe to leave alone. *(simple, useful — one comment.)*
-2. **`LINKS` and `SIZES` are both hardcoded at the top of the file.** Fine at
-   five and four entries; worth a second look only if this list starts
-   growing per-project rather than framework-wide. *(simple, speculative.)*
+2. **`LINKS` is hardcoded at the top of the file.** Fine at five entries;
+   worth a second look only if the list starts growing per-project rather than
+   framework-wide. *(simple, speculative.)*

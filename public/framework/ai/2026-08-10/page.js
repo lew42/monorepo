@@ -27,6 +27,6 @@ export default new Page({
 
 		md("Verified with a playwright crawl at 1600 and 900: the classdoc surfaces, the demo rail (click-through included), the ui kit and the layouts pages — no console errors, no failed requests, no horizontal overflow.");
 
-		md("Combining all of it — shapes, walls, catalogs, tabs, miniatures — is now written down once: [Page › Docs › css](/framework/core/Page/docs/css/).");
+		md("Combining all of it — shapes, walls, catalogs, tabs, miniatures — is now written down once: [Page › Docs › css](/framework/core/Page/doc/css/).");
 	},
 });

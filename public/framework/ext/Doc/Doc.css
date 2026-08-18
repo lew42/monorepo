@@ -1,0 +1,83 @@
+@layer theme {
+
+	/* Full width: the top bar spans the window and every panel under it hands its
+	   pages the standard grid — the sheet belongs to the LEAF now, not the doc.
+	   ⚠ `--gutter-x` restates `.page.standard`'s clamp because that page declares its
+	     own and never sees an inherited one. The two values must agree — it is the
+	     axis the title, the tab labels and every leaf below them land on.
+	   ⚠ `--well` is a SHADOW, not a palette colour: it composites over whatever ground
+	     the host paints, and it darkens in both modes where this theme's
+	     wash → tint → surface ladder only goes lighter. Design record: readme.md. */
+	.page.doc-page {
+		display: flex; flex-wrap: wrap; align-content: flex-start;
+
+		--measure: none;
+		--page-pad: 0;
+		--gutter-x: clamp(2em, 4%, 5em);
+		--well: light-dark(rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.35));
+		--tab-fill: var(--wash);
+	}
+
+	/* ⚠ `display: contents` — the title and the strip have to share ONE flex line, and
+	     the strip arrives wrapped in `.tabs`. Selectors match the DOM, not the box tree,
+	     so `.tabs.block > .tab-bar` is unaffected. */
+	.page.doc-page > .tabs { display: contents; }
+
+	.doc-well {
+		background: var(--well);
+		display: flex; align-items: center;
+		padding: 0.5em 0 0.5em var(--gutter-x);
+	}
+	.doc-title { margin: 0; }
+
+	/* ⚠ The same fill as `.doc-well`: the band is one well in two boxes, and any drift
+	     between them draws a seam across it.
+	   ⚠ `flex-end`, because the box stretches to the title's line height — the strip has
+	     to sit on the band's BOTTOM edge or the notch stops reaching the content.
+	   ⚠ One inset serves both shapes: beside the title it reads as a gutter-wide gap,
+	     and once the basis no longer fits and the strip wraps to its own line, it lands
+	     the LABELS on the axis (the tab boxes hang one tab-padding to their left). */
+	.page.doc-page > .tabs > .tab-bar {
+		background: var(--well);
+		flex: 1 1 24em; min-width: 0;
+		align-items: flex-end;
+		padding-inline-start: calc(var(--gutter-x) - var(--tab-pad-x));
+	}
+
+	.page.doc-page > .tabs > .tab-panel { flex: 0 0 100%; min-width: 0; }
+
+	/* The well prints the module name; the catalog's intro would print it again.
+	   ⚠ The successor's margin goes with it — a `display: none` element still matches
+	     `.page-title + *`, so the 3em the heading occupied stayed behind. */
+	.page.doc-page .page-catalog-pages > .page-intro > .page-title { display: none; }
+	.page.doc-page .page-catalog-pages > .page-intro > .page-title + * { margin-block-start: 0; }
+
+	/* A doc section IS a page, so it is the shell's own grid now — `main` for the
+	   prose, `wide` for a table or a listing that needs the room. It used to declare
+	   `--measure: none`, and `styles/doc/measure.md` measured what that bought: 105
+	   characters a line, WORSE than the 52em token it was exempting itself from, on
+	   the 42 module-index pages a reader hits first. Removing one declaration is the
+	   whole fix — the shell already caps `main` at `--measure`.
+	   ⚠ `--page-pad` goes with it: the grid pays its own inset with `--pad-y` and the
+	     two gutter tracks, and a page that also carries a padding shorthand pays twice.
+	   ⚠ This rule is now only `--pad-y`, because a section sits under a well that has
+	     already announced the module — it needs the horizontal axis, not the top air. */
+	.doc-section { --pad-y: 1.5em; }
+
+	/* DELETED, 2026-08-17: `.doc-section .page.standard { --gutter-x: 0px }`.
+	   It existed because a section paid its inset as `--page-pad` — real padding, which
+	   a nested page then paid a second time. The section pays with GRID TRACKS now, and
+	   a `bleed` child (every catalog is one) spends those tracks and lands back on the
+	   region edge — so zeroing the nested page's gutter left the prose inside it flush
+	   against the app sidebar. Measured on `/framework/ui/`: the intro started at x=274,
+	   0px of inset, where the section's own axis is 90px. Nothing replaces it: the
+	   nested page pays its own gutter, and because the catalog between them bleeds, the
+	   two insets never add up. */
+
+	/* The Files section is one browser, not a rail — and the browser is a panel
+	   workspace, so the height is its token rather than a flex line. Taller than the
+	   default: this is the whole tab, not a figure inside a page.
+	   ⚠ `min-height: 0` on the flex child, or the <pre> inside refuses to scroll. */
+	.doc-files { display: flex; padding-block: 1em; }
+	.doc-files > .files { flex: 1 1 auto; min-height: 0; --panel-height: min(74vh, 42em); }
+}

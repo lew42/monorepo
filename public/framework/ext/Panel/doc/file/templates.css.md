@@ -5,7 +5,7 @@ to be more than structure, because for a `T` entry the look is the entire
 point. Every size in it is a container-query unit read against `.panel-body`
 (`container-type: size`, from `panel.css`), so one rule set reads from a
 200px sliver to a 3440 monitor. Full sizing rules and the trap that already
-bit: [Templates — the T vocabulary](/framework/ext/Panel/docs/templates/).
+bit: [Templates — the T vocabulary](/framework/ext/Panel/doc/templates/).
 
 ## `min-block-size: 100cqh`, never `100%`
 

@@ -1,6 +1,3 @@
-/* Restated IN FULL - a short list silently misplaces `site`. */
-@layer base, theme, site, util;
-
 /* ASCII ONLY, comments included: a host that serves CSS with no charset decodes
    UTF-8 as Windows-1252, and this file once shipped double-encoded em-dashes in
    every heading. Same lesson as the sidebar's "\203A" chevron. */

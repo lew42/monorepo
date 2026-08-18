@@ -44,7 +44,7 @@ Files this task owns:
 
 - `public/framework/ext/files/files.js`, `panels.js`, `files.css`, `readme.md`,
   `page.js`, `doc/*`
-- `public/framework/ext/doc/doc.css` (the `.doc-files` height/frame rules only)
+- `public/framework/ext/Doc/Doc.css` (the `.doc-files` height/frame rules only)
 - `public/framework/start/page.js` (only if the call needs to change)
 
 Not owned: anything under `ext/Panel/` — this is a consumer of that module, and

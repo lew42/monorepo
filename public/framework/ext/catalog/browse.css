@@ -1,0 +1,51 @@
+@layer theme {
+
+	/* The rail is `core/Page/Page.css`'s `.rail` now — the basis, the column, the gap,
+	   the pin, the scrollport and the below-52em strip all arrive with the word. This
+	   file's own `position: sticky; top: 0; align-self: start` was one half of what
+	   the primitive says, and `ext/AITask`'s rail was the other half in a third place.
+	   Only the width is browse's own opinion: a filter rail wants to be narrower than
+	   a card rail. */
+	.browse-rail { flex-basis: 12em; }
+
+	/* ⚠ A REAL BASIS, never `.flex-1`. `.flex-1` is `flex: 1; min-width: 0`, so the wall
+	   shrinks for ever instead of wrapping and the rail keeps its 12em at 390 — measured,
+	   the wall got 155px of a 390 screen and the whole page was one card wide. A wrapping
+	   row only wraps when an item asks for more than the line has left, so the ask has to
+	   be written down. */
+	.browse-wall { flex: 1 1 22em; min-width: 0; }
+
+	/* ⚠ A wrapping row hands its slack to the LINES, not the bottom: `align-content`
+	   defaults to `stretch`, so at 390 the rail took its own line and the wall was
+	   pushed down the height of the leftover space. */
+	.browse { align-content: start; }
+
+	/* ⚠ `auto-fit`, not Page.css's `auto-fill`. A band is a handful of cards on a wall
+	   ten tracks wide, and `auto-fill` KEEPS the empty tracks — measured at 3440, a
+	   five-card band drew across half the screen and left the rest as gutter, which is
+	   the prime objective backwards. `auto-fit` collapses them, so a band fills its row
+	   and the card's width is the band's size rather than the window's.
+	   ⚠ `1fr` as the maximum, and it is not the usual "every track needs two bounds".
+	     A LENGTH as the maximum is what the repeat COUNT is computed from, not the
+	     minimum — `minmax(18em, 26em)` measured ONE column at 1280 where `1fr` measures
+	     two, because 26em fits once in a 760px wall and 18em fits twice. The cost of
+	     `1fr` is that a short band stretches its cards; the cost of a length is that
+	     every narrow width collapses to a single column. */
+	.browse-band > .page-previews {
+		grid-template-columns: repeat(auto-fit, minmax(min(var(--column, 14em), 100%), 1fr));
+	}
+
+	/* ⚠ `wide`, and this is the whole reason the shell's `wide` track had to stop being
+	     a capped breakout. A browse row is a rail BESIDE a wall — two columns of
+	     content, which the layout skill says may never live in `main`. It did: measured
+	     2026-08-17 on `/framework/styles/layouts/`, the row got `main`'s 684px of a
+	     3440 screen and the container query below read 684 at EVERY width, so the rail
+	     was a sideways strip on a 3440 monitor. `wide` now takes all the leftover, so
+	     the row gets the room and still lands on the page's own left edge.
+	     This also retires the `padding-inline` payback a `bleed` row needed — a bleed
+	     child spends the gutter tracks and has to hand the inset back by hand, in a
+	     rule each for Page.css, catalog.css and ai.css. `wide` never spends them.
+	   ⚠ (0,2,0), same as Page.css's `.page > .bleed`, and this file loads later — so a
+	     caller that still types `bleed` (ui/page.js does) gets `wide` anyway. */
+	.page > .browse { grid-column: wide; }
+}

@@ -1,5 +1,5 @@
 import { Page, md, AITask } from "/app.js";
-import { dashboard, rail, effort_board } from "/framework/ext/AITask/dashboard.js";
+import { dashboard, rail, effort_board, has_page_js, warm } from "/framework/ext/AITask/dashboard.js";
 
 export default new Page({
 	meta: import.meta,
@@ -9,7 +9,7 @@ export default new Page({
 
 	// One nav link, whatever the date children say: the rail below is the way in.
 	leaf: true,
-	children: "2026-08-15 2026-08-14 2026-08-13 2026-08-12 2026-08-11 2026-08-10 2026-08-09 2026-08-08",
+	children: "2026-08-18 2026-08-17 2026-08-16 2026-08-15 2026-08-14 2026-08-13 2026-08-12 2026-08-11 2026-08-10 2026-08-09 2026-08-08",
 
 	// The board IS the dashboard — catalog's previews() override, split-screen for free.
 	initialize(){ this.catalog(); },
@@ -25,16 +25,29 @@ export default new Page({
 	// nesting: a bare slug here is indistinguishable from a typo, and would turn
 	// every miss under /framework/ai/ into a blank filter.
 	route(name){
-		if (/^\d{4}-\d{2}-\d{2}$/.test(name)) return new Page({
-			title: name, icon: "history", url: this.url + name + "/",
-			content(){ dashboard(this); },
-			route(task){
-				if (!task.includes(".")) return new AITask({
-					title: task, icon: "receipt_long",
-					url: this.url + task + "/", src: this.url + task + "/session.json",
-				});
-			},
-		});
+		if (/^\d{4}-\d{2}-\d{2}$/.test(name)){
+			// Fired the instant this day is routed to, not when its dashboard()
+			// happens to render — a cold deep link straight to a task below has
+			// no earlier chance, and every other child() hop still ahead (this
+			// day Page's own construction, the task segment's child() call) gives
+			// the fetch time to land before route(task) below ever asks.
+			warm(name);
+			return new Page({
+				title: name, icon: "history", url: this.url + name + "/",
+				content(){ dashboard(this); },
+				// A task dir with its own page.js wins by NOT being claimed here —
+				// Page.child()'s own filesystem probe (Page.load()) then dynamic-imports
+				// it. `has_page_js` is undefined until the day's own dashboard() has
+				// warmed the listing; undefined reads as "don't know", same as false.
+				route(task){
+					if (task.includes(".") || has_page_js(name, task)) return;
+					return new AITask({
+						title: task, icon: "receipt_long",
+						url: this.url + task + "/", src: this.url + task + "/session.json",
+					});
+				},
+			});
+		}
 
 		if (name === "effort") return new Page({
 			title: "Efforts", icon: "label", url: this.url + "effort/",

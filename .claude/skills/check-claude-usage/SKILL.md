@@ -45,7 +45,7 @@ often you check at all.
 
 ## How often
 
-**On demand, plus a ~15-minute cadence during active orchestration** (Mike,
+**On demand, plus a ~15-minute cadence during active orchestration** (the owner,
 2026-08-13): while agents are running or a dashboard is watching `usage.json`,
 refresh at natural checkpoints roughly every 15 minutes — never tighter. No
 tight loops, no per-turn checks: the endpoint throttles aggressively and starts
@@ -62,34 +62,34 @@ returning 429s exactly when the number would have been useful.
 Crossing 100% does not necessarily hard-stop: with overage credits enabled, spend
 rolls over and starts costing separately, and the session's prompt-cache TTL drops
 from 1 hour to 5 minutes — making every later turn pricier too. Say that out loud
-when someone is near the line.
+when someone is near the line.  However, not all accounts use overage credits.
 
 If the header reads `CACHED` instead of `LIVE`, the live call failed and the
 numbers may be hours old — retry, or quote the printed age alongside them.
 
-## Pacing — usage should trail the clock
+## Pacing — one rule: used% ≤ elapsed%
 
-**Never be further through the allowance than through the window.** Compare
-each window's percent used to the percent of its duration elapsed — don't
-cross 50% of the tokens before 50% of the time has passed. This governs all
-three windows: `session` (5 h), `weekly_all` (7 d), and `weekly_scoped` (7 d).
-Held to it, spend reaches 100% just as the window resets — never before.
+Per window, **percent used must not exceed percent of the window elapsed.**
+Elapsed = `1 − time_remaining / window_length` (the reset countdown is printed
+beside each window). A week is 7 days, so on day 4 the line is 4/7 ≈ 57%; two
+hours into a 5-hour window it is 40%. **There is no fixed cap** — not 50%, not
+75% — the line moves with the clock, and it applies to `session` (5 h),
+`weekly_all` and `weekly_scoped` (7 d) alike.
 
-Elapsed fraction from the output: `1 − time_remaining / window_length` — the
-reset countdown is printed beside each window.
+- **Under the line:** room to spend, up to the line — leave a few points for
+  The owner's own sessions.
+- **On or over the line, or the next heavy step would cross it:** finish what
+  is in flight, start nothing new. Wait for the clock.
 
-- **Over pace** (usage % above elapsed % on any window): slow down and finish
-  up — wrap the work in flight, no new fan-outs or expensive passes.
-- **Expecting to go over soon** (the next heavy step would cross the line):
-  same — slow down and finish up rather than starting it.
+The `/framework/ai/` board draws exactly this: fill = spend, ▼ = the clock.
 
-## Overnight — never let Mike wake to a spent window
+## Overnight — never let the owner wake to a spent window
 
-CLAUDE.md RULE#16 (Mike, 2026-08-15): autonomous runs while he's away
+CLAUDE.md RULE#16 (the owner, 2026-08-15): autonomous runs while they're away
 front-load heavy waves right after a window reset and taper toward morning —
-the window he wakes into stays nowhere near 90%. Exhausting an allowance
+the window they wake into stays nowhere near 90%. Exhausting an allowance
 does no good. Escape hatch: an explicit "ignore usage recommendations" from
-Mike suspends the guardrails for that run.
+The owner suspends the guardrails for that run.
 
 ## If it breaks
 

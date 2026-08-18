@@ -27,13 +27,22 @@
  * ⚠ And the FIRST run of that search said something different — `mail` led it and
  *   `gallery` was last by a mile — because three bugs in the rating tier were fixed
  *   between the two runs, and two of them hit the text-poorest shapes hardest. The
- *   first thing a search finds is the scorer's bugs. Never retune off one run. */
+ *   first thing a search finds is the scorer's bugs. Never retune off one run.
+ * ⚠ A SECOND TURN OF THE CRANK PLATEAUS. These are that fit's weights, refit once
+ *   more (`ai/2026-08-17/generator-compound/`): 360-row pool, same method, `bands`
+ *   6→7 and `split` 4→5 rose, `column` and `rail` fell 5→4, the rest held — but the
+ *   population barely moved (mean +0.4 of 0.6 SE, ceiling and p10 both +0, on a
+ *   held-out seed range never used to fit: +0.08, same noise floor). Kept because
+ *   nothing regressed, not because anything measurably improved — the loop is not
+ *   compounding at this population size. Don't retune a third time expecting more;
+ *   a bigger n or a different signal is what the next turn needs, not another pass
+ *   over the same 360 seeds. */
 export const SHAPES = {
-	bands:   { w: 6, dir: "v", tracks: ["feature", "wall", "prose", "wall"], vary: true },
-	column:  { w: 5, dir: "v", tracks: ["prose"] },
-	rail:    { w: 5, dir: "h", tracks: ["rail", "main"] },
+	bands:   { w: 7, dir: "v", tracks: ["feature", "wall", "prose", "wall"], vary: true },
+	column:  { w: 4, dir: "v", tracks: ["prose"] },
+	rail:    { w: 4, dir: "h", tracks: ["rail", "main"] },
 	docs:    { w: 4, dir: "h", tracks: ["rail", "main", "aside"] },
-	split:   { w: 4, dir: "h", tracks: ["index", "main"] },
+	split:   { w: 5, dir: "h", tracks: ["index", "main"] },
 	shell:   { w: 3, dir: "h", tracks: ["rail", "stack", "aside"] },
 	gallery: { w: 3, dir: "h", tracks: ["rail", "wall"] },
 	deck:    { w: 2, dir: "v", tracks: ["wall"] },

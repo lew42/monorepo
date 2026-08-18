@@ -1,13 +1,15 @@
-/* Restated IN FULL — a short list silently misplaces `site`. */
-@layer base, theme, site, util;
-
 @layer theme {
 
 	/* ⚠ `:where(:not(.page))` for Page.css's reason: `render()` stamps `page-<name>` on
 	   every page, so THIS module's own doc page — a directory called `catalog/` — wore
 	   the region's class and took its `gap: 2em` between every paragraph. `:where()`
-	   keeps the rule at (0,1,0), so nothing below becomes a load-order tie. */
-	.page-catalog:where(:not(.page)) { display: flex; align-items: flex-start; gap: 2em; }
+	   keeps the rule at (0,1,0), so nothing below becomes a load-order tie.
+	   ⚠ `stretch`, not `flex-start`: the rail and the region below both need a real
+	     height CEILING to overflow against, not just `overflow-y: auto` with nothing to
+	     bound it — `flex-start` sizes every child to its own content instead, which is
+	     the row growing to whatever the mounted child page's height is. `.page:has(>
+	     .page-catalog)` below is what gives this row a definite height to stretch INTO. */
+	.page-catalog:where(:not(.page)) { display: flex; align-items: stretch; gap: 2em; }
 
 	/* The rail's first entry IS the page's own content, heading and all — so the shell
 	   around it must not print the same title again. ⚠ `.page-title` is Page.css's;
@@ -18,16 +20,51 @@
 	.page:has(> .page-catalog) > .page-title { display: none; }
 	.page > .page-catalog { margin-block-start: 0; }
 
+	/* THE MISSING CEILING (2026-08-16): Page.css's `.pages` never stretches its
+	   children (`align-items: flex-start` — an ordinary page's height IS its content),
+	   so a catalog page grew to fit whatever its mounted child was, and `/styles.css`
+	   correctly hides the OUTER `.pages`'s own scrollbar whenever the active leaf isn't
+	   its direct child — right for the normal nested-region contract, but there was no
+	   inner region honouring it: the bottom 55%+ of every catalog page was clipped with
+	   no scrollbar, no wheel, no keyboard, and no visual sign. Borrowed verbatim from
+	   `.fill` (Page.css) — the same fix a `.page.topic` gets for the same reason — so
+	   this row has a DEFINITE height the whole way down instead of a guessed `100dvh`.
+	   ⚠ `grid-template-rows`, not just `align-self: stretch`: `.standard` is a GRID, and
+	     an implicit `auto` row sizes to content even when the grid box itself is now a
+	     definite height — `align-content: start` packs rows, it does not stretch them.
+	     One explicit `1fr` row is the whole fix; `.page-catalog` is the only row here,
+	     the title above it is `display: none`.
+	   ⚠ Scoped to something ROUTED inside `.page-catalog-pages` (2026-08-16,
+	     catalog-gutter) — the ceiling is only for the bounded SPLIT, rail beside region,
+	     each capping its own height. A rail may legitimately want the PAGE to scroll
+	     instead when nothing is routed — ai.css's board mode does exactly that
+	     (`.ai-index-rail { overflow: visible }`, "a board is not a scrollport — the
+	     page scrolls"), the same `:has(> .page-catalog-pages > .page:is(.active-page,
+	     .active-ancestor))` test it keys its own column layout off. An unconditional
+	     ceiling fought that: it capped `/framework/ai/`'s page at 100dvh regardless, so
+	     `.pages` never saw the board's real height and ~15000px of it sat clipped with
+	     no scrollbar anywhere — worse than the bug this rule exists to fix. */
+	.page:has(> .page-catalog > .page-catalog-pages > .page:is(.active-page, .active-ancestor)) {
+		align-self: stretch;
+		overflow: hidden;
+		min-height: 100%;
+		grid-template-rows: minmax(0, 1fr);
+	}
+
 	/* The wall turned on its side: one column of the same cards, pinned beside the
 	   region and scrolling on its own, so navigating cannot move it.
 	   ⚠ Not `.basis`: previews() is a GRID (Page.css), so the one-column template
 	   and the flex sizing have to arrive together.
-	   ⚠ The cap may not exceed the scrollport: sticky at `top: 0` puts anything
-	   taller below the region's bottom edge, unreachable by either scrollbar. */
+	   ⚠ `max-height: 100dvh` is a BACKSTOP now, not the ceiling: `align-items: stretch`
+	     above already bounds this to the row's real height, which is always ≤ the
+	     viewport — before that stretch existed this was the only cap, and being taller
+	     than the actual scrollport (the outer `.pages`, then hidden by the same rule
+	     this file now honours below) put the rail's own foot 45–90px past reach. */
 	.page-catalog > .page-previews {
 		grid-template-columns: 1fr;
 		flex: 0 0 var(--rail, 19em); min-width: 0;
 		padding: 0.5em;
+		padding-inline-end: 1em;
 		--thumb-max: none;
 
 		/* ⚠ `row-gap`, not `--gap`: the wall's knob INHERITS, so a live thumb's own
@@ -36,15 +73,15 @@
 
 		position: sticky; top: 0;
 		max-height: 100dvh;
-		overflow-y: auto; scrollbar-width: thin;
+		overflow-y: auto; scrollbar-width: thin; scrollbar-gutter: stable;
 	}
 
-	/* The catalog bleeds, so the rail's cards sat 9px off the app sidebar. It pays the
-	   page's axis back, the way `.page.standard > .page-previews` does (Page.css) — as a
-	   MARGIN, so `--rail` still measures the cards rather than the inset.
-	   ⚠ A direct child of `.page.standard` only: a catalog in a Doc section is
-	     already inset by the group's own `--page-pad`, and would pay it twice. */
-	.page.standard > .page-catalog > .page-previews { margin-inline-start: var(--gutter-x); }
+	/* DELETED, 2026-08-17: `.page.standard > .page-catalog > .page-previews
+	   { margin-inline-start: var(--gutter-x) }`. The catalog claimed `bleed`, which
+	   SPENDS the page's two gutter tracks, so every module that put something in one
+	   had to hand the inset back by hand — this rule, `ai.css`'s twin for its own rail,
+	   and `report.css`'s for its bands. `catalog.js` claims `wide` now: all the leftover
+	   room, and the gutter tracks left alone. Nothing to pay back. */
 
 	/* ⚠ A card's WALL claim has to be dropped here: `.wide`/`.big` span two tracks
 	   (Page.css), and a span invents the track it asks for — so one `big` child turned
@@ -55,6 +92,35 @@
 	.page-catalog > .page-previews:not(:has(> * + *)) { display: none; }
 
 	.page-catalog-pages { flex: 1 1 0; min-width: 0; }
+
+	/* ⚠ Scoped to a catalog that is a DIRECT child of some `.pages` — the outer app
+	   region, or a `.page.topic`'s own nested one — never a bare `.page-catalog-pages`.
+	   A `Doc` Overview tab is a catalog too, but it sits inside a `.tab-panel` (plain
+	   block, no stretch, no definite height anywhere above it): giving IT the same
+	   `overflow-y: auto` collapsed it to 0 instead of its content height — a flex item
+	   whose `overflow` is anything but `visible` gets an automatic minimum size of 0
+	   (spec), so once nothing above provides a real height to shrink FROM, the flex
+	   `shrink: 1` (from `flex: 1 1 0`) takes it all the way down. `.pages > .page:has(>
+	   .page-catalog)` above already has the definite height this needs — an ancestor
+	   without it is exactly where `overflow-y: auto` must stay OFF. Found live 2026-08-16
+	   auditing every catalog() caller, not just the 18-page blast radius.
+	   ⚠ `overflow-y: auto`, not `scroll` (unlike Page.css's `.pages`): a catalog region
+	   is not the sheet's edge, so reserving a gutter that is usually empty would read
+	   as a stray margin beside the rail.
+	   ⚠ Narrowed the same way as the ceiling above (2026-08-16, catalog-gutter) — this
+	   is the OTHER half of that fix, not a separate one: the exact same automatic-
+	   minimum-size-0 collapse this comment already names hit `.page-catalog-pages`
+	   ITSELF the moment the ceiling stood down for an unrouted board — `flex: 1 1 0`
+	   plus `overflow-y: auto` in a now-indefinite column computed straight to 0,
+	   a 375×0 box still holding 684px of real content, at the mobile strip breakpoint
+	   first (`/web/nav/`, `/web/layout/`, `/framework/styles/*`). Same test, same
+	   reason: this rule and the ceiling must always agree, or one clips what the
+	   other just freed. */
+	.pages > .page:has(> .page-catalog > .page-catalog-pages > .page:is(.active-page, .active-ancestor))
+		> .page-catalog > .page-catalog-pages {
+		min-height: 0;
+		overflow-y: auto;
+	}
 
 	/* Nothing marked yet — light the first card, so what the region is showing has
 	   a lit entry. Mirrors .tab-bar's first-tab rule; the declaration is Page.css's
@@ -72,7 +138,18 @@
 	   sideways above the detail. 64em for tabs.css's reason: this set can sit in a
 	   region already missing a 19em sidebar. */
 	@media (max-width: 64em) {
-		.page-catalog { flex-direction: column; align-items: stretch; }
+		/* `align-items` stays `stretch` (base rule) — a column needs it on the
+		   cross axis (width) exactly as much as the row needed it on height.
+		   ⚠ `:where(:not(.page))` — the SAME guard the base rule above carries, and for
+		     the same collision: a Doc page whose own route segment is "catalog" (this
+		     page) wears `page-catalog` from `Page.render()`'s `page-<name>` stamp, not
+		     from this module. Unguarded, this rule read that page's `.tabs.block`
+		     (`display: contents`, so `.tab-bar` sits directly in this flex row) as ITS
+		     OWN mobile catalog rail and flipped it to a column — turning `.tab-bar`'s
+		     `flex: 1 1 24em` (Doc.css, a WIDTH basis) into a HEIGHT basis instead, at
+		     the era's mobile font-size: 24em × ~14px ≈ 336px tall, a blank band with
+		     four tab labels stranded at its bottom edge. Found 2026-08-17, mobile-sweep. */
+		.page-catalog:where(:not(.page)) { flex-direction: column; }
 
 		/* ⚠ The thumb ceiling has to come down with it: one row means the tallest card
 		   sets the height for all of them, so a full-size live thumb scrolled off to
@@ -87,10 +164,19 @@
 			--thumb-max: 4em;
 		}
 
-		/* ⚠ The axis payback comes off with it: the strip is a scrollport across the
-		   whole region, so an inset start spends a phone's width on nothing and the
-		   left edge goes ragged the moment it scrolls. */
-		.page.standard > .page-catalog > .page-previews { margin-inline-start: 0; }
+		/* ⚠ `MARGIN`, not padding — same reason the sidebar case above pays with a
+		   margin: a scrolled-off card's bound clamps to `.page-previews`'s OWN box
+		   edge (DesignTool's `text_bounds`, clip-to-clientWidth), which padding
+		   sits INSIDE of and cannot move. `.demo-app-pages` (ext/demo) is a boxed,
+		   scrolling shell, not a screen — the bleed doctrine above assumes the
+		   latter, and gives the bled strip nothing to spare once its OWN edge is
+		   the box's edge (`gutter: high`, 0px, found 2026-08-16 auditing this
+		   module's own doc page: the "wall or rail" comparison's 9-card strip,
+		   clamped to the container it's scrolled inside). Pays the SAME
+		   `--gutter-x` back the sidebar case above already pays on start — this is
+		   the one place a demo box's own edge reads as a wall the way a real
+		   page's never does. */
+		.demo-app-pages .page-catalog > .page-previews { margin-inline-end: var(--gutter-x); }
 
 		/* ⚠ A group heading spans a ROW (Page.css), and there are no rows left here —
 		   `1 / -1` against an implicit grid put the headings in a column of their own

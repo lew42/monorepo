@@ -17,6 +17,23 @@ way in. The same bargain [ToC](/framework/ext/toc/) makes: hiding a scrollbar is
 only honest if something keeps the current item in view. `scrollBy` on the bar,
 never `scrollIntoView`, which walks up and scrolls the region too.
 
+## The edge fade, and why it is gone
+
+**Removed 2026-08-18** at the owner's call: `--tab-fade` was a two-layer `mask-image` on
+`.tab-bar` and was misplaced there. Don't re-add it without asking.
+
+What it did, so the next reader knows the cost: `scrollbar-width: thin` was tried first as
+the fix for the strip reading as a clipping bug and measurably was not one — at 900,
+`/framework/ext/DesignTool/` showed "KNOWLEDGE" then a sliced glyph at the frame edge with
+no bar painted; a horizontal scrollbar is invisible in a screenshot and, on a trackpad,
+invisible in life. The mask faded both ends instead (the left exactly `--tab-pad-x` wide,
+the right `2em`), because the strip auto-scrolls the active tab into view so the overflow
+lands on the left as often as the right — `SHELL` had been rendering as `ELL`.
+
+**So: overflow now cuts hard at both edges again, with no affordance but `reveal()`.** If an
+affordance is wanted back, `scrollbar-width: thin` is the one-word version — measured as
+weak, but it is not a mask.
+
 ## The `64em` breakpoint is one measurement, not a formula
 
 Chosen against `/framework/core/View/api/append/`'s rail sitting inside `/framework/`'s

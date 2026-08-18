@@ -177,14 +177,14 @@ merge into a fifth:
 about a two-level door.** `demo.stage.two` and `demo.source.file` are real,
 documented, load-bearing entry points that simply cannot appear in `methods:` —
 `Doc.declaration`/`member()` resolve `subject[name]`, never `subject[a][b]`, and
-there's no guidance in the skill (or in `ext/doc/readme.md`) for "a member of a
+there's no guidance in the skill (or in `ext/Doc/readme.md`) for "a member of a
 member." I resolved it by documenting both inside their parent's
 `doc/method/*.md` prose and noting the gap in `page.js.md`, but I was guessing —
 the skill's "Every name in every list has its `.md` on disk" check has no
 answer for a name that structurally *can't* have a list entry.
 
 **Second, and stronger: the skill never mentions `patched()`'s false-positive
-mode for a "function with properties" subject**, even though `ext/doc/readme.md`
+mode for a "function with properties" subject**, even though `ext/Doc/readme.md`
 itself names `md` and `demo` as the canonical example of that `subject:` shape
 in the same breath it explains the patch-detection trick — a trick built
 assuming class methods (which get real names from class syntax), silently wrong

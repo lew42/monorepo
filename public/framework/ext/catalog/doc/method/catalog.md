@@ -45,5 +45,5 @@ and no other children still fills its region, just with no rail beside it.
 If [Highlight](/framework/ext/highlight/) is loaded, the source pane above
 shows the live patched function — an anonymous function assigned to
 `Page.prototype.catalog`, which is how this page's own banner detects and
-labels the replacement (`ext/doc/readme.md`, "A patched method shows the
+labels the replacement (`ext/Doc/readme.md`, "A patched method shows the
 patch").

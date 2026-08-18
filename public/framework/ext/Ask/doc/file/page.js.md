@@ -12,7 +12,7 @@ import * as Ask from "./Ask.js";
 on, so this page imports the **module namespace object** itself as the
 `subject` — every named export (`ask`, `available`, `thread`, `start`) is an
 own, enumerable property of it, which is exactly the "namespace object" shape
-`ext/doc`'s own docs describe. `member()` (in `util/source/source.js`) finds
+`ext/Doc`'s own docs describe. `member()` (in `util/source/source.js`) finds
 each one via a plain `Object.getOwnPropertyDescriptor`, the same lookup it
 would use on a hand-authored `{ ask, available, ... }` object — a real ESM
 namespace object satisfies the contract for free, with no object literal to
@@ -32,7 +32,7 @@ just a button and a paragraph that fills in.
 1. **`import * as Ask from "./Ask.js"` as a `Doc` subject has no other
    precedent in the framework** (`grep -rn "import \* as" --include=page.js`
    returns nothing else). It works, and it's arguably the *correct* reading of
-   ext/doc's own "namespace object" subject shape for a file of loose exports
+   ext/Doc's own "namespace object" subject shape for a file of loose exports
    — but until a second module tries it, it's a pattern of one. Worth
    revisiting once `ext/JSONL` or another loose-function module gets its own
    `Doc` pass, to see if it holds up twice. *(simple to redo elsewhere if it

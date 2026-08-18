@@ -27,5 +27,5 @@ calls, not a lifecycle call. That is why there is no teardown protocol to get wr
 Right-sized. `this.marked` — the views wearing my two classes — is the whole wipe,
 so it is O(chain) rather than O(diff) or O(every node in the app), and it cannot
 reach a page the Router never marked. ⚠ Never widen it back to a `$app` query.
-[marking](/framework/core/Router/docs/marking/) has the numbers, and the `order`
+[marking](/framework/core/Router/doc/marking/) has the numbers, and the `order`
 attribute this used to write and no longer does.

@@ -1,0 +1,139 @@
+/* Restated IN FULL - a short list silently misplaces `site`.
+   ! This statement has been stripped from this file THREE times on 2026-08-17
+   by something outside this session. It is load-bearing: the first @layer
+   statement in the document fixes the order, and a name first seen later is
+   appended at the END - so dropping it silently sorts `site` past `util`.
+   Do not 'deduplicate' it. */
+@layer base, theme, site, util;
+
+/* ASCII ONLY, comments included - same reason as toc.css. */
+@layer theme {
+
+	/* Perspective is a NUMBER here, not a length, because the counter-scale below
+	   has to divide by it and calc() cannot divide by a px value.
+
+	   JS writes --depth-lean-nx/ny NORMALISED to -1..1, not in px, so the same two
+	   values drive four things at four different scales: the origin slide, the
+	   layer tilt, the shadow throw, and --depth-motion over all of them.
+
+	   TWO KNOBS. --depth-scale is DEPTH: how far apart the layers sit, which buys
+	   growth and scroll parallax together because they are the same factor.
+	   --depth-motion is how hard the page REACTS - pointer lean, tilt, shadow, and
+	   (in JS) how fast the vanishing point travels while you scroll. */
+	.depth-scene {
+		--depth-perspective: 1400;
+		--depth-step: 28;
+		--depth-scale: 1;
+		--depth-motion: 1;
+		--depth-lean: 120;
+		--depth-flatten: 1;
+
+		/* TILT COMPOUNDS. preserve-3d applies a layer's rotation to everything
+		   inside it, so three nested tiers at 2.5deg turn the innermost card
+		   7.5deg - enough that its far edge swings hundreds of px in z and the card
+		   renders as a trapezoid sliding out from under its own text. Budget the
+		   TOTAL: pick `deepest tier x tilt x motion` under about 3deg. */
+		--depth-tilt: 1deg;
+
+		perspective: calc(var(--depth-perspective) * 1px);
+		perspective-origin:
+			calc(50% + var(--depth-lean-nx, 0) * var(--depth-lean) * var(--depth-motion) * 1px)
+			calc(var(--depth-focus, 50%) + var(--depth-lean-ny, 0) * var(--depth-lean) * var(--depth-motion) * 1px);
+	}
+
+	/* GROWTH AND DRIFT ARE THE SAME NUMBER. Perspective magnifies a layer by
+	   P/(P - z) and displaces it by (distance from the origin) x z/(P - z) - so
+	   "comes toward you" and "slides away from the vanishing point" cannot be
+	   separated by tuning P. Lowering P raises BOTH.
+
+	   `--depth-flatten` is the one lever that separates them, and it only cuts the
+	   size half: 1 cancels the magnification entirely (pure parallax, no growth),
+	   0 lets it all through (a layer visibly comes at you). Displacement is
+	   untouched either way, so a page that wants growth without drift runs a LOW
+	   flatten and a LOW `--depth-step`, then buys its motion back from the
+	   pointer - lean and tilt cost no displacement at all.
+
+	   `--depth` is relative to the enclosing layer, because preserve-3d composes
+	   the two translateZ values. */
+	.depth-layer {
+		/* RESET, and for the same reason as --depth-shadow below: custom properties
+		   INHERIT, so a card declaring `--depth: 2` would hand 2 to every layer
+		   inside it that did not declare its own - silently, and compounding, since
+		   preserve-3d adds the two translateZ values. Re-declaring here means each
+		   layer starts at one step and a class rule in @layer site (or an inline
+		   `.depth(n)`) says otherwise. */
+		--depth: 1;
+
+		--depth-z: calc(var(--depth) * var(--depth-step, 28) * var(--depth-scale, 1));
+
+		/* RESET, not a default. Custom properties inherit, so a card that sets
+		   `--depth-shadow: 6px` was handing it to every layer inside it - and a
+		   heading is a layer. Headings cast card shadows onto the card behind them,
+		   which reads as a pale box behind the text and looks like a background
+		   nobody wrote. Re-declaring it here means each layer starts at zero and
+		   only a rule naming that layer switches it on. */
+		--depth-shadow: 0px;
+
+		/* ONE rotation about an in-plane axis, NOT rotateY then rotateX.
+		   Composing the two gives a 2D block of [[cos a, sin a sin b], [0, cos b]] -
+		   that off-diagonal term is a real ROLL - an in-plane rotation - and it
+		   compounds through every nested tier. Measured on /resume/ through three
+		   tiers: 0.025 / 0.101 / 0.228 deg of roll at motion 1 / 2 / 3, which is
+		   3.6px of skew across a 900px card at the top. It reads exactly like a
+		   skew because it is one. Rotating ONCE about the axis perpendicular to the
+		   lean gives a symmetric 2D block instead - a pure stretch, so the layer
+		   tilts toward the pointer and its roll measures exactly 0.
+
+		   ⚠ Do NOT "simplify" this back to a rotateY/rotateX pair. The zero-length
+		   axis at pointer-centre is fine: angle is 0 there, and the transform stays
+		   valid (verified - translateZ and scale both survive).
+		   ⚠ The axis is (-ny, nx, 0) - perpendicular to the lean, in the plane. */
+		transform:
+			translateZ(calc(var(--depth-z) * 1px))
+			rotate3d(
+				calc(-1 * var(--depth-lean-ny, 0)),
+				var(--depth-lean-nx, 0),
+				0,
+				calc(hypot(var(--depth-lean-nx, 0), var(--depth-lean-ny, 0))
+					* var(--depth-tilt, 0deg) * var(--depth-motion, 1)))
+			scale(calc(1 - var(--depth-flatten, 1) * var(--depth-z) / var(--depth-perspective, 1400)));
+
+		transform-style: preserve-3d;
+
+		/* The light stays put while the camera moves, so the shadow throws AGAINST
+		   the lean and grows with the layer's own depth. Off at --depth-shadow: 0px
+		   (a 0/0/0 shadow paints nothing). box-shadow is not on the list of
+		   properties that flatten preserve-3d - overflow, opacity, filter,
+		   clip-path, mask and contain are. */
+		box-shadow:
+			calc(var(--depth-lean-nx, 0) * var(--depth-shadow) * var(--depth-motion, 1) * -1)
+			calc(var(--depth-shadow) * 0.5 - var(--depth-lean-ny, 0) * var(--depth-shadow) * var(--depth-motion, 1))
+			calc(var(--depth-shadow) * 2.5)
+			rgb(0 0 0 / var(--depth-shadow-alpha, 12%));
+	}
+
+	.depth-ctrl {
+		display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0.4em 1.2em;
+		font-size: 0.8rem; color: var(--subtle);
+	}
+
+	.depth-slider { display: inline-flex; align-items: center; gap: 0.5em; cursor: pointer; }
+
+	.depth-slider-range { inline-size: 7em; }
+
+	/* Tabular figures and a floor width, so the number does not jitter the row as
+	   it counts through 0.95 / 1.00 / 1.05 while you drag. */
+	.depth-slider-value {
+		font-variant-numeric: tabular-nums;
+		min-inline-size: 2.6em;
+	}
+
+	/* Not a toned-down effect - none of it. Someone who asks for still pages is
+	   not asking for gentler parallax. */
+	@media (prefers-reduced-motion: reduce) {
+
+		.depth-scene { perspective: none; }
+		.depth-layer { transform: none; box-shadow: none; }
+		.depth-ctrl { display: none; }
+	}
+}

@@ -8,6 +8,7 @@ export default new Doc({
 	icon: "crop_free",
 
 	files: "claim.js claim.css page.js readme.md",
+	notes: "decisions",
 
 	content(){
 
@@ -21,14 +22,14 @@ claim("claude", "layout-generator-rules");`);
 
 		h2("Nobody imports it");
 
-		md("It is loaded by `Server/plugins/MCP.js`'s `eval`, through the `claim-tab` skill in `.claude/skills/` — so it ships zero bytes to a visitor and needs no localhost guard of its own. The socket that reaches it already has one. How it came about: [layout-generator-rules](/framework/ai/2026-08-16/layout-generator-rules/).");
+		md("It is loaded by `Server/plugins/MCP.js`'s `eval`, from the `layout` skill's caveats (`.claude/skills/layout/caveats.md`) — so it ships zero bytes to a visitor and needs no localhost guard of its own. The socket that reaches it already has one. How it came about: [layout-generator-rules](/framework/ai/2026-08-16/layout-generator-rules/).");
 
 		code.js(`mcp__site__eval  path: "/framework/styles/layouts/space/"
   code: import("/framework/dev/Claim/claim.js").then(m => m.claim("claude", "my-task"))`);
 
 		md("**Release it when the task lands.** A ring left up says an agent is driving a window that nobody is driving.");
 
-		md.details(import.meta, "readme.md", "Design record — the two things that made it a module");
+		md.details(import.meta, "readme.md", "Readme");
 	},
 
 	demo(){

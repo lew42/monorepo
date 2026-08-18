@@ -1,6 +1,3 @@
-/* Restated IN FULL — a short list silently misplaces `site`. */
-@layer base, theme, site, util;
-
 /* The arrangement contract: the only place a page's visibility is decided.
    ⚠ In `util` so it out-ranks the `.grid` / `.flex` a page may wear, and phrased
      as "hide unless" — a plain `.page { display: none }` ties `.grid` at (0,1,0).
@@ -21,8 +18,14 @@
 		display: flex; align-items: flex-start;
 		flex: 1 1 auto; min-width: 0; min-height: 0;
 		overflow-y: scroll;
-		--measure: 60em; --page-pad: 3em clamp(0px, 6%, 5em);
+		--measure: 40em;
 	}
+
+	/* ⚠ `--page-pad` is NOT declared on the region any more, and that was a real bug
+	     for one build: it INHERITS, so the `var(--page-pad, …)` fallback on `.page`
+	     below never fired and every grid page paid the region's `3em clamp(0px, 6%, 5em)`
+	     on top of its own two gutter tracks — 90px of padding around a 90px gutter.
+	     A page that opts out of the grid declares its own (`.page.topic`, `.doc-page`). */
 
 	/* ⚠ No auto margins: every shape shares ONE left edge, so a page narrower than
 	   its region stays flush left rather than finding its own centre. */
@@ -38,58 +41,204 @@
 
 	.pages:not(:has(> .page.active-page, > .page.active-ancestor)) > .default {
 		display: block; flex: 1 1 auto; min-width: 0; min-height: 100%;
-		max-width: var(--measure); padding: var(--page-pad);
+		max-width: var(--measure); padding: 3em clamp(0px, 6%, 5em);
 	}
 
 
-	/* The page vocabulary — `standard`, `full`, `fill`. Structure only, no skin.
-	   Anything opts out by declaring the tokens on itself: a declared value beats
-	   an inherited one at any specificity, in any layer. */
-	.page { max-width: var(--measure, none); padding: var(--page-pad, 0); }
+	/* ════ THE PAGE SHELL — one grid, three tracks ═════════════════════════════
+	   The whole page vocabulary. `main` is the reading column, `wide` is everything
+	   left over, `bleed` is edge to edge — and a page IS this, with no class.
 
-	.page.full { --measure: none; --page-pad: 0; }
-
-	/* ⚠ All three are load-bearing: `min-height` makes a SHORT page fill,
-	   `overflow` stops a TALL one pushing its own footer off the region. */
-	.page.fill { align-self: stretch; overflow: hidden; min-height: 100%; }
-
-	/* ⚠ Its own `--gutter-x`, never `--page-pad`: that is a padding shorthand, and
+	   ⚠ NO GUARD SELECTOR, on purpose. `@layer util` beats `@layer theme`, so a page
+	     wearing `.flex` / `.grid` / `.masonry` keeps its own `display` for free — the
+	     26 hand-typed `c("page full fill flex v")` pages are untouched by this rule.
+	     Every `.page.<shell>` rule elsewhere is (0,2,0) and beats it on specificity
+	     (`ext/Doc`, `ext/DesignTool`, the `core/new/` sandbox). Nothing needed a
+	     `:not()`; the cascade already said it.
+	   ⚠ Its own `--gutter-x`, never `--page-pad`: that is a padding shorthand, and
 	     `minmax(3em 4em, 1fr)` drops the whole template.
 	   ⚠ The main track subtracts the gutters — without that, `min(--measure, 100%)`
 	     resolves to the full page width and the gutters add on top.
 	   ⚠ `--measure` is re-declared because `min(none, …)` is invalid at
-	     computed-value time and silently drops the template.
-	   ⚠ 52em, not the sheet's 60em: tracks pay no padding, so the two numbers
-	     measure 17% apart. 52em is where they agree.
+	     computed-value time and silently drops the template. A page that wants no
+	     reading cap claims `.wide`; it must never set `--measure: none`.
 	   ⚠ `align-content: start`: a page shorter than its region still carries
 	     `min-height: 100%`, and the default `normal` hands that slack to the rows —
 	     a 51px `h1` painted 130px.
-	   ⚠ `--breakout`'s `100%` is the GRID's width, not the window's, so a grid
-	     nested in a tab panel or a catalog breaks out of the right box.
 	   ⚠ ONE LEFT EDGE: `main` and `wide` start on the same line and every leftover
 	     pixel is spent on the right, so a wider block grows rightward only.
-	     `--gutter-x` IS that edge — the wall's inset below lands on it. */
-	.page.standard {
-		--measure: 52em;
-		--breakout: max(7em, (100% - 96em) / 4);
+	   ⚠ `wide` takes `minmax(0, 1fr)` — ALL the leftover, not a capped `--breakout`.
+	     The old cap (`max(7em, (100% - 96em)/4)`) held `.wide` to 1295px of a 3165px
+	     region, so nothing between 52em and full `bleed` existed and three separate
+	     rules had to pay the gutter back to a bled wall. Measured 2026-08-17: 53% of
+	     a 3440 screen dead on a doc page. `ai/2026-08-17/layout-system/proposal.md`.
+	   ⚠ `--page-pad` is the OPT-OUT, and only a non-grid shell reads it — `.pages`
+	     no longer hands one down (it was inherited, so the fallback never fired and
+	     every grid page paid the region's inset on top of its own gutters). */
+	.page {
+		--measure: 40em;
 		--gutter-x: clamp(2em, 4%, 5em);
-		--pad-y: 3em;
+		/* ⚠ A clamp, was a flat `3em` (2026-08-17). 48px above every `h1` is a quarter
+		   of the fold at 390 — 10 findings on 9 pages. The same idiom `--gutter-x`
+		   already uses, so the page's two insets scale together: 24px at 390, 42px at
+		   1280, 48px from ~1500 up. */
+		--pad-y: clamp(1.5em, 4%, 3em);
 
 		display: grid;
 		grid-template-columns:
 			[bleed-start]           var(--gutter-x)
 			[wide-start main-start] min(var(--measure), 100% - var(--gutter-x) * 2) [main-end]
-			                        minmax(0, var(--breakout)) [wide-end]
-			                        minmax(var(--gutter-x), 1fr) [bleed-end];
+			                        minmax(0, 1fr) [wide-end]
+			                        var(--gutter-x) [bleed-end];
 		align-content: start;
 
-		padding: var(--pad-y) 0;
+		padding: var(--page-pad, var(--pad-y) 0);
 		max-width: none;
 	}
 
-	.page.standard > *      { grid-column: main; min-width: 0; }
-	.page.standard > .wide  { grid-column: wide; }
-	.page.standard > .bleed { grid-column: bleed; }
+	.page > *      { grid-column: main; min-width: 0; }
+	.page > .wide  { grid-column: wide; }
+	.page > .bleed { grid-column: bleed; }
+
+	/* ── `.solo` — the one full-screen word ──
+	   The page takes the whole region and owns its own scrolling. No `position`, no
+	   `z-index`: it fills the region rather than covering the window, so it cannot
+	   fight the drawer, the dev rail or the mode pill, and Back still works because
+	   solo is a ROUTE, not a state.
+	   ⚠ `auto`, NOT the `hidden` `.fill` used to carry — `hidden` with nothing below
+	     it honouring the ceiling is what made 900–4100px of 18 `/web/` pages
+	     unreachable by any scrollbar (`ai/2026-08-15/layout-hunt/audit.md`, finding
+	     #1). A page that is taller than its region must be able to scroll. */
+	.page.solo { align-self: stretch; overflow: auto; min-height: 100%; }
+
+	/* ── `.rail` — a side region, sized by its ROW, never by the window ──
+	   Every `@media` breakpoint in a component measures the WINDOW while styling a
+	   box inside a region that is window − 220–274px of sidebar; each one is wrong
+	   by that much. A container query asks the box that actually holds the rail.
+
+	   ⚠ SCOPED `:has(> .rail)`, and this is failure mode 1 of the proposal, hit for
+	     real: `container-type: inline-size` applies LAYOUT containment, which makes
+	     the element a containing block for `position: fixed` descendants. On every
+	     `.page` it would trap `.demo-stage.max` (ext/demo, `inset: 0; z-index: 30`),
+	     `ext/drawer`, `ext/Panel`'s text overlay and `ext/Draggable` inside the page.
+	     Only pages that actually carry a rail pay the containment.
+	   ⚠ Below the threshold a rail is a STRIP that scrolls sideways — never a short
+	     vertical scroll band. `ext/AITask` shipped `flex: 0 0 min(22em, 34dvh)`,
+	     which at 900px put 31,838px of content inside a 306px box above a second
+	     scroller: the owner's "50/50 vertical split, two scrollable rows". One property
+	     (`flex-direction`) is the whole flip.
+	   ⚠ `flex-basis: 100%` + `order: -1` needs the ROW to be `flex wrap`, which is
+	     two utilities at the call site — so no rule here names the row, and the
+	     primitive stays one class. */
+	/* ⚠ `:has(> .rail)` UNSCOPED, and that is deliberate rather than lazy. It was
+	     `.page:has(> .rail)` for one build and the query never fired once: a rail is
+	     never a page's direct child, it is a child of the ROW the rail and the region
+	     share (`.browse`, `.page-catalog`). Failure mode 1 of the proposal, landing on
+	     schedule — a container query that silently does nothing looks exactly like a
+	     container query that is working.
+	     Unscoped is still tight: `> .rail` can only match the one element that has a
+	     rail as a direct child, so `body` and `.app` never become containers and the
+	     `position: fixed` trap stays off every page that has no rail. */
+	:has(> .rail) { container: page / inline-size; }
+
+	/* ⚠ `sticky` + `align-self: start` + `max-height`, and this ONE set covers both
+	     rows a rail lives in — the two call sites had independently converged on it.
+	     A BOUNDED row (a catalog split, height capped by the region) and an UNBOUNDED
+	     one (a browse wall as tall as its cards) need different things from a rail:
+	     the first needs its own scrollport, the second needs to be pinned. `start`
+	     stops it taking the line's height, `max-height` gives it something to overflow
+	     against in both, and `sticky` is a no-op in the bounded case. */
+	.rail {
+		display: flex; flex-direction: column; gap: var(--gap, 0.8em);
+		flex: 0 0 clamp(14em, 26%, 22em); min-width: 0;
+		position: sticky; top: 0; align-self: start;
+		max-height: 100dvh; overflow-y: auto;
+		scrollbar-width: thin; scrollbar-gutter: stable;
+	}
+
+	@container page (width < 38em) {
+		/* EVERY rail takes its own line and stops being a scrollport — the region
+		   scrolls down here, never a short box inside it.
+		   ⚠ `min-width`, not `flex-basis`: a component's own basis (`browse.css`'s
+		     `.browse-rail { flex-basis: 12em }`) is the same specificity in the same
+		     layer and loads later, so the basis written here lost silently and
+		     `/framework/ui/` kept a 12em column at 390. A minimum nothing else
+		     declares wins without a specificity game.
+		   ⚠ `overflow: visible` also drops `scrollbar-gutter: stable` — measured 14px
+		     of reserved gutter inside a 168px rail with nothing to scroll. */
+		.rail {
+			min-width: 100%; order: -1;
+			position: static; max-height: none; overflow: visible;
+		}
+
+		/* ⚠ Only a rail of CARDS turns sideways, and this is vision-after finding #2:
+		     `/framework/ui/`'s rail is a search box and five filters, so flipped it
+		     drew a 176px empty square and put all five filters off the scrollport
+		     behind a 2px sliver. A rail of controls stacks — a narrow column is what
+		     a control is already shaped for. */
+		.rail:has(> .page-preview) { flex-direction: row; overflow-x: auto; }
+		.rail:has(> .page-preview) > * { flex: 0 0 var(--rail-card, 11em); }
+
+		/* A strip is cards only — a group heading spans a ROW and there are no rows
+		   left, and a two-line description is the strip's whole height spent above
+		   the thing it heads. */
+		.rail:has(> .page-preview) > .page-previews-group,
+		.rail:has(> .page-preview) .page-preview-desc { display: none; }
+	}
+
+	/* ── `.wall` — the one grid of cards ──
+	   `auto-fill`, not `auto-fit`: two children must not become two enormous cards.
+	   ⚠ MEASURED and kept, 2026-08-17 — the sweep asked for `auto-fit` (15 findings
+	     on 10 pages: "3 dead slots"). Injected site-wide it made `/web/`'s two cards
+	     583px each at 1280 and **1623px each at 3440**, which is the sentence above
+	     happening. It pays only where a wall is guaranteed a full row, which is why
+	     `browse.css:34` scopes it to `.browse-band`. And an empty track is what a
+	     `--column`-sized wall IS: the sweep's own prompt feedback #5 says so.
+	   `start`, not the default `stretch`: a cell is as tall as what it shows, and
+	   stretching hands the short ones their dead space straight back. */
+	.wall, .page-previews:where(:not(.page)) {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(min(var(--column, 18em), 100%), 1fr));
+		gap: var(--gap, 1em);
+		align-items: start;
+	}
+	.wall > *, .page-previews > * { margin: 0; }
+
+	/* ── `.stage` — a preview is a picture with a declared ASPECT ──
+	   An aspect is right at 900 AND at 3440; a pixel height picks one width and is
+	   wrong at the other, which is the trade `wall-polish` was stuck in on 2026-08-17
+	   (a fixed 12em bottom-aligned every row and dealt 12 other cards dead space).
+	   ⚠ INERT: the label is the card's link, so a live render in here would be an
+	     `<a>` inside an `<a>` — invalid, and silently un-nested by the browser.
+	   ⚠ `container-type` is safe HERE and not on `.page`: a stage holds a preview,
+	     and nothing inside one is `position: fixed`. */
+	/* ⚠ An aspect AND a ceiling, measured 2026-08-17 — the aspect alone was wrong.
+	     A 16/10 box scales with WIDTH, so at 3440 a 570px card drew a 356px thumb:
+	     the same billboard-of-air the fixed height was blamed for, one regime over.
+	     The aspect governs while a card is narrow (900, a phone, a rail), the ceiling
+	     governs once it is wide — and because every card in a row is the same width,
+	     rows stay bottom-aligned under either. */
+	.stage, .page-preview-thumb {
+		container-type: inline-size;
+		aspect-ratio: var(--stage, 16 / 10);
+		max-height: var(--stage-max, 12em);
+		overflow: hidden;
+		border-radius: var(--radius);
+		pointer-events: none; user-select: none;
+	}
+
+	/* ⚠ A scrollbar inside a thumb is drawn at full size whatever the `zoom` above it —
+	   so a quarter-scale render of a scrolling page wears a grey bar four times too
+	   wide down its edge. `overflow: hidden` covers only the stage's own box; the
+	   scroller is a `.page` INSIDE it. */
+	.stage, .stage *, .page-preview-thumb, .page-preview-thumb * { scrollbar-width: none; }
+
+	/* ── the old shell words, as one-line aliases ──
+	   DELETED ON ACCEPT. Every one of them is now either the default or one of the
+	   five words; they stay only so nothing 404s while the owner is looking at the diff.
+	   `standard` needs no rule at all — the grid IS the default. */
+	.page.full { --gutter-x: 0px; --pad-y: 0px; }
+	.page.fill { align-self: stretch; overflow: auto; min-height: 100%; }
 
 	/* ⚠ No ToC rule here — both want `grid-template-columns` and the winner would
 	   be load order. toc.css opts out with `:not(.standard)` instead. */
@@ -98,46 +247,36 @@
 	   ⚠ `color: inherit` is load-bearing: without it six call sites wrote it
 	     inline, and an inline colour out-ranks `.page-link.active` below. */
 	.page-link { font-weight: 600; color: inherit; }
+	/* ⚠ `--prim-ink`, not `--prim` (framework.css): an accent is chosen to be seen as
+	   a FILL, and lew42's is 2.25:1 as text. This is the one mark an active link
+	   wears, so the ratio is the whole state. */
 	.page-link.active,
-	.page-link.in-path { color: var(--prim); }
+	.page-link.in-path { color: var(--prim-ink); }
 
-	/* ⚠ `start`, not the default `stretch`: a cell is as tall as what it shows, and
-	     stretching hands the short ones their dead space straight back.
-	   ⚠ `auto-fill`, not `auto-fit` — two children must not become two enormous
-	     cards.
-	   ⚠ `bleed`, not `wide` (previews() adds it): the widest track still lands
-	     inside the page's own inset, never against the sidebar — measured, in
-	     doc/css.md, which is where the older claim to the contrary died. */
-	/* ⚠ `:where(:not(.page))` — `render()` stamps `page-<name>` on every page, so a
+	/* `previews()` emits `.page-previews`, so the class IS a wall — one selector, and
+	   the six declarations it used to repeat are `.wall`'s above.
+	   ⚠ `:where(:not(.page))` — `render()` stamps `page-<name>` on every page, so a
 	     page in a directory called `previews/` wears the WALL's class and silently
 	     grids itself. `:where()` keeps this at (0,1,0), so catalog.css's overrides
-	     do not become a load-order tie. */
-	.page-previews:where(:not(.page)) {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(min(var(--column, 14em), 100%), 1fr));
-		gap: var(--gap, 0.8em);
-		align-items: start;
-		grid-auto-flow: dense;
-	}
+	     do not become a load-order tie.
+	   ⚠ `grid-auto-flow: dense` is DELETED, not moved: it backfilled the gap a heading
+	     leaves with a card from the run BELOW it, so a grouped wall rendered its
+	     sections one heading out of step — measured on styles/layouts/, where Fit and
+	     Flex rendered above the VOCABULARY heading that owns them. It bought a tidier
+	     ragged edge on plain walls and cost reading order on grouped ones. */
+	.page-previews:where(:not(.page)) { --column: 14em; --gap: 0.8em; }
 
 	/* A child's `group:` heads the run it starts — a whole row, so the cards on
 	   either side of it keep counting their own columns. */
 	.page-previews > .page-previews-group { grid-column: 1 / -1; margin-block-start: 0.6em; }
-
-	/* ⚠ `dense` backfills the gap a heading leaves at the end of the previous row with
-	   a card from the run BELOW it, so a grouped wall renders its sections one heading
-	   out of step — measured on styles/layouts/, where Fit and Flex rendered above the
-	   VOCABULARY heading that owns them. This was predicted here as a known limit while
-	   a one-column rail was the only consumer; the multi-column consumer arrived
-	   2026-08-16. Only a GROUPED wall pays: dense still earns its place on a plain wall,
-	   where `.two`/`.big` cards leave holes worth backfilling. */
-	.page-previews:where(:not(.page)):has(> .page-previews-group) { grid-auto-flow: row; }
 	.page-previews > .page-previews-group:first-child { margin-block-start: 0; }
 
 	/* ⚠ `bleed` spends the grid's gutter tracks, so a top-level wall would sit flush
 	     against the sidebar and the window edge — this hands that inset back, and a
-	     nested wall (walls(), a ladder) is left alone by the child combinator. */
-	.page.standard > :is(.page-previews, .page-walls) { padding-inline: var(--gutter-x); }
+	     nested wall (walls(), a ladder) is left alone by the child combinator.
+	   ⚠ `.page`, not `.page.standard`: a `classes: "full"` page carries previews too,
+	     and never wore `standard` to be caught by the old selector. */
+	.page > :is(.page-previews, .page-walls) { padding-inline: var(--gutter-x); }
 
 	/* ⚠ `stretch`: a live thumb that shrink-to-fits lies about its own width.
 	   ⚠ The ring is drawn on EVERY card and starts transparent, so hover and the mark
@@ -159,10 +298,14 @@
 		transition: outline-color 0.15s, transform 0.05s;
 	}
 
-	/* A card with a thumb IS its render, so it goes bare — a surface and a border
-	   around a picture are two frames too many. Only the card with nothing but a
-	   label to show wears chrome. */
-	.page-preview:not(:has(> .page-preview-thumb)) {
+	/* EVERY card wears the surface, 2026-08-17. The guard was
+	   `:not(:has(> .page-preview-thumb))` — "a card with a thumb IS its render, so a
+	   surface and a border around a picture are two frames too many". Measured wrong:
+	   with the frame gone the label sits UNDER a picture with nothing around either,
+	   so the caption reads as a heading for the empty row below it — 38 findings on 15
+	   pages, 8 on `/framework/ui/`@1280 alone ("floats unframed", "no boundary between
+	   demos", "the Panel column is empty"). One selector, one exception, both gone. */
+	.page-preview {
 		padding: 0.9em 1em;
 		background: var(--surface);
 		border: 1px solid var(--line);
@@ -172,20 +315,17 @@
 
 	.page-preview:active { transform: translateY(1px); }
 
-	/* A thumb is its render's natural height, up to a ceiling — which is why no page
-	   declares a size. The token sits on the wall, so one wall picks its own scale in
-	   one place; roughly `--column × 0.65`.
-	   ⚠ No floor: a short render used to be padded out to one, and what showed in the
-	     dead space was the card's own background.
-	   ⚠ INERT: the label is the card's link, so a live render in here would be an
-	     `<a>` inside an `<a>` — invalid, and silently un-nested by the browser. */
-	.page-preview-thumb {
-		max-height: var(--thumb-max, 12em);
-		overflow: hidden;
-		border-radius: var(--radius);
-		pointer-events: none;
-		user-select: none;
-	}
+	/* A thumb IS a `.stage` — the aspect, the containment, the inertness and the
+	   killed scrollbars are all up there, and this rule is what makes the class the
+	   card already emits read as one.
+	   ⚠ An ASPECT, not the fixed `12em` height this carried until today. The fixed
+	     height bottom-aligned every row (which is what it was for) and dealt 12 other
+	     `ui/` cards visible dead space in exchange — `wall-polish`'s own honest
+	     verdict, 2026-08-17. An aspect is right at 900 and at 3440; a pixel height
+	     picks one width and is wrong at the other.
+	   ⚠ `--thumb-max: none` (the catalog rail) used to make `height` invalid so it
+	     fell back to `auto`. `--stage: auto` is the same escape hatch, said out loud. */
+	.page-preview-thumb { aspect-ratio: var(--stage, 16 / 10); }
 
 	/* The only real link in the card; its ::after covers the rest of it. */
 	.page-preview-link {
@@ -221,21 +361,16 @@
 
 	.page-preview:hover :is(.page-preview-title, .icon),
 	.page-preview:is(.active, .in-path, :has(> a:is(.active, .in-path))) :is(.page-preview-title, .icon) {
-		color: var(--prim);
+		color: var(--prim-ink);
 	}
 
-	/* The two claims a page makes on the wall it appears in, from `card:`. `tall`
-	   doubles the ceiling for a render that only reads whole; `two` takes a second
-	   column. Derived from `--thumb-max` rather than a third token.
-	   ⚠ `two`, not `wide`: `wide` is the page track, and a card is not on one. */
-	.page-preview:is(.two, .big) { grid-column: span 2; }
-	.page-preview:is(.tall, .big) .page-preview-thumb { max-height: calc(var(--thumb-max, 12em) * 2); }
-
-	/* ⚠ Spans do NOT clamp themselves: `auto-fill` must generate at least as many
-	   tracks as the widest span asks for, so a `.two` card forces a second track
-	   at one column and the wall overflows. Column spans only — a row span never
-	   widens a track. */
-	@media (max-width: 28em) {
-		.page-preview:is(.two, .big) { grid-column: span 1; }
-	}
+	/* The one claim a page makes on the wall it appears in, from `card:`. `tall`
+	   doubles the height for a render that only reads whole.
+	   ⚠ The `two`/`big` column span is GONE (2026-08-17): `grid-column: span 2` made
+	     a card double-width with the same empty interior — measured on the Stat-tiles
+	     card, the only user — and `auto-fill` must generate as many tracks as the
+	     widest span asks for, so it also forced a second track at one column and
+	     overflowed the wall. It needed a `@media (max-width: 28em)` rule to undo
+	     itself. Two rules for one void: `vision-after/proposal.md` #6. */
+	.page-preview:is(.tall, .big) .page-preview-thumb { --stage: 8 / 10; --stage-max: 24em; }
 }

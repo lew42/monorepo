@@ -1,6 +1,3 @@
-/* Restated IN FULL - a short list silently misplaces `site`. */
-@layer base, theme, site, util;
-
 /* The right rail. Structure and the one thing a fixed panel cannot leave to the theme:
    a surface, so it reads over whatever the page happens to be showing. Every colour is
    a token. What a caller draws INSIDE it is that caller's own look. Record: readme.md. */
@@ -29,6 +26,16 @@
 		transition: transform 0.18s;
 	}
 	.drawer.on { transform: none; }
+
+	/* Below the push's own floor (`--rail-floor` default, framework.css) there is no
+	   room to push, so a partial-width overlay would leave an unusable sliver of page
+	   beside it — the rail becomes the whole sheet instead. Record: readme.md. */
+	@media (max-width: 26rem) {
+		/* `- var(--devbar, 0px)`, not a flat 100%: the box keeps its `inset-inline-end`
+		   offset from the dev rail, so its own width has to give back what that offset
+		   already claims or it overflows past the viewport's left edge. */
+		.drawer { inline-size: calc(100% - var(--devbar, 0px)); }
+	}
 
 	/* The head is pinned and the body scrolls under it — a rail whose ✕ scrolls away is a
 	   rail you cannot shut. */

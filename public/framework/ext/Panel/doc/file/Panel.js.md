@@ -11,7 +11,7 @@ trees; the tree itself changes only through `divide()` and `close()`.
 `get(key)` returns `this.data[key] ?? Panel.defaults[key]`. Defaults live on
 the class rather than being stamped into `data` at construction, so
 `toJSON()` (via `Item`) only ever serializes what somebody actually chose —
-see [Decisions](/framework/ext/Panel/docs/decisions/) for the alternative that was rejected.
+see [Decisions](/framework/ext/Panel/doc/decisions/) for the alternative that was rejected.
 
 ## `divide()` reads its parent instead of taking a mode
 
@@ -40,6 +40,15 @@ const ref = before ? this : kids[kids.indexOf(this) + 1] ?? null;
 return ref === made ? made : made.move(up, ref);
 ```
 
+⚠ **The "I become the split" branch hands mastership down, LAST.** `this.data`
+is wiped to `{ dir, grow }` so `this` can become the container, which means
+any live duplicate that still points its `mirror` at `this.id` would read
+blank — so `this.bequeath(mine)` re-points every such copy at `mine`, the
+new child that now holds the old content. It runs after `made` is already
+attached (`made.move(this, ...)`), because `made` itself can be one of those
+copies — the bar's copy button drops a mirror of the very panel it splits —
+and the walk needs `made` in the tree to find it.
+
 ## `close()` and `absorb()` are the demotion pair
 
 `close()` removes `this` and, if that leaves its parent holding exactly one
@@ -64,6 +73,15 @@ This is the one place `Panel` reads a property `workspace.js` owns; it is here
 because this is the only moment an id is destroyed while its content survives.
 `divide()`'s mirror — the focused leaf *becomes* the split — keeps the recorded
 verdict and is left alone.
+
+⚠ **Both hand mastership down before the content moves out of reach.**
+`close()` walks the whole subtree it is about to remove — `this.walk(panel =>
+panel.bequeath())` — BEFORE the remove, because removal puts that subtree out
+of `root().walk`'s reach; closing a split takes its children's copies down
+with it, not just its own. `absorb()` calls `only.bequeath(this)` explicitly
+naming `this` as heir, right after `this` takes `only`'s data and before
+`only.remove()`, so a live duplicate of the absorbed child re-points at the
+survivor rather than at whatever `bequeath()`'s default heir would have been.
 
 ## Improvements
 

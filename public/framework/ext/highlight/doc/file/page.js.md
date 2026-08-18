@@ -16,5 +16,5 @@ side by side on purpose — same attribute, two emitters, one rule in
 1. **No `overview:` rail.** Every demo lives directly in `content()`, the
    same shape as `core/View/page.js` — appropriate for a module this size,
    but if languages or the editor grow this page past a screen, the rail is
-   the documented escape hatch (`ext/doc/readme.md`'s "rail" section), not a
+   the documented escape hatch (`ext/Doc/readme.md`'s "rail" section), not a
    longer scroll. *(medium, speculative — not needed yet.)*

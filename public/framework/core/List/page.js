@@ -22,7 +22,7 @@ export default new Doc({
 	subject: List,
 	properties: "children owner length",
 	methods: "assign adopt append insert_before remove notify each find index_of toJSON",
-	notes: "adoption",
+	notes: "adoption decisions",
 	files: "List.js readme.md page.js",
 
 	content(){
@@ -43,7 +43,7 @@ item.items.append(kid)      // ✗ — works, and skips nothing, but says the wr
 
 		md("**`List` is an implementation detail of `Item`, not a second API.** The rule is not a guard — `append()` adopts and notifies correctly either way — it is about there being *one* place a document changes. Reach past the Item and every future reader has two vocabularies to learn and two places to search.");
 
-		md("`owner` is what makes that safe: `adopt()` sets `child.parent = this.owner ?? this`, so a child's parent is the **Item**, never the list. The backref stays one hop, and walking up for a saver or a root never has to step over a collection. Full argument, including the workaround it deleted: [doc/adoption](/framework/core/List/docs/adoption/).");
+		md("`owner` is what makes that safe: `adopt()` sets `child.parent = this.owner ?? this`, so a child's parent is the **Item**, never the list. The backref stays one hop, and walking up for a saver or a root never has to step over a collection. Full argument, including the workaround it deleted: [doc/adoption](/framework/core/List/doc/adoption/).");
 
 		h2("A position, never an index");
 
@@ -75,6 +75,6 @@ item.items.append(kid)      // ✗ — works, and skips nothing, but says the wr
 
 		md("Back to [Item](/framework/core/Item/) — the node that owns one of these.");
 
-		md.details(import.meta, "readme.md", "Design record — the Array dissent, and what was cut");
+		md.details(import.meta, "readme.md", "Readme");
 	}
 });

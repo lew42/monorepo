@@ -1,6 +1,3 @@
-/* Restated IN FULL — a short list silently misplaces `site`. */
-@layer base, theme, site, util;
-
 /* A template's LOOK is its payload — the one sanctioned exception to "a module's
    css is layout only". Every size is a container-query unit against `.panel-body`
    (container-type: size), so one rule set reads from a 200px sliver to a 3440

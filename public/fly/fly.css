@@ -1,0 +1,70 @@
+/* Restated IN FULL - importing View.js injects framework.css, and a short list
+   here would silently drop `site` past `util`.
+   ! Stripped once on 2026-08-17 by something outside this session. Load-bearing;
+   do not 'deduplicate' it. */
+@layer base, theme, site, util;
+
+/* ASCII ONLY, comments included - same reason as toc.css. */
+@layer site {
+
+	body { margin: 0; background: #ddd; overscroll-behavior: none; touch-action: none; }
+
+	/* TRAP, and it cost an hour: framework.css line 25 gives every `canvas` a
+	   `max-width: 100%`. renderer.setSize() writes width AND height as inline px,
+	   and max-width clamps the WIDTH ONLY - so a canvas sized before the viewport
+	   settled kept its tall inline height, got squeezed to the body's width, and
+	   rendered a squished view whose centre sat far below the screen. Same shape as
+	   the iframe clamp in DesignTool.css.
+
+	   `max-width: none` undoes it; `position: fixed` also takes the canvas out of
+	   flow, so it can never grow the document and feed itself a taller innerHeight. */
+	canvas { position: fixed; inset: 0; max-width: none; }
+
+	/* TOP of the screen, not the bottom. Three things want the lower half - the
+	   ship (fixed at ~65% of height, see below), the ring, and these directions -
+	   and on a short window they cannot all fit: at 700px tall the band between the
+	   ship and the directions is 167px and the ring is 182px. The directions are the
+	   one of the three that does not care where it lives. */
+	.hud {
+		position: fixed; inset: 1em 0 auto 0; z-index: 3;
+		display: flex; flex-direction: column; align-items: center; gap: 0.4em;
+		font: 0.85rem/1.4 system-ui, sans-serif;
+		pointer-events: none;
+	}
+
+	/* Legible over sky, ground or a tower - the canvas paints all three. */
+	.hud > * {
+		background: rgb(0 0 0 / 50%); color: #fff;
+		padding: 0.35em 0.9em; border-radius: 2em;
+	}
+	.hud a { pointer-events: auto; color: #fff; }
+
+	/* Sized in vh so the ring ALWAYS clears the ship. The camera sits 2 units above
+	   the ship at 10 out, which at a 75deg vertical FOV puts the ship at a fixed
+	   ~65% of the viewport height, whatever the aspect. Top of the ring is
+	   100 - 4 - 26 = 70%, so it is below the ship at every window size and the
+	   media query this replaced could only ever be right at one of them.
+
+	   NOTE: `touch-action: none` on the knob, not just on body - a touch drag that
+	   starts on it must not also scroll or pinch the document.
+
+	   NOTE: the knob is centred by GRID, not by negative margins. framework.css puts
+	   `:first-child { margin-top: 0 }` in @layer util - the highest layer - so a knob
+	   centred with `margin: -50px 0 0 -50px` loses its top half and sits 50px low,
+	   while margin-left survives. Nothing warns. */
+	.stick {
+		position: fixed; left: 50%; bottom: 4vh; z-index: 2;
+		transform: translateX(-50%);
+		display: grid; place-items: center;
+		width: min(300px, 26vh); aspect-ratio: 1;
+		border-radius: 50%; background: rgb(0 0 0 / 6%);
+	}
+	.stick-knob {
+		width: 33%; aspect-ratio: 1; margin: 0;
+		border-radius: 50%; background: rgb(0 0 0 / 12%);
+		cursor: grab; touch-action: none;
+	}
+
+	body.dragging { user-select: none; }
+	body.dragging .stick-knob { cursor: grabbing; }
+}

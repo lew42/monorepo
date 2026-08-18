@@ -1,6 +1,3 @@
-/* Restated IN FULL - a short list silently misplaces `site`. */
-@layer base, theme, site, util;
-
 /* Structure and the one thing a floating bar cannot leave to the theme: a scrim, so it
    reads over whatever the panel happens to be showing. Every colour is a token. */
 @layer theme {
@@ -32,7 +29,7 @@
 		transition: opacity 0.12s;
 	}
 
-	/* ⚠ No background, no blur, no rule under it (Mike, 2026-08-16). The bar is chrome over
+	/* ⚠ No background, no blur, no rule under it (the owner, 2026-08-16). The bar is chrome over
 	   somebody's layout and a tinted strip across the top of every panel reads as part of
 	   the design rather than as a tool. What replaces it is restraint: the icons themselves
 	   go faint, and come up under the pointer. */
@@ -75,14 +72,20 @@
 	/* ONE button, for all three surfaces. The bar, a seam's menu and the inspector draw the
 	   same vocabulary, so they draw it with the same box — grip.css and templates.css each
 	   kept a near-identical copy until 2026-08-16, which is three places for one look to
-	   drift. `.panel-workspace .panel` reaches all three: a bar, a grip and an inspector
-	   are each inside a panel inside a workspace.
+	   drift.
+
+	   ⚠ TWO homes, not one. `.panel-workspace .panel` reaches a bar, a grip and an inspector
+	   drawn as a panel TEMPLATE — but the inspector also lives in `ext/drawer` now, which
+	   mounts on `.app` and is outside every workspace. Scoped to the workspace alone, the
+	   rail's buttons silently fell back to the theme's padded label: measured 25×27, 32×20,
+	   48×27 where they should all be 1.7em squares. `:is()` takes the specificity of its
+	   most specific arm, so this still clears the theme's 0-2-0 at 0-3-0.
 
 	   ⚠ Three classes on purpose. A theme styles every `button` as a small uppercase
 	   LABEL — `.theme-lew42 :is(button, .btn)` is 0-2-0 and pads to 0.7em/1.4em, which
 	   is right for READ GUIDE and four times too wide for a 1em icon. Only the BOX is
 	   reclaimed; the small-caps voice is the theme's to keep. */
-	.panel-workspace .panel .panel-btn {
+	:is(.panel-workspace .panel, .drawer .panel-props) .panel-btn {
 		display: flex; align-items: center; justify-content: center;
 		min-inline-size: 1.7em; block-size: 1.7em;
 		padding: 0 0.4em;
@@ -99,8 +102,8 @@
 	   "this is a target", `on` says "this is what the panel wears". ⚠ A tint, not the border
 	   it replaces — a border reserved its 2px whether or not it was showing, so the two
 	   states read as unrelated and an idle button was never really transparent. */
-	.panel-workspace .panel .panel-btn:hover { color: var(--ink); background: var(--wash); }
-	.panel-workspace .panel .panel-btn.on {
+	:is(.panel-workspace .panel, .drawer .panel-props) .panel-btn:hover { color: var(--ink); background: var(--wash); }
+	:is(.panel-workspace .panel, .drawer .panel-props) .panel-btn.on {
 		color: var(--prim);
 		background: color-mix(in srgb, var(--prim) 15%, transparent);
 	}
@@ -108,7 +111,7 @@
 	/* A button holding a PICTURE is a square; one holding a WORD keeps the padding above.
 	   The rule reads the button's own content, so ext/editor's region names — the one
 	   vocabulary here that ships no icons — need no flag and no second class. */
-	.panel-workspace .panel .panel-btn:has(> .icon, > .panel-swatch) { inline-size: 1.7em; padding: 0; }
+	:is(.panel-workspace .panel, .drawer .panel-props) .panel-btn:has(> .icon, > .panel-swatch, > .panel-seat) { inline-size: 1.7em; padding: 0; }
 
 	/* A tone is a colour, so its picture is the colour. `--panel-swatch` is glyphs.js's,
 	   written inline as the same token the templates tint themselves with. */
@@ -159,8 +162,12 @@
 
 	/* Below the width the row needs, the run becomes the popover it already is and one
 	   `more_horiz` stands in for it. ⚠ `em` here is the BAR's em — the scale the row is
-	   measured in — so the threshold tracks the row rather than the document. */
-	@container panel-bar (max-width: 19em) {
+	   measured in — so the threshold tracks the row rather than the document.
+	   ⚠ Raised from 19em to 26em (2026-08-16, measured): two size triggers replaced one
+	   `mode` trigger, and the row's own natural width grew with it — a panel unfolded
+	   between the old threshold and the new one clipped `close` off its own right edge
+	   (measured natural width 311.9px against the bar's own font-size, ~25.6em). */
+	@container panel-bar (max-width: 26em) {
 		.panel > .panel-bar .panel-more { display: flex; }
 		.panel-pop.panel-fold { display: none; }
 		.panel-pop.panel-fold.on { display: grid; }
@@ -178,5 +185,25 @@
 		@container panel-bar (max-width: 12em) {
 			.panel-pop.panel-browse { grid-template-columns: repeat(auto-fit, minmax(1.7em, 1fr)); }
 		}
+	}
+
+	/* Below this, even the always-visible run (handle, `more_horiz`, the gap, `close`)
+	   cannot fit — folding no longer helps, and the row was spilling past `.panel`'s
+	   `overflow: hidden` (measured: `close` clipped under 75px, the fold toggle itself
+	   under 50px). The 84px written here sits above that with room to spare, because
+	   `@container` tests the CONTENT box, so `.panel-bar`'s own `0.3em` inline padding
+	   is invisibly subtracted from whatever number is written here — confirmed with a
+	   minimal repro, not assumed (tools.css carries the same finding for `.panel-align`).
+	   ⚠ Targets the bar's CHILDREN, never `.panel-bar` itself — a container query can't
+	   restyle the container it queries, only descendants, so `.panel-bar { display: none
+	   }` here would silently never match (tested: even with `!important`). The bar's own
+	   box already never hit-tests, so hiding every button and popover leaves nothing left
+	   to see or click — `.panel-gap` is left alone, it is empty and cannot spill.
+	   ⚠ `.panel-workspace .panel >` earns the specificity to beat the button rule above
+	   (`:is(.panel-workspace .panel, .drawer .panel-props) .panel-btn`, 0-3-0) — matching
+	   its own ancestry ties at 0-3-0 and the tie goes to whichever file happens to import
+	   first. */
+	@container panel-bar (max-width: 84px) {
+		.panel-workspace .panel > .panel-bar > :is(.panel-btn, .panel-pop) { display: none; }
 	}
 }

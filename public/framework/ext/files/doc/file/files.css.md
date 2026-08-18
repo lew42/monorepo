@@ -20,7 +20,7 @@ file used to answer with a breakpoint is answered by a grip.
 `.panel-workspace` is `height: var(--panel-height, 34em)` and every region
 inside it is `flex: 1 1 0`, so the browser needs a box with a real height to
 scroll in and this is it. A host wanting a taller browser **retunes the token
-and nothing else** — `ext/doc`'s `.doc-files > .files` does exactly that for
+and nothing else** — `ext/Doc`'s `.doc-files > .files` does exactly that for
 the Files tab, which is the whole tab rather than a figure inside a page.
 
 `overflow: hidden` clips to the radius. It also clips a bar's popover at the
@@ -65,7 +65,7 @@ was the flex arrangement's only way of giving the pane an end.
 ## Improvements
 
 1. **`--panel-height: min(70vh, 30em)` is a guess with one override already.**
-   `ext/doc` immediately wanted `min(74vh, 42em)`, which is a signal that the
+   `ext/Doc` immediately wanted `min(74vh, 42em)`, which is a signal that the
    default is tuned for the *smaller* caller. Nothing is wrong today — both
    values were checked at 1440 and 390 — but two callers and two heights is how
    a third arrives at a third. *(simple, speculative)*

@@ -31,7 +31,7 @@ export default function drawer(fn){
 // The same content again, for a caller whose subject changed under it.
 drawer.refresh = () => { if (fill && drawer.showing()) fill($slot, $body); };
 
-/* ⚠ The ONLY thing that shuts the rail (Mike, 2026-08-16). It used to close whenever the
+/* ⚠ The ONLY thing that shuts the rail (the owner, 2026-08-16). It used to close whenever the
    selection cleared, which took the reader's scroll position and whatever they were
    reading with it every time they clicked the page. Losing a selection is not a reason to
    lose the rail — a caller redraws it saying so instead. */

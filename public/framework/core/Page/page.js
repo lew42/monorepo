@@ -25,7 +25,7 @@ export default new Doc({
 	properties: "meta title children content url name label icon card classes "
 		+ "description parent app view loading route regions",
 
-	notes: "declaring labels css",
+	notes: "declaring labels css layout decisions",
 
 	files: "Page.class.js Page.css children/page.js flow/page.js nav/page.js "
 		+ "previews/page.js shell/page.js page.js readme.md overview/readme.md "
@@ -105,6 +105,6 @@ export default new Page({
 
 		md("Next: [Router](/framework/core/Router/) — what turns a url into one of these.");
 
-		md.details(import.meta, "readme.md", "Design record — children, labels, and what should change");
+		md.details(import.meta, "readme.md", "Readme");
 	},
 });

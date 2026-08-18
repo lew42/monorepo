@@ -11,7 +11,7 @@ The recommendation this implements, with the four candidates it was chosen over:
 
 ## Focus is a selection, and selections do not serialize
 
-```js workspace.js
+```js focus.js
 export const focused = item => { const root = item.root(); return root.find(root.focus); };
 ```
 
@@ -66,7 +66,7 @@ buttons, and every one of them would drop the selection as a side effect.
 **And the selection is announced on the document**, because an `Item` event only
 reaches something holding the root, and nothing outside a workspace ever does:
 
-```js workspace.js
+```js focus.js
 const announce = item => document.dispatchEvent(new CustomEvent("panel-focus", { detail: item ?? null }));
 ```
 
@@ -83,7 +83,7 @@ ever going to remove them.
 
 **Focus clears when its panel leaves the tree**, and nothing takes its place:
 
-```js workspace.js
+```js focus.js
 root.on("remove", () => queueMicrotask(() => {
     if (!root.focus || root.find(root.focus)) return;
     delete root.focus;
@@ -138,12 +138,12 @@ root's own listener saves and no second write path exists. What the inspector
 does *not* have is the target's DOM, which the bar gets for free from
 `view()`. Hence one exported function:
 
-```js workspace.js
+```js paint.js
 export function repaint(item){
     const seen = views.get(item);
     if (!seen) return item;
 
-    seen.$panel[item.get("mode") === "hug" ? "ac" : "rc"]("hug");
+    sizing(item, seen.$panel);
     seen.$items?.[item.get("dir") === "col" ? "ac" : "rc"]("v");
     if (seen.$body) paint(item, seen.$body);
     return item;
@@ -169,6 +169,15 @@ The template picker is the bar's popover with room: icons, `auto-fill`ed to
 whatever width the region has, so a 28-entry vocabulary is four rows in a rail
 and two in a wide one. Word sets keep their declared column count, because
 `align` is a 3×3 or it is not a picture of the nine placements.
+
+## A second selection, one level down, in a different file
+
+`text.js` announces `panel-text` on the document — the identical shape, filling
+the identical rail — for a run of prose *inside* a leaf's body. It is not built
+on this mechanism; it is a second, independent `let selected` living in
+`text.js`, with its own `stopPropagation()` so picking a word never also
+focuses the panel underneath it. Two selections, never both showing at once,
+because the last thing you pointed at is the thing the rail is showing.
 
 ## Still open
 

@@ -35,4 +35,4 @@ snippet above, once `legacy()` answers — it says so:
 [`unsubscribe()`](/framework/ext/JSONL/api/unsubscribe/).
 
 Design record, including the offset contract and the several-readers case:
-[live](/framework/ext/JSONL/docs/live/).
+[live](/framework/ext/JSONL/doc/live/).

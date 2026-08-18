@@ -87,6 +87,13 @@ stylesheet or a utility class can say about `display`, so
 `.page.layout-full { display: flex }` is an ordinary rule that means what it
 says. See `core/Page/readme.md`, "The contract lives in `@layer util`".
 
+**It escaped `ext/drawer`'s push (fixed 2026-08-16).** `position: fixed; inset: 0`
+means the containing block is the viewport, not `.app` — so the rail's
+`padding-inline-end` reservation never reached it and the rail sat on top of
+whatever `.layout-full` view was open. `layouts.css` now restates the same
+reservation on `.page.layout-full`'s own `inset-inline-end`. Full account, and the
+proposed follow-up (a shared token instead of two formulas): `ext/drawer/readme.md`.
+
 **Since superseded again:** none of the eight layout pages uses `route("full")` any
 more. They stopped needing a fixed overlay when the page became its own layout at
 its own plain url, and stopped being the layout at all on 2026-08-12, when each one

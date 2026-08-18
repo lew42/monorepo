@@ -1,7 +1,6 @@
-/* ⚠ Every stylesheet restates this line IN FULL. The first `@layer` statement
-   wins and a name first seen later is appended at the END, so a short list
-   silently drops `site` past `util`. View.js loads this file first, which makes
-   this the deciding statement — but nothing fails loudly if that ever changes.
+/* ⚠ The ONLY @layer statement on the site. app.js puts this file first in <head>,
+   so this line fixes the order for every document; a name first seen elsewhere is
+   appended at the END, past `util`, and nothing fails loudly. Add a layer here.
 
      base    reset — browser defaults that are simply wrong
      theme   the base theme: tokens + the default look. Components add here too.
@@ -58,8 +57,20 @@
         color-scheme: light;
 
         --prim: #FF6157;                         /* the one accent */
+        /* The accent's TEXT twin. An accent is picked to be seen as a fill — on
+           lew42 `--prim` is #FF8F60, which is 2.25:1 as ink on white and the only
+           mark an active link wears, so "no visible active state" and "an accidental
+           colour leak" were the same 10 vision findings. A theme that needs a darker
+           ink declares this one; the default IS the accent, so nothing changes for a
+           theme whose accent already reads. Marks, fills and outlines keep `--prim`. */
+        --prim-ink: var(--prim);
 	    --bg: #42404B;                           /* dark surface — the sidebar's */
-        --subtle: light-dark(rgba(0,0,0,0.5), rgba(255,255,255,0.55));
+        /* Second text colour — captions, counts, tab labels, card descriptions.
+           ⚠ 0.55, was 0.5 (2026-08-17). "Low contrast" was the most-repeated vision
+             finding on this site: 6 of 6 pages, in both runs. 0.5 composites to #808080
+             = 3.95:1 on white and 3.81:1 on `--wash`, under AA either way; 0.55 is
+             #737373 = 4.74:1 and 4.54:1, over it on both. One step, one token. */
+        --subtle: light-dark(rgba(0,0,0,0.55), rgba(255,255,255,0.55));
 
         --ink:     light-dark(#1a1a1a, #e8e8ea);            /* body text */
         --surface: light-dark(#fff, #17161a);               /* content background */
@@ -209,10 +220,20 @@
         border-radius: var(--radius);
     }
     .wash { background: var(--wash); }
+    /* ⚠ `--tint` existed as a token with no class, so `div.c("tint")` painted nothing and
+       threw nothing — a whole wireframe set shipped invisible before a probe read
+       rgba(0,0,0,0). The pair is the point: a token whose class is missing is a silent
+       failure. 2026-08-18, styles/doc/decisions.md. */
+    .tint { background: var(--tint); }
 
     /* De-emphasis derived from the band's own ink, never from a fixed grey:
-       `--subtle` on a `prim` band measures 1.06:1. */
-    .muted { color: color-mix(in srgb, currentColor 65%, transparent); }
+       `--subtle` on a `prim` band measures 1.06:1.
+       ⚠ 75%, was 65% (2026-08-17). Against the lew42 ink (#3f3f3f), 65% composites
+         to #828282 = 3.84:1 on white and #7e7e7e = 3.63:1 on `--wash` — under AA in
+         253 call sites, the largest single contrast defect the vision sweep found.
+         75% is #6f6f6f = 5.02:1 and #6c6c6c = 4.69:1, over AA on both, and still a
+         clear step below the ink it derives from. */
+    .muted { color: color-mix(in srgb, currentColor 75%, transparent); }
 
     /* ---- icons ---------------------------------------------------------
        Material Icons is a LIGATURE font: `icon("dashboard")` emits a span containing
@@ -244,11 +265,20 @@
        fighting three selectors. The framework was missing a token and a site fought
        it instead; that fight is what added these. styles/readme.md §13. */
 
+    /* ⚠ The two backgrounds SPLIT, 2026-08-17. They shared `--code-bg`, so a theme
+       that wants a dark code BLOCK (lew42 does — `#3f3f3f`, per its comp) also got a
+       dark filled pill around every inline `` `code` ``: six per paragraph on
+       `/framework/core/` and `/web/`, the heaviest marks on the page, drawing the eye
+       mid-sentence. Inline code is a WASH — the same tint a `th` or a hover takes —
+       and it reads better by contrast too (#3f3f3f on #f2f2f2 = 9.41:1 against the
+       pill's 8.44:1). `--code-bg` now means the block, which is what every theme
+       that sets it was drawing. */
     pre { padding: 0.75em 1em; }
     code { padding: 0.15em 0.4em; }
-    pre, code { background: var(--code-bg, var(--wash)); color: var(--code-ink, inherit); }
+    pre  { background: var(--code-bg, var(--wash)); color: var(--code-ink, inherit); }
+    code { background: var(--wash); box-shadow: inset 0 0 0 1px var(--line); }   /* the hairline: --wash on a --wash floor (.app) vanished and the padding read as a space — remeasure-diff, 2026-08-17 */
     pre, code, kbd, samp, .code { font-family: var(--mono); }   /* kbd/samp are mono by meaning */
-    pre > code { padding: 0; background: none; }   /* already in a padded box */
+    pre > code { padding: 0; background: none; box-shadow: none; }   /* already in a padded box; the inline hairline must not ring the block — it read as a white rectangle on every dark `pre`, 2026-08-18 */
 
     /* ---- block elements the UA styles badly ----------------------------
        Generic HTML, so they belong to whoever styles HTML — not to the
@@ -351,7 +381,21 @@
     /* `min-width: 0` for the same reason `.flex-1` and `.basis` carry it: the
        flexbox default floors a child at its MIN-CONTENT, so one `<pre>` or one
        long word pushes the row wider than its container. */
-    .flex.auto > * { flex: 1 1 var(--column); min-width: 0; }
+    /* `--grow` defaults to 1, so every existing caller is byte-identical. It exists because
+       NO word could make a fluid track twice its neighbour — every flexible class sets
+       flex-grow: 1, so free space always split evenly and a 2:1 seam needed an inline
+       `flex: 2 1 30em`. The per-child `--column` workaround decays 2.00 → 1.17 across
+       400 → 3440 (measured, styles/layouts/wire/doc/bento.md). 2026-08-18.
+       ⚠ The BASIS scales too, and that is the whole trick: `flex-grow` divides only the FREE
+       space, so with one shared basis `--grow: 2` measured 1.58 / 1.69 / 1.80 at 1280 / 1920 /
+       3440 — not 2, and drifting with width. Scaling the basis by the same factor holds exactly
+       2.00 at every width. Caught same-night by the homepage minion; the first version shipped
+       with a comment that was simply false.
+       ⚠ CONSEQUENCE: because the basis scales too, a weight also moves the WRAP threshold — a row
+       breaks when `--column x --grow` SUMMED over its tracks no longer fits. So express weights
+       near 1 (`0.8`, `1.4`), never as the smallest integer pair: `4`/`5` for a 0.8 seam is
+       16em x 9 = 144em of basis and stacks at every width. */
+    .flex.auto > * { flex: var(--grow, 1) 1 calc(var(--column) * var(--grow, 1)); min-width: 0; }
     /* `min-width: 0` because the flexbox default is `auto`, which floors a child at its
        MIN-CONTENT — so one `<pre>` or one long word in a flexible track pushes the row
        wider than its container instead of shrinking. `.basis` below already carried it;
@@ -392,7 +436,7 @@
        utility is supposed to replace.
        Additive on purpose: `.measure` has eight call sites that DO want centring
        (the section band vocabulary), so the default stands and the exception is
-       spelled. Whether the default is the right way round is Mike's call —
+       spelled. Whether the default is the right way round is the owner's call —
        see styles/rules/readme.md. */
     .measure.start { margin-inline: 0; }
 
@@ -564,5 +608,5 @@
 
     /* After `:visited`, not before — both are `(0,1,1)`, so hover only wins by
        being later, and a visited link has to be able to light up again. */
-    :where(p, li, td, th, dd, blockquote, .md) a:hover { color: var(--prim); }
+    :where(p, li, td, th, dd, blockquote, .md) a:hover { color: var(--prim-ink); }
 }

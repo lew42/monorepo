@@ -20,7 +20,7 @@ region's width: the file browser went from 781px to 1187px.
 
 ## Where tabs are right
 
-A page with no prose of its own that exists to arrange its children. [`Doc`](/framework/ext/doc/)
+A page with no prose of its own that exists to arrange its children. [`Doc`](/framework/ext/Doc/)
 is that page twice over — a horizontal set of groups, and a vertical rail of
 members inside each — and today it is the only **functional** caller in framework
 code: `Doc.js` is the one place `this.tabs()` is actually invoked outside this

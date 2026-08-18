@@ -24,7 +24,7 @@ exists to offer. What went with the change: `container-type`, an
 `max-height: 26em`s and four `min-width: 0`s. Every one of them was answering a
 sizing question a panel answers by construction.
 
-Mike's scope call, the same day: **every caller**, not just `ext/doc`'s Files
+The owner's scope call, the same day: **every caller**, not just `ext/Doc`'s Files
 tab. Keeping the flex version for `/framework/start/` would have left two ways
 to spell one browser for the sake of one page's chrome.
 

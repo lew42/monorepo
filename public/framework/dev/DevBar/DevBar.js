@@ -3,6 +3,7 @@ import { tabs } from "./tools.js";
 import { restore, set, settings } from "./settings.js";
 import { reclaim } from "../Claim/claim.js";
 import grip from "./grip.js";
+import width from "./width.js";
 
 View.stylesheet(import.meta, "devbar.css");
 
@@ -21,24 +22,31 @@ export default function devbar(a){
 	app = a;
 
 	$bar = div.c("dev-bar flex v", () => {
-		div.c("dev-head flex v-center", () => {
-			span.c("dev-title", "dev");
-			span.c("dev-hint", "ctrl + \\");
+		// The width line is in the HEAD, not on a tab: it is the one piece of state
+		// every tab's content depends on, and the four buttons that set it used to
+		// live on a different screen from the readout. width.js says why.
+		div.c("dev-head flex v", () => {
+			div.c("dev-head-line flex v-center", () => {
+				span.c("dev-title", "dev");
+				span.c("dev-hint", "ctrl + \\");
 
-			// ⚠ The global IS the state — Socket reads it live — and this is the one
-			// knob deliberately not persisted through settings.js. Why: readme.md.
-			label.c("dev-knob", () => {
-				const $box = input().attr("type", "checkbox")
-					.on("change", function(){ window.$BLOCKRELOAD = this.el.checked; });
+				// ⚠ The global IS the state — Socket reads it live — and this is the one
+				// knob deliberately not persisted through settings.js. Why: readme.md.
+				label.c("dev-knob", () => {
+					const $box = input().attr("type", "checkbox")
+						.on("change", function(){ window.$BLOCKRELOAD = this.el.checked; });
 
-				if (window.$BLOCKRELOAD) $box.attr("checked", true);
-				span("block");
-			}).attr("title", "Block live reload — window.$BLOCKRELOAD");
+					if (window.$BLOCKRELOAD) $box.attr("checked", true);
+					span("block");
+				}).attr("title", "Block live reload — window.$BLOCKRELOAD");
 
-			button.c("dev-x", "✕")
-				.attr("title", "Close (Ctrl + \\)")
-				.attr("aria-label", "Close the dev rail")
-				.click(() => toggle(false));
+				button.c("dev-x", "✕")
+					.attr("title", "Close (Ctrl + \\)")
+					.attr("aria-label", "Close the dev rail")
+					.click(() => toggle(false));
+			});
+
+			width(app);
 		});
 
 		$tabs = div.c("dev-tabs flex");
@@ -47,7 +55,7 @@ export default function devbar(a){
 		grip();
 	});
 
-	// ⚠ Dev chrome, not the page: ext/LayoutTool's probe skips anything marked
+	// ⚠ Dev chrome, not the page: ext/DesignTool's probe skips anything marked
 	// this, so the rail never turns up in a measurement of the page beside it.
 	$bar.attr("data-layout-ignore", "");
 
@@ -76,7 +84,7 @@ export default function devbar(a){
  * makes it a lie. App calls this from `navigated()` — Router's documented seam.
  *
  * ⚠ Only the open tab renders. That is what keeps `layout` from downloading
- * ext/LayoutTool and measuring the page on every navigation of every session. */
+ * ext/DesignTool and measuring the page on every navigation of every session. */
 devbar.refresh = function(){
 	if (!open()) return;
 

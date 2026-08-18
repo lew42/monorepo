@@ -396,7 +396,7 @@ latency        round 1      round 2 (after the changes)     model RTT + 16
 The canonical number is unmoved. Permanent home: /budget/ladder/.`,
 			"the depth ladder, re-fitted");
 
-		section("Requests to Master Mike");
+		section("Requests to the owner");
 
 		code(`
 R1  Page.forget()               3 lines, opt-in     measured flat vs +5 nodes/url

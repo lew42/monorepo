@@ -49,7 +49,7 @@ export function two(fn, opts = {}){
 	   a pane always fills: the stage's width buttons cap at 1:1 because a phone in a
 	   wide page should not be magnified, but here the two panes ARE the stage, and a
 	   390 screen drawn at 390 in a 744 pane left the pair floating off the ground's
-	   left and right edges as the handle moved — which reads as a bug (Mike, 2026-08-15).
+	   left and right edges as the handle moved — which reads as a bug (the owner, 2026-08-15).
 	   The readout still prints the width and the factor, so the magnification is stated.
 	   ⚠ Both rooms are read BEFORE either pane is written: interleaved, the second
 	     read re-lays-out the document the first write just dirtied. */

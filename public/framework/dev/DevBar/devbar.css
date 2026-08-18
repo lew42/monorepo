@@ -1,6 +1,3 @@
-/* Restated IN FULL — a short list silently misplaces `site`. */
-@layer base, theme, site, util;
-
 @layer theme {
 
 	/* The rail's width lives here once. `--devbar` is what the shell reserves at its
@@ -34,13 +31,21 @@
 	html.dev-open .dev-bar { transform: none; }
 
 	/* The head is pinned and the body scrolls under it — a rail whose ✕ scrolls away
-	   is a rail you cannot shut. */
+	   is a rail you cannot shut. Two lines: the title row, and the page's width. */
 	.dev-head {
 		flex: 0 0 auto;
 		gap: 0.5em;
 		padding: 0.7em 0.9em;
 		border-block-end: 1px solid var(--line);
 	}
+	.dev-head-line { gap: 0.5em; }
+
+	/* The four presets and the number they promise, together — they were on different
+	   screens, in different units, 272px apart (width.js). The reading is the fixed
+	   part; the buttons divide what is left. */
+	.dev-width { gap: 0.5em; }
+	.dev-width > .dev-sizes { flex: 1 1 auto; min-width: 0; }
+	.dev-width-val { flex: 0 0 auto; color: var(--subtle); font-variant-numeric: tabular-nums; }
 	.dev-title { font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--prim); }
 	/* The slack in the head, so everything after it rides the inline end.
 	   ⚠ `flex-grow`, NOT the `margin-inline-end: auto` that stood here and never
@@ -60,7 +65,7 @@
 	/* One row of tabs, pinned like the head. The rail is a 17rem column and its
 	   sections are long, so what is not on screen is not scrolled past — it is not
 	   built. ⚠ Which also makes the `layout` tab the gate on downloading and running
-	   ext/LayoutTool at all (DevBar.js). */
+	   ext/DesignTool at all (DevBar.js). */
 	.dev-tabs { flex: 0 0 auto; gap: 0.35em; padding: 0.5em 0.9em 0; }
 
 	.dev-tab {
@@ -129,18 +134,40 @@
 	.dev-thread-new { display: flex; align-items: center; padding-inline: 0.35em; }
 	.dev-thread-new .icon { font-size: 1rem; }
 
-	/* LayoutTool's verdict, in a 17rem column — the rows carry the numbers and one
-	   block carries each finding. Everything here is emitted by `layout.js`. */
+	/* DesignTool's verdict — ONE screen, everything emitted by `layout.js`. The full
+	   report used to replace this readout in place, with no way back that said so; it
+	   is a page component and lives on the two pages with room for it.
+
+	   One column in a 17rem rail, two in one dragged wide — `flex-wrap` and a basis,
+	   which is the same two places above the threshold and one below with no
+	   breakpoint written down. ⚠ `min-width: 0` is not optional: the monospace detail
+	   lines keep a content-based minimum and will not shrink without it. */
 	.dev-layout { gap: 0.5em; }
-	.dev-layout-out { gap: 0.35em; }
+	.dev-layout-out { gap: 0.9em; }
+	.dev-layout-out > * { flex: 1 1 20em; min-width: 0; }
+	.dev-stats { gap: 0.35em; }
+	.dev-findings { gap: 0.5em; }
+	/* Two statements, not one sentence — what is BROKEN and how GOOD it is, which
+	   disagree on purpose. The census uses `·` internally, so a neighbour separated by
+	   a space read as more of the same list. */
+	.dev-verdict { gap: 0.4em; }
+	.dev-verdict > * { padding-inline: 0.4em; background: var(--wash); border-radius: var(--radius); }
 
 	/* What is being measured — `.app`, or the panel that was clicked, with the way
-	   back to the page beside it. */
+	   back to the page beside it. The glyph is the only one on the screen, so the
+	   line stops reading as one more diagnostic. */
 	.dev-target > .dev-val { flex: 1 1 auto; min-width: 0; }
 	.dev-target > button { flex: 0 0 auto; padding: 0 0.5em; font: inherit; }
+	.dev-glyph { flex: 0 0 auto; color: var(--prim); }
 
 	.dev-layout-acts { gap: 0.35em; }
 	.dev-val.bad { color: var(--error); }
+
+	/* ⚠ A READING THAT IS KNOWN TO BE WRONG MUST NOT LOOK LIKE THE ONES BESIDE IT.
+	   `measure` reads card captions rather than prose and `contrast` is set by a single
+	   outlier; both need a band re-derived. The sentence is on the band itself
+	   (`taste/ranges.js`) and arrives as the title. */
+	.dev-suspect { text-decoration: underline dotted var(--warn); text-underline-offset: 0.2em; cursor: help; }
 
 	.dev-issue {
 		gap: 0.1em;
@@ -148,13 +175,23 @@
 		border-block-start: 1px solid var(--line);
 	}
 
+	/* THE SELECTED FINDING IS THE EXPANDED ONE, and `dt-aimed` is the whole state —
+	   ext/DesignTool's own class (highlight.js), set by the same click that holds the
+	   ring on the page, so the rail cannot disagree with what is ringed.
+	   ⚠ `display` here rather than a `flex` utility class in the JS: the utilities are
+	     `@layer util`, which beats every rule in this file, so `display: none` written
+	     against one would never take. */
+	.dev-more { display: none; }
+	.dev-issue.dt-aimed .dev-more {
+		display: flex; flex-direction: column; gap: 0.35em;
+		padding-block-start: 0.35em;
+	}
+	.dev-fix { color: var(--prim); overflow-wrap: anywhere; }
+
 	/* The rail is a column, not a page: ext/Ask's 30em transcript would bury every
-	   section under it, and the input is the half that has to stay on screen.
-	   LayoutTool's full report is docked the same way — a selector written for a
-	   page has to break mid-word in a rail. */
-	.dev-bar .chat-list { max-height: 14em; }
+	   section under it, and the input is the half that has to stay on screen. */
+	.dev-bar .chat-list { max-height: none; }
 	.dev-bar .chat-form { flex-direction: column; align-items: stretch; }
-	.dev-bar .lt-report { overflow-wrap: anywhere; }
 
 	/* The resize edge is grip.css, loaded by grip.js beside it. */
 
@@ -163,5 +200,27 @@
 	   the thing drawing the boxes. */
 	html.dev-outline body :not(.dev-bar, .dev-bar *) {
 		outline: 1px solid color-mix(in srgb, var(--prim) 35%, transparent);
+	}
+
+	/* ⚠ BELOW 34em THE RAIL IS A BOTTOM SHEET, because a side rail there does not
+	   squeeze the page — it COVERS it. 17rem is 70% of a 390px window, and `.app`
+	   declines to push at all at that width (the `--rail-floor` guard, settings.js),
+	   so the tool sat on top of 70% of what it was measuring and every ring it drew
+	   landed underneath itself. 45dvh leaves the top of the page, which is where a
+	   ring can land; `highlight.js` scrolls a held target to `start` rather than
+	   `center` at the same threshold, or it lands under the sheet.
+	   ⚠ And the shell reserves NOTHING at the inline end here: a preset click clears
+	     `--rail-floor` for the rest of the session, so without this the page would be
+	     squeezed by a rail that is no longer beside it. */
+	@media (width < 34em) {
+		html.dev-open { --devbar: 0px; }
+
+		.dev-bar {
+			inset: auto 0 0 0;
+			width: auto; height: 45dvh;
+			border-inline-start: 0;
+			border-block-start: 1px solid var(--line);
+			transform: translateY(100%);
+		}
 	}
 }

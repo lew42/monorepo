@@ -30,4 +30,4 @@ reset(){
 
 Forgetting it fails silently in exactly one scenario — a reset log doubling its
 agent rows — which is why it lives next to the verbs trap in
-[task-jsonl](/framework/ext/JSONL/docs/task-jsonl/).
+[task-jsonl](/framework/ext/JSONL/doc/task-jsonl/).

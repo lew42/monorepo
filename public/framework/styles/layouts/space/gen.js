@@ -1,4 +1,4 @@
-import { AUTHOR } from "/framework/ext/LayoutTool/taste/ranges.js";
+import { AUTHOR } from "/framework/ext/DesignTool/taste/ranges.js";
 import { SHAPES, CLAIM, COUNTS, DEPTHS, INNER, TONES } from "./model.js";
 import { draws } from "./draw.js";
 
@@ -11,7 +11,7 @@ import { draws } from "./draw.js";
  *     gen(7, { depth: 3, chaos: 0.4 })    // …and 40% of the way to uniform noise
  *
  * Every structural draw comes from `model.js` and every size from the rulebook's
- * `AUTHOR` bands (`ext/LayoutTool/taste/ranges.js`) — the same table `taste.rate()`
+ * `AUTHOR` bands (`ext/DesignTool/taste/ranges.js`) — the same table `taste.rate()`
  * grades the result against. `chaos` is the distance from that model: 0 is strictly
  * on it, 1 is uniform over everything the format can say.
  *
@@ -40,20 +40,31 @@ export function roll(seed, opts = {}){
 	const fit = o.fit ?? d.pick({ screen: 3, page: 2 });
 	const choices = { seed, fit, depth: max, chaos: o.chaos ?? 0 };
 
+	// The five scalar keys above are the credited ones — `search.js`'s `credit()`
+	// groups by them and round-3/4 data stays parseable against those names. Every
+	// draw below is ALSO logged into an array on `choices`, one entry per draw
+	// (a roll makes several of most of these) — `credit()` skips them (it only
+	// groups scalars), so this is raw material for a future credit pass, not a
+	// change to today's one. ai/2026-08-17/loss-budget/.
+	const author = (key, range) => { const v = d.em(range); (choices.author ??= []).push({ key, em: v }); return v; };
+	const drawRole = role => { const v = d.role(role); (choices.roles ??= []).push({ role, part: v }); return v; };
+	const drawDepth = cap => { const v = d.level(DEPTHS, cap); (choices.depths ??= []).push(v); return v; };
+	const drawInner = role => { const v = d.pick(INNER[role]); (choices.inner ??= []).push({ parent: role, child: v }); return v; };
+
 	const out = [];
 	const line = (at, text) => { if (out.length < CAP) out.push("  ".repeat(at) + text.replace(/\s+/g, " ").trim()); };
 
-	line(0, `full ${fit === "screen" ? "fill " : ""}flex v --pad:${d.em(AUTHOR.pad)} --gap:${d.em(AUTHOR.gap)}`);
+	line(0, `full ${fit === "screen" ? "fill " : ""}flex v --pad:${author("pad", AUTHOR.pad)} --gap:${author("gap", AUTHOR.gap)}`);
 
-	if (d.odds(0.85)) line(1, `${tone(d)} > ${choices.masthead = d.role("masthead")}`);
+	if (d.odds(0.85)) line(1, `${tone(d, choices)} > ${choices.masthead = drawRole("masthead")}`);
 
 	const shape = SHAPES[choices.shape = d.pick(weights(SHAPES, fit))];
 	const tracks = shape.vary ? d.some(shape.tracks) : shape.tracks;
 
 	line(1, `flex ${shape.dir === "v" ? "v" : "wrap"} gap flex-1${fit === "screen" ? " scroll" : ""}`);
-	tracks.forEach(role => block(2, role, d.level(DEPTHS, max), shape.dir, true));
+	tracks.forEach(role => block(2, role, drawDepth(max), shape.dir, true));
 
-	if (d.odds(0.55)) line(1, `${tone(d)} > ${choices.foot = d.role("foot")}`);
+	if (d.odds(0.55)) line(1, `${tone(d, choices)} > ${choices.foot = drawRole("foot")}`);
 
 	return { text: out.join("\n"), choices, seed };
 
@@ -63,7 +74,7 @@ export function roll(seed, opts = {}){
 	   ⚠ Only a TOP-LEVEL track declares a tone. `--tone` inherits, so a subtree
 	     deepens one colour rather than turning into a rainbow. */
 	function block(at, role, depth, dir, top){
-		const paint = top ? tone(d) : "tone";
+		const paint = top ? tone(d, choices) : "tone";
 
 		if (role === "stack") return column(at, depth, paint);
 
@@ -82,14 +93,14 @@ export function roll(seed, opts = {}){
 		// its neighbour is flat, which is the uneven mix a real page is. A flat
 		// `depth − 1` fills the whole tree and every roll looks the same.
 		for (let i = 0, n = d.count([2, 3]); i < n; i++)
-			block(at + 1, d.pick(INNER[role]), d.level(DEPTHS, depth - 1), inner, false);
+			block(at + 1, drawInner(role), drawDepth(depth - 1), inner, false);
 	}
 
 	// The one composite: a bar over a body, inside a row. `presets.shell` is the
 	// shape, and it is the one thing a row of tracks cannot say.
 	function column(at, depth, paint){
 		line(at, `flex v gap fluid ${paint}`);
-		line(at + 1, `> ${d.role("masthead")}`);
+		line(at + 1, `> ${drawRole("masthead")}`);
 		block(at + 1, "main", Math.max(0, depth - 1), "v", false);
 	}
 
@@ -107,15 +118,21 @@ export function roll(seed, opts = {}){
 		/* ⚠ A measure follows the PART, not the role. `sections` is prose wherever it
 		   lands, and a `main` track holding it is a reading column whether the model
 		   called it one — measured at 1920 without this: 117 characters a line, from a
-		   generator whose own rulebook says 68. */
+		   generator whose own rulebook says 68.
+		   ⚠ TESTED AND REVERTED (`ai/2026-08-17/loss-budget/`): gating the incidental
+		     `PROSE.test(drawn)` match to `dir === "v"` only — so a `main`/`wall` leaf
+		     inside a ROW shape would go fluid instead of capping — was worth +28% of
+		     the width-used gap on paper. Measured: FIT mean −0.13 (−0.30 SE), HELD mean
+		     −0.22 (−0.63 SE), p10 −1/-0 — a real regression, not noise-in-the-good-
+		     direction. `measure` cost more than `width-used` gained. Left as written. */
 		const measure = leaf && (kind === "measure" || PROSE.test(drawn))
-			? `flow measure start --measure:${d.em(AUTHOR.measure)}` : "";
+			? `flow measure start --measure:${author("measure", AUTHOR.measure)}` : "";
 
 		if (dir === "v") return measure;
 		if (measure) return `${measure} fluid scroll`;
 		if (!leaf || kind === "fluid" || kind === "full" || kind === "measure") return "fluid";
 
-		return `basis --basis:${d.em(AUTHOR[kind])}${role === "aside" ? " stick" : ""} scroll`;
+		return `basis --basis:${author(kind, AUTHOR[kind])}${role === "aside" ? " stick" : ""} scroll`;
 	}
 
 	/* A band pads more than a card does — and every leaf says so ITSELF, because
@@ -123,16 +140,19 @@ export function roll(seed, opts = {}){
 	   inside it too, which the rulebook rates as badly over-padded: measured, that one
 	   cascade cost nine points of mean fitness across a sweep. So a top-level track
 	   claims the band inset and every leaf under it reclaims a card's. */
-	function inset(top){ return `--pad:${d.em(top ? AUTHOR.bandpad : AUTHOR.pad)}`; }
+	function inset(top){ return `--pad:${author(top ? "bandpad" : "pad", top ? AUTHOR.bandpad : AUTHOR.pad)}`; }
 
 	function part(role){
-		return `${d.role(role)} ${d.count(COUNTS[role] ?? COUNTS.main)}`;
+		const drawn = drawRole(role);
+		const n = d.count(COUNTS[role] ?? COUNTS.main);
+		(choices.counts ??= []).push({ role, n });
+		return `${drawn} ${n}`;
 	}
 }
 
 export const gen = (seed, opts) => roll(seed, opts).text;
 
-const tone = d => `tone --tone:${d.pick(TONES)}`;
+const tone = (d, choices) => { const v = d.pick(TONES); (choices.tones ??= []).push(v); return `tone --tone:${v}`; };
 
 /* `fit` bends the shape draw, and that is the whole difference between the two kinds
  * of thing this generator is asked for. A FIXED area — a panel, a card, a dashboard

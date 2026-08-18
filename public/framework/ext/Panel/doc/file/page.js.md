@@ -2,7 +2,7 @@
 
 The module's own reader's-introduction, and the one file in this directory
 that is not code any other module imports. Built on `Doc` — see
-`/framework/ext/doc/` for what the six sections it derives are.
+`/framework/ext/Doc/` for what the six sections it derives are.
 
 ## The `/full/` route is a second door, not a second document
 
@@ -16,7 +16,7 @@ route(name){
 the filesystem probe find nothing named `full`. Calling `workspace()` again
 here opens a **second live mount of the same `/data/panels.json` document**;
 it is not a separate variant page. See the open item on multiple mounts in
-[Decisions](/framework/ext/Panel/docs/decisions/).
+[Decisions](/framework/ext/Panel/doc/decisions/).
 
 ## The live workspace is not wrapped in `demo()`
 
@@ -71,6 +71,17 @@ is hard-coded rather than rolled so the page reads the same on every load — th
 seed with a topbar, a rail, a hero, a changelog, a toc *and* a footer, which is
 every furniture template and four bands in one shot. A rolled demo would
 sometimes be a two-panel stack and would make the caption a lie.
+
+## The gesture table grew with the module, not around it
+
+The 2026-08-16 wave (`tools.js`, `split.js`, `insert.js`, `text.js`,
+`display.js`) added three rows rather than a second table or a new demo
+block, because the live `workspace()` embed at the top of the page already
+renders every one of them — `TOOLS`, `SPLIT`, `INSERT`, `TEXT` and `DISPLAY`
+all default to on. A table row is a pointer into a surface that is already
+live, not a description of one that has to be taken on faith. `split(dir)`
+and `mirror(of)` joined the `divide()`/`close()` code block the same way —
+named beside the verbs they extend, not demonstrated in a fourth demo.
 
 ## Improvements
 

@@ -17,7 +17,7 @@ things worth knowing:
 
 - **It also makes `link()` work while the page is dormant.** A url derived at
   construction means an imported-but-never-rendered page is already linkable.
-- It is kept on the instance after `naming()` runs, and `ext/doc` and `md.file`
+- It is kept on the instance after `naming()` runs, and `ext/Doc` and `md.file`
   both use it to resolve sibling files (`doc/method/x.md`, `readme.md`) — which is
   the same trap in a second costume: **resolve module-relative urls against
   `import.meta`, never the document.**

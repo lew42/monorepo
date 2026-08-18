@@ -20,7 +20,7 @@ export default new Doc({
 
 	properties: "el capture tag classes name parent captor previous_captors stylesheets supports_sanitizer",
 
-	notes: "capturing lifecycle",
+	notes: "capturing lifecycle decisions",
 
 	files: "View.js page.js readme.md",
 
@@ -82,6 +82,6 @@ export default new Doc({
 
 		md("Next: [Page](/framework/core/Page/) — a title, a url, and a place in a tree.");
 
-		md.details(import.meta, "readme.md", "Design record — capture, and what should be deleted");
+		md.details(import.meta, "readme.md", "Readme");
 	},
 });

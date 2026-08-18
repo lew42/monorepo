@@ -17,7 +17,7 @@ working tree away from never having existed.
 | files | 8 (`Panel.js`, `PanelDrag.js`, `page.js`, `panel.css`, `readme.md`, `templates.css`, `templates.js`, `workspace.js`) |
 | lines of JS / CSS | 524 / 248 |
 | callers | 2 real importers — `ext/editor` (`/framework/ext/editor/`, builds its whole shell from `workspace`+`Panel`) and `framework/page.js` (`/framework/`, embeds one `panel("clock")` leaf) — plus a declared-child registration in `ext/page.js`'s `children:` list, which is what puts this module at its own url |
-| docs before | `readme.md` present but 203 lines — a conceptual overview followed by the *entire* design record inline (eight worked decisions, three "kept with dissent" entries, an open-for-Mike list), three screens against the skill's one. `page.js` was a plain `new Page({...})`: prose and code blocks, no `Doc`, no members list, no Files tab. Zero `doc/*.md` files existed. |
+| docs before | `readme.md` present but 203 lines — a conceptual overview followed by the *entire* design record inline (eight worked decisions, three "kept with dissent" entries, an needs-a-decision list), three screens against the skill's one. `page.js` was a plain `new Page({...})`: prose and code blocks, no `Doc`, no members list, no Files tab. Zero `doc/*.md` files existed. |
 | docs after | `readme.md` rewritten to 108 lines: conceptual overview, shape, a one-paragraph Templates summary, condensed Decisions (linked out), the three traps, a new "Who uses this" section, condensed Open. `page.js` rewritten as `new Doc({ subject: Panel, properties: "defaults", methods: "get leaf divide close absorb", notes: "decisions templates", files: … })`. 16 new `doc/*.md` files: 2 notes (`decisions.md`, `templates.md`), 8 file docs (one per module file, `readme.md.md` included), 5 method docs, 1 property doc. |
 
 ## What I changed
@@ -47,9 +47,9 @@ working tree away from never having existed.
   permanent home instead of living only in a dated task log.
 - Fixed nine internal cross-links that pointed at raw `doc/*.md` relative
   paths from inside *live-rendered* pages (file docs, method docs) — those
-  need the routed url (`/framework/ext/Panel/docs/decisions/`), not a
+  need the routed url (`/framework/ext/Panel/doc/decisions/`), not a
   filesystem path; only `readme.md` itself should use the relative form.
-  Caught by rereading against `ext/doc`'s own doc files, which showed the
+  Caught by rereading against `ext/Doc`'s own doc files, which showed the
   convention split in the wild before I'd have found it any other way.
 - No `.js` behavior file was touched. No `classdoc` references found in this
   directory.
@@ -163,7 +163,7 @@ Other friction, in descending order:
 
 - **Whether `readme.md` itself needs a `doc/file/readme.md.md`.** The skill
   says "one for every file in the module (never for `doc/` or `ai/`)" — I
-  had to go verify against `ext/doc`'s own directory (it has
+  had to go verify against `ext/Doc`'s own directory (it has
   `doc/file/readme.md.md`) to confirm `readme.md` counts as "a file in the
   module" rather than being implicitly exempt as documentation-about-itself.
   Worth stating explicitly, since it's the one file whose exemption is most
@@ -173,7 +173,7 @@ Other friction, in descending order:
   `[Name](../decisions.md)`-style examples never appear at all — I only
   found the real rule (relative `.md` paths inside `readme.md`; routed
   `/module/docs/name/` urls inside anything served through `md.file`, i.e.
-  every `doc/*.md`) by grepping `ext/doc`'s own doc files for their internal
+  every `doc/*.md`) by grepping `ext/Doc`'s own doc files for their internal
   cross-links and reverse-engineering the pattern. Nine links in my first
   draft were wrong because of this. A single sentence in the skill's "doc/
   file" or "notes" section would have prevented all nine.

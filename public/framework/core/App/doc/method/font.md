@@ -30,4 +30,4 @@ class triggers.
 
 The unresolved part is not this method: both registered faces are
 `fonts.gstatic.com` urls, the one place in the framework that breaks the "vendor
-the dependency" rule. [fonts](/framework/core/App/docs/fonts/).
+the dependency" rule. [fonts](/framework/core/App/doc/fonts/).

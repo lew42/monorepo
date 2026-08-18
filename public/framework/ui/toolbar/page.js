@@ -29,6 +29,18 @@ const group = () => div.c("flex wrap gap", () => {
 	}).style("--gap", "0.15em");
 });
 
+const heading = () => div.c("surface pad flex wrap gap v-center split", () => {
+	div.c("flex v", () => {
+		div.c("h4 muted", "Core");
+		div.c("h3", "View");
+	});
+
+	div.c("flex v-center gap", () => {
+		button("Discard");
+		button.c("prim", "Publish");
+	}).style("--gap", "0.3em");
+});
+
 export default new Page({
 	meta: import.meta,
 	title: "Toolbar",
@@ -36,6 +48,9 @@ export default new Page({
 	icon: "tune",
 
 	children: [
+		demo.page("title", heading, {
+			note: "The other bar every app has: what you are looking at on one side, what you can do to it on the other. **This one wants `split`, not `flex-1`** — two groups and no field to absorb the slack, so `space-between` is exactly the right sentence. The rule below is about the three-group bar, not this one." }),
+
 		demo.page("group", group, {
 			note: "`0.3em` for labelled buttons, `0.15em` for icon ones. A *joined* segmented control is the one thing here that would need real CSS — a negative margin and corner suppression on the middle buttons — and it earns none: the theme already draws borderless buttons, so a tight gap reads as a group." }),
 	],

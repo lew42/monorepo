@@ -1,4 +1,4 @@
-318 lines — the longest file in the framework — carrying three jobs: the `Node`
+330 lines — the longest file in the framework — carrying three jobs: the `Node`
 drag class, the `editor()` widget (a closure over five region painters), and this
 Doc page. Every load-bearing decision already has a `⚠` comment in the source;
 this page is the map of where they are, not a restatement.

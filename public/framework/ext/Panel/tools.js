@@ -5,13 +5,19 @@ import { place } from "./toolbar.js";
 import { coalesce } from "./grip.js";
 
 /* The tools that sit ON a panel rather than in its bar — revealed by the same hover the
-   bar is, and each one behind a flag in `TOOLS` so a surface can be hidden later without
-   being unbuilt. Everything is on while the vocabulary is still being felt out
-   (Mike, 2026-08-16): "I want to see all the core tools for now."
-   css: .panel-align, .panel-tool, .panel-zoom. Record: readme.md. */
+   bar is. `TOOLS` holds the module DEFAULTS only; `vocab.js`'s `tools(item)` resolves the
+   live per-workspace flags, and each call here is gated at its one call site — `align_grid`
+   in `overlays.js`, `zoom_scrub` in `view()`. Everything
+   defaults on while the vocabulary is still being felt out (the owner, 2026-08-16): "I want to
+   see all the core tools for now." css: .panel-align, .panel-tool, .panel-zoom.
+   Record: readme.md. */
 View.stylesheet(import.meta, "tools.css");
 
 export const TOOLS = { align: true, zoom: true, inspect: true };
+
+// The four codes sitting on the very strip split.css's edge target claims too — a corner
+// gets to overlap it on purpose (split.css); these four back off it instead (tools.css).
+const EDGE_MID = ["tc", "cl", "cr", "bc"];
 
 /* Selecting a panel puts its words in the shared rail — which is the whole reason the rail
    was pulled out of ext/layout. `panel-focus` is the contract that already existed: a
@@ -23,8 +29,8 @@ export const TOOLS = { align: true, zoom: true, inspect: true };
    on deep reloads only. ⚠ Nothing is built by a bare factory after the `await`: every
    element lands inside an `empty()` callback, which re-establishes the captor. */
 document.addEventListener("panel-focus", async e => {
-	if (!TOOLS.inspect) return;
 	if (!e.detail) return drawer.refresh();
+	if (!(e.detail.root().tools?.inspect ?? TOOLS.inspect)) return;
 
 	const { fields } = await import("./properties.js");
 
@@ -53,14 +59,13 @@ document.addEventListener("panel-text", async e => {
    alignment inside its cell is just the code it carries and nothing computes a position;
    the grid's padding is what keeps a corner arrow off the corner. */
 export function align_grid(item, $body){
-	if (!TOOLS.align) return;
-
 	/* ⚠ The overlay itself never hit-tests — only the nine buttons do. It covers the whole
 	   body, so without that every click meant for the content under it would die here. */
 	const $grid = div.c("panel-align");
 
 	return $grid.append(() => ALIGN.forEach(code => {
 		button.c("panel-btn panel-tool", glyph(COMPASS[code], code))
+			.ac(EDGE_MID.includes(code) && "panel-tool-" + code)
 			.style({ "--tool-y": PLACE[code[0]], "--tool-x": PLACE[code[1]] })
 			.attr("title", "Align " + code)
 			.ac(item.get("align") === code && "on")
@@ -84,8 +89,6 @@ export function align_grid(item, $body){
    `zoom` genuinely changes the box.
    ⚠ It MULTIPLIES: 240px of travel doubles the zoom whether you started at 25% or 200%. */
 export function zoom_scrub(item, $body){
-	if (!TOOLS.zoom) return;
-
 	const at = () => parseFloat($body.el.style.zoom) || 1;
 	const set = factor => $body.style("zoom", Math.min(4, Math.max(0.1, factor)));
 

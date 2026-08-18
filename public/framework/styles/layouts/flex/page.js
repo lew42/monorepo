@@ -11,7 +11,7 @@ export default new Page({
 	title: "Flex",
 	description: "A row, and the eight one-word steps away from it.",
 	icon: "view_week",
-	group: "Vocabulary",
+	group: "Guides",
 
 	// Inline object children: nine real pages, nine urls, no directories. Each one
 	// draws its own card (word.js) and the wall below is those cards.

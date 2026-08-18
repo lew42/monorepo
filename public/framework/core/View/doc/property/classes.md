@@ -1,7 +1,7 @@
 Extra classes to add at construction, space-separated.
 
 **Usage** — read once, by `classify()` (`View.js:45`). Written by
-`ext/doc` for its member pages (`framework/ext/doc/Doc.js:39,65,101`
+`ext/Doc` for its member pages (`framework/ext/Doc/Doc.js:39,65,101`
 — `classes: "method"`, `"property"`, `"note"`), and by `Page` subclasses through
 `render()`'s `.ac(this.classes)`.
 

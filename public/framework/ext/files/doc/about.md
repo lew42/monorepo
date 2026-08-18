@@ -1,6 +1,6 @@
 # `about` — prose beside the source
 
-Added 2026-08-15 so a module's docs and its code can share one screen: `ext/doc`'s
+Added 2026-08-15 so a module's docs and its code can share one screen: `ext/Doc`'s
 Files tab passes `about: path => md.file(this.meta, "doc/file/" + path + ".md", { h1: false })`,
 and the pane shows what a file is *for*, beside what it *says*.
 
@@ -29,7 +29,7 @@ source's four and a half, with a **grip** between them. A reader who wants more
 prose drags for it, at any box width, without anyone having guessed a
 breakpoint. The one thing seeded rather than dragged is the axis — a column
 below 640px, a row above — because a split holds its axis at every width:
-[panels](/framework/ext/files/docs/panels/).
+[panels](/framework/ext/files/doc/panels/).
 
 The old reasoning for `flex: 0 1 24em` survives as the seed's proportions. The
 extra room on a wide screen still goes to the *source*, not the prose: a
@@ -57,7 +57,7 @@ silently.
 
 ## Who calls it
 
-- `ext/doc`'s Files tab (`Doc.browser()`) — every `Doc` module page. `{ h1: false }`
+- `ext/Doc`'s Files tab (`Doc.browser()`) — every `Doc` module page. `{ h1: false }`
   on the `md.file()` call drops the doc's own leading `<h1>`, since the file
   name is already the tree row.
 - This module's own Files tab — `files:` on this page.js makes it dogfood the

@@ -7,7 +7,7 @@ earns its place completely: this is not a module in question, it's opted in
 once (`app.js:141`) and reached by over sixty `page.js` files plus every
 fenced code block in every readme on the site. The single most important
 thing to do to it is **not in this directory**: documenting it with
-`subject: code` (the only honest choice available) makes `ext/doc`'s API tab
+`subject: code` (the only honest choice available) makes `ext/Doc`'s API tab
 render a literally malformed banner — `` an ext has patched `.lang` `` with
 the `code.` missing — on every method this module has. Independently
 confirmed by `ext-markdown.md`'s auditor hitting the same root cause from a
@@ -20,7 +20,7 @@ different subject; my repro adds a second, compounding bug specific to
 |---|---|
 | files | 12 (`highlight.js`, `highlight.css`, `example.js`, `page.js`, `readme.md`, `editor.md`, `hljs/core.min.js`, 5× `hljs/languages/*.min.js`) |
 | lines of JS / CSS | 335 / 118 (`highlight.js` 251 + `example.js` 6 + `page.js` 78 / `highlight.css` 118) — plus ~44 KB of vendored, never-edited hljs grammars |
-| callers | ~62 files call `code.*()` directly (framework-wide — near-default way a doc page shows code); 2 soft dependencies with no import (`ext/demo/demo.js`, `ext/files/files.js:64`); every fenced code block on the site, implicitly, via the two `View.prototype` hooks. Representative direct callers in `readme.md`'s new "Who uses this" table: `core/App/page.js`, `ext/doc/page.js`, `ext/markdown/page.js`, `styles/elements/code/page.js`, `ui/kbd/page.js`. |
+| callers | ~62 files call `code.*()` directly (framework-wide — near-default way a doc page shows code); 2 soft dependencies with no import (`ext/demo/demo.js`, `ext/files/files.js:64`); every fenced code block on the site, implicitly, via the two `View.prototype` hooks. Representative direct callers in `readme.md`'s new "Who uses this" table: `core/App/page.js`, `ext/Doc/page.js`, `ext/markdown/page.js`, `styles/elements/code/page.js`, `ui/kbd/page.js`. |
 | docs before | `readme.md` present and unusually good (142 lines, already broke `doc/choice.md` and `doc/hooks.md` out correctly). `page.js` was a plain `Page`, not a `Doc` — no API tab, no Files tab, no per-member `.md`. Zero files under `doc/method/`, `doc/property/`, `doc/file/`. No `classdoc` references found (nothing to fix there). |
 | docs after | `readme.md` restructured (~154 lines): new "The FILENAME label" section, new "Who uses this" section, a new `subject: code` Decision, a third breakout (`doc/chaining.md`, extracted from an inline SHARP EDGE section that ran ~35 lines). `page.js` rewritten as `new Doc({ subject: code, … })` with two new demos for the file label. 20 new files under `doc/`: 12 `doc/file/*.md` (6 of them the vendored hljs bundle, kept to 2-4 sentences each), 4 `doc/method/*.md`, 1 `doc/property/cache.md`, 1 new note (`doc/chaining.md`) alongside the 2 pre-existing ones. |
 
@@ -47,7 +47,7 @@ different subject; my repro adds a second, compounding bug specific to
 
 ## Recommendations
 
-1. **`ext/doc`'s API tab renders a broken sentence for every method this
+1. **`ext/Doc`'s API tab renders a broken sentence for every method this
    module has.** *(simple, important — bug, not this module's fix)* Two
    compounding gaps: `util/source/source.js:64`'s `patched(fn, name){ return
    fn.name !== name }` can't distinguish "an ext replaced this" from "an ext
@@ -58,7 +58,7 @@ different subject; my repro adds a second, compounding bug specific to
    function md(content){}` — a real declaration, `md.name === "md"`. `code`
    was built inside `View.elements()` as `fns[tag] = function(){ … }`
    (`core/View/View.js:417`) — also a member-expression assignment — so
-   `code.name` is **also** `""`. `ext/doc/Doc.js:207`'s `Doc.label = subject
+   `code.name` is **also** `""`. `ext/Doc/Doc.js:207`'s `Doc.label = subject
    => subject?.name ?? "the subject"` uses `??`, which only substitutes on
    `null`/`undefined` — not on `""` — so the fallback never fires and the
    banner prints `` an ext has patched `.lang` ``, missing the subject name
@@ -69,7 +69,7 @@ different subject; my repro adds a second, compounding bug specific to
    fns.code.lang.name;                          // ""
    fns.code?.name ?? "the subject";              // "" — not caught
    ```
-   *Cost:* a real fix belongs in `ext/doc`/`util/source` (out of this fence);
+   *Cost:* a real fix belongs in `ext/Doc`/`util/source` (out of this fence);
    the narrowest one is skipping `patched()`'s banner unless
    `Doc.is_class(subject)`, since only a class's *instances* have a prototype
    default for an assignment to shadow in the first place — the same
@@ -141,13 +141,13 @@ one from landing on the other.
 
 **The skill has no guidance for when `subject:` itself is the wrong shape
 for the available options, only for which of the three shapes to pick.**
-"Classes and non-classes alike" in `ext/doc/readme.md` presents `subject:
+"Classes and non-classes alike" in `ext/Doc/readme.md` presents `subject:
 View` / `subject: md` / `subject: ui` / no subject as parallel, freely
 interchangeable choices with no cost difference between them. They aren't:
 a subject built via `fns[tag] = function(){}` inside another module (my
 case) produces worse `Doc` output than one declared as
 `export default function md(){}` in its own file (the `ext-markdown` case),
-and neither the skill nor `ext/doc/readme.md` says a "function with
+and neither the skill nor `ext/Doc/readme.md` says a "function with
 properties" subject should be checked for how its *own* name was assigned
 before committing to `subject:` — I only found it by independently
 simulating the exact assignment shape in `node -e`, not by reading anything

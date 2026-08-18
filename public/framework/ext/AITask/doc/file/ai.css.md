@@ -1,13 +1,14 @@
 Layout only — every look (`surface`, `wash`, `muted`, the tone colors) comes
 from `framework.css`. Covers the log/replay shell, the dashboard's usage
-meters and pace gauge, the step checklist and segmented bars, the compose
-box, and the card list used by both the day dashboard and the index rail.
+meters and pace gauge, the step checklist and segmented bars, the screenshot
+wall, the compose box, and the card list used by both the day dashboard and
+the index rail.
 
 ## The list is a column, and the card spends the width
 
 `.ai-list` was `.ai-cards`, a `repeat(auto-fill, minmax(min(44em,100%),1fr))`
 grid that became three columns at 3440. It is now a flex column: one card per
-row (Mike, 2026-08-16), and the width goes into the card's own three regions
+row (the owner, 2026-08-16), and the width goes into the card's own three regions
 instead of a second track — at 3440 a card's outcome line stops clamping and
 reads whole. **`container-type: inline-size` had to come with it**: the card's
 own `@container (width < 44em)` stacking query measures this box, and dropping
@@ -19,7 +20,7 @@ it would leave every card three-columned inside a 34em rail.
 `⚠`-tagged comment recording a specific regression: a ragged row from an
 unclamped pill (`.ai-link`), a bleed inset that fell through because the rail
 used a different class than `catalog.css` expected, and a rail that read as
-its own scrollport to `LayoutTool` when it shouldn't have. Each is the kind of
+its own scrollport to `DesignTool` when it shouldn't have. Each is the kind of
 thing that would silently reappear on the next refactor without the note.
 
 ## The dot nudge is a `translate`, and that is not a style choice

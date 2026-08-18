@@ -38,4 +38,4 @@ and `eval --path` keep reporting where the tab *connected*. The announcement liv
 in the site's own file, not in `Router`: **core knows nothing about sockets**, by
 a decision that predates this hook, and `page.url` (not `location.pathname`) is
 what gets announced because `go()` pushes history only *after* the load succeeds.
-Protocol: [wire](/framework/dev/Socket/docs/wire/).
+Protocol: [wire](/framework/dev/Socket/doc/wire/).

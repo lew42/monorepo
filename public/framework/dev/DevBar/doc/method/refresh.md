@@ -30,7 +30,7 @@ event** — so a one-second drag builds sixty of them. The section carries its
 own generation counter for exactly this: only the newest readout's timer,
 observer and import callback do any work, and the other fifty-nine notice they
 have been replaced and stop.
-[Measuring](/framework/dev/DevBar/docs/measuring/) has the mechanism. Anything
+[Measuring](/framework/dev/DevBar/doc/measuring/) has the mechanism. Anything
 else added to `sections` that costs more than reading a value should assume the
 same treatment, or debouncing this listener stops being optional.
 

@@ -48,6 +48,7 @@ export default new Doc({
 	description: "The house theme — Montserrat, one orange, and a sidebar that reads its ink from a token.",
 	icon: "brush",
 	files: "page.js lew42.css lew42.js readme.md",
+	notes: "decisions",
 	content(){
 
 		/* No font call here any more. It used to live on this page, because 166KB
@@ -102,6 +103,6 @@ export default new Doc({
 
 		md("Next: [util](/framework/styles/layers/util/) — the opt-in classes that mean you rarely write CSS at all.");
 
-		md.details(import.meta, "readme.md", "Design record — the Figma port, and what didn't fit");
+		md.details(import.meta, "readme.md", "Readme");
 	}
 });

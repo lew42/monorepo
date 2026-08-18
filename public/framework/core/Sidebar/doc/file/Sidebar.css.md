@@ -1,7 +1,7 @@
 One stylesheet, ~190 lines, one `@layer theme` block. Two component tokens —
 `--sidebar-bg` and `--sidebar-ink` — and every other colour in the file is
 `color-mix` off the ink, so a theme cannot set them inconsistently.
-[`tokens`](/framework/core/Sidebar/docs/tokens/) has the full derivation and
+[`tokens`](/framework/core/Sidebar/doc/tokens/) has the full derivation and
 why the active fill isn't `--wash`.
 
 ## No width, no position
@@ -9,14 +9,14 @@ why the active fill isn't `--wash`.
 The file sets `display: flex; flex-direction: column` and nothing about the
 panel's own size or placement — that is what lets the same component be a
 fixed rail, a flex `basis` child, or a sticky top bar, depending only on what
-contains it. [`placement`](/framework/core/Sidebar/docs/placement/).
+contains it. [`placement`](/framework/core/Sidebar/doc/placement/).
 
 ## One breakpoint, one behaviour
 
 Below `52em` the panel becomes the bar: `.sidebar-menu` goes from a plain flex
 column to an absolutely-positioned drop-down against the now-sticky bar. No
 JS, no resize listener — the button that opens it is always in the DOM, shown
-only by the media query. [`narrow`](/framework/core/Sidebar/docs/narrow/).
+only by the media query. [`narrow`](/framework/core/Sidebar/doc/narrow/).
 
 ## Two em traps, both about sizing text on the padded box
 
@@ -24,7 +24,7 @@ only by the media query. [`narrow`](/framework/core/Sidebar/docs/narrow/).
 inner `<span>`, never on the padded row — an `em`-valued `--gutter` resolves
 against whichever element uses it, so sizing and padding the same element
 measured two different pixel gutters from one custom property.
-[`comp`](/framework/core/Sidebar/docs/comp/).
+[`comp`](/framework/core/Sidebar/doc/comp/).
 
 ## Improvements
 

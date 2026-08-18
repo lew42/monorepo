@@ -1,54 +1,20 @@
-# framework/audit — design record
+# framework/audit — the 2026-08-15 doc audit: one report per module plus a ranked fix list. A dated snapshot, for whoever picks up a recommendation.
 
-A framework-wide documentation audit: one agent per module, one report per module,
-one ranked list of what to do about it.
+## Use
+Start at [Priorities](/framework/audit/overview/priorities/). A module's report is `doc/<core|ext|dev>-<Name>.md`, served as the Docs tab by `notes:`:
+```js /framework/audit/page.js
+notes: `core-View core-Page … ext-Ask`,   // → /framework/audit/doc/core-View/ …
+```
 
-## What it is
+## Watch out
+- Snapshot, not a standing page — a recommendation may already be done or rejected; check the module's own readme first, and delete this dir once the list is settled: [doc/decisions.md](./doc/decisions.md)
+- `modules/` is where the agents wrote and `doc/` is what the page serves — the same reports twice; only `doc/` is a url (`/framework/audit/modules/` 404s).
+- A note slug cannot hold `/`, so reports are `core-View`, not `core/View`; `AuditDoc.docs()` re-titles them for display only: [doc/file/page.js.md](./doc/file/page.js.md)
+- The headline finding: `file.js:N` citations rot silently — cite the method or selector, never a line: [Overview](/framework/audit/)
 
-On 2026-08-15 every module under `public/framework/` was read end to end by a
-dedicated agent, following the new [`documentation`](/framework/ext/doc/) skill —
-which was itself being tested by the exercise. Each agent rewrote its module's
-docs and filed a report. This directory is those reports plus the synthesis.
-
-It is a **snapshot, not a standing page.** It answers "what state were the docs in
-on 2026-08-15, and what did we decide to do." When the recommendations here are
-either done or rejected, this directory should be deleted, not maintained — a
-stale audit is worse than no audit, because it still reads as current.
-
-## The shape
-
-The reports are `doc/<slug>.md`, one per module, served as the **Docs** tab's left
-rail by `notes:`. Nothing new was built to render them: an audit report is prose
-that earned a url, which is exactly what a `Doc` note is.
-
-The Overview carries the synthesis — the cross-module priorities and the
-organization argument — because that is the part someone reads once rather than
-consults.
-
-## What the audit was asked
-
-Every agent answered the same eight questions (the brief is at
-`framework/ai/2026-08-15/doc-system/brief.md`, kept because the audit's inputs
-should be as browsable as its outputs):
-
-1. What is this module for, and does it earn its place?
-2. Does the `readme.md` open with a real conceptual overview?
-3. Does `page.js` **show** rather than tell, and are its variants browsable?
-4. Is there a `.md` for every file, every method, every property?
-5. Who actually uses it? (A module with no callers is itself the finding.)
-6. What should change in the code — ranked simple + important first?
-7. Which other module does a similar job, and could they be one thing?
-8. What is wrong with the `documentation` skill?
-
-Question 7 is the one Mike cared most about: `ext/editor`, `ext/Panel`,
-`ext/layout`, `dev/DevBar` and `ext/demo` are five names for what may be one idea,
-and the audit was the first time anyone read all five in the same week.
-
-## The fences
-
-An agent could write only `readme.md`, `doc/**/*.md` and `page.js` inside its own
-directory, plus its one report here. **No `.js` that is not a `page.js`, no `.css`,
-nothing outside its directory.** So every code change in this audit is a
-*recommendation*, written down and ranked, never applied by the agent that found
-it. Twenty-eight agents editing shared seams in parallel is a merge, not a
-refactor.
+## More
+- [Overview](/framework/audit/) · [Priorities](/framework/audit/overview/priorities/) · [Organization](/framework/audit/overview/organization/) · [Browsable](/framework/audit/browsable/) — computed from source, not typed
+- [`doc/decisions.md`](./doc/decisions.md) — the record: why a snapshot, the shape, the eight questions, the fences
+- Reports, one per module, each at `/framework/audit/doc/<slug>/`: core-View core-Page core-App core-Router core-Sidebar core-Item-List core-new · dev util styles ui · ext-doc ext-markdown ext-highlight ext-files ext-tabs ext-catalog ext-toc ext-demo ext-layout ext-Panel ext-editor ext-Saver ext-Draggable ext-DesignTool ext-AITask ext-JSONL ext-Timeline ext-Ask
+- [`doc/file/page.js.md`](./doc/file/page.js.md), [`doc/file/readme.md.md`](./doc/file/readme.md.md) — the Files tab
+- Files that matter: `page.js` (AuditDoc, re-titled slugs), `doc/*.md` (the thirty reports), `browsable/findings.json` (generated baseline)

@@ -6,7 +6,7 @@ import { Page, md, code } from "/app.js";
 export default new Page({
 	meta: import.meta,
 	title: "Layers",
-	description: "Four cascade layers, restated in full by every stylesheet — the one line the whole CSS strategy hangs on.",
+	description: "Four cascade layers, declared once in framework.css — the one line the whole CSS strategy hangs on.",
 	icon: "layers",
 
 	children: "base theme util site",
@@ -15,7 +15,7 @@ export default new Page({
 
 		code.css(`@layer base, theme, site, util;`);
 
-		md("One line, at the top of **every** stylesheet, **in full**. It is the whole conflict-resolution strategy: a later layer beats an earlier one at *any* specificity, so who wins is decided here, once, instead of by selector arms races.");
+		md("One line, in `framework.css` — which `app.js` loads first in every document, so nothing else restates it. It is the whole conflict-resolution strategy: a later layer beats an earlier one at *any* specificity, so who wins is decided here, once, instead of by selector arms races.");
 
 		this.previews();
 
@@ -23,7 +23,7 @@ export default new Page({
 
 		md("## Two traps that never throw");
 
-		md("**The first `@layer` statement fixes the order — and a name first seen *later* is appended at the END.** Which stylesheet loads first is decided by module import order, and imports hoist: `Page.css`'s `<link>` lands before `framework.css`'s. So one file stating a short list — `@layer base, theme, util;` — silently moves `site` past `util`, and the site starts beating utility classes with nothing in the console. That is why the line is restated in full, everywhere: the convention only has teeth if every copy agrees.");
+		md("**The first `@layer` statement in the document fixes the order — and a name first seen *later* is appended at the END.** `/app.js` loads `framework.css` and puts its `<link>` first in `<head>`, ahead of every stylesheet a module loaded during import — so framework.css's one line is the order for the whole document, and no other stylesheet declares one. A layer name outside `base theme site util` lands past `util` with nothing in the console.");
 
 		md("**Every rule must be inside a layer.** An unlayered rule beats *every* layer, at any specificity — a stray unlayered `.page` once defeated a four-class selector in a component file. There is no third trap; these two are the whole tax the layers charge.");
 

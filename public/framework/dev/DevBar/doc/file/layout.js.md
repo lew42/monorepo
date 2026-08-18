@@ -1,26 +1,20 @@
-The `layout` tab: [`ext/LayoutTool`](/framework/ext/LayoutTool/) run on the page
+The `layout` tab: [`ext/DesignTool`](/framework/ext/DesignTool/) run on the page
 the rail is sitting next to — or on the `ext/Panel` you last clicked — reported
-in 17rem. What is being measured, a grade, the severity counts, how wide, three
-ratios, three leading findings — plus `re-run`, `full report`, and a `follow the
-resize` knob.
+in 17rem. **One screen, one permanent control.** The target, the census, a taste
+grade, the weakest bands, three ratios and three leading findings; the selected
+one expands to carry its proposed declaration and `not a problem`, and `measure`
+runs it again.
 
 The second `dev` → `ext` import in the module, after `ask.js`, and the first one
 that is deferred rather than static.
 
-Full design: [measuring](/framework/dev/DevBar/docs/measuring/).
+Full design: [measuring](/framework/dev/DevBar/doc/measuring/).
 
-## The shape: one section, one readout, one generation counter
+## The shape: one readout, one generation counter
 
-`layout()` is the section — a knob and a container. `readout()` is everything
-inside that container, rebuilt whole whenever the knob flips, and `paint()` is
-the one line that connects them:
-
-```js
-const paint = () => $out.empty(readout);
-```
-
-`readout()` owns its `measure()`, its `report()` and its own generation number.
-Re-running is not a special path: `empty(readout)` again *is* a re-run.
+`layout()` is one container; `readout()` is everything inside it, and it owns its
+`measure()`, its observer and its own generation number. Re-running is not a
+special path: `empty(readout)` again *is* a re-run.
 
 ## `latest` / `mine` — only the newest readout measures, and only in the rail
 
@@ -29,13 +23,13 @@ const stale = () => mine !== latest || !$out.el.closest(".dev-body");
 ```
 
 The rail redraws on every navigation and on **every resize event**, so a
-one-second drag builds sixty readouts. Each one has a pending timer, and with
-the knob on, a `ResizeObserver` and a `panel-focus` listener as well. Without
-this check a drag would land sixty analyses at once, all of them painting views
-that had already been thrown away — and the observers would never stop, because
-nothing tells a `ResizeObserver` that its view is gone. Every asynchronous
-re-entry asks `stale()` first: the timer, the observer, the focus listener, and
-the `then` after the import.
+one-second drag builds sixty readouts. Each one has a pending timer, a
+`ResizeObserver` and a `panel-focus` listener. Without this check a drag would
+land sixty analyses at once, all of them painting views that had already been
+thrown away — and the observers would never stop, because nothing tells a
+`ResizeObserver` that its view is gone. Every asynchronous re-entry asks
+`stale()` first: the timer, the observer, the focus listener, and the `then`
+after the import.
 
 ⚠ **The second half of the test is the tab.** Switching to `page` builds no new
 readout, so the generation counter alone would leave the last one measuring
@@ -50,17 +44,22 @@ a resize after leaving the tab runs none.
 ## Three dynamic imports, and why they are not at the top
 
 ```js
-const tool = () => import("../../ext/LayoutTool/LayoutTool.js");
-const full = () => import("../../ext/LayoutTool/report.js");
-const spot = () => import("../../ext/LayoutTool/highlight.js");
+const tool = () => import("../../ext/DesignTool/DesignTool.js");
+const spot = () => import("../../ext/DesignTool/highlight.js");
+const waive = () => import("../../ext/DesignTool/defer.js");
 ```
 
 `app.js` puts this rail on every page of the *built* site, so a static import
 would ship ~45KB of analysis to every visitor. Deferring also keeps the graph
 acyclic: `report.js` imports `/app.js`, which imports `DevBar.js`.
 
+`defer.js` is two functions with no imports of its own and would cost almost
+nothing statically — it rides along in the same `Promise.all` anyway, so that
+"almost" never has to be argued about, and `not a problem` can be built
+**synchronously** inside the render rather than behind a second `then`.
+
 ⚠ `spot()` resolves **after** the findings are built, which is only safe because
-`aim()` builds no DOM — it adds listeners to a view already placed. A factory
+`point()` builds no DOM — it adds listeners to a view already placed. A factory
 call in that `then` would append to the page.
 
 ## The target, and the way back
@@ -71,28 +70,53 @@ return panel?.getClientRects().length ? panel : document.querySelector(".app");
 ```
 
 `ext/Panel` writes the class and announces `panel-focus`; this listens and
-re-measures, so clicking a panel is a measurement of that panel. The `page`
-button dispatches `panel-unfocus` rather than importing a workspace to reach
-into — the same thing Escape does. ⚠ The client-rect test is not decoration: an
-inactive page keeps its DOM at `display: none`, so a selection outlives the
-navigation away from it and would be measured as a page with no geometry.
+re-measures, so clicking a panel is a measurement of that panel. The `⟲` button
+dispatches `panel-unfocus` rather than importing a workspace to reach into — the
+same thing Escape does. ⚠ The client-rect test is not decoration: an inactive
+page keeps its DOM at `display: none`, so a selection outlives the navigation
+away from it and would be measured as a page with no geometry.
 
-## ⚠ `full report` carries the root, not just the data
+The target is the one line here with a leading glyph (`⌖`), so it stops reading
+as one more diagnostic among the five below it — and hovering it rings the whole
+page, which is the one legitimate whole-page ring, because it is the **target**
+rather than a finding.
+
+## Selection is expansion, and neither is a control
+
+`aim()` already toggled `dt-aimed` on the clicked row and held the ring; the row
+just never *looked* any different, because the class was `--prim` at 14% alpha on
+a dark rail. Now `DesignTool.css` gives it a 2px border and `devbar.css` reveals
+the row's `.dev-more` — the declaration and the one action — off the same class.
+
+**No JavaScript was added for any of that.** One click sets one class, and three
+things follow from it, two of them in CSS. A second click on another row moves
+all three; a second click on the same row collapses it and lets the ring go,
+because `hold()`'s toggle already did.
+
+⚠ A page-level finding (`dead-space`, `invisible`) still selects and still rings
+nothing: `point()` finds no element, and a ring over the whole viewport carries
+no bits. See [DesignTool's readme](/framework/ext/DesignTool/).
+
+## The observer restarts a timer; it does not throttle
 
 ```js
-m.default(data, { limit: 3, root })
+clearTimeout(timer);
+timer = setTimeout(measure, RESIZE);
 ```
 
-`root` is the `.app` element `analyze()` actually walked. Every finding's
-address is a `:nth-child()` path *from* it, and `data` is plain JSON that cannot
-carry an element — so without this the report's before/after falls back to
-reloading `data.url` in a hidden frame and reconstructing the root from
-`root_path`. That is the right fallback for the audit page, which reports on
-frames that no longer exist; here it means resolving a path against a **second
-document** while the first one is on screen. It shipped that way and the panes
-came back rendering the site's sidebar. `measure()` holds the element it
-measured so `report()` can hand it over. Full account:
-[Addressing](/framework/ext/LayoutTool/docs/addressing/).
+Coalescing to one analysis per animation frame measured every width a drag passed
+through and none of them mattered. 200ms, restarted by every event, means a
+gesture costs one analysis at the width you let go at — 0 runs across a 40-event
+drag, 1 after it stopped. That is why `follow the resize` is gone: one run per
+gesture was never worth a control.
+
+⚠ **An initial observation is not a change.** `observe()` re-delivers the box it
+was just handed, and the run that observed it has already measured it. There were
+two of them — `follow()` observed `.app` and `measure()` then observed the target,
+the same element — so **the readout rendered twice on every open**, the second
+200ms in. Nobody could see it while selection was invisible; with selection
+visible it threw away the finding you had just clicked. `measure()` now owns every
+`observe()`, and the `fresh` set makes the observer ignore that one delivery.
 
 ## The captor, twice
 
@@ -100,30 +124,14 @@ Both async paths rebuild through a callback — `$out.empty(() => verdict(…))`
 inside the `then`, never factory calls after the `await`/`then` boundary. Same
 trap `ask.js` dodges, same fix.
 
-## `follow the resize` restarts a timer; it does not throttle
-
-```js
-clearTimeout(timer);
-timer = setTimeout(measure, RESIZE);
-```
-
-The knob used to coalesce to one analysis per animation frame, which measured
-every width a drag passed through and none of them mattered. 200ms, restarted by
-every event, means a gesture costs one analysis at the width you let go at —
-0 runs across a 40-event drag, 1 after it stopped. ⚠ The current target joins the
-watch **once**, tracked in a `Set`: `observe()` re-delivers an initial
-observation, so re-observing what a run just measured is a 5Hz loop.
-
 ## Improvements
 
-1. **`content_width()` calls `getComputedStyle` on every measurement** to
-   subtract `.app`'s padding. Correct and cheap next to the analysis it labels,
-   but the probe already reads that style — a `frame.content` on the report
-   would let every consumer stop re-deriving it. *(medium, useful — it is a
-   change to LayoutTool, not to this file.)*
-2. **The compact readout shows `leading` three deep, hardcoded.** Four fit at
-   1000px and none fit on a phone; the honest version measures the rail. *(simple,
-   speculative.)*
-3. **`full report` has no way back to the compact view** short of `re-run`.
-   Fine — `re-run` is the button next to it — but it reads as a one-way door.
-   *(simple, cosmetic.)*
+1. **`leading` is shown three deep, hardcoded.** Four fit at 1000px and none fit
+   on a phone; the honest version measures the rail. *(simple, speculative.)*
+2. **A re-measure throws the selection away.** Only a deliberate gesture causes
+   one now (a drag, a preset, the button), so it reads as a consequence rather
+   than a glitch — but remembering the selected finding by `rule` + `sel` across
+   a redraw is a handful of lines if it ever annoys. *(simple, speculative.)*
+3. **`analyze()` and `rate()` walk the page twice.** Both take a probe model, so
+   one `probe()` handed to both would halve the ~47ms. *(medium — it is a change
+   to DesignTool's front door, not to this file.)*

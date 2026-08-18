@@ -21,7 +21,7 @@ re-indenting would change what they render.
 ## `attributes()` is where the escaping trap lives
 
 Nothing here escapes anything — see the comment at line 134 and
-[doc/design.md §5](/framework/util/markup/docs/design/). It is the shortest
+[doc/design.md §5](/framework/util/markup/doc/design/). It is the shortest
 function in the file and the one most likely to be "fixed" in the wrong
 direction.
 

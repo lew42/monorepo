@@ -3,10 +3,10 @@
 The `T` vocabulary as data: `name → { icon, tone?, focus?, draw($body, panel) }`.
 Twenty-eight entries — eight hand-written scenes, fifteen generated from
 `styles/sections`' own list, `space`, which draws a *generated* layout
-([generate.js](/framework/ext/Panel/docs/generator/) owns the rest of it), three
+([generate.js](/framework/ext/Panel/doc/generator/) owns the rest of it), three
 pieces of page furniture, and `properties`, the inspector. Full roster, sizing
 rules and the trap:
-[Templates — the T vocabulary](/framework/ext/Panel/docs/templates/).
+[Templates — the T vocabulary](/framework/ext/Panel/doc/templates/).
 
 ## `rail`, `toc` and `brand` exist because something asked for them
 
@@ -76,7 +76,7 @@ properties: { icon: "tune", focus: true, draw($body, panel){ … } },
 reads the *workspace's* focused panel — and so is never handed focus itself, or
 it would be inspecting the controls you are clicking. One flag, one predicate in
 `workspace.js`, no registry:
-[Focus, and the panel that reads it](/framework/ext/Panel/docs/focus/).
+[Focus, and the panel that reads it](/framework/ext/Panel/doc/focus/).
 
 ## `clock` self-cancels
 
@@ -85,7 +85,7 @@ it would be inspecting the controls you are clicking. One flag, one predicate in
 after having been connected once (`live` flag). A closed panel leaves
 nothing running. ⚠ It never stops if the element is drawn but somehow never
 connects at all — see the known gaps in
-[Templates — the T vocabulary](/framework/ext/Panel/docs/templates/).
+[Templates — the T vocabulary](/framework/ext/Panel/doc/templates/).
 
 ## Improvements
 

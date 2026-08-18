@@ -30,7 +30,7 @@ is exactly what this file exists to make agree automatically.
 1. **No test file guards `arrow_at()` or `dedent()`'s two traps.** Both were
    found by eye, not by a runner — a regression would ship the same way the
    bug did. *(medium, important)*
-2. **`member` and `patched` currently have one caller each (`ext/doc`).**
+2. **`member` and `patched` currently have one caller each (`ext/Doc`).**
    Expected for a same-day generalization; worth re-checking once more
    `Doc`-based modules exist and the pattern either gets reused or doesn't.
    *(simple, speculative)*

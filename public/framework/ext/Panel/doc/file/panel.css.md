@@ -206,7 +206,7 @@ inspector, so a demo that is one `panel("clock")` gains no new decoration and
 `ext/editor`'s regions stay exactly as they were — and switching the last
 inspector away takes the ring with it, with no JS to notice. A pseudo-element, so
 the panel keeps its box and nothing reflows; `z-index: 2`, under the bar's 3.
-Record: [Focus, and the panel that reads it](/framework/ext/Panel/docs/focus/).
+Record: [Focus, and the panel that reads it](/framework/ext/Panel/doc/focus/).
 
 ## Improvements
 

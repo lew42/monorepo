@@ -9,7 +9,7 @@ Two methods, described in full on their own pages:
 write; [`drain`](/framework/ext/Saver/api/drain/) is the loop that turns any
 number of overlapping `save()` calls into at most one write in flight and one
 more queued behind it. `write()`, `load()`, `delete()` are stubs here — see
-[backends](/framework/ext/Saver/docs/backends/) for what each subclass does
+[backends](/framework/ext/Saver/doc/backends/) for what each subclass does
 with them.
 
 ## Defaults on the prototype, not as class fields

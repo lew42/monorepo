@@ -85,14 +85,14 @@ three parallel maps was folding it into one — and then deleting the one.
 
 ## `card` — a page's claim on the wall it sits in
 
-`card: "two" | "tall" | "big"`, carried through `nav_for()` exactly like `icon`, and
-applied by `preview_card()` — which puts the bare word on the card, so `Page.css` reads
-it as `.page-preview.two`.
+`card: "tall"`, carried through `nav_for()` exactly like `icon`, and applied by
+`preview_card()` — which puts the bare word on the card, so `Page.css` reads it as
+`.page-preview.tall`. It doubles the thumb's ceiling, for a render that only reads whole.
 
 It used to be deliberately **ignored** by `previews()`: those cards were flat 60px link
-rows, and forcing a two-row span onto one left a 72px hole beside it every time. That
-reversed when `previews()` became the wall (Aug 2026) — a wall wants the span. `tall` is
-no longer a row span either; it doubles the thumb's ceiling. `./property/card.md`.
+rows. That reversed when `previews()` became the wall (Aug 2026). The column claim
+(`"two"`, `"big"`) was deleted 2026-08-17 — one user, an empty card, and two CSS rules
+undoing each other. `./property/card.md`.
 
 Three declarations. It is the weakest of the four and is named as such there.
 

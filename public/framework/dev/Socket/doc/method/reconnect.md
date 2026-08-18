@@ -36,7 +36,7 @@ const delay = Math.min(250 * 2 ** this.fails++, 10000);
 250ms, 500ms, 1s, 2s … capped at 10s. No jitter, no max-attempts, no
 `onreconnect` hook — this is one browser tab talking to one local server, not a
 client fleet against a load balancer. The physics, and what a production socket
-would need instead, are in [backoff](/framework/dev/Socket/docs/backoff/).
+would need instead, are in [backoff](/framework/dev/Socket/doc/backoff/).
 
 The `console.warn` per attempt is deliberate noise: a socket quietly retrying
 forever against a server you forgot to start is indistinguishable from a socket

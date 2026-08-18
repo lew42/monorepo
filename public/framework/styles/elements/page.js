@@ -41,6 +41,6 @@ export default new Page({
 
 		md("Next: [Text](/framework/styles/elements/text/) — the type scale, and the twenty inline elements the framework leaves alone.");
 
-		md.details(import.meta, "readme.md", "Design record");
+		md.details(import.meta, "readme.md", "Readme");
 	}
 });

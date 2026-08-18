@@ -14,7 +14,7 @@ name)` (line 64) reads it as *replaced* even though nothing occupied `.lang`
 before this ext added it; (2) `code` itself was built the same way —
 `fns[tag] = function(){ … }` inside `View.elements()`'s `forEach`
 (`core/View/View.js:417-419`) — so `code.name` is **also** `""`, and
-`Doc.label()`'s `subject?.name ?? "the subject"` (`ext/doc/Doc.js:207`)
+`Doc.label()`'s `subject?.name ?? "the subject"` (`ext/Doc/Doc.js:207`)
 doesn't catch it: `??` only substitutes on `null`/`undefined`, and `""` is
 neither. Every method on this page inherits both gaps. Verified by direct
 simulation, not by inspection alone — see this audit's report,

@@ -11,7 +11,7 @@ export default new Page({
 	title: "Grid",
 	description: "A wall that counts its own columns, and the one number that retunes it.",
 	icon: "grid_on",
-	group: "Vocabulary",
+	group: "Guides",
 
 	// Inline object children: three real pages, three urls, no directories. Each one
 	// draws its own card (word.js) and the wall below is those cards.

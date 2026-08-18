@@ -19,7 +19,7 @@ Essential. A page imported on *this* navigation has just called
 rather than a flag on `loaded()`: `loaders` only grows, so one rejected loader
 would kill every later navigation. `allSettled` for the same reason at smaller
 scale — a 404'd stylesheet costs a warning, not the router.
-[loaders](/framework/core/App/docs/loaders/).
+[loaders](/framework/core/App/doc/loaders/).
 
 ## Simplicity
 

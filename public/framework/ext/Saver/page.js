@@ -59,7 +59,7 @@ export default new Doc({
 	subject: Saver,
 	properties: "writing pending",
 	methods:    "save load delete drain saving write assign",
-	notes:      "backends",
+	notes:      "backends decisions",
 	files:      "Saver.js FileSaver.js LocalStorageSaver.js MemorySaver.js page.js",
 
 	content(){
@@ -91,10 +91,10 @@ const json = await saver.load();    // the stored JSON, or null`);
 
 		md("- **`MemorySaver`** — a plain object. Counts writes in `save_count`, which is what the checks above read.\n- **`LocalStorageSaver`** — one key, one document. Guarded on `typeof localStorage`, so importing it headless is safe.\n- **`FileSaver`** — a real `.json` file on disk, over the dev socket.\n- **`Saver`** — the base, whose hooks resolve and do nothing.");
 
-		md("**`FileSaver` only works on localhost** — off localhost, `write()` warns once and resolves `false`; `load()` keeps working everywhere, because a `.json` file is a static asset. The full comparison, the read-only badge every real caller should show, and the one-line idiom `ext/editor`, `ext/Panel` and `dev/DevBar` each repeat to pick a backend: [backends](/framework/ext/Saver/docs/backends/).");
+		md("**`FileSaver` only works on localhost** — off localhost, `write()` warns once and resolves `false`; `load()` keeps working everywhere, because a `.json` file is a static asset. The full comparison, the read-only badge every real caller should show, and the one-line idiom `ext/editor`, `ext/Panel` and `dev/DevBar` each repeat to pick a backend: [backends](/framework/ext/Saver/doc/backends/).");
 
 		md("Next: [Item](/framework/core/Item/) — the document this queue is meant to sit under.");
 
-		md.details(import.meta, "readme.md", "Design record — why the queue is the base class");
+		md.details(import.meta, "readme.md", "Readme");
 	}
 });

@@ -1,0 +1,53 @@
+/* Restated IN FULL — a short list silently drops `site` past `util`. */
+@layer base, theme, site, util;
+
+/* Layout only: `surface`, `muted`, `pad` and the type scale carry every look. */
+@layer theme {
+
+	/* DELETED, 2026-08-17 — two rules, both of them gone with `full`:
+	     `.page-report { padding: 3em clamp(2em, 4%, 5em) }` restored an inset that
+	     `full` had zeroed, and `.report-wide { padding-inline: var(--gutter-x) }` paid
+	     the gutter back to every `bleed` band that had just spent it. The shell's grid
+	     pays the inset once and `wide` never spends the gutter tracks, so a band asks
+	     for the room by wearing one word and owes nothing back. This was the third
+	     copy of that same payback rule on the site (Page.css, catalog.css, here). */
+
+	/* Ranked, so DOM order is the reading order and grid keeps it. The first item is
+	   the one that unblocks a program — it takes the whole row at every width. */
+	.report-needs {
+		display: grid; gap: 1em; counter-reset: need;
+		grid-template-columns: repeat(auto-fit, minmax(min(22em, 100%), 1fr));
+	}
+	.report-needs > :first-child { grid-column: 1 / -1; }
+
+	/* `--pad` rather than a rule: `.pad` already reads it, and the first card runs
+	   the whole row, where 1em of inset on a 2248px box measures as 0.8%. */
+	.report-need { --gap: .6em; --pad: clamp(1em, 2.2%, 2.4em); border-left: 3px solid var(--line); }
+	.report-need:first-child { border-left-color: var(--prim); }
+
+	/* ⚠ The rank is a counter, not a `span` in the heading: only `h1`–`h6` read
+	   backticks, and a title split across two factories loses them. */
+	.report-needs > * { counter-increment: need; }
+	.report-needs h3::before { content: counter(need) ". "; color: var(--prim); font-variant-numeric: tabular-nums; }
+
+	/* One basis, no breakpoint: a before and an after are only worth anything side
+	   by side, so they split from ~44em of region and each take the full width below. */
+	.report-pair { display: flex; flex-wrap: wrap; gap: 1em; }
+	.report-shot { flex: 1 1 20em; min-width: 0; --gap: .4em; }
+
+	/* A screenshot of a light page has to read as an object, not as more page. */
+	.report-frame { display: block; overflow: hidden; outline: 2px solid transparent; }
+	.report-frame:hover { outline-color: var(--prim); }
+	.report-img { width: 100%; height: auto; }
+
+	/* A caption is prose and takes prose's ceiling — under a 2248px frame it ran
+	   190 characters a line. */
+	.report-shot figcaption { max-width: 52em; }
+
+	.report-figures {
+		display: grid; gap: .75em;
+		grid-template-columns: repeat(auto-fit, minmax(min(11em, 100%), 1fr));
+	}
+	.report-fig { --gap: .1em; }
+	.report-fig-n { font-size: 1.4em; font-weight: 700; font-variant-numeric: tabular-nums; }
+}

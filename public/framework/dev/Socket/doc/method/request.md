@@ -4,16 +4,16 @@
 class, `ls()` (`Socket.js:129`) and `rm()` (`Socket.js:145`) wrap it and still
 have no caller of their own. `async_rpc()` (`Socket.js:121`) also wraps it —
 and `async_rpc()` **is** called for real, by `FileSaver.write()`
-(`ext/Saver/FileSaver.js:23`) and `LayoutTool/audit/twin.js`'s `accept()`. So a
+(`ext/Saver/FileSaver.js:23`) and `DesignTool/audit/twin.js`'s `accept()`. So a
 `write` frame built by this method now leaves the browser from two live
 features: [Saver](/framework/ext/Saver/) (and its `editor`/`Panel` consumers)
-and [LayoutTool audit](/framework/ext/LayoutTool/audit/).
+and [DesignTool audit](/framework/ext/DesignTool/audit/).
 
 The server half that would answer it is now wired in:
 `Server/plugins/SocketServer/Runtime.js:20-23` registers `rpc:write`, `rpc:ls`
 and `rpc:rm` handlers, and `server.js` reads `DevSocket.Socket.use(Runtime);`
 — uncommented 2026-08-15, the same day this page was written. See
-[wire](/framework/dev/Socket/docs/wire/) for the full accounting; this audit
+[wire](/framework/dev/Socket/doc/wire/) for the full accounting; this audit
 did not start the dev server to confirm a round trip completes.
 
 ## Necessity

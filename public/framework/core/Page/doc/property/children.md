@@ -8,7 +8,7 @@ children: "intro guide api"     // folder names, in menu order
 turns it into a Map; from then on every reader uses the Map —
 `load_all_children()` (`:194`), `child()` (`:69`), `nav_for()` (`:157`),
 `previews()` (`:165`), `ext/tabs` (`framework/ext/tabs/tabs.js:18,35,45`),
-`ext/doc` (`framework/ext/doc/Doc.js:114`). Declared on ~60 pages.
+`ext/Doc` (`framework/ext/Doc/Doc.js:114`). Declared on ~60 pages.
 
 **Necessity** — yes, for the one job a filesystem cannot do: **order**. `api` before
 `guide` before `intro` is alphabetical, and alphabetical is not a curriculum.

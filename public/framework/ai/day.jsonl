@@ -1,1 +1,3 @@
 {"log": {"at": "2026-08-15T18:40:00-05:00", "task": "doc-system", "msg": "landed — ext/doc replaces classdoc, documentation skill added, 29-module audit at /framework/audit/"}}
+{"log": {"at": "2026-08-16T21:50:39+00:00", "task": "demo-coverage", "msg": "task opened — measuring LayoutTool taste/analyze against demo stages own renders, sample of the 132 mostly_picture page-widths"}}
+{"log": {"at": "2026-08-16T22:25:00+00:00", "task": "demo-coverage", "msg": "landed — stage-vs-chrome measurement done for 15 pages; twin comparison cards are the false-positive trap, sidebar/3440 is a real catch, recommend a stage column gated on a twin-pane IGNORE exemption"}}

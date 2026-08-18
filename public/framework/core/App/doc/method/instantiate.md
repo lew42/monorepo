@@ -33,4 +33,4 @@ after, so `await app.ready` always settles.
 **`inject()` is last, so nothing paints until the walk finishes** — measured at
 1765ms on a 5-deep cold link, where the chrome could have painted immediately.
 Kept, because an empty tab bar and a jumping layout are worse. But it is not free,
-and it is often described as if it were. [boot](/framework/core/App/docs/boot/).
+and it is often described as if it were. [boot](/framework/core/App/doc/boot/).

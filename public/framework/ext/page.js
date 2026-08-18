@@ -6,7 +6,7 @@ export default new Page({
 	label: "Extensions",
 	description: "Opt-in addons. They may extend core; core never depends on them.",
 	icon: "extension",
-	children: "markdown demo highlight files toc doc tabs catalog layout drawer LayoutTool Saver Draggable editor Panel Timeline AITask JSONL Ask",
+	children: "markdown demo highlight files toc Doc tabs catalog layout drawer depth DesignTool Saver Draggable editor Panel Timeline AITask JSONL Ask",
 
 	content(){
 
@@ -23,5 +23,7 @@ export default new Page({
 		md("**An ext may lean on an ext** — `demo` renders highlighted code when `highlight` is loaded and plain code when it isn't, with no import either way. `Doc` leans on `tabs` for its vertical rail and on `files` for its Files tab. Only **core** may never.");
 
 		md("Next: [Markdown](/framework/ext/markdown/) — the ext every other page on this site is written in.");
+
+		md.details(import.meta, "readme.md", "Readme");
 	}
 });

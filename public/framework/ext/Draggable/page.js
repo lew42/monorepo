@@ -86,7 +86,7 @@ export default new Doc({
 	subject: Draggable,
 	properties: "view handle dragging registry",
 	methods: "assign initialize grab drag release cancel end under drop_check start move drop restore destroy",
-	notes: "sortable verdicts",
+	notes: "sortable verdicts decisions",
 	files: "Draggable.js Sortable.js draggable.css page.js",
 
 	overview: [{ title: "Draggable alone", icon: "pan_tool", content(){
@@ -120,6 +120,6 @@ export default new Doc({
 
 		md("Next: [Item](/framework/core/Item/) — the tree this page is dragging.");
 
-		md.details(import.meta, "readme.md", "Design record — traps, verdicts, and what's deferred");
+		md.details(import.meta, "readme.md", "Readme");
 	}
 });

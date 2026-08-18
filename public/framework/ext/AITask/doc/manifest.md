@@ -22,6 +22,7 @@ rendering nothing.
 }}
 {"agent": {"kind": "agent|cli", "task": "one line", "tokens": …, "outcome": "…"}}
 {"chat": {"at": "…", "role": "user|assistant", "text": "…", "cost_usd": …}}
+{"shot": {"at": "…", "path": "absolute — never in the repo", "url": "…", "width": 1400, "label": "…"}}
 ```
 
 ## `window` is fractions, not percents
@@ -45,6 +46,14 @@ Appended by `Server/plugins/Ask.js` when someone talks to a task from its own
 page (see `AITask.chat()`), replayed into `m.chats` and handed to
 [`ext/Ask`](/framework/ext/Ask/)'s panel as chat history. A new verb rather
 than a second file: the task log already *is* the record.
+
+## `shot` is a screenshot taken outside the repo, rendered by `shots.js`
+
+Screenshots are scratch (CLAUDE.md RULE#12) — `path` is absolute and is the
+only way back to the file, served dev-only through
+`Server/plugins/Screenshots.js`. Full shape and the reasoning for keeping it
+a plain dict (so a `scores` field can arrive later with no shape change):
+[`ext/JSONL/readme.md`](/framework/ext/JSONL/).
 
 ## Who authors which field
 

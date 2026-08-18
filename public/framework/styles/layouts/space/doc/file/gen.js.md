@@ -4,7 +4,7 @@
 from a flat list; it draws a SHAPE (the body's own arrangement, one of the
 nine `model.js` weights), fills its tracks with ROLES, and recurses through
 INNER wherever a track is deep enough to split. Every structural draw comes
-from `model.js`; every size comes from `ext/LayoutTool/taste/ranges.js`'s
+from `model.js`; every size comes from `ext/DesignTool/taste/ranges.js`'s
 `AUTHOR` table — the same numbers `taste.rate()` grades the result against.
 
 ## `opts` may still be a bare number
@@ -29,7 +29,7 @@ Unchanged since the depth dial replaced the fixed skeleton: this is a search
 over a mostly-invalid space, not an enumerator of valid pages. The format's
 silent words (`scroll`, `stick`, `fluid`) are position-sensitive and nesting
 multiplies exactly them, so past about depth 4 most rolls are slivers.
-Shipped raw — no score, no guard rails — was Mike's call; `ext/LayoutTool`
+Shipped raw — no score, no guard rails — was the owner's call; `ext/DesignTool`
 scoring stays phase 2.
 
 ## Two bounds that are not guard rails

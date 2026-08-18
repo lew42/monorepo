@@ -54,7 +54,7 @@
 
 ## Proposal — the steps
 
-1. **Build `ext/doc`** — `Doc extends Page`, generalized from `ext/classdoc`:
+1. **Build `ext/Doc`** — `Doc extends Page`, generalized from `ext/classdoc`:
    a `subject` that may be a class, a function-with-members, a namespace object,
    or nothing at all. Retire `ext/classdoc`, update every call site.
 2. **Write the `documentation` skill** — how to create and audit a module's
@@ -89,5 +89,5 @@ ONLY inside it:
 - touch `app.js`, `CLAUDE.md`, `.claude/**`, or another module's dir
 - run the dev server, install anything, or commit
 
-The orchestrator (this session) owns `ext/doc/`, `.claude/skills/documentation/`,
+The orchestrator (this session) owns `ext/Doc/`, `.claude/skills/documentation/`,
 `framework/audit/`, `app.js`, and every cross-module edit.

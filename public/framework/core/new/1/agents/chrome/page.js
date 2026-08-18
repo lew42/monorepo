@@ -366,7 +366,7 @@ what is already true when it runs
     focusable             false     Page.render() sets no tabindex — the gap
     arguments.length      1`, "measured");
 
-		p("`Yes — one hook serves both, and the a11y seat's focus move belongs inside the site's `navigated()`, not as a second framework line.` Master Mike put the call after `mark()`, which is the one placement that matters: it is what makes `focus()` land at all.").ac("note");
+		p("`Yes — one hook serves both, and the a11y seat's focus move belongs inside the site's `navigated()`, not as a second framework line.` the owner put the call after `mark()`, which is the one placement that matters: it is what makes `focus()` land at all.").ac("note");
 
 		code(`
 navigated(page){

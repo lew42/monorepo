@@ -1,6 +1,3 @@
-/* Restated IN FULL - a short list silently misplaces `site`. */
-@layer base, theme, site, util;
-
 /* Structure only - where a panel sits and how it sizes. What a panel LOOKS like is
    `surface` / `wash` off framework.css; what a TEMPLATE looks like is its payload,
    and lives in templates.css. */
@@ -9,7 +6,8 @@
 	/* Chrome is sized by its region, never by its content: a `flex: 1 1 0` child of a
 	   heightless box collapses to nothing, so a call site retunes the token. `--panel-hug`
 	   is the other one: the extent a hugging panel takes on the axis its content cannot
-	   measure. */
+	   measure. Read by the rules below (one word, `mode`, both axes) AND by `size.js`'s
+	   per-axis engine (`w`/`h`, either axis alone) — one token, two readers. */
 	.panel-workspace { height: var(--panel-height, 34em); --panel-hug: 16em; }
 
 	/* `1 1 0`, not `flex-1`: the util carries no `min-height`, and every level of this

@@ -34,7 +34,7 @@ export default new Page({
 		md("Rules for building layouts here — written to be **argued with**. Each one states its "
 			+ "reasoning and its weight, so a later reader can tell a load-bearing rule from one "
 			+ "afternoon's preference, and the live examples are measured by "
-			+ "[LayoutTool](/framework/ext/LayoutTool/) as the page renders rather than asserted in prose.");
+			+ "[DesignTool](/framework/ext/DesignTool/) as the page renders rather than asserted in prose.");
 
 		md("`never` and `always` appear only where something actually breaks — a zero-width flex "
 			+ "item, a clipped rail with no scrollbar. Everywhere else the rule explains itself and "
@@ -43,7 +43,7 @@ export default new Page({
 		this.previews();
 
 		md("**The analyzer is the enforcement arm.** Every rule here that can be measured has a rule "
-			+ "in `ext/LayoutTool` with the same name and the same threshold — `cramped`, `pad-scale`, "
+			+ "in `ext/DesignTool` with the same name and the same threshold — `cramped`, `pad-scale`, "
 			+ "`double-pad`, `escape`, `measure`, `gutter`, `alignment`. When the two disagree, one of "
 			+ "them is out of date and it is worth finding out which.");
 	},

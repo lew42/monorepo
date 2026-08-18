@@ -14,7 +14,7 @@ export default new Doc({
 	         "click link_clicked listen chain shared_depth root assign",
 
 	notes: "constructor registry-gate chain-diff marking styles-loaded " +
-	       "navigated scroll-reset fragment backed-out measured",
+	       "navigated scroll-reset fragment backed-out measured decisions",
 
 	files: "Router.js page.js readme.md",
 
@@ -53,6 +53,6 @@ a.in-path              /* href is a directory above here */`);
 
 		md("Next: [App](/framework/core/App/) — what boots all of this.");
 
-		md.details(import.meta, "readme.md", "Design record — the walk, the chain diff, and what was backed out");
+		md.details(import.meta, "readme.md", "Readme");
 	}
 });

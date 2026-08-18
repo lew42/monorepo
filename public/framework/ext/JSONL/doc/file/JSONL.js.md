@@ -2,8 +2,9 @@
 
 Two classes in one small file: `JSONL`, the append-only log reader (parse,
 replay, tolerate), and `TaskJSONL extends JSONL`, the task manifest wearing
-that shape — `agent` and `chat` on top, a wider `static verbs`. Nothing else
-in the module depends on internals here beyond the two exported classes.
+that shape — `agent`, `chat` and `shot` on top, a wider `static verbs`.
+Nothing else in the module depends on internals here beyond the two exported
+classes.
 
 ## Two doors to the same replay
 
@@ -46,7 +47,7 @@ the SPA-fallback guard; see [its page](../method/load.md) and the
 
 ## `TaskJSONL` restates `verbs`, doesn't extend the array in place
 
-`static verbs = [...JSONL.verbs, "agent", "chat"]` — a new array, spread from
+`static verbs = [...JSONL.verbs, "agent", "chat", "shot"]` — a new array, spread from
 the parent's, not `JSONL.verbs.push(...)`. Mutating the inherited array would
 have widened what `JSONL` itself accepts too, since statics aren't
 per-subclass copies until you make them one. Full record:

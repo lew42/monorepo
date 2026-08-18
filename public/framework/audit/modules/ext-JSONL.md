@@ -72,7 +72,7 @@ changed — every finding below is a recommendation, not an edit.
    real member page with `Doc`'s source-plus-overrides treatment every
    `JSONL` method gets. **medium, useful** — the honest fix is a `Doc`
    feature (a secondary `subject` for API entries scoped to one note or
-   section), which is a proposal for `ext/doc`, not something this module's
+   section), which is a proposal for `ext/Doc`, not something this module's
    fences allow.
 4. **Outside-the-box: `JSONL` could be the log format for far more than AI
    tasks** — anything append-only and small (a form's edit history, a
@@ -98,14 +98,14 @@ fetch guard around it doesn't have one yet).
 The skill was easy to follow for a module this size and shape; one real gap:
 
 - **No guidance for a module with two classes where only one can be `subject`.**
-  `ext/doc/readme.md`'s own "Decisions" section documents that `subject` is
+  `ext/Doc/readme.md`'s own "Decisions" section documents that `subject` is
   singular and explains *why* (only a real class gets Overrides, `member()`
-  needs one prototype to search), but neither `ext/doc`'s docs nor the
+  needs one prototype to search), but neither `ext/Doc`'s docs nor the
   `documentation` skill says what to do when a module genuinely has two
   classes worth documenting and one extends the other. I worked out the
   answer by testing `Doc.member()`'s lookup by hand (own-properties-only,
   doesn't walk the prototype chain) rather than finding it written anywhere —
   worth one sentence in the skill: *"a subclass with its own members gets a
   `notes:` entry, not a second `subject`."* That single line would have saved
-  the detour into `ext/doc/Doc.js` and `util/source/source.js` to confirm it
+  the detour into `ext/Doc/Doc.js` and `util/source/source.js` to confirm it
   by reading the lookup code.

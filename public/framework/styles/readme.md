@@ -1,123 +1,30 @@
-# Styles — design record
+# Styles — the CSS strategy under every page: four layers, six type levels, as little else as possible
 
-The strategy in one line: **`framework.css` should contain nothing you would ever
-want to override.** Everything downstream is arranged so the cheapest way to build
-something new is to write no CSS at all.
+## Use
+Stop at the first rung that works: nothing → a utility class → an existing component's class → the module's own `.css`, layout only → `/styles.css`, skin.
 
-## The ladder — stop at the first rung that works
+```js
+div.c("flex gap v-center pad", () => {
+	div.c("h4 flex-1", "row");
+	button.c("prim", "One");
+	button("Two");
+});
+```
+A module stylesheet, when a rung-4 rule is unavoidable: `View.stylesheet(import.meta, "x.css")`, every rule inside `@layer theme { … }`.
 
-1. **Nothing.** The default already handles it.
-2. **A utility class** — `flex gap v-center pad h2`, `surface`, `wash`, `muted`, `measure`.
-3. **An existing component's class** — `.page-preview`, `.sidebar-link`.
-4. **The module's own `.css` — layout only.** Where things sit, how they size. Not
-   colour, not borders, not type. The test: *would this rule still be right if the
-   component were dropped into a completely different site?*
-5. **`/styles.css` — skin.** This site's opinion, loaded last.
+## Watch out
+- Every rule lives inside a layer — an unlayered rule beats every layer at any specificity. [`doc/cascade.md`](./doc/cascade.md)
+- Four layer names, `base, theme, site, util`; the order is declared once, in `framework.css`, which `app.js` loads first — a name outside the four lands past `util`, silently. [`doc/cascade.md`](./doc/cascade.md)
+- Overriding a `framework.css` rule is a bug report about `framework.css` — de-escalate upstream, never escalate downstream. [`doc/ownership.md`](./doc/ownership.md)
+- Base-theme selectors stay flat — one element, no descendant combinators — or a theme's `h2` can never win. [`doc/cascade.md`](./doc/cascade.md)
+- Never invent a font-size: six levels, each also a class; margins are rhythm and belong to whatever arranges the content. [`doc/theme.md`](./doc/theme.md)
+- `.flex > * { margin: 0 }` kills `margin-inline: auto` inside a flex row — reach for `.measure`. [`doc/decisions.md`](./doc/decisions.md)
 
-**If you ever override a `framework.css` rule, that is a bug report about
-`framework.css`.** Never escalate downstream — de-escalate upstream.
-
-## The four things that fail silently
-
-- **Every stylesheet restates `@layer base, theme, site, util;` in full.** The
-  first `@layer` statement fixes the order and a name first seen later is appended
-  at the *end*, so one short list drops `site` past `util` with no warning.
-- **Every rule lives inside a layer.** An unlayered rule beats every layer at any
-  specificity.
-- **Base-theme selectors stay flat** — one element, no descendant combinators, or
-  a theme's `h2` can never win.
-- **Never invent a font-size.** Six levels, each also a class. Margins are rhythm
-  and belong to whatever arranges the content.
-
-## Recent, and worth knowing
-
-**Three looks became classes.** `.surface`, `.wash` and `.muted` are in
-`framework.css @layer theme` — the same three token-valued style objects every
-card, band and caption in `styles/` used to spread inline from `styles/parts.js`.
-`.surface` sets `color` on purpose: a box that paints its own fill owns its own
-ink, or a card on a coloured band renders white on white. `parts.js` still exports
-the objects, though their outside consumers are gone (`framework/report/` is now
-`framework/ai/2026-08-08/` and wears the class; `framework/ui/` grew its own).
-
-**`.measure` closed a gap this file had listed as open twice.** A centred column —
-`--measure: 34em; max-width: var(--measure); margin-inline: auto` — could not be
-spelled with utilities, because `margin-inline: auto` is dead inside a flex
-container (`.flex > * { margin: 0 }` is in `util` and beat any component rule).
-The class is declared **after** that rule in the same layer, so it wins, and
-`layouts/`'s `.layout-measure` is retired. It *declares* `--measure` rather than
-reading the region's, so a 34em block inside a 60em sheet is 34em; override it
-inline and the inline value wins.
-
-**`.flex.auto > *` gained `min-width: 0`**, which `.flex-1` and `.basis` have
-always carried. Without it one `<pre>` or one long word floors a flexible track at
-its min-content and pushes the row wider than its container.
-
-## The long form
-
-Reference you open when you get there, not context to pay for every session:
-
-| | |
-|---|---|
-| [`doc/ownership.md`](doc/ownership.md) | the ladder in full, class-vs-function, and the CSS dependency a module can't declare |
-| [`doc/cascade.md`](doc/cascade.md) | the escalation ratchet, the `site` layer, `:where()` tried-reverted-then-vindicated, versioned CSS (rejected), native mixins |
-| [`doc/theme.md`](doc/theme.md) | `@layer theme` **is** the base theme; the type scale; tokens; dark mode; the contrast pass |
-| [`doc/audits.md`](doc/audits.md) | the eviction list, `table { width: 100% }` rejected with measurements, the six-urls-two-widths pass, why there is no `--region-gutter` |
-| [`doc/scrolling.md`](doc/scrolling.md) | app shell vs document scroll, which region scrolls, one painted box |
-
-Per-module records sit next to their code: [`layouts/readme.md`](layouts/readme.md),
-[`sections/readme.md`](sections/readme.md), [`elements/readme.md`](elements/readme.md),
-[`layers/theme/guide/readme.md`](layers/theme/guide/readme.md),
-[`layers/theme/lew42/readme.md`](layers/theme/lew42/readme.md).
-The preview card is core's (Aug 2026), and so is the `wide`-not-`bleed` decision
-it carried — `previews()` picks the track, which is why [`doc/audits.md`](doc/audits.md)
-§6b calls that guard structural.
-
-## Who uses this
-
-Not a leaf module — the two token-and-layer files (`framework.css`, this
-directory's `layers/theme/lew42/lew42.css`) back every page on the site, and
-several modules import this directory's *content* directly rather than only
-linking to it:
-
-- **`/app.js`** imports `layers/theme/lew42/lew42.js` and calls it in
-  `config()` — the house theme is wired site-wide from here, not opted into
-  per page.
-- **`core/Page/overview/landing/page.js`** and **`overview/site/page.js`**
-  import section-band functions from `sections/*.js` (`hero`, `features`,
-  `pricing`, `footer`, `contact`, `logos`, `faq`, `callout`, `team`) directly,
-  to compose Page's own "what a real site looks like" demos.
-  `core/Page/flow/page.js` and `core/Page/page.js` link to `layouts/fit/` and
-  `layouts/` as the canonical next reads for rhythm and whole-page shape.
-- **`ext/Panel/templates.js`** dynamically `import()`s every file in
-  `sections/` by name, at runtime, to build the **T** template menu — the one
-  consumer that imports this directory's files *by string*, so a section
-  rename here is silent there (`ext/Panel/doc/templates.md`).
-- **`ext/LayoutTool/audit/pages.js`** lists roughly thirty urls under
-  `/framework/styles/` in the corpus it sweeps at four widths — this is the
-  module most exercised by that tool, and `rules/demos.js` calls
-  `analyze()` directly to grade its own live examples.
-- **`ext/catalog`, `ext/demo`, `ext/layout`, `ext/toc`** all cite pages here
-  (`sections/`, `layouts/`, `elements/forms/`, `layers/util/`) as the primary
-  worked examples in their own readmes and doc pages.
-- **`framework/ui/`** (`avatar`, `card`, `crumbs`, `kbd`, `stats`, `tooltip`)
-  and **`web/layout/*`** (the guide tier) each link back here for the
-  reference behind a decision they made.
-- **`core/Sidebar`** links `/framework/styles/` from the site's own nav, and
-  its readme cites two pages here (`layers/theme/lew42/`, `layouts/sidebar/`)
-  as the live demos its own doc page points at.
-
-One stale link, found while tracing these: `core/Page/overview/landing/`
-(via `framework/ai/2026-08-12/unify/page.js`) links
-`/framework/styles/layouts/cards/`, a directory this module's own readme
-records as deleted in the 2026-08-12 merge. Outside this directory's fence to
-fix; noted in the audit report.
-
-## Open
-
-- **`app.css_audit()`** — a dev-only styled-vs-applied class diff. ~30 lines,
-  catches renames in both directions, still unbuilt (`doc/ownership.md`).
-- **`:root { color-scheme: light }`** stands on purpose. The work that had to be
-  true first is true, so flipping it is one word — but it changes what every
-  visitor sees and wants a visual pass (`doc/theme.md`).
-- **`Page.css`'s hover `box-shadow: rgba(0,0,0,0.08)`** and `/styles.css`'s
-  `body.theme-1` block are the last two colours with no token behind them.
+## More
+- Page: [/framework/styles/](/framework/styles/) — the ladder, the layers, the ratchet, the type scale, shown.
+- [`doc/decisions.md`](./doc/decisions.md) record, who imports · [`doc/ownership.md`](./doc/ownership.md) ladder, class-vs-function · [`doc/cascade.md`](./doc/cascade.md) ratchet, `site`, `:where()`
+- [`doc/layout-system.md`](./doc/layout-system.md) **the five layout words** — page · rail · wall · stage · solo
+- [`doc/theme.md`](./doc/theme.md) tokens, scale, dark · [`doc/audits.md`](./doc/audits.md) evictions, measured · [`doc/scrolling.md`](./doc/scrolling.md) which region scrolls · [`doc/measure.md`](./doc/measure.md) `--measure` proposal, unchanged
+- [`layers/`](./layers/) one page per layer · [`layouts/`](./layouts/readme.md) seventeen whole-page layouts · [`rules/`](./rules/readme.md) dos and don'ts · [`sections/`](./sections/readme.md) landing-page bands · [`elements/`](./elements/readme.md) every styled element
+- Themes: [`layers/theme/`](./layers/theme/) the base theme · [`layers/theme/guide/`](./layers/theme/guide/readme.md) writing a theme · [`layers/theme/lew42/`](./layers/theme/lew42/readme.md) the house theme · [`css-scopes.txt`](./css-scopes.txt) reserved class prefixes
+- Files that matter: `/framework/framework.css` (the only `@layer` statement, tokens, utilities), `/styles.css` (this site's skin), `layers/theme/lew42/lew42.css` (the house theme, wired in `app.js`)

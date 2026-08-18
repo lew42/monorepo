@@ -1,5 +1,5 @@
 The `Page` entry point — not part of the `report()` override chain (see
-[template](/framework/ext/AITask/docs/template/)). Awaits `session()` and
+[template](/framework/ext/AITask/doc/template/)). Awaits `session()` and
 `requirements()` **once**, in parallel, then hands both to `report()`.
 
 ⚠ Follows the synchronous-capture pattern exactly: `div.c(…, async $s => …)`

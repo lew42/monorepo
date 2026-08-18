@@ -22,7 +22,7 @@ rail would be worse than an honest catch-all.
 `/framework/ai/`'s rail used to *be* the effort list — every task filed under
 its thread, liveliest first. It doesn't any more: the board lists by date, one
 card per row, because chronology is what a reader scanning a working log
-actually wants (Mike, 2026-08-16). The effort survives as the card's
+actually wants (the owner, 2026-08-16). The effort survives as the card's
 **category tag**: click it and `/framework/ai/effort/<slug>/` shows the same
 spine with everything else removed.
 

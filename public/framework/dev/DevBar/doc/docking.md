@@ -56,7 +56,7 @@ what a drawer is supposed to do down there.
 ## What this buys, and what it costs
 
 Buys: a preset button is one subtraction (`innerWidth - target`, see
-[sizing](/framework/dev/DevBar/docs/sizing/)) because the rail is *the entire
+[sizing](/framework/dev/DevBar/doc/sizing/)) because the rail is *the entire
 distance* between the window and the page — no second measurement anywhere.
 Costs: any future inline-end panel on this site has to know about this sum by
 convention, reading `framework.css`, rather than by registering with

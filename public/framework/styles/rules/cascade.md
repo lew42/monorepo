@@ -55,7 +55,7 @@ unset.
 your `content()` builds — so padding you add to an inner wrapper misses it and
 the `h1` lands flush in the corner of the region. A page that wants full width
 *with* a gutter declares the two tokens; it does not take `full` and try to put
-the padding back. (`gutter` in LayoutTool exists because this shipped.)
+the padding back. (`gutter` in DesignTool exists because this shipped.)
 
 ## The four layers, and what goes in each
 

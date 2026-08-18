@@ -138,6 +138,6 @@ Fifteen sections, seven layouts, **zero new CSS rules.** The surfaces are \`.sur
 
 		md("Next: [Page shapes](/framework/styles/layouts/fit/) — how the page *around* these sections is shaped.");
 
-		md.details(import.meta, "readme.md", "Design record — what a section is, why the registry became children, and why there is no parts.js");
+		md.details(import.meta, "readme.md", "Readme");
 	},
 });

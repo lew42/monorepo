@@ -1,0 +1,91 @@
+# Reserved CSS class prefixes, one per line. `flex` reserves .flex and .flex-*.
+# A trailing dash (`ui-`) reserves a namespace: new things there are .ui-<thing>.
+# The framework block is off limits for anything new. Checked by the new-css-class skill.
+
+# framework.css — utilities, tokens as classes, the page contract
+all-1
+all-pad
+app
+auto
+basis
+bg
+btn
+capitalize
+checkered
+code
+css
+demo-render
+flex
+flex-1
+flow
+gap
+gap-2em
+grid
+h-center
+h1
+h2
+h3
+h4
+icon
+masonry
+material-icons
+md
+measure
+muted
+packed
+pad
+page
+page-title
+pages
+prim
+reverse
+split
+start
+surface
+three
+uppercase
+v
+v-center
+wash
+wrap
+zoom
+zoom-responsive
+
+# core
+page-        core/Page
+sidebar-     core/Sidebar
+brand-       core/Sidebar
+
+# ext
+ai-          ext/AITask
+cssdoc-      ext/CSSDoc
+demo-        ext/demo
+doc-         ext/Doc
+drag-        ext/Draggable
+drawer-      ext/drawer
+dt-          ext/DesignTool
+editor-      ext/editor
+file-        ext/files
+hljs-        ext/highlight (vendored)
+layout-      ext/layout
+md-          ext/markdown
+panel-       ext/Panel
+tab-         ext/tabs
+tabs-        ext/tabs
+timeline-    ext/Timeline
+toc-         ext/toc
+
+# dev
+claim-       dev/Claim
+dev-         dev/DevBar
+
+# ui — one component, one prefix: ui-<component>-*
+ui-          ui/
+
+# styles
+space-       styles/layouts/space
+rules-       styles/rules
+theme-       styles/layers/theme
+
+# ai task pages
+vision-      ai/2026-08-17/vision-browse
