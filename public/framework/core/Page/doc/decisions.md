@@ -53,6 +53,11 @@ a puzzle, not a report.
 **So what is `children` for now?** Navigation: **which children, in what order.**
 That is the one job left, and the one a filesystem cannot do.
 
+**Is a `.md` file a page?** **Yes, beside a page and nowhere else** (Aug 2026).
+After the `page.js` probe misses, `Page.file()` fetches `<url><name>.md` and renders
+a hit as a page. Gated on the content-type, because the SPA fallback answers a miss
+with `index.html` at 200. `./declaring.md`.
+
 **Four shapes, one meaning** (Aug 2026). A string of names, an array of names, an
 array of Pages or option objects, and a **POJO keyed by title** — `{ HTML(){ … } }`
 is `/html/`, the key slugged exactly the way `naming()` slugs a standalone page's

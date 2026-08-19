@@ -141,6 +141,38 @@ const file = rule => rule.parentStyleSheet?.href?.split("/").pop() ?? "<style>";
 
 const decls = rule => rule.cssText.slice(rule.cssText.indexOf("{") + 1, -1).trim();
 
+/* Which PART of the site a rule comes from — what you need before you change it. It is
+   the FILE, never the `@layer`: framework.css alone writes base, theme AND util, so the
+   layer cannot tell you whether you are editing the framework or one component. A sheet
+   with no href is a `css(…)` call in JS and the CSSOM cannot name its module. */
+cssdoc.part = href => {
+	if (!href) return "js";
+
+	const path = new URL(href).pathname;
+
+	if (path === "/framework/framework.css") return "framework";
+	if (path === "/styles.css") return "site";
+
+	return path.split("/").at(-2);   // the dir that owns the sheet: `lew42`, `layout`, `Panel`
+};
+
+/* Every rule that lands on ONE live element, in document order — `cssdoc()`'s table for a
+   SELECTION instead of a specimen pair. Flat rows, no markup: the drawer and a page draw
+   the same facts at different sizes, so the look belongs to the caller. */
+cssdoc.rules = target => {
+	const $ = target.el ? target : { el: target };
+	const path = sheet => sheet?.href && new URL(sheet.href).pathname;
+
+	return matching([{ name: "it", $ }]).map(row => ({
+		part: cssdoc.part(row.rule.parentStyleSheet?.href),
+		layer: row.layer || "—",
+		file: file(row.rule),
+		path: path(row.rule.parentStyleSheet),
+		selector: row.rule.selectorText,
+		decls: decls(row.rule),
+	}));
+};
+
 function rule_table(rows, target){
 	h3(rows.length + " rules land on ", code(target));
 	p.c("muted", "Read out of the stylesheets this page is using right now, in document order. Nothing here is typed.");

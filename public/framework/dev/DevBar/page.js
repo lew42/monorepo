@@ -4,14 +4,14 @@ import { Doc, md, code, h2, div, button, ui } from "/app.js";
 export default new Doc({
 	meta: import.meta,
 	title: "DevBar",
-	label: "Dev rail",
+	label: "DevBar",
 	description: "A right rail of dev chrome on every page, behind one keystroke.",
 	icon: "build",
 
 	subject: devbar,
 	methods: "refresh toggle",
 	notes: "docking sizing structure threads measuring decisions",
-	files: "DevBar.js ask.js devbar.css grip.css grip.js layout.js parts.js readme.md settings.js structure.js tools.js width.js page.js",
+	files: "DevBar.js ask.js devbar.css layout.js parts.js readme.md settings.js structure.js tools.js width.js page.js",
 
 	content(){
 

@@ -1,7 +1,7 @@
 import View, { div, icon } from "../../core/View/View.js";
 import { words, draw, BOX, PAGE } from "./words.js";
 import { btn } from "./controls.js";
-import { select, context } from "./panel.js";
+import { select, open, context, selected } from "./panel.js";
 
 /* css: .layout, .layout-box, .layout-bar, .layout-region, .layout-hot, .layout-selected,
    .layout-name, .layout-btn, .layout-pick, .layout-knob, .layout-range, .layout-tag,
@@ -38,15 +38,20 @@ layout.bar = function(target, list){
 
 		$bar.append(() => {
 			draw($el, list ?? (page ? PAGE : BOX));
-			btn(() => icon("tune"), () => select($el)).attr("title", "Open the panel");
+			btn(() => icon("tune"), () => open($el)).attr("title", "Open the panel");
 		});
 	});
 
 	return $bar;
 };
 
+// Reachable directly, for a caller with more than one region to grant — a two-up
+// wants one bar over two selectable panes (`ext/demo/layout.js`).
+layout.selectable = region;
+
 layout.words = words;
 layout.context = context;
+layout.selected = selected;
 
 // A View, a bare element, or a Page — whose element exists only once it has rendered.
 const view_of = target => target.el ? target

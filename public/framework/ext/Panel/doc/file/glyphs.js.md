@@ -6,6 +6,18 @@ one vocabulary read by the bar, the inspector, `seam.js`'s menu and (since
 2026-08-16) `tools.js`'s overlay and `text.js`'s rail, so the four control
 surfaces can never draw a different picture for the same word.
 
+## It also holds `WORDS` — the table, not just the pictures (2026-08-18)
+
+A picture was never the whole of a word. `WORDS` is every panel word that is
+ONE key with a fixed list of choices — its `names`, its `pics`, its picker
+width, whether the bar carries it, which display modes it is live under, and
+the custom property it lands as. `toolbar.js` and `properties.js` are both
+*readers* of it, so the ten words are written once instead of twice and a new
+one is an entry rather than an edit in each. `live_words(item)` filters it to
+what the panel's display mode makes real; `word_vars(item)` turns it into the
+CSS `paint.js`'s `show()` writes. What is deliberately outside it, and why:
+[`../words.md`](../words.md).
+
 ## It imports `View` and nothing else
 
 That is the whole reason every control surface may read it — `toolbar.js`,

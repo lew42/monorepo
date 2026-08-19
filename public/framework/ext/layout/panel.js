@@ -22,10 +22,22 @@ export function context(el, fn){
 // The nearest registration at or above the selection — and what outlives it.
 const host_of = el => { while (el && !contexts.has(el)) el = el.parentElement; return el; };
 
+// The current selection, or null — `.layout-selected` is the DOM half of this same
+// contract, which is what a caller that must not import this module reads instead.
+export function selected(){ return $sel ?? null; }
+
 export function select($el){
 	$sel?.rc("layout-selected");
 	$sel = $el.ac("layout-selected");
 	host = host_of($el.el);
+	redraw();
+}
+
+/* The one explicit way IN — the toolbar's sliders chip. Everything else only FILLS a
+   rail that is already open (the owner, 2026-08-18: "too jumpy" — selecting used to
+   force it open on every click). decisions.md. */
+export function open($el){
+	select($el);
 	show();
 }
 
@@ -39,10 +51,11 @@ export function deselect(){
 	redraw();
 }
 
-/* ⚠ The difference is whether it may OPEN. `show()` opens — that is what selecting
-   means. `redraw()` only restates a rail that is already up, and every path that is not
-   a selection uses it: deselecting, and the click listener below, which fires on the ✕
-   itself and reopened the rail a millisecond after it shut. */
+/* ⚠ REVERSED 2026-08-18 (the owner: "too jumpy"). `show()` opens; `redraw()` only
+   restates a rail that is already up. Selecting used to call `show()` — now it calls
+   this, same as deselecting and the click listener below (which fires on the ✕ itself
+   and reopened the rail a millisecond after it shut). `open()`, above, is the one path
+   still allowed to `show()`. decisions.md. */
 const redraw = () => { if (drawer.showing()) show(); };
 
 function show(){

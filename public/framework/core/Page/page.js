@@ -12,7 +12,7 @@ export default new Doc({
 	// The rail, in order — one directory each, under overview/. The headings come
 	// from the `group:` every demo declares in its own page.js.
 	overview: "page children add labels route shapes "
-		+ "wall catalog dashboard strip deep "
+		+ "wall catalog dashboard strip deep columns "
 		+ "landing docs site",
 
 	// Every member, in the order a reader meets them: the tree, then rendering,
@@ -25,14 +25,14 @@ export default new Doc({
 	properties: "meta title children content url name label icon card classes "
 		+ "description parent app view loading route regions",
 
-	notes: "declaring labels css layout decisions",
+	notes: "declaring labels css layout columns decisions",
 
 	files: "Page.class.js Page.css children/page.js flow/page.js nav/page.js "
 		+ "previews/page.js shell/page.js page.js readme.md overview/readme.md "
 		+ "overview/page/page.js overview/children/page.js overview/add/page.js "
 		+ "overview/labels/page.js overview/route/page.js overview/shapes/page.js "
 		+ "overview/wall/page.js overview/catalog/page.js overview/dashboard/page.js "
-		+ "overview/strip/page.js overview/deep/page.js overview/landing/page.js "
+		+ "overview/strip/page.js overview/deep/page.js overview/columns/page.js overview/columns/columns.css overview/landing/page.js "
 		+ "overview/docs/page.js overview/site/page.js",
 
 	content(){
@@ -97,7 +97,7 @@ export default new Page({
 			p("Constructed, never rendered — and still linkable: ", intro.link());
 		}, "Constructing a `Page` renders nothing, so `export default new Page(…)` is always import-safe. It renders when the Router places it.");
 
-		md("**The cards on the left are the demos** — fourteen live trees, in three groups, each one the same class running at half size. Click one: the tree opens here with the `page.js` that defines it, and the rail stays put. **Basics** is six ways to build a tree — children, `add()`, labels, `route()`, the shape a page wears; **Arrangements** is five ways to show one; **Sites** is three whole sites: a page of section bands, a documentation site, and both together.");
+		md("**The cards on the left are the demos** — fifteen live trees, in three groups, each one the same class running at half size. Click one: the tree opens here with the `page.js` that defines it, and the rail stays put. **Basics** is six ways to build a tree — children, `add()`, labels, `route()`, the shape a page wears; **Arrangements** is six ways to show one — the last, columns, is nested pages laying out as peers; **Sites** is three whole sites: a page of section bands, a documentation site, and both together.");
 
 		md("For whole-page shapes — document, docs, dashboard, mail, chat, an app shell — the library is **[Layouts](/framework/styles/layouts/)**, where each card shows the same page at 390 **and** at 3440, side by side, and every region a layout has is a checkbox rather than a second page.");
 

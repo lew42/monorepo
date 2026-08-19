@@ -21,7 +21,7 @@ open beneath, with `page.js` linked beside the summary
 | group | demos |
 |---|---|
 | Basics | `page` `children` `add` `labels` `route` `shapes` |
-| Arrangements | `wall` `catalog` `dashboard` `strip` `deep` |
+| Arrangements | `wall` `catalog` `dashboard` `strip` `deep` `columns` |
 | Sites | `landing` `docs` `site` |
 
 `demo.tree()` and `demo.app()` both live in `ext/demo/` — they were born here and

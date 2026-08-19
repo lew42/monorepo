@@ -1,6 +1,8 @@
 import { Doc, md, code, demo, div, h3, p, ui, b, em } from "/app.js";
 import panel, { workspace, Panel } from "./workspace.js";
 import { structure } from "./generate.js";
+import { scrubber } from "./flow.js";
+import { dock } from "./tools.js";
 import full from "/framework/styles/layouts/full.js";
 
 // A cell is a string OR a function (ui/doc/method/table.md); `**bold**` inside a plain
@@ -17,14 +19,24 @@ export default new Doc({
 	subject: Panel,
 	properties: "defaults shared",
 	methods:    "get set leaf divide split close absorb mirror master copies bequeath",
-	notes:      "decisions templates generator focus overlays",
-	files:      "Panel.js workspace.js vocab.js focus.js overlays.js paint.js random.js glyphs.js toolbar.js size.js grip.js seam.js tools.js split.js insert.js repeat.js text.js persist.js display.js PanelDrag.js panel.css toolbar.css size.css grip.css tools.css split.css insert.css repeat.css text.css display.css templates.js templates.css properties.js generate.js page.js readme.md",
+	notes:      "decisions templates generator focus overlays flow words",
+	files:      "Panel.js workspace.js vocab.js focus.js overlays.js paint.js random.js glyphs.js toolbar.js size.js grip.js seam.js tools.js split.js insert.js repeat.js text.js persist.js display.js PanelDrag.js flow.js flow.css panel.css toolbar.css size.css grip.css tools.css split.css insert.css repeat.css text.css display.css templates.js templates.css properties.js generate.js page.js readme.md",
 
 	content(){
 
-		workspace().ac("bleed");
+		// The rail is part of the work here — opened once, before you start, never mid-
+		// gesture (the owner, 2026-08-18: selecting used to force it open). tools.js.
+		dock();
 
-		md("**Point at a panel and its tools fade in over the top of it** — faint icons along the top, and nine arrows at the nine places they align to. Drag a seam until a panel is narrower than its own row and the whole run of verbs folds behind one `more_horiz`, so nothing is ever out of reach. Then reload: the whole arrangement comes back, and [`/framework/ext/Panel/full/`](/framework/ext/Panel/full/) is the same workspace filling the window.");
+		// The scrubber is the PAGE's, not a panel's: a flow belongs to the document, and
+		// every panel in it would otherwise carry a copy of the same strip. flow.js.
+		scrubber(workspace({ mode: "document" }).ac("bleed")).ac("bleed");
+
+		md("**Every gesture you make above is a step.** The strip under the workspace replays them: ⏮ is the panel it all started as, ◀ ▶ walk one step at a time, and building anything while you are stepped back carries the flow on from there. Nothing is written — a flow is memory only, and the `● rec` dot says whether it is listening. [`doc/flow.md`](./doc/flow.md).");
+
+		md("**A workspace is one screen its panels divide — or a document.** Hover a seam to reach the root's own bar, pick `mode: document`, and it becomes as tall as its sections and scrolls: a split below *appends* a section instead of halving the height you have. Open [`/full/`](/framework/ext/Panel/full/) and try it, then pick `fill` again — the mode is a lens and writes nothing into the tree. [`doc/words.md`](./doc/words.md).");
+
+		md("**Point at a panel and its tools fade in over the top of it** — faint icons along the top (the nine alignment arrows are off by default since 2026-08-18; the toolbar's Alignment pop still sets the word). Drag a seam until a panel is narrower than its own row and the whole run of verbs folds behind one `more_horiz`, so nothing is ever out of reach. Then reload: the whole arrangement comes back, and [`/framework/ext/Panel/full/`](/framework/ext/Panel/full/) is the same workspace filling the window.");
 
 		md("**Twelve gestures worth trying on the panel above.** Each is one interaction, and none of them needs a mode you have to leave.");
 
@@ -46,6 +58,14 @@ export default new Doc({
 		md("The magnifier writes the `zoom` **property**, not `transform: scale()`. Scale looks identical and lies: a scaled box still occupies its unscaled size, so nothing re-lays-out — and a panel's templates size themselves in container-query units against the body, which only re-queries because `zoom` genuinely changes the box.");
 
 		md("`display` changes how a leaf's **own content** lays out — the template it is drawing, not the row of panels around it, which is still `dir` and `grow` on the split above. Pick it from the bar and the overlay says what the mode is doing while you watch: grid's numbers are the browser's own resolved track widths, read off `getComputedStyle` after layout, never guessed from the `minmax()` that produced them.");
+
+		demo(() => {
+			const row = new Panel({ data: { dir: "row" } }).add(
+				new Panel({ data: { template: "cells", display: "grid", cols: "3", gap: "1em" } }),
+				new Panel({ data: { template: "cells", display: "flex", wrap: "wrap", justify: "between", gap: "1em" } }));
+
+			panel(row).style("--panel-height", "18em");
+		}, "**A display mode brings its own words.** Same twelve boxes, two arrangements: three even tracks on the left, a wrapping row spread edge to edge on the right. Click the left panel and the rail offers `cols` and `dense`; click the right one and it offers `dir`, `gap`, `wrap`, `justify` and `items` instead — a word appears exactly where the mode makes it real. Each is one `item.set()` landing as one custom property on the body, and the bar and the rail read one table ([`doc/words.md`](./doc/words.md)), so the two can never drift. `cells` is the one `T` entry whose pieces are **direct children** of the body — every other template draws into a single wrapper, which is a body with nothing to arrange.");
 
 		md("A **section** is a full-width band of a real page — content, with its own measure and tone. A **panel** is chrome for *arranging*: it can host any section, frame it, align it, retint it, split beside it. Sections are what you ship; panels are how you wireframe.");
 
@@ -95,6 +115,10 @@ mirror(of)    // become a live duplicate of another panel — same content, own 
 			panel(row).style("--panel-height", "30em");
 		}, "**`properties` is a panel that inspects another panel.** Click the numbers on the left — the outline marks what is focused and its words appear on the right, where every chip is the same `item.set()` the bar makes. An inspector never takes focus itself, so two of them side by side track the same panel: layering, resizing, dragging and persistence all come free from *being* a panel. Focus is a selection — it rides the root panel and never reaches the file.");
 
+		demo(() => {
+			panel(structure(7)).style("--panel-height", "24em");
+		}, "**Drag the stage's handle and watch the arrangement reflow.** That is the whole responsive half, and it is a composition rather than a class: `demo.stage(() => panel(seed))` — [the stage](/framework/ext/demo/) owns the viewport and the width presets, `panel()` owns the arrangement. Every demo on this page is already one, so try `mobile` on any of them.");
+
 		md("Next: [Editor](/framework/ext/editor/) — the same `Item` tree, edited instead of arranged.");
 
 		md("Where this module stands, as a filterable ledger: [Editor × Panel review](/framework/ai/2026-08-14/editor-panel-review/).");
@@ -103,7 +127,9 @@ mirror(of)    // become a live duplicate of another panel — same content, own 
 	},
 
 	// A url, not a class toggle, so a reload comes back to the whole-window view.
+	// ⚠ The column is what sizes the workspace here, not `--panel-height`: `.layout-full`
+	// is already a flex column, so the workspace takes the room the strip leaves.
 	route(name){
-		return name === "full" && full(this, () => workspace().style("--panel-height", "100%"));
+		return name === "full" && full(this, () => { dock(); return div.c("flex v", () => scrubber(workspace({ mode: "document" }))); });
 	},
 });

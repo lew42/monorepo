@@ -66,7 +66,17 @@ export default class Socket {
 		this.connected = true;
 		this.fails = 0;
 		this.ready.resolve();
-		this.rpc("hello", window.location.pathname);
+		this.rpc("hello", window.location.pathname, this.tab());
+	}
+
+	// A stable name for THIS tab, minted once. Two tabs on one page are otherwise
+	// indistinguishable, so `path` cannot address one of them — every `hello` carries
+	// this instead, and MCP's tools take it as `tab`. ⚠ sessionStorage: it survives the
+	// reload (constant here) and dies with the tab, which is exactly a tab's lifetime.
+	tab() {
+		let id = sessionStorage.getItem("dev-tab");
+		if (!id) sessionStorage.setItem("dev-tab", id = crypto.randomUUID().slice(0, 8));
+		return id;
 	}
 	reconnect() {
 		// ⚠ Never reject `.ready` — a pending promise parks send()s until we are
@@ -106,14 +116,20 @@ export default class Socket {
 	// must never throw: message() has no catch, so one bad expression would take
 	// down every frame after it.
 	eval(code, token) {
-		const reply = result => this.rpc("eval_result", token, result);
+		// ⚠ Read at REPLY time, never at call time — a three-second eval spans a
+		//   click-away, and what the answer is worth depends on the state it was
+		//   answered in. A hidden tab still evaluates; it just stops rendering.
+		const reply = result => this.rpc("eval_result", token, { ...result,
+			visibility: document.visibilityState,
+			focused: document.hasFocus(),
+			size: [innerWidth, innerHeight] });
 		const text = value => {
 			try { return JSON.stringify(value) ?? String(value); }
 			catch { return String(value); }
 		};
 
 		// The tab may have navigated since it connected.
-		this.rpc("hello", window.location.pathname);
+		this.rpc("hello", window.location.pathname, this.tab());
 
 		try {
 			Promise.resolve((0, eval)(code)).then(

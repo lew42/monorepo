@@ -12,6 +12,7 @@ new App({ socket: Socket.singleton() });   // public/app.js — the one call sit
 - Never reject `.ready` — a `send()` awaiting a server restart must land, not throw; a rejected `ready` breaks every later `send()` for the life of the page. [doc/backoff.md](./doc/backoff.md)
 - Reconnect from `close` only — a failed connect fires `error` *and* `close`; acting on both made a connection storm. [doc/backoff.md](./doc/backoff.md)
 - `reload()`, `changed()`, `eval()` are called BY the server through `message()` — a grep finds no callers; they are the live path, not dead code. [doc/wire.md](./doc/wire.md)
+- `tab()` is this tab's address, minted in `sessionStorage` and carried by every `hello` — a url path is NOT an address, and two windows on one page used to be indistinguishable. [doc/wire.md](./doc/wire.md)
 - `eval()` must never throw — `message()` has no `catch`, so one escape kills frame dispatch (reloads included); reply `{ error }` instead. [doc/method/eval.md](./doc/method/eval.md)
 - The dev server runs arbitrary JS in this tab — two gates must both hold: localhost-only here, loopback-only `POST /mcp` in `Server/plugins/MCP.js`. Widening either is a production change. [doc/localhost.md](./doc/localhost.md)
 - `changed()` leans on `performance.setResourceTimingBufferSize(100000)` in `/app.js` — delete it and a long-lived tab silently stops reloading. [doc/method/changed.md](./doc/method/changed.md)

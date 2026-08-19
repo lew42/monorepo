@@ -1,0 +1,96 @@
+/* ext/Research — the live report. What it lays out, and why, is doc/render.md.
+
+   The block claims `.wide`, so the cards get the page's leftover width; every run
+   of TEXT inside it is capped back to `--measure`, which the page already declares.
+   Two indent tokens, one per rung, keep an open body aligned under its own text. */
+
+@layer theme {
+
+	/* ── header ──
+	   ⚠ Its own tight flow: at the page's 2em the question, the meta row and the
+	   minions strip were as far apart as the header is from the conclusions, and
+	   the whole top of the report read as one flat list of unrelated lines. */
+	.research-head { --flow: 0.8em; }
+	.research-question { font-size: 1.15em; max-width: var(--measure); }
+	.research-status { border: 1px solid var(--line); border-radius: var(--radius); padding: 0.1em 0.6em; font-size: 0.85em; }
+	.research-status.open { border-color: var(--prim); color: var(--prim-ink); }
+
+	/* ── the minions strip ── */
+	.research-running { color: var(--prim-ink); font-weight: 600; }
+	.research-minion { --gap: 0.5em; border: 1px solid var(--line); border-radius: 2em; padding: 0.15em 0.8em; font-size: 0.85em; }
+	.research-minion.done { opacity: 0.55; }
+	.research-minion-doing { max-width: 22em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+	/* ── conclusions — first under the header, and the biggest type on the page ── */
+	.research-summary { --flow: 0.6em; max-width: var(--measure); }
+	.research-conclusion, .research-digging { font-size: 1.35em; line-height: 1.35; }
+	.research-conclusion { font-weight: 500; }
+
+	/* ── a node ──
+	   `<details>` lays its summary out as a list-item and draws its own triangle;
+	   both go, so the row can be a flex with a big glyph in it. */
+	.research-node > summary { list-style: none; cursor: pointer; }
+	.research-node > summary::-webkit-details-marker { display: none; }
+
+	.research-node { --research-indent: 4.4em; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+	.research-node > summary:hover { background: var(--tint); }
+	.research-row { padding: 0.9em 1em; align-items: start; }
+
+	/* ⚠ Measured at 3440: the block is `.wide`, so an uncapped card was 2986px and
+	   its one-sentence claim ran the whole way. A card needs MORE than the reading
+	   measure — a glyph on the left and a score on the right — and nothing beyond
+	   that, so the cap is the measure plus exactly those two. The text column keeps
+	   the measure itself; the dots sit out at the right edge, in a column. */
+	.research-claims { max-width: min(100%, calc(var(--measure) + 10em)); }
+
+	/* ⚠ A basis, not `flex: 1` — the row WRAPS, and at 400 the score column was
+	   taking 76 of the 262px left for the text. Below 14em of text the dots drop to
+	   a line of their own instead. */
+	.research-main { --flow: 0.4em; flex: 1 1 14em; min-width: 0; max-width: var(--measure); }
+
+	.research-icon { font-size: 2.4em; color: var(--prim); }
+	.research-text { font-size: 1.05em; }
+	.research-kind { font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.06em; color: var(--subtle); }
+	.research-tags { font-size: 0.85em; }
+
+	.research-badge { font-size: 0.85em; background: var(--wash); border-radius: var(--radius); padding: 0.05em 0.5em; }
+	.research-badge.accepted { color: var(--ok); }
+	.research-badge.rejected { color: var(--error); }
+	.research-badge.parked { color: var(--warn); }
+
+	/* A score as a shape, not a number to read. */
+	.research-dots { gap: 0.25em; padding-top: 0.6em; margin-left: auto; }
+	.research-dot { flex: 0 0 auto; width: 0.5em; height: 0.5em; border-radius: 50%; border: 1px solid var(--line); }
+	.research-dot.on { background: var(--prim); border-color: var(--prim); }
+
+	/* The affordance the triangle used to be — `expand_more` is a ligature in the
+	   same Material Icons font the cards already load. */
+	.research-node > summary::after {
+		content: "expand_more"; font-family: "Material Icons"; font-feature-settings: "liga";
+		align-self: center; color: var(--subtle); transition: transform 0.15s;
+	}
+	.research-node[open] > summary::after { transform: rotate(180deg); }
+
+	/* ── the drilled-down half ── */
+	.research-body { --flow: 0.8em; padding: 0 1em 1em var(--research-indent); }
+	.research-why, .research-refs { max-width: var(--measure); }
+	.research-ref { font-family: var(--mono); font-size: 0.85em; background: var(--wash); border-radius: var(--radius); padding: 0.05em 0.4em; }
+	.research-img { border-radius: var(--radius); max-height: 24em; }
+
+	/* One step down, at ANY depth — a rule instead of a card, so ten levels of
+	   drill-down cost ten thin lines rather than ten shrinking boxes. Two
+	   `.research-node`s deep is the test: one alone matches a root's own children. */
+	.research-node .research-node { --research-indent: 3.25em; border: 0; border-left: 2px solid var(--line); border-radius: 0; background: none; }
+	.research-node .research-node .research-icon { font-size: 1.5em; }
+	.research-node .research-node > .research-row { padding: 0.5em 0.75em; }
+
+	/* ── the topics index, /framework/research/ ── */
+	.research-topic { gap: 0.15em; max-width: var(--measure); }
+	.research-topic .research-status { align-self: start; margin-top: 0.4em; }
+
+	/* ── the process, at the foot ── */
+	.research-process { max-width: var(--measure); font-size: 0.9em; }
+	.research-process-head { cursor: pointer; color: var(--subtle); }
+	.research-log { --flow: 0.35em; padding-top: 0.5em; }
+	.research-log-line { font-family: var(--mono); font-size: 0.85em; }
+}

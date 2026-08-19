@@ -110,7 +110,31 @@ export class Page {
 		if (claimed) return this.add(name, claimed);
 
 		const page = await Page.load(this.url + name + "/");
-		return page ? this.add(name, page) : null;
+		if (page) return this.add(name, page);
+
+		const file = await Page.file(this.url + name + ".md");
+		return file ? this.add(name, file) : null;
+	}
+
+	// Last resort, so a real page.js always wins: a `.md` file beside me IS a page —
+	// `./x/` renders `./x.md`. Nothing crawls; a LINK is the naming. doc/declaring.md.
+	// ⚠ The SPA fallback answers every miss with index.html at 200 — content-type is the 404.
+	// ⚠ core does not import ext: the import is dynamic, and only on a would-be-404.
+	static async file(url){
+		const res = await fetch(url).catch(() => null);
+		if (!res?.ok || res.headers.get("content-type")?.includes("html")) return null;
+
+		const text = await res.text();
+		const { default: md } = await import("../../ext/markdown/md.js");
+		const href = new URL(url, location.origin).href;
+
+		md.cache[href] ??= Promise.resolve(text);   // the fetch above IS md.file's fetch
+
+		// The first `# ` is the title, which render() already draws — so md.file drops it.
+		return {
+			title: text.match(/^#\s+(.+?)\s*$/m)?.[1],
+			content(){ return md.file({ url: href }, href, { h1: false }); },
+		};
 	}
 
 	// A module that throws is NOT a module that isn't there — swallowing both turns a

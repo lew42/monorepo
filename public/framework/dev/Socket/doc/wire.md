@@ -60,7 +60,8 @@ trimmed to the `eval` schema, which is the one worth reading:
      {"name":"pages","description":"List the browser tabs …","inputSchema":{"type":"object","properties":{}}},
      {"name":"eval","description":"Evaluate JavaScript in a live tab …","inputSchema":{"type":"object","required":["code"],
         "properties":{"code":{"type":"string","description":"A JavaScript expression, evaluated at global scope in the tab."},
-                      "path":{"type":"string","description":"Which tab, by the url path it reported. Omit for the first connected one."}}}},
+                      "tab":{"type":"string","description":"Which tab, by the `tab` id `pages` gives it. Prefer it to `path`."},
+                      "path":{"type":"string","description":"Which tab, by the url path it reported. Refused when it names more than one tab."}}}},
      {"name":"shot","description":"Screenshot a url with headless chromium …","inputSchema":{"type":"object","required":["url"],"properties":{…}}}]}}
 ```
 
@@ -72,8 +73,11 @@ promises — captured against a tab that had SPA-navigated to `/framework/ai/`:
 → {"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"pages","arguments":{}}}
 
 ← {"jsonrpc":"2.0","id":3,"result":{"content":[{"type":"text",
-     "text":"[\n  {\n    \"path\": \"/framework/ai/\",\n    \"connected_since\": \"2026-08-15T20:07:52-05:00\"\n  }\n]"}]}}
+     "text":"[\n  {\n    \"tab\": \"3e83f2c0\",\n    \"path\": \"/framework/ai/\",\n    \"connected_since\": \"2026-08-15T20:07:52-05:00\",\n    \"claimed_by\": null\n  }\n]"}]}}
 ```
+
+The `tab` id is the address; `path` is a convenience that fails loudly when it is
+ambiguous. See [the tab id](#the-tab-id--why-a-path-is-not-an-address) below.
 
 ### The loopback fence — the second gate
 
@@ -153,7 +157,7 @@ else reloads.
 
 | frame | means | captured example |
 |---|---|---|
-| `hello` | *this tab is on this page.* Sent on connect, on every SPA route, and before each `eval` | `{"method":"hello","args":["/framework/ai/"]}` |
+| `hello` | *this tab is `<id>`, and it is on this page.* Sent on connect, on every SPA route, and before each `eval` | `{"method":"hello","args":["/framework/ai/","3e83f2c0"]}` |
 | `eval_result` | the answer to an `eval` — `{ value }` (a JSON string, or `String(value)` when that throws) or `{ error }` | `{"method":"eval_result","args":["617a136a-…",{"value":"2"}]}` |
 | `subscribe` | stream a `.jsonl` from byte offset `from` (`0` = the whole file). Answered immediately with one `jsonl`, then kept streaming | `{"method":"subscribe","args":["/framework/ai/2026-08-15/wire-reference/task.jsonl",0]}` |
 | `unsubscribe` | stop streaming that file. Optional — closing the socket cleans up | `{"method":"unsubscribe","args":["/framework/ai/2026-08-15/wire-reference/task.jsonl"]}` |
@@ -213,15 +217,45 @@ announced `/framework/ai/`, because it had navigated twice without reconnecting.
 
 | sender | when |
 |---|---|
-| `Socket.open()` | connect and every reconnect, with `location.pathname` |
-| the site's `navigated()` in `/app.js` | every committed SPA route, with the page's own url — `Router` calls it at the end of `activate()` |
+| `Socket.open()` | connect and every reconnect, with `location.pathname` **and the tab id** |
+| the site's `navigated()` in `/app.js` | every committed SPA route, with the page's own url — `Router` calls it at the end of `activate()`. **No id**; `Tab` keeps the one it has |
 | [`eval()`](/framework/dev/Socket/api/eval/) | before running the code, so an addressed tab self-heals |
 
 **⚠ A site that wires no `navigated()` hook still goes stale**, silently — `pages`
-keeps reporting where the tab connected. That is why `eval()` re-announces, and why
-`eval` with no `path` (first connected tab) sidesteps the question. Core knows
+keeps reporting where the tab connected. That is why `eval()` re-announces. Core knows
 nothing about sockets on purpose: the announcement is one visible line in the
 site's own `app.js`, not a Router import.
+
+### The tab id — why a path is not an address
+
+Two windows open on the same page is the normal way to compare a change, and they
+were **indistinguishable**: `pages` returned two identical rows, and every tool's
+`path` (or its "omit for the first connected one") silently picked one of them. A
+session could drive the wrong window and never know.
+
+So `Socket.tab()` mints an id per tab — `crypto.randomUUID().slice(0, 8)` in
+`sessionStorage`, which survives the reload and dies with the tab, exactly a tab's
+lifetime — and every `hello` from the socket carries it. `Tab.js` keeps it, and
+**never drops one it already has**: the SPA's `navigated()` sends a url alone, so a
+non-sticky id would make a tab unaddressable after one click.
+
+`pages` now answers with the id, and `eval` / `claim` / `release` take it as `tab`:
+
+```json
+← {"tab":"3e83f2c0","path":"/framework/ext/Panel/","connected_since":"…","claimed_by":"ai · proof"}
+```
+
+**⚠ Ambiguity is refused, never guessed.** A `path` matching two tabs — or no
+selector at all while two are connected — is an error naming every candidate, so
+the retry is the whole recovery. One tab connected, and `path` or nothing still
+works. A tab that has not reloaded since this landed shows `"tab": null` and can
+only be addressed by path; reloading it mints one.
+
+`claimed_by` comes from the server, not the browser: `Tab.claim()` records who is
+driving as it evals [`dev/Claim`](/framework/dev/Claim/)'s ring, so `pages` reports
+it without asking six tabs a question. Both callers go through it — MCP's `claim`
+tool, and [`ext/Ask`](/framework/ext/Ask/), which rings the asking tab for the
+length of a turn.
 
 ## Who implements which half
 

@@ -133,3 +133,4 @@
 {"log":{"at":"2026-08-17T21:26:00-05:00","task":"remeasure-diff","msg":"landed — the site IS better: 3 real regressions (all one rule, framework.css:274) vs 4 real fixes. 78→83 measured the seat, which drifted +1 on two repeat shots of unchanged pages; deduped it is 74→83. after-3440.png regenerated."}}
 {"log": {"at": "2026-08-17T22:12:08-05:00", "task": "mastermind-shots", "msg": "landed — morning report: tool built and measured; loop = shoot → code-reading Opus → rule fix → shoot; model CSS not ready (0.25); site narrowly better; 22 changes await Mike on the accept screen"}}
 {"log": {"at": "2026-08-17T22:12:08-05:00", "task": "screenshot-tool", "msg": "landed — ext/DesignTool/vision/: runner + browse; pointer not fixer (directions 0.93, decls 0.25)"}}
+{"log": {"at": "2026-08-18T16:47:10-05:00", "task": "vision-measure", "msg": "closed by the mastermind (2026-08-18) — parked when the owner paused vision at ~22:00; nothing built, brief reusable"}}

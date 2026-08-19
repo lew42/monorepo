@@ -69,5 +69,12 @@ Until this is settled, prefer the default: **nested, and let the region size you
 Reach for `full` when the page *is* the screen — a wall, a browser, a report — and
 when you do, draw your own title and check the result at 390, 1280 and 3440.
 
+## One data point, 2026-08-18
+
+The [columns](/framework/core/Page/overview/columns/) demo answers question 1 for one arrangement: **the root
+decides**, and its children need no mode of their own — nested pages lay out as equal peers because `display:
+contents` flattens the layout while the DOM stays a tree, so the visibility contract is untouched. The record,
+the measurements and what the first sketch got wrong: [`columns.md`](/framework/core/Page/doc/columns/).
+
 Related: [`css.md`](./css.md) for how `.page` visibility is layered, and
 [Layouts](/framework/styles/layouts/) for whole-page shapes.

@@ -27,5 +27,6 @@ import { md, demo } from "/app.js";  // opted in by app.js — anything else, im
 - [Timeline](/framework/ext/Timeline/) — h/v zoomable timeline
 - [AITask](/framework/ext/AITask/) — task log, rendered
 - [JSONL](/framework/ext/JSONL/) — append-only log replay
+- [Research](/framework/ext/Research/) — a live research report
 - [Ask](/framework/ext/Ask/) — browser to Claude
 - [CSSDoc](/framework/ext/CSSDoc/readme.md) — every rule that lands on one element, read live from the CSSOM (no page of its own yet; it runs on [styles/elements/code](/framework/styles/elements/code/))

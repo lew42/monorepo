@@ -13,6 +13,13 @@ the OS temp dir as `claude-ledger-<session_id>.txt`, because each hook is a
 separate process. **No task found is always a silent exit 0** — a session that
 only answers questions never opens one, and that is correct.
 
+⚠ **Subagents share the parent's `session_id`**, so for them the session match is a
+sibling's live task as often as not. An edit's own path is ground truth (the first
+`task.jsonl` walking up); a subagent is **pinned** to that task from its first in-dir
+write — the `task.jsonl` line `new-task` has it write counts, even though that write
+is not logged — and until pinned it gets **no guess** (2026-08-18: four out-of-dir
+edits landed in a sibling's log before this).
+
 | Event | Wired as | Appends |
 | --- | --- | --- |
 | `SessionStart` | matcher `resume` | `{"log": {…, "msg": "session resumed"}}`. A fresh start appends nothing — the launch `assign` already says it. |

@@ -2,9 +2,14 @@
 
 *moved from readme.md 2026-08-17; conclusive, not current guidance.*
 
-Nothing imports it. It is loaded by `Server/plugins/MCP.js`'s `eval`, from the
-`claim-tab` skill — so it costs a visitor zero bytes and needs no localhost
+Nothing imports it. It is loaded by `Server/plugins/MCP.js`'s `claim` and `release`
+tools, through an `eval` — so it costs a visitor zero bytes and needs no localhost
 guard of its own (the socket that reaches it already has one, LAW#6).
+
+It was a `claim-tab` skill until 2026-08-18, and the verb moved into the tools on the
+argument that a skill is a file a session must already know to read, while the MCP
+`instructions` reach every session that has the tools — which is exactly the set of
+sessions that can claim anything. `ai/2026-08-18/mcp-tab-awareness/`.
 
 ## Why a module and not a paste
 

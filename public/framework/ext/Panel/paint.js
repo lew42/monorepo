@@ -1,4 +1,5 @@
 import { place } from "./toolbar.js";
+import { word_vars } from "./glyphs.js";
 import { sizing } from "./size.js";
 import { text_apply, text_commit } from "./persist.js";
 import { repeat_apply } from "./repeat.js";
@@ -25,11 +26,13 @@ export function repaint(item){
 	return item;
 }
 
-/* Which way a leaf's body lays its own content out. One class, swapped — display.css says
-   what each one means, so nothing here decides a layout. */
+/* Which way a leaf's body lays its own content out: one class, plus the words that tune it
+   as one custom property each (`glyphs.js`'s `WORDS` says which). display.css says what
+   every one of them means, so nothing here decides a layout — and this stays the SINGLE
+   writer of both, which is what lets one file read a body's arrangement off one source. */
 export function show(item, $body){
 	const mode = item.get("display");
-	return $body.rc("panel-d-block panel-d-flex panel-d-grid").ac("panel-d-" + mode);
+	return $body.rc("panel-d-block panel-d-flex panel-d-grid").ac("panel-d-" + mode).style(word_vars(item));
 }
 
 /* One panel's body redrawn from its template — never the tree, so `set()` only saves. */

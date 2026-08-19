@@ -4,31 +4,30 @@
 @layer theme {
 
 	/* Chrome is sized by its region, never by its content: a `flex: 1 1 0` child of a
-	   heightless box collapses to nothing, so a call site retunes the token. `--panel-hug`
-	   is the other one: the extent a hugging panel takes on the axis its content cannot
-	   measure. Read by the rules below (one word, `mode`, both axes) AND by `size.js`'s
-	   per-axis engine (`w`/`h`, either axis alone) — one token, two readers. */
-	.panel-workspace { height: var(--panel-height, 34em); --panel-hug: 16em; }
+	   heightless box collapses to nothing, so a call site retunes the token.
+	   `--panel-section` is the module's other one and means ONE thing: the floor under a
+	   section of a `mode: document` workspace (last rule in this file). It is not a width,
+	   and no other rule reads it. */
+	.panel-workspace { height: var(--panel-height, 34em); --panel-section: 16em; }
 
 	/* `1 1 0`, not `flex-1`: the util carries no `min-height`, and every level of this
 	   nesting holds something that scrolls. */
 	.panel-workspace, .panel, .panel-items, .panel-body { flex: 1 1 0; min-width: 0; min-height: 0; }
 
-	/* The slot a panel is handed, and the only stable reference a declared extent can cap
-	   itself against (`100cqi`/`100cqb` below; the nearer one wins). ⚠ These two boxes and
-	   no other here: both are sized from above and never by their contents - where `.panel`
-	   hugging is `0 0 auto` and containment would measure it as 0. */
-	.panel-workspace, .panel-items { container-type: size; }
-
-	/* The grip writes fractions here, so a split keeps its proportions at any width. */
-	.panel { flex-grow: var(--panel-grow, 1); overflow: hidden; position: relative; }
+	/* The grip writes fractions here, so a split keeps its proportions at any width.
+	   ⚠ `max-inline-size` is the whole cap now that nothing is a query container: a hugging
+	   panel measures its CONTENT (`flex: 0 0 auto`, basis auto), and a wide drawing would
+	   otherwise push its own row past the workspace. `%` resolves against the slot — the
+	   `.panel-items`/`.panel-workspace` above — never against this box, so it is not the
+	   self-measuring loop that `cq` units used to exist to dodge. doc/sizing.md. */
+	.panel { flex-grow: var(--panel-grow, 1); max-inline-size: 100%; overflow: hidden; position: relative; }
 
 	/* ⚠ The basis, and only the basis: a `flex: 1 1 0` body inside a panel that is itself
 	   `0 0 auto` resolves to ZERO height and clips its own content away, measured. Grow and
 	   shrink stay as above, so a panel hugging the width of a row still fills the row's
 	   height and scrolls rather than clipping. */
 	.panel.hug { flex: 0 0 auto; }
-	.panel.hug > .panel-body { flex-basis: auto; min-inline-size: min(var(--panel-hug), 100cqi); }
+	.panel.hug > .panel-body { flex-basis: auto; }
 
 	/* One full-width column, so a section band can take the whole panel, with the
 	   picker moving the content inside it - which is what `align-content` and
@@ -59,19 +58,16 @@
 	   styles/sections' class, reaching a panel through templates.js's lazy import. */
 	.panel-body > .section-band { width: 100%; }
 
-	/* The 3440 story: a template sizes itself in `cq` units and is centred and scaled at
-	   any panel size. Size containment needs a box the content does not decide - a filling
-	   panel is one, and so is a hugging panel holding a `cq` SCENE, which has no content
-	   size to hug and takes `--panel-hug` instead. ⚠ Measured: containment reports an empty
-	   box, so without a declared extent a hugged scene is 0px wide. A hugging panel holding
-	   real content - a band, a call site's own drawing - measures its own block axis, and
-	   only its inline axis can be contained. ⚠ The `min()` on both extents is the cap: a
-	   slot narrower than 16em cannot honour it, and `cq` reads the SLOT above (rule near
-	   the top), never this box - reading the panel would be the same self-measuring loop.
-	   (`.panel-t` is templates.js's class, and workspace.js imports it beside this sheet.) */
-	.panel:not(.hug) > .panel-body { container-type: size; }
-	.panel.hug > .panel-body:has(> .panel-t) { container-type: size; block-size: min(var(--panel-hug), 100cqb); }
-	.panel.hug > .panel-body:not(:has(> .panel-t)) { container-type: inline-size; }
+	/* A template fills the body it was drawn into. `.panel-t` asks for `block-size: 100%`
+	   and this is the row that answers it: the body is a grid of `min-content` rows, so
+	   without an explicit track a percentage height has nothing to resolve against and a
+	   scene with no text collapses. ⚠ One track, not `grid-auto-rows`: `100%` of an
+	   INDEFINITE body (a hugging panel) falls back to the content, which is exactly what
+	   hug now means — a template that has no content to measure declares its own floor in
+	   templates.css (`.panel-t-scene`). `.panel-t-screen` has proved this pair since
+	   2026-08-18. (`.panel-t` is templates.js's class, and workspace.js imports it beside
+	   this sheet.) */
+	.panel-body:has(> .panel-t) { grid-template-rows: 100%; }
 
 	/* The focused panel - a selection, never saved, and the one thing an inspector in
 	   another region needs to see. Drawn as a pseudo-element so it costs the panel no
@@ -94,4 +90,46 @@
 	/* The landing slot, sized on the axis it lands in. Its outline is draggable.css's;
 	   Sortable's px height is cleared in PanelDrag.start(). */
 	.panel-items > .drag-placeholder { flex: 0 0 4em; }
+
+	/* ---- mode: document ------------------------------------------------------------
+	   The ROOT's word (glyphs.js's `WORDS`, `panel-mode-document` written by size.js), and
+	   these four rules are all it means. A workspace in `fill` is one SCREEN its panels
+	   divide; a DOCUMENT has no height to divide, so it is as tall as its sections and
+	   scrolls — and a split below appends one more instead of halving what is there.
+	   Nothing here reaches past the root's own column: inside a section every rule above
+	   applies unchanged. LAST in the file, because two of these carry the same specificity
+	   as the base `flex: 1 1 0` they replace. doc/words.md.
+
+	   ⚠ The WORKSPACE scrolls; the page does not grow. The box keeps the height it was
+	   handed (`--panel-height`) and the root INSIDE it is the thing that gets tall.
+	   `/full/` could not scroll the page anyway: `.layout-full` is `position: fixed`. */
+	.panel-workspace:has(> .panel-mode-document) { overflow: auto; align-items: start; }
+
+	/* Cross axis only. `align-items: start` above releases the stretch that pinned the root
+	   to one screen, and `min-block-size` is that screen kept as a floor — so a document
+	   with one section still looks exactly like a workspace. ⚠ `flex` is untouched: the
+	   workspace runs as a ROW, so flex here is the root's WIDTH, which still fills. */
+	.panel-mode-document { block-size: auto; min-block-size: 100%; }
+
+	/* `flex: 1 1 0` all the way down is what makes a screen divisible — and in a column
+	   sized by its content a `0` basis is nothing at all. So the column and every section
+	   in it state a real one. A section that declared a height (`h: fixed`, size.css, and
+	   higher specificity than this) keeps it; one that would FILL has nothing left to fill
+	   and takes `--panel-section` as its floor — which is what makes every new section 16em
+	   with NOTHING written into the tree. ⚠ A FLOOR, never a height: a section grows past it
+	   with whatever it holds, which is the whole scrollbar rule (doc/sizing.md).
+	   ⚠ That is the whole reason `divide()` is untouched: the mode is a lens, and switching
+	   back to `fill` puts four even rows back on one screen exactly as they were (measured
+	   — a stamped `h: fixed` gave 1/241/241/241). */
+	/* ⚠ `1 0 auto` on the COLUMN, and it was the trap of this mode while the column was a
+	   size query container: a size container may not be sized by its own contents, so the
+	   column measured 0px with 963px of sections inside it, clipped away by the root's
+	   `overflow: hidden`, with nothing thrown and nothing to see. Containment is gone
+	   (2026-08-19) and the basis is the whole rule. doc/sizing.md. */
+	.panel-mode-document > .panel-items.v { flex: 1 0 auto; }
+	/* `1 0 auto`, not `0 0 auto` (2026-08-19): a short document still fills the screen — one
+	   section takes the whole window, four share it, eight sit at their 16em floor and the
+	   workspace scrolls. With `0 0 auto` a one-section document read as a 16em band over
+	   five-sixths of empty wash (the owner, on /full/). */
+	.panel-mode-document > .panel-items.v > .panel { flex: 1 0 auto; min-block-size: var(--panel-section); }
 }

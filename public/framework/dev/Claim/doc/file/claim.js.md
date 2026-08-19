@@ -3,8 +3,8 @@
 Two functions and the paint routine behind them: `claim(who, note)` rings the
 whole viewport and marks the tab title, `release()` undoes both, `reclaim()`
 reinstates a ring that survived a reload. Nothing in the framework imports
-this file — the caller is `Server/plugins/MCP.js`'s `eval`, invoked by the
-`claim-tab` skill, which is also why `paint()` builds its DOM by hand instead
+this file — the caller is `Server/plugins/MCP.js`'s `claim` and `release`
+tools, through an `eval`, which is also why `paint()` builds its DOM by hand instead
 of through a captor: an `eval` runs at global scope, so a factory call there
 captures nothing.
 

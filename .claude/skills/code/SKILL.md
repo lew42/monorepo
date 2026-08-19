@@ -122,6 +122,7 @@ Write as little CSS as possible; a component starts with no stylesheet. `css` fi
 - Resolve urls against `import.meta`; the SPA fallback makes the document url the route.
 - Only `p()`/`h1`–`h6` read backticks; a backtick inside `` css(`…`) `` kills every page.
 - A stylesheet that 404s resolves and warns — check the console. Windows: `pkill` matches nothing.
+- `.append(fn)` calls `fn.call(this, this)` — a bare reference gets the View as its FIRST argument. `.append(hero)` on a `tone => view` band handed it a View where its tone goes; twelve specimens rendered the default surface, nothing threw. Pass `() => fn(args)`, never a bare reference, to anything that takes parameters.
 
 ## 8. Before you add anything
 

@@ -1,7 +1,7 @@
 ## What this file is
 
 The Doc page for a module nothing imports — the first code block shows the
-real call site (`Server/plugins/MCP.js`'s `eval`, via the `claim-tab` skill)
+real call site (`Server/plugins/MCP.js`'s `claim` tool, via an `eval`)
 because there is no in-app usage to demonstrate otherwise. `demo()` is the
 only place `claim()`, `release()` and `claimed()` run inside the framework at
 all.

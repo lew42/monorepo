@@ -22,8 +22,10 @@ It straddled this edge until 2026-08-16 and cost two bugs: closed, its outer
 half stayed on screen as an invisible `ew-resize` column down every page; open,
 that same half covered every pixel of `.pages`' scroll gutter, which sits flush
 against this edge because the region is `overflow-y: scroll`. There is no room
-on the page side of this line at all. Measurements: `devbar.css` and `grip.css`
-in the [Files](/framework/dev/DevBar/files/) tab.
+on the page side of this line at all. Measurements: `devbar.css` in the
+[Files](/framework/dev/DevBar/files/) tab, and `ext/grip/doc/decisions.md` —
+the strip moved to `ext/grip` on 2026-08-18 so [`ext/drawer`](/framework/ext/drawer/)
+could use the same edge, and it carried this fix with it.
 
 ## Why `<body>`, outside `.app`
 
@@ -41,8 +43,10 @@ could not inherit a token scoped to `.app`.
 
 ## Two rails, one edge, summed
 
-[`ext/layout`](/framework/ext/layout/)'s drawer reserves `--drawer` at the
-same inline-end edge, opened by a selection rather than a keystroke. Before
+[`ext/drawer`](/framework/ext/drawer/) reserves `--drawer` at the
+same inline-end edge, opened by any caller rather than a keystroke — and the two
+can be open at once, which is the whole reason the sum below exists. (It was
+`ext/layout`'s drawer until the rail moved out of that module, 2026-08-16.) Before
 2026-08-14 `--devbar` was `.app`'s only reservation there, and a second panel
 sharing the edge would have silently lost its push the moment `deselect()`
 cleared `--drawer`. `framework.css` now sums `--drawer + --devbar` on `.app`,
@@ -60,6 +64,6 @@ Buys: a preset button is one subtraction (`innerWidth - target`, see
 distance* between the window and the page — no second measurement anywhere.
 Costs: any future inline-end panel on this site has to know about this sum by
 convention, reading `framework.css`, rather than by registering with
-something. Recorded as deliberate in [`ext/layout`'s
-readme](/framework/ext/layout/) too — neither module owns the contract; both
+something. Recorded as deliberate in [`ext/drawer`'s
+readme](/framework/ext/drawer/) too — neither module owns the contract; both
 just honour it.

@@ -66,10 +66,12 @@ drawer-      ext/drawer
 dt-          ext/DesignTool
 editor-      ext/editor
 file-        ext/files
+grip-        ext/grip
 hljs-        ext/highlight (vendored)
 layout-      ext/layout
 md-          ext/markdown
 panel-       ext/Panel
+research-    ext/Research
 tab-         ext/tabs
 tabs-        ext/tabs
 timeline-    ext/Timeline

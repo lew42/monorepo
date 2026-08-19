@@ -5,8 +5,32 @@
 	/* Compound with `.panel-body` on purpose: two classes beat the base rule's one at equal
 	   specificity, in either load order, with no layer trick spent. */
 	.panel-body.panel-d-block { display: block; }
-	.panel-body.panel-d-flex { display: flex; flex-direction: row; gap: 0.5em; }
-	.panel-body.panel-d-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(8em, 1fr)); gap: 0.5em; }
+
+	/* One custom property per word, written by `paint.js`'s `show()` and nothing else.
+	   Every fallback is exactly what this rule hardcoded before the words existed, so a
+	   panel that has chosen nothing draws as it always did.
+	   ⚠ `justify-content` and `align-items` are free to take here: the base `.panel-body`
+	   picker writes `--panel-x`/`--panel-y` into `justify-items` and `align-content`, and
+	   flex reads NEITHER of those — `justify-items` is inert in flex, and `align-content`
+	   needs more than one line. Two classes beat the base rule's one, in either order. */
+	.panel-body.panel-d-flex {
+		display: flex;
+		flex-direction: var(--panel-dir, row);
+		gap: var(--panel-gap, 0.5em);
+		flex-wrap: var(--panel-wrap, nowrap);
+		justify-content: var(--panel-justify, flex-start);
+		align-items: var(--panel-items, stretch);
+	}
+
+	/* ⚠ `--panel-tracks`, not `--panel-cols`: that name is the picker grid's own column
+	   count everywhere else in this module, and a custom property written on a body
+	   INHERITS into any control surface drawn inside it. */
+	.panel-body.panel-d-grid {
+		display: grid;
+		grid-template-columns: var(--panel-tracks, repeat(auto-fit, minmax(8em, 1fr)));
+		gap: var(--panel-gap, 0.5em);
+		grid-auto-flow: var(--panel-flow, row);
+	}
 
 	/* Over the body, under the bar — a sibling, same formula `.panel-align` sits at, so the
 	   two overlays never fight for the strip the bar owns. Inert throughout: it never sits
@@ -42,6 +66,24 @@
 		translate: 0 -50%;
 		border-block: 0.3em solid transparent;
 		border-inline-start: 0.4em solid var(--line);
+	}
+
+	/* A column body's axis runs DOWN, and its arrowhead with it — `dir` is a word now, so
+	   the overlay draws the direction the body actually resolved to rather than a row. */
+	.panel-display-axis.v {
+		inset-inline: 50% auto;
+		inset-block: 0.5em;
+		inline-size: 1px;
+		block-size: auto;
+	}
+
+	.panel-display-axis.v::after {
+		inset-inline: 50% auto;
+		inset-block: auto -1px;
+		translate: -50% 0;
+		border-block: none;
+		border-inline: 0.3em solid transparent;
+		border-block-start: 0.4em solid var(--line);
 	}
 
 	.panel-display-line {

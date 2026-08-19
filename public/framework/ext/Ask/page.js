@@ -54,7 +54,10 @@ await start("fix the audit page's severity sort", { group: "layout" });  // scaf
 | \`task\` | a thread's path under \`public/\`; the exchange lands in its log |
 | \`shot\` | a selector, or \`{url, selector}\` — a picture for the turn to read |
 | \`on\` | \`{text}\` / \`{tool}\` as the turn streams |
-| \`model\`, \`tools\` | per call; \`tools: ""\` is a pure-text turn |`);
+| \`context\` | what the page is doing right now — the dev rail sends the selection |
+| \`model\`, \`tools\` | per call; \`tools: ""\` is a pure-text turn |
+
+Every turn is told the id of **the tab that asked**, and the \`site\` MCP tools take that id — so a second window on the same page is never touched. The server rings the asking tab for the length of the turn. [decisions](docs/decisions/)`);
 
 		md("See it live: the compose box on [the board](/framework/ai/), the thread panel in the [dev rail](/framework/dev/DevBar/), or [vision](/framework/ext/DesignTool/) asking a second opinion about a layout report.");
 

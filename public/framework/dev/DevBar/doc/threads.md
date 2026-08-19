@@ -45,6 +45,26 @@ inside a **callback** passed to `$ai.append()`, which re-establishes the
 captor before the callback runs, rather than being called directly after the
 `await`. The same shape recurs in `panel()`'s own `show()`, one level in.
 
+## The turn knows which tab it is, and what you selected
+
+`chat({ context: selection })` — `context` is a **function**, called on send, so
+what travels is what you had selected when you hit send, not when the box was
+drawn. The server appends it to the turn's system prompt beside the tab's id, and
+the turn drives that tab and no other: [ask](/framework/ext/Ask/doc/decisions/),
+[wire](/framework/dev/Socket/doc/wire/).
+
+`selection()` reads the DOM rather than importing anything — the `.focus` class a
+[Panel](/framework/ext/Panel/) workspace puts on the selected panel (`panel-focus`
+is the same fact as an event), `.panel-text-on` for a selected run of text, and the
+plain text selection every page has for free. A page with no panels still gets the
+text half; a page with neither sends nothing.
+
+**⚠ The text selection is remembered, not read on send.** Clicking into the chat
+box collapses the very selection you were about to ask about, so a
+`selectionchange` listener keeps the last non-empty one. (Testing this: a range
+inside a `display:none` subtree selects happily and then reads back as the empty
+string — select something on screen.)
+
 ## What it remembers, and what it doesn't
 
 `settings.threads[url]` is the one thread you were last on, *per page* — so

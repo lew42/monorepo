@@ -34,6 +34,8 @@ drawer(($slot, $body) => {
 			button.c("btn", "Close it").click(() => drawer.close());
 		});
 
+		md("**Drag its inline edge.** The strip just inside it is a grip — `ext/grip`, the same one [the dev rail](/framework/dev/DevBar/) has. The width you let go of comes back on the next open and the next reload: it lives in `--drawer-w`, because `--drawer` doubles as open/shut and `close()` clears it.");
+
 		md("It **pushes** rather than covers — `--drawer` is the inline-end strip `.app` yields, written onto the same element the rail inherits its width from, so the reserved strip and the rail are one number. A properties panel that covers what you're editing is the one thing this widget must never do.");
 
 		h2("Two slots");

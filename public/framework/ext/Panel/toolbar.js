@@ -1,5 +1,5 @@
 import View, { div, span, button, icon } from "/framework/core/View/View.js";
-import { ALIGN, COMPASS, DISPLAY, MODE, PLACE, SIZES, LENGTHS, SWATCHES, TONES, extent, glyph } from "./glyphs.js";
+import { MODE, PLACE, SIZES, LENGTHS, extent, glyph, live_words } from "./glyphs.js";
 import { sizing } from "./size.js";
 
 /* The bar that floats over a panel. Imports flow one way — `workspace.js` and `paint.js`
@@ -18,6 +18,7 @@ View.stylesheet(import.meta, "toolbar.css");
    `{ names, entries, roll, repaint, sow }`. */
 export function toolbar(item, $panel, $body, T){
 	const pops = [];
+	let $fold;
 
 	/* Absolutely positioned, so its slot in the bar costs nothing and DOM order is free.
 	   ⚠ The trigger is handed back on the pop: a trigger that SHOWS the current value
@@ -39,12 +40,58 @@ export function toolbar(item, $panel, $body, T){
 		return $pop.assign({ says: said => $trigger.empty(said) });
 	};
 
+	/* Every word that is one key with a fixed list of choices, from the ONE table the
+	   properties rail reads too (`glyphs.js`'s `WORDS`) — so `gap`, `wrap` or a track
+	   count is an entry there and never an edit here. `bar: true` means the trigger IS
+	   the value, the way template and size already read; a word with no `bar` is
+	   rail-only. Only the words the display mode makes LIVE are built.
+	   ⚠ Built at draw time, like every other trigger on this bar: picking `grid` does
+	   not grow the row until the next draw, which is the same staleness `$pop.says()`
+	   exists to patch — `change` deliberately never rebuilds a bar.
+	   `keep` splits the run in two: the root's own words go on ABOVE the early return
+	   below, because a split's bar reaches nothing after it. */
+	const word_pops = keep => live_words(item).filter(([, word]) => word.bar && keep(word)).forEach(([key, word]) => {
+		const said = () => word.bar === true
+			? glyph(word.pics?.[item.get(key)], item.get(key))
+			: () => { icon(word.bar); };
+
+		const $word = pop(said(), key[0].toUpperCase() + key.slice(1), word.cols, () =>
+			pick(word.names, name => {
+				item.set(key, name);
+
+				/* What a word MEANS on the body, in one place: `show()` for the ones
+				   that are pure CSS (handed in as `T.display`), a redraw for `tone`
+				   because a template reads it while drawing, and `place()` for `align`,
+				   whose writer is this file's own export. A ROOT word lands on neither —
+				   it reshapes the workspace, and `Panel.set()` redraws for it. */
+				if (word.root) return;
+				if (key === "tone") T.repaint();
+				else if (key === "align") place($body, name);
+				else T.display?.(name);
+
+				if (word.bar === true) $word.says(said());
+
+				/* ⚠ `display` is the ONE word that changes which OTHER words exist, so it
+				   is the one that cannot wait for the next structural redraw: picking
+				   `grid` has to put a track count on this bar while the pointer is still
+				   here. Refilling the fold is the whole rebuild — `pops` is emptied
+				   because every popover it held left with the DOM. */
+				if (key === "display" && $fold){ pops.length = 0; $fold.empty(verbs); }
+			}, item.get(key), word.pics));
+	});
+
 	const verbs = () => {
 		btn(() => { icon("vertical_split"); }, () => item.divide("row")).attr("title", "Split into columns");
 		btn(() => { icon("horizontal_split"); }, () => item.divide("col")).attr("title", "Split into rows");
 
 		// The third structure verb, beside the other two — and the only one a split gets.
 		if (T.sow) btn(() => { icon("space_dashboard"); }, T.sow).attr("title", "Roll a layout as panels");
+
+		/* The root's word about the whole workspace, BEFORE the leaf-only run below: a
+		   document root is a split the moment it holds two sections, and a split's bar
+		   would otherwise carry nothing but its three verbs — no way back to `fill`.
+		   `live_words()` already hides these on every panel that has a parent. */
+		word_pops(word => word.root);
 
 		if (!$body) return;
 
@@ -65,21 +112,8 @@ export function toolbar(item, $panel, $body, T){
 
 		$template.ac(pics && "panel-browse");
 
-		pop(() => { icon("palette"); }, "Tone", 2, () =>
-			pick(TONES, tone => { item.set("tone", tone); T.repaint(); }, item.get("tone"), SWATCHES));
-
-		pop(() => { icon("grid_view"); }, "Alignment", 3, () =>
-			pick(ALIGN, code => { item.set("align", code); place($body, code); }, item.get("align"), COMPASS));
-
-		/* The trigger IS the mode, like template and size — and the pick calls back out, so
-		   what a mode DRAWS over the body stays the call site's business and this file keeps
-		   importing nothing of ext/Panel but its vocabulary. */
-		const $display = pop(() => { icon(DISPLAY[item.get("display")]); }, "Display", 3, () =>
-			pick(Object.keys(DISPLAY), name => {
-				item.set("display", name);
-				T.display?.(name);
-				$display.says(() => { icon(DISPLAY[name]); });
-			}, item.get("display"), DISPLAY));
+		// Everything the root did not already take, above.
+		word_pops(word => !word.root);
 
 		/* Width and height, as two triggers rather than one: `size.js` reads them per axis,
 		   so one popover could no longer say both at once. Each trigger IS the extent that
@@ -99,7 +133,7 @@ export function toolbar(item, $panel, $body, T){
 					T.repaint();
 					$size.says(label());
 				}, extent(item, axis), MODE));
-			return $size;
+			return $size.ac("panel-axis-" + axis);
 		};
 
 		size_pop("w", "Width");
@@ -119,7 +153,7 @@ export function toolbar(item, $panel, $body, T){
 	   three buttons fit at any width worth pointing at, so only a leaf builds one. */
 	if (!$body) verbs();
 	else {
-		const $fold = div.c("panel-pop panel-fold", verbs).style("--panel-cols", 4);
+		$fold = div.c("panel-pop panel-fold", verbs).style("--panel-cols", 4);
 		btn(() => { icon("more_horiz"); }, () => { pops.forEach($pop => $pop.rc("on")); $fold.tc("on"); })
 			.ac("panel-more").attr("title", "More controls");
 

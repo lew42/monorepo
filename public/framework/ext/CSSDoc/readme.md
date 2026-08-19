@@ -10,7 +10,15 @@ import { cssdoc } from "/framework/ext/CSSDoc/CSSDoc.js";
 
 content(){ cssdoc("code"); }   // a block, like md() and demo()
 ```
-⚠ **`target` is the label, not a selector** — both specimens are always a real `<code>`, so `cssdoc("blockquote")` silently documents `code`. v1 is one element on purpose; generalising is a v2 design, not a rename (see `CSSDoc.js`).
+⚠ **`target` is the label, not a selector** — both specimens are always a real `<code>`, so `cssdoc("blockquote")` silently documents `code`. The block is one element on purpose; generalising *it* is still a design, not a rename (see `CSSDoc.js`).
+
+```js /framework/ext/layout/body.js
+cssdoc.rules($el)     // a View or an Element → [{ part, layer, file, path, selector, decls }]
+cssdoc.part(href)     // "framework" | "site" | "js" | the owning dir — "lew42", "layout", "Panel"
+```
+The **data** behind the rule table, for one live element and no specimen pair — which is what
+lets a selected element show where it is defined without a page. `ext/layout/body.js` draws
+these rows in the drawer; the design is [`ai/2026-08-18/element-provenance/proposal.md`](/framework/ai/2026-08-18/element-provenance/proposal.md).
 
 It renders the specimen twice live — inline, and inside a `pre` — then the rules that match
 either specimen in document order, then every property those rules touch with its computed
@@ -24,6 +32,8 @@ a declaration one rule set and the next forgot to reset shows up.
 - No line-number API exists and `cssText` is normalised, so grepping the file for it is unreliable too — link the file, never a line. 14 of 72 sheets have no `href` at all (`ui/parts.js` appends a bare `<style>`) and show as `<style>`.
 - A rule whose `@media` does not match right now stays in the table, labelled `only when (…)`. That variant is what you need while editing.
 - The CSSOM sees only *this* document, so a target page documents the sheets it happens to load. `.space-word > code` shows up only where `space.css` is loaded.
+- **The `@layer` is not the part.** `.sidebar` returns `Page theme`, `Sidebar theme` and `site site`; `.page-title` returns `framework theme` and `lew42 theme` — four owners, one layer name, because `framework.css` alone writes `base`, `theme` *and* `util`. `cssdoc.part()` reads the sheet's **href**, which is the only thing that says what else a change will affect.
+- **The CSSOM cannot see inline styles**, and there are 905 `.style()` call sites (`ai/2026-08-18/css-audit/audit.md`) — 41% of them custom properties. `cssdoc.rules()` returns rules only, so the strongest declarations on an element can be absent; read `[...el.style]` alongside it.
 
 ## Not in v1, on purpose
 `target` is an explicit string, **not** derived from the page slug — one call site cannot
@@ -34,5 +44,6 @@ the call site.
 
 ## More
 - [The live demo](/framework/styles/elements/code/) — the page this replaced, whose four hand-copied rules were wrong, one of them the shipped `box-shadow` bug of 2026-08-18
+- [The drawer](/framework/ext/layout/) — select anything on the site and `cssdoc.rules()` lists what defines it
 - The measured design: [`ai/2026-08-18/cssdoc/proposal.md`](/framework/ai/2026-08-18/cssdoc/proposal.md)
 - Files that matter: `CSSDoc.js` — the whole module, no stylesheet

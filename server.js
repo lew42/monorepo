@@ -5,6 +5,7 @@ import Runtime from "./Server/plugins/SocketServer/Runtime.js";
 import AILogs from "./Server/plugins/AILogs.js";
 import Ask from "./Server/plugins/Ask.js";
 import MCP from "./Server/plugins/MCP.js";
+import Research from "./Server/plugins/Research.js";
 import Screenshots from "./Server/plugins/Screenshots.js";
 import Start from "./Server/plugins/Start.js";
 import Tab from "./Server/plugins/SocketServer/Tab.js";
@@ -19,6 +20,7 @@ Server.use(DevSocket);
 Server.use(Directory);
 Server.use(AILogs);
 Server.use(MCP);
+Server.use(Research);   // registers its tools on MCP — after it
 Server.use(Screenshots);
 
 new Server();

@@ -4,7 +4,8 @@ View.stylesheet(import.meta, "claim.css");
 
 /* A tab, claimed: a ring around the whole viewport and a mark in the title, so the
  * person at the keyboard can see at a glance which window an agent is driving. The
- * caller is `Server/plugins/MCP.js`'s `eval`, through the `claim-tab` skill.
+ * caller is `Server/plugins/MCP.js` — its `claim` and `release` tools, which wrap the
+ * two exports below in an `eval` so a session never has to know this path.
  *
  * ⚠ View, not /app.js — app.js imports DevBar, DevBar calls `reclaim()`, and a
  *   `/app.js` import here would close that circle. Design record: readme.md. */

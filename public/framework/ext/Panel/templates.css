@@ -22,6 +22,25 @@
 
 	.panel-t-layer { position: absolute; inset: 0; }
 
+	/* cells — twelve boxes that are the BODY's children, so the body's own display words
+	   arrange them. No `.panel-t` wrapper by design; nothing here sizes the set, because
+	   the set is what `dir`, `gap`, `wrap`, `justify`, `items`, `cols` and `dense` size. */
+	.panel-t-cell {
+		display: grid;
+		place-items: center;
+		min-block-size: 3em;
+		padding: 0.5em 0.8em;
+		/* ⚠ `0`, and it is load-bearing: a grid ITEM's automatic minimum is its content, so
+		   at four tracks in a 110px body every cell overflowed the track it was in (measured
+		   at 400px). The track can be `minmax(0, 1fr)` and still lose to the item. */
+		min-inline-size: 0;
+		background: var(--wash);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		font: 0.8em/1 var(--mono);
+		color: var(--subtle);
+	}
+
 	/* word — one huge centred wordmark */
 
 	.panel-t-word {

@@ -65,7 +65,7 @@
 
 	/* ⚠ Resets Page's measure tokens: they inherit, and a panel sits inside a page
 	   that already has the sheet — without this a method page paid it twice. */
-	.tab-panel { padding-top: 1rem; min-width: 0; --measure: none; --page-pad: 0; }
+	.tab-panel { padding-top: 3em; min-width: 0; --measure: none; --page-pad: 0; }
 
 	/* A rail of one is not a rail: the panel is still a region, the bar is noise.
 	   Also covers the window before the bar is filled. */

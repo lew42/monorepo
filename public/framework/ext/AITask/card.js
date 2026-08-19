@@ -36,7 +36,13 @@ const tag = t => t.m?.group &&
 /** The pill row of a manifest's own deliverable links — one function, called
     from the card AND the task page (AITask.js's `links()`), so the two never drift. */
 export const links_row = m => m?.links?.length && div.c("ai-links flex gap wrap", () =>
-	m.links.forEach(l => a.c("ai-link", l.label ?? l.url).href(l.url)));
+	m.links.forEach(l => a.c("ai-link", l.label ?? l.url).href(route(l.url))));
+
+/* A deliverable `.md` inside a task dir is a page since 2026-08-18 (`Page.child()`'s
+   file fallback): `…/<date>/<slug>/audit.md` renders at `…/<date>/<slug>/audit/`, on
+   click and on reload, because every segment above it is already a page (the day, the
+   task). Only that shape — a deeper `.md` has no page above it and would 404. */
+const route = url => String(url ?? "").replace(/^(\/framework\/ai\/\d{4}-\d{2}-\d{2}\/[\w-]+\/[\w-]+)\.md(?=$|#)/, "$1/");
 
 // [value, label] pairs, so the figures column aligns instead of cramming a dotted line.
 const figures = m => {

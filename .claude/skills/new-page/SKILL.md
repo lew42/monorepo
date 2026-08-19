@@ -23,6 +23,7 @@ description: Run every time you create a page.js — the blessed shape, the pare
 3. **Add its name to the parent's `children:`.** Nothing crawls; an unlinked page does not
    exist. ⚠ A name declared in `children:` whose dir has no `page.js` 404s the whole
    probe — declare only what exists.
+   ⚠ `icon:` is unverified and fails silently: the site loads **Material Icons**, not Symbols — a name only the newer set has (`developer_guide`) renders as its literal word, ~291px in a 219px card label, and nothing throws. Probe a new name's `offsetWidth` in the live page: a glyph is ~19px, a miss is 100px+.
 4. **`doc/`** beside it when there is a topic worth a url; `readme.md` for a module.
 5. Log the url in your task's `links`. Then `documentation` and `finish-task` when done.
 

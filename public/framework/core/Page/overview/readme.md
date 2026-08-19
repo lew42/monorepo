@@ -1,4 +1,4 @@
-# Page overview demos — fourteen live `Page` trees, one directory each, the rail of `/framework/core/Page/`
+# Page overview demos — fifteen live `Page` trees, one directory each, the rail of `/framework/core/Page/`
 
 ## Use
 ```js /framework/core/Page/overview/<name>/page.js
@@ -19,6 +19,6 @@ Add the name to `overview:` in `core/Page/page.js` — the string is the rail or
 - Never `--measure: none` on a `.page.standard` retune — the whole template silently drops (`ext/demo/app.css`). [doc/decisions.md](./doc/decisions.md)
 
 ## More
-- [doc/decisions.md](./doc/decisions.md) — why a directory per demo, tree-only source, `group:` headings, the fourteen names, and the eight traps in full.
-- Page: [/framework/core/Page/overview/](/framework/core/Page/overview/) · Basics `page children add labels route shapes` · Arrangements `wall catalog dashboard strip deep` · Sites `landing docs site`
+- [doc/decisions.md](./doc/decisions.md) — why a directory per demo, tree-only source, `group:` headings, the fifteen names, and the eight traps in full.
+- Page: [/framework/core/Page/overview/](/framework/core/Page/overview/) · Basics `page children add labels route shapes` · Arrangements `wall catalog dashboard strip deep columns` · Sites `landing docs site`
 - Files: `<name>/page.js` (one tree each), `../page.js` (the `overview:` order), `ext/demo/exhibit.js` (`demo.tree`, the box)

@@ -18,6 +18,12 @@ export function available(){ return !Socket.singleton().disabled; }
  * fresh one. `task` is a thread's path under `public/` — `framework/styles/ai/rhythm`
  * beside a page, or `framework/ai/2026-08-14/browser-cli-bridge` — and files the
  * exchange in that thread's log. `on` receives `{text}` / `{tool}` as the turn streams.
+ * `context` is text about the page right now — the dev rail sends what is selected —
+ * which the server appends to the turn's system prompt.
+ *
+ * The turn is **bound to this tab**: the server tells it this tab's id, and the `site`
+ * MCP tools take that id, so a second window on the same page is never touched. It also
+ * rings this tab for the length of the turn. See doc/decisions.md.
  *
  * `shot` hands the turn a picture of one element to look at — a selector on this
  * page, or `{url, selector, width, height}` for any other:

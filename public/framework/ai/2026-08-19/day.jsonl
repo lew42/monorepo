@@ -1,0 +1,3 @@
+{"log": {"at": "2026-08-19T10:47:36-05:00", "task": "workspace-design", "msg": "task opened — the Workspace + playground design pass (Opus); the owner: avoid container queries for now"}}
+{"log": {"at": "2026-08-19T10:59:22-05:00", "task": "workspace-design", "msg": "landed \u2014 design.md: hug becomes auto by deleting container-type (61 cq lines dispositioned, 28 delete / 21 replace); Workspace holds a Panel root; four fenced build tasks"}}
+{"log": {"at": "2026-08-19T11:07:30-05:00", "task": "workspace-a-sizing", "msg": "task opened — sizing with no containers: hug means auto (design §2), 61 cq lines to 0"}}

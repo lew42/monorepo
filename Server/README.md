@@ -102,6 +102,17 @@ points every Claude session in this repo at it, so the tools arrive as
 | `pages` | the connected tabs — `[{path, connected_since}]` |
 | `eval` | `{code, path?}` run in a live tab, result JSON-serialized. DOM truth without a browser driver |
 | `shot` | `{url, selector?, width?, height?}` → a png path, via `Shot.js` and a **globally** installed playwright |
+| `claim` | `{note?, who?, path?}` — ring a tab orange so the owner sees which window an agent drives (`public/framework/dev/Claim/`) |
+| `release` | `{path?}` — drop the ring, when the task lands |
+
+**Every `eval` answer ends with the tab's state at answer time** — `visibility`,
+`focused`, size — attached inside `Socket.js`'s `reply`, not when the call was made,
+because a three-second eval spans a click-away. ⚠ A hidden tab does **not** sleep: it
+evaluates fine and stops *rendering*, so no rAF and no ResizeObserver. CSS-driven
+layout still measures true (a geometry read forces a reflow); anything the page sizes
+in a frame callback is frozen, and that reads as a plausible number, never an error.
+`shot` is the escape hatch — its own browser, always rendering.
+`ai/2026-08-18/mcp-tab-awareness/`.
 
 `eval` needs a reply channel the socket wire lacks, so
 `plugins/SocketServer/Tab.js` — a `Socket` plugin, `DevSocket.Socket.use(Tab)` —

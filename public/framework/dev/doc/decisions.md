@@ -27,7 +27,7 @@ makes itself inert off localhost — the ext doesn't have to know or care.
 **`DevBar.js` is the one mount point for the whole tier.** `public/app.js`
 calls it twice (`render()`, `navigated()`) and nothing else in the framework
 imports it. `Claim` doesn't reach the page through its own import edge — it's
-loaded by `Server/plugins/MCP.js`'s `eval`, from the `claim-tab` skill, and
+loaded by `Server/plugins/MCP.js`'s `claim` tool, through an `eval`, and
 *reinstated* on every boot through a two-line hook inside `DevBar.js`, on the
 argument that a claim is dev chrome by the same reasoning the rail itself is.
 

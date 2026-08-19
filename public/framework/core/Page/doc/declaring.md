@@ -86,6 +86,30 @@ Two properties of the probe worth stating:
 way to ask a static host what is in `/docs/`. The probe guesses one name at a time
 because that is the only thing available without a generated file.
 
+### A `.md` file is a page (Aug 2026)
+
+A fourth step, last so a real `page.js` always wins: when nothing claims `x`,
+`Page.file()` fetches `<my url>x.md`, and a hit becomes a page — title from the
+file's first `# `, body rendered by `md.file` (which the fetch primes, so it is one
+request, not two). Report deliverables and design notes stop being raw text in the
+browser without anybody declaring anything.
+
+- **The gate is the content-type, not the status.** The SPA fallback answers every
+  miss with `index.html` at **200**; a response whose type says `html` is the 404.
+- **It costs one fetch on a would-be-404 and nothing else** — the `page.js` probe has
+  already missed by then. A name with neither a page nor a `.md` still 404s.
+- **The `.md` url stays the file.** `Router` hands any path ending in `.ext` to the
+  browser, so `x.md` is the raw file and `x/` is the page — the escape hatch is free.
+- **core does not import ext.** The `import()` of `ext/markdown` is dynamic, inside
+  the fallback, so the edge exists only on a url that uses it.
+
+**Beside, and no deeper** — the matching rewrite in `md.resolve` turns a link to a
+`.md` *beside the page you are on* into its route, and leaves every other `.md` link
+alone. That is not caution, it is the same rule: the fallback only ever looks for a
+sibling of a page, so a link rewritten by path alone invents urls nothing serves —
+measured Aug 2026, 153 links across the site, 134 of them `ext/Doc` member files
+(`doc/method/append.md`) whose page is `api/append/`.
+
 ## Urls with no folder at all
 
 For anything catalogue-shaped, `route()` claims segments the parent could not list

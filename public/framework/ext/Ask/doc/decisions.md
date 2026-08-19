@@ -61,6 +61,33 @@ browser message sends `from: <the task's session_id>` — `--resume …
 `chat_session_id`. Every later message resumes that id instead. One fork per
 task, forever: [fork](/framework/ext/Ask/doc/fork/).
 
+## A turn is bound to the tab that asked
+
+A `-p` turn reaches the browser only through the `site` MCP, whose tools used to
+pick a tab by **`path`** — so two windows on one page were indistinguishable and
+the turn was guessing which one it was driving. Three moves, none of them new
+machinery:
+
+- **A tab has an id.** `dev/Socket` mints one per tab in `sessionStorage` and every
+  `hello` carries it; `Tab` keeps it, and an id already known is never dropped by a
+  later `hello` (the SPA's `navigated()` sends a url alone).
+- **The tools take `tab: <id>`, and refuse an ambiguous `path`** rather than
+  silently picking the first match — the error names every candidate, so the retry
+  is the recovery. Protocol and the full listing:
+  [wire](/framework/dev/Socket/doc/wire/).
+- **The turn is told which tab it is.** `Server/plugins/Ask.js` `system()` puts the
+  asking tab's id and page into `--append-system-prompt`, along with whatever the
+  page passed as `context` — the dev rail passes the current selection. The server
+  also **claims** that tab for the length of the turn (`Tab.claim`, which `pages`
+  then reports), so the ring is up whether or not the turn ever touches the browser.
+
+The model is never asked to work out where it is, and never asked to claim anything.
+Proof, both halves and how to run them: `proof.mjs` in
+[ask-tab-binding](/framework/ai/2026-08-18/ask-tab-binding/).
+
+⚠ **The turn's claim overwrites one made by hand** on that tab, and releases at the
+end — a turn is short, and a ring that lies about who is driving is worse.
+
 ## `shot` — let it look at the element
 
 ```js
@@ -93,6 +120,10 @@ file, no database. Detail: [record](/framework/ext/Ask/doc/record/).
 - **⚠ The prompt is browser input reaching a process spawn.** `spawn` runs with
   no shell and the prompt goes in on **stdin**, never argv — keep it that way.
   The `task` path is fenced by `thread_dir()`; see [task](/framework/ext/Ask/doc/task/).
+- **⚠ The tab binding is the one thing that rides argv** —
+  `--append-system-prompt`. Safe because `spawn` runs with no shell, and the
+  page-supplied `context` is capped at 800 characters so a selection can never
+  approach the command-line limit. The prompt itself still goes in on stdin.
 - **⚠ One turn at a time per session.** A second `ask()` against a session
   mid-turn is refused with "That session is mid-turn" rather than queued —
   two processes resuming one transcript is the corruption case above

@@ -18,6 +18,9 @@ Anything that changes the repo is a **task**: a dir at
   `route()`, `dashboard(this)`) **and** the date added to `ai/page.js` `children:`, or the day
   404s and every task under it is invisible.
 - `requirements.md` — the ask **verbatim**, plus scope and file-ownership fences if agents will run.
+- ⚠ Scratch (probes, transcripts, intermediate JSON) goes in the session scratchpad, not the repo — and that
+  scratchpad is **shared by every agent in the session**: name scripts after your task (`md-routes-probe.mjs`),
+  or a sibling minion overwrites your `probe.mjs` mid-run (2026-08-18, it happened).
 - `task.jsonl` — **at launch, not at the end**. One JSON object per line, one verb per key. Line one is an `assign` with the launch state:
 
 ```json
@@ -65,7 +68,7 @@ Each refresh, also append the snapshot to `public/framework/ai/usage.jsonl`:
 
 ## 3. While working, log — don't just narrate
 
-⚠ **Every append reloads the owner's open tab.** Log milestones, not keystrokes.
+⚠ **An append streams to the open tab over the socket (no reload); creating the task DIR full-reloads every tab that has read `directory.json`.** Log milestones, not keystrokes. (Verified 2026-08-18: `/framework/research/livereload/`.)
 
 - `{"assign": {"now": "<one line>"}}` — whenever what-you're-doing changes; the card displays it.
 - `{"log": {"at": "<ISO>", "msg": "…"}}` — findings, decisions, verification results.

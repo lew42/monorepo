@@ -1,6 +1,7 @@
 The rail's own module — one `View` mounted once, filled by whoever calls
-`drawer(fn)`. Imports `View` and nothing else, which is the whole reason it
-left `ext/layout`: anything can open it and it knows none of its callers.
+`drawer(fn)`. Imports `View` and the resize edge it shares with `dev/DevBar`
+(`ext/grip`), nothing else — which is the whole reason it left `ext/layout`:
+anything can open it and it knows none of its callers.
 
 ## `--drawer` is written on the same element the rail measures against
 
@@ -9,6 +10,18 @@ left `ext/layout`: anything can open it and it knows none of its callers.
 from — so the reserved strip `.app` yields and the rail's own width are one
 number and can never disagree. `close()` clears it back to `""`, releasing the
 strip.
+
+## ...which is why the WIDTH is a second token
+
+Because `close()` clears `--drawer`, a width dragged onto it was thrown away on
+every close. `--drawer-w` holds the width instead, `WIDE` is the literal
+`var(--drawer-w, 19rem)`, and `size()` — what `grip({ write })` calls on every
+pointer move — clamps to `[200px, innerWidth - 26rem]` and writes `--drawer-w`
+on the same `$shell`. The upper clamp is not cosmetic: past `26rem` of remaining
+page, `.app` stops widening its push, and the reserved strip and the rail would
+stop being one number. `size()` returns what it applied, so the number persisted
+on release is the clamped one. `build()` reads the key back before the first
+paint.
 
 ## `close()` is the only thing that shuts it
 

@@ -29,6 +29,29 @@ export default function ask(app){
 	});
 }
 
+/* What the owner has selected, handed to the turn as context. Read straight off the DOM,
+   so nothing here imports ext/Panel or ext/layout and a page that has neither still gets
+   the text half: a workspace marks its selected panel `.focus`, a layout demo's selection
+   is `.layout-selected` (`layout.selected()`, ext/layout/panel.js), and a selected run of
+   text is `.panel-text-on` (`panel-focus` / `panel-text` are the same facts as events).
+
+   ⚠ The text is REMEMBERED, not read on send: clicking into the chat box collapses the
+   very selection you were about to ask about. */
+let picked = "";
+document.addEventListener("selectionchange", () => {
+	const text = String(window.getSelection() ?? "").trim();
+	if (text) picked = text;
+});
+
+const where = el => el.tagName.toLowerCase() + (el.id ? `#${el.id}` : "")
+	+ [...el.classList].map(c => `.${c}`).join("");
+
+function selection(){
+	const el = document.querySelector(".panel.focus, .panel-text-on, .layout-selected");
+	return [el && `element ${where(el)}\n${el.outerHTML.slice(0, 500)}`,
+		picked && `text "${picked.slice(0, 300)}"`].filter(Boolean).join("\n\n") || null;
+}
+
 /* ⚠ The SPA fallback answers every miss with index.html — content-type is the 404. */
 const json = url => fetch(url)
 	.then(res => res.ok && !res.headers.get("content-type")?.includes("html") ? res.json() : null)
@@ -67,7 +90,7 @@ function panel(url, found){
 	const show = async task => {
 		const m = await new TaskJSONL({ url: `/${task}/task.jsonl` }).load();
 		$open.empty(() => chat({ task, resume: m.chat_session_id, history: m.chats,
-			placeholder: "Ask about this page…" }));
+			context: selection, placeholder: "Ask about this page…" }));
 	};
 
 	const pill = t => button.c("dev-link dev-thread", t.slug).click(function(){ pick(this, t.task); });
@@ -110,4 +133,4 @@ function panel(url, found){
 		pills.length ? "Pick a thread, or + for a new one." : "No threads on this page yet."));
 }
 
-export { ask };
+export { ask, selection };

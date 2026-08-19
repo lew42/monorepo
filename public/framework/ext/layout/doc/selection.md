@@ -11,6 +11,18 @@ that paragraph is not a separate target, because the control vocabulary has
 nothing to say about a span. Going deeper would put every word of a sentence
 under the pointer.
 
+## More than one region — `layout.selectable()`
+
+`layout.bar(target)` grants selectability to its own target via `region()`
+internally; `layout.selectable($el)` is that same call, exported for a caller
+with a second region the bar does not steer — the two-up (`ext/demo/layout.js`)
+is the one caller: one bar over pane 0, `$views.forEach(layout.selectable)` over
+both. ⚠ Pane 0 ends up region'd twice (once from the bar, once from the forEach)
+— harmless (a click or hover just re-runs the same `select()`/`mark()`), but not
+tidy; reading either pane is safe, *editing* the right one is per-pane and a
+`redraw()` (the `parts` chips) wipes it — one more reason provenance stays
+read-only.
+
 ## The sliders chip
 
 Every bar ends with a fixed chip (the `tune` icon) that selects **the bar's own

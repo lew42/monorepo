@@ -116,7 +116,7 @@ const run = async () => {
 	if (event === "stop" && input.stop_hook_active) return;
 
 	if (event === "posttooluse" && input.tool_name === "Skill") {
-		const task = cached_task(input.agent_id, input.session_id) || find_task(input.session_id, true);
+		const task = cached_task(input.agent_id, input.session_id) || (input.agent_id ? null : find_task(input.session_id, true));
 		if (task && input.tool_input?.skill) append(task, { log: { at: now(), msg: `skill: ${input.tool_input.skill}` } });
 		return;
 	}
@@ -124,11 +124,18 @@ const run = async () => {
 	if (event === "posttooluse") {
 		const file = input.tool_input?.file_path || input.tool_input?.notebook_path;
 		const r = file && rel(file);
-		if (!r || skip.has(path.basename(r))) return;
+		if (!r) return;
 		const by_path = find_task_by_path(file);
-		const task = by_path || cached_task(input.agent_id, input.session_id) || find_task(input.session_id, true);
-		if (!task) return;
+		// Pin a subagent to its own task from its FIRST in-dir write — which is the
+		// task.jsonl line `new-task` has it write — even though that write itself is
+		// never logged. Before this, a minion whose first real edit was outside its dir
+		// (Server/, ext/) had it attributed to a sibling's task (2026-08-18, four cases).
 		if (by_path && input.agent_id) try { fs.writeFileSync(agent_cache(input.agent_id), by_path); } catch {}
+		if (skip.has(path.basename(r))) return;
+		// A subagent with no pin yet gets NO guess: every subagent shares the parent's
+		// session_id, so `find_task(session)` is a sibling's live task as often as not.
+		const task = by_path || cached_task(input.agent_id, input.session_id) || (input.agent_id ? null : find_task(input.session_id, true));
+		if (!task) return;
 		if (lines(task).some(e => e.action?.files?.includes(r))) return; // first touch only
 		append(task, { action: { at: now(), did: "edit", files: [r] } });
 		return;

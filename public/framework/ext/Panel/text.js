@@ -30,6 +30,17 @@ const mark = el => { hot?.rc("panel-text-hot"); hot = viewed(el); hot?.ac("panel
 const announce = $el => document.dispatchEvent(new CustomEvent("panel-text", { detail: $el ?? null }));
 const select = el => { selected?.rc("panel-text-on"); selected = viewed(el); selected?.ac("panel-text-on"); gauge(el); announce(selected); };
 
+/* ⚠ A run is deselected by clicking it again — and by nothing else, which is why the
+   "body · 57ch" gauge outlived its panel (the owner, 2026-08-19): focus a DIFFERENT panel
+   and the rail moved on while the chip and the `.panel-text-on` ring stayed on the old
+   run. The selection moving anywhere this run is not — another panel, or to nothing —
+   clears it here, the one place that owns it. Bound once, at module scope, like the
+   `t` key below; `panel-focus` carries the item, and the run knows its panel by DOM. */
+document.addEventListener("panel-focus", () => {
+	if (selected && !selected.el.closest(".panel")?.matches(".focus")) select(null);
+});
+document.addEventListener("panel-unfocus", () => { if (selected) select(null); });
+
 /* The in-place overlay: what this run IS and how long its line runs, on the thing itself.
    Those are the two facts you cannot get by looking — a heading and a bold paragraph are
    the same picture, and MEASURE is the one number typography actually has a rule about

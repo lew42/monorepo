@@ -125,4 +125,12 @@
 		inline-size: 0.3em; block-size: 0.3em;
 		background: currentColor;
 	}
+
+	/* The fill/hug arrows (`open_in_full` / `close_fullscreen`) are drawn on the diagonal;
+	   turned 45° they read as the axis they set — width horizontal, height vertical (the
+	   owner, 2026-08-19). One class per axis on the rail row and the bar's pop, so the two
+	   hosts cannot drift; a fixed length is text and does not turn. */
+	:is(.panel-axis-w, .panel-axis-h) .panel-btn .material-icons { display: inline-block; }
+	.panel-axis-w .panel-btn .material-icons { transform: rotate(45deg); }
+	.panel-axis-h .panel-btn .material-icons { transform: rotate(-45deg); }
 }

@@ -9,11 +9,14 @@ import { coalesce } from "./grip.js";
    live per-workspace flags, and each call here is gated at its one call site — `align_grid`
    in `overlays.js`, `zoom_scrub` in `view()`. Everything
    defaults on while the vocabulary is still being felt out (the owner, 2026-08-16): "I want to
-   see all the core tools for now." css: .panel-align, .panel-tool, .panel-zoom.
-   Record: readme.md. */
+   see all the core tools for now" — except `align`: the nine on-panel arrows are hidden since
+   2026-08-18 (the owner: "they look bad, and they don't do anything without an explicit height
+   to align within"). The code stays; the toolbar's Alignment pop still sets the same word.
+   `workspace({ tools: { align: true } })` brings the arrows back for one document.
+   css: .panel-align, .panel-tool, .panel-zoom. Record: readme.md. */
 View.stylesheet(import.meta, "tools.css");
 
-export const TOOLS = { align: true, zoom: true, inspect: true };
+export const TOOLS = { align: false, zoom: true, inspect: true };
 
 // The four codes sitting on the very strip split.css's edge target claims too — a corner
 // gets to overlap it on purpose (split.css); these four back off it instead (tools.css).
@@ -24,13 +27,19 @@ const EDGE_MID = ["tc", "cl", "cr", "bc"];
    document event carrying the panel or `null`, so this reads a selection with no import in
    either direction and nothing here knows who announces it.
 
+   ⚠ REVERSED 2026-08-18 (the owner: "too jumpy"): a selection used to force the rail open
+   (`drawer(fn)`); now it only FILLS one that is already open — `/framework/ext/Panel/` and
+   `/full/` `dock()` it once at load instead, so the push happens before you start.
+   decisions.md.
+
    ⚠ `properties.js` arrives LAZILY. It imports `workspace.js`, and a static import here
    would close the ring workspace → tools → properties → workspace — the kind that breaks
    on deep reloads only. ⚠ Nothing is built by a bare factory after the `await`: every
    element lands inside an `empty()` callback, which re-establishes the captor. */
 document.addEventListener("panel-focus", async e => {
-	if (!e.detail) return drawer.refresh();
+	if (!e.detail) return drawer.showing() && empty();
 	if (!(e.detail.root().tools?.inspect ?? TOOLS.inspect)) return;
+	if (!drawer.showing()) return;
 
 	const { fields } = await import("./properties.js");
 
@@ -44,7 +53,9 @@ document.addEventListener("panel-focus", async e => {
    way — so the two selections cannot both be showing and the last thing you pointed at is
    the thing you are editing. `text.js` announces on the document exactly as focus does. */
 document.addEventListener("panel-text", async e => {
-	if (!TOOLS.inspect || !e.detail) return;
+	if (!TOOLS.inspect) return;
+	if (!e.detail) return drawer.showing() && empty();
+	if (!drawer.showing()) return;
 
 	const { text_fields } = await import("./text.js");
 
@@ -53,6 +64,22 @@ document.addEventListener("panel-text", async e => {
 		$body.empty(() => { div.c("panel-props", () => text_fields(e.detail)); });
 	});
 });
+
+/* The neutral state — nothing selected. ⚠ Never `drawer.refresh()` here: it replays the
+   LAST fill function untouched, which is how the panel's name used to survive its own
+   deselect (the little name UI that "failed to disappear" — decisions.md). */
+async function empty(){
+	const { fields } = await import("./properties.js");
+
+	drawer(($slot, $body) => {
+		$slot.empty(() => { span.c("panel-props-tag", "panel"); });
+		$body.empty(() => { div.c("panel-props", () => fields(null)); });
+	});
+}
+
+// The two workspace pages call this once, at load — the rail opens before the reader
+// starts, so selecting never has to push the page itself mid-gesture. Idempotent.
+export const dock = () => drawer.showing() || empty();
 
 /* The 3×3, drawn ON the panel at the nine places it names — an arrow pointing at each
    corner and edge, a dot in the middle. A grid cell IS its placement, so a button's own

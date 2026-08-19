@@ -19,10 +19,12 @@ function bubble($list, role, body){
 /**
  * A text input wired to a Claude Code session. `task` — a thread's path under
  * `public/` — files the exchange in that thread's log; `resume` continues a chat
- * session, `from` forks the task's own. Renders the recorded history either way —
+ * session, `from` forks the task's own. `context` is a FUNCTION returning anything
+ * the turn should know about the page right now (the dev rail passes the current
+ * selection); it is called on send. Renders the recorded history either way —
  * read-only with no server.
  */
-export function chat({ task, from, resume, history = [], model = "sonnet", tools, placeholder = "Ask Claude…" } = {}){
+export function chat({ task, from, resume, history = [], model = "sonnet", tools, context, placeholder = "Ask Claude…" } = {}){
 	return div.c("chat flow", () => {
 		const $list = div.c("chat-list");
 		history.forEach(c => bubble($list, c.role, () => md(c.text ?? "")));
@@ -47,7 +49,9 @@ export function chat({ task, from, resume, history = [], model = "sonnet", tools
 				let streamed = "";
 
 				try {
-					const r = await ask(prompt, { task, model, tools, resume, from, on: e => {
+					// ⚠ Called at SEND time, not at build time — what is selected is whatever
+					// the owner had selected when they hit send, not when the box was drawn.
+					const r = await ask(prompt, { task, model, tools, resume, from, context: context?.(), on: e => {
 						streamed += e.text ?? (e.tool ? `\`${e.tool}\`… ` : "");
 						$reply.empty(() => md(streamed));
 					} });

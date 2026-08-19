@@ -14,6 +14,7 @@ export default new AITask({
 A task's page is three tabs — **Requirements · Report · Session**, Report open by default: `report()` is the outline — `outcome`, `links`, `status`, `checklist`, `extra`, `shots`, `figures` build Report; `chat` + `log` build Session; `head` builds Requirements — override any one. A task dir is never declared in `children:` either way: no `page.js` of its own gets this template through its day's `route()` fallback, and one WITH its own `page.js` is found the same way, ahead of the fallback.
 
 ## Watch out
+- A `.md` deliverable beside the task dir is a page: a link to `audit.md` in `outcome` or `requirements.md` opens at `audit/`, rendered. The `links:` pills are plain anchors, not markdown — write those urls as the route (`…/audit/`) yourself. [`/framework/core/Page/doc/declaring.md`](/framework/core/Page/doc/declaring.md)
 - Pace, not percentage: the usage bar is spend and the ▼ is the clock — on pace while used% ≤ elapsed%, over once the fill passes the marker — [doc/pace.md](./doc/pace.md).
 - `session_id` is the one `task.jsonl` field that matters; without it there is no session log — [doc/manifest.md](./doc/manifest.md).
 - A task runs only once it carries `requested_at`, and `landed_at` wins — a landing line lost to a bad escape leaves it rendering as running, and "N unparsed lines" is the only symptom — [doc/decisions.md](./doc/decisions.md).

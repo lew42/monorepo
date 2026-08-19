@@ -22,7 +22,7 @@ claim("claude", "layout-generator-rules");`);
 
 		h2("Nobody imports it");
 
-		md("It is loaded by `Server/plugins/MCP.js`'s `eval`, from the `layout` skill's caveats (`.claude/skills/layout/caveats.md`) — so it ships zero bytes to a visitor and needs no localhost guard of its own. The socket that reaches it already has one. How it came about: [layout-generator-rules](/framework/ai/2026-08-16/layout-generator-rules/).");
+		md("It is loaded by `Server/plugins/MCP.js`'s **`claim`** and **`release`** tools, which wrap the two exports in an `eval` — so it ships zero bytes to a visitor and needs no localhost guard of its own. The socket that reaches it already has one. How it came about: [layout-generator-rules](/framework/ai/2026-08-16/layout-generator-rules/); why the tools own the verb: [mcp-tab-awareness](/framework/ai/2026-08-18/mcp-tab-awareness/).");
 
 		code.js(`mcp__site__eval  path: "/framework/styles/layouts/space/"
   code: import("/framework/dev/Claim/claim.js").then(m => m.claim("claude", "my-task"))`);

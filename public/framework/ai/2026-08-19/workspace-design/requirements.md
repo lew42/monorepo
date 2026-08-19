@@ -1,0 +1,49 @@
+# workspace-design — the Workspace and the playground: one design pass before anyone builds
+
+Laws: less is more · clarity · prioritize. **Deliverable: `design.md` in this dir — ≤ 2 screens (≤ 130 lines): the tree, the words, the file layout, what moves out of `workspace.js`/`size.js`, the sizing decision WITHOUT container queries, the two verbs, and the build order with fences; one ASCII sketch of the playground. Final message ≤ 15 lines.** Opus. Read-only on `public/` — this is the design, the owner approves it, then builders run.
+
+## The owner's words (2026-08-19, verbatim — the brief IS this)
+
+> 1) I don't like having to go to Panel/full to experiment. can we get a file-system setup, where ext/Panel/playground/ has a + button, where we can create a new document? in that view, I want a left sidebar with all available documents, we don't need this X button (it has an ugly underline anyway). Just put the framework sidebar's logo + framework header on the playground sidebar, so we can jump back out if needed.
+>
+> then, the main area should be called a Workspace. It should have zoom + rendered px width, similar to what we've done before. It should probably have/own its own Shell (header, sidebars, footer), which can be optionally utilized or hidden. it should be able to switch between viewports (mobile, desktop, mega, fluid/manual), or do all viewports simultaneously (zoomed to fit, of course), or do the responsive side-by-side thing we've done before.
+>
+> Anyway, the Workspace can configure the Panel saving situation, etc. It's like the parent Panel. It could be configured as an in-page workspace, but for now let's focus on teh default: full screen. maybe because it's so tightly coupled to Panel, we should put the Workspace module folder inside ext/Panel/.
+>
+> So, I'm thinking the workspace should add a distinctive but not too strong, maybe a medium gray, 1em border around each viewport, and arrange the viewport(s) in a reasonable way (potentially with similar layout controls over them). maybe we need a "fit" button, so they auto-zoom? I suppose the right sidebar can be the viewport's responsive handle (you resize the right sidebar to watch the viewports respond?)
+>
+> However, that's self-contradictory for "fit" mode... But I think that's fine. The normal mode should just be 100% (no zoom), auto-width (fill width).
+
+And: *"I'd probably avoid containers for now... I'd like to explore that later, but I ran into some funky side-effects of using containers, and I don't want to wonder if that's the problem."* And, on hug: *"why is hug 16em??? hug means 'auto'?"* (today `hug` DECLARES `--panel-hug` 16em because every panel body is a `container-type: size` box and a size container cannot be sized by its contents — `ext/Panel/size.js`, `panel.css:21,72-74`, `doc/templates.md`.)
+
+And the addition: *"adding a new column or row is fundamentally different from splitting an existing one, in a subtle but important way: — splitting a panel should reuse the style of that panel, creating an empty but equally styled panel that shares 50% of the space of the old one... if it's a white panel that's split, the new panel is the same. — adding a panel next to an existing one can create a similar layout, but we're starting from scratch — choose a new section/style."*
+
+## The mastermind's framing (the owner agreed; sharpen or refute with reasons)
+
+- The Workspace COMPOSES what exists: `ext/demo/stage.js` (zoom, px readout, mobile/tablet/desktop/mega presets, the magnifier), `ext/demo/twin.js` (390 beside 3440, both live), `styles/layouts/full.js` (whole window), `ext/Saver` (one document ↔ one file; `FileSaver` dev / `LocalStorageSaver` static), core `Sidebar` (the left rail), `ext/grip` (the handle, new today), `ext/drawer` (the right rail). It owns what the Panel root carries by accident today: `mode` (fill|document, landed yesterday as a root word in `glyphs.js` WORDS), the saver, the templates/tools vocabulary (`vocab.js` reads `item.root()`), zoom, the viewport set.
+- **Documents are files**: `/data/panels/<name>.json` per document in dev, one localStorage key per name static; the playground's sidebar IS that directory (dev: `Server/plugins/Directory.js` / `directory.json` or a tiny listing route — say which; static: the localStorage keys). "+" mints a name and an empty root. One Saver per document, owned by the Workspace.
+- **Two modes, not three**: *Fill* — 100% zoom, the viewport is the available width, the right rail is the handle (drag it and everything reflows; default) · *Fit* — fixed device widths (one, all, or the twin pair), each zoomed to fit its cell; the handle sizes the cells. Zoom manual in Fill, automatic in Fit, "100%" as the escape.
+- **Shell as words, not a class**: header / left / right / footer are four optional pinned regions of the Workspace; hidden by default.
+- **Viewport chrome**: a 1em medium-gray frame per viewport with the px width on it; viewports arranged by the same flex/grid words panels now wear.
+- **Not now**: infinite canvas; in-page workspaces (compose later as `demo.stage(() => Workspace(...))`).
+- **Split vs add** — two verbs. `Panel.divide()` today is one verb that reads its parent (`doc/decisions.md` "Should divide have a second add-a-column verb? — (b) one honest verb"); the owner's new distinction is about what the NEW panel IS, not where it goes: **split** clones the struck panel's style/template/tone words into an empty twin sharing 50%; **add** appends a fresh panel from scratch (picker opens / default template) beside it — and in `document` mode "add below" is how a section is appended. Design both on top of `divide(dir, made, before)` (the `made` argument is the hook) and say which gestures map to which (edge click? the bar's icons? the `+`?).
+
+Also landed minutes ago, after the owner saw a one-section document read as a 16em band over five-sixths of empty wash on `/full/`: document sections are now `flex: 1 0 auto` with the 16em floor (`panel.css`, the mode: document block) — a short document fills the screen, a long one scrolls. Keep that behaviour in your sizing design.
+
+## Decide, with reasons (each ≤ 10 lines)
+
+1. **The tree and the names.** `ext/Panel/Workspace/` (module) + `ext/Panel/playground/` (the page) — confirm or move. `Workspace` — a class (extends Panel? holds a Panel root? — "it's like the parent Panel") or the existing `workspace()` function grown a shell. Say what moves OUT of `workspace.js` (the two doors), `vocab.js` (root-read state), `size.js`/`glyphs.js` (the root `mode` word), `page.js` (the `/full/` route, which dies), and what stays Panel's.
+2. **Sizing without container queries.** Every panel body is `container-type: size` today so templates can size in `cqb`; the owner wants none of that while the Workspace is built. Design the replacement: does the Workspace's viewport own a `--vw`/`--vh`-style token pair the templates read? do panels fill by flex only? what does `hug` mean now — **auto** (measured by content) — and what happens to `--panel-hug` and `.panel.hug > .panel-body … 100cqb` (`panel.css:73`), `size.css`'s `min(var(--panel-hug), 100cqb)` rows, and the `document` mode's `min-block-size: var(--panel-hug)` floor? List every `container-type` / `cq*` use in `ext/Panel/*.css` (grep; two numbers that must agree: your count and `grep -c`) and say for each: delete / replace with what. This is the section the owner will read first.
+3. **Fill vs Fit, the handle, zoom.** The right rail as the responsive handle in Fill (the drawer already pushes; does the Workspace simply live in the pushed area, or is the handle its own `ext/grip` on the viewport edge?); Fit's cell sizing; what "all viewports" and "twin" reuse from `stage.js`/`twin.js` (be specific: which function, which options) and what they cannot.
+4. **Documents.** File layout, the listing in dev and static, the "+" flow, rename/delete (or not yet), what `/data/panels.json` (the one document today) becomes — migrate or leave as `default`.
+5. **The playground page.** Sketch it (ASCII, ≤ 20 lines): left rail = logo + "Framework" header (the way out) + the document list + "+"; main = the Workspace with its bar (mode · viewports · fit/100% · zoom · shell toggles · the root words); right rail = `ext/drawer` (properties, docked, the handle). No ✕.
+6. **Build order** — 2–4 tasks, each with a fence (files) and S/M/L, and the order they MUST run in (what blocks what). Which is Opus, which is Sonnet. What can be deleted at the end (the `/full/` route, `--panel-height` demos?, `zoom_scrub` — already on the delete proposal).
+
+## Read (the map is the point; don't read every line)
+
+`ext/Panel/readme.md`, `doc/decisions.md` (skim headings + Open), `doc/words.md` (landed yesterday), `doc/flow.md`, `doc/templates.md`, `workspace.js`, `vocab.js`, `size.js`, `size.css`, `panel.css`, `split.js`, `Panel.js`, `generate.js` (presets), `page.js` (the `/full/` route); `ext/demo/stage.js`, `twin.js`, `readme.md`; `styles/layouts/full.js`; `ext/Saver/readme.md`; `core/Sidebar/readme.md`; `ext/grip/readme.md`; `ext/drawer/readme.md`; `Server/plugins/Directory.js`; yesterday's `ai/2026-08-18/panel-complexity/proposal.md` (the accepted strategy — your design must say where it agrees and where the owner's new ask changes it) and `ai/2026-08-18/panel-document/task.jsonl` (the landing: the size-container trap it hit).
+
+## Rules
+
+- READ-ONLY outside this dir. Findings as `log` lines as you go. Run `new-task` first (dir + brief exist; write `task.jsonl` line 1 and the `day.jsonl` line — `ai/2026-08-19/day.jsonl` exists; group `panels`); `finish-task` at the end (`"tokens": null`). A skill that misleads you gets one line in its `improvements.md` (`skill-improvement`).
+- Timestamps from the clock; forward slashes; never Out-File a `.jsonl`; never a person's name — "the owner". Wait in the foreground.

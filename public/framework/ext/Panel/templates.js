@@ -8,7 +8,7 @@
         .panel-t-stat, .panel-t-n, .panel-t-l, .panel-t-clock, .panel-t-time,
         .panel-t-date, .panel-t-haze, .panel-t-aurora, .panel-t-drift,
         .panel-t-depth, .panel-t-rail, .panel-t-link, .panel-t-toc, .panel-t-head,
-        .panel-t-line, .panel-t-brand — plus .panel-t-space, .panel-t-screen,
+        .panel-t-line, .panel-t-brand, .panel-t-cell — plus .panel-t-space, .panel-t-screen,
         .panel-t-dial and .panel-t-seed, which generate.js emits into this sheet, and
         .panel-props* , which properties.js emits into it. */
 import { View, div, span, icon } from "/app.js";
@@ -48,6 +48,15 @@ const scene = (name, layers) => div.c("panel-t panel-t-" + name, () => {
 
 export const templates = {
 	blank: { icon: "check_box_outline_blank", draw(){ div.c("panel-t panel-t-blank checkered"); } },
+
+	/* The one entry whose pieces are DIRECT children of the body. Every other template here
+	   draws into a single `.panel-t` wrapper — a body with one child, which a leaf's `flex`
+	   or `grid` words have nothing to arrange (measured: ai/2026-08-18/panel-grid/). Twelve
+	   numbered boxes is the smallest content those words can be SEEN on, and the smallest
+	   change that gives them one: no shipped template loses its wrapper. */
+	cells: { icon: "apps", draw(){
+		for (let i = 1; i <= 12; i++) div.c("panel-t-cell", String(i));
+	} },
 
 	// The inspector. `focus: true` means this entry READS the focused panel — and so is
 	// never handed focus itself, which would leave it inspecting its own controls.

@@ -63,29 +63,64 @@ export default class Ask {
         const key = req.resume || req.task || req.id;
         if (turns.has(key)) return this.socket.send({ index, error: "That session is mid-turn." });
 
+        /* The server claims the tab, not the model: the ring is up the instant the turn
+         * starts, whether or not the turn ever touches the browser. ⚠ It also drops a
+         * claim the owner had made by hand on that tab — a turn is short, and a stale
+         * ring lies about who is driving.
+         * ⚠ Read per turn, never in the constructor: `server.js` registers `Tab` AFTER
+         * this plugin, so `socket.tab` does not exist yet when `Ask` is built. */
+        const tab = this.socket.tab;
         turns.set(key, req.id);
+        tab?.claim("ai", String(req.task ?? "").split("/").filter(Boolean).pop() || "chat");
+
         try {
             const file = req.shot && await shot(req.shot);
-            const reply = await this.turn(file
-                ? { ...req, prompt: `Read the screenshot at ${file}, then: ${req.prompt}` }
-                : req);
+            const reply = await this.turn({ ...req, system: this.system(req),
+                prompt: file ? `Read the screenshot at ${file}, then: ${req.prompt}` : req.prompt });
             if (req.task && !reply.error) this.record(req, reply);
             this.socket.send({ index, ...reply });
         } catch (e){
             this.socket.send({ index, error: String(e.message || e) });
         } finally {
             turns.delete(key);
+            tab?.release();
         }
     }
 
-    turn({ id, prompt, resume, from, model = "sonnet", tools }){
+    /* Where the turn is. A `-p` turn reaches the browser only through the `site` MCP,
+     * whose tools pick a tab — and two tabs on one page are indistinguishable by path,
+     * so the turn is TOLD the id of the one that asked instead of guessing. `context` is
+     * whatever the page sent along, e.g. the owner's current selection. */
+    system({ context }){
+        const tab = this.socket.tab;
+        const lines = [];
+
+        if (tab?.id) lines.push(
+            `This conversation is bound to browser tab ${tab.id}, which is on ${tab.page}.`
+            + ` For anything about that page use the \`site\` MCP tools with tab: "${tab.id}" —`
+            + ` never another tab, and never omit it; \`pages\` shows the others.`
+            + ` That tab is already claimed for you, so do not claim or release it.`);
+
+        if (context) lines.push(`The owner has selected, on that tab:\n${String(context).slice(0, 800)}`);
+
+        return lines.join("\n\n") || null;
+    }
+
+    /* The whole command line, as data — so what a turn is told is one readable list and
+     * a test can assert on it without spawning anything. */
+    args({ resume, from, model = "sonnet", tools, system }){
         const args = ["-p", "--output-format", "stream-json", "--verbose", "--model", model];
         if (resume) args.push("--resume", resume);
         else if (from) args.push("--resume", from, "--fork-session");
         else args.push("--session-id", randomUUID());
         if (tools != null) args.push("--tools", tools);
+        if (system) args.push("--append-system-prompt", system);
+        return args;
+    }
 
-        const child = spawn(process.env.CLAUDE_BIN || "claude", args, { windowsHide: true });
+    turn(req){
+        const { id, prompt } = req;
+        const child = spawn(process.env.CLAUDE_BIN || "claude", this.args(req), { windowsHide: true });
         child.stdin.end(prompt ?? "");
 
         const state = { id, started: Date.now() };

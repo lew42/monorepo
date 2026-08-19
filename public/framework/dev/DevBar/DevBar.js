@@ -1,8 +1,8 @@
 import View, { div, span, button, label, input } from "../../core/View/View.js";
 import { tabs } from "./tools.js";
-import { restore, set, settings } from "./settings.js";
+import { rail, restore, set, settings } from "./settings.js";
 import { reclaim } from "../Claim/claim.js";
-import grip from "./grip.js";
+import grip from "../../ext/grip/grip.js";
 import width from "./width.js";
 
 View.stylesheet(import.meta, "devbar.css");
@@ -52,7 +52,9 @@ export default function devbar(a){
 		$tabs = div.c("dev-tabs flex");
 		$body = div.c("dev-body flex v");
 
-		grip();
+		// The resize edge, shared with ext/drawer: it hands us the width the pointer
+		// implies, `rail()` clamps and applies it, and only the one you let go of is kept.
+		grip({ write: rail, done: width => set({ width }) });
 	});
 
 	// ⚠ Dev chrome, not the page: ext/DesignTool's probe skips anything marked

@@ -54,11 +54,13 @@ export default function md(content){
 	template.innerHTML = html;
 
 	if (template.content.children.length === 1)
-		return new View({ el: template.content.firstElementChild }).ac("md");
+		return new View({ el: md.route(template.content.firstElementChild) }).ac("md");
 
 	// Emitting `flow` is what lets core's flow rules stop naming `.md`, a class core
 	// cannot import.
-	return new View().ac("md flow").html_unsafe(html);
+	const view = new View().ac("md flow").html_unsafe(html);
+	md.route(view.el);
+	return view;
 }
 
 // md.c("note", "Some **md**") — classes first, like div.c() / p.c()
@@ -141,6 +143,37 @@ md.resolve = function(root, base){
 		if (/^([a-z][\w+.-]*:|\/\/|\/)/i.test(src)) return;
 
 		img.setAttribute("src", new URL(src, base).pathname);
+	});
+
+	return md.route(root);
+};
+
+/**
+ * A link to a `.md` file BESIDE the page points at its page: `x.md` → `x/`, which
+ * core/Page renders as markdown when no `page.js` claims the name — so linking to a
+ * file is all the declaring there is (core/Page/doc/declaring.md).
+ *
+ * Beside the PAGE, not beside the file, and that is the whole safety argument: the
+ * fallback looks for `<page url>/<name>.md` and nothing else, so rewriting only a link
+ * that already sits there can never invent a url the walk cannot serve. Rewrite by
+ * path instead and `doc/method/append.md` becomes a 404 — 153 links across the site
+ * point that way, 134 of them at ext/Doc member files whose page is `api/<name>/`
+ * (measured 2026-08-18). Those stay raw links, which is what they were.
+ *
+ * ⚠ The `.md` url itself always serves the file, so `x.md?raw` opts out — a query
+ * means the writer wants the file, and the Router hands any `.ext` path to the browser.
+ */
+md.route = function(root){
+	const here = location.pathname.replace(/[^/]*$/, "");   // the directory on screen
+	const up = here.replace(/[^/]+\/$/, "");                // and one above: this page may BE a .md
+
+	root.querySelectorAll("a[href]").forEach(link => {
+		const href = link.getAttribute("href");
+		const beside = [here, up].some(dir => href.startsWith(dir) && !href.slice(dir.length).includes("/"));
+
+		if (!beside || !/\.md($|#)/.test(href)) return;   // elsewhere, not markdown, or a query
+
+		link.setAttribute("href", href.replace(/\.md(?=$|#)/, "/"));
 	});
 
 	return root;

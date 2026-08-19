@@ -1,6 +1,7 @@
-import { div, p, span, code } from "../../core/View/View.js";
+import { div, p, span, a, code, icon } from "../../core/View/View.js";
 import { pick, chips, btn } from "./controls.js";
 import { draw, MODES, PAGE } from "./words.js";
+import { cssdoc } from "../CSSDoc/CSSDoc.js";
 
 /* What a selection reads as: its name, the line that would build it, and the groups
    of controls that apply to it. `panel.js` owns the drawer and hands this the
@@ -33,6 +34,56 @@ export function body($el, extras, redraw){
 		group("item", () => { row(() => chips($el, ITEM)); draw($el, "basis"); });
 
 	extras.forEach(fn => group("", () => fn($el)));
+
+	defined($el);
+}
+
+/* WHERE it is defined — every rule the browser is actually applying, read live out of the
+   CSSOM (`ext/CSSDoc`). `part` is the FILE that owns the rule, which is the one thing that
+   says whether you are about to edit the framework, the theme, the site skin or one
+   component. Read-only for now; the lock and the core-component page are the design at
+   `ai/2026-08-18/element-provenance/proposal.md`.
+   ⚠ The selection's own chrome is dropped: `.layout-selected` is this widget, not the page. */
+const CHROME_RULE = /layout-(selected|hot|region)/;
+
+// The lock is a LABEL ("this is shared"), not a permission — nothing here edits CSS yet.
+const LOCKED = new Set(["framework", "lew42"]);
+
+// The link a part's label opens: framework and lew42 to the styles pages, any other
+// part to its own module dir, derived from the sheet's own href (never hard-coded to
+// `ext/`, so a `dev/` or `core/` sheet still resolves) — the Router 404s honestly if
+// that dir has no page.
+const PART_LINK = { framework: "/framework/styles/", lew42: "/framework/styles/layers/" };
+const part_href = rule => PART_LINK[rule.part]
+	?? (rule.path && rule.part !== "site" ? rule.path.slice(0, rule.path.lastIndexOf("/") + 1) : null);
+
+function defined($el){
+	const rules = cssdoc.rules($el).filter(rule => !CHROME_RULE.test(rule.selector));
+
+	// The CSSOM walk cannot see `el.style` — an element's own inline declarations, set
+	// by the layout bar's knobs, are invisible to `cssdoc.rules()` and stronger than
+	// every rule it finds. One row, only when there is anything to show.
+	const inline = [...$el.el.style].map(prop => `${prop}: ${$el.el.style.getPropertyValue(prop)};`);
+
+	group(rules.length + " css rules", () => {
+		if (inline.length) div.c("flex v", () => {
+			row(() => { span.c("layout-tag", "inline"); span.c("muted", "— written by JS"); });
+			code.c("muted", inline.join(" "));
+		});
+
+		rules.forEach(rule => div.c("flex v", () => {
+			const href = part_href(rule);
+			const locked = LOCKED.has(rule.part);
+
+			row(() => {
+				(href ? a.c("layout-tag").href(href) : span.c("layout-tag"))
+					.append(() => { locked && icon("lock"); return rule.part; });
+				span.c("muted", rule.layer);
+			});
+			code(rule.selector);
+			code.c("muted", rule.decls);
+		}));
+	});
 }
 
 /* Two groups, because the chip list DEPENDS on the mode — `.flex.split` and

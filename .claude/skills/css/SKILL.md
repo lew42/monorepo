@@ -13,6 +13,7 @@ what applies: the module's own `.css`; the **container's** css when the thing li
 a card in a rail or a panel); the theme (`styles/layers/theme/lew42/lew42.css`) only when
 colour or type is in play. Most CSS doesn't interact — parent layout and theme trickle are
 where it does.
+⚠ A class that does not exist paints nothing and throws nothing — verify a word by reading its rule in framework.css AND reading a computed style back, never by inference from a token: `--tint` is a real token with no `.tint` class, and `div.c("pad flex v gap tint")` shipped on eight layouts looking plausible until a probe read `rgba(0,0,0,0)` on every box.
 
 **2. Climb the ladder, stop at the first rung that works:**
 nothing → a utility class → one of the five layout words (`.page .rail .wall .stage .solo` — `styles/doc/layout-system.md`) → an existing component's class → the module's own `.css`
@@ -21,9 +22,11 @@ nothing → a utility class → one of the five layout words (`.page .rail .wall
 known at runtime (a token override like `--column`, a measured size). Static styling
 belongs in a stylesheet (the owner, 2026-08-17). Tiebreak inside a component: its own existing
 class beats a utility that also works — the component owns its look in one place.
+⚠ Except when the component's class fights the element's own default: `.ui-table { width: 100% }` is for a data table that wants the column it was given and overrides framework.css's `width: max-content` — a 6-column reference table on it stretched to 2428px at 3440 for nothing; a bare `table()` shrink-wrapped to 1391px with no stylesheet.
 
 **3. Layers.** Every rule inside one of `base theme site util`. The order is declared
 once, in framework.css — never restate it, never invent a fifth name.
+⚠ The direction the layers bite: a utility sits in `@layer util`, so a module's own `@layer theme` rule cannot override it at ANY specificity — `.flex-1 { flex: 1 }` beat `.research-main { flex: 1 1 14em }` silently and the row shrank its text to 203px at 400. The fix is to drop the utility from the markup, never to fight it in the sheet.
 
 **4. Constrain the container, not the items.** A child opts out by claiming a wider
 track. Prefer a token (`--gap`, `--column`, `--measure`) to a rule — a subtree

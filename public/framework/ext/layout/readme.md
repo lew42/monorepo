@@ -20,7 +20,9 @@ layout.context($box, $sel => …)                        // extra drawer content
 - The `fill` page word pairs `.page.fill` with an inline `overflow: auto`, or everything below the fold is clipped: [`doc/decisions.md`](./doc/decisions.md)
 - A `<select>` gets its value after its options exist; a knob reads at build and writes only on input: [`doc/controls.md`](./doc/controls.md)
 - The outside-click listener runs in the capture phase, and `popstate` deselects outright: [`doc/decisions.md`](./doc/decisions.md)
+- Selecting only *fills* an open rail now, it never opens one — `layout.bar()`'s sliders chip is the one explicit way in: [`doc/decisions.md`](./doc/decisions.md)
 - An unregistered word in a bar's list is skipped, never thrown — a misspelling draws one control short.
+- `layout.selectable($el)` grants a region beyond the one `layout.bar()` already steers — the two-up's second pane is the one caller, and its own pane ends up region'd twice: [`doc/selection.md`](./doc/selection.md).
 
 ## More
 

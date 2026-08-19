@@ -69,7 +69,8 @@ demo.layout = config => ({
 			const { $stage, $views, redraw } = two(() => this.frame(), { narrow: 390, level: true });
 
 			steer($views[0]);
-			this.toggles($views[0], redraw);
+			$views.forEach(panel.selectable);
+			this.toggles($stage, redraw);
 
 			return $stage.ac("bleed");
 		}

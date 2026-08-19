@@ -49,8 +49,9 @@ a leaf demo page stays a plain `Page`. Pass the class, never an instance.
 
 ## 3. `doc/*.md` — one topic each
 
-A new `doc/<name>.md` is a url only once `page.js` names it (`notes:`; a new file goes in
-`files:`) — `ext/Doc` declares, it does not crawl.
+A new `doc/<name>.md` is in the Docs rail only once `page.js` names it (`notes:`; a new file goes in
+`files:`) — `ext/Doc` declares, it does not crawl. (Since 2026-08-18 an undeclared `.md` beside a page still
+answers at `/module/doc/x/` through `core/Page`'s file fallback — a link is a url, `notes:` is the rail.)
 Written along the way when a caveat surfaces, or at the end. Absolute links only
 (`/framework/core/View/api/capture/`) — a fetched file's relative links resolve against
 `doc/`. Never cite a line number; cite the method or selector. `doc/decisions.md` holds

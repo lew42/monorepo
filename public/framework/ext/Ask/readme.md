@@ -12,9 +12,12 @@ if (available()) {
 
 `chat({ task })` is the same thing as a panel; `thread()` opens a thread dir; `start()` spawns a whole session.
 
+Every turn is **bound to the tab that asked** — it is told that tab's id, the `site` MCP tools take it, and the server rings the tab while the turn runs. `context` sends the page's current state along (the dev rail sends the selection).
+
 ## Watch out
 
 - A turn is a fresh `claude -p --resume` process, not a live pipe — no permission prompts, no mid-turn steering: [`doc/process.md`](./doc/process.md)
+- A turn drives one tab and only that one; its claim overwrites a hand-made one on that tab: [`doc/decisions.md`](./doc/decisions.md)
 - The first message on a task forks the session; every later one resumes the fork: [`doc/fork.md`](./doc/fork.md)
 - `task` is a path under `public/` and it is the fence — browser input reaches a file write: [`doc/task.md`](./doc/task.md)
 - Appending to `task.jsonl` live-reloads every open tab; the asking socket is muted for 5s: [`doc/record.md`](./doc/record.md)

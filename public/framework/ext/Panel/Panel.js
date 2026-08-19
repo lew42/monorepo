@@ -13,12 +13,33 @@ export class Panel extends Item {
 	   no longer resolves, and nothing more: a copy holds none of the shared keys itself, so
 	   falling back reads BLANK, not "what it last had". Surviving a structural verb is
 	   `bequeath()`'s job — every verb that stops holding what a copy reads hands it on first. */
-	get(key){ return ((Panel.shared.includes(key) && this.master()) || this).data[key] ?? Panel.defaults[key]; }
+	get(key){
+		// A document is rows. One answer, so `.panel-items.v`, `divide()`'s sibling test and
+		// the inspector's own chip can never disagree about which way a document runs.
+		if (key === "dir" && this.document()) return "col";
+
+		return ((Panel.shared.includes(key) && this.master()) || this).data[key] ?? Panel.defaults[key];
+	}
+
+	/* Is this workspace a scrolling DOCUMENT rather than one screen? The root's word and only
+	   the root's — `split()` hands a panel's data down to the first child, so a section can be
+	   wearing `mode: document` and every reader here asks this instead of the key. */
+	document(){ return !this.parent && this.get("mode") === "document"; }
 
 	// Writing a shared key writes the MASTER, which is what makes every duplicate live.
 	set(key, value){
 		const to = Panel.shared.includes(key) && this.master();
-		return to ? to.set(key, value) : super.set(key, value);
+		if (to) return to.set(key, value);
+
+		super.set(key, value);
+
+		/* ⚠ `mode` is the one word that changes the SHAPE of the tree rather than the look of
+		   a panel — the root's axis, its column's `.v` class and every section's classes all
+		   read it — so it announces itself as STRUCTURE and the workspace redraws. `change`
+		   deliberately never does, which is why both control surfaces get this for free. */
+		if (key === "mode" && !this.parent) this.emit("add");
+
+		return this;
 	}
 
 	/* Who I copy. ⚠ One lookup, never a chain — `mirror()` collapses a mirror-of-a-mirror to
@@ -84,6 +105,13 @@ export class Panel extends Item {
 		[...this.items].forEach(kid => kid.move(mine));
 
 		this.data = { dir, grow: this.get("grow") };
+
+		/* ⚠ `mode` is the ROOT's word about the whole workspace, so it stays with the panel
+		   BECOMING the split — everything above is content, and content rides down. Without
+		   this the first split of a document root hands `document` to its own first section
+		   and the workspace snaps back to one screen. */
+		if (mine.data.mode === "document"){ delete mine.data.mode; this.data.mode = "document"; }
+
 		delete this.draw;
 
 		this.add(mine);
@@ -138,7 +166,11 @@ export class Panel extends Item {
    ⚠ `self: "tl"` and no other code: size.css's `var(--panel-self-*, start)` fallback is the
    `align-self: start` those rules hardcoded before `self` existed, and `tl` is the code that
    reads back as start/start — any other default silently moves every saved hugging panel. */
-Panel.defaults = { dir: "row", template: "blank", align: "cc", self: "tl", tone: "surface", mode: "fill", grow: 1, display: "block", w: "fill", h: "fill", position: "static" };
+Panel.defaults = { dir: "row", template: "blank", align: "cc", self: "tl", tone: "surface", mode: "fill", grow: 1, display: "block", w: "fill", h: "fill", position: "static",
+	/* The flex and grid words (glyphs.js's `WORDS`). ⚠ Every default here is EXACTLY what
+	   display.css hardcoded before they existed, so no saved document moves a pixel — and a
+	   default that answers means every picker can show which chip is on. */
+	gap: "0.5em", wrap: "nowrap", justify: "start", items: "stretch", cols: "auto", dense: "off" };
 
 /* What a mirror takes from its master: WHAT it holds and HOW it looks. Its size and its
    place in its own row stay its own — a duplicate dropped into a narrow column is still
@@ -146,7 +178,10 @@ Panel.defaults = { dir: "row", template: "blank", align: "cc", self: "tl", tone:
    ⚠ `text` is the purest case of what it holds — a copy showing different words is not a
    copy — and it works only BECAUSE `template` is shared beside it: text.js keys its
    overrides by the drawing they belong to, so master and mirror share one key space. */
-Panel.shared = ["template", "tone", "align", "display", "seed", "text"];
+/* ⚠ The flex and grid words join `display`, which they modify: a live duplicate showing
+   the same content in a different arrangement is not a duplicate. `dir` deliberately does
+   NOT — on a split it is the axis of a row of panels, which is an answer about a slot. */
+Panel.shared = ["template", "tone", "align", "display", "seed", "text", "gap", "wrap", "justify", "items", "cols", "dense"];
 
 export default Panel;
 

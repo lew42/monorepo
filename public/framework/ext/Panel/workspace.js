@@ -15,6 +15,7 @@ import { vocab, tools, offer, standard } from "./vocab.js";
 import { focus, focused, inspects, selection } from "./focus.js";
 import { overlays, drain } from "./overlays.js";
 import { views, paint, repaint, show, repaint_mirrors } from "./paint.js";
+import { record } from "./flow.js";
 
 /* The two doors, the redraw, and the recursive `view()`. Its four neighbours — `vocab.js`,
    `focus.js`, `overlays.js`, `paint.js` — are read by this file and never read it back;
@@ -45,7 +46,7 @@ export default function panel(seed){
 /* The persisted workspace. ⚠ The box is placed NOW and filled in a callback — a
    factory call after the await appends wherever the captor has since drifted. */
 export function workspace(options = {}){
-	const { saver: store = saver, templates: vocabulary, tools: overrides, seed = scatter } = options;
+	const { saver: store = saver, templates: vocabulary, tools: overrides, seed = scatter, mode } = options;
 	const $root = div.c("panel-workspace flex");
 
 	// A brand new document is a roll, written straight away — so the first thing a
@@ -68,6 +69,11 @@ export function workspace(options = {}){
 		// editor, so its T menu is those regions and the global set never sees them.
 		root.templates = vocabulary;
 		root.tools = overrides;
+		// The ROOT's word, when a caller has one: `workspace({ mode: "document" })` opens a
+		// document that has never said otherwise as a scrolling stack of sections (the
+		// owner, 2026-08-19: "we want the main panel to default to this"). A word already
+		// saved wins; a caller that passes none — ext/editor's five regions — keeps `fill`.
+		if (mode) root.data.mode ??= mode;
 		if (fresh) seed(root, vocab(root));
 
 		mount(root, $root);
@@ -101,6 +107,12 @@ function mount(root, $root){
 	selection(root, $root);
 
 	draw();
+
+	// ⚠ AFTER the first draw, so the baseline frame is what a reader actually sees:
+	// `resolve()` rolls every leaf still saying "random", and those adds are the seed
+	// arriving, not a step somebody took. flow.js, doc/flow.md.
+	record(root, $root);
+
 	return $root;
 }
 

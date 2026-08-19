@@ -6,6 +6,16 @@ const n = count => Array(count).fill("");
 // three visible boxes — the same three in every comparison below
 const boxes = () => ["one", "two", "three"].forEach(t => div.c("pad wash", t).style("--pad", "0.5em"));
 
+// a third box taller than its neighbours — same idiom, one class added
+const uneven = () => { div.c("pad wash h1", "one").style("--pad", "0.5em"); div.c("pad wash", "two").style("--pad", "0.5em"); div.c("pad wash", "three").style("--pad", "0.5em"); };
+
+// six numbered boxes — wrap vs squeeze needs more than three to be visible
+const six = () => n(6).forEach((_, i) => div.c("pad wash", String(i + 1)).style("--pad", "0.5em"));
+
+// no word says "grow twice as fast" or "don't blow out on a long word" — the two
+// demos below are the only inline .style() on this page, and each one says so
+const LONG = "Supercalifragilisticexpialidocious".repeat(4);
+
 export default new Page({
 	meta: import.meta,
 	title: "Flex",
@@ -52,6 +62,67 @@ export default new Page({
 		this.previews().style({ "--column": "13em", "--gap": "1.2em" });
 
 		md("**Nine class strings, each one word from its neighbour.** Click any of them: the shape opens at real size on a stage you can drag, the source is under it, and clicking a box opens the panel with the words it is wearing. Nothing here is a component or a function — you copy the string.");
+
+		h2("Five things a row still needs");
+
+		demo(() => {
+			div.c("flex gap", () => {
+				div.c("pad wash", "flex: 2").style({ "--pad": "0.5em", flex: "2" });
+				div.c("pad wash", "flex: 1").style({ "--pad": "0.5em", flex: "1" });
+			});
+		}, "No class sets an unequal share — every flexible word splits space evenly, so a bigger box is inline `flex: 2` on purpose.").ac("wide");
+
+		demo(() => {
+			div.c("flex v gap", () => {
+				div.c("h4", "flex gap — a bare child");
+				div.c("flex gap", () => {
+					div.c("pad wash", "one").style("--pad", "0.5em");
+					div.c("pad wash", LONG).style("--pad", "0.5em");
+					div.c("pad wash", "three").style("--pad", "0.5em");
+				});
+
+				div.c("h4", "flex gap — min-width: 0, inline");
+				div.c("flex gap", () => {
+					div.c("pad wash", "one").style("--pad", "0.5em");
+					div.c("pad wash", LONG).style({ "--pad": "0.5em", "min-width": "0" });
+					div.c("pad wash", "three").style("--pad", "0.5em");
+				});
+			});
+		}, "A bare child floors at its longest word and blows out the row; `.flex-1`/`.basis`/`.flex.auto > *` already carry `min-width: 0` — a bare child does not, so here it's inline.").ac("wide");
+
+		demo(() => {
+			div.c("flex gap", () => {
+				div.c("flex-1 flex v gap", () => {
+					div.c("h4", "align — v-center");
+					div.c("flex gap v-center", uneven);
+				});
+				div.c("flex-1 flex v gap", () => {
+					div.c("h4", "justify — split");
+					div.c("flex gap split", uneven);
+				});
+			});
+		}, "**align** moves boxes across the row, the cross axis; **justify** moves them along it, the main axis.").ac("wide");
+
+		demo(() => {
+			div.c("flex gap", () => {
+				div.c("flex-1 flex v gap", () => {
+					div.c("h4", "flex gap — squeezes");
+					div.c("flex gap", six);
+				});
+				div.c("flex-1 flex v gap", () => {
+					div.c("h4", "flex gap wrap — wraps");
+					div.c("flex gap wrap", six);
+				});
+			});
+		}, "**Drag the handle.** Same six boxes at the same width — one keeps shrinking them, the other drops to a second line.").ac("wide");
+
+		demo(() => {
+			div.c("flex v gap", () => {
+				div.c("pad wash", "top").style("--pad", "0.5em");
+				div.c("flex gap", boxes);
+				div.c("pad wash", "bottom").style("--pad", "0.5em");
+			});
+		}, "A column holds a row just as easily as a box — `flex v gap` outside, `flex gap` inside, two levels and nothing fancier.").ac("wide");
 
 		h2("Where the same markup breaks");
 

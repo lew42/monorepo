@@ -74,6 +74,15 @@ parameter list** — the two decisions that shaped every file here. Both live in
 div and against making `.app` a grid. [`doc/drawer.md`](./drawer.md) has the
 full comparison and what's load-bearing in the CSS.
 
+**Selecting no longer OPENS the drawer — reversed 2026-08-18.** The owner: "too
+jumpy… if we're going to have one, it should remain?" `select()` now calls
+`redraw()` (fills only if `drawer.showing()`), same as deselecting; `open()` is
+the one exception, wired to the toolbar's sliders chip, which is the reader's
+explicit "let me in." A page with a selectable region but no bar gets no
+automatic way in, on purpose, pending the owner.
+[`ext/Panel/doc/decisions.md`](/framework/ext/Panel/doc/decisions/) has the
+matching reversal on the panel-focus side.
+
 **What is selectable, and page-vs-container words** — [`doc/selection.md`](./selection.md).
 
 ## Traps

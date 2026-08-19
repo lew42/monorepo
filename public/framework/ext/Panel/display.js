@@ -51,9 +51,11 @@ export function display_overlay(item, $body){
 	return () => { watch.disconnect(); seen.disconnect(); item.off("change", on_change); };
 }
 
-// One line, one arrowhead — flex's row never varies, so nothing about it reads a child.
+/* One line, one arrowhead, along the axis the body RESOLVED to — read, never assumed:
+   `dir` is a word a panel wears now, and an overlay that drew a row while the body ran as
+   a column would be the second source of truth this file exists to avoid. */
 function flex_layer(overlay, body){
-	div.c("panel-display-axis");
+	div.c("panel-display-axis").ac(getComputedStyle(body).flexDirection.startsWith("column") && "v");
 
 	const base = overlay.getBoundingClientRect();
 	[...body.children].forEach(child => {

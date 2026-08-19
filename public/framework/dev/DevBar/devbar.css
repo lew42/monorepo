@@ -13,7 +13,7 @@
 	   retunes ink, surface, line, wash and subtle together. Nothing here names a
 	   colour. Outside `.app`, so the site's theme never reaches it.
 	   ⚠ `100%` clears the whole rail ONLY because the grip lives inside this box
-	     (grip.css). It straddled the edge until 2026-08-16, and anything hanging
+	     (ext/grip). It straddled the edge until 2026-08-16, and anything hanging
 	     outside survives a 100% slide as an invisible ew-resize strip down the page —
 	     one that pointer-captures the whole gesture, not just the click. */
 	.dev-bar {
@@ -193,7 +193,7 @@
 	.dev-bar .chat-list { max-height: none; }
 	.dev-bar .chat-form { flex-direction: column; align-items: stretch; }
 
-	/* The resize edge is grip.css, loaded by grip.js beside it. */
+	/* The resize edge is ext/grip — shared with ext/drawer, mounted by DevBar.js. */
 
 	/* The one X-ray a layout question needs, and outlines rather than borders so
 	   nothing reflows. The rail excepts itself: it has to stay readable while it is

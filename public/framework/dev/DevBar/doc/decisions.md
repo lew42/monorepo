@@ -8,11 +8,12 @@ A right-docked rail of developer chrome, on every page, in three tabs — **page
 end shuts it, `block` beside it holds `window.$BLOCKRELOAD`, and the head's
 second line is **the page's width** — four presets and the number they promise,
 on every tab. That edge and those presets resize it, and everything else it
-remembers is one `localStorage` document, the open tab included. Twelve files:
+remembers is one `localStorage` document, the open tab included. Eleven files:
 the shell (`DevBar.js`), what it shows (`tools.js`), its rendering vocabulary
 (`parts.js`), the width line (`width.js`), this page's AI threads (`ask.js`),
 this page's layout readout (`layout.js`), what it remembers (`settings.js`), the
-resize edge (`grip.js` + `grip.css`), the look (`devbar.css`).
+look (`devbar.css`). The resize edge is no longer one of them: it moved to
+`ext/grip` on 2026-08-18, so `ext/drawer` could grip its own edge the same way.
 
 ⚠ **Below 34em the rail is a bottom sheet**, not a side rail: 17rem is 70% of a
 390px window and `.app` declines to push at that width, so the tool sat *on top
@@ -165,8 +166,10 @@ for as long as the grip existed (measured 2026-08-16: gutter 1931→1946, grip
 1931→1963). `0.75rem` at `inset-inline-start: 0` lands on the dead strip the
 rail already has — 1px border plus `0.9em` padding on head, tabs and body — so
 the target covers no content and nothing else moved. The cost is a 12px target
-where the straddle offered 32. Full record:
-[grip.css](/framework/dev/DevBar/files/).
+where the straddle offered 32. Full record: `ext/grip/doc/decisions.md`, which
+carried this fix out of here on 2026-08-18 — the strip is now shared with
+[`ext/drawer`](/framework/ext/drawer/), and `DevBar.js` mounts it with
+`grip({ write: rail, done: width => set({ width }) })`.
 
 **No handle when closed.** `/web/nav/drawer/` requires a persistent open
 button for reader-facing navigation; this is dev chrome behind a keystroke,
@@ -197,7 +200,7 @@ page's right edge. Both halves of that bug are gone, and the slide is a plain
   move if it ever shows.
 - **A grab snaps the rail's edge to the pointer**, so grabbing at the strip's
   far side lands up to 12px narrow — 0 at the lit line, which is where you
-  aim. `grip.js` writes `innerWidth - e.clientX` with no grab offset; the
+  aim. `ext/grip` writes the rail edge minus `e.clientX` with no grab offset; the
   straddle had the same discontinuity at ±16px, so this is not new. Three
   lines (remember the offset on `pointerdown`, subtract it on move) if it ever
   reads as a jump.

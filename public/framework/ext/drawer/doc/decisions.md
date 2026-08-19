@@ -16,6 +16,29 @@ do.
 
 ## Decisions
 
+- **The width is a SECOND token, `--drawer-w` (2026-08-18).** `--drawer` doubles as
+  open/shut — `close()` clears it to release the strip — so a rail you had dragged
+  sprang back to `19rem` the moment it shut. Width and open/shut are two questions:
+  `--drawer-w` holds the width (on `.app`, beside `--drawer`), `--drawer` is written
+  as `var(--drawer-w, 19rem)` so the two are still one number while the rail is open,
+  and one `localStorage` key (`lew42-drawer-w`) carries it across a reload. Restored
+  in `build()`, before the rail's first paint. `framework.css` needed no change — it
+  reads `--drawer` exactly as before.
+- **The drag clamps at `innerWidth - 26rem`, not `innerWidth - MIN` (2026-08-18).**
+  Past that, `.app` stops widening its push (`--rail-floor`'s default, `framework.css`)
+  while the rail keeps growing — the reserved strip and the rail would stop being one
+  number, which is the one promise this module makes. So the page keeps its reading
+  column and the rail can have everything else. The floor is read from the root's
+  font-size once, at import; the sheet breakpoint in `drawer.css` mirrors the same
+  `26rem` by hand for the same reason it always did (a custom property cannot drive a
+  media query).
+- **The resize edge is `ext/grip`, not this module's own (2026-08-18).** It was `dev/DevBar`'s, welded to that rail's settings;
+  extracting it was cheaper than a second copy, and the copy would have re-learned the
+  offscreen bug the hard way. What this module supplies is what a width *means* here:
+  the clamp above, `--drawer-w`, and the key. `ext/grip/doc/decisions.md` has the
+  record — including why a shut drawer's grip cannot linger (it is inside the box, so
+  it slides off screen with it, or lands behind the dev rail at `z-index` 50 vs 40 —
+  measured both ways).
 - **A full-screen page pushes too (2026-08-16).** `.page.layout-full`
   (`styles/layouts/layouts.css`) is `position: fixed; inset: 0` — its containing
   block is the viewport, so `.app`'s `padding-inline-end` push never touched it and

@@ -7,9 +7,20 @@ what each one is doing — structure only, never a colour of its own.
 
 ```css display.css
 .panel-body.panel-d-block { display: block; }
-.panel-body.panel-d-flex { display: flex; flex-direction: row; gap: 0.5em; }
-.panel-body.panel-d-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(8em, 1fr)); gap: 0.5em; }
+.panel-body.panel-d-flex { display: flex; flex-direction: var(--panel-dir, row); gap: var(--panel-gap, 0.5em); … }
+.panel-body.panel-d-grid { display: grid; grid-template-columns: var(--panel-tracks, repeat(auto-fit, minmax(8em, 1fr))); … }
 ```
+
+**Every layout value is a custom property now (2026-08-18)**, written by
+`paint.js`'s `show()` from `glyphs.js`'s `WORDS` table — `--panel-dir`,
+`--panel-gap`, `--panel-wrap`, `--panel-justify`, `--panel-items`,
+`--panel-tracks`, `--panel-flow`. Each fallback is exactly what the rule
+hardcoded before the words existed, so nothing that chose nothing moved:
+measured, a default flex body still computes `gap: 7.52px` and a default grid
+body still resolves five `auto-fit` tracks at 122px. ⚠ `--panel-tracks`, never
+`--panel-cols` — that name is the pickers' own column count, and a property
+written on a body inherits into any control surface drawn inside it.
+[`../words.md`](../words.md).
 
 Compounded with `.panel-body` on purpose: two classes beat the base rule's
 one at equal specificity regardless of which stylesheet loads first, so this

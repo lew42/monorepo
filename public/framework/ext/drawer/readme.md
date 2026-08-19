@@ -9,6 +9,7 @@ drawer(($slot, $body) => {
     $slot.empty(() => { span("What this is about"); });   // pinned head, beside the ✕
     $body.empty(() => { /* the controls */ });            // scrolls
 });
+// Drag its inline edge to resize — the width you let go of is remembered in `--drawer-w`.
 drawer.refresh();     // the same content again, for a subject that changed
 drawer.close();       // what the ✕ calls
 drawer.showing();     // is it open
@@ -16,14 +17,17 @@ drawer.showing();     // is it open
 
 ## Watch out
 
+- **Width and open/shut are two tokens.** `close()` clears `--drawer`, so a dragged width would go with it — the width lives in `--drawer-w` (one `localStorage` key) and `--drawer` reads through to it · [doc/decisions.md](./doc/decisions.md)
+- [`dev/DevBar`](/framework/dev/DevBar/) is the OTHER rail at this edge and both can be open at once — this one offsets by `--devbar`, and `.app` reserves the sum · [doc/decisions.md](./doc/decisions.md)
 - Mount inside `.app`, never on `<body>` — colour-scheme and `--drawer` are read there · [doc/decisions.md](./doc/decisions.md)
 - `rem`, not `em`: an `em` width reserves the wrong strip · [doc/decisions.md](./doc/decisions.md)
 - `position: fixed` opts out of the push — `.page.layout-full` restates the reservation on its own `inset-inline-end`; a shared `--rail-push` token is proposed, not applied · [doc/decisions.md](./doc/decisions.md)
 - Below `26rem` the rail is the whole sheet; that breakpoint mirrors `--rail-floor`'s default by hand · [doc/decisions.md](./doc/decisions.md)
 - `drawer()` runs on every redraw — a listener on the returned rail is wired once, behind a flag · [doc/decisions.md](./doc/decisions.md)
-- `z-index: 40`: over `.demo.max` (30), under the mode button (60); it docks beside the dev rail (`--devbar`), not under it · [doc/decisions.md](./doc/decisions.md)
+- `z-index: 40`: over `.demo.max` (30), under the mode button (60); it docks beside DevBar (`--devbar`), not under it · [doc/decisions.md](./doc/decisions.md)
 
 ## More
 
 - [Overview](/framework/ext/drawer/) · [doc/decisions.md](./doc/decisions.md) — the split from `ext/layout`, why only the ✕ closes it, every trap in full · [doc/file/](./doc/file/) — one note per file
-- Files that matter: `drawer.js` (shell, push, ✕), `drawer.css` (strip, sheet, z-index), `page.js` (live demo)
+- Files that matter: `drawer.js` (shell, push, ✕, the width), `drawer.css` (strip, sheet, z-index), `page.js` (live demo)
+- The resize edge is `ext/grip`, shared with `dev/DevBar` — mounted inside the rail's box, so a shut rail takes it with it

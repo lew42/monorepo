@@ -282,6 +282,13 @@ because dropping the cell slides the next row's mark up into the hole.
   practice, since `paint()` runs inside `$body.empty()`, but not provably
   impossible from a future caller) re-arms forever.
 
+- **The nine on-panel alignment arrows are hidden by default (2026-08-18).** The
+  owner: *"they look bad, and they don't do anything without explicit height to
+  actually align within."* `tools.js` `TOOLS.align` is now `false`; the code,
+  the CSS and the toolbar's Alignment pop all stay, and `workspace({ tools:
+  { align: true } })` restores the overlay for one document. Something like it
+  may return once a panel has a height to align inside; the shape is not decided.
+
 Fuller review, with severities and file:line for every item above:
 [Editor × Panel review](/framework/ai/2026-08-14/editor-panel-review/), 2026-08-14.
 
@@ -668,6 +675,16 @@ side track the same panel, because an inspector is a panel —
   `workspace.js` — of exactly the kind that only breaks on a deep reload. `text.js`'s own
   lazy import of nothing (it reads only `glyphs.js`) is why its listener needed no such
   care.
+- **A selection FILLS the rail; it no longer OPENS it (2026-08-18, reversed).** `panel-focus`
+  / `panel-text` bail unless `drawer.showing()` first — the rail's own `ext/layout` cousin
+  already worked this way. `/framework/ext/Panel/` and `/full/` call `tools.js`'s `dock()`
+  once at load instead, so the 19rem push happens before the reader starts, never mid-click.
+- **The stale panel name after deselect was `drawer.refresh()`, called on a `null` detail.**
+  `refresh()` replays the *last* fill function untouched — right for "the same panel changed
+  under me", wrong for "nothing is selected any more". Reproduced headless on `panel-unfocus`
+  (Escape is masked on pages that also load `ext/layout`, whose own global Escape listener
+  happens to clobber the rail right after). Fix: a `null` detail now renders the neutral
+  `fields(null)` state directly — one place, `tools.js`.
 
 Full reasoning, alternatives considered, and what's still open:
 [decisions.md](./decisions.md).
@@ -879,14 +896,230 @@ adversarially-found bugs and every decision that was weighed and rejected:
   because a badge is read with the pointer somewhere else.
 - **The inspector offers no `grow`.** Sizing is still the grip's alone, which
   keeps one sizing channel — worth reopening only if seams prove hard to hit.
-- **Selecting anything pushes the properties rail open, and the push moves the
-  target.** Measured while testing text selection: a click at a freshly-read
-  coordinate can land on the *previous* element, because `.app`'s 0.18s reflow
-  (19rem) happens between `pointerdown` and `pointerup`. This follows directly
-  from the drawer's own founding decision — a properties panel must never cover
-  what you are editing — so it is the owner's call, not a bug to quietly fix.
-  Options if it bites: overlay the rail instead of pushing on a full-window
-  workspace, hold the push until the pointer leaves, or reserve the strip
-  permanently once anything has ever been selected.
+- ~~**Selecting anything pushes the properties rail open, and the push moves the
+  target.**~~ **Closed 2026-08-18** — the owner: "too jumpy… I think, if we're
+  going to have one, it should remain?" `panel-focus`/`panel-text` now only
+  *fill* a rail that is already open (`ext/Panel/tools.js`); `/framework/ext/Panel/`
+  and `/full/` open it once at load instead (`dock()`), so the 19rem push happens
+  before you start, never mid-gesture, and Alt-drop's freshly-read coordinate can no
+  longer land on the previous element.
 
 Full ledger with severities and file:line: [Editor × Panel review](/framework/ai/2026-08-14/editor-panel-review/).
+
+
+## The flex and grid words — one table, or two hosts? (2026-08-18)
+
+**The finding.** The north star is *"explore flex and grid responsive layouts
+quickly and easily"*, and until today flex was `flex-direction: row; gap: 0.5em`
+and grid was `repeat(auto-fit, minmax(8em, 1fr))` — two hardcoded lines in
+`display.css`. No `gap`, `wrap`, `justify-content`, `align-items`, track count or
+`dense` existed as a panel word, in the bar, in the rail, or in `data`.
+
+**Options.** (a) Add each word to `toolbar.js` and again to `properties.js` — the
+shape both files already had, six word-sets written twice. (b) One `WORDS` table
+in `glyphs.js`, and make both hosts readers of it.
+
+**Verdict: (b).** Ten words are now one entry each; adding an eleventh is one
+entry, not two edits, and the two surfaces cannot drift because they iterate the
+same object in the same order. What is deliberately **not** in the table, each for
+a reason one row cannot express: `template` (a per-document vocabulary, plus
+`random`, which is a verb), `w`/`h` (one pick writes TWO keys), `self` (a 3×3
+whose buttons go live per axis). Detail: [`words.md`](./words.md).
+
+**How a word lands: a custom property, written by `show()`.** `paint.js`'s
+`show()` was already the single writer of the display class; it now writes the
+words beside it, so `display.css` reads a body's whole arrangement from one
+source. Every fallback in those rules is exactly what they hardcoded before, and
+every `Panel.defaults` entry matches — measured, a body with no words chosen
+still computes `gap: 7.52px` (0.5em) in flex and `repeat(auto-fit, minmax(8em, 1fr))`
+in grid, as it always did.
+
+**⚠ `--panel-tracks`, not `--panel-cols`.** `--panel-cols` is already the picker
+grid's own column count (18 readers across `toolbar.css`, `templates.css`,
+`toolbar.js`, `properties.js`), and a custom property written on a body
+**inherits** into every control surface drawn inside it — the properties rail is
+a `T` entry living in a body. One name, two meanings, would have re-columned the
+inspector from the panel it is inspecting.
+
+**⚠ `justify-content` and `align-items` were free to take.** The base
+`.panel-body` picker writes `--panel-x`/`--panel-y` into `justify-items` and
+`align-content`. Flex reads neither: `justify-items` is inert in a flex
+container, and `align-content` needs more than one line. So `align` keeps
+working under `block` and `grid` exactly as before, and the two new flex
+properties collide with nothing.
+
+**`dir` is one key with two readings.** On a split it is the axis of a row of
+panels; on a leaf it is `flex-direction` on its body. A panel is one or the
+other and never both, so one word says "which way things run" in both — and it
+was already in `Panel.defaults`. It is the one new word **not** added to
+`Panel.shared`: a live duplicate shares what it holds and how it looks, and a
+split's axis is an answer about a slot. The other six (`gap wrap justify items
+cols dense`) are shared, because they modify `display`, which was already shared.
+
+**⚠ Picking `display` rebuilds the bar.** `display` is the one word that changes
+which *other* words exist, and by decision a `change` never rebuilds a bar. So
+the display pick refills the fold in place (`pops` emptied, `verbs()` re-run):
+measured, picking `flex` from the bar puts Dir · Gap · Wrap · Justify · Items on
+it before the pointer leaves. Nothing else on the bar gained a rebuild.
+
+## Every template draws into one wrapper — so what do the words arrange? (2026-08-18)
+
+**The finding** (`ai/2026-08-18/panel-grid/`): all 28 `T` entries wrap their
+drawing in a single `div`, so a leaf's `display: flex|grid` never sees more than
+one child on any shipped template. The words were about to be inert on the very
+content they arrange.
+
+**Options.** (a) Drop the wrappers from the section adapters and the local
+scenes. (b) Add one template whose N pieces are direct children.
+
+**Verdict: (b) — `cells`.** (a) reaches into `styles/sections/` (outside this
+module) and deletes the layout container each local scene's CSS is built on,
+regressing every existing panel to fix a demo. `cells` is twelve numbered boxes
+appended straight to the body, ~4 lines, and nothing shipped loses its wrapper.
+Measured: `body > .panel-t-cell` = 12, `body > .panel-t` = 0. **Still open:** the
+15 section adapters remain one-child bodies, so the words are real only on
+`cells` and on a call site's own drawing.
+
+## The preset door — `structure(seed | text)` (2026-08-18)
+
+`styles/layouts/space/presets.js` has held nine named spec strings
+(`document docs shell split mail dashboard landing gallery masonry`) since it was
+written, and `structure()` already turned spec text into a Panel tree — it just
+had no way in except a seed. It takes a string now: a preset's name, or the spec
+itself. Three lines.
+
+**The spec's layout words become panel words, on LEAVES only.** A node with
+children is a split, whose arrangement is `dir` plus the grips between its
+panels — `wrap` and `gap` have no reader there, and writing them would be data
+that draws nothing.
+
+**⚠ Why 0 of 8 sown seeds ever became a grid:** `gen()` emits no `grid` word at
+all. Its claims are `flow measure fluid full --basis: --measure:`, and `wall` is
+a *role*, not a class it writes. That is the grammar's gap, not the translator's;
+`presets.masonry` is the one shipped spec that says `masonry`, and it now
+arrives as `display: grid` on its `notes` leaf (measured). Adding a `grid` word
+to `spec.js`'s vocabulary is a proposal for the layout space, not for here.
+
+**⚠ The bar's dice still cannot offer a preset.** Its `sow` hook is built in
+`workspace.js` (`sow: () => import(…).then(m => repaint(m.sow(item)))`) and takes
+no argument, and `workspace.js` was another task's file this round. The nine
+presets are one row in the **properties rail** instead, which calls `sow()`
+itself. One line in `workspace.js` — `preset => … m.sow(item, preset)` — puts
+them on the bar too.
+
+**A nested split inside a leaf is structurally impossible** (a leaf holds no
+items), noted while working here and not changed: `panel-grid`'s test-drive hit
+it, and it is a `Panel.js` question about the leaf/split distinction, not a
+question about words.
+
+## Panel-flow — snapshots, not an inverse-operation table (2026-08-18)
+
+**Question.** A flow is a recorded progression of panel steps, replayable and
+steppable. What is a step, and where does the recorder hook in?
+
+**Options.** (a) Hook the six verbs (`divide split close absorb sow move`) and
+store the operation plus its inverse. (b) Hook the root Item's `change`/`add`/
+`remove` — the three `mount()` already binds — and store the whole tree.
+
+**Verdict: (b), both halves.** A PanelDrag goes through none of the verbs and a
+toolbar chip is a bare `set()`, so hooking verbs would miss most of what a person
+does; hooking the events catches every path, present and future. And Panel already
+serializes losslessly — a snapshot is exactly what the saver writes — so replay is
+`Item.hydrate(snapshot)` plus one redraw, with no inverse to get wrong. Stepping
+back costs what stepping forward costs, which is the whole reason a scrubber can
+exist. Measured: 6 gestures on `/full/` → 6 steps, a 15-panel tree snapshots to
+1,513 bytes, and stepping back to 1 then forward to 6 leaves
+`JSON.stringify(root.toJSON())` **byte-identical** to the recorded step-6 snapshot
+(sha256 `4c87985879a8968f`, both 1,513 chars).
+
+**⚠ `root.toJSON()` is not a snapshot.** It returns the live `data` object and the
+live child Items — it is built to be handed to `JSON.stringify`, not to be kept —
+so a step taken from it rewrites itself on the next `set()` and every frame reads
+as the newest. `capture()` deep-copies. This is the trap that would have made the
+whole feature look like it worked while recording nothing.
+
+**One gesture, one step: a trailing 150ms debounce.** One `divide()` fires three
+events, a seam drag commits two `set()`s at once, a keystroke fires per character.
+Keying on each verb's end instead would be exact and would mean six call sites
+announcing a boundary the clock already finds.
+
+**A replay is a real mutation.** The workspace saves what it shows, so scrubbing
+back writes that older tree through the saver; stepping forward puts the newest
+one back. A flow is a recording of the document, not a preview beside it.
+
+**The strip is the PAGE's.** It mounts beside a workspace (`scrubber($ws)` on `/`
+and on `/full/`), never inside a panel's hover bar — a flow belongs to the
+document, and in the bar every panel in the tree would carry a copy of the same
+control. `Flow.mounted` (pruned to connected roots) is how a headless driver finds
+the one it means: the Doc page holds a workspace **plus five demo panels**, and an
+SPA keeps the page you came from mounted.
+
+**⚠ Found while driving it: `insert.js`'s `+` eats a seam drag.** It is
+`z-index: 5` over `grip.js`'s `2`. A row split's bar covers the top 2.2rem of its
+seam; a **nested column split's** bar covers 2.2rem of its own left edge, which is
+the middle of the outer seam. Pressing there resizes nothing and opens nothing —
+one more measurement under the standing proposal that `insert.js` should go
+(`ai/2026-08-18/panel-complexity/`). Not changed here: that file was another
+task's.
+
+**The stage stays a composition.** `demo.stage(() => panel(seed))` is the whole
+responsive half — the stage owns the viewport and the width presets, `panel()`
+owns the arrangement — so it landed as one demo block on `page.js` and no
+`panel.stage()` helper, no `Stage` class. Every `demo()` on the page already builds
+a stage, so the caption is the feature.
+
+## A full-screen workspace that scrolls — `fill` vs `document`
+
+*"How do we get a full-screen Panel? How do I add sections to it? It seems when
+I add a row, it splits the thing, and doesn't make the area grow. WE sort of
+need a... workspace? that goes full screen, and is scrollable?"* (the owner,
+2026-08-18)
+
+**Options.** (a) A second door beside `workspace()` — `document()` — with its
+own class and its own CSS. (b) A **word on the root panel**, `mode: fill |
+document`, in the `WORDS` table both control surfaces already read.
+
+**Verdict: (b), one word.** A second door would fork the module in two for one
+declaration: two savers to keep in step, two things `sow`, `flow` and every
+demo have to know about, and a workspace that could never *become* a document
+without being rebuilt. A word is picked and unpicked while you look at it, it
+persists like every other word, the recorder replays it as one step, and it
+costs the table one row. `mode` was already the key (`fill`, plus a legacy
+`hug`), so it did not even cost a name.
+
+**What it means is four CSS rules and nothing else.** The workspace scrolls and
+stops stretching its root; the root is as tall as its rows with the screen as a
+floor; the root's column and its sections state a real flex basis. Everything
+nested inside a section behaves exactly as it does in `fill` — the rules never
+reach past the root's own column.
+
+**Nothing is written into the tree, deliberately.** The first build gave every
+new row `h: fixed` at 16em in `divide()`, which is what a section *looks* like —
+but that height is data, and it outlived the mode: switching back to `fill` read
+1 / 241 / 241 / 241 px instead of four even rows. The CSS floor
+(`min-block-size: var(--panel-hug)` on the root's children) produces the same
+16em section, writes nothing, and leaves `divide()` untouched. **The mode is a
+lens, not a mutation** — measured, `fill` after four sections is 181 × 4 = 723,
+exactly what it was before the word existed.
+
+**⚠ The trap that cost the most: `.panel-items` is a size query container.** A
+size container may not be sized by its own contents, so the root's column
+measured **0px while holding 963px of sections**, clipped away by `.panel`'s own
+`overflow: hidden`, with nothing thrown and nothing to see. Only the block half
+is given up (`container-type: inline-size`): the inline axis is still a slot the
+width decides, and `100cqb` inside a section falls through to the workspace,
+which is the number it read before.
+
+**Open — three, none of them this task's file.**
+
+- **`sow()` drops the word.** It is the fifth verb that replaces `data`
+  wholesale (`item.data = { ...made.data, grow }`), so rolling a preset onto a
+  document root reverts it to `fill`. `split()` hands `mode` back to the panel
+  becoming the split; `sow()` wants the same line, in `generate.js`.
+- **A grip cannot resize a section.** `grip.js` writes `grow` fractions, and
+  `flex-grow` is inert in a column sized by its content. A section's height is
+  its `h` word — pick `8em` / `16em` / `24em` from the bar.
+- **All nine `space` presets open `full fill`,** so none of them reads as a
+  document *root*; sown into a section, `document` behaves like any nested split
+  and scrolls inside its 16em (measured: the section stayed 241px and gained
+  three leaves). A preset is a screen, and a screen is a section.

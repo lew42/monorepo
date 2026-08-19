@@ -12,6 +12,7 @@ md.file(import.meta, "readme.md");      // a promise of a div.md — View.append
 ## Watch out
 - `md.file` / `md.details` resolve against `import.meta`, never the document — the SPA fallback makes the document url a route, so a document-relative fetch misses. [`doc/method/file.md`](./doc/method/file.md)
 - A relative link in a fetched `.md` is rewritten against **the file**; but a link between two of this module's own `doc/*.md` must be absolute — a `doc/`-shaped url is not a route. [`doc/relative-links.md`](./doc/relative-links.md)
+- A link to a `.md` **beside the page you are on** is rewritten to its route (`x.md` → `x/`), which core/Page renders as markdown; every other `.md` link is left as the file, because that is all the fallback can serve. [`/framework/core/Page/doc/declaring.md`](/framework/core/Page/doc/declaring.md)
 - Renders via `html_unsafe()` on purpose — Safari has no `setHTML()`, and the content is repo-authored. [`doc/sanitization.md`](./doc/sanitization.md)
 - `md.c()` has no caller and `marked` is re-exported to nobody — recorded, not acted on. [`doc/proposed.md`](./doc/proposed.md)
 

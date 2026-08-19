@@ -26,7 +26,7 @@
 	.doc-well {
 		background: var(--well);
 		display: flex; align-items: center;
-		padding: 0.5em 0 0.5em var(--gutter-x);
+		padding: 1.5em 0 0.5em var(--gutter-x);
 	}
 	.doc-title { margin: 0; }
 

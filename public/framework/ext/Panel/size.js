@@ -16,7 +16,7 @@ View.stylesheet(import.meta, "size.css");
 export const SIZE = { on: true };
 export const EXTENTS = ["fill", "hug", "fixed"];
 
-const CLASSES = EXTENTS.flatMap(e => ["w", "h"].map(axis => `panel-${axis}-${e}`)).join(" ") + " panel-pos-absolute hug";
+const CLASSES = EXTENTS.flatMap(e => ["w", "h"].map(axis => `panel-${axis}-${e}`)).join(" ") + " panel-pos-absolute hug panel-mode-document";
 
 // In the slot, or over it. One word, and `static` is every panel that never chose.
 export const floating = item => item.get("position") === "absolute";
@@ -56,7 +56,13 @@ export function sizing(item, $panel){
 		// so a scene sizes as it always has. ⚠ Withheld from a floating panel: `.hug` makes a
 		// BODY hug where the panel's own box could not say how wide it was, and a floating
 		// panel's box states its extent directly.
-		.ac(!over && (main === "w" ? w : h) === "hug" && "hug");
+		.ac(!over && (main === "w" ? w : h) === "hug" && "hug")
+		/* The root's `mode`, as the one class panel.css reads to make a workspace a
+		   scrolling DOCUMENT — written here because this is already the sole writer of
+		   `$panel`'s own layout classes, `.hug` (also panel.css's) included. ⚠ Root only:
+		   `document()` is the test, never the key, because `split()` hands a root's data
+		   down to its first section. */
+		.ac(item.document() && "panel-mode-document");
 
 	if (w === "fixed" && item.get("w_at")) $panel.style("--panel-w-at", item.get("w_at"));
 	if (h === "fixed" && item.get("h_at")) $panel.style("--panel-h-at", item.get("h_at"));

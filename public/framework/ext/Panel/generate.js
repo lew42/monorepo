@@ -1,6 +1,7 @@
 import { div, span, button, icon } from "/app.js";
 import { gen } from "/framework/styles/layouts/space/gen.js";
 import { render, parse } from "/framework/styles/layouts/space/spec.js";
+import PRESETS from "/framework/styles/layouts/space/presets.js";
 import Panel from "./Panel.js";
 
 /* The one seam between the layout space (`styles/layouts/space/`) and ext/Panel, in two
@@ -52,15 +53,22 @@ const PANELS = {
 	cards:  "features", tiles: "logos",  rows: "changelog",
 };
 
-/* (seed, depth) → a detached `Panel` tree, pure: `gen` and `parse` are, so the same pair
-   is the same tree forever. A node with children is a split — `v` in its class list runs
-   it as a column — and a node without is a leaf wearing its part's template.
+/* (seed | text, depth) → a detached `Panel` tree, pure: `gen` and `parse` are, so the same
+   pair is the same tree forever. A node with children is a split — `v` in its class list
+   runs it as a column — and a node without is a leaf wearing its part's template.
+
+   TWO doors, because a layout is text either way: a NUMBER is a seed and `gen()` writes
+   the text; a STRING is the text itself, or the name of one of the nine in
+   `styles/layouts/space/presets.js` — which is what makes every preset a starting
+   arrangement rather than a picture of one.
    ⚠ `depth` is the generator's MAX nesting, and a deep roll is a deep tree: past about
      4 the panels are slivers, which is the layout space's own trade (its readme) and not
      something to clamp here — a translation that quietly disagreed with the picture
-     beside it would be the worse bug. */
+     beside it would be the worse bug. Text ignores it: a preset has its own shape. */
 export function structure(seed, depth){
-	return node(parse(gen(seed, depth))[0] ?? { line: "", kids: [] });
+	const text = typeof seed === "string" ? PRESETS[seed] ?? seed : gen(seed, depth);
+
+	return node(parse(text)[0] ?? { line: "", kids: [] });
 }
 
 function node(spec){
@@ -68,7 +76,7 @@ function node(spec){
 	const words = head.trim().split(/\s+/).filter(Boolean);
 	const grow = share(words);
 
-	if (!spec.kids.length) return new Panel({ data: { template: PANELS[part(tail)] ?? "blank", grow } });
+	if (!spec.kids.length) return new Panel({ data: { template: PANELS[part(tail)] ?? "blank", grow, ...arrangement(words) } });
 
 	// A spec nests a box per declaration, so a rail-less body is a row inside a row. One
 	// child is not a split — `close()` would absorb it on sight, so never build it.
@@ -79,6 +87,29 @@ function node(spec){
 }
 
 const part = tail => tail.trim().split(/\s+/)[0];
+
+/* The spec's own layout words as PANEL words, so a preset arrives with its arrangement on
+   rather than as a tree of block bodies. A LEAF only: a node with children is a split, and
+   a split's arrangement is `dir` plus the grips between its panels — `wrap` and `gap` have
+   no reader there, so writing them would be data that draws nothing.
+   ⚠ `gen()` emits no `grid` word at ALL (its claims are `flow measure fluid full --basis:`),
+     which is why 0 of 8 sown seeds ever became one — that is the grammar's gap, not this
+     translator's, and `presets.masonry` is the one shipped spec that says grid today. */
+const DISPLAYS = { grid: "grid", wall: "grid", masonry: "grid", flex: "flex" };
+
+function arrangement(words){
+	const display = words.map(word => DISPLAYS[word]).find(Boolean);
+	if (!display) return {};
+
+	const on = { display };
+
+	if (words.includes("gap")) on.gap = "1em";                                        // framework.css's `.gap`
+	if (display === "flex" && words.includes("v")) on.dir = "col";
+	if (display === "flex" && words.includes("wrap")) on.wrap = "wrap";
+	if (display === "grid" && words.some(word => word.startsWith("--column:"))) on.cols = "auto";
+
+	return on;
+}
 
 /* `flex-1` and `--basis:15em` are both claims on a share, which is Panel's `grow`. One
    share is 8em: a fluid track claims eight, a fixed track its own measure, and a track

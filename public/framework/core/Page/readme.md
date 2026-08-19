@@ -12,7 +12,10 @@ export default new Page({
 });
 ```
 
+The file is the route: `./x/` renders `./x.md` as markdown when no `page.js` claims `x` — write a `.md` beside a page, link to it, and it is a page. Nothing crawls; the **link** is the naming.
+
 ## Watch out
+- A `.md` becomes a page only where the fallback looks — **beside** a page, one segment down; and the `.md` url itself is always the raw file, so the probe is content-type gated (the SPA fallback answers a miss with `index.html` at **200**): [`doc/declaring.md`](./doc/declaring.md)
 - A page IS the shell grid — `main` (prose, `--measure: 40em`), `wide` (all the leftover), `bleed` (edge to edge, and it SPENDS the gutter tracks — prefer `wide`). Never `--measure: none`: [`/framework/styles/doc/layout-system.md`](/framework/styles/doc/layout-system.md)
 - Overriding `render()` owes three silent things — set `this.view`, carry `.page`, never nest a second `.page` — and a flex/grid override owns its children's spacing (`gap`, not `flow`): [`doc/decisions.md`](./doc/decisions.md)
 - A page placed with no mark and no `default` is `display: none`, and nothing throws; `warn_if_hidden()` says so on localhost only: [`doc/decisions.md`](./doc/decisions.md)
@@ -23,6 +26,6 @@ export default new Page({
 - A card's thumb is inert — the label is the only link, because `<a>` in `<a>` is un-nested silently: [`doc/css.md`](./doc/css.md)
 
 ## More
-- [Overview](/framework/core/Page/) · [`doc/decisions.md`](./doc/decisions.md) — the record: callers, every verdict, proposed, open · [`doc/declaring.md`](./doc/declaring.md) — the children list, eager loading, the CMS question · [`doc/labels.md`](./doc/labels.md) — titles, labels, icons, cards · [`doc/css.md`](./doc/css.md) — visibility, the sheet, rhythm, the cards · [`doc/layout.md`](./doc/layout.md) — **open:** nested vs `full`, and why alternating between them is tricky
-- `overview/readme.md` — the fourteen demo trees in the rail; `doc/method/*.md`, `doc/property/*.md` — one page per member, under API
+- [Overview](/framework/core/Page/) · [`doc/decisions.md`](./doc/decisions.md) — the record: callers, every verdict, proposed, open · [`doc/declaring.md`](./doc/declaring.md) — the children list, eager loading, the CMS question · [`doc/labels.md`](./doc/labels.md) — titles, labels, icons, cards · [`doc/css.md`](./doc/css.md) — visibility, the sheet, rhythm, the cards · [`doc/layout.md`](./doc/layout.md) — **open:** nested vs `full`, and why alternating between them is tricky · [`doc/columns.md`](./doc/columns.md) — nested pages as equal peers (Miller columns): the tree stays, `display: contents` flattens the layout
+- `overview/readme.md` — the fifteen demo trees in the rail; `doc/method/*.md`, `doc/property/*.md` — one page per member, under API
 - Files that matter: `Page.class.js` (the class), `Page.css` (every `.page-*` rule), `page.js` (the doc root)

@@ -1,0 +1,66 @@
+/* A rail's resize edge. No permanent splitter: a hover strip just inside the edge,
+   and a pill that appears at the pointer's Y. Design record: readme.md. */
+@layer theme {
+
+	/* ⚠ `rem`, never `em`, for every size here: the dev rail's text is 0.8rem, so an
+	   `em` pill measured 3.2 × 12.8 instead of 4 × 16. A grab target does not scale
+	   with the type beside it.
+	   ⚠ Wholly INSIDE the rail — never straddling this edge. `.pages` is
+	     `overflow-y: scroll` (Page.css), so the page region reserves a 15px scroll
+	     gutter flush against whichever rail is beside it, and any overhang lands on
+	     the scrollbar: `setPointerCapture` then swallows the scroll drag. 0.75rem is
+	     the dead strip both rails already have — a 1px border plus 0.9em of padding —
+	     so the target covers no content of its own. */
+	.grip {
+		position: absolute; inset-block: 0; inset-inline-start: 0; z-index: 1;
+		width: 0.75rem;
+		cursor: ew-resize;
+		touch-action: none;   /* ⚠ a touch drag scrolls the page without it */
+	}
+
+	/* The whole edge lights, so the target is findable before the pill is. */
+	.grip::before {
+		content: ""; position: absolute; inset-block: 0; inset-inline-start: 0;
+		width: 2px;
+		background: var(--prim);
+		opacity: 0;
+		transition: opacity 0.12s;
+	}
+
+	/* `--prim`, the one affordance colour — same hue as the lit line, the open tab
+	   and the lit preset. */
+	.grip-pill {
+		position: absolute; inset-inline-start: 50%; top: var(--grip-y, 50%);
+		width: 0.375rem; height: 2rem;
+		transform: translate(-50%, -50%);
+		background: var(--prim);
+		border-radius: 999px;
+		box-shadow: 0 1px 4px rgba(0,0,0,0.45);
+		opacity: 0;
+		transition: opacity 0.12s;
+		pointer-events: none;   /* the strip is the target; this is only the sign */
+	}
+
+	.grip:hover::before,
+	html.grip-sizing .grip::before { opacity: 0.45; }
+	.grip:hover .grip-pill,
+	html.grip-sizing .grip-pill { opacity: 1; }
+
+	html.grip-sizing .grip::before { opacity: 0.7; }
+	html.grip-sizing .grip-pill { height: 3rem; }
+
+	/* ⚠ `--rail-ease` rather than a rule naming `.app`: the shell eases its push
+	   (framework.css), and a drag writes the width every frame — eased, it trails the
+	   pointer by 0.18s. This class is the whole reason grip.js touches <html>. */
+	html.grip-sizing {
+		--rail-ease: 0s;
+		cursor: ew-resize;
+		user-select: none;
+	}
+
+	/* ⚠ Around this width both rails stop being rails — the dev bar is a bottom sheet
+	   (34em, devbar.css) and the drawer is the whole screen (26rem, drawer.css). An
+	   `ew-resize` strip down an inline edge resizes nothing there, and it is a pointer
+	   trap on a touch screen. */
+	@media (width < 34em) { .grip { display: none; } }
+}

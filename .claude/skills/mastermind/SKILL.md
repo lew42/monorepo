@@ -67,6 +67,10 @@ long it may be — a report is a screen; a page leads with the thing itself. The
   before". A landed agent's transcript can vanish (`SendMessage` → "No transcript found"); one
   Opus could not be resumed for wave 2 after ~45 minutes idle.
 - A fence that forbids what a mandated skill writes is a trap — name the skill's writes.
+- ⚠ **Run any code recipe you put in a brief once yourself first** — an import path, a route pattern, a
+  command. On 2026-08-18 the Playwright import (`C:/…` → must be `file:///C:/…`) and the socket block
+  (`page.route('**/socket*')` matches nothing; `page.routeWebSocket(/.*/)` is the one) both shipped wrong
+  in six briefs; a minion caught each, at a retry apiece. Thirty seconds of the mastermind's time.
 - Ask for the raw output as a file and spot-check one decisive number; ask for two numbers
   that must agree; ask for a ratio, not an opinion; say which artifact is the deliverable and
   what to cut first.
