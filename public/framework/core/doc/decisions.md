@@ -44,7 +44,7 @@ that ships.
   regardless of textual position, so a child importing its parent reads an
   uninitialized binding — `/a/` throws while `/a/b/` works. Imports flow down;
   the backref (`page.parent`) arrives by adoption in `add()`, never by a child
-  importing upward. Worked example: `core/Page/children/page.js`.
+  importing upward. Worked example: `core/Page/old/children/page.js`.
 - **⚠ A POJO default export whose key collides with a `Page` method silently
   shadows it.** `export default { render(){ … } }` in capture style returns
   nothing from `render`, and `activate()` then reads `.el` of `undefined`.

@@ -49,8 +49,8 @@
 	/* The well prints the module name; the catalog's intro would print it again.
 	   ⚠ The successor's margin goes with it — a `display: none` element still matches
 	     `.page-title + *`, so the 3em the heading occupied stayed behind. */
-	.page.doc-page .page-catalog-pages > .page-intro > .page-title { display: none; }
-	.page.doc-page .page-catalog-pages > .page-intro > .page-title + * { margin-block-start: 0; }
+	.page.doc-page .page-catalog-pages > .page--intro > .page-title { display: none; }
+	.page.doc-page .page-catalog-pages > .page--intro > .page-title + * { margin-block-start: 0; }
 
 	/* A doc section IS a page, so it is the shell's own grid now — `main` for the
 	   prose, `wide` for a table or a listing that needs the room. It used to declare

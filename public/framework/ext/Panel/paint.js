@@ -9,20 +9,26 @@ import { vocab } from "./vocab.js";
    structural redraw, and everything here rewrites what is already on screen. Imports flow
    one way: this file reads the surface modules, and none of them reads it back. */
 
-/* The current DOM of every drawn panel, rewritten on each draw — so a control living in
-   ANOTHER panel (the `properties` inspector) can reach the one it is editing. Weak, because
-   a closed panel's entry should go when the panel does. `view()` is its only writer. */
+/* EVERY live rendering of every drawn panel — a root mounted in N boxes (the playground's
+   seven) has N — so a control living in ANOTHER panel, or the rail, can reach the one it is
+   editing wherever it is shown. Weak, because a closed panel's entries should go when the
+   panel does. `view()` (workspace.js) is the only writer; it prunes the detached ones as it
+   adds. ⚠ It held ONE entry per item until 2026-08-19 — the last box drawn — so a repaint
+   could land on a hidden twin pane while the box under the pointer showed nothing (the
+   owner: "works on refresh, not on select"; the sweep's and the selection task's finding). */
 export const views = new WeakMap();
+export const views_of = item => [...(views.get(item) ?? [])].filter(v => v.$panel.el.isConnected);
+// One rendering, for a reader that only needs a sample — the knob reading a computed value.
+export const view_of = item => views_of(item)[0];
 
-/* One panel's chrome resynced from its own data: what the bar writes by hand as it clicks,
-   for an inspector that is holding no part of its target. */
+/* One panel's chrome resynced from its own data, in every box that shows it: what the bar
+   writes by hand as it clicks, for an inspector that is holding no part of its target. */
 export function repaint(item){
-	const seen = views.get(item);
-	if (!seen) return item;
-
-	sizing(item, seen.$panel);
-	seen.$items?.[item.get("dir") === "col" ? "ac" : "rc"]("v");
-	if (seen.$body) paint(item, seen.$body);
+	views_of(item).forEach(seen => {
+		sizing(item, seen.$panel);
+		seen.$items?.[item.get("dir") === "col" ? "ac" : "rc"]("v");
+		if (seen.$body) paint(item, seen.$body);
+	});
 	return item;
 }
 

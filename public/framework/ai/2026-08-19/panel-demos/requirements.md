@@ -23,3 +23,13 @@ The owner (2026-08-19), verbatim:
 
 - Load `code` once (and `new-page` for the page). Run `new-task` first (dir + brief exist; write `task.jsonl` line 1 and the `day.jsonl` line in `ai/2026-08-19/`; group `panels`); the ledger logs edits; `documentation` then `finish-task` (`"tokens": null`). A skill that misleads you gets one line in its `improvements.md` (`skill-improvement`).
 - Timestamps from the clock; forward slashes; never Out-File a `.jsonl`; never a person's name — "the owner". Only `p()`/`h1`–`h6` read backticks; no DOM after an `await` outside a callback; every CSS rule inside a layer. Wait in the foreground.
+
+## Addenda — the owner's later words, verbatim (relayed to the minion by message; recorded here so nothing is lost)
+
+> let's focus on a demo for simple flex and grids. how do I start, from scratch, to add a simple flex box? or grid? maybe each demo needs a workspace, to configure the available space, center the root panel? maybe the panel-flow should be a workspace-configured feature?
+
+> i don't see Panel > Demo page yet? can we get it roughed in? I'd like to SEE progress
+
+> maybe demos aren't done yet, but i don't see any panels on these pages
+
+Mastermind's reading: demos 1–2 = flex / grid from scratch; each pane is a bounded, centred space; the flow scrubber is per workspace (`flow.attach(root, $where, opts)`); rough in the visible starting panels first; the panes must read as boxes (surface tone, bordered) and wrap to two rows inside the Doc's narrow track (`flex gap auto`, `--column: 24em`).

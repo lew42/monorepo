@@ -1,6 +1,6 @@
 # Columns — nested pages laying out as peers
 
-**The demo:** [/framework/core/Page/overview/columns/](/framework/core/Page/overview/columns/) — Miller columns (the
+**The demo:** [/framework/core/Page/old/overview/columns/](/framework/core/Page/old/overview/columns/) — Miller columns (the
 Finder arrangement). Every page in the tree is one column: its title, its prose, its children as a list. Click a
 row and the next column opens to its right; click a row further left and everything right of it closes; below two
 columns' width the row pages one at a time; six deep it scrolls sideways and the newest column scrolls itself into

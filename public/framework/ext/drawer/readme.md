@@ -21,7 +21,7 @@ drawer.showing();     // is it open
 - [`dev/DevBar`](/framework/dev/DevBar/) is the OTHER rail at this edge and both can be open at once — this one offsets by `--devbar`, and `.app` reserves the sum · [doc/decisions.md](./doc/decisions.md)
 - Mount inside `.app`, never on `<body>` — colour-scheme and `--drawer` are read there · [doc/decisions.md](./doc/decisions.md)
 - `rem`, not `em`: an `em` width reserves the wrong strip · [doc/decisions.md](./doc/decisions.md)
-- `position: fixed` opts out of the push — `.page.layout-full` restates the reservation on its own `inset-inline-end`; a shared `--rail-push` token is proposed, not applied · [doc/decisions.md](./doc/decisions.md)
+- `position: fixed` opts out of the push — `.page.layout-full` reads the shared `--rail-push` token (`.app`, drawer.css) instead of restating the reservation; `.app`'s own copy in framework.css is still the direct formula · [doc/decisions.md](./doc/decisions.md)
 - Below `26rem` the rail is the whole sheet; that breakpoint mirrors `--rail-floor`'s default by hand · [doc/decisions.md](./doc/decisions.md)
 - `drawer()` runs on every redraw — a listener on the returned rail is wired once, behind a flag · [doc/decisions.md](./doc/decisions.md)
 - `z-index: 40`: over `.demo.max` (30), under the mode button (60); it docks beside DevBar (`--devbar`), not under it · [doc/decisions.md](./doc/decisions.md)

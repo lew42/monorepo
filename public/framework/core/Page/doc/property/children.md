@@ -15,7 +15,7 @@ turns it into a Map; from then on every reader uses the Map —
 
 It is **not** registration. `child()` falls through `route()` to a filesystem probe,
 so an undeclared folder still resolves — *forgetting to declare costs the menu entry,
-not the url.* See the [Children](/framework/core/Page/children/) guide, which is this
+not the url.* See the [Children](/framework/core/Page/old/children/) guide, which is this
 property's long form.
 
 **Simplicity** — one line, four accepted shapes: a space-separated string, an array

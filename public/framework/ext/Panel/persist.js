@@ -1,4 +1,5 @@
 import View from "/framework/core/View/View.js";
+import { item_vars } from "./glyphs.js";
 
 /* `panel.data.text`, the overlay a text edit is written to so it survives the `paint()`
    that throws the drawing itself away on every tone, template or mirror change — keyed by
@@ -49,6 +50,18 @@ const owners = new WeakMap();
 // Whether `text_observe()` ever bound this body — false for a workspace running with
 // `tools.text` off, which is exactly what should be invisible to a caller like `T`.
 export const tracked = root => owners.has(root);
+
+// A body's own panel — the same lookup a run's `record()` walks to below, exported for
+// `text.js`'s item selection, which starts at a click and has to find its way to data too.
+export const item_of = root => owners.get(root)?.item;
+
+/* One item word written down — `data.items`, keyed by the child's OWN key (`text.js` reads
+   `data-cell` off it, or its index), read-modify-write like `record()` above but with no
+   path to walk: the caller already has the cell. */
+export function set_item(item, cell, key, value){
+	const saved = item.get("items") ?? {};
+	item.set("items", { ...saved, [cell]: { ...saved[cell], [key]: value } });
+}
 
 /* What a key is keyed AGAINST: the drawing the run belongs to. The template's name, plus its
    SEED where it has one — a re-rolled `space` is a different page, and a key that survived
@@ -174,6 +187,23 @@ export function box(el, tag){
 	return made;
 }
 
+/* The per-ITEM overlay, replayed the same way `text_apply` is — onto whichever child now
+   carries the key a saved patch was written against. Idempotent (a `style.setProperty` on an
+   already-correct value is a no-op), so firing it on every childList mutation costs nothing
+   a fresh draw was not already going to pay. */
+export function items_apply($body, item){
+	const root = $body.el;
+	const saved = item.get("items");
+	if (!saved) return $body;
+
+	[...root.children].forEach((child, i) => {
+		const patch = saved[child.dataset.cell ?? i];
+		if (patch) Object.entries(item_vars(patch)).forEach(([prop, value]) => child.style.setProperty(prop, value));
+	});
+
+	return $body;
+}
+
 /* ⚠ Called BEFORE a body is emptied. `edit()` writes down on blur, so a run still being
    typed into has nothing saved yet — emptying around it would take the copy with it. */
 export function text_commit($body){
@@ -191,7 +221,7 @@ export function text_commit($body){
 export function text_observe($body, item){
 	const root = $body.el;
 
-	const seen = new MutationObserver(() => text_apply($body, item));
+	const seen = new MutationObserver(() => { text_apply($body, item); items_apply($body, item); });
 	owners.set(root, { item, seen });
 	seen.observe(root, { childList: true });
 

@@ -2,20 +2,16 @@ This module's own page, and the reader's introduction to `Page` — every tab yo
 click here is produced by the `Doc` config at the top of this file, `subject: Page`
 included.
 
-## `overview:` carries the fourteen-tree rail
+## `children: "old"`, and an `overview_section()` override (2026-08-19)
 
-`overview: "page children add labels route shapes wall catalog dashboard strip
-deep landing docs site"` — one sibling directory per demo, grouped by each demo's
-own `group:` rather than by anything named here. `../overview/readme.md` is the
-design record for the whole rail.
+The six guide pages and the fifteen demo trees moved under `old/` — a `.tabs.vertical`
+left rail over `nav children previews shell flow overview`, one top tab beside
+Overview/API/Docs/Files. `../old/readme.md` is the record.
 
-## `children:` is a second tab strip
-
-`children: "nav children previews shell flow"` are five guide pages, each a
-sibling directory, each a top-level tab beside Overview/API/Docs/Files. They are
-prose-and-demo walkthroughs, not part of the API surface — the split between a
-"guide" and a "member" is exactly what `children:` vs `properties:`/`methods:`
-means in `Doc`.
+With no `overview:` left to hand `Doc.overview_section()` a rail, it would draw a
+catalog holding nothing but the intro card — a rail of one. `page.js` overrides
+`overview_section()` to skip `catalog()` and render `content()` plain; smallest
+override that works, same `render()` shape the base method uses.
 
 ## Improvements
 

@@ -63,6 +63,7 @@ demo-        ext/demo
 doc-         ext/Doc
 drag-        ext/Draggable
 drawer-      ext/drawer
+dropdown-    ext/Dropdown
 dt-          ext/DesignTool
 editor-      ext/editor
 file-        ext/files
@@ -71,6 +72,7 @@ hljs-        ext/highlight (vendored)
 layout-      ext/layout
 md-          ext/markdown
 panel-       ext/Panel
+pg-          ext/Playground
 research-    ext/Research
 tab-         ext/tabs
 tabs-        ext/tabs

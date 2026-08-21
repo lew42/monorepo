@@ -46,89 +46,37 @@ width without wrapping.
 The bar is an overlay, so anything that must not sit under it has to know how
 tall it is. One token answers both ends: the bar is **sized** by it, and
 `panel.css` pads a `.panel-controls` payload's body by it. Declaring an extent
-rather than measuring one is the same call `--panel-hug` makes two files over.
+rather than measuring one is the same call the sizing rules make two files over.
 
 ⚠ **`rem`, never `em`** — the bar reads at `0.8em` of a panel whose font size its
 content sets, so an `em` token would be one height at the bar and a different one
 at the payload. `grip.css` sizes its grab strip in `rem` for the same reason.
 Measured cost of declaring it: 28.39px → 28.8px, buttons unmoved horizontally.
 
-## The container is the bar itself, and that is the only safe box here
+## The bar is ALWAYS folded (2026-08-19)
 
 ```css toolbar.css
-.panel-bar { container: panel-bar / inline-size; … }
+.panel > .panel-bar .panel-more { display: flex; }
+.panel-pop.panel-fold { display: none; }
+.panel-pop.panel-fold.on { display: grid; }
+.panel-pop { max-inline-size: 100%; }
 ```
 
-⚠ **A query container is measured as if it were empty**, which is the trap that
-collapsed `hug` and the reason `--panel-hug` exists. The bar dodges it by
-construction: `inset-inline: 0` sizes it from the panel, so containment has no
-content size to lose. Do not move this to `.panel` — a hugging panel *is* sized
-by its contents, and it would measure 0.
+Three `@container` blocks used to decide this by measuring the bar: unfold past
+26em, reflow the browse shelf under 12em, hide everything under 84px. All three
+went with every container query in the module, and folding unconditionally
+replaces them — handle, `more_horiz`, the even-split quick verb and `close` are
+always visible, and the whole run of verbs is in the popover it already was.
 
-Naming the container matters: `templates.css` queries an **unnamed** container
-and expects `.panel-body`. Nothing in the bar queries unnamed, and `.panel-bar`
-is never an ancestor of a body, so the two never meet — but the name is what
-makes that true by declaration instead of by luck.
+That is less code AND less to be wrong: a bar that folds at one width and unfolds
+at another has to be right twice, and the unfolded shape carried its own bug (a
+stale `on` reopened the run on the way back, which is why `pointerleave` closes
+it). A bar that always fits needs no threshold at all.
+[decisions](/framework/ext/Panel/doc/decisions/).
 
-## The fold: one contiguous run, `display: contents` until it is not
-
-```css toolbar.css
-.panel-pop.panel-fold { display: contents; }
-
-@container panel-bar (max-width: 19em) {
-	.panel > .panel-bar .panel-more { display: flex; }
-	.panel-pop.panel-fold { display: none; }
-	.panel-pop.panel-fold.on { display: grid; }
-	.panel-pop { max-inline-size: 100cqi; }
-
-	@container panel-bar (max-width: 12em) {
-		.panel-pop.panel-browse { grid-template-columns: repeat(auto-fit, minmax(1.7em, 1fr)); }
-	}
-}
-```
-
-`toolbar.js` wraps every verb in one `.panel-pop.panel-fold`. Above the
-threshold that wrapper has **no box at all**, so every `.panel-pop` declaration
-is inert and its buttons are the bar's own flex items in source order — measured
-identical, x for x, against the un-folded bar. Below it, the wrapper is the
-popover it already was and `.panel-more` stands in for the run.
-
-⚠ `.panel-pop.panel-fold` and `.panel-pop.on` are **both 0-2-0**, so source order
-is the whole reason the fold wins at wide widths. It comes after, like
-`.panel-handle`'s cursor.
-
-⚠ `em` in the condition is the **bar's** em (12.4px at the site's default), which
-is the scale the row is measured in — so the threshold tracks the row rather than
-the document. `19em` ≈ 236px against a fully-shrunk 8-button row of 225px.
-
-`max-inline-size: 100cqi` is the other half: a picker is `position: absolute`
-inside a panel that `overflow: hidden`s, so without a cap the 6-column template
-grid opens straight past the edge. Capped, its `1fr` tracks fall back to each
-button's own `min-width`. Measured: 174.7px wide at 248px and up, 144px at 181px,
-still inside the panel at 146px — and at 140px the *box* obeyed the cap while its
-six columns did not, the last one crossing the panel edge by 1px, by 21px at 120px.
-
-## Only a shelf reflows — the 3×3 is a picture
-
-Six columns at that floor is 6 × `1.7em` + gaps + padding = **144px** of popover
-in a bar that has `100cqi` and no more, so below ~148px the cap can only clip. The
-grid may hold fewer columns instead — but the same `--panel-cols` token draws the
-**alignment** picker, and a 3×3 that auto-fills is no longer a picture of nine
-placements. So the fork is a class, not a number: `toolbar.js` marks the
-browse-by-picture grid `panel-browse`, and only that grid reflows.
-
-⚠ **The inner query is nested inside the outer one on purpose.** `auto-fit`
-counts columns against a **definite max size** — which is `max-inline-size: 100cqi`,
-declared one rule up. Lift it out of that block and the count collapses to a single
-column, because an auto-sized grid with no definite max gets one repetition.
-
-Measured, template picker, before → after: **unchanged** at 1600 and 300px
-(174.7px, 6 columns, 5 rows) and at 236px and 181px (144px, 6 columns); at 146px
-6 → 5 columns (121.1px), at 140px 6 → 5 (all 29 entries inside the panel, where 4
-hung over before), at 120px 6 → 4 (110.6px, 8 rows). `rail` — an entry in the
-column that used to hang past the edge — clicks and paints at both 140px and 120px.
-The alignment picker is 84.9px and exactly 3 × 3 at 1600, 200 and 140px, the tone
-picker 2 wide and 116.6px, and the fold still swaps at 181px.
+`max-inline-size: 100%` is the other half: a picker is `position: absolute` in a
+bar it can easily out-measure, and `%` reads `.panel-bar` — the popover's
+containing block, and the same box `100cqi` read.
 
 ## ⚠ `.panel-bar .icon` is clamped to `1em` because ligatures fail as words
 

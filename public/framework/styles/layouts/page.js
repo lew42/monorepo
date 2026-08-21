@@ -36,7 +36,7 @@ export default new Page({
 	     not need — the region scrolls and the rail sticks. */
 	render(){
 		return this.view ??= div.c("page", () => this.content())
-			.ac(this.name && "page-" + this.name);
+			.ac(this.name && "page--" + this.name);
 	},
 
 	/* ⚠ `--column: 22em`. A thumb is the page at `zoom-25`, so the card's width times

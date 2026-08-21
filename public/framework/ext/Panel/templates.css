@@ -1,14 +1,18 @@
 /* A template's LOOK is its payload — the one sanctioned exception to "a module's
-   css is layout only". Every size is a container-query unit against `.panel-body`
-   (container-type: size), so one rule set reads from a 200px sliver to a 3440
-   monitor. No keyframe uses a cq unit: percentages animate, cq units in
-   `@keyframes` are not worth the bet. */
+   css is layout only".
+
+   ⚠ No container queries anywhere in this module since 2026-08-19 (doc/decisions.md).
+   What PAINTS is a `%` of the same box — gaps, pads, radii, gradient extents,
+   `background-size` — and what TYPES is a plain `em`, so a template reads at the panel's
+   own text size and one `zoom` on a viewport scales the whole arrangement instead of
+   every rule re-deriving it. A template that has nothing to measure wears
+   `.panel-t-scene` and gets a floor. */
 @layer theme {
 
-	/* ⚠ `min-block-size: 100cqh`, NOT `100%`: the panel body is a grid of `min-content`
-	   rows, so a percentage height resolves against the template's own content and a
-	   scene with no text collapses to nothing. `block-size` stays for the plain-block
-	   parents (a page, a demo box) that do give a definite height. */
+	/* `100%` of the body's one row — `.panel-body:has(> .panel-t)` states
+	   `grid-template-rows: 100%` for exactly this (panel.css). In a HUGGING panel that row
+	   is indefinite, so both percentages fall back to the content, which is what hug now
+	   means; a template with no content to measure adds `.panel-t-scene` below. */
 	.panel-t {
 		position: relative;
 		display: grid;
@@ -16,11 +20,20 @@
 		place-items: center;
 		inline-size: 100%;
 		block-size: 100%;
-		min-block-size: 100cqh;
+		min-block-size: 100%;
 		overflow: hidden;
 	}
 
 	.panel-t-layer { position: absolute; inset: 0; }
+
+	/* A SCENE has nothing to measure: `blank` is an empty box, the four decorative ones are
+	   empty layers, and `word`/`wall`/`clock` are a handful of words that would otherwise
+	   hug to a caption. So the scene declares the floor `hug` used to declare on its behalf
+	   — on the HUGGING axis only, because a filling panel's scene takes the slot and a floor
+	   there would only push past it. 16em is what `--panel-hug` lent every hugging panel
+	   before 2026-08-19; `.panel` caps it at the slot (`max-inline-size`, panel.css). */
+	.panel-w-hug > .panel-body > .panel-t-scene { min-inline-size: 16em; }
+	.panel-h-hug > .panel-body > .panel-t-scene { min-block-size: 16em; }
 
 	/* cells — twelve boxes that are the BODY's children, so the body's own display words
 	   arrange them. No `.panel-t` wrapper by design; nothing here sizes the set, because
@@ -45,7 +58,7 @@
 
 	.panel-t-word {
 		grid-auto-flow: column;
-		font-size: clamp(1.5em, min(21cqw, 55cqh), 32em);
+		font-size: 4em;
 		font-weight: 900;
 		line-height: 1;
 		letter-spacing: -0.05em;
@@ -55,100 +68,104 @@
 
 	/* wall — four numbers that re-count their own columns */
 
-	/* Four tiles look composed at 1, 2 or 4 across and ragged at 3, which is exactly
-	   what `auto-fit` gives you — so the count is chosen, not computed. An unnamed
-	   `@container` resolves to `.panel-body`; where there is no container the
-	   two-column default stands. */
+	/* TWO columns, full stop. Four tiles look composed at 1, 2 or 4 across and ragged at 3,
+	   and 1 and 4 were the container query's job — doc/templates.md already called 3 ragged,
+	   so the count that survives is the one that always read well. */
 	.panel-t-wall {
 		grid-template-columns: repeat(2, 1fr);
-		max-inline-size: min(100%, 170cqh);
+		max-inline-size: 100%;
 		margin-inline: auto;
-		gap: 3cqmin 5cqmin;
-		padding: 5cqmin;
+		gap: 3% 5%;
+		padding: 5%;
 	}
-	@container (max-width: 15em) { .panel-t-wall { grid-template-columns: 1fr; } }
-	@container (min-aspect-ratio: 9/5) { .panel-t-wall { grid-template-columns: repeat(4, 1fr); } }
 	.panel-t-stat { text-align: center; }
 	.panel-t-n {
-		font-size: clamp(1.4em, min(9cqw, 15cqh), 11em);
+		font-size: 2em;
 		font-weight: 900; line-height: 1;
 		color: var(--prim);
 	}
 	.panel-t-l {
-		font-size: clamp(0.55em, min(2.4cqw, 4cqh), 1.6em);
+		font-size: 0.6em;
 		color: var(--subtle);
 		text-transform: uppercase; letter-spacing: 0.14em;
 	}
 
 	/* clock */
 
-	.panel-t-clock { gap: 2cqmin; }
+	.panel-t-clock { gap: 2%; }
 	.panel-t-time {
-		font-size: clamp(1.4em, min(17cqw, 38cqh), 26em);
+		font-size: 3em;
 		font-weight: 200; line-height: 1; letter-spacing: -0.03em;
 		font-variant-numeric: tabular-nums;
 		white-space: nowrap;
 		color: var(--ink);
 	}
 	.panel-t-date {
-		font-size: clamp(0.55em, min(3cqw, 7cqh), 2.4em);
+		font-size: 0.6em;
 		color: var(--subtle);
 		text-transform: uppercase; letter-spacing: 0.2em;
 	}
 
 	/* haze — the tone-aware one: `--haze` is the panel's tone, two glows over it.
-	   Every radius below is `max(cqmin, cqw)`: sized on the short side a glow reads
-	   at a sliver, and an ultra-wide panel gets one lit corner and a lot of nothing. */
+	   Every radius below is a `%` PAIR, one per axis: a gradient extent resolves against
+	   the box's own matching dimension, so a glow is the same fraction of the panel at a
+	   sliver and at 3440 — which is what the old `max(cqmin, cqw)` was reaching for. */
 
 	.panel-t-haze {
 		background:
-			radial-gradient(max(90cqmin, 62cqw) max(70cqmin, 55cqh) at 22% 18%, color-mix(in oklab, var(--prim) 45%, transparent), transparent 68%),
-			radial-gradient(max(85cqmin, 58cqw) max(65cqmin, 52cqh) at 80% 82%, color-mix(in oklab, var(--surface) 55%, transparent), transparent 68%),
+			radial-gradient(62% 55% at 22% 18%, color-mix(in oklab, var(--prim) 45%, transparent), transparent 68%),
+			radial-gradient(58% 52% at 80% 82%, color-mix(in oklab, var(--surface) 55%, transparent), transparent 68%),
 			var(--haze, var(--surface));
 	}
 
 	/* aurora — three blurred lights over a night ground, in both schemes */
 
 	.panel-t-aurora { background: #0b0a14; }
-	.panel-t-aurora .panel-t-layer { filter: blur(7cqmin); mix-blend-mode: screen; }
+	/* ⚠ `blur()` takes a LENGTH — a percentage is invalid and kills the whole filter — so
+	   this one converts to `em` rather than to `%`, and rides the panel's text size. */
+	.panel-t-aurora .panel-t-layer { filter: blur(1.5em); mix-blend-mode: screen; }
 	.panel-t-aurora .panel-t-layer:nth-child(1) {
-		background: radial-gradient(max(42cqmin, 26cqw) max(42cqmin, 40cqh) at 32% 34%, var(--prim), transparent 68%);
+		background: radial-gradient(26% 40% at 32% 34%, var(--prim), transparent 68%);
 		animation: panel-t-swim-a 19s ease-in-out infinite alternate;
 	}
 	.panel-t-aurora .panel-t-layer:nth-child(2) {
-		background: radial-gradient(max(46cqmin, 28cqw) max(46cqmin, 44cqh) at 70% 62%, #3d7bff, transparent 68%);
+		background: radial-gradient(28% 44% at 70% 62%, #3d7bff, transparent 68%);
 		animation: panel-t-swim-b 27s ease-in-out infinite alternate;
 	}
 	.panel-t-aurora .panel-t-layer:nth-child(3) {
-		background: radial-gradient(max(38cqmin, 24cqw) max(38cqmin, 36cqh) at 55% 80%, #b14dff, transparent 68%);
+		background: radial-gradient(24% 36% at 55% 80%, #b14dff, transparent 68%);
 		animation: panel-t-swim-c 33s ease-in-out infinite alternate;
 	}
 
 	/* drift — three parallax star sheets. Two tiles per sheet at sizes that share no
 	   factor, or a single tiled dot reads as polka dots. `alternate` so the loop
-	   never jumps. */
+	   never jumps. ⚠ A `circle` gradient's radius may not be a percentage, so a STAR stays
+	   the px it always was (the `max()` floor was already doing that job); only the TILE
+	   converts, and a `%` background-size is a fraction of the same box `cqmin` read. */
 
-	.panel-t-drift { background: radial-gradient(max(120cqmin, 85cqw) max(80cqmin, 70cqh) at 50% 118%, #1b2140, #05060d 70%); }
+	.panel-t-drift { background: radial-gradient(85% 70% at 50% 118%, #1b2140, #05060d 70%); }
 	.panel-t-drift .panel-t-layer {
 		background-image:
-			radial-gradient(circle, #fff 0 max(0.6px, 0.075cqmin), transparent max(1.4px, 0.19cqmin)),
-			radial-gradient(circle, #fff 0 max(0.5px, 0.06cqmin), transparent max(1.1px, 0.15cqmin));
+			radial-gradient(circle, #fff 0 0.6px, transparent 1.4px),
+			radial-gradient(circle, #fff 0 0.5px, transparent 1.1px);
 		background-position: 0 0, 37% 61%;
 	}
-	.panel-t-drift .panel-t-layer:nth-child(1) { background-size: 5cqmin 5cqmin,   3.7cqmin 6.3cqmin;  opacity: 0.9; animation: panel-t-float 34s ease-in-out infinite alternate; }
-	.panel-t-drift .panel-t-layer:nth-child(2) { background-size: 9cqmin 9cqmin,   6.1cqmin 11.3cqmin; opacity: 0.6; animation: panel-t-float 58s ease-in-out infinite alternate; }
-	.panel-t-drift .panel-t-layer:nth-child(3) { background-size: 17cqmin 17cqmin, 12.7cqmin 21.1cqmin; opacity: 0.4; animation: panel-t-float 88s ease-in-out infinite alternate; }
+	.panel-t-drift .panel-t-layer:nth-child(1) { background-size: 5% 5%,     3.7% 6.3%;  opacity: 0.9; animation: panel-t-float 34s ease-in-out infinite alternate; }
+	.panel-t-drift .panel-t-layer:nth-child(2) { background-size: 9% 9%,     6.1% 11.3%; opacity: 0.6; animation: panel-t-float 58s ease-in-out infinite alternate; }
+	.panel-t-drift .panel-t-layer:nth-child(3) { background-size: 17% 17%,   12.7% 21.1%; opacity: 0.4; animation: panel-t-float 88s ease-in-out infinite alternate; }
 
-	/* depth — a real perspective floor, with the camera panning */
+	/* depth — a real perspective floor, with the camera panning. ⚠ `perspective` takes a
+	   LENGTH, so it converts to `em` like `blur()` above; the floor's grid pitch is a `%`
+	   of the gradient line, which is what `cqmin` bought. */
 
 	.panel-t-depth {
-		perspective: 55cqmin;
+		perspective: 12em;
 		perspective-origin: 50% 44%;
 		background: linear-gradient(#07060f 42%, #1a1136);
 		animation: panel-t-pan 26s ease-in-out infinite alternate;
 	}
 	.panel-t-depth .panel-t-layer:nth-child(1) {
-		background: radial-gradient(max(58cqmin, 34cqw) max(26cqmin, 22cqh) at 50% 52%, color-mix(in oklab, var(--prim) 65%, transparent), transparent 72%);
+		background: radial-gradient(34% 22% at 50% 52%, color-mix(in oklab, var(--prim) 65%, transparent), transparent 72%);
 		animation: panel-t-pulse 11s ease-in-out infinite alternate;
 	}
 	.panel-t-depth .panel-t-layer:nth-child(2) {
@@ -156,8 +173,8 @@
 		transform-origin: 50% 0;
 		transform: rotateX(76deg);
 		background-image:
-			repeating-linear-gradient(to right,  color-mix(in oklab, var(--prim) 60%, transparent) 0 1px, transparent 1px 7cqmin),
-			repeating-linear-gradient(to bottom, color-mix(in oklab, var(--prim) 60%, transparent) 0 1px, transparent 1px 7cqmin);
+			repeating-linear-gradient(to right,  color-mix(in oklab, var(--prim) 60%, transparent) 0 1px, transparent 1px 7%),
+			repeating-linear-gradient(to bottom, color-mix(in oklab, var(--prim) 60%, transparent) 0 1px, transparent 1px 7%);
 		mask-image: linear-gradient(transparent, #000 38%);
 	}
 
@@ -181,22 +198,23 @@
 	   later in the same file — an ordering, not a load-order bet. */
 	.panel-t-space { place-content: stretch; place-items: stretch; }
 
-	/* ⚠ `block-size: 100cqh` AND `grid-template-rows: 100%`, both measured: a generated
+	/* ⚠ `block-size: 100%` AND `grid-template-rows: 100%`, both measured: a generated
 	   page is a `fill` page whose regions scroll inside it, and neither an auto row nor
 	   a `min-block-size` CAPS one — a `bands` layout laid itself out 1145px tall in an
 	   820px panel and simply ran off the bottom. Two definite heights, and the page's
 	   own `scroll` regions engage the way they would on a real screen.
-	   ⚠ `font-size`, not `zoom`: every measure a layout uses is `em` (`--basis`, the
-	   pads, the type scale), so one inherited size scales the whole arrangement — and
-	   a stretched grid item's `zoom` would be applied after its area was already sized.
-	   A 300px panel reads as roughly a 600px screen; past ~1070px the panel IS the
-	   screen. */
+	   ⚠ `font-size: 1em`, flat (2026-08-19). Every measure a layout uses is `em` (`--basis`,
+	   the pads, the type scale), so one inherited size scales the whole arrangement — and
+	   `1.5cqw` was that size DERIVED from the panel's width. Scaling a page down to fit a
+	   box is now `zoom` on a viewport, done once for everything, which is the whole point of
+	   the Workspace (ai/2026-08-19/workspace-design, task C). Until then a generated page
+	   reads at the panel's own text size and a small panel shows less of it. */
 	.panel-t-screen {
 		display: grid;
 		grid-template-rows: 100%;
-		block-size: 100cqh;
+		block-size: 100%;
 		overflow: hidden;
-		font-size: clamp(0.5em, 1.5cqw, 1em);
+		font-size: 1em;
 	}
 
 	/* The seed is an address, so it stays legible — quiet until pointed at.
@@ -241,21 +259,21 @@
 	.panel-t-dial .icon { width: 1em; overflow: hidden; }
 
 	/* rail / toc / brand — page FURNITURE, the three parts `structure(seed)` translates
-	   that no section band covers. Sized like the scenes (one clamp against the body's
-	   container) and painted in tokens only, so a 190px generated rail and a full-bleed
-	   one are the same drawing. `place-items: stretch` is equal specificity to
+	   that no section band covers. Sized in `em` and painted in tokens only, so a 190px
+	   generated rail and a full-bleed one are the same drawing at the same text size. `place-items: stretch` is equal specificity to
 	   `.panel-t`'s `center`, restated later in this file — an ordering, not a bet.
 
-	   ⚠ Each `cqw` is measured against the widest LINE, not guessed: a rail row is the
+	   ⚠ Each size below is the widest LINE it has to hold, not a guess: a rail row is the
 	   longest word plus an icon, a gap and the pad (~7.4em), a toc's is its 0.72em
-	   letter-spaced heading (~8.1em), a wordmark is ~4.9em. A first pass at 4cqw drew a
-	   232px rail at 9px — legible, and two thirds of the panel left empty. */
+	   letter-spaced heading (~8.1em), a wordmark is ~4.9em — so a rail at 1em wants about
+	   7.4em of slot, and narrower than that it clips (`.panel` is `overflow: hidden`).
+	   Sizing furniture to its slot is `zoom`'s job now, not this sheet's. */
 
 	.panel-t-rail {
 		place-items: stretch;
 		gap: 0.15em;
 		padding: 0.8em;
-		font-size: clamp(0.5em, min(8cqw, 7cqh), 2.5em);
+		font-size: 1em;
 		color: var(--ink);
 	}
 	.panel-t-link {
@@ -274,7 +292,7 @@
 		place-items: stretch;
 		gap: 0.3em;
 		padding: 0.9em;
-		font-size: clamp(0.5em, min(7cqw, 6cqh), 2em);
+		font-size: 0.9em;
 		color: var(--subtle);
 		white-space: nowrap;
 	}
@@ -288,7 +306,7 @@
 	.panel-t-brand {
 		grid-auto-flow: column;
 		gap: 0.3em;
-		font-size: clamp(0.7em, min(17cqw, 30cqh), 12em);
+		font-size: 2.5em;
 		font-weight: 900;
 		line-height: 1;
 		letter-spacing: 0.02em;
@@ -314,6 +332,24 @@
 	}
 
 	.panel-props-empty { padding: 0.4em; }
+
+	/* The document block sits at the rail's FOOT — `margin-block-start: auto` in the props
+	   column (above) — so the one red verb is never between two rows you are working in.
+	   ⚠ `.panel-props` must be at least as tall as the drawer body for the push to mean
+	   anything; drawer.css gives the body the scroll, this gives the column the height. */
+	.panel-props { min-block-size: 100%; }
+	.panel-props-doc { margin-block-start: auto; padding-block-start: 1em; }
+	.panel-props-delete {
+		justify-self: start;
+		padding: 0.35em 0.8em;
+		color: var(--error);
+		border: 1px solid currentColor;
+		border-radius: var(--radius);
+		background: none;
+		font: inherit;
+		cursor: pointer;
+	}
+	.panel-props-delete:hover { color: #fff; background: var(--error); }
 
 	.panel-props-head {
 		display: flex;
@@ -343,10 +379,6 @@
 		gap: 0.15em;
 	}
 
-	/* The SHELF - a 28-picture picker in a 40em region should not be six buttons of 6em.
-	   Only the template row is marked, and properties.js passes that mark explicitly: an
-	   `align` that auto-fills is no longer a picture of the nine placements. */
-	.panel-props-icons { grid-template-columns: repeat(auto-fill, minmax(2.2em, 1fr)); }
 
 	/* The inspector's buttons are `.panel-btn`, defined once in toolbar.css - the same box
 	   the bar and a seam's menu wear. The near-identical copy that used to live here, and

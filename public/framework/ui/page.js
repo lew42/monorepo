@@ -9,7 +9,7 @@ import { Doc, md, code, ui } from "/app.js";
      three cards a thousand pixels wide. Even bands mean even cards. */
 const BANDS = {
 	Surfaces: "card toolbar panel stats accordion",
-	Data:     "table timeline progress pagination crumbs",
+	Data:     "table timeline tree progress pagination crumbs",
 	Forms:    "field dialog tags menu tooltip",
 	Marks:    "badge alert avatar kbd",
 };

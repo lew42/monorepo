@@ -15,10 +15,10 @@ reason there is no `await` anywhere in the file.
 
 ## Five families
 
-**Eight experiences** — `blank word wall clock haze aurora drift depth` —
-written for the 3440 story, sized entirely in container-query units against
-`.panel-body` (`container-type: size`), so one rule set reads from a phone
-sliver to a mega monitor.
+**Eight experiences** — `blank word wall clock haze aurora drift depth`. Each
+paints in `%` of its own box and types in `em`, so it is the same drawing from a
+phone sliver to a mega monitor. All eight also wear **`.panel-t-scene`**: they
+have nothing to measure, so they declare their own floor (below).
 
 **Fifteen section adapters**, one per band in `/framework/styles/sections/`,
 each lazy-importing that module and rendering `default(tone)`. Icons are the
@@ -33,36 +33,39 @@ file of its own (`generate.js`): [the layout generator](./generator.md).
 **Three pieces of furniture** — `rail`, `toc`, `brand` — the only entries here
 that exist because something asked for them: the spec parts `structure(seed)`
 translates that no marketing band covers. Text at a fixed word count, so their
-clamps are derived from the widest line rather than guessed:
+`em` size is derived from the widest line rather than guessed:
 [the layout generator](./generator.md).
 
 **One control surface** — `properties` — which reads the workspace instead of
 drawing content: the focused panel's words as live chips, and the second entry
 with a file of its own (`properties.js`): [focus](./focus.md).
 
-## Three sizing rules — and the one that already bit
+## Three sizing rules (2026-08-19 — no containers anywhere)
 
-- **`min-block-size: 100cqh`, never `100%`.** `.panel-body` is
-  `display: grid; grid-auto-rows: min-content`, so a percentage height
-  resolves against the template's *own* content — every scene with no text
-  (`blank`, `aurora`, `drift`, `depth`) measured 0px and was invisible in a
-  real panel while passing a standalone harness. Corollary: a hugging panel has
-  no block size to offer either, so `panel.css` branches on what the body holds
-  — a body holding a `.panel-t` scene gets `container-type: size` and a
-  *declared* `block-size: var(--panel-hug)`, and only a body holding real
-  content keeps `inline-size`. Before that branch, `cqh` in an inline-size
-  container fell back to the viewport and a hugged scene was window-height.
-- **Every scale is `clamp(floor, cq-expression, ceiling)`**, so a panel body
-  that collapses toward zero height (a real case — three levels of nested
-  splits, each spending ~30px on its own bar, can leave a leaf body at
-  `clientHeight: 0`) degrades to a legible floor instead of vanishing.
-- **Every radius is `max(N cqmin, M cqw)`.** `cqmin` alone leaves an
-  ultra-wide panel with one lit corner and a lot of nothing; the `max()`
-  hands the wide axis over past roughly 2:1.
+- **The body gives the template a row to fill.** `.panel-body` is
+  `display: grid; grid-auto-rows: min-content`, so a percentage height has
+  nothing to resolve against — every scene with no text (`blank`, `aurora`,
+  `drift`, `depth`) measured 0px and was invisible in a real panel while passing
+  a standalone harness. `panel.css`'s `.panel-body:has(> .panel-t)` states
+  `grid-template-rows: 100%`, and `.panel-t` takes `block-size: 100%` of it.
+- **A HUGGING panel has no row to give**, because the panel measures what it
+  holds now ([sizing](./sizing.md)) — so 100% falls back to the content, which is
+  right for anything with content and zero for a scene. That is what
+  **`.panel-t-scene`** is for: `templates.js` puts it on all eight experiences,
+  and `templates.css` gives them **16em on the hugging axis only** (a filling
+  panel's scene takes the slot; a floor there would only push past it).
+- **What paints is `%`, what types is `em`.** A gradient extent, a gap, a pad, a
+  `background-size` is a fraction of the same box a `cq` unit read. A type size is
+  a plain `em`, so a template reads at the panel's own text size — scaling a whole
+  page down to fit a box is `zoom` on a viewport now, done once for everything,
+  which is what the Workspace is for.
+  ⚠ Two properties may not take a percentage at all and became `em` instead:
+  `filter: blur()` (aurora) and `perspective` (depth). A `circle` gradient's
+  radius may not either, so drift's stars stayed the px they already were.
 
 **No `cq` unit appears inside a `@keyframes`** — animations move in `%`,
-`opacity` or `perspective-origin`. Container units in keyframes are probably
-fine; "probably fine" isn't shipped in a file that runs on every panel.
+`opacity` or `perspective-origin`. That was already true, and now it is true of
+the whole file.
 
 ## Colour, on purpose
 
@@ -75,12 +78,12 @@ fine; "probably fine" isn't shipped in a file that runs on every panel.
 that inverts with the OS theme is not a night sky. Their accents still come
 from `--prim`, so a theme swap retints them.
 
-## `wall` picks its column count instead of computing it
+## `wall` is two columns, full stop
 
-Four tiles look composed at 1, 2 or 4 across and ragged at 3 — which is
-exactly what `auto-fit` gives at 400px. Two columns by default, one under
-`15em`, four past a `9:5` aspect ratio, via an unnamed `@container` that
-resolves to `.panel-body`.
+Four tiles look composed at 1, 2 or 4 across and ragged at 3 — which is exactly
+what `auto-fit` gives at 400px. One column under `15em` and four past a `9:5`
+aspect ratio were a container query's job; the count that always read well is the
+one that survived it (2026-08-19).
 
 ## Known gaps
 

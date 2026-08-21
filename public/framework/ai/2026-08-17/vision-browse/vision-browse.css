@@ -1,7 +1,7 @@
 @layer base, theme, site, util;
 
 @layer theme {
-	.page-vision-browse { padding: 3em clamp(2em, 4%, 5em); }
+	.page--vision-browse { padding: 3em clamp(2em, 4%, 5em); }
 
 	.vision-rank { font-weight: 700; font-variant-numeric: tabular-nums; }
 	.vision-overall-n { font-size: 1.6em; font-weight: 900; font-variant-numeric: tabular-nums; }

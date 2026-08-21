@@ -170,7 +170,7 @@ demo.app(laces, { nav: true })    // opens deep, with a rail`);
 
 		md("`demo.app()` plays **App and Router for one tree**: a url strip that is also a breadcrumb, an optional rail, and the region the pages mount in. The pages inside are ordinary `Page`s doing their own `render()` and `previews()`, and the clicks never reach the real Router — the url in your address bar stays put. The [Page demos](/framework/core/Page/) are fourteen of these. ⚠ A title is address enough (`Web` → `/web/`) — and object children only; a name string probes the server for a `page.js`.");
 
-		md("`sample()` is the shared sample tree — nine children, three of them a level deeper — so a demo that needs *a tree* takes this one and overrides the root. What changes between demos is then exactly the thing each demo teaches: [Navigation](/framework/core/Page/nav/) shows the same nine children as a wall, a rail, a sidebar and a set of crumbs, one `sample()` each.");
+		md("`sample()` is the shared sample tree — nine children, three of them a level deeper — so a demo that needs *a tree* takes this one and overrides the root. What changes between demos is then exactly the thing each demo teaches: [Navigation](/framework/core/Page/old/nav/) shows the same nine children as a wall, a rail, a sidebar and a set of crumbs, one `sample()` each.");
 
 		h2("Why");
 

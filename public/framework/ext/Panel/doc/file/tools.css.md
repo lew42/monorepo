@@ -45,6 +45,16 @@ under the pointer, so a deeply nested leaf lights exactly one 3×3, never four
 stacked ones. The full z-index picture across every overlay that uses this
 idiom, and the one that can't: [doc/overlays.md](../overlays.md).
 
+## The size guard is OWED (2026-08-19)
+
+Below about 144×180 the 3×3 spilled past `.panel`'s `overflow: hidden` and went
+invisible AND unclickable; two `@container` blocks used to hide the nine buttons
+under that floor, and they went with every container query in the module. The
+overlay is **off** today — `TOOLS.align` is `false` and only
+`workspace({ tools: { align: true } })` turns it on — so nothing regressed, but
+whoever turns it back on owes it a floor that does not measure. An
+`aspect-ratio` on `.panel-align`, or simply fewer buttons, is the likely shape.
+
 ## `.panel-zoom`
 
 ```css tools.css

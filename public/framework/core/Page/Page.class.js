@@ -212,7 +212,7 @@ export class Page {
 			if (this.title) h1.c("page-title", this.title);
 			return is.fn(this.content) ? this.content() : this.content;
 		})
-			.ac(this.name && "page-" + this.name)
+			.ac(this.name && "page--" + this.name)
 			.ac(this.classes ?? "standard");
 
 		return this.view;

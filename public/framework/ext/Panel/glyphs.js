@@ -91,14 +91,18 @@ export const glyph = (entry, name) => {
 };
 
 /* THE table. Every word a panel wears that is ONE key with a fixed list of choices, in the
-   order the rail draws them — read by the bar (`toolbar.js`) and the inspector
-   (`properties.js`) alike, so a new word is one entry here rather than one edit in each.
+   order the rail draws them. ⚠ ONE reader since 2026-08-19: the rail (`properties.js`). The
+   bar carries no words at all any more — the sweep took every one of them off it, and with
+   them the `bar:` flag this table used to carry. doc/decisions.md.
 
    · `names` — the choices, in the order they are drawn.
    · `pics`  — a picture per choice; a set shipping none reads as its own words (`glyph()`).
    · `cols`  — how wide that picker's grid is.
-   · `bar`   — the bar's trigger: an icon name, or `true` for "the trigger IS the value".
-               Absent means rail-only, which is where `position` already was.
+   · `toggle`— two names, one of which means OFF: ONE button that lights, never a row of
+               two. `names[1]` is the ON state, and `pic` is the button's own picture.
+   · `drop`  — a dropdown (`ext/Dropdown`) instead of a row: a trigger saying the value's
+               NAME as well as its picture. For the words a row of pictures cannot carry.
+   · `knob`  — a free-value slider beside the preset row (`pad`, `gap`).
    · `modes` — the display modes the word is live under; absent means always.
    · `root`  — the ROOT panel only; hidden on everything with a parent.
    · `var` + `css` — how it LANDS: the custom property `paint.js`'s `show()` writes on the
@@ -122,37 +126,90 @@ export const WORDS = {
 	   does: panel.css lets the root's column grow instead of dividing a screen, and
 	   `Panel.divide()` gives each new row a height, so a split below APPENDS a section.
 	   doc/words.md. */
-	mode:    { names: ["fill", "document"], pics: SHAPE, cols: 2, bar: true, root: true },
+	mode:    { names: ["fill", "document"], pics: SHAPE, cols: 2, root: true },
 
-	tone:    { names: TONES, pics: SWATCHES, cols: 2, bar: "palette" },
-	display: { names: Object.keys(DISPLAY), pics: DISPLAY, cols: 3, bar: true },
+	/* ⚠ FOUR across, not 2×2 (the owner, 2026-08-19: "should be 1x4 to utilize space better").
+	   A swatch is 1.7em; four of them and their gaps fit a 19rem rail with room to spare, and
+	   a row of six or fewer pictures is one LINE — a stack wastes the rail's height for
+	   nothing. The one set that keeps a narrow `cols` is `align`, whose 3×3 IS the picture. */
+	tone:    { names: TONES, pics: SWATCHES, cols: 4 },
+
+	/* The one word with `drop`, and the reason the flag exists: `display` decides which
+	   OTHER words are live, so the rail is unreadable when the word governing it is three
+	   unlabelled pictures you have to hover to tell apart (the owner, 2026-08-19). A trigger
+	   that says `flex` names the state the rest of the rail is in. */
+	display: { names: Object.keys(DISPLAY), pics: DISPLAY, cols: 3, drop: true },
+
+	/* The BODY's own padding (2026-08-19) — always live, no `modes`: unlike `gap`, which
+	   only means something once children are laid out, `pad` insets a body's content
+	   whatever `display` it draws in. Rail-only, no `bar`, the way `position` already is —
+	   a new ligature name is a measured cost this word does not need to pay. `knob` is the
+	   free-value companion `properties.js` draws beside the preset row for exactly this
+	   word and `gap` (doc/words.md). ⚠ No `Panel.defaults` entry: `PanelDrag`'s centre-drop
+	   nest already writes `--panel-pad: 1em` on the fresh container's `.panel-items`
+	   (doc/decisions.md), and this word's value is read, not written, until a panel picks
+	   one — a stamped default would shadow that inherited inset on every un-chosen body. */
+	pad:     { names: ["0", "0.5em", "1em", "2em"], cols: 4, var: "--panel-pad", knob: true },
 
 	// Flex. `dir` is the same word a SPLIT wears for its axis — a panel is one or the
 	// other and never both, so one key says "which way things run" in both readings.
-	dir:     { names: ["row", "col"], pics: DIR, cols: 2, bar: true, modes: ["flex"],
+	dir:     { names: ["row", "col"], pics: DIR, cols: 2, modes: ["flex"],
 	           var: "--panel-dir", css: { row: "row", col: "column" } },
-	gap:     { names: ["0", "0.5em", "1em", "2em"], cols: 4, bar: "space_bar",
-	           modes: ["flex", "grid"], var: "--panel-gap" },
-	wrap:    { names: ["nowrap", "wrap"], cols: 2, bar: "wrap_text", modes: ["flex"],
+	gap:     { names: ["0", "0.5em", "1em", "2em"], cols: 4,
+	           modes: ["flex", "grid"], var: "--panel-gap", knob: true },
+
+	/* ⚠ ONE button, not a `nowrap | wrap` pair (the owner, 2026-08-19: "a single Wrap with
+	   active state would suffice"). The two names stay — they are the CSS values `paint.js`
+	   writes — and `names[1]` is what the lit button means. */
+	wrap:    { names: ["nowrap", "wrap"], toggle: true, pic: "wrap_text", modes: ["flex"],
 	           var: "--panel-wrap" },
+
 	justify: { names: ["start", "center", "end", "between", "around"], cols: 5,
-	           bar: "format_align_justify", modes: ["flex"], var: "--panel-justify",
+	           modes: ["flex"], var: "--panel-justify",
 	           css: { start: "flex-start", center: "center", end: "flex-end", between: "space-between", around: "space-around" } },
 	items:   { names: ["stretch", "start", "center", "end"], cols: 4,
-	           bar: "vertical_align_center", modes: ["flex"], var: "--panel-items",
+	           modes: ["flex"], var: "--panel-items",
 	           css: { stretch: "stretch", start: "flex-start", center: "center", end: "flex-end" } },
 
 	/* Grid. ⚠ The property is `--panel-tracks`, NOT `--panel-cols` — that name is already
 	   the picker grid's own column count (18 readers), and a body writing it would hand
 	   its value down to any control surface drawn inside that body. */
-	cols:    { names: ["auto", "1", "2", "3", "4"], cols: 5, bar: "view_column",
+	cols:    { names: ["auto", "1", "2", "3", "4"], cols: 5,
 	           modes: ["grid"], var: "--panel-tracks", css: TRACKS },
-	dense:   { names: ["off", "on"], cols: 2, bar: "apps", modes: ["grid"],
+
+	// Binary, so one button — the same reading `wrap` gets, one row up.
+	dense:   { names: ["off", "on"], toggle: true, pic: "apps", modes: ["grid"],
 	           var: "--panel-flow", css: { off: "row", on: "row dense" } },
 
-	align:    { names: ALIGN, pics: COMPASS, cols: 3, bar: "grid_view" },
+	align:    { names: ALIGN, pics: COMPASS, cols: 3 },
 	position: { names: Object.keys(POSITION), pics: POSITION, cols: 2 },
 };
+
+/* An ITEM's own words — a leaf's body arranges itself with `WORDS` above; a flex/grid CHILD
+   of that body gets its own say with these, one custom property per word, landed straight on
+   the child (never the body — `persist.js`'s `items_apply()` is the writer, `properties.js`'s
+   `item_words()` the rail). `self` is `place-self`, not `align-self`/`justify-self` split in
+   two: flex ignores the inline half of a shorthand it cannot use, so one row covers both
+   readings for the one extra property it costs. doc/words.md. */
+const SPAN_CSS = { 1: "auto", 2: "span 2", 3: "span 3" };
+
+export const ITEM_WORDS = {
+	grow:     { names: ["0", "1", "2", "3"], cols: 4, modes: ["flex"], var: "--item-grow", default: "0" },
+	basis:    { names: ["auto", "8em", "16em", "24em"], cols: 4, modes: ["flex"], var: "--item-basis", default: "auto" },
+	order:    { names: ["-1", "0", "1"], cols: 3, modes: ["flex"], var: "--item-order", default: "0" },
+	span:     { names: ["1", "2", "3"], cols: 3, modes: ["grid"], var: "--item-span", css: SPAN_CSS, default: "1" },
+	row_span: { names: ["1", "2", "3"], cols: 3, modes: ["grid"], var: "--item-row-span", css: SPAN_CSS, default: "1" },
+	self:     { names: ["auto", "start", "center", "end", "stretch"], cols: 5, modes: ["flex", "grid"], var: "--item-self", default: "auto" },
+};
+
+// The item words live under the CURRENT display mode only — a flex leaf never offers `span`.
+export const live_item_words = mode => Object.entries(ITEM_WORDS).filter(([, word]) => word.modes.includes(mode));
+
+// One cell's saved picks, as the custom properties `display.css`'s rule block reads —
+// `word_vars()`'s shape, one level down: a plain patch object instead of an Item's `get()`.
+export const item_vars = patch => Object.fromEntries(Object.entries(ITEM_WORDS)
+	.filter(([key]) => patch[key] !== undefined)
+	.map(([key, word]) => [word.var, word.css?.[patch[key]] ?? patch[key]]));
 
 /* The words that apply to this panel RIGHT NOW — a flex word under flex, a grid word under
    grid, a `root` word on the root alone, the rest always. Both hosts draw exactly what this

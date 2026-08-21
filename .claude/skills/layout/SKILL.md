@@ -21,6 +21,14 @@ A component inside a container — a rail section, a card, a panel — answers 1
 2. **How big will it be?** Its width at 400 / 1280 / 1920 / 3440. One column, or 2+? Two
    or more columns of *content* **never** live in `main` — claim `wide` or `bleed`. This is
    the single commonest failure: a grid, table or dashboard squeezed into 52em.
+   ⚠ **Keep the bleed reachable.** Every page and section must be able to opt in to the
+   space it sits in — `wide`/`bleed` on the child — and a container that caps its children
+   (a `--measure`, a fixed track) takes that away from everything nested inside it. Beside
+   a sidebar or a rail the "bleed" is not edge to edge: it is *all the room left*, padded —
+   which is `wide` (left edge on the title's axis, the rest rightward), not `bleed` + `pad`
+   (that re-pads from the region edge and the rail drifts off the axis). 2026-08-19: a
+   vertical tab rail was capped at 78em, so no sub page under it could bleed; the rail
+   now takes `wide` (`ext/tabs/tabs.css`).
 3. **What is its own layout?** Prose → `.flow`. A row of UI → `flex gap` (+ `wrap`). Tiles →
    `.grid.auto` with a real `--column` (14–22em) so 3440 gets 4+ columns. Reading columns →
    bound both ends: `repeat(auto-fill, minmax(min(34em, 100%), 38em))`.

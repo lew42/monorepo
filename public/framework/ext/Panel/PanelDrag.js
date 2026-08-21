@@ -1,6 +1,7 @@
 import Draggable from "/framework/ext/Draggable/Draggable.js";
 import Sortable from "/framework/ext/Draggable/Sortable.js";
 import Panel from "./Panel.js";
+import { views_of } from "./paint.js";
 
 const EDGE = 0.2;
 
@@ -45,12 +46,32 @@ export class PanelDrag extends Sortable {
 			? new Panel({ data: { grow: this.item.get("grow") } }).mirror(this.item)
 			: this.item;
 
-		// The MIDDLE nests: the target becomes a container holding what it already had and
-		// the arrival beside it. `split()`, never `divide()` — a drop aimed at the inside of
-		// a panel must not become a sibling just because the parent happened to run that way.
-		if (into) return void into.item.split(into.item.get("dir"), arrival);
+		// The MIDDLE nests: the target becomes a container holding what it already had (if
+		// anything) and the arrival beside — or inside. `split()`, never `divide()` — a drop
+		// aimed at the inside of a panel must not become a sibling just because the parent
+		// happened to run that way.
+		if (into) return void this.nest(into, arrival, into.item.get("dir"));
 
 		edge.panel.divide(edge.dir, arrival, edge.before);
+	}
+
+	/* Drop into the MIDDLE (2026-08-19). A target holding real content becomes a container
+	   the way `split()` always has: content relocates to a fresh child so the arrival can
+	   join it beside. An EMPTY leaf — no template chosen, the transparent box the inset
+	   preview promises to fill (the owner: "the dragged panel goes inside the transparent
+	   bg empty panel, just as it would indicate") — has no content worth relocating: the
+	   arrival becomes its ONLY child, and the target keeps its own tone/words as the
+	   container rather than `split()`'s usual full wipe (`Panel.js` is another task's file,
+	   so this is composed from `Item`'s own primitives, not a new verb there).
+	   `--panel-pad` is `panel-pad-gap`'s word, not landed yet — set directly here so the
+	   inset the preview showed becomes real padding today, and that task adopts the same
+	   custom property rather than inventing a second one. doc/decisions.md. */
+	nest(into, arrival, dir){
+		if (into.item.data.template) return void into.item.split(dir, arrival);
+
+		into.item.data = { ...into.item.data, dir };
+		arrival.move(into.item);
+		views_of(into.item).forEach(v => v.$items?.style("--panel-pad", "1em"));
 	}
 
 	// The axis is the destination's, so one scan reads a row of columns or a column of

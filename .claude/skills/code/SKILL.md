@@ -119,6 +119,7 @@ Write as little CSS as possible; a component starts with no stylesheet. `css` fi
 - Mutual parent/child imports break only on deep reload. Imports down, adoption for the backref.
 - Chaining onto `code.js()` **in argument position** is discarded — `.ac()`, `.on()` lost. Use the capture form.
 - `classify()` runs inside `super()`; a `classes = "x"` field arrives too late — name the subclass.
+- `classify()` adds a class for EVERY constructor in the chain (`Rail extends Sidebar` → `.rail.sidebar`). A subclass named like a layout word — `Rail`, `Card`, `Grid`, `Flex`, `Page` — wears that CSS: a playground's `Rail` got Page.css's side-region shape (sticky, `align-self: start`, a 22em cap) and stopped 129px down, 2026-08-19. Prefix it (`PlaygroundRail`).
 - Resolve urls against `import.meta`; the SPA fallback makes the document url the route.
 - Only `p()`/`h1`–`h6` read backticks; a backtick inside `` css(`…`) `` kills every page.
 - A stylesheet that 404s resolves and warns — check the console. Windows: `pkill` matches nothing.

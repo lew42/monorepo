@@ -16,7 +16,7 @@ section the brief requires.
 |---|---|
 | files | 3 (`Sidebar.js` 125 lines, `Sidebar.css` 190 lines, `page.js` 73 lines) |
 | lines of JS / CSS | 125 / 190 |
-| callers | 7 real `import { Sidebar }` sites — `framework/page.js`, `page.js` (root), `michael/page.js`, `styles/layers/theme/lew42/page.js`, `styles/layouts/sidebar/page.js`, `core/Page/nav/page.js`, and `core/Sidebar/page.js` itself. ~12 more files link to or quote it in prose without constructing one. |
+| callers | 7 real `import { Sidebar }` sites — `framework/page.js`, `page.js` (root), `michael/page.js`, `styles/layers/theme/lew42/page.js`, `styles/layouts/sidebar/page.js`, `core/Page/old/nav/page.js`, and `core/Sidebar/page.js` itself. ~12 more files link to or quote it in prose without constructing one. |
 | docs before | `readme.md` already had Decisions/Traps/Proposed/Open; `page.js` was a `Doc` (not `classdoc`) with `properties`/`methods`/`notes` all complete and accurate; **zero `doc/file/*.md`, no `files:` key** — no Files tab existed |
 | docs after | added `files:` + 4 `doc/file/*.md` (including `readme.md.md`, per the `core/Page`/`ext/Doc` precedent); fixed 6 stale line citations (`framework/page.js` had shifted since these were written); added a "Who uses it" section to the readme |
 

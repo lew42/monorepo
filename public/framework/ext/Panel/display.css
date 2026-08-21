@@ -32,6 +32,29 @@
 		grid-auto-flow: var(--panel-flow, row);
 	}
 
+	/* Per-ITEM words (glyphs.js's `ITEM_WORDS`) — one custom property each, written on the
+	   CHILD itself by `persist.js`'s `items_apply()`, never the body: every other word here
+	   is the leaf's own, one value for the whole arrangement, and an item's is one value per
+	   child. `place-self` covers both `self` readings (flex ignores the inline half of a
+	   shorthand it has no `justify-self` for) for one property instead of two. */
+	.panel-body.panel-d-flex > * {
+		flex-grow: var(--item-grow, 0);
+		flex-basis: var(--item-basis, auto);
+		order: var(--item-order, 0);
+		place-self: var(--item-self, auto);
+	}
+
+	.panel-body.panel-d-grid > * {
+		grid-column: var(--item-span, auto);
+		grid-row: var(--item-row-span, auto);
+		place-self: var(--item-self, auto);
+	}
+
+	/* The selected item's own ring (text.js's `select_item`) — negative offset, unlike
+	   `.panel-text-on`'s: a cell shares an edge with its neighbours, and a positive one
+	   would overlap them. */
+	.panel-item-on { outline: 2px solid var(--prim); outline-offset: -2px; }
+
 	/* Over the body, under the bar — a sibling, same formula `.panel-align` sits at, so the
 	   two overlays never fight for the strip the bar owns. Inert throughout: it never sits
 	   above the align grid's own tools, only below them. */

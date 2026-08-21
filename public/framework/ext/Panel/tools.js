@@ -45,7 +45,7 @@ document.addEventListener("panel-focus", async e => {
 
 	drawer(($slot, $body) => {
 		$slot.empty(() => { span.c("panel-props-tag", "panel"); });
-		$body.empty(() => { div.c("panel-props", () => fields(e.detail)); });
+		$body.empty(() => { div.c("panel-props", () => fields(e.detail, { document: true })); });
 	});
 });
 
@@ -61,7 +61,24 @@ document.addEventListener("panel-text", async e => {
 
 	drawer(($slot, $body) => {
 		$slot.empty(() => { span.c("panel-props-tag", e.detail.el.tagName.toLowerCase()); });
-		$body.empty(() => { div.c("panel-props", () => text_fields(e.detail)); });
+		$body.empty(() => { div.c("panel-props", () => text_fields(e.detail, { document: true })); });
+	});
+});
+
+/* An item selection changing (picked, dropped, or a word on it written) is the SAME rail as
+   the panel it lives in — `panel-item` carries the LEAF, not the cell, because `fields()`
+   already asks `text.js`'s `item_selection()` for that. Mirrors `panel-focus` above rather
+   than importing `text_fields`'s door: an item's rows are inline UNDER the leaf's own
+   (`properties.js`'s `item_words()`), never a replacement of them the way a run's are. */
+document.addEventListener("panel-item", async e => {
+	if (!TOOLS.inspect) return;
+	if (!drawer.showing()) return;
+
+	const { fields } = await import("./properties.js");
+
+	drawer(($slot, $body) => {
+		$slot.empty(() => { span.c("panel-props-tag", "panel"); });
+		$body.empty(() => { div.c("panel-props", () => fields(e.detail, { document: true })); });
 	});
 });
 

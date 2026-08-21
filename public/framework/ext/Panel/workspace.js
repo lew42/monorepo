@@ -1,7 +1,4 @@
-import View, { div, span } from "/framework/core/View/View.js";
-import Item from "/framework/core/Item/Item.js";
-import FileSaver from "/framework/ext/Saver/FileSaver.js";
-import LocalStorageSaver from "/framework/ext/Saver/LocalStorageSaver.js";
+import View, { div } from "/framework/core/View/View.js";
 import Panel from "./Panel.js";
 import { PanelDrag } from "./PanelDrag.js";
 import { grip } from "./grip.js";
@@ -16,21 +13,22 @@ import { focus, focused, inspects, selection } from "./focus.js";
 import { overlays, drain } from "./overlays.js";
 import { views, paint, repaint, show, repaint_mirrors } from "./paint.js";
 import { record } from "./flow.js";
+import Workspace from "./Workspace/Workspace.js";
 
 /* The two doors, the redraw, and the recursive `view()`. Its four neighbours — `vocab.js`,
    `focus.js`, `overlays.js`, `paint.js` — are read by this file and never read it back;
    readme.md says what each one is for.
+
+   ⚠ Imports `Workspace/Workspace.js` for `workspace()`'s door — and `Workspace.js` imports
+   `mount` back, below. A real cycle, deliberately: each side only USES the other's binding
+   inside a function body, never at module-evaluation time, which is the one shape ESM
+   resolves safely. Workspace/doc/decisions.md.
 
    css: .panel-workspace, .panel, .panel-body, .panel-items — plus `.drag-placeholder`, whose
    module is imported above, `.section-band`, which reaches a panel through templates.js's
    lazy import, and `.panel-controls`, a payload's claim that the body reserve `--panel-bar-h`
    for its top edge. `.panel-grip` is grip.css's, the bar is toolbar.css's. */
 View.stylesheet(import.meta, "panel.css");
-
-// ⚠ THE line that chooses where the workspace lives. Off localhost there is no dev
-// socket, so FileSaver warns once and writes nothing — localStorage genuinely persists.
-const dev = ["localhost", "127.0.0.1"].includes(location.hostname) || location.hostname.endsWith(".localhost");
-export const saver = dev ? new FileSaver({ path: "/data/panels.json" }) : new LocalStorageSaver({ key: "panels" });
 
 /* One managed leaf: a name from the T vocabulary, or content the call site draws — or a
    whole `Panel` tree, which is what `structure(seed)` hands back. No saver, so save()
@@ -43,44 +41,12 @@ export default function panel(seed){
 	return mount(made, div.c("panel-workspace flex"));
 }
 
-/* The persisted workspace. ⚠ The box is placed NOW and filled in a callback — a
-   factory call after the await appends wherever the captor has since drifted. */
+/* The persisted workspace — `Workspace`'s thin door. Every existing caller (`ext/editor`,
+   `ext/files`, `space/compose`, this module's own page.js) keeps the exact call it always
+   made; what comes back now carries a bar above the root instead of being the root's own
+   box. Workspace/readme.md. */
 export function workspace(options = {}){
-	const { saver: store = saver, templates: vocabulary, tools: overrides, seed = scatter, mode } = options;
-	const $root = div.c("panel-workspace flex");
-
-	// A brand new document is a roll, written straight away — so the first thing a
-	// reader sees is also the thing that comes back.
-	Item.open(store).catch(error => {
-		// load() REJECTS on a real failure and resolves null only when the file is
-		// genuinely absent — this is the one branch that must NOT seed and save.
-		console.error(`workspace: ${store.path ?? store.key ?? "the saved layout"} failed to load — leaving it untouched.`, error);
-		$root.empty(() => { span.c("muted", "Couldn't load the saved layout — reload to try again."); });
-	}).then(loaded => {
-		// ⚠ The catch above is the LOAD's alone. Everything from here is RENDER, and a
-		// template that throws while drawing must reach the console as itself — reported
-		// as a load failure it accuses a file that is perfectly fine.
-		if (!loaded) return;
-
-		const fresh = !(loaded instanceof Panel);
-		const root = fresh ? new Panel({ saver: store }) : loaded;
-
-		// A workspace may bring its own vocabulary — ext/editor's regions close over an
-		// editor, so its T menu is those regions and the global set never sees them.
-		root.templates = vocabulary;
-		root.tools = overrides;
-		// The ROOT's word, when a caller has one: `workspace({ mode: "document" })` opens a
-		// document that has never said otherwise as a scrolling stack of sections (the
-		// owner, 2026-08-19: "we want the main panel to default to this"). A word already
-		// saved wins; a caller that passes none — ext/editor's five regions — keeps `fill`.
-		if (mode) root.data.mode ??= mode;
-		if (fresh) seed(root, vocab(root));
-
-		mount(root, $root);
-		if (fresh) root.save();
-	});
-
-	return $root;
+	return new Workspace(options).$view;
 }
 
 /* One redraw per structural verb. ⚠ Module scope rather than mount's closure because `roll`
@@ -88,16 +54,40 @@ export function workspace(options = {}){
    nothing awaits between raising the flag and lowering it. */
 let drawing;
 
+/* Every box a ROOT currently draws into. `mount()` used to assume one; a `Workspace` may
+   call it again for a second viewport of the SAME root — the readme's old trap ("three live
+   mounts share one document — the last writer wins") was three INDEPENDENT roots each
+   loading their own copy of one file. This is the fix: one root, one listener set, every
+   box in its own Set redrawn together. Workspace/doc/decisions.md. */
+const roots = new WeakMap();
+
 /* One listener at the root, because Item events bubble. ⚠ Only STRUCTURE redraws: a
-   `change` must not, or a chip click replaces the element its own control is holding. */
-function mount(root, $root){
+   `change` must not, or a chip click replaces the element its own control is holding.
+   `flow` defaults true — every caller before `Workspace` existed got a recorder for free,
+   and this keeps `panel()` and any other direct caller exactly as they were; `Workspace`
+   is the one caller that ever passes `false`. */
+export function mount(root, $root, { flow = true } = {}){
+	const set = roots.get(root);
+
+	// An EXTRA view of a root already wired: join its Set, draw once, done — the
+	// listeners below are one-time, at the root, and would double every save otherwise.
+	if (set){
+		set.add($root);
+		selection(root, $root);
+		$root.empty(() => { view(root); });
+		return $root;
+	}
+
+	const fresh = new Set([$root]);
+	roots.set(root, fresh);
+
 	const draw = () => {
 		if (drawing) return;                    // resolve() mutates; its adds must not re-enter
 		drawing = true;
 		resolve(root, vocab(root));
 		drawing = false;
 		drain(root);                            // the PREVIOUS generation's observers, before it's gone
-		$root.empty(() => { view(root); });     // block body: a returned View is re-appended
+		fresh.forEach($r => $r.empty(() => { view(root); })); // block body: a returned View is re-appended
 	};
 
 	["change", "add", "remove"].forEach(event => root.on(event, () => root.save()));
@@ -111,7 +101,7 @@ function mount(root, $root){
 	// ⚠ AFTER the first draw, so the baseline frame is what a reader actually sees:
 	// `resolve()` rolls every leaf still saying "random", and those adds are the seed
 	// arriving, not a step somebody took. flow.js, doc/flow.md.
-	record(root, $root);
+	if (flow) record(root, $root);
 
 	return $root;
 }
@@ -146,12 +136,11 @@ function view(item){
 		   split that holds them. */
 		.click(e => {
 			if (e.target.closest(".panel-bar, .panel-body")?.parentElement !== $panel.el) return;
-			if (!inspects(item)) focus(item, $panel);
+			if (!inspects(item)) focus(item);
 		});
 
 	/* Sizing is real LAYOUT, not a tool — never gated by `tools(item)`, because a workspace
-	   with every overlay off still has to know how wide its panels are. ⚠ It owns `.hug` too,
-	   so that class has exactly one writer. */
+	   with every overlay off still has to know how wide its panels are. */
 	sizing(item, $panel);
 
 	$bar.append(() => {
@@ -165,7 +154,7 @@ function view(item){
 			// only wanted a panel. The mutation lands after the microtask, which is
 			// fine: `sow` moves items, and `draw()` rebuilds the DOM from the tree.
 			// ⚠ Except a one-leaf seed, which moves nothing — hence the repaint.
-			sow: standard(item) && (() => import("./generate.js").then(m => repaint(m.sow(item)))),
+			sow: standard(item) && (() => import("./generate.js").then(m => repaint(m.sow(sown(item))))),
 			// Handed in as a FACTORY, like `sow` — tools.js reads toolbar.js, so the bar
 			// can only ever be given its tools, never import them.
 			tool: $body && t.zoom ? () => zoom_scrub(item, $body) : undefined,
@@ -184,10 +173,22 @@ function view(item){
 
 	if ($body) paint(item, $body);
 
-	views.set(item, { $panel, $body, $items });
+	// Join this item's renderings — and let go of the ones a redraw has already detached.
+	const shown = views.get(item) ?? views.set(item, new Set()).get(item);
+	shown.forEach(v => v.$panel.el.isConnected || shown.delete(v));
+	shown.add({ $panel, $body, $items });
 	new PanelDrag({ view: $panel, handle: $handle ?? false, $items, $body, item });
 	return $panel;
 }
+
+/* WHAT a roll lands in. `sow()` replaces a panel's data and children in place, which is
+   right for the panel you struck — that panel becomes the layout. On the ROOT of a
+   `mode: document` workspace it is wrong: the layout's top-level rows become sections, and
+   twelve mini-panels is what the owner saw. A layout is a PAGE and a document is a stack of
+   pages' worth of band, so one roll = one section — sow into a fresh child instead.
+   ⚠ `document()`, never `get("mode")`: `split()` hands a root's data down to its first
+   section, so a section can be wearing the word (Panel.js). design §5. */
+const sown = item => item.document() ? new Panel().move(item) : item;
 
 /* The T menu picked a name. `random` is a verb, not a template — random.js knows what it
    means, this file knows which vocabulary it draws from. */

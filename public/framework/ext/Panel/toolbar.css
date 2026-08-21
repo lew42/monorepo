@@ -12,13 +12,9 @@
 	/* Over the panel, not in it. The bar is out of flow, so a panel's content is the
 	   same size whether the bar is showing or not, and a nest of panels costs no strips.
 	   ⚠ `pointer-events` moves with the opacity: a bar at `opacity: 0` still hit-tests,
-	   and in a nest the invisible ancestor sits over the panel you are pointing at.
-	   ⚠ The query container is safe HERE and nowhere else in this module: `inset-inline: 0`
-	   sizes the bar from the panel, so containment has no content size to lose — which is
-	   exactly what `--panel-hug` exists to work around on the body. */
+	   and in a nest the invisible ancestor sits over the panel you are pointing at. */
 	.panel-bar {
 		position: absolute; inset-block-start: 0; inset-inline: 0; z-index: 3;
-		container: panel-bar / inline-size;
 		display: flex; flex-wrap: nowrap; align-items: center;
 		gap: 0.25em;
 		block-size: var(--panel-bar-h);
@@ -36,13 +32,6 @@
 	.panel-workspace .panel > .panel-bar .panel-btn { opacity: 0.3; }
 	.panel-workspace .panel > .panel-bar .panel-btn:hover,
 	.panel-workspace .panel > .panel-bar .panel-btn.on { opacity: 1; }
-
-	/* Top CENTRE of the panel, not of the space between its neighbours. */
-	.panel-workspace .panel > .panel-bar .panel-quick {
-		position: absolute;
-		inset-inline-start: 50%;
-		transform: translateX(-50%);
-	}
 
 	/* Innermost wins. Hovering a leaf hovers every ancestor of it, and four bars lit in
 	   the same corner is noise - so an ancestor stands down for the panel under the
@@ -126,10 +115,6 @@
 	/* After the rule above, not before it — same specificity, so source order decides. */
 	.panel > .panel-bar .panel-handle { cursor: grab; }
 
-	/* The one button that only exists when the row does not fit. Three classes for the same
-	   reason the rule above needs them: it is overriding `display` on a `.panel-btn`. */
-	.panel > .panel-bar .panel-more { display: none; }
-
 	/* ⚠ Material Icons is a LIGATURE font: a name the font does not carry renders as
 	   the whole WORD, and one 150px `deployed_code` sized every column of the grid
 	   below. A glyph is one em wide, so this costs a correct icon nothing — which is why
@@ -137,10 +122,11 @@
 	   seam's menu draw the same vocabulary and can be blown out by the same bad name. */
 	.panel-workspace .icon { width: 1em; overflow: hidden; }
 
-	/* Out of flow, so its slot in the bar costs nothing and DOM order is free. The column
-	   count is a token: nine alignments, four tones and a wall of templates want
-	   different shapes out of one block. */
-	/* ⚠ `justify-items: center`, now the buttons are square: a fixed-width item in a `1fr`
+	/* ⚠ ONE caller left (2026-08-19): a SEAM's hug/fill menu (`seam.js`, placed by grip.css).
+	   The bar opens nothing at all now, and the rail's two pickers are `ext/Dropdown`, which
+	   is in the TOP LAYER — so no popover in this module can be clipped by a panel any more.
+	   365 of them were, at 1280, before the sweep. doc/decisions.md.
+	   ⚠ `justify-items: center`, now the buttons are square: a fixed-width item in a `1fr`
 	   track otherwise sits at the track's start, and a 3×3 of arrows drifts off its own
 	   left edge instead of reading as a picture of nine placements. */
 	.panel-pop {
@@ -153,57 +139,4 @@
 		border-radius: var(--radius);
 	}
 	.panel-pop.on { display: grid; }
-
-	/* The folded run is a popover that is not one yet. `display: contents` gives it no box
-	   at all, so every declaration above is inert and its buttons are the bar's own flex
-	   items — same source order, same positions, to the pixel.
-	   ⚠ Same specificity as `.panel-pop.on`, so source order is the whole reason it wins. */
-	.panel-pop.panel-fold { display: contents; }
-
-	/* Below the width the row needs, the run becomes the popover it already is and one
-	   `more_horiz` stands in for it. ⚠ `em` here is the BAR's em — the scale the row is
-	   measured in — so the threshold tracks the row rather than the document.
-	   ⚠ Raised from 19em to 26em (2026-08-16, measured): two size triggers replaced one
-	   `mode` trigger, and the row's own natural width grew with it — a panel unfolded
-	   between the old threshold and the new one clipped `close` off its own right edge
-	   (measured natural width 311.9px against the bar's own font-size, ~25.6em). */
-	@container panel-bar (max-width: 26em) {
-		.panel > .panel-bar .panel-more { display: flex; }
-		.panel-pop.panel-fold { display: none; }
-		.panel-pop.panel-fold.on { display: grid; }
-
-		/* No picker may open wider than the panel that clips it: capped, the `1fr` tracks
-		   fall back to each button's own `min-width` instead of running past the edge. */
-		.panel-pop { max-inline-size: 100cqi; }
-
-		/* Six columns at that floor is a 144px popover, so under ~148px of panel the cap can
-		   only clip it - the last column crossed the edge. A SHELF may hold fewer: only the
-		   grid `toolbar.js` marks `panel-browse` reflows, and the alignment 3x3 stays a
-		   picture of nine placements at every width. ⚠ Nested on purpose: `auto-fit` counts
-		   columns against a definite max size, which is the cap one rule up - lifted out of
-		   this block it collapses to one column. */
-		@container panel-bar (max-width: 12em) {
-			.panel-pop.panel-browse { grid-template-columns: repeat(auto-fit, minmax(1.7em, 1fr)); }
-		}
-	}
-
-	/* Below this, even the always-visible run (handle, `more_horiz`, the gap, `close`)
-	   cannot fit — folding no longer helps, and the row was spilling past `.panel`'s
-	   `overflow: hidden` (measured: `close` clipped under 75px, the fold toggle itself
-	   under 50px). The 84px written here sits above that with room to spare, because
-	   `@container` tests the CONTENT box, so `.panel-bar`'s own `0.3em` inline padding
-	   is invisibly subtracted from whatever number is written here — confirmed with a
-	   minimal repro, not assumed (tools.css carries the same finding for `.panel-align`).
-	   ⚠ Targets the bar's CHILDREN, never `.panel-bar` itself — a container query can't
-	   restyle the container it queries, only descendants, so `.panel-bar { display: none
-	   }` here would silently never match (tested: even with `!important`). The bar's own
-	   box already never hit-tests, so hiding every button and popover leaves nothing left
-	   to see or click — `.panel-gap` is left alone, it is empty and cannot spill.
-	   ⚠ `.panel-workspace .panel >` earns the specificity to beat the button rule above
-	   (`:is(.panel-workspace .panel, .drawer .panel-props) .panel-btn`, 0-3-0) — matching
-	   its own ancestry ties at 0-3-0 and the tie goes to whichever file happens to import
-	   first. */
-	@container panel-bar (max-width: 84px) {
-		.panel-workspace .panel > .panel-bar > :is(.panel-btn, .panel-pop) { display: none; }
-	}
 }

@@ -1,0 +1,43 @@
+/* patch.css — literal after-state of the 5 rules that move in Page.css.
+   Everything else in Page.css (the wide/bleed comments, the rail rule, .fill,
+   .page-link, .page-previews, .page-preview cards, …) is untouched — only the
+   selectors and the one dropped declaration shown below change. Line numbers
+   are the BEFORE positions in the current file. Not applied — a preview only.
+   See patch.md for the --measure:none→100% lines and the 7 call-site edits. */
+
+@layer theme {
+
+	/* was Page.css:78 `.page {` — --measure: 40em; is DELETED (was line 79);
+	   the grid-template-columns line now falls back instead of declaring. */
+	.page.standard {
+		--gutter-x: clamp(2em, 4%, 5em);
+		--pad-y: clamp(1.5em, 4%, 3em);
+
+		display: grid;
+		grid-template-columns:
+			[bleed-start]           var(--gutter-x)
+			[wide-start main-start] min(var(--measure, 40em), 100% - var(--gutter-x) * 2) [main-end]
+			                        minmax(0, 1fr) [wide-end]
+			                        var(--gutter-x) [bleed-end];
+		align-content: start;
+
+		padding: var(--page-pad, var(--pad-y) 0);
+		max-width: none;
+	}
+
+	/* was Page.css:99-101 */
+	.page.standard > *      { grid-column: main; min-width: 0; }
+	.page.standard > .wide  { grid-column: wide; }
+	.page.standard > .bleed { grid-column: bleed; }
+
+	/* Page.css:112 `.page.solo { … }` — DELETED. 0 call sites (proposal.md §5). */
+
+	/* Page.css:240 `.page.full { --gutter-x: 0px; --pad-y: 0px; }` — DELETED.
+	   "no gutters" is now not having the grid at all, not a modifier on it. */
+
+	/* Page.css:241 `.page.fill { … }` — UNCHANGED, stays exactly as-is. Height
+	   + scrolling is an orthogonal axis to the grid; kept per proposal.md §5. */
+
+	/* was Page.css:279 — the wall's gutter payback, now guarded the same way. */
+	.page.standard > :is(.page-previews, .page-walls) { padding-inline: var(--gutter-x); }
+}

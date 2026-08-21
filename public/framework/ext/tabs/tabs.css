@@ -106,11 +106,12 @@
 		background: var(--tab-fill, transparent);
 	}
 
-	/* A rail PLUS a column needs more than 60em. Derived from the structure, so
-	   anything that grows a rail gets it without a class.
-	   ⚠ `:where()` holds this at (0,1,0) so a host page can narrow one of its sets
-	     with a plain class — ext/Doc's overview does. */
-	.page:where(:has(> .tabs.vertical)) { --measure: 78em; }
+	/* A rail PLUS a column takes the room: `wide` — main's left edge, so the rail
+	   lands on the title's axis, and every leftover pixel to the right. The sub pages
+	   inside pay their own gutters, so their content bleeds to the panel's edge,
+	   padded, never to the region's. Was a 78em `--measure` cap (until 2026-08-19):
+	   a nested page's `bleed` could never leave it — the owner's "locked down". */
+	.page > .tabs.vertical { grid-column: wide; }
 
 	/* The same set, turned on its side — only the axis changes. The bar is sticky
 	   because the panel is usually taller. */

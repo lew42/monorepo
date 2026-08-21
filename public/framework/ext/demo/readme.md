@@ -23,3 +23,4 @@ demo.app(sample());                                                  // a Page t
 - [doc/decisions.md](./doc/decisions.md) — the retired readme: who uses it (counts), trap detail, the two soft dependencies, open items
 - `doc/method/*.md`, `doc/file/*.md` — one page per door and per file (the Doc's `methods:` / `files:`)
 - Files that matter: `demo.js` (demo, stage, source), `exhibit.js` (exhibit, page, tree), `stage.js` (the one viewport)
+- `stage.js` exports `simulate`/`watch`/`magnifier`/`ruler`/`WIDTHS`, `twin.js` exports `pane`/`twin(fn, devices)` — a second caller, `ext/Panel/Workspace/viewports.js`'s device frames; this module's own strip is unchanged

@@ -1,0 +1,16 @@
+/* The rail's own look is `core/Sidebar`'s (Rail composes it — page.js); the row and
+   main-column widths are `flex`/`flex-1`/`basis` utilities, nothing bespoke to size
+   here. The one real rule: `+` reads as an ADD action, not another document. */
+@layer theme {
+
+	/* `.layout-full` pads itself 1.5em for full.js's previews; a shell with a sidebar
+	   wants none — the rail sits on the window edge, like the app's own. (0,3,0) so it
+	   beats layouts.css whatever the load order. */
+	.page.layout-full.panel-playground-page { --page-pad: 0; }
+
+	.panel-playground-new {
+		opacity: 0.75;
+		border-top: 1px dashed color-mix(in srgb, var(--sidebar-ink, #fff) 25%, transparent);
+	}
+	.panel-playground-new:hover { opacity: 1; }
+}

@@ -22,7 +22,7 @@ only *route* to `this.tabs()`: `app.js` imports `tabs.js` a second time, on its 
 line, specifically so any other `page.js` can reach for it without depending on
 `Doc` — the same shape `highlight` uses for `code`. Nothing else has taken that up
 yet. Two more files reach for the method only as a **prose example**, not a live
-call: [`core/Page/nav/page.js`](/framework/core/Page/nav/) and
+call: [`core/Page/old/nav/page.js`](/framework/core/Page/old/nav/) and
 [`framework/faq/page.js`](/framework/faq/). One file,
 [`web/nav/tabs/page.js`](/web/nav/tabs/), reuses the **CSS classes** by hand
 (`.tabs`, `.tab-bar`, `.tab-panel`) without importing `tabs.js` at all, because its

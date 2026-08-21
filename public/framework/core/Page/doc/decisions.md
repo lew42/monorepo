@@ -320,8 +320,9 @@ threads names rather than pages through its call sites.
   `Doc` now nests members under an `api` group — before the split, a property
   named `children` was added *before* `load_all_children()` ran and shadowed the
   guide entirely. Worth remembering the next time a member and a guide share a word.
-- **A directory named after a class `Page.css` styles collides with it.** `render()`
-  stamps `page-<name>`, so `/michael/previews/` wore the card wall's own
-  `.page-previews` and silently took its gap, `align-items` and `dense` — it strips
-  the class by hand in `activated()`. A filesystem name should not be able to reach
-  into a stylesheet; deserves a real answer someday.
+- **A directory named after a class `Page.css` styles used to collide with it.**
+  `render()` stamped `page-<name>`, so a page named `previews` wore the card wall's
+  own `.page-previews` and silently took its gap, `align-items` and `dense` — the
+  fix stripped the class by hand in `activated()`. Fixed 2026-08-19: the stamp is
+  `page--<name>` (double dash), so a page directory can no longer collide with a
+  component class.

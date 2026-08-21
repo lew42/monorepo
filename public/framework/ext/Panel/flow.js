@@ -41,7 +41,7 @@ export class Flow {
 	   event of a gesture, so a gesture is one step rather than four hundred — and
 	   `replaying` is the guard that stops a replayed step from recording itself. */
 	touch(){
-		if (this.replaying) return this;
+		if (this.replaying || this.recording === false) return this;
 		clearTimeout(this.timer);
 		this.timer = setTimeout(() => this.commit(), this.burst);
 		return this;
@@ -126,6 +126,7 @@ Flow.mounted = [];
 Flow.prototype.burst = 150;
 Flow.prototype.max = 200;
 Flow.prototype.replaying = false;
+Flow.prototype.recording = true;
 Flow.prototype.timer = null;
 
 const panels = json => 1 + (json.items ?? []).reduce((n, kid) => n + panels(kid), 0);
@@ -146,17 +147,26 @@ const differs = (a, b) => {
    page mounts, because `workspace()` places its box now and fills it in a callback. */
 const waiting = [];
 
-/* `workspace.js`'s one hook. Every mount records: a flow is three listeners and an array
-   until something mutates. */
-export function record(root, $root){
-	const flow = new Flow({ root, $root });
+/* The one door onto a flow — `workspace.js`'s hook (`record(root, $root)`) is this with
+   no options: a flow is three listeners and an array until something mutates. A demo's
+   GUIDE half is the other case — `steps` is an earlier `flow.save()`'s own shape,
+   `[start, ...steps]` — and `record: false` (the default the moment `steps` is given)
+   means scrubbing it never adds a step of its own. Reuses `$root.flow` if one is already
+   there rather than binding a second set of listeners onto the same root — which is
+   what a demo's guide pane does, since `panel()`/`workspace()` already called this once.
+   One signature either a caller or a future `Workspace` can reach for. Mount
+   `scrubber($ws)` after, same as any other flow. */
+export function attach(root, $root, { steps, record = !steps } = {}){
+	const flow = $root.flow ?? new Flow({ root, $root, recording: record });
+	if (steps){ flow.start = steps[0]; flow.steps = steps.slice(1); }
+	flow.recording = record;
 	$root.flow = flow;
 
 	// ⚠ Several workspaces share one page — the Doc page holds one plus five demo panels,
 	// and an SPA keeps the page you came from mounted — so "the last one" cannot say which
 	// is which. Pruned to what is still on screen, and nothing ON a page reads it: it is
 	// the door a headless driver opens (`Flow.mounted.find(f => f.$root.el.closest(…))`).
-	Flow.mounted = Flow.mounted.filter(made => made.$root.el.isConnected).concat(flow);
+	Flow.mounted = Flow.mounted.filter(made => made.$root.el.isConnected && made !== flow).concat(flow);
 
 	const strip = waiting.find(s => s.$ws === $root);
 	if (strip){
@@ -164,8 +174,12 @@ export function record(root, $root){
 		strip.take(flow);
 	}
 
-	return flow;
+	return steps ? flow.go(flow.steps.length) : flow;
 }
+
+/* `workspace.js`'s one hook — the zero-option case of `attach()`, kept as its own name
+   because that file may only ever read this one export. */
+export function record(root, $root){ return attach(root, $root); }
 
 /* The scrubber: ⏮ ◀ n / N ▶ ⏭ · what the step did · ● rec. Mounted by the PAGE beside
    its workspace, never inside a panel's own hover bar — a flow is the document's, and

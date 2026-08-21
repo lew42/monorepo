@@ -63,10 +63,24 @@ long it may be — a report is a screen; a page leads with the thing itself. The
 
 - Tell a worker how to wait, not just not to (`while (-not (Test-Path …)) { Start-Sleep 15 }`;
   foreground is the default) — two workers ended a turn on a Monitor mid-run and needed a nudge.
+  ⚠ A worker whose wait is auto-backgrounded (>120 s without `timeout: 600000`) reports
+  **completed with EMPTY output — it is parked, not dead**, and resumes itself when the wait
+  returns. `SendMessage` it; never re-dispatch the brief. 2026-08-19: a duplicate pad/gap
+  agent ran in the same files for 18 minutes before the original landed (no damage, by luck).
+  Better: don't gate a worker on a wait at all — dispatch it when the prerequisite has landed.
+  ⚠ A foreground wait longer than the Bash tool's timeout (120 s default) is auto-backgrounded and the
+  turn ENDS — pass `timeout: 600000` on the wait call, or loop in chunks under it, and re-check each
+  turn (2026-08-19: a minion waiting on a sibling's `landed_at` stopped cold after 120 s).
 - ⚠ **Write every follow-up so a COLD agent can execute it** — file:line, never "as you did
   before". A landed agent's transcript can vanish (`SendMessage` → "No transcript found"); one
   Opus could not be resumed for wave 2 after ~45 minutes idle.
 - A fence that forbids what a mandated skill writes is a trap — name the skill's writes.
+- ⚠ Every brief says in so many words: **never kill or restart the dev server, never drive
+  the owner's tabs** — an Opus minion ran `taskkill node.exe` mid-task on 2026-08-19 while the
+  owner was on the live site (it restarted it, and said so — but the owner saw the outage).
+  And **never `git stash`** — the tree is shared with every other agent in flight; one Opus
+  stashed "its four files" on 2026-08-19 and took a sibling's uncommitted export with it (20 s of
+  404 on the live site). Diff, don't stash.
 - ⚠ **Run any code recipe you put in a brief once yourself first** — an import path, a route pattern, a
   command. On 2026-08-18 the Playwright import (`C:/…` → must be `file:///C:/…`) and the socket block
   (`page.route('**/socket*')` matches nothing; `page.routeWebSocket(/.*/)` is the one) both shipped wrong

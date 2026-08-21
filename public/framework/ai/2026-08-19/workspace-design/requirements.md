@@ -47,3 +47,9 @@ Also landed minutes ago, after the owner saw a one-section document read as a 16
 
 - READ-ONLY outside this dir. Findings as `log` lines as you go. Run `new-task` first (dir + brief exist; write `task.jsonl` line 1 and the `day.jsonl` line — `ai/2026-08-19/day.jsonl` exists; group `panels`); `finish-task` at the end (`"tokens": null`). A skill that misleads you gets one line in its `improvements.md` (`skill-improvement`).
 - Timestamps from the clock; forward slashes; never Out-File a `.jsonl`; never a person's name — "the owner". Wait in the foreground.
+
+## Addenda — the owner's later words, verbatim (relayed by message)
+
+> the "roll a layout as panels" function works, but it's all "split mode", and so we get like 12 scrollable mini panels, which isn't really the idea... in our layout skill, make a note about paying attention to scrollbars, and to avoid them unless desired.
+
+Mastermind's reading: the design must say what a rolled layout IS in a document (design §2/§5: one roll = one section; the twelve scrolling boxes were the size-container bug); the layout skill gained the scrollbar rule.

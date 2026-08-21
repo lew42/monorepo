@@ -100,6 +100,6 @@ and nothing would say so.
    grows a method — a `Menu extends View` would say so louder and cost a
    `classify()` name nobody wants. *(simple, speculative)*
 3. **`mode: "hug"` from this menu used to collapse a `cq`-sized template to 0px**
-   (517.8 → 0, measured) — fixed in `panel.css`, where hug now *declares* an
-   extent (`--panel-hug`) instead of measuring one: hugging a leaf from here takes
-   it to 248.3px, the same 16em the bar's toggle gives. *(done)*
+   (517.8 → 0, measured) — the containment that caused it is gone (2026-08-19) and
+   `hug` measures its content; a scene, which has none, declares its own 16em floor:
+   [sizing](/framework/ext/Panel/doc/sizing/). *(done)*

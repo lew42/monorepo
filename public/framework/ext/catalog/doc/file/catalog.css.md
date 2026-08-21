@@ -10,11 +10,11 @@ for the strip.
 
 The very first rule, `.page-catalog:where(:not(.page)) { display: flex; … }`,
 exists because this module's own doc page is a directory literally called
-`catalog/` — so `render()` stamps `page-catalog` on it, the same string
+`catalog/` — `render()` used to stamp `page-catalog` on it, the same string
 `.page-catalog` names for its own layout class, and without `:where()` the
-two rules become a load-order tie decided by nothing meaningful. Every other
-rule in the file is plain `.page-catalog`; only this one needed the escape
-hatch, because only this one collides with the class's own name.
+two rules became a load-order tie decided by nothing meaningful. Fixed
+2026-08-19: the stamp is now `page--catalog` (double dash), so the tie can't
+recur — `:where()` stays, harmless, as the last trace of it.
 
 ## The rail pays two insets back, in opposite directions
 

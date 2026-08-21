@@ -1,0 +1,69 @@
+/* The Workspace's own chrome — the bar above the root, and the bounded-space option.
+   Everything the root panel tree itself draws stays panel.css's; nothing here reaches
+   past `.panel-workspace-wrap`. */
+@layer theme {
+
+	/* The height option (`Workspace({ height })`) and the old default alike — moved one
+	   level out from `.panel-workspace` itself, which now fills whatever this leaves it
+	   after the bar's own row (panel.css's `flex: 1 1 0` on `.panel-workspace` does the
+	   rest; nothing here needs to say it twice). */
+	.panel-workspace-wrap { height: var(--panel-height, 34em); }
+
+	.panel-workspace-mode {
+		background: none; border: none; padding: 0.2em; border-radius: 0.25em;
+		color: inherit; opacity: 0.6; cursor: pointer;
+	}
+	.panel-workspace-mode:hover, .panel-workspace-mode.on { opacity: 1; background: var(--wash); }
+
+	/* A button since 2026-08-19 — it selects the document — dressed as the plain name it was. */
+	.panel-workspace-name {
+		background: none; border: none; padding: 0.2em 0.4em; border-radius: 0.25em;
+		font: inherit; color: inherit; opacity: 0.7; cursor: pointer;
+	}
+	.panel-workspace-name:hover { opacity: 1; background: var(--wash); }
+
+	/* `Workspace({ center: true })` — a bounded reading width instead of edge-to-edge,
+	   wash behind it. The root's own width is simply a length here, not a second box:
+	   `.panel { flex-grow: var(--panel-grow, 1) }` (panel.css) is what centering has to
+	   beat, so this is the one place `flex-grow` and `inline-size` are stated together. */
+	.panel-workspace-center { justify-content: center; background: var(--wash); }
+	.panel-workspace-center > .panel { flex-grow: 0; inline-size: min(100%, 60em); }
+
+	/* task C — the viewport SET (`viewports.js`). `.panel-workspace-stage` holds all
+	   seven boxes at once (§ its own file comment); only the ones the current mode
+	   picked are ever visible. */
+	.panel-workspace-stage { display: flex; min-height: 0; }
+
+	/* `one`/`all` share this grid — `all` is one row of four (the owner's own words:
+	   "do all viewports simultaneously, zoomed to fit" — mobile shares the row too,
+	   not a generous 2×2 cell); `one` drops to a single column. */
+	.panel-viewport-grid {
+		display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: 1em; padding: 1em; flex: 1 1 0; min-height: 0; overflow: auto;
+	}
+	.panel-viewport-grid.panel-mode-one { grid-template-columns: 1fr; }
+
+	.panel-viewport-twin { flex: 1 1 0; min-height: 0; padding: 1em; overflow: auto; }
+	.panel-viewport-twin > .panel-viewport { min-width: 0; }
+
+	/* The 1em medium-gray frame every non-fill viewport wears, its px width captioned
+	   at the bottom. `--subtle` reads as genuine medium gray in both themes
+	   (#6a6a6a light, #a8a8a8 dark) — `--line` is closer to white. `overflow: auto`,
+	   not `hidden`: `100%` (no zoom) can legitimately be wider than its cell, and
+	   that is a scrollbar the reader asked for by picking `100%` over `fit`. */
+	.panel-viewport {
+		position: relative; box-sizing: border-box; overflow: auto;
+		border: 1em solid var(--subtle);
+		min-width: 0; min-height: 6em;
+	}
+	.panel-viewport-label {
+		position: absolute; inset-block-end: 0.15em; inset-inline: 0;
+		text-align: center; font-size: 0.75em; opacity: 0.7; pointer-events: none;
+	}
+
+	/* The bar's own half: the mode/fit buttons reuse `.panel-workspace-mode` above —
+	   one look for every pill in this bar. */
+	.panel-workspace-vp { font-size: 0.9em; }
+	.panel-workspace-dial { gap: 0.4em; }
+	.panel-workspace-readout { opacity: 0.6; white-space: nowrap; }
+}

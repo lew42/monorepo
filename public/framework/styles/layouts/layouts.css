@@ -18,7 +18,9 @@
 	.page.layout-full {
 		--measure: none; --page-pad: 1.5em;
 		position: fixed; inset: 0; z-index: 20;
-		inset-inline-end: min(calc(var(--drawer, 0px) + var(--devbar, 0px)), max(0px, 100% - var(--rail-floor, 26rem)));
+		/* The shared `--rail-push` token (ext/drawer/drawer.css, on `.app`) — was a
+		   second copy of this formula, "proposed, not applied" (drawer readme). */
+		inset-inline-end: var(--rail-push, 0px);
 		transition: inset-inline-end var(--rail-ease, 0.18s);
 		display: flex; flex-direction: column;
 		background: var(--wash);

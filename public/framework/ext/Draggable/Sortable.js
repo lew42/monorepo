@@ -22,6 +22,10 @@ export default class Sortable extends Draggable {
 		this.placeholder.style.height = box.height + "px";
 		this.view.el.before(this.placeholder);
 
+		// Inline beats every layer: a util class (.flex etc.) in @layer util otherwise
+		// outranks draggable.css's @layer theme rule and the source never hides.
+		this.prior_display = this.view.style("display");
+		this.view.style("display", "none");
 		this.view.ac("drag-source");
 	}
 
@@ -42,6 +46,7 @@ export default class Sortable extends Draggable {
 		this.ghost?.remove();
 		this.placeholder?.remove();
 		this.view.rc("drag-source");
+		this.view.style("display", this.prior_display);
 		this.ghost = this.placeholder = null;
 	}
 

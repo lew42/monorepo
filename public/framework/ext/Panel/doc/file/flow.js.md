@@ -68,6 +68,29 @@ page holds the workspace it built — it is the door a headless driver opens. �
 workspaces share one page (the Doc page has one plus five demo panels) and an SPA keeps
 the page you came from mounted, so "the last one" cannot say which is which.
 
+## `attach(root, $root, { steps })` — one door, live or replayed
+
+```js flow.js
+export function attach(root, $root, { steps, record = !steps } = {}){
+	const flow = $root.flow ?? new Flow({ root, $root, recording: record });
+	if (steps){ flow.start = steps[0]; flow.steps = steps.slice(1); }
+	flow.recording = record;
+	...
+	return steps ? flow.go(flow.steps.length) : flow;
+}
+
+export function record(root, $root){ return attach(root, $root); }
+```
+
+`record()` — `workspace.js`'s one hook — is now the zero-option case of this, kept as
+its own export because that file reads only that one name. The demo tab (`ext/Panel/
+demo/`) calls the other case, `attach(root, $ws, { steps })`, on a workspace `panel()`
+already mounted: it reuses `$ws.flow` rather than building a second `Flow` — a second one
+would bind a **second** set of root listeners with no way to remove the first. `record:
+false`, the default the moment `steps` is given, is the only new field on `Flow`:
+`touch()` reads it beside `replaying`, so the guide half of a demo can be scrubbed
+forever and never adds a step.
+
 ## Improvements
 
 1. **One watcher per flow** (`this.watcher`), because one page mounts one strip beside

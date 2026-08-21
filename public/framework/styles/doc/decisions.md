@@ -87,11 +87,11 @@ linking to it:
 - **`/app.js`** imports `layers/theme/lew42/lew42.js` and calls it in
   `config()` — the house theme is wired site-wide from here, not opted into
   per page.
-- **`core/Page/overview/landing/page.js`** and **`overview/site/page.js`**
+- **`core/Page/old/overview/landing/page.js`** and **`old/overview/site/page.js`**
   import section-band functions from `sections/*.js` (`hero`, `features`,
   `pricing`, `footer`, `contact`, `logos`, `faq`, `callout`, `team`) directly,
   to compose Page's own "what a real site looks like" demos.
-  `core/Page/flow/page.js` and `core/Page/page.js` link to `layouts/fit/` and
+  `core/Page/old/flow/page.js` and `core/Page/page.js` link to `layouts/fit/` and
   `layouts/` as the canonical next reads for rhythm and whole-page shape.
 - **`ext/Panel/templates.js`** dynamically `import()`s every file in
   `sections/` by name, at runtime, to build the **T** template menu — the one
@@ -111,7 +111,7 @@ linking to it:
   its readme cites two pages here (`layers/theme/lew42/`, `layouts/sidebar/`)
   as the live demos its own doc page points at.
 
-One stale link, found while tracing these: `core/Page/overview/landing/`
+One stale link, found while tracing these: `core/Page/old/overview/landing/`
 (via `framework/ai/2026-08-12/unify/page.js`) links
 `/framework/styles/layouts/cards/`, a directory this module's own readme
 records as deleted in the 2026-08-12 merge. Outside this directory's fence to

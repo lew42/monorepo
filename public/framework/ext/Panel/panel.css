@@ -8,7 +8,15 @@
 	   `--panel-section` is the module's other one and means ONE thing: the floor under a
 	   section of a `mode: document` workspace (last rule in this file). It is not a width,
 	   and no other rule reads it. */
-	.panel-workspace { height: var(--panel-height, 34em); --panel-section: 16em; }
+	/* ⚠ `auto`, not `34em` (2026-08-19): a workspace nobody gave a height to FOLLOWS ITS
+	   ROOT, which is what makes a bare `panel(seed)` a div in flow — it grows as you add.
+	   Every call site that wants a screen still says so and is unmoved (`ext/editor`,
+	   `ext/files`, `Doc`, this module's own page.js, `Workspace`'s wrap all set the token).
+	   `--panel-min` is the floor under a HUGGING panel, `--panel-section` the one under a
+	   section of a `mode: document` workspace — two floors, two jobs, neither a width.
+	   5em because both edge strips must fit inside an empty leaf and stay apart: the top
+	   one ends 2.7rem down (bar 1.8 + edge 0.9), the bottom one starts 1.6rem up. */
+	.panel-workspace { height: var(--panel-height, auto); --panel-section: 16em; --panel-min: 5em; }
 
 	/* `1 1 0`, not `flex-1`: the util carries no `min-height`, and every level of this
 	   nesting holds something that scrolls. */
@@ -22,12 +30,17 @@
 	   self-measuring loop that `cq` units used to exist to dodge. doc/sizing.md. */
 	.panel { flex-grow: var(--panel-grow, 1); max-inline-size: 100%; overflow: hidden; position: relative; }
 
-	/* ⚠ The basis, and only the basis: a `flex: 1 1 0` body inside a panel that is itself
-	   `0 0 auto` resolves to ZERO height and clips its own content away, measured. Grow and
-	   shrink stay as above, so a panel hugging the width of a row still fills the row's
-	   height and scrolls rather than clipping. */
-	.panel.hug { flex: 0 0 auto; }
-	.panel.hug > .panel-body { flex-basis: auto; }
+	/* The containing block a FLOATING panel (`position: absolute`, size.css) lands in — the
+	   job `container-type: size` was doing by accident until 2026-08-19, and the reason a
+	   `position: fixed` panel is not on offer. ⚠ Stated here rather than left to insert.css's
+	   identical `.panel-items` line: that file is on the delete list and this is now
+	   load-bearing. */
+	.panel-workspace, .panel-items { position: relative; }
+
+	/* `.hug` is GONE (2026-08-19). It was `mode: hug` translated to whichever axis was main,
+	   and size.css now states that per axis and per slot — including the CROSS axis and the
+	   `.panel-items` of a split, neither of which this pair ever covered. One writer, one
+	   file: size.css. doc/sizing.md. */
 
 	/* One full-width column, so a section band can take the whole panel, with the
 	   picker moving the content inside it - which is what `align-content` and
@@ -37,12 +50,19 @@
 	   out of BOTH ends and the near end is unreachable by scrolling - measured, a control
 	   surface put its first row 75px above its panel. `safe` degrades to `start` exactly
 	   when the content no longer fits, so nothing that fits moves a pixel. */
+	/* `--panel-pad` (2026-08-19, glyphs.js's `pad` word): NOT written by every body — a
+	   panel that has chosen nothing leaves it unset, so it INHERITS whatever an ancestor
+	   set, which is what makes `PanelDrag`'s centre-drop nest (`--panel-pad: 1em` on the
+	   fresh container's `.panel-items`) show as real padding with nothing picked. A
+	   template keeps its own inner padding (templates.css) on its own inner element; this
+	   is the BODY's, one layer out. */
 	.panel-body {
 		display: grid;
 		grid-template-columns: 100%;
 		grid-auto-rows: min-content;
 		align-content: safe var(--panel-y, center);
 		justify-items: safe var(--panel-x, center);
+		padding: var(--panel-pad, 0);
 		overflow: auto;
 	}
 
@@ -69,23 +89,32 @@
 	   this sheet.) */
 	.panel-body:has(> .panel-t) { grid-template-rows: 100%; }
 
-	/* The focused panel - a selection, never saved, and the one thing an inspector in
-	   another region needs to see. Drawn as a pseudo-element so it costs the panel no
-	   border box, over the content but under the bar (z-index 3), and inert.
+	/* The focused panel's ring lives in focus.css (2026-08-19), beside its hover twin. */
 
-	   The `:has(.panel-props)` guard is GONE (2026-08-16). It existed so a workspace with no
-	   inspector never marked a selection nothing was acting on — but the properties rail is
-	   a document-level surface now (tools.js opens ext/drawer on `panel-focus`), so there is
-	   always a reader and the guard only hid the ring. ext/editor is unaffected either way:
-	   none of its five regions carries `focus: true`, so no panel in it ever takes focus. */
-	.panel-workspace .panel.focus::after {
-		content: "";
-		position: absolute;
-		inset: 0;
-		z-index: 2;
-		box-shadow: inset 0 0 0 2px var(--prim);
-		pointer-events: none;
-	}
+	/* ---- groups (2026-08-19) --------------------------------------------------------
+	   A split wearing `.panel-group` (size.js's `grouped()`) collapses "innermost wins"
+	   onto ITSELF while nobody has drilled past it (`focus.js`): a descendant gets no
+	   hover affordance of its own, and the group's bar/edges light instead — reaching into
+	   toolbar.css's `.panel-bar` and split.css's `.panel-edge` from here rather than
+	   editing either file. Higher specificity than their base reveal rules (six class
+	   selectors against four), so load order cannot flip this. The moment the group OR
+	   anything inside it holds `.focus`, both guards below stop matching and ordinary
+	   innermost-wins resumes underneath, unchanged. doc/focus.md. */
+	.panel-group:not(.focus):not(:has(.focus)) .panel > .panel-bar,
+	.panel-group:not(.focus):not(:has(.focus)) .panel > .panel-display { opacity: 0; pointer-events: none; }
+	/* ⚠ `.panel-bar *`, not just the bar: toolbar.css keeps the bar's own box permanently
+	   non-hit-testing (a full-width invisible strip would eat the split-edge clicks under
+	   it) and reveals its BUTTONS instead — so a descendant's handle/verbs need the same
+	   two-part suppress-then-reveal or a bar we meant to gate off stays draggable. */
+	.panel-group:not(.focus):not(:has(.focus)) .panel > .panel-bar *,
+	.panel-group:not(.focus):not(:has(.focus)) .panel > .panel-edge { pointer-events: none; }
+
+	.panel-group:not(.focus):not(:has(.focus)):hover > .panel-bar,
+	.panel-group:not(.focus):not(:has(.focus)):focus-within > .panel-bar { opacity: 1; }
+	.panel-group:not(.focus):not(:has(.focus)):hover > .panel-bar *,
+	.panel-group:not(.focus):not(:has(.focus)):focus-within > .panel-bar * { pointer-events: auto; }
+	.panel-group:not(.focus):not(:has(.focus)):hover > .panel-edge,
+	.panel-group:not(.focus):not(:has(.focus)):focus-within > .panel-edge { pointer-events: auto; }
 
 	/* The landing slot, sized on the axis it lands in. Its outline is draggable.css's;
 	   Sortable's px height is cleared in PanelDrag.start(). */
@@ -131,5 +160,23 @@
 	   section takes the whole window, four share it, eight sit at their 16em floor and the
 	   workspace scrolls. With `0 0 auto` a one-section document read as a 16em band over
 	   five-sixths of empty wash (the owner, on /full/). */
-	.panel-mode-document > .panel-items.v > .panel { flex: 1 0 auto; min-block-size: var(--panel-section); }
+	/* ⚠ `.panel-workspace` on the front (2026-08-19) so this OUT-SPECIFIES size.css's own
+	   `--panel-min` floor rather than tying with it: both say `min-block-size` on the same
+	   element, and at equal weight the winner was whichever sheet loaded last. A section's
+	   floor is 16em; every other hugging panel's is 5em. Measured: without this, the
+	   playground's sections dropped from 241px to 75px. */
+	.panel-workspace .panel-mode-document > .panel-items.v > .panel { flex: 1 0 auto; min-block-size: var(--panel-section); }
+
+	/* ⚠ THE rule that makes the floor a floor: NOTHING in a document divides the block axis.
+	   A `0` basis contributes nothing to a box that is measuring itself, so with `flex: 1 1 0`
+	   all the way down every section sat at its 16em floor whatever it held and the content
+	   scrolled inside it — the twelve-scrolling-boxes report, measured again on 2026-08-19
+	   with containment already gone: 27 scrolling bodies in a rolled document, 3 in a plain
+	   one, 0 with these two selectors. "The workspace scrolls; a region scrolls only when it
+	   was meant to" IS this rule. Line 1 is every stacked panel, line 2 every panel's own
+	   payload; the INLINE axis is untouched, so a row of columns still divides its width.
+	   ⚠ A panel that CHOSE a height still wins — `h: fixed` carries more specificity in
+	   size.css — and its body then fills the length it chose, basis auto and grow 1. */
+	.panel-mode-document .panel-items.v > .panel,
+	.panel-mode-document .panel > :is(.panel-body, .panel-items) { flex-basis: auto; }
 }

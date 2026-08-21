@@ -10,6 +10,15 @@
 	     width against the rail's own 0.85em, so an `em` value reserves the wrong strip.
 	   ⚠ z-index 40 sits between `.demo.max` (30) and the mode button (60): the rail has to
 	     reach over a full-screen demo without burying the scheme toggle. */
+	/* The push amount, as a TOKEN — `.app`'s own `padding-inline-end` (framework.css)
+	   computes this same formula directly; `position: fixed` opts out of that
+	   inherited layout entirely, so anything fixed (`.layout-full`) reads this back
+	   instead of restating the formula a second time. Defined here, on `.app`
+	   itself, because that element is where `--drawer`/`--devbar` already live —
+	   keep this in sync with framework.css's copy by eye; unifying THAT one too
+	   is out of this task's reach (framework.css). readme.md. */
+	.app { --rail-push: min(calc(var(--drawer, 0px) + var(--devbar, 0px)), max(0px, 100% - var(--rail-floor, 26rem))); }
+
 	.drawer {
 		position: fixed; inset-block: 0; z-index: 40;
 		/* Beside the dev rail, not under it — both dock at this edge, and the shell already

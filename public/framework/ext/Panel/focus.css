@@ -1,0 +1,30 @@
+/* Hover says what a click would select. `focus.js` writes `.panel-hover` from the same
+   `drill()` the click runs — CSS cannot express it, because the answer depends on which
+   panel is selected: inside an unopened group the GROUP lights, inside the open one its
+   child. A ring rather than a border, inset like the focus ring (above), so nothing
+   moves when it appears; lighter than the focus ring, and never on the selected panel —
+   its own ring already says so. Record: doc/focus.md. */
+@layer theme {
+
+	/* THE selection: one ring, written by focus.js and nobody else. Inset, so the panel's
+	   box never moves; `::after` so the hover ring below (`::before`) can sit under it. The
+	   `:has(.panel-props)` guard it once carried is gone (2026-08-16): the rail is a
+	   document-level surface now, so there is always a reader. */
+	.panel-workspace .panel.focus::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+		z-index: 2;
+		box-shadow: inset 0 0 0 2px var(--prim);
+		pointer-events: none;
+	}
+
+	.panel-workspace .panel.panel-hover::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		z-index: 2;
+		box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--prim) 55%, transparent);
+		pointer-events: none;
+	}
+}

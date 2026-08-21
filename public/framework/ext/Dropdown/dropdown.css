@@ -1,0 +1,77 @@
+/* Structure, and the one thing a top-layer box cannot leave to the theme: a surface, so it
+   reads over whatever it opens across. Every colour is a token. Record: readme.md. */
+@layer theme {
+
+	.dropdown { display: inline-flex; min-inline-size: 0; max-inline-size: 100%; }
+
+	/* ⚠ `:is(button, .btn)` is the theme's OWN selector, restated so this clears it: a theme
+	   styles every `button` as a small uppercase LABEL (0-2-0, padded 0.7em/1.4em) — right
+	   for READ GUIDE, four times too wide for a picture and a word. `:is()` takes the
+	   specificity of its most specific arm, so this reads 0-3-0. Only the BOX is reclaimed. */
+	.dropdown > .dropdown-trigger:is(button, .btn) {
+		display: flex; align-items: center; gap: 0.35em;
+		inline-size: 100%; min-inline-size: 0;
+		padding: 0.15em 0.4em;
+		font: inherit; letter-spacing: normal; text-transform: none;
+		color: var(--ink);
+		background: none;
+		border: 1px solid var(--line);
+		border-radius: calc(var(--radius) / 2);
+		cursor: pointer;
+	}
+	.dropdown > .dropdown-trigger:hover { background: var(--wash); }
+
+	/* The NAME gives, never the picture: a trigger in a 19rem rail is narrower than some
+	   template names, and an ellipsis is the honest end of one. */
+	.dropdown-name {
+		flex: 1 1 auto; min-inline-size: 0;
+		overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+		text-align: start;
+	}
+
+	/* ⚠ The whole point. A `[popover]` is in the TOP LAYER while open — outside every
+	   `overflow: hidden` ancestor — so `inset` and `margin` are the UA's own centring, and
+	   both have to go before dropdown.js's measured `left`/`top` mean anything. */
+	.dropdown-list {
+		position: fixed; inset: auto; margin: 0;
+		display: none;
+		/* A long list scrolls INSIDE the box, never the page — and the bar is thin, with a
+		   gutter reserved either way, so the options do not shift when it appears.
+		   `core/Page/Page.css`'s `.rail` is the same pair. */
+		max-block-size: min(60vh, 22em);
+		overflow: auto;
+		scrollbar-width: thin; scrollbar-gutter: stable;
+		padding: 0.25em;
+		background: var(--surface);
+		color: var(--ink);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		box-shadow: 0 0.5em 1.5em rgb(0 0 0 / 0.18);
+	}
+	.dropdown-list:popover-open { display: flex; flex-direction: column; gap: 0.1em; }
+
+	/* Same reclaim as the trigger, same reason. */
+	.dropdown-list > .dropdown-option:is(button, .btn) {
+		display: flex; align-items: center; gap: 0.5em;
+		inline-size: 100%;
+		padding: 0.25em 0.5em;
+		font: inherit; letter-spacing: normal; text-transform: none;
+		text-align: start;
+		color: var(--ink);
+		background: none;
+		border: 0;
+		border-radius: calc(var(--radius) / 2);
+		cursor: pointer;
+	}
+	.dropdown-list > .dropdown-option:hover,
+	.dropdown-list > .dropdown-option:focus-visible { background: var(--wash); }
+	.dropdown-list > .dropdown-option.on {
+		color: var(--prim);
+		background: color-mix(in srgb, var(--prim) 15%, transparent);
+	}
+
+	/* ⚠ Material Icons is a LIGATURE font: a name it does not carry renders as the whole
+	   WORD — hundreds of px of it — and sizes the list it lands in. A real glyph is one em
+	   wide, so this costs a correct icon nothing. */
+	.dropdown .icon { flex: 0 0 auto; width: 1em; overflow: hidden; }
+}

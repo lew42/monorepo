@@ -24,7 +24,7 @@ export default new Page({
 	     caps `main` and every band below claims `wide`. */
 	render(){
 		return this.view ??= div.c("page", () => this.content())
-			.ac(this.name && "page-" + this.name);
+			.ac(this.name && "page--" + this.name);
 	},
 
 	content(){

@@ -55,6 +55,15 @@ export class Panel extends Item {
 		return this.emit("change", "mirror", source.id);
 	}
 
+	/* The struck panel's LOOK, copied once — not shared live (`mirror()`). `Panel.shared`
+	   minus what makes a copy a duplicate (`template seed text`), plus the struck panel's
+	   own share of the row: `split.js`'s edge click reads this. design §5. */
+	restyle(from){
+		Panel.shared.filter(key => !["template", "seed", "text"].includes(key)).forEach(key => { this.data[key] = from.get(key); });
+		this.data.grow = from.get("grow");
+		return this;
+	}
+
 	// Everyone reading me. One hop is the whole set — `mirror()` allows no chain.
 	copies(){ const found = []; this.root().walk(panel => { if (panel.data.mirror === this.id) found.push(panel); }); return found; }
 
@@ -166,7 +175,11 @@ export class Panel extends Item {
    ⚠ `self: "tl"` and no other code: size.css's `var(--panel-self-*, start)` fallback is the
    `align-self: start` those rules hardcoded before `self` existed, and `tl` is the code that
    reads back as start/start — any other default silently moves every saved hugging panel. */
-Panel.defaults = { dir: "row", template: "blank", align: "cc", self: "tl", tone: "surface", mode: "fill", grow: 1, display: "block", w: "fill", h: "fill", position: "static",
+/* ⚠ `h: "hug"` (2026-08-19) — a panel is a DIV in flow: its height is its content (never
+   below `--panel-min`), its width fills. `fill` is still one click away, and a workspace
+   that was handed a HEIGHT still divides it, because `hug` stretches on the cross axis
+   when nothing chose a `self`. doc/sizing.md. */
+Panel.defaults = { dir: "row", template: "blank", align: "cc", self: "tl", tone: "surface", mode: "fill", grow: 1, display: "block", w: "fill", h: "hug", position: "static",
 	/* The flex and grid words (glyphs.js's `WORDS`). ⚠ Every default here is EXACTLY what
 	   display.css hardcoded before they existed, so no saved document moves a pixel — and a
 	   default that answers means every picker can show which chip is on. */

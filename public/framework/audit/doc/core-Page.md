@@ -114,7 +114,7 @@ read both.
 rail + region, `ext/catalog`), `tabs()` (a bar + panel, `ext/tabs`), and
 `Sidebar` (a whole nav component, `core/Sidebar`) are five different renderings
 of the same underlying fact — *here are my children, and here is where you are*
-— and `core/Page/nav/page.js` already has the comparison table naming exactly
+— and `core/Page/old/nav/page.js` already has the comparison table naming exactly
 this ("which one to reach for") rather than pretending they're five unrelated
 features. `ext/Doc`'s `Doc extends Page` doesn't add a sixth: its Overview is a
 `catalog()` and its API/Docs sections are `tabs().ac("vertical")`, so the class

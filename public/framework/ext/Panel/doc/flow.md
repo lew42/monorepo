@@ -82,6 +82,18 @@ const flow = Flow.mounted.find(f => f.$root.el.closest(".layout-full"));
 **plus five demo panels** — each with its own flow. "The last one" is not the one you
 are looking at.
 
+## One door, live or replayed — `attach(root, $root, { steps })`
+
+`record(root, $root)` — `workspace.js`'s hook, called by every `panel()`/`workspace()` —
+is `attach()` with no options. The demo tab's whole addition (`ext/Panel/demo/`) is the
+other case: `attach(root, $ws, { steps })` points an already-mounted workspace's flow at
+`steps` (an earlier `flow.save()`'s own shape) instead of what it has recorded, then
+jumps straight to the newest one. It reuses `$root.flow` when there already is one rather
+than binding a second set of root listeners, and `record: false` follows automatically —
+so a demo's guide pane can be scrubbed forever and never adds a step of its own, while
+its follow-along pane is an ordinary `panel()` call and records exactly as it always has.
+One signature either a call site or a future `Workspace` class can reach for.
+
 ## Two things that bit, driving it headlessly
 
 ⚠ **`insert.js`'s `+` eats a seam drag.** It is `z-index: 5` over `grip.js`'s `2`: a row

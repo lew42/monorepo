@@ -32,6 +32,6 @@ Nothing in this tree is on disk, and the root's own url comes from its title
    child that forgets `content()` entirely) would just render a blank page
    rather than throw. *(simple, speculative.)*
 2. **No test that the sample tree's shape (nine children, three of them one
-   level deeper) still matches what callers like `core/Page/nav/` assume about
+   level deeper) still matches what callers like `core/Page/old/nav/` assume about
    it.** A structural change here silently changes four demos elsewhere.
    *(medium, speculative.)*

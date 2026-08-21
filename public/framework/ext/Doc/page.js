@@ -84,7 +84,7 @@ this.tabs().ac("vertical")   // the sub sections, as a left rail`);
 
 		md("## Why the lists are hand-typed");
 
-		md("`Object.getOwnPropertyNames(View.prototype)` would keep a method list in sync for free. It is still the wrong call: it cannot know which members have **prose**, and the prose is the feature.\n\nThe list is **authorial**, the same way [`children`](/framework/core/Page/children/) is: it says which members are worth reading, and in what order. That is the one thing reflection cannot answer.");
+		md("`Object.getOwnPropertyNames(View.prototype)` would keep a method list in sync for free. It is still the wrong call: it cannot know which members have **prose**, and the prose is the feature.\n\nThe list is **authorial**, the same way [`children`](/framework/core/Page/old/children/) is: it says which members are worth reading, and in what order. That is the one thing reflection cannot answer.");
 
 		md("## It shows what actually runs");
 

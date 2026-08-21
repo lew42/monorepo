@@ -117,7 +117,7 @@ this.tabs("guide api")               // a bar + the panel they render into
 this.tabs("guide api").ac("vertical")// the same, as a left rail
 new Sidebar({ brand: "Me", pages })  // a brand over links`);
 
-		md("All four read the same `nav_for(name)` entry, so a child cannot be named three different ways. → [Page](/framework/core/Page/nav/) and [Sidebar](/framework/core/Sidebar/)");
+		md("All four read the same `nav_for(name)` entry, so a child cannot be named three different ways. → [Page](/framework/core/Page/old/nav/) and [Sidebar](/framework/core/Sidebar/)");
 
 		h3("Can a url have a dynamic segment?");
 
@@ -125,7 +125,7 @@ new Sidebar({ brand: "Me", pages })  // a brand over links`);
     return { title: "Item " + name, content(){ p("…"); } };
 }`);
 
-		md("Define `route(name)` on the parent and `/items/42/` is yours. It runs for **undeclared** names only, so it structurally cannot shadow a child you declared — and it is tried before the filesystem, so a dynamic name costs no doomed request. → [Children](/framework/core/Page/children/)");
+		md("Define `route(name)` on the parent and `/items/42/` is yours. It runs for **undeclared** names only, so it structurally cannot shadow a child you declared — and it is tried before the filesystem, so a dynamic name costs no doomed request. → [Children](/framework/core/Page/old/children/)");
 
 		h2("Styling");
 

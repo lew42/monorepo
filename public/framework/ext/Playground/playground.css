@@ -1,0 +1,86 @@
+/* The toolbar spans the whole shell (design.md §1's sketch). `.pg-frame` is `.page`'s
+   one child — `flex v flex-1` (framework.css utilities) make it a column filling the
+   row: toolbar on top, `.pg-shell` (still one flex row, three regions, no nesting)
+   below. `min-height: 0` on both is what actually lets each region's `overflow: auto`
+   engage instead of growing to fit content. */
+@layer theme {
+
+	.pg-frame { min-height: 0; }
+	.pg-shell { min-height: 0; }
+
+	.pg-tree, .pg-canvas, .pg-properties {
+		display: flex; flex-direction: column; min-height: 0; position: relative;
+	}
+
+	.pg-tree { flex: 0 0 clamp(11em, var(--pg-tree, 16em), 30em); min-width: 0; }
+	.pg-canvas { flex: 1; min-width: 0; }
+	.pg-properties {
+		flex: 0 0 clamp(13em, var(--pg-props, 18em), 34em); min-width: 0;
+		border-inline-start: 1px solid var(--line);
+	}
+
+	.pg-tree-body, .pg-properties-body, .pg-canvas-body { flex: 1; min-height: 0; overflow: auto; }
+	.pg-tree-body { padding-inline-end: 0.75rem; }
+
+	/* The canvas box is `width:` the viewport preset, centred (design §4) — `.pg-canvas-body`
+	   centres, `.pg-viewport` carries the width so it can be WIDER than the room: `flex: none`
+	   stops the row from shrinking it back down, and the body's own `overflow: auto` (above)
+	   is what makes a 1280 preset scroll instead of squeezing into a narrower column. */
+	.pg-canvas-body { display: flex; justify-content: center; align-items: flex-start; padding: 2em; }
+	.pg-viewport { width: var(--pg-viewport, 100%); flex: none; }
+
+	/* The tree docks at the shell's START; `ext/grip`'s default `inset-inline-start: 0`
+	   is right for the END-docked drawer/dev-rail, so this flips the strip to the
+	   tree's own inline-END — the tree/canvas boundary is what it drags. */
+	.pg-tree .grip { inset-inline-start: auto; inset-inline-end: 0; }
+
+	/* `overflow-x: auto` stays a safety net for the narrow end (400 — design §1 never
+	   promised the toolbar a container query of its own), not the everyday case:
+	   `gap` is set directly here rather than the shared `.gap` utility, because a
+	   UTIL-layer rule beats a same-specificity THEME-layer one outright regardless of
+	   selector order (`code` skill §7) — the only way to pick a smaller number is to
+	   never let `.gap` apply at all. */
+	.pg-toolbar { padding: 0.5em 0.75em; gap: 0.4em; border-block-end: 1px solid var(--line); overflow-x: auto; }
+	/* `.theme-lew42 :is(button, .btn)` (`styles/layers/theme/lew42/lew42.css`) is
+	   0.7em/1.4em padding and OUTSPECIFICITIES a bare `.pg-btn` (two classes beat one,
+	   same `theme` layer) — meant for a normal button, not eleven packed into one row.
+	   `button.pg-btn` adds the tag back to win without touching the shared theme file. */
+	.pg-toolbar button.pg-btn { padding: 0.25em 0.5em; }
+	.pg-btn { white-space: nowrap; flex: none; }
+	/* The current viewport preset, same "on" convention `ext/Dropdown` already uses. */
+	.pg-preset-btn.on { background: var(--prim); color: white; border-color: var(--prim); }
+
+	/* Each verb cluster of the toolbar row (design §6's `│` separators); a divider on
+	   every group but the first, never on an empty slot (task 4's `document ▾` and
+	   viewport presets) so an unfilled slot draws nothing — no gap, no stray line. */
+	.pg-toolbar-group { flex: none; }
+	.pg-toolbar-group:not(:first-child) { padding-inline-start: 0.5em; border-inline-start: 1px solid var(--line); }
+	.pg-toolbar-slot:empty { display: none; }
+
+	/* The properties column (design §5) — no engine, so no per-field CSS: one field
+	   shape for `seg`/`text`/`num` alike, and the readout is just a rule above monospace
+	   text. `.pg-readout`'s content is set straight from `item.styles()` (`properties.js`)
+	   or the live node's OWN `style` attribute (`Playground.js`'s change path) — never both
+	   independently computed, so the two can't drift apart. */
+	.pg-properties-body { display: flex; flex-direction: column; gap: 0.75em; padding: 0.75em; }
+	.pg-props-head { font-size: 0.8em; font-weight: 700; letter-spacing: 0.02em; }
+	.pg-field { display: flex; flex-direction: column; gap: 0.25em; }
+	.pg-field-label { font-size: 0.75em; color: var(--subtle); }
+	.pg-seg { display: flex; flex-wrap: wrap; gap: 2px; }
+	/* Same theme-layer padding loss as `.pg-btn` above (0.7em/1.4em, 0,2,0 beating a
+	   bare `.pg-seg-btn`'s 0,1,0) — a segmented row of four wrapped 2-per-line. Needs
+	   TWO classes plus the tag to clear the theme rule's own two-class specificity. */
+	.pg-properties-body button.pg-seg-btn { padding: 0.2em 0.5em; font-size: 0.8em; }
+	.pg-seg-btn.pg-seg-active { background: var(--prim); color: white; border-color: var(--prim); }
+	.pg-readout {
+		margin-block-start: 0.25em; padding-block-start: 0.75em; border-block-start: 1px solid var(--line);
+		font-family: monospace; font-size: 0.75em; color: var(--subtle); white-space: pre-wrap; word-break: break-word;
+	}
+
+	/* Every canvas node is real DOM wearing the ITEM's own inline style (design §4) —
+	   this is chrome only, never a property `item.styles()` could also write: a border
+	   so an empty Box is still visible, a label chip, the selection outline. */
+	.pg-node { position: relative; border: 1px dashed var(--subtle); min-width: 1.5em; min-height: 1.5em; cursor: pointer; }
+	.pg-node-label { position: absolute; inset-block-start: -1.1em; inset-inline-start: 0; font-size: 0.7em; color: var(--subtle); white-space: nowrap; }
+	.pg-node.pg-selected { outline: 2px solid var(--prim); outline-offset: -1px; }
+}

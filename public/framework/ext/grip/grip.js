@@ -17,7 +17,7 @@ const html = document.documentElement;
  * ⚠ No rAF throttle, unlike ext/demo's `drag()`: `pointermove` is already delivered
  * once per frame, and this sets one custom property rather than re-laying-out a
  * live render. Not worth importing the demo system for. */
-export default function grip({ write, done }){
+export default function grip({ write, done, from = "end" }){
 	let width, edge;
 
 	return div.c("grip", () => span.c("grip-pill"))
@@ -30,7 +30,8 @@ export default function grip({ write, done }){
 			// and reading it, rather than `innerWidth`, is what lets a rail parked
 			// beside another one (ext/drawer, offset by `--devbar`) size to the pointer
 			// instead of past it.
-			edge = this.el.parentElement.getBoundingClientRect().right;
+			const rect = this.el.parentElement.getBoundingClientRect();
+			edge = from === "start" ? rect.left : rect.right;
 			html.classList.add("grip-sizing");
 		})
 
@@ -39,7 +40,7 @@ export default function grip({ write, done }){
 		.on("pointermove", function(e){
 			this.style("--grip-y", e.clientY + "px");
 			if (!html.classList.contains("grip-sizing")) return;
-			const px = edge - e.clientX;
+			const px = from === "start" ? e.clientX - edge : edge - e.clientX;
 			width = write(px) ?? px;
 		})
 

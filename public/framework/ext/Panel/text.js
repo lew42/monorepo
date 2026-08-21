@@ -15,7 +15,11 @@ import { level_of, FIELDS, tracked, record, box, fresh, text_observe } from "./p
    each edit down as an overlay on `panel.data.text` and replays it once the redraw has
    landed. One direction only: this file calls into `persist.js`, never the reverse.
    css: .panel-text-hot, .panel-text-on — plus `.panel-text-box`/`.panel-text-new`, drawn by
-   persist.js and styled here. */
+   persist.js and styled here.
+
+   The SAME click delegation also carries item selection (2026-08-19) — a cell one level up
+   from a run, on a flex/grid body only; `.panel-item-on` lives in display.css beside the
+   custom properties it rings, not here, since it is that file's word. doc/focus.md. */
 View.stylesheet(import.meta, "text.css");
 
 export const TEXT = { on: true };
@@ -38,8 +42,47 @@ const select = el => { selected?.rc("panel-text-on"); selected = viewed(el); sel
    `t` key below; `panel-focus` carries the item, and the run knows its panel by DOM. */
 document.addEventListener("panel-focus", () => {
 	if (selected && !selected.el.closest(".panel")?.matches(".focus")) select(null);
+	if (item_selected && !item_selected.el.closest(".panel")?.matches(".focus")) select_item(null, item_selected.panel);
 });
-document.addEventListener("panel-unfocus", () => { if (selected) select(null); });
+document.addEventListener("panel-unfocus", () => {
+	if (selected) select(null);
+	if (item_selected) select_item(null, item_selected.panel);
+});
+
+/* A cell inside a flex/grid body's item selection — a run's shape one level up (a DIRECT
+   CHILD of the body, never a subtree), riding beside `selected` rather than replacing it:
+   the two can never both be showing, since a click that reaches a cell has already failed
+   `SELECTOR` and cannot be a run. `panel` is the LEAF, kept on the record because the module
+   scope here has no closure over it the way `panel-focus`'s clearer needs one.
+   ⚠ `panel-item` — the redraw signal `tools.js` mirrors `panel-text` with — carries the
+   PANEL, not the cell: the rail already knows which cell from `item_selection()` below. */
+let item_selected;
+
+const select_item = (el, panel, key) => {
+	item_selected?.el.classList.remove("panel-item-on");
+	item_selected = el ? { el, panel, key } : null;
+	el?.classList.add("panel-item-on");
+	document.dispatchEvent(new CustomEvent("panel-item", { detail: panel }));
+};
+
+/* `properties.js`'s one door onto this state. Self-healing: a template redraw (a `paint()`
+   any OTHER word triggers) destroys the cell but not this reference — the words it wrote
+   survive (`items_apply` replays them by key), only the DOM node and the rail's hold on it
+   do not, so a stale read clears itself rather than the rail showing a ghost selection. */
+export const item_selection = () => {
+	if (item_selected && !item_selected.el.isConnected) item_selected = null;
+	return item_selected;
+};
+
+/* Escape steps the selection back ONE level — an item to its leaf — before it ever reaches
+   focus.js's own Escape, which steps the LEAF out and knows nothing about a cell. Safe only
+   because this listener is bound at MODULE load, and focus.js's is bound per `mount()`,
+   always later: registration order is delivery order for two listeners on one element. */
+document.addEventListener("keydown", e => {
+	if (e.key !== "Escape" || !item_selected) return;
+	e.stopImmediatePropagation();
+	select_item(null, item_selected.panel);
+});
 
 /* The in-place overlay: what this run IS and how long its line runs, on the thing itself.
    Those are the two facts you cannot get by looking — a heading and a bold paragraph are
@@ -92,15 +135,40 @@ export function text_layers($body, item){
 	root.addEventListener("mouseover", e => mark(inside(root, e.target.closest(SELECTOR))));
 	root.addEventListener("mouseleave", () => mark(null));
 
+	/* The panel first, its text second (2026-08-19, the owner: "sometimes, when clicking a
+	   panel, it doesn't select… a second click works"). A run stole EVERY click on text —
+	   most of a content panel's face — so the panel never focused and the rail showed a
+	   chip instead. Now a click on text in a panel that is not yet focused is left alone:
+	   it bubbles to `view()`'s own `.click()` (workspace.js), which focuses the panel (or
+	   its group — focus.js's `drill()`); only inside the ALREADY focused panel does a click
+	   pick the run, and that one stops here so the panel's handler is not re-run. Clicking
+	   the selected run again lets it go and hands the rail back to the panel — announced
+	   as `panel-focus`, which is what "the selection is the panel again" is. */
 	root.addEventListener("click", e => {
 		const el = inside(root, e.target.closest(SELECTOR));
-		if (!el) return;
+		const panel_focus = root.closest(".panel")?.matches(".focus");
 
-		// ⚠ Stops workspace.js's own selection click (`view()`'s `.click()`, which tests
-		// `e.target.closest(".panel-bar, .panel-body")`) — without this, picking a word
-		// of text also focuses the panel underneath it.
+		if (el){
+			if (!panel_focus) return;
+			e.stopPropagation();
+			if (el === selected?.el){
+				select(null);
+				document.dispatchEvent(new CustomEvent("panel-focus", { detail: item }));
+			} else select(el);
+			return;
+		}
+
+		/* No run under the click — an ITEM, one level up, the same drill: the panel first
+		   (already true, `panel_focus`), then its item. Flex/grid only: a `block` body's
+		   children are not arranged by anything a rail word could change. */
+		if (!panel_focus || !["flex", "grid"].includes(item.get("display"))) return;
+		const cell = [...root.children].find(c => c === e.target || c.contains(e.target));
+		if (!cell) return;
+
 		e.stopPropagation();
-		select(el === selected?.el ? null : el);
+		const key = cell.dataset.cell ?? String([...root.children].indexOf(cell));
+		if (cell === item_selected?.el) select_item(null, item);
+		else select_item(cell, item, key);
 	});
 
 	// ⚠ `text_observe()`'s dispose, passed straight through — persist.js is what

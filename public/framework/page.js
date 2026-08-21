@@ -17,7 +17,7 @@ export default new Page({
 	 * missed (core/Page/readme.md): set `this.view`, carry `.page`, never nest a
 	 * second `.page` inside. */
 	render(){
-		return this.view ??= div.c("page page-framework topic flex fill", () => {
+		return this.view ??= div.c("page page--framework topic flex fill", () => {
 
 			// Both levels are already loaded — the Router waited on `loading` before
 			// activating me — so this is built once, complete, and never rebuilt.

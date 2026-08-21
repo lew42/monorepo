@@ -9,7 +9,8 @@
         .panel-t-date, .panel-t-haze, .panel-t-aurora, .panel-t-drift,
         .panel-t-depth, .panel-t-rail, .panel-t-link, .panel-t-toc, .panel-t-head,
         .panel-t-line, .panel-t-brand, .panel-t-cell — plus .panel-t-space, .panel-t-screen,
-        .panel-t-dial and .panel-t-seed, which generate.js emits into this sheet, and
+        .panel-t-scene, .panel-t-dial and .panel-t-seed - the last two of which
+        generate.js emits into this sheet - and
         .panel-props* , which properties.js emits into it. */
 import { View, div, span, icon } from "/app.js";
 
@@ -33,6 +34,12 @@ const TOPICS = "Overview Layout Type Colour Motion Tokens".split(" ");
 
 const tone_of = panel => panel?.get?.("tone") ?? "surface";
 
+/* A SCENE is a drawing with nothing to measure - empty layers, or a handful of words - so
+   a hugging panel would size it to nothing. `.panel-t-scene` is the class that declares
+   its own floor instead (templates.css); every OTHER template measures what it holds,
+   which is what `hug` means since 2026-08-19. doc/templates.md. */
+const SCENE = "panel-t panel-t-scene";
+
 const section = name => ({
 	icon: SECTIONS[name],
 	tone: true,
@@ -42,12 +49,12 @@ const section = name => ({
 	},
 });
 
-const scene = (name, layers) => div.c("panel-t panel-t-" + name, () => {
+const scene = (name, layers) => div.c(SCENE + " panel-t-" + name, () => {
 	for (let i = 0; i < layers; i++) div.c("panel-t-layer");
 });
 
 export const templates = {
-	blank: { icon: "check_box_outline_blank", draw(){ div.c("panel-t panel-t-blank checkered"); } },
+	blank: { icon: "check_box_outline_blank", draw(){ div.c(SCENE + " panel-t-blank checkered"); } },
 
 	/* The one entry whose pieces are DIRECT children of the body. Every other template here
 	   draws into a single `.panel-t` wrapper — a body with one child, which a leaf's `flex`
@@ -55,7 +62,9 @@ export const templates = {
 	   numbered boxes is the smallest content those words can be SEEN on, and the smallest
 	   change that gives them one: no shipped template loses its wrapper. */
 	cells: { icon: "apps", draw(){
-		for (let i = 1; i <= 12; i++) div.c("panel-t-cell", String(i));
+		// `data-cell` is the item words' own key (persist.js's `items_apply`) — stable
+		// across a repaint even though nothing else here addresses a cell by name.
+		for (let i = 1; i <= 12; i++) div.c("panel-t-cell", String(i)).attr("data-cell", i);
 	} },
 
 	// The inspector. `focus: true` means this entry READS the focused panel — and so is
@@ -65,17 +74,17 @@ export const templates = {
 	} },
 
 	word: { icon: "title", draw(){
-		div.c("panel-t panel-t-word", () => { span("lew"); span.c("panel-t-accent", "42"); });
+		div.c(SCENE + " panel-t-word", () => { span("LEW"); span.c("panel-t-accent", "42"); });
 	} },
 
 	wall: { icon: "insights", draw(){
-		div.c("panel-t panel-t-wall", () => STATS.forEach(([value, label]) =>
+		div.c(SCENE + " panel-t-wall", () => STATS.forEach(([value, label]) =>
 			div.c("panel-t-stat", () => { div.c("panel-t-n", value); div.c("panel-t-l", label); })));
 	} },
 
 	clock: { icon: "schedule", draw(){
 		let live = false, $time, $date;
-		const $clock = div.c("panel-t panel-t-clock", () => {
+		const $clock = div.c(SCENE + " panel-t-clock", () => {
 			$time = div.c("panel-t-time");
 			$date = div.c("panel-t-date");
 		});
@@ -90,7 +99,7 @@ export const templates = {
 	} },
 
 	haze: { icon: "water", tone: true, draw($body, panel){
-		div.c("panel-t panel-t-haze").style("--haze", "var(" + (BASE[tone_of(panel)] ?? "--surface") + ")");
+		div.c(SCENE + " panel-t-haze").style("--haze", "var(" + (BASE[tone_of(panel)] ?? "--surface") + ")");
 	} },
 
 	aurora: { icon: "gradient", draw(){ scene("aurora", 3); } },

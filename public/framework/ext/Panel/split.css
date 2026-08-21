@@ -18,6 +18,12 @@
 	.panel-edge-l { inset-inline-start: var(--clear); inset-block: var(--panel-bar-h) var(--clear); inline-size: var(--edge); }
 	.panel-edge-r { inset-inline-end: var(--clear); inset-block: var(--panel-bar-h) var(--clear); inline-size: var(--edge); }
 
+	/* The two edges that also RESIZE (split.js's `SIZE`). The cursor says the gesture that
+	   MOVES something — a click still splits, and the title says all three. `touch-action`
+	   because a pointer drag on a strip inside a scrolling body is otherwise a scroll. */
+	.panel-edge-r { cursor: ew-resize; touch-action: none; }
+	.panel-edge-b { cursor: ns-resize; touch-action: none; }
+
 	/* Only while the panel is the one under the pointer — otherwise every ancestor's edge
 	   strip stacks over the leaf you are aiming at, the same reason only one bar lights. */
 	.panel-edge { pointer-events: none; }

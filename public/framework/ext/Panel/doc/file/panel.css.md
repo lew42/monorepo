@@ -16,8 +16,9 @@ would let content force the box open instead.
 `.panel-workspace { height: var(--panel-height, 34em) }` is the one place a
 height is asserted: chrome is sized by its region, never by its content, and a
 call site retunes the token (`.style("--panel-height", "14em")`). The same rule
-declares the module's second token, `--panel-hug: 16em` — the extent a *hugging*
-panel takes on the axis its content cannot measure, retunable the same way.
+declares the module's second token, `--panel-section: 16em` — the floor under a
+section of a `mode: document` workspace, retunable the same way. It is not a
+width, and nothing else reads it.
 
 ## `--panel-grow` is the grip's write target
 
@@ -82,97 +83,56 @@ badge is read with the pointer somewhere else.
 inspector's root; `workspace.js` reaches that file through `templates.js`. It is
 the fifth foreign class name in this sheet and the second used as a condition.
 
-## The hug/fill trap, measured
+## Sizing with no containers (2026-08-19)
 
 ```css panel.css
-.panel.hug { flex: 0 0 auto; }
-.panel.hug > .panel-body { flex-basis: auto; min-inline-size: min(var(--panel-hug), 100cqi); }
+.panel { flex-grow: var(--panel-grow, 1); max-inline-size: 100%; overflow: hidden; position: relative; }
+.panel-workspace, .panel-items { position: relative; }
+.panel-body:has(> .panel-t) { grid-template-rows: 100%; }
 ```
 
-⚠ **The basis, and only the basis.** A `flex: 1 1 0` body inside a panel that is
-itself `0 0 auto` resolves to **zero height**, because a `flex-basis: 0` box has
-no content size of its own to report upward — so the body's basis becomes `auto`
-while grow and shrink stay what the `1 1 0` rule above gave every level. That is
-what lets a panel hugging the *width* of a row still fill the row's height, and
-scroll instead of clipping when a band overruns it (measured: a `features` band
-hugged in a row is 775px of content in a 420px body, and the body scrolls).
+Every `container-type` in this file is gone, and with it `--panel-hug` as a
+width. `hug` is `flex: 0 0 auto` with an auto basis and the box **measures what
+it holds** — the whole reason the token existed was that a size container may not
+be sized by its contents, so a hugging body measured 0 and needed a declared
+16em. [sizing](/framework/ext/Panel/doc/sizing/) is the current account;
+[decisions](/framework/ext/Panel/doc/decisions/) has the 61-lines-to-0 table and
+what it cost.
 
-## The declared extent is capped by the slot it is handed
+Three lines carry what the containment was quietly doing:
+
+- **`max-inline-size: 100%` is the cap.** 16em was a promise a 200px slot could
+  not keep; the percentage resolves against the slot (`.panel-items` /
+  `.panel-workspace`), never against this box, so it is not the self-measuring
+  loop `cq` units were dodging.
+- **`position: relative` on the two slots.** `container-type: size` was the
+  containing block a *floating* panel (`position: absolute`, `size.css`) landed
+  in — by accident. Without it an abspos panel escapes to the page.
+  `insert.css` states the same thing for `.panel-items` and is on the delete
+  list, so this file states it itself.
+- **`grid-template-rows: 100%`** gives a template a row to fill, since the body
+  is a grid of `min-content` rows and a percentage height would otherwise have
+  nothing to resolve against. In a hugging panel that row is indefinite, so it
+  falls back to the content — which is what hug means. A drawing with nothing to
+  measure declares its own floor as `.panel-t-scene` (`templates.css`).
+
+## `mode: document` — the last four rules, and the one that makes the floor a floor
 
 ```css panel.css
-.panel-workspace, .panel-items { container-type: size; }
+.panel-mode-document > .panel-items.v > .panel { flex: 1 0 auto; min-block-size: var(--panel-section); }
+.panel-mode-document .panel-items.v > .panel,
+.panel-mode-document .panel > :is(.panel-body, .panel-items) { flex-basis: auto; }
 ```
 
-16em is a promise a 200px workspace cannot keep. Measured before this rule: a
-hugged leaf in a 200px workspace was a **248.3px body 48.3px past the edge**, the
-same 48.3px overhang on the block axis in a 200px-*tall* one, and a hug in a 200px
-slot of a 1200px workspace put a 248.3px body inside its own 200px panel. Both
-extents now read `min(var(--panel-hug), 100cq…)` — the declared extent, or what
-there is, whichever is smaller.
-
-⚠ **The cap's reference cannot be the panel.** `.panel` hugging is `flex: 0 0 auto`
-and takes its size from this very body, so `100%` or a container on `.panel` is the
-self-measuring loop `--panel-hug` exists to escape: the percentage resolves to zero
-while the panel is being sized, and the hug collapses again. `.panel-workspace` and
-`.panel-items` are the two boxes sized *from above* — a declared height, then
-`flex: 1 1 0` all the way down — so containment has no content size to lose. Query
-units resolve against the **nearest** ancestor container, which is why one rule
-covers both readings: a hug inside a split caps against its own row or column, a
-root leaf against the workspace.
-
-Measured at 1600×950, before → after:
-
-| case | before | after |
-|---|---|---|
-| hug in a 1200px row | 248.3 × 600 | **248.3 × 600** |
-| hug in a 1200px column | 1200 × 248.3 | **1200 × 248.3** |
-| root leaf hug, 1200px | 248.3 × 600 | **248.3 × 600** |
-| `hero` (real content) hugged in a column | 1200 × 288.7 | **1200 × 288.7** |
-| hug in a 200px workspace | 248.3 wide, 48.3 past | 200 wide, **0 past** |
-| hug in a 200px-tall workspace | 248.3 tall, 48.3 past | 200 tall, **0 past** |
-| hug in a 200px slot of a 1200px workspace | 248.3 in a 200px panel | **200** |
-
-Roomy is pixel-identical from both doors: the bar's `aspect_ratio` toggle and
-`seam.js`'s menu both land 248.3 × 600 at 1600, and both land 200 × 600 in a 200px
-workspace. Every panel box on `/framework/ext/Panel/`, its `/full/` route,
-`/framework/ext/editor/` and `/framework/` is unmoved at 1600 **and** 400 (58, 71,
-20 and 3 boxes measured, zero changed) — the cap is inert until something is too
-narrow to honour it.
-
-## The 3440 story lives in three rules — and hug is one of them
-
-```css panel.css
-.panel:not(.hug) > .panel-body { container-type: size; }
-.panel.hug > .panel-body:has(> .panel-t) { container-type: size; block-size: min(var(--panel-hug), 100cqb); }
-.panel.hug > .panel-body:not(:has(> .panel-t)) { container-type: inline-size; }
-```
-
-`container-type: size` needs a box whose size the content does not decide —
-exactly what a *filling* panel is. This is the seam `templates.css`'s `cq` units
-size against.
-
-⚠ **Containment reports an EMPTY box, and that is what used to collapse hug.**
-`container-type` on an axis means the box is measured as if it had no contents,
-so in any shrink-to-fit context — which is what `mode: "hug"` asks for — the
-body measured **0px wide** and the panel with it (517.8 → 0, measured; and 0 for
-*every* template, not only the scenes). A hug in a *column* failed the other
-way: `cqh` is undefined in an inline-size container, so `.panel-t`'s
-`min-block-size: 100cqh` fell back to the small viewport and drew a 900px-tall
-panel.
-
-The fix is to give hug an honest extent instead of a measurement it cannot take.
-A `cq` **scene** has no content size to hug at all, so it takes `--panel-hug` on
-both axes and gets the same size containment a filling panel gives it — meaning
-a hugged scene renders exactly as a 16em panel of that scene would. A hugging
-body holding **real content** — a section band, a `panel(fn)` drawing — still
-measures its own block axis (a `hero` hugged in a column is its own 288.7px, as
-before), so only its inline axis can be contained, and `--panel-hug` floors that.
-
-Measured, every template, at 1600×950: hug in a row = 248.3px wide (16em) with
-the row's full height; hug in a column = 248.3px tall for a scene, content height
-for a band; fill unchanged to the pixel. Both extents carry the slot cap above —
-`min(…, 100cqi)` and `min(…, 100cqb)` — which changes none of those numbers and
-only bites where 16em was never available.
+`--panel-section` is `--panel-hug` renamed and reduced to one job: the floor
+under a section. ⚠ A **floor**, not a height — and it only became one with the
+second rule. A `flex: 1 1 0` child contributes a zero basis to a box that is
+measuring itself, so with containment already gone every section still sat at
+241px and its content scrolled inside it. Nothing in a document divides the
+block axis; the inline axis is untouched, so a row of columns still divides its
+width by `grow`. Measured with fixed seeds: three rolled sections went from
+241/241/241 with **55 boxes scrolling their own content** to 13012/1832/5062
+with **0**.
 
 ## Three rules reach outside the module
 
@@ -183,9 +143,9 @@ than shrink-wrap it. `.panel-items > .drag-placeholder` (`ext/Draggable`'s
 class) gets `flex: 0 0 4em`, sized on whichever axis it lands in; its outline is
 `draggable.css`'s and its px height is cleared in `PanelDrag.start()`.
 
-The third is the two hug rules above, which **match** `.panel-t`
-(`templates.js`'s class) to tell a `cq` scene from real content. They style
-nothing of it — the test is structural — and the loading edge is honest, because
+The third is `.panel-body:has(> .panel-t)` above, which **matches**
+`templates.js`'s class to give a template a row to fill. It styles nothing of it
+— the test is structural — and the loading edge is honest, because
 `workspace.js` imports `templates.js` on the line under the one that loads this
 sheet.
 
@@ -219,15 +179,10 @@ Record: [Focus, and the panel that reads it](/framework/ext/Panel/doc/focus/).
 2. **`--panel-height`'s `34em` default is overridden inline by nearly every call
    site** (`14em`, `22em`, `30em`, `100%`), which is a default earning its keep in
    no demo on the page. *(simple, speculative)*
-3. **`--panel-hug`'s `16em` is one number for both axes and every template**, and
-   a slot narrower than 16em could not honour it — measured at 200px, a 248.3px
-   body inside a 200px panel, clipped. Capped now (above): both uses read
-   `min(--panel-hug, 100cq…)` against the nearest slot box, and roomy widths are
-   unmoved to the pixel. *(simple — done)*
+3. **The declared extent is gone** — a hugging panel measures its content and
+   `max-inline-size: 100%` caps it at its slot. *(done, 2026-08-19)*
 4. **The cap is per panel, so N hugs in one cramped row still overflow it.**
-   Each caps at the whole slot rather than at its share of it: measured, two hugs
-   in a 200px row are 200px each and the row scrolls to 400 (it was 496.6 before
-   the cap, so the same arrangement is better and not fixed). Sharing needs both a
-   shrink factor on `.panel.hug` and a cap of *slot ÷ hugs*, which CSS cannot
-   count — a second sizing currency beside `grow`, for an arrangement nobody has
-   asked for yet. *(medium, speculative)*
+   Each caps at the whole slot rather than at its share of it. Sharing needs both
+   a shrink factor and a cap of *slot ÷ hugs*, which CSS cannot count — a second
+   sizing currency beside `grow`, for an arrangement nobody has asked for yet.
+   *(medium, speculative)*

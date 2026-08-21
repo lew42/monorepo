@@ -1,0 +1,463 @@
+[
+ {
+  "n": 1,
+  "step": "goto",
+  "verb": "goto",
+  "args": [],
+  "png": "01-goto.png",
+  "value": null,
+  "error": null,
+  "errors": [],
+  "flags": [
+   "missing .drawer"
+  ],
+  "doc": {
+   "sw": 1280,
+   "cw": 1280,
+   "sh": 900,
+   "ch": 900
+  },
+  "rects": {
+   ".drawer": {
+    "before": null,
+    "after": null,
+    "moved": null
+   },
+   ".pages": {
+    "before": null,
+    "after": {
+     "x": 0,
+     "y": 0,
+     "w": 1280,
+     "h": 900
+    },
+    "moved": null
+   }
+  }
+ },
+ {
+  "n": 2,
+  "step": "eval import('/app.js').then(m => { m.drawer(($slot, $body) => { $slot.el.textContent = 'Forced'; $body.el.textContent = 'Opened by eval — the module API, not a click.'; }); return m.drawer.showing(); })",
+  "verb": "eval",
+  "args": [
+   "import('/app.js').then(m => { m.drawer(($slot, $body) => { $slot.el.textContent = 'Forced'; $body.el.textContent = 'Opened by eval — the module API, not a click.'; }); return m.drawer.showing(); })"
+  ],
+  "png": "02-eval.png",
+  "value": true,
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 1280,
+   "cw": 1280,
+   "sh": 900,
+   "ch": 900
+  },
+  "rects": {
+   ".drawer": {
+    "before": null,
+    "after": {
+     "x": 976,
+     "y": 0,
+     "w": 304,
+     "h": 900
+    },
+    "moved": null
+   },
+   ".pages": {
+    "before": {
+     "x": 0,
+     "y": 0,
+     "w": 1280,
+     "h": 900
+    },
+    "after": {
+     "x": 0,
+     "y": 0,
+     "w": 981,
+     "h": 900
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": -299,
+     "dh": 0
+    }
+   }
+  }
+ },
+ {
+  "n": 3,
+  "step": "wait 400",
+  "verb": "wait",
+  "args": [
+   "400"
+  ],
+  "png": "03-wait.png",
+  "value": null,
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 1280,
+   "cw": 1280,
+   "sh": 900,
+   "ch": 900
+  },
+  "rects": {
+   ".drawer": {
+    "before": {
+     "x": 976,
+     "y": 0,
+     "w": 304,
+     "h": 900
+    },
+    "after": {
+     "x": 976,
+     "y": 0,
+     "w": 304,
+     "h": 900
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   },
+   ".pages": {
+    "before": {
+     "x": 0,
+     "y": 0,
+     "w": 976,
+     "h": 900
+    },
+    "after": {
+     "x": 0,
+     "y": 0,
+     "w": 976,
+     "h": 900
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   }
+  }
+ },
+ {
+  "n": 4,
+  "step": "eval (document.documentElement.classList.add('grip-sizing'), document.documentElement.className)",
+  "verb": "eval",
+  "args": [
+   "(document.documentElement.classList.add('grip-sizing'), document.documentElement.className)"
+  ],
+  "png": "04-eval.png",
+  "value": "grip-sizing",
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 1280,
+   "cw": 1280,
+   "sh": 900,
+   "ch": 900
+  },
+  "rects": {
+   ".drawer": {
+    "before": {
+     "x": 976,
+     "y": 0,
+     "w": 304,
+     "h": 900
+    },
+    "after": {
+     "x": 976,
+     "y": 0,
+     "w": 304,
+     "h": 900
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   },
+   ".pages": {
+    "before": {
+     "x": 0,
+     "y": 0,
+     "w": 976,
+     "h": 900
+    },
+    "after": {
+     "x": 0,
+     "y": 0,
+     "w": 976,
+     "h": 900
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   }
+  }
+ },
+ {
+  "n": 5,
+  "step": "eval (document.querySelector('.app').style.setProperty('--drawer-w', '1100px'), getComputedStyle(document.querySelector('.app')).getPropertyValue('--drawer'))",
+  "verb": "eval",
+  "args": [
+   "(document.querySelector('.app').style.setProperty('--drawer-w', '1100px'), getComputedStyle(document.querySelector('.app')).getPropertyValue('--drawer'))"
+  ],
+  "png": "05-eval.png",
+  "value": "1100px",
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 1280,
+   "cw": 1280,
+   "sh": 900,
+   "ch": 900
+  },
+  "rects": {
+   ".drawer": {
+    "before": {
+     "x": 976,
+     "y": 0,
+     "w": 304,
+     "h": 900
+    },
+    "after": {
+     "x": 180,
+     "y": 0,
+     "w": 1100,
+     "h": 900
+    },
+    "moved": {
+     "dx": -796,
+     "dy": 0,
+     "dw": 796,
+     "dh": 0
+    }
+   },
+   ".pages": {
+    "before": {
+     "x": 0,
+     "y": 0,
+     "w": 976,
+     "h": 900
+    },
+    "after": {
+     "x": 0,
+     "y": 0,
+     "w": 416,
+     "h": 900
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": -560,
+     "dh": 0
+    }
+   }
+  }
+ },
+ {
+  "n": 6,
+  "step": "wait 300",
+  "verb": "wait",
+  "args": [
+   "300"
+  ],
+  "png": "06-wait.png",
+  "value": null,
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 1280,
+   "cw": 1280,
+   "sh": 900,
+   "ch": 900
+  },
+  "rects": {
+   ".drawer": {
+    "before": {
+     "x": 180,
+     "y": 0,
+     "w": 1100,
+     "h": 900
+    },
+    "after": {
+     "x": 180,
+     "y": 0,
+     "w": 1100,
+     "h": 900
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   },
+   ".pages": {
+    "before": {
+     "x": 0,
+     "y": 0,
+     "w": 416,
+     "h": 900
+    },
+    "after": {
+     "x": 0,
+     "y": 0,
+     "w": 416,
+     "h": 900
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   }
+  }
+ },
+ {
+  "n": 7,
+  "step": "eval (() => { const a = document.querySelector('.drawer').getBoundingClientRect(), b = document.querySelector('.pages').getBoundingClientRect(); return { drawer: [Math.round(a.x), Math.round(a.width)], pages: [Math.round(b.x), Math.round(b.width)], covered_px: Math.round(b.right - a.left) }; })()",
+  "verb": "eval",
+  "args": [
+   "(() => { const a = document.querySelector('.drawer').getBoundingClientRect(), b = document.querySelector('.pages').getBoundingClientRect(); return { drawer: [Math.round(a.x), Math.round(a.width)], pages: [Math.round(b.x), Math.round(b.width)], covered_px: Math.round(b.right - a.left) }; })()"
+  ],
+  "png": "07-eval.png",
+  "value": {
+   "drawer": [
+    180,
+    1100
+   ],
+   "pages": [
+    0,
+    416
+   ],
+   "covered_px": 236
+  },
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 1280,
+   "cw": 1280,
+   "sh": 900,
+   "ch": 900
+  },
+  "rects": {
+   ".drawer": {
+    "before": {
+     "x": 180,
+     "y": 0,
+     "w": 1100,
+     "h": 900
+    },
+    "after": {
+     "x": 180,
+     "y": 0,
+     "w": 1100,
+     "h": 900
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   },
+   ".pages": {
+    "before": {
+     "x": 0,
+     "y": 0,
+     "w": 416,
+     "h": 900
+    },
+    "after": {
+     "x": 0,
+     "y": 0,
+     "w": 416,
+     "h": 900
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   }
+  }
+ },
+ {
+  "n": 8,
+  "step": "shot",
+  "verb": "shot",
+  "args": [],
+  "png": "08-shot.png",
+  "value": null,
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 1280,
+   "cw": 1280,
+   "sh": 900,
+   "ch": 900
+  },
+  "rects": {
+   ".drawer": {
+    "before": {
+     "x": 180,
+     "y": 0,
+     "w": 1100,
+     "h": 900
+    },
+    "after": {
+     "x": 180,
+     "y": 0,
+     "w": 1100,
+     "h": 900
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   },
+   ".pages": {
+    "before": {
+     "x": 0,
+     "y": 0,
+     "w": 416,
+     "h": 900
+    },
+    "after": {
+     "x": 0,
+     "y": 0,
+     "w": 416,
+     "h": 900
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   }
+  }
+ }
+]

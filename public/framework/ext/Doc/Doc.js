@@ -7,7 +7,7 @@ import "../tabs/tabs.js";      // this.tabs() — ext leaning on ext, the allowe
 import "../catalog/catalog.js";   // this.catalog() — the Overview section is one
 
 /* css: .doc-page, .doc-well, .doc-title, .doc-section — all emitted below.
-   Also .tab-bar (../tabs), .files (../files) and .page-catalog-pages / .page-intro /
+   Also .tab-bar (../tabs), .files (../files) and .page-catalog-pages / .page--intro /
    .page-title (../catalog and core/Page) — every emitter is imported above. */
 View.stylesheet(import.meta, "Doc.css");
 
@@ -50,7 +50,7 @@ export class Doc extends Page {
 			title: `${this.title} ${label}`,
 			render(){
 				return this.view ??= div.c("page doc-section", () => this.tabs().ac("vertical"))
-					.ac("page-" + this.name);
+					.ac("page--" + this.name);
 			},
 			...config,
 		});
@@ -74,7 +74,7 @@ export class Doc extends Page {
 			initialize(){ this.catalog(); },
 			render(){
 				return this.view ??= div.c("page doc-section", () => this.content())
-					.ac("page-" + this.name);
+					.ac("page--" + this.name);
 			},
 		});
 	}
@@ -101,7 +101,7 @@ export class Doc extends Page {
 		return this.section("files", "Files", {
 			render(){
 				return this.view ??= div.c("page doc-section doc-files", () => doc.browser())
-					.ac("page-files");
+					.ac("page--files");
 			},
 		});
 	}
@@ -222,7 +222,7 @@ export class Doc extends Page {
 			this.well();
 			this.tabs(this.bar().join(" ")).ac("block");
 		})
-			.ac(this.name && "page-" + this.name)
+			.ac(this.name && "page--" + this.name)
 			.ac(this.classes);
 	}
 }

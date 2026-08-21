@@ -26,7 +26,7 @@ also not a new pattern: `ext/highlight` already patches `code`.
 
 The harder question was the two `@layer util` rules that named `.tab-panel` and
 `.tabs.vertical` — the tab-panel default-page fallback (part of the arrangement
-contract) and `.page:has(> .tabs.vertical) { --measure: 78em }`. Leaving either behind
+contract) and `.page:has(> .tabs.vertical) { --measure: 78em }` (since 2026-08-19 `.page > .tabs.vertical { grid-column: wide }` — the rail takes the room instead of widening the cap). Leaving either behind
 in `Page.css` would have made **core** style a class only an **ext** emits: the exact
 undeclarable dependency `styles/readme.md` §8 exists to prevent, since core may never
 import an ext to legitimize the reference.

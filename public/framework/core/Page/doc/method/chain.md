@@ -4,7 +4,7 @@
 `framework/core/Router/Router.js:59` (await the entering chain's `loading`),
 `:82-83` (diff the leaving and entering chains), `:102` (the Router's own
 `chain()`), `:124` (`mark_links()`, via `mark()`). One documented reader outside:
-`core/Page/nav/page.js`, as the by-hand way to build breadcrumbs.
+`core/Page/old/nav/page.js`, as the by-hand way to build breadcrumbs.
 
 **Necessity** — yes. Navigation is a diff of two chains; without this the Router
 would climb `parent` itself in four places.

@@ -51,11 +51,11 @@ roughly a 600px screen; past ~1070px the panel is the screen at 1:1.
 `fill` page whose regions scroll *inside* it, and that needs a height it did not
 choose. Neither an auto grid row nor `min-block-size` caps one: a `bands` layout
 laid itself out 1145px tall in an 820px panel and simply overflowed. Hence both
-`block-size: 100cqh` and `grid-template-rows: 100%` on the screen. (`hug` is
-handled by `panel.css` rather than here: a hugging body holding a `.panel-t`
-scene — which `space` draws — gets `container-type: size` and a declared
-`block-size: var(--panel-hug)`, so `cqh` resolves against 16em instead of
-falling back to the viewport.)
+`block-size: 100%` and `grid-template-rows: 100%` on the screen, resolving against
+the row `panel.css` gives every `.panel-t`. (In a HUGGING panel that row is
+indefinite and the screen falls back to its content — hug measures now, and the
+scene `space` draws declares its own floor as `.panel-t-scene`:
+[sizing](/framework/ext/Panel/doc/sizing/).)
 
 The dial sits **bottom-right** because `.panel-bar` is a full-width strip
 floating over the top of every panel and hit-tests as soon as the panel is

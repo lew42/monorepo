@@ -20,11 +20,15 @@ import { simulate, watch } from "./stage.js";
 const PHONE   = { width: 390, height: 844 };
 const MONITOR = { width: 3440, height: 1440 };
 
-export default function twin(fn){
-	return div.c("flex gap", () => { pane(PHONE, fn); pane(MONITOR, fn); }).style("--gap", "0.4em");
+// `devices` defaults to the phone/monitor pair this module was built for — a third
+// caller (`ext/Panel/Workspace/viewports.js`'s "all") hands in its own four, and it's
+// the same function over any list. `pane` is exported alongside it: the "all" viewport
+// wants the frames, not the side-by-side row this default arrangement draws.
+export default function twin(fn, devices = [PHONE, MONITOR]){
+	return div.c("flex gap", () => devices.forEach(d => pane(d, fn))).style("--gap", "0.4em");
 }
 
-function pane({ width, height }, fn){
+export function pane({ width, height }, fn){
 	let $view;
 
 	const $box = div(() => {

@@ -64,6 +64,10 @@ is handed — so a rail cannot remember a width it refused to take.
 - **Both rails resize**: drawer +160px → width 459 and `.app`'s reserved strip 459
   (one number, both directions); dev rail +200px → `--dev-rail` 266px → 466px.
 
+**`from: "start"` (2026-08-19):** `ext/Playground`'s tree column docks at the shell's
+start, not the screen's end — `edge = rect.left; px = clientX - edge`, default `"end"`
+unchanged; the visual flip is the caller's own CSS (`playground.css`), not this file's.
+
 ## Rejected
 
 - **A `side` option.** Both rails dock at the inline end and grip their inline-start

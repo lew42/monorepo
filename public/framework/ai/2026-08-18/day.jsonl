@@ -76,3 +76,5 @@
 {"log": {"at": "2026-08-18T22:44:36-05:00", "task": "page-columns", "msg": "task opened — a Miller-columns arrangement demo at core/Page/overview/columns: peers on screen, a tree in the DOM"}}
 {"log": {"at": "2026-08-18T23:03:33-05:00", "task": "drawer-dock", "msg": "landed — selecting only fills an open rail now (dock() at load on the two Panel workspace pages); the stale panel name after deselect was drawer.refresh() replaying old content in tools.js, now fixed"}}
 {"log": {"at": "2026-08-18T23:15:10-05:00", "task": "page-columns", "msg": "landed — Miller columns demo at core/Page/overview/columns: nested pages as equal peers via display: contents; measured 390/1280/3440; doc/columns.md"}}
+{"log": {"at": "2026-08-19T11:54:46-05:00", "task": "mastermind-run-3", "msg": "landed — 26 tasks; the Workspace build continues as mastermind-run-4 under 2026-08-19"}}
+{"log": {"at": "2026-08-19T15:28:11-05:00", "task": "research-mastermind", "msg": "landed — stood down by the owner: ext/Research built and used once (LiveReload report, 52 nodes, 7 minions); restart the dev server to get the research_* MCP tools"}}

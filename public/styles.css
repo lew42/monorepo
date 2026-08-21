@@ -111,15 +111,15 @@
 	   the whole thing — the clock band and the tree included. So the block takes the
 	   region and its prose takes the measure. Replaces three hand-typed inline
 	   `max-width: 52em` and an inline `--measure: none` in `framework/page.js`. */
-	.page-framework > .pages > .default { max-width: none; }
-	.page-framework > .pages > .default > .flow { max-width: var(--measure); }
+	.page--framework > .pages > .default { max-width: none; }
+	.page--framework > .pages > .default > .flow { max-width: var(--measure); }
 
 	/* The stat strip — the landing's one `.grid` child. Five 9em tiles are 49em with
 	   their gaps, so in the 40em reading column the fifth stranded itself on a row of
 	   its own at 1280 and 3440 (measured, and the vision run called it broken at all
 	   three widths). A wall of numbers takes the width its own count needs, then stops
 	   — full region would leave the five hugging the left of a 3000px row instead. */
-	.page-framework > .pages > .default > .grid { max-width: 50em; }
+	.page--framework > .pages > .default > .grid { max-width: 50em; }
 
 	/* A topic USED to inherit page rhythm unconditionally, because the old flow
 	   selector matched any `.page` — so `.pages`, as the second child, collected

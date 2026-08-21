@@ -32,7 +32,7 @@ ships no stylesheet.
 **Every demo opens on a real page, not on its root.** A shell whose region is
 empty demonstrates nothing, and it is what the card in the rail shows. So each
 tree function ends in `.children.get("…")` — the same move
-`core/Page/overview/deep` makes.
+`core/Page/old/overview/deep` makes.
 
 **`zoom-25` for the three multi-box previews.** The rail's thumb ceiling is 10em
 (`catalog.css`), so a two-box render at the usual 50% crops to one box — and the
@@ -41,7 +41,7 @@ fits the card, which is the only thing those three cards have to say.
 
 **Distinct root titles, deliberately.** Eleven trees named `Web` would be eleven
 identical thumbnails and eleven identical crumb strips — the lesson
-`core/Page/overview/readme.md` already paid for. Also: `web()`'s own default root
+`core/Page/old/overview/readme.md` already paid for. Also: `web()`'s own default root
 title is now the url of *this section*, so every use of it here renames the root.
 
 ## Traps

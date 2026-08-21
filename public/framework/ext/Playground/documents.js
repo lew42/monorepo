@@ -1,0 +1,112 @@
+import Item from "/framework/core/Item/Item.js";
+import FileSaver from "/framework/ext/Saver/FileSaver.js";
+import LocalStorageSaver from "/framework/ext/Saver/LocalStorageSaver.js";
+import { Flex, Box } from "./items.js";
+
+/* Documents are FILES: one Saver per slug, an index the app writes itself — no server
+ * route, the same mechanism dev and static (design.md §2). Not the directory listing:
+ * `Server/plugins/Directory.js:21` ignores every `.json`, so a fresh save never reaches
+ * `directory.json` — and a static host has no listing at all. The idiom, verbatim from
+ * `ext/Saver/doc/backends.md`. */
+const dev = ["localhost", "127.0.0.1"].includes(location.hostname) || location.hostname.endsWith(".localhost");
+const store = (path, key) => dev ? new FileSaver({ path }) : new LocalStorageSaver({ key });
+
+const index = store("/data/playground/index.json", "playground:index");
+const doc_saver = slug => store(`/data/playground/${slug}.json`, `playground:${slug}`);
+
+// The list IS a document too — an Item whose children carry `{name, slug}`, the same
+// four-key envelope as everything else, so there is no second format to keep in sync.
+export async function list(){
+	const doc = Item.hydrate(await index.load() ?? {});
+	return doc.items.toJSON().map(kid => kid.data);
+}
+
+async function reindex(slug){
+	const found = await list();
+	if (found.some(d => d.slug === slug)) return;
+
+	const doc = Item.hydrate({ items: found.map(data => ({ data })) }).assign({ saver: index });
+	doc.add(new Item({ data: { name: slug, slug } }));
+	await doc.save();
+}
+
+// A blank canvas is never truly blank (design's adjustment) — one Flex root, two Boxes.
+// Verbatim shape of design §3's own example: column, gap, padding, two children.
+export function seed(){
+	const root = new Flex({ data: { label: "page", direction: "column", gap: "1em", padding: "2em" } });
+	root.add(new Box({ data: { label: "box", width: "10em", height: "6em" } }));
+	root.add(new Box({ data: { label: "box", grow: "1", height: "6em" } }));
+	return root;
+}
+
+// "untitled-2", "untitled-3", … — the first unused suffix, never a name already in the index.
+export async function mint_slug(){
+	const used = new Set((await list()).map(d => d.slug));
+	let n = 2;
+	while (used.has(`untitled-${n}`)) n++;
+	return `untitled-${n}`;
+}
+
+// `saver.delete()` + drop the index entry — but NEVER the last document (the brief's own
+// rule): a Playground with no document left to open is a Playground that cannot open.
+export async function del(slug){
+	const found = await list();
+	if (found.length <= 1) return false;
+
+	await doc_saver(slug).delete();
+	const doc = Item.hydrate({ items: found.filter(d => d.slug !== slug).map(data => ({ data })) }).assign({ saver: index });
+	await doc.save();
+	return true;
+}
+
+/* Existing file → hydrate it, unchanged. Missing → seed, index it, save it. `load()`
+ * resolves `null` only for "not saved yet" (panel-insight §Carry) — never seed on a
+ * rejection, which throws instead and is this function's caller's problem. */
+export async function open(slug){
+	const saver = doc_saver(slug);
+	const json = await saver.load();
+	if (json) return Item.hydrate(json).assign({ saver });
+
+	const root = seed().assign({ saver });
+	await reindex(slug);
+	await root.save();
+	return root;
+}
+
+// design §6: paste strips every id first — `Item.hydrate` KEEPS ids, and its `seen` set
+// only dedups WITHIN one call, so re-inserting the same subtree twice would collide.
+export function strip_ids(json){
+	const { id, items, ...rest } = json;
+	if (items) rest.items = items.map(strip_ids);
+	return rest;
+}
+
+/* A layout IS a document (design §7) — same four-key envelope, its own index, at
+ * `/data/playground/layouts/`. `save_as_layout` strips ids on the way out (a template's
+ * own ids are meaningless); `insert` (Playground.js's `paste()`) strips again on the way
+ * in, which is what makes a second insert of the same layout collide-free. */
+const layouts_index = store("/data/playground/layouts/index.json", "playground:layouts:index");
+const layout_saver = name => store(`/data/playground/layouts/${name}.json`, `playground:layout:${name}`);
+
+export async function list_layouts(){
+	const doc = Item.hydrate(await layouts_index.load() ?? {});
+	return doc.items.toJSON().map(kid => kid.data);
+}
+
+export async function load_layout(name){
+	return layout_saver(name).load();
+}
+
+export async function save_as_layout(item, name){
+	if (!item || !name) return false;
+
+	await layout_saver(name).save(strip_ids(item.toJSON()));
+
+	const found = await list_layouts();
+	if (!found.some(d => d.name === name)){
+		const doc = Item.hydrate({ items: found.map(data => ({ data })) }).assign({ saver: layouts_index });
+		doc.add(new Item({ data: { name } }));
+		await doc.save();
+	}
+	return true;
+}

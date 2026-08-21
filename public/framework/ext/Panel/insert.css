@@ -14,11 +14,26 @@
 	   could never appear — and its own edges were invisible, so there was nothing to aim at.
 	   Now it takes `--insert-run` at the start and the grip keeps the rest, and it is drawn
 	   as a real object: a surface, a border, and a shadow that lifts it off the seam. */
+	/* ⚠ The stub starts `0.7rem` in, not flush at the seam's own edge (2026-08-19): a
+	   NESTED split's own left/top edge sits exactly on the OUTER seam's grip strip (which
+	   reaches 0.625rem past its true centre, grip.css's `::before`), so a stub starting at 0
+	   silently ate the outer seam's drag right where a nested column meets its parent's
+	   grip — panel-flow's finding. 0.7rem clears that strip with a hair to spare — the exact
+	   number `split.css`'s `--clear` already measured for the identical grip-vs-overlay
+	   conflict at a panel's own edges. The grip's own seam (THIS split's own interior gaps,
+	   where the stub is meant to win) is untouched — there the overlap is the trigger, not
+	   the bug. */
+	/* ⚠ And past the BAR, not just the grip strip (the owner, 2026-08-19: "it interferes
+	   with underlying buttons"): at a vertical seam's head sit the left panel's `close` and
+	   the right panel's handle; at a horizontal seam's start, the lower panel's handle. The
+	   stub starts one bar-height in (`--panel-bar-h`, toolbar.css) plus the grip clearance,
+	   so it never sits on a button it is not. */
 	.panel-insert {
 		position: absolute;
 		z-index: 5;
 		--insert-run: 2.2rem;
-		inset-block-start: 0;
+		--insert-start: calc(var(--panel-bar-h, 1.8rem) + 0.7rem);
+		inset-block-start: var(--insert-start);
 		block-size: var(--insert-run);
 		inset-inline-start: var(--insert-at, 50%);
 		inline-size: 1.4rem;
@@ -41,7 +56,7 @@
 	   at the start of a horizontal seam instead — same box, the other axis. */
 	.panel-items.v > .panel-insert {
 		inset-block-start: var(--insert-at, 50%);
-		inset-inline-start: 0;
+		inset-inline-start: var(--insert-start);
 		block-size: 1.4rem;
 		inline-size: var(--insert-run);
 		translate: 0 -50%;

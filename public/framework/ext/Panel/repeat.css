@@ -15,7 +15,25 @@
 		border: 1px dashed var(--line);
 		border-radius: var(--radius);
 		cursor: pointer;
-		transition: color 0.12s, border-color 0.12s, background 0.12s;
+		transition: color 0.12s, border-color 0.12s, background 0.12s, opacity 0.12s;
+
+		/* Hidden until you point at the panel it belongs to (the owner, 2026-08-19: "the +
+		   should probably only appear when hovered"). ⚠ `opacity`, never `display` or
+		   `visibility: hidden` on a grid item — the tile has to keep its slot in the run or
+		   every card beside it moves the moment you hover. Measured: 12 rects unchanged. */
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	/* `.panel-hover` is focus.js's answer to "what would a click select" — so the `+` obeys
+	   the group gate for free: inside an unopened group the GROUP is what lights, and a
+	   leaf's own tile stays hidden until that group is the selection. `.focus` is the panel
+	   you already picked, whose tile stays reachable while you point at it. ⚠ Scoped
+	   `> .panel-body` so a split's hover never lights a nested panel's tile. */
+	.panel-hover > .panel-body .panel-repeat-add,
+	.panel.focus > .panel-body .panel-repeat-add {
+		opacity: 1;
+		pointer-events: auto;
 	}
 
 	.panel-repeat-add:hover {

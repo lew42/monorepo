@@ -53,6 +53,19 @@ hid for so long. **`.active-page` and `.active-ancestor` are one question asked 
 ways: "is any of this mine."** `.tab-panel`'s twin fallback had the identical shape
 and was fixed alongside it — a pair that drifts is a pair where one gets fixed.
 
+## A demo never hand-writes `.active-page`; it writes `.default`
+
+The contract cannot tell the Router's mark from one a widget wrote. On 2026-08-19
+four new Overview cards marked their demo boards `.active-page` so they would show,
+and the boards also rendered inside the wall's thumbs — so the Doc's view matched
+`.active-ancestor:has(.page.active-page)` *through a thumb* and stayed visible beside
+the routed leaf: two columns again, the leaf at 545px. `ext/demo/app.js` already had
+the answer: **`.default` is the contract's word for "shown without being routed to"**
+— it displays and triggers nothing. Two rules for a demo board: it wears `.default`,
+and it is not a direct child of a `.pages` box (lines 42–45 rewrite *that* `.default`
+into the region's empty state, block and measure-capped — the real `.pages` belongs
+in the routed page's stage only).
+
 ## `.pages` scrolls; `.page` does not
 
 `overflow-y` on `.page` looks obviously right and is wrong twice:

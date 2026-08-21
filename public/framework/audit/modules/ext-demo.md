@@ -19,7 +19,7 @@ can't tell "never named" from "patched."
 |---|---|
 | files | 16 (15 code/doc + `doc/record.md`) |
 | lines of JS / CSS | 1396 / 493 |
-| callers | Framework-wide. Non-dead-code counts: `demo()` ~61 files, `demo.stage()` 35, `demo.exhibit()` 31, `demo.tree()` 28, `demo.page()` 23, `demo.layout()` 23, `demo.app()` 17, `demo.source()` 3. Every leaf under `styles/layouts/`, `styles/sections/`, `ui/`, `core/Page/overview/`, `/web/`. Full breakdown in the readme's new "Who uses it." |
+| callers | Framework-wide. Non-dead-code counts: `demo()` ~61 files, `demo.stage()` 35, `demo.exhibit()` 31, `demo.tree()` 28, `demo.page()` 23, `demo.layout()` 23, `demo.app()` 17, `demo.source()` 3. Every leaf under `styles/layouts/`, `styles/sections/`, `ui/`, `core/Page/old/overview/`, `/web/`. Full breakdown in the readme's new "Who uses it." |
 | docs before | `readme.md` already excellent and already broken into a short-section shape with a `doc/record.md` breakout (20 sections) — this module was documented like a `Doc` module before `Doc` existed. `page.js` was a plain `Page`: no `subject`, no API/Docs/Files tabs, zero `doc/method`, `doc/property` or `doc/file` files. No `classdoc` references found. |
 | docs after | `page.js` → `Doc` (`subject: demo`, `methods: "stage exhibit page tree layout app source"`, `notes: "record"`, `files:` all 15). 7 `doc/method/*.md` (new), 15 `doc/file/*.md` (new), `readme.md` gained "Who uses it," a Traps entry for the patch-banner bug, and an "Open" section. `doc/record.md` untouched — already correct. |
 

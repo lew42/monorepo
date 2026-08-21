@@ -38,13 +38,13 @@ that mirrors what `Doc`'s group render was doing by hand.
 
 ## A method, not a recipe
 
-The demos record (`core/Page/overview/readme.md`) proved master–detail
+The demos record (`core/Page/old/overview/readme.md`) proved master–detail
 *buildable* with `flex gap` + `basis` + `$pages` and said no new API was
 needed. Three real users later — the Page overview's demo rail, every `Doc`
 Overview tab, and the demos teaching page itself — the hand-built version was
 about to be pasted a third time, each paste needing the same default-fill and
 `mark_links()` repair. The recipe stays (it is the
-[catalog demo](/framework/core/Page/overview/catalog/), and the honest
+[catalog demo](/framework/core/Page/old/overview/catalog/), and the honest
 minimum); the method is the recipe plus the two things a permanent page owes:
 a filled region on load, and marks on links built after the pass.
 
@@ -355,7 +355,7 @@ this.catalog(); }` on their own page:
 | `framework/styles/elements/forms/page.js` | `/framework/styles/elements/forms/` | every form control |
 | `web/nav/page.js` | `/web/nav/` | 11 nav patterns — also the page's own subject |
 | `web/layout/page.js` | `/web/layout/` | 7 layout principles |
-| `core/Page/nav/page.js` | `/framework/core/Page/nav/` | a live demo, inside a `demo()` box |
+| `core/Page/old/nav/page.js` | `/framework/core/Page/old/nav/` | a live demo, inside a `demo()` box |
 
 **`styles/layouts/` gave this up on 2026-08-16** and is worth reading as the boundary:
 a rail is right for a tier you read *through*, and wrong for a tier you *choose from* —

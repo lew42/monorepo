@@ -15,7 +15,7 @@ export default new Page({
 	   ai/2026-08-17/report/page.js does — 18 screenshots beside their scores
 	   need width a task page's region never gives. Own title, per core/Page/doc/layout.md. */
 	render(){
-		return this.view ??= div.c("page full", () => this.content()).ac(this.name && "page-" + this.name);
+		return this.view ??= div.c("page full", () => this.content()).ac(this.name && "page--" + this.name);
 	},
 
 	content(){

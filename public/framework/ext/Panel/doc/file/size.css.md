@@ -7,50 +7,94 @@ root → inline is main; col → block is main) — versus **CROSS**, the other 
 Out of flow, at the bottom of the file, nothing flex says applies and every
 extent is restated. `size.js` is the sole writer of every class here.
 
-## MAIN axis, hug: the floor lands on the child, not `.panel`
+## MAIN axis, hug: `auto`, and one rule for the block axis
 
 ```css size.css
-:is(.panel-workspace, .panel-items:not(.v)) > .panel.panel-w-hug:not(.panel-pos-absolute) { flex: 0 0 auto; }
-:is(.panel-workspace, .panel-items:not(.v)) > .panel.panel-w-hug:not(.panel-pos-absolute) > :is(.panel-body, .panel-items) {
-	flex-basis: auto;
-	min-inline-size: min(var(--panel-hug), 100cqi);
-}
+:is(.panel-workspace, .panel-items:not(.v)) > .panel.panel-w-hug:not(.panel-pos-absolute) { flex: 0 0 auto; justify-self: var(--panel-self-x, start); }
+:is(.panel-workspace, .panel-items:not(.v)) > .panel.panel-w-hug:not(.panel-pos-absolute) > :is(.panel-body, .panel-items) { flex-basis: auto; }
+.panel.panel-h-hug > :is(.panel-body, .panel-items) { flex-basis: auto; }
 ```
 
-`.panel` itself is `flex: 0 0 auto` and reports no content size of its own,
-so the floor has to land on the structural child (`.panel-body` for a leaf,
-`.panel-items` for a split) — that's what the auto-basis calculation
-actually reads. `cqi`, not `%`, is required: a percentage on that child
-would resolve against `.panel`'s own width, which is the very value being
-computed — a self-measuring loop. The col-context rule just below is the
-same trade on the block axis.
+`hug` is `auto` since 2026-08-19: no declared extent, no floor, no query
+container — the box measures what it holds, and `.panel`'s own
+`max-inline-size: 100%` (`panel.css`) caps it at the slot.
+[sizing](/framework/ext/Panel/doc/sizing/).
+
+⚠ **The third rule is the one that makes a hugged HEIGHT a real number**, and it
+is deliberately unscoped. `.panel` is always a flex COLUMN, so its block axis is
+its child's MAIN axis — and a `flex: 1 1 0` child of a box that is measuring
+itself resolves to **zero** and takes the panel with it. Measured: a root panel
+with `h: hug` and twelve lines of text read **0px** until this line existed. One
+rule covers every case at once — main axis or cross, in flow or out of it, leaf
+(`.panel-body`) or split (`.panel-items`). The inline axis needs no twin: a
+column's cross size is already its content.
 
 ## MAIN axis, fixed: `flex-basis` alone, no floor needed
 
 ```css size.css
-:is(.panel-workspace, .panel-items:not(.v)) > .panel.panel-w-fixed { flex: 0 1 min(var(--panel-w-at, var(--panel-hug)), 100%); }
+:is(.panel-workspace, .panel-items:not(.v)) > .panel.panel-w-fixed { flex: 0 1 min(var(--panel-w-at, 16em), 100%); }
 ```
 
 A chosen length is never `auto`, so there's no auto-basis to floor — the
 value goes straight on `.panel`. `min(x, 100%)` is the owner's idiom: `%` is safe
-here (not `cq`) because it resolves against `.panel`'s own containing block
+here because it resolves against `.panel`'s own containing block
 (`.panel-items` or `.panel-workspace`), never against `.panel` itself, so
 there's no loop to guard against.
 
-## CROSS axis: a value directly on `.panel`
+## CROSS axis: a value directly on `.panel` — and THE flow default
 
 ```css size.css
-:is(.panel-workspace, .panel-items:not(.v)) > .panel.panel-h-hug { align-self: var(--panel-self-y, start); block-size: min(var(--panel-hug), 100%); }
+:is(.panel-workspace, .panel-items:not(.v)) > .panel.panel-h-hug:not(.panel-pos-absolute):not(.panel-mode-document) { align-self: var(--panel-self-y, stretch); min-block-size: var(--panel-min, 5em); }
 ```
 
 The cross-axis rules set size directly on `.panel`, never a floor on a
-child — `.panel` is never a query container, so this is never the
-self-measuring loop the main-axis rules avoid with `cqi`. `align-self` is what
-actually does the work: it clears the ancestor's `stretch`, which is the only
-reason the cross axis used to always fill regardless of `mode` (see
-`doc/file/size.js.md`'s finding). This is the per-axis win — a row of panels
-can hug its block axis with no collapse, because nothing here touches the
-`flex-grow`/`shrink`/`basis` properties that govern the main axis.
+child. `align-self` is what does the work: it clears or restores the
+ancestor's `stretch`, which is the only reason the cross axis used to always
+fill regardless of `mode` (see `doc/file/size.js.md`'s finding).
+
+⚠ **`stretch` is the one fallback in this file that is not `start`
+(2026-08-19)**, and it is the whole of the flow default. A div in a row is as
+tall as the row; only a panel that CHOSE a `self` shrink-wraps and sits where
+it was put — which is why `size.js` writes `--panel-self-y` only then. Two
+consequences fall out of the single word, and both are what a workspace
+already did: a **root stretches** to a `.panel-workspace` that was given a
+height (so `ext/editor`, `ext/files`, the playground and every
+`--panel-height` demo are unmoved — measured, all four roots to the pixel),
+and it **measures its content** when the workspace is `auto` (the Demo panes).
+
+⚠ `:not(.panel-mode-document)` — a document root must GROW past its workspace
+and let it scroll (`panel.css`), and `stretch` would cap it at one screen.
+
+⚠ The `--panel-min` floor here tied at (0,3,0) with `panel.css`'s
+`--panel-section` floor and won by load order; the playground's document
+sections dropped 241px → 75px. That rule carries `.panel-workspace` on the
+front now. [doc/sizing.md](/framework/ext/Panel/doc/sizing/).
+
+## MAIN axis, hug, block: flow rather than shrink-wrap
+
+```css size.css
+.panel-items.v > .panel.panel-h-hug:not(.panel-pos-absolute) { flex-basis: auto; min-block-size: var(--panel-min, 5em); }
+```
+
+`flex-basis` alone, not `flex: 0 0 auto`: the basis is the content, so a stack
+in an auto-height column is exactly as tall as what it holds — and the grow
+the panel already carries (`--panel-grow`, `panel.css`) still divides a column
+that WAS given a height, which is the only reason a `fill` workspace still
+looks like one screen with `hug` as the default. A hugging WIDTH keeps
+`flex: 0 0 auto` above: a sidebar that grows is not a sidebar.
+
+## ⚠ The block-axis cap is `max-block-size`, never `min(x, 100%)`
+
+```css size.css
+:is(.panel-workspace, .panel-items:not(.v)) > .panel.panel-h-fixed:not(.panel-pos-absolute) { align-self: var(--panel-self-y, start); block-size: var(--panel-h-at, 16em); max-block-size: 100%; }
+```
+
+A percentage *size* against an indefinite parent resolves to **zero**; a
+percentage *max* resolves to `none`. Measured 2026-08-19: a bottom-edge drag
+committed `h: fixed, h_at: 39.25em` and the root read **0px** in an
+auto-height workspace. The main-axis twin is a bare basis — `flex-shrink`
+already caps it against a definite column. The INLINE axis keeps
+`min(x, 100%)`: a workspace always has a definite width.
 
 ## Self-alignment is a fallback swap, and nothing more
 
@@ -82,13 +126,13 @@ that reads the property.
 
 ```css size.css
 .panel-workspace .panel.panel-pos-absolute { position: absolute; inset: 0; z-index: 4; }
-.panel-workspace .panel.panel-pos-absolute.panel-h-hug { block-size: min(var(--panel-hug), 100%); align-self: var(--panel-self-y, start); }
+.panel-workspace .panel.panel-pos-absolute.panel-h-hug { align-self: var(--panel-self-y, start); }
 ```
 
 Every extent is restated here because the rules above carry a main-axis extent
 on `flex-basis` and on a floor on a child, and **both are inert for a box that
 is not a flex item**. `%` on an abspos box resolves against the containing block
-and never against the box itself, so `min(x, 100%)` caps with no `cq` detour and
+and never against the box itself, so `min(x, 100%)` caps cleanly and
 no self-measuring loop.
 
 The in-flow rules carry `:not(.panel-pos-absolute)` rather than being overridden

@@ -23,7 +23,7 @@ established pattern here, not a one-off.
 	position: absolute;
 	z-index: 5;
 	--insert-run: 2.2rem;
-	inset-block-start: 0;
+	inset-block-start: 0.7rem;
 	block-size: var(--insert-run);
 	…
 }
@@ -40,12 +40,26 @@ visible surface, border and shadow give it a boundary a bare icon never had.
 (2) it may visually straddle at the same gap. Full budget:
 [doc/overlays.md](../overlays.md).
 
+⚠ **The `0.7rem` start is an inset, not `0`, since 2026-08-19.** A NESTED
+split's own left/top edge sits exactly on its PARENT's grip strip (which
+reaches `0.625rem` past its true centre, `grip.css`'s `::before`) — a stub
+starting flush at `0` silently ate the outer seam's drag right where a
+nested column meets its parent's grip (`panel-flow`'s finding). `0.7rem`
+clears that strip with a hair to spare — the exact number `split.css`'s own
+`--clear` already measured for the identical grip-vs-overlay conflict at a
+panel's own edges. The stub's OWN split (its interior gaps, where winning
+the click is the point) is untouched: the overlap there is the trigger, not
+the bug — lowering `z-index` instead was measured and rejected, since the
+stub's box sits almost entirely inside its own grip's strip there too, which
+would have killed it at the gaps it exists for.
+[doc/decisions.md](../decisions.md).
+
 ## The axis flips with `dir`, same box, other axis
 
 ```css insert.css
 .panel-items.v > .panel-insert {
 	inset-block-start: var(--insert-at, 50%);
-	inset-inline-start: 0;
+	inset-inline-start: 0.7rem;
 	block-size: 1.4rem;
 	inline-size: var(--insert-run);
 	translate: 0 -50%;
@@ -77,7 +91,7 @@ stub must not appear at all rather than sit uselessly in the middle.
 
 ## Improvements
 
-Nothing ranked: 69 lines, the axis flip is one rule pair not two files, and
-the idiom mismatch with the other overlays is the one genuinely subtle thing
-here — recorded above and in [doc/overlays.md](../overlays.md) rather than
-left to be rediscovered.
+Nothing ranked: the axis flip is one rule pair not two files, and the idiom
+mismatch with the other overlays and the `0.7rem` inset are the two
+genuinely subtle things here — recorded above and in
+[doc/overlays.md](../overlays.md) rather than left to be rediscovered.

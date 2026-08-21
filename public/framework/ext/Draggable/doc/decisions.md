@@ -71,3 +71,25 @@ multi-select, and auto-scroll when the cursor nears the edge of a scrolling box.
 
 Both are real subclasses, not callers of a public function — `Sortable` is meant
 to be extended, not configured, and these are the only two places that do.
+
+## 2026-08-19 — `.drag-source` needed an inline write, not just a class
+
+Layer order is `base theme site util`; `draggable.css`'s `.drag-source { display: none }`
+sits in `@layer theme`, so any dragged row that also carries a util display class
+(`.flex`, `@layer util`) kept rendering — `getComputedStyle(source).display` read `flex`
+mid-drag, and the container grew by the ghost's height the instant `pointerdown` fired
+(found by `ui-test-skill` run 2; measured **71px** on this page's Todo column). Util
+always wins over theme regardless of specificity, so no class-level rule could ever be
+the fix.
+
+**Fix:** `Sortable.start()` now also writes the source's **inline** `style.display = "none"`
+(via `View.style()`), and `end()` restores whatever inline value was there before —
+inline beats every layer, cascade or not. Four lines, `Sortable.js` only;
+`Draggable.js` and `draggable.css` are untouched.
+
+**The CSS rule stays**, deliberately not commented out or deleted: it is no longer the
+thing that decides the source's visibility (the inline write always wins now), but it is
+harmless — CSS can't override an inline value — and it remains the correct default for
+any future caller that adds `.drag-source` without going through `Sortable`'s own
+`start()`/`end()`. Killing it would save nothing and risk a silent regression if that
+assumption ever stops holding.

@@ -86,8 +86,10 @@ export function drag(el, move){
 const ZOOMS = [25, 50, 75, 100, 150, 200];
 
 /* The word is on the button, the number in its title and in the readout. What these
- * deliver is a layout WIDTH — ⚠ not a device: `@media` answers the real window. */
-const WIDTHS = [[390, "mobile"], [810, "tablet"], [1440, "desktop"], [3440, "mega"]];
+ * deliver is a layout WIDTH — ⚠ not a device: `@media` answers the real window.
+ * Exported for `ext/Panel/Workspace/viewports.js`'s device frames — the same four
+ * numbers, one list. */
+export const WIDTHS = [[390, "mobile"], [810, "tablet"], [1440, "desktop"], [3440, "mega"]];
 
 /* css: `.demo-btn` is demo.css's. ⚠ This module cannot import demo.js — that pair
    would be a cycle and this is the half that gets imported — so the class arrives
@@ -176,8 +178,10 @@ function tools($tools, $render, $stage, measure){
 
 /* Scrubby zoom — the continuous control a stepped `<select>` cannot be. It
  * MULTIPLIES: zoom is logarithmic, so 240px of drag doubles it whether you started
- * at 25% or at 200%. A press that never moved shows the thing whole again. */
-function magnifier(set, zoomed, whole){
+ * at 25% or at 200%. A press that never moved shows the thing whole again.
+ * Exported — `ext/Panel/Workspace/viewports.js` is a second caller, the Workspace
+ * bar's own dial; `demo`'s own strip is unchanged. */
+export function magnifier(set, zoomed, whole){
 	return btn(() => icon("zoom_in"), "Drag to zoom · click to fit").ac("demo-scrub")
 		.on("pointerdown", function(e){
 			e.preventDefault();
@@ -235,8 +239,9 @@ function resizer($stage, release){
  * simulated width reads back exactly the number that was picked. The factor rides
  * along when it isn't 1: under a width nothing else says what it was computed to be.
  * ⚠ Not the ResizeObserver `contentRect`: what that reports under `zoom` has moved
- * between browser versions. */
-function ruler($render, $size){
+ * between browser versions. Exported — the Workspace bar's px readout is a second
+ * caller, `demo`'s own strip is unchanged. */
+export function ruler($render, $size){
 	const measure = () => {
 		const factor = parseFloat($render.style("zoom")) || 1;
 

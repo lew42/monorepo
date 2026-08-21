@@ -78,7 +78,7 @@ is a fixed-size summary, not that its lines are the right length.
 ⚠ **And the sample is counted in LINES, not blocks.** A line is the unit being
 measured, so three one-line captions passed a `blocks ≥ 3` gate and one eight-line
 paragraph did not. Site-wide the band declined on **55 of 169 rows** and now
-declines on **23**, and what is left is honest: fourteen `core/Page/overview/*`
+declines on **23**, and what is left is honest: fourteen `core/Page/old/overview/*`
 pages that are 100% `probe.IGNORE`d demo stages, and three example pages holding
 three text nodes between them.
 

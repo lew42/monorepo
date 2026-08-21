@@ -20,3 +20,11 @@ The design is [`../workspace-design/design.md`](../workspace-design/design.md) *
 
 - Load `code` and `css` once. Run `new-task` first (dir + brief exist; write `task.jsonl` line 1 and the `day.jsonl` line; group `panels`); the ledger logs edits; `documentation` then `finish-task` (`"tokens": null`). A skill that misleads you gets one line in its `improvements.md` (`skill-improvement`).
 - Timestamps from the clock; forward slashes; never Out-File a `.jsonl`; never a person's name — "the owner". Every CSS rule inside a layer; no `**/` inside a block comment; only `p()`/`h1`–`h6` read backticks. Wait in the foreground.
+
+## Addenda — the owner's later words, verbatim (relayed by message; answered in `doc/sizing.md`)
+
+> how do we introduce fixed-ish sizing? when we're resizing panels, it's using flex-grow as the mechanism? when it comes to framing images, fixed-aspect-ratio boxes (html elements that might behave more like images), or even fixed (basis) sidebars, does the Panel system allow this? for all of these things I'm throwing at you, don't just answer here, make sure the documentation shows it
+
+> now, on the layout: flex 0 0 auto, I'm not sure exactly if this is the best default. maybe it is... but I want to be able to see exactly what layout everything is using. I'm used to figma layouts, and web layouts are fundamentally different. We need clarity. When it comes to panel vs root element layout, how do we ensure we get the proper behavior? I think the panel should be expected to be removed at some point, so we want the layouts to work consistently, with or without the panel? Is that unrealistic? Would you have to transfer CSS from panels to their sections? Well, let's worry about these things later, let's race to the finish line.
+
+Mastermind's reading: `doc/sizing.md` answers grow / fixed+length / hug=auto / aspect-ratio (not yet, a `ratio` word is next) / what survives without the chrome; the layout-clarity questions are deferred by the owner to after the MVP — keep them here so they are not lost.

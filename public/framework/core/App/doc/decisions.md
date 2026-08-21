@@ -39,7 +39,7 @@ teaching copies that import the same live file:
 Nothing else imports `App.js`, `Font.js`, `mode.js` or `mode.css` directly.
 `core/new/0/`, `core/new/1/` and `core/new/starter/` each vendor their **own**
 `App.js` — a different file, not this one — and every other mention found
-(`core/page.js`, `core/Page/shell/page.js`, sandbox pages, other modules' docs)
+(`core/page.js`, `core/Page/old/shell/page.js`, sandbox pages, other modules' docs)
 quotes `new App()` inside a code example rather than importing it live. **Not
 "no callers," but as close as a core class gets**: one real boot, exercised by
 every page, and no second API surface anywhere to drift out of sync with.

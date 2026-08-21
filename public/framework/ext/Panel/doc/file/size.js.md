@@ -29,7 +29,7 @@ export function extents(item){
 	return {
 		main,
 		w: item.data.w ?? (legacy === "w" ? "hug" : "fill"),
-		h: item.data.h ?? (legacy === "h" ? "hug" : "fill"),
+		h: item.data.h ?? "hug",
 	};
 }
 ```
@@ -42,19 +42,26 @@ has to answer *"does this axis fill?"* with the same words `sizing()` uses;
 two copies of that `??` chain would drift and the control would then grey out
 buttons that work.
 
+⚠ **`h` answers `hug`, full stop (2026-08-19).** The DEFAULT is flow — a panel's
+height is what it holds, so a split or a section added inside grows it instead of
+scrolling inside it, and a saved document that never wrote `h` reads `hug` from
+today. `w` still falls back to `fill`, and the legacy branch is left on it alone
+because that is the only axis a saved `mode: "hug"` could still be talking about.
+[doc/sizing.md](/framework/ext/Panel/doc/sizing/).
+
 ⚠ `item.data.w`, never `item.get("w")`. `Panel.defaults` answers `"fill"`,
 which would swallow the legacy fallback whole before it could be read.
 
-## The legacy `.hug` class still ships alongside the per-axis ones
+## The legacy `.hug` class is DELETED (2026-08-19)
 
-```js size.js
-.ac((main === "w" ? w : h) === "hug" && "hug");
-```
-
-`panel.css`'s scene container-type switch still reads plain `.hug`, keyed to
-whichever axis is main for this panel — the same test `mode` used to decide,
-now derived instead of stored. A scene sizes exactly as it always did,
-whichever way that resolves.
+It was `mode: hug` translated to whichever axis was main, and `panel.css` styled
+it. `size.css` states the same thing per axis and per slot — including the CROSS
+axis and a split's `.panel-items`, neither of which `.hug` ever covered — so the
+class had one job left, keying `panel.css`'s scene `container-type` switch, and
+that switch went with every container query in the module. `extents()` still
+reads a saved `mode: "hug"` and answers `hug` on whichever axis is main, so no
+document on disk moved. The name stays in this file's clear-list only, so a
+stale one cannot survive a redraw.
 
 ## `w_at`/`h_at` carry a fixed length as a custom property, not a class
 
@@ -79,9 +86,18 @@ against another, `align` = my content, `self` = me, and it collides with
 nothing.
 
 ```js size.js
-const self = item.get("self") ?? "tl";
-$panel.style({ "--panel-self-x": PLACE[self[1]] ?? "start", "--panel-self-y": PLACE[self[0]] ?? "start" });
+const self = item.data.self;
+if (self) $panel.style({ "--panel-self-x": PLACE[self[1]] ?? "start", "--panel-self-y": PLACE[self[0]] ?? "start" });
 ```
+
+⚠ **Only when the panel CHOSE one (2026-08-19).** `Panel.defaults.self` answers
+`tl`, so `item.get()` here wrote `start` on every panel ever built and no rule in
+`size.css` could have a different default — which is exactly what a hugging HEIGHT
+needs, because a div in a row stretches. Unset now falls through to the sheet's own
+fallback: `start` everywhere it always was, `stretch` for the one rule that is the
+flow default (the hugging cross axis). That single word is what makes a root fill a
+workspace that was given a height and measure its content when the workspace is
+`auto`. [doc/sizing.md](/framework/ext/Panel/doc/sizing/).
 
 **Two conditions, both necessary, before an axis can be self-aligned:**
 
@@ -103,7 +119,9 @@ go on every panel, always, and the cascade sorts out which one means anything.
 ⚠ `Panel.defaults.self` is `"tl"` and must stay `"tl"`: `PLACE.t` and
 `PLACE.l` are both `start`, which is exactly the `align-self: start` the
 cross-axis rules hardcoded before `self` existed. Any other default silently
-moves every saved hugging panel.
+moves every saved hugging panel. Since 2026-08-19 that default is only what the
+picker LIGHTS — a panel that never clicked it writes no custom property at all,
+so the sheet's fallback is what applies.
 
 `self` is deliberately **not** in `Panel.shared` — a mirror shares what it
 holds and how it looks, never its place in somebody else's row, which is the
@@ -165,10 +183,10 @@ argued.**
 - **`fixed` escapes the workspace.** An abspos probe inside `.panel-items`
   and inside `.panel-workspace` both resolved to the workspace's own box
   (900×400); the *same* probe set to `fixed` resolved to the **viewport**
-  (1600×1000) from both places. `container-type: size` is a containing block
-  for absolutely positioned descendants and not for fixed ones. A fixed panel
-  therefore lands over the site chrome, which is never what an embedded design
-  tool wants.
+  (1600×1000) from both places — a `position: relative` ancestor is a containing
+  block for absolutely positioned descendants and not for fixed ones. A fixed
+  panel therefore lands over the site chrome, which is never what an embedded
+  design tool wants.
 - **`sticky` sticks to the host page, not to anything a panel can name.**
   Walking the overflow chain up from a `.panel`: `.panel` (`hidden`, but
   `scrollWidth === clientWidth`), `.panel-workspace` (`visible`), `.bleed`,
@@ -182,19 +200,20 @@ argued.**
 ## Why floating is safe here: the containing block is bounded on both paths
 
 Neither path is assumed. A **nested** panel's containing block is its parent
-split's `.panel-items`, which `insert.css` already makes `position: relative`
-for the `+` bar. A **root leaf**'s is `.panel-workspace`, a size query
-container and therefore a containing block for absolutely positioned
-descendants. Measured, both are the workspace's own box — a floating panel can
-never leave the workspace, and `panel.css` needed no change to make that true.
+split's `.panel-items` and a **root leaf**'s is `.panel-workspace` — and since
+2026-08-19 `panel.css` states `position: relative` on both by name. It used to
+fall out of `container-type: size`, which is a containing block for absolutely
+positioned descendants as a side effect; deleting the containment would have let
+a floating panel escape to the page. Measured, both are the workspace's own box —
+a floating panel can never leave the workspace.
 Measured with a root leaf at `self: br`: 248.3×248.3 at 651.7,151.7 inside a
 900×400 workspace.
 
 ## The collapse the owner named, measured — and the fix is the one this file owns
 
 Forcing a middle panel to `position: absolute` today with no support gives a
-**0×0** box. It is the `container-type` trap again: a shrink-to-fit box whose
-contained body reports empty. And its two grips land on the **same x**
+**0×0** box — a shrink-to-fit box whose body had nothing to report. And its two
+grips land on the **same x**
 (450, 450) — one seam drawn twice, the top one resizing a panel that no longer
 occupies anything.
 
@@ -203,15 +222,15 @@ against the slot:
 
 ```css size.css
 .panel-workspace .panel.panel-pos-absolute { position: absolute; inset: 0; z-index: 4; }
-.panel-workspace .panel.panel-pos-absolute.panel-w-hug { inline-size: min(var(--panel-hug), 100%); justify-self: var(--panel-self-x, start); }
+.panel-workspace .panel.panel-pos-absolute.panel-w-hug { justify-self: var(--panel-self-x, start); }
 ```
 
 `fill` → `inset` 0 on that axis and no size, so it stretches. `hug` →
-`min(var(--panel-hug), 100%)`. `fixed` → `min(var(--panel-w-at), 100%)`.
+the alignment alone (shrink-to-fit). `fixed` → `min(var(--panel-w-at), 100%)`.
 Measured that `%` on an abspos box resolves against the **containing block**
 and never against the box itself (`min(600px, 100%)` → 400 in a 400px CB), so
 `min(x, 100%)` is exactly right here and there is no self-measuring loop — the
-same idiom as everywhere else in this file, for once without the `cq` detour.
+the same idiom as everywhere else in this file.
 The clamp measured: a `fixed: 24em` (372.5px) floating panel in a **200px**
 workspace is 200px wide with `scrollWidth === clientWidth`, and a `hug`
 floating panel in a **120px** workspace is 120px, not 248.3.
@@ -259,20 +278,13 @@ Out of flow the slot's display mode has no say at all, so only the fill test is
 left — measured, a floating `hug/fill` panel reports `x` live and `y` dead with
 *"height fills — nothing to align"*.
 
-## The legacy `.hug` class is withheld from a floating panel
+## A floating panel needs no extent of its own
 
-```js size.js
-.ac(!over && (main === "w" ? w : h) === "hug" && "hug");
-```
-
-`.hug` exists to make a **body** hug where the panel's own box could not say how
-wide it was. A floating panel's box states its extent directly, so its body
-simply fills it and gets the size containment `.panel:not(.hug) > .panel-body`
-already gives every filling panel — measured, a floating `hug/hug` panel and its
-body are the same 248.3×248.3 with `container-type: size`. The consequence worth
-knowing: a floating panel holding *real* content takes `--panel-hug` rather than
-measuring its own block axis the way a static hugging panel does. A box out of
-flow has to declare its extent; that is the trade, not an oversight.
+An alignment other than `normal`/`stretch` makes an absolutely positioned box
+shrink-to-fit, so `justify-self`/`align-self` on the non-filling rules ARE the
+sizing — the same "auto measures the content" every other rule in `size.css`
+means. Before 2026-08-19 those rules restated `min(--panel-hug, 100%)`, because
+the body could not measure itself.
 
 ## What the other two verbs do, and they needed nothing
 

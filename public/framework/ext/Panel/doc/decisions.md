@@ -5,6 +5,278 @@
 The design record for `ext/Panel` — question, what was weighed, verdict. The
 readme states each verdict in one line and links here for the reasoning.
 
+## The bar sweep — the rail is the UI (2026-08-19)
+
+**Question.** The owner: *"there are too many little icons. there's no way anyone
+remembers all these… having 15 icons with any number of sub icons (that you have
+to hover, wait, read to see what they are), isn't great. this is why the panel
+selection and right sidebar can work."*
+
+**Measured, before.** A hovered leaf's bar carried **15 controls** — 4 on the
+strip (drag handle, `more_horiz`, an even-split `splitscreen`, close) and **11
+behind the fold**, most of which opened a popover of their own: template (29
+entries), tone, display, the flex or grid words, two size pickers, a live
+duplicate. And **365 of those popovers were cut off at 1280, 343 at 400** on
+`/framework/ext/Panel/` — clipped by the `overflow: hidden` of a panel, its
+workspace or the rail (probe: every pop opened by clicking its trigger, its rect
+compared against the intersection of every clipping ancestor; below-the-fold does
+not count as clipped, a scrollable ancestor can be scrolled to).
+
+**Verdict — the bar keeps what a HAND does.** Six controls, and not one of them
+opens anything:
+
+| drag handle | split into columns | split into rows | `tune` | the magnifier | close |
+
+Every WORD — template, tone, display, align, the flex and grid words, pad, gap,
+size, mode, group — lives in the rail (`properties.js`). **After: 6 controls, 0
+clipped popovers at 1280 and at 400.** `glyphs.js`'s `WORDS` lost its `bar:` flag
+entirely; `toolbar.js` lost `pop()`, `pick()`, the fold, `panel-quick`,
+`panel-browse` and 160 lines with them.
+
+**Why `tune` is on a bar that is otherwise gestures.** The rail is not open on
+every page — `dock()` runs on the module page and the playground only — so a
+panel in `ext/editor`, or any one-off `panel()`, would have had no door to its own
+vocabulary at all. `tune` opens the rail on whatever is focused (`root.focus`,
+read back, so the ring and the rail cannot disagree) and imports `tools.js`
+lazily, because `tools.js` reads `toolbar.js` and a static import would close the
+ring.
+
+**Kept, decided against removing.** The two split icons: the edge click *is* a
+split now, but the icons are the only path that does not require knowing the
+gesture, and `vertical_split`/`horizontal_split` are literally pictures of the
+result. The magnifier: the owner likes it, and it is a drag, not a word.
+
+**Removed, deliberately.** The live duplicate (`content_copy`) — alt-drop makes
+the same panel and the page documents it; the layout dice (`space_dashboard`) —
+the rail's `sow` row offers the dice *and* nine named presets, which is strictly
+more; the even-split `splitscreen`, which was a third button for what two already
+did; the root's `mode` and a split's `group`, both of which the rail draws.
+
+**Three bugs the sweep uncovered, all pre-existing, all in the RAIL** — see
+[focus.md](/framework/ext/Panel/doc/focus/), which is where they belong.
+
+## `ext/Dropdown` — a picker in the top layer (2026-08-19)
+
+**Question.** The owner: *"the template switcher — should be a dropdown (we might
+need an ext/Dropdown, which handles the ui, show/select/hide, etc) with icons and
+a label."*
+
+**Verdict.** [`ext/Dropdown`](/framework/ext/Dropdown/) — 100 lines, a class with
+a `dropdown()` door. Its list is a `[popover]`, so an open list is promoted to the
+browser's **top layer**: outside every `overflow: hidden` ancestor, no z-index
+war, and outside-click and Escape for free. That is the clipping fix, and it is
+one attribute. A promoted box has no containing block, so `place()` measures the
+trigger and writes `position: fixed` `left`/`top` itself — below the trigger, or
+above when there is no room, clamped either way.
+
+**Two callers, and only two.** `template` (a vocabulary is 29 entries wide — as a
+shelf of pictures it was a wall of icons you had to hover to read) and `display`
+(the word that decides which OTHER words are live, so naming it names the state
+the rest of the rail is in). Everything else stays a row of two to nine pictures:
+positional, and faster to read than a list you have to open. The flag is `drop:
+true` in `WORDS`.
+
+**A native `<select>` was offered and rejected** (the owner: *"or could be a
+native select element, i don't really care"*): an `<option>` cannot hold a
+picture, and this vocabulary is pictorial — a template ships an icon, a tone ships
+a colour swatch. Showing the icon *and* the name was the whole ask.
+
+**Escape is not left to the browser.** `focus.js` drops the panel selection on
+Escape, so a list dismissed by the popover's own close watcher took the selection —
+and the rail the list was drawn in — with it. `Dropdown.keys()` closes and stops
+it. Likewise the lit option is focused with `preventScroll` and then
+`scrollIntoView({ block: "nearest" })`: a bare `focus()` on an option low in a
+long list pushed the first rows above the box.
+
+## `wrap` is one button (2026-08-19)
+
+The owner: *"don't have a Wrap > Wrap/NoWrap drill down, when a single Wrap with
+active state would suffice."* `WORDS` gains `toggle: true`: a word with exactly
+two names, one of which means OFF, draws ONE button that lights, and `names[1]` is
+the ON state by the table's own order. `wrap` (`nowrap | wrap`), `dense` (`off |
+on`) and a split's `group` all read that way now. The two names stay in the table
+because they are the CSS values `paint.js` writes.
+
+Not toggles, for the same reason: `mode` (fill | document), `dir` (row | col) and
+`position` (static | absolute) are two *named states* with two distinct pictures,
+not a thing that is on or off.
+
+## Rows are one line (2026-08-19)
+
+The owner: *"the 4 tone tiles are currently a 2x2 grid, they should be 1x4 to
+utilize space better."* A row of six or fewer pictures is one LINE — `tone` went
+`cols: 2 → 4`, and `width`/`height` went from a 3-wide grid to `SIZES.length`.
+The one set that keeps a narrow `cols` is `align` (and `self`): a 3×3 IS the
+picture, and it stops being one the moment its columns reflow.
+
+## Split vs add — two verbs, two gestures (2026-08-19)
+
+**Question.** Edge click and the Workspace bar's `+` both called
+`item.divide(dir, new Panel(), at)` — one gesture wearing two triggers, and
+neither carried the struck panel's own look. Design (`ai/2026-08-19/
+workspace-design/design.md` §5): an edge click should keep the panel's
+tone/words and start empty (a *twin*, 50% by construction — `divide()`
+already gives an even share); the bar's `+` should start from scratch —
+already what `divide()` did — beside the focused panel, or a fresh section
+at the end of a document root when nothing is.
+
+**Verdict.** `Panel.restyle(from)` (`Panel.js`): copies `Panel.shared` minus
+`template seed text`, plus `from`'s own `grow` — one method. `split.js:57`'s
+`commit` becomes `item.divide(dir, new Panel().restyle(item), at)`.
+`Workspace.add()` is the bar's `+`: `focused(root) ?? root`, then
+`target.divide(target.parent?.get("dir") ?? "row", new Panel(), false)`.
+
+⚠ **Not `root.divide(dir, new Panel(), false)` on an already-split root.**
+`divide()`'s sibling branch needs `this.parent`, which a root never has, so
+`divide()` on a root *always* calls `split()` — wrapping every EXISTING
+child into one new one instead of adding a flat sibling. Fine the first time
+(a leaf root converting), wrong every time after (a document with two
+sections would gain a nested wrapper, not a third flat one — failing "count
++1, last" the instant it is checked). `new Panel().move(root)` is
+`workspace.js`'s own `sown()` for the identical shape (design §5, "one roll
+= one section") — reused here for a leafless root too, so `fill` mode needs
+no separate branch: `add()` checks `root.leaf()`, nothing else. The template
+picker does not auto-open — reaching `focus.js`'s imperative setter or
+`workspace.js`'s `views` map is a different task's fences; the new panel
+takes the default template and the rail lights it the instant it is clicked.
+
+**`insert.js`'s seam `+` was eating a nested seam drag**
+(`ai/2026-08-18/panel-flow/`'s finding) — not at its OWN split's interior
+gaps (the stub's whole box sits inside that grip's ±0.625rem strip there, an
+accepted tradeoff since 2026-08-16: "the grip keeps all but `--insert-run`
+of every seam"), but at a NESTED split's own edge, which coincides with a
+DIFFERENT (outer) grip's strip by pure geometry — the stub's own `panel-body`
+never asked to sit there, it just always starts exactly at 0. Measured both
+fixes the brief offered: lowering the stub's `z-index` below the grip's
+kills it almost entirely at ITS OWN gaps too (its box is ~100% inside that
+grip's strip there, so the grip would win nearly everywhere the stub is
+*meant* to win — the opposite of "keeps both usable"). Insetting the stub's
+*start* 0.7rem clears the neighbour's strip without touching the own-split
+case at all — the same number `split.css`'s own `--clear` already measured
+for the identical grip-vs-overlay conflict at a panel's edges (`insert.css`,
+both axes — one declaration each). Proven headless: a nested column's outer
+seam drags 100px with the insert `+` genuinely `.on` (hovered) throughout,
+child counts unchanged before/after.
+
+**The group toggle is now also on the bar.** `properties.js`'s
+`group_words()` was rail-only because `live_words()` is a leaf-only door and
+`group` never earned a `WORDS` row. `toolbar.js`'s `word_pops()` draws it
+beside the root's own word, for any split (root or not, matching
+`group_words()`'s own reach) — `sizing(item, $panel)` by hand after `set()`,
+the same pattern `size_pop` uses, because a plain `set()` raises `change`,
+which never redraws a bar.
+
+Proven headless (`ai/2026-08-19/workspace-d-verbs/`): edge-click on a
+toned/grid leaf → the twin shares `tone`/`display`/`cols`, an empty
+template, `grow` 1/1; the bar's `+` beside a leaf and on a document root
+both add one (2→3), the root's last child fresh and blank; the nested seam
+drags 100px with the insert `+` present; the bar's group toggle flips
+`.panel-group`. Zero console errors on `/framework/ext/Panel/`,
+`/Workspace/`, `/playground/`.
+
+## The `Workspace` class and the retirement of `/full/` (2026-08-19)
+
+**Question.** `workspace()` mounted a root directly into one box, and a second
+whole-window view of the same document (`/full/`) was a second, independent
+`workspace()` call — its own `Item.open()`, its own root, racing the first on
+every save. Design (`ai/2026-08-19/workspace-design/design.md`) asked for a
+class that HOLDS a root instead, so N viewports could be N views of ONE root.
+
+**Verdict.** `ext/Panel/Workspace/` — a `Workspace` class, never `extends
+Panel` (the accepted proposal's "never a fourth Panel subclass" stands).
+`workspace()` becomes `new Workspace(options).$view`, unchanged for every
+caller. `mount(root, $root)` (`workspace.js`) now keys a `WeakMap` by the root
+object and grows a `Set` of boxes per root — a second `mount()` call for a
+tracked root joins the set and draws once, rather than reloading. The `/full/`
+route (`route(name)` + its `full` import + the two prose links) is retired:
+until the playground (task C) lands, this page's own inline `workspace({
+mode: "document" })` is the only whole-document view. Full record, including
+the two owner-requested additions (a `flow` option and a bounded-space
+option) and what is still open: [`Workspace/doc/decisions.md`](../Workspace/doc/decisions.md).
+
+## Should `ext/Panel` use container queries at all? (2026-08-19)
+
+**Question.** Every `.panel-body` was `container-type: size`, and *a size
+container may not be sized by its contents* — which is why `hug` could not
+measure and had to declare `--panel-hug: 16em` instead. The owner: *"I'd
+probably avoid containers for now."*
+
+**Verdict: none, anywhere in the module.** Deleting the containment makes `hug`
+mean `flex: 0 0 auto` with an auto basis, and the box measures what it holds.
+Every other `cq` line **converted** rather than died, and the decorative scenes,
+`zoom_scrub`, the align overlay and `insert.js` all stayed (the owner's
+amendment: *"if it's not hurting anything leave it for now"*).
+
+**61 lines to 0 live** — the ten that remain are comments saying what went:
+
+| file | before | live now | what happened |
+|---|---|---|---|
+| `panel.css` | 10 | 0 (3 comments) | 3 `container-type` deleted · the hug floor dropped · `.panel-body:has(> .panel-t)` states `grid-template-rows: 100%` instead |
+| `size.css` | 2 | 0 | both `min(--panel-hug, 100cq…)` floors dropped; the cap is `.panel`'s own `max-inline-size: 100%` |
+| `templates.css` | 39 | 0 (4 comments) | paint → `%`, type → `em`, `wall` is 2 columns, `.panel-t-screen` is `100%` + `1em` |
+| `toolbar.css` | 6 | 0 (2 comments) | the bar folds unconditionally; `100cqi` → `100%` |
+| `tools.css` | 4 | 0 (1 comment) | the align overlay's container and its two size guards |
+| **total** | **61** | **0** | |
+
+**Five things it cost, all recorded rather than hidden.**
+
+1. **`--panel-hug` is `--panel-section`, and only that** — the floor under a
+   section of a `mode: document` workspace. It stopped being a width. Where
+   `fixed` was written with no length, the fallback is a plain `16em`.
+2. **A type size is now a constant `em`.** `clamp(1.5em, min(21cqw, 55cqh), 32em)`
+   became `4em`: with the middle term in `em` every term is in `em` and the clamp
+   can never move, so the clamp went too. Scaling a drawing to fit its box is
+   `zoom` on a viewport (task C), done once for everything.
+   ⚠ The visible cost: page **furniture** in a narrow generated rail no longer
+   shrinks to fit and clips instead. `.panel` is `overflow: hidden`, so it clips
+   rather than spills.
+3. **`blur()` and `perspective` may not take a percentage**, and a `circle`
+   gradient's radius may not either — those three converted to `em`/px, not `%`.
+4. **`.panel-workspace` and `.panel-items` now state `position: relative`.**
+   `container-type: size` was the containing block a *floating* panel landed in,
+   by accident; without it an abspos panel escapes to the page. `insert.css` says
+   the same thing for `.panel-items` today and is on the delete list, so
+   `panel.css` states it itself.
+5. **`.hug` is deleted.** It was `mode: hug` translated to whichever axis was
+   main, and `size.css` states that per axis and per slot — including the CROSS
+   axis and a split's `.panel-items`, neither of which `.hug` ever covered. Its
+   name stays in `size.js`'s clear-list so a stale one cannot survive a redraw.
+
+## The two rules the design said would not be needed (2026-08-19)
+
+Design §2 said *"Deleting the containment fixes it with no new rule"*. Measured,
+it did not — twice — and both misses were the same fact.
+
+**A `flex: 1 1 0` child of a box that is measuring itself contributes ZERO.**
+
+1. **A cross-axis `hug` read 0px.** A root panel with `h: hug` and twelve lines
+   of text measured **0**, because `.panel` is a flex COLUMN and its body kept a
+   `0` basis. One rule fixes every case at once —
+   `.panel.panel-h-hug > :is(.panel-body, .panel-items) { flex-basis: auto }` —
+   main axis or cross, in flow or out, leaf or split. Now: one line 52px, twelve
+   lines 656px, a scene at its own 16em floor.
+2. **A document section still could not grow.** With containment gone every
+   section still sat at 241px and its content scrolled inside it, for the same
+   reason one level up. `panel.css`'s last rule gives every stacked panel and
+   every panel's payload `flex-basis: auto` **inside a document only**; the
+   inline axis is untouched, so a row of columns still divides its width.
+   Measured with fixed seeds, three rolled sections: **241/241/241 with 55 boxes
+   scrolling their own content → 13012/1832/5062 with 0**, and the 55 leaf widths
+   identical to the pixel. A plain document of bands: 3 scrollers → 0.
+
+**The scrollbar rule now holds:** the workspace scrolls, and a box scrolls only
+where a height was genuinely chosen (`h: fixed`, or `fill` mode, where the screen
+is finite).
+
+## A roll on the root of a document sows into ONE fresh section (2026-08-19)
+
+`sow()` replaces a panel's data and children in place, which is right for the
+panel you struck. On the root of a document it was wrong: the layout's top-level
+rows became sections, which is the twelve-mini-panels report. A layout is a
+*page* and a document is a stack of pages' worth of band, so **one roll = one
+section** — `workspace.js`'s `sown()`, one `item.document()` test. On a section,
+and in `fill`, nothing changed.
+
 ## Should `divide` have a second "add a column" verb?
 
 **Options.** (a) `divide(dir)` plus a separate `append(dir)`. (b) One verb that
@@ -1123,3 +1395,364 @@ which is the number it read before.
   document *root*; sown into a section, `document` behaves like any nested split
   and scrolls inside its 16em (measured: the section stayed 241px and gained
   three leaves). A preset is a screen, and a screen is a section.
+
+## Groups — Figma-style drill-down, as a rule (2026-08-19)
+
+*"we might want to drag and drop whole sections, like in Figma... instead of
+hovering sub-section panels directly, you have to first select the Group"*
+(the owner). The accepted strategy already said never a fourth `Panel`
+subclass, so a group is one word on a split (`grouped()`, size.js), on by
+default for a document root's own sections, off everywhere else. Full design,
+the click/Escape walk and the CSS gate: [doc/focus.md](./doc/focus.md), "Groups".
+
+**Why `properties.js`, not a `WORDS` row.** `glyphs.js`'s `live_words()` only
+ever runs from the LEAF branch of `properties.js`'s `fields()` — the split
+branch never calls it. A `root`-only flag exists for "the whole workspace's
+word"; nothing expresses "splits only". Rather than teach `live_words()` a
+second axis for one word, `group` is a line beside `dir`, reading `grouped()`'s
+computed default directly (there is no static default to put in
+`Panel.defaults` — it depends on *where* a split sits).
+
+**Verified working as shipped: whole-section drag needed no `PanelDrag.js`
+change.** `workspace.js`'s `view()` already gives every panel WITH a parent a
+bar handle, leaf or split — a section is exactly as draggable as a leaf today.
+Headless: a 2-child section moved by its own handle, subtree and count intact.
+
+## Centre-drop onto a leaf: content vs. empty (2026-08-19)
+
+Two reports from the owner about `PanelDrag`'s centre zone (the inset
+indicator): *"i tried to split and then drag the new panel inside the old
+one... doesn't seem to work"*, then, more precisely, *"when dragging one
+section into another empty panel... what I would expect... is that the
+dragged panel goes inside the transparent bg empty panel, just as it would
+indicate, with padding added."*
+
+**The mechanism itself was never broken.** Headless, two sibling leaves,
+dragged one onto the other's centre by its own bar handle: `PanelDrag.release()`
+already called `into.item.split(dir, arrival)` and the drop landed correctly.
+
+**The actual bug: `split()` always relocates the target's CONTENT to a fresh
+child, even when there is none to relocate.** Centre-dropping onto an EMPTY
+leaf (nothing chosen — the transparent box the indicator promises to fill)
+produced a split holding TWO children: a spurious blank duplicate of "nothing"
+*plus* the dragged panel — which reads exactly like the report, a nest that
+"doesn't work" because it never becomes the sole occupant the preview implied.
+
+**Fix, in `PanelDrag.js` alone** (`Panel.js`'s `split()` is another task's
+file, and changing it for every caller was the wrong size fix for one
+caller). `nest(into, arrival, dir)`: a target already carrying `data.template`
+keeps `split()`'s existing behaviour, unchanged. An empty target skips it —
+`arrival` becomes its ONLY child, and the target keeps its own data (tone,
+words) as the container rather than `split()`'s usual full wipe, composed from
+`Item`'s own `move()` rather than a new `Panel` verb.
+
+**`--panel-pad: 1em`**, set on the fresh container's `.panel-items` the moment
+it nests into an empty leaf — the inset the preview showed, made real. This is
+`panel-pad-gap`'s word (not landed yet); the property name is chosen to be the
+one that task adopts, so nothing here gets redone once it does.
+
+Proved headless, both branches: an empty target ends up with exactly one
+child (the dragged panel) and `--panel-pad: 1em`; a target with content ends
+up with two (its own content, relocated, beside the dragged panel) — same as
+`split()` always produced. Screenshots: `drop-1-hover.png` (indicator showing,
+mid-drag), `drop-2-mid.png`, `drop-3-after.png`, in `ai/2026-08-19/panel-groups/`.
+
+**Storage, for the record.** Every panel is a plain `Item` — `items` a `List`,
+events, a `Saver` reachable through `save()`/`delete()`'s delegation up. A flow
+(`flow.js`) is `Item` snapshots. None of this is a `Panel` feature: history,
+undo and persistence belong to `Item`/`List`, and every panel gets them for
+free by being one.
+
+## `pad`, `gap`'s knob, and staying out of `ext/layout`
+
+**The ask:** a body has no way to add its own padding, and `gap`'s four
+presets can't reach a free value — both raised by the owner, 2026-08-19.
+
+**`pad`** is a new `WORDS` row (`glyphs.js`), rail-only, no `modes`: unlike
+`gap`, which means nothing until children are laid out, padding insets a
+body's content under any `display`. It carries **no `Panel.defaults` entry**
+— on purpose. `PanelDrag`'s centre-drop nest already writes `--panel-pad:
+1em` straight onto a fresh container's `.panel-items` (the entry above), and
+`.panel-body`'s rule (`panel.css`) is `padding: var(--panel-pad, 0)` with no
+value stamped by `Panel.defaults`, so an untouched body **inherits** that
+container inset rather than a default shadowing it. A template keeps its own
+inner padding on its own inner element (`templates.css`) — this is the
+BODY's, one layer out; the two never fight because they land on different
+boxes.
+
+**The knob.** `pad` and `gap` both take `knob: true`. `ext/layout/
+controls.js` already has a `knob()` — the 10-line slider idiom — but
+2026-08-15's verdict severed every import from `ext/Panel` into `ext/layout`,
+not even `btn()` (above, "ext/layout's bar is gone from the panel body").
+**Verdict: copied, not imported** — `properties.js` grew its own `knob()`,
+same shape, writing through `item.set()`/`repaint()` (persists, repaints)
+where the original writes straight to an element's inline style (neither
+persists through `Saver` nor survives the next `paint()`). One edge not
+reopened for one control. The bar's pop stays presets-only — a pop is a grid
+of buttons, a knob wants room a rail has and a pop doesn't — so `toolbar.js`
+needed no change at all.
+
+Reading tolerates a knobbed value with no code change: `word_vars()` and
+`live_words()` already read `item.get(key)` as a plain **value**, never an
+index into `names` — a `WORDS` row was never keyed by position, so `"1.25em"`
+paints exactly like `"1em"` would. The preset row's `on` class already
+compares by equality (`target.get(key) === name`), so a free value simply
+lights nothing — no special-case needed there either.
+
+**⚠ Commit on `change`, not `input`.** The first draft called `item.set()` on
+every `input` tick — and `set()` raises `change`, which `properties()`'s own
+listener reads as "rebuild the whole rail". Rebuilding the row a range input
+lives in *while its own drag is still in progress* drops the browser's
+pointer capture on the thumb the mid-gesture just replaced — the same class
+of bug a React app hits swapping a controlled input's DOM node on every
+keystroke. `input` now only updates the number beside the slider; `change`
+(fires once, on release) commits and triggers the one rebuild that matters.
+
+**⚠ `properties()` called directly needs a `.panel-workspace` ancestor, not
+just a mounted item.** Proving this headless by calling `properties(root)`
+outside the normal drawer/T-vocabulary path (`inspects()`, above) surfaced a
+real trap in existing code: `hear()`'s dead-closure guard —
+`$props.el.closest(".panel-workspace") ? render() : stop()` — reads "am I
+still attached anywhere" as "am I inside a `.panel-workspace` box", and
+unsubscribes on the very first `change` if not. Appending the rail as a
+sibling of the workspace box (not a descendant) silently froze it after one
+update. Not a `properties.js` change — a note for the next direct caller.
+
+Proved headless: `pad` preset → computed padding; knob to a free value →
+computed follows, no preset lit; `gap`'s knob under `flex` → computed `gap`
+follows; a reload (`Item.open()` on the same `MemorySaver`) restores both.
+`ai/2026-08-19/panel-pad-gap/`, `pad-gap-rail.png`.
+
+## 2026-08-19 — a panel is a `div` in flow; the edge strip grew two more gestures
+
+**The ask** (the owner): "panels should probably default to default `div` behavior —
+auto-height, fill width… you could give a panel a min-height to prevent it from collapsing…
+but the edges should still have resize handles. maybe for a default situation, the top and
+left resize handles aren't useful (they wouldn't work properly anyway), but right and bottom?
+also, right click should reset the resize handle's effect. that way, for any panel in 'flow',
+adding a panel or section or content within should automatically grow the panel(s) themselves,
+not just crop/scroll."
+
+### `Panel.defaults.h` is `hug`, and a saved document moves with it
+
+`extents()` answered `fill` for any panel that never wrote `h`; it answers `hug` now. **That
+is a real change to `/data/panels.json` and it is the right one** — nothing in that file wrote
+`h`, so every panel in it was filling by accident of a default rather than by a choice
+somebody made, and the owner's sentence above is the choice. `fill` is still one click away on
+the bar and in the rail, and the moment a panel writes it the word is in the file and immune.
+Nothing rewrote the file: the words are read at draw time.
+
+Verified unmoved, headless at 1280×900, root heights before and after the flip:
+`ext/editor` 662 → 662, `Workspace/` 241 → 241, `playground/` 862 → 862 (root 2481, scrolling),
+`ext/files` 451 → 451. Zero console errors on all five pages.
+
+### Three rules carry it, not a new mechanism
+
+1. `.panel-workspace { height: var(--panel-height, auto) }` — a workspace nobody gave a height
+   to follows its root. Every caller that wants a screen already sets the token.
+2. `align-self: var(--panel-self-y, stretch)` on the hugging cross axis, with `size.js` writing
+   `--panel-self-*` **only when the panel chose a `self`**. `Panel.defaults.self` answers `tl`,
+   so `item.get()` wrote `start` on every panel ever built and no rule could have a different
+   default. One word now covers both halves of the truth: a root stretches to a workspace that
+   has a height, and measures its content when the workspace is `auto`.
+3. `flex-basis: auto` (keeping `--panel-grow`) for a hugging HEIGHT on the main axis — the pair
+   `mode: document` has run on since earlier the same day. A hugging WIDTH keeps `flex: 0 0 auto`.
+
+**Cost, stated:** picking `hug` for a HEIGHT no longer visibly shrink-wraps a panel in a row —
+it stretches, like a div, unless a `self` is also chosen. That is the same trade as making the
+default right, and `fixed` is the word for "exactly this tall".
+
+### A split now matches its own preview
+
+The owner: three columns came back 33/33/33 where the ghost drew 25/25/50. `restyle()` copies
+the struck panel's whole `grow`, which is right for a NEST (both children of the fresh
+container start level) and wrong the instant `divide()` takes its same-direction branch and
+drops the twin into the row — two full shares where there was one. `split.js`'s commit states
+the share itself: **beside → half the struck panel's own grow to each side; nested → 1 and 1.**
+
+**Flat halving beats the owner's nesting alternative** (the parent's 50:50 pair moving into one
+side). No tree depth is added, so seams stay peers and a reader can still drag any of them
+against any other; the grows survive the chrome as `flex: n` on a plain section, which a nested
+wrapper would not; and `close()`/`absorb()` have nothing extra to unwind. Nesting would give the
+same picture at a cost paid on every later gesture.
+
+Measured in a 600px workspace: split right → 300/300; split the left one's right edge →
+**150/150/300** (grows 0.25/0.25/0.5); again on the middle → 150/75/75/300. The ghost's box
+before the commit and the arriving panel's box after it are the same rect, `{x:150, w:150,
+h:469}`. `add` (the Workspace bar's `+`) never comes through that line and still reads
+200/200/200.
+
+### Two traps that cost a measurement each
+
+- **`min(var(--panel-h-at), 100%)` resolves to ZERO against an auto-height workspace.** A
+  bottom-edge drag committed `h: fixed, h_at: 39.25em` and the root measured 0px. A percentage
+  *max* against an indefinite parent is `none`; a percentage *size* is 0. The block-axis caps
+  are `block-size: <length>` + `max-block-size: 100%` now, and the main-axis one is a bare
+  basis (flex-shrink already caps it). The inline axis is untouched — a workspace always has a
+  definite width.
+- **Two floors tied on specificity and the loser was decided by load order.** `size.css`'s new
+  `--panel-min` rule and `panel.css`'s `--panel-section` rule both said `min-block-size` on the
+  same element at (0,3,0); the playground's document sections dropped 241px → 75px. `panel.css`
+  carries `.panel-workspace` on the front of that rule now.
+
+### Left deliberately
+
+- **A root that is already a SPLIT still has no edge strips.** `workspace.js` builds them only
+  for a leaf, and they cannot simply be extended: a split's strips lie over its children, which
+  own the hover (`.panel:hover:not(:has(.panel:hover))`), so the `.panel-group` reveal pattern
+  would have to travel with them. Every leaf, and every leaf root — which is most Demo panes —
+  has all three gestures today.
+- **The ghost is a side, not a height, for a vertical split of a hugging panel.** It draws 50%;
+  the section that arrives measures itself, so a 469px panel split downward becomes 469 + 241.
+  That IS the flow behaviour the ask names ("adding… should automatically grow the panel"), and
+  predicting the arrival's height before it exists is not possible. Horizontal splits match
+  exactly, and so do vertical ones on a `fixed` height.
+
+## Item selection — an element with words, not a Panel (2026-08-19)
+
+**Question.** The owner: *"even though each item isn't a panel itself, they
+could easily act like it… they should at least be selectable, so the sidebar
+can display flex/grid properties per item."*
+
+**Verdict — no subclass.** A cell inside a flex/grid leaf's body is
+selectable and carries its own rail rows (`grow`/`basis`/`order`/`self` under
+flex, `span`/`row_span`/`self` under grid), but it stays a plain element, not
+a `Panel`. A `Panel` per cell buys a bar, drag handles, a saved tree node and
+a whole `view()` recursion for every one of twelve boxes; none of that was
+asked for, and the words transfer verbatim the day the chrome around them is
+removed — an element that GAINS chrome later is a smaller change than a
+`Panel` that has to SHED it.
+
+**The shape is `text.js`'s run selection, one level up** — a direct child of
+the body, the same already-focused-panel gate, the same module-scope state.
+Reused rather than duplicated: a click that reaches a bare cell has already
+failed the run `SELECTOR`, so the two selections can never both be showing.
+Full account: [doc/focus.md](./focus.md#item-selection-a-cell-one-level-up-from-a-run-2026-08-19).
+
+**Persistence rides `data.items`, keyed by `data-cell` (`cells`' own stamp) or
+the child's index** — the same read-modify-write `persist.js`'s `record()`
+already does for text, minus the path-walking a run needs (the caller already
+holds the cell). ⚠ **The key collides on purpose with `item.items`** (the
+List of child panels, an instance property, never in `data`) — same word,
+two different things, because the brief asked for `data.items` by name and a
+Panel's `items` List was never a candidate for confusion at the DATA level
+(`toJSON()` emits `data` and `items` as sibling keys already). Noted here so
+the next reader is not the one who finds it by surprise.
+
+**No `apply()`/`repaint()` for an item word write.** Every leaf word goes
+through `apply()`, which repaints the body — correct for a leaf's own word,
+fatal for an item's, since a repaint throws away the very DOM node the click
+just selected. An item word instead writes its custom property straight onto
+the live cell and persists through `set_item()`; `panel-item` (`tools.js`,
+mirroring `panel-focus`) redraws just the rail.
+
+**Files touched, none outside the fence:** `glyphs.js` (`ITEM_WORDS`,
+`item_vars`, `live_item_words`), `persist.js` (`item_of`, `set_item`,
+`items_apply` — 30 lines, under the 40-line budget that would have earned a
+new `items.js`), `templates.js` (`cells` stamps `data-cell`), `text.js` (the
+selection — focus.js was reassigned to a concurrent task mid-run, coordinator
+message 2026-08-19), `properties.js` (`item_words()`, inline under the
+leaf's own rows), `tools.js` (one `panel-item` listener), `display.css` (the
+`--item-*` landing rule plus `.panel-item-on`, negative-offset unlike
+`.panel-text-on` since a cell shares an edge with its neighbours).
+
+**What is NOT built.** Item drag-reorder — next, and probably `PanelDrag`'s
+own idiom rather than a new one. Multi-select across cells — the same open
+question `focus.md` already names for panels themselves (`focus` is a single
+id today), unbuilt for the same reason.
+
+**A cosmetic collision, left as found:** the rail can show two rows both
+tagged **"self"** at once — the leaf's own placement (a 3×3 of seats) and the
+selected item's (`auto · start · center · end · stretch`), drawn last.
+Different pictures and values, same tag text; not fixed here since renaming
+either is a word-table decision, not a selection one.
+
+**Proven headless** (`ai/2026-08-19/panel-items/`, `item-selected.png`):
+click cell 3 twice → item rows appear; `grow 2` → `flexGrow` `"2"` on cell 3
+only, cell 1 stays `"0"`; `self center` → `alignSelf` `"center"`; grid
+`span 2` → `gridColumnStart` `"span 2"`; a forced `repaint()` (paint.js,
+untouched) replays both from `data.items`; `toJSON` → `Panel.hydrate()`
+round-trips `data.items` exactly; Escape once clears the item and keeps the
+leaf focused, Escape again drops the leaf (focus.js's own, unmodified); zero
+console errors on `/framework/ext/Panel/` and `/framework/ext/Panel/demo/`.
+
+## One selection per PAGE, and hover says what a click takes (2026-08-19)
+
+*"i'm still getting selection state issues.. we really need to lock this down…
+right sidebar: 'nothing selected', but an orange border on the last selected panel
+that doesn't disappear (and clicking off doesn't help)"* (the owner)
+
+**Measured first, on the page the owner was looking at** —
+`/framework/ext/Panel/` draws **sixteen** `.panel-workspace` boxes, seven of
+which are views of ONE root (the viewport set). Five separate causes, each
+reproduced headless before anything was changed:
+
+1. **`land()` cleared rings inside the TARGET's own workspace only.** The
+   previous selection's ring — in another box, or another root — survived every
+   time. Two rings after two clicks.
+2. **`views` (paint.js) holds ONE entry per item**, the last box drawn. A click
+   that drilled onto a group painted its ring into a **hidden** twin pane while
+   the visible box showed nothing and the rail said `split`.
+3. **`selection()` bound its listeners once per BOX.** Seven boxes, seven Escape
+   handlers: the first stepped out to the group, the rest read the new state and
+   returned early with their own rings still on screen.
+4. **Nothing was page-wide.** Clicking a panel in a second root gave **three**
+   rings at once, and the end state was the owner's report exactly: rail
+   *"nothing selected"*, two permanent rings, further Escapes doing nothing.
+5. **`land()` returned early when the id was unchanged.** `ext/layout` redraws
+   the SHARED rail from its own capture-phase document click, so a click that
+   announced nothing left the rail showing somebody else's content under our ring.
+
+**The invariant, in one file.** `focus.js` is now the only writer of
+`.panel.focus`: `rings()` clears **every** ring on the document, then paints
+**every live view** of the selected panel. One selected panel per page; a root
+drawn into seven boxes wears seven rings of the same panel, so whichever box is
+on screen is right and a viewport switch can never show a stale one. Roots release
+each other with **no registry** — each listens for `panel-focus` and lets go when
+the detail's `root()` is not itself.
+
+**Deleted, not guarded:** the `$target` argument and its null check, the
+per-workspace `closest(".panel-workspace")` clear, the `views` import (focus.js
+no longer reads paint.js), and the unchanged-id early return. `focus(item,
+$panel)` still takes the clicked view because `workspace.js` still passes it —
+that argument can go when the same fence opens.
+
+**How a DOM element and a panel find each other, with no ids.** `pair(root)`
+walks the tree and the box together — the same walk `view()` made — and hands
+back both directions. That is what lets one `drill()` serve the click **and** the
+hover, and what makes "every live view" reachable at all.
+
+**Clicking off now deselects.** A click on anything that is not a workspace and
+not a surface that acts on the selection (the rail, the workspace bar, the flow
+strip, the dev rail, the top layer) drops it. ⚠ **Capture phase** — the same trap
+`ext/layout` records: the Workspace's viewport buttons call `draw_bar()`, so the
+clicked button is detached by the time a bubbling listener runs and `closest()`
+on a detached node reads as a click outside. Measured: every viewport switch
+silently dropped the selection until this moved to capture.
+
+**Hover is a JS class, not CSS.** What a click selects depends on `root.focus`
+(inside an unopened group the GROUP is the target), which CSS cannot express —
+`.panel-hover` is set from the **same `drill()`** the click runs, so the two can
+never disagree, and `mark()` re-runs after every landing because drilling changes
+the answer with the pointer standing still. An inspector is marked never: a click
+on one takes no selection.
+
+**The `+` on a repeating run rides that class** (`repeat.css`) — `opacity: 0`
+until its panel is the hovered target or the selection, so it inherits the group
+gate for free. ⚠ Opacity, never `display`/`visibility` on a grid item: it has to
+keep its slot. Measured — twelve tile rects, zero moved.
+
+**Proven headless** (`ai/2026-08-19/panel-selection/`): two panes / two roots →
+one ring, rail agrees, Escape → zero, click the page background → zero; the
+document workspace → 7 rings, all one panel, one shown, through group → leaf →
+Escape; a click on an inspector leaves the selection untouched and marks nothing;
+the playground's `fill → all → 1 → twin` keeps the ring on the shown box every
+time; a rail control never deselects; the `+` hidden cold, shown on hover, no
+layout shift; zero console errors on `/framework/ext/Panel/`, `/demo/`,
+`/playground/`, `/Workspace/`, `/framework/ext/editor/`, `/framework/ext/layout/`.
+
+**Still not ours to fix:** `ext/layout`'s `refresh()` has no ownership test, so it
+still redraws the shared rail on every click — announcing every landing is the
+compensation, not the cure. And the `.panel.focus` ring rule still lives in
+`panel.css`; it belongs beside its hover twin in `focus.css` and should move once
+the flow-sizing task's fence opens.

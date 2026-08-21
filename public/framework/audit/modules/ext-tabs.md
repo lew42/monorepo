@@ -16,7 +16,7 @@ no non-`page.js` `.js`); they need a follow-up pass that can touch code.
 |---|---|
 | files | 4 (`tabs.js`, `tabs.css`, `page.js`, `readme.md`) |
 | lines of JS / CSS | 81 / 172 |
-| callers | **1 functional call site** — `ext/Doc/Doc.js` (`this.tabs().ac("vertical")` per section, `this.tabs(this.bar()…).ac("block")` for the top bar) — but it backs **8** `Doc`-based module pages today (App, Page, Router, Sidebar, View, `dev/Socket`, `ext/Doc` ×2). `app.js` imports `tabs.js` a second time specifically so any *other* `page.js` can call `this.tabs()` directly; nothing has yet. Two files use it only as a **prose code sample** (`core/Page/nav/page.js`, `framework/faq/page.js`); one (`web/nav/tabs/page.js`) reuses only the **CSS classes**, hand-built, because its sandbox has no Router for the real method. |
+| callers | **1 functional call site** — `ext/Doc/Doc.js` (`this.tabs().ac("vertical")` per section, `this.tabs(this.bar()…).ac("block")` for the top bar) — but it backs **8** `Doc`-based module pages today (App, Page, Router, Sidebar, View, `dev/Socket`, `ext/Doc` ×2). `app.js` imports `tabs.js` a second time specifically so any *other* `page.js` can call `this.tabs()` directly; nothing has yet. Two files use it only as a **prose code sample** (`core/Page/old/nav/page.js`, `framework/faq/page.js`); one (`web/nav/tabs/page.js`) reuses only the **CSS classes**, hand-built, because its sandbox has no Router for the real method. |
 | docs before | `readme.md` existed and was already well-shaped (a real design record with Decisions/Traps, unlike some sibling modules); `doc/extraction.md` existed; `page.js` was a plain `Page`, hand-built with `h2`/`code`/`md` — not a `Doc`. Zero `doc/method/*.md`, zero `doc/property/*.md`, zero `doc/file/*.md`. The readme's own "only caller on the site" claim (about `Doc`) was true when written and stale today. |
 | docs after | `readme.md` trimmed — the "which page earns a tab bar" test broken out to `doc/usage.md`, a new **Who calls it** section (table + the caller nuance above), the stale "only caller" line corrected, the two live bugs flagged, an **Open** section added. Two new notes (`doc/usage.md`, `doc/overflow.md`); `doc/extraction.md` kept as-is (a historical decision record, still accurate for the moment it describes). One `doc/method/tabs.md`. Four `doc/file/*.md` (one per module file). `page.js` rewritten as `new Doc({ subject: Page, methods: "tabs", notes: "usage overflow extraction", files: "tabs.js tabs.css page.js readme.md" })`, with two live `demo.app()` demos replacing the old four-real-declared-children shape. |
 
@@ -92,7 +92,7 @@ comments (lines 21, 111) are named, not fixed — see Recommendations.
 Not the five named in the brief (`Editor`/`Panel`/`ext/layout`/`DevBar`/`ext/demo`)
 — `tabs` doesn't split, arrange a workspace, or hold editable state; it's a bar and
 a panel, full stop. It sits instead in a smaller, already-named family: `core/Page`'s
-own [nav guide](/framework/core/Page/nav/) lists **Previews, Catalog, Sidebar,
+own [nav guide](/framework/core/Page/old/nav/) lists **Previews, Catalog, Sidebar,
 Tabs, Crumbs** as the framework's five ways to navigate a page tree, and all five
 that mount content (Previews, Catalog, Tabs) share the one real mechanism —
 `Page.container()` reading `parent.regions`. `ext/catalog` is the closest sibling:

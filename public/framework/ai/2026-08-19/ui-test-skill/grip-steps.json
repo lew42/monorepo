@@ -1,0 +1,508 @@
+[
+ {
+  "n": 1,
+  "step": "goto",
+  "verb": "goto",
+  "args": [],
+  "png": "01-goto.png",
+  "value": null,
+  "error": null,
+  "errors": [],
+  "flags": [
+   "missing .drawer",
+   "missing .drawer .grip"
+  ],
+  "doc": {
+   "sw": 1280,
+   "cw": 1280,
+   "sh": 900,
+   "ch": 900
+  },
+  "rects": {
+   ".drawer": {
+    "before": null,
+    "after": null,
+    "moved": null
+   },
+   ".drawer .grip": {
+    "before": null,
+    "after": null,
+    "moved": null
+   }
+  }
+ },
+ {
+  "n": 2,
+  "step": "click \"text=Open the rail\"",
+  "verb": "click",
+  "args": [
+   "text=Open the rail"
+  ],
+  "png": "02-click.png",
+  "value": null,
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 1280,
+   "cw": 1280,
+   "sh": 900,
+   "ch": 900
+  },
+  "rects": {
+   ".drawer": {
+    "before": null,
+    "after": {
+     "x": 976,
+     "y": 0,
+     "w": 304,
+     "h": 900
+    },
+    "moved": null
+   },
+   ".drawer .grip": {
+    "before": null,
+    "after": {
+     "x": 977,
+     "y": 0,
+     "w": 12,
+     "h": 900
+    },
+    "moved": null
+   },
+   "text=Open the rail": {
+    "before": null,
+    "after": null,
+    "moved": null
+   }
+  }
+ },
+ {
+  "n": 3,
+  "step": "wait 400",
+  "verb": "wait",
+  "args": [
+   "400"
+  ],
+  "png": "03-wait.png",
+  "value": null,
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 1280,
+   "cw": 1280,
+   "sh": 900,
+   "ch": 900
+  },
+  "rects": {
+   ".drawer": {
+    "before": {
+     "x": 976,
+     "y": 0,
+     "w": 304,
+     "h": 900
+    },
+    "after": {
+     "x": 976,
+     "y": 0,
+     "w": 304,
+     "h": 900
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   },
+   ".drawer .grip": {
+    "before": {
+     "x": 977,
+     "y": 0,
+     "w": 12,
+     "h": 900
+    },
+    "after": {
+     "x": 977,
+     "y": 0,
+     "w": 12,
+     "h": 900
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   }
+  }
+ },
+ {
+  "n": 4,
+  "step": "move 982 450",
+  "verb": "move",
+  "args": [
+   "982",
+   "450"
+  ],
+  "png": "04-move.png",
+  "value": null,
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 1280,
+   "cw": 1280,
+   "sh": 900,
+   "ch": 900
+  },
+  "rects": {
+   ".drawer": {
+    "before": {
+     "x": 976,
+     "y": 0,
+     "w": 304,
+     "h": 900
+    },
+    "after": {
+     "x": 976,
+     "y": 0,
+     "w": 304,
+     "h": 900
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   },
+   ".drawer .grip": {
+    "before": {
+     "x": 977,
+     "y": 0,
+     "w": 12,
+     "h": 900
+    },
+    "after": {
+     "x": 977,
+     "y": 0,
+     "w": 12,
+     "h": 900
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   }
+  }
+ },
+ {
+  "n": 5,
+  "step": "down",
+  "verb": "down",
+  "args": [],
+  "png": "05-down.png",
+  "value": null,
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 1280,
+   "cw": 1280,
+   "sh": 900,
+   "ch": 900
+  },
+  "rects": {
+   ".drawer": {
+    "before": {
+     "x": 976,
+     "y": 0,
+     "w": 304,
+     "h": 900
+    },
+    "after": {
+     "x": 976,
+     "y": 0,
+     "w": 304,
+     "h": 900
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   },
+   ".drawer .grip": {
+    "before": {
+     "x": 977,
+     "y": 0,
+     "w": 12,
+     "h": 900
+    },
+    "after": {
+     "x": 977,
+     "y": 0,
+     "w": 12,
+     "h": 900
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   }
+  }
+ },
+ {
+  "n": 6,
+  "step": "move 982 450 1",
+  "verb": "move",
+  "args": [
+   "982",
+   "450",
+   "1"
+  ],
+  "png": "06-move.png",
+  "value": null,
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 1280,
+   "cw": 1280,
+   "sh": 900,
+   "ch": 900
+  },
+  "rects": {
+   ".drawer": {
+    "before": {
+     "x": 976,
+     "y": 0,
+     "w": 304,
+     "h": 900
+    },
+    "after": {
+     "x": 982,
+     "y": 0,
+     "w": 298,
+     "h": 900
+    },
+    "moved": {
+     "dx": 6,
+     "dy": 0,
+     "dw": -6,
+     "dh": 0
+    }
+   },
+   ".drawer .grip": {
+    "before": {
+     "x": 977,
+     "y": 0,
+     "w": 12,
+     "h": 900
+    },
+    "after": {
+     "x": 983,
+     "y": 0,
+     "w": 12,
+     "h": 900
+    },
+    "moved": {
+     "dx": 6,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   }
+  }
+ },
+ {
+  "n": 7,
+  "step": "move 832 450 20",
+  "verb": "move",
+  "args": [
+   "832",
+   "450",
+   "20"
+  ],
+  "png": "07-move.png",
+  "value": null,
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 1280,
+   "cw": 1280,
+   "sh": 900,
+   "ch": 900
+  },
+  "rects": {
+   ".drawer": {
+    "before": {
+     "x": 982,
+     "y": 0,
+     "w": 298,
+     "h": 900
+    },
+    "after": {
+     "x": 832,
+     "y": 0,
+     "w": 448,
+     "h": 900
+    },
+    "moved": {
+     "dx": -150,
+     "dy": 0,
+     "dw": 150,
+     "dh": 0
+    }
+   },
+   ".drawer .grip": {
+    "before": {
+     "x": 983,
+     "y": 0,
+     "w": 12,
+     "h": 900
+    },
+    "after": {
+     "x": 833,
+     "y": 0,
+     "w": 12,
+     "h": 900
+    },
+    "moved": {
+     "dx": -150,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   }
+  }
+ },
+ {
+  "n": 8,
+  "step": "up",
+  "verb": "up",
+  "args": [],
+  "png": "08-up.png",
+  "value": null,
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 1280,
+   "cw": 1280,
+   "sh": 900,
+   "ch": 900
+  },
+  "rects": {
+   ".drawer": {
+    "before": {
+     "x": 832,
+     "y": 0,
+     "w": 448,
+     "h": 900
+    },
+    "after": {
+     "x": 832,
+     "y": 0,
+     "w": 448,
+     "h": 900
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   },
+   ".drawer .grip": {
+    "before": {
+     "x": 833,
+     "y": 0,
+     "w": 12,
+     "h": 900
+    },
+    "after": {
+     "x": 833,
+     "y": 0,
+     "w": 12,
+     "h": 900
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   }
+  }
+ },
+ {
+  "n": 9,
+  "step": "eval getComputedStyle(document.querySelector('.app')).getPropertyValue('--drawer-w')",
+  "verb": "eval",
+  "args": [
+   "getComputedStyle(document.querySelector('.app')).getPropertyValue('--drawer-w')"
+  ],
+  "png": "09-eval.png",
+  "value": "448px",
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 1280,
+   "cw": 1280,
+   "sh": 900,
+   "ch": 900
+  },
+  "rects": {
+   ".drawer": {
+    "before": {
+     "x": 832,
+     "y": 0,
+     "w": 448,
+     "h": 900
+    },
+    "after": {
+     "x": 832,
+     "y": 0,
+     "w": 448,
+     "h": 900
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   },
+   ".drawer .grip": {
+    "before": {
+     "x": 833,
+     "y": 0,
+     "w": 12,
+     "h": 900
+    },
+    "after": {
+     "x": 833,
+     "y": 0,
+     "w": 12,
+     "h": 900
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   }
+  }
+ }
+]

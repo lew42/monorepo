@@ -339,7 +339,7 @@ The box was never *mini*; it is this tier's app, and the name now matches the
 namespace every other entry point already uses.
 
 **The question.** `demo.app` — App and Router for one in-memory tree, in a box —
-was born in `core/Page/overview/` as that page's private machinery, and a
+was born in `core/Page/old/overview/` as that page's private machinery, and a
 second consumer (`ai/2026-08-08`) was already importing it across the tree. The
 five-block rule says anything that frames an example must name the block it
 extends.
@@ -365,7 +365,7 @@ real app — and why its marks are `aria-current`, never `.active` — is record
 
 One fictional site — nine children, `html`/`css`/`js` a level deeper — that any
 demo takes and overrides the **root** of, so what changes between demos is exactly
-what each demo teaches. `core/Page/nav/` is four of them — wall, catalog, sidebar,
+what each demo teaches. `core/Page/old/nav/` is four of them — wall, catalog, sidebar,
 crumbs; the point of a shared tree is that the tree visibly *doesn't* change.
 
 **Deliberately not used by the Page overview demos.** There the *source is the

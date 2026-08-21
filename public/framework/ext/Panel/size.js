@@ -7,19 +7,33 @@ import { PLACE } from "./glyphs.js";
    panel sits in the slot its split hands it, exists ONLY on an axis that does not fill.
    `position` says whether the panel is in that slot at all, or floating over it.
    `sizing()` is the sole writer of the classes and custom properties size.css reads — call
-   it after any redraw, as many times as you like.
+   it after any redraw, as many times as you like. `hug` means AUTO: the box measures what
+   it holds, because nothing in this module is a query container any more. doc/sizing.md.
    css: .panel-w-hug, .panel-w-fixed, .panel-h-hug, .panel-h-fixed, .panel-pos-absolute,
-   plus the legacy `.hug` panel.css's scene rules still key off, and `.panel-self`/
-   `.panel-seat`, the control that draws this rule. Record: readme.md, doc/file/size.js.md. */
+   .panel-mode-document, plus `.panel-self`/`.panel-seat`, the control that draws this rule.
+   Record: readme.md, doc/file/size.js.md. */
 View.stylesheet(import.meta, "size.css");
 
 export const SIZE = { on: true };
 export const EXTENTS = ["fill", "hug", "fixed"];
 
-const CLASSES = EXTENTS.flatMap(e => ["w", "h"].map(axis => `panel-${axis}-${e}`)).join(" ") + " panel-pos-absolute hug panel-mode-document";
+// ⚠ `hug` rides the list with nothing writing it any more: a document saved while the class
+// existed keeps it in no DOM this file does not rebuild, and dropping it from the CLEAR list
+// is how a stale one would survive a redraw. Cheap; delete it once a sweep has been through.
+const CLASSES = EXTENTS.flatMap(e => ["w", "h"].map(axis => `panel-${axis}-${e}`)).join(" ") + " panel-pos-absolute hug panel-mode-document panel-group";
 
 // In the slot, or over it. One word, and `static` is every panel that never chose.
 export const floating = item => item.get("position") === "absolute";
+
+/* A split's own word (2026-08-19): does it collapse Figma-style selection onto ITSELF —
+   `group: on | off` — until something drills past it? Every split may wear it; unset reads
+   as ON for a document root's own sections (`mode: document`'s direct children) and OFF
+   everywhere else, which is today's plain innermost-wins. `item.data.group`, never
+   `item.get()`: there is no static default to put in `Panel.defaults` for a value that
+   depends on WHERE a split sits. `focus.js` reads this to resolve a click and to walk
+   Escape back out; the CSS gate in panel.css reads the class it writes below. */
+export const grouped = item => !item.leaf() && (item.data.group
+	?? (item.parent && !item.parent.parent && item.parent.document() ? "on" : "off")) === "on";
 
 /* `mode` was never really "hug both axes" — flex-grow/shrink/basis only ever touch the
    MAIN axis (the one the split runs along; row or root is inline, col is block), so an old
@@ -34,7 +48,12 @@ export function extents(item){
 	return {
 		main,
 		w: item.data.w ?? (legacy === "w" ? "hug" : "fill"),
-		h: item.data.h ?? (legacy === "h" ? "hug" : "fill"),
+		/* ⚠ `hug`, not `fill` (2026-08-19): the DEFAULT is flow — a panel's height is what it
+		   holds, so a split or a section added inside grows it instead of scrolling inside
+		   it. A saved document that never wrote `h` reads `hug` from today, and the two
+		   places that filled a screen still do (a workspace handed a `--panel-height`
+		   stretches its root; `mode: document` is untouched). doc/sizing.md. */
+		h: item.data.h ?? "hug",
 	};
 }
 
@@ -44,7 +63,7 @@ export function extents(item){
 const panels = new WeakMap();
 
 export function sizing(item, $panel){
-	const { main, w, h } = extents(item);
+	const { w, h } = extents(item);
 	const over = floating(item);
 	panels.set(item, $panel);
 
@@ -52,28 +71,30 @@ export function sizing(item, $panel){
 		.ac(w !== "fill" && `panel-w-${w}`)
 		.ac(h !== "fill" && `panel-h-${h}`)
 		.ac(over && "panel-pos-absolute")
-		// The scene container-type switch in panel.css still reads plain `.hug` — same test,
-		// so a scene sizes as it always has. ⚠ Withheld from a floating panel: `.hug` makes a
-		// BODY hug where the panel's own box could not say how wide it was, and a floating
-		// panel's box states its extent directly.
-		.ac(!over && (main === "w" ? w : h) === "hug" && "hug")
 		/* The root's `mode`, as the one class panel.css reads to make a workspace a
 		   scrolling DOCUMENT — written here because this is already the sole writer of
-		   `$panel`'s own layout classes, `.hug` (also panel.css's) included. ⚠ Root only:
+		   `$panel`'s own layout classes. ⚠ Root only:
 		   `document()` is the test, never the key, because `split()` hands a root's data
 		   down to its first section. */
-		.ac(item.document() && "panel-mode-document");
+		.ac(item.document() && "panel-mode-document")
+		.ac(grouped(item) && "panel-group");
 
 	if (w === "fixed" && item.get("w_at")) $panel.style("--panel-w-at", item.get("w_at"));
 	if (h === "fixed" && item.get("h_at")) $panel.style("--panel-h-at", item.get("h_at"));
 
-	/* Written on every panel, unconditionally, and read by size.css only from rules already
-	   gated on a NON-filling axis: which rule exists is what enforces "a filling panel has
-	   nothing left to align", so nothing here has to test it. The other half of the truth
-	   table is the engine's — `justify-self` is inert in flex, so writing it can never make
-	   a main axis movable. `self[0]` is the block half, `self[1]` the inline one. */
-	const self = item.get("self") ?? "tl";
-	$panel.style({ "--panel-self-x": PLACE[self[1]] ?? "start", "--panel-self-y": PLACE[self[0]] ?? "start" });
+	/* Read by size.css only from rules already gated on a NON-filling axis: which rule
+	   exists is what enforces "a filling panel has nothing left to align", so nothing here
+	   has to test it. The other half of the truth table is the engine's — `justify-self` is
+	   inert in flex, so writing it can never make a main axis movable. `self[0]` is the
+	   block half, `self[1]` the inline one.
+
+	   ⚠ Only when the panel CHOSE one (2026-08-19). `Panel.defaults.self` answers `tl`, so
+	   `item.get()` here wrote `start` on every panel ever built and no rule below could
+	   have a different default — which is exactly what a hugging HEIGHT needs, because a
+	   div in a row stretches. Unset now falls through to size.css's own fallback: `start`
+	   everywhere it always was, `stretch` for the one rule that is the flow default. */
+	const self = item.data.self;
+	if (self) $panel.style({ "--panel-self-x": PLACE[self[1]] ?? "start", "--panel-self-y": PLACE[self[0]] ?? "start" });
 
 	return $panel;
 }

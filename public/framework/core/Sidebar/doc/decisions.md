@@ -14,11 +14,11 @@ subclassed):
 | `michael/page.js` | a sandbox's own section nav | `/michael/` |
 | `styles/layers/theme/lew42/page.js` | the theme comp, exercising both `brand` and grouped `pages` | `/framework/styles/layers/theme/lew42/` |
 | `styles/layouts/sidebar/page.js` | the "no-rule" placement demo — `.ac("basis").style("--basis", "var(--sidebar)")` | `/framework/styles/layouts/sidebar/` |
-| `core/Page/nav/page.js` | a nested demo showing `nav_for()` feeding a Sidebar | `/framework/core/Page/nav/` |
+| `core/Page/old/nav/page.js` | a nested demo showing `nav_for()` feeding a Sidebar | `/framework/core/Page/old/nav/` |
 | `core/Sidebar/page.js` | this module's own three demos | `/framework/core/Sidebar/` |
 
 A dozen more files (`faq/`, `ui/accordion/`, `web/nav/sidebar/`, `core/App/page.js`,
-`core/page.js`, `core/Page/shell/page.js`, the layout galleries) **link to or
+`core/page.js`, `core/Page/old/shell/page.js`, the layout galleries) **link to or
 quote** `Sidebar` in prose without constructing one — not counted above.
 
 **Not a module with no callers** — the opposite finding: it is the site's real

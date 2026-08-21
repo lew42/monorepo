@@ -2,25 +2,40 @@
 
 A template's *look* is its payload — the one file in this module sanctioned
 to be more than structure, because for a `T` entry the look is the entire
-point. Every size in it is a container-query unit read against `.panel-body`
-(`container-type: size`, from `panel.css`), so one rule set reads from a
+point. Every size in it is a percentage of its own box or a plain `em`, so one
+rule set reads from a
 200px sliver to a 3440 monitor. Full sizing rules and the trap that already
 bit: [Templates — the T vocabulary](/framework/ext/Panel/doc/templates/).
 
-## `min-block-size: 100cqh`, never `100%`
+## `block-size: 100%`, and the row that makes it resolve
 
-`.panel-t` sets `min-block-size: 100cqh` rather than a percentage, because
-`.panel-body` is `grid-auto-rows: min-content` — a percentage height
-resolves against the *template's own content*, and a scene with no text
-measured 0px and vanished in a real panel while passing a standalone test
-harness. `block-size: 100%` stays alongside it for the plain-block parents
-(a page, a demo box) that do give a definite height.
+`.panel-t` asks for `100%` of the body's one row, and `panel.css`'s
+`.panel-body:has(> .panel-t) { grid-template-rows: 100% }` is what answers it —
+the body is a grid of `min-content` rows, so without an explicit track the
+percentage has nothing to resolve against and every scene with no text
+(`blank`, `aurora`, `drift`, `depth`) measures 0px. In a HUGGING panel the row
+is indefinite and both percentages fall back to the content, which is what hug
+means now; a drawing with nothing to measure wears **`.panel-t-scene`** and takes
+a 16em floor on the hugging axis instead.
+[sizing](/framework/ext/Panel/doc/sizing/).
+
+## What paints is `%`; what types is `em`
+
+No container query survives in this module (2026-08-19). A gradient extent, a
+gap, a pad, a `background-size` is a percentage of the same box the `cq` unit
+read — exact, and it animates. A type size is a plain `em`, so a template reads
+at the panel's own text size; scaling a whole drawing to fit its box is `zoom` on
+a viewport, done once for everything, which is what the Workspace is for.
+
+⚠ Three values may not take a percentage and became lengths instead:
+`filter: blur()` (aurora) and `perspective` (depth) are `em`, and a `circle`
+gradient's radius may not either, so drift's stars kept the px floor they already
+had.
 
 ## No `cq` unit inside a `@keyframes`
 
-Every animation (`panel-t-swim-*`, `panel-t-float`, `panel-t-pan`,
-`panel-t-pulse`) moves in `%`, `opacity` or `perspective-origin` — never a
-container-query unit. Untested territory the file declines to bet on.
+Animations move in `%`, `opacity` or `perspective-origin`. That was always true
+here, and now it is true of the whole file.
 
 ## `aurora`/`drift`/`depth` are literal colour, and stay that way in both themes
 
@@ -30,20 +45,14 @@ night sky that inverts under a light OS theme reads as a bug, not a feature.
 Their glow accents still come from `--prim`, so a brand theme swap retints
 them without touching the ground colour.
 
-## Every `cqw` is measured against the widest line, not guessed
+## Furniture is sized by its widest line, not guessed
 
-The furniture block (`rail`, `toc`, `brand`) is the first in this file whose
-content is **text at a fixed word count**, so its clamps have an arithmetic
-answer: a rail row is the longest word plus an icon, a gap and the pad (~7.4em),
-a toc's widest line is its `0.72em` letter-spaced heading (~8.1em), a wordmark is
-~4.9em. Divide the container by that and you get the largest `cqw` that cannot
-clip.
-
-A first pass guessed `4cqw` by eye and drew a 232px rail at **9.3px** — legible,
-unclipped, and two thirds of the panel left empty. `8cqw` puts the same rail at
-17.4px with room to spare. The lesson generalises: for a text template the
-clamp is derivable, and a guess will always come in low because the failure it
-is guarding against (overflow) is the visible one.
+A rail row is the longest word plus an icon, a gap and the pad (~7.4em); a toc's
+is its 0.72em letter-spaced heading (~8.1em); a wordmark is ~4.9em. Those numbers
+are why `rail` is `1em`, `toc` `0.9em` and `brand` `2.5em`, and they are what a
+slot has to be able to hold. ⚠ Narrower than that, furniture no longer shrinks to
+fit — it clips, because `.panel` is `overflow: hidden`. Fitting a drawing to its
+slot is `zoom`'s job now (the Workspace, task C), not this sheet's.
 
 ## `prefers-reduced-motion` disables every `@keyframes` consumer by name
 
