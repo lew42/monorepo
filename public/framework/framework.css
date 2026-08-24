@@ -233,7 +233,7 @@
          253 call sites, the largest single contrast defect the vision sweep found.
          75% is #6f6f6f = 5.02:1 and #6c6c6c = 4.69:1, over AA on both, and still a
          clear step below the ink it derives from. */
-    .muted { color: color-mix(in srgb, currentColor 75%, transparent); }
+    .muted { color: color-mix(in srgb, currentColor var(--muted, 75%), transparent); }
 
     /* ---- icons ---------------------------------------------------------
        Material Icons is a LIGATURE font: `icon("dashboard")` emits a span containing
@@ -308,7 +308,7 @@
         max-width: 100%;
         overflow-x: auto;
     }
-    th, td { padding: 0.25em 0.75em; border: 1px solid var(--line); }
+    th, td { padding: var(--pad-cell, 0.25em 0.75em); border: 1px solid var(--line); }
     th { background: var(--tint); text-align: left; }
 
     /* The UA paints `mark` yellow with `canvastext` on it, and in dark mode that is
@@ -325,7 +325,7 @@
        This list and `base`'s `width: 100%` one deliberately DIFFER — a submit button
        wants the padding and not the full width. */
     input:not([type="checkbox"], [type="radio"], [type="color"], [type="range"]), select, textarea {
-        padding: 0.25em 0.6em;
+        padding: var(--pad-control, 0.25em 0.6em);
         border: 1px solid var(--subtle);   /* also gives input[type=submit] its height and hover */
     }
 
@@ -345,7 +345,7 @@
        replaced the UA's `ButtonText` with whatever the band around it happened to
        be. On a dark section: white on the UA's light grey. */
     .btn, button {
-        padding: 0.25em 1em;
+        padding: var(--pad-control, 0.25em 1em);
         cursor: pointer;
         background: var(--surface);
         color: var(--ink);

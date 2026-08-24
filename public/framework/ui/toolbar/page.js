@@ -41,6 +41,38 @@ const heading = () => div.c("surface pad flex wrap gap v-center split", () => {
 	}).style("--gap", "0.3em");
 });
 
+// A segment, not a group: `.prim` marks the SELECTED option among three
+// mutually exclusive ones, which `group`'s clusters of independent actions
+// never claim. Still the same tight `0.15em` gap — not the joined control
+// this section already ruled out (this page's own `group` note, below).
+const filter = () => div.c("surface pad flex wrap gap v-center", () => {
+	div.c("flex v-center gap", () => {
+		["All", "Active", "Archived"].forEach((label, i) =>
+			i === 0 ? button.c("prim", label) : button(label));
+	}).style("--gap", "0.15em");
+
+	input().ac("flex-1").attr("type", "search").attr("placeholder", "Filter…")
+		.style("minWidth", "9em");
+});
+
+// The two honest answers to a toolbar with no room, shown side by side
+// rather than argued about. Neither is new CSS: `wrap` is the existing
+// class, the scroll row is one value the cascade never had an opinion
+// about (`overflow-x`) on one element — the record's own bar for "inline
+// is fine" (doc/record.md §3).
+const ROW = ["New", "Import", "Export", "Share", "Archive"];
+const row = () => ROW.forEach((label, i) => i === 0 ? button.c("prim", label) : button(label));
+
+const wrapping = () => div.c("surface pad flex wrap gap v-center", row).style("--gap", "0.3em");
+
+const scrolling = () => div.c("surface pad flex gap v-center", row)
+	.style({ "--gap": "0.3em", flexWrap: "nowrap", overflowX: "auto" });
+
+const mobile = () => div.c("flex v gap", () => {
+	div.c("flex v gap", () => { div.c("h4 muted", "wrap"); wrapping(); });
+	div.c("flex v gap", () => { div.c("h4 muted", "horizontal scroll"); scrolling(); });
+});
+
 export default new Page({
 	meta: import.meta,
 	title: "Toolbar",
@@ -53,6 +85,12 @@ export default new Page({
 
 		demo.page("group", group, {
 			note: "`0.3em` for labelled buttons, `0.15em` for icon ones. A *joined* segmented control is the one thing here that would need real CSS — a negative margin and corner suppression on the middle buttons — and it earns none: the theme already draws borderless buttons, so a tight gap reads as a group." }),
+
+		demo.page("filter", filter, {
+			note: "The same tight gap as `group`, doing different work: `.prim` on `All` reads as the currently-selected segment, not a fourth independent action. Still not the joined control this page already ruled out — nothing here needed a negative margin." }),
+
+		demo.page("mobile", mobile, {
+			note: "Not equally good. `wrap` costs height — the row grows down a line at a time and every button stays reachable. The scroll row keeps one line by hiding an unknown number of buttons off the right edge, with nothing telling you they're there until you swipe. Default to `wrap`; reach for scroll only when the bar must never grow taller than one line." }),
 	],
 
 	content(){

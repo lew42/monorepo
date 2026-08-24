@@ -41,6 +41,14 @@ are tunable. Viewports: **400 / 1280 / 1920 / 3440** unless the ask names one.
 - `move x y steps` is the drag — **steps ≥ 10**, or one jump lands where no handler expected it.
 - `sel` is **CSS** for `watch`; Playwright engines (`"text=Open the rail"`, quoted) work for
   `click`/`hover` but read as `null` in the rects.
+- **Quote any `click`/`hover` selector containing a space** (`click ".a .b"`), or glue the
+  compound (`.a>.b:nth-of-type(1)`) — args split on bare whitespace and `click` silently uses
+  only the first token, no error (2026-08-21: clicked the whole `.pg-viewport` instead of the
+  intended child).
+- `type sel text` — `sel` must be ONE bare token; quotes do NOT protect it (the first space
+  splits selector from text, the rest lands in `text`, and the mangled selector's parse error
+  hides in that step's `error` field). Focus first (`click "<compound sel>"`), then
+  `type input:focus <text>`.
 - `eval` is ONE expression (`(() => { … })()` for statements); its value lands in `steps.json`,
   and a promise is awaited — `eval import('/app.js').then(m => m.drawer(…))`.
 
@@ -105,6 +113,14 @@ component rule** — check `display`, not just the class list.
 - The run does **not** stop on a step error — it records `error` and carries on. Read the field.
 - `console` errors are per step, so the step that broke the page is the one that names them.
 - No `move` after `down` = no drag at all: `pointerdown` alone commits nothing.
+- `click sel` silently no-ops on an element revealed only by an ANCESTOR's `:hover`
+  (`.parent:hover > .child { display: … }`) — Playwright's actionability re-check breaks the
+  hover chain, even right after a `hover parent` step (2026-08-21, `.pg-add`). Drive it with
+  `hover ancestor-sel`, then coordinate `move cx cy` + `down` + `up` (centers from a probe eval).
+  And aim at a SHALLOW/leaf target: hovering an outer box whose center lands inside a nested
+  child reveals both their hover-children, and the `move` toward the outer's can transit out of
+  the nested hover zone, shifting the target before `down` lands — no error, nothing happens
+  (2026-08-21, three silent misses on a root `.pg-add`; diagnosed via `elementFromPoint`).
 - Restart nothing. The dev server stays up; you never touch it.
 
 Improve this skill: append to `improvements.md`.

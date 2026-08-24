@@ -79,6 +79,12 @@ export default new Page({
 			note: "**There is no `ui.menu()`.** Its one line of logic — close the panel after a pick — is a line you want *per item*, because a real menu's items run handlers, and the function's items could only be strings and urls: its own showcase rendered five dead links. It also collided by name with `ext/layout`'s `menu()`, live, in a codebase where the class name is the registry.",
 		});
 
+		md("## The behavior graduated");
+
+		md("This is the **template**: `.ui-menu-*` above, and the disclosure it shapes. The one line of real logic was deliberately left at the call site — but a workflow that wants click-outside, or several menus sharing one close-on-pick rule, wants that line owned somewhere. On 2026-08-21 that half became [`class Menu`](/framework/ux/Menu/), which adds close-on-pick AND click-outside (the template never had either) as methods a subclass can override. **New code takes the class.**");
+
+		md("**The CSS did not move.** Every `.ui-menu-*` rule is still here, and the class wears these same classes — [`ux/Menu/doc/decisions.md`](/framework/ux/Menu/doc/decisions/) has the split argued, and [`ux/`](/framework/ux/) has the rule it followed.");
+
 		md("## Why this one gets CSS");
 
 		md("The same line Tooltip drew: the panel is positioned **against its summary** (a relationship between two elements) and appears **on open** (a state). A class list can say neither, so the panel needs a selector — and *only* the panel. The trigger is `.btn` plus `flex v-center`, which also happens to remove the UA's disclosure triangle, since a summary keeps its marker only while it is `display: list-item`.");

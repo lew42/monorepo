@@ -9,7 +9,7 @@ export default new Page({
 
 	// One nav link, whatever the date children say: the rail below is the way in.
 	leaf: true,
-	children: "2026-08-19 2026-08-18 2026-08-17 2026-08-16 2026-08-15 2026-08-14 2026-08-13 2026-08-12 2026-08-11 2026-08-10 2026-08-09 2026-08-08",
+	children: "2026-08-21 2026-08-19 2026-08-18 2026-08-17 2026-08-16 2026-08-15 2026-08-14 2026-08-13 2026-08-12 2026-08-11 2026-08-10 2026-08-09 2026-08-08",
 
 	// The board IS the dashboard — catalog's previews() override, split-screen for free.
 	initialize(){ this.catalog(); },

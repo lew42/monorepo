@@ -1,7 +1,7 @@
-import { div, button } from "/framework/core/View/View.js";
+import { div, span, button } from "/framework/core/View/View.js";
 import dropdown from "/framework/ext/Dropdown/dropdown.js";
-import { Flex, Grid, Box } from "./items.js";
-import { list, list_layouts } from "./documents.js";
+import { Box, Flex } from "./items.js";
+import { list, list_layouts, local } from "./documents.js";
 
 // value: "full" is `undefined`-safe (never a real preset), so it never collides with a px number.
 const PRESETS = [["400", 400], ["768", 768], ["1280", 1280], ["⤢", "full"]];
@@ -14,10 +14,12 @@ export function toolbar(pg){
 		pg.$doc_slot = div.c("pg-toolbar-slot pg-toolbar-group pg-doc-slot");
 		pg.$insert_slot = div.c("pg-toolbar-slot pg-toolbar-group pg-insert-slot");
 
+		// One + only (pg-placeholder brief item 5) — a Box under the existing add rule
+		// (`pg.add`), a Flex on Shift-click (pg-shift, same rule as the canvas's own
+		// `.pg-add` — explicit beats magic, no auto-convert). Type switching to Grid
+		// stays the sidebar's job.
 		div.c("pg-toolbar-group flex gap", () => {
-			button.c("pg-btn", "+ flex").attr("title", "Add Flex").click(() => pg.add(Flex));
-			button.c("pg-btn", "+ grid").attr("title", "Add Grid").click(() => pg.add(Grid));
-			button.c("pg-btn", "+ box").attr("title", "Add Box").click(() => pg.add(Box));
+			button.c("pg-btn", "+").attr("title", "Add Box (Shift: Flex)").click(e => pg.add(e.shiftKey ? Flex : Box));
 		});
 
 		div.c("pg-toolbar-group flex gap", () => {
@@ -29,6 +31,13 @@ export function toolbar(pg){
 			button.c("pg-btn", "{}").attr("title", "Copy selected as JSON").click(() => pg.copy());
 			button.c("pg-btn", "paste").attr("title", "Paste JSON").click(() => pg.paste());
 		});
+
+		// documents.js raced Socket.ready and lost — saving to this tab only, this session.
+		// playground.css is a sibling's right now, so `color` is a minimal inline style
+		// (pg-save task log).
+		if (local) span.c("pg-toolbar-group", "● saving locally")
+			.attr("title", "Dev server unreachable — saving to this browser only, this session.")
+			.style("color", "var(--warn)");
 
 		pg.$viewport_slot = div.c("pg-toolbar-slot pg-toolbar-group flex gap pg-viewport-slot");
 		paint_viewport_slot(pg);   // no fetch needed — paint it now, not after the doc loads

@@ -67,6 +67,16 @@
 	.pg-field { display: flex; flex-direction: column; gap: 0.25em; }
 	.pg-field-label { font-size: 0.75em; color: var(--subtle); }
 	.pg-seg { display: flex; flex-wrap: wrap; gap: 2px; }
+
+	/* A conditional field GROUP (pg-sidebar brief §1) — the flex/grid config, "in parent" —
+	   set off from the always-on fields above it by a rule, same visual move `.pg-readout`
+	   already makes for the readout below. */
+	.pg-section { display: flex; flex-direction: column; gap: 0.75em; padding-block-start: 0.75em; border-block-start: 1px solid var(--line); }
+	.pg-section-head { font-size: 0.7em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--subtle); }
+
+	/* The bg dropdown's own picture (properties.js `BG_TOKENS`) — a token's actual colour,
+	   not its name, is the fastest way to tell two surfaces apart. */
+	.pg-swatch { display: inline-block; inline-size: 1em; block-size: 1em; border: 1px solid var(--line); border-radius: 2px; vertical-align: middle; }
 	/* Same theme-layer padding loss as `.pg-btn` above (0.7em/1.4em, 0,2,0 beating a
 	   bare `.pg-seg-btn`'s 0,1,0) — a segmented row of four wrapped 2-per-line. Needs
 	   TWO classes plus the tag to clear the theme rule's own two-class specificity. */
@@ -83,4 +93,36 @@
 	.pg-node { position: relative; border: 1px dashed var(--subtle); min-width: 1.5em; min-height: 1.5em; cursor: pointer; }
 	.pg-node-label { position: absolute; inset-block-start: -1.1em; inset-inline-start: 0; font-size: 0.7em; color: var(--subtle); white-space: nowrap; }
 	.pg-node.pg-selected { outline: 2px solid var(--prim); outline-offset: -1px; }
+
+	/* A box with no real children is still a valid drop target — give it a taller floor
+	   than the bare 1.5em above so there is room to find and hover it (pg-placeholder
+	   brief item 4). */
+	.pg-node.pg-node-empty { min-height: 2em; }
+
+	/* The + placeholder — the last real child's exact next slot, in flow. `display: none`
+	   by default reserves NOTHING (the owner's named failure: a permanent void at the
+	   bottom of a container) — `.pg-node:hover > .pg-add` is the only thing that ever
+	   shows it, and CSS already runs `:hover` up every ancestor of whatever is actually
+	   under the pointer, so a hover on a nested child shows both its own + and its
+	   parent's for free — no JS hover tracking (pg-placeholder brief item 1). */
+	.pg-add {
+		display: none; border: 1px dashed var(--subtle); min-width: 1.5em; min-height: 1.5em;
+		text-align: center; line-height: 1.5em; font-size: 0.9em; color: var(--subtle); cursor: pointer;
+	}
+	.pg-node:hover > .pg-add { display: block; }
+
+	/* Resize handles (pg-resize) — `position: absolute` is the whole trick: an
+	   absolutely positioned child never enters flex layout OR its parent's own
+	   auto-size, so "reserves zero flow space" holds by construction (canvas.js's
+	   `position_handles()` sets only the ONE runtime-measured axis, `left`/`top`;
+	   the `translate` here centres the strip on that coordinate without either side
+	   needing to know the other's width). Invisible until the gap or the handle
+	   itself is hovered — same convention `.pg-add` already uses one rule up. */
+	.pg-resize-handle { position: absolute; z-index: 1; opacity: 0; }
+	.pg-node:hover > .pg-resize-handle, .pg-resize-handle:hover, .pg-resize-handle.pg-dragging { opacity: 1; }
+	.pg-resize-handle.pg-resize-col { top: 0; height: 100%; width: 10px; transform: translateX(-50%); cursor: col-resize; }
+	.pg-resize-handle.pg-resize-row { left: 0; width: 100%; height: 10px; transform: translateY(-50%); cursor: row-resize; }
+	.pg-resize-handle::after { content: ""; position: absolute; inset: 0; margin: auto; background: var(--prim); border-radius: 2px; }
+	.pg-resize-handle.pg-resize-col::after { width: 2px; height: 60%; }
+	.pg-resize-handle.pg-resize-row::after { height: 2px; width: 60%; }
 }

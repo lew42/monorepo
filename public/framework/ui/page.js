@@ -11,7 +11,7 @@ const BANDS = {
 	Surfaces: "card toolbar panel stats accordion",
 	Data:     "table timeline tree progress pagination crumbs",
 	Forms:    "field dialog tags menu tooltip",
-	Marks:    "badge alert avatar kbd",
+	Marks:    "badge alert avatar kbd words",
 };
 
 const names = Object.values(BANDS).flatMap(band => band.split(" "));
@@ -61,7 +61,8 @@ export default new Doc({
 		+ "alert/alert.js alert/page.js toolbar/page.js tags/page.js panel/panel.js panel/page.js "
 		+ "tooltip/tooltip.js tooltip/page.js avatar/avatar.js avatar/page.js dialog/dialog.js dialog/page.js "
 		+ "progress/page.js menu/menu.js menu/page.js accordion/accordion.js accordion/page.js "
-		+ "timeline/timeline.js timeline/page.js kbd/kbd.js kbd/page.js",
+		+ "timeline/timeline.js timeline/page.js kbd/kbd.js kbd/page.js "
+		+ "words/words.js words/page.js",
 
 	content(){
 

@@ -1,12 +1,12 @@
 import View, { div } from "/framework/core/View/View.js";
-import { tree } from "/framework/ui/tree/tree.js";
+import Tree from "/framework/ux/Tree/Tree.js";
 import grip from "/framework/ext/grip/grip.js";
 import Item from "/framework/core/Item/Item.js";
 import { Flex, Grid, Box } from "./items.js";
 import { open, list, mint_slug, del, load_layout, save_as_layout, strip_ids } from "./documents.js";
 import properties from "./properties.js";
 import toolbar, { refresh_toolbar, paint_viewport_slot } from "./toolbar.js";
-import { canvas, paint_canvas, Canvas } from "./canvas.js";
+import { canvas, paint_canvas, Canvas, position_handles } from "./canvas.js";
 
 // "Into the selection if it is a container, else beside it" (design §6) — a Box never
 // takes children, `Flex`/`Grid` always can, whichever `Item` subclass gets added later.
@@ -167,7 +167,7 @@ export class Playground {
 		};
 
 		const roots = [Object.assign(node_for(this.doc), { open: true })];
-		this.$tree_body.empty(() => { this.$tree_widget = tree(roots, { onSelect: n => this.select(n.id) }); });
+		this.$tree_body.empty(() => { this.$tree_widget = new Tree({ nodes: roots, onSelect: n => this.select(n.id) }); });
 	}
 
 	select(id){
@@ -190,7 +190,7 @@ export class Playground {
 	// own proof: `.pg-properties-body`'s element identity survives a `change`).
 	paint_properties(){
 		const item = this.selected_item();
-		this.$props_body.empty(() => item ? properties(item) : div.c("muted pad", "Nothing selected."));
+		this.$props_body.empty(() => item ? properties(item, this) : div.c("muted pad", "Nothing selected."));
 	}
 
 	// design §4's `change` row: no repaint — write the ONE live canvas node's style,
@@ -204,6 +204,11 @@ export class Playground {
 		const style = item.styles();
 		const node = this.$body.el.querySelector(`[data-id="${item.id}"]`);
 		node?.setAttribute("style", style);
+
+		// pg-resize seam: ANY data change can shift a flex row's own gap geometry
+		// (a properties-panel edit, not just a drag commit) — one place to keep
+		// every handle in sync, cheap enough for this tree's size.
+		position_handles(this.$body.el);
 
 		const readout = this.$props_body.el.querySelector(".pg-readout");
 		if (readout) readout.textContent = node ? node.getAttribute("style") : style;
@@ -226,10 +231,47 @@ export class Playground {
 	// rule) — add-then-remove used to delete the OLD selection (found 2026-08-19, task 5).
 	add(Type){
 		const target = this.selected_item();
-		const into = is_container(target) ? target : (target?.parent ?? this.doc);
+		this.add_to(is_container(target) ? target : (target?.parent ?? this.doc), Type);
+	}
+
+	// The shared mutation both `add()` (selection-gated, `is_container`) and the canvas's
+	// own `.pg-add` click (explicit target, selection irrelevant — pg-placeholder brief
+	// item 2) land through: same selection-before-repaint rule as `add()`, no gate on
+	// `into`'s type, so a plain Box parents exactly like a Flex/Grid (item 3).
+	add_to(into, Type = Box){
 		const item = new Type({ data: { label: Type.name } });
 		this.selected = item.id;
 		into.add(item);
+		return item;
+	}
+
+	// Type toggles CONVERT the node in place (pg-sidebar brief §2) — same id, same data
+	// (shallow-copied so the discarded old instance shares nothing live), children moved
+	// onto the new instance, never rebuilt (`[...item.items]` snapshots before the old
+	// list is abandoned). Same id means `this.selected` is ALREADY right on both sides —
+	// no reassignment needed, sidestepping `remove()`'s own "selection has to already be
+	// right" trap below. A non-root swap rides the existing `add`/`remove` events straight
+	// to `repaint()` (same rule as `add_to`'s own comment); the root has no parent to fire
+	// through, so it repaints explicitly and re-listens — `this.doc` is now a new object.
+	convert(item, Type){
+		if (item.constructor === Type) return item;
+
+		const clone = new Type({ id: item.id, data: { ...item.data } });
+		[...item.items].forEach(kid => clone.items.append(kid));
+
+		const parent = item.parent;
+		if (parent){
+			const siblings = parent.items.children;
+			const ref = siblings[siblings.indexOf(item) + 1] ?? null;
+			parent.items.remove(item);
+			parent.items.insert_before(clone, ref);
+		} else {
+			this.doc = clone;
+			this.listen();
+			this.repaint();
+		}
+
+		return clone;
 	}
 
 	// The parent it leaves behind is captured BEFORE `remove()` runs — `List.remove`

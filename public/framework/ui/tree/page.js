@@ -1,7 +1,32 @@
-import { Page, md, demo, div, span, input } from "/app.js";
-import { tree } from "./tree.js";
+import { Page, md, demo, div, span, input, ul, li, a } from "/app.js";
 
-// 1. Navigation — the framework's own map. Branches select; only leaves link.
+/* Static markup only — the SHAPE the `.ui-tree-*` CSS styles, baked from `open` /
+ * `selected` in the data. No click listeners: expand/collapse and select are
+ * `ux/Tree`'s job now (`content()` below, "The behavior graduated"). */
+const row_list = list => list.forEach(node => {
+	const kids = node.children?.length > 0;
+
+	li.c("ui-tree-item" + (kids && node.open ? " ui-tree-open" : ""), () => {
+		const row_tag = !kids && node.href ? a : div;
+
+		const $row = row_tag.c("ui-tree-row" + (node.selected ? " ui-tree-selected" : ""), () => {
+			span.c("ui-tree-toggle", kids ? "▸" : "");
+			span.c("ui-tree-icon", $icon => { if (node.icon != null) $icon.append(node.icon); });
+			span.c("ui-tree-text", node.text);
+		});
+
+		if (!kids && node.href) $row.href(node.href);
+		if (kids) ul.c("ui-tree-children", () => row_list(node.children));
+	});
+});
+
+const static_tree = (nodes, indent) => {
+	const $root = ul.c("ui-tree").style("--ui-tree-indent", indent ?? "1.25em");
+	return $root.append(() => row_list(nodes));
+};
+
+// 1. Navigation — the framework's own map. `core` open, `ext` closed — baked into
+// the data now, not toggled by a click. Only leaves with `href` still navigate.
 const nav_nodes = [
 	{ icon: "▣", text: "core", open: true, children: [
 		{ icon: "▪", text: "View", href: "/framework/core/View/" },
@@ -13,25 +38,25 @@ const nav_nodes = [
 	]},
 	{ icon: "▣", text: "ui", href: "/framework/ui/" },
 ];
-const sitemap = () => tree(nav_nodes, { indent: "1.25em" });
+const sitemap = () => static_tree(nav_nodes, "1.25em");
 
-// 2. Layers — a Figma-like stack, some rows with no icon. Every row is selectable,
-// branch or leaf, and the selected one's path prints below.
+// 2. Layers — a Figma-like stack, some rows with no icon. `Box 3` is marked
+// `selected` in the data, to show what `.ui-tree-selected` looks like.
 const box1 = { text: "Box 1", path: "Frame / Flex / Box 1" };
 const box2 = { text: "Box 2", path: "Frame / Flex / Box 2" };
-const box3 = { icon: "▪", text: "Box 3", path: "Frame / Flex / Box 3" };
+const box3 = { icon: "▪", text: "Box 3", path: "Frame / Flex / Box 3", selected: true };
 const flexbox = { icon: "▤", text: "Flex", open: true, path: "Frame / Flex", children: [box1, box2, box3] };
 const frame = { icon: "▣", text: "Frame", open: true, path: "Frame", children: [flexbox] };
 
 const layers = () => {
-	let $out;
-	tree([frame], { onSelect: node => $out.text(node.path) });
-	$out = div.c("muted", "Nothing selected.");
+	static_tree([frame], "1.25em");
+	div.c("muted", box3.path + " — baked selected, not clicked");
 };
 
-// 3. The indent knob — a range input writing `--ui-tree-indent` live.
+// 3. The indent knob — a range input writing `--ui-tree-indent` live. Pure CSS
+// custom-property write, so it needs no behavior from the retired `tree()`.
 const knob = () => {
-	const $t = tree(nav_nodes, {});
+	const $t = static_tree(nav_nodes, "1.25em");
 	div.c("flex v-center gap", () => {
 		span.c("muted", "--ui-tree-indent");
 		let $out;
@@ -49,10 +74,10 @@ export default new Page({
 
 	children: [
 		demo.page("layers", layers, {
-			note: "Every row is selectable, **branch or leaf** — a Frame layer is still a layer. `Box 1` and `Box 2` carry no `icon`, and the icon slot reserves its width anyway so `Box 3`'s text lines up with theirs. The path below is the demo's own bookkeeping, not part of the component." }),
+			note: "A branch is selectable too — a Frame layer is still a layer, which is why `.ui-tree-selected` isn't reserved for leaves. `Box 1` and `Box 2` carry no `icon`, and the icon slot reserves its width anyway so `Box 3`'s text lines up with theirs. `Box 3` is baked selected in the data here — a click doing that live is `ux/Tree`'s job." }),
 
 		demo.page("knob", knob, {
-			note: "`--ui-tree-indent` is a plain custom property on the root `<ul>`, read by every nested `.ui-tree-children` — the knob just writes it. `opts.indent` sets the same thing once, at build time." }),
+			note: "`--ui-tree-indent` is a plain custom property on the root `<ul>`, read by every nested `.ui-tree-children` — the knob just writes it. The second `indent` argument sets the same thing once, at build time." }),
 	],
 
 	content(){
@@ -62,12 +87,18 @@ export default new Page({
 			stage: steer => demo.stage(sitemap, steer).ac("bleed"),
 			def: sitemap,
 			file: new URL("page.js", import.meta.url).pathname,
-			note: "**`core` and `ext` are branches, not links** — click the row to select, click the `▸` to expand. `View`, `Page`, `Doc` and `demo` are leaves with an `href`, so those navigate. `ui` is a leaf with no children at all.",
+			note: "**`core` and `ext` are branches, not links** — `core` renders open, `ext` closed, baked into the data. `View`, `Page`, `Doc` and `demo` are leaves with an `href`, so those still navigate. `ui` is a leaf with no children at all. Click-to-select and click-to-expand are `ux/Tree`'s job now.",
 		});
+
+		md("## The behavior graduated, then retired here");
+
+		md("This is the **template**: the `.ui-tree-*` rules above, and the markup they shape. `ui/tree` was the one component of twenty that also held *state* — a rows Map and a selection kept across renders, two click listeners, an `update()`/`select()` lifecycle — all in a closure, which is a class written in the one shape nothing can subclass. On 2026-08-21 that half became [`class Tree`](/framework/ux/Tree/), with keyboard roving as a named subclass beside it. **New code takes the class.**");
+
+		md("**The CSS did not move, and that is the rule.** A rule about a relationship or a state is exactly what `ui/` is for, and a `ux` that took the stylesheet would fork the look the day this one changed — so the class wears these same classes. The `tree()` function stayed byte-compatible while `ext/Playground` still called it, and retired the same day that caller moved to `ux/Tree` — this page now hand-writes the same markup instead. [`doc/decisions.md`](./doc/decisions.md) has the split argued, and [`ux/`](/framework/ux/) has the rule it followed.");
 
 		md("## Nesting, not a depth counter");
 
-		md("Each level is a real nested `<ul>`, and every `.ui-tree-children` adds one `--ui-tree-indent` of its own padding — depth 3 sits behind three paddings, not a computed `depth × indent`. `t.update(nodes)` empties the root and rebuilds, so a stale depth can't drift from the data. Full reasoning, and where the icon and toggle slots came from, in [`doc/decisions.md`](./doc/decisions.md).");
+		md("Each level is a real nested `<ul>`, and every `.ui-tree-children` adds one `--ui-tree-indent` of its own padding — depth 3 sits behind three paddings, not a computed `depth × indent`. `Tree.draw(nodes)` (the class) empties the root and rebuilds, so a stale depth can't drift from the data. Full reasoning, and where the icon and toggle slots came from, in [`doc/decisions.md`](./doc/decisions.md).");
 
 		md.details(import.meta, "readme.md", "Readme");
 	},

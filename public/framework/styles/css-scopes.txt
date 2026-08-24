@@ -79,6 +79,11 @@ tabs-        ext/tabs
 timeline-    ext/Timeline
 toc-         ext/toc
 
+# ux
+ux-auth-     ux/Auth
+ux-tree-     ux/Tree
+ux-wizard-   ux/Wizard
+
 # dev
 claim-       dev/Claim
 dev-         dev/DevBar

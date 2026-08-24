@@ -1,4 +1,5 @@
 import Item from "/framework/core/Item/Item.js";
+import Socket from "/framework/dev/Socket/Socket.js";
 import FileSaver from "/framework/ext/Saver/FileSaver.js";
 import LocalStorageSaver from "/framework/ext/Saver/LocalStorageSaver.js";
 import { Flex, Box } from "./items.js";
@@ -9,10 +10,26 @@ import { Flex, Box } from "./items.js";
  * `directory.json` — and a static host has no listing at all. The idiom, verbatim from
  * `ext/Saver/doc/backends.md`. */
 const dev = ["localhost", "127.0.0.1"].includes(location.hostname) || location.hostname.endsWith(".localhost");
-const store = (path, key) => dev ? new FileSaver({ path }) : new LocalStorageSaver({ key });
+
+// Baseline bug: FileSaver.write() awaits Socket.ready with no timeout — "New Document" hung
+// forever with the dev server down. Race it ~2s, ONCE, here; every save below reads this
+// verdict and never awaits the live socket again (doc/decisions.md, pg-save).
+export const local = dev && !await Promise.race([
+	Socket.singleton().ready.then(() => true), new Promise(r => setTimeout(r, 2000)),
+]);
+
+const store = (path, key) => dev && !local ? new FileSaver({ path }) : new LocalStorageSaver({ key });
 
 const index = store("/data/playground/index.json", "playground:index");
-const doc_saver = slug => store(`/data/playground/${slug}.json`, `playground:${slug}`);
+
+// A doc's Saver stamps every fallback write with a save time — `reconcile()` (below) is
+// what a `.local` key's timestamp is for. Distinct key, nothing overwrites the real one.
+const StampedLocal = class extends LocalStorageSaver {
+	write(item){ return super.write({ ...(item?.toJSON?.() ?? item), saved_at: Date.now() }); }
+};
+const doc_saver = slug => dev && !local
+	? new FileSaver({ path: `/data/playground/${slug}.json` })
+	: new StampedLocal({ key: `playground:${slug}${local ? ".local" : ""}` });
 
 // The list IS a document too — an Item whose children carry `{name, slug}`, the same
 // four-key envelope as everything else, so there is no second format to keep in sync.
@@ -64,13 +81,33 @@ export async function del(slug){
  * rejection, which throws instead and is this function's caller's problem. */
 export async function open(slug){
 	const saver = doc_saver(slug);
-	const json = await saver.load();
+	const json = (!local && await reconcile(slug, saver)) || await saver.load();
 	if (json) return Item.hydrate(json).assign({ saver });
 
 	const root = seed().assign({ saver });
 	await reindex(slug);
 	await root.save();
 	return root;
+}
+
+// Newest save time wins, nothing deleted: a `.local` fallback outlives the session that
+// wrote it, so the next server-up `open()` is what folds it back in. `saver` is injectable
+// so this is eval-drivable without a live server (port 80 stays down either way).
+export async function reconcile(slug, saver = doc_saver(slug)){
+	const key = `playground:${slug}.local`;
+	const raw = localStorage.getItem(key);
+	if (!raw) return;
+
+	const fallback = JSON.parse(raw);
+	const server = await saver.load();
+	if (server && (server.saved_at ?? 0) >= fallback.saved_at) return;
+
+	const parked = `playground:${slug}.superseded.${server?.saved_at ?? Date.now()}`;
+	if (server) localStorage.setItem(parked, JSON.stringify(server));
+	localStorage.removeItem(key);
+	await saver.save(fallback);
+	console.log(`Playground: "${slug}" recovered a locally-saved copy newer than the server's — parked the server copy under "${parked}".`);
+	return fallback;
 }
 
 // design §6: paste strips every id first — `Item.hydrate` KEEPS ids, and its `seen` set

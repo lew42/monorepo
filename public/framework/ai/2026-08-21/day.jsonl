@@ -1,0 +1,67 @@
+{"log": {"at": "2026-08-21T11:56:03-05:00", "task": "mastermind-ui-ux", "msg": "task opened - supervising mastermind run: ui/ux + Playground autonomous program"}}
+{"log": {"at": "2026-08-21T11:56:03-05:00", "task": "ui-behaviors-audit", "msg": "task opened - brief written, sonnet minion dispatching"}}
+{"log": {"at": "2026-08-21T11:56:03-05:00", "task": "ux-mastermind", "msg": "task opened - brief written, fable sub-mastermind dispatching"}}
+{"log": {"at": "2026-08-21T11:56:03-05:00", "task": "playground-mastermind", "msg": "task opened - brief written, fable sub-mastermind dispatching"}}
+{"log": {"at": "2026-08-21T11:57:45-05:00", "task": "playground-mastermind", "msg": "task opened - Fable sub-mastermind for ext/Playground zero-to-hero"}}
+{"log": {"at": "2026-08-21T12:01:15-05:00", "task": "pg-baseline", "msg": "task opened - baseline the current Playground zero-to-hero flow"}}
+{"log": {"at": "2026-08-21T12:03:20-05:00", "task": "ui-behaviors-audit", "msg": "landed — 1 behavioral / 20 components; tree is the one to split into a ux class"}}
+{"log": {"at": "2026-08-21T12:10:00-05:00", "task": "ux-system-plan", "msg": "task opened - opus plan agent: ui/ux system plan + config words + demo"}}
+{"log": {"at": "2026-08-21T12:27:10-05:00", "task": "ux-system-plan", "msg": "landed - ui-contrast + ui-compact re-skin a section from tokens alone; ux/ states the tier boundary and the graduation rule"}}
+{"log":{"at":"2026-08-21T12:30:26-05:00","task":"pg-placeholder","msg":"landed -- hover + placeholder in every box (CSS-only nested reveal), click adds in-place+selected, plain Box parents, empty boxes hoverable via min-height, toolbar collapsed to one +. 5 proofs via ui-test, zero console errors."}}
+{"log": {"at": "2026-08-21T12:34:50-05:00", "task": "pg-sidebar", "msg": "task opened - minimal modular sidebar, type toggles convert the node, hug/fill, pad calibration, bg tokens"}}
+{"log": {"at": "2026-08-21T12:55:00-05:00", "task": "ux-cards", "msg": "task opened - sonnet: card + toolbar variant templates, words matrix"}}
+{"log": {"at": "2026-08-21T12:55:00-05:00", "task": "ux-auth", "msg": "task opened - sonnet: ux/Auth workflow class, first ux exemplar"}}
+{"log": {"at": "2026-08-21T12:55:00-05:00", "task": "ux-wizard", "msg": "task opened - sonnet: ux/Wizard engine + mixin-vs-subclass experiment"}}
+{"log": {"at": "2026-08-21T12:55:00-05:00", "task": "ux-tree", "msg": "task opened - opus: graduate ui/tree to ux/Tree, file explorer demo"}}
+{"log": {"at": "2026-08-21T12:40:52-05:00", "task": "pg-sidebar", "msg": "task opened - minimal modular right sidebar for Playground"}}
+{"log": {"at": "2026-08-21T12:43:02-05:00", "task": "ux-wizard", "msg": "task opened - building ux/Wizard, the generic multi-step engine, plus the mixin-vs-subclass experiment"}}
+{"log": {"at": "2026-08-21T12:44:06-05:00", "task": "ux-cards", "msg": "task opened - card + toolbar variants, words matrix, responsive proof"}}
+{"log": {"at": "2026-08-21T12:51:56-05:00", "task": "ux-cards", "msg": "landed - card (4 variants + words matrix) and toolbar (4 variants), zero new CSS, verified 360/768/1280/3440"}}
+{"log": {"at": "2026-08-21T12:55:35-05:00", "task": "ux-auth", "msg": "landed - Auth: login/signup/reset/social as one class, MagicAuth as the named extension, interaction-proven headless"}}
+{"log": {"at": "2026-08-21T12:58:31-05:00", "task": "pg-sidebar", "msg": "landed - minimal modular right sidebar: type-convert, hug/fill per axis, pad calibration, bg tokens, 12->7 fields for a plain Box"}}
+{"log": {"at": "2026-08-21T13:01:01-05:00", "task": "pg-resize", "msg": "task opened - drag handles between flex split columns"}}
+{"log": {"at": "2026-08-21T13:01:15-05:00", "task": "ux-tree", "msg": "landed - the first graduate: ui/tree's closure is class Tree + TreeKeys in ux/, all .ui-tree-* CSS stayed in ui/, tree() kept byte-compatible for ext/Playground, keyboard proved headless in 20 steps"}}
+{"log": {"at": "2026-08-21T13:01:28-05:00", "task": "pg-resize", "msg": "task opened - drag handles between flex split columns"}}
+{"log": {"at": "2026-08-21T13:07:49-05:00", "task": "ux-wizard", "msg": "landed - ux/Wizard the generic multi-step engine, Wizard.Keys shipped from the mixin-vs-subclass experiment, gesture-proven and responsive 360-3440"}}
+{"log": {"at": "2026-08-21T13:40:00-05:00", "task": "ux-course", "msg": "task opened - sonnet: ux/Course system, the 3440 showcase, extend-vs-compose verdict"}}
+{"log": {"at": "2026-08-21T13:40:00-05:00", "task": "ux-filter", "msg": "task opened - sonnet: ux/Filter class + coordinated-regions dashboard"}}
+{"log": {"at": "2026-08-21T13:31:42-05:00", "task": "pg-resize", "msg": "landed - resize handles between Flex children: grow distribution + fixed-sidebar mode, proofs (a)-(e) pass"}}
+{"log": {"at": "2026-08-21T13:34:40-05:00", "task": "pg-hero", "msg": "task opened - zero-to-hero gesture-counted proofs + doc consolidation"}}
+{"log": {"at": "2026-08-21T13:35:30-05:00", "task": "ux-filter", "msg": "landed - Filter class (segments + search, changed(predicate) the one wire) driving stat tiles + card wall + ui.table at once; FilterChips extension; zero new CSS; verified 360-3440 headless with a coordination proof (type tr, all three regions narrow together)"}}
+{"log": {"at": "2026-08-21T13:39:49-05:00", "task": "ux-course", "msg": "landed - ux/Course shipped, extend-vs-compose verdict is neither (evidence in doc/decisions.md), three coordinated regions proven 360-3440"}}
+{"log": {"at": "2026-08-21T13:50:00-05:00", "task": "ux-consolidate", "msg": "task opened - sonnet: tier docs current, verdicts consolidated, skill-suggestions, link trail"}}
+{"log":{"at":"2026-08-21T13:59:45-05:00","task":"ux-consolidate","msg":"landed - ux/readme+page.js name the 5 shipped classes, doc/decisions.md consolidates 5 cross-module verdicts, ux/ and ui/ skill-suggestions.md written, 19-page link trail walked clean, /framework/ux/ re-verified 360/1280/3440"}}
+{"log": {"at": "2026-08-21T13:58:30-05:00", "task": "ux-mastermind", "msg": "landed - ui/ux v1: config words + 5 ux classes (Auth Wizard Tree Course Filter), card/toolbar variants, verdicts consolidated, skill-suggestions written, all pages verified 360-3440"}}
+{"log": {"at": "2026-08-21T14:03:30-05:00", "task": "playground-mastermind", "msg": "landed - Playground zero-to-hero: + placeholder, modular sidebar, hug/fill, resize handles, all screenshot-proven; 3 proposals await the owner"}}
+{"log": {"at": "2026-08-21T14:08:16-05:00", "task": "ux-graduations", "msg": "task opened - sonnet: graduate Menu/Pagination/Tags, Field verdict"}}
+{"log": {"at": "2026-08-21T14:08:16-05:00", "task": "ux-treedrag", "msg": "task opened - sonnet: TreeDrag from the parked design, acceptance-gated"}}
+{"log": {"at": "2026-08-21T14:12:21-05:00", "task": "ux-treedrag", "msg": "task opened -- build TreeDrag drag-reorder from the parked design, headless gesture proofs are the gate"}}
+{"log": {"at": "2026-08-21T14:14:00-05:00", "task": "ux-graduations", "msg": "task opened -- graduate Menu, Pagination, Tags to ux/ (Field verdict too)"}}
+{"log": {"at": "2026-08-21T14:29:05-05:00", "task": "ux-graduations", "msg": "landed -- Menu, Pagination, Tags graduated to ux/ classes; Field stays a template (verdict logged, argued)"}}
+{"log":{"at":"2026-08-21T14:35:01-05:00","task":"ux-treedrag","msg":"landed -- TreeDrag built, zero Tree.js changes, acceptance gate 5/5 green"}}
+{"log": {"at": "2026-08-21T14:37:30-05:00", "task": "ux-mastermind", "msg": "landed wave 2 - Menu/Pagination/Tags graduated (Field refused w/ argument), TreeDrag 5/5 gate green; ux/ = 8 classes, docs truthful, all verified"}}
+{"log": {"at": "2026-08-21T14:40:18-05:00", "task": "mastermind-ui-ux", "msg": "landed -- ui/ux tier (8 classes) + config words + Playground zero-to-hero, 21 agents under pace; 7 proposals await the owner"}}
+{"log": {"at": "2026-08-21T15:56:27-05:00", "task": "mastermind-proposals", "msg": "task opened - owner approved all 7 proposals; both sub-masterminds relaunching"}}
+{"log": {"at": "2026-08-21T15:56:27-05:00", "task": "pg-proposals", "msg": "task opened - brief written: save fallback, tree migration, shift-click flex, parked geometry"}}
+{"log": {"at": "2026-08-21T15:56:27-05:00", "task": "ux-proposals", "msg": "task opened - brief written: framework.css tokens, Doc conversion, density default, gated ui.tree retirement"}}
+{"log": {"at": "2026-08-21T15:58:56-05:00", "task": "pg-proposals", "msg": "task opened - owner approved all proposals; wave A: pg-save + pg-tree concurrent on disjoint fences"}}
+{"log": {"at": "2026-08-21T15:58:56-05:00", "task": "pg-save", "msg": "task opened - Socket.ready race -> LocalStorage fallback, newest-wins nothing-deleted"}}
+{"log": {"at": "2026-08-21T15:58:56-05:00", "task": "pg-tree", "msg": "task opened - migrate Playground tree pane to ux/Tree (sibling gated)"}}
+{"log": {"at": "2026-08-21T15:59:05-05:00", "task": "ux-tokenize", "msg": "task opened - opus: sanctioned 4-line framework.css tokenization, equality proof, words remap, re-measure"}}
+{"log": {"at": "2026-08-21T15:59:05-05:00", "task": "ux-doc-convert", "msg": "task opened - sonnet: eight ux modules Page to Doc, cross-links to pretty routes"}}
+{"log": {"at": "2026-08-21T16:14:00-05:00", "task": "ux-doc-convert", "msg": "landed - all eight ux/ modules (Auth Wizard Tree Course Filter Menu Pagination Tags) converted to Doc, 25 literal .md cross-links fixed to pretty routes, verified headless (28 shots) - overflow_x 0, zero console errors, zero .md-error, wide bleed demos hold at 3440"}}
+{"log": {"at": "2026-08-21T16:15:49-05:00", "task": "pg-tree", "msg": "landed — Playground tree pane on ux/Tree, ui.tree retirement unblocked"}}
+{"log":{"at":"2026-08-21T16:16:26-05:00","task":"ux-tokenize","msg":"landed - four one-line fallback edits in framework.css (--pad-cell, --pad-control x2, --muted), proven byte-identical on 4436 elements before any word touched them, then ui-compact wired to both pad tokens: cells 3.76/11.28 -\u003e 1.88/5.64px, field 3.76/9.024 -\u003e 1.88/4.512px. Button did not move - lew42 restates its padding in @layer site. --density stays 0.5, 0.7 the half step."}}
+{"log": {"at": "2026-08-21T16:16:14-05:00", "task": "pg-save", "msg": "landed - Socket.ready 2s race, newest-wins localStorage fallback, saving-locally pip; proofs a-d all green"}}
+{"log": {"at": "2026-08-21T16:17:59-05:00", "task": "pg-tree", "msg": "TREE MIGRATION LANDED - ui.tree retirement unblocked. Playground.js:2 imports ux/Tree; both call sites migrated (render+wire at :170, mark-only select at :184 byte-compatible); zero playground.css changes (Tree wears the same .ui-tree-* classes); 4 ui-test proofs green"}}
+{"log": {"at": "2026-08-21T16:17:59-05:00", "task": "pg-save", "msg": "landed - Socket.ready 2s race caches verdict at import; StampedLocal fallback playground:<slug>.local; reconcile() newest-wins parks superseded copy; saving-locally pip; edits survive reload 3=3; New Document no longer hangs (bonus proof)"}}
+{"log": {"at": "2026-08-21T16:18:56-05:00", "task": "pg-shift", "msg": "task opened - Shift-click + adds Flex, strict recount target <=9"}}
+{"log": {"at": "2026-08-21T16:19:09-05:00", "task": "ux-mastermind", "msg": "landed program 3 - framework.css tokenized (4 lines, equality proven), 8 ux modules to Doc, density verdict written; ui.tree retirement gated on Playground relay"}}
+{"log": {"at": "2026-08-21T16:21:21-05:00", "task": "ux-tree-retire", "msg": "task opened - sonnet: gate released, retire ui.tree closure/export, census first"}}
+{"log": {"at": "2026-08-21T16:23:49-05:00", "task": "pg-shift", "msg": "task opened - shift-click + adds Flex, strict holy-grail recount"}}
+{"log": {"at": "2026-08-21T16:40:00-05:00", "task": "pg-shift", "msg": "landed - shift-click + adds Flex (canvas.js:40, toolbar.js:22); strict holy-grail recount 8 structural + 1 resize = 9, ties baseline-9, beats pg-hero strict-no-shift 10 by 2"}}
+{"log": {"at": "2026-08-21T16:37:27-05:00", "task": "ux-tree-retire", "msg": "landed -- ui.tree() retired, ui/tree/ is markup+CSS only, ux/Tree is what every caller takes; wall canary and Playground both verified green"}}
+{"log": {"at": "2026-08-21T16:38:20-05:00", "task": "pg-geometry", "msg": "task opened - grid handles, min-width floor skew, wrapped-flex: fix or bound with evidence"}}
+{"log": {"at": "2026-08-21T16:38:40-05:00", "task": "ux-mastermind", "msg": "landed program 3 complete - ui.tree retired (census zero, css survived, wall canary green); all four sanctioned proposals done"}}
+{"log": {"at": "2026-08-21T17:11:48-05:00", "task": "pg-proposals", "msg": "landed - all approved Playground proposals shipped: save fallback, ux/Tree migration (retirement unblocked), Shift-click Flex (strict count 9=9), grid handles + geometry bounds"}}
+{"log": {"at": "2026-08-21T17:13:50-05:00", "task": "mastermind-proposals", "msg": "landed -- all 7 approved proposals shipped and proven by both sub-masterminds; zero fence collisions; port 80 untouched all day"}}

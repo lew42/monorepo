@@ -1,0 +1,40 @@
+/* The class's OWN css, and it is one rule. Everything a tree looks like is the
+   template's — `.ui-tree-*` in ui/tree/tree.js — and both tiers read the same tokens,
+   so a config word re-skins either one. What is left here is the one thing the
+   template cannot own: a state that only exists because a CLASS put it there.
+   Record: doc/decisions.md. */
+@layer theme {
+
+	/* Roving tabindex means exactly one row is tabbable, and the reader has to be able
+	   to see which. `:focus`, not `:focus-visible` — the focus is MOVED by script on an
+	   arrow key, and whether that counts as "visible" is a UA heuristic. It is always
+	   visible here; that is the whole feature.
+	   ⚠ `outline-offset` is negative on purpose: the framework's 3px positive offset
+	   is drawn OUTSIDE the row, which a 14em rail clips. */
+	.ux-tree-keys .ui-tree-row:focus {
+		outline: 2px solid var(--prim);
+		outline-offset: -2px;
+	}
+
+	/* TreeDrag (2026-08-21). The ghost, the grab/grabbing cursors and the placeholder's
+	   dashed default are draggable.css's — this is only what a TREE adds on top:
+	   the grip's resting look, the placeholder reshaped into a LINE, and the
+	   drop-target highlight. `.ux-tree-drag .drag-placeholder` beats draggable.css's
+	   same-specificity `.drag-placeholder` regardless of stylesheet load order —
+	   doc/decisions.md. */
+	.ux-tree-drag-grip { opacity: 0.4; padding-inline: 0.3em; }
+	.ux-tree-drag-grip:hover { opacity: 1; }
+
+	.ux-tree-drag .drag-placeholder.ux-tree-drag-line {
+		height: 2px;
+		border: none;
+		border-radius: 1px;
+		background: var(--prim);
+	}
+
+	.ux-tree-drag-target {
+		outline: 2px solid var(--prim);
+		outline-offset: -2px;
+		background: var(--wash);
+	}
+}

@@ -31,6 +31,31 @@ the selection both reset to what the new data says. Diffing old vs. new nodes to
 preserve UI state is real complexity for "the caller owns the data" — simplest
 that survives collapsing, again.
 
+## The graduation (2026-08-21): the CSS stayed, the closure left
+
+`ui/` is html + css templates. `tree` was the one of twenty that was not — it held a
+`rows` Map and a `selected_row` across renders, installed two click listeners of its own,
+and carried an `update()`/`select()` lifecycle. That is a class, written in the one shape
+nothing can subclass, so it became [`class Tree`](/framework/ux/Tree/).
+
+**Splitting, not moving.** Every `.ui-tree-*` rule above is a rule about a *relationship*
+(nesting, indent) or a *state* (open, selected, hover), which is exactly what this tier is
+for. The class imports this file for that stylesheet and wears these same classes, so
+neither tier can restyle a tree without the other getting it. A `ux` that took the
+stylesheet along would have forked the look the first day this one changed.
+
+**`tree()` retired 2026-08-21.** It stayed byte-compatible while `ext/Playground`
+imported it straight from here and used both the factory and `.select()`; once that
+caller moved to `ux/Tree` (`ai/2026-08-21/pg-tree/`), nothing outside this page's own
+demos called it, and the closure came out — see
+[`ai/2026-08-21/ux-tree-retire/`](/framework/ai/2026-08-21/ux-tree-retire/). The full
+graduation argument, the name collisions the class had to dodge, and what the split
+cost are in [`ux/Tree/doc/decisions.md`](/framework/ux/Tree/doc/decisions.md).
+
+**One thing worth carrying elsewhere:** a shallow audit reported *no listeners anywhere in
+`ui/`* because it grepped for `addEventListener`. This file installs two, through View's
+`.click()`. In a framework whose base class wraps the DOM API, grep for the wrapper.
+
 ## The twentieth slot: Data (5 → 6)
 
 `tree` is the fourth loop-driven export, joining `table` and `timeline` — its kin,

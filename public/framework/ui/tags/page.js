@@ -48,6 +48,12 @@ export default new Page({
 			note: "**There is no `ui.tags()`.** What it built was *inert* — the × had no listener and the input had no handler — so the first real use would have rewritten every line of it anyway. What survives is the one thing that was hard: the class that lets a field sit inside a field.",
 		});
 
+		md("## The behavior graduated");
+
+		md("This is the **template**: a chip row and a field, the `×` and the input both INERT on purpose — this page said so plainly. On 2026-08-21 the wiring became [`class Tags`](/framework/ux/Tags/): `add()`/`drop()` hold the list, `Tags.Chip` owns its own × listener. **New code takes the class.**");
+
+		md("**The one real override here did not move.** `.ui-tags-input` still lives in `parts.js`, unchanged, and the class wears it — [`ux/Tags/doc/decisions.md`](/framework/ux/Tags/doc/decisions/) has the rest.");
+
 		md("## The opt-out, and the layer it lives in");
 
 		md("A field **inside** a field has to hand back the border and the padding the theme gives every text input. The rule it is opting out of is:");

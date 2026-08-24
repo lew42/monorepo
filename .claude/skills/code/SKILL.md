@@ -120,6 +120,8 @@ Write as little CSS as possible; a component starts with no stylesheet. `css` fi
 - Chaining onto `code.js()` **in argument position** is discarded — `.ac()`, `.on()` lost. Use the capture form.
 - `classify()` runs inside `super()`; a `classes = "x"` field arrives too late — name the subclass.
 - `classify()` adds a class for EVERY constructor in the chain (`Rail extends Sidebar` → `.rail.sidebar`). A subclass named like a layout word — `Rail`, `Card`, `Grid`, `Flex`, `Page` — wears that CSS: a playground's `Rail` got Page.css's side-region shape (sticky, `align-self: start`, a 22em cap) and stopped 129px down, 2026-08-19. Prefix it (`PlaygroundRail`).
+- Shadowing a `View` member never warns, and `render()` is not the only landmine: `View` owns `text()`, `toggle()`, `show()`, `hide()`, `html()`, `click()` as methods — a state field `this.text ??= ""` silently never writes (a function is never nullish) and throws two rungs away (`this.text.trim is not a function`, ux/Filter 2026-08-21). `classify()` also reads `this.name` back as a CSS class — `new Chip({ name })` wore its tag text as a class (ux/Tags 2026-08-21).
+- Windows: `git mv` on a whole directory can EPERM while a file-watcher (the dev server) holds the dir handle — per-file `git mv old new` into a pre-made destination dir succeeds anyway (core/Page restructure, 2026-08-19).
 - Resolve urls against `import.meta`; the SPA fallback makes the document url the route.
 - Only `p()`/`h1`–`h6` read backticks; a backtick inside `` css(`…`) `` kills every page.
 - A stylesheet that 404s resolves and warns — check the console. Windows: `pkill` matches nothing.

@@ -21,19 +21,33 @@ pasting the same subtree twice never collides.
 
 ## Data keys → CSS (as shipped, `items.js`)
 
-Every item carries **box** + **child** keys; `Flex`/`Grid` add their own.
+Every item carries **box** + **child** keys, whichever type it is — `gap`/`bg`/`padding`/
+`width`/`height` sit outside flex/grid on purpose (pg-sidebar brief), so they survive a
+`convert()` between types; `Flex`/`Grid` add only their own container-specific keys.
 
 | group | keys | → CSS |
 |---|---|---|
-| box | `width height padding` | same property names |
+| box | `bg gap` | `background-color gap` |
+| box | `padding` | `padding`, calibrated — `""`/absent/`"0"` all render `0.25em` (never literal 0) |
+| box | `width height` | `hug \| fill \| <length>`, read against the PARENT — see below |
 | box (tree only) | `label` | never CSS — the tree row's text |
-| child | `grow shrink basis self order` | `flex-grow flex-shrink flex-basis align-self order` |
-| child (grid) | `colSpan rowSpan area` | `grid-column: span N`, `grid-row: span N`, `grid-area` |
-| `Flex` | `direction wrap justify align gap` | `display:flex` + `flex-direction flex-wrap justify-content align-items gap` |
-| `Grid` | `columns rows areas flow gap` | `display:grid` + `grid-template-columns/-rows/-areas grid-auto-flow gap` |
+| child ("in parent", shown only when the parent is Flex) | `grow shrink basis self order` | `flex-grow flex-shrink flex-basis align-self order` |
+| child ("in parent", shown only when the parent is Grid) | `colSpan rowSpan area` | `grid-column: span N`, `grid-row: span N`, `grid-area` |
+| `Flex` config | `direction wrap justify align` | `display:flex` + `flex-direction flex-wrap justify-content align-items` |
+| `Grid` config | `columns rows areas flow` | `display:grid` + `grid-template-columns/-rows/-areas grid-auto-flow` |
+
+`width`/`height` are per-axis `hug \| fill \| <length>`. In a flex parent the MAIN axis
+carries the flex shorthand (`fill` → `flex: 1 1 0`, `hug` → `flex: 0 0 auto`, a length →
+`flex: 0 0 <length>`) and the CROSS axis carries `align-self` (`fill` → `stretch`, else
+`flex-start`); in a grid parent the same three states use `justify-self`/`align-self`;
+outside flex/grid, width can fill (`width: 100%`) or hug (`width: fit-content`), but
+height-`fill` has no definite parent height to resolve against and silently degrades to
+hug — not fought, `doc/decisions.md`'s pg-sidebar entry has the proof.
 
 `Box`/`Flex`/`Grid` are the only three shipped types (design §3); anything else is a
-preset of these or its own design problem.
+preset of these or its own design problem. A type toggle in the sidebar **converts** a
+node between them in place — same id, same data, same children — `Playground.js#convert`,
+`doc/decisions.md`.
 
 ## On disk
 

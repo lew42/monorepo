@@ -55,6 +55,12 @@ export default new Page({
 			note: "**There is no `ui.pagination()`.** The body *was* the markup — a row, some buttons, one of them `prim` — and the wrapper made it worse: `current` was compared by string, and the callback received `\"prev\"` and `\"next\"` alongside real labels, so every caller had to decode a string union the component invented. Written out, prev and next call the same function as a number, which is what the caller wanted all along.",
 		});
 
+		md("## The behavior graduated");
+
+		md("This is the **template**: real buttons, one conditional `.prim` class, no wrapper. `current` compared by string was the reason there was no `ui.pagination()` at all — the caller already held the number, and a component holding it too would only get in the way. On 2026-08-21 that bookkeeping became [`class Pagination`](/framework/ux/Pagination/), which remembers `current` as a NUMBER and fires one wire, `go(n)`. **New code takes the class.**");
+
+		md("There was no CSS to keep — `.ui-pagination` was dropped in the 2026-08-09 review as styled nowhere ([`doc/record.md`](/framework/ui/doc/record/), §11), so the class reads nothing but `framework.css`'s own `button`/`.prim`, same as this page. [`ux/Pagination/doc/decisions.md`](/framework/ux/Pagination/doc/decisions/) has the rest.");
+
 		md("## Buttons, not links");
 
 		md("`framework.css` gives `button` and `.btn` the same fill, hairline, radius and `text-decoration: none`, and `.prim` promotes one — so a real `<button>` needs nothing but a click handler. An `<a class=\"btn\">` is for the case where the page genuinely has a url, and a pager usually doesn't.");

@@ -11,8 +11,15 @@ not summaries; this skill restates none of them.** Always `public/framework/fram
 what applies: the module's own `.css`; the **container's** css when the thing lives in one
 (`core/Page/Page.css` for anything in a page — tracks, previews; the parent component's for
 a card in a rail or a panel); the theme (`styles/layers/theme/lew42/lew42.css`) only when
-colour or type is in play. Most CSS doesn't interact — parent layout and theme trickle are
-where it does.
+colour or type is in play — and a bare `<button>` IS in play with neither written: the theme
+styles every `button, .btn` in `@layer site` (CTA padding, uppercase, bold), beating any
+component `@layer theme` rule by layer order alone — a tree toggle glyph silently got 33px of
+padding (2026-08-19; the fix was a clickable span, not a fight). Most CSS doesn't interact —
+parent layout and theme trickle are where it does.
+⚠ The costliest miss so far was not cascade but a property already ON the box: `container-type: size`
+means it may not be sized by its own contents — a flex column with it measured **0px while holding
+963px** of children, clipped by the parent's `overflow: hidden`, nothing thrown (2026-08-18). Before
+making any box content-sized, read its own `container-type` back from computed style.
 ⚠ A class that does not exist paints nothing and throws nothing — verify a word by reading its rule in framework.css AND reading a computed style back, never by inference from a token: `--tint` is a real token with no `.tint` class, and `div.c("pad flex v gap tint")` shipped on eight layouts looking plausible until a probe read `rgba(0,0,0,0)` on every box.
 
 **2. Climb the ladder, stop at the first rung that works:**
@@ -31,6 +38,10 @@ once, in framework.css — never restate it, never invent a fifth name.
 **4. Constrain the container, not the items.** A child opts out by claiming a wider
 track. Prefer a token (`--gap`, `--column`, `--measure`) to a rule — a subtree
 re-declares it, no specificity war.
+⚠ A flex row squeezed under its content width does not overflow first — default `flex-shrink`
+takes each item to min-content, and a multi-word label wraps to lower min-content further: six
+toolbar buttons went two-line before the row ever scrolled, silently (2026-08-19). The fix shape:
+`white-space: nowrap; flex: none` on the items, `overflow-x: auto` on the row.
 
 **5. A new class name → run `new-css-class`** (reserved prefixes in
 `framework/styles/css-scopes.txt`; prefix with the owning module).
@@ -38,6 +49,10 @@ re-declares it, no specificity war.
 **6. Smoke-test, then refine.** Headless (Playwright, or `mcp__site__shot` on a claimed
 tab) at 400 and 1920 — look at it; `analyze()` from `ext/DesignTool` at 400 / 1280 / 1920
 / 3440 for what is broken; `ext/DesignTool/vision/run.mjs` when you want a model's eyes on it ($0.07 a shot, logged and browsable). Rough → look → refine is the normal cycle, not a failure.
+⚠ Every mcp `site` tool rides the dev server on port 80 — with it down they all answer "Unable to
+connect", which reads like a sandbox problem, not "nothing is listening" (2026-08-21). Check the port
+(`Get-NetTCPConnection -LocalPort 80 -State Listen`); the fallback is headless Playwright against your
+own throwaway static server — which `shot` cannot reach either.
 
 **7. Count before you add.** 47 stylesheets / 239 rules serve 274 pages (2026-08-17); the sprawl is
 branching (`:has()`, width `@media`), not volume. A new sheet or a new conditional needs its reason

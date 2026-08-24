@@ -29,7 +29,7 @@ Anything that changes the repo is a **task**: a dir at
 
 **`group` is the effort** — the thread this belongs to, which outlives the day; reuse an existing slug (`ai-log`, `layout`, `panels`, `vision`, `apps`, `web-ui`), or omit it and the task files under *loose*. ⚠ **`session_id` is not optional** — without it the detail page has no transcript and renders no log at all.
 
-⚠ **Never write a `.jsonl`/`.json` with PowerShell's `Out-File`/`Set-Content -Encoding utf8`** — the BOM makes `TaskJSONL` silently drop line 1 (task never reaches Active) and `json.load` die; use the **Write tool**, append later lines with `Add-Content`.
+⚠ **Never write a `.jsonl`/`.json` with PowerShell's `Out-File`/`Set-Content -Encoding utf8`** — the BOM makes `TaskJSONL` silently drop line 1 (task never reaches Active) and `json.load` die; use the **Write tool**, append later lines with `Add-Content`. ⚠ And `Add-Content` writes ANSI: one non-ASCII character (an em dash) becomes an invalid byte and the viewer drops that whole line (bit 2026-08-21) — keep appends pure ASCII, or append via `[IO.File]::AppendAllText` with `[Text.UTF8Encoding]::new($false)`.
 
 ⚠ **Three ways a line is silently wrong.**
 - **Timestamps come from the clock, never your head** — `date -Iseconds` (bash) or

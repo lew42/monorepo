@@ -61,6 +61,11 @@ Less is more (ASAP), clarity is the exception, prioritize. Say what the delivera
 long it may be — a report is a screen; a page leads with the thing itself. Then, from the
 2026-08-16 run (31 agents, nine correctly refuted their brief):
 
+- ⚠ A sub-mastermind (an Agent-tool agent that spawns its own minions) must run its minions
+  in the FOREGROUND (`run_in_background: false`, several per message for concurrency) — a
+  nested background minion's completion notifies the MAIN session, never its parent, so a
+  sub-mastermind that ends its turn "awaiting harvest" is parked forever until the supervisor
+  relays by hand. Both Fable sub-masterminds hit this on 2026-08-21, cycle 1 each.
 - Tell a worker how to wait, not just not to (`while (-not (Test-Path …)) { Start-Sleep 15 }`;
   foreground is the default) — two workers ended a turn on a Monitor mid-run and needed a nudge.
   ⚠ A worker whose wait is auto-backgrounded (>120 s without `timeout: 600000`) reports
