@@ -1,86 +1,73 @@
-import app, { div, h2, h3, p, pre, ul, ol, li, img, input, el } from "/app.js";
-import { doc } from "../../ui/docs.js";
+import { Page, View, md, h2, h3, demo, div, p, ul, ol, li, img, input, el } from "/app.js";
 
-app.stylesheet(import.meta, "toggle-switch.css");
+View.stylesheet(import.meta, "toggle-switch.css");
 
 customElements.define("toggle-switch", class extends HTMLElement {
-  connectedCallback() {
-    const checked = this.hasAttribute("checked");
-    this.innerHTML = `
+	connectedCallback(){
+		const checked = this.hasAttribute("checked");
+		this.innerHTML = `
       <label class="toggle-switch">
-        <input type="checkbox" ${checked ? "checked" : ""}>
+        <input type="checkbox" aria-label="Toggle" ${checked ? "checked" : ""}>
         <span class="slider"></span>
       </label>
     `;
-    this.querySelector("input").addEventListener("change", (e) => {
-      this.dispatchEvent(new CustomEvent("toggle", { detail: e.target.checked }));
-    });
-  }
+		this.querySelector("input").addEventListener("change", e => {
+			this.dispatchEvent(new CustomEvent("toggle", { detail: e.target.checked }));
+		});
+	}
 });
 
-app.$body.ac("theme-1");
+export default new Page({
+	meta: import.meta,
+	title: "HTML basics",
+	description: "The reset — what plain tags look like before you add a class.",
+	icon: "html",
 
-export default {
-  render() {
-    doc({
-      title: "HTML basics",
-      back: "/alex/styles/",
-      build() {
-        p("You get these for free — no classes needed. `framework.css` applies them to plain tags so raw HTML already looks reasonable.");
+	content(){
 
-        h2("The reset");
-        p("`box-sizing: border-box` on everything, so padding and borders never blow out your widths.");
-        p("A readable `body`: system font, `line-height: 1.5`, and a font size that scales gently with the viewport.");
-        p("Media is block-level and never overflows: `img, video, svg { max-width: 100% }`.");
-        p("Long words wrap instead of overflowing, and `pre` scrolls sideways rather than stretching the page.");
+		demo(() => {
+			h3("A heading");
+			p("A paragraph of body text. Comfortable line height and spacing, all from the reset with no classes applied.");
+			ul(() => {
+				li("List items get sensible left padding");
+				li("So the bullets are not clipped");
+			});
+			ol(() => {
+				li("Ordered lists too");
+				li("Same padding");
+			});
+		}, "You get these for free. `framework.css` styles plain tags, so raw HTML already looks reasonable.");
 
-        h2("Live example");
-        div.c("demo", () => {
-          h3("A heading");
-          p("A paragraph of body text. Notice the comfortable line height and spacing, all from the reset with no classes applied.");
-          ul(() => {
-            li("List items get sensible left padding");
-            li("So the bullets are not clipped");
-          });
-          ol(() => {
-            li("List items get sensible left padding");
-            li("So the bullets are not clipped");
-          })
-        });
+		h2("The reset");
 
-        h2("Full-width form fields");
-        p("Text inputs, selects, and textareas stretch to fill their container by default, which keeps forms tidy without extra CSS:");
-        div.c("demo", () => {
-          input().attr("type", "text").attr("placeholder", "I fill the width automatically");
-        });
-        pre(`input().attr("type", "text")
-     .attr("placeholder", "...");`);
+		md(`- \`box-sizing: border-box\` on everything, so padding and borders never blow out your widths.
+- A readable \`body\`: system font, \`line-height: 1.5\`, a size that scales gently with the viewport.
+- Media is block-level and never overflows — \`img, video, svg { max-width: 100% }\`.
+- Long words wrap instead of overflowing, and \`pre\` scrolls sideways rather than stretching the page.`);
 
-        h2("Responsive image");
-        p("`img` is block-level and capped at `max-width: 100%`, so it never overflows its container:");
-        div.c("demo", () => {
-          img()
-            .attr(
-              "src",
-              "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='120'%3E%3Crect width='320' height='120' fill='%235a57ff'/%3E%3Ctext x='160' y='68' font-family='sans-serif' font-size='20' fill='white' text-anchor='middle'%3E320 x 120 image%3C/text%3E%3C/svg%3E"
-            )
-            .attr("alt", "Example image");
-        });
+		h2("Full-width form fields");
 
-        h2("Custom web components");
-        p("Define once with `customElements.define()`, then use anywhere via `el(\"tag-name\")`. They're global — not scoped to this directory:");
-        div.c("demo", () => {
-          const $toggle = el("toggle-switch").attr("checked", "");
-          const $label = el("span").ac("toggle-label").text("On");
-          $toggle.on("toggle", (e) => $label.text(e.detail ? "On" : "Off"));
-        });
-        pre(`const $toggle = el("toggle-switch").attr("checked", "");
-const $label = el("span").text("On");
+		demo(() => {
+			input().attr("type", "text").attr("aria-label", "Full-width text field")
+				.attr("placeholder", "I fill the width automatically");
+		}, "Text inputs, selects and textareas stretch to fill their container, which keeps forms tidy with no extra CSS.");
 
-$toggle.on("toggle", (e) =>
-  $label.text(e.detail ? "On" : "Off")
-);`);
-      },
-    });
-  },
-};
+		h2("Responsive image");
+
+		demo(() => {
+			img()
+				.attr("src", "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='120'%3E%3Crect width='320' height='120' fill='%235a57ff'/%3E%3Ctext x='160' y='68' font-family='sans-serif' font-size='20' fill='white' text-anchor='middle'%3E320 x 120 image%3C/text%3E%3C/svg%3E")
+				.attr("alt", "Example image");
+		}, "`img` is block-level and capped at `max-width: 100%`, so it never overflows its container.");
+
+		h2("Custom web components");
+
+		demo(() => {
+			const $toggle = el("toggle-switch").attr("checked", "");
+			const $label = el("span").ac("toggle-label").text("On");
+			$toggle.on("toggle", e => $label.text(e.detail ? "On" : "Off"));
+		}, "Define once with `customElements.define()`, then use it anywhere via `el(\"tag-name\")`. They are global — not scoped to this directory.");
+
+		md("Next: [Forms](/alex/styles/forms/) — the classes on top of that reset.");
+	},
+});

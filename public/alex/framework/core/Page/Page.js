@@ -1,3 +1,7 @@
+/* DEPRECATED — archived for reference, does not run. The `../View/View.js`
+ * import below does not resolve at this path. Use the core `Page`
+ * (/framework/core/Page/Page.class.js). See ../readme.md. */
+
 import { View, is } from "../View/View.js";
 
 /* A Page is an inert-on-import, re-activatable View.

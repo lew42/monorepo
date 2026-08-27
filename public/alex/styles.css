@@ -1,90 +1,83 @@
-/* following up reset, adding docs styles */
-.doc { padding-top: 2em; } /* remove once menu is hidden */
+/* Restated IN FULL — the first @layer statement fixes the order, and a name
+   first seen later is appended at the end. */
+@layer base, theme, site, util;
 
-.doc-header { display: flex; align-items: baseline; gap: 1em; margin-bottom: 1.5em; }
-.doc-header h1 { margin: 0; }
+@layer site {
 
-.doc h1 { color: var(--prim); }
-.doc h2 { margin-top: 2em; border-bottom: 1px solid var(--subtle); padding-bottom: 0.3em; }
+	/* Coloured blocks, so a flex/grid example has something to look at. Goes
+	   inside a demo(), so the framework's `.demo` is not this file's business. */
+	.boxes > * {
+		background: var(--prim);
+		color: white;
+		padding: 0.6em 1em;
+		border-radius: 0.3em;
+		text-align: center;
+	}
 
-.doc-back { color: var(--prim); text-decoration: none; font-size: 0.8em; white-space: nowrap; }
-.doc-back::before { content: "\2190\00a0"; }
-.doc-back:hover { text-decoration: underline; }
+	/* The BEM lesson. `panel`, not `card`, so the name is this section's alone.
+	   Mobile-first and fluid; one breakpoint, for the horizontal modifier. */
+	.panel {
+		border: 1px solid var(--subtle);
+		border-radius: 0.5rem;
+		padding: clamp(0.5rem, 2vw, 1rem);
+	}
+	.panel--featured {
+		border-color: var(--prim);
+		box-shadow: 0 0.25rem 1rem var(--subtle);
+	}
+	.panel--horizontal {
+		display: flex;
+		flex-direction: column;
+	}
+	@media (min-width: 28rem) {
+		.panel--horizontal { flex-direction: row; }
+	}
+	.panel__image {
+		background: var(--bg);
+		color: white;   /* --bg stays dark in both modes, like button.bg */
+		padding: clamp(1rem, 4vw, 2rem);
+		text-align: center;
+		font-size: clamp(1.5rem, 4vw, 2rem);
+	}
+	/* Element modifiers, so no selector reaches down from `panel--horizontal`.
+	   Each must follow its element — same specificity, so order decides. */
+	.panel__image--aside {
+		flex: 0 0 clamp(4rem, 30%, 8rem);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	.panel__body { padding: clamp(0.5rem, 2vw, 1rem); }
+	.panel__body--fill { flex: 1; }
+	.panel__title {
+		font-weight: 600;
+		color: var(--prim);
+		margin-bottom: 0.3rem;
+		font-size: clamp(1rem, 2.5vw, 1.25rem);
+	}
+	.panel__text {
+		margin: 0;
+		color: var(--subtle);
+		font-size: clamp(0.8rem, 2vw, 0.9rem);
+	}
+	.panel__footer { margin-top: 1rem; }
+	.panel__btn {
+		padding: 0.4rem 1rem;
+		border: 1px solid var(--subtle);
+		border-radius: 0.3rem;
+		cursor: pointer;
+		background: transparent;
+		font-size: clamp(0.8rem, 2vw, 1rem);
+	}
+	.panel__btn--prim {
+		background: var(--prim);
+		color: white;
+		border-color: var(--prim);
+	}
 
-/* code blocks */
-.doc pre { background: var(--bg); color: white; padding: 1em; border-radius: 0.4em; }
-.doc pre code { background: none; padding: 0; color: inherit; }
-
-/* navigation cards */
-.doc-cards { display: grid; gap: 1em; grid-template-columns: repeat(auto-fit, minmax(min(14em, 100%), 1fr)); margin: 1em 0; }
-.doc-card { display: block; text-decoration: none; color: inherit; border: 1px solid var(--subtle); border-radius: 0.5em; padding: 1.2em; }
-.doc-card:hover { border-color: var(--prim); }
-.doc-card h3 { margin: 0 0 0.3em; color: var(--prim); }
-.doc-card p { margin: 0; color: var(--subtle); font-size: 0.9em; }
-
-/* live style demos */
-.demo { border: 1px dashed var(--subtle); border-radius: 0.4em; padding: 1em; margin-bottom: 1em; }
-.demo.boxes > * { background: var(--prim); color: white; padding: 0.6em 1em; border-radius: 0.3em; text-align: center; }
-
-/* BEM card demo — mobile-first, fluid sizing, one breakpoint for the horizontal modifier */
-.card {
-    border: 1px solid var(--subtle);
-    border-radius: 0.5rem;
-    padding: clamp(0.5rem, 2vw, 1rem);
-}
-.card--featured {
-    border-color: var(--prim);
-    box-shadow: 0 0.25rem 1rem var(--subtle);
-}
-.card--horizontal {
-    display: flex;
-    flex-direction: column;
-}
-@media (min-width: 28rem) {
-    .card--horizontal { flex-direction: row; }
-}
-.card--horizontal > .card__image {
-    flex: 0 0 clamp(4rem, 30%, 8rem);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.card--horizontal > .card__body { flex: 1; }
-.card__image {
-    background: var(--bg);
-    padding: clamp(1rem, 4vw, 2rem);
-    text-align: center;
-    font-size: clamp(1.5rem, 4vw, 2rem);
-}
-.card__body { padding: clamp(0.5rem, 2vw, 1rem); }
-.card__title {
-    font-weight: 600;
-    color: var(--prim);
-    margin-bottom: 0.3rem;
-    font-size: clamp(1rem, 2.5vw, 1.25rem);
-}
-.card__text {
-    margin: 0;
-    color: var(--subtle);
-    font-size: clamp(0.8rem, 2vw, 0.9rem);
-}
-.card__footer { margin-top: 1rem; }
-.card__btn {
-    padding: 0.4rem 1rem;
-    border: 1px solid var(--subtle);
-    border-radius: 0.3rem;
-    cursor: pointer;
-    background: transparent;
-    font-size: clamp(0.8rem, 2vw, 1rem);
-}
-.card__btn--prim {
-    background: var(--prim);
-    color: white;
-    border-color: var(--prim);
-}
-
-/* BEM card list — responsive grid, no media queries */
-.card-list {
-    --card-min: min(16rem, 100%);
-    grid-template-columns: repeat(auto-fit, minmax(var(--card-min), 1fr));
+	/* Responsive grid, no media queries. */
+	.panel-list {
+		--panel-min: min(16rem, 100%);
+		grid-template-columns: repeat(auto-fit, minmax(var(--panel-min), 1fr));
+	}
 }

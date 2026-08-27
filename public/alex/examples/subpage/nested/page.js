@@ -1,28 +1,13 @@
-import { a, h2, h3, p } from "/app.js";
+import { Page, md } from "/app.js";
 
-app.$body.ac("theme-1");
+export default new Page({
+	meta: import.meta,
+	title: "Nested",
+	description: "Three levels down, and nothing about it is different.",
 
-export default {
-  href: "/alex/examples/subpage/nested/",
-  link() {
-    return a.c("page-link", this.href).href("/alex/examples/subpage/nested/");
-  },
-  preview() {
-    a.c("page-link-block", () => {
-      h2("Preview");
-      p("Preview text");
-    }).href(this.href);
-  },
-  content() {
-    h3("Alex's subpage");
-    p("Nested subpage content");
-  },
-  full() {
-    a.c("page-back", "Back").href("../");
-    this.preview();
-    this.content();
-  },
-  render() {
-    this.full();
-  },
-};
+	content(){
+		md("Nesting composes at any depth. This page declares no children and overrides nothing — `meta` gives it its url, and the Router does the rest.");
+
+		md("Back up to [Subpage](/alex/examples/subpage/), or [Examples](/alex/examples/).");
+	},
+});

@@ -1,17 +1,17 @@
-import { a, h2, h3, p } from "/app.js";
-import nested from "./nested/page.js"
+import { Page, md, p } from "/app.js";
+import nested from "./nested/page.js";
 
-app.$body.ac("theme-1");
+export default new Page({
+	meta: import.meta,
+	title: "Subpage",
+	description: "A child that imports its own child, so it can link to it by title.",
 
-export default {
-  link() {
-    return a.c("page-link", "/alex/examples/subpage/").href("/alex/examples/subpage/");
-  },
-  render() {
-    a.c("page-back", "Back").href("/alex/");
-    h2("Alex's subpage");
-    h3("Preview");
-    nested.preview();
-    p("Subpage content with a nested subpage: ", nested.link());
-  },
-};
+	// Eager: the Page itself, not a name — so `nested.title` is real right now.
+	children: [nested],
+
+	content(){
+		md("This page lives at `/alex/examples/subpage/`, one folder below its parent. The Router imported `/alex/page.js` and `/alex/examples/page.js` on the way here, which is why the sidebar to the left exists.");
+
+		p("It has a child of its own: ", nested.link());
+	},
+});
