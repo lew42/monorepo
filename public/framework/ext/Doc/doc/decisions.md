@@ -117,6 +117,19 @@ content and (once wrapped) the tab labels all sit on `--gutter-x`.
 documenting the *running program*. Detection is one line of trivia: JS infers a
 function's name from assignment to an identifier, never to a member expression.
 
+**A Doc nested in a Doc renders vertical, automatically** (2026-08-26, the owner). A
+child Doc used to draw its own well + `.tabs.block` strip inside its parent's
+`.tab-panel` — two `--well` shadows stacked over `--wash` read as broken alternating
+bands (found on `/framework/ux/Tree/`; twelve pages hit it: `ux/*` (8), `core/new/0`
+`core/new/1` `core/new/starter`, `ext/DesignTool/taste`). `render()` now calls
+`nested_in_doc()` — walks `.parent` for any ancestor `instanceof Doc` — and when true
+draws `"page doc-section"` with `this.tabs(this.bar().join(" ")).ac("vertical")` and
+no `well()`, the same left-rail shape `api_section()`/`docs_section()` already use for
+sub-tabs. This is exactly the manual override `ext/Panel/Workspace/page.js` already
+hand-wrote (its comment: *"A Doc inside a Doc: no second title band"*) — that
+override is now redundant (produces byte-identical output) but was left in place,
+being outside this change's file fence.
+
 ## Traps
 
 - **⚠ `bar()` and the mount region are the same list.** `tabs()` registers a child's

@@ -40,6 +40,11 @@ A component inside a container — a rail section, a card, a panel — answers 1
    line; size by importance (`.two`, `.tall`, `.big`), not by how much content exists. A
    preview is a picture, never a live instance.
 
+⚠ A demo OF a size token must be measured against the box it will actually live in, not the
+box you drew it in — the one-line check: is the demo box wider than the token it demonstrates?
+2026-08-19: a `--measure` card built two 470px panes, the 40em cap never bit (the routed page
+was 545px, not the 965px assumed), both states were identical and the card taught nothing.
+
 ## The two bounds rules
 
 - **Every track needs a floor and a ceiling.** `1fr` alone keeps its content minimum and

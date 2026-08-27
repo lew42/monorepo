@@ -38,6 +38,25 @@ the infrastructure above needs because it runs before `/app.js` has finished.
 
 ## Decisions
 
+**Is `columns()` a page shape or an extension?** **A core page shape**, graduated
+2026-08-26 from `overview/columns/`. `columns()` sets one flag on the host; `render()`
+asks `column_host()` (a `chain()` walk) instead of walking the tree, so a lazily-loaded
+child is a column too. Every rule lives in `Page.css`, beside `.page.solo` — the other
+shape that claims a whole region. The demo is now an ordinary tree that calls the method.
+`./columns.md`.
+
+**Why a `width:` word instead of a class?** Because the CLASS is an implementation
+detail and the word is the vocabulary: `width: "small"` reads on the page, and
+`column()` stamps `.page-column-small`. The four words set **tokens**
+(`--page-column-flex/-min/-max`), never properties, so the narrow container query can
+page the row one column at a time without out-specifying four rules — and a page that
+wants 48em retunes one token instead of asking for a fifth word. `./columns.md`.
+
+**Does core own a breadcrumb now?** **Yes — `crumbs(from)`**, derived from `chain()`,
+which is the shape `ui/crumbs/` said a real one would have to take. It emits
+`.page-crumbs` links and nothing else; `Router.mark_links()` lights them. `from` is
+where the trail starts, so a columns host shows only its own subtree.
+
 **Are declared children eager or lazy?** **Eager.** `children: "a b c"` imports
 every child at construction, and `Router.load()` awaits the chain's `loading` — so a
 menu draws **once**, with real titles and icons. Reversed from lazy-with-an-opt-in
@@ -233,6 +252,18 @@ child gets no rung at all.
 
 ## Traps
 
+- **`:has()` does not care whether a page is painted.** A closed page is still in the
+  DOM — `@layer util` only stops it *rendering* — so a `:has()` rule keyed on a
+  descendant's class keeps matching after you navigate away. Any such rule has to test
+  the mark too: `:is(.active-page, .active-ancestor, .default)`. It shipped a one-way
+  door in the `full` column collapse, 2026-08-26.
+- **Going up the chain activates nothing.** `Router.activate()` diffs the chains and
+  only touches what changed, so a navigation to an *ancestor* fires `deactivate()` and
+  no `activate()` at all. Anything that refreshes on navigation needs both ends.
+- **`View.stylesheet` is global, so two copies of one demo cannot both exist.**
+  `old/overview/columns/` shipped its own `.page.columns`; once the same names landed
+  in `Page.css` both sheets styled both demos and neither worked. The snapshot was
+  deleted rather than renamed — 2026-08-26.
 - **Overriding `render()`** owes three things, all silent when missed: set
   `this.view` (`activate()` appends that, not the return value), carry the `.page`
   class, and never nest a second `.page` inside.

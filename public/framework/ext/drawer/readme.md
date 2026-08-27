@@ -10,10 +10,19 @@ drawer(($slot, $body) => {
     $body.empty(() => { /* the controls */ });            // scrolls
 });
 // Drag its inline edge to resize — the width you let go of is remembered in `--drawer-w`.
-drawer.refresh();     // the same content again, for a subject that changed
+drawer.refresh();     // re-runs the LAST fill fn — read "Sharing it" first
 drawer.close();       // what the ✕ calls
 drawer.showing();     // is it open
 ```
+
+## Sharing it
+
+One box, any number of callers — `ext/layout` fills it with a selected element's words, `ext/Panel` with a panel's properties, and whoever filled last owns what is showing.
+
+- **Fill, don't hold.** Every call replaces the contents, and the old DOM, its listeners and its closures are collected together — 1,700 rebuilds measured flat on nodes, listeners and heap. What leaks is a fill that subscribes to something longer-lived (`item.on(…)`, an observer, a document listener): unbind when your element leaves · [doc/decisions.md](./doc/decisions.md)
+- **`dock()` once at load, then only fill.** Forcing it open on selection reads as jumpy · [doc/decisions.md](./doc/decisions.md)
+- **Re-announce your subject to redraw it — not `drawer.refresh()`**, which replays the last fill function, possibly another module's · [doc/decisions.md](./doc/decisions.md)
+- **Claim your own clicks.** `ext/layout` keeps one permanent click listener on the rail and hears everyone's, so a caller's rows `stopPropagation` · [doc/decisions.md](./doc/decisions.md)
 
 ## Watch out
 

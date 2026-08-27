@@ -18,6 +18,7 @@ export default new Doc({
 Empty section, no tab. Nothing at the call site says "tab" — a different shape overrides `sections()`.
 
 ## Watch out
+- A Doc nested inside another Doc's tab panel draws its own strip as a left rail (`.tabs.vertical`), never a second well — automatic, no flag: [doc/decisions.md](./doc/decisions.md)
 - `files:` goes stale silently — a file not listed is simply absent from the tab: [doc/files.md](./doc/files.md)
 - Every tab draws two `h1`s (the well's and the routed page's) — DesignTool flags every Doc; still open: [doc/decisions.md](./doc/decisions.md)
 - `content()` is bound to the Doc, not the Overview section — `this.parent` is the module's parent: [doc/decisions.md](./doc/decisions.md)

@@ -1,0 +1,23 @@
+/* Appearance recipes only — no new shape, just the fills and regions the recipes
+   compare. `.page--<name>` is Page.class.js's own hook (every page wears it), so a
+   recipe picks its background by NAMING the page, never by a config option nobody
+   else has. `--wash → --tint → --surface` only; never `--well` (doc/decisions.md —
+   a translucent shadow, and stacking it is what banded /framework/ux/*). */
+@layer theme {
+
+	.page--tint > .page-column-body { background: var(--tint); }
+	.page--surface > .page-column-body,
+	.page--matched > .page-column-body,
+	.page--matched-child > .page-column-body { background: var(--surface); }
+
+	/* Seams recipe's "meant to scroll" region — inset from the column's own
+	   border-inline-end so ITS scrollbar never sits on the column's hairline (the
+	   broken variant's whole-body scrollbar does exactly that). */
+	.looks-scroll {
+		max-height: 5em; overflow-y: auto; scrollbar-width: thin;
+		padding-inline-end: 0.6em;
+		border: 1px solid var(--line); border-radius: var(--radius);
+	}
+
+	.looks-swatch { border: 1px solid var(--line); border-radius: var(--radius); aspect-ratio: 1; }
+}

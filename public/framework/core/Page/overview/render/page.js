@@ -28,7 +28,7 @@ const board = () => div.c("flex gap wrap", () => { column("Correct", correct); c
 export default new Page({
 	meta: import.meta,
 	title: "Render",
-	group: "JS, last",
+	group: "The box",
 	description: "render() owes three things: set this.view, carry .page, never nest a second one.",
 
 	preview(nav){ return this.preview_card(nav, () => div.c("zoom-25", board)); },

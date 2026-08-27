@@ -111,6 +111,172 @@
 	     #1). A page that is taller than its region must be able to scroll. */
 	.page.solo { align-self: stretch; overflow: auto; min-height: 100%; }
 
+	/* ════ COLUMNS — the Finder shape ═════════════════════════════════════════
+	   `page.columns()` on a host and its whole subtree lays out as full-height
+	   columns, each child opening to the right of its parent. doc/columns.md.
+
+	   The trick is two declarations. Every page keeps its `$pages` region INSIDE its
+	   own view, so the DOM is an ordinary nested tree and the arrangement contract at
+	   the top of this file is untouched — a column closes because it lost its mark,
+	   not because anything moved it. Then `display: contents` on every descendant page
+	   and every region deletes those boxes from LAYOUT, so the only flex items the row
+	   ever sees are the column BODIES. Peers on screen, a tree in the DOM.
+
+	   ⚠ `.page.columns` / `.page.column`, never `.page-columns`: these are shape
+	     words, the same idiom as `.page.solo` above; the PARTS carry the prefix.
+	   ⚠ `padding: 0` is not cosmetic — `--page-pad` INHERITS from the region (every
+	     demo box sets one), so `.page`'s `padding: var(--page-pad, …)` insets the
+	     whole host and the columns never reach their own box's edges.
+	   ⚠ `--wash`, never `--well`: `--well` is a translucent shadow, not a palette
+	     colour, and stacking it is what banded /framework/ux/*. The bodies are
+	     transparent over this one fill; the only seams are `--line` hairlines. */
+	.page.columns {
+		display: flex; flex-direction: column;
+		align-self: stretch; height: 100%;
+		padding: 0;
+		background: var(--wash);
+	}
+
+	.page-columns-bar {
+		flex: 0 0 auto;
+		padding: 0.5em 0.9em;
+		border-bottom: 1px solid var(--line);
+	}
+
+	/* THE ROW — the one box that scrolls sideways, and the only one with a height of
+	   its own to give the columns something to scroll against.
+	   ⚠ `proximity`, NOT `mandatory` (measured 2026-08-18): a mandatory row RE-SNAPS
+	     on every relayout, so the scroll `reveal_column()` had just done was undone by
+	     the next resize and the deepest column arrived 46px clipped at `scrollLeft: 0`.
+	   ⚠ `container-type` makes this a containing block for `position: fixed`
+	     descendants — the trap `.rail` spells out below. Columns are their own screen
+	     (doc/columns.md), and the query is what turns the row into one column at a
+	     time on a phone; the BOX's width, never the window's. */
+	.page-columns-row {
+		flex: 1 1 auto; min-height: 0;
+		display: flex; align-items: stretch;
+		overflow-x: auto; overflow-y: hidden;
+		scrollbar-width: thin;
+		scroll-snap-type: x proximity;
+		container: page-columns / inline-size;
+	}
+
+	/* Every page under the host, and every region: gone from the layout, still in the
+	   DOM. ⚠ `@layer util`'s `display: none` for an unmarked page out-ranks this whole
+	   layer, which is exactly what closes a column — nothing here may fight it. */
+	.page.column,
+	.page-column-pages { display: contents; }
+
+	/* ONE COLUMN. ⚠ (0,3,0) on purpose: `.page > *` above sets `min-width: 0` at
+	     (0,1,0) in the same layer, and a tie would be decided by stylesheet order.
+	   ⚠ Its OWN tokens, not `--measure`: a region may set `--measure: none` (every
+	     demo box does, ext/demo's app.css) and `max-width: none` would silently uncap
+	     every column. 40em is the number `--measure` carries, said out loud. */
+	.page.columns .page-column-body {
+		flex: var(--page-column-flex, 1 1 0);
+		min-width: var(--page-column-min, 16em);
+		max-width: var(--page-column-max, 40em);
+		overflow-y: auto; scrollbar-width: thin;
+		scroll-snap-align: start;
+		border-inline-end: 1px solid var(--line);
+	}
+
+	/* ── the four width words ──
+	   A page says `width: "small"` and `column()` stamps the class. TOKENS, not
+	   properties, so the container query at the bottom can page the row one column at
+	   a time without out-specifying four rules — and a page can retune one number
+	   without a new word.
+	     small   a rail: lists, pickers, an index.
+	     (none)  the default — a floor, and 40em to grow into.
+	     large   grids and wide content.
+	     full    the whole host; the ancestors collapse into the crumb strip. */
+	.page-column-small { --page-column-flex: 0 0 14em; --page-column-min: 14em; --page-column-max: 14em; }
+	.page-column-large { --page-column-min: 28em; --page-column-max: 64em; }
+	.page-column-full  { --page-column-flex: 1 0 100%; --page-column-min: 100%; --page-column-max: none; }
+
+	/* `full` claims the host, so every column LEFT of it stands down — an ancestor's
+	   body is the sibling of the region the full page is somewhere inside, at any
+	   depth. The crumb strip is how they come back.
+	   ⚠ THE MARK IS PART OF THE TEST, and leaving it out shipped a one-way door
+	     (measured 2026-08-26): a closed page is still in the DOM — `@layer util` only
+	     stops it PAINTING — so `:has(… .page-column-full)` went on matching after you
+	     navigated away and every ancestor stayed hidden for the rest of the session.
+	     `:is(.active-page, .active-ancestor, .default)` is the arrangement contract's
+	     own three words, the third being what a stand-in app sets (ext/demo).
+	   ⚠ It sets a property no other rule in this section touches, so nothing below
+	     can tie with it whatever the specificity works out to. */
+	.page-column-body:has(~ .page-column-pages
+		:is(.active-page, .active-ancestor, .default) > .page-column-body.page-column-full) { display: none; }
+
+	/* The heading stays put while its own list scrolls. ⚠ Opaque, and the SAME fill as
+	   the row: a sticky head needs something to cover the text going under it, and a
+	   different colour here is the alternating band the ux/* pages had. */
+	.page-column-head {
+		position: sticky; top: 0; z-index: 1;
+		display: flex; align-items: center; gap: 0.4em;
+		padding: 0.55em 0.9em;
+		background: var(--wash);
+		border-bottom: 1px solid var(--line);
+	}
+
+	.page-column-title { font-weight: 600; font-size: 0.95em; }
+
+	.page-column-close {
+		display: flex; margin-inline-start: auto;
+		color: var(--subtle); text-decoration: none;
+	}
+	.page-column-close:hover { color: var(--prim); }
+	.page-column-close .icon { font-size: 1.05em; }
+
+	/* Prose in a column is a note, not a page — its own small inset and its own
+	   rhythm. `--flow` at (0,1,0) beats `:where(.flow)`'s 2em, which is page spacing. */
+	.page-column-prose { padding: 0.7em 0.9em; font-size: 0.9em; --flow: 0.8em; }
+	.page-column-prose > .md > :first-child { margin-block-start: 0; }
+
+	/* The list is a vertical tab bar: a label, the open child lit, a 2px mark on the
+	   inline edge — `.tabs.vertical`'s own declarations, restated because no call site
+	   can put `.tab` on these anchors. */
+	.page-column-item {
+		display: flex; align-items: center; gap: 0.4em;
+		padding: 0.35em 0.9em;
+		font-size: 0.9em;
+		color: var(--subtle);
+		text-decoration: none;
+		border-inline-end: 2px solid transparent;
+	}
+	.page-column-item:hover { color: var(--ink); background: var(--tint); }
+
+	/* ⚠ Three marks for one state: `.active` / `.in-path` are Router.mark_links()'s, so
+	   the arrangement works unchanged on the real site — and `[aria-current]` is what a
+	   stand-in app sets (ext/demo), the only one that fires inside a demo box. */
+	.page-column-item.active,
+	.page-column-item:is(.in-path, [aria-current]) {
+		color: var(--ink);
+		border-inline-end-color: var(--prim);
+	}
+
+	.page-column-item .icon { font-size: 1.05em; }
+	.page-column-label { flex: 1 1 auto; min-width: 0; }
+
+	/* ── the trail — `crumbs()`, derived from chain() so it cannot be wrong ──
+	   `framework.css` has no rule for `a` at all, so the links keep the UA underline
+	   until a descendant rule says otherwise; that is the whole reason for line two. */
+	.page-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3em; font-size: 0.9em; }
+	.page-crumbs a { text-decoration: none; }
+	.page-crumbs .icon { font-size: 1em; color: var(--subtle); }
+
+	/* OUT OF ROOM, the other way: under two columns' worth the row pages one at a time
+	   and the snap does the rest — the same row, no second arrangement.
+	   ⚠ Only the BODY can be restyled here: a container query never matches its own
+	     container, so the row's `scroll-snap-type` cannot be flipped from inside this
+	     block — `proximity` above covers both cases.
+	   ⚠ (0,3,0), matching the base rule, and LAST in the section: it must beat every
+	     width word outright, `full` included. */
+	@container page-columns (width < 32em) {
+
+		.page.columns .page-column-body { flex: 1 0 100%; min-width: 100%; max-width: none; }
+	}
+
 	/* ── `.rail` — a side region, sized by its ROW, never by the window ──
 	   Every `@media` breakpoint in a component measures the WINDOW while styling a
 	   box inside a region that is window − 220–274px of sidebar; each one is wrong

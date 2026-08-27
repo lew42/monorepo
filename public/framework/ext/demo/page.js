@@ -27,7 +27,7 @@ export default new Doc({
 	subject: demo,
 	methods: "stage exhibit page tree layout app source",
 	notes:   "record decisions",
-	files:   "app.css app.js demo.css demo.js exhibit.css exhibit.js layout.js page.js readme.md sample.js stage.css stage.js twin.js two.css two.js",
+	files:   "app.css app.js demo.css demo.js exhibit.css exhibit.js layout.js mini.css mini.js page.js readme.md sample.js stage.css stage.js twin.js two.css two.js",
 
 	content(){
 

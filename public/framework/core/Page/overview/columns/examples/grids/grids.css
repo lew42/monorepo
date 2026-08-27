@@ -1,0 +1,31 @@
+/* flush-wall/page.js's escape hatch. `.page-column-prose` (core/Page/Page.css) insets
+   every column's content 0.7em/0.9em — the constant this cancels, so the flush grid
+   below can actually reach the column's edges, which is the whole comparison. Cells
+   get their own hairline + surface so a 0-GAP row still shows a seam between tiles;
+   the container itself stays 0-gap, 0-pad. */
+@layer theme {
+
+	.page-grids-flush { margin: -0.7em -0.9em; }
+	.page-grids-flush > * { padding: 0.6em; border: 1px solid var(--line); background: var(--surface); }
+
+	/* grid-detail/page.js: the SAME children `column()` always lists as rows below
+	   content() (Page.css's `.page-column-item`), restyled into a grid of tiles —
+	   ⚠ no second copy of the children is drawn; a `.page-column-body` in this one
+	   page becomes the grid, direct-child-scoped so no NESTED column (a child's own
+	   body, three levels deeper through `.page-column-pages`) is ever touched. */
+	.page--grid-detail .page-columns-row > .page-column-body {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(9em, 1fr));
+		align-content: start;
+		gap: 0.6em;
+		padding-block-end: 0.6em;
+	}
+	.page--grid-detail .page-columns-row > .page-column-body > :is(.page-column-head, .page-column-prose) {
+		grid-column: 1 / -1;
+	}
+	.page--grid-detail .page-columns-row > .page-column-body > .page-column-item {
+		flex-direction: column; justify-content: center; text-align: center;
+		gap: 0.4em; padding: 1em 0.5em;
+		background: var(--tint); border-radius: var(--radius, 4px); border-inline-end: none;
+	}
+}

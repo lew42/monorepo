@@ -106,3 +106,39 @@ do.
 | caller | for |
 |---|---|
 | [`ext/layout`](/framework/ext/layout/) | the selected element's words, its tokens, and the line that builds it |
+| [`ext/Panel`](/framework/ext/Panel/) | the focused panel's, text run's or item's properties (`tools.js` → `properties.js`) |
+
+## Sharing the rail
+
+Two modules fill this one box today, and a third is expected to. **The rail is a
+surface, not a place to keep things** — every `drawer(fn)` call replaces the
+contents, so whoever filled last owns what is showing, and the fill before it is
+gone. That is deliberate: two rails at one edge would fight over the same push.
+
+- **Churn is free; subscriptions are not (measured 2026-08-26).** 1,700 rebuilds
+  of the rail's contents on `/framework/ext/Panel/` — about 61k elements and 34k
+  listeners created — left Chrome's counters flat after a forced GC: nodes 10664 →
+  10664, listeners 3821 → 3821, heap +0.03 MB. `empty()` detaches the subtree, and
+  `View.on()` keeps no registry outside the element it wires, so DOM, listeners and
+  closures are collected together. What does *not* collect is a fill that subscribes
+  to something outliving it — `item.on(…)`, an observer, a `document` listener, an
+  entry in a non-weak `Map`. `ext/Panel`'s `properties()` shows the discipline: its
+  `hear` unbinds itself the moment its element is no longer in a workspace.
+- **Redraw by re-announcing your subject, not with `refresh()`.** `drawer.refresh()`
+  replays the *last* fill function untouched — which may be another module's, and
+  even when it is yours it may describe a subject that has since changed. `ext/Panel`
+  dispatches `panel-focus` again instead, so one path draws the rail no matter what
+  provoked the redraw (`properties.js`'s `apply()`).
+- **A click inside the rail is not yours by default.** `ext/layout/panel.js` wires one
+  click listener on the rail and never unwires it, so it hears clicks on *every*
+  caller's controls — for a while that redrew `ext/Panel`'s properties as ext/layout's
+  "nothing selected" on the first click. Panel's rows claim their own with
+  `stopPropagation` (`properties.js`'s `row()`); a third caller has to do the same
+  until the ownership test lands (proposal: `ai/2026-08-19/panel-bar-sweep/`).
+- **Fill, don't open.** Forcing the rail open on selection reads as jumpy (the owner,
+  2026-08-18). Callers `dock()` once at load — `drawer.showing() || empty()` — and
+  after that only fill a rail that is already up.
+- **Say who is talking, and keep the reader's place.** `$slot` is the caller's half of
+  the head: a one-word tag there (`panel`, the tag name) is how the reader knows which
+  module the controls belong to. And `$body.empty()` throws away the rail's scroll
+  position — restore it a frame later if the redraw is the same subject rewritten.

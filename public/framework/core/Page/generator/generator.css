@@ -1,0 +1,284 @@
+/* The generator's own look: the control column, and one picture per block word.
+
+   Everything is scoped under `.page--generator` — `render()` stamps that on this page
+   and nothing else wears it, so a rule here cannot reach another page.
+
+   ⚠ THE SEAM, and this file deliberately restates NONE of it. The row, the
+     `display: contents` flattening, the column bodies, the sticky heads and the three
+     width words are core's — `.page.columns` / `.page.column` / `.page-column-*` in
+     core/Page/Page.css, opted into by `page.columns()` on the host. A scoped COPY was
+     written first and deleted: two sets at the same specificity are decided by
+     stylesheet order, and mine silently lost a `min-width` to core's (2026-08-26). */
+
+@layer theme {
+
+	/* The one thing the arrangement cannot know: how tall this stage is. `.page.columns`
+	   asks for `height: 100%`, and inside a Doc tab panel there is no definite height to
+	   take a percentage of — so the row would collapse onto its content. */
+	.page--generator.columns {
+		min-height: 30em;
+		border: 1px solid var(--line);
+		border-radius: var(--radius, 4px);
+	}
+
+	/* The word pictures below arrange a column's PARTS, so the body has to be a stack.
+	   ⚠ `.page-gen`, its own (0,1,0) class, NOT `.page--generator .page-column-body`:
+	     at (0,2,0) that beat every word rule below and `vtabs` / `rail` silently kept
+	     `flex-direction: column`, which turned their `flex: 0 0 100%` head into a
+	     full-HEIGHT one (measured 2026-08-26). A base and its variants have to sit at
+	     the same specificity, so file order decides — which is what reads. */
+	.page-gen { display: flex; flex-direction: column; }
+
+	/* ════ THE CONTROL COLUMN ═════════════════════════════════════════════════════
+	   Core's own three tokens rather than a wider selector: `.page.columns
+	   .page-column-body` is (0,3,0) and reads them, so a token is the whole override
+	   and there is no specificity to win. Exactly what the width words do. */
+	.page-gen-controls { --page-column-flex: 0 0 22em; --page-column-min: 22em; --page-column-max: 22em; }
+
+	.page-gen-dials {
+		display: flex; flex-wrap: wrap; align-items: center; gap: 0.3em;
+		padding: 0.6em 0.8em;
+	}
+
+	/* ⚠ (0,2,1), because the theme's `.theme-lew42 :is(button, .btn)` is (0,2,0) in this
+	     same layer and gives every button 0.7em/1.4em of CTA padding. An icon needs none
+	     of it, and a lower-specificity rule here would lose in silence. */
+	.page--generator :is(.page-gen-dials, .page-gen-rolls-page) button { padding: 0.3em 0.5em; }
+	.page-gen-seed { width: 6.5em; }
+
+	.page-gen-proof { padding: 0 0.9em 0.6em; font-size: 0.78em; }
+	.page-gen-ok { color: var(--subtle); }
+	.page-gen-bad { color: light-dark(#b3261e, #ff8a80); font-weight: 700; }
+
+	/* The spec box is a TEXTAREA now — you read the spec and you write it in the same
+	   box. ⚠ `width: auto`: framework.css's base layer gives every textarea `width: 100%`,
+	     and 100% PLUS the inline margins is 1.6em wider than the column it sits in. */
+	.page-gen-spec {
+		width: auto; margin: 0 0.8em;
+		min-height: 9em; max-height: 22em;
+		font-family: ui-monospace, monospace; line-height: 1.55;
+	}
+
+	.page-gen-note { padding: 0.9em 0.9em 1.2em; font-size: 0.82em; color: var(--subtle); }
+
+
+	/* ════ ONE ENTRY — a child page, in whatever shape its parent's word asks for ══ */
+	.page-gen-nav { display: flex; flex-direction: column; }
+
+	.page-gen-item {
+		display: flex; align-items: center; gap: 0.3em;
+		padding: 0.32em 0.8em;
+		font-size: 0.85em;
+		color: var(--subtle); text-decoration: none;
+		border-inline-end: 2px solid transparent;
+	}
+	.page-gen-item:hover { color: var(--ink); background: var(--tint); }
+
+	/* Router.mark_links()'s own two classes — so a generated tree lights up exactly the
+	   way every other nav on the site does, with nothing here to keep in step. */
+	.page-gen-item:is(.active, .in-path) { color: var(--ink); border-inline-end-color: var(--prim); }
+
+	.page-gen-label { flex: 1 1 auto; min-width: 0; }
+	.page-gen-item .icon { font-size: 1em; }
+
+
+	/* ════ PLACEHOLDER CONTENT — a few bars, the way space draws a few boxes ═══════ */
+	/* ⚠ `--line`, never `--wash`: core paints the whole columns host `--wash` and leaves
+	     the bodies transparent, so a `--wash` bar is invisible on it (measured, and it
+	     is the same mistake `--well` made on /framework/ux/*). */
+	.page-gen-fill { display: flex; flex-direction: column; gap: 0.5em; padding: 0.9em; }
+	.page-gen-bar { height: 0.55em; border-radius: 2px; background: var(--line); }
+	.page-gen-bar:nth-child(2n) { width: 82%; }
+	.page-gen-bar:nth-child(3n) { width: 58%; }
+
+
+	/* ════ THE NINE WORDS ═════════════════════════════════════════════════════════ */
+
+	/* `list` is the shape `.page-gen-nav` already is — the default, and no rule. */
+
+	/* Top tabs: the connected tab-to-content look, one strip over the body. */
+	.page-gen-tabs > .page-gen-nav {
+		flex-flow: row wrap; gap: 0.25em;
+		padding: 0.5em 0.6em 0;
+		border-bottom: 1px solid var(--line);
+	}
+	.page-gen-tabs .page-gen-item {
+		padding: 0.3em 0.7em;
+		border: 1px solid var(--line); border-bottom: none;
+		border-radius: 4px 4px 0 0;
+		background: var(--tint);
+		margin-bottom: -1px;
+	}
+	.page-gen-tabs .page-gen-item:is(.active, .in-path) { background: var(--surface); }
+	.page-gen-tabs .page-gen-item .icon { display: none; }
+
+	/* Vertical tabs and a rail: the nav BESIDE the body, not above it. The head keeps
+	   its own line, so the two share one wrapping row. */
+	.page-gen-vtabs, .page-gen-rail { flex-flow: row wrap; align-content: flex-start; }
+	.page-gen-vtabs > .page-column-head,
+	.page-gen-rail > .page-column-head { flex: 0 0 100%; }
+	.page-gen-vtabs > .page-gen-nav { flex: 0 0 8.5em; padding-block: 0.5em; border-inline-end: 1px solid var(--line); }
+	.page-gen-rail > .page-gen-nav { flex: 0 0 6em; padding-block: 0.5em; background: var(--tint); }
+	.page-gen-vtabs > .page-gen-fill,
+	.page-gen-rail > .page-gen-fill { flex: 1 1 6em; }
+
+	/* A wall of cards, and a grid of smaller ones. Both padded — the ask's own rule. */
+	.page-gen-wall > .page-gen-nav,
+	.page-gen-grid > .page-gen-nav,
+	.page-gen-flush > .page-gen-nav { display: grid; }
+
+	.page-gen-wall > .page-gen-nav {
+		grid-template-columns: repeat(auto-fill, minmax(7em, 1fr));
+		gap: 0.5em; padding: 0.7em;
+	}
+	.page-gen-grid > .page-gen-nav {
+		grid-template-columns: repeat(auto-fill, minmax(4.5em, 1fr));
+		gap: 0.4em; padding: 0.7em;
+	}
+
+	.page-gen-wall .page-gen-item,
+	.page-gen-grid .page-gen-item {
+		flex-direction: column; align-items: flex-start; justify-content: flex-end;
+		min-height: 3.6em;
+		padding: 0.4em 0.5em;
+		border: 1px solid var(--line); border-radius: 4px;
+		background: var(--tint);
+	}
+	.page-gen-grid .page-gen-item { min-height: 2.8em; font-size: 0.75em; }
+	.page-gen-wall .page-gen-item .icon,
+	.page-gen-grid .page-gen-item .icon { display: none; }
+
+	/* Flush: zero gap, zero padding — the one grid that has neither, so the cells meet
+	   on a hairline and the wall reaches the column's edges. */
+	.page-gen-flush > .page-gen-nav {
+		grid-template-columns: repeat(auto-fill, minmax(4.5em, 1fr));
+		gap: 0; padding: 0;
+	}
+	.page-gen-flush .page-gen-item {
+		flex-direction: column; align-items: flex-start; justify-content: flex-end;
+		min-height: 3.6em; padding: 0.4em 0.5em;
+		font-size: 0.75em;
+		border-inline-end: 0;
+		box-shadow: inset 0 0 0 1px var(--line);
+	}
+	.page-gen-flush .page-gen-item .icon { display: none; }
+
+	/* Crumbs: the branch above this page, derived from `chain()`, over the usual rows. */
+	.page-gen-trail {
+		display: flex; flex-wrap: wrap; align-items: center; gap: 0.25em;
+		padding: 0.5em 0.8em;
+		font-size: 0.78em;
+		border-bottom: 1px solid var(--line);
+	}
+	.page-gen-crumb { color: var(--subtle); text-decoration: none; }
+	.page-gen-crumb:hover { color: var(--prim); }
+	.page-gen-crumb + .page-gen-crumb::before { content: "/"; margin-inline-end: 0.35em; color: var(--line); }
+
+	/* Prose: no children to present, so the bars ARE the page. */
+	.page-gen-prose > .page-gen-fill { gap: 0.4em; }
+
+
+	/* ════ THE PERMUTATION WALL ═══════════════════════════════════════════════════
+	   A `full` column (so the ancestors stand down and it gets the host) holding a grid
+	   of tiles. Floor 11em, ceiling `1fr`: two tiles at 400, about seventeen at 3440. */
+	.page-gen-rolls-count { color: var(--subtle); font-size: 0.82em; }
+	.page-gen-rolls-page { display: flex; gap: 0.2em; margin-inline-start: 0.4em; }
+
+	.page-gen-tiles {
+		display: grid; grid-template-columns: repeat(auto-fill, minmax(11em, 1fr));
+		gap: 0.6em; padding: 0.8em;
+	}
+
+	.page-gen-tile {
+		display: flex; flex-direction: column; gap: 0.3em;
+		min-width: 0; padding: 0.4em;
+		border: 1px solid var(--line); border-radius: 4px;
+		background: var(--surface);
+		color: var(--subtle); text-decoration: none;
+	}
+	.page-gen-tile:hover { border-color: var(--prim); color: var(--ink); }
+	.page-gen-tile-seed { font-size: 0.72em; }
+
+	/* ── ONE PICTURE ──
+	   A box per page, its children INSIDE it, arranged by its own word — the same nine
+	   rules the columns above get, at 3px. Deliberately unlabelled: at this size a word
+	   would be a smudge, and the SHAPE is the thing being compared. */
+	.page-gen-sketch {
+		flex: 1 1 auto;
+		display: flex; flex-direction: column; gap: 2px;
+		aspect-ratio: 4 / 3; overflow: hidden;
+	}
+
+	.page-gen-sk {
+		flex: 1 1 auto; min-width: 0; min-height: 0; overflow: hidden;
+		display: flex; flex-direction: column; gap: 2px;
+		padding: 2px;
+		border: 1px solid var(--line); border-radius: 2px;
+	}
+
+	.page-gen-sk-head { flex: 0 0 3px; border-radius: 1px; background: var(--line); }
+	.page-gen-sk-nav  { flex: 1 1 auto; min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 2px; }
+	.page-gen-sk-text { flex: 1 1 auto; display: flex; flex-direction: column; gap: 2px; padding-block-start: 1px; }
+	.page-gen-sk-line { flex: 0 0 2px; border-radius: 1px; background: var(--line); opacity: 0.6; }
+	.page-gen-sk-line:last-child { width: 62%; }
+
+	/* The width words, said in the only way a 3px box can say them: how much room the
+	   page takes from its siblings — and `full` claims the whole row, which is what it
+	   does for real. */
+	.page-gen-sk-small { flex-grow: 0.5; }
+	.page-gen-sk-large { flex-grow: 2; }
+	.page-gen-sk-full  { flex-grow: 3; grid-column: 1 / -1; }
+
+	/* `list` is a stack, which is the default — no rule, exactly as above. */
+	.page-gen-sk-tabs > .page-gen-sk-nav { flex-direction: row; }
+	.page-gen-sk-tabs > .page-gen-sk-head { background: var(--prim); }
+
+	/* Nav on the inline edge rather than on top: a line down the side, thicker for the rail. */
+	.page-gen-sk-vtabs > .page-gen-sk-nav,
+	.page-gen-sk-rail  > .page-gen-sk-nav { flex-direction: row; }
+	.page-gen-sk-vtabs { border-inline-start: 2px solid var(--prim); }
+	.page-gen-sk-rail  { border-inline-start: 4px solid var(--prim); background: var(--tint); }
+
+	.page-gen-sk-wall  > .page-gen-sk-nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px; }
+	.page-gen-sk-grid  > .page-gen-sk-nav { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px; }
+	.page-gen-sk-flush > .page-gen-sk-nav { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; }
+	.page-gen-sk-flush > .page-gen-sk-nav > .page-gen-sk { border-radius: 0; }
+
+	/* Crumbs are a strip, not a level: the head is dashes. */
+	.page-gen-sk-crumbs > .page-gen-sk-head {
+		background: repeating-linear-gradient(90deg, var(--line) 0 4px, transparent 4px 7px);
+	}
+
+
+	/* ════ THE PAIRING RULES, PRINTED ═════════════════════════════════════════════
+	   Drawn from `rules.js` itself, under the tiles that were rolled with them — the
+	   pictures are the evidence, this is the thing to argue with.
+	   ⚠ Capped: this is reading, and the wall column is the whole 3440 host. */
+	.page-gen-rules {
+		max-width: 72em; padding: 1em 0.9em 1.6em;
+		border-top: 1px solid var(--line);
+		font-size: 0.82em;
+	}
+	.page-gen-rules-note { color: var(--subtle); }
+
+	.page-gen-rule {
+		display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.4em;
+		padding: 0.4em 0; border-top: 1px solid var(--line);
+	}
+	.page-gen-rule-word  { flex: 0 0 4.5em; font-weight: 600; }
+	.page-gen-rule-pairs { flex: 0 1 22em; display: flex; flex-wrap: wrap; gap: 0.3em; }
+	.page-gen-rule-note  { flex: 1 1 18em; color: var(--subtle); }
+
+	.page-gen-pair {
+		padding: 0.05em 0.4em; border-radius: 3px;
+		white-space: nowrap;
+		box-shadow: inset 0 0 0 1px var(--line);
+	}
+	.page-gen-pair-good { color: var(--prim); box-shadow: inset 0 0 0 1px var(--prim); }
+	.page-gen-pair-bad  { color: var(--subtle); background: var(--tint); }
+
+
+	/* Out of room is core's rule too: under two columns' worth its `@container
+	   page-columns (width < 30em)` block sets the properties directly, so it beats
+	   every token above and the row pages one column at a time with nothing here. */
+}

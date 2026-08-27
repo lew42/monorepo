@@ -1,67 +1,99 @@
-# Columns — nested pages laying out as peers
+# Columns — a page whose subtree is a row
 
-**The demo:** [/framework/core/Page/old/overview/columns/](/framework/core/Page/old/overview/columns/) — Miller columns (the
-Finder arrangement). Every page in the tree is one column: its title, its prose, its children as a list. Click a
-row and the next column opens to its right; click a row further left and everything right of it closes; below two
-columns' width the row pages one at a time; six deep it scrolls sideways and the newest column scrolls itself into
-view. Equal widths, capped, any depth. Two files: `overview/columns/page.js` (the tree and one walk that patches
-every page) and `overview/columns/columns.css` (every rule).
+One call, and every page under this one is a full-height column that opens to the right of its
+parent. The tree is real; `display: contents` is what flattens it.
 
-## The question it answers
+```js
+export default new Page({
+    meta: import.meta,
+    title: "Finder",
+    width: "small",                    // this page's own column
+    initialize(){ this.columns(); },   // the whole opt-in
+    children: { Guides: { width: "small", children: { … } } },
+});
+```
 
-Can nested pages share space evenly? The intuition was no — a child mounted *inside* its parent's region can only
-divide what the parent left it, so peers on screen would need a flat DOM, and a flat DOM breaks the arrangement
-contract (an ancestor is visible only while it *contains* the active page — Page.css, and `demo.app`'s `mark()`).
+**Live:** [/framework/core/Page/overview/columns/finder/](/framework/core/Page/overview/columns/finder/) — page height, real
+urls. The same tree in a box, with the source: [/framework/core/Page/overview/columns/](/framework/core/Page/overview/columns/).
 
-**Yes, and the contract stays untouched.** Keep the DOM a tree — each page's `$pages` region sits inside its own
-view — and flatten only the *layout*: `display: contents` on every non-root page and every region deletes those
-boxes from layout, so the only flex items the root row ever sees are the column bodies. Peers on screen, a tree in
-the DOM. A column closes because it lost its mark, not because anything moved it; nothing is written for closing.
+## The four width words
 
-The mechanism was proved once before and never shipped: `core/new/starter/` ("`display: contents` dissolves the
-intermediate boxes so a nested DOM lays out as one flat CSS grid", measured 329 | 329 | 329 against nested's
-494 | 246 | 245 — do-not-import), and `ai/2026-08-12/apps/columns/` was a fixed-width Miller prototype. This is the
-first capped, responsive, live version.
+`width:` is the page's own word; `column()` stamps it on the body. Every value is a token, so a
+page can retune one number (`--page-column-max`) instead of asking for a fifth word.
 
-## Measured 2026-08-18 (headless, the demo's 22em box)
+| word | track | for |
+|---|---|---|
+| `small` | fixed 14em | rails, lists, item pickers, an index |
+| *(none)* | 16em floor, 40em ceiling | the default — prose, a form, two columns of content |
+| `large` | 28–64em | a grid, a table, wide content |
+| `full` | the whole host | one page at a time; the ancestors collapse into the crumb strip |
 
-| box | arrive (3 deep) | 4 deep | 6 deep | back up |
-|---|---|---|---|---|
-| 390 | 3 × 329 — one at a time, scrolled to Guide | 4 × 329 | 6 × 329 | 3 deeper `display: none`, scroll returns |
-| 1280 | 3 × 195, no scroll | 4 × 180, row scrolls, newest flush right | 6 × 180 | 3 hidden, `scrollLeft: 0` |
-| 3440 | 3 × 432 — the 24em cap | 4 × 424 | 6 × 282 | 3 hidden |
+`full` is the "swap into the correct area" case. Its ancestors come back the moment you navigate
+anywhere else — the crumb strip above the row is what you click.
 
-Every visible column the same width and height at every step; the outer region never scrolls in either axis; the
-column *bodies* are what scroll vertically. Zero console errors or warnings here and on `/framework/core/Page/`.
+## Measured 2026-08-26 (headless, the live page, 900 tall)
 
-## Four things the first sketch got wrong
+| viewport | row | `small` | default | `large` | `full` |
+|---|---|---|---|---|---|
+| 400 | 400 | 400 | 400 | 400 | 400 |
+| 1280 | 1051 | 211 | 241 | 421 | 1051 |
+| 1920 | 1677 | 224 | 410 | 1005 | 1677 |
+| 3440 | 3166 | 252 | 720 | 1152 | 3166 |
 
-- **`scroll-snap-type: x mandatory` undid the reveal.** A mandatory row re-snaps on every relayout, so the
-  `scrollBy` `activated()` had just done was reversed and the deepest column arrived 46px clipped. `proximity`.
-  And a container query never matches its own container, so the mobile block can only restyle the body's
-  `min-width`, never the row's snap type.
-- **`requestAnimationFrame` never fired the first reveal.** A demo page is built *detached* — at rAF the row is not
-  connected and every rect is 0. A one-shot `ResizeObserver` on the row is the trigger that works, and it is also
-  right when the stage is dragged. The rAF is still needed for later navigations: the box marks what it shows
-  *after* `activate()`, so at `activated()` time the new column is still `display: none`.
-- **`--page-pad` inherits** from the demo region — `padding: 0` on the row, or it sits 18px inside its own box.
-- **`.page-title + *` (framework.css) reaches a hidden `h1`.** `render()` draws the heading; a `display: none`
-  heading still counts as the `+` sibling, so every column but the first started 45px down the row and lost that
-  much height. `margin: 0` on the body, at (0,3,0) — `.page > * { min-width: 0 }` ties at (0,1,0).
+Under 32em of ROW the arrangement pages one column at a time and the snap does the rest — 400 is
+that regime, which is why every word measures the same there.
 
-`--page-column-min` is 12em, not 14: at 14em three columns need 633px and the exhibit's 1280 render band is 586.
+**Arriving and navigating agree.** A cold load straight at a five-deep url and the same page
+reached by clicking down from the root produce the identical row at every width — five columns,
+same widths, same `scrollLeft`. That is the one thing the first sketch got wrong (below).
+
+## The mechanism
+
+Every page keeps its `$pages` region **inside its own view**, so the DOM is an ordinary nested
+tree and [the arrangement contract](/framework/core/Page/doc/css/) is untouched: a column closes
+because it lost its mark, not because anything moved it. Then `display: contents` on every
+descendant page and every region deletes those boxes from *layout*, so the only flex items the
+row ever sees are the column bodies. Peers on screen, a tree in the DOM.
+
+The shape is asked for at **render** time (`column_host()` walks `chain()`), never walked over the
+tree — so a child that only loads when you navigate to it is a column too.
+
+Colours: transparent bodies over one `--wash` floor, every seam a 1px `--line` hairline. Never
+`--well` — it is a translucent shadow, not a palette colour, and stacking it is what banded
+`/framework/ux/*`.
+
+## What has bitten
+
+- **`:has()` does not care whether a page is painted.** A closed page is still in the DOM, so the
+  rule that collapses the ancestors under a `full` column went on matching after you navigated
+  away and hid them for the rest of the session. The mark is part of the test:
+  `:is(.active-page, .active-ancestor, .default)`.
+- **Going up the chain activates nothing.** `Router.activate()` only touches what changed, so a
+  crumb strip refreshed only from `activate()` kept the departed leaf forever. `deactivate()`
+  refreshes it too, from the shallowest page to leave.
+- **Two sheets cannot own one class name.** `old/overview/columns/` shipped its own
+  `.page.columns` and `View.stylesheet` is global, so both landed on both demos. The snapshot is
+  deleted; the live one is the only copy.
+- **`scroll-snap-type: x mandatory` undoes the reveal** — a mandatory row re-snaps on every
+  relayout and the deepest column arrives clipped. `proximity`. And a container query never
+  matches its own container, so the narrow rule can only restyle the body.
+- **`requestAnimationFrame` never fires the first reveal.** A page is built *detached*; every rect
+  is 0. A `ResizeObserver` on the row is the trigger that works, and it is also right on resize.
+  The rAF is still needed for later navigations — marks land *after* `activate()`.
+- **`--page-pad` inherits** from the region, so the host says `padding: 0` or it sits inside its
+  own box. And the body reads `--page-column-max`, **not** `--measure`: a demo region sets
+  `--measure: none`, which would silently uncap every column.
+- **Columns and tabs — do not.** A full-height row under a `.block` tab bar cuts through the open
+  tab's bottom edge and loses the flush tab-to-content effect. Columns are their own screen.
 
 ## Open — the owner decides
 
-- **Graduate?** `.page.columns` / `.page.column` are shaped like `.page.solo`; they could live in `Page.css` as a
-  real page shape with the walk as `Page.prototype.columns()`. Today only the demo loads the sheet.
-- **The 24em cap** leaves ~460px empty right of three columns at 3440 — Finder does the same; raise
-  `--page-column-max` if the columns should fill instead.
-- **The `×`** on every non-root column closes it and everything right of it (href = the parent's url). Keep, or a
-  plain head?
-- **Columns and tabs.** Full-height columns under a `.block` tab bar would cut through the open tab's bottom edge and
-  lose the flush tab-to-content effect (the owner's note). Columns are their own screen; do not put a folder-tab
-  strip directly above them.
+- **Dead space at 3440.** Three `small` columns and one `large` fill 1908px of a 3166px row. A
+  column has a measure, so the answer on a wide screen is a wider *word* (`large`, `full`), not a
+  column that grows past its own reading width — but "let the last open column absorb the rest" is
+  a real alternative and nobody has looked at it yet.
+- **The `×`** on every non-host column closes it and everything right of it (href = the parent's
+  url). Keep, or a plain head?
 
-Related: [`layout.md`](/framework/core/Page/doc/layout/) — the open nested-vs-full question this is one data point
-for; [`css.md`](/framework/core/Page/doc/css/) — the visibility contract the arrangement leaves alone.
+Related: [`css.md`](/framework/core/Page/doc/css/) — the visibility contract this leaves alone;
+[`layout.md`](/framework/core/Page/doc/layout/) — nested vs `full`.

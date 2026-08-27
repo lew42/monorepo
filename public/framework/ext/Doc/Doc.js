@@ -217,10 +217,23 @@ export class Doc extends Page {
 	// The title and the tab strip share one row in a full-bleed band. See readme.md.
 	well(){ return div.c("doc-well", () => h1.c("doc-title h2", this.title)); }
 
+	// True once an ANCESTOR is another Doc — I am rendering inside its `.tab-panel`.
+	// Two `--well` bands stacked over `--wash` read as broken alternating stripes
+	// (ux/*, 2026-08-26): the fix is the shape ext/Panel/Workspace/page.js already
+	// hand-wrote — no well, no second `.doc-page`, just a left rail like Doc's own
+	// api/doc/files sections. render() below picks it automatically.
+	nested_in_doc(){
+		for (let page = this.parent; page; page = page.parent)
+			if (page instanceof Doc) return true;
+		return false;
+	}
+
 	render(){
-		return this.view ??= div.c("page doc-page", () => {
-			this.well();
-			this.tabs(this.bar().join(" ")).ac("block");
+		const nested = this.nested_in_doc();
+
+		return this.view ??= div.c(`page ${nested ? "doc-section" : "doc-page"}`, () => {
+			if (!nested) this.well();
+			this.tabs(this.bar().join(" ")).ac(nested ? "vertical" : "block");
 		})
 			.ac(this.name && "page--" + this.name)
 			.ac(this.classes);

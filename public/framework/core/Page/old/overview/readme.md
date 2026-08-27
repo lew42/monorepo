@@ -20,5 +20,5 @@ Add the name to `children:` in `old/overview/page.js` — the string is the tab 
 
 ## More
 - [doc/decisions.md](./doc/decisions.md) — why a directory per demo, tree-only source, `group:` headings, the fifteen names, and the eight traps in full.
-- Page: [/framework/core/Page/old/overview/](/framework/core/Page/old/overview/) · Basics `page children add labels route shapes` · Arrangements `wall catalog dashboard strip deep columns` · Sites `landing docs site`
+- Page: [/framework/core/Page/old/overview/](/framework/core/Page/old/overview/) · Basics `page children add labels route shapes` · Arrangements `wall catalog dashboard strip deep` · Sites `landing docs site` · `columns` graduated into core/Page and lives at [/framework/core/Page/overview/columns/](/framework/core/Page/overview/columns/)
 - Files: `<name>/page.js` (one tree each), `page.js` (this directory's own — the `children:` order and the 4th-level tabs), `ext/demo/exhibit.js` (`demo.tree`, the box)

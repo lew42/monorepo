@@ -181,6 +181,7 @@ export class Page {
 			container.append(this.view);
 
 		this.activated?.();
+		this.column_host()?.reveal_column(this);
 		this.warn_if_hidden();
 		return this;
 	}
@@ -201,11 +202,23 @@ export class Page {
 
 	deactivate(){
 		this.deactivated?.();
+
+		// ⚠ Going UP the chain activates NOTHING — Router.activate() only touches what
+		// changed, so a columns host told to refresh only from activate() kept the
+		// departed leaf in its trail forever (measured 2026-08-26). Deactivation runs
+		// deepest-first, so the LAST page to leave is the shallowest and its parent is
+		// exactly where you landed; a sideways move activates after this and wins.
+		const host = this.column_host();
+		if (host && host !== this) host.reveal_column(this.parent);
+
 		return this;
 	}
 
 	render(){
 		if (this.view) return this.view;
+
+		const host = this.column_host();
+		if (host) return this.render_column(host);
 
 		// `standard` is the default page shape; a declared `classes` replaces it whole.
 		this.view = div.c("page flow", () => {
@@ -219,6 +232,109 @@ export class Page {
 	}
 
 	link(text){ return a.c("page-link", text ?? this.title).href(this.url); }
+
+	// The trail to me, one link per page — DERIVED, so it cannot be wrong. `from` is
+	// where it starts (the site root by default); the marks are Router.mark_links()'s.
+	crumbs(from){
+		const chain = this.chain(), start = Math.max(chain.indexOf(from), 0);
+
+		return div.c("page-crumbs", () => chain.slice(start).forEach((page, i) => {
+			if (i) icon("chevron_right");
+			page.link();
+		}));
+	}
+
+	// ════ COLUMNS — the Finder shape ══════════════════════════════════════════
+	// One call on a host page and its whole subtree lays out as full-height columns,
+	// each child opening to the right. The arrangement is CSS (Page.css); this is the
+	// box each page needs. doc/columns.md.
+	columns(){ this.columnar = true; return this; }
+
+	// Asked at RENDER time, never walked — so a child that only loads when you
+	// navigate to it is a column too. Undefined when I am not in a columns tree.
+	column_host(){ return this.chain().find(page => page.columnar); }
+
+	// My column, then the region MY children mount in — so the DOM stays an ordinary
+	// tree and the visibility contract holds; Page.css flattens only the LAYOUT. The
+	// host wraps both in the row every column lands in, under its crumb strip.
+	// ⚠ No `page-title` and no `flow`: the head below IS the title, and the two
+	//   framework rhythm rules (`.flow > * + *`, `.page-title + *`) would each hand a
+	//   column body a top margin it has no room for.
+	render_column(host){
+		const stack = () => {
+			this.column(host);
+			this.$pages = div.c("page-column-pages");
+		};
+
+		this.view = div.c("page").ac(this === host ? "columns" : "column");
+
+		this.view.append(this === host ? () => {
+			this.$crumbs = div.c("page-columns-bar");
+			this.$row = div.c("page-columns-row", stack);
+		} : stack);
+
+		return this.view.ac(this.name && "page--" + this.name);
+	}
+
+	// ONE COLUMN: a sticky head, my own content, my children as rows. `width` is the
+	// page's own word — `small`, `large`, `full`; none is the default.
+	column(host){
+		return div.c("page-column-body", () => {
+			div.c("page-column-head", () => {
+				span.c("page-column-title", this.title);
+				if (this !== host) a.c("page-column-close", () => icon("close")).href(this.parent.url);
+			});
+
+			if (this.content)
+				div.c("page-column-prose flow", () => is.fn(this.content) ? this.content() : this.content);
+
+			this.children.forEach((child, name) => {
+				const nav = this.nav_for(name);
+
+				a.c("page-column-item").href(nav.url).append(() => {
+					if (nav.icon) icon(nav.icon);
+					span.c("page-column-label", nav.label);
+					if (child?.children.size) icon("chevron_right");
+				});
+			});
+		}).ac(this.width && "page-column-" + this.width);
+	}
+
+	// Called on the HOST after every activation in its tree: the trail says where you
+	// are — and gets back whatever a `full` page collapsed — then the newest column
+	// scrolls itself in.
+	reveal_column(page){
+		this.$crumbs?.empty(() => page.crumbs(this));
+
+		const row = this.$row?.el;
+		if (!row) return;
+
+		// ⚠ The row has no box yet on a cold load, and no frame you can count will give
+		// it one: a page is BUILT detached, so every rect at rAF is 0. The observer
+		// fires the moment it gets a size — and again on every resize, which is exactly
+		// when the deepest column needs revealing again.
+		if (!this.watching) (this.watching = new ResizeObserver(() => this.scroll_column())).observe(row);
+
+		// ⚠ One frame, for every navigation after that: Router.mark() marks what shows
+		// AFTER activate(), so right now the newest column is still `display: none`.
+		requestAnimationFrame(() => this.scroll_column());
+	}
+
+	// The deepest column on screen, brought in by the smallest move — the columns to
+	// its left stay exactly where they are.
+	// ⚠ `scrollBy` on the row, never `scrollIntoView`: that walks up and scrolls the
+	// document around the whole host too.
+	scroll_column(){
+		const row = this.$row?.el;
+		const body = [...row?.querySelectorAll(".page-column-body") ?? []].filter(el => el.offsetWidth).at(-1);
+		if (!body) return;
+
+		const to = body.getBoundingClientRect(), from = row.getBoundingClientRect();
+		const dx = to.right > from.right ? to.right - from.right
+			: to.left < from.left ? to.left - from.left : 0;
+
+		if (dx) row.scrollBy({ left: dx });
+	}
 
 	// One menu entry: mine.
 	nav(){ return { url: this.url, label: this.label ?? this.title, icon: this.icon, card: this.card, description: this.description }; }

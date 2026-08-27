@@ -55,6 +55,7 @@ zoom-responsive
 page-        core/Page
 sidebar-     core/Sidebar
 brand-       core/Sidebar
+looks-       core/Page/overview/columns/examples/looks
 
 # ext
 ai-          ext/AITask

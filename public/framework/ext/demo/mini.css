@@ -1,0 +1,182 @@
+/* mini.css — the drawing language for `mini(word)` (mini.js): a dozen parts, and
+   every picture on the palette is a composition of them.
+
+   Two decisions this file is made of:
+
+   1. THE GROUND IS `--wash`. A card is `--surface`, so a part that paints `--surface`
+      reads as content sitting ON the page, and `--line` is the only ink. Never
+      `--well` (a translucent shadow, not a colour — it is what banded /framework/ux/*),
+      and never `--wash` for a part, which would vanish into the ground.
+   ⚠ A PART is `.demo-mini-<part>`; a PICTURE is `.demo-mini--<word>`, two dashes.
+     Half the pictures are named after a part (`tabs`, `rail`, `list`, `crumbs`,
+     `strip`), so one dash put a part's padding, border and `align-items` on the
+     picture's own root — and `crumbs` shrank to its content with nothing thrown.
+
+   2. NOTHING FIXES A HEIGHT. The thumb is a `.stage`: a 16/10 aspect under a
+      `--stage-max` ceiling, so the picture's height is whatever the card's width
+      leaves. Every part is flex-sized, and the four `--mini-*` tokens are how a
+      picture says "wider", "denser", "more air" without a rule of its own. */
+
+@layer theme {
+
+	/* ⚠ The thumb is not positioned and `.page-preview` is, so an absolutely-placed
+	   picture would size to the whole CARD. This is the one rule here that reaches a
+	   class it does not own, and `:has(> .demo-mini)` is what keeps it to our thumbs. */
+	.page-preview-thumb:has(> .demo-mini) { position: relative; }
+
+	.demo-mini {
+		position: absolute; inset: 0;
+		display: flex; flex-direction: column;
+		overflow: hidden;
+		background: var(--wash);
+		border-radius: var(--radius, 4px);
+		font-size: 0.95em;
+	}
+
+	/* ── the field: rows, columns, and the air around a box ── */
+	.demo-mini-row { display: flex; flex: 1 1 0; min-height: 0; }
+	.demo-mini-col { display: flex; flex-direction: column; flex: 1 1 0; min-width: 0; }
+
+	.demo-mini-pad {
+		display: flex; flex: 1 1 0; min-height: 0;
+		gap: 0.5em;
+		padding: var(--mini-pad, 0.55em);
+	}
+	.demo-mini-pad.v { flex-direction: column; }
+
+	.demo-mini-stack {
+		display: flex; flex-direction: column; flex: 1 1 0; min-height: 0;
+		align-items: center; justify-content: center;
+		gap: 0.5em; padding: 0.6em;
+	}
+
+	/* ── a box on the field: one page, one region, one pane ── */
+	.demo-mini-slot {
+		display: flex; flex: var(--mini-flex, 1 1 0); width: var(--mini-w, auto);
+		min-width: 0; min-height: 0;
+		overflow: hidden;
+		background: var(--surface);
+		box-shadow: inset 0 0 0 1px var(--line);
+		border-radius: 2px;
+	}
+	.demo-mini-slot.v { flex-direction: column; }
+	.demo-mini-slot.on { background: color-mix(in srgb, var(--prim) 12%, var(--surface)); box-shadow: inset 0 0 0 1px var(--prim); }
+	.demo-mini-slot.off { opacity: 0.4; }
+	.demo-mini-slot.dash { background: none; box-shadow: none; outline: 1px dashed var(--line); outline-offset: -1px; }
+
+	/* One column of a row — `--mini-track` is its flex, so a width picture is three
+	   tracks and no rule of its own. */
+	.demo-mini-track {
+		display: flex; flex-direction: column;
+		flex: var(--mini-track, 1 1 0); min-width: 0; min-height: 0;
+	}
+
+	/* ── content ── */
+	.demo-mini-head { flex: 0 0 1.15em; background: var(--tint); border-bottom: 1px solid var(--line); }
+	.demo-mini-head::after {
+		content: ""; display: block;
+		width: 38%; height: 0.32em; margin: 0.4em 0.5em;
+		border-radius: 2px; background: var(--line);
+	}
+
+	.demo-mini-pane { display: flex; flex-direction: column; flex: 1 1 0; min-width: 0; min-height: 0; background: var(--surface); }
+
+	.demo-mini-lines { display: flex; flex-direction: column; flex: 1 1 0; min-height: 0; gap: 0.4em; padding: 0.55em; }
+	.demo-mini-line { flex: 0 0 0.32em; border-radius: 2px; background: var(--line); }
+	.demo-mini-line:nth-child(3n) { width: 62%; }
+	.demo-mini-line:nth-child(4n) { width: 84%; }
+
+	/* ── top tabs: the strip sits ON the pane's top edge, the open tab merged with it ── */
+	.demo-mini-tabs { display: flex; flex: none; gap: 0.25em; padding: 0.4em 0.45em 0; border-bottom: 1px solid var(--line); }
+	.demo-mini-tab {
+		flex: 0 0 2.6em; height: 0.95em; margin-bottom: -1px;
+		background: var(--tint);
+		border: 1px solid var(--line); border-bottom: none; border-radius: 3px 3px 0 0;
+	}
+	.demo-mini-tab.on { background: var(--surface); }
+
+	/* The same strip stood on its end — the inner left tabs a Doc's API tab uses. */
+	.demo-mini-tabs.v {
+		flex-direction: column; flex: 0 0 5.5em; gap: 0.3em;
+		padding: 0.45em 0 0.45em 0.45em;
+		border-bottom: none; border-inline-end: 1px solid var(--line);
+	}
+	.demo-mini-tabs.v .demo-mini-tab {
+		flex: 0 0 0.95em; height: auto; margin: 0 -1px 0 0;
+		border: 1px solid var(--line); border-inline-end: none; border-radius: 3px 0 0 3px;
+	}
+
+	/* ── nav rows: a filled rail, or a plain list ── */
+	.demo-mini-rail {
+		display: flex; flex-direction: column; flex: 0 0 5em; gap: 0.35em; padding: 0.45em;
+		background: var(--tint); border-inline-end: 1px solid var(--line);
+	}
+	.demo-mini-list { display: flex; flex-direction: column; flex: 1 1 0; min-height: 0; gap: 0.35em; padding: 0.45em; }
+
+	/* A ROW, not a bar: drawn as a thin `--line` bar a list was indistinguishable from
+	   prose at this size — same stack, same widths, and only the lit one told them
+	   apart (measured on the wall, 2026-08-26). */
+	.demo-mini-item { flex: 0 0 0.85em; border-radius: 2px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); }
+	.demo-mini-item.on { background: color-mix(in srgb, var(--prim) 14%, var(--surface)); box-shadow: inset 0 0 0 1px var(--prim); }
+
+	/* ── tiles: one grid, three densities, all three from `--mini-cell` / `--mini-gap` ── */
+	.demo-mini-tiles {
+		display: grid; flex: 1 1 0; min-height: 0; overflow: hidden;
+		grid-template-columns: repeat(auto-fill, minmax(var(--mini-cell, 4em), 1fr));
+		gap: var(--mini-gap, 0.45em); padding: var(--mini-gap, 0.45em);
+		align-content: start;
+	}
+	.demo-mini-tile { min-height: 1.8em; border-radius: 2px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); }
+
+	/* Flush is the one grid with no gap AND no padding, so its cells meet on a shared
+	   hairline and reach the column's edges — a rounded corner would break both. */
+	.demo-mini--flush .demo-mini-tiles { align-content: stretch; grid-auto-rows: 1fr; }
+	.demo-mini--flush .demo-mini-tile { border-radius: 0; }
+
+	.demo-mini--dashboard .demo-mini-tile:first-child { grid-column: span 2; }
+	.demo-mini--dashboard .demo-mini-tile:nth-child(4) { grid-row: span 2; }
+
+	/* ── a crumb trail: thin chips, a leaning separator, the last one lit ── */
+	.demo-mini-crumbs { display: flex; flex: none; align-items: center; gap: 0.5em; padding: 0.45em 0.5em; border-bottom: 1px solid var(--line); }
+	.demo-mini-crumb { flex: 0 0 1.7em; height: 0.38em; border-radius: 2px; background: var(--line); }
+	.demo-mini-crumb.on { background: var(--prim); }
+	.demo-mini-crumb + .demo-mini-crumb { position: relative; }
+	.demo-mini-crumb + .demo-mini-crumb::before {
+		content: ""; position: absolute; inset-inline-start: -0.35em; top: -0.2em;
+		width: 1px; height: 0.75em; background: var(--line); rotate: 20deg;
+	}
+
+	/* ── a rail of cards (catalog), a row of them that scrolls (strip) ── */
+	.demo-mini-cards {
+		display: flex; flex-direction: column; flex: 0 0 4.6em; gap: 0.4em; padding: 0.45em;
+		border-inline-end: 1px solid var(--line);
+	}
+	.demo-mini-cards .demo-mini-tile { flex: 0 0 1.7em; }
+
+	.demo-mini-strip { display: flex; flex: 1 1 0; min-height: 0; gap: 0.45em; padding: 0.55em; align-items: start; overflow: hidden; }
+	.demo-mini-strip .demo-mini-tile { flex: 0 0 4em; height: 3.2em; }
+
+	/* ── a row of full-height columns, seamed the way core's are ── */
+	.demo-mini-cols { display: flex; flex: 1 1 0; min-height: 0; }
+	.demo-mini-cols > * + * { border-inline-start: 1px solid var(--line); }
+
+	/* ── stacked bands: a marketing page, and the top band is the hero ── */
+	.demo-mini-bands { display: flex; flex-direction: column; flex: 1 1 0; min-height: 0; }
+	.demo-mini-band { flex: 1 1 0; background: var(--surface); border-bottom: 1px solid var(--line); }
+	.demo-mini-band:nth-child(2n) { background: var(--tint); }
+	.demo-mini-band:first-child { flex: 1.8 1 0; background: color-mix(in srgb, var(--ink) 55%, transparent); }
+
+	/* ── two names for one entry: a short key beside its long title, both lit ── */
+	.demo-mini-key { flex: 0 0 1.8em; height: 0.45em; align-self: center; border-radius: 2px; background: var(--line); }
+	.demo-mini-key.on { background: var(--prim); }
+	.demo-mini--labels .demo-mini-row { gap: 0.5em; }
+	.demo-mini--labels .demo-mini-line { flex: 1 1 auto; height: 0.32em; align-self: center; }
+	.demo-mini--labels .demo-mini-line.on { background: var(--prim); }
+
+	/* A takeover has no chrome left to draw — only the way out, top right. */
+	.demo-mini--full::after {
+		content: ""; position: absolute; top: 0.45em; inset-inline-end: 0.5em;
+		width: 0.75em; height: 0.75em; border-radius: 2px;
+		background: var(--tint); box-shadow: inset 0 0 0 1px var(--line);
+	}
+}

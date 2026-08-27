@@ -46,7 +46,7 @@ export default new Page({
 			stage: steer => demo.stage(crumbs, steer).ac("bleed"),
 			def: crumbs,
 			file: new URL("page.js", import.meta.url).pathname,
-			note: "**There is no `ui.crumbs()`.** It was a loop over `[text, url]` pairs you typed by hand — and a trail that is typed can be *wrong*, which is the one thing a breadcrumb may not be. When a real one is needed it should derive from `Page.chain()`, which already knows the ancestry; until then the row is five lines you can see.",
+			note: "**There is no `ui.crumbs()`** — a loop over `[text, url]` pairs you type by hand can be *wrong*, which is the one thing a breadcrumb may not be. The row above is five lines you can see. When the trail must be **derived**, core has one: [`page.crumbs(from)`](/framework/core/Page/doc/columns/) walks `Page.chain()` and cannot disagree with where you are.",
 		});
 
 		md("## It marks itself");
@@ -58,6 +58,10 @@ export default new Page({
 		md("## The separator is yours");
 
 		md("The only CSS is `.ui-crumbs a { text-decoration: none }`, in `crumbs.js`, because a descendant rule is the one thing the markup cannot say about itself. `.page-link` sets a weight and nothing else — [`framework.css` has no rule for `a` at all](/framework/styles/), so a link's colour is always somebody's explicit call.");
+
+		md("## The derived one");
+
+		md("`page.crumbs(from)` is the same row built from `Page.chain()` — one link per ancestor, a chevron between, `from` deciding where the trail starts. A **columns** host draws it above the row and clicks on it restore whatever a `full` column collapsed: [`core/Page/doc/columns.md`](/framework/core/Page/doc/columns/). Typed pairs stay the right answer for a trail that is *not* the page tree.");
 
 		md("Next: [Pagination](/framework/ui/pagination/) — the same row, with a current item.");
 	},
