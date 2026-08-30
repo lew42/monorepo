@@ -55,3 +55,5 @@
 {"log": {"at": "2026-08-30T15:00:47-05:00", "task": "web-resume-fixes", "msg": "task opened - four S-sized fixes from the web/resume critique"}}
 {"log": {"at": "2026-08-30T15:12:29-05:00", "task": "demo-urls-flip", "msg": "landed - urls:false is now demo.app()'s default, shell.js:86 opted in explicitly; 6 shapes headless-verified, 0 dead hrefs, click+Enter nav proven, homepage 16/0 unregressed"}}
 {"log": {"at": "2026-08-30T15:20:30-05:00", "task": "web-resume-fixes", "msg": "landed - all four fixes: resume og card, resume<->blog cross-links both ways, sticky bar overlap cause fixed (full-width curtain not a jagged slice), /web/ layout.bar visible at rest (0.4 opacity)"}}
+{"log": {"at": "2026-08-30T16:11:00-05:00", "task": "eager-load-cost", "msg": "task opened -- measure eager Page child-load cost + lazy proposal"}}
+{"log": {"at": "2026-08-30T16:11:30-05:00", "task": "eager-load-cost", "msg": "landed -- overhead verdict: 60-85pct of route modules on /framework/, /framework/core/Page/, /imagine/ are eager-loaded but never shown; proposal.md sketches a nav-stub lazy-children form, no edits made"}}
