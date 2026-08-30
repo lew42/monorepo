@@ -18,7 +18,7 @@ A `click` listener on the box calls `preventDefault()` before the real
 demo's own root are walked at all — a link to the *real* site written inside a
 demo tree stays real and leaves the box.
 
-## `urls: false` — when the tree's urls are names, not addresses
+## `urls: false` is the default — a demo tree's urls are names, not addresses
 
 A demo tree is built in memory, so its urls address nothing on the server. A root
 titled `Web` gives its children `/web/html/`, `/web/css/` … and those *look* like
@@ -26,15 +26,19 @@ links: left-click works, because the box intercepts it. Middle-click,
 open-in-new-tab, copy-link and every crawler get the app's own "nothing matches"
 404 instead — which is how the site's homepage came to advertise four dead urls
 from its highest-authority page ([the critique](/framework/ai/2026-08-30/critique-blog/)).
+An audit of all 91 call sites on the site found none that wanted a real href
+([ai/2026-08-30/demo-urls-audit/](/framework/ai/2026-08-30/demo-urls-audit/)), so
+this is the default now, not an opt-in.
 
-`urls: false` moves the address off `href` and onto `data-demo-url`. `followed()`
+By default the address stays off `href` and on `data-demo-url`. `followed()`
 reads either one, `Enter` is wired by hand because an element with no `href` is
 not a link any more, and `app.css` puts the pointer back. `unlink()` runs from
 `mark()` rather than from `rail()` and `crumbs()`, because a page in here draws
 its own `previews()` and those cards carry real `href`s too — and it skips any
 anchor pointing *outside* the root, which is a real link to the real site.
 
-Leave it off when the tree mirrors pages that genuinely exist: then the href is
+Pass `urls: true` when the tree mirrors a page that genuinely exists — `scope:`
+a real page, as `page.demo()` (ext/demo/shell.js) always does — then the href is
 the truth, and stripping it would break the one thing that should navigate.
 
 ## `shown(page)` is the one hook out

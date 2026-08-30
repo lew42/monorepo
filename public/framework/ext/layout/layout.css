@@ -19,8 +19,10 @@
 		transition: opacity 0.12s;
 	}
 
-	/* Inside a `.layout` it is floating chrome and starts invisible; on its own it
-	   is a strip in the flow and starts quiet. Both light up when pointed at.
+	/* Inside a `.layout` it is floating chrome; on its own it is a strip in the
+	   flow. Both start QUIET (the same 0.4 as the bare rule above, not invisible —
+	   a control at true opacity:0 is a control nobody knows is there) and light up
+	   when pointed at.
 	   ⚠ `bottom: 100%`, not `top: 0` — over the corner it covered the content of any
 	   box shorter than the bar, which is most of them. Above the corner it sits in
 	   the flow gap and occludes nothing. */
@@ -29,7 +31,6 @@
 		margin-bottom: 0.25em;
 		background: var(--surface);
 		border-color: var(--line);
-		opacity: 0;
 	}
 
 	.layout:hover > .layout-bar,

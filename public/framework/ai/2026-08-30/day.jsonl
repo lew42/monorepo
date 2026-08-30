@@ -46,3 +46,12 @@
 {"log": {"at": "2026-08-30T13:32:00-05:00", "task": "critique-imagine", "msg": "landed - 35/35 imagine urls swept, nothing actually broken; welcome/404 confirmed real-but-benign (core eager-loads every child); top 5 ranked fixes + 2 strongest pages (youtube/panel, decks/pitch) named"}}
 {"log": {"at": "2026-08-30T13:28:00-05:00", "task": "critique-fixes", "msg": "task opened - executing the critique waves 8 accepted fixes"}}
 {"log": {"at": "2026-08-30T14:01:31-05:00", "task": "critique-fixes", "msg": "landed - all 8 accepted critique fixes executed at the cause; #5 refuted in part (2 posts broken, not 3); both keepers measured unchanged"}}
+{"log": {"at": "2026-08-30T14:03:49-05:00", "task": "blog-program", "msg": "critique cycle landed - 8/8 fixes with proofs; blog + homepage + roots shipped, critiqued, repaired, pushed"}}
+{"log": {"at": "2026-08-30T14:36:12-05:00", "task": "critique-web-resume", "msg": "task opened - hiring-lens critique of /web/ and /resume/"}}
+{"log": {"at": "2026-08-30T14:36:54-05:00", "task": "demo-urls-audit", "msg": "task opened - audit demo.app() urls:false default decision"}}
+{"log": {"at": "2026-08-30T14:49:48-05:00", "task": "demo-urls-audit", "msg": "landed - 91 call sites audited, 91/91 want urls:false, 0 exceptions; recommend flipping the default"}}
+{"log": {"at": "2026-08-30T14:52:00-05:00", "task": "demo-urls-flip", "msg": "task opened - flip demo.app() urls default to false per demo-urls-audit"}}
+{"log": {"at": "2026-08-30T14:52:31-05:00", "task": "critique-web-resume", "msg": "landed - /web/ verdict: show it, fix the invisible hover-only toolbar; /resume/ ships live placeholder contact info + no og card + sticky-bar overlap + zero blog cross-link; 15 items ranked, 5 keeper shots"}}
+{"log": {"at": "2026-08-30T15:00:47-05:00", "task": "web-resume-fixes", "msg": "task opened - four S-sized fixes from the web/resume critique"}}
+{"log": {"at": "2026-08-30T15:12:29-05:00", "task": "demo-urls-flip", "msg": "landed - urls:false is now demo.app()'s default, shell.js:86 opted in explicitly; 6 shapes headless-verified, 0 dead hrefs, click+Enter nav proven, homepage 16/0 unregressed"}}
+{"log": {"at": "2026-08-30T15:20:30-05:00", "task": "web-resume-fixes", "msg": "landed - all four fixes: resume og card, resume<->blog cross-links both ways, sticky bar overlap cause fixed (full-width curtain not a jagged slice), /web/ layout.bar visible at rest (0.4 opacity)"}}

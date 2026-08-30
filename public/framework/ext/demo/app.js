@@ -10,9 +10,9 @@ View.stylesheet(import.meta, "app.css");
 /**
  * demo.app(page, { nav }) — a real Page tree, navigating inside a box.
  *
- *     demo.app(docs)                   // opens at the root
+ *     demo.app(docs)                   // opens at the root, urls: false — data-demo-url, not href
  *     demo.app(laces, { nav: true })   // opens deep, with a rail
- *     demo.app(web, { urls: false })   // the tree's urls address nothing on the server
+ *     demo.app(page, { scope: page, urls: true })   // scope is a REAL page — keep real hrefs
  *
  * It plays App and Router for one tree, and nothing else: it owns the region
  * pages mount in, walks `child()` on a click, and marks what it shows. The pages
@@ -183,7 +183,7 @@ class DemoApp extends View {
 			if (page.view?.el.contains(this.page.view.el)) page.view.ac("default");
 		});
 
-		if (this.urls === false) this.unlink();
+		if (this.urls !== true) this.unlink();
 
 		this.el.querySelectorAll(LINK).forEach(link => {
 			const current = this.current(link.dataset.demoUrl ?? link.pathname);

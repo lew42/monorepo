@@ -85,6 +85,15 @@ matching reversal on the panel-focus side.
 
 **What is selectable, and page-vs-container words** — [`doc/selection.md`](./selection.md).
 
+**The floating bar starts dimmed, not invisible — reversed 2026-08-30.** `.layout >
+.layout-bar` shipped at `opacity: 0` until `:hover`/`:focus-within`, on purpose (a
+corner widget that hovers over content and starts invisible). A hiring-lens
+critique of `/web/layout/*` called it out: the guide's whole pitch is "click a
+word on the bar," and at rest there was nothing on screen to click. It now falls
+through to the bare rule's `opacity: 0.4`, the same quiet-but-present default
+`nav/links` and `nav/rail`'s own toolbars already use — one convention, not two.
+`(hover: none)` was already `opacity: 1` and is unchanged.
+
 ## Traps
 
 - **⚠ The bar fills itself in a microtask.** `page.view` is assigned only *after*

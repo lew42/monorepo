@@ -49,6 +49,9 @@ takes the space to the right of the reading column.
   links them. Sections *are* declared — they import nothing but the manifest.
 - The exhibit column is a `float`, not a grid column. A grid made a ~300px hole in the
   reading column at every figure. [Reading page](/blog/doc/reading-page/)
+- **`rail()` ends with one plain entry, not a group.** An array item with no `pages` is
+  just a link (`Sidebar.nav()`'s own contract) — that's the Résumé cross-link, and it's
+  how any other one-off link into the rail should be added, on every blog page.
 
 ## More
 

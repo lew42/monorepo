@@ -83,7 +83,7 @@ class DemoShell extends View {
 		// ⚠ `scope`, always: without it the box roots at the tree's own root, which for
 		// an imported site page is the whole site (app.js `root_of()`).
 		if (this.app)
-			return demo.app(this.page, { scope: this.page, nav: this.nav, shown: page => this.crumbs(page) });
+			return demo.app(this.page, { scope: this.page, urls: true, nav: this.nav, shown: page => this.crumbs(page) });
 
 		try {
 			return this.page.render().ac("default");

@@ -162,16 +162,16 @@ demo.source.file(import.meta, "hero.js");   // a file — the summary is its nam
 
 		h2("demo.app() — a tree in a box");
 
-		demo.stage(() => demo.app(sample(), { nav: true, urls: false }).style("height", "20em")).ac("toc-skip");
+		demo.stage(() => demo.app(sample(), { nav: true }).style("height", "20em")).ac("toc-skip");
 
 		code.js(`import { demo } from "/app.js";
 import { sample } from "/framework/ext/demo/sample.js";
 
-demo.app(sample())                  // opens at the root
+demo.app(sample())                  // opens at the root — an in-memory tree, no dead hrefs
 demo.app(laces, { nav: true })      // opens deep, with a rail
-demo.app(sample(), { urls: false }) // the tree is in memory — emit no dead hrefs`);
+demo.app(page, { scope: page, urls: true })   // scope is a REAL page — keep real hrefs`);
 
-		md("`demo.app()` plays **App and Router for one tree**: a url strip that is also a breadcrumb, an optional rail, and the region the pages mount in. The pages inside are ordinary `Page`s doing their own `render()` and `previews()`, and the clicks never reach the real Router — the url in your address bar stays put. The [Page demos](/framework/core/Page/) are fourteen of these. ⚠ A title is address enough (`Web` → `/web/`) — and object children only; a name string probes the server for a `page.js`. ⚠ Those derived urls are NAMES, not addresses: pass `urls: false` and the box emits `data-demo-url` instead of an `href` that 404s on middle-click.");
+		md("`demo.app()` plays **App and Router for one tree**: a url strip that is also a breadcrumb, an optional rail, and the region the pages mount in. The pages inside are ordinary `Page`s doing their own `render()` and `previews()`, and the clicks never reach the real Router — the url in your address bar stays put. The [Page demos](/framework/core/Page/) are fourteen of these. ⚠ A title is address enough (`Web` → `/web/`) — and object children only; a name string probes the server for a `page.js`. ⚠ Those derived urls are NAMES, not addresses, and by default the box emits `data-demo-url` instead of an `href` that 404s on middle-click; pass `urls: true` only when `scope:` is a real page.");
 
 		md("`sample()` is the shared sample tree — nine children, three of them a level deeper — so a demo that needs *a tree* takes this one and overrides the root. What changes between demos is then exactly the thing each demo teaches: [Navigation](/framework/core/Page/old/nav/) shows the same nine children as a wall, a rail, a sidebar and a set of crumbs, one `sample()` each.");
 

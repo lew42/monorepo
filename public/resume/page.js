@@ -70,6 +70,15 @@ export default new Page({
 	   inner one into its own plane. */
 	content(){
 
+		// The résumé has no nav chrome of its own — this is the smallest honest
+		// stand-in for it, not a bar: two links out, scrolling away with the page
+		// like everything else here. `p`, not `div` — framework.css only dresses
+		// a NAVIGATION anchor inside :where(p, li, td, ...); see resume-contact below.
+		p.c("resume-links", () => {
+			a("lew42").href("/");
+			a("Blog").href("/blog/");
+		});
+
 		depth().ac("resume-depth pad").style("--pad", "0.4em 0.8em");
 
 		div.c("resume-card flow", () => this.sheet()).depth();

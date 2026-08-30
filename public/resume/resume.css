@@ -79,6 +79,13 @@
 	   sections do — it is the one block that is already closest to the reader. */
 	.resume-head { --depth: 0.5; }
 
+	/* The corner link resume/page.js adds — two words out, home and the blog. */
+	.resume-links {
+		display: flex; gap: 1em;
+		margin-block-end: 0.6em;
+		font-size: 0.85em;
+	}
+
 	.resume-job {
 		--depth: 0.5;
 		background: var(--surface);
@@ -98,17 +105,21 @@
 
 	/* The sliders sit OUTSIDE the sheet, on the grey, so they need their own fill.
 	   Not a layer - a control that leans with the page is a control you cannot aim
-	   at. Centred over the sheet with auto margins on both sides. */
+	   at.
+	   ⚠ FULL WIDTH, not a centred pill: as a `fit-content` island it only shaded
+	   its own narrow strip while stuck, so every heading's TOP scrolled up through
+	   the gap on one side of it - a heading sliced through the middle, not hidden
+	   behind the bar the way a sticky header normally hides what scrolls under it.
+	   `justify-content: center` keeps the sliders visually where they were; the
+	   fill (now edge-to-edge) is what gives the bar its "stacking clearance". */
 	.resume-depth {
 		position: sticky; top: 0; z-index: 2;
 
-		/* ⚠ `display: flex`, overriding the ext's `inline-flex`. AUTO MARGINS DO NOT
-		   CENTRE AN INLINE-LEVEL BOX - `margin-inline: auto` on the inline-flex it
-		   ships with is simply inert, and nothing warns. */
-		display: flex;
-		width: fit-content; margin-inline: auto;
+		/* ⚠ `display: flex`, overriding the ext's `inline-flex`. */
+		display: flex; justify-content: center;
+		width: 100%;
 		background: var(--surface);
-		border: 1px solid var(--line); border-radius: var(--radius);
+		border-block-end: 1px solid var(--line);
 	}
 
 	.resume-head h1 { margin-block-end: 0.1em; }

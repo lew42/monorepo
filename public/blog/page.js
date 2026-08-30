@@ -80,13 +80,18 @@ export default new Page({
 		}).ac(this.classes);
 	},
 
-	// sections over posts, each section a link — see BlogNav above.
+	// sections over posts, each section a link — see BlogNav above; one plain
+	// link after the groups (the whole reason `rail()` returns a flat array
+	// instead of one), so it rides along on every blog page, not just the front.
 	rail(){
-		return sections.map(section => ({
-			title: section.title,
-			url: section_url(section),
-			pages: of_section(section.name).map(post => ({ label: post.title, url: url(post) })),
-		}));
+		return [
+			...sections.map(section => ({
+				title: section.title,
+				url: section_url(section),
+				pages: of_section(section.name).map(post => ({ label: post.title, url: url(post) })),
+			})),
+			{ label: "Résumé", url: "/resume/" },
+		];
 	},
 
 	/* THE MAGAZINE. Two regions: the lead and the wall in one column, the topics rail

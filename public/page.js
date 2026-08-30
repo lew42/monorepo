@@ -105,7 +105,7 @@ export default new Page({
 						SVG: { icon: "polyline", content(){ p("Drawings that are also documents."); } },
 					},
 					content(){ this.previews(); },
-				}), { nav: true, urls: false });
+				}), { nav: true });
 			}, "Four pages and their navigation, running here. Click one.");
 		});
 	},

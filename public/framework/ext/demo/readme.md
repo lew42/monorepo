@@ -30,7 +30,7 @@ preview(nav){ return this.preview_card(nav, () => mini("tabs")); }   // a card's
 `mini(word)` draws a chrome-free wireframe of a page shape — 29 of them, composed from a dozen parts. Live: the palette on [core/Page](/framework/core/Page/).
 
 ## Watch out
-- `demo.app()` emits its tree's urls as real `href`s: they work on click and 404 on middle-click, open-in-new-tab and every crawler. `{ urls: false }` when the tree is in memory — [doc/method/app.md](./doc/method/app.md).
+- `demo.app()` defaults to `{ urls: false }`: an in-memory tree emits `data-demo-url`, not an `href` that 404s on middle-click, open-in-new-tab and every crawler. Pass `{ urls: true }` when `scope:` is a real page (`page.demo()`, ext/demo/shell.js) — [doc/method/app.md](./doc/method/app.md).
 - `demo()` prints the function it ran, so a comment written *inside* the callback is published as part of the lesson. Explain it above the call.
 - A div is not a viewport: a `@media` query inside an example ignores the handle and the simulated width; only an iframe would — [doc/record.md](./doc/record.md) §6.
 - The three boxes `.demo-stage › .demo-screen › .demo-render` cannot be merged: `overflow` on the wrong one clips the handle or every render — [doc/decisions.md](./doc/decisions.md).
