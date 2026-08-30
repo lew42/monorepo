@@ -165,7 +165,7 @@ function filters_bar(all, params, compare, onchange, oncompare){
 }
 
 function axis_select(key, values, current, onchange){
-	const $sel = select.c("dt-vb-select", () => {
+	const $sel = select.c("dt-vb-select auto", () => {
 		option("All " + key).attr("value", "");
 		values.forEach(v => option(String(v)).attr("value", String(v)));
 	});

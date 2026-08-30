@@ -1,0 +1,142 @@
+{
+	"number": "01",
+	"title": "The Column",
+	"date": "August 2026",
+	"standfirst": "Seven labs, one row, and a page tree that agreed to lie down sideways.",
+	"masthead": "Six pieces on the column system, written out of what the labs actually measured. Read them in order or pick one; the row keeps everything you opened.",
+
+	"articles": [
+		{
+			"slug": "the-row-is-the-page",
+			"section": "Opening",
+			"title": "The Row Is the Page",
+			"standfirst": "One call, and every child of a page becomes a full-height column that opens beside its parent. The tree is real; only the boxes go away.",
+			"body": [
+				{ "p": "A file tree is a hierarchy and a screen is a plane, and the whole argument about navigation is between those two facts. Click into a folder and the folder you were in disappears. Go back and the one you opened does. The information is nested; the reading is not." },
+				{ "p": "`columns()` is one line in a page and it says: from here down, my subtree is a row. Every descendant keeps its place in the tree — its parent, its url, its crumb — and gives up only its box. `display: contents` deletes a wrapper from the layout without deleting it from the document, so a page five levels deep is a peer on screen and a child in the DOM." },
+				{ "h": "Peers on screen, a tree in the document" },
+				{ "p": "That distinction is the whole design. The visibility contract never changed: a column closes because it lost its mark, not because something moved it. Nothing is re-parented, nothing is re-rendered, and a cold load straight at a five-deep url draws the identical row you would have reached by clicking down to it." },
+				{
+					"figure": ["1", "0.382 0.618", "0.382 0.31 0.31"],
+					"caption": "Three states of one row: the cover alone, the cover and the contents, and the two of them with this article open beside."
+				},
+				{ "quote": "A column is not a panel. It is a page that agreed to be narrow.", "by": "doc/columns.md" },
+				{ "p": "What you are reading is that row. The cover is still open to the left — the same page it was when it filled the screen, one rule narrower. The contents beside it never closed. Nothing here is a modal, an overlay or a state machine: it is a handful of pages in a tree, and a stylesheet that decided to stand them side by side." }
+			]
+		},
+		{
+			"slug": "full-replaces-fill-joins",
+			"section": "Words",
+			"title": "Full Replaces, Fill Joins",
+			"standfirst": "Six width words, and between two of them the entire vocabulary of a full-screen experience.",
+			"body": [
+				{ "p": "A column asks for its width with one word. `small` is a fixed rail. `hug` fits its own labels. `large` opens to sixty-four ems for a grid or a table. The default is a reading track between sixteen and forty ems. Two words are left, and they are the interesting ones." },
+				{ "p": "`full` takes the whole row and folds every ancestor into the crumb strip above it, so a screen you open with `full` hides the screen you were on. `fill` takes everything left over and keeps its neighbours; the columns already open divide the room evenly. The difference between them is two values." },
+				{ "h": "Eight experiments, and nothing else was needed" },
+				{ "p": "The pair was tested against every shape a full-screen navigation is usually built from — a title slide, a deck, a two-up divide, a quadrant menu, an uneven pair — and every one of them turned out to be a width word on a page rather than a shell around it. No fixed positioning, no viewport units, no second router." },
+				{ "quote": "A screen here is not a shell. It is a column that happens to be the only one open.", "by": "the screens lab" },
+				{ "p": "Which means Back, the crumb strip and every url keep working exactly as they do three columns deep — because they are three columns deep." },
+				{ "p": "The cover of this issue is `full`. It collapsed the rail you arrived on, and the moment you opened the contents it gave up the major share of the row and stayed. Same page, no second render: one rule that asks whether it has a child open." }
+			]
+		},
+		{
+			"slug": "forty-ems",
+			"section": "Craft",
+			"title": "Forty Ems",
+			"standfirst": "The oldest number in typography, defended against a monitor that would very much like to spend it.",
+			"body": [
+				{ "p": "A reading column here stops at forty ems, and that ceiling is not a compromise. It is the measure: sixty-odd characters to the line, the width at which the eye finds the start of the next line without hunting for it. This paragraph is sitting on it." },
+				{ "p": "The pressure on it comes from empty space. A column browser on a wide monitor with one page open leaves most of the row grey, and grey reads as broken. The obvious fix is to let the open column absorb the rest." },
+				{ "h": "It was implemented, and the answer is no" },
+				{ "p": "One selector, and the numbers do close — dead space at 3840 fell from 93% to 68%. It closed them by handing a fourteen-em nav rail eleven hundred pixels, putting a chevron nine hundred pixels from its own label, and giving one sentence a line well past the measure. It traded the thing the width words exist for, and it did not even close the void." },
+				{ "quote": "Widening a column is never the fix for dead space.", "by": "the layout rules" },
+				{ "p": "The two real answers are both declarations. A page that genuinely has something to spend the room on asks for a wider word. A host that would otherwise arrive empty names the child it opens with. Whatever is still left over is drawn as the column slots it already is — a hairline every fourteen ems, saying more opens here." },
+				{ "p": "This article is the default track, and on a wide screen it is deliberately not the widest thing on the row." }
+			]
+		},
+		{
+			"slug": "a-ladder-of-paper",
+			"section": "Craft",
+			"title": "A Ladder of Paper",
+			"standfirst": "Four background schemes across three depths, and only one of them reads as depth.",
+			"body": [
+				{ "p": "The same three-column tree, four colour schemes, one question: which of them tells a reader how deep they are without a label?" },
+				{ "p": "Stepping the tone up — each column a shade cleaner than the one before — reads as a stack of cards lifting toward you. Stepping down reads as a well you are falling into: the same information with the wrong feeling attached to it." },
+				{ "h": "Alternating is not a scheme" },
+				{ "p": "Alternating fails outright. Depth three matches depth one, so the eye sees a pattern instead of a direction and stops counting. Inverting a single column says this one is different, which is emphasis rather than depth — save it for a column that genuinely is." },
+				{
+					"tones": ["Cover", "Contents", "Article"],
+					"caption": "This issue is the winning scheme, three rungs. The cover behind you carries the most veil; the contents carries less; the article carries none."
+				},
+				{ "quote": "Never a shadow for a colour. Stacking a translucent well darkens by depth and bands the whole row.", "by": "doc/findings.md" },
+				{ "p": "The page you are reading is the top rung. It is the only white thing on the row, and that is the only reason you can tell at a glance which column is the one you are in." }
+			]
+		},
+		{
+			"slug": "by-the-numbers",
+			"section": "Data",
+			"kind": "data",
+			"title": "By the Numbers",
+			"standfirst": "Every width word, measured on the live page at four viewports. Pick a screen and watch them move.",
+			"body": [
+				{ "p": "Numbers first, in pixels, measured headless on the running site rather than computed from the tokens. `row` is the host's whole scroller; the six words below it are what a single column got inside that row." },
+				{ "p": "Read the last two rows together at 3440 and you have the whole of `fill`: `large` stops at its sixty-four-em ceiling and leaves the rest as empty slots, `fill` takes everything the rails did not. At 1920 they are the same number, because `large` has not reached its ceiling yet and nothing else is asking." },
+				{ "p": "Under thirty-two ems of row the arrangement pages one column at a time, which is why every word measures the same at 400." }
+			],
+			"data": {
+				"label": "Column width by viewport",
+				"unit": "px",
+				"words": ["row", "small", "hug", "default", "large", "fill", "full"],
+				"viewports": [400, 1280, 1920, 3440],
+				"rows": [
+					{ "word": "row", "viewport": 400, "px": 400 },
+					{ "word": "small", "viewport": 400, "px": 400 },
+					{ "word": "hug", "viewport": 400, "px": 400 },
+					{ "word": "default", "viewport": 400, "px": 400 },
+					{ "word": "large", "viewport": 400, "px": 400 },
+					{ "word": "fill", "viewport": 400, "px": 400 },
+					{ "word": "full", "viewport": 400, "px": 400 },
+
+					{ "word": "row", "viewport": 1280, "px": 1051 },
+					{ "word": "small", "viewport": 1280, "px": 211 },
+					{ "word": "hug", "viewport": 1280, "px": 100 },
+					{ "word": "default", "viewport": 1280, "px": 241 },
+					{ "word": "large", "viewport": 1280, "px": 421 },
+					{ "word": "fill", "viewport": 1280, "px": 420 },
+					{ "word": "full", "viewport": 1280, "px": 1051 },
+
+					{ "word": "row", "viewport": 1920, "px": 1677 },
+					{ "word": "small", "viewport": 1920, "px": 224 },
+					{ "word": "hug", "viewport": 1920, "px": 107 },
+					{ "word": "default", "viewport": 1920, "px": 410 },
+					{ "word": "large", "viewport": 1920, "px": 1005 },
+					{ "word": "fill", "viewport": 1920, "px": 1005 },
+					{ "word": "full", "viewport": 1920, "px": 1677 },
+
+					{ "word": "row", "viewport": 3440, "px": 3166 },
+					{ "word": "small", "viewport": 3440, "px": 252 },
+					{ "word": "hug", "viewport": 3440, "px": 120 },
+					{ "word": "default", "viewport": 3440, "px": 720 },
+					{ "word": "large", "viewport": 3440, "px": 1152 },
+					{ "word": "fill", "viewport": 3440, "px": 2410 },
+					{ "word": "full", "viewport": 3440, "px": 3166 }
+				]
+			}
+		},
+		{
+			"slug": "the-empty-room",
+			"section": "Report",
+			"title": "The Empty Room",
+			"standfirst": "A column browser that has opened one column leaves most of its row grey. What to do about that turned out to be a question about honesty.",
+			"body": [
+				{ "p": "Measured on every columns host on the site: 80% of the row empty at 1280, and 93% at 3840. A flat grey field reads as a page that failed to render, and the reader's first thought is not more opens here." },
+				{ "p": "Absorb was tried and rejected — the previous article has the numbers. What shipped instead moves nothing, measures nothing and builds no DOM. The leftover is drawn as the column slots it already is: one repeating gradient, a hairline every fourteen ems, and an opaque floor under the real bodies so the ghost lines cannot paint through them." },
+				{ "h": "Say what is actually there" },
+				{ "p": "A scrolled row has no leftover and never shows one. A phone, where the row pages a single column at a time, never shows one either. The drawing appears exactly when there is something to say, and says exactly that." },
+				{ "quote": "The screen now says more opens here instead of nothing rendered.", "by": "the empty-room finding" },
+				{ "p": "Two seams came back into the framework from these labs, and both arrived by occurring three times rather than by being a good idea. A column whose content already shows its children can leave the automatic rail out with one word. And a column a host builds for itself is handed the app it was never routed to receive." },
+				{ "p": "That is the end of issue one. The row is still behind you, and the cover is one click along the crumb strip." }
+			]
+		}
+	]
+}

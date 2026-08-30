@@ -1,0 +1,81 @@
+/* /imagine/vary/colstyles/ — the column render CONTROL lab.
+   Every rule here is a LOOK, never a rearrangement — core's `util` layer still
+   owns visibility, and the row's own flex math is untouched (doc/columns.md).
+   Two files build the trees these rules land on: tree.js (one tree, three
+   looks) and hooks/trees.js (seven small trees, one per control point). */
+@layer theme {
+
+	/* ── hooks page — a demo box, its caption, and a side-by-side pair ── */
+	.vary-colstyles-hook { margin-block-end: 1.6em; }
+	.vary-colstyles-hook-cap { margin-block-start: 0.4em; font-size: 0.88em; color: var(--subtle); }
+	.vary-colstyles-pair { display: flex; flex-wrap: wrap; gap: 1em; }
+	.vary-colstyles-pair > .demo-app { flex: 1 1 16em; min-width: 0; }
+
+	/* Hook 2 — the SAME two tokens every width word already sets, retuned by
+	   hand instead of reached for as a seventh word. */
+	.vary-colstyles-retuned .page-column-body { --page-column-max: 22em; }
+	.vary-colstyles-retuned .page-column-prose {
+		--page-column-pad-x: 2em; --page-column-pad-y: 1.4em;
+		background: color-mix(in srgb, var(--prim) 6%, transparent);
+	}
+
+	/* Hook 3 — `column()` thrown away and redrawn as a chip wall; no head,
+	   no rows, nothing core's default body would have drawn. */
+	.vary-colstyles-chips { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 0.4em; padding: 0.9em; }
+	.vary-colstyles-chip {
+		padding: 0.3em 0.7em; font-size: 0.85em;
+		background: var(--tint); border: 1px solid var(--line); border-radius: 999px;
+	}
+
+	/* Hook 5 / tree.js — a bled block, mid-flow, so the inset it escapes is
+	   the thing right above and below it. */
+	.vary-colstyles-figure {
+		padding: 0.8em var(--page-column-pad-x);
+		background: color-mix(in srgb, var(--ink) 6%, var(--surface));
+		border-block: 1px dashed var(--line);
+		font-size: 0.85em; color: var(--subtle); text-align: center;
+	}
+
+	/* ════ THE THREE LOOKS — tree.js, one content tree, three skins ════
+	   Finder is the shipped default: no rule needed, so none is written — the
+	   class exists only so the page can label it. */
+
+	/* ── Cards — columns as panels ──
+	   Margin on the BODY, never `gap` on the row: `gap` would land on the
+	   drag seam too (it is a flex item of the same row) and add itself to a
+	   math the doc calls "zero outer size" on purpose (Page.css). Margin is
+	   a size on the ITEM, the same knob a width word already turns — nothing
+	   here touches `display` or order.
+	   ⚠ `.page.columns` restated on purpose: core's own body rule is scoped
+	     `.page.columns .page-column-body` (0,3,0) for the flex/border it sets,
+	     and a plain `.vary-colstyles-look-cards .page-column-body` (0,2,0)
+	     LOSES the border outright regardless of load order. Matching the
+	     count is what wins it, not being clever about it. */
+	.vary-colstyles-look-cards .page-columns-row { background: var(--wash); padding-block: 1em; }
+	.page.columns.vary-colstyles-look-cards .page-column-body {
+		margin-inline: 0.5em;
+		background: var(--surface);
+		border: none; border-radius: var(--radius);
+		box-shadow: 0 4px 16px var(--card-shadow), 0 0 0 1px var(--card-ring);
+	}
+	.vary-colstyles-look-cards .page-column-head { border-radius: var(--radius) var(--radius) 0 0; }
+
+	/* ── Ink — dark, bold, built from tokens so both colour schemes work ──
+	   `--code-bg` / `--code-ink` (lew42.css) are already DARK IN BOTH MODES —
+	   made for a dark box under a light page, which is exactly this. Reused,
+	   not reinvented: a fresh pair would be a third dark-in-both-modes
+	   constant for the theme to keep in step with the other two. */
+	.vary-colstyles-look-ink .page-columns-row { background: var(--code-bg); }
+	.page.columns.vary-colstyles-look-ink .page-column-body {
+		background: var(--code-bg); color: var(--code-ink);
+		border-inline-end: 2px solid var(--prim);
+	}
+	.vary-colstyles-look-ink .page-column-head { background: var(--code-bg); border-bottom-color: var(--prim); }
+	.vary-colstyles-look-ink .page-column-title { font-size: 1.05em; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
+	.vary-colstyles-look-ink .page-column-item { color: color-mix(in srgb, var(--code-ink) 70%, transparent); }
+	.vary-colstyles-look-ink .page-column-item:is(:hover, :focus-visible) { color: var(--code-ink); background: color-mix(in srgb, var(--code-ink) 12%, transparent); }
+	.vary-colstyles-look-ink .page-column-item:is(.in-path, [aria-current]) { color: var(--code-ink); }
+	.vary-colstyles-look-ink .page-column-close { color: color-mix(in srgb, var(--code-ink) 55%, transparent); }
+	.vary-colstyles-look-ink .page-column-close:is(:hover, :focus-visible) { color: var(--prim); background: color-mix(in srgb, var(--code-ink) 12%, transparent); }
+	.vary-colstyles-look-ink .vary-colstyles-figure { background: color-mix(in srgb, var(--code-ink) 8%, transparent); border-color: var(--prim); color: color-mix(in srgb, var(--code-ink) 70%, transparent); }
+}

@@ -39,6 +39,11 @@
 		--tint:    light-dark(#f8f8f8, #1f1f1f);
 		--surface: light-dark(#ffffff, #262626);
 
+		/* A card raised off the wash by SHADOW, not border (2026-08-29). Dark mode is
+		   the ring — a shadow on a near-black floor is invisible. */
+		--card-shadow: light-dark(rgba(0, 0, 0, 0.13), rgba(0, 0, 0, 0.5));
+		--card-ring:   light-dark(transparent, var(--line));
+
 		/* Stays dark in both modes: `--bg` is what `button.bg` paints itself,
 		   and framework.css pairs it with a hardcoded white label. A light
 		   `--bg` in dark mode would be white-on-grey. */

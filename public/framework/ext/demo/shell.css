@@ -1,0 +1,85 @@
+/* page.demo() — one demo UX for every page. The band, the path bar, the source
+   column, and the four rules the shell exists to keep (shell.js). */
+@layer theme {
+
+	/* ── the band ──
+	   The render and its source are ONE block that wraps, not two page-level
+	   siblings — that is what lets the code move beside the thing when there is room.
+
+	   `flex-wrap` + a basis, never a query: what varies is the BAND's width, which a
+	   `@media` cannot see. 52em + 28em + a 2em gutter is ~82em, so a 1440 window
+	   already runs two columns and a 3440 spends its right third on the code instead
+	   of on grey. The exhibit band's own basis (84em + 32em) only moved past ~2.5K,
+	   which is why so much of the site still reads as one narrow column.
+	   ⚠ `min-width: 0` on both: a `<pre>` floors a flex item at its longest line. */
+	.demo-shell {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-start;
+		gap: 1.2em var(--gutter-x, 2em);
+		padding-inline: var(--gutter-x, 0px);
+	}
+
+	.demo-shell-run  { flex: 3 1 52em; min-width: 0; }
+
+	.demo-shell-code {
+		flex: 1 1 28em; min-width: 0;
+		display: flex; flex-direction: column; gap: 0.35em;
+	}
+
+	/* ── the path, always ──
+	   The demo app's url strip, promoted out of the box so a demo with no app has
+	   one too. It is a breadcrumb of real urls: routing is the thing being shown. */
+	.demo-shell-path {
+		display: flex; flex-wrap: wrap; align-items: center; gap: 0.25em;
+		margin-block-end: 0.6em;
+		padding: 0.35em 0.8em;
+		font-family: var(--mono); font-size: 0.78em;
+		background: var(--tint);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+	}
+
+	.demo-shell-sep { color: var(--subtle); opacity: 0.6; }
+
+	/* ── the source, as a PEER ──
+	   Open, beside the render, named. Never a `<details>`: a disclosure says the
+	   code is an aside, and on a demo page the code is half the lesson. */
+	.demo-shell-file {
+		display: flex; align-items: baseline; gap: 0.5em;
+		font-family: var(--mono); font-size: 0.78em;
+		color: var(--subtle);
+	}
+
+	.demo-shell-src {
+		overflow: auto;
+		background: var(--surface);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+	}
+
+	/* ⚠ `max-height` on the SOURCE only, never on the render: code is reference and
+	   scrolls, the specimen is the subject and must be whole. */
+	.demo-shell-src > pre {
+		max-height: 34em;
+		margin: 0;
+		padding: 1em;
+		font-size: 0.78em; line-height: 1.55; tab-size: 4;
+	}
+
+	/* ── nothing is ever cut off ──
+	   The demo app box normally takes a `height` from its call site and scrolls its
+	   pages region inside it (app.css). In the shell it does neither: the box grows
+	   to its content, and `min` — a floor on the render — is the only sizing word. */
+	.demo-shell .demo-app { height: auto; }
+	.demo-shell .demo-app-body { min-height: 0; }
+	.demo-shell .demo-app-pages { overflow: visible; }
+
+	/* One path bar. The box's own strip is the shell's now, so this hides the
+	   duplicate rather than removing a feature — `crumbs()` in shell.js draws it. */
+	.demo-shell .demo-app-url { display: none; }
+
+	/* The stage's readout sits on the page's own ground here, not on a dark canvas,
+	   so it keeps `--subtle` — the exhibit's white override is scoped to `.bleed`. */
+	.demo-shell-stage { margin-block-start: 0; }
+}

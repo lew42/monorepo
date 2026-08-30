@@ -27,6 +27,36 @@ on the page side of this line at all. Measurements: `devbar.css` in the
 the strip moved to `ext/grip` on 2026-08-18 so [`ext/drawer`](/framework/ext/drawer/)
 could use the same edge, and it carried this fix with it.
 
+## A closed rail is `visibility: hidden` (2026-08-29)
+
+There are **two** undocked poses: `translateX(100%)` as a side rail, and
+`translateY(100%)` as a bottom sheet below 34em. Resizing the window across that
+threshold while the rail is closed does not swap one for the other — it
+*interpolates* between them, and the path runs straight across the screen. The
+owner saw it: "the devbar jumps from off screen right to off screen bottom, but
+you can see it transitioning, appearing for a brief moment."
+
+```css
+.dev-bar { visibility: hidden; transition: transform 0.18s, visibility 0s 0.18s; }
+html.dev-open .dev-bar { visibility: visible; transition: transform 0.18s, visibility 0s; }
+```
+
+The morph still happens; nobody can see it. The `0s 0.18s` delay is what keeps
+the *close* animation visible — visibility flips only once the slide has
+finished — and `dev-open` clears the delay so opening is immediate. Neither
+animation changed.
+
+Measured across a 1280 → 500 resize with the rail closed, 55 rAF frames:
+**0 frames visible** with this rule; **10 frames** — about 170ms of a 500×405
+panel drawn at `left: 458`, then 369, then further in — with visibility forced
+back on. Open/close still fires `transitionstart`/`transitionend` on `transform`
+at both poses.
+
+It also settles the older complaint the offset grip was a workaround for: a
+closed rail's grip is now unhittable because the whole box is hidden, so nothing
+needs pushing further off screen. `ext/grip`'s wholly-inside rule stands on its
+own reasons.
+
 ## Why `<body>`, outside `.app`
 
 Every colour token in `framework.css` is a `light-dark()` pair that resolves

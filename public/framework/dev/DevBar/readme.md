@@ -13,6 +13,7 @@ navigated(){ devbar.refresh(); },
 
 - [`ext/drawer`](/framework/ext/drawer/) is the OTHER rail at this edge and both can be open at once — `.app` reserves the sum, and the drawer offsets itself by `--devbar` to sit beside this one: [`doc/docking.md`](./doc/docking.md)
 - Below 34em the rail is a bottom sheet, not a side rail — 17rem is 70% of a 390px window, and `.app` declines to push there: [`doc/decisions.md`](./doc/decisions.md)
+- A **closed** rail is `visibility: hidden` (delayed 0.18s, so the close still animates) — without it, resizing across 34em interpolates `translateX(100%)` → `translateY(100%)` straight across the screen and the rail flickers: [`doc/docking.md`](./doc/docking.md)
 - `dev-open` on `<html>` is the entire open state; react to that class or a token, never a property on this module: [`doc/docking.md`](./doc/docking.md)
 - The resize edge is `ext/grip` now, shared with [`ext/drawer`](/framework/ext/drawer/) — `DevBar.js` mounts it (`write: rail`), and this rail's own `grip.js`/`grip.css` are gone (2026-08-18): [`doc/docking.md`](./doc/docking.md)
 - A preset or a drag drops `--rail-floor` to 0 for the session, so a later drag can squeeze the page below 26rem; `MIN` (200px) is the only guard: [`doc/sizing.md`](./doc/sizing.md)

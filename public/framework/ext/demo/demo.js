@@ -246,6 +246,6 @@ export { source, dedent };
 /* The shell, for whoever composes one: exhibit.js and layout.js build demo PAGES
    out of these, and import them so the boxes cannot drift.
    ⚠ One-way — those files import this one and patch `demo.*`. */
-export { btn, caption, source_code };
+export { btn, caption, source_code, source_file };
 
 export { demo };

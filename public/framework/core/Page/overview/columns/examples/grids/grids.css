@@ -1,12 +1,8 @@
-/* flush-wall/page.js's escape hatch. `.page-column-prose` (core/Page/Page.css) insets
-   every column's content 0.7em/0.9em — the constant this cancels, so the flush grid
-   below can actually reach the column's edges, which is the whole comparison. Cells
-   get their own hairline + surface so a 0-GAP row still shows a seam between tiles;
-   the container itself stays 0-gap, 0-pad. */
+/* `.page-grids-flush` is GONE (2026-08-27). It was the flush-wall escape hatch, kept as
+   an alias while one call site still named it — the pre-committed deletion fired: the
+   container is `bleed` (core/Page/Page.css, `.page-column-prose > .bleed`) and the cells
+   are `surface pad`, both site words, so the local rule had nothing left to say. */
 @layer theme {
-
-	.page-grids-flush { margin: -0.7em -0.9em; }
-	.page-grids-flush > * { padding: 0.6em; border: 1px solid var(--line); background: var(--surface); }
 
 	/* grid-detail/page.js: the SAME children `column()` always lists as rows below
 	   content() (Page.css's `.page-column-item`), restyled into a grid of tiles —

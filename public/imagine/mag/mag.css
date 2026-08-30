@@ -1,0 +1,312 @@
+/* /imagine/mag/ — one small magazine, composed out of the column program's own words.
+
+   There is no new mechanism in this file. The row, the width words, the crumb strip,
+   the resizable seams, `bleed` and `index` are all core's (core/Page/doc/columns.md);
+   what is here is a magazine's TYPE and its three rungs of paper, which is the part a
+   framework should not have an opinion about.
+
+   Structure, in the order the reader meets it:
+     1. the cover        — a `full` column, two boxes, display type
+     2. the golden share — what the cover does when the issue opens beside it
+     3. the tone ladder  — three rungs, one step each, all opaque
+     4. the contents     — entries, not tiles
+     5. the article      — the 40em measure, and the four bled blocks
+     6. the data piece   — chips, a count, bars
+
+   Colour: `--prim` is the ONE accent and it appears four times — the cover rule, the
+   entry numbers, the bars, the line above the next-hop. Everything else is a veil of
+   `--ink` over `--surface`. Never `--well`: it is a translucent shadow, not a palette
+   colour, and stacking it bands the row (doc/findings.md). */
+
+@layer theme {
+
+	/* ⚠ THE UA'S OWN MARGINS. `p` and every heading still carry them — framework.css
+	   zeroes them for the children of `.flex`, `.grid` and `.wall` and leaves every
+	   other box to say so itself. Every box in this file arranges with `gap` or
+	   padding, so all of them do. `:where()` keeps this at specificity ZERO, so the
+	   handful of deliberate margins below win wherever they are written rather than by
+	   being written after it. */
+	:where(.mag-head, .mag-cover-block, .mag-entry-body,
+	       .mag-quote, .mag-figure, .mag-tones, .mag-next, .mag-data) > * { margin: 0; }
+
+	/* ════ 1. THE COVER ═══════════════════════════════════════════════════════
+	   The page overrides `column()` so there is no head, no × and no nav rail: the
+	   sheet IS the link into the issue, and the crumb strip above the row is the way
+	   back. The body becomes a flex column so the sheet can take the height. */
+	.mag-sheet { display: flex; flex-direction: column; padding: 0; }
+
+	/* TWO BOXES. The AREA is the paper — full bleed, the click target, the box that
+	   carries the tone. The BLOCK inside it is what the cover composes into: capped,
+	   centred, and the query container, so the title is the same fraction of its own
+	   composition at 38.2% of 1280 as it is on the whole of 3440.
+	   ⚠ The veil is a token so the four states below are four one-line rules instead
+	     of four backgrounds that have to be kept in step. */
+	.mag-cover-area {
+		flex: 1;
+		display: flex; flex-direction: column; justify-content: center;
+		padding: clamp(1.1rem, 5%, 4rem);
+		background: color-mix(in srgb, var(--ink) var(--mag-veil, 0%), var(--surface));
+		color: inherit; text-decoration: none;
+		transition: background-color 0.2s;
+	}
+
+	/* `max(46em, 44%)` is two rules in one: below ~1670px of area the cap never bites
+	   and the block is simply 46em; above it the block stops being a fixed width and
+	   starts taking a SHARE, so 3440 is a bigger cover rather than a bigger empty
+	   corner. (34% was the first number and left the title floating in a third of
+	   1920 — measured, then raised.)
+	   ⚠ Never `width: fit-content` on a container: an inline-size container may not be
+	     sized by its own contents and would compute to 0. */
+	.mag-cover-block {
+		container: mag-cover / inline-size;
+		width: min(100%, max(46em, 44%));
+		margin-inline: auto;
+		display: flex; flex-direction: column; gap: 0.45em;
+	}
+
+	.mag-cover-rule {
+		flex: 0 0 auto;
+		width: clamp(2.5rem, 18cqw, 9rem); height: 0.3em;
+		margin-block-end: 0.45em;
+		background: var(--prim);
+	}
+
+	.mag-cover-title {
+		font-size: clamp(2.2rem, 17cqw, 12rem);
+		font-weight: 900; letter-spacing: -0.04em; line-height: 0.88;
+	}
+
+	.mag-cover-note {
+		max-width: 22em;
+		color: var(--subtle);
+		font-size: clamp(0.85rem, 3cqw, 1.5rem); line-height: 1.4;
+	}
+
+	.mag-cover-enter {
+		margin-block-start: 0.7em;
+		color: var(--prim-ink);
+		font-size: clamp(0.72rem, 2.1cqw, 1.05rem);
+		font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+	}
+
+	/* ════ 2. THE GOLDEN SHARE ════════════════════════════════════════════════
+	   Open the issue and the cover keeps its column and gives up the major part of the
+	   row. Same page, no second render, no state: one rule that asks whether it has a
+	   child open. 38.2% is still 640px at 1920, which holds the title at display size.
+	   ⚠ `:has()` on the PAGE, not on the body — an open child lives in the body's
+	     SIBLING region (`.page-column-pages`), so the body cannot see it from where it
+	     sits.
+	   ⚠ `flex-grow: 0`, and that is where this differs from the screens lab's pair.
+	     There the two shares sum to 100%, there is no free space, and both may grow.
+	     Here the columns beside the cover have a flex-basis of ZERO, so a growing cover
+	     would take a third of the leftover on top of its 38.2% and land near 59%. The
+	     basis says the share; grow must not undo it.
+	   ⚠ It also un-does `full`'s `min-width: 100%`, which is what would otherwise push
+	     the contents off the row entirely. The `page-column-full` CLASS stays, so the
+	     site's own rail is still folded into the crumb strip — the magazine keeps the
+	     screen it took. */
+	.mag-cover:has(> .page-column-pages > .page:is(.active-page, .active-ancestor)) > .page-column-body {
+		--page-column-flex: 0 1 38.2%;
+		--page-column-min: 12em;
+		--page-column-max: none;
+	}
+
+	/* AND ONE STEP FURTHER once you are actually reading. The golden share is the
+	   moment the issue OPENS — cover and contents, a spread. With an article open too
+	   it costs the reading column its measure: at 1280 the three columns landed at
+	   489 / 421 / 370, and 370px is 46 characters, well under the forty ems this
+	   issue's third article is about. A fifth of the row instead, and the article gets
+	   602 at 1280 and its full 640 at 1920.
+	   ⚠ Same specificity as the rule above — `:has()` takes its most specific ARGUMENT,
+	     and both arguments end in `.page:is(…)`. Source order is what decides, and
+	     that is the intent: deeper state, written later, wins. */
+	.mag-cover:has(> .page-column-pages > .page > .page-column-pages > .page:is(.active-page, .active-ancestor)) > .page-column-body {
+		--page-column-flex: 0 1 20%;
+	}
+
+	/* ════ 3. THE TONE LADDER ═════════════════════════════════════════════════
+	   The vary lab's verdict, said with paper: stepping toward CLEANER as you go
+	   deeper reads as a stack lifting toward the reader, where stepping the other way
+	   reads as a well you are falling into and alternating reads as stripes. Three
+	   rungs — the cover behind you carries the most veil, the contents carries less,
+	   the article carries none and is the only white thing on the row.
+	   ⚠ OPAQUE, all three. The row draws its empty slots as a repeating hairline
+	     BEHIND the columns and paints an opaque floor under the real bodies for exactly
+	     this reason; a translucent body would let the ghost lines paint through it.
+	     `color-mix` into `--surface` keeps the veil and loses the transparency.
+	   ⚠ Mixed into `--ink`, which flips with the colour scheme — so the ladder steps
+	     the same DIRECTION in dark mode, where "cleaner" means darker. */
+	.mag-cover-area:hover { --mag-veil: 4%; }
+	.mag-cover.active-ancestor .mag-cover-area { --mag-veil: 9%; }
+	.mag-cover.active-ancestor .mag-cover-area:hover { --mag-veil: 13%; }
+
+	.mag-contents > .page-column-body { background: color-mix(in srgb, var(--ink) 3.5%, var(--surface)); }
+	.mag-read > .page-column-body { background: var(--surface); }
+
+	/* ════ 4. THE CONTENTS ════════════════════════════════════════════════════
+	   `index: true` on the page, so core leaves its automatic rail out and the cards
+	   below are the only list. */
+	.mag-head { display: flex; flex-direction: column; gap: 0.5em; }
+
+	/* ⚠ (0,3,0), and the reason is the theme. `lew42.css` sizes generic headings at
+	     `.theme-lew42 :is(h2, .h2)` — (0,2,0), in this same layer — so a plain
+	     `.mag-masthead` lost outright and a `.mag-head .mag-masthead` would only TIE
+	     and be decided by which sheet loaded last. A magazine's own headline scale is
+	     the one thing it may not inherit, so it is said at a specificity that cannot
+	     be argued with. Same for `.mag-title` and `.mag-sub` below. */
+	.mag-contents .mag-head .mag-masthead {
+		font-size: 2em; font-weight: 900; letter-spacing: -0.025em; line-height: 1.05;
+	}
+
+	/* An entry is a line of type with a standfirst under it, not a tile — so the wall
+	   is told a real column width instead of the 14em default that would deal four of
+	   them across a 1024px `large` column. */
+	.mag-contents .page-previews { --column: 22em; }
+
+	/* (0,2,0): `.page-preview` is a flex COLUMN at (0,1,0) and a tie would be decided
+	   by which sheet loaded last. */
+	.page-preview.mag-entry { flex-direction: row; align-items: baseline; gap: 0.75em; }
+
+	.mag-entry-no {
+		flex: 0 0 auto;
+		color: var(--prim);
+		font-size: 1.5em; font-weight: 900; line-height: 1; letter-spacing: -0.04em;
+	}
+
+	.mag-entry-body { display: flex; flex-direction: column; gap: 0.15em; min-width: 0; }
+	.mag-entry-title { font-size: 1.15em; font-weight: 800; line-height: 1.15; letter-spacing: -0.015em; }
+	.mag-entry-stand { font-size: 0.85em; color: var(--subtle); line-height: 1.4; }
+
+	/* ════ 5. THE ARTICLE ═════════════════════════════════════════════════════
+	   No width word at all: the default track, a 16em floor and the 40em measure as
+	   its ceiling. This is the page the ceiling exists for.
+	   ⚠ A column's prose is a NOTE by default — 0.9em, 0.8em of rhythm — and an
+	     article is not a note. Full size and the paragraph spacing that goes with it,
+	     at (0,2,0) so it beats `.page-column-prose`'s own (0,1,0). The 40em ceiling is
+	     untouched. */
+	.mag-read .page-column-prose { font-size: 1em; --flow: 1.05em; }
+
+	.mag-eyebrow {
+		color: var(--prim-ink);
+		font-size: 0.72em; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+	}
+
+	/* The headline scale — display, standfirst, subhead. The gap between the first and
+	   the third is what says which is which; on the theme's own scale (3em / 2.25em)
+	   a subhead came within a few pixels of the title and the article read as two
+	   headlines with prose in between. */
+	.mag-read .mag-head .mag-title { font-size: 2.4em; font-weight: 900; letter-spacing: -0.03em; line-height: 1.04; }
+	.mag-read .page-column-prose .mag-sub { font-size: 1.2em; font-weight: 800; line-height: 1.25; letter-spacing: -0.01em; }
+
+	.mag-stand { font-size: 1.15em; color: var(--subtle); line-height: 1.45; }
+
+	/* ── the four bled blocks ──
+	   Every one of them is a DIRECT child of `.page-column-prose`, which is what makes
+	   `bleed` spend the column's own `--page-column-pad-x`; the padding below hands the
+	   text back onto the measure. A descendant would reach nothing. */
+	.mag-quote,
+	.mag-figure,
+	.mag-tones,
+	.mag-data {
+		padding: 1.1em var(--page-column-pad-x);
+		border-block: 1px solid var(--line);
+	}
+
+	/* 6%, not 3%: the frames and the swatches are made of `--surface` cells, so the
+	   plate has to be a step DARKER than the thing it holds or the diagram reads as an
+	   empty box (measured on the first article, 1920). */
+	.mag-figure,
+	.mag-tones { background: color-mix(in srgb, var(--ink) 6%, var(--surface)); }
+
+	.mag-quote-text { font-size: 1.3em; font-weight: 700; line-height: 1.3; letter-spacing: -0.02em; }
+
+	.mag-quote-by {
+		margin-block-start: 0.5em;
+		color: var(--subtle);
+		font-size: 0.72em; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+	}
+
+	/* A picture of a row, drawn: one frame per hop, the cells weighted by the shares
+	   the article is discussing. No image files, and it reflows with the column. */
+	.mag-frames { display: flex; align-items: center; gap: 0.4em; }
+	.mag-frames .icon { flex: 0 0 auto; color: var(--subtle); font-size: 1.1em; }
+
+	.mag-frame {
+		flex: 1; min-width: 0;
+		display: flex; gap: 1px; height: 4.5em;
+		background: var(--line);
+		border: 1px solid var(--line); border-radius: 3px;
+		overflow: hidden;
+	}
+
+	.mag-cell { min-width: 0; background: var(--surface); }
+
+	/* The same three veils the columns wear, so the graphic cannot drift from the
+	   thing it illustrates. */
+	.mag-tones-row {
+		display: flex; gap: 1px;
+		background: var(--line);
+		border: 1px solid var(--line); border-radius: 3px;
+		overflow: hidden;
+	}
+
+	.mag-tone { flex: 1; min-width: 0; display: flex; align-items: flex-end; padding: 1.6em 0.6em 0.5em; }
+	.mag-tone-label { color: var(--subtle); font-size: 0.7em; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+	.mag-tone-1 { background: color-mix(in srgb, var(--ink) 9%, var(--surface)); }
+	.mag-tone-2 { background: color-mix(in srgb, var(--ink) 3.5%, var(--surface)); }
+	.mag-tone-3 { background: var(--surface); }
+
+	.mag-caption { margin-block-start: 0.7em; color: var(--subtle); font-size: 0.78em; line-height: 1.4; }
+
+	/* ── the next hop ──
+	   Reading is a line, not a tree. It is `:last-child`, so `bleed` cancels the block
+	   end too and it sits flush on the column's bottom edge. */
+	.mag-next {
+		display: block;
+		padding: 1.1em var(--page-column-pad-x);
+		border-block-start: 3px solid var(--prim);
+		background: color-mix(in srgb, var(--ink) 4%, var(--surface));
+		color: inherit; text-decoration: none;
+	}
+
+	.mag-next:hover { background: color-mix(in srgb, var(--ink) 8%, var(--surface)); }
+	.mag-next-title { margin-block-start: 0.25em; font-size: 1.35em; font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; }
+	.mag-next-stand { margin-block-start: 0.3em; color: var(--subtle); font-size: 0.85em; line-height: 1.4; }
+
+	/* ════ 6. THE DATA PIECE ══════════════════════════════════════════════════
+	   One control over one fetched file, three renderings of the same rows — the feeds
+	   lab's shape, at the size a single column can carry. */
+	.mag-data { background: color-mix(in srgb, var(--ink) 3%, var(--surface)); }
+	.mag-data-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6em; margin-block-end: 0.9em; }
+	.mag-chips { display: flex; flex-wrap: wrap; gap: 0.3em; }
+
+	/* (0,3,0) on purpose: the theme styles every `button` as an uppercase CTA at
+	   (0,2,0) in this same layer, and a tie would be decided by load order. */
+	.mag-data .mag-chips .mag-chip {
+		padding: 0.25em 0.7em;
+		color: var(--subtle);
+		font-size: 0.75em; font-weight: 500;
+		letter-spacing: normal; text-transform: none;
+		background: var(--surface);
+		border: 1px solid var(--line); border-radius: 999px;
+	}
+
+	.mag-data .mag-chips .mag-chip:hover { color: var(--ink); border-color: var(--prim); }
+
+	/* Ink on paper, inverted — the fill has to read as SELECTED in both colour
+	   schemes, and the accent is already spent four times on this page. */
+	.mag-data .mag-chips .mag-chip.mag-chip-on {
+		color: var(--surface);
+		background: var(--ink);
+		border-color: var(--ink);
+	}
+
+	.mag-count { margin-inline-start: auto; color: var(--subtle); font-size: 0.78em; }
+
+	.mag-bars { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 0.3em 0.7em; align-items: center; }
+	.mag-bar-word { font-size: 0.8em; font-weight: 700; }
+	.mag-bar-vp { margin-inline-start: 0.35em; color: var(--subtle); font-weight: 400; }
+	.mag-bar-track { min-width: 0; }
+	.mag-bar { height: 0.8em; min-width: 2px; background: var(--prim); border-radius: 2px; }
+	.mag-bar-px { color: var(--subtle); font-size: 0.75em; font-variant-numeric: tabular-nums; }
+}

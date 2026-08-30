@@ -53,15 +53,11 @@
 	.layout-btn:hover { color: var(--ink); border-color: var(--line); }
 	.layout-btn.on { color: var(--prim); border-color: var(--prim); }
 
-	/* Both declarations are about `select` defaults in framework.css.
-	   ⚠ `width: auto` — base gives every select `width: 100%`, which in a flex bar
-	     eats the row.
-	   ⚠ `background-origin` — theme paints the arrow at 100% of the CONTENT box, so
-	     on a shrink-to-fit select the padding-right walks it onto the text. */
+	/* `select.auto` (controls.js) opts out of base's 100% width — full width in a
+	   flex bar eats the row. The 1.4em right padding restates the arrow's lane,
+	   because a padding shorthand names all four sides. */
 	.layout-pick {
-		width: auto;
 		padding: 0.1em 1.4em 0.1em 0.5em;
-		background-origin: padding-box;
 		color: var(--subtle);
 		border-color: var(--line);
 		border-radius: var(--radius);

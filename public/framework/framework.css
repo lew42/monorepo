@@ -331,11 +331,21 @@
 
     fieldset > p:first-of-type { margin-top: 0; }
 
-    select {     appearance: none;
-    background: field no-repeat 100%;
-    background-size: 0.5em;
-    background-origin: content-box;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='40' fill='%23555'><polygon points='0,0 60,0 30,40'/></svg>"); }
+    /* The arrow: an EDGE OFFSET — `right 0.5em center`, measured from the padding
+       box — never `100%` + `background-origin: content-box`, which pinned it to
+       where the TEXT ends, so on a shrink-to-fit select every em of padding-right
+       walked it left, onto the text (stage, layout and the generator each patched
+       that locally before it moved here, 2026-08-28). `padding-inline-end` is the
+       arrow's lane, so the longest option clears it at any width.
+       ⚠ A downstream `background:` SHORTHAND wipes the arrow — recolour with
+         `background-color`, never the shorthand. */
+    select {
+        appearance: none;
+        background: field no-repeat right 0.5em center;
+        background-size: 0.5em;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='40' fill='%23555'><polygon points='0,0 60,0 30,40'/></svg>");
+        padding-inline-end: 1.4em;
+    }
 
     /* `.btn` makes a non-button look like a button; a bare `button` matches it,
        because that promise is only true if they do. `.prim` and `.bg` promote it.
@@ -375,7 +385,13 @@
     .pad { padding: var(--pad, 1em); }
     .all-pad > * { padding: var(--pad, 1em); }
     .mb { margin-bottom: 1em; }
-    
+
+    /* Base sizes every select 100% — form fields align. A CHROME select (a toolbar
+       picker, a column-head menu) opts back out with one word. Same word, two
+       scopes on purpose: `.grid.auto` / `.flex.auto` is auto-fill columns;
+       `select.auto` is only ever width. */
+    select.auto { width: auto; }
+
     .flex { display: flex; }
     .flex.wrap, .flex.auto, .flex.three { flex-wrap: wrap; }
     /* `min-width: 0` for the same reason `.flex-1` and `.basis` carry it: the

@@ -266,3 +266,44 @@
 {"log":{"at":"2026-08-26T15:49:22-05:00","session":15,"weekly_all":20,"weekly_scoped":19,"resets_at":"2026-08-26T21:09:59.582026+00:00"}}
 {"log":{"at":"2026-08-26T16:16:00-05:00","session":15,"weekly_all":19,"weekly_scoped":19,"resets_at":"2026-08-26T21:09:59.880272+00:00"}}
 {"log":{"at":"2026-08-26T16:01:49-05:00","session":15,"weekly_all":20,"weekly_scoped":20,"resets_at":"2026-08-26T21:10:00.263396+00:00"}}
+{"log": {"at": "2026-08-27T16:12:00-05:00", "session": 3, "weekly_all": 1, "weekly_scoped": 2, "resets_at": "next-window"}}
+{"log": {"at": "2026-08-27T16:14:10-05:00", "session": 5.0, "weekly_all": 1.0, "weekly_scoped": 0.0, "resets_at": "2026-08-27T23:00:00.213695+00:00"}}
+{"log": {"at": "2026-08-27T16:37:08-05:00", "session": 12.0, "weekly_all": 3.0, "weekly_scoped": 0.0, "resets_at": "2026-08-27T23:00:00.429891+00:00"}}
+{"log": {"at": "2026-08-27T16:38:17-05:00", "session": 12, "weekly_all": 3, "weekly_scoped": 3, "resets_at": "2026-08-27T23:00:00.252139+00:00"}}
+{"log": {"at": "2026-08-27T16:39:30-05:00", "session": 12, "weekly_all": 1, "weekly_scoped": 2, "resets_at": "2026-08-27T22:59:59.954715+00:00"}}
+{"log": {"at": "2026-08-27T16:41:22-05:00", "session": 12, "weekly_all": 3, "weekly_scoped": 3, "resets_at": "2026-08-27T22:59:59+00:00"}}
+{"log": {"at": "2026-08-27T16:43:00-05:00", "session": 13, "weekly_all": 3, "weekly_scoped": 0, "resets_at": "2026-08-27T23:00:00.296511+00:00"}}
+{"log": {"at": "2026-08-27T17:08:00-05:00", "session": 17, "weekly_all": 4, "weekly_scoped": 4, "resets_at": "2026-08-27T22:59:59.571719+00:00"}}
+{"log": {"at": "2026-08-27T17:10:41-05:00", "session": 18, "weekly_all": 4, "weekly_scoped": 0, "resets_at": "2026-08-27T22:59:59Z"}}
+{"log": {"at": "2026-08-27T17:14:58-05:00", "session": 19.0, "weekly_all": 4.0, "weekly_scoped": 4.0, "resets_at": "2026-08-27T23:00:00.360972+00:00"}}
+{"log": {"at": "2026-08-27T17:52:00-05:00", "session": 22.0, "weekly_all": 5.0, "weekly_scoped": 3, "resets_at": "2026-08-27T23:00:00.123666+00:00"}}
+{"log": {"at": "2026-08-27T17:40:16-05:00", "session": 22, "weekly_all": 5, "weekly_scoped": 5, "resets_at": "2026-08-27T22:59:59.895804+00:00"}}
+{"log": {"at": "2026-08-28T10:48:43-05:00", "session": 2, "weekly_all": 5, "weekly_scoped": 5, "resets_at": "2026-08-28T20:29:59.925170+00:00"}}
+{"log": {"at": "2026-08-28T11:18:57-05:00", "session": 4, "weekly_all": 6, "weekly_scoped": 6, "resets_at": "2026-08-28T20:29:59.590558+00:00"}}
+{"log": {"at": "2026-08-29T11:56:05-05:00", "session": 4, "weekly_all": 7, "weekly_scoped": 0, "resets_at": "2026-08-29T20:30:00.243869+00:00"}}
+{"log": {"at": "2026-08-29T12:12:09-05:00", "session": 4, "weekly_all": 7, "weekly_scoped": 0, "resets_at": "2026-08-29T20:30:00Z"}}
+{"log": {"at": "2026-08-29T13:41:00-05:00", "session": 7, "weekly_all": 8, "weekly_scoped": 0, "resets_at": "2026-08-29T20:30:00.330267+00:00"}}
+{"log": {"at": "2026-08-29T13:49:44-05:00", "session": 11, "weekly_all": 8, "weekly_scoped": 8, "resets_at": "2026-08-29T20:29:59+00:00"}}
+{"log": {"at": "2026-08-29T13:54:57-05:00", "session": 13, "weekly_all": 9, "weekly_scoped": 9, "resets_at": "2026-08-29T20:29:59.732933+00:00"}}
+{"log": {"at": "2026-08-29T14:01:50-05:00", "session": 14, "weekly_all": 9, "weekly_scoped": 0, "resets_at": "2026-08-29T20:30:00.221808+00:00"}}
+{"log": {"at": "2026-08-29T14:03:49-05:00", "session": 14, "weekly_all": 9, "weekly_scoped": 9, "resets_at": "2026-08-29T20:30:00.026521+00:00"}}
+{"log": {"at": "2026-08-29T14:08:00-05:00", "session": 15, "weekly_all": 9, "weekly_scoped": 9, "resets_at": "2026-08-29T20:30:00.182434+00:00"}}
+{"log": {"at": "2026-08-29T14:26:30-05:00", "session": 17, "weekly_all": 10, "weekly_scoped": 0, "resets_at": "2026-08-29T20:30:00.246749+00:00"}}
+{"log": {"at": "2026-08-29T15:35:00-05:00", "session": 17.0, "weekly_all": 10.0, "weekly_scoped": null, "resets_at": "2026-08-29T20:29:59.937499+00:00"}}
+{"log": {"at": "2026-08-29T14:26:00-05:00", "session": 17, "weekly_all": 10, "weekly_scoped": 10, "resets_at": "2026-08-29T20:29:59.684704+00:00"}}
+{"log": {"at": "2026-08-29T14:43:32-05:00", "session": 21, "weekly_all": 10, "weekly_scoped": 10, "resets_at": "2026-08-29T20:30:00.202535+00:00"}}
+{"log": {"at": "2026-08-29T14:50:06-05:00", "session": 22.0, "weekly_all": 11.0, "weekly_scoped": 11.0, "resets_at": "2026-08-29T20:29:59.619402+00:00"}}
+{"log": {"at": "2026-08-29T14:56:25-05:00", "session": 22, "weekly_all": 11, "weekly_scoped": 0, "resets_at": "2026-08-29T20:30:00.221183+00:00"}}
+{"log": {"at": "2026-08-29T15:01:30-05:00", "session": 22, "weekly_all": 11, "weekly_scoped": 0, "resets_at": "2026-08-29T20:29:59.631658+00:00"}}
+{"log": {"at": "2026-08-29T15:01:25-05:00", "session": 23, "weekly_all": 11, "weekly_scoped": 10, "resets_at": "2026-08-29T20:30:00.084178+00:00"}}
+{"log": {"at": "2026-08-29T15:16:39-05:00", "session": 26, "weekly_all": 11, "weekly_scoped": 10, "resets_at": "2026-08-29T20:29:59+00:00"}}
+{"log": {"at": "2026-08-29T15:27:00-05:00", "session": 27, "weekly_all": 12, "weekly_scoped": 12, "resets_at": "2026-08-29T20:29:59.730369+00:00"}}
+{"log":{"at":"2026-08-29T15:52:00-05:00","session":28,"weekly_all":12,"weekly_scoped":0,"resets_at":"2026-08-29T20:29:59+00:00"}}
+{"log": {"at": "2026-08-29T15:28:41-05:00", "session": 28.0, "weekly_all": 11, "weekly_scoped": 10, "resets_at": "2026-08-29T20:30:00+00:00"}}
+{"log": {"at": "2026-08-29T15:45:39-05:00", "session": 1.0, "weekly_all": 11, "weekly_scoped": 10, "resets_at": "2026-08-29T20:30:00+00:00"}}
+{"log": {"at": "2026-08-29T16:32:00-05:00", "session": 4.0, "weekly_all": 12, "weekly_scoped": 12, "resets_at": "2026-08-30T01:30:00+00:00"}}
+{"log": {"at": "2026-08-29T16:57:00-05:00", "session": 5, "weekly_all": 13, "weekly_scoped": 0, "resets_at": "2026-08-30T01:30:00.269910+00:00"}}
+{"log": {"at": "2026-08-29T17:26:00-05:00", "session": 8, "weekly_all": 13, "weekly_scoped": 0, "resets_at": "2026-08-30T01:30:00Z"}}
+{"log": {"at": "2026-08-29T18:25:00-05:00", "session": 9, "weekly_all": 13, "weekly_scoped": 11, "resets_at": "2026-08-30T01:30:00.033321+00:00"}}
+{"log": {"at": "2026-08-30T11:16:00-05:00", "session": 7, "weekly_all": 21, "weekly_scoped": 0, "resets_at": "2026-08-30T16:49:59.791524+00:00"}}
+{"log": {"at": "2026-08-30T11:16:37-05:00", "session": 8, "weekly_all": 21, "weekly_scoped": 27, "resets_at": "2026-08-30T16:50:00.406007+00:00"}}

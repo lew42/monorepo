@@ -111,10 +111,9 @@
 	.ai-check.now { color: inherit; font-weight: 700; }
 	.ai-check.now .ai-box { border-color: var(--ok); animation: ai-pulse 1.6s ease-in-out infinite; }
 
-	/* Start work from the board (compose.js). Layout only — the box is `surface`.
-	   ⚠ `width: auto`: framework.css sizes every select to 100%, so two of them
-	   in a row is two stacked full-width bars. */
-	.ai-compose-effort, .ai-compose-model { width: auto; }
+	/* Start work from the board (compose.js). Layout only — the box is `surface`;
+	   the effort/model selects wear `select.auto` (framework.css) — two stacked
+	   full-width bars otherwise. */
 	.ai-compose-name { width: auto; flex: 1 1 10em; min-width: 0; }
 
 	/* The date is a LABEL, not a headline. `ux-v1` named the 48px `2026-08-17` at

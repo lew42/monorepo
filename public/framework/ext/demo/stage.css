@@ -100,16 +100,11 @@
 		font-family: var(--mono);
 	}
 
-	/* Both rules are about `select` defaults in framework.css.
-	   ⚠ `width: auto` — base gives every select `width: 100%`, which in a flex bar
-	     eats the row and collapses the spacer beside it.
-	   ⚠ `background-origin: padding-box` — theme paints the arrow at 100% of the
-	     CONTENT box, so on a shrink-to-fit select every em of padding-right moved
-	     the arrow an em LEFT, onto the text. */
+	/* `select.auto` (stage.js) opts out of base's 100% width — full width in a flex
+	   bar eats the row and collapses the spacer beside it. The 1.4em right padding
+	   restates the arrow's lane, because a padding shorthand names all four sides. */
 	.demo-zoom {
-		width: auto;
 		padding: 0.1em 1.4em 0.1em 0.5em;
-		background-origin: padding-box;
 		font-size: 0.9em;
 		color: var(--subtle);
 		border-color: var(--line);

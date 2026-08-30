@@ -11,29 +11,25 @@
  * Above 1 the pair is encouraged, below 1 discouraged, and an unlisted pair is 1 — so a
  * row only says what it has an opinion about. This is TASTE, not measurement: read it,
  * argue with it, change a number. The page renders the table so you can.
+ *
+ * ⚠ Four rows, not eight (model v2): the four words that can HAVE children. `prose` is the
+ *   leaf and never parents anything, and the words that were only a look — `grid`, `flush`,
+ *   `crumbs`, `rail` — are patterns now, not words, so there is nothing to weigh them with.
  */
 export const PAIRS = {
-	tabs:   { tabs: 0.2, vtabs: 0.5, wall: 2,   grid: 2,   list: 1.5 },
-	vtabs:  { vtabs: 0.2, rail: 0.3, tabs: 0.5, list: 1.5, wall: 1.5 },
-	rail:   { rail: 0.2, vtabs: 0.3, wall: 2,   grid: 2,   tabs: 1.5 },
-	wall:   { wall: 0.3, grid: 0.5, list: 2,    tabs: 1.5, crumbs: 1.5 },
-	grid:   { grid: 0.3, wall: 0.5, flush: 0.5, list: 2,   tabs: 1.5 },
-	flush:  { flush: 0.2, grid: 0.3, wall: 0.5, list: 2,   tabs: 1.5 },
-	list:   { list: 1.2, wall: 2,   grid: 1.5,  tabs: 1.5, vtabs: 0.5 },
-	crumbs: { crumbs: 0.2, wall: 1.5, list: 1.5 },
+	tabs:  { tabs: 0.25, vtabs: 0.8, wall: 2,   list: 1.5 },
+	vtabs: { vtabs: 0.25, tabs: 0.8, wall: 2,   list: 1.5 },
+	wall:  { wall: 0.3,  list: 2,   tabs: 1.5, vtabs: 1.2 },
+	list:  { list: 1.2,  wall: 2,   tabs: 1.5, vtabs: 0.6 },
 };
 
 /* One line each, in the same order — why the row reads the way it does. The page draws
    these beside the numbers, because a weight nobody can explain is a weight nobody can hone. */
 export const NOTES = {
-	tabs:   "Tabs inside tabs is the alternating-band look the ask names. A tab should open content — a wall, a grid, a list.",
-	vtabs:  "Side tabs beside a rail is two navs on one edge. Give them content to the right instead.",
-	rail:   "A rail picks a section, so the section should be the wide thing: a wall or a grid.",
-	wall:   "A card opens a detail, not another wall. Lists and crumbs read as the level below.",
-	grid:   "Small cells are already the dense level; going denser reads as noise.",
-	flush:  "The one grid with no gap wants quiet inside it — never a second flush grid.",
-	list:   "A list is the safest parent there is: it picks, and the pick is wide. Miller columns are lists of lists.",
-	crumbs: "Crumbs are a strip, not a level — one is enough anywhere in a branch.",
+	tabs:  "A tab opens INTO this column, so tabs inside tabs is a strip inside a panel inside a strip. A tab should hold content — a wall, a list.",
+	vtabs: "Same set on its side. A side rail whose tab is another side rail puts two navs on one edge.",
+	wall:  "A card opens a NEW column, and what it opens should be the level below: an inbox, or content. A wall of walls is the look the ask names.",
+	list:  "An inbox picks, and the pick is wide. Inboxes of inboxes are Miller columns, which is the shape this whole system is; a rail inside the detail is one nav too many.",
 };
 
 /**

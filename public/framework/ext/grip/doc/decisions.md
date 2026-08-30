@@ -64,9 +64,33 @@ is handed — so a rail cannot remember a width it refused to take.
 - **Both rails resize**: drawer +160px → width 459 and `.app`'s reserved strip 459
   (one number, both directions); dev rail +200px → `--dev-rail` 266px → 466px.
 
-**`from: "start"` (2026-08-19):** `ext/Playground`'s tree column docks at the shell's
-start, not the screen's end — `edge = rect.left; px = clientX - edge`, default `"end"`
-unchanged; the visual flip is the caller's own CSS (`playground.css`), not this file's.
+## `from: "start"` — and why the visual flip came home (2026-08-29)
+
+`ext/Playground`'s tree column docks at the shell's **start**, not the screen's end, so
+`from: "start"` reads `edge = rect.left; px = clientX - edge`. Default `"end"` unchanged.
+
+Shipped 2026-08-19, `from` moved only the *arithmetic* and left the visual flip to the
+caller's own CSS. `playground.css` then flipped the **strip** to `inset-inline-end: 0` and
+had no way to reach the `::before` — so the lit 2px line stayed anchored to the strip's
+other side and drew **10px short of the boundary it drags** (measured: `.pg-tree`'s
+tree/canvas boundary at 469.22, line at 457.22–459.22). That is what the owner reported as
+"the grip is offset in a strange way".
+
+`grip.js` now stamps **`.grip-start`** and `grip.css` mirrors the whole geometry under it —
+strip *and* line together. `playground.css`'s override is deleted; a consumer states which
+edge it docks on and compensates for nothing. Verified after: `gap_to_boundary` **0.00px**
+on the tree, both Playground grips still drag ±100px exactly, drawer and dev rail
+(`from` defaulted) byte-identical.
+
+**The pill needs no mirror.** `inset-inline-start: 50%` with `translate(-50%, -50%)`
+centres it in the strip, and a 0.75rem strip's centre is the same point measured from
+either side.
+
+**The remaining 1px is correct.** An end-docked rail's line lands 1px inside its boundary
+because `position: absolute` insets resolve against the **padding** box and both rails
+carry a 1px `border-inline-start`. The 1px `--line` border and the 2px `--prim` line sit
+adjacent and read as one lit edge; pulling the strip out to `-1px` would start straddling
+the edge that rule 1 above exists to forbid.
 
 ## Rejected
 

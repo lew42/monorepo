@@ -1,0 +1,17 @@
+{"assign": {"session_id": "84e34ab9-1a05-454c-a4b1-2ffad673bbbc", "tab": "blog-arch", "group": "pages", "request": "R1 blog ARCHITECTURE: answer three unknowns with a working prototype at /blog/ and recommend. 1) Meta tags that actually work - prototype a per-post index.html that carries real static og:/twitter: tags AND boots the SPA so the post renders as a real Page at its own url; prove with curl (raw HTML, no JS) and a headless render. 2) File structure - how posts live on disk, where metadata lives, dates/ordering, how a MULTI-PART post nests; one real test post with 2 parts. 3) The un-centered 3440 reading layout - left-anchored measure with the freed right side earning its keep, degrading to 1920 and 400; measure ink-to-edge at 3440 vs a centered baseline.", "requested_at": "2026-08-30T11:15:01-05:00", "model": "claude-opus-5[1m]", "window": {"before": 0.07}, "now": "scoping - reading the boot path, Server, wrangler", "steps": ["scope: requirements, App boot, Router walk, dev server + wrangler asset rules", "Q1: per-post index.html hybrid at /blog/", "Q1 proof: curl raw og: block + headless render", "Q2: /blog/ structure, posts manifest, 2-part test post", "Q3: un-centered reading layout on the test post", "measure ink-to-edge 3440 vs centered baseline; 400/1920/3440 cold loads", "docs + keepers + links", "land"], "step": 1}}
+{"action":{"at":"2026-08-30T11:17:01-05:00","did":"edit","files":["public/framework/ai/2026-08-30/blog-arch/requirements.md"]}}
+{"log":{"at":"2026-08-30T11:17:02-05:00","msg":"skill: code"}}
+{"log":{"at":"2026-08-30T11:17:04-05:00","msg":"skill: layout"}}
+{"log":{"at":"2026-08-30T11:19:53-05:00","msg":"skill: css"}}
+{"log":{"at":"2026-08-30T11:21:34-05:00","msg":"skill: new-css-class"}}
+{"action":{"at":"2026-08-30T11:22:33-05:00","did":"edit","files":["public/blog/posts.js"]}}
+{"action":{"at":"2026-08-30T11:23:03-05:00","did":"edit","files":["public/blog/Post.js"]}}
+{"action":{"at":"2026-08-30T11:25:56-05:00","did":"edit","files":["public/blog/blog.css"]}}
+{"action":{"at":"2026-08-30T11:26:26-05:00","did":"edit","files":["public/blog/page.js"]}}
+{"action":{"at":"2026-08-30T11:26:35-05:00","did":"edit","files":["public/blog/how-this-blog-works/page.js"]}}
+{"action":{"at":"2026-08-30T11:26:56-05:00","did":"edit","files":["public/blog/how-this-blog-works/meta-tags.md"]}}
+{"action":{"at":"2026-08-30T11:27:14-05:00","did":"edit","files":["public/blog/how-this-blog-works/reading-page.md"]}}
+{"action":{"at":"2026-08-30T11:27:46-05:00","did":"edit","files":["public/blog/meta.mjs"]}}
+{"assign": {"now": "curl proof landed - static og: tags served at the post url; next the headless render", "step": 3}}
+{"log": {"at": "2026-08-30T11:28:19-05:00", "msg": "HALF ONE PROVEN. curl http://localhost/blog/how-this-blog-works/ returns 200 text/html with og:title, og:description, og:url, og:image, twitter:card in the RAW bytes - no JS run. The dev server serves it because express.static index:index.html answers a trailing-slash directory request before the SPA fallback, the same route /fly/ has used since 2026-08-17."}}
+{"log": {"at": "2026-08-30T11:28:19-05:00", "msg": "Built: blog/posts.js (the one manifest), blog/Post.js (Post extends Page - parts from .md, the reading shape), blog/page.js (index), blog/blog.css, blog/meta.mjs (stamps each index.html from the manifest, --check reports drift), and the 2-part test post blog/how-this-blog-works/."}}

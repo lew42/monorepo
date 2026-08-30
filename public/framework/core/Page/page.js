@@ -3,20 +3,25 @@ import { mini } from "../../ext/demo/mini.js";
 
 /**
  * The Overview is the **palette**: every building block a page can be made of, each
- * card a picture of the shape and nothing else. The first band is the page
- * generator's own vocabulary — `tabs vtabs rail list wall grid flush prose crumbs`
- * plus the width words — so what you can browse here is exactly what a generated
- * page can be built from.
+ * card a picture of the shape and nothing else.
+ *
+ * The first band is the page generator's own vocabulary — `columns` and the five words
+ * that say WHERE a child goes when you pick it — so what you can browse here is exactly
+ * what a generated page can be built from. `rail`, `grid`, `flush` and `crumbs` moved
+ * down to Recipes on 2026-08-27: each only changed how the child links LOOKED, which
+ * makes it a shape you compose, not a word the generator knows
+ * ([generator/readme](/framework/core/Page/generator/readme/)).
  */
 // ⚠ NO BAND UNDER SIX. `browse()`'s grid collapses its empty tracks, so a band of two
 // stretches its cards over the whole wall — 659px each at 1920, 1400 at 3440, which is
 // what the old "JS, last" pair did. `labels` is a nav entry and `render` is how a page
-// draws its own box, so both had a band already (measured 2026-08-26).
+// draws its own box, so both had a band already (measured 2026-08-26). It is also why
+// `columns` moved UP rather than the five standing alone.
 const BANDS = {
-	"Building blocks":      "tabs vtabs rail list wall grid flush prose crumbs",
+	"Building blocks":      "columns tabs vtabs list wall prose",
 	"Pages are navigation": "page children mounts replace route labels",
 	"The box":              "shell measure inset region full width render",
-	"Recipes":              "catalog dashboard strip columns landing docs site",
+	"Recipes":              "rail grid flush crumbs catalog dashboard strip landing docs site",
 };
 
 export default new Doc({
@@ -32,14 +37,14 @@ export default new Doc({
 	// Every member, in the order a reader meets them: the tree, then rendering,
 	// then the derivation the constructor does, then the plumbing and the statics.
 	methods: "child add move previews walls preview preview_card preview_link link crumbs "
-		+ "nav nav_for chain container activate render columns warn_if_hidden "
+		+ "nav nav_for chain nearest topic document container activate render columns default_column warn_if_hidden "
 		+ "naming declare load_all_children deactivate "
 		+ "mounts_in log_label assign load missing slug",
 
 	properties: "meta title children content url name label icon card classes "
 		+ "description parent app view loading route regions",
 
-	notes: "declaring labels css layout columns decisions",
+	notes: "declaring labels css layout columns roles panels previews findings decisions",
 
 	// Doc.overview_section()'s default calls catalog() — a rail, wrong for a wall this
 	// size. This override keeps the section's real children (the `overview:` list above,
@@ -85,6 +90,7 @@ export default new Doc({
 		+ "overview/full/page.js overview/width/page.js "
 		+ "overview/wall/page.js overview/catalog/page.js overview/dashboard/page.js overview/strip/page.js "
 		+ "overview/columns/page.js overview/columns/finder/page.js overview/columns/examples/page.js "
+		+ "overview/columns/refs/page.js overview/columns/panels/page.js "
 		+ "overview/columns/examples/grids/page.js overview/columns/examples/looks/page.js "
 		+ "overview/landing/page.js overview/docs/page.js overview/site/page.js "
 		+ "overview/labels/page.js overview/render/page.js",

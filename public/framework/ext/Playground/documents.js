@@ -47,13 +47,28 @@ async function reindex(slug){
 	await doc.save();
 }
 
-// A blank canvas is never truly blank (design's adjustment) — one Flex root, two Boxes.
-// Verbatim shape of design §3's own example: column, gap, padding, two children.
+/* A new document opens on the holy grail (pg-model — the owner: "start with a page with
+ * surface bg, and start with a holy grail layout … i don't feel like this helps me learn
+ * flex or grid"). The old seed was one fixed 10em box and one grow:1 box, and the ux
+ * research measured that fixed box costing 8 of 38 gestures across five canonical layouts:
+ * every one of them began by undoing it.
+ *
+ * The page is a plain Box that hugs — default div behavior, no flex, no height (the owner,
+ * 2026-08-29; a fixed 24em Flex column was the previous seed). Blocks stack; the whole
+ * document is as tall as its content and grows as you add. The pre-set `gap` draws nothing
+ * on a Box — it is the first lesson: flip the page's type to FLEX and the gap appears
+ * (gap survives convert(), items.js's own rule). Only the rails carry a length; nothing in
+ * the seed declares a height at all. Labels are semantic, so the tree reads as a page and
+ * not as "box, box, box". */
+const box = (label, data) => new Box({ data: { label, ...data } });
+
 export function seed(){
-	const root = new Flex({ data: { label: "page", direction: "column", gap: "1em", padding: "2em" } });
-	root.add(new Box({ data: { label: "box", width: "10em", height: "6em" } }));
-	root.add(new Box({ data: { label: "box", grow: "1", height: "6em" } }));
-	return root;
+	const page = box("page", { bg: "var(--surface)", padding: "1em", gap: "1em" });
+	const body = new Flex({ data: { label: "body", gap: "1em" } });
+
+	body.add(box("nav", { width: "10em" }), box("main", { width: "fill" }), box("aside", { width: "8em" }));
+	page.add(box("header"), body, box("footer"));
+	return page;
 }
 
 // "untitled-2", "untitled-3", … — the first unused suffix, never a name already in the index.

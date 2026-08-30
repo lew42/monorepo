@@ -42,7 +42,33 @@ export function properties(item, pg){
 		section("in parent", () => child_fields.forEach(([key, control, options]) => (CONTROLS[control] ?? text)(item, key, options)));
 	}
 
-	div.c("pg-readout", item.styles());
+	pg.$readout = div.c("pg-readout");
+	paint_readout(pg, item.styles(), pg.last_change?.key, pg.last_change?.before);
+}
+
+/* The readout, one line per declaration, so the LAST CHANGE can be pointed at instead of
+ * hidden inside a semicolon-joined string (ux proposal §Learnability 1 — "`apply_change(key)`
+ * already knows the key"). `before` is the node's own previous `style` attribute; the diff
+ * of the two IS the attribution, so no key → CSS-property lookup table has to exist or stay
+ * in sync with `items.js`. Omit `before` (the first paint of a selection) and nothing is
+ * highlighted — there is no "last change" to name yet.
+ *
+ * The honest third case is the interesting one: plenty of words write NO declaration at all
+ * (`hug` on a flex main axis, `fill` on a stretching cross axis — six of eighteen cells,
+ * items.js). Saying so out loud is the lesson; silence would read as a broken control. */
+export function paint_readout(pg, style, key, before){
+	const was = (before ?? "").split("; ").filter(Boolean);
+	const now = style.split("; ").filter(Boolean);
+	const fresh = now.filter(d => !was.includes(d));
+	const gone = was.filter(d => !now.includes(d));
+
+	pg.$readout.empty(() => {
+		now.forEach(d => div.c("pg-decl", d).ac(before !== undefined && fresh.includes(d) && "pg-decl-new"));
+		if (key === undefined) return;
+		div.c("pg-decl-note", fresh.length ? `↑ ${key}`
+			: gone.length ? `${key} — removed ${gone.join("; ")}`
+			: `${key} — writes no CSS here (the default already does it)`);
+	});
 }
 
 // Always-on (pg-sidebar brief §1): label, type, gap and pad (outside flex/grid per the
@@ -62,8 +88,13 @@ function section(title, fn){
 	div.c("pg-section", () => { div.c("pg-section-head", title); fn(); });
 }
 
-// auto | flex | grid — switching CONVERTS the selected item in place, same id, same data,
-// children moved onto the new instance (`Playground.js#convert`, pg-sidebar brief §2).
+/* auto | flex | grid — switching CONVERTS the selected item in place, same id, same data,
+ * children moved onto the new instance (`Playground.js#convert`, pg-sidebar brief §2).
+ *
+ * Choosing `grid` WRITES `1fr 1fr` into `columns` (pg-edges item 4). A grid still costs two
+ * gestures — a template is information, not a click — but the second one is now an edit of a
+ * real value already on screen and already drawn, instead of finding an empty field and
+ * inventing the syntax. It never overwrites a template the document already had. */
 function type_field(item, pg){
 	div.c("pg-field", () => {
 		label.c("pg-field-label", "type");
@@ -71,7 +102,13 @@ function type_field(item, pg){
 			const current = item instanceof Grid ? "grid" : item instanceof Flex ? "flex" : "auto";
 			Object.keys(TYPES).forEach(opt => {
 				button.c(`pg-seg-btn${current === opt ? " pg-seg-active" : ""}`, opt)
-					.click(() => pg.convert(item, TYPES[opt]));
+					.click(() => {
+						const made = pg.convert(item, TYPES[opt]);
+						if (TYPES[opt] === Grid && !made.get("columns")){
+							made.set("columns", "1fr 1fr");
+							pg.paint_properties();   // the field itself has to show the value it was just given
+						}
+					});
 			});
 		});
 	});

@@ -1,0 +1,267 @@
+/* /imagine/screens/ — full-screen experiences, and how navigation transforms one.
+
+   Everything here is core's column row (Page.css) with two additions: one rule that
+   lets a `full` column share the row, and a flex box of AREAS to put inside it. There
+   is no new shell, no fixed positioning and no viewport unit — a screen is a column
+   that happens to be the only one open, so Back, the crumb strip and every url keep
+   working exactly as they do three columns deep.
+
+   Colour: `--surface` for the screen you are ON, one step down (`--wash`) for a screen
+   you came through, `--prim` for the single accent, `--subtle` for the note under a
+   title. Never `--well`. One device per seam: a `--line` hairline between peers, the
+   tone step alone where the roles differ.
+
+   Composition: every area is TWO boxes — the area is the paper (full bleed, the click
+   target, the tone) and `.screens-block` inside it is what the screen composes into.
+   The block is capped and centred, so leftover room is a margin rather than a corner,
+   and it is the query container, so a word is sized by its own composition instead of
+   by however much screen happened to be left. */
+
+@layer theme {
+
+	/* ── the word this lab adds ──
+	   `full` is what collapses the ancestor columns into the crumb strip, and that is
+	   what makes a screen a screen. But it also says `min-width: 100%`, so a second
+	   screen opened beside it would be pushed off the row. These are `fill`'s three
+	   values, on a `full` column: the ancestors still stand down, and the screens that
+	   remain divide what is left, evenly.
+	   ⚠ (0,2,0) on purpose — it beats Page.css's own `.page-column-full` (0,1,0) on
+	     specificity, so it cannot be decided by which sheet loaded last. */
+	.screens-screen.page-column-full {
+		--page-column-flex: 1 1 100%;
+		--page-column-min: 16em;
+		--page-column-max: none;
+	}
+
+	/* THE SCREEN — a row of areas, hairline-seamed by a 1px gap over a `--line` floor
+	   (one declaration instead of a border rule per axis), and its own query container
+	   so the layout inside can ask how much room it actually has. */
+	.screens-screen {
+		container: screens / inline-size;
+		display: flex;
+		align-items: stretch;
+		gap: 1px;
+		background: var(--line);
+
+		/* THE BLOCK'S WIDTH, and the only number in this sheet a composition turns on.
+		   `max(60em, 38%)` is two rules in one: below ~1030px of area the cap never
+		   bites and the block is simply the column (Divide at 1920 is untouched); above
+		   it the block stops growing with the screen and starts taking a SHARE of it,
+		   so a slide at 3440 is a bigger block, not a wider corner. */
+		--screens-block: max(60em, 38%);
+	}
+
+	/* The other axis. The row gives horizontal division for free — every hop is a
+	   column — but the HEIGHT has no such mechanism, so a stack is drawn by the screen
+	   itself and a new band count is a new screen. */
+	.screens-col {
+		display: flex; flex-direction: column;
+		flex: 1; min-width: 0;
+		gap: 1px; background: var(--line);
+	}
+
+	/* The 2x2 menu, and one column once the room runs out — asked of the SCREEN's own
+	   width (below), which is the only box that knows how much is left. */
+	.screens-quad {
+		display: grid; grid-template-columns: 1fr 1fr;
+		flex: 1; min-width: 0;
+		gap: 1px; background: var(--line);
+	}
+
+	/* ── AN AREA — the paper, the click target, the unit every screen is made of ──
+	   Full bleed on purpose: the tone and the seam are what divide a screen, so the
+	   sheet has to reach both edges. It holds exactly one child, the block, which it
+	   centres vertically.
+	   ⚠ The padding stays a percentage: the area is no longer a query container (the
+	     block is), and `cqw` here would resolve one level out — to the screen. */
+	.screens-area {
+		flex: 1; min-width: 0; min-height: 0;
+		display: flex; flex-direction: column; justify-content: center;
+		padding: clamp(1rem, 4%, 3.5rem);
+		background: var(--surface);
+		color: inherit; text-decoration: none;
+		transition: background-color 0.15s;
+	}
+
+	/* ── THE BLOCK — what the screen composes into ──
+	   Capped, and `margin-inline: auto` turns whatever is left into a margin: at 1920 a
+	   deck slide stops being flush against the left edge with 1229px of nothing beside
+	   it and becomes a placed block with 480px on each side.
+	   Being the container is the other half of the job: `14cqw` now asks the BLOCK how
+	   wide it is, so a word is the same fraction of its own composition whether that
+	   composition is a quarter-column at 1920 or the whole of 3440. Which is why there
+	   is no longer a special font-size rule for a band — a band just gets a narrower
+	   block, and the ramp does the rest.
+	   ⚠ Never `width: fit-content` here: `container-type: inline-size` means the box may
+	     not be sized by its own contents, and it would compute to 0. */
+	.screens-block {
+		container: screens-block / inline-size;
+		width: min(100%, var(--screens-block));
+		margin-inline: auto;
+		display: flex; flex-direction: column;
+		gap: 0.5em;
+	}
+
+	/* A BAND IS WIDE AND SHORT, so it cannot take the same composition as a screen: at
+	   1920 a full-width band was handed a full-width headline in a third of the height.
+	   A narrower block is the whole fix — the type follows it down, and the special
+	   font-size rule a band used to need is gone. */
+	.screens-col > .screens-area { --screens-block: max(46em, 24%); }
+
+	/* Prose is its own measure, and the measure is the composition. */
+	.screens-block:has(> .screens-prose) { --screens-block: 42em; }
+
+	/* ── THE ONE TONE STEP ──
+	   A screen you came THROUGH gives up the paper as well as the room: one step down
+	   the ladder (`--surface` → `--wash`), and the screen you are ON is the only white
+	   one on the row. That is the vary lab's verdict said with widths — stepping reads
+	   as hierarchy — and it is what finally separates the cover from the document, which
+	   until now shared one sheet of paper with a hairline between them.
+	   ⚠ The page's own state, not the link's. `.in-path` / `.active` are `mark_links()`'s
+	     and land on ANCHORS, so they say "this link points along the path", not "this
+	     screen is behind you" — on Divide they marked three of four areas including the
+	     one you are standing on.
+	   ⚠ `:where()` on the state half, so the whole selector stays (0,1,0) and the hover
+	     below still wins. Written plainly it is (0,4,0) and a washed area stops
+	     responding to the pointer — silently, because it is still a link. */
+	:where(.page.active-ancestor > .page-column-body) .screens-area { background: var(--wash); }
+
+	/* ── ONE DEVICE PER SEAM ──
+	   A hairline divides PEERS; a tone step divides where-you-are from what-is-behind-
+	   you. Where the step lands, the hairline would be a second boundary saying the same
+	   thing, so the screen you are on paints 1px of its own paper over the column seam
+	   to its left and the step is left to do the job alone. Divide keeps three hairlines
+	   between its three washed columns and has none at the fourth — which is the rule,
+	   drawn.
+	   (The active screen is always the rightmost one open, so the left seam is the only
+	   one it can meet a washed neighbour across.) */
+	.page.active-page > .page-column-body.screens-screen,
+	.screens-column.active-page > .page-column-body { box-shadow: -1px 0 0 var(--surface); }
+
+	/* Darkens whatever it is over, so one declaration covers a white screen and a
+	   washed one alike — the lesson `.page-column-item` learned the hard way. */
+	a.screens-area:hover { background: color-mix(in srgb, var(--ink) 4%, transparent); }
+	a.screens-area:active { background: color-mix(in srgb, var(--ink) 8%, transparent); }
+
+	/* 14% of the block, at every size. The ceiling is a safety for a screen wider than
+	   any monitor here, not a design decision — at 3440 a slide lands at 177px on its
+	   own. */
+	.screens-label {
+		font-size: clamp(1.5rem, 14cqw, 12rem);
+		font-weight: 900; letter-spacing: -0.035em; line-height: 0.95;
+	}
+
+	.screens-note {
+		max-width: 30em;
+		color: var(--subtle);
+		font-size: clamp(0.78rem, 2.6cqw, 1.35rem);
+		line-height: 1.45;
+	}
+
+	/* The one accent, and the whole of it: a short rule above the title. */
+	.screens-rule {
+		flex: 0 0 auto;
+		width: clamp(2.5rem, 18cqw, 9rem); height: 0.32em;
+		background: var(--prim);
+	}
+
+	.screens-eyebrow {
+		color: var(--prim-ink);
+		font-size: clamp(0.7rem, 2cqw, 1rem);
+		font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+	}
+
+	/* Prose on a screen is still prose. The block above already IS the measure, so this
+	   is only the size — flat, because a measure that is always 42em has nothing left to
+	   ramp against. */
+	.screens-prose { font-size: 1.05rem; }
+
+	/* ── the cover — a title slide that stays as the cover ──
+	   When the document opens beside it the title keeps its column and gives up the
+	   MAJOR share: same page, no second render, and 38.2% of 1920 is still 733px, which
+	   is enough to hold the title at display size. (The first try was a 14em rail; it
+	   made the title a 27px heading beside 1696px of document — doc/decisions.md.)
+	   ⚠ `:has()` on the PAGE, not the body — an open child lives in the body's sibling
+	     region (`.page-column-pages`), so the body cannot see it from where it sits. */
+	.screens-cover:has(> .page-column-pages > .page:is(.active-page, .active-ancestor)) > .page-column-body {
+		--page-column-flex: 1 1 38.2%;
+		--page-column-min: 12em;
+		--page-column-max: none;
+	}
+
+	/* ── the peek — the inverse: a document with the cover as a strip at its edge ── */
+	.screens-peek {
+		flex: 0 0 2.8em; min-width: 0;
+		display: flex; align-items: center; justify-content: center;
+		background: var(--wash);
+		color: var(--subtle); text-decoration: none;
+		writing-mode: vertical-rl;
+		letter-spacing: 0.24em; text-transform: uppercase; font-size: 0.75em; font-weight: 700;
+		transition: color 0.15s, background-color 0.15s;
+	}
+	.screens-peek:hover { color: var(--prim-ink); background: color-mix(in srgb, var(--ink) 4%, transparent); }
+
+	/* Already open — the strip has nothing left to offer. */
+	.page:has(> .page-column-pages > .page:is(.active-page, .active-ancestor)) > .page-column-body > .screens-peek { display: none; }
+
+	/* ── uneven shares — a BASIS pair says the ratio exactly ──
+	   `flex-grow` divides only the FREE space, and there is none in a row of columns
+	   that already sum past 100%; the basis is what the shrink is proportional to, so
+	   these three numbers ARE the ratio, at every width.
+	   ⚠ Declared after the `full` rule above and at the same (0,2,0) — order decides,
+	     and that is the intent: a page opts into a ratio by wearing one of these. */
+	.screens-major > .page-column-body { --page-column-flex: 1 1 61.8%; }
+	.screens-minor > .page-column-body { --page-column-flex: 1 1 38.2%; }
+	.screens-least > .page-column-body { --page-column-flex: 1 1 20%; }
+
+	/* ── an ordinary column beside a screen (the quad's four) ──
+	   `fill` takes the room, and doc/columns.md's own warning applies exactly: a fill
+	   column of PROSE hands one paragraph a 1389px line. The measure belongs to the
+	   text, not to the column that happens to hold it. */
+	.screens-column .page-column-prose { max-width: 40em; }
+
+	/* And it needs paper of its own, because a column body is `--wash` by default
+	   (Page.css) — which is exactly the tone a screen behind you steps DOWN to. Without
+	   this the quad's menu and the quadrant it opened became the same grey and the seam
+	   between them vanished (measured, 2026-08-29). The quadrant is where you are; it
+	   gets the white. */
+	.screens-column > .page-column-body { background: var(--surface); }
+
+	/* ── the card's diagram: one frame per hop ── */
+	.screens-thumb {
+		--stage: 16 / 8;
+		display: flex; flex-direction: column; justify-content: center;
+		padding: 0.9em;
+	}
+
+	.screens-frames { display: flex; align-items: center; gap: 0.45em; }
+	.screens-frames .icon { font-size: 0.85em; color: var(--subtle); }
+
+	.screens-frame {
+		flex: 1; min-width: 0;
+		aspect-ratio: 16 / 10;
+		display: flex; gap: 2px; padding: 2px;
+		background: var(--wash);
+		border-radius: 3px;
+	}
+	.screens-frame-v { flex-direction: column; }
+	.screens-frame-q { display: grid; grid-template-columns: 1fr 1fr; }
+
+	.screens-cell { min-width: 0; background: var(--surface); border-radius: 1px; }
+	.screens-cell-split { display: flex; flex-direction: column; gap: 2px; background: none; }
+	.screens-cell-split > .screens-cell { flex: 1; }
+
+	/* ── out of room ──
+	   A screen narrower than 34em stops being a 2x2 and stacks. Asked of the SCREEN,
+	   never the window: the menu reflows when the column it is in runs out, which at
+	   3440 is a different moment from 1280. */
+	@container screens (width < 34em) {
+		.screens-quad { grid-template-columns: 1fr; }
+	}
+
+	/* A block this narrow is a phone, or a column of a four-way split: the note under
+	   a one-word title is the first thing worth its space, and the last thing to fit. */
+	@container screens-block (width < 11em) {
+		.screens-note { display: none; }
+	}
+}

@@ -36,6 +36,41 @@ classes against one. Two load-bearing consequences:
 The cost is a dent in what `util` means — "opt-in classes you typed on purpose",
 plus one structural rule.
 
+## The ancestor test asked the same question wrong, and cost a whole arrangement
+
+```css
+.active-ancestor:has(.page.active-page)                              /* wrong */
+.active-ancestor:not(:has(~ .page:is(.active-page, .active-ancestor)))   /* right */
+```
+
+The intent was on the record and it was right: *an ancestor stays visible only if the
+leaf is **inside** it (tabs, catalog) and is **replaced** if the leaf is a **sibling**
+(`app.$pages`)*. Those two read as complements only while they are the only two
+shapes. `core/Page/generator` found the third: a tab's page sits in its parent's
+`$panel` while its **own** child skips past it to the row, so the leaf is neither
+inside it nor beside it — **cousins**. The page was marked `.active-ancestor`,
+contained nothing marked, and was hidden at 0px wide: a strip of tabs above an empty
+box, no console error. Measured 2026-08-27: 0 → 507px.
+
+So the rule now asks about **siblings**, which is what it always meant. It is the same
+lesson `.default` learned below — *"is any of this mine" is `.active-page` OR
+`.active-ancestor`* — asked one relation over.
+
+- **Forward-only `~` is sound, not a shortcut.** `Router.activate()` runs root-to-leaf
+  and a container only ever appends, so within one region a marked descendant is always
+  a *later* sibling than its marked ancestor. It cannot be reached first.
+- **The twin had to move with it.** `.page.active-page, .page.active-ancestor:has(…)`
+  also decides what a showing page *takes* from its region (`flex: 1 1 auto`), and a
+  pair that drifts is a pair where one gets fixed — the page the contract newly shows
+  would arrive with no share of the row.
+- **Still (0,4,0)**, because `:not()` and `:has()` each take their most specific
+  argument, so every rule written against the old computed weight is undisturbed.
+- **Verified by selector diff, not by eye.** Across `/`, the Doc root, `doc/css`,
+  `uses/split`, a five-deep Finder and the generator repro, exactly one element in the
+  whole set is classified differently: the generator's own page. A 34-route visible-page
+  census before and after was byte-identical on 31 routes, the other three being
+  deliberate.
+
 ## `.default` asked "is the leaf mine?" when it meant "am I in the chain?"
 
 ```css

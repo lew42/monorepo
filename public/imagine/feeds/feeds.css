@@ -1,0 +1,155 @@
+/* /imagine/feeds/ — one sheet, three children (video, data, live). Every colour a
+   token over the column's own --wash floor; every rule inside a layer.
+
+   ⚠ Real <button>s (the play button, the filter chips) need (0,3,0) in @layer theme
+   to beat the site theme's `.theme-lew42 :is(button, .btn)` CTA rule (0,2,0) —
+   same fight imagine.css documents. Each wraps its buttons in two ancestor classes
+   for exactly that reason; the sizing/colour itself lives in @layer site, same as
+   `.vary-carousel-arrow`, because that is the layer a real control's skin belongs in. */
+
+@layer theme {
+
+	/* ════ VIDEO — the picker rail ═════════════════════════════════════════════ */
+	.feeds-picks { display: flex; flex-direction: column; }
+
+	.feeds-pick {
+		display: flex; flex-direction: column; gap: 0.1em;
+		padding: 0.5em 0.9em;
+		color: var(--ink); text-decoration: none;
+		border-bottom: 1px solid var(--line);
+		border-inline-end: 2px solid transparent;
+	}
+
+	/* A translucent darkener, never `--tint` — imagine.css found `--tint` lighter
+	   than the `--wash` a column body sits on, so it reads as no hover at all. */
+	.feeds-pick:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); }
+
+	.feeds-pick:is(.in-path, [aria-current]) {
+		background: color-mix(in srgb, var(--prim) 10%, transparent);
+		border-inline-end-color: var(--prim);
+	}
+
+	.feeds-pick-title { font-size: 0.9em; font-weight: 600; }
+	.feeds-pick-by { font-size: 0.75em; color: var(--subtle); }
+
+	/* The 16:9 stage: a poster underneath, a play button over it, an iframe once
+	   asked for. `aspect-ratio` on the stage itself is what keeps the seam honest —
+	   nothing measures the row to find it. */
+	.feeds-stage {
+		position: relative;
+		aspect-ratio: 16 / 9;
+		background: var(--wash);
+		border-radius: var(--radius);
+		overflow: hidden;
+	}
+
+	.feeds-stage > iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: none; }
+	.feeds-poster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+	.feeds-video .feeds-stage .feeds-play {
+		position: absolute; inset: 0; margin: auto;
+		width: 3.4em; height: 3.4em;
+		display: flex; align-items: center; justify-content: center;
+		padding: 0;
+		background: color-mix(in srgb, black 55%, transparent);
+		color: #fff;
+		border-radius: 50%;
+	}
+
+	.feeds-video .feeds-stage .feeds-play .icon { font-size: 1.8em; }
+
+	.feeds-video-meta { font-size: 0.85em; color: var(--subtle); }
+
+	/* ════ DATA — the filter bar, shared by all three renderings ══════════════ */
+	.feeds-filter { padding-block: 0.2em; }
+	.feeds-search { flex: 1 1 12em; }
+
+	.feeds-chips { display: flex; gap: 0.3em; flex-wrap: wrap; }
+
+	.feeds-data .feeds-chips .feeds-chip {
+		padding: 0.25em 0.7em;
+		font-size: 0.75em; font-weight: 500;
+		letter-spacing: normal; text-transform: none;
+		color: var(--subtle);
+		background: var(--tint);
+		border: 1px solid var(--line);
+		border-radius: 999px;
+	}
+
+	.feeds-data .feeds-chips .feeds-chip:hover { color: var(--ink); }
+
+	.feeds-data .feeds-chips .feeds-chip.feeds-chip-on {
+		color: #fff;
+		background: var(--prim);
+		border-color: var(--prim);
+	}
+
+	.feeds-count { font-size: 0.8em; color: var(--subtle); }
+
+	/* ── cards ── */
+	.feeds-card {
+		display: flex; flex-direction: column; gap: 0.25em;
+		padding: 0.7em 0.9em;
+		background: var(--surface);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+	}
+
+	.feeds-card-name { font-weight: 600; }
+	.feeds-card-meta { display: flex; justify-content: space-between; gap: 0.5em; font-size: 0.8em; color: var(--subtle); }
+	.feeds-card-type { font-size: 0.7em; text-transform: uppercase; letter-spacing: 0.04em; color: var(--prim); }
+
+	/* ── columns tree: group -> item -> detail, one pane each ── */
+	.feeds-tree { align-items: stretch; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+
+	.feeds-tree-col {
+		flex: 1 1 10em; min-width: 0;
+		display: flex; flex-direction: column;
+		border-inline-end: 1px solid var(--line);
+	}
+	.feeds-tree-col:last-child { border-inline-end: none; }
+
+	.feeds-tree-head {
+		padding: 0.4em 0.7em;
+		font-size: 0.7em; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+		color: var(--subtle);
+		background: var(--tint);
+		border-bottom: 1px solid var(--line);
+	}
+
+	.feeds-tree-row {
+		padding: 0.4em 0.7em;
+		font-size: 0.85em;
+		cursor: pointer;
+		border-bottom: 1px solid var(--line);
+	}
+	.feeds-tree-row:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); }
+	.feeds-tree-row.feeds-tree-on { background: color-mix(in srgb, var(--prim) 10%, transparent); font-weight: 600; }
+
+	.feeds-tree-detail { padding: 0.7em 0.9em; font-size: 0.85em; }
+	.feeds-tree-detail p { margin: 0.2em 0; }
+	.feeds-tree-empty { padding: 0.7em 0.9em; font-size: 0.85em; color: var(--subtle); }
+
+	/* ════ LIVE — the weather dashboard ════════════════════════════════════════ */
+	.feeds-weather-row {
+		display: flex; align-items: center; gap: 0.6em;
+		padding: 0.5em 0.2em;
+		border-bottom: 1px solid var(--line);
+	}
+
+	.feeds-weather-city { flex: 1 1 auto; font-weight: 600; }
+	.feeds-weather-cond { flex: 0 0 auto; font-size: 0.8em; color: var(--subtle); }
+	.feeds-weather-temp { flex: 0 0 auto; font-variant-numeric: tabular-nums; font-weight: 700; min-width: 3em; text-align: end; }
+
+	.feeds-offline {
+		display: flex; gap: 0.5em; align-items: center;
+		padding: 0.7em 0.9em;
+		color: var(--subtle);
+		background: var(--tint);
+		border-radius: var(--radius);
+	}
+}
+
+@layer site {
+	.feeds-video .feeds-stage .feeds-play:hover { background: color-mix(in srgb, black 70%, transparent); }
+}

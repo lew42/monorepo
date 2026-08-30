@@ -32,8 +32,23 @@ demo.app = (page, options) => new DemoApp({ page }, options);
 
 class DemoApp extends View {
 
+	/* Which page the box is the app FOR. The tree's own root by default — an
+	 * in-memory tree has no parent, so that is the whole of it. `scope:` names a
+	 * different one, for a box showing a page that also lives in the real site:
+	 * `page.demo()` hands in the page itself, and everything above it stays outside.
+	 * ⚠ Every walk below goes through `trail()` for the same reason. */
+	root_of(){ return this.scope ?? this.page.chain()[0]; }
+
+	// The chain from the box's root down. Identical to `page.chain()` when the root
+	// IS the tree's root (`indexOf` is 0), and only the part inside the box when a
+	// `scope:` put real ancestors above it — activating those would render the site.
+	trail(page = this.page){
+		const chain = page.chain();
+		return chain.slice(Math.max(chain.indexOf(this.root), 0));
+	}
+
 	render(){
-		this.root = this.page.chain()[0];
+		this.root = this.root_of();
 
 		this.$url = div.c("demo-app-url");
 
@@ -87,9 +102,9 @@ class DemoApp extends View {
 	// The whole chain, like Router.activate() — minus its shared-depth diff, which
 	// is an optimisation a box this size cannot notice.
 	show(page){
-		if (page !== this.page) this.page.chain().forEach(p => p.deactivate());
+		if (page !== this.page) this.trail().forEach(p => p.deactivate());
 
-		page.chain().forEach(p => p.activate());
+		this.trail(page).forEach(p => this.place(p));
 		this.page = page;
 
 		this.crumbs();
@@ -100,9 +115,25 @@ class DemoApp extends View {
 		return this;
 	}
 
+	/* The root mounts HERE, whatever its real parent already granted it. `container()`
+	 * answers a REGION first, so a page that is a tab of the real site — every child
+	 * of an `ext/Doc` is — would send the box's own root to that tab panel and leave
+	 * this one empty. Identical to `activate()` for a tree with no parent, which is
+	 * every caller but `page.demo()`. Everything below the root activates normally:
+	 * their containers are inside this box. */
+	place(page){
+		if (page !== this.root) return page.activate();
+
+		if (page.render().el.parentNode !== this.$pages.el) this.$pages.append(page.view);
+
+		page.activated?.();
+		page.column_host()?.reveal_column(page);
+		return page;
+	}
+
 	// The url, one link per segment — an address bar that is also a breadcrumb.
 	crumbs(){
-		this.$url.empty(() => this.page.chain().forEach(page =>
+		this.$url.empty(() => this.trail().forEach(page =>
 			a.c("demo-app-crumb", page === this.root ? page.url : page.name + "/").href(page.url)));
 	}
 
@@ -134,7 +165,7 @@ class DemoApp extends View {
 		this.$pages.el.querySelectorAll(".page.default")
 			.forEach(el => el.classList.remove("default"));
 
-		this.page.chain().forEach(page => {
+		this.trail().forEach(page => {
 			if (page.view?.el.contains(this.page.view.el)) page.view.ac("default");
 		});
 

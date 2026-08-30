@@ -146,14 +146,14 @@ export default class View {
 		return this.has_class(cls);
 	}
 
-	toggle_class(cls){
-		return this.has_class(cls) ? this.rc(cls) : this.ac(cls);
+	toggle_class(cls, force){
+		return is.def(force) ? (force ? this.ac(cls) : this.rc(cls)) : (this.has_class(cls) ? this.rc(cls) : this.ac(cls));
 	}
 
-	tc(cls){
+	tc(cls, force){
 		const classes = cls.split(" ");
 		for (const clas of classes)
-			this.toggle_class(clas);
+			this.toggle_class(clas, force);
 		return this;
 	}
 
@@ -221,20 +221,27 @@ export default class View {
 		return this;
 	}
 
+	// ONE argument reads, TWO write — the arity, never the value. It tested the value
+	// (`is.def`), which cannot tell `attr("href")` (a question) from `attr("href", url)`
+	// where the url happens to be undefined (a write of nothing): the second fell
+	// through to the getter and returned the attribute — `null` on a fresh element — so
+	// `.href(nav.url).attr(…)` died two calls later with *Cannot read properties of
+	// null* (ext/demo's preview override on a url-less nav, 2026-08-29).
+	// ⚠ A nullish value writes NOTHING and stays chainable, so a page can hand over an
+	//   optional url or label without guarding it. There is no word here for REMOVE an
+	//   attribute; nothing has asked for one.
 	attr(name, value){
-		if (is.def(value)){
-			if (value !== this.el.getAttribute(name)){
-				this.el.setAttribute(name, value);
-			}
-			return this;
+		if (arguments.length < 2) return this.el.getAttribute(name);
+		if (value === undefined || value === null) return this;
 
-		} else {
-			return this.el.getAttribute(name);
-		}
+		if (value !== this.el.getAttribute(name)) this.el.setAttribute(name, value);
+		return this;
 	}
 
-	href(url){
-		return this.attr("href", url);
+	// ⚠ `...url` FORWARDS THE ARITY — a named parameter would make `href()` two
+	//   arguments and silently retire the getter.
+	href(...url){
+		return this.attr("href", ...url);
 	}
 
 	click(cb){

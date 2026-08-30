@@ -1,0 +1,71 @@
+@layer theme {
+
+	/* ── The card restyle, proposed ──────────────────────────────────────────────
+	   Scoped to `.gal-flat` because the rule it overrides is `core/Page/Page.css`'s
+	   (the "EVERY card wears the surface" block) and that file is not this module's.
+	   Lift these four rules into Page.css unscoped and the site has the new look.
+
+	   The two colours are TOKENS because the answer differs by mode: on the light wash
+	   a shadow is the whole boundary; on a near-black floor a shadow is invisible, so
+	   dark mode pays for a hairline ring as well. Declared on the scope so the same
+	   pair works when they move next to `--surface` in the theme. */
+	.gal-flat {
+		--card-shadow: light-dark(rgba(0, 0, 0, 0.13), rgba(0, 0, 0, 0.5));
+		--card-ring:   light-dark(transparent, var(--line));
+	}
+
+	/* The card stops being an object: no fill, no border, no padding. What is left is
+	   the picture and the label under it, sitting on whatever floor the page has. */
+	.gal-flat .page-preview {
+		padding: 0;
+		background: none;
+		border-color: transparent;
+	}
+
+	/* ⚠ The picture keeps a boundary — that is the 2026-08-17 finding the last attempt
+	     at this lost to ("the label sits under a picture with nothing around either, so
+	     the caption reads as a heading for the row below"). It is a shadow now instead
+	     of a border, so a white render reads as white ON the wash rather than as a card
+	     with a white hole in it, which is the whole point of the change. */
+	.gal-flat .page-preview-thumb,
+	.gal-flat .page-preview:not(:has(> .page-preview-thumb)) {
+		border-radius: var(--radius);
+		background: var(--surface);
+		box-shadow:
+			0 0 0 1px var(--card-ring),
+			0 1px 2px var(--card-shadow),
+			0 6px 18px var(--card-shadow);
+	}
+
+	/* A card with no thumb has no picture to be the object, so the card is — it keeps
+	   its padding and takes the same shadow, and the two kinds read as one family. */
+	.gal-flat .page-preview:not(:has(> .page-preview-thumb)) { padding: 0.9em 1em; }
+
+	/* ── The gallery's own furniture ─────────────────────────────────────────── */
+
+	/* Before and after, side by side, wrapping to one column when the pair no longer
+	   fits — a floor and a ceiling, so neither half can squeeze its cards. */
+	.gal-pair {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(22em, 100%), 1fr));
+		gap: 1.5em;
+	}
+	.gal-pair > * { min-width: 0; }
+
+	/* The live import readout: label left, number right, a hairline between. */
+	.gal-meter-row + .gal-meter-row { border-block-start: 1px solid var(--line); padding-block-start: 0.3em; }
+
+	/* The dynamic arrangement's index — its children are routed, not declared, so this
+	   list is the only place they appear. */
+	.gal-index-row {
+		padding: 0.4em 0.6em;
+		border-radius: var(--radius);
+		color: inherit;
+		text-decoration: none;
+	}
+	.gal-index-row:is(:hover, :focus-visible) { background: var(--wash); }
+
+	/* A borrowed body is somebody else's layout in my column: it may be a grid or a
+	   demo box, and without this it refuses to shrink below its own content. */
+	.gal-borrowed { min-width: 0; }
+}

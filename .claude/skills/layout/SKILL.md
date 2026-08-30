@@ -18,6 +18,7 @@ A component inside a container — a rail section, a card, a panel — answers 1
    `wide` (main + breakout, grows rightward), `bleed` (edge to edge) — or a card, a rail, a
    panel. The container decides your width, gap and rhythm; you inherit, you don't fight.
    ⚠ On a page with `initialize(){ this.catalog(); }`, `content()` lands in a child `intro` page inside `.page-catalog-pages`, so `wide` claims the DETAIL column, not the region — 591px at 1280 on `/framework/styles/elements/code/`, and Q1 answered before looking was wrong by 2×.
+   ⚠ Under a COLUMNS host there is no page grid at all — content sits in `.page-column-prose`, so `wide` is meaningless (`grid-column: auto`) and only `bleed` reaches the edge. Walk `chain()` for the columns host before choosing a track word; `/imagine/` became a host mid-flight and a stage answered Q1 wrong by 2× (2026-08-29).
 2. **How big will it be?** Its width at 400 / 1280 / 1920 / 3440. One column, or 2+? Two
    or more columns of *content* **never** live in `main` — claim `wide` or `bleed`. This is
    the single commonest failure: a grid, table or dashboard squeezed into 52em.

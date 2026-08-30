@@ -1,0 +1,8 @@
+{"log": {"at": "2026-08-30T11:15:00-05:00", "task": "blog-program", "msg": "task opened - mastermind: blog for job prospecting, demo compaction + Page.demo(), decks, site audit, 5 posts"}}
+{"log": {"at": "2026-08-30T11:16:00-05:00", "task": "blog-layouts", "msg": "task opened - E2 blog layout lab at /imagine/blogx/: above-fold shells, dynamic left rails, multi-part posts"}}
+{"log": {"at": "2026-08-30T11:15:52-05:00", "task": "demo-merge", "msg": "task opened - demo system audit + Page.demo() prototype + merge proposal"}}
+{"log": {"at": "2026-08-30T11:16:37-05:00", "task": "decks-lab", "msg": "task opened - presentational deck layouts at /imagine/decks/, slicing 3440 + persistent vs swap nav"}}
+{"log": {"at": "2026-08-30T11:16:45-05:00", "task": "col-styles", "msg": "task opened - column render CONTROL: hooks page + Finder/Cards/Ink variants at /imagine/vary/colstyles/"}}
+{"log": {"at": "2026-08-30T11:16:50-05:00", "task": "blog-arch", "msg": "task opened - R1 blog architecture: per-post index.html meta hybrid, file structure, un-centered 3440 reading layout at /blog/"}}
+{"log": {"at": "2026-08-30T11:30:24-05:00", "task": "site-audit", "msg": "task opened - whole-site above-the-fold audit at 400/1920/3440"}}
+{"log": {"at": "2026-08-30T11:35:03-05:00", "task": "demo-merge", "msg": "landed - 14 demo variants audited, page.demo() prototyped at /framework/ext/demo/shell/, migration proposal awaiting the mastermind"}}

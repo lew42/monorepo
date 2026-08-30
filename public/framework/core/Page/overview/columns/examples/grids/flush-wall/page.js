@@ -16,9 +16,9 @@ export default new Page({
 	},
 
 	children: {
-		Flush: { width: "large", content(){
+		Flush: { width: "large", classes: "default", content(){
 			md("0 gap, 0 pad — the grid reaches the column's real edges.");
-			div.c("page-grids-flush grid auto tint", () => tiles.forEach(t => div(() => p(t))));
+			div.c("bleed grid auto tint", () => tiles.forEach(t => div.c("surface pad", () => p(t))));
 		} },
 		Padded: { width: "large", content(){
 			md("Gap + pad — the grid sits inset, tiles on a tint floor.");

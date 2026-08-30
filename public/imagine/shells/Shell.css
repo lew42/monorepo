@@ -1,0 +1,269 @@
+/* /imagine/shells — APP SHELL layouts: what the chrome around a page can be.
+
+   ONE GRID, six outer permutations. A shell declares which parts it draws, each
+   part claims a named area, and a track with nothing in it is `auto` and costs
+   0px. So "left rail", "right rail", "both rails", "footer", "header + footer"
+   and "sidebar + footer" are the SAME template with different children — there
+   is no per-shell rule anywhere in this file.
+
+   THREE TONES, and they are the whole hierarchy:
+     the frame   `--wash`, the app's floor — every chrome part sits on it
+     the paper   `--surface`, the content region, the one raised thing
+     a division  NO FILL — a `--line` hairline and smaller type
+   Inner chrome is the third, never a second copy of the first: repeating the
+   outer treatment one level in is the banding /framework/ux/* had. */
+@layer theme {
+
+	/* THE REGION MUST NOT SCROLL. A shell IS its region, and every scrollbar in
+	   one is a decision made inside it. Keyed on the page's own class — the same
+	   idiom `hides-nav` uses (/styles.css) — so nothing outside this lab moves.
+	   (0,3,0) over Page.css's `.pages` (0,1,0); no layer fight. */
+	.pages:has(> .page.shell.active-page) { overflow: hidden; }
+
+	/* ⚠ `.page.shell` (0,2,0), never `.shell`: `.page` sets its own `display: grid`
+	     and a three-track template in this same layer at (0,1,0), so a tie would be
+	     settled by which stylesheet loaded last.
+	   ⚠ `minmax(0, 1fr)` on both middles, not `1fr`: a bare `1fr` keeps its
+	     content minimum, so one wide table in the content region would push the
+	     rails off screen instead of scrolling inside it. */
+	.page.shell {
+		align-self: stretch; height: 100%; overflow: hidden;
+		padding: 0;
+		display: grid;
+		grid-template-columns: auto minmax(0, 1fr) auto;
+		grid-template-rows: auto minmax(0, 1fr) auto;
+		grid-template-areas:
+			"head head head"
+			"left main right"
+			"foot foot foot";
+		background: var(--wash);
+		--shell-rail: 13em;
+	}
+
+	.shell-head  { grid-area: head; border-block-end: 1px solid var(--line); }
+	.shell-foot  { grid-area: foot; border-block-start: 1px solid var(--line); }
+	.shell-left  { grid-area: left; border-inline-end: 1px solid var(--line); }
+	.shell-right { grid-area: right; border-inline-start: 1px solid var(--line); }
+	.shell-main  { grid-area: main; }
+
+	/* ── a rail ── */
+	.shell-rail {
+		display: flex; flex-direction: column;
+		width: var(--shell-rail); min-width: 0;
+		overflow-y: auto; scrollbar-width: thin;
+	}
+
+	.shell-home {
+		display: flex; align-items: center; gap: 0.45em;
+		padding: 0.9em;
+		font-weight: 800; color: inherit; text-decoration: none;
+		white-space: nowrap;
+	}
+	.shell-home:hover { color: var(--prim); }
+
+	/* ── a bar: a header or a footer ──
+	   ⚠ `nowrap` + `flex: none` on the items AND `overflow-x` on the row. A flex
+	     row squeezed under its content width does not overflow first — the default
+	     shrink takes every item to min-content, so six labels go two-line before
+	     the bar ever scrolls (the `css` skill's own caveat, seen for real). */
+	.shell-bar {
+		display: flex; align-items: center; gap: 0.5em;
+		padding: 0.45em 0.9em;
+		overflow-x: auto; scrollbar-width: none;
+	}
+	.shell-bar > * { flex: none; }
+	.shell-bar .shell-home { padding: 0.25em 0.5em; }
+
+	/* The one thing pushed to the far end of a bar — a status, a count, a verdict. */
+	.shell-end { margin-inline-start: auto; color: var(--subtle); font-size: 0.85em; }
+
+	/* ── a chrome link ──
+	   ⚠ A TRANSLUCENT hover, never a palette fill: `--tint` is LIGHTER than the
+	     `--wash` these sit on, so `background: var(--tint)` lights a row up in the
+	     wrong direction and reads as no hover at all (Page.css says the same, at
+	     length, about `.page-column-item`). */
+	.shell-link {
+		display: flex; align-items: center; gap: 0.45em;
+		padding: 0.4em 0.9em;
+		font-size: 0.9em;
+		color: var(--subtle); text-decoration: none;
+		white-space: nowrap;
+		border-inline-end: 2px solid transparent;
+		transition: background-color 0.12s, color 0.12s;
+	}
+	.shell-link:is(:hover, :focus-visible) { color: var(--ink); background: color-mix(in srgb, var(--ink) 6%, transparent); }
+	.shell-link:is(.active, .in-path) { color: var(--ink); border-inline-end-color: var(--prim); }
+
+	/* In a BAR the mark turns 90 degrees — an inline-end stripe on a horizontal
+	   row is a mark on the gap between two links, pointing at neither. */
+	.shell-bar .shell-link {
+		padding: 0.3em 0.55em;
+		border-inline-end: none;
+		border-block-end: 2px solid transparent;
+	}
+	.shell-bar .shell-link:is(.active, .in-path) { border-block-end-color: var(--prim); }
+
+	/* ── the paper ── */
+	.shell-main {
+		display: flex; flex-direction: column;
+		min-width: 0; min-height: 0;
+		overflow: auto;
+		background: var(--surface);
+	}
+
+	/* The document inside it keeps a reading measure — `.page` declares
+	   `--measure: 40em` and it inherits, so a 3440 shell does not hand one
+	   paragraph the whole screen. */
+	.shell-doc { padding: 1.5em clamp(1em, 4%, 3em); max-width: var(--measure); }
+
+	.shell-stat { font-size: 1.4em; font-weight: 700; }
+
+	.shell-verdict {
+		padding: 0.8em 1em;
+		border-inline-start: 3px solid var(--prim);
+		background: var(--tint);
+		border-radius: var(--radius);
+	}
+
+	/* ── the canvas: the app-as-tool shape ──
+	   `fill` is the word — the surface takes every pixel the chrome did not, which
+	   in a grid is what `minmax(0, 1fr)` on both middle tracks already says. The
+	   grid is drawn, not scrolled: a stage that scrolls is a document. */
+	.shell-canvas {
+		grid-area: main;
+		position: relative;
+		min-width: 0; min-height: 0;
+		overflow: hidden;
+		display: flex; align-items: center; justify-content: center;
+		background-color: var(--surface);
+		background-image:
+			repeating-linear-gradient(to right,  var(--line) 0 1px, transparent 1px 3em),
+			repeating-linear-gradient(to bottom, var(--line) 0 1px, transparent 1px 3em);
+	}
+
+	/* An artboard on the stage, so the surface has something to be a surface FOR. */
+	.shell-board {
+		max-width: min(34em, calc(100% - 3em)); max-height: calc(100% - 3em);
+		overflow: auto;
+		padding: 1.4em;
+		background: var(--surface);
+		border-radius: var(--radius);
+		box-shadow: 0 0 0 1px var(--line), 0 8px 30px rgba(0,0,0,0.12);
+	}
+
+	/* The stage reports its own size, because "the surface is the viewport minus
+	   the chrome" is a claim a lab should be able to show rather than assert. */
+	.shell-size {
+		position: absolute; inset-block-end: 0.6em; inset-inline-end: 0.8em;
+		padding: 0.2em 0.5em;
+		font-family: var(--mono); font-size: 0.75em; color: var(--subtle);
+		background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+	}
+
+	/* ── INNER chrome — a RULE, never a second frame ──
+	   The outer chrome is a filled band on the app's floor. Drawing that same band
+	   again one level in gives two frames of the same weight and the eye cannot
+	   tell which one owns the content. Inside the paper a division is a hairline
+	   and a smaller, quieter label — same surface, no second fill, no second
+	   border colour. ext/Doc reached the same answer: a Doc nested in another
+	   Doc's panel draws its strip as a left rail, never a second well. */
+	.shell-inner { display: flex; flex: 1 1 auto; min-height: 0; }
+
+	.shell-inner-rail {
+		flex: 0 0 11em; min-width: 0;
+		display: flex; flex-direction: column;
+		padding-block: 1.5em;
+		border-inline-end: 1px solid var(--line);
+		overflow-y: auto; scrollbar-width: thin;
+	}
+
+	.shell-inner-title {
+		padding: 0 1em 0.5em;
+		color: var(--subtle);
+	}
+
+	/* Quieter than `.shell-link` on purpose — no fill on hover, an inline mark
+	   instead, because this list belongs to the page and not to the app. */
+	.shell-inner-link {
+		padding: 0.3em 1em;
+		font-size: 0.9em;
+		color: var(--subtle); text-decoration: none;
+		border-inline-start: 2px solid transparent;
+	}
+	.shell-inner-link:hover { color: var(--ink); }
+	.shell-inner-link.on { color: var(--ink); border-inline-start-color: var(--prim); font-weight: 600; }
+
+	.shell-inner-body { flex: 1 1 auto; min-width: 0; overflow-y: auto; }
+
+	/* The inner footer — a status line, not a footer BAR. Same rule: a hairline
+	   and small type on the paper it belongs to. */
+	.shell-inner-bar {
+		flex: 0 0 auto;
+		display: flex; align-items: center; gap: 0.9em;
+		padding: 0.4em clamp(1em, 4%, 3em);
+		border-block-start: 1px solid var(--line);
+		font-size: 0.8em; color: var(--subtle);
+	}
+
+	/* A pane that owns its own scrolling above its own status line. */
+	.shell-pane { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+	.shell-pane > .shell-doc { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+
+	/* ── a real columns row as the content region ──
+	   `demo.app()` is a whole Page tree playing App and Router in a box, and it is
+	   the only way to nest a columns host under /imagine/: `column_host()` finds
+	   the SHALLOWEST columnar ancestor, so an inner host in the same tree can
+	   never win. Here it is the shell's whole content area, so it loses the
+	   window look a demo box normally wears. */
+	/* The content region with its inset spent and its scrolling handed inwards —
+	   what an area needs before it can carry chrome of its own. */
+	.shell-stage { padding: 0; overflow: hidden; }
+	.shell-app { flex: 1 1 auto; min-height: 0; border: none; border-radius: 0; }
+
+	/* ⚠ The demo box's address strip is dropped, and that is the finding rather than
+	     a tidy-up: a full-height columns row ALREADY draws a crumb strip of its own
+	     (`.page-columns-bar`), so a second address line above it is two headers for
+	     one region. A row IS the content area's header — a shell must not add one. */
+	.shell-app > .demo-app-url { display: none; }
+
+	/* ── out of room ──
+	   Under 40em there is no shell left: a 13em rail beside a document leaves the
+	   document 187px at 400. Every chrome part takes its own row and a rail
+	   becomes a strip that scrolls sideways.
+	   ⚠ `@media`, not `@container`: the template lives ON `.shell` and a container
+	     query never matches its own container. A shell IS the region, so the
+	     window is the honest thing to measure here — with the dev rail open it is
+	     not, which is the standing "close the rail before you measure" rule. */
+	@media (max-width: 40em) {
+
+		.page.shell {
+			grid-template-columns: minmax(0, 1fr);
+			grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+			grid-template-areas: "head" "left" "main" "right" "foot";
+		}
+
+		.shell-rail {
+			width: auto;
+			flex-direction: row; align-items: center;
+			overflow-x: auto; overflow-y: hidden;
+		}
+		.shell-rail .shell-link { border-inline-end: none; border-block-end: 2px solid transparent; }
+		.shell-rail .shell-link:is(.active, .in-path) { border-block-end-color: var(--prim); }
+
+		.shell-left  { border-inline-end: none; border-block-end: 1px solid var(--line); }
+		.shell-right { border-inline-start: none; border-block-start: 1px solid var(--line); }
+
+		/* An inner rail is the same call one level down. */
+		.shell-inner { flex-direction: column; }
+		.shell-inner-rail {
+			flex: 0 0 auto;
+			flex-direction: row; align-items: center;
+			padding: 0.3em 0.5em;
+			border-inline-end: none; border-block-end: 1px solid var(--line);
+			overflow-x: auto;
+		}
+		.shell-inner-title { display: none; }
+		.shell-inner-link { border-inline-start: none; border-block-end: 2px solid transparent; }
+		.shell-inner-link.on { border-block-end-color: var(--prim); }
+	}
+}

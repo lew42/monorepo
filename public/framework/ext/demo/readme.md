@@ -11,6 +11,15 @@ demo.app(sample());                                                  // a Page t
 ```
 `demo.page()`, `demo.tree()`, `demo.layout()` are exhibit sugar; `demo.source()` is the closed code block under a render — all seven at [/framework/ext/demo/api/](/framework/ext/demo/api/).
 
+**Proposed — one shell for all of them** ([Shell](/framework/ext/demo/shell/)):
+```js
+import "/framework/ext/demo/shell.js";   // patches Page, the ext/tabs move
+import rail from "/web/nav/rail/page.js";
+
+content(){ rail.demo({ min: "26em" }); }   // any page, rendered as a demo
+```
+Path above, readout always, code in a column beside the render — and no `height`, only a floor. Six words configure it. It replaces nine of the fourteen variants; the audit, the numbers and the migration order are in [ai/2026-08-30/demo-merge/proposal.md](/framework/ai/2026-08-30/demo-merge/). **Not adopted yet** — nothing below has changed.
+
 ```js
 import { mini } from "/framework/ext/demo/mini.js";
 
@@ -30,5 +39,6 @@ preview(nav){ return this.preview_card(nav, () => mini("tabs")); }   // a card's
 - [doc/record.md](./doc/record.md) — twenty sections of question → options → verdict: the HTML pane, the toolbar, the width presets, the two-up's drag, the exhibit band at 390/810/1440/3440, every open question
 - [doc/decisions.md](./doc/decisions.md) — the retired readme: who uses it (counts), trap detail, the two soft dependencies, open items
 - `doc/method/*.md`, `doc/file/*.md` — one page per door and per file (the Doc's `methods:` / `files:`)
-- Files that matter: `demo.js` (demo, stage, source), `exhibit.js` (exhibit, page, tree), `stage.js` (the one viewport), `mini.js` (the picture a preview card wants instead of a zoomed instance)
+- Files that matter: `demo.js` (demo, stage, source), `exhibit.js` (exhibit, page, tree), `stage.js` (the one viewport), `mini.js` (the picture a preview card wants instead of a zoomed instance), `shell.js` (`page.demo()`, the proposed merge)
+- ⚠ `twin.js`'s `twin()` is **dead** — `layout.js` imports it and never calls it. Only `pane()` is live, in `ext/Panel/Workspace/viewports.js`.
 - `stage.js` exports `simulate`/`watch`/`magnifier`/`ruler`/`WIDTHS`, `twin.js` exports `pane`/`twin(fn, devices)` — a second caller, `ext/Panel/Workspace/viewports.js`'s device frames; this module's own strip is unchanged

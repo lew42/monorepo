@@ -22,14 +22,30 @@ export function toolbar(pg){
 			button.c("pg-btn", "+").attr("title", "Add Box (Shift: Flex)").click(e => pg.add(e.shiftKey ? Flex : Box));
 		});
 
-		div.c("pg-toolbar-group flex gap", () => {
-			button.c("pg-btn", "⧉").attr("title", "Duplicate selected").click(() => pg.duplicate());
-			button.c("pg-btn", "✕").attr("title", "Remove selected").click(() => pg.remove());
-		});
+		/* Four buttons left this row in pg-edges (ux proposal §What to delete):
+		 * `⧉` and `✕` are now chips on the selected node's own chrome (canvas.js) — the
+		 * target belongs where your pointer already is, not 300px away in a toolbar; `{}`
+		 * and `paste` are not layout, and stay as methods on the class (`pg.copy()`,
+		 * `pg.paste()`) with no button. Keyboard verbs for those two are the parked half of
+		 * that proposal, waiting on the owner. doc/decisions.md. */
 
+		/* The two viewing floors (pg-model), on by default — a minimum visible `padding` and
+		 * `gap` so a zero still shows you the layout. Not document data and never written to
+		 * one: each button flips ONE class on `.pg-canvas-body`, whose custom property every
+		 * node's inline `max()` already reads (items.js, playground.css). No repaint, no
+		 * measurement, no rect moves — and off is a real 0, which nothing else here can show.
+		 * Deliberately not persisted: a viewing aid resets on reload, same as the viewport
+		 * preset next to it (doc/decisions.md). */
 		div.c("pg-toolbar-group flex gap", () => {
-			button.c("pg-btn", "{}").attr("title", "Copy selected as JSON").click(() => pg.copy());
-			button.c("pg-btn", "paste").attr("title", "Paste JSON").click(() => pg.paste());
+			["pad", "gap"].forEach(which => {
+				button.c("pg-btn on", which)
+					.attr("title", `Floor the ${which === "pad" ? "padding" : "gap"} so a 0 still shows the layout — off is a real 0`)
+					.click(function(){
+						const on = !this.hc("on");
+						this.tc("on", on);
+						pg.$body.tc(`pg-${which}-floor`, on);
+					});
+			});
 		});
 
 		// documents.js raced Socket.ready and lost — saving to this tab only, this session.

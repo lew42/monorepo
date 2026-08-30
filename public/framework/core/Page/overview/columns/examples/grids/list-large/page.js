@@ -19,7 +19,7 @@ export default new Page({
 	},
 
 	children: {
-		Overview: { icon: "dashboard", width: "large", content(){
+		Overview: { icon: "dashboard", width: "large", classes: "default", content(){
 			md("A status board — four short stats.");
 			stats([["Uptime", "99.9%"], ["Requests", "1.2k/s"], ["Errors", "0.02%"], ["Latency", "42ms"]]);
 		} },

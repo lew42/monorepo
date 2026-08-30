@@ -32,9 +32,11 @@ Anything that changes the repo is a **task**: a dir at
 ⚠ **Never write a `.jsonl`/`.json` with PowerShell's `Out-File`/`Set-Content -Encoding utf8`** — the BOM makes `TaskJSONL` silently drop line 1 (task never reaches Active) and `json.load` die; use the **Write tool**, append later lines with `Add-Content`. ⚠ And `Add-Content` writes ANSI: one non-ASCII character (an em dash) becomes an invalid byte and the viewer drops that whole line (bit 2026-08-21) — keep appends pure ASCII, or append via `[IO.File]::AppendAllText` with `[Text.UTF8Encoding]::new($false)`.
 
 ⚠ **Three ways a line is silently wrong.**
-- **Timestamps come from the clock, never your head** — `date -Iseconds` (bash) or
-  `Get-Date -Format 'yyyy-MM-ddTHH:mm:sszzz'`; both give the local offset. Typed values drift
-  ahead of real time, and the day strip shows entries that had not happened yet.
+- **Timestamps come from the clock, never your head — and re-read it before EVERY append**,
+  not just the launch line: `date -Iseconds` (bash) or `Get-Date -Format 'yyyy-MM-ddTHH:mm:sszzz'`;
+  both give the local offset. Typed values drift ahead of real time (sweep-400 narrated
+  sequential 17:15/17:35/17:40 lines while the real clock read 17:07), and the day strip
+  shows entries that had not happened yet.
 - **The verbs are exactly** `assign` `log` `action` `agent` `chat` `shot`, and `log` is
   `{at, msg}`. An invented verb or key renders as nothing.
 - **Escapes:** never backslash `$`, `<`, `>` or a backtick. Windows paths go in with forward
@@ -45,7 +47,7 @@ Anything that changes the repo is a **task**: a dir at
 Aim for **5–10 steps**; bump `step` when one genuinely finishes, carrying a `now` line that says what's happening *inside* it.
 Land with `step` at the last index; `landed_at` reads as all-checked whatever `step` says.
 
-- `../day.jsonl` — append one line, creating the file if the day is new:
+- `../day.jsonl` — the DAY's log, `ai/<date>/day.jsonl`, beside your task dir (⚠ not the stale `ai/day.jsonl` one level up, which still looks current when tailed — a line went there 2026-08-29). Append one line, creating the file if the day is new:
 
 ```json
 {"log": {"at": "<ISO>", "task": "<slug>", "msg": "task opened — <one line>"}}

@@ -65,6 +65,6 @@ export default new Page({
 			});
 		}).style("--column", "24em");
 
-		md("Also here: short working [notes](/notes/), and five personal sandboxes — [Alex](/alex/), [Arya](/arya/), [Castin](/castin/), [Edric](/edric/), [Michael](/michael/).");
+		md("Also here: [imagine](/imagine/) — a place built out of column pages, short working [notes](/notes/), and five personal sandboxes — [Alex](/alex/), [Arya](/arya/), [Castin](/castin/), [Edric](/edric/), [Michael](/michael/).");
 	}
 });

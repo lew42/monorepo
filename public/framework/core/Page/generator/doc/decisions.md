@@ -163,3 +163,334 @@ column (`width: auto` on the rule).
 A chaos dial on the page (above); pairing rules for the **width** words (the ask is about
 layouts working together, and widths are a track, not a layout); a wall of *typed* specs (the
 wall rolls seeds, and a typed spec has no neighbours to roll).
+
+# Wave 3 — the words become behaviours (MODEL v2, 2026-08-27)
+
+Built from the owner's critique of wave 2
+([the ask](/framework/ai/2026-08-27/column-pages-2/requirements.md),
+[task](/framework/ai/2026-08-27/gen-semantics/)). Five notes, and every one of them said the
+same thing from a different side: **the vocabulary was describing pictures, not behaviour.**
+
+## The test a word has to pass
+
+> *"i'm not sure we even need codified structures for some of these... the question of 'what
+> goes where' could be exemplified as simple `new Page()` patterns."*
+
+So: **a word earns codification when it changes WHERE A CHILD GOES.** Nine words became five.
+
+| kept | because |
+|---|---|
+| `wall` | a child opens a new column; the cards are how you pick |
+| `list` | a child opens a new column, and the picking column shows *previews* — an inbox |
+| `prose` | the leaf: no children, so nothing to place |
+| `tabs` | a child lands INSIDE this column, under a strip |
+| `vtabs` | the same, beside a rail |
+
+| cut | it was |
+|---|---|
+| `grid` | a `wall` with a smaller cell — `--column: 8em`, which is a number |
+| `flush` | a `wall` with no gap — `--gap: 0`, which is a number |
+| `crumbs` | a strip, never a level; core already derives one from `chain()` |
+| `rail` | the owner: *"the rail is just a slightly different vtabs"* |
+
+Each cut word is four lines of `new Page()` in [readme.md](/framework/core/Page/generator/readme/),
+written against the REAL api (`previews()`, `crumbs()`, `tabs().ac("vertical")`) rather than
+against anything in here — which is the point: they were never generator concepts.
+
+`rail`'s *idea* survived, promoted. The owner: *"the concept of a rail is more like... a list?
+like an inbox layout, where you have smaller previews on the left, and when you select one, it
+launches the detailed view on the right."* That behaviour is **the columns mechanic already** —
+a narrow column whose rows are previews, and a detail opening to the right. So `list` became
+the inbox and no new machinery was written: it is `.page-gen-item` with a peek, plus a width.
+
+## "Switch in place" is two lines of `container()`
+
+The hard one. `Page.container()` hands a child to the nearest ancestor's `$pages`, which is a
+**sibling** of that ancestor's column body — so `display: contents` floats it out as the next
+column in the row. Every word behaved that way, tabs included, and picking a tab grew the row.
+
+`ext/tabs` solves this with `regions`: `container()` checks `this.parent.regions.get(this.name)`
+first. A generated config cannot fill that map before its parent has rendered, so it overrides
+`container()` instead — the same seam, said directly:
+
+```js
+container(){
+	if (inplace(this.parent) && this.parent.$panel) return this.parent.$panel;
+
+	for (let page = this.parent; page; page = page.parent)
+		if (page.$pages && !inplace(page.parent)) return page.$pages;
+
+	return Page.prototype.container.call(this);
+}
+```
+
+Line one is the tab. **Line two is the one that is easy to miss:** a tab's own children would
+otherwise mount into the tab's `$pages`, which is *inside* the panel, and a grandchild would
+render stacked under the tab's content instead of opening a column. The loop walks past any
+page that is itself in a panel, to the nearest one that still owns a slot in the row. Measured
+at 1280: `/tabs/list/` is 2 column bodies, and clicking a preview inside that tab is 3 — the
+new column lands to the right of the tab set, which is what it should mean.
+
+Two supporting decisions:
+
+- **An in-place child is not `.page-column-body`.** That class is what core *sizes* — a 40em
+  cap, its own scrollbar, a rule down its right edge, a snap point. Content inside somebody
+  else's column is none of those, so it wears `.page-gen-inline` and takes the panel's width.
+  Its width word is dropped in `gen.js` *and* in `tree.js`, so the roller and a typed spec
+  cannot disagree about what the word can mean.
+- **The page's own content lives in the panel too**, and steps aside when a tab arrives — one
+  `@layer util` rule, `ext/tabs`' own trick on `.tab-panel`. So a tab set with nothing selected
+  is never a blank box, and no default child has to be rendered to avoid one.
+
+Core's verdict *"columns and tabs — do not"* ([doc/columns.md](/framework/core/Page/doc/columns.md))
+is about a `.block` tab strip **above** a full-height row, whose open tab's bottom edge the row
+cuts through. This strip is **inside** one column and never touches that seam.
+
+## Distinct siblings: a key per page, from its place in the spec
+
+> *"adding one of each to any page results in the parent rendering its own unique navigation,
+> however each child appears identical."*
+
+Every config now carries `key` — `(parent_key * 31 + index * 131 + word.length * 7 + arity)`,
+run through the same mulberry32. `fill.js` draws *everything* from it: the page's name (from a
+20-word list, deduped **per sibling list** so a strip of tabs reads as different words), how
+many groups, which kind (a headed run of lines / a picture / a row of chips), how many lines,
+and how wide each one is. An inbox row and a wall card also get a `peek()` — a line or two of
+the page behind the link, off an **offset** stream, because a preview that is the first lines
+of the content is a duplicate, not a preview.
+
+The key is a function of the **spec text**, not of the seed, which buys two things: a typed
+spec gets distinct children although it has no seed at all, and the same spec twice is the same
+page twice down to the last bar.
+
+Two shapes draw no filler, on purpose: `list` (its rows *are* the page — grey bars under the
+last message read as a broken column), and any nav word with no children, which shows its
+**empty state** instead. `gen()` never draws that, but a typed spec can, and the owner asked
+for it to be honest rather than invisible.
+
+## Every seed moved, and the model number says so
+
+`MODEL` is exported from `gen.js` and printed beside the seed on the page: *"seed 42, model v2"*.
+Measured in node, v1 vs v2, seeds 0 / 1 / 7 / 42 / 1234 / 999999: **6 of 6 moved, and all six
+kept their exact line count** — the draw sequence is untouched (one `pick()` per node either
+way, and the width pick is drawn-then-discarded under an in-place parent rather than skipped),
+so only *which word* each pick lands on has changed. Seed 7 was `flush small / list / …` and is
+now `vtabs small / wall / …`.
+
+As in wave 2: **a deep generated url is a link into one model.** Wave 2's
+`…/generator/tabs/rail/rail/#1234` does not exist under v2 and 404s; nothing here repairs a
+stale one, and nothing should.
+
+`PAIRS` is four rows now instead of eight — only the words that can *have* children. `prose` is
+the leaf and never parents anything, and a pattern is not a word, so there is nothing left to
+weigh it with.
+
+## Three traps, all measured
+
+**A flex line is only as tall as its tallest item.** `vtabs` was a `flex-flow: row wrap` with a
+100%-wide head, and the rail's dividing rule stopped where the panel's text ran out — the column
+looked half-drawn. It is a two-row grid now (`grid-template-rows: auto minmax(0, 1fr)`), and
+`minmax(0, …)` not `1fr`, or the panel keeps its content minimum and squeezes the rail.
+
+**Two `margin-inline-start: auto` SPLIT the free space.** The head's new word chip and core's
+`.page-column-close` both claimed it, and the chip floated to the middle of the head.
+
+**A headless probe that writes its screenshots into `public/` reloads the page it is probing.**
+The dev server watches the tree, so every `shot()` fired LiveReload and the next click landed on
+a page mid-reload: column counts came back `[]` at 1920 and 3440, intermittently, with **zero
+console errors**. It reads exactly like a routing bug. Shots go in the session scratchpad and
+are copied into the task dir at the end.
+
+## Wave 3's cuts
+
+The palette band on core/Page kept all 29 cards — the four cut words moved from *Building
+blocks* down to *Recipes*, where a composed shape belongs, and `columns` moved up to keep the
+first band at six (`browse()`'s grid stretches a band under six). Their demo pages under
+`core/Page/overview/` are untouched: the words stopped being generator vocabulary, not
+framework shapes.
+
+Not done, and worth naming: `wall` and `list` still differ only in how they *present* the pick,
+so a stricter reading of the rule would merge them and make "previews" a token. The owner asked
+for the inbox by name, so it is a word — but that is the next thing to argue about.
+
+# Wave 4 — the controls (2026-08-27)
+
+Built the same day as wave 3, on top of it
+([the ask](/framework/ai/2026-08-27/column-pages-2/requirements.md),
+[task](/framework/ai/2026-08-27/gen-controls/)). Three lines of the owner's note: *"let's add
+ui controls to switch any page to any other page"*, *"create ui controls for grid and flex
+control: size, number of columns, whatever — study the flex/grid css utilities"*, and *"add
+some controls to the generator's page's header, to control size, or whatever"*.
+
+## A control edits the SPEC, and nothing else
+
+The tempting build is a control that writes a class onto the live column. It would work until
+the first regrow, the first reload, or the first time someone tried to send you what they were
+looking at.
+
+So there is one rule and `spec.js` is it: **a control rewrites one line of the spec text**, the
+generator regrows from that text, and the address carries the text. Everything follows.
+
+- A switched tree is a **link** (`#s=<encoded>`), a reload lands on it, and the box shows you
+  the text you just wrote by clicking a chip. Verified at 1280 / 1920 / 3440: the spec shown
+  and the spec parsed back out of the url are the same 14 lines after every switch.
+- A control cannot reroll, because it never calls `gen()`. `MODEL` stays 2, the seed is
+  untouched, and `gen(seed) === gen(seed)` still holds on all seven proof seeds. What a switch
+  does change is that the tree stops being `#7` and starts being its own text — which the proof
+  line already knew how to say.
+- The line grammar grew a third part: `<block> [width] [key=value …]`. `gen()` never writes a
+  setting, so every old spec parses unchanged, and `read()` / `write()` are one pair.
+
+**Indices, not names.** `edit(text, at, change)` addresses a node by its position, because a
+generated page is *named* after its block word: switching `list` to `tabs` renames it and every
+url under it. The same index path is what `place()` captures before a regrow and `resolve()`
+turns back into a url after one — so a switch three columns deep leaves you reading the same
+column, one word different, instead of back at the host.
+
+## The grid and flex controls are framework words
+
+`--gen-cell` was the generator's own token for a wall's cell. It is gone. The nav wears
+`grid auto gap` (or `flex auto gap`) and the chips write `--column` and `--gap` —
+framework.css's own vocabulary, so what a reader learns here is true on any page of the site,
+and swapping grid for flex needs no rule of ours at all.
+
+⚠ The old `grid-template-columns` restatement had to be **deleted**, not out-specified:
+`.grid.auto` is `@layer util` and beats a component's `@layer theme` rule at any specificity.
+Two sets would not have disagreed — ours would simply never have painted.
+
+`cols=3` is `calc((100% - 2 * var(--gap)) / 3)`: exactly three tracks, because `auto-fit` fits
+three and cannot fit a fourth. `cols=9em` is a floor, which is what `--column` means everywhere
+else. Same token, both readings, one `track()`.
+
+Two globals were measured and thrown away:
+
+- **A cell size is a no-op.** `.grid.auto` is `auto-fit`, which collapses empty tracks and
+  stretches what is left — three cards fill their column at `--column: 8em` and at `20em` alike
+  (`321px 321px 321px` both times).
+- **A count is off by one.** The track is `(100% - gaps) / n`, and a custom property is computed
+  on the element that declares it — so on the host, `var(--gap)` is the *host's* gap, not the
+  nav's. `cols 2` rendered one column, `cols 3` rendered two. A count has to be computed where
+  the gap is, which is exactly what the per-column chips do.
+
+The header's second global is **gap**, through the same one-token indirection `--gen-list` uses:
+each word declares `--gap: var(--gen-gap, …)`, so the host can reach past a component default
+that plain inheritance loses to. **A global has to arrive as the fallback, never as the value.**
+
+## The header's four sizes, and `fill`
+
+`size` writes core's own `--page-column-min/max` on the columns host — a token needs no
+specificity, and every column that names no width word of its own takes it. Measured at 1920:
+the default track moves 256 / 320 / 416px across `small` / `med` / `large`.
+
+`fill` is the exception that needed a **rule**: a width word declares its ceiling on its own
+element (`.page-column-large { --page-column-max: 64em }`), and no inherited token reaches past
+that. At 3440 a `large` column sat at 1152px with 1256px of the row empty beside it. So `fill`
+also stamps `.page-gen-uncapped` on the host, and one (0,2,0) rule uncaps every open column —
+`:not(.page-column-full)` because `full` claims the row by its own means, and
+`:not(.page-gen-controls)` because the control column is a deliberate 22em.
+
+Row usage with only the auto-opened first root: **34% → 100% at 1920, 20% → 100% at 3440.**
+
+⚠ And with ONE column open at 3440, `fill` is a 2768px reading column — which is the 40em cap
+demonstrating why it exists. `fill` is worth its chip because it is the answer when three
+columns are open on a wide screen; it is a control, not a recommendation, and the page lets you
+see both.
+
+Deliberately **not** in the address. `#7` has to keep meaning one tree, and how wide you like
+your columns is not the tree — the same reason `chaos` is not on the page.
+
+## Four things the ux recon found, and what each one was
+
+The sweep ([task](/framework/ai/2026-08-27/ux-recon/)) ran against a mid-edit snapshot, so every
+finding was re-measured before it was believed.
+
+**#1, the blank panel — real, and it is core's rule reading this shape wrong.** Page.css's
+arrangement contract is
+`.page:not(.active-page, .active-ancestor:has(.page.active-page), .default)`: an *ancestor*
+shows only if the active page is somewhere inside it. A tab's page is inside the panel; its own
+child mounts out in the **row** (`container()` walks past any page that sits in a panel). So
+`tabs > list > leaf` left the list marked `.active-ancestor` with nothing under it —
+`display: none`, 0px wide, a strip of tabs over an empty box, and no console error. Measured
+before and after a scoped override: **0 → 507px**.
+
+It is worked around locally, in `generator.css`'s `@layer util`, at (0,5,0) — the core selector
+computes to (0,4,0), since `:not()` and `:has()` each take their most specific argument, and a
+tie in the same layer would be settled by stylesheet order. **The core hook wanted:** that guard
+should also pass an ancestor whose active descendant moved to another region.
+
+**#2 / #6, near-identical children — does not reproduce.** Five sibling `prose` pages under one
+`list`, measured: 5 of 5 distinct in title, group count, group kind and every bar width.
+`fill.js` is fully wired.
+
+**#7, the blank media box — real.** `--tint` is 3.5% of ink and the host is painted `--wash`, so
+an empty tinted rectangle read as a failed render rather than as a stand-in picture. It carries
+an `image` glyph now.
+
+**#5 and #3, dead space — real.** The 24-tile wall was pinned by `aspect-ratio: 4 / 3` on the
+sketch, so the tiles sat in a strip whatever height the row had: **~30% of the row at 3440**.
+The tiles claim the height now (`flex: 1 1 auto`, `grid-auto-rows: minmax(8em, 1fr)`) — **69% at
+3440, 79% at 1920, 87% at 1280**, the rest being the printed rules table. And a columns host
+with nothing open is one 22em column and a screen of grey, so the first root **opens itself,
+once per load** — once, because a page that re-opened whenever it became active would make Back
+unusable.
+
+## Two bugs the build found in itself
+
+**A bare `0` is not a length.** `gap=0` put a plain number in `calc((100% - 1 * var(--gap)) / n)`
+— a percentage minus a number, invalid at computed-value time, which throws away `--column`,
+which throws away `.flex.auto`'s whole `flex` shorthand. Three cards fell to 62px with nothing
+in the console. Any bare number is given `px` now.
+
+**The content key contained the block word.** `key = seed*31 + at*131 + word.length*7 + arity`,
+so switching how a page presented its children also renamed it and redrew every bar inside it —
+"Reports, vtabs" became "Bulletin, tabs". That is a silent reroll, and it is the one thing a
+control may not do. **A page's content is a function of where it is**, so the word is out of the
+key. Urls are unaffected: a name is the block word plus an ordinal, never the key.
+
+## Wave 4's cuts
+
+A control panel or a drawer (`ext/layout`'s `open()`): the controls belong on the thing they
+control, and a head that already carried a word chip could take two menus for free. Importing
+`ext/layout`'s `pick` / `menu` / `knob`: **`core/` must not depend on `ext/`**, and a select is
+five lines — the shape is borrowed, the module is not. A `prose` option on a page that has
+children (it would present none of them). Any control over `tabs` / `vtabs` beyond the kind
+switch: a strip is one line and has no arrangement to tune. And the header's own settings in
+the url.
+
+# Wave 5 — default is the majority track, and two words wait on their CSS (MODEL v3, 2026-08-29)
+
+The owner: *"make the default width for the generator the 'default' size, the small ones are
+super small."* `small` is a fixed 14em — narrow enough that it should be a **deliberate** pick,
+not a coin flip landing one roll in four. `WIDTH` in `gen.js` is `{ "": 8, small: 1, large: 2,
+full: 1 }` now (was `{ "": 6, small: 3, large: 2, full: 1 }`): `small` reweighted down to
+`full`'s own rarity — one roll in twelve, same table the "one roll in twelve" comment already
+described for `full` — and `""` (the default track) climbs from one in two to two in three.
+
+**A weight move is a MODEL move.** `MODEL` is 3. Measured in node, the six proof seeds (0 / 1 /
+7 / 42 / 1234 / 999999): **all six moved**, every one losing `small` lines to the default track
+and none gaining or losing a line — the draw sequence is untouched, only which width each pick
+lands on. `gen(seed) === gen(seed)` still holds on all six. Old deep links into a `small`-heavy
+tree 404 or land on a different tree the same way v1→v2 already taught: a generated url is an
+address into one model, and re-deriving it is the answer, not a repair.
+
+## `hug` and `fill` — two words, no CSS yet
+
+A core sibling is adding `hug` (content width) and `fill` (spend leftover, distinct from
+`full`'s ancestor-collapsing takeover) to the four width words. Both are in `WIDTHS` now, so the
+per-column menu offers `default small large full hug fill` and a typed spec accepts either —
+`tree.js`'s `column()` already stamps `.page-column-<width>` for whatever `page.width` holds, so
+no new code was needed there.
+
+**Neither is in the roller's `WIDTH` weight table.** The roller only draws what a human can
+already see rendered; `hug`/`fill` land in the vocabulary through a control or a typed spec, not
+through `#seed`, until the CSS is real and worth drawing.
+
+**Not drawn on this page yet, verified 2026-08-29:** `Page.css` has `.page-column-small` /
+`-large` / `-full`; no `.page-column-hug` or `.page-column-fill` rule exists. Picking either from
+the per-column menu stamps the class and renders exactly like the default track — no console
+error, just no picture — until core lands its CSS. **The header's size options got a plain
+`hug` entry with no tokens** (`{}` in `SIZES`), for the same reason: guessing at
+`--page-column-min/max` numbers core hasn't written yet would be a number to un-teach later,
+so it is an honest no-op instead. `default` (was `med`) is the header's fourth entry's new name,
+matching the per-column menu's own word for "no width word" — one name for the same idea in
+both places.

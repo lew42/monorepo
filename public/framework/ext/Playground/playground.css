@@ -26,13 +26,26 @@
 	   centres, `.pg-viewport` carries the width so it can be WIDER than the room: `flex: none`
 	   stops the row from shrinking it back down, and the body's own `overflow: auto` (above)
 	   is what makes a 1280 preset scroll instead of squeezing into a narrower column. */
-	.pg-canvas-body { display: flex; justify-content: center; align-items: flex-start; padding: 2em; }
+	/* `--wash` under the canvas so a document that sets `bg: surface` (the new default seed,
+	   documents.js) reads as a sheet on a desk — a white page on a white canvas is a bg you
+	   cannot see, and the seed's whole job is to show you one. */
+	.pg-canvas-body { display: flex; justify-content: center; align-items: flex-start; padding: 2em; background: var(--wash); }
 	.pg-viewport { width: var(--pg-viewport, 100%); flex: none; }
 
-	/* The tree docks at the shell's START; `ext/grip`'s default `inset-inline-start: 0`
-	   is right for the END-docked drawer/dev-rail, so this flips the strip to the
-	   tree's own inline-END — the tree/canvas boundary is what it drags. */
-	.pg-tree .grip { inset-inline-start: auto; inset-inline-end: 0; }
+	/* The two viewing floors (pg-model). Each node's own inline style already reads
+	   `max(<what you typed>, var(--pg-*-floor, 0px))` (items.js), so these two custom
+	   properties ARE the toggles — set here on `.pg-canvas-body` because it is the one node
+	   that survives every repaint (`.pg-viewport` is rebuilt by `paint_canvas()`), and
+	   inherited from there by every box. Toolbar.js flips the classes: one `classList` write
+	   restyles the whole tree, touches no data, and repaints nothing.
+	   A relative floor on purpose — 0.25em is a quarter of whatever text the box holds. */
+	.pg-canvas-body.pg-pad-floor { --pg-pad-floor: 0.25em; }
+	.pg-canvas-body.pg-gap-floor { --pg-gap-floor: 0.25em; }
+
+	/* The tree docks at the shell's START — `grip({ from: "start" })` (Playground.js) is the
+	   whole of it now. This file used to flip the STRIP here and leave the lit line anchored
+	   to the strip's other side, 10px short of the boundary; ext/grip mirrors both together
+	   under `.grip-start`, so there is nothing left for a consumer to compensate for. */
 
 	/* `overflow-x: auto` stays a safety net for the narrow end (400 — design §1 never
 	   promised the toolbar a container query of its own), not the everyday case:
@@ -47,8 +60,10 @@
 	   `button.pg-btn` adds the tag back to win without touching the shared theme file. */
 	.pg-toolbar button.pg-btn { padding: 0.25em 0.5em; }
 	.pg-btn { white-space: nowrap; flex: none; }
-	/* The current viewport preset, same "on" convention `ext/Dropdown` already uses. */
-	.pg-preset-btn.on { background: var(--prim); color: white; border-color: var(--prim); }
+	/* Any toolbar button that is CURRENTLY ON — the viewport preset, and now the two floor
+	   toggles — same "on" convention `ext/Dropdown` already uses. One rule, not one per
+	   button kind: "on" means the same thing in this row wherever it appears. */
+	.pg-btn.on { background: var(--prim); color: white; border-color: var(--prim); }
 
 	/* Each verb cluster of the toolbar row (design §6's `│` separators); a divider on
 	   every group but the first, never on an empty slot (task 4's `document ▾` and
@@ -62,16 +77,31 @@
 	   text. `.pg-readout`'s content is set straight from `item.styles()` (`properties.js`)
 	   or the live node's OWN `style` attribute (`Playground.js`'s change path) — never both
 	   independently computed, so the two can't drift apart. */
-	.pg-properties-body { display: flex; flex-direction: column; gap: 0.75em; padding: 0.75em; }
+	/* Density, measured (pg-edges item 3). Dropping `order`/`shrink`/`basis` did NOT bring
+	   the column inside a 900px window — those three sit BELOW `align`, the control the ux
+	   proposal measured off-screen, so deleting them moved it 0px. What moves it is the
+	   space BETWEEN thirteen fields: 0.75em → 0.5em here and in `.pg-section`, and a smaller
+	   seg button, buys back ~70px and puts `align` on screen. The proposal's real fix (its
+	   `justify`/`align` chips on the canvas axis they control) is parked for the owner. */
+	/* ⚠ `scrollbar-gutter: stable` is the whole of "the rail must not grow/shrink on a
+	   selection switch" (the owner, 2026-08-29). The rail's OUTER width cannot move —
+	   `flex: 0 0 clamp()` with grow AND shrink at 0, measured identical to the third
+	   decimal across every selection at 1280 and 3440. What moved is THIS box: a Box
+	   selection is 7–9 fields and fits, a Flex is 11 and a Grid 13 and they do not, so the
+	   scrollbar toggled on exactly that switch and took ~15px of content width with it
+	   wherever a scrollbar occupies layout space. Reserving the gutter always costs those
+	   15px permanently and is worth it; headless Chromium cannot show the bug at all
+	   (overlay scrollbars, `offsetWidth - clientWidth === 0` even in `channel: chrome`). */
+	.pg-properties-body { display: flex; flex-direction: column; gap: 0.5em; padding: 0.75em; scrollbar-gutter: stable; }
 	.pg-props-head { font-size: 0.8em; font-weight: 700; letter-spacing: 0.02em; }
-	.pg-field { display: flex; flex-direction: column; gap: 0.25em; }
+	.pg-field { display: flex; flex-direction: column; gap: 0.2em; }
 	.pg-field-label { font-size: 0.75em; color: var(--subtle); }
 	.pg-seg { display: flex; flex-wrap: wrap; gap: 2px; }
 
 	/* A conditional field GROUP (pg-sidebar brief §1) — the flex/grid config, "in parent" —
 	   set off from the always-on fields above it by a rule, same visual move `.pg-readout`
 	   already makes for the readout below. */
-	.pg-section { display: flex; flex-direction: column; gap: 0.75em; padding-block-start: 0.75em; border-block-start: 1px solid var(--line); }
+	.pg-section { display: flex; flex-direction: column; gap: 0.5em; padding-block-start: 0.5em; border-block-start: 1px solid var(--line); }
 	.pg-section-head { font-size: 0.7em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--subtle); }
 
 	/* The bg dropdown's own picture (properties.js `BG_TOKENS`) — a token's actual colour,
@@ -80,46 +110,145 @@
 	/* Same theme-layer padding loss as `.pg-btn` above (0.7em/1.4em, 0,2,0 beating a
 	   bare `.pg-seg-btn`'s 0,1,0) — a segmented row of four wrapped 2-per-line. Needs
 	   TWO classes plus the tag to clear the theme rule's own two-class specificity. */
-	.pg-properties-body button.pg-seg-btn { padding: 0.2em 0.5em; font-size: 0.8em; }
+	.pg-properties-body button.pg-seg-btn { padding: 0.15em 0.4em; font-size: 0.75em; }
 	.pg-seg-btn.pg-seg-active { background: var(--prim); color: white; border-color: var(--prim); }
 	.pg-readout {
 		margin-block-start: 0.25em; padding-block-start: 0.75em; border-block-start: 1px solid var(--line);
 		font-family: monospace; font-size: 0.75em; color: var(--subtle); white-space: pre-wrap; word-break: break-word;
 	}
+	/* One line per declaration (pg-edges item 5) so the last change can be POINTED AT —
+	   `apply_change(key)` diffs the node's old `style` against its new one, and whatever
+	   reads differently wears `.pg-decl-new`. A block per declaration, nothing else: the
+	   highlight is the whole feature, and a tooltip system was explicitly not the ask. */
+	.pg-decl { display: block; }
+	.pg-decl-new { background: var(--tint); color: var(--prim-ink); font-weight: 700; }
+	.pg-decl-note { display: block; margin-block-start: 0.4em; color: var(--prim-ink); }
 
 	/* Every canvas node is real DOM wearing the ITEM's own inline style (design §4) —
 	   this is chrome only, never a property `item.styles()` could also write: a border
 	   so an empty Box is still visible, a label chip, the selection outline. */
 	.pg-node { position: relative; border: 1px dashed var(--subtle); min-width: 1.5em; min-height: 1.5em; cursor: pointer; }
-	.pg-node-label { position: absolute; inset-block-start: -1.1em; inset-inline-start: 0; font-size: 0.7em; color: var(--subtle); white-space: nowrap; }
 	.pg-node.pg-selected { outline: 2px solid var(--prim); outline-offset: -1px; }
+
+	/* The label answers "what am I pointing at", so it rides plain `:hover` — not the
+	   selected+hover the ACTIONS below use. You want the name BEFORE you commit to
+	   clicking, and reading one costs nothing. Absolute, so it can never move a rect
+	   whichever way it is gated. `-1.5em` of its OWN 0.7em font-size clears the node's
+	   top border by ~3px; the old `-1.1em` left it sitting on the edge. */
+	.pg-node-label {
+		position: absolute; inset-block-start: -1.5em; inset-inline-start: 0;
+		font-size: 0.7em; color: var(--subtle); white-space: nowrap;
+		opacity: 0; transition: opacity 0.1s;
+	}
+	.pg-node:hover > .pg-node-label { opacity: 1; }
 
 	/* A box with no real children is still a valid drop target — give it a taller floor
 	   than the bare 1.5em above so there is room to find and hover it (pg-placeholder
-	   brief item 4). */
+	   brief item 4). Now a no-op for a `.pg-stack` (its reserved + already floors it at
+	   0.5em padding + 1.5em = 2em, measured) and the ONLY floor an empty row-Flex or Grid
+	   has, since those carry the + absolutely — so it stays. */
 	.pg-node.pg-node-empty { min-height: 2em; }
 
-	/* The + placeholder — the last real child's exact next slot, in flow. `display: none`
-	   by default reserves NOTHING (the owner's named failure: a permanent void at the
-	   bottom of a container) — `.pg-node:hover > .pg-add` is the only thing that ever
-	   shows it, and CSS already runs `:hover` up every ancestor of whatever is actually
-	   under the pointer, so a hover on a nested child shows both its own + and its
-	   parent's for free — no JS hover tracking (pg-placeholder brief item 1). */
+	/* The + — the last real child's exact next slot, and a real button (var(--surface) /
+	   var(--line) / hover to --prim, the same shape framework.css gives every `button`).
+	   It is ALWAYS in the DOM and always laid out: only `opacity` moves, so revealing one
+	   can never shift a single rect. `display: none` -> `block` was the whole of the
+	   owner's jank — it grew the viewport 37px on every hover, measured both ways.
+	   Gated on `.pg-selected:hover`, not bare `:hover`: an action belongs to the box you
+	   have already chosen, and the click that chose it leaves the pointer right there, so
+	   the + appears under the cursor that just selected it.
+	   `pointer-events` follows the opacity — an invisible + must not eat the click that
+	   would have selected its own container (which is exactly how you reveal it). */
 	.pg-add {
-		display: none; border: 1px dashed var(--subtle); min-width: 1.5em; min-height: 1.5em;
+		opacity: 0; pointer-events: none;
+		min-width: 1.5em; min-height: 1.5em;
+		background: var(--surface); border: 1px solid var(--line); border-radius: 4px;
 		text-align: center; line-height: 1.5em; font-size: 0.9em; color: var(--subtle); cursor: pointer;
+		transition: opacity 0.1s, background-color 0.1s, border-color 0.1s, color 0.1s;
 	}
-	.pg-node:hover > .pg-add { display: block; }
+	.pg-node.pg-selected:hover > .pg-add { opacity: 1; pointer-events: auto; }
+	.pg-add:hover { background: var(--tint); border-color: var(--prim); color: var(--prim-ink); }
+
+	/* A `.pg-stack` (Box or column Flex — canvas.js owns the class) keeps the + in flow:
+	   one more block at the bottom is that container's real next slot, and the room it
+	   reserves is the deliberate "props the parent open" floor. Every OTHER container
+	   would have to hand the + a whole flex column or grid cell, so theirs hangs in the
+	   bottom-inline-end corner instead — absolute, and therefore zero flow impact by
+	   construction rather than by reservation. Above the resize handles' own z-index. */
+	.pg-node:not(.pg-stack) > .pg-add {
+		position: absolute; z-index: 2; inset-block-end: 2px; inset-inline-end: 2px;
+	}
+	/* ⚠ A `.pg-stack`'s + stays STATIC on purpose. Giving it `position: relative; z-index: 2`
+	   (tried, measured) makes it paint above every positioned sibling — and a block-level +
+	   is FULL WIDTH, so on an empty Box it covered the node's whole top edge: the chips below
+	   became unclickable and `elementFromPoint` on both returned `.pg-add`. Static is the
+	   correct answer, because it hands the 12px outer ring to the edge strips and the corner
+	   to the chips, and keeps the whole middle — which is the child-add target — for itself.
+
+	   ── The four edge inserters (pg-edges) ────────────────────────────────────────────
+	   The one affordance that answers "add a box HERE": WHICH edge is the side, and which
+	   PAIR of edges is the direction — so direction is never its own gesture again.
+	   `position: absolute` INSIDE the node's own box, never straddling its border: an
+	   overhang would push `.pg-canvas-body`'s `overflow: auto` into a scrollbar, and a
+	   scrollbar appearing on hover is the 0px-shift promise broken by the long way round.
+	   Only `opacity` and `background` ever move, so revealing one shifts nothing.
+	   The same `.pg-selected:hover` gate `.pg-add` and the resize handles already use:
+	   chrome belongs to the box you have already chosen, and the click that chose it left
+	   your pointer right there. `pointer-events` follows the opacity — an invisible 12px
+	   band down every edge would otherwise eat the clicks that select a box at all. */
+	.pg-edge {
+		position: absolute; z-index: 1; opacity: 0; pointer-events: none;
+		display: flex; align-items: center; justify-content: center;
+		transition: opacity 0.1s, background-color 0.1s;
+	}
+	.pg-edge-left, .pg-edge-right { inset-block: 0; width: 12px; }
+	.pg-edge-left { inset-inline-start: 0; }
+	.pg-edge-right { inset-inline-end: 0; }
+	.pg-edge-top, .pg-edge-bottom { inset-inline: 0; height: 12px; }
+	.pg-edge-top { inset-block-start: 0; }
+	.pg-edge-bottom { inset-block-end: 0; }
+
+	/* Two steps, both opacity: the four bands appear faintly the moment the box is yours,
+	   then the one under the pointer goes solid and shows its `+`. Two steps is what keeps
+	   four simultaneous affordances readable — you always know which one you are about to
+	   press before you press it. */
+	.pg-node.pg-selected:hover > .pg-edge { opacity: 0.55; pointer-events: auto; background: var(--tint); }
+	.pg-node.pg-selected:hover > .pg-edge:hover { opacity: 1; background: var(--prim); }
+	.pg-edge-add {
+		min-width: 1.2em; block-size: 1.2em; line-height: 1.15em; text-align: center;
+		font-size: 0.75em; background: var(--surface); border: 1px solid var(--prim);
+		border-radius: 999px; color: var(--prim-ink); opacity: 0; transition: opacity 0.1s;
+	}
+	.pg-edge:hover > .pg-edge-add { opacity: 1; }
+
+	/* `⧉` / `✕` came off the toolbar onto the node they act on (pg-edges item 3) — a verb
+	   on the selection belongs where the selection is. Absolute and opacity-only like
+	   everything else here; z-index 2 so it keeps its corner from the right-hand strip. */
+	.pg-chips {
+		position: absolute; z-index: 2; inset-block-start: 2px; inset-inline-end: 2px;
+		display: flex; gap: 2px; opacity: 0; pointer-events: none; transition: opacity 0.1s;
+	}
+	.pg-node.pg-selected:hover > .pg-chips { opacity: 1; pointer-events: auto; }
+	.pg-chip {
+		min-width: 1.4em; block-size: 1.4em; line-height: 1.35em; text-align: center;
+		font-size: 0.8em; background: var(--surface); border: 1px solid var(--line);
+		border-radius: 4px; color: var(--subtle); cursor: pointer;
+	}
+	.pg-chip:hover { background: var(--tint); border-color: var(--prim); color: var(--prim-ink); }
 
 	/* Resize handles (pg-resize) — `position: absolute` is the whole trick: an
 	   absolutely positioned child never enters flex layout OR its parent's own
 	   auto-size, so "reserves zero flow space" holds by construction (canvas.js's
 	   `position_handles()` sets only the ONE runtime-measured axis, `left`/`top`;
 	   the `translate` here centres the strip on that coordinate without either side
-	   needing to know the other's width). Invisible until the gap or the handle
-	   itself is hovered — same convention `.pg-add` already uses one rule up. */
-	.pg-resize-handle { position: absolute; z-index: 1; opacity: 0; }
-	.pg-node:hover > .pg-resize-handle, .pg-resize-handle:hover, .pg-resize-handle.pg-dragging { opacity: 1; }
+	   needing to know the other's width). Selected+hover, the same gate `.pg-add` uses
+	   one rule up — a bare `:hover` lit up handles on containers you were only passing
+	   over. `pointer-events` follows: a hidden handle is a 10px invisible strip lying
+	   across the gap, and leaving it live meant every click in a gap hit nothing.
+	   `.pg-dragging` alone keeps a handle visible once a drag has pointer capture and
+	   the pointer has left its container. */
+	.pg-resize-handle { position: absolute; z-index: 1; opacity: 0; pointer-events: none; }
+	.pg-node.pg-selected:hover > .pg-resize-handle, .pg-resize-handle.pg-dragging { opacity: 1; pointer-events: auto; }
 	.pg-resize-handle.pg-resize-col { top: 0; height: 100%; width: 10px; transform: translateX(-50%); cursor: col-resize; }
 	.pg-resize-handle.pg-resize-row { left: 0; width: 100%; height: 10px; transform: translateY(-50%); cursor: row-resize; }
 	.pg-resize-handle::after { content: ""; position: absolute; inset: 0; margin: auto; background: var(--prim); border-radius: 2px; }

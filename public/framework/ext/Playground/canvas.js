@@ -35,9 +35,35 @@ import { Box, Flex, Grid } from "./items.js";
 export function canvas(pg){
 	return pg.$canvas = div.c("pg-canvas", () => {
 		pg.$body = div.c("pg-canvas-body").on("click", e => {
-			// A handle's own drag never selects the node it sits inside — same early-out
-			// shape as `.pg-add`'s, just returning nothing (a handle has no click job).
+			// A handle owns its own pointer events end to end — including the CLICK that
+			// never travelled, which `resize_handles` turns into an insert-between. Nothing
+			// for this listener to do either way; a handle must never fall through to select.
 			if (e.target.closest?.(".pg-resize-handle")) return;
+
+			// The edge inserters (pg-edges). Same early-out shape as `.pg-add`'s: the strip
+			// is its own destination, so it must never also select the box it sits on — and
+			// carrying no `data-id` itself, `closest("[data-id]")` from it always lands on
+			// its OWN owning node. Shift picks a Flex, exactly as both other add paths do.
+			const edge = e.target.closest?.(".pg-edge");
+			if (edge){
+				e.stopPropagation();
+				const owner = edge.closest("[data-id]");
+				if (owner) pg.insert_at(pg.doc.find(owner.dataset.id), edge.dataset.side, e.shiftKey ? Flex : Box);
+				return;
+			}
+
+			// `⧉` / `✕`, moved off the toolbar onto the node they act on. Both are verbs on
+			// the SELECTION, so the chip selects its owner first — belt and suspenders, since
+			// a chip is only ever visible on a node that is already selected.
+			const chip = e.target.closest?.(".pg-chip");
+			if (chip){
+				e.stopPropagation();
+				const owner = chip.closest("[data-id]");
+				if (!owner) return;
+				pg.select(owner.dataset.id);
+				chip.dataset.act === "remove" ? pg.remove() : pg.duplicate();
+				return;
+			}
 
 			const add = e.target.closest?.(".pg-add");
 			if (add){
@@ -56,8 +82,27 @@ export function canvas(pg){
 // `.pg-viewport` is the "canvas box" of design §4 — its `width` is the preset, and
 // `.pg-canvas-body`'s `justify-content: center` (playground.css) centres it.
 export function paint_canvas(pg){
-	pg.$body.empty(() => { div.c("pg-viewport", () => { pg.constructor.Canvas.render(pg.doc); }); });
+	pg.$body.empty(() => { div.c("pg-viewport", () => { pg.constructor.Canvas.render(pg.doc, pg); }); });
+	watch_geometry(pg);
 	position_handles(pg.$body.el);
+}
+
+/* Handles carry COMPUTED coordinates, so anything that resizes the canvas box without
+ * repainting leaves them behind. `Playground.set_viewport()` is exactly that — a preset
+ * is one CSS variable, no data change, no repaint — and it put the r2|r3 handle 143.05px
+ * from its own gap, measured, with a hover afterwards NOT recovering it. That is the
+ * owner's "columnar resizers sometimes appear in the wrong place", and it survives the
+ * jank fix because it was never about hovering.
+ *
+ * One ResizeObserver on `.pg-viewport` answers the whole class at the moment the geometry
+ * actually moves — preset change, window resize, a rail grip drag — instead of on every
+ * pointer move over the canvas. It cannot loop: `position_handles` only writes `left`/`top`
+ * on absolutely positioned children, which are outside their parent's own auto-size.
+ * `.pg-viewport` is rebuilt by every repaint, so the ONE observer re-aims at the new box. */
+function watch_geometry(pg){
+	pg.geometry ??= new ResizeObserver(() => position_handles(pg.$body.el));
+	pg.geometry.disconnect();
+	pg.geometry.observe(pg.$body.el.firstElementChild);
 }
 
 // `static Canvas` — a part, not a method, so a subclass could replace only how the
@@ -67,24 +112,66 @@ export function paint_canvas(pg){
 // `pg.constructor.Canvas.render` above still resolves through the live class, not this
 // module's lexical binding.
 //
+/* A node "stacks" when one more block child at the bottom is the natural next slot — a
+ * Box (block flow) or a column Flex. Those keep the blocky + IN FLOW and playground.css
+ * reserves its room permanently, so revealing it costs zero layout shift (pg-interactions:
+ * the old `display: none` -> `block` grew the viewport 37px on EVERY hover, measured).
+ * A row Flex or a Grid would have to hand the + a whole column or cell, so theirs is
+ * absolutely positioned in the corner instead — the same zero-shift promise, by the other
+ * construction the brief allows. Nothing else reads this class; it is purely the switch. */
+const stacks = item => !(item instanceof Grid) && (!(item instanceof Flex) || (item.get("direction") || "row") === "column");
+
 // `.pg-add` — every box, not just Flex/Grid (pg-placeholder brief item 3: `is_container`
 // only gates the TOOLBAR rule, and a plain Box can parent same as any other item). Always
-// the LAST direct child, in flow, so a click lands the new item exactly where the ghost
-// sat. Hidden/shown purely by `.pg-node:hover > .pg-add` (playground.css) — CSS `:hover`
-// already matches every ancestor of whatever is actually under the pointer, so a nested
-// hover shows every ancestor's own + for free, no JS tracking here. `pg-node-empty` gives
-// a real item with zero children a bigger hover target (playground.css's ~2em floor) —
+// the LAST direct child, so a click lands the new item exactly where the ghost sat.
+// Revealed purely by `.pg-node.pg-selected:hover > .pg-add` (playground.css) — an
+// affordance you only see on the box you have already chosen, which is also the box the
+// pointer is still on, so the + lands under the cursor that just selected it. `pg-node-empty`
+// gives a real item with zero children a bigger hover target (playground.css's ~2em floor) —
 // it is never on the class list otherwise, so a populated box never grows from it.
+/* The four edge inserters and the node's own `⧉`/`✕` (pg-edges). Both are `position:
+ * absolute` INSIDE the node's own box — never straddling its border: an overhang would push
+ * `.pg-canvas-body`'s `overflow: auto` into a scrollbar, and a scrollbar appearing on hover
+ * is exactly the 0px-shift promise broken, by the long way round.
+ *
+ * The STRIP is the click target, not the chip — a 12px band down a whole edge is a target
+ * you can hit without aiming, and the chip is only the picture of what the click will do.
+ * Order matters: left/right are built LAST, so at the same z-index they win the four
+ * corners, which makes the ambiguous corner deterministically a ROW insert.
+ *
+ * Neither is drawn on the root: it has no siblings to insert beside, and `remove()` refuses
+ * it anyway. The root's own affordance is the centre `+`, same as any other container. */
+const SIDES = ["top", "bottom", "left", "right"];
+
+function node_chrome(item){
+	if (!item.parent) return;
+
+	SIDES.forEach(side => {
+		div.c(`pg-edge pg-edge-${side}`, () => { div.c("pg-edge-add", "+"); })
+			.attr("data-side", side)
+			.attr("title", `Insert a sibling ${side === "left" || side === "right" ? "beside" : side === "top" ? "above" : "below"} this box — ${FLOW_WORD[side]} (Shift: a Flex)`);
+	});
+
+	div.c("pg-chips", () => {
+		div.c("pg-chip", "⧉").attr("data-act", "duplicate").attr("title", "Duplicate this box beside itself");
+		div.c("pg-chip", "✕").attr("data-act", "remove").attr("title", "Remove this box");
+	});
+}
+
+const FLOW_WORD = { left: "makes a row", right: "makes a row", top: "makes a column", bottom: "makes a column" };
+
 export class Canvas {
-	static render(item){
+	static render(item, pg){
 		return div.c("pg-node", () => {
 			if (item.data.label) span.c("pg-node-label", item.data.label);
-			item.items.each(kid => this.render(kid));
-			if (item instanceof Flex) resize_handles(item);
+			item.items.each(kid => this.render(kid, pg));
+			if (item instanceof Flex) resize_handles(item, pg);
 			if (item instanceof Grid) grid_resize_handles(item);
+			node_chrome(item);
 			div.c("pg-add", "+");
 		})
 			.ac(item.items.length === 0 && "pg-node-empty")
+			.ac(stacks(item) && "pg-stack")
 			.attr("data-id", item.id).attr("style", item.styles());
 	}
 }
@@ -105,7 +192,13 @@ export class Canvas {
  * is not. See doc/decisions.md. */
 const HANDLE_MIN = 8;   // px floor during drag — never let a flank collapse through zero (fallback only, see floor_px)
 const round2 = v => Math.round(v * 100) / 100;
-const is_fixed_len = item => { const w = item.get("width"); return !!w && w !== "hug" && w !== "fill"; };
+/* `key` is the MAIN-axis size key of the container being dragged — `width` in a row,
+ * `height` in a column. Passing it in is the whole of the pg-interactions drag fix: this
+ * read used to be hardcoded to `width`, and so did both commits below, so a VERTICAL drag
+ * in a column flex wrote its pixel answer into `width` — which `items.js#size_decls` then
+ * renders as the CROSS axis, `width: <len>`. The owner's "vertical resize sometimes
+ * strangely changes width" was that, exactly. */
+const is_fixed_len = (item, key) => { const v = item.get(key); return !!v && v !== "hug" && v !== "fill"; };
 
 // pg-geometry item 2: `.pg-node`'s own `min-width`/`min-height` (playground.css, shared
 // chrome outside this file's fence) is a real floor CSS applies BEFORE distributing grow
@@ -113,23 +206,31 @@ const is_fixed_len = item => { const w = item.get("width"); return !!w && w !== 
 // whatever the cascade actually enforces, at that element's own font-size.
 const floor_px = (el, row) => parseFloat(getComputedStyle(el)[row ? "minWidth" : "minHeight"]) || HANDLE_MIN;
 
-function resize_handles(item){
+/* pg-edges item 2 — a press that never travels this far is a CLICK, not a resize: it
+ * inserts a box between the pair the handle flanks (the owner's "inserting between items"
+ * case). A real drag still resizes, and the two can never be confused by accident: 5px is
+ * more than a hand's tremor and far less than a deliberate drag. */
+const CLICK_SLOP = 5;
+
+function resize_handles(item, pg){
 	const kids = item.items.children;
 	if (kids.length < 2) return;
 	if (item.get("wrap") === "wrap") return;   // pg-geometry item 3 — bound (comment above), doc/decisions.md
 	const row = (item.get("direction") || "row") === "row";
+	const main = row ? "width" : "height";   // the axis this container's drag actually resizes
 
 	for (let i = 0; i < kids.length - 1; i++){
 		const a = kids[i], b = kids[i + 1];
-		let elA, elB, fixedSide, startA, startB, startPos, liveA, liveB, floorA, floorB;
+		let elA, elB, fixedSide, startA, startB, startPos, liveA, liveB, floorA, floorB, moved;
 
 		div.c(`pg-resize-handle ${row ? "pg-resize-col" : "pg-resize-row"}`)
-			.attr("data-gap", i).attr("title", "Drag to resize")
+			.attr("data-gap", i).attr("title", "Drag to resize — click to insert a box here (Shift: a Flex)")
 			.on("pointerdown", function(e){
 				e.preventDefault();
 				e.stopPropagation();
 				this.el.setPointerCapture(e.pointerId);
 				this.ac("pg-dragging");
+				moved = false;
 
 				const container = this.el.parentElement;
 				elA = container.querySelector(`[data-id="${a.id}"]`);
@@ -137,7 +238,7 @@ function resize_handles(item){
 				// Exactly one fixed length -> that one moves. Both fixed -> the brief's
 				// "nearer one"; simplest deterministic reading is the first (left/top)
 				// flank — an edge-aware version was cut, unproven and unrequested.
-				fixedSide = is_fixed_len(a) ? a : is_fixed_len(b) ? b : null;
+				fixedSide = is_fixed_len(a, main) ? a : is_fixed_len(b, main) ? b : null;
 
 				floorA = floor_px(elA, row); floorB = floor_px(elB, row);
 				const rectA = elA.getBoundingClientRect(), rectB = elB.getBoundingClientRect();
@@ -149,6 +250,7 @@ function resize_handles(item){
 			.on("pointermove", function(e){
 				if (!this.hc("pg-dragging")) return;
 				const d = (row ? e.clientX : e.clientY) - startPos;
+				if (Math.abs(d) >= CLICK_SLOP) moved = true;   // past the slop it is a drag, and stays one
 
 				// Live feedback is a provisional inline `flex` — never the commit (design's
 				// own rule, decisions.md): only the fixed side moves in fixed-sidebar mode,
@@ -172,21 +274,36 @@ function resize_handles(item){
 				this.el.releasePointerCapture(e.pointerId);
 				this.rc("pg-dragging");
 
+				if (!moved){
+					// A click. Commit NOTHING — an idle `pointermove` may already have written
+					// a provisional inline `flex`, so both flanks are re-stamped from their own
+					// data first, and no `grow` is ever silently rewritten by a click that only
+					// meant "put one here". `insert_between` leaves the selection alone, so this
+					// container's other gaps stay lit for the next one.
+					elA.setAttribute("style", a.styles());
+					elB.setAttribute("style", b.styles());
+					pg.insert_between(a, b, e.shiftKey ? Flex : Box);
+					return;
+				}
+
 				if (fixedSide){
 					// The stored LENGTH changes; the other flank's data is never touched
 					// (proof (b)) — it reflows because it was already hug/fill, not because
-					// we wrote anything onto it.
-					fixedSide.set("width", Math.round(fixedSide === a ? liveA : liveB) + "px");
+					// we wrote anything onto it. `main`, never a hardcoded `width` — in a
+					// column the number under the pointer is a HEIGHT (pg-interactions).
+					fixedSide.set(main, Math.round(fixedSide === a ? liveA : liveB) + "px");
 				} else {
 					// grow_i = px_i / min_px (brief's own formula, pg-resize) — kept AS-IS
 					// (pg-geometry item 2's own measuring found no simple closed-form fix:
 					// a floor-adjusted "excess above floor" ratio was tried and measured
 					// WORSE at an extreme ratio than this plain one, doc/decisions.md's own
-					// numbers). `width` cleared on both flanks for the shorthand-collision
-					// reason already documented (items.js#common, decisions.md).
+					// numbers). The MAIN-axis length is cleared on both flanks for the
+					// shorthand-collision reason already documented (items.js#common,
+					// decisions.md) — `main`, so a column clears `height` and leaves any
+					// cross-axis `width` the box already had completely alone.
 					const min = Math.min(liveA, liveB);
-					a.set("width", ""); a.set("basis", "0"); a.set("grow", String(round2(liveA / min)));
-					b.set("width", ""); b.set("basis", "0"); b.set("grow", String(round2(liveB / min)));
+					a.set(main, ""); a.set("basis", "0"); a.set("grow", String(round2(liveA / min)));
+					b.set(main, ""); b.set("basis", "0"); b.set("grow", String(round2(liveB / min)));
 				}
 
 				// Belt-and-suspenders: if every .set() above happened to no-op (same
@@ -322,12 +439,16 @@ export function position_handles(root){
 		const box = container.getBoundingClientRect();
 		const rectA = a.getBoundingClientRect(), rectB = b.getBoundingClientRect();
 
+		// `box` is the BORDER box, but `left`/`top` on an absolutely positioned child
+		// resolve against the containing block's PADDING box — so every handle sat exactly
+		// one border-width (1.00px, measured on all five) past its gap's true centre.
+		// `clientLeft`/`clientTop` IS that border width, and costs no style resolve.
 		if (handle.classList.contains("pg-resize-col")){
 			const mid = (rectA.right - box.left + rectB.left - box.left) / 2;
-			handle.style.left = `${mid}px`;
+			handle.style.left = `${mid - container.clientLeft}px`;
 		} else {
 			const mid = (rectA.bottom - box.top + rectB.top - box.top) / 2;
-			handle.style.top = `${mid}px`;
+			handle.style.top = `${mid - container.clientTop}px`;
 		}
 	});
 }

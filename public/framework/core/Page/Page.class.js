@@ -99,8 +99,19 @@ export class Page {
 		return chain;
 	}
 
-	// Memory, then route(), then a filesystem probe. Also the one place `app` is
-	// handed down. route() sees undeclared names only, so it cannot shadow a child.
+	// ════ ROLES — the nearest ancestor that claims one ═══════════════════════
+	// A page says `is: "topic"` about itself and its whole subtree can find it,
+	// however deep. `findLast`, so the CLOSEST claim wins — an inner document
+	// inside an outer one is still your document. Me included: a topic is its own.
+	// doc/method/nearest.md.
+	nearest(role){ return this.chain().findLast(page => page.is === role); }
+
+	topic(){ return this.nearest("topic"); }
+	document(){ return this.nearest("document"); }
+
+	// Memory, then route(), then a filesystem probe. One of the two places `app` is
+	// handed down — `render_column()` is the other, for the child nothing routes to.
+	// route() sees undeclared names only, so it cannot shadow a child.
 	async child(name){
 		const known = this.children.get(name);
 
@@ -250,6 +261,12 @@ export class Page {
 	// box each page needs. doc/columns.md.
 	columns(){ this.columnar = true; return this; }
 
+	// The narrowest a DRAG may leave a column: past this the head's title and its `×`
+	// have nowhere to sit, and a column you cannot read is a column you cannot widen
+	// again. A field, not a constant, so a page with bigger rows can raise it — it
+	// initializes before `assign()`, so `new Page({ column_floor: 140 })` wins.
+	column_floor = 96;
+
 	// Asked at RENDER time, never walked — so a child that only loads when you
 	// navigate to it is a column too. Undefined when I am not in a columns tree.
 	column_host(){ return this.chain().find(page => page.columnar); }
@@ -260,10 +277,21 @@ export class Page {
 	// ⚠ No `page-title` and no `flow`: the head below IS the title, and the two
 	//   framework rhythm rules (`.flow > * + *`, `.page-title + *`) would each hand a
 	//   column body a top margin it has no room for.
+	// ⚠ `classes` is ADDITIVE here, where `render()` lets it REPLACE the shape. A column
+	//   has no shape to choose — it is `.page.column` or it is not in the row — so a
+	//   declared class can only be an extra. Without this a columns host could not be
+	//   marked `default`, which is the only way to show one that is never routed to
+	//   (a panel, a demo box): `uses/split` had to write `activated(){ … }` by hand.
 	render_column(host){
 		const stack = () => {
-			this.column(host);
-			this.$pages = div.c("page-column-pages");
+			this.column_grab(this.column(host));
+			// ⚠ A page is BUILT when it activates, so a child marked `default` would
+			//   never exist for the contract to show. The host builds it — and hands down
+			//   `app`, the SECOND place that happens (`child()` is the other). Nothing
+			//   routes to a default column, so `child()` never runs for it and the `app`
+			//   it was adopted with at module scope is still undefined: `this.app.router`
+			//   in its content threw (`imagine/screens/deck`, 2026-08-29).
+			this.$pages = div.c("page-column-pages", () => this.default_column()?.assign({ app: this.app }).render());
 		};
 
 		this.view = div.c("page").ac(this === host ? "columns" : "column");
@@ -273,8 +301,20 @@ export class Page {
 			this.$row = div.c("page-columns-row", stack);
 		} : stack);
 
-		return this.view.ac(this.name && "page--" + this.name);
+		return this.view.ac(this.name && "page--" + this.name).ac(this.classes);
 	}
+
+	// The child that opens when nothing deeper is routed — a column browser that arrives
+	// showing only its own rail leaves 80–93% of the row empty (measured 2026-08-27).
+	// `default` is the arrangement contract's own word for "shown without being routed
+	// to" (doc/css.md), so a page opts in with the word it already knows and Page.css
+	// stands it down the moment a real column opens beside it.
+	// ⚠ NOT `opens()`, which is what this was called for one build. A core method named
+	//   after a plain noun squats a name a page may already be using as its own state:
+	//   `overview/columns/uses/inbox` counts opened messages in `opens: 0`, the field
+	//   shadowed the method, and the whole page died on `this.opens is not a function`.
+	//   Every other method in this family is `*_column` / `column_*` for that reason.
+	default_column(){ return [...this.children.values()].find(child => child?.classes?.split(/\s+/).includes("default")); }
 
 	// ONE COLUMN: a sticky head, my own content, my children as rows. `width` is the
 	// page's own word — `small`, `large`, `full`; none is the default.
@@ -288,7 +328,13 @@ export class Page {
 			if (this.content)
 				div.c("page-column-prose flow", () => is.fn(this.content) ? this.content() : this.content);
 
-			this.children.forEach((child, name) => {
+			// ⚠ `index: true` — my content ALREADY shows my children, as a `previews()`
+			//   wall, so this rail would say the same things a second time (`layout` Q4:
+			//   a page shows each thing once). Three pages had written the whole method
+			//   out by hand to say it. A FIELD, not a method — and not `nav:` (`nav()` is
+			//   a method here) or `rail:` (four pages already declare it as their own
+			//   word): the `opens()` collision, avoided by grepping first. doc/columns.md.
+			if (!this.index) this.children.forEach((child, name) => {
 				const nav = this.nav_for(name);
 
 				a.c("page-column-item").href(nav.url).append(() => {
@@ -298,6 +344,51 @@ export class Page {
 				});
 			});
 		}).ac(this.width && "page-column-" + this.width);
+	}
+
+	// ── the seam — drag it and this column keeps the width you left it at ──
+	// A SIBLING of the body, so it is a real flex item of the row: `.page.column` is
+	// `display: contents` and cannot host an event, and the body is a scroller, so an
+	// overlay inside it would scroll out of view. It measures 0 — the 6px hit zone is a
+	// `::before` straddling the hairline — so the row's px still add up to the columns.
+	// ⚠ `lostpointercapture`, not `pointerup`: it fires for a cancelled drag too, so one
+	//   handler ends the gesture however it ended.
+	// ⚠ `preventDefault` on the DOWN, or the drag selects the text either side of it.
+	column_grab($body){
+		const $grab = div.c("page-column-grab");
+		let from, width;
+
+		$grab.on("pointerdown", e => {
+			from = e.clientX;
+			width = $body.el.getBoundingClientRect().width;
+			$grab.el.setPointerCapture(e.pointerId);
+			$grab.ac("page-column-grabbing");
+			e.preventDefault();
+		});
+
+		$grab.on("pointermove", e => is.num(from) && this.resize_column($body, width + e.clientX - from));
+		$grab.on("lostpointercapture", () => { from = undefined; $grab.rc("page-column-grabbing"); });
+		$grab.on("dblclick", () => this.resize_column($body));
+
+		return $grab;
+	}
+
+	// The width a drag leaves behind, written as the SAME three tokens the width words
+	// set — one level stronger, because an inline custom property out-ranks a class.
+	// ⚠ NO `px` = back to the page's word: `setProperty(prop, "")` REMOVES the
+	//   declaration, so the class's tokens are what the body reads again. That is the
+	//   double-click, and it is why nothing here remembers a previous value.
+	// ⚠ Per VISIT. The columns are rebuilt on reload and the width goes with them; where
+	//   a width would be stored, and whether a url or a page owns it, is open (doc).
+	resize_column($body, px){
+		const row = this.column_host()?.$row?.el;
+		const width = px && Math.round(Math.max(this.column_floor, Math.min(px, row?.clientWidth ?? px)));
+
+		return $body.style({
+			"--page-column-flex": width ? `0 0 ${width}px` : "",
+			"--page-column-min":  width ? "0" : "",
+			"--page-column-max":  width ? "none" : "",
+		});
 	}
 
 	// Called on the HOST after every activation in its tree: the trail says where you

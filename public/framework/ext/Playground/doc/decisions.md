@@ -22,7 +22,8 @@ spec) and [`../panel-insight/insight.md`](/framework/ai/2026-08-19/panel-insight
   reaches `directory.json`, and a static host has no listing at all (task 1).
 - **`grip` gained `from: "start"`** (3 lines) — the tree rail docks at the shell's
   START; the default measures `parent.right - clientX`, right for an END-docked rail
-  (task 1).
+  (task 1). Since pg-chrome-polish `from` also mirrors the strip's LOOK, in `ext/grip`;
+  this module's own flip is gone.
 - **Properties has no engine.** Each `Item` subclass declares `static fields`;
   `properties.js` only knows three controls (`seg`/`text`/`num`) and reads/writes
   `item.get`/`set` (task 2).
@@ -323,3 +324,265 @@ Resolves the three items pg-resize parked, in the brief's own priority order.
   a 5-child wrapped row (3+2 across two lines) drew zero `.pg-resize-handle`s while
   a plain 2-child row alongside it drew one — the wrap check, not a regression,
   is what's gating it.
+
+## pg-model — pad/gap floors you can turn off, and the smallest CSS that means hug/fill/fixed
+
+### The two floors are `max()` + one custom property
+
+- **The floor moved out of `items.js` and into a variable the canvas owns.** `styles()` now
+  writes `padding: max(<what you typed, or 0px>, var(--pg-pad-floor, 0px))` and, on Flex/Grid,
+  `gap: max(…, var(--pg-gap-floor, 0px))`. `.pg-canvas-body` carries `.pg-pad-floor` /
+  `.pg-gap-floor` (playground.css), each setting its variable to `0.25em`; toolbar.js's two
+  buttons flip them. **Inline style beats every layer**, which is why the floor has to live in
+  `styles()` — and a custom property is what lets a class change it anyway. `.pg-canvas-body`
+  and not `.pg-viewport`: the viewport is rebuilt by every `paint_canvas()` (canvas.js:59), the
+  body never is.
+- **Why a toggle at all:** a floor makes 0 unreachable, and the owner needs to see a real 0.
+  Measured: with the floor on, a `padding: 0` box computes `3.82px` (0.25em at the canvas's own
+  font-size) and a `gap: 0` row separates its two children by the same `3.82px`; with it off,
+  both read `0px`. A box that typed `1em` reads `15.28px` in **both** states — `max()` floors,
+  it never overrides.
+- **Zero layout cost, measured.** Toggling pad off and on again returned all 42 fixture nodes
+  to their exact starting rects (0 of 42 drifted), same for gap; the toolbar, both rails, the
+  canvas and the canvas body never moved in any of the four toggles. Turning the gap floor off
+  moved exactly **one** node — the second child of the one `gap: 0` row — and nothing else.
+- ⚠ **`max()` takes lengths.** A bare `0` is a `<number>`, not a `<length>`, and would
+  invalidate the whole declaration (silently — the padding would render 0 with the floor ON),
+  so `"0"`/`""` is normalised to `0px`. And a **shorthand** (`padding: 1em 2em`) cannot go
+  inside a `max()` at all — it is written verbatim instead, which is right anyway: a shorthand
+  is never the zero the floor exists to catch.
+- **Not persisted, on purpose.** A floor is a viewing aid, like the viewport preset beside it —
+  both reset on reload. One less key, one less thing to disagree with the DOM.
+- **`gap` left `BOX`'s CSS map.** Block layout draws no gap, so a plain Box now writes no gap
+  declaration at all — one fewer inert declaration on every Box, and the *data* still survives
+  a `convert()` into a Flex, because it always lived in `data`, never in the CSS.
+
+### The truth table — what CSS already does, and what is left to write
+
+Every cell measured on a 42-node fixture (`pgmm-model`, deleted after) by applying the OLD
+declarations and the new ones to the *same* live tree and comparing rects. "—" is the whole
+point: the default already does it.
+
+| context (the PARENT) | axis | `hug` | `fill` | `<length>` |
+| --- | --- | --- | --- | --- |
+| **Flex, MAIN** (width in a row, height in a column) | main | **—** `flex: 0 1 auto` already measures the content | `flex: 1 1 0` | `flex: 0 0 <len>` |
+| **Flex, CROSS** | cross | `align-self: flex-start` — **only if** the container's `align` is unset/`stretch` | **—** a flex item already stretches; `align-self: stretch` **only if** the container said otherwise | `<axis>: <len>` |
+| **Grid** | width | `justify-self: start` | **—** a grid item already stretches its cell | `width: <len>` |
+| **Grid** | height | `align-self: start` | **—** | `height: <len>` |
+| **Block** (a Box, or the root) | width | `width: fit-content` | **—** `width: auto` **is** the full line (border-box, no margins) | `width: <len>` |
+| **Block** | height | **—** `height: auto` **is** the content | `height: 100%` | `height: <len>` |
+
+Six cells write nothing; a seventh (cross-axis hug under a non-stretch container) writes
+nothing too. Three cells that used to write **two** declarations now write one.
+
+- **`align-self` beside a length was always redundant** — `stretch` only ever applies to an
+  `auto` cross size, so a box with a definite `height` was never being stretched anyway.
+  Proven: `height: 4em` alone and `height: 4em; align-self: flex-start` render the identical
+  61.11px box in a row Flex, and the identical grid cell.
+- **"Write nothing" is argued per case, never assumed** — the flex cross-axis default *is* the
+  container's `align-items`. In a row with `align: center`, a `hug` child needs no declaration
+  (it is already content-sized) and the old unconditional `align-self: flex-start` was actively
+  wrong: it yanked the child to the top of a row its author had asked to centre. Measured: same
+  32.25px height either way, y moves 576.50 → 609.03, i.e. into the centre where it belongs.
+  The one cell that GAINED a conditional declaration is cross-axis **`fill`** under a
+  non-stretch container (`align-self: stretch`, 32.25px → 97.33px).
+- **`hug` and "never touched" are now the same thing.** They were not: a child that had never
+  been given a `width` wrote nothing, and one whose owner clicked **hug** wrote
+  `flex: 0 0 auto` — two identical-looking states with different CSS, exactly the "strange
+  state" the ask names. Proven: `r-w-hug` and a control child with no keys at all now render
+  the same 30.25 × 97.33 box.
+  ⚠ The one behavioural difference this costs: `flex-shrink` is `1` by default, so a hug child
+  of an **overcommitted** column shrinks to its `min-height` floor where `flex: 0 0 auto` would
+  have overflowed instead (measured: 32.25px → 30.55px, and only when the column is
+  overcommitted). That is the CSS default, and it is what every untouched sibling already did.
+- **Block-context `fill` height stopped being a no-op.** It used to write nothing and therefore
+  did nothing, ever. `height: 100%` fills when the parent has a height to fill and computes to
+  `auto` when it does not — so the control is honest in both cases instead of dead in one.
+  Measured: a child of a `height: 9em` Box went 32.25px → 127.89px.
+- **A length on the flex MAIN axis keeps the `flex: 0 0 <len>` shorthand.** The alternative —
+  a plain `width: <len>`, which a flex item with `flex-basis: auto` reads as its main size — is
+  also exactly **one** declaration, so the tie breaks on behaviour: the shorthand is what the
+  drag handles commit (canvas.js), so committed pixels keep matching the live drag, and it is
+  what keeps the owner's `untitled` at delta 0. ⚠ It also keeps the parked collision: a MAIN
+  length plus an authored `grow` still fight, and the shorthand still wins (pg-sidebar above,
+  readme). **`width: <len>` would resolve that collision** — it collides with none of the five
+  child fields — but it changes how `untitled`'s `main` box renders today, so it stays the
+  owner's call, exactly as pg-sidebar left it.
+- **Regression bar met.** `untitled` — the owner's document — was measured with the old
+  declarations and the new ones applied to the same tree: **all 10 nodes, x/y/w/h, delta 0.00**,
+  and restoring the new styles landed back on the same numbers. Four of its nodes simply lost
+  the redundant `align-self` beside their `height: 6em`.
+
+### The default document is the holy grail
+
+- `seed()` (documents.js) opens on **page → header / body(nav · main · aside) / footer**, seven
+  boxes with semantic labels and `bg: var(--surface)` on the page. The ux research measured the
+  old seed's lone fixed 10em box costing **8 of 38 gestures** across five canonical layouts —
+  every run began by undoing it.
+- **Nothing in the seed declares a height** (the owner, 2026-08-29): the page is a plain
+  **Box** — no flex, no height — so the document hugs like any div and grows as content does.
+  The first cut of this seed was a `Flex` column at `height: 24em`, reasoned as "a column of
+  indeterminate height hands out no free space, so `fill` teaches nothing" — true, but it made
+  every new document open on a fixed height, the exact non-default the sizing audit exists to
+  avoid. The lesson moved instead of dying: the page carries `gap: 1em` that a Box draws
+  nothing with — flip its type to FLEX and the gap appears (gap survives `convert()`,
+  items.js's own rule). The only size words left are the layout: rails at `10em`/`8em`,
+  `main` on `fill`.
+- `.pg-canvas-body` gained `background: var(--wash)` — a white page on a white canvas is a
+  background you cannot see, and showing you one is the seed's whole job.
+- `set_viewport()` now calls `position_handles()` directly. canvas.js's ResizeObserver already
+  covered it; the code that moved the geometry saying so is the honest version.
+
+## pg-edges — the edge is the insert affordance
+
+The ux research's own rule, adopted whole:
+
+> **An edge inserts a sibling on that side. If the parent doesn't already flow that way, the
+> parent is made to — converted if the node stands alone, wrapping just this node if it has
+> siblings that must stay put.**
+
+Everything the owner asked for falls out of it, so none of it is a separate concept:
+sibling-before/after is *which* edge; row-vs-column is which **pair** of edges, so direction is
+never its own gesture again; wrap-into-row/column is the same click when the parent flows the
+other way. `child` is the one target that is **not** an edge.
+
+- **The proposal's "delete the in-flow `.pg-add`" was rejected.** The blocky reserved-space `+`
+  is the deliberate child-add affordance in a stack and it already measures 0px of shift; the
+  edges add what it cannot. Five targets on one node, one meaning each — all five verified
+  reachable by `elementFromPoint` on a single `.pg-stack`.
+- **The strip is the click target, not the chip.** A 12px band down a whole edge is a target you
+  hit without aiming; the chip is only the picture of what the click will do. Two reveal steps
+  (faint band on node hover, solid band + `+` on strip hover) is what keeps four simultaneous
+  affordances readable.
+- **Strips live INSIDE the node's own box.** Straddling the border would have been prettier, and
+  a 6px overhang on the outermost node would push `.pg-canvas-body`'s `overflow: auto` into a
+  scrollbar — the 0px-shift promise broken by the long way round.
+- **A Grid parent always wraps, never converts.** `flow_of()` answers `null` for a Grid: its
+  template is authored information, and no click is worth throwing a `grid-template-columns`
+  away. A Box answers `"column"` — block flow already stacks, so an edge-insert into one costs
+  no conversion at all.
+- **The wrapper takes over the node's own slot** (its `width`/`height` words), which is what
+  makes "siblings' rects unmoved" true rather than hoped for. Measured on `L | M | R`: after
+  wrapping `M`, `L` (530,111 150×90) and `R` (828,111 120×90) are byte-identical. ⚠ The node
+  keeps its own words too, so wrapping a `width: 10em` box puts two 10em boxes in a 10em slot
+  and flex shrinks them; the alternative (clearing the node's word) was rejected as magic.
+- **The clicked node stays selected** — wave 1's `add_to` rule. The edge you just used is still
+  lit and still under the pointer, so the next click is the same click.
+- **`batch()`.** A wrap is four list mutations, each firing `add`/`remove` → `repaint()` → a
+  save. More than an optimisation: during a wrap the clicked node is detached for exactly one
+  statement, and a repaint in that instant would draw a document with the selection missing.
+
+### The gap handle is a click as well as a drag
+
+A press that never travels **5px** inserts between the pair it flanks; past 5px it is a drag and
+stays one. A click commits *nothing* — both flanks are re-stamped from their own data first, so
+an idle `pointermove`'s provisional inline `flex` can never be mistaken for a `grow` you meant.
+Driven both ways: click → three bands; drag +70px → 201/201 becomes 268/134, `grow` 2.07/1, child
+count unchanged. **Grid gap handles stay drag-only** — a grid's DOM-adjacent children are not
+track-adjacent, the same bound `grid_resize_handles` already documents.
+
+### What the compaction actually bought
+
+- Toolbar dropped `{}` / `paste` / `⧉` / `✕`. `⧉`/`✕` are chips on the selected node's own
+  chrome — the target belongs where your pointer already is. `copy`/`paste` stay as methods with
+  no button; keyboard verbs for them are parked.
+- `duplicate()` now lands **beside** the original instead of through `paste()`'s into-or-beside
+  rule. That rule was right for the toolbar verb it was written for; a chip sitting *on* a Flex
+  that duplicates *into* it reads as a bug. The chip is the only caller left.
+- Sidebar dropped the `order` / `shrink` / `basis` **fields**. The keys and their declarations
+  stay — a Box carrying all three still renders `flex-grow: 1; flex-shrink: 2; flex-basis: 10em;
+  order: 3`, verified — and the resize commit still writes `basis: 0`.
+- ⚠ **The proposal's arithmetic on the sidebar height was wrong.** Deleting those three moved
+  `align` — the control it measured off-screen at 900px — by exactly **0px**, because all three
+  sit *below* it. What moved it was density: `0.75em` → `0.5em` between fields and in sections,
+  and a smaller seg button. `align` went 956 → **842**. The full column still scrolls
+  (`scrollHeight` 1247 → 1108 against a 850 client) and always will while a readout lives at the
+  bottom; `overflow: auto` reaches it. The real fix is the parked item below.
+
+### Two traps this wave paid for
+
+- **An in-flow `.pg-add` must stay `static`.** Giving it `position: relative; z-index: 2` makes
+  it paint above every positioned sibling — and a block-level `+` is **full width**, so on an
+  empty Box it covered the whole top edge and `elementFromPoint` on both chips returned
+  `.pg-add`. Static hands the 12px outer ring to the strips and the corner to the chips, and
+  keeps the middle, which is the child-add target.
+- **A handle's orientation is baked into its class at render time.** Flipping `direction` left
+  the strips lying across the wrong axis until something else happened to repaint — the readme's
+  own "Left" item, harmless while a handle only resized, and not harmless once a stale handle is
+  a stale *insert* target. `apply_change` now redraws the canvas for `direction`/`wrap` and
+  re-lights the selection, deliberately leaving the properties column (and the attribution
+  below) alone.
+
+### The readout names what moved
+
+`apply_change(key)` diffs the node's previous `style` attribute against its new one; whatever
+reads differently wears `.pg-decl-new`, and the key that did it is named underneath. **No
+key → CSS-property table exists**, so nothing can drift out of sync with `items.js`. The third
+branch is the interesting one: plenty of words write no declaration at all, and saying
+`label — writes no CSS here` out loud is the lesson — silence would read as a broken control.
+
+⚠ Five controls (`type`, `width`, `height`, `pad`, `bg`) rebuild the whole column right after
+writing, which wiped the attribution of the very change that triggered it. The last change is
+held on the instance and replayed by the first paint.
+
+### Grid pre-fills its template
+
+Choosing `grid` writes `1fr 1fr` into `columns`, visibly. A Grid still costs two gestures — a
+template is information, not a click — but the second is now an edit of a real value already on
+screen and already drawn, instead of finding an empty field and inventing the syntax. It never
+overwrites a template the document already had.
+
+### Parked for the owner
+
+**Axis chips on the edges** (the proposal's §Learnability item 2): a selected Flex carrying its
+`direction`/`justify` chip on its own main-axis edge and `align` on the cross — you learn which
+axis a property owns by where its control sits. It is also the only thing that brings the whole
+properties column inside 900px, since it removes the two tallest fields. Also parked: keyboard
+verbs for `copy`/`paste`, and insert-between on Grid gap handles.
+
+## pg-chrome-polish — a rail that does not resize, and a grip on the edge it drags
+
+### The right rail's OUTER width was never the problem
+
+The owner: *"the right sidebar needs a fixed size, it shouldn't grow/shrink when switching
+selection (which causes the viewport area to resize)."* Reproduced before anything was
+changed, and the first answer was no: `.pg-properties` is
+`flex: 0 0 clamp(13em, var(--pg-props, 18em), 34em)` — grow **and** shrink at 0, so its width
+cannot depend on its content by construction. Measured across every selection at 1280 (7
+nodes) and 3440 (47 nodes), under six conditions — default, a persisted `--pg-props` of
+500px, one clamped low, the dev rail open, a 1280 viewport preset, both floors off —
+`.pg-properties`, `.pg-canvas`, `.pg-viewport` and `.pg-tree` each held **one value, to the
+third decimal**. Touching the width mechanism would have been fixing blind.
+
+What *does* move is the box inside it. `.pg-properties-body` is `overflow: auto`, and the
+field count is selection-dependent: a Box is 7–9 fields and fits, a Flex is 11 and a Grid 13
+and they do not. So the scrollbar toggles on exactly the Box↔Flex/Grid switch the owner
+named, and wherever a scrollbar occupies layout space — every desktop Chrome or Edge on
+Windows at default settings — it takes ~15px of content width with it and reflows the column.
+
+```css
+.pg-properties-body { …; scrollbar-gutter: stable; }
+```
+
+⚠ **Headless cannot see this bug.** Chromium 151 reports `offsetWidth - clientWidth === 0`
+on a scrolling box — overlay scrollbars — and so does `channel: "chrome"` launched with
+`--disable-features=OverlayScrollbar,FluentOverlayScrollbar`. A probe that only measures
+headless will call this stable and be wrong. What headless *can* show is the toggle itself
+(`scrollHeight > clientHeight` flipping with selection) and the gutter being reserved after
+the fix (inner width 270 → 255 at 1280, 323 → 308 at 3440 — Chromium reserves the 15px even
+under overlay scrollbars).
+
+The cost is honest: 15px of the column, permanently, in every browser. The rail is
+drag-resizable, so it is recoverable, and a fixed size is what was asked for.
+
+### The grip's flip moved into `ext/grip`
+
+`playground.css` used to carry `.pg-tree .grip { inset-inline-end: 0 }` — flipping the strip
+for the start-docked tree column while the lit `::before` inside it stayed anchored the other
+way, so the line drew **10px short of the tree/canvas boundary it drags**. That was the
+owner's "the grip is offset in a strange way".
+
+Fixed at the cause: `grip({ from: "start" })` now stamps `.grip-start` and `ext/grip` mirrors
+strip and line together. The override here is **deleted** — a consumer states which edge it
+docks on and compensates for nothing else. Verified 0.00px off the boundary, both rails still
+dragging ±100px exactly. Record: [`ext/grip/doc/decisions.md`](/framework/ext/grip/doc/decisions.md).

@@ -50,6 +50,14 @@ const list  = (cls = "list", n = 5, on = 1) => run(cls, "item", n, on);
 const track = (flex, fn) => box("track", fn).style("--mini-track", flex);
 const bar   = w => slot().style({ "--mini-w": w, "--mini-flex": "0 0 0.9em" });
 
+/* An INBOX row — a title and a line of the page behind it, so it is taller than a
+   `.demo-mini-item` and the column it sits in is worth its width. That difference is the
+   whole of what `list` means since 2026-08-27; a plain stack of rows is `rail`. */
+const previews = (n = 4, on = 1) => box("previews", () => {
+	for (let i = 0; i < n; i++)
+		box("preview", () => { div.c("demo-mini-key"); div.c("demo-mini-line"); }).ac(i === on && "on");
+});
+
 const tiles = (n, cell, gap) => run("tiles", "tile", n)
 	.style(gap === undefined ? { "--mini-cell": cell } : { "--mini-cell": cell, "--mini-gap": gap });
 
@@ -60,15 +68,17 @@ const tiles = (n, cell, gap) => run("tiles", "tile", n)
  */
 mini.pictures = {
 
-	/* ── blocks: what a page does with its children ── */
+	/* ── blocks: WHERE a child goes when you pick it (core/Page/generator) ── */
 	tabs:   () => { tabs(); pane(); },
 	vtabs:  () => box("row", () => { tabs("tabs v"); pane(); }),
-	rail:   () => box("row", () => { list("rail", 5, 1); pane(); }),
-	list:   () => { head(); list("list", 6, 1); },
+	list:   () => box("row", () => { previews(); pane(); }),
 	wall:   () => { head(); tiles(6, "6em"); },
+	prose:  () => { head(); pane(() => lines(7)); },
+
+	/* ── patterns: shapes composed from the blocks, no word of their own ── */
+	rail:   () => box("row", () => { list("rail", 5, 1); pane(); }),
 	grid:   () => { head(); tiles(12, "3em"); },
 	flush:  () => tiles(12, "3em", "0"),
-	prose:  () => { head(); pane(() => lines(7)); },
 	crumbs: () => { run("crumbs", "crumb", 3, 2); pane(); },
 
 	/* ── pages are navigation ── */

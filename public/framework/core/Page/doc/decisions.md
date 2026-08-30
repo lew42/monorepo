@@ -250,6 +250,110 @@ and stays open for the owner, per the house rule that a new name on `Page` is pr
 before it is written. `doc/method/walls.md` carries the depth rule and why a childless
 child gets no rung at all.
 
+### `nearest(role)`, and the two roles — 2026-08-27
+
+The ask: *"each child page should have a reference to its parent. Maybe a TopicPage
+could be referenced at `child.topic`, so all children can find their nearest `.topic`.
+Similar for a Document. Then deeply nested pages could interact relatively simply."*
+
+| | |
+|---|---|
+| a `TopicPage` **subclass** | ✗ a page's role is a word about it, like `width:` and `card:` — not an identity. A subclass also forces a file per role |
+| `topic: true` **as the flag** | ✗ it shadows the `topic()` method **on the topic page itself**, which is the page most likely to call it |
+| a **registry** on `app` | ✗ a second tree beside the one that already exists, and it has to be kept in step |
+| **`is: "topic"` + `nearest(role)`** | ✓ one declarative word, one line over `chain()`, no state anywhere |
+
+**Verdict: `nearest(role)`, with `topic()` and `document()` as the two named lookups.**
+`findLast`, so the closest claim wins — a document inside a topic is still your
+document, the same override direction as CSS. A third role needs no method:
+`nearest("thing")`. [`./roles.md`](/framework/core/Page/doc/roles/).
+
+**Core stops at the ref.** How a topic then talks to its subtree — a selection, a
+watcher list, a cached fetch — is that page's own three lines. Putting a subscription
+API on `Page` would make every page pay for a pattern four pages want.
+[Refs](/framework/core/Page/overview/columns/refs/) is the working proof: a picker and
+a reader four levels apart, neither importing the other.
+
+### The column flush word is `bleed` — 2026-08-27
+
+`.page-column-prose`'s 0.7em/0.9em inset had been cancelled by hand in a lab
+(`examples/grids/grids.css`, `margin: -0.7em -0.9em`) — a constant nothing kept in
+step with the rule it was cancelling. Promoted: the inset is now
+`--page-column-pad-x` / `--page-column-pad-y`, and `.page-column-prose > .bleed`
+spends them.
+
+**No new class.** `bleed` is already the site's word for edge-to-edge; `.page > .bleed`
+spends the page grid's gutter tracks and this spends the column's inset. One
+vocabulary, two containers. `./columns.md`.
+
+### Panels: the height split needs nothing new — 2026-08-27
+
+Asked for a way to split the viewport height into two independent regions. `.pages` —
+the region class — is already `flex: 1 1 auto; min-height: 0; overflow-y: scroll`,
+which *is* a panel; `solo flex v` on the page is the rest. **Verdict: a written
+pattern, not a core word**, with the honest limit that the Router activates one chain
+so only one panel can be "where you are". `./panels.md`, live at
+[Panels](/framework/core/Page/overview/columns/panels/).
+
+### Resizable columns, and `hug` / `fill` — 2026-08-29
+
+**The seam is a sibling of the body, and it costs the row nothing.** `.page.column` is
+`display: contents` so it cannot host a pointer event, and the body is a scroller so an
+overlay inside it scrolls away — the only place left is *between* the body and the child
+region, where the row sees it as a flex item. `flex: 0 0 6px` with
+`margin-inline-start: -6px` is an outer size of **zero**, pulled back onto the column it
+resizes. The rejected shape was a 0-width item with an overhanging `::before`: that reach
+is scrollable overflow of the row, and flexible columns fill their row exactly, so the last
+seam would have put a horizontal scrollbar under every un-capped arrangement.
+
+**No new mechanism for the width.** A drag writes the same three tokens the width words
+set (`--page-column-flex/-min/-max`) as an inline custom property, which out-ranks a class
+by one level; double-click sets them to `""`, which *removes* them, and the word is back.
+Nothing stores a previous value because nothing has to. **No `ext/grip`** — core does not
+depend on ext, and the whole gesture is `setPointerCapture` plus `lostpointercapture`.
+
+**`hug`'s ceiling is not a compromise** (`flex-basis: auto` is max-content, and a
+paragraph's max-content is the paragraph on one line), and its 6em floor is
+`Page.column_floor` in `em`: at 8em the floor decided every short rail and hug never
+hugged — measured 128px on a 100px list. **`fill` is `full` that lets its neighbours
+stay**: the same 100% basis, but it shrinks and keeps a floor, and it gets no `:has()`
+rule — collapsing the ancestors is the whole of what makes `full` a different word.
+Measured, gestures and both words: `./columns.md`.
+
+### `index: true` — a column whose cards are the nav — 2026-08-29
+
+A column lists its children as rows. An **index** column has already drawn them as a
+`previews()` wall, so the rows say the same things twice — cards, then a rail.
+
+| | |
+|---|---|
+| leave it to the page | ✗ three had already done it by hand: `imagine/shells` restated all ten lines of `column()`, `imagine/screens` did it in CSS, `imagine/vary` still ships the double list |
+| `nav: false` | ✗ `nav()` is a method here — the `opens()` collision exactly |
+| `rail: false` | ✗ `rail: true` is already four pages' own field (`overview/site`, `overview/docs`, two under `old/`) |
+| a class + a CSS rule | ✗ it builds the rows and then hides them; they stay in the accessibility tree |
+| **`index: true`** | ✓ one guard in `column()`, no CSS, and the shells override became one word |
+
+**Verdict: `index: true`.** Grepping the consumer pages for each candidate is what picked
+it — the step the `opens()` bug skipped. Measured on shells at 1280 and 1920: 10 rows + 10
+cards → **0 rows + 10 cards**. It is for a column that shows its children *another* way,
+never for hiding them: a column with neither wall nor rows is a dead end. `./columns.md`.
+
+### `app` reaches a page that is never routed to — 2026-08-29
+
+`child()` was "the one place `app` is handed down", and that was true only for pages the
+Router asks for. A `default` column is **built by its host**, so `child()` never runs for it
+and the `app` it was adopted with at module scope — `undefined` — survives to its content:
+`this.app.router` threw on `/imagine/screens/deck/`. `render_column()` now assigns it as it
+builds the child, making that the second of two places. The general shape: `add()` copies
+`app` at *declaration* time, when a `page.js` at module scope has none, and only routing
+fills it in later.
+
+**Not generalised into `activate()`.** One line there (`this.app ??= this.parent?.app`)
+would also cover a page a parent activates by hand into a region — `uses/split`'s two
+panels, whose `app` is undefined today and harmless, because `container()` finds a region
+before it ever reaches `this.app.$pages`. Touching `activate()` for every page on the site
+to fix a case that does not throw is the wrong trade; **open**, if a third case turns up.
+
 ## Traps
 
 - **`:has()` does not care whether a page is painted.** A closed page is still in the
@@ -280,6 +384,9 @@ child gets no rung at all.
   `warn_if_hidden()` re-checks on a microtask, after whatever marks the chain has
   run, and stays quiet when a sibling in the same box is marked (an ancestor
   standing aside). Off localhost it does nothing at all.
+- **A captured callback's return value is appended.** `div.c("pages", $p => this.regions.set(name, $p))`
+  returns the `Map` and paints a literal `[object Map]` in the page. Nothing throws.
+  Block body for any callback whose last expression is not a view.
 - **`children` changes type.** You write a string, you read a `Map`.
 - **A page built for a demo must not name its children as a string.** `children: "a b"`
   is a filesystem declaration: it probes the *server* for `<url>a/page.js`. A POJO

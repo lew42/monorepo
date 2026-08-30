@@ -10,9 +10,8 @@
 	.dt-vb-filters { padding-block-end: .8em; border-block-end: 1px solid var(--line); margin-block-end: .8em; }
 	.dt-vb-compare-btn { margin-inline-start: auto; }
 
-	/* framework.css's base layer makes every select 100% wide (a form's default
-	   is one field per row) — a filter bar wants them shoulder to shoulder. */
-	.dt-vb-select { width: auto; }
+	/* The filter selects wear `select.auto` (browse.js) — a form's default is one
+	   full-width field per row; a filter bar wants them shoulder to shoulder. */
 
 	.dt-vb-runlist { padding-inline-start: 1.2em; }
 	.dt-vb-runlist li { margin-block: .3em; }

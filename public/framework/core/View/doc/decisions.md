@@ -56,6 +56,16 @@ mid-chain — `field().text("").attr(…)` on an empty `<textarea>` threw "attr 
 a function". The skip-the-write optimization wanted the comparison; the return
 never did.
 
+**And "was a value passed" means the ARITY, not the value (2026-08-29).** `attr()`
+still asked `is.def(value)`, which is the same question only until the value you pass
+*is* `undefined` — an optional url, a label a page did not declare. It called that a
+question, returned the attribute (`null` on a fresh element), and `.href(nav.url)
+.attr("aria-label", …)` died two calls later (`ext/demo`'s preview override on a
+url-less nav). `arguments.length` is the honest test; a nullish value now writes
+nothing and stays chainable, so an optional value needs no guard at the call site.
+`href` takes `...url` to forward the arity — a named parameter would make `href()`
+two arguments and retire the getter. `./method/attr.md` has the 505-call-site audit.
+
 **What `View` deliberately does not have.** `prepend`/`prepend_to`, `replace`,
 `clone`/`repeat`, `off`, `compute`, `insert`/`index`, `buffer`/`flush`,
 `register`/`lookup`/`registry`, and module-level `append()`/`load()` exports —

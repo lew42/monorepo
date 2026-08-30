@@ -1,5 +1,8 @@
-import { div, span, a, icon } from "/app.js";
-import { BLOCKS, WIDTHS } from "./gen.js";
+import { Page, div, span, a, icon } from "/app.js";
+import { WIDTHS, INPLACE } from "./gen.js";
+import { parse, read } from "./spec.js";
+import { kind, width, tune, shape } from "./controls.js";
+import { fill, peek, title_for, empty } from "./fill.js";
 
 /**
  * Spec text → **page configs**, the nested-POJO form `Page.declare()` already takes:
@@ -13,64 +16,100 @@ import { BLOCKS, WIDTHS } from "./gen.js";
  * `active-page` / `active-ancestor` contract, and core's columns. Nothing touches the
  * filesystem, and nothing here plays app the way `ext/demo`'s box does.
  *
- * Each config overrides two methods, which is all a generated page is:
- *   `column()` — its picture, in the shape its block word names;
- *   `link()`   — the same url, carrying the seed.
+ * Each config overrides three methods, which is all a generated page is:
+ *   `column()`    — its picture, in the shape its block word names;
+ *   `link()`      — the same url, carrying the seed;
+ *   `container()` — WHERE its view mounts: a new column, or its parent's panel.
  *
  * ⚠ Every generated url carries `#<seed>`. `Router.go()` pushes `pathname + search +
  *   hash`, so a plain href would DROP the seed the moment you navigated one level in —
  *   and the reload would rebuild a different tree under the same url.
  */
 
-/* Indentation is nesting. The same eight lines as space's `spec.js` — copied rather
-   than imported, because that module reaches for space's own `site` parts. */
-export function parse(text){
-	const top = { kids: [], depth: -1 };
-	const stack = [top];
-
-	for (const raw of text.split("\n")){
-		if (!raw.trim() || raw.trimStart().startsWith("#")) continue;
-
-		const node = { line: raw.trim(), kids: [], depth: raw.search(/\S/) };
-
-		while (stack.at(-1).depth >= node.depth) stack.pop();
-		stack.at(-1).kids.push(node);
-		stack.push(node);
-	}
-
-	return top.kids;
-}
+/* THE ONE QUESTION every placement asks: does this page show its children INSIDE itself?
+   `tabs` and `vtabs` do; `wall`, `list` and `prose` open a column to the right. */
+export const inplace = page => INPLACE.includes(page?.block);
 
 /* `hash` is the generator's address — `#7` for a seed, `#s=<encoded>` for a typed spec.
    Every generated url carries it verbatim; this module never builds one itself. */
 export function tree(text, hash){ return nodes(parse(text), hash); }
 
-/* One config per line. The name is the block word, plus an ordinal when a parent drew
-   the same word twice — so a url reads `…/wall/list/prose/` and says what it is. */
-function nodes(list, hash){
-	const seen = {};
+/* One config per line. The NAME is still the block word plus an ordinal, so a url reads
+   `…/wall/list/prose/` and says what the tree is; the TITLE is a word drawn from the
+   page's own key, so a nav of three children reads as three different pages. Both, because
+   they answer different questions — the url is structure, the label is content. */
+function nodes(list, hash, up, seed = 1, path = []){
+	const seen = {}, taken = new Set();
 
-	return list.map(node => {
-		const [word, given] = node.line.split(/\s+/);
-		const block = BLOCKS.includes(word) ? word : "prose";
-		const width = WIDTHS.includes(given) ? given : "";
+	return list.map((node, at) => {
+		const line = read(node.line);
+		const block = line.block;
 		const n = seen[block] = (seen[block] ?? 0) + 1;
+
+		/* A width word is a track in the ROW, and an in-place child is in a panel — it has
+		   no track to be wide in. `gen()` already refuses to draw one; this drops it from a
+		   typed spec too, so the two agree about what the word can mean. */
+		const inline = INPLACE.includes(up);
+		const width = inline ? "" : (WIDTHS.includes(line.width) ? line.width : "");
+
+		/* THE PAGE'S OWN SEED, from its PLACE in the spec — parent, position, arity. Content
+		   is then a function of the spec text and nothing else, so a typed tree gets distinct
+		   children with no seed at all, and the same spec twice is the same page twice down
+		   to the last bar. fill.js draws everything from it.
+		   ⚠ The BLOCK WORD is deliberately not in here (it was, until the switch controls
+		     landed). A control that changed how a page presents its children also renamed it
+		     and redrew every bar inside it — "Reports, vtabs" became "Bulletin, tabs" — which
+		     is a silent reroll, and the one thing a control may not do. A page's content is a
+		     function of WHERE it is, so switching its word leaves it the same page. */
+		const key = (Math.imul(seed, 31) + at * 131 + node.kids.length) >>> 0;
 
 		return {
 			name: n > 1 ? `${block}-${n}` : block,
-			title: width ? `${block} ${width}` : block,
+			title: title_for(key, taken),
 
 			// `width` is core's own word — `column()` stamps `.page-column-<width>` and
-			// Page.css turns that into a track. design.md §2.
-			block, width,
+			// Page.css turns that into a track. doc/columns.md.
+			block, width, key, inline,
 
-			children: nodes(node.kids, hash),
+			/* MY PLACE IN THE SPEC, as indices — the address every control edits through
+			   (`host.swap(this.at, …)`, spec.js). Indices and not the url, because a page is
+			   named after its block word: switching `list` to `tabs` renames it, and a name
+			   path would point at a page that stopped existing the moment the switch landed.
+			   `opt` is the rest of the line — `flow` `cols` `gap`, read by `shape()`. */
+			at: [...path, at],
+			opt: line.opt,
+
+			children: nodes(node.kids, hash, block, key, [...path, at]),
 
 			// ⚠ The host's crumb strip draws `link()`. Without the seed a crumb click
 			//   lands on a url that reloads into a DIFFERENT tree.
 			link(text){ return a.c("page-link", text ?? this.title).href(this.url + hash); },
 
 			column(host){ return column(this, host, hash); },
+
+			/**
+			 * WHERE MY VIEW MOUNTS — and the whole of "a tab switches in place".
+			 *
+			 * Core hands a child to the nearest ancestor's `$pages`, which is a SIBLING of
+			 * that ancestor's column body, so `display: contents` floats it out as the next
+			 * column in the row. Two lines change that:
+			 *
+			 *   1. an in-place parent hands me its `$panel` instead — inside its body, so
+			 *      the row never grows and picking a tab swaps content where it stands;
+			 *   2. my own children then skip PAST me to the nearest ancestor that still owns
+			 *      a slot in the row, or a grandchild would open inside the panel too.
+			 *
+			 * This is `ext/tabs`' `regions` contract by hand: same seam, same guarantee that
+			 * an ancestor has rendered before I look (Router.activate runs root-to-leaf).
+			 */
+			container(){
+				if (inplace(this.parent) && this.parent.$panel) return this.parent.$panel;
+
+				for (let page = this.parent; page; page = page.parent)
+					if (page.$pages && !inplace(page.parent)) return page.$pages;
+
+				return Page.prototype.container.call(this);
+			},
 		};
 	});
 }
@@ -86,40 +125,85 @@ export function items(page, hash){
 
 		a.c("page-gen-item").href(nav.url + hash).append(() => {
 			span.c("page-gen-label", nav.label);
-			if (child?.children.size) icon("chevron_right");
+
+			// An inbox row and a wall card are PREVIEWS, not links: a line or two of the
+			// page behind them, which is the whole reason those columns cost their width.
+			// A tab or a side tab is a label and nothing else — a strip has no room.
+			if (page.block === "list" || page.block === "wall") peek(child?.key ?? 1);
+			else if (child?.children.size) icon("chevron_right");
 		});
 	});
 }
 
 /**
- * ONE COLUMN, for all nine words — `Page.column()`'s shape, with the child list drawn
- * as whatever the word names and a few filler bars for content. The word is a CLASS and
- * `generator.css` is what makes a `wall` look like a wall, so a tenth word is one entry
- * in `gen.js` and one rule there.
- *
- * Placeholder content on purpose: this page is about the SHAPE of a tree, and real
- * prose would only be noise — the same reason space's parts are grey boxes.
+ * ONE COLUMN, for all five words — `Page.column()`'s shape, with the child list drawn as
+ * whatever the word names. The word is a CLASS and `generator.css` is what makes a `wall`
+ * look like a wall, so a sixth word is one entry in `gen.js` and one rule there.
  */
 export function column(page, host, hash){
-	return div.c("page-gen page-column-body page-gen-" + page.block, () => {
+	const inline = page.inline;
+
+	// The two words whose children are a WALL OF LINKS, and the only two with an
+	// arrangement to control. A strip of tabs is one line and has none.
+	const wall = page.block === "wall" || page.block === "list";
+
+	return div.c("page-gen page-gen-" + page.block, () => {
 
 		div.c("page-column-head", () => {
 			span.c("page-column-title", page.title);
-			if (page !== host) a.c("page-column-close", () => icon("close")).href(page.parent.url + hash);
+
+			/* THE SWITCH — this page's word, and its track, on its own head. The word
+			   chip that used to sit here was a READOUT of exactly these two, so nothing
+			   was added to the head: the readout became the control. */
+			div.c("page-gen-picks", () => {
+				kind(page, host);
+				if (!inline) width(page, host);
+			});
+
+			// ⚠ Not on an in-place child: it has no column of its own to close, and the
+			//   `×` would close the tab set it is inside.
+			if (page !== host && !inline) a.c("page-column-close", () => icon("close")).href(page.parent.url + hash);
 		});
 
-		// The one word that draws its ANCESTORS. `chain()` is [root … me], so filtering
-		// to the pages that carry a block word leaves exactly the generated branch.
-		if (page.block === "crumbs")
-			div.c("page-gen-trail", () => page.chain().filter(p => p.block).forEach(p =>
-				a.c("page-gen-crumb", p.title).href(p.url + hash)));
+		if (wall) tune(page, host);
 
-		if (page.children.size) div.c("page-gen-nav", () => items(page, hash));
+		if (inplace(page)) panel(page, hash);
+		else {
+			if (page.children.size || page.block !== "prose") nav(page, hash, wall);
 
-		div.c("page-gen-fill", () => {
-			for (let i = 0, n = page.block === "prose" ? 5 : 3; i < n; i++) div.c("page-gen-bar");
-		});
-	}).ac(page.width && "page-column-" + page.width);
+			// ⚠ An inbox draws NO content of its own: its rows already are the page, and a
+			//   run of grey bars under the last message read as a broken column.
+			if (page.block !== "list" || !page.children.size) fill(page.key, page.block === "prose");
+		}
+	})
+		/* ⚠ `page-column-body` is what core SIZES — a 40em cap, its own scrollbar, a rule
+		     down its right edge, a snap point in the row. An in-place child is none of
+		     those: it is content inside somebody else's column, so it wears its own class
+		     and takes the panel's width. Its width word was dropped upstream for the same
+		     reason, so nothing here can contradict it. */
+		.ac(inline ? "page-gen-inline" : "page-column-body")
+		.ac(!inline && page.width && "page-column-" + page.width);
+}
+
+/* The child list — and the ONE place `shape()` is applied. A wall and an inbox are the
+   same box in framework words: `.grid.auto` (or `.flex.auto`) reading `--column`, and
+   `.gap` reading `--gap`. The `tune` chips above write those two tokens and nothing
+   else, which is why swapping grid for flex needs no rule of our own. */
+function nav(page, hash, wall){
+	const $nav = div.c("page-gen-nav", () => page.children.size ? items(page, hash) : empty(page.block));
+
+	return wall ? shape($nav, page.opt) : $nav;
+}
+
+/* THE IN-PLACE SHAPE — a strip of tabs (or a side rail) and the box its children land in.
+   `container()` above sends every child into `$panel`, and the page's own content sits in
+   there too and steps aside when a child arrives — a `@layer util` rule in generator.css,
+   the same one `ext/tabs` uses on `.tab-panel`. So a tab set with nothing selected shows
+   its own page rather than a blank box, and a childless one shows why it is empty. */
+function panel(page, hash){
+	div.c("page-gen-nav", () => page.children.size ? items(page, hash) : empty(page.block));
+
+	page.$panel = div.c("page-gen-panel", () => fill(page.key, false));
 }
 
 export default tree;

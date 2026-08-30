@@ -137,7 +137,7 @@ export class Router {
 	root(){ return this.app.$app.el; }
 
 	// wipe first, then re-apply: a page that left the chain must lose its class,
-	// and View.tc() takes no force argument so it can't be used here.
+	// and tc() only ever touches `this` so a bulk clear across pages can't use it.
 	mark(){
 		this.root().querySelectorAll(".active-page, .active-ancestor")
 			.forEach(el => el.classList.remove("active-page", "active-ancestor"));

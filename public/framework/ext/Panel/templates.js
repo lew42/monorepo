@@ -91,8 +91,14 @@ export const templates = {
 		const paint = () => {
 			if ($clock.el.isConnected) live = true; else if (live) return;
 			const now = new Date();
-			$time.text(now.toLocaleTimeString([], { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" }));
-			$date.text(now.toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" }));
+			/* ⚠ A hidden page keeps its DOM, so this clock stays connected for the life
+			   of the tab — and every unseen write made Chrome DevTools redraw its Styles
+			   pane, on every page of the site, once a second (2026-08-28). Tick without
+			   writing; the first visible tick is at most a second away. */
+			if ($clock.el.offsetParent){
+				$time.text(now.toLocaleTimeString([], { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" }));
+				$date.text(now.toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" }));
+			}
 			setTimeout(paint, 1000 - now.getMilliseconds());
 		};
 		paint();

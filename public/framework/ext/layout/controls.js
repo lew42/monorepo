@@ -20,7 +20,7 @@ export function pick(words, choose, on){
    ⚠ `on` is written to `.el.value` after the options exist — an `option` marked
    selected while the list is still building is silently the wrong one. */
 export function menu(words, choose, on){
-	const $menu = select.c("layout-pick", () => words.forEach(word => option(word)))
+	const $menu = select.c("layout-pick auto", () => words.forEach(word => option(word)))
 		.on("change", function(){ choose(this.el.value); });
 
 	$menu.el.value = on ?? words[0];

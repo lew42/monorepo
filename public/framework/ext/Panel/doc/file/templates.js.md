@@ -78,7 +78,7 @@ it would be inspecting the controls you are clicking. One flag, one predicate in
 `workspace.js`, no registry:
 [Focus, and the panel that reads it](/framework/ext/Panel/doc/focus/).
 
-## `clock` self-cancels
+## `clock` self-cancels — and writes only while seen
 
 `paint()` re-arms its own `setTimeout` chain only while the element
 `isConnected`, and stops the first time it finds itself no longer connected
@@ -86,6 +86,14 @@ after having been connected once (`live` flag). A closed panel leaves
 nothing running. ⚠ It never stops if the element is drawn but somehow never
 connects at all — see the known gaps in
 [Templates — the T vocabulary](/framework/ext/Panel/doc/templates/).
+
+⚠ Connected is not visible. An SPA page you navigate away from keeps its DOM,
+so `/framework/`'s clock stayed connected — and ticking — on every page of the
+site, and each unseen write made Chrome DevTools redraw its Styles pane, once a
+second, wherever you were inspecting (found via the generator pages,
+2026-08-28). `paint()` now writes only while `offsetParent` is non-null; the
+timer keeps ticking so the first visible tick — at most a second later — shows
+the right time.
 
 ## Improvements
 

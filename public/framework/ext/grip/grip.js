@@ -20,7 +20,10 @@ const html = document.documentElement;
 export default function grip({ write, done, from = "end" }){
 	let width, edge;
 
-	return div.c("grip", () => span.c("grip-pill"))
+	// `from` is one decision, and grip.css owns every consequence of it: the strip AND its
+	// lit line mirror together (`.grip-start`), so a consumer never compensates in its own
+	// stylesheet — ext/Playground did, and got a line 10px off the edge it drags.
+	return div.c(from === "start" ? "grip grip-start" : "grip", () => span.c("grip-pill"))
 		.attr("title", "Drag to resize")
 
 		.on("pointerdown", function(e){

@@ -1,0 +1,178 @@
+/* Restated IN FULL - a short list silently misplaces `site`. The first @layer
+   statement in the document fixes the order; a name first seen later is appended
+   at the END. */
+@layer base, theme, site, util;
+
+/* ASCII ONLY, comments included. */
+@layer theme {
+
+	/* `/imagine/` is a columns host, so this page arrives as a `full` COLUMN and
+	   Page.column() lists its children under the content. Here that list would be a
+	   second, worse copy of `.scene-nav` - and the canvas itself is the navigation.
+	   The head and the close button stay: they are how you leave. */
+	.page.scene-page > .page-column-body > .page-column-item { display: none; }
+
+	/* A `full` column has no measure of its own, so the lead paragraph ran the whole
+	   3440. The stage, the bar and the nav want the room; the prose does not. */
+	.page.scene-page .md { max-width: 52em; }
+
+	/* THE PATH BAR. The crumbs are the REAL ones - Page.crumbs() off chain() - so
+	   the strip cannot disagree with where the world is. It only has to read like a
+	   path: the chevron Page.crumbs() emits is a material-icons ligature, so zeroing
+	   the span's font-size hides the word and ::after draws the slash instead. */
+	.scene-bar {
+		display: flex; align-items: center; gap: 0.1em;
+		align-self: start; margin-block-end: 0.6em;
+		padding: 0.15em 0.7em 0.15em 0.5em; border-radius: 999px;
+		background: var(--wash); font-family: var(--mono); font-size: 0.8em;
+	}
+
+	.scene-bar::before { content: "/"; color: var(--subtle); margin-inline-end: 0.15em; }
+	.scene-bar .icon { font-size: 0; width: auto; }
+	.scene-bar .icon::after { content: "/"; font-family: var(--mono); font-size: 0.8rem; color: var(--subtle); }
+	.scene-bar a { text-decoration: none; }
+	.scene-bar a:hover { text-decoration: underline; }
+
+	/* THE STAGE. Four real properties are spent here on purpose: the Stage reads
+	   them back RESOLVED to build its palette, because a custom property reads back
+	   as the literal `light-dark(...)` text that no colour parser takes.
+	     background-color -> sky and fog     color        -> ink
+	     border-color     -> lines           outline-color -> the accent
+	   `outline-color` with no `outline-style` paints nothing; it is a free slot. */
+	/* ⚠ NO `aspect-ratio`. A block box with one and a `max-height` transfers that
+	   cap back through the ratio to its WIDTH - so a 16/9 stage capped at 62vh
+	   stopped 290px short of the row at 1280 and left grey beside it. Height is a
+	   clamp; the width is whatever the container gives; the camera widens its fov
+	   when the box goes narrow (Stage.resize). */
+	.scene-stage {
+		position: relative;
+		height: clamp(15rem, 66vh, 54rem);
+		overflow: hidden;
+		border-radius: var(--radius);
+
+		/* THE SKY IS A STYLESHEET. The canvas over this box is transparent wherever
+		   the 3D world is not, so these two gradients ARE the weather of the hub and
+		   the crossroads: the accent blooming up from behind the horizon, and a wash
+		   overhead that the sky dome of a tinted world would otherwise have to paint.
+		   ⚠ `light-dark()` and not a token, because the two modes are not one picture
+		   dimmed - light wants a cool haze at the top, dark wants the top to go out. */
+		background-color: var(--surface);
+		background-image:
+			radial-gradient(85% 55% at 50% 104%, color-mix(in srgb, var(--prim) 26%, transparent), transparent 64%),
+			linear-gradient(to bottom, light-dark(rgba(88, 110, 146, 0.30), rgba(0, 0, 0, 0.55)) 0%, light-dark(rgba(88, 110, 146, 0.07), rgba(0, 0, 0, 0.12)) 78%, transparent 100%);
+		color: var(--ink);
+		border: 1px solid var(--line);
+		outline-color: var(--prim);
+	}
+
+	/* The renderer sizes the BUFFER (setSize(w, h, false)); this sizes the box.
+	   `max-width: none` because framework.css caps replaced elements at 100% of a
+	   box this one is absolutely positioned against. */
+	.scene-canvas {
+		position: absolute; inset: 0;
+		display: block; width: 100%; height: 100%; max-width: none;
+		touch-action: none;
+	}
+
+	/* The label of whatever the pointer is over - 2D chrome reading 3D state. */
+	.scene-tip {
+		position: absolute; inset-block-start: 0.7em; inset-inline-start: 0.9em;
+		padding: 0.15em 0.6em; border-radius: 999px;
+		background: var(--ink); color: var(--surface);
+		font-size: 0.8em; font-weight: 600; letter-spacing: 0.02em;
+		opacity: 0; transition: opacity 0.15s; pointer-events: none;
+	}
+
+	.scene-tip-on { opacity: 1; }
+
+	/* The one branch in this sheet, and it is a framing decision: at 400 a 66vh box
+	   is two thirds of the fold and the top half of it is empty sky, because a
+	   portrait canvas cannot hold both the width of a scene and its height. The
+	   shorter box crops the sky; the camera keeps the width (Stage.resize). */
+	@media (max-width: 40em) {
+		.scene-stage { height: clamp(11rem, 40vh, 22rem); }
+	}
+
+	/* A chip, not bare text: it sits over worlds that are cream one click and near
+	   black the next, and only the theme's own ink/surface pair reads on both. */
+	.scene-hint {
+		position: absolute; inset-block-end: 0.7em; inset-inline-end: 0.9em;
+		padding: 0.1em 0.6em; border-radius: 999px;
+		background: color-mix(in srgb, var(--ink) 70%, transparent); color: var(--surface);
+		font-size: 0.75em; pointer-events: none;
+	}
+
+	/* THE 2D HALF OF THE NAVIGATION - the doors out of where you are, as text. */
+	.scene-nav {
+		display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.4em;
+		margin-block-start: 0.8em;
+	}
+
+	.scene-nav-label {
+		font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.08em;
+		color: var(--subtle); margin-inline-end: 0.3em;
+	}
+
+	.scene-nav-link {
+		padding: 0.2em 0.7em; border-radius: 999px;
+		border: 1px solid var(--line); background: var(--tint);
+		font-size: 0.9em; text-decoration: none; white-space: nowrap;
+	}
+
+	.scene-nav-link:hover { background: color-mix(in srgb, var(--ink) 8%, transparent); }
+
+	.scene-nav-link.active {
+		border-color: var(--prim); color: var(--prim-ink);
+		background: color-mix(in srgb, var(--prim) 12%, transparent);
+	}
+
+	/* THE NOTE. One shows at a time - the arrangement contract hides a marked
+	   ancestor that has a marked later sibling - so this is the leaf talking. */
+	.scene-notes { display: flex; margin-block-start: 0.9em; }
+
+	.page.scene-note {
+		display: block; padding: 0;
+		border-inline-start: 2px solid var(--prim); padding-inline-start: 0.9em;
+	}
+
+	.page.scene-note > .page-title {
+		font-size: 1em; font-weight: 700; margin: 0;
+		text-transform: uppercase; letter-spacing: 0.06em;
+	}
+
+	.page.scene-note > .page-title + * { margin-block-start: 0.2em; }
+	.page.scene-note p { color: var(--subtle); max-width: 44em; }
+
+	/* THE CAPTION CARD - the observatory's note, and the other half of one reading.
+	   The picture in it is the SAME `draw()` that painted the glass plate standing in
+	   the world above, run a second time into a plain <canvas>. Everything here is
+	   layout; the drawing brings its own colour.
+	   The plate wraps under the text below ~30em because the body asks for 16em and
+	   the plate is a fixed 9.5em - no query, just the sum. */
+	.scene-card { display: flex; flex-wrap: wrap; align-items: start; gap: 1.1em; max-width: 48em; }
+	.scene-card-body { flex: 1 1 16em; min-width: 0; display: flex; flex-direction: column; gap: 0.6em; }
+	.scene-card-body > * { margin: 0; }
+
+	/* ONE RUNG DOWN, and deliberately the opposite direction to the magazine's ladder
+	   (imagine/mag/mag.css): its rows step CLEANER as you go deeper, because a column
+	   you walk into should lift toward you. A plate is a physical object lying on a
+	   desk, so the well it sits in steps darker instead - you read INTO the picture.
+	   Mixed into `--ink`, so the step keeps its direction in dark mode. */
+	.scene-plate {
+		flex: 0 0 auto; width: 11em; padding: 0.55em;
+		border-radius: calc(var(--radius) * 0.7);
+		background: color-mix(in srgb, var(--ink) 7%, var(--surface));
+	}
+
+	.scene-plate-art { display: block; width: 100%; height: auto; border-radius: 2px; }
+
+	/* The record's own facts, in the theme's mono - the smallest type on the page and
+	   the only place a slot name is said as data rather than as prose. */
+	.scene-facts { display: flex; flex-wrap: wrap; gap: 0.4em; }
+
+	.scene-fact {
+		padding: 0.1em 0.6em; border: 1px solid var(--line); border-radius: 999px;
+		font-family: var(--mono); font-size: 0.72em; letter-spacing: 0.03em;
+		text-transform: uppercase; color: var(--subtle); white-space: nowrap;
+	}
+}

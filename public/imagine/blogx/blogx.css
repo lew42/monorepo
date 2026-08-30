@@ -1,0 +1,462 @@
+/* /imagine/blogx — BLOG SHELL candidates: what a blog looks like on a 3440 monitor.
+
+   ONE GRID, eight candidates. A shell declares which regions it draws, each region
+   claims a named area, and a track with nothing in it is `auto` and costs 0px — so
+   "nav rail", "nav rail + topics rail" and "no chrome at all" are the same template
+   with different children. There is no per-candidate layout rule for the outer frame.
+
+   THREE TONES, the shells lab's finding reused:
+     the frame   `--wash` — the app's floor; every rail and the lab strip sit on it
+     the paper   `--surface` — the reading region, the one raised thing
+     a division  NO FILL — a `--line` hairline and one type step down
+   Inner chrome is the third. A part strip inside the paper is a hairline and small
+   type, never a second filled band: two filled bands and the eye cannot tell which
+   one owns the content.
+
+   THE MEASURE IS NEVER SPENT ON WIDTH. Every reading column here stops at 42em. A
+   wide screen is filled with MORE COLUMNS (parts, neighbours, a wall), never with a
+   wider one — core/Page/doc/columns.md measured that trade and it is a no. */
+
+@layer theme {
+
+	/* THE REGION MUST NOT SCROLL. A shell IS its region, so every scrollbar in one
+	   is a decision made inside it. Keyed on this lab's own class, the `hides-nav`
+	   idiom, so nothing outside /imagine/blogx/ moves. */
+	.pages:has(> .page.blogx:is(.active-page, .active-ancestor)) { overflow: hidden; }
+
+	/* ⚠ `.page.blogx` (0,2,0), never `.blogx`: `.page` declares its own `display:
+	     grid` and a three-track template in this same layer at (0,1,0), so a tie
+	     would be settled by which stylesheet happened to load last.
+	   ⚠ `minmax(0, 1fr)` on the middle column and the middle row, not `1fr`: a bare
+	     `1fr` keeps its content minimum, so one wide code block in the paper would
+	     push the rails off screen instead of scrolling inside it. */
+	.page.blogx {
+		align-self: stretch; height: 100%; overflow: hidden;
+		padding: 0;
+		display: grid;
+		grid-template-columns: auto minmax(0, 1fr) auto;
+		grid-template-rows: minmax(0, 1fr) auto;
+		grid-template-areas:
+			"rail main aside"
+			"lab  lab  lab";
+		background: var(--wash);
+		--blogx-rail: 15em;
+		--blogx-aside: 18em;
+		--blogx-card: 19em;
+		--blogx-measure: 42em;
+	}
+
+	/* ── the regions ─────────────────────────────────────────────────────── */
+
+	.blogx-rail {
+		grid-area: rail;
+		width: var(--blogx-rail); min-width: 0;
+		display: flex; flex-direction: column;
+		overflow-x: hidden; overflow-y: auto; scrollbar-width: thin;
+		border-inline-end: 1px solid var(--line);
+		transition: width 0.18s;
+	}
+
+	.blogx-aside {
+		grid-area: aside;
+		width: var(--blogx-aside); min-width: 0;
+		display: flex; flex-direction: column;
+		overflow-y: auto; scrollbar-width: thin;
+		border-inline-start: 1px solid var(--line);
+	}
+
+	/* The paper, and the QUERY CONTAINER every composition inside it reads. The
+	   window is the wrong thing to ask: at 3440 with two rails open the paper is
+	   2900px, and at 1280 with one it is 1040 — a card wall that broke on the window
+	   would be wrong by a rail either way. */
+	.blogx-main {
+		grid-area: main;
+		position: relative;
+		min-width: 0; min-height: 0;
+		display: flex; flex-direction: column;
+		overflow: auto;
+		background: var(--surface);
+		container: blogx-main / inline-size;
+	}
+
+	/* ── the lab's own strip — a FLOOR, never a header ────────────────────
+	   It spans under both rails and costs ~2% of a 1440-tall screen, so the fold
+	   above it belongs to the candidate undiluted. A bar at the top would take the
+	   one band all eight of these compositions are competing for. */
+	.blogx-lab {
+		grid-area: lab;
+		display: flex; align-items: center; gap: 0.35em;
+		padding: 0.3em 0.8em;
+		font-size: 0.72em;
+		border-block-start: 1px solid var(--line);
+		overflow-x: auto; scrollbar-width: none;
+	}
+	.blogx-lab > * { flex: none; }
+
+	.blogx-lab-home {
+		display: inline-flex; align-items: center; gap: 0.2em;
+		font-weight: 700; color: inherit; text-decoration: none;
+	}
+	.blogx-lab-home .icon { font-size: 1.1em; }
+	.blogx-lab-home:hover { color: var(--prim-ink); }
+
+	.blogx-lab-link {
+		padding: 0.15em 0.45em;
+		color: var(--subtle); text-decoration: none;
+		border-radius: var(--radius);
+		white-space: nowrap;
+	}
+	.blogx-lab-link:hover { color: var(--ink); background: color-mix(in srgb, var(--ink) 8%, transparent); }
+	.blogx-lab-link:is(.active, .in-path) { color: var(--prim-ink); font-weight: 700; }
+
+	/* ⚠ After `.blogx-lab > *`, or `flex: none` would win by source order and the
+	     verdict would push the switcher off the strip instead of truncating. */
+	.blogx-lab-verdict {
+		flex: 0 1 auto; min-width: 0;
+		margin-inline-start: auto;
+		color: var(--subtle);
+		white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+	}
+
+	/* ── the rail's contents ──────────────────────────────────────────────── */
+
+	.blogx-brand {
+		display: flex; flex-direction: column; gap: 0.05em;
+		padding: 1em 1.1em 0.7em;
+		color: inherit; text-decoration: none;
+	}
+	.blogx-mark { font-size: 1.15em; font-weight: 800; letter-spacing: -0.02em; }
+	.blogx-sub { font-size: 0.7em; color: var(--subtle); }
+
+	.blogx-nav { display: flex; flex-direction: column; padding-block: 0.2em; }
+	.blogx-nav-quiet { margin-block-start: auto; }
+
+	.blogx-group {
+		display: flex; align-items: center; gap: 0.35em;
+		padding: 0.6em 1.1em 0.25em;
+		font-size: 0.68em; font-weight: 700;
+		letter-spacing: 0.09em; text-transform: uppercase;
+		color: var(--subtle); text-decoration: none;
+	}
+	.blogx-group .icon { font-size: 1.15em; }
+	.blogx-group:is(:hover, .active, .in-path) { color: var(--prim-ink); }
+
+	/* ⚠ A translucent darkener, never `--tint`: on this palette `--tint` is LIGHTER
+	     than the `--wash` a rail sits on, so a hover painted with it lights the row
+	     the wrong way and reads as no hover at all (Page.css says the same at length).
+	   `.active` and `.in-path` are Router.mark_links()'s — DERIVED from the url, so
+	   the mark and the address bar cannot disagree. */
+	.blogx-link {
+		display: flex; align-items: center; gap: 0.4em;
+		padding: 0.32em 1.1em;
+		font-size: 0.86em; line-height: 1.3;
+		color: var(--subtle); text-decoration: none;
+		border-inline-start: 2px solid transparent;
+	}
+	.blogx-link .icon { font-size: 1.05em; }
+	.blogx-link:hover { color: var(--ink); background: color-mix(in srgb, var(--ink) 6%, transparent); }
+	.blogx-link.in-path { color: var(--ink); }
+	.blogx-link.active {
+		color: var(--ink); font-weight: 600;
+		border-inline-start-color: var(--prim);
+		background: color-mix(in srgb, var(--prim) 10%, transparent);
+	}
+
+	.blogx-back {
+		display: flex; align-items: center; gap: 0.25em;
+		padding: 0.55em 1.1em;
+		font-size: 0.76em; color: var(--subtle); text-decoration: none;
+		border-block-end: 1px solid var(--line);
+	}
+	.blogx-back .icon { font-size: 1.05em; }
+	.blogx-back:hover { color: var(--prim-ink); }
+
+	.blogx-note { padding: 0.5em 1.1em 0.9em; font-size: 0.74em; color: var(--subtle); }
+
+	/* ── the pieces a candidate composes from ─────────────────────────────── */
+
+	.blogx-eyebrow {
+		display: flex; align-items: center; gap: 0.35em;
+		font-size: 0.68em; font-weight: 600;
+		letter-spacing: 0.08em; text-transform: uppercase;
+		color: var(--subtle);
+	}
+	.blogx-dot { opacity: 0.45; }
+	.blogx-eyebrow a { color: inherit; text-decoration: none; border-block-end: 1px solid var(--line); }
+	.blogx-eyebrow a:hover { color: var(--prim-ink); border-block-end-color: var(--prim); }
+
+	.blogx-chips { display: flex; flex-wrap: wrap; gap: 0.35em; }
+	.blogx-nav > .blogx-chips { padding: 0.15em 1.1em 0.5em; }
+
+	.blogx-chip {
+		padding: 0.2em 0.6em;
+		font-size: 0.78em;
+		color: var(--subtle); text-decoration: none;
+		background: var(--tint);
+		border: 1px solid var(--line); border-radius: 999px;
+	}
+	.blogx-chip:hover { color: var(--prim-ink); border-color: var(--prim); }
+
+	.blogx-tag {
+		align-self: start;
+		padding: 0.1em 0.5em;
+		font-size: 0.68em; font-weight: 600;
+		color: var(--prim-ink);
+		border: 1px solid var(--prim); border-radius: 999px;
+	}
+
+	/* THE LEAD, as the composition it deserves. Sized in `cqw` off its OWN box, so a
+	   hero in a 1290px band of a 3440 screen and one in a 400px phone are the same
+	   fraction of their own composition — the screens lab's finding, and the reason a
+	   display word must never be sized off the viewport. */
+	.blogx-hero {
+		container: blogx-hero / inline-size;
+		display: flex; flex-direction: column; gap: 0.55em;
+		padding: clamp(1.2em, 3cqw, 3em);
+		color: inherit; text-decoration: none;
+	}
+	.blogx-hero:hover .blogx-hero-title { color: var(--prim-ink); }
+
+	.blogx-hero-title {
+		font-size: clamp(1.9rem, 7.5cqw, 4.4rem);
+		font-weight: 800; line-height: 1.02; letter-spacing: -0.028em;
+	}
+	.blogx-hero-dek {
+		margin: 0; max-width: 30em;
+		font-size: clamp(0.95rem, 2cqw, 1.4rem); line-height: 1.4;
+		color: var(--subtle);
+	}
+
+	/* A WALL, ruled rather than boxed: no radius, no shadow, no card border — a
+	   magazine front is a ruled page, and three decorations on eight cells is 24
+	   decisions.
+	   ⚠ The seams are an INSET box-shadow on each cell, not `gap: 1px` over a `--line`
+	     background. Seven cards never fill a grid of two, three or five columns, and
+	     the leftover slots painted the grid's own background as grey HOLES in the wall
+	     — measured at 1920 (one hole) and 3440 (three). A shadow is drawn by the cells
+	     that exist, so an empty slot is simply paper. */
+	.blogx-wall {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(min(var(--blogx-card), 100%), 1fr));
+		align-content: start;
+		border-block-start: 1px solid var(--line);
+	}
+
+	.blogx-card {
+		display: flex; flex-direction: column; gap: 0.35em;
+		padding: 1em 1.1em 1.2em;
+		background: var(--surface);
+		box-shadow: inset -1px -1px 0 var(--line);
+		color: inherit; text-decoration: none;
+	}
+	.blogx-card:hover { background: color-mix(in srgb, var(--ink) 4%, var(--surface)); }
+	.blogx-card-title { font-size: 1.05em; font-weight: 700; line-height: 1.25; }
+	.blogx-card:hover .blogx-card-title { color: var(--prim-ink); }
+	.blogx-dek { margin: 0; font-size: 0.85em; line-height: 1.45; color: var(--subtle); }
+
+	/* The compact form — a rail, a region, a column of a row. */
+	.blogx-rows { display: flex; flex-direction: column; }
+
+	.blogx-row {
+		display: flex; flex-direction: column; gap: 0.1em;
+		padding: 0.5em 1.1em;
+		color: inherit; text-decoration: none;
+		border-block-end: 1px solid var(--line);
+		border-inline-start: 2px solid transparent;
+	}
+	.blogx-row:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); }
+	.blogx-row.active {
+		border-inline-start-color: var(--prim);
+		background: color-mix(in srgb, var(--prim) 10%, transparent);
+	}
+	.blogx-row-title { font-size: 0.9em; font-weight: 600; line-height: 1.3; }
+	.blogx-row-meta { display: flex; justify-content: space-between; gap: 0.5em; font-size: 0.72em; color: var(--subtle); }
+
+	/* ── an open post ─────────────────────────────────────────────────────── */
+
+	.blogx-article, .blogx-head {
+		display: flex; flex-direction: column; gap: 0.7em;
+		padding: clamp(1.4em, 3cqw, 2.6em) clamp(1.2em, 3cqw, 3em);
+		max-width: var(--blogx-measure);
+	}
+	.blogx-head { padding-block-end: 0.9em; }
+
+	.blogx-article-title { font-size: clamp(1.6rem, 3.4cqw, 2.6rem); font-weight: 800; line-height: 1.08; letter-spacing: -0.02em; }
+	.blogx-lede { margin: 0; font-size: 1.1em; line-height: 1.5; color: var(--subtle); }
+
+	/* ── inner chrome: a part strip, a crumb strip ────────────────────────── */
+
+	.blogx-strip {
+		flex: none;
+		display: flex; align-items: center; gap: 0.35em;
+		padding: 0.45em clamp(1.2em, 3cqw, 3em);
+		font-size: 0.78em; color: var(--subtle);
+		border-block-end: 1px solid var(--line);
+	}
+	.blogx-strip a { color: inherit; text-decoration: none; }
+	.blogx-strip a:hover { color: var(--prim-ink); }
+	.blogx-strip .icon { font-size: 1em; opacity: 0.5; }
+
+	.blogx-partnav {
+		flex: none;
+		display: flex;
+		overflow-x: auto; scrollbar-width: thin;
+		border-block-end: 1px solid var(--line);
+	}
+
+	/* The same strip at the FOOT of a reading region — `margin-block-start: auto`
+	   parks it on the floor of a short article instead of leaving it mid-page. */
+	.blogx-partnav.blogx-foot {
+		margin-block-start: auto;
+		border-block-end: none;
+		border-block-start: 1px solid var(--line);
+	}
+
+	.blogx-part-link {
+		flex: none; min-width: 11em; max-width: 18em;
+		display: flex; flex-direction: column; gap: 0.1em;
+		padding: 0.5em 0.9em;
+		color: var(--subtle); text-decoration: none;
+		border-inline-end: 1px solid var(--line);
+		border-block-end: 2px solid transparent;
+	}
+	.blogx-part-link:hover { color: var(--ink); background: color-mix(in srgb, var(--ink) 5%, transparent); }
+	.blogx-part-link.active { color: var(--ink); border-block-end-color: var(--prim); }
+	.blogx-part-n { font-size: 0.62em; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+	.blogx-part-title { font-size: 0.82em; font-weight: 600; line-height: 1.25; }
+
+	/* ── the deck: one screen, nav slid away ──────────────────────────────── */
+
+	.blogx-deck {
+		flex: 1 1 auto; min-height: 0;
+		container: blogx-deck / inline-size;
+		display: flex; flex-direction: column; justify-content: center; gap: 0.7em;
+		padding: clamp(1.5em, 5cqw, 5em);
+		color: inherit; text-decoration: none;
+	}
+	.blogx-deck-title { font-size: clamp(2.2rem, 9cqw, 6.5rem); font-weight: 800; line-height: 0.98; letter-spacing: -0.03em; }
+	.blogx-deck-dek { margin: 0; max-width: 26em; font-size: clamp(1rem, 2.2cqw, 1.6rem); line-height: 1.4; color: var(--subtle); }
+	.blogx-rule { width: clamp(2.5rem, 12cqw, 7rem); height: 0.28em; background: var(--prim); border-radius: 999px; }
+
+	/* The rail slides away by taking its own width to zero — a grid track sized
+	   `auto` follows it, so there is no second number to keep in step and nothing is
+	   positioned over anything. */
+	.page.blogx.blogx-shut { --blogx-rail: 0em; }
+	.blogx-shut .blogx-rail { border-inline-end-width: 0; }
+
+	.blogx-toggle {
+		position: absolute; inset-block-start: 0.7em; inset-inline-start: 0.7em;
+		z-index: 1;
+		display: flex; align-items: center; gap: 0.3em;
+		padding: 0.3em 0.6em;
+		font-size: 0.78em;
+		background: var(--surface);
+		border: 1px solid var(--line); border-radius: var(--radius);
+		color: var(--subtle); cursor: pointer;
+	}
+	.blogx-toggle:hover { color: var(--prim-ink); border-color: var(--prim); }
+
+	/* ── the dashboard front ──────────────────────────────────────────────── */
+
+	.blogx-board {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(min(24em, 100%), 1fr));
+		gap: 1px;
+		align-content: start;
+		background: var(--line);
+		border-block-end: 1px solid var(--line);
+	}
+
+	.blogx-region {
+		display: flex; flex-direction: column; gap: 0.5em;
+		padding: 1em 0 1.2em;
+		background: var(--surface);
+	}
+	.blogx-region > * { padding-inline: 1.1em; }
+	.blogx-region > .blogx-rows { padding-inline: 0; }
+	.blogx-region-title { font-size: 0.72em; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--subtle); }
+	.blogx-span { grid-column: 1 / -1; }
+
+	/* ── a real columns row as the reading region ─────────────────────────
+	   `demo.app()` is a whole Page tree playing App and Router in a box, and it is
+	   the only way to nest a columns host under /imagine/: `column_host()` finds the
+	   SHALLOWEST columnar ancestor, so an inner host in the same tree can never win.
+	   ⚠ The demo box's address strip is dropped: a full-height columns row already
+	     draws a crumb strip of its own, and two headers for one region is the same
+	     mistake as a second filled band. */
+	/* ── a region that SWAPS while its nav stays ──────────────────────────
+	   The part pages mount in this box, not in `.pages`, because container() walks
+	   up to the nearest ancestor holding a `$pages` — so the strip above is drawn
+	   ONCE and never rebuilt, and Router.mark_links() moves `.active` along it with
+	   no render at all. That is what "persistent navigation" means here.
+	   ⚠ The overview is marked `default` so it shows when no part is routed; this
+	     rule is the same shape as Page.css's for a default COLUMN — it stands the
+	     default down the moment a real one opens, and without it the two stack. */
+	.blogx-part-body { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+	.blogx-part-body:has(> .page:is(.active-page, .active-ancestor)) > .page.default { display: none; }
+	.page.blogx-part { display: block; padding: 0; align-self: stretch; }
+
+	.blogx-stage { padding: 0; overflow: hidden; }
+	.blogx-app { flex: 1 1 auto; min-height: 0; border: none; border-radius: 0; }
+	.blogx-app > .demo-app-url { display: none; }
+
+	/* ── the magazine front ───────────────────────────────────────────────── */
+
+	.blogx-front { display: grid; align-content: start; }
+	.blogx-front > .blogx-hero { border-block-end: 1px solid var(--line); }
+
+	/* @container, not @media: the paper is the window minus one or two rails, and a
+	   composition that broke on the window would be wrong by a rail either way. */
+	/* ⚠ The split is 0.95 : 1.55, and the numbers were measured, not chosen. At an
+	     even 1 : 1.3 the wall got 863px of a 1920 paper and `auto-fill` at 19em fit
+	     TWO columns by 3px — so a 1920 screen showed four posts above the fold where
+	     the same layout showed five at 1921. The card floor drops to 17em here for the
+	     same reason: the wall is what a wide screen is FOR. */
+	@container blogx-main (min-width: 60em) {
+		.blogx-front { grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.55fr); min-height: 100%; }
+		.blogx-front > .blogx-hero { border-block-end: none; border-inline-end: 1px solid var(--line); align-self: center; }
+		.blogx-front > .blogx-wall { border-block-start: none; --blogx-card: 17em; }
+	}
+
+	/* ── out of room ──────────────────────────────────────────────────────
+	   Under 52em there is no shell left: a 15em rail beside a 42em measure leaves
+	   the measure 187px at 400. Every region takes its own row, and both rails
+	   become strips that scroll sideways — which keeps a DYNAMIC rail's contents
+	   visible at 400, where hiding the links would have hidden the whole finding.
+	   ⚠ `@media`, not `@container`: the template lives ON `.page.blogx` and a
+	     container query never matches its own container. */
+	@media (max-width: 52em) {
+
+		.page.blogx {
+			grid-template-columns: minmax(0, 1fr);
+			grid-template-rows: auto minmax(0, 1fr) auto auto;
+			grid-template-areas: "rail" "main" "aside" "lab";
+		}
+
+		.blogx-rail, .blogx-aside {
+			width: auto; max-height: 40vh;
+			flex-direction: row; align-items: center;
+			overflow-x: auto; overflow-y: hidden;
+			border-inline: none;
+			border-block-end: 1px solid var(--line);
+		}
+		.blogx-aside { border-block-end: none; border-block-start: 1px solid var(--line); }
+		.blogx-rail > *, .blogx-aside > * { flex: none; }
+
+		.blogx-nav { flex-direction: row; align-items: center; padding-inline: 0.2em; }
+		.blogx-nav-quiet { margin-block-start: 0; }
+		.blogx-brand { padding: 0.4em 0.8em; }
+		.blogx-sub { display: none; }
+		.blogx-group { padding: 0.3em 0.5em; }
+
+		.blogx-link {
+			padding: 0.3em 0.55em; white-space: nowrap;
+			border-inline-start: none; border-block-end: 2px solid transparent;
+		}
+		.blogx-link.active { border-inline-start: none; border-block-end-color: var(--prim); }
+
+		.blogx-back { border-block-end: none; border-inline-end: 1px solid var(--line); white-space: nowrap; }
+		.blogx-note { display: none; }
+		.blogx-region:last-child { grid-column: auto; }
+	}
+}

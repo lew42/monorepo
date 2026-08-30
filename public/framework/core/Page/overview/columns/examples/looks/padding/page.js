@@ -11,7 +11,7 @@ function grid(title, flush){
 		width: "large",
 		initialize(){ this.columns(); },
 		content(){
-			div.c(flush ? "grid auto" : "grid auto gap pad", () => {
+			div.c(flush ? "bleed grid auto" : "grid auto gap pad", () => {
 				for (let i = 0; i < 4; i++) div.c("looks-swatch");
 			}).style("--column", "5em");
 		},
@@ -32,7 +32,7 @@ export default new Page({
 	icon: "grid_view",
 
 	content(){
-		md("The owner's rule: **grids always have padding, unless they opt into flush** (`grid auto` bare — no `gap`/`pad` utility). Neither is a new class; both are the same two words `framework.css` already has.");
+		md("The owner's rule: **grids always have padding, unless they opt into flush** (`bleed grid auto` — no `gap`/`pad` utility, and `bleed` to spend the column's own inset). Neither is a new class; both are words `framework.css` and `Page.css` already have.");
 
 		div.c("wall wide", () => {
 			box("Padded — `grid auto gap pad`", grid("Padded", false));

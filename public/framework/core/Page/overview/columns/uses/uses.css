@@ -1,0 +1,77 @@
+/* The four exemplars under `core/Page/overview/columns/uses/`. One sheet, because one
+   dir: ten class names, none of which is a new idea — the arrangements themselves are
+   core's (`Page.css`) and the walls are framework words (`pad`, `tint`, `grid auto`).
+
+   Backgrounds are `--tint` and `--surface` over the row's one `--wash` floor; every
+   seam is a `--line` hairline. Never `--well` — it is a translucent shadow, not a
+   palette colour, and stacking it is what banded /framework/ux/*. */
+
+@layer theme {
+
+	/* ════ INBOX — a preview rail, drawn by the page's own `column()` ═══════════
+	   The rows sit straight in `.page-column-body`, not in `.page-column-prose`, so
+	   they are already at the column's edges and need no `bleed`. */
+
+	.page-uses-count { margin-inline-start: auto; font-size: 0.8em; color: var(--subtle); }
+
+	.page-uses-rows { display: flex; flex-direction: column; }
+
+	/* ⚠ The three marks core's own column items read: `.active` / `.in-path` are
+	   Router.mark_links()'s and `[aria-current]` is what a stand-in app sets. This
+	   list is rebuilt on every change, so it asks for the marking pass back. */
+	.page-uses-row {
+		display: flex; flex-direction: column; gap: 0.1em;
+		padding: 0.5em 0.9em;
+		color: var(--ink); text-decoration: none;
+		border-bottom: 1px solid var(--line);
+		border-inline-end: 2px solid transparent;
+	}
+	.page-uses-row:hover { background: var(--tint); }
+
+	.page-uses-row.active,
+	.page-uses-row:is(.in-path, [aria-current]) {
+		background: var(--tint);
+		border-inline-end-color: var(--prim);
+	}
+
+	.page-uses-from { font-size: 0.9em; font-weight: 600; }
+
+	/* The unread dot rides the sender's line rather than taking a track of its own:
+	   14em is 224px and a column of dots would cost 8% of it. */
+	.page-uses-from::before { content: "\2022"; color: var(--prim); margin-inline-end: 0.4em; }
+
+	.page-uses-read .page-uses-from { font-weight: 400; color: var(--subtle); }
+	.page-uses-read .page-uses-from::before { color: transparent; }
+
+	.page-uses-peek {
+		font-size: 0.8em; color: var(--subtle);
+		overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+	}
+
+	.page-uses-tally {
+		--flow: 0.2em;
+		padding: 0.5em 0.7em;
+		font-size: 0.85em;
+		background: var(--tint); border-radius: var(--radius);
+	}
+
+	/* ════ DOCS — a tab set inside a column ════════════════════════════════════
+	   `.tab-panel`'s 3em top gap is page rhythm: a strip of sections over a page in
+	   the app's own region. A column body is 40em at most and every row of it counts,
+	   so the same set pays a line of space here instead. (0,3,0), same layer. */
+	.page-column-prose .tabs > .tab-panel { padding-top: 1em; }
+
+	/* ════ SPLIT — the top panel ═══════════════════════════════════════════════
+	   A plain `pages` region now — Page.css's `.default.columns` split (2026-08-29)
+	   gives a columns host its own row instead of the 40em-cap/3em-pad presentation
+	   rule, so this class only sets the ratio between the two panels. */
+	/* ⚠ `1 1 0` on BOTH panels, not `auto`: a flex basis of auto sizes each panel by
+	   its own content, and the console's paragraphs beat a columns tree that has no
+	   intrinsic height at all — measured 285/382 before this line, with the browser
+	   the SHORTER half. 2:1 is the shape: a stage and a status strip. */
+	.page-uses-stage { flex: 2 1 0; min-height: 0; }
+	.pages.page-uses-console { flex: 1 1 0; }   /* (0,2,0): `.pages` says `1 1 auto` in this same layer */
+
+	.page-uses-log { --flow: 0.15em; font-size: 0.85em; }
+	.page-uses-line { font-family: monospace; color: var(--subtle); }
+}

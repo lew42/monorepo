@@ -35,7 +35,8 @@ are tunable. Viewports: **400 / 1280 / 1920 / 3440** unless the ask names one.
 ## Verbs
 
 `goto [url]` · `move x y [steps]` · `down` · `up` · `click sel` · `hover sel` ·
-`key "Shift+Tab"` · `type sel text` · `eval js` · `wait ms` · `shot` (every step shoots;
+`key "Shift+Tab"` · `type sel text` · `eval js` · `wait ms` · `viewport w h` (mid-run
+resize — a breakpoint bug becomes a same-run before/after) · `shot` (every step shoots;
 `shot` only names a moment).
 
 - `move x y steps` is the drag — **steps ≥ 10**, or one jump lands where no handler expected it.
@@ -115,12 +116,58 @@ component rule** — check `display`, not just the class list.
 - No `move` after `down` = no drag at all: `pointerdown` alone commits nothing.
 - `click sel` silently no-ops on an element revealed only by an ANCESTOR's `:hover`
   (`.parent:hover > .child { display: … }`) — Playwright's actionability re-check breaks the
-  hover chain, even right after a `hover parent` step (2026-08-21, `.pg-add`). Drive it with
-  `hover ancestor-sel`, then coordinate `move cx cy` + `down` + `up` (centers from a probe eval).
-  And aim at a SHALLOW/leaf target: hovering an outer box whose center lands inside a nested
-  child reveals both their hover-children, and the `move` toward the outer's can transit out of
-  the nested hover zone, shifting the target before `down` lands — no error, nothing happens
-  (2026-08-21, three silent misses on a root `.pg-add`; diagnosed via `elementFromPoint`).
+  hover chain, even right after a `hover parent` step (2026-08-21, `.pg-add`). Best route,
+  no coordinates: `hover ancestor-sel`, then `hover "ancestor-sel>.child"`, then `down`/`up` —
+  the pointer is already inside the ancestor, so the reveal survives the actionability check
+  (2026-08-27, proved on `.pg-add`). Fallback: coordinate `move cx cy` + `down` + `up` —
+  **centres from a probe eval, never rect corners**: a corner lands on the boundary and clicks
+  the neighbour, a real action on the wrong node, no error (2026-08-27, tree-row miss). Aim at
+  a SHALLOW/leaf target: hovering an outer box whose center lands inside a nested child reveals
+  both their hover-children, and the `move` toward the outer's can transit out of the nested
+  hover zone, shifting the target before `down` lands — no error, nothing happens (2026-08-21,
+  three silent misses on a root `.pg-add`; diagnosed via `elementFromPoint`).
+- A `hover` that TIMES OUT (30s, bare `TimeoutError`) on a hover-revealed element has two
+  causes, same error: the reveal MOVES the target (put it in `watch`, read `moved` — 2026-08-27,
+  an in-flow `.pg-add` slid out from under the pointer), or the target is COVERED by a sibling
+  that takes the hit (2026-08-27, a full-width `.pg-add` over both edge chips). One diagnostic
+  settles any hover/click that silently does nothing: `hover` the ancestor, then eval
+  `document.elementFromPoint()` at the target's centre — present + opaque + `pointer-events:
+  auto` but hit-testing to something else is occlusion, not movement.
+- The dev server's LiveReload reloads every headless tab whenever ANY agent saves under
+  `public/` (`Directory.js` calls `LiveReload.changed()` with no path = reload everything) —
+  never park state on `window` across steps; re-acquire in each `eval`
+  (`import('/mod/page.js').then(m => …)` — the module cache makes it free). A mid-step
+  navigation now records a `navigated mid-step` flag and the run carries on (2026-08-27;
+  three runs died to it before the fix). Surviving is not enough: a reload re-opens the SAVED
+  document, so post-reload steps report real-looking numbers for the WRONG state — carry a
+  stamp field you set at build time, so a silent reload shows up as `stamp: undefined`
+  instead of a plausible measurement (2026-08-27, a run reported a height for a box that
+  no longer existed).
+- A state change that settles via `ResizeObserver`/transition/rAF reads STALE in the same
+  `eval` that caused it — one expression is one synchronous tick. Split the action and the
+  measurement into two steps (the runner's own `pause` lets the observer run), or you will
+  report a bug that is already fixed (2026-08-27: 144px "offset" in-step, 0.01px one step
+  later).
+- `watch` reports the FIRST match of each selector, not all matches — a sweep of N elements
+  needs one `eval` returning a `{path, centre, rect}` per match (structural paths, not
+  `data-id`s — ids are minted fresh per fixture), with a `move` to a neutral point between
+  gestures so every measurement shares one baseline (2026-08-27).
+- **Headless Chromium has overlay scrollbars — no scrollbar-space bug is reproducible here.**
+  A scrolling div reads `offsetWidth - clientWidth === 0` in bundled Chromium, with an
+  injected `::-webkit-scrollbar`, and even in `channel: "chrome"` with overlay features
+  disabled (2026-08-29: a rail that visibly jumped ~15px on desktop Chrome measured "stable
+  to the third decimal" in two independent probes). Never conclude "stable" about a box with
+  `overflow: auto` from a headless rect alone — measure the TOGGLE instead
+  (`scrollHeight > clientHeight` per state), and reason the ~15px from there.
+- Shoot into the session scratchpad, never into `public/` — the dev server watches the tree,
+  so a png written under `public/` fires LiveReload and the NEXT step lands mid-reload:
+  intermittent empty results, zero console errors, reads exactly like a page bug (2026-08-27).
+  Copy the keeper pngs into the task dir at the END of the run.
+- A speculative selector in a plan is a REAL gesture on real data. A throwaway
+  `click "button:nth-of-type(1)"` in a tool that saves appended a box to the owner's document
+  (2026-08-27) — and the step's own output only said the watch went `missing`. In a tool that
+  writes, resolve the selector in an `eval` first and read back what it matched; "never gesture
+  on the owner's document" covers smoke steps you did not think of as gestures.
 - Restart nothing. The dev server stays up; you never touch it.
 
 Improve this skill: append to `improvements.md`.

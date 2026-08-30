@@ -27,7 +27,7 @@ View.stylesheet(import.meta, "stage.css");
  * page code — and emitting it here is what lets core's flow rules stop naming
  * `.demo-render`.
  */
-export function stage(fn, board = ""){
+export function stage(fn, board = "", widths = WIDTHS){
 	let $render, $size, $tools;
 
 	const $stage = div.c("demo-stage", () => {
@@ -40,7 +40,7 @@ export function stage(fn, board = ""){
 
 	// The strip is placed first and filled now — its controls point at the render
 	// below it — and the handle is the one thing that can release what they set.
-	$stage.append(() => resizer($stage, tools($tools, $render, $stage, measure)));
+	$stage.append(() => resizer($stage, tools($tools, $render, $stage, measure, widths)));
 
 	return { $stage, $render, $tools, measure };
 }
@@ -103,8 +103,12 @@ const btn = (content, title) => button.c("demo-btn", content).attr("title", titl
  * a phone layout instead of only looking at it. Returns what releases a width —
  * the handle owns the stage's width and cannot share it. doc/record.md §20.
  */
-function tools($tools, $render, $stage, measure){
+function tools($tools, $render, $stage, measure, widths = WIDTHS){
 	let width = 0, fitted = true, $devices, $zoom, $custom;
+
+	// `widths: false` — a caller that wants the dials without the presets. The list
+	// is otherwise the site's four, so a stage anywhere offers the same simulations.
+	widths ||= [];
 
 	const zoomed = () => parseFloat($render.style("zoom")) || 1;
 
@@ -131,7 +135,7 @@ function tools($tools, $render, $stage, measure){
 	const update = () => {
 		measure();
 
-		WIDTHS.forEach(([w], i) => $devices.el.children[i].classList.toggle("on", w === width));
+		widths.forEach(([w], i) => $devices.el.children[i].classList.toggle("on", w === width));
 
 		const value = String(zoomed()), listed = ZOOMS.some(z => String(z / 100) === value);
 
@@ -145,13 +149,13 @@ function tools($tools, $render, $stage, measure){
 	const whole = () => width ? sim(width) : set(1);
 
 	$tools.append(() => {
-		$devices = div.c("demo-devices", () => WIDTHS.forEach(([w, name]) =>
+		$devices = div.c("demo-devices", () => widths.forEach(([w, name]) =>
 			btn(name, w + "px of layout — a width, not a device").click(() => sim(w === width ? 0 : w))));
 
 		div.c("demo-dials", () => {
 			magnifier(set, zoomed, whole);
 
-			$zoom = select.c("demo-zoom", () => {
+			$zoom = select.c("demo-zoom auto", () => {
 				ZOOMS.forEach(z => option(z + "%").attr("value", z / 100));
 				$custom = option("").attr("hidden", "");
 			}).attr("title", "Zoom the render").on("change", function(){ set(+this.el.value); });

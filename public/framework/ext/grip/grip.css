@@ -27,6 +27,16 @@
 		transition: opacity 0.12s;
 	}
 
+	/* A rail docked at the shell's START (`from: "start"`, stamped by grip.js) drags its
+	   own inline-END edge, so the WHOLE geometry mirrors — strip and lit line together.
+	   ⚠ Flipping only the strip is what "the grip is offset in a strange way" was: the
+	     strip moved to the right edge and the line stayed anchored to the strip's left,
+	     drawing 10px short of the boundary it resizes (measured on `.pg-tree`, 2026-08-29).
+	   The pill needs no mirror — `inset-inline-start: 50%` centres it in the strip, and a
+	   0.75rem strip's centre is the same point from either side. */
+	.grip-start { inset-inline-start: auto; inset-inline-end: 0; }
+	.grip-start::before { inset-inline-start: auto; inset-inline-end: 0; }
+
 	/* `--prim`, the one affordance colour — same hue as the lit line, the open tab
 	   and the lit preset. */
 	.grip-pill {

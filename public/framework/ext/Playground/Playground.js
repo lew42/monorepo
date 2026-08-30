@@ -4,13 +4,35 @@ import grip from "/framework/ext/grip/grip.js";
 import Item from "/framework/core/Item/Item.js";
 import { Flex, Grid, Box } from "./items.js";
 import { open, list, mint_slug, del, load_layout, save_as_layout, strip_ids } from "./documents.js";
-import properties from "./properties.js";
+import properties, { paint_readout } from "./properties.js";
 import toolbar, { refresh_toolbar, paint_viewport_slot } from "./toolbar.js";
 import { canvas, paint_canvas, Canvas, position_handles } from "./canvas.js";
 
 // "Into the selection if it is a container, else beside it" (design §6) — a Box never
 // takes children, `Flex`/`Grid` always can, whichever `Item` subclass gets added later.
 const is_container = item => item instanceof Flex || item instanceof Grid;
+
+/* ── The one rule (pg-edges; ux proposal §The model) ────────────────────────────────────
+ * **An edge inserts a sibling on that side. If the parent doesn't already flow that way,
+ * the parent is made to — converted if the node stands alone, wrapping just this node if
+ * it has siblings that must stay put.**
+ *
+ * Everything the owner asked for falls out of it, so none of it is a separate concept:
+ * sibling-before/after is WHICH edge; row-vs-column is which PAIR of edges, so direction
+ * is never its own gesture again; wrap-into-row/column is the same click when the parent
+ * flows the other way. `child` is the one target that is NOT an edge — the blocky centre
+ * `+` wave 1 shipped, in flow and reserving its own room. `section` is a child of the
+ * root, so it is that same `+` too. */
+const FLOWS  = { left: "row", right: "row", top: "column", bottom: "column" };
+const BEFORE = { left: true, top: true, right: false, bottom: false };
+
+// A new sibling inherits the clicked node's SIZE words and nothing else — that is the
+// proposal's second saving ("a row of cards is equal by construction" instead of one
+// `fill` click per card). Its type, label, bg and container config are not information
+// about the new box; only how big its slot is.
+const size_words = item => Object.fromEntries(["width", "height"].filter(k => item.get(k)).map(k => [k, item.get(k)]));
+
+const next_sibling = item => { const kids = item.parent.items.children; return kids[kids.indexOf(item) + 1] ?? null; };
 
 View.stylesheet(import.meta, "playground.css");
 
@@ -55,6 +77,10 @@ export class Playground {
 				});
 			});
 		});
+
+		// Both viewing floors start ON (toolbar.js's own two buttons start `.on` to match) —
+		// one class flip each, on the node `paint_canvas()` never rebuilds.
+		this.$body.tc("pg-pad-floor pg-gap-floor", true);
 
 		const saved = JSON.parse(localStorage.getItem(KEY) || "{}");
 		if (saved.tree) this.write("tree", parseFloat(saved.tree));
@@ -146,9 +172,26 @@ export class Playground {
 		this.viewport = preset;
 		this.$body.style("--pg-viewport", preset === "full" ? "100%" : preset + "px");
 		paint_viewport_slot(this);
+		// The canvas box just changed width with no repaint, so every handle's computed
+		// coordinate is stale. canvas.js's ResizeObserver catches this too — this call is
+		// the honest one: the code that MOVED the geometry says so (pg-model).
+		position_handles(this.$body.el);
+	}
+
+	/* A structural insert makes up to four list mutations (wrap in, move, insert, convert)
+	 * and every one of them fires `add`/`remove` → `repaint()` → a `save()`. `batch()`
+	 * collapses them into one repaint and one save — and, more than an optimisation, it is
+	 * what keeps a half-built tree off the canvas: during a wrap the clicked node is
+	 * detached for exactly one statement, and a repaint in that instant would draw a
+	 * document with the selection missing. */
+	batch(fn){
+		this.last_change = undefined;   // structural surgery has no one declaration to point at
+		this.quiet = true;
+		try { return fn(); } finally { this.quiet = false; this.repaint(); }
 	}
 
 	repaint(){
+		if (this.quiet) return;
 		this.paint_tree();
 		paint_canvas(this);   // canvas.js
 		this.mark();
@@ -172,6 +215,7 @@ export class Playground {
 
 	select(id){
 		this.selected = id;
+		this.last_change = undefined;   // a new selection has no "last change" to attribute yet
 		this.mark();
 	}
 
@@ -179,10 +223,17 @@ export class Playground {
 	// properties column can never disagree (design §4: "selection change redraws the
 	// properties column"). `change` never comes through here — see `apply_change()`.
 	mark(){
-		this.$body.el.querySelectorAll(".pg-selected").forEach(el => el.classList.remove("pg-selected"));
-		this.$body.el.querySelector(`[data-id="${this.selected}"]`)?.classList.add("pg-selected");
+		this.mark_node();
 		this.$tree_widget?.select(this.nodes_by_id.get(this.selected));
 		this.paint_properties();
+	}
+
+	// Just the canvas half — its own seam because a structural `change` (below) redraws the
+	// canvas and must re-light the selection, while deliberately leaving the properties
+	// column, its readout and the button you just pressed exactly where they are.
+	mark_node(){
+		this.$body.el.querySelectorAll(".pg-selected").forEach(el => el.classList.remove("pg-selected"));
+		this.$body.el.querySelector(`[data-id="${this.selected}"]`)?.classList.add("pg-selected");
 	}
 
 	// Rebuilds the properties column's CONTROLS for the newly selected item — never
@@ -199,19 +250,45 @@ export class Playground {
 	// changed, without a per-key CSS-prop lookup table.
 	apply_change(key){
 		const item = this.selected_item();
-		if (!item) return;
+		// Mid-surgery (`batch()`), every `set()` is a step in a tree that is not finished —
+		// patching one live node's style, or worse redrawing the canvas from it below, would
+		// draw a half-built document. The batch's own closing repaint draws the finished one.
+		if (!item || this.quiet) return;
 
 		const style = item.styles();
 		const node = this.$body.el.querySelector(`[data-id="${item.id}"]`);
+		// Read the OLD declarations back off the node before overwriting them — that diff is
+		// the whole of the readout's attribution (pg-edges item 5), and it needs no
+		// key → CSS-property table to exist or stay in sync.
+		const before = node?.getAttribute("style") ?? "";
 		node?.setAttribute("style", style);
 
-		// pg-resize seam: ANY data change can shift a flex row's own gap geometry
-		// (a properties-panel edit, not just a drag commit) — one place to keep
-		// every handle in sync, cheap enough for this tree's size.
-		position_handles(this.$body.el);
+		/* pg-resize seam: ANY data change can shift a flex row's own gap geometry
+		 * (a properties-panel edit, not just a drag commit) — one place to keep
+		 * every handle in sync, cheap enough for this tree's size.
+		 *
+		 * `direction` and `wrap` are the two that MOVING a handle cannot fix: a handle's
+		 * orientation is baked into its class at render time (`pg-resize-col` vs `-row`,
+		 * canvas.js) and a wrapped row draws no handles at all, so flipping either left the
+		 * strips lying across the wrong axis until something else happened to repaint — the
+		 * readme's own "Left" item, and the one pg-edges could not leave alone, because a
+		 * stale handle is now a stale INSERT target too. The canvas is redrawn and the
+		 * selection re-lit; the properties column (and this change's own attribution in the
+		 * readout, below) is deliberately untouched. */
+		if (key === "direction" || key === "wrap"){ paint_canvas(this); this.mark_node(); }
+		else position_handles(this.$body.el);
 
-		const readout = this.$props_body.el.querySelector(".pg-readout");
-		if (readout) readout.textContent = node ? node.getAttribute("style") : style;
+		/* One line per declaration, the ones that just appeared highlighted, and the key that
+		 * did it named underneath — including when it wrote nothing, which is half of what
+		 * `items.js#size_decls` has to teach ("hug and never-touched are the same thing").
+		 *
+		 * Held on the instance as well as painted, because five of the sidebar's controls
+		 * (`type`, `width`, `height`, `pad`, `bg`) rebuild the whole column right after
+		 * writing — they have to, they change which fields exist — and that first paint would
+		 * otherwise wipe the attribution of the very change that triggered it. Measured: the
+		 * grid prefill and every axis word lost their highlight this way. */
+		this.last_change = { key, before };
+		if (this.$readout?.el.isConnected) paint_readout(this, style, key, before);
 
 		// A seg button's own highlight is state, not structure — flip it in place
 		// (still no repaint: `paint_properties()` never runs on a `change`).
@@ -226,23 +303,92 @@ export class Playground {
 
 	selected_item(){ return this.selected && this.doc.find(this.selected); }
 
-	// "Into the selection if it is a container, else beside it" (design §6).
-	// Selection moves to the new item BEFORE `add()` fires the repaint (remove()'s own
-	// rule) — add-then-remove used to delete the OLD selection (found 2026-08-19, task 5).
+	/* Two verbs, two selection rules, one line each (pg-interactions).
+	 *
+	 * `add_to` is a PLACE — "put one here". Here stays selected, so the canvas + you just
+	 * clicked is still lit (playground.css gates it on `.pg-selected:hover`) and you can
+	 * click it again, and again. Selecting the new CHILD instead was what broke repeated
+	 * adds: the container went unselected, its + vanished, and the child's own + popped up
+	 * under the pointer in its place.
+	 *
+	 * `add()` — the toolbar + — is a VERB ON THE SELECTION, so it keeps the documented
+	 * behaviour: what you just made is selected. It has no hover gate to lose, and losing
+	 * this would resurrect the 2026-08-19 add-then-remove bug (task 5) on that path.
+	 *
+	 * Either way selection is right BEFORE `into.add()` fires the repaint — `remove()`'s
+	 * rule below — and lands on an item that certainly exists. */
 	add(Type){
 		const target = this.selected_item();
-		this.add_to(is_container(target) ? target : (target?.parent ?? this.doc), Type);
+		const item = this.add_to(is_container(target) ? target : (target?.parent ?? this.doc), Type);
+		this.select(item.id);
+		return item;
 	}
 
-	// The shared mutation both `add()` (selection-gated, `is_container`) and the canvas's
-	// own `.pg-add` click (explicit target, selection irrelevant — pg-placeholder brief
-	// item 2) land through: same selection-before-repaint rule as `add()`, no gate on
+	// The shared mutation both `add()` and the canvas's own `.pg-add` click (explicit
+	// target, selection irrelevant — pg-placeholder brief item 2) land through: no gate on
 	// `into`'s type, so a plain Box parents exactly like a Flex/Grid (item 3).
 	add_to(into, Type = Box){
 		const item = new Type({ data: { label: Type.name } });
-		this.selected = item.id;
+		this.selected = into.id;
 		into.add(item);
 		return item;
+	}
+
+	/* Which way a parent already flows. Block flow stacks, so a plain Box IS a column and
+	 * an edge-insert into one costs no conversion at all. A Grid answers `null` — "no flow
+	 * I can re-aim": its template is authored information, and the honest move is to wrap
+	 * rather than throw a `grid-template-columns` away to satisfy one click. */
+	flow_of(parent){
+		if (parent instanceof Grid) return null;
+		if (parent instanceof Flex) return parent.get("direction") || "row";
+		return "column";
+	}
+
+	// The rule at the top of this file, in code. `side` is one of `FLOWS`' four keys.
+	insert_at(item, side, Type = Box){
+		const parent = item?.parent;
+		if (!parent || !FLOWS[side]) return;   // the root has no siblings — its centre + adds children
+
+		const want = FLOWS[side], first = BEFORE[side];
+		const twin = new Type({ data: { label: Type.name, ...size_words(item) } });
+		const flow = this.flow_of(parent);
+
+		// The CLICKED node stays selected — wave 1's `add_to` rule (a place, not a verb on
+		// the selection). The edge you just used is still lit and still under the pointer,
+		// so the next click can be the same click: three across is click, click.
+		this.selected = item.id;
+
+		return this.batch(() => {
+			if (flow === want){
+				parent.items.insert_before(twin, first ? item : next_sibling(item));
+			} else if (parent.items.length === 1 && flow !== null){
+				// It stands alone: nothing else can be disturbed, so make the PARENT flow
+				// this way. A Box becomes a Flex; a Flex just re-aims. No wrapper is minted,
+				// so the tree gets no deeper — the depth check in the proof reads this.
+				const flexed = this.convert(parent, Flex);
+				flexed.set("direction", want);
+				flexed.items.insert_before(twin, first ? item : null);
+			} else {
+				// Siblings must stay put — wrap ONLY this node. The wrapper takes over the
+				// node's own slot (its width/height words), so every other child of the
+				// parent still sees the same box, the same size, in the same place.
+				const wrap = new Flex({ data: { label: want, direction: want, ...size_words(item) } });
+				parent.items.insert_before(wrap, item);   // the wrapper lands at the node's own index
+				item.move(wrap);
+				wrap.items.insert_before(twin, first ? item : null);
+			}
+			return twin;
+		});
+	}
+
+	// A gap handle that never travelled is a click, not a drag (canvas.js) — and the pair it
+	// flanks already flow the right way, so this is the plain insert with no conversion to
+	// reason about. Selection is deliberately untouched: what is selected is the CONTAINER
+	// (its handle is what you clicked), so every gap stays lit for the next click.
+	insert_between(a, b, Type = Box){
+		const twin = new Type({ data: { label: Type.name, ...size_words(a) } });
+		a.parent.items.insert_before(twin, b);
+		return twin;
 	}
 
 	// Type toggles CONVERT the node in place (pg-sidebar brief §2) — same id, same data
@@ -309,12 +455,18 @@ export class Playground {
 		return clone;
 	}
 
-	// "Copy+paste in one verb" (design §6) — same clipboard string, same landing rule.
+	/* "Copy+paste in one verb" (design §6) — but BESIDE the original, not through `paste()`'s
+	 * into-or-beside rule. That rule is right for the toolbar verb it was written for; this
+	 * verb now runs from a chip sitting ON the node (pg-edges item 3), and a duplicate
+	 * landing INSIDE the Flex you just pointed at reads as a bug. The chip is the only
+	 * caller left — the toolbar's own `⧉` is gone. */
 	duplicate(){
 		const item = this.selected_item();
-		if (!item) return;
-		this.copy(item);
-		this.paste();
+		if (!item?.parent) return;
+		const clone = Item.hydrate(strip_ids(JSON.parse(this.copy(item))));
+		this.selected = clone.id;
+		item.parent.items.insert_before(clone, next_sibling(item));
+		return clone;
 	}
 }
 

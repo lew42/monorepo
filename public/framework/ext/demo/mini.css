@@ -119,6 +119,23 @@
 	.demo-mini-item { flex: 0 0 0.85em; border-radius: 2px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); }
 	.demo-mini-item.on { background: color-mix(in srgb, var(--prim) 14%, var(--surface)); box-shadow: inset 0 0 0 1px var(--prim); }
 
+	/* ── an inbox: preview rows on the left, the detail beside them. A `list` row shows a
+	     line OF the page behind it, which is exactly what a `rail` row above does not. ── */
+	.demo-mini-previews {
+		display: flex; flex-direction: column; flex: 0 0 6.5em; gap: 0.35em; padding: 0.45em;
+		border-inline-end: 1px solid var(--line);
+	}
+	.demo-mini-preview {
+		display: flex; flex-direction: column; flex: 0 0 auto; gap: 0.25em; padding: 0.3em;
+		border-radius: 2px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line);
+	}
+	.demo-mini-preview.on { background: color-mix(in srgb, var(--prim) 14%, var(--surface)); box-shadow: inset 0 0 0 1px var(--prim); }
+
+	/* ⚠ (0,2,0): `.demo-mini-key` is a ROW part — `flex: 0 0 1.8em` is its WIDTH there and
+	     its HEIGHT here, and `align-self: center` would centre it in the card. */
+	.demo-mini-preview .demo-mini-key { flex: 0 0 0.32em; width: 62%; align-self: flex-start; }
+	.demo-mini-preview .demo-mini-line { flex: 0 0 0.26em; }
+
 	/* ── tiles: one grid, three densities, all three from `--mini-cell` / `--mini-gap` ── */
 	.demo-mini-tiles {
 		display: grid; flex: 1 1 0; min-height: 0; overflow: hidden;

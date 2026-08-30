@@ -1,0 +1,31 @@
+/* The carousel only. `.vary-carousel-arrow` / `.vary-carousel-dot` are real
+   `<button>`s, so `@layer site` — the theme's own `:is(button, .btn)` CTA rule
+   lives there (lew42.css), and a same-layer `@layer theme` override loses on
+   specificity alone (`.theme-lew42 :is(button, .btn)` is (0,2,0)). */
+@layer theme {
+
+	.vary-carousel { overflow: hidden; background: var(--wash); border: 1px solid var(--line); border-radius: var(--radius); }
+
+	.vary-carousel-track { display: flex; transition: transform 0.3s ease; }
+	@media (prefers-reduced-motion: reduce) { .vary-carousel-track { transition: none; } }
+
+	.vary-carousel-slide { flex: 0 0 100%; min-width: 0; padding: 1.2em 1.4em; }
+
+	.vary-carousel-nav {
+		display: flex; align-items: center; justify-content: space-between; gap: 0.6em;
+		padding: 0.5em 0.8em; border-top: 1px solid var(--line);
+	}
+
+	.vary-carousel-dots { display: flex; gap: 0.4em; }
+}
+
+@layer site {
+
+	.vary-carousel-arrow { padding: 0.3em 0.7em; font-size: 1.1em; line-height: 1; }
+
+	.vary-carousel-dot {
+		width: 0.55em; height: 0.55em; padding: 0; border: none; border-radius: 50%;
+		background: var(--line);
+	}
+	.vary-carousel-dot.active { background: var(--prim); }
+}

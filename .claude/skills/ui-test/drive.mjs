@@ -47,28 +47,35 @@ const act = {
 	// mistaken for the function body itself.
 	eval: js => page.evaluate(new Function(`return (${js})`)),
 	wait: ms => page.waitForTimeout(+ms),
+	// Mid-run resize — a breakpoint bug becomes a same-run before/after instead of an
+	// inference across two runs (pg-chrome-polish proved the devbar flicker with it).
+	viewport: (w, h) => page.setViewportSize({ width: +w, height: +h }),
 	shot: () => null,   // every step shoots; this one only names a moment
 };
 
 // ⚠ CSS only: a Playwright engine selector (`text=…`) THROWS in querySelector, so a
 // watched-or-clicked sel that is not CSS reads as null rather than killing the run.
+// ⚠ And a mid-run navigation (the dev server's LiveReload, when any agent saves under
+// public/) destroys the execution context — swallowed here (null), flagged per step,
+// never fatal: the run's earlier evidence must survive (2026-08-27, three runs lost).
 const rects = sels => page.evaluate(list => Object.fromEntries(list.map(s => {
 	try {
 		const r = document.querySelector(s)?.getBoundingClientRect();
 		return [s, r && { x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.width), h: Math.round(r.height) }];
 	} catch { return [s, null]; }
-})), sels);
+})), sels).catch(() => null);
 
 const metrics = () => page.evaluate(() => {
 	const e = document.scrollingElement;
 	return { sw: e.scrollWidth, cw: e.clientWidth, sh: e.scrollHeight, ch: e.clientHeight };
-});
+}).catch(() => null);
 
 const delta = (a, b) => a && b ? { dx: b.x - a.x, dy: b.y - a.y, dw: b.w - a.w, dh: b.h - a.h } : null;
 
 // A broken layout, from numbers alone. Overlaps are NOT flagged (a child inside its
 // parent overlaps by design) — read the rects for those.
 function flags(doc, after){
+	if (!doc) return ["navigated mid-step (execution context destroyed — LiveReload?)"];
 	const f = [];
 	if (doc.sw > doc.cw + 1) f.push(`overflow-x ${doc.sw - doc.cw}px`);
 	for (const [s, r] of Object.entries(after).filter(([s]) => (plan.watch ?? []).includes(s))){
@@ -85,7 +92,7 @@ const log = [];
 for (const [i, step] of steps.entries()){
 	const [verb, ...args] = parse(step);
 	const sels = [...new Set([...(plan.watch ?? []), ...(SEL[verb] ? [args[0]] : [])])].filter(Boolean);
-	const before = i ? await rects(sels) : {};
+	const before = (i ? await rects(sels) : {}) ?? {};
 
 	let value = null, error = null;
 	try {
@@ -94,9 +101,11 @@ for (const [i, step] of steps.entries()){
 	} catch (e){ error = String(e).split("\n")[0]; }
 
 	await page.waitForTimeout(plan.pause ?? 150);
-	const after = await rects(sels), doc = await metrics();
+	const rawAfter = await rects(sels), doc = await metrics();
+	const after = rawAfter ?? {};
 	const png = `${String(i + 1).padStart(2, "0")}-${verb}.png`;
-	await page.screenshot({ path: join(out, png) });
+	try { await page.screenshot({ path: join(out, png) }); }
+	catch (e){ error ||= "screenshot: " + String(e).split("\n")[0]; }
 
 	const entry = {
 		n: i + 1, step, verb, args, png, value, error,

@@ -97,5 +97,18 @@ space-       styles/layouts/space
 rules-       styles/rules
 theme-       styles/layers/theme
 
+# imagine
+blogx-       /imagine/blogx
+feeds-       /imagine/feeds
+gal-         /imagine/gallery
+scene-       /imagine/scenes
+screens-     /imagine/screens
+shell        /imagine/shells (.shell is the frame; .shell-* its parts)
+vary-        /imagine/vary
+
 # ai task pages
 vision-      ai/2026-08-17/vision-browse
+
+# pages
+imagine-     /imagine/ (root, team, game)
+mag-         /imagine/mag

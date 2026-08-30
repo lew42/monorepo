@@ -11,3 +11,8 @@ attribute the router cares about means there is a single thing to grep when aski
 **Simplicity** — right-sized: one line, and it inherits `attr()`'s getter form for
 free (`view.href()` reads it back).
 
+⚠ It takes `...url`, not `url`, and that rest is load-bearing: `attr()` decides
+getter-vs-setter on **arity** now, so a named parameter would hand it two arguments
+every time and silently retire `href()`. Spreading forwards what the caller passed —
+`href()` still reads, and `href(nav.url)` is a write even when the url is undefined.
+

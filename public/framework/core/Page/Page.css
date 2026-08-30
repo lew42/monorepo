@@ -2,10 +2,41 @@
    ⚠ In `util` so it out-ranks the `.grid` / `.flex` a page may wear, and phrased
      as "hide unless" — a plain `.page { display: none }` ties `.grid` at (0,1,0).
    ⚠ Nothing sets `display` for a page that IS showing; that would take the choice
-     back off the util class. */
+     back off the util class.
+
+   ⚠ AN ANCESTOR IS REPLACED BY A SIBLING, not by "the leaf isn't inside me" — and
+     the difference is a whole arrangement that went blank with no console error.
+     The test was `.active-ancestor:has(.page.active-page)`, whose INTENT is on the
+     record: "an ancestor stays visible only if the leaf is INSIDE it (tabs, catalog)
+     and is REPLACED if the leaf is a SIBLING (app.$pages)". Those read as complements
+     only while they are the only two shapes. `core/Page/generator` found the third:
+     a tab's page sits in its parent's panel while its OWN child skips past it to the
+     row, so the leaf is neither inside it nor beside it — cousins. The page was
+     marked `.active-ancestor`, contained nothing marked, and was hidden at 0px wide
+     with a strip of tabs above an empty box (measured 2026-08-27: 0 → 507px).
+     So the rule now asks the question it means. It is the same lesson `.default`
+     learned one section down — "is any of this mine" is `.active-page` OR
+     `.active-ancestor`, asked of the SIBLINGS.
+   ⚠ FORWARD-ONLY `~` is sound, not a shortcut: `Router.activate()` runs root-to-leaf
+     and a container only ever appends, so within one region a marked descendant is
+     always a LATER sibling than its marked ancestor. It cannot be reached first.
+   ⚠ Still (0,4,0) — `:not()` and `:has()` each take their most specific argument — so
+     every rule written against the old computed weight is undisturbed. */
 @layer util {
 
-	.page:not(.active-page, .active-ancestor:has(.page.active-page), .default) { display: none; }
+	.page:not(.active-page,
+		.active-ancestor:not(:has(~ .page:is(.active-page, .active-ancestor))),
+		.default) { display: none; }
+
+	/* The column a host opened with (`Page.opens()`) stands down the moment a real one
+	   is routed beside it — `.pages > .default` above, one region down. Without it the
+	   arrival column and the clicked one are both open and the row shows a stale peer.
+	   ⚠ Here in `util` because it is arrangement, and because `.page.column`'s
+	     `display: contents` sits in `theme` and would otherwise win by layer. */
+	/* ⚠ `:not(...)` on the target: a default column that is itself NAVIGATED TO used
+	   to match this rule against its own mark and hide the whole branch (found by the
+	   gallery build, 2026-08-29). A stale default is neither active nor an ancestor. */
+	.page-column-pages:has(> .page:is(.active-page, .active-ancestor)) > .page.default:not(.active-page, .active-ancestor) { display: none; }
 }
 
 @layer theme {
@@ -31,17 +62,31 @@
 	   its region stays flush left rather than finding its own centre. */
 	.page { min-width: 0; min-height: 0; }
 
+	/* ⚠ ONE PAIR WITH THE CONTRACT ABOVE, and it must be restated verbatim: this decides
+	     what a SHOWING page takes from its region, so if the two tests drift, the pages
+	     the contract newly shows arrive with no share of the row. "A pair that drifts is
+	     a pair where one gets fixed" — doc/css.md, on the `.default` twins. */
 	.page.active-page,
-	.page.active-ancestor:has(.page.active-page) { flex: 1 1 auto; min-height: 100%; }
+	.page.active-ancestor:not(:has(~ .page:is(.active-page, .active-ancestor))) { flex: 1 1 auto; min-height: 100%; }
 
 	/* What a region shows when nothing of its own is in the chain.
 	   ⚠ `.active-ancestor` in the test is load-bearing — a leaf that mounts in a
 	     tab panel leaves its region with an ancestor and no active page. */
 	.pages > .default { display: none; }
 
-	.pages:not(:has(> .page.active-page, > .page.active-ancestor)) > .default {
+	/* ⚠ `:not(.columns)` on the SHEET half, and a columns host asks for the row instead.
+	     This rule is presentation, not visibility — a 40em cap and a 3em inset for a page
+	     that has no layout of its own — and at (0,4,0) it beat `.page.columns` (0,2,0)
+	     outright: a columns host shown in a panel as `default` was squashed into a 40em
+	     column of `display: block`, its own row gone. Splitting the rule is what keeps
+	     both halves honest; restating the host's four declarations here would not. */
+	.pages:not(:has(> .page.active-page, > .page.active-ancestor)) > .default:not(.columns) {
 		display: block; flex: 1 1 auto; min-width: 0; min-height: 100%;
 		max-width: var(--measure); padding: 3em clamp(0px, 6%, 5em);
+	}
+
+	.pages:not(:has(> .page.active-page, > .page.active-ancestor)) > .default.columns {
+		display: flex; flex: 1 1 auto; min-width: 0;
 	}
 
 
@@ -152,6 +197,14 @@
 	     descendants — the trap `.rail` spells out below. Columns are their own screen
 	     (doc/columns.md), and the query is what turns the row into one column at a
 	     time on a phone; the BOX's width, never the window's. */
+	/* ⚠ THE EMPTY SLOTS, and they are the answer to the dead space rather than a wider
+	     column (measured 2026-08-27, `doc/columns.md`). A column browser that has only
+	     opened one column leaves 80–93% of the row grey at 1280–3840, and a flat grey
+	     field reads as a page that failed to render. The leftover is drawn as the
+	     column slots it IS: the row's own `--line` hairline every `small` track, so
+	     the screen says "more opens here" without moving, measuring or building
+	     anything. It is a BACKGROUND, so a scrolled row (nothing left over) never
+	     shows one and the `< 32em` phone regime never does either. */
 	.page-columns-row {
 		flex: 1 1 auto; min-height: 0;
 		display: flex; align-items: stretch;
@@ -159,7 +212,20 @@
 		scrollbar-width: thin;
 		scroll-snap-type: x proximity;
 		container: page-columns / inline-size;
+		background-image: repeating-linear-gradient(to right,
+			transparent 0, transparent calc(14em - 1px),
+			var(--line) calc(14em - 1px), var(--line) 14em);
 	}
+
+	/* The floor the slots need: a transparent body would let the ghost hairlines paint
+	   straight through the real columns. The SAME `--wash` the host already carries, so
+	   nothing bands and the doc's "transparent bodies over one wash floor" still reads
+	   true — the fill is identical, it is just now painted twice.
+	   ⚠ `:where()`, so this is (0,0,0) and every appearance recipe out-ranks it with one
+	     class. At its own (0,1,0) it would have tied `looks.css`'s `.page--tint >
+	     .page-column-body` on load order; at the (0,3,0) it was first written with, it
+	     silently erased all four backgrounds the `looks/backgrounds` lab exists to show. */
+	:where(.page-column-body) { background: var(--wash); }
 
 	/* Every page under the host, and every region: gone from the layout, still in the
 	   DOM. ⚠ `@layer util`'s `display: none` for an unmarked page out-ranks this whole
@@ -181,18 +247,65 @@
 		border-inline-end: 1px solid var(--line);
 	}
 
-	/* ── the four width words ──
+	/* ── the width words ──
 	   A page says `width: "small"` and `column()` stamps the class. TOKENS, not
 	   properties, so the container query at the bottom can page the row one column at
-	   a time without out-specifying four rules — and a page can retune one number
+	   a time without out-specifying six rules — and a page can retune one number
 	   without a new word.
 	     small   a rail: lists, pickers, an index.
+	     hug     only what its rows need — a rail whose labels decide the number.
 	     (none)  the default — a floor, and 40em to grow into.
 	     large   grids and wide content.
-	     full    the whole host; the ancestors collapse into the crumb strip. */
+	     fill    the leftover, and the neighbours keep their floor.
+	     full    the whole host; the ancestors collapse into the crumb strip.
+
+	   ⚠ `hug` NEEDS the ceiling. `flex-basis: auto` on a block-level item is its
+	     max-content width, and the max-content width of a PARAGRAPH is the paragraph
+	     on one line — a hug column of prose would take the row. So hug hugs a LIST
+	     (rows are short and the widest one is the answer) and gives prose a note's
+	     width. `flex-shrink: 0`: what it needs is not negotiable, or it is not a hug.
+	   ⚠ Its 6em floor IS `Page.column_floor` (96px), on purpose: the narrowest a DRAG
+	     may leave a column and the narrowest a WORD may ask for are the same number, so
+	     one head with a title and an `×` is what both were measured against. At 8em the
+	     floor decided every short rail and hug never hugged (measured 128px on a 100px
+	     list, 2026-08-29).
+	   ⚠ `fill` is `full` that lets its neighbours stay, and the diff is two values:
+	     the same 100% basis, but it SHRINKS (so every other column keeps its floor
+	     instead of being hidden) and it has a floor of its own. There is no `:has()`
+	     rule for `fill` and there must not be one — collapsing the ancestors is the
+	     whole of what makes `full` a different word. */
 	.page-column-small { --page-column-flex: 0 0 14em; --page-column-min: 14em; --page-column-max: 14em; }
+	.page-column-hug   { --page-column-flex: 0 0 auto; --page-column-min: 6em;  --page-column-max: 24em; }
 	.page-column-large { --page-column-min: 28em; --page-column-max: 64em; }
+	.page-column-fill  { --page-column-flex: 1 1 100%; --page-column-min: 16em; --page-column-max: none; }
 	.page-column-full  { --page-column-flex: 1 0 100%; --page-column-min: 100%; --page-column-max: none; }
+
+	/* ── the seam you can drag (`column_grab()`) ──
+	   A 6px item pulled back onto the column it resizes: `flex-basis: 6px` with
+	   `margin-inline-start: -6px` is an outer size of ZERO, so the row's arithmetic is
+	   still nothing but the column bodies and the measured table below stays true.
+	   ⚠ ZERO OUTER SIZE, never an overhanging `::before`. A 5px pseudo-element reaching
+	     PAST the last column is scrollable overflow of the row — and flexible columns
+	     fill their row exactly, so the last seam would put a horizontal scrollbar under
+	     every un-capped arrangement, `full` included.
+	   ⚠ `touch-action: none`, or a touch drag scrolls the row instead: the row is the
+	     one box that scrolls sideways and it is this element's own ancestor.
+	   ⚠ It overlays the body's last 6px, which is where a scrolling column draws its
+	     `scrollbar-width: thin` bar — the seam takes the outer few px of it, and the
+	     wheel is the other way to move a column. NOT MEASURED HERE: headless Chromium
+	     has overlay scrollbars, so no probe on this repo can see the collision at all.
+	     The `×` is one `--page-column-pad-x` (14px) further in and never collides.
+	   ⚠ Above the sticky heads (`z-index: 1`), or the seam dies at the top of the row. */
+	.page-column-grab {
+		flex: 0 0 6px; margin-inline-start: -6px;
+		position: relative; z-index: 2; align-self: stretch;
+		cursor: col-resize; touch-action: none;
+		transition: background-color 0.12s;
+	}
+
+	/* The hint is drawn ON the hairline, because that is all of it you can see. */
+	.page-column-grab:hover,
+	.page-column-grab.page-column-grabbing { background: var(--prim); }
 
 	/* `full` claims the host, so every column LEFT of it stands down — an ancestor's
 	   body is the sibling of the region the full page is somewhere inside, at any
@@ -205,7 +318,11 @@
 	     own three words, the third being what a stand-in app sets (ext/demo).
 	   ⚠ It sets a property no other rule in this section touches, so nothing below
 	     can tie with it whatever the specificity works out to. */
-	.page-column-body:has(~ .page-column-pages
+	/* ⚠ THE SEAM GOES WITH ITS COLUMN. `column_grab()` puts the grab BETWEEN the body and
+	     the region, so it is a sibling of exactly the same shape — left out of this test
+	     it survived as a 6px accent stripe floating in a `full` column's left edge.
+	     `:is()` takes its most specific argument, so the weight is unchanged. */
+	:is(.page-column-body, .page-column-grab):has(~ .page-column-pages
 		:is(.active-page, .active-ancestor, .default) > .page-column-body.page-column-full) { display: none; }
 
 	/* The heading stays put while its own list scrolls. ⚠ Opaque, and the SAME fill as
@@ -221,17 +338,52 @@
 
 	.page-column-title { font-weight: 600; font-size: 0.95em; }
 
+	/* ⚠ A PADDED target, not a bare glyph: the × closes this column and everything right
+	     of it, and at 1.05em the icon alone is a 17px tap target with no edge to aim at.
+	     The padding is what the hover fill draws, so the affordance and the hit area are
+	     the same declaration. */
 	.page-column-close {
 		display: flex; margin-inline-start: auto;
+		padding: 0.25em; border-radius: var(--radius, 4px);   /* 24px square — the target-size floor */
 		color: var(--subtle); text-decoration: none;
+		transition: background-color 0.12s, color 0.12s;
 	}
-	.page-column-close:hover { color: var(--prim); }
+	.page-column-close:is(:hover, :focus-visible) { color: var(--prim-ink); background: var(--page-column-hover); }
+	.page-column-close:active { background: var(--page-column-press); }
 	.page-column-close .icon { font-size: 1.05em; }
 
 	/* Prose in a column is a note, not a page — its own small inset and its own
-	   rhythm. `--flow` at (0,1,0) beats `:where(.flow)`'s 2em, which is page spacing. */
-	.page-column-prose { padding: 0.7em 0.9em; font-size: 0.9em; --flow: 0.8em; }
+	   rhythm. `--flow` at (0,1,0) beats `:where(.flow)`'s 2em, which is page spacing.
+	   ⚠ The inset is TOKENS so `.bleed` below can spend exactly it back. Hand-typed,
+	     the two numbers got copied into a lab as `margin: -0.7em -0.9em`
+	     (`overview/columns/examples/grids/grids.css`) — a constant no other page
+	     could reuse and nothing kept in step with this line. */
+	.page-column-prose {
+		--page-column-pad-x: 0.9em;
+		--page-column-pad-y: 0.7em;
+		padding: var(--page-column-pad-y) var(--page-column-pad-x);
+		font-size: 0.9em; --flow: 0.8em;
+	}
 	.page-column-prose > .md > :first-child { margin-block-start: 0; }
+
+	/* ── `bleed`, one scope down — content reaches the COLUMN's edge ──
+	   The same word the page shell uses (`.page > .bleed`, above): there it spends
+	   the grid's gutter tracks, here it spends the column's inset. One vocabulary,
+	   two containers — a wall, a grid or a strip of tiles goes edge to edge with the
+	   class every other bled block on the site already wears.
+	   ⚠ DIRECT-CHILD scoped, both places: a nested column's own prose is three levels
+	     down through `.page-column-pages`, and would otherwise unpick its own inset.
+	   ⚠ The block ends are cancelled only AT the ends. A bled block between two
+	     paragraphs must keep its rhythm or it laps them — which is what the local
+	     hatch did unconditionally, and got away with because it was always alone. */
+	/* ⚠ `:not(.page-previews, .page-walls)`: those two wear `bleed` by DEFAULT
+	   (previews()/walls() stamp it for the page shell, where it spends gutter
+	   tracks). In a column, white cards against the column wall read wrong — "they
+	   should use the padding just like the text content" (the owner, 2026-08-29).
+	   An author's own bled block still reaches the edge. */
+	.page-column-prose > .bleed:not(.page-previews, .page-walls) { margin-inline: calc(var(--page-column-pad-x) * -1); }
+	.page-column-prose > .bleed:not(.page-previews, .page-walls):first-child { margin-block-start: calc(var(--page-column-pad-y) * -1); }
+	.page-column-prose > .bleed:not(.page-previews, .page-walls):last-child  { margin-block-end:   calc(var(--page-column-pad-y) * -1); }
 
 	/* The list is a vertical tab bar: a label, the open child lit, a 2px mark on the
 	   inline edge — `.tabs.vertical`'s own declarations, restated because no call site
@@ -243,8 +395,26 @@
 		color: var(--subtle);
 		text-decoration: none;
 		border-inline-end: 2px solid transparent;
+		transition: background-color 0.12s, color 0.12s;
 	}
-	.page-column-item:hover { color: var(--ink); background: var(--tint); }
+
+	/* ⚠ AN OVERLAY, never a palette fill, and this is the whole of UX recon #10/#11
+	     ("hovering a nav row shows no visible feedback at all", 2026-08-27). The hover
+	     was `background: var(--tint)` — a fill picked against `--surface`, where it is
+	     the step DOWN. A column body sits on `--wash`, and in lew42 `--tint` (#f8f8f8)
+	     is LIGHTER than `--wash` (#f2f2f2): the row lit up by six points of lightness
+	     in the wrong direction, which is a hover state you cannot see.
+	     A translucent mix of `--ink` cannot have that bug — it darkens whatever it is
+	     over, so it works on the ambient body AND on a `--tint` / `--surface` recipe
+	     column (`examples/looks/backgrounds`) with nothing restated. The two steps are
+	     the sidebar's own 4%/7% idiom, one notch up for a row this small. */
+	.page-column-body {
+		--page-column-hover: color-mix(in srgb, var(--ink)  6%, transparent);
+		--page-column-press: color-mix(in srgb, var(--ink) 12%, transparent);
+	}
+
+	.page-column-item:is(:hover, :focus-visible) { color: var(--ink); background: var(--page-column-hover); }
+	.page-column-item:active { background: var(--page-column-press); }
 
 	/* ⚠ Three marks for one state: `.active` / `.in-path` are Router.mark_links()'s, so
 	   the arrangement works unchanged on the real site — and `[aria-current]` is what a
@@ -275,6 +445,11 @@
 	@container page-columns (width < 32em) {
 
 		.page.columns .page-column-body { flex: 1 0 100%; min-width: 100%; max-width: none; }
+
+		/* No seam down here. The row is one column at a time and the snap does the
+		   arrangement, so there is nothing a drag could mean — and a 6px sliver between
+		   two full-width pages is a snap point that lands on nothing. */
+		.page-column-grab { display: none; }
 	}
 
 	/* ── `.rail` — a side region, sized by its ROW, never by the window ──
@@ -464,18 +639,22 @@
 		transition: outline-color 0.15s, transform 0.05s;
 	}
 
-	/* EVERY card wears the surface, 2026-08-17. The guard was
-	   `:not(:has(> .page-preview-thumb))` — "a card with a thumb IS its render, so a
-	   surface and a border around a picture are two frames too many". Measured wrong:
-	   with the frame gone the label sits UNDER a picture with nothing around either,
-	   so the caption reads as a heading for the empty row below it — 38 findings on 15
-	   pages, 8 on `/framework/ui/`@1280 alone ("floats unframed", "no boundary between
-	   demos", "the Panel column is empty"). One selector, one exception, both gone. */
-	.page-preview {
-		padding: 0.9em 1em;
+	/* THE FRAME MOVED ONTO THE PICTURE, 2026-08-29 (the owner: previews sit straight
+	   on the light gray, so a preview that uses white shows; a shadow keeps a gray one
+	   visible). The 2026-08-17 lesson stands — a label may never float unframed (38
+	   findings) — so a THUMBLESS card keeps its boxed surface below; only a card with
+	   a thumb goes transparent, and its thumb wears the surface + shadow instead.
+	   Dark mode is the ring: a shadow on a near-black floor is invisible. */
+	.page-preview { padding: 0; background: none; border-color: transparent; }
+
+	.page-preview-thumb,
+	.page-preview:not(:has(> .page-preview-thumb)) {
+		border-radius: var(--radius);
 		background: var(--surface);
-		border: 1px solid var(--line);
+		box-shadow: 0 0 0 1px var(--card-ring), 0 1px 2px var(--card-shadow), 0 6px 18px var(--card-shadow);
 	}
+
+	.page-preview:not(:has(> .page-preview-thumb)) { padding: 0.9em 1em; }
 
 	.page-preview:hover { outline-color: color-mix(in srgb, var(--prim) 45%, transparent); }
 

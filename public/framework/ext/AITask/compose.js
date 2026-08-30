@@ -20,11 +20,11 @@ export function compose(efforts = []){
 
 		div.c("flex gap v-center wrap", () => {
 			$name = input.c("ai-compose-name").attr("placeholder", "name (optional)");
-			$effort = select.c("ai-compose-effort", () => {
+			$effort = select.c("ai-compose-effort auto", () => {
 				option("— loose —").attr("value", "");
 				efforts.filter(e => e.slug).forEach(e => option(e.title).attr("value", e.slug));
 			});
-			$model = select.c("ai-compose-model", () =>
+			$model = select.c("ai-compose-model auto", () =>
 				MODELS.forEach(([value, label]) => option(label).attr("value", value)));
 			$go = button.c("ai-compose-go", "Start").attr("type", "submit");
 			$said = span.c("muted");

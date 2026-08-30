@@ -1,6 +1,6 @@
 import { div, span, a, button, icon, md } from "/app.js";
-import { gen, BLOCKS, WIDTHS } from "./gen.js";
-import { parse } from "./tree.js";
+import { gen } from "./gen.js";
+import { parse, read } from "./spec.js";
 import { PAIRS, NOTES } from "./rules.js";
 
 /**
@@ -108,9 +108,7 @@ function tile(seed, host){
    text lines instead of a nav, because a `prose` page is what it says. */
 export function sketch(list){
 	return list.forEach(node => {
-		const [word, given] = node.line.split(/\s+/);
-		const block = BLOCKS.includes(word) ? word : "prose";
-		const width = WIDTHS.includes(given) ? given : "";
+		const { block, width } = read(node.line);
 
 		div.c("page-gen-sk page-gen-sk-" + block, () => {
 			div.c("page-gen-sk-head");

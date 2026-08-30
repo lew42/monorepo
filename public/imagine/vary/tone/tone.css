@@ -1,0 +1,37 @@
+/* Three depth hooks (explicit `classes:`, never the page's title — naming a
+   page "Tint" elsewhere must never trigger this) and four schemes, each just
+   three custom properties. The scheme sits on whatever ANCESTOR is current —
+   the tree's own host for a fixed exemplar, a plain wrapper div for the live
+   control — custom properties inherit through `display: contents` wrappers
+   the same as any other DOM ancestor, so one mechanism serves both shapes.
+   Never `--well` (a shadow, not a palette colour — doc/columns.md). */
+@layer theme {
+
+	/* Depth 1 is the HOST's own body, one DOM level deeper than the other two
+	   (through `.page-columns-row`, a real box — doc/columns.md's mechanism
+	   section) — the child combinator has to cross it explicitly. */
+	.vary-tone-d1 > .page-columns-row > .page-column-body { background: var(--vary-tone-1, var(--wash)); }
+	.vary-tone-d2 > .page-column-body { background: var(--vary-tone-2, var(--wash)); }
+	.vary-tone-d3 > .page-column-body { background: var(--vary-tone-3, var(--wash)); }
+
+	.vary-tone-up   { --vary-tone-1: var(--wash); --vary-tone-2: var(--tint); --vary-tone-3: var(--surface); }
+	.vary-tone-down {
+		--vary-tone-1: var(--wash);
+		--vary-tone-2: color-mix(in srgb, var(--ink) 6%, var(--wash));
+		--vary-tone-3: color-mix(in srgb, var(--ink) 14%, var(--wash));
+	}
+	.vary-tone-alt  { --vary-tone-1: var(--wash); --vary-tone-2: var(--tint); --vary-tone-3: var(--wash); }
+	.vary-tone-flip {
+		--vary-tone-1: var(--wash);
+		--vary-tone-2: var(--tint);
+		--vary-tone-3: color-mix(in srgb, var(--ink) 55%, var(--wash));
+	}
+
+	.vary-tone-live-wrap { border: 1px solid var(--line); border-radius: var(--radius); }
+
+	.vary-tone-controls {
+		display: flex; flex-wrap: wrap; gap: 0.5em;
+		padding: 0.8em; border-bottom: 1px solid var(--line);
+	}
+	.vary-tone-controls button.active { outline: 2px solid var(--prim); outline-offset: 2px; }
+}

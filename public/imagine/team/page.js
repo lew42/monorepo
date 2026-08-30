@@ -1,0 +1,294 @@
+import { Page, div, span, a, md, button, icon } from "/app.js";
+import { store } from "../store.js";
+
+/* Container: /imagine/'s column row — this page is a column, not a screen. Size: a
+   `small` 14em roster, the person on the default track, the board `large` (28–64em);
+   224+224+640+832 of the 1920 row. Own layout: the board is `grid auto` on a 9em
+   `--column`, so four lanes fit at 1920 and stack two-by-two at 400. Regions: core's,
+   one per column. Preview: the default card.
+
+   THE BOARD FOLLOWS YOU, and the reason is a rule in Page.css: a `default` column
+   stands down the moment a real column routes NEXT TO it, and a `default` page that
+   is itself routed INTO hides its own subtree (measured: /team/roster/ada/ drew two
+   columns, not four). So a board declared beside the people can never be on screen
+   with one of them. It is declared UNDER each of them instead — one `board()` factory,
+   seven leaf pages, and whichever one is on screen reads `this.topic()`. Selecting a
+   person does not filter a board; it opens HER board, which is the same sentence with
+   no filter code in it.
+
+   THE CONVERSATION is `is: "topic"` + four methods of my own (core/Page/doc/roles.md).
+   The board never imports the person it sits under, the person never imports the rail,
+   and the rail never imports the board — all three call `this.topic()` and get here.
+
+   ⚠ `move()` is a CORE method (it re-addresses a subtree); a page's own verbs have to
+     dodge the whole Page prototype. This one is `assign_lane()`. */
+
+const PEOPLE = [
+	{ name: "ada",   title: "Ada Bramwell", role: "Design engineer", focus: "Column widths",    tz: "GMT",   since: "2019" },
+	{ name: "iver",  title: "Iver Holt",    role: "Systems",         focus: "Static deploys",   tz: "CET",   since: "2021" },
+	{ name: "nell",  title: "Nell Osei",    role: "Research",        focus: "Navigation trees", tz: "GMT+1", since: "2022" },
+	{ name: "rune",  title: "Rune Vasquez", role: "Design engineer", focus: "Theme tokens",     tz: "PST",   since: "2020" },
+	{ name: "sable", title: "Sable Kwan",   role: "Writing",         focus: "Docs that point",  tz: "SGT",   since: "2023" },
+	{ name: "tomas", title: "Tomas Reyes",  role: "Systems",         focus: "The dev server",   tz: "EST",   since: "2018" },
+];
+
+const LANES = [
+	{ id: "todo",   title: "Queued" },
+	{ id: "doing",  title: "In hand" },
+	{ id: "review", title: "Review" },
+	{ id: "done",   title: "Landed" },
+];
+
+// `lane` is only the STARTING lane — where a task sits is whatever the saved board
+// says, so the fixture is the seed and the store is the truth.
+const TASKS = [
+	{ id: "widths",  title: "Hug and fill words",     who: "ada",   lane: "doing",  size: 3 },
+	{ id: "resize",  title: "Draggable column seams", who: "ada",   lane: "todo",   size: 5 },
+	{ id: "static",  title: "Drop the build step",    who: "iver",  lane: "review", size: 2 },
+	{ id: "cache",   title: "Cache-bust page.js",     who: "iver",  lane: "todo",   size: 2 },
+	{ id: "trees",   title: "Map the nav trees",      who: "nell",  lane: "doing",  size: 3 },
+	{ id: "recon",   title: "Empty-room recon",       who: "nell",  lane: "done",   size: 1 },
+	{ id: "tokens",  title: "One accent, two modes",  who: "rune",  lane: "review", size: 2 },
+	{ id: "hover",   title: "Hover fills that read",  who: "rune",  lane: "done",   size: 1 },
+	{ id: "readmes", title: "Readmes that point",     who: "sable", lane: "doing",  size: 2 },
+	{ id: "columns", title: "Rewrite columns.md",     who: "sable", lane: "todo",   size: 3 },
+	{ id: "watcher", title: "Quiet the file watcher", who: "tomas", lane: "doing",  size: 5 },
+	{ id: "rpc",     title: "Close the RPC hole",     who: "tomas", lane: "done",   size: 3 },
+];
+
+const person = who => PEOPLE.find(one => one.name === who);
+
+// How far up the chain a ref actually walked, derived the way `nearest()` finds it —
+// so a number on the page cannot disagree with the walk that produced it.
+const hops = (from, to) => from.chain().length - from.chain().indexOf(to) - 1;
+
+/* Core's column, minus the rows it draws for a page's children. A person has exactly
+   one child — her board — and it is already open to her right, so a nav row for it
+   would be a link to the thing you are looking at. Everything else is core's, copied
+   because `column()` builds the head, the prose and the rows in one pass and there is
+   no seam between them. */
+const quiet_column = function(){
+	return div.c("page-column-body", () => {
+		div.c("page-column-head", () => {
+			span.c("page-column-title", this.title);
+			a.c("page-column-close", () => icon("close")).href(this.parent.url);
+		});
+
+		div.c("page-column-prose flow", () => this.content());
+	});
+};
+
+/* ONE BOARD, SEVEN PAGES. It renders whatever the topic has selected, so the copy
+   under Ada and the copy under the roster are the same twenty lines with no argument
+   between them — and `classes: "default"` is what puts it on screen without ever
+   putting `/board/` in the address bar. */
+const board = () => ({
+	title: "Board",
+	icon: "dashboard",
+	width: "large",
+	classes: "default",
+
+	content(){
+		const topic = this.topic();
+
+		/* ⚠ The density class is toggled INSIDE the watcher. Set once at build time it
+		   would be right on the first paint and never again — `empty()` replaces the
+		   children of the box, not the class on it. */
+		div.c("bleed imagine-board", $board => topic.watch(() => {
+			$board.el.classList.toggle("imagine-tight", topic.density === "compact");
+
+			const who = topic.selection, shown = topic.tasks(who);
+
+			$board.empty(() => {
+				div.c("imagine-bar flex v-center gap wrap", () => {
+					span.c("imagine-bar-label", who ? person(who).title : "Everyone");
+					if (who) a.c("imagine-clear", () => icon("close")).href(topic.url);
+
+					span.c("imagine-count", shown.length + " of " + TASKS.length + " tasks");
+
+					// ONE control instead of a page per density — remembered by url.
+					div.c("imagine-seg flex", () => ["comfy", "compact"].forEach(mode => {
+						button.c("imagine-seg-btn", mode)
+							.ac(topic.density === mode && "imagine-on")
+							.click(() => topic.remember({ density: topic.density = mode }));
+					}));
+				});
+
+				div.c("imagine-lanes grid auto gap", () => LANES.forEach(lane => {
+					const chips = shown.filter(task => topic.lanes[task.id] === lane.id);
+
+					div.c("imagine-lane flex v", () => {
+						div.c("imagine-lane-head flex v-center split", () => {
+							span(lane.title);
+							span.c("imagine-count", String(chips.length));
+						});
+
+						chips.forEach(task => div.c("imagine-task", () => {
+							span.c("imagine-task-title", task.title);
+							span.c("imagine-task-who", () => {
+								span(person(task.who).title.split(" ")[0]);
+								span.c("imagine-size", "·" + task.size);
+							});
+						}));
+
+						if (!chips.length) span.c("imagine-empty", "—");
+					});
+				})).style("--column", "9em");
+
+				div.c("imagine-tally flex gap wrap", () => {
+					span("picks: " + topic.picks);
+					span("moves: " + topic.moves);
+					span("updates: " + topic.updates);
+					span("hops: " + hops(this, topic));
+				});
+			});
+		}));
+	},
+});
+
+export default new Page({
+	meta: import.meta,
+	title: "Team",
+	description: "A roster, a person, their assignments and a board that follows the selection — four columns, one ref, no imports between them.",
+	icon: "groups",
+
+	width: "small",
+	classes: "imagine-team",
+
+	// The one word that makes this page findable from anywhere below it.
+	is: "topic",
+
+	selection: null,
+	picks: 0,       // people opened
+	moves: 0,       // lanes assigned
+	updates: 0,     // watcher runs
+
+	/* ⚠ `initialize()` runs inside the constructor, AFTER `naming()` — so `this.url`
+	     exists and `store(this)` already has its key. It runs after `declare()` too,
+	     which is why nothing in a child may read this state before it renders. */
+	initialize(){
+		const saved = store(this).get({ lanes: {}, density: "comfy", sort: "name" });
+
+		this.lanes = { ...Object.fromEntries(TASKS.map(task => [task.id, task.lane])), ...saved.lanes };
+		this.density = saved.density;
+		this.sort = saved.sort;
+	},
+
+	// Not core, and it does not want to be — the ref is the framework's job, the
+	// conversation is these four lines (core/Page/doc/roles.md).
+	watch(fn){ (this.watchers ??= []).push(fn); fn(); },
+	bump(){ this.updates++; this.watchers?.forEach(fn => fn()); },
+
+	select(who){ this.selection = who; if (who) this.picks++; this.bump(); },
+
+	// The one real write. Path-based storage: the key is this page's own url.
+	assign_lane(id, lane){
+		this.lanes[id] = lane;
+		this.moves++;
+		store(this).patch({ lanes: this.lanes });
+		this.bump();
+	},
+
+	remember(part){ store(this).patch(part); this.bump(); },
+
+	tasks(who){ return who ? TASKS.filter(task => task.who === who) : TASKS; },
+	load(who){ return this.tasks(who).filter(task => this.lanes[task.id] !== "done").reduce((n, task) => n + task.size, 0); },
+
+	/* THE ROSTER RAIL, by hand. Core's `column()` gives one flat label per child, which
+	   is right for a list of sections and wrong for a roster: these rows carry a role, a
+	   live load and a selected mark — and the board child must not appear among them.
+
+	   ⚠ An overridden `column()` must stamp its own width class: `width:` is a field
+	     nobody reads until core's `column()` runs, and this replaced it.
+	   ⚠ Redrawing the rows drops Router.mark_links()'s marks, so the open row would go
+	     dark on the very click that opened it. Ask for the pass back. */
+	column(host){
+		return div.c("page-column-body page-column-small", () => {
+			div.c("page-column-head", () => {
+				span.c("page-column-title", this.title);
+				span.c("imagine-count", $n => this.watch(() =>
+					$n.text(this.selection ? "1 of " + PEOPLE.length : PEOPLE.length + " people")));
+			});
+
+			/* The second control that replaces a file per arrangement. Sorting by load
+			   reads the SAVED lanes, so this rail reorders itself when an assignment
+			   changes two columns to its right. */
+			div.c("imagine-seg imagine-seg-rail flex", () => ["name", "load"].forEach(key => {
+				button.c("imagine-seg-btn", "by " + key, $b => this.watch(() => {
+					$b.el.classList.toggle("imagine-on", this.sort === key);
+				})).click(() => this.remember({ sort: this.sort = key }));
+			}));
+
+			div.c("imagine-rows", $rows => this.watch(() => {
+				const order = this.sort === "load"
+					? [...PEOPLE].sort((one, two) => this.load(two.name) - this.load(one.name))
+					: PEOPLE;
+
+				$rows.empty(() => order.forEach(one => {
+					a.c("imagine-row").ac(this.selection === one.name && "imagine-row-on")
+						.href(this.url + one.name + "/")
+						.append(() => {
+							span.c("imagine-row-name", one.title);
+							span.c("imagine-row-meta", () => {
+								span(one.role);
+								span.c("imagine-load", this.load(one.name) + " pts");
+							});
+						});
+				}));
+
+				this.app?.router?.mark_links();
+			}));
+		});
+	},
+
+	// The board first, so arriving at /imagine/team/ opens with everyone's work; then
+	// one page per person, each carrying a board of their own.
+	children: [
+		board(),
+
+		...PEOPLE.map(one => ({
+			name: one.name,
+			title: one.title,
+			description: one.role + " — " + one.focus,
+
+			column: quiet_column,
+
+			content(){
+				const topic = this.topic();
+
+				md("**" + one.role + "** · " + one.focus + " · " + one.tz + " · here since " + one.since);
+
+				md("**Assignments.** Move one and the board on the right redraws, and so does the rail on the left if it is sorted by load. It is saved against the roster's **url**, so it is still there after a reload.");
+
+				div.c("imagine-assign flex v gap", $list => topic.watch(() => $list.empty(() => {
+					topic.tasks(one.name).forEach(task => {
+						div.c("imagine-assign-row flex v-center gap wrap", () => {
+							span.c("imagine-assign-title", task.title);
+
+							div.c("imagine-seg flex", () => LANES.forEach(lane => {
+								button.c("imagine-seg-btn", lane.title)
+									.ac(topic.lanes[task.id] === lane.id && "imagine-on")
+									.click(() => topic.assign_lane(task.id, lane.id));
+							}));
+						});
+					});
+				})));
+
+				div.c("imagine-tally flex gap wrap", $t => topic.watch(() => $t.empty(() => {
+					span("open load: " + topic.load(one.name) + " pts");
+					span("picks: " + topic.picks);
+					span("moves: " + topic.moves);
+					span("updates: " + topic.updates);
+				})));
+
+				md("`this.topic()` walked **" + hops(this, topic) + " hop** up from here, **" + (hops(this, topic) + 1) + "** from the board beside me. Neither file names the other.");
+			},
+
+			// The whole cross-column write, one line each way.
+			activated(){ this.topic().select(this.name); },
+			deactivated(){ if (this.topic().selection === this.name) this.topic().select(null); },
+
+			children: [board()],
+		})),
+	],
+});

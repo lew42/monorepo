@@ -1,0 +1,337 @@
+/* /imagine/decks/ — presentational layouts: a screen cut into regions.
+
+   Two sheets already answer most of this and neither is re-argued here. `Page.css`
+   owns the column row and the six width words; `/imagine/screens/screens.css` found
+   that a display word has to be sized by the BLOCK it composes into rather than by
+   however much screen was left over. What this sheet adds is the CUT — a region is a
+   flex weight, and that weight is the ratio.
+
+   Colour: `--surface` for a region, `--line` for every seam (a 1px gap over a line
+   floor, one declaration instead of a border rule per axis), `--prim` for the one
+   accent, `--subtle` for anything secondary. Never `--well`.
+
+   Scrollbars: a slide does not scroll. Nothing here sets a height, and nothing here
+   sets `overflow` either — the type ramps are `cqw` off a capped block, so a region
+   that is too small gets smaller type rather than a scrollbar. Measured at 400 / 1920
+   / 3440: every screen in the lab is `scrollHeight === clientHeight` (doc/decisions.md). */
+
+@layer theme {
+
+	/* ── the screen ──
+	   Borrowed verbatim from screens.css and for its reason: `full` is what collapses
+	   the ancestor columns into the crumb strip, but it also says `min-width: 100%`, so
+	   a second screen opened beside it would be pushed off the row. These are `fill`'s
+	   three values on a `full` column — which is what lets `persist/` keep a rail while
+	   its stage opens beside it.
+	   ⚠ (0,2,0) on purpose, so it beats Page.css's `.page-column-full` on specificity
+	     rather than on which sheet happened to load last. */
+	.decks-screen.page-column-full {
+		--page-column-flex: 1 1 100%;
+		--page-column-min: 16em;
+		--page-column-max: none;
+	}
+
+	/* A screen is the slice plus an optional strip. Its own query container, so the cut
+	   below reflows when the COLUMN runs out — which at 3440 beside an open rail is a
+	   different moment from 1280 alone. */
+	.decks-screen {
+		container: decks / inline-size;
+		display: flex; flex-direction: column;
+		background: var(--line);
+	}
+
+	/* ── THE CUT ──
+	   `gap: 1px` over a `--line` floor is every seam in the lab, on both axes. */
+	.decks-slice {
+		flex: 1 1 auto; min-height: 0;
+		display: flex; align-items: stretch;
+		gap: 1px;
+	}
+
+	/* A presentation advances when you click it, and says so. */
+	.decks-advance { cursor: pointer; }
+
+	/* A REGION IS A SHARE, and the share is the BASIS — /imagine/screens/uneven found
+	   this and it is the one thing in this sheet that had to be measured twice.
+	   ⚠ `flex: 61.8 1 0` DOES NOT give 61.8%. A zero basis is a zero BORDER box, so a
+	     padded region cannot go below its own padding: at 1920 the two regions floored
+	     at 56px+56px each and the grow factors then divided only what was left —
+	     1159 / 759, a ratio of 1.527 where the page claimed 1.618. A percentage basis
+	     includes the padding, so 61.8% is 61.8% of the row whatever the inset is, and
+	     shrink is proportional to the basis — which is what keeps the ratio exact once
+	     the 1px seams push the sum past 100%. Measured after: 1185 / 733 = 1.618. */
+	.decks-region {
+		container: decks-region / inline-size;
+		flex: 1 1 var(--decks-share, 100%);
+		min-width: 0; min-height: 0;
+		display: flex; flex-direction: column; justify-content: center;
+		padding: clamp(0.9rem, 3.5%, 3.5rem);
+		background: var(--surface);
+	}
+
+	/* ── THE OTHER AXIS OF A WIDE REGION: THE TYPE ──
+	   A caption cannot get wider — its measure is its own — so at 1719px it was 15px
+	   text in a third of the cell and the slide read as empty. It gets BIGGER instead:
+	   the measure is `em`, so 34em of larger type is a larger box at the same line
+	   length. One declaration covers notes, lists, walls and stages alike.
+	   ⚠ On the CHILDREN, never on the region. A container query never matches its own
+	     container, so `cqw` written on `.decks-region` would resolve one level out — to
+	     the screen — and every region on a 3440 screen would take the same size. */
+	.decks-region > * { font-size: clamp(0.95rem, 1.05cqw, 1.6rem); }
+
+	/* ── ONE TONE STEP ──
+	   A supporting region steps down a shade, so the CUT is visible without a second
+	   device: the labs' own verdict (`core/Page/doc/findings.md`) is that stepping tone
+	   reads as hierarchy, and a screen of white regions separated by hairlines reads as
+	   a page that failed to render. A cut of PEERS — 50/50, quarters — deliberately
+	   wears none, which is what makes those two say something different. */
+	.decks-quiet { background: var(--tint); }
+
+	/* A card on a stepped-down region needs the paper back, or it vanishes into it. */
+	.decks-quiet .decks-card { background: var(--surface); }
+
+	/* The other axis, for the 2×2 and for any region that splits its own height. Its own
+	   share is still horizontal — a `col` is an item of the row. */
+	.decks-col {
+		flex: 1 1 var(--decks-share, 100%);
+		min-width: 0; min-height: 0;
+		display: flex; flex-direction: column;
+		gap: 1px;
+	}
+
+	/* ⚠ A region INSIDE a col divides height, and a percentage basis there would be a
+	     percentage of a height the flex algorithm is still deciding. Equal bands only —
+	     an unequal vertical split is not a thing this lab needs, and pretending it works
+	     would be the kind of claim the rule above exists to stop. */
+	.decks-col > .decks-region { flex: 1 1 0; }
+
+	/* ── THE BLOCK — what a statement composes into ──
+	   screens.css's finding, reused: capped so a slide at 3440 is a bigger block rather
+	   than a wider corner, centred so the leftover is a margin, and the query container
+	   so a word is a fraction of its OWN composition. `56%` rather than screens' 38%
+	   because a region is already a fraction of a screen — a 20% flank would otherwise
+	   compose into a third of a third.
+	   ⚠ Never `width: fit-content` here: `container-type: inline-size` means the box may
+	     not be sized by its own contents, and it would compute to 0. */
+	.decks-block {
+		container: decks-block / inline-size;
+		width: min(100%, var(--decks-block, max(34em, 56%)));
+		margin-inline: auto;
+		display: flex; flex-direction: column;
+		gap: 0.35em;
+	}
+
+	/* 13% of the block. The ceiling is a safety for a screen wider than any monitor
+	   here, not a design decision. */
+	.decks-title {
+		font-size: clamp(1.35rem, 13cqw, 10rem);
+		font-weight: 900; letter-spacing: -0.035em; line-height: 0.94;
+	}
+
+	.decks-eyebrow {
+		color: var(--prim-ink);
+		font-size: clamp(0.65rem, 2cqw, 1rem);
+		font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+	}
+
+	/* The one accent, and the whole of it. */
+	.decks-rule {
+		flex: 0 0 auto;
+		width: clamp(2rem, 16cqw, 8rem); height: 0.3em;
+		margin-block: 0.35em;
+		background: var(--prim);
+	}
+
+	.decks-note {
+		max-width: 34em;
+		color: var(--subtle);
+		font-size: clamp(0.78rem, 2.4cqw, 1.3rem);
+		line-height: 1.45;
+	}
+
+	/* ── notes — prose keeps its measure whatever the region does ──
+	   Centred, because in a slide composition the leftover is a margin. This is the one
+	   kind whose size is decided by the TEXT and never by the region. */
+	.decks-notes {
+		width: min(100%, 34em);
+		margin-inline: auto;
+		display: flex; flex-direction: column; gap: 0.7em;
+	}
+
+	.decks-notes-title { font-weight: 700; font-size: 1.05em; }
+	.decks-p { font-size: 0.95em; line-height: 1.55; color: var(--subtle); }
+	.decks-p :is(strong, code) { color: var(--ink); }
+
+	/* ── a wall — the kind that answers a wider region with more columns ──
+	   One token is the whole responsiveness: 3 cards at 1920 in a 60% region, 5 at 3440,
+	   1 at 400, and nothing was written per width. */
+	.decks-wall {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(13em, 100%), 1fr));
+		gap: 0.6em;
+	}
+
+	.decks-card {
+		display: flex; flex-direction: column; gap: 0.2em;
+		padding: 0.8em 0.9em;
+		background: var(--tint);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		color: inherit; text-decoration: none;
+	}
+
+	a.decks-card:hover { border-color: var(--prim); }
+
+	.decks-card.decks-on { border-color: var(--prim); background: color-mix(in srgb, var(--prim) 10%, transparent); }
+	.decks-card-k { font-size: 0.7em; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--prim-ink); }
+	.decks-card-name { font-weight: 700; font-size: 1.05em; line-height: 1.2; }
+	.decks-card-note { font-size: 0.82em; line-height: 1.4; color: var(--subtle); }
+
+	/* ── a list — the kind that does NOT scale ──
+	   Capped at 26em and left where it starts. A row's width is its label, so handing
+	   this kind a share is what produces the chevron chasm `doc/columns.md` measured;
+	   the cap is the finding, drawn. The second line is what earns even 26em. */
+	.decks-list {
+		width: min(100%, 26em);
+		margin-inline: auto;
+		display: flex; flex-direction: column;
+	}
+
+	/* A rail is a head over its rows, and the two have to share one left edge — so the
+	   BOX is capped and centred, and the list inside it stops capping itself. */
+	.decks-stack {
+		width: min(100%, 26em);
+		margin-inline: auto;
+		display: flex; flex-direction: column; gap: 0.9em;
+	}
+
+	.decks-stack > .decks-list { width: 100%; margin-inline: 0; }
+
+	.decks-row {
+		display: flex; flex-direction: column; gap: 0.1em;
+		padding: 0.55em 0.7em;
+		color: inherit; text-decoration: none;
+		border-block-end: 1px solid var(--line);
+		border-inline-start: 2px solid transparent;
+	}
+
+	.decks-row:first-child { border-block-start: 1px solid var(--line); }
+
+	/* Darkens whatever it is over, so one declaration covers a `--surface` region and a
+	   `--tint` one alike (the lesson `.page-column-item` learned the hard way). */
+	a.decks-row:hover { background: color-mix(in srgb, var(--ink) 5%, transparent); }
+
+	.decks-row.decks-on {
+		border-inline-start-color: var(--prim);
+		background: color-mix(in srgb, var(--prim) 9%, transparent);
+	}
+
+	.decks-row-name { font-weight: 600; font-size: 0.98em; }
+	.decks-row-note { font-size: 0.8em; color: var(--subtle); line-height: 1.35; }
+
+	/* ── a stage — an aspect box takes whatever it is given ──
+	   The one kind with no natural width at all, which is why it belongs in the MAJOR
+	   share of every cut in the lab. */
+	.decks-stage { display: flex; flex-direction: column; gap: 0.6em; min-height: 0; }
+
+	.decks-frame {
+		flex: 1 1 auto; min-height: 0;
+		display: flex; align-items: center; justify-content: center; gap: 1.5cqw;
+		padding: 4%;
+		background: var(--tint);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+	}
+
+	.decks-frame-mark { color: var(--line); }
+	.decks-frame-mark .icon { font-size: clamp(2rem, 9cqw, 8rem); }
+	.decks-cap { font-size: 0.85em; color: var(--subtle); text-align: center; }
+
+	/* The drawn figure a stage holds when the site has no photograph to put there: bars
+	   of the accent, which is enough to say "a picture goes here" without pretending. */
+	.decks-bars { display: flex; align-items: flex-end; gap: 1.2cqw; width: 100%; height: 100%; }
+	.decks-bar { flex: 1; background: color-mix(in srgb, var(--prim) 55%, transparent); border-radius: 2px 2px 0 0; }
+	.decks-bar:nth-child(even) { background: color-mix(in srgb, var(--prim) 22%, transparent); }
+
+	/* ── the strip — a footer redrawn per screen that reads as persistent ── */
+	.decks-foot {
+		flex: 0 0 auto;
+		display: flex; flex-wrap: wrap; align-items: stretch;
+		gap: 1px;
+		margin-block-start: 1px;
+	}
+
+	.decks-chip {
+		flex: 1 1 auto;
+		padding: 0.7em 0.9em;
+		background: var(--surface);
+		color: var(--subtle); text-decoration: none; text-align: center;
+		font-size: 0.72em; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+		white-space: nowrap;
+	}
+
+	.decks-chip:hover { background: color-mix(in srgb, var(--ink) 5%, transparent); color: var(--prim-ink); }
+	.decks-chip.decks-on { color: var(--prim-ink); box-shadow: inset 0 2px 0 var(--prim); }
+
+	/* ── persistent navigation — the rail is a COLUMN, not a region ──
+	   This is the whole of the head-to-head. `persist/` keeps its rail because the rail
+	   is the PARENT column and the slides are its children: the row already replaces one
+	   child at a time, so "the navigation stays and a different region switches" needs no
+	   mechanism at all — only two shares. `swap/` says `full` on every slide instead, and
+	   the row hides everything left of it.
+	   ⚠ Declared AFTER the `full` re-tune above and at the same (0,2,0) — order decides,
+	     and that is the intent: a page opts into a share by wearing one of these. */
+	.decks-rail > .page-column-body { --page-column-flex: 1 1 22%; --page-column-min: 13em; }
+	.decks-stagecol > .page-column-body { --page-column-flex: 1 1 78%; }
+
+	/* A rail is chrome, so it takes the step down and the stage keeps the paper — the
+	   vary lab's verdict said with tone rather than with a border. */
+	.decks-rail > .page-column-body { background: var(--wash); }
+	.decks-rail .decks-region { background: transparent; }
+
+	/* ── the card's picture ── */
+	.decks-thumb {
+		--stage: 16 / 8;
+		display: flex; align-items: center; justify-content: center; gap: 0.45em;
+		padding: 0.9em;
+	}
+
+	.decks-thumb .icon { font-size: 0.85em; color: var(--subtle); }
+
+	.decks-diagram {
+		flex: 1; min-width: 0;
+		aspect-ratio: 16 / 10;
+		display: flex; gap: 2px; padding: 2px;
+		background: var(--wash);
+		border-radius: 3px;
+	}
+
+	.decks-diagram-v { flex-direction: column; }
+	.decks-diagram-q { display: grid; grid-template-columns: 1fr 1fr; }
+
+	/* A cell is toned by the CONTENT KIND that belongs in it, so the wall of cards is
+	   the map rather than a wall of grey rectangles. */
+	.decks-cell { min-width: 0; background: var(--surface); border-radius: 1px; }
+	.decks-cell-s { background: color-mix(in srgb, var(--prim) 55%, transparent); }
+	.decks-cell-g { background: color-mix(in srgb, var(--prim) 20%, transparent); }
+	.decks-cell-n { background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); }
+	.decks-cell-l { background: repeating-linear-gradient(to bottom, var(--line) 0 1px, var(--surface) 1px 4px); }
+	.decks-cell-w { background: var(--surface); background-image: radial-gradient(var(--line) 1px, transparent 1px); background-size: 5px 5px; }
+
+	/* ── out of room ──
+	   A cut narrower than 46em stops being a cut and becomes bands: the regions keep
+	   their order and share the height evenly. Asked of the SCREEN, never the window —
+	   `persist/`'s stage runs out at a different moment from a whole screen.
+	   ⚠ (0,2,0), so it beats `.decks-region`'s own weight without an `!important`. */
+	@container decks (width < 46em) {
+		.decks-slice { flex-direction: column; }
+		.decks-slice > :is(.decks-region, .decks-col) { flex: 1 1 0; }
+		.decks-chip { flex: 1 1 8em; }
+	}
+
+	/* A region this narrow is a phone band or a 20% flank: the note under a title is the
+	   first thing worth its space and the last thing to fit. */
+	@container decks-block (width < 10em) {
+		.decks-note { display: none; }
+	}
+}

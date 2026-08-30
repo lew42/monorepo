@@ -1,0 +1,212 @@
+/* THE READING PAGE — the answer to "the narrow center column feels like a waste".
+   Long form: doc/reading-page.md.
+
+   Three regions, and the middle one is the whole idea:
+
+     read     the measure, hard LEFT — the same 40em `--measure` every page uses
+     exhibit  the space beside it, for anything WIDER than prose
+     rail     the parts and the ToC, pinned to the right gutter
+
+   A centered 40em column on a 3440 screen leaves 1400px of nothing on each side.
+   Here the prose never moves: it starts at the left gutter and stays 40em, and the
+   freed space is spent on content that WANTS to be wide (a screenshot, a demo, a
+   code listing) plus a rail that is always there. Nothing is centered, so nothing
+   has to be re-centered when a figure appears. */
+
+@layer util {
+
+	/* Part one is marked `default` so landing on /blog/<slug>/ opens it, and this is
+	   what stands it down when a real part is routed to.
+	   ⚠ ONE PAIR with Page.css's `.page-column-pages` rule, restated for this region
+	     because `@layer util`'s own contract only exempts `.default` — it never hides
+	     one. Without this line both parts are on screen at once.
+	   ⚠ `:not(...)` on the target: a default part navigated to DIRECTLY would otherwise
+	     match this rule against its own mark and hide itself. */
+	.blog-read:has(> .page:is(.active-page, .active-ancestor)) > .page.default:not(.active-page, .active-ancestor) { display: none; }
+}
+
+@layer theme {
+
+	/* ── the post shell ──
+	   ⚠ (0,2,0) on purpose: `.page` in Page.css is (0,1,0) in this same layer and sets
+	     `display: grid`, so a tie would be decided by which stylesheet loaded last.
+	     Every `.page.<shape>` rule on the site is written this way.
+	   The page's own tokens are reused rather than re-picked: `--gutter-x` and
+	   `--pad-y` are the two insets every other page pays, so a post lines up with the
+	   rest of the site at all four widths. */
+	.page.blog-post {
+		display: block;
+		padding: var(--pad-y) var(--gutter-x);
+		--blog-gap: clamp(1.5em, 3%, 3.5em);
+	}
+
+	/* ── the head: keep it short, the fold is the ask ──
+	   The SAME two tracks as the prose below it (restated rather than shared through a
+	   custom property — a track list that arrives by `var()` and fails to parse fails
+	   in total silence, which this file has already paid for once). The words stay on
+	   the measure; `lead:` — the post's own picture, which is also its `og:image` —
+	   takes the space beside them, so the top of a 3440 screen has something on it
+	   before you scroll. */
+	.blog-head {
+		display: grid;
+		grid-template-columns:
+			[read-start] min(var(--measure), 100%)
+			[read-end exhibit-start] minmax(0, 1fr) [exhibit-end];
+		column-gap: var(--blog-gap);
+		align-items: start;
+	}
+
+	.blog-head > * { grid-column: read; min-width: 0; }
+
+	/* ⚠ `span 200`, not `1 / -1`: these rows are all implicit, and `-1` counts back
+	     from the EXPLICIT grid — it would resolve to line 1 and span nothing.
+	     (toc.css learned the same thing.) */
+	.blog-head > .blog-lead { grid-column: exhibit; grid-row: 1 / span 200; }
+
+	.blog-lead img { display: block; width: 100%; border-radius: var(--radius); border: 1px solid var(--line); }
+
+	.blog-head .page-title { margin-block: 0.2em 0; }
+	.blog-head .page-crumbs { margin-block-end: 0.4em; }
+
+	.blog-byline {
+		display: flex; flex-wrap: wrap; gap: 0.9em;
+		margin-block-start: 0.5em;
+		font-size: 0.85em; color: var(--subtle);
+	}
+
+	.blog-standfirst {
+		max-width: var(--measure);
+		margin-block-start: 0.9em;
+		font-size: 1.1em; line-height: 1.5; color: var(--subtle);
+	}
+
+	/* ── the row: read + rail ──
+	   ⚠ `flex-wrap` is what the rail's own `min-width: 100%; order: -1` needs at 38em
+	     (Page.css) — without it the rail refuses to take its own line and squeezes the
+	     prose instead. Page.css's `:has(> .rail)` makes THIS box the query container,
+	     so the breakpoint measures the row and not the window. */
+	.blog-body {
+		display: flex; flex-wrap: wrap; align-items: flex-start;
+		gap: var(--blog-gap);
+	}
+
+	.blog-read { flex: 1 1 var(--measure); min-width: 0; }
+
+	/* The prose starts a new block under the head; the head's own rhythm is its own. */
+	.blog-head + * { margin-block-start: 2.5em; }
+
+	/* ⚠ (0,2,0): `.rail` is (0,1,0) in Page.css's theme layer, so a bare `.blog-rail`
+	     would be a load-order coin flip. 15em rather than the rail default's
+	     `clamp(14em, 26%, 22em)`: this one holds part titles and headings, and 26% of a
+	     3440 row is 800px of two-word links. */
+	.rail.blog-rail { flex: 0 0 15em; font-size: 0.9em; }
+
+	.blog-rail-title { display: block; color: var(--subtle); margin-block-end: 0.5em; }
+
+	.blog-parts, .blog-more { display: flex; flex-direction: column; }
+
+	.blog-part-link {
+		display: flex; align-items: baseline; gap: 0.5em;
+		padding: 0.35em 0 0.35em 0.7em;
+		line-height: 1.35;
+		color: var(--subtle); text-decoration: none;
+		border-inline-start: 2px solid var(--line);
+	}
+	.blog-part-link:hover { color: var(--ink); }
+
+	/* `.active` / `.in-path` are Router.mark_links()'s — the same two words every
+	   other nav on the site is marked with, so nothing here tracks state. */
+	.blog-part-link:is(.active, .in-path) { color: var(--prim-ink); border-inline-start-color: var(--prim); }
+
+	.blog-part-n { font-variant-numeric: tabular-nums; opacity: 0.6; }
+
+	/* ext/toc hides itself unless it is a page's own direct child (its own grid
+	   layout, which would fight this one). In a rail it is exactly what a rail is for.
+	   (0,2,0) beats toc.css's `.toc` at (0,1,0). */
+	.blog-rail .toc { display: block; }
+	.blog-toc:empty { display: none; }
+
+	.blog-more-link { color: var(--subtle); text-decoration: none; padding-block: 0.2em; }
+	.blog-more-link:hover { color: var(--prim-ink); }
+
+	/* ── a part ──
+	   ⚠ (0,2,0) again, and the padding matters: `.page` pays `--pad-y` and its own
+	     gutter tracks, and a part is INSIDE a page that already paid both. */
+	.page.blog-part { display: block; padding: 0; }
+
+	/* ════ THE PROSE GRID — two tracks, and content decides which one it is in ═══
+	   `Post` stamps `blog-prose` on the markdown it loads, so this is one box with
+	   two columns: everything is prose unless it says `blog-exhibit`.
+
+	   Auto-placement does the anchoring for free. Both tracks are DEFINITE columns,
+	   so the cursor only ever moves forward: a paragraph takes (row n, read), and an
+	   exhibit written straight after it takes (row n, exhibit) — beside the text it
+	   belongs to, with no ids, no measuring and no JS. The next paragraph moves the
+	   cursor back to column 1, which is what starts row n+1.
+
+	   ⚠ `min(var(--measure), 100%)` and `minmax(0, 1fr)` — a floor that cannot
+	     overflow, and a ceiling that cannot collapse. `1fr` alone keeps its content
+	     minimum and a wide `<pre>` would push the prose off the screen.
+	   ⚠ ONE bracket group between two tracks: `[read-end] [exhibit-start]` is a PARSE
+	     ERROR (a `<track-list>` allows a single `<line-names>` between track sizes),
+	     and an invalid track list is dropped in silence. The grid still rendered —
+	     `grid-column: read` fell through to IMPLICIT lines, so track 1 measured 0px,
+	     every paragraph sat in track 2 at full width, and nothing was logged. */
+	.blog-prose {
+		display: grid;
+		grid-template-columns:
+			[read-start] min(var(--measure), 100%)
+			[read-end exhibit-start] minmax(0, 1fr) [exhibit-end];
+		column-gap: var(--blog-gap);
+		align-items: start;
+	}
+
+	.blog-prose > * { grid-column: read; min-width: 0; }
+	.blog-prose > .blog-exhibit { grid-column: exhibit; }
+
+	/* An exhibit aligns with the TOP of the paragraph it sits beside, so the `.flow`
+	   owl's 2em would push it out of step. Its own rhythm comes back between two
+	   exhibits in a row, which is the only time it is the one starting a block.
+	   (0,2,0) over `:where(.flow) > * + *` at (0,1,0). */
+	.blog-prose > .blog-exhibit { margin-block-start: 0; }
+	.blog-prose > .blog-exhibit + .blog-exhibit { margin-block-start: var(--flow); }
+
+	/* OUT OF ROOM: the exhibit takes the whole grid and the post is one column again.
+	   ⚠ A CONTAINER query, never a window `@media`: `.blog-body` is already the `page`
+	     container (Page.css's `:has(> .rail)` makes it one), so this asks the row —
+	     which is the window minus a sidebar, minus the dev rail, minus a drawer.
+	   ⚠ 84em is arithmetic, not taste: 40em of prose + 15em of rail + two gaps leaves
+	     the exhibit under 24em below this, and a 300px code listing is worse than a
+	     full-width one. Above it, an exhibit is never narrower than a phone.
+	   The margin comes back because a spanning exhibit starts its own row — it is no
+	   longer aligned to the top of a paragraph, it FOLLOWS one. */
+	@container page (width < 84em) {
+		.blog-prose > .blog-exhibit { grid-column: read-start / exhibit-end; margin-block-start: var(--flow); }
+
+		/* The lead becomes a lead: full width, under the words rather than beside them. */
+		.blog-head > .blog-lead { grid-column: read-start / exhibit-end; grid-row: auto; margin-block-start: 1.5em; }
+	}
+
+	/* ⚠ NO max-width on an exhibit, deliberately: the track IS the answer to the dead
+	   space, so a 3440 screenshot gets to be 3440 wide. What needs a ceiling is a
+	   LINE of text — a caption at 2600px is unreadable — so the caption caps itself
+	   and the picture does not. */
+	.blog-exhibit { display: flex; flex-direction: column; gap: 0.6em; margin: 0; }
+
+	.blog-exhibit img,
+	.blog-exhibit video { display: block; width: 100%; border-radius: var(--radius); border: 1px solid var(--line); }
+
+	.blog-exhibit figcaption {
+		max-width: var(--measure);
+		font-size: 0.85em; line-height: 1.45; color: var(--subtle);
+	}
+
+	/* ── the index ──
+	   The cards are `.page-previews` — Page.css's own wall, so the blog list and every
+	   other index on the site are one arrangement. Only the byline is new. */
+	.blog-card-date {
+		display: block;
+		margin-block-start: 0.2em;
+		font-size: 0.8em; color: var(--subtle);
+	}
+}

@@ -17,7 +17,7 @@ export default new Page({
 	},
 
 	children: {
-		Photo:  { icon: "image",         content(){ md("Photo detail: file name, size, taken date — one line each."); } },
+		Photo:  { icon: "image", classes: "default", content(){ md("Photo detail: file name, size, taken date — one line each."); } },
 		Video:  { icon: "movie",         content(){ md("Video detail: duration, codec, resolution."); } },
 		Audio:  { icon: "music_note",    content(){ md("Audio detail: track, artist, length."); } },
 		Doc:    { icon: "description",   content(){ md("Document detail: pages, size, owner."); } },

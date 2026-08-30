@@ -26,9 +26,18 @@
 		font-family: var(--mono);
 		font-size: 0.8rem;
 		transform: translateX(100%);
-		transition: transform 0.18s;
+		/* ⚠ A CLOSED rail is `visibility: hidden`, delayed until the slide finishes.
+		   Below 34em the media query re-poses it as a bottom sheet (translateY(100%)), so
+		   crossing that width while closed INTERPOLATES translateX(100%) → translateY(100%)
+		   — a path straight across the screen, and you see the rail flash (the owner,
+		   2026-08-29: "you can see it transitioning, appearing for a brief moment").
+		   Hidden, that morph happens where nobody can see it. The 0.18s delay is what keeps
+		   the close animation itself visible; `dev-open` below turns it off in both
+		   directions so opening is instant. Nothing about the slide changed. */
+		visibility: hidden;
+		transition: transform 0.18s, visibility 0s 0.18s;
 	}
-	html.dev-open .dev-bar { transform: none; }
+	html.dev-open .dev-bar { transform: none; visibility: visible; transition: transform 0.18s, visibility 0s; }
 
 	/* The head is pinned and the body scrolls under it — a rail whose ✕ scrolls away
 	   is a rail you cannot shut. Two lines: the title row, and the page's width. */

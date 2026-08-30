@@ -1,4 +1,4 @@
-# grip — a rail's resize edge: a strip just inside its inline-start edge and a pill that rides your pointer. No permanent handle. Shared by [`ext/drawer`](/framework/ext/drawer/) and [`dev/DevBar`](/framework/dev/DevBar/).
+# grip — a rail's resize edge: a strip just inside the edge it drags, and a pill that rides your pointer. No permanent handle. Shared by [`ext/drawer`](/framework/ext/drawer/), [`dev/DevBar`](/framework/dev/DevBar/) and [`ext/Playground`](/framework/ext/Playground/).
 
 ## Use
 
@@ -9,11 +9,13 @@ import grip from "/framework/ext/grip/grip.js";
 grip({
     write: px => size(px),    // every move: px is the width the pointer implies; return what you applied
     done: w => remember(w),   // once, on release — the width you let go of
+    from: "start",            // omit for a rail docked at the screen's END (drawer, dev rail)
 });
 ```
 
 ## Watch out
 
+- `from` is the **whole** of which edge you drag — arithmetic and looks. A start-docked rail is stamped `.grip-start` and `grip.css` mirrors strip and lit line together; never flip the strip in your own stylesheet, which leaves the line 10px off the boundary · [doc/decisions.md](./doc/decisions.md)
 - Mount it **inside** the rail's box, never straddling the edge — a strip hanging outside survives the shut rail's slide as an invisible `ew-resize` column down every page, and `setPointerCapture` swallows the whole gesture, not just the click · [doc/decisions.md](./doc/decisions.md)
 - `html.grip-sizing` carries `--rail-ease: 0s`; without it the shell's push trails the pointer by 0.18s · [doc/decisions.md](./doc/decisions.md)
 - The width is measured from the rail's **own** inline-end edge, not `innerWidth` — a rail parked beside another one would size past the pointer · [doc/decisions.md](./doc/decisions.md)

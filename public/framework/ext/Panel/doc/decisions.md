@@ -552,7 +552,12 @@ because dropping the cell slides the next row's mark up into the hole.
   `templates.js`'s `paint()` re-arms until the element has been connected
   *and then* detached — a body that is drawn but never mounted (unlikely in
   practice, since `paint()` runs inside `$body.empty()`, but not provably
-  impossible from a future caller) re-arms forever.
+  impossible from a future caller) re-arms forever. **Narrowed 2026-08-28:**
+  `paint()` now writes only while the element is *visible* (`offsetParent`),
+  because a hidden-but-mounted page kept `/framework/`'s clock connected and
+  its unseen writes made Chrome DevTools redraw its Styles pane sitewide once
+  a second. The never-connected timer still re-arms, but silently — a no-op
+  timeout per second, no DOM writes.
 
 - **The nine on-panel alignment arrows are hidden by default (2026-08-18).** The
   owner: *"they look bad, and they don't do anything without explicit height to
