@@ -10,7 +10,7 @@ const deck = chapters(here);
    found that word and this deck only puts it beside its alternative. What is left where
    the rail used to be is the STRIP — the same four labels, redrawn identically on every
    slide, which is the third answer the head-to-head produced (doc/decisions.md): it
-   reads as persistent, and it costs a 3em band instead of 22% of the row.
+   reads as persistent, and it costs a 2.5em band instead of a 16em rail.
 
    Container: /imagine/'s column row, one `full` screen per slide. Size: the whole row.
    Own layout: one region plus the strip. Regions: one. Preview: the cut, twice. */

@@ -43,5 +43,5 @@ export default new Page(demo.tree({
 	group: "Basics",
 	tree: studio,
 	rail: true,
-	height: "18em",
+	min: "18em",
 }));

@@ -122,7 +122,7 @@ demo.page = (name, fn, config) => ({
  * function as one.
  *
  *     export default new Page(demo.tree({ meta: import.meta, tree: shop }));
- *     demo.tree({ meta: import.meta, tree: guide, rail: true, height: "18em" })
+ *     demo.tree({ meta: import.meta, tree: guide, rail: true, min: "18em" })
  *
  * The card in the rail IS the tree at half size — no chrome, no label; the mini
  * app speaks for itself, and an invisible link rides over it (an `<a>` *around* a
@@ -160,14 +160,18 @@ demo.tree = config => ({
 	// them, and they pointed at the page region rather than at the box, so the
 	// readout could not report what a width had simulated. Both fixed by moving out.
 	stage(steer){
-		const { $stage } = stage(() => { this.box(this.height, steer); });
+		const { $stage } = stage(() => { this.box(this.min, steer); });
 
 		return $stage.ac("bare");
 	},
 
 	// `shown` is what re-points the bar: the box hands it every page it shows.
-	box(height, shown){
-		return demo.app(this.tree(), { nav: this.rail, shown }).style("height", height ?? "");
+	// ⚠ `min-height`, never `height` — a floor can only add, so no tree config can
+	// ever clip itself (app.css `.demo-app-pages` used to force `overflow: auto`
+	// under a fixed `height`, cutting anything taller off with no sign it happened —
+	// demo-merge proposal §1, the 17-site fix).
+	box(min, shown){
+		return demo.app(this.tree(), { nav: this.rail, shown }).style("min-height", min ?? "");
 	},
 
 	...config,

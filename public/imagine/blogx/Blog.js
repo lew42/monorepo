@@ -148,9 +148,11 @@ export class Blog extends Page {
 	strip(){
 		const chain = this.chain(), from = chain.indexOf(this.posts_at());
 
+		// ⚠ `a.c(class, text)`, never `a.href(…)`: the exported `a` is a FACTORY, and
+		//   only the View it builds has the chaining methods.
 		return div.c("blogx-strip", () => chain.slice(Math.max(from, 0)).forEach((page, i) => {
 			if (i) icon("chevron_right");
-			a.href(page.url).text(page.title);
+			a.c("blogx-crumb", page.title).href(page.url);
 		}));
 	}
 
@@ -286,7 +288,7 @@ Blog.Post.Part = class BlogPostPart extends Blog.Post {
 	content(){
 		div.c("blogx-article", () => {
 			div.c("blogx-eyebrow", () => {
-				a.href(this.parent.url).text(this.post.title);
+				a.c("blogx-crumb", this.post.title).href(this.parent.url);
 				span.c("blogx-dot", "·");
 				span("Part " + (this.post.parts.indexOf(this.part) + 1) + " of " + this.post.parts.length);
 			});

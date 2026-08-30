@@ -59,7 +59,7 @@ export default new Page(demo.tree({
 	meta: import.meta,
 	group: "Patterns",
 	tree: pocket,
-	height: "26em",
+	min: "26em",
 
 	note: "**A drawer is a [sidebar](/web/nav/sidebar/) that admits it does not always fit.** Push keeps the page readable and is what `ext/layout`'s panel does — one `--drawer` token, and the shell yields a rail (`framework.css`). Overlay costs no width and is the only option under about 26rem, which is why the real one is self-limiting rather than breakpointed. The button that opens it must be persistent even when the drawer is not.",
 }));

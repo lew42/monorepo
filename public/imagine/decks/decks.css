@@ -124,7 +124,7 @@
 	/* 13% of the block. The ceiling is a safety for a screen wider than any monitor
 	   here, not a design decision. */
 	.decks-title {
-		font-size: clamp(1.35rem, 13cqw, 10rem);
+		font-size: clamp(1.35rem, 13cqw, 15rem);
 		font-weight: 900; letter-spacing: -0.035em; line-height: 0.94;
 	}
 
@@ -221,7 +221,25 @@
 	   `--tint` one alike (the lesson `.page-column-item` learned the hard way). */
 	a.decks-row:hover { background: color-mix(in srgb, var(--ink) 5%, transparent); }
 
-	.decks-row.decks-on {
+	/* ⚠ `.active` AND `.in-path`, and the first one is the one that matters — `mark_links()`
+	     writes `.active` for an EXACT url match and `.in-path` only for an ancestor, so a
+	     rail row pointing at the slide you are on wears `.active` and nothing else. Keyed
+	     on `.in-path` alone the persistent rail marked nothing at all (measured, 4 hops).
+	   Why the router's marks and not a flag set while building: a rail is rendered ONCE and
+	   is not rebuilt when the column beside it changes, so a flag would be stale one click
+	   later. `mark_links()` re-marks the anchors on every navigation instead. */
+	.decks-row.decks-on,
+	.decks-row:is(.active, .in-path, [aria-current]) {
+		border-inline-start-color: var(--prim);
+		background: color-mix(in srgb, var(--prim) 9%, transparent);
+	}
+
+	/* ⚠ ARRIVING AT THE DECK ROOT MARKS NOTHING. The slide you see at `/persist/` is the
+	     `default` child — it is on screen but nothing is routed to it, so `here` is the
+	     HOST's url and no row's href matches. The host's own state is what knows: it is
+	     `.active-page` only while no child is open, and the moment one is, `.active` on the
+	     anchor takes over. One rule, and it can never go stale. */
+	.decks-rail.active-page > .page-column-body .decks-row:first-child {
 		border-inline-start-color: var(--prim);
 		background: color-mix(in srgb, var(--prim) 9%, transparent);
 	}
@@ -271,7 +289,9 @@
 	}
 
 	.decks-chip:hover { background: color-mix(in srgb, var(--ink) 5%, transparent); color: var(--prim-ink); }
-	.decks-chip.decks-on { color: var(--prim-ink); box-shadow: inset 0 2px 0 var(--prim); }
+
+	.decks-chip.decks-on,
+	.decks-chip:is(.active, .in-path, [aria-current]) { color: var(--prim-ink); box-shadow: inset 0 2px 0 var(--prim); }
 
 	/* ── persistent navigation — the rail is a COLUMN, not a region ──
 	   This is the whole of the head-to-head. `persist/` keeps its rail because the rail
@@ -281,13 +301,25 @@
 	   the row hides everything left of it.
 	   ⚠ Declared AFTER the `full` re-tune above and at the same (0,2,0) — order decides,
 	     and that is the intent: a page opts into a share by wearing one of these. */
-	.decks-rail > .page-column-body { --page-column-flex: 1 1 22%; --page-column-min: 13em; }
-	.decks-stagecol > .page-column-body { --page-column-flex: 1 1 78%; }
+	/* ⚠ A FIXED TRACK, not a share — and this lab's own content-kind map is what decided
+	     it. A rail holds a LIST, the one kind that does not scale, so a 22% rail at 3440
+	     is 757px holding a 416px list with 170px of nothing on each side (measured, the
+	     first version). 16em costs the stage 256px at every width instead of 22% of it:
+	     the stage keeps 3184 of 3440 rather than 2683. `full` is still the word — the
+	     ancestors have to collapse — these three tokens only re-tune what it takes.
+	   The child needs no rule at all: `fill` already asks for everything left. */
+	.decks-rail > .page-column-body {
+		--page-column-flex: 0 0 16em;
+		--page-column-min: 16em;
+		--page-column-max: 16em;
+		background: var(--wash);
+	}
 
-	/* A rail is chrome, so it takes the step down and the stage keeps the paper — the
-	   vary lab's verdict said with tone rather than with a border. */
-	.decks-rail > .page-column-body { background: var(--wash); }
-	.decks-rail .decks-region { background: transparent; }
+	/* A rail is chrome, so it takes the tone step and the stage keeps the paper.
+	   ⚠ `>` down to the body, not a descendant selector. The stage is a CHILD column and
+	     lives inside the rail page's own `.page-column-pages`, so `.decks-rail
+	     .decks-region` matched the stage too and painted the whole slide grey. */
+	.decks-rail > .page-column-body .decks-region { background: transparent; }
 
 	/* ── the card's picture ── */
 	.decks-thumb {
@@ -325,7 +357,19 @@
 	   ⚠ (0,2,0), so it beats `.decks-region`'s own weight without an `!important`. */
 	@container decks (width < 46em) {
 		.decks-slice { flex-direction: column; }
-		.decks-slice > :is(.decks-region, .decks-col) { flex: 1 1 0; }
+
+		/* ⚠ `min-height: auto`, putting back what `.decks-region` turned off. A slide does
+		     not scroll and a region is floored at 0 for exactly that reason — but a phone
+		     band is the one case where the room genuinely is not there, and at 400 a
+		     three-region cut clipped its own content into the band below it, silently
+		     (measured, /decks/poster/ at 400: the third card and half the note gone).
+		     Restoring the flex default makes a band at least its content, so the SCREEN
+		     scrolls instead. That is the decision: a cut on a phone is a scrolling stack of
+		     bands, and it is the only scrollbar in the lab. */
+		.decks-slice > :is(.decks-region, .decks-col) { flex: 1 1 auto; min-height: auto; }
+
+		/* Which makes the strip the one thing that must not scroll away with it. */
+		.decks-foot { position: sticky; bottom: 0; }
 		.decks-chip { flex: 1 1 8em; }
 	}
 

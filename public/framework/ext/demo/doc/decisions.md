@@ -84,6 +84,23 @@ An ext may lean on an ext; only core may never.
 one control surface, and a bar every page has to remember is a bar half the detail
 pages would not have.
 
+## Landed — the 17 clips (2026-08-30, demo-merge step 1)
+
+`demo.tree()`'s `height:` config key silently clipped: `app.css`'s
+`.demo-app-pages { overflow: auto }` turned any render taller than the box into a
+scrollable-but-invisible cut, and 16 call sites plus one raw `demo.app(…).style({
+height })` (17 total) hit it — worst case `core/Page/overview/landing`, 74% of its
+content hidden. Fixed the way `shell.js`'s prototype already proved: `height:` is
+gone, `min:` is a **floor** (`min-height`, never a ceiling), and `.demo-app-pages`
+is `overflow: visible` — with no call site left setting a real height, the flex
+column auto-sizes to its content, so the old `overflow: auto` was already inert
+(verified, not just reasoned: reverting the three files round-trip reproduced the
+proposal's own 1174/1587px-hidden number exactly; the fix took it to 0 at all 17
+sites, 1920px, headless). `demo.layout()` was untouched — no call site there ever
+used its `height:`. Three more identical raw `demo.app(…).style({ height })` sites
+turned up at `imagine/vary/colstyles/{cards,finder,ink}/` — not in the audited 17,
+left as a follow-up.
+
 ## Open
 
 - **`demo.tree()` and `demo.layout()` are both config-only page factories over
@@ -91,8 +108,8 @@ pages would not have.
   that's a real inconsistency or two legitimately different shapes — the audit
   takes a position.
 - **A tall bare stage letterboxes on a wide monitor** (`demo.tree()` with an
-  explicit `height:`, `doc/record.md` §19.6) — unfixed, the cap belongs on the
-  tree, which is the thing that knows it wanted a window.
+  explicit `min:` — was `height:`, `doc/record.md` §19.6) — unfixed, the cap
+  belongs on the tree, which is the thing that knows it wanted a window.
 - **The definition column doesn't stick** beside a tall render on a wide screen —
   `position: sticky` is three lines and no asker yet (§19.6).
 - **A div is still not a viewport** (see Traps) — the iframe that would fix it is

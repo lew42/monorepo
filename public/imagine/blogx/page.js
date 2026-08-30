@@ -25,7 +25,7 @@ export default new Page({
 	content(){
 		md(`**Eight shells, one blog.** All eight render the same eight posts, so the only variable on screen is the layout. Every card, row and chip is a real link — open one and dig; the strip along the floor of every candidate takes you to the next.
 
-Judged at **3440 first**, then 1920, then 400. Read the verdicts in [readme.md](/imagine/blogx/readme.md).`);
+Judged at **3440 first**, then 1920, then 400 — the verdicts are ranked in [readme.md](/imagine/blogx/readme.md), and every measurement is in [doc/decisions.md](/imagine/blogx/doc/decisions.md).`);
 
 		this.previews();
 
@@ -35,6 +35,6 @@ Judged at **3440 first**, then 1920, then 400. Read the verdicts in [readme.md](
 **Rails** — [Two-level](/imagine/blogx/rail/) and [Dynamic](/imagine/blogx/dig/): the same archive as a fixed tree, and as a rail that changes with depth.
 **Parts** — [As columns](/imagine/blogx/parts/) and [In place](/imagine/blogx/swap/): a four-part post read side by side, and swapped under a strip that never moves.
 
-The one rule they all keep: **no reading column is ever over 42em.** A wide screen is filled with more columns, never a wider one.`);
+The one rule they all keep: **no reading column is ever over 42em.** A wide screen is filled with more columns, never a wider one — and the number that proves it is [Parts as columns](/imagine/blogx/parts/) at 3440: **252 + 4 × 720 = 3132px** of live text in a 3170px row, with nothing over the measure.`);
 	},
 });

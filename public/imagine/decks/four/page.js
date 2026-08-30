@@ -1,8 +1,7 @@
 import { Deck, col, region, quiet, statement, wall, notes, list, slices } from "../deck.js";
 
-/* Container: /imagine/'s column row, one `full` screen. Size: four cells of 1583 x half
-   the height at 3440, 838 at 1920, four bands at 400. Own layout: two `col`s of two
-   regions. Regions: four, plus the strip. Preview: the 2x2. */
+/* Container: /imagine/'s column row, one `full` screen. Size: four cells of 1719 at 3440,
+   959 at 1920, four bands at 400. Own layout: two `col`s of two regions each. Regions: four, plus the strip. Preview: the 2x2. */
 
 export default new Deck({
 	meta: import.meta,

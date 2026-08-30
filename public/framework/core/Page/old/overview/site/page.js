@@ -79,5 +79,5 @@ export default new Page(demo.tree({
 	group: "Sites",
 	tree: acme,
 	rail: true,
-	height: "30em",
+	min: "30em",
 }));

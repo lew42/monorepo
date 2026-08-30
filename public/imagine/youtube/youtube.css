@@ -1,0 +1,275 @@
+/* /imagine/youtube/ — one sheet for five labs. One directory, one prefix
+   (`framework/styles/css-scopes.txt`, `yt-`).
+
+   Nothing here is a new idea. The arrangement is core's column row and the framework's
+   own flex words (`flex wrap gap`, `flex v gap`); every colour is a palette token over
+   the row's `--wash` floor — `--surface` for a thing you act on, `--line` for every
+   seam, `--prim` for the one accent. Never `--well`.
+
+   ⚠ Every button here would otherwise be a 0.7em/1.4em uppercase CTA: the site theme
+     styles `.theme-lew42 :is(button, .btn)` at (0,2,0) in THIS layer, so load order
+     alone would decide it. The override wins by naming the ELEMENT — `.yt-lab .yt-keys
+     button` is (0,2,1) — and it changes only the SIZE. The uppercase, the weight and
+     the tracking are left to the theme, because a control panel of small caps is the
+     house voice; it was only ever the padding that was wrong. */
+
+@layer theme {
+
+	/* ════ THE STAGE — a poster, then an iframe in its place ══════════════════
+	   `.yt-slot` is the element `new YT.Player()` REPLACES, so nothing may be
+	   styled through it — the iframe that lands there is styled directly. */
+	.yt-stage {
+		position: relative;
+		aspect-ratio: 16 / 9;
+		background: var(--bg);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		overflow: hidden;
+	}
+
+	.yt-stage :is(iframe, .yt-slot) { width: 100%; height: 100%; border: 0; }
+	.yt-poster { width: 100%; height: 100%; object-fit: cover; }
+
+	/* (0,2,1) for the same reason as `.yt-keys button` above: this is a hit area, not
+	   a call to action, and the theme's padding would push the glyph off centre. */
+	.yt-stage button.yt-start {
+		position: absolute; inset: 0;
+		display: grid; place-items: center;
+		padding: 0;
+		border: none; border-radius: 0;
+		background: color-mix(in srgb, #000 35%, transparent);
+		color: white;
+		cursor: pointer;
+	}
+	.yt-stage button.yt-start:hover { background: color-mix(in srgb, #000 20%, transparent); color: white; }
+	.yt-stage .yt-start .icon { font-size: 4em; }
+
+	/* ════ THE LABS — one seam each, and it wraps ═════════════════════════════
+	   `min-width: 0` on both halves because the flexbox default floors a child at its
+	   MIN-CONTENT, and one long feed line would push the row wider than its column. */
+	.yt-side { flex: 1 1 22em; min-width: 0; }
+
+	/* ⚠ A ceiling on the CONTROL half, not on the column. `fill` hands the panel 2936px
+	     at 3440 and an even split would have made a 1450px-wide row of 0.7em buttons —
+	     dead space wearing a control's clothes. Capped, the leftover goes to the video,
+	     which is the one thing on the page that can spend it. */
+	.yt-controls { flex: 1 1 20em; max-width: 34em; min-width: 0; --gap: 0.9em; }
+	.yt-form { flex: 1 1 22em; max-width: 30em; min-width: 0; --gap: 0.7em; }
+	.yt-room { flex: 1 1 18em; max-width: 30em; min-width: 0; --gap: 0.6em; }
+
+	.yt-lab input[type="range"] { width: 100%; }
+
+	/* ════ CONTROLS ═══════════════════════════════════════════════════════════ */
+	.yt-ctl { display: flex; flex-direction: column; gap: 0.4em; }
+
+	.yt-ctl-label {
+		font-size: 0.7em; font-weight: 700;
+		letter-spacing: 0.06em; text-transform: uppercase;
+		color: var(--subtle);
+	}
+
+	.yt-lab .yt-keys button {
+		padding: 0.35em 0.7em;
+		font-size: 0.7em;
+		border: 1px solid var(--line);
+		background: var(--surface);
+	}
+
+	/* A text field in a row of buttons is as wide as it needs to be — base css sizes
+	   every input to 100%, which is right in a form and wrong in a toolbar. */
+	.yt-lab .yt-keys input { width: auto; flex: 1 1 8em; min-width: 6em; }
+
+	/* ════ READOUTS — the API, read back ══════════════════════════════════════
+	   Hairlines drawn as a 1px grid gap over a `--line` floor, so there is one seam
+	   between cells rather than two borders meeting. */
+	/* ⚠ 9em, not 7em, and the reason is arithmetic: SIX readouts want a track count that
+	     divides six. 7em gave four columns in the control half and the last row ended in
+	     a wide grey off-cut of the `--line` floor. 9em is three columns from 480px up and
+	     two below it — full rows at every width the panel has. */
+	.yt-reads {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(9em, 100%), 1fr));
+		gap: 1px;
+		background: var(--line);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		overflow: hidden;
+	}
+
+	.yt-read {
+		display: flex; flex-direction: column; gap: 0.1em;
+		min-width: 0;
+		padding: 0.4em 0.6em;
+		background: var(--surface);
+	}
+
+	.yt-read-label {
+		font-size: 0.65em; letter-spacing: 0.06em; text-transform: uppercase;
+		color: var(--subtle);
+	}
+
+	.yt-read-value {
+		font-family: var(--mono); font-size: 0.85em;
+		font-variant-numeric: tabular-nums;
+		white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+	}
+
+	/* ════ THE FEED — a log, so it scrolls, and that is the decision ══════════ */
+	.yt-feed {
+		height: 10em;
+		overflow-y: auto;
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		background: var(--surface);
+		font-family: var(--mono); font-size: 0.72em;
+	}
+
+	.yt-feed-row { display: flex; gap: 0.6em; padding: 0.25em 0.6em; }
+	.yt-feed-row + .yt-feed-row { border-top: 1px solid var(--line); }
+	.yt-feed-at { flex: none; color: var(--subtle); font-variant-numeric: tabular-nums; }
+	.yt-feed-msg { min-width: 0; overflow-wrap: anywhere; }
+
+	/* ════ THE CHAPTER BAR ════════════════════════════════════════════════════
+	   The FILL says where the nav is (`.active` is Router.mark_links()'s, so it costs
+	   nothing to keep in step); the LINE says where time is. */
+	.yt-bar {
+		position: relative;
+		display: flex; gap: 1px;
+		height: 2.4em;
+		background: var(--line);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		overflow: hidden;
+	}
+
+	.yt-bar-seg {
+		flex: 1 1 0; min-width: 0;
+		display: grid; place-items: center;
+		padding: 0 0.3em;
+		background: var(--surface);
+		color: var(--ink);
+		text-decoration: none;
+		font-size: 0.72em; font-weight: 700;
+		letter-spacing: 0.05em; text-transform: uppercase;
+		white-space: nowrap; overflow: hidden;
+	}
+
+	/* Translucent, so it darkens whatever it lands on — `--tint` is LIGHTER than the
+	   column body's `--wash` floor and would light the row the wrong way. */
+	.yt-bar-seg:hover { background: color-mix(in srgb, var(--ink) 8%, transparent); color: var(--ink); }
+	.yt-bar-seg.active { background: var(--prim); color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.45); }
+
+	.yt-bar-head {
+		position: absolute; top: 0; bottom: 0;
+		width: 2px;
+		background: var(--ink);
+		pointer-events: none;
+	}
+
+	.yt-now {
+		display: flex; justify-content: space-between; align-items: baseline; gap: 1em;
+		font-size: 0.85em;
+	}
+	.yt-now-chapter { font-weight: 700; min-width: 0; }
+	.yt-now-clock { flex: none; font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--subtle); }
+
+	.yt-links .yt-link {
+		display: block;
+		font-size: 0.9em;
+		color: var(--ink);
+		text-decoration-line: underline;
+		text-decoration-color: var(--prim);
+		text-decoration-thickness: 0.15em;
+		text-underline-offset: 0.2em;
+	}
+
+	/* ════ YIELD — the video steps aside ══════════════════════════════════════
+	   Two layers in one box. The video is TRANSFORMED, never hidden: a `display: none`
+	   player is torn out of layout and the sound stops, and that is the whole reason
+	   this page exists. */
+	.yt-yield-stage {
+		position: relative;
+		aspect-ratio: 16 / 9;
+		min-height: 20em;
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		background: var(--tint);
+		overflow: hidden;
+	}
+
+	.yt-yield-video {
+		position: absolute; inset: 0;
+		z-index: 2;
+		transition: transform 0.45s ease, box-shadow 0.45s ease;
+	}
+
+	/* The stage's own aspect ratio has to stand down inside a box that is already
+	   sized — otherwise the two fight and the iframe stops filling it. */
+	.yt-yield-video .yt-stage { height: 100%; aspect-ratio: auto; border: none; border-radius: 0; }
+
+	.yt-yield-stage.yt-aside .yt-yield-video {
+		transform: translate(-2.5%, -3.5%) scale(var(--yt-aside, 0.3));
+		transform-origin: 100% 100%;
+		box-shadow: 0 0 0 4px var(--surface), 0 1.5em 4em rgba(0, 0, 0, 0.4);
+	}
+
+	/* ⚠ `visibility`, not `display`, and it is doing real work: a hidden step must be
+	     out of the tab order, and `opacity` alone leaves every field focusable. */
+	.yt-yield-ui {
+		position: absolute; inset: 0;
+		z-index: 1;
+		padding: 1.2em;
+		background: var(--surface);
+		opacity: 0; visibility: hidden;
+		transition: opacity 0.35s ease, visibility 0.35s;
+		overflow-y: auto;
+	}
+	.yt-yield-stage.yt-aside .yt-yield-ui { opacity: 1; visibility: visible; }
+
+	.yt-step { display: none; }
+	.yt-step.yt-on { display: block; max-width: 28em; }
+
+	.yt-sum {
+		font-family: var(--mono); font-size: 0.75em;
+		color: var(--subtle);
+		overflow-wrap: anywhere;
+	}
+
+	/* ════ FIELDS ═════════════════════════════════════════════════════════════ */
+	.yt-field {
+		display: flex; flex-direction: column; gap: 0.2em;
+		padding: 0.4em 0.6em;
+		border: 1px solid transparent;
+		border-radius: var(--radius);
+		transition: background 0.25s ease, border-color 0.25s ease;
+	}
+
+	.yt-field-label {
+		font-size: 0.7em; letter-spacing: 0.06em; text-transform: uppercase;
+		color: var(--subtle);
+	}
+
+	.yt-field.yt-lit {
+		border-color: var(--prim);
+		background: color-mix(in srgb, var(--prim) 10%, transparent);
+	}
+
+	.yt-check { display: flex; align-items: center; gap: 0.5em; cursor: pointer; }
+	.yt-check input { width: auto; flex: none; }
+
+	/* ════ CHAT — a room is a scroller, which is why this one has a height ════ */
+	.yt-log {
+		height: 16em;
+		overflow-y: auto;
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		background: var(--surface);
+		font-size: 0.85em;
+	}
+
+	.yt-line { display: flex; gap: 0.5em; padding: 0.35em 0.6em; }
+	.yt-line + .yt-line { border-top: 1px solid var(--line); }
+	.yt-line-at { flex: none; font-family: var(--mono); font-size: 0.8em; color: var(--subtle); font-variant-numeric: tabular-nums; }
+	.yt-line-who { flex: none; font-weight: 700; color: var(--prim-ink); }
+	.yt-line-text { min-width: 0; overflow-wrap: anywhere; }
+}

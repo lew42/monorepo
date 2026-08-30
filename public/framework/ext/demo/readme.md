@@ -20,6 +20,8 @@ content(){ rail.demo({ min: "26em" }); }   // any page, rendered as a demo
 ```
 Path above, readout always, code in a column beside the render — and no `height`, only a floor. Six words configure it. It replaces nine of the fourteen variants; the audit, the numbers and the migration order are in [ai/2026-08-30/demo-merge/proposal.md](/framework/ai/2026-08-30/demo-merge/). **Not adopted yet** — nothing below has changed.
 
+**Landed — step 1 of that migration.** `demo.tree()`'s own `height:` config key is gone too: it's `min:` there now, the same floor-not-ceiling word, years before the shell above lands. The 17 call sites that used to set a fixed `height` (and get silently scroll-clipped by `app.css`'s `.demo-app-pages`) are converted; `overflow: auto` on that region is `visible` now that nothing sets a ceiling.
+
 ```js
 import { mini } from "/framework/ext/demo/mini.js";
 

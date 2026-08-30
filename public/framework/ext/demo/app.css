@@ -54,9 +54,15 @@
 	   whole sheet's measure and 3em inset inside a 30em box. */
 	.demo-app-pages {
 		flex: 1 1 0; min-width: 0;
-		overflow: auto;
+		overflow: visible;
 		--measure: none; --page-pad: 1.2em;
 	}
+
+	/* ⚠ `visible`, never `auto`: a call site's size (if any) is a FLOOR now —
+	   `min-height`, never `height` — so this box only ever grows to fit a taller
+	   page. `auto` here used to pair with a fixed `height` to scroll the overflow
+	   out of sight instead — 17 call sites clipped in silence this way before every
+	   one of them was moved to a floor (demo-merge proposal §1). */
 
 	/* ⚠ The default page shape declares its OWN tokens (`.page.standard`, Page.css), so
 	   the region's reset above cannot reach them by inheritance. Gutters and pads

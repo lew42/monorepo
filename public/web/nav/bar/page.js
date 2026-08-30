@@ -43,7 +43,7 @@ export default new Page(demo.tree({
 	meta: import.meta,
 	group: "Patterns",
 	tree: orbit,
-	height: "22em",
+	min: "22em",
 
 	note: "**A bar is a promise that the top of the window is stable.** It costs one row of vertical space forever, so it holds a handful of destinations and nothing else — the moment it needs a second line or a dropdown, the site has outgrown it and wants a [sidebar](/web/nav/sidebar/). It is the root that builds it, in `render()`, so the pages below know nothing about it.",
 }));

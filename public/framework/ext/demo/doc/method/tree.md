@@ -36,10 +36,11 @@ a frame.
 ## Improvements
 
 1. **A tall bare stage letterboxes on a wide monitor.** A `demo.tree()` with
-   `height: "18em"` sits inside a render column that can be 1900px wide on a
-   3440 screen — a 7:1 strip. Recorded open in the design record (§19.6); the
-   fix belongs on the tree (`height:`), which is the one thing that knows it
-   wanted a window. *(medium, useful.)*
+   `min: "18em"` (was `height:` — 2026-08-30, demo-merge step 1) sits inside a
+   render column that can be 1900px wide on a 3440 screen — a 7:1 strip.
+   Recorded open in the design record (§19.6); the fix belongs on the tree
+   (its own config), which is the one thing that knows it wanted a window.
+   *(medium, useful.)*
 2. **See `demo.page()`'s doc for the config-shape inconsistency** between this,
    `demo.layout()`, and the name-first `demo.page()`. *(medium, useful — one
    finding, documented once.)*

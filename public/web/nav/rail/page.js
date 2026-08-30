@@ -23,7 +23,7 @@ export default new Page(demo.tree({
 	meta: import.meta,
 	group: "Patterns",
 	tree: dash,
-	height: "30em",
+	min: "30em",
 
 	note: "**Master–detail: the same cards as a [wall](/web/nav/wall/), in a column that does not move.** You keep the overview *and* the page, which is why it is the shape for a set you browse rather than read — demos, components, records. On the real site it is one line, `initialize(){ this.catalog(); }`, and the page's own `content()` becomes the first card in the rail. **The page you are reading is that call** — the rail on the left is this pattern, running.",
 }));

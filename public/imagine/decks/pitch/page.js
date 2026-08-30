@@ -10,7 +10,7 @@ const here = new URL(".", import.meta.url).pathname;
    Back all move it, and every slide is a url you can open cold and land on.
 
    Container: /imagine/'s column row, one `full` screen per slide. Size: the whole row —
-   3166 at 3440, 1677 at 1920, bands at 400. Own layout: one cut per slide, named in the
+   3440 at 3440, 1920 at 1920, bands at 400. Own layout: one cut per slide, named in the
    comment above it. Regions: 1 to 4. Preview: the six cuts, in order. */
 
 const SLIDES = [
@@ -125,7 +125,9 @@ export default new Deck({
 	description: "Six slides about the framework — the deck the lab was for.",
 	icon: "campaign",
 	group: "The deck",
-	shapes: ["1:s", "1.618:s 1:l", "1:l 3:s 1:n", "1:s 1:w", "2.33:g 1:n", "q"],
+	// Three of the six, not all six: at a card's width a sixth frame is 40px and says
+	// nothing. The cover, the widest cut, and the close.
+	shapes: ["1:s", "1:l 3:s 1:n", "q"],
 
 	width: "full",
 	index: true,

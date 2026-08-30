@@ -1,8 +1,8 @@
 import { div } from "/app.js";
 import { Deck, region, quiet, statement, list, wall, stack, slices } from "../deck.js";
 
-/* Container: /imagine/'s column row, one `full` screen. Size: 633 / 1900 / 633 at 3440,
-   335 / 1006 / 335 at 1920, three bands at 400. Own layout: three regions, 20 / 60 / 20.
+/* Container: /imagine/'s column row, one `full` screen. Size: 687 / 2062 / 687 at 3440,
+   383 / 1150 / 383 at 1920, three bands at 400. Own layout: three regions, 20 / 60 / 20.
    Regions: a rail, a poster, a wall. Preview: the cut. */
 
 export default new Deck({
@@ -21,11 +21,11 @@ export default new Deck({
 		}));
 
 		region(60, () => statement("20 / 60 / 20", "The poster",
-			"Narrow the flanks and the middle becomes a wall you can put one sentence on. At 3440 this statement composes into 874px of block inside 1900px of region — placed, not stranded."));
+			"Narrow the flanks and the middle becomes a wall you can put one sentence on. At 3440 this statement composes into 1092px of block inside 2062px of region — placed, not stranded."));
 
 		quiet(20, () => wall([
-			{ k: "633px", name: "A flank", note: "At 3440. Wide enough for a list with second lines, or two card columns." },
-			{ k: "335px", name: "At 1920", note: "A rail exactly. The same page, no breakpoint, no second file." },
+			{ k: "687px", name: "A flank", note: "At 3440. Wide enough for a list with second lines, or two card columns." },
+			{ k: "383px", name: "At 1920", note: "A rail exactly. The same page, no breakpoint, no second file." },
 			{ k: "band", name: "At 400", note: "Under 46em of screen the cut becomes three bands and the order is kept." },
 		]));
 	},

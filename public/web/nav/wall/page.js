@@ -41,7 +41,7 @@ export default new Page(demo.tree({
 	meta: import.meta,
 	group: "Patterns",
 	tree: gallery,
-	height: "34em",
+	min: "34em",
 
 	note: "**Cards are navigation that shows you what is behind the door.** This is the pattern this site runs on: [`previews()`](/framework/core/Page/) draws a card per child, `walls()` draws a rung per section, and a page that overrides `preview()` puts a live render in its own card. The cost is space — a wall is a whole screen, so it works as a landing and never as a header.",
 }));

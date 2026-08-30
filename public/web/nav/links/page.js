@@ -24,7 +24,7 @@ export default new Page(demo.tree({
 	meta: import.meta,
 	group: "Patterns",
 	tree: reader,
-	height: "20em",
+	min: "20em",
 
 	note: "**The baseline every other pattern refines.** An anchor in a sentence needs no component, carries its own reason for existing, and is the only navigation that still works with the stylesheet off. What it cannot do is tell you where you are or what else there is — so the moment a reader needs an overview, something persistent has to appear.",
 }));

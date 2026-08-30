@@ -13,17 +13,15 @@ every line at every window size. What changes is what happens to the *right* of 
 <figure class="blog-exhibit">
 
 ```css /blog/blog.css
-.blog-prose {
-	display: grid;
-	grid-template-columns:
-		[read-start]    min(var(--measure), 100%)  [read-end]
-		[exhibit-start] minmax(0, 1fr)             [exhibit-end];
-	column-gap: var(--blog-gap);
-	align-items: start;
-}
+.blog-prose { display: flow-root; }
 
-.blog-prose > *                { grid-column: read; }
-.blog-prose > .blog-exhibit    { grid-column: exhibit; }
+.blog-prose > *:not(.blog-exhibit) { max-width: min(var(--measure), 100%); }
+
+.blog-exhibit {
+	float: right;
+	clear: right;
+	width: calc(100% - min(var(--measure), 100%) - var(--blog-gap));
+}
 ```
 
 <figcaption>The whole layout. Everything is prose unless it says otherwise, and
@@ -31,11 +29,14 @@ anything that says <code>blog-exhibit</code> — this listing included — takes
 beside the paragraph it follows.</figcaption>
 </figure>
 
-The anchoring is free. Both tracks are *definite* columns, so grid auto-placement
-only ever moves its cursor forward: a paragraph takes row *n* column 1, an exhibit
-written straight after it finds row *n* column 2 still empty and lands beside it, and
-the next paragraph sends the cursor back to column 1, which is what starts row *n+1*.
-No ids, no measuring, no JavaScript.
+It is a float, and that is a measurement rather than a preference: the first version
+was a two-column grid. In a grid the two columns share a *row*, so a figure taller
+than the paragraph next to it sets that row's height and the following paragraph
+starts below the **figure** — a 300px hole in the reading column at every exhibit.
+
+A float is out of flow. The prose runs unbroken down the left at exactly its measure,
+and because the text and the figure never overlap horizontally, the paragraphs' line
+boxes are not shortened either. They simply do not know the figure is there.
 
 ## What earns the right side
 
@@ -59,9 +60,10 @@ of stopping 1400px short.
 
 Nothing here is a media query on the window. The rail is the framework's own `.rail`
 word, and `Page.css` already turns any rail into a full-width strip when *its row* —
-not the window — drops below 38em. The prose grid's second track is
-`minmax(0, 1fr)`: at 400 it is a few pixels wide, exhibits fall back into the reading
-column, and the page is one honest column of text.
+not the window — drops below 38em. One container query of my own stops the exhibits
+floating below 84em, which is the width where the space left over would be under 24em
+and a 300px code listing is worse than a full-width one. Below that the post is one
+honest column of text.
 
 The three sizes are one layout with one breakpoint, and the breakpoint measures the
 box it is styling.

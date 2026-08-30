@@ -54,7 +54,7 @@ export default new Page(demo.tree({
 	meta: import.meta,
 	group: "Patterns",
 	tree: atlas,
-	height: "28em",
+	min: "28em",
 
 	note: "**A sidebar is a bar that gave up height for width**, and that trade buys two things a bar cannot have: room for a section's children, and a column that scrolls on its own. Keep it expanded — collapsible groups hide exactly the overview the rail exists to give. This site's own sidebar is the `Sidebar` class, fed from [`nav_for()`](/framework/core/Sidebar/); the demo builds the same thing by hand so you can see what it is.",
 }));

@@ -3,6 +3,7 @@ import { Page, Sidebar, md, h1, div, a } from "/app.js";
 // Plain {title, url} data on purpose — declaring these as `children` would
 // auto-import every section's tree (and its side effects) into the home page.
 const sections = [
+	{ title: "Blog", url: "/blog/", desc: "Working notes on the framework, the tools built on it, and the AI board that watches it get built." },
 	{ title: "Framework", url: "/framework/", desc: "The docs — View, Page, Router, App, and the CSS layers." },
 	{ title: "Web", url: "/web/", desc: "The guide — how to build things on the web, shown live." },
 	{ title: "Résumé", url: "/resume/", desc: "Design engineer, 12+ years — and a 3D parallax scroll running underneath it." },

@@ -40,7 +40,7 @@ export default new Page(demo.tree({
 	meta: import.meta,
 	group: "Patterns",
 	tree: primer,
-	height: "24em",
+	min: "24em",
 
 	note: "**Footer nav is for content with an order** — a tutorial, a handbook, a spec. It is the cheapest pattern here (two links, no shell, no state) and the only one placed where reading actually ends. It does not replace a rail: prev/next says where to go *next*, never where you are. Pair them.",
 }));

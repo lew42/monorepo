@@ -293,9 +293,10 @@
 		font-size: 0.78em; color: var(--subtle);
 		border-block-end: 1px solid var(--line);
 	}
-	.blogx-strip a { color: inherit; text-decoration: none; }
-	.blogx-strip a:hover { color: var(--prim-ink); }
 	.blogx-strip .icon { font-size: 1em; opacity: 0.5; }
+	.blogx-crumb { color: inherit; text-decoration: none; }
+	.blogx-crumb:hover { color: var(--prim-ink); }
+	.blogx-crumb.active { color: var(--ink); font-weight: 600; }
 
 	.blogx-partnav {
 		flex: none;
@@ -342,7 +343,10 @@
 	   `auto` follows it, so there is no second number to keep in step and nothing is
 	   positioned over anything. */
 	.page.blogx.blogx-shut { --blogx-rail: 0em; }
-	.blogx-shut .blogx-rail { border-inline-end-width: 0; }
+	/* ⚠ `overflow: hidden` too, or a rail at 0px still holds 130px of links and reports
+	     itself as a scrolling box — a scrollbar is a decision, and a shut rail did not
+	     make one. */
+	.blogx-shut .blogx-rail { border-inline-end-width: 0; overflow: hidden; }
 
 	.blogx-toggle {
 		position: absolute; inset-block-start: 0.7em; inset-inline-start: 0.7em;
@@ -358,12 +362,17 @@
 
 	/* ── the dashboard front ──────────────────────────────────────────────── */
 
+	/* ⚠ 30em, and `auto-fill` counting is the reason. Six regions in a 3170px paper at
+	     24em gave SEVEN tracks — one grey slot at the right end, 640px wide, which is
+	     the same "empty grid slot paints the grid's background" fault the wall had. At
+	     30em a 3440 paper is exactly five tracks wide and a 1920 one is three.
+	   `align-content: stretch` + `min-height: 100%`, so the two rows divide the fold
+	   instead of leaving 68% of a 1440 screen white under a finished composition. */
 	.blogx-board {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(min(24em, 100%), 1fr));
-		gap: 1px;
-		align-content: start;
-		background: var(--line);
+		grid-template-columns: repeat(auto-fill, minmax(min(30em, 100%), 1fr));
+		align-content: stretch;
+		min-height: 100%;
 		border-block-end: 1px solid var(--line);
 	}
 
@@ -371,7 +380,9 @@
 		display: flex; flex-direction: column; gap: 0.5em;
 		padding: 1em 0 1.2em;
 		background: var(--surface);
+		box-shadow: inset -1px -1px 0 var(--line);
 	}
+	.blogx-board > .blogx-span { justify-content: center; }
 	.blogx-region > * { padding-inline: 1.1em; }
 	.blogx-region > .blogx-rows { padding-inline: 0; }
 	.blogx-region-title { font-size: 0.72em; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--subtle); }
@@ -400,6 +411,26 @@
 	.blogx-app { flex: 1 1 auto; min-height: 0; border: none; border-radius: 0; }
 	.blogx-app > .demo-app-url { display: none; }
 
+	/* ⚠ A `fill` column is only as tall as its CONTENT, and a wall of seven cards in a
+	     2918px column left 70% of it as bare `--wash` at 3440 — the same "the grid was
+	     the right height and its row was not" fault the front had, one container down.
+	   ⚠ Scoped to the ONE column that wants it, not to `.blogx-stage`: the same rule on
+	     every column in the row would put a `height: 100%` flex box around the PROSE
+	     columns too, and a paragraph that no longer fits would be squashed rather than
+	     scrolled. `classes` is additive on a column, so the page asks for it by name.
+	   `height`, not `min-height`: with `min-height` the hero's own height is ADDED to a
+	   full-height wall and the column overflows by exactly the hero — a scrollbar
+	   nobody asked for, on the one screen that must not have one. */
+	/* ⚠ The BODY is the flex column, and the prose takes what is left. `height: 100%` on
+	     the prose alone made it the body's full height and the column HEAD's 51px was
+	     then added on top — the body's scrollHeight beat its clientHeight by exactly the
+	     head, which is a 51px scrollbar nobody asked for on the one screen that must not
+	     have one. Measured 1407 vs 1356 before, equal after. */
+	.blogx-latest > .page-column-body { display: flex; flex-direction: column; }
+	.blogx-latest > .page-column-body > .page-column-prose { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+	.blogx-latest .blogx-wall { flex: 1 1 auto; min-height: 0; align-content: stretch; --blogx-card: 30em; }
+	.blogx-latest .blogx-wall > .blogx-card { justify-content: flex-end; }
+
 	/* ── the magazine front ───────────────────────────────────────────────── */
 
 	.blogx-front { display: grid; align-content: start; }
@@ -413,9 +444,30 @@
 	     the same layout showed five at 1921. The card floor drops to 17em here for the
 	     same reason: the wall is what a wide screen is FOR. */
 	@container blogx-main (min-width: 60em) {
-		.blogx-front { grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.55fr); min-height: 100%; }
+		.blogx-front { grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.55fr); min-height: 100%; align-content: stretch; }
 		.blogx-front > .blogx-hero { border-block-end: none; border-inline-end: 1px solid var(--line); align-self: center; }
-		.blogx-front > .blogx-wall { border-block-start: none; --blogx-card: 17em; }
+
+		/* ⚠ `align-content: stretch` on BOTH, or the front is 1048px tall holding a
+		     487px row: the grid was the right height all along and its one row was
+		     content-sized, which is what left 54% of a 1080 screen white under a
+		     composition that had already fitted. Measured before and after. */
+		.blogx-front > .blogx-wall { border-block-start: none; --blogx-card: 17em; align-content: stretch; }
+
+		/* Eight posts cannot fill a 3x3 grid of 350px cells from the top, and cells
+		   with content at the top and 200px of air under it read as unfinished. Bottom
+		   -aligned they read as a poster wall: every title sits on the same line as its
+		   neighbours, and the air is above the type where a magazine puts it. */
+		.blogx-front > .blogx-wall > .blogx-card { justify-content: flex-end; }
+	}
+
+	/* ⚠ THE CARD FLOOR GROWS WITH THE SCREEN, and this is the finding a 3440 monitor
+	     produced. At 17em the wall took FIVE columns of a 3440 paper, so seven posts
+	     made two rows with three empty slots and every cell was 490px tall holding
+	     120px of type. At 26em it takes three, seven posts make three rows, and the
+	     rows divide the 1440 almost exactly. Past a certain width more columns stop
+	     being the answer, because the archive — not the screen — is the constraint. */
+	@container blogx-main (min-width: 120em) {
+		.blogx-front > .blogx-wall { --blogx-card: 26em; }
 	}
 
 	/* ── out of room ──────────────────────────────────────────────────────

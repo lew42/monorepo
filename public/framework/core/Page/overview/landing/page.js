@@ -24,5 +24,5 @@ export default new Page(demo.tree({
 	meta: import.meta,
 	group: "Sites",
 	tree: nimbus,
-	height: "28em",
+	min: "28em",
 }));

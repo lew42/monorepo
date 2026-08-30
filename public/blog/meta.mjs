@@ -13,11 +13,11 @@
  * renders with the site's generic meta tags. So `--check` failing is a missing social
  * card, never a broken page. doc/meta-tags.md.
  */
-import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { readFile, writeFile, stat, readdir } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { listed, site } from "./posts.js";
+import { listed, sections, slug, site } from "./posts.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const write = process.argv.includes("--write");
@@ -66,6 +66,21 @@ function shell({ title, description, url, image, type = "article" }){
 `;
 }
 
+/* A post that declares no `image:` still unfurls with a picture: the first PNG in its
+ * own directory. A FALLBACK, never the rule — the manifest is where a post says which
+ * picture represents it, and this exists only so a post full of screenshots does not
+ * ship a text-only card because nobody wrote the field. It never reaches the page:
+ * what a post draws at the top is `lead: true` in the manifest, and only that. */
+async function first_png(dir){
+	const files = await readdir(join(here, dir)).catch(() => []);
+	const png = files.filter(name => name.toLowerCase().endsWith(".png")).sort()[0];
+
+	return png && "/blog/" + dir + "/" + png;
+}
+
+/* Every page with an address of its own: the front, the three section indexes, and
+ * one per post. A section index carries `website` rather than `article` — it is a
+ * list, and an unfurled card that calls it an article is a small lie. */
 const shells = [
 	{
 		dir: ".",
@@ -76,16 +91,43 @@ const shells = [
 			type: "website",
 		}),
 	},
-	...listed().map(post => ({
-		dir: post.slug,
-		html: shell({ ...post, url: "/blog/" + post.slug + "/" }),
+
+	...sections.map(section => ({
+		dir: section.name,
+		html: shell({
+			title: section.title,
+			description: section.blurb,
+			url: "/blog/" + section.name + "/",
+			type: "website",
+		}),
 	})),
+
+	...await Promise.all(listed().map(async post => ({
+		dir: slug(post),
+		html: shell({
+			...post,
+			image: post.image ?? await first_png(slug(post)),
+			url: "/blog/" + slug(post) + "/",
+		}),
+	}))),
 ];
 
-let drift = 0;
+let drift = 0, pending = 0;
 
 for (const { dir, html } of shells){
 	const path = join(here, dir, "index.html");
+
+	/* ⚠ NEVER mkdir. An entry in the manifest is what COMMISSIONS a post, so a
+	 *   directory that is not there yet is a post somebody is still writing — and
+	 *   creating it here would leave a url that serves a meta shell, boots the app,
+	 *   and finds no page.js: a blank page with a perfect social card. Report and
+	 *   skip; run this again when the post lands. */
+	if (!await stat(dirname(path)).catch(() => null)){
+		pending++;
+		console.log(`pending ${dir}/ — no directory yet`);
+		continue;
+	}
+
 	const current = await readFile(path, "utf8").catch(() => null);
 
 	if (current === html){ console.log(`ok      ${dir}/index.html`); continue; }
@@ -94,10 +136,11 @@ for (const { dir, html } of shells){
 
 	if (!write){ console.log(`${current === null ? "MISSING" : "STALE  "} ${dir}/index.html`); continue; }
 
-	await mkdir(dirname(path), { recursive: true });
 	await writeFile(path, html);
 	console.log(`written ${dir}/index.html`);
 }
+
+if (pending) console.log(`\n${pending} post(s) commissioned but not written yet.`);
 
 if (drift && !write){
 	console.log(`\n${drift} shell(s) out of date — run: node public/blog/meta.mjs --write`);

@@ -25,7 +25,7 @@ function navigation(){
 	}));
 }
 
-const open = name => demo.app(dress[name]()).style({ height: "24em", "--rail": "12em" });
+const open = name => demo.app(dress[name]()).style({ minHeight: "24em", "--rail": "12em" });
 
 export default new Page(demo.layout({
 	meta: import.meta,

@@ -61,6 +61,6 @@ export default new Page(demo.tree({
 	group: "Arrangements",
 	children: "finder examples refs panels uses",
 	tree: finder,
-	height: "26em",
+	min: "26em",
 	note: "Miller columns — a core page shape. `page.columns()` on the host and its whole subtree lays out as full-height columns, each child opening to the right; `width:` picks the track (**small**, nothing, **large**, **full**). The tree is real; `display: contents` is what flattens it.\n\n**A box is not the shape.** The same tree at page height, with real urls: [Finder](/framework/core/Page/overview/columns/finder/). The detail is [`doc/columns.md`](/framework/core/Page/doc/columns/).",
 }));

@@ -107,7 +107,7 @@ export const wall = items => div.c("decks-wall", () => items.forEach(item =>
 	})));
 
 /* A NAV LIST — rows, and the one kind that does not scale. A row's width is its label,
-   so a list handed 950px is a label with 800px before its chevron (`doc/columns.md`
+   so a list handed 1031px is a label with 880px before its chevron (`doc/columns.md`
    measured exactly that on a widened rail). The second line is what earns the width;
    without one, this kind wants a FIXED track and not a share. */
 export const list = items => div.c("decks-list", () => items.forEach(item =>

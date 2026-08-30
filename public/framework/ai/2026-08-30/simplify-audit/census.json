@@ -1,0 +1,2033 @@
+{
+ "framework_words": 51,
+ "site_words": 28,
+ "rows": [
+  {
+   "word": "all-1",
+   "file": "framework.css",
+   "layers": [
+    "util"
+   ],
+   "rules": 1,
+   "def_bytes": 32,
+   "def_lines": [
+    427
+   ],
+   "uses_total": 11,
+   "uses_live": 3,
+   "files": 8,
+   "by_area": {
+    "styles-docs": 8,
+    "sites": 3
+   },
+   "selectors": [
+    ".flex.all-1 > *"
+   ]
+  },
+  {
+   "word": "all-pad",
+   "file": "framework.css",
+   "layers": [
+    "util"
+   ],
+   "rules": 1,
+   "def_bytes": 46,
+   "def_lines": [
+    386
+   ],
+   "uses_total": 3,
+   "uses_live": 2,
+   "files": 2,
+   "by_area": {
+    "styles-docs": 1,
+    "sites": 2
+   },
+   "selectors": [
+    ".all-pad > *"
+   ]
+  },
+  {
+   "word": "app",
+   "file": "framework.css",
+   "layers": [
+    "theme"
+   ],
+   "rules": 2,
+   "def_bytes": 513,
+   "def_lines": [
+    146,
+    179
+   ],
+   "uses_total": 20,
+   "uses_live": 5,
+   "files": 20,
+   "by_area": {
+    "fw-core": 4,
+    "fw-doc-old": 14,
+    "styles-docs": 1,
+    "root": 1
+   },
+   "selectors": [
+    ".app",
+    "`.app"
+   ]
+  },
+  {
+   "word": "auto",
+   "file": "framework.css",
+   "layers": [
+    "util"
+   ],
+   "rules": 5,
+   "def_bytes": 375,
+   "def_lines": [
+    393,
+    396,
+    414,
+    467,
+    532
+   ],
+   "uses_total": 157,
+   "uses_live": 79,
+   "files": 87,
+   "by_area": {
+    "fw-core": 9,
+    "fw-ext": 19,
+    "fw-ui": 5,
+    "fw-doc-old": 2,
+    "fw-other": 7,
+    "styles-docs": 63,
+    "sites": 46,
+    "ai-log": 6
+   },
+   "selectors": [
+    ".flex.auto > *",
+    ".flex.wrap, .flex.auto, .flex.three",
+    ".grid.auto",
+    "select.auto",
+    "textarea.auto"
+   ]
+  },
+  {
+   "word": "basis",
+   "file": "framework.css",
+   "layers": [
+    "util"
+   ],
+   "rules": 1,
+   "def_bytes": 67,
+   "def_lines": [
+    426
+   ],
+   "uses_total": 49,
+   "uses_live": 16,
+   "files": 34,
+   "by_area": {
+    "fw-core": 3,
+    "fw-ext": 2,
+    "fw-doc-old": 3,
+    "fw-other": 1,
+    "styles-docs": 25,
+    "sites": 11,
+    "ai-log": 4
+   },
+   "selectors": [
+    ".basis"
+   ]
+  },
+  {
+   "word": "bg",
+   "file": "framework.css",
+   "layers": [
+    "theme"
+   ],
+   "rules": 2,
+   "def_bytes": 170,
+   "def_lines": [
+    371,
+    377
+   ],
+   "uses_total": 40,
+   "uses_live": 35,
+   "files": 29,
+   "by_area": {
+    "fw-ext": 1,
+    "styles-docs": 5,
+    "sites": 34
+   },
+   "selectors": [
+    "button.bg, .btn.bg",
+    "button.bg:hover, .btn.bg:hover, button.prim:hover, .btn.prim:hover"
+   ]
+  },
+  {
+   "word": "btn",
+   "file": "framework.css",
+   "layers": [
+    "theme"
+   ],
+   "rules": 5,
+   "def_bytes": 675,
+   "def_lines": [
+    357,
+    366,
+    371,
+    372,
+    377
+   ],
+   "uses_total": 96,
+   "uses_live": 93,
+   "files": 34,
+   "by_area": {
+    "fw-ext": 3,
+    "fw-ui": 3,
+    "fw-other": 1,
+    "styles-docs": 2,
+    "sites": 87
+   },
+   "selectors": [
+    ".btn, button",
+    ".btn:hover, button:hover",
+    "button.bg, .btn.bg",
+    "button.bg:hover, .btn.bg:hover, button.prim:hover, .btn.prim:hover",
+    "button.prim, .btn.prim"
+   ]
+  },
+  {
+   "word": "capitalize",
+   "file": "framework.css",
+   "layers": [
+    "util"
+   ],
+   "rules": 1,
+   "def_bytes": 47,
+   "def_lines": [
+    529
+   ],
+   "uses_total": 7,
+   "uses_live": 6,
+   "files": 3,
+   "by_area": {
+    "styles-docs": 1,
+    "sites": 6
+   },
+   "selectors": [
+    ".capitalize"
+   ]
+  },
+  {
+   "word": "checkered",
+   "file": "framework.css",
+   "layers": [
+    "util"
+   ],
+   "rules": 1,
+   "def_bytes": 152,
+   "def_lines": [
+    541
+   ],
+   "uses_total": 2,
+   "uses_live": 1,
+   "files": 2,
+   "by_area": {
+    "fw-ext": 1,
+    "styles-docs": 1
+   },
+   "selectors": [
+    ".checkered"
+   ]
+  },
+  {
+   "word": "code",
+   "file": "framework.css",
+   "layers": [
+    "theme"
+   ],
+   "rules": 1,
+   "def_bytes": 98,
+   "def_lines": [
+    280
+   ],
+   "uses_total": 27,
+   "uses_live": 2,
+   "files": 22,
+   "by_area": {
+    "fw-ui": 2,
+    "fw-doc-old": 20,
+    "fw-other": 2,
+    "styles-docs": 3
+   },
+   "selectors": [
+    "pre, code, kbd, samp, .code"
+   ]
+  },
+  {
+   "word": "flex",
+   "file": "framework.css",
+   "layers": [
+    "util"
+   ],
+   "rules": 12,
+   "def_bytes": 654,
+   "def_lines": [
+    395,
+    396,
+    414,
+    427,
+    428,
+    429,
+    430,
+    431,
+    432,
+    433,
+    434,
+    439
+   ],
+   "uses_total": 1104,
+   "uses_live": 514,
+   "files": 276,
+   "by_area": {
+    "fw-core": 42,
+    "fw-ext": 145,
+    "fw-ui": 103,
+    "fw-dev": 21,
+    "fw-doc-old": 12,
+    "fw-other": 89,
+    "styles-docs": 428,
+    "sites": 201,
+    "ai-log": 61,
+    "root": 2
+   },
+   "selectors": [
+    ".flex",
+    ".flex > *",
+    ".flex.all-1 > *",
+    ".flex.auto > *",
+    ".flex.h-center",
+    ".flex.reverse",
+    ".flex.split",
+    ".flex.three > *"
+   ]
+  },
+  {
+   "word": "flex-1",
+   "file": "framework.css",
+   "layers": [
+    "util"
+   ],
+   "rules": 1,
+   "def_bytes": 38,
+   "def_lines": [
+    419
+   ],
+   "uses_total": 128,
+   "uses_live": 52,
+   "files": 76,
+   "by_area": {
+    "fw-core": 4,
+    "fw-ext": 8,
+    "fw-ui": 8,
+    "fw-doc-old": 3,
+    "fw-other": 8,
+    "styles-docs": 57,
+    "sites": 32,
+    "ai-log": 8
+   },
+   "selectors": [
+    ".flex-1"
+   ]
+  },
+  {
+   "word": "flow",
+   "file": "framework.css",
+   "layers": [
+    "theme"
+   ],
+   "rules": 4,
+   "def_bytes": 237,
+   "def_lines": [
+    570,
+    572,
+    573,
+    587
+   ],
+   "uses_total": 104,
+   "uses_live": 66,
+   "files": 69,
+   "by_area": {
+    "fw-core": 15,
+    "fw-ext": 31,
+    "fw-doc-old": 2,
+    "fw-other": 9,
+    "styles-docs": 15,
+    "sites": 20,
+    "ai-log": 12
+   },
+   "selectors": [
+    ":where(.flow) :is(li, td, th) > p",
+    ":where(.flow, blockquote)",
+    ":where(.flow, blockquote) > *",
+    ":where(.flow, blockquote) > * + *"
+   ]
+  },
+  {
+   "word": "gap",
+   "file": "framework.css",
+   "layers": [
+    "util"
+   ],
+   "rules": 1,
+   "def_bytes": 34,
+   "def_lines": [
+    508
+   ],
+   "uses_total": 947,
+   "uses_live": 448,
+   "files": 263,
+   "by_area": {
+    "fw-core": 43,
+    "fw-ext": 116,
+    "fw-ui": 89,
+    "fw-dev": 4,
+    "fw-doc-old": 12,
+    "fw-other": 79,
+    "styles-docs": 357,
+    "sites": 195,
+    "ai-log": 51,
+    "root": 1
+   },
+   "selectors": [
+    ".gap"
+   ]
+  },
+  {
+   "word": "gap-2em",
+   "file": "framework.css",
+   "layers": [
+    "util"
+   ],
+   "rules": 1,
+   "def_bytes": 26,
+   "def_lines": [
+    509
+   ],
+   "uses_total": 15,
+   "uses_live": 7,
+   "files": 13,
+   "by_area": {
+    "fw-core": 1,
+    "fw-other": 6,
+    "sites": 6,
+    "ai-log": 2
+   },
+   "selectors": [
+    ".gap-2em"
+   ]
+  },
+  {
+   "word": "grid",
+   "file": "framework.css",
+   "layers": [
+    "util"
+   ],
+   "rules": 4,
+   "def_bytes": 292,
+   "def_lines": [
+    464,
+    466,
+    467,
+    468
+   ],
+   "uses_total": 123,
+   "uses_live": 61,
+   "files": 67,
+   "by_area": {
+    "fw-core": 7,
+    "fw-ext": 13,
+    "fw-ui": 4,
+    "fw-doc-old": 5,
+    "fw-other": 4,
+    "styles-docs": 47,
+    "sites": 37,
+    "ai-log": 6
+   },
+   "selectors": [
+    ".grid",
+    ".grid > *",
+    ".grid.auto",
+    ".grid.three"
+   ]
+  },
+  {
+   "word": "h-center",
+   "file": "framework.css",
+   "layers": [
+    "util"
+   ],
+   "rules": 1,
+   "def_bytes": 47,
+   "def_lines": [
+    430
+   ],
+   "uses_total": 13,
+   "uses_live": 2,
+   "files": 8,
+   "by_area": {
+    "fw-ext": 1,
+    "styles-docs": 11,
+    "sites": 1
+   },
+   "selectors": [
+    ".flex.h-center"
+   ]
+  },
+  {
+   "word": "h1",
+   "file": "framework.css",
+   "layers": [
+    "theme"
+   ],
+   "rules": 1,
+   "def_bytes": 96,
+   "def_lines": [
+    198
+   ],
+   "uses_total": 15,
+   "uses_live": 0,
+   "files": 12,
+   "by_area": {
+    "styles-docs": 15
+   },
+   "selectors": [
+    "h1, .h1"
+   ]
+  },
+  {
+   "word": "h2",
+   "file": "framework.css",
+   "layers": [
+    "theme"
+   ],
+   "rules": 1,
+   "def_bytes": 70,
+   "def_lines": [
+    199
+   ],
+   "uses_total": 32,
+   "uses_live": 6,
+   "files": 26,
+   "by_area": {
+    "fw-ext": 3,
+    "fw-ui": 2,
+    "fw-other": 2,
+    "styles-docs": 18,
+    "sites": 1,
+    "ai-log": 6
+   },
+   "selectors": [
+    "h2, .h2"
+   ]
+  },
+  {
+   "word": "h3",
+   "file": "framework.css",
+   "layers": [
+    "theme"
+   ],
+   "rules": 1,
+   "def_bytes": 52,
+   "def_lines": [
+    200
+   ],
+   "uses_total": 41,
+   "uses_live": 13,
+   "files": 33,
+   "by_area": {
+    "fw-core": 1,
+    "fw-ext": 4,
+    "fw-ui": 7,
+    "fw-doc-old": 1,
+    "fw-other": 3,
+    "styles-docs": 22,
+    "sites": 1,
+    "ai-log": 2
+   },
+   "selectors": [
+    "h3, .h3"
+   ]
+  },
+  {
+   "word": "h4",
+   "file": "framework.css",
+   "layers": [
+    "theme"
+   ],
+   "rules": 1,
+   "def_bytes": 103,
+   "def_lines": [
+    201
+   ],
+   "uses_total": 228,
+   "uses_live": 72,
+   "files": 104,
+   "by_area": {
+    "fw-core": 10,
+    "fw-ext": 4,
+    "fw-ui": 38,
+    "fw-other": 31,
+    "styles-docs": 111,
+    "sites": 20,
+    "ai-log": 14
+   },
+   "selectors": [
+    "h4, .h4"
+   ]
+  },
+  {
+   "word": "icon",
+   "file": "framework.css",
+   "layers": [
+    "theme"
+   ],
+   "rules": 1,
+   "def_bytes": 64,
+   "def_lines": [
+    256
+   ],
+   "uses_total": 3,
+   "uses_live": 1,
+   "files": 3,
+   "by_area": {
+    "fw-core": 1,
+    "styles-docs": 2
+   },
+   "selectors": [
+    ".icon"
+   ]
+  },
+  {
+   "word": "masonry",
+   "file": "framework.css",
+   "layers": [
+    "util"
+   ],
+   "rules": 2,
+   "def_bytes": 138,
+   "def_lines": [
+    482,
+    483
+   ],
+   "uses_total": 1,
+   "uses_live": 0,
+   "files": 1,
+   "by_area": {
+    "styles-docs": 1
+   },
+   "selectors": [
+    ".masonry",
+    ".masonry > *"
+   ]
+  },
+  {
+   "word": "material-icons",
+   "file": "framework.css",
+   "layers": [
+    "theme"
+   ],
+   "rules": 1,
+   "def_bytes": 317,
+   "def_lines": [
+    244
+   ],
+   "uses_total": 2,
+   "uses_live": 1,
+   "files": 2,
+   "by_area": {
+    "fw-core": 1,
+    "styles-docs": 1
+   },
+   "selectors": [
+    ".material-icons"
+   ]
+  },
+  {
+   "word": "mb",
+   "file": "framework.css",
+   "layers": [
+    "util"
+   ],
+   "rules": 1,
+   "def_bytes": 31,
+   "def_lines": [
+    387
+   ],
+   "uses_total": 332,
+   "uses_live": 332,
+   "files": 20,
+   "by_area": {
+    "sites": 332
+   },
+   "selectors": [
+    ".mb"
+   ]
+  },
+  {
+   "word": "md",
+   "file": "framework.css",
+   "layers": [
+    "theme"
+   ],
+   "rules": 3,
+   "def_bytes": 531,
+   "def_lines": [
+    606,
+    620,
+    627
+   ],
+   "uses_total": 4,
+   "uses_live": 4,
+   "files": 2,
+   "by_area": {
+    "fw-ext": 4
+   },
+   "selectors": [
+    ":where(p, li, td, th, dd, blockquote, .md) a",
+    ":where(p, li, td, th, dd, blockquote, .md) a:hover",
+    ":where(p, li, td, th, dd, blockquote, .md) a:visited"
+   ]
+  },
+  {
+   "word": "measure",
+   "file": "framework.css",
+   "layers": [
+    "util"
+   ],
+   "rules": 2,
+   "def_bytes": 132,
+   "def_lines": [
+    446,
+    457
+   ],
+   "uses_total": 49,
+   "uses_live": 13,
+   "files": 42,
+   "by_area": {
+    "fw-core": 2,
+    "fw-ext": 8,
+    "fw-other": 3,
+    "styles-docs": 33,
+    "sites": 3
+   },
+   "selectors": [
+    ".measure",
+    ".measure.start"
+   ]
+  },
+  {
+   "word": "muted",
+   "file": "framework.css",
+   "layers": [
+    "theme"
+   ],
+   "rules": 1,
+   "def_bytes": 86,
+   "def_lines": [
+    236
+   ],
+   "uses_total": 427,
+   "uses_live": 221,
+   "files": 140,
+   "by_area": {
+    "fw-core": 8,
+    "fw-ext": 151,
+    "fw-ui": 37,
+    "fw-dev": 4,
+    "fw-other": 48,
+    "styles-docs": 131,
+    "sites": 21,
+    "ai-log": 27
+   },
+   "selectors": [
+    ".muted"
+   ]
+  },
+  {
+   "word": "packed",
+   "file": "framework.css",
+   "layers": [
+    "util"
+   ],
+   "rules": 2,
+   "def_bytes": 253,
+   "def_lines": [
+    495,
+    501
+   ],
+   "uses_total": 2,
+   "uses_live": 0,
+   "files": 2,
+   "by_area": {
+    "styles-docs": 2
+   },
+   "selectors": [
+    ".packed",
+    ".packed > *"
+   ]
+  },
+  {
+   "word": "pad",
+   "file": "framework.css",
+   "layers": [
+    "util"
+   ],
+   "rules": 1,
+   "def_bytes": 38,
+   "def_lines": [
+    385
+   ],
+   "uses_total": 575,
+   "uses_live": 296,
+   "files": 173,
+   "by_area": {
+    "fw-core": 21,
+    "fw-ext": 18,
+    "fw-ui": 60,
+    "fw-doc-old": 6,
+    "fw-other": 30,
+    "styles-docs": 207,
+    "sites": 197,
+    "ai-log": 36
+   },
+   "selectors": [
+    ".pad"
+   ]
+  },
+  {
+   "word": "page-title",
+   "file": "framework.css",
+   "layers": [
+    "theme"
+   ],
+   "rules": 1,
+   "def_bytes": 68,
+   "def_lines": [
+    583
+   ],
+   "uses_total": 11,
+   "uses_live": 7,
+   "files": 9,
+   "by_area": {
+    "fw-core": 1,
+    "fw-doc-old": 4,
+    "sites": 5,
+    "root": 1
+   },
+   "selectors": [
+    ".page-title + *"
+   ]
+  },
+  {
+   "word": "prim",
+   "file": "framework.css",
+   "layers": [
+    "theme"
+   ],
+   "rules": 2,
+   "def_bytes": 239,
+   "def_lines": [
+    372,
+    377
+   ],
+   "uses_total": 96,
+   "uses_live": 57,
+   "files": 54,
+   "by_area": {
+    "fw-core": 1,
+    "fw-ext": 1,
+    "fw-ui": 18,
+    "fw-dev": 1,
+    "fw-other": 14,
+    "styles-docs": 24,
+    "sites": 36,
+    "ai-log": 1
+   },
+   "selectors": [
+    "button.bg:hover, .btn.bg:hover, button.prim:hover, .btn.prim:hover",
+    "button.prim, .btn.prim"
+   ]
+  },
+  {
+   "word": "reverse",
+   "file": "framework.css",
+   "layers": [
+    "util"
+   ],
+   "rules": 1,
+   "def_bytes": 50,
+   "def_lines": [
+    429
+   ],
+   "uses_total": 7,
+   "uses_live": 6,
+   "files": 4,
+   "by_area": {
+    "fw-ext": 1,
+    "fw-ui": 5,
+    "styles-docs": 1
+   },
+   "selectors": [
+    ".flex.reverse"
+   ]
+  },
+  {
+   "word": "split",
+   "file": "framework.css",
+   "layers": [
+    "util"
+   ],
+   "rules": 1,
+   "def_bytes": 51,
+   "def_lines": [
+    432
+   ],
+   "uses_total": 75,
+   "uses_live": 32,
+   "files": 51,
+   "by_area": {
+    "fw-core": 1,
+    "fw-ext": 5,
+    "fw-ui": 7,
+    "fw-doc-old": 1,
+    "fw-other": 5,
+    "styles-docs": 33,
+    "sites": 19,
+    "ai-log": 4
+   },
+   "selectors": [
+    ".flex.split"
+   ]
+  },
+  {
+   "word": "start",
+   "file": "framework.css",
+   "layers": [
+    "util"
+   ],
+   "rules": 1,
+   "def_bytes": 40,
+   "def_lines": [
+    457
+   ],
+   "uses_total": 19,
+   "uses_live": 11,
+   "files": 14,
+   "by_area": {
+    "fw-core": 2,
+    "fw-ext": 9,
+    "fw-other": 1,
+    "styles-docs": 7
+   },
+   "selectors": [
+    ".measure.start"
+   ]
+  },
+  {
+   "word": "surface",
+   "file": "framework.css",
+   "layers": [
+    "theme"
+   ],
+   "rules": 1,
+   "def_bytes": 160,
+   "def_lines": [
+    216
+   ],
+   "uses_total": 152,
+   "uses_live": 71,
+   "files": 85,
+   "by_area": {
+    "fw-core": 21,
+    "fw-ext": 10,
+    "fw-ui": 32,
+    "fw-doc-old": 3,
+    "fw-other": 17,
+    "styles-docs": 40,
+    "sites": 8,
+    "ai-log": 21
+   },
+   "selectors": [
+    ".surface"
+   ]
+  },
+  {
+   "word": "three",
+   "file": "framework.css",
+   "layers": [
+    "util"
+   ],
+   "rules": 3,
+   "def_bytes": 273,
+   "def_lines": [
+    396,
+    433,
+    468
+   ],
+   "uses_total": 17,
+   "uses_live": 9,
+   "files": 11,
+   "by_area": {
+    "styles-docs": 8,
+    "sites": 9
+   },
+   "selectors": [
+    ".flex.three > *",
+    ".flex.wrap, .flex.auto, .flex.three",
+    ".grid.three"
+   ]
+  },
+  {
+   "word": "tint",
+   "file": "framework.css",
+   "layers": [
+    "theme"
+   ],
+   "rules": 1,
+   "def_bytes": 38,
+   "def_lines": [
+    227
+   ],
+   "uses_total": 10,
+   "uses_live": 6,
+   "files": 6,
+   "by_area": {
+    "fw-core": 6,
+    "styles-docs": 4
+   },
+   "selectors": [
+    ".tint"
+   ]
+  },
+  {
+   "word": "uppercase",
+   "file": "framework.css",
+   "layers": [
+    "util"
+   ],
+   "rules": 1,
+   "def_bytes": 45,
+   "def_lines": [
+    530
+   ],
+   "uses_total": 9,
+   "uses_live": 8,
+   "files": 4,
+   "by_area": {
+    "styles-docs": 1,
+    "sites": 8
+   },
+   "selectors": [
+    ".uppercase"
+   ]
+  },
+  {
+   "word": "v",
+   "file": "framework.css",
+   "layers": [
+    "util"
+   ],
+   "rules": 1,
+   "def_bytes": 39,
+   "def_lines": [
+    428
+   ],
+   "uses_total": 507,
+   "uses_live": 176,
+   "files": 171,
+   "by_area": {
+    "fw-core": 19,
+    "fw-ext": 58,
+    "fw-ui": 51,
+    "fw-dev": 8,
+    "fw-doc-old": 6,
+    "fw-other": 56,
+    "styles-docs": 235,
+    "sites": 40,
+    "ai-log": 34
+   },
+   "selectors": [
+    ".flex.v"
+   ]
+  },
+  {
+   "word": "v-center",
+   "file": "framework.css",
+   "layers": [
+    "util"
+   ],
+   "rules": 1,
+   "def_bytes": 66,
+   "def_lines": [
+    431
+   ],
+   "uses_total": 245,
+   "uses_live": 135,
+   "files": 131,
+   "by_area": {
+    "fw-core": 9,
+    "fw-ext": 45,
+    "fw-ui": 41,
+    "fw-dev": 6,
+    "fw-doc-old": 2,
+    "fw-other": 13,
+    "styles-docs": 87,
+    "sites": 34,
+    "ai-log": 8
+   },
+   "selectors": [
+    ".flex.v-center"
+   ]
+  },
+  {
+   "word": "wash",
+   "file": "framework.css",
+   "layers": [
+    "theme"
+   ],
+   "rules": 1,
+   "def_bytes": 38,
+   "def_lines": [
+    222
+   ],
+   "uses_total": 137,
+   "uses_live": 27,
+   "files": 50,
+   "by_area": {
+    "fw-core": 6,
+    "fw-ext": 11,
+    "fw-ui": 2,
+    "fw-doc-old": 7,
+    "fw-other": 3,
+    "styles-docs": 93,
+    "sites": 8,
+    "ai-log": 7
+   },
+   "selectors": [
+    ".wash"
+   ]
+  },
+  {
+   "word": "wrap",
+   "file": "framework.css",
+   "layers": [
+    "util"
+   ],
+   "rules": 1,
+   "def_bytes": 60,
+   "def_lines": [
+    396
+   ],
+   "uses_total": 215,
+   "uses_live": 107,
+   "files": 118,
+   "by_area": {
+    "fw-core": 6,
+    "fw-ext": 46,
+    "fw-ui": 16,
+    "fw-dev": 8,
+    "fw-doc-old": 1,
+    "fw-other": 13,
+    "styles-docs": 82,
+    "sites": 31,
+    "ai-log": 12
+   },
+   "selectors": [
+    ".flex.wrap, .flex.auto, .flex.three"
+   ]
+  },
+  {
+   "word": "zoom-100",
+   "file": "framework.css",
+   "layers": [
+    "util"
+   ],
+   "rules": 1,
+   "def_bytes": 26,
+   "def_lines": [
+    523
+   ],
+   "uses_total": 3,
+   "uses_live": 2,
+   "files": 2,
+   "by_area": {
+    "styles-docs": 1,
+    "sites": 2
+   },
+   "selectors": [
+    ".zoom-100"
+   ]
+  },
+  {
+   "word": "zoom-150",
+   "file": "framework.css",
+   "layers": [
+    "util"
+   ],
+   "rules": 1,
+   "def_bytes": 28,
+   "def_lines": [
+    524
+   ],
+   "uses_total": 3,
+   "uses_live": 2,
+   "files": 2,
+   "by_area": {
+    "styles-docs": 1,
+    "sites": 2
+   },
+   "selectors": [
+    ".zoom-150"
+   ]
+  },
+  {
+   "word": "zoom-175",
+   "file": "framework.css",
+   "layers": [
+    "util"
+   ],
+   "rules": 1,
+   "def_bytes": 29,
+   "def_lines": [
+    525
+   ],
+   "uses_total": 0,
+   "uses_live": 0,
+   "files": 0,
+   "by_area": {},
+   "selectors": [
+    ".zoom-175"
+   ]
+  },
+  {
+   "word": "zoom-200",
+   "file": "framework.css",
+   "layers": [
+    "util"
+   ],
+   "rules": 1,
+   "def_bytes": 26,
+   "def_lines": [
+    526
+   ],
+   "uses_total": 0,
+   "uses_live": 0,
+   "files": 0,
+   "by_area": {},
+   "selectors": [
+    ".zoom-200"
+   ]
+  },
+  {
+   "word": "zoom-25",
+   "file": "framework.css",
+   "layers": [
+    "util"
+   ],
+   "rules": 1,
+   "def_bytes": 28,
+   "def_lines": [
+    520
+   ],
+   "uses_total": 16,
+   "uses_live": 11,
+   "files": 16,
+   "by_area": {
+    "fw-core": 5,
+    "fw-ext": 2,
+    "fw-doc-old": 1,
+    "fw-other": 1,
+    "styles-docs": 2,
+    "sites": 4,
+    "ai-log": 1
+   },
+   "selectors": [
+    ".zoom-25"
+   ]
+  },
+  {
+   "word": "zoom-50",
+   "file": "framework.css",
+   "layers": [
+    "util"
+   ],
+   "rules": 1,
+   "def_bytes": 27,
+   "def_lines": [
+    521
+   ],
+   "uses_total": 45,
+   "uses_live": 32,
+   "files": 44,
+   "by_area": {
+    "fw-core": 4,
+    "fw-ext": 1,
+    "fw-ui": 21,
+    "fw-doc-old": 1,
+    "fw-other": 8,
+    "styles-docs": 2,
+    "sites": 6,
+    "ai-log": 2
+   },
+   "selectors": [
+    ".zoom-50"
+   ]
+  },
+  {
+   "word": "zoom-75",
+   "file": "framework.css",
+   "layers": [
+    "util"
+   ],
+   "rules": 1,
+   "def_bytes": 28,
+   "def_lines": [
+    522
+   ],
+   "uses_total": 0,
+   "uses_live": 0,
+   "files": 0,
+   "by_area": {},
+   "selectors": [
+    ".zoom-75"
+   ]
+  },
+  {
+   "word": "zoom-responsive",
+   "file": "framework.css",
+   "layers": [
+    "util"
+   ],
+   "rules": 1,
+   "def_bytes": 65,
+   "def_lines": [
+    527
+   ],
+   "uses_total": 1,
+   "uses_live": 1,
+   "files": 1,
+   "by_area": {
+    "sites": 1
+   },
+   "selectors": [
+    ".zoom-responsive"
+   ]
+  }
+ ],
+ "site_rows": [
+  {
+   "word": "active",
+   "file": "styles.css",
+   "layers": [
+    "site"
+   ],
+   "rules": 3,
+   "def_bytes": 233,
+   "def_lines": [
+    23,
+    66,
+    67
+   ],
+   "uses_total": 12,
+   "uses_live": 10,
+   "files": 9,
+   "by_area": {
+    "fw-ext": 2,
+    "fw-doc-old": 1,
+    "styles-docs": 1,
+    "sites": 8
+   },
+   "selectors": [
+    ".nav-link.active, .nav-link.in-path",
+    ".sidebar-link.active::after, .sidebar-link.in-path::after",
+    ".sidebar-link:is(.active, .in-path) .sidebar-label"
+   ]
+  },
+  {
+   "word": "active-ancestor",
+   "file": "styles.css",
+   "layers": [
+    "site"
+   ],
+   "rules": 1,
+   "def_bytes": 67,
+   "def_lines": [
+    33
+   ],
+   "uses_total": 6,
+   "uses_live": 2,
+   "files": 4,
+   "by_area": {
+    "fw-core": 2,
+    "fw-doc-old": 4
+   },
+   "selectors": [
+    ".app:has(.page.hides-nav.active-page), .app:has(.page.hides-nav.active-ancestor)"
+   ]
+  },
+  {
+   "word": "active-page",
+   "file": "styles.css",
+   "layers": [
+    "site"
+   ],
+   "rules": 2,
+   "def_bytes": 129,
+   "def_lines": [
+    33,
+    149
+   ],
+   "uses_total": 14,
+   "uses_live": 6,
+   "files": 11,
+   "by_area": {
+    "fw-core": 6,
+    "fw-doc-old": 8
+   },
+   "selectors": [
+    ".app:has(.page.hides-nav.active-page), .app:has(.page.hides-nav.active-ancestor)",
+    ".pages:not(:has(> .page.active-page)):not(:has(> .default)), .pages:has(> .page.topic.active-page)"
+   ]
+  },
+  {
+   "word": "app",
+   "file": "styles.css",
+   "layers": [
+    "site"
+   ],
+   "rules": 3,
+   "def_bytes": 236,
+   "def_lines": [
+    33,
+    167,
+    186
+   ],
+   "uses_total": 20,
+   "uses_live": 5,
+   "files": 20,
+   "by_area": {
+    "fw-core": 4,
+    "fw-doc-old": 14,
+    "styles-docs": 1,
+    "root": 1
+   },
+   "selectors": [
+    ".app",
+    ".app:has(.page.hides-nav.active-page), .app:has(.page.hides-nav.active-ancestor)"
+   ]
+  },
+  {
+   "word": "brand",
+   "file": "styles.css",
+   "layers": [
+    "site"
+   ],
+   "rules": 1,
+   "def_bytes": 80,
+   "def_lines": [
+    51
+   ],
+   "uses_total": 8,
+   "uses_live": 2,
+   "files": 8,
+   "by_area": {
+    "fw-core": 1,
+    "fw-doc-old": 3,
+    "styles-docs": 2,
+    "ai-log": 1,
+    "root": 1
+   },
+   "selectors": [
+    ".brand"
+   ]
+  },
+  {
+   "word": "brand-logo",
+   "file": "styles.css",
+   "layers": [
+    "site"
+   ],
+   "rules": 1,
+   "def_bytes": 49,
+   "def_lines": [
+    52
+   ],
+   "uses_total": 2,
+   "uses_live": 2,
+   "files": 2,
+   "by_area": {
+    "fw-core": 1,
+    "root": 1
+   },
+   "selectors": [
+    ".brand-logo"
+   ]
+  },
+  {
+   "word": "brand-text",
+   "file": "styles.css",
+   "layers": [
+    "site"
+   ],
+   "rules": 2,
+   "def_bytes": 138,
+   "def_lines": [
+    53,
+    57
+   ],
+   "uses_total": 1,
+   "uses_live": 1,
+   "files": 1,
+   "by_area": {
+    "root": 1
+   },
+   "selectors": [
+    ".brand-text",
+    ".brand-text:hover"
+   ]
+  },
+  {
+   "word": "code-block",
+   "file": "styles.css",
+   "layers": [
+    "site"
+   ],
+   "rules": 1,
+   "def_bytes": 42,
+   "def_lines": [
+    72
+   ],
+   "uses_total": 3,
+   "uses_live": 3,
+   "files": 2,
+   "by_area": {
+    "fw-ext": 3
+   },
+   "selectors": [
+    ".code-block"
+   ]
+  },
+  {
+   "word": "default",
+   "file": "styles.css",
+   "layers": [
+    "site"
+   ],
+   "rules": 4,
+   "def_bytes": 262,
+   "def_lines": [
+    114,
+    115,
+    122,
+    149
+   ],
+   "uses_total": 21,
+   "uses_live": 14,
+   "files": 19,
+   "by_area": {
+    "fw-core": 6,
+    "fw-ext": 5,
+    "fw-doc-old": 1,
+    "fw-other": 1,
+    "styles-docs": 5,
+    "sites": 2,
+    "root": 1
+   },
+   "selectors": [
+    ".page--framework > .pages > .default",
+    ".page--framework > .pages > .default > .flow",
+    ".page--framework > .pages > .default > .grid",
+    ".pages:not(:has(> .page.active-page)):not(:has(> .default)), .pages:has(> .page.topic.active-page)"
+   ]
+  },
+  {
+   "word": "flow",
+   "file": "styles.css",
+   "layers": [
+    "site"
+   ],
+   "rules": 1,
+   "def_bytes": 76,
+   "def_lines": [
+    115
+   ],
+   "uses_total": 104,
+   "uses_live": 66,
+   "files": 69,
+   "by_area": {
+    "fw-core": 15,
+    "fw-ext": 31,
+    "fw-doc-old": 2,
+    "fw-other": 9,
+    "styles-docs": 15,
+    "sites": 20,
+    "ai-log": 12
+   },
+   "selectors": [
+    ".page--framework > .pages > .default > .flow"
+   ]
+  },
+  {
+   "word": "grid",
+   "file": "styles.css",
+   "layers": [
+    "site"
+   ],
+   "rules": 1,
+   "def_bytes": 66,
+   "def_lines": [
+    122
+   ],
+   "uses_total": 123,
+   "uses_live": 61,
+   "files": 67,
+   "by_area": {
+    "fw-core": 7,
+    "fw-ext": 13,
+    "fw-ui": 4,
+    "fw-doc-old": 5,
+    "fw-other": 4,
+    "styles-docs": 47,
+    "sites": 37,
+    "ai-log": 6
+   },
+   "selectors": [
+    ".page--framework > .pages > .default > .grid"
+   ]
+  },
+  {
+   "word": "hides-nav",
+   "file": "styles.css",
+   "layers": [
+    "site"
+   ],
+   "rules": 1,
+   "def_bytes": 67,
+   "def_lines": [
+    33
+   ],
+   "uses_total": 2,
+   "uses_live": 2,
+   "files": 2,
+   "by_area": {
+    "sites": 2
+   },
+   "selectors": [
+    ".app:has(.page.hides-nav.active-page), .app:has(.page.hides-nav.active-ancestor)"
+   ]
+  },
+  {
+   "word": "in-path",
+   "file": "styles.css",
+   "layers": [
+    "site"
+   ],
+   "rules": 3,
+   "def_bytes": 233,
+   "def_lines": [
+    23,
+    66,
+    67
+   ],
+   "uses_total": 1,
+   "uses_live": 0,
+   "files": 1,
+   "by_area": {
+    "fw-doc-old": 1
+   },
+   "selectors": [
+    ".nav-link.active, .nav-link.in-path",
+    ".sidebar-link.active::after, .sidebar-link.in-path::after",
+    ".sidebar-link:is(.active, .in-path) .sidebar-label"
+   ]
+  },
+  {
+   "word": "logo",
+   "file": "styles.css",
+   "layers": [
+    "site"
+   ],
+   "rules": 1,
+   "def_bytes": 236,
+   "def_lines": [
+    41
+   ],
+   "uses_total": 1,
+   "uses_live": 1,
+   "files": 1,
+   "by_area": {
+    "root": 1
+   },
+   "selectors": [
+    ".logo"
+   ]
+  },
+  {
+   "word": "md",
+   "file": "styles.css",
+   "layers": [
+    "site"
+   ],
+   "rules": 1,
+   "def_bytes": 44,
+   "def_lines": [
+    193
+   ],
+   "uses_total": 4,
+   "uses_live": 4,
+   "files": 2,
+   "by_area": {
+    "fw-ext": 4
+   },
+   "selectors": [
+    ".md td:first-child"
+   ]
+  },
+  {
+   "word": "nav",
+   "file": "styles.css",
+   "layers": [
+    "site"
+   ],
+   "rules": 2,
+   "def_bytes": 176,
+   "def_lines": [
+    17,
+    34
+   ],
+   "uses_total": 6,
+   "uses_live": 2,
+   "files": 6,
+   "by_area": {
+    "fw-core": 1,
+    "fw-doc-old": 4,
+    "root": 1
+   },
+   "selectors": [
+    ".nav"
+   ]
+  },
+  {
+   "word": "nav-link",
+   "file": "styles.css",
+   "layers": [
+    "site"
+   ],
+   "rules": 3,
+   "def_bytes": 177,
+   "def_lines": [
+    21,
+    22,
+    23
+   ],
+   "uses_total": 17,
+   "uses_live": 1,
+   "files": 8,
+   "by_area": {
+    "fw-doc-old": 15,
+    "styles-docs": 1,
+    "root": 1
+   },
+   "selectors": [
+    ".nav-link",
+    ".nav-link.active, .nav-link.in-path",
+    ".nav-link:hover"
+   ]
+  },
+  {
+   "word": "page",
+   "file": "styles.css",
+   "layers": [
+    "site"
+   ],
+   "rules": 4,
+   "def_bytes": 252,
+   "def_lines": [
+    33,
+    107,
+    149,
+    155
+   ],
+   "uses_total": 114,
+   "uses_live": 41,
+   "files": 79,
+   "by_area": {
+    "fw-core": 11,
+    "fw-ext": 12,
+    "fw-doc-old": 15,
+    "fw-other": 1,
+    "styles-docs": 51,
+    "sites": 17,
+    "ai-log": 6,
+    "root": 1
+   },
+   "selectors": [
+    ".app:has(.page.hides-nav.active-page), .app:has(.page.hides-nav.active-ancestor)",
+    ".page.topic",
+    ".pages:not(:has(> .page.active-page)):not(:has(> .default)), .pages:has(> .page.topic.active-page)"
+   ]
+  },
+  {
+   "word": "page--framework",
+   "file": "styles.css",
+   "layers": [
+    "site"
+   ],
+   "rules": 3,
+   "def_bytes": 200,
+   "def_lines": [
+    114,
+    115,
+    122
+   ],
+   "uses_total": 1,
+   "uses_live": 0,
+   "files": 1,
+   "by_area": {
+    "fw-other": 1
+   },
+   "selectors": [
+    ".page--framework > .pages > .default",
+    ".page--framework > .pages > .default > .flow",
+    ".page--framework > .pages > .default > .grid"
+   ]
+  },
+  {
+   "word": "page-link-block",
+   "file": "styles.css",
+   "layers": [
+    "site"
+   ],
+   "rules": 1,
+   "def_bytes": 100,
+   "def_lines": [
+    188
+   ],
+   "uses_total": 1,
+   "uses_live": 1,
+   "files": 1,
+   "by_area": {
+    "sites": 1
+   },
+   "selectors": [
+    ".page-link-block"
+   ]
+  },
+  {
+   "word": "pages",
+   "file": "styles.css",
+   "layers": [
+    "site"
+   ],
+   "rules": 5,
+   "def_bytes": 309,
+   "def_lines": [
+    114,
+    115,
+    122,
+    137,
+    149
+   ],
+   "uses_total": 75,
+   "uses_live": 9,
+   "files": 58,
+   "by_area": {
+    "fw-core": 6,
+    "fw-doc-old": 63,
+    "fw-other": 1,
+    "styles-docs": 2,
+    "sites": 1,
+    "root": 2
+   },
+   "selectors": [
+    ".page--framework > .pages > .default",
+    ".page--framework > .pages > .default > .flow",
+    ".page--framework > .pages > .default > .grid",
+    ".pages:not(:has(> .page.active-page)):not(:has(> .default)), .pages:has(> .page.topic.active-page)",
+    ".topic > .pages"
+   ]
+  },
+  {
+   "word": "sidebar",
+   "file": "styles.css",
+   "layers": [
+    "site"
+   ],
+   "rules": 3,
+   "def_bytes": 136,
+   "def_lines": [
+    62,
+    136,
+    156
+   ],
+   "uses_total": 9,
+   "uses_live": 1,
+   "files": 8,
+   "by_area": {
+    "fw-doc-old": 8,
+    "sites": 1
+   },
+   "selectors": [
+    ".sidebar",
+    ".topic > .sidebar"
+   ]
+  },
+  {
+   "word": "sidebar-group",
+   "file": "styles.css",
+   "layers": [
+    "site"
+   ],
+   "rules": 1,
+   "def_bytes": 38,
+   "def_lines": [
+    65
+   ],
+   "uses_total": 1,
+   "uses_live": 1,
+   "files": 1,
+   "by_area": {
+    "fw-core": 1
+   },
+   "selectors": [
+    ".sidebar-group"
+   ]
+  },
+  {
+   "word": "sidebar-label",
+   "file": "styles.css",
+   "layers": [
+    "site"
+   ],
+   "rules": 1,
+   "def_bytes": 73,
+   "def_lines": [
+    66
+   ],
+   "uses_total": 3,
+   "uses_live": 3,
+   "files": 2,
+   "by_area": {
+    "fw-core": 1,
+    "fw-ext": 2
+   },
+   "selectors": [
+    ".sidebar-link:is(.active, .in-path) .sidebar-label"
+   ]
+  },
+  {
+   "word": "sidebar-link",
+   "file": "styles.css",
+   "layers": [
+    "site"
+   ],
+   "rules": 3,
+   "def_bytes": 195,
+   "def_lines": [
+    64,
+    66,
+    67
+   ],
+   "uses_total": 3,
+   "uses_live": 3,
+   "files": 2,
+   "by_area": {
+    "fw-core": 1,
+    "fw-ext": 2
+   },
+   "selectors": [
+    ".sidebar-link",
+    ".sidebar-link.active::after, .sidebar-link.in-path::after",
+    ".sidebar-link:is(.active, .in-path) .sidebar-label"
+   ]
+  },
+  {
+   "word": "sidebar-nav",
+   "file": "styles.css",
+   "layers": [
+    "site"
+   ],
+   "rules": 1,
+   "def_bytes": 58,
+   "def_lines": [
+    63
+   ],
+   "uses_total": 2,
+   "uses_live": 2,
+   "files": 2,
+   "by_area": {
+    "fw-core": 1,
+    "fw-ext": 1
+   },
+   "selectors": [
+    ".sidebar-nav"
+   ]
+  },
+  {
+   "word": "theme-1",
+   "file": "styles.css",
+   "layers": [
+    "site"
+   ],
+   "rules": 1,
+   "def_bytes": 175,
+   "def_lines": [
+    164
+   ],
+   "uses_total": 38,
+   "uses_live": 38,
+   "files": 37,
+   "by_area": {
+    "sites": 38
+   },
+   "selectors": [
+    "body.theme-1"
+   ]
+  },
+  {
+   "word": "topic",
+   "file": "styles.css",
+   "layers": [
+    "site"
+   ],
+   "rules": 6,
+   "def_bytes": 319,
+   "def_lines": [
+    107,
+    136,
+    137,
+    149,
+    155,
+    156
+   ],
+   "uses_total": 3,
+   "uses_live": 2,
+   "files": 3,
+   "by_area": {
+    "fw-other": 1,
+    "sites": 1,
+    "root": 1
+   },
+   "selectors": [
+    ".page.topic",
+    ".pages:not(:has(> .page.active-page)):not(:has(> .default)), .pages:has(> .page.topic.active-page)",
+    ".topic > .pages",
+    ".topic > .sidebar"
+   ]
+  }
+ ],
+ "note": "simplify-audit 2026-08-30. Words = class selectors defined in framework.css (rows) and public/styles.css (site_rows). uses_total = every .c/.ac/.rc/.tc string token + class= attribute across public/. uses_live excludes ai-log and styles-docs (pages ABOUT the vocabulary). Caveat: classes applied by View.classify() from a subclass NAME (e.g. .preview-card) are not counted here - those are component classes, not vocabulary.",
+ "totals": {
+  "framework_words": 51,
+  "site_words": 28,
+  "all_words": 79
+ }
+}

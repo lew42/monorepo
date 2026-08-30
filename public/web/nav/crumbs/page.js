@@ -40,7 +40,7 @@ export default new Page(demo.tree({
 	meta: import.meta,
 	group: "Patterns",
 	tree: archive,
-	height: "26em",
+	min: "26em",
 
 	note: "**Crumbs are for depth, and they are the only pattern that gets *better* the deeper you go.** They answer \"where am I\" and \"what contains this\" in one row, which no bar or rail can do — but they answer nothing about what else is *beside* you, so a trail on a shallow site is decoration. Note the url strip on this box: `demo.app` builds the same thing from `chain()`, one segment per link.",
 }));

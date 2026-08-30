@@ -17,7 +17,7 @@ const deck = chapters(here);
      `mark_links()` marks the ANCHORS on every navigation instead — `.in-path` /
      `[aria-current]` — which is what the rail's active rule keys on.
 
-   Container: /imagine/'s column row. Size: 22% of the row (696 at 3440, 369 at 1920),
+   Container: /imagine/'s column row. Size: a fixed 16em — 288 at 3440, 256 at 1920,
    one full band at 400. Own layout: one region holding a head and a list. Regions: one
    (the child stage is a column, not a region of mine). Preview: the cut, twice. */
 
@@ -27,7 +27,7 @@ export default new Deck({
 	description: "A rail that stays while the stage switches — the same four slides as Swap.",
 	icon: "menu_open",
 	group: "Head to head",
-	shapes: ["1:l 3:s", "1:l 3:w"],
+	shapes: ["1:l 5:s", "1:l 5:w"],
 
 	width: "full",
 	classes: "decks-rail",
@@ -55,7 +55,7 @@ export default new Deck({
 		name: ch.name,
 		title: ch.title,
 		width: "fill",
-		classes: i ? "decks-stagecol" : "default decks-stagecol",
+		classes: i ? null : "default",
 		...arrows,
 		prev: ch.prev, next: ch.next,
 		content: ch.build,

@@ -1,8 +1,8 @@
 # What the column-page labs found
 
-Seven labs were built on `columns()` during 2026-08-29 and each one ends in a verdict you
-can open. This page is the short version: **one claim per finding, with the page that
-measured it.** The mechanism itself is [`columns.md`](/framework/core/Page/doc/columns/).
+Labs built on `columns()` during 2026-08-29/30, each ending in a verdict you can open.
+This page is the short version: **one claim per finding, with the page that measured
+it.** The mechanism itself is [`columns.md`](/framework/core/Page/doc/columns/).
 
 ## The findings
 
@@ -42,6 +42,16 @@ white card reads as a hole. A wall of them keeps the column's inset; `bleed` spe
 inset, and only where the wall *is* the page. And an index that draws a wall must not also
 draw a rail — that is [`index: true`](/framework/core/Page/doc/columns/).
 → [Cards, side by side](/imagine/gallery/cards/) · [previews.md](/framework/core/Page/doc/previews/)
+
+**Of the five content kinds, only a nav LIST does not scale.**
+A statement and a stage scale with a wider region, a wall adds columns, notes cap at their
+measure and centre — a list takes a share and gets a chevron chasm. That one property
+decides every screen cut: lists get a fixed track, everything else may take a share. It
+also decides persistent-vs-swap navigation: kinds that CAP tolerate a persistent rail
+(it comes out of the gutter); kinds that SCALE want the swap (a 16em rail cost a statement
+14% of its size); a thin strip redrawn per slide reads as persistent at a fraction of the
+width.
+→ [Decks](/imagine/decks/) · [the content-kind map](/imagine/decks/doc/regions/)
 
 **`hug` wants a constant content width — a nav rail is not one.**
 Tried on a realm rail and reverted: it hugged to 128px on one realm and 183px on another,

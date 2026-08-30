@@ -9,7 +9,7 @@ export default new Page(demo.tree({
 	icon: "view_column",
 
 	tree: () => columns(sitemap()),
-	height: "24em",
+	min: "24em",
 
 	/* `demo.tree()`'s own card is deliberately bare — no label, an invisible link over
 	   the tree. Correct in a rail of nothing but trees; in a wall of labelled cards it

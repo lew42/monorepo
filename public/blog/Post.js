@@ -1,5 +1,5 @@
 import { Page, View, md, toc, div, a, span, time, h1, img, is } from "/app.js";
-import { post, dated } from "./posts.js";
+import { post, section, section_url, under_blog, url, dated } from "./posts.js";
 
 View.stylesheet(import.meta, "blog.css");
 
@@ -21,22 +21,23 @@ View.stylesheet(import.meta, "blog.css");
 export class Post extends Page {
 
 	/* The manifest is the only copy of the metadata, so a Post looks ITSELF up by the
-	 * directory it was imported from — before Page's constructor runs `naming()` and
-	 * `declare()`, both of which need `title` and `parts` already assigned.
+	 * `<section>/<name>` it was imported from — before Page's constructor runs
+	 * `naming()` and `declare()`, both of which need `title` and `parts` assigned.
 	 * ⚠ The entry goes in FIRST: later args win, so a page.js can still override one
-	 *   field without the manifest stopping being the default. */
+	 *   field without the manifest stopping being the default. A post in parts whose
+	 *   entry has no `parts:` yet declares them in its own two-line page.js. */
 	constructor(...args){
 		const seed = Object.assign({}, ...args);
-		const slug = new URL(".", seed.meta.url).pathname.split("/").filter(Boolean).at(-1);
+		const path = under_blog(seed.meta).join("/");
 
-		super(post(slug) ?? Post.unlisted(slug), ...args);
+		super(post(path) ?? Post.unlisted(path), ...args);
 	}
 
 	// A post nobody added to the manifest still renders — it just says so, rather than
 	// throwing inside the route walk, where the message would be a blank page.
-	static unlisted(slug){
-		console.warn(`blog/${slug} — no entry in posts.js: no date, no description, no meta tags.`);
-		return { slug, unlisted: true };
+	static unlisted(path){
+		console.warn(`blog/${path} — no entry in posts.js: no date, no description, no meta tags.`);
+		return { name: path.split("/").at(-1), section: path.split("/")[0], unlisted: true };
 	}
 
 	// ── the parts ────────────────────────────────────────────────────────────
@@ -60,6 +61,13 @@ export class Post extends Page {
 			classes: "blog-part" + (i ? "" : " default"),
 
 			content(){ return post.prose(md.file(meta, name + ".md", { h1: false })); },
+
+			/* Moving between parts does not re-run `content()` — the view is already
+			 * built — so the rail would still list the part you left. `deactivated` too:
+			 * going UP to the post itself activates nothing, so leaving is the only
+			 * event there is (the lesson `Page.deactivate()` records for columns). */
+			activated(){ post.after_prose(); },
+			deactivated(){ post.after_prose(); },
 		}));
 	}
 
@@ -77,7 +85,13 @@ export class Post extends Page {
 			 * This box is also the region the parts mount in: `container()` walks up for
 			 * the nearest `$pages`, so a part lands here without either page naming the
 			 * other, and it appends AFTER the head. */
-			this.$pages = div.c("blog-read", () => { this.head(); this.read(); });
+			/* ⚠ `return this.read()`, and the missing word cost every SINGLE-PART post its
+			 *   prose, silently. A multi-part post's `read()` renders a child Page, which
+			 *   appends itself to the captor as a side effect — so the bug was invisible on
+			 *   the only post that existed. A one-part post returns the `md.file()` PROMISE,
+			 *   and a promise the callback drops on the floor is never appended: no error,
+			 *   no 404, an empty column. A block-bodied arrow inside a factory must return. */
+			this.$pages = div.c("blog-read", () => { this.head(); return this.read(); });
 
 			this.rail();
 		}));
@@ -91,16 +105,21 @@ export class Post extends Page {
 			h1.c("page-title", this.title);
 			this.byline();
 			if (this.description) div.c("blog-standfirst", this.description);
-			if (this.image) this.lead();
+			if (this.image && this.lead) this.lead_image();
 		});
 	}
 
 	/* THE LEAD — the post's own picture, in the exhibit track beside the title.
 	 * It is the SAME `image:` the manifest hands to `og:image`, so the card a link
 	 * unfurls into and the thing at the top of the post cannot disagree, and nobody
-	 * maintains two pictures. */
-	lead(){
-		return div.c("blog-lead", () => img.attr("src", this.image).attr("alt", this.title));
+	 * maintains two pictures.
+	 * ⚠ OPT-IN (`lead: true`), because most posts' `image:` is a screenshot their own
+	 *   prose already shows in context — drawn here as well it is the same picture
+	 *   twice, once without the sentence that explains it.
+	 * ⚠ `lead_image()`, not `lead()`: `lead: true` is a FIELD, and a field silently
+	 *   shadows a method of the same name (`opens` did this in core). */
+	lead_image(){
+		return div.c("blog-lead", () => img().attr("src", this.image).attr("alt", this.title));
 	}
 
 	byline(){
@@ -161,13 +180,69 @@ export class Post extends Page {
 	 *   reads an empty region and `toc()` deletes itself. A macrotask cannot lose that
 	 *   race. Called from `.finally()` so a 404'd part still refreshes the rail. */
 	after_prose(){
-		setTimeout(() => this.$toc?.empty(() => toc()));
+		setTimeout(() => { this.skip_closed_parts(); this.$toc?.empty(() => toc()); });
 	}
 
+	/* ⚠ EVERY part stays in the DOM — `@layer util` only stops a closed one PAINTING —
+	 *   and `toc()` scans the whole enclosing `.page`, so the rail listed part one's
+	 *   headings above part two's. `.toc-skip` is ext/toc's own opt-out.
+	 * ⚠ Asked of the CLASSES, not of `offsetParent`: a page is built DETACHED, so on a
+	 *   cold load every part measures as hidden and the one actually on screen was
+	 *   skipped. This is `blog.css`'s visibility rule said in JS — the same "routed, or
+	 *   else the default one" test — so the two cannot disagree. */
+	skip_closed_parts(){
+		const parts = [...(this.$pages?.el.querySelectorAll(":scope > .page") ?? [])];
+		const open = el => el.matches(".active-page, .active-ancestor");
+		const routed = parts.some(open);
+
+		parts.forEach(el => el.classList.toggle("toc-skip",
+			routed ? !open(el) : !el.classList.contains("default")));
+	}
+
+	/* Where to go next, and both links are REAL pages: the section this post is filed
+	 * under and the front. `section()` rather than `this.parent` so the label says
+	 * which section — a rail that only says "up" makes the reader remember. */
 	more(){
+		const filed = section(this.section);
+
 		return div.c("blog-more", () => {
 			span.c("blog-rail-title h4", "More");
-			a.c("blog-more-link", "All posts").href(this.parent?.url ?? "/blog/");
+			if (filed) a.c("blog-more-link", "All " + filed.title + " posts").href(section_url(filed));
+			a.c("blog-more-link", "The blog").href("/blog/");
+		});
+	}
+
+	/* ══ A POST SEEN FROM OUTSIDE — statics, because the caller has a manifest ENTRY
+	   and not a Post. The front and the three section indexes both draw these, and
+	   drawing them from the class keeps one description of what a post looks like.
+
+	   ⚠ `.page-previews` / `.page-preview` are Page.css's own card wall — the same
+	     arrangement /framework/ and the homepage use, so the blog does not introduce a
+	     second kind of card to the site. Only the byline is the blog's own, and
+	     `--column` is set by blog.css, which is the only thing that knows the room. */
+	static card(post){
+		return a.c("page-preview").href(url(post)).append(() => {
+			span.c("page-preview-title", post.title);
+			time.c("blog-card-date", dated(post.date)).attr("datetime", post.date);
+			div.c("page-preview-desc", post.description);
+		});
+	}
+
+	static wall(list){ return div.c("page-previews bleed", () => list.forEach(post => this.card(post))); }
+
+	/* THE LEAD, as the composition it deserves: display type, the dek, and the whole
+	 * block is the link. Sized in `cqw` off its OWN box, so the hero is the same
+	 * fraction of a 900px band as of a 400px phone — never sized off the viewport. */
+	static hero(post){
+		return a.c("blog-hero").href(url(post)).append(() => {
+			div.c("blog-eyebrow", () => {
+				span(section(post.section)?.title ?? post.section);
+				span.c("blog-dot", "·");
+				span(dated(post.date));
+			});
+
+			div.c("blog-hero-title", post.title);
+			div.c("blog-hero-dek", post.description);
 		});
 	}
 }

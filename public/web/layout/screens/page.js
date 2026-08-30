@@ -84,7 +84,7 @@ export default new Page(demo.tree({
 	icon: "space_dashboard",
 
 	tree: depot,
-	height: "36em",
+	min: "36em",
 
 	content(){
 		this.stage().ac("bleed");

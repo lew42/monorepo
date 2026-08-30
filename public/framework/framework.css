@@ -510,13 +510,15 @@
 
     /* A ladder rather than `.zoom` + `--zoom`, which is the shape `.pad`, `.gap`
        and `.basis` all take — and it was audited as exactly that mistake, "a scale
-       nobody asked for". The census says otherwise: EIGHT of these nine have real
-       call sites (the gallery's thumbs at 25/50/75, the util page's own demo, and
-       three dev sandboxes at 100–200 and responsive). A scale that is used is not
-       a scale nobody asked for, so it stays.
-       ⚠ FROZEN at these eight. A new zoom level is not a new rung — it is
-       `.style("zoom", …)` at the call site, or the `--zoom` token this would have
-       to become. `.zoom-125` is deleted: the one rung with no user anywhere. */
+       nobody asked for". The census: FIVE of these eight have real call sites — the
+       gallery's thumbs at 25/50, the util page's own demo, and two dev sandboxes at
+       100/150/responsive. `zoom-75`, `zoom-175` and `zoom-200` have none (checked
+       2026-08-30) — not the "eight of nine, only 125 unused" this comment used to
+       claim; that count was never re-run after the rungs it named stopped being used.
+       ⚠ Still frozen at these eight — deleting the three zero-call rungs is a
+       separate decision, not this comment's. A new zoom level is not a new rung —
+       it is `.style("zoom", …)` at the call site, or the `--zoom` token this would
+       have to become. `.zoom-125` is deleted: the one rung with no user anywhere. */
     .zoom-25 { zoom: 0.25; }
     .zoom-50 { zoom: 0.5; }
     .zoom-75 { zoom: 0.75; }

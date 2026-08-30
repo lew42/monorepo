@@ -16,12 +16,12 @@ export default new Page({
 	width: "large",
 	index: true,
 
-	children: "half golden aside triptych poster four quarters persist swap pitch",
+	children: "half golden aside triptych poster four persist swap pitch",
 
 	content(){
 		md("**Slide-grade layouts.** [`/imagine/screens/`](/imagine/screens/) found the two words a whole screen is made of — `full` replaces, `fill` joins. This lab is one rung in: once you have the screen, **how do you cut it**, and what kind of content survives the piece it lands in.");
 
-		md("A region here is a **flex weight**, not a column: `flex: 61.8 1 0` beside `flex: 38.2 1 0` is the golden section at 400, 1920 and 3440 alike. The cards below are the cuts, and each cell is toned by the content kind that belongs in it.");
+		md("A region here is a **share of the row**, written as its flex basis: `61.8%` beside `38.2%` measured 2125 / 1313 at 3440 and 1185 / 733 at 1920 — the golden section at both, with no breakpoint. The cards below are the cuts, and each cell is toned by the content kind that belongs in it.");
 
 		this.previews();
 
@@ -31,12 +31,15 @@ export default new Page({
 |---|---|---|
 | **statement** | scales — the type is 13% of its own block | the major share, or the whole screen |
 | **stage** | scales — an aspect box has no wrong width | any region of any cut |
-| **wall** | adds columns — one token, no breakpoint | any share, and the only kind happy at 633px |
+| **wall** | adds columns — one token, no breakpoint | any share, and the only kind happy at 687px |
 | **notes** | caps at its measure and centres | a minor share, 500–1200px |
 | **list** | **does not scale** — a row is its label | a fixed track (\`small\`), never a share |`);
 
 		md("That last row is the whole content-kind map in one line: four of the five kinds take a *share* and get better; a nav list takes a share and gets a chevron chasm. Every cut in this lab is a different answer to where the list goes.");
 
-		md("The measured widths, the persistent-vs-swap verdict and what was cut: [readme](/imagine/decks/readme/) · [decisions](/imagine/decks/doc/decisions/).");
+		// ⚠ `.md` on the doc links, not the pretty `/doc/<name>/` form. That route belongs to
+		//   a `Doc`-based module; beside a plain Page it 404s in console while a static
+		//   server's SPA fallback masks it with a 200 (`documentation` skill).
+		md("Every verdict, and the widths behind it: [readme](/imagine/decks/readme/) · [the content-kind map](/imagine/decks/doc/regions.md) · [decisions](/imagine/decks/doc/decisions.md).");
 	},
 });

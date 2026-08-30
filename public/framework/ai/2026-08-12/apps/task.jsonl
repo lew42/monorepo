@@ -1,1 +1,3 @@
 {"assign": {"group": "apps"}}
+{"action":{"at":"2026-08-30T12:02:08-05:00","did":"edit","files":["public/framework/ai/2026-08-12/apps/columns/page.js"]}}
+{"action":{"at":"2026-08-30T12:03:18-05:00","did":"edit","files":["public/framework/ai/2026-08-12/apps/navigation/page.js"]}}
