@@ -12,6 +12,7 @@ View.stylesheet(import.meta, "app.css");
  *
  *     demo.app(docs)                   // opens at the root
  *     demo.app(laces, { nav: true })   // opens deep, with a rail
+ *     demo.app(web, { urls: false })   // the tree's urls address nothing on the server
  *
  * It plays App and Router for one tree, and nothing else: it owns the region
  * pages mount in, walks `child()` on a click, and marks what it shows. The pages
@@ -29,6 +30,10 @@ View.stylesheet(import.meta, "app.css");
  * core/Page/readme.md.
  */
 demo.app = (page, options) => new DemoApp({ page }, options);
+
+// The two shapes a link in here can take — an ordinary anchor, or one `urls: false`
+// has taken the href off. Written once, because click, keydown and mark all ask.
+const LINK = "a[href], [data-demo-url]";
 
 class DemoApp extends View {
 
@@ -74,18 +79,27 @@ class DemoApp extends View {
 	/* Any anchor inside a miniature is miniature navigation, and preventDefault()
 	 * beats the real Router to it — link_clicked() bails on `e.defaultPrevented`.
 	 * ⚠ Only urls under the root: a link to the real site inside a demo page must
-	 * stay real, and a walk off the tree would probe the server for a page.js. */
+	 * stay real, and a walk off the tree would probe the server for a page.js.
+	 * ⚠ `data-demo-url` too — that is where `urls: false` puts the address, and an
+	 *   element with no href needs Enter wired up by hand. */
 	initialize(){
 		super.initialize();
 
-		this.click(e => {
-			const link = e.target.closest?.("a[href]");
-			if (!link || !this.el.contains(link)) return;
-			if (!link.pathname.startsWith(this.root.url)) return;
+		this.click(e => this.followed(e.target.closest?.(LINK), e));
 
-			e.preventDefault();
-			this.go(link.pathname);
+		this.on("keydown", e => {
+			if (e.key === "Enter") this.followed(e.target.closest?.("[data-demo-url]"), e);
 		});
+	}
+
+	followed(link, e){
+		if (!link || !this.el.contains(link)) return;
+
+		const url = link.dataset.demoUrl ?? link.pathname;
+		if (!url.startsWith(this.root.url)) return;
+
+		e.preventDefault();
+		this.go(url);
 	}
 
 	// The Router's walk, in miniature. Nothing is fetched — a demo tree is built in
@@ -169,9 +183,32 @@ class DemoApp extends View {
 			if (page.view?.el.contains(this.page.view.el)) page.view.ac("default");
 		});
 
-		this.el.querySelectorAll("a[href]").forEach(link => {
-			const current = this.current(link.pathname);
+		if (this.urls === false) this.unlink();
+
+		this.el.querySelectorAll(LINK).forEach(link => {
+			const current = this.current(link.dataset.demoUrl ?? link.pathname);
 			current ? link.setAttribute("aria-current", current) : link.removeAttribute("aria-current");
+		});
+	}
+
+	/* `urls: false` — an IN-MEMORY tree's urls address nothing on the server. `/web/html/`
+	 * is a NAME in here, and an `<a href>` pointing at it works on click (this box
+	 * intercepts it) and dead-ends on middle-click, open-in-new-tab, copy-link and every
+	 * crawler that reads the page. So the address moves to `data-demo-url`, which
+	 * `followed()` reads instead, and the element stays operable from the keyboard.
+	 *
+	 * ⚠ Every anchor, not just the ones `rail()` and `crumbs()` build: a page in here
+	 *   draws its own `previews()` and those cards carry real hrefs too.
+	 * ⚠ Only urls under the root — a link to the REAL site inside a demo page is a real
+	 *   link, and stripping its href would break the one thing that should navigate. */
+	unlink(){
+		this.el.querySelectorAll("a[href]").forEach(link => {
+			if (!link.pathname.startsWith(this.root.url)) return;
+
+			link.dataset.demoUrl = link.pathname;
+			link.removeAttribute("href");
+			link.tabIndex = 0;
+			link.setAttribute("role", "link");
 		});
 	}
 

@@ -81,7 +81,17 @@ export default new Page({
 	 * the crumbs and the cards are the real ones. Four pages, no build step, and
 	 * the whole thing is on this page.
 	 *
-	 * ⚠ One demo, and it is not the Panel — `/framework/` opens with that one. */
+	 * ⚠ One demo, and it is not the Panel — `/framework/` opens with that one.
+	 *
+	 * ⚠ `urls: false` — the tree lives in memory, so `/web/html/` and its three siblings
+	 *   are NAMES, not addresses. With real hrefs the four links worked on click (the box
+	 *   intercepts them) and dead-ended on middle-click, open-in-new-tab and every crawler:
+	 *   four 404s advertised from the site's highest-authority page. ext/demo/app.js hands
+	 *   the address to `data-demo-url` instead.
+	 *
+	 * ⚠ Nothing explanatory goes INSIDE the `demo()` callback — `demo()` prints the
+	 *   function it ran, so a comment in there is printed on the homepage as if it were
+	 *   part of the lesson. This one was, for one build. */
 	stage(){
 		return div.c("home-stage", () => {
 
@@ -95,7 +105,7 @@ export default new Page({
 						SVG: { icon: "polyline", content(){ p("Drawings that are also documents."); } },
 					},
 					content(){ this.previews(); },
-				}), { nav: true });
+				}), { nav: true, urls: false });
 			}, "Four pages and their navigation, running here. Click one.");
 		});
 	},

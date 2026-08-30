@@ -19,6 +19,10 @@
 		border-bottom: 1px solid var(--line);
 	}
 
+	/* `urls: false` took the href off (app.js), and with it the pointer an anchor gets
+	   for free. Everything else these links wear is already class-based. */
+	.demo-app [data-demo-url] { cursor: pointer; }
+
 	.demo-app-crumb { color: var(--subtle); text-decoration: none; }
 	.demo-app-crumb:hover { color: var(--prim); }
 

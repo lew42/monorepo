@@ -210,10 +210,18 @@ function btn(content, title, fn){
 
 /* The caption is prose, so it wants markdown — but demo/ must not depend on
  * markdown/. Soft dependency instead: if ext/markdown has been imported it has
- * patched View.prototype.md, so use it; otherwise fall back to the backtick pass. */
+ * patched View.prototype.md, so use it; otherwise fall back to the backtick pass.
+ *
+ * ⚠ TWO elements, not one. Inside a `.demo` the caption is the box's last STRIP —
+ *   tinted, hairlined, and it has to reach both edges — while the sentence in it is
+ *   prose and has to stay on the measure. One element could not be both: the
+ *   `max-width` that kept the line readable also stopped the tint, at 45% of the
+ *   box on a 3440 homepage. demo.css says it in CSS. */
 function caption(text){
-	const view = p.c("demo-note");
-	return view.md ? view.md(text) : view.backtick_append(text);
+	return div.c("demo-note", () => {
+		const view = p.c("demo-note-text");
+		view.md ? view.md(text) : view.backtick_append(text);
+	});
 }
 
 /* The same deal with ext/highlight: if it's loaded the source is highlighted, if

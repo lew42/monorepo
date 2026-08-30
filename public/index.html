@@ -10,6 +10,32 @@
 	<title>lew42</title>
 	<link rel="icon" type="image/png" href="/assets/img/favicon.png">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<!-- THE ROOT'S CARD. Every post has one, stamped from blog/posts.js by blog/meta.mjs —
+	     and this is the url anybody actually pastes, so it gets the same tags by hand. NOT
+	     generated: one page with one description does not need a stamper.
+	     ⚠ Absolute urls throughout: a crawler has no document to resolve a relative one against.
+	     ⚠ One description string, used by all three (SERP, og, twitter) — a second wording is
+	       a second thing to keep true. -->
+	<meta name="description" content="Native ES modules served exactly as written: no build step, no runtime dependencies. This site is that framework documenting itself, so every example on it is live.">
+	<link rel="canonical" href="https://lew42.com/">
+
+	<meta property="og:type" content="website">
+	<meta property="og:site_name" content="lew42">
+	<meta property="og:title" content="lew42 — a web framework with no build step">
+	<meta property="og:description" content="Native ES modules served exactly as written: no build step, no runtime dependencies. This site is that framework documenting itself, so every example on it is live.">
+	<meta property="og:url" content="https://lew42.com/">
+	<meta property="og:image" content="https://lew42.com/blog/framework/hello-lew42/no-build.png">
+	<meta property="og:image:width" content="1200">
+	<meta property="og:image:height" content="700">
+	<meta property="og:image:alt" content="The framework's own front page: the no-build headline, the measured stats beside it, and the two-line page.js under them.">
+
+	<meta name="twitter:card" content="summary_large_image">
+	<meta name="twitter:title" content="lew42 — a web framework with no build step">
+	<meta name="twitter:description" content="Native ES modules served exactly as written: no build step, no runtime dependencies. This site is that framework documenting itself, so every example on it is live.">
+	<meta name="twitter:image" content="https://lew42.com/blog/framework/hello-lew42/no-build.png">
+	<meta name="twitter:image:alt" content="The framework's own front page: the no-build headline, the measured stats beside it, and the two-line page.js under them.">
+
 	<script type="module" src="/app.js"></script>
 </head>
 <body></body>

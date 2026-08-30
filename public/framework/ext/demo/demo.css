@@ -75,13 +75,20 @@
 	.page.standard > .demo.quoted,
 	.page.standard > .demo-stage.quoted { grid-column: main; }
 
-	/* the caption — the sentence that belongs to THIS example */
+	/* the caption — the sentence that belongs to THIS example.
+	   ⚠ TWO elements: the BAND, and the TEXT in it. The band is the box's last strip and
+	     has to reach both of its edges; the sentence is prose and has to stay on the
+	     measure. `max-width` on the band itself did both jobs badly — measured on the
+	     homepage's centrepiece the tint painted 648px of a 1443px box at 3440 (45%,
+	     stopping 795px short) while reading as correct at every width under ~1300, which
+	     is why it survived. demo.js builds the pair. */
 	.demo-note {
 		margin: 0;
-		max-width: var(--measure, none);   /* a demo is a box; its caption is prose */
 		font-size: 0.9em;
 		color: var(--subtle);
 	}
+
+	.demo-note-text { margin: 0; max-width: var(--measure, none); }
 
 	/* ⚠ Inside a box the caption is the box's last strip; on a PAGE (demo.exhibit)
 	   it is a paragraph under the source, and a tinted band with a hairline over it

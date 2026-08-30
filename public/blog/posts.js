@@ -14,6 +14,14 @@
  *   Every reader of this file treats it as a list of links, so a half-written post is
  *   one card that 404s, never a broken front.
  *
+ * THE PICTURE a post unfurls into is `image:`. Two optional neighbours:
+ *   `card_image:` — a card-shaped crop, for when `image:` is the wrong SHAPE to unfurl.
+ *     A social card is 1.91:1, and a 4:1 screenshot letterboxes inside one to an
+ *     illegible strip. `image:` keeps doing its other job — see `lead: true` below.
+ *   `alt:` — one line describing the PICTURE, for `og:image:alt`. Defaults to
+ *     "Screenshot from “<title>”", which is true of every picture here and useful to
+ *     nobody, so a post with a picture worth a sentence writes one.
+ *
  * Adding a post:
  *   1. one entry here    2. <section>/<slug>/page.js (two lines)    3. its .md files
  *   4. `node public/blog/meta.mjs --write` to stamp the meta shell
@@ -54,6 +62,9 @@ export const posts = [
 		date: "2026-08-30",
 		description: "A web framework with no build step, and the site it builds. What a page is, what a view is, and why the whole thing fits in your head.",
 		image: "/blog/framework/hello-lew42/no-build.png",
+		// ⚠ No NUMBERS in an alt. This picture shows the five counters, and quoting them
+		//   here would be a fourth copy that nothing recounts — stale the day core changes.
+		alt: "The framework's own docs: a sidebar of pages, five counters for the size of it, and the two-line page.js under them.",
 
 		// The front's lead post. One entry wears it; without it the newest is used.
 		featured: true,
@@ -66,6 +77,12 @@ export const posts = [
 		date: "2026-08-30",
 		description: "A static index.html for the crawlers, the same url booting the app for you, and a reading page that stops wasting an ultrawide.",
 		image: "/blog/framework/how-this-blog-works/lead.png",
+
+		/* 3440×820 is the whole point of the picture and the wrong shape for a card, so
+		 * the card gets the left third of it — the prose column and the exhibit beside
+		 * it, which is the sentence the post is making anyway. */
+		card_image: "/blog/framework/how-this-blog-works/card.png",
+		alt: "The reading page at 3440px: prose held at its measure on the left, a CSS listing floated into the space beside it.",
 
 		/* `lead: true` — this picture ALSO opens the post, in the exhibit track beside
 		 * the title. Opt-in, because every other post's picture is one its own prose
@@ -88,6 +105,12 @@ export const posts = [
 		date: "2026-08-26",
 		description: "Two machines that draw pages — one searches a space of layouts against a rubric, the other redraws every stored seed the moment a rule changes.",
 		image: "/blog/systems/layout-generators/space-ruler.png",
+
+		// `space-ruler.png` is 4.45:1 — a card would show a letterboxed strip of it, and
+		// cropping it to 1.91:1 would throw away more than half. A centre crop of the
+		// wall beside it says the same thing and survives being small.
+		card_image: "/blog/systems/layout-generators/card.png",
+		alt: "A wall of generated page layouts, each thumbnail stamped with the score the rubric gave it.",
 	},
 
 	{
@@ -105,6 +128,7 @@ export const posts = [
 		date: "2026-08-19",
 		description: "Every task opens an append-only log before its first edit. The board reads those logs live over a socket, and never reloads a page.",
 		image: "/blog/ai/dashboard/day-board.png",
+		alt: "The day board: one task still running above twenty landed ones, each with its progress bar, its steps and what it cost.",
 	},
 
 	{
@@ -114,6 +138,7 @@ export const posts = [
 		date: "2026-08-17",
 		description: "Three ways to give a model hands on a real website, and the one rule that keeps all three honest.",
 		image: "/blog/ai/claude-tooling/board.png",
+		alt: "Seven models working the site at once on the task board, each one's task, step and progress written as it goes.",
 	},
 ];
 
@@ -147,6 +172,21 @@ export function post(path){ return posts.find(p => slug(p) === path); }
  *   ends up shadowing a method. */
 export function featured(){ return posts.find(p => p.featured) ?? listed()[0]; }
 export function rest(){ return listed().filter(p => p !== featured()); }
+
+// ── the social card ──────────────────────────────────────────────────────────
+/* What a link unfurls into. `card_image` overrides `image` for ONE reason — shape.
+ * ⚠ `card_image`, not `card`: a Page already reads `this.card` as the CSS class for
+ *   its preview card (`Page.nav()`), and every field here is assigned onto the Post,
+ *   so `card:` would put an image path in a class attribute. */
+export const card_image = post => post && (post.card_image ?? post.image);
+export const card_alt = post => post && (post.alt ?? `Screenshot from “${post.title}”`);
+
+/* The front and the three section indexes have no picture of their own, so each
+ * BORROWS a post's: the front the featured post's, a section its newest. Derived
+ * rather than named, so there is still exactly one copy of every path and a new post
+ * refreshes the card its section unfurls into. `meta.mjs` stamps the result — and
+ * reports the shells as stale until it is re-run, which is where you find out. */
+export const card_post = name => name ? of_section(name)[0] : featured();
 
 // "2026-08-30" -> "30 Aug 2026". A date is a string here, never a Date: `new
 // Date("2026-08-30")` is UTC midnight, which is the day BEFORE in every American

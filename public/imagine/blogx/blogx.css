@@ -242,6 +242,13 @@
 		border-block-start: 1px solid var(--line);
 	}
 
+	/* ⚠ THE TYPE SITS AT THE TOP, and no wall may push it down. A stretched wall makes a
+	     490px cell for 120px of type (measured on the front at 3440), and bottom-aligning
+	     that type left 333–366px of unmarked white ABOVE every headline — which is where
+	     a photograph goes, so the strongest front on the site read as seven broken images.
+	     The same air BELOW the type is only the cell's remainder, and every title in a row
+	     then lands on one line. Tried and rejected: filling the gap with a `--tint` field,
+	     which is a photo placeholder on a site that ships no photographs. */
 	.blogx-card {
 		display: flex; flex-direction: column; gap: 0.35em;
 		padding: 1em 1.1em 1.2em;
@@ -429,7 +436,6 @@
 	.blogx-latest > .page-column-body { display: flex; flex-direction: column; }
 	.blogx-latest > .page-column-body > .page-column-prose { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
 	.blogx-latest .blogx-wall { flex: 1 1 auto; min-height: 0; align-content: stretch; --blogx-card: 30em; }
-	.blogx-latest .blogx-wall > .blogx-card { justify-content: flex-end; }
 
 	/* ── the magazine front ───────────────────────────────────────────────── */
 
@@ -452,12 +458,6 @@
 		     content-sized, which is what left 54% of a 1080 screen white under a
 		     composition that had already fitted. Measured before and after. */
 		.blogx-front > .blogx-wall { border-block-start: none; --blogx-card: 17em; align-content: stretch; }
-
-		/* Eight posts cannot fill a 3x3 grid of 350px cells from the top, and cells
-		   with content at the top and 200px of air under it read as unfinished. Bottom
-		   -aligned they read as a poster wall: every title sits on the same line as its
-		   neighbours, and the air is above the type where a magazine puts it. */
-		.blogx-front > .blogx-wall > .blogx-card { justify-content: flex-end; }
 	}
 
 	/* ⚠ THE CARD FLOOR GROWS WITH THE SCREEN, and this is the finding a 3440 monitor

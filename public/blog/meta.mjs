@@ -17,9 +17,10 @@ import { readFile, writeFile, stat, readdir } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { listed, sections, slug, site } from "./posts.js";
+import { card_alt, card_image, card_post, listed, sections, slug, site } from "./posts.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
+const root = join(here, "..");            // `public/` — an image path is a url from here
 const write = process.argv.includes("--write");
 
 // ⚠ Attribute values, so `"` and `&` are the whole escape set that matters; `<` is
@@ -28,7 +29,7 @@ const esc = s => String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replac
 
 /* THE SHELL. Deliberately the site's own `index.html` plus a head — same charset-first
  * rule (the deployed host serves no charset header), same `/app.js`, same favicon. */
-function shell({ title, description, url, image, type = "article" }){
+function shell({ title, description, url, image, alt, width, height, type = "article" }){
 	const abs = site + url;
 
 	return `<!doctype html>
@@ -50,12 +51,16 @@ function shell({ title, description, url, image, type = "article" }){
 	<meta property="og:title" content="${esc(title)}">
 	<meta property="og:description" content="${esc(description)}">
 	<meta property="og:url" content="${esc(abs)}">${image ? `
-	<meta property="og:image" content="${esc(site + image)}">` : ""}
+	<meta property="og:image" content="${esc(site + image)}">${width ? `
+	<meta property="og:image:width" content="${width}">
+	<meta property="og:image:height" content="${height}">` : ""}
+	<meta property="og:image:alt" content="${esc(alt)}">` : ""}
 
 	<meta name="twitter:card" content="${image ? "summary_large_image" : "summary"}">
 	<meta name="twitter:title" content="${esc(title)}">
 	<meta name="twitter:description" content="${esc(description)}">${image ? `
-	<meta name="twitter:image" content="${esc(site + image)}">` : ""}
+	<meta name="twitter:image" content="${esc(site + image)}">
+	<meta name="twitter:image:alt" content="${esc(alt)}">` : ""}
 
 	<!-- …and then the ordinary app. The router reads location.pathname and walks to
 	     this post, so the same url that carried the tags above renders the real page. -->
@@ -78,6 +83,31 @@ async function first_png(dir){
 	return png && "/blog/" + dir + "/" + png;
 }
 
+/* THE CARD one page unfurls into. The front and the section indexes have no picture
+ * of their own, so the manifest lends each of them a post's (`card_post`). */
+async function card(post){
+	const image = post && (card_image(post) ?? await first_png(slug(post)));
+
+	return image ? { image, alt: card_alt(post), ...await png_size(image) } : {};
+}
+
+/* REAL pixels, out of the PNG's own IHDR: the 8-byte signature, a length and a type,
+ * then width and height as big-endian uint32s at bytes 16 and 20. Node core only, and
+ * READ rather than typed — a card renderer that knows the size reserves the right box
+ * before the picture arrives, and hand-written numbers are wrong the first time a
+ * picture is recropped.
+ * ⚠ Unreadable, or not a PNG → no size tags rather than guessed ones. Same rule one
+ *   size down: a missing shell is a missing card, never a broken page. */
+const SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+
+async function png_size(image){
+	const bytes = await readFile(join(root, image)).catch(() => null);
+
+	if (!bytes || bytes.length < 24 || !bytes.subarray(0, 8).equals(SIGNATURE)) return {};
+
+	return { width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20) };
+}
+
 /* Every page with an address of its own: the front, the three section indexes, and
  * one per post. A section index carries `website` rather than `article` — it is a
  * list, and an unfurled card that calls it an article is a small lie. */
@@ -89,24 +119,26 @@ const shells = [
 			description: "Notes on building a web framework with no build step.",
 			url: "/blog/",
 			type: "website",
+			...await card(card_post()),
 		}),
 	},
 
-	...sections.map(section => ({
+	...await Promise.all(sections.map(async section => ({
 		dir: section.name,
 		html: shell({
 			title: section.title,
 			description: section.blurb,
 			url: "/blog/" + section.name + "/",
 			type: "website",
+			...await card(card_post(section.name)),
 		}),
-	})),
+	}))),
 
 	...await Promise.all(listed().map(async post => ({
 		dir: slug(post),
 		html: shell({
 			...post,
-			image: post.image ?? await first_png(slug(post)),
+			...await card(post),
 			url: "/blog/" + slug(post) + "/",
 		}),
 	}))),

@@ -122,6 +122,36 @@ title was below it. A post reads first and navigates after, so `.rail.blog-rail`
   the rail needs `activated()` *and* `deactivated()` — going up to the post activates
   nothing, which is the lesson `Page.deactivate()` already records for columns.
 
+## The first exhibit moves up, above 130em of container
+
+At 3440 the *fold* was still the old problem in miniature: `/blog/systems/layout-generators/`
+opened its first figure at y=1284 and `/blog/ai/dashboard/` at y=1138, so the exhibit track
+— the whole answer to the dead space — was empty beside the title for the first screen. A
+float cannot fix that: a float's top can never be higher than the block that precedes it in
+source, so a figure written after four paragraphs opens below four paragraphs.
+
+So above 130em the first exhibit is taken out of flow and pinned into the head's exhibit
+track, on the x and width the float already had. Two numbers decide it, and both were
+measured rather than picked:
+
+- **130em is the CONTAINER, not the window.** `.blog-body` reads 96.4em at 1920 and 165.9em
+  at 3440 — not the ratio of the two screens, because a container query's `em` is the
+  *container's* font size (16px and 18px). 130em is the midpoint, ~34em clear of both.
+- **The pin is stood down by measurement, not by a selector.** A positioned box is not in
+  the float chain, so the *next* exhibit's `clear: right` has nothing to clear; at 3440 the
+  two collided by 128px on `panel-playground` and 116px on `claude-tooling`. The test is
+  "is the pinned box taller than the run of prose above the next figure" — two rendered
+  heights — so `Post.check_pin()` compares them on a `ResizeObserver` and adds
+  `.blog-pin-off`. ⚠ It always measures in the *pinned* state: stood down the two never
+  overlap, so testing that layout answers "safe" and the post flickers forever.
+
+Rejected: a height ceiling on the pinned figure. Capping its height forces
+`object-fit: contain`, which caps its effective *width* too — against this file's own rule
+that an exhibit never gets a `max-width`.
+
+A post with `lead: true` is skipped: that picture is already in the track, and two pictures
+in one slot is one picture.
+
 ## Open
 
 - **A post with no exhibits still leaves ~2000px at 3440** — the rail holds the right
@@ -132,5 +162,6 @@ title was below it. A post reads first and navigates after, so `.rail.blog-rail`
 - **A tall figure and a short section still drift apart**, because `clear: right` pushes
   the next figure below the last one. Two figures in quick succession end up further
   down than their paragraphs.
-- **The lead picture is the `og:image`.** Convenient, and it means the top-of-post
-  picture is chosen for a social card. Fine so far; may not stay true.
+- **The lead picture is the `og:image`** — unless the entry carries `card_image:`, which
+  is the escape hatch for a picture too wide to crop to a card. One post uses it. Whether
+  a post should be *choosing* its top picture for a social card at all is still open.

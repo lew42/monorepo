@@ -1,10 +1,14 @@
 # MCP, Playwright, and skills
 
-Every page on this site was built by Claude, in this repo, without a human relaying what
-a browser showed back. That only works if the agent can see the real DOM, prove a change
-before calling it done, and know the house rules without being told them fresh each time.
-Three pieces do that: an MCP endpoint the dev server exposes to itself, headless Playwright
-as a standing verification step, and a folder of skills that write down what they got wrong.
+I designed and built the framework this site runs on; much of what gets built *with* it —
+pages, demos, docs — is the work of AI agents running to my briefs, in this repo, without me
+relaying what a browser showed back. The [task board](/framework/ai/) is the log of every one
+of those runs, which makes the process the part you can check rather than take on trust.
+
+That only works if an agent can see the real DOM, prove a change before calling it done, and
+know the house rules without being told them fresh each time. Three pieces do that: an MCP
+endpoint the dev server exposes to itself, headless Playwright as a standing verification
+step, and a folder of skills that write down what they got wrong.
 
 <figure class="blog-exhibit">
 

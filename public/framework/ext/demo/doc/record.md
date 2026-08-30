@@ -97,8 +97,8 @@ that is where someone will try to "fix" it.
 each:
 
 ```js
-const view = p.c("demo-note");
-return view.md ? view.md(text) : view.backtick_append(text);   // caption
+const view = p.c("demo-note-text");
+view.md ? view.md(text) : view.backtick_append(text);          // caption
 return code[lang] ? code[lang](src) : code(src);               // code + html panes
 return code.file ? code.file(meta, url) : fetch(…);            // demo.source.file, §9
 ```

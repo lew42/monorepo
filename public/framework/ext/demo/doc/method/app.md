@@ -1,4 +1,4 @@
-`demo.app(page, { nav })` plays App and Router for **one** in-memory tree, inside
+`demo.app(page, { nav, urls })` plays App and Router for **one** in-memory tree, inside
 a box: a url strip that's also a breadcrumb, an optional rail, and the region
 the pages mount in. Renamed from `mini_app()` (2026-08-12) — the box was never
 *mini*, it's this tier's whole app, and every other entry point already used the
@@ -17,6 +17,25 @@ A `click` listener on the box calls `preventDefault()` before the real
 `link_clicked` handler ever sees the event, and only urls that start with the
 demo's own root are walked at all — a link to the *real* site written inside a
 demo tree stays real and leaves the box.
+
+## `urls: false` — when the tree's urls are names, not addresses
+
+A demo tree is built in memory, so its urls address nothing on the server. A root
+titled `Web` gives its children `/web/html/`, `/web/css/` … and those *look* like
+links: left-click works, because the box intercepts it. Middle-click,
+open-in-new-tab, copy-link and every crawler get the app's own "nothing matches"
+404 instead — which is how the site's homepage came to advertise four dead urls
+from its highest-authority page ([the critique](/framework/ai/2026-08-30/critique-blog/)).
+
+`urls: false` moves the address off `href` and onto `data-demo-url`. `followed()`
+reads either one, `Enter` is wired by hand because an element with no `href` is
+not a link any more, and `app.css` puts the pointer back. `unlink()` runs from
+`mark()` rather than from `rail()` and `crumbs()`, because a page in here draws
+its own `previews()` and those cards carry real `href`s too — and it skips any
+anchor pointing *outside* the root, which is a real link to the real site.
+
+Leave it off when the tree mirrors pages that genuinely exist: then the href is
+the truth, and stripping it would break the one thing that should navigate.
 
 ## `shown(page)` is the one hook out
 

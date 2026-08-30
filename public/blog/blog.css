@@ -193,6 +193,45 @@
 		.blog-head > .blog-lead { grid-column: read-start / exhibit-end; grid-row: auto; margin-block-start: 1.5em; }
 	}
 
+	/* ROOM TO SPARE: the first exhibit moves up beside the head.
+	   Measured at 3440, the first exhibit opened at y=1284 (/blog/systems/layout-generators/)
+	   and y=1138 (/blog/ai/dashboard/) — below a 1000px fold, with the exhibit track
+	   empty beside the title for the whole first screen. That track IS the answer to the
+	   dead space, so those two posts opened on the thing this page was built to avoid.
+	   `lead:` already parks a picture there; this puts the first FIGURE there instead
+	   when the post has no lead, on the x and width the float already had.
+
+	   ⚠ 130em is arithmetic, not taste. `.blog-body` IS the `page` container, and a
+	     container query's `em` is the CONTAINER's font size rather than the root's —
+	     16px at 1920, 18px at 3440, so the two readings are not the two screens' ratio.
+	     Measured: 96.4em at 1920, 165.9em at 3440. 130em is the midpoint, ~34em clear of
+	     both, so neither width sits near the edge. Below it nothing changes — the 1920
+	     reading page is the keeper.
+	   ⚠ A DESCENDANT `.blog-prose`, not a child: a post in parts renders its prose inside
+	     `.page.blog-part`, so `>` missed both multi-part posts. Only one prose is ever
+	     painted (`@layer util`, top of this file), so this cannot pin two.
+	   ⚠ `:has(.blog-lead)` — a post with `lead: true` already fills that track, and two
+	     pictures in one slot is one picture.
+	   ⚠ `.blog-pin-off` is `Post.check_pin()`'s, and it is the reason this rule is safe:
+	     a positioned box leaves the float chain, so the NEXT exhibit's `clear: right` has
+	     nothing to clear. Measured at 3440 the two collided by 128px on
+	     /blog/systems/panel-playground/ and 116px on /blog/ai/claude-tooling/. No
+	     selector can tell those apart — it is a comparison of two rendered heights — so
+	     the pin is stood down by measurement.
+	   ⚠ `:first-of-type` reads FIGURE, which is what every exhibit is; a non-exhibit
+	     figure ahead of the first one would take the pin instead. */
+	@container page (min-width: 130em) {
+		.blog-read { position: relative; }
+
+		.blog-read:not(.blog-pin-off, :has(.blog-lead)) .blog-prose > .blog-exhibit:first-of-type {
+			float: none;
+			position: absolute;
+			inset-block-start: 0;
+			inset-inline-end: 0;
+			width: calc(100% - min(var(--measure), 100%) - var(--blog-gap));
+		}
+	}
+
 	/* ⚠ NO max-width on an exhibit, deliberately: the space beside the prose IS the
 	     answer to the dead space, so a 3440 screenshot gets to be 3440 wide. What needs
 	     a ceiling is a LINE of text — a caption at 2600px is unreadable — so the caption

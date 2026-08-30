@@ -50,9 +50,19 @@ export default new Page({
 			p.c("vary-colstyles-hook-cap", "`classes: \"default\"` on a child — the host was never routed anywhere, and opens with something already showing instead of 80–93% of the row grey.");
 		});
 
+		// ⚠ 40em, and it is the ONE box on this page that may not shrink. Core takes the
+		//   seam away under 32em of row (`@container page-columns (width < 32em)`, Page.css)
+		//   because down there the row pages one column at a time and a drag would mean
+		//   nothing. At 24em this demo shipped both grabs in the DOM and both `display:
+		//   none` — the one hook of seven whose caption promises a drag was the one hook
+		//   whose seam could never be shown.
 		div.c("vary-colstyles-hook", () => {
-			demo.app(seam()).style("height", "9em").style("width", "24em");
-			p.c("vary-colstyles-hook-cap", "Every seam is `column_grab()`, free on every column: drag the hairline between the two panes, double-click it to put the width back.");
+			/* ⚠ `min-height`, not `height`: a demo's size is a FLOOR (ext/demo readme). At
+			 *   `height: 11em` this box clipped its own "Drag the hairline to the right of
+			 *   this column" mid-word — the instruction for the gesture the hook exists to
+			 *   show. The other six carry ceilings too; only this one overflowed one. */
+			demo.app(seam()).style("min-height", "11em").style("width", "40em");
+			p.c("vary-colstyles-hook-cap", "Every seam is `column_grab()`, free on every column: drag the hairline between the two panes, double-click it to put the width back. Under 32em of row core takes the seam away — there the row pages one column at a time.");
 		});
 	},
 });

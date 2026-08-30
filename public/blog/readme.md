@@ -15,7 +15,7 @@ it.
 Adding a post — four steps, one of them optional:
 
 1. an entry in `posts.js`: `section`, `name`, `title`, `date`, `description`, optional
-   `image`, optional `parts`
+   `image`, `alt`, `card_image`, `parts`
 2. `<section>/<name>/page.js` — `export default new Post({ meta: import.meta })`, the
    whole file
 3. `<section>/<name>/post.md`, or one `.md` per key in `parts`
@@ -34,7 +34,12 @@ takes the space to the right of the reading column.
   link already ends in `/`. [Meta tags](/blog/doc/meta-tags/)
 - **`image:` is the social card, not the picture at the top.** Add `lead: true` for that,
   and only when the picture is not one the prose already shows in context. The front's
-  featured flag is `featured:`, deliberately not `lead:`.
+  featured flag is `featured:`, deliberately not `lead:`. A card crops to 1.91:1, so a
+  picture much wider than that needs `card_image:` — and the field is not called `card:`,
+  which `Page.nav()` already reads as a CSS class. [Meta tags](/blog/doc/meta-tags/)
+- **The pinned first exhibit leaves the float chain.** Above 130em of *container* it is
+  absolutely positioned beside the head, so the next exhibit's `clear: right` has nothing
+  to clear and `Post.check_pin()` has to measure. [Reading page](/blog/doc/reading-page/)
 - **`meta.mjs` is not a build step** — you run it, the output is committed, and a stale
   or missing `index.html` costs a social card, never a page. It never creates a post's
   directory: an entry in the manifest *commissions* a post, and it reports the ones

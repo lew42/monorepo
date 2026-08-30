@@ -324,3 +324,9 @@
 {"log": {"at": "2026-08-30T13:31:00-05:00", "session": 15, "weekly_all": 27, "weekly_scoped": 28, "resets_at": "2026-08-30T21:40:00.342687+00:00"}}
 {"log": {"at": "2026-08-30T12:56:28-05:00", "session": 15, "weekly_all": 27, "weekly_scoped": 0, "resets_at": "2026-08-30T21:40:00.097928+00:00"}}
 {"log": {"at": "2026-08-30T13:03:30-05:00", "session": 16, "weekly_all": 27, "weekly_scoped": 27, "resets_at": "2026-08-30T21:39:59.912053+00:00"}}
+{"log":{"at":"2026-08-30T13:19:42-05:00","session":17,"weekly_all":27,"weekly_scoped":null,"resets_at":"2026-08-30T21:40:00.410398+00:00"}}
+{"log": {"at": "2026-08-30T13:23:21-05:00", "session": 17, "weekly_all": 27, "weekly_scoped": 27, "resets_at": "2026-08-30T21:39:59.748790+00:00"}}
+{"log": {"at": "2026-08-30T13:28:00-05:00", "session": 18, "weekly_all": 27, "weekly_scoped": 28, "resets_at": "2026-08-30T21:40:00.329550+00:00"}}
+{"log": {"at": "2026-08-30T13:45:00-05:00", "session": 20, "weekly_all": 28, "weekly_scoped": 28, "resets_at": "2026-08-30T21:40:00.490211+00:00"}}
+{"log": {"at": "2026-08-30T13:48:42-05:00", "session": 21, "weekly_all": 28, "weekly_scoped": 29, "resets_at": "2026-08-30T21:40:00Z"}}
+{"log": {"at": "2026-08-30T13:55:00-05:00", "session": 22, "weekly_all": 28, "weekly_scoped": 29, "resets_at": "2026-08-30T21:40:00Z"}}

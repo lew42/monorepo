@@ -118,8 +118,11 @@ export class Post extends Page {
 	 *   twice, once without the sentence that explains it.
 	 * ⚠ `lead_image()`, not `lead()`: `lead: true` is a FIELD, and a field silently
 	 *   shadows a method of the same name (`opens` did this in core). */
+	// ⚠ `alt` before `title`: the manifest carries a line describing the PICTURE now (it
+	//   is what `og:image:alt` says), and the title describes the post. A screen reader
+	//   hearing the title twice learns nothing the heading above did not already say.
 	lead_image(){
-		return div.c("blog-lead", () => img().attr("src", this.image).attr("alt", this.title));
+		return div.c("blog-lead", () => img().attr("src", this.image).attr("alt", this.alt ?? this.title));
 	}
 
 	byline(){
@@ -180,7 +183,43 @@ export class Post extends Page {
 	 *   reads an empty region and `toc()` deletes itself. A macrotask cannot lose that
 	 *   race. Called from `.finally()` so a 404'd part still refreshes the rail. */
 	after_prose(){
-		setTimeout(() => { this.skip_closed_parts(); this.$toc?.empty(() => toc()); });
+		setTimeout(() => { this.skip_closed_parts(); this.$toc?.empty(() => toc()); this.watch_pin(); });
+	}
+
+	/* THE PINNED FIRST EXHIBIT — the one thing on this page that has to be MEASURED.
+	 * Above 130em blog.css lifts the first exhibit into the head's empty exhibit track,
+	 * which means taking it out of flow — and a positioned box is not in the float chain,
+	 * so the next exhibit's `clear: right` has nothing to clear. Measured at 3440 the two
+	 * overlapped by 128px on /blog/systems/panel-playground/ and 116px on
+	 * /blog/ai/claude-tooling/. The test is "is the pinned box taller than the run of
+	 * prose above the next one" — two rendered heights — and no selector can ask that, so
+	 * CSS pins and this stands the pin down where it would collide. The posts it skips are
+	 * the ones whose exhibit already opens above the fold.
+	 * ⚠ A ResizeObserver, not this macrotask: a page is built DETACHED, so the first
+	 *   measurement here is all zeros. It also has to run again when the column changes
+	 *   width or a picture finishes loading, both of which change the pinned height.
+	 *   Observing the EXHIBIT is what keeps this out of a resize loop — the class changes
+	 *   where that box sits, never how big it is. */
+	watch_pin(){
+		const exhibit = this.$pages?.el.querySelector(".blog-prose > .blog-exhibit");
+
+		if (!exhibit || exhibit === this.pinned) return;
+		this.pinned = exhibit;
+
+		(this.pin_watch ??= new ResizeObserver(() => this.check_pin())).disconnect();
+		this.pin_watch.observe(exhibit);
+	}
+
+	/* ⚠ ALWAYS MEASURE PINNED. Stood down, the second exhibit clears the first and the
+	 *   two never overlap — so testing the stood-down layout says "safe", the pin goes
+	 *   back on, and the post flickers between the two forever. */
+	check_pin(){
+		const read = this.$pages?.el;
+		const [first, second] = read?.querySelectorAll(".blog-prose > .blog-exhibit") ?? [];
+
+		read?.classList.remove("blog-pin-off");
+		if (first && second) read.classList.toggle("blog-pin-off",
+			first.getBoundingClientRect().bottom > second.getBoundingClientRect().top);
 	}
 
 	/* ⚠ EVERY part stays in the DOM — `@layer util` only stops a closed one PAINTING —

@@ -17,6 +17,11 @@ real `document.title` a moment later, which is correct for a reader and invisibl
 fetcher. Server-side rendering is the usual fix and is off the table: production is
 static assets on Cloudflare, and no build step may pre-process `public/`.
 
+`public/index.html` carries its own card now — written by hand, not stamped. It is one
+page with one description, and a stamper for a single file would be more moving parts
+than the file. Everything under `/blog/` is stamped; the root is the exception, and the
+only one.
+
 ## The hybrid, and why it boots
 
 Three properties of the framework, all of them already true, are what make a nested
@@ -45,7 +50,10 @@ returns `200 text/html; charset=utf-8` and:
 <meta property="og:title" content="How this blog works">
 <meta property="og:description" content="A static index.html for the crawlers, …">
 <meta property="og:url" content="https://lew42.com/blog/framework/how-this-blog-works/">
-<meta property="og:image" content="https://lew42.com/blog/framework/how-this-blog-works/lead.png">
+<meta property="og:image" content="https://lew42.com/blog/framework/how-this-blog-works/card.png">
+<meta property="og:image:width" content="1566">
+<meta property="og:image:height" content="820">
+<meta property="og:image:alt" content="The reading page at 3440px: prose held at its measure…">
 <meta name="twitter:card" content="summary_large_image">
 ```
 
@@ -84,9 +92,27 @@ without the sentence that explains it. A post that has a picture made FOR the to
 front's featured flag is called `featured:` — one word meaning two things is also how a
 boolean ends up shadowing the `lead()` method it was named after.)
 
+**A card is 1.91:1, and `image:` usually is not.** A 4:1 screenshot letterboxes inside
+one to an illegible strip, so a post whose picture is the wrong SHAPE adds
+`card_image:` — a crop committed beside it, used for the card only. `image:` goes on
+doing its other job, which matters because `how-this-blog-works` draws its at the top
+of the page: one field per job is what keeps the crop from changing the post.
+
 **A post with no `image:` still gets a card**: `meta.mjs` falls back to the first `.png`
 in the post's own directory. A fallback, never the rule — it exists so a post full of
 screenshots does not ship a text-only card because nobody wrote the field.
+
+**The front and the section indexes borrow one.** A list has no picture of its own, so
+the front takes the featured post's and a section its newest post's (`card_post()` in
+the manifest). Derived rather than named: every path still has exactly one copy, and a
+new post refreshes the card its section unfurls into.
+
+**`og:image:width` and `og:image:height` are read out of the PNG's own IHDR** by
+`meta.mjs`, never typed. A card renderer that has them reserves the right box before
+the picture arrives, and one that is lied to reserves the wrong one — which is what
+hand-written numbers become the first time a picture is recropped. An unreadable file
+drops the two tags rather than guessing. `og:image:alt` describes the picture; it comes
+from `alt:` in the manifest, defaulting to "Screenshot from “&lt;title&gt;”".
 
 **A post that is commissioned but not written yet is skipped.** An entry in the manifest
 is what commissions a post, so `meta.mjs` reports `pending` for a directory that does not
@@ -111,10 +137,11 @@ the property that made this worth doing rather than a pre-render pipeline.
 
 ## Open
 
-- **`og:image` per post is a real picture that has to exist.** Right now it is a
-  screenshot committed beside the post, chosen by hand in the manifest or fallen back to
-  alphabetically. A convention (size, aspect, where it comes from) is not decided —
-  `how-this-blog-works/lead.png` is a picture of an older draft of its own page.
+- **`og:image` per post is a real picture that has to exist** — a screenshot committed
+  beside the post, chosen in the manifest or fallen back to alphabetically. The ASPECT
+  is settled (1.91:1, cropped into `card_image:` when the screenshot is not that shape)
+  and nothing else is: no minimum size, no rule about where the picture comes from, and
+  `how-this-blog-works/lead.png` is still a picture of an older draft of its own page.
 - **`site` is hard-coded** as `https://lew42.com` in `posts.js`. Branch previews deploy
   to `*.workers.dev`, so `og:url` and `canonical` on a preview point at production.
   Correct for the live site, wrong for a preview — nobody unfurls preview links today.

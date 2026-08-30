@@ -17,6 +17,16 @@ out-ranks `.page.standard > .wide` (three deep) regardless of which stylesheet
 the browser happens to link last. A tie decided by load order is a tie decided
 by accident.
 
+## The caption is two elements: a band and a line of prose
+
+`.demo-note` is the BAND — inside a box it is the box's last strip, tinted and
+hairlined, and it has to reach both edges of it. `.demo-note-text` is the
+sentence, and it has to stay on `--measure`. One element could not be both: the
+`max-width` that kept the line readable also clipped the tint, and on a 3440
+homepage the strip painted 648px of a 1443px box (45%, stopping 795px short)
+while reading as correct at every width under about 1300 — which is why it
+survived for months. `demo.js`'s `caption()` builds the pair.
+
 ## The caption's padding only resolves inside `.demo`
 
 `.demo-note` reads `padding: var(--demo-pad)`, and only `.demo` declares that
