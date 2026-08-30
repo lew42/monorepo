@@ -26,6 +26,20 @@ export default new Page({
 
 		md("Every number here is reproducible from a clean checkout, and every claim that cuts the other way is on the page too. A comparison that only wins is marketing, and marketing is not evidence.");
 
+		// A counter is where every reactivity argument starts, so it is where this
+		// page starts — above the numbers, because it is the thing you can click.
+		demo(() => {
+			let n = 0, $n;
+
+			div.c("flex gap v-center", () => {
+				button("−").click(() => $n.text(--n));
+				$n = span.c("code", "0");
+				button("+").click(() => $n.text(++n));
+			});
+		}, "**Hold the view, set the text.** No state hook, no re-render, no dependency array, no key — and nothing else on the page can be disturbed, because nothing else re-ran.");
+
+		md("React's version needs `useState`, a re-render of the component, and a reconciliation pass to discover that one text node changed. That machinery buys something real when a value is derived from five others across a deep tree. **It buys nothing here.** The trade in one line: **React re-runs your function and diffs the result. This calls a method on the element you already have.**");
+
 		h2("The whole framework");
 
 		// ⚠ The figures live in framework/stats.js — the landing renders the same
@@ -55,24 +69,6 @@ cat core/View/View.js core/Page/Page.class.js core/Router/Router.js \\
 | **a component protocol** | no lifecycle, no props contract, no \`key\`, no dependency array, no re-render |
 
 The three npm packages in the repo — \`chokidar\`, \`express\`, \`ws\` — are the **dev server only**. Production is a folder of files.`);
-
-		h2("A counter");
-
-		md("Where every reactivity argument starts, so it is where this one starts too.");
-
-		demo(() => {
-			let n = 0, $n;
-
-			div.c("flex gap v-center", () => {
-				button("−").click(() => $n.text(--n));
-				$n = span.c("code", "0");
-				button("+").click(() => $n.text(++n));
-			});
-		}, "**Hold the view, set the text.** No state hook, no re-render, no dependency array, no key — and nothing else on the page can be disturbed, because nothing else re-ran.");
-
-		md("React's version needs `useState`, a re-render of the component, and a reconciliation pass to discover that one text node changed. That machinery buys something real when a value is derived from five others across a deep tree. **It buys nothing here**, and you pay for it on every component you ever write.");
-
-		md("The trade in one line: **React re-runs your function and diffs the result. This calls a method on the element you already have.**");
 
 		h2("Routing");
 

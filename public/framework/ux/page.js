@@ -29,6 +29,16 @@ export default new Doc({
 
 		md("**`ui/` is markup. `ux/` is behavior.** A ux is a *workflow* — signup, login, a wizard, a course, a game lobby — assembled from `ui/` templates and responsive from a phone to 3440. It is a **class**, so the next case is a subclass rather than a fork.");
 
+		// The page's one live thing, and it opens the page: the SAME template twice,
+		// the right one wearing both config words. The argument for it is below.
+		div.c("flex wrap gap", () => {
+			div.c("flex v gap", () => { div.c("h4 muted", "default"); box(); }).style("--gap", "0.5em");
+			div.c("flex v gap", () => {
+				div.c("h4 muted", "ui-contrast ui-compact");
+				box().ac("ui-contrast ui-compact");   // on the component itself — a word needs no section
+			}).style("--gap", "0.5em");
+		});
+
 		md("**Eight classes live here now** — [Auth](/framework/ux/Auth/), [Wizard](/framework/ux/Wizard/), [Tree](/framework/ux/Tree/), [Course](/framework/ux/Course/), [Filter](/framework/ux/Filter/), [Menu](/framework/ux/Menu/), [Pagination](/framework/ux/Pagination/), [Tags](/framework/ux/Tags/) — built 2026-08-21 against the contract below.");
 
 		ui.table(
@@ -53,15 +63,7 @@ export default new Doc({
 
 		md("## Config words bind both tiers");
 
-		md("A **config word** is a class on a *section* that remaps framework tokens. Every `ui/` template and every `ux/` class reads those same tokens, so one word re-skins both — which is why **a ux never ships its own compact mode or high-contrast mode.**");
-
-		div.c("flex wrap gap", () => {
-			div.c("flex v gap", () => { div.c("h4 muted", "default"); box(); }).style("--gap", "0.5em");
-			div.c("flex v gap", () => {
-				div.c("h4 muted", "ui-contrast ui-compact");
-				box().ac("ui-contrast ui-compact");   // on the component itself — a word needs no section
-			}).style("--gap", "0.5em");
-		});
+		md("A **config word** is a class on a *section* that remaps framework tokens. Every `ui/` template and every `ux/` class reads those same tokens, so one word re-skins both — which is why **a ux never ships its own compact mode or high-contrast mode.** That is the pair at the top of this page: one template, one class appended, no CSS of its own.");
 
 		md("Both words, the toggles and what a word may **not** do: [`ui/words/`](/framework/ui/words/).");
 

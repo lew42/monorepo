@@ -18,9 +18,20 @@ new App()    →  <div class="app">`);
 
 		md("**That is the whole mental model** for four of the seven: `View`, `Page`, `App` and `Sidebar` are an element you can point at in the inspector, and everything else about them is a method on it.");
 
-		md("**Three are not.** `Router` has no element — it owns the url. And `Item` and `List` have no DOM at all: `List` imports nothing, `Item` imports only `List`, and [`Item`'s own record](/framework/core/Item/) opens with *no view, no transport, no DOM — it runs in node*. They are the data tier, and they are here because the persistence stack is core rather than an opt-in.");
+		// The one live thing on this page, and it belongs above the cards: what
+		// `Router` writes is the whole layout tier, and it fits in one row.
+		demo(() => {
+			div.c("flex gap v-center pad", () => {
+				code(".active-page");
+				span("→ the leaf");
+				code(".active-ancestor");
+				span("→ everything above it");
+			});
+		}, "`Router` writes exactly these two classes and nothing else. **There is no layout tier** — every arrangement on this site (replace, tabs, columns, a section with its own sidebar) is CSS reading them, plus one class a page opted into.");
 
 		this.previews();
+
+		md("**Three are not.** `Router` has no element — it owns the url. And `Item` and `List` have no DOM at all: `List` imports nothing, `Item` imports only `List`, and [`Item`'s own record](/framework/core/Item/) opens with *no view, no transport, no DOM — it runs in node*. They are the data tier, and they are here because the persistence stack is core rather than an opt-in.");
 
 		h2("What each one is for");
 
@@ -53,17 +64,6 @@ export default new Page({                  // a url and some content
 });`);
 
 		md("You wrote two classes and used four. `Router` was constructed by `App`, walked to your url, and wrote two CSS classes; you never mentioned it. **Imports flow down; `.parent` links point up** — a page imports its children, and a child is told who its parent is when it's adopted. Never both ways: a mutual import breaks only on deep reloads, which is the nastiest failure this framework has.");
-
-		h2("There is no layout tier");
-
-		demo(() => {
-			div.c("flex gap v-center pad", () => {
-				code(".active-page");
-				span("→ the leaf");
-				code(".active-ancestor");
-				span("→ everything above it");
-			});
-		}, "`Router` writes exactly these two classes and nothing else. Every arrangement on this site — replace, tabs, columns, a section with its own sidebar — is CSS reading them, plus one class a page opted into.");
 
 		md("Start with [View](/framework/core/View/) — the one class you use on every line. Then [Page](/framework/core/Page/), then [Router](/framework/core/Router/) when you want more than one url, then [App](/framework/core/App/) when you want your own chrome around it all.");
 

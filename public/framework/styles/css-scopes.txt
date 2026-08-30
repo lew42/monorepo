@@ -115,3 +115,4 @@ blog-        /blog (blogx- is the /imagine/ lab, above)
 imagine-     /imagine/ (root, team, game)
 mag-         /imagine/mag
 decks-       /imagine/decks
+home-        / (the homepage front)

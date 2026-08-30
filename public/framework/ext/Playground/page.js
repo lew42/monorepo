@@ -1,4 +1,4 @@
-import { Doc, md, div } from "/app.js";
+import { Doc, md, div, h1, p } from "/app.js";
 import Playground from "./Playground.js";
 
 export default new Doc({
@@ -17,9 +17,24 @@ export default new Doc({
 	// `framework/page.js:20`). `Doc`'s own tab-rendering (well/tabs) never runs here, but
 	// `sections()` still adds "doc"/"files" as real routed children — `content()` below
 	// is the Overview section's own page, reachable at its own url regardless.
+	//
+	// Still needs a title, one orienting line and a way back out (audit 2026-08-30:
+	// render() drew straight into the tool, no <h1> at all). One extra wrapper keeps
+	// `.page`'s single-child sizing contract: outer stays "full solo flex" untouched,
+	// and IT gets "flex v flex-1" so the header stacks above the tool instead of
+	// splitting the row beside it (framework.css: .flex.v is column, .flex-1 fills the
+	// remaining space — the same trio Playground.js already puts on .pg-frame, one
+	// level down).
 	render(){
 		return this.view ??= div.c("page", () => {
-			this.tool = new Playground({ slug: "untitled" }).build();
+			div.c("flex v flex-1", () => {
+				div.c("flex v gap pad", () => {
+					h1.c("page-title", this.title);
+					p(this.description);
+					this.crumbs();
+				});
+				div.c("flex-1", () => { this.tool = new Playground({ slug: "untitled" }).build(); });
+			});
 		}).ac(this.classes ?? "standard");
 	},
 

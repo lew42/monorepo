@@ -106,6 +106,128 @@
 	     flagged it — a heading flush to the top edge reads as "already scrolled". */
 	.page.topic { --measure: 40em; padding: 0; background: none; }
 
+	/* ---- the front ----
+	   ⚠ Every rule here is scoped to `.page-homepage`. The root page is an
+	     active-ANCESTOR of every url on this site, so a homepage rule written
+	     against `.page.topic` (or against `.default`) lands on every topic shell
+	     there is. The class is `classes:` in /page.js, and nothing else wears it. */
+
+	/* A front page is the one page that must not be a 40em reading column, and
+	   `.pages > .default` caps every region default at `--measure` (Page.css). The
+	   prose inside keeps a measure of its own, below; the ROW does not.
+
+	   `container-type` so the two breakpoints below measure the REGION — the
+	   window minus a 19em sidebar — rather than the window, which is off by 304px
+	   exactly where the layout changes. `inline-size`, never `size`: a size
+	   container is not sized by its own contents, and this box has no height of
+	   its own (css skill, 2026-08-18). */
+	.page-homepage > .pages > .default {
+		max-width: none;
+		container-type: inline-size;
+	}
+
+	/* FIVE REGIONS, and which of them may take a share of a wide screen is
+	   core/Page/doc/findings.md: of the content kinds, only a nav LIST does not
+	   scale. So the two card walls keep a fixed track and the hero and the demo
+	   spend everything left over — at 3440 the demo and the posts sit BESIDE the
+	   thesis, not under it. */
+	.home-front {
+		display: grid;
+		align-content: start;
+		gap: 1.25em;
+		--column: 18em;
+		--gap: 0.8em;
+
+		grid-template-columns: minmax(0, 1fr);
+		grid-template-areas: "hero" "stage" "blog" "nav" "more";
+	}
+
+	/* What `.grid > *` says for a grid claimed by its utility class — the `more`
+	   line is a `<p>`, and its default block margin is not the row gap. */
+	.home-front > * { margin: 0; }
+
+	.home-hero  { grid-area: hero; }
+	.home-stage { grid-area: stage; }
+	.home-blog  { grid-area: blog; }
+	.home-nav   { grid-area: nav; }
+	.home-more  { grid-area: more; }
+
+	/* The row earns the width; a sentence does not. */
+	.home-hero, .home-more { max-width: var(--measure); }
+
+	/* The thesis keeps a track of its own and the demo takes the rest. */
+	@container (min-width: 52em) {
+		.home-front {
+			grid-template-columns: minmax(16em, 24em) minmax(0, 1fr);
+			grid-template-areas:
+				"hero  stage"
+				"blog  stage"
+				"nav   nav"
+				"more  more";
+		}
+	}
+
+	/* Three regions across, so the demo and the posts sit BESIDE the thesis rather
+	   than under it, and the sections keep the full row below all three. */
+	@container (min-width: 90em) {
+		.home-front {
+			grid-template-columns: minmax(18em, 26em) minmax(0, 1.4fr) minmax(0, 1fr);
+			grid-template-areas:
+				"hero  stage blog"
+				"nav   nav   nav"
+				"more  more  more";
+		}
+	}
+
+	/* A region's label and the way in, on one line. */
+	.home-head { display: flex; align-items: baseline; gap: 1em; margin-bottom: 0.6em; }
+	.home-head-link { margin-inline-start: auto; font-size: 0.85em; }
+
+	.home-date { display: block; font-size: 0.8em; color: var(--subtle); }
+
+	/* THE DEMO IS THE FOLD'S BIGGEST BLOCK, so it is the one that has to be small:
+	   half the pane inset, the width PRESETS off — a front page is not a doc page,
+	   and the drag handle, the zoom and the fullscreen still work — and the render
+	   floored with `min-height`, never `height`, so a taller page inside it still
+	   grows the box (ext/demo/app.css says the same, one level down). */
+	.home-stage .demo { --demo-pad: 1rem; }
+	.home-stage .demo-devices { display: none; }
+	.home-stage .demo-app-body { min-height: 9em; }
+
+	/* A TOKEN, not a rule (css skill §4). The wall inside the miniature declares
+	   `--column: 14em`, which is right on a doc page and one card per row inside a
+	   600px demo column — four rows of chrome, and the fold pays for every one.
+	   ⚠ Measured, not guessed: the wall is a direct child of the miniature's page,
+	     so `.page > .page-previews`'s own `--gutter-x` takes 38px off the box
+	     before `auto-fill` counts tracks, and 11em still fitted exactly one. */
+	.home-stage .page-previews { --column: 9em; }
+
+	/* ⚠ The code pane SCROLLS (`pre { overflow-x: auto }`), so a line too long for
+	     the column is not lost — it is worse than lost: it is a sample cut off
+	     mid-word on the front page, and nobody scrolls a hero sideways. One step
+	     down is what fits the whole thing in the middle track at 1920. */
+	.home-stage .demo-code { font-size: 0.75em; }
+
+	/* On a phone the whole strip goes: below 34em of stage the dials wrap onto a
+	   second centred row (stage.css), which is 50px of chrome above a box you
+	   cannot drag with a finger anyway. The code and the running pages stay.
+
+	   ⚠ An unnamed `@container` asks the NEAREST container ancestor, and these
+	     selectors do not all share one: `.home-front` asks the region above, while
+	     everything under `.home-stage` asks `.demo-stage` — stage.css makes the
+	     stage a container of its own. Which is the right question in both cases
+	     (and the same 34em stage.css already breaks at), but it is two questions in
+	     one block, measured at 400 / 1280 / 1920 / 3440 rather than assumed. */
+	@container (max-width: 34em) {
+		.home-front { gap: 1em; }
+		.home-stage .demo { --demo-pad: 0.8rem; }
+		.home-stage .demo-tools, .home-stage .demo-size { display: none; }
+
+		/* On a phone `9em` above is still one card per row and four rows of chrome
+		   nobody reads. Two across says the same thing in half the fold. */
+		.home-stage .page-previews { --column: 5em; }
+	}
+
 	/* ---- the framework landing ----
 	   Its content is ONE `.default` block, not a grid page, so `.pages`' measure caps
 	   the whole thing — the clock band and the tree included. So the block takes the

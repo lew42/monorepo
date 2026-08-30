@@ -33,3 +33,10 @@
 {"log": {"at": "2026-08-30T12:03:00-05:00", "task": "post-panel", "msg": "task opened - writing the Panel/Playground blog post"}}
 {"log": {"at": "2026-08-30T12:25:30-05:00", "task": "post-panel", "msg": "landed - /blog/systems/panel-playground/, 694 words, 4 screenshots (266KB), zero shared code finding front and center, cold-load clean at 400/1920/3440"}}
 {"log": {"at": "2026-08-30T12:30:11-05:00", "task": "blog-build", "msg": "landed - /blog/ is real: magazine front, 3 sections, 6 posts, the site's own shell; 17 urls clean at 400/1920/3440"}}
+{"log": {"at": "2026-08-30T12:36:10-05:00", "task": "root-folds", "msg": "task opened - topic-root above-the-fold pass: 12 roots, one compact demo above the 1000px fold each"}}
+{"log": {"at": "2026-08-30T12:37:30-05:00", "task": "homepage", "msg": "task opened - W3c, the homepage rebuilt for job prospecting (fold: thesis + one live demo + blog cards + nav)"}}
+{"log": {"at": "2026-08-30T12:53:41-05:00", "task": "audit-fixes", "msg": "task opened - W3b: 2026-08-08 crash + six orienting lines + Panel-400 demo"}}
+{"log": {"at": "2026-08-30T13:30:00-05:00", "task": "audit-fixes", "msg": "task landed - crash fixed (2026-08-08/page.js stale preview() call, not ext/AITask), six pages given orienting line + nav across 4 files, Panel-400 dock() guarded below drawer floor"}}
+{"log": {"at": "2026-08-30T13:31:00-05:00", "task": "audit-fixes", "msg": "landed - crash fixed at its real cause (day page, not ext/AITask), six pages given a line/nav across 4 files, Panel-400 dock() guarded below the drawer overlay floor"}}
+{"log": {"at": "2026-08-30T13:00:12-05:00", "task": "root-folds", "msg": "landed - 9 of 12 topic roots re-ordered so the 1000px fold carries title + line + a live demo + nav; core and versus 2->3 on the audit scorer, 1->5 of 12 roots showing something live by the rubric itself"}}
+{"log": {"at": "2026-08-30T13:04:22-05:00", "task": "homepage", "msg": "landed - the front rebuilt: thesis + a live demo.app() + three posts from the manifest + section cards, all above a 1000px fold at 400/1920/3440; 2/2/2 to 3/3/3"}}

@@ -11,10 +11,11 @@ export default new Page({
 
 	content(){
 
+		// Line first, then the two commands that produce it.
+		md("Save a file, the browser reloads. That is all this tier does — the server watches `public/` and pushes a reload down a WebSocket.");
+
 		pre(`npm install
 node server.js      # http://localhost`);
-
-		md("Save a file, the browser reloads. That is all this tier does — the server watches `public/` and pushes a reload down a WebSocket.");
 
 		this.previews();
 

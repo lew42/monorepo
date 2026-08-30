@@ -66,7 +66,9 @@ export default new Doc({
 
 	content(){
 
-		md("Every card is a **live call**, drawn by the page it links to. **Click one** and the component opens at full size on a stage you can drag, with its variants below it.");
+		// One line, not three — every line here is a row of the live wall pushed
+		// below the fold, and the wall is what this page has to show.
+		md("Every card below is a **live call**, drawn by the page it links to — click one to open it full size on a stage you can drag.");
 
 		/* ⚠ `this` is the module's own Doc, NOT the Overview section — `overview_section()`
 		   binds this function back to the Doc (Doc.js), which is what makes `this.browse()`

@@ -21,13 +21,20 @@ export default new Page({
 
 		h2("Six shapes, one handle");
 
+		// CRASH (audit 2026-08-30; only day found broken, spot-checked 08-09..08-12
+		// clean): preview.js dropped its leading name argument at some point after this
+		// page was written — the label moved to word.js's own card. The name string was
+		// landing in `classes` and the real `regions` array in `column`, so
+		// `regions.forEach` inside shape() ran on a three-word class string instead.
+		// Restored per the prose two lines down ("hover a name for its classes") — a
+		// title tooltip, not a caption — via the current 3-arg call + `.attr("title")`.
 		demo.stage(() => div.c("grid gap auto").style({ "--column": "18em", "--gap": "1.8em" }).append(() => {
-			preview("A row with air in it", "flex gap", n(3));
-			preview("A fixed rail, a fluid rest", "flex gap", ["basis", "flex-1"]);
-			preview("Equal peers, that wrap", "flex gap auto", n(3), "3em");
-			preview("A wall that counts itself", "grid gap auto", n(6), "3.5em");
-			preview("Three, then straight to one", "grid gap three", n(3), "3em");
-			preview("A strip of tiles", "grid gap auto", n(8), "2.5em");
+			preview("flex gap", n(3)).attr("title", "A row with air in it");
+			preview("flex gap", ["basis", "flex-1"]).attr("title", "A fixed rail, a fluid rest");
+			preview("flex gap auto", n(3), "3em").attr("title", "Equal peers, that wrap");
+			preview("grid gap auto", n(6), "3.5em").attr("title", "A wall that counts itself");
+			preview("grid gap three", n(3), "3em").attr("title", "Three, then straight to one");
+			preview("grid gap auto", n(8), "2.5em").attr("title", "A strip of tiles");
 		})).ac("wide");
 
 		md("**Drag the right edge** and all six re-flow at once. Not one is a media query — each answers to the width of its own box, which is why the same class string is right in a sidebar, in a card, and across a 3440px monitor. `preview()` draws the arrangement and nothing else; hover a name for its classes. [Thirteen of them](/framework/styles/layouts/), simplest first.");

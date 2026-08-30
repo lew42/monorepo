@@ -44,17 +44,33 @@ export default new Page({
 						md("Write a page, save the file, refresh the tab. The path in an `import` is the file on disk, and what you debug is what you typed.");
 					});
 
+					// ⚠ Height is the knob, not width: the clock is `min(17cqw, 38cqh)`, so in a
+					// band wider than tall the HEIGHT sizes it — flat 34em filled 32% at 3440.
+					// ⚠ And the height is a FOLD budget, so it is measured in `vh`, not `vw`:
+					// hero + band + numbers + the first row of the tree share one screen,
+					// and the band's share is a third of it whatever the window's WIDTH.
+					div.c("bleed", () => panel("clock").ac("surface")
+						.style("--panel-height", "clamp(13em, 30vh, 30em)"));
+
+					div.c("flow", () => {
+						md("That band is a live [`ext/Panel`](/framework/ext/Panel/) — split it, retint it, or trade the clock for any of the other twenty-seven entries in its **T** menu.");
+					});
+
 					// ⚠ OUTSIDE the prose block: five 9em tiles are 49em with their gaps,
 					// and inside a 40em reading column the fifth is stranded on a row of
 					// its own. A strip of numbers is a wall, not a sentence — /styles.css
 					// gives it the width its own count needs.
 					stats();
 
+					// The tree: every section, and every page inside it. A section with
+					// no children of its own is a leaf, and lives in the nav beside this.
+					this.walls();
+
 					div.c("flow", () => {
 
-						md("Measured from a clean checkout — [Versus](/framework/versus/) has the method, and the column where React wins.");
+						h2("Write a page");
 
-						md("Create `/path/page.js`:");
+						md("Measured from a clean checkout — [Versus](/framework/versus/) has the method, and the column where React wins. Create `/path/page.js`:");
 
 						code.js(`import { p } from "/app.js";
 
@@ -62,21 +78,6 @@ p("Hello world.")`);
 
 						md("That's basically it.");
 					});
-
-					div.c("flow", () => {
-						h2("A live panel");
-
-						md("The band below is a live [`ext/Panel`](/framework/ext/Panel/), and the clock is one of twenty-eight entries in its **T** menu — split the band, retint it, or trade it for any of the other twenty-seven.");
-					});
-
-					// ⚠ Height is the knob, not width: the clock is `min(17cqw, 38cqh)`, so in a
-					// band wider than tall the HEIGHT sizes it — flat 34em filled 32% at 3440.
-					div.c("bleed", () => panel("clock").ac("surface")
-						.style("--panel-height", "clamp(20em, 26vw, 48em)"));
-
-					// The tree: every section, and every page inside it. A section with
-					// no children of its own is a leaf, and lives in the nav beside this.
-					this.walls();
 
 					div.c("flow", () => {
 

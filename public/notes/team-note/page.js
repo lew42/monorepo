@@ -8,6 +8,7 @@ export default new Page({
 	description: "Everything is merged and live. A note to the team.",
 
 	content(){
+		this.crumbs();   // a dead-end leaf otherwise (audit 2026-08-30)
 
 		md("Everything is merged and live at [monorepo.lew42.workers.dev](https://monorepo.lew42.workers.dev).");
 

@@ -26,7 +26,12 @@ export default new Doc({
 
 		// The rail is part of the work here — opened once, before you start, never mid-
 		// gesture (the owner, 2026-08-18: selecting used to force it open). tools.js.
-		dock();
+		// ⚠ Below the drawer's own push floor (`--rail-floor`, drawer.css's 26rem) it
+		// covers instead of pushing — deliberate there, but opening it eagerly HERE
+		// buried the live workspace under an empty "nothing selected" rail at 400px
+		// (audit 2026-08-30, worst-20 #15). Skip the eager open below that floor: a
+		// narrow reader meets the workspace first, same as anyone who has shut the rail.
+		if (matchMedia("(min-width: 26rem)").matches) dock();
 
 		// The scrubber is the PAGE's, not a panel's: a flow belongs to the document, and
 		// every panel in it would otherwise carry a copy of the same strip. flow.js.

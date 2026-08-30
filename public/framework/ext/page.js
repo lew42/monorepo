@@ -10,9 +10,11 @@ export default new Page({
 
 	content(){
 
-		code.js(`import md from "/framework/ext/markdown/md.js";`);
+		// Line, then the code, then the wall — a reader meets the idea before the
+		// import path, and the twenty-four cards are the fold's real content.
+		md("Every addon below is opt-in, and **opting in is an import. Nothing else.**");
 
-		md("Opting in is an import. Nothing else.");
+		code.js(`import md from "/framework/ext/markdown/md.js";`);
 
 		this.previews();
 
