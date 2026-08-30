@@ -1,8 +1,9 @@
 The stage: the only resizable viewport on the site, and the whole chrome of a
 leaf demo page. `stage(fn, board)` builds the four pieces — tools strip, screen,
-render, size readout — and every other door (`demo()`, `demo.exhibit()`,
-`demo.tree()`) composes the same `stage()` rather than building its own. `two.js`
-reuses the shell with two panes instead of one render.
+render, size readout — and every other door (`demo()`, `page.demo()`,
+`demo.exhibit()`, `demo.tree()`) composes the same `stage()` rather than building
+its own, which is why the width readout is on every one of them. `pane.js` reuses
+its `simulate`/`watch` pair for a fixed device frame.
 
 ## Three boxes, not one — and they can't merge
 

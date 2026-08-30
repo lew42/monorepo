@@ -51,6 +51,8 @@ A `title:` inside an object value wins over the key. Three warts:
 > position. `declare()` throws on anything that is not a function, string, plain
 > object, `Page` or `null`. Write `JS(){ md("…") }`.
 
-Declared children are imported **at construction**, which is what lets a menu draw
-once with real titles and icons. Measured: on `/framework/`, 1 → 28 `page.js`
-fetches and +51ms to first paint, flat with depth.
+Declared children are imported **before the page draws**, which is what lets a menu
+draw once with real titles and icons — but only `depth` levels of them, and the
+constructor fetches none. A page states how far its own render reaches
+(`depth: 2` by default, `1` for a card wall, `0` for none) and navigating into a
+child is what deepens it. `../declaring.md`.

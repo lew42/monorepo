@@ -1,8 +1,20 @@
-`demo.source(src, label, file)` is the code, closed, below the render — the
-answer to "what is this" is the render above it; the code is the follow-up
-question, and a leaf page shows the thing first. `src` may be a function
-(stringified — the lesson) or a plain string, for code a page assembled rather
-than ran.
+`demo.source(src, label, file)` is the code, open, in a named block under (or
+beside) the render. `src` may be a function (stringified — the lesson) or a plain
+string, for code a page assembled rather than ran.
+
+## ⚠ It was a `<details>` until 2026-08-30
+
+For a year it opened **closed**, on the reasoning that a leaf page shows the
+thing first and answers "how" only when asked. In practice every caller that
+mattered wrote `.attr("open", "")` straight after it — `demo.exhibit()` did, and
+so did all nine `/web/` guide pages — which is a disclosure nobody ever wanted
+disclosed, the worst of both. Code beside a render is half the lesson; an aside
+is what a caption is for. demo-merge step 2.
+
+Both `demo.source()` and `demo.source.file()` are now two-line doors into
+`source_block(label, body, file)` in `demo.js`, and `page.demo()`'s peer column
+is the **same block** — so there is exactly one code surface on the site and the
+shell's code cannot drift from a leaf page's.
 
 ## Two functions, not one parsed signature
 
@@ -35,9 +47,9 @@ rather than an unhandled rejection.
 
 ## Improvements
 
-1. **No timeout on the fetch fallback.** A hung network leaves the `<summary>`
-   permanently reading "Source" with nothing under it once opened — not wrong,
-   but a spinner-less wait with no upper bound. *(simple, speculative.)*
+1. **No timeout on the fetch fallback.** A hung network leaves the header
+   permanently reading "Source" with an empty block under it — not wrong, but a
+   spinner-less wait with no upper bound. *(simple, speculative.)*
 2. **`copy_btn`'s 1400ms "copied" state is a magic number with no name.** Small,
    but it's the kind of literal that's easy to duplicate instead of reuse if a
    second copy button is ever added elsewhere. *(simple, speculative.)*

@@ -2,63 +2,45 @@ import View, { div, a, h2 } from "../../core/View/View.js";
 import demo, { caption } from "./demo.js";
 import { stage } from "./stage.js";
 
-/* Patches demo.app() on — the box demo.tree() builds. The side effect IS the import. */
-import "./app.js";
+/* Patches page.demo() on — the shell every sugar below is config over. It imports
+   app.js and ext/layout in turn, so this file needs neither. The side effect IS the
+   import, the ext/tabs move. */
+import "./shell.js";
 
-/* ext/layout is the site's one control surface, so the assembly hard-imports it
-   rather than feature-testing: a bar every page has to remember is a bar half the
-   detail pages won't have. An ext may lean on an ext; only core may never. */
-import layout from "../layout/layout.js";
-
-/* css: .demo-exhibit, .demo-exhibit-render, .demo-exhibit-def, .demo-steer — the band
-   and the slot the bar is drawn into. Also .tree-preview; the shell around it keeps
-   .page-preview, which Page.css owns. And the ground under a `bleed` stage, which is
-   stage.js's box but this page's decision — a specimen with no edge is an exhibit
-   problem, not a stage one. */
+/* css: .tree-preview — the card a `demo.tree()` draws; the shell around it keeps
+   .page-preview, which Page.css owns. Plus the ground under a `bleed` stage, which
+   is stage.js's box but this page's decision — a specimen with no edge is an
+   exhibit problem, not a stage one. */
 View.stylesheet(import.meta, "exhibit.css");
 
 /**
- * demo.exhibit({ page, stage, def, file, note }) — a demo as a PAGE, and the only
- * shape one has. Three things, in this order, always:
+ * demo.exhibit({ page, stage, def, file, note }) — a demo as a PAGE.
  *
- *   1. the thing running, on a stage you can drag narrower;
- *   2. a layout bar wired to it — inspect it, toggle its words;
- *   3. the definition that built it, open, with the whole file one click away.
+ * It is `page.demo()` now, with the specimen's own stage handed in — the band, the
+ * path strip, the layout bar and the source column all come from the one shell
+ * (shell.js), so a demo page cannot be a different shape from any other demo. What
+ * survives here is only what a DETAIL page adds around it: the Overrides line and
+ * the Variants wall, both page-level siblings of the band.
  *
- * `stage(steer)` builds the render into the page and calls `steer(target)` with
- * whatever the bar points at — again, every time that target moves, which is what
- * keeps the bar on the page a tree demo has just navigated to.
+ * `stage(steer)` builds the render and calls `steer(target)` with whatever the bar
+ * points at — again, every time that target moves, which is what keeps the bar on
+ * the page a tree demo has just navigated to.
  *
  * `def` is a FUNCTION and its source is the lesson: the reader gets the tree or
  * the render in front of them, not the imports and the `export default` wrapped
  * around it. `file` is for whoever wants those too.
  *
  * `page` is the page being built — hand it `this` and its children become the
- * Variants wall below. One band holds the render and the definition, so on a
- * wide monitor the code moves beside the thing instead of under it (exhibit.css).
+ * Variants wall below.
  *
  * Three sugars are config over this: `demo.page()` and `demo.tree()` below, and
  * `demo.layout()` in layout.js — a function, a site tree and a whole page.
  */
 demo.exhibit = ({ page, stage, def, file, note }) => {
-	let $bar, target;
+	page.demo({ bar: true, code: def ?? true, file, run: shell => stage(target => shell.steer(target)) });
 
-	// ⚠ The render first, so the stage lands above the bar — `steer` fires inside
-	// it, before `$bar` exists, and the slot draws the first bar itself.
-	const steer = next => { target = next; $bar?.empty(() => layout.bar(target)); };
-
-	div.c("demo-exhibit bleed", () => {
-		div.c("demo-exhibit-render", () => {
-			stage(steer);
-			$bar = div.c("demo-steer", () => { if (target) layout.bar(target); });
-		});
-
-		div.c("demo-exhibit-def", () => {
-			demo.source(def, "Source", file).attr("open", "");
-			if (note) caption(note);
-			overrides(def);
-		});
-	});
+	if (note) caption(note);
+	if (def) overrides(def);
 
 	if (page?.children.size) variants(page);
 };

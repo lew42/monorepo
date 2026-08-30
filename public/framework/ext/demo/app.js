@@ -1,4 +1,5 @@
 import { View, div, span, a, icon } from "../../core/View/View.js";
+import { ruler } from "./stage.js";
 import demo from "./demo.js";
 
 /* css: app.css styles .page, .page-title, .page-preview and .page-link — Page.css
@@ -61,6 +62,15 @@ class DemoApp extends View {
 			if (this.nav) this.$nav = div.c("demo-app-nav");
 			this.$pages = div.c("demo-app-pages");
 		});
+
+		/* The width readout, on the box itself. A stage has always had one; a bare
+		   `demo.app()` never did, and that one gap is the whole of "sometimes the site
+		   shows the width, sometimes not" — 45 call sites (demo-merge §1). Reporting
+		   the PAGES region, not the box: the rail is chrome, and the number a reader
+		   wants is the width the page inside is laying out at.
+		   ⚠ Inside a stage this is a duplicate, and app.css hides it there rather than
+		     asking at build time — the box is not mounted yet, so it cannot look up. */
+		ruler(this.$pages, div.c("demo-app-size"));
 
 		// It IS the app for this tree — container() asks `app.$pages` for the root, and
 		// walks up to the ROOT's `$pages` for everything under it. Both, so a page that

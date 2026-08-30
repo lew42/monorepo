@@ -56,6 +56,11 @@ export default new Page({
 	 * `posts.js` is what LINKS them, which is the half that matters. */
 	children: "framework systems ai doc",
 
+	/* …and the same argument one step further: nothing on this page draws a child.
+	 * The rail, the magazine and the topics all read `posts.js`, so the four sections
+	 * are declared for the ADDRESS and fetched when you open one. */
+	depth: 0,
+
 	/* A LAYOUT, not a content page. The three things an override owes (core/Page):
 	 * set `this.view`, carry `.page`, never nest a second `.page` inside. */
 	render(){

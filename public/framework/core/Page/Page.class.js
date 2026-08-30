@@ -8,12 +8,15 @@ const marked = el => el?.matches(".page.active-page, .page.active-ancestor, .pag
 
 export class Page {
 
+	// ⚠ Nothing is FETCHED here. A module page constructs ITSELF at import, so a
+	// constructor that loaded its subtree would pull the whole site down from whatever
+	// url you opened — 261 modules for every page under /framework/, measured. The
+	// caller budgets instead: Page.load(), child(), load_all_children(). doc/declaring.md.
 	constructor(...args){
 		this.assign(...args);
 		this.naming();
 		this.declare();
 		this.initialize?.();
-		if (this.url) this.load_all_children();   // no url yet = standalone; add() re-triggers on adoption
 	}
 
 	assign(...args){ return Object.assign(this, ...args); }
@@ -78,7 +81,6 @@ export class Page {
 		if (this.url) page.move(this.url + name + "/");
 
 		page.naming();
-		if (page.loading === undefined) page.load_all_children();   // built standalone — its url only just arrived
 		this.children.set(name, page);
 		return page;
 	}
@@ -112,19 +114,23 @@ export class Page {
 	// Memory, then route(), then a filesystem probe. One of the two places `app` is
 	// handed down — `render_column()` is the other, for the child nothing routes to.
 	// route() sees undeclared names only, so it cannot shadow a child.
-	async child(name){
+	//
+	// `levels` is how deep the child then loads: my remaining budget while I walk my
+	// own subtree, and NOTHING when the Router walked in here — which means the child
+	// loads as deep as its own `depth` reaches. doc/declaring.md.
+	async child(name, levels){
 		const known = this.children.get(name);
 
-		if (known) return known.assign({ app: this.app });
+		if (known) return known.assign({ app: this.app }).load_all_children(levels);
 
 		const claimed = known === undefined && is.fn(this.route) && this.route(name);
-		if (claimed) return this.add(name, claimed);
+		if (claimed) return this.add(name, claimed).load_all_children(levels);
 
-		const page = await Page.load(this.url + name + "/");
-		if (page) return this.add(name, page);
+		const page = await Page.load(this.url + name + "/", 0);
+		if (page) return this.add(name, page).load_all_children(levels);
 
 		const file = await Page.file(this.url + name + ".md");
-		return file ? this.add(name, file) : null;
+		return file ? this.add(name, file).load_all_children(levels) : null;
 	}
 
 	// Last resort, so a real page.js always wins: a `.md` file beside me IS a page —
@@ -150,8 +156,15 @@ export class Page {
 
 	// A module that throws is NOT a module that isn't there — swallowing both turns a
 	// syntax error in a page you just wrote into a silent 404.
-	static async load(url){
-		try { return (await import(url + "page.js")).default ?? null; }
+	// ⚠ `levels` — a module page constructs itself at import, so this is the first
+	//   moment anyone can bound its subtree. Nothing means the page's own `depth`,
+	//   which is what App.load("/") wants for the site root; child() passes 0 and
+	//   budgets afterwards.
+	static async load(url, levels){
+		try {
+			const page = (await import(url + "page.js")).default ?? null;
+			return page instanceof Page ? page.load_all_children(levels) : page;
+		}
 		catch (error){
 			if (!Page.missing(error))
 				console.error(`Page.load("${url}page.js") — the file EXISTS but failed to load:`, error);
@@ -499,11 +512,32 @@ export class Page {
 		}).href(nav.url);
 	}
 
-	// Awaiting each child's own `loading` makes this mean "my subtree is ready";
-	// Router.load() awaits it, so a page draws once, complete.
-	load_all_children(){
-		return this.loading = Promise.all([...this.children.keys()]
-			.map(name => this.child(name).then(child => child?.loading)));
+	// How deep my declared subtree is FETCHED, and the one number that decides what a
+	// url costs. `1` — my children: a card wall, a rail, my own list in a sidebar.
+	// `2` — theirs too, which is what `walls()` and a two-level sidebar draw, and the
+	// default. A page that only previews its children says `depth: 1`; one that draws
+	// none of them says `0`. A field, so a declared `depth:` still wins (it
+	// initializes before `assign()`). doc/declaring.md.
+	depth = 2;
+	loaded = 0;
+
+	// My children fetched, and theirs, until the budget runs out. `levels` is what the
+	// CALLER needs; nothing means my own `depth`, which is what navigating to me asks
+	// for. Awaiting each child's `loading` makes this mean "the next `levels` are
+	// ready"; Router.load() awaits it, so a page draws once, complete.
+	// ⚠ Idempotent — `loaded` is what is already here, so revisiting costs nothing and
+	//   a deeper ask tops up. It returns `this`, which is what lets child() chain it.
+	// ⚠ A `leaf` child spends NONE of my budget: leaf already means "I present myself,
+	//   not my children" — walls() and framework's sections() both skip it — so its
+	//   subtree waits until you open it. 50 modules on /framework/ alone.
+	load_all_children(levels = this.depth){
+		if (levels <= this.loaded) return this;
+		this.loaded = levels;
+
+		this.loading = Promise.all([...this.children.keys()].map(name =>
+			this.child(name, 0).then(child => child?.load_all_children(child.leaf ? 0 : levels - 1).loading)));
+
+		return this;
 	}
 
 	// ext/tabs patches `tabs()` onto this prototype and fills `regions`, which

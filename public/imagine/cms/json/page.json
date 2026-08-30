@@ -1,0 +1,63 @@
+{
+	"title": "JSON pages",
+	"icon": "storage",
+	"description": "A page tree that exists as data: page.json is the snapshot, page.jsonl is the delta log.",
+	"blocks": [
+		{ "type": "md", "text": "Everything below the line came out of `page.json` — this paragraph, the three pages in the rail, and the pages inside those. No `page.js` was written for any of them.\n\nThe snapshot is one node: `title`, `icon`, `description`, `blocks`, and a `children` object of more nodes of the same shape. `Page.declare()` already takes that shape, so the tree is real pages with real urls the moment it is fetched." }
+	],
+	"children": {
+		"format": {
+			"title": "The format",
+			"icon": "code",
+			"description": "One node shape, one delta line shape. That is the whole spec.",
+			"blocks": [
+				{ "type": "md", "text": "Two files beside each other. The **snapshot** is the state; the **log** is what happened to it since.\n\n```\npage.json    the tree, as one node\npage.jsonl   one delta per line, append only\n```\n\nLoading is `fetch` the snapshot, replay the log in order. Compacting writes the replayed state back as the snapshot and empties the log — which is why the json never grows past the tree it describes." },
+				{ "type": "cards" }
+			],
+			"children": {
+				"snapshot": {
+					"title": "Snapshot",
+					"icon": "description",
+					"description": "page.json — the tree as one nested node.",
+					"blocks": [
+						{ "type": "md", "text": "A node is a page. Its `children` are pages. There is no separate \"page list\" and no ids — the object key is the url segment, the way a directory name is." }
+					],
+					"children": {
+						"shape": {
+							"title": "The node",
+							"icon": "list",
+							"description": "Three levels deep, from data alone — this page is the third.",
+							"blocks": [
+								{ "type": "md", "text": "```json\n{\n  \"title\": \"The node\",\n  \"icon\": \"list\",\n  \"description\": \"…\",\n  \"blocks\": [{ \"type\": \"md\", \"text\": \"…\" }],\n  \"children\": { \"child\": { \"title\": \"…\" } }\n}\n```\n\nYou are three levels below the last real `page.js`, at a url that works cold: paste `/imagine/cms/json/format/snapshot/shape/` into a new tab and this page comes back. The Router walked `page.json`." }
+							]
+						}
+					}
+				},
+				"deltas": {
+					"title": "Deltas",
+					"icon": "playlist_add",
+					"description": "page.jsonl — one line per change, appended, never rewritten.",
+					"blocks": [
+						{ "type": "md", "text": "One line, three ops:\n\n```json\n{\"at\": \"2026-08-30T18:00:00-05:00\", \"op\": \"set\", \"path\": [\"children\", \"format\", \"title\"], \"value\": \"The format\"}\n```\n\n- **set** — `path` ends at the field, `value` replaces it.\n- **del** — `path` ends at the field or the array index; it goes away.\n- **append** — `path` ends at an ARRAY, `value` is pushed onto it. A new paragraph is one line.\n\nAn edit costs one line. Nothing rewrites the snapshot, so two edits a second are two appends, not two copies of the tree." }
+					]
+				}
+			}
+		},
+		"why": {
+			"title": "Why json plus jsonl",
+			"icon": "info",
+			"description": "The snapshot keeps the file small; the log keeps every change.",
+			"blocks": [
+				{ "type": "md", "text": "A json file you rewrite on every edit is a file that loses its history and still grows — every save is a whole-tree write, and the diff is the whole tree.\n\nA jsonl you only ever append to keeps the history and never conflicts, but replaying ten thousand lines to draw a page is not a page load.\n\nTogether: the snapshot bounds the read, the log bounds the write. **Compaction** is the one moment they meet — the replayed state becomes the new snapshot and the log starts again at zero bytes." }
+			]
+		},
+		"limits": {
+			"title": "What data cannot do",
+			"icon": "help_outline",
+			"description": "Content blocks, yes. Behaviour needs js — and here is the hatch.",
+			"blocks": [
+				{ "type": "md", "text": "A block names a **renderer**: `{ \"type\": \"cards\" }` draws this page's children as cards, because a function called `cards` is registered in `json.js`. Data chooses; js supplies.\n\nSo a page made of data can say anything a registered renderer can draw, and nothing else. A page that needs its own `render()`, its own state, its own event handlers is a `page.js` — and it can still live in this tree as one more child.\n\nThe honest line is in the [readme](/imagine/cms/json/readme/)." }
+			]
+		}
+	}
+}

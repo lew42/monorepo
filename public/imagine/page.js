@@ -26,6 +26,11 @@ export default new Page({
 
 	width: "small",
 
+	/* One level: the rail and Start's card wall both draw MY children and stop there —
+	   a section's own columns arrive when you open it. Without this the place cost 92
+	   page.js modules to show 15 (measured 2026-08-30). doc/declaring.md. */
+	depth: 1,
+
 	initialize(){ this.columns(); },
 
 	children: [
@@ -49,6 +54,6 @@ export default new Page({
 			},
 		},
 
-		"team", "game", "gallery", "scenes", "vary", "screens", "shells", "feeds", "mag", "blogx", "decks", "youtube", "cms",
+		"team", "game", "gallery", "scenes", "vary", "screens", "shells", "feeds", "mag", "blogx", "decks", "youtube", "cms", "research", "stream",
 	],
 });

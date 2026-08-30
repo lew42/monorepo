@@ -22,24 +22,18 @@ which never moved. Drag a demo to 390px and it will still render its desktop
 branch. The fix, when it's wanted, is an iframe — deferred deliberately, costed
 in [the design record](/framework/ext/demo/doc/record/) §6.
 
-## `demo.stage.two(fn, steer, opts)` — a mode, not a fifth door
+## ⚠ `demo.stage.two()` and `two.js` are gone
 
-The same stage shell, with two simulated panes in place of one render and the
-split handle standing in for the width buttons — `{ wide, narrow }` name the two
-ends, `level: true` floors the shorter pane to the taller one (what
-`demo.layout({ twin: true })` needs; a plain comparison doesn't). It lives in
-`two.js` and imports `filler()` from `stage.js` so there is exactly one
-fullscreen implementation on the site, not two. `Doc`'s member lookup only
-resolves one property level, so `demo.stage.two` doesn't get its own API page —
-it's documented here, beside the door it's a mode of.
+There used to be a two-up mode: one builder at two simulated widths with a split
+handle between them, which was that stage's width dial. It was a **second width
+mechanism** saying what the strip's own `mobile`…`mega` presets already say, and
+it had two call sites. Deleted 2026-08-30 (demo-merge step 3) along with
+`two.js`, `two.css` and `twin.js`'s unused `twin()`. The rAF coalescing it bought
+survives in `stage.js`'s `drag()`, which the handle and the magnifier share.
 
 ## Improvements
 
-1. **`demo.stage.two` has no page of its own in the API tab**, because `Doc`
-   only resolves `subject[name]`, never `subject[a][b]`. Harmless today — this
-   note covers it — but the same gap will recur for `demo.source.file`.
-   *(simple, useful — a `Doc` limitation, not a `demo` one; see the audit.)*
-2. **The width buttons are unlabelled by number in the strip itself** — `390`
+1. **The width buttons are unlabelled by number in the strip itself** — `390`
    only appears in the button's `title` and the readout underneath, never on the
    button. Deliberate (§17 of the record), but worth a tooltip-free affordance
    for a first-time reader who won't hover. *(simple, speculative.)*

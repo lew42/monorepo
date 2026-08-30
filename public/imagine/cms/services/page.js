@@ -60,6 +60,7 @@ a second API — it needs a screen that composes the right line and hands it to 
 
 		this.form();
 		this.cards();
+		this.mcpNote();
 
 		md(`## What each screen would be
 
@@ -125,5 +126,34 @@ argues you should take them late, and only for the features that actually need a
 					md(`### ${name}\n\n${s.what}\n\n**Free tier** — ${s.free}\n\n**Local** — \`${s.local}\``);
 				});
 			}));
+	},
+
+	// Answers "is there an MCP for this" — researched 2026-08-30, see ai/2026-08-30/cloudflare-mcp/.
+	mcpNote(){
+		md(`## Claude can do this — the setup
+
+An official Cloudflare MCP exists, hosted — nothing to install. Four steps:
+
+1. **Confirm the Cloudflare account.** Sign in (or sign up) at Cloudflare's dashboard —
+   nothing below works without one. [setup guide](https://developers.cloudflare.com/agent-setup/claude-code/)
+2. **Connect it** — from the repo root: \`claude mcp add cloudflare --transport http https://mcp.cloudflare.com/mcp\`
+   for the full API, plus \`claude mcp add cloudflare-bindings --transport http https://bindings.mcp.cloudflare.com/mcp\`
+   for D1/KV/R2 creation specifically. [server list](https://developers.cloudflare.com/agents/model-context-protocol/cloudflare/servers-for-cloudflare/)
+3. **Authorize.** The first tool call opens a browser OAuth prompt — sign in, grant account
+   access, once per server. (A scoped API token works instead for non-interactive setups.)
+   [setup guide](https://developers.cloudflare.com/agent-setup/claude-code/)
+4. **Ask the mastermind** — once connected: *"create the D1 database and wire the CMS
+   adapter"* (same phrasing for KV, R2). [workers-bindings server](https://github.com/cloudflare/mcp-server-cloudflare/tree/main/apps/workers-bindings)
+
+Check it landed with \`claude mcp list\`.
+
+**Mock → real, plainly:** **New** and **Services** above go real first — create/list D1, KV,
+R2 are confirmed tools on the bindings server. **Console / Schema / Backup / Restore** ride
+D1's REST API, reachable through the general \`cloudflare\` server's Code Mode — likely real,
+not yet tool-tested here. **Durable Object create stays a mock on purpose** — there is no
+create API for a DO, only a code change (declare the binding, \`wrangler deploy\`), which needs
+no MCP at all — that one you can already ask for today.
+
+Neither server creates the account or picks a plan. Step 1 is always yours.`);
 	},
 });

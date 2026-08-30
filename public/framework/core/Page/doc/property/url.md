@@ -24,6 +24,7 @@ shows up one level down.
 
 A title-derived url is **provisional**: `add()` overwrites it on adoption
 (`move()`, subtree included), because a child's address is its parent's plus its
-name. `undefined` remains a real state — a standalone page with no title — and is
-why the constructor guards `if (this.url)` before loading children.
+name. `undefined` remains a real state — a standalone page with no title — and it is
+why nothing is fetched until a page is adopted: `child()` builds a child's url from
+mine, so a page with no address has nowhere to fetch from.
 

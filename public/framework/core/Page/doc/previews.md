@@ -29,11 +29,12 @@ What that costs, measured on a cold load of one page with five children:
 
 Two things to know from that table.
 
-**One import is a whole subtree.** The constructor calls `load_all_children()`, so
-importing a page imports every page it declares, and every page *those* declare. Each
-`View.stylesheet()` along the way adds a real `<link>` to the document — and it stays
-there, cascading on every page you visit afterwards. Import lists lazily, one column or
-one tab at a time, rather than pulling the whole site into one page's `content()`.
+**One import is `depth` levels of subtree.** Importing a page does not fetch
+anything by itself, but the moment a parent resolves it, it pulls the pages it
+declares and the ones *those* declare — two levels by default (`../declaring.md`).
+Each `View.stylesheet()` along the way adds a real `<link>` to the document, and it
+stays there, cascading on every page you visit afterwards. Say `depth: 1` (or `0`)
+rather than pulling levels nobody draws into one page's `content()`.
 
 **What comes back is an orphan.** It knows its own url, because `import.meta` told it,
 but nothing has adopted it. That is enough for `preview()`, `nav()`, `link()` and

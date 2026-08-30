@@ -10,12 +10,14 @@ import Screenshots from "./Server/plugins/Screenshots.js";
 import Start from "./Server/plugins/Start.js";
 import Tab from "./Server/plugins/SocketServer/Tab.js";
 import Tail from "./Server/plugins/SocketServer/Tail.js";
+import Append from "./Server/plugins/SocketServer/Append.js";
 
 DevSocket.Socket.use(Runtime);
 DevSocket.Socket.use(Ask);
 DevSocket.Socket.use(Start);
 DevSocket.Socket.use(Tab);
 DevSocket.Socket.use(Tail);
+DevSocket.Socket.use(Append);
 Server.use(DevSocket);
 Server.use(Directory);
 Server.use(AILogs);

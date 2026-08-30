@@ -1,8 +1,7 @@
-import View, { div, p, pre, code, span, a, button, details, summary, icon, is } from "../../core/View/View.js";
+import View, { div, p, pre, code, span, a, button, icon, is } from "../../core/View/View.js";
 import { source, dedent } from "../../util/source/source.js";
 import { markup } from "../../util/markup/markup.js";
 import { stage } from "./stage.js";
-import { two } from "./two.js";
 
 /* css: `.page.standard > .demo.quoted` — the opt-out reads Page.css's own track names,
    so this import is the loading edge for it, not an annotation. */
@@ -29,12 +28,11 @@ View.stylesheet(import.meta, "demo.css");
  * The two halves also stand alone:
  *
  *   demo.stage(fn).ac("bleed");             // the render, full-bleed, no chrome
- *   demo.stage.two(fn);                     // the same render at two widths
- *   demo.source(fn);                        // the code, closed, BELOW the render
+ *   demo.source(fn);                        // the code, open, in a named block
  *
- * A demo PAGE is those two plus a control bar, assembled once — `demo.exhibit()`
- * in exhibit.js, which is also where `demo.page()` and `demo.tree()` live;
- * `demo.layout()` is the third sugar, in layout.js.
+ * A demo PAGE is `page.demo()` — one shell, in shell.js. `demo.page()`,
+ * `demo.tree()`, `demo.exhibit()` (exhibit.js) and `demo.layout()` (layout.js) are
+ * `children:` factories over it: page SHAPES, not a fifth way to draw a demo.
  *
  * Strings before the function label the box; strings after caption it. The
  * caption is the important one: a doc page leads with code, and the sentence
@@ -134,73 +132,66 @@ demo.stage = (fn, steer) => {
 };
 
 /**
- * demo.stage.two(fn) — the stage's two-up mode: the same builder at two simulated
- * widths with one handle between them, which is the width dial. `{ wide, narrow }`
- * names the two ends; `level: true` floors the shorter pane to the taller one.
+ * source_block(label, body, file) — THE code surface on the site. A named header
+ * (the file, a link to the whole of it, a copy button) over an open block.
  *
- * A mode rather than a door of its own, so the fullscreen in its strip is the
- * site's one fullscreen. two.js.
+ * ⚠ It is not a `<details>` any more. It was, for a year, and every caller that
+ * mattered wrote `.attr("open", "")` straight after — a disclosure that is always
+ * disclosed, which is the worst of both. Code beside a render is half the lesson,
+ * not an aside. `page.demo()` draws its peer column with this, and so does every
+ * `demo.source()` below, so there is exactly one of them. demo-merge step 2.
  */
-demo.stage.two = (fn, steer, opts) => {
-	const { $stage, $views } = two(fn, opts);
+export function source_block(label, body, file){
+	return div.c("demo-source", $source => {
+		div.c("demo-source-head", () => {
+			span(label);
+			if (file) file_link(file);
+			copy_btn($source);
+		});
 
-	steer?.($views[0]);
-
-	return $stage.ac("wide");
-};
+		/* ⚠ Nothing RETURNED from the callback: `append(fn)` appends whatever the
+		   function hands back, so a returned box would be appended to itself. */
+		div.c("demo-source-body", $body => { body($body); });
+	});
+}
 
 /**
- * demo.source(fn) — the code, closed, BELOW the render.
+ * demo.source(fn) — the code, open, under a render.
  *
- *   demo.source(hero);                          // summary reads "Source"
+ *   demo.source(hero);                          // the header reads "Source"
  *   demo.source(hero, "The whole page");
  *   demo.source(tree, "Source", "/x/page.js");  // + the whole file, one click away
  *   demo.source(template, "Source");            // a STRING, already built
- *   demo.source.file(import.meta, "hero.js");   // summary reads "hero.js"
- *
- * A leaf page shows the thing first and answers "how" only when asked, so this
- * opens closed and belongs under the render — never above it.
+ *   demo.source.file(import.meta, "hero.js");   // the header reads "hero.js"
  *
  * What prints is the FUNCTION, which on a demo page is the lesson; the third
  * argument is the file it lives in, for the reader who wants the imports too. A
  * string prints as-is, for code a page assembled rather than ran.
+ *
+ * Two doors into `source_block()` above — never a second shape.
  */
 demo.source = (src, label = "Source", file) =>
-	source_details(label, () => { pre(() => { source_code(is.fn(src) ? source(src) : src); }); }, file);
+	source_block(label, () => source_code(is.fn(src) ? source(src) : src), file);
 
 demo.source.file = (meta, url, label = url) =>
-	source_details(label, $source => { $source.append(source_file(meta, url)); });
-
-function source_details(label, body, file){
-	return details.c("demo-source", $source => {
-		summary(() => { span(label); if (file) file_link(file); copy_btn($source); });
-		body($source);
-	});
-}
+	source_block(label, $body => { $body.append(source_file(meta, url)); });
 
 /* The source block is the one place code is handed over, so the copy button rides
    it rather than living beside a second code block (ui/parts.js had one).
    ⚠ Reads the rendered `<pre>` at click time, not the function: `demo.source.file`
    fetches, so there is nothing to hold until it lands — and copying what you can
-   see cannot drift from it.
-   ⚠ `preventDefault` is the load-bearing one: a click anywhere inside a `<summary>`
-   toggles it, and that is the element's default action, not a listener. */
-const copy_btn = $source => btn(() => icon("content_copy"), "Copy the source", function(e){
-	e.preventDefault();
-	e.stopPropagation();
-
+   see cannot drift from it. */
+const copy_btn = $source => btn(() => icon("content_copy"), "Copy the source", function(){
 	navigator.clipboard.writeText($source.el.querySelector("pre")?.textContent ?? "");
 
 	this.empty(() => icon("check")).ac("on");
 	setTimeout(() => this.empty(() => icon("content_copy")).rc("on"), 1400);
 }).ac("demo-copy");
 
-/* ⚠ `target` and `stopPropagation` are both load-bearing: the Router ignores a link
-   that carries a target (`link_clicked`), and a click that reached the `<summary>`
-   would shut the source the reader just opened. */
+/* ⚠ `target` is load-bearing: the Router ignores a link that carries one
+   (`link_clicked`), and this address is a real file, not a route. */
 const file_link = url => a.c("demo-file", url.split("/").at(-1))
-	.href(url).attr("target", "_blank").attr("title", "The whole file")
-	.on("click", e => e.stopPropagation());
+	.href(url).attr("target", "_blank").attr("title", "The whole file");
 
 /* One toolbar control. Every button here is a toggle, and `.on` is the pressed
  * state — the caller flips it, because the caller is what knows the state. */

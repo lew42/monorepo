@@ -1,7 +1,10 @@
-The detail-page assembly: `demo.exhibit()` itself, plus the two sugars built
-directly over it, `demo.page()` and `demo.tree()`. `demo.layout()` is a third
-sugar over the same assembly but lives in its own file (`layout.js`) because it
-also needs `ext/layout`'s panel-registration helper and `twin.js`'s card.
+The detail-page SHAPE: `demo.exhibit()` itself, plus the two sugars built
+directly over it, `demo.page()` and `demo.tree()`. Since demo-merge step 4 none of
+them draws a demo — `demo.exhibit()` is `page.demo({ run: … })` plus the two
+things a detail page adds around the band, the Overrides line and the Variants
+wall. `demo.layout()` is a third sugar over the same call but lives in its own
+file (`layout.js`) because it also needs `ext/layout`'s panel-registration helper
+for its `parts:` chips.
 
 ## Imports `app.js` for its side effect
 

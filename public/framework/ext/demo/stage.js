@@ -16,9 +16,8 @@ View.stylesheet(import.meta, "stage.css");
  * on the right, and nothing to wire up: `demo()`, `demo.stage()`, `demo.exhibit()`
  * and `demo.tree()` each just build a stage. doc/record.md §20.
  *
- * `two.js` composes the same shell with two simulated panes and only the filler in
- * its strip, which is why `filler()` is exported and the split handle is that
- * stage's width dial.
+ * `pane.js` composes the same `simulate`/`watch` pair into a fixed device frame —
+ * `ext/Panel/Workspace`'s viewports — which is why those two are exported.
  *
  * ⚠ A div is not a viewport — a `@media` query inside an example answers the real
  * window, not the handle and not a simulated width. doc/record.md §6, §17.

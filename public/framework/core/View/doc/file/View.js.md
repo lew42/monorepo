@@ -11,23 +11,25 @@ traps hiding in it: `doc/lifecycle.md`.
 
 ## Two module exports that are not class members
 
-`icon(name)` (`View.js:456`) and a re-export of `is` (`View.js:461`) live here
+`icon(name)` (`View.js:469`) and a re-export of `is` (`View.js:474`) live here
 because `elements()` and `is` are the two things every factory-writing file needs.
 Neither can have a rail entry — they are not on `View` or its prototype.
 
-## The load-order trick, dead last in the file
+## The load-order trick has moved to app.js
 
-`View.stylesheet(import.meta, "../../framework.css")` is the file's last line, on
-purpose: `stylesheet()` builds a `View`, which runs `append_fn`, which pushes onto
-`View.previous_captors` — declared two lines above it. Higher in the file it throws
-on an undefined array. Because every module that builds DOM imports `View` first,
-this one `<link>` is always the first stylesheet in `<head>`, which is what fixes
-the `@layer` order for the whole document. `doc/method/stylesheet.md`.
+`stylesheet()` (`View.js:378`) builds a `View`, which runs `append_fn`, which
+pushes onto `View.previous_captors` — so calling it before this file finishes
+loading throws on an undefined array. The framework.css call itself no longer
+lives in this file: it's `App.stylesheet("/framework/framework.css")` at
+`public/app.js:14`, a thin wrapper (`App.js:99`) over this same method. Because
+every module that builds DOM imports `View` first, that one `<link>` is still
+always the first stylesheet in `<head>`, which is what fixes the `@layer` order
+for the whole document. `doc/method/stylesheet.md`.
 
 ## The captor lives here, and only here
 
 `View.captor` (declared implicitly — see `doc/property/captor.md`) and
-`View.previous_captors` (`View.js:465`) are the one piece of global, synchronous
+`View.previous_captors` (`View.js:478`) are the one piece of global, synchronous
 state in the framework. Everything else in this file is a method acting on `this`;
 capturing is the one idea that reaches across instances. `doc/capturing.md`.
 

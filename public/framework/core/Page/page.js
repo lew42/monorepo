@@ -42,7 +42,7 @@ export default new Doc({
 		+ "mounts_in log_label assign load missing slug",
 
 	properties: "meta title children content url name label icon card classes "
-		+ "description parent app view loading route regions",
+		+ "description parent app view loading route regions depth",
 
 	notes: "declaring labels css layout columns roles panels previews findings decisions",
 

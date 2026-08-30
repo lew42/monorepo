@@ -1,0 +1,1024 @@
+{
+ "at": "2026-08-30T23:36:45.513Z",
+ "bar": 3,
+ "metric": "dL* of max(fill, border, inset ring) against the composited floor",
+ "mode": "light",
+ "width": 1440,
+ "pages": 76,
+ "elements": 3598,
+ "distinct": 384,
+ "flagged": 101,
+ "instances": 504,
+ "worst": [
+  {
+   "page": "/framework/ext/Panel/",
+   "sel": "button.demo-btn",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 35
+  },
+  {
+   "page": "/framework/ext/highlight/",
+   "sel": "button.demo-btn",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 35
+  },
+  {
+   "page": "/framework/core/View/",
+   "sel": "button.demo-btn",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 30
+  },
+  {
+   "page": "/framework/ext/markdown/",
+   "sel": "button.demo-btn",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 30
+  },
+  {
+   "page": "/framework/faq/",
+   "sel": "button.demo-btn",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 15
+  },
+  {
+   "page": "/framework/core/Sidebar/",
+   "sel": "button.demo-btn",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 15
+  },
+  {
+   "page": "/framework/ext/Timeline/",
+   "sel": "button.demo-btn",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 15
+  },
+  {
+   "page": "/framework/ext/editor/",
+   "sel": "button.layout-btn",
+   "fill": "#f2f2f2",
+   "floor": "#f2f2f2",
+   "edge": 0,
+   "via": "fill",
+   "text": 4.83,
+   "n": 14
+  },
+  {
+   "page": "/framework/ui/",
+   "sel": "button",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 10.53,
+   "n": 13
+  },
+  {
+   "page": "/framework/ext/editor/",
+   "sel": "button.layout-btn.editor-layer",
+   "fill": "#f2f2f2",
+   "floor": "#f2f2f2",
+   "edge": 0,
+   "via": "fill",
+   "text": 2.01,
+   "n": 13
+  },
+  {
+   "page": "/framework/styles/",
+   "sel": "button.demo-btn",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 10
+  },
+  {
+   "page": "/framework/versus/",
+   "sel": "button.demo-btn",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 10
+  },
+  {
+   "page": "/framework/ext/Panel/",
+   "sel": "button",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 10.53,
+   "n": 10
+  },
+  {
+   "page": "/framework/ext/demo/",
+   "sel": "button.demo-btn",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 10
+  },
+  {
+   "page": "/framework/ext/demo/",
+   "sel": "button.demo-btn",
+   "fill": "#f2f2f2",
+   "floor": "#f2f2f2",
+   "edge": 0,
+   "via": "fill",
+   "text": 4.83,
+   "n": 10
+  },
+  {
+   "page": "/framework/ext/tabs/",
+   "sel": "button.demo-btn",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 10
+  },
+  {
+   "page": "/framework/styles/layouts/",
+   "sel": "button",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 10.53,
+   "n": 7
+  },
+  {
+   "page": "/framework/ext/Panel/",
+   "sel": "button.demo-btn",
+   "fill": "#f8f8f8",
+   "floor": "#f8f8f8",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.09,
+   "n": 7
+  },
+  {
+   "page": "/framework/ext/Panel/",
+   "sel": "button.demo-btn.demo-scrub",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 7
+  },
+  {
+   "page": "/framework/ext/highlight/",
+   "sel": "button.demo-btn",
+   "fill": "#f8f8f8",
+   "floor": "#f8f8f8",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.09,
+   "n": 7
+  },
+  {
+   "page": "/framework/ext/highlight/",
+   "sel": "button.demo-btn.demo-scrub",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 7
+  },
+  {
+   "page": "/framework/ext/layout/",
+   "sel": "span.layout-tag",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 7
+  },
+  {
+   "page": "/framework/core/View/",
+   "sel": "button.demo-btn",
+   "fill": "#f8f8f8",
+   "floor": "#f8f8f8",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.09,
+   "n": 6
+  },
+  {
+   "page": "/framework/core/View/",
+   "sel": "button.demo-btn.demo-scrub",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 6
+  },
+  {
+   "page": "/framework/ext/layout/",
+   "sel": "button.layout-btn",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 6
+  },
+  {
+   "page": "/framework/ext/markdown/",
+   "sel": "button.demo-btn",
+   "fill": "#f8f8f8",
+   "floor": "#f8f8f8",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.09,
+   "n": 6
+  },
+  {
+   "page": "/framework/ext/markdown/",
+   "sel": "button.demo-btn.demo-scrub",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 6
+  },
+  {
+   "page": "/framework/start/",
+   "sel": "button.panel-workspace-mode",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 10.53,
+   "n": 5
+  },
+  {
+   "page": "/framework/core/",
+   "sel": "button.demo-btn",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 5
+  },
+  {
+   "page": "/framework/styles/elements/",
+   "sel": "button.demo-btn",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 5
+  },
+  {
+   "page": "/framework/styles/sections/",
+   "sel": "button.demo-btn",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 5
+  },
+  {
+   "page": "/framework/core/Router/",
+   "sel": "button.demo-btn",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 5
+  },
+  {
+   "page": "/framework/ext/Draggable/",
+   "sel": "button.demo-btn",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 5
+  },
+  {
+   "page": "/framework/ext/JSONL/",
+   "sel": "button.demo-btn",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 5
+  },
+  {
+   "page": "/framework/ext/Panel/",
+   "sel": "button.panel-workspace-mode",
+   "fill": "#f2f2f2",
+   "floor": "#f2f2f2",
+   "edge": 0,
+   "via": "fill",
+   "text": 9.41,
+   "n": 5
+  },
+  {
+   "page": "/framework/ext/catalog/",
+   "sel": "button.demo-btn",
+   "fill": "#f2f2f2",
+   "floor": "#f2f2f2",
+   "edge": 0,
+   "via": "fill",
+   "text": 4.83,
+   "n": 5
+  },
+  {
+   "page": "/framework/ext/editor/",
+   "sel": "button.panel-workspace-mode",
+   "fill": "#f2f2f2",
+   "floor": "#f2f2f2",
+   "edge": 0,
+   "via": "fill",
+   "text": 9.41,
+   "n": 5
+  },
+  {
+   "page": "/framework/ext/files/",
+   "sel": "button.panel-workspace-mode",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 10.53,
+   "n": 5
+  },
+  {
+   "page": "/framework/styles/stacks/",
+   "sel": "button.prim",
+   "fill": "#ff8f60",
+   "floor": "#ff8f60",
+   "edge": 0,
+   "via": "fill",
+   "text": 2.25,
+   "n": 4
+  },
+  {
+   "page": "/framework/ext/editor/",
+   "sel": "button.layout-btn.on",
+   "fill": "#f2f2f2",
+   "floor": "#f2f2f2",
+   "edge": 0,
+   "via": "fill",
+   "text": 2.01,
+   "n": 4
+  },
+  {
+   "page": "/framework/styles/stacks/",
+   "sel": "button.bg",
+   "fill": "#4a4a4a",
+   "floor": "#4a4a4a",
+   "edge": 0,
+   "via": "fill",
+   "text": 8.86,
+   "n": 3
+  },
+  {
+   "page": "/framework/faq/",
+   "sel": "button.demo-btn",
+   "fill": "#f8f8f8",
+   "floor": "#f8f8f8",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.09,
+   "n": 3
+  },
+  {
+   "page": "/framework/faq/",
+   "sel": "button.demo-btn.demo-scrub",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 3
+  },
+  {
+   "page": "/framework/core/Sidebar/",
+   "sel": "button.demo-btn",
+   "fill": "#f8f8f8",
+   "floor": "#f8f8f8",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.09,
+   "n": 3
+  },
+  {
+   "page": "/framework/core/Sidebar/",
+   "sel": "button.demo-btn.demo-scrub",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 3
+  },
+  {
+   "page": "/framework/ext/Timeline/",
+   "sel": "button.demo-btn",
+   "fill": "#f8f8f8",
+   "floor": "#f8f8f8",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.09,
+   "n": 3
+  },
+  {
+   "page": "/framework/ext/Timeline/",
+   "sel": "button.demo-btn.demo-scrub",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 3
+  },
+  {
+   "page": "/framework/ext/editor/",
+   "sel": "span.layout-tag",
+   "fill": "#f2f2f2",
+   "floor": "#f2f2f2",
+   "edge": 0,
+   "via": "fill",
+   "text": 4.83,
+   "n": 3
+  },
+  {
+   "page": "/framework/ext/layout/",
+   "sel": "button.layout-btn.on",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 2.25,
+   "n": 3
+  },
+  {
+   "page": "/framework/ext/layout/",
+   "sel": "button.layout-btn",
+   "fill": "#f2f2f2",
+   "floor": "#f2f2f2",
+   "edge": 0,
+   "via": "fill",
+   "text": 4.83,
+   "n": 3
+  },
+  {
+   "page": "/framework/ux/",
+   "sel": "button",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 10.53,
+   "n": 2
+  },
+  {
+   "page": "/framework/styles/",
+   "sel": "button.demo-btn",
+   "fill": "#f8f8f8",
+   "floor": "#f8f8f8",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.09,
+   "n": 2
+  },
+  {
+   "page": "/framework/styles/",
+   "sel": "button.demo-btn.demo-scrub",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 2
+  },
+  {
+   "page": "/framework/styles/stacks/",
+   "sel": "button",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 10.53,
+   "n": 2
+  },
+  {
+   "page": "/framework/versus/",
+   "sel": "button.demo-btn",
+   "fill": "#f8f8f8",
+   "floor": "#f8f8f8",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.09,
+   "n": 2
+  },
+  {
+   "page": "/framework/versus/",
+   "sel": "button.demo-btn.demo-scrub",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 2
+  },
+  {
+   "page": "/framework/versus/",
+   "sel": "button",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 10.53,
+   "n": 2
+  },
+  {
+   "page": "/framework/ext/demo/",
+   "sel": "button.demo-btn.demo-scrub",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 2
+  },
+  {
+   "page": "/framework/ext/demo/",
+   "sel": "button.demo-btn.demo-scrub",
+   "fill": "#f2f2f2",
+   "floor": "#f2f2f2",
+   "edge": 0,
+   "via": "fill",
+   "text": 4.83,
+   "n": 2
+  },
+  {
+   "page": "/framework/ext/tabs/",
+   "sel": "button.demo-btn",
+   "fill": "#f8f8f8",
+   "floor": "#f8f8f8",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.09,
+   "n": 2
+  },
+  {
+   "page": "/framework/ext/tabs/",
+   "sel": "button.demo-btn.demo-scrub",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 2
+  },
+  {
+   "page": "/web/nav/",
+   "sel": "button",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 10.53,
+   "n": 2
+  },
+  {
+   "page": "/",
+   "sel": "button.demo-btn",
+   "fill": "#f8f8f8",
+   "floor": "#f8f8f8",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.09,
+   "n": 1
+  },
+  {
+   "page": "/",
+   "sel": "button.demo-btn.demo-scrub",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 1
+  },
+  {
+   "page": "/",
+   "sel": "button.demo-btn",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 1
+  },
+  {
+   "page": "/framework/start/",
+   "sel": "button.panel-workspace-name",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 10.53,
+   "n": 1
+  },
+  {
+   "page": "/framework/start/",
+   "sel": "button.demo-btn.demo-scrub",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 1
+  },
+  {
+   "page": "/framework/core/",
+   "sel": "button.demo-btn",
+   "fill": "#f8f8f8",
+   "floor": "#f8f8f8",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.09,
+   "n": 1
+  },
+  {
+   "page": "/framework/core/",
+   "sel": "button.demo-btn.demo-scrub",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 1
+  },
+  {
+   "page": "/framework/ui/",
+   "sel": "summary.ui-menu-trigger.btn",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 10.53,
+   "n": 1
+  },
+  {
+   "page": "/framework/ui/",
+   "sel": "input.ui-tags-input.flex-1",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 21,
+   "n": 1
+  },
+  {
+   "page": "/framework/styles/",
+   "sel": "button",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 10.53,
+   "n": 1
+  },
+  {
+   "page": "/framework/styles/elements/",
+   "sel": "button.demo-btn",
+   "fill": "#f8f8f8",
+   "floor": "#f8f8f8",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.09,
+   "n": 1
+  },
+  {
+   "page": "/framework/styles/elements/",
+   "sel": "button.demo-btn.demo-scrub",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 1
+  },
+  {
+   "page": "/framework/styles/sections/",
+   "sel": "button.demo-btn",
+   "fill": "#f8f8f8",
+   "floor": "#f8f8f8",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.09,
+   "n": 1
+  },
+  {
+   "page": "/framework/styles/sections/",
+   "sel": "button.demo-btn.demo-scrub",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 1
+  },
+  {
+   "page": "/framework/styles/stacks/",
+   "sel": "button",
+   "fill": "#262626",
+   "floor": "#262626",
+   "edge": 0,
+   "via": "fill",
+   "text": 12.13,
+   "n": 1
+  },
+  {
+   "page": "/framework/core/Router/",
+   "sel": "button.demo-btn",
+   "fill": "#f8f8f8",
+   "floor": "#f8f8f8",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.09,
+   "n": 1
+  },
+  {
+   "page": "/framework/core/Router/",
+   "sel": "button.demo-btn.demo-scrub",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 1
+  },
+  {
+   "page": "/framework/core/View/",
+   "sel": "button",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 10.53,
+   "n": 1
+  },
+  {
+   "page": "/framework/ext/Draggable/",
+   "sel": "button.demo-btn",
+   "fill": "#f8f8f8",
+   "floor": "#f8f8f8",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.09,
+   "n": 1
+  },
+  {
+   "page": "/framework/ext/Draggable/",
+   "sel": "button.demo-btn.demo-scrub",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 1
+  },
+  {
+   "page": "/framework/ext/JSONL/",
+   "sel": "button.demo-btn",
+   "fill": "#f8f8f8",
+   "floor": "#f8f8f8",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.09,
+   "n": 1
+  },
+  {
+   "page": "/framework/ext/JSONL/",
+   "sel": "button.demo-btn.demo-scrub",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 1
+  },
+  {
+   "page": "/framework/ext/Panel/",
+   "sel": "button.panel-workspace-mode.on",
+   "fill": "#f2f2f2",
+   "floor": "#f2f2f2",
+   "edge": 0,
+   "via": "fill",
+   "text": 9.41,
+   "n": 1
+  },
+  {
+   "page": "/framework/ext/Panel/",
+   "sel": "button.panel-workspace-name",
+   "fill": "#f2f2f2",
+   "floor": "#f2f2f2",
+   "edge": 0,
+   "via": "fill",
+   "text": 9.41,
+   "n": 1
+  },
+  {
+   "page": "/framework/ext/Panel/",
+   "sel": "button.demo-btn.demo-scrub",
+   "fill": "#f2f2f2",
+   "floor": "#f2f2f2",
+   "edge": 0,
+   "via": "fill",
+   "text": 4.83,
+   "n": 1
+  },
+  {
+   "page": "/framework/ext/Panel/",
+   "sel": "button.drawer-x",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 1
+  },
+  {
+   "page": "/framework/ext/Panel/",
+   "sel": "span.panel-props-tag",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 1
+  },
+  {
+   "page": "/framework/ext/catalog/",
+   "sel": "button.demo-btn.demo-scrub",
+   "fill": "#f2f2f2",
+   "floor": "#f2f2f2",
+   "edge": 0,
+   "via": "fill",
+   "text": 4.83,
+   "n": 1
+  },
+  {
+   "page": "/framework/ext/demo/",
+   "sel": "button.demo-btn",
+   "fill": "#f8f8f8",
+   "floor": "#f8f8f8",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.09,
+   "n": 1
+  },
+  {
+   "page": "/framework/ext/demo/",
+   "sel": "button.demo-btn.on",
+   "fill": "#f8f8f8",
+   "floor": "#f8f8f8",
+   "edge": 0,
+   "via": "fill",
+   "text": 2.11,
+   "n": 1
+  },
+  {
+   "page": "/framework/ext/demo/",
+   "sel": "button.demo-btn.demo-copy",
+   "fill": "#f2f2f2",
+   "floor": "#f2f2f2",
+   "edge": 0,
+   "via": "fill",
+   "text": 4.83,
+   "n": 1
+  },
+  {
+   "page": "/framework/ext/editor/",
+   "sel": "button.panel-workspace-mode.on",
+   "fill": "#f2f2f2",
+   "floor": "#f2f2f2",
+   "edge": 0,
+   "via": "fill",
+   "text": 9.41,
+   "n": 1
+  },
+  {
+   "page": "/framework/ext/editor/",
+   "sel": "button.panel-workspace-name",
+   "fill": "#f2f2f2",
+   "floor": "#f2f2f2",
+   "edge": 0,
+   "via": "fill",
+   "text": 9.41,
+   "n": 1
+  },
+  {
+   "page": "/framework/ext/editor/",
+   "sel": "button.demo-btn.demo-scrub",
+   "fill": "#f2f2f2",
+   "floor": "#f2f2f2",
+   "edge": 0,
+   "via": "fill",
+   "text": 4.83,
+   "n": 1
+  },
+  {
+   "page": "/framework/ext/files/",
+   "sel": "button.panel-workspace-name",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 10.53,
+   "n": 1
+  },
+  {
+   "page": "/framework/ext/files/",
+   "sel": "button.demo-btn.demo-scrub",
+   "fill": "#ffffff",
+   "floor": "#ffffff",
+   "edge": 0,
+   "via": "fill",
+   "text": 5.41,
+   "n": 1
+  },
+  {
+   "page": "/framework/ext/layout/",
+   "sel": "span.layout-tag",
+   "fill": "#f2f2f2",
+   "floor": "#f2f2f2",
+   "edge": 0,
+   "via": "fill",
+   "text": 4.83,
+   "n": 1
+  },
+  {
+   "page": "/blog/",
+   "sel": "div.blog-chips",
+   "fill": "#f2f2f2",
+   "floor": "#f2f2f2",
+   "edge": 0,
+   "via": "fill",
+   "text": 9.41,
+   "n": 1
+  },
+  {
+   "page": "/framework/styles/stacks/",
+   "sel": "button",
+   "fill": "#ffffff",
+   "floor": "#f8f8f8",
+   "edge": 2.42,
+   "via": "fill",
+   "text": 10.53,
+   "n": 2
+  }
+ ]
+}

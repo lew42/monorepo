@@ -82,6 +82,33 @@
 	/* Demo chrome a stage may hand the strip (exhibit.js): pushed to the end. */
 	.demo-app-url > .demo-zoom { margin-inline-start: auto; }
 	.demo-app-url > .demo-btn { padding: 0.1em 0.3em; }
+
+	/* ── the width readout ──
+	   The number every stage has always printed, now on the box itself, so a bare
+	   `demo.app()` says what width the page inside is laid out at. Dressed as the
+	   box's own bottom strip — it is inside the border, unlike a stage's, which
+	   hangs under one.
+	   ⚠ Inside a stage the stage's own readout reports the same width, so this is a
+	     duplicate and goes. CSS, not a build-time question: the box is not mounted
+	     when it is built and cannot see what will end up above it. */
+	.demo-app-size {
+		padding: 0.2em 0.9em;
+		font-size: 0.62em;
+		letter-spacing: 0.1em;
+		text-align: end;
+		color: var(--subtle);
+		font-family: var(--mono);
+		border-top: 1px solid var(--line);
+	}
+
+	/* ⚠ Two places it must NOT appear. In a STAGE the stage's own readout reports the
+	   same width, so this would be a duplicate. In a preview CARD it is a number on a
+	   thumbnail nobody will read, drawn at `zoom: 0.25` — and every row of it is a row
+	   the card's crop then takes off the picture.
+	   CSS, not a build-time question: the box is not mounted when it is built and
+	   cannot look up to see what it will end up inside. */
+	.demo-stage .demo-app-size,
+	.page-preview .demo-app-size { display: none; }
 }
 
 /* Borrowed components, re-marked. There is no Router in here, so `aria-current`

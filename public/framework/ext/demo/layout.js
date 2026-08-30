@@ -1,7 +1,5 @@
 import { div, span } from "../../core/View/View.js";
 import demo from "./demo.js";
-import { two } from "./two.js";
-import twin from "./twin.js";
 
 /* Patches demo.exhibit() on — this is config over that assembly. */
 import "./exhibit.js";
@@ -25,8 +23,12 @@ import { btn } from "../layout/controls.js";
  * it has to be the first line of what the reader is shown — and it is what prints as
  * the definition. The three optional keys:
  *
- *   twin    the specimen is a SCREEN: the card is a phone beside a 3440 monitor
- *           and the stage is the two-up, one handle between two live widths
+ *   twin    the specimen is a SCREEN, so it paints its own ground — a layout's
+ *           unpainted bands would otherwise show the stage's board straight through.
+ *           ⚠ It used to also swap the stage for a two-up, one handle between a live
+ *             390 and a live 3440. That was a second width mechanism beside the
+ *             stage's own presets, saying the same thing — `mobile` and `mega` ARE
+ *             the comparison. Deleted with `two.js` (demo-merge step 3)
  *   parts   the layout's modular regions, space separated. Each is a chip in the
  *           panel and a `this.shows(name)` in `layout()` — a checkbox, never a
  *           with-and-without pair of sibling pages
@@ -44,10 +46,9 @@ demo.layout = config => ({
 	   narrower than the layout it draws is roughly 16:10, so a `fill` shape pins its
 	   footer and the wall crops nothing. Its natural height would instead be the top
 	   fifth of a 4000px document, cut mid-sentence, which is what read as unfinished.
-	   ⚠ NEVER the twin, whatever `twin:` says: two device panes in one card are half a
-	     card wide each, and a 3440 screen at a fourteenth of size is a grey smudge —
-	     "too hard to see" (the owner, 2026-08-17). `twin:` still steers the STAGE, which is
-	     where a two-up has the room to earn its keep. */
+	   ⚠ NEVER two device panes in one card: each is half a card wide, and a 3440 screen
+	     at a fourteenth of size is a grey smudge — "too hard to see" (the owner,
+	     2026-08-17). The stage's width presets are the comparison now. */
 	preview(nav){
 		return this.preview_card(nav, () => div.c("zoom-25", () => this.frame("56em")));
 	},
@@ -62,19 +63,9 @@ demo.layout = config => ({
 		});
 	},
 
-	// Both panes of a two-up are built from one function, so both are captured on the
-	// way past: the bar steers the wide one, and a chip re-runs the pair.
+	// One stage, one width mechanism: the bar steers the render, and a parts chip
+	// re-runs the frame in it.
 	stage(steer){
-		if (this.twin){
-			const { $stage, $views, redraw } = two(() => this.frame(), { narrow: 390, level: true });
-
-			steer($views[0]);
-			$views.forEach(panel.selectable);
-			this.toggles($stage, redraw);
-
-			return $stage.ac("bleed");
-		}
-
 		return demo.stage(() => this.frame(), $render => {
 			steer($render);
 			this.toggles($render, () => $render.empty(() => this.frame()));

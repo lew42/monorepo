@@ -1,6 +1,6 @@
 import { div, span, button } from "/framework/core/View/View.js";
 import { simulate, watch, magnifier, ruler, WIDTHS } from "/framework/ext/demo/stage.js";
-import { pane } from "/framework/ext/demo/twin.js";
+import { pane } from "/framework/ext/demo/pane.js";
 
 /* The viewport SET — `fill` (default, one bare box; the drawer's grip is the handle,
    zero code here) · `one` (a single device width) · `all` (all four tiled) · `twin`
@@ -16,7 +16,7 @@ import { pane } from "/framework/ext/demo/twin.js";
    decisions.md — no `unmount`), so rebuilding boxes on every mode switch would leak
    one per switch. Switching modes only shows/hides what already exists — `pane()`'s
    own ResizeObserver re-fits itself the instant a hidden box becomes visible again
-   (twin.js's own "hidden until the first fit" trap, which is exactly this case).
+   (pane.js's own "hidden until the first fit" trap, which is exactly this case).
    Record: readme.md, doc/viewports.md. css: workspace.css. */
 
 const DEVICES = WIDTHS.map(([width, name]) => ({ width, name }));

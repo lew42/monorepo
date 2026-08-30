@@ -27,6 +27,9 @@ export default class Runtime {
         const full_path = path.resolve("./public/", this.to_relative(file));
 		try {
 			fs.mkdirSync(path.dirname(full_path), { recursive: true });
+			// A browser saving a watched file must not reload its own tab mid-edit —
+			// the same mute Ask.js and Start.js already use (found by the CMS slice).
+			this.socket.socket_server?.live_reload?.mute(full_path, this.socket);
 			fs.writeFileSync(full_path, data);
 			this.socket.send({ index, response: "write successful" });
 		} catch (e) {

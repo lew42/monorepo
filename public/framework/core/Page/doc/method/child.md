@@ -32,6 +32,14 @@ The probe costs one failed import per genuine miss, and nothing for a url that
 resolves. `Page.load()` separates *missing* from *broken*, so a syntax error in a
 page you just wrote is an error in the console rather than a silent 404.
 
+## And how deep the child then loads
+
+`child(name, levels)`. **The Router passes nothing** — which means the child loads
+to its own `depth`, so walking into a page is what deepens it. A number is the
+caller's remaining budget, and only `load_all_children()` passes one. Every branch
+below ends in `.load_all_children(levels)`, including the two that go through
+`add()`, so there is one rule and no branch can forget it. `../declaring.md`.
+
 ## Also the one place `app` is handed down
 
 `known.assign({ app: this.app })`, on the walk, to the page about to need it.

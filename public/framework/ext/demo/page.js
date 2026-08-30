@@ -1,16 +1,6 @@
 import { Doc, md, demo, h2, p, div, code, toc } from "/app.js";
 import { sample } from "./sample.js";
 
-const wall = () => {
-	div.c("grid gap auto", () => {
-		["Alpha", "Beta", "Gamma", "Delta", "Epsilon", "Zeta"].forEach(name =>
-			div.c("pad", () => {
-				p.c("h3", name);
-				p("A card that goes wherever it fits.");
-			}).style({ background: "var(--wash)", borderRadius: "var(--radius)" }));
-	}).style("--column", "20em");
-};
-
 const hero = () => {
 	div.c("wash pad flex v gap v-center", () => {
 		p.c("h2", "Ship it");
@@ -29,7 +19,7 @@ export default new Doc({
 	subject: demo,
 	methods: "stage exhibit page tree layout app source",
 	notes:   "record decisions",
-	files:   "app.css app.js demo.css demo.js exhibit.css exhibit.js layout.js mini.css mini.js page.js readme.md sample.js shell.css shell.js stage.css stage.js twin.js two.css two.js",
+	files:   "app.css app.js demo.css demo.js exhibit.css exhibit.js layout.js mini.css mini.js page.js pane.js readme.md sample.js shell.css shell.js stage.css stage.js",
 
 	content(){
 
@@ -49,14 +39,15 @@ export default new Doc({
 		md(`| | |
 |---|---|
 | \`demo(fn)\` | a quoted example inside a page about something else |
+| \`page.demo()\` | a whole demo PAGE: path, stage, layout bar, source column — [Shell](/framework/ext/demo/shell/) |
 | \`demo.stage(fn)\` | the render on its own — the site's one resizable viewport |
-| \`demo.exhibit(…)\` | a whole detail PAGE: stage, layout bar, definition |
 | \`demo.app(tree)\` | a Page tree playing App and Router in a box |
 
-Everything else is one of those four with its config filled in: \`demo.page()\`,
-\`demo.tree()\` and \`demo.layout()\` are exhibit sugar, and \`demo.source()\` is the
-block the exhibit closes under its render. The [API](/framework/ext/demo/api/) tab
-has all seven, each with its real source.`);
+Everything else is one of those four with its config filled in. \`demo.exhibit()\`,
+\`demo.page()\`, \`demo.tree()\` and \`demo.layout()\` are page SHAPES over
+\`page.demo()\` — \`children:\` factories, not four more ways to draw a demo — and
+\`demo.source()\` is the shell's own code block, on its own. The
+[API](/framework/ext/demo/api/) tab has each with its real source.`);
 
 		h2("demo() — a quoted box");
 
@@ -92,8 +83,7 @@ demo(() => { … }).ac("quoted");      // an aside — stay on the reading measu
 		demo.stage(hero).ac("toc-skip");
 
 		code.js(`demo.stage(hero);               // the strip, the box, the handle — no code
-demo.stage(hero).ac("bleed");   // a leaf page: edge to edge, no inset
-demo.stage.two(hero);           // the same builder at two widths at once`);
+demo.stage(hero).ac("bleed");   // a leaf page: edge to edge, no inset`);
 
 		md("**The resizable box on its own** — no code pane, no border, and the same strip every stage has. Drag the right edge; press a width; drag the magnifier. That strip plus the readout is the whole chrome, which is what makes the stage usable as a *page* and not just as the inside of a box.");
 
@@ -109,17 +99,6 @@ demo.stage.two(hero);           // the same builder at two widths at once`);
 
 		md("**A `@media` query inside an example will not respond to any of it.** The stage is a `div`, so everything intrinsic reacts — `auto-fit`, `%`, `flex-wrap`, container queries — but a media query asks the *browser* viewport, and that hasn't moved. Simulating a viewport properly needs an iframe; the design record says what that would cost.");
 
-		h2("Two widths at once");
-
-		demo.stage.two(wall).ac("toc-skip");
-
-		code.js(`demo.stage.two(wall);
-demo.stage.two(wall, steer, { wide: 1440, narrow: 375 });`);
-
-		md("**The stage's two-up mode**: the same function, twice, each pane painted down to fit. Drag the divider and both simulated widths follow it — the shrinking pane reflows down toward mobile as the growing one reflows up toward wide, meeting as twins in the middle and trading ends at the far side. What you're watching is layout, not scale.");
-
-		md("It is a stage, so the `⤢` in its strip is that one fullscreen; the divider is this stage's width dial, which is why the widths and the zoom stay off it.");
-
 		h2("demo.exhibit() — the detail page");
 
 		code.js(`demo.exhibit({
@@ -130,9 +109,9 @@ demo.stage.two(wall, steer, { wide: 1440, narrow: 375 });`);
     note: "A caption, under the source.",
 });`);
 
-		md("**Every detail page on the site is this one assembly.** Three things, in this order: the thing running on a stage you can drag, a [layout bar](/framework/ext/layout/) wired to it, and **the definition** — stringified, so the reader gets the lesson and not the imports around it.");
+		md("**Every detail page on the site is this one assembly** — and the assembly is `page.demo()` now, with the specimen's own stage handed in as `run:`. Four things, in this order: the path, the thing running on a stage you can drag, a [layout bar](/framework/ext/layout/) wired to it, and **the definition** — stringified, so the reader gets the lesson and not the imports around it.");
 
-		md("**The assembly is one band, and it lays itself out.** Render and definition are two columns of one `bleed` block — stacked at every laptop width, side by side once the band is wide enough for both, and edge-to-edge on a phone, where a 2em gutter is 16% of the screen. No option and no media query on the split: `flex-wrap` and a basis, because the width that varies is the band's.");
+		md("**The band is the shell's, and it lays itself out.** Render and definition are two columns of one `bleed` block — stacked at every laptop width, side by side from ~1440 up, and edge-to-edge on a phone, where a 2em gutter is 16% of the screen. No option and no media query on the split: `flex-wrap` and a basis, because the width that varies is the band's.");
 
 		md("**Hand it the page and its children become variants** — a `Variants` heading and `previews()`, the same cards a rail is made of, so a demo can be the category for the complex ones without a second preview mechanism. [Form field](/framework/ui/field/) is three of them.");
 
@@ -143,22 +122,22 @@ demo.tree({ meta: import.meta, tree: shop })  // a site TREE as one
 demo.layout({ meta: import.meta, twin: true, parts: "header rail footer",
               layout(){ return div.c("page full fill flex v", …); } })`);
 
-		md("Each is a config factory returning a page — `preview()` plus a `content()` that calls the exhibit — so a demo is a real child page with a real url and a card in its parent's rail. What differs is only what the specimen **is**: a function, a tree, or a whole page.");
+		md("Each is a config factory returning a page — `preview()` plus a `content()` that calls the exhibit — so a demo is a real child page with a real url and a card in its parent's rail. They are page **shapes**, not four more ways to draw a demo: every one of them renders through `page.demo()`. What differs is only what the specimen **is**: a function, a tree, or a whole page.");
 
-		md("**The card is the render at half size, drawn fresh per call** (a cached one would be stolen from the page). `demo.layout({ twin: true })` draws its card as a 390 phone beside a 3440 monitor and puts the two-up on the stage; `parts:` turns the layout's regions into checkboxes in the panel's right drawer, so an app shell with everything unchecked becomes the document layout, live.");
+		md("**The card is the render at half size, drawn fresh per call** (a cached one would be stolen from the page). `twin: true` says the specimen is a whole screen, so it paints its own ground; `parts:` turns the layout's regions into checkboxes in the panel's right drawer, so an app shell with everything unchecked becomes the document layout, live.");
 
 		md("[Layouts](/framework/styles/layouts/), [Sections](/framework/styles/sections/), [Components](/framework/ui/) and the [Page overview](/framework/core/Page/) are all this — one rail of cards, one exhibit behind each.");
 
-		h2("demo.source() — the code, closed, below");
+		h2("demo.source() — the one code surface");
 
 		demo.source(hero);
 
-		code.js(`demo.source(hero);                          // the summary reads "Source"
-demo.source(hero, "The whole band");        // your own summary
+		code.js(`demo.source(hero);                          // the header reads "Source"
+demo.source(hero, "The whole band");        // your own header
 demo.source(template, "Source");            // a STRING, already built
-demo.source.file(import.meta, "hero.js");   // a file — the summary is its name`);
+demo.source.file(import.meta, "hero.js");   // a file — the header is its name`);
 
-		md("It opens **closed** and belongs **below** the render. A code block stacked above the thing is exactly what pushes the render off the screen. Same source as the code pane (`fn.toString()`, so it can't drift), the same soft dependency on [Highlight](/framework/ext/highlight/), and a copy button on the summary.");
+		md("**It is not a `<details>` any more.** It was one for a year, and every caller that mattered wrote `.attr(\"open\", \"\")` straight after — a disclosure nobody ever wanted disclosed. Code beside a render is half the lesson; an aside is what a caption is for. `page.demo()`'s peer column is this same block, so the shell's code and a leaf page's code cannot drift apart. Same source as the code pane (`fn.toString()`, so it can't drift), the same soft dependency on [Highlight](/framework/ext/highlight/), and a copy button in the header.");
 
 		h2("demo.app() — a tree in a box");
 

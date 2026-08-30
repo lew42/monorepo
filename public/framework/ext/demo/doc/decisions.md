@@ -11,30 +11,58 @@ rendered cannot be two different things.
 | | |
 |---|---|
 | `demo(fn)` | a quoted example inside a page about something else — code pane, render, caption, `<>` HTML pane |
-| `demo.stage(fn)` | the render on its own: the site's one resizable viewport. `.two(fn)` is its two-up mode |
-| `demo.exhibit({…})` | a detail PAGE: the stage, a layout bar wired to it, the definition open below |
+| `page.demo()` | a demo PAGE: the path, the stage, a layout bar wired to it, the source column beside |
+| `demo.stage(fn)` | the render on its own: the site's one resizable viewport |
 | `demo.app(tree)` | a `Page` tree playing App and Router inside a box |
 
 Everything else is one of those with its config filled in:
 
+- **`demo.exhibit({…})`** — a detail page: `page.demo()` plus a Variants wall (`exhibit.js`)
 - **`demo.page(name, fn, config)`** — a function as a demo page (`exhibit.js`)
 - **`demo.tree(config)`** — a site tree as one (`exhibit.js`)
 - **`demo.layout(config)`** — a whole page as one, with `twin:` and `parts:` (`layout.js`)
-- **`demo.source(fn | string)`** — the code, closed, below a render (`demo.js`)
+- **`demo.source(fn | string)`** — the shell's own code block, on its own (`demo.js`)
 - **`sample(root)`** — the shared nine-child fictional site, for anything needing *a* tree
 
 ## The files
 
 ```
-demo.js       demo(), demo.stage(), demo.stage.two(), demo.source()
+demo.js       demo(), demo.stage(), demo.source(), source_block() — the one code surface
+shell.js      page.demo() — the one demo UX; the four sugars are config over it
 stage.js      the three boxes, the strip, the handle, the ruler — one viewport
-two.js        the two-up: one builder, two simulated widths, one handle
 exhibit.js    demo.exhibit() + demo.page() + demo.tree()
 layout.js     demo.layout() — a whole page as a demo page
 app.js        demo.app() — App and Router for one in-memory tree
-twin.js       the two-pane card: a 390 phone beside a 3440 monitor
+pane.js       one device frame, for ext/Panel/Workspace's viewports
 sample.js     the shared sample tree
 ```
+
+## The merge — 14 render variants to 6 (2026-08-30)
+
+The audit, the numbers and the five-step order are in
+[ai/2026-08-30/demo-merge/proposal.md](/framework/ai/2026-08-30/demo-merge/).
+Step 1 moved 17 clipping `height:` call sites to `min:`. Steps 2–5 landed the
+same day:
+
+- **the expando died** — `demo.source()` was a `<details>` every caller reopened
+  with `.attr("open","")`. One `source_block()` now serves it, its `.file()` form
+  and `page.demo()`'s peer column, with the copy button on all three;
+- **`demo.stage.two()`, `two.js`, `two.css` and `twin()` deleted** — a second
+  width mechanism beside the stage's own presets, plus a dead export. `twin.js`
+  became `pane.js`, which is the one live thing in it;
+- **the four sugars became config over `page.demo()`** — four defining files
+  changed, 231 call sites untouched. `exhibit.js` lost its private band, source
+  block and bar; `exhibit.css` went from 93 lines to 27;
+- **`demo.app()` prints its own width readout** — the 45 bare boxes that had none
+  were the whole of "sometimes the site shows the width, sometimes not". Hidden
+  by CSS inside a stage (duplicate) and inside a preview card (noise at
+  `zoom: 0.25`, and it ate 26px off every thumbnail's crop).
+
+What did **not** happen: `demo.source`/`demo.source.file` were not deleted
+outright. The proposal costed that at "22 sites"; it is 19 separate FILES
+(`core/Page/overview/` ×8, `styles/layouts/` ×2, `/web/` ×9), past the fence this
+task was given. The names survive as doors into the one block, which is the whole
+of what deleting them would have bought.
 
 ## Who uses it
 

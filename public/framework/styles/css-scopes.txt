@@ -95,6 +95,7 @@ ui-          ui/
 # styles
 space-       styles/layouts/space
 rules-       styles/rules
+stacks-      styles/stacks   (not `stack-` — ext/demo owns the bare `.stack` modifier)
 theme-       styles/layers/theme
 
 # imagine

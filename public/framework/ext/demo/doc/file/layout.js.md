@@ -2,9 +2,8 @@ The third exhibit sugar: `demo.layout(config)`, a whole page as a demo page. It
 absorbed two now-deleted files — `styles/layouts/detail.js` and
 `core/Page/layout/detail.js` — which is why this file, alone among the three
 sugars, needed its own module rather than living in `exhibit.js` beside
-`demo.page()` and `demo.tree()`: it pulls in `twin.js` (the card) and
-`ext/layout`'s `panel`/`controls` (the `parts:` chips), neither of which the
-other two sugars need.
+`demo.page()` and `demo.tree()`: it pulls in `ext/layout`'s `panel`/`controls`
+for the `parts:` chips, which the other two sugars do not need.
 
 ## Imported as `panel`, so `layout` can stay this file's own word
 

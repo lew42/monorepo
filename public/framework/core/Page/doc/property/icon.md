@@ -16,9 +16,10 @@ page, and drifted.
 
 The cost was paid up front and is worth naming. **An icon on the page can only be
 known once the page is imported** — the objection that made the parent's map win the
-first two rounds. That is why declared children are imported at construction and
-`Router.load()` waits for them: measured at +51ms and 27 extra fetches on
-`/framework/`. Without eager loading, icons would pop in as you browsed.
+first two rounds. That is why the children a page *draws* are imported before it
+draws and `Router.load()` waits for them. Without that, icons would pop in as you
+browsed; `depth` is what keeps the bill to the levels actually on screen
+(`../declaring.md`).
 
 It is unvalidated. A misspelled name renders the *word* rather than a blank box,
 because Material Icons is a ligature font — see

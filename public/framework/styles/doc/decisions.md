@@ -184,3 +184,27 @@ this defect. Four working layouts were deliberately not changed by the minion th
 `scrollWidth === clientWidth` is horizontal only and cannot see a vertical collapse; and
 `fullPage: true` is blind here because `.page.layout-full` is `position: fixed; inset: 0;
 overflow: auto`, so the document is always exactly one viewport tall.
+
+### Floors are opaque; fills are alpha — 2026-08-30
+
+`framework.css` paints `.btn, button` and `.surface` from the **same token**, so a default
+button on a card is a zero-delta fill — and lew42 sets `border: none` on every button at
+(0,1,1), beating framework.css's hairline at (0,1,0), so nothing is left to rescue it. A
+headless pass over 76 pages read 3,598 fills and found **101 distinct invisible pairs (504
+elements)** on 29 pages, every one of the top ten at exactly ΔL\* 0.00.
+
+**The rule:** a *floor* is painted on the canvas and stays opaque (a translucent `--wash`
+composites over the browser's white and dark mode renders pale — `lew42.css` marks all three
+`⚠ OPAQUE`). A *fill* is always painted **on** a floor and goes alpha, because a transparent
+fill does not have to guess which floor it will land on: it is *n* steps from whatever is
+underneath, on every floor, in both modes.
+
+Three modules had already found this alone and each patched it locally — `blog.css` gave up
+on filled chips and went outlined, `imagine.css` hovers with `color-mix(in srgb, var(--ink)
+6%, transparent)`, `framework.css` bolted an inset ring onto inline `code`. The ladder is
+the general form of the fix all three wrote by hand.
+
+**Not done:** no token was flipped. The ladder lives on `.stacks-lab` in
+[`stacks/stacks.css`](/framework/styles/stacks/stacks.css); the flip is two lines of
+`framework.css` and its own wave. The bill and the fix list are in
+[`doc/stacking.md`](./stacking.md); the lab is [`/framework/styles/stacks/`](/framework/styles/stacks/).

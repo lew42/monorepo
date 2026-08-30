@@ -6,10 +6,14 @@ stylesheet reading `.active-page` / `.active-ancestor`, not a `Pager` type.
 ## The constructor is four calls, in order
 
 `assign()` (copy in whatever was passed), `naming()` (derive `url`/`name`/`title`),
-`declare()` (turn `children` into a `Map`), `initialize?.()`, then
-`load_all_children()` if a url exists yet. Order matters twice: `initialize()` runs
-*before* a url is guaranteed (a standalone page has none until adoption), and
-`declare()` must run before anything reads `this.children` as a Map.
+`declare()` (turn `children` into a `Map`), `initialize?.()`. Order matters twice:
+`initialize()` runs *before* a url is guaranteed (a standalone page has none until
+adoption), and `declare()` must run before anything reads `this.children` as a Map.
+
+**Nothing is fetched here.** A module page constructs itself at import, so a
+constructor that loaded its subtree would hand the budget to nobody — the whole site
+came down from whatever url you opened. `Page.load()`, `child()` and
+`load_all_children()` spend a `depth` instead (`../declaring.md`).
 
 ## `add()` is the one adoption point
 

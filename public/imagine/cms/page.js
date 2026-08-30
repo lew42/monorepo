@@ -16,7 +16,7 @@ export default new Page({
 	description: "A CMS out of two seams that already existed: a markdown file is a page, and the dev socket writes files.",
 	icon: "edit_document",
 
-	children: "thinking welcome edit services",
+	children: "thinking welcome edit services json",
 
 	// My content already draws them as a previews() wall — without this, core adds a
 	// second list of the same four names underneath it.

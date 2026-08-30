@@ -11,12 +11,13 @@ url only just arrived"* (`Page.class.js:53`).
 only shape `document.startViewTransition()` accepts.
 
 **Simplicity** — right-sized, with one property that is easy to miss: because each
-child's own `loading` is awaited, this means **"my subtree is ready"**, not "my
-children exist".
+child's own `loading` is awaited, this means **"my next `depth` levels are ready"**,
+not "my children exist" — and not "my whole subtree", which is what it meant before
+`depth` bounded the walk (`../declaring.md`).
 
-Two things it is *not*: it is not a loading *state* (there is no `loaded` flag, and
-nothing subscribes for a redraw — that machinery was deleted when eager loading
-became the default), and it is not a rejection channel. `Router.load()` uses
+Two things it is *not*: it is not a loading *state* — `loaded` is a plain depth
+counter that keeps `load_all_children()` idempotent, and nothing subscribes to
+either for a redraw — and it is not a rejection channel. `Router.load()` uses
 `allSettled`, so one broken child cannot stop the rest of the page.
 
 `undefined` is meaningful: it means `load_all_children()` has never run, which is

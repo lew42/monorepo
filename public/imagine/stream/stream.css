@@ -1,0 +1,87 @@
+/* STREAM — an editor pane, a live pane, and a readout. Almost all of the layout is
+   framework words (`grid auto`, `flex v gap`, `surface pad`); what is left is the two
+   things a utility has no word for: the panes' track, and a key/value readout row.
+
+   ⚠ `@layer theme` — the site's own layer order is declared once in framework.css. */
+
+@layer theme {
+
+	/* THE PANES ARE NOT PEERS, so they are not `grid auto`. The editor is a control rail
+	   and a rail does not scale — it is the same six fields at 400 and at 3440 — while
+	   the live pane is the whole subject and has to be WIDER than the widths it is
+	   offered, or a streamed size word moves nothing you can see.
+	   ⚠ An even split gave the live pane 305px at 1280 — NARROWER than the same page at
+	     400, where the tracks stack. `--column` could not fix it: the column's font is
+	     13.5px at 1280 and 14.4px at 1920, so an `em` track changes size with the width
+	     it is being compared against (measured 2026-08-30). A basis pair does not care.
+	   ⚠ Both `min-width: 0` — a long unbroken headline would otherwise floor the live
+	     pane at its own content and push the rail off the row. */
+	.stream-panes { display: flex; flex-wrap: wrap; gap: var(--gap, 1em); }
+	.stream-panes > .stream-editor { flex: 0 1 16em; min-width: 0; }
+	.stream-panes > .stream-live { flex: 1 1 20em; min-width: 0; }
+
+	/* THE READOUT. A wrapping row of key/value cells, hairline-boxed so it reads as
+	   instrumentation and not as content. Its numbers change every keystroke, so it
+	   is deliberately the quietest thing on the page. */
+	.stream-stat {
+		display: flex; flex-wrap: wrap; gap: 0 1.25em;
+		padding: 0.4em 0.75em; margin-block-end: 1em;
+		border: 1px solid var(--line); border-radius: var(--radius);
+		font-size: 0.85em;
+	}
+	.stream-cell { display: flex; align-items: baseline; gap: 0.4em; }
+	.stream-key { color: var(--subtle); text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.8em; }
+	.stream-value { font-variant-numeric: tabular-nums; }
+
+	/* A field is its label over its control; the control takes the field's width so a
+	   text input is not 20 characters wide inside a pane that is 30em. */
+	.stream-field { display: flex; flex-direction: column; gap: 0.25em; flex: 1 1 8em; min-width: 0; }
+	.stream-field > input, .stream-field > select { width: 100%; }
+	.stream-row { align-items: flex-end; }
+
+	/* THE STREAMED CARD. Both of its knobs are tokens set inline from state, because
+	   that is the point: a colour and a width arrive over the wire like any other
+	   value, and no class has to exist per value. */
+	.stream-card {
+		max-width: min(var(--stream-measure, 20em), 100%);
+		padding: 1em; border-radius: var(--radius);
+		border-left: 4px solid var(--stream-accent, var(--prim));
+		background: var(--wash);
+	}
+	.stream-card-head { font-size: 1.3em; font-weight: 600; line-height: 1.2; color: var(--stream-accent, var(--prim)); overflow-wrap: anywhere; }
+	.stream-card-body { margin-block-start: 0.4em; overflow-wrap: anywhere; }
+
+	.stream-from { margin-block-start: 0.75em; display: flex; align-items: baseline; gap: 0.4em; font-size: 0.85em; color: var(--subtle); }
+
+	/* ── the streamed deck ──────────────────────────────────────────────────────
+	   The slide fills its screen; the presenter's strip is a band under it, the same
+	   3em band `decks/` found was enough (decks/doc/decisions.md). */
+	.stream-deck { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+	.stream-slide { flex: 1; min-height: 0; display: flex; }
+	.stream-bar {
+		display: flex; align-items: center; flex-wrap: wrap; gap: 0.5em;
+		padding: 0.5em 1em; border-top: 1px solid var(--line);
+		font-size: 0.85em;
+	}
+	.stream-dot {
+		width: 1.6em; height: 1.6em; border-radius: 50%;
+		display: inline-flex; align-items: center; justify-content: center;
+		border: 1px solid var(--line); font-size: 0.85em;
+	}
+	.stream-dot.stream-on { background: var(--prim); border-color: var(--prim); color: white; }
+	.stream-live-badge { margin-inline-start: auto; color: var(--subtle); }
+
+	/* ── the streamed blocks ────────────────────────────────────────────────────
+	   A block is a row: what it is, then the value, then its control. The region it
+	   renders into wears the tokens the blocks themselves set. */
+	.stream-blocks { --stream-accent: var(--prim); }
+	.stream-block { border: 1px solid var(--line); border-radius: var(--radius); padding: 0.75em 1em; }
+	.stream-block > .md > :first-child { margin-block-start: 0; }
+	.stream-block > .md > :last-child { margin-block-end: 0; }
+	.stream-region {
+		max-width: min(var(--stream-measure, 34em), 100%);
+		border-left: 4px solid var(--stream-accent, var(--prim));
+		padding-inline-start: 1em;
+	}
+	.stream-swatch { width: 1.1em; height: 1.1em; border-radius: 0.2em; border: 1px solid var(--line); display: inline-block; }
+}

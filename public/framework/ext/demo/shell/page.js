@@ -13,18 +13,21 @@ import generator from "../../../core/Page/generator/page.js";
 export default new Page({
 	meta: import.meta,
 	title: "Shell",
-	description: "page.demo() — one demo UX, worn by three existing pages.",
+	description: "page.demo() — one demo UX, and every demo page on the site wears it.",
 	icon: "deployed_code",
 
 	content(){
 
-		md(`**\`page.demo()\`** — the merge, prototyped. Any page, imported and rendered
-through one shell: the **path** above, the **width readout** under the render, the
-**source beside** the render where there is room and under it where there isn't, and
-**no height** — only a floor. Six words configure it; there is deliberately no
-\`height\`, which is what cuts 17 demos off today.
+		md(`**\`page.demo()\`** — the site's one demo UX, and every demo page on the site
+is now this. Any page, imported and rendered through one shell: the **path** above,
+the **width readout** under the render, the **source beside** the render where there
+is room and under it where there isn't, and **no height** — only a floor. There is
+deliberately no \`height\`, which is what used to cut 17 demos off.
 
-The audit and the migration plan: [ai/2026-08-30/demo-merge/](/framework/ai/2026-08-30/demo-merge/).`);
+\`demo.exhibit()\`, \`demo.page()\`, \`demo.tree()\` and \`demo.layout()\` are
+\`children:\` factories over it — page shapes, not four more ways to draw a demo —
+so 231 call sites moved onto this by changing four files. The audit and the
+five-step order: [ai/2026-08-30/demo-merge/](/framework/ai/2026-08-30/demo-merge/).`);
 
 		h2("A block page");
 		md("`styles/layouts/feed` — a leaf, so no app mode. `page.js` is the source column.");

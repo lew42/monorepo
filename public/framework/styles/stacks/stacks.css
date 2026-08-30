@@ -1,0 +1,187 @@
+/* css: .stacks-lab, .stacks-ladder, .stacks-rung, .stacks-matrix, .stacks-mode,
+        .stacks-f-*, .stacks-chip, .stacks-pill, .stacks-card, .stacks-a,
+        .stacks-edge, .stacks-bad, .stacks-hero, .stacks-hunt
+ *
+ * ⚠ Every sibling under /framework/styles/ ships NO stylesheet on purpose — a section
+ *   arguing for less CSS that needed its own would be arguing against itself. This page
+ *   is the one exception, and the reason is the subject: it PROPOSES a token ladder, and
+ *   a proposal you cannot see is a paragraph. Everything here is either (a) the proposed
+ *   tokens or (b) the grid that renders them. No opinions about anything else.
+ *
+ * The tokens live on `.stacks-lab`, not `:root` — the flip wave puts them in the theme.
+ */
+@layer theme {
+
+	/* ════ THE ALPHA LADDER ═══════════════════════════════════════════════════
+	   Two primitives, four rungs each: transparent BLACK and transparent WHITE.
+	   Literal `rgba()`, so no interpolation space is involved at all — compositing
+	   is source-over in sRGB and the result is arithmetic, not a mix. (Where a rung
+	   must be derived FROM a theme colour, use `color-mix(in srgb, …)`: mixing
+	   toward `transparent` in oklab travels through premultiplied oklab and the hue
+	   drifts on the way. Demonstrated on the page.)
+
+	   Rungs DOUBLE: 04 · 08 · 16 · 32. A ratio ladder, so any two adjacent rungs are
+	   the same relative step wherever on the scale they sit, and there is one
+	   question at a call site — how many steps up, never "which grey". */
+
+	.stacks-lab {
+		--shade-a04: rgba(0, 0, 0, 0.04);
+		--shade-a08: rgba(0, 0, 0, 0.08);
+		--shade-a16: rgba(0, 0, 0, 0.16);
+		--shade-a32: rgba(0, 0, 0, 0.32);
+
+		--paper-a04: rgba(255, 255, 255, 0.04);
+		--paper-a08: rgba(255, 255, 255, 0.08);
+		--paper-a16: rgba(255, 255, 255, 0.16);
+		--paper-a32: rgba(255, 255, 255, 0.32);
+
+		/* THE ONE WORD A CALL SITE TYPES. Elevation is lighter on both sides
+		   (lew42.css says so), so the mode-aware rung is black on a light floor and
+		   white on a dark one — and `light-dark()` reads `color-scheme` at the
+		   element it is USED on, not where it is declared. That is what makes an
+		   always-dark island work with the same word: the island declares
+		   `color-scheme: dark` and every rung inside it flips, along with `--ink`
+		   and `--line`. One word, every floor, both modes. */
+		--fill-a04: light-dark(var(--shade-a04), var(--paper-a04));
+		--fill-a08: light-dark(var(--shade-a08), var(--paper-a08));
+		--fill-a16: light-dark(var(--shade-a16), var(--paper-a16));
+		--fill-a32: light-dark(var(--shade-a32), var(--paper-a32));
+	}
+
+	/* ── the two mode boxes ──
+	   `color-scheme` is the whole mechanism, so the demo sets nothing else: both
+	   halves render the identical markup and every token underneath resolves twice.
+	   The box paints `--wash` because an unpainted box shows the app's floor and
+	   the dark half would look light. */
+	.stacks-mode {
+		color-scheme: light;
+		background: var(--wash);
+		color: var(--ink);
+		border-radius: var(--radius);
+		padding: 1em;
+		min-width: 0;
+	}
+	.stacks-mode.stacks-dark { color-scheme: dark; }
+
+	/* ── the ladder swatches ── */
+	.stacks-ladder { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(11em, 100%), 1fr)); gap: 0.5em; }
+	.stacks-rung {
+		display: flex; align-items: center; gap: 0.5em;
+		padding: 0.55em 0.7em;
+		border-radius: var(--radius);
+		font-family: var(--mono); font-size: 0.75em;
+	}
+	/* `--rung` inline, not `background` inline: the token name IS the data here, which
+	   is the one "value only known at runtime" case the css skill carves out. */
+	.stacks-rung > b { flex: 0 0 2.6em; height: 1.6em; border-radius: 3px; background: var(--rung); }
+	.stacks-rung > span:first-of-type { flex: 1; }
+
+	/* ── the matrix ──
+	   A real `<table>`: framework.css already gives it `width: max-content`,
+	   `max-width: 100%` and `overflow-x: auto`, which is exactly the behaviour a
+	   36-cell matrix wants — full grid at 1920, a deliberate side-scroll at 400.
+	   The cell borders come OFF: adjacent floors have to butt against each other
+	   for the eye to compare them, and a `--line` hairline is itself one of the
+	   colours under test. */
+	.stacks-matrix { border-collapse: collapse; font-size: 0.85em; }
+	.stacks-matrix :is(th, td) { border: none; padding: 0.55em; vertical-align: top; }
+	.stacks-matrix th { background: none; font-size: 0.72em; letter-spacing: 0.06em; text-transform: uppercase; color: var(--subtle); }
+	.stacks-matrix td { min-width: 7.5em; }
+	.stacks-matrix tbody th { text-align: left; white-space: nowrap; padding-inline-end: 0.9em; }
+
+	/* the six floors — the cell IS the surface the chips sit on */
+	.stacks-f-wash    { background: var(--wash); }
+	.stacks-f-tint    { background: var(--tint); }
+	.stacks-f-surface { background: var(--surface); }
+	/* ⚠ These two are dark in BOTH modes, so they declare it. Without the
+	     `color-scheme` line `--ink` inside them is near-black on a near-black box in
+	     light mode — the exact defect the col-styles lab logged as "no always-dark
+	     primitive". This one line IS the primitive. */
+	.stacks-f-bg      { background: var(--bg);      color-scheme: dark; color: var(--ink); }
+	.stacks-f-code    { background: var(--code-bg); color-scheme: dark; color: var(--ink); }
+	/* The accent is a HUE, not a rung — it stays opaque, and it is dark enough in
+	   both modes that everything on it is a light-on-dark problem. */
+	.stacks-f-prim    { background: var(--prim);    color-scheme: dark; color: white; }
+
+	/* ── the chips ──
+	   The "now" column is REAL elements wearing REAL site classes — `button`,
+	   `button.bg`, `code`, `.surface` — so the left half of every cell is what the
+	   site actually renders, not an imitation of it. `.stacks-a` changes background,
+	   border and colour and NOTHING else, so the two halves differ by exactly the
+	   thing under test. */
+	.stacks-cell { display: flex; flex-direction: column; gap: 0.45em; }
+	.stacks-pair { display: flex; align-items: center; gap: 0.4em; }
+
+	/* the badge shape three modules wrote by hand (generator.css `.page-gen-chip`,
+	   `th`, blog.css before it gave up and went outlined): a `--tint` fill inside a
+	   `--line` ring. */
+	.stacks-lab .stacks-pill {
+		display: inline-block;
+		padding: 0.15em 0.6em; border-radius: 999px;
+		font-size: 0.8em; font-weight: 600;
+		background: var(--tint); color: var(--ink);
+		box-shadow: inset 0 0 0 1px var(--line);
+	}
+	.stacks-lab .stacks-card {
+		display: block; padding: 0.5em 0.7em; border-radius: var(--radius);
+		background: var(--surface); color: var(--ink); border: 1px solid var(--line);
+		font-size: 0.8em;
+	}
+	/* the matrix keeps buttons small — the theme's CTA padding is right on a page
+	   and wrong in a 7em cell, and cell SIZE is not what this page is about */
+	.stacks-lab .stacks-matrix button { padding: 0.2em 0.7em; font-size: 0.7em; }
+
+	/* ── the alpha half ──
+	   (0,2,1) so it clears both `.btn, button` in framework.css and
+	   `.theme-lew42 :is(button, .btn)`, which sets `border: none` at the same
+	   specificity this would otherwise tie. */
+	.stacks-lab .stacks-a {
+		background: var(--fill-a08);
+		color: var(--ink);
+		border: 1px solid var(--fill-a16);
+		box-shadow: none;
+		text-shadow: none;
+	}
+	.stacks-lab .stacks-card.stacks-a { background: var(--fill-a04); border-color: var(--fill-a08); }
+	.stacks-lab .stacks-pill.stacks-a { border: none; box-shadow: inset 0 0 0 1px var(--fill-a16); }
+	/* the solid CTA's alpha twin — one rung up, and it keeps the ambient ink rather
+	   than the hardcoded white that made `.bg` unusable on a dark floor */
+	.stacks-lab button.stacks-a.stacks-solid { background: var(--fill-a32); border-color: transparent; }
+
+	/* ── the annotation ──
+	   Filled by the page from the LIVE composited colours, so it cannot drift from
+	   what rendered. `tabular-nums` because a column of numbers that jitters is
+	   harder to scan than one that is slightly wider. */
+	.stacks-edge {
+		font-family: var(--mono); font-size: 0.62em; font-weight: 700;
+		font-variant-numeric: tabular-nums;
+		white-space: nowrap;
+		opacity: 0.85;
+	}
+	/* ⚠ A red WORD fails on two of the six floors this page draws — `--error` on `--prim`
+	     is red on orange, and the fail marker was the one thing in the matrix you could
+	     not read. A red CHIP with a hairline reads on all six, which is the page's own
+	     argument applied to the page: a mark that must be seen anywhere carries its own
+	     fill and its own edge. */
+	.stacks-bad {
+		opacity: 1;
+		background: #b00020; color: #fff;
+		padding: 0.1em 0.4em; border-radius: 3px;
+		box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35);
+	}
+
+	/* ── the hero: three worst pairs, at real size ── */
+	/* `auto-fit`, and this is the case it is right for: exactly three items, always, so
+	   there is no empty track to keep. `auto-fill` left two dead columns and shrank the
+	   only three pictures on the page to a third of the room. */
+	.stacks-hero { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(20em, 100%), 1fr)); gap: 1em; }
+	.stacks-hero > figure { border-radius: var(--radius); overflow: hidden; }
+	.stacks-hero figcaption { padding: 0.6em 0.8em; font-size: 0.8em; background: var(--tint); color: var(--subtle); }
+	.stacks-shot { display: flex; gap: 1em; align-items: start; padding: 1.6em 1em; }
+	.stacks-shot > div { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.6em; }
+
+	/* ── the hunt table ── */
+	.stacks-hunt { font-size: 0.85em; }
+	.stacks-hunt td:first-child { font-family: var(--mono); font-size: 0.85em; }
+	.stacks-swatch { display: inline-block; width: 1.6em; height: 1em; border-radius: 2px; vertical-align: -0.15em; box-shadow: inset 0 0 0 1px var(--line); }
+}

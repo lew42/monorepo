@@ -18,23 +18,55 @@ token each.
 
 **Two of the three have since been taken off it.**
 
-## Laziness — removed (Aug 2026)
+## Laziness — a depth, not a flag (Aug 2026)
 
-Declared children are imported at construction. The constructor calls
-`load_all_children()` whenever it has a url; `add()` re-triggers it for a page built
-standalone, on adoption, because that is when the url arrives.
-
-The old shape was lazy by default with an opt-in:
+**`depth` is how many levels below me get fetched, and it is the one number that
+decides what a url costs.**
 
 ```js
-initialize(){ this.load_all_children(); }   // dead — the constructor does this now
+depth: 2   // the default — my children AND theirs: walls(), a two-level sidebar
+depth: 1   // only my children: a card wall, a rail, one list
+depth: 0   // none of them — /blog/ draws its whole front from posts.js
 ```
 
-**Why it flipped.** The opt-in's own record already contained the finding: *almost
-every index page calls it*, because `previews()` and `tabs()` both want real titles.
-A default in disguise costs the honesty and nothing else. The measured price is
-small and was already being paid on nearly every url: on `/framework/`, 1 → 28
-`page.js` fetches and **+51ms to first paint**, flat with depth.
+Nothing is fetched in the constructor. A module page constructs *itself* at import,
+so a constructor that loaded its subtree would pull the whole site down from
+whatever url you opened — measured 2026-08-30: **every** page under `/framework/`
+cost 261 `page.js` modules and 1.08 MB, whatever the destination, and 67–84% of
+them drew nothing. The caller budgets instead:
+
+- `load_all_children(levels)` — idempotent; `loaded` is what is already there, so a
+  revisit is free and a deeper ask tops up. It hands each child `levels - 1`.
+- `child(name, levels)` — the Router passes **nothing**, which means the child loads
+  to its own `depth`. So navigating into a page is what deepens it.
+- `leaf: true` spends **none** of a parent's budget. It already means "I present
+  myself, not my children" — `walls()` and `framework/page.js`'s `sections()` both
+  skip a leaf — so its subtree waits until you open it. That alone is 50 modules on
+  `/framework/`.
+
+The result, cold, same screens (2026-08-30 · [the cost](/framework/ai/2026-08-30/eager-load-cost/) ·
+[the fix](/framework/ai/2026-08-30/lazy-children/)):
+
+| url | before | after |
+|---|---:|---:|
+| `/framework/` | 261 · 1080 KB | **57 · 279 KB** |
+| `/framework/core/Page/` | 261 · 1080 KB | **95 · 379 KB** |
+| `/imagine/` | 92 · 316 KB | **20 · 120 KB** |
+| `/blog/` | 6 · 17 KB | **2 · 14 KB** |
+
+**Rejected: a nav stub** — letting a `children:` entry carry `{title, icon,
+description}` as data, so a card could be drawn without the module. It works, but
+it only reaches what someone hand-writes a stub for: on `/framework/` at most 49 of
+the 204 wasted modules, because the rest are drawn live on their own page. The
+overhead was never depth 1 — it was **depth 3 and below**, which one number removes
+and no amount of authoring would.
+
+**Rejected: a manifest of titles.** Same objection, plus the data is then written
+twice and rots. `blog/posts.js` is the exception that proves it: a post is not a
+declared child at all.
+
+The old shape was lazy by default with an opt-in, `initialize(){ this.load_all_children(); }`.
+That is dead — a page states its reach, and nobody calls the loader by hand.
 
 **What went with it:**
 
@@ -57,8 +89,9 @@ and gone.
 
 **Rejected: full recursion.** `load_all_children()` meaning "import every
 descendant". An ancestor's one line would override a descendant's deliberate
-shallowness three files away — the no-black-magic failure. It recurses exactly as
-far as each page's own `children` list goes.
+shallowness three files away — the no-black-magic failure. That is exactly what the
+constructor's own call had quietly become, and `depth` is the answer: an ancestor
+spends a budget, and `leaf` — the child's own word — refuses it.
 
 ## Discovery — a probe, not a registry
 
@@ -186,5 +219,5 @@ declaration wins. It does **not** need a build step: `Server/` already runs
 does not). Fetch it once at boot, in parallel with the root page.
 
 **The point of building it is not to stop typing `children`. It is to stop a nav
-having to *execute* the pages it lists** — which is exactly what the eager imports
-pay for today. At ~160 pages, not yet.
+having to *execute* the pages it lists** — which is still what a nav pays for,
+`depth` having only bounded it to the levels actually drawn. At ~160 pages, not yet.

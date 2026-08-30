@@ -1,0 +1,194 @@
+/* /framework/styles/layouts/cols/ — a word set for 2- and 3-column rows.
+
+   THE PROBLEM IT ANSWERS. `.flex.auto` is a WRAP THRESHOLD: every child gets
+   `flex: --grow 1 calc(--column * --grow)`, the row breaks when those bases stop fitting,
+   and the leftover is split by grow. That is exactly right for a wall of tiles and wrong
+   for a named ratio, for three reasons this lab measured (doc/indictment.md):
+
+     1. the threshold is in `em`, and `em` here is a VIEWPORT clamp (framework.css sets
+        `body { font-size: clamp(...) }`, 14px at 400 -> 18px at 3440). So a 28em basis is
+        392px on a phone and 504px on a monitor: the SAME container stacks at one screen
+        size and not at another. A "specified place" that is not a place.
+     2. three tracks wrap 2 + 1 before they wrap 1 + 1 + 1 — an orphan row nobody asked for.
+     3. no ceiling. A share has no cap, so at 3440 an aside is 1100px of a 400px list.
+
+   WHAT THIS SHEET DOES INSTEAD. A track is a PERCENTAGE of the row (the decks lab's
+   finding: `flex: 61.8 1 0` reads 1.527 because a zero basis floors at its own padding,
+   while a percentage basis includes the padding and reads 1.618). One rule computes it
+   from two numbers — this track's weight, and the weights added up — so the ratio is
+   arithmetic, not a leftover, and it is exact at 400 and at 3440 alike.
+
+   Colour and spacing are borrowed, not invented: `--surface`, `--line`, `--subtle`,
+   `--gap`. Nothing here sets a height and nothing sets `overflow`.
+
+   PROMOTION. If these graduate to framework.css they become `.cols.half`, `.cols.thirds`
+   and so on — the `.flex.auto` / `.grid.auto` shape. They are `cols-*` here because
+   `core/new/1/site/styles.css` already owns a `.cols`, and a lab does not get to take a
+   name from a live sheet. doc/adoption.md has the argument and the migration list. */
+
+@layer theme {
+
+	/* ── the row ──
+	   ⚠ `flex-wrap: wrap` and NOT a container query. A container query never matches its
+	     own container, so the stack rule would have to live on a wrapper element — and the
+	     stack term below does the same job with no extra div, in any nesting, from one
+	     declaration. It is `.flex.three`'s own idiom (`(--column * 3 - 100%) * 999`),
+	     generalised to a floor you name. */
+	.cols-row {
+		--cols-n: 2;             /* tracks on the line */
+		--cols-sum: 2;           /* their weights, added up */
+		--cols-fixed: 0px;       /* room the fixed tracks take before the shares divide */
+		--cols-floor: 34rem;     /* narrower than this, the row is a stack */
+
+		/* ⚠ `rem`, never `em`. `rem` is the ROOT font size and this site never sets one, so
+		   it is 16px at every viewport; `em` is the body clamp and moves 14px -> 18px. A
+		   floor in `em` is the same defect `.flex.auto` has. */
+		--cols-stack: calc((var(--cols-floor) - 100%) * 999);
+
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--gap, 1em);
+		align-items: stretch;
+	}
+
+	/* ── THE ONE RULE ──
+	   basis = (the row, less the fixed tracks and one gap per track) x this track's share
+	   of the weights — or, below the floor, a number bigger than the row, which wraps it
+	   onto its own line and is the stack.
+
+	   ⚠ `flex-grow: var(--cols-w)`, not 1. The bases deliberately leave one gap of slack
+	     (n gaps subtracted, n-1 used) so a rounding error can never wrap the last track
+	     early. Growing by 1 would then split that slack EVENLY and pull the ratio off;
+	     growing by the weight keeps every track exactly proportional. This is the whole
+	     difference from `.flex.auto`, where grow is 1 and the ratio is whatever the
+	     leftover made it.
+	   ⚠ `min-width: 0` for the usual reason — the flex default floors a child at its
+	     min-content, so one `<pre>` would push the row wider than the page. */
+	.cols-row > * {
+		--cols-w: 1;
+		flex: var(--cols-w) 1 max(
+			calc((100% - var(--cols-fixed) - var(--cols-n) * var(--gap, 1em) - 1px)
+				* var(--cols-w) / var(--cols-sum)),
+			var(--cols-stack));
+		min-width: 0;
+	}
+
+	/* ── THE WORDS ── */
+
+	/* Two peers. The commonest hand-rolled row on the site. */
+	.cols-half { --cols-n: 2; --cols-sum: 2; }
+
+	/* Three peers. A higher floor because thirds of 544px are 170px each — and this is
+	   where `.flex.auto` puts an orphan on a second line instead. */
+	.cols-thirds { --cols-n: 3; --cols-sum: 3; --cols-floor: 52rem; }
+
+	/* 61.8 / 38.2. The one ratio that reads as composed rather than as measured. */
+	.cols-golden { --cols-n: 2; --cols-sum: 100; }
+	.cols-golden > :first-child { --cols-w: 61.8; }
+	.cols-golden > :first-child + * { --cols-w: 38.2; }
+
+	/* The seam the vocabulary could not say (styles/layouts/wire/doc/bento.md): twice its
+	   neighbour, still fluid, from a class string. */
+	.cols-two-one { --cols-n: 2; --cols-sum: 3; }
+	.cols-two-one > :first-child { --cols-w: 2; }
+
+	/* ── the two words with a CEILING ──
+	   `core/Page/doc/findings.md`: of the five content kinds only a nav LIST does not
+	   scale. A share is right for a stage, a wall, a statement; a list wants a cap, and
+	   32% of 3440 is 1100px of a 416px list with 340px of nothing on each side.
+	   ⚠ The cap has to LIFT in the stack, or a 500px row stacks a 416px aside under a
+	     500px main and the left edges disagree. Same stack term, on `max-width`. */
+	.cols-main-aside { --cols-n: 2; --cols-sum: 100; }
+	.cols-main-aside > :first-child { --cols-w: 68; }
+	.cols-main-aside > :first-child + * {
+		--cols-w: 32;
+		max-width: max(var(--cols-aside, 26rem), var(--cols-stack));
+	}
+
+	/* Fixed rail, fluid main, capped aside — the three-track shape a documentation site
+	   actually wants, and the one `.flex.auto` cannot express at all.
+	   ⚠ The rail is `em` ON PURPOSE, the one place in this sheet where it is right: it
+	     holds type, and type here is a viewport clamp, so 16em is the same number of
+	     characters at 400 and at 3440 (224px -> 288px). A floor is a place; a rail is a
+	     measure. Fixed tracks are subtracted from the row BEFORE the shares divide, which
+	     is what `--cols-fixed` is for. */
+	.cols-rail-main-aside {
+		--cols-n: 3;
+		--cols-sum: 100;
+		--cols-fixed: var(--cols-rail, 16em);
+		--cols-floor: 60rem;
+	}
+	.cols-rail-main-aside > :first-child {
+		flex: 0 1 max(var(--cols-rail, 16em), var(--cols-stack));
+	}
+	.cols-rail-main-aside > :first-child + * { --cols-w: 70; }
+	.cols-rail-main-aside > :first-child + * + * {
+		--cols-w: 30;
+		max-width: max(var(--cols-aside, 22rem), var(--cols-stack));
+	}
+
+	/* ══ the lab's own presentation — not part of the proposal ══════════════════════ */
+
+	/* A track, drawn. Padded, because the padding is half the point: a percentage basis
+	   is a BORDER box, so the inset comes out of the share rather than out of the ratio. */
+	.cols-cell {
+		display: flex; flex-direction: column; gap: 0.35em;
+		padding: 0.9em 1em;
+		background: var(--surface);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+	}
+
+	.cols-cell.cols-quiet { background: var(--tint); }
+
+	.cols-name { font-weight: 700; font-size: 0.95em; line-height: 1.2; }
+	.cols-note { font-size: 0.8em; line-height: 1.4; color: var(--subtle); }
+
+	/* What the track actually measured, written into the track. */
+	.cols-px {
+		align-self: flex-start;
+		padding: 0.15em 0.45em;
+		border-radius: var(--radius);
+		background: color-mix(in srgb, var(--prim) 12%, transparent);
+		color: var(--prim-ink);
+		font-family: var(--mono); font-size: 0.72em; font-weight: 700;
+		white-space: nowrap;
+	}
+
+	/* The verdict line under a demo: intended ratio, measured ratio, and whether they agree. */
+	.cols-read {
+		display: flex; flex-wrap: wrap; gap: 0.4em 1em;
+		font-family: var(--mono); font-size: 0.75em;
+		color: var(--subtle);
+	}
+
+	.cols-ok  { color: var(--ok); font-weight: 700; }
+	.cols-bad { color: var(--error); font-weight: 700; }
+
+	/* A viewport, faked. Every word above is percentage arithmetic off its parent, so a
+	   420px box on a 3440 screen lays out exactly as a 420px screen would — with ONE
+	   honest exception, which is the whole finding: `rem` is the same 16px in both, and
+	   `em` is not. The label says which width you are looking at. */
+	.cols-screen {
+		display: flex; flex-direction: column; gap: 0.5em;
+		min-width: 0;
+	}
+
+	.cols-screen-box {
+		width: 100%;
+		padding: 0.6em;
+		background: var(--wash);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+	}
+
+	.cols-screen-tag {
+		font-family: var(--mono); font-size: 0.72em; font-weight: 700;
+		color: var(--subtle);
+	}
+
+	/* The matrix scrolls sideways on purpose — 3440 does not fit in 1280 and pretending
+	   otherwise is what a scaled thumbnail does. A scrollbar you asked for is allowed. */
+	.cols-strip { display: flex; gap: 1.2em; overflow-x: auto; padding-bottom: 0.5em; }
+	.cols-strip > .cols-screen { flex: 0 0 auto; }
+}

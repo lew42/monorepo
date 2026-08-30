@@ -5,12 +5,26 @@ absorbed two now-deleted files (`styles/layouts/detail.js` and
 `core/Page/layout/detail.js`), which is the reason this sugar exists at all
 rather than every layout page hand-rolling its own `preview()`/`frame()` pair.
 
-## `twin` changes both the card and the stage
+## It renders through `page.demo()`
 
-With `twin: true` the card is `twin()` — a 390 phone beside a 3440 monitor, both
-live — and the stage becomes the two-up (`two.js`) instead of a plain
-`demo.stage()`. Without it, the card is `.ac("zoom-25")`, a quarter-scale render
-of the page exactly as it would look full size, and the stage is a normal one.
+Since demo-merge step 4 this is a page SHAPE, not a way of drawing a demo: its
+`content()` calls `demo.exhibit()`, which is `page.demo({ run: … })`. The band,
+the path strip, the source column and the layout bar are the one shell's; what
+`demo.layout` still owns is the specimen — a `frame()` on a bleeding stage — and
+its quarter-scale card.
+
+## `twin` is what a specimen paints, not how it is compared
+
+With `twin: true` the frame paints `--surface` under itself, because a simulated
+*screen* needs a ground the same way a real browser window would give it one; a
+plain stage frames a *shape*, whose own washed boxes are already the picture.
+
+⚠ It used to also swap the stage for a two-up — a live 390 beside a live 3440,
+one handle between them. That was a **second width mechanism** beside the stage's
+own `mobile`…`mega` presets, saying the same thing, and it went with `two.js` on
+2026-08-30 (demo-merge step 3). The card was never the twin anyway: two device
+panes in one card are half a card wide each, and a 3440 screen at a fourteenth of
+size is a grey smudge.
 
 ## `parts` are checkboxes, never sibling pages
 
@@ -24,10 +38,8 @@ layout minus its sidebar."
 
 `.ac("default")` is the arrangement contract's own word for "shown without
 being routed to" (`core/Page/Page.css`) — without it, a `.page` the Router never
-marked is `display: none` and nothing throws. A `twin` card additionally paints
-`--surface` under the layout, because a simulated *screen* needs a ground the
-same way a real browser window would give it one; a plain, non-twin stage
-frames a *shape*, whose own washed boxes are already the picture.
+marked is `display: none` and nothing throws. The ground `twin:` adds is the
+other half — see above.
 
 ## Improvements
 

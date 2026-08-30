@@ -57,11 +57,23 @@ which is the shape `ui/crumbs/` said a real one would have to take. It emits
 `.page-crumbs` links and nothing else; `Router.mark_links()` lights them. `from` is
 where the trail starts, so a columns host shows only its own subtree.
 
-**Are declared children eager or lazy?** **Eager.** `children: "a b c"` imports
-every child at construction, and `Router.load()` awaits the chain's `loading` — so a
-menu draws **once**, with real titles and icons. Reversed from lazy-with-an-opt-in
-in Aug 2026, because almost every index page typed the opt-in anyway. There is now
-**no lazy tier**. `./declaring.md`.
+**Are declared children eager or lazy?** **Eager to a declared `depth`, default 2.**
+`children: "a b c"` still draws a menu **once**, with real titles and icons —
+`Router.load()` awaits the chain's `loading` — but the fetch is a budget the caller
+spends, not a recursion the constructor starts. Two reversals, both measured:
+eager-with-no-opt-out replaced lazy-with-an-opt-in in Aug 2026 (every index page
+typed the opt-in anyway), and on **2026-08-30** the flat tax that shape had grown
+was measured — *every* url under `/framework/` paid 261 modules and 1.08 MB
+whatever the destination, 78% of it drawing nothing. `depth` bounds it to the
+levels a page actually draws: `/framework/` 261 → 57, `/imagine/` 92 → 20, the same
+53 and 24 cards on screen. `leaf` spends none of a parent's budget. `./declaring.md`.
+
+**Why a number and not a nav stub?** A stub — `{title, icon, description}` sitting
+in `children:` as data — was the proposal, and it does work. It reaches too little:
+the waste on `/framework/` was **depth 3 and below**, not depth 1, so a stub would
+have had to be hand-written for ~200 pages that already draw themselves live on
+their own url. One number per page that has an opinion, versus a second copy of
+every title on the site.
 
 **What happens to a child nobody declared?** It still resolves. `child()` falls
 through `route()` to a filesystem probe, so forgetting to declare costs the **menu

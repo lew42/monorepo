@@ -102,16 +102,39 @@
 
 	.demo-error { padding: 0.8em 1em; color: var(--error); border-color: var(--error); }
 
-	/* `demo.source()` — the code under a leaf page's render, closed. The `pre`'s
-	   padding and the `summary` cursor are framework.css's already; these are what a
-	   source block adds, and they match the `.demo-code` pane above. */
-	.demo-source > summary { font-size: 0.85em; color: var(--subtle); }
-	.demo-source > summary:hover { color: var(--prim); }
-	.demo-source > pre { tab-size: 4; line-height: 1.55; }
+	/* ── the source block ──
+	   ONE code surface: `page.demo()`'s peer column and every `demo.source()` are
+	   this, so the shell's column and a leaf page's block cannot drift apart.
 
-	/* ⚠ `inline-flex`, and it must come after `.demo-btn`: a flex button in a
-	   `<summary>` takes the whole line and drops the label above it. */
-	.demo-copy { display: inline-flex; vertical-align: -0.25em; padding: 0.1em 0.35em; }
+	   It was a `<details>` until demo-merge step 2, and the callers that mattered all
+	   wrote `.attr("open", "")` — a disclosure nobody ever wanted disclosed. Code
+	   beside a render is half the lesson; an aside is what a caption is for. */
+	.demo-source { display: flex; flex-direction: column; gap: 0.35em; }
+
+	.demo-source-head {
+		display: flex; align-items: baseline; gap: 0.5em;
+		font-family: var(--mono); font-size: 0.78em;
+		color: var(--subtle);
+	}
+
+	.demo-source-body {
+		overflow: auto;
+		background: var(--surface);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+	}
+
+	/* ⚠ `max-height` on the SOURCE only, never on a render: code is reference and
+	   scrolls, the specimen is the subject and must be whole. */
+	.demo-source-body > pre {
+		max-height: 34em;
+		margin: 0;
+		padding: 1em;
+		font-size: 0.78em; line-height: 1.55; tab-size: 4;
+	}
+
+	/* Pushed to the end of the header row — the label and the file link read first. */
+	.demo-copy { margin-inline-start: auto; padding: 0.1em 0.35em; }
 
 	/* The whole file, for the reader who wants the imports the lesson leaves out. */
 	.demo-file { margin-inline-start: 0.8em; font-family: var(--mono); }

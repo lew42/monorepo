@@ -19,11 +19,13 @@ A module stylesheet, when a rung-4 rule is unavoidable: `View.stylesheet(import.
 - Base-theme selectors stay flat — one element, no descendant combinators — or a theme's `h2` can never win. [`doc/cascade.md`](./doc/cascade.md)
 - Never invent a font-size: six levels, each also a class; margins are rhythm and belong to whatever arranges the content. [`doc/theme.md`](./doc/theme.md)
 - `.flex > * { margin: 0 }` kills `margin-inline: auto` inside a flex row — reach for `.measure`. [`doc/decisions.md`](./doc/decisions.md)
+- An opaque fill guesses which floor it will land on and guesses wrong somewhere: `.btn, button` and `.surface` name the same token, so 101 button/pill pairs on the site are invisible. Floors opaque, fills alpha. [`doc/stacking.md`](./doc/stacking.md)
 
 ## More
 - Page: [/framework/styles/](/framework/styles/) — the ladder, the layers, the ratchet, the type scale, shown.
 - [`doc/decisions.md`](./doc/decisions.md) record, who imports · [`doc/ownership.md`](./doc/ownership.md) ladder, class-vs-function · [`doc/cascade.md`](./doc/cascade.md) ratchet, `site`, `:where()`
 - [`doc/layout-system.md`](./doc/layout-system.md) **the five layout words** — page · rail · wall · stage · solo
+- [`doc/stacking.md`](./doc/stacking.md) **when a colour is alpha** — the rules, the bill, the fix list; live at [`stacks/`](./stacks/readme.md)
 - [`doc/theme.md`](./doc/theme.md) tokens, scale, dark · [`doc/audits.md`](./doc/audits.md) evictions, measured · [`doc/scrolling.md`](./doc/scrolling.md) which region scrolls · [`doc/measure.md`](./doc/measure.md) `--measure` proposal, unchanged
 - [`layers/`](./layers/) one page per layer · [`layouts/`](./layouts/readme.md) seventeen whole-page layouts · [`rules/`](./rules/readme.md) dos and don'ts · [`sections/`](./sections/readme.md) landing-page bands · [`elements/`](./elements/readme.md) every styled element
 - Themes: [`layers/theme/`](./layers/theme/) the base theme · [`layers/theme/guide/`](./layers/theme/guide/readme.md) writing a theme · [`layers/theme/lew42/`](./layers/theme/lew42/readme.md) the house theme · [`css-scopes.txt`](./css-scopes.txt) reserved class prefixes

@@ -262,6 +262,13 @@ and the word means on a stage what it means everywhere else on the site.
 
 ## 9. `demo.source()` — the code, closed, below the render
 
+> **Reversed 2026-08-30 (demo-merge step 2).** It is not a `<details>` any more.
+> Every caller that mattered wrote `.attr("open", "")` straight after it, which
+> is a disclosure nobody ever wanted disclosed. One open, named, copyable block
+> now serves `demo.source()`, `demo.source.file()` and `page.demo()`'s peer
+> column. The reasoning below is why it opened closed for a year; §14 and the
+> shell are why it stopped.
+
 **The question** (`ai/2026-08-09`, open question 1): on a leaf page, does the source
 go below the render on the page, or only into `ext/layout`'s panel? **the owner's
 verdict, same day: both** — a `details` on the page for copy-paste *and* a Source

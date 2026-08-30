@@ -1,6 +1,6 @@
 The module's entry point and the box door: `demo(fn)` — code pane, render,
-caption, HTML pane — plus `demo.stage`, `demo.stage.two` and `demo.source`
-attached to the same function. Everything else in the directory (`app.js`,
+caption, HTML pane — plus `demo.stage`, `demo.source` and `source_block()`,
+the one code surface `page.demo()` draws its peer column with. Everything else in the directory (`app.js`,
 `exhibit.js`, `layout.js`) imports this file and patches more onto `demo`; this
 file never imports them back, which is what keeps the pair from becoming an
 import cycle.
