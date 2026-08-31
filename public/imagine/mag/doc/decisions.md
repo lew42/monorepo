@@ -93,6 +93,40 @@ than a link to what you can already see. Both hops are still direct children of
 `.page-column-prose` (siblings, not a wrapper), so `bleed`'s `:last-child` rule keeps
 finding the real last one and no new CSS was needed.
 
+## 2026-08-31 — read state
+
+Ranked on the mag improver's own list: a read entry on the contents looked exactly like an
+unread one. Core's `page.store()` landed the same morning, so the record is one call, not a
+hand-rolled `localStorage` key.
+
+**Kept on the CONTENTS page, not on each article.** An article has no list of its own to keep
+— it asks its parent (`this.parent.mark_read(this.slug)` from `Article.activated()`). One key
+(`lew42:/imagine/mag/contents/`), one array of slugs, so "N of 6" is a `Set.size` rather than
+a fan-out read across six separate keys. `Article.Data` inherits the same `activated()` —
+"By the Numbers" marks read exactly like any other piece.
+
+**Reactive, because the contents column never closes.** A page builds its view ONCE
+(`doc/method/render.md`) — the contents column stays mounted beside an open article the whole
+time you are reading (the cover doc says the same thing about itself), so a mark drawn only at
+`content()`'s first run would go stale the moment you opened a second piece. The fix is the
+same `watch()`/`bump()` pair `/imagine/game/` already uses for its own store: the "N of 6 read"
+line and each entry's mark are built once, inside a box captured synchronously and refilled by
+a callback the contents page's own `bump()` re-runs.
+
+**The mark is `--subtle`, never `--prim`.** The accent is spent four times on this issue
+already (the cover rule, the entry numbers, the bars, the next-hop line) — a fifth, coloured
+use for a read mark would read as a badge, not a quiet note to self. Nothing is drawn at all
+for an unread entry, which is the whole of what "unread" looks like — never a dimmed
+placeholder, never a checkbox outline.
+
+**`reset_read()` calls `store().clear()`, not `set({ read: [] })`** — the same argument the
+game's own `reset()` makes: until the next article is opened, this browser holds nothing about
+the issue's read state at all.
+
+Measured, headless: two articles opened → contents reads "2 of 6 read" with two quiet check
+marks → survives a reload → *Reset* returns it to "0 of 6 read", which also survives a reload.
+Zero console errors at 400 / 1920 / 3440.
+
 ## What bit
 
 - **The UA's margins.** `p` and every heading keep them; framework.css zeroes them only for

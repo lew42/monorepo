@@ -200,6 +200,59 @@ honest reading of both facts. Measured across one press of *trade*:
 | `cistern` | link | link, dimmed |
 | `lantern` | span, dimmed | span |
 
+## Round 4: your own goals, and keyboard travel (2026-08-31)
+
+### The goal list: the same mechanic, not a new one
+
+The ask was "one input, lands in the same list mechanic the game already uses." The journal
+(round 3) is exactly that mechanic — an array, saved through `page.store()`, numbered on
+screen — so the goal list reuses its row markup (`.imagine-journal`/`.imagine-entry`) rather
+than inventing a second one. It stays a **separate array** (`goals`, not `log`), because the
+two lists have different voices: the journal is what the run *did* (past tense, written by the
+game), a goal is what the player *wants* (present tense, written by the player) — merging them
+would have the game's own narration and the player's plans read as one undifferentiated feed.
+
+`add_goal()` mirrors `note()` exactly (trim, guard empty, `save()`, `bump()`) but the game
+never calls it — only the new input does, and nothing here is ever checked off. The label
+("your goals") only appears once there is a second list to tell apart from the run's own
+journal; an empty run shows just the input, because a goal is yours to set before you have
+taken a single step.
+
+Persisted the same way `log`/`sights` were added in round 3: a third field on the saved shape,
+defaulting to `[]`, so a save written before this pass still loads. `reset()` clears it with
+everything else — one eraser, one run.
+
+### Keyboard travel: number the choices that already exist
+
+The game's whole navigation IS a set of links (`.imagine-exit`, on every screen: the arrival,
+every room, the journal, the finale) — so the metaphor was already "pick one of these," and
+numbering them is the entire control. `imagine.css` draws the digit with a CSS counter
+(`counter-increment` on `.imagine-exit`, scoped per `.imagine-exits` box) rather than typing a
+number into the markup, so the digit can never drift from the DOM order the listener itself
+walks.
+
+**One listener, on the ROOT page, not on each room.** `activated()`/`deactivated()` are
+page-local (`doc/method/render.md`) — a listener written on a room would drop the instant you
+left it. The root is active for the whole time you are anywhere under `/imagine/game/`
+(`activated()` does not re-fire on a sibling-to-sibling move, since the root never leaves the
+chain), so one `addEventListener` at the top covers every depth.
+
+**Scoped to `.page.active-page .imagine-exit`, never a bare query.** `deactivate()` does not
+remove a page's DOM (`doc/method/deactivate.md`) — every room you have ever left keeps its own
+`.imagine-exits` in the tree, hidden by CSS. An unscoped `document.querySelectorAll` would
+collect all of them; `.active-page` is the one class that names the room you are actually
+standing in.
+
+**The focused-input guard runs before the digit is even read.** The goal input takes digits
+too — typing "task 1 and 2" must land in the field, not walk to room one then two. Checked
+first: `event.target.tagName === "INPUT"` (also `TEXTAREA`, `isContentEditable`), so a focused
+field short-circuits the whole handler regardless of what key was pressed.
+
+Measured, headless: at the Iron Gate, exits read `1 Old Quarry` / `2 Wind Steps`; pressing `1`
+navigates to the Quarry. On the journal, typing `task 1 and 2` into the goal input leaves the
+url unchanged and the field holds the typed text; blurring the input and pressing `1` then
+navigates. Zero console errors at 400 / 1920 / 3440.
+
 ## Cut
 
 - **A `reset run` button in the rail.** See above — the finale is the eraser, and the rail's

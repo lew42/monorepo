@@ -399,9 +399,10 @@
 
 	.imagine-took { font-size: 0.75em; color: var(--subtle); text-transform: uppercase; letter-spacing: 0.06em; }
 
-	.imagine-exits { --gap: 0.4em; }
+	.imagine-exits { --gap: 0.4em; counter-reset: imagine-exit; }
 
 	.imagine-exit {
+		counter-increment: imagine-exit;
 		padding: 0.35em 0.7em;
 		font-size: 0.85em;
 		color: var(--ink); text-decoration: none;
@@ -411,6 +412,16 @@
 	}
 
 	.imagine-exit:hover { color: var(--prim-ink); border-color: var(--prim); }
+
+	/* KEYBOARD TRAVEL (round 4). The digit each exit answers to (`page.js`'s
+	   keydown listener) — a counter, not typed text, so the number can never drift
+	   from the DOM order the listener itself walks. Quiet: the same tabular,
+	   `--subtle` treatment as every other count on this site. */
+	.imagine-exit::before {
+		content: counter(imagine-exit) " ";
+		color: var(--subtle);
+		font-variant-numeric: tabular-nums;
+	}
 
 	/* ════ GAME — the realm's ambiance ═════════════════════════════════════════
 	   One rung of the wash → tint → surface ladder per realm, on the realm's own

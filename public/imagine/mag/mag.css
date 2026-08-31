@@ -158,6 +158,25 @@
 		font-size: 2em; font-weight: 900; letter-spacing: -0.025em; line-height: 1.05;
 	}
 
+	/* READ STATE. One quiet line under the standfirst — never a badge wall — plus a
+	   reset that only exists once there is something to reset.
+	   ⚠ (0,3,0) on `.mag-read-reset`: a bare `.mag-read-reset` loses to the theme's
+	     own `button` CTA at (0,2,0) in this same layer, the same trap `.mag-chip`
+	     is written against below. */
+	.mag-read-line { display: flex; align-items: center; gap: 0.6em; color: var(--subtle); font-size: 0.78em; }
+
+	.mag-contents .mag-read-line .mag-read-reset {
+		padding: 0;
+		color: var(--subtle);
+		font: inherit; font-weight: 600;
+		text-transform: none; letter-spacing: normal;
+		text-decoration: underline; text-underline-offset: 0.2em;
+		background: none; border: none;
+		cursor: pointer;
+	}
+
+	.mag-contents .mag-read-line .mag-read-reset:hover { color: var(--ink); }
+
 	/* An entry is a line of type with a standfirst under it, not a tile — so the wall
 	   is told a real column width instead of the 14em default that would deal four of
 	   them across a 1024px `large` column. */
@@ -176,6 +195,12 @@
 	.mag-entry-body { display: flex; flex-direction: column; gap: 0.15em; min-width: 0; }
 	.mag-entry-title { font-size: 1.15em; font-weight: 800; line-height: 1.15; letter-spacing: -0.015em; }
 	.mag-entry-stand { font-size: 0.85em; color: var(--subtle); line-height: 1.4; }
+
+	/* The mark. `--subtle`, never `--prim` — the accent is spent four times on this
+	   issue already (the cover rule, the entry numbers, the bars, the next-hop line)
+	   and a fifth use here would read as a badge, not a note to yourself. Empty for
+	   an unread entry: nothing is the whole of what "unread" looks like. */
+	.mag-entry-read { flex: 0 0 auto; margin-inline-start: auto; align-self: center; color: var(--subtle); font-size: 0.85em; }
 
 	/* ════ 5. THE ARTICLE ═════════════════════════════════════════════════════
 	   No width word at all: the default track, a 16em floor and the 40em measure as

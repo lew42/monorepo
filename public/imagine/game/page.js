@@ -1,4 +1,4 @@
-import { Page, div, span, a, button, md, icon } from "/app.js";
+import { Page, div, span, a, button, input, md, icon } from "/app.js";
 
 /* Container: /imagine/'s column row — there is no page grid here, so `wide` means
    nothing and only `bleed` reaches an edge. Size: `small` 14em rails — the run, the
@@ -137,14 +137,18 @@ export default new Page({
 	     rename one: the key is the url and there is no migration step.
 	   ⚠ `sights`, not `seen` — `seen(realm)` is a METHOD one line below, and a field
 	     of that name would shadow it and throw on the first rail redraw. */
+	// ⚠ `goals` is a THIRD field added to the saved shape (round 4) — same rule as
+	//   `sights`/`log` before it: default empty, a save written before this pass
+	//   still loads with an empty list.
 	initialize(){
-		const saved = this.store().get({ found: [], carried: [], traded: [], sights: [], log: [] });
+		const saved = this.store().get({ found: [], carried: [], traded: [], sights: [], log: [], goals: [] });
 
 		this.found = new Set(saved.found);
 		this.carried = new Set(saved.carried);
 		this.traded = new Set(saved.traded);
 		this.sights = new Set(saved.sights);
 		this.log = [...saved.log];
+		this.goals = [...saved.goals];
 	},
 
 	watch(fn){ (this.watchers ??= []).push(fn); fn(); },
@@ -153,7 +157,7 @@ export default new Page({
 	save(){
 		this.store().set({
 			found: [...this.found], carried: [...this.carried], traded: [...this.traded],
-			sights: [...this.sights], log: this.log,
+			sights: [...this.sights], log: this.log, goals: this.goals,
 		});
 	},
 
@@ -163,6 +167,19 @@ export default new Page({
 	   reading because it is in order. So the sentence is written down at the moment of
 	   the move, not reconstructed afterwards. */
 	note(line){ this.log.push(line); },
+
+	/* THE PLAYER'S OWN LIST (round 4). Everything else on this page is the game's own
+	   record of what happened; a goal is the one line the RUN did not write. Same
+	   mechanic as the journal — an array, saved, numbered on screen — so it never
+	   invents a second way to keep a list. Never checked off by the game: adding is
+	   the whole verb, the same restraint the journal's own `note()` keeps. */
+	add_goal(text){
+		const line = text.trim();
+		if (!line) return;
+		this.goals.push(line);
+		this.save();
+		this.bump();
+	},
 
 	// Every write goes through the store, so there is no such thing as unsaved progress.
 	enter(id){ if (this.found.has(id)) return; this.found.add(id); this.note(WALKED[id]); this.save(); this.bump(); },
@@ -204,6 +221,7 @@ export default new Page({
 		this.traded.clear();
 		this.sights.clear();
 		this.log.length = 0;
+		this.goals.length = 0;
 		this.store().clear();
 		this.bump();
 	},
@@ -310,6 +328,38 @@ export default new Page({
 			this.map();
 		});
 	},
+
+	/* KEYBOARD TRAVEL (round 4). The exits already ARE the choices — every screen's
+	   navigation is a row of `.imagine-exit` links — so numbering them is the whole
+	   control, and `.imagine-exit::before` (imagine.css) draws the digit each one
+	   answers to. One listener on the ROOT page, because "somewhere under the game"
+	   is every depth at once and `activated()`/`deactivated()` are page-LOCAL
+	   (doc/method/render.md): a listener on a room would drop the moment you left it.
+	   ⚠ Scoped to `.active-page`, never a bare `.imagine-exit` query — deactivated
+	     pages keep their DOM (deactivate.md), so an unscoped query would collect
+	     every room you have ever left as well as the one you are standing in.
+	   ⚠ The focused-input guard runs FIRST. The journal's own goal input takes
+	     digits too, and typing "task 2" would otherwise walk to room two instead
+	     of typing a 2. */
+	activated(){
+		this.keys ??= event => {
+			if (!location.pathname.startsWith(this.url)) return;
+			if (event.altKey || event.ctrlKey || event.metaKey) return;
+
+			const focused = event.target;
+			if (focused?.tagName === "INPUT" || focused?.tagName === "TEXTAREA" || focused?.isContentEditable) return;
+
+			const n = Number(event.key);
+			if (!Number.isInteger(n) || n < 1 || n > 9) return;
+
+			const exit = document.querySelectorAll(".page.active-page .imagine-exit")[n - 1];
+			if (exit) exit.click();
+		};
+
+		addEventListener("keydown", this.keys);
+	},
+
+	deactivated(){ removeEventListener("keydown", this.keys); },
 
 	children: [
 
@@ -546,38 +596,59 @@ export default new Page({
 				const run = this.topic();
 
 				div.c("imagine-room flex v gap", $page => run.watch(() => $page.empty(() => {
-					if (!run.log.length){
+					if (run.log.length){
+						div.c("imagine-journal flex v", () => run.log.forEach((line, index) => div.c("imagine-entry flex gap", () => {
+							span.c("imagine-entry-n", String(index + 1));
+							span(line);
+						})));
+					} else {
 						div.c("imagine-shut", () => {
 							icon("history_edu");
 							span("Nothing has happened yet. The page fills itself in as you walk.");
 						});
-
-						div.c("imagine-exits flex wrap gap", () => a.c("imagine-exit", "Walk in — the Iron Gate").href(run.url + "verge/gate/"));
-						this.app?.router?.mark_links();
-						return;
 					}
 
-					div.c("imagine-journal flex v", () => run.log.forEach((line, index) => div.c("imagine-entry flex gap", () => {
-						span.c("imagine-entry-n", String(index + 1));
-						span(line);
-					})));
+					/* THE PLAYER'S OWN LIST (round 4). Same row, same numbering as the run
+					   above — the label only appears once there are two lists to tell
+					   apart, which is also why an empty run still gets the input: a goal
+					   is yours to set before you have taken a single step. */
+					if (run.goals.length){
+						span.c("imagine-label", "your goals");
+						div.c("imagine-journal flex v", () => run.goals.forEach((line, index) => div.c("imagine-entry flex gap", () => {
+							span.c("imagine-entry-n", String(index + 1));
+							span(line);
+						})));
+					}
 
-					// The pack as it stands, under the account of how it got that way.
-					div.c("imagine-items flex wrap gap", () => Object.entries(ITEMS).forEach(([id, label]) =>
-						span.c("imagine-item")
-							.ac(run.carried.has(id) && "imagine-have")
-							.ac(run.traded.has(id) && "imagine-gone")
-							.append(label)));
+					div.c("imagine-take flex v-center gap wrap", () => {
+						const $goal = input().attr("placeholder", "Add your own goal…");
+						const submit = () => { run.add_goal($goal.el.value); $goal.el.value = ""; $goal.el.focus(); };
+
+						$goal.on("keydown", event => { if (event.key === "Enter") submit(); });
+						div.c("imagine-seg flex", () => button.c("imagine-seg-btn", "add goal").click(submit));
+					});
+
+					if (run.log.length)
+						// The pack as it stands, under the account of how it got that way.
+						div.c("imagine-items flex wrap gap", () => Object.entries(ITEMS).forEach(([id, label]) =>
+							span.c("imagine-item")
+								.ac(run.carried.has(id) && "imagine-have")
+								.ac(run.traded.has(id) && "imagine-gone")
+								.append(label)));
 
 					div.c("imagine-exits flex wrap gap", () => {
-						a.c("imagine-exit", "The Verge").href(run.url + "verge/");
-						if (run.won()) a.c("imagine-exit", GATE.title).href(run.url + GATE.name + "/");
+						if (run.log.length){
+							a.c("imagine-exit", "The Verge").href(run.url + "verge/");
+							if (run.won()) a.c("imagine-exit", GATE.title).href(run.url + GATE.name + "/");
+						} else {
+							a.c("imagine-exit", "Walk in — the Iron Gate").href(run.url + "verge/gate/");
+						}
 					});
 
 					this.app?.router?.mark_links();
 				})));
 
-				md("A line is written when the move happens, not counted up afterwards — the **order** is the one thing about a run that cannot be derived from what you are carrying.");
+				md("A line is written when the move happens, not counted up afterwards — the **order** is the one thing about a run that cannot be derived from what you are carrying. Your own goals are never checked off by the game — they are yours to add and yours to keep.");
 			},
 		},
 

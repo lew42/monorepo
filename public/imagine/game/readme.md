@@ -5,10 +5,10 @@ page, a room is a page, an exit is a link to a **sibling** — so walking sidewa
 deepest column in place while the rails to its left hold still. Nothing here knows it is a
 game except the words.
 
-The run survives, because it is stored against the page's own address:
-`localStorage["lew42:/imagine/game/"]` holds three arrays — `found`, `carried`, `traded`
-([`store.js`](/imagine/readme/)). A cold load three columns deep finds a lit lamp and an
-open cistern.
+The run survives via core's [`page.store()`](/framework/core/Page/doc/method/store/) — one
+key, `lew42:/imagine/game/`, holding six arrays now that a journal and a goal list have
+joined `found`/`carried`/`traded`/`sights`. A cold load three columns deep finds a lit lamp
+and an open cistern.
 
 ## Use
 
@@ -51,6 +51,10 @@ Each realm carries **one rung** of the `--wash` → `--tint` → `--surface` lad
 Which rung is not a taste call — it is [`vary/tone/up/`](/imagine/vary/tone/up/)'s measured
 verdict, applied.
 
+**Round 4** adds your own goals to the journal (`run.add_goal()` — same store, same row, never
+checked off by the game) and keyboard travel — digits 1-9 click the numbered exit, guarded off
+any focused input — [`doc/decisions.md`](/imagine/game/doc/decisions.md).
+
 ## Watch out
 
 - **The map cannot disagree with the HUD** because both read `found`. A walked room is an
@@ -75,8 +79,7 @@ verdict, applied.
 - [`doc/decisions.md`](/imagine/game/doc/decisions.md) — the record: why a trade and not a
   shortcut, the anti-softlock guard, the composition pass on the two written screens, the
   measurements, what was cut.
-- [`/imagine/readme/`](/imagine/readme/) — the place this lives in, and the `page.store()`
-  proposal `store.js` prototypes.
+- [`/imagine/readme/`](/imagine/readme/) — the place this lives in.
 - [`columns.md`](/framework/core/Page/doc/columns/) — the row and the width words.
 - Files: `page.js` (all of it — `WORLD` and the four screens), `../imagine.css` (the sheet
   the root, the team and the world share).

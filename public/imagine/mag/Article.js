@@ -23,6 +23,11 @@ export class Article extends Page {
 	//   before its constructor body, so an argument still wins.)
 	initialize(){ this.no ??= ""; }
 
+	// READ STATE. The contents page owns the record (`contents/page.js`) — I only
+	// tell it I was opened. `mark_read` is itself idempotent, so a re-visit is a
+	// cheap no-op, never a second write.
+	activated(){ this.parent.mark_read(this.slug); }
+
 	// One flex box, not three flow children: the eyebrow, the title and the standfirst
 	// are one unit of type and the column's 1.05em rhythm belongs between BLOCKS.
 	content(){
@@ -157,6 +162,12 @@ export class Article extends Page {
 				div.c("mag-entry-title", this.title);
 				p.c("mag-entry-stand", this.standfirst);
 			});
+
+			// The mark, and the whole restraint argument: nothing is drawn for an
+			// unread entry. `previews()` builds this card once (doc/method/previews.md);
+			// reactive off the contents page's own watcher is what moves it afterwards.
+			span.c("mag-entry-read", $mark => this.parent.watch(() =>
+				$mark.empty(() => { if (this.parent.is_read(this.slug)) icon("check"); })));
 		});
 	}
 }

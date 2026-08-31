@@ -40,6 +40,9 @@ the cover) and, since 2026-08-31, the previous one too (`Article.prev()`/`prev_h
 nothing on the first article, which already sits beside the contents column. Clicked
 through headless — six hops forward to `/imagine/mag/`, and back again, no console errors.
 
+The contents page also remembers what you have opened — a quiet mark per entry, a
+"N of 6 read" line, one `page.store()` key, and a reset. [`doc/decisions.md`](./doc/decisions.md).
+
 ## Watch out
 
 - **`issue.js` uses a top-level `await`,** and it has to: children are declared, never
