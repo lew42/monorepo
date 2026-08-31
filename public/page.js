@@ -64,6 +64,8 @@ export default new Page({
 				h1.c("page-title", "A web framework with no build step");
 
 				md("Native ES modules, served exactly as written: you add a `page.js`, the browser runs it. This site is that framework documenting itself, so every example on it is live.");
+
+				md.c("home-who", "Built by one design engineer, 12+ years of product work — [the résumé](/resume/) has the story and the contact.");
 			});
 
 			this.stage();

@@ -3,12 +3,12 @@ import depth from "/framework/ext/depth/depth.js";
 
 View.stylesheet(import.meta, "resume.css");
 
-// ⚠ PLACEHOLDERS — this page is live on a public site. The email and phone below
-// are the draft's dummies and must be real (or gone) before /resume/ is shared.
+// Real contact, provided by the owner 2026-08-31. Email capitalized on purpose —
+// "the little l is hard to read".
 const CONTACT = [
 	["Aurora / Chicago, IL"],
-	["you@email.com", "mailto:you@email.com"],
-	["(555) 555-5555"],
+	["Mike@Lew42.com", "mailto:Mike@Lew42.com"],
+	["(248) 885 - 7954"],
 	["Lew42.com", "https://lew42.com"],
 	["github.com/lew42", "https://github.com/lew42"],
 	["linkedin.com/in/michael-lewis813", "https://www.linkedin.com/in/michael-lewis813/"],
