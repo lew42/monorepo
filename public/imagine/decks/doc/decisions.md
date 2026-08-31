@@ -103,6 +103,21 @@ array (the same order the readme table and the index grid already use), so wirin
 key presses: `half` →Right→ `golden` →Space→ `aside` →Left→ `golden`, and the same chain
 through `triptych` → `poster`; zero console errors.
 
+## 2026-08-31 — the N/M numeral
+
+Roadmapped the same day the Space fix landed, then built: `foot(items, here)` now draws a
+`.decks-foot-n` label ahead of the chips — `(index + 1) + " / " + items.length`, found by
+matching `here` against the same `items` array the chips already map over, so it can never
+say something the strip beside it does not. `flex: 0 0 auto`, never a chip: it links
+nowhere and must not take a share of the grow the ring earns by being clickable.
+
+Verified against all three ring shapes the lab has — the six standalone cuts' `slices`
+(`2 / 6` on `golden`), `pitch`'s own six-slide ring (`1 / 6` on the default slide), and
+`swap`'s four-slide nested-children ring (`1 / 4`) — and that it updates on `ArrowRight`,
+`Space` and `ArrowLeft` alike, reading the *active* page's own footer: inactive sibling
+cuts stay mounted (the framework's column-persistence pattern), so a query for
+`.decks-foot-n` with no scope finds a stale one first.
+
 ## Cut: quarters, 25 × 4
 
 Built, shot at both widths, and deleted — the evidence is in the task dir

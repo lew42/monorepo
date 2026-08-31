@@ -48,6 +48,10 @@ in-place child never gets one: it lives in a panel, and a width word is a track 
 in `#7` and every generated href carries it. **Type in the spec box** and your text is the
 tree — and the address, carried whole as `#s=<encoded>`.
 
+A word the box does not know still draws — as `prose`, the leaf — but the line under the box
+now names it (`not recognised, becomes prose: widget`), inline and quiet, so a typo teaches the
+vocabulary instead of silently swallowing it.
+
 ## The controls
 
 Every column head carries **its own two words as menus** — switch a page from `tabs` to `list`
@@ -69,6 +73,9 @@ never touched: `#7` still means one tree, and the reproducibility line goes on p
 you like a tree *dressed*, so the split is: **the url carries the tree, `store()` carries the
 dressing** — plus the last tree, for an arrival with no hash at all. A link someone sent still
 wins; the store is only read when the address names nothing.
+
+The copy icon beside the seed stepper takes the address (`hash()`, whole) — a click, a beat of
+confirmation, nothing typed.
 
 ## The three looks
 
@@ -102,6 +109,10 @@ worth keeping is kept as its **text**. [`specs.js`](/framework/core/Page/generat
 where: eight page shapes that are real things — a docs site, an inbox, a settings rail, a shop —
 as a wall of the same sketches the permutation wall draws, each with a sentence saying what it
 is for. Pick one and it becomes the tree; the address turns into `#s=<the text>`.
+
+**"Yours"** is the same idea for a tree of your own: name the box below the eight and it joins a
+band underneath them, kept in the same `store()` the header's dressing already lives in — no
+second key, and a reload survives it. A ⨉ on your own card removes it; the curated eight have none.
 
 It is a **list, not a generator**: nothing there is seeded, so nothing there moves when `MODEL`
 does. Adding one is one entry in `SPECS` — `{ title, note, spec }` — written in the same five

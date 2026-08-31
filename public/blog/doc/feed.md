@@ -45,6 +45,13 @@ markdown renderer is the cost, not the feed format.
 - **`<updated>` on the feed is the newest entry's,** never "now". A timestamp that moves
   when nothing was published is what teaches a reader to stop polling.
 
+## The sitemap
+
+[`/blog/sitemap.xml`](/blog/sitemap.xml) — the site root, the blog root, and every
+published post, `<lastmod>` from the manifest's own `date`. Same argument as the feed one
+size down: a crawler that has no idea what Atom is still finds every url, generated and
+committed rather than served at runtime.
+
 ## The word counts
 
 `words.js` is generated — one number per post, so a card can say *4 min read* without
@@ -87,6 +94,12 @@ Not generated, but the same argument: [`Post.next_up()`](/blog/Post.js) puts the
 **part**, else the next **post**, else the front at the bottom of every post's prose. The
 order is `listed()`'s and the parts' is the manifest's, so adding an entry re-links the
 chain on both sides of it and nothing on a post says what follows it.
+
+**A part also gets its previous neighbour**, `prev_part()` mirroring `next_part()` — null
+on the first part rather than a fake "back to nothing" link. Both hops draw with the same
+`.blog-next-link` markup, side by side in a `flex gap wrap` row (`.flex-1` on each), so a
+single hop still spans the whole measure and two wrap to a stack under it at 400 — nothing
+new in `blog.css`.
 
 Two things it has to do that are not obvious:
 

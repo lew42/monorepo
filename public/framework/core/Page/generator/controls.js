@@ -1,5 +1,6 @@
 import { div, span, select, option, button } from "/app.js";
 import { BLOCKS, WIDTHS } from "./gen.js";
+import { parse } from "./spec.js";
 
 /**
  * THE CONTROLS — and every one of them edits the SPEC, through `host.swap()`.
@@ -21,6 +22,31 @@ import { BLOCKS, WIDTHS } from "./gen.js";
  * ⚠ A control never rerolls. `MODEL` and the seed are untouched by everything here;
  *   the seed drew the first draft and the text is the state from then on.
  */
+
+/* ════ THE SPEC BOX'S OWN FEEDBACK — reads the parse tree, changes nothing in it ═══
+ *
+ * `read()` (spec.js) already turns an unrecognised first word into `prose` — the leaf
+ * — so a typo drew a page instead of throwing. That is the right call for the DRAW
+ * path (a typo should never blank the tree) and the wrong one for the READER: nothing
+ * ever said which word it did not know.
+ *
+ * ⚠ This walks `parse()`'s tree a SECOND time, for the same reason `rolls.js` re-parses
+ *   rather than editing `read()`: the control layer may look, but the draw path — spec.js,
+ *   gen.js, rules.js — stays exactly what it was. One more `parse()` on a spec that is at
+ *   most a few dozen lines is nothing to guard against.
+ */
+function unknown_words(nodes, out){
+	for (const node of nodes){
+		const [word] = node.line.trim().split(/\s+/);
+		if (!BLOCKS.includes(word)) out.add(word);
+		unknown_words(node.kids, out);
+	}
+	return out;
+}
+
+// Every first word in `text` that is not one of the five block words — in the order
+// first seen, deduplicated, so "widget" typed three times reads once.
+export function unknown(text){ return [...unknown_words(parse(text), new Set())]; }
 
 /* One of a set, as a menu — ext/layout's `menu()` shape, said here rather than
    imported: `core/` must not depend on `ext/`, and a select is five lines.

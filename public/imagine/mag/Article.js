@@ -93,16 +93,32 @@ export class Article extends Page {
 		});
 	}
 
-	// THE NEXT HOP. Reading is a line, not a tree: the end of an article offers the
-	// next one, never a trip back to the contents. (The contents column is still open
-	// beside this one, so it was never more than one click away either.)
+	// THE READING LINE. The end of an article offers the next one, never a trip back
+	// to the contents (the contents column is still open beside this one, so it was
+	// never more than one click away either). `prev_hop()` is the mirror the improver
+	// ranked top: an article opened from the middle of the issue could always walk
+	// forward and never back.
 	footer(){
-		const next = this.next();
+		this.prev_hop();
+		return this.hop(this.next(), "Next", "End of issue");
+	}
 
-		return a.c("mag-next bleed").href(next ? next.url : this.parent.parent.url).append(() => {
-			div.c("mag-eyebrow", next ? "Next" : "End of issue");
-			div.c("mag-next-title", next ? next.title : "Back to the cover");
-			if (next) p.c("mag-next-stand", next.standfirst);
+	/* ⚠ No fallback at the front the way the end falls back to the cover: on the first
+	 *   article that would point at the contents, and the contents column is already
+	 *   open beside this one — the same reason `hop()`'s "End of issue" skips it going
+	 *   forward. So nothing is drawn at all rather than a link to what you can already see. */
+	prev_hop(){
+		const prev = this.prev();
+		if (prev) this.hop(prev, "Previous");
+	}
+
+	// One end of the reading line, both hops built by the same box so neither can
+	// drift from the other's shape.
+	hop(page, label, end){
+		return a.c("mag-next bleed").href(page ? page.url : this.parent.parent.url).append(() => {
+			div.c("mag-eyebrow", page ? label : end);
+			div.c("mag-next-title", page ? page.title : "Back to the cover");
+			if (page) p.c("mag-next-stand", page.standfirst);
 		});
 	}
 
@@ -111,6 +127,12 @@ export class Article extends Page {
 	next(){
 		const order = [...this.parent.children.values()];
 		return order[order.indexOf(this) + 1];
+	}
+
+	// My sibling before me — the mirror of `next()`.
+	prev(){
+		const order = [...this.parent.children.values()];
+		return order[order.indexOf(this) - 1];
 	}
 
 	/* "03 / 06" — where you are in the issue. The contents entry has worn the number

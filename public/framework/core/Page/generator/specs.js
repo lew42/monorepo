@@ -1,4 +1,4 @@
-import { div, span, a, icon, md } from "/app.js";
+import { div, span, a, button, input, icon, md } from "/app.js";
 import { parse } from "./spec.js";
 import { sketch } from "./rolls.js";
 
@@ -15,6 +15,16 @@ import { sketch } from "./rolls.js";
  *
  * ⚠ Every spec is written in the SAME five words the roller draws and the controls
  *   edit. A gallery in its own dialect would be a second vocabulary to keep in step.
+ *
+ * WAVE 7 — "yours". A save control keeps the tree you are LOOKING AT (`host.spec`)
+ * under a title, in its own band below these eight. `saved` rides in the generator's
+ * OWN `store()` — the SAME key `sized`/`gapped`/`looked` already live in, not a
+ * sibling one: a second localStorage key would be a second thing to keep in step
+ * with `store_key` (doc/method/store.md's own warning), and a saved spec is exactly
+ * as dressing-adjacent as those three — a preference this reader built, not the
+ * curated list. `remember()` (page.js) had to change from `set()` to `patch()` for
+ * this to be safe: `set()` replaces the whole record, so switching `look` would have
+ * erased every saved spec on the next write (doc/decisions.md).
  */
 
 /* Eight, and each one says what real thing it is. The note is the whole documentation:
@@ -165,10 +175,57 @@ export function gallery(host){
 
 				div.c("page-gen-rules", () => md("A seed is an address against one `MODEL`, and every model bump redraws every seed — so a tree worth keeping is kept as its **text**. These eight are that, written in the same five words the roller draws and the controls edit. Pick one and it becomes the tree; the address turns into `#s=<the text>`, which is a link you can send."));
 
+				/* "YOURS" — save the tree you are LOOKING AT (not this column; the
+				   generator's own live `spec`), under a title, into `store()`. */
+				div.c("page-gen-save", () => {
+					this.$save_title = input.c("page-gen-save-title").attr("placeholder", "name this tree…");
+					button.c("page-gen-save-btn", "Save the current tree").click(() => this.save(host));
+				});
+
+				this.$saved = div.c("page-gen-saved");
+				this.render_saved(host);
+
 			// ⚠ The width class is stamped by the `column()` this one REPLACES — core's own
 			//   last line. Without it `full` is a field nobody reads and the wall renders in
 			//   a 40em column (rolls.js learnt this one first).
 			}).ac(this.width && "page-column-" + this.width);
+		},
+
+		/* SAVE — the title box's own value, and `host.spec`: whatever tree the reader
+		   is looking at right now, seed-drawn or typed, spec box open or not. Blank
+		   title still saves; an untitled tree is still a tree worth keeping back. */
+		save(host){
+			const title = this.$save_title.el.value.trim() || "untitled";
+			const saved = host.store().get({ saved: [] }).saved;
+
+			saved.push({ id: Date.now() + "-" + Math.random().toString(36).slice(2, 6), title, spec: host.spec });
+			host.store().patch({ saved });
+
+			this.$save_title.el.value = "";
+			this.render_saved(host);
+		},
+
+		// One card gone, the rest re-numbered by nothing (the id, not the index, is
+		// what a remove targets — removing #2 must not silently remove #3 next click).
+		remove(host, id){
+			const saved = host.store().get({ saved: [] }).saved.filter(entry => entry.id !== id);
+
+			host.store().patch({ saved });
+			this.render_saved(host);
+		},
+
+		/* Repaints ONLY the saved band — `rolls.js`'s own `paint()` move — so a save or
+		   a remove never regrows the generator's tree or moves the reader off this
+		   column, the way `host.show()` would. */
+		render_saved(host){
+			const saved = host.store().get({ saved: [] }).saved;
+
+			this.$saved.empty(() => {
+				if (!saved.length) return;
+
+				span.c("page-gen-saved-label", "Yours");
+				div.c("page-gen-cards", () => saved.forEach(entry => card(entry, host, () => this.remove(host, entry.id))));
+			});
 		},
 	};
 }
@@ -176,14 +233,24 @@ export function gallery(host){
 /* ONE CARD — the sketch `rolls.js` already draws, plus the two things a roll cannot have:
    a name and a sentence saying what it is for.
    The href is real, so reload or middle-click lands on that spec; a click is handled here,
-   because the generator is already built and only `pick()` regrows it. */
-function card(entry, host){
+   because the generator is already built and only `pick()` regrows it.
+   ⚠ `onRemove`, only for a saved one — a curated card has no × because the eight are not
+     yours to delete. */
+function card(entry, host, onRemove){
 	return a.c("page-gen-tile page-gen-card").href(host.url + "#s=" + encodeURIComponent(entry.spec))
 		.click(event => { event.preventDefault(); host.pick(entry.spec); })
 		.append(() => {
 			div.c("page-gen-sketch", () => sketch(parse(entry.spec)));
 			span.c("page-gen-card-name", entry.title);
-			div.c("page-gen-card-note", () => md(entry.note));
+
+			if (entry.note) div.c("page-gen-card-note", () => md(entry.note));
+
+			// A `div`, not a `button`: the card is already an `<a>`, and interactive
+			// content may not nest inside interactive content.
+			// `stopPropagation`, or the × also fires the card's own click (host.pick())
+			// on its way out — a remove is not a pick.
+			if (onRemove) div.c("page-gen-card-remove", () => icon("close"))
+				.click(event => { event.preventDefault(); event.stopPropagation(); onRemove(); });
 		});
 }
 

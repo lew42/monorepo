@@ -2,7 +2,7 @@ import { Page, View, div, span, a, textarea, input, button, icon, md } from "/ap
 import { gen, MODEL } from "./gen.js";
 import { edit } from "./spec.js";
 import { tree, items } from "./tree.js";
-import { globals, SIZES, GAPS } from "./controls.js";
+import { globals, SIZES, GAPS, unknown } from "./controls.js";
 import { wall } from "./rolls.js";
 import { gallery } from "./specs.js";
 
@@ -71,6 +71,28 @@ export default new Page({
 	// ⚠ The crumb strip draws `link()`; a crumb without the hash reloads a different tree.
 	link(text){ return a.c("page-link", text ?? this.title).href(this.url + this.hash()); },
 
+	/* COPY THE ADDRESS. The tree IS this module's whole artifact and there was no
+	   control that would hand it to you — `hash()` already builds the one string
+	   every link in this module carries; this is the one button that takes it.
+	   ⚠ `navigator.clipboard.writeText` needs a permission a headless run has to be
+	     GRANTED first — the same trap ext/Panel's `Item.copy()` measured. The string
+	     is kept on the instance too (`this.copied`), so a prover with no permission
+	     can still read what the button WOULD have copied. */
+	copy(){
+		const address = location.origin + this.url + this.hash();
+
+		this.copied = address;
+		navigator.clipboard?.writeText(address)?.catch(() => {});
+
+		// A beat of visual confirmation — the icon, not a class, because a colour
+		// change alone reads as decoration; a checkmark reads as done.
+		this.$copy.empty(() => icon("check"));
+		clearTimeout(this._copy_timer);
+		this._copy_timer = setTimeout(() => this.$copy.empty(() => icon("content_copy")), 1200);
+
+		return address;
+	},
+
 	/* The host's own column — the controls, first in the row. `render_column()` wraps it
 	   and builds `this.$pages`, so there is nothing to arrange here. */
 	column(host){
@@ -86,6 +108,11 @@ export default new Page({
 
 				button(() => icon("chevron_right")).click(() => this.open(this.seed + 1));
 				button(() => icon("casino")).click(() => this.open(Math.floor(Math.random() * 1e6)));
+
+				// THE ADDRESS, taken. The tree is the module's whole artifact and there was
+				// no control that would hand you its url — see copy().
+				this.$copy = button.c("page-gen-copy", () => icon("content_copy"))
+					.attr("title", "copy the address").click(() => this.copy());
 			});
 
 			// The two globals — the tree's default column track, and how dense every wall
@@ -108,7 +135,14 @@ export default new Page({
 			   ⚠ A textarea's value is not its textContent: `.text()` writes the DEFAULT
 			     value and is ignored once a human has typed. `el.value`, always. */
 			this.$spec = textarea.c("page-gen-spec").attr("rows", "10").attr("spellcheck", "false")
+				.on("input", () => this.hint(this.$spec.el.value))
 				.on("change", () => this.type(this.$spec.el.value));
+
+			/* A word `read()` (spec.js) does not know silently becomes `prose` — the
+			   right call for the draw path, the wrong one for a reader who cannot see
+			   why their `widget` line rendered a blank leaf. This line is the only
+			   thing that says so; nothing it reads may change what gets drawn. */
+			this.$hint = div.c("page-gen-hint");
 
 			div.c("page-gen-note", () => {
 				md("Every line is a **page**; indentation is nesting. The first word says **where a child appears when you pick it**, and `small large full` picks the column's width. **Type in the box above** and the tree is rebuilt from your text.");
@@ -172,6 +206,7 @@ export default new Page({
 
 		this.$seed.el.value = this.seed;
 		this.$spec.el.value = this.spec;
+		this.hint(this.spec);
 		this.$nav.empty(() => items(this, this.hash()));
 
 		this.$proof
@@ -183,6 +218,17 @@ export default new Page({
 			.text(this.typed
 				? `typed spec — ${size}, addressed by its own text`
 				: `seed ${this.seed}, model v${MODEL} — ${size}, ` + (same ? "identical on a second run" : "NOT REPRODUCIBLE"));
+	},
+
+	/* THE SPEC BOX OWN FEEDBACK. read() (spec.js) already turns an unrecognised
+	   word into prose rather than throwing -- the right call for the draw path, and
+	   the wrong one for a reader with no way to see why a typo drew a blank leaf.
+	   unknown() (controls.js) re-parses the SAME text and changes nothing in it.
+	   Quiet, inline, never an alert -- a line that appears and disappears with what
+	   you are typing, not a dialog that stops you typing it. */
+	hint(text){
+		const words = unknown(text);
+		this.$hint.text(words.length ? `not recognised, becomes prose: ${words.join(", ")}` : "");
 	},
 
 	// One door for the stepper, the dice, a typed seed and every tile on the wall.
@@ -310,9 +356,11 @@ export default new Page({
 	 *
 	 * `store()` is core's, keyed on this page's own url (`doc/method/store.md`), so there
 	 * is no key to invent and nothing to configure.
-	 */
+	 * ⚠ `patch()`, not `set()` — a second writer landed in the same key (`specs.js`'s
+	 *   `saved` list, wave 7). `set()` REPLACES the whole record, so switching `look`
+	 *   would have silently erased every saved spec on the very next write. */
 	remember(){
-		return this.store().set({ sized: this.sized, gapped: this.gapped, looked: this.looked, hash: this.hash() });
+		return this.store().patch({ sized: this.sized, gapped: this.gapped, looked: this.looked, hash: this.hash() });
 	},
 
 	/* The url decides what this page is, before anything renders: `#7` a seed, `#s=…` a

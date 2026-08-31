@@ -35,8 +35,10 @@ last one hops to all follow from where it sits in the array — nothing counts t
 loud. `"kind": "data"` plus a `data` block makes it the chart piece instead
 ([`Article.js`](./Article.js) — `Article.Data`).
 
-Reading is a line: every article ends with the next one, and the sixth ends with the
-cover. Clicked through headless — six hops, back to `/imagine/mag/`, no console errors.
+Reading is a line, both directions: every article offers the next one (the sixth loops to
+the cover) and, since 2026-08-31, the previous one too (`Article.prev()`/`prev_hop()`) —
+nothing on the first article, which already sits beside the contents column. Clicked
+through headless — six hops forward to `/imagine/mag/`, and back again, no console errors.
 
 ## Watch out
 

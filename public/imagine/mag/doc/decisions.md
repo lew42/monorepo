@@ -77,6 +77,22 @@ capped block that is the query container, `cqw` type — and it is about forty l
 not a cover. It would also have been illegal: a `default` column may not be a parent you
 route into, and `Page.css` blanks the whole branch when it is.
 
+## 2026-08-31 — the previous hop
+
+Ranked top by the mag improver: the next-hop was one-way, so an article opened from the
+middle of the issue (a link from elsewhere, not a click-through) could walk forward and
+never back. `Article.prev()` mirrors `next()` exactly — the sibling before, off the same
+insertion-ordered `children` Map — and `hop()` is now the one box-builder both `next_hop`
+and `prev_hop` call, so the two cannot drift in shape.
+
+**No fallback at the front the way the end falls back to the cover.** Past the last
+article there is nothing else in the issue, and looping to the cover says so. Before the
+first article the "nothing else" is the contents column — already open beside this one,
+the same reason the next hop skips it going forward — so `prev_hop()` draws nothing rather
+than a link to what you can already see. Both hops are still direct children of
+`.page-column-prose` (siblings, not a wrapper), so `bleed`'s `:last-child` rule keeps
+finding the real last one and no new CSS was needed.
+
 ## What bit
 
 - **The UA's margins.** `p` and every heading keep them; framework.css zeroes them only for

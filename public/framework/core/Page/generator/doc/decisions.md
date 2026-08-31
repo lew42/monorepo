@@ -608,3 +608,89 @@ run synchronously, and the costume is on before the first paint rather than a fr
   either.
 - **Exporting a tree as real `page.js` files.** The actual "library of reusable pages" endgame,
   and the largest thing on this list.
+
+# Wave 7 — a copy button, a quiet teacher, and a shelf for your own trees (2026-08-31)
+
+The top three items wave 6 left. [task](/framework/ai/2026-08-31/generator-round-2/)
+`MODEL` untouched at **3** — `gen.js` and `rules.js` were not opened for writing, only read.
+sha1 of `gen(seed)`, in node, before AND after every edit in this wave, identical both times:
+
+```
+#1     991d25bc543f    #42    a332499027a8    #1234   dbe5a58ae750
+#7     1d5901c444dc    #99    1d34ff076163    #90210  aa993d0f6e9f
+```
+
+## 1 — copy the address
+
+`copy()` (page.js) is `location.origin + this.url + this.hash()`, written to the clipboard and
+kept on the instance (`this.copied`) besides — the same belt-and-braces `ext/Panel`'s
+`Item.copy()` already uses, because `navigator.clipboard.writeText` needs a permission a
+headless run has to be GRANTED before it can even be asked for. **Measured both ways**: a
+Playwright context with `grantPermissions(["clipboard-read","clipboard-write"], {origin})` read
+back the exact address via `navigator.clipboard.readText()`; `this.copied` carried the same
+string regardless, for a prover with no grant.
+
+The confirmation is the icon, not a class: `content_copy` swaps to `check` for 1.2s and back.
+A colour change alone reads as decoration on a control this small; a different glyph reads as
+done. It sits in `.page-gen-dials` beside the seed stepper and inherits that row's own button
+padding — nothing new in `generator.css` for it.
+
+## 2 — the spec box names what it doesn't know
+
+**Measured first, in the code, not by guessing.** `read()` (spec.js) is one ternary:
+`BLOCKS.includes(word) ? word : "prose"`. An unrecognised first word has always silently BECOME
+the leaf — no error, no console line, nothing — which is right for the draw path (a typo must
+never blank the tree) and useless for a reader with no way to see why their `widget` line
+rendered two grey bars and nothing else.
+
+**The validation lives in `controls.js`, not `spec.js`.** `unknown(text)` re-`parse()`s the
+same text a second time and collects every first word that is not one of the five block words —
+changing nothing about what `read()` does with it. The draw path (`spec.js`, `gen.js`,
+`rules.js`) was read for this task and not edited once. `page.js` wires it to the spec
+textarea's `input` event (live, while typing) and calls it again from `draw()` (so the line
+survives a commit too, and a page landed on `#s=` with a stray word straight from a link shows
+it immediately).
+
+**Quiet is a font, not a colour.** `.page-gen-hint` reuses `.page-gen-ok`'s voice (`--subtle`,
+italic) — never `.page-gen-bad`'s red-and-bold, because a typo is not a broken page. No `alert`
+anywhere; verified by listening for the `dialog` event through the whole run and getting none.
+
+## 3 — "yours": save the tree you're looking at
+
+A save control in the gallery, next to the eight curated cards: a title field and a button that
+reads `host.spec` — the generator's OWN live tree, not anything about the gallery column itself
+— and pushes `{ id, title, spec }` into `store()`.
+
+**The store-key call.** `saved` rides in the SAME key `sized`/`gapped`/`looked`/`hash` already
+live in (`store_key: "/framework/core/Page/generator/"`), not a sibling one. A second
+`localStorage` key would be a second address to keep in step with `store_key`'s own warning
+(doc/method/store.md — a page that moves silently orphans what it saved); a saved spec is
+exactly as dressing-adjacent as the three already there — a preference this reader built, never
+part of the curated list `specs.js` ships.
+
+**That choice broke something on the way in, and the fix is worth the line.** `remember()`
+(page.js) called `store().set(...)` — a REPLACE of the whole record — every time `size`, `gap`
+or `look` changed. The moment `saved` lived in that same key, the very next dressing change
+would have silently erased every saved spec. Changed to `store().patch(...)`, which merges.
+**Measured**: saved a spec, switched `look` to `ink`, reloaded — the saved card and the ink look
+both survived. Without the fix this was checked for and would have failed silently (no error,
+no console line — a card just gone).
+
+**Repainted, not regrown.** `render_saved()` re-`empty()`s one `div` (`this.$saved`) the way
+`rolls.js`'s own `paint()` repaints the tile grid — a save or a remove never calls `host.grow()`
+or moves the reader off the gallery column, the way `host.show()` (a spec-box commit) would.
+
+**Removed by id, not index.** Each saved entry carries a random id (`Date.now()` plus four
+base36 characters); `remove()` filters by it. An index would have re-targeted entry #3 as soon
+as entry #2 was removed from under it.
+
+**No `<button>` inside the card's `<a>`.** The curated cards are already anchors (`pick()` on
+click); a remove control on a SAVED card is a `div` with a click handler and
+`stopPropagation()`, not a nested `<button>` — interactive content may not nest inside
+interactive content, and Chromium's own handling of the invalid nesting was not worth trusting.
+
+**Verified, headless, with a real reload** (not a soft repaint): saved a spec titled "My proof
+tree" on `/generator/specs/`, `page.reload()`, the card and its title were still there and the
+`localStorage` record carried both the dressing and the `saved` array. Removed it, reloaded
+again, gone both times. Zero console errors and zero `dialog` events across the whole run
+(clipboard grant, spec-box typing, gallery save/remove/reload) — [screenshots in the task dir].

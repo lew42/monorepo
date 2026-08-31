@@ -70,6 +70,9 @@ notes) want the rail — it costs them nothing, six wall columns either way. The
 - **Space advances too, everywhere `arrows` is spread in** — guarded off a focused control so
   it never steals a real link's own Space behaviour: [`doc/decisions.md`](./doc/decisions.md).
   All nine pages answer arrows/space now, not just `pitch/` `persist/` `swap/`.
+- **The footer's N/M numeral lives in `foot()` once, never per cut** — counted from the same
+  `items` array the chips are drawn from, so it cannot disagree with them. A `.decks-foot-n`
+  label, `flex: 0 0 auto` so it never competes with the ring for the grow a chip earns.
 
 ## More
 

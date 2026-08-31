@@ -218,20 +218,28 @@ export class Post extends Page {
 	   ⚠ `el.append` MOVES a node that is already in the tree. That is the whole trick:
 	     the box was created before the prose promise resolved, so this is what puts it
 	     after it — and it is idempotent, so a second call is not a second box. */
+	/* ⚠ Two links, not one, since the previous-part mirror landed — `flex gap wrap` are
+	 *   framework utilities (`.flex-1` too), so a part's neighbours sit side by side on
+	 *   the measure and wrap to a stack at 400, with nothing new in blog.css. A single
+	 *   next (no previous part, or no parts at all) still gets the whole width: `.flex-1`
+	 *   on the lone item fills the row exactly as the bare link used to. */
 	next_up(){
 		const box = this.$next;
 
 		if (!box) return;
 		this.$pages.el.append(box.el);
 
+		const before = this.prev_part();
 		const to = this.next_part() ?? this.next_read();
 
-		box.empty(() => a.c("blog-next-link").href(to.url).append(() => {
-			span.c("blog-eyebrow", to.eyebrow);
-			span.c("blog-next-title", to.title);
-			if (to.meta) span.c("blog-next-meta", to.meta);
-			if (to.dek) div.c("blog-next-dek", to.dek);
-		}));
+		const hop = link => a.c("blog-next-link flex-1").href(link.url).append(() => {
+			span.c("blog-eyebrow", link.eyebrow);
+			span.c("blog-next-title", link.title);
+			if (link.meta) span.c("blog-next-meta", link.meta);
+			if (link.dek) div.c("blog-next-dek", link.dek);
+		});
+
+		box.empty(() => div.c("flex gap wrap", () => { if (before) hop(before); hop(to); }));
 	}
 
 	/* The part after the one on screen — "routed to, or else the default one", the same
@@ -249,6 +257,21 @@ export class Post extends Page {
 
 		const nav = this.nav_for(after.name);
 		return { url: nav.url, title: nav.label, eyebrow: "Next in this post" };
+	}
+
+	/* The mirror of `next_part()` — the part BEFORE the one on screen, so a reader who
+	 * jumped straight to part two or three can step backward without the rail.
+	 * ⚠ Null on the first part, and on a post with no parts at all: `open_part()` is
+	 *   `undefined` there, `indexOf(undefined)` on an empty array is -1, and one further
+	 *   back is still out of range — never a crash, just nothing to hop to. */
+	prev_part(){
+		const parts = [...(this.children?.values() ?? [])];
+		const before = parts[parts.indexOf(this.open_part()) - 1];
+
+		if (!before) return null;
+
+		const nav = this.nav_for(before.name);
+		return { url: nav.url, title: nav.label, eyebrow: "Previous in this post" };
 	}
 
 	/* The next post, or the front. `Post.wall` says the same three things about a post
@@ -342,15 +365,18 @@ export class Post extends Page {
 	     arrangement /framework/ and the homepage use, so the blog does not introduce a
 	     second kind of card to the site. Only the byline is the blog's own, and
 	     `--column` is set by blog.css, which is the only thing that knows the room. */
-	/* ⚠ ONE meta line, not two: the date used to sit on its own line under the title and
-	 *   the length would have been a third row of small grey type in a card that is four
-	 *   rows tall. `<time>` keeps the machine-readable date, and the length rides beside
-	 *   it — the two facts a reader weighs a card on, on one line. */
+	/* ⚠ ONE meta line, not three: the date used to sit on its own line under the title
+	 *   and the length would have been a second — three rows of small grey type above a
+	 *   description that is already the card's third row. The section joins the same
+	 *   line for the same reason: a front card mixing all three sections had nothing
+	 *   saying which was which but the url underneath it. `section()`, not a second copy
+	 *   of the title — the manifest is the one place a section's name is written. */
 	static card(post){
 		return a.c("page-preview").href(url(post)).append(() => {
 			span.c("page-preview-title", post.title);
 
 			div.c("blog-card-meta", () => {
+				span(section(post.section)?.title ?? post.section);
 				time(dated(post.date)).attr("datetime", post.date);
 				if (reading(post)) span(reading(post));
 			});

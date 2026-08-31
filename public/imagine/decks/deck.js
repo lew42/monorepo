@@ -1,4 +1,4 @@
-import { Page, View, div, p, a, icon, md } from "/app.js";
+import { Page, View, div, p, a, span, icon, md } from "/app.js";
 
 View.stylesheet(import.meta, "decks.css");
 
@@ -148,9 +148,16 @@ export const notes = (title, lines) => div.c("decks-notes", () => {
 /* ── the strip ──────────────────────────────────────────────────────────────
    A footer redrawn identically on every screen. Every hop here is a SWAP, and the
    strip still reads as persistent — which is the third answer to the head-to-head
-   (persist/ vs swap/): a 3em band costs no region and buys most of what a rail does. */
-export const foot = (items, here) => div.c("decks-foot", () => items.forEach(item =>
-	a.c("decks-chip", item.label).href(item.to).ac(item.name === here && "decks-on")));
+   (persist/ vs swap/): a 3em band costs no region and buys most of what a rail does.
+   ⚠ THE NUMERAL is drawn HERE, once — never per cut — so a reader who lands mid-deck
+     from a shared url knows there are more without reading every chip's name. Counted
+     from the same array the chips are drawn from, so it can never disagree with them. */
+export const foot = (items, here) => div.c("decks-foot", () => {
+	const at = items.findIndex(item => item.name === here);
+	if (at > -1) span.c("decks-foot-n", (at + 1) + " / " + items.length);
+
+	items.forEach(item => a.c("decks-chip", item.label).href(item.to).ac(item.name === here && "decks-on"));
+});
 
 /* ── the keyboard ───────────────────────────────────────────────────────────
    Arrow keys (and Space, forward) take the SAME path a click does — `go()` calls the

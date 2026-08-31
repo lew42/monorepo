@@ -293,6 +293,17 @@
 	.decks-chip.decks-on,
 	.decks-chip:is(.active, .in-path, [aria-current]) { color: var(--prim-ink); box-shadow: inset 0 2px 0 var(--prim); }
 
+	/* THE NUMERAL — a label, never a chip: it links nowhere, so it must not compete
+	   with the ring for the flex-grow a chip earns by being one of `items`. */
+	.decks-foot-n {
+		flex: 0 0 auto;
+		display: flex; align-items: center;
+		padding: 0.7em 0.9em;
+		color: var(--subtle);
+		font-size: 0.72em; font-weight: 700; letter-spacing: 0.1em;
+		white-space: nowrap;
+	}
+
 	/* ── persistent navigation — the rail is a COLUMN, not a region ──
 	   This is the whole of the head-to-head. `persist/` keeps its rail because the rail
 	   is the PARENT column and the slides are its children: the row already replaces one

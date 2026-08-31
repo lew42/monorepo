@@ -87,6 +87,15 @@
 		font-family: ui-monospace, monospace; line-height: 1.55;
 	}
 
+	/* A word `read()` doesn't know, named — quiet, the same voice as `.page-gen-ok`,
+	   never the alarm-red `.page-gen-bad` gets: a typo is not a broken page, so the line
+	   should read like a footnote, not a warning. Empty text still reserves the line's
+	   height, so the note below it does not jump when a hint appears or clears. */
+	.page-gen-hint {
+		min-height: 1.3em; padding: 0.15em 0.9em 0;
+		font-size: 0.76em; font-style: italic; color: var(--subtle);
+	}
+
 	.page-gen-note { padding: 0.9em 0.9em 1.2em; font-size: 0.82em; color: var(--subtle); }
 
 
@@ -458,6 +467,46 @@
 	.page-gen-card-name { font-weight: 600; color: var(--ink); font-size: 0.92em; }
 	.page-gen-card-note { font-size: 0.78em; line-height: 1.45; }
 	.page-gen-card .page-gen-sketch { min-height: 7em; }
+
+	/* ── "yours" — save the current tree, and the band it lands in ──
+	   One row, the same two controls a search box gets: a field and a button, so a
+	   reader who never wrote a generator spec still recognises what to do with it. */
+	.page-gen-save {
+		display: flex; gap: 0.5em; align-items: center;
+		padding: 0 0.9em 0.9em;
+	}
+	.page-gen-save-title {
+		flex: 1 1 auto; min-width: 0; width: auto;
+		padding: 0.3em 0.5em; font-size: 0.85em;
+	}
+	.page--generator button.page-gen-save-btn {
+		flex: 0 0 auto;
+		padding: 0.3em 0.7em; font-size: 0.8em;
+		color: var(--prim-ink); background: var(--fill-a08);
+		border: 1px solid var(--prim); border-radius: 3px;
+	}
+	.page--generator button.page-gen-save-btn:hover { background: var(--tint); }
+
+	.page-gen-saved-label {
+		display: block; padding: 0 0.9em 0.4em;
+		font-size: 0.62em; letter-spacing: 0.06em; text-transform: uppercase;
+		color: var(--subtle);
+	}
+
+	/* The × — a corner badge, not a fourth line of text: a saved card is otherwise
+	   identical to a curated one, and the remove control should read as an edge you
+	   can reach, not as content. `.page-gen-card` needs `position: relative` for it;
+	   `.page-gen-tile` (the wall's own tiles) does not carry one and stays untouched. */
+	.page-gen-card { position: relative; }
+	.page-gen-card-remove {
+		position: absolute; top: 0.35em; right: 0.35em;
+		display: grid; place-items: center;
+		width: 1.5em; height: 1.5em;
+		color: var(--subtle); background: var(--surface);
+		border: 1px solid var(--line); border-radius: 999px;
+	}
+	.page-gen-card-remove .icon { font-size: 0.85em; }
+	.page-gen-card-remove:hover { color: var(--ink); border-color: var(--prim); }
 
 
 	/* ════ THE THREE LOOKS ════════════════════════════════════════════════════════

@@ -24,10 +24,11 @@ Adding a post — four steps, one of them optional:
 Writing a post: anything wider than prose goes in `<figure class="blog-exhibit">`, which
 takes the space to the right of the reading column.
 
-Three things are **generated** from the manifest and committed — the meta shells, the
-[Atom feed](/blog/feed.xml), and the word count behind every *4 min read*. Re-run step 4
-after editing prose, not just after adding a post; a plain `node public/blog/meta.mjs`
-lists what has drifted and exits non-zero. [The feed](/blog/doc/feed/)
+Four things are **generated** from the manifest and committed — the meta shells, the
+[Atom feed](/blog/feed.xml), [`sitemap.xml`](/blog/sitemap.xml), and the word count behind
+every *4 min read*. Re-run step 4 after editing prose, not just after adding a post; a
+plain `node public/blog/meta.mjs` lists what has drifted and exits non-zero.
+[The feed](/blog/doc/feed/)
 
 ## Watch out
 
@@ -63,6 +64,13 @@ lists what has drifted and exits non-zero. [The feed](/blog/doc/feed/)
 - **`rail()` ends with one plain entry, not a group.** An array item with no `pages` is
   just a link (`Sidebar.nav()`'s own contract) — that's the Résumé cross-link, and it's
   how any other one-off link into the rail should be added, on every blog page.
+- **A part's neighbours are two hops, not one.** `prev_part()` mirrors `next_part()` —
+  null on the first part rather than a fake link — and both render with the same
+  `.blog-next-link`, in a `flex gap wrap` row so a lone hop still takes the full width.
+  [The feed](/blog/doc/feed/)
+- **A card's section comes from `section()`, never a second copy of the name.** The front
+  mixes all three sections in one wall with nothing saying which was which but the url;
+  the label rides the existing meta line, one `span` before the date.
 
 ## More
 
