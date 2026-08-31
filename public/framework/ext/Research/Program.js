@@ -131,6 +131,12 @@ export class Program extends Page {
 
 		log.page = mine.some(file => file.name === "page.js");
 		log.pages = mine.filter(file => file.name.endsWith(".md")).map(file => file.name.slice(0, -3));
+
+		// The capstone, by convention: a sub-page of any topic, named `capstone`
+		// (default "synthesis"). Discovered the same way as everything else, so a
+		// program that writes one gets it on the front with no edit here.
+		log.capstone = mine.find(kid => kid.name === (this.capstone ?? "synthesis")
+			&& kid.children?.some(file => file.name === "page.js")) ? log.topic : null;
 	}
 
 	/* Redrawn whole on every streamed batch — `changed` fires outside any captor. */
@@ -138,6 +144,7 @@ export class Program extends Page {
 		this.$live.empty(() => {
 			const all = this.all();
 			this.head(all);
+			this.capstone_card(all);
 			this.legend(all);
 			this.topic_cards();
 			this.board(all);
@@ -161,6 +168,30 @@ export class Program extends Page {
 			div.c("research-meta flex gap wrap v-center", () => {
 				span.c("research-count").text(all.length + (all.length === 1 ? " entry" : " entries"));
 				span.c("muted").text(`${digging} of ${this.logs.length} topic logs reporting`);
+			});
+		});
+	}
+
+	/* ── the capstone ──
+	   Above the legend, because at 300+ entries the front's real job is to say
+	   where the READ of all this is — otherwise the one page that crosses the
+	   topics sits three clicks down inside one of them. Card, not banner: the
+	   same shape as a topic card, so it needs no CSS of its own, and the line
+	   under it is counted from the logs rather than written here.
+	   ⚠ NOT `capstone()` — `capstone:` is the config field naming the sub-page.
+	     Same swap that cost an hour on `topic_card`, one line up. */
+	capstone_card(all){
+		const topic = this.logs.find(log => log.capstone)?.capstone;
+		if (!topic) return;
+
+		const name = this.capstone ?? "synthesis";
+
+		div.c("research-topics flow", () => {
+			p.c("h4 muted", "The read across all of it");
+
+			div.c("research-card surface flex v gap").append(() => {
+				a.c("research-card-name h3").href(this.url + topic + "/" + name + "/").text(name);
+				p.c("muted", `${all.length} entries across ${this.logs.length} topics, read as one page`);
 			});
 		});
 	}

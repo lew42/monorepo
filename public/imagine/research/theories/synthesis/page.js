@@ -1,44 +1,142 @@
 import { Page, md } from "/app.js";
 
+/* The PROGRAM's capstone, not just this topic's. Rounds 1-2 wrote it as a read
+   of the five theories on this page's own topic; round 3 rewrote it across all
+   four topics and 320 entries, because the findings that matter turned out to be
+   the ones no single topic could see. Every claim links to the topic page that
+   holds its log entry — the essay argues, the topic pages hold the evidence.
+
+   Kept: the round-1 credence discipline (a label is the writer's claim about the
+   evidence, never upgraded by a page that repeats it) and the agency-displacement
+   verdict exactly as round 2 landed it — rediscovery downstairs, untested above.
+
+   The five round-4 questions here have one `question` entry each in
+   theories/log.jsonl, so a future round can pick them up from the log alone. */
+
 export default new Page({
 	meta: import.meta,
 	title: "Synthesis",
-	description: "What the five theories share, where they conflict, the aggregate picture, a round-2 update, and one cross-topic observation stress-tested against the academic literature it's closest to.",
+	description: "The program's capstone: what 320 entries across four topics and two rounds actually established — the invented-tradition signature, the one-measurement problem, the confidence gradient, five retractions in the same direction, agency displacement, and the program's own method as a finding.",
 	icon: "hub",
 
 	content(){
-		md(`## What they share
-Every theory here answers the same underlying question — why does the past look more impressive than expected? — with an external cause: an impactor, a vanished teacher, a visitor, an other-dimensional intelligence. None of the five shares evidence with any other; they share a *shape*. And every one of them sits directly on top of the catastrophism-vs-gradualism argument, whether its proponents say so or not: an external, sudden cause is a catastrophist move even when the "catastrophe" is cultural (a lost civilization) or perceptual (a UAP wave) rather than geological.
+		md(`Four topics were dug in parallel and independently: [precisely carved stone](/imagine/research/stone/), [depictions](/imagine/research/depictions/) claimed to show visitors, the [modern UAP disclosure arc](/imagine/research/disclosure/), and the [major theories](/imagine/research/theories/) underneath all of it. Two rounds, 320 logged entries, four separate diggers who mostly could not see each other's work. This page is the read across all of it.
 
-## Where they conflict
-The five sit at very different points on the credence scale, and collapsing them together is the single most common way this whole subject gets misrepresented — by boosters and debunkers alike:
+**The thesis, in two lines.** In every one of these disputes the decisive test is cheap, permitted and unperformed — each argument rests on a single measurement nobody has repeated, which is exactly why none of them ends. And the fight over that gap is not science against its critics: it is science visibly correcting itself, five times in eighteen months, while the claims that need the gap keep it open.
 
-- **Contested, for real:** the Younger Dryas impact hypothesis is fought out by credentialed scientists in real journals as of 2025, with no consensus yet.
-- **Established, misapplied:** Gobekli Tepe and Karahan Tepe are genuine, mainstream discoveries — hunter-gatherers built more than assumed — that Hancock's fringe "lost civilization" claim leans on without meeting its own evidentiary bar.
-- **Long-settled against:** the ancient astronaut hypothesis has been rejected on methodological grounds (bad translations, not just a bad conclusion) for decades, and persists mainly through media economics and psychology, not new evidence.
-- **Settled at the frame, open per-instance:** catastrophism vs gradualism was resolved into a combined model over 40 years ago; every specific catastrophist claim still has to earn its own evidence.
-- **Genuinely split down the middle:** UAP — psychosocial explanations account for the resolved majority of cases, while a small unresolved residue keeps the door open, complicated further by confirmed government disinformation muddying the data itself.
+---
 
-## The aggregate picture
-Treated as one dataset, the honest picture is: extraordinary claims about the past keep circulating faster than the evidence needed to support them, but the underlying institutions (archaeology, geology, an official UAP office) are not stonewalling — they are visibly capable of updating (Kennett dropping the Hiawatha crater; AARO naming its own resolution rate; geology absorbing Chicxulub). The credibility gap is smaller than either side of the popular argument claims: mainstream science demonstrably revises itself under real evidence, and popular alternative theories demonstrably keep failing to produce evidence that would force a revision.
+## 1. Invented traditions have a signature — and a name
 
-## Round 2 — what moved, what held
+Four claimed-ancient traditions turned up across two topics, and all four have the same paper trail: deep antiquity asserted, a first documented appearance clustered in the twentieth century, and content mirroring what was in circulation right at that first appearance.
 
-**Younger Dryas: still contested, but rockier for proponents.** A second peer-reviewed proponent paper (Kennett's Sept 2025 shocked-quartz study) was [retracted in Feb 2026](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0342620) for a flawed age model and incomplete sampling — the second Comet Research Group retraction in under a year, after Tall el-Hammam in April 2025. Neither retraction disproves the wider claimed record at 50+ sites, and a third mechanism (volcanic forcing, [Yobo et al., April 2026](https://thedebrief.org/volcanic-apocalypse-new-research-pushes-back-on-the-younger-dryas-impact-hypothesis/)) now competes with both "impact" and "meltwater pulse" rather than resolving between them. The journals stand exactly where round 1 found them — a live fight — just with worse optics for one side and a third camp at the table.
+- **The Blue Star Kachina** — a Methodist pastor's 1958 roadside conversation with a Hopi hitchhiker, pamphlets from 1959, the *name* first attested in Frank Waters' *Book of the Hopi* (1963), and the earliest printed text of the nine signs in a 1980 New Age title. Jason Colavito on the pastor: the Christian apocalyptic themes "make plain that Young was likely far more than the mere transmitter." ([star-beings](/imagine/research/depictions/star-beings/))
+- **Dogon Sirius** — Walter van Beek's 1991 restudy found no Dogon informant, including Griaule's own, who had heard of Sirius as a double star; several said they learned it from Griaule. ([invented-traditions](/imagine/research/depictions/invented-traditions/))
+- **The Emerald Tablets of Thoth** — claimed found at Giza in 1925, first published in the 1940s, with passages lifted close to verbatim from Lovecraft's *The Dunwich Horror* and Frank Belknap Long's *The Hounds of Tindalos*, both published 1929.
+- **The Kolbrin** — claimed rescued from a real 1184 Glastonbury fire, actual paper trail beginning in 1992, and a US edition that briefly inserted the modern term "Nibiru" into the supposedly ancient text before quietly removing it.
 
-**Lost civilization: the timeline argument didn't move.** 2025-2026 added real new finds at Karahan and Göbekli Tepe — [the first human face carved onto a T-pillar](https://karahantepe.net/news), 30+ dwellings under the sanctuary, a growing regional network — but the oldest confirmed date anywhere (Enclosure D, ~9530 BCE) is still inside, not before, round 1's window. More evidence of hunter-gatherer sophistication, zero evidence of an earlier teacher culture: the same side gets stronger, not a new side.
+None of these needed a hoax to be caught. The paper trail alone is the tell, and round 3 found the category already has forty years of historiography behind it: Hobsbawm and Ranger's [*The Invention of Tradition*](https://www.cambridge.org/core/books/invention-of-tradition/B9973971357795DC86BE856F321C34B3) (1983) is about precisely this — practices presented as descending from the distant past that are recent, often deliberately built, and that borrow genuine ancient materials to lend a new thing legitimacy.
 
-**Agency displacement, stress-tested.** The brief asked for the closest academic literature and an honest novel-or-rediscovery verdict — both, at different altitudes. *Proportionality bias* (McCauley & Jacques 1979) and *hyperactive agency detection* (Barrett) are real, established, and adjacent, but neither is the specific move being named here. The actual match is [**hyperdiffusionism**](https://www.andytheargumentativearchaeologist.com/hyperdiffusionism.html) — archaeology's century-old, well-documented term for crediting a single outside/superior culture instead of the people who were actually there, most infamously the racist "Mound Builder myth." Round 1's own entry 11 already cited this exact mechanism. So: at the single-domain (archaeology) level, **agency displacement is a rediscovery**, correctly named elsewhere for over a century — that's a real answer, not a lesser one. What's untested, and not found named anywhere in this round's searching, is the **four-domain generalization** (geology's comet, archaeology's teacher, ufology's visitor, and — a level up — ufology's other reality, all read as one shared move). A sibling topic in this same program independently hit near-identical territory this round without being pointed at it: [depictions](/imagine/research/depictions/) found Henri Lhote's descriptive nickname for a rock-art figure ("Great Martian God") read literally as a spacesuit by ancient-astronaut writers, and found art historians explaining recurring divine-halo imagery as convergent solar symbolism rather than cultural contact — the same shape (an ordinary, internally-generated explanation vs. an imported external one) turning up a third and fourth time, unprompted. Suggestive, not proof; logged as such below. (At time of writing, [disclosure](/imagine/research/disclosure/)'s round 2 had also landed — 72 entries, an updated 2026 state-of-play — while [stone](/imagine/research/stone/)'s was still mid-dig; check those pages directly for their own latest.)
+**What this does not license.** Four cases picked *because* they looked suspicious cannot establish a rate. That is round 4's question 3, below.
 
-## Speculation — a shared tell: "agency displacement"
-*Labelled speculation in round 1 as an original observation. Round 2 checked that label against the literature closest to it — see above — and it holds, in a more precise form: a rediscovery at the level of any one domain, an untested generalization above that.*
+## 2. Every dispute here rests on one measurement nobody repeated
 
-YDIH moves an extinction and cultural collapse onto an external object. Hancock's lost civilization moves monumental achievement onto a vanished outside teacher rather than the hunter-gatherers Gobekli and Karahan Tepe actually document. Ancient astronauts move the same monuments onto literal outside visitors. Interdimensional UAP moves anomalous experience onto an outside intelligence rather than perception and institutional behavior (where the psychosocial evidence and the AARO disinformation finding both point).
+This is the finding no single topic could see, and it is the strongest thing two rounds produced.
 
-These four share almost no evidence, but they share one narrative shape: an extraordinary outcome, ordinary people, therefore an external agent must be responsible. [Blum and Baumann](https://theconversation.com/why-some-people-still-believe-that-aliens-shaped-ancient-civilisations-277993) name "proportionality bias" for the ancient-astronaut case specifically; archaeology already names the same move **hyperdiffusionism** for its own case. Generalized across all four topics under one label — **agency displacement** — the harder a result is to credit to the people who demonstrably existed, the more attractive an external-agent explanation becomes, independent of the actual evidence for that agent.
+- **[The Serapeum boxes](/imagine/research/stone/serapeum/).** Christopher Dunn reports measuring interiors "dead flat" with a 0.0002-inch straightedge in 1995 and lid-to-wall squareness within 0.00005 inch in 2001. In thirty years nobody has re-measured them, in either direction. The galleries reopened to the public in 2012; a 2026 terrestrial-laser survey hit sub-centimetre accuracy across 2.1 billion points *at the same site*; roughly 170 foreign archaeological missions hold Egyptian permits. Access is not the blocker. The measurement simply has no owner.
+- **[The predynastic vases](/imagine/research/stone/predynastic-vases/).** The same shape, with a plot twist: Mark Qvist's 2023 numbers (radial deviations down to 3 µm, a π-ratio inside 0.11%) were reversed *by Qvist* in 2025 after a rescan at roughly five times the resolution. A critic from inside the same community had already made the decisive methodological point — the structured-light scanner's own stated accuracy is about 26 µm, so nothing built on top of it can claim sub-micron precision. That is an uncertainty-budget objection, and it is the right one.
+- **[The Nimitz radar](/imagine/research/disclosure/aatip-videos/).** Knuth, Powell and Reali derive accelerations of 5,370 g or more from the Princeton tracks; Mick West argues the returns are a computer artifact. Both sides say the same thing: released, synchronised multi-sensor data would settle it. Neither has released it.
+- **[The Younger Dryas markers](/imagine/research/theories/younger-dryas/).** Platinum, nanodiamonds and microspherules claimed at 50+ sites since 2007, and in nineteen years no blind replication by a lab outside the proponent group.
 
-If this pattern is real, the fix that already works once — raising the documented estimate of what the people who were actually there were capable of, exactly what Gobekli Tepe did to hunter-gatherers — should generalize as the correct first move in every one of these arguments, before reaching for an outside cause at all. What would falsify it: a pre-registered content analysis across a representative (not hand-picked) sample of fringe claims, testing whether the displacement structure appears more often than chance. Nobody has run that test.
+Metrology has a formal answer to a single lab's number, and has had one for decades: the [interlaboratory comparison](https://joint-research-centre.ec.europa.eu/projects-and-activities/reference-and-measurement/interlaboratory-comparisons_en) — the same item measured by two or more labs under set conditions, standardised as proficiency testing under ISO/IEC 17043. Not one object in this program has ever had one run on it.
 
-**Credence: speculation** — the generalization. The archaeology-specific case under it is **established** (hyperdiffusionism), sourced above.`);
+**The honest half.** This cuts hardest at the fringe claims, because they lean their whole weight on single numbers. It does not spare the mainstream: no hammerstone-pounding rate for Andean granite or andesite has ever been published anywhere in Protzen's work or its citations, and the [Mauryan polish](/imagine/research/stone/barabar-caves/) mechanism has never been experimentally confirmed by anyone.
+
+## 3. "Resolved" is a range — and only one topic admits it
+
+AARO closed the Al Taqaddum "jellyfish" case at **high confidence**, on geolocation and wind data that matched drift rather than powered flight. It closed the Eglin case at **moderate confidence** only, and named critics say it does not close at all: the balloon manufacturer says its balloons do not come untethered randomly, and West called the object "a white sphere wearing a hat." ([resolved-cases](/imagine/research/disclosure/resolved-cases/))
+
+That gradient is not a lapse. [Intelligence Community Directive 203](https://github.com/wesinator/ICD203-intel-analysis) requires an analyst to state a confidence level and forbids mixing it with likelihood in the same sentence — AARO grading each case separately is the standard working exactly as written. The defect is one level up: the number everyone quotes, **114 of 319 resolved**, carries no confidence level at all, and is used by advocates and skeptics alike as though all 114 were Al Taqaddum. Publishing that count broken out by the confidence level AARO has *already assigned* would cost nothing.
+
+No other topic in this program has such a vocabulary at all. Denys Stocks measured granite removal at 5.2 cm³/hour with a replica copper drill — a demonstrated mechanism. The Mauryan polish is called by its own mainstream source "one of the genuine unsolved problems of ancient technology." Both currently sit under the single word *explained*.
+
+## 4. Five retractions and reversals in eighteen months, all pointing the same way
+
+The most-repeated claim in this whole subject is that institutions do not update. Two rounds caught them updating five times:
+
+1. **James Kennett drops the Hiawatha crater (2022).** Two independent dating methods put it at 58 million years; one of the impact hypothesis's leading advocates conceded it and stopped citing his own best candidate.
+2. **Scientific Reports retracts Tall el-Hammam (April 2025)** — methodological errors, an unsupported Tunguska comparison, and the authors' own admission of inappropriate image manipulation.
+3. **PLOS ONE retracts Kennett et al.'s shocked-quartz paper (February 2026)** — a radiocarbon age model that omitted available samples and a core that was not fully sampled, so a proxy spike could reflect sedimentation rate rather than an event.
+4. **Mark Qvist reverses on the "OG Vase" (2025)** — now "either a modern replica, a contemporary piece, or an ancient artifact that was later reworked."
+5. **Maxim Fomitchev-Zamilov retracts his own blog post (2025)**, which had read lathe marks into CT scans, in favour of his own later peer-reviewed paper that found none.
+
+Two of those five are fringe-sympathetic analysts reversing themselves once better data arrived. That is the single strongest piece of evidence in this program that the process works — and it is evidence nobody in the popular argument cites, on either side.
+
+**What the retractions do not do.** Neither retraction touches the marker record claimed at 50+ other sites, and Holliday's side has never argued they prove the core hypothesis false. The [Younger Dryas](/imagine/research/theories/younger-dryas/) dispute is still genuinely live: rebuttal and counter-rebuttal pairs in the same peer-reviewed journal, and since April 2026 a third proposed trigger — volcanic forcing — competing with impact *and* meltwater rather than deciding between them.
+
+## 5. Agency displacement: a rediscovery downstairs, an untested claim above it
+
+Round 1 noticed that every theory here relocates agency away from the people who were demonstrably present. Round 2 stress-tested that against the literature and landed on a split that still holds.
+
+**Downstairs it is a rediscovery, and that is a real answer.** Archaeology has called this **hyperdiffusionism** for a century — crediting a single outside or superior culture rather than the people who were there — most infamously the Mound Builder myth, which denied Indigenous North Americans their own earthworks. Kenneth Feder and Jason Colavito have tied it to colonialism and racism for decades, and round 1's own Dibble citation already said so on the page the observation was drawn from.
+
+**Above that, the four-domain generalization is unnamed and untested.** Proportionality bias (McCauley & Jacques 1979) explains why an extraordinary outcome feels like it needs an extraordinary cause; Barrett's hyperactive agency detection explains why a mind reaches for an agent at all. Neither explains why the agent is reached for *outside* the group already known to be present. That specific move is the claim.
+
+Round 3 adds two echoes the sibling topics hit without being pointed at it. [Depictions](/imagine/research/depictions/) found Henri Lhote's own descriptive nickname for a rock-art figure — the "Great Martian God" of Sefar — read back as literal evidence of a spacesuit, and found art historians explaining the recurring [radiating-head motif](/imagine/research/depictions/sky-iconography/) as convergent solar symbolism, with Lewis-Williams' entoptic model covering the geometric motifs: two mainstream frameworks doing, from inside the human body and the shared sky, the work that contact is invoked to do. And [stone](/imagine/research/stone/)'s entire lost-technology genre displaces Egyptian and Andean masons in exactly the same grammar. Six instances now — still a hand-picked six.
+
+**The part that is actually useful.** If the pattern is real, the fix that has already worked is not rhetorical. Göbekli and Karahan Tepe raised the documented estimate of what hunter-gatherers could organise; Stocks' and Protzen's replications raised the documented estimate of what a mason with copper, sand and a hammerstone could achieve. Raising that estimate — before reaching for an outside cause at all — is the correct first move, and it is the move that has decided every one of these arguments that has actually been decided.
+
+---
+
+## The thread nobody asked for: this program's own method is a finding
+
+Nothing in the brief asked about epistemics. It surfaced anyway, four times, in three different forms of manufactured evidence — and every one was caught by the same trivial move: **fetch the page and read it.**
+
+- **AI search invented a citation, twice.** Searches on Serapeum metrology repeatedly returned a confident "Digital Saqqara Project" that measured the boxes to under 0.5 mm; fetching every page the search engine cited found no such project and no such figure anywhere. Separately, a widely repeated Stocks sawing figure — a 3 cm-deep, 95 cm-long slot in 14 hours — is attributed to a PBS NOVA page that does not contain it.
+- **A prophecy was invented recently**, and §1 above now dates it to the decade.
+- **A citation had no source at all.** The viral claim that Petrie recorded a Djoser-gallery vase wall 1/40 inch thick has no traceable citation in the Firth/Quibell excavation reports; the thinnest comparable published figure is about 2 mm, and it describes alabaster panelling, not a hardstone vase.
+- **And a government manufactured the evidence itself.** A Department of Defense historical review found the US military deliberately spread UFO rumours, staged photographs and false briefings to protect classified weapons programs. Former AARO director Sean Kirkpatrick: "These episodes reveal how secrecy and misinformation, even when well-intentioned, can spiral into myth." Some of the data every UAP hypothesis has to explain was put there on purpose.
+
+The rate is measured. The Tow Center tested eight AI search tools across 1,600 queries in March 2025: [incorrect answers to more than 60% of them](https://www.cjr.org/tow_center/we-compared-eight-ai-search-engines-theyre-all-bad-at-citing-news.php), from 37% for the best to 94% for the worst; more than half of two tools' responses cited fabricated or broken URLs; and the tools almost never hedged — ChatGPT misidentified 134 of 200 articles while signalling low confidence fifteen times. The failure itself is older than AI and already named — [circular reporting, nicknamed citogenesis](https://en.wikipedia.org/wiki/Circular_reporting) — and machines do not introduce it, they remove the friction that used to slow it down.
+
+So the program's method is a result: two invented citations were caught by fetching the cited page, not by knowing better. That defence is mechanical, cheap, and it is the same thing this program keeps asking of everybody else — go and measure the thing.
+
+## What the program did *not* find
+
+Two rounds of hunting honestly for a thin mainstream account turned some up. None of these is evidence for an alternative claim; all of them are places where "archaeology has explained it" is more confident than the sources are.
+
+- **The [Nazca "Astronaut"](/imagine/research/depictions/nazca-lines/)** — the one depiction with no specific mainstream reading. Shaman in trance, celestial deity, fisherman with a net and territorial marker genuinely compete; no glyphs name it and no excavated shrine explains it.
+- **The [Mauryan polish](/imagine/research/stone/barabar-caves/)** — no archaeometric study has ever identified the abrasives, and its own mainstream source calls it unsolved. The fringe precision figures for Barabar are *unverified*, not disproven — nobody has re-measured them either way.
+- **[Puma Punku's](/imagine/research/stone/puma-punku/) H-block interiors** — even the mainstream's own replicator could not fully reproduce the flat surfaces inside the deep interlocking recesses in a comparable timeframe, and called it an open detail-level mystery rather than an impossibility.
+- **The [Virginia maritime case](/imagine/research/disclosure/state-of-play/)** — one paragraph in AARO's FY2025 report, no date, no platform, no sensor type, still open. The reporting unit's own operational logs for that date would resolve it in an afternoon, and AARO has not said whether it has asked for them.
+
+---
+
+## Five questions for round 4
+
+Each has its own \`question\` entry in [\`theories/log.jsonl\`](/imagine/research/theories/log.jsonl), so a future round can pick them up from the log alone.
+
+**Q1 — Why has nobody pointed an instrument at the object?**
+Three topics, one missing step. The Serapeum boxes and the [Giza coffer](/imagine/research/stone/giza-coffer/): site open, scanners already working at Saqqara, permits routinely granted. The Nimitz radar: both camps agree released multi-sensor data settles it. The Younger Dryas markers: nineteen years without a blind out-of-group replication. *What would settle it:* one named institution funding and publishing one of the three — or a documented account of the specific funding or permit path that fails. The leading hypothesis is structural and already measured: Brian Nosek puts US funding for replication at [near zero](https://undark.org/2017/09/11/replication-crisis-funding/), and estimates one to two percent of research budgets would rebalance it. Nobody has tested that explanation against these particular cases.
+
+**Q2 — Does agency displacement survive a pre-registered test, now that there are six instances?**
+Two more turned up this round, from sibling topics that were never pointed at the idea — which is suggestive and still not a sample. *What would settle it:* the test round 2 already specified and nobody has run — a pre-registered content analysis over a representative sample of fringe claims, coded for whether they structurally relocate agency from a documented group onto an undocumented outside one, against a matched sample that does not.
+
+**Q3 — Is the recency signature a signature, or is it what every tradition looks like?**
+Four for four is striking and proves nothing without a base rate. *What would settle it:* code a sample that includes traditions which genuinely *are* ancient and have manuscript attestation, scoring each on the gap between claimed origin and earliest documented appearance, and check whether the fringe subset separates. If real traditions show the same gap, the signature is an artifact of who gets audited.
+
+**Q4 — How much of what this program read was machine-invented?**
+Two fabricated citations were caught, both by accident while chasing something else, so the denominator is unknown against a measured base rate above 60%. *What would settle it:* fetch every url in all four logs, check that the specific figure each entry attributes to it actually appears on that page, and publish the failure rate. The program can audit itself; nothing external is required, which makes this the cheapest question on the list and the one most likely to embarrass it.
+
+**Q5 — Does "resolved" mean the same thing in any two of these four topics?**
+AARO grades case by case and then reports an ungraded count; archaeology has no confidence vocabulary at all, so a measured rate and an admitted mystery sit under the same word. *What would settle it:* apply one explicit confidence vocabulary across every mainstream explanation in all four topics and publish which ones drop a level. The disagreement that would expose is inside the mainstream, not between the mainstream and its critics — which is why nobody has run it.
+
+---
+
+## How to read this
+
+Every claim above sits on a logged entry carrying its own **credence** — *established*, *contested*, *fringe*, *speculation* — and a credence is always the writer's claim about their own evidence, never this page's judgement of it, and never upgraded by repetition. Where this essay generalises beyond what any source says, it is labelled: the four-domain agency-displacement pattern is **speculation**, the archaeology-layer case under it is **established**, and the one-measurement observation in §2 is a reading of the logs rather than anyone else's finding — checkable line by line, claimed by nobody but this page.
+
+The evidence itself: [stone](/imagine/research/stone/log.jsonl) · [depictions](/imagine/research/depictions/log.jsonl) · [disclosure](/imagine/research/disclosure/log.jsonl) · [theories](/imagine/research/theories/log.jsonl) — 320 entries, appended in the order they were found, none rewritten. The program front is [/imagine/research/](/imagine/research/).`);
 	},
 });

@@ -96,3 +96,7 @@ exists, with line numbers. Run it before handing a log over.
 - ⚠ Under a columns host a deep url renders its ancestors too — two `Program`s
   are on screen at once, so anything measuring the page must scope per
   `.research-program` root, not `querySelector`.
+
+## The capstone convention
+
+A program whose lead topic carries a `synthesis/page.js` gets a capstone card on the front, between the head and the legend — `Program.found()` detects it by convention, no declaration needed (2026-08-30).
