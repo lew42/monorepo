@@ -62,3 +62,5 @@ two windows, is [`/imagine/stream/`](/imagine/stream/).
 [`thinking.md`](/imagine/cms/thinking/) — the whole argument · [`ext/Saver`](/framework/ext/Saver/)
 — the interface this proposes extending · [`page.store()`](/framework/core/Page/) — in core
 since 2026-08-31; [edit](/imagine/cms/edit/) uses it for drafts.
+
+[`doc/undo-proposal.md`](/imagine/cms/doc/undo-proposal.md) — **awaiting a verdict**: undo for the delta stream, three shapes measured; replay wins with no contract change.

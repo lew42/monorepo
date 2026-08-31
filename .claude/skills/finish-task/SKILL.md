@@ -32,7 +32,9 @@ board renders it in place of the generic viewer.
 `window.after` from `check-claude-usage`; `tokens`/`usage` summed from
 `~/.claude/projects/<cwd-slug>/<session_id>.jsonl` (assistant lines' `message.usage`,
 deduped by `message.id`). A subagent cannot sum its own tokens (its turns are not in that
-file) — write `"tokens": null` and let the parent log the cost from its notification. `landed_at` and `outcome` go **inside** `assign`. Never write a
+file) — write `"tokens": null` and let the parent log the cost from its notification. `landed_at` and `outcome` go **inside** `assign`. Re-read the clock immediately before
+writing `landed_at` — one composed by hand while drafting the outcome landed 7 minutes in the
+future (2026-08-31); the timestamp drifts even in a Write-tool payload. Never write a
 `.jsonl` with `Out-File`/`Set-Content` (BOM) — bash `printf`, `Add-Content`, or the Write tool.
 ⚠ **The outcome is full of backticks, and a DOUBLE-QUOTED shell string eats every one as a
 command substitution** — the append succeeds, the JSON parses, and the card renders with the

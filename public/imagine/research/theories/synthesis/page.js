@@ -14,16 +14,20 @@ import { Page, md } from "/app.js";
    theories/log.jsonl. Round 4 answered Q4 (self-audit, "The audit" section)
    and picked Q1 + Q3 as most credence-moving (`Round 4: two questions dug`
    section) over Q2 (no test to dig up) and Q5 (vocabulary, not a fact); Q2
-   and Q5 remain open for a future round. */
+   and Q5 remain open for a future round.
+
+   Round 5 opened no new fronts: it chased three specific claims round 4 had
+   already surfaced (Nimitz tape removal, the 2016 YD blind test, Karahan
+   Tepe 2025) back to their primary sources. See `Round 5:` section. */
 
 export default new Page({
 	meta: import.meta,
 	title: "Synthesis",
-	description: "The program's capstone: what 345 entries across four topics and four rounds actually established — the invented-tradition signature, the one-measurement problem, the confidence gradient, five retractions in the same direction, agency displacement, and the program's own method as a finding.",
+	description: "The program's capstone: what 358 entries across four topics and five rounds actually established — the invented-tradition signature, the one-measurement problem, the confidence gradient, five retractions in the same direction, agency displacement, and the program's own method as a finding.",
 	icon: "hub",
 
 	content(){
-		md(`Four topics were dug in parallel and independently: [precisely carved stone](/imagine/research/stone/), [depictions](/imagine/research/depictions/) claimed to show visitors, the [modern UAP disclosure arc](/imagine/research/disclosure/), and the [major theories](/imagine/research/theories/) underneath all of it. Four rounds, 345 logged entries, four separate diggers who mostly could not see each other's work. This page is the read across all of it.
+		md(`Four topics were dug in parallel and independently: [precisely carved stone](/imagine/research/stone/), [depictions](/imagine/research/depictions/) claimed to show visitors, the [modern UAP disclosure arc](/imagine/research/disclosure/), and the [major theories](/imagine/research/theories/) underneath all of it. Five rounds, 358 logged entries, four separate diggers who mostly could not see each other's work. This page is the read across all of it.
 
 **The thesis, in two lines.** In every one of these disputes the decisive test is cheap, permitted and unperformed — each argument rests on a single measurement nobody has repeated, which is exactly why none of them ends. And the fight over that gap is not science against its critics: it is science visibly correcting itself, five times in eighteen months, while the claims that need the gap keep it open.
 
@@ -163,10 +167,16 @@ Round 4 picked the two open questions most able to move a credence already load-
 
 ---
 
+## Round 5: the three leads round 4 flagged, chased to their sources
+
+Round 5 didn't open new fronts — it followed the Nimitz tape-removal story, the 2016 Younger Dryas blind test, and the Karahan Tepe 2025 finds past round 4's own citations. None of the three theses flipped; two got a real correction. The tape story has two named witnesses on two ships (Voorhis, Hughes), not one — and pilot David Fravor, from inside the same witness pool, offers a mundane rival account (tapes reused, not seized) that the popular retelling drops. The Younger Dryas "protocol objection" round 4 implied applied to the 2016 blind test turns out to date to 2012, aimed at a different Surovell paper four years before Lubbock Lake existed; no published objection to the actual blind test's protocol was found, and its own authors already blame the split-to-split mismatch on identification criteria, not a broken protocol. And Karahan Tepe's face-pillar traces cleanly to a minister's tweet with no locus, dating, or catalog number ever attached — the one-measurement problem in §2, showing up again as a publication lag rather than a dispute. Thirteen new entries: [disclosure](/imagine/research/disclosure/log.jsonl), [theories](/imagine/research/theories/log.jsonl).
+
+---
+
 ## How to read this
 
 Every claim above sits on a logged entry carrying its own **credence** — *established*, *contested*, *fringe*, *speculation* — and a credence is always the writer's claim about their own evidence, never this page's judgement of it, and never upgraded by repetition. Where this essay generalises beyond what any source says, it is labelled: the four-domain agency-displacement pattern is **speculation**, the archaeology-layer case under it is **established**, and the one-measurement observation in §2 is a reading of the logs rather than anyone else's finding — checkable line by line, claimed by nobody but this page.
 
-The evidence itself: [stone](/imagine/research/stone/log.jsonl) · [depictions](/imagine/research/depictions/log.jsonl) · [disclosure](/imagine/research/disclosure/log.jsonl) · [theories](/imagine/research/theories/log.jsonl) — 345 entries, appended in the order they were found, none rewritten. The program front is [/imagine/research/](/imagine/research/).`);
+The evidence itself: [stone](/imagine/research/stone/log.jsonl) · [depictions](/imagine/research/depictions/log.jsonl) · [disclosure](/imagine/research/disclosure/log.jsonl) · [theories](/imagine/research/theories/log.jsonl) — 358 entries, appended in the order they were found, none rewritten. The program front is [/imagine/research/](/imagine/research/).`);
 	},
 });

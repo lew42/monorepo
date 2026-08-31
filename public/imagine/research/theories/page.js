@@ -18,7 +18,7 @@ export default new Page({
 	content(){
 		md(`Five theories that keep resurfacing around ancient technology and anomalous phenomena — each read the same way: **claim**, **best evidence**, **contemporary expert opinion** (named, dated), **implications if true**, and **what would settle it**. One is genuinely contested inside real journals; the others range from a real archaeological revision being over-read, to long-rejected pseudoarchaeology, to a settled 19th-century framework, to a live modern dispute with no settled answer yet. Credence labelled throughout: **established** / **contested** / **fringe** / **speculation** — the label is the writer's claim about the evidence, never upgraded by this page.
 
-The [synthesis](/imagine/research/theories/synthesis/) page is the program's capstone — three rounds pulled across all four topics, the round-4 questions written down cold, and a cross-topic observation stress-tested in round 2, labelled \`speculation\`.
+The [synthesis](/imagine/research/theories/synthesis/) page is the program's capstone — five rounds pulled across all four topics, the round-4 questions written down cold, and a cross-topic observation stress-tested in round 2, labelled \`speculation\`.
 
 Sourced findings as they were logged: [\`log.jsonl\`](/imagine/research/theories/log.jsonl).`);
 		this.previews();

@@ -94,6 +94,9 @@ long it may be — a report is a screen; a page leads with the thing itself. The
   that must agree; ask for a ratio, not an opinion; say which artifact is the deliverable and
   what to cut first.
 - Findings go in the worker's own `task.jsonl` as `log` lines, never a `findings.md`.
+- ⚠ Search with Glob/rg scoped to the repo, never `find /` — two orphaned root-scans in two
+  days each burned a core for hours after their agent landed (3673 and 887 cpu-sec, 08-30/31),
+  both reaped by the mastermind.
 - A skill that misled you gets ONE evidence line in `.claude/skills/<skill>/improvements.md` —
   the `skill-improvement` skill is the thirty-second version; mandate it in every brief.
 - ⚠ Any edit to a seeded generator must prove bit-identical output first — a reordered draw
