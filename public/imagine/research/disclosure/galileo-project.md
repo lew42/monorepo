@@ -1,0 +1,17 @@
+# The Galileo Project: the Academic Entry
+
+Harvard's Avi Loeb pitched the Galileo Project in 2021 as the scientific alternative to government disclosure — telescopes and machine learning instead of testimony and classification fights. Round 2 checks what it has actually published against what gets said about it.
+
+**The papers.** Loeb and collaborators published seven papers (an eighth in press) in the [Journal of Astronomical Instrumentation](https://www.worldscientific.com/doi/10.1142/S2251171723400032), a Loeb-guest-edited special issue on UAP detection methodology and instrumentation — a real, citation-indexed venue (2025 impact factor 1.5), and a debut that is about how to look, not a claim of anything found. A wider, 140-co-author review landed in *Progress in Aerospace Sciences* in June 2025. *(established)*
+
+**The results.** Commissioning data from one observatory, Jan–May 2024: roughly [500,000 tracked objects](https://thedebrief.org/galileo-project-releases-commissioning-data-on-half-a-million-aerial-objects-are-any-of-them-uap/), sorted by a YOLO/SORT machine-learning pipeline trained on birds, insects, balloons, drones, planes and satellites. 144 trajectories stayed ambiguous — likely mundane, not further identifiable with the data on hand. None were flagged as anomalous. *(established)*
+
+**The gap between the paper and the press.** [Metabunk's read](https://www.metabunk.org/threads/avi-loebs-galileo-project-posts-first-results-to-near-total-silence.13795/) of the same commissioning paper: essentially nothing surprising surfaced in half a million observations, and Loeb did not raise the topic in a podcast appearance around the same time — read as tacit acknowledgment of a null result. Raw data was offered on request only, not published, which limits anyone outside the project from checking even the mundane calls. This is the opposite failure mode from most of the rest of this arc: here the null result is real and the promotional apparatus is what outruns it, rather than the other way around. *(contested)*
+
+**The standing critique of Loeb himself.** Astronomers who study comets and interstellar objects for a living call his highest-profile claims — 'Oumuamua as a probe, the IM1 meteor as artificial — premature next to unexamined natural explanations, and describe the pattern as [anomaly hunting](https://www.npr.org/2025/03/21/g-s1-54967/one-scientists-search-for-alien-life-and-the-controversy-it-has-sparked): fixating on statistical outliers in a large dataset while discounting the much larger number of mundane ones. One skeptic called the Galileo Project itself a classic fishing expedition. *(contested)*
+
+**The turn: academic becomes official.** In June–July 2026 the White House, AARO, ODNI and the FBI jointly stood up a UAP Science Advisory Council and asked Loeb to chair it — folding the project's most visible scientist directly into the government apparatus he had built his project as an alternative to, and handing his critics a new, harder-to-dismiss target: not a Medium post now, but a government science council. *(established)*
+
+**What would settle it.** A second observatory's full dataset, published rather than offered on request, with the same null-result honesty the first commissioning paper actually showed — repeated enough times that "no anomaly found" becomes a real finding of the project rather than a fact you have to read the forum to learn.
+
+Sourced findings: [`log.jsonl`](./log.jsonl).

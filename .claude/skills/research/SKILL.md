@@ -10,6 +10,12 @@ that has just read six pages naturally writes all six findings in the same
 confident voice — and a reader can no longer tell the radiocarbon date from the
 YouTube theory. Everything below exists to stop that.
 
+⚠ **Dig in the foreground — your own WebSearch/WebFetch calls.** Do not spawn
+background sub-agents to search for you: their completion notifications route to
+the MAIN session, never back to you, so you park forever waiting on silence.
+Both researchers who tried it stalled and needed a nudge (2026-08-30, twice in
+one day).
+
 ## 1. Pick the shape
 
 | | **A topic** | **A program** |

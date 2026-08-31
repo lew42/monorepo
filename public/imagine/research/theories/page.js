@@ -1,10 +1,10 @@
 import { Page, md } from "/app.js";
 
-/* Round 1 of the research program: the major theories. Five subjects, each read
-   claim → evidence → assessment → implications (one screen, the repo's own law for
-   a theory page), credence-labelled throughout. The raw log a sibling page
-   aggregates is `log.jsonl` beside this file; these pages are the curated
-   reading of the same 34 entries. `previews()` draws the six as cards so this
+/* The major theories. Five subjects, each read claim → evidence → assessment →
+   implications (one screen, the repo's own law for a theory page), credence-
+   labelled throughout. The raw log a sibling page aggregates is `log.jsonl`
+   beside this file (34 round-1 entries + 23 round-2 entries = 57); these pages
+   are the curated reading of it. `previews()` draws the six as cards so this
    index stays a paragraph plus the list — nothing here restates a subject page. */
 
 export default new Page({
@@ -18,9 +18,9 @@ export default new Page({
 	content(){
 		md(`Five theories that keep resurfacing around ancient technology and anomalous phenomena — each read the same way: **claim**, **best evidence**, **contemporary expert opinion** (named, dated), **implications if true**, and **what would settle it**. One is genuinely contested inside real journals; the others range from a real archaeological revision being over-read, to long-rejected pseudoarchaeology, to a settled 19th-century framework, to a live modern dispute with no settled answer yet. Credence labelled throughout: **established** / **contested** / **fringe** / **speculation** — the label is the writer's claim about the evidence, never upgraded by this page.
 
-The [synthesis](./synthesis/) page pulls the thread across all five, including one original cross-topic observation, labelled \`speculation\`, offered as a possibility rather than a finding.
+The [synthesis](/imagine/research/theories/synthesis/) page pulls the thread across all five, including a cross-topic observation stress-tested in round 2, labelled \`speculation\`.
 
-Sourced findings as they were logged: [\`log.jsonl\`](./log.jsonl).`);
+Sourced findings as they were logged: [\`log.jsonl\`](/imagine/research/theories/log.jsonl).`);
 		this.previews();
 	},
 });

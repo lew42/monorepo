@@ -3,7 +3,7 @@ import { Page, md } from "/app.js";
 export default new Page({
 	meta: import.meta,
 	title: "A Lost Advanced Ice-Age Civilization",
-	description: "Graham Hancock's case for a vanished global civilization, mainstream archaeology's answer, and what Gobekli Tepe and Karahan Tepe actually established.",
+	description: "Graham Hancock's case for a vanished global civilization, mainstream archaeology's answer, and what Gobekli Tepe and Karahan Tepe actually established — now including 2025-2026's newest excavation finds.",
 	icon: "account_balance",
 
 	content(){
@@ -18,12 +18,14 @@ Cardiff University archaeologist Flint Dibble's [rebuttal in *The Conversation*,
 
 What Gobekli Tepe and its neighbor Karahan Tepe *actually* established, mainstream and uncontested: monumental T-shaped-pillar complexes built by hunter-gatherers 9600-8200 BCE, [before agriculture or permanent villages were thought possible](https://www.theartnewspaper.com/2021/11/17/discovery-turkey-karahan-tepe). Karahan Tepe adds domestic housing inside a ritual complex — organized, large-scale cooperative building among still-foraging people, situated within the wider Tas Tepeler cluster, [not an isolated anomaly](https://archaeology.org/issues/may-june-2021/features/turkey-gobekli-tepe-hunter-gatherers/).
 
+**2025-2026 deepened this in the same direction, not Hancock's.** October 2025 uncovered [the first human face ever carved directly onto a T-shaped pillar](https://karahantepe.net/news) at Karahan Tepe — a 135cm stone, followed weeks later by a matching second statue — plus a life-size human statue [built directly into a Gobekli Tepe wall](https://www.timesofisrael.com/at-neolithic-capital-in-turkey-carved-faces-upend-narrative-of-a-primitive-age/). Excavation director Necmi Karul reads the growing run of human sculpture as "a direct outcome of settled life," and more than 30 domestic dwellings were found *beneath* Karahan Tepe's ritual sanctuary — the site was one of the world's first villages, not a shrine raised by wandering foragers with no base of their own. The regional network keeps widening too: Sayburç, Sefer Tepe and Ayanlar Höyük all added finds in 2025-2026, each one more ordinary, settled, symbol-making community — the opposite of a single point-source teacher culture. Crucially, the *dates* haven't moved: the oldest confirmed date anywhere at Gobekli Tepe (Enclosure D, ~9530 BCE) sits inside, not before, the window round 1 already reported. New finds add sophistication and scale; Hancock's argument needs an earlier date more than it needs more art, and that hasn't arrived. Separately, [excavation director Karul, researcher Jens Notroff and engineer Martin Sweatman went on record in December 2024](https://www.turkiyetoday.com/culture/debunking-claims-gobeklitepe-75895/) rejecting Hancock's specific claims that the site was an astronomical observatory or that Pillar 43 depicts a star map — worth noting Sweatman is himself a published Younger Dryas impact proponent who separately argues Pillar 43 encodes a comet-strike calendar; he rejects Hancock's *civilization* claim while making his own, much narrower, catastrophist one about the same carving.
+
 ## Implications if true
 If Hancock's claim were true, it would rewrite the entire timeline of civilization and force a wholesale revision of archaeology's evidentiary standards. That's precisely why the bar for it is high, and why fifty-plus years of the claim circulating without a qualifying site is itself informative.
 
 ## What would settle it
-A single pre-11,600-BP site with unambiguous markers beyond hunter-gatherer capability — writing, metallurgy, or engineered monumental architecture — independently excavated, dated by multiple labs, and replicated. None has been produced. Gobekli and Karahan Tepe raise the floor on what hunter-gatherers could do; they do not meet this bar.
+A single pre-11,600-BP site with unambiguous markers beyond hunter-gatherer capability — writing, metallurgy, or engineered monumental architecture — independently excavated, dated by multiple labs, and replicated. None has been produced. Gobekli and Karahan Tepe raise the floor on what hunter-gatherers could do; two more years of excavation raised it further without ever approaching this bar.
 
-**Credence: fringe** (the "lost civilization" claim) — sitting beside **established** facts (Gobekli/Karahan Tepe's real dates and construction) that Hancock's claim leans on but does not require.`);
+**Credence: fringe** (the "lost civilization" claim) — sitting beside **established** facts (Gobekli/Karahan Tepe's real dates and construction) that Hancock's claim leans on but does not require. Round 2 moved nothing: more evidence, same side.`);
 	},
 });
