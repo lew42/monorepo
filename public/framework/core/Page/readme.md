@@ -26,6 +26,7 @@ The file is the route: `./x/` renders `./x.md` as markdown when no `page.js` cla
 - A card's thumb is inert — the label is the only link, because `<a>` in `<a>` is un-nested silently: [`doc/css.md`](./doc/css.md)
 - `columns()` makes the whole subtree a row of full-height columns; each page picks its track with `width: "small" | "large" | "full"`, a child marked `classes: "default"` is the one the host arrives with, and an index whose `content()` already draws its children says `index: true` so core leaves its row list out. It reads `--page-column-max`, never `--measure` — a region that sets `--measure: none` would uncap every column: [`doc/columns.md`](./doc/columns.md)
 - **Roles** — a page says `is: "topic"` and its whole subtree finds it with `this.topic()` / `document()` / `nearest(role)`, no import either way. `is:`, never `topic: true`: a flag named after the accessor shadows the method on the page that claims it: [`doc/roles.md`](./doc/roles.md)
+- **Storage** — `this.store()` keeps a page's state between visits against its own url (`lew42:/imagine/team/`): `get(fallback)` / `set` / `patch` / `clear`, nothing to configure. Storage, not state — it never notifies; a failed write falls back to memory and warns once; a page `move()` re-addressed declares `store_key` to keep its data: [`doc/method/store.md`](./doc/method/store.md)
 - **Panels** (splitting the height) needs no new word — `classes: "solo flex v gap"` plus `this.regions`, which `container()` already reads: [`doc/panels.md`](./doc/panels.md)
 
 ## More

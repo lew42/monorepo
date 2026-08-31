@@ -1,5 +1,5 @@
 import { Page, View, md, toc, div, a, span, time, h1, img, is } from "/app.js";
-import { post, section, section_url, under_blog, url, dated } from "./posts.js";
+import { post, section, section_url, under_blog, url, dated, reading, next_post } from "./posts.js";
 
 View.stylesheet(import.meta, "blog.css");
 
@@ -91,7 +91,20 @@ export class Post extends Page {
 			 *   the only post that existed. A one-part post returns the `md.file()` PROMISE,
 			 *   and a promise the callback drops on the floor is never appended: no error,
 			 *   no 404, an empty column. A block-bodied arrow inside a factory must return. */
-			this.$pages = div.c("blog-read", () => { this.head(); return this.read(); });
+			this.$pages = div.c("blog-read", () => {
+				this.head();
+
+				/* ⚠ CREATED HERE, FILLED LATER, and both halves are forced. Created here
+				 *   because a factory needs a captor and `after_prose()` runs in a bare
+				 *   macrotask; filled later because `read()` returns a PROMISE for a
+				 *   single-part post — `View.append_promise` appends whenever it resolves,
+				 *   so anything built synchronously after it lands ABOVE the prose.
+				 *   `next_up()` moves this box to the end (`el.append` on a node already
+				 *   in the tree is a move) once there is prose for it to follow. */
+				this.$next = div.c("blog-next");
+
+				return this.read();
+			});
 
 			this.rail();
 		}));
@@ -125,10 +138,16 @@ export class Post extends Page {
 		return div.c("blog-lead", () => img().attr("src", this.image).attr("alt", this.alt ?? this.title));
 	}
 
+	/* ⚠ `reading(this)` is asked of the MANIFEST ENTRY, not of this page — a Post is
+	 *   assigned its entry's fields, so `slug()` finds it either way, and asking the
+	 *   manifest keeps one lookup for the byline, the card and the hero. Empty when the
+	 *   post has not been counted yet (`words.js`), and an empty string draws nothing
+	 *   rather than "0 min read". */
 	byline(){
 		return div.c("blog-byline", () => {
 			if (this.date) time.c("blog-date", dated(this.date)).attr("datetime", this.date);
 			if (this.parts) span.c("blog-parts-count", Object.keys(this.parts).length + " parts");
+			if (reading(this)) span.c("blog-minutes", reading(this));
 		});
 	}
 
@@ -183,7 +202,71 @@ export class Post extends Page {
 	 *   reads an empty region and `toc()` deletes itself. A macrotask cannot lose that
 	 *   race. Called from `.finally()` so a 404'd part still refreshes the rail. */
 	after_prose(){
-		setTimeout(() => { this.skip_closed_parts(); this.$toc?.empty(() => toc()); this.watch_pin(); });
+		setTimeout(() => { this.skip_closed_parts(); this.next_up(); this.$toc?.empty(() => toc()); this.watch_pin(); });
+	}
+
+	/* ══ THE READING PATH — what is at the BOTTOM of a post ═══════════════════
+	   A post used to end at a rail of back-links: "all Framework posts", "the blog".
+	   Both of those are up, and up is where a reader goes when there is nothing forward.
+	   This is forward — the next part if the post has one, else the next post in the
+	   archive, else the front. Nothing here is stored: the order is `listed()`'s and the
+	   parts' is the manifest's, so adding a post re-links the chain on both sides of it.
+
+	   ⚠ Rebuilt on every `after_prose()`, which is also fired by a part activating and
+	     deactivating (see `part_pages()`) — moving between parts does not re-run
+	     `content()`, so a footer drawn once would keep offering part two from part three.
+	   ⚠ `el.append` MOVES a node that is already in the tree. That is the whole trick:
+	     the box was created before the prose promise resolved, so this is what puts it
+	     after it — and it is idempotent, so a second call is not a second box. */
+	next_up(){
+		const box = this.$next;
+
+		if (!box) return;
+		this.$pages.el.append(box.el);
+
+		const to = this.next_part() ?? this.next_read();
+
+		box.empty(() => a.c("blog-next-link").href(to.url).append(() => {
+			span.c("blog-eyebrow", to.eyebrow);
+			span.c("blog-next-title", to.title);
+			if (to.meta) span.c("blog-next-meta", to.meta);
+			if (to.dek) div.c("blog-next-dek", to.dek);
+		}));
+	}
+
+	/* The part after the one on screen — "routed to, or else the default one", the same
+	 * test `skip_closed_parts()` makes, asked of the pages rather than of the DOM. */
+	open_part(){
+		const open = page => page?.view?.el.matches(".active-page, .active-ancestor");
+		return this.parts && ([...this.children.values()].find(open) ?? this.part_default());
+	}
+
+	next_part(){
+		const parts = [...(this.children?.values() ?? [])];
+		const after = parts[parts.indexOf(this.open_part()) + 1];
+
+		if (!after) return null;
+
+		const nav = this.nav_for(after.name);
+		return { url: nav.url, title: nav.label, eyebrow: "Next in this post" };
+	}
+
+	/* The next post, or the front. `Post.wall` says the same three things about a post
+	 * — where it is filed, how long it is, what it is about — so this reads as the card
+	 * it is a link to. The last post gets the front, because "keep reading" with nothing
+	 * left to read is worse than saying so. */
+	next_read(){
+		const next = next_post(this);
+
+		if (!next) return { url: "/blog/", title: "Back to the blog", eyebrow: "That is the archive, for now" };
+
+		return {
+			url: url(next),
+			title: next.title,
+			eyebrow: "Next post",
+			meta: [section(next.section)?.title, reading(next)].filter(Boolean).join(" · "),
+			dek: next.description,
+		};
 	}
 
 	/* THE PINNED FIRST EXHIBIT — the one thing on this page that has to be MEASURED.
@@ -259,10 +342,19 @@ export class Post extends Page {
 	     arrangement /framework/ and the homepage use, so the blog does not introduce a
 	     second kind of card to the site. Only the byline is the blog's own, and
 	     `--column` is set by blog.css, which is the only thing that knows the room. */
+	/* ⚠ ONE meta line, not two: the date used to sit on its own line under the title and
+	 *   the length would have been a third row of small grey type in a card that is four
+	 *   rows tall. `<time>` keeps the machine-readable date, and the length rides beside
+	 *   it — the two facts a reader weighs a card on, on one line. */
 	static card(post){
 		return a.c("page-preview").href(url(post)).append(() => {
 			span.c("page-preview-title", post.title);
-			time.c("blog-card-date", dated(post.date)).attr("datetime", post.date);
+
+			div.c("blog-card-meta", () => {
+				time(dated(post.date)).attr("datetime", post.date);
+				if (reading(post)) span(reading(post));
+			});
+
 			div.c("page-preview-desc", post.description);
 		});
 	}
@@ -278,6 +370,8 @@ export class Post extends Page {
 				span(section(post.section)?.title ?? post.section);
 				span.c("blog-dot", "·");
 				span(dated(post.date));
+
+				if (reading(post)){ span.c("blog-dot", "·"); span(reading(post)); }
 			});
 
 			div.c("blog-hero-title", post.title);

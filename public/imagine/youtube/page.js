@@ -19,8 +19,9 @@ export default new Page({
 
 	content(){
 		md("Five labs on the **IFrame Player API**. Press play on any of them — nothing here touches Google until you do.");
-		md("The API has no time event, so every timeline below is one polled read of `getCurrentTime()` and one shared `cues()` engine ([how it works](/imagine/youtube/readme/)).");
+		md("The API has no time event, so every timeline below is one polled read of `getCurrentTime()` and one shared `cues()` engine ([how it works](/imagine/youtube/readme/)) — the same engine [the 3D pager's tour](/imagine/scenes/tour/) runs on a wall clock.");
+		md("**Marks** is the stopwatch the other five were written with: watch, press M at each boundary, copy out the array.");
 	},
 
-	children: "panel course yield split chat",
+	children: "panel course yield split chat marks",
 });

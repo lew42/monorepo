@@ -92,6 +92,19 @@
 	.imagine-count { margin-inline-start: auto; font-size: 0.8em; color: var(--subtle); }
 	.imagine-seg-rail { margin: 0.5em 0.9em; }
 
+	/* A load with a denominator. The track is the biggest open load on the team, so
+	   the fullest row is always full and the rest are drawn against a real week.
+	   ⚠ 3px and no more: this is the third line of a nav row, not a chart. */
+	.imagine-bar-track {
+		height: 3px;
+		margin-block-start: 0.35em;
+		background: var(--line);
+		border-radius: 999px;
+		overflow: hidden;
+	}
+
+	.imagine-bar-fill { display: block; height: 100%; background: var(--prim); }
+
 	/* ════ TEAM — the board ════════════════════════════════════════════════════ */
 
 	.imagine-bar {
@@ -135,6 +148,30 @@
 	.imagine-size { font-variant-numeric: tabular-nums; }
 
 	.imagine-empty { color: var(--subtle); font-size: 0.8em; text-align: center; }
+
+	/* The chips, in their own box under the head — because the box IS the drop target
+	   and a lane head is not somewhere a task can land. `.drag-items` (Draggable's own
+	   sheet) gives it the min-height an empty lane needs to be droppable at all. */
+	.imagine-lane-body { gap: 0.4em; border-radius: var(--radius); }
+
+	/* Where it would land if you let go. An outline, not a fill: a fill would repaint
+	   the chips already in the lane and the answer to "which lane" would get harder to
+	   read the fuller the lane was. `outline` also takes no space, so nothing reflows
+	   mid-drag. */
+	.imagine-lane-over {
+		outline: 2px dashed var(--prim);
+		outline-offset: 2px;
+		background: color-mix(in srgb, var(--prim) 6%, transparent);
+	}
+
+	/* A chip you can pick up says so before you touch it. `cursor: grab` comes from
+	   `.drag-handle`; this is the seam that makes it look liftable. */
+	.imagine-task { border-inline-start-width: 3px; }
+	.imagine-task:hover { border-inline-start-color: var(--prim-ink); }
+
+	/* ⚠ The dragged chip is moved with a transform, so it must sit ABOVE the lanes it
+	     is crossing or it slides underneath the next one along. */
+	.imagine-task.dragging { position: relative; z-index: 5; box-shadow: 0 2px 10px var(--card-shadow); }
 
 	/* The density control's whole job: one class, one step of air. A second page.js
 	   per density would have been two files that drift. */
@@ -374,4 +411,58 @@
 	}
 
 	.imagine-exit:hover { color: var(--prim-ink); border-color: var(--prim); }
+
+	/* ════ GAME — the realm's ambiance ═════════════════════════════════════════
+	   One rung of the wash → tint → surface ladder per realm, on the realm's own
+	   rail and on every room under it, so changing realm is a visible step and not
+	   only a change of words. The rungs are `/imagine/vary/tone/up/`'s scheme and
+	   its verdict is why: "each column sits visibly ABOVE the one before it" — so
+	   the Hollow, under the hill, is the floor and the Spire is the top.
+	   ⚠ Background ONLY. Nothing here changes a size, so no realm can introduce a
+	     scrollbar the others do not have.
+	   ⚠ The class sits on the page HOST, whose direct child is the column body
+	     (measured: `DIV.page column page--quarry > .page-column-body`). A room is a
+	     leaf and a realm rail draws its own body, so one child combinator serves
+	     both — the `> .page-columns-row >` hop vary/tone needs is for a depth-1
+	     host, which no realm is. */
+	.imagine-tone-low  > .page-column-body { background: var(--wash); }
+	.imagine-tone-mid  > .page-column-body { background: var(--tint); }
+	.imagine-tone-high > .page-column-body { background: var(--surface); }
+
+	/* The realm's one word. Deliberately the quietest thing on the screen — it is
+	   weather, not a heading, and it must never compete with the scene. */
+	.imagine-air {
+		align-self: start;
+		font-size: 0.7em; font-weight: 700;
+		text-transform: uppercase; letter-spacing: 0.18em;
+		color: var(--subtle);
+	}
+
+	/* ════ GAME — the secret, and the journal ══════════════════════════════════ */
+
+	/* What the lens shows you up the flue. Same measure as any scene; the accent
+	   rule down its edge is the only thing that says this one was earned. */
+	.imagine-found {
+		padding-inline-start: 0.9em;
+		border-inline-start: 2px solid var(--prim);
+	}
+
+	.imagine-journal { --gap: 0; max-width: 40em; }
+
+	.imagine-entry {
+		--gap: 0.7em;
+		padding: 0.5em 0;
+		line-height: 1.5;
+		border-bottom: 1px solid var(--line);
+	}
+
+	.imagine-entry:last-child { border-bottom: none; }
+
+	/* Tabular so the column of numbers is a column, and fixed so a two-digit line
+	   does not shunt the prose one character to the right. */
+	.imagine-entry-n {
+		flex: none; width: 1.6em;
+		font-family: monospace; font-variant-numeric: tabular-nums;
+		color: var(--subtle);
+	}
 }

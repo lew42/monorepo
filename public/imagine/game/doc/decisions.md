@@ -68,7 +68,7 @@ the tiles said `9/9 · 3/3 · 3 · 1 · lit` and the store held nine `found`, th
 
 **Start over is the only eraser**, and the rail's old `reset run` button was cut for it — two
 erasers is two devices saying one thing, and the run now has a place where ending it means
-something. It calls `store(this).clear()`, not `set({})`: the next move re-creates the key, and
+something. It calls `this.store().clear()`, not `set({})`: the next move re-creates the key, and
 until then the browser holds nothing about this game at all. Measured: keys before
 `[lew42:/imagine/team/, lew42:/imagine/game/]`, after `[lew42:/imagine/team/]` — the team's
 board two columns away keys on its own url and never notices.
@@ -117,6 +117,89 @@ shut — then reloaded, then erased. Zero console errors and no overflow at 400 
 3440. Reload mid-run: the store byte-identical before and after, the finale still drawn, nine
 map links. Shots in `/framework/ai/2026-08-29/game-round-2/`.
 
+## Round 3: a reason to go back (2026-08-31)
+
+The run had one shape and you only ever walked it forwards. Three additions, and each had to
+answer "why would anyone return to a room they have finished?".
+
+### The secret: the lens is won at the top and wanted at the bottom
+
+The Bone Kiln's scene has said *"the flue runs up and up — all the way to the Spire, by the
+draught"* since round 1. The ground lens is the Keeper's, at the top of the Spire, and it only
+exists after the trade. So a `look` verb on the Kiln, gated on the lens, is a secret **whose
+only route is back down a realm you already emptied** — which is precisely what the map in the
+rail is for, and the first thing on this page that rewards it.
+
+**`look` is a fourth verb and it had to be.** `take` grows the pack, `trade` shrinks it, `walk`
+records a room. This one costs nothing, takes nothing, and its whole effect is on the ending —
+a sentence the game could not previously say. It says nothing at all until you carry the lens,
+so a first pass through the Kiln is byte-identical to what it always was (measured: `"WATER / A
+firing chamber gone cold centuries back…"`, no control).
+
+**The rail says it in three words**, the same way the Gallery does: the Kiln's meta line turns
+to *something to see* the moment you come back down carrying the lens. Measured after the
+trade, the Hollow rail read `[…, "needs the brass lamp", "something to see"]` — the trade still
+moves two rows in opposite directions, and now it arms a third.
+
+### The second ending, which is not a harder win
+
+The chain is identical; what differs is whether you understood the place. `sights.has("flue")`
+picks between them — nothing is stored for the ending itself, the same way `won()` derives from
+the pack. Measured, a full run with the flue read: eyebrow *the long way round*, display *The
+gate is shut, and you know why.*, tiles `9/9 · 3/3 · 3 · 1 · lit · read`.
+
+**Two endings, not four.** The finale already reported `the lantern: lit/dark`, which is a
+second latent axis — and four endings written by two booleans is three screens nobody will
+read and a combinatorial voice problem. The lantern stays a *number*; the flue is the fork.
+
+### The journal: the one thing stored that cannot be computed
+
+Everything else on the page is derived, and `decisions.md` has said since round 2 that nothing
+is stored which can be computed. **Order is the exception.** `found` is insertion-ordered, but
+it cannot say when you took the lamp or that you gave it away between two rooms — that is gone
+the instant it happens. So `log` is an array of finished sentences, written at the moment of
+the move, and the column is just that array with numbers down the side.
+
+It is a **column**, because everything here is a column, and a real page so it is cold-loadable
+and can be a rail row from the first paint. Measured: a full run wrote 14 lines.
+
+**⚠ "Walked the The Vault, in The Spire."** One of nine rooms carries its own article, so the
+phrase has to ask (`/^The /`) rather than assume.
+
+### Ambiance: one rung and one word per realm
+
+`tone:` puts each realm on a rung of the `--wash` → `--tint` → `--surface` ladder, on its rail
+*and* on every room under it, so changing realm is a visible step. **Which rung is not a taste
+call** — [`vary/tone/`](/imagine/vary/tone/) measured these four schemes and `up`'s verdict is
+"each column sits visibly ABOVE the one before it". So the Hollow, under the hill, is the
+floor. Measured at 1920, both the realm rail and its rooms:
+
+| | The Hollow | The Verge | The Spire |
+|---|---|---|---|
+| column body | `#f2f2f2` | `#f8f8f8` | `#ffffff` |
+
+The other three schemes are wrong here **on their own verdicts**: `down` reads as recession and
+inverts in dark mode (elevation is lighter on both sides, `lew42.css`), `alt` reads as zebra,
+`flip` reads as "you are here". Background only, so no realm can introduce a scrollbar the
+others do not have.
+
+`air:` is the same idea in one word — *wind*, *water*, *glass* — and it is deliberately the
+quietest thing on the screen. It is on the shut screen too: you can feel where you are standing
+without getting in.
+
+### Fixed: the map and the rail disagreed after a trade
+
+Round 2 claims the map and the HUD cannot disagree, and they cannot — but **shut** and
+**walked** are independent, and only the trade makes that true. Spending the lamp re-locks a
+Cistern already in `found`, and the cell stayed a bright, undimmed link while the rail row
+beside it said *needs the brass lamp*. It keeps the link and takes the dimming, which is the
+honest reading of both facts. Measured across one press of *trade*:
+
+| cell | before | after |
+|---|---|---|
+| `cistern` | link | link, dimmed |
+| `lantern` | span, dimmed | span |
+
 ## Cut
 
 - **A `reset run` button in the rail.** See above — the finale is the eraser, and the rail's
@@ -135,3 +218,10 @@ map links. Shots in `/framework/ai/2026-08-29/game-round-2/`.
 - **Recording the gate in `found`.** It would make the HUD read `10/9` or need a second
   constant. The win is `carried.has("sigil")` and derives from the pack, so nothing is stored
   that can be computed.
+- **A third and fourth ending** off the lantern (round 3). Two booleans is four screens, and
+  the voice problem grows faster than the payoff. The lantern stays a number on the finale.
+- **A shortcut up the Kiln's flue** (round 3, and round 2 cut it once already). Making the
+  flue *walkable* would be a fourth `needs:`, which teaches nothing; making it *readable* is a
+  new verb. The scene was written for a shortcut and earns more as a secret.
+- **Timestamps in the journal.** A run is not a session — you can leave a tab open for a week
+  — so a clock would say things about the player, not the run. The order is the content.

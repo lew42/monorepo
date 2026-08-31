@@ -540,8 +540,73 @@ export class Page {
 		return this;
 	}
 
+	// ════ STORAGE — the page's own url IS the id ══════════════════════════════
+	// A handle over localStorage: `get` / `set` / `patch` / `clear`. Production is
+	// static, so there is no server to hand out ids — and a page already has one
+	// thing that is unique, stable and human-readable: its address, derived by
+	// naming(), so it cannot drift out of step with the tree the way a hand-typed
+	// `id: "team-board"` would. doc/method/store.md.
+	// ⚠ Storage, not STATE — nothing here notifies. A page that wants a redraw
+	//   calls its own watcher after the write; a subscription API in core would
+	//   make ~160 pages pay for a pattern four of them want (doc/roles.md).
+	store(){ return new this.constructor.Store({ page: this }); }
+
 	// ext/tabs patches `tabs()` onto this prototype and fills `regions`, which
 	// container() reads. Nothing here declares either.
 }
+
+// Where a save goes when localStorage will not take it — private mode, a full
+// quota, a blocked third-party frame. It throws WHOLE, and a UI that loses its
+// buttons because a save failed is worse than one that forgets: the page keeps
+// working for the session and only the persistence is lost.
+const memory = new Map();
+let warned = false;
+
+Page.Store = class PageStore {
+
+	// The app's own namespace: one origin serves /notes/, /imagine/ and every demo,
+	// so an unprefixed url is a collision waiting for the next site on this domain.
+	prefix = "lew42:";
+
+	constructor(...args){ this.assign(...args); }
+	assign(...args){ return Object.assign(this, ...args); }
+
+	// The whole idea, in one line. `store_key` is the seam for a page that MOVED:
+	// move() re-addresses a whole subtree, so an adopted page would otherwise
+	// change key silently and lose everything saved under its old address.
+	key(){ return this.prefix + (this.page.store_key ?? this.page.url); }
+
+	// null when nothing is saved OR the saved value is corrupt — `get()` decides
+	// what that means, because only the caller knows its defaults.
+	read(){
+		try { return JSON.parse(localStorage.getItem(this.key()) ?? "null"); }
+		catch { return memory.get(this.key()) ?? null; }
+	}
+
+	get(fallback = {}){ return { ...fallback, ...(this.read() ?? {}) }; }
+
+	set(data){
+		memory.set(this.key(), data);
+		try { localStorage.setItem(this.key(), JSON.stringify(data)); }
+		catch (error){ this.warn(error); }
+		return data;
+	}
+
+	// The call every page actually makes: change one field, keep the rest.
+	patch(part, fallback){ return this.set({ ...this.get(fallback), ...part }); }
+
+	clear(){
+		memory.delete(this.key());
+		try { localStorage.removeItem(this.key()); } catch { /* already gone */ }
+	}
+
+	// ⚠ ONCE a session, not once a write: a run saves on every move, and a console
+	//   filling with the same line is a console nobody reads.
+	warn(error){
+		if (warned) return;
+		warned = true;
+		console.warn(`store(${this.key()}) — localStorage is unavailable (${error.name}); this session is kept in memory only.`);
+	}
+};
 
 export default Page;

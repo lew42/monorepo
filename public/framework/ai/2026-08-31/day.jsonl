@@ -1,0 +1,11 @@
+{"log": {"at": "2026-08-31T08:27:41-05:00", "task": "improve-game-team", "msg": "task opened - look at /imagine/game/ and /imagine/team/, brainstorm ranked improvements, build the top few per experience"}}
+{"log": {"at": "2026-08-31T08:28:20-05:00", "task": "improve-scenes-yt", "msg": "task opened - look at /imagine/scenes/ and /imagine/youtube/, rank improvements, build the top few per lab plus a shared cues() upgrade"}}
+{"log": {"at": "2026-08-31T08:27:13-05:00", "task": "research-audit", "msg": "task opened -- audit the research program's own inputs (round 4, question 4)"}}
+{"log": {"at": "2026-08-31T08:29:10-05:00", "task": "page-store", "msg": "task opened - page.store() lands in core; /imagine/store.js retires into it"}}
+{"log": {"at": "2026-08-31T08:41:12-05:00", "task": "page-store", "msg": "landed - page.store() is core, /imagine/store.js deleted, keys byte-identical, private mode degrades with one warning"}}
+{"log": {"at": "2026-08-31T08:43:52-05:00", "task": "research-audit", "msg": "landed -- audited 60 sampled research citations: 40% VERIFIED, 30% WEAK, 13.3% WRONG, 16.7% UNREACHABLE; sourcing mostly held"}}
+{"log":{"at":"2026-08-31T08:45:00-05:00","task":"cols-promote","msg":"task opened - promote .cols.half/.cols.main-aside into framework.css, migrate 6 call sites"}}
+{"log":{"at":"2026-08-31T09:45:00-05:00","task":"cols-promote","msg":"landed - two words promoted, 4/6 sites migrated (2 resisted, documented), matrix self-measure holds, zero new console errors"}}
+{"log": {"at": "2026-08-31T08:49:58-05:00", "task": "improve-blog-mag", "msg": "landed - blog gains an Atom feed, reading times and a next-post flow; the mag article now says 03 / 06"}}
+{"log": {"at": "2026-08-31T08:52:00-05:00", "task": "improve-game-team", "msg": "landed - a journal, a secret that rewards the map and a second ending in the world; drag-between-lanes, lane points and capacity bars on the team"}}
+{"log": {"at": "2026-08-31T09:06:04-05:00", "task": "improve-scenes-yt", "msg": "landed - the youtube cue engine lifted into cues.js and now driving the 3D pager: a camera tour at /imagine/scenes/tour/, a chapter stopwatch at /imagine/youtube/marks/, keyboard transport on the panel. 80 slot swaps round-trip clean, zero console errors at 400/1920/3440."}}

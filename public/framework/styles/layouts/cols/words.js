@@ -14,9 +14,10 @@ View.stylesheet(import.meta, "cols.css");
 
 export const WORDS = [{
 	name: "half",
+	cls: "cols half",
 	claim: "50 / 50",
 	floor: "34rem",
-	note: "Two peers. The row the site hand-rolls most often.",
+	note: "Two peers. The row the site hand-rolls most often. Promoted — framework.css's own `.cols.half`, not a lab-local rule.",
 	tracks: [
 		{ name: "Feature", kind: "a stage — scales", w: 1 },
 		{ name: "Feature", kind: "a stage — scales", w: 1, quiet: true },
@@ -41,9 +42,10 @@ export const WORDS = [{
 	],
 }, {
 	name: "main-aside",
+	cls: "cols main-aside",
 	claim: "68 / 32, aside capped at 26rem",
 	floor: "34rem",
-	note: "The first word with a CEILING. An aside holds a list, and a list does not scale.",
+	note: "The first word with a CEILING. An aside holds a list, and a list does not scale. Promoted — framework.css's own `.cols.main-aside`.",
 	tracks: [
 		{ name: "Article", kind: "scales", w: 68 },
 		{ name: "On this page", kind: "a list — capped at 26rem", w: 32, quiet: true },

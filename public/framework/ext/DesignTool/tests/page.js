@@ -25,7 +25,7 @@ export default new Page({
 		description: c.why,
 
 		content(){
-			div.c("dt-case grid gap").append(() => {
+			div.c("dt-case cols main-aside gap").append(() => {
 				const $body = div.c("dt-case-body").append(() => c.build());
 				div.c("dt-case-rail").append(() => live($body, { label: c.title }));
 			});

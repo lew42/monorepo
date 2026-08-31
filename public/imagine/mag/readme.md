@@ -30,9 +30,13 @@ Add an article by adding an entry:
            { "figure": ["1", "0.382 0.618"], "caption": "…" }] }
 ```
 
-Its url, its place on the contents, and which article the last one hops to all follow from
-where it sits in the array. `"kind": "data"` plus a `data` block makes it the chart piece
-instead ([`Article.js`](./Article.js) — `Article.Data`).
+Its url, its place on the contents, the `03 / 06` on its own head, and which article the
+last one hops to all follow from where it sits in the array — nothing counts the issue out
+loud. `"kind": "data"` plus a `data` block makes it the chart piece instead
+([`Article.js`](./Article.js) — `Article.Data`).
+
+Reading is a line: every article ends with the next one, and the sixth ends with the
+cover. Clicked through headless — six hops, back to `/imagine/mag/`, no console errors.
 
 ## Watch out
 

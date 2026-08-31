@@ -7,6 +7,7 @@ const notes = {
 	"structure":    "File structure",
 	"meta-tags":    "Meta tags that actually work",
 	"reading-page": "The un-centered reading page",
+	"feed":         "The feed, and how long a post is",
 };
 
 export default new Page({

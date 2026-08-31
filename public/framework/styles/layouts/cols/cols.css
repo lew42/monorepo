@@ -21,10 +21,11 @@
    Colour and spacing are borrowed, not invented: `--surface`, `--line`, `--subtle`,
    `--gap`. Nothing here sets a height and nothing sets `overflow`.
 
-   PROMOTION. If these graduate to framework.css they become `.cols.half`, `.cols.thirds`
-   and so on — the `.flex.auto` / `.grid.auto` shape. They are `cols-*` here because
-   `core/new/1/site/styles.css` already owns a `.cols`, and a lab does not get to take a
-   name from a live sheet. doc/adoption.md has the argument and the migration list. */
+   PROMOTION. `half` and `main-aside` graduated to framework.css 2026-08-31 — `.cols.half`
+   and `.cols.main-aside`, the `.flex.auto` / `.grid.auto` shape. `thirds`, `golden`,
+   `two-one` and `rail-main-aside` stay `cols-*` here: thin evidence, and a lab does not
+   get to take a name from a live sheet regardless. doc/adoption.md has the argument,
+   the migration list, and what landed. */
 
 @layer theme {
 
@@ -75,8 +76,8 @@
 
 	/* ── THE WORDS ── */
 
-	/* Two peers. The commonest hand-rolled row on the site. */
-	.cols-half { --cols-n: 2; --cols-sum: 2; }
+	/* `half` and `main-aside` promoted to framework.css 2026-08-31 (doc/adoption.md) —
+	   `.cols.half` and `.cols.main-aside` there, same mechanics, consumed from here on. */
 
 	/* Three peers. A higher floor because thirds of 544px are 170px each — and this is
 	   where `.flex.auto` puts an orphan on a second line instead. */
@@ -92,18 +93,14 @@
 	.cols-two-one { --cols-n: 2; --cols-sum: 3; }
 	.cols-two-one > :first-child { --cols-w: 2; }
 
-	/* ── the two words with a CEILING ──
+	/* ── the ceiling ──
 	   `core/Page/doc/findings.md`: of the five content kinds only a nav LIST does not
 	   scale. A share is right for a stage, a wall, a statement; a list wants a cap, and
 	   32% of 3440 is 1100px of a 416px list with 340px of nothing on each side.
 	   ⚠ The cap has to LIFT in the stack, or a 500px row stacks a 416px aside under a
-	     500px main and the left edges disagree. Same stack term, on `max-width`. */
-	.cols-main-aside { --cols-n: 2; --cols-sum: 100; }
-	.cols-main-aside > :first-child { --cols-w: 68; }
-	.cols-main-aside > :first-child + * {
-		--cols-w: 32;
-		max-width: max(var(--cols-aside, 26rem), var(--cols-stack));
-	}
+	     500px main and the left edges disagree. Same stack term, on `max-width`. This
+	     is `main-aside`'s own mechanism — promoted above — kept here as the comment
+	     `rail-main-aside` below still leans on. */
 
 	/* Fixed rail, fluid main, capped aside — the three-track shape a documentation site
 	   actually wants, and the one `.flex.auto` cannot express at all.

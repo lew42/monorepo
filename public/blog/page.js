@@ -1,5 +1,5 @@
 import { Page, Sidebar, div, a, span, p } from "/app.js";
-import { sections, of_section, section_url, url, featured, rest } from "./posts.js";
+import { sections, of_section, section_url, url, featured, rest, feed_url } from "./posts.js";
 import { Post } from "./Post.js";
 
 /* THE RAIL — the site's own Sidebar with ONE seam reopened: a group title is a LINK.
@@ -136,6 +136,18 @@ export default new Page({
 				a.c("blog-more-link", "The framework").href("/framework/");
 				a.c("blog-more-link", "Résumé").href("/resume/");
 				a.c("blog-more-link", "How this blog is built").href("/blog/doc/");
+
+				/* THE FEED. Every stamped shell already carries the autodiscovery `<link>`,
+				 * which is what a reader's browser extension finds; this is for the person
+				 * who wants to copy the url. `feed_url` is the manifest's, so the two
+				 * cannot point at different files.
+				 * ⚠ A real file at a real path, so it must NOT be routed: the Router would
+				 *   try to walk to a page called `feed.xml`. `target` takes it out of the
+				 *   app, which is also what a reader wants — the raw XML. */
+				a.c("blog-more-link blog-feed").href(feed_url).attr("target", "_blank").append(() => {
+					span("Feed");
+					span.c("blog-feed-kind", "Atom");
+				});
 			});
 		});
 	},

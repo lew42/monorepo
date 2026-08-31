@@ -24,7 +24,7 @@ public/blog/
             meta-tags.md      part 1  ->  /blog/framework/how-this-blog-works/meta-tags/
             reading-page.md   part 2  ->  /blog/framework/how-this-blog-works/reading-page/
         hello-lew42/
-            page.js  post is in parts, so its page.js declares them
+            page.js       export default new Post({ meta: import.meta })
             no-build.md  pages.md  open.md  *.png
 
     systems/   ai/    the same shape
@@ -89,8 +89,13 @@ child `Page` at `/blog/<section>/<slug>/<key>/` whose content is `<key>.md`.
 list into children.
 
 It can be written in the manifest **or** in the post's own two-line `page.js`, and the
-page.js wins (later args). Beside the `.md` files it names is often the better place;
-nothing outside the post reads it.
+page.js wins (later args). **Write it in the manifest.** A page.js declaration used to be
+the recommendation here — beside the `.md` files it names — and then `meta.mjs` had to
+count a post's words: node cannot import a `page.js` (it imports `/app.js`, a browser
+url), so a post whose parts were only declared there counted zero, silently, and its card
+stopped saying how long it was. Both posts now declare their parts in `posts.js`; the
+override still works and is for a post that genuinely differs from its entry.
+[The feed and the word counts](/blog/doc/feed/).
 
 The parts mount in the post's own `$pages` region (`Page.container()` walks up for the
 nearest one), so **the head and the rail stay put and only the prose swaps**.

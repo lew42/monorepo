@@ -19,10 +19,15 @@ Adding a post — four steps, one of them optional:
 2. `<section>/<name>/page.js` — `export default new Post({ meta: import.meta })`, the
    whole file
 3. `<section>/<name>/post.md`, or one `.md` per key in `parts`
-4. `node public/blog/meta.mjs --write` to stamp `index.html`
+4. `node public/blog/meta.mjs --write` to stamp `index.html`, `feed.xml` and `words.js`
 
 Writing a post: anything wider than prose goes in `<figure class="blog-exhibit">`, which
 takes the space to the right of the reading column.
+
+Three things are **generated** from the manifest and committed — the meta shells, the
+[Atom feed](/blog/feed.xml), and the word count behind every *4 min read*. Re-run step 4
+after editing prose, not just after adding a post; a plain `node public/blog/meta.mjs`
+lists what has drifted and exits non-zero. [The feed](/blog/doc/feed/)
 
 ## Watch out
 
@@ -44,6 +49,12 @@ takes the space to the right of the reading column.
   or missing `index.html` costs a social card, never a page. It never creates a post's
   directory: an entry in the manifest *commissions* a post, and it reports the ones
   nobody has written yet.
+- **Node cannot import a `page.js`** — it imports `/app.js`, a browser url — so anything
+  the generator needs lives in `posts.js`. A post whose `parts:` were declared only in its
+  own page.js counted **zero words**, silently, until a zero learned to report itself.
+  [The feed](/blog/doc/feed/)
+- **An image's `alt` is not read.** Counting it as prose put a post 21% over its real
+  length. [The feed](/blog/doc/feed/)
 - **Posts are not declared as `children`.** The front would have to import every post
   module to print a list of titles. The route walk finds them anyway; `posts.js` is what
   links them. Sections *are* declared — they import nothing but the manifest.
@@ -59,8 +70,10 @@ takes the space to the right of the reading column.
 - [File structure](/blog/doc/structure/) — files on disk, the manifest, multi-part posts
 - [Meta tags](/blog/doc/meta-tags/) — the hybrid, what the dev server and Cloudflare each do, the evidence
 - [Reading page](/blog/doc/reading-page/) — the un-centered layout, measured at 400 / 1280 / 1920 / 3440
+- [The feed](/blog/doc/feed/) — Atom over RSS, the word counts, and the block at the bottom of a post
 - Files: `page.js` (the shell **and** the front), `posts.js` (the manifest), `Post.js`
-  (the reading page + the card and hero every index draws), `Section.js`, `blog.css`
+  (the reading page + the card and hero every index draws), `Section.js`, `blog.css`,
+  and generated: `feed.xml`, `words.js`, every `index.html`
 - Where it came from: `framework/ai/2026-08-30/blog-arch/` (the architecture),
   [`/imagine/blogx/`](/imagine/blogx/) (eight shells, judged at 3440),
   `framework/ai/2026-08-30/blog-build/` (this build)

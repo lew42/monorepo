@@ -74,12 +74,17 @@
 		touch-action: none;
 	}
 
-	/* The label of whatever the pointer is over - 2D chrome reading 3D state. */
+	/* The label of whatever the pointer is over - 2D chrome reading 3D state.
+	   ⚠ `left`/`top` and not the logical pair: Stage.point() writes these two in
+	   PIXELS off the canvas rect, and an inline `inset-inline-start` would flip sides
+	   under a right-to-left document while the maths did not. It follows the cursor,
+	   so it can never be told where to sit by the sheet. */
 	.scene-tip {
-		position: absolute; inset-block-start: 0.7em; inset-inline-start: 0.9em;
+		position: absolute; left: 0.9em; top: 0.7em;
 		padding: 0.15em 0.6em; border-radius: 999px;
 		background: var(--ink); color: var(--surface);
 		font-size: 0.8em; font-weight: 600; letter-spacing: 0.02em;
+		white-space: nowrap;
 		opacity: 0; transition: opacity 0.15s; pointer-events: none;
 	}
 
@@ -125,6 +130,38 @@
 		border-color: var(--prim); color: var(--prim-ink);
 		background: color-mix(in srgb, var(--prim) 12%, transparent);
 	}
+
+	/* THE TOUR. A button in the nav row wearing the link pill, and an itinerary of
+	   nine rows under it.
+	   ⚠ The element is NAMED in the selector on purpose. The site theme styles
+	   `.theme-lew42 :is(button, .btn)` at (0,2,0) in this same layer, so load order
+	   alone would decide whether a tour key is a pill or a 0.7em uppercase CTA;
+	   `.scene-nav button.scene-tour-key` is (0,2,1) and settles it. Only the metrics
+	   are taken back - the voice stays the theme's. */
+	.scene-nav button.scene-tour-key {
+		padding: 0.2em 0.7em;
+		font-size: 0.9em; text-transform: none; letter-spacing: normal;
+		cursor: pointer;
+	}
+
+	/* One row per stop: a time, the url it walks to, and the sentence. The path column
+	   is fixed so ten of them read as a column rather than as ragged prose. */
+	.scene-tour { margin-block-start: 0.8em; display: flex; flex-direction: column; gap: 0.25em; }
+
+	.scene-tour-stop { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.6em; font-size: 0.85em; }
+
+	.scene-tour-at {
+		flex: none; width: 3em;
+		font-family: var(--mono); font-variant-numeric: tabular-nums;
+		color: var(--subtle);
+	}
+
+	.scene-tour-where {
+		flex: none; min-width: 11em;
+		font-family: var(--mono); font-size: 0.9em;
+	}
+
+	.scene-tour-say { flex: 1 1 16em; min-width: 0; color: var(--subtle); }
 
 	/* THE NOTE. One shows at a time - the arrangement contract hides a marked
 	   ancestor that has a marked later sibling - so this is the leaf talking. */

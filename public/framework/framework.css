@@ -502,6 +502,48 @@
     .flex.three > * { flex: 1 1 calc(((var(--column) * 3) - 100%) * 999); }
     .flex > * { margin: 0; }
 
+    /* `.cols` — a 2-track row that is a RATIO, not a wrap threshold: `.flex.auto`'s
+       basis decays away from its ratio as `--grow` scales it, and it has no ceiling.
+       `half` and `main-aside` are the two words the lab measured earning promotion
+       (styles/layouts/cols/doc/adoption.md); `thirds`, `golden`, `two-one` and
+       `rail-main-aside` stay lab-local.
+       ⚠ `--cols-floor` is `rem`, never `em` — `em` is the body's viewport clamp
+         (14px → 18px), so an `em` floor stacks at a different PIXEL width on a
+         phone than on a monitor; `rem` is the root size, 16px everywhere. */
+    .cols {
+        --cols-n: 2; --cols-sum: 2; --cols-fixed: 0px; --cols-floor: 34rem;
+        --cols-stack: calc((var(--cols-floor) - 100%) * 999);
+        display: flex; flex-wrap: wrap; gap: var(--gap, 1em);
+        align-items: var(--cols-align, stretch);
+    }
+    /* basis = this track's share of (the row, less fixed tracks and one gap per
+       track) — or, below the floor, a number bigger than the row, which wraps it
+       onto its own line and is the stack.
+       ⚠ `flex-grow: var(--cols-w)`, not 1 — growing by the weight keeps every
+         track exactly proportional as the row stretches; growing by 1 would split
+         the rounding slack evenly and drift the ratio off. */
+    .cols > * {
+        --cols-w: 1;
+        flex: var(--cols-w) 1 max(
+            calc((100% - var(--cols-fixed) - var(--cols-n) * var(--gap, 1em) - 1px)
+                * var(--cols-w) / var(--cols-sum)),
+            var(--cols-stack));
+        min-width: 0;
+    }
+
+    .cols.half { --cols-n: 2; --cols-sum: 2; }
+
+    /* 68 / 32, the aside CAPPED — a share is right for a stage or a wall, not a
+       list, which does not scale (core/Page/doc/findings.md). The cap has to lift
+       in the stack, or a narrow aside sits under a wide main with the edges
+       disagreeing — same `--cols-stack` term as above, on `max-width` this time. */
+    .cols.main-aside { --cols-n: 2; --cols-sum: 100; }
+    .cols.main-aside > :first-child { --cols-w: 68; }
+    .cols.main-aside > :first-child + * {
+        --cols-w: 32;
+        max-width: max(var(--cols-aside, 26rem), var(--cols-stack));
+    }
+
     /* A centred column, inside anything. It DECLARES `--measure` rather than
        reading the region's, so a 34em block inside a 60em sheet is 34em; override
        it inline (`.style("--measure", "78em")`) and the inline value wins.

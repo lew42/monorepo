@@ -24,10 +24,12 @@
 	.ai-timeline .ai-fold-bar::before { content: "▸ "; }
 	.ai-timeline .ai-fold.open .ai-fold-bar::before { content: "▾ "; }
 
-	.ai-columns { display: grid; grid-template-columns: minmax(22em, 38em) minmax(0, 1fr); gap: 1em; align-items: start; }
-	@media (width < 60em) { .ai-columns { grid-template-columns: 1fr; } }
+	/* `.cols.main-aside` (framework.css) — the rail is DOM-second (so it gets the
+	   capped share) and `order: -1` puts it back on the left; stacks below its own
+	   34rem floor, which replaced the 60em media query this used to need. */
+	.ai-columns { --cols-aside: 38em; --cols-align: start; }
 
-	.ai-rail { display: flex; flex-direction: column; gap: .75em; min-width: 0; }
+	.ai-rail { order: -1; display: flex; flex-direction: column; gap: .75em; min-width: 0; }
 
 	.ai-thread { padding: .5em .75em; cursor: pointer; }
 	.ai-thread .ai-meta { display: flex; gap: .5em; align-items: baseline; }

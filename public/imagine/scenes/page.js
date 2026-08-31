@@ -5,6 +5,7 @@ import plinth from "./plinth/page.js";
 import quarters from "./quarters/page.js";
 import gallery from "./gallery/page.js";
 import observatory from "./observatory/page.js";
+import tour from "./tour/page.js";
 
 /* THE FOYER — the hub, and the artistic half of the brief: a lit rotunda with four
    doors in it, wrapped in ordinary 2D chrome (a path bar, a row of text links, a
@@ -22,8 +23,18 @@ export default new Scene({
 	title: "Scenes",
 	description: "A 3D pager: the page tree is the scene graph. Click an object to navigate.",
 	icon: "3d_rotation",
-	children: "worlds plinth quarters gallery observatory",
+	children: "worlds plinth quarters gallery observatory tour",
+
+	/* ⚠ THE DOORS, NOT THE CHILDREN — and that one word is what lets a child exist
+	   without a post in the colonnade. `tour` is a way of MOVING through these worlds,
+	   not a sixth world, so it takes a chip in the text row (which is derived from
+	   `children`) and stays out of the room. A sixth post would also have said, wrongly,
+	   that there is a fifth grain of swap. */
 	doors: { worlds, plinth, quarters, gallery, observatory },
+
+	// Scene.nav_row() asks this for its controls while a tour is running — the tour is
+	// deactivated by its own first waypoint, so the host is what keeps it on screen.
+	tour,
 
 	// I own the canvas — Scene.stage_host() looks for this word, and everything
 	// below me opts out of `/imagine/`'s columns because of it.
@@ -37,7 +48,7 @@ export default new Scene({
 	camera: { eye: [0, 2.8, 6.6], aim: [0, 2.3, 0] },
 
 	content(){
-		md("Every page below owns one **slot** of the world and builds it. The active chain is the composition — walk it root to leaf, the deeper page wins its slot. That one rule is all four grains of swap: **a whole world**, **one object**, **one region**, **one light** — and the last door is a place that uses all four at once.");
+		md("Every page below owns one **slot** of the world and builds it. The active chain is the composition — walk it root to leaf, the deeper page wins its slot. That one rule is all four grains of swap: **a whole world**, **one object**, **one region**, **one light** — and the last door is a place that uses all four at once. Or [take the tour](/imagine/scenes/tour/) and let a clock walk them for you.");
 		this.staging();
 	},
 
@@ -63,7 +74,9 @@ export default new Scene({
 			world.add(ring);
 		});
 
-		world.userData.portals = [...this.children.keys()].map((name, i, all) => this.portal(stage, theme, ground, name, i, all.length));
+		const doors = Object.keys(this.doors);
+
+		world.userData.portals = doors.map((name, i) => this.portal(stage, theme, ground, name, i, doors.length));
 		world.add(...world.userData.portals);
 		return world;
 	},

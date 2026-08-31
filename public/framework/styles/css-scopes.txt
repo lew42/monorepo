@@ -13,6 +13,7 @@ btn
 capitalize
 checkered
 code
+cols
 css
 demo-render
 flex
@@ -26,7 +27,9 @@ h1
 h2
 h3
 h4
+half
 icon
+main-aside
 masonry
 material-icons
 md
@@ -93,7 +96,8 @@ dev-         dev/DevBar
 ui-          ui/
 
 # styles
-cols-        styles/layouts/cols   (not the bare `.cols` — core/new/1/site/styles.css owns it)
+cols-        styles/layouts/cols, the lab's remaining local words (thirds/golden/two-one/rail-main-aside)
+             (bare `.cols`, `.half`, `.main-aside` promoted to framework.css 2026-08-31 — core/new/1/site/styles.css's `.cols` is unreachable, no live conflict)
 space-       styles/layouts/space
 rules-       styles/rules
 stacks-      styles/stacks   (not `stack-` — ext/demo owns the bare `.stack` modifier)

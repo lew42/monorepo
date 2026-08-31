@@ -11,12 +11,14 @@ questions. `.flex.auto` answers the first one well and the second one only by ac
 
 | word | ratio | floor |
 |---|---|---|
-| `cols-half` | 50 / 50 | 34rem |
+| `cols half` | 50 / 50 | 34rem |
 | `cols-golden` | 61.8 / 38.2 | 34rem |
 | `cols-two-one` | 2 : 1 | 34rem |
-| `cols-main-aside` | 68 / 32, aside capped at `--cols-aside` (26rem) | 34rem |
+| `cols main-aside` | 68 / 32, aside capped at `--cols-aside` (26rem) | 34rem |
 | `cols-thirds` | 1 : 1 : 1 | 52rem |
 | `cols-rail-main-aside` | `--cols-rail` (16em), then 70 / 30, aside capped at 22rem | 60rem |
+
+`half` and `main-aside` promoted to framework.css 2026-08-31 — [adoption](doc/adoption/) has the migration.
 
 Tokens: `--cols-floor`, `--cols-aside`, `--cols-rail`, and `--gap` as everywhere else.
 

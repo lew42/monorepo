@@ -1,9 +1,9 @@
 # Decisions — the YouTube lab
 
-Built 2026-08-30. Five labs, one engine. Everything below was measured headless against the
-live pages unless it says otherwise.
+Built 2026-08-30; the engine lifted out and a sixth lab added 2026-08-31. Everything below was
+measured headless against the live pages unless it says otherwise.
 
-## The five, and what each one proves
+## The six, and what each one proves
 
 | page | width | proves |
 |---|---|---|
@@ -12,6 +12,30 @@ live pages unless it says otherwise.
 | [`yield/`](/imagine/youtube/yield/) | `large` | the player scales aside and keeps playing; the UI takes the stage |
 | [`split/`](/imagine/youtube/split/) | `large` | the timeline OFFERS values and never overwrites yours |
 | [`chat/`](/imagine/youtube/chat/) | `large` | forward catches up, backward replays |
+| [`marks/`](/imagine/youtube/marks/) | `large` | where a cue table comes from — the list you edit IS the live timeline |
+
+## Settled 2026-08-31 — the engine is not a video player
+
+- **`cues.js` is its own file**, and `Player` is three lines of delegation into it. The engine
+  fires through an injected `fire`, so a page still listens to the one object it holds and all
+  five original labs are byte-for-byte unchanged in behaviour. [`cues.md`](./cues.md)
+- **The formatters moved with it.** `clock()` and `seconds()` are timeline vocabulary, not video
+  vocabulary; importing `youtube.js` to print `"1:32"` would have pulled a stylesheet and
+  Google's loader into a 3D scene.
+- **`clock()` grew an hour branch.** A two-hour talk read `"127:14"`, and `marks/` emits these
+  strings for a human to paste.
+- **The proof the extraction was worth it is outside this module:**
+  [`/imagine/scenes/tour/`](/imagine/scenes/tour/) imports `Cues` and `Clock` unchanged and
+  walks a 3D world's urls on a wall clock. Welded to a `Player`, that was impossible.
+- **Keyboard transport on `panel/`, rendered from ONE table** — Space/K, ← →, J L, ↑ ↓, M, 0–9.
+  The legend under the controls is printed from the same list that dispatches, so an advertised
+  key and a working key cannot drift. Every press logs into the feed as its API call name.
+  Measured: Space paused, M muted, ↓ took volume 100 → 90, `5` jumped to 453s of 905, and
+  typing `2:30` into the seek box was not stolen.
+  ⚠ Once focus is inside the player the keydown is cross-origin and this document never sees
+  it — YouTube's own shortcuts take over, which is the right answer. The label says so.
+- **`marks/` starts on the Jobs talk on purpose**, because that is what `course/` is built on:
+  the array you copy out pastes straight into that page's `CHAPTERS`.
 
 ## The two directions, measured
 
@@ -91,6 +115,12 @@ narrow width. Nothing else on any of the five pages scrolls at 400 / 1280 / 1920
 - **`page.store()` persistence** for the form data. Out of fence, and `/imagine/store.js`
   already has the proposal.
 
+## Closed 2026-08-31
+
+- **The chapter marks are hand-typed seconds.** They still are — but nobody has to type them
+  with a stopwatch any more. [`marks/`](/imagine/youtube/marks/) is the tool, and
+  [`marks.md`](./marks.md) says why the Data API is still not the answer for a static site.
+
 ## Open — the owner decides
 
 - **Should a chapter boundary be a hard stop?** Today the video runs on and the nav follows. A
@@ -98,6 +128,9 @@ narrow width. Nothing else on any of the five pages scrolls at 400 / 1280 / 1920
 - **`index: true` on `course/` hides core's row list** because the bar shows the chapters. At
   400 the bar's labels clip to five characters (`OPENI`, `FOOLIS`). The `title` attribute has
   the full name; whether a phone should get the rows back instead is a real question.
-- **The chapter marks are hand-typed seconds.** YouTube publishes chapters for videos that have
-  them, but not through the IFrame API — it would need the Data API and a key, which is a
-  server, which production does not have.
+- **Should the keyboard transport be `Player`'s rather than `panel/`'s?** It is one table and
+  one guarded handler, and four other labs would take it unchanged. It is a page's decision
+  today because a page is where the reader's expectations live — but the duplication in
+  `marks/` (which binds only `M`) is the first hint that it wants to move.
+- **`marks/` writes nothing down.** Reload and the table is gone. `page.store()` is the obvious
+  next move and `/imagine/store.js` already has the proposal; it was out of this fence.

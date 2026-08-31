@@ -1,6 +1,9 @@
 import { View, div, img, button, icon } from "/app.js";
+import { Cues } from "./cues.js";
 
 View.stylesheet(import.meta, "youtube.css");
+
+export { Cues, Clock, clock, seconds } from "./cues.js";
 
 /* The YouTube IFrame Player API, wrapped once for the whole lab — five pages, one
    module. `Player` is the handle a page keeps; `cues()` is the timeline engine four
@@ -46,8 +49,11 @@ export class Player {
 	constructor(...args){
 		this.assign(...args);
 		this.handlers = {};
-		this.marks = [];
-		this.crossed = -1;
+
+		// The engine fires through the PLAYER, so a page listens to one object for
+		// `cue`/`reset` and for `time`/`state` alike. cues.js
+		this.timeline = new Cues({ fire: (...args) => this.fire(...args) });
+
 		Player.all.push(this);
 		this.initialize();
 	}
@@ -152,38 +158,12 @@ export class Player {
 		return this.stop_watching();
 	}
 
-	// ════ THE CUE ENGINE ══════════════════════════════════════════════════════
-	// cues([{ at, fn }]) — the whole timeline vocabulary. doc/cues.md.
-	cues(list){
-		this.marks = [...this.marks, ...list].sort((a, b) => a.at - b.at);
-		return this;
-	}
-
-	// ONE comparison: how many cues are behind the playhead. Moving forward runs the
-	// ones just crossed — which is also what makes a forward SCRUB fast-forward the
-	// room. Moving back fires `reset` and replays from the start, so scrubbing lands
-	// on exactly the screen a playthrough would have built. No cue needs an undo.
-	run(time){
-		let to = -1;
-		while (this.marks[to + 1] && this.marks[to + 1].at <= time) to++;
-		if (to === this.crossed) return this;
-
-		let from = this.crossed;
-		if (to < from){ this.fire("reset"); from = -1; }
-
-		this.crossed = to;
-
-		for (let i = from + 1; i <= to; i++){
-			this.fire("cue", this.marks[i], i);
-			this.marks[i].fn?.(this.marks[i], this);
-		}
-
-		return this;
-	}
-
-	// The cue the playhead is inside — the "which chapter am I in" question, which is
-	// the same question as "what was the last thing crossed".
-	current(){ return this.marks[this.crossed]; }
+	// ════ THE CUE ENGINE — three lines of delegation ══════════════════════════
+	// cues([{ at, fn }]) — the whole timeline vocabulary. The engine itself is
+	// `Cues` in cues.js, which knows nothing about video. doc/cues.md.
+	cues(list){ this.timeline.add(list); return this; }
+	run(time){ this.timeline.run(time); return this; }
+	current(){ return this.timeline.current(); }
 
 	// ════ EVENTS ══════════════════════════════════════════════════════════════
 	// ready · state · rate · error · time · cue · reset
@@ -225,7 +205,7 @@ export class Player {
 	// `cue` loads without playing, which is the pair the API draws a line between.
 	swap(id, cue){
 		this.video = id;
-		this.crossed = -1;
+		this.timeline.rewind();
 		this.fire("reset");
 		cue ? this.yt?.cueVideoById?.(id) : this.yt?.loadVideoById?.(id);
 		return this.settle();
@@ -235,12 +215,6 @@ export class Player {
 Player.all = [];      // every player on the page — also how you reach one from the console
 Player.live = 0;      // running polls, document-wide. 0 after you leave a page, or it leaked.
 Player.states = { "-1": "unstarted", 0: "ended", 1: "playing", 2: "paused", 3: "buffering", 5: "cued" };
-
-// 92.4 → "1:32". The one formatter, so five pages cannot disagree about it.
-export function clock(s){
-	s = Math.max(0, Math.floor(s || 0));
-	return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
-}
 
 // The five talks, shared with /imagine/feeds/video/ — known-good public embeds.
 export const TALKS = {

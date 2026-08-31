@@ -5,6 +5,29 @@ The atmosphere pass and the observatory landed the same day; the mechanism never
 what was built on it. The technique lives in [`atmosphere.md`](./atmosphere.md) and
 [`observatory.md`](./observatory.md); the record is here.
 
+## Settled 2026-08-31 — the tour
+
+- **A timeline can drive a pager, and it needed no new engine.** `/imagine/scenes/tour/` imports
+  `Cues` and `Clock` from `/imagine/youtube/cues.js` unchanged and walks ten waypoints of the
+  worlds this module already had. Full record: [`tour.md`](./tour.md).
+- **Every waypoint is `router.go()`.** Not a camera path, not a mode: the camera moves because
+  the deepest `camera` in the new chain won, the way it always does. So the url is the waypoint,
+  the back button walks the tour backwards, and stopping halfway leaves you in a real place.
+- **The tour is a child without a door.** `build()` iterates `Object.keys(this.doors)` now
+  rather than `children`, so the colonnade stays at five posts. A tour is a way of moving
+  through these worlds, not a sixth world — and a sixth post would have claimed a fifth grain.
+- **The controls render into the HOST's nav row** (`Scene.nav_row()` calls `this.tour?.controls()`).
+  Start is there too: the stage is a 66vh clamp, so at 1080 the tour's own note begins below the
+  fold and the one button the page exists for would have needed a scroll to find.
+- **The narration writes over `.scene-hint`.** A guided walk's caption and the affordance hint
+  are the same corner of the stage; `stop()` puts the sentence back.
+- **The hover tip follows the pointer.** Parked in the top-left corner it named a thing you were
+  not looking at. The raycast still only runs when the target CHANGES — only the style write is
+  per-move. It is a tooltip now, not a status bar.
+- **Perf re-proved after all of it:** 8 laps × 10 navigations (80 slot swaps) round-trip to
+  exactly 38 geometries / 12 textures / 1 slot, with zero drift; the rAF loop stops on leaving
+  the subtree (frames frozen across a full second) and restarts on return.
+
 ## Settled — the observatory
 
 - **A fifth door, and it is not a fifth grain.** Four doors teach one size of swap each; the

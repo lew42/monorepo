@@ -5,6 +5,8 @@ View.stylesheet(import.meta, "scenes.css");
 
 export { THREE };
 
+export const HINT = "Click anything that lights up.";
+
 /* A SCENE PAGE. The tree is the scene graph: every page owns one `slot` of the
    world and `build()`s it, and the ACTIVE CHAIN is the composition — walk it root
    to leaf, the deeper page wins its slot, and whatever nobody claims is gone. That
@@ -52,7 +54,10 @@ export class Scene extends Page {
 		const box = div.c("scene-stage bleed", () => {
 			this.$canvas = el("canvas").ac("scene-canvas");
 			this.$tip = div.c("scene-tip");
-			div.c("scene-hint", "Click anything that lights up.");
+
+			// Kept, because a running tour writes its narration here — the caption of a
+			// guided walk and the affordance hint are the same corner of the stage.
+			this.$hint = div.c("scene-hint", HINT);
 		});
 
 		this.$nav = div.c("scene-nav");
@@ -96,6 +101,12 @@ export class Scene extends Page {
 	   is the one place a reader can always see the doors out of where they are. */
 	nav_row(page){
 		const from = page.children.size ? page : page.parent;
+
+		/* A running tour leads the row. It is the only control on screen that can stop
+		   one — the tour's own page is somewhere behind you by then — and this row is
+		   already rebuilt at every waypoint, so it costs nothing to keep in step. The
+		   doors stay below it: a tour you cannot walk out of is a cage. */
+		this.tour?.controls();
 
 		span.c("scene-nav-label", from === page ? "Enter" : "Switch");
 
@@ -362,7 +373,13 @@ Scene.Stage = class Stage {
 		return null;
 	}
 
+	/* ⚠ TWO THINGS, AND ONLY ONE OF THEM IS CHEAP. The label follows the pointer on
+	   every move, which is a style write; the raycast and the emissive change happen
+	   only when what is under the pointer actually CHANGES. Parked in a corner the tip
+	   named a thing you were not looking at — it is a tooltip now, not a status bar. */
 	hover(e){
+		if (e) this.point(e);
+
 		const target = e && this.hit(e);
 		if (target === this.hovered) return;
 
@@ -374,6 +391,19 @@ Scene.Stage = class Stage {
 		this.tip.el.classList.toggle("scene-tip-on", !!target);
 
 		if (!this.running) this.frame();
+	}
+
+	// Offset up and right of the cursor, then clamped inside the stage — a label that
+	// runs off the edge of the canvas is worse than one that never moved.
+	point(e){
+		const box = this.canvas.el.getBoundingClientRect();
+		if (!box.width) return this;
+
+		const tip = this.tip.el;
+
+		tip.style.left = Math.min(Math.max(e.clientX - box.left + 14, 8), box.width - tip.offsetWidth - 8) + "px";
+		tip.style.top = Math.max(e.clientY - box.top - tip.offsetHeight - 12, 8) + "px";
+		return this;
 	}
 
 	lit(target, amount){

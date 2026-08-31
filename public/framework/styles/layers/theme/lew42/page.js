@@ -62,17 +62,20 @@ export default new Doc({
 
 		md("## The sidebar, from two tokens");
 
+		/* `.cols.main-aside` (framework.css) — DOM is main-then-sidebar (the rule's own
+		   order); `order: -1` puts the sidebar back on the left. `--cols-aside` reads
+		   the same `--sidebar` token the panel already sizes itself from. */
 		demo(() => {
-			div.c("theme-lew42 flex gap", () => {
-				sidebar().style({ flex: "0 0 var(--sidebar)" });
+			div.c("theme-lew42 cols main-aside", () => {
 				div.c("pad flex-1", sample);
+				sidebar().style({ order: "-1", "--cols-aside": "var(--sidebar)" });
 			});
 		}, "Core's `Sidebar`, unmodified. The comp's white panel is `--sidebar-bg` and `--sidebar-ink`; every other colour in it — the group title, the icons, the hover fill, the active row — is a `color-mix` off that one ink.");
 
 		demo(() => {
-			div.c("theme-lew42 flex gap", () => {
-				sidebar().style({ flex: "0 0 var(--sidebar)" });
+			div.c("theme-lew42 cols main-aside", () => {
 				div.c("pad flex-1", sample);
+				sidebar().style({ order: "-1", "--cols-aside": "var(--sidebar)" });
 			}).style({ "--sidebar-bg": "#1f1f1f", "--sidebar-ink": "#e6e6e6" });
 		}, "The comp's other sidebar. **Two token values, no second design** — and nothing in `lew42.css` mentions `.sidebar`, because a theme that names a component class is a component missing a token.");
 

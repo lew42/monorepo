@@ -37,7 +37,7 @@ export default new Doc({
 	// Every member, in the order a reader meets them: the tree, then rendering,
 	// then the derivation the constructor does, then the plumbing and the statics.
 	methods: "child add move previews walls preview preview_card preview_link link crumbs "
-		+ "nav nav_for chain nearest topic document container activate render columns default_column warn_if_hidden "
+		+ "nav nav_for chain nearest topic document container activate render columns default_column warn_if_hidden store "
 		+ "naming declare load_all_children deactivate "
 		+ "mounts_in log_label assign load missing slug",
 

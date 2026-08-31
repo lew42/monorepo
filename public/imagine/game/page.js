@@ -1,5 +1,4 @@
 import { Page, div, span, a, button, md, icon } from "/app.js";
-import { store } from "../store.js";
 
 /* Container: /imagine/'s column row — there is no page grid here, so `wide` means
    nothing and only `bleed` reaches an edge. Size: `small` 14em rails — the run, the
@@ -14,7 +13,7 @@ import { store } from "../store.js";
    opens one. Nothing here knows it is a game except the words.
 
    THE STATE IS THE URL'S. Where you have been, what you carry and what you gave away
-   live in this page's store, keyed on `/imagine/game/` (../store.js), so a cold load
+   live in this page's store, keyed on `/imagine/game/` (`this.store()`), so a cold load
    three columns deep after a reload finds a lit lamp and an unlocked cistern. The lock
    is what makes that visible: the Cistern needs the lamp, the Vault needs the key the
    Cistern holds, the gate shuts for the sigil the Vault holds — one chain, and it is
@@ -35,9 +34,19 @@ import { store } from "../store.js";
    ⚠ A room id is `realm/room`, not `room`. Names are only unique among siblings, and
      a bare name would have two realms sharing one visited mark. */
 
+/* ⚠ `tone` and `air` are the realm's AMBIANCE, and both are one word.
+   `tone` is a rung of the wash → tint → surface ladder, applied to the realm's own
+   rail and every room under it, so walking between realms is a visible step. Which
+   rung is not a taste call: `/imagine/vary/tone/up/` measured this ladder and its
+   verdict is "each column sits visibly ABOVE the one before it" — so the Hollow, under
+   the hill, is the floor, the Verge is one rung up, and the Spire is the top. The other
+   three schemes that lab tried are wrong here on their own verdicts: `down` reads as
+   recession in light mode and inverts in dark (elevation is LIGHTER on both sides,
+   lew42.css), `alt` reads as zebra, `flip` reads as "you are here". */
 const WORLD = [
 	{
 		name: "verge", title: "The Verge", blurb: "Wind, and a gate nobody shut.",
+		tone: "imagine-tone-mid", air: "wind",
 		rooms: [
 			{ name: "gate",   title: "Iron Gate",  scene: "The gate stands open on its own rust. There is a socket in the near post, the size of a coin, and nothing in it. Beyond, the path forks: down to the workings, up along the cliff." },
 			{ name: "quarry", title: "Old Quarry", scene: "Cut stone, stacked and abandoned. A brass lamp hangs on a spike at head height, still full.", item: "lamp" },
@@ -46,15 +55,30 @@ const WORLD = [
 	},
 	{
 		name: "hollow", title: "The Hollow", blurb: "Under the hill. Bring a light.",
+		tone: "imagine-tone-low", air: "water",
 		rooms: [
 			{ name: "stair",   title: "Root Stair", scene: "Roots have taken the stair one step at a time. Something below is dripping on a long, patient interval." },
 			{ name: "cistern", title: "Cistern",    scene: "Black water, waist deep and dead still. An iron key sits on the lip of the overflow, above the line.", item: "key", needs: "lamp",
 			  shut: "Pitch dark, and the water is deeper than it looks. Come back with a light." },
-			{ name: "kiln",    title: "Bone Kiln",  scene: "A firing chamber gone cold centuries back. The flue runs up and up — all the way to the Spire, by the draught." },
+
+			/* ⚠ THE SECRET, and the only thing in the world you can walk past forever.
+			   The lens is won at the TOP of the Spire, and it is wanted at the BOTTOM of
+			   the Hollow — so the one way to find this is to go back down a realm you
+			   have already finished, which is exactly what the map in the rail is for.
+			   `look` is a fourth verb (take, trade, walk, look) and the only one that
+			   changes how the run ENDS without touching the pack. */
+			{ name: "kiln",    title: "Bone Kiln",  scene: "A firing chamber gone cold centuries back. The flue runs up and up — all the way to the Spire, by the draught.",
+			  look: {
+				id: "flue", needs: "lens", thing: "The flue", does: "look up it",
+				waiting: "something to see",
+				found: "Held at the base of the flue, the ground lens pulls the far end into focus, and it is not sky. It is a room of glass four hundred feet up, and the underside of a lamp. The kiln and the Lantern Room are the same shaft. You have been walking the long way round it the whole time.",
+				note: "Looked up the kiln's flue and found the Lantern Room at the top of it.",
+			  } },
 		],
 	},
 	{
 		name: "spire", title: "The Spire", blurb: "Above the hill. Bring a key.",
+		tone: "imagine-tone-high", air: "glass",
 		rooms: [
 			{ name: "gallery", title: "Long Gallery", scene: "Windows on one side, doors on the other, all of them locked but one. A woman sits in the open doorway with a book she cannot read in this light, and a ground lens she is using as a paperweight.",
 			  trade: { wants: "lamp", gives: "lens", after: "key" } },
@@ -89,6 +113,14 @@ const GATE = {
 
 const ROOMS = WORLD.flatMap(realm => realm.rooms.map(room => realm.name + "/" + room.name));
 
+/* `realm/room` → the phrase the journal writes when you walk it. One map, so a room's
+   title lives in WORLD and nowhere else.
+   ⚠ One room is called "The Vault" and eight are not, so the article has to be asked
+     for rather than assumed — "Walked the The Vault" shipped for about ten minutes. */
+const WALKED = Object.fromEntries(WORLD.flatMap(realm => realm.rooms.map(room =>
+	[realm.name + "/" + room.name,
+	 "Walked " + (/^The /.test(room.title) ? "" : "the ") + room.title + ", in " + realm.title + "."])));
+
 export default new Page({
 	meta: import.meta,
 	title: "Game",
@@ -100,22 +132,41 @@ export default new Page({
 
 	is: "topic",
 
+	/* ⚠ Two fields were ADDED to the saved shape, and both default empty — a save
+	     written before this pass still loads, it just has a short journal. Never
+	     rename one: the key is the url and there is no migration step.
+	   ⚠ `sights`, not `seen` — `seen(realm)` is a METHOD one line below, and a field
+	     of that name would shadow it and throw on the first rail redraw. */
 	initialize(){
-		const saved = store(this).get({ found: [], carried: [], traded: [] });
+		const saved = this.store().get({ found: [], carried: [], traded: [], sights: [], log: [] });
 
 		this.found = new Set(saved.found);
 		this.carried = new Set(saved.carried);
 		this.traded = new Set(saved.traded);
+		this.sights = new Set(saved.sights);
+		this.log = [...saved.log];
 	},
 
 	watch(fn){ (this.watchers ??= []).push(fn); fn(); },
 	bump(){ this.watchers?.forEach(fn => fn()); },
 
-	save(){ store(this).set({ found: [...this.found], carried: [...this.carried], traded: [...this.traded] }); },
+	save(){
+		this.store().set({
+			found: [...this.found], carried: [...this.carried], traded: [...this.traded],
+			sights: [...this.sights], log: this.log,
+		});
+	},
+
+	/* THE ONE THING STORED THAT CANNOT BE COMPUTED. Everything else on this page is
+	   derived — the HUD, the map and the finale all count the same three sets — but the
+	   ORDER you did things in is gone the moment it happens, and a journal is only worth
+	   reading because it is in order. So the sentence is written down at the moment of
+	   the move, not reconstructed afterwards. */
+	note(line){ this.log.push(line); },
 
 	// Every write goes through the store, so there is no such thing as unsaved progress.
-	enter(id){ if (this.found.has(id)) return; this.found.add(id); this.save(); this.bump(); },
-	take(item){ this.carried.add(item); this.save(); this.bump(); },
+	enter(id){ if (this.found.has(id)) return; this.found.add(id); this.note(WALKED[id]); this.save(); this.bump(); },
+	take(item){ this.carried.add(item); this.note("Took the " + ITEMS[item].toLowerCase() + "."); this.save(); this.bump(); },
 
 	/* The one move that SPENDS. `take` only ever grows the pack; this shrinks it, and
 	   the thing you gave up is remembered separately so a chip can say "gone" rather
@@ -124,12 +175,21 @@ export default new Page({
 		this.carried.delete(gave);
 		this.traded.add(gave);
 		this.carried.add(got);
+		this.note("Gave the " + ITEMS[gave].toLowerCase() + " to the Keeper, and took the " + ITEMS[got].toLowerCase() + ".");
 		this.save();
 		this.bump();
 	},
 
+	/* THE FOURTH VERB. It costs nothing and takes nothing — it is the only move whose
+	   whole effect is on how the run ENDS, which is what makes it worth hiding a realm
+	   away from where its key is found. */
+	look(sight){ this.sights.add(sight.id); this.note(sight.note); this.save(); this.bump(); },
+
 	carrying(item){ return !item || this.carried.has(item); },
 	won(){ return this.carried.has(GATE.needs); },
+
+	// Which of the two endings the gate is going to draw. Not stored: it IS `sights`.
+	long_way(){ return this.sights.has("flue"); },
 
 	seen(realm){ return [...this.found].filter(id => id.startsWith(realm + "/")).length; },
 	finished(){ return WORLD.filter(realm => this.seen(realm.name) === realm.rooms.length).length; },
@@ -142,7 +202,9 @@ export default new Page({
 		this.found.clear();
 		this.carried.clear();
 		this.traded.clear();
-		store(this).clear();
+		this.sights.clear();
+		this.log.length = 0;
+		this.store().clear();
 		this.bump();
 	},
 
@@ -181,6 +243,16 @@ export default new Page({
 					});
 				}));
 
+				// What the run has done, in order. A plain row, not an `.imagine-place`:
+				// it is not somewhere in the world, it is the record of it.
+				a.c("imagine-row").href(this.url + "journal/").append(() => {
+					span.c("imagine-row-name", "Journal");
+					span.c("imagine-row-meta", () => {
+						span(this.log.length ? "what happened, in order" : "nothing yet");
+						span.c("imagine-load", this.log.length + "");
+					});
+				});
+
 				// The way out — the one row whose state IS the run's, from the first paint.
 				a.c("imagine-row imagine-place")
 					.ac(this.won() ? "imagine-seen" : "imagine-locked")
@@ -210,8 +282,18 @@ export default new Page({
 				realm.rooms.forEach(room => {
 					const id = realm.name + "/" + room.name;
 
-					if (this.found.has(id)) a.c("imagine-map-cell imagine-map-on", room.name).href(this.url + id + "/");
-					else span.c("imagine-map-cell", room.name).ac(!this.carrying(room.needs) && "imagine-map-shut");
+					/* ⚠ SHUT AND WALKED ARE INDEPENDENT, and only the trade makes that
+					   true: it spends the lamp, so a Cistern you have already walked
+					   goes back to needing one. The cell stayed a bright link across
+					   that move while the rail row beside it said "needs the brass
+					   lamp" — the two surfaces the doc calls incapable of disagreeing,
+					   disagreeing. It keeps the link (you HAVE been there, and the map
+					   is a record) and takes the dimming, which is the honest reading
+					   of both facts at once. */
+					const shut = !this.carrying(room.needs);
+
+					if (this.found.has(id)) a.c("imagine-map-cell imagine-map-on", room.name).ac(shut && "imagine-map-shut").href(this.url + id + "/");
+					else span.c("imagine-map-cell", room.name).ac(shut && "imagine-map-shut");
 				});
 			}));
 
@@ -309,6 +391,10 @@ export default new Page({
 		   nav rail is not one. */
 		width: "small",
 
+		// The realm's rung of the tone ladder, on the rail as well as on its rooms, so
+		// changing realm is a visible step and not just a change of words.
+		classes: realm.tone,
+
 		// The realm rail: one row per room, marked visited, marked locked.
 		column(host){
 			const run = this.topic();
@@ -328,12 +414,16 @@ export default new Page({
 								span.c("imagine-row-name", room.title);
 								span.c("imagine-row-meta", () => {
 									// The trade, said in the nav: the Gallery's line changes the
-									// moment the Keeper has something to say to you.
+									// moment the Keeper has something to say to you — and the
+									// Kiln's does the same the moment you come back down
+									// carrying the thing that makes its flue readable.
 									span(locked ? "needs the " + ITEMS[room.needs].toLowerCase()
 										: room.trade && !run.carried.has(room.trade.gives) && run.carried.has(room.trade.after) ? "someone is waiting"
+										: room.look && run.carrying(room.look.needs) && !run.sights.has(room.look.id) ? room.look.waiting
 										: run.found.has(id) ? "walked" : "unwalked");
 
 									if (room.item) icon(run.carried.has(room.item) ? "check" : "star");
+									else if (room.look && run.sights.has(room.look.id)) icon("visibility");
 								});
 							});
 					}));
@@ -352,12 +442,16 @@ export default new Page({
 			title: room.title,
 			description: room.scene.split(".")[0] + ".",
 			width: "large",
-			classes: index === 0 ? "default" : undefined,
+			classes: (index === 0 ? "default " : "") + realm.tone,
 
 			content(){
 				const run = this.topic(), id = realm.name + "/" + room.name;
 
 				div.c("imagine-room flex v gap", $room => run.watch(() => $room.empty(() => {
+					// The realm's one word, said before its rooms are. It is on the shut
+					// screen too — you can feel where you are standing without getting in.
+					span.c("imagine-air", realm.air);
+
 					// A shut room says why in its OWN words; the rail says it in three.
 					if (!run.carrying(room.needs)){
 						div.c("imagine-shut", () => {
@@ -398,6 +492,18 @@ export default new Page({
 						}
 					});
 
+					/* THE LOOK — the same box a third time, because it is the same gesture
+					   again: a thing, and one button. Nothing is said at all until you are
+					   carrying what makes it readable, so a first pass through the Kiln
+					   reads exactly as it always did and the secret stays a secret. */
+					if (room.look && run.carrying(room.look.needs)){
+						if (run.sights.has(room.look.id)) div.c("imagine-scene imagine-found", room.look.found);
+						else div.c("imagine-take flex v-center gap wrap", () => {
+							span.c("imagine-item", room.look.thing);
+							div.c("imagine-seg flex", () => button.c("imagine-seg-btn", room.look.does).click(() => run.look(room.look)));
+						});
+					}
+
 					// Exits are links to SIBLINGS, so the column swaps where it stands —
 					// plus the way out, once there is one, from wherever you are standing.
 					div.c("imagine-exits flex wrap gap", () => {
@@ -422,6 +528,58 @@ export default new Page({
 			},
 		})),
 	})),
+
+		/* THE JOURNAL. A column, because everything here is a column — and a real page,
+		   so it has a url you can come back to and a rail row from the first paint.
+
+		   It is the one screen that reads the run as a SENTENCE rather than a state. The
+		   HUD says what you have, the map says where you have been, and neither can say
+		   what you did first; this reads `log` straight out and numbers the lines. There
+		   is no filtering, no grouping and no cleverness — the order is the content. */
+		{
+			name: "journal",
+			title: "Journal",
+			description: "Everything this run has done, in the order it happened.",
+			width: "large",
+
+			content(){
+				const run = this.topic();
+
+				div.c("imagine-room flex v gap", $page => run.watch(() => $page.empty(() => {
+					if (!run.log.length){
+						div.c("imagine-shut", () => {
+							icon("history_edu");
+							span("Nothing has happened yet. The page fills itself in as you walk.");
+						});
+
+						div.c("imagine-exits flex wrap gap", () => a.c("imagine-exit", "Walk in — the Iron Gate").href(run.url + "verge/gate/"));
+						this.app?.router?.mark_links();
+						return;
+					}
+
+					div.c("imagine-journal flex v", () => run.log.forEach((line, index) => div.c("imagine-entry flex gap", () => {
+						span.c("imagine-entry-n", String(index + 1));
+						span(line);
+					})));
+
+					// The pack as it stands, under the account of how it got that way.
+					div.c("imagine-items flex wrap gap", () => Object.entries(ITEMS).forEach(([id, label]) =>
+						span.c("imagine-item")
+							.ac(run.carried.has(id) && "imagine-have")
+							.ac(run.traded.has(id) && "imagine-gone")
+							.append(label)));
+
+					div.c("imagine-exits flex wrap gap", () => {
+						a.c("imagine-exit", "The Verge").href(run.url + "verge/");
+						if (run.won()) a.c("imagine-exit", GATE.title).href(run.url + GATE.name + "/");
+					});
+
+					this.app?.router?.mark_links();
+				})));
+
+				md("A line is written when the move happens, not counted up afterwards — the **order** is the one thing about a run that cannot be derived from what you are carrying.");
+			},
+		},
 
 		/* THE ENDING. A real page, so it is cold-loadable and has a url a rail row can
 		   point at from the first paint — and it is the same page in both states: shut
@@ -448,11 +606,20 @@ export default new Page({
 						return;
 					}
 
+					/* TWO ENDINGS, and the page picks between them the same way it picks
+					   between shut and open: it asks the store. The second one is not a
+					   harder win — the chain is identical — it is a better INFORMED one,
+					   and the only way to have it is to walk back down to the Kiln after
+					   the Spire has already given you everything it has. */
 					div.c("imagine-open", () => {
-						span.c("imagine-eyebrow", "the run is closed");
-						div.c("imagine-display", "The gate is shut.");
+						const long = run.long_way();
+
+						span.c("imagine-eyebrow", long ? "the long way round" : "the run is closed");
+						div.c("imagine-display", long ? "The gate is shut, and you know why." : "The gate is shut.");
 						div.c("imagine-rule");
-						div.c("imagine-lede", "The sigil drops into the socket in the post and the leaves swing to on their own rust, for the first time in a long while. Behind you: the workings, the water under the hill, and a light in the lantern room if you left one there.");
+						div.c("imagine-lede", long
+							? "The sigil drops into the socket in the post and the leaves swing to on their own rust, for the first time in a long while. You leave knowing the shape of the place: one shaft from the cold kiln to the glass room, and the whole climb up the cliff and down through the water was a way of walking round it. The lamp you gave away is still burning at the top."
+							: "The sigil drops into the socket in the post and the leaves swing to on their own rust, for the first time in a long while. Behind you: the workings, the water under the hill, and a light in the lantern room if you left one there.");
 					});
 
 					div.c("imagine-chain flex v-center wrap gap", () => CHAIN.forEach((step, index) => {
@@ -470,6 +637,7 @@ export default new Page({
 						["carried out",     run.carried.size + ""],
 						["given away",      run.traded.size + ""],
 						["the lantern",     run.found.has("spire/lantern") ? "lit" : "dark"],
+						["the flue",        run.long_way() ? "read" : "unread"],
 					].forEach(([label, value]) => div.c("imagine-num", () => {
 						span.c("imagine-hud-n", value);
 						span.c("imagine-label", label);
@@ -480,11 +648,15 @@ export default new Page({
 					//   bordered box. What it said is in the line below the fold instead.
 					div.c("imagine-seg flex", () => button.c("imagine-seg-btn", "start over").click(() => run.reset()));
 
-					div.c("imagine-exits flex wrap gap", () => a.c("imagine-exit", "The Verge").href(run.url + "verge/"));
+					div.c("imagine-exits flex wrap gap", () => {
+						a.c("imagine-exit", "Read the journal").href(run.url + "journal/");
+						a.c("imagine-exit", "The Verge").href(run.url + "verge/");
+					});
+
 					this.app?.router?.mark_links();
 				})));
 
-				md("Everything above is three arrays under **one key** — " + "`" + "lew42:/imagine/game/" + "`" + ". *Start over* removes that key and nothing else; the team's board two columns away keys on its own url and never notices.");
+				md("Everything above is five arrays under **one key** — " + "`" + "lew42:/imagine/game/" + "`" + ". *Start over* removes that key and nothing else; the team's board two columns away keys on its own url and never notices.");
 			},
 		},
 	],

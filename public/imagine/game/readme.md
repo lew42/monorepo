@@ -23,7 +23,7 @@ when it is. `trade: { wants, gives, after }` is the fourth verb. Nine pages come
 array; the four written screens (Field notes, and each realm's first room) are pages you would
 edit by hand, so they are written out.
 
-## The four things a round can do
+## The five things a round can do
 
 - **Take** — the pack grows. `run.take(item)`.
 - **Trade** — the pack *shrinks*. The Keeper in the Long Gallery wants the brass lamp and
@@ -31,14 +31,34 @@ edit by hand, so they are written out.
   ahead. She will not deal until you carry the iron key, and that guard is the only thing
   between a player and a run that cannot be finished — [`doc/decisions.md`](/imagine/game/doc/decisions.md).
 - **Walk** — `activated()` writes `realm/room` into `found`, on a cold load too.
+- **Look** — the fourth verb, and the only one that costs nothing and changes how the run
+  *ends*. There is one: the Bone Kiln's flue, readable only with the lens won at the top of
+  the Spire — so the one way to find it is to go back **down** a realm you already finished.
 - **End** — the gate at [`end/`](/imagine/game/end/) is a real page and a rail row from the
   first paint: shut while the sigil is in the Vault, the finale once it is in your pack. It
-  is the only place that can erase a run.
+  is the only place that can erase a run, and it draws **two endings** — which one is
+  `sights.has("flue")`, nothing else.
+
+## The journal, and the ambiance
+
+[`journal/`](/imagine/game/journal/) is a column that recounts the run in order. It is the one
+thing here that is *stored* rather than derived: the HUD, the map and the finale all count the
+same sets, but the order you did things in is gone the moment it happens, so a line is written
+at the moment of the move.
+
+Each realm carries **one rung** of the `--wash` → `--tint` → `--surface` ladder (`tone:`) and
+**one word** (`air:`). The Hollow is under the hill, so it is the floor; the Spire is the top.
+Which rung is not a taste call — it is [`vary/tone/up/`](/imagine/vary/tone/up/)'s measured
+verdict, applied.
 
 ## Watch out
 
 - **The map cannot disagree with the HUD** because both read `found`. A walked room is an
   `<a>`; an unwalked one is a `<span>` and cannot be clicked. Do not add a second source.
+- **Walked and shut are independent, and only the trade makes that true.** Spending the lamp
+  re-locks a Cistern you have already walked. The cell keeps its link (you *have* been there)
+  and takes the dimming — it drew as a bright link for two days while the rail beside it said
+  "needs the brass lamp". [`doc/decisions.md`](/imagine/game/doc/decisions.md)
 - **A cell shows the room's `name`, not its `title`** — nine cells across a 14em rail is 58px
   each, and "Long Gallery" needs 90.
 - **`carrying` has no denominator.** Four things exist and the pack holds three: the lamp

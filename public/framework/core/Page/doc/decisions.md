@@ -366,6 +366,33 @@ panels, whose `app` is undefined today and harmless, because `container()` finds
 before it ever reaches `this.app.$pages`. Touching `activate()` for every page on the site
 to fix a case that does not throw is the wrong trade; **open**, if a third case turns up.
 
+### `store()` — the page's url IS the storage key — 2026-08-31
+
+Every page wants to keep something between visits and none of them wants to invent a key.
+Production is static, so there is no server to hand out ids — but a page already has one
+thing unique, stable and human-readable, and `naming()` derives it, so it cannot drift out
+of step with the tree the way a hand-typed `id: "team-board"` would. Prototyped locally in
+`/imagine/store.js` for a month against two real consumers (the team board, the game run);
+this is that file moved into core unchanged in behaviour, and that file is gone.
+
+Three questions core must not guess, all three now answered:
+
+| | |
+|---|---|
+| the prefix | **`lew42:`** — one origin serves `/notes/`, `/imagine/` and every demo, so a bare url is a collision waiting for the next site on this domain |
+| a failed write | **in-memory `Map`, warn once a session** — `localStorage` throws *whole* in private mode, and a UI that loses its buttons because a save failed is worse than one that forgets. Once, not per write: a run saves on every move |
+| a page that moved | **`store_key`, defaulting to `url`** — `move()` re-addresses a subtree, so an adopted page changes key silently. The page declares the address it was saved at |
+
+**Storage, not state — rejected: watchers.** A `subscribe()` on the handle would let a
+board redraw itself, and both consumers already have a three-line `watch()` of their own.
+A subscription API on `Page` makes ~160 pages pay for a pattern four of them want — the
+same verdict `roles.md` reached about refs, and the readme's own.
+
+⚠ **`store` is a plain noun, which is exactly what bit `opens()`.** Landed only after
+grepping every `page.js` under `public/` for a `store` field or a `this.store` read: none
+— the other `store` in the tree is a module-scope `const` in `ext/Saver` consumers, which
+cannot shadow a method. Do that grep before the next noun goes on this prototype.
+
 ## Traps
 
 - **`:has()` does not care whether a page is painted.** A closed page is still in the

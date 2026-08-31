@@ -34,6 +34,12 @@ board renders it in place of the generic viewer.
 deduped by `message.id`). A subagent cannot sum its own tokens (its turns are not in that
 file) — write `"tokens": null` and let the parent log the cost from its notification. `landed_at` and `outcome` go **inside** `assign`. Never write a
 `.jsonl` with `Out-File`/`Set-Content` (BOM) — bash `printf`, `Add-Content`, or the Write tool.
+⚠ **The outcome is full of backticks, and a DOUBLE-QUOTED shell string eats every one as a
+command substitution** — the append succeeds, the JSON parses, and the card renders with the
+code words missing; nothing complains. Bit three times in three days (`node -e` twice,
+`python -c` once). Write the landing line to a scratchpad file with the **Write tool** and
+append the FILE's bytes (`[IO.File]::ReadAllText` → `AppendAllText`, or run the file); then
+re-parse every line of the jsonl before walking away.
 
 ## 4. Close the day
 

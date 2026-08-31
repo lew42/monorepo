@@ -1,31 +1,38 @@
 /**
- * meta.mjs — stamp each post's static `index.html` from `posts.js`.
+ * meta.mjs — write everything about the blog that is DERIVED from `posts.js`.
  *
- *   node public/blog/meta.mjs            check every shell against the manifest
+ *   node public/blog/meta.mjs            check every generated file against the manifest
  *   node public/blog/meta.mjs --write    rewrite them
+ *
+ * Three outputs, one manifest:
+ *
+ *   <section>/<post>/index.html   the meta shell a link unfurls from   doc/meta-tags.md
+ *   feed.xml                      the Atom feed                        doc/feed.md
+ *   words.js                      each post's word count, for "6 min read"  doc/feed.md
  *
  * ⚠ This is NOT a build step. It is run by hand when a post is added or its title
  *   changes, and its output is committed — `public/` still runs exactly as it sits on
  *   disk, and the site deploys with no tooling. What it removes is the one thing the
- *   hybrid costs: three strings that would otherwise live in two files and drift.
+ *   hybrid costs: strings that would otherwise live in two files and drift.
  *
  * A post with no `index.html` still works — the SPA fallback answers and the post
- * renders with the site's generic meta tags. So `--check` failing is a missing social
+ * renders with the site's generic meta tags. So a check failing is a missing social
  * card, never a broken page. doc/meta-tags.md.
  */
 import { readFile, writeFile, stat, readdir } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { card_alt, card_image, card_post, listed, sections, slug, site } from "./posts.js";
+import { card_alt, card_image, card_post, feed_url, listed, md_files, sections, slug, site, url } from "./posts.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, "..");            // `public/` — an image path is a url from here
 const write = process.argv.includes("--write");
 
 // ⚠ Attribute values, so `"` and `&` are the whole escape set that matters; `<` is
-// escaped too because a description is prose somebody typed.
-const esc = s => String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+// escaped too because a description is prose somebody typed. The same four cover XML
+// text as well (`>` only has to be escaped inside `]]>`, and is here for the quiet life).
+const esc = s => String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 /* THE SHELL. Deliberately the site's own `index.html` plus a head — same charset-first
  * rule (the deployed host serves no charset header), same `/app.js`, same favicon. */
@@ -45,6 +52,11 @@ function shell({ title, description, url, image, alt, width, height, type = "art
 	<meta name="description" content="${esc(description)}">
 	<link rel="canonical" href="${esc(abs)}">
 	<link rel="icon" type="image/png" href="/assets/img/favicon.png">
+
+	<!-- Feed autodiscovery — the one line that makes a reader's "subscribe" button light
+	     up on any blog page. Every shell carries it, because a reader arrives at a POST
+	     far more often than at the front. -->
+	<link rel="alternate" type="application/atom+xml" title="lew42 blog" href="${esc(site + feed_url)}">
 
 	<meta property="og:type" content="${esc(type)}">
 	<meta property="og:site_name" content="lew42">
@@ -108,6 +120,104 @@ async function png_size(image){
 	return { width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20) };
 }
 
+/* ══ THE FEED ════════════════════════════════════════════════════════════════
+   Atom 1.0, at /blog/feed.xml — the whole manifest as a subscribable file, and the
+   one thing on this site a reader can take away with them.
+
+   ⚠ Atom rather than RSS 2.0 for one reason: its dates are RFC 3339, which is the
+     manifest's own `2026-08-30` plus a time. RSS 2.0 wants RFC 822 ("Sat, 30 Aug 2026
+     …"), and building THAT means a `new Date(post.date)` — the exact call `posts.js`
+     refuses, because it parses as UTC midnight and is the day BEFORE in every American
+     timezone. A string a reader sees off by one day is a bug; here it is a concatenation.
+
+   ⚠ SUMMARIES, not full content. `<summary>` takes the manifest's description; rendering
+     each post's markdown to HTML would need a markdown library in node, and the site has
+     no dependency it does not run in the browser. A summary feed is valid Atom and is
+     what a reader clicks THROUGH — doc/feed.md has the trade written down. */
+const rfc3339 = date => date + "T00:00:00Z";
+
+function feed(list){
+	const entry = post => `	<entry>
+		<title>${esc(post.title)}</title>
+		<id>${esc(site + url(post))}</id>
+		<link rel="alternate" type="text/html" href="${esc(site + url(post))}"/>
+		<published>${rfc3339(post.date)}</published>
+		<updated>${rfc3339(post.date)}</updated>
+		<category term="${esc(post.section)}"/>
+		<summary type="text">${esc(post.description ?? "")}</summary>
+	</entry>`;
+
+	/* `<updated>` on the FEED is the newest entry's — a reader polls it and a value that
+	   moved when nothing was published is what teaches a reader to stop trusting it. */
+	return `<?xml version="1.0" encoding="utf-8"?>
+<!-- GENERATED by blog/meta.mjs from blog/posts.js — edit the manifest, not this file. -->
+<feed xmlns="http://www.w3.org/2005/Atom">
+	<title>lew42 — Blog</title>
+	<subtitle>Notes on building a web framework with no build step.</subtitle>
+	<id>${esc(site + "/blog/")}</id>
+	<link rel="alternate" type="text/html" href="${esc(site + "/blog/")}"/>
+	<link rel="self" type="application/atom+xml" href="${esc(site + feed_url)}"/>
+	<updated>${rfc3339(list[0].date)}</updated>
+	<author><name>lew42</name></author>
+${list.map(entry).join("\n")}
+</feed>
+`;
+}
+
+/* ══ THE WORD COUNTS ═════════════════════════════════════════════════════════
+   `words.js` — one number per post, so a card can say "6 min read" without fetching
+   six markdown files to find out. GENERATED, and that is the point: a length typed
+   into the manifest is wrong the first time a paragraph is added, and nobody recounts.
+   `posts.js` turns a count into minutes; the words-per-minute lives there with it.
+
+   ⚠ `words.js` is IMPORTED by `posts.js`, which this file imports — so deleting it
+     stops meta.mjs from starting, and the error names the missing file. It is committed
+     like every other generated file here. */
+/* ⚠ AN IMAGE'S ALT IS NOT READ, and it was the one rule this got wrong first. Counting
+ *   `![…](x.png)` like a link put 113 words of alt text into
+ *   /blog/systems/panel-playground/ — four figures with a sentence of alt each — and the
+ *   stamped count came out 21% over the words the rendered page actually shows (the
+ *   others were all inside 6%). A `<figcaption>` IS read and does count: the tag strip
+ *   takes the tags and keeps their text. */
+const md_words = text => text
+	.replace(/```[^\n]*\n?/g, " ")                 // the fence markers; their contents stay
+	.replace(/!\[[^\]]*\]\([^)]*\)/g, " ")         // an image, alt and all — nobody reads it
+	.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")       // a link's TEXT is read; its url is not
+	.replace(/<[^>]+>/g, " ")                      // the `<figure>`/`<figcaption>` HTML
+	.split(/\s+/)
+	.filter(word => /[\p{L}\p{N}]/u.test(word))    // a token has to carry a letter or digit
+	.length;
+
+/* Every `.md` a post actually renders, summed — a post in parts is one read, and its
+ * length is all of it. `md_files()` is the manifest's, so this cannot list a different
+ * set of files from the one `Post.read()` fetches. */
+async function words_of(post){
+	const counts = await Promise.all(md_files(post).map(name =>
+		readFile(join(here, slug(post), name), "utf8").then(md_words, () => 0)));
+
+	return counts.reduce((sum, n) => sum + n, 0);
+}
+
+async function words(list){
+	const counted = await Promise.all(list.map(async post => [post, await words_of(post)]));
+
+	/* ⚠ SAY SO WHEN IT IS ZERO. `hello-lew42` counted 0 the first time this ran: its
+	 *   `parts:` were declared in its own page.js, which node cannot import (it imports
+	 *   `/app.js`, a browser url), so `md_files()` looked for a `post.md` that was never
+	 *   there. Nothing threw — the card simply stopped saying how long the post was.
+	 *   A generated number that is silently zero is the worst kind, so it reports. */
+	counted.filter(([, n]) => !n).forEach(([post]) =>
+		console.log(`⚠ 0 words ${slug(post)}/ — no ${md_files(post).join(", ")}. A post in parts declares them in posts.js.`));
+
+	return `/* GENERATED by blog/meta.mjs — do not edit. Words in each post's own .md files.
+   Re-run \`node public/blog/meta.mjs --write\` after writing or editing a post.
+   \`posts.js\` reads this to say how long a post is; the words-per-minute is there. */
+export default {
+${counted.map(([post, n]) => `\t"${slug(post)}": ${n},`).join("\n")}
+};
+`;
+}
+
 /* Every page with an address of its own: the front, the three section indexes, and
  * one per post. A section index carries `website` rather than `article` — it is a
  * list, and an unfurled card that calls it an article is a small lie. */
@@ -146,6 +256,22 @@ const shells = [
 
 let drift = 0, pending = 0;
 
+/* ONE file, compared then written — every generated file here goes through this, so a
+ * feed and a shell cannot report themselves differently. Returns nothing; the report
+ * IS the output. */
+async function stamp(path, label, text){
+	const current = await readFile(path, "utf8").catch(() => null);
+
+	if (current === text) return console.log(`ok      ${label}`);
+
+	drift++;
+
+	if (!write) return console.log(`${current === null ? "MISSING" : "STALE  "} ${label}`);
+
+	await writeFile(path, text);
+	console.log(`written ${label}`);
+}
+
 for (const { dir, html } of shells){
 	const path = join(here, dir, "index.html");
 
@@ -160,21 +286,17 @@ for (const { dir, html } of shells){
 		continue;
 	}
 
-	const current = await readFile(path, "utf8").catch(() => null);
-
-	if (current === html){ console.log(`ok      ${dir}/index.html`); continue; }
-
-	drift++;
-
-	if (!write){ console.log(`${current === null ? "MISSING" : "STALE  "} ${dir}/index.html`); continue; }
-
-	await writeFile(path, html);
-	console.log(`written ${dir}/index.html`);
+	await stamp(path, `${dir}/index.html`, html);
 }
+
+/* The two derived files, after the shells so the 10 `ok` lines still read as one block.
+ * Both are the WHOLE manifest rather than one page, so neither can be `pending`. */
+await stamp(join(here, "feed.xml"), "feed.xml", feed(listed()));
+await stamp(join(here, "words.js"), "words.js", await words(listed()));
 
 if (pending) console.log(`\n${pending} post(s) commissioned but not written yet.`);
 
 if (drift && !write){
-	console.log(`\n${drift} shell(s) out of date — run: node public/blog/meta.mjs --write`);
+	console.log(`\n${drift} file(s) out of date — run: node public/blog/meta.mjs --write`);
 	process.exitCode = 1;
 }

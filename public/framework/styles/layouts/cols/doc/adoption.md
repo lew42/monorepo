@@ -66,6 +66,43 @@ Highest value first — each is a hand-rolled row replaced by one word:
    `--grow` weights were added to, which is evidence the wrap threshold was never what
    those rows wanted.
 
+## Landed, 2026-08-31
+
+`half` and `main-aside` are promoted — `.cols.half` and `.cols.main-aside` in
+framework.css, beside the flex words. This lab's `cols.css` now consumes them for
+those two names; `thirds`, `golden`, `two-one` and `rail-main-aside` stay lab-local.
+
+Migration, 4 of 6:
+
+- **3. DesignTool** — `.dt-case` → `main-aside`, `--cols-aside: 17em`. Clean (body,
+  rail are the only two children, already main-then-aside in the DOM).
+- **4. AITask** — `.ai-columns` → `main-aside`, `--cols-aside: 38em`. The rail is
+  DOM-first in the old grid; `main-aside` wants main first, so `replay.js` now builds
+  `.ai-detail` before `.ai-rail` and `order: -1` puts the rail back on the left.
+  Lost: the old `minmax(22em, 38em)` floor on the rail — a narrow aside can now shrink
+  below 22em before the row hits its own 34rem stack.
+- **5. lew42/page.js only** — both sidebar demos, same `order: -1` move,
+  `--cols-aside: var(--sidebar)`. **`apidoc/page.js` resisted** — its rail is
+  `flex: 1 0 var(--sidebar)` on purpose (own comment: a fixed `0 0` basis left a
+  collapsed burger bar 19em wide "with the page behind it"); `main-aside`'s share
+  would reintroduce exactly that.
+- **6. home/page.js** — Hero, Philosophy, Contact (90, 158, 239) → `cols half`.
+
+Resisted, 2 of 6:
+
+- **1. `public/styles.css` `.home-front`** — a five-region grid (`hero stage blog nav
+  more`) with `stage` spanning two rows and a third column at 90em. `.cols` is a flat
+  2- or 3-item flex row; it cannot span and cannot hold five children on one side.
+- **2. `toc/toc.css`** — `.toc`'s own container has an unbounded number of content
+  children in the "main" track (`> *` bar the rail), and `toc()` is called FIRST in
+  a page's `content()`, the reverse of `main-aside`'s main-then-aside order. Fixing
+  both means wrapping every `toc()`-using page's content in one element — out of
+  scope for a CSS promotion.
+
+Verified: DesignTool/AITask/lew42/home before-vs-after screenshots at 400/1920/3440
+(before = a `git worktree` at the pre-task commit), the matrix's own self-measure
+(`main-aside` at 1280px: want 2.125, got 2.125, holds), a 10-url console sweep clean.
+
 ## Not recommended
 
 Teaching `.flex.auto` a ceiling. Its basis, its threshold and its grow are one mechanism —

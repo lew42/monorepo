@@ -78,6 +78,18 @@
 	   every input to 100%, which is right in a form and wrong in a toolbar. */
 	.yt-lab .yt-keys input { width: auto; flex: 1 1 8em; min-width: 6em; }
 
+	/* ════ THE KEY LEGEND — two columns of caps, printed from the key table ═══
+	   `auto-fit` and not a count: six rows read as two columns in the control half and
+	   as one when the row stacks, and neither width needs a query. The caps themselves
+	   are `ui.keys()`, so a key here looks like a key anywhere else on the site. */
+	.yt-shortcuts {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(11em, 100%), 1fr));
+		gap: 0.35em 1em;
+	}
+
+	.yt-shortcut-say { font-size: 0.78em; color: var(--subtle); }
+
 	/* ════ READOUTS — the API, read back ══════════════════════════════════════
 	   Hairlines drawn as a 1px grid gap over a `--line` floor, so there is one seam
 	   between cells rather than two borders meeting. */
@@ -255,6 +267,44 @@
 
 	.yt-check { display: flex; align-items: center; gap: 0.5em; cursor: pointer; }
 	.yt-check input { width: auto; flex: none; }
+
+	/* ════ MARKS — the stopwatch ══════════════════════════════════════════════
+	   A row is a time, a name and two hit areas. The name takes whatever is left, so
+	   a long chapter title never pushes the buttons off the end of a narrow column. */
+	.yt-mark { display: flex; align-items: center; gap: 0.4em; }
+	.yt-mark + .yt-mark { margin-block-start: 0.3em; }
+
+	.yt-marks .yt-mark input { padding: 0.25em 0.5em; font-size: 0.85em; }
+	.yt-mark-at { flex: none; width: 5.5em; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+	.yt-mark-title { flex: 1 1 6em; min-width: 0; }
+
+	/* Two glyph buttons, sized by the same rule as `.yt-keys button` and for the same
+	   reason: the theme's CTA padding would make a 3em square of a single character. */
+	.yt-marks :is(.yt-mark-go, .yt-mark-off) {
+		flex: none;
+		padding: 0.2em 0.5em;
+		font-size: 0.75em;
+		border: 1px solid var(--line);
+	}
+
+	.yt-mark-empty { font-size: 0.85em; color: var(--subtle); }
+
+	/* The output is code, so it is mono and it scrolls sideways rather than wrapping a
+	   line somebody is about to paste. Capped, because a long talk is a long list. */
+	.yt-out {
+		max-height: 14em;
+		overflow: auto;
+		margin: 0;
+		padding: 0.5em 0.7em;
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		background: var(--surface);
+		/* ⚠ Named, because the theme greys `pre` as prose furniture — and this is the
+		   one block on the page a reader is meant to select and take away. */
+		color: var(--ink);
+		font-family: var(--mono); font-size: 0.72em;
+		tab-size: 2;
+	}
 
 	/* ════ CHAT — a room is a scroller, which is why this one has a height ════ */
 	.yt-log {

@@ -48,7 +48,7 @@ export default new Page(demo.layout({
 	   question (questions.md #3). */
 	route(name){ return name === "full" && full(this, () => this.layout().ac("default")); },
 
-	note: "**The whole page is ten class strings and zero media queries.** The Figma files a 1920 drawing and a 375 drawing; every band here is one string that is both. Three do it with `flex auto gap` and a `--column` basis — the row is a row until its two tracks no longer fit, then it is a stack. Three are `grid auto gap`, where `auto-fit` also caps the column count at the number of cards, so three cards can never become four. **The two drawings genuinely disagree in three places** (the nav at 375, the philosophy heading, the portfolio CTA) and each is one paragraph in [doc/transition.md](./doc/transition.md), beside the four widths it was measured at.",
+	note: "**The whole page is ten class strings and zero media queries.** The Figma files a 1920 drawing and a 375 drawing; every band here is one string that is both. Three are `cols half` (promoted from the cols lab, 2026-08-31) — an exact 50/50 that stacks below its own floor. Three are `grid auto gap`, where `auto-fit` also caps the column count at the number of cards, so three cards can never become four. **The two drawings genuinely disagree in three places** (the nav at 375, the philosophy heading, the portfolio CTA) and each is one paragraph in [doc/transition.md](./doc/transition.md), beside the four widths it was measured at.",
 
 	layout(){
 
@@ -83,11 +83,11 @@ export default new Page(demo.layout({
 			   doc/transition.md §4. */
 			div.c("flex v", () => {
 
-				/* ── Hero-Section ── `flex auto gap`, two equal tracks.
+				/* ── Hero-Section ── `cols half`, two equal tracks.
 				   Copy FIRST in source, so the picture is on the right of one line and
 				   BELOW the copy on two — which is the mobile drawing. (`hero/` uses
 				   `reverse` for the opposite comp, where the picture lands on top.) */
-				band("", () => div.c("flex auto gap", () => {
+				band("", () => div.c("cols half", () => {
 
 					div.c("flex v gap", () => {
 						div.c("flex gap v-center", () => {
@@ -113,7 +113,7 @@ export default new Page(demo.layout({
 						}).style({ "--pad": "1.2em", "--gap": "0.2em", alignSelf: "start", maxWidth: "18em", marginTop: "-3.5em", marginInlineStart: "1.5em" });
 					}).style("--gap", "0");
 
-				}).style({ "--column": "24em", "--gap": "3em" }));
+				}).style({ "--gap": "3em" }));
 
 				/* ── Trust-Logos ── `flex gap wrap v-center h-center`, and the gap is
 				   what makes 5-across at 1920 and 3-then-2 at 375 the same line. */
@@ -155,7 +155,7 @@ export default new Page(demo.layout({
 
 				/* ── Philosophy-Section ── the picture is FIRST in source, so it is the
 				   left column at 1920 and the top block at 375, with no `reverse`. */
-				band("wash", () => div.c("flex auto gap", () => {
+				band("wash", () => div.c("cols half", () => {
 					media("3 / 2");
 
 					div.c("flex v gap", () => {
@@ -170,7 +170,7 @@ export default new Page(demo.layout({
 						}).style({ "--pad": "1.5em", "--gap": "0.6em" });
 					}).style("--gap", "1em");
 
-				}).style({ "--column": "24em", "--gap": "3em" }));
+				}).style({ "--gap": "3em" }));
 
 				/* ── Portfolio-Section ── `grid auto` at a 16em column, so four cards is
 				   four across at 1920, two at a tablet and one at 375. */
@@ -235,8 +235,8 @@ export default new Page(demo.layout({
 						.style({ "--column": "22em", "--gap": "2em" });
 				});
 
-				/* ── Contact-Section ── copy beside a real form; `flex auto gap` again. */
-				band("", () => div.c("flex auto gap", () => {
+				/* ── Contact-Section ── copy beside a real form; `cols half` again. */
+				band("", () => div.c("cols half", () => {
 
 					div.c("flex v gap", () => {
 						badge(home.contact.badge);
@@ -263,7 +263,7 @@ export default new Page(demo.layout({
 						p.c("h4 muted", home.contact.form.fine).style("text-align", "center");
 					}).style({ "--pad": "2em", "--gap": "1.1em" });
 
-				}).style({ "--column": "24em", "--gap": "3em" }));
+				}).style({ "--gap": "3em" }));
 
 			});
 

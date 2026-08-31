@@ -27,7 +27,11 @@ export class Article extends Page {
 	// are one unit of type and the column's 1.05em rhythm belongs between BLOCKS.
 	content(){
 		div.c("mag-head", () => {
-			div.c("mag-eyebrow", this.section);
+			div.c("mag-eyebrow", () => {
+				span(this.section);
+				if (this.place()) span.c("mag-place", this.place());
+			});
+
 			h1.c("mag-title", this.title);
 			p.c("mag-stand", this.standfirst);
 		});
@@ -107,6 +111,17 @@ export class Article extends Page {
 	next(){
 		const order = [...this.parent.children.values()];
 		return order[order.indexOf(this) + 1];
+	}
+
+	/* "03 / 06" — where you are in the issue. The contents entry has worn the number
+	   since the issue was built; the ARTICLE never did, so a reader who opened one from
+	   the row had no idea whether three more were coming or thirty.
+	   ⚠ Counted from the same insertion-ordered Map `next()` walks, never from a total in
+	     `issue.json` — one more entry there renumbers the whole issue and nothing says
+	     six out loud. Asked at render time, which is the first moment `parent` is set. */
+	place(){
+		const order = [...(this.parent?.children.values() ?? [])];
+		return order.includes(this) ? `${this.no} / ${String(order.length).padStart(2, "0")}` : "";
 	}
 
 	// A contents entry, not a card — a preview is a picture and this one is set in the

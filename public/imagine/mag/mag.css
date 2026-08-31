@@ -191,6 +191,14 @@
 		font-size: 0.72em; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
 	}
 
+	/* "03 / 06" beside the section, on an article's own head — how far into the issue you
+	   are. Set back from the section rather than beside it as an equal: the section is
+	   what the piece IS, the position is where it sits.
+	   ⚠ The eyebrow is a `div`, so its two spans need it to be a flex row or they stack. */
+	.mag-read .mag-head .mag-eyebrow { display: flex; flex-wrap: wrap; gap: 0.9em; }
+
+	.mag-place { color: var(--subtle); font-variant-numeric: tabular-nums; }
+
 	/* The headline scale — display, standfirst, subhead. The gap between the first and
 	   the third is what says which is which; on the theme's own scale (3em / 2.25em)
 	   a subhead came within a few pixels of the title and the article read as two

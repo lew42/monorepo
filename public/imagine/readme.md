@@ -11,17 +11,23 @@ a lane, a room three realms down — is another column in the same row, under on
   is its `default` column and its cards are the nav. There is no page to read before you arrive.
 - **`team/`** — a roster rail, a person, her assignments, and a board that follows the
   selection. Two controls (density, sort) instead of a page per state; both remembered.
+  **Drag a chip between lanes** and it writes through the same `assign_lane()` the person's
+  buttons call, so there is one writer and a drag cannot drift from a click — the gesture is
+  `ext/Draggable`, not a reimplementation. Everything is counted in **points**: a lane's head,
+  the roster's bars, the rail's own total.
 - **`game/`** — three realms, nine rooms, four things, one way out. The navigation *is* the
   game: an exit is a link to a sibling, so walking sideways swaps the deepest column in place.
   A trade is the only move that *shrinks* the pack, and it moves two rail rows in opposite
-  directions — [`game/readme.md`](/imagine/game/readme/).
-- **`store.js`** — `store(page)`, keyed on `page.url`. Local to this directory on purpose.
+  directions. There is a **journal**, and a **secret** you can only reach by walking back down
+  a realm you already finished — [`game/readme.md`](/imagine/game/readme/).
+- **Storage** — `this.store()`, keyed on the page's own url. Prototyped here, now core's
+  ([`store.md`](/framework/core/Page/api/store/)).
 
 ## Real files, or generated?
 
 **The rule that decided every one of these: a page is a real file when a person would edit it
-by hand, and generated when it is a row of data.** The four `page.js` files here
-(root, `team/`, `game/`, plus `store.js`) hold *shapes*; the 25 pages you can actually visit
+by hand, and generated when it is a row of data.** The three `page.js` files here
+(root, `team/`, `game/`) hold *shapes*; the 25 pages you can actually visit
 are built from four arrays inside them — `PEOPLE`, `TASKS`, `WORLD`, `LANES`. Six people, nine
 rooms, seven boards, and nobody has to keep 25 files in step with each other.
 
@@ -38,7 +44,8 @@ The test is whether the variation is *content* (a file: it has a name, a url, a 
 
 ## Path-based storage
 
-`store.js` is a prototype of a core seam, not the seam. A page already has one thing that is
+This is where `page.store()` was prototyped, and the prototype is gone — the seam is core's
+now. A page already has one thing that is
 unique, stable and human-readable — its address — and `page.url` is derived by core, so it
 cannot drift out of step with the tree the way a hand-typed `id: "team-board"` would. Production
 is static, so there is no server to hand out ids; `localStorage["lew42:" + page.url]` is the
@@ -55,18 +62,17 @@ at `/imagine/game/end/` is the only eraser. It calls `clear()` rather than writi
 object, so between *start over* and your next move the browser holds nothing about the game at
 all; the team's key is beside it and never notices (measured, keys before and after).
 
-**The proposal: `page.store()`.** One method on `Page`, returning a handle with
-`get(fallback)` / `set(data)` / `patch(part)` / `clear()`, keyed on `this.url`. It is ~30 lines
-and it earns them, because *every* page wants it and none of them wants to invent a key. Three
-things it must decide, none of which core should guess: **the prefix** (a shared origin means
-`/notes/` and a demo can collide — the app's name is the obvious namespace); **the failure
-mode** (localStorage throws whole in private mode, and a UI that loses its buttons because a
-save failed is worse than one that forgets — this prototype falls back to an in-memory Map and
-warns once); and **whether a moved page keeps its data** (`move()` re-addresses a subtree, so an
-adopted page silently changes key — a `store_key` override, defaulting to `url`, is the seam).
-It should stay *storage*, not state: no watchers, no reactivity. The pages here already have a
-`watch()` of their own, three lines each, and a subscription API on `Page` would make ~160 pages
-pay for a pattern four of them want — the same verdict `roles.md` reached.
+**Shipped: `page.store()`, 2026-08-31.** One method on `Page` and one part class beside it,
+returning `get(fallback)` / `set(data)` / `patch(part)` / `clear()`. The three things core
+would have had to guess were answered before it landed: the prefix is **`lew42:`**, a failed
+write falls back to an **in-memory Map and warns once**, and a page that `move()` re-addressed
+declares **`store_key`** to keep the address it was saved at. It stayed *storage*, not state —
+no watchers: the two pages here have a three-line `watch()` of their own, and a subscription
+API on `Page` would make ~160 pages pay for a pattern four of them want, the same verdict
+`roles.md` reached. Both consumers migrated with the keys byte-identical, so runs saved
+against the prototype opened unchanged.
+[`store.md`](/framework/core/Page/api/store/) is the method;
+[`decisions.md`](/framework/core/Page/doc/decisions/) is the record.
 
 ## Watch out
 
@@ -80,6 +86,12 @@ pay for a pattern four of them want — the same verdict `roles.md` reached.
   Hollow to 183px, because one row says "needs the brass lamp". A rail whose width depends on
   which sibling you opened moves the column beside it by 55px on every change. `hug` wants a
   column whose content width is a constant.
+- **`Draggable.under()` returns the first *registered* thing under the cursor, and your chips
+  are registered too.** The board's drop landed on the card already in the lane — whose `lane`
+  is undefined — so the gesture looked perfect and committed nothing. Every drag that has both
+  movable things and containers needs `under(e, found => …)` to say which it is looking for.
+- **An empty lane is 0px tall and cannot be dropped onto.** `.drag-items` (Draggable's own
+  sheet) is the min-height; the board's lane body wears it for exactly that.
 - **The site theme styles every `button`** at `(0,2,0)` in `@layer theme`, so a bare component
   class loses its padding to a 0.7em/1.4em CTA. Every control here is `.imagine-seg .imagine-seg-btn`,
   group included even around a single button, and it keeps the theme's small-caps on purpose.

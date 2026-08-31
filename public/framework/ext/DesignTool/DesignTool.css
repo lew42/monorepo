@@ -99,20 +99,12 @@
 	.dt-path { font-size: 0.8em; color: var(--subtle); word-break: break-all; }
 	.dt-show { margin-block-start: 0.4em; }
 
-	/* A case beside its live score. One column below 60em, two above — the
-	   "sidebar and body" arrangement from styles/rules/robust/, and the one
-	   place a media query earns its keep: a rail should STACK below a threshold
-	   and sit beside above it, and no intrinsic sizing expresses that.
-	   ⚠ `minmax(0, 1fr)` on the body track, never `1fr` — the case may hold a
-	     deliberately unbreakable box, and `1fr`'s auto floor would let it push
-	     the rail off screen. */
-	.dt-case { grid-template-columns: minmax(0, 1fr); align-items: start; }
+	/* A case beside its live score — `.cols.main-aside` (framework.css), the body as
+	   the fluid main and the rail capped at 17em. Stacks below its own 34rem floor,
+	   which replaced the 60em media query this used to need. */
+	.dt-case { --cols-aside: 17em; --cols-align: start; }
 	.dt-case-body { min-width: 0; }
-
-	@media (min-width: 60em) {
-		.dt-case { grid-template-columns: minmax(0, 1fr) 17em; }
-		.dt-case-rail { position: sticky; top: 1em; }
-	}
+	.dt-case-rail { position: sticky; top: 1em; }
 
 	.dt-live-panel {
 		padding: 0.9em 1em;

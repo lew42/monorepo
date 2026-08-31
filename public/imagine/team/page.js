@@ -1,5 +1,5 @@
 import { Page, div, span, a, md, button, icon } from "/app.js";
-import { store } from "../store.js";
+import Draggable from "/framework/ext/Draggable/Draggable.js";
 
 /* Container: /imagine/'s column row — this page is a column, not a screen. Size: a
    `small` 14em roster, the person on the default track, the board `large` (28–64em);
@@ -57,6 +57,59 @@ const TASKS = [
 ];
 
 const person = who => PEOPLE.find(one => one.name === who);
+
+// Points, not chips: a lane holding one 5 is fuller than a lane holding two 1s, and
+// `size` was on every fixture from the first day without ever being added up.
+const points = list => list.reduce((n, task) => n + task.size, 0);
+
+/* THE ONLY GESTURE ON THE PAGE, and it is `ext/Draggable` doing all of it — grab,
+   pointer capture, hit-testing past the dragged node, Escape, cleanup. Twenty lines
+   here are the two ends nobody else can supply: what a chip looks like mid-flight,
+   and what a drop MEANS.
+
+   ⚠ Not `Sortable`. That subclass reorders an Item tree and calls `item.move()`; a
+     lane is not an ordered list and a task is a plain fixture object, so the whole
+     Item adapter would exist only to be ignored. Draggable is the seam that fits.
+   ⚠ Everything commits through `assign_lane()` — the SAME method the person column's
+     buttons call. There is one writer, so a drag cannot drift from a click, and the
+     board redrawing from the store afterwards is what actually moves the chip.
+   ⚠ A redraw orphans these instances, which is harmless: the registry is a WeakMap
+     keyed on the element the redraw just dropped (Draggable/readme.md). */
+class Chip extends Draggable {
+
+	start(){ this.view.el.style.opacity = 0.9; }
+
+	move(dx, dy, e){
+		this.view.el.style.transform = "translate(" + dx + "px, " + dy + "px)";
+		this.over(this.under(e));
+	}
+
+	/* ⚠ THE ONE LINE THAT MADE THE DROP WORK. `under()` returns the FIRST registered
+	   thing beneath the cursor, and every chip on the board is registered too — so
+	   dropping onto a lane that already had a card in it handed back that CARD, whose
+	   `lane` is undefined, and the move was silently refused. The gesture looked
+	   perfect and committed nothing (measured, 2026-08-31: dropped into Landed, board
+	   unchanged). The filter says what this drag is actually looking for. */
+	under(e){ return super.under(e, found => !!found.lane); }
+
+	// A lane, and not the one this chip is already sitting in.
+	drop_check(target){ return target.lane !== this.topic.lanes[this.task.id]; }
+
+	drop(target){ this.restore(); this.topic.assign_lane(this.task.id, target.lane); }
+
+	// Where it would land if you let go — the only feedback a drag really owes you.
+	over(lane){
+		if (lane === this.marked) return;
+		this.marked?.view.rc("imagine-lane-over");
+		this.marked = this.drop_check(lane ?? {}) ? lane : null;
+		this.marked?.view.ac("imagine-lane-over");
+	}
+
+	restore(){
+		this.over(null);
+		this.view.el.style.opacity = this.view.el.style.transform = "";
+	}
+}
 
 // How far up the chain a ref actually walked, derived the way `nearest()` finds it —
 // so a number on the page cannot disagree with the walk that produced it.
@@ -117,21 +170,35 @@ const board = () => ({
 				div.c("imagine-lanes grid auto gap", () => LANES.forEach(lane => {
 					const chips = shown.filter(task => topic.lanes[task.id] === lane.id);
 
-					div.c("imagine-lane flex v", () => {
+					div.c("imagine-lane flex v", $lane => {
 						div.c("imagine-lane-head flex v-center split", () => {
 							span(lane.title);
-							span.c("imagine-count", String(chips.length));
+							// Points, then chips: what the lane WEIGHS, then how many
+							// things that is. One number was never enough to say either.
+							span.c("imagine-count", points(chips) + " pts · " + chips.length);
 						});
 
-						chips.forEach(task => div.c("imagine-task", () => {
-							span.c("imagine-task-title", task.title);
-							span.c("imagine-task-who", () => {
-								span(person(task.who).title.split(" ")[0]);
-								span.c("imagine-size", "·" + task.size);
-							});
-						}));
+						/* ⚠ `.drag-items` is not decoration — it is the min-height that
+						   makes an EMPTY lane a surface you can drop onto. Without it
+						   "Review" is 0px tall and the last chip out of it can never go
+						   back (Draggable/readme.md calls this the most common report). */
+						div.c("imagine-lane-body drag-items flex v", $body => {
+							chips.forEach(task => div.c("imagine-task", $chip => {
+								span.c("imagine-task-title", task.title);
+								span.c("imagine-task-who", () => {
+									span(person(task.who).title.split(" ")[0]);
+									span.c("imagine-size", "·" + task.size);
+								});
 
-						if (!chips.length) span.c("imagine-empty", "—");
+								new Chip({ view: $chip, task, topic });
+							}));
+
+							if (!chips.length) span.c("imagine-empty", "—");
+
+							// The lane itself: a drop site and nothing else. `handle: false`
+							// — ⚠ `null` would make the whole lane a grip (readme.md).
+							new Draggable({ view: $body, handle: false, lane: lane.id });
+						});
 					});
 				})).style("--column", "9em");
 
@@ -164,10 +231,10 @@ export default new Page({
 	updates: 0,     // watcher runs
 
 	/* ⚠ `initialize()` runs inside the constructor, AFTER `naming()` — so `this.url`
-	     exists and `store(this)` already has its key. It runs after `declare()` too,
+	     exists and `this.store()` already has its key. It runs after `declare()` too,
 	     which is why nothing in a child may read this state before it renders. */
 	initialize(){
-		const saved = store(this).get({ lanes: {}, density: "comfy", sort: "name" });
+		const saved = this.store().get({ lanes: {}, density: "comfy", sort: "name" });
 
 		this.lanes = { ...Object.fromEntries(TASKS.map(task => [task.id, task.lane])), ...saved.lanes };
 		this.density = saved.density;
@@ -185,14 +252,21 @@ export default new Page({
 	assign_lane(id, lane){
 		this.lanes[id] = lane;
 		this.moves++;
-		store(this).patch({ lanes: this.lanes });
+		this.store().patch({ lanes: this.lanes });
 		this.bump();
 	},
 
-	remember(part){ store(this).patch(part); this.bump(); },
+	remember(part){ this.store().patch(part); this.bump(); },
 
 	tasks(who){ return who ? TASKS.filter(task => task.who === who) : TASKS; },
-	load(who){ return this.tasks(who).filter(task => this.lanes[task.id] !== "done").reduce((n, task) => n + task.size, 0); },
+	load(who){ return points(this.tasks(who).filter(task => this.lanes[task.id] !== "done")); },
+
+	/* THE DENOMINATOR the rail never had. "8 pts" is a number with nothing to compare
+	   itself to; a bar needs a full mark, and the honest one is not invented — it is
+	   the BIGGEST open load on the team right now, so the fullest row is always full
+	   and every other row is drawn to scale against a real person's week.
+	   ⚠ Never 0: an empty board would divide by it and every bar would be NaN wide. */
+	ceiling(){ return Math.max(1, ...PEOPLE.map(one => this.load(one.name))); },
 
 	/* THE ROSTER RAIL, by hand. Core's `column()` gives one flat label per child, which
 	   is right for a list of sections and wrong for a roster: these rows carry a role, a
@@ -206,8 +280,12 @@ export default new Page({
 		return div.c("page-column-body page-column-small", () => {
 			div.c("page-column-head", () => {
 				span.c("page-column-title", this.title);
+				/* ⚠ This said "1 of 6" while all six rows were still on screen — a
+				   count that promised a filter the rail has never done. What it can
+				   honestly say is the team's whole open load, which is the one number
+				   the six bars below are all fractions of. */
 				span.c("imagine-count", $n => this.watch(() =>
-					$n.text(this.selection ? "1 of " + PEOPLE.length : PEOPLE.length + " people")));
+					$n.text(this.load() + " pts open")));
 			});
 
 			/* The second control that replaces a file per arrangement. Sorting by load
@@ -224,15 +302,26 @@ export default new Page({
 					? [...PEOPLE].sort((one, two) => this.load(two.name) - this.load(one.name))
 					: PEOPLE;
 
+				const ceiling = this.ceiling();
+
 				$rows.empty(() => order.forEach(one => {
+					const load = this.load(one.name);
+
 					a.c("imagine-row").ac(this.selection === one.name && "imagine-row-on")
 						.href(this.url + one.name + "/")
 						.append(() => {
 							span.c("imagine-row-name", one.title);
 							span.c("imagine-row-meta", () => {
 								span(one.role);
-								span.c("imagine-load", this.load(one.name) + " pts");
+								span.c("imagine-load", load + " pts");
 							});
+
+							/* The bar is what makes `by load` worth sorting by: the order
+							   alone says who is first, and this says by how much. It is
+							   the same number as the text beside it, drawn — never a
+							   second source, so the two cannot disagree. */
+							span.c("imagine-bar-track", () =>
+								span.c("imagine-bar-fill").style("width", Math.round(load / ceiling * 100) + "%"));
 						});
 				}));
 

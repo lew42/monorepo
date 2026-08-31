@@ -24,11 +24,18 @@
  *
  * Adding a post:
  *   1. one entry here    2. <section>/<slug>/page.js (two lines)    3. its .md files
- *   4. `node public/blog/meta.mjs --write` to stamp the meta shell
+ *   4. `node public/blog/meta.mjs --write` to stamp the meta shell, the feed and the
+ *      word counts
  */
+import words from "./words.js";
+
 // The one absolute origin. Only the static `index.html` files need it (og:url and
 // canonical must be absolute); nothing in the app reads it.
 export const site = "https://lew42.com";
+
+// The feed's own address, said once — `meta.mjs` writes the file here, every shell's
+// autodiscovery `<link>` points at it, and the front's rail links it.
+export const feed_url = "/blog/feed.xml";
 
 /* THE SECTIONS — and a post's address is `<section>/<post>/` because of them.
  * A flat `/blog/<post>/` url has no ancestor, so a section could never light up as
@@ -68,6 +75,18 @@ export const posts = [
 
 		// The front's lead post. One entry wears it; without it the newest is used.
 		featured: true,
+
+		/* ⚠ `parts` BELONGS HERE, not in the post's page.js — and this entry kept it there
+		 *   until `meta.mjs` had to count the post's words and found `post.md` missing.
+		 *   A page.js can still declare parts (later args win), but node cannot import one
+		 *   — it imports `/app.js`, a browser url — so anything the generator needs must
+		 *   be in the manifest. The rule the whole file already states, with a second
+		 *   reader now depending on it. */
+		parts: {
+			"no-build": "No build step",
+			"pages": "Pages are navigation",
+			"open": "Built in the open",
+		},
 	},
 
 	{
@@ -165,6 +184,37 @@ export function listed(){
 export function of_section(name){ return listed().filter(post => post.section === name); }
 export function section(name){ return sections.find(s => s.name === name); }
 export function post(path){ return posts.find(p => slug(p) === path); }
+
+/* THE NEXT POST — the reading path, and it is just the archive read downwards. The
+ * last one has no next, which is what `Post.next_up()` turns into "back to the blog".
+ * ⚠ Derived from `listed()`, so appending an entry re-links the chain and nothing on
+ *   an entry says what follows it.
+ * ⚠ Matched by SLUG, not by identity: the caller is a `Post`, which was assigned its
+ *   entry's fields rather than being one, so `indexOf` would never find it. */
+export function next_post(current){
+	const all = listed();
+	return all[all.findIndex(p => slug(p) === slug(current)) + 1];
+}
+
+// ── how long is this ─────────────────────────────────────────────────────────
+/* The `.md` files a post RENDERS — one per part, or `post.md`. Said here because two
+ * readers need the same list: `Post.read()` fetches them, `meta.mjs` counts them. */
+export const md_files = post =>
+	post.parts ? Object.keys(post.parts).map(stem => stem + ".md") : ["post.md"];
+
+/* 220 words a minute — the middle of the usual 200–250 for screen prose, nudged down
+ * because these posts are half code listings and you do not skim a code block.
+ * ⚠ The COUNTS are generated (`words.js`, from `meta.mjs`); only the rate is a
+ *   judgement, and it lives here so there is one of it. A post whose .md has not been
+ *   counted yet has no entry, and every caller draws nothing rather than "0 min". */
+export const WPM = 220;
+
+export const minutes = post => {
+	const count = words[slug(post)];
+	return count ? Math.max(1, Math.round(count / WPM)) : 0;
+};
+
+export const reading = post => { const m = minutes(post); return m ? m + " min read" : ""; };
 
 /* The front's lead post, and everything else in date order beside it.
  * ⚠ `featured`, not `lead` — `lead: true` on an entry means something ELSE (draw the

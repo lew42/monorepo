@@ -45,9 +45,11 @@ function render(lines, id){
 	div.c("ai-log", () => {
 		header(id, talk, list);
 		let $detail;
-		div.c("ai-columns", () => {
-			div.c("ai-rail", () => list.forEach(t => card(t, () => $detail)));
+		div.c("ai-columns cols main-aside", () => {
+			// DOM order is main-then-aside (`.cols.main-aside`'s own rule) —
+			// `.ai-rail`'s `order: -1` (ai.css) puts it back on the left.
 			$detail = div.c("ai-detail", () => hint());
+			div.c("ai-rail", () => list.forEach(t => card(t, () => $detail)));
 		});
 	});
 }

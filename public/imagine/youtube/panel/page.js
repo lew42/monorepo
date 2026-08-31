@@ -1,5 +1,5 @@
-import { Page, div, span, button, input, md } from "/app.js";
-import { Player, clock, TALKS } from "../youtube.js";
+import { Page, div, span, button, input, md, ui } from "/app.js";
+import { Player, clock, seconds, TALKS } from "../youtube.js";
 
 /* Container: /imagine/'s column row, so `.page-column-prose` — no page grid, and no
    `bleed`: a row of controls that ends flush against the screen edge reads as clipped,
@@ -22,6 +22,31 @@ import { Player, clock, TALKS } from "../youtube.js";
 
 const STARTER = TALKS.jobs;
 
+/* THE TRANSPORT, AS A TABLE. The legend under the controls is rendered from this same
+   list, so a key that works and a key that is advertised cannot drift apart — and the
+   `call` column means a keypress lands in the feed exactly as the button would. */
+const KEYS = [
+	{ cap: "Space", say: "play / pause", on: [" ", "k"], call: "playVideo",
+		fn: p => p.state() === 1 ? p.pause() : p.play() },
+
+	{ cap: "← →", say: "5 seconds", on: ["ArrowLeft", "ArrowRight"], call: "seekTo",
+		fn: (p, e) => p.seek(p.time() + (e.key === "ArrowLeft" ? -5 : 5)) },
+
+	{ cap: "J L", say: "10 seconds", on: ["j", "l"], call: "seekTo",
+		fn: (p, e) => p.seek(p.time() + (e.key === "j" ? -10 : 10)) },
+
+	{ cap: "↑ ↓", say: "volume", on: ["ArrowUp", "ArrowDown"], call: "setVolume",
+		fn: (p, e) => p.volume(Math.min(100, Math.max(0, p.volume() + (e.key === "ArrowUp" ? 10 : -10)))) },
+
+	{ cap: "M", say: "mute", on: ["m"], call: "mute", fn: p => p.mute(!p.muted()) },
+
+	{ cap: "0 – 9", say: "jump to a tenth", on: [..."0123456789"], call: "seekTo",
+		fn: (p, e) => p.seek(p.duration() * (+e.key / 10)) },
+];
+
+// key -> row, built once. `0-9` is ten entries and one line of legend.
+const PRESSED = new Map(KEYS.flatMap(row => row.on.map(key => [key, row])));
+
 export default new Page({
 	meta: import.meta,
 	title: "Control panel",
@@ -31,7 +56,7 @@ export default new Page({
 	classes: "default",
 
 	content(){
-		md("Press play, then drive it. Every control below is one API call; every event the player fires lands in the feed at the bottom.");
+		md("Press play, then drive it — with the controls, or with the **keyboard**. Every control below is one API call; every event the player fires, and every key you press, lands in the feed at the bottom.");
 
 		div.c("yt-lab yt-panel flex wrap gap", () => {
 			div.c("yt-side", () => { this.player = new Player({ video: STARTER }); });
@@ -41,19 +66,30 @@ export default new Page({
 		md("The player is also on the console: `(await import('/imagine/youtube/youtube.js')).Player.all.at(-1)`.");
 	},
 
-	// ⚠ The poll must not outlive the page. `rest()` pauses and clears the interval;
-	// `Player.live` is back to 0 the moment you leave. The iframe stays, so coming
-	// back finds the video where you left it.
-	deactivated(){ this.player?.rest(); },
+	// ⚠ The poll must not outlive the page — and neither may the key listener.
+	// `rest()` pauses and clears the interval; `Player.live` is back to 0 the moment
+	// you leave. The iframe stays, so coming back finds the video where you left it.
+	deactivated(){
+		this.player?.rest();
+		document.removeEventListener("keydown", this.keyed);
+	},
 
 	// Coming back: one read, so the readouts are not showing where the playhead was
 	// when you left. Nothing starts — the poll waits for a state change.
-	activated(){ if (this.player?.ready) this.player.read(); },
+	activated(){
+		if (this.player?.ready) this.player.read();
+
+		// ⚠ One bound handler, kept, so remove() can find it again — a fresh arrow
+		//   every activation would leave a listener behind on every visit.
+		this.keyed ??= e => this.pressed(e);
+		document.addEventListener("keydown", this.keyed);
+	},
 
 	controls(){
 		this.readouts();
 		this.seeking();
 		this.transport();
+		this.shortcuts();
 		this.speed();
 		this.sound();
 		this.source();
@@ -143,6 +179,38 @@ export default new Page({
 		});
 	},
 
+	// ════ the keyboard ════════════════════════════════════════════════════════
+	/* The legend, and it IS the table above — six rows, ten of them the digits.
+	   ⚠ Honest about the one limit: once you click INSIDE the player, focus is in a
+	   cross-origin iframe and this document never sees the keydown at all. YouTube's
+	   own shortcuts take over there, which is the right answer; click the page back. */
+	shortcuts(){
+		div.c("yt-ctl", () => {
+			span.c("yt-ctl-label", "keyboard — anywhere outside the player");
+
+			div.c("yt-shortcuts", () => KEYS.forEach(row => {
+				div.c("yt-shortcut flex v-center gap", () => {
+					ui.keys(row.cap);
+					span.c("yt-shortcut-say", row.say);
+				}).style("--gap", "0.4em");
+			}));
+		});
+	},
+
+	/* One handler for the lot. Three guards, and the middle one is the important one:
+	   the seek box and the video-id box are text inputs on this very page, so a
+	   space or an arrow typed into either must stay typing. */
+	pressed(e){
+		if (e.metaKey || e.ctrlKey || e.altKey) return;
+		if (e.target.closest?.("input, textarea, select, [contenteditable]")) return;
+
+		const row = PRESSED.get(e.key);
+		if (!row) return;
+
+		e.preventDefault();
+		this.call(row.call, () => row.fn(this.player, e));
+	},
+
 	// ════ rate ════════════════════════════════════════════════════════════════
 	speed(){
 		div.c("yt-ctl", () => {
@@ -217,9 +285,3 @@ export default new Page({
 
 	key(text, fn){ return button.c("yt-btn", text).click(fn); },
 });
-
-// "6:00" and "360" both mean the same second.
-function seconds(text){
-	const parts = String(text).trim().split(":").map(Number);
-	return parts.length === 2 ? parts[0] * 60 + parts[1] : parts[0] || 0;
-}

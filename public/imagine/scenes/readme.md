@@ -5,7 +5,8 @@ the canvas navigates. One renderer, one canvas, one loop for the whole subtree �
 flat thing in it (names, skies, paintings) is a `<canvas>` handed to a material.
 
 Live: [/imagine/scenes/](/imagine/scenes/) — four grains of swap, one mechanism, and a fifth
-door that uses all four at once.
+door that uses all four at once. Or [take the tour](/imagine/scenes/tour/): the YouTube lab's
+cue engine on a wall clock, walking these worlds by `router.go()`.
 
 ## Use
 
@@ -46,6 +47,11 @@ a slot name: `world` replaces everything, any other name replaces just that zone
 - **`/imagine/` is a columns host** and would claim this whole subtree. Everything below the
   host opts out, in `Scene.column_host()` and `Scene.container()`.
   [`doc/slots.md`](./doc/slots.md)
+- **The tour is deactivated by its own first waypoint**, so its clock may never touch
+  `this.view` and its guard is "did the reader leave the subtree" — the inverse of every other
+  timed thing here. [`doc/tour.md`](./doc/tour.md)
+- **The foyer's posts come from `doors:`, not `children:`** — that is what lets `tour` be a
+  child with a nav chip and no post in the colonnade.
 - **`aspect-ratio` + `max-height` on a block box caps the WIDTH too.** The stage is a height
   clamp; the camera widens its fov and stands back when the box goes narrow.
 - **Never `Math.random()` in a `build()`** — a cold load and a walk down must agree, paintings
@@ -62,6 +68,8 @@ a slot name: `world` replaces everything, any other name replaces just that zone
 - [`doc/grains.md`](./doc/grains.md) — the four swaps, what each one proves, what to look at.
 - [`doc/observatory.md`](./doc/observatory.md) — the fifth door: all four grains at once, a
   telescope that reads the chain without being rebuilt, and one `draw()` on two surfaces.
+- [`doc/tour.md`](./doc/tour.md) — the cue engine driving the pager: every waypoint is real
+  navigation, and the one page that outlives its own view.
 - [`doc/atmosphere.md`](./doc/atmosphere.md) — the 2D kit, the label technique, light, fog and
   sky, and the mood each scene is going for.
 - [`doc/decisions.md`](./doc/decisions.md) — what was tried, what bit, what is still open.

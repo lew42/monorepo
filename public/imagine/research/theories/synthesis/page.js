@@ -133,6 +133,21 @@ AARO grades case by case and then reports an ungraded count; archaeology has no 
 
 ---
 
+## The audit
+
+Q4 above asked the program to measure itself, since the two invented citations it had already caught were both found by accident. This round did: a seeded, reproducible sample of 60 entries (15 per topic, mulberry32 seed 42 — method and every classification in [audit.json](/framework/ai/2026-08-31/research-audit/audit.json)) had each cited url actually fetched and checked against what the entry claims.
+
+- **40% VERIFIED** — the page says exactly what the entry says.
+- **30% EXISTS-BUT-WEAK** — a real page, but a partial or paraphrased match.
+- **13.3% WRONG** — the page does not say what the entry says.
+- **16.7% UNREACHABLE** — mostly government and paywalled domains that block automated fetching (aaro.mil, congress.gov, sciencedirect.com, nytimes.com, ancient-origins.net, medium.com), not evidence of fabrication.
+
+**The verdict: the WRONG rate is real but mostly citation error, not invented content.** Of the 8 WRONG entries, 6 turned out — on a follow-up check against outside sources — to be *true facts pinned to the wrong url*: Karahan Tepe's October 2025 carved-face pillar and Göbekli Tepe's wall-embedded statue are both real, widely reported finds, just linked to a topic's generic news-index page instead of the specific article. Only two are content that doesn't exist anywhere on the cited page at all: a **Saqqara Bird** aerodynamic-test claim (a named engineer, a 2006 wind-tunnel replica, a balsa-copy test) attributed to a page that contains only Messiha's own 1983 conjecture, and a **Dogon-Sirius "mundane channel"** theory (an 1893 eclipse expedition, 1920s newspaper coverage) attributed to a Chandra Observatory page that names a different Sagan explanation entirely. Those two are the entries a reader should now treat as suspect; the rest of the WRONG and WEAK entries are logged with their specific gaps in [audit.json](/framework/ai/2026-08-31/research-audit/audit.json) and in four new findings in [theories/log.jsonl](/imagine/research/theories/log.jsonl).
+
+So the program's sourcing mostly held: 70% of what it read checks out at least in part, the outright-invented rate is closer to 3% than the >60% AI-search base rate cited above, and the failures that exist are concentrated in specific numbers and named sources rather than the broad claims this essay actually rests on.
+
+---
+
 ## How to read this
 
 Every claim above sits on a logged entry carrying its own **credence** — *established*, *contested*, *fringe*, *speculation* — and a credence is always the writer's claim about their own evidence, never this page's judgement of it, and never upgraded by repetition. Where this essay generalises beyond what any source says, it is labelled: the four-domain agency-displacement pattern is **speculation**, the archaeology-layer case under it is **established**, and the one-measurement observation in §2 is a reading of the logs rather than anyone else's finding — checkable line by line, claimed by nobody but this page.
