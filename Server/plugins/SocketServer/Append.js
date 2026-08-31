@@ -11,12 +11,12 @@ function resolve(url){
 }
 
 /**
- * ⚠ NOT WIRED. One line lands it, in `server.js` beside its neighbours:
+ * WIRED in `server.js` (2026-08-31) beside its neighbours:
  *
  *     import Append from "./Server/plugins/SocketServer/Append.js";
  *     DevSocket.Socket.use(Append);      // next to DevSocket.Socket.use(Tail)
  *
- * and a dev-server restart. Proposed, not applied — `Server/` is the owner's.
+ * A server started before that date is still running the pre-Append code — restart to get it.
  *
  * WHY IT SHOULD LAND. `rpc:write` is the only writer the dev server has, so a browser
  * that wants to append a line has to send the WHOLE FILE back. Three things follow, all

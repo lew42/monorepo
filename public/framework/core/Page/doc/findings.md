@@ -51,7 +51,7 @@ also decides persistent-vs-swap navigation: kinds that CAP tolerate a persistent
 (it comes out of the gutter); kinds that SCALE want the swap (a 16em rail cost a statement
 14% of its size); a thin strip redrawn per slide reads as persistent at a fraction of the
 width.
-→ [Decks](/imagine/decks/) · [the content-kind map](/imagine/decks/doc/regions/)
+→ [Decks](/imagine/decks/) · [the content-kind map](/imagine/decks/doc/regions.md)
 
 **`hug` wants a constant content width — a nav rail is not one.**
 Tried on a realm rail and reverted: it hugged to 128px on one realm and 183px on another,

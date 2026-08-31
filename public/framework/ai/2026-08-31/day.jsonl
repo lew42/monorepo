@@ -25,3 +25,7 @@
 {"log": {"at": "2026-08-31T10:26:10-05:00", "task": "generator-export", "msg": "task opened -- export a generated tree as real page.js files under /imagine/generated/"}}
 {"log": {"at": "2026-08-31T11:22:00-05:00", "task": "research-round-4", "msg": "landed -- Q1 (instrument access) and Q3 (recency-signature base rate) dug, 13 entries appended across 4 logs, 5 pages updated, capstone addendum verdict: thesis survives narrower -- attempted once and disputed, not unperformed"}}
 {"log":{"at":"2026-08-31T10:45:40-05:00","task":"generator-export","msg":"landed -- the generator exports its tree as real page.js files under /imagine/generated/; round trip identical, 6-seed sha unchanged"}}
+{"log": {"at": "2026-08-31T10:46:30-05:00", "task": "qa-2026-08-31", "msg": "task opened - fresh-eyes integration QA over todays 7 waves; read-only, headless on :8097"}}
+{"log": {"at": "2026-08-31T10:53:47-05:00", "task": "drafts-and-glass", "msg": "task opened - cms/edit drafts via page.store(), colstyles Glass look if it earns its place"}}
+{"log": {"at": "2026-08-31T11:09:30-05:00", "task": "drafts-and-glass", "msg": "landed - cms/edit drafts via page.store() proved headless; colstyles Glass shipped as fourth look, contrast 7.9-13.1:1 both schemes"}}
+{"log": {"at": "2026-08-31T11:31:00-05:00", "task": "qa-2026-08-31", "msg": "landed -- 5 of 6 seams clean; 3 dead links in core/Page/doc (old/overview/columns deleted today, two pretty doc/<name>/ forms); 950 urls swept, no other new error url"}}

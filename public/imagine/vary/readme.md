@@ -1,8 +1,9 @@
-# Vary — three trees of column-page variations, browsed live
+# Vary — four trees of column-page variations, browsed live
 
-Three small labs under one question each: **scroll** (the scrollbar situation), **tone**
-(background hierarchy), **place** (how children get shown). Every variation is its own real
-page, previews as nav, one-line verdict at the end.
+Four small labs under one question each: **scroll** (the scrollbar situation), **tone**
+(background hierarchy), **place** (how children get shown), **colstyles** (four looks —
+Finder, Cards, Ink, Glass — the same tree wearing different clothes). Every variation is
+its own real page, previews as nav, one-line verdict at the end.
 
 ## Use
 

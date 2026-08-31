@@ -60,5 +60,5 @@ two windows, is [`/imagine/stream/`](/imagine/stream/).
 ## More
 
 [`thinking.md`](/imagine/cms/thinking/) — the whole argument · [`ext/Saver`](/framework/ext/Saver/)
-— the interface this proposes extending · [`page.store()`](/framework/core/Page/api/store/) — the
-call site it would join to, in core since 2026-08-31.
+— the interface this proposes extending · [`page.store()`](/framework/core/Page/) — in core
+since 2026-08-31; [edit](/imagine/cms/edit/) uses it for drafts.

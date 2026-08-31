@@ -95,14 +95,49 @@ narrower than it needed to be, and now it isn't. Verified: `git diff` touches no
 stylesheets and `colstyles.css` is not one of them; the ink look's own screenshots are
 pixel-identical before and after at 1920 and 3440.
 
+## 2026-08-31 — Glass, the fourth look
+
+Built the candidate the entry below scoped: `--fill-a04` on columns behind the one you're in,
+`--fill-a08` on the one you're in, `backdrop-filter` on both plus the sticky head — the same
+alpha ladder a chip or a hover already wears (framework.css), no new colour.
+
+**The trap the first attempt walked into.** Depth was going to read off `.active-ancestor` /
+`.active-page` (Page.css) — the real Router's own marks for "left of the open leaf" and "the
+leaf". They never fire: `demo.app()` (`ext/demo/app.md`) has no Router at all — its own doc
+says so ("Marks with `aria-current`, never `.active`") — so every column in every colstyles
+demo box is plain `.default`, and a class-based depth rule painted all three panes the
+identical rung. A headless probe of computed `background-color` caught it before a screenshot
+would have (all three read the SAME rgba) — the fix is structural, not class-based: siblings
+under one `.page` are `.page-column-body`, the drag seam, then `.page-column-pages`
+(`render_column()`, Page.class.js) — core's own full-column rule already reaches sideways the
+same way (`:has(~ .page-column-pages …)`, Page.css). `:has(~ .page-column-pages
+.page-column-body)` means "something is still open past me" (a04); its `:not()` twin is the
+leaf (a08). Verified after the fix: Shelf and Fiction (has something open past them) both read
+`rgba(0,0,0,0.04)`; Selected (the leaf) reads `rgba(0,0,0,0.08)` — three distinct, correct
+rungs, live in the demo box.
+
+**Contrast, both schemes, body text (headless, actual composited pixel behind the glyphs, not
+the token's nominal alpha) at 1920:**
+
+| pane | rung | light | dark |
+|---|---|---|---|
+| Shelf / Fiction (behind you) | `--fill-a04` | 8.59 : 1 | 13.05 : 1 |
+| Selected (the leaf) | `--fill-a08` | 7.90 : 1 | 11.66 : 1 |
+
+Both schemes, both rungs, comfortably over the 4.5 : 1 floor — `--ink` (`#3f3f3f` on lew42) is
+dark enough, and `--fill-a08`'s heaviest tint is still a long way from moving the floor to grey.
+Zero console/page errors; folds correctly at 400, holds at 1920 and 3440 (screenshots, both
+schemes, `ai/2026-08-31/drafts-and-glass/`).
+
+**Verdict: shipped, not skipped.** It reads as depth, not decoration — the row's own soft
+gradient plus the two rungs are the only new colour, and the frosted head is the one place
+`backdrop-filter` earns its keep (a sticky bar over scrolling text, the exact case the property
+exists for), not sprinkled everywhere for effect. Two rungs, not N: `:has()` answers "is
+anything still open past me", not "how many", and a chain of nested `:has()`s for a third rung
+nobody asked for.
+
 ## What was cut
 
-- No fourth look. Three was the ask; a fourth would have needed its own reason and none of
-  the interaction notes above pointed at one. Reconsidered 2026-08-31 against the alpha ladder
-  (`--fill-a04/08/16/32`, transparent black/white stacking) — a "Glass" look stacking those by
-  nesting depth is a real candidate, genuinely different from Cards (opaque) and Ink (solid
-  dark), but it wants its own design pass rather than a rushed fourth entry; roadmapped, not
-  built.
 - No "before/after" pair for `index: true` on the hooks page — one live demo plus a caption
   naming what it replaces was enough; a second box showing the undesirable double-list would
   have doubled the code for a point the caption already makes.

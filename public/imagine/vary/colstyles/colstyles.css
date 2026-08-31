@@ -82,4 +82,44 @@
 	.vary-colstyles-look-ink .page-column-close { color: color-mix(in srgb, var(--code-ink) 55%, transparent); }
 	.vary-colstyles-look-ink .page-column-close:is(:hover, :focus-visible) { color: var(--prim); background: color-mix(in srgb, var(--code-ink) 12%, transparent); }
 	.vary-colstyles-look-ink .vary-colstyles-figure { background: color-mix(in srgb, var(--code-ink) 8%, transparent); border-color: var(--prim); color: color-mix(in srgb, var(--code-ink) 70%, transparent); }
+
+	/* ── Glass — the alpha ladder read as DEPTH, not decoration ──
+	   `--fill-a04` / `--fill-a08` (framework.css) are the SAME tokens a chip or a
+	   hover already wears — no new colour, just a higher rung the deeper the
+	   column. ⚠ `.active-page` / `.active-ancestor` (Page.css) were the first
+	   attempt and DON'T reach in here: `demo.app()` has no Router (its own doc,
+	   "Marks with aria-current, never .active") — every column in this box is
+	   `.default`, so a class-based depth rule painted all three panes identically
+	   (headless probe caught it before shipping). `:has()` is structural instead
+	   — and looks SIDEWAYS, not down: `.page-column-body` and the next column's
+	   `.page-column-pages` are SIBLINGS under the same `.page` (`render_column()`,
+	   Page.class.js; core's own full-column rule right above this one in Page.css
+	   reaches the identical way, `:has(~ .page-column-pages …)`). A body with a
+	   sibling pages block that still holds a body has somewhere left to go (the
+	   trail behind you, a04); one with nothing after it is the pane you're
+	   actually reading (a08). Works the same whether a demo box or a real Router
+	   put the columns there — two rungs either way, because `:has()` can tell
+	   "leaf or not" in one step but not "which rung of N" without a chain
+	   nobody asked for.
+	   `backdrop-filter` is new to the site; it earns its ONE placement on
+	   `.page-column-head`, a STICKY bar with body text scrolling under it — a
+	   plain fill there already means "solid enough to read a title over moving
+	   text" (Page.css's own comment on the rule); glass lets the moving text
+	   show through instead of vanishing under a flat rectangle. Measured
+	   contrast, both colour schemes: doc/decisions.md. */
+	.vary-colstyles-look-glass .page-columns-row {
+		background: linear-gradient(160deg, color-mix(in srgb, var(--prim) 12%, var(--wash)), var(--wash) 55%);
+	}
+	.page.columns.vary-colstyles-look-glass .page-column-body { border-inline-end: 1px solid var(--fill-a16); }
+	.vary-colstyles-look-glass .page-column-body:has(~ .page-column-pages .page-column-body) { background: var(--fill-a04); backdrop-filter: blur(6px); }
+	.vary-colstyles-look-glass .page-column-body:not(:has(~ .page-column-pages .page-column-body)) { background: var(--fill-a08); backdrop-filter: blur(6px); }
+	.vary-colstyles-look-glass .page-column-head {
+		background: var(--fill-a16);
+		backdrop-filter: blur(10px);
+		border-bottom-color: var(--fill-a16);
+	}
+	/* `:is(.page-column-item, .page-gen-item)` — the ink convention (doc/decisions.md,
+	   2026-08-31): a generated column draws the second class, not the first. */
+	.vary-colstyles-look-glass :is(.page-column-item, .page-gen-item):is(:hover, :focus-visible) { background: var(--fill-a16); }
+	.vary-colstyles-look-glass .vary-colstyles-figure { background: var(--fill-a08); backdrop-filter: blur(6px); border-color: var(--fill-a16); }
 }

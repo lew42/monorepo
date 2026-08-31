@@ -180,6 +180,7 @@ function sitemap(list){
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${entry("/")}
 ${entry("/blog/")}
+${sections.map(s => entry(`/blog/${s.name}/`)).join("\n")}
 ${list.map(post => entry(url(post), post.date)).join("\n")}
 </urlset>
 `;

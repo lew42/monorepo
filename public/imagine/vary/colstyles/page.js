@@ -8,13 +8,13 @@ View.stylesheet(import.meta, "colstyles.css");
 export default new Page({
 	meta: import.meta,
 	title: "Colstyles",
-	description: "The column render CONTROL answer — every hook live, then the same tree in three complete looks.",
+	description: "The column render CONTROL answer — every hook live, then the same tree in four complete looks.",
 	icon: "view_column",
 	index: true,
-	children: "hooks finder cards ink",
+	children: "hooks finder cards ink glass",
 
 	content(){
-		md("Answering **do we have control over how a columns tree renders**: [Hooks](./hooks/) shows every control point live; Finder, Cards and Ink wear the same three-shelf content tree in three complete looks.");
+		md("Answering **do we have control over how a columns tree renders**: [Hooks](./hooks/) shows every control point live; Finder, Cards, Ink and Glass wear the same three-shelf content tree in four complete looks.");
 		this.previews();
 
 		md(`**Interaction notes**

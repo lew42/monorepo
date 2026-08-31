@@ -1,8 +1,9 @@
 # Colstyles — the column render CONTROL answer
 
 Answers one question: *do we have control over how a columns tree renders?* [`hooks/`](./hooks/)
-shows every control point live; [`finder/`](./finder/), [`cards/`](./cards/) and
-[`ink/`](./ink/) wear one shared content tree ([`tree.js`](./tree.js)) in three complete looks.
+shows every control point live; [`finder/`](./finder/), [`cards/`](./cards/),
+[`ink/`](./ink/) and [`glass/`](./glass/) wear one shared content tree ([`tree.js`](./tree.js))
+in four complete looks.
 
 ## Use
 
@@ -21,11 +22,14 @@ every look is a real page, not a screenshot.
   on the drag seam's own zero-outer-size math too: [`doc/decisions.md`](./doc/decisions.md).
 - Ink's item rules read `:is(.page-column-item, .page-gen-item)` — a generated column
   (`core/Page/generator/`) draws the second class, not the first: [`doc/decisions.md`](./doc/decisions.md).
+- Glass has only two depth rungs, not N — and they come from `:has()`, not
+  `.active-page`/`.active-ancestor`: those never reach inside `demo.app()`, which has no
+  Router: [`doc/decisions.md`](./doc/decisions.md).
 
 ## More
 
 - The mechanism this lab controls: [`core/Page/doc/columns.md`](/framework/core/Page/doc/columns.md)
 - Full record, including the gaps the token system doesn't reach: [`doc/decisions.md`](./doc/decisions.md)
 - Files: `hooks/` (`page.js` + `trees.js`, seven small demos), `tree.js` (the one shared
-  content tree), `finder/` `cards/` `ink/` (one `page.js` each), `colstyles.css` (every rule,
-  `vary-colstyles-` prefixed)
+  content tree), `finder/` `cards/` `ink/` `glass/` (one `page.js` each), `colstyles.css`
+  (every rule, `vary-colstyles-` prefixed)

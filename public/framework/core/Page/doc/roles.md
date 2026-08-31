@@ -72,7 +72,7 @@ will.
 
 ## More
 
-- [`method/nearest.md`](/framework/core/Page/doc/method/nearest/) · the walk itself
+- [`method/nearest.md`](/framework/core/Page/doc/method/nearest.md) · the walk itself
 - [`panels.md`](/framework/core/Page/doc/panels/) · the same answer for two panels
   instead of two columns
 - [`columns.md`](/framework/core/Page/doc/columns/) · the arrangement the demo runs in
