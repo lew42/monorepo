@@ -63,6 +63,10 @@ export default new Blog({
 
 ## Watch out
 
+- Four of the eight posts carry `real: "<section>/<name>"` — a link to the actual post at
+  `/blog/` they mirror, rendered once per post by `Blog.article()`:
+  [`doc/decisions.md`](/imagine/blogx/doc/decisions.md).
+
 - A blog shell is **not a column**. `/imagine/` is a columns host and `column_host()`
   returns the *shallowest* columnar ancestor, so a page here renders as a column of that
   row unless it draws itself — `Blog.js` overrides `container()` and `render()`, and

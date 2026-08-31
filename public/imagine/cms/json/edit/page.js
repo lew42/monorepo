@@ -5,10 +5,10 @@ import { source, body } from "../json.js";
    preview, stacked. Own layout: one `flex v gap` stack of controls; the preview and the log
    are `surface pad flow` cards. Regions: one. Preview: the default card.
 
-   THE EDIT IS AN APPEND. Every button here writes ONE line to `page.jsonl` and leaves
-   `page.json` byte-for-byte alone — the same bargain `ext/Item` makes with its rows, at the
-   size of a page. Compact is the other half: the replayed state becomes the new snapshot and
-   the log goes back to zero, so neither file grows without bound.
+   THE EDIT IS AN APPEND — literally, over `rpc:append`, so the write is the size of the LINE
+   and `page.json` is left byte-for-byte alone. The same bargain `ext/Item` makes with its
+   rows, at the size of a page. Compact is the other half: the replayed state becomes the new
+   snapshot and the log goes back to zero, so neither file grows without bound.
 
    ⚠ Off localhost there is no dev socket, so the four buttons go quiet and the page still
      renders — reading is a fetch and needs no server. */

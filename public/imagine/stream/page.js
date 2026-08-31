@@ -31,7 +31,8 @@ export default new Page({
 	content(){
 		md(`**Open any page below in two windows.** Edit in one; the other changes while you
 watch it, with no reload and no navigation. The number on each page is real — it is
-measured from the moment the edit was appended to the moment the *other* tab had redrawn.`);
+measured from the moment the edit was appended to the moment the *other* tab had redrawn.
+**9 ms**, median of 12, two headless windows on one machine.`);
 
 		this.previews();
 
@@ -49,12 +50,17 @@ A tab fetches the snapshot once, then subscribes to the log. Every line that arr
 replayed onto the state and the region redraws. Reload mid-stream and you get the snapshot
 plus every delta since — the same state, arrived a different way.
 
-### What was already here, and what was missing
+**Compact** folds the log back into the snapshot and truncates it — the same state, arrived
+at from a smaller pair of files. **Clear** is the other button: it throws the log away and
+lets the old snapshot win.
 
-Nothing had to be added to the server. \`rpc:write\` (the CMS slice) carries the edit up;
-\`Tail\` (the AI board) carries it back down to everyone. The one thing genuinely missing is
-an **append** RPC — today an edit rewrites the whole log, which is fine for a demo and wrong
-for a document ([\`doc/wire.md\`](./doc/wire.md) has the measurements and the proposed fix).
+### What was already here, and the one thing that was missing
+
+Almost nothing had to be added to the server. \`Tail\` (the AI board) carries an appended
+line back down to every window. The one thing genuinely missing was an **append** RPC — an
+edit used to rewrite the whole log, so two windows writing at once lost each other. It is
+wired now, and the difference is measured: **30 of 30 lines survive on append, 11 of 30 on
+the whole-file write** ([\`doc/wire.md\`](./doc/wire.md)).
 
 ### On Cloudflare
 

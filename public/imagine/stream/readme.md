@@ -1,7 +1,7 @@
 # Stream — a page edited in one window, live in every other
 
 A page's state lives in an append-only `.jsonl` the dev server already watches. One window
-appends a delta; every other window has redrawn it **6 ms** later, with no reload and no
+appends a delta; every other window has redrawn it **9 ms** later, with no reload and no
 navigation. Three demos: [the wire](/imagine/stream/wire/), [a streamed deck](/imagine/stream/deck/),
 [a streamed region](/imagine/stream/blocks/).
 
@@ -19,15 +19,20 @@ this.stream.set(["headline"], "typed in another window");    // the editor's hal
 ```
 
 `set` / `del` / `append` each append one `{at, op, path, value}` line — the contract
-`/imagine/cms/json/` defines. Read state back with `get(["a", "b"], fallback)`.
+[`/imagine/cms/json/`](/imagine/cms/json/) defines. Read state back with `get(["a", "b"], fallback)`.
+`compact()` folds the log into the snapshot; `clear()` throws it away.
 
 ## Watch out
 
 - **The editor does not apply its own edit** — it arrives back off the wire. One code path,
   and the server is the only orderer. [`doc/decisions.md`](/imagine/stream/doc/decisions.md)
-- **An append is a whole-file write**, because `rpc:write` is the only writer the dev server
-  has — which is why `Stream` carries a `confirmed`/`pending` split at all. The fix is written
-  and unwired. [`doc/wire.md`](/imagine/stream/doc/wire.md)
+- **An edit is one appended line** (`rpc:append`), with the old whole-file `rpc:write` kept as
+  a fallback for a dev server started before that plugin landed — which is why `confirmed` and
+  `pending` are still in `Stream`. Two windows writing at once: **30 of 30 lines survive on
+  append, 11 of 30 on the fallback.** [`doc/wire.md`](/imagine/stream/doc/wire.md)
+- **`compact()` writes the snapshot BEFORE it truncates**, and a window seeing the truncation
+  re-fetches the snapshot rather than reusing its own. Either one backwards and the folded
+  edits vanish. [`doc/wire.md`](/imagine/stream/doc/wire.md)
 - **Never redraw a control from state** — a control rebuilt under a caret loses the caret.
   Redraw the streamed region only.
 - **Off localhost there is no socket**: `live()` degrades to one fetch and the page shows the

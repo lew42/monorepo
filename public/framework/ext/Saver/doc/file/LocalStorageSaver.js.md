@@ -4,7 +4,8 @@ guarded against an environment that doesn't have the API it needs at all.
 ## `store()` is the whole guard
 
 ```js
-const store = () => typeof localStorage === "undefined" ? null : localStorage;
+const store = () => { try { return localStorage ?? null; } catch { return null; } };
+const item = key => { try { return store()?.getItem(key) ?? null; } catch { return null; } };
 ```
 
 Module-level, called fresh on every `load()`/`write()`/`delete()` rather than
@@ -12,6 +13,14 @@ cached once — cheap enough that re-checking costs nothing, and it means this
 file is safe to `import` in Node or a sandboxed iframe (neither has
 `localStorage`) without throwing at import time. Every method degrades to a
 no-op returning `false`/`null` instead.
+
+⚠ **It used to be `typeof localStorage === "undefined"`, and that is not enough.**
+A private-mode browser *has* a `localStorage`: the name resolves and the very next
+access throws `SecurityError`. So the `typeof` check passed and the read rejected —
+which is how `DevBar`'s `restore()` left an unhandled rejection on every page in
+that mode. The **access** is what has to be guarded, not the name. Proved 2026-08-31
+with a probe that redefines `window.localStorage` to throw on every get: the old
+guard threw, the new one answers `null` / `false` / `false` and `restore()` resolves.
 
 ## `write()` and `delete()` are synchronous work wrapped in a resolved promise
 

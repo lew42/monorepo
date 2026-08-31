@@ -158,18 +158,23 @@ the others. **This repo has already built two thirds of it and has not noticed.*
 
 `ext/Saver` is the interface: `load()` · `save(item)` · `write(item)` · `delete()`, with three
 backends already shipped — `FileSaver` (a real file, over the dev socket), `LocalStorageSaver`,
-`MemorySaver`. `/imagine/store.js` is the *other* half: the call site, `store(page)`, keyed on
-`page.url`. Neither knows about the other. Joining them is the whole design:
+`MemorySaver`. [`page.store()`](/framework/core/Page/api/store/) is the *other* half, and it
+landed in core on 2026-08-31: the call site, keyed on the page's own url. Neither knows about
+the other. Joining them is the whole design:
 
 ```
-page.store()                                — the call site: the page's own url IS the key
+page.store()                                — the call site, IN CORE today: the url IS the key
    └── Store         get · set · list · append · delete
          ├── FileStore    git files under public/       ← the default. rpc:write in dev,
          │                                                 read-only when statically hosted
-         ├── LocalStore   localStorage                  ← what /imagine/store.js does today
+         ├── LocalStore   localStorage                  ← what core's Page.Store does today
          ├── SqliteStore  node:sqlite on the dev server ← for `list` with a query in it
          └── D1Store      fetch("/api/store/…") → Worker ← only when a visitor must write
 ```
+
+Core shipped the **call site** and the **LocalStore** row: `get` · `set` · `patch` · `clear`,
+under `lew42:` + the page's url, falling back to an in-memory Map when localStorage throws.
+The backend rows below it are still the proposal.
 
 Two verbs are missing from `Saver` today and both are load-bearing:
 
@@ -191,8 +196,9 @@ Three properties make this actually free of lock-in, and they are worth stating 
 
 ## What I would do, in order
 
-1. **Land `page.store()`** over the existing `Saver` backends, plus `list()` and `append()`. ~40
-   lines, no dependency, no service. Everything below waits on this and nothing else does.
+1. ~~**Land `page.store()`**~~ — **done, 2026-08-31.** One method on `Page` plus `Page.Store`
+   beside it, keyed on the page's url. `list(prefix)` and `append(key, line)` are still missing,
+   and they are the two verbs a CMS actually needs; everything below still waits on those.
 2. **One trap first:** `public/data/` is in `.gitignore`, so today's savers write to a directory
    git will never see. CMS *content* must be written beside the page it belongs to; `public/data/`
    is for user state. The slice here writes `public/imagine/cms/welcome.md` for that reason.

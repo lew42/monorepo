@@ -67,6 +67,9 @@ notes) want the rail — it costs them nothing, six wall columns either way. The
 - **A keyboard handler must die on deactivate, and only the page you are on may act** — going
   deeper never deactivates an ancestor. Three ⚠s, all from
   [`/imagine/screens/`](/imagine/screens/doc/decisions.md), reused verbatim in `deck.js`.
+- **Space advances too, everywhere `arrows` is spread in** — guarded off a focused control so
+  it never steals a real link's own Space behaviour: [`doc/decisions.md`](./doc/decisions.md).
+  All nine pages answer arrows/space now, not just `pitch/` `persist/` `swap/`.
 
 ## More
 

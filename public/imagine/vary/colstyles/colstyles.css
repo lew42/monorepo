@@ -72,9 +72,13 @@
 	}
 	.vary-colstyles-look-ink .page-column-head { background: var(--code-bg); border-bottom-color: var(--prim); }
 	.vary-colstyles-look-ink .page-column-title { font-size: 1.05em; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
-	.vary-colstyles-look-ink .page-column-item { color: color-mix(in srgb, var(--code-ink) 70%, transparent); }
-	.vary-colstyles-look-ink .page-column-item:is(:hover, :focus-visible) { color: var(--code-ink); background: color-mix(in srgb, var(--code-ink) 12%, transparent); }
-	.vary-colstyles-look-ink .page-column-item:is(.in-path, [aria-current]) { color: var(--code-ink); }
+	/* `:is(.page-column-item, .page-gen-item)` — a real column draws the first, a
+	   generated one draws the second (core/Page/generator/readme.md measured the gap).
+	   Same specificity either way: `:is()` counts its most specific branch, one class,
+	   so this reaches neither harder than the line above reached the real one alone. */
+	.vary-colstyles-look-ink :is(.page-column-item, .page-gen-item) { color: color-mix(in srgb, var(--code-ink) 70%, transparent); }
+	.vary-colstyles-look-ink :is(.page-column-item, .page-gen-item):is(:hover, :focus-visible) { color: var(--code-ink); background: color-mix(in srgb, var(--code-ink) 12%, transparent); }
+	.vary-colstyles-look-ink :is(.page-column-item, .page-gen-item):is(.in-path, [aria-current]) { color: var(--code-ink); }
 	.vary-colstyles-look-ink .page-column-close { color: color-mix(in srgb, var(--code-ink) 55%, transparent); }
 	.vary-colstyles-look-ink .page-column-close:is(:hover, :focus-visible) { color: var(--prim); background: color-mix(in srgb, var(--code-ink) 12%, transparent); }
 	.vary-colstyles-look-ink .vary-colstyles-figure { background: color-mix(in srgb, var(--code-ink) 8%, transparent); border-color: var(--prim); color: color-mix(in srgb, var(--code-ink) 70%, transparent); }

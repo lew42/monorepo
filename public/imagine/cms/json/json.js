@@ -118,23 +118,37 @@ export class Source {
 		});
 	}
 
-	// ONE LINE, and the snapshot is never touched.
-	// ⚠ `rpc:write` is the only writer the dev socket has — no append verb — so this holds
-	//   the log text and writes log + line. The file still grows by exactly one line and an
-	//   edit still never rewrites the snapshot; a server-side `rpc:append` would make it
-	//   atomic between two writers. doc/format.md.
+	/* ONE LINE, and the snapshot is never touched.
+	   `rpc:append` (`Server/plugins/SocketServer/Append.js`) opens the file with `"a"`, so
+	   the write is the size of the LINE and two browsers editing at once interleave between
+	   lines instead of each sending its own copy of the file and losing the other's.
+	   ⚠ The whole-file `rpc:write` stays as the fallback: a dev server started before that
+	     plugin landed answers nothing at all, and `async_rpc` waits forever for a reply that
+	     is not coming — so the first append races a timeout and the verdict is remembered. */
 	async append(delta){
 		const line = { at: new Date().toISOString(), ...delta };
-		const base = !this.text || this.text.endsWith("\n") ? this.text : this.text + "\n";
-		const text = base + JSON.stringify(line) + "\n";
+		const text = JSON.stringify(line);
 
-		await this.write(this.log_url(), text);
+		if (!await this.appended(text)) await this.write(this.log_url(), this.joined(text));
 
-		this.text = text;
+		this.text = this.joined(text);
 		this.deltas.push(line);
 		apply(this.state, line);
 
 		return line;
+	}
+
+	// The log text plus one line, newline-terminated whichever way the file ended.
+	joined(line){ return (!this.text || this.text.endsWith("\n") ? this.text : this.text + "\n") + line + "\n"; }
+
+	async appended(line){
+		if (!this.writable() || this.appendable === false) return false;
+
+		const reply = await Promise.race([
+			Socket.singleton().async_rpc("append", this.log_url(), line),
+			new Promise(done => setTimeout(done, 2000, null)),
+		]);
+		return this.appendable = reply?.response === "append successful";
 	}
 
 	// The whole point of the pair: the replayed state BECOMES the snapshot and the log

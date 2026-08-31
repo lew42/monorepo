@@ -89,7 +89,7 @@ const json = await saver.load();    // the stored JSON, or null`);
 
 		md("Each one implements the same three hooks — `load()`, `write(item)`, `delete()` — and inherits the queue above.");
 
-		md("- **`MemorySaver`** — a plain object. Counts writes in `save_count`, which is what the checks above read.\n- **`LocalStorageSaver`** — one key, one document. Guarded on `typeof localStorage`, so importing it headless is safe.\n- **`FileSaver`** — a real `.json` file on disk, over the dev socket.\n- **`Saver`** — the base, whose hooks resolve and do nothing.");
+		md("- **`MemorySaver`** — a plain object. Counts writes in `save_count`, which is what the checks above read.\n- **`LocalStorageSaver`** — one key, one document. Every *access* is guarded, not just the name, so importing it headless is safe and a private-mode browser (where the name resolves and the read throws) degrades instead of rejecting.\n- **`FileSaver`** — a real `.json` file on disk, over the dev socket.\n- **`Saver`** — the base, whose hooks resolve and do nothing.");
 
 		md("**`FileSaver` only works on localhost** — off localhost, `write()` warns once and resolves `false`; `load()` keeps working everywhere, because a `.json` file is a static asset. The full comparison, the read-only badge every real caller should show, and the one-line idiom `ext/editor`, `ext/Panel` and `dev/DevBar` each repeat to pick a backend: [backends](/framework/ext/Saver/doc/backends/).");
 

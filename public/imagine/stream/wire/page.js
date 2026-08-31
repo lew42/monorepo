@@ -107,7 +107,23 @@ sent it back — which is why the same number appears in both windows.`);
 		cell("deltas", s.lags.length);
 		cell("last", s.lags.length ? s.lags.at(-1) + "ms" : "—");
 		cell("median", s.median() === null ? "—" : s.median() + "ms");
+		cell("log", s.count().lines + " lines · " + s.count().bytes + "B");
 	},
+
+	/* COMPACTION, ON A BUTTON — never a timer. The replayed state is written to
+	   `wire.json` and only then is `wire.jsonl` truncated, so both windows land on the
+	   same state with nothing left to replay. The counts before and after are the whole
+	   argument for keeping two files instead of one. */
+	async compact(){
+		const done = await this.stream.compact();
+
+		this.say(done.ok
+			? `compacted — wire.jsonl ${done.lines} lines / ${done.bytes} B → 0 / 0, folded into `
+				+ `wire.json (${done.snapshot} B). Same state; every window re-read the snapshot.`
+			: "the server refused the snapshot write — nothing was truncated.");
+	},
+
+	say(msg){ this.$said?.text(msg); },
 
 	// ⚠ Built once, into a box `content()` already captured — see `draw()`.
 	editor(){
@@ -145,6 +161,12 @@ sent it back — which is why the same number appears in both windows.`);
 			});
 		});
 
-		button("Clear the log").click(() => s.clear());
+		// The pair, side by side: one keeps the state, the other throws it away.
+		div.c("flex gap wrap v-center", () => {
+			button("Compact").ac("prim").click(() => this.compact());
+			button("Clear the log").click(() => s.clear());
+		});
+
+		this.$said = p.c("muted");
 	},
 });

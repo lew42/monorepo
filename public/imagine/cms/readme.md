@@ -32,6 +32,11 @@ bytes on disk, a **cold** load of `/imagine/cms/welcome/` rendered the edit, and
 restored through the same seam. `node:sqlite` also confirmed built in on this box (Node v24.15.0,
 `DatabaseSync`, zero npm deps) — the numbers are in [`thinking`](/imagine/cms/thinking/).
 
+2026-08-31: [`json/edit`](/imagine/cms/json/edit/) now writes over **`rpc:append`** — one line per
+edit, `page.json` byte-identical, and **Compact** folded `page.jsonl` 4 lines / 651 B → 0 / 0 into
+a snapshot that kept the edit and all three child pages. The same contract, streamed live between
+two windows, is [`/imagine/stream/`](/imagine/stream/).
+
 ## Watch out
 
 - **`public/data/` is in `.gitignore`.** Every saver in the repo writes there, which is right for
@@ -55,5 +60,5 @@ restored through the same seam. `node:sqlite` also confirmed built in on this bo
 ## More
 
 [`thinking.md`](/imagine/cms/thinking/) — the whole argument · [`ext/Saver`](/framework/ext/Saver/)
-— the interface this proposes extending · [`/imagine/store.js`](/imagine/readme/) — the
-`page.store()` call site it would join to.
+— the interface this proposes extending · [`page.store()`](/framework/core/Page/api/store/) — the
+call site it would join to, in core since 2026-08-31.

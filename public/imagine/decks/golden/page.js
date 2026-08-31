@@ -1,4 +1,4 @@
-import { Deck, region, quiet, statement, notes, slices } from "../deck.js";
+import { Deck, region, quiet, statement, notes, slices, arrows, neighbor } from "../deck.js";
 
 /* Container: /imagine/'s column row, one `full` screen. Size: 2125 / 1313 at 3440,
    1185 / 733 at 1920, two bands at 400. Own layout: two regions, 61.8% and 38.2%.
@@ -12,6 +12,8 @@ export default new Deck({
 	group: "The slices",
 	shapes: ["1.618:s 1:n"],
 	ring: slices,
+	...arrows,
+	...neighbor("golden"),
 
 	content(){
 		region(61.8, () => statement("61.8 / 38.2", "A lead",

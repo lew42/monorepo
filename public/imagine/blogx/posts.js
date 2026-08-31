@@ -7,7 +7,13 @@
    post with parts, and `sections` is the one grouping the rails read.
 
    ⚠ No backticks inside the bodies: they are template literals. Prose says the name
-     of a thing in italics rather than as code. */
+     of a thing in italics rather than as code.
+
+   `real: "<section>/<name>"` — four of these eight are mock-ups of posts that got
+   written for real, at /blog/. It is the section+name pair /blog/posts.js addresses
+   them by, not a full url: nobody here may import /blog/ (a round trip either way
+   would be a circular import across two site sections), so the pairing is typed
+   twice on purpose and Blog.article() builds the one link from it. */
 
 export const sections = [
 	{ name: "framework", title: "Framework", icon: "widgets",   blurb: "The page system, layout, and the words a page is built from." },
@@ -28,6 +34,7 @@ export const posts = [
 		date: "2026-08-26",
 		read: 9,
 		lead: true,
+		real: "systems/layout-generators",
 		body: `A generator is only as good as the thing that grades it. Ours draws layouts from a seeded random walk over the same width words a real page uses — so every candidate it produces is a page you could ship, not a picture of one.
 
 The interesting half is the grader. Eleven weighted ideal ranges: measure, column count, dead space, rhythm, the distance from a title to the thing it names. The generator searches against that score, which means the rubric is the design, and the generator is just a fast way to ask it questions.`,
@@ -58,6 +65,7 @@ That is a finding a person could have reasoned their way to. Nobody did, in six 
 		section: "tools",
 		date: "2026-08-22",
 		read: 7,
+		real: "systems/panel-playground",
 		body: `Panel came first: drag to split, drag to size, drag to reorder, twelve gestures in all, every one of them discoverable and none of them obvious.
 
 Playground is the answer to the question Panel raised — how little can you take away and still have the thing be useful. The data is the CSS. You edit a value, the layout moves. There is no gesture to learn because there is no gesture.`,
@@ -84,6 +92,7 @@ Playground wins everywhere else, which turns out to be almost everywhere.`),
 		section: "ai",
 		date: "2026-08-19",
 		read: 6,
+		real: "ai/dashboard",
 		body: `Every task opens a directory and an append-only log before its first edit. The board reads those logs, and because they are append-only it can stream them over a socket without ever reloading a page.
 
 The interesting constraint is that nothing crawls. A task appears on the board because its directory exists, and a page appears in the site because its parent names it. Both rules are the same rule, and both were learned the hard way.`,
@@ -96,6 +105,7 @@ The interesting constraint is that nothing crawls. A task appears on the board b
 		section: "ai",
 		date: "2026-08-17",
 		read: 8,
+		real: "ai/claude-tooling",
 		body: `An MCP server lets a model read the live DOM of a page you are looking at. Headless Playwright lets it open its own browser and take a picture. A skill is a paragraph of instructions that loads only when it is relevant.
 
 The rule that keeps all three honest: never let the model drive the browser window a person is using. Everything else is a preference.`,

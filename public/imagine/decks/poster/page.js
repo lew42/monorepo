@@ -1,5 +1,5 @@
 import { div } from "/app.js";
-import { Deck, region, quiet, statement, list, wall, stack, slices } from "../deck.js";
+import { Deck, region, quiet, statement, list, wall, stack, slices, arrows, neighbor } from "../deck.js";
 
 /* Container: /imagine/'s column row, one `full` screen. Size: 687 / 2062 / 687 at 3440,
    383 / 1150 / 383 at 1920, three bands at 400. Own layout: three regions, 20 / 60 / 20.
@@ -13,6 +13,8 @@ export default new Deck({
 	group: "The slices",
 	shapes: ["1:l 3:s 1:w"],
 	ring: slices,
+	...arrows,
+	...neighbor("poster"),
 
 	content(){
 		quiet(20, () => stack(() => {

@@ -78,10 +78,31 @@ only way to get a fixed visual direction today is to find (or hand-write) a pair
   look here missed it (both show real columns, not empty slots), but a look with fewer than
   three visited columns would.
 
+## 2026-08-31 — item selectors reach the generator's own classes too
+
+Ink's three `.page-column-item` rules are now `:is(.page-column-item, .page-gen-item)` —
+[`core/Page/generator/`](/framework/core/Page/generator/) draws the same tree shape under its
+own class (`doc/decisions.md` there measured the gap: row/body/head/title carry over verbatim,
+the item never matched). `:is()` of two single classes is still one class of specificity, so
+this changes no cascade outcome on any page that already worked.
+
+**What this does and does not do.** `core/` may not import `/imagine/`, so `colstyles.css`
+still never loads on the generator page today — the generator dresses its own `.page-gen-item`
+from `generator.css`'s own copy, unchanged. This fix is for the day colstyles is loaded by
+hand there, or reused somewhere neither file anticipated: the class list was the only thing
+narrower than it needed to be, and now it isn't. Verified: `git diff` touches nothing under
+`core/Page/generator/`; a live probe of `/framework/core/Page/generator/#42` lists 59
+stylesheets and `colstyles.css` is not one of them; the ink look's own screenshots are
+pixel-identical before and after at 1920 and 3440.
+
 ## What was cut
 
 - No fourth look. Three was the ask; a fourth would have needed its own reason and none of
-  the interaction notes above pointed at one.
+  the interaction notes above pointed at one. Reconsidered 2026-08-31 against the alpha ladder
+  (`--fill-a04/08/16/32`, transparent black/white stacking) — a "Glass" look stacking those by
+  nesting depth is a real candidate, genuinely different from Cards (opaque) and Ink (solid
+  dark), but it wants its own design pass rather than a rushed fourth entry; roadmapped, not
+  built.
 - No "before/after" pair for `index: true` on the hooks page — one live demo plus a caption
   naming what it replaces was enough; a second box showing the undesirable double-list would
   have doubled the code for a point the caption already makes.

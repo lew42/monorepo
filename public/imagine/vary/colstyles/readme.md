@@ -19,6 +19,8 @@ every look is a real page, not a screenshot.
   depth: [`doc/decisions.md`](./doc/decisions.md).
 - Cards' gutter is `margin` on `.page-column-body`, never `gap` on the row — `gap` would land
   on the drag seam's own zero-outer-size math too: [`doc/decisions.md`](./doc/decisions.md).
+- Ink's item rules read `:is(.page-column-item, .page-gen-item)` — a generated column
+  (`core/Page/generator/`) draws the second class, not the first: [`doc/decisions.md`](./doc/decisions.md).
 
 ## More
 

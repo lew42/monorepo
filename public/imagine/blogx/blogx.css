@@ -205,6 +205,20 @@
 		border: 1px solid var(--prim); border-radius: 999px;
 	}
 
+	/* The one link out of the mock — `.blogx-tag`'s pill, wearing a hover because this
+	   one is clickable and leaves the lab. */
+	.blogx-real {
+		align-self: start;
+		display: inline-flex; align-items: center; gap: 0.35em;
+		margin-block-start: 0.2em;
+		padding: 0.3em 0.7em;
+		font-size: 0.78em; font-weight: 600;
+		color: var(--prim-ink); text-decoration: none;
+		border: 1px solid var(--prim); border-radius: 999px;
+	}
+	.blogx-real:hover { background: color-mix(in srgb, var(--prim) 10%, transparent); }
+	.blogx-real .icon { font-size: 1.05em; }
+
 	/* THE LEAD, as the composition it deserves. Sized in `cqw` off its OWN box, so a
 	   hero in a 1290px band of a 3440 screen and one in a 400px phone are the same
 	   fraction of their own composition — the screens lab's finding, and the reason a

@@ -26,7 +26,7 @@ then does anything redraw.
   in production, so the local and the deployed versions have the same semantics.
 - The latency number is therefore the *same number* in both windows, and it is real.
 
-The cost is that a keystroke is a round trip. At 6 ms nobody can tell; the text inputs are
+The cost is that a keystroke is a round trip. At 9 ms nobody can tell; the text inputs are
 uncontrolled anyway, so nothing waits on it.
 
 **Rejected:** apply locally, then reconcile. It needs a second code path, and the reconcile is
@@ -63,8 +63,35 @@ wrote every line twice on the next edit and the log doubled per edit — three e
 blocks (2026-08-30). Fixed with a `confirmed` / `pending` split in `Stream.parse()`, matched
 per whole line (a line carries an ISO millisecond, so it identifies itself).
 
-**That entire mechanism exists because there is no append RPC.** The file that removes it is
-written and unwired: [`wire.md`](./wire.md) has it and the two lines that land it.
+## The append RPC landed — and the fallback stays anyway
+
+`rpc:append` is wired (2026-08-31), so `push()` sends the line and not the file. The measured
+difference is concurrency: two windows, 15 edits each, at once — **30 of 30 lines survive on
+append, 11 of 30 on the whole-file write** ([`wire.md`](./wire.md)).
+
+**`confirmed`/`pending` were kept, not deleted.** They were going to disappear with the append.
+They did not, because `Stream.send()` still has to work on a dev server started before the
+plugin landed, and that fallback needs this window's copy of the file. The cost of keeping them
+is ten lines nobody reads on the happy path; the cost of removing them is a page that silently
+stops saving until somebody restarts a server.
+
+⚠ **A missing responder never answers.** `async_rpc` waits forever for a reply that is not
+coming, so the append races a 2-second timeout and the verdict is remembered on the instance —
+one edit pays for the probe, once, and only on an old server.
+
+## Compaction folds; clear throws away
+
+Two buttons, deliberately both. `compact()` writes the replayed state into the `.json` and
+**then** truncates the `.jsonl`; `clear()` truncates and lets the old snapshot win.
+
+Ordering is the safety property: truncate first and a window reloading in that gap gets the old
+snapshot with nothing left to replay. And a window that *sees* the truncation must re-fetch the
+snapshot (`reset()`, `cache: "no-cache"`) rather than reuse the base it loaded with — otherwise
+the file on disk is right and that one window quietly rolls every folded edit back out.
+
+**Rejected: compacting on a timer, or above a line count.** A background process that rewrites
+your content while you are looking at it is the opposite of a demo you can trust. Compaction is
+a moment somebody chooses, and the button prints the counts before and after.
 
 ## No merge
 
@@ -92,7 +119,6 @@ that were not asked for.
 
 ## Not built
 
-- **An append RPC, wired.** One unwired file was the fence; the wiring is a proposal.
 - **Presence** — who else is looking, and where their caret is. It is one more path in the
   same state (`set ["here", <tab>]`) and it would cost a delta per mouse move, which is the
   first thing that would make the log expensive.

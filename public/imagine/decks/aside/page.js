@@ -1,5 +1,5 @@
 import { div } from "/app.js";
-import { Deck, region, quiet, stage, notes, slices } from "../deck.js";
+import { Deck, region, quiet, stage, notes, slices, arrows, neighbor } from "../deck.js";
 
 /* Container: /imagine/'s column row, one `full` screen. Size: 2407 / 1031 at 3440,
    1343 / 575 at 1920, two bands at 400. Own layout: two regions, 70% and 30%.
@@ -13,6 +13,8 @@ export default new Deck({
 	group: "The slices",
 	shapes: ["2.33:g 1:n"],
 	ring: slices,
+	...arrows,
+	...neighbor("aside"),
 
 	content(){
 		region(70, () => stage("A stage is the one kind with no natural width — it takes 2407px the same way it takes 400.",

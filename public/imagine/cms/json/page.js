@@ -66,6 +66,9 @@ is the snapshot, [\`page.jsonl\`](/imagine/cms/json/page.jsonl) is every change 
 line each. This \`page.js\` is the only code in the tree — it fetches both and hands the nodes to
 core. [**Edit**](/imagine/cms/json/edit/) appends a line and shows the numbers.
 
+The same two files, put on the dev socket instead of fetched once, are a page that changes
+while you watch it: [**streaming pages**](/imagine/stream/) reads this exact delta contract.
+
 How it is built, and whether a page can be json all the way down: [\`readme\`](/imagine/cms/json/readme/).
 
 ---`);

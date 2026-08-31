@@ -70,6 +70,15 @@ export const slices = [
 	["triptych", "25 / 50 / 25"], ["poster", "20 / 60 / 20"], ["four", "2 × 2"],
 ].map(([name, label]) => ({ name, label, to: base + name + "/" }));
 
+/* The six cuts read in one order everywhere else — the readme's table, the index
+   grid, the footer strip each page already wears. `neighbor()` hands a page its
+   `prev`/`next` out of that SAME array, so wiring one more page into arrow-key
+   paging is one line, never a hand-kept url. */
+export const neighbor = name => {
+	const i = slices.findIndex(s => s.name === name);
+	return { prev: slices[i - 1]?.to ?? null, next: slices[i + 1]?.to ?? null };
+};
+
 /* ── the screen ─────────────────────────────────────────────────────────────
    A REGION. `share` is a PERCENT of the row and it is the ratio itself — the one number
    an experiment varies, so it arrives as a token rather than as a class per value. The
@@ -144,24 +153,32 @@ export const foot = (items, here) => div.c("decks-foot", () => items.forEach(ite
 	a.c("decks-chip", item.label).href(item.to).ac(item.name === here && "decks-on")));
 
 /* ── the keyboard ───────────────────────────────────────────────────────────
-   Arrow keys take the SAME path a click does — `go()` calls the method the Router's own
-   click handler calls — so the keyboard can never drift from the links. Three ⚠s, all
-   three measured on /imagine/screens/deck/ (2026-08-29) rather than reasoned:
+   Arrow keys (and Space, forward) take the SAME path a click does — `go()` calls the
+   method the Router's own click handler calls — so the keyboard can never drift from
+   the links. Three ⚠s, all three measured on /imagine/screens/deck/ (2026-08-29)
+   rather than reasoned:
    ⚠ ONE reference, stored on the page, so the pair added and removed is the same
      function; a fresh arrow function per visit leaves a listener behind.
    ⚠ ONLY THE PAGE YOU ARE ON MAY ACT. Going deeper never deactivates an ancestor, so a
      host's listener outlives its screen — ArrowRight on slide three walked BACK to two.
    ⚠ The HOST carries this too. The slide you see at a deck's root is `default`: it was
      BUILT by the host rather than activated, so its own `activated()` never ran and the
-     keyboard was dead until the first click. */
+     keyboard was dead until the first click.
+   ⚠ Space is a click everywhere else on the page — a focused link or button already
+     answers it, and stealing that is worse than not paging at all — so it only ADVANCES
+     when nothing focusable owns it, and only then is the browser's own scroll stopped. */
 export const arrows = {
 	activated(){
 		this.keys ??= event => {
 			if (location.pathname !== this.url) return;
+			if (event.key === " " && event.target.closest("input, textarea, select, button, a, [contenteditable]")) return;
 
-			const to = { ArrowRight: this.next, ArrowLeft: this.prev }[event.key];
+			const to = { ArrowRight: this.next, ArrowLeft: this.prev, " ": this.next }[event.key];
 
-			if (to) this.go(to);
+			if (to){
+				if (event.key === " ") event.preventDefault();
+				this.go(to);
+			}
 		};
 		addEventListener("keydown", this.keys);
 	},

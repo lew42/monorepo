@@ -86,6 +86,23 @@ a rail should never be a fraction. A fixed 16em costs the stage 288px at 3440 in
 and 256 at 1920 instead of 422. `full` is still the word (the ancestors have to collapse); only
 its three tokens are re-tuned.
 
+## 2026-08-31 — Space joins arrows, and all nine pages answer both
+
+`arrows.activated()` bound `ArrowRight`/`ArrowLeft` only; the owner's brief asked for
+"arrows/space" and only half existed. Space now advances too, guarded off
+`input, textarea, select, button, a, [contenteditable]` — a focused link keeps its own Space
+behaviour (native click), and the browser's own page-scroll is only pre-empted on the keys we
+actually act on. One change to the shared mixin, so `pitch/`, `persist/` and `swap/` all picked
+it up for free.
+
+**The six standalone cuts (`half golden aside triptych poster four`) never had arrow paging at
+all** — they carry `ring: slices` for the click-through footer, but no `prev`/`next`, so the
+keyboard did nothing. `neighbor(name)` reads their own position out of the existing `slices`
+array (the same order the readme table and the index grid already use), so wiring one in is
+`...arrows, ...neighbor("golden")` — one line, never a hand-kept url pair. Verified with real
+key presses: `half` →Right→ `golden` →Space→ `aside` →Left→ `golden`, and the same chain
+through `triptych` → `poster`; zero console errors.
+
 ## Cut: quarters, 25 × 4
 
 Built, shot at both widths, and deleted — the evidence is in the task dir

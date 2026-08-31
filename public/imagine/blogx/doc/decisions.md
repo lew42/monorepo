@@ -103,6 +103,25 @@ holding one. Navigating between parts renders the part and nothing else, and
 a plain div wearing `page … default`, stood down by one rule of the same shape `Page.css`
 uses for a default column.
 
+## 2026-08-31 — cross-linked to the real posts they mirror
+
+Four of the eight mock posts share a title, a date and a section with a post that actually
+got written at `/blog/`: `layout-generators`, `panel-playground`, `ai-dashboard` (real name
+`dashboard`) and `mcp-playwright-skills` (real name `claude-tooling`). `posts.js` now carries
+`real: "<section>/<name>"` on those four — the section+name pair `/blog/posts.js` addresses
+them by, not a full url, because neither lab may import the other (a round trip either way is
+a circular import across two site sections, and this fence excludes `/blog/**` regardless).
+
+`Blog.article()` renders the one link — a `real_link()` pill, reusing `.blogx-tag`'s visual
+language — only when `post.real` is set, so the four posts without a real counterpart show
+nothing. Placed in `article()` specifically: it is called once per post's own landing page,
+never per part, so a multi-part post (`layout-generators`, `panel-playground`) shows the link
+once rather than on every part page. Verified across four different candidate shells
+(`front/ rail/ parts/ finder/`): all four hrefs resolve, zero console errors.
+
+**Not built: the reverse link**, from the real posts back to the blogx candidate that shaped
+their layout — that edit lives in `/blog/**`, outside this lab's fence.
+
 ## Open — the owner decides
 
 - **Does the blog get its own rail, or the site's?** Every candidate here hides the site

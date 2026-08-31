@@ -218,6 +218,16 @@ export class Blog extends Page {
 			div.c("blogx-article-title", post.title);
 			p.c("blogx-lede", post.dek);
 			md(body);
+			if (post.real) this.real_link(post);
+		});
+	}
+
+	// One honest link out of the mock and into the post that actually got written —
+	// only the entries in posts.js carrying `real` show it, so most posts show nothing.
+	real_link(post){
+		return a.c("blogx-real").href("/blog/" + post.real + "/").append(() => {
+			icon("open_in_new");
+			span("Read the real post");
 		});
 	}
 }

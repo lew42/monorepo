@@ -13,7 +13,10 @@ rewrites it.
   [`format/snapshot/shape/`](/imagine/cms/json/format/snapshot/shape/) is data all the way
   down and works pasted cold into a new tab.
 - **[Edit](/imagine/cms/json/edit/)** appends one line and prints the before/after line and
-  byte counts. **Compact** prints them again, at zero.
+  byte counts. **Compact** prints them again, at zero — measured 2026-08-31: `page.jsonl`
+  4 lines / 651 B → 0 / 0, `page.json` 4473 → 4909 B with the edit in it and the tree intact.
+- **The same two files, streamed** — [`/imagine/stream/`](/imagine/stream/) puts this exact
+  delta contract on the dev socket, so an edit here reaches another window in 9 ms.
 - **The delta line** — the contract a writer may not break:
   ```json
   {"at": "<ISO>", "op": "set" | "del" | "append", "path": ["children", "why", "title"], "value": …}
@@ -53,10 +56,12 @@ that computes. That page can live in this tree as one more child — `edit/` is 
 
 ## Watch out
 
-- **`rpc:write` has no append verb**, so `Source.append()` holds the log text and writes
-  log + line. The file still grows by exactly one line and the snapshot is still never
-  rewritten — but two browsers editing at once would clobber, and a server-side `rpc:append`
-  is the one-line fix.
+- **An edit is one appended line** — `rpc:append` (`Server/plugins/SocketServer/Append.js`)
+  opens the file with `"a"`, so the write is the size of the line and two browsers editing at
+  once interleave instead of clobbering. The old whole-file `rpc:write` is the fallback for a
+  dev server started before that plugin landed. ⚠ Such a server does not answer at all and
+  `async_rpc` waits forever, so the first append races a 2-second timeout and the answer is
+  remembered. Measured 2026-08-31: one line per edit, `page.json` byte-identical.
 - **Off localhost there is no dev socket**: the buttons disable themselves and say so. Reading
   is a fetch, so the tree itself works anywhere, including a static host.
 - **A missing file answers 200 with `index.html`** (the SPA fallback), so `Source.read()`

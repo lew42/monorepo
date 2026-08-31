@@ -39,6 +39,11 @@ seam instead of a service.`);
 decides anything. [**Services**](/imagine/cms/services/) is a mock on purpose: it composes the
 \`npx wrangler\` line for each screen and hands it to you rather than holding a token.
 
+[**JSON pages**](/imagine/cms/json/) is the same idea one level deeper — a whole page tree that
+exists as \`page.json\` plus an append-only \`page.jsonl\`. Put that pair on the dev socket instead
+of fetching it once and you get [**streaming pages**](/imagine/stream/): an edit here, redrawn
+there, 9 ms later.
+
 How it is built, and the four traps found on the way: [\`readme\`](/imagine/cms/readme/).`);
 	},
 });

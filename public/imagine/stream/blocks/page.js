@@ -1,4 +1,4 @@
-import { Page, div, span, input, select, option, button, label, textarea, md } from "/app.js";
+import { Page, div, p, span, input, select, option, button, label, textarea, md } from "/app.js";
 import { wire } from "../stream.js";
 import Socket from "/framework/dev/Socket/Socket.js";
 
@@ -122,8 +122,29 @@ stream is behaviour — see [\`doc/decisions.md\`](../doc/decisions.md).`);
 			});
 		});
 
-		button("Clear the log").click(() => s.clear());
+		// The pair, side by side: one keeps the state, the other throws it away.
+		div.c("flex gap wrap v-center", () => {
+			button("Compact").ac("prim").click(() => this.compact());
+			button("Clear the log").click(() => s.clear());
+		});
+
+		this.$said = p.c("muted");
 	},
+
+	/* COMPACTION, ON A BUTTON. The blocks are written into `blocks.json` and the log is
+	   truncated after — so the region looks identical and there is nothing left to replay.
+	   ⚠ The editor is rebuilt by `draw()` when the block COUNT changes, so `$said` is a
+	     fresh box after a fold; the message is written to the new one. */
+	async compact(){
+		const done = await this.stream.compact();
+
+		this.say(done.ok
+			? `compacted — blocks.jsonl ${done.lines} lines / ${done.bytes} B → 0 / 0, folded into `
+				+ `blocks.json (${done.snapshot} B). The region did not move.`
+			: "the server refused the snapshot write — nothing was truncated.");
+	},
+
+	say(msg){ this.$said?.text(msg); },
 
 	stat(){
 		const s = this.stream;
@@ -136,5 +157,6 @@ stream is behaviour — see [\`doc/decisions.md\`](../doc/decisions.md).`);
 		cell("blocks", s.get(["blocks"], []).length);
 		cell("deltas", s.lags.length);
 		cell("median", s.median() === null ? "—" : s.median() + "ms");
+		cell("log", s.count().lines + " lines · " + s.count().bytes + "B");
 	},
 });
