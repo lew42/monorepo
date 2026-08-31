@@ -443,6 +443,94 @@
 	.page-gen-pair-bad  { color: var(--subtle); background: var(--tint); }
 
 
+	/* ════ THE SPEC GALLERY ═══════════════════════════════════════════════════════
+	   The same `full` column and the same tile as the permutation wall — a card here IS
+	   `.page-gen-tile`, plus the two things a roll cannot have: a name and a sentence.
+	   ⚠ A WIDER cell than the wall's 11em and a taller floor, because these cards carry
+	     two lines of prose under the sketch; at the wall's density the note wrapped to
+	     five lines and the picture it explains was a stripe. */
+	.page-gen-cards {
+		flex: 1 1 auto; align-content: start;
+		display: grid; grid-template-columns: repeat(auto-fill, minmax(15em, 1fr));
+		gap: 0.7em; padding: 0.8em;
+	}
+
+	.page-gen-card-name { font-weight: 600; color: var(--ink); font-size: 0.92em; }
+	.page-gen-card-note { font-size: 0.78em; line-height: 1.45; }
+	.page-gen-card .page-gen-sketch { min-height: 7em; }
+
+
+	/* ════ THE THREE LOOKS ════════════════════════════════════════════════════════
+	   `/imagine/vary/colstyles/` asked whether a columns tree can be RE-DRESSED without
+	   being rearranged, and answered yes three ways. This is the same answer worn by a
+	   tree that was never built — and it is written HERE, not imported, for two reasons
+	   that both matter: `core/` may not depend on `/imagine/`, and colstyles' item rules
+	   read `.page-column-item` while a generated column draws its own `.page-gen-item`.
+	   The STRUCTURAL half (row, body, head, title) is core's vocabulary and does carry
+	   over verbatim — doc/decisions.md has the measurement.
+
+	   ⚠ Every body rule is (0,4,0) — `.page.columns` restated. Core's own body rule is
+	     `.page.columns .page-column-body` at (0,3,0), so a plain `.page-gen-look-x
+	     .page-column-body` TIES it and the winner is stylesheet order. Colstyles paid for
+	     this one first; matching the count is what wins it.
+	   ⚠ `:not(.page-gen-controls)` throughout. A look is a costume for the GENERATED
+	     tree; the control column is the instrument you change it with, and an instrument
+	     that goes dark with its subject is a control you cannot read. Same `:not()` the
+	     `fill` size already makes, for the same reason. */
+
+	/* `finder` is the shipped default and has NO rule — the word exists so the control
+	   can name it. A default that writes declarations is a second base to keep in step. */
+
+	/* ── Cards: every column a floating surface ──
+	   Margin on the BODY, never `gap` on the row — `gap` lands on the drag seam too, and
+	   that seam's math is zero-outer-size on purpose (colstyles/doc/decisions.md). */
+	.page-gen-look-cards .page-columns-row { background: var(--wash); padding-block: 0.8em; }
+
+	.page.columns.page-gen-look-cards .page-column-body:not(.page-gen-controls) {
+		margin-inline: 0.4em;
+		background: var(--surface);
+		border: none; border-radius: var(--radius, 4px);
+		box-shadow: 0 4px 16px var(--card-shadow), 0 0 0 1px var(--card-ring);
+	}
+	.page-gen-look-cards .page-column-body:not(.page-gen-controls) > .page-column-head {
+		border-radius: var(--radius, 4px) var(--radius, 4px) 0 0;
+	}
+
+	/* ── Ink: dark, bold, and ONE TOKEN BLOCK rather than a rule per part ──
+	   The finding this look is worth: everything a generated column draws — the fill
+	   bars, the media stand-in, the chips, the item colours, the sketch — is already
+	   written in `--line` / `--tint` / `--surface` / `--ink` / `--subtle`. So redressing
+	   a whole tree is REDECLARING FIVE TOKENS on the body, not restating a dozen rules.
+	   ⚠ `--code-bg` / `--code-ink` (lew42.css) are already dark in BOTH colour schemes —
+	     made for a dark box under a light page, which is exactly this. Reused, not
+	     reinvented: a fresh pair would be a third constant for the theme to keep in step. */
+	.page-gen-look-ink .page-columns-row { background: var(--code-bg); }
+
+	.page.columns.page-gen-look-ink .page-column-body:not(.page-gen-controls) {
+		background: var(--code-bg); color: var(--code-ink);
+		border-inline-end: 2px solid var(--prim);
+
+		--ink: var(--code-ink);
+		--subtle: color-mix(in srgb, var(--code-ink) 62%, transparent);
+		--line: color-mix(in srgb, var(--code-ink) 24%, transparent);
+		--tint: color-mix(in srgb, var(--code-ink) 9%, transparent);
+		--surface: var(--code-bg);
+	}
+
+	/* The head is sticky and paints its own background, which is the one thing a token
+	   on the body cannot reach. The title is the look's voice. */
+	.page-gen-look-ink .page-column-body:not(.page-gen-controls) > .page-column-head {
+		background: var(--code-bg); border-bottom-color: var(--prim);
+	}
+	.page-gen-look-ink .page-column-body:not(.page-gen-controls) .page-column-title {
+		font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase;
+	}
+
+	/* An active row is a wash of the dark ink, not of the page's own `--tint` — that one
+	   is now redeclared above and would be invisible against the body it sits on. */
+	.page-gen-look-ink .page-gen-item:is(.active, .in-path) { background: color-mix(in srgb, var(--code-ink) 14%, transparent); }
+
+
 	/* Out of room is core's rule too: under two columns' worth its `@container
 	   page-columns (width < 30em)` block sets the properties directly, so it beats
 	   every token above and the row pages one column at a time with nothing here. */

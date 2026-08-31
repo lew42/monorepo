@@ -152,6 +152,16 @@ export const SIZES = {
 	fill:    { "--page-column-min": "16em", "--page-column-max": "none", "--gen-list": "" },
 };
 
+/* THE THIRD GLOBAL — the COSTUME. `/imagine/vary/colstyles/` asked whether a columns tree
+   can be re-dressed without rearranging it and answered yes, three looks deep; this is that
+   answer reached for from the one page that can put any tree under it.
+   `finder` is the shipped default and has NO rule — the same call colstyles made: a look
+   that is the default is the absence of one, and the word exists so the control can say so.
+   ⚠ Not in the address, for the reason `size` and `gap` are not: `#7` has to keep meaning
+     one TREE, and what it is wearing is not the tree. It rides in `store()` instead, which
+     is the other half of that split (page.js). */
+export const LOOKS = ["finder", "cards", "ink"];
+
 /* The second global: the DENSITY of every wall and inbox in the tree, through the same
    one-token indirection as `--gen-list` — each word declares `--gap: var(--gen-gap, …)`,
    so the header can reach past a component default that inheritance alone would lose to.
@@ -166,6 +176,7 @@ export function globals(host){
 	return div.c("page-gen-globals", () => {
 		chips("size", Object.keys(SIZES), host.sized, word => host.size(word));
 		chips("gap", Object.keys(GAPS), host.gapped, word => host.gap(GAPS[word], word));
+		chips("look", LOOKS, host.looked, word => host.look(word));
 	});
 }
 

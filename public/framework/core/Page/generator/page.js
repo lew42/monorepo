@@ -2,8 +2,9 @@ import { Page, View, div, span, a, textarea, input, button, icon, md } from "/ap
 import { gen, MODEL } from "./gen.js";
 import { edit } from "./spec.js";
 import { tree, items } from "./tree.js";
-import { globals, SIZES } from "./controls.js";
+import { globals, SIZES, GAPS } from "./controls.js";
 import { wall } from "./rolls.js";
+import { gallery } from "./specs.js";
 
 View.stylesheet(import.meta, "generator.css");
 
@@ -25,10 +26,17 @@ export default new Page({
 
 	seed: 7,
 
-	// The header's two globals, as they start: core's default column track, and the
-	// gap every wall and inbox in the tree runs at. View state — see `size()`.
+	// The header's three globals, as they start: core's default column track, the gap
+	// every wall and inbox in the tree runs at, and the costume it wears. View state —
+	// see `size()`, and `land()` for where a returning visitor's values come from.
 	sized: "default",
 	gapped: "snug",
+	looked: "finder",
+
+	/* ⚠ Declared, not derived. `store()` keys on the page's own url, and `store_key` is
+	     the seam for a page that could MOVE — this one is deep enough in the tree that a
+	     rename anywhere above it would silently orphan everything saved (doc/method/store.md). */
+	store_key: "/framework/core/Page/generator/",
 
 	/* ⚠ Runs INSIDE the constructor, before load_all_children() — which is exactly
 	   where a child has to arrive to be settled like a declared one. `location.hash`
@@ -49,6 +57,7 @@ export default new Page({
 		this.children = new Map();
 
 		this.add("rolls", wall(this));
+		this.add("specs", gallery(this));
 		tree(this.spec, this.hash()).forEach(config => this.add(config.name, config));
 
 		return this.spec;
@@ -110,12 +119,22 @@ export default new Page({
 				// every roll. The live link is the **Permutation wall** row above, which
 				// `draw()` rewrites with the current address every time.
 				md("**Permutation wall**, the first row above: twenty-four rolls at once, each a picture of its tree, with the pairing rules they were drawn under printed underneath.");
+				md("**Spec gallery**, the row under it: eight page shapes worth keeping — a docs site, an inbox, a settings rail — kept as their **text**, because a seed is only an address against one model. Pick one and it becomes the tree.");
+				md("**`size` `gap` `look` are not the tree.** They are how you like it dressed, so they stay out of the address and ride in `store()` instead — a reload, or a bare visit tomorrow, arrives back where you left. The three looks are [`/imagine/vary/colstyles/`](/imagine/vary/colstyles/)'s, worn by a tree that was never built.");
 				// ⚠ The pretty url, not `readme.md`: `Page.file()` renders a `.md` beside a
 				// page AS a page, so the readme opens as one more column. Verified — the
 				// `doc/<name>/` form does NOT work here (that one is ext/Doc's).
 				md("**Four words were cut** — `grid` `flush` `crumbs` `rail` changed how the links *looked*, never where a child went, and a shape with no behaviour is a pattern, not a word. Each is four lines of `new Page()`: [readme](/framework/core/Page/generator/readme/).");
 			});
 		});
+
+		/* The three globals, as this reader left them last visit (`land()` read them).
+		   ⚠ HERE and not in `initialize()`: every one of them writes to `this.view`, which
+		     `render_column()` creates one line before it calls this — and synchronously, so
+		     the costume is on before the first paint rather than a frame into it. */
+		this.size(this.sized);
+		this.gap(GAPS[this.gapped] ?? "", this.gapped);
+		this.look(this.looked);
 
 		this.draw();
 
@@ -183,6 +202,16 @@ export default new Page({
 		return this.show();
 	},
 
+	/* A spec picked from the GALLERY — a whole tree arriving at once, so it opens its own
+	   first root the way a fresh load does. `type()` alone leaves you on the host looking
+	   at a nav and no column, which reads as nothing having happened. */
+	pick(text){
+		this.type(text);
+
+		const root = [...this.children.values()].find(kid => kid?.at);
+		return root && this.app?.router?.go(root.url + this.hash());
+	},
+
 	/* THE THIRD DOOR, and the one every control uses: change ONE line of the spec.
 	   A switch is a typed spec from then on — it is no longer what `gen(seed)` draws, and
 	   the proof line says so rather than claiming a seed it does not have. The seed is
@@ -204,6 +233,8 @@ export default new Page({
 
 		if (router?.active && router.active !== this) router.go(url);
 		else history.replaceState({}, "", url);
+
+		return this.remember();
 	},
 
 	/* WHERE THE READER IS, as indices into the tree. Indices and not the url, because a
@@ -250,17 +281,53 @@ export default new Page({
 	size(word){
 		this.sized = word;
 		this.view.tc("page-gen-uncapped", word === "fill");
+		this.view.style(SIZES[word]);
 
-		return this.view.style(SIZES[word]);
+		return this.remember();
 	},
-	gap(value, word){ this.gapped = word; return this.view.style("--gen-gap", value); },
+	gap(value, word){ this.gapped = word; this.view.style("--gen-gap", value); return this.remember(); },
+
+	/* THE COSTUME — `/imagine/vary/colstyles/`'s three looks, reached for from the page
+	   that can put any tree under them. A class on the columns HOST and nothing else: the
+	   generated tree is not touched, not regrown, and not renamed, so switching looks
+	   cannot move the reader or the spec.
+	   ⚠ `finder` is the absence of a class, not a class — colstyles' own call. A default
+	     that writes rules is a default you have to keep in step with the base. */
+	look(word){
+		this.looked = word;
+		this.view.rc("page-gen-look-cards page-gen-look-ink");
+		if (word !== "finder") this.view.ac("page-gen-look-" + word);
+
+		return this.remember();
+	},
+
+	/**
+	 * WHAT THE URL DOES NOT CARRY. `#7` / `#s=…` is the TREE, and deliberately only the
+	 * tree — how wide you like your columns is not the tree (doc/decisions.md). But a
+	 * preference that resets every visit is a control nobody touches twice, so the split
+	 * is: **the url carries the tree, the store carries the dressing** — `size`, `gap`,
+	 * `look` — plus the last tree, for an arrival with no address at all.
+	 *
+	 * `store()` is core's, keyed on this page's own url (`doc/method/store.md`), so there
+	 * is no key to invent and nothing to configure.
+	 */
+	remember(){
+		return this.store().set({ sized: this.sized, gapped: this.gapped, looked: this.looked, hash: this.hash() });
+	},
 
 	/* The url decides what this page is, before anything renders: `#7` a seed, `#s=…` a
 	   spec typed by hand and sent to someone. Neither, and it is the default seed.
 	   ⚠ It sets the state and stops — NOT `open()` / `type()`: this runs inside the
 	     constructor, where there are no controls to repaint and no Router to move. */
 	land(){
-		const hash = decodeURIComponent(location.hash.slice(1));
+		const saved = this.store().get({ sized: this.sized, gapped: this.gapped, looked: this.looked });
+
+		Object.assign(this, { sized: saved.sized, gapped: saved.gapped, looked: saved.looked });
+
+		/* ⚠ THE URL WINS. A link someone sent has to open what it says, so the remembered
+		     tree is read only when the address names none of one — the bare `/generator/`
+		     arrival, which is the only case "back where you left" is even a question. */
+		const hash = decodeURIComponent(location.hash.slice(1)) || decodeURIComponent((saved.hash ?? "").slice(1));
 
 		if (hash.startsWith("s=")){
 			this.typed = true;

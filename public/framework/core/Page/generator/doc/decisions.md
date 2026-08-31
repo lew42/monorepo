@@ -494,3 +494,117 @@ error, just no picture — until core lands its CSS. **The header's size options
 so it is an honest no-op instead. `default` (was `med`) is the header's fourth entry's new name,
 matching the per-column menu's own word for "no width word" — one name for the same idea in
 both places.
+
+# Wave 6 — a library, a costume, and a memory (2026-08-31)
+
+Three additions, and the rule they all obey: **an addition is a control or it is data, never a
+new `page.js` per state.** [task](/framework/ai/2026-08-31/improve-generator/)
+
+`MODEL` is untouched at **3**. `gen.js` and `rules.js` were not edited, and the six proof seeds
+hash identically before and after the wave (sha1 of `gen(seed)`, run in node):
+
+```
+#1     991d25bc543f    #42    a332499027a8    #1234   dbe5a58ae750
+#7     1d5901c444dc    #99    1d34ff076163    #90210  aa993d0f6e9f
+```
+
+## The spec gallery — the missing half of "keep it as text"
+
+The readme has warned since v1 that a seed is only an address against one `MODEL`, so **keep a
+tree you like as its text**. There was nowhere to keep it. `specs.js` is that place: eight page
+shapes that are real things — a docs site, an inbox, a settings rail, a shop, a handbook — as a
+`SPECS` array of `{ title, note, spec }`, rendered as a wall at `/generator/specs/`.
+
+**It is a list, not a generator, and that is the whole value.** Nothing in it is seeded, drawn or
+rolled, so nothing in it can move when `MODEL` does — which is exactly the failure mode the eight
+entries exist to survive. Every spec is written in the same five words the roller draws and the
+controls edit; a gallery in its own dialect would be a second vocabulary to keep in step.
+
+**Reused, not rebuilt.** The tile picture is `rolls.js`'s `sketch()` and the card is
+`.page-gen-tile` plus a name and a note — the gallery adds one grid rule and two text rules to
+`generator.css` and nothing else. The page config is `rolls.js`'s shape verbatim: `width: "full"`,
+its own `link()` carrying `host.hash()`, and no `at` field, which is what keeps `first()` and
+`place()` from ever counting it as part of the tree.
+
+**`pick()`, not `type()`.** A picked spec opens its own first root the way a fresh load does.
+`type()` alone lands you on the host looking at a nav and no column, which reads as nothing
+having happened — the same finding `first()` was written for (ux recon 2026-08-27, #3).
+
+## The three looks — and what colstyles' own CSS actually reaches
+
+`/imagine/vary/colstyles/` asked whether a columns tree can be **re-dressed without being
+rearranged** and answered yes, three looks deep. The generator is the one page that can put an
+arbitrary tree under them, so `look` joins `size` and `gap` in the header.
+
+**The rules are written here, not imported, and the reason was measured** rather than assumed.
+On `/generator/#42`, adding `vary-colstyles-look-ink` to the host and reading the CSSOM:
+
+| | row bg | body bg | title | a nav item |
+|---|---|---|---|---|
+| plain generated tree | transparent | `#f2f2f2` | 600, none | `#6a6a6a` |
+| **+ class, stylesheet not loaded** | transparent | `#f2f2f2` | 600, none | `#6a6a6a` |
+| + class + `colstyles.css` loaded by hand | `#3f3f3f` | `#3f3f3f` | **800, uppercase** | `#6a6a6a` |
+
+Two findings, one line each. **A look's class does not travel with the look** — that stylesheet
+is `View.stylesheet`'d by a page under `/imagine/`, and `core/` may not import from there. And
+**the structural half carries verbatim while the item half never matches**: row, body, head and
+title read core's own class names, but colstyles styles `.page-column-item` and a generated
+column draws its own `.page-gen-item`. So even the import that is forbidden would have arrived
+half-dressed.
+
+**Ink is five tokens on the body, not a rule per part.** Everything a generated column draws —
+the fill bars, the media stand-in, the chips, the item colours, the 3px sketches — is already
+written in `--line` / `--tint` / `--surface` / `--ink` / `--subtle`. Redeclaring those five on
+`.page-column-body` redresses the whole tree in one block. That is worth saying out loud because
+it is a property of the module, earned by `fill.js` and `generator.css` being token-driven from
+the start: **a look here is a token block, and only what a token cannot reach needs a rule** —
+the sticky head's own background, and the title's voice.
+
+**`:not(.page-gen-controls)` throughout.** A look is a costume for the generated tree; the
+control column is the instrument you change it with, and an instrument that goes dark with its
+subject is a control you cannot read. The `fill` size already makes the same exception for the
+same reason.
+
+**(0,4,0), and colstyles paid for this one first.** Core's body rule is `.page.columns
+.page-column-body` (0,3,0). A plain `.page-gen-look-ink .page-column-body` ties it and the winner
+is stylesheet order — so `.page.columns` is restated on every body rule.
+
+**`finder` has no rule.** It is the shipped default, and the word exists only so the control can
+name it. A default that writes declarations is a second base to keep in step with the first.
+
+## `store()` — the url carries the tree, the store carries the dressing
+
+The address has always been the tree and only the tree: `#7` a seed, `#s=…` a typed spec, and
+`size`/`gap` deliberately left out because *how wide you like your columns is not the tree*. That
+decision stands. What was missing was the other half — a preference that resets every visit is a
+control nobody touches twice.
+
+So core's new `this.store()` (`doc/method/store.md`) holds `sized`, `gapped`, `looked` and the
+last `hash()`, and `land()` reads it in the constructor beside `location.hash`.
+
+**The url wins.** A link someone sent has to open what it says, so the remembered tree is read
+only when the address names none of one — the bare `/generator/` arrival, which is the only case
+"back where you left" is even a question. Verified: `#42` under a stored Inbox spec still lands
+on seed 42 with the proof line green.
+
+**`store_key` is declared, not derived.** The key defaults to the page's own url, and this page
+sits deep enough that a rename anywhere above it would silently orphan every saved preference.
+
+**The three are applied in `column()`, not `initialize()`.** Every one of them writes to
+`this.view`, which `render_column()` creates one line before it calls `column()` — so they can
+run synchronously, and the costume is on before the first paint rather than a frame into it.
+
+## What this wave did not build
+
+- **A copy-address button.** The address is this module's whole artifact and there is still no
+  button to take it. Extra-small, and the obvious next thing.
+- **Arriving deeper.** `first()` opens one root, which is why 1920 is still mostly grey with a
+  shallow tree. Walking the first branch two levels would fill the row but fights Back — the
+  same tension the `opened` flag exists for. Needs a verdict, not a patch.
+- **Feedback in the spec box.** An unrecognised first word silently becomes `prose` (`read()`).
+  A line saying "2 words not recognised" would teach the vocabulary instead of swallowing it.
+- **Saving your own spec into the gallery.** This is the gallery plus the store, and it is the
+  natural next step now both exist — deliberately not built in the same wave that introduced
+  either.
+- **Exporting a tree as real `page.js` files.** The actual "library of reusable pages" endgame,
+  and the largest thing on this list.
