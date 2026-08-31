@@ -11,16 +11,19 @@ import { Page, md } from "/app.js";
    verdict exactly as round 2 landed it — rediscovery downstairs, untested above.
 
    The five round-4 questions here have one `question` entry each in
-   theories/log.jsonl, so a future round can pick them up from the log alone. */
+   theories/log.jsonl. Round 4 answered Q4 (self-audit, "The audit" section)
+   and picked Q1 + Q3 as most credence-moving (`Round 4: two questions dug`
+   section) over Q2 (no test to dig up) and Q5 (vocabulary, not a fact); Q2
+   and Q5 remain open for a future round. */
 
 export default new Page({
 	meta: import.meta,
 	title: "Synthesis",
-	description: "The program's capstone: what 320 entries across four topics and two rounds actually established — the invented-tradition signature, the one-measurement problem, the confidence gradient, five retractions in the same direction, agency displacement, and the program's own method as a finding.",
+	description: "The program's capstone: what 345 entries across four topics and four rounds actually established — the invented-tradition signature, the one-measurement problem, the confidence gradient, five retractions in the same direction, agency displacement, and the program's own method as a finding.",
 	icon: "hub",
 
 	content(){
-		md(`Four topics were dug in parallel and independently: [precisely carved stone](/imagine/research/stone/), [depictions](/imagine/research/depictions/) claimed to show visitors, the [modern UAP disclosure arc](/imagine/research/disclosure/), and the [major theories](/imagine/research/theories/) underneath all of it. Two rounds, 320 logged entries, four separate diggers who mostly could not see each other's work. This page is the read across all of it.
+		md(`Four topics were dug in parallel and independently: [precisely carved stone](/imagine/research/stone/), [depictions](/imagine/research/depictions/) claimed to show visitors, the [modern UAP disclosure arc](/imagine/research/disclosure/), and the [major theories](/imagine/research/theories/) underneath all of it. Four rounds, 345 logged entries, four separate diggers who mostly could not see each other's work. This page is the read across all of it.
 
 **The thesis, in two lines.** In every one of these disputes the decisive test is cheap, permitted and unperformed — each argument rests on a single measurement nobody has repeated, which is exactly why none of them ends. And the fight over that gap is not science against its critics: it is science visibly correcting itself, five times in eighteen months, while the claims that need the gap keep it open.
 
@@ -148,10 +151,22 @@ So the program's sourcing mostly held: 70% of what it read checks out at least i
 
 ---
 
+## Round 4: two questions dug, thirteen new entries
+
+Round 4 picked the two open questions most able to move a credence already load-bearing on this page — **Q1** (why has nobody pointed an instrument at the object) tests §2's thesis directly; **Q3** (is the recency signature a signature) tests §1's directly — over Q2 (needs a study nobody can run by digging) and Q5 (a vocabulary question, not a factual one).
+
+**What moved.** The Younger Dryas leg of §2 was wrong in a specific way: a genuinely blind, cross-lab test *was* run — Kennett and skeptic Todd Surovell split Lubbock Lake samples in 2007 with geologist Walter Alvarez as neutral referee, [published 2016](https://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0155470), and it came back negative. The impact team disputed the sampling and dating rather than repeat it, and the field's own claimed "independent" confirmation (LeCompte et al. 2012) is credibly challenged by physicist Mark Boslough as run by Comet Research Group insiders on their own protocol. "No blind replication in nineteen years" is now **corrected** to: attempted once, disputed, never repeated — see [younger-dryas](/imagine/research/theories/younger-dryas/). Section 1's signature moved too: Homer and the Rigveda carry the same recency gap as the four invented traditions but pass a check those four never faced — independent evidence of real transmission (oral-formulaic meter, a cross-checkable dual recitation). King Arthur is the hard case, showing both the invented-tradition shape *and* a thin real earlier attestation. The diagnostic narrows from "the dates alone are the tell" to gap-plus-zero-antecedent-evidence — see [invented-traditions](/imagine/research/depictions/invented-traditions/).
+
+**What didn't move.** No object got scanned. Egypt's permit process turned out to be real bureaucracy (a sponsor, financial guarantees, years lost to a 2011-era leadership gap), and the Nimitz radar tapes may be gone rather than withheld — multiple crew told [The Black Vault](https://www.theblackvault.com/casefiles/the-vault-files-the-tic-tac-incident-november-14-2004/) unidentified officials removed them soon after the encounter — but in every case the actual measurement is still missing, and the four original invented-tradition cases still separate cleanly from Homer, the Rigveda and Arthur under the revised two-part test.
+
+**Verdict: the thesis survives, narrower than it started.** The core claim — nothing here has been repeated under agreed-neutral conditions — held up under direct digging. But "cheap, permitted and unperformed" oversold how simple the gap is: Younger Dryas got one real, well-designed attempt that was argued away rather than redone, and Nimitz's missing data may not be recoverable at all rather than merely unreleased. The honest version is less quotable and more true: *attempted at least once, disputed instead of repeated, and in one case possibly gone for good.*
+
+---
+
 ## How to read this
 
 Every claim above sits on a logged entry carrying its own **credence** — *established*, *contested*, *fringe*, *speculation* — and a credence is always the writer's claim about their own evidence, never this page's judgement of it, and never upgraded by repetition. Where this essay generalises beyond what any source says, it is labelled: the four-domain agency-displacement pattern is **speculation**, the archaeology-layer case under it is **established**, and the one-measurement observation in §2 is a reading of the logs rather than anyone else's finding — checkable line by line, claimed by nobody but this page.
 
-The evidence itself: [stone](/imagine/research/stone/log.jsonl) · [depictions](/imagine/research/depictions/log.jsonl) · [disclosure](/imagine/research/disclosure/log.jsonl) · [theories](/imagine/research/theories/log.jsonl) — 320 entries, appended in the order they were found, none rewritten. The program front is [/imagine/research/](/imagine/research/).`);
+The evidence itself: [stone](/imagine/research/stone/log.jsonl) · [depictions](/imagine/research/depictions/log.jsonl) · [disclosure](/imagine/research/disclosure/log.jsonl) · [theories](/imagine/research/theories/log.jsonl) — 345 entries, appended in the order they were found, none rewritten. The program front is [/imagine/research/](/imagine/research/).`);
 	},
 });

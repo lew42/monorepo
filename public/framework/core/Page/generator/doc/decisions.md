@@ -694,3 +694,145 @@ tree" on `/generator/specs/`, `page.reload()`, the card and its title were still
 `localStorage` record carried both the dressing and the `saved` array. Removed it, reloaded
 again, gone both times. Zero console errors and zero `dialog` events across the whole run
 (clipboard grant, spec-box typing, gallery save/remove/reload) — [screenshots in the task dir].
+
+# Wave 8 — the way out: a tree, as real `page.js` files (2026-08-31)
+
+The last thing on wave 6's list, and the reason the whole module exists: a generated tree
+could be looked at, linked, switched and saved as text — but never *kept*. Now an Export
+control writes it to disk as ordinary modules under `/imagine/generated/<name>/`, one
+directory per page, and the result is browsable exactly like something typed by hand.
+[task](/framework/ai/2026-08-31/generator-export/)
+
+`MODEL` untouched at **3**. `gen.js`, `rules.js`, `spec.js` and `tree.js` were read and not
+opened for writing. sha256 of `gen(seed)`, in node, before and after every edit in this wave —
+identical both times:
+
+```
+#1     1357c1d31849c58c   #42    702e57b146d7dd15   #1234    6dd8ed7b80413e67
+#7     1ca867f96c935491   #99    fed4a1642dbb7c14   #999999  9452a20e52c51226
+```
+
+## The export is a READ of the live tree, never a second draw
+
+`export.js` walks `host.children` — the same `Page` objects on screen, filtered on `at` the way
+`first()` and `place()` already filter — and reads five fields off each: `name`, `title`,
+`width`, `block`, `opt`. It never calls `gen()`, never re-`parse()`s the spec, and never
+touches a seed.
+
+That is not a style choice, it is the reproducibility law: anything that re-ran the draw would
+be a second place the vocabulary lives, and a wave that changed one and not the other would
+export a tree nobody was looking at. **What lands on disk is what was on screen**, by
+construction — which is also why the round trip could be checked by comparing the two trees
+field for field rather than by eye.
+
+## The exported file is the readme's own answer, not a new one
+
+The readme already had a section called *"the four words that were cut, and what to write
+instead"*, written to say what a shape looks like when a person writes it. That section IS the
+code generator:
+
+| word | what gets written |
+|---|---|
+| `wall` | `index: true` + `content(){ return this.previews(); }` |
+| `list` | nothing — core's `column()` already draws my children as rows, and that IS an inbox |
+| `prose` | one line of `md()` |
+| `tabs` | `import "/framework/ext/tabs/tabs.js"` + `content(){ return this.tabs(); }` |
+| `vtabs` | the same, `.ac("vertical")` |
+
+So the export invents no vocabulary. `list` writing **no content at all** is the one worth
+reading twice: an inbox is what core's column does by default, and the honest export of that is
+an empty page.
+
+**A childless page is a leaf, whatever word it wears.** `gen()` already draws it that way and
+`kind()` (controls.js) already offers `prose` only to a page with no children — but a *typed*
+spec can still say `tabs` with nothing under it, and `tabs()` on an empty set reaches for
+`list[0]` and throws. One rule, and now three places agree.
+
+**`index: true` on every word whose content draws its own children.** Without it core's column
+lists them a second time, as rows under the wall or under the tab bar.
+
+## `flow=` has no exported form, on purpose
+
+`cols=` becomes `--column` and `gap=` becomes `--gap`; both are tokens `.page-previews` already
+reads. `flow=flex` does not travel: it swaps the *generator's own nav* between `.grid.auto` and
+`.flex.auto`, and `previews()` is one grid. Exporting it would mean inventing a rule for a wall
+core does not have — the opposite of "reads like a person wrote it". The chip still works in
+the generator; it is simply not part of what a page.js can say.
+
+⚠ **`--column`'s gap fallback is `1em` here and `0px` there.** `controls.js`'s `track()` writes
+`calc((100% - 2 * var(--gap, 0px)) / 3)` because the generator's nav sets its own gap. Core's
+wall gap is `1em`, so reusing that function would have made each track a third of the *ungapped*
+width — too wide for three, and `auto-fill` silently drops to two columns. `export.js` has its
+own three-line `cell()` for exactly one changed default.
+
+## No manifest — the directory IS the list
+
+`/imagine/generated/page.js` is the seam, and its `children:` is rewritten on every export. It
+learns the names from **one `rpc:ls` of the target directory**, which is also the call that
+proves a dev server is listening and the call that decides whether the name is taken. A
+`.jsonl` manifest appended beside it would have been a second copy of a list the filesystem
+already keeps, and a second thing to keep in step when somebody deletes a directory by hand.
+
+⚠ **`children:` is OMITTED when the list is empty**, never written as `""`. `"".split(/\s+/)`
+is `[""]`, not `[]` — an empty string declares one child called `""`, and the index would draw
+a nameless row that 404s.
+
+⚠ **The index is written LAST**, after every page under it. A parent that names a directory
+which is not there yet is a 404 for however long the writes take.
+
+## Never overwrite, and why refusing is the whole feature
+
+An export is a scaffold somebody is expected to edit — that is the point of exporting it — so a
+second run under the same name is **refused**, quietly, in the line under the button:
+`/imagine/generated/seed-7/ already exists — pick another name.` Not merged, not versioned, not
+prompted. Deleting the directory is the "yes I meant it", and it is a thing a person does on
+purpose.
+
+`Page.slug()` decides what a directory may be called, not the input field: a name is typed by a
+human and lands on a filesystem, and `../` is not a tree name.
+
+## Dev only, and both halves of that were proven
+
+`core/` imports nothing from `dev/`. The socket arrives as **`host.app.socket`** — `app.js`
+already builds the App with `socket: Socket.singleton()` — so the export reaches its writer
+through the app that owns it and the static import graph stays clean.
+
+Two states, both measured:
+
+- **Rendered.** Off localhost `dev/Socket` sets `disabled = true` in its constructor, so
+  `control()` renders the button `disabled` with one grey line: *"Dev only — the site is static
+  in production, so there is no server to write to."* The page still rolls, types, switches and
+  links — nothing else on it depends on a server.
+- **Forced.** Past the attribute, `async_rpc()` returns `undefined` on a disabled socket and a
+  live-but-unanswered one never replies at all, so every call is raced against a 2.5s clock
+  (`/imagine/stream/`'s own probe) and the answer is a line, never an exception: *"no dev server
+  answered — nothing is listening to write the files."*
+
+⚠ **Proving the production state needs a secure context AND a non-localhost hostname.** The
+obvious try — load the private port over the machine's LAN ip — renders nothing at all:
+`crypto.randomUUID()` exists only in a secure context, and without it `ext/Panel` throws inside
+`framework/page.js` long before the generator draws. Nothing to do with this feature, and it
+will bite anything else that tries the same proof. `http://127.0.0.2:8097` is the origin that
+is both: Chrome trusts all of `127.0.0.0/8` as secure, and the gate's list is `localhost`,
+`127.0.0.1`, `*.localhost` — which `127.0.0.2` is not.
+
+## The round trip, which is the only proof that matters
+
+Seed 7 (all five words, 14 pages) exported to `/imagine/generated/seed-7/` — 15 files — then
+loaded as real modules with `load_all_children(12)` and walked. The `{name, title, width}` tree
+of the generator's live render and of the loaded modules are **string-identical**, 14 pages
+each. Every stop rendered: the `vtabs` rail as a tab strip, the `wall` as two cards, the `list`
+as rows, the `tabs` set swapping in its panel, the leaf at the end of eight columns. Zero
+console errors; no horizontal body scroll at 400, 1920 or 3440.
+
+## What this wave did not build
+
+- **A delete control.** Removing an export is deleting a directory — `rpc:rm` exists and was
+  deliberately left alone. A button that erases files somebody has since edited is a different
+  feature with a different conversation about confirmation.
+- **A target other than `/imagine/generated/`.** One place, so the index seam is one file.
+- **Round-tripping a directory back INTO a spec.** Reading page.js files to rebuild the text is
+  a parser, and the text was never the thing that was missing.
+- **Exporting the dressing.** `size`, `gap` and `look` are how you like a tree worn, not the
+  tree — the same split `store()` already keeps. A `look` in an exported file would be a class
+  from `/imagine/vary/colstyles/` that core may not name.

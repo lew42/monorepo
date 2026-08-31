@@ -5,6 +5,7 @@ import { tree, items } from "./tree.js";
 import { globals, SIZES, GAPS, unknown } from "./controls.js";
 import { wall } from "./rolls.js";
 import { gallery } from "./specs.js";
+import { control, run, report } from "./export.js";
 
 View.stylesheet(import.meta, "generator.css");
 
@@ -144,6 +145,12 @@ export default new Page({
 			   thing that says so; nothing it reads may change what gets drawn. */
 			this.$hint = div.c("page-gen-hint");
 
+			/* THE WAY OUT — the tree you are reading, written to disk as real
+			   `page.js` files under `/imagine/generated/`. Here and not in the
+			   gallery because this is where the tree is: the box above is the
+			   spec, and this is the button that turns it into a module. */
+			control(this);
+
 			div.c("page-gen-note", () => {
 				md("Every line is a **page**; indentation is nesting. The first word says **where a child appears when you pick it**, and `small large full` picks the column's width. **Type in the box above** and the tree is rebuilt from your text.");
 				md("**Every control writes that text.** The two menus on a column's head are its own two words; a wall's chips are `cols=` and `gap=` on the same line, drawn by framework.css's `.grid.auto` / `.flex.auto` and the `--column` / `--gap` they read. So a switched tree is a link, a reload lands on it, and the seed is never touched.");
@@ -154,6 +161,10 @@ export default new Page({
 				// `draw()` rewrites with the current address every time.
 				md("**Permutation wall**, the first row above: twenty-four rolls at once, each a picture of its tree, with the pairing rules they were drawn under printed underneath.");
 				md("**Spec gallery**, the row under it: eight page shapes worth keeping — a docs site, an inbox, a settings rail — kept as their **text**, because a seed is only an address against one model. Pick one and it becomes the tree.");
+				// ⚠ Prose, not a link to the button: the control is four lines up in the
+				// same column, and a link to something already on screen reads as a
+				// second, different thing.
+				md("**Export writes the tree to disk** — one directory per page, an ordinary `page.js` in each, under [`/imagine/generated/`](/imagine/generated/). Nothing there imports anything from here; it is a module you edit like any other. Dev only, and a name that already exists is refused rather than overwritten.");
 				md("**`size` `gap` `look` are not the tree.** They are how you like it dressed, so they stay out of the address and ride in `store()` instead — a reload, or a bare visit tomorrow, arrives back where you left. The three looks are [`/imagine/vary/colstyles/`](/imagine/vary/colstyles/)'s, worn by a tree that was never built.");
 				// ⚠ The pretty url, not `readme.md`: `Page.file()` renders a `.md` beside a
 				// page AS a page, so the readme opens as one more column. Verified — the
@@ -361,6 +372,25 @@ export default new Page({
 	 *   would have silently erased every saved spec on the very next write. */
 	remember(){
 		return this.store().patch({ sized: this.sized, gapped: this.gapped, looked: this.looked, hash: this.hash() });
+	},
+
+	/**
+	 * THE WAY OUT — this tree, as real `page.js` files under `/imagine/generated/`.
+	 *
+	 * The whole of it is `export.js`; this is the seam, and it is deliberately three
+	 * lines: read the name, write the files, print the answer. Nothing is regrown and
+	 * the spec is not touched — an export is a READ of the tree you are looking at, so
+	 * the seed, the address and the reproducibility line all come out unchanged.
+	 *
+	 * ⚠ `Page.slug()` decides what a directory may be called, not the field: a name is
+	 *   typed by a human and lands on a filesystem, and `../` is not a tree name.
+	 */
+	async export(){
+		const name = Page.slug(this.$export_name.el.value);
+
+		this.$export_msg.text("exporting…");
+
+		return report(this, await run(this, name));
 	},
 
 	/* The url decides what this page is, before anything renders: `#7` a seed, `#s=…` a

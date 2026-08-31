@@ -21,3 +21,7 @@
 {"log": {"at": "2026-08-31T09:55:15-05:00", "task": "small-wins-sweep", "msg": "task opened - five XS/S items: blog sitemap, prev/next, section labels; decks numeral; mag previous hop"}}
 {"log": {"at": "2026-08-31T10:15:00-05:00", "task": "generator-round-2", "msg": "landed -- copy-address button, quiet spec-box feedback for unrecognized words, and a save-to-gallery band (yours) with a store round-trip through a real reload; 6-seed sha proof unchanged"}}
 {"log": {"at": "2026-08-31T10:18:19-05:00", "task": "small-wins-sweep", "msg": "landed - all five XS/S items: blog sitemap.xml, part prev/next, section labels; decks N/M numeral; mag previous hop"}}
+{"log": {"at": "2026-08-31T10:22:45-05:00", "task": "research-round-4", "msg": "task opened -- round 4: dig top two open capstone questions (Q1 instrument access, Q3 recency-signature base rate)"}}
+{"log": {"at": "2026-08-31T10:26:10-05:00", "task": "generator-export", "msg": "task opened -- export a generated tree as real page.js files under /imagine/generated/"}}
+{"log": {"at": "2026-08-31T11:22:00-05:00", "task": "research-round-4", "msg": "landed -- Q1 (instrument access) and Q3 (recency-signature base rate) dug, 13 entries appended across 4 logs, 5 pages updated, capstone addendum verdict: thesis survives narrower -- attempted once and disputed, not unperformed"}}
+{"log":{"at":"2026-08-31T10:45:40-05:00","task":"generator-export","msg":"landed -- the generator exports its tree as real page.js files under /imagine/generated/; round trip identical, 6-seed sha unchanged"}}

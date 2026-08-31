@@ -96,6 +96,40 @@
 		font-size: 0.76em; font-style: italic; color: var(--subtle);
 	}
 
+	/* ── the way out — the tree, as files ──
+	   A field and a button, the same two controls the gallery's "save" row has and for
+	   the same reason: one keeps the tree in your browser, this one keeps it on disk,
+	   and a reader should not have to learn two shapes to tell them apart. */
+	.page-gen-export { padding: 0.4em 0 0.2em; border-top: 1px solid var(--line); margin-top: 0.6em; }
+	.page-gen-export-row {
+		display: flex; gap: 0.5em; align-items: center;
+		padding: 0.15em 0.9em 0.4em;
+	}
+	.page-gen-export-name {
+		flex: 1 1 auto; min-width: 0; width: auto;
+		padding: 0.3em 0.5em; font-size: 0.85em;
+	}
+	.page--generator button.page-gen-export-btn {
+		flex: 0 0 auto;
+		padding: 0.3em 0.7em; font-size: 0.8em;
+		color: var(--prim-ink); background: var(--fill-a08);
+		border: 1px solid var(--prim); border-radius: 3px;
+	}
+	.page--generator button.page-gen-export-btn:hover { background: var(--tint); }
+
+	/* ⚠ The DISABLED state is the production state, so it has to read as "not for you
+	     here" rather than as a broken button: no border colour, no pointer, and the
+	     line below it says why. This page is fully usable without it. */
+	.page--generator button.page-gen-export-btn:disabled {
+		color: var(--subtle); background: none; border-color: var(--line); cursor: not-allowed;
+	}
+
+	.page-gen-export-msg {
+		min-height: 1.3em; padding: 0 0.9em 0.5em;
+		font-size: 0.76em; color: var(--subtle);
+	}
+	.page-gen-export-bad { color: light-dark(#b3261e, #ff8a80); }
+
 	.page-gen-note { padding: 0.9em 0.9em 1.2em; font-size: 0.82em; color: var(--subtle); }
 
 

@@ -118,6 +118,40 @@ It is a **list, not a generator**: nothing there is seeded, so nothing there mov
 does. Adding one is one entry in `SPECS` — `{ title, note, spec }` — written in the same five
 words the roller draws and the controls edit.
 
+## Export — the tree, as files
+
+The button under the spec box writes the tree you are reading to disk: **one directory per
+page**, each with an ordinary `page.js`, under
+[`/imagine/generated/<name>/`](/imagine/generated/). Nothing in there imports anything from
+here — it is a module like any other, and you edit it like one.
+
+```js
+// /imagine/generated/seed-7/vtabs/wall/page.js
+import { Page } from "/app.js";
+
+// A wall of cards; picking one opens a column to the right.
+
+export default new Page({
+	meta: import.meta,
+	title: "Queue",
+	index: true,
+
+	children: "prose list",
+
+	content(){ return this.previews(); },
+});
+```
+
+Each word writes what the next section writes by hand: `wall` is `previews()`, `list` is
+**nothing at all** (core's column already draws children as rows, which is what an inbox is),
+`prose` is a line of `md()`, and `tabs` / `vtabs` are `ext/tabs`. `cols=` and `gap=` become
+`--column` and `--gap`; `flow=` has no page.js form and is dropped.
+
+**Dev only, by design.** The writer is the dev server's `rpc:write`, so on the static site the
+button is disabled and says why — the rest of the page is untouched. A name that already exists
+is **refused**, never overwritten: an export is a scaffold you are meant to edit, and deleting
+the directory is how you say you meant it.
+
 ## The four words that were cut, and what to write instead
 
 `grid`, `flush`, `crumbs` and `rail` changed how the child links *looked*; not one of them
@@ -188,9 +222,13 @@ Inside the generator itself, a denser wall is `--gen-cell` on `.page-gen-wall`.
 - **An in-place page whose child opened a column went `display: none`.** Core's arrangement
   rule shows an ancestor only if the active page is *inside* it; a tab's child mounts out in
   the row. Worked around in `generator.css` (`@layer util`) — the core hook is named there.
+- **An export is a READ of the live tree**, never a second draw — so what lands on disk is what
+  was on screen, and no seed is re-rolled. `flow=` is the one spec setting with no page.js form;
+  `--column`'s gap fallback is `1em` there and `0px` here, and reusing the wrong one silently
+  drops a three-card wall to two.
 - The rest — how "in place" is two lines of `container()`, a specificity trap, why
-  `demo.tree()` was the wrong reuse, and how a control edits the spec:
-  [`doc/decisions.md`](/framework/core/Page/generator/doc/decisions.md).
+  `demo.tree()` was the wrong reuse, how a control edits the spec, and both halves of the
+  dev-only gate: [`doc/decisions.md`](/framework/core/Page/generator/doc/decisions.md).
 
 ## More
 
@@ -200,10 +238,12 @@ Inside the generator itself, a denser wall is `--gen-cell` on `.page-gen-wall`.
   edit one node), `rules.js` (which word under which), `tree.js` (text → page configs, and
   where a child mounts), `controls.js` (every control, and the framework words behind them),
   `fill.js` (the seeded-distinct content), `rolls.js` (the wall, and the tile picture),
-  `specs.js` (the eight kept shapes, and the gallery), `page.js` (the header, the store split,
-  and the one place the tree is replaced), `generator.css` (one picture per word, twice — at
-  column size and at 3px — and the three looks).
+  `specs.js` (the eight kept shapes, and the gallery), `export.js` (the tree → files, and the
+  shape of every exported page), `page.js` (the header, the store split, and the one place the
+  tree is replaced), `generator.css` (one picture per word, twice — at column size and at 3px —
+  and the three looks).
 - Not built, on purpose: a chaos dial on the page (chaos is an argument to `gen()`, so `#7`
-  keeps meaning one tree), any rule about which *widths* pair (only blocks have rules), and
-  the header's own settings in the address (`#7` has to keep meaning one **tree**; how wide
-  you like your columns is not the tree).
+  keeps meaning one tree), any rule about which *widths* pair (only blocks have rules), the
+  header's own settings in the address (`#7` has to keep meaning one **tree**; how wide you
+  like your columns is not the tree), a delete control for an export (that is `rm` on a
+  directory somebody may have edited), and reading files back into a spec.
