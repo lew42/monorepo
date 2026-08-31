@@ -20,11 +20,32 @@ const COLOURED = { dark: 1, prim: 1 };
  * every eyebrow on it stops trying.
  */
 export const band = tone => ({
-	background: tone === "dark"  ? "var(--ink)"
+	background: tone === "dark"  ? "var(--bg)"
 	          : tone === "prim"  ? "var(--prim)"
 	          : tone === "wash"  ? "var(--wash)"
 	          : "var(--surface)",
-	color: COLOURED[tone] ? "var(--surface)" : "inherit",
+
+	/* ⚠ A COLOURED BAND IS AN ALWAYS-DARK ISLAND, and this one line is the whole
+	 *   mechanism: `light-dark()` reads `color-scheme` at the element it is USED on,
+	 *   so every token inside the band flips at once — `--ink` and `--line`, the
+	 *   `--fill-aNN` rungs, `--surface`, `--wash`, `--tint`. Without it a default
+	 *   `button` on a `prim` band is near-black `--ink` on `--fill-a08`, which DARKENS
+	 *   the orange: measured 3.4:1 the moment framework.css's button fill went alpha.
+	 *   It also gives `layouts/home/page.js` the "background twin of `.muted`" it says
+	 *   it never had — `.tint` and `.wash` on a band now paint white, not black.
+	 *   `styles/doc/stacking.md` §5.
+	 *
+	 * ⚠ `--bg`, not `--ink`, for the dark tone — and that is what makes the line
+	 *   HONEST rather than merely convenient. `--ink` inverts with the mode (a `dark`
+	 *   band was dark in light mode and LIGHT in dark mode), and an island that
+	 *   inverts cannot declare a fixed `color-scheme`: the same declaration would flip
+	 *   the band's own background with it. `--bg` is the theme's one floor that stays
+	 *   dark in both modes, which is exactly what an always-dark island is. */
+	colorScheme: COLOURED[tone] ? "dark" : "inherit",
+	/* ⚠ Repainted, not inherited: `color` inherits as a RESOLVED value, so a band
+	   under a light-mode page would keep the page's near-black ink whatever
+	   `color-scheme` says here. */
+	color: COLOURED[tone] ? "var(--ink)" : "inherit",
 
 	"--eyebrow": COLOURED[tone] ? "currentColor" : "var(--prim)",
 

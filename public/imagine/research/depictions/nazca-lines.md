@@ -1,0 +1,11 @@
+# The Nazca lines — who were they for?
+
+**The artifact.** The [Nazca lines](https://en.wikipedia.org/wiki/Nazca_Lines) are geoglyphs made by removing dark surface pebbles to expose lighter soil beneath, covering the Nazca desert (southern Peru) with geometric lines and animal/plant figures. Built in two phases — Paracas (c. 400–200 BCE) and Nazca (200 BCE–500 CE) — using simple stakes and cords, some figures are only fully legible from the air. *(established)*
+
+**What archaeology says.** The leading theories all converge on the lines being *walked*, not flown: Maria Reiche and Paul Kosok proposed [astronomical alignments](https://www.machutravelperu.com/blog/nazca-lines-theories); Johan Reinhard reads them as ritual paths to water-linked shrines; Donald Proulx and Stephen Mabee tie them to groundwater sources. Excavations at line intersections have turned up smashed ceremonial pottery consistent with pilgrimage and ritual use. *(established)*
+
+**The alien interpretation.** Erich von Daniken's *Chariots of the Gods?* proposed the lines were built as [runways or landing markers](https://www.machutravelperu.com/blog/nazca-lines-theories) for extraterrestrial craft — the idea reached mass audiences and remains the most widely known "explanation" for the lines outside archaeology. *(fringe)*
+
+**What a fair reader keeps.** Two rebuttals land hard, from different directions. Maria Reiche, who spent decades surveying the site, called the landing-strip idea absurd on its face — the desert surface is too soft to land anything on. Skeptic Joe Nickell then had a small team [reproduce a large figure in days](https://en.wikipedia.org/wiki/Nazca_Lines) using only period-appropriate tools, turning "who else could have done this" from a rhetorical flourish into a tested, replicated claim. *(contested)*
+
+**What would settle it.** The genuinely open question isn't aliens — it's whether the lines were meant to be seen by gods or ancestors from above, walked by pilgrims at ground level, or both at once. Further excavation at more line intersections, extending the pottery evidence already found, bears directly on that; no aerial-view argument does. [The Collector](https://www.thecollector.com/puzzling-origins-nazca-lines/)

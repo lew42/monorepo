@@ -66,5 +66,5 @@
 		border-radius: calc(var(--radius) / 2);
 		cursor: pointer;
 	}
-	.drawer .drawer-x:hover { color: var(--ink); background: var(--wash); }
+	.drawer .drawer-x:hover { color: var(--ink); background: var(--fill-a08); }
 }

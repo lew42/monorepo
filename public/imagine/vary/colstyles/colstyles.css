@@ -24,7 +24,7 @@
 	.vary-colstyles-chips { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 0.4em; padding: 0.9em; }
 	.vary-colstyles-chip {
 		padding: 0.3em 0.7em; font-size: 0.85em;
-		background: var(--tint); border: 1px solid var(--line); border-radius: 999px;
+		background: var(--fill-a08); border: 1px solid var(--line); border-radius: 999px;
 	}
 
 	/* Hook 5 / tree.js — a bled block, mid-flow, so the inset it escapes is

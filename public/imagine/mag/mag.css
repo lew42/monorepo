@@ -287,7 +287,7 @@
 		color: var(--subtle);
 		font-size: 0.75em; font-weight: 500;
 		letter-spacing: normal; text-transform: none;
-		background: var(--surface);
+		background: var(--fill-a08);
 		border: 1px solid var(--line); border-radius: 999px;
 	}
 

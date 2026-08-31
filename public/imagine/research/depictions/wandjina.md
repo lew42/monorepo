@@ -1,0 +1,11 @@
+# Wandjina — the Kimberley sky-beings
+
+**The artifact.** Thousands of Wandjina figures — pale, mouthless, round-headed beings with radiating, halo-like headdresses and huge dark eyes — are painted across rock shelters in the Kimberley region of Western Australia. This is a [living tradition](https://www.abc.net.au/news/2016-12-05/aboriginal-people-move-to-reclaim-sacred-wandjina-drawings/8049978): the Worrora, Ngarinyin and Wunambal peoples still repaint the figures on a ritual cycle to keep their power active. *(established)*
+
+**What the culture's own context says.** Traditional owners describe the Wandjina as [supreme creator beings](https://www.ancient-origins.net/human-origins-folklore/wandjina-rock-art-00701) who made the country and gave the law. In-culture, the mouthless face and radiating headdress are read as lightning and storm-cloud imagery tied to the wet season — not breathing apparatus. *(established)*
+
+**The alien interpretation.** [Erich von Daniken's](https://extraterrestrials.fandom.com/wiki/Wandjina) 1968 *Chariots of the Gods?* proposed the figures depict extraterrestrial visitors; the round heads and huge black eyes' resemblance to the popular "Grey" alien image has kept the claim circulating on UFO sites since. *(fringe)*
+
+**What a fair reader keeps.** This isn't a neutral puzzle. Worrora woman Leah Umbagai has said the alien reading feels like being told her people are "making things up" about a living religion — the odd and telling part is how durable an outsider's 19th–20th century projection has been against direct testimony from the culture that made the art. [ABC News](https://www.abc.net.au/news/2016-12-05/aboriginal-people-move-to-reclaim-sacred-wandjina-drawings/8049978) *(contested)*
+
+**What would settle it.** The chain of custody is already mostly known: explorer George Grey's 1837 sketches circulated in Britain and picked up "otherworldly" framing long before von Daniken. Tracing that 19th-century publication history in full would nail the alien reading down as an outsider projection rather than a real gap in the archaeology. [Earthly Mission](https://earthlymission.com/wandjina-sky-beings-aboriginal-rock-art-aliens-extraterrestrials-dreamtime/)

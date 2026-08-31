@@ -26,7 +26,7 @@
 		cursor: pointer;
 	}
 
-	.panel-flow-bar button.panel-flow-btn:hover { color: var(--ink); background: var(--wash); }
+	.panel-flow-bar button.panel-flow-btn:hover { color: var(--ink); background: var(--fill-a08); }
 
 	/* The count is the one thing you read while clicking, so it holds its width. */
 	.panel-flow-count { min-inline-size: 3.5em; font-family: var(--mono); text-align: center; }

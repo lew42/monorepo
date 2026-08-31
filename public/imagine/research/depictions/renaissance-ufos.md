@@ -1,0 +1,11 @@
+# Renaissance "UFOs" — Madonna with Saint Giovannino
+
+**The artifact.** [*Madonna with Saint Giovannino*](https://www.metabunk.org/ufoarthistory/painting.html?id=madonna-giovannino), a 15th-century panel attributed to Domenico Ghirlandaio's workshop, now in Florence's Palazzo Vecchio (Loeser collection). It shows Mary, the Christ child and young John the Baptist, with a small glowing disc trailing light in the upper-right sky, and a man and his dog below looking up at it. *(established)*
+
+**What art history says.** A shepherd shielding his eyes while gazing at a glowing cloud — often with an angel inside, sometimes now faded or overpainted — is a [recurring convention](https://historicmysteries.com/amp/madonna-with-saint-giovannino) in 14th–16th century Italian religious painting. In this same panel the Nativity Star is depicted separately, at left, showing the artist deliberately distinguished the two symbols rather than conflating them. *(established)*
+
+**The alien interpretation.** UFO researchers since the 1980s cite this painting — alongside similar objects in other period works, such as frescoes at Visoki Dečani monastery — as pictorial evidence of [anomalous aerial craft](https://www.strangerdimensions.com/2014/05/06/madonna-saint-giovannino-ufo/) witnessed by medieval and Renaissance observers and folded into devotional scenes. *(fringe)*
+
+**What a fair reader keeps.** The reading survives largely because this one panel circulates on its own, stripped of its companions. Set beside other dated "glowing cloud with awestruck onlooker" scenes from the same period, the composition stops looking anomalous and starts looking like an established visual formula — that comparison is the fair-reader's real takeaway, not the object itself. [Italy Magazine](https://www.italymagazine.com/featured-story/madonna-saint-giovannino-ufo-inspired-art) *(contested)*
+
+**What would settle it.** A published, side-by-side catalog of the "glowing cloud with onlookers" motif across dated Italian panels (several are already identified) would let anyone check directly whether Giovannino's sky-object is stylistically identical to unambiguous angel-in-cloud scenes. Informally, it already looks that way. [Metabunk's UFO Art History catalog](https://www.metabunk.org/ufoarthistory/)

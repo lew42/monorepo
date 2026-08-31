@@ -204,7 +204,33 @@ on filled chips and went outlined, `imagine.css` hovers with `color-mix(in srgb,
 6%, transparent)`, `framework.css` bolted an inset ring onto inline `code`. The ladder is
 the general form of the fix all three wrote by hand.
 
-**Not done:** no token was flipped. The ladder lives on `.stacks-lab` in
-[`stacks/stacks.css`](/framework/styles/stacks/stacks.css); the flip is two lines of
-`framework.css` and its own wave. The bill and the fix list are in
-[`doc/stacking.md`](./stacking.md); the lab is [`/framework/styles/stacks/`](/framework/styles/stacks/).
+The bill and the fix list are in [`doc/stacking.md`](./stacking.md); the lab is
+[`/framework/styles/stacks/`](/framework/styles/stacks/).
+
+### The flip — 2026-08-30
+
+The ladder moved to `framework.css` `:root` and the site went onto it: **101 pairs / 504
+elements → 19 / 50**, same 76 pages, same bar. `.btn, button` and inline `code` take
+`--fill-a08`, `th` takes `--fill-a04`, `.demo-btn` and `.layout-btn` stop painting nothing,
+and lew42's `border: none` on buttons is **deleted** — at (0,2,0) it had been cancelling
+framework.css's hairline *and* every component's `border-color` on `:hover`, so a hover
+border set the colour of a border whose style was `none` and drew nothing.
+
+`:root`, not the theme, on purpose: the ladder is arithmetic, not an opinion — literal
+`rgba()` at four doubling rungs — and `framework.css` itself is the biggest consumer. A
+theme that wants different weights overrides four names; lew42 wants none.
+
+**Two things stayed opaque, and each is a rule rather than a leftover.** A fill that must
+*occlude* live content is a floor whatever it is shaped like (a floating pill, a label over
+a ruler, a chip over a canvas). And `button.prim` on `--prim` / `button.bg` on `--bg` are
+**placement** errors: an accent can only be invisible on its own floor, so the fix is to
+move the button. Neither occurs outside the matrix cell built to demonstrate it.
+
+**One regression the scan could not see, found by eye.** With an alpha button fill, a
+default `button` on a `prim` or `dark` section band became near-black `--ink` on a
+*darkened* orange — 3.4:1, where the opaque white fill had been 10:1. `styles/sections/tone.js`
+now declares `color-scheme: dark` on a coloured band and paints the `dark` tone from `--bg`
+instead of `--ink`: an island that inverts with the mode cannot declare a fixed
+`color-scheme`, because the same line flips its own background. That also hands the band
+`--wash` and `--tint` in the right direction, which is the "background twin of `.muted`"
+`layouts/home/page.js` says it never had.

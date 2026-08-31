@@ -1,0 +1,13 @@
+# The Age of Disclosure (2025)
+
+**The film.** Dan Farah's directorial debut premiered at SXSW on Mar 9 2025 and opened wide on Amazon Prime Video and in theaters Nov 21 2025, narrated by Luis Elizondo. Per its [Wikipedia entry](https://en.wikipedia.org/wiki/The_Age_of_Disclosure), 34 named officials appear on camera, including Secretary of State Marco Rubio, former DNI James Clapper, former acting Secretary of Defense Christopher Miller, Christopher Mellon, pilots David Fravor and Alex Dietrich, and "Legacy Programs" sources Karl Nell and Jay Stratton. *(established — who appears and what they say on camera is not in dispute)*
+
+**The claim.** An 80-year cover-up of non-human intelligence, and an active great-power race to reverse-engineer recovered technology — the same "Legacy Programs" narrative also described by Grusch (see [Grusch, AARO, and the whistleblower fight](./grusch-aaro.md)), now delivered by more, and more senior, named voices. *(fringe)*
+
+**The reception split.** The film drew a 93% Rotten Tomatoes audience score and was Amazon's fastest-grossing documentary in its first 48 hours — against a 27% critics score and a Metacritic 45 ("mixed or average"). The *New York Times* called it a film only "a chump" sits through; the *Hollywood Reporter* called it "a basic cable exploitation doc done up with a fancy gloss." *(established)*
+
+**The mundane accounting.** [Michael Shermer's review in Skeptic](https://www.skeptic.com/article/the-aliens-are-here-again-a-review-of-the-age-of-disclosure/) makes the sharpest case: despite near-universal smartphone ownership, "there is not one" clear photograph or video offered — the entire case is testimony, which he compares to establishing Bigfoot by eyewitness account alone. He flags the structure as unfalsifiable (disclosure is withheld because it would "cause societal collapse," an explanation that survives any absence of proof), and notes Elizondo offered no employment paperwork for his claimed AATIP role. Shermer: "Show us what you claim is here and we will all believe." *(contested)*
+
+**The sober case something persists.** Whatever one makes of the claims, the willingness of a sitting Secretary of State and a former Director of National Intelligence to appear on camera and say the subject is real and serious is itself new — a level of institutional buy-in absent from every prior UAP moment, including the 2017 NYT story. That is a fact about who is now willing to be named, independent of whether the underlying claim is true. *(contested)*
+
+**What would settle it.** Any one of the 34 credentialed participants producing a retained physical sample or a primary document — not another on-camera account — would do more to settle this than the film itself can.

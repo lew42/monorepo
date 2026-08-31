@@ -53,7 +53,7 @@
 	.research-kind { font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.06em; color: var(--subtle); }
 	.research-tags { font-size: 0.85em; }
 
-	.research-badge { font-size: 0.85em; background: var(--wash); border-radius: var(--radius); padding: 0.05em 0.5em; }
+	.research-badge { font-size: 0.85em; background: var(--fill-a08); border-radius: var(--radius); padding: 0.05em 0.5em; }
 	.research-badge.accepted { color: var(--ok); }
 	.research-badge.rejected { color: var(--error); }
 	.research-badge.parked { color: var(--warn); }
@@ -75,6 +75,10 @@
 	.research-body { --flow: 0.8em; padding: 0 1em 1em var(--research-indent); }
 	.research-why, .research-refs { max-width: var(--measure); }
 	.research-ref { font-family: var(--mono); font-size: 0.85em; background: var(--wash); border-radius: var(--radius); padding: 0.05em 0.4em; }
+	/* ⚠ A bare `<a>` outside prose keeps the UA blue — the framework's link look is
+	   scoped to `p, li, td…`. A ref is a chip, so it takes the accent, not the blue. */
+	a.research-ref { color: var(--prim-ink); text-decoration: none; align-self: start; }
+	a.research-ref:hover { text-decoration: underline; }
 	.research-img { border-radius: var(--radius); max-height: 24em; }
 
 	/* One step down, at ANY depth — a rule instead of a card, so ten levels of
@@ -87,6 +91,123 @@
 	/* ── the topics index, /framework/research/ ── */
 	.research-topic { gap: 0.15em; max-width: var(--measure); }
 	.research-topic .research-status { align-self: start; margin-top: 0.4em; }
+
+	/* ══ a PROGRAM — Program.js, doc/program.md ═══════════════════════════════
+	   Several topics dug at once, one page. It lives in a COLUMN (28–64em under
+	   a columns host), not in a page grid, so nothing here claims `wide`: the
+	   column is the width, and every rule below just has to survive 28em.
+
+	   ── the credence treatments ──
+	   The epistemic backbone, and the one thing on this page that may never be
+	   subtle. Four words, four looks, and each look carries the difference
+	   THREE ways so no single channel can flatten it:
+	     hue      --ok → --warn → --hot → --subtle
+	     texture  solid → dashed → dotted → double  (survives greyscale, and a
+	              screenshot on a projector, which hue does not)
+	     the word itself, printed on every badge, with its promise as `title`
+	   ⚠ Never collapse this to colour alone. A fringe claim rendered like a
+	     fact is the failure this whole system exists to prevent. */
+
+	.research-cred-established { --research-cred: var(--ok);     --research-edge: solid; }
+	.research-cred-contested   { --research-cred: var(--warn);   --research-edge: dashed; }
+	.research-cred-fringe      { --research-cred: var(--hot);    --research-edge: dotted; }
+	.research-cred-speculation { --research-cred: var(--subtle); --research-edge: double; }
+
+	/* The shared shape every credence-bearing box takes — one rule, so a new
+	   word is two tokens above and nothing here. */
+	.research-theory, .research-entry, .research-take, .research-cred-card {
+		border-left: 5px var(--research-edge, solid) var(--research-cred, var(--line));
+		padding: 0.75em 1em;
+	}
+
+	/* Speculation reads as provisional at a glance, before the word is read:
+	   the only credence whose TYPE changes. */
+	.research-cred-speculation :is(.research-entry-title, .research-theory-claim, .research-take-text) { font-style: italic; }
+
+	.research-program { --flow: 1.6em; }
+
+	/* ── the legend, before any claim wearing one ── */
+	.research-legend { --flow: 0.5em; }
+	.research-legend-row { --gap: 0.6em; }
+	.research-cred-card {
+		--flow: 0.2em;
+		flex: 1 1 11em; min-width: 0;
+		background: var(--tint); border-radius: 0 var(--radius) var(--radius) 0;
+	}
+	.research-cred-name { font-weight: 700; text-transform: capitalize; color: var(--research-cred); }
+	.research-cred-n { font-size: 1.6em; font-weight: 900; display: block; line-height: 1.1; }
+	.research-cred-means { font-size: 0.8em; margin: 0.2em 0 0; }
+
+	/* ── the topic cards ──
+	   `--column: 11em` so 28em gets two and 64em gets five; `.grid.auto` floors
+	   each track at `min(--column, 100%)`, which is what keeps 400 from
+	   overflowing. */
+	.research-topics { --flow: 0.5em; }
+	.research-topics-row { --column: 11em; --gap: 0.75em; }
+	.research-card { --gap: 0.35em; padding: 0.8em 0.9em; }
+	/* ⚠ A bare `<a>` outside prose keeps the UA's blue: the framework's link look
+	   is scoped to `p, li, td…` on purpose, so every card title on this site has
+	   to opt back in or out. A card title is navigation, so it opts OUT. */
+	.research-card-name { text-transform: capitalize; color: inherit; text-decoration: none; }
+	a.research-card-name:hover { color: var(--prim-ink); text-decoration: underline; text-decoration-color: var(--prim); }
+	.research-card-kinds, .research-count { font-size: 0.8em; }
+	.research-count { font-weight: 700; }
+	.research-card-kinds { line-height: 1.35; }
+
+	/* A topic with no page.js of its own still has a way in: core serves any
+	   `.md` beside it as a page. Listed only until the minion writes one. */
+	.research-card-pages { font-size: 0.85em; gap: 0.1em; padding-top: 0.2em; }
+	.research-card-page { color: var(--prim-ink); text-decoration: none; }
+	.research-card-page:hover { text-decoration: underline; }
+
+	/* The evidence mix as one bar — the only place credences are compared by
+	   size. Nothing reads a claim here, so hue alone is honest. */
+	.research-bar { height: 0.5em; border-radius: 1em; overflow: hidden; background: var(--wash); }
+	.research-bar-part { background: var(--research-cred, var(--line)); min-width: 2px; }
+
+	/* ── the theories board ── */
+	.research-board { --flow: 1.2em; }
+	.research-board-group { --flow: 0.6em; }
+	.research-theory { --flow: 0.5em; border-radius: 0 var(--radius) var(--radius) 0; }
+	.research-theory-head { --flow: 0.25em; }
+	.research-theory-claim { font-size: 1.1em; font-weight: 600; }
+	.research-theory-why, .research-entry-summary { max-width: var(--measure); }
+	.research-theory-takes { font-size: 0.9em; }
+	.research-theory-takes > div { --flow: 0.5em; padding-top: 0.5em; }
+	.research-take { --flow: 0.2em; background: var(--tint); border-radius: 0 var(--radius) var(--radius) 0; }
+
+	/* ── the stream ── */
+	.research-stream { --flow: 0.6em; }
+	.research-entry { --flow: 0.3em; background: var(--surface); border-radius: 0 var(--radius) var(--radius) 0; }
+	.research-entry-head { --gap: 0.5em; font-size: 0.8em; }
+	.research-entry-head .research-icon { font-size: 1.3em; color: var(--research-cred, var(--prim)); }
+	.research-entry-topic { font-weight: 700; text-transform: capitalize; }
+	.research-entry-kind, .research-entry-at { font-size: 0.95em; }
+	.research-entry-title { font-weight: 600; }
+	.research-entry-summary { font-size: 0.95em; }
+
+	/* ⚠ The badge is `.research-badge` too, which paints `--wash` and a verdict
+	   colour for a TOPIC. Same pill, credence colours — declared after, so the
+	   later rule wins at equal specificity without a compound selector. */
+	.research-badge.research-cred-established,
+	.research-badge.research-cred-contested,
+	.research-badge.research-cred-fringe,
+	.research-badge.research-cred-speculation {
+		color: var(--research-cred);
+		background: none;
+		border: 1px var(--research-edge) var(--research-cred);
+		text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.7em; font-weight: 700;
+		padding: 0.1em 0.5em; align-self: start;
+	}
+
+	/* What the section is not showing, and where the rest is. */
+	.research-more { font-size: 0.85em; }
+	a.research-more { color: var(--prim-ink); text-decoration: none; }
+	a.research-more:hover { text-decoration: underline; }
+
+	/* ── what the schema refuses, and what it doubts — shown, never hidden ── */
+	.research-refused { color: var(--error); font-size: 0.8em; }
+	.research-note { font-size: 0.8em; }
 
 	/* ── the process, at the foot ── */
 	.research-process { max-width: var(--measure); font-size: 0.9em; }

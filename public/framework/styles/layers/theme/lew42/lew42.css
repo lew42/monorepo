@@ -114,12 +114,22 @@
 	.theme-lew42 :is(code, pre, .code) { font-size: 0.875em; font-weight: 700; }
 
 	/* Buttons read as small uppercase labels — "READ GUIDE", "VIEW DOCS". Same
-	   treatment as h4, and `button` is generic HTML. */
+	   treatment as h4, and `button` is generic HTML.
+
+	   ⚠ THE VOICE, NOT THE BOX. This rule used to say `border: none`, and at (0,2,0)
+	     it out-ranked every hairline anyone wrote — framework.css's own
+	     `border: 1px solid var(--line)`, and each component's `border-color` on
+	     `:hover`, which then set the colour of a border whose STYLE was none and drew
+	     nothing. A default button was left with no fill delta and no edge: the
+	     mechanism behind most of the 101 invisible pairs measured on 2026-08-30.
+	     Deleting the line is the whole fix — framework.css's hairline stands, `.prim`
+	     and `.bg` recolour it to match their own fill, and a component that wants no
+	     border says so itself at its own specificity. `styles/doc/stacking.md` §8. */
 	.theme-lew42 :is(button, .btn) {
 		font-size: 0.8em; font-weight: 700;
 		letter-spacing: 0.08em; text-transform: uppercase;
 		padding: 0.7em 1.4em;
-		border: none; border-radius: var(--radius);
+		border-radius: var(--radius);
 	}
 
 	/* A slider is a line with a handle — the same grammar as the demo stage's

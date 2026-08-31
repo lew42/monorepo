@@ -65,11 +65,14 @@ today's behaviour. One rule, one token, no new concept — and it is a superset 
 `.flex.auto`, which is the argument against adding it as a *fourth* flex modifier rather than
 teaching `auto` to read `--grow`.
 
-## Open — the owner's call
+## Resolved — `auto` learned `--grow` (2026-08-18)
 
-Neither candidate is applied. `framework.css` is fenced for this task and a new word in the
-layout vocabulary is a vocabulary decision, not a layout one. The pages ship with the inline
-`flex`, which is honest: `wire/bento`'s own note says out loud that the class string ran out.
+The second candidate shipped: `.flex.auto > *` reads
+`flex: var(--grow, 1) 1 calc(var(--column) * var(--grow, 1))`, so `.style("--grow", "2")`
+holds 2:1 at every width — measured exactly 2.000 at 400/1280/1920/3440
+([`cols/doc/indictment.md`](/framework/styles/layouts/cols/doc/indictment/)). The inline
+`flex` declarations these pages shipped with predate the fix; the per-child `--column`
+workaround they compare against decays to 1.19 at 3440 and should not be copied.
 
 **The recommendation is Candidate 2, taught to `.flex.auto` rather than added beside it** —
 because Candidate 1's decay is invisible at the width most people design at and wrong at the

@@ -8,45 +8,16 @@
  *   a proposal you cannot see is a paragraph. Everything here is either (a) the proposed
  *   tokens or (b) the grid that renders them. No opinions about anything else.
  *
- * The tokens live on `.stacks-lab`, not `:root` — the flip wave puts them in the theme.
+ * ✔ SHIPPED. The ladder was a proposal on `.stacks-lab` when this page was written; the
+ *   alpha-flip wave (2026-08-30) moved it to `:root` in framework.css and flipped the
+ *   site onto it. This page consumes the real tokens now — the "now" column is still
+ *   whatever the site actually renders, so the matrix keeps working as a regression test.
  */
 @layer theme {
 
-	/* ════ THE ALPHA LADDER ═══════════════════════════════════════════════════
-	   Two primitives, four rungs each: transparent BLACK and transparent WHITE.
-	   Literal `rgba()`, so no interpolation space is involved at all — compositing
-	   is source-over in sRGB and the result is arithmetic, not a mix. (Where a rung
-	   must be derived FROM a theme colour, use `color-mix(in srgb, …)`: mixing
-	   toward `transparent` in oklab travels through premultiplied oklab and the hue
-	   drifts on the way. Demonstrated on the page.)
-
-	   Rungs DOUBLE: 04 · 08 · 16 · 32. A ratio ladder, so any two adjacent rungs are
-	   the same relative step wherever on the scale they sit, and there is one
-	   question at a call site — how many steps up, never "which grey". */
-
-	.stacks-lab {
-		--shade-a04: rgba(0, 0, 0, 0.04);
-		--shade-a08: rgba(0, 0, 0, 0.08);
-		--shade-a16: rgba(0, 0, 0, 0.16);
-		--shade-a32: rgba(0, 0, 0, 0.32);
-
-		--paper-a04: rgba(255, 255, 255, 0.04);
-		--paper-a08: rgba(255, 255, 255, 0.08);
-		--paper-a16: rgba(255, 255, 255, 0.16);
-		--paper-a32: rgba(255, 255, 255, 0.32);
-
-		/* THE ONE WORD A CALL SITE TYPES. Elevation is lighter on both sides
-		   (lew42.css says so), so the mode-aware rung is black on a light floor and
-		   white on a dark one — and `light-dark()` reads `color-scheme` at the
-		   element it is USED on, not where it is declared. That is what makes an
-		   always-dark island work with the same word: the island declares
-		   `color-scheme: dark` and every rung inside it flips, along with `--ink`
-		   and `--line`. One word, every floor, both modes. */
-		--fill-a04: light-dark(var(--shade-a04), var(--paper-a04));
-		--fill-a08: light-dark(var(--shade-a08), var(--paper-a08));
-		--fill-a16: light-dark(var(--shade-a16), var(--paper-a16));
-		--fill-a32: light-dark(var(--shade-a32), var(--paper-a32));
-	}
+	/* THE ALPHA LADDER lives in framework.css `:root` — `--shade-aNN`, `--paper-aNN`,
+	   `--fill-aNN`, four rungs that double. Nothing is redeclared here on purpose: a
+	   lab that redefines what it is measuring cannot fail. */
 
 	/* ── the two mode boxes ──
 	   `color-scheme` is the whole mechanism, so the demo sets nothing else: both

@@ -11,7 +11,7 @@ const BANDS = {
 	Words:     "flex/gap flex/v flex/split flex/basis flex/auto grid/auto",
 	Pages:     "document docs landing hero home pricing stack toc-studio apidoc bold-editorial",
 	Apps:      "shell dashboard split overlay gallery sidebar masonry feed carousel mail chat",
-	Reference: "model fit flex grid 400 space wire anatomy set screens spec",
+	Reference: "model fit flex grid 400 space wire cols anatomy set screens spec",
 };
 
 const paths = Object.values(BANDS).flatMap(band => band.split(" "));

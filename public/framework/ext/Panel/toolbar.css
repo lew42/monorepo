@@ -91,7 +91,7 @@
 	   "this is a target", `on` says "this is what the panel wears". ⚠ A tint, not the border
 	   it replaces — a border reserved its 2px whether or not it was showing, so the two
 	   states read as unrelated and an idle button was never really transparent. */
-	:is(.panel-workspace .panel, .drawer .panel-props) .panel-btn:hover { color: var(--ink); background: var(--wash); }
+	:is(.panel-workspace .panel, .drawer .panel-props) .panel-btn:hover { color: var(--ink); background: var(--fill-a08); }
 	:is(.panel-workspace .panel, .drawer .panel-props) .panel-btn.on {
 		color: var(--prim);
 		background: color-mix(in srgb, var(--prim) 15%, transparent);

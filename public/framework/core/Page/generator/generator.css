@@ -148,7 +148,7 @@
 	}
 	.page--generator button.page-gen-pick:hover { color: var(--ink); border-color: var(--prim); }
 	.page--generator button.page-gen-pick.on {
-		color: var(--prim-ink); border-color: var(--prim); background: var(--tint);
+		color: var(--prim-ink); border-color: var(--prim); background: var(--fill-a08);
 	}
 
 
@@ -215,7 +215,7 @@
 	.page-gen-chips { display: flex; flex-wrap: wrap; gap: 0.35em; margin-block-start: 0.7em; }
 	.page-gen-chip {
 		width: var(--gen-w, 3em); height: 1.1em;
-		border-radius: 999px; background: var(--tint);
+		border-radius: 999px; background: var(--fill-a08);
 		box-shadow: inset 0 0 0 1px var(--line);
 	}
 

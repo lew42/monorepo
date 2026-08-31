@@ -81,6 +81,52 @@
            and `--wash` painted it as dark as the floor two levels below. */
         --tint:    light-dark(rgba(0,0,0,0.035), rgba(255,255,255,0.04));
 
+        /* ---- the alpha ladder: FLOORS ARE OPAQUE, FILLS ARE ALPHA ----------
+           The tokens above name a FLOOR — a box paints one and the thing under it
+           stops mattering. These name a FILL — a button, a chip, a hover, an active
+           row — and the floor under it always shows through, so the same word works
+           on every one of them. Measured, both modes, all six floors:
+           `/framework/styles/stacks/`; the rules: `styles/doc/stacking.md`.
+
+           Two primitives, four rungs each — transparent BLACK and transparent WHITE.
+           Literal `rgba()`, so no interpolation space is involved at all: compositing
+           is source-over in sRGB and the result is arithmetic, not a mix. (Where a
+           rung must be derived FROM a theme colour, use `color-mix(in srgb, …)` —
+           mixing toward `transparent` in oklab travels through premultiplied oklab
+           and the hue drifts on the way.)
+
+           The rungs DOUBLE: 04 · 08 · 16 · 32. A ratio ladder, so any two adjacent
+           rungs are the same relative step wherever on the scale they sit, and there
+           is one question at a call site — how many steps up, never "which grey".
+
+             a04  a floor's worth — a table head, a caption, a large quiet panel
+             a08  THE DEFAULT FILL — a button, a chip, a hover, inline code
+             a16  a hairline or a ring that has to hold its own against the fill
+             a32  a solid neutral control, the one that reads as filled */
+        --shade-a04: rgba(0, 0, 0, 0.04);
+        --shade-a08: rgba(0, 0, 0, 0.08);
+        --shade-a16: rgba(0, 0, 0, 0.16);
+        --shade-a32: rgba(0, 0, 0, 0.32);
+
+        --paper-a04: rgba(255, 255, 255, 0.04);
+        --paper-a08: rgba(255, 255, 255, 0.08);
+        --paper-a16: rgba(255, 255, 255, 0.16);
+        --paper-a32: rgba(255, 255, 255, 0.32);
+
+        /* THE ONE WORD A CALL SITE TYPES. Elevation is lighter on both sides, so the
+           mode-aware rung is black on a light floor and white on a dark one — and
+           `light-dark()` reads `color-scheme` at the element it is USED on, not where
+           it is declared. That is what makes an always-dark island work with the same
+           word: the island declares `color-scheme: dark` and every rung inside it
+           flips, along with `--ink` and `--line`. One word, every floor, both modes.
+           ⚠ An island that is dark in BOTH modes and does NOT declare it gets the
+             light-mode rung — a black fill on a dark floor. That one line is the
+             always-dark primitive; `styles/sections/tone.js` is the worked example. */
+        --fill-a04: light-dark(var(--shade-a04), var(--paper-a04));
+        --fill-a08: light-dark(var(--shade-a08), var(--paper-a08));
+        --fill-a16: light-dark(var(--shade-a16), var(--paper-a16));
+        --fill-a32: light-dark(var(--shade-a32), var(--paper-a32));
+
         --radius: 0.5em;
 
         /* The one error colour, paired. Replaces `#c00` hardcoded in md.css and
@@ -276,7 +322,10 @@
     pre { padding: 0.75em 1em; }
     code { padding: 0.15em 0.4em; }
     pre  { background: var(--code-bg, var(--wash)); color: var(--code-ink, inherit); }
-    code { background: var(--wash); box-shadow: inset 0 0 0 1px var(--line); }   /* the hairline: --wash on a --wash floor (.app) vanished and the padding read as a space — remeasure-diff, 2026-08-17 */
+    /* A FILL, so a rung — not `--wash`, which is a floor and vanished on one (`.app`);
+       the hairline stayed to rescue it and is still here, because "can I see it" is
+       max(fill, border, ring). 2026-08-17 found the gap, 2026-08-30 fixed the cause. */
+    code { background: var(--fill-a08); box-shadow: inset 0 0 0 1px var(--line); }
     pre, code, kbd, samp, .code { font-family: var(--mono); }   /* kbd/samp are mono by meaning */
     pre > code { padding: 0; background: none; box-shadow: none; }   /* already in a padded box; the inline hairline must not ring the block — it read as a white rectangle on every dark `pre`, 2026-08-18 */
 
@@ -309,7 +358,9 @@
         overflow-x: auto;
     }
     th, td { padding: var(--pad-cell, 0.25em 0.75em); border: 1px solid var(--line); }
-    th { background: var(--tint); text-align: left; }
+    /* `--fill-a04`, not `--tint`: the same weight (3.5% → 4%, no visible change) but a
+       fill instead of a floor, so a table on a `--tint` panel still has a head. */
+    th { background: var(--fill-a04); text-align: left; }
 
     /* The UA paints `mark` yellow with `canvastext` on it, and in dark mode that is
        light text on yellow. Paired, like every other colour here. */
@@ -353,11 +404,20 @@
        ⚠ A CONTROL NEVER INHERITS ITS CONTRAST. This was `color: inherit` — right
        for the `<a>` it was written for, and on a real `<button class="btn">` it
        replaced the UA's `ButtonText` with whatever the band around it happened to
-       be. On a dark section: white on the UA's light grey. */
+       be. On a dark section: white on the UA's light grey.
+
+       ⚠ THE FILL IS A RUNG, NOT `--surface`. This one line was the single biggest
+         source of invisible controls on the site: a default button and the card it
+         sits on painted from the SAME token, so most buttons measured ΔL* 0.00
+         against their own floor (2026-08-30 — 101 invisible pairs, 504 elements, and
+         `.btn, button` reached the large majority of them). `--fill-a08` composites
+         against whatever is actually beneath, in both modes, so a button reads on a
+         card, on a wash, in a panel and inside a dark island without any of them
+         knowing about it. `styles/doc/stacking.md`. */
     .btn, button {
         padding: var(--pad-control, 0.25em 1em);
         cursor: pointer;
-        background: var(--surface);
+        background: var(--fill-a08);
         color: var(--ink);
         border: 1px solid var(--line);
         border-radius: var(--radius);
@@ -366,7 +426,16 @@
     .btn:hover, button:hover { border-color: var(--prim); color: var(--prim); }
 
     a * { cursor: pointer; }
-    /* The shadow is accessibility, not decoration: white on `--prim` is ~2.2:1, and
+    /* ⚠ THESE TWO STAY OPAQUE, on purpose. `--prim` and `--bg` are the two SOLID
+       fills — a hue and a dark neutral, each with a hardcoded white label — and a
+       rung cannot replace either without turning a filled CTA into a wash. Each is
+       invisible on exactly one floor, its own, and that is a PLACEMENT error, not a
+       token error: don't put a `.prim` button on a `--prim` band or a `.bg` button on
+       a `--bg` one. The measurement agrees — the only place either was flagged in the
+       2026-08-30 hunt is the matrix cell that exists to demonstrate it.
+       `styles/doc/stacking.md` §placement.
+
+       The shadow is accessibility, not decoration: white on `--prim` is ~2.2:1, and
        a shadow lifts the edges where a letterform is thinnest. */
     button.bg, .btn.bg { background: var(--bg); color: white; border-color: var(--bg); }
     button.prim, .btn.prim {

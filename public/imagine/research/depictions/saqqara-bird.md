@@ -1,0 +1,11 @@
+# The Saqqara Bird — model glider or bird figurine?
+
+**The artifact.** A carved sycamore-wood object, 15cm long with an 18.3cm wingspan, found in 1898 in the tomb of Pa-di-Imen at [Saqqara](https://historyegypt.org/artifacts/saqqara-bird) and dated to roughly 200 BCE (Ptolemaic period). It is painted to resemble a falcon and is held today in the Cairo Egyptian Museum. *(established)*
+
+**What Egyptology says.** Mainstream Egyptologists classify it as a bird figurine, most likely a [ship's mast-head ornament or votive object](https://www.ancient-origins.net/unexplained-phenomena/he-saqqara-bird-did-ancient-egyptians-know-how-fly-0010035) common to the period. No ancient Egyptian aircraft or aviation text has ever been found to support a functional flying role. *(established)*
+
+**The alien/ancient-technology interpretation.** Physician [Khalil Messiha](https://www.ancient-hebrew.org/ancientman/1027.html), who catalogued the piece in 1969, argued that its vertical (rather than horizontal) tail fin and legless, high-lift wing profile mimic aerodynamic design rather than a real bird's anatomy, and proposed it was a scale model of a known aircraft or glider. This claim is usually filed alongside — but is distinct from — full "ancient astronaut" claims; it argues for lost human aviation, not visitors. *(contested)*
+
+**What a fair reader keeps.** The engineering disagreement is real and unresolved: Messiha's balsa replica reportedly glided; aviation engineer Martin Gregorie called the original ["totally unstable without a tailplane"](https://historicaleve.com/saqqara-bird-did-ancient-egyptians-have-flying-machines/); a 2006 wind-tunnel replica without the tail still produced meaningful lift. That's genuine aerodynamics debate — it just falls well short of proving a functional ancient aircraft, since no full-scale wreck, cockpit, or written reference has ever surfaced. *(contested)*
+
+**What would settle it.** A controlled comparison against other real falcon mast-head figurines from the same period and workshop tradition would show whether the tail fin is a deliberate, unique design choice or ordinary variation in bird-figurine carving. That comparison hasn't been published. [Ancient Origins](https://www.ancient-origins.net/ancient-technology/controversial-saqqara-bird-00386)

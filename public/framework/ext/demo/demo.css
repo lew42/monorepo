@@ -28,12 +28,17 @@
 	.demo-label { font-weight: 600; color: var(--subtle); }
 	.demo-spacer { flex: 1 1 auto; }
 
+	/* ⚠ `background: none` here, plus lew42's `border: none` beating the transparent
+	     border below, left these with no fill and no edge — 64 of the 101 invisible
+	     pairs the 2026-08-30 hunt found were this one rule, on every demo on the site.
+	     A rung reads on the bar (`--tint`), on a card and inside a dark island, and
+	     `:hover`/`.on` still work by taking the border they always meant to. */
 	.demo-btn {
 		display: flex; align-items: center;
 		padding: 0.2em 0.5em;
 		font-size: 0.9em; font-family: var(--mono);
 		color: var(--subtle);
-		background: none;
+		background: var(--fill-a08);
 		border: 1px solid transparent;
 		border-radius: var(--radius);
 		cursor: pointer;

@@ -16,6 +16,18 @@ Revisable, all of them; the first run (`/framework/research/livereload/`, 2026-0
 - **Data ≠ code.** `ext/Research/` is the module (renderer, verbs, writers); `research/` holds topics — the same split as `ext/AITask` ↔ `ai/`. Topics need no `page.js`; `research/page.js` routes the slug.
 - **Not the Doc system.** Docs explain a module; research argues a question. The Doc page of `ext/Research` is ordinary; a topic can cite any `doc/*.md` in a `--refs`, which is all the integration needed until a topic wants to *dig into a module's docs* — then the brief fences a scout to that `doc/` dir (no code change).
 
+## The program shape — 2026-08-30
+
+Added against a live run: four minions digging ancient technology in parallel, `public/imagine/research/<topic>/log.jsonl` each. The evidence is that run — 175 entries by the time the front shipped, and every one of them legal.
+
+- **A program is a second shape, not a second module.** Rounds → verdict serves a question that closes; four subjects dug continuously never reach one, and forcing a tree on them would have meant a fake orchestrator ranking things nobody is going to resolve. So: `entries.js` beside `verbs.js`, `entry.mjs` beside `research.mjs`, `Program.js` beside `Research.js`, one stylesheet, one prefix. The pieces that already generalised — the append-only file, `ext/JSONL`'s replay, `Tail` streaming, the tolerant parse — were reused unchanged.
+- **The scout → skeptic → verdict rounds DID map**, and the map is the schema: a scout's claim is an `entry`, the skeptic's mainstream-check is an `opinion`, and the verdict is the `credence` field carried on every line instead of assigned once at the end by an orchestrator. That is the whole port. The rounds' machinery — `outline`, importance votes, `parked`, the ranking — was deliberately **left in the topic shape**: all four of them exist to decide what to dig next, and a continuous program's answer to that is "keep digging".
+- **`credence` is required, with no default.** A default would have to be guessed and the guess would always flatter. Four words, and the presentation carries each three ways at once (hue, border texture, the printed word) — because a reader who cannot tell a fringe claim from a fact is the one failure that makes the whole record worthless. `doc/program.md`.
+- **The reader is tolerant where the writer is strict.** The writer refuses an illegal line; the page SHOWS one, with the reason, and prints the arithmetic (entries + unreadable = the files' line count). A reader that dropped bad lines would hide exactly the defect it exists to surface. Verified against the live run: `wc -l` 175, page 175.
+- **`directory.json`, never a fetch probe.** Asking `<topic>/page.js` four times logs four console 404s in a program's normal state — no topic has started. One request answers all four, and names the `.md` pages each topic has curated, so the front links a minion's work the moment the file lands and never needs editing.
+- **No `parent` on an entry, for now.** So the theories board groups by topic and says in the page that it cannot pair a theory with the assessment of it. The honest version of a limitation beats an invented join; adding the field is the obvious next move and nothing here blocks it.
+- **MCP tools for `entry`: not built.** `research.mjs`'s tools needed a server restart to appear and the CLI carried the first run anyway. Same call when a program run wants them.
+
 ## Open
 
 - **Owner direction from the page** — a box that appends `{"log": {"msg": "owner: …"}}`; the orchestrator's next round reads it. Parked until a write RPC is the obvious one to reuse.

@@ -128,7 +128,9 @@ export default new Page({
 
 	content(){
 
-		md("Two rules in `framework.css` name the same token:\n\n```css\n.btn, button { background: var(--surface); }\n.surface     { background: var(--surface); }\n```\n\nSo **a default button on a card is a zero-delta fill.** Only the hairline says a button is there. `code` on a `.wash` block and a `--tint` badge in a `.tint` panel are the same sentence with different nouns — and three modules have already patched it one at a time: [`blog.css`](/blog/) gave up on filled chips and went outlined, [`imagine.css`](/imagine/) hovers with `color-mix(in srgb, var(--ink) 6%, transparent)`, and `framework.css` bolted an inset ring onto inline `code`.");
+		md("**Shipped.** The ladder below lives in `framework.css` `:root` and the site is on it — [the flip](/framework/ai/2026-08-30/alpha-flip/), 2026-08-30. This page is now the regression test: the left chip in every cell is still whatever the site actually renders, so if a fill goes back to guessing, a number here turns red.");
+
+		md("What it was. Two rules in `framework.css` named the same token:\n\n```css\n.btn, button { background: var(--surface); }\n.surface     { background: var(--surface); }\n```\n\nSo **a default button on a card was a zero-delta fill** — and lew42's `border: none` had already taken away the hairline that was the only other thing saying a button was there. `code` on a `.wash` block and a `--tint` badge in a `.tint` panel were the same sentence with different nouns, and three modules had patched it one at a time: [`blog.css`](/blog/) gave up on filled chips and went outlined, [`imagine.css`](/imagine/) hovers with `color-mix(in srgb, var(--ink) 6%, transparent)`, and `framework.css` bolted an inset ring onto inline `code`.");
 
 		md("## The rule");
 
@@ -153,9 +155,9 @@ export default new Page({
 
 		div.c("wide stacks-lab flex gap wrap", () => { matrix(false); matrix(true); });
 
-		md("**Seven cells are under the bar today; the alpha column clears five of them.** The three worst all read exactly **0.0** — no fill difference and, because lew42 sets `border: none` on every button, no hairline either.\n\nThe last three columns are *identical* between the two halves, and that is the mechanism working: `--bg`, `--code-bg` and `--prim` declare `color-scheme: dark`, so they render the same whichever mode the reader is in.");
+		md("**Nine cells are under the bar, in both modes, and none of them is a shipping component.** Before the flip it was 14 in light and 13 in dark. What is left is the two placement demos below and the one compression case, which is the page arguing its own last section.\n\nThe last three columns are *identical* between the two halves, and that is the mechanism working: `--bg`, `--code-bg` and `--prim` declare `color-scheme: dark`, so they render the same whichever mode the reader is in.");
 
-		md("Two cells the ladder does **not** fix, both on `--prim`, and both are findings rather than bugs:\n\n- `button.prim` on a `--prim` band stays 0.0. **An accent is a hue, not a rung** — it can only be invisible on one floor, its own, and the answer there is a rung (`--fill-a16` with white ink), not another hue.\n- A card at `--fill-a04` on `--prim` measures 2.1. **Alpha compresses on a saturated floor**: the red channel of `#FF8F60` is already at 255, so a white rung can only move green and blue. On an accent, start one rung higher.");
+		md("Cells the ladder does **not** fix, and all three are findings rather than bugs:\n\n- `button.prim` on a `--prim` band, and `button.bg` on a `--bg` one, stay 0.0. **An accent is a hue, not a rung** — each can only be invisible on one floor, its own, so this is a *placement* error and the fix is to move the button, not to retune the token. Both kept their opaque fills in the flip on exactly that reasoning.\n- A card at `--fill-a04` on `--prim` measures 2.1. **Alpha compresses on a saturated floor**: the red channel of `#FF8F60` is already at 255, so a white rung can only move green and blue. On an accent, start one rung higher.");
 
 		md("The matrix is a `<table>`, so `framework.css` already gives it `overflow-x: auto` — a full grid at 1920 and a deliberate side-scroll at 400. A 36-cell matrix is wide; that is the one scrollbar on this page and it was asked for.");
 
@@ -173,7 +175,7 @@ export default new Page({
 
 		md("## The hunt");
 
-		md("A headless pass over the site reads every button, chip and badge, composites its fill against the floor actually beneath it, and flags the pairs under ΔL\\* 3. The scan and its threshold calibration are in [the task dir](/framework/ai/2026-08-30/color-stacks/); the raw output is [`hunt.json`](hunt.json).");
+		md("A headless pass over the site reads every button, chip and badge, composites its fill against the floor actually beneath it, and flags the pairs under ΔL\\* 3. The scan and its threshold calibration are in [the task dir](/framework/ai/2026-08-30/color-stacks/); the raw output is [`hunt.json`](hunt.json).\n\n**76 pages, 3,623 fills: 101 pairs / 504 elements before the flip, 19 / 50 after.** The table below is what is left, and every row is one of four things — a text label the scan's class-name test caught (`.layout-tag` has no fill and never wanted one), an icon button that is transparent on purpose and carries its glyph as the affordance, one of the two placement demos above, or a mocked control on the [UI gallery](/framework/ui/). None of them is a control you cannot see.");
 
 		/* ⚠ The box is claimed synchronously and the promise handed to `append()`, which
 		   awaits it and appends what it resolves to — a FUNCTION, so the captor is set and

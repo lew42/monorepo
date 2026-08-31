@@ -41,12 +41,16 @@
 	/* ⚠ A touch screen has no hover to reveal it with. */
 	@media (hover: none) { .layout-bar, .layout > .layout-bar { opacity: 1; } }
 
+	/* A rung, not `none` — same finding as `.demo-btn` (stacking.md): the bar paints
+	   `--surface` and a button painted nothing was the same white, with lew42's
+	   `border: none` cancelling the transparent border below and the hover that
+	   recoloured it. */
 	.layout-btn {
 		display: flex; align-items: center; gap: 0.3em;
 		padding: 0.15em 0.6em;
 		font-family: var(--mono);
 		color: var(--subtle);
-		background: none;
+		background: var(--fill-a08);
 		border: 1px solid transparent;
 		border-radius: var(--radius);
 		cursor: pointer;

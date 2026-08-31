@@ -72,7 +72,6 @@
 		padding: 0.35em 0.7em;
 		font-size: 0.7em;
 		border: 1px solid var(--line);
-		background: var(--surface);
 	}
 
 	/* A text field in a row of buttons is as wide as it needs to be — base css sizes

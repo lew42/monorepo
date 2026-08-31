@@ -93,6 +93,7 @@ dev-         dev/DevBar
 ui-          ui/
 
 # styles
+cols-        styles/layouts/cols   (not the bare `.cols` — core/new/1/site/styles.css owns it)
 space-       styles/layouts/space
 rules-       styles/rules
 stacks-      styles/stacks   (not `stack-` — ext/demo owns the bare `.stack` modifier)

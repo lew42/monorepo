@@ -107,10 +107,10 @@ export const TODAY = [{
 }, {
 	name: "aside, --grow",
 	cls: "flex auto gap",
-	claim: "68 / 32, and the aside should stop growing",
-	note: "There is no ceiling in the vocabulary, so 32% of 3440 is 32% of 3440.",
+	claim: "68 / 32 — and nothing stops the aside",
+	note: "The ratio holds. That is the trouble: there is no ceiling in the vocabulary, so 32% of 3440 is 32% of 3440, and an aside holds a list.",
 	tracks: [
-		{ name: "Article", w: 68, style: { "--grow": "2.1" } },
+		{ name: "Article", w: 68, style: { "--grow": "2.125" } },
 		{ name: "On this page", kind: "a list", w: 32, quiet: true },
 	],
 }, {
@@ -178,6 +178,36 @@ export const measure = ($row, word, $read) => {
 			if (lines === box.length && lines > 1) return span.c("cols-ok", "stacked");
 			if (lines > 1) return span.c("cols-bad", lines + " lines — orphan");
 			if (want == null) return span.c("cols-ok", "fixed track");
+
+			/* ⚠ A CEILING CHANGES THE CLAIM. Once an aside is at its cap the row is no
+			   longer 68/32, and calling that a 239% error would be reporting the feature
+			   as the bug. A cap is detected STRUCTURALLY — a track narrower than its own
+			   share of the room — rather than by repeating 26rem here: the stylesheet owns
+			   the number, and this reads back what it did.
+			   ⚠ `getComputedStyle(el).maxWidth` cannot do it: the value is
+			     `max(26rem, calc((34rem - 100%) * 999))` and Chrome hands that back
+			     unresolved, so parseFloat is NaN and every cap reads as absent. */
+			const room = $row.el.getBoundingClientRect().width;
+			const gaps = (box.length - 1) * (parseFloat(getComputedStyle($row.el).columnGap) || 0);
+			const fixed = word.tracks.reduce((n, t, i) => n + (t.w == null ? box[i].width : 0), 0);
+			const sum = weighted.reduce((n, [t]) => n + t.w, 0);
+			const share = i => (room - gaps - fixed) * word.tracks[i].w / sum;
+
+			/* ⚠ Both halves are needed. "Narrower than its share" alone calls `.flex.auto`'s
+			   DECAY a cap and hides the very finding this lab is for; "has a max-width"
+			   alone fires before the ceiling has bitten. Chrome hands the max-width back
+			   unresolved, so it can be tested for presence and not for its value. */
+			const capped = weighted.map(([, i]) => i).find(i =>
+				getComputedStyle($row.cells[i].el).maxWidth !== "none" && box[i].width < share(i) - 1);
+
+			if (capped != null){
+				const spent = box.reduce((n, r) => n + r.width, 0) + gaps;
+
+				span("capped " + Math.round(box[capped].width) + "px");
+				span("its share was " + Math.round(share(capped)) + "px");
+				return span.c(Math.abs(spent - room) <= 2 ? "cols-ok" : "cols-bad",
+					Math.abs(spent - room) <= 2 ? "row fully spent" : "leaks " + Math.round(room - spent) + "px");
+			}
 
 			const got = box[weighted[0][1]].width / box[weighted[1][1]].width;
 			const off = Math.abs(got - want) / want;

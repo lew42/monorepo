@@ -192,7 +192,7 @@
 		padding: 0.2em 0.6em;
 		font-size: 0.78em;
 		color: var(--subtle); text-decoration: none;
-		background: var(--tint);
+		background: var(--fill-a08);
 		border: 1px solid var(--line); border-radius: 999px;
 	}
 	.blogx-chip:hover { color: var(--prim-ink); border-color: var(--prim); }
