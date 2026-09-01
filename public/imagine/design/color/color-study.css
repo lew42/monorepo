@@ -1,0 +1,18 @@
+@layer base, theme, site, util;
+
+/* css: .color-swatch, .color-island, .color-chip, .color-fail, .color-pairbox
+ *
+ * The whole point of this sheet: force `light-dark()` to resolve BOTH ways on one
+ * page regardless of the viewer's own mode, by setting `color-scheme` on a small
+ * island rather than the root. `--prim` etc. still come from the ancestor
+ * `.theme-lew42` — only the resolution direction is pinned here. */
+@layer theme {
+	.color-swatch { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+	.color-island { color-scheme: light; padding: 0.9em 0.8em; background: var(--surface); }
+	.color-island.dark { color-scheme: dark; }
+	.color-chip { height: 2.6em; border-radius: 0.2em; border: 1px solid var(--line); margin-block-end: 0.5em; }
+	.color-pairbox { display: grid; gap: 0.9em; grid-template-columns: repeat(auto-fill, minmax(min(13em, 100%), 1fr)); }
+
+	.color-fail { border-inline-start: 3px solid var(--error); padding-inline-start: 0.8em; }
+	.color-ok   { border-inline-start: 3px solid var(--ok); padding-inline-start: 0.8em; }
+}
