@@ -4,3 +4,4 @@
 {"log": {"at": "2026-09-01T05:34:12+00:00", "task": "padding-study", "msg": "task opened — padding-only study, DesignTool prior art read (pad-share, frame-gap, thresholds)"}}
 {"log": {"at": "2026-09-01T05:51:10+00:00", "task": "journey-crawl", "msg": "landed — 451 pages shot, 29 skipped, /imagine/design/journey/ built, 3.4MB total"}}
 {"log": {"at": "2026-09-01T05:51:30+00:00", "task": "layout-study", "msg": "task opened - categorize page-layout patterns site-wide, identify failures, especially 3440 waste"}}
+{"log": {"at": "2026-09-01T05:57:40+00:00", "task": "scale-study", "msg": "landed — scale study: font-size spectrum + width-used across 25 pages/3 widths, 4 missed-opportunity pages found (13-23% of 3440 used, type never grows), live scale ladder + report at /imagine/design/scale/"}}
