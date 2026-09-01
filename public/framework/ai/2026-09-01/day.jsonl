@@ -9,3 +9,5 @@
 {"log": {"at": "2026-09-01T06:04:05+00:00", "task": "padding-study", "msg": "landed -- /imagine/design/padding/: live 0-30% ladder, comfortable band ~2-12% of a box's own width vs DesignTool's pad-share/frame-gap, 6 verified close-crop shots (1 real near-miss, 1 borderline, 3 false alarms, 2 exemplary), one proposed rule"}}
 {"log": {"at": "2026-09-01T06:05:00+00:00", "task": "color-study", "msg": "task opened — color inventory + contrast crawl for theme-browser minion"}}
 {"log": {"at": "2026-09-01T06:05:22+00:00", "task": "navigation-study", "msg": "task opened — cataloguing site navigation mechanisms at three widths, multi-level path depth"}}
+{"log": {"at": "2026-09-01T06:08:12+00:00", "task": "system-proposal", "msg": "task opened - DesignTool critique + the layout system that doesn't fail, as /imagine/design/system/"}}
+{"log": {"at": "2026-09-01T06:08:26+00:00", "task": "type-study", "msg": "task opened — typography faces/weights/line-height/measure/hierarchy study"}}
