@@ -18,7 +18,12 @@ import { Page, md } from "/app.js";
 
    Round 5 opened no new fronts: it chased three specific claims round 4 had
    already surfaced (Nimitz tape removal, the 2016 YD blind test, Karahan
-   Tepe 2025) back to their primary sources. See `Round 5:` section. */
+   Tepe 2025) back to their primary sources. See `Round 5:` section.
+
+   Round 6 is NOT a section here — it is the sibling page `../patterns/`. This
+   page argues the subject; that one reads the corpus as an object and carries
+   the round-6 hypothesis. Kept apart on purpose: this essay was already five
+   screens, and a sixth addendum would have buried the one thing round 6 made. */
 
 export default new Page({
 	meta: import.meta,
@@ -30,6 +35,8 @@ export default new Page({
 		md(`Four topics were dug in parallel and independently: [precisely carved stone](/imagine/research/stone/), [depictions](/imagine/research/depictions/) claimed to show visitors, the [modern UAP disclosure arc](/imagine/research/disclosure/), and the [major theories](/imagine/research/theories/) underneath all of it. Five rounds, 358 logged entries, four separate diggers who mostly could not see each other's work. This page is the read across all of it.
 
 **The thesis, in two lines.** In every one of these disputes the decisive test is cheap, permitted and unperformed — each argument rests on a single measurement nobody has repeated, which is exactly why none of them ends. And the fight over that gap is not science against its critics: it is science visibly correcting itself, five times in eighteen months, while the claims that need the gap keep it open.
+
+This page argues the *subject*. Its round-6 sibling, [What Recurs](/imagine/research/theories/patterns/), reads the *corpus* — where credences cluster and why, which claim-types survived five rounds and which died, what every one of this program's own corrections actually fixed — and proposes one new falsifiable hypothesis about §2's gap: that **custody, not funding**, decides which measurement gets made.
 
 ---
 
@@ -177,6 +184,6 @@ Round 5 didn't open new fronts — it followed the Nimitz tape-removal story, th
 
 Every claim above sits on a logged entry carrying its own **credence** — *established*, *contested*, *fringe*, *speculation* — and a credence is always the writer's claim about their own evidence, never this page's judgement of it, and never upgraded by repetition. Where this essay generalises beyond what any source says, it is labelled: the four-domain agency-displacement pattern is **speculation**, the archaeology-layer case under it is **established**, and the one-measurement observation in §2 is a reading of the logs rather than anyone else's finding — checkable line by line, claimed by nobody but this page.
 
-The evidence itself: [stone](/imagine/research/stone/log.jsonl) · [depictions](/imagine/research/depictions/log.jsonl) · [disclosure](/imagine/research/disclosure/log.jsonl) · [theories](/imagine/research/theories/log.jsonl) — 358 entries, appended in the order they were found, none rewritten. The program front is [/imagine/research/](/imagine/research/).`);
+The evidence itself: [stone](/imagine/research/stone/log.jsonl) · [depictions](/imagine/research/depictions/log.jsonl) · [disclosure](/imagine/research/disclosure/log.jsonl) · [theories](/imagine/research/theories/log.jsonl) — 368 entries after round 6, appended in the order they were found, none rewritten. The program front is [/imagine/research/](/imagine/research/).`);
 	},
 });
