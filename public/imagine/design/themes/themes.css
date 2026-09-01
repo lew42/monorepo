@@ -1,0 +1,218 @@
+/* The theme browser — five alternate themes, and the mock UI they are painted on.
+ *
+ * TWO KINDS OF RULE LIVE HERE, and the split is the whole point:
+ *
+ *   `.theme-<name>`  a candidate THEME. Tokens, nothing else — the same ~20
+ *                    properties `styles/layers/theme/lew42/lew42.css` declares.
+ *                    Written unscoped, in `@layer theme`, so each block could be
+ *                    lifted verbatim into `styles/layers/theme/<name>/<name>.css`
+ *                    and become the site's look by swapping one word on `.app`.
+ *                    Inert until something wears the class; nothing else in the
+ *                    repo writes these five names (censused).
+ *
+ *   `.themes-*`      this PAGE's chrome — the mock mini-UI, the swatch strip, the
+ *                    wall. Never a theme concern.
+ *
+ * ⚠ The mock reads ONLY tokens. The moment a rule below needs a literal colour,
+ *   the mock has found a token the theme system is missing — that is the test.
+ */
+@layer theme {
+
+	/* ══ theme: press ══ Editorial. Cream stock, near-black serif ink, one oxblood.
+	   Lights its code box, so it restates the whole --syn-* palette (see the note
+	   on `bloom`). */
+	.theme-press {
+		color-scheme: light dark;
+		--prim:     light-dark(#8c1c13, #e88070);
+		--prim-ink: light-dark(#7a180f, #f19a8c);
+		--ink:      light-dark(#181310, #ece5d8);
+		--subtle:   light-dark(#655b50, #a99c8b);
+		--line:     light-dark(#d6ccba, #3a332b);
+		--wash:     light-dark(#efe8d9, #17140f);
+		--tint:     light-dark(#f5efe3, #1e1a15);
+		--surface:  light-dark(#fdfaf2, #242019);
+		--bg:       light-dark(#2a231c, #3d352b);
+		--card-shadow: light-dark(rgba(60, 40, 20, 0.14), rgba(0, 0, 0, 0.6));
+		--card-ring:   light-dark(transparent, var(--line));
+		--radius: 0;
+		--font: "Iowan Old Style", Georgia, "Times New Roman", serif;
+		--code-bg:  light-dark(#e9e1cf, #1e1a15);
+		--code-ink: light-dark(#2a231c, #ece5d8);
+		--syn-comment: light-dark(#8a7f70, #8a7f70);
+		--syn-keyword: light-dark(#8c1c13, #e88070);
+		--syn-string:  light-dark(#3c6248, #9dc9ac);
+	}
+	.theme-press.light { color-scheme: light; }
+	.theme-press.dark  { color-scheme: dark; }
+
+	/* ══ theme: phosphor ══ A CRT. Dark in BOTH modes on purpose, so it declares no
+	   `.light`/`.dark` pair — honouring the mode axis is a promise, and this theme
+	   is not making it. `--code-bg` darker than `--wash` is the only inversion of
+	   the elevation ladder in the set: on a terminal the shell is the floor. */
+	.theme-phosphor {
+		color-scheme: dark;
+		--prim:     #3ddc84;
+		--prim-ink: #56ef9c;
+		--ink:      #c9f6db;
+		--subtle:   #6fa688;
+		--line:     #1c3b2a;
+		--wash:     #06120c;
+		--tint:     #0a1a12;
+		--surface:  #0e2118;
+		--bg:       #14311f;
+		--card-shadow: transparent;
+		--card-ring:   var(--line);
+		--radius: 0;
+		--font: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+		--code-bg:  #030b06;
+		--code-ink: #7ef2b0;
+		--syn-comment: #3f6b53;
+		--syn-keyword: #3ddc84;
+		--syn-string:  #cfe97a;
+	}
+
+	/* ══ theme: bloom ══ High-key pastel: nothing dark, everything soft, radius wide.
+	   ⚠ THE TRAP THE COLOUR STUDY NAMED. Lightening `--code-bg` is one line, but the
+	     ten `--syn-*` are FLAT in lew42 and tuned for a box that is dark in both
+	     modes — inherit them onto a pale box and the strings go invisible. A theme
+	     that lights its code box owes the whole syntax palette. */
+	.theme-bloom {
+		color-scheme: light dark;
+		--prim:     light-dark(#b48ce8, #cbb0f5);
+		--prim-ink: light-dark(#6a3fab, #d5c0f8);
+		--ink:      light-dark(#3d3149, #efe8f7);
+		--subtle:   light-dark(#6b6079, #b6aac6);
+		--line:     light-dark(#e7ddf2, #392f48);
+		--wash:     light-dark(#f7f3fb, #1b1624);
+		--tint:     light-dark(#fbf8fe, #241d30);
+		--surface:  light-dark(#ffffff, #2b2339);
+		--bg:       light-dark(#6a3fab, #6a3fab);
+		--card-shadow: light-dark(rgba(120, 80, 180, 0.18), rgba(0, 0, 0, 0.55));
+		--card-ring:   light-dark(transparent, var(--line));
+		--radius: 1em;
+		--font: "Nunito", "Avenir Next", system-ui, sans-serif;
+		--code-bg:  light-dark(#f2ecfa, #171320);
+		--code-ink: light-dark(#3d3149, #efe8f7);
+		--syn-comment: light-dark(#8b81a0, #8b81a0);
+		--syn-keyword: light-dark(#6a3fab, #cbb0f5);
+		--syn-string:  light-dark(#1f6f6b, #7fd8d2);
+	}
+	.theme-bloom.light { color-scheme: light; }
+	.theme-bloom.dark  { color-scheme: dark; }
+
+	/* ══ theme: oled ══ The mirror. Pure #000 / pure #fff, hairlines, no shadow at
+	   all — `--card-shadow: transparent` and `--card-ring: var(--line)` in BOTH
+	   modes, which is the clearest proof those two are a shape decision and not a
+	   colour: lew42 swaps mechanism by mode, this one refuses both. */
+	.theme-oled {
+		color-scheme: light dark;
+		--prim:     light-dark(#0090a8, #00e5ff);
+		--prim-ink: light-dark(#00707f, #00e5ff);
+		--ink:      light-dark(#000000, #ffffff);
+		--subtle:   light-dark(#5a5a5a, #9a9a9a);
+		--line:     light-dark(#d2d2d2, #272727);
+		--wash:     light-dark(#ffffff, #000000);
+		--tint:     light-dark(#f5f5f5, #0a0a0a);
+		--surface:  light-dark(#ffffff, #000000);
+		--bg:       light-dark(#111111, #143c44);
+		--card-shadow: transparent;
+		--card-ring:   var(--line);
+		--radius: 0;
+		--font: system-ui, -apple-system, "Segoe UI", sans-serif;
+		--code-bg:  light-dark(#111111, #000000);
+		--code-ink: light-dark(#f0f0f0, #e8e8e8);
+		--syn-comment: #7a7a7a;
+		--syn-keyword: #00e5ff;
+		--syn-string:  #ffd166;
+	}
+	.theme-oled.light { color-scheme: light; }
+	.theme-oled.dark  { color-scheme: dark; }
+
+	/* ══ theme: riso ══ Two inks on newsprint — fluoro pink over midnight blue. The
+	   accent is FLAT in both modes because an ink does not have a dark mode; the
+	   paper does. */
+	.theme-riso {
+		color-scheme: light dark;
+		--prim:     #ff48a0;
+		--prim-ink: light-dark(#c2185b, #ff8cc2);
+		--ink:      light-dark(#1b2a6b, #e9e4d6);
+		--subtle:   light-dark(#59639a, #9aa3c8);
+		--line:     light-dark(#1b2a6b, #48528c);
+		--wash:     light-dark(#eae3d2, #12183a);
+		--tint:     light-dark(#e2dac6, #1a2149);
+		--surface:  light-dark(#f7f2e5, #171d44);
+		--bg:       light-dark(#1b2a6b, #1b2a6b);
+		--card-shadow: var(--prim);
+		--card-ring:   var(--line);
+		--radius: 0;
+		--font: "Helvetica Neue", "Arial Narrow", system-ui, sans-serif;
+		--code-bg:  light-dark(#1b2a6b, #0d1230);
+		--code-ink: #eae3d2;
+		--syn-comment: #7f8ac0;
+		--syn-keyword: #ff48a0;
+		--syn-string:  #ffe08a;
+	}
+	.theme-riso.light { color-scheme: light; }
+	.theme-riso.dark  { color-scheme: dark; }
+
+	/* ⚠ THE ONE PLACE THE TOKENS LEAK. `--card-shadow` is a COLOUR inside a
+	   geometry the theme cannot reach (`0 1px 2px`, `0 6px 18px` — Page.css:654).
+	   riso wants a hard 4px offset, which is a different shadow, not a different
+	   colour, so it has to write a rule. Scoped to the mock, and named in the
+	   proposal column as the token the system is missing. */
+	.theme-riso .themes-ui { box-shadow: 5px 5px 0 var(--prim); }
+}
+
+@layer site {
+
+	/* ── The wall: every theme at a glance, first paint ──
+	   Tiles, so 3440 gets six across and 1280 beside three rails still gets two.
+	   17em is the mock's natural size; below that the nav strip wraps. */
+	.themes-wall { display: grid; gap: 1.6em; grid-template-columns: repeat(auto-fill, minmax(min(17em, 100%), 1fr)); }
+
+	/* One specimen — the label, the surface, the swatches. `theme-*` goes on THIS
+	   box, so everything inside it repaints. That is the entire demo mechanism. */
+	.themes-spec { display: flex; flex-direction: column; gap: 0.5em; margin: 0; padding: 0.7em; background: var(--wash); border: 1px solid var(--line); border-radius: var(--radius); }
+	.themes-spec-name { font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; font-size: 0.72em; color: var(--subtle); }
+
+	/* ── The mock mini-UI. Tokens only. ── */
+	.themes-ui { display: flex; flex-direction: column; background: var(--surface); color: var(--ink); font-family: var(--font); border-radius: var(--radius); box-shadow: 0 0 0 1px var(--card-ring), 0 1px 2px var(--card-shadow), 0 6px 18px var(--card-shadow); overflow: hidden; }
+
+	.themes-nav { display: flex; align-items: center; gap: 0.8em; padding: 0.5em 0.7em; background: var(--tint); border-bottom: 1px solid var(--line); font-size: 0.72em; }
+	.themes-brand { font-weight: 800; letter-spacing: -0.01em; }
+	.themes-brand::before { content: ""; display: inline-block; width: 0.7em; height: 0.7em; margin-right: 0.4em; background: var(--prim); border-radius: calc(var(--radius) / 2); }
+	.themes-navlink { color: var(--subtle); }
+	.themes-navlink.on { color: var(--prim-ink); box-shadow: 0 2px 0 var(--prim); }
+
+	.themes-body { display: flex; flex-direction: column; gap: 0.5em; padding: 0.8em 0.7em; }
+	.themes-title { font-size: 1.15em; font-weight: 700; line-height: 1.2; margin: 0; }
+	.themes-text { font-size: 0.8em; line-height: 1.5; margin: 0; }
+	.themes-caption { font-size: 0.7em; color: var(--subtle); margin: 0; }
+
+	/* Real `button` elements, so the theme's voice is tested against framework.css
+	   and lew42's own `button, .btn` rule rather than against a private class. */
+	.themes-btns { display: flex; gap: 0.5em; align-items: center; }
+	.themes-btns button { font-size: 0.62em; padding: 0.6em 1em; }
+
+	/* Three lines of "code", the --syn-* trap made visible. */
+	.themes-code { margin: 0; padding: 0.5em 0.6em; background: var(--code-bg); color: var(--code-ink); font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.62em; line-height: 1.5; border-radius: calc(var(--radius) / 2); white-space: pre; overflow-x: auto; }
+	.themes-kw  { color: var(--syn-keyword); }
+	.themes-str { color: var(--syn-string); }
+	.themes-com { color: var(--syn-comment); }
+
+	/* ── The live swatch strip: the theme's own tokens, painted by themselves ── */
+	.themes-swatches { display: flex; gap: 2px; }
+	.themes-swatch { flex: 1 1 0; height: 1.5em; border: 1px solid var(--line); border-radius: calc(var(--radius) / 3); }
+
+	/* ── A theme's own column: the token table ── */
+	.themes-tokens { width: 100%; border-collapse: collapse; font-size: 0.82em; }
+	.themes-tokens td { padding: 0.3em 0.5em; border-bottom: 1px solid var(--line); vertical-align: middle; }
+	.themes-tokens td:first-child { font-family: var(--mono, ui-monospace, monospace); white-space: nowrap; }
+	.themes-tokens td:last-child { color: var(--subtle); }
+	.themes-dot { display: inline-block; width: 1.1em; height: 1.1em; border: 1px solid var(--line); border-radius: 0.2em; vertical-align: -0.2em; }
+
+	/* ── The generated row: the seed, then what it measured ── */
+	.themes-seed { font-family: var(--mono, ui-monospace, monospace); font-size: 0.72em; color: var(--subtle); }
+	.themes-ratio { font-size: 0.7em; color: var(--subtle); display: flex; flex-wrap: wrap; gap: 0.1em 0.7em; }
+	.themes-ratio b { color: var(--ink); font-weight: 700; }
+}
