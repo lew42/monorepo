@@ -45,7 +45,9 @@ const WALL = [
 		note: "One ligature font (Material Icons, not Symbols — a Symbols-only name silently renders as its literal word). One glyph system, used consistently." },
 ];
 
-const card = c => figure.c("flex v gap ctl-card").style({ margin: 0 }).append(() => {
+const card = c => figure.c("flex v gap ctl-card").style({
+	margin: 0, padding: "0.8em", border: "1px solid var(--line)", borderRadius: "0.4em", background: "var(--surface)",
+}).append(() => {
 	div.c("flex gap wrap").append(() => c.shots.forEach(f =>
 		img().attr("src", shot(f)).attr("alt", c.name).style({ maxHeight: "160px", border: "1px solid var(--line)", borderRadius: "0.3em" }))
 	);
@@ -82,7 +84,7 @@ const KEYBOARD = [
 	["Drawer close ✕", "PASS", "Tab focuses it, Enter fires close() — the rail's `.on` class clears"],
 	["Mode toggle", "PASS", "click AND Enter both flip the color-scheme (auto → light → dark)"],
 	["Tabs (a focused .tab)", "PARTIAL", "Enter DOES activate it — but outline:none, so it works with no visible focus ring"],
-	["Panel toolbar button", "FAIL", "a real <button>, tabIndex 0 — but hover-revealed and hidden by default, so Tab can never reach it"],
+	["Panel toolbar button", "FAIL", "a real button element, tabIndex 0 — but hover-revealed and hidden by default, so Tab can never reach it"],
 ];
 
 export default new Page({

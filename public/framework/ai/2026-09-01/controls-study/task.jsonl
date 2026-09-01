@@ -13,3 +13,7 @@
 {"action":{"at":"2026-09-01T06:25:19+00:00","did":"edit","files":["public/framework/ext/AITask/ai.css"]}}
 {"action":{"at":"2026-09-01T06:25:40+00:00","did":"edit","files":["public/imagine/design/controls/page.js"]}}
 {"action":{"at":"2026-09-01T06:26:06+00:00","did":"edit","files":["public/imagine/design/controls/readme.md"]}}
+{"assign": {"now": "wrote page.js + readme.md, verified at 1280 and 3440", "step": 6}}
+{"log": {"at": "2026-09-01T06:30:13+00:00", "msg": "found+fixed a bug while verifying: writing a literal '<button>' inside md() text got parsed as real HTML by marked, rendering an actual uppercase bordered button chip mid-sentence in the keyboard findings list — replaced with plain words. Ironic given the page's own thesis (button style chaos)."}}
+{"log": {"at": "2026-09-01T06:30:13+00:00", "msg": "verified public/imagine/design/controls/page.js by screenshot at 1280 (tall viewport, since fullPage screenshots undercount here — the real scroller is .page-column-body, not documentElement) and 3440 (9-card wall lays out in one row, no overflow). Referenced images == files in shots/: 9 wall shots + 4 verdict swatches + drawer resize/closed extras = 15 files in shots/, all referenced from page.js except drawer-closed.png (kept as raw evidence, not linked) — 14 of 15 referenced, logged both counts."}}
+{"assign": {"now": "landing", "step": 8}}

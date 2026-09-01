@@ -52,8 +52,8 @@ const row = m => div.c("nav-row").style({ borderBottom: "1px solid var(--line)",
 	div.c("flex gap wrap").style({ alignItems: "flex-start" }).append(() => {
 		div().style({ flex: "1 1 420px", minWidth: "300px" }).append(() => shot(m.file, m.tag));
 		div().style({ flex: "1 1 320px", minWidth: "260px" }).append(() => {
-			span.c("code").text(m.tag);
-			p.c("muted").style({ margin: "0.4em 0" }).text(m.def);
+			span.c("code", m.tag);
+			p.c("muted", m.def).style({ margin: "0.4em 0" });
 			p().style({ fontSize: "0.9em" }).append(() => { span.c("muted", "Where: "); span(m.where); });
 			p().style({ fontSize: "0.9em" }).append(() => { span.c("muted", "Used: "); span(m.used); });
 		});
@@ -61,7 +61,7 @@ const row = m => div.c("nav-row").style({ borderBottom: "1px solid var(--line)",
 });
 
 const pair = ph => div.c("nav-phone-row").style({ borderBottom: "1px solid var(--line)", paddingBlock: "1.4em" }).append(() => {
-	h3.c("code").style({ marginBlockEnd: "0.5em" }).text(ph.tag);
+	h3.c("code", ph.tag).style({ marginBlockEnd: "0.5em" });
 	div.c("flex gap wrap", () => {
 		if (ph.a) figure.c("flex v gap").style({ margin: 0, flex: "2 1 500px" }).append(() => {
 			shot(ph.a, ph.tag + " at 1280");
@@ -76,7 +76,7 @@ const pair = ph => div.c("nav-phone-row").style({ borderBottom: "1px solid var(-
 			figcaption.c("muted", "390, opened");
 		});
 	});
-	p.c("muted").style({ marginBlockStart: "0.6em" }).text(ph.note);
+	p.c("muted", ph.note).style({ marginBlockStart: "0.6em" });
 });
 
 const TRAILS = [
@@ -92,13 +92,13 @@ const TRAILS = [
 ];
 
 const trail = t => div.c("nav-trail").style({ borderBottom: "1px solid var(--line)", paddingBlock: "1.2em" }).append(() => {
-	h3().style({ marginBlockEnd: "0.3em" }).text(t.title + " — " + t.clicks + " clicks");
+	h3(t.title + " — " + t.clicks + " clicks").style({ marginBlockEnd: "0.3em" });
 	div.c("flex gap wrap v-center").style({ fontSize: "0.85em", marginBlock: "0.5em" }).append(() =>
 		t.path.forEach((seg, i) => {
 			if (i) span.c("muted", " → ");
 			span.c("code", seg);
 		}));
-	p.c("muted").text(t.carried);
+	p.c("muted", t.carried);
 });
 
 export default new Page({
