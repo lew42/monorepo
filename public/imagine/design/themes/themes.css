@@ -13,6 +13,9 @@
  *   `.themes-*`      this PAGE's chrome — the mock mini-UI, the swatch strip, the
  *                    wall. Never a theme concern.
  *
+ * ⚠ Each theme block ends by painting ITSELF (`color`/`background`/`font-family`)
+ *   rather than leaning on `body { color }` — `color` inherits as a RESOLVED value,
+ *   so a nested box that redefined only `--ink` would change nothing.
  * ⚠ The mock reads ONLY tokens. The moment a rule below needs a literal colour,
  *   the mock has found a token the theme system is missing — that is the test.
  */
@@ -41,6 +44,10 @@
 		--syn-comment: light-dark(#8a7f70, #8a7f70);
 		--syn-keyword: light-dark(#8c1c13, #e88070);
 		--syn-string:  light-dark(#3c6248, #9dc9ac);
+
+		color: var(--ink);
+		background: var(--surface);
+		font-family: var(--font);
 	}
 	.theme-press.light { color-scheme: light; }
 	.theme-press.dark  { color-scheme: dark; }
@@ -69,6 +76,10 @@
 		--syn-comment: #3f6b53;
 		--syn-keyword: #3ddc84;
 		--syn-string:  #cfe97a;
+
+		color: var(--ink);
+		background: var(--surface);
+		font-family: var(--font);
 	}
 
 	/* ══ theme: bloom ══ High-key pastel: nothing dark, everything soft, radius wide.
@@ -96,6 +107,10 @@
 		--syn-comment: light-dark(#8b81a0, #8b81a0);
 		--syn-keyword: light-dark(#6a3fab, #cbb0f5);
 		--syn-string:  light-dark(#1f6f6b, #7fd8d2);
+
+		color: var(--ink);
+		background: var(--surface);
+		font-family: var(--font);
 	}
 	.theme-bloom.light { color-scheme: light; }
 	.theme-bloom.dark  { color-scheme: dark; }
@@ -124,6 +139,10 @@
 		--syn-comment: #7a7a7a;
 		--syn-keyword: #00e5ff;
 		--syn-string:  #ffd166;
+
+		color: var(--ink);
+		background: var(--surface);
+		font-family: var(--font);
 	}
 	.theme-oled.light { color-scheme: light; }
 	.theme-oled.dark  { color-scheme: dark; }
@@ -151,6 +170,10 @@
 		--syn-comment: #7f8ac0;
 		--syn-keyword: #ff48a0;
 		--syn-string:  #ffe08a;
+
+		color: var(--ink);
+		background: var(--surface);
+		font-family: var(--font);
 	}
 	.theme-riso.light { color-scheme: light; }
 	.theme-riso.dark  { color-scheme: dark; }
@@ -204,7 +227,9 @@
 	.themes-swatches { display: flex; gap: 2px; }
 	.themes-swatch { flex: 1 1 0; height: 1.5em; border: 1px solid var(--line); border-radius: calc(var(--radius) / 3); }
 
-	/* ── A theme's own column: the token table ── */
+	/* ── A theme's own column: the token table, worn by the theme it lists ── */
+	.themes-tokens-box { padding: 0.8em 1em; background: var(--wash); color: var(--ink); border: 1px solid var(--line); border-radius: var(--radius); overflow-x: auto; }
+
 	.themes-tokens { width: 100%; border-collapse: collapse; font-size: 0.82em; }
 	.themes-tokens td { padding: 0.3em 0.5em; border-bottom: 1px solid var(--line); vertical-align: middle; }
 	.themes-tokens td:first-child { font-family: var(--mono, ui-monospace, monospace); white-space: nowrap; }
