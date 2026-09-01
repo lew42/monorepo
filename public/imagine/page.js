@@ -54,6 +54,6 @@ export default new Page({
 			},
 		},
 
-		"team", "game", "gallery", "scenes", "vary", "screens", "shells", "feeds", "mag", "blogx", "decks", "youtube", "cms", "research", "stream", "generated",
+		"team", "design", "game", "gallery", "scenes", "vary", "screens", "shells", "feeds", "mag", "blogx", "decks", "youtube", "cms", "research", "stream", "generated",
 	],
 });
