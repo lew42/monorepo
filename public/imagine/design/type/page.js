@@ -33,7 +33,7 @@ const CH_DEMO_TEXT = "Every HTML tag is a function. Call it, and the element app
 const ch_col = n => div.c("flex v gap", () => {
 	span.c("muted", `${n}ch`);
 	p(CH_DEMO_TEXT).style({ width: `${n}ch`, maxWidth: "100%", margin: "0" });
-}).style({ gap: "0.4em" });
+}).style({ gap: "0.3em", paddingBlockEnd: "1em" });
 
 const RATIOS = [
 	["h1 / h2", "3 / 2.25", "1.33×"],
@@ -90,7 +90,7 @@ export default new Page({
 		p.c("muted", () => { span("Verdict: "); span("the doc is stale on the token's live value, not wrong about the method — 40em already sits inside the comfortable band, nearer its top edge (Bringhurst's 66 is the tighter classic target) than its ceiling. If a tighter column is wanted, the next notch down is ~33–34em, not a structural rewrite.").style({fontWeight:"700"}); });
 
 		h3("What 45 / 66 / 95 characters actually look like");
-		div.c("grid auto gap", () => [45, 66, 95].forEach(n => ch_col(n))).style("--column", "18em");
+		div.c("flow", () => [45, 66, 95].forEach(n => ch_col(n)));
 
 		h2("Hierarchy — the scale as built");
 		p.c("muted", "The classic ladder uses ratios around 1.2–1.333 between adjacent levels. This site's live ratios, read off the two stylesheets:");
