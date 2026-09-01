@@ -6,3 +6,6 @@
 {"log": {"at": "2026-09-01T05:51:30+00:00", "task": "layout-study", "msg": "task opened - categorize page-layout patterns site-wide, identify failures, especially 3440 waste"}}
 {"log": {"at": "2026-09-01T05:57:40+00:00", "task": "scale-study", "msg": "landed — scale study: font-size spectrum + width-used across 25 pages/3 widths, 4 missed-opportunity pages found (13-23% of 3440 used, type never grows), live scale ladder + report at /imagine/design/scale/"}}
 {"log": {"at": "2026-09-01T06:03:00+00:00", "task": "layout-study", "msg": "landed - three real page shells (rail+content, docs three-region, columns row), clearest failures are all 3440 dead-space not breakage - /imagine/design/layout/"}}
+{"log": {"at": "2026-09-01T06:04:05+00:00", "task": "padding-study", "msg": "landed -- /imagine/design/padding/: live 0-30% ladder, comfortable band ~2-12% of a box's own width vs DesignTool's pad-share/frame-gap, 6 verified close-crop shots (1 real near-miss, 1 borderline, 3 false alarms, 2 exemplary), one proposed rule"}}
+{"log": {"at": "2026-09-01T06:05:00+00:00", "task": "color-study", "msg": "task opened — color inventory + contrast crawl for theme-browser minion"}}
+{"log": {"at": "2026-09-01T06:05:22+00:00", "task": "navigation-study", "msg": "task opened — cataloguing site navigation mechanisms at three widths, multi-level path depth"}}
