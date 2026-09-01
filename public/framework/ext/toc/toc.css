@@ -64,5 +64,6 @@
 
 	/* ⚠ `current`, not `active` - `.active` belongs to Router.mark_links(), which
 	   skips `#` hrefs and so would never clear this one. */
-	.toc-link.current { color: var(--prim); border-inline-start-color: var(--prim); }
+	/* `--prim-ink`, not `--prim`: prim is a fill, 2.2:1 as text (color study 2026-09-01). */
+	.toc-link.current { color: var(--prim-ink); border-inline-start-color: var(--prim); }
 }

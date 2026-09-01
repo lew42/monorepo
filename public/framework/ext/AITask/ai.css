@@ -184,9 +184,10 @@
 	     actual primary entry point reads as inert label text". The title IS the
 	     card — its `::after` covers the whole row — so it is the one thing here
 	     that has to look like the link it is. */
-	.ai-card-title { font-weight: 700; color: var(--prim); text-decoration: none; }
+	/* `--prim-ink`, not `--prim`: prim is a fill, 2.2:1 as text (color study 2026-09-01). */
+	.ai-card-title { font-weight: 700; color: var(--prim-ink); text-decoration: none; }
 	.ai-card-title::after { content: ""; position: absolute; inset: 0; }
-	.ai-card:hover .ai-card-title { color: var(--prim); }
+	.ai-card:hover .ai-card-title { color: var(--prim-ink); }
 
 	/* ⚠ start, not centre: the dot marks the title's FIRST LINE, and the block beside
 	   it runs to two or three. Half the line box less half the dot centres it there —
