@@ -2,3 +2,5 @@
 {"log": {"at": "2026-09-01T05:34:36+00:00", "task": "journey-crawl", "msg": "task opened — crawl whole site headless, screenshot every page, build crawl journal at /imagine/design/journey/"}}
 {"log": {"at": "2026-09-01T05:34:35+00:00", "task": "scale-study", "msg": "task opened — study font-size spectrum + space utilization across ~20 pages, find missed scale-up opportunities at 3440"}}
 {"log": {"at": "2026-09-01T05:34:12+00:00", "task": "padding-study", "msg": "task opened — padding-only study, DesignTool prior art read (pad-share, frame-gap, thresholds)"}}
+{"log": {"at": "2026-09-01T05:51:10+00:00", "task": "journey-crawl", "msg": "landed — 451 pages shot, 29 skipped, /imagine/design/journey/ built, 3.4MB total"}}
+{"log": {"at": "2026-09-01T05:51:30+00:00", "task": "layout-study", "msg": "task opened - categorize page-layout patterns site-wide, identify failures, especially 3440 waste"}}

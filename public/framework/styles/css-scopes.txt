@@ -107,6 +107,7 @@ theme-       styles/layers/theme
 blogx-       /imagine/blogx
 feeds-       /imagine/feeds
 gal-         /imagine/gallery
+journey-     /imagine/design/journey
 scene-       /imagine/scenes
 screens-     /imagine/screens
 shell        /imagine/shells (.shell is the frame; .shell-* its parts)
