@@ -42,6 +42,10 @@ const PHONE = [
 		note: "blogx's own two-level rail does NOT get a burger — it flattens into a horizontal-scrolling strip of tabs at the very top (\"FRAMEWORK | The layout generator | Column pa…\"), a second, different answer to the same narrow-width problem the site's Sidebar already solved once." },
 	{ tag: "toc-rail", a: "toc-1280.png", b: "toc-390.png",
 		note: "The right rail is simply dropped — no toggle, no relocation, the sections it indexed are just headings in the flow again." },
+	{ tag: "tabs", a: "tabs-1280.png", b: "tabs-390.png",
+		note: "The bar doesn't wrap or shrink its labels — it just runs off the right edge (DOCS and FILES are already invisible at 390, no scroll hint). Matches ext/tabs' own doc: “one strip that scrolls, never a wrapping block.”" },
+	{ tag: "preview-wall", a: "preview-wall-1280.png", b: "preview-wall-390.png",
+		note: "The filter rail (search box + count chips) stacks full-width above the cards instead of beside them, and each band drops to one card per row — the only mechanism here that degrades by simple reflow, no JS state at all." },
 ];
 
 const shot = (file, alt, w) => a().href("#").attr("tabindex", "-1").append(() =>
