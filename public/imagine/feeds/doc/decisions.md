@@ -49,6 +49,17 @@ which makes "this is live" visible on a reload; a country's population does not.
 cities are one request — Open-Meteo accepts comma-separated `latitude`/`longitude` lists —
 so the dashboard is one `fetch()`, not five.
 
+## `live/` polls only while it is being looked at (2026-08-31)
+
+The rpc:append seam `stream/`'s lab adopted (one delta over the wire instead of a
+whole-file write) does not transplant here — `live/` never writes anything, it is a
+GET against a public API. What it lacked instead was the "live" half of its own
+name: one fetch, ever. Now `activated()` starts a 60s poll plus a 1s status ticker,
+`deactivated()` clears both — a tab nobody is viewing never fetches — and a toggle
+flips one flag the poll checks, so `load()` stays the one fetch function either way.
+Proved headless: `poll()` while paused leaves `updated_at` untouched, `poll()` while
+live advances it, and navigating away calls `clearInterval` exactly twice.
+
 ## Verified headless (2026-08-29), all three widths (400 / 1920 / 3440)
 
 - **video/**: 0 iframes on load and on a talk's own page before clicking; 1 iframe with

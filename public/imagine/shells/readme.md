@@ -36,6 +36,12 @@ itself is the nav — every shell links to every other one, at real urls, cold-l
   A bar *inside* the content area under the row draws a second hairline 1px below the row's
   own — the family `columns and tabs — do not` belongs to.
 
+## Use
+
+- Every declared part hides and comes back on its own key — `[` `]` left/right rail,
+  `h` `f` head/foot — never stealing from a focused input. Hover a rail or bar for the
+  key; the hidden state is a class (`.hide-left` etc.), never a second page.
+
 ## Watch out
 
 - A shell is **not a column**. `/imagine/` is a columns host and `column_host()` returns the

@@ -46,6 +46,15 @@
 	.shell-right { grid-area: right; border-inline-start: 1px solid var(--line); }
 	.shell-main  { grid-area: main; }
 
+	/* KEYBOARD CHROME TOGGLES (Shell.js) — the hidden state lands on the SAME
+	   class that claims the grid area, so hiding a part collapses its track back
+	   to `auto`'s 0px exactly the way an undeclared part already does. No second
+	   rule for "gone" versus "never asked for". */
+	.page.shell.hide-left  .shell-left,
+	.page.shell.hide-right .shell-right,
+	.page.shell.hide-head  .shell-head,
+	.page.shell.hide-foot  .shell-foot { display: none; }
+
 	/* ── a rail ── */
 	.shell-rail {
 		display: flex; flex-direction: column;

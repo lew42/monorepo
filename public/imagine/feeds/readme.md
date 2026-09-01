@@ -22,6 +22,9 @@ option, every variation is a real page you can link to.
   `watch()` callback — the trap this whole module exists to demonstrate the fix for.
 - **`live/` fails quietly.** A blocked network shows one `.feeds-offline` note, never a
   blank column — verified headless with the request aborted.
+- **`live/` is actually live now.** A 60s poll plus a pause toggle, scoped to
+  `activated()`/`deactivated()` so a tab nobody is viewing never fetches — see
+  [`doc/decisions.md`](./doc/decisions.md).
 - Real `<button>`s (the play button, the filter chips) need `(0,3,0)` in `@layer theme` to
   beat the site theme's `.theme-lew42 :is(button, .btn)` CTA rule — same fight
   `/imagine/imagine.css` documents. See `feeds.css`.

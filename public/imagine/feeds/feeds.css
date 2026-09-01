@@ -130,7 +130,27 @@
 	.feeds-tree-detail p { margin: 0.2em 0; }
 	.feeds-tree-empty { padding: 0.7em 0.9em; font-size: 0.85em; color: var(--subtle); }
 
-	/* ════ LIVE — the weather dashboard ════════════════════════════════════════ */
+	/* ════ LIVE — the weather dashboard, now with a poll + a pause ════════════ */
+	.feeds-live-bar { padding-block: 0.2em; }
+
+	.feeds-live .feeds-live-bar .feeds-live-toggle {
+		padding: 0.25em 0.7em;
+		font-size: 0.75em; font-weight: 600;
+		letter-spacing: normal; text-transform: none;
+		color: var(--subtle);
+		background: var(--fill-a08);
+		border: 1px solid var(--line);
+		border-radius: 999px;
+	}
+
+	.feeds-live .feeds-live-bar .feeds-live-toggle.feeds-live-on {
+		color: #fff;
+		background: var(--prim);
+		border-color: var(--prim);
+	}
+
+	.feeds-live-status { font-size: 0.75em; color: var(--subtle); }
+
 	.feeds-weather-row {
 		display: flex; align-items: center; gap: 0.6em;
 		padding: 0.5em 0.2em;

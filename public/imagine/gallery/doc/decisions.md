@@ -44,6 +44,23 @@ is on that page and in the task log.
 Not in `ext/catalog`, which was the first guess: nothing there paints a card. It only
 arranges them.
 
+## The filter reads the DOM, not the data
+
+`lists/page.js`'s title filter (2026-08-31) queries `.page-preview-title` at each
+keystroke rather than keeping a copy of the titles or a `predicate()` over row objects
+(`ux/Filter` does that, for data the caller already owns as rows — a wall's cards arrive
+as foreign `Page` objects behind a promise, so there is no row array to hand it without
+building one solely to throw away). Toggling `style.display` on `.page-preview` is
+cheaper than re-running `wall()`, and the wall never sees the query at all.
+
+`getWall` is a closure, not the wall itself: the filter box has to exist (and render)
+**before** the wall so it sits above the cards, but the wall doesn't exist as a value
+yet at that point in `content()`. A `let $wall` assigned one line later, read lazily
+inside the input handler, breaks the ordering deadlock without reaching for a promise.
+
+Shown only past 8 paths — the three six-card lists (Building blocks, Navigation, The
+box) never earn the row.
+
 ## Rejected: overriding `preview()`
 
 `preview(nav)` already takes the nav as an argument, so re-addressing a card is one

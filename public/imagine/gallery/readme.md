@@ -17,6 +17,9 @@ body("/framework/core/Page/overview/prose/");                    // that page's 
 
 ## Watch out
 
+- A list past ~8 cards (`lists/page.js`: Layouts, Column shapes, Recipes) gets a title
+  filter above the wall — client-side, over the titles `wall()` already draws, nothing
+  crawled or stored. The three six-card lists skip it; there is nothing to filter yet.
 - One import is a whole subtree — 19 modules and 3 stylesheets for one page, measured.
   Open a list per column, never all six at once.
 - Never `add()` a foreign page: `move()` rewrites its url and its real address dies.

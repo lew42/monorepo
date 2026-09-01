@@ -1,4 +1,4 @@
-import { Page, md } from "/app.js";
+import { Page, md, input } from "/app.js";
 import { wall } from "../foreign.js";
 
 /**
@@ -33,6 +33,22 @@ const LAYOUTS = "mail dashboard chat feed docs landing pricing split gallery wir
 function pages(dir, names){ return names.split(" ").map(name => url(dir + "/" + name)); }
 function url(path){ return "/framework/" + path + "/"; }
 
+// A title filter over the wall below — client-side, over the titles wall() already
+// draws (no data of its own to keep in step). Cards arrive async, so this reads the
+// DOM at each keystroke rather than a copy of the titles; `getWall` is a closure, not
+// the wall itself, so the box can be built (and drawn first, above the cards) before
+// the wall it reads exists yet. Worth the row only past ~8 cards — the three small
+// lists (six paths each) never need it.
+const filter = getWall => input().ac("gal-filter").attr("type", "search").attr("placeholder", "Filter by title…")
+	.on("input", e => {
+		const needle = e.target.value.trim().toLowerCase();
+
+		getWall().el.querySelectorAll(".page-preview").forEach($card => {
+			const title = ($card.querySelector(".page-preview-title")?.textContent ?? "").toLowerCase();
+			$card.style.display = !needle || title.includes(needle) ? "" : "none";
+		});
+	});
+
 // One list page: a sentence, then the wall. `width: "large"` — up to 64em, which is four
 // tracks of cards at 1920 AND leaves the rails to its left on screen. `full` gave the
 // wall the whole row and collapsed the trail you were browsing with.
@@ -40,7 +56,10 @@ const list = (blurb, paths, column) => ({
 	width: "large",
 	content(){
 		md(blurb);
-		wall(paths).style("--column", column ?? "15em");
+
+		let $wall;
+		if (paths.length > 8) filter(() => $wall);
+		$wall = wall(paths).style("--column", column ?? "15em");
 	},
 });
 

@@ -5,6 +5,7 @@
 @layer theme {
 
 	.vary-carousel { overflow: hidden; background: var(--wash); border: 1px solid var(--line); border-radius: var(--radius); }
+	.vary-carousel:focus-visible { outline: 2px solid var(--prim); outline-offset: 2px; }
 
 	.vary-carousel-track { display: flex; transition: transform 0.3s ease; }
 	@media (prefers-reduced-motion: reduce) { .vary-carousel-track { transition: none; } }

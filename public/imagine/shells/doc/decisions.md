@@ -124,7 +124,37 @@ it is not, which is the standing "close the rail before you measure" rule.
 - **Letting the content region scroll on the columns shell.** The row then grows to its tallest
   column and pushes the footer off the screen.
 
-## 6. Open — the owner decides
+## 6. Keyboard chrome toggles, and a shadowing trap they exposed
+
+2026-08-31: every declared part hides and returns on one key (`[` `]` left/right,
+`h` `f` head/foot) — a class on `.page.shell`, never a second "collapsed" page, which is
+the new-page-per-state anti-pattern the rest of this lab argues against by construction
+(one grid, an undeclared part already 0px). `rail()`/`bar()` stamp the same key as the
+region's own `title` tooltip, off one map, so the hint and the handler can't drift apart.
+
+**The listener could not live in `activated()`.** That was the first try, mirroring
+`/imagine/game/`'s keyboard-travel round 4 exactly. It silently did nothing on
+`canvas/` — the one shell that declares its own `activated()` for the stage's
+`ResizeObserver`. `Object.assign(this, literal)` in the constructor puts that function
+directly on the **instance**, which shadows a same-named method on `Shell.prototype`
+outright; `this.activated` never sees the base version at all. `render()` is the one
+method no leaf shell redeclares, so the listener attaches there instead, once, guarded
+by the same `!this.view` check that already makes `render()` idempotent.
+
+**Scoped by `.active-page`, not by add/remove.** Nine of ten shells could have used
+`deactivated()` to tear the listener down; canvas still couldn't have paired with it
+correctly without the same shadowing fix. Simpler to never remove it: the handler
+checks `this.view.el.classList.contains("active-page")` (the class `Router.mark()`
+already writes) and returns immediately otherwise, so a shell you are not standing on
+answers nothing. Ten shells visited in a session is ten of those checks per keystroke —
+cheap enough not to be a leak worth chasing.
+
+**Measured, headless:** left rail hides and returns; canvas's four parts hide together
+and the stage's own `ResizeObserver` readout moves from `1504 x 908` to the full
+`1920 x 1000` and back — the grid arithmetic finding (§4) proven live, not asserted. A
+synthetic focused `<input>` blocks the toggle, same as `/imagine/game/`'s guard.
+
+## 7. Open — the owner decides
 
 - **Should a document in a shell keep its left edge?** It does today, so at 1920 a 40em
   document leaves ~1170px of paper to its right and at 3440 ~2660px. That is the site's
