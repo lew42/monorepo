@@ -109,6 +109,8 @@ feeds-       /imagine/feeds
 gal-         /imagine/gallery
 journey-     /imagine/design/journey
 color-       /imagine/design/color
+themes-      /imagine/design/themes
+             (plus five demo themes — theme-press/phosphor/bloom/oled/riso — scoped inside that page until promoted to styles/layers/theme)
 scene-       /imagine/scenes
 screens-     /imagine/screens
 shell        /imagine/shells (.shell is the frame; .shell-* its parts)

@@ -41,7 +41,7 @@
 		--font: "Iowan Old Style", Georgia, "Times New Roman", serif;
 		--code-bg:  light-dark(#e9e1cf, #1e1a15);
 		--code-ink: light-dark(#2a231c, #ece5d8);
-		--syn-comment: light-dark(#8a7f70, #8a7f70);
+		--syn-comment: #8a7f70;
 		--syn-keyword: light-dark(#8c1c13, #e88070);
 		--syn-string:  light-dark(#3c6248, #9dc9ac);
 
@@ -104,7 +104,7 @@
 		--font: "Nunito", "Avenir Next", system-ui, sans-serif;
 		--code-bg:  light-dark(#f2ecfa, #171320);
 		--code-ink: light-dark(#3d3149, #efe8f7);
-		--syn-comment: light-dark(#8b81a0, #8b81a0);
+		--syn-comment: #8b81a0;
 		--syn-keyword: light-dark(#6a3fab, #cbb0f5);
 		--syn-string:  light-dark(#1f6f6b, #7fd8d2);
 
@@ -188,6 +188,8 @@
 
 @layer site {
 
+	.themes-note { max-width: min(var(--measure, 40em), 100%); }
+
 	/* ── The wall: every theme at a glance, first paint ──
 	   Tiles, so 3440 gets six across and 1280 beside three rails still gets two.
 	   17em is the mock's natural size; below that the nav strip wraps. */
@@ -228,7 +230,7 @@
 	.themes-swatch { flex: 1 1 0; height: 1.5em; border: 1px solid var(--line); border-radius: calc(var(--radius) / 3); }
 
 	/* ── A theme's own column: the token table, worn by the theme it lists ── */
-	.themes-tokens-box { padding: 0.8em 1em; background: var(--wash); color: var(--ink); border: 1px solid var(--line); border-radius: var(--radius); overflow-x: auto; }
+	.themes-tokens-box { width: max-content; max-width: 100%; padding: 0.8em 1em; background: var(--wash); color: var(--ink); border: 1px solid var(--line); border-radius: var(--radius); overflow-x: auto; }
 
 	.themes-tokens { width: 100%; border-collapse: collapse; font-size: 0.82em; }
 	.themes-tokens td { padding: 0.3em 0.5em; border-bottom: 1px solid var(--line); vertical-align: middle; }

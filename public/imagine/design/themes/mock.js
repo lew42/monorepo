@@ -13,7 +13,7 @@ import { div, span, a, p, pre, button, figure } from "/app.js";
 // theme by. `--line` is the border of every chip, so it draws itself.
 export const CORE = ["--wash", "--tint", "--surface", "--ink", "--subtle", "--prim"];
 
-export function ui(){
+export function ui(name = "press"){
 	return div.c("themes-ui", () => {
 		div.c("themes-nav", () => {
 			span.c("themes-brand", "Lew42");
@@ -29,7 +29,7 @@ export function ui(){
 				span("--surface");
 				span(", one ");
 				a("link").href("#");
-				span(" in the accent.");
+				span(" underlined in the accent.");
 			});
 			p.c("themes-caption", "Caption — --subtle, the quiet rung.");
 
@@ -42,7 +42,7 @@ export function ui(){
 				span.c("themes-com", "// the seam\n");
 				span.c("themes-kw", "const ");
 				span("app = ");
-				span.c("themes-str", '"theme-press"');
+				span.c("themes-str", `"theme-${name}"`);
 			});
 		});
 	});
@@ -59,7 +59,7 @@ export function swatches(tokens = CORE){
 export function spec(name, theme, vars){
 	return figure.c("themes-spec " + theme, () => {
 		span.c("themes-spec-name", name);
-		ui();
+		ui(theme.split(/\s+/)[0].replace("theme-", "") || name);
 		swatches();
 	}).style(vars ?? {});
 }
