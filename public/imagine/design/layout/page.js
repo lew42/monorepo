@@ -89,11 +89,12 @@ const fail_card = f => figure.c("flex v gap").style({ margin: 0, gap: "0.4em" })
 	});
 });
 
+const nowrap = { whiteSpace: "nowrap", flex: "0 0 auto", fontVariantNumeric: "tabular-nums" };
 const spread_row = ([url, w1280, w3440, grades]) => div.c("flex gap wrap").style({ alignItems: "baseline", padding: "0.5em 0.6em", borderBlockEnd: "1px solid var(--line)" }).append(() => {
-	a(url).href(url).style({ flex: "1 1 16em" });
-	span.c("muted", "1280: ").style({ flex: "0 0 auto" }); span(w1280).style({ flex: "0 0 4em", fontVariantNumeric: "tabular-nums" });
-	span.c("muted", "3440: ").style({ flex: "0 0 auto" }); span(w3440).style({ flex: "0 0 4em", fontWeight: "700", fontVariantNumeric: "tabular-nums" });
-	span.c("muted", grades).style({ flex: "0 0 auto" });
+	a(url).href(url).style({ flex: "1 1 12em" });
+	span(`1280: ${w1280}`).style(nowrap).ac("muted");
+	span(`3440: ${w3440}`).style({ ...nowrap, fontWeight: "700", color: "var(--ink)" });
+	span(grades).style(nowrap).ac("muted");
 });
 
 // This page is itself a plain column under /imagine/'s columns host (nested
@@ -123,23 +124,23 @@ export default new Page({
 		prose("**Three shells, not eleven patterns.** `ext/DesignTool/library/` documents eleven live arrangements — but surveyed across 20 real pages at 390/1280/3440, only three of them are ever a whole page's own shape. The rest (tile wall aside) are CONTENT that lives inside one of the three, or exist only as a boxed mockup on a doc page. That is the proper/simple categorization: **shape** (how many regions, how they scroll) is a small, closed set; **content** (what fills a region) is the open, extensible part.");
 
 		h2("The three shells");
-		div.c("bleed", () => div.c("grid auto gap", () => SHELLS.map(shell_card)).style("--column", "20em"));
+		div.c("bleed", () => div.c("gap").style({ display: "grid", gap: "1.2em", gridTemplateColumns: "repeat(auto-fill, minmax(min(20em, 100%), 28em))" }).append(() => SHELLS.map(shell_card)));
 
 		h2("Content patterns, not shells");
 		prose("Live inside the shells above — never a page's whole shape in this sample.");
-		div.c("bleed", () => div.c("grid auto gap", () => CONTENT_PATTERNS.map(s => figure.c("flex v gap").style({ margin: 0, gap: "0.5em" }).append(() => {
+		div.c("bleed", () => div.c("gap").style({ display: "grid", gap: "1em", gridTemplateColumns: "repeat(auto-fill, minmax(min(20em, 100%), 26em))" }).append(() => CONTENT_PATTERNS.map(s => figure.c("flex v gap").style({ margin: 0, gap: "0.5em" }).append(() => {
 			shot(s.file, s.name);
 			figcaption(() => span(s.name).style({ fontWeight: "700" }));
 			p.c("muted", s.note);
-		}))).style("--column", "20em"));
+		}))));
 
 		h2("Where it fails");
 		prose("Every shot below is the LIVE page, at the width shown — click through. Two distinct failure modes, both dead-space, not overlap or clipping: a **columns-host default column** that never grows (`/imagine/*`), and a **rail-and-content ceiling** with nothing added beside it (`/michael/*`). No page in this sample overflowed, clipped, or scrolled sideways at 390, 1280 or 3440 — the site's failures here are all *waste*, not breakage.");
-		div.c("bleed", () => div.c("grid auto gap", () => FAILURES.map(fail_card)).style("--column", "22em"));
+		div.c("bleed", () => div.c("gap").style({ display: "grid", gap: "1.2em", gridTemplateColumns: "repeat(auto-fill, minmax(min(22em, 100%), 30em))" }).append(() => FAILURES.map(fail_card)));
 
 		h2("The 3440 question");
 		prose("width_used — content span ÷ viewport (`ext/DesignTool`'s own metric) — for the 9 of 20 sampled pages it could score; the other 11 are framework doc/demo pages the tool skips as \"mostly picture\" (a known tool gap, not a layout failure — doc/learned.md). Worst 3440 number first.");
-		div.c("measure start flow", () => SPREAD.slice().sort((a, b) => parseFloat(a[2]) - parseFloat(b[2])).forEach(spread_row));
+		div.c("flow").style({ maxWidth: "42em" }).append(() => SPREAD.slice().sort((a, b) => parseFloat(a[2]) - parseFloat(b[2])).forEach(spread_row));
 		prose("Read the last three rows against the first six: a page that ALREADY has a rail, an article and something else (home, blog index, a blog post's TOC) holds or gains width_used from 1280→3440. Every page that is just a rail plus one capped column loses 40–60 points of it. The metric can't be gamed by widening prose — [widescreen.md](/framework/ext/DesignTool/knowledge/widescreen/) already says a wider column trades this exact medium finding for a `measure` high.");
 
 		prose("**For the system proposal.** Three failures repeat across every bad number above, and a layout system that doesn't fail has to close all three: (1) a **columns-host column has no way to say \"grow with the row\"** — `default`/`large`/`fill` are all fixed or capped, so `/imagine/gallery/` is 13% of a 3440 screen whether the window is 1280 or 5120 wide; (2) **rail-and-content has a ceiling and no second act** — `/michael/` and its children stop at one prose measure and simply leave the rest grey, with no declared way to add the third region that `blog/Post.js` already proves works; (3) **there is no page that measures its own width_used and reacts** — every fix here is still a human noticing a screenshot, not a rule a page can opt into the way `columns` or `bleed` already are.");
