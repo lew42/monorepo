@@ -48,7 +48,7 @@
 
 		display: flex;
 		flex-wrap: wrap;
-		gap: var(--gap, 1em);
+		gap: var(--gap, var(--gap-default));
 		align-items: stretch;
 	}
 
@@ -68,7 +68,7 @@
 	.cols-row > * {
 		--cols-w: 1;
 		flex: var(--cols-w) 1 max(
-			calc((100% - var(--cols-fixed) - var(--cols-n) * var(--gap, 1em) - 1px)
+			calc((100% - var(--cols-fixed) - var(--cols-n) * var(--gap, var(--gap-default)) - 1px)
 				* var(--cols-w) / var(--cols-sum)),
 			var(--cols-stack));
 		min-width: 0;

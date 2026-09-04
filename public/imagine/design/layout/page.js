@@ -120,23 +120,27 @@ export default new Page({
 	icon: "dashboard",
 	width: "full",
 
+	children: "approved",
+
 	content(){
 		prose("**Three shells, not eleven patterns.** `ext/DesignTool/library/` documents eleven live arrangements — but surveyed across 20 real pages at 390/1280/3440, only three of them are ever a whole page's own shape. The rest (tile wall aside) are CONTENT that lives inside one of the three, or exist only as a boxed mockup on a doc page. That is the proper/simple categorization: **shape** (how many regions, how they scroll) is a small, closed set; **content** (what fills a region) is the open, extensible part.");
 
 		h2("The three shells");
-		div.c("bleed", () => div.c("gap").style({ display: "grid", gap: "1.2em", gridTemplateColumns: "repeat(auto-fill, minmax(min(20em, 100%), 28em))" }).append(() => SHELLS.map(shell_card)));
+		/* Not `bleed` (2026-09-01): these are framed cards, and bleed is for paint —
+		   the prose pad is the inset that keeps them off the edge. */
+		div.c("gap").style({ display: "grid", gap: "1.2em", gridTemplateColumns: "repeat(auto-fill, minmax(min(20em, 100%), 28em))" }).append(() => SHELLS.map(shell_card));
 
 		h2("Content patterns, not shells");
 		prose("Live inside the shells above — never a page's whole shape in this sample.");
-		div.c("bleed", () => div.c("gap").style({ display: "grid", gap: "1em", gridTemplateColumns: "repeat(auto-fill, minmax(min(20em, 100%), 26em))" }).append(() => CONTENT_PATTERNS.map(s => figure.c("flex v gap").style({ margin: 0, gap: "0.5em" }).append(() => {
+		div.c("gap").style({ display: "grid", gap: "1em", gridTemplateColumns: "repeat(auto-fill, minmax(min(20em, 100%), 26em))" }).append(() => CONTENT_PATTERNS.map(s => figure.c("flex v gap").style({ margin: 0, gap: "0.5em" }).append(() => {
 			shot(s.file, s.name);
 			figcaption(() => span(s.name).style({ fontWeight: "700" }));
 			p.c("muted", s.note);
-		}))));
+		})));
 
 		h2("Where it fails");
 		prose("Every shot below is the LIVE page, at the width shown — click through. Two distinct failure modes, both dead-space, not overlap or clipping: a **columns-host default column** that never grows (`/imagine/*`), and a **rail-and-content ceiling** with nothing added beside it (`/michael/*`). No page in this sample overflowed, clipped, or scrolled sideways at 390, 1280 or 3440 — the site's failures here are all *waste*, not breakage.");
-		div.c("bleed", () => div.c("gap").style({ display: "grid", gap: "1.2em", gridTemplateColumns: "repeat(auto-fill, minmax(min(22em, 100%), 30em))" }).append(() => FAILURES.map(fail_card)));
+		div.c("gap").style({ display: "grid", gap: "1.2em", gridTemplateColumns: "repeat(auto-fill, minmax(min(22em, 100%), 30em))" }).append(() => FAILURES.map(fail_card));
 
 		h2("The 3440 question");
 		prose("width_used — content span ÷ viewport (`ext/DesignTool`'s own metric) — for the 9 of 20 sampled pages it could score; the other 11 are framework doc/demo pages the tool skips as \"mostly picture\" (a known tool gap, not a layout failure — doc/learned.md). Worst 3440 number first.");

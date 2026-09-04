@@ -24,7 +24,6 @@ export default new Page({
 	description: "A place made of column pages — a team to run, a world to walk, and three trees of variations.",
 	icon: "auto_awesome",
 
-	width: "small",
 
 	/* One level: the rail and Start's card wall both draw MY children and stop there —
 	   a section's own columns arrive when you open it. Without this the place cost 92

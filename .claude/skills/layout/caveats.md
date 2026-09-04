@@ -15,3 +15,5 @@ One line each; the detail is where the link points.
 - **Never measure a repo while agents are editing it** — a page read 92, 87, 84 across three passes under an uncommitted diff.
 
 - 2026-08-18 (figma-spec-sheet): a page built through `demo.layout()` cannot paint its ground inline. `frame()` re-styles what `layout()` returns with `background: ""` (unless `twin:`), which wipes an inline value — and a bare `.page` is transparent, so on the demo stage's dark board every line of prose was `--ink` on near-`--ink`: present, measurable, invisible. Use the **`.surface`/`.wash` class**, which survives the re-style. Worth a line beside "a class that does not exist paints nothing".
+- Bled card walls touch the viewport edge (padding study, 2026-09-01): `bleed` is paint-only — framed boxes and text ride the padded track. Detail: /imagine/design/layout/approved/.
+- Fixed spacing reads fine at 1280 and cramped at 3440 (2026-09-01): `--pad-default`/`--gap-default` in framework.css :root are clamps now; columns pads scale by `cqi`. A hand-typed 1em pad on a wide-capable container is the smell.

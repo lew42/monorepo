@@ -31,9 +31,9 @@ page can retune one number (`--page-column-max`) instead of asking for a seventh
 
 | word | track | for |
 |---|---|---|
-| `small` | fixed 14em | rails, lists, item pickers, an index |
+| `small` | `clamp(14em, 16cqi, 24em)` — 14em until the row passes ~87em, then 16% of it | rails, lists, item pickers, an index |
 | `hug` | its content, 6–24em | a rail whose own labels decide the number |
-| *(none)* | 16em floor, 40em ceiling | the default — prose, a form, two columns of content |
+| *(none)* | 16em floor, ceiling `clamp(40em, 42cqi, 46em)` | the default — prose, a form, two columns of content |
 | `large` | 28–64em | a grid, a table, wide content |
 | `fill` | everything left over | the one page in the row that has something to spend it on |
 | `full` | the whole host | one page at a time; the ancestors collapse into the crumb strip |
@@ -174,8 +174,17 @@ visible goes **up** the tree, not across it.
 
 ## `bleed` — reaching the column's edge
 
-A column's content sits in `.page-column-prose`, inset 0.7em/0.9em, because prose in a column is
-a note rather than a page. A **wall, a grid or a picker list** wants the real edge, and the word
+A column's content sits in `.page-column-prose`, inset by the host's pad tokens —
+`clamp(0.7em, 0.8cqi, 1.6em)` / `clamp(0.9em, 1.6cqi, 3em)` since 2026-09-01, so a wide row pads
+generously and a narrow one keeps yesterday's constants; the crumb bar, every head and every item
+row read the same `--page-column-pad-x`, one indent per row. Prose text (`p`, headings, lists,
+`.md`) is also capped at `--measure` — a `full` column is not a license for a 3410px line; an
+`.md` holding a table marks itself `.ac("wide")` to stand the cap down.
+
+⚠ **`bleed` is for PAINT** (the owner, 2026-09-01): a wash or a background image may butt the
+column's edge. A framed box — a card wall, a figure, a table — or bare text never bleeds; the
+padding study's own "CLOSEST REAL MISS" caption sat 0px from the viewport edge on a bled card
+wall. A **picker list or a flush wash** wants the real edge, and the word
 for that is the one the page shell already uses:
 
 ```js
@@ -198,6 +207,11 @@ between two paragraphs keeps its rhythm; the local hatch this replaced
 away with it only because it was always alone in its column.
 
 ## Measured 2026-08-29 (headless, the live page, 900 tall / 1400 at 3440)
+
+⚠ Historical: measured before 2026-09-01, when `small` and the default ceiling became
+row-scaled clamps (the table above) and the pad tokens moved to the host as `cqi` clamps —
+at 3440 a `small` rail is now 432px, not the 252px below, and the default ceiling 46em.
+The shape of the columns (who floors, who caps, who fills) is unchanged.
 
 | viewport | row | `small` | `hug` | default | `large` | `fill` | `full` |
 |---|---|---|---|---|---|---|---|

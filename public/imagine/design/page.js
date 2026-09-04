@@ -11,7 +11,6 @@ export default new Page({
 	title: "Design",
 	description: "The design crawl — screenshots of the whole site, and one study per question: padding, scale, layout, navigation, color, type, controls, themes.",
 	icon: "palette",
-	width: "small",
 
 	initialize(){ this.columns(); },
 

@@ -88,7 +88,6 @@ export default new Page({
 	title: "Answers",
 	description: "Can you import a page from anywhere and preview it? Four questions, four demos.",
 	icon: "help",
-	width: "small",
 
 	content(){
 		md("Four questions about borrowing a page, each with the demo that settles it.");

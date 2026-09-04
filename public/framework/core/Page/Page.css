@@ -175,7 +175,18 @@
 	   ⚠ `--wash`, never `--well`: `--well` is a translucent shadow, not a palette
 	     colour, and stacking it is what banded /framework/ux/*. The bodies are
 	     transparent over this one fill; the only seams are `--line` hairlines. */
+	/* ⚠ The pad tokens live on the HOST (2026-09-01), so the crumb bar, every head,
+	     every item row and every prose block indent by the SAME number and the text
+	     shares one axis at every width. `cqi`, never `%`: a percentage resolves
+	     against each element's own containing block (prose against its column, a
+	     bleed child against the prose), so the negative-margin spend-back below
+	     would miss by the difference — `cqi` is the ROW's width everywhere, and the
+	     inversion stays exact. Floors are yesterday's constants: nothing changes
+	     under a ~910px row; at 3440 the inset reaches ~3em. A subtree still retunes
+	     with plain ems (colstyles' hook 2 does). */
 	.page.columns {
+		--page-column-pad-x: clamp(0.9em, 1.6cqi, 3em);
+		--page-column-pad-y: clamp(0.7em, 0.8cqi, 1.6em);
 		display: flex; flex-direction: column;
 		align-self: stretch; height: 100%;
 		padding: 0;
@@ -184,7 +195,7 @@
 
 	.page-columns-bar {
 		flex: 0 0 auto;
-		padding: 0.5em 0.9em;
+		padding: 0.5em var(--page-column-pad-x, 0.9em);
 		border-bottom: 1px solid var(--line);
 	}
 
@@ -241,7 +252,10 @@
 	.page.columns .page-column-body {
 		flex: var(--page-column-flex, 1 1 0);
 		min-width: var(--page-column-min, 16em);
-		max-width: var(--page-column-max, 40em);
+		/* 40em until the row passes ~110em, then up to 46em — a reading column may
+		   spend a little of a 3440 screen, and the growing pad-x keeps the text
+		   inside it at the measure. */
+		max-width: var(--page-column-max, clamp(40em, 42cqi, 46em));
 		overflow-y: auto; scrollbar-width: thin;
 		scroll-snap-align: start;
 		border-inline-end: 1px solid var(--line);
@@ -274,7 +288,10 @@
 	     instead of being hidden) and it has a floor of its own. There is no `:has()`
 	     rule for `fill` and there must not be one — collapsing the ancestors is the
 	     whole of what makes `full` a different word. */
-	.page-column-small { --page-column-flex: 0 0 14em; --page-column-min: 14em; --page-column-max: 14em; }
+	/* `small` scales with its row (2026-09-01): 14em until ~87em of row, 16% of the
+	   row after, capped at 24em — a 252px rail was right at 1280 and a sliver at
+	   3440. One token so the three properties cannot disagree. */
+	.page-column-small { --page-column-w: clamp(14em, 16cqi, 24em); --page-column-flex: 0 0 var(--page-column-w); --page-column-min: var(--page-column-w); --page-column-max: var(--page-column-w); }
 	.page-column-hug   { --page-column-flex: 0 0 auto; --page-column-min: 6em;  --page-column-max: 24em; }
 	.page-column-large { --page-column-min: 28em; --page-column-max: 64em; }
 	.page-column-fill  { --page-column-flex: 1 1 100%; --page-column-min: 16em; --page-column-max: none; }
@@ -331,7 +348,7 @@
 	.page-column-head {
 		position: sticky; top: 0; z-index: 1;
 		display: flex; align-items: center; gap: 0.4em;
-		padding: 0.55em 0.9em;
+		padding: 0.55em var(--page-column-pad-x, 0.9em);
 		background: var(--wash);
 		border-bottom: 1px solid var(--line);
 	}
@@ -357,14 +374,26 @@
 	   ⚠ The inset is TOKENS so `.bleed` below can spend exactly it back. Hand-typed,
 	     the two numbers got copied into a lab as `margin: -0.7em -0.9em`
 	     (`overview/columns/examples/grids/grids.css`) — a constant no other page
-	     could reuse and nothing kept in step with this line. */
+	     could reuse and nothing kept in step with this line.
+	   ⚠ The tokens themselves are declared on `.page.columns` (top of this block),
+	     so the head, the item rows and the crumb bar indent by the same number. */
 	.page-column-prose {
-		--page-column-pad-x: 0.9em;
-		--page-column-pad-y: 0.7em;
-		padding: var(--page-column-pad-y) var(--page-column-pad-x);
+		padding: var(--page-column-pad-y, 0.7em) var(--page-column-pad-x, 0.9em);
 		font-size: 0.9em; --flow: 0.8em;
 	}
 	.page-column-prose > .md > :first-child { margin-block-start: 0; }
+
+	/* A paragraph is never wider than the measure, whatever the column word says —
+	   a `full` study column at 3440 rendered its intro 3410px wide (2026-09-01).
+	   Blocks that are ARRANGEMENTS (a grid, a flex row, a wall, a bled band) are
+	   not in the list: a wall may take the column, text may not.
+	   ⚠ `.wide` is the opt-out, same word as the page shell: an `.md` holding a
+	     TABLE compresses its columns into the measure (`max-width: 100%` in the
+	     base layer squeezes, it does not overflow) — say `.c("wide")` on that one
+	     call and the cap stands down. */
+	.page-column-prose > :is(p, h1, h2, h3, h4, h5, h6, ul, ol, blockquote, .flow, .md):not(.wide, .bleed) {
+		max-width: var(--measure, 40em);
+	}
 
 	/* ── `bleed`, one scope down — content reaches the COLUMN's edge ──
 	   The same word the page shell uses (`.page > .bleed`, above): there it spends
@@ -390,7 +419,7 @@
 	   can put `.tab` on these anchors. */
 	.page-column-item {
 		display: flex; align-items: center; gap: 0.4em;
-		padding: 0.35em 0.9em;
+		padding: 0.35em var(--page-column-pad-x, 0.9em);
 		font-size: 0.9em;
 		color: var(--subtle);
 		text-decoration: none;
@@ -540,7 +569,7 @@
 	.wall, .page-previews:where(:not(.page)) {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(min(var(--column, 18em), 100%), 1fr));
-		gap: var(--gap, 1em);
+		gap: var(--gap, var(--gap-default));
 		align-items: start;
 	}
 	.wall > *, .page-previews > * { margin: 0; }

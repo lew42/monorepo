@@ -129,9 +129,10 @@ const PILOT = [
 
 // This page is a plain column under /imagine/'s columns host (a nested `columns()`
 // is inert — core/Page/doc/columns.md), so its content sits in `.page-column-prose`
-// with no page grid: `wide` is meaningless here and only `bleed` reaches the real
-// edge. Every prose block is capped by hand; every grid is bled. Practising the
-// floors this page preaches, inside today's shell.
+// with no page grid. Every prose block is capped by hand. Nothing here is `bleed`
+// any more (2026-09-01, the owner): bleed is for PAINT — framed cards and text
+// against the viewport edge was this page's own x:0 failure, and the column's
+// scaling pad (clamp 0.9em → 3em by row width) is the inset that fixes it.
 const prose = text => div.c("measure start flow").append(() => md(text));
 
 /* ⚠ `auto-fit`, not the house `auto-fill` — and the exemption is the one
@@ -194,9 +195,9 @@ export default new Page({
 		h2("The system");
 		prose("A page declares what it **holds**. The room goes to tracks, then regions, then scale. Four floors make the cramped side impossible. Read left to right.");
 
-		div.c("bleed").append(() => div().style(wall("22em", "1.2em", "44em")).append(() => PARTS.map(part_card)));
+		div().append(() => div().style(wall("22em", "1.2em", "44em")).append(() => PARTS.map(part_card)));
 
-		div.c("bleed").style({ marginBlock: "1.4em" }).append(() =>
+		div().style({ marginBlock: "1.4em" }).append(() =>
 			div().style(wall("30em", "1.2em", "52em")).append(() => {
 				div.c("flow").append(() => md(SKETCH_PAGE));
 				div.c("flow").append(() => md(SKETCH_CSS));
@@ -204,7 +205,7 @@ export default new Page({
 
 		// Two bounded reading columns, not one — `widescreen.md`'s "more tracks" applied
 		// to prose, which is the only move this page's own shell allows it.
-		div.c("bleed").style({ marginBlockStart: "1.2em" }).append(() => div().style({
+		div().style({ marginBlockStart: "1.2em" }).append(() => div().style({
 			display: "grid", gap: "1.6em", alignItems: "start",
 			gridTemplateColumns: "repeat(auto-fit, minmax(min(30em, 100%), 44em))",
 		}).append(() => {
@@ -216,17 +217,17 @@ export default new Page({
 		h2("Why layouts still break");
 		prose("Six flaws in how the feedback is made, worst first. The through-line: **feedback fixes symptoms; a declared target makes most feedback unnecessary.** Ten of the eleven bands measure something a page never said it wanted.");
 
-		div.c("bleed").append(() => div().style(wall("24em", "1.1em")).append(() => FLAWS.map(flaw_card)));
+		div().append(() => div().style(wall("24em", "1.1em")).append(() => FLAWS.map(flaw_card)));
 
 		prose("**Where the bands should move.** Six of the eleven — `pad-share`, `gap-share`, `scale`, `measure`, `slivers`, `width-used` — become *consequences* of the four tokens above rather than measurements of a page. A page that used `--pad`, `--gap`, `--column` and `--measure` cannot fail them, so there is nothing to grade; only a page that **overrode** a token gets measured. The remaining five (`frame-gap`, `lanes`, `repetition`, `depth`, `contrast`) keep doing the job they were built for — ranking two clean layouts for the generator's search — and stop being the site's report card.");
 
 		h2("The evidence");
-		div.c("bleed").append(() => div.c("flow").append(() => md(EVIDENCE)));
+		div().append(() => div.c("flow").append(() => md(EVIDENCE)));
 
 		h2("The pilot");
 		prose("Three smallest real changes that would prove the system on one page each. Sized in hours; independently useful; none of them touches a shared class.");
 
-		div.c("bleed").append(() => div().style(wall("22em", "1.1em", "44em")).append(() => PILOT.map(pilot_card)));
+		div().append(() => div().style(wall("22em", "1.1em", "44em")).append(() => PILOT.map(pilot_card)));
 
 		prose("**What I would cut first:** the eleven-band weighted score as the site's grade. It is a ranker wearing a report card's clothes, it has been anti-correlated with how pages look once already (Pearson −0.39, `doc/learned.md`), and every hour spent retuning a band is an hour not spent writing the number the page should have declared.");
 	},

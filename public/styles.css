@@ -69,7 +69,7 @@
 	/* ⚠ The token, not `2em` (2026-08-17): a two-line snippet under 2em of padding
 	     reads as an empty dark void with some text in a corner — vision-after #7,
 	     new at 1280. `--pad` is the size everything else on this site is padded by. */
-	.code-block { padding: var(--pad, 1em); }
+	.code-block { padding: var(--pad, var(--pad-default, 1em)); }
 
 	/* ---- a topic: its own nav beside its own region ----
 	   A topic page overrides render(), so its `.page` element IS the row — there is no

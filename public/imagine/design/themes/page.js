@@ -101,7 +101,6 @@ export default new Page({
 	title: "Themes",
 	description: "Six themes on one mock UI, a generator that makes six more from four numbers, and the seam that makes both possible.",
 	icon: "palette",
-	width: "small",
 
 	content(){
 		md("A rail of themes. Open one for both modes and every token it declares.");

@@ -15,7 +15,6 @@ export default new Page({
 	title: "YouTube",
 	description: "Five labs on the IFrame Player API — a control panel, a course, and three ways a timeline can drive the UI.",
 	icon: "smart_display",
-	width: "small",
 
 	content(){
 		md("Five labs on the **IFrame Player API**. Press play on any of them — nothing here touches Google until you do.");

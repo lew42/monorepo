@@ -35,7 +35,6 @@ const chain = (parts, i = 0) => {
 
 const post = new Page({
 	title: lead.title,
-	width: "small",
 	initialize(){ this.columns(); },
 
 	content(){

@@ -64,21 +64,28 @@ export default new Page({
 	icon: "crop_free",
 	width: "full",
 
+	children: "one-rule",
+
 	content(){
 		md("**The owner's hypothesis:** padding as a % of a box's own width — 1% is almost always too little, 30% is almost always too much, unless the box is a large section (at which point it's not really padding any more). Measured here: 27 urls × 390/1280/3440, 4891 boxes that actually draw a border/shadow/background around text (raw data: [padding-study task dir](/framework/ai/2026-09-01/padding-study/)).");
 
 		h2("The ladder");
 		p.c("muted", `A ${CARD_W}px card, six padding steps as a % of its own width. Same content at every rung.`);
-		div.c("bleed", () => div.c("flex gap wrap", () => LADDER.forEach(pct => rung(pct))));
+		/* Not `bleed`: these are CARDS — their own bg and border — and bleed is for
+		   paint. A bled wall put the leftmost card 0px from the viewport edge. */
+		div.c("flex gap wrap", () => LADDER.forEach(pct => rung(pct)));
 
 		h2("The comfortable band");
+		/* `.wide`: a table in the measure squeezes its columns; the cap stands down. */
 		md("| what | comfortable range | source |\n|---|---|---|\n" +
-			BAND_ROWS.map(([a_, b_, c_]) => `| ${a_} | ${b_} | ${c_} |`).join("\n"));
+			BAND_ROWS.map(([a_, b_, c_]) => `| ${a_} | ${b_} | ${c_} |`).join("\n")).ac("wide");
 		md("Two ways of reading the ladder above agree: **the comfortable stretch is roughly 2%–12% of a box's own width**, with the low end held up by an em floor (nothing under ~0.4em survives contact with real text) and the high end held down by an em ceiling (`min(3.5% of width, 3.5em)` — past a few hundred pixels wide, 3.5em is already generous, so the % keeps climbing while the comfortable feeling does not).");
 
 		h2("Where it fails");
 		p.c("muted", "Chasing 0-padding boxes across the crawl turned up fewer real misses than expected — most resolve one level down. The honest set: one real near-miss, one borderline, and the false alarms worth naming so the next crawl doesn't repeat them.");
-		div.c("bleed", () => div.c("grid auto gap", () => SHOTS.forEach(s => shot(s))).style("--column", "22em"));
+		/* Same rule as the ladder: framed figures never bleed — "CLOSEST REAL MISS"
+		   sat 0px from the viewport edge when this wall did (2026-09-01). */
+		div.c("grid auto gap", () => SHOTS.forEach(s => shot(s))).style("--column", "22em");
 
 		h2("The rule");
 		md("**Padding on a real content box should land between about 0.5em and `min(6% of its own width, 3em)`** — a flat em floor so nothing touches, a shrinking ceiling so a small chip and a 3440 band don't get judged by the same percentage. Below ~150px wide, read padding in `em`, not `%` — the percentage number stops meaning anything on a box that narrow. Above roughly 30% of a box's own width, it has stopped being padding and become a *section* — the owner's own exception, and the one this crawl never saw crossed by an actual card.");

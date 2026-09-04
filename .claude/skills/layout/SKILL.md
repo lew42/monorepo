@@ -51,6 +51,26 @@ box you drew it in — the one-line check: is the demo box wider than the token 
 2026-08-19: a `--measure` card built two 470px panes, the 40em cap never bit (the routed page
 was 545px, not the 965px assumed), both states were identical and the card taught nothing.
 
+## Spacing and bleed — the 3440 rules (the owner, 2026-09-01)
+
+- **Spacing is a clamp, never a constant.** With no override, `.pad`/`.gap` read
+  `--pad-default: clamp(1em, 1.3%, 2em)` / `--gap-default: clamp(1em, 0.4em + 0.5vw, 1.6em)`
+  (framework.css `:root`), and the columns host scales `--page-column-pad-x/y` with its row
+  (`cqi` — bar, heads, items and prose share one indent, 0.9em → 3em). A hand-typed `1em`
+  on a container that can be wide is the smell; the flat-em era is what made every audit
+  find 3440 cramped.
+- **`bleed` is for PAINT.** A background image or wash may butt its container. A framed
+  box — a card, a figure, a table — or bare text NEVER bleeds: "CLOSEST REAL MISS" sat
+  0px from the viewport edge on a bled card wall, on the padding study page itself
+  (2026-09-01). Cards ride the padded track (`wide` in a page grid, plain flow in column
+  prose — its pad now scales); `previews()`/`walls()` pay the gutter back for exactly this.
+- **Column prose has a measure.** `.page-column-prose` caps p/headings/lists/`.md` at
+  `--measure` — a `full` study column rendered its intro 3410px wide. An `.md` holding a
+  TABLE compresses instead of overflowing: mark that one call `.ac("wide")`.
+- **The approved set is closed.** Five layouts, named, with the contract that locks them:
+  [/imagine/design/layout/approved/](/imagine/design/layout/approved/). A new page picks
+  one by name; a sixth is a proposal for the owner, never a commit.
+
 ## The two bounds rules
 
 - **Every track needs a floor and a ceiling.** `1fr` alone keeps its content minimum and
@@ -68,7 +88,9 @@ both in one box, never `flow` inside a card.
 
 Close the dev rail and stop editing before you measure — open, it displaced `.app` 272px
 and manufactured the top finding on 12 of 24 page-widths. Four widths: **400, 1280, 1920,
-3440** — 1280 is where an unbounded reading track fails alone. Headless Playwright or
+3440** — 1280 is where an unbounded reading track fails alone. At each width, three
+invariants before anything else: **no text or framed box at x:0** (a viewport edge is
+paint-only), **no prose past the measure**, **no constant where a spacing clamp exists**. Headless Playwright or
 `ext/DesignTool`: `analyze()` = what is broken, `rate()` = how good, `frame(url, 3440)` =
 any page at any width. Read the finding, fix the cause one rung up (a missing
 `min-width: 0`, an unbounded track, prose in `main`). Then back to question 1.

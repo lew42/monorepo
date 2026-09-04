@@ -111,7 +111,7 @@ export default new Page({
 
 		md("```css\n.ui-compact {\n\t--density: 0.5;\n\t--pad: calc(1em * var(--density));\n\t--gap: calc(1em * var(--density));\n\t--pad-cell:    calc(0.25em * var(--density)) calc(0.75em * var(--density));\n\t--pad-control: calc(0.25em * var(--density)) calc(0.6em * var(--density));\n}\n```");
 
-		md("`.pad` is `padding: var(--pad, 1em)` and `.gap` is `gap: var(--gap, 1em)` — they always were. A word declares the token; **inheritance** carries it down. That is why a word has no specificity to win, composes with every other word, and works the same on `<html>`, on `.app` or on one card.");
+		md("`.pad` is `padding: var(--pad, var(--pad-default))` and `.gap` is `gap: var(--gap, var(--gap-default))` — the fallbacks became `:root` clamps on 2026-09-01 (`clamp(1em, 1.3%, 2em)` / `clamp(1em, 0.4em + 0.5vw, 1.6em)`), so an unworded box scales with its space; a word still declares the token and **inheritance** carries it down. That is why a word has no specificity to win, composes with every other word, and works the same on `<html>`, on `.app` or on one card.");
 
 		md("**Every line keeps its own default ratio, so `--density: 1` lands back on the framework's own numbers** — measured, the worded panel is 876.30px tall at `1`, against the default panel's 876.30px, with every spot equal. Drag the slider to the right end and the two halves become the same picture.");
 

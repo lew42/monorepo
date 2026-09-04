@@ -41,7 +41,6 @@ export default new Page({
 	title: "Video",
 	description: "Five classic talks — a picker rail, and a poster that only becomes an iframe once you click it.",
 	icon: "smart_display",
-	width: "small",
 
 	content(){
 		md("Pick a talk. Nothing to its right loads a Google iframe until you press play — the poster is one `<img>` from `i.ytimg.com`.");

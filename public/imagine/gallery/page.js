@@ -17,7 +17,6 @@ export default new Page({
 	title: "Gallery",
 	description: "Browsable lists of all the things — every card a page borrowed from somewhere else.",
 	icon: "grid_view",
-	width: "small",
 
 	initialize(){ this.columns(); },
 

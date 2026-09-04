@@ -68,7 +68,6 @@ export default new Page({
 	title: "Lists",
 	description: "Curated lists of every building block, shape and layout the site has.",
 	icon: "list",
-	width: "small",
 
 	/* ⚠ NOT `classes: "default"`. It is tempting — the gallery opens on its own rail
 	   otherwise — but a default column that is also NAVIGATED TO hides itself: Page.css's

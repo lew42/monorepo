@@ -16,7 +16,7 @@
 	     it is being compared against (measured 2026-08-30). A basis pair does not care.
 	   ⚠ Both `min-width: 0` — a long unbroken headline would otherwise floor the live
 	     pane at its own content and push the rail off the row. */
-	.stream-panes { display: flex; flex-wrap: wrap; gap: var(--gap, 1em); }
+	.stream-panes { display: flex; flex-wrap: wrap; gap: var(--gap, var(--gap-default, 1em)); }
 	.stream-panes > .stream-editor { flex: 0 1 16em; min-width: 0; }
 	.stream-panes > .stream-live { flex: 1 1 20em; min-width: 0; }
 

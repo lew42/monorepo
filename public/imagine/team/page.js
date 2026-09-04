@@ -219,7 +219,6 @@ export default new Page({
 	description: "A roster, a person, their assignments and a board that follows the selection — four columns, one ref, no imports between them.",
 	icon: "groups",
 
-	width: "small",
 	classes: "imagine-team",
 
 	// The one word that makes this page findable from anywhere below it.

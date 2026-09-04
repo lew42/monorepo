@@ -81,6 +81,21 @@
            and `--wash` painted it as dark as the floor two levels below. */
         --tint:    light-dark(rgba(0,0,0,0.035), rgba(255,255,255,0.04));
 
+        /* ---- spacing defaults: a clamp, never a constant (2026-09-01) ------
+           A flat `1em` was right at 1280 and cramped at 3440 — the owner's rule:
+           gaps and padding scale with the space they sit in, floored and capped.
+           These are the FALLBACKS `var(--pad, …)` / `var(--gap, …)` read; a
+           subtree still retunes with one declaration and wins as before.
+           ⚠ `--pad-default` is a %, so it resolves against the padded box's
+             CONTAINING BLOCK — content-aware (a card in a track stays at the
+             floor while a full-width band grows). The floor is calibrated so
+             nothing changes at ≤1280: 1.3% of 1280 IS 1em.
+           ⚠ `--gap-default` is vw, NEVER % — percentage row-gap resolves against
+             the box's own block size, which is indefinite in every auto-height
+             stack, and browsers disagree on what that means. */
+        --pad-default: clamp(1em, 1.3%, 2em);
+        --gap-default: clamp(1em, 0.4em + 0.5vw, 1.6em);
+
         /* ---- the alpha ladder: FLOORS ARE OPAQUE, FILLS ARE ALPHA ----------
            The tokens above name a FLOOR — a box paints one and the thing under it
            stops mattering. These name a FILL — a button, a chip, a hover, an active
@@ -451,8 +466,8 @@
 
     /* `--pad`, the same move `.gap`/`--gap` makes below: the class is the request,
        the token is the size. */
-    .pad { padding: var(--pad, 1em); }
-    .all-pad > * { padding: var(--pad, 1em); }
+    .pad { padding: var(--pad, var(--pad-default)); }
+    .all-pad > * { padding: var(--pad, var(--pad-default)); }
     .mb { margin-bottom: 1em; }
 
     /* Base sizes every select 100% — form fields align. A CHROME select (a toolbar
@@ -513,7 +528,7 @@
     .cols {
         --cols-n: 2; --cols-sum: 2; --cols-fixed: 0px; --cols-floor: 34rem;
         --cols-stack: calc((var(--cols-floor) - 100%) * 999);
-        display: flex; flex-wrap: wrap; gap: var(--gap, 1em);
+        display: flex; flex-wrap: wrap; gap: var(--gap, var(--gap-default));
         align-items: var(--cols-align, stretch);
     }
     /* basis = this track's share of (the row, less fixed tracks and one gap per
@@ -525,7 +540,7 @@
     .cols > * {
         --cols-w: 1;
         flex: var(--cols-w) 1 max(
-            calc((100% - var(--cols-fixed) - var(--cols-n) * var(--gap, 1em) - 1px)
+            calc((100% - var(--cols-fixed) - var(--cols-n) * var(--gap, var(--gap-default)) - 1px)
                 * var(--cols-w) / var(--cols-sum)),
             var(--cols-stack));
         min-width: 0;
@@ -590,8 +605,8 @@
        ⚠ It flows TOP-TO-BOTTOM within each column, so item 2 sits BELOW item 1 and
          the whole sequence reshuffles every time the column count changes. Right
          for a wall nobody reads in order; wrong for anything ranked or alphabetical. */
-    .masonry { columns: var(--column); gap: var(--gap, 1em); }
-    .masonry > * { break-inside: avoid; margin-block-end: var(--gap, 1em); }
+    .masonry { columns: var(--column); gap: var(--gap, var(--gap-default)); }
+    .masonry > * { break-inside: avoid; margin-block-end: var(--gap, var(--gap-default)); }
 
     /* `.packed` — the same wall keeping left-to-right DOM order, bought with a
        measuring pass. The row unit is small so a measured height rounds to a span
@@ -606,7 +621,7 @@
     .packed {
         display: grid;
         grid-auto-rows: 4px;
-        gap: 0 var(--gap, 1em);
+        gap: 0 var(--gap, var(--gap-default));
         grid-template-columns: repeat(auto-fill, minmax(min(var(--column), 100%), 1fr));
     }
     .packed > * { grid-row-end: span 40; align-self: start; }
@@ -616,7 +631,7 @@
        `.basis` reads `--basis`, so `div.c("flex gap").style("--gap", ".4em")` is the
        whole adjustment. `.flow` is not a substitute — that is page rhythm, and
        `--flow-sub` put a card's eyebrow 32px from its own title. */
-    .gap { gap: var(--gap, 1em); }
+    .gap { gap: var(--gap, var(--gap-default)); }
     .gap-2em { gap: 2em; }
 
     /* A ladder rather than `.zoom` + `--zoom`, which is the shape `.pad`, `.gap`

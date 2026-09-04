@@ -26,7 +26,7 @@ export default new Page({
 					width: "small",
 					content(){ md("The six width words, one column each. Drag any seam between two columns to override the word for this visit; double-click it to put the word back."); },
 					children: {
-						Small(){ md('`width: "small"` — a fixed 14em rail. Lists, pickers, an index.'); },
+						Small(){ md('`width: "small"` — a rail: 14em, growing with the row to 24em at 3440. Lists, pickers, an index.'); },
 						Hug: { width: "hug", content(){ md('`width: "hug"` — only what the content needs. A paragraph has no natural width, so hug gives prose a 24em note; a list of rows is what it is for — **Notes**, in the first column, is one.'); } },
 						Default(){ md("No word at all. The column flexes between a floor and 40em, so two of them fill a wide screen instead of leaving it empty."); },
 						Large: { width: "large", content(){ md('`width: "large"` — up to 64em, for a grid or a table.'); } },
