@@ -1,0 +1,11 @@
+{
+	"title": "Later",
+	"icon": "description",
+	"description": "A page you made.",
+	"mode": {
+		"style": "tint",
+		"content": "xs",
+		"mech": "expand"
+	},
+	"children": []
+}

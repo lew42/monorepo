@@ -1,6 +1,7 @@
 import { Page, div, h2, p, span, button, md } from "/app.js";
 import { issue } from "../issue.js";
 import { Article } from "../Article.js";
+import { baseline } from "/imagine/paging/baseline.js";
 
 /* THE CONTENTS — the index column, and the only list in the magazine.
 
@@ -38,6 +39,16 @@ export default new Page({
 	})),
 
 	content(){
+		/* Already compliant before the rule was written — the count line below says how
+		   much is remembered and offers the Reset. This adds the one thing it did not
+		   say: WHERE. No button of its own, because there is already one.
+		   /imagine/paging/doc/persistence.md. */
+		baseline(this, {
+			saved: () => this.read.size
+				? "**Saved in this browser.** Which articles you have read is kept under this page's own address, and the Reset below forgets it."
+				: null,
+		});
+
 		div.c("mag-head", () => {
 			div.c("mag-eyebrow", `Issue ${issue.number} · ${issue.date}`);
 			h2.c("mag-masthead", issue.title);

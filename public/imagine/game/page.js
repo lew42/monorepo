@@ -1,4 +1,5 @@
 import { Page, div, span, a, button, input, md, icon } from "/app.js";
+import { baseline } from "/imagine/paging/baseline.js";
 
 /* Container: /imagine/'s column row — there is no page grid here, so `wide` means
    nothing and only `bleed` reaches an edge. Size: `small` 14em rails — the run, the
@@ -322,6 +323,20 @@ export default new Page({
 	column(host){
 		return div.c("page-column-body page-column-small", () => {
 			div.c("page-column-head", () => span.c("page-column-title", this.title));
+
+			/* ⚠ SAY THAT THE RUN IS SAVED, and offer the way back. A save file is the
+			   point of this page, not a defect — so the mark is GREEN ("kept on
+			   purpose"), not the amber "modified" a demo gets. Before this the only
+			   way to start over was a button on the finale screen you might never
+			   reach. /imagine/paging/doc/persistence.md is the rule. */
+			baseline(this, {
+				what: "this run",
+				restorable: true,
+				restore: () => this.reset(),
+				saved: () => this.store().read()
+					? "**Saved.** Where you have been, what you are carrying and your journal are kept in this browser — closing the tab loses nothing."
+					: null,
+			});
 
 			this.hud();
 			this.rail();

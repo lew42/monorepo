@@ -1,0 +1,63 @@
+/* Ported from Codrops' "Grid Item Hover Effect" (MIT licence, LICENSE file read on
+   github.com/codrops/GridItemHoverEffect) — https://tympanus.net/codrops/2023/09/13/grid-item-hover-effect/
+   Card by Codrops, based on a design by Alena Orlova. Corner clip-path technique credited
+   there to css-generators.com/custom-corners (Temani Afif). Rebuilt in plain CSS: the
+   original's GSAP + Splitting.js direction-aware hover (three JS classes, card2/card3) is
+   dropped for one CSS-only `:hover` transition — see codrops/page.js's table. */
+@layer site {
+	.codrops-card {
+		aspect-ratio: 1;
+		position: relative;
+		overflow: hidden;
+		border-radius: 0.5em;
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		grid-template-rows: repeat(2, 1fr);
+		grid-template-areas: "a b" "c d";
+		gap: 0.5em;
+		padding: 0.5em;
+		cursor: pointer;
+		--cut: 14px;
+	}
+
+	.codrops-card-img {
+		position: absolute;
+		inset: 0;
+		background: var(--codrops-card-bg);
+		transition: transform 0.5s cubic-bezier(0.2, 1, 0.3, 1);
+	}
+
+	.codrops-card:hover .codrops-card-img { transform: scale3d(1.12, 1.12, 1); }
+
+	.codrops-card-box {
+		position: relative;
+		opacity: 0;
+		color: #fff;
+		padding: 0.6em;
+		display: flex;
+		flex-direction: column;
+		background: rgb(0 0 0 / 0.25);
+		backdrop-filter: blur(3px);
+		transform: translate3d(0, 6px, 0);
+		transition: opacity 0.3s, transform 0.3s;
+	}
+
+	.codrops-card:hover .codrops-card-box { opacity: 1; transform: translate3d(0, 0, 0); }
+
+	.codrops-card-box--a { grid-area: a; clip-path: polygon(0 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% 100%, 0 100%); }
+	.codrops-card-box--b { grid-area: b; align-items: flex-end; text-align: right; clip-path: polygon(0 0, 100% 0, 100% 100%, var(--cut) 100%, 0 calc(100% - var(--cut))); }
+	.codrops-card-box--c { grid-area: c; clip-path: polygon(0 0, 100% 0, 100% 100%, var(--cut) 100%, 0 calc(100% - var(--cut))); }
+	.codrops-card-box--d { grid-area: d; align-items: flex-end; text-align: right; clip-path: polygon(0 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% 100%, 0 100%); }
+
+	.codrops-card-num { font-size: 1.6em; line-height: 1; opacity: 0.8; }
+	.codrops-card-tags { font-size: 0.7em; margin-top: auto; }
+	.codrops-card-name { font-weight: 600; margin-top: auto; }
+	.codrops-card-cat { font-size: 0.8em; opacity: 0.8; margin-top: auto; }
+
+	/* the owner's verdict, `/framework/core/new/1/site/motion/reduced/`: the fade stays,
+	   the movement goes. */
+	@media (prefers-reduced-motion: reduce) {
+		.codrops-card-img, .codrops-card:hover .codrops-card-img { transition: none; transform: none; }
+		.codrops-card-box { transform: none; }
+	}
+}

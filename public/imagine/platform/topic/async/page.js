@@ -1,4 +1,5 @@
 import { Page, div, span, button, md } from "/app.js";
+import { baseline } from "/imagine/paging/baseline.js";
 
 /* Container: a COLUMN in /imagine/'s columns host, four levels up — no page grid, no `wide`.
    Size: `small`, the same rail its parent uses, because it does the same job. Own layout:
@@ -46,6 +47,10 @@ export default new Page({
 	reset(){ this.log.length = 0; this.store().clear(); this.bump(); },
 
 	content(){
+		// The same mark its parent topic wears, for the same reason: this run is
+		// remembered, and a reader has to be able to see that and undo it.
+		baseline(this, { what: "this run", restore: () => this.reset() });
+
 		div.c("flex v gap", $state => this.watch(() => $state.empty(() => {
 			span(this.log.length + " of " + LESSONS.length + " walked");
 			if (this.log.length) button("Erase").click(() => this.reset());

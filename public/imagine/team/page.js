@@ -1,5 +1,6 @@
 import { Page, div, span, a, md, button, icon } from "/app.js";
 import Draggable from "/framework/ext/Draggable/Draggable.js";
+import { baseline } from "/imagine/paging/baseline.js";
 
 /* Container: /imagine/'s column row — this page is a column, not a screen. Size: a
    `small` 14em roster, the person on the default track, the board `large` (28–64em);
@@ -154,6 +155,18 @@ const board = () => ({
 		// you could drag, or that the roster on the left filters it. One line, said
 		// once, above everything else.
 		md("**A kanban board for this team.** Drag a task between the four lanes below, or pick a person on the left to see just their work.");
+
+		/* ⚠ THE BOARD REMEMBERS YOU, and until 2026-09-05 it did so with nothing on
+		     screen saying so and NO WAY BACK — every lane you dragged was permanent.
+		     Green, not amber: a board you are keeping is what this page is for.
+		     The rule: /imagine/paging/doc/persistence.md. */
+		baseline(topic, {
+			what: "your lanes, density and sort",
+			restorable: true,
+			saved: () => topic.store().read()
+				? "**Saved.** Your lane changes, row density and sort are kept in this browser — nobody else sees them."
+				: null,
+		});
 
 		/* ⚠ The density class is toggled INSIDE the watcher. Set once at build time it
 		   would be right on the first paint and never again — `empty()` replaces the

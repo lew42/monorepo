@@ -346,3 +346,166 @@ now. This is exactly the shadowing trap the `code` skill names (`text`, `toggle`
 148 page-widths — the hub and every page in the realm at 400 / 1280 / 1920 / 3440 — **zero**
 console errors, **zero** horizontal document overflow, and no Material Icons name that rendered
 as its own word. Every page carries a `.paging-lede`.
+
+---
+
+# The stage, and swap that is not tabs (`paging-mechanisms-v2`, 2026-09-05)
+
+The owner's report, in his words: *"the paging swap method — it's basically just tabs, but we
+should then just call it tabs? can you make other non-tab-like visual swapping? make sure the
+stage they're swapping on is visually evident … the current underline tabs don't really
+illustrate their tab content area, it's transparent … there's no visual boundary between
+them."* And on the mechanisms: *"the launch demo only goes 1 level deep, and it's contained in
+that demo area … clicking Launch changed the url to ./launch/, and expand does not … i don't
+think we have to route expandos. i think we're ok to route takeovers."*
+
+## ⚠ THE DESIGN RULE OF THIS REALM — the stage is always visible
+
+> **A click changes what is inside a rectangle you could already see; the rectangle stays.**
+
+Say it before the click, not after: a reader must be able to point at the box that is about to
+change. That is the whole of why tabs feel easy and why the old swap demo did not — a
+transparent area with no edges gives the eye nothing to hold, so every click becomes *"what
+went where, and why?"* The owner's general form of it: **any click that triggers a massive
+shift is more for the brain to process**; a subtle shift, or a clearly bounded area that swaps
+its contents, is much easier.
+
+Where it is written down in code:
+
+| where | what it does |
+|---|---|
+| `paging.css`, `.paging-box:has(.paging-items-swap) .paging-shown` | any page whose mechanism is `swap` frames what its box holds — a surface, a 1px edge, an 8em floor |
+| `paging.js`, `shown()` | wraps what the box holds in `.paging-shown`, so there is something to frame; `holds()` is the old body |
+| `paging.css`, `.paging-swapper-stage` | the four-visual stage on `mechanisms/swap/` — the same frame, with a **fixed height** |
+
+⚠ **The generic stage takes a `min-height`; the swap page's stage takes a `height`.** They are
+different promises. The generic box also holds the content ladder (`xs` → `xl`), and a fixed
+height would clip the `xl` wall — so it is framed and floored, and the caption underneath
+reports the pixels it actually became. The four-visual stage *claims* its rectangle never
+moves, and four visuals have to be measured against one rectangle, so there it is fixed and a
+long panel scrolls inside it. A claim you can measure is worth one scrollbar.
+
+On `card` the stage steps **down** to `--tint` rather than up to `--surface`: the box is
+already white, and a white rectangle on a white card has no edge.
+
+## Tabs that show their panel — four classes, and why they are ours
+
+`ext/tabs`' default strip is a label, a hairline under the set and a 2px mark under the
+selected one. Its panel has no edges at all, so a tab does not visibly open onto anything.
+`.tabs.block` gets halfway — folder tabs — but still leaves the panel unpainted.
+
+The fix here is four classes in `paging.css`: `.paging-tabs` `.paging-tab-bar` `.paging-tab`
+`.paging-tab-panel`. The selected tab wears the panel's surface, its own left/right/top edges,
+and **a bottom edge painted in the panel's colour instead of in the rule** — that one missing
+line is the whole of "these two are one box". The strip's remaining bottom borders (plus an
+`::after` that carries the rule past the last tab) ARE the panel's top edge, so the panel
+declares `border-top: none`.
+
+⚠ **Own classes, not `ext/tabs`'.** `.tabs.block > .tab-bar > .tab.active` is (0,4,0) inside
+`@layer theme`, and `paging.css` is in the same layer — joining a panel to it would mean
+out-specifying another module's sheet from ours, and every future edit there would silently
+land here. The site-wide version is written as a proposal, with the diff, in
+[the task log](/framework/ai/2026-09-05/paging-mechanisms-v2/); nothing in `ext/` was touched.
+
+Used in three places, so the shape is one thing: the hub's swap miniature, the `tabs` visual on
+`mechanisms/swap/`, and a made page whose children are tabs.
+
+## Swap is a mechanism; tabs is one way to draw it
+
+`mechanisms/swap/` now carries one stage and four visuals — **tabs · card-in · cross-fade ·
+flip** — with a caption that names the panel that arrived and measures the stage before and
+after. So the answer to *"should we just call it tabs?"* is on the page rather than in a doc:
+tabs is the picker most people know; the mechanism is *the stage stays, the content changes*.
+
+- **tabs** and **cross-fade** move nothing — the quiet ones.
+- **card-in** carries a direction, worth its 220ms when the panels are a sequence.
+- **flip** says *the other side of the same thing*, loudly enough to be wrong for anything you
+  switch often.
+
+Motion is 180–240ms and `prefers-reduced-motion` cuts every one to 1ms. ⚠ The outgoing panel is
+removed on a **timer, not on `animationend`** — with the animation reduced to 1ms the event may
+never be observed, and a panel that never left would cover the new one forever.
+
+## Honest routing, said in each page's first sentence
+
+The owner's ask was that the mechanisms be shown on the site's real machinery rather than
+inside a demo frame, and that the url story be told rather than discovered. So:
+
+| page | what a click does | url |
+|---|---|---|
+| [`mechanisms/launch/`](/imagine/paging/mechanisms/launch/) | opens a real child column — **three levels are prepared** | **changes**, every level |
+| [`mechanisms/expand/`](/imagine/paging/mechanisms/expand/) | grows a panel under the row, in place | **never changes** |
+| [`mechanisms/swap/`](/imagine/paging/mechanisms/swap/) | changes what is inside the bounded stage | **never changes** |
+| [`mechanisms/takeover/`](/imagine/paging/mechanisms/takeover/) | fills the row; every ancestor becomes a crumb | **changes** (arriving IS the takeover) |
+
+Every one of those four pages says that in its takeaway, before the reader clicks anything. The
+verdict the owner gave stands: **expandos are not routed, takeovers are.**
+
+## ⚠ "The real X, at full size" promised something three of the four do not do
+
+The hub's four miniatures each carried the same link text. Only `takeover` is full size; the
+other three open as an ordinary column of the row. The link now says what its page does, per
+mechanism (`says` in `demos.js`), and each sentence is the landing page's own first words.
+
+Everything else on the hub was crawled the same day: 31 distinct links, every one lands where
+its sentence says. Two findings that are **not** this realm's:
+
+- `/imagine/paging/readme/` logs a `404` for `readme/page.js` before falling back to the
+  markdown. **Every** `readme/` route on the site does — `/framework/ext/tabs/readme/`,
+  `/imagine/mag/readme/` — so it is core's probe order, and a proposal rather than a fix here.
+- `/framework/core/Page/generator/` lands with its `default` child open beside it, which is
+  core's arrangement working, not a wrong link.
+
+`/imagine/paging/doc/` itself had no `page.js` and 404'd, so every record beside it was reachable
+only by a direct `.md` url. It is a page now — `route()`-based rather than declared, because
+four markdown records as declared children would be four 404s in the console of every page in
+the realm (the blog's `doc/` learned that first).
+
+## Tabs on a page you made — a tab is a child page
+
+The owner: *"what's the ux for adding tabs to a page? what's the ux for configuring tabs?"*
+
+**A tab is not a new kind of thing.** It is a child page drawn as a tab instead of as a column,
+so there is nothing new to create, name or delete. One word on the PARENT decides which
+presentation its children get, and it lives in the parent's own `page.json` beside the three it
+already had:
+
+```json
+"mode": { "style": "card", "content": "m", "mech": "launch", "kids": "tabs" }
+```
+
+| you want to | you do |
+|---|---|
+| make a page use tabs | click its fourth word until it says `tabs` |
+| add a tab | `+ tab` on its row — the same button says `+ page` on a `columns` page |
+| rename a tab | the pencil on the tab's row: in place, Enter to keep, Escape to drop |
+| reorder the tabs | the up/down arrows on the tab's row; tabs appear in the order the parent lists its children |
+| remove a tab | the `x` — a tab is a page, so this deletes the page |
+
+⚠ **A rename changes the title, never the directory.** `made/notes/page.json` stays where it is
+whatever the page is called, so a url somebody saved keeps working. The trade is that the
+address and the title can drift apart; the file is the page and the url is its address, and
+moving files under a reader is the worse of the two.
+
+⚠ **Tabs do not route.** A tab strip is `swap`, so the panel changes and the address bar does
+not — you cannot link to a tab or reach one with the Back button. Every panel therefore carries
+a link that opens the same child as a column, which does. If a child deserves an address, leave
+the parent on `columns`.
+
+The controls are `make/tabs.js`; they own no storage and never write a file — each one builds a
+new tree and hands it to `Make.apply()`, the one write seam
+([persistence](/imagine/paging/doc/persistence/)).
+
+## Checked
+
+Headless, 2026-09-05, against a private server:
+
+- The four visuals driven at 1920: the stage read `[1428, 792, 446, 174]` before and after every
+  swap in `tabs` and `cross-fade` — identical x, y, w and h — and the caption named the panel
+  that arrived each time. `flip` turned (`.paging-flipped` present) on the same rectangle.
+- `launch` clicked three levels deep: the url changed at every level, and a column opened each time.
+- `expand` clicked: the url unchanged, the row taller.
+- Make: the `kids` chip cycled `columns` → `tabs` and `"kids": "tabs"` appeared in
+  `made/notes/page.json` on disk; `+ tab` added a page; the down arrow reordered
+  `["Today", "Later", "New tab"]` → `["Later", "Today", "New tab"]` in the file's `children`.
+- Zero console errors on the hub and all four mechanism pages at 400 / 1280 / 1920 / 3440.

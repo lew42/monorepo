@@ -1,0 +1,36 @@
+@layer site {
+	.codrops-demo-card {
+		display: flex;
+		flex-direction: column;
+		border-radius: 0.5em;
+		overflow: hidden;
+		background: var(--bg-alt, rgb(0 0 0 / 0.03));
+	}
+
+	.codrops-demo-still {
+		display: block;
+		width: 100%;
+		height: 11em;
+		object-fit: cover;
+		background: linear-gradient(155deg, #333, #111);
+	}
+
+	.codrops-demo-body {
+		padding: 0.85em 1em 1em;
+		display: flex;
+		flex-direction: column;
+		gap: 0.35em;
+	}
+
+	.codrops-demo-title { font-weight: 600; }
+
+	.codrops-demo-original {
+		font-size: 0.85em;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25em;
+		width: fit-content;
+	}
+
+	.codrops-demo-original .material-icons { font-size: 1em; }
+}

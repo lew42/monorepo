@@ -19,7 +19,7 @@ export default new Paging({
 	axes: "mech style",
 	mode: { mech: "takeover", style: "dark" },
 
-	takeaway: "**Takeover: a click fills the whole screen, and every page behind it collapses into the crumb strip above.** Nothing was closed — click a crumb and the row comes straight back, exactly as you left it.",
+	takeaway: "**Arriving here WAS the takeover, and it changed the url — that is the point: a takeover is a place.** This page filled the whole screen and every page behind it collapsed into the crumb strip along the top; click any row below and the same thing happens one level deeper, with the address bar following each time. Nothing was closed — click a crumb, or the *exit fullscreen* chip on the toolbar, and the row comes straight back exactly as you left it.",
 
 	children: [
 		leaf("The crumb strip is the way back", "It is derived from the page's own chain, so it cannot be wrong or stale."),

@@ -109,10 +109,16 @@ theme-       styles/layers/theme
 
 # imagine
 blogx-       /imagine/blogx
+codrops-     /imagine/codrops
 feeds-       /imagine/feeds
 gal-         /imagine/gallery
 journey-     /imagine/design/journey
+layouts-     /imagine/layouts (the numbered system: the 3-column card, the frame, the chips)
+             ⚠ NOT `layout-`, which is ext/layout above. One letter apart on purpose:
+             this realm's classes are all `.layouts-*` and none is ever `.layout-*`.
 paging-      /imagine/paging (the styles, the mode toolbar, the mechanism items)
+templates-   /imagine/paging/templates (the miniature frame and the type axis)
+baseline-    /imagine/paging/baseline.js (the "this page remembers you" mark — used by every realm that persists)
 color-       /imagine/design/color
 themes-      /imagine/design/themes
              (plus five demo themes — theme-press/phosphor/bloom/oled/riso — scoped inside that page until promoted to styles/layers/theme)
@@ -121,6 +127,7 @@ screens-     /imagine/screens
 shell        /imagine/shells (.shell is the frame; .shell-* its parts)
 vary-        /imagine/vary
 yt-          /imagine/youtube
+rfront-      /imagine/research (the front's own 3-column topic card; research- above is ext/Research's)
 
 # ai task pages
 vision-      ai/2026-08-17/vision-browse

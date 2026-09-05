@@ -19,27 +19,32 @@ import { press } from "./paging.js";
 /* ── SWAP, as TABS ─────────────────────────────────────────────────────────────
    The most familiar switcher there is, and it is exactly `swap`: click a tab and
    the panel's content changes while the panel itself does not move a pixel.
-   Built from `ext/tabs`' own four classes (`.tabs .tab-bar .tab .tab-panel`), so
-   the strip is the site's real tab bar — but with a click handler instead of a
-   url, because a hub teaching a gesture must not navigate away from itself. */
+
+   ⚠ THE PANEL HAS EDGES. The site's default tab strip (`ext/tabs`) draws a label,
+     a hairline and a 2px mark, and leaves the panel transparent — so there is no
+     boundary between a tab and the thing it opens, and a reader cannot point at the
+     rectangle that is about to change (the owner, 2026-09-05). The four classes
+     below are this realm's folder-tab set: the selected tab and the panel share one
+     surface with no line between them. paging.css has the rule and the proposal for
+     doing it site-wide. */
 const TABS = [
-	["Overview", "Click the other two tabs. Watch the top edge of this panel: it does not move."],
+	["Overview", "Click the other two tabs. Watch the white box: its edges do not move."],
 	["Pricing",  "Same box, same place, same size — different content. That is the whole of `swap`."],
-	["Contact",  "You have used this a hundred times. `ext/tabs` is swap, with a url on each tab."],
+	["Contact",  "You have used this a hundred times. A tab strip is one way to draw a swap; there are three more at the page below."],
 ];
 
 export function swap_demo(){
-	return div.c("tabs paging-tabsdemo", () => {
-		const $bar = div.c("tab-bar");
-		const $panel = div.c("tab-panel");
+	return div.c("paging-tabs paging-tabsdemo", () => {
+		const $bar = div.c("paging-tab-bar");
+		const $panel = div.c("paging-tab-panel");
 
 		const show = i => {
-			$bar.el.querySelectorAll(".tab").forEach(($tab, n) => $tab.classList.toggle("active", n === i));
+			$bar.el.querySelectorAll(".paging-tab").forEach(($tab, n) => $tab.classList.toggle("on", n === i));
 			$panel.empty(() => { p(TABS[i][1]); });
 		};
 
 		$bar.append(() => TABS.forEach(([label], i) =>
-			press(span.c("tab").ac(!i && "active").append(() => span(label)), () => show(i))));
+			press(span.c("paging-tab", label).ac(!i && "on"), () => show(i))));
 
 		$panel.append(() => { p(TABS[0][1]); });
 	});
@@ -149,31 +154,42 @@ export function takeover_demo(){
 }
 
 /* The hub draws these four in order, each under its own takeaway sentence and above
-   a link to the page where the real mechanism lives. */
+   a link to the page where the real mechanism lives.
+
+   ⚠ `says` IS THE LINK TEXT, and it is per-mechanism on purpose. It used to read
+     "The real X, at full size" for all four, which promised something three of them
+     do not do: `swap`, `launch` and `expand` open as an ordinary column of the row,
+     and only `takeover` is full size. The owner caught it on the swap link
+     (2026-09-05). A link now says what its page actually does, in the page's own
+     first words. */
 export const DEMOS = [
 	{
 		word: "swap",
 		takeaway: "Click a tab and the panel's content changes. The box itself does not move — that is swap, and you already use it every day.",
 		draw: swap_demo,
 		real: "/imagine/paging/mechanisms/swap/",
+		says: "The real swap — four visuals on one stage →",
 	},
 	{
 		word: "launch",
 		takeaway: "Click a row and a new pane opens to the RIGHT. The page you clicked from stays exactly where it was.",
 		draw: launch_demo,
 		real: "/imagine/paging/mechanisms/launch/",
+		says: "The real launch — real columns, three deep →",
 	},
 	{
 		word: "expand",
 		takeaway: "Click a row and it grows downward, in place. Nothing opens anywhere else and everything below simply slides down.",
 		draw: expand_demo,
 		real: "/imagine/paging/mechanisms/expand/",
+		says: "The real expand — a page that never changes the url →",
 	},
 	{
 		word: "takeover",
 		takeaway: "Click the maximise icon and one pane fills the whole frame. The others are not closed — they become the crumb strip above it.",
 		draw: takeover_demo,
 		real: "/imagine/paging/mechanisms/takeover/",
+		says: "The real takeover — it fills the whole row →",
 	},
 ];
 

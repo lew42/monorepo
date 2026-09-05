@@ -1,0 +1,78 @@
+/* Ported from Codrops' "CSS Line Hover Styles for Links" (MIT licence, LICENSE file read
+   on github.com/codrops/LineHoverStyles) — a CSS-only demo, no JS in the original either.
+   Six of its fifteen styles, kept (renamed from mythological names to what each one does —
+   `scale`/`swap`/`grow`/`double`/`sweep`/`pill` — for a reader who has never seen the
+   original); the nine SVG-stroke ones are dropped, noted on codrops/page.js's table. */
+@layer site {
+	.codrops-link {
+		position: relative;
+		display: inline-block;
+		font-weight: 600;
+		text-decoration: none;
+		color: var(--codrops-link-color, inherit);
+	}
+
+	.codrops-link::before, .codrops-link::after {
+		content: "";
+		position: absolute;
+		left: 0;
+		width: 100%;
+		height: 1px;
+		background: currentColor;
+		pointer-events: none;
+	}
+
+	/* scale — underline grows in from the left, shrinks out to the right */
+	.codrops-link--scale::before {
+		top: 100%;
+		transform-origin: 100% 50%;
+		transform: scale3d(0, 1, 1);
+		transition: transform 0.3s;
+	}
+	.codrops-link--scale:hover::before { transform-origin: 0% 50%; transform: scale3d(1, 1, 1); }
+
+	/* swap — the label slides out while an identical copy slides in behind it */
+	.codrops-link--swap { overflow: hidden; line-height: 1.6; }
+	.codrops-link--swap::before { top: calc(100% - 4px); transform-origin: 100% 50%; transform: scale3d(0, 1, 1); transition: transform 0.3s; }
+	.codrops-link--swap:hover::before { transform-origin: 0% 50%; transform: scale3d(1, 1, 1); }
+	.codrops-link--swap::after { content: attr(data-text); top: 0; height: 100%; background: none; transform: translate3d(120%, 0, 0); transition: transform 0.3s; }
+	.codrops-link--swap:hover::after { transform: translate3d(0, 0, 0); }
+	.codrops-link--swap span { display: inline-block; transition: transform 0.3s; }
+	.codrops-link--swap:hover span { transform: translate3d(-120%, 0, 0); }
+
+	/* grow — the underline sweeps in and the label scales up slightly */
+	.codrops-link--grow { text-transform: uppercase; letter-spacing: 0.04em; }
+	.codrops-link--grow::before { top: 100%; height: 2px; transform-origin: 100% 50%; transform: scale3d(0, 1, 1); transition: transform 0.3s; }
+	.codrops-link--grow:hover::before { transform-origin: 0% 50%; transform: scale3d(1, 1, 1); }
+	.codrops-link--grow span { display: inline-block; transition: transform 0.3s; }
+	.codrops-link--grow:hover span { transform: scale3d(1.1, 1.1, 1); }
+
+	/* double — two hairlines fade up into place, one after the other */
+	.codrops-link--double::before, .codrops-link--double::after { opacity: 0; transform: translate3d(0, 3px, 0); transition: transform 0.3s, opacity 0.3s; }
+	.codrops-link--double:hover::before, .codrops-link--double:hover::after { opacity: 1; transform: translate3d(0, 0, 0); }
+	.codrops-link--double::after { top: calc(100% + 4px); width: 70%; left: 15%; }
+	.codrops-link--double:hover::after { transition-delay: 0.08s; }
+
+	/* sweep — the underline wipes down from the baseline, then back up */
+	.codrops-link--sweep::before { top: 100%; height: 8px; opacity: 0; }
+	.codrops-link--sweep:hover::before { opacity: 1; animation: codrops-link-sweep 0.35s ease forwards; }
+	@keyframes codrops-link-sweep {
+		0% { transform-origin: 50% 100%; transform: scale3d(1, 0.05, 1); }
+		50% { transform-origin: 50% 100%; transform: scale3d(1, 1, 1); }
+		51% { transform-origin: 50% 0%; transform: scale3d(1, 1, 1); }
+		100% { transform-origin: 50% 0%; transform: scale3d(1, 0.05, 1); }
+	}
+
+	/* pill — a rounded bar flattens under the label as it lifts */
+	.codrops-link--pill::before { top: 100%; height: 7px; border-radius: 1em; transition: transform 0.35s, opacity 0.2s; }
+	.codrops-link--pill:hover::before { transform: scale3d(1.15, 0.15, 1); }
+	.codrops-link--pill span { display: inline-block; transform: translate3d(0, -4px, 0); transition: transform 0.35s; }
+	.codrops-link--pill:hover span { transform: translate3d(0, 0, 0); }
+
+	@media (prefers-reduced-motion: reduce) {
+		.codrops-link, .codrops-link *, .codrops-link::before, .codrops-link::after {
+			transition: none !important;
+			animation: none !important;
+		}
+	}
+}

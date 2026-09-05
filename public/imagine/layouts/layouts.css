@@ -1,0 +1,421 @@
+/* /imagine/layouts/ — the numbered layout system.
+
+   WHAT THIS SHEET IS FOR. Two shapes and one control strip, and nothing else:
+
+     the CARD    three columns — intro, the live layout, the readouts. Every entry in
+                 the catalogue is drawn with it, so one shape holds eighteen layouts.
+     the FRAME   the box the live layout sits in: one of five surfaces, one of three
+                 padding steps, and one of six navigation types drawn around it.
+     the CHIPS   a clickable span, never a <button> — the site theme styles every
+                 button as an uppercase CTA at (0,2,0) and wins whatever a component
+                 says (styles docs, 2026-08-19; paging.css reached the same answer).
+
+   WHAT IT IS NOT. It does not define a single layout. Every arrangement in the
+   catalogue is inline declarations on `.layouts-layout`, written from the entry's own
+   `rules` object — the same object the readout column prints. Code and result cannot
+   disagree because there is only one of them. `styles/layouts/` owns the real words;
+   this realm is their index.
+
+   COLOUR AND SPACING ARE BORROWED, NEVER INVENTED — `--surface --wash --tint --line
+   --prim --bg --fill-a08 --pad-default --gap-default --radius --measure --mono`. There
+   is not one hex value and not one constant length in this file. */
+
+@layer theme {
+
+	/* ── THE CARD ──────────────────────────────────────────────────────────────
+	   Three tracks: a narrow intro, a wide stage, a narrow readout column — the
+	   owner's own shape ("small title + intro and maybe some controls" / "a card
+	   itself, a demo, responsive viewport" / "readouts, metrics, feedback, config").
+
+	   ⚠ The mechanism is `styles/layouts/cols/`'s, borrowed rather than imported: a
+	     PERCENTAGE basis (so the ratio is arithmetic and exact at 400 and 3440
+	     alike) plus a stack term that wraps every track onto its own line below a
+	     floor. Importing `cols.css` would have brought that lab's own presentation
+	     classes onto every page here for three declarations.
+	   ⚠ The floor is `rem`, never `em`. `em` is the body's viewport clamp (14px at
+	     400 → 18px at 3440), so an `em` floor stacks at a different PIXEL width on a
+	     phone than on a monitor. `rem` is the root size — 16px everywhere. */
+	.layouts-card {
+		/* 52rem, the same floor `styles/layouts/cols/`'s three-track word carries —
+		   this IS a three-track row, so it stacks where a three-track row stacks. Under
+		   it the three columns become three bands, which is the only honest thing a
+		   card can do at 610px; the full-screen page (~1050px at 1280) is where the
+		   three columns come back. */
+		--layouts-floor: 52rem;
+		--layouts-stack: calc((var(--layouts-floor) - 100%) * 999);
+
+		display: flex;
+		flex-wrap: wrap;
+		align-items: start;
+		gap: var(--gap, var(--gap-default));
+	}
+
+	.layouts-card > * { min-width: 0; }
+
+	.layouts-intro { flex: 0 1 max(clamp(12em, 18%, 20em), var(--layouts-stack)); }
+	.layouts-stage { flex: 1 1 max(56%, var(--layouts-stack)); }
+	.layouts-reads { flex: 0 1 max(clamp(12em, 23%, 23em), var(--layouts-stack)); }
+
+	/* One card per entry, stacked down the page with a rule between them — the
+	   owner's "as you scroll from one to the next, you could see the relation". The
+	   separator is what makes the relation legible: same three columns, same sample
+	   content, one line of difference. */
+	.layouts-cards { display: flex; flex-direction: column; }
+	.layouts-cards > * { padding-block: var(--gap, var(--gap-default)); }
+	.layouts-cards > * + * { border-top: 1px solid var(--line); }
+
+	/* ── the intro column ── */
+	.layouts-eyebrow {
+		font-family: var(--mono); font-size: 0.72em; font-weight: 700;
+		letter-spacing: 0.04em; color: var(--prim-ink);
+	}
+
+	.layouts-name { font-size: 1.05em; font-weight: 700; line-height: 1.2; margin: 0.15em 0 0.4em; }
+	.layouts-blurb { font-size: 0.88em; line-height: 1.5; margin: 0 0 0.6em; }
+	.layouts-when { font-size: 0.82em; line-height: 1.5; color: var(--subtle); }
+
+	/* ── the chips ── */
+	.layouts-chips { display: flex; flex-direction: column; gap: 0.45em; margin-block: 0.7em; }
+
+	.layouts-group { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25em; }
+
+	.layouts-axis {
+		flex: 0 0 100%;
+		font-family: var(--mono); font-size: 0.68em; font-weight: 700;
+		text-transform: uppercase; letter-spacing: 0.05em; color: var(--subtle);
+	}
+
+	.layouts-chip {
+		display: inline-flex; align-items: center; gap: 0.2em;
+		padding: 0.14em 0.5em;
+		border: 1px solid var(--line); border-radius: var(--radius);
+		background: var(--fill-a04);
+		font-size: 0.76em; line-height: 1.5; white-space: nowrap;
+		cursor: pointer; user-select: none;
+
+		/* A chip that is a real <a href> — the full-screen link, the word a layout
+		   compiles to — must look like the chips beside it, not like body copy. The
+		   underline is the UA's, which `framework.css` deliberately never resets. */
+		color: inherit; text-decoration: none;
+	}
+
+	.layouts-chip:hover { border-color: var(--prim); color: var(--prim-ink); }
+	.layouts-chip:focus-visible { outline: 2px solid var(--prim); outline-offset: 1px; }
+	.layouts-chip.on { background: var(--fill-a16); border-color: var(--prim); font-weight: 700; }
+	.layouts-chip .icon { font-size: 1.05em; }
+
+	/* The MODIFIED mark. Night rule 4: a demo that remembers anything says so and
+	   offers the way back. Nothing here is written to storage or to the url — the
+	   marks are per visit — but a reader three chips deep still deserves to be told
+	   they are no longer looking at the base example. */
+	.layouts-mark {
+		display: inline-flex; align-items: center; gap: 0.25em;
+		font-size: 0.74em; color: var(--prim-ink);
+	}
+
+	/* ── THE FRAME — the box the live layout sits in ───────────────────────────
+	   Surface, padding and navigation are three independent classes on this one
+	   box, which is what makes "every chip changes only what it names" true by
+	   construction rather than by care. */
+	/* ⚠ EVERY surface carries the same 1px border, transparent where it does not
+	     show. Without it, `card` (which has a hairline) made the box 2px narrower
+	     than the other four, so pressing the SURFACE chip moved the measured track
+	     widths — a chip that changed something it does not name (measured 2026-09-05:
+	     259px on card, 260px on dark). The border-box is now identical across all
+	     five and only the paint changes. */
+	.layouts-frame {
+		padding: var(--pad, var(--pad-default));
+		border: 1px solid transparent;
+		border-radius: var(--radius);
+		display: flex; flex-direction: column;
+		gap: var(--gap, var(--gap-default));
+	}
+
+	/* THE FIVE SURFACES — paging's vocabulary (plain card tint prim dark), said in
+	   this realm's own words so a page here loads one stylesheet rather than two.
+	   Tokens only; the ONE hardcoded thing is `color-scheme: dark` on the dark
+	   island, which is what makes `--ink`, `--line` and every `--fill-*` rung flip
+	   inside it (framework.css: an always-dark island that does not declare it gets
+	   a black fill on a dark floor). */
+	.layouts-plain { background: transparent; }
+	.layouts-tint  { background: var(--tint); }
+	.layouts-prim  { background: color-mix(in srgb, var(--prim) 10%, var(--surface)); }
+
+	.layouts-card-surface {
+		background: var(--surface);
+		border-color: var(--line);
+		box-shadow: 0 1px 2px var(--shade-a08);
+	}
+
+	.layouts-dark {
+		color-scheme: dark;
+		background: var(--bg);
+		color: var(--ink);
+	}
+
+	/* THE THREE PADDING STEPS. Multiples of the two spacing clamps, never a
+	   constant — so 400 and 3440 are the same declaration and `tight` at 3440 is
+	   still bigger than `airy` at 400. */
+	.layouts-tight { --pad: calc(var(--pad-default) * 0.5); --gap: calc(var(--gap-default) * 0.5); }
+	.layouts-airy  { --pad: calc(var(--pad-default) * 2);   --gap: calc(var(--gap-default) * 2); }
+
+	/* ── THE LIVE LAYOUT ───────────────────────────────────────────────────────
+	   Every declaration that makes an arrangement arrives inline from the entry's
+	   `rules` object. This class supplies only the two things every one of them
+	   needs and none of them should have to say. */
+	.layouts-layout {
+		gap: var(--gap, var(--gap-default));
+		min-width: 0;
+	}
+
+	.layouts-box {
+		display: flex; flex-direction: column; justify-content: center;
+		gap: 0.2em;
+		min-width: 0;
+		padding: var(--pad, var(--pad-default));
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		background: var(--fill-a08);
+		font-size: 0.85em;
+	}
+
+	.layouts-box-label { font-weight: 700; line-height: 1.3; }
+	.layouts-box-note { font-size: 0.85em; color: var(--subtle); line-height: 1.4; }
+
+	/* A BOX HOLDING BOXES IS NOT A `.layouts-box`. It paints nothing of its own —
+	   otherwise a 2x2 reads as a frame inside a frame inside a frame — and, more
+	   importantly, it must not inherit `.layouts-box`'s own flex centring.
+	   ⚠ `grid-template-columns`, and this is the whole bug it fixes: a nest declares
+	     `grid-template-rows` and NOTHING about columns, so grid made one implicit
+	     column at `auto` — the max-content of the word inside it — and `.layouts-box`'s
+	     `justify-content: center` then centred that 40px strip in a 375px track. The
+	     four panels of `4.quad` were four ribbons (measured 2026-09-05, 1280). An entry
+	     that wants real columns declares them inline and wins. */
+	.layouts-nest {
+		min-width: 0;
+		padding: 0.4em;
+		border: 1px dashed var(--line);
+		border-radius: var(--radius);
+		grid-template-columns: minmax(0, 1fr);
+		gap: var(--gap, var(--gap-default));
+	}
+
+	/* SCROLL SECTIONS. A scrollport is a DECISION here, not a side effect: the
+	   whole point of the entry is a column that scrolls while its neighbours stay,
+	   so it is given a height on purpose and says so in its own caption. */
+	.layouts-sections { overflow-y: auto; scroll-snap-type: y proximity; }
+	.layouts-sections > * { scroll-snap-align: start; }
+
+	/* ── THE NAVIGATION TYPES — six, drawn around the layout ───────────────────
+	   Not imported: a miniature of each, so the reader sees how much of the room a
+	   navigation costs the layout under it. Each one names the real module it
+	   stands for in the readout column. */
+	.layouts-navrow { display: flex; gap: var(--gap, var(--gap-default)); min-width: 0; }
+
+	/* ⚠ `flex: 1 1 0`, never `1 1 auto`. Every layout in the catalogue sizes its
+	     tracks as a PERCENTAGE of this box, and a percentage against an `auto` basis
+	     is circular — the browser falls back to the content size, each track takes
+	     its max-content, and the layout silently overflows its own frame (measured
+	     2026-09-05: two 259px tracks became two 443px tracks inside a 570px frame the
+	     moment a rail appeared beside them). A zero basis makes the width come from
+	     the flex line, which is definite, so the percentages resolve against a real
+	     number. */
+	.layouts-navrow > .layouts-layout { flex: 1 1 0; min-width: 0; }
+
+	.layouts-rail {
+		flex: 0 0 clamp(4em, 14%, 9em);
+		display: flex; flex-direction: column; gap: 0.3em;
+		padding: 0.4em;
+		border: 1px solid var(--line); border-radius: var(--radius);
+		background: var(--fill-a04);
+		font-size: 0.78em;
+	}
+
+	.layouts-crumbline {
+		display: flex; align-items: center; gap: 0.25em;
+		font-size: 0.78em; color: var(--subtle);
+		padding-bottom: 0.3em;
+		border-bottom: 1px solid var(--line);
+	}
+
+	.layouts-tabs { display: flex; gap: 0.25em; border-bottom: 1px solid var(--line); }
+
+	.layouts-tab {
+		padding: 0.25em 0.7em;
+		border: 1px solid var(--line); border-bottom: none;
+		border-radius: var(--radius) var(--radius) 0 0;
+		background: var(--fill-a04);
+		font-size: 0.78em;
+	}
+
+	/* The active tab joins the panel below it — the owner's report on the site's
+	   underline tabs was that they never draw the area they own. */
+	.layouts-tab.on { background: var(--surface); font-weight: 700; margin-bottom: -1px; padding-bottom: calc(0.25em + 1px); }
+
+	.layouts-bar {
+		display: flex; justify-content: space-around; gap: 0.3em;
+		padding: 0.35em;
+		border: 1px solid var(--line); border-radius: var(--radius);
+		background: var(--fill-a04);
+		font-size: 0.78em;
+	}
+
+	.layouts-navnote { font-size: 0.74em; color: var(--subtle); }
+
+	/* ── THE RESPONSIVE VIEWPORT ───────────────────────────────────────────────
+	   The stage clips; the viewport inside it is given a real WIDTH in pixels and
+	   then zoomed to fit. Every arrangement here is percentage or fr arithmetic off
+	   its parent, so a 3440px box shown at 18% lays out exactly as a 3440px screen
+	   would — with the one honest exception `cols/` already documented: `rem` is
+	   16px in both and `em` is not.
+	   ⚠ Measure a zoomed box with `offsetWidth`, never `getBoundingClientRect()`. */
+	.layouts-stage-box {
+		overflow: hidden;
+		border-radius: var(--radius);
+		background: var(--wash);
+		padding: 0.4em;
+	}
+
+	.layouts-viewport { margin-inline: auto; }
+
+	.layouts-scale {
+		display: flex; flex-wrap: wrap; align-items: center; gap: 0.3em 0.6em;
+		margin-top: 0.4em;
+		font-family: var(--mono); font-size: 0.72em; color: var(--subtle);
+	}
+
+	/* ── THE READOUTS ──────────────────────────────────────────────────────────
+	   The CSS the layout IS, the widths it measured, and the one line that makes a
+	   page from it. */
+	.layouts-read + .layouts-read { margin-top: 0.7em; }
+
+	.layouts-read-head {
+		font-family: var(--mono); font-size: 0.68em; font-weight: 700;
+		text-transform: uppercase; letter-spacing: 0.05em; color: var(--subtle);
+		margin-bottom: 0.25em;
+	}
+
+	/* ⚠ `color`, and it is not optional: framework.css paints every `pre` with
+	     `--code-ink`, which the lew42 theme sets to #e6e6e6 to go with its dark
+	     `--code-bg`. Overriding the BACKGROUND alone left light grey text on a light
+	     grey box — legible in a screenshot, unreadable on a screen (2026-09-05).
+	   ⚠ No `font-size` or `font-weight` here on purpose. `.theme-lew42 :is(code, pre,
+	     .code)` is (0,2,0) in the same layer and would win anyway; the site's code
+	     voice is 0.875em bold and this panel does not get to disagree with it. */
+	.layouts-code {
+		margin: 0;
+		padding: 0.5em 0.6em;
+		border-radius: var(--radius);
+		background: var(--fill-a08);
+		color: var(--ink);
+		line-height: 1.55;
+		white-space: pre-wrap; overflow-wrap: anywhere;
+	}
+
+	.layouts-tracks { display: flex; flex-wrap: wrap; gap: 0.25em; }
+
+	.layouts-px {
+		padding: 0.1em 0.4em;
+		border-radius: var(--radius);
+		background: color-mix(in srgb, var(--prim) 12%, transparent);
+		color: var(--prim-ink);
+		font-family: var(--mono); font-size: 0.7em; font-weight: 700;
+		white-space: nowrap;
+	}
+
+	/* ── STACK vs SPLIT — the hub's opening demo ───────────────────────────────
+	   Two frames, side by side, holding the same three boxes. Below 44rem they are
+	   one above the other, which is the only honest thing a comparison of two
+	   arrangements can do when there is room for one. */
+	/* The opening demo as a whole: the toggle, the pair, the explanation. A stack,
+	   which is the joke it is entitled to make. */
+	.layouts-idea { display: flex; flex-direction: column; gap: var(--gap, var(--gap-default)); }
+
+	.layouts-pair {
+		--layouts-floor: 44rem;
+		--layouts-stack: calc((var(--layouts-floor) - 100%) * 999);
+		display: flex; flex-wrap: wrap;
+		align-items: start;   /* so the stack side is visibly taller — that IS the lesson */
+		gap: var(--gap, var(--gap-default));
+	}
+
+	.layouts-pair > * { flex: 1 1 max(calc(50% - var(--gap, var(--gap-default))), var(--layouts-stack)); min-width: 0; }
+
+	.layouts-side {
+		display: flex; flex-direction: column; gap: 0.4em;
+		padding: var(--pad, var(--pad-default));
+		border: 1px solid var(--line); border-radius: var(--radius);
+		background: var(--surface);
+	}
+
+	/* The chosen side of the comparison, marked — the toggle's whole visible job. */
+	.layouts-side.on { border-color: var(--prim); box-shadow: 0 0 0 1px var(--prim); }
+
+	.layouts-side-head { display: flex; align-items: baseline; gap: 0.4em; }
+	.layouts-side-title { font-weight: 700; }
+	.layouts-side-sub { font-size: 0.8em; color: var(--subtle); }
+
+	/* ── THE FULL-SCREEN CATALOGUE ─────────────────────────────────────────────
+	   A `full` column loses the row and, at 3440, the crumb strip is a thin line a
+	   very long way from the reader's eye. So a full page carries its own way on:
+	   a bar that is part of the layout, pinned to the top of the column body. */
+	.layouts-full { display: flex; flex-direction: column; gap: var(--gap, var(--gap-default)); min-height: 100%; }
+
+	.layouts-fullbar {
+		position: sticky; top: 0; z-index: 2;
+		display: flex; flex-wrap: wrap; align-items: center; gap: 0.4em;
+		padding: 0.45em var(--pad, var(--pad-default));
+		border: 1px solid var(--line); border-radius: var(--radius);
+		background: var(--surface);
+		box-shadow: 0 1px 3px var(--shade-a08);
+	}
+
+	.layouts-fullbar-title { font-weight: 700; margin-inline-end: auto; }
+	.layouts-fullbar-count { font-family: var(--mono); font-size: 0.74em; color: var(--subtle); }
+
+	/* A full page's card gets the whole row, so its stage grows instead of its
+	   rails — the intro and the readouts are lists, and a list does not scale
+	   (core/Page/doc/findings.md). */
+	.layouts-full .layouts-card { --layouts-floor: 52rem; }
+
+	/* AND IT GETS THE HEIGHT TOO. Full screen at 3440 is 1200px of room and the card
+	   was using 440 of it, which is the "right height, white fold" failure the layout
+	   skill names. The frame takes a fold's worth and the layout inside it fills the
+	   frame, so a demo of how an AREA divides is finally shown at the size of an area.
+	   ⚠ `flex: 1 1 auto`, not `1 1 0`: several entries declare their own height (a
+	     shell is 16em, a scroller must have a scrollport) and a zero basis would throw
+	     that away. With an auto basis the declared height is the FLOOR and the grow
+	     spends what is left. */
+	.layouts-full .layouts-frame { min-height: 42vh; }
+	.layouts-full .layouts-layout,
+	.layouts-full .layouts-navrow { flex: 1 1 auto; min-height: 0; }
+	.layouts-full .layouts-intro { flex: 0 1 max(clamp(13em, 15%, 22em), var(--layouts-stack)); }
+	.layouts-full .layouts-reads { flex: 0 1 max(clamp(14em, 18%, 26em), var(--layouts-stack)); }
+
+	/* ── the hub's wall of numbers ── */
+	.layouts-numbers { display: grid; gap: var(--gap, var(--gap-default)); grid-template-columns: repeat(auto-fill, minmax(min(15em, 100%), 1fr)); }
+
+	.layouts-number {
+		display: flex; flex-direction: column; gap: 0.3em;
+		padding: var(--pad, var(--pad-default));
+		border: 1px solid var(--line); border-radius: var(--radius);
+		background: var(--surface);
+		text-decoration: none; color: inherit;
+	}
+
+	.layouts-number:hover { border-color: var(--prim); }
+	.layouts-number-n { font-family: var(--mono); font-size: 1.6em; font-weight: 700; color: var(--prim-ink); line-height: 1; }
+	.layouts-number-name { font-weight: 700; }
+	.layouts-number-list { font-size: 0.8em; color: var(--subtle); line-height: 1.5; }
+}
+
+@layer util {
+
+	/* HIDING THE CRUMB STRIP — the owner's question, answered as a control.
+	   `.page-columns-bar` belongs to the columns HOST (core/Page/Page.css, `@layer
+	   theme`), which is `/imagine/` itself and four levels up from here. A rule in
+	   `util` out-ranks it whatever the specificity, so one class on <body> is the
+	   whole mechanism — and `deactivated()` takes it off again on the way out, so a
+	   reader cannot carry a hidden crumb strip into another realm. */
+	body.layouts-crumbs-off .page-columns-bar { display: none; }
+}

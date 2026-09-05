@@ -23,7 +23,7 @@ export default new Page({
 	width: "full",
 	index: true,
 
-	children: "journey padding scale layout navigation color type controls vocabulary system themes",
+	children: "journey padding scale layout navigation color type controls vocabulary system themes spacing",
 
 	content(){
 		md("A program visited every page on the site overnight and saved a picture of each — that whole collection is **Journey**, the first card below. Every other card studies those same screenshots to answer one design question, with real examples from the site. **Open any card** to see it.");

@@ -1,0 +1,250 @@
+/* /imagine/paging/templates/ — eleven whole-page shapes, each drawn by its own real
+   machinery, inside this realm's stage.
+
+   THIS SHEET OWNS TWO THINGS AND NOTHING ELSE:
+
+     THE MINIATURE   a frame to put another module's page shape inside, and the one
+                     re-tune a full-size composition needs to survive in a card.
+     THE TYPE AXIS   `compact` / `regular` / `display` — the sixth chip group, one
+                     class on the same box `paging.css` paints the surface on.
+
+   Everything the examples themselves look like belongs to the module that draws them
+   — mag.css, blog.css, screens.css, Shell.css, decks.css, the sections' inline tones.
+   Not one of those rules is restated here, with a single named exception (the shell
+   grid, below, which is keyed on a class this box may not wear).
+
+   Colour is tokens only, and the surfaces are `paging.css`'s five, reused verbatim. */
+
+@layer theme {
+
+	/* ══ 1 · THE TYPE AXIS ═════════════════════════════════════════════════════
+	   Two custom properties, three classes. `--templates-step` moves ordinary text
+	   (an inherited `em` reaches it); `--templates-ramp` moves display type, which an
+	   inherited font-size CANNOT reach — see §2. */
+
+	.templates-type-compact { --templates-step: 0.88; --templates-ramp: 0.8;  --templates-lead: 1.35; }
+	.templates-type-regular { --templates-step: 1;    --templates-ramp: 1;    --templates-lead: 1.5; }
+	.templates-type-display { --templates-step: 1.06; --templates-ramp: 1.35; --templates-lead: 1.6; }
+
+	:is(.templates-type-compact, .templates-type-regular, .templates-type-display) .paging-box {
+		font-size: calc(1em * var(--templates-step, 1));
+		line-height: var(--templates-lead, 1.5);
+
+		/* ONE HEIGHT FOR EVERY MINIATURE, declared where the miniature lives rather
+		   than four times over. A hub card is smaller than a family page's stage, and
+		   nothing here is a fold: `vh` was the wrong unit inside a card — it made the
+		   shell 272px tall next to a 130px screens split, and the grid row stretched
+		   every card in that row to match (measured at 3440, ~500px of dead space in
+		   one card). */
+		--templates-mini: 15em;
+	}
+
+	/* ⚠ THE MINIATURE'S OWN TYPE SCALE, and why it has to exist.
+	   Four of these families size their display type in `cqw` off their own container.
+	   That is exactly right at full size and wrong in a card: the clamp falls to its
+	   `rem` FLOOR the moment the container is small, so a 2.2rem cover title lands on a
+	   180px-wide cover and the composition is lost. ONE rule re-floors all four for the
+	   miniature — and since it has to be written anyway, `--templates-ramp` rides in it,
+	   which is what lets the type chip move headings an inherited `font-size` cannot
+	   reach (a `cqw` is not an `em`). Nothing else in those sheets is touched. */
+	.templates-stage :is(.mag-cover-title, .screens-label, .decks-title),
+	.paging-box :is(.mag-cover-title, .screens-label, .decks-title) {
+		font-size: clamp(
+			calc(1.05rem * var(--templates-ramp, 1)),
+			calc(10cqw * var(--templates-ramp, 1)),
+			calc(3.4rem * var(--templates-ramp, 1)));
+	}
+
+	.templates-stage .blog-hero-title,
+	.paging-box .blog-hero-title {
+		font-size: clamp(
+			calc(1rem * var(--templates-ramp, 1)),
+			calc(6cqw * var(--templates-ramp, 1)),
+			calc(2.4rem * var(--templates-ramp, 1)));
+	}
+
+	/* ══ 2 · THE HUB WALL ══════════════════════════════════════════════════════
+	   `grid auto gap` with a real `--column` does the arrangement (framework.css);
+	   this is the card itself and the frame the example sits in. */
+
+	.templates-card {
+		display: flex; flex-direction: column; gap: 0.6em;
+		padding: var(--pad, var(--pad-default));
+		background: var(--surface);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+	}
+
+	.templates-card-head { display: flex; align-items: center; gap: 0.4em; margin: 0; }
+	.templates-card-icon { color: var(--prim-ink); }
+	.templates-card-say  { color: var(--subtle); font-size: 0.9em; }
+	.templates-card-more { margin-block-start: auto; }
+
+	/* THE FRAME. A miniature of somebody else's page needs an edge, or it reads as
+	   this page's own content. `overflow: hidden` is the one place a clip is wanted:
+	   a full-size composition put in a card is being cropped on purpose. */
+	.templates-stage {
+		--templates-mini: 11em;
+		container: templates-stage / inline-size;
+		overflow: hidden;
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		background: var(--wash);
+	}
+
+	/* ══ 3 · THE FOUR THE OWNER NAMED ══════════════════════════════════════════ */
+
+	/* MAGAZINE — `mag.column()`'s own sheet, given a height to fill. `.mag-cover-area`
+	   is `flex: 1`, so without one the cover is its own text and the composition (a
+	   rule, an eyebrow, display type, a call to action) never happens. */
+	.templates-mag { display: flex; flex-direction: column; gap: 0.8em; }
+	.templates-mag-cover { min-height: var(--templates-mini, 11em); border-radius: var(--radius); overflow: hidden; }
+
+	/* The contents wall, at a real card width — core's `previews()` reads `--column`. */
+	.templates-mag-contents { --column: 15em; }
+
+	/* BLOG — the lead is a query container already; it only needs the room. */
+	.templates-blog { display: flex; flex-direction: column; gap: 1.2em; }
+
+	/* ⚠ `align-self: stretch`, and it is load-bearing. `.blog-hero` declares
+	   `container: blog-hero / inline-size` AND `align-self: start` — on the blog front
+	   it sits in a stretched track so the two never meet, but in a flex column its
+	   `start` makes the width shrink-to-fit, and an inline-size container may not be
+	   sized by its own contents: the hero measured a few px wide and set its own title
+	   one character per line (measured here, 2026-09-05). The same trap the css skill
+	   records for `container-type: size`, one axis over.
+	   ⚠ And it must OUT-SPECIFY `.blog-hero`, not merely follow it: both rules are
+	     `@layer theme` at (0,1,0), and blog.css is appended when `Post.js` is imported —
+	     AFTER this sheet — so a same-weight rule here loses on load order. */
+	.templates-blog > .blog-hero { align-self: stretch; padding: 0.6em 0.8em; }
+	.templates-blog-wall { --column: 15em; display: flex; flex-direction: column; gap: 0.7em; }
+
+	/* SCREENS — `.screens-screen` brings the flex row, the 1px seams and its own query
+	   container. A row of areas has no height of its own, so this is the one number. */
+	.templates-screens { min-height: var(--templates-mini, 11em); border-radius: var(--radius); overflow: hidden; }
+	.templates-frames { margin-block-start: 0.8em; }
+
+	/* SHELLS — see families.js: `Shell.render()` cannot run inside a page, and
+	   `Shell.css`'s grid is keyed on `.page.shell` while `.page` is `display: none`
+	   unless it is the active page. These six declarations are that grid, and the only
+	   rule in this sheet restated from another module. A one-line change in Shell.css
+	   deletes them: /imagine/paging/doc/templates.md carries the diff. */
+	.templates-shell {
+		display: grid;
+		grid-template-columns: auto minmax(0, 1fr) auto;
+		grid-template-rows: auto minmax(0, 1fr) auto;
+		grid-template-areas: "head head head" "left main right" "foot foot foot";
+		--shell-rail: 8.5em;
+		min-height: var(--templates-mini, 11em);
+		border-radius: var(--radius); overflow: hidden;
+		background: var(--surface);
+		font-size: 0.9em;
+	}
+
+	/* ON A HUB CARD the shell gets a HEIGHT, not a floor. A real app document is
+	   taller than a card, and the grid's `minmax(0, 1fr)` main region plus its own
+	   `overflow: hidden` crop it from the bottom — which is what a picture of an app
+	   looks like. Without this the shells card was 638px of stage next to a 180px
+	   screens card, and the grid row stretched both to 847px (measured at 3440). */
+	.templates-stage .templates-shell { height: var(--templates-mini, 11em); }
+
+	.templates-shell-full { --shell-rail: 11em; min-height: calc(var(--templates-mini, 11em) * 1.5); font-size: 1em; }
+	.templates-shell .shell-main { overflow: hidden; }
+	.templates-shell .shell-doc { --flow: 0.7em; padding: var(--pad, var(--pad-default)); }
+
+	/* ══ 4 · THE OTHER SEVEN ═══════════════════════════════════════════════════ */
+
+	/* DECKS — `.decks-slice` is the flex row; a slide is normally the height of a
+	   screen, so this is the miniature's fold. */
+	.templates-deck { min-height: var(--templates-mini, 11em); border-radius: var(--radius); overflow: hidden; background: var(--surface); }
+
+	/* COLUMNS — the width words, drawn to the weights core gives them. */
+	.templates-tracks { display: flex; gap: 2px; align-items: stretch; min-height: var(--templates-mini, 11em); }
+
+	.templates-track {
+		flex: var(--templates-grow, 1) 1 0; min-width: 0;
+		display: flex; flex-direction: column; justify-content: center; gap: 0.15em;
+		padding: 0.6em;
+		background: var(--fill-a04);
+		border-radius: calc(var(--radius) / 2);
+	}
+
+	.templates-track-word { font-weight: 700; font-size: 0.9em; }
+	.templates-track-note { color: var(--subtle); font-size: 0.75em; }
+
+	/* LAYOUTS — `shape()` sizes itself; this only rows them up. */
+	.templates-shapes { display: flex; flex-wrap: wrap; gap: 0.6em; }
+	.templates-shapes > * { flex: 1 1 9em; min-width: 0; }
+
+	/* SECTIONS — a band is full-bleed by design, so the frame does the containing. */
+	.templates-bands { display: flex; flex-direction: column; gap: 2px; border-radius: var(--radius); overflow: hidden; }
+	.templates-band { min-height: 0; }
+
+	/* Same reason as the shell above: a hero band is a full-page band, so on a card it
+	   is cropped rather than shrunk — 444px of stage beside a 115px layouts card. */
+	.templates-stage .templates-bands { max-block-size: calc(var(--templates-mini, 11em) * 1.4); }
+
+	/* UI · UX · NAVIGATION — nothing but a rhythm; the parts bring their own look. */
+	.templates-ui  { display: flex; flex-direction: column; gap: 1em; padding: 0.8em; }
+	.templates-ux  { padding: 0.8em; }
+	.templates-nav { display: flex; flex-direction: column; gap: 0.8em; padding: 0.8em; }
+
+	/* ══ 5 · THE FAMILY LIST ═══════════════════════════════════════════════════ */
+
+	.templates-members { display: flex; flex-direction: column; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+
+	.templates-member {
+		display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.2em 0.7em;
+		padding: 0.5em 0.8em;
+		background: var(--surface);
+		color: inherit; text-decoration: none;
+	}
+	.templates-member:is(:hover, :focus-visible) { background: var(--fill-a04); }
+	.templates-member-name { font-weight: 600; }
+	.templates-member-note { color: var(--subtle); font-size: 0.9em; }
+
+	/* ══ 6 · THE THEMING WALL ══════════════════════════════════════════════════
+	   One grid: a label column, then one column per type scale; one row per surface.
+	   The floor is `--line`, so the 1px gap draws every seam with no border rules. */
+
+	.templates-theming {
+		display: grid;
+		grid-template-columns: minmax(8em, 0.7fr) repeat(3, minmax(0, 1fr));
+		gap: 1px;
+		background: var(--line);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		overflow: hidden;
+	}
+
+	.templates-theming-corner,
+	.templates-theming-head,
+	.templates-theming-label {
+		display: flex; flex-direction: column; gap: 0.2em; justify-content: center;
+		padding: 0.6em 0.8em;
+		background: var(--wash);
+	}
+
+	.templates-theming-corner { color: var(--subtle); font-size: 0.8em; }
+	.templates-theming :is(.templates-theming-head, .templates-theming-label) h3 { margin: 0; font-size: 1em; }
+	.templates-theming-token { color: var(--subtle); font-size: 0.72em; font-family: var(--mono, monospace); overflow-wrap: anywhere; }
+
+	/* A CELL IS A REAL PAGE BOX. `paging-<style>` and `templates-type-<type>` are the
+	   same two classes a family page wears, so a cell here and the demo over there are
+	   painted by one set of rules and cannot drift. */
+	.templates-cell { padding: 0.8em; display: flex; }
+	.templates-cell > .paging-box { flex: 1; min-width: 0; }
+
+	/* A card from the blog's own wall, out of that wall: `.page-preview` is a grid
+	   item there and has no width of its own here. One line, and the second level of
+	   the hierarchy is on screen under the lead. */
+	.templates-cell-card { display: block; }
+
+	/* ── narrow: the wall becomes three stacked walls ──
+	   Under ~52em a four-track grid gives each cell ~90px, which is not a picture of
+	   anything. The label rides above its row instead. */
+	@media (width < 52em) {
+		.templates-theming { grid-template-columns: minmax(0, 1fr); }
+		.templates-theming-corner, .templates-theming-head { display: none; }
+	}
+}

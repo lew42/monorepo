@@ -314,11 +314,189 @@
 	}
 	.paging-mini-max:is(:hover, :focus-visible) { background: var(--fill-a16); }
 
-	/* The tabs miniature borrows ext/tabs' own strip. Its panel reserves 3em above
-	   the content for a full page's rhythm; a 200px demo does not have it to give. */
-	.paging-tabsdemo .tab-panel { padding-top: 0.9em; }
-	.paging-tabsdemo .tab { cursor: pointer; }
+	/* The tabs miniature. A floor rather than a fixed height: three sentences of
+	   different lengths, and the hub is teaching the gesture, not measuring it —
+	   the page that measures is mechanisms/swap/, whose stage is fixed. */
+	.paging-tabsdemo .paging-tab-panel { min-height: 4.5em; }
 	.paging-tabsdemo p { margin: 0; }
+
+	/* ════ THE STAGE IS ALWAYS VISIBLE ════════════════════════════════════════
+	   THE RULE OF THIS REALM (doc/decisions.md, "the stage is always visible"):
+
+	     A click changes what is inside a rectangle you could already see;
+	     the rectangle stays.
+
+	   So every box a swap happens in wears a surface and an edge BEFORE the click.
+	   The owner's report on the old version was that "the swap is unclear what is
+	   being swapped … it's not visually clear, like tabs are" — a transparent area
+	   that changes has nothing for the eye to hold on to, so the brain has to work
+	   out what went where. A bounded rectangle answers that before you click it. */
+
+	/* THE GENERIC STAGE — what `Paging.shown()` draws, framed whenever this page's
+	   mechanism is `swap`. ⚠ `min-height`, not `height`: this box also holds the
+	   content ladder (`xs` → `xl`), and a fixed height would clip the `xl` wall.
+	   The caption under it reports the real pixels either way. */
+	.paging-shown { display: flex; flex-direction: column; gap: 0.6em; }
+
+	.paging-box:has(.paging-items-swap) .paging-shown {
+		min-height: 8em;
+		padding: var(--pad, var(--pad-default));
+		background: var(--surface);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+	}
+
+	/* On `card` the box is ALREADY the white surface, so the stage steps DOWN
+	   instead of up — a tint on white is still an edge you can trace. */
+	.paging-card .paging-box:has(.paging-items-swap) .paging-shown { background: var(--tint); }
+
+	/* ════ TABS THAT SHOW THEIR PANEL ═════════════════════════════════════════
+	   The owner, 2026-09-05: *"the current underline tabs … don't really illustrate
+	   their tab content area, it's transparent … there's no visual boundary between
+	   them."* True of `ext/tabs`' default strip: a hairline under the set, a 2px
+	   mark under the selected label, and a panel with no edges at all.
+
+	   These four classes are the FOLDER answer, local to this realm: one bounded
+	   box whose top edge is the strip, with the selected tab cut out of it.
+	   ⚠ Own classes, not `ext/tabs`' — `.tabs.block` writes its selected tab at
+	     (0,4,0) inside the same layer, so joining a panel to it would mean out-
+	     specifying another module's sheet in ours. The site-wide version is a
+	     PROPOSAL with the diff, in this realm's task log; nothing here changes
+	     ext/tabs. */
+	.paging-tabs { display: flex; flex-direction: column; min-width: 0; }
+
+	/* One strip that scrolls, never a wrapping block — a wrapped bar puts rows of
+	   labels above the thing they navigate (ext/tabs learned this first). */
+	.paging-tab-bar { display: flex; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+
+	/* ⚠ The 2px top border is reserved on EVERY tab, transparent until selected:
+	     a mark that ADDS height would shift its own label by 1px on every click. */
+	.paging-tab {
+		flex: none; white-space: nowrap;
+		padding: 0.45em 1em;
+		font-size: 0.85em; font-weight: 600;
+		color: var(--subtle);
+		background: transparent;
+		border: 1px solid transparent;
+		border-top-width: 2px;
+		border-bottom: 1px solid var(--line);
+		border-radius: var(--radius) var(--radius) 0 0;
+		cursor: pointer;
+	}
+	.paging-tab:is(:hover, :focus-visible) { color: var(--ink); }
+
+	/* THE SELECTED TAB IS PART OF THE PANEL: the same surface, its own left/right
+	   edges, and a bottom edge painted in the panel's own colour rather than in the
+	   rule — so the eye runs straight from the label down into the box. */
+	.paging-tab.on {
+		color: var(--ink);
+		background: var(--surface);
+		border-color: var(--line);
+		border-top-color: var(--prim);
+		border-bottom-color: var(--surface);
+	}
+
+	/* Carries the strip's rule past the last tab, so the panel's top edge is whole. */
+	.paging-tab-bar::after { content: ""; flex: 1 1 auto; border-bottom: 1px solid var(--line); }
+
+	/* THE PANEL. No top border — the strip above IS its top edge, with the selected
+	   tab cut out of it. That one missing line is the whole of "these two things are
+	   one box". */
+	.paging-tab-panel {
+		padding: var(--pad, var(--pad-default));
+		background: var(--surface);
+		border: 1px solid var(--line);
+		border-top: none;
+		border-radius: 0 var(--radius) var(--radius) var(--radius);
+	}
+	.paging-tab-panel > :is(p, h3):first-child { margin-top: 0; }
+	.paging-tab-panel > :is(p, h3):last-child { margin-bottom: 0; }
+
+	/* ════ THE SWAP STAGE — one rectangle, four ways to change what is in it ══
+	   `mechanisms/swap/swap.js`. tabs · card-in · cross-fade · flip, all on the
+	   same box, so the reader can see that the VISUAL is a choice and the mechanism
+	   underneath it is one thing. */
+	.paging-swapper { display: flex; flex-direction: column; gap: 0.7em; }
+	.paging-swapper-visuals { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3em; }
+	.paging-swapper-set { display: flex; flex-direction: column; }
+	.paging-swapper-pick { display: flex; flex-wrap: wrap; gap: 0.3em; margin-block-end: 0.5em; }
+
+	/* ⚠ A FIXED HEIGHT, on purpose, and the only one in this realm. This is the box
+	     that PROMISES its rectangle does not move, and four visuals have to be
+	     measured against the same rectangle — a `min-height` would let card-in and
+	     flip resize it mid-gesture and the promise would be a claim. A panel taller
+	     than the box scrolls INSIDE it: a decision, not a side effect. */
+	.paging-swapper-stage {
+		position: relative; overflow: hidden;
+		height: clamp(11.5em, 8em + 3vw, 13em);
+		background: var(--surface);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+	}
+
+	/* In `tabs` the stage IS the panel, so it wears the panel's frame instead — and
+	   pays no padding of its own: a `.paging-face` is `inset: 0`, which resolves
+	   against the PADDING box, so padding here would be invisible and misleading. */
+	.paging-swapper-stage.paging-tab-panel { padding: 0; }
+
+	/* ONE PANEL. Absolute, so two of them can share the stage for the 220ms a
+	   card-in or a cross-fade takes, without either one moving the box. */
+	.paging-face {
+		position: absolute; inset: 0; overflow: auto;
+		display: flex; flex-direction: column; gap: 0.35em;
+		padding: var(--pad, var(--pad-default));
+		background: var(--surface);
+	}
+	.paging-face :is(h3, p) { margin: 0; }
+	.paging-face-eyebrow { font-size: 0.7em; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--subtle); }
+
+	@keyframes paging-in-right { from { transform: translateX(100%); } to { transform: translateX(0); } }
+	@keyframes paging-out-left { from { transform: translateX(0); } to { transform: translateX(-100%); } }
+	@keyframes paging-fade-in  { from { opacity: 0; } to { opacity: 1; } }
+	@keyframes paging-fade-out { from { opacity: 1; } to { opacity: 0; } }
+
+	/* CARD-IN — the owner's own example: the old card leaves, a new card arrives.
+	   The shadow is what makes the arriving one read as a card ON TOP of the stage
+	   rather than as text that slid. */
+	.paging-face-in-right { animation: paging-in-right 220ms ease-out both; box-shadow: -8px 0 22px var(--shade-a16); }
+	.paging-face-out-left { animation: paging-out-left 220ms ease-in both; }
+
+	/* CROSS-FADE — nothing translates, so nothing to track with the eye. */
+	.paging-face-fade-in  { animation: paging-fade-in 180ms ease-out both; }
+	.paging-face-fade-out { animation: paging-fade-out 180ms ease-in both; }
+
+	/* FLIP — the stage turns over and the new panel is on its back. */
+	.paging-stage-flip { perspective: 1200px; }
+	.paging-swapper-flipper {
+		position: absolute; inset: 0;
+		transform-style: preserve-3d;
+		transition: transform 240ms ease;
+	}
+	.paging-swapper-flipper.paging-flipped { transform: rotateY(180deg); }
+	.paging-flip-face { position: absolute; inset: 0; backface-visibility: hidden; }
+	.paging-flip-back { transform: rotateY(180deg); }
+
+	/* ⚠ MOTION IS DECORATION HERE. What this page teaches is that the CONTENT
+	     changed and the box did not, and that is true with the animation switched
+	     off — so a reader who asked the OS for less motion loses nothing.
+	     Same selectors, later in the sheet: no specificity to win. */
+	@media (prefers-reduced-motion: reduce){
+		.paging-face-in-right { animation-duration: 1ms; box-shadow: none; }
+		.paging-face-out-left, .paging-face-fade-in, .paging-face-fade-out { animation-duration: 1ms; }
+		.paging-swapper-flipper { transition-duration: 1ms; }
+	}
+
+	/* WHAT JUST CHANGED — the visual's own sentence, then the panel and the pixels. */
+	.paging-swapper-cap {
+		display: flex; flex-direction: column; gap: 0.3em;
+		font-size: 0.9em; color: var(--subtle);
+		border-inline-start: 2px solid var(--line);
+		padding-inline-start: 0.7em;
+	}
+	.paging-swapper-cap p { margin: 0; }
+	.paging-swapper-cap strong { color: var(--prim-ink); }
+	.paging-swapper-what { display: flex; align-items: flex-start; gap: 0.4em; }
+	.paging-swapper-what .icon { color: var(--prim-ink); }
 
 	/* ── HOW TO EXPLORE THIS — three numbered steps ──────────────────────────── */
 	.paging-steps { display: flex; flex-direction: column; gap: 0.6em; }
@@ -378,6 +556,18 @@
 	.paging-make-title:is(:hover, :focus-visible) { color: var(--prim-ink); }
 
 	.paging-make-word { flex: none; white-space: nowrap; font-size: 0.8em; cursor: pointer; }
+
+	/* THE ACTS — rename · up · down · add · delete, in one group at the end of the
+	   row. `margin-inline-start: auto` puts them all against the far edge, so the
+	   same five buttons are in the same place on every row however long the title;
+	   `flex: none` keeps the group whole when the row wraps under a long title. */
+	.paging-make-acts { display: flex; align-items: center; gap: 0.15em; flex: none; margin-inline-start: auto; }
+	.paging-make-add { font-size: 0.8em; }
+
+	/* A made page whose children are TABS. The strip and panel are the realm's own
+	   bounded set; the floor stops an empty panel reading as a stray line. */
+	.paging-make-tabs .paging-tab-panel { min-height: 5em; }
+	.paging-make-tabs .paging-tab-panel h3 { margin-top: 0; }
 
 	.paging-make-act {
 		display: inline-flex; align-items: center; flex: none;

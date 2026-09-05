@@ -1,0 +1,76 @@
+/* /imagine/paging/baseline.js — the "this page remembers you" mark.
+
+   One strip, drawn as the first line of a page body, in one of two colours:
+
+     amber (--warn)  MODIFIED — you changed a demo and it was remembered
+     green (--ok)    SAVED    — you kept something here on purpose
+
+   At baseline the module draws nothing at all, so there is no third rule.
+   Colour is tokens only; both tokens are `light-dark()` pairs in framework.css,
+   so nothing here needs a dark-mode rule. */
+
+@layer theme {
+
+	.baseline-mark {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.4em 0.75em;
+
+		margin-block-end: var(--gap, 1em);
+		padding: 0.45em 0.7em;
+
+		border: 1px solid var(--line);
+		border-inline-start: 3px solid var(--edge, var(--line));
+		border-radius: var(--radius);
+		background: var(--wash);
+
+		font-size: 0.9em;
+		line-height: 1.35;
+	}
+
+	/* ⚠ An empty mark is a real element with real padding and a real border — the
+	     baseline state renders NOTHING inside it, so without this every page on the
+	     site would grow an empty grey bar. `:empty` is the honest test. */
+	.baseline-mark:empty { display: none; }
+
+	.baseline-on   { --edge: var(--warn); }
+	.baseline-kept { --edge: var(--ok); }
+
+	.baseline-dot { font-size: 1.1em; }
+	.baseline-on   .baseline-dot { color: var(--warn); }
+	.baseline-kept .baseline-dot { color: var(--ok); }
+
+	/* The sentence takes the room that is left and the controls stay on the line
+	   beside it until there is not enough, at which point they wrap under it. */
+	.baseline-words { flex: 1 1 18em; }
+
+	/* ⚠ `md()` wraps its text in a <p>, and a paragraph inside a flex row brings its
+	     own block margins — which would make a one-line strip three lines tall. */
+	.baseline-words :is(p, p:first-child, p:last-child) { margin: 0; }
+
+	.baseline-act {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3em;
+
+		padding: 0.15em 0.6em;
+		border: 1px solid var(--line);
+		border-radius: 100px;
+
+		cursor: pointer;
+		white-space: nowrap;
+		font-size: 0.9em;
+	}
+
+	.baseline-act:hover,
+	.baseline-act:focus-visible { background: var(--surface); border-color: var(--edge, var(--line)); }
+
+	.baseline-act.on {
+		background: var(--edge, var(--prim));
+		border-color: var(--edge, var(--prim));
+		color: var(--surface);
+	}
+
+	.baseline-act .icon { font-size: 1.05em; }
+}

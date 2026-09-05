@@ -1,0 +1,11 @@
+{
+	"title": "Archive",
+	"icon": "description",
+	"description": "A page you made.",
+	"mode": {
+		"style": "dark",
+		"content": "m",
+		"mech": "takeover"
+	},
+	"children": []
+}

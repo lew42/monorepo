@@ -1,6 +1,7 @@
 import { Page, View, div, p, h3, span, a, code, icon, md } from "/app.js";
 import { MECHANISMS, STYLES, CONTENT, LAYOUT, TOOLBAR, RUNGS, LAYOUT_MEANS, NS, FULL_NS, reset } from "./words.js";
 import { sample } from "./samples.js";
+import { baseline, forget_all } from "./baseline.js";
 
 View.stylesheet(import.meta, "paging.css");
 
@@ -17,6 +18,13 @@ View.stylesheet(import.meta, "paging.css");
    keep importing them from here. The sample the box holds lives in `samples.js`.  */
 
 export { MECHANISMS, STYLES, CONTENT, LAYOUT, TOOLBAR, RUNGS, LAYOUT_MEANS, NS, FULL_NS, reset };
+
+/* THE MODIFIED MARK, offered to the whole site from here. It lives in its own file
+   (`baseline.js`) and imports nothing from this one on purpose: a realm that only
+   wants the dot must not also pull down the mode vocabulary, the samples and the
+   blog's post manifest. Every page in THIS realm gets it for free — `lede()` draws
+   it, and `pick()` refreshes it. doc/persistence.md is the rule. */
+export { baseline, forget_all };
 
 const VALUES = { style: STYLES, content: CONTENT, layout: LAYOUT, mech: Object.keys(MECHANISMS), toolbar: TOOLBAR };
 
@@ -46,7 +54,14 @@ export class Paging extends Page {
 	// Every page in this realm opens with ONE sentence saying what it is for, so a
 	// reader can say what they were supposed to learn before they read anything
 	// else. `content()` calls this first; `takeaway:` is the sentence.
-	lede(text){ return md(text ?? this.takeaway ?? this.description).ac("paging-lede"); }
+	// ⚠ THE MARK GOES HERE, so every page in the realm gets it from ONE line. Every
+	//   page's `content()` opens with `this.lede()`, and a chip click writes to
+	//   storage — which is exactly the silent persistence the rule forbids. At
+	//   baseline it draws nothing at all. doc/persistence.md.
+	lede(text){
+		baseline(this, { what: "the chips you pressed on this page" });
+		return md(text ?? this.takeaway ?? this.description).ac("paging-lede");
+	}
 
 	// ════ THE MODE ════════════════════════════════════════════════════════════
 	// Five axes. A page opens somewhere else with `mode: { style: "card" }`, and
@@ -106,6 +121,11 @@ export class Paging extends Page {
 
 		this.calls = [...(this.calls ?? []), `page.pick("${axis}", "${value}")`];
 		this.coded?.relist();
+
+		// ⚠ The mark has to appear on the FIRST chip press, not on the next reload —
+		//   being late is the whole defect the rule exists to remove. A `Paging` has
+		//   no `watch()`, so this is the hook baseline.js would otherwise use.
+		this.$baseline?.check();
 
 		this.repaint();
 
@@ -201,9 +221,18 @@ export class Paging extends Page {
 		return "";
 	}
 
+	/* ⚠ THE STAGE IS ALWAYS VISIBLE — the realm's design rule (doc/decisions.md, "the stage is always visible"):
+	     *a click changes what is inside a rectangle you could already see; the
+	     rectangle stays.* So what the box holds gets a wrapper of its own, and
+	     `paging.css` frames that wrapper — a surface and an edge — on any page whose
+	     mechanism is `swap`. Before this the swapped area was transparent and
+	     bordered by nothing, which is why the owner read a swap as "a random
+	     paragraph changed several buttons away" (2026-09-04, again 2026-09-05). */
+	shown(){ return div.c("paging-shown", () => { this.holds(); }); }
+
 	// What the box holds: my own sample, or — after a `swap` — the child that
 	// replaced it. The box itself never moves; only its content changes.
-	shown(){
+	holds(){
 		const swapped = this.swapped && this.children.get(this.swapped);
 
 		if (!swapped) return this.sample();

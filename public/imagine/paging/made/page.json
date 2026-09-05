@@ -1,0 +1,10 @@
+{
+	"title": "Made",
+	"icon": "add_circle_outline",
+	"children": [
+		"notes",
+		"ideas",
+		"archive",
+		"survives-a-reload"
+	]
+}

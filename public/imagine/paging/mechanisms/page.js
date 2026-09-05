@@ -19,7 +19,7 @@ export default new Paging({
 	width: "large",
 	axes: "style content",
 
-	takeaway: "**One page, one piece of content, and four rows — and each row does something different when you click it.** That is the whole point of this page: the four mechanisms, felt against the same words, from the same place.",
+	takeaway: "**One page, one piece of content, and four rows — and each row does something different when you click it.** Two of the four change the url and take you somewhere (`launch` opens a column, `takeover` takes the whole row); two never leave this box and leave the address bar alone (`expand`, `swap`). Each row's icon is its promise.",
 	children: "launch expand swap takeover",
 
 	content(){
@@ -30,7 +30,9 @@ export default new Paging({
 
 		this.paging();
 
-		md("Each row also has a page of its own — a small tree that uses ONLY that word, with the mechanism chips live so you can switch the same tree between all four. [Code](/imagine/paging/mechanisms/code/).");
+		md("**Which ones change the url.** `launch` and `takeover` are core's columns vocabulary — a child column and `width: \"full\"` — so both are real navigation with a real address, a back button and a link you can send. `expand` and `swap` are states of the page you are already on: no url, no back button, and every one of them offers the column as the way out. The full argument, and what was rejected: [the four mechanisms](/imagine/paging/doc/mechanisms.md).");
+
+		md("Each row also has a page of its own, at full size and with the site's own machinery — not a demo frame. [Launch](/imagine/paging/mechanisms/launch/) opens real columns three levels deep; [Expand](/imagine/paging/mechanisms/expand/) never routes; [Swap](/imagine/paging/mechanisms/swap/) puts four different swap visuals on one bounded stage; [Takeover](/imagine/paging/mechanisms/takeover/) fills the row. [Code](/imagine/paging/mechanisms/code/).");
 	},
 
 	/* THE SEAM. Core's `items()` gives every row the toolbar's mechanism; here the

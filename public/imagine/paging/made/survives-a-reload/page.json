@@ -1,0 +1,11 @@
+{
+	"title": "Survives a reload",
+	"icon": "description",
+	"description": "A page you made.",
+	"mode": {
+		"style": "card",
+		"content": "m",
+		"mech": "launch"
+	},
+	"children": []
+}

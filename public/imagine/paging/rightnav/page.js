@@ -1,5 +1,6 @@
 import { Page, View, div, a, span, icon, p, h2, button, md, is } from "/app.js";
 import { NS } from "../words.js";
+import { baseline } from "../baseline.js";
 
 View.stylesheet(import.meta, "rightnav.css");
 
@@ -72,6 +73,10 @@ export default new Page({
 	// ════ THE SYSTEM ═══════════════════════════════════════════════════════════
 
 	content(){
+		// The three variant chips below write to storage, so this page can be off its
+		// baseline with nothing on screen saying so — doc/persistence.md, the rule.
+		baseline(this, { what: "the variants you picked here" });
+
 		md("**A tree that stays put on the right, and a centre that swaps to whatever you click in it.** The tree never redraws and never moves — only the middle changes. The chips below try the variants (narrow or wide, left or right, inside a card or on the floor) without needing more pages.").ac("paging-lede");
 
 		this.mode = this.store().get({ width: "narrow", side: "right", placement: "inside", open: [] });
@@ -178,6 +183,7 @@ export default new Page({
 			: [...this.mode.open, name];
 
 		this.store().set(this.mode);
+		this.$baseline?.check();
 		this.$tree?.empty(() => this.rows());
 	},
 
@@ -206,6 +212,7 @@ export default new Page({
 	pick(axis, value){
 		this.mode[axis] = value;
 		this.store().set(this.mode);
+		this.$baseline?.check();
 		this.$toolbar?.empty(() => this.chips());
 		this.apply_mode();
 	},

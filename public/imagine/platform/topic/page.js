@@ -1,4 +1,5 @@
 import { Page, div, span, button, md } from "/app.js";
+import { baseline } from "/imagine/paging/baseline.js";
 
 /* Container: a COLUMN in /imagine/'s columns host (the shallowest columnar ancestor, three
    levels up) — so there is no page grid here, `wide` means nothing, and every child opens to
@@ -91,6 +92,13 @@ export default new Page({
 
 	// The rail's one live line. Core draws the rows; this sits above them.
 	content(){
+		/* ⚠ THE RUN IS REMEMBERED, and until 2026-09-05 nothing said so — you could walk
+		     the demo, come back, and read a topic that was already half-finished without
+		     knowing why. `restore` is this page's own `reset()`, not the default clear +
+		     reload: the watcher below redraws the level line for free. doc/persistence.md
+		     in /imagine/paging/ is the rule. */
+		baseline(this, { what: "this run", restore: () => this.reset() });
+
 		div.c("flex v gap", $state => this.watch(() => $state.empty(() => {
 			const [, name] = this.level();
 			span(name);

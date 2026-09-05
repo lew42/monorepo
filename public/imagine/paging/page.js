@@ -32,14 +32,14 @@ import { DEMOS } from "./demos.js";
 const STEPS = [
 	["Examples", "/imagine/paging/examples/", "Five pages, each showing the result on one side and the four lines of code that made it on the other. Read them in order and you have seen the whole vocabulary used."],
 	["Sizes", "/imagine/paging/sizes/", "Press the size chips and watch the SAME sample grow. A caption under the box tells you what just changed, in pixels."],
-	["Make", "/imagine/paging/make/", "Type a name, pick three words, and a real page appears with a real url. Nothing is written to disk — it lives in your browser until you press Reset."],
+	["Make", "/imagine/paging/make/", "Type a name and a real page appears at a real url — and in dev, a real `page.json` on disk you can open in an editor. Four words configure it; one of them turns its children into tabs."],
 ];
 
 /* WHICH THING THE SITE ALREADY BUILT SHOWS UP WHERE. The owner's ask was to use as
    much of what exists as possible rather than inventing placeholder prose; this is
    the honest list, and every row is a link you can go and check. */
 const BUILT = [
-	["ext/tabs", "/framework/ext/tabs/", "the swap example on this page — its real `.tabs` `.tab-bar` `.tab` `.tab-panel` strip"],
+	["ext/tabs", "/framework/ext/tabs/", "the site's tab strip, and the thing the swap example above is a FIX of — its panel is transparent, so a tab opens onto nothing you can see ([the argument](/imagine/paging/doc/decisions/))"],
 	["ui/accordion", "/framework/ui/accordion/", "the expand example on this page — `<details class=\"ui-accordion-item\">`, no JavaScript at all"],
 	["ui/card", "/framework/ui/card/", "the `l` rung of every sample — four cards in the template verbatim"],
 	["core previews()", "/framework/core/Page/doc/columns/", "the card wall at the bottom of this page, and the `xl` rung's wall of posts"],
@@ -71,7 +71,7 @@ export default new Paging({
 
 	// ⚠ Nothing crawls: a page exists once this list names it, and a name whose dir
 	//   has no page.js 404s the whole probe.
-	children: "examples mechanisms styles sizes make center transitions toolbars rightnav explorer inventory critique",
+	children: "examples mechanisms styles sizes make templates center transitions toolbars rightnav explorer inventory critique doc",
 
 	content(){
 		this.lede();
@@ -101,7 +101,7 @@ export default new Paging({
 
 		h2("What is remembered — and how to put it all back");
 
-		md("Every chip you press anywhere in this realm is remembered **in your browser**, keyed on the page's own address, so a page you dressed a particular way is still dressed that way when you come back. Nothing is written to disk and nothing leaves your machine.");
+		md("Every chip you press anywhere in this realm is remembered **in your browser**, keyed on the page's own address — and a page you have changed says so, with an amber mark above its first line. That mark is the rule: **a demo never persists silently.** The one exception is [Make](/imagine/paging/make/), whose pages are the point rather than a demo, and which writes real files in dev.");
 
 		md("That is useful right up until you want the demos back the way they shipped. **Reset** forgets every one of those changes — the modes, the pages you made under [Make](/imagine/paging/make/), the right-nav variants — and nothing else on the site: they all live under one key prefix, `lew42:paging:` ([the contract](/imagine/paging/doc/persistence.md)).");
 
@@ -120,7 +120,7 @@ export default new Paging({
 
 		this.previews();
 
-		md("The long form: [readme](/imagine/paging/readme/) · [the four mechanisms, with the numbers](/imagine/paging/doc/mechanisms.md) · [what is remembered](/imagine/paging/doc/persistence.md) · [every decision, and what was rejected](/imagine/paging/doc/decisions.md).");
+		md("The long form is [Docs](/imagine/paging/doc/) — [the four mechanisms, with the numbers](/imagine/paging/doc/mechanisms/) · [what is remembered, and where it is kept](/imagine/paging/doc/persistence/) · [every decision, and what was rejected](/imagine/paging/doc/decisions/). The short version is the [readme](/imagine/paging/readme/).");
 	},
 
 	/* ONE TEACHING BLOCK — the word, the one sentence a reader should leave with,
@@ -137,7 +137,11 @@ export default new Paging({
 
 			demo.draw();
 
-			a.c("page-link paging-teach-more", "The real " + demo.word + ", at full size →").href(demo.real);
+			/* ⚠ THE LINK SAYS WHAT ITS PAGE DOES. All four used to read "The real X, at
+			   full size", which is only true of `takeover` — the other three open as an
+			   ordinary column of the row. `demos.js` carries the sentence per
+			   mechanism now, and each one is the landing page's own first words. */
+			a.c("page-link paging-teach-more", demo.says).href(demo.real);
 		});
 	},
 });
