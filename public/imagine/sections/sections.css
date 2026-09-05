@@ -17,6 +17,25 @@
    file except hairlines and the two stacking floors, which are `rem` on purpose
    (`rem` is 16px at every viewport; `em` here is a viewport clamp). */
 
+/* ⚠ ONE RULE IN `util`, AND IT IS A WORKAROUND, NOT A DESIGN.
+   `framework.css` (util layer, line 783) says `:first-child { margin-top: 0 }` and
+   `:last-child { margin-bottom: 0 }`, on purpose, to collapse a container's outer gap.
+   `Page.css` (theme layer) says a bled block in a column spends the column's inset
+   back — `margin-block-start: calc(var(--page-column-pad-y) * -1)`. A util rule beats
+   a theme rule at ANY specificity, so for a bled block that is its column's only
+   child — every stack of sections — the block-axis half of `bleed` is silently dead:
+   measured 2026-09-05, `margin-inline: -30.72px` applied and `margin-top: 0px` did not,
+   leaving a 15px strip of column floor above and below a full-screen section.
+
+   Restating Page.css's own declaration here, in the layer that can win, scoped to this
+   realm's stack. The real fix belongs upstream and is a proposal in this task's log:
+   either move Page.css's two lines into `util` beside the rule they lose to, or narrow
+   `framework.css` to `:first-child:not(.bleed)`. */
+@layer util {
+	.page-column-prose > .sections-stack.bleed:first-child { margin-block-start: calc(var(--page-column-pad-y) * -1); }
+	.page-column-prose > .sections-stack.bleed:last-child  { margin-block-end:   calc(var(--page-column-pad-y) * -1); }
+}
+
 @layer theme {
 
 	/* ── THE STACK ─────────────────────────────────────────────────────────────
@@ -189,6 +208,17 @@
 	.sections-text { margin: 0; line-height: 1.55; max-width: var(--measure, 40em); }
 	.sections-note { font-size: 0.78em; line-height: 1.5; color: var(--subtle); }
 
+	.sections-rows { display: flex; flex-direction: column; }
+
+	.sections-row {
+		display: flex; flex-wrap: wrap; align-items: baseline;
+		gap: calc(var(--gap-ramp) * 0.5);
+		padding: calc(var(--pad-default) * 0.3) 0;
+		border-block-end: 1px solid var(--line);
+	}
+
+	.sections-row-name { min-width: 6em; font-size: 0.9em; font-weight: 600; }
+
 	.sections-tiles {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(min(14em, 100%), 1fr));
@@ -323,8 +353,13 @@
 	@container sections-band (width < 52rem) {
 		.sections-grid { --sections-tracks: minmax(0, 1fr); }
 
-		.sections-hold { position: static; max-height: none; }
-		.sections-body { overflow: visible; }
+		/* ⚠ THE SAME SELECTORS THE WORDS USE, not the bare part. A container query
+		     block is still ordinary CSS: `.sections-hold { position: static }` at
+		     (0,1,0) loses to `.sections-stuck .sections-hold` at (0,2,0), and the
+		     sidebar stayed sticky at 400 with nothing thrown (measured 2026-09-05). */
+		.sections-stuck .sections-hold { position: static; }
+		.sections-inner .sections-hold { max-height: none; }
+		.sections-inner .sections-body { overflow: visible; }
 
 		.sections-side { border-inline-end: 0; }
 		.sections-aside, .sections-notes { border-inline-start: 0; }

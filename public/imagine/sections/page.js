@@ -1,5 +1,5 @@
 import { Page, span, p } from "/app.js";
-import { SectionsBand, SectionsStack, SectionsNav, heading, tiles, link } from "./sections.js";
+import { SectionsBand, SectionsStack, SectionsNav, heading, rows, tiles, link } from "./sections.js";
 
 /* ── layout, answered before the first factory call ────────────────────────────
    1 CONTAINER  a column in /imagine/'s columns host, so content lands in
@@ -24,7 +24,12 @@ const study = ({ idea, demo, ...words }) => new SectionsBand({
 	cols: 3, dist: "rail-main-aside", frame: "flush", chrome: "tint", face: "plain", stick: "on",
 	side: () => { p.c("sections-text", idea); },
 	main(band){ if (demo) band.$inner = demo(band); },
-	aside(band){ (band.$inner ?? band).controls(); },
+
+	/* The chips belong to whatever the middle built, when that is a section of its
+	   own; otherwise they are this section's. ⚠ A `demo` that builds a STACK, or
+	   several sections, returns something with no chips at all — hence the check for
+	   the method rather than for the value. */
+	aside(band){ (typeof band.$inner?.controls === "function" ? band.$inner : band).controls(); },
 	...words,
 });
 
@@ -45,7 +50,7 @@ export default new Page({
 
 			/* ── 1 · THE FRAME ── the section that is its own demonstration ── */
 			new SectionsBand({
-				cols: 3, dist: "golden", frame: "flush", chrome: "tint", face: "card", stick: "on",
+				cols: 3, dist: "golden", frame: "flush", chrome: "tint", face: "card", back: "tint", stick: "on",
 				axes: ["cols", "dist", "frame", "chrome", "face", "back", "stick"],
 
 				head: () => {
@@ -57,13 +62,13 @@ export default new Page({
 
 				side: () => {
 					p.c("sections-text", "A section is one horizontal band of a page, cut into columns. This one has five parts: a head across the top, a column on each side, the middle, and a foot across the bottom.");
-					p.c("sections-text", "The head, the two sides and the foot all wear one colour, and there is no gap between them. So they surround the middle — and the middle reads as framed. Every word of that is a chip on the right.");
+					p.c("sections-text", "The head, the two sides and the foot all wear one colour, and there is no gap between them. So they surround the middle — and the middle reads as framed. Every word of that is a chip you can press, in the last column.");
 				},
 
 				main: () => {
 					heading("The middle");
 					p.c("sections-text", "Whatever you came for goes here: an article, a demo, a dashboard, a wall of cards. It is the only part with no fixed width — it takes what the other columns leave.");
-					tiles(6, "Thing");
+					tiles(8, "Thing");
 				},
 
 				foot: () => { span.c("sections-note", "head  ·  side  ·  main  ·  aside  ·  foot — five parts, one colour on four of them."); },
@@ -103,12 +108,12 @@ export default new Page({
 
 			/* ── 4 · DISTRIBUTIONS ── */
 			study({
-				idea: "Six ways to divide the same row, and they are the same six words /framework/styles/layouts/cols/ already uses. Press one: the measured widths under the chips change with it.",
+				idea: "Six ways to divide the same row, and they are the same six words /framework/styles/layouts/cols/ already uses. Press one and the measured widths, printed under the chips, change with it.",
 				demo: () => new SectionsBand({
 					cols: 3, dist: "equal", frame: "card", chrome: "tint", face: "card", stick: "off",
 					axes: ["cols", "dist"], readout: true,
 					side: () => { heading("Left"); },
-					main: () => { heading("Middle"); p.c("sections-text", "The widths under the chips on the right are read off these three boxes, not calculated."); },
+					main: () => { heading("Middle"); p.c("sections-text", "The widths printed under the chips are read off these three boxes, not calculated."); },
 					aside: () => { heading("Right"); },
 				}),
 			});
@@ -165,21 +170,21 @@ export default new Page({
 
 			/* ── 8 · STICKY SIDES, CONFINED ── the section IS the demonstration ── */
 			new SectionsBand({
-				cols: 3, dist: "rail-main-aside", frame: "flush", chrome: "tint", face: "card", stick: "on", tall: 2,
+				cols: 3, dist: "rail-main-aside", frame: "flush", chrome: "tint", face: "card", stick: "on", tall: 1.4,
 				axes: ["stick", "dist", "chrome"],
 
 				head: () => { span.c("sections-tile-name", "Sticky sides, confined to their section"); },
 
 				side: () => {
-					p.c("sections-text", "This section's middle is two screens tall. Scroll it: these two side columns stay with you.");
+					p.c("sections-text", "This section's middle is much taller than the screen. Scroll it: these two side columns stay with you.");
 					p.c("sections-text", "But only while this section is on screen. They cannot leave it — the box that sticks lives inside the column, and a column ends where its section ends. The next section's own sides take over, with nothing watching the scroll.");
 					link("/imagine/sections/full/", "the other way: a full screen where the middle scrolls");
 				},
 
 				main: () => {
-					heading("Two screens of middle");
+					heading("A middle taller than the screen");
 					p.c("sections-text", "Keep scrolling. The two sides hold their place until the bottom of this section reaches them, and then they leave with it.");
-					tiles(9, "Row");
+					rows(30, "Row");
 				},
 
 				foot: () => { span.c("sections-note", "The bottom of the section. Below this line, the next section's sides are the ones that stay."); },
@@ -187,21 +192,21 @@ export default new Page({
 
 			/* ── 9 · A SIDEBAR TALLER THAN THE SCREEN ── */
 			new SectionsBand({
-				cols: 3, dist: "rail-main-aside", frame: "flush", chrome: "tint", face: "card", stick: "on", inner: "on", tall: 2,
+				cols: 3, dist: "rail-main-aside", frame: "flush", chrome: "tint", face: "card", stick: "on", inner: "on", tall: 1.4,
 				axes: ["inner", "stick"],
 
 				head: () => { span.c("sections-tile-name", "A sidebar taller than the screen"); },
 
 				side: () => {
 					p.c("sections-text", "A sidebar can hold more than a screen of its own. Cap it at one screen, let its body scroll, and pin a footer to the bottom — so the way out is visible however short the screen is.");
-					p.c("sections-text", "Turn the chip off on the right and this column goes back to being as tall as its content, which on a short screen puts the footer somewhere you cannot reach.");
+					p.c("sections-text", "Turn the sidebar-scroll chip off and this column goes back to being as tall as its content, which on a short screen puts the footer somewhere you cannot reach.");
 					for (let i = 1; i <= 12; i++) p.c("sections-note", "Row " + i + " of a list long enough to need its own scrollbar.");
 				},
 
 				main: () => {
-					heading("Still two screens tall");
+					heading("Still taller than the screen");
 					p.c("sections-text", "Scroll: the pinned footer at the bottom of each side column stays exactly where it is, and the list above it scrolls inside the column.");
-					tiles(9, "Row");
+					rows(30, "Entry");
 				},
 
 				pin: () => { link("/imagine/sections/nav/", "the nav page"); span.c("sections-note", "pinned"); },

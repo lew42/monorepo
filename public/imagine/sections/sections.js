@@ -262,7 +262,26 @@ export class SectionsBand extends View {
 
 	measure(){
 		const box = this.scroller();
-		return this.style({ "--sections-screen": (box ? box.clientHeight : window.innerHeight) + "px" });
+		const screen = box ? box.clientHeight : window.innerHeight;
+		let fit = screen;
+
+		/* A sticky or inner-scrolling SIDEBAR wants the height of the viewport it
+		   lives in, which is exactly the scroller's client height.
+
+		   A SCREEN section wants something else: the room left for it after the
+		   chrome its scroller has above and below. A column has a head bar and a
+		   prose inset, and `clientHeight` counts both — a screen band sized from it
+		   overflowed its column by 90px (measured 2026-09-05, /imagine/sections/full/).
+		   ⚠ The correction is geometric, not iterative. Neither `top` nor `after`
+		     depends on the band's own height, so re-measuring on every resize lands on
+		     the same number instead of oscillating shrink / grow / shrink. */
+		if (box && this.hc("sections-screen")){
+			const rect = this.el.getBoundingClientRect();
+			const top = rect.top - box.getBoundingClientRect().top + box.scrollTop;
+			fit = Math.max(0, screen - top - Math.max(0, box.scrollHeight - top - rect.height));
+		}
+
+		return this.style({ "--sections-screen": Math.round(fit) + "px" });
 	}
 
 	watch(){
@@ -483,6 +502,16 @@ export const lines = (n, word = "This is the middle column. It is the part of a 
 };
 
 export const heading = text => h3.c("sections-title", text);
+
+/* A LIST, long enough to make a section taller than the screen — and the realistic
+   version of that, rather than a box with a forced height and nothing in it. A row of
+   one list may span its box (the spacing decision, U3). */
+export const rows = (n, label = "Row") => div.c("sections-rows", () => {
+	for (let i = 1; i <= n; i++) div.c("sections-row", () => {
+		span.c("sections-row-name", label + " " + i);
+		span.c("sections-note", "One line of a list, and there are " + n + " of them.");
+	});
+});
 
 export const tiles = (n, label = "Tile") => div.c("sections-tiles", () => {
 	for (let i = 1; i <= n; i++) div.c("sections-tile", () => { span.c("sections-tile-name", label + " " + i); });
