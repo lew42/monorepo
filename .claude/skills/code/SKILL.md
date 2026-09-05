@@ -126,6 +126,10 @@ Write as little CSS as possible; a component starts with no stylesheet. `css` fi
 - Only `p()`/`h1`–`h6` read backticks; a backtick inside `` css(`…`) `` kills every page.
 - A stylesheet that 404s resolves and warns — check the console. Windows: `pkill` matches nothing.
 - `.append(fn)` calls `fn.call(this, this)` — a bare reference gets the View as its FIRST argument. `.append(hero)` on a `tone => view` band handed it a View where its tone goes; twelve specimens rendered the default surface, nothing threw. Pass `() => fn(args)`, never a bare reference, to anything that takes parameters.
+- **A captured callback's RETURN VALUE is appended too.** `div.c("row", () => chip(x))` appends the chip twice (the captor, then the return — and the second append MOVES it to the end); `$p => this.regions.set(name, $p)` painted a literal `[object Map]`. A builder callback ends in a statement (`() => { chip(x); }`), never an expression, unless you mean to append what it returns (2026-08-27, 08-30).
+- **The bare factory chains `.c()` and nothing else** — `input.attr("type", "text")` throws `input.attr is not a function` (three pages, two sessions, one day); it is `input().attr(…)` or `input.c("x").attr(…)`.
+- **`card` `label` `icon` `description` `classes` `topic` `topics` `width` `index` `leaf` `src` `depth` are DATA core reads off a page** — `Page.nav()` returns `card: this.card` as the preview's classes, so a page METHOD by any of those names dies three frames away in core (`arg.split is not a function`), on the PARENT page. Before naming a Page method, grep `Page.nav()`'s fields and your own config keys (2026-08-30, three hits).
+- **A new core method named after a plain noun collides with page state that already exists** — `Page.opens()` was shadowed by a page's `opens: 0` field and killed it. A new `Page`/`View`/`App` method gets its family's prefix, and `grep -rn "opens[:=]" public/` before naming (2026-08-27).
 
 ## 8. Before you add anything
 

@@ -1,1 +1,15 @@
 {"at":"2026-08-30T18:20:00-05:00","op":"set","path":["headline"],"value":"The wire is live"}
+{"at":"2026-09-04T22:21:19.715Z","op":"set","path":["headline"],"value":"The wire is live."}
+{"at":"2026-09-04T22:21:19.715Z","op":"set","path":["by"],"value":"20f8dc76"}
+{"at":"2026-09-04T22:21:19.930Z","op":"set","path":["headline"],"value":"The wire is live.."}
+{"at":"2026-09-04T22:21:19.930Z","op":"set","path":["by"],"value":"20f8dc76"}
+{"at":"2026-09-04T22:21:20.145Z","op":"set","path":["headline"],"value":"The wire is live..."}
+{"at":"2026-09-04T22:21:20.145Z","op":"set","path":["by"],"value":"20f8dc76"}
+{"at":"2026-09-04T22:22:09.379Z","op":"set","path":["headline"],"value":"The wire is live...."}
+{"at":"2026-09-04T22:22:09.379Z","op":"set","path":["by"],"value":"20f8dc76"}
+{"at":"2026-09-04T22:22:11.968Z","op":"set","path":["headline"],"value":"The wire is live....."}
+{"at":"2026-09-04T22:22:11.968Z","op":"set","path":["by"],"value":"20f8dc76"}
+{"at":"2026-09-04T22:22:12.929Z","op":"set","path":["headline"],"value":"The wire is live......"}
+{"at":"2026-09-04T22:22:12.929Z","op":"set","path":["by"],"value":"20f8dc76"}
+{"at":"2026-09-05T01:09:14.394Z","op":"set","path":["headline"],"value":"PROOF-1788570554369"}
+{"at":"2026-09-05T01:09:14.394Z","op":"set","path":["by"],"value":"1149203a"}

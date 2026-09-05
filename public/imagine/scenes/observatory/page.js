@@ -195,7 +195,7 @@ export default new Scene({
 	camera: { eye: [1.6, 3.0, 9.0], aim: [1.5, 2.1, 0.3] },
 	look: REST,
 
-	content(){ md("**One instrument, four ways to look.** The other doors teach one grain each; here a region of sky, one plate, a camera on its own and one light are four sightings on the same night. Watch the telescope: it is never rebuilt, and it always knows where you are."); },
+	content(){ md("**This room combines all four kinds of swap from the other four doors.** Watch the telescope on the desk as you click through: a patch of sky, an object on the easel, a camera view of its own, and a change of light. The telescope never rebuilds — it just turns to keep tracking wherever you are."); },
 
 	build(stage, theme){
 		const world = new THREE.Group();

@@ -113,7 +113,7 @@ const kids = page => [...page.children.values()].filter(kid => kid?.at);
    what I am, how wide, what is under me, what I draw. */
 export function module(page){
 	const under = kids(page);
-	const shape = SHAPES[under.length ? page.block : "prose"] ?? SHAPES.prose;
+	const shape = shape_for(page);
 	const out = [];
 
 	out.push(shape.md ? `import { Page, md } from "/app.js";` : `import { Page } from "/app.js";`);
@@ -124,14 +124,17 @@ export function module(page){
 
 	// Core's own word — `.page-column-<width>`, a track in the row. An in-place child
 	// never has one: `tree.js` dropped it upstream, so there is nothing to write.
-	if (page.width) out.push(`\twidth: ${JSON.stringify(page.width)},`);
+	const wline = width_line(page);
+	if (wline) out.push("\t" + wline);
 
 	// ⚠ `index: true` — my content already shows my children, so core's column must
 	//   not list them a second time under the wall (or under the tab bar).
 	if (shape.index) out.push("\tindex: true,");
 
 	if (under.length) out.push("", `\tchildren: ${JSON.stringify(under.map(kid => kid.name).join(" "))},`);
-	if (shape.content) out.push("", `\tcontent(){ ${shape.content(page.opt)} },`);
+
+	const cline = content_line(page);
+	if (cline) out.push("", `\tcontent(){ ${cline} },`);
 
 	out.push("});", "");
 
@@ -209,6 +212,27 @@ export function index(names){
 		"});",
 		"",
 	].join("\n");
+}
+
+/* THE SHAPE A PAGE DRAWS AS — factored out of `module()` so the code tab (tree.js)
+   can ask the same question `module()` already asks and never get a different answer.
+   A CHILDLESS PAGE IS A LEAF, whatever word it wears (module()'s own note above). */
+function shape_for(page){
+	const under = kids(page);
+	return SHAPES[under.length ? page.block : "prose"] ?? SHAPES.prose;
+}
+
+// ONE LINE — the `content(){ … }` body a hand-written page.js would have for THIS
+// page, right now. `null` for a shape with none (`list` — core's own column already
+// draws its rows). The code tab's second reason to exist: read this, don't reprint it.
+export function content_line(page){
+	const shape = shape_for(page);
+	return shape.content ? shape.content(page.opt) : null;
+}
+
+// ONE LINE — the `width:` field, or `null` when the page sits on the default track.
+export function width_line(page){
+	return page.width ? `width: ${JSON.stringify(page.width)},` : null;
 }
 
 // Every page in the tree, as `[url path, source]` — the whole write list, in the

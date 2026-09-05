@@ -1,7 +1,7 @@
 # Edit — source, preview, and a draft that survives a reload
 
-Editing `welcome.md`: a textarea, a live preview, one Save button. [`page.js`](./page.js) is
-the whole thing.
+Editing `welcome.md`: a textarea, a live preview, one Save button. `page.js` is the whole
+thing.
 
 ## Use
 
@@ -14,7 +14,7 @@ clear the draft; only Save touches the file on disk.
 
 - The draft note reads "restored" even for text you typed and never reloaded — the label
   means "there is an unsaved draft," not literally "this page just loaded it." Simpler than a
-  second label for the same state: [`doc/decisions.md`](./doc/decisions.md).
+  second label for the same state: [`doc/decisions.md`](/imagine/cms/edit/doc/decisions/).
 - A draft equal to what's already on disk is treated as no draft — restoring it would be
   restoring nothing.
 

@@ -11,7 +11,7 @@ const here = new URL(".", import.meta.url).pathname;
 export default new Screen({
 	meta: import.meta,
 	title: "Divide",
-	description: "Each hop opens a column; the rest share the row.",
+	description: "Each click opens a column; the rest share the row.",
 	icon: "view_column",
 	shapes: ["1", "1 1", "1 1 1", "1 1 1 1"],
 

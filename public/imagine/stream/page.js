@@ -1,4 +1,4 @@
-import { Page, View, md } from "/app.js";
+import { Page, View, md, details, summary } from "/app.js";
 
 View.stylesheet(import.meta, "stream.css");
 
@@ -25,6 +25,11 @@ export default new Page({
 	icon: "sensors",
 
 	width: "large",
+	// ⚠ `content()` already shows every child as a `previews()` wall below — without
+	//   this, core repeats the same three links a second time as a plain rail
+	//   underneath (found live 2026-09-04: a "Live wire / Streamed deck / Streaming
+	//   blocks" text list sat right under the readme links, saying nothing new).
+	index: true,
 
 	children: ["wire", "deck", "blocks"],
 
@@ -38,14 +43,23 @@ measured from the moment the edit was appended to the moment the *other* tab had
 
 		md(`### The two files
 
-A stream is a snapshot and a log, side by side in \`data/\`:
+A stream is a snapshot and a log, side by side in \`data/\`:`);
 
-\`\`\`
+		// ⚠ Depth fix, 2026-09-04: this sample plus the prose around it pushed the page
+		//   ~427px past one screen at 3440×1440 (measured by /imagine/paging/critique/,
+		//   rank 14). The sample is the same two lines either way — folding it into a
+		//   disclosure gets a reader to "What was already here" a whole screen sooner
+		//   without deleting anything. Caveat: if a reader skips disclosures on sight,
+		//   open it by default instead (`.attr("open", "")`).
+		details.c("surface pad", () => {
+			summary("wire.json · wire.jsonl — the two files, side by side");
+			md(`\`\`\`
 wire.json    { "headline": "…", "accent": "#FF6157" }
 wire.jsonl   {"at":"…","op":"set","path":["headline"],"value":"…"}
-\`\`\`
+\`\`\``);
+		});
 
-The \`.json\` is the state a cold window starts from; the \`.jsonl\` is one edit per line.
+		md(`The \`.json\` is the state a cold window starts from; the \`.jsonl\` is one edit per line.
 A tab fetches the snapshot once, then subscribes to the log. Every line that arrives is
 replayed onto the state and the region redraws. Reload mid-stream and you get the snapshot
 plus every delta since — the same state, arrived a different way.
@@ -60,17 +74,20 @@ Almost nothing had to be added to the server. \`Tail\` (the AI board) carries an
 line back down to every window. The one thing genuinely missing was an **append** RPC — an
 edit used to rewrite the whole log, so two windows writing at once lost each other. It is
 wired now, and the difference is measured: **30 of 30 lines survive on append, 11 of 30 on
-the whole-file write** ([\`doc/wire.md\`](./doc/wire.md)).
+the whole-file write** ([the wire](/imagine/stream/doc/wire/)).
 
 ### On Cloudflare
 
 The dev server is the thing that decides what order edits happened in. In production the
 site is static, so that job needs an owner: one **Durable Object per page url**, holding the
 log and fanning it out over WebSockets. The client swaps one url and nothing else — prices,
-limits and the gotchas are in [\`doc/durable-objects.md\`](./doc/durable-objects.md).`);
+limits and the gotchas are in [Durable Objects](/imagine/stream/doc/durable-objects/).`);
 
-		// ⚠ `.md` on the doc links, not the pretty `/doc/<name>/` form — that route belongs
-		//   to a `Doc`-based module and 404s beside a plain Page, masked by the SPA fallback.
-		md(`[readme](./readme/) · [\`doc/wire.md\`](./doc/wire.md) · [\`doc/durable-objects.md\`](./doc/durable-objects.md) · [\`doc/decisions.md\`](./doc/decisions.md)`);
+		// ⚠ Trailing-slash urls, not `.md` — `Router` never intercepts a link ending in an
+		//   extension, so a raw `./doc/wire.md` link used to fall through to a plain static
+		//   fetch (200, `text/markdown`, no stylesheet, no way back to the site). `doc/page.js`
+		//   is the shim that gives each note a real routed url (blogx/doc/page.js's pattern,
+		//   copied here 2026-09-04).
+		md(`[readme](./readme/) · [the wire](/imagine/stream/doc/wire/) · [Durable Objects](/imagine/stream/doc/durable-objects/) · [decisions](/imagine/stream/doc/decisions/)`);
 	},
 });

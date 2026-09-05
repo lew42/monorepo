@@ -90,7 +90,7 @@ const SLIDES = [
 					{ name: "storage.sql", note: "the log, with a row id as the resume cursor" },
 					{ name: "the client", note: "swaps one url and nothing else" },
 				]);
-				notes(null, ["The numbers, the limits and the gotchas: [doc/durable-objects.md](../doc/durable-objects.md)."]);
+				notes(null, ["The numbers, the limits and the gotchas: [Durable Objects](/imagine/stream/doc/durable-objects/)."]);
 			}));
 		},
 	},

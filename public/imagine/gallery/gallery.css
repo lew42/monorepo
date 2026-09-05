@@ -48,11 +48,13 @@
 	.gal-filter { display: block; margin-block-end: 0.8em; max-width: 22em; }
 
 	/* Before and after, side by side, wrapping to one column when the pair no longer
-	   fits — a floor and a ceiling, so neither half can squeeze its cards. */
+	   fits — a floor and a ceiling, so neither half can squeeze its cards.
+	   `--gap-default` (framework.css) instead of a fixed 1.5em: the row is meant to
+	   breathe more at 3440 than at 1280, same as every other grid on the site. */
 	.gal-pair {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(min(22em, 100%), 1fr));
-		gap: 1.5em;
+		gap: var(--gap, var(--gap-default));
 	}
 	.gal-pair > * { min-width: 0; }
 

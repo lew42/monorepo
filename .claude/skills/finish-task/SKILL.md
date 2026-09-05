@@ -39,7 +39,7 @@ future (2026-08-31); the timestamp drifts even in a Write-tool payload. Never wr
 ⚠ **The outcome is full of backticks, and a DOUBLE-QUOTED shell string eats every one as a
 command substitution** — the append succeeds, the JSON parses, and the card renders with the
 code words missing; nothing complains. Bit three times in three days (`node -e` twice,
-`python -c` once). Write the landing line to a scratchpad file with the **Write tool** and
+`python -c` once). Write the landing line to a scratchpad file NAMED AFTER YOUR SLUG (`landing-<slug>.jsonl` — the scratchpad is shared by every agent in the session, and a sibling overwrote a generic name mid-run, 2026-09-04) with the **Write tool** and
 append the FILE's bytes (`[IO.File]::ReadAllText` → `AppendAllText`, or run the file); then
 re-parse every line of the jsonl before walking away.
 

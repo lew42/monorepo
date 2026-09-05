@@ -29,7 +29,7 @@ A grow weight is *not* a share and the difference is silent: see Watch out.
 **Five content kinds, one property between them** — how each answers a wider region.
 `statement` and `stage` scale, `wall` adds columns, `notes` caps at its own measure, and
 `list` **does not scale at all**. That one line is the whole map:
-[`doc/regions.md`](./doc/regions.md).
+[`doc/regions`](/imagine/decks/doc/regions/).
 
 ## The nine
 
@@ -48,7 +48,7 @@ A grow weight is *not* a share and the difference is silent: see Watch out.
 **Persistent vs swap, measured on the same four slides:** the kinds that **cap** (wall, list,
 notes) want the rail — it costs them nothing, six wall columns either way. The kinds that
 **scale** (statement, stage) want the swap — a 16em rail took the statement from 132px to
-113px at 1920. [`doc/decisions.md`](./doc/decisions.md) has the table.
+113px at 1920. [`doc/decisions`](/imagine/decks/doc/decisions/) has the table.
 
 ## Watch out
 
@@ -68,7 +68,7 @@ notes) want the rail — it costs them nothing, six wall columns either way. The
   deeper never deactivates an ancestor. Three ⚠s, all from
   [`/imagine/screens/`](/imagine/screens/doc/decisions.md), reused verbatim in `deck.js`.
 - **Space advances too, everywhere `arrows` is spread in** — guarded off a focused control so
-  it never steals a real link's own Space behaviour: [`doc/decisions.md`](./doc/decisions.md).
+  it never steals a real link's own Space behaviour: [`doc/decisions`](/imagine/decks/doc/decisions/).
   All nine pages answer arrows/space now, not just `pitch/` `persist/` `swap/`.
 - **The footer's N/M numeral lives in `foot()` once, never per cut** — counted from the same
   `items` array the chips are drawn from, so it cannot disagree with them. A `.decks-foot-n`
@@ -76,10 +76,10 @@ notes) want the rail — it costs them nothing, six wall columns either way. The
 
 ## More
 
-- [`doc/regions.md`](./doc/regions.md) — the content-kind map: which kind belongs in a region
-  of what width, with the measured widths of every cut at 400 / 1920 / 3440.
-- [`doc/decisions.md`](./doc/decisions.md) — the record: the head-to-head table, what was
-  measured and rejected, and the slice that was built, shot and cut.
+- [`doc/regions`](/imagine/decks/doc/regions/) — the content-kind map: which kind belongs in a
+  region of what width, with the measured widths of every cut at 400 / 1920 / 3440.
+- [`doc/decisions`](/imagine/decks/doc/decisions/) — the record: the head-to-head table, what
+  was measured and rejected, and the slice that was built, shot and cut.
 - Files that matter: `deck.js` (the `Deck` class and the five content kinds), `decks.css`
   (the cut, the tone step, the two rails), `slides.js` (the four slides both head-to-head
   decks show — one source, two navigation modes).

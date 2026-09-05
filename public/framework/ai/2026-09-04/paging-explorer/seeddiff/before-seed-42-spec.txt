@@ -1,0 +1,11 @@
+vtabs small
+  prose
+  list
+    wall large
+      prose small
+wall
+  tabs
+    list
+      prose
+    prose
+prose

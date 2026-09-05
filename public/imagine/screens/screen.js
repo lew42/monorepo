@@ -62,8 +62,24 @@ export class Screen extends Page {
 
    No `to` makes a dead area: the last hop has nowhere further down, and the crumb strip
    is how you come back up. */
-export const sheet = (to, build) => (to ? a.c("screens-area").href(to) : div.c("screens-area"))
-	.append(() => div.c("screens-block", () => build()));
+export const sheet = (to, build) => {
+	const box = to ? a.c("screens-area").href(to) : div.c("screens-area");
+
+	/* CLOSING A HOP. `to` only ever pointed FORWARD, fixed at build time — a page's
+	   view is built once (`render()` caches it) and never rebuilt when a child opens
+	   beside it, so there is no re-render to hook when `to` becomes the hop you are
+	   already standing on. Left alone, clicking a box whose `to` is already open just
+	   re-navigates to exactly where you are: Router.activate() finds nothing changed
+	   and the click does nothing (Divide, Two kept Three active — 2026-09-04).
+	   Checked live at CLICK TIME instead: if `to` is already open, the click means the
+	   opposite of what it says, so it goes one hop up from `to` — the box's OWN url,
+	   the same place its crumb already points — which is what closes everything past
+	   it. Not a dead click's `display: none` (screens-peek's fix, one door only): a
+	   forward hop opens something to close again, so both directions stay live. */
+	if (to) box.on("click", () => box.href(location.pathname.startsWith(to) ? to.replace(/[^/]+\/$/, "") : to));
+
+	return box.append(() => div.c("screens-block", () => build()));
+};
 
 /* The shorthand every experiment uses: a title, a note under it, and the whole sheet is
    the link. */

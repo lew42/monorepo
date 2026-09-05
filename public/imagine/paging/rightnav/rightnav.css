@@ -1,0 +1,113 @@
+/* /imagine/paging/rightnav/ — the persistent right tree + swapping centre.
+
+   Reuses the program's own vocabulary wherever it already fits: `.paging-item`
+   `.paging-panel` `.paging-toolbar` `.paging-group` `.paging-axis` `.paging-chip`
+   `.paging-card` `.paging-box` `.paging-wall` `.paging-brick` `.paging-line` all
+   come from ../paging.css. Only the two-pane split (tree beside centre) and its
+   three variants are new here. */
+
+@layer theme {
+
+	/* A FIXED height, not a floor: the tree's whole point is that it never moves,
+	   and a `min-height` lets the row grow with whichever leaf is tallest (the
+	   `wall`) then shrink for the next one — measured 183px of tree movement
+	   between two real leaves (2026-09-04). `overflow-y: auto` on the tree and
+	   the centre below is what makes a fixed height safe for either content. */
+	.paging-rightnav-body {
+		display: flex; align-items: stretch; gap: 0;
+		height: clamp(20em, 45vh, 34em);
+	}
+
+	/* Default DOM order is centre-then-tree, which reads as the tree on the
+	   RIGHT with no reordering at all; this flips it for the `side: left` chip. */
+	.paging-rightnav-body.side-left { flex-direction: row-reverse; }
+
+	.paging-rightnav-tree {
+		flex: 0 0 var(--paging-rightnav-w, 14em); min-width: 0;
+		display: flex; flex-direction: column; gap: 0.35em;
+		padding: var(--pad, var(--pad-default));
+		background: var(--wash);
+		overflow-y: auto;
+	}
+
+	/* `narrow` (14em) is tight for a label like "Paragraph" once an icon and the
+	   mechanism sign both share the row — truncate rather than wrap it to two
+	   lines, same call a compact rail makes everywhere else on the site. */
+	.paging-rightnav-tree .paging-item-words { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+	.paging-rightnav-centre {
+		flex: 1 1 auto; min-width: 0;
+		padding: var(--pad, var(--pad-default));
+		overflow-y: auto;
+	}
+
+	/* The "little nav card on a white card" the owner asked for: once the whole
+	   thing sits `inside` a `.paging-box`, the centre reads as its white surface
+	   and the tree keeps the grey `--wash` it always has. `outside` leaves both
+	   transparent — the ambient page/frame shows through either side. */
+	.paging-box .paging-rightnav-centre { background: var(--surface); }
+
+	/* Which item is current — Router.mark_links() keeps `.active` in step on
+	   every swap, so the tree needs nothing of its own to know what's showing. */
+	.paging-rightnav-tree .paging-item:is(.active, [aria-current]) {
+		background: var(--fill-a16); border-color: var(--prim); color: var(--prim-ink);
+	}
+
+	/* Nothing marked yet on a cold load — the router's own url is still the
+	   root's, so the FIRST leaf lights instead (catalog.css's own precedent: "the
+	   first card leads the rail"). It is what the centre is actually showing. */
+	.paging-rightnav-tree:not(:has(.paging-item:is(.active, [aria-current]))) > .paging-item:first-child {
+		background: var(--fill-a16); border-color: var(--prim); color: var(--prim-ink);
+	}
+
+	.paging-rightnav-branch { display: flex; flex-direction: column; gap: 0.35em; }
+
+	/* `.paging-panel`'s 1.1em indent (paging.css) is tuned for the wider `.paging-
+	   box` it was built for — inside a 14em `narrow` rail it left "Contract" too
+	   little room to keep one line. A smaller indent, not a wider rail. */
+	.paging-rightnav-tree .paging-panel { margin-inline-start: 0.4em; padding-inline: 0.5em; }
+
+	/* ⚠ The theme styles every `button` at `.theme-lew42 :is(button, .btn)`
+	   (0,2,0), which out-specifies `.paging-item` (0,1,0) in the SAME layer — a
+	   branch row (a real `<button>`, since it only expands) came back uppercase
+	   and bold while every `<a>` row next to it stayed sentence-case (css skill,
+	   "a bare button IS in play"). One extra type selector is enough to win back. */
+	.paging-rightnav-tree button.paging-item { text-transform: none; font-weight: 400; letter-spacing: normal; }
+
+	/* `expand`'s own chevron: same glyph both states, just turned — the mechanism
+	   is "the item grows", not "the icon changes". */
+	.paging-rightnav-tree .paging-sign.paging-rightnav-open { transform: rotate(180deg); }
+
+	/* ── 400: the rail collapses to a bar ──────────────────────────────────────
+	   Same rows, turned sideways and scrolling — the catalog rail's own mobile
+	   strip (catalog.css) is the precedent. Labels go with it: a horizontal bar
+	   this narrow has room for icons, not words, and the current mark still
+	   reads on the icon's own outline. */
+	@media (max-width: 30em) {
+		/* ⚠ `.side-left` is TWO classes (0,2,0) and out-specifies a bare
+		   `.paging-rightnav-body` (0,1,0) regardless of source order or the media
+		   query — restated against the same selector so the collapse always wins. */
+		.paging-rightnav-body, .paging-rightnav-body.side-left { flex-direction: column; height: auto; min-height: 0; }
+
+		.paging-rightnav-tree {
+			flex: 0 0 auto; flex-direction: row; align-items: stretch;
+			overflow-x: auto; overflow-y: visible;
+		}
+
+		.paging-rightnav-tree .paging-rightnav-branch { flex-direction: row; }
+		.paging-rightnav-tree .paging-item { flex: 0 0 auto; }
+		.paging-rightnav-tree .paging-item-words { display: none; }
+		.paging-rightnav-tree .paging-panel { flex-direction: row; margin-inline-start: 0; }
+
+		.paging-rightnav-centre { min-height: 16em; }
+	}
+}
+
+@layer util {
+
+	/* A default leaf that is ALSO the one really routed to must stay visible —
+	   core's own columns rule (Page.css) is the precedent for this exact guard;
+	   `.paging-rightnav-centre` is not `.pages`, so it needs its own copy. */
+	.paging-rightnav-centre:has(> .page:is(.active-page, .active-ancestor))
+		> .page.default:not(.active-page, .active-ancestor) { display: none; }
+}

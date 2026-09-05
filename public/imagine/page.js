@@ -29,6 +29,7 @@ export default new Page({
 	   a section's own columns arrive when you open it. Without this the place cost 92
 	   page.js modules to show 15 (measured 2026-08-30). doc/declaring.md. */
 	depth: 1,
+	width: "small",   // the rail. `small` scales now (14em at 1280, 24em at 3440); without it the nav is a 46em reading column
 
 	initialize(){ this.columns(); },
 
@@ -53,6 +54,6 @@ export default new Page({
 			},
 		},
 
-		"team", "design", "game", "gallery", "scenes", "vary", "screens", "shells", "feeds", "mag", "blogx", "decks", "youtube", "cms", "research", "stream", "generated",
+		"team", "design", "platform", "paging", "review", "game", "gallery", "scenes", "vary", "screens", "shells", "feeds", "mag", "blogx", "decks", "youtube", "cms", "research", "stream", "generated",
 	],
 });

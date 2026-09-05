@@ -13,6 +13,8 @@ public/framework/ai/usage.json
 # bulk screenshot dirs under the ai log — browsable on the dev server, never committed (Mike, 2026-08-17)
 public/framework/ai/**/shots/
 
+.wrangler/
+
 branch_structure.json
 temp_auto_push.bat
 temp_interactive_push.bat

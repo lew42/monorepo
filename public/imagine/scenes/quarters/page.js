@@ -103,7 +103,7 @@ export default new Scene({
 
 	camera: { eye: [0, 11, 15], aim: [0, 0.4, 0] },
 
-	content(){ md("**Region swap.** Four pads on one plate. Each child claims a slot named after its own corner, so arriving builds that corner and leaves the other three — and the beacon crossing the middle — exactly where they were."); },
+	content(){ md("**Four pads on one plate — click a corner** and only that corner changes. The other three, and the beacon still crossing the middle, stay exactly as they were: this door swaps one region of the world, not the whole thing."); },
 
 	build(stage, theme){
 		const world = new THREE.Group();

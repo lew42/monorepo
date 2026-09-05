@@ -53,7 +53,7 @@ export default new Page({
 
 		md(`The pane on the right is a region built entirely from state. Add a block in one
 window and it appears in the other; change the accent and both change. What does **not**
-stream is behaviour — see [\`doc/decisions.md\`](../doc/decisions.md).`);
+stream is behaviour — see [decisions](/imagine/stream/doc/decisions/).`);
 
 		this.streaming ??= this.stream.live(() => this.changed());
 		this.streaming.then(() => this.draw(true));

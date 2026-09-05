@@ -9,7 +9,7 @@ Press play, press **M** at each boundary, name them, copy the array out.
 ## The shape, and why there is no Apply button
 
 **The marks you are making ARE the live timeline.** The page owns a `Cues` of its own
-([`cues.md`](./cues.md)) and runs it off the player's clock, so the "now showing" line under
+([`cues.md`](/imagine/youtube/doc/cues/)) and runs it off the player's clock, so the "now showing" line under
 the video is derived from the very array in the box below it:
 
 ```js /imagine/youtube/marks/page.js

@@ -14,7 +14,7 @@ const here = new URL(".", import.meta.url).pathname;
 export default new Screen({
 	meta: import.meta,
 	title: "Uneven",
-	description: "A basis pair is the ratio, exactly.",
+	description: "Two numbers set the exact split — like 61.8/38.2.",
 	icon: "straighten",
 	classes: "screens-major",
 	shapes: ["1", "1.618 1", "3.1 1.9 1"],

@@ -2,7 +2,7 @@
 
 **The film.** Dan Farah's directorial debut premiered at SXSW on Mar 9 2025 and opened wide on Amazon Prime Video and in theaters Nov 21 2025, narrated by Luis Elizondo. Per its [Wikipedia entry](https://en.wikipedia.org/wiki/The_Age_of_Disclosure), 34 named officials appear on camera, including Secretary of State Marco Rubio, former DNI James Clapper, former acting Secretary of Defense Christopher Miller, Christopher Mellon, pilots David Fravor and Alex Dietrich, and "Legacy Programs" sources Karl Nell and Jay Stratton. *(established — who appears and what they say on camera is not in dispute)*
 
-**The claim.** An 80-year cover-up of non-human intelligence, and an active great-power race to reverse-engineer recovered technology — the same "Legacy Programs" narrative also described by Grusch (see [Grusch, AARO, and the whistleblower fight](./grusch-aaro.md)), now delivered by more, and more senior, named voices. *(fringe)*
+**The claim.** An 80-year cover-up of non-human intelligence, and an active great-power race to reverse-engineer recovered technology — the same "Legacy Programs" narrative also described by Grusch (see [Grusch, AARO, and the whistleblower fight](../grusch-aaro/)), now delivered by more, and more senior, named voices. *(fringe)*
 
 **The reception split.** The film drew a 93% Rotten Tomatoes audience score and was Amazon's fastest-grossing documentary in its first 48 hours — against a 27% critics score and a Metacritic 45 ("mixed or average"). The *New York Times* called it a film only "a chump" sits through; the *Hollywood Reporter* called it "a basic cable exploitation doc done up with a fancy gloss." *(established)*
 

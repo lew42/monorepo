@@ -60,6 +60,20 @@ flips one flag the poll checks, so `load()` stays the one fetch function either 
 Proved headless: `poll()` while paused leaves `updated_at` untouched, `poll()` while
 live advances it, and navigating away calls `clearInterval` exactly twice.
 
+## `index: true` + `width: "large"` (2026-09-04 review)
+
+Found live: `page.js`'s `content()` already draws Video/Data/Live as three `previews()`
+cards, but core's default `column()` was ALSO listing the same three children a second
+time underneath, as a plain link list — the same bug `/imagine/gallery/` and
+`/imagine/design/` had, same fix (doc/columns.md's `index:` field, added there
+2026-08-19). `width: "large"` (28-64em) so the three cards fit one row instead of
+stacking in the 40em default track. Verified: hub rail survives at 1280 and 3440 (the
+`/imagine/gallery/` `width: "full"` regression this codebase already reverted once does
+not apply — `large` never collapses an ancestor column). Caveat: at 3440 the 64em cap
+still leaves most of the row empty (matches `paging/critique`'s feeds row); undo to
+`full` only if a future wall grows past ~4-5 children and the owner decides the hub rail
+matters less than filling the row.
+
 ## Verified headless (2026-08-29), all three widths (400 / 1920 / 3440)
 
 - **video/**: 0 iframes on load and on a talk's own page before clicking; 1 iframe with

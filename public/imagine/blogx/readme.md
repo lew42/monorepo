@@ -59,13 +59,13 @@ export default new Blog({
   grey holes. The seams are an inset `box-shadow` on the cells instead.
 - **A grid can be the right height with a content-sized row.** `min-height: 100%` and
   `align-content: start` together left 54% of a 1080 screen white under a composition
-  that had already fitted. [`doc/decisions.md`](/imagine/blogx/doc/decisions.md)
+  that had already fitted. [`doc/decisions`](/imagine/blogx/doc/decisions/)
 
 ## Watch out
 
 - Four of the eight posts carry `real: "<section>/<name>"` — a link to the actual post at
   `/blog/` they mirror, rendered once per post by `Blog.article()`:
-  [`doc/decisions.md`](/imagine/blogx/doc/decisions.md).
+  [`doc/decisions`](/imagine/blogx/doc/decisions/).
 
 - A blog shell is **not a column**. `/imagine/` is a columns host and `column_host()`
   returns the *shallowest* columnar ancestor, so a page here renders as a column of that
@@ -82,10 +82,10 @@ export default new Blog({
 
 ## More
 
-- [`doc/decisions.md`](/imagine/blogx/doc/decisions.md) — every measurement, what was rejected, and
+- [`doc/decisions`](/imagine/blogx/doc/decisions/) — every measurement, what was rejected, and
   what is left for the owner
 - Files: `Blog.js` (the class, the shared pieces, the three depth classes), `blogx.css`
   (the one grid, the three tones), `posts.js` (the corpus), one `page.js` per candidate
-- Related: [`core/Page/doc/columns.md`](/framework/core/Page/doc/columns.md) ·
+- Related: [`core/Page/doc/columns`](/framework/core/Page/doc/columns/) ·
   [`/imagine/shells/`](/imagine/shells/) (the 3×3 chrome grid this borrows) ·
   [`/imagine/screens/`](/imagine/screens/) (display type sized off its own block)

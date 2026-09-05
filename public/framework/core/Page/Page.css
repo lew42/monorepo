@@ -564,13 +564,13 @@
 	     happening. It pays only where a wall is guaranteed a full row, which is why
 	     `browse.css:34` scopes it to `.browse-band`. And an empty track is what a
 	     `--column`-sized wall IS: the sweep's own prompt feedback #5 says so.
-	   `start`, not the default `stretch`: a cell is as tall as what it shows, and
-	   stretching hands the short ones their dead space straight back. */
+	   The default `stretch`, not `start` (the owner, 2026-09-04): `start` made every
+	   row a skyline of uneven card bottoms, which reads worse than the short cards'
+	   empty lower halves. It was `start` from 2026-08-17 to 2026-09-04. */
 	.wall, .page-previews:where(:not(.page)) {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(min(var(--column, 18em), 100%), 1fr));
 		gap: var(--gap, var(--gap-default));
-		align-items: start;
 	}
 	.wall > *, .page-previews > * { margin: 0; }
 

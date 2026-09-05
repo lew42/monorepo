@@ -1,9 +1,10 @@
 # Screens — full-screen experiences, and what navigation does to one
 
-Eight experiments at [`/imagine/screens/`](/imagine/screens/), each a real url tree you can
-walk. `/imagine/` is a columns host, so a screen here is not a shell: it is the width word
-**`full`**, which folds the rail and the index into the crumb strip and leaves you the
-viewport ([columns](/framework/core/Page/doc/columns/)).
+**Eight small demos of what clicking "next" can do to your screen** — replace it, split it,
+layer it — at [`/imagine/screens/`](/imagine/screens/), each a real page you can click into
+and back out of. Under the hood, `/imagine/` is a columns host, so a screen here is not a
+shell: it is the width word **`full`**, which folds the rail and the index into the crumb
+strip and leaves you the viewport ([columns](/framework/core/Page/doc/columns/)).
 
 ## Use
 
@@ -63,6 +64,10 @@ simply the column. [`doc/decisions.md`](./doc/decisions.md) has the before/after
   came through is `.active-ancestor`, on the **page**.
 - **A tone rule can outrank a hover** and nothing throws — the area is still a link, it just
   stops responding. `:where()` on the state half keeps it at (0,1,0).
+- **A box whose hop is already open now closes it, not re-opens it.** A page's view is built
+  once, so a fixed forward `to` used to re-navigate to itself and do nothing (Divide, Two kept
+  Three active — [`doc/decisions.md`](./doc/decisions.md)). `sheet()` checks live at click
+  time instead.
 - **A column body is `--wash`** (Page.css), which is exactly the tone a screen behind you steps
   down to — the quad's quadrants take `--surface` so the seam survives.
 - **Prose in a `fill` column** gets a 1389px line — the quadrants cap it at 40em.

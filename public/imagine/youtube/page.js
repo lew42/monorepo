@@ -22,5 +22,20 @@ export default new Page({
 		md("**Marks** is the stopwatch the other five were written with: watch, press M at each boundary, copy out the array.");
 	},
 
+	// ⚠ `panel` is shown as the `default` column WITHOUT ever being routed to, and
+	//   Page.class.js's `render_column()` only `render()`s a default column — it never
+	//   `activate()`s it (core/Page/Page.class.js:307). Landing here cold, `panel`'s own
+	//   `activated()` never ran, so its keydown listener was never attached: every key on
+	//   the legend (Space, arrows, J/L, M, 0-9) did nothing at all, and the reverse bug
+	//   was worse — pressing play then leaving for another page never called `rest()`,
+	//   so the 4×/second poll ran forever (`Player.live` never dropped back to 0).
+	//   `uses/split`'s parent already carries this exact workaround for a never-routed
+	//   region (Page.class.js:60); this mirrors it for a never-routed COLUMN. Once you
+	//   actually navigate to `/panel/` the router activates/deactivates it normally and
+	//   this is a harmless no-op re-entry (`render()`/`activate()` are both idempotent).
+	//   The real fix belongs in `render_column()` — proposed in doc/decisions.md.
+	activated(){ this.default_column()?.activate(); },
+	deactivated(){ this.default_column()?.deactivate(); },
+
 	children: "panel course yield split chat marks",
 });

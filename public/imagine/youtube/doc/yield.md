@@ -54,7 +54,7 @@ const BEATS = [
 
 Aside, back, aside, back, aside, back — the return is as much of the design as the departure.
 Every beat sets an absolute step number, so a backward scrub replays the table and lands on the
-right screen ([`cues.md`](/imagine/youtube/doc/cues.md)).
+right screen ([`cues.md`](/imagine/youtube/doc/cues/)).
 
 ## The data is yours, the step is the timeline's
 
@@ -71,5 +71,5 @@ nothing else on the page moves.
 
 ## Related
 
-- [`cues.md`](./cues.md) — the engine
-- [`decisions.md`](./decisions.md) — what was cut
+- [`cues.md`](/imagine/youtube/doc/cues/) — the engine
+- [`decisions.md`](/imagine/youtube/doc/decisions/) — what was cut

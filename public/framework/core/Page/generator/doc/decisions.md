@@ -836,3 +836,67 @@ console errors; no horizontal body scroll at 400, 1920 or 3440.
 - **Exporting the dressing.** `size`, `gap` and `look` are how you like a tree worn, not the
   tree — the same split `store()` already keeps. A `look` in an exported file would be a class
   from `/imagine/vary/colstyles/` that core may not name.
+
+# The magazine, and the `code` tab (2026-09-04, `paging-explorer`)
+
+Two asks from the same brief: put `/imagine/mag/`'s shape in `specs.js`, and give every
+generated page a `code` child that shows how it was built.
+
+## The magazine needed no sixth word
+
+`/imagine/mag/` is three real levels: a `full` cover with one child, a `large` contents column
+that lists six articles as previews, and an article — no width word, the plain 40em measure.
+That is `wall full` / `list large` / six `prose`, letter for letter the five words already had.
+`specs.js`'s ninth entry, appended after Handbook — inserting one moves every card after it
+(the reproducibility law is about the *drawn* trees, but the gallery is a fixed list a reader
+points at by position too, so the same rule was kept).
+
+## The `code` tab reuses `export.js`, doesn't reprint it
+
+The obvious wrong move was a second little printer living in `tree.js`. Instead `export.js`'s
+`module()` was split into three pieces — `shape_for(page)` (which `SHAPES` entry, the same
+"a childless page is always the leaf" rule it already had), `content_line(page)` (the
+`content(){ … }` body) and `width_line(page)` (the `width:` field) — and `module()` was
+rewritten to call them. **Behaviour-preserving by construction**: `module()`'s own output is
+now `wline ? "\t" + wline : ""` where it was `page.width ? "\twidth: …" : ""`, and the two are
+the same string for the same input. Proved, not just reasoned: seed 7 / 42 / 1234 exported
+(`files()`, called directly against the live `gen.js`/`tree.js`/`export.js` in a browser —
+never through the dev-only `rpc:write`, which this task's fences don't reach) **before** every
+edit and **after** all of them — six diffs (three specs, three file sets), all empty, byte
+counts identical (5211 / 4217 / 6746).
+
+`route("code")` is the one new mechanism: `Page.child()` already tries memory, then `route()`,
+then a filesystem probe, for any UNDECLARED name — so `.../code/` exists without a directory
+and without a line in any `children:`. The returned config has no `.at`, which is what keeps
+it OUT of `export.js`'s own `kids()` filter (the same trick "rolls" and "specs" already use to
+stay off the exported tree). Its `container()` is the SAME function every real child now
+shares (factored out of the per-node closure it used to be) — `this.parent` is the generated
+page either way, so a `code` tab under a `tabs`/`vtabs` page lands in that page's own panel,
+exactly where a real child would.
+
+**The calls transcript is keyed by `page.at`, not held on the page instance.** Every control
+funnels through `host.swap(at, change)`, and `swap()` now also calls `log_call(at, change)` —
+which resolves the FRESH page at `at` (`page_at()`, factored out of `resolve()`) and pushes
+`width_line(page)` or `content_line(page)` onto `this.calls.get(JSON.stringify(at))`. Keyed by
+position and stored on the HOST because `grow()` throws every generated `Page` away and rebuilds
+from the spec text on every single click (`page.js`'s own law); a log on the page itself would
+be erased by the very edit it was recording. The code tab reads `host.calls` at render time —
+no reactivity needed, because by the time a reader opens `.../code/` the clicks that produced
+the transcript have already happened.
+
+## A link INTO the generator needs `target="_blank"`
+
+`/imagine/paging/explorer/`'s "open the generator with the magazine selected" link is the first
+place in this codebase that links to `#s=<spec>` from OUTSIDE the generator. It silently failed
+on a plain in-app click: `Router.go()` (`core/Router/Router.js`) resolves the whole segment walk
+— constructing every module along the way, `land()` included — and only calls
+`history.pushState()` once that succeeds. `land()` reads `location.hash` at construction time,
+so a soft navigation hands it the OLD hash, and the generator falls back to whatever tree this
+browser last stored. Every EXISTING hash-carrying link in this module (`link()`, item hrefs, the
+close button) is built and clicked from INSIDE an already-live generator instance, where a
+click never reconstructs the page at all — `swap()`/`pick()` mutate the live instance directly
+and only touch the address as a courtesy. Nothing prior ever needed a spec hash to survive a
+FRESH construction. Fixed with `target="_blank"` — `Router.js`'s own `link_clicked()` already
+excludes any anchor with a `target`, so the browser loads it as a real navigation and
+`location.hash` is correct from the first line. Verified: the popup's `gen.typed`/`gen.spec`
+match the magazine spec exactly, zero console errors either side.

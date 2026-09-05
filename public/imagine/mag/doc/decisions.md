@@ -144,3 +144,19 @@ Zero console errors at 400 / 1920 / 3440.
 - **A redrawing control detaches its handles.** The chip row rebuilds itself inside
   `notify()`, so a Playwright element handle taken before the first click is stale on the
   second. Re-query by index.
+
+## Reviewed 2026-09-04 — the ten-second test
+
+A cold read of the cover said "poster for a magazine, click to open" correctly but could not
+say what the magazine is *about* — `issue.json`'s top-level `standfirst`/`masthead` were
+written in the same insider shorthand as this doc ("seven labs", "the labs actually
+measured"), not the plain sentence a stranger needs. Both fields rewritten to say the one
+true thing plainly: the magazine's own topic is the column layout it is built with. Only
+call sites are the cover (`page.js`) and the contents masthead (`contents/page.js`) — grepped
+before editing.
+
+`paging/critique`'s `mag` row measured 986px dead at 3440, split evenly either side of the
+centred cover — "mostly a picture" by its own note. `.mag-cover-area`'s resting
+`--mag-veil` moved 0%→2% so that margin reads as a toned sheet instead of blank white; the
+golden-share widths and the % used are unchanged, so the finding is a feel fix, not a width
+fix, and is still open as a layout question.

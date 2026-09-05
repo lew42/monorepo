@@ -85,7 +85,9 @@ export class Program extends Page {
 	// ⚠ No DOM after the await: `draw()` builds inside `empty()`, which
 	//   re-establishes the captor the first await dropped.
 	content(){
-		div.c("research-program flow", async $r => {
+		// `wide`: under a columns host the prose cap would squeeze the whole front to one
+		// measure (650px of a 2900px column at 3440); the text inside is capped by its own css.
+		div.c("research-program flow wide", async $r => {
 			this.$live = $r;
 
 			this.logs = this.topic_list().map(topic =>
@@ -356,7 +358,7 @@ export class Program extends Page {
 	/* ── the stream ──
 	   Everything, newest first, capped — the raw feed under the read of it. */
 	stream(all){
-		div.c("research-stream flow", () => {
+		div.c("research-stream", () => {
 			h2("Latest");
 
 			if (!all.length) return p.c("muted", "Nothing logged yet. Each topic appends to its own log.jsonl as it digs; this page streams them live.");

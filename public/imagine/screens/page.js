@@ -19,12 +19,10 @@ export default new Page({
 	children: "divide stack title read deck uneven quad mix",
 
 	content(){
-		md("**Eight screens, one row.** `/imagine/` is a columns host, so a screen here is not a shell — it is the width word [`full`](/framework/core/Page/doc/columns/), which folds the rail and this index into the crumb strip above and leaves you the viewport. What each experiment varies is what the NEXT hop does with it.");
+		md("**Eight tiny demos of one question: when you click through to something new, what happens to the screen you were just looking at?** Click any card below — each is a real page. Sometimes your old screen disappears and the new one takes over; sometimes it shrinks and the two sit side by side. The eight demos are the eight ways that can go.");
 
-		md("Two words cover the whole space: **`full` replaces** the screen you were on, **`fill` joins** it and the screens left divide the row evenly. The cards below are the shapes each experiment draws, hop by hop.");
+		md("The short version: a click either **replaces** what you were looking at, or **joins** it and the two split the space evenly. The cards below sketch the shape each demo builds, step by step — the technical rundown is in the [readme](/imagine/screens/readme/).");
 
 		this.previews();
-
-		md("Every verdict in one table, and what the space taught: [readme](/imagine/screens/readme/).");
 	},
 });

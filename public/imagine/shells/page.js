@@ -23,9 +23,9 @@ export default new Page({
 	children: "left right both foot head-foot rail-foot canvas inner-rail inner-bar columns",
 
 	content(){
-		md(`Ten app shells, each at its own url, each wearing its own chrome and nothing of the site's. The first six wrap the **same document**, so the chrome is the only thing that changes.
+		md(`**"Chrome"** is everything around a page that isn't the content itself — the nav rails, header bars, and footers framing it. Below are ten complete example apps, one per way of arranging that chrome; **click a card** to open one at its own url.
 
-Every shell's chrome links to every other one, so once you are in, the way you browse is the thing being shown. [The findings](/imagine/shells/readme/).`);
+The first six wrap the **same document**, so the chrome is the only thing that changes between them. And every shell's chrome links to every other shell, so once you're inside, switching between them IS the demo. [The findings](/imagine/shells/readme/).`);
 
 		this.previews();
 	},

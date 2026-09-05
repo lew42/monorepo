@@ -14,7 +14,7 @@ node public/framework/ext/Research/entry.mjs <topic>/log.jsonl --kind finding \
   --title "…" --summary "…" --url https://… --credence contested
 node public/framework/ext/Research/entry.mjs <topic>/log.jsonl --check
 ```
-The pages: `/framework/research/<slug>/` for a topic; a `Program({ topics: "a b c" })` page for a program. `--help` on either writer lists every flag and the quoting rules.
+The pages: `/framework/research/<slug>/` for a topic; a `Program({ topics: "a b c" })` page for a program; a topic dir with no page of its own gets one in three lines — `new Program.Topic({ meta: import.meta, title })` (`Topic.js`: the question, the curated `.md` pages, every entry) — without it `<topic>/verdict/` 404s. `--help` on either writer lists every flag and the quoting rules.
 
 ## Watch out
 - **Credence is the point of the program shape** — four words, three visual channels, and the page never upgrades one: [`doc/program.md`](./doc/program.md)

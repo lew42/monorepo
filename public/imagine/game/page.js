@@ -384,9 +384,17 @@ export default new Page({
 					span.c("imagine-eyebrow", "three realms · nine rooms · one chain");
 					div.c("imagine-display", "The gate is open.");
 					div.c("imagine-rule");
-					div.c("imagine-lede", "Every room is a page and every exit is a link to the room beside it, so walking sideways swaps the column you are standing in while the rails behind you hold still. Where you have been is remembered against this page's own address — closing the tab loses nothing.");
+					div.c("imagine-lede", "A small game played entirely by clicking links: walk from room to room, pick up what you find, and reach the gate at the far end. Every exit is a link to the room beside it, so walking sideways swaps the column you are standing in while the rails behind you hold still — and closing the tab loses nothing, because where you have been is saved.");
 				});
 
+				/* ⚠ `counter-reset` inline, not in `imagine.css`, and it has to sit HERE:
+				   this screen is the one place `.imagine-exit` appears twice over — once
+				   per realm note, then again in the closing row — and with no shared
+				   ancestor reset each un-reset `.imagine-exit` got its OWN fresh counter
+				   (Chromium starts a new scope at the element itself). All four read
+				   keyboard digit "1", and pressing 1 only ever reached the first of them.
+				   One reset here numbers all four in the order the keyboard listener
+				   above walks them; the closing row below no longer carries its own. */
 				div.c("imagine-notes flex v gap", $notes => run.watch(() => $notes.empty(() => {
 					div.c("imagine-chain flex v-center wrap gap", () => CHAIN.forEach((step, index) => {
 						if (index) span.c("imagine-arrow", "→");
@@ -414,13 +422,16 @@ export default new Page({
 								? "You have a light. The Hollow will let you in."
 								: "Dark below. Something in the Old Quarry would help.");
 
-					div.c("imagine-exits flex wrap gap", () => {
+					/* ⚠ Not `.imagine-exits` here — that class also RESETS the keyboard
+					   counter, and this row is the FOURTH exit on this screen, not the
+					   first (`imagine.css`, `.imagine-notes` carries the one reset). */
+					div.c("flex wrap gap", () => {
 						a.c("imagine-exit", "Walk in — the Iron Gate").href(this.parent.url + "verge/gate/");
 						if (run.won()) a.c("imagine-exit", GATE.title).href(this.parent.url + GATE.name + "/");
-					});
+					}).style("--gap", "0.4em");
 
 					this.app?.router?.mark_links();
-				})));
+				}))).style("counter-reset", "imagine-exit");
 
 				md("Nine rooms, one chain, one trade and one way out — [how it is built](/imagine/game/readme/).");
 			},

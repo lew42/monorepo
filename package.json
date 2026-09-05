@@ -1,5 +1,8 @@
 {
   "type": "module",
+  "scripts": {
+    "dev": "node dev.mjs"
+  },
   "dependencies": {
     "chokidar": "^5.0.0",
     "express": "^5.2.1",

@@ -253,6 +253,34 @@ navigates to the Quarry. On the journal, typing `task 1 and 2` into the goal inp
 url unchanged and the field holds the typed text; blurring the input and pressing `1` then
 navigates. Zero console errors at 400 / 1920 / 3440.
 
+## Round 5: a plain first sentence, and a numbering bug (2026-09-04, review pass)
+
+**The lede explained the mechanic, never the game.** A stranger's first ten seconds landed on
+an eyebrow, a display line and a sentence about *how columns swap* — clear about the UI, silent
+about what you actually do here. The owner's clarity law ("say the one thing a page is for at
+its top") is stricter than *show, don't tell*: the lede's first sentence is now plain — "A small
+game played entirely by clicking links: walk from room to room, pick up what you find, and reach
+the gate at the far end." — and the persistence sentence follows it, unchanged in substance.
+
+**The keyboard digits lied on this one screen.** Round 4 claims every `.imagine-exit` numbers
+itself off DOM order (`counter-increment`), verified on a room's exits — but never on the
+arrival screen, where three realm links live in separate `.imagine-note-head`s and only the
+closing row sits inside an actual `.imagine-exits` box. With no shared ancestor `counter-reset`,
+Chromium gives each un-reset `.imagine-exit` its OWN fresh counter — so "The Verge", "The
+Hollow", "The Spire" and "Walk in" all read **"1"**, and pressing `1` only ever reached the
+first of them. Fixed by setting `counter-reset: imagine-exit` **inline, in `page.js`**, on
+`.imagine-notes` itself (one reset for the whole screen) rather than in `imagine.css` — that
+sheet is shared with `/imagine/` and `/imagine/team/`, and this bug and its fix are both local
+to this one screen — then dropping the redundant reset from the closing row's own box. Verified
+headless: the four links now read `1 The Verge`,
+`2 The Hollow`, `3 The Spire`, `4 Walk in — the Iron Gate`, and pressing `1`/`2`/`3`/`4`
+navigates to each in turn. Zero console errors.
+
+**Caveat:** the new lede sentence names the mechanic ("clicking links") before the persistence
+promise, which shortens the second sentence slightly — if a future pass wants the arrival to
+read as pure prose again over plain instruction, cut the first sentence back only once the page
+carries the same "what is this" fact somewhere else a stranger reads before it.
+
 ## Cut
 
 - **A `reset run` button in the rail.** See above — the finale is the eraser, and the rail's

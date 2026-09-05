@@ -40,12 +40,20 @@
 	   centred, and the query container, so the title is the same fraction of its own
 	   composition at 38.2% of 1280 as it is on the whole of 3440.
 	   ⚠ The veil is a token so the four states below are four one-line rules instead
-	     of four backgrounds that have to be kept in step. */
+	     of four backgrounds that have to be kept in step.
+	   ⚠ Resting veil is 2%, not 0 — the critique measured 986px of this AREA as
+	     "dead" at 3440 (paging/critique's `mag` row): flat white either side of the
+	     centred block reads as unused margin, not as a full sheet. A whisper of tone
+	     over the whole full-bleed box (same recipe the other two tone rungs already
+	     use) turns that margin into paper instead of removing it — the block's own
+	     width is untouched, so this does not touch the golden-share numbers above it.
+	     Caveat: this is a feel fix, not a width fix — the % used at 3440 is unchanged;
+	     undo by reverting the fallback to 0% if a flatter white reads better. */
 	.mag-cover-area {
 		flex: 1;
 		display: flex; flex-direction: column; justify-content: center;
 		padding: clamp(1.1rem, 5%, 4rem);
-		background: color-mix(in srgb, var(--ink) var(--mag-veil, 0%), var(--surface));
+		background: color-mix(in srgb, var(--ink) var(--mag-veil, 2%), var(--surface));
 		color: inherit; text-decoration: none;
 		transition: background-color 0.2s;
 	}

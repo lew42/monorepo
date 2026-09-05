@@ -1,5 +1,15 @@
 # Decisions — /imagine/gallery/
 
+2026-09-04, the clarity review. `page.js` (the top index, not a list) was a plain three-line
+nav list with 2180px dead at 3440 (`paging/critique`'s row: 31% used). Fixed with
+`index: true` + `this.previews()`, turning Lists/Answers/Cards into a card wall — same move
+`/imagine/design/` used the same night, **except width stayed `large`, not `full`**: `full`
+is exactly what the width entry below already tried and reverted for this realm, and the
+reason still holds one level up — it would have collapsed `/imagine/`'s own hub rail for as
+long as you stayed anywhere inside Gallery. `large` (64em) fits all three cards in one row
+without paying that price; verified live (`ui-test`) that the hub rail, the Gallery card
+wall, and an opened Lists column all stay on screen together, three deep.
+
 2026-08-29, the run that answered the cross-page preview questions.
 
 ## Lists are separate pages, and lazy

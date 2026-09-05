@@ -124,6 +124,37 @@ menu and the quadrant became the same grey and the seam vanished).
 Under 32em of row, core's own container query pages one column at a time; every hop at 400 is
 a swipe, and that is the arrangement working, not a defect.
 
+## Fixed 2026-09-04 — a hop that was already open could not be closed
+
+The ask (the owner): *"clicking Two keeps Three active, i feel like it should just link to
+itself /two/, and then three disappears?"*
+
+**Why it was fixed forward in the first place.** `sheet(to, build)` writes one url at build
+time and `Page.render()` caches the view — a page is built once, never rebuilt when a child
+opens beside it. Every hop's own box only ever said "open the next one" because closing was
+never this box's job: `doc/columns.md`'s own line, "no `to` makes a dead area … the crumb
+strip is how you come back up," treats collapsing as the crumb strip's job, not the area's.
+That reads fine until the box you're looking at is showing you the thing it claims to open —
+click it and Router finds nothing changed (`activate()`'s `shared_depth` is already the whole
+chain), so it does nothing. Measured: Two's own href never changed after Three opened beside
+it, so a second click on Two re-requested `/two/three/` while already there.
+
+**The fix stays inside `sheet()`, checked live at click time**, since there is no re-render to
+hook: if `to` is a prefix of `location.pathname` (it is already open), the click goes one
+segment up from `to` instead — the box's own url, exactly where its crumb link already goes.
+Verified (headless, 1280): Divide, `/two/three/` → click Two → `/two/` and Three's box is gone
+(`getBoundingClientRect().width` 0) → click Two again → `/two/three/` and Three is back.
+
+**Every other screen re-shot, before and after, identical where the target wasn't already
+open** — Quad, Stack (its hops fully replace, so the closed box was never reachable to begin
+with), Read/Peek (its own strip already solved this with `display: none`, untouched by this
+change), Deck (dead areas, `to` is `null`). Uneven and Mix compose the same chain shape as
+Divide and gained the same close-on-click for free, also verified: `/golden/thirds/` → click
+Golden's own box → `/golden/` → click again → `/golden/thirds/`; `/two/detail/` → click Two's
+own box → `/two/` → click again → `/two/detail/`. Title's cover, similarly, now closes the
+document on a second click rather than sitting there as a dead one. Zero console errors on
+every url.
+
 ## Cut
 
 - **A vertical `writing-mode` spine** for the compressed cover. It reads well and it is one

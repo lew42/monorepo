@@ -12,7 +12,7 @@ what applies: the module's own `.css`; the **container's** css when the thing li
 (`core/Page/Page.css` for anything in a page — tracks, previews; the parent component's for
 a card in a rail or a panel); the theme (`styles/layers/theme/lew42/lew42.css`) only when
 colour or type is in play — and a bare `<button>` IS in play with neither written: the theme
-styles every `button, .btn` in `@layer site` (CTA padding, uppercase, bold), beating any
+styles every `button, .btn` from `.theme-lew42 :is(button, .btn)` in lew42.css — INSIDE `@layer theme` at (0,2,0), so it wins on specificity and load order, not on layer (corrected 2026-09-04; a component rule at (0,1,0) in the same layer loses) (CTA padding, uppercase, bold), beating any
 component `@layer theme` rule by layer order alone — a tree toggle glyph silently got 33px of
 padding (2026-08-19; the fix was a clickable span, not a fight). Most CSS doesn't interact —
 parent layout and theme trickle are where it does.

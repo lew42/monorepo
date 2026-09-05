@@ -25,14 +25,14 @@ this.stream.set(["headline"], "typed in another window");    // the editor's hal
 ## Watch out
 
 - **The editor does not apply its own edit** — it arrives back off the wire. One code path,
-  and the server is the only orderer. [`doc/decisions.md`](/imagine/stream/doc/decisions.md)
+  and the server is the only orderer. [Decisions](/imagine/stream/doc/decisions/)
 - **An edit is one appended line** (`rpc:append`), with the old whole-file `rpc:write` kept as
   a fallback for a dev server started before that plugin landed — which is why `confirmed` and
   `pending` are still in `Stream`. Two windows writing at once: **30 of 30 lines survive on
-  append, 11 of 30 on the fallback.** [`doc/wire.md`](/imagine/stream/doc/wire.md)
+  append, 11 of 30 on the fallback.** [The wire](/imagine/stream/doc/wire/)
 - **`compact()` writes the snapshot BEFORE it truncates**, and a window seeing the truncation
   re-fetches the snapshot rather than reusing its own. Either one backwards and the folded
-  edits vanish. [`doc/wire.md`](/imagine/stream/doc/wire.md)
+  edits vanish. [The wire](/imagine/stream/doc/wire/)
 - **Never redraw a control from state** — a control rebuilt under a caret loses the caret.
   Redraw the streamed region only.
 - **Off localhost there is no socket**: `live()` degrades to one fetch and the page shows the
@@ -42,10 +42,10 @@ this.stream.set(["headline"], "typed in another window");    // the editor's hal
 
 ## More
 
-- [Overview](/imagine/stream/) · [`doc/wire.md`](/imagine/stream/doc/wire.md) what carried it,
-  the measurements, the missing append · [`doc/durable-objects.md`](/imagine/stream/doc/durable-objects.md)
+- [Overview](/imagine/stream/) · [The wire](/imagine/stream/doc/wire/) what carried it,
+  the measurements, the missing append · [Durable Objects](/imagine/stream/doc/durable-objects/)
   what this becomes on Cloudflare, with prices and limits ·
-  [`doc/decisions.md`](/imagine/stream/doc/decisions.md) the record, and where "anything on a
+  [Decisions](/imagine/stream/doc/decisions/) the record, and where "anything on a
   page" stops
 - Files that matter: `stream.js` (the class — snapshot, replay, append, latency),
   `data/` (a `.json` snapshot and a `.jsonl` log per demo)

@@ -34,7 +34,7 @@ are tunable. Viewports: **400 / 1280 / 1920 / 3440** unless the ask names one.
 
 ## Verbs
 
-`goto [url]` · `move x y [steps]` · `down` · `up` · `click sel` · `hover sel` ·
+`goto [url]` · `move x y [steps]` · `down` · `up` · `dblclick x y` · `click sel` · `hover sel` ·
 `key "Shift+Tab"` · `type sel text` · `eval js` · `wait ms` · `viewport w h` (mid-run
 resize — a breakpoint bug becomes a same-run before/after) · `shot` (every step shoots;
 `shot` only names a moment).
@@ -50,8 +50,16 @@ resize — a breakpoint bug becomes a same-run before/after) · `shot` (every st
   splits selector from text, the rest lands in `text`, and the mangled selector's parse error
   hides in that step's `error` field). Focus first (`click "<compound sel>"`), then
   `type input:focus <text>`.
+- **A columns page holds TWO of every selector, one of them hidden** — a sibling column marked `classes: "default"` is in the DOM too, so `.yt-start` matched the hidden button and Playwright retried for 30 s ("element is not visible"). Scope every selector to the page's own root class (`.yt-marks .yt-start`) and reach a page object by DOM containment, never `Foo.all.at(-1)` — construction order is import order (2026-08-31).
+- `dblclick x y` is a distinct gesture — `down`/`up` twice never synthesizes one (2026-08-29).
+- `eval` runs as native `page.evaluate` — a Playwright-only selector engine (`text=`, `:has-text()`) inside its `document.querySelector` throws `not a valid selector`; plain CSS only there (2026-09-04).
 - `eval` is ONE expression (`(() => { … })()` for statements); its value lands in `steps.json`,
   and a promise is awaited — `eval import('/app.js').then(m => m.drawer(…))`.
+
+## A plain render check, no gesture
+
+Playwright is a GLOBAL npm install, not a repo dependency, and the ESM resolver ignores `NODE_PATH` — the one import that works from a scratch script is
+`import { chromium } from "file:///C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.mjs";` (the `file:///` scheme is mandatory; a bare `C:/…` path and `import "playwright"` both fail). Three minions rediscovered this the slow way (2026-08-18, 2026-09-04). Run bash scripts with `MSYS_NO_PATHCONV=1` or Git Bash rewrites a `/imagine/x/` argument into a Windows path.
 
 ## Drive, or force?
 

@@ -54,6 +54,9 @@ wrap
 zoom
 zoom-responsive
 
+# framework.css — new words prefixed, not bare (see the note at the top)
+table-       framework.css (table-equal — equalize a table's columns)
+
 # core
 page-        core/Page
 sidebar-     core/Sidebar
@@ -75,6 +78,7 @@ grip-        ext/grip
 hljs-        ext/highlight (vendored)
 layout-      ext/layout
 md-          ext/markdown
+omnibox-     ext/Omnibox
 panel-       ext/Panel
 pg-          ext/Playground
 research-    ext/Research
@@ -108,6 +112,7 @@ blogx-       /imagine/blogx
 feeds-       /imagine/feeds
 gal-         /imagine/gallery
 journey-     /imagine/design/journey
+paging-      /imagine/paging (the styles, the mode toolbar, the mechanism items)
 color-       /imagine/design/color
 themes-      /imagine/design/themes
              (plus five demo themes — theme-press/phosphor/bloom/oled/riso — scoped inside that page until promoted to styles/layers/theme)

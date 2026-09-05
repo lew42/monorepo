@@ -1,0 +1,58 @@
+/* The field is always on screen — the shell decision, doc/decisions.md. The results
+   are a top-layer [popover], Dropdown's exact recipe, so no column or panel can clip
+   them. Every colour is a token. Record: readme.md. */
+@layer theme {
+
+	.omnibox { display: block; inline-size: min(32em, 100%); }
+
+	.omnibox-field { padding: var(--pad-control, 0.25em 0.6em); }
+	.omnibox-field.command { outline: 2px solid var(--prim); outline-offset: -1px; }
+	.omnibox-field .icon { color: var(--subtle); }
+
+	/* Blends into the field it sits in — the field already draws the border.
+	   ⚠ Scoped `.omnibox-field > .omnibox-input`, restated from the base `input`
+	   rule it beats: that selector is `input:not([type=…], …)`, (0,1,1) in the
+	   SAME layer, so a bare `.omnibox-input` (0,1,0) loses the border back —
+	   Dropdown's trigger fought the identical war against `:is(button, .btn)`. */
+	.omnibox-field > .omnibox-input {
+		border: 0; padding: 0; background: none; color: inherit;
+	}
+	.omnibox-field > .omnibox-input:focus { outline: none; }
+
+	.omnibox-hint { font-size: 0.85em; white-space: nowrap; }
+
+	/* ⚠ `[popover]`'s own UA styles (inset, margin, a border) all have to go before
+	   Omnibox.js's measured `left`/`top` mean anything — same trap as Dropdown. */
+	.omnibox-results {
+		position: fixed; inset: auto; margin: 0; padding: 0;
+		display: none;
+		max-block-size: min(70vh, 30em);
+		overflow: auto;
+		scrollbar-width: thin; scrollbar-gutter: stable;
+		background: var(--surface);
+		color: var(--ink);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		box-shadow: 0 0.5em 1.5em rgb(0 0 0 / 0.18);
+	}
+	.omnibox-results:popover-open { display: flex; flex-direction: column; }
+
+	.omnibox-list { display: flex; flex-direction: column; padding: 0.25em; }
+
+	.omnibox-row {
+		display: flex; align-items: baseline; gap: 0.6em;
+		padding: 0.4em 0.6em;
+		border-radius: calc(var(--radius) / 2);
+		cursor: pointer;
+	}
+	.omnibox-row.active { background: var(--wash); }
+	.omnibox-row-title { font-weight: 600; }
+	.omnibox-row-url { font-size: 0.85em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+	.omnibox-empty { padding: 0.6em; }
+
+	/* The one card this module never draws itself — a borrowed `.page-preview`
+	   lands here exactly as it renders on its own page. */
+	.omnibox-preview { padding: 0.5em; border-top: 1px solid var(--line); }
+	.omnibox-loading { display: block; padding: 0.5em; }
+}

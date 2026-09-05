@@ -177,7 +177,15 @@
 	.research-take { --flow: 0.2em; background: var(--tint); border-radius: 0 var(--radius) var(--radius) 0; }
 
 	/* ── the stream ── */
-	.research-stream { --flow: 0.6em; }
+	/* Reading columns, bound both ends: one column at 1280, four or five at 3440 — a
+	   full-width entry card with a measure-capped summary inside it reads as a mistake. */
+	.research-stream {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(min(30em, 100%), 38em));
+		gap: var(--gap, var(--gap-default));
+		align-items: start;
+	}
+	.research-stream > :is(h2, .research-more) { grid-column: 1 / -1; margin: 0; }
 	.research-entry { --flow: 0.3em; background: var(--surface); border-radius: 0 var(--radius) var(--radius) 0; }
 	.research-entry-head { --gap: 0.5em; font-size: 0.8em; }
 	.research-entry-head .research-icon { font-size: 1.3em; color: var(--research-cred, var(--prim)); }

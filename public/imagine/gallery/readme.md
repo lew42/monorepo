@@ -27,6 +27,8 @@ body("/framework/core/Page/overview/prose/");                    // that page's 
 - The `Arrange` names are routed, not declared. A declared name never reaches `route()`.
 - `classes: "default"` on a column you also navigate to hides it. See
   [`doc/decisions.md`](./doc/decisions.md).
+- `width: "full"` on the top index would hide `/imagine/`'s own hub rail the whole time
+  you're in here — tried, reverted, stayed `"large"`. Same doc.
 
 ## More
 

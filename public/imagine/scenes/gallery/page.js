@@ -128,7 +128,7 @@ export default new Scene({
 
 	camera: { eye: [0, 2.15, 1.2], aim: [0, 2.05, WALL] },
 
-	content(){ md("**2D in 3D.** Four paintings, drawn with the browser's 2D canvas API and hung on planes — no image files. Click one: nothing in the room is rebuilt, the picture's page just claims a slot that holds *one spotlight* and declares a camera two metres off the wall."); },
+	content(){ md("**Four paintings on a wall — click one to walk up and look at it close.** Nothing else in the room moves; only the light and the camera change to frame that one picture. (The paintings are drawn live with plain 2D canvas code, not image files.)"); },
 
 	build(stage, theme){
 		const world = new THREE.Group();

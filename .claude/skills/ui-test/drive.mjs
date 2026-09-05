@@ -37,6 +37,7 @@ page.on("pageerror", e => errs.push("pageerror: " + String(e).split("\n")[0].sli
 const act = {
 	goto: (url = plan.url) => page.goto(url, { waitUntil: "networkidle" }).then(() => page.waitForTimeout(plan.settle ?? 700)),
 	move: (x, y, steps = 10) => page.mouse.move(+x, +y, { steps: +steps }),
+	dblclick: (x, y) => page.mouse.dblclick(+x, +y),
 	down: () => page.mouse.down(),
 	up: () => page.mouse.up(),
 	click: sel => page.click(sel),

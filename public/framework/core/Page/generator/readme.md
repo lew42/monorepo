@@ -15,11 +15,13 @@ import { gen } from "./gen.js";
 import { tree } from "./tree.js";
 
 this.children = new Map();
-tree(gen(7), "#7").forEach(config => this.add(config.name, config));
+tree(gen(7), "#7", this).forEach(config => this.add(config.name, config));
 ```
 
 That is the whole mechanism. `children:` already takes nested plain objects and `Page.add()`
-turns each into a real `Page`, recursively — so a virtual tree needs no new machinery.
+turns each into a real `Page`, recursively — so a virtual tree needs no new machinery. The
+third argument is the host itself, threaded through only so a page's `code` tab (below) can
+read the host's own call log.
 
 The spec:
 
@@ -106,9 +108,12 @@ ignores the rules and draws what the flat table drew.
 
 A seed is an address against one `MODEL`, and every model bump redraws every seed — so a tree
 worth keeping is kept as its **text**. [`specs.js`](/framework/core/Page/generator/specs/) is
-where: eight page shapes that are real things — a docs site, an inbox, a settings rail, a shop —
-as a wall of the same sketches the permutation wall draws, each with a sentence saying what it
-is for. Pick one and it becomes the tree; the address turns into `#s=<the text>`.
+where: nine page shapes that are real things — a docs site, an inbox, a settings rail, a shop,
+[the magazine](/imagine/mag/) — as a wall of the same sketches the permutation wall draws, each
+with a sentence saying what it is for. Pick one and it becomes the tree; the address turns into
+`#s=<the text>`. The magazine's own three-level shape (a full-width cover, an inbox of
+articles, each a plain leaf) fit the five existing words with no sixth needed —
+[`doc/decisions.md`](/framework/core/Page/generator/doc/decisions.md).
 
 **"Yours"** is the same idea for a tree of your own: name the box below the eight and it joins a
 band underneath them, kept in the same `store()` the header's dressing already lives in — no
@@ -151,6 +156,25 @@ Each word writes what the next section writes by hand: `wall` is `previews()`, `
 button is disabled and says why — the rest of the page is untouched. A name that already exists
 is **refused**, never overwritten: an export is a scaffold you are meant to edit, and deleting
 the directory is how you say you meant it.
+
+## The `code` tab — every generated page has one
+
+A small icon in a column's own head opens `.../code/` — a real url, never a directory
+(`route("code")`, tried before the filesystem for every UNDECLARED name — `Page.child()`'s own
+order). It shows three things, and prints only two of them: `export.js`'s `content_line()` /
+`width_line()` write both the exported `page.js` **and** the calls transcript below, so the tab
+can never say something the Export button would not.
+
+1. **the spec** — this page's own line (and any nested lines), `spec.js`'s `serialize()`;
+2. **the `page.js`** `export.js` would write for it, right now;
+3. **the calls** — as this page's kind, width, or (on a wall/list) its arrangement is switched,
+   the matching line is appended, live — a session transcript kept in the generator's own
+   `calls` (keyed by `page.at`, the same stable address `swap()` already edits through, so it
+   survives every regrow a click causes).
+
+Try it: [the generator](/framework/core/Page/generator/), switch a page's kind or width a
+couple of times, open its code tab. [`doc/decisions.md`](/framework/core/Page/generator/doc/decisions.md)
+has the mechanism.
 
 ## The four words that were cut, and what to write instead
 
@@ -226,6 +250,13 @@ Inside the generator itself, a denser wall is `--gen-cell` on `.page-gen-wall`.
   was on screen, and no seed is re-rolled. `flow=` is the one spec setting with no page.js form;
   `--column`'s gap fallback is `1em` there and `0px` here, and reusing the wrong one silently
   drops a three-card wall to two.
+- **A link INTO the generator with `#s=<spec>` from outside is silently ignored on a soft
+  navigation.** `Router.go()` (`core/Router/Router.js`) calls `history.pushState()` only AFTER
+  the target module has already constructed itself, so a page whose `initialize()` reads
+  `location.hash` (`land()`, here) sees the OLD hash — and falls back to whatever tree this
+  browser last stored. `target="_blank"` on the link is the fix (`link_clicked()` already
+  excludes a link with a `target`), forcing a hard load where the hash is right from the first
+  line — `/imagine/paging/explorer/`'s own link to the magazine shape.
 - The rest — how "in place" is two lines of `container()`, a specificity trap, why
   `demo.tree()` was the wrong reuse, how a control edits the spec, and both halves of the
   dev-only gate: [`doc/decisions.md`](/framework/core/Page/generator/doc/decisions.md).
@@ -235,13 +266,15 @@ Inside the generator itself, a denser wall is `--gen-cell` on `.page-gen-wall`.
 - The arrangement is core's: `page.columns()`, `width:`, `.page-column-*` —
   [`core/Page/doc/columns.md`](/framework/core/Page/doc/columns.md).
 - Files: `gen.js` (seed → text, and `MODEL`), `spec.js` (the text format — parse, read a line,
-  edit one node), `rules.js` (which word under which), `tree.js` (text → page configs, and
-  where a child mounts), `controls.js` (every control, and the framework words behind them),
-  `fill.js` (the seeded-distinct content), `rolls.js` (the wall, and the tile picture),
-  `specs.js` (the eight kept shapes, and the gallery), `export.js` (the tree → files, and the
-  shape of every exported page), `page.js` (the header, the store split, and the one place the
-  tree is replaced), `generator.css` (one picture per word, twice — at column size and at 3px —
-  and the three looks).
+  edit one node, `serialize()` back), `rules.js` (which word under which), `tree.js` (text →
+  page configs, where a child mounts — `container()` — and its `route("code")` child),
+  `controls.js` (every control, and the framework words behind them), `fill.js` (the
+  seeded-distinct content), `rolls.js` (the wall, and the tile picture), `specs.js` (the nine
+  kept shapes, and the gallery), `export.js` (the tree → files, the shape of every exported
+  page, and `content_line()` / `width_line()` — the two lines the code tab reads rather than
+  reprints), `page.js` (the header, the store split, the one place the tree is replaced, and
+  `calls` — the code tab's transcript), `generator.css` (one picture per word, twice — at
+  column size and at 3px — and the three looks).
 - Not built, on purpose: a chaos dial on the page (chaos is an argument to `gen()`, so `#7`
   keeps meaning one tree), any rule about which *widths* pair (only blocks have rules), the
   header's own settings in the address (`#7` has to keep meaning one **tree**; how wide you

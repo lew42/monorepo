@@ -93,5 +93,5 @@ every autoplay policy allows.
 
 ## Related
 
-- [`cues.md`](./cues.md) — what the poll is for
-- [`decisions.md`](./decisions.md) — the record
+- [`cues.md`](/imagine/youtube/doc/cues/) — what the poll is for
+- [`decisions.md`](/imagine/youtube/doc/decisions/) — the record

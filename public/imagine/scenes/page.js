@@ -48,7 +48,7 @@ export default new Scene({
 	camera: { eye: [0, 2.8, 6.6], aim: [0, 2.3, 0] },
 
 	content(){
-		md("Every page below owns one **slot** of the world and builds it. The active chain is the composition — walk it root to leaf, the deeper page wins its slot. That one rule is all four grains of swap: **a whole world**, **one object**, **one region**, **one light** — and the last door is a place that uses all four at once. Or [take the tour](/imagine/scenes/tour/) and let a clock walk them for you.");
+		md("**A 3D showroom of five small worlds.** Click an object in the room below — or a name in the list underneath it — to step inside one and look around.\n\nEach door swaps a different piece of the shared room instead of rebuilding the whole thing: a whole world, one object, one region, or one light. The fifth door, Observatory, uses all four at once. [How the swap actually works](./readme/), or [take the tour](/imagine/scenes/tour/) and let a clock walk you through all five doors.");
 		this.staging();
 	},
 

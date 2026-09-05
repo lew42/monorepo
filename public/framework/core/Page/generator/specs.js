@@ -135,6 +135,20 @@ export const SPECS = [
 			"    prose large",
 		].join("\n"),
 	},
+	{
+		title: "Magazine",
+		note: "A full-width cover opens the contents — an inbox of articles, each the plain 40em measure. /imagine/mag/'s own shape, in three words: no ninth word needed.",
+		spec: [
+			"wall full",
+			"  list large",
+			"    prose",
+			"    prose",
+			"    prose",
+			"    prose",
+			"    prose",
+			"    prose",
+		].join("\n"),
+	},
 ];
 
 /**

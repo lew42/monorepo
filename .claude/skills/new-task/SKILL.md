@@ -32,7 +32,7 @@ Anything that changes the repo is a **task**: a dir at
 ⚠ **Never write a `.jsonl`/`.json` with PowerShell's `Out-File`/`Set-Content -Encoding utf8`** — the BOM makes `TaskJSONL` silently drop line 1 (task never reaches Active) and `json.load` die; use the **Write tool**, append later lines with `Add-Content`. ⚠ The READ side too: PS 5.1 `Get-Content -Raw | Set-Content -Encoding utf8` on an existing UTF-8 file double-encodes every non-ASCII character (Get-Content defaults to ANSI) — a one-word fix turns every em dash into mojibake (bit 2026-08-30). Round-trip with the Write tool or `[IO.File]::ReadAllText`/`WriteAllText`. ⚠ And `Add-Content` writes ANSI: one non-ASCII character (an em dash) becomes an invalid byte and the viewer drops that whole line (bit 2026-08-21) — keep appends pure ASCII, or append via `[IO.File]::AppendAllText` with `[Text.UTF8Encoding]::new($false)`.
 
 ⚠ **Three ways a line is silently wrong.**
-- **Timestamps come from the clock, never your head — and re-read it before EVERY append**,
+- **Timestamps come from the clock, never your head — and re-read it before EVERY append** — as its own call immediately before composing that one line, never one read for a batch of lines (a batch drifted ~15 min ahead, 2026-09-01) —
   not just the launch line: `date -Iseconds` (bash) or `Get-Date -Format 'yyyy-MM-ddTHH:mm:sszzz'`;
   both give the local offset. Typed values drift ahead of real time (sweep-400 narrated
   sequential 17:15/17:35/17:40 lines while the real clock read 17:07), and the day strip
@@ -56,7 +56,7 @@ Land with `step` at the last index; `landed_at` reads as all-checked whatever `s
 ## 2. Register + usage
 
 - Leave the task dir **undeclared** — do NOT add it to the day page's `children:` unless the dir has its own `page.js` (a declared child skips the dynamic `route()` and 404s). The dashboard enumerates task dirs from `directory.json` either way.
-- Refresh the usage snapshot — **run this FIRST, before the launch line** (its `five_hour / 100` is `window.before`), then about every 15 minutes while working, never tighter (the endpoint 429s):
+- Refresh the usage snapshot — **run this FIRST, before the launch line** (`window.before` is its `five_hour` percent DIVIDED BY 100 — the file says `2.0`, the line wants `0.02`; the divide happens here), then about every 15 minutes while working, never tighter (the endpoint 429s):
 
 ```bash
 python "$USERPROFILE/.claude/bin/claude-usage.py" --json > public/framework/ai/usage.json

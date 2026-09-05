@@ -180,6 +180,7 @@ generously and a narrow one keeps yesterday's constants; the crumb bar, every he
 row read the same `--page-column-pad-x`, one indent per row. Prose text (`p`, headings, lists,
 `.md`) is also capped at `--measure` — a `full` column is not a license for a 3410px line; an
 `.md` holding a table marks itself `.ac("wide")` to stand the cap down.
+`table-equal` (`framework.css`) is the companion word for the table itself — `.ac("wide table-equal")` splits its columns evenly instead of by content.
 
 ⚠ **`bleed` is for PAINT** (the owner, 2026-09-01): a wash or a background image may butt the
 column's edge. A framed box — a card wall, a figure, a table — or bare text never bleeds; the

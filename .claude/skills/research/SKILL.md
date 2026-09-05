@@ -33,8 +33,15 @@ topic can be opened later over the same findings.
 
 ```
 node public/framework/ext/Research/entry.mjs public/imagine/research/stone/log.jsonl \
-  --kind finding --title "…" --summary "…" --url https://… --credence contested
+  --kind finding --title '…' --summary '…' --url https://… --credence contested
 ```
+
+⚠ **Single quotes around `--title` and `--summary`**, always: in a double-quoted bash argument
+`$0`, `$1`, `$10` are shell positional parameters and vanish — a payments log lost every
+dollar amount in 39 entries before anyone noticed (2026-09-04). ⚠ **`--url` must be absolute
+`http(s)://`** — the site's own bare-path links (`/imagine/cms/thinking/`) are refused as "not a
+url"; prepend the origin (`https://lew42.com/imagine/cms/thinking/`). 28 of 50 entries were
+rewritten once for this (2026-09-04).
 
 `kind` — `finding` `source` `theory` `opinion` `question`.
 `title` ≤ 140, `summary` ≤ 700 — refused, not truncated. **Never hand-write the
@@ -88,8 +95,13 @@ fringe claim cannot be read as a fact. See `/imagine/research/`.
 
 - **Your dir is yours.** Write `log.jsonl`, your curated `.md` pages, and a
   `page.js` if you want your own layout — nothing else, and nobody else writes
-  in it. A `.md` beside your dir is already a page: core serves `<topic>/x.md`
-  at `<topic>/x/` with no declaration.
+  in it. A `.md` beside your dir is a page with no declaration — core serves
+  `<topic>/x.md` at `<topic>/x/` — **only once `<topic>/` is itself a page.** A dir
+  holding just a log and `.md` files is not one, and every `<topic>/x/` 404s (nine
+  verdicts did, 2026-09-04). Three lines make it one:
+  `import { Program } from "/framework/ext/Research/Program.js"; import "/framework/ext/Research/Topic.js";
+  export default new Program.Topic({ meta: import.meta, title: "Users" });` — the question, the
+  curated pages, the legend and every entry, rendered.
 - **The front lists your `.md` pages until you write a `page.js`**, then links
   the page instead. Both come from `directory.json`, so neither needs an edit.
 

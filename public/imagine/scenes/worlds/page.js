@@ -114,7 +114,7 @@ export default new Scene({
 
 	camera: { eye: [0, 3, 10.5], aim: [0, 1.9, 0] },
 
-	content(){ md("**Full scene swap.** Three arches, three worlds. Click one and floor, fog, light and weather all go — the child claims the same `world` slot, and the deeper page wins it."); },
+	content(){ md("**Three arches, three whole worlds.** Click one and everything changes at once — floor, sky, fog, light. This door swaps the biggest piece there is: the whole world, not just something in it."); },
 
 	// The crossroads is a world too: no tint, so it keeps the page's own theme.
 	build(stage, theme){

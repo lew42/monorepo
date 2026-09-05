@@ -1,8 +1,14 @@
 import { Page, md } from "/app.js";
 
-/* Container: /imagine/'s columns row — one more column in it. Size: default track
-   (16-40em), because this page is prose and a card wall. Own layout: `.flow` + one
-   `previews()`. Regions: one. Preview: the default card.
+/* Container: /imagine/'s columns row — one more column in it. Size: `large` (28-64em) —
+   the critique (2026-09-04) found this page 99/100 on taste yet only 31% wide at 3440,
+   a 2180px dead block past a left rail; `large` is the doc's own word for "a grid, a
+   table, wide content" and is what its own children (thinking/, services/) already
+   picked for the same reason. Own layout: `.flow` + one `previews()`. Regions: two —
+   this column, plus a THIRD: `Guide`, a rearrangement (not new content) of what used
+   to be this page's own closing paragraph, given its own `classes: "default"` column
+   so it opens beside CMS instead of scrolling under the wall — the row's own answer to
+   "one contiguous dead block", not a wider measure (doc/columns.md, `default` column).
 
    THE POINT: every "CMS" this repo needs already exists as two seams that were built
    for other reasons. `welcome.md` is a plain markdown file beside this page.js, and
@@ -15,11 +21,28 @@ export default new Page({
 	title: "CMS",
 	description: "A CMS out of two seams that already existed: a markdown file is a page, and the dev socket writes files.",
 	icon: "edit_document",
+	width: "large",
 
-	children: "thinking welcome edit services json",
+	children: ["thinking", "welcome", "edit", "services", "json", {
+		title: "Guide",
+		classes: "default",
+		content(){
+			md(`Start with [**Thinking**](/imagine/cms/thinking/) — five minutes, and it is the part that
+decides anything. [**Services**](/imagine/cms/services/) is a mock on purpose: it composes the
+\`npx wrangler\` line for each screen and hands it to you rather than holding a token.
+
+[**JSON pages**](/imagine/cms/json/) is the same idea one level deeper — a whole page tree that
+exists as \`page.json\` plus an append-only \`page.jsonl\`. Put that pair on the dev socket instead
+of fetching it once and you get [**streaming pages**](/imagine/stream/): an edit here, redrawn
+there, 9 ms later.
+
+How it is built, and the four traps found on the way: [\`readme\`](/imagine/cms/readme/).`);
+		},
+	}],
 
 	// My content already draws them as a previews() wall — without this, core adds a
-	// second list of the same four names underneath it.
+	// second list of the same four names underneath it. `guide` is left out: it is
+	// already open beside me (the `default` column), not a fifth card to click.
 	index: true,
 
 	content(){
@@ -33,17 +56,6 @@ this \`page.js\`, and core turns any such file into a page ([\`Page.file()\`](/f
 git JSON/JSONL, \`node:sqlite\`, Cloudflare D1, Durable Objects, KV, R2 — and lands on a
 seam instead of a service.`);
 
-		this.previews();
-
-		md(`Start with [**Thinking**](/imagine/cms/thinking/) — five minutes, and it is the part that
-decides anything. [**Services**](/imagine/cms/services/) is a mock on purpose: it composes the
-\`npx wrangler\` line for each screen and hands it to you rather than holding a token.
-
-[**JSON pages**](/imagine/cms/json/) is the same idea one level deeper — a whole page tree that
-exists as \`page.json\` plus an append-only \`page.jsonl\`. Put that pair on the dev socket instead
-of fetching it once and you get [**streaming pages**](/imagine/stream/): an edit here, redrawn
-there, 9 ms later.
-
-How it is built, and the four traps found on the way: [\`readme\`](/imagine/cms/readme/).`);
+		this.previews(new Map([...this.children].filter(([name]) => name !== "guide")));
 	},
 });

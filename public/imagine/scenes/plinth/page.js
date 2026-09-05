@@ -31,7 +31,7 @@ export default new Scene({
 
 	camera: { eye: [0, 3.9, 10.4], aim: [0, 1.7, 0] },
 
-	content(){ md("**Single object swap.** The room is this page's `world`. Each child claims slot `focus` and builds one mesh — so the apse, the light and the turning ring above are never rebuilt. Click a swatch on the floor."); },
+	content(){ md("**Click a swatch on the floor** and only the shape on the plinth changes. The room, the light and the ring turning overhead stay exactly as they were — this door swaps one object, nothing more."); },
 
 	build(stage, theme){
 		const world = new THREE.Group();

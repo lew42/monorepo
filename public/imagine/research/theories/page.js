@@ -14,6 +14,7 @@ export default new Page({
 	icon: "account_tree",
 
 	children: "younger-dryas lost-civilization ancient-astronauts catastrophism-gradualism uap-hypotheses synthesis patterns",
+	index: true, // content() already shows every child as a previews() wall below
 
 	content(){
 		md(`Five theories that keep resurfacing around ancient technology and anomalous phenomena — each read the same way: **claim**, **best evidence**, **contemporary expert opinion** (named, dated), **implications if true**, and **what would settle it**. One is genuinely contested inside real journals; the others range from a real archaeological revision being over-read, to long-rejected pseudoarchaeology, to a settled 19th-century framework, to a live modern dispute with no settled answer yet. Credence labelled throughout: **established** / **contested** / **fringe** / **speculation** — the label is the writer's claim about the evidence, never upgraded by this page.

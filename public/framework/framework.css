@@ -582,6 +582,27 @@
        see styles/rules/readme.md. */
     .measure.start { margin-inline: 0; }
 
+    /* `table-equal` — columns split evenly instead of by content, on the table
+       ABOVE's `width: max-content` shrink-wrap. `md()` puts the class straight on
+       a table that is the WHOLE markdown block, but wraps it in a div (still
+       carrying every class) the moment there is a second block beside it — so
+       this has to reach the table both ways. `table-layout: fixed` is what makes
+       an even split possible — the browser must stop measuring cell content, or
+       it can never finish deciding column widths.
+       ⚠ `display: table`, undoing the base layer's `display: block` (measured,
+       not assumed): with the outer box `block`, the ROWS still lay out as an
+       anonymous table underneath it, and setting `table-layout` on the outer
+       `<table>` element does nothing to that anonymous box — columns stayed
+       content-sized (620px vs 103px at 400px wide) until the box itself was
+       `table` again. */
+    :is(table.table-equal, .table-equal table) { display: table; table-layout: fixed; width: 100%; }
+    /* `styles.css`'s `.md td:first-child { white-space: nowrap }` is a real, deliberate
+       rule — a docs table's first column is a short keyword, site-wide (`@layer site`).
+       `table-equal` is the opposite claim about ITS cells — long enough to want the
+       whole column, not one line — so it says so back, same specificity fight `util`
+       always wins. */
+    :is(table.table-equal, .table-equal table) :is(td, th) { white-space: normal; }
+
     /* A laid-out container owns its own spacing — `gap` does it, and an inherited
        block margin only fights it. `.flex > *` has said this for a long time; a
        grid is the same box with a different name. The default page shape is

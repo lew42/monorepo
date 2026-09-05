@@ -21,6 +21,16 @@ Deleting beats adding. Fewer agents, cleaner fences, deliberate order — a queu
 than a collision. Never ship a bandaid to close a ticket; a written redesign proposal is a
 deliverable.
 
+**Resolve, don't park** (the owner, 2026-09-04). A found issue is not a finding to log and
+leave: fix it the best way you can now, keep the fix easy to change, and write its caveat beside
+it. "Left open" in a landing line needs a reason a reader accepts — an owner's decision, a
+fence, a missing fact — never "out of scope". Every brief says so, and the harvest checks it.
+
+**Clear beats brief** (CLAUDE.md law 2, rewritten 2026-09-04). Every brief carries it: a page's
+takeaway is obvious in ten seconds, in full plain sentences, basics first; a reviewer who cannot
+say what a page is for has found a defect. The mastermind's own reports obey it too — the owner
+could not follow the minimal ones.
+
 ## Budget — one rule, every window
 
 **used% ≤ elapsed%.** Run `check-claude-usage` at the top of every cycle. Under the line:
@@ -94,6 +104,7 @@ long it may be — a report is a screen; a page leads with the thing itself. The
   that must agree; ask for a ratio, not an opinion; say which artifact is the deliverable and
   what to cut first.
 - Findings go in the worker's own `task.jsonl` as `log` lines, never a `findings.md`.
+- A worker that needs a server starts a PRIVATE one (`PORT=809x node server.js` from the repo root) and kills it at landing; `netstat -ano | grep LISTENING | grep -E ":80(8|9)[0-9]\s"` lists the ports already claimed (a sibling held 8097 on the first try, 2026-08-31).
 - ⚠ Search with Glob/rg scoped to the repo, never `find /` — two orphaned root-scans in two
   days each burned a core for hours after their agent landed (3673 and 887 cpu-sec, 08-30/31),
   both reaped by the mastermind.

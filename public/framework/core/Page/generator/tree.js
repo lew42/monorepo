@@ -1,8 +1,9 @@
-import { Page, div, span, a, icon } from "/app.js";
+import { Page, div, span, a, icon, code, md } from "/app.js";
 import { WIDTHS, INPLACE } from "./gen.js";
-import { parse, read } from "./spec.js";
+import { parse, read, serialize } from "./spec.js";
 import { kind, width, tune, shape } from "./controls.js";
 import { fill, peek, title_for, empty } from "./fill.js";
+import { module, content_line, width_line } from "./export.js";
 
 /**
  * Spec text → **page configs**, the nested-POJO form `Page.declare()` already takes:
@@ -21,6 +22,14 @@ import { fill, peek, title_for, empty } from "./fill.js";
  *   `link()`      — the same url, carrying the seed;
  *   `container()` — WHERE its view mounts: a new column, or its parent's panel.
  *
+ * A fourth is `route("code")` — the one UNDECLARED child every generated page answers
+ * (`Page.child()`'s own contract: memory, then `route()`, then a filesystem probe). It
+ * never appears in `children:` and is never part of the exported tree (`export.js`'s
+ * `kids()` filters on `.at`, which this child does not have); it reuses `export.js`'s own
+ * `content_line()` / `width_line()` / `module()` to show what a hand-written page.js for
+ * THIS page would say, plus the calls the host's own controls logged against this page's
+ * position (`page.js`'s `swap()` / `calls`).
+ *
  * ⚠ Every generated url carries `#<seed>`. `Router.go()` pushes `pathname + search +
  *   hash`, so a plain href would DROP the seed the moment you navigated one level in —
  *   and the reload would rebuild a different tree under the same url.
@@ -31,14 +40,16 @@ import { fill, peek, title_for, empty } from "./fill.js";
 export const inplace = page => INPLACE.includes(page?.block);
 
 /* `hash` is the generator's address — `#7` for a seed, `#s=<encoded>` for a typed spec.
-   Every generated url carries it verbatim; this module never builds one itself. */
-export function tree(text, hash){ return nodes(parse(text), hash); }
+   Every generated url carries it verbatim; this module never builds one itself.
+   `host` is the generator page itself — threaded through only so a page's `route("code")`
+   can read `host.calls`, the log every control click appends to (page.js). */
+export function tree(text, hash, host){ return nodes(parse(text), hash, host); }
 
 /* One config per line. The NAME is still the block word plus an ordinal, so a url reads
    `…/wall/list/prose/` and says what the tree is; the TITLE is a word drawn from the
    page's own key, so a nav of three children reads as three different pages. Both, because
    they answer different questions — the url is structure, the label is content. */
-function nodes(list, hash, up, seed = 1, path = []){
+function nodes(list, hash, host, up, seed = 1, path = []){
 	const seen = {}, taken = new Set();
 
 	return list.map((node, at) => {
@@ -79,39 +90,100 @@ function nodes(list, hash, up, seed = 1, path = []){
 			at: [...path, at],
 			opt: line.opt,
 
-			children: nodes(node.kids, hash, block, key, [...path, at]),
+			children: nodes(node.kids, hash, host, block, key, [...path, at]),
 
 			// ⚠ The host's crumb strip draws `link()`. Without the seed a crumb click
 			//   lands on a url that reloads into a DIFFERENT tree.
 			link(text){ return a.c("page-link", text ?? this.title).href(this.url + hash); },
 
 			column(host){ return column(this, host, hash); },
+			container,
 
-			/**
-			 * WHERE MY VIEW MOUNTS — and the whole of "a tab switches in place".
-			 *
-			 * Core hands a child to the nearest ancestor's `$pages`, which is a SIBLING of
-			 * that ancestor's column body, so `display: contents` floats it out as the next
-			 * column in the row. Two lines change that:
-			 *
-			 *   1. an in-place parent hands me its `$panel` instead — inside its body, so
-			 *      the row never grows and picking a tab swaps content where it stands;
-			 *   2. my own children then skip PAST me to the nearest ancestor that still owns
-			 *      a slot in the row, or a grandchild would open inside the panel too.
-			 *
-			 * This is `ext/tabs`' `regions` contract by hand: same seam, same guarantee that
-			 * an ancestor has rendered before I look (Router.activate runs root-to-leaf).
-			 */
-			container(){
-				if (inplace(this.parent) && this.parent.$panel) return this.parent.$panel;
-
-				for (let page = this.parent; page; page = page.parent)
-					if (page.$pages && !inplace(page.parent)) return page.$pages;
-
-				return Page.prototype.container.call(this);
-			},
+			// THE CODE TAB — an UNDECLARED child (Page.child()'s memory → route() →
+			// filesystem order), so it exists only once something links to it (the
+			// small `code` icon `column()` draws below) and is never part of
+			// `children:` or the exported tree (`export.js`'s `kids()` filters on
+			// `.at`, which this child does not have). `node` is THIS line's own raw
+			// spec node (spec.js's `parse()`), closed over so the tab can show its
+			// own fragment without re-parsing the whole spec.
+			route(name){ return name === "code" ? code_child(node, hash, host) : null; },
 		};
 	});
+}
+
+/**
+ * WHERE A VIEW MOUNTS — shared by every generated page AND its `code` child, because both
+ * answer the same question: does MY PARENT show its children inside itself?
+ *
+ * Core hands a child to the nearest ancestor's `$pages`, which is a SIBLING of that
+ * ancestor's column body, so `display: contents` floats it out as the next column in the
+ * row. Two lines change that:
+ *
+ *   1. an in-place parent hands me its `$panel` instead — inside its body, so the row
+ *      never grows and picking a tab (or opening its code) swaps content where it stands;
+ *   2. my own children then skip PAST me to the nearest ancestor that still owns a slot in
+ *      the row, or a grandchild would open inside the panel too.
+ *
+ * This is `ext/tabs`' `regions` contract by hand: same seam, same guarantee that an
+ * ancestor has rendered before I look (Router.activate runs root-to-leaf).
+ * ⚠ A plain function, not an arrow: `this` is whichever Page it is attached to.
+ */
+function container(){
+	if (inplace(this.parent) && this.parent.$panel) return this.parent.$panel;
+
+	for (let page = this.parent; page; page = page.parent)
+		if (page.$pages && !inplace(page.parent)) return page.$pages;
+
+	return Page.prototype.container.call(this);
+}
+
+/**
+ * THE CODE TAB'S OWN CONFIG — `route("code")`'s answer. `this` at render time is the LIVE
+ * code page `add()` just built, and `this.parent` is the generated page it hangs off
+ * (adoption sets that the moment `child()` adopts what `route()` returned) — so every read
+ * below is the CURRENT state of that page, not a snapshot from when the tree grew.
+ *
+ * Three things, and `export.js` writes two of them already — read there first:
+ *   `serialize([node])`  — this page's own spec line (and any nested lines), spec.js's;
+ *   `module(page)`       — the whole page.js `export.js` would write for it;
+ *   `host.calls`         — one line per control click, logged by `page.js`'s `swap()`,
+ *                          keyed by `page.at` so it survives the regrow every click causes.
+ */
+function code_child(node, hash, host){
+	return {
+		title: "Code",
+		label: "Code",
+		icon: "code",
+		width: "large",
+
+		link(text){ return a.c("page-link", text ?? this.title).href(this.url + hash); },
+		container,
+
+		column(){
+			const page = this.parent;
+			const calls = host.calls.get(JSON.stringify(page.at)) ?? [];
+
+			return div.c("page-gen page-gen-code page-column-body page-column-large", () => {
+				div.c("page-column-head", () => {
+					span.c("page-column-title", "Code");
+					a.c("page-column-close", () => icon("close")).href(page.url + hash);
+				});
+
+				div.c("page-column-prose flow", () => {
+					md("**The spec** — this page's own line in the tree:");
+					code(serialize([node]));
+
+					md("**The `page.js` `export.js` would write** for it, right now:");
+					code.js(module(page));
+
+					md(calls.length
+						? "**As its controls are clicked**, the matching line is appended here:"
+						: "Switch this page's kind, width, or (on a wall/list) its arrangement, then reopen this tab — each click appends the line it corresponds to.");
+					if (calls.length) code.js(calls.join("\n"));
+				});
+			});
+		},
+	};
 }
 
 /* One child, one link — the ONE place a generated url is written, so the generator's own
@@ -159,6 +231,12 @@ export function column(page, host, hash){
 				kind(page, host);
 				if (!inline) width(page, host);
 			});
+
+			// THE CODE TAB — a real link (`route("code")` above), so a reload or a
+			// middle-click lands on it too. `.attr("title", …)` because the icon
+			// alone says nothing to a reader who has not met this feature before.
+			a.c("page-gen-code-link").href(page.url + "code/" + hash).attr("title", "code for this page")
+				.append(() => icon("code"));
 
 			// ⚠ Not on an in-place child: it has no column of its own to close, and the
 			//   `×` would close the tab set it is inside.

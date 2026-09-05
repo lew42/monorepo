@@ -1,4 +1,4 @@
-import { Page } from "/app.js";
+import { Page, md } from "/app.js";
 
 /* Exported from the page generator on 2026-08-31 — seed 7, model v3.
  *
@@ -31,4 +31,8 @@ export default new Page({
 	initialize(){ this.columns(); },
 
 	children: "vtabs list",
+
+	content(){
+		md("A **seed** is one export from the [generator](/framework/core/Page/generator/) — a real tree of `page.js` files, not a finished app. The two links below, *Journal* and *Backlog*, are placeholder names the generator invented; they don't describe what's inside. *Journal* is really a vertical tab rail (`vtabs/`), *Backlog* a plain column list (`list/`) — open either to see the actual shape, then edit the files under it to make it yours.");
+	},
 });

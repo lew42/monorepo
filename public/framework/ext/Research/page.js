@@ -6,7 +6,7 @@ export default new Doc({
 	description: "A research topic as an append-only log — minions write it while they dig, the page renders it live.",
 	icon: "biotech",
 
-	files: "Research.js Program.js Research.css verbs.js entries.js store.mjs research.mjs entry.mjs",
+	files: "Research.js Program.js Topic.js Research.css verbs.js entries.js store.mjs research.mjs entry.mjs",
 	notes: "program render verbs writers process decisions",
 
 	content(){

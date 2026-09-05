@@ -5,7 +5,7 @@ import { tree, items } from "./tree.js";
 import { globals, SIZES, GAPS, unknown } from "./controls.js";
 import { wall } from "./rolls.js";
 import { gallery } from "./specs.js";
-import { control, run, report } from "./export.js";
+import { control, run, report, content_line, width_line } from "./export.js";
 
 View.stylesheet(import.meta, "generator.css");
 
@@ -44,6 +44,12 @@ export default new Page({
 	   is already readable here, so a deep url reloads onto the tree it was addressed
 	   against rather than onto the default one. */
 	initialize(){
+		// THE CODE TAB'S OWN LOG — one entry per position (`page.at`, JSON-stringified),
+		// so it survives every regrow (`grow()` throws the whole tree away and rebuilds
+		// it from the spec text — doc/decisions.md). `log_call()` appends, `route("code")`
+		// (tree.js) reads. Never cleared: it is a transcript of the session, not a cache.
+		this.calls = new Map();
+
 		this.land();
 		this.grow();
 		this.columns();   // core's opt-in: my whole subtree lays out as columns
@@ -59,7 +65,7 @@ export default new Page({
 
 		this.add("rolls", wall(this));
 		this.add("specs", gallery(this));
-		tree(this.spec, this.hash()).forEach(config => this.add(config.name, config));
+		tree(this.spec, this.hash(), this).forEach(config => this.add(config.name, config));
 
 		return this.spec;
 	},
@@ -272,8 +278,31 @@ export default new Page({
 	/* THE THIRD DOOR, and the one every control uses: change ONE line of the spec.
 	   A switch is a typed spec from then on — it is no longer what `gen(seed)` draws, and
 	   the proof line says so rather than claiming a seed it does not have. The seed is
-	   never touched, so `#7` still means one tree and the reproducibility law holds. */
-	swap(at, change){ return this.type(edit(this.spec, at, change)); },
+	   never touched, so `#7` still means one tree and the reproducibility law holds.
+	   ⚠ Logged AFTER `type()` (which regrows), so `log_call()` reads the FRESH page at
+	     `at` — the one whose `.block`/`.opt`/`.width`/`.children` already reflect this
+	     very change — not the one `edit()` just replaced. */
+	swap(at, change){
+		const result = this.type(edit(this.spec, at, change));
+		this.log_call(at, change);
+		return result;
+	},
+
+	/* THE CODE TAB'S TRANSCRIPT — one line, appended to `this.calls` at this position,
+	   every time a control fires. `width` is a field (`export.js`'s `width_line()`);
+	   a `block` or `opt` change is a `content()` body (`content_line()`) — the same two
+	   functions `export.js`'s own `module()` writes a whole page.js out of, so the code
+	   tab can never say something export would not. */
+	log_call(at, change){
+		const page = this.page_at(at);
+		if (!page) return;
+
+		const line = "width" in change ? width_line(page) : content_line(page);
+		if (!line) return;
+
+		const key = JSON.stringify(at);
+		this.calls.set(key, [...(this.calls.get(key) ?? []), line]);
+	},
 
 	/* Rebuild, repaint, and move the url to the new address — landing back on the column
 	   you were reading, which is the difference between a control and a reset button.
@@ -314,17 +343,21 @@ export default new Page({
 		return at;
 	},
 
-	// The same indices, back to a url, in the tree that just replaced the old one.
-	resolve(at){
+	// The same indices, resolved to the PAGE they name in the tree that just replaced
+	// the old one — `resolve()` (a url) and `log_call()` (a live page to read) both
+	// want this, so it is one walk rather than two ways to get lost in the tree.
+	page_at(at){
 		let page = this;
 
 		for (const i of at){
 			page = [...page.children.values()].filter(kid => kid?.at)[i];
-			if (!page) return this.url;
+			if (!page) return null;
 		}
 
-		return page.url;
+		return page;
 	},
+
+	resolve(at){ return this.page_at(at)?.url ?? this.url; },
 
 	/* THE HEADER'S GLOBALS — tokens on the columns host, inherited by every column that
 	   names no width of its own. A token needs no specificity to win, which is the same

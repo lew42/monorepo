@@ -107,13 +107,13 @@ stylesheet and Google's loader into a 3D scene.
 ## Resolution
 
 The engine is only as fine as whatever drives it. `Player` reads at 250ms (`Player.tick`) — see
-[`api.md`](/imagine/youtube/doc/api.md) for why there is a poll at all — and the tour beats at
+[`api.md`](/imagine/youtube/doc/api/) for why there is a poll at all — and the tour beats at
 the same 250ms on purpose. A cue fires within an eighth of a second of its mark on average,
 which is under the threshold anyone notices for a UI change; it is **not** tight enough for
 anything that must land on a frame.
 
 ## Related
 
-- [`api.md`](./api.md) — the poll, and why the getters lie for a moment
-- [`yield.md`](./yield.md) — the cue table as a rhythm, not just a list
-- [`marks.md`](./marks.md) — where a cue table comes from in the first place
+- [`api.md`](/imagine/youtube/doc/api/) — the poll, and why the getters lie for a moment
+- [`yield.md`](/imagine/youtube/doc/yield/) — the cue table as a rhythm, not just a list
+- [`marks.md`](/imagine/youtube/doc/marks/) — where a cue table comes from in the first place

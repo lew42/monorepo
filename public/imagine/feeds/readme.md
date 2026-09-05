@@ -11,6 +11,11 @@ option, every variation is a real page you can link to.
 
 ## Watch out
 
+- **`page.js` needs `index: true`.** Its `content()` already draws Video/Data/Live as
+  cards via `previews()` — without `index: true`, core's `column()` repeats the same
+  three names a second time underneath as a plain link list (found live 2026-09-04,
+  same bug `/imagine/gallery/` and `/imagine/design/` had). `width: "large"` alongside
+  it so the three cards fit one row. See [`doc/decisions.md`](./doc/decisions.md).
 - **No iframe before the click.** `video/`'s `stage()` builds a poster `<img>` and a play
   `<button>` synchronously; the `<iframe>` (`youtube-nocookie.com`) is only appended inside
   the click handler. Verified headless: zero iframes on load, one after, correct `src`.

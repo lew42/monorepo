@@ -18,7 +18,7 @@ measured headless against the live pages unless it says otherwise.
 
 - **`cues.js` is its own file**, and `Player` is three lines of delegation into it. The engine
   fires through an injected `fire`, so a page still listens to the one object it holds and all
-  five original labs are byte-for-byte unchanged in behaviour. [`cues.md`](./cues.md)
+  five original labs are byte-for-byte unchanged in behaviour. [`cues.md`](/imagine/youtube/doc/cues/)
 - **The formatters moved with it.** `clock()` and `seconds()` are timeline vocabulary, not video
   vocabulary; importing `youtube.js` to print `"1:32"` would have pulled a stylesheet and
   Google's loader into a 3D scene.
@@ -61,7 +61,7 @@ thing it is about (shot at 400, 2026-08-30). On a phone the bar, the clock and t
 still follow the playhead; only the automatic routing stops. Tapping a chapter still seeks.
 
 ⚠ **Navigation comes from the engine's INDEX, not from a cue's `fn`.** A backward scrub replays
-every cue, which fired three `router.go()`s racing each other. [`cues.md`](/imagine/youtube/doc/cues.md).
+every cue, which fired three `router.go()`s racing each other. [`cues.md`](/imagine/youtube/doc/cues/).
 
 ## Widths: `fill` was tried and is a no
 
@@ -89,7 +89,7 @@ that divides six. 7em gave four columns and the last row ended in a wide grey of
 1. **`input.attr(…)` instead of `input().attr(…)`.** The factory is a function; a property
    access on it throws two frames later. `div.c` and `input.c` both work, which is what makes
    the bare form look plausible.
-2. **The getters answer stale after a setter.** [`api.md`](/imagine/youtube/doc/api.md) — the
+2. **The getters answer stale after a setter.** [`api.md`](/imagine/youtube/doc/api/) — the
    whole of `settle()`.
 3. **The 400 course routed away from its own video.** Above.
 
@@ -119,10 +119,73 @@ narrow width. Nothing else on any of the five pages scrolls at 400 / 1280 / 1920
 
 - **The chapter marks are hand-typed seconds.** They still are — but nobody has to type them
   with a stopwatch any more. [`marks/`](/imagine/youtube/marks/) is the tool, and
-  [`marks.md`](./marks.md) says why the Data API is still not the answer for a static site.
+  [`marks.md`](/imagine/youtube/doc/marks/) says why the Data API is still not the answer for a static site.
+
+## Closed 2026-09-04 — `panel`'s keyboard legend did nothing on a cold load
+
+**Found by the clarity review.** `panel/` is `youtube/`'s `default` column — shown on
+`/imagine/youtube/` without ever being routed to. `render_column()` in
+`core/Page/Page.class.js` only `render()`s a default column, never `activate()`s it, so
+`panel`'s own `activated()` — the method that attaches the keydown listener for the whole
+keyboard legend — never ran. Every key on the legend (Space, ← →, J L, ↑ ↓, M, 0–9) was
+silently a no-op on first landing, and the worse half of the same bug: `deactivated()`
+never ran either, so pressing play and then leaving for another top-level page left the
+4×/second poll running forever (`Player.live` stuck above 0 — the exact invariant this
+readme's Watch-out section names).
+
+Fixed in `youtube/page.js` — the parent now activates/deactivates its own default column
+by hand, the same workaround `core/Page/overview/columns/uses/split/page.js`'s parent
+already carries for a never-routed REGION:
+
+```js
+activated(){ this.default_column()?.activate(); },
+deactivated(){ this.default_column()?.deactivate(); },
+```
+
+Verified: keyboard shortcuts fire on a cold load; `Player.live` returns to 0 after
+navigating away mid-play; the routed `/panel/` url is unaffected (`render()`/`activate()`
+are both idempotent, so the extra call is a harmless no-op once the router activates it
+for real).
+
+⚠ **This treats the symptom, not the cause.** The real fix belongs in `render_column()`
+itself, so every `default` column site-wide gets it for free rather than each leaf
+carrying its own copy of this workaround. `activate()` can't simply replace `render()` on
+line 307 as-is — `activate()` opens by calling `this.container()`, which for a column
+walks up to `this.parent.$pages`, and `$pages` is still being built by the very callback
+that would make the call (the ordering trap `child()`'s own comment already names two
+lines above this one: `this.app.router` in a default column's content threw, 2026-08-29).
+The shape that avoids it — call `render()` to build the view exactly as today, THEN
+`activate()` it once `$pages` exists, both inside the same host method so no leaf ever has
+to know:
+
+```diff
+  render_column(host){
+      const stack = () => {
+          this.column_grab(this.column(host));
+          this.$pages = div.c("page-column-pages", () => this.default_column()?.assign({ app: this.app }).render());
++         this.default_column()?.activate();   // render() above already built the view; $pages exists now, so container() resolves
+      };
+```
+
+Proposed, not applied — `core/` is out of this module's fence. It would also want a test:
+a `default` column's `activated()` firing on cold load, and its `deactivated()` firing when
+the reader leaves without ever routing to it directly (this module's own `panel/` is a
+ready-made repro).
 
 ## Open — the owner decides
 
+- **The critique's 3440 number is unchanged and still open.** `/imagine/paging/critique/`
+  ranks this module 17th: 62% of 3440 used, 1028px dead on the right of the third column,
+  score 82. Confirmed still true (shot, 2026-09-04). Its proposed alternate — "add a third
+  wide column, a transcript or the marks timeline the page already builds" — is a real
+  feature, not a width-word change: `fill` was already tried and rejected above with a
+  measured shot (2340px video, taller than the viewport), and that verdict still holds, so
+  the dead space cannot be closed by widening `panel`/`course`/etc. any further without
+  reopening that regression. Wiring `marks/`'s live cue table in as a companion column
+  beside `panel` is plausible and stays inside this module's own fence, but it is a genuine
+  design decision (which lab gets a permanent neighbour, and whether that neighbour should
+  open by default) rather than a caveat-and-ship fix — left open for the same reason the
+  four items below are.
 - **Should a chapter boundary be a hard stop?** Today the video runs on and the nav follows. A
   course might want it to pause and wait for you.
 - **`index: true` on `course/` hides core's row list** because the bar shows the chapters. At

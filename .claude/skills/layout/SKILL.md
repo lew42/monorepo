@@ -18,7 +18,7 @@ A component inside a container — a rail section, a card, a panel — answers 1
    `wide` (main + breakout, grows rightward), `bleed` (edge to edge) — or a card, a rail, a
    panel. The container decides your width, gap and rhythm; you inherit, you don't fight.
    ⚠ On a page with `initialize(){ this.catalog(); }`, `content()` lands in a child `intro` page inside `.page-catalog-pages`, so `wide` claims the DETAIL column, not the region — 591px at 1280 on `/framework/styles/elements/code/`, and Q1 answered before looking was wrong by 2×.
-   ⚠ Under a COLUMNS host there is no page grid at all — content sits in `.page-column-prose`, so `wide` is meaningless (`grid-column: auto`) and only `bleed` reaches the edge. Walk `chain()` for the columns host before choosing a track word; `/imagine/` became a host mid-flight and a stage answered Q1 wrong by 2× (2026-08-29). And 3+ levels deep, `width: "large"` shares evenly with default-width ancestors (both `flex: 1 1 0`) — `fill` is the word that actually claims the leftover at any depth (measured: three `large` columns landed 565px each; the leaf on `fill` got 1184px, 2026-08-30).
+   ⚠ Under a COLUMNS host there is no page grid at all — content sits in `.page-column-prose`, so `wide` is meaningless (`grid-column: auto`) and only `bleed` reaches the edge. Walk `chain()` for the columns host before choosing a track word; `/imagine/` became a host mid-flight and a stage answered Q1 wrong by 2× (2026-08-29). And 3+ levels deep, `width: "large"` shares evenly with default-width ancestors (both `flex: 1 1 0`) — `fill` is the word that actually claims the leftover at any depth (measured: three `large` columns landed 565px each; the leaf on `fill` got 1184px, 2026-08-30). ⚠ The other half: `fill` is `flex: 1 1 100%` with no ceiling, so it ALSO claims the leftover from a column opened UNDER it — a `fill` Research front took 1928px and squeezed the topic and its verdict to their 288px floor (2026-09-04, twice). `fill` is for a LEAF; a page whose children open beside it wants `large` until the columns rule lets `fill` yield to an open child.
 2. **How big will it be?** Its width at 400 / 1280 / 1920 / 3440. One column, or 2+? Two
    or more columns of *content* **never** live in `main` — claim `wide` or `bleed`. This is
    the single commonest failure: a grid, table or dashboard squeezed into 52em.
@@ -45,6 +45,7 @@ A component inside a container — a rail section, a card, a panel — answers 1
 5. **What is its preview on the parent?** One question at a glance — title + thumb or one
    line; size by importance (`.two`, `.tall`, `.big`), not by how much content exists. A
    preview is a picture, never a live instance.
+   ⚠ Under a columns host one child is previewed at TWO widths at once — a wall card (`--column: 14em`) and the narrow rail item (`--rail-card, 11em`) in the nav column beside it — so a `description:` that fits the wall's two-line clamp still clips in the rail. ≤ 45 characters survives both (measured 2026-09-04: 55 clipped, 49 fit).
 
 ⚠ A demo OF a size token must be measured against the box it will actually live in, not the
 box you drew it in — the one-line check: is the demo box wider than the token it demonstrates?

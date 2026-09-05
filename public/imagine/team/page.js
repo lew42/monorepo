@@ -138,11 +138,22 @@ const quiet_column = function(){
 const board = () => ({
 	title: "Board",
 	icon: "dashboard",
-	width: "large",
+	// `fill`, not `large`: the board is always the rightmost open column, so it should
+	// take whatever the row has left over — `large` caps at 64em and left 1424px dead
+	// at 3440 (critique row 15, /imagine/paging/critique/). Caveat: if a future column
+	// ever opens to the board's right, `fill` would compete with it for the leftover
+	// instead of yielding — undo this if that column ever exists.
+	width: "fill",
 	classes: "default",
 
 	content(){
 		const topic = this.topic();
+
+		// THE MISSING SENTENCE. Without this the board opened straight into four
+		// unlabelled lanes and a stranger had no way to know it was a kanban board
+		// you could drag, or that the roster on the left filters it. One line, said
+		// once, above everything else.
+		md("**A kanban board for this team.** Drag a task between the four lanes below, or pick a person on the left to see just their work.");
 
 		/* ⚠ The density class is toggled INSIDE the watcher. Set once at build time it
 		   would be right on the first paint and never again — `empty()` replaces the
@@ -202,11 +213,16 @@ const board = () => ({
 					});
 				})).style("--column", "9em");
 
+				// Labelled once, honestly: these are the PAGE's own live counters, not a
+				// project metric — how many people picked, tasks moved, times the watcher
+				// redrew, and how far a ref walked to get here. Left bare they read as noise
+				// a stranger cannot place.
 				div.c("imagine-tally flex gap wrap", () => {
-					span("picks: " + topic.picks);
-					span("moves: " + topic.moves);
-					span("updates: " + topic.updates);
-					span("hops: " + hops(this, topic));
+					span.c("muted", "This page's own counters —");
+					span("people picked: " + topic.picks);
+					span("tasks moved: " + topic.moves);
+					span("redraws: " + topic.updates);
+					span("ref hops: " + hops(this, topic));
 				});
 			});
 		}));
@@ -216,7 +232,10 @@ const board = () => ({
 export default new Page({
 	meta: import.meta,
 	title: "Team",
-	description: "A roster, a person, their assignments and a board that follows the selection — four columns, one ref, no imports between them.",
+	// Plain terms: this is the card's own blurb, read BEFORE anyone clicks in — it is
+	// where "four columns, one ref, no imports between them" (true, but author-only
+	// jargon) used to sit, promising an architecture instead of a page.
+	description: "A sample team's kanban board — six people, twelve tasks, four lanes. Drag a task to move it, or click a person to see just theirs.",
 	icon: "groups",
 
 	classes: "imagine-team",
@@ -353,7 +372,15 @@ export default new Page({
 						div.c("imagine-assign-row flex v-center gap wrap", () => {
 							span.c("imagine-assign-title", task.title);
 
-							div.c("imagine-seg flex", () => LANES.forEach(lane => {
+							// ⚠ `wrap`: `.imagine-seg` in imagine.css is `overflow: hidden` at
+							// `width: max-content` — right for a 2-button toggle, but here
+							// four lane buttons in this narrow assignment column clipped
+							// "LANDED" down to "LAND" with no ellipsis and no warning
+							// (measured 2026-09-04, 1280×900, person column at its 16em
+							// floor). Wrapping to two rows is the smallest fix that stays
+							// inside this page; undo it if `.imagine-seg` itself ever
+							// learns to wrap.
+							div.c("imagine-seg flex wrap", () => LANES.forEach(lane => {
 								button.c("imagine-seg-btn", lane.title)
 									.ac(topic.lanes[task.id] === lane.id && "imagine-on")
 									.click(() => topic.assign_lane(task.id, lane.id));
@@ -364,9 +391,10 @@ export default new Page({
 
 				div.c("imagine-tally flex gap wrap", $t => topic.watch(() => $t.empty(() => {
 					span("open load: " + topic.load(one.name) + " pts");
-					span("picks: " + topic.picks);
-					span("moves: " + topic.moves);
-					span("updates: " + topic.updates);
+					span.c("muted", "· this page's own counters —");
+					span("people picked: " + topic.picks);
+					span("tasks moved: " + topic.moves);
+					span("redraws: " + topic.updates);
 				})));
 
 				md("`this.topic()` walked **" + hops(this, topic) + " hop** up from here, **" + (hops(this, topic) + 1) + "** from the board beside me. Neither file names the other.");

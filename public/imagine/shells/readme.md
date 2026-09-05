@@ -1,7 +1,8 @@
 # Shells — ten app layouts, each at its own url
 
-What the chrome around a page can be: rails, bars, a canvas, and chrome inside chrome. Every
-shell hides the site's own strip and brings its own, so what you see is the whole app.
+**"Chrome"** is everything around a page that isn't the content — rails, bars, a canvas frame.
+This is what it can be: rails, bars, a canvas, and chrome inside chrome. Every shell hides the
+site's own strip and brings its own, so what you see is the whole app.
 
 ## Use
 
@@ -36,7 +37,7 @@ itself is the nav — every shell links to every other one, at real urls, cold-l
   A bar *inside* the content area under the row draws a second hairline 1px below the row's
   own — the family `columns and tabs — do not` belongs to.
 
-## Use
+## Keys
 
 - Every declared part hides and comes back on its own key — `[` `]` left/right rail,
   `h` `f` head/foot — never stealing from a focused input. Hover a rail or bar for the
