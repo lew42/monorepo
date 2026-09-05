@@ -1,4 +1,4 @@
-import { Page, div, span, button, input, pre, md, ui } from "/app.js";
+import { Page, div, span, button, input, pre, img, md, ui } from "/app.js";
 import { Player, Cues, clock, seconds, TALKS } from "../youtube.js";
 
 /* Container: /imagine/'s column row. Size: `large`, like its four siblings — a real
@@ -30,6 +30,12 @@ export default new Page({
 	description: "Watch, press M at each boundary, and copy out the cues array the other labs are hand-typed from.",
 	icon: "playlist_add",
 	width: "large",
+
+	// A real still of the stopwatch — Mark/Clear and the array it builds — instead of
+	// the default icon+description card (2026-09-05 ux-rethink).
+	preview(nav){
+		return this.preview_card(nav, () => img.c("yt-shot").attr("src", "/imagine/youtube/shots/marks.jpg").attr("alt", nav.label));
+	},
 
 	content(){
 		this.rows = [];

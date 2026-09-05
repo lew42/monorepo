@@ -1,6 +1,8 @@
-import { Page, div, span, a, md, button, icon } from "/app.js";
+import { Page, View, div, span, a, md, button, icon } from "/app.js";
 import Draggable from "/framework/ext/Draggable/Draggable.js";
 import { baseline } from "/imagine/paging/baseline.js";
+
+View.stylesheet(import.meta, "team.css");
 
 /* Container: /imagine/'s column row — this page is a column, not a screen. Size: a
    `small` 14em roster, the person on the default track, the board `large` (28–64em);
@@ -147,41 +149,46 @@ const board = () => ({
 	width: "fill",
 	classes: "default",
 
+	/* UX rethink 2026-09-05 — the owner's 3-column card, built for real: this is the
+	   one realm on the site where the centre column is a live thing with real numbers
+	   beside it (the shape that won on `research` and `generated` and lost on every
+	   menu page — /imagine/design/layout/approved/, the first nine reviewers' finding).
+	   Left is the intro and the two controls; centre is the drag surface and nothing
+	   else; right is every number the page was already computing, given a column of
+	   its own instead of a muted line under the fold. `team.css` is the frame; every
+	   class inside each region is still imagine.css's shared vocabulary. */
 	content(){
 		const topic = this.topic();
 
-		// THE MISSING SENTENCE. Without this the board opened straight into four
-		// unlabelled lanes and a stranger had no way to know it was a kanban board
-		// you could drag, or that the roster on the left filters it. One line, said
-		// once, above everything else.
-		md("**A kanban board for this team.** Drag a task between the four lanes below, or pick a person on the left to see just their work.");
+		div.c("imagine-board-wrap", () => div.c("imagine-board-card", () => {
 
-		/* ⚠ THE BOARD REMEMBERS YOU, and until 2026-09-05 it did so with nothing on
-		     screen saying so and NO WAY BACK — every lane you dragged was permanent.
-		     Green, not amber: a board you are keeping is what this page is for.
-		     The rule: /imagine/paging/doc/persistence.md. */
-		baseline(topic, {
-			what: "your lanes, density and sort",
-			restorable: true,
-			saved: () => topic.store().read()
-				? "**Saved.** Your lane changes, row density and sort are kept in this browser — nobody else sees them."
-				: null,
-		});
+			// LEFT — intro, the persistence mark, then the two live controls.
+			// ⚠ `baseline()` registers its OWN page watcher the first time it runs
+			//   (baseline.js `initialize()`) — it must be called exactly once, outside
+			//   any `topic.watch()` callback, or every redraw mints a second mark.
+			div.c("imagine-board-left flow", () => {
+				// THE MISSING SENTENCE. Without this the board opened straight into four
+				// unlabelled lanes and a stranger had no way to know it was a kanban
+				// board you could drag, or that the roster on the left filters it.
+				md("**A kanban board for this team.** Drag a task between the four lanes, or pick a person on the left to see just their work.");
 
-		/* ⚠ The density class is toggled INSIDE the watcher. Set once at build time it
-		   would be right on the first paint and never again — `empty()` replaces the
-		   children of the box, not the class on it. */
-		div.c("bleed imagine-board", $board => topic.watch(() => {
-			$board.el.classList.toggle("imagine-tight", topic.density === "compact");
+				/* ⚠ THE BOARD REMEMBERS YOU, and until 2026-09-05 it did so with nothing
+				     on screen saying so and NO WAY BACK — every lane you dragged was
+				     permanent. Green, not amber: a board you are keeping is what this
+				     page is for. The rule: /imagine/paging/doc/persistence.md. */
+				baseline(topic, {
+					what: "your lanes, density and sort",
+					restorable: true,
+					saved: () => topic.store().read()
+						? "**Saved.** Your lane changes, row density and sort are kept in this browser — nobody else sees them."
+						: null,
+				});
 
-			const who = topic.selection, shown = topic.tasks(who);
+				div.c("imagine-bar flex v gap wrap", $bar => topic.watch(() => $bar.empty(() => {
+					const who = topic.selection;
 
-			$board.empty(() => {
-				div.c("imagine-bar flex v-center gap wrap", () => {
 					span.c("imagine-bar-label", who ? person(who).title : "Everyone");
 					if (who) a.c("imagine-clear", () => icon("close")).href(topic.url);
-
-					span.c("imagine-count", shown.length + " of " + TASKS.length + " tasks");
 
 					// ONE control instead of a page per density — remembered by url.
 					div.c("imagine-seg flex", () => ["comfy", "compact"].forEach(mode => {
@@ -189,55 +196,96 @@ const board = () => ({
 							.ac(topic.density === mode && "imagine-on")
 							.click(() => topic.remember({ density: topic.density = mode }));
 					}));
+				})));
+			});
+
+			// CENTRE — the one gesture the page exists for, and nothing beside it to
+			// compete for width. `imagine-lanes`' own `--column: 9em` still floors and
+			// wraps two-by-two under this card's own container query (team.css).
+			// ⚠ The density class is toggled INSIDE the watcher. Set once at build
+			//   time it would be right on the first paint and never again — `empty()`
+			//   replaces the children of the box, not the class on it.
+			div.c("imagine-board-center", $center => topic.watch(() => {
+				$center.el.classList.toggle("imagine-tight", topic.density === "compact");
+
+				const who = topic.selection, shown = topic.tasks(who);
+
+				$center.empty(() => {
+					div.c("imagine-lanes grid auto gap", () => LANES.forEach(lane => {
+						const chips = shown.filter(task => topic.lanes[task.id] === lane.id);
+
+						div.c("imagine-lane flex v", $lane => {
+							div.c("imagine-lane-head flex v-center split", () => {
+								span(lane.title);
+								// Points, then chips: what the lane WEIGHS, then how many
+								// things that is. One number was never enough to say either.
+								span.c("imagine-count", points(chips) + " pts · " + chips.length);
+							});
+
+							/* ⚠ `.drag-items` is not decoration — it is the min-height that
+							   makes an EMPTY lane a surface you can drop onto. Without it
+							   "Review" is 0px tall and the last chip out of it can never go
+							   back (Draggable/readme.md calls this the most common report). */
+							div.c("imagine-lane-body drag-items flex v", $body => {
+								chips.forEach(task => div.c("imagine-task", $chip => {
+									span.c("imagine-task-title", task.title);
+									span.c("imagine-task-who", () => {
+										span(person(task.who).title.split(" ")[0]);
+										span.c("imagine-size", "·" + task.size);
+									});
+
+									new Chip({ view: $chip, task, topic });
+								}));
+
+								if (!chips.length) span.c("imagine-empty", "—");
+
+								// The lane itself: a drop site and nothing else. `handle: false`
+								// — ⚠ `null` would make the whole lane a grip (readme.md).
+								new Draggable({ view: $body, handle: false, lane: lane.id });
+							});
+						});
+					})).style("--column", "9em");
 				});
+			}));
 
-				div.c("imagine-lanes grid auto gap", () => LANES.forEach(lane => {
-					const chips = shown.filter(task => topic.lanes[task.id] === lane.id);
+			// RIGHT — every readout the page already computed: how many tasks the
+			// filter is showing, what each lane weighs, and this page's own live
+			// counters. This used to be a monospace footnote under the fold; it is
+			// the thing the owner's brief calls "readouts, metrics, feedback" — its
+			// own column, not a line you had to scroll to.
+			div.c("imagine-board-right flow", $right => topic.watch(() => $right.empty(() => {
+				const who = topic.selection, shown = topic.tasks(who);
 
-					div.c("imagine-lane flex v", $lane => {
-						div.c("imagine-lane-head flex v-center split", () => {
+				span.c("muted", "Readouts");
+
+				div.c("imagine-readouts", () => {
+					div.c("imagine-readout-row flex v-center split", () => {
+						span("Tasks shown");
+						span.c("imagine-count", shown.length + " of " + TASKS.length);
+					});
+
+					LANES.forEach(lane => {
+						const chips = shown.filter(task => topic.lanes[task.id] === lane.id);
+
+						div.c("imagine-readout-row flex v-center split", () => {
 							span(lane.title);
-							// Points, then chips: what the lane WEIGHS, then how many
-							// things that is. One number was never enough to say either.
 							span.c("imagine-count", points(chips) + " pts · " + chips.length);
 						});
-
-						/* ⚠ `.drag-items` is not decoration — it is the min-height that
-						   makes an EMPTY lane a surface you can drop onto. Without it
-						   "Review" is 0px tall and the last chip out of it can never go
-						   back (Draggable/readme.md calls this the most common report). */
-						div.c("imagine-lane-body drag-items flex v", $body => {
-							chips.forEach(task => div.c("imagine-task", $chip => {
-								span.c("imagine-task-title", task.title);
-								span.c("imagine-task-who", () => {
-									span(person(task.who).title.split(" ")[0]);
-									span.c("imagine-size", "·" + task.size);
-								});
-
-								new Chip({ view: $chip, task, topic });
-							}));
-
-							if (!chips.length) span.c("imagine-empty", "—");
-
-							// The lane itself: a drop site and nothing else. `handle: false`
-							// — ⚠ `null` would make the whole lane a grip (readme.md).
-							new Draggable({ view: $body, handle: false, lane: lane.id });
-						});
 					});
-				})).style("--column", "9em");
+				});
 
 				// Labelled once, honestly: these are the PAGE's own live counters, not a
 				// project metric — how many people picked, tasks moved, times the watcher
-				// redrew, and how far a ref walked to get here. Left bare they read as noise
-				// a stranger cannot place.
-				div.c("imagine-tally flex gap wrap", () => {
+				// redrew, and how far a ref walked to get here. Left bare they read as
+				// noise a stranger cannot place.
+				div.c("imagine-tally flex v gap wrap", () => {
 					span.c("muted", "This page's own counters —");
 					span("people picked: " + topic.picks);
 					span("tasks moved: " + topic.moves);
 					span("redraws: " + topic.updates);
 					span("ref hops: " + hops(this, topic));
 				});
-			});
+			})));
 		}));
 	},
 });

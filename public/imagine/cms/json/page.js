@@ -55,8 +55,21 @@ export default new Page({
 		return Page.prototype.child.call(this, name, levels);
 	},
 
+	/* ⚠ THE GUARD IS MINE TO KEEP, and leaving it out throws from the microtask queue
+	     with a message that names nothing: "Chaining cycle detected for promise" — core's
+	     `load_all_children` returns `this` unchanged when `levels <= this.loaded`, so on
+	     the second call `.loading` is the promise being assigned on that very line, and
+	     `p.then(() => p)` is a cycle. Copied from `paging/make/page.js`, which names this
+	     exact file as the other place the fix belongs. */
 	load_all_children(levels = this.depth){
-		this.loading = this.ready().then(() => Page.prototype.load_all_children.call(this, levels).loading);
+		if (levels <= this.loaded) return this;
+		this.loaded = levels;
+
+		this.loading = this.ready().then(() => {
+			this.loaded = -1;
+			return Page.prototype.load_all_children.call(this, levels).loading;
+		});
+
 		return this;
 	},
 

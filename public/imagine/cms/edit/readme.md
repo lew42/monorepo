@@ -7,16 +7,18 @@ thing.
 
 Type — the preview redraws every keystroke, and `page.store()` (core, keyed on this page's
 own url) patches the in-progress text after a short pause. Reload mid-edit and it comes back,
-with a quiet "draft · restored" note and a Discard button beside it. Save or Discard both
-clear the draft; only Save touches the file on disk.
+with the site's amber "Modified" mark and a two-press Reset above the editor (`baseline()`,
+2026-09-05 — was a bespoke "draft · restored" span; `Reset`'s second press calls this page's
+own `discard()`, so it still returns to disk in place, no reload). Save or Reset both clear
+the draft; only Save touches the file on disk.
 
 ## Watch out
 
-- The draft note reads "restored" even for text you typed and never reloaded — the label
-  means "there is an unsaved draft," not literally "this page just loaded it." Simpler than a
-  second label for the same state: [`doc/decisions.md`](/imagine/cms/edit/doc/decisions/).
 - A draft equal to what's already on disk is treated as no draft — restoring it would be
   restoring nothing.
+- `baseline()`'s default `restore()` clears the draft and reloads — this page passes its own
+  `restore` (`discard()`) instead, because there is real typed text worth putting back in
+  place rather than re-fetching: [`doc/decisions.md`](/imagine/cms/edit/doc/decisions/).
 
 ## More
 

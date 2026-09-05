@@ -423,6 +423,101 @@
 		font-variant-numeric: tabular-nums;
 	}
 
+	/* ════ GAME — the 3-column card, tried on the arrival screen ════════════════
+	   The owner's shape for a live centre with readouts beside it, tried here:
+	   left is who-are-you/what-to-click, centre is the run's own state (the same
+	   chain and scene the old stacked version drew, just boxed as a "stage"),
+	   right is per-realm readouts a stranger cannot get from the centre alone.
+	   Bound both ends (the layout skill's two-bounds rule) so a narrow column
+	   never squeezes three tracks into slivers — under 42em of column it stacks.
+	   ⚠ THE CONTAINER IS THE PARENT, NEVER THE GRID ITSELF. A container query
+	     cannot restyle the element that declares it — confirmed dead on
+	     `ext/Panel/toolbar.css` and again on `/framework/ai/`'s own card (both
+	     2026-08-16/17): the grid held onto 3 fixed tracks, its OWN box read as
+	     the query result (correctly narrow), but the query on `.imagine-card3`
+	     never re-styled `.imagine-card3` — the tracks' floors (11+20+12em) then
+	     forced the grid 200px past its 376px column at 400, and the readouts
+	     column rendered off the right edge of the viewport. One extra wrapper,
+	     `.imagine-card3-frame`, holds the container; the query now restyles a
+	     DESCENDANT (`.imagine-card3`) and actually fires. */
+	.imagine-card3-frame { container: imagine-card3 / inline-size; }
+
+	.imagine-card3 {
+		display: grid;
+		grid-template-columns: minmax(11em, 15em) minmax(20em, 1fr) minmax(12em, 17em);
+		gap: var(--gap-default);
+		align-items: start;
+		margin-block-end: 1.2em;
+	}
+
+	@container imagine-card3 (width < 42em) {
+		.imagine-card3 { grid-template-columns: 1fr; }
+	}
+
+	.imagine-card3-left, .imagine-card3-center, .imagine-card3-right {
+		display: flex; flex-direction: column; gap: 0.6em;
+	}
+
+	.imagine-card3-center {
+		padding: 0.8em 1em;
+		background: var(--surface);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+	}
+
+	.imagine-card3-kicker {
+		font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.16em;
+		color: var(--prim-ink);
+	}
+
+	.imagine-card3-title { font-size: clamp(1.3rem, 3cqw, 1.8rem); font-weight: 800; line-height: 1.1; }
+
+	.imagine-card3-intro { color: var(--subtle); max-width: 26em; }
+
+	.imagine-card3-cta { align-self: start; }
+
+	.imagine-card3-label {
+		font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+		color: var(--subtle);
+	}
+
+	/* The readout rows borrow `.imagine-exit`'s keyboard digit and click target —
+	   they ARE choices — but read as a stat card, not a pill, so the two families
+	   in one card don't fight for the same voice. */
+	.imagine-card3-readout {
+		display: block;
+		padding: 0.5em 0.6em;
+		background: var(--surface);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		text-decoration: none; color: inherit;
+	}
+
+	.imagine-card3-readout:hover { border-color: var(--prim); }
+
+	.imagine-card3-readout-head { font-weight: 600; font-size: 0.92em; }
+
+	/* The realm's one-word ambiance (`air:`), as a glyph instead of a second word —
+	   quiet on purpose, same restraint `imagine-air` already keeps on a room screen. */
+	.imagine-card3-air { font-size: 1em; color: var(--subtle); }
+
+	.imagine-meter {
+		position: relative;
+		height: 0.35em;
+		margin-block-start: 0.35em;
+		background: var(--tint);
+		border-radius: 999px;
+		overflow: hidden;
+	}
+
+	.imagine-meter::before {
+		content: "";
+		position: absolute; inset-block: 0; inset-inline-start: 0;
+		width: var(--pct, 0%);
+		background: var(--prim);
+		border-radius: inherit;
+	}
+
 	/* ════ GAME — the realm's ambiance ═════════════════════════════════════════
 	   One rung of the wash → tint → surface ladder per realm, on the realm's own
 	   rail and on every room under it, so changing realm is a visible step and not

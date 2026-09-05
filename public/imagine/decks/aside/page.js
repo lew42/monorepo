@@ -11,7 +11,6 @@ export default new Deck({
 	description: "70 / 30 — a stage and the aside that has to earn 1031px.",
 	icon: "crop_16_9",
 	group: "The slices",
-	shapes: ["2.33:g 1:n"],
 	ring: slices,
 	...arrows,
 	...neighbor("aside"),

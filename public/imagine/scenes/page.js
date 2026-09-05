@@ -1,4 +1,4 @@
-import { md } from "/app.js";
+import { md, div } from "/app.js";
 import { Scene, THREE } from "./Scene.js";
 import worlds from "./worlds/page.js";
 import plinth from "./plinth/page.js";
@@ -47,9 +47,18 @@ export default new Scene({
 
 	camera: { eye: [0, 2.8, 6.6], aim: [0, 2.3, 0] },
 
+	/* ⚠ THE LOBBY WRAPPER — tried 2026-09-05, kept. `staging()` builds the bar, the
+	   stage, the switch row and the notes zone as siblings; wrapping the call puts
+	   all four (plus this intro) under one grid parent, so past 100em scenes.css
+	   can lay them out as a rail + stage + readout instead of one long stack. Below
+	   100em the wrapper is a plain block and nothing here changes. doc/decisions.md */
 	content(){
-		md("**A 3D showroom of five small worlds.** Click an object in the room below — or a name in the list underneath it — to step inside one and look around.\n\nEach door swaps a different piece of the shared room instead of rebuilding the whole thing: a whole world, one object, one region, or one light. The fifth door, Observatory, uses all four at once. [How the swap actually works](./readme/), or [take the tour](/imagine/scenes/tour/) and let a clock walk you through all five doors.");
-		this.staging();
+		div.c("scene-lobby", () => {
+			div.c("scene-lobby-intro", () => {
+				md("**A 3D showroom of five small worlds.** Click an object in the room below — or a name in the list underneath it — to step inside one and look around.\n\nEach door swaps a different piece of the shared room instead of rebuilding the whole thing: a whole world, one object, one region, or one light. The fifth door, Observatory, uses all four at once. [How the swap actually works](./readme/), or [take the tour](/imagine/scenes/tour/) and let a clock walk you through all five doors.");
+			});
+			this.staging();
+		});
 	},
 
 	build(stage, theme){
@@ -111,11 +120,22 @@ export default new Scene({
 	   Spread across x, bowed back a little, and all five are the same door.
 	   ⚠ The gap is DERIVED, not the flat 3.5 four doors were built with: at 400 the
 	   widened fov and the dolly leave about ±6.3 units of world in frame, and a fifth
-	   door at 3.5 would have stood at 7. The colonnade keeps its total width instead. */
+	   door at 3.5 would have stood at 7. The colonnade keeps its total width instead.
+	   ⚠ FOUND + FIXED 2026-09-05: 13.2 was tuned at a ~2.15 stage aspect (a 1280
+	   viewport). Past that aspect `Stage.resize()` stops widening the vertical fov
+	   (its squeeze floors at 1), so the HORIZONTAL fov keeps growing linearly with
+	   width alone — at 3440 the colonnade held its old width while the frame around
+	   it doubled, and five doors that fill the row at 1280 shrank to a knot in the
+	   middle third of an ultrawide canvas with empty floor on both sides. `widen`
+	   below scales the same colonnade to match: proportional to aspect past 2.15,
+	   never below 1 so nothing narrower than the tuned case moves at all. */
 	portal(stage, theme, ground, name, i, count){
 		const door = this.doors[name];
 		const spread = i - (count - 1) / 2;
-		const gap = 13.2 / count;
+		const box = stage.box.el;
+		const aspect = box.clientWidth && box.clientHeight ? box.clientWidth / box.clientHeight : 2.15;
+		const widen = Math.max(aspect / 2.15, 1);
+		const gap = (13.2 / count) * widen;
 		const post = new THREE.Group();
 		const sign = door.sign(stage, theme);
 		const plate = stage.label(door.title, { size: 0.34 });

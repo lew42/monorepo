@@ -30,6 +30,10 @@ option, every variation is a real page you can link to.
 - **`live/` is actually live now.** A 60s poll plus a pause toggle, scoped to
   `activated()`/`deactivated()` so a tab nobody is viewing never fetches — see
   [`doc/decisions.md`](./doc/decisions.md).
+- **The hub's three cards show a real still, not an icon** (2026-09-05) — each child
+  overrides `preview(nav)` with a screenshot in `shots/`. `expand` (an accordion, in
+  place of the click that opens a column) was tried on the hub itself and reverted —
+  see [`doc/decisions.md`](./doc/decisions.md).
 - Real `<button>`s (the play button, the filter chips) need `(0,3,0)` in `@layer theme` to
   beat the site theme's `.theme-lew42 :is(button, .btn)` CTA rule — same fight
   `/imagine/imagine.css` documents. See `feeds.css`.
@@ -42,4 +46,5 @@ option, every variation is a real page you can link to.
 - Deliberation and rejected alternatives: [`doc/decisions.md`](./doc/decisions.md)
 - Files: `video/page.js` (picker + lazy stage), `data/page.js` + `data.json` (the filter,
   the fetch) with `data/cards|tree|table/page.js` (the three renderings), `live/page.js`
-  (the weather dashboard), `feeds.css` (one sheet for all three)
+  (the weather dashboard), `feeds.css` (one sheet for all three), `shots/` (the hub's
+  three card thumbnails)

@@ -1,5 +1,7 @@
 import { Page, div, span, a, p, img, iframe, button, icon, md } from "/app.js";
 
+const here = new URL(".", import.meta.url).pathname;
+
 /* Container: feeds/'s row (the columns host is /imagine/, found however deep —
    doc/columns.md). Size: this column is `small`, a picker rail; each talk opens
    `large` beside it. Own layout: `column()` overridden to draw one row per talk
@@ -44,6 +46,12 @@ export default new Page({
 
 	content(){
 		md("Pick a talk. Nothing to its right loads a Google iframe until you press play — the poster is one `<img>` from `i.ytimg.com`.");
+	},
+
+	// A real still of the actual stage (2026-09-05 rethink) — the hub's card used to
+	// show only an icon; this is the poster + play button a reader lands on.
+	preview(nav){
+		return this.preview_card(nav, () => img.c("feeds-shot").attr("src", here + "../shots/video.jpg").attr("alt", nav.label));
 	},
 
 	// THE OVERRIDE: core's default column() lists children as a bare menu; a

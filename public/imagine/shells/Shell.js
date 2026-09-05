@@ -1,4 +1,4 @@
-import { Page, View, div, a, span, icon, md } from "/app.js";
+import { Page, View, div, a, span, icon, img, p, md } from "/app.js";
 
 View.stylesheet(import.meta, "Shell.css");
 
@@ -124,6 +124,22 @@ Ship notes for the build every shell in this lab is wrapped around. This documen
 			if (nav.icon) icon(nav.icon);
 			span.c("shell-label", nav.label);
 		}));
+	}
+
+	// The card on the lab's own index is a REAL STILL of this shell — a screenshot,
+	// never a live render (the layout skill's rule: a preview is a picture). Ten
+	// icons that all read "app layout" told a stranger nothing to choose between;
+	// a still of the actual rails and bars does the choosing for them. The slug is
+	// read off the child's own url rather than typed twice, so a renamed shell
+	// can't point at a stale file.
+	// Regenerate a still: headless screenshot, viewport 960x600, of
+	// `http://localhost:8110/imagine/shells/<slug>/`, saved to `shots/<slug>.jpg`.
+	preview(nav){
+		const slug = nav.url.replace(/\/$/, "").split("/").pop();
+
+		return this.preview_card(nav, () => img().attr("src", `/imagine/shells/shots/${slug}.jpg`).attr("alt", `The ${this.title} shell`).attr("loading", "lazy")
+			.style({ width: "100%", height: "100%", objectFit: "cover" }))
+			.append(() => { if (nav.description) p.c("page-preview-desc", nav.description); });
 	}
 
 	// A chrome rail. `area` is the grid area it claims; `fill` replaces the nav.

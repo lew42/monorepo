@@ -172,3 +172,37 @@ Navigation, three hops each and the deck end to end: `persist/` keeps its rail a
 the stage; `swap/` replaces the screen and re-marks its strip; `pitch/` walks cover → six on
 clicks and arrows mixed, `ArrowRight` on the last slide is a no-op, `ArrowLeft` and Back both
 step backwards, and a cold load on `/pitch/five/` lands on slide five.
+
+## Round 2 (2026-09-05) — the still beat the diagram, and a real dead-space bug
+
+The ask this time (the owner): look again — is this the best shape, and could a stranger
+learn faster from something more visual? Two changes shipped, one alternative was built,
+measured and reverted.
+
+- **Kept: a real screenshot of each `.decks-slice` replaces the abstract `diagram()` cut.**
+  The card wall's picture used to be nine colour-toned rectangles (`decks-cell-s/g/n/l/w`);
+  now it is a Playwright still of the real slide (`public/imagine/decks/thumbs/*.jpg`,
+  `Deck.preview()` in `deck.js`). The ratio survives — every slide's own eyebrow already
+  prints "61.8 / 38.2" onto the still — and the reader also sees what KIND of content a
+  region holds (a real heading, a real list, a real card wall), which a tone-mapped
+  rectangle could only gesture at. `diagram()`, every child's `shapes:` prop, and the
+  `.decks-diagram`/`.decks-cell*` CSS are deleted, not left dead.
+- **Kept: the grouped previews wall no longer leaves a blank band behind a short group.**
+  `previews()` draws ONE grid whose `auto-fill` track count is set by the row's full width
+  (core's own comment: `auto-fit` was tried site-wide and rejected, 2026-08-17 — two cards
+  became 1623px each at 3440). A `group` with fewer cards than tracks still leaves the rest
+  of that row blank: measured 2,667px empty (78% of 3440) behind the one-card "The deck"
+  row, 2,400px behind "Head to head"'s two cards. `page.js` now calls `this.previews(subset)`
+  once per group and caps each call's own `max-width`/`--column` to its own card count —
+  core's shared grid is untouched, and cards land at 356px (3440) / 298-333px (1280), inside
+  the framework's own 14–22em approved range. Dead space in all three rows: 0px.
+- **Tried and reverted: the owner's 3-column card** (left title+intro, centre a demo, right
+  readouts), one row per cut instead of the tile wall. Built for real on the landing page and
+  measured: page height rose from 2,013px to 2,678px at 1280 (+33%) and from 2,147px to
+  3,229px at 3440 (+50%), for the *same* width used (~98.6% at 3440 either way — the prose
+  and the table were already capped at a reading measure, so the wider row bought nothing).
+  An earlier build of the same idea, before capping the picture's height, hit 12,537px at
+  3440 — the picture stretched to fill a `100%` height that had nothing to be 100% *of*.
+  Nine rows of any-height content is also fragile at a glance: rows whose text ran longer
+  than their picture's fixed height visibly overlapped the row below at 3440. Reverted to
+  the tile wall, byte-for-byte, diff-checked against a pre-edit copy.

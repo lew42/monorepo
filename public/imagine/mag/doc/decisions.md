@@ -1,7 +1,7 @@
 # Decisions — /imagine/mag/
 
 The record for the magazine: what was chosen, what it was measured against, and what was
-tried and dropped. The summary is [`readme.md`](/imagine/mag/readme.md).
+tried and dropped. The summary is [`readme.md`](/imagine/mag/readme/).
 
 ## The composition, in three choices
 
@@ -160,3 +160,45 @@ centred cover — "mostly a picture" by its own note. `.mag-cover-area`'s restin
 `--mag-veil` moved 0%→2% so that margin reads as a toned sheet instead of blank white; the
 golden-share widths and the % used are unchanged, so the finding is a feel fix, not a width
 fix, and is still open as a layout question.
+
+## Reviewed 2026-09-05 — the second pass: is this the best shape it could be?
+
+**Tried and reverted: the cover as a plain `full`/takeover, no golden share.** The paging
+vocabulary names four mechanisms (`launch`, `expand`, `swap`, `takeover`) and this issue's
+own hops are built from core's `launch` and `full` — but the cover's shrink from a poster
+down to 38.2% then 20% is not one of those four words, so it was worth testing what the
+*plain* vocabulary would do instead: both `:has()` rules in `mag.css` §2 disabled, so `full`'s
+un-touched `min-width: 100%` governed. Measured, not assumed: at 1280 the un-shrinking cover
+forced the row to auto-scroll 421px to reveal `contents/`, decapitating the masthead
+mid-word ("T" and "Co" sliced off at the viewport edge); at 3440 the same scroll ate 504px of
+the poster's own left inset. **Reverted** — the golden share is a necessary override, not an
+invented shortcut, confirmed by measurement rather than by trusting this file's own comment.
+Screens: `ai/2026-09-05/ux-mag/shots/alt-takeover-test-{1280,3440}.jpg`.
+
+**Added: coverlines.** The cover named its own topic but stayed silent on what was actually
+inside it — a real magazine cover previews its contents before you commit to opening one.
+`page.js`'s `coverlines()` lists the six real titles from `issue.json` under the call to
+enter, numbered in the same accent the entries and bars already use. A fourth type tier
+(title → standfirst → call to enter → coverlines), not a new colour: the accent is already
+spent four times in this issue and a fifth use would read as a badge. Cover-only —
+`.mag-cover.active-ancestor .mag-cover-lines { display: none }` — so it never touches the
+golden-share numbers and never competes with `contents/`'s own fuller list. No height cost at
+1280/720 through 3440/1440, measured (`scrollHeight === clientHeight` at all three).
+
+**Fixed: `/imagine/mag/doc/` 404'd outright**, and `readme.md` and `decisions.md` linked to
+each other's raw `.md` file instead of the app route — the same trap `/imagine/paging/doc/`
+hit first ([`doc/page.js`](/imagine/paging/doc/) there). `doc/page.js` here is the one-record
+version of that same fix, `route()` not `children:` (nothing 404s in a console that never
+asked for `decisions/`), and `doc` was added to the cover's own `children:` — routing only,
+since `column()` still renders no links of its own. Both `.md`-extension links now point at
+`/imagine/mag/doc/decisions/` and `/imagine/mag/readme/`; the whole readme ⇄ decisions
+round trip was clicked through headless afterward, zero console errors at 1280 and 3440
+beyond one pre-existing, site-wide `readme/page.js` probe 404 (reproduced on
+`/imagine/paging/readme/` too — not this task's to fix).
+
+**The paging vocabulary, said honestly.** Opening the issue and moving between articles is
+core's `launch` throughout — a real child column, the exact primitive
+[`/imagine/paging/`](/imagine/paging/) teaches by that name — so this magazine was never
+"inventing its own" navigation. What *is* bespoke is the cover's own three-state shrink,
+which has no name in that vocabulary; `readme.md`'s "Watch out" now says so in one line
+rather than leaving a reader to go looking for it on the paging hub.

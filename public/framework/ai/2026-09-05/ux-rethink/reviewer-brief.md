@@ -49,7 +49,9 @@ and seventeen other reviewers are on it.
 If it stops answering (`curl -s -o /dev/null -w "%{http_code}" http://localhost:8110/imagine/`
 is not `200`), start your own on a free port between 8120 and 8180 — `PORT=8123 node server.js`
 from the repo root, checking `netstat -ano | grep LISTENING | grep ":812"` first — and **kill
-that pid when you land**. Never port 80. Never the owner's browser.
+that pid when you land** — **by the exact pid you started, never by name or port pattern**. A
+minion killed another agent's server on 2026-09-05 by matching `node server.js`. Never port 80.
+Never the owner's browser.
 
 ---
 
@@ -109,6 +111,24 @@ change it, shoot it again, and compare on:
   for paint only.
 - **The five sentences, read again.** Numbers are not the whole verdict. A layout that measures
   better and reads worse loses.
+
+### What the first nine reviewers found — read this before you pick
+
+- **On a page that is a menu of choices, the tile wall beats the 3-column card, every time.**
+  Five reviewers (platform, design, screens, shells, decks) built the 3-column card for real and
+  reverted it: it multiplied page height by 1.5x to 5x for **zero** width gain, because the
+  column's width is capped by its width word no matter what you draw inside it. **Do not spend
+  60k tokens re-proving this.** If your landing page is a wall of children, say in one line that
+  the 3-column card is already disproved for that shape, and spend your build on the
+  alternative that is actually plausible for *your* realm.
+- **The 3-column card DID win where the centre column is a live thing with real numbers beside
+  it** — research (each topic front now shows a real credence-tagged theory) and generated. That
+  is its home: one card, a live centre, readouts that are not already visible in the centre.
+- **The biggest single win, three times over, was a real still instead of an icon.** Cards that
+  showed a screenshot of the actual thing (design, gallery, shells, decks) beat cards that named
+  it, at no height cost — and on design the page got *shorter*, because the framework drops a
+  card's description once it has a thumbnail. If your realm's cards show icons, that is very
+  likely your best edit of the night.
 
 **Keep it if it wins on both; revert it if it does not, and write the reason in your log.**
 "Reverted" with a real measured reason is a complete, respectable result — it is evidence the

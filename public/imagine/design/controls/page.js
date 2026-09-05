@@ -94,6 +94,12 @@ export default new Page({
 	icon: "toggle_on",
 	width: "full",
 
+	// A real screenshot instead of the default icon+description card, on the design/
+	// index only (2026-09-05 ux-rethink).
+	preview(nav){
+		return this.preview_card(nav, () => img.c("design-shot").attr("src", here + "shots/drawer-open.png").attr("alt", nav.label));
+	},
+
 	content(){
 		md("**Source first, then the camera.** `framework/ext/` is the real control library — ten interactive modules, all genuinely imported somewhere outside their own directory (grepped, not assumed). `framework/ui/` is a *different* tier: twenty markup-you-copy templates, and nine of them — dialog, tooltip, accordion, card, toolbar, progress, field, kbd, stats — have never been copied into a real page. That's shelf-ware by design (the readme says so), not a bug, but it means the design system is wider than the site's actual footprint.");
 

@@ -1,5 +1,6 @@
-import { Page, md, div, p, button, textarea, span } from "/app.js";
+import { Page, md, div, button, textarea, span } from "/app.js";
 import Socket from "/framework/dev/Socket/Socket.js";
+import { baseline } from "/imagine/paging/baseline.js";
 
 /* Container: /imagine/'s columns row. Size: `large` (28-64em) — source beside preview is
    two columns of content, which the default 40em track cannot hold. Own layout: one
@@ -27,6 +28,15 @@ export default new Page({
 	width: "large",
 
 	content(){
+		// The site-wide mark, first thing in the body (doc/persistence.md): amber +
+		// "Reset" once a draft exists, nothing drawn at baseline. `restore` points at
+		// `discard()` (below) instead of the default reload — a reload is the right
+		// call for a demo with no state worth preserving mid-reset, but this textarea
+		// has real typed words in it, and `discard()` already puts the file back
+		// in place with no round trip. The two-press confirm is the actual gain: the
+		// custom "Discard draft" button this replaces was one click from losing work.
+		this.$baseline = baseline(this, { restore: () => this.discard() });
+
 		md(`Editing [\`public${FILE}\`](${FILE.replace(/\.md$/, "/")}) — the real file, not a copy.
 Save writes it through the dev socket; \`git diff\` then shows your words.`);
 
@@ -41,8 +51,6 @@ Save writes it through the dev socket; \`git diff\` then shows your words.`);
 		div.c("flex gap v-center wrap", () => {
 			this.$save = button("Save").ac("prim").click(() => this.save());
 			this.$status = span.c("muted");
-			this.$draft_note = span.c("muted", "draft · restored").hide();
-			this.$discard = button("Discard draft").click(() => this.discard()).hide();
 		});
 
 		this.load();
@@ -70,7 +78,7 @@ rule [\`FileSaver\`](/framework/ext/Saver/doc/backends/) has always followed.`);
 		const draft = this.store().get();
 		if (draft.text !== undefined && draft.text !== text){
 			this.$source.el.value = draft.text;
-			this.show_draft();
+			this.$baseline.check();
 		} else {
 			this.$source.el.value = text;
 		}
@@ -92,7 +100,7 @@ rule [\`FileSaver\`](/framework/ext/Saver/doc/backends/) has always followed.`);
 		clearTimeout(this.draft_timer);
 		this.draft_timer = setTimeout(() => {
 			this.store().patch({ text: this.$source.el.value });
-			this.show_draft();
+			this.$baseline.check();
 		}, DRAFT_DELAY);
 	},
 
@@ -109,25 +117,23 @@ rule [\`FileSaver\`](/framework/ext/Saver/doc/backends/) has always followed.`);
 			this.original = this.$source.el.value;
 			clearTimeout(this.draft_timer);
 			this.store().clear();
-			this.hide_draft();
+			this.$baseline.check();
 			this.say(`saved — public${FILE} changed on disk. Commit it to publish.`);
 		} else {
 			this.say("the server refused the write.");   // kept: a failed save is not a saved draft
 		}
 	},
 
-	// Explicit, like save — throws the in-progress text away and returns to disk.
+	// The mark's `restore` (two presses, not one) — throws the in-progress text away
+	// and returns to disk, in place, no reload.
 	discard(){
 		clearTimeout(this.draft_timer);
 		this.store().clear();
 		this.$source.el.value = this.original;
 		this.draw();
-		this.hide_draft();
+		this.$baseline.check();
 		this.say("draft discarded — back to the file on disk.");
 	},
-
-	show_draft(){ this.$draft_note.show(); this.$discard.show(); },
-	hide_draft(){ this.$draft_note.hide(); this.$discard.hide(); },
 
 	read_only(){
 		this.$save.attr("disabled", "disabled");

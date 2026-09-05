@@ -64,3 +64,20 @@ two windows, is [`/imagine/stream/`](/imagine/stream/).
 since 2026-08-31; [edit](/imagine/cms/edit/) uses it for drafts.
 
 [`doc/undo-proposal.md`](/imagine/cms/doc/undo-proposal/) — **awaiting a verdict**: undo for the delta stream, three shapes measured; replay wins with no contract change.
+
+## 2026-09-05 — ux-rethink pass
+
+- **The landing wall's five icons are now five real screenshots** — a still of the actual
+  `Thinking`/`Welcome`/`Edit`/`Services`/`JSON pages` page beats a generic Material icon that
+  told you nothing about what any of them look like. `--stage: 16 / 6.5` (shorter than the
+  framework's 16/10 default) keeps the height cost small: +74px at 1280, +25px at 3440.
+  Shots live beside `page.js` in `shots/`.
+- **Tried and reverted:** folding the `Guide` column back into the main column as trailing
+  prose (one column instead of two). At 3440 it gave back the exact ~1856px dead band the
+  two-column split exists to fill, and made the column itself 26% taller. The 2026-09-04
+  split still earns its keep.
+- **`edit/`'s draft note is now the site's shared `baseline()` mark** — see its own readme.
+- **Fixed:** `json/page.js`'s `load_all_children()` was missing core's `levels <= this.loaded`
+  guard (named in `paging/make/page.js`'s own comment as a place this bug still lived) — a
+  cold deep url like `/imagine/cms/json/format/snapshot/shape/` threw "Chaining cycle detected
+  for promise." Copied the four-line guard; the same url now loads clean.

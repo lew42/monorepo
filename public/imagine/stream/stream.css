@@ -6,6 +6,56 @@
 
 @layer theme {
 
+	/* ── THE HERO CARD, 2026-09-05 ──────────────────────────────────────────────
+	   The owner's 3-column card: left a title + intro, centre the thing itself
+	   LIVE, right its readouts. Here the "thing" is the page's own claim — two
+	   independently-subscribed windows on the SAME `data/wire.json`, so typing
+	   in one is provably, not just declaratively, visible in the other before
+	   the reader has opened a second tab.
+
+	   THE FLOOR TRICK IS BORROWED, NOT INVENTED — `/imagine/research/research-front.css`
+	   reached this exact three-track shape first (itself borrowed from
+	   `/imagine/layouts/layouts.css`): a `rem` floor (pixel-stable across a phone and a
+	   monitor, unlike `em`) plus a stack term that throws every track onto its own line
+	   below it. Narrower floor than research's 40rem — this card's windows are two short
+	   inputs, not a citation — comfortable to 30rem (480px). */
+	.stream-hero {
+		--stream-hero-floor: 30rem;
+		--stream-hero-stack: calc((var(--stream-hero-floor) - 100%) * 999);
+
+		display: flex; flex-wrap: wrap; align-items: start;
+		gap: var(--gap, var(--gap-default)); padding: 1em 1.1em;
+		margin-block-end: var(--gap-default);
+	}
+	.stream-hero > * { min-width: 0; }
+
+	.stream-hero-intro { flex: 0 1 max(clamp(9em, 22%, 13em), var(--stream-hero-stack)); }
+	.stream-hero-stage { flex: 3 1 max(50%, var(--stream-hero-stack)); }
+	.stream-hero-reads { flex: 0 1 max(clamp(8em, 20%, 12em), var(--stream-hero-stack)); }
+
+	.stream-hero-blurb { color: var(--subtle); }
+
+	/* THE TWO WINDOWS, side by side — a basis pair like `.stream-panes`, because
+	   they are peers here (both editable) rather than a rail and a subject. */
+	.stream-hero-windows { display: flex; flex-wrap: wrap; gap: var(--gap, var(--gap-default)); }
+	.stream-hero-window { flex: 1 1 12em; min-width: 0; }
+
+	/* A titlebar of three dots is the whole cue that this box IS a window, not a
+	   card about one — cheaper than an illustration and never goes stale. */
+	.stream-hero-bar { display: flex; gap: 0.3em; padding-block-end: 0.5em; }
+	.stream-hero-dot { width: 0.6em; height: 0.6em; border-radius: 50%; background: var(--line); }
+	.stream-hero-window input {
+		width: 100%; font: inherit; font-weight: 600;
+		border: none; border-bottom: 1px dashed var(--line); background: none; padding-block-end: 0.2em;
+	}
+	.stream-hero-window input:focus { outline: none; border-bottom-color: var(--prim); }
+	.stream-hero-window-name { font-size: 0.8em; color: var(--subtle); text-transform: uppercase; letter-spacing: 0.06em; }
+	.stream-hero-window-lag { font-size: 0.8em; color: var(--subtle); margin-block-start: 0.4em; }
+
+	.stream-hero-reads-list { display: flex; flex-direction: column; gap: 0.5em; }
+	.stream-hero-read { display: flex; flex-direction: column; }
+	.stream-hero-read-n { font-size: 1.4em; font-weight: 700; font-variant-numeric: tabular-nums; }
+
 	/* THE PANES ARE NOT PEERS, so they are not `grid auto`. The editor is a control rail
 	   and a rail does not scale — it is the same six fields at 400 and at 3440 — while
 	   the live pane is the whole subject and has to be WIDER than the widths it is

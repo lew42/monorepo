@@ -1,10 +1,24 @@
-import { Page, md } from "/app.js";
+import { Page, md, div, img, View } from "/app.js";
+
+View.stylesheet(import.meta, "cms.css");
+
+const here = new URL(".", import.meta.url).pathname;
+// One real screenshot per child, captured 2026-09-05 (ux-rethink pass) — a still of the
+// actual page beats the generic icon it replaces (design/, gallery/, shells/, decks/ named
+// this the biggest single win of the night). On THIS wall it is not free: only two tracks
+// fit at 1280 (`large` is half the width a full-width wall gets), so a thumb costs real
+// height even at the shortened `--stage` below — measured +74px at 1280, +25px at 3440.
+// Worth it: `preview_card()` drops the description once there is a thumb, and "Welcome"
+// went from a bare title with nothing under it to an actual picture of the rendered page.
+const SHOTS = { thinking: "thinking.jpg", welcome: "welcome.jpg", edit: "edit.jpg", services: "services.jpg", json: "json.jpg" };
 
 /* Container: /imagine/'s columns row — one more column in it. Size: `large` (28-64em) —
    the critique (2026-09-04) found this page 99/100 on taste yet only 31% wide at 3440,
    a 2180px dead block past a left rail; `large` is the doc's own word for "a grid, a
    table, wide content" and is what its own children (thinking/, services/) already
-   picked for the same reason. Own layout: `.flow` + one `previews()`. Regions: two —
+   picked for the same reason. Own layout: `.flow` + one card wall (`previews()`'s own
+   shape, hand-drawn so each card can carry a real screenshot — ux-rethink 2026-09-05,
+   see `shots/`). Regions: two —
    this column, plus a THIRD: `Guide`, a rearrangement (not new content) of what used
    to be this page's own closing paragraph, given its own `classes: "default"` column
    so it opens beside CMS instead of scrolling under the wall — the row's own answer to
@@ -56,7 +70,18 @@ this \`page.js\`, and core turns any such file into a page ([\`Page.file()\`](/f
 git JSON/JSONL, \`node:sqlite\`, Cloudflare D1, Durable Objects, KV, R2 — and lands on a
 seam instead of a service.`);
 
-		this.previews(new Map([...this.children].filter(([name]) => name !== "guide")));
+		// A real still per card, not `previews()`'s generic icon — same wall shape
+		// (`.page-previews bleed`, `preview_card()`), two substitutions: a thumb, and a
+		// letterboxed `--stage` (16/6.5, not the 16/10 default) — this wall's column is
+		// only two tracks wide (`large` is ~40-64em, half that per card), so the default
+		// aspect drew a thumb tall enough to add 130-230px to the page; the shorter crop
+		// still reads as "the real thing" and gives most of that height back.
+		div.c("page-previews bleed").style("--stage", "16 / 6.5").append(() =>
+			[...this.children].forEach(([name, page]) => {
+				if (name === "guide") return;
+				const nav = this.nav_for(name);
+				this.preview_card(nav, () => img.c("cms-shot").attr("src", here + "shots/" + SHOTS[name]).attr("alt", nav.label));
+			}));
 
 		// ⚠ The constant this page was missing: every healthy-growth sibling (platform,
 		// blogx, stream) has real prose AFTER its previews wall too, so its exit margin

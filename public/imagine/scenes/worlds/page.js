@@ -125,11 +125,22 @@ export default new Scene({
 
 		// ⚠ 0.82 rad apart, not 0.55: at 5.2 out the old spacing put the rings 2.7
 		//   apart when each is 3.34 across, so every arch ate the next one's name.
+		// ⚠ FOUND + FIXED 2026-09-05, same cause as the foyer's colonnade
+		//   (page.js `portal()`, doc/decisions.md): past a ~2.15 stage aspect
+		//   `Stage.resize()` stops widening the vertical fov, so the horizontal
+		//   view keeps growing with width alone and three arches held at a flat
+		//   5.2 shrink toward the middle of an ultrawide stage. `radius` scales
+		//   the SAME straight-line spacing up to match, so the gap between arches
+		//   only grows — nothing at or under the tuned aspect moves.
+		const box = stage.box.el;
+		const aspect = box.clientWidth && box.clientHeight ? box.clientWidth / box.clientHeight : 2.15;
+		const radius = 5.2 * Math.max(aspect / 2.15, 1);
+
 		LANDS.forEach((spec, i) => {
 			const angle = (i - 1) * 0.82;
 			const arch = gate(stage, spec.accent, HERE + spec.name + "/", spec.title);
 
-			arch.position.set(Math.sin(angle) * 5.2, 1.6, Math.cos(angle) * 5.2 - 3.4);
+			arch.position.set(Math.sin(angle) * radius, 1.6, Math.cos(angle) * radius - 3.4);
 			arch.rotation.y = -angle;
 			world.add(stage.casts(arch));
 		});

@@ -1,4 +1,6 @@
-import { Page, div, span, input, button, md } from "/app.js";
+import { Page, div, span, input, button, img, md } from "/app.js";
+
+const here = new URL(".", import.meta.url).pathname;
 
 /* Container: feeds/'s row (the columns host is /imagine/, however deep). Size:
    `large` — a wall, a table and a tree all want more than the 40em default. Own
@@ -72,4 +74,9 @@ export default new Page({
 	},
 
 	children: "cards tree table",
+
+	// A real still of the wall (2026-09-05 rethink) — Cards' own actual rows, not an icon.
+	preview(nav){
+		return this.preview_card(nav, () => img.c("feeds-shot").attr("src", here + "../shots/data.jpg").attr("alt", nav.label));
+	},
 });

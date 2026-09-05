@@ -1,5 +1,28 @@
 # Decisions — scenes
 
+## Settled 2026-09-05 — the lobby grid, and the colonnade at ultrawide
+
+- **A UX pass found real dead space that the DOM never sees.** At 3440 the foyer's canvas
+  already bled edge to edge (good, by the metric a script reads), but the five doors inside it
+  clustered into the middle third with empty floor on both sides — because `Stage.resize()`'s
+  vertical-fov widening is a NARROW-screen fix only; past its aspect threshold (1.6) fov holds
+  at 45° and the horizontal field of view then grows linearly with width alone, shrinking every
+  fixed-world-space object's share of the frame. `portal()` now reads the stage box's own live
+  aspect and widens the colonnade's `gap` to match past that same threshold — never below 1×, so
+  nothing at or under the tuned 1280 case moves.
+- **Kept: the 3-column card, applied as a lobby grid past 100em.** Rail (title, intro, the door
+  switch) beside the stage, the active door's own note as a readout on the right — the same
+  shape as `docs three-region` in `/imagine/design/layout/approved/`, and almost verbatim the
+  owner's 2026-09-05 brief. The real win is not a width number: three doors deep, the note
+  explaining what is on screen used to sit below a 600–900px canvas, off the first screen. In
+  the rail it sits beside the room it describes, at any depth, with no scroll. Below 100em
+  nothing fires — 1280 is pixel-identical to before.
+- **Not done: the same aspect fix on `worlds/`, `plinth/`, `quarters/`, `gallery/`.** Each
+  child builds its own fixed world-space layout (`worlds/page.js`'s three arches sit at a flat
+  radius of 5.2, same shape of bug). Landing-page scope for this pass; the fix is the same
+  `stage.box.el.clientWidth/clientHeight` read `portal()` now does, applied to each page's own
+  placement math.
+
 Built 2026-08-29 against the vendored three.js at `/fly/three.js` (r181, read-only prior art).
 The atmosphere pass and the observatory landed the same day; the mechanism never changed, only
 what was built on it. The technique lives in [`atmosphere.md`](./atmosphere.md) and

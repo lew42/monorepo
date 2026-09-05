@@ -29,6 +29,10 @@ body("/framework/core/Page/overview/prose/");                    // that page's 
   [`doc/decisions.md`](./doc/decisions.md).
 - `width: "full"` on the top index would hide `/imagine/`'s own hub rail the whole time
   you're in here — tried, reverted, stayed `"large"`. Same doc.
+- Lists/Answers/Cards each carry a `thumb.jpg` beside their `page.js`, shown by a
+  `preview(nav)` override — a picture, never a live instance. Regenerate one with the
+  scratch script named in [`doc/decisions.md`](./doc/decisions.md) if that page's own
+  look changes; nothing rebuilds it for you.
 
 ## More
 
@@ -36,4 +40,5 @@ body("/framework/core/Page/overview/prose/");                    // that page's 
   [Cards](/imagine/gallery/cards/)
 - The findings, written for everyone: [`core/Page/doc/previews.md`](/framework/core/Page/doc/previews/)
 - Files that matter: `foreign.js` (the three calls), `lists/page.js` (the data arrays),
-  `gallery.css` (the proposed card restyle, scoped to `.gal-flat`)
+  `gallery.css` (the proposed card restyle, scoped to `.gal-flat`), each child's
+  `thumb.jpg` (its card's picture, on the Gallery index and on Lists' own)

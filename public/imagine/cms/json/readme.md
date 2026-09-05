@@ -70,6 +70,10 @@ that computes. That page can live in this tree as one more child — `edit/` is 
   the real `edit/page.js` directory. Any child with a `page.js` wins over data.
 - **Nothing fetches at import.** A page constructs itself when its module loads, so the load
   is memoised behind `ready()` and only a visit pays for it.
+- **`load_all_children()` needs core's own guard restated**, or a cold deep url throws
+  "Chaining cycle detected for promise" from the microtask queue (fixed 2026-09-05 — the guard
+  is `paging/make/page.js`'s, copied verbatim, and its own comment names this file as the
+  other place the bug lived).
 
 ## More
 

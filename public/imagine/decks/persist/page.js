@@ -27,7 +27,6 @@ export default new Deck({
 	description: "A rail that stays while the stage switches — the same four slides as Swap.",
 	icon: "menu_open",
 	group: "Head to head",
-	shapes: ["1:l 5:s", "1:l 5:w"],
 
 	width: "full",
 	classes: "decks-rail",

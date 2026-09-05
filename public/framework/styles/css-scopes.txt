@@ -131,6 +131,9 @@ screens-     /imagine/screens
 shell        /imagine/shells (.shell is the frame; .shell-* its parts)
 vary-        /imagine/vary
 yt-          /imagine/youtube
+rfront-      /imagine/research (the front's own 3-column topic card — `research-` is ext/Research's)
+cms-         /imagine/cms (the landing page's own card wall)
+rethink-     /imagine/review/rethink (the second UX pass: one report card per realm)
 
 # ai task pages
 vision-      ai/2026-08-17/vision-browse

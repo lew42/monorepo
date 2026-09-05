@@ -1,0 +1,58 @@
+/* /imagine/team/ — the board's own 3-column card: controls left, the live lanes
+   centre, readouts right. Everything else (`.imagine-row`, `.imagine-seg`, `.imagine-
+   lane`, `.imagine-task`…) is imagine.css's shared vocabulary; this file only adds the
+   card frame around it, because imagine.css is shared with `/imagine/game/` and is not
+   this task's to edit.
+
+   UX rethink, 2026-09-05: the board used to read top-to-bottom (intro, a bar, the
+   lanes, a tally line) inside a column that is `fill`-width — so at 3440 the four
+   lanes stretched to ~640px each (measured) and the page's own counters sat in a
+   muted line most readers never scroll to. Three columns puts the controls where a
+   reader looks first, keeps the lanes at a card's width instead of an armchair's, and
+   gives the counters a column of their own instead of a footnote. */
+
+@layer theme {
+
+	/* ⚠ `container-type` lives on the WRAP, one level up from the grid it sizes —
+	     "a container query never matches its own container" (Page.css `:has(> .rail)`
+	     carries the same note). Putting it on `.imagine-board-card` itself and then
+	     trying to restyle that same class from inside the query silently did nothing:
+	     the card stayed 3 columns and squeezed the lanes to ~208px at 1280 instead of
+	     handing the row back (measured, before this split). */
+	.imagine-board-wrap { container-type: inline-size; }
+
+	.imagine-board-card {
+		display: grid;
+		grid-template-columns: minmax(14em, 18em) minmax(0, 1fr) minmax(14em, 18em);
+		gap: var(--gap-default);
+		align-items: start;
+		padding: var(--pad-default);
+	}
+
+	/* Narrower than three columns' floors can share — stack instead of squeezing.
+	   ⚠ PX, not em: an em inside a container query resolves against the CONTAINER's
+	     own font-size, not the root, which made an earlier `50em` threshold land in
+	     the wrong place. 1100px sits comfortably below 1280's card width (817px,
+	     stacks) and above 3440's (2478px, stays three columns) — measured both ends. */
+	@container (width < 1100px) {
+		.imagine-board-card { grid-template-columns: 1fr; }
+	}
+
+	.imagine-board-left, .imagine-board-right { min-width: 0; }
+	.imagine-board-center { min-width: 0; }
+
+	/* The readouts are the thing that used to be a muted line under the fold — a
+	   bordered card of its own is what makes "these are numbers you can compare"
+	   visible instead of implied by font-size. */
+	.imagine-readouts {
+		display: flex; flex-direction: column;
+		border: 1px solid var(--line); border-radius: var(--radius);
+		overflow: hidden;
+	}
+
+	.imagine-readout-row { padding: 0.5em 0.8em; }
+	.imagine-readout-row + .imagine-readout-row { border-top: 1px solid var(--line); }
+	.imagine-readout-row .imagine-count { margin-inline-start: auto; }
+
+	.imagine-board-right .imagine-tally { border: none; padding: 0; margin-top: 0.6em; }
+}

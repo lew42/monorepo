@@ -1,4 +1,4 @@
-import { div, span, button } from "/app.js";
+import { div, p, span, button, img } from "/app.js";
 import { Deck, region, quiet, statement, wall, list, notes, stack } from "/imagine/decks/deck.js";
 import { wire } from "../stream.js";
 import Socket from "/framework/dev/Socket/Socket.js";
@@ -104,11 +104,28 @@ export default new Deck({
 
 	width: "full",
 
-	/* ⚠ `Deck.preview()` draws `diagram(...this.shapes ?? [])`, so a Deck without this
-	   renders an EMPTY white thumb on its parent's wall — which is what shipped for an
-	   hour (seen in the shot, 2026-08-30). Two frames: a cover, then a claim beside its
-	   list — the two cuts this deck actually uses. */
-	shapes: ["1:s", "62:s 38:l"],
+	/* ⚠ 2026-09-05: `shapes:` and the `diagram()` preview it fed were REMOVED from
+	   `decks/deck.js` itself (its own header, "Round 2" note) in favour of a real
+	   screenshot — this deck was the one place in the repo still declaring `shapes:`
+	   after that landed, which drew nothing because nothing reads it any more. Also,
+	   `Deck.preview()`'s thumb path is `base + "thumbs/" + this.name + ".jpg"` where
+	   `base` is `decks/deck.js`'s OWN directory — right for a deck that lives beside
+	   it (`/imagine/decks/<name>/`), a 404 for one that does not (this page 404'd on
+	   `/imagine/decks/thumbs/deck.jpg`, found live in a before-shot's console).
+	   PROPOSED for `decks/deck.js` (not edited here — outside this realm): swap that
+	   for `this.url + "thumbs/" + this.name + ".jpg"` (`this.url` is already this
+	   page's own directory, `Page.class.js`'s `this.meta` derivation) so every deck,
+	   in any realm, finds its own thumb. Until then, this override does the same job
+	   locally with a still shot beside this file — `this.url`, never a relative
+	   "./shot.jpg": a preview renders while the document is at the PARENT's url,
+	   and a relative `src` resolves against that address bar, not this module. */
+	preview(nav){
+		return div.c("page-preview", () => {
+			div.c("page-preview-thumb decks-thumb", () => img().attr("src", this.url + "shot.jpg").attr("alt", nav.title + " — the cover slide").attr("loading", "lazy"));
+			this.preview_link(nav);
+			if (nav.description) p.c("page-preview-desc", nav.description);
+		});
+	},
 
 	initialize(){
 		this.stream = wire("deck");

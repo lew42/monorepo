@@ -4,8 +4,11 @@ const shots = "/framework/ai/2026-09-04/imagine-review/shots/";
 const task = r => "/framework/ai/2026-09-04/imagine-" + r + "/";
 
 /* Container: a column in /imagine/'s columns row. Size: `fill` — eighteen picture cards are a
-   wall, not prose, and this page is a leaf, so nothing ever opens beside it and the rail keeps
-   its floor (doc/columns.md: fill is full that lets its neighbours stay). `full` was rejected:
+   wall, not prose, and the rail keeps its floor (doc/columns.md: fill is full that lets its
+   neighbours stay). ⚠ 2026-09-05: this page stopped being a leaf — `rethink` opens beside it —
+   so two `fill` siblings now share the row. They split it evenly (both are `flex: 1 1 100%`),
+   which measures fine at 3440; the starving case the layout skill warns about is `fill` beside
+   a NARROWER word, not beside another `fill`. `full` was rejected:
    /imagine/gallery/ tried it on 2026-09-04 and reverted, it collapses the hub rail.
    Own layout: three plain sentences, a numbers line, one stack of image+verdict rows, then a
    five-item screen. Regions: three. Preview: the default card.
@@ -162,6 +165,10 @@ export default new Page({
 	description: "Eighteen realms opened cold by eighteen reviewers: what a stranger thought each page was for, what it meant to be, and the 55 things that got fixed.",
 	icon: "fact_check",
 	width: "fill",
+
+	/* Nothing crawls: this line is the only reason /imagine/review/rethink/ exists.
+	   It is the SECOND pass — the same eighteen realms, asked a harder question. */
+	children: ["rethink"],
 
 	content(){
 		md(`**Every page under /imagine/ was opened cold by someone who had never seen it, and asked one question: can you say what this is for in ten seconds?** Eighteen reviewers each took one realm, screenshotted it, clicked the first thing a reader would click, wrote down what a stranger would say the page was for, and compared that to what the page's own code and readme said it was for. Where those two sentences disagreed, that was the finding — and the reviewer fixed it on the spot rather than filing it.

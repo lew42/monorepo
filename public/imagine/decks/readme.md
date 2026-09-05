@@ -13,7 +13,6 @@ import { Deck, region, quiet, statement, notes, slices } from "../deck.js";
 export default new Deck({
     meta: import.meta,
     title: "Golden",
-    shapes: ["1.618:s 1:n"],          // the card's picture, toned by content kind
     ring: slices,                     // the strip under the slide
     content(){
         region(61.8, () => statement("61.8 / 38.2", "A lead", "…"));

@@ -3,7 +3,8 @@
 Answers one question: *do we have control over how a columns tree renders?* [`hooks/`](./hooks/)
 shows every control point live; [`finder/`](./finder/), [`cards/`](./cards/),
 [`ink/`](./ink/) and [`glass/`](./glass/) wear one shared content tree ([`tree.js`](./tree.js))
-in four complete looks.
+in four complete looks. The index page also crosses all four against two real column widths —
+color and layout, permutated for real, not just named side by side.
 
 ## Use
 

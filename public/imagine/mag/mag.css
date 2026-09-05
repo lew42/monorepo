@@ -97,6 +97,42 @@
 		font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
 	}
 
+	/* THE COVERLINES. A fourth type tier, smallest and quietest, so the hierarchy
+	   reads title → standfirst → call to enter → what's inside, in that order. Two
+	   columns once the block is wide enough to hold them without the numbers and
+	   titles crowding each other; one below that.
+	   ⚠ Cover-only: gone the moment a child is open (below), so it never competes
+	     with `contents/`'s own fuller list and never touches the golden-share
+	     numbers, which are set on the BODY, not this block. */
+	.mag-cover-lines {
+		margin-block-start: 1.6em;
+		padding-block-start: 1.1em;
+		border-block-start: 1px solid var(--line);
+		display: grid; grid-template-columns: repeat(auto-fill, minmax(14em, 1fr));
+		gap: 0.3em 1.5em;
+	}
+
+	.mag-cover-lines-label {
+		grid-column: 1 / -1;
+		color: var(--subtle);
+		font-size: clamp(0.62rem, 1.6cqw, 0.8rem);
+		font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+		margin-block-end: 0.3em;
+	}
+
+	.mag-cover-lines-item {
+		display: flex; align-items: baseline; gap: 0.5em;
+		font-size: clamp(0.75rem, 2cqw, 1.05rem);
+	}
+
+	.mag-cover-lines-no {
+		flex: 0 0 auto;
+		color: var(--prim);
+		font-weight: 900; font-variant-numeric: tabular-nums;
+	}
+
+	.mag-cover.active-ancestor .mag-cover-lines { display: none; }
+
 	/* ════ 2. THE GOLDEN SHARE ════════════════════════════════════════════════
 	   Open the issue and the cover keeps its column and gives up the major part of the
 	   row. Same page, no second render, no state: one rule that asks whether it has a

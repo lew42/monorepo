@@ -15,6 +15,10 @@
 
 @layer theme {
 
+	/* A real still on the `/imagine/youtube/` wall (2026-09-05 ux-rethink) — one class,
+	   five pages, the same shape `design/`'s own `.design-shot` uses. */
+	.yt-shot { display: block; width: 100%; height: 100%; object-fit: cover; }
+
 	/* ════ THE STAGE — a poster, then an iframe in its place ══════════════════
 	   `.yt-slot` is the element `new YT.Player()` REPLACES, so nothing may be
 	   styled through it — the iframe that lands there is styled directly. */
@@ -49,11 +53,31 @@
 	   MIN-CONTENT, and one long feed line would push the row wider than its column. */
 	.yt-side { flex: 1 1 22em; min-width: 0; }
 
-	/* ⚠ A ceiling on the CONTROL half, not on the column. `fill` hands the panel 2936px
-	     at 3440 and an even split would have made a 1450px-wide row of 0.7em buttons —
-	     dead space wearing a control's clothes. Capped, the leftover goes to the video,
-	     which is the one thing on the page that can spend it. */
-	.yt-controls { flex: 1 1 20em; max-width: 34em; min-width: 0; --gap: 0.9em; }
+	/* PANEL is three columns, not two (2026-09-05 ux-rethink — replaces the old
+	   single `.yt-controls` stack of all eight groups). ⚠ A ceiling on EACH
+	   side, not the column: `fill` hands the panel 2936px at 3440 and an even
+	   three-way split would have made two 700px-wide columns of 0.7em buttons —
+	   dead space wearing a control's clothes. Capped, the leftover goes to the
+	   video, same reasoning the old single ceiling used. Splitting one 34em
+	   stack into two ~18em ones is the whole height win: two parallel stacks
+	   are shorter than one — measured 1110px -> 859px at 3440, doc/decisions.md.
+	   `container-type` + `order`, not a fixed DOM order: video is FIRST in the
+	   markup (readme.md — "nothing here touches Google until you press play" is
+	   also the reason it should be the first thing a narrow, stacked visit
+	   meets), and the row only reorders to left/centre/right once it is
+	   actually wide enough to hold three real columns — the sum of the three
+	   floors below, ~54em. Below that, reordering left ahead of the video made
+	   a cold landing worse, not better (measured, reverted 2026-09-05). */
+	.yt-panel { container-type: inline-size; }
+	.yt-panel-left  { flex: 1 1 15em; max-width: 18em; min-width: 0; --gap: 0.9em; }
+	.yt-panel-right { flex: 1 1 17em; max-width: 20em; min-width: 0; --gap: 0.9em; }
+
+	@container (min-width: 56em) {
+		.yt-panel-left  { order: 1; }
+		.yt-panel .yt-side { order: 2; }
+		.yt-panel-right { order: 3; }
+	}
+
 	.yt-form { flex: 1 1 22em; max-width: 30em; min-width: 0; --gap: 0.7em; }
 	.yt-room { flex: 1 1 18em; max-width: 30em; min-width: 0; --gap: 0.6em; }
 

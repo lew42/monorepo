@@ -112,6 +112,12 @@ export default new Page({
 	icon: "explore",
 	width: "full",
 
+	// A real screenshot instead of the default icon+description card, on the design/
+	// index only (2026-09-05 ux-rethink).
+	preview(nav){
+		return this.preview_card(nav, () => img.c("design-shot").attr("src", here + "shots/columns-1280.png").attr("alt", nav.label));
+	},
+
 	content(){
 		md("**Nine mechanisms, and previews already do the heaviest lifting.** `previews()`/`catalog()`/`browse()` outnumber every other call site combined (127 + 24 + 4) — cards, not rows, are the site's default answer to *what do I click next*. The rest cover what cards can't: a persistent map (`rail-nested`), *where am I* (`crumbs`), a small closed set (`tabs`), a browsing session with real back-state (`columns-row`), and read-in-order content (`prev-next`).");
 

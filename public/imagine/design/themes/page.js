@@ -1,8 +1,10 @@
-import { Page, View, div, span, b, table, tr, td, md, p } from "/app.js";
+import { Page, View, div, span, b, table, tr, td, md, p, img } from "/app.js";
 import { spec } from "./mock.js";
 import { generate, SEEDS } from "./generate.js";
 
 View.stylesheet(import.meta, "themes.css");
+
+const here = new URL(".", import.meta.url).pathname;
 
 /**
  * The theme browser (2026-09-01). Not a page about themes — the browser itself:
@@ -101,6 +103,13 @@ export default new Page({
 	title: "Themes",
 	description: "Six themes on one mock UI, a generator that makes six more from four numbers, and the seam that makes both possible.",
 	icon: "palette",
+
+	// A real screenshot instead of the default icon+description card, on the design/
+	// index only (2026-09-05 ux-rethink) — this study has no shots/ of its own (its
+	// subject IS a live page), so one was taken for this purpose.
+	preview(nav){
+		return this.preview_card(nav, () => img.c("design-shot").attr("src", here + "shots/mock-wall.jpg").attr("alt", nav.label));
+	},
 
 	content(){
 		md("A rail of themes. Open one for both modes and every token it declares.");

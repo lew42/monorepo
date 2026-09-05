@@ -30,6 +30,16 @@ second Discard right after a successful Save should return to the just-saved tex
 text from before this session started. A failed Save clears nothing: the write didn't happen,
 so the draft is still the only copy of the words that didn't make it to disk.
 
+## Why the mark is `baseline()`, not the bespoke span it replaced (2026-09-05)
+
+This page had its own "draft · restored" span and "Discard draft" button since before
+`/imagine/paging/baseline.js` existed. The ux-rethink pass swapped them for the shared mark so
+this page reads the same as every other page that persists — one press to arm, a second to
+confirm, ending the one-click-loses-your-typing shape the old button had. The only wiring: pass
+`restore: () => this.discard()`, because the default `restore()` clears the store and reloads,
+and this page's `discard()` already puts the file back in the textarea with no round trip —
+reusing it, not reimplementing it.
+
 ## Verified
 
 Headless (`ai/2026-08-31/drafts-and-glass/`): typed a marker string, reloaded — text and the
@@ -38,3 +48,10 @@ Discard — note gone, textarea back to the fetched file. Reloaded again — sti
 `localStorage.getItem(...)` `null`. Zero new console errors (a pre-existing, unrelated 404 for
 `/imagine/cms/welcome/page.js` — `Page.file()`'s own markdown-has-no-`page.js` case — fires on
 this page and its parent alike, before and after this change).
+
+Re-verified headless after the `baseline()` swap (`ai/2026-09-05/ux-cms/`): typed a marker,
+saw the amber mark + Reset, Saved — `welcome.md` on disk gained the marker. Typed a second,
+unsaved change — mark came back. Pressed Reset (armed), pressed "Press again to forget…" —
+textarea returned to the last-saved text in place, no reload, mark gone. Restored the file to
+its original bytes and cleared `localStorage` to leave no trace. One console error per load
+throughout, the same pre-existing 404 named above, at 1280 and 3440.

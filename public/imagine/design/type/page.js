@@ -78,6 +78,12 @@ export default new Page({
 	icon: "text_fields",
 	width: "full",
 
+	// A real screenshot instead of the default icon+description card, on the design/
+	// index only (2026-09-05 ux-rethink).
+	preview(nav){
+		return this.preview_card(nav, () => img.c("design-shot").attr("src", here + "shots/scale-good.jpg").attr("alt", nav.label));
+	},
+
 	content(){
 		md("**One face for reading (Montserrat, loaded as a single variable file, weights 100–900), one system-monospace stack for code (`Consolas, 'Courier New', Monaco, monospace` — declared, not loaded, so what a reader actually sees depends on what's installed on their machine).** Six declared heading levels, and the theme (`lew42.css`) overrides four of them upward from the framework's base defaults — h1 through h4. It never reaches h5/h6, which is where the one real failure below lives. Measured across 12 prose pages × 1280/3440 (816 text blocks, 0 errors — `type-raw.json` in this task's dir).");
 

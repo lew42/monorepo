@@ -172,6 +172,84 @@ a `default` column's `activated()` firing on cold load, and its `deactivated()` 
 the reader leaves without ever routing to it directly (this module's own `panel/` is a
 ready-made repro).
 
+## Closed 2026-09-05 — `panel/` is a real 3-column card, and the five one-word labs got stills
+
+**The UX rethink pass.** Two changes, both inside this module's own fence.
+
+**`panel/` was two columns** — the video, then one 34em-wide stack of all eight control
+groups (readouts, seek, transport, shortcuts, speed, sound, source, feed). Split into
+three: seeking/transport/shortcuts LEFT, the stage CENTRE, readouts/speed/sound/
+source/feed RIGHT — the shape the owner asked for by name (a live centre with controls
+one side, readouts the other), and one already proven to win on this site where the
+centre is a real live thing with real numbers beside it. `.yt-panel-left` and
+`.yt-panel-right` cap at 18em/20em, same ceiling reasoning as the old single
+`.yt-controls`: the leftover goes to the video.
+
+⚠ **A DOM order that "just works" at one width can be wrong at another — measure both.**
+The first attempt used an unconditional CSS `order` (left / video / right always), which
+looked right at 3440 but was WORSE at 1280: the row wraps to one column under ~56em, and
+`order` keeps working there too, so it pushed the video below three control groups on a
+cold, narrow landing — the exact thing this page exists to show first. Caught only by
+measuring 1280 as well as 3440 (`scrollH` 1199 → **1377px**, worse). Fixed with
+`.yt-panel { container-type: inline-size }` and `@container (min-width: 56em) { … order
+… }`: the video stays FIRST in the markup (and first on screen) until the row is
+actually wide enough to hold three real columns, only then does it move to the centre.
+
+**Measured, at 3440** (panel column's own body — `.page-column-body`'s rect and
+`scrollHeight`, not `document.scrollHeight`, which the columns shell pins to the
+viewport regardless of what this page does):
+
+| | before | after |
+|---|---|---|
+| column `scrollHeight` | 1110px | **859px** — fits its 852px box, no internal scroll |
+| column `scrollHeight` at 1280 | 1199px | **988px** |
+| width used / dead space | 2412px / 70.1% / 1028px | unchanged — the columns-row band, not this page's to close (see "Open" below, and 2026-09-04 above) |
+
+Kept: shorter, same width story, and the video is now BIGGER (both side columns are
+narrower than the old single 34em stack).
+
+**The five one-word labs — Course, Yield, Split, Chat, Marks — said nothing until you
+clicked one.** `youtube/page.js` took `index: true` and calls `this.previews()` on its
+children minus `panel` (already open beside it — the same reasoning `course/`'s own
+`index: true` uses for its chapter bar) instead of leaving core's default column() row
+list (icon + one word) to speak for them. Each of the five got a `preview(nav)`
+override pointing at a real Playwright screenshot of its OWN distinguishing UI — no
+core change, `design/color` and `gallery/cards` already use the identical
+`preview_card(nav, () => img…)` shape:
+
+| lab | still shows |
+|---|---|
+| `course/` | the video and its colored chapter bar (Opening/Dots/Loss/Death/Foolish) |
+| `yield/` | the video already stepped aside into the corner, mid-form |
+| `split/` | video one side, the four-field form the other |
+| `chat/` | video beside the empty room box |
+| `marks/` | Mark/Clear, "No marks yet.", and the `player.cues(...)` output box |
+
+Shots at `public/imagine/youtube/shots/<slug>.jpg`, one shared `.yt-shot{object-fit:
+cover}` rule. `yield/`'s is a forced DOM state (`.yt-yield-stage.yt-aside` + one
+`.yt-step.yt-on`, added directly for the screenshot) — the mechanism is invisible
+before 25 real seconds of playback, and a still that showed a plain paused video would
+have taught nothing.
+
+⚠ **Giving a page a real `preview()` for the first time exercises code that never ran
+before, and it can find a bug that survived unnoticed.** `yield/page.js` had a method
+named `card(title, fn)` for its own wizard steps. Core's `Page.nav()` reads `this.card`
+as a page's SIZE-modifier field (the `.two`/`.tall`/`.big` words), and `preview_card()`
+does `.ac(nav.card)` — `View.ac(arg)` calls `arg.split(" ")`, so the method itself
+(truthy, not a string) threw `arg.split is not a function` the instant this page asked
+`yield/` for a card. The exact class of bug `Page.class.js`'s own `default_column()`
+comment already names for `opens()` — a page's plain-noun method squatting a name core
+reads as a field — met a second time. Renamed to `step_card`; the trap is worth
+knowing before it bites a sixth page: **grep `nav(){`'s field list
+(`url`/`label`/`icon`/`card`/`description`) before naming a page method after one of
+those five words.**
+
+Verified after both changes: `ui-test` (drive.mjs) on a cold `/imagine/youtube/` load
+— never routed to `/panel/` — pressing **M** with zero clicks logged `mute()` into the
+feed (the keyboard-on-cold-load fix from 2026-09-04, still good); pressing play then
+navigating away via the real breadcrumb link dropped `Player.live` back to 0 (the
+poll-leak half of the same fix, still good). Zero console errors at 400/1280/1920/3440.
+
 ## Open — the owner decides
 
 - **The critique's 3440 number is unchanged and still open.** `/imagine/paging/critique/`

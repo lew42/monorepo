@@ -9,7 +9,8 @@ import { Player, clock, seconds, TALKS } from "../youtube.js";
    a 2340px video taller than the viewport and the page was one enormous frame with a
    control strip stuck to it (shot, 2026-08-30). `large`'s 64em ceiling IS the answer
    the row already has, and the leftover is drawn as the column slots it is. Own layout:
-   one `flex wrap` seam, video and controls, which stacks under ~42em. Regions: one.
+   three columns — controls, the stage, readouts — one `flex wrap` seam that
+   stacks (video first) under 56em (2026-09-05 ux-rethink; doc/decisions.md). Regions: one.
    Preview: the default card.
 
    `default`, so /imagine/youtube/ arrives with something on screen. It costs one
@@ -56,12 +57,9 @@ export default new Page({
 	classes: "default",
 
 	content(){
-		md("Press play, then drive it — with the controls, or with the **keyboard**. Every control below is one API call; every event the player fires, and every key you press, lands in the feed at the bottom.");
+		md("Press play, then drive it — with the controls, or with the **keyboard**. Every control below is one API call; every event the player fires, and every key you press, lands in the feed on the right.");
 
-		div.c("yt-lab yt-panel flex wrap gap", () => {
-			div.c("yt-side", () => { this.player = new Player({ video: STARTER }); });
-			div.c("yt-controls flex v gap", () => this.controls());
-		});
+		div.c("yt-lab yt-panel flex wrap gap", () => this.controls());
 
 		md("The player is also on the console: `(await import('/imagine/youtube/youtube.js')).Player.all.at(-1)`.");
 	},
@@ -85,15 +83,19 @@ export default new Page({
 		document.addEventListener("keydown", this.keyed);
 	},
 
+	// THREE COLUMNS, not two (2026-09-05 ux-rethink): controls left, the stage
+	// centre, readouts right — the same eight groups as the old single 34em
+	// stack, now two shorter ones either side of the video, which HALVES the
+	// tallest column (measured 1110px -> 859px at 3440, doc/decisions.md). DOM
+	// order is video-first (the poster is the thing to show, readme.md), so a
+	// narrow stack still meets the video before the controls; a container query
+	// (css) reorders to left/centre/right only once the row is wide enough to
+	// actually hold three columns (below 56em, reordering left ahead of the
+	// video made a cold landing worse, not better — measured, reverted).
 	controls(){
-		this.readouts();
-		this.seeking();
-		this.transport();
-		this.shortcuts();
-		this.speed();
-		this.sound();
-		this.source();
-		this.feed();
+		div.c("yt-side", () => { this.player = new Player({ video: STARTER }); });
+		div.c("yt-panel-left flex v gap", () => { this.seeking(); this.transport(); this.shortcuts(); });
+		div.c("yt-panel-right flex v gap", () => { this.readouts(); this.speed(); this.sound(); this.source(); this.feed(); });
 
 		this.player.on("ready", () => this.ready());
 		this.player.on("state", code => this.say(`onStateChange — ${Player.states[code] ?? code}`));

@@ -18,6 +18,8 @@ Three columns of one row, and the row is `/imagine/`'s.
 The cover is one page in three CSS states: alone it is the screen, with the contents open
 it takes the minor share of the golden pair, and once you are reading it steps back to a
 fifth so the article keeps its measure. No second render, no state — one `:has()` each.
+Alone, it also names the six pieces inside it — coverlines, the one thing a poster with a
+single button was missing — and that block disappears the moment a child opens.
 
 ## Use
 
@@ -41,7 +43,7 @@ nothing on the first article, which already sits beside the contents column. Cli
 through headless — six hops forward to `/imagine/mag/`, and back again, no console errors.
 
 The contents page also remembers what you have opened — a quiet mark per entry, a
-"N of 6 read" line, one `page.store()` key, and a reset. [`doc/decisions.md`](./doc/decisions.md).
+"N of 6 read" line, one `page.store()` key, and a reset. [`doc/decisions.md`](/imagine/mag/doc/decisions/).
 
 ## Watch out
 
@@ -54,14 +56,20 @@ The contents page also remembers what you have opened — a quiet mark per entry
   written at (0,3,0) on purpose.
 - **Three tone rungs, all opaque.** The row paints its empty slots *behind* the columns; a
   translucent body lets the hairlines through.
+- **Every hop here is core's `launch`** — a real child column, [the same primitive
+  `/imagine/paging/`](/imagine/paging/) teaches by that name — but the cover's own shrink,
+  from a full poster down to a 38.2% then a 20% share, is **not** one of paging's four words.
+  It is bespoke CSS, invented for this one page, and it has no name outside this file: say so
+  here rather than let a reader go looking for "recede" on the paging hub and not find it.
 
-Detail, measurements and what was tried and dropped: [`doc/decisions.md`](./doc/decisions.md).
+Detail, measurements and what was tried and dropped: [`doc/decisions.md`](/imagine/mag/doc/decisions/).
 
 ## More
 
 - [`page.js`](./page.js) the cover · [`contents/page.js`](./contents/page.js) the index ·
   [`Article.js`](./Article.js) one article and the data piece · [`mag.css`](./mag.css) ·
-  [`issue.json`](./issue.json) the whole issue
+  [`issue.json`](./issue.json) the whole issue · [`doc/page.js`](/imagine/mag/doc/) the one
+  record, routed rather than declared
 - Where the words came from: [the findings](/framework/core/Page/doc/findings/) ·
   [`columns.md`](/framework/core/Page/doc/columns/) · [Screens](/imagine/screens/) ·
   [Tone](/imagine/vary/tone/) · [Feeds · Data](/imagine/feeds/data/)

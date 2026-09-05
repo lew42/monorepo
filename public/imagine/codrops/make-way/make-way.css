@@ -3,6 +3,15 @@
    Rebuilt: see page.js for what changed — the original triggers on CLICK; this port
    triggers on HOVER, per this round's ask for a hover-driven layout change. */
 @layer site {
+	/* A hovered tile scales from its own centre (no `transform-origin` override), so an
+	   edge tile grows past the grid's own bounds on every side — this padding is the room
+	   for that, not a copy of the grid's own gap. */
+	.codrops-way-stage {
+		padding: 3em;
+		border-radius: 0.75em;
+		background: var(--bg-alt, rgb(0 0 0 / 0.03));
+	}
+
 	/* The grid itself is the framework's own `.grid.auto` + `--column` (page.js) — the
 	   `util` layer's rule wins over anything declared here for the same properties
 	   regardless of selector, per framework.css's layer order, so this file only styles

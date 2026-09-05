@@ -10,7 +10,6 @@ export default new Deck({
 	description: "50 / 50 — the only cut that says the two things are equal.",
 	icon: "vertical_split",
 	group: "The slices",
-	shapes: ["1:s 1:s"],
 	ring: slices,
 	...arrows,
 	...neighbor("half"),

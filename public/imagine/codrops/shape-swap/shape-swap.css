@@ -1,0 +1,76 @@
+/* Ported from Codrops' "Shapes Slideshow" (MIT licence, LICENSE file read on
+   github.com/codrops/ShapesSlideshow), demo 1 — https://tympanus.net/codrops/?p=53694.
+   Rebuilt: see page.js for what changed — one `clip-path` transition on the incoming
+   slide, not a twelve-step GSAP timeline. */
+@layer site {
+	.codrops-swap-stage {
+		display: flex;
+		flex-direction: column;
+		gap: 1em;
+	}
+
+	.codrops-swap-slides {
+		position: relative;
+		height: 18em;
+		border-radius: 1em;
+		overflow: hidden;
+		background: #111;
+		isolation: isolate;
+	}
+
+	.codrops-swap-slide {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-end;
+		padding: 1.5em;
+		color: #fff;
+		background: var(--codrops-swap-bg);
+		clip-path: circle(0% at 50% 50%);
+		transition: clip-path 0.8s cubic-bezier(0.7, 0, 0.3, 1);
+		pointer-events: none;
+		z-index: 1;
+	}
+
+	.codrops-swap-slide.is-current {
+		clip-path: circle(150% at 50% 50%);
+		pointer-events: auto;
+	}
+
+	.codrops-swap-slide.is-current.is-entering { z-index: 2; }
+
+	.codrops-swap-slide.is-current.is-entering[data-dir="next"] { clip-path: circle(0% at 100% 60%); }
+	.codrops-swap-slide.is-current.is-entering[data-dir="prev"] { clip-path: circle(0% at 0% 60%); }
+
+	.codrops-swap-title { margin: 0 0 0.15em; font-size: 1.6em; }
+	.codrops-swap-sub { opacity: 0.75; }
+
+	.codrops-swap-nav {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 1em;
+	}
+
+	.codrops-swap-btn {
+		font-size: 1.6em;
+		line-height: 1;
+		width: 1.8em;
+		height: 1.8em;
+		border-radius: 999px;
+		background: var(--bg-alt, rgb(0 0 0 / 0.06));
+		cursor: pointer;
+	}
+
+	.codrops-swap-btn:hover { background: var(--prim, #ee8233); color: #fff; }
+
+	.codrops-swap-index {
+		font-variant-numeric: tabular-nums;
+		opacity: 0.6;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.codrops-swap-slide { transition: none; }
+	}
+}

@@ -1,4 +1,4 @@
-import { Page, View, div, p, a, span, icon, md } from "/app.js";
+import { Page, View, div, p, a, span, icon, img, md } from "/app.js";
 import { posts, sections, section_of, find, when } from "./posts.js";
 
 View.stylesheet(import.meta, "blogx.css");
@@ -30,6 +30,26 @@ View.stylesheet(import.meta, "blogx.css");
 export class Blog extends Page {
 
 	container(){ return this.mounts_in(this.app.$pages, "app.$pages — a blog shell is its own screen"); }
+
+	// The card on the lab's own index is a REAL STILL of this shell, not the icon
+	// it wore before (2026-09-05 ux-rethink). Eight different icons (newspaper,
+	// dashboard, slideshow, view_column, list, account_tree, view_week,
+	// swap_horiz) all just said "here is a page" — a stranger could not tell a
+	// hero-plus-wall front from a rail-driven archive without opening both, on a
+	// realm whose ENTIRE subject is what the layout looks like. A screenshot does
+	// the choosing a name and an icon cannot — the same finding as design, shells
+	// and decks. The slug is read off the child's own url, never typed twice, so
+	// a renamed candidate can't point at a stale file. `Blog.Section`/`.Post`/
+	// `.Part` inherit this too, but nothing on the site calls `previews()` over
+	// one of those — only the index's eight children ever render through it.
+	// Regenerate a still: headless screenshot, viewport 960x600, of
+	// `http://localhost:8110/imagine/blogx/<slug>/`, saved to `shots/<slug>.jpg`.
+	preview(nav){
+		const slug = nav.url.replace(/\/$/, "").split("/").pop();
+
+		return this.preview_card(nav, () => img().attr("src", `/imagine/blogx/shots/${slug}.jpg`).attr("alt", `The ${nav.label ?? nav.title} shell`).attr("loading", "lazy")
+			.style({ width: "100%", height: "100%", objectFit: "cover" }));
+	}
 
 	// `hides-nav` (/styles.css) takes the site's strip away: the blog's own rail IS
 	// the navigation, and a second site rail beside it is two rails saying different

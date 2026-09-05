@@ -2,7 +2,9 @@
 
 A page's state lives in an append-only `.jsonl` the dev server already watches. One window
 appends a delta; every other window has redrawn it **9 ms** later, with no reload and no
-navigation. Three demos: [the wire](/imagine/stream/wire/), [a streamed deck](/imagine/stream/deck/),
+navigation. [The landing page](/imagine/stream/) shows this happening before you click
+anything — a card with two independently-subscribed windows side by side. Three fuller
+demos: [the wire](/imagine/stream/wire/), [a streamed deck](/imagine/stream/deck/),
 [a streamed region](/imagine/stream/blocks/).
 
 ## Use

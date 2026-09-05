@@ -1,4 +1,4 @@
-import { Page, div, span, button, input, md } from "/app.js";
+import { Page, div, span, button, input, img, md } from "/app.js";
 import { Player, clock, TALKS } from "../youtube.js";
 
 /* Container: /imagine/'s column row. Size: `large` — two halves of CONTENT side by side,
@@ -38,6 +38,12 @@ export default new Page({
 	description: "Video one side, a live form the other — fields light up and prefill as the talk reaches them.",
 	icon: "vertical_split",
 	width: "large",
+
+	// A real still of the video-plus-form split, instead of the default
+	// icon+description card (2026-09-05 ux-rethink).
+	preview(nav){
+		return this.preview_card(nav, () => img.c("yt-shot").attr("src", "/imagine/youtube/shots/split.jpg").attr("alt", nav.label));
+	},
 
 	content(){
 		this.auto = new Set();

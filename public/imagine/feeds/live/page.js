@@ -1,4 +1,6 @@
-import { Page, div, span, p, button, icon, md } from "/app.js";
+import { Page, div, span, p, button, icon, img, md } from "/app.js";
+
+const here = new URL(".", import.meta.url).pathname;
 
 /* Container: feeds/'s row. Size: default track — five short rows, nothing wants
    more. Own layout: a control bar, then a plain list, one row per city. Regions: one.
@@ -80,6 +82,12 @@ export default new Page({
 
 	watch(fn){ this.watchers.push(fn); fn(); },
 	notify(){ this.watchers.forEach(fn => fn()); },
+
+	// A real still of real numbers (2026-09-05 rethink) — a snapshot, never the live
+	// fetch itself: the hub's card must not poll the API just because it is on screen.
+	preview(nav){
+		return this.preview_card(nav, () => img.c("feeds-shot").attr("src", here + "../shots/live.jpg").attr("alt", nav.label));
+	},
 
 	moment(){
 		if (this.failed) return "offline";

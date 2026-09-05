@@ -98,6 +98,12 @@ export default new Page({
 	icon: "palette",
 	width: "full",
 
+	// A real screenshot instead of the default icon+description card, on the design/
+	// index only (2026-09-05 ux-rethink).
+	preview(nav){
+		return this.preview_card(nav, () => img.c("design-shot").attr("src", here + "shots/ok-dark-mode.jpg").attr("alt", nav.label));
+	},
+
 	content(){
 		md("**29 color-bearing custom properties**, all declared in `styles/layers/theme/lew42/lew42.css` (a handful default from `framework.css`'s `:root`, every one of those overridden by `.theme-lew42`). Every swatch below is a real `background: var(--x)`, rendered twice — a light-forced island and a dark-forced island — so the pair on the card is what the token actually resolves to in each mode, not a screenshot of it.");
 

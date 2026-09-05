@@ -8,7 +8,9 @@ game except the words.
 The run survives via core's [`page.store()`](/framework/core/Page/doc/method/store/) — one
 key, `lew42:/imagine/game/`, holding six arrays now that a journal and a goal list have
 joined `found`/`carried`/`traded`/`sights`. A cold load three columns deep finds a lit lamp
-and an open cistern.
+and an open cistern. The mark by the title (`/imagine/paging/doc/persistence.md`) is always
+**green** — a run is kept on purpose, never a demo left dirty — and its Reset is the two-press
+control that calls `run.reset()` in place, no page reload.
 
 ## Use
 
@@ -55,6 +57,11 @@ verdict, applied.
 checked off by the game) and keyboard travel — digits 1-9 click the numbered exit, guarded off
 any focused input — [`doc/decisions.md`](/imagine/game/doc/decisions.md).
 
+**Round 6** rebuilds Field notes as a 3-column card — left is what to click, centre is the
+run's own live state, right is a fill-bar readout per realm — measured against the stacked
+list it replaced and kept: same width (a column's width word caps it either way), shorter
+(-10% at both 1280 and 3440) — [`doc/decisions.md`](/imagine/game/doc/decisions.md).
+
 ## Watch out
 
 - **The map cannot disagree with the HUD** because both read `found`. A walked room is an
@@ -73,6 +80,10 @@ any focused input — [`doc/decisions.md`](/imagine/game/doc/decisions.md).
   the site theme styles every `button` at (0,2,0) in the same layer.
 - **At 400 the row snaps to the deepest column**, so the rail — and the map in it — is one
   swipe left. The crumb strip is the way back.
+- **A container query cannot restyle the element that declares the container.** `.imagine-card3`
+  is a grid; the query that collapses it to one column at 400 lives on a wrapper
+  (`.imagine-card3-frame`) one level up, or it silently never fires — same trap
+  `ext/Panel/toolbar` hit in August. [`doc/decisions.md`](/imagine/game/doc/decisions.md)
 
 ## More
 

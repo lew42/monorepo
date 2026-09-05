@@ -16,6 +16,42 @@
 	   3440. The stage, the bar and the nav want the room; the prose does not. */
 	.page.scene-page .md { max-width: 52em; }
 
+	/* THE LOBBY — an alternative tried 2026-09-05, kept. Below 100em this is a
+	   plain block: the intro, then `staging()`'s own bar/stage/nav/notes, stacked
+	   exactly as before. Past 100em there is width to spare, and the owner's
+	   3-column card shape reads much better here than one long stack: a rail
+	   (title, intro, the door switch) beside the stage, and the CURRENT door's own
+	   note as a readout on the right. That second part is the real fix — walk three
+	   doors deep today and the note explaining what you are looking at sits below a
+	   600px canvas, off the first screen; in the rail it is always in view next to
+	   the room it describes. doc/decisions.md */
+	@media (min-width: 100em) {
+		.scene-lobby {
+			display: grid;
+			grid-template-columns: clamp(14em, 20%, 18em) 1fr clamp(14em, 20%, 18em);
+			grid-template-areas:
+				"crumb crumb  crumb"
+				"intro stage  notes"
+				"nav   stage  notes";
+			column-gap: 1.5em;
+			align-items: start;
+		}
+
+		.scene-lobby-intro { grid-area: intro; }
+		.scene-bar { grid-area: crumb; margin-block-end: 1em; }
+		.scene-stage { grid-area: stage; }
+		.scene-nav { grid-area: nav; flex-direction: column; align-items: start; margin-block-start: 1em; }
+		.scene-notes { grid-area: notes; margin-block-start: 0; }
+
+		/* Nothing is picked yet at the bare foyer url — say so instead of leaving
+		   the rail looking broken. `.scene-note`'s own render fills this the
+		   moment any door is open, so the message never overlaps real content. */
+		.scene-notes:empty::before {
+			content: "Click a door to see what it is.";
+			color: var(--subtle); font-size: 0.9em; font-style: italic;
+		}
+	}
+
 	/* THE PATH BAR. The crumbs are the REAL ones - Page.crumbs() off chain() - so
 	   the strip cannot disagree with where the world is. It only has to read like a
 	   path: the chevron Page.crumbs() emits is a material-icons ligature, so zeroing

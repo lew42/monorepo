@@ -10,7 +10,6 @@ export default new Deck({
 	description: "61.8 / 38.2 — a lead and its support, the workhorse cut.",
 	icon: "view_column",
 	group: "The slices",
-	shapes: ["1.618:s 1:n"],
 	ring: slices,
 	...arrows,
 	...neighbor("golden"),

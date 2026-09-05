@@ -17,8 +17,12 @@ export default new Shell({
 });
 ```
 
-Open [/imagine/shells/](/imagine/shells/) and click a card. Once you are inside, the chrome
-itself is the nav — every shell links to every other one, at real urls, cold-loadable.
+Open [/imagine/shells/](/imagine/shells/) and click a card — each one is now a real
+screenshot of that shell, not an icon, so you can see the ten shapes apart before you pick
+one. Once you are inside, the chrome itself is the nav — every shell links to every other
+one, at real urls, cold-loadable. Clicking a card is the [`takeover`](/imagine/paging/)
+mechanism: the shell fills the screen and `/imagine/` collapses behind it, the same word
+that page names for the same gesture everywhere else on the site.
 
 ## The findings
 
@@ -31,7 +35,7 @@ itself is the nav — every shell links to every other one, at real urls, cold-l
   own readout in the corner.
 - **Inner chrome is a RULE; outer chrome is a FILL.** Same paper, a hairline, one type step
   down — and it navigates *inside* the area. Chrome that moves you between screens is the
-  outer chrome wearing a disguise. [`doc/decisions.md`](/imagine/shells/doc/decisions.md)
+  outer chrome wearing a disguise. [`doc/decisions.md`](/imagine/shells/doc/decisions/)
 - **A footer and a full-height columns row can share a shell**, but only as the app's floor:
   spanning under the rail, with the content region clipped so the row has a definite height.
   A bar *inside* the content area under the row draws a second hairline 1px below the row's
@@ -57,10 +61,10 @@ itself is the nav — every shell links to every other one, at real urls, cold-l
 
 ## More
 
-- [`doc/decisions.md`](/imagine/shells/doc/decisions.md) — every measurement, what was
+- [`doc/decisions.md`](/imagine/shells/doc/decisions/) — every measurement, what was
   rejected, and the two questions left for the owner
 - Files: `Shell.js` (the class and the two seams), `Shell.css` (the one grid, the three
   tones), one `page.js` per shell
-- Related: [`core/Page/doc/columns.md`](/framework/core/Page/doc/columns.md) ·
-  [`core/Page/doc/panels.md`](/framework/core/Page/doc/panels.md) ·
-  [`core/Sidebar/readme.md`](/framework/core/Sidebar/readme.md)
+- Related: [`core/Page/doc/columns.md`](/framework/core/Page/doc/columns/) ·
+  [`core/Page/doc/panels.md`](/framework/core/Page/doc/panels/) ·
+  [`core/Sidebar/readme.md`](/framework/core/Sidebar/readme/)

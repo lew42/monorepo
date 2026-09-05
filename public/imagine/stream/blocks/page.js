@@ -1,6 +1,8 @@
-import { Page, div, p, span, input, select, option, button, label, textarea, md } from "/app.js";
+import { Page, div, p, span, input, select, option, button, label, textarea, img, md } from "/app.js";
 import { wire } from "../stream.js";
 import Socket from "/framework/dev/Socket/Socket.js";
+
+const here = new URL(".", import.meta.url).pathname;
 
 /* STREAMING UI EDIT — one region, and everything in it arrives over the wire.
 
@@ -37,6 +39,13 @@ export default new Page({
 	icon: "view_agenda",
 
 	width: "fill",
+
+	// A REAL STILL of the region, not the default icon (`shot.jpg`, beside this
+	// file, shot 2026-09-05) — and dropping the thumb also drops the description
+	// text (`Page.preview_card`), so the card costs no extra height for it.
+	preview(nav){
+		return this.preview_card(nav, () => img().attr("src", here + "shot.jpg").attr("alt", nav.label).attr("loading", "lazy"));
+	},
 
 	initialize(){
 		this.stream = wire("blocks");

@@ -1,4 +1,4 @@
-import { Page, View, div, p, a, span, icon, md } from "/app.js";
+import { Page, View, div, p, a, span, img, icon, md } from "/app.js";
 
 View.stylesheet(import.meta, "decks.css");
 
@@ -50,11 +50,16 @@ export class Deck extends Page {
 	     undefined. The chain's root always has one. (screens/deck, 2026-08-29.) */
 	go(url){ return this.chain().find(page => page.app).app.router.go(url); }
 
-	/* The card is a PICTURE OF THE CUT, and each cell is toned by the content kind that
-	   belongs in it — so the wall of cards is the map, not a wall of grey rectangles. */
+	/* The card is A REAL STILL OF THE SLIDE, not a diagram of its ratio. Round 2
+	   (2026-09-05) shot the abstract `diagram()` cut against a screenshot of the real
+	   `.decks-slice` — real text, real headings, real tone — and the still won: the
+	   ratio survives (every slide's own eyebrow already prints "61.8 / 38.2" onto the
+	   still) and the reader also sees what KIND of content a region holds, which a
+	   colour-coded rectangle could only gesture at. `diagram()` and every child's
+	   `shapes:` were the only callers of that idea and are gone with it. */
 	preview(nav){
 		return div.c("page-preview", () => {
-			div.c("page-preview-thumb decks-thumb", () => diagram(...this.shapes ?? []));
+			div.c("page-preview-thumb decks-thumb", () => img().attr("src", base + "thumbs/" + this.name + ".jpg").attr("alt", nav.title + " — the " + (nav.description ?? "cut")).attr("loading", "lazy"));
 			this.preview_link(nav);
 			if (nav.description) p.c("page-preview-desc", nav.description);
 		});
@@ -191,23 +196,5 @@ export const arrows = {
 	},
 	deactivated(){ removeEventListener("keydown", this.keys); },
 };
-
-/* ── the card's picture ─────────────────────────────────────────────────────
-   One frame per hop, chevrons between. A cell is `weight` or `weight:kind`, where the
-   kind tones it — s statement, w wall, l list, g stage, n notes. A leading `v` stacks
-   the frame; `q` is the 2×2. */
-export const diagram = (...specs) => specs.forEach((spec, i) => {
-	if (i) icon("chevron_right");
-
-	const vertical = spec.startsWith("v"), quad = spec === "q";
-	const cells = quad ? ["1:s", "1:w", "1:n", "1:l"] : spec.replace(/^v/, "").trim().split(/\s+/);
-
-	div.c("decks-diagram").ac(vertical && "decks-diagram-v").ac(quad && "decks-diagram-q").append(() =>
-		cells.forEach(token => {
-			const [weight, kind] = token.split(":");
-
-			div.c("decks-cell").ac(kind && "decks-cell-" + kind).style("flex", weight);
-		}));
-});
 
 export default Deck;

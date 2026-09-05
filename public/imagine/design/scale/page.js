@@ -65,6 +65,12 @@ export default new Page({
 	icon: "format_size",
 	width: "full",
 
+	// A real screenshot instead of the default icon+description card, on the design/
+	// index only (2026-09-05 ux-rethink).
+	preview(nav){
+		return this.preview_card(nav, () => img.c("design-shot").attr("src", here + "shots/mag.jpg").attr("alt", nav.label));
+	},
+
 	content(){
 		md("**\"If it's 3440, and we have only a few things, they don't need to be small. Layout is scale, visual hierarchy.\"** Measured across 25 pages at 390/1280/3440 (`ext/DesignTool`'s own `probe()`+`metrics()`, raw data in this task's dir). Three findings: the site's type spectrum is almost entirely body-and-smaller; a handful of pages sit under 25% of a 3440 screen used while their type stays exactly the size it is at 1280; and one page already does the opposite, on purpose.");
 

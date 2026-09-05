@@ -26,6 +26,12 @@ export default new Page({
 	icon: "photo_library",
 	width: "full",
 
+	// A real screenshot instead of the default icon+description card, on the design/
+	// index only (2026-09-05 ux-rethink) — one of journey's own 451 shots.
+	preview(nav){
+		return this.preview_card(nav, () => img.c("design-shot").attr("src", here + "shots/alex-framework.jpg").attr("alt", nav.label));
+	},
+
 	content(){
 		md(`**${journey.shot} pages shot, ${journey.skipped} skipped** (dead links and orphaned sandbox pages the SPA fallback catches as \`Page Load Error\`) — one viewport jpeg each, 1280×800.`);
 

@@ -1,5 +1,65 @@
 # Decisions — streaming pages
 
+## The landing page's hero card — 2026-09-05 UX pass
+
+The page's whole claim used to be three sentences and a static "9 ms" number; a reader
+had to click into a child and open a second real tab to see it happen. Tried the owner's
+3-column card on `/imagine/stream/` itself: left a title, centre TWO independently
+subscribed `Stream("wire")` instances (not the same object drawn twice — two real
+sockets on `data/wire.jsonl`, the exact case `ext/JSONL/live.js` names: "a path can have
+several readers"), right the live medians and the log's own byte count.
+
+**Kept.** Measured at both widths (`.page-column-body`'s `scrollHeight`, not its own
+rect — that box is `overflow-y: auto`, Page.css, so its rect is clipped to the row and
+never grows; not the document's `scrollHeight` either, which the columns shell pins to
+the viewport regardless of content):
+
+| | 1280 | 3440 |
+|---|---|---|
+| width used (right ÷ viewport) | 91.6% → 91.6% | 46.0% → 46.0% (unchanged — the column's own width word caps it, not this page: known site-wide) |
+| dead space | n/a at 1280 (single column fills it) | 1856px → 1856px (the columns-row band, known site-wide, not this page's) |
+| column body height | 1358px → 1326px | 1651px → 1620px |
+
+The hero card alone cost roughly 400–500px. It was paid down by folding the two
+mechanism sections below it ("What was already here", "On Cloudflare" — real depth, an
+append-RPC measurement and a Durable Object plan, not fluff) into a second `<details>`,
+matching the sample above it that was already folded 2026-09-04. Net: the page is
+**~2% shorter at both widths** than before the card existed, and the page's one claim is
+now demonstrated on the page you land on instead of asserted in prose. Invariants
+unaffected: no content at `x: 0`, no prose past the measure, no framed box touches the
+column edge — the hero card is a `surface` box inside the normal padded flow, never bled.
+
+Console: zero errors at 1280 and 3440, both before and after (the 1280/3440 *before*
+shots did carry one 404 each — `/imagine/decks/thumbs/deck.jpg`, unrelated to the hero
+card; see "the deck thumb path bug" below).
+
+## The deck thumb path bug — a stale field and a directory that only works by luck
+
+`stream/deck/page.js` still declared `shapes: ["1:s", "62:s 38:l"]` after
+`imagine/decks/deck.js`'s own 2026-09-05 refactor removed `diagram()` and the `shapes:`
+reader that fed it in favour of a real screenshot preview — this deck was the only page
+in the repo still declaring it, and it drew nothing because nothing reads it any more.
+
+Separately, `Deck.preview()`'s thumb path is `base + "thumbs/" + this.name + ".jpg"`,
+where `base` is `decks/deck.js`'s OWN directory (`new URL(".", import.meta.url)` of that
+shared module) — correct for a deck that lives beside it (`/imagine/decks/<name>/`), a
+404 for one that does not. `stream/deck/` 404'd on `/imagine/decks/thumbs/deck.jpg`,
+found live in a before-shot's console.
+
+Fixed locally: `stream/deck/page.js` now overrides `preview()` with `this.url +
+"shot.jpg"` (a still beside the page, matching `wire/` and `blocks/`'s own convention),
+and dropped the dead `shapes:` field. **Proposed for `decks/deck.js` itself** (outside
+this realm, not edited here):
+
+```diff
+- div.c("page-preview-thumb decks-thumb", () => img().attr("src", base + "thumbs/" + this.name + ".jpg")…);
++ div.c("page-preview-thumb decks-thumb", () => img().attr("src", this.url + "thumbs/" + this.name + ".jpg")…);
+```
+
+`this.url` is already every `Page`'s own directory (`Page.class.js`'s `this.meta`
+derivation), so every deck, in any realm, would find its own thumb without a per-realm
+override like this one.
+
 ## The delta contract is consumed, not defined here
 
 A sibling effort (`json-pages`, `/imagine/cms/json/`) owns the line format:

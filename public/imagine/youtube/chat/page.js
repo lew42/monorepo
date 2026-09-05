@@ -1,4 +1,4 @@
-import { Page, div, span, button, md } from "/app.js";
+import { Page, div, span, button, img, md } from "/app.js";
 import { Player, clock, TALKS } from "../youtube.js";
 
 /* Container: /imagine/'s column row. Size: `large` — measured 400 / 859 / 1024 / 1152;
@@ -41,6 +41,12 @@ export default new Page({
 	description: "A chat replay keyed to timestamps — scrub back and the room replays, scrub forward and it catches up.",
 	icon: "forum",
 	width: "large",
+
+	// A real still of the video-plus-room split, instead of the default
+	// icon+description card (2026-09-05 ux-rethink).
+	preview(nav){
+		return this.preview_card(nav, () => img.c("yt-shot").attr("src", "/imagine/youtube/shots/chat.jpg").attr("alt", nav.label));
+	},
 
 	content(){
 		md("Press play, then **drag the video's own scrubber**. The room below is 18 messages with timestamps and nothing else — every message you see is one the playhead has passed.");

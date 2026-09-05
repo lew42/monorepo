@@ -96,6 +96,12 @@ const WORLD = [
    have and the chips say which — carried, given away, or not yet found. */
 const ITEMS = { lamp: "Brass lamp", key: "Iron key", lens: "Ground lens", sigil: "Tin sigil" };
 
+// A real glyph beside each realm's name on the arrival card — a picture, not a word, of the
+// one-word ambiance already carried by `air:`. Verified headless against this Material Icons
+// build before use (`icon: "not_in_this_build"` renders as the literal word and sets a
+// flex item's min-content width — a real site-wide regression on `ext/drawer`, 2026-08-16).
+const AIR_ICON = { wind: "air", water: "water_drop", glass: "diamond" };
+
 // The spine of the run, drawn on both written screens.
 const CHAIN = [
 	{ item: "lamp",  where: "Old Quarry" },
@@ -402,51 +408,56 @@ export default new Page({
 					div.c("imagine-lede", "A small game played entirely by clicking links: walk from room to room, pick up what you find, and reach the gate at the far end. Every exit is a link to the room beside it, so walking sideways swaps the column you are standing in while the rails behind you hold still — and closing the tab loses nothing, because where you have been is saved.");
 				});
 
-				/* ⚠ `counter-reset` inline, not in `imagine.css`, and it has to sit HERE:
-				   this screen is the one place `.imagine-exit` appears twice over — once
-				   per realm note, then again in the closing row — and with no shared
-				   ancestor reset each un-reset `.imagine-exit` got its OWN fresh counter
-				   (Chromium starts a new scope at the element itself). All four read
-				   keyboard digit "1", and pressing 1 only ever reached the first of them.
-				   One reset here numbers all four in the order the keyboard listener
-				   above walks them; the closing row below no longer carries its own. */
-				div.c("imagine-notes flex v gap", $notes => run.watch(() => $notes.empty(() => {
-					div.c("imagine-chain flex v-center wrap gap", () => CHAIN.forEach((step, index) => {
-						if (index) span.c("imagine-arrow", "→");
+				/* ROUND 6 — THE 3-COLUMN CARD, tried here (ux review, 2026-09-05). Left is
+				   who/what-to-click, centre is the run's own live state (same chain and
+				   scene the stacked version drew, now boxed as a "stage"), right is a
+				   readout the centre cannot say: how far into EACH realm you have gotten.
+				   One `counter-reset` still covers every `.imagine-exit` on the card, DOM
+				   order left→centre→right, so keyboard travel (1-9) is unaffected by the
+				   new arrangement. Measured, kept or reverted — `doc/decisions.md`. */
+				div.c("imagine-card3-frame", () => div.c("imagine-card3", $notes => run.watch(() => $notes.empty(() => {
+					div.c("imagine-card3-left", () => {
+						span.c("imagine-card3-kicker", "start here");
+						div.c("imagine-card3-title", "Walk the world");
+						div.c("imagine-card3-intro", "Three realms, nine rooms. Pick up what you find, trade what you must, and reach the gate at the far end.");
+						a.c("imagine-exit imagine-card3-cta", "Walk in — the Iron Gate").href(this.parent.url + "verge/gate/");
+						if (run.won()) a.c("imagine-exit imagine-card3-cta", GATE.title).href(this.parent.url + GATE.name + "/");
+					});
 
-						span.c("imagine-item")
-							.ac(run.carried.has(step.item) && "imagine-have")
-							.ac(run.traded.has(step.item) && "imagine-gone")
-							.append(ITEMS[step.item] + " · " + step.where);
-					}));
+					div.c("imagine-card3-center", () => {
+						span.c("imagine-card3-label", "the chain");
+						div.c("imagine-chain flex v-center wrap gap", () => CHAIN.forEach((step, index) => {
+							if (index) span.c("imagine-arrow", "→");
 
-					WORLD.forEach(realm => div.c("imagine-note", () => {
-						div.c("imagine-note-head flex v-center split", () => {
-							a.c("imagine-exit", realm.title).href(this.parent.url + realm.name + "/");
-							span.c("imagine-load", run.seen(realm.name) + "/" + realm.rooms.length + " walked");
-						});
+							span.c("imagine-item")
+								.ac(run.carried.has(step.item) && "imagine-have")
+								.ac(run.traded.has(step.item) && "imagine-gone")
+								.append(ITEMS[step.item] + " · " + step.where);
+						}));
 
-						span(realm.blurb);
-					}));
+						div.c("imagine-scene", run.won()
+							? "The sigil is in your pack. The gate has been waiting for it."
+							: run.carrying("key")
+								? "You have the key. The Vault is the second door in the Long Gallery."
+								: run.carrying("lamp")
+									? "You have a light. The Hollow will let you in."
+									: "Dark below. Something in the Old Quarry would help.");
+					});
 
-					div.c("imagine-scene", run.won()
-						? "The sigil is in your pack. The gate has been waiting for it."
-						: run.carrying("key")
-							? "You have the key. The Vault is the second door in the Long Gallery."
-							: run.carrying("lamp")
-								? "You have a light. The Hollow will let you in."
-								: "Dark below. Something in the Old Quarry would help.");
-
-					/* ⚠ Not `.imagine-exits` here — that class also RESETS the keyboard
-					   counter, and this row is the FOURTH exit on this screen, not the
-					   first (`imagine.css`, `.imagine-notes` carries the one reset). */
-					div.c("flex wrap gap", () => {
-						a.c("imagine-exit", "Walk in — the Iron Gate").href(this.parent.url + "verge/gate/");
-						if (run.won()) a.c("imagine-exit", GATE.title).href(this.parent.url + GATE.name + "/");
-					}).style("--gap", "0.4em");
+					div.c("imagine-card3-right", () => {
+						span.c("imagine-card3-label", "realms");
+						WORLD.forEach(realm => a.c("imagine-exit imagine-card3-readout").href(this.parent.url + realm.name + "/").append(() => {
+							div.c("imagine-card3-readout-head flex v-center split", () => {
+								span.c("flex v-center gap", () => { icon(AIR_ICON[realm.air]).ac("imagine-card3-air"); span(realm.title); }).style("--gap", "0.35em");
+								span.c("imagine-load", run.seen(realm.name) + "/" + realm.rooms.length);
+							});
+							span(realm.blurb);
+							div.c("imagine-meter").style("--pct", (run.seen(realm.name) / realm.rooms.length * 100) + "%");
+						}));
+					});
 
 					this.app?.router?.mark_links();
-				}))).style("counter-reset", "imagine-exit");
+				}))).style("counter-reset", "imagine-exit"));
 
 				md("Nine rooms, one chain, one trade and one way out — [how it is built](/imagine/game/readme/).");
 			},

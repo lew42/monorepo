@@ -74,6 +74,45 @@ still leaves most of the row empty (matches `paging/critique`'s feeds row); undo
 `full` only if a future wall grows past ~4-5 children and the owner decides the hub rail
 matters less than filling the row.
 
+## Real stills replace the hub's three icons (2026-09-05 rethink)
+
+The hub's three cards (`previews()`) showed only an icon and a truncated description —
+the single most repeated finding across the first round of UX reviews on this site
+(design, gallery, shells, decks all won by swapping an icon for a screenshot of the
+actual thing, at no height cost, because `preview_card()` drops the description once a
+thumb is given). Same fix here: `video/`, `data/` and `live/` each now override
+`preview(nav)` with `this.preview_card(nav, () => img.c("feeds-shot")...)`, pointing at
+a real screenshot in `shots/` — Steve Jobs mid-talk (the actual poster a reader lands
+on), the real building-card wall, the real weather rows with real numbers. `.feeds-shot`
+is `.design-shot` verbatim (`object-fit: cover`) — see `feeds.css`.
+
+Building the `live/` shot found a trap worth naming: `.feeds-weather-row` is
+`justify-content: space-between`, so captured at the page's natural (wide) column width
+the name/condition/temp spread out with a dead gap between them — `object-fit: cover`
+on the 16:10 thumb then centre-crops exactly that gap, and the card reads as blank. Fix:
+capture that one shot at a narrow viewport (420px) so the row's own content is close to
+the thumb's aspect ratio before the crop, not after.
+
+## `expand` tried and reverted for the hub's own click (2026-09-05 rethink)
+
+The owner's ask (2026-09-04/05) was to try a "surface change" — does a click that grows
+the row in place (`expand`, `ui/accordion` verbatim) beat the click that opens a new
+column (`launch`, what `previews()` already does)? Built it for real: one
+`<details class="ui-accordion-item pad">` per child, `name="feeds-expand"` so only one
+opens, a still-free summary line and a link to the real page inside.
+
+Reverted. Measured at 3440: collapsed, all three real stills (the fix directly above)
+disappear behind a bare icon-and-title row — the accordion can't show a thumb until you
+open it, so it undoes the hub's biggest single win. Opened, one child alone stood
+**480px** tall (vs **~340px** for all three as cards, stills included) while the other
+two showed nothing at all — taller for less. And it fails on the paging vocabulary's own
+terms before either number mattered: `/imagine/paging/`'s own `expand` teaching page
+names the wrong case as "when the thing you opened has children of its own" because "an
+expanded panel has no url" — every one of `video/`, `data/`, `live/` is exactly that,
+and this realm's own readme promises the opposite ("nothing here is a config option,
+every variation is a real page you can link to"). `launch` — the tile wall, unchanged —
+stays.
+
 ## Verified headless (2026-08-29), all three widths (400 / 1920 / 3440)
 
 - **video/**: 0 iframes on load and on a talk's own page before clicking; 1 iframe with

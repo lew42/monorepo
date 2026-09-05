@@ -1,6 +1,8 @@
-import { Page, div, p, span, input, select, option, button, label, md } from "/app.js";
+import { Page, div, p, span, input, select, option, button, label, img, md } from "/app.js";
 import { wire } from "../stream.js";
 import Socket from "/framework/dev/Socket/Socket.js";
+
+const here = new URL(".", import.meta.url).pathname;
 
 /* THE LIVE WIRE — the smallest honest proof. Two windows on this url: type in one, and
    the panel in the other changes. Nothing reloads and nothing navigates.
@@ -31,6 +33,14 @@ export default new Page({
 	icon: "cable",
 
 	width: "fill",
+
+	// A REAL STILL, not the default icon — a still of the card this page draws,
+	// shot 2026-09-05 (`shot.jpg`, beside this file). Dropping the thumb also
+	// drops `nav.description` (`Page.preview_card`), so the card costs no more
+	// height than the icon version did.
+	preview(nav){
+		return this.preview_card(nav, () => img().attr("src", here + "shot.jpg").attr("alt", nav.label).attr("loading", "lazy"));
+	},
 
 	initialize(){
 		this.stream = wire("wire");

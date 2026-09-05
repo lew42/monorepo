@@ -37,7 +37,7 @@ export default new Page({
 
 			div.c("codrops-expand-menu", () => {
 				div.c("codrops-expand-bar", () => {
-					button.c("codrops-expand-link unbutton", "Menu").click(() => stage_el.classList.add("is-open"));
+					button.c("codrops-expand-link codrops-expand-open unbutton", "Menu").click(() => stage_el.classList.add("is-open"));
 					div.c("codrops-expand-links", () => {
 						["Clothing", "Dresses", "Accessories"].forEach(name => span.c("codrops-expand-link", name));
 					});

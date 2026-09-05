@@ -1,4 +1,4 @@
-import { Page, div, span, a, md } from "/app.js";
+import { Page, div, span, a, img, md } from "/app.js";
 import { Player, clock, TALKS } from "../youtube.js";
 
 /* Container: /imagine/'s column row. Size: `large` — measured 400 / 429 / 832 / 1152
@@ -57,6 +57,12 @@ export default new Page({
 	icon: "school",
 	width: "large",
 	index: true,
+
+	// A real still of the chapter bar on the `/imagine/youtube/` wall, instead of the
+	// default icon+description card (2026-09-05 ux-rethink).
+	preview(nav){
+		return this.preview_card(nav, () => img.c("yt-shot").attr("src", "/imagine/youtube/shots/course.jpg").attr("alt", nav.label));
+	},
 
 	content(){
 		md("Press play and leave it alone — **the chapter page opens itself** as the talk moves. Or click a chapter and the video jumps to it. Same five urls either way, and the back button walks them.");

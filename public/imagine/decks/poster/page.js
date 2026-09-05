@@ -11,7 +11,6 @@ export default new Deck({
 	description: "20 / 60 / 20 — the best cut for a 3440: real rails, a real poster.",
 	icon: "dashboard",
 	group: "The slices",
-	shapes: ["1:l 3:s 1:w"],
 	ring: slices,
 	...arrows,
 	...neighbor("poster"),

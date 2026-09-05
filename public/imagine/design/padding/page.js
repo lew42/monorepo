@@ -66,6 +66,13 @@ export default new Page({
 
 	children: "one-rule",
 
+	// A real screenshot instead of the default icon+description card, on the design/
+	// index only (2026-09-05 ux-rethink). `preview_card`'s own rule: a thumb present
+	// means the description is dropped, not doubled — the picture IS the pitch.
+	preview(nav){
+		return this.preview_card(nav, () => img.c("design-shot").attr("src", here + "shots/good-page-preview.png").attr("alt", nav.label));
+	},
+
 	content(){
 		md("**The owner's hypothesis:** padding as a % of a box's own width — 1% is almost always too little, 30% is almost always too much, unless the box is a large section (at which point it's not really padding any more). Measured here: 27 urls × 390/1280/3440, 4891 boxes that actually draw a border/shadow/background around text (raw data: [padding-study task dir](/framework/ai/2026-09-01/padding-study/)).");
 

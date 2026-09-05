@@ -51,15 +51,22 @@ export default new Page({
 
 		let tile_els = [];
 
-		div.c("grid auto gap", () => {
-			TILES.forEach(tile => {
-				const $tile = div.c("codrops-way-tile")
-					.style("--codrops-way-bg", `linear-gradient(155deg, hsl(${tile.hue} 65% 45%), hsl(${(tile.hue + 30) % 360} 65% 30%))`);
-				$tile.on("mouseenter", () => this.make_way($tile.el, tile_els));
-				$tile.on("mouseleave", () => this.settle(tile_els));
-				tile_els.push($tile.el);
-			});
-		}).style("--column", "5em");
+		// A padded stage, not a bare grid — the hovered tile scales from its own CENTER
+		// (`transform-origin` is the CSS default), so a top-row or edge tile grows both
+		// UP/LEFT and DOWN/RIGHT; without room on every side it grew into the prose above
+		// it (found via ui-test's own screenshot, fixed here rather than by clipping the
+		// effect itself).
+		div.c("codrops-way-stage", () => {
+			div.c("grid auto gap", () => {
+				TILES.forEach(tile => {
+					const $tile = div.c("codrops-way-tile")
+						.style("--codrops-way-bg", `linear-gradient(155deg, hsl(${tile.hue} 65% 45%), hsl(${(tile.hue + 30) % 360} 65% 30%))`);
+					$tile.on("mouseenter", () => this.make_way($tile.el, tile_els));
+					$tile.on("mouseleave", () => this.settle(tile_els));
+					tile_els.push($tile.el);
+				});
+			}).style("--column", "5em");
+		});
 
 		md("**What carried over:** the maths, unchanged — `map`, `getDistance` and `getTranslationDistance` from the original's `utils.js`, which turn \"how far is every OTHER tile from the one I'm on\" into a push vector, stronger the closer the tile. **What didn't:** the trigger — the original fires on **click** (and un-expands on a second click); this port fires on **hover** (`mouseenter`/`mouseleave`), which is what this round asked for, and reads better for a grid this size besides. GSAP's timeline (skew, staggered z-index, `elastic.out`/`power4` eases per grid) is dropped for one CSS `transition: transform`; the random per-tile rotation the original's louder variants add is dropped too, for the plainest version of the effect. `prefers-reduced-motion` drops the transition — tiles jump straight to their pushed positions instead of easing into them.");
 	},

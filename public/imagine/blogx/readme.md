@@ -60,6 +60,18 @@ export default new Blog({
 - **A grid can be the right height with a content-sized row.** `min-height: 100%` and
   `align-content: start` together left 54% of a 1080 screen white under a composition
   that had already fitted. [`doc/decisions`](/imagine/blogx/doc/decisions/)
+- **Round two (2026-09-05): the lab's own index wore icons, not stills.** Eight cards —
+  newspaper, dashboard, slideshow, view_column, list, account_tree, view_week,
+  swap_horiz — all just said "here is a page" on a realm whose entire subject is what
+  the layout looks like. `Blog.js` now overrides `preview(nav)` with a real 960×600
+  screenshot of each shell (`shots/*.jpg`); page height at 3440 cost +64px (+8%) for it.
+  The 3-column card was not rebuilt here — this front door is already a tile wall, and
+  that shape is disproved for a wall of children elsewhere on the site. The click from
+  wall to shell, and from a post's rail to the next post, was checked against
+  [`/imagine/paging/`](/imagine/paging/)'s four words too: it is none of them —
+  `container()` mounts straight into `app.$pages`, skipping the columns row entirely,
+  which is more drastic than `takeover` and is left for the owner to fold into the
+  vocabulary or not. `public/framework/ai/2026-09-05/ux-blogx/` has the numbers.
 
 ## Watch out
 

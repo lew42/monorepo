@@ -154,7 +154,55 @@ and the stage's own `ResizeObserver` readout moves from `1504 x 908` to the full
 `1920 x 1000` and back — the grid arithmetic finding (§4) proven live, not asserted. A
 synthetic focused `<input>` blocks the toggle, same as `/imagine/game/`'s guard.
 
-## 7. Open — the owner decides
+## 7. The 2026-09-05 UX pass — real stills, and a 3-column card measured and reverted
+
+**A stranger could not tell the ten shells apart from their cards.** Every card was an icon,
+a title and one line of description — "Left rail" and "Right rail" read identically at a
+glance, and "Canvas centre" gave no hint it is a design-tool grid with a floating board. The
+fix: `Shell.js`'s `preview(nav)` now renders a real screenshot of that shell (960×600,
+`shots/<slug>.jpg`, generated headless) instead of the icon — a picture, never a live
+instance, same rule `mini.js` and `screens/screen.js` already keep. Ten shapes are now visibly
+different before you click any of them.
+
+**The 3-column card, built and measured, lost.** The owner's brief tonight (title+intro left,
+the shell's own still centre, its `finding` text right) was built for real on this page and
+measured against the tile wall it already had, headless, both widths:
+
+| | width used | dead space | column height |
+|---|---|---|---|
+| wall @1280 | 91.6% | 108px | 998px |
+| 3-col @1280 | 91.6% | 108px | 3568px |
+| wall @3440 | 46.0% | 1856px | 1289px |
+| 3-col @3440 | 46.0% | 1856px | 4038px |
+
+Width used and dead space did not move — the column's own `large` word caps both regardless
+of what is drawn inside it, so a 3-column row can only spend the same capped width in a
+narrower, taller shape. Height went to roughly 3.5–3.6× because ten shells at one full-width
+row each cannot share a row the way a wall does; and the right-hand "readout" column had
+nothing to read out — a shell's `finding` is prose, not a metric, so it only repeated words
+already sitting inside the still. Reverted. This confirms the same-shaped finding
+`/imagine/screens/` reached independently the same night (695→1439 at 1280, 856→1747 at 3440
+there) — on a page that is a menu of same-shaped choices, the tile wall's job is exactly to
+show several at once, and a one-per-row card gives up that job for nothing in return.
+
+**Does a shell connect to `/imagine/paging/`'s vocabulary? Only in effect, not in name.**
+Clicking a shell card *is* the `takeover` mechanism verbatim (`words.js`: "fills the screen;
+every page behind it collapses to the crumb strip") — `Shell.container()` mounts beside
+`/imagine/`'s own view and the row stands down, which is takeover exactly. But nothing in
+`shells/` says so: the readme and every shell's own file talk about "opens FULL SCREEN"
+without ever using the word `takeover` or linking to `/imagine/paging/`, so a reader who has
+just read the paging hub does not recognise this lab as an example of the same idea. One line
+in the readme now closes that gap (`## Use`, and the note above `children:` in `page.js`); a
+deeper fix — shells actually importing paging's `MECHANISMS` map for its icon/label rather
+than restating "takeover" as a fact — is a bigger seam than this pass's fences allow (it would
+make `/imagine/shells/` depend on `/imagine/paging/`, a cross-realm import neither module
+declares today) and is left as the open question below.
+
+**Persistence: none.** `grep -rn "store()\|localStorage" public/imagine/shells/` returns
+nothing — every shell is a static demo with no state to remember, so there is nothing for
+`baseline()` to mark.
+
+## 8. Open — the owner decides
 
 - **Should a document in a shell keep its left edge?** It does today, so at 1920 a 40em
   document leaves ~1170px of paper to its right and at 3440 ~2660px. That is the site's

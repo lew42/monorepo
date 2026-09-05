@@ -281,6 +281,58 @@ promise, which shortens the second sentence slightly — if a future pass wants 
 read as pure prose again over plain instruction, cut the first sentence back only once the page
 carries the same "what is this" fact somewhere else a stranger reads before it.
 
+## Round 6: the 3-column card, tried and kept (2026-09-05, ux review)
+
+The night's other seventeen reviewers had already found, five times over, that the owner's
+"large card, three columns" shape loses on a landing page that is a menu of children — it
+multiplies page height 1.5-5x for zero width gain, because a column's width is capped by its
+own width word no matter what is drawn inside it. This realm's Field notes screen is a menu
+*and* a live thing (the HUD, the chain, the per-realm room counts are all real numbers, not
+copy) — closer to the shape that won for research/generated (a live centre, readouts beside
+it) than the shape that lost. Worth an honest, measured try instead of citing the other five
+by reflex.
+
+**Built it: left is who/what-to-click, centre is the run's own live state (the chain plus the
+one-sentence "what to do next"), right is a readout the centre cannot say — how far into
+*each* realm you have gotten, as a fraction and a fill bar.** Same data as the old stacked
+`.imagine-note` list (title, blurb, `seen/total`); the only change is the arrangement and one
+visual per row (see below).
+
+**Measured, headless, at 1280 and 3440 — the column's own content height, not
+`document.scrollHeight`** (pinned to the viewport by the columns shell, `readme.md`'s Watch
+out): 724px → 649px at 1280 (-10%), 850px → 758px at 3440 (-11%). **Width used and dead space
+did not move** (46% / 1424px dead at 3440, both before and after) — expected, and exactly the
+site-wide finding: the column's width word caps it regardless of what is drawn inside, so a
+card cannot claim width the column was never going to give it. The win here is height, not
+width: three readouts side by side read in less vertical space than three boxes stacked one
+under the other, because the row now spends the column's WIDTH (which the stack was wasting)
+instead of only its height.
+
+**Kept.** Height dropped at both widths, width usage is unchanged for a known, already-argued
+reason (not a defect of this shape), all three invariants hold, and the five-sentence read is
+at least as clear as the stack it replaced — arguably clearer, since "how far into each realm"
+used to be three separate prose blurbs and is now one glance at three fill bars.
+
+**⚠ A container query cannot restyle the container that declares it.** First build put
+`container: imagine-card3 / inline-size` directly on `.imagine-card3` and queried the same
+selector to collapse it to one column under 42em — this is the exact trap `ext/Panel/toolbar`
+and `/framework/ai/`'s own card hit in August: the container's OWN box measured correctly
+narrow, but the rule never re-styled the element that declared the container, so the grid held
+its three fixed-floor tracks at 400px and the right-hand readout column rendered 200px past
+the visible column, into the columns row's own horizontal-swipe machinery. Fixed with one
+wrapper (`.imagine-card3-frame` holds the container; `.imagine-card3` is now a DESCENDANT the
+query can actually restyle) — verified at 400: `grid-template-columns` computes to a single
+`376.34px` track, zero overflow, all three regions stack top to bottom.
+
+**One real still, at low risk.** The right column's three cards named a realm and a number;
+they had no picture at all. Rather than invent an unverified icon name (a name not in this
+Material Icons build renders as the literal WORD and sets a flex item's min-content width —
+a real regression on `ext/drawer`, 2026-08-16), the existing `air:` field (one word per realm,
+already load-bearing on every room screen) was mapped to a glyph and each candidate name
+(`air`, `water_drop`, `diamond`) was measured against a known-good glyph (`check`, `lock`)
+before use — all five rendered at an identical 24px box, confirming real glyphs. Small,
+quiet, and it is the one thing on the card that was previously only in the room screens.
+
 ## Cut
 
 - **A `reset run` button in the rail.** See above — the finale is the eraser, and the rail's

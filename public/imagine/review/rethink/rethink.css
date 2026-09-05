@@ -1,0 +1,130 @@
+/* /imagine/review/rethink/ — the second UX pass, one card per realm:
+   a title strip, the before/after pair across the full width, then the words in
+   three columns underneath.
+
+   ⚠ THE CONTAINER QUERY LIVES ON THE WRAPPER, NOT ON THE CARD. `.rethink-cards`
+     declares `container-type`; `.rethink-card` inside it is what the query restyles.
+     A container query can NEVER restyle its own container, and it fails in total
+     silence — no error, no warning, the rule simply never matches. Two reviewers hit
+     exactly this on 2026-09-05 (team/ and game/), and each lost a build cycle to it.
+
+   ⚠ THE QUERY LENGTHS ARE `rem`, NOT `em`. Inside a container query `em` resolves
+     against the CONTAINER's own font-size, which this column changes — a first pass
+     using `34em` never matched at 1280 and the shots stayed at 225px each. `rem` is
+     the root, which is the same number everywhere.
+
+   ⚠ Everything is inside `@layer site`. Every rule on this site lives in a layer —
+     `base theme site util`, ordered once in framework.css — and an unlayered rule
+     silently outranks all four. */
+
+@layer site {
+
+	.rethink-cards {
+		container-type: inline-size;
+		display: flex;
+		flex-direction: column;
+		gap: var(--gap-default);
+		margin-block: var(--gap-default);
+	}
+
+	/* NARROW: one column, everything stacked. This is what 1280 gets, because three
+	   open columns share that viewport and this one is only ~535px of it. */
+	.rethink-card {
+		display: grid;
+		gap: var(--gap-default);
+		align-items: start;
+		padding: var(--pad-default);
+		border: 1px solid var(--line);
+		border-radius: 0.4em;
+	}
+
+	/* WIDE: the words go into three columns and the pictures span all three, so no line
+	   ever runs past the measure and the shots still get the card's whole width.
+	   Every track is `minmax(0, 1fr)` — a bare `1fr` keeps its content's minimum width
+	   and would push the card wider than its column. */
+	@container (min-width: 58rem) {
+		.rethink-card { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+		.rethink-head, .rethink-shots { grid-column: 1 / -1; }
+	}
+
+	.rethink-head {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 0.6em;
+	}
+
+	/* THE PAIR. Side by side is the comparison, so it holds as long as each half is
+	   worth looking at; under ~34rem of card they stack instead of shrinking to a stamp. */
+	.rethink-shots {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: var(--gap-default);
+		margin: 0;
+	}
+
+	@container (max-width: 34rem) {
+		.rethink-shots { grid-template-columns: minmax(0, 1fr); }
+	}
+
+	.rethink-shot { margin: 0; min-width: 0; }
+
+	.rethink-shot-link { display: block; }
+
+	/* ONE SHAPE FOR EVERY SHOT. The reviewers' screenshots are not all the same height —
+	   most are 1280x900, Research's are 1600 and 2400 tall — so left alone a card's before
+	   and after sit at different heights and the eye reads the size difference as a finding.
+	   A fixed 16:9 frame cropped from the top aligns every pair, and takes about 2,300px off
+	   this page, which is 18 cards long. The full shot is one click away, in the caption. */
+	.rethink-shot img {
+		display: block;
+		width: 100%;
+		height: auto;
+		aspect-ratio: 16 / 9;
+		object-fit: cover;
+		object-position: top center;
+		border: 1px solid var(--line);
+		border-radius: 0.3em;
+	}
+
+	.rethink-shot figcaption {
+		font-size: 0.8em;
+		margin-top: 0.35em;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+	}
+
+	.rethink-col {
+		display: flex;
+		flex-direction: column;
+		gap: 0.6em;
+		min-width: 0;
+	}
+
+	.rethink-readout { font-size: 0.9em; line-height: 1.5; }
+
+	/* THE LABEL is a lead-in, not a heading — it sits on the same line as its sentence,
+	   which is what keeps thirteen readouts from becoming twenty-six lines. */
+	.rethink-label {
+		font-weight: 700;
+		font-size: 0.78em;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		margin-inline-end: 0.5em;
+	}
+
+	.rethink-badge {
+		font-size: 0.75em;
+		font-weight: 600;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		padding: 0.15em 0.55em;
+		border-radius: 0.25em;
+		white-space: nowrap;
+		border: 1px solid var(--line);
+	}
+
+	.rethink-badge.on { background: var(--tint); }
+
+	.rethink-links { font-size: 0.85em; margin-inline-start: auto; }
+}

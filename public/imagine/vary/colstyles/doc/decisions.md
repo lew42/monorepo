@@ -143,3 +143,20 @@ nobody asked for.
   have doubled the code for a point the caption already makes.
 - `vary/readme.md` still says "Three labs" — outside this task's fence (`colstyles/**` + the
   one `children:` line in `vary/page.js`); flagged for whoever's fence includes it next.
+  (Fixed 2026-09-05, ux-rethink round 2 — the readme now says "Four".)
+
+## 2026-09-05 — the permutation was named, not built; now it is, on one axis
+
+The owner's ask that night, "color variations permutated with layout variations," named a gap
+this lab hadn't closed: `content()` showed four looks on ONE fixed width, and the layout axis
+(the width word) only existed, uncrossed, in `hooks/`'s own `widths()` control. Added a section
+crossing all four looks against two real column widths (18em, 34em) — the same `tree()` each
+look page already uses, at `zoom-25`, eight small boxes instead of two separate claims. Verified:
+zero console errors, `document.documentElement.scrollWidth === innerWidth` at 1280 (no real
+overflow — a handful of nested `.page-column-body` rects read a few px left of the outer column
+in `getBoundingClientRect()`, a `zoom` sub-pixel artifact, not a layout bug).
+
+**Left undone, on purpose:** the reverse crossing — one look carried through several
+*structural* layouts (`place/`'s add/swap/carousel) rather than just a width — is real work,
+not a line item; named here so the gap stays visible instead of silently closing itself in a
+"done" checkbox.

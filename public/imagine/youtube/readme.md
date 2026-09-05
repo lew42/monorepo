@@ -45,6 +45,12 @@ boundary, copy the array out.
   you click the iframe, focus is cross-origin and this document never sees the keydown at all.
 - **Under 32em of row the columns page one at a time**, so `course/` stands its automatic
   navigation down there rather than scrolling its own video off screen.
+- **A page method named after one of `nav()`'s own fields** (`card`, `label`, `icon`,
+  `url`, `description`) silently shadows it — `yield/`'s own `card()` crashed
+  `preview_card()` the moment it got a real preview. [`doc/decisions.md`](/imagine/youtube/doc/decisions/).
+- **`panel/` is a 3-column card** (controls / stage / readouts) that reorders itself
+  with a container query, not a fixed `order` — an unconditional one made a narrow
+  cold landing worse, not better. [`doc/decisions.md`](/imagine/youtube/doc/decisions/).
 
 ## More
 

@@ -1,5 +1,26 @@
 # Decisions — /imagine/gallery/
 
+2026-09-05, the second-pass UX rethink. Every card in the realm — this index's three, Lists'
+own six, and every card the six lists import — was icon + title + description, never a
+picture, in a realm whose whole point is showing what the framework can be made of. Tried
+an alternative TOP-LEVEL layout first (`this.tabs().ac("vertical")` in place of the tile
+wall, the paging-vocabulary "surface swap" option): reverted it — `tabs()` mounts each
+child through its full `render()`, which draws that child's own column chrome, so picking
+Lists drew a second title bar and close button nested inside the first, floating at ~460px
+against the page's 1152px column. No width or height win either (measured identical at
+3440: right edge 1583px, column height 852px, both unchanged). The tile wall stays.
+
+Fixed what actually was this realm's problem instead: gave Lists/Answers/Cards a
+`preview(nav)` override each, drawing a static jpg (`make-thumbs.mjs`, session scratchpad;
+regenerate it if a page's own look changes) via `preview_card(nav, thumb)` — never a live
+render, which is `preview_card`'s own documented trap (`Page.class.js`, the thumb comment
+above it). And found a second, worse case one level in: `lists/page.js`'s own six-entry
+index had no `index: true` and no `previews()` call at all, so it fell through to
+`Page.class.js`'s bare default link rail — less visual than even the plain cards this pass
+started from. Same fix, `index: true` + `this.previews()`, plus a `description` (the
+existing blurb, markdown stripped, so there is still only one sentence to write per list)
+and an icon per entry.
+
 2026-09-04, the clarity review. `page.js` (the top index, not a list) was a plain three-line
 nav list with 2180px dead at 3440 (`paging/critique`'s row: 31% used). Fixed with
 `index: true` + `this.previews()`, turning Lists/Answers/Cards into a card wall — same move

@@ -122,6 +122,12 @@ export default new Page({
 
 	children: "approved",
 
+	// A real screenshot instead of the default icon+description card, on the design/
+	// index only (2026-09-05 ux-rethink).
+	preview(nav){
+		return this.preview_card(nav, () => img.c("design-shot").attr("src", here + "shots/tax-rail-content.jpg").attr("alt", nav.label));
+	},
+
 	content(){
 		prose("**Three shells, not eleven patterns.** `ext/DesignTool/library/` documents eleven live arrangements — but surveyed across 20 real pages at 390/1280/3440, only three of them are ever a whole page's own shape. The rest (tile wall aside) are CONTENT that lives inside one of the three, or exist only as a boxed mockup on a doc page. That is the proper/simple categorization: **shape** (how many regions, how they scroll) is a small, closed set; **content** (what fills a region) is the open, extensible part.");
 

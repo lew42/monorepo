@@ -9,7 +9,6 @@ export default new Deck({
 	description: "2 x 2 — four peers, and the one that has to be heavier.",
 	icon: "grid_view",
 	group: "The slices",
-	shapes: ["q"],
 	ring: slices,
 	...arrows,
 	...neighbor("four"),

@@ -54,6 +54,11 @@ a slot name: `world` replaces everything, any other name replaces just that zone
   child with a nav chip and no post in the colonnade.
 - **`aspect-ratio` + `max-height` on a block box caps the WIDTH too.** The stage is a height
   clamp; the camera widens its fov and stands back when the box goes narrow.
+- **That widening only runs one way.** Past a ~2.15 stage aspect `Stage.resize()`'s squeeze
+  floors at 1, so the horizontal fov keeps growing with width alone and a fixed world-space
+  layout shrinks toward the middle of an ultrawide canvas — found on the foyer's colonnade and
+  the crossroads' three arches, fixed in both by scaling the layout with the live aspect past
+  that point. [`doc/decisions.md`](./doc/decisions.md)
 - **Never `Math.random()` in a `build()`** — a cold load and a walk down must agree, paintings
   included. `stage.rand(seed)`.
 - **A shape can lie about itself**: a radial gradient past its canvas edge is clipped into a

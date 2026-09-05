@@ -332,34 +332,16 @@
 	     .decks-region` matched the stage too and painted the whole slide grey. */
 	.decks-rail > .page-column-body .decks-region { background: transparent; }
 
-	/* ── the card's picture ── */
-	.decks-thumb {
-		--stage: 16 / 8;
-		display: flex; align-items: center; justify-content: center; gap: 0.45em;
-		padding: 0.9em;
-	}
-
-	.decks-thumb .icon { font-size: 0.85em; color: var(--subtle); }
-
-	.decks-diagram {
-		flex: 1; min-width: 0;
-		aspect-ratio: 16 / 10;
-		display: flex; gap: 2px; padding: 2px;
-		background: var(--wash);
-		border-radius: 3px;
-	}
-
-	.decks-diagram-v { flex-direction: column; }
-	.decks-diagram-q { display: grid; grid-template-columns: 1fr 1fr; }
-
-	/* A cell is toned by the CONTENT KIND that belongs in it, so the wall of cards is
-	   the map rather than a wall of grey rectangles. */
-	.decks-cell { min-width: 0; background: var(--surface); border-radius: 1px; }
-	.decks-cell-s { background: color-mix(in srgb, var(--prim) 55%, transparent); }
-	.decks-cell-g { background: color-mix(in srgb, var(--prim) 20%, transparent); }
-	.decks-cell-n { background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); }
-	.decks-cell-l { background: repeating-linear-gradient(to bottom, var(--line) 0 1px, var(--surface) 1px 4px); }
-	.decks-cell-w { background: var(--surface); background-image: radial-gradient(var(--line) 1px, transparent 1px); background-size: 5px 5px; }
+	/* ── the card's picture ──
+	   A REAL STILL of the `.decks-slice`, not a diagram of its ratio (round 2,
+	   2026-09-05 — shot against the abstract `diagram()`/`decks-cell` cut this replaced,
+	   and the still won: the ratio is already printed on the slide's own eyebrow, and a
+	   screenshot also shows what KIND of content each region holds, which a tone-mapped
+	   rectangle only gestured at). `object-fit: cover` crops to the card's
+	   `--stage: 16/8`, same as `feeds-poster`/`yt-poster` — never `contain`, which would
+	   letterbox a slide that is not that ratio and print the wash colour as two bars. */
+	.decks-thumb { --stage: 16 / 8; }
+	.decks-thumb img { width: 100%; height: 100%; object-fit: cover; }
 
 	/* ── out of room ──
 	   A cut narrower than 46em stops being a cut and becomes bands: the regions keep

@@ -1,0 +1,15 @@
+/* /imagine/cms/ — the landing page's own card wall.
+
+   Same trick as design/design.css's `.design-shot` and design/journey/journey.css's
+   `.journey-shot`: `.page-preview-thumb` is `overflow: hidden` with a declared aspect
+   (Page.css), but a plain `<img>` inside it only sizes to its own natural dimensions —
+   it doesn't fill or crop to the box. This one rule does both, so a real screenshot of
+   each child page fills the same card slot the icon+title card wore.
+
+   ⚠ Not registered in `framework/styles/css-scopes.txt` — this task's write fence is
+   `/imagine/cms/` and its own task dir, and that ledger is outside it. PROPOSED line,
+   to go in beside `codrops-` in the `# imagine` block:
+   `cms-         /imagine/cms (the landing page's own card wall — cms-shot)` */
+@layer theme {
+	.cms-shot { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; }
+}

@@ -1,0 +1,59 @@
+/* Ported from Codrops' "Animated Custom Cursor Effect" (MIT licence, LICENSE file read
+   on github.com/codrops/AnimatedCustomCursor), demo 1 —
+   https://tympanus.net/codrops/?p=48725. Rebuilt: see page.js for what changed — the
+   cursor is confined to this page's own stage, never `position: fixed` on the whole
+   document. */
+@layer site {
+	.codrops-warp-stage {
+		position: relative;
+		overflow: hidden;
+		min-height: 16em;
+		display: flex;
+		align-items: center;
+		padding: 2em;
+		border-radius: 1em;
+		background: var(--bg-alt, #f2e9e0);
+	}
+
+	.codrops-warp-text {
+		font-size: 1.6em;
+		line-height: 1.4;
+		max-width: 32em;
+		margin: 0;
+	}
+
+	.codrops-warp-hot {
+		font-weight: 600;
+		font-style: italic;
+	}
+
+	/* `cursor: none` only inside a stage that actually started the JS cursor — a page
+	   under `prefers-reduced-motion` or a coarse pointer never adds this, so the system
+	   pointer stays put (page.js's `start_cursor` returns before touching the DOM). */
+	.codrops-warp-stage:has(.codrops-warp-cursor.is-visible) { cursor: none; }
+
+	.codrops-warp-cursor {
+		position: absolute;
+		top: 0;
+		left: 0;
+		pointer-events: none;
+		opacity: 0;
+		transition: opacity 0.3s;
+	}
+
+	.codrops-warp-cursor.is-visible { opacity: 1; }
+
+	.codrops-warp-circle {
+		fill: none;
+		stroke: var(--prim, #ee8233);
+		stroke-width: 1px;
+		r: 60px;
+		transition: r 0.3s ease;
+	}
+
+	.codrops-warp-cursor.is-hot .codrops-warp-circle { r: 100px; }
+
+	@media (prefers-reduced-motion: reduce) {
+		.codrops-warp-cursor, .codrops-warp-circle { transition: none; }
+	}
+}

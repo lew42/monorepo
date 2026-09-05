@@ -1,4 +1,4 @@
-import { Page, div, span, button, input, label, md } from "/app.js";
+import { Page, div, span, button, input, label, img, md } from "/app.js";
 import { Player, clock, TALKS } from "../youtube.js";
 
 /* Container: /imagine/'s column row. Size: `large` — measured 400 / 859 / 1024 / 1152;
@@ -36,6 +36,12 @@ export default new Page({
 	description: "At a cue the video shrinks to a corner and keeps playing, and the real interactive UI takes the stage.",
 	icon: "picture_in_picture",
 	width: "large",
+
+	// A real still of the mechanism itself — the video already stepped aside — instead
+	// of the default icon+description card (2026-09-05 ux-rethink).
+	preview(nav){
+		return this.preview_card(nav, () => img.c("yt-shot").attr("src", "/imagine/youtube/shots/yield.jpg").attr("alt", nav.label));
+	},
 
 	content(){
 		this.answers = {};
@@ -81,18 +87,18 @@ export default new Page({
 	// step is on screen, so scrubbing never eats what you typed.
 	wizard(){
 		this.$steps = [
-			this.card("Who is taking this", () => {
+			this.step_card("Who is taking this", () => {
 				this.field("name", "your name");
 				this.field("email", "email", "email");
 			}),
 
-			this.card("What you want out of it", () => {
+			this.step_card("What you want out of it", () => {
 				this.check("why", "Find my why");
 				this.check("talk", "Talk to a room");
 				this.check("team", "Lead a team");
 			}),
 
-			this.card("How fast", () => {
+			this.step_card("How fast", () => {
 				this.pick("pace", "A weekend");
 				this.pick("pace", "Four weeks");
 				this.pick("pace", "No hurry");
@@ -100,7 +106,12 @@ export default new Page({
 		];
 	},
 
-	card(title, fn){
+	// ⚠ Not `card(…)` — core's own `nav().card` reads `this.card` as a page's SIZE
+	//   modifier class (`.two`/`.tall`/`.big`); a method of that exact name shadowed
+	//   the field and `preview_card()`'s `.ac(nav.card)` threw on the function itself
+	//   the moment this page got a real `preview()` (2026-09-05 ux-rethink — the
+	//   `opens()` collision `core/Page/Page.class.js` already names, met again).
+	step_card(title, fn){
 		return div.c("yt-step", () => {
 			span.c("yt-ctl-label", title);
 			div.c("flex v gap", fn).style("--gap", "0.6em");

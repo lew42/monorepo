@@ -1,4 +1,4 @@
-import { Page, View, div, p, a } from "/app.js";
+import { Page, View, div, p, a, span } from "/app.js";
 import { issue } from "./issue.js";
 
 View.stylesheet(import.meta, "mag.css");
@@ -27,7 +27,12 @@ export default new Page({
 	width: "full",
 	classes: "mag-cover",
 
-	children: ["contents"],
+	// `doc` is routing-only here: `column()` fully overrides how this cover renders
+	// itself (no head, no rail, no child links at all — see below), so adding it
+	// does not put a second link on the poster. It only makes `/imagine/mag/doc/`
+	// resolve at all — undeclared, it 404'd no matter what a link's own href said
+	// (readme.md's own `doc/decisions.md` link, fixed alongside this).
+	children: ["contents", "doc"],
 
 	/* No head, no ×, no nav rail: on a cover those would be three pieces of chrome
 	   saying what the sheet and the crumb strip already say. Core's `column()` is the
@@ -44,8 +49,25 @@ export default new Page({
 					div.c("mag-cover-title", issue.title);
 					p.c("mag-cover-note", issue.standfirst);
 					div.c("mag-cover-enter", "Open the issue");
+					this.coverlines();
 				});
 			});
+		});
+	},
+
+	/* COVERLINES — the one thing a poster with a single button was missing: what a
+	   real magazine cover always shows before you pick it up, the six things inside.
+	   Real content, not decoration — the same section + title `contents/page.js`
+	   lists, one tier smaller. `mag.css` hides this block the moment a child opens
+	   (`.active-ancestor`), so it never touches the golden-share numbers below it —
+	   a cover-only device, gone the instant you are actually reading. */
+	coverlines(){
+		div.c("mag-cover-lines", () => {
+			div.c("mag-cover-lines-label", "In this issue");
+			issue.articles.forEach((article, i) => div.c("mag-cover-lines-item", () => {
+				span.c("mag-cover-lines-no", String(i + 1).padStart(2, "0"));
+				span(article.title);
+			}));
 		});
 	},
 });
