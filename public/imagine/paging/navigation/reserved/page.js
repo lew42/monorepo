@@ -12,10 +12,9 @@ import { PagingNavStack } from "../lab.js";
 
 export default new Paging({
 	meta: import.meta,
-	title: "Reserved stage",
+	title: "Reserved height",
 	description: "A box that keeps its height whatever you put in it.",
 	icon: "crop_free",
-	axes: "",
 
 	takeaway: "**Press the three panel names in both boxes and watch the dashed line underneath each one.** In the first box the line moves every time, because the box resizes itself to fit the panel. In the second box it never moves.",
 

@@ -2,11 +2,12 @@ import { Template } from "../templates.js";
 import { family } from "../families.js";
 
 /* ── layout ────────────────────────────────────────────────────────────────────
-   1 CONTAINER  a column in /imagine/'s row (a columns host): no page grid, prose in
-                `.page-column-prose`, `bleed` the only edge word.
-   2 SIZE       `large` — 28–64em, so the example grows with the row while the prose
-                above it keeps its 40em measure. Press `full` on the layout chips and
-                this page takes the whole row instead.
+   1 CONTAINER  the paging app's middle — one region that swaps, never a column of
+                /imagine/'s row. (The old header here said "a column in /imagine/'s
+                row"; that stopped being true in the 2026-09-05 rebuild, and the
+                `width:` word that went with it did nothing at all.)
+   2 SIZE       prose keeps the 40em measure; the stage claims `wide` and takes every
+                leftover pixel of the middle.
    3 OWN LAYOUT lede, then the stage (chips, the example, the change caption), then
                 three reference blocks — all of it `Template.content()`.
    4 REGIONS    one, core's. This page has no children.
@@ -22,10 +23,8 @@ export default new Template({
 	title: "Layouts",
 	description: "The arrangement, with nothing in it.",
 	icon: "grid_view",
-	width: "large",
 
 	// style repaints it, type re-sets it, layout can hand it the whole row.
-	axes: "style type layout",
 
 	family: it,
 	takeaway: it.what,

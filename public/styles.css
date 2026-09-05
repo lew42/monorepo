@@ -15,7 +15,7 @@
 	   touch it. */
 
 	.nav {
-		display: flex; flex-wrap: wrap; gap: 1.25em; flex: 0 0 auto;
+		display: flex; flex-wrap: wrap; gap: calc(var(--gap-ramp) * 1.25); flex: 0 0 auto;   /* was gap 1.25em - 2026-09-05 ramps */
 		padding: 0.9em 6%; border-bottom: 1px solid var(--line);
 	}
 	.nav-link { text-decoration: none; color: var(--subtle); }
@@ -48,7 +48,7 @@
 	/* `app.brand()` builds this, and it is only ever placed inside a Sidebar — which
 	   owns the padding around it. No margin here: spacing belongs to whatever holds
 	   the brand. */
-	.brand { display: flex; align-items: center; gap: 0.75em; padding: 1em 1.2em; }
+	.brand { display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.75); padding: 1em 1.2em; }   /* was gap 0.75em - 2026-09-05 ramps */
 	.brand-logo { display: flex; font-size: 1.3em; }
 	.brand-text {
 		font-weight: 800; font-size: 1.3em;
@@ -64,9 +64,17 @@
 	/* A rail ROW spans its rail on purpose (spacing-judge 2026-09-05, rule c): the
 	   list is the control and the row is its part, the hover fill IS the row — like
 	   `li` and `tr`. The auditors' 228px box / 24px ink is that row, not a strip.
-	   Its side inset is the sidebar's own `--gutter` (21px at 1280, 25px at 3440). */
-	.sidebar-link { padding-block: 0.8em; }
-	.sidebar-group { margin-block: 1em; }
+	   Its side inset is the sidebar's own `--gutter` (21px at 1280, 25px at 3440).
+	   ⚠ The 7.1× the auditors re-measured is NOT `align-items: stretch` — nothing
+	     declares that; `.sidebar-nav` is a flex COLUMN and a column's default cross
+	     size IS the rail's width. Un-stretching it would leave a ragged rail whose
+	     hover fill is a different width on every row, which is worse than the ratio.
+	     What was actually cramped is the row's own height: `0.8em` of block padding
+	     never grew, so a 3440 rail was a 272px column of 11px-padded rows. It reads
+	     the gap ramp now (2026-09-05: was a flat `0.8em` — 9.6px at 1280 and 11.5px
+	     at 3440; now 9.4px → 22.4px, so the rail breathes where the screen is). */
+	.sidebar-link { padding-block: calc(var(--gap-ramp) * 0.6); }
+	.sidebar-group { margin-block: calc(var(--gap-ramp) * 1); }   /* was margin-block 1em - 2026-09-05 ramps */
 	.sidebar-link:is(.active, .in-path) .sidebar-label { font-weight: 600; }
 	.sidebar-link.active::after, .sidebar-link.in-path::after { margin-bottom: 1px; }
 
@@ -138,7 +146,7 @@
 	.home-front {
 		display: grid;
 		align-content: start;
-		gap: 1.25em;
+		gap: calc(var(--gap-ramp) * 1.25);   /* was gap 1.25em - 2026-09-05 ramps */
 		--column: 18em;
 		--gap: 0.8em;
 
@@ -184,7 +192,7 @@
 	}
 
 	/* A region's label and the way in, on one line. */
-	.home-head { display: flex; align-items: baseline; gap: 1em; margin-bottom: 0.6em; }
+	.home-head { display: flex; align-items: baseline; gap: calc(var(--gap-ramp) * 1); margin-bottom: calc(var(--gap-ramp) * 0.6); }   /* was gap 1em; margin-bottom 0.6em - 2026-09-05 ramps */
 	.home-head-link { margin-inline-start: auto; font-size: 0.85em; }
 
 	.home-date { display: block; font-size: 0.8em; color: var(--subtle); }
@@ -223,7 +231,7 @@
 	     (and the same 34em stage.css already breaks at), but it is two questions in
 	     one block, measured at 400 / 1280 / 1920 / 3440 rather than assumed. */
 	@container (max-width: 34em) {
-		.home-front { gap: 1em; }
+		.home-front { gap: calc(var(--gap-ramp) * 1); }   /* was gap 1em - 2026-09-05 ramps */
 		.home-stage .demo { --demo-pad: 0.8rem; }
 		.home-stage .demo-tools, .home-stage .demo-size { display: none; }
 
@@ -311,7 +319,7 @@
 	   this silently loses. See styles/layers/theme/lew42/readme.md §7. */
 	.app { background: var(--wash); }
 
-	.page-link-block { background: rgba(0,0,0,0.1); display: block; padding: 1em; margin-bottom: 1em; }
+	.page-link-block { background: rgba(0,0,0,0.1); display: block; padding: 1em; margin-bottom: calc(var(--gap-ramp) * 1); }   /* was margin-bottom 1em - 2026-09-05 ramps */
 
 	/* Docs tables lead with a keyword — keep it on one line. "My first column is a
 	   term" is an opinion about *this site's writing*, not about markdown, which is

@@ -47,8 +47,8 @@
 	   past the strip's band instead of simply outranking it by z-index.
 	   ⚠ The margin has to clear `--clear + --edge` (split.css, 0.7rem + 0.9rem) or the two
 	   targets go back to overlapping — measured against a real leaf, not guessed. */
-	.panel-align > .panel-tool-tc { margin-block-start: 1.7rem; }
-	.panel-align > .panel-tool-bc { margin-block-end: 1.7rem; }
+	.panel-align > .panel-tool-tc { margin-block-start: calc(var(--gap-ramp) * 1.7); }   /* was margin-block-start 1.7rem - 2026-09-05 ramps */
+	.panel-align > .panel-tool-bc { margin-block-end: calc(var(--gap-ramp) * 1.7); }   /* was margin-block-end 1.7rem - 2026-09-05 ramps */
 	.panel-align > .panel-tool-cl { margin-inline-start: 1.7rem; }
 	.panel-align > .panel-tool-cr { margin-inline-end: 1.7rem; }
 

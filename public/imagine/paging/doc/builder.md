@@ -371,3 +371,29 @@ it is written out below rather than applied: `make/` is another task's file.
 - **The layout number is the arrangement of the BLOCKS, not of the page in its row.** A page's
   width word (`large`, `fill`, `full`) is still only reachable through the Navigation control's
   takeover option. Splitting them would be a fifth control for a word 27 pages use.
+
+## Left open: BuildStage should be a PagingStage (2026-09-05)
+
+`build/stage.js` is 208 lines that draw a page — tabs, a rail, crumbs, blocks — and
+`stage.js` is 343 lines that draw a page. The realm says it has "one renderer" and that is
+not true while both exist. It should be one:
+
+```js
+new PagingStage({
+	config: config_of(node),                     // the seven words, from build/words.js
+	pages: kids.map(kid => ({ title: kid.title, icon: kid.icon, text: kid.description })),
+	draw: () => this.blocks(),                   // the blocks, in Build's own arrangement
+	classes: "build-screen",
+});
+```
+
+**Why it did not happen in the fix pass.** `PagingStage` has a `draw` seam for the box's own
+content and no seam for a CHILD's panel — and Build's panel is the thing that carries the
+child's description, its blocks and the "the url did not change" note. It also draws crumbs
+and a sheet title the stage has no word for. So the merge needs one new seam
+(`draw_child(stage, child)`) plus a pass over the builder, and the builder is the realm's most
+complex page. Half a merge on it would be worse than two renderers.
+
+**The order to do it in:** add `draw_child` to `stage.js` and prove it on a preset · move
+Build's crumbs and sheet title into the `draw` seam · swap the class · delete `build/stage.js`
+and the `.build-tab*` / `.build-rail` / `.build-panel` rules that go with it.

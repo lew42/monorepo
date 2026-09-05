@@ -9,7 +9,7 @@
 	   for READ GUIDE, four times too wide for a picture and a word. `:is()` takes the
 	   specificity of its most specific arm, so this reads 0-3-0. Only the BOX is reclaimed. */
 	.dropdown > .dropdown-trigger:is(button, .btn) {
-		display: flex; align-items: center; gap: 0.35em;
+		display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.35);   /* was gap 0.35em - 2026-09-05 ramps */
 		inline-size: 100%; min-inline-size: 0;
 		padding: 0.15em 0.4em;
 		font: inherit; letter-spacing: normal; text-transform: none;
@@ -48,11 +48,11 @@
 		border-radius: var(--radius);
 		box-shadow: 0 0.5em 1.5em rgb(0 0 0 / 0.18);
 	}
-	.dropdown-list:popover-open { display: flex; flex-direction: column; gap: 0.1em; }
+	.dropdown-list:popover-open { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.1); }   /* was gap 0.1em - 2026-09-05 ramps */
 
 	/* Same reclaim as the trigger, same reason. */
 	.dropdown-list > .dropdown-option:is(button, .btn) {
-		display: flex; align-items: center; gap: 0.5em;
+		display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.5);   /* was gap 0.5em - 2026-09-05 ramps */
 		inline-size: 100%;
 		padding: 0.25em 0.5em;
 		font: inherit; letter-spacing: normal; text-transform: none;

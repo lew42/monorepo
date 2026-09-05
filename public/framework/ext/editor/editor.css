@@ -17,7 +17,7 @@
 	.editor-bar {
 		display: flex;
 		align-items: center;
-		gap: 0.2em;
+		gap: calc(var(--gap-ramp) * 0.2);   /* was gap 0.2em - 2026-09-05 ramps */
 		font-size: 0.7em;
 		color: var(--subtle);
 	}

@@ -6,7 +6,7 @@
     .md-error { color: var(--error); }
 
     /* Its own margin, deliberately: an end-of-page rule, not a block in the flow. */
-    .md-details { margin-block-start: 3.5rem; border-top: 1px solid var(--line); }
+    .md-details { margin-block-start: calc(var(--flow-ramp) * 1.75); border-top: 1px solid var(--line); }   /* was margin-block-start 3.5rem - 2026-09-05 ramps */
     .md-details > summary {
         padding: 0.6em 0;
         color: var(--subtle);

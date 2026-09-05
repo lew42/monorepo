@@ -21,7 +21,7 @@
 	.file-dir-name {
 		display: flex;
 		align-items: center;
-		gap: 0.45em;
+		gap: calc(var(--gap-ramp) * 0.45);   /* was gap 0.45em - 2026-09-05 ramps */
 		padding: 0.3em 0.9em;
 		white-space: nowrap;
 	}

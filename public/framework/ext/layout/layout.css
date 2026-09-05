@@ -10,7 +10,7 @@
 
 	.layout-bar {
 		display: flex; flex-wrap: wrap; align-items: center;
-		gap: 0.3em;
+		gap: calc(var(--gap-ramp) * 0.3);   /* was gap 0.3em - 2026-09-05 ramps */
 		padding: 0.25em;
 		font-size: 0.8em;
 		border: 1px solid transparent;
@@ -28,7 +28,7 @@
 	   the flow gap and occludes nothing. */
 	.layout > .layout-bar {
 		position: absolute; bottom: 100%; inset-inline-end: 0; z-index: 1;
-		margin-bottom: 0.25em;
+		margin-bottom: calc(var(--gap-ramp) * 0.25);   /* was margin-bottom 0.25em - 2026-09-05 ramps */
 		background: var(--surface);
 		border-color: var(--line);
 	}
@@ -46,7 +46,7 @@
 	   `border: none` cancelling the transparent border below and the hover that
 	   recoloured it. */
 	.layout-btn {
-		display: flex; align-items: center; gap: 0.3em;
+		display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.3);   /* was gap 0.3em - 2026-09-05 ramps */
 		padding: 0.15em 0.6em;
 		font-family: var(--mono);
 		color: var(--subtle);
@@ -69,7 +69,7 @@
 		cursor: pointer;
 	}
 
-	.layout-knob { display: flex; align-items: center; gap: 0.3em; cursor: pointer; }
+	.layout-knob { display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.3); cursor: pointer; }   /* was gap 0.3em - 2026-09-05 ramps */
 
 	/* ⚠ base gives every input `width: 100%` and does not except `range`. */
 	.layout-range { width: 5em; }
@@ -96,8 +96,8 @@
 	.layout-name { font-family: var(--mono); font-weight: 700; }
 	.layout-code { display: block; padding: 0.5em 0.6em; overflow-wrap: anywhere; }
 
-	.layout-chips { gap: 0.3em; }
-	.layout-sect { gap: 0.5em; }
+	.layout-chips { gap: calc(var(--gap-ramp) * 0.3); }   /* was gap 0.3em - 2026-09-05 ramps */
+	.layout-sect { gap: calc(var(--gap-ramp) * 0.5); }   /* was gap 0.5em - 2026-09-05 ramps */
 	.layout-empty { color: var(--subtle); }
 
 	/* One grid for every knob in the drawer, so the names line up down the left and
@@ -106,7 +106,7 @@
 	.drawer .layout-knob {
 		display: grid;
 		grid-template-columns: 5.4em 1fr 3.4em;
-		gap: 0.4em;
+		gap: calc(var(--gap-ramp) * 0.4);   /* was gap 0.4em - 2026-09-05 ramps */
 	}
 	.drawer .layout-knob > .layout-tag { white-space: nowrap; }
 	.drawer .layout-range { width: 100%; }

@@ -1,7 +1,12 @@
 # paging — one configurable page, six building blocks, twelve ready-made shapes. The realm is an app: a rail that never moves, and a middle that swaps
 
-Open [/imagine/paging/](/imagine/paging/). Point at the page on the stage and a toolbar
-appears; pick another shape from the rail. That is the whole thing.
+Open [/imagine/paging/](/imagine/paging/). A real page is on the stage; the bar above it
+has every word that page is made of, as chips. Click one and the page changes. Pick
+another shape from the rail. That is the whole thing.
+
+**The configuration is in the address.** Every chip you press writes itself into the url
+(`?navigation=rail&content=dashboard`), so the page you are looking at is always the page
+the url names — copy it, send it, open it cold and you get the same page. `url.js`.
 
 ## The six blocks
 
@@ -34,15 +39,16 @@ export default new Paging({
 });
 ```
 
-- `stage()` draws the page, its hover toolbar and the way into the drawer. There is no
+- `stage()` draws the page, the bar of chips above it and the way into the drawer. There is no
   second renderer — the [library](/imagine/paging/library/)'s twelve presets, the block
   pages and the pages you [make](/imagine/paging/make/) are all this one call.
 - The vocabulary is [`blocks.js`](./blocks.js) and it imports nothing, so a page, a rail
   tile, a chip, a url and a doc all read the same lists.
 - **Two colour controls, independent**: `surface` paints the content box, `background`
-  paints the page behind it. The hover toolbar has both as rows of swatches.
-- The drawer (`ext/drawer`) holds the full form, the JSON, **nest** (any preset inside
-  this one) and **make this a page**, which writes a real `page.json` to disk in dev.
+  paints the page behind it. Both are rows of swatches in the bar.
+- The drawer (**More**) holds the link to this exact page, the full form with a sentence
+  per value, the JSON, **the `page.js` this would be**, **nest** (any preset inside this
+  one) and **make this a page**, which writes a real `page.json` to disk in dev.
 
 ## Watch out
 
@@ -63,6 +69,18 @@ export default new Paging({
 - **A child with `container-type: inline-size` may not be sized by its own contents** —
   one that also carries `align-self: start` collapses to 0px inside a flex column
   (`blog.css`'s `.blog-hero`). `.paging-canvas > *` stretches them back.
+- **The bar may never cover the demo.** It was `position: absolute` over the stage's top
+  edge until 2026-09-05, revealed on hover — so pointing at the front page's tab strip
+  made the bar appear on top of it and the tab could not be clicked at all, at any width.
+  It is a sibling above the stage now and it reserves its height.
+- **A stable navigation word reserves the box's height** (`.paging-nav-reserve`), so the
+  caption under the stage can say "the box did not move" and be right. `columns` and
+  `takeover` are the dynamic words and report the pixels they really moved ·
+  [navigation](/imagine/paging/navigation/)
+- **`?...` belongs to the page the ENTRY url names** — not to `location.pathname` (core
+  pushes the address after the page draws, so mid-navigation it is the page you left) and
+  not to "the first stage that asks" (the app's home page is built on every cold load,
+  even when a deep child is what you opened) · `url.js`
 - Six old directories are gone; their urls answer with one line saying where they went
   (`route()` in `page.js`). Delete a row when nothing points at it.
 
@@ -75,9 +93,12 @@ export default new Paging({
   [templates](/imagine/paging/doc/templates/) · [builder](/imagine/paging/doc/builder/)
 - Files that matter: `blocks.js` (the vocabulary) · `stage.js` (the one renderer) ·
   `presets.js` (the twelve) · `paging.js` (the app, and the base class) ·
-  `rail.js` (the nav grids) · `toolbar.js` (the hover bar) · `config.js` (the drawer)
+  `rail.js` (the nav grids) · `toolbar.js` (the bar of chips) · `url.js` (the address) ·
+  `config.js` (the drawer)
 - Next door: [/imagine/layouts/](/imagine/layouts/) owns the numbered arrangements;
   [/imagine/shells/](/imagine/shells/) owns app chrome; [templates](/imagine/paging/templates/)
   is the eleven shapes the rest of the site already ships.
-- Older records kept for the links that point at them, not part of the realm:
+- [Cross](/imagine/paging/cross/) — two words at once, nine live pages; the other
+  crossing is [the theming wall](/imagine/paging/templates/theming/).
+- Two readings, linked from [Docs](/imagine/paging/doc/) and nowhere else:
   [critique](/imagine/paging/critique/) · [inventory](/imagine/paging/inventory/).

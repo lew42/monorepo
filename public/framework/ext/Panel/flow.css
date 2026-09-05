@@ -3,7 +3,7 @@
 @layer theme {
 
 	.panel-flow-bar {
-		display: flex; align-items: center; gap: 0.4em;
+		display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.4);   /* was gap 0.4em - 2026-09-05 ramps */
 		padding: 0.3em 0.5em;
 		font-size: 0.85em;
 		color: var(--subtle);

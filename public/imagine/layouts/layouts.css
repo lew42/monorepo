@@ -75,9 +75,9 @@
 	.layouts-when { font-size: 0.82em; line-height: 1.5; color: var(--subtle); }
 
 	/* ── the chips ── */
-	.layouts-chips { display: flex; flex-direction: column; gap: 0.45em; margin-block: 0.7em; }
+	.layouts-chips { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.45); margin-block: calc(var(--gap-ramp) * 0.7); }   /* was gap 0.45em; margin-block 0.7em - 2026-09-05 ramps */
 
-	.layouts-group { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25em; }
+	.layouts-group { display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--gap-ramp) * 0.25); }   /* was gap 0.25em - 2026-09-05 ramps */
 
 	.layouts-axis {
 		flex: 0 0 100%;
@@ -86,7 +86,7 @@
 	}
 
 	.layouts-chip {
-		display: inline-flex; align-items: center; gap: 0.2em;
+		display: inline-flex; align-items: center; gap: calc(var(--gap-ramp) * 0.2);   /* was gap 0.2em - 2026-09-05 ramps */
 		padding: 0.14em 0.5em;
 		border: 1px solid var(--line); border-radius: var(--radius);
 		background: var(--fill-a04);
@@ -109,7 +109,7 @@
 	   marks are per visit — but a reader three chips deep still deserves to be told
 	   they are no longer looking at the base example. */
 	.layouts-mark {
-		display: inline-flex; align-items: center; gap: 0.25em;
+		display: inline-flex; align-items: center; gap: calc(var(--gap-ramp) * 0.25);   /* was gap 0.25em - 2026-09-05 ramps */
 		font-size: 0.74em; color: var(--prim-ink);
 	}
 
@@ -170,7 +170,7 @@
 
 	.layouts-box {
 		display: flex; flex-direction: column; justify-content: center;
-		gap: 0.2em;
+		gap: calc(var(--gap-ramp) * 0.2);   /* was gap 0.2em - 2026-09-05 ramps */
 		min-width: 0;
 		padding: var(--pad, var(--pad-default));
 		border: 1px solid var(--line);
@@ -224,7 +224,7 @@
 
 	.layouts-rail {
 		flex: 0 0 clamp(4em, 14%, 9em);
-		display: flex; flex-direction: column; gap: 0.3em;
+		display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.3);   /* was gap 0.3em - 2026-09-05 ramps */
 		padding: 0.4em;
 		border: 1px solid var(--line); border-radius: var(--radius);
 		background: var(--fill-a04);
@@ -232,13 +232,13 @@
 	}
 
 	.layouts-crumbline {
-		display: flex; align-items: center; gap: 0.25em;
+		display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.25);   /* was gap 0.25em - 2026-09-05 ramps */
 		font-size: 0.78em; color: var(--subtle);
 		padding-bottom: 0.3em;
 		border-bottom: 1px solid var(--line);
 	}
 
-	.layouts-tabs { display: flex; gap: 0.25em; border-bottom: 1px solid var(--line); }
+	.layouts-tabs { display: flex; gap: calc(var(--gap-ramp) * 0.25); border-bottom: 1px solid var(--line); }   /* was gap 0.25em - 2026-09-05 ramps */
 
 	.layouts-tab {
 		padding: 0.25em 0.7em;
@@ -253,7 +253,7 @@
 	.layouts-tab.on { background: var(--surface); font-weight: 700; margin-bottom: -1px; padding-bottom: calc(0.25em + 1px); }
 
 	.layouts-bar {
-		display: flex; justify-content: space-around; gap: 0.3em;
+		display: flex; justify-content: space-around; gap: calc(var(--gap-ramp) * 0.3);   /* was gap 0.3em - 2026-09-05 ramps */
 		padding: 0.35em;
 		border: 1px solid var(--line); border-radius: var(--radius);
 		background: var(--fill-a04);
@@ -279,20 +279,20 @@
 	.layouts-viewport { margin-inline: auto; }
 
 	.layouts-scale {
-		display: flex; flex-wrap: wrap; align-items: center; gap: 0.3em 0.6em;
-		margin-top: 0.4em;
+		display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--gap-ramp) * 0.3) calc(var(--gap-ramp) * 0.6);   /* was gap 0.3em 0.6em - 2026-09-05 ramps */
+		margin-top: calc(var(--gap-ramp) * 0.4);   /* was margin-top 0.4em - 2026-09-05 ramps */
 		font-family: var(--mono); font-size: 0.72em; color: var(--subtle);
 	}
 
 	/* ── THE READOUTS ──────────────────────────────────────────────────────────
 	   The CSS the layout IS, the widths it measured, and the one line that makes a
 	   page from it. */
-	.layouts-read + .layouts-read { margin-top: 0.7em; }
+	.layouts-read + .layouts-read { margin-top: calc(var(--gap-ramp) * 0.7); }   /* was margin-top 0.7em - 2026-09-05 ramps */
 
 	.layouts-read-head {
 		font-family: var(--mono); font-size: 0.68em; font-weight: 700;
 		text-transform: uppercase; letter-spacing: 0.05em; color: var(--subtle);
-		margin-bottom: 0.25em;
+		margin-bottom: calc(var(--gap-ramp) * 0.25);   /* was margin-bottom 0.25em - 2026-09-05 ramps */
 	}
 
 	/* ⚠ `color`, and it is not optional: framework.css paints every `pre` with
@@ -312,7 +312,7 @@
 		white-space: pre-wrap; overflow-wrap: anywhere;
 	}
 
-	.layouts-tracks { display: flex; flex-wrap: wrap; gap: 0.25em; }
+	.layouts-tracks { display: flex; flex-wrap: wrap; gap: calc(var(--gap-ramp) * 0.25); }   /* was gap 0.25em - 2026-09-05 ramps */
 
 	.layouts-px {
 		padding: 0.1em 0.4em;
@@ -342,7 +342,7 @@
 	.layouts-pair > * { flex: 1 1 max(calc(50% - var(--gap, var(--gap-default))), var(--layouts-stack)); min-width: 0; }
 
 	.layouts-side {
-		display: flex; flex-direction: column; gap: 0.4em;
+		display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.4);   /* was gap 0.4em - 2026-09-05 ramps */
 		padding: var(--pad, var(--pad-default));
 		border: 1px solid var(--line); border-radius: var(--radius);
 		background: var(--surface);
@@ -351,7 +351,7 @@
 	/* The chosen side of the comparison, marked — the toggle's whole visible job. */
 	.layouts-side.on { border-color: var(--prim); box-shadow: 0 0 0 1px var(--prim); }
 
-	.layouts-side-head { display: flex; align-items: baseline; gap: 0.4em; }
+	.layouts-side-head { display: flex; align-items: baseline; gap: calc(var(--gap-ramp) * 0.4); }   /* was gap 0.4em - 2026-09-05 ramps */
 	.layouts-side-title { font-weight: 700; }
 	.layouts-side-sub { font-size: 0.8em; color: var(--subtle); }
 
@@ -363,7 +363,7 @@
 
 	.layouts-fullbar {
 		position: sticky; top: 0; z-index: 2;
-		display: flex; flex-wrap: wrap; align-items: center; gap: 0.4em;
+		display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--gap-ramp) * 0.4);   /* was gap 0.4em - 2026-09-05 ramps */
 		padding: 0.45em var(--pad, var(--pad-default));
 		border: 1px solid var(--line); border-radius: var(--radius);
 		background: var(--surface);
@@ -396,7 +396,7 @@
 	.layouts-numbers { display: grid; gap: var(--gap, var(--gap-default)); grid-template-columns: repeat(auto-fill, minmax(min(15em, 100%), 1fr)); }
 
 	.layouts-number {
-		display: flex; flex-direction: column; gap: 0.3em;
+		display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.3);   /* was gap 0.3em - 2026-09-05 ramps */
 		padding: var(--pad, var(--pad-default));
 		border: 1px solid var(--line); border-radius: var(--radius);
 		background: var(--surface);

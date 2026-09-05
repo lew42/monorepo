@@ -12,7 +12,7 @@
 		flex-direction: row;
 		flex-wrap: wrap;
 		align-items: stretch;
-		gap: 1.4em;
+		gap: calc(var(--gap-ramp) * 1.4);   /* was gap 1.4em - 2026-09-05 ramps */
 	}
 	.generated-seed > * { flex: 1 1 14em; min-width: 0; }
 	.generated-seed-shape { flex: 1.6 1 16em; }
@@ -22,7 +22,7 @@
 	.generated-branches {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 0.6em;
+		gap: calc(var(--gap-ramp) * 0.6);   /* was gap 0.6em - 2026-09-05 ramps */
 	}
 	.generated-branch {
 		border: 1px solid var(--line);
@@ -39,7 +39,7 @@
 		padding: 1em 1.2em;
 		display: flex;
 		align-items: center;
-		gap: 0.9em;
+		gap: calc(var(--gap-ramp) * 0.9);   /* was gap 0.9em - 2026-09-05 ramps */
 		color: var(--subtle);
 	}
 	.generated-slot .icon { font-size: 1.6em; }

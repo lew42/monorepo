@@ -40,7 +40,7 @@
 	.omnibox-list { display: flex; flex-direction: column; padding: 0.25em; }
 
 	.omnibox-row {
-		display: flex; align-items: baseline; gap: 0.6em;
+		display: flex; align-items: baseline; gap: calc(var(--gap-ramp) * 0.6);   /* was gap 0.6em - 2026-09-05 ramps */
 		padding: 0.4em 0.6em;
 		border-radius: calc(var(--radius) / 2);
 		cursor: pointer;

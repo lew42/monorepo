@@ -71,13 +71,13 @@
 		container: mag-cover / inline-size;
 		width: min(100%, max(46em, 44%));
 		margin-inline: auto;
-		display: flex; flex-direction: column; gap: 0.45em;
+		display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.45);   /* was gap 0.45em - 2026-09-05 ramps */
 	}
 
 	.mag-cover-rule {
 		flex: 0 0 auto;
 		width: clamp(2.5rem, 18cqw, 9rem); height: 0.3em;
-		margin-block-end: 0.45em;
+		margin-block-end: calc(var(--gap-ramp) * 0.45);   /* was margin-block-end 0.45em - 2026-09-05 ramps */
 		background: var(--prim);
 	}
 
@@ -93,7 +93,7 @@
 	}
 
 	.mag-cover-enter {
-		margin-block-start: 0.7em;
+		margin-block-start: calc(var(--gap-ramp) * 0.7);   /* was margin-block-start 0.7em - 2026-09-05 ramps */
 		color: var(--prim-ink);
 		font-size: clamp(0.72rem, 2.1cqw, 1.05rem);
 		font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
@@ -107,11 +107,11 @@
 	     with `contents/`'s own fuller list and never touches the golden-share
 	     numbers, which are set on the BODY, not this block. */
 	.mag-cover-lines {
-		margin-block-start: 1.6em;
+		margin-block-start: calc(var(--gap-ramp) * 1.6);   /* was margin-block-start 1.6em - 2026-09-05 ramps */
 		padding-block-start: 1.1em;
 		border-block-start: 1px solid var(--line);
 		display: grid; grid-template-columns: repeat(auto-fill, minmax(14em, 1fr));
-		gap: 0.3em 1.5em;
+		gap: calc(var(--gap-ramp) * 0.3) calc(var(--gap-ramp) * 1.5);   /* was gap 0.3em 1.5em - 2026-09-05 ramps */
 	}
 
 	.mag-cover-lines-label {
@@ -119,11 +119,11 @@
 		color: var(--subtle);
 		font-size: clamp(0.62rem, 1.6cqw, 0.8rem);
 		font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
-		margin-block-end: 0.3em;
+		margin-block-end: calc(var(--gap-ramp) * 0.3);   /* was margin-block-end 0.3em - 2026-09-05 ramps */
 	}
 
 	.mag-cover-lines-item {
-		display: flex; align-items: baseline; gap: 0.5em;
+		display: flex; align-items: baseline; gap: calc(var(--gap-ramp) * 0.5);   /* was gap 0.5em - 2026-09-05 ramps */
 		font-size: clamp(0.75rem, 2cqw, 1.05rem);
 	}
 
@@ -192,7 +192,7 @@
 	/* ════ 4. THE CONTENTS ════════════════════════════════════════════════════
 	   `index: true` on the page, so core leaves its automatic rail out and the cards
 	   below are the only list. */
-	.mag-head { display: flex; flex-direction: column; gap: 0.5em; }
+	.mag-head { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.5); }   /* was gap 0.5em - 2026-09-05 ramps */
 
 	/* ⚠ (0,3,0), and the reason is the theme. `lew42.css` sizes generic headings at
 	     `.theme-lew42 :is(h2, .h2)` — (0,2,0), in this same layer — so a plain
@@ -209,7 +209,7 @@
 	   ⚠ (0,3,0) on `.mag-read-reset`: a bare `.mag-read-reset` loses to the theme's
 	     own `button` CTA at (0,2,0) in this same layer, the same trap `.mag-chip`
 	     is written against below. */
-	.mag-read-line { display: flex; align-items: center; gap: 0.6em; color: var(--subtle); font-size: 0.78em; }
+	.mag-read-line { display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.6); color: var(--subtle); font-size: 0.78em; }   /* was gap 0.6em - 2026-09-05 ramps */
 
 	.mag-contents .mag-read-line .mag-read-reset {
 		padding: 0;
@@ -230,7 +230,7 @@
 
 	/* (0,2,0): `.page-preview` is a flex COLUMN at (0,1,0) and a tie would be decided
 	   by which sheet loaded last. */
-	.page-preview.mag-entry { flex-direction: row; align-items: baseline; gap: 0.75em; }
+	.page-preview.mag-entry { flex-direction: row; align-items: baseline; gap: calc(var(--gap-ramp) * 0.75); }   /* was gap 0.75em - 2026-09-05 ramps */
 
 	.mag-entry-no {
 		flex: 0 0 auto;
@@ -238,7 +238,7 @@
 		font-size: 1.5em; font-weight: 900; line-height: 1; letter-spacing: -0.04em;
 	}
 
-	.mag-entry-body { display: flex; flex-direction: column; gap: 0.15em; min-width: 0; }
+	.mag-entry-body { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.15); min-width: 0; }   /* was gap 0.15em - 2026-09-05 ramps */
 	.mag-entry-title { font-size: 1.15em; font-weight: 800; line-height: 1.15; letter-spacing: -0.015em; }
 	.mag-entry-stand { font-size: 0.85em; color: var(--subtle); line-height: 1.4; }
 
@@ -266,7 +266,7 @@
 	   are. Set back from the section rather than beside it as an equal: the section is
 	   what the piece IS, the position is where it sits.
 	   ⚠ The eyebrow is a `div`, so its two spans need it to be a flex row or they stack. */
-	.mag-read .mag-head .mag-eyebrow { display: flex; flex-wrap: wrap; gap: 0.9em; }
+	.mag-read .mag-head .mag-eyebrow { display: flex; flex-wrap: wrap; gap: calc(var(--gap-ramp) * 0.9); }   /* was gap 0.9em - 2026-09-05 ramps */
 
 	.mag-place { color: var(--subtle); font-variant-numeric: tabular-nums; }
 
@@ -300,14 +300,14 @@
 	.mag-quote-text { font-size: 1.3em; font-weight: 700; line-height: 1.3; letter-spacing: -0.02em; }
 
 	.mag-quote-by {
-		margin-block-start: 0.5em;
+		margin-block-start: calc(var(--gap-ramp) * 0.5);   /* was margin-block-start 0.5em - 2026-09-05 ramps */
 		color: var(--subtle);
 		font-size: 0.72em; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
 	}
 
 	/* A picture of a row, drawn: one frame per hop, the cells weighted by the shares
 	   the article is discussing. No image files, and it reflows with the column. */
-	.mag-frames { display: flex; align-items: center; gap: 0.4em; }
+	.mag-frames { display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.4); }   /* was gap 0.4em - 2026-09-05 ramps */
 	.mag-frames .icon { flex: 0 0 auto; color: var(--subtle); font-size: 1.1em; }
 
 	.mag-frame {
@@ -335,7 +335,7 @@
 	.mag-tone-2 { background: color-mix(in srgb, var(--ink) 3.5%, var(--surface)); }
 	.mag-tone-3 { background: var(--surface); }
 
-	.mag-caption { margin-block-start: 0.7em; color: var(--subtle); font-size: 0.78em; line-height: 1.4; }
+	.mag-caption { margin-block-start: calc(var(--gap-ramp) * 0.7); color: var(--subtle); font-size: 0.78em; line-height: 1.4; }   /* was margin-block-start 0.7em - 2026-09-05 ramps */
 
 	/* ── the next hop ──
 	   Reading is a line, not a tree. It is `:last-child`, so `bleed` cancels the block
@@ -349,15 +349,15 @@
 	}
 
 	.mag-next:hover { background: color-mix(in srgb, var(--ink) 8%, var(--surface)); }
-	.mag-next-title { margin-block-start: 0.25em; font-size: 1.35em; font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; }
-	.mag-next-stand { margin-block-start: 0.3em; color: var(--subtle); font-size: 0.85em; line-height: 1.4; }
+	.mag-next-title { margin-block-start: calc(var(--gap-ramp) * 0.25); font-size: 1.35em; font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; }   /* was margin-block-start 0.25em - 2026-09-05 ramps */
+	.mag-next-stand { margin-block-start: calc(var(--gap-ramp) * 0.3); color: var(--subtle); font-size: 0.85em; line-height: 1.4; }   /* was margin-block-start 0.3em - 2026-09-05 ramps */
 
 	/* ════ 6. THE DATA PIECE ══════════════════════════════════════════════════
 	   One control over one fetched file, three renderings of the same rows — the feeds
 	   lab's shape, at the size a single column can carry. */
 	.mag-data { background: color-mix(in srgb, var(--ink) 3%, var(--surface)); }
-	.mag-data-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6em; margin-block-end: 0.9em; }
-	.mag-chips { display: flex; flex-wrap: wrap; gap: 0.3em; }
+	.mag-data-bar { display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--gap-ramp) * 0.6); margin-block-end: calc(var(--gap-ramp) * 0.9); }   /* was gap 0.6em; margin-block-end 0.9em - 2026-09-05 ramps */
+	.mag-chips { display: flex; flex-wrap: wrap; gap: calc(var(--gap-ramp) * 0.3); }   /* was gap 0.3em - 2026-09-05 ramps */
 
 	/* (0,3,0) on purpose: the theme styles every `button` as an uppercase CTA at
 	   (0,2,0) in this same layer, and a tie would be decided by load order. */
@@ -382,7 +382,7 @@
 
 	.mag-count { margin-inline-start: auto; color: var(--subtle); font-size: 0.78em; }
 
-	.mag-bars { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 0.3em 0.7em; align-items: center; }
+	.mag-bars { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: calc(var(--gap-ramp) * 0.3) calc(var(--gap-ramp) * 0.7); align-items: center; }   /* was gap 0.3em 0.7em - 2026-09-05 ramps */
 	.mag-bar-word { font-size: 0.8em; font-weight: 700; }
 	.mag-bar-vp { margin-inline-start: 0.35em; color: var(--subtle); font-weight: 400; }
 	.mag-bar-track { min-width: 0; }

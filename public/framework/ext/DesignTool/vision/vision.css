@@ -7,14 +7,14 @@
 	   space on the right is the accepted gutter (`layout` skill). */
 	.dt-vb { max-width: 78em; }
 
-	.dt-vb-filters { padding-block-end: .8em; border-block-end: 1px solid var(--line); margin-block-end: .8em; }
+	.dt-vb-filters { padding-block-end: .8em; border-block-end: 1px solid var(--line); margin-block-end: calc(var(--gap-ramp) * 0.8); }   /* was margin-block-end .8em - 2026-09-05 ramps */
 	.dt-vb-compare-btn { margin-inline-start: auto; }
 
 	/* The filter selects wear `select.auto` (browse.js) — a form's default is one
 	   full-width field per row; a filter bar wants them shoulder to shoulder. */
 
 	.dt-vb-runlist { padding-inline-start: 1.2em; }
-	.dt-vb-runlist li { margin-block: .3em; }
+	.dt-vb-runlist li { margin-block: calc(var(--gap-ramp) * 0.3); }   /* was margin-block .3em - 2026-09-05 ramps */
 
 	.dt-vb-row { align-items: flex-start; }
 	.dt-vb-nested { margin-inline-start: 3em; border-inline-start: 2px solid var(--line); padding-inline-start: 1em; }
@@ -35,12 +35,12 @@
 
 	.dt-vb-url { font-weight: 600; }
 	.dt-vb-meta, .dt-vb-stats { font-size: .85em; }
-	.dt-vb-findings { margin-block-start: .3em; }
+	.dt-vb-findings { margin-block-start: calc(var(--gap-ramp) * 0.3); }   /* was margin-block-start .3em - 2026-09-05 ramps */
 	.dt-vb-finding { display: block; max-width: 42em; }
-	.dt-vb-fix { margin-block-start: .2em; font-weight: 400; }
+	.dt-vb-fix { margin-block-start: calc(var(--gap-ramp) * 0.2); font-weight: 400; }   /* was margin-block-start .2em - 2026-09-05 ramps */
 	.dt-vb-retracted { text-decoration: line-through; opacity: .55; }
 
-	.dt-vb-decl { margin-block-start: .35em; font-weight: 400; }
+	.dt-vb-decl { margin-block-start: calc(var(--gap-ramp) * 0.35); font-weight: 400; }   /* was margin-block-start .35em - 2026-09-05 ramps */
 	.dt-vb-decl-chip { font-size: .8em; }
 	.dt-vb-rung { font-size: .7em; text-transform: uppercase; letter-spacing: .04em; }
 
@@ -49,9 +49,9 @@
 
 	.dt-vb-prompt { font-size: .9em; }
 	.dt-vb-prompt > summary { font-weight: 600; }
-	.dt-vb-prompt > :not(summary) { margin-block-start: .5em; }
+	.dt-vb-prompt > :not(summary) { margin-block-start: calc(var(--gap-ramp) * 0.5); }   /* was margin-block-start .5em - 2026-09-05 ramps */
 
-	.dt-vb-ask { align-items: flex-end; margin-block-start: .3em; }
+	.dt-vb-ask { align-items: flex-end; margin-block-start: calc(var(--gap-ramp) * 0.3); }   /* was margin-block-start .3em - 2026-09-05 ramps */
 	.dt-vb-ask-input {
 		flex: 1; min-width: 0; resize: vertical; font: inherit; color: var(--ink);
 		padding: .4em .6em; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface);

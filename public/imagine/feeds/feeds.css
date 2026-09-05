@@ -17,7 +17,7 @@
 	.feeds-picks { display: flex; flex-direction: column; }
 
 	.feeds-pick {
-		display: flex; flex-direction: column; gap: 0.1em;
+		display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.1);   /* was gap 0.1em - 2026-09-05 ramps */
 		padding: 0.5em 0.9em;
 		color: var(--ink); text-decoration: none;
 		border-bottom: 1px solid var(--line);
@@ -68,7 +68,7 @@
 	.feeds-filter { padding-block: 0.2em; }
 	.feeds-search { flex: 1 1 12em; }
 
-	.feeds-chips { display: flex; gap: 0.3em; flex-wrap: wrap; }
+	.feeds-chips { display: flex; gap: calc(var(--gap-ramp) * 0.3); flex-wrap: wrap; }   /* was gap 0.3em - 2026-09-05 ramps */
 
 	.feeds-data .feeds-chips .feeds-chip {
 		padding: 0.25em 0.7em;
@@ -92,7 +92,7 @@
 
 	/* ── cards ── */
 	.feeds-card {
-		display: flex; flex-direction: column; gap: 0.25em;
+		display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.25);   /* was gap 0.25em - 2026-09-05 ramps */
 		padding: 0.7em 0.9em;
 		background: var(--surface);
 		border: 1px solid var(--line);
@@ -100,7 +100,7 @@
 	}
 
 	.feeds-card-name { font-weight: 600; }
-	.feeds-card-meta { display: flex; justify-content: space-between; gap: 0.5em; font-size: 0.8em; color: var(--subtle); }
+	.feeds-card-meta { display: flex; justify-content: space-between; gap: calc(var(--gap-ramp) * 0.5); font-size: 0.8em; color: var(--subtle); }   /* was gap 0.5em - 2026-09-05 ramps */
 	.feeds-card-type { font-size: 0.7em; text-transform: uppercase; letter-spacing: 0.04em; color: var(--prim); }
 
 	/* ── columns tree: group -> item -> detail, one pane each ── */
@@ -156,7 +156,7 @@
 	.feeds-live-status { font-size: 0.75em; color: var(--subtle); }
 
 	.feeds-weather-row {
-		display: flex; align-items: center; gap: 0.6em;
+		display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.6);   /* was gap 0.6em - 2026-09-05 ramps */
 		padding: 0.5em 0.2em;
 		border-bottom: 1px solid var(--line);
 	}
@@ -166,7 +166,7 @@
 	.feeds-weather-temp { flex: 0 0 auto; font-variant-numeric: tabular-nums; font-weight: 700; min-width: 3em; text-align: end; }
 
 	.feeds-offline {
-		display: flex; gap: 0.5em; align-items: center;
+		display: flex; gap: calc(var(--gap-ramp) * 0.5); align-items: center;   /* was gap 0.5em - 2026-09-05 ramps */
 		padding: 0.7em 0.9em;
 		color: var(--subtle);
 		background: var(--tint);

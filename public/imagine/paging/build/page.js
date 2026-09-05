@@ -53,10 +53,12 @@ export default new Paging({
 	title: "Build",
 	description: "Seven controls, a live page, and the JSON it writes.",
 	icon: "construction",
-	width: "full",
 
 
-	takeaway: "**This is “new page” to a finished page, with nothing but controls.** Pick how its children appear, what it looks like, how it is laid out, then add blocks and pages to it — the middle column is the page assembling as you click, and the right column is the `page.json` that gets written. Save puts it on disk beside every other page you have made.",
+	// ⚠ SECOND OF THE TWO EDITORS. Make types a name and gets a page; Build fills
+	//   that page in. Both say so, because "which one do I open?" was the newcomer's
+	//   first question about them (paging-audit-2).
+	takeaway: "**The second of the two editors: [Make](/imagine/paging/make/) creates a page, this one fills it in.** New page to finished page, with nothing but controls. Pick how its children appear, what it looks like, how it is laid out, then add blocks and pages to it — the middle column is the page assembling as you click, and the right column is the `page.json` that gets written. Save puts it on disk beside every other page you have made.",
 
 	// ── state ────────────────────────────────────────────────────────────────
 	/* The node being built, and where it goes. Both are read back out of this page's

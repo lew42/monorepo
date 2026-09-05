@@ -15,7 +15,7 @@
 		.pages > .page:not(.standard):has(> .toc) {
 			display: grid;
 			grid-template-columns: minmax(0, 1fr) 15rem;
-			column-gap: 3rem;
+			column-gap: calc(var(--flow-ramp) * 1.5);   /* was column-gap 3rem - 2026-09-05 ramps */
 			--measure: 78em;
 		}
 
@@ -44,7 +44,7 @@
 		}
 	}
 
-	.toc-title { display: block; color: var(--subtle); margin-bottom: 0.6em; }
+	.toc-title { display: block; color: var(--subtle); margin-bottom: calc(var(--gap-ramp) * 0.6); }   /* was margin-bottom 0.6em - 2026-09-05 ramps */
 
 	.toc-links { display: flex; flex-direction: column; }
 

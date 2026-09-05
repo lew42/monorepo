@@ -13,7 +13,7 @@
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(9em, 1fr));
 		align-content: start;
-		gap: 0.6em;
+		gap: calc(var(--gap-ramp) * 0.6);   /* was gap 0.6em - 2026-09-05 ramps */
 		padding-block-end: 0.6em;
 	}
 	.page--grid-detail .page-columns-row > .page-column-body > :is(.page-column-head, .page-column-prose) {
@@ -21,7 +21,7 @@
 	}
 	.page--grid-detail .page-columns-row > .page-column-body > .page-column-item {
 		flex-direction: column; justify-content: center; text-align: center;
-		gap: 0.4em; padding: 1em 0.5em;
+		gap: calc(var(--gap-ramp) * 0.4); padding: 1em 0.5em;   /* was gap 0.4em - 2026-09-05 ramps */
 		background: var(--tint); border-radius: var(--radius, 4px); border-inline-end: none;
 	}
 }

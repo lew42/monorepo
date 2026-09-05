@@ -14,7 +14,7 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: baseline;
-		gap: 1em;
+		gap: calc(var(--gap-ramp) * 1);   /* was gap 1em - 2026-09-05 ramps */
 		padding: 0 0.5em 1em;
 		flex-wrap: wrap;
 	}
@@ -50,7 +50,7 @@
 		display: grid;
 		grid-template-columns: repeat(12, 1fr);
 		grid-template-rows: repeat(6, 1fr);
-		gap: 0.6em;
+		gap: calc(var(--gap-ramp) * 0.6);   /* was gap 0.6em - 2026-09-05 ramps */
 	}
 
 	.codrops-reveal2-tile {

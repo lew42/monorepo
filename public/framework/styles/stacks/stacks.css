@@ -35,9 +35,9 @@
 	.stacks-mode.stacks-dark { color-scheme: dark; }
 
 	/* ── the ladder swatches ── */
-	.stacks-ladder { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(11em, 100%), 1fr)); gap: 0.5em; }
+	.stacks-ladder { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(11em, 100%), 1fr)); gap: calc(var(--gap-ramp) * 0.5); }   /* was gap 0.5em - 2026-09-05 ramps */
 	.stacks-rung {
-		display: flex; align-items: center; gap: 0.5em;
+		display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.5);   /* was gap 0.5em - 2026-09-05 ramps */
 		padding: 0.55em 0.7em;
 		border-radius: var(--radius);
 		font-family: var(--mono); font-size: 0.75em;
@@ -80,8 +80,8 @@
 	   site actually renders, not an imitation of it. `.stacks-a` changes background,
 	   border and colour and NOTHING else, so the two halves differ by exactly the
 	   thing under test. */
-	.stacks-cell { display: flex; flex-direction: column; gap: 0.45em; }
-	.stacks-pair { display: flex; align-items: center; gap: 0.4em; }
+	.stacks-cell { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.45); }   /* was gap 0.45em - 2026-09-05 ramps */
+	.stacks-pair { display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.4); }   /* was gap 0.4em - 2026-09-05 ramps */
 
 	/* the badge shape three modules wrote by hand (generator.css `.page-gen-chip`,
 	   `th`, blog.css before it gave up and went outlined): a `--tint` fill inside a
@@ -145,11 +145,11 @@
 	/* `auto-fit`, and this is the case it is right for: exactly three items, always, so
 	   there is no empty track to keep. `auto-fill` left two dead columns and shrank the
 	   only three pictures on the page to a third of the room. */
-	.stacks-hero { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(20em, 100%), 1fr)); gap: 1em; }
+	.stacks-hero { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(20em, 100%), 1fr)); gap: calc(var(--gap-ramp) * 1); }   /* was gap 1em - 2026-09-05 ramps */
 	.stacks-hero > figure { border-radius: var(--radius); overflow: hidden; }
 	.stacks-hero figcaption { padding: 0.6em 0.8em; font-size: 0.8em; background: var(--tint); color: var(--subtle); }
-	.stacks-shot { display: flex; gap: 1em; align-items: start; padding: 1.6em 1em; }
-	.stacks-shot > div { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.6em; }
+	.stacks-shot { display: flex; gap: calc(var(--gap-ramp) * 1); align-items: start; padding: 1.6em 1em; }   /* was gap 1em - 2026-09-05 ramps */
+	.stacks-shot > div { flex: 1; display: flex; flex-direction: column; align-items: center; gap: calc(var(--gap-ramp) * 0.6); }   /* was gap 0.6em - 2026-09-05 ramps */
 
 	/* ── the hunt table ── */
 	.stacks-hunt { font-size: 0.85em; }

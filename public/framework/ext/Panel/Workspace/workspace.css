@@ -41,7 +41,7 @@
 	   not a generous 2×2 cell); `one` drops to a single column. */
 	.panel-viewport-grid {
 		display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
-		gap: 1em; padding: 1em; flex: 1 1 0; min-height: 0; overflow: auto;
+		gap: calc(var(--gap-ramp) * 1); padding: 1em; flex: 1 1 0; min-height: 0; overflow: auto;   /* was gap 1em - 2026-09-05 ramps */
 	}
 	.panel-viewport-grid.panel-mode-one { grid-template-columns: 1fr; }
 
@@ -66,6 +66,6 @@
 	/* The bar's own half: the mode/fit buttons reuse `.panel-workspace-mode` above —
 	   one look for every pill in this bar. */
 	.panel-workspace-vp { font-size: 0.9em; }
-	.panel-workspace-dial { gap: 0.4em; }
+	.panel-workspace-dial { gap: calc(var(--gap-ramp) * 0.4); }   /* was gap 0.4em - 2026-09-05 ramps */
 	.panel-workspace-readout { opacity: 0.6; white-space: nowrap; }
 }

@@ -23,7 +23,7 @@
 	.sidebar .brand {
 		display: flex;
 		align-items: center;
-		gap: 0.55em;
+		gap: calc(var(--gap-ramp) * 0.55);   /* was gap 0.55em - 2026-09-05 ramps */
 		padding: 2em var(--gutter);
 	}
 
@@ -75,7 +75,7 @@
 	.sidebar-link {
 		display: flex;
 		align-items: center;
-		gap: 1.3em;
+		gap: calc(var(--gap-ramp) * 1.3);   /* was gap 1.3em - 2026-09-05 ramps */
 		padding: 1em 1em 1em var(--gutter);
 		line-height: 1.4;
 		color: var(--sidebar-ink, #fff);
@@ -113,7 +113,7 @@
 
 	.sidebar-footer {
 		flex: 0 0 auto;
-		display: flex; align-items: center; justify-content: space-between; gap: 0.8em;
+		display: flex; align-items: center; justify-content: space-between; gap: calc(var(--gap-ramp) * 0.8);   /* was gap 0.8em - 2026-09-05 ramps */
 		padding: 0.8em var(--gutter);
 		border-top: 1px solid color-mix(in srgb, var(--sidebar-ink, #fff) 15%, transparent);
 	}
@@ -142,7 +142,7 @@
 	/* ⚠ `.sidebar` prefix so the box beats a theme's `:is(button, .btn)` at (0,1,1). */
 	.sidebar .sidebar-toggle {
 		display: none;
-		flex-direction: column; justify-content: center; align-items: center; gap: 0.3em;
+		flex-direction: column; justify-content: center; align-items: center; gap: calc(var(--gap-ramp) * 0.3);   /* was gap 0.3em - 2026-09-05 ramps */
 		flex: 0 0 auto;
 		margin-inline-end: 1em;
 		width: 2.5em; height: 2.5em; padding: 0.5em;

@@ -129,7 +129,7 @@
 	/* A track, drawn. Padded, because the padding is half the point: a percentage basis
 	   is a BORDER box, so the inset comes out of the share rather than out of the ratio. */
 	.cols-cell {
-		display: flex; flex-direction: column; gap: 0.35em;
+		display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.35);   /* was gap 0.35em - 2026-09-05 ramps */
 		padding: 0.9em 1em;
 		background: var(--surface);
 		border: 1px solid var(--line);
@@ -154,7 +154,7 @@
 
 	/* The verdict line under a demo: intended ratio, measured ratio, and whether they agree. */
 	.cols-read {
-		display: flex; flex-wrap: wrap; gap: 0.4em 1em;
+		display: flex; flex-wrap: wrap; gap: calc(var(--gap-ramp) * 0.4) calc(var(--gap-ramp) * 1);   /* was gap 0.4em 1em - 2026-09-05 ramps */
 		font-family: var(--mono); font-size: 0.75em;
 		color: var(--subtle);
 	}
@@ -167,7 +167,7 @@
 	   honest exception, which is the whole finding: `rem` is the same 16px in both, and
 	   `em` is not. The label says which width you are looking at. */
 	.cols-screen {
-		display: flex; flex-direction: column; gap: 0.5em;
+		display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.5);   /* was gap 0.5em - 2026-09-05 ramps */
 		min-width: 0;
 	}
 
@@ -186,6 +186,6 @@
 
 	/* The matrix scrolls sideways on purpose — 3440 does not fit in 1280 and pretending
 	   otherwise is what a scaled thumbnail does. A scrollbar you asked for is allowed. */
-	.cols-strip { display: flex; gap: 1.2em; overflow-x: auto; padding-bottom: 0.5em; }
+	.cols-strip { display: flex; gap: calc(var(--gap-ramp) * 1.2); overflow-x: auto; padding-bottom: 0.5em; }   /* was gap 1.2em - 2026-09-05 ramps */
 	.cols-strip > .cols-screen { flex: 0 0 auto; }
 }

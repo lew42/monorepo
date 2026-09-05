@@ -222,7 +222,7 @@
 	   every panel, and it hit-tests as soon as the panel is hovered. */
 	.panel-t-dial {
 		position: absolute; inset-block-end: 0.3em; inset-inline-end: 0.3em; z-index: 2;
-		display: flex; align-items: center; gap: 0.1em;
+		display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.1);   /* was gap 0.1em - 2026-09-05 ramps */
 		padding: 0.1em 0.25em;
 		font-size: 0.8em;
 		background: var(--surface);
@@ -271,7 +271,7 @@
 
 	.panel-t-rail {
 		place-items: stretch;
-		gap: 0.15em;
+		gap: calc(var(--gap-ramp) * 0.15);   /* was gap 0.15em - 2026-09-05 ramps */
 		padding: 0.8em;
 		font-size: 1em;
 		color: var(--ink);
@@ -279,7 +279,7 @@
 	.panel-t-link {
 		display: flex;
 		align-items: center;
-		gap: 0.4em;
+		gap: calc(var(--gap-ramp) * 0.4);   /* was gap 0.4em - 2026-09-05 ramps */
 		padding: 0.35em 0.7em;
 		border-radius: var(--radius);
 		white-space: nowrap;
@@ -290,7 +290,7 @@
 
 	.panel-t-toc {
 		place-items: stretch;
-		gap: 0.3em;
+		gap: calc(var(--gap-ramp) * 0.3);   /* was gap 0.3em - 2026-09-05 ramps */
 		padding: 0.9em;
 		font-size: 0.9em;
 		color: var(--subtle);
@@ -299,13 +299,13 @@
 	.panel-t-head {
 		font-size: 0.72em;
 		letter-spacing: 0.18em;
-		margin-block-end: 0.4em;
+		margin-block-end: calc(var(--gap-ramp) * 0.4);   /* was margin-block-end 0.4em - 2026-09-05 ramps */
 	}
 	.panel-t-line.on { color: var(--prim); }
 
 	.panel-t-brand {
 		grid-auto-flow: column;
-		gap: 0.3em;
+		gap: calc(var(--gap-ramp) * 0.3);   /* was gap 0.3em - 2026-09-05 ramps */
 		font-size: 2.5em;
 		font-weight: 900;
 		line-height: 1;
@@ -325,7 +325,7 @@
 	.panel-props {
 		display: flex;
 		flex-direction: column;
-		gap: 0.6em;
+		gap: calc(var(--gap-ramp) * 0.6);   /* was gap 0.6em - 2026-09-05 ramps */
 		inline-size: 100%;
 		padding: 0.6em;
 		font-size: 0.8em;
@@ -354,12 +354,12 @@
 	.panel-props-head {
 		display: flex;
 		align-items: center;
-		gap: 0.35em;
+		gap: calc(var(--gap-ramp) * 0.35);   /* was gap 0.35em - 2026-09-05 ramps */
 		font-family: var(--mono);
 		color: var(--ink);
 	}
 
-	.panel-props-row { display: grid; gap: 0.25em; }
+	.panel-props-row { display: grid; gap: calc(var(--gap-ramp) * 0.25); }   /* was gap 0.25em - 2026-09-05 ramps */
 
 	.panel-props-tag {
 		font-family: var(--mono);
@@ -376,7 +376,7 @@
 		display: grid;
 		grid-template-columns: repeat(var(--panel-cols, 3), auto);
 		justify-content: start;
-		gap: 0.15em;
+		gap: calc(var(--gap-ramp) * 0.15);   /* was gap 0.15em - 2026-09-05 ramps */
 	}
 
 

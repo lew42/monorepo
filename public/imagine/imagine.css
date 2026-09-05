@@ -59,7 +59,7 @@
 	.imagine-rows { display: flex; flex-direction: column; }
 
 	.imagine-row {
-		display: flex; flex-direction: column; gap: 0.1em;
+		display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.1);   /* was gap 0.1em - 2026-09-05 ramps */
 		padding: 0.5em 0.9em;
 		color: var(--ink); text-decoration: none;
 		border-bottom: 1px solid var(--line);
@@ -81,7 +81,7 @@
 	.imagine-row-name { font-size: 0.9em; font-weight: 600; }
 
 	.imagine-row-meta {
-		display: flex; gap: 0.5em; justify-content: space-between;
+		display: flex; gap: calc(var(--gap-ramp) * 0.5); justify-content: space-between;   /* was gap 0.5em - 2026-09-05 ramps */
 		font-size: 0.75em; color: var(--subtle);
 	}
 
@@ -97,7 +97,7 @@
 	   ⚠ 3px and no more: this is the third line of a nav row, not a chart. */
 	.imagine-bar-track {
 		height: 3px;
-		margin-block-start: 0.35em;
+		margin-block-start: calc(var(--gap-ramp) * 0.35);   /* was margin-block-start 0.35em - 2026-09-05 ramps */
 		background: var(--line);
 		border-radius: 999px;
 		overflow: hidden;
@@ -122,7 +122,7 @@
 	.imagine-lanes { padding: 0.9em; align-items: start; }
 
 	.imagine-lane {
-		gap: 0.4em;
+		gap: calc(var(--gap-ramp) * 0.4);   /* was gap 0.4em - 2026-09-05 ramps */
 		padding: 0.5em;
 		background: var(--surface);
 		border: 1px solid var(--line);
@@ -136,7 +136,7 @@
 	}
 
 	.imagine-task {
-		display: flex; flex-direction: column; gap: 0.15em;
+		display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.15);   /* was gap 0.15em - 2026-09-05 ramps */
 		padding: 0.4em 0.5em;
 		background: var(--tint);
 		border-inline-start: 2px solid var(--prim);
@@ -144,7 +144,7 @@
 	}
 
 	.imagine-task-title { font-size: 0.85em; line-height: 1.25; }
-	.imagine-task-who { font-size: 0.7em; color: var(--subtle); display: flex; gap: 0.3em; }
+	.imagine-task-who { font-size: 0.7em; color: var(--subtle); display: flex; gap: calc(var(--gap-ramp) * 0.3); }   /* was gap 0.3em - 2026-09-05 ramps */
 	.imagine-size { font-variant-numeric: tabular-nums; }
 
 	.imagine-empty { color: var(--subtle); font-size: 0.8em; text-align: center; }
@@ -152,7 +152,7 @@
 	/* The chips, in their own box under the head — because the box IS the drop target
 	   and a lane head is not somewhere a task can land. `.drag-items` (Draggable's own
 	   sheet) gives it the min-height an empty lane needs to be droppable at all. */
-	.imagine-lane-body { gap: 0.4em; border-radius: var(--radius); }
+	.imagine-lane-body { gap: calc(var(--gap-ramp) * 0.4); border-radius: var(--radius); }   /* was gap 0.4em - 2026-09-05 ramps */
 
 	/* Where it would land if you let go. An outline, not a fill: a fill would repaint
 	   the chips already in the lane and the answer to "which lane" would get harder to
@@ -176,7 +176,7 @@
 	/* The density control's whole job: one class, one step of air. A second page.js
 	   per density would have been two files that drift. */
 	.imagine-tight .imagine-lanes { padding: 0.5em; }
-	.imagine-tight .imagine-lane { padding: 0.3em; gap: 0.2em; }
+	.imagine-tight .imagine-lane { padding: 0.3em; gap: calc(var(--gap-ramp) * 0.2); }   /* was gap 0.2em - 2026-09-05 ramps */
 	.imagine-tight .imagine-task { padding: 0.2em 0.4em; }
 	.imagine-tight .imagine-task-who { display: none; }
 
@@ -202,7 +202,7 @@
 	/* ════ GAME — the run rail ═════════════════════════════════════════════════ */
 
 	.imagine-hud {
-		display: flex; flex-direction: column; gap: 0.3em;
+		display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.3);   /* was gap 0.3em - 2026-09-05 ramps */
 		padding: 0.6em 0.9em;
 		border-bottom: 1px solid var(--line);
 	}
@@ -215,7 +215,7 @@
 
 	.imagine-hud-n { font-family: monospace; font-weight: 700; color: var(--ink); }
 
-	.imagine-items { --gap: 0.25em; margin-block: 0.15em; }
+	.imagine-items { --gap: 0.25em; margin-block: calc(var(--gap-ramp) * 0.15); }   /* was margin-block 0.15em - 2026-09-05 ramps */
 
 	.imagine-item {
 		padding: 0.15em 0.45em;
@@ -272,7 +272,7 @@
 	}
 
 	.imagine-map > .imagine-label { grid-column: 1 / -1; }
-	.imagine-map > .imagine-label:not(:first-child) { margin-block-start: 0.5em; }
+	.imagine-map > .imagine-label:not(:first-child) { margin-block-start: calc(var(--gap-ramp) * 0.5); }   /* was margin-block-start 0.5em - 2026-09-05 ramps */
 
 	.imagine-map-cell {
 		padding: 0.4em 0.2em;
@@ -309,7 +309,7 @@
 		container: imagine-open / inline-size;
 		width: min(100%, max(26em, 62%));
 		margin-inline: auto;
-		margin-block-end: 1.2em;
+		margin-block-end: calc(var(--gap-ramp) * 1.2);   /* was margin-block-end 1.2em - 2026-09-05 ramps */
 	}
 
 	.imagine-eyebrow {
@@ -322,14 +322,14 @@
 	.imagine-display {
 		font-size: clamp(1.9rem, 11cqw, 5rem);
 		line-height: 0.95; font-weight: 800; letter-spacing: -0.02em;
-		margin-block-start: 0.15em;
+		margin-block-start: calc(var(--gap-ramp) * 0.15);   /* was margin-block-start 0.15em - 2026-09-05 ramps */
 	}
 
 	/* The one accent, and the only shape on either screen that is not type. */
 	.imagine-rule {
 		width: clamp(2.5rem, 16cqw, 7rem);
 		height: 0.3em;
-		margin-block: 0.7em;
+		margin-block: calc(var(--gap-ramp) * 0.7);   /* was margin-block 0.7em - 2026-09-05 ramps */
 		background: var(--prim);
 		border-radius: 999px;
 	}
@@ -347,7 +347,7 @@
 	.imagine-numbers { --gap: 0.5em; }
 
 	.imagine-num {
-		display: flex; flex-direction: column; gap: 0.1em;
+		display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.1);   /* was gap 0.1em - 2026-09-05 ramps */
 		min-width: 7em;
 		padding: 0.6em 0.8em;
 		background: var(--surface);
@@ -362,7 +362,7 @@
 	.imagine-notes { --gap: 0.8em; }
 
 	.imagine-note {
-		display: flex; flex-direction: column; gap: 0.4em;
+		display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.4);   /* was gap 0.4em - 2026-09-05 ramps */
 		padding: 0.6em 0.7em;
 		background: var(--surface);
 		border: 1px solid var(--line);
@@ -380,7 +380,7 @@
 	.imagine-scene { font-size: 1.05em; line-height: 1.6; max-width: 40em; }
 
 	.imagine-shut {
-		display: flex; gap: 0.5em; align-items: center;
+		display: flex; gap: calc(var(--gap-ramp) * 0.5); align-items: center;   /* was gap 0.5em - 2026-09-05 ramps */
 		align-self: start;
 		padding: 0.8em;
 		color: var(--subtle);
@@ -447,7 +447,7 @@
 		grid-template-columns: minmax(11em, 15em) minmax(20em, 1fr) minmax(12em, 17em);
 		gap: var(--gap-default);
 		align-items: start;
-		margin-block-end: 1.2em;
+		margin-block-end: calc(var(--gap-ramp) * 1.2);   /* was margin-block-end 1.2em - 2026-09-05 ramps */
 	}
 
 	@container imagine-card3 (width < 42em) {
@@ -455,7 +455,7 @@
 	}
 
 	.imagine-card3-left, .imagine-card3-center, .imagine-card3-right {
-		display: flex; flex-direction: column; gap: 0.6em;
+		display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.6);   /* was gap 0.6em - 2026-09-05 ramps */
 	}
 
 	.imagine-card3-center {
@@ -504,7 +504,7 @@
 	.imagine-meter {
 		position: relative;
 		height: 0.35em;
-		margin-block-start: 0.35em;
+		margin-block-start: calc(var(--gap-ramp) * 0.35);   /* was margin-block-start 0.35em - 2026-09-05 ramps */
 		background: var(--tint);
 		border-radius: 999px;
 		overflow: hidden;

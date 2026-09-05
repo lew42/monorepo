@@ -18,7 +18,7 @@
 	   halfway down the box. */
 
 	.demo-bar {
-		display: flex; align-items: center; gap: 0.5em;
+		display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.5);   /* was gap 0.5em - 2026-09-05 ramps */
 		padding: 0.35em var(--demo-pad);
 		font-size: 0.85em;
 		background: var(--tint);
@@ -114,10 +114,10 @@
 	   It was a `<details>` until demo-merge step 2, and the callers that mattered all
 	   wrote `.attr("open", "")` — a disclosure nobody ever wanted disclosed. Code
 	   beside a render is half the lesson; an aside is what a caption is for. */
-	.demo-source { display: flex; flex-direction: column; gap: 0.35em; }
+	.demo-source { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.35); }   /* was gap 0.35em - 2026-09-05 ramps */
 
 	.demo-source-head {
-		display: flex; align-items: baseline; gap: 0.5em;
+		display: flex; align-items: baseline; gap: calc(var(--gap-ramp) * 0.5);   /* was gap 0.5em - 2026-09-05 ramps */
 		font-family: var(--mono); font-size: 0.78em;
 		color: var(--subtle);
 	}

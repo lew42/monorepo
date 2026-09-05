@@ -6,7 +6,7 @@
 	.codrops-swap-stage {
 		display: flex;
 		flex-direction: column;
-		gap: 1em;
+		gap: calc(var(--gap-ramp) * 1);   /* was gap 1em - 2026-09-05 ramps */
 	}
 
 	.codrops-swap-slides {
@@ -50,7 +50,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		gap: 1em;
+		gap: calc(var(--gap-ramp) * 1);   /* was gap 1em - 2026-09-05 ramps */
 	}
 
 	.codrops-swap-btn {

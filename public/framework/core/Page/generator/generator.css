@@ -58,7 +58,7 @@
 	}
 
 	.page-gen-dials {
-		display: flex; flex-wrap: wrap; align-items: center; gap: 0.3em;
+		display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--gap-ramp) * 0.3);   /* was gap 0.3em - 2026-09-05 ramps */
 		padding: 0.6em 0.8em;
 	}
 
@@ -71,7 +71,7 @@
 	/* The control column's own nav — three links that read as a LIST, with a name and an
 	   edge, rather than as loose text between the proof line and the spec box. */
 	.page-gen-controls > .page-gen-tag { display: block; padding: 0.7em 0.9em 0.25em; }
-	.page-gen-controls > .page-gen-nav { margin-block-end: 0.9em; border-block: 1px solid var(--line); }
+	.page-gen-controls > .page-gen-nav { margin-block-end: calc(var(--gap-ramp) * 0.9); border-block: 1px solid var(--line); }   /* was margin-block-end 0.9em - 2026-09-05 ramps */
 	.page-gen-controls > .page-gen-nav > .page-gen-item + .page-gen-item { border-top: 1px solid var(--line); }
 
 	.page-gen-proof { padding: 0 0.9em 0.6em; font-size: 0.78em; }
@@ -100,9 +100,9 @@
 	   A field and a button, the same two controls the gallery's "save" row has and for
 	   the same reason: one keeps the tree in your browser, this one keeps it on disk,
 	   and a reader should not have to learn two shapes to tell them apart. */
-	.page-gen-export { padding: 0.4em 0 0.2em; border-top: 1px solid var(--line); margin-top: 0.6em; }
+	.page-gen-export { padding: 0.4em 0 0.2em; border-top: 1px solid var(--line); margin-top: calc(var(--gap-ramp) * 0.6); }   /* was margin-top 0.6em - 2026-09-05 ramps */
 	.page-gen-export-row {
-		display: flex; gap: 0.5em; align-items: center;
+		display: flex; gap: calc(var(--gap-ramp) * 0.5); align-items: center;   /* was gap 0.5em - 2026-09-05 ramps */
 		padding: 0.15em 0.9em 0.4em;
 	}
 	.page-gen-export-name {
@@ -146,7 +146,7 @@
 	     not overflow — it shrinks every item to min-content, so the title would go to
 	     one word a line while the menus stayed put (the css skill's own trap). */
 	.page-gen .page-column-head { flex-wrap: wrap; }
-	.page-gen-picks { display: flex; align-items: center; gap: 0.3em; margin-inline-start: auto; }
+	.page-gen-picks { display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.3); margin-inline-start: auto; }   /* was gap 0.3em - 2026-09-05 ramps */
 
 	/* ⚠ (0,2,1): framework.css gives every `select` `--pad-control` padding and a
 	     `--subtle` border — a form field, in a column head. The arrow is its background
@@ -168,12 +168,12 @@
 	   own column (the whole tree's defaults). Same shape, so they read as one control
 	   vocabulary at two scales. */
 	.page-gen-tune, .page-gen-globals {
-		display: flex; flex-wrap: wrap; align-items: center; gap: 0.2em 0.8em;
+		display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--gap-ramp) * 0.2) calc(var(--gap-ramp) * 0.8);   /* was gap 0.2em 0.8em - 2026-09-05 ramps */
 		padding: 0.35em 0.8em;
 	}
 	.page-gen-tune { border-bottom: 1px solid var(--line); }
 
-	.page-gen-set { display: flex; align-items: center; gap: 0.2em; }
+	.page-gen-set { display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.2); }   /* was gap 0.2em - 2026-09-05 ramps */
 	.page-gen-tag {
 		margin-inline-end: 0.15em;
 		font-size: 0.62em; letter-spacing: 0.06em; text-transform: uppercase;
@@ -205,7 +205,7 @@
 	.page-gen-nav.flex { flex-direction: row; }
 
 	.page-gen-item {
-		display: flex; align-items: center; gap: 0.3em;
+		display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.3);   /* was gap 0.3em - 2026-09-05 ramps */
 		padding: 0.32em 0.8em;
 		font-size: 0.85em;
 		color: var(--subtle); text-decoration: none;
@@ -231,13 +231,13 @@
 	   ⚠ `--line` / `--tint`, never `--wash`: core paints the whole columns host `--wash`
 	     and leaves the bodies transparent, so a `--wash` bar is invisible on it (measured;
 	     the same mistake `--well` made on /framework/ux/*). */
-	.page-gen-fill { display: flex; flex-direction: column; gap: 0.4em; padding: 0.9em; }
+	.page-gen-fill { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.4); padding: 0.9em; }   /* was gap 0.4em - 2026-09-05 ramps */
 	.page-gen-fill > * { flex: 0 0 auto; }
 
 	.page-gen-lead {
 		width: var(--gen-w, 60%); height: 0.75em;
 		border-radius: 2px; background: var(--line);
-		margin-block-start: 0.7em;
+		margin-block-start: calc(var(--gap-ramp) * 0.7);   /* was margin-block-start 0.7em - 2026-09-05 ramps */
 	}
 	.page-gen-fill > :first-child { margin-block-start: 0; }
 
@@ -247,7 +247,7 @@
 	     empty tinted rectangle read as a broken box rather than as a stand-in picture
 	     (ux recon 2026-08-27, finding #7). One icon says which of the two it is. */
 	.page-gen-media {
-		height: var(--gen-h, 5em); margin-block-start: 0.7em;
+		height: var(--gen-h, 5em); margin-block-start: calc(var(--gap-ramp) * 0.7);   /* was margin-block-start 0.7em - 2026-09-05 ramps */
 		display: grid; place-items: center;
 		border-radius: 3px; background: var(--tint);
 		box-shadow: inset 0 0 0 1px var(--line);
@@ -255,7 +255,7 @@
 	}
 	.page-gen-media .icon { font-size: 1.5em; opacity: 0.6; }
 
-	.page-gen-chips { display: flex; flex-wrap: wrap; gap: 0.35em; margin-block-start: 0.7em; }
+	.page-gen-chips { display: flex; flex-wrap: wrap; gap: calc(var(--gap-ramp) * 0.35); margin-block-start: calc(var(--gap-ramp) * 0.7); }   /* was gap 0.35em; margin-block-start 0.7em - 2026-09-05 ramps */
 	.page-gen-chip {
 		width: var(--gen-w, 3em); height: 1.1em;
 		border-radius: 999px; background: var(--fill-a08);
@@ -288,7 +288,7 @@
 	     css skill's: a squeezed flex row shrinks its items to min-content and goes
 	     two-line before it ever overflows. `flex: none` + `nowrap` + `overflow-x`. */
 	.page-gen-tabs > .page-gen-nav {
-		flex-flow: row nowrap; gap: 0.25em;
+		flex-flow: row nowrap; gap: calc(var(--gap-ramp) * 0.25);   /* was gap 0.25em - 2026-09-05 ramps */
 		overflow-x: auto; scrollbar-width: none;
 		padding: 0.5em 0.6em 0;
 		border-bottom: 1px solid var(--line);
@@ -332,14 +332,14 @@
 	     which is the columns mechanic, so there is no new machinery, only a row that
 	     shows what is behind it. */
 	.page-gen-list > .page-gen-nav > .page-gen-item {
-		flex-direction: column; align-items: stretch; gap: 0.35em;
+		flex-direction: column; align-items: stretch; gap: calc(var(--gap-ramp) * 0.35);   /* was gap 0.35em - 2026-09-05 ramps */
 		padding: 0.6em 0.8em;
 		border-bottom: 1px solid var(--line);
 	}
 	.page-gen-list > .page-gen-nav > .page-gen-item .page-gen-label { font-weight: 600; color: var(--ink); }
 	.page-gen-list > .page-gen-nav > .page-gen-item:is(.active, .in-path) { background: var(--tint); }
 
-	.page-gen-peek { display: flex; flex-direction: column; gap: 0.3em; }
+	.page-gen-peek { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.3); }   /* was gap 0.3em - 2026-09-05 ramps */
 	.page-gen-peek > .page-gen-bar { height: 0.4em; opacity: 0.5; }
 
 	/* An inbox is a STACK of previews, whatever `--column` the tree is running at — one
@@ -372,7 +372,7 @@
 	     disagreed — ours would simply never have painted. */
 	.page-gen-wall > .page-gen-nav { --gap: var(--gen-gap, 0.5em); padding: 0.7em; }
 	.page-gen-wall > .page-gen-nav > .page-gen-item {
-		flex-direction: column; align-items: stretch; gap: 0.3em;
+		flex-direction: column; align-items: stretch; gap: calc(var(--gap-ramp) * 0.3);   /* was gap 0.3em - 2026-09-05 ramps */
 		min-height: 4em;
 		padding: 0.45em 0.55em;
 		border: 1px solid var(--line); border-radius: 4px;
@@ -383,14 +383,14 @@
 	.page-gen-wall > .page-gen-nav > .page-gen-item .icon { display: none; }
 
 	/* Prose: no children to present, so the content IS the page. */
-	.page-gen-prose > .page-gen-fill { gap: 0.35em; }
+	.page-gen-prose > .page-gen-fill { gap: calc(var(--gap-ramp) * 0.35); }   /* was gap 0.35em - 2026-09-05 ramps */
 
 
 	/* ════ THE PERMUTATION WALL ═══════════════════════════════════════════════════
 	   A `full` column (so the ancestors stand down and it gets the host) holding a grid
 	   of tiles. Floor 11em, ceiling `1fr`: two tiles at 400, about seventeen at 3440. */
 	.page-gen-rolls-count { color: var(--subtle); font-size: 0.82em; }
-	.page-gen-rolls-page { display: flex; gap: 0.2em; margin-inline-start: 0.4em; }
+	.page-gen-rolls-page { display: flex; gap: calc(var(--gap-ramp) * 0.2); margin-inline-start: 0.4em; }   /* was gap 0.2em - 2026-09-05 ramps */
 
 	/* ⚠ `flex: 1 1 auto` + `1fr` rows, because 24 tiles in a fixed 4/3 box sat in a strip
 	     at the top and left ~70% of a 3440 screen empty (ux recon 2026-08-27, #5). The
@@ -400,11 +400,11 @@
 		flex: 1 1 auto;
 		display: grid; grid-template-columns: repeat(auto-fill, minmax(11em, 1fr));
 		grid-auto-rows: minmax(8em, 1fr);
-		gap: 0.6em; padding: 0.8em;
+		gap: calc(var(--gap-ramp) * 0.6); padding: 0.8em;   /* was gap 0.6em - 2026-09-05 ramps */
 	}
 
 	.page-gen-tile {
-		display: flex; flex-direction: column; gap: 0.3em;
+		display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.3);   /* was gap 0.3em - 2026-09-05 ramps */
 		min-width: 0; padding: 0.4em;
 		border: 1px solid var(--line); border-radius: 4px;
 		background: var(--surface);
@@ -470,11 +470,11 @@
 	.page-gen-rules-note { color: var(--subtle); }
 
 	.page-gen-rule {
-		display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.4em;
+		display: flex; flex-wrap: wrap; align-items: baseline; gap: calc(var(--gap-ramp) * 0.4);   /* was gap 0.4em - 2026-09-05 ramps */
 		padding: 0.4em 0; border-top: 1px solid var(--line);
 	}
 	.page-gen-rule-word  { flex: 0 0 4.5em; font-weight: 600; }
-	.page-gen-rule-pairs { flex: 0 1 22em; display: flex; flex-wrap: wrap; gap: 0.3em; }
+	.page-gen-rule-pairs { flex: 0 1 22em; display: flex; flex-wrap: wrap; gap: calc(var(--gap-ramp) * 0.3); }   /* was gap 0.3em - 2026-09-05 ramps */
 	.page-gen-rule-note  { flex: 1 1 18em; color: var(--subtle); }
 
 	.page-gen-pair {
@@ -495,7 +495,7 @@
 	.page-gen-cards {
 		flex: 1 1 auto; align-content: start;
 		display: grid; grid-template-columns: repeat(auto-fill, minmax(15em, 1fr));
-		gap: 0.7em; padding: 0.8em;
+		gap: calc(var(--gap-ramp) * 0.7); padding: 0.8em;   /* was gap 0.7em - 2026-09-05 ramps */
 	}
 
 	.page-gen-card-name { font-weight: 600; color: var(--ink); font-size: 0.92em; }
@@ -506,7 +506,7 @@
 	   One row, the same two controls a search box gets: a field and a button, so a
 	   reader who never wrote a generator spec still recognises what to do with it. */
 	.page-gen-save {
-		display: flex; gap: 0.5em; align-items: center;
+		display: flex; gap: calc(var(--gap-ramp) * 0.5); align-items: center;   /* was gap 0.5em - 2026-09-05 ramps */
 		padding: 0 0.9em 0.9em;
 	}
 	.page-gen-save-title {

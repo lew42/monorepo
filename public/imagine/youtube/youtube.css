@@ -87,7 +87,7 @@
 	.yt-lab input[type="range"] { width: 100%; }
 
 	/* ════ CONTROLS ═══════════════════════════════════════════════════════════ */
-	.yt-ctl { display: flex; flex-direction: column; gap: 0.4em; }
+	.yt-ctl { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.4); }   /* was gap 0.4em - 2026-09-05 ramps */
 
 	.yt-ctl-label {
 		font-size: 0.7em; font-weight: 700;
@@ -112,7 +112,7 @@
 	.yt-shortcuts {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(min(11em, 100%), 1fr));
-		gap: 0.35em 1em;
+		gap: calc(var(--gap-ramp) * 0.35) calc(var(--gap-ramp) * 1);   /* was gap 0.35em 1em - 2026-09-05 ramps */
 	}
 
 	.yt-shortcut-say { font-size: 0.78em; color: var(--subtle); }
@@ -135,7 +135,7 @@
 	}
 
 	.yt-read {
-		display: flex; flex-direction: column; gap: 0.1em;
+		display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.1);   /* was gap 0.1em - 2026-09-05 ramps */
 		min-width: 0;
 		padding: 0.4em 0.6em;
 		background: var(--surface);
@@ -162,7 +162,7 @@
 		font-family: var(--mono); font-size: 0.72em;
 	}
 
-	.yt-feed-row { display: flex; gap: 0.6em; padding: 0.25em 0.6em; }
+	.yt-feed-row { display: flex; gap: calc(var(--gap-ramp) * 0.6); padding: 0.25em 0.6em; }   /* was gap 0.6em - 2026-09-05 ramps */
 	.yt-feed-row + .yt-feed-row { border-top: 1px solid var(--line); }
 	.yt-feed-at { flex: none; color: var(--subtle); font-variant-numeric: tabular-nums; }
 	.yt-feed-msg { min-width: 0; overflow-wrap: anywhere; }
@@ -205,7 +205,7 @@
 	}
 
 	.yt-now {
-		display: flex; justify-content: space-between; align-items: baseline; gap: 1em;
+		display: flex; justify-content: space-between; align-items: baseline; gap: calc(var(--gap-ramp) * 1);   /* was gap 1em - 2026-09-05 ramps */
 		font-size: 0.85em;
 	}
 	.yt-now-chapter { font-weight: 700; min-width: 0; }
@@ -275,7 +275,7 @@
 
 	/* ════ FIELDS ═════════════════════════════════════════════════════════════ */
 	.yt-field {
-		display: flex; flex-direction: column; gap: 0.2em;
+		display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.2);   /* was gap 0.2em - 2026-09-05 ramps */
 		padding: 0.4em 0.6em;
 		border: 1px solid transparent;
 		border-radius: var(--radius);
@@ -292,14 +292,14 @@
 		background: color-mix(in srgb, var(--prim) 10%, transparent);
 	}
 
-	.yt-check { display: flex; align-items: center; gap: 0.5em; cursor: pointer; }
+	.yt-check { display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.5); cursor: pointer; }   /* was gap 0.5em - 2026-09-05 ramps */
 	.yt-check input { width: auto; flex: none; }
 
 	/* ════ MARKS — the stopwatch ══════════════════════════════════════════════
 	   A row is a time, a name and two hit areas. The name takes whatever is left, so
 	   a long chapter title never pushes the buttons off the end of a narrow column. */
-	.yt-mark { display: flex; align-items: center; gap: 0.4em; }
-	.yt-mark + .yt-mark { margin-block-start: 0.3em; }
+	.yt-mark { display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.4); }   /* was gap 0.4em - 2026-09-05 ramps */
+	.yt-mark + .yt-mark { margin-block-start: calc(var(--gap-ramp) * 0.3); }   /* was margin-block-start 0.3em - 2026-09-05 ramps */
 
 	.yt-marks .yt-mark input { padding: 0.25em 0.5em; font-size: 0.85em; }
 	.yt-mark-at { flex: none; width: 5.5em; font-family: var(--mono); font-variant-numeric: tabular-nums; }
@@ -343,7 +343,7 @@
 		font-size: 0.85em;
 	}
 
-	.yt-line { display: flex; gap: 0.5em; padding: 0.35em 0.6em; }
+	.yt-line { display: flex; gap: calc(var(--gap-ramp) * 0.5); padding: 0.35em 0.6em; }   /* was gap 0.5em - 2026-09-05 ramps */
 	.yt-line + .yt-line { border-top: 1px solid var(--line); }
 	.yt-line-at { flex: none; font-family: var(--mono); font-size: 0.8em; color: var(--subtle); font-variant-numeric: tabular-nums; }
 	.yt-line-who { flex: none; font-weight: 700; color: var(--prim-ink); }

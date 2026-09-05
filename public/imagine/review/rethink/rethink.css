@@ -51,7 +51,7 @@
 		display: flex;
 		flex-wrap: wrap;
 		align-items: baseline;
-		gap: 0.6em;
+		gap: calc(var(--gap-ramp) * 0.6);   /* was gap 0.6em - 2026-09-05 ramps */
 	}
 
 	/* THE PAIR. Side by side is the comparison, so it holds as long as each half is
@@ -89,7 +89,7 @@
 
 	.rethink-shot figcaption {
 		font-size: 0.8em;
-		margin-top: 0.35em;
+		margin-top: calc(var(--gap-ramp) * 0.35);   /* was margin-top 0.35em - 2026-09-05 ramps */
 		text-transform: uppercase;
 		letter-spacing: 0.06em;
 	}
@@ -97,7 +97,7 @@
 	.rethink-col {
 		display: flex;
 		flex-direction: column;
-		gap: 0.6em;
+		gap: calc(var(--gap-ramp) * 0.6);   /* was gap 0.6em - 2026-09-05 ramps */
 		min-width: 0;
 	}
 

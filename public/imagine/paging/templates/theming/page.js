@@ -39,7 +39,7 @@ const cell = () => { blog.example(null, false); Post.card(listed()[1]).ac("templ
 // picture always has the declaration that made it beside it.
 const SURFACE_TOKEN = {
 	plain: "background: var(--wash)",
-	card:  ".paging-box: var(--surface) + --shade-a08/a16",
+	card:  ".paging-surface-card: var(--surface) + --shade-a08",
 	tint:  "background: var(--surface)",
 	prim:  "color-mix(in srgb, var(--prim) 10%, var(--surface))",
 	dark:  "color-scheme: dark — every light-dark() token flips",
@@ -56,8 +56,6 @@ export default new Paging({
 	title: "Theming",
 	description: "Five surfaces x three type scales, at once.",
 	icon: "palette",
-	width: "full",
-	axes: "",
 
 	takeaway: "**One template, fifteen times: five surfaces across, three type scales down — every combination this site can make, in one screen.** Every cell is the same real blog section — `Post.hero()` for the lead and `Post.card()` for the row under it, over the same two real posts. Nothing but the two words on the box changed.",
 

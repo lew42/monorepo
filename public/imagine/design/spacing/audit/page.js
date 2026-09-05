@@ -21,6 +21,24 @@ const shot = (slug, round) => a().href(here + `shots/${slug}-${round}.jpg`).appe
 	img().attr("src", here + `shots/${slug}-${round}.jpg`).attr("alt", `${slug}, ${round}, 3440`)
 		.style({ width: "100%", border: "1px solid var(--line)", borderRadius: "0.3em" }));
 
+// The third round's pair: the decision's "after" is this round's "before".
+const movePair = r => figure.c("flex v gap").style({ margin: 0, gap: "0.4em" }).append(() => {
+	div.c("grid").style({ gridTemplateColumns: "1fr 1fr", gap: "0.5em" }).append(() => {
+		div.c("flex v").style({ gap: "0.25em" }).append(() => {
+			span.c("muted", "tokens only").style({ fontSize: "0.75em", letterSpacing: "0.04em" });
+			shot(r.slug, "after");
+		});
+		div.c("flex v").style({ gap: "0.25em" }).append(() => {
+			span.c("muted", "components too").style({ fontSize: "0.75em", letterSpacing: "0.04em" });
+			shot(r.slug, "components");
+		});
+	});
+	figcaption(() => {
+		a(r.url).href(r.url);
+		md(` — median gap at 3440 **${px(r.m3440_b)} → ${px(r.m3440_a)}**, growth ${x(r.growth_b)} → ${x(r.growth_a)}.`);
+	}).style({ fontSize: "0.85em" });
+});
+
 const pair = r => figure.c("flex v gap").style({ margin: 0, gap: "0.4em" }).append(() => {
 	div.c("grid").style({ gridTemplateColumns: "1fr 1fr", gap: "0.5em" }).append(() => {
 		div.c("flex v").style({ gap: "0.25em" }).append(() => {
@@ -79,7 +97,24 @@ export default new Page({
 		md(`| kind | before | after |\n|---|---|---|\n` +
 			kinds.map(k => `| \`${k}\` | ${DATA.totals.kind_before[k] || 0} | ${DATA.totals.kind_after[k] || 0} |`).join("\n")).ac("wide");
 		p.c("muted", "Read `padding-inversion` and `x0` with a caveat: `/imagine/paging/` was rebuilt by a different task between the two rounds, which renamed that subtree's classes and left the auditors' page-gutter probe reading 0 there. 197 of the 269 `padding-inversion` hits and 7 of the 26 `x0` hits sit on those pages. Every other kind is a clean comparison.");
-		p.c("muted", "The site-wide median is the same number in both rounds, because on 65 of the 91 pages the median gap is a constant written inside a component (a card's `0.6em`, a rail row's `0.45em`) and reads no token at all. The 26 pages whose gaps do read the tokens are the row above.");
+		p.c("muted", "The site-wide median is the same number in both rounds, because on 65 of the 91 pages the median gap is a constant written inside a component (a card's `0.6em`, a rail row's `0.45em`) and reads no token at all. The 26 pages whose gaps do read the tokens are the row above. That is what the next section fixes.");
+
+		h2("After the components");
+		md(`The tokens grew but the site did not, because most gaps were constants written inside components. **${DATA.components.rules_changed} of them now read the ramps** (\`gap: 0.6em\` became \`calc(var(--gap-ramp) * 0.6)\` — the same 0.6em at 1280, three times that at 3440) and the site-wide median gap at 3440 went **${px(DATA.components.median_3440_before)} → ${px(DATA.components.median_3440_after)}**.`);
+		md(`| | tokens only | components too |\n|---|---|---|\n` +
+			`| median sibling gap @ 1280 | ${px(DATA.components.median_1280_before)} | ${px(DATA.components.median_1280_after)} |\n` +
+			`| median sibling gap @ 3440 | ${px(DATA.components.median_3440_before)} | ${px(DATA.components.median_3440_after)} |\n` +
+			`| median growth 1280 → 3440 | ${x(DATA.components.growth_before)} | ${x(DATA.components.growth_after)} |\n` +
+			`| spacing rules found | ${DATA.components.rules_found} | ${DATA.components.rules_changed} changed · ${DATA.components.rules_kept} kept |`).ac("wide");
+		p.c("muted", `${DATA.components.pages} pages, both widths: ${DATA.components.invariants}. A kept constant has a reason — ` +
+			Object.entries(DATA.components.kept_why).map(([w, n]) => `${n} ${w}`).join(" · ") + ".");
+		p.c("muted", "2.78× is more than the 1.8× the round before it reached, and that is the ramp itself: `--gap-ramp` is 15px at 1280 and 46px at 3440, so a gap that fully reads it grows 3.07×. It is not blown out — the prose pages that already read tokens sit at 51–54px at 3440, and these component pages sit at 25px, still half the prose rhythm.");
+
+		md(`| realm | pages | median gap @ 3440 | growth 1280 → 3440 |\n|---|---|---|---|\n` +
+			DATA.components.realms.map(r => `| \`${r.realm}\` | ${r.pages} | ${px(r.m3440_b)} → ${px(r.m3440_a)} | ${x(r.growth_b)} → ${x(r.growth_a)} |`).join("\n")).ac("wide");
+		p.c("muted", "`/imagine/paging/` was being rebuilt by another task and is not this round's; `/notes/` and `/framework/` are prose, which already read the tokens and did not need a component.");
+
+		div.c("grid auto").style({ "--column": "55em", "--gap": "1.6em" }).append(() => DATA.components.movers.forEach(movePair));
 
 		h2("Control padding");
 		p.c("muted", "The widest instance the auditors flagged for each named control, at any width. “none flagged” means no instance of it crossed 3× its own content in the second pass.");

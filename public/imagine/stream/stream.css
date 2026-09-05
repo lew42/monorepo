@@ -42,7 +42,7 @@
 
 	/* A titlebar of three dots is the whole cue that this box IS a window, not a
 	   card about one — cheaper than an illustration and never goes stale. */
-	.stream-hero-bar { display: flex; gap: 0.3em; padding-block-end: 0.5em; }
+	.stream-hero-bar { display: flex; gap: calc(var(--gap-ramp) * 0.3); padding-block-end: 0.5em; }   /* was gap 0.3em - 2026-09-05 ramps */
 	.stream-hero-dot { width: 0.6em; height: 0.6em; border-radius: 50%; background: var(--line); }
 	.stream-hero-window input {
 		width: 100%; font: inherit; font-weight: 600;
@@ -50,9 +50,9 @@
 	}
 	.stream-hero-window input:focus { outline: none; border-bottom-color: var(--prim); }
 	.stream-hero-window-name { font-size: 0.8em; color: var(--subtle); text-transform: uppercase; letter-spacing: 0.06em; }
-	.stream-hero-window-lag { font-size: 0.8em; color: var(--subtle); margin-block-start: 0.4em; }
+	.stream-hero-window-lag { font-size: 0.8em; color: var(--subtle); margin-block-start: calc(var(--gap-ramp) * 0.4); }   /* was margin-block-start 0.4em - 2026-09-05 ramps */
 
-	.stream-hero-reads-list { display: flex; flex-direction: column; gap: 0.5em; }
+	.stream-hero-reads-list { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.5); }   /* was gap 0.5em - 2026-09-05 ramps */
 	.stream-hero-read { display: flex; flex-direction: column; }
 	.stream-hero-read-n { font-size: 1.4em; font-weight: 700; font-variant-numeric: tabular-nums; }
 
@@ -75,17 +75,17 @@
 	   is deliberately the quietest thing on the page. */
 	.stream-stat {
 		display: flex; flex-wrap: wrap; gap: 0 1.25em;
-		padding: 0.4em 0.75em; margin-block-end: 1em;
+		padding: 0.4em 0.75em; margin-block-end: calc(var(--gap-ramp) * 1);   /* was margin-block-end 1em - 2026-09-05 ramps */
 		border: 1px solid var(--line); border-radius: var(--radius);
 		font-size: 0.85em;
 	}
-	.stream-cell { display: flex; align-items: baseline; gap: 0.4em; }
+	.stream-cell { display: flex; align-items: baseline; gap: calc(var(--gap-ramp) * 0.4); }   /* was gap 0.4em - 2026-09-05 ramps */
 	.stream-key { color: var(--subtle); text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.8em; }
 	.stream-value { font-variant-numeric: tabular-nums; }
 
 	/* A field is its label over its control; the control takes the field's width so a
 	   text input is not 20 characters wide inside a pane that is 30em. */
-	.stream-field { display: flex; flex-direction: column; gap: 0.25em; flex: 1 1 8em; min-width: 0; }
+	.stream-field { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.25); flex: 1 1 8em; min-width: 0; }   /* was gap 0.25em - 2026-09-05 ramps */
 	.stream-field > input, .stream-field > select { width: 100%; }
 	.stream-row { align-items: flex-end; }
 
@@ -99,9 +99,9 @@
 		background: var(--wash);
 	}
 	.stream-card-head { font-size: 1.3em; font-weight: 600; line-height: 1.2; color: var(--stream-accent, var(--prim)); overflow-wrap: anywhere; }
-	.stream-card-body { margin-block-start: 0.4em; overflow-wrap: anywhere; }
+	.stream-card-body { margin-block-start: calc(var(--gap-ramp) * 0.4); overflow-wrap: anywhere; }   /* was margin-block-start 0.4em - 2026-09-05 ramps */
 
-	.stream-from { margin-block-start: 0.75em; display: flex; align-items: baseline; gap: 0.4em; font-size: 0.85em; color: var(--subtle); }
+	.stream-from { margin-block-start: calc(var(--gap-ramp) * 0.75); display: flex; align-items: baseline; gap: calc(var(--gap-ramp) * 0.4); font-size: 0.85em; color: var(--subtle); }   /* was margin-block-start 0.75em; gap 0.4em - 2026-09-05 ramps */
 
 	/* ── the streamed deck ──────────────────────────────────────────────────────
 	   The slide fills its screen; the presenter's strip is a band under it, the same
@@ -109,7 +109,7 @@
 	.stream-deck { display: flex; flex-direction: column; height: 100%; min-height: 0; }
 	.stream-slide { flex: 1; min-height: 0; display: flex; }
 	.stream-bar {
-		display: flex; align-items: center; flex-wrap: wrap; gap: 0.5em;
+		display: flex; align-items: center; flex-wrap: wrap; gap: calc(var(--gap-ramp) * 0.5);   /* was gap 0.5em - 2026-09-05 ramps */
 		padding: 0.5em 1em; border-top: 1px solid var(--line);
 		font-size: 0.85em;
 	}

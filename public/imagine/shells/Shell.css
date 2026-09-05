@@ -63,7 +63,7 @@
 	}
 
 	.shell-home {
-		display: flex; align-items: center; gap: 0.45em;
+		display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.45);   /* was gap 0.45em - 2026-09-05 ramps */
 		padding: 0.9em;
 		font-weight: 800; color: inherit; text-decoration: none;
 		white-space: nowrap;
@@ -76,7 +76,7 @@
 	     shrink takes every item to min-content, so six labels go two-line before
 	     the bar ever scrolls (the `css` skill's own caveat, seen for real). */
 	.shell-bar {
-		display: flex; align-items: center; gap: 0.5em;
+		display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.5);   /* was gap 0.5em - 2026-09-05 ramps */
 		padding: 0.45em 0.9em;
 		overflow-x: auto; scrollbar-width: none;
 	}
@@ -92,7 +92,7 @@
 	     wrong direction and reads as no hover at all (Page.css says the same, at
 	     length, about `.page-column-item`). */
 	.shell-link {
-		display: flex; align-items: center; gap: 0.45em;
+		display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.45);   /* was gap 0.45em - 2026-09-05 ramps */
 		padding: 0.4em 0.9em;
 		font-size: 0.9em;
 		color: var(--subtle); text-decoration: none;
@@ -208,7 +208,7 @@
 	   and small type on the paper it belongs to. */
 	.shell-inner-bar {
 		flex: 0 0 auto;
-		display: flex; align-items: center; gap: 0.9em;
+		display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.9);   /* was gap 0.9em - 2026-09-05 ramps */
 		padding: 0.4em clamp(1em, 4%, 3em);
 		border-block-start: 1px solid var(--line);
 		font-size: 0.8em; color: var(--subtle);

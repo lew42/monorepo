@@ -1,81 +1,33 @@
-/* /imagine/paging/ — page styles, switching mechanisms, and the mode toolbar.
+/* /imagine/paging/ — the app, the stage, and the older demo machinery.
 
-   Everything here rides core's column row (Page.css). There is no new shell, no
-   fixed positioning and no viewport unit: a `launch` is a child column and a
-   `takeover` is `width: "full"`, both already core's, so the crumb strip, the ×
-   and every url keep working. This sheet only does two things core cannot:
+   TWO HALVES, and the divider halfway down says where one ends:
 
-     PAINT   five styles, one class each on the page's BOX (the column body), so
-             switching the look is one class added and one removed.
-     CHROME  the mode toolbar, the item rows, and the vertical centring.
+     @layer theme   the parts that are not the app — the chips the two editors use,
+                    the hub's four miniatures, the swap page's four visuals, Make's
+                    rows. Older than the rebuild, still drawn.
+     @layer site    THE APP: a rail that never moves, a middle that swaps, one
+                    configurable stage, and the bar above it.
 
    Colour is tokens only. A floor is opaque (`--wash`, `--surface`), a fill is a
    rung of the alpha ladder (`--fill-a04/08`) so it composites on whichever floor
    it lands on — including inside the dark island, where `color-scheme: dark`
-   flips every one of them with no rule restated (framework.css, the ladder). */
+   flips every one of them with no rule restated (framework.css, the ladder).
+
+   ⚠ 37 CLASS NAMES WERE DELETED HERE ON 2026-09-05 — the five old style words, the
+     toolbar-placement axis, the content ladder, the teaching blocks, the example
+     row. Every one of them had no JavaScript writing it any more (paging-audit-2b,
+     fix 9). If you are looking for one of them, it is in git, and the thing that
+     replaced it is `paging-surface-*` / `paging-bg-*` and the stage. */
 
 @layer theme {
 
-	/* ── the five styles, on the page's box ──────────────────────────────────
-	   ⚠ `:where(.page-column-body)` paints `--wash` at specificity ZERO precisely
-	     so a recipe like this one wins with a single class. Nothing here needs to
-	     out-specify core, and nothing here may fight the arrangement contract. */
-
-	.paging-plain { background: var(--wash); }        /* the ambient floor, no frame */
-	.paging-tint  { background: var(--surface); }     /* one subtle step off the parent */
-	.paging-prim  { background: color-mix(in srgb, var(--prim) 10%, var(--surface)); }
-
-	/* A COLOUR-SCHEME ISLAND, not a dark palette. One declaration, and every
-	   `light-dark()` token used below this element resolves to its dark value —
-	   ink, lines, and all four fill rungs — because `light-dark()` reads
-	   `color-scheme` where it is USED, not where it is declared. */
-	.paging-dark {
-		color-scheme: dark;
-		background: var(--surface);
-		color: var(--ink);
-	}
-
-	/* `card` is the one style that is not the box itself: the box stays on the
-	   floor so the card has something to sit on. White, padded, no border, a drop
-	   shadow — and the shadow is `--shade-*`, never a fill rung: a shadow is dark
-	   in both modes. */
-	.paging-card { background: var(--wash); }
-	.paging-card .paging-box {
-		background: var(--surface);
-		color: var(--ink);
-		padding: var(--pad, var(--pad-default));
-		border-radius: var(--radius);
-		box-shadow: 0 1px 2px var(--shade-a08), 0 10px 28px var(--shade-a16);
-	}
-
-	/* ── center: the small amount of content that floats centre-centre ───────
-	   The body becomes a column and its prose takes the leftover height; the
-	   stage then floats on auto margins. `margin-block: auto`, not
-	   `justify-content: center` — a centred flex line clips its own start edge
-	   when it overflows, and this column body is a scroller.
-	   The narrow measure is what makes it read as centre-CENTRE rather than as a
-	   band: content this small in a 46em track is a line pinned to the left. */
-	.paging-center.page-column-body { display: flex; flex-direction: column; }
-	.paging-center > .page-column-prose { flex: 1 1 auto; display: flex; flex-direction: column; }
-	.paging-center .paging-stage { margin-block: auto; width: 100%; max-width: 26em; margin-inline: auto; }
-
-	/* Centred content means centred TEXT — but never a centred list: a row whose
-	   label starts in a different place each line cannot be scanned. */
-	.paging-center .paging-box { text-align: center; }
-	.paging-center .paging-box :is(p, h3) { margin-inline: auto; }
-	.paging-center .paging-toolbar { justify-content: center; }
-	.paging-center :is(.paging-item, .paging-panel) { text-align: start; }
-
 	/* ── the stage ───────────────────────────────────────────────────────────── */
 
-	.paging-stage { display: flex; flex-direction: column; gap: var(--gap, var(--gap-default)); }
 	.paging-box   { display: flex; flex-direction: column; gap: 0.7em; }
 
 	/* Prose keeps its measure whatever the layout word says — a `full` box at
-	   3440 would otherwise hand one paragraph a 3000px line. A brick is not
-	   prose: it is a tile in a wall, and its own track is the cap. */
+	   3440 would otherwise hand one paragraph a 3000px line. */
 	.paging-box :is(p, h3) { max-width: var(--measure, 40em); }
-	.paging-brick p { max-width: none; }
 
 	/* ── the MODE TOOLBAR ─────────────────────────────────────────────────────
 	   ⚠ A CHIP IS A SPAN, NOT A `<button>`, and that was measured rather than
@@ -118,33 +70,6 @@
 	   the eight placement chips it can share a toolbar with never move. */
 	.paging-exit { margin-inline-start: auto; }
 
-	/* ── toolbar PLACEMENT: top/left/right/bottom × inside (in the box) | outside (on
-	   the stage) — the fifth axis, wave 2. Two classes on `.paging-stage`
-	   (`paging-side-*`, `paging-place-*`, restamped by `dress()`), never moved off it.
-
-	   OUTSIDE keeps `.paging-toolbar` a sibling of `.paging-box` — the STAGE is the flex
-	   arranger between them. INSIDE nests the toolbar as the box's own first flex child
-	   (`build()`, paging.js) — the BOX is the arranger, between the toolbar and a
-	   `.paging-content` wrapper that carries the `gap` the box itself already had.
-
-	   Neither block writes anything for `top`: it is the order every page already had
-	   (toolbar first, column direction), so the default axis value costs nothing. */
-	.paging-side-left .paging-toolbar,
-	.paging-side-right .paging-toolbar { flex-direction: column; align-items: stretch; flex-wrap: nowrap; width: max-content; max-width: 12em; }
-
-	.paging-place-outside.paging-side-bottom > .paging-toolbar { order: 1; }
-	.paging-place-outside.paging-side-left,
-	.paging-place-outside.paging-side-right { flex-direction: row; align-items: flex-start; }
-	.paging-place-outside.paging-side-right > .paging-toolbar { order: 1; }
-	.paging-place-outside.paging-side-left > .paging-box,
-	.paging-place-outside.paging-side-right > .paging-box { flex: 1 1 auto; min-width: 0; }
-
-	.paging-place-inside.paging-side-bottom > .paging-box > .paging-toolbar { order: 1; }
-	.paging-place-inside.paging-side-left > .paging-box,
-	.paging-place-inside.paging-side-right > .paging-box { flex-direction: row; align-items: flex-start; }
-	.paging-place-inside.paging-side-right > .paging-box > .paging-toolbar { order: 1; }
-	.paging-place-inside .paging-content { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 0.7em; }
-
 	/* ── the items — a child, and the icon of what clicking it does ───────────
 	   ⚠ THE FILL IS A RUNG. On `card` it composites over white to the light grey
 	     the owner asked for; on `plain` it composites over the wash; inside the
@@ -169,10 +94,6 @@
 	.paging-item-on { border-color: var(--prim); background: var(--fill-a16); font-weight: 600; }
 	.paging-item-on .paging-sign { color: var(--prim); }
 
-	/* A `swap` list IS a tab set turned into rows — mark it as a group so the
-	   selected row reads as a selection rather than as a hover left behind. */
-	.paging-items-swap { border-inline-start: 2px solid var(--line); padding-inline-start: 0.4em; }
-
 	/* ── expand: the panel that opens BELOW the item, in place ─────────────── */
 	.paging-panel {
 		display: flex; flex-direction: column; gap: 0.4em; align-items: start;
@@ -184,76 +105,13 @@
 	}
 	.paging-panel-link { display: inline-flex; align-items: center; gap: 0.2em; }
 
-	/* ── swap: the box keeps its place and changes what it holds ─────────────
-	   The eyebrow is the whole fix for "it switched a random paragraph": the box
-	   now SAYS that it swapped, and which row it is showing, before the content. */
-	.paging-swapped { display: flex; flex-direction: column; gap: 0.1em; }
-	.paging-swapped h3 { margin: 0; color: var(--prim-ink); }
-	.paging-swapped-eyebrow { font-size: 0.7em; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--subtle); }
-	.paging-back { display: inline-flex; align-items: center; gap: 0.3em; align-self: start; font-size: 0.85em; text-transform: none; letter-spacing: normal; }
-
-	/* ── the sample: ONE thing, at five sizes ────────────────────────────────
-	   ⚠ The title is the SAME SIZE at every rung, on purpose. Going up a rung adds
-	     rows underneath it and must not change anything already on screen — a title
-	     that shrank as the box grew would be exactly the "it switched content"
-	     reading the axis was rebuilt to kill (the owner, 2026-09-04). */
-	.paging-sample { display: flex; flex-direction: column; gap: 0.6em; }
-	.paging-word { font-size: 1.45em; font-weight: 800; letter-spacing: -0.01em; line-height: 1.2; margin: 0; }
-	.paging-line { font-size: 1.05em; }
-
-	/* `l` — four ui/ cards. A real `--column` so 3440 gets four across and 400 gets
-	   one; `min(.., 100%)` is the floor that cannot overflow. */
-	.paging-cards {
-		--column: 11em;
-		display: grid; gap: 0.6em;
-		grid-template-columns: repeat(auto-fill, minmax(min(var(--column), 100%), 1fr));
-	}
-
-	/* `xl` — the blog's own posts in core's card wall. Core sizes `.page-previews`
-	   for a page region; inside a demo box the cell wants to be smaller. */
-	.paging-postwall { --column: 12em; }
-
+	/* The card wall a demo box draws inside itself — core's `.page-previews`, sized
+	   for a box rather than for a page region. */
 	.paging-wall {
 		--column: 12em;
 		display: grid; gap: 0.6em;
 		grid-template-columns: repeat(auto-fill, minmax(min(var(--column), 100%), 1fr));
 	}
-	.paging-brick { padding: 0.6em; font-size: 0.85em; background: var(--fill-a04); border-radius: var(--radius); }
-	.paging-brick-n { display: block; font-weight: 700; color: var(--prim-ink); }
-
-	/* ── the code child ──────────────────────────────────────────────────────── */
-	.paging-note { color: var(--subtle); font-size: 0.9em; }
-	.paging-calls { margin-block: 0.6em; }
-
-	/* ── THE TAKEAWAY LINE every page in this realm opens with ────────────────
-	   One sentence, marked so the eye finds it before anything else. The rule is
-	   on the `.md` block `lede()` produces, so a page writes a sentence and gets
-	   the treatment — there is no second thing to remember. */
-	.paging-lede {
-		border-inline-start: 3px solid var(--prim);
-		padding-inline-start: 0.9em;
-		font-size: 1.05em;
-	}
-	.paging-lede p:first-child { margin-top: 0; }
-	.paging-lede p:last-child { margin-bottom: 0; }
-
-	/* A markdown cell inside a ui/ table carries its own paragraph margins, which
-	   double the row height for nothing. */
-	.paging-cell p { margin: 0; }
-
-	/* ── THE HUB'S FOUR TEACHING BLOCKS ───────────────────────────────────────
-	   Heading, one sentence, a live miniature, a link out. Same shape four times,
-	   so the four mechanisms read as four answers to one question. */
-	.paging-teach {
-		display: flex; flex-direction: column; gap: 0.7em;
-		padding: var(--pad, var(--pad-default));
-		background: var(--tint);
-		border: 1px solid var(--line);
-		border-radius: var(--radius);
-	}
-	.paging-teach-head { display: flex; align-items: center; gap: 0.4em; margin: 0; }
-	.paging-teach-say { margin: 0; }
-	.paging-teach-more { align-self: start; }
 
 	/* ── A MINIATURE — a small frame that behaves like the real mechanism ─────
 	   `min-height` so an empty state still looks like a stage rather than a line,
@@ -319,36 +177,6 @@
 	   the page that measures is mechanisms/swap/, whose stage is fixed. */
 	.paging-tabsdemo .paging-tab-panel { min-height: 4.5em; }
 	.paging-tabsdemo p { margin: 0; }
-
-	/* ════ THE STAGE IS ALWAYS VISIBLE ════════════════════════════════════════
-	   THE RULE OF THIS REALM (doc/decisions.md, "the stage is always visible"):
-
-	     A click changes what is inside a rectangle you could already see;
-	     the rectangle stays.
-
-	   So every box a swap happens in wears a surface and an edge BEFORE the click.
-	   The owner's report on the old version was that "the swap is unclear what is
-	   being swapped … it's not visually clear, like tabs are" — a transparent area
-	   that changes has nothing for the eye to hold on to, so the brain has to work
-	   out what went where. A bounded rectangle answers that before you click it. */
-
-	/* THE GENERIC STAGE — what `Paging.shown()` draws, framed whenever this page's
-	   mechanism is `swap`. ⚠ `min-height`, not `height`: this box also holds the
-	   content ladder (`xs` → `xl`), and a fixed height would clip the `xl` wall.
-	   The caption under it reports the real pixels either way. */
-	.paging-shown { display: flex; flex-direction: column; gap: 0.6em; }
-
-	.paging-box:has(.paging-items-swap) .paging-shown {
-		min-height: 8em;
-		padding: var(--pad, var(--pad-default));
-		background: var(--surface);
-		border: 1px solid var(--line);
-		border-radius: var(--radius);
-	}
-
-	/* On `card` the box is ALREADY the white surface, so the stage steps DOWN
-	   instead of up — a tint on white is still an edge you can trace. */
-	.paging-card .paging-box:has(.paging-items-swap) .paging-shown { background: var(--tint); }
 
 	/* ════ TABS THAT SHOW THEIR PANEL ═════════════════════════════════════════
 	   The owner, 2026-09-05: *"the current underline tabs … don't really illustrate
@@ -498,47 +326,6 @@
 	.paging-swapper-what { display: flex; align-items: flex-start; gap: 0.4em; }
 	.paging-swapper-what .icon { color: var(--prim-ink); }
 
-	/* ── HOW TO EXPLORE THIS — three numbered steps ──────────────────────────── */
-	.paging-steps { display: flex; flex-direction: column; gap: 0.6em; }
-	.paging-steps p { margin: 0.15em 0 0; }
-
-	/* ── WHAT JUST CHANGED — the caption under a demo box ─────────────────────
-	   Below the box and quieter than it: a report on the last click, not a control. */
-	.paging-change {
-		font-size: 0.9em;
-		color: var(--subtle);
-		border-inline-start: 2px solid var(--line);
-		padding-inline-start: 0.7em;
-	}
-	.paging-change p { margin: 0; }
-	.paging-change strong { color: var(--prim-ink); }
-
-	/* ── AN EXAMPLE — the result beside the code that made it ─────────────────
-	   `.cols.half` is framework.css's own two-track row, and its STACKING FLOOR is
-	   a width of the ROW, not of a track: below 34rem of row the pair stacks,
-	   result first. In this realm that means side by side from 1920 up and stacked
-	   at 1280 and 400 — which is the right answer at each, and why no floor is
-	   overridden here.
-
-	   ⚠ THE RATIO IS SET INLINE, in examples/page.js, and has to be: `.cols` and
-	     `.cols > *` live in `@layer util`, so a `@layer theme` rule in this file
-	     cannot change `--cols-w` or `--cols-sum` at ANY specificity (measured — a
-	     2:3 split written here read back as 364/364, 50/50). An inline custom
-	     property outranks every author layer, which is the one escape. */
-	.paging-example { display: flex; flex-direction: column; gap: 0.7em; }
-	.paging-example-row { align-items: start; }
-	.paging-example-result, .paging-example-code { display: flex; flex-direction: column; gap: 0.35em; }
-	.paging-example-cap { margin: 0; font-size: 0.7em; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--subtle); }
-	/* A snippet is a code block: it scrolls itself rather than widening its track
-	   or wrapping a line of JavaScript into nonsense. */
-	.paging-example-code pre { margin: 0; overflow-x: auto; font-size: 0.8em; }
-
-	/* A page drawn WITHOUT its column — `Paging.still()`. The style class lands
-	   here, so `.paging-card .paging-box` finds its floor exactly as it does in a
-	   real column body. */
-	.paging-still { padding: 0.7em; border: 1px solid var(--line); border-radius: var(--radius); }
-	.paging-still.paging-plain { background: var(--wash); }
-
 	/* ── MAKE — the CRUD list, the form, and the text box ─────────────────────
 	   ⚠ `flex: none` on the word chips and the acts: a flex row under its content
 	     width shrinks each item to min-content FIRST, so a two-word title would go
@@ -614,20 +401,17 @@
 		border-radius: var(--radius);
 		resize: vertical;
 	}
-
-	/* RESET — a chip like every other, in a row of its own so the confirm step has
-	   somewhere to put its Cancel. */
-	.paging-reset { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5em; }
 }
 
 /* ══════════════════════════════════════════════════════════════════════════════
    THE APP, AND THE STAGE  (2026-09-05 — the rebuild; doc/decisions.md)
 
-   Everything above this line is the older machinery the realm still uses in three
+   Everything above this line is the older machinery the realm still uses in four
    places: the two editors' chips (.paging-chip), the hub's four miniatures
-   (.paging-mini-*, .paging-tab*) and the swap page's four visuals
-   (.paging-swapper-*, .paging-face-*). Everything below is the app: a rail that
-   never moves, a middle that swaps, and one configurable stage.
+   (.paging-mini-*, .paging-tab*), the swap page's four visuals (.paging-swapper-*,
+   .paging-face-*) and Make's rows (.paging-make-*). Everything below is the app: a
+   rail that never moves, a middle that swaps, one configurable stage, and the bar
+   of labelled chip groups above it.
    ═══════════════════════════════════════════════════════════════════════════════ */
 @layer site {
 
@@ -740,7 +524,10 @@
 	.paging-toolbar-slot { display: contents; }
 
 	.paging-toolbar {
-		padding: 0.45em 0.7em;
+		/* A clamp, never a constant: the bar spans the whole middle, and a flat em left
+		   it as tight at 3440 as at 1280 (the spacing law, 2026-09-01). Its ceiling is
+		   low on purpose — this is chrome around the thing you came to look at. */
+		padding: clamp(0.45em, 0.6vw, 1.1em) clamp(0.7em, 0.8vw, 1.6em);
 		background: var(--surface);
 		border: 1px solid var(--line); border-radius: var(--radius);
 	}
@@ -757,6 +544,10 @@
 	   toolbar's, and it wins by being later. */
 	.paging-toolbar .paging-group { display: flex; flex-direction: column; gap: 0.15em; }
 	.paging-group-values { display: flex; flex-wrap: wrap; align-items: center; gap: 0.2em; }
+
+	/* A notch smaller than a chip elsewhere: seven groups of them is a lot of bar, and
+	   the bar is chrome around the thing you came to look at. */
+	.paging-toolbar .paging-chip { padding: 0.15em 0.5em; font-size: 0.8em; }
 
 	.paging-pick-label {
 		font-size: 0.68em; font-weight: 700; letter-spacing: 0.06em;
@@ -786,6 +577,12 @@
 		cursor: pointer;
 	}
 	.paging-more:is(:hover, :focus-visible) { background: var(--fill-a16); }
+
+	/* Two buttons at the end of the bar, one of them quieter: `Code` is the way OUT
+	   (the page.js this would be) and `More` is everything else. */
+	.paging-toolbar-outs { align-self: center; gap: 0.35em; }
+	.paging-more-quiet { color: var(--subtle); background: transparent; border-color: var(--line); }
+	.paging-more-quiet:is(:hover, :focus-visible) { color: var(--prim-ink); border-color: var(--prim); background: var(--fill-a08); }
 
 	/* ── THE FIVE SURFACE WORDS ───────────────────────────────────────────────
 	   ONE list, read by BOTH colour controls and by nothing else. dark declares
@@ -830,6 +627,18 @@
 		padding: var(--pad, var(--pad-default));
 	}
 	.paging-canvas > :is(h2, h3, p) { margin-block: 0; }
+
+	/* ⚠ PROSE KEEPS ITS MEASURE, whatever the room word says. A `wide` box at 3440 is
+	     2739px, and one paragraph across 2739px is a line the eye cannot get back from
+	     — the layout skill's second invariant. The old `.paging-box` had this rule and
+	     the canvas that replaced it did not, so every `wide` stage in the realm ran its
+	     prose the whole width (measured at 1920 and 3440 on 14 pages, 2026-09-05).
+	     Only the realm's OWN prose: a template family or a magazine cover inside the
+	     box brings its own composition and its own widths. */
+	.paging-canvas > :is(p, h3, h4, li),
+	.paging-slot > :is(p, h3, h4, li),
+	.paging-held p,
+	.paging-cap p { max-width: var(--measure, 40em); }
 
 	/* ══ THE BOX RESERVES ITS HEIGHT ══════════════════════════════════════════
 	   Lifted, not re-derived, from `navigation/navigation.css` — the nav-stability
@@ -1069,6 +878,29 @@
 	.paging-shot-frame > .paging-stage { font-size: 0.6em; height: 100%; pointer-events: none; }
 	.paging-shot:is(:hover, :focus-visible) .paging-shot-frame { border-color: var(--prim); }
 	.paging-shot:is(:hover, :focus-visible) .paging-shot-head { color: var(--prim-ink); }
+
+	/* ── THE CROSSING: TWO WORDS AT ONCE ──────────────────────────────────────
+	   `cross/page.js`. Navigation across, arrangement down, nine live pages in the
+	   cells — so "which arrangement" is something you look at rather than something
+	   you remember. The first track is the row label and hugs it. */
+	.paging-cross {
+		display: grid;
+		grid-template-columns: auto repeat(3, minmax(0, 1fr));
+		gap: var(--gap, var(--gap-default));
+		align-items: center;
+	}
+	.paging-cross-head, .paging-cross-side {
+		font-size: 0.72em; font-weight: 700; letter-spacing: 0.08em;
+		text-transform: uppercase; color: var(--subtle);
+	}
+	.paging-cross-head { text-align: center; }
+
+	/* Below the reading measure three cells of a real page are unreadable, so the
+	   grid becomes one column and each cell keeps its own two labels above it. */
+	@media (max-width: 46rem) {
+		.paging-cross { grid-template-columns: 1fr; }
+		.paging-cross-corner { display: none; }
+	}
 
 	/* ── THE DRAWER'S OWN ROWS ────────────────────────────────────────────────── */
 	.paging-drawer-row { display: flex; flex-direction: column; gap: 0.25em; margin-block-end: 0.9em; }

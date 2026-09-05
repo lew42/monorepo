@@ -10,8 +10,8 @@
 	.color-swatch { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
 	.color-island { color-scheme: light; padding: 0.9em 0.8em; background: var(--surface); }
 	.color-island.dark { color-scheme: dark; }
-	.color-chip { height: 2.6em; border-radius: 0.2em; border: 1px solid var(--line); margin-block-end: 0.5em; }
-	.color-pairbox { display: grid; gap: 0.9em; grid-template-columns: repeat(auto-fill, minmax(min(13em, 100%), 1fr)); }
+	.color-chip { height: 2.6em; border-radius: 0.2em; border: 1px solid var(--line); margin-block-end: calc(var(--gap-ramp) * 0.5); }   /* was margin-block-end 0.5em - 2026-09-05 ramps */
+	.color-pairbox { display: grid; gap: calc(var(--gap-ramp) * 0.9); grid-template-columns: repeat(auto-fill, minmax(min(13em, 100%), 1fr)); }   /* was gap 0.9em - 2026-09-05 ramps */
 
 	.color-fail { border-inline-start: 3px solid var(--error); padding-inline-start: 0.8em; }
 	.color-ok   { border-inline-start: 3px solid var(--ok); padding-inline-start: 0.8em; }

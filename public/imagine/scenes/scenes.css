@@ -33,14 +33,14 @@
 				"crumb crumb  crumb"
 				"intro stage  notes"
 				"nav   stage  notes";
-			column-gap: 1.5em;
+			column-gap: calc(var(--gap-ramp) * 1.5);   /* was column-gap 1.5em - 2026-09-05 ramps */
 			align-items: start;
 		}
 
 		.scene-lobby-intro { grid-area: intro; }
-		.scene-bar { grid-area: crumb; margin-block-end: 1em; }
+		.scene-bar { grid-area: crumb; margin-block-end: calc(var(--gap-ramp) * 1); }   /* was margin-block-end 1em - 2026-09-05 ramps */
 		.scene-stage { grid-area: stage; }
-		.scene-nav { grid-area: nav; flex-direction: column; align-items: start; margin-block-start: 1em; }
+		.scene-nav { grid-area: nav; flex-direction: column; align-items: start; margin-block-start: calc(var(--gap-ramp) * 1); }   /* was margin-block-start 1em - 2026-09-05 ramps */
 		.scene-notes { grid-area: notes; margin-block-start: 0; }
 
 		/* Nothing is picked yet at the bare foyer url — say so instead of leaving
@@ -57,8 +57,8 @@
 	   path: the chevron Page.crumbs() emits is a material-icons ligature, so zeroing
 	   the span's font-size hides the word and ::after draws the slash instead. */
 	.scene-bar {
-		display: flex; align-items: center; gap: 0.1em;
-		align-self: start; margin-block-end: 0.6em;
+		display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.1);   /* was gap 0.1em - 2026-09-05 ramps */
+		align-self: start; margin-block-end: calc(var(--gap-ramp) * 0.6);   /* was margin-block-end 0.6em - 2026-09-05 ramps */
 		padding: 0.15em 0.7em 0.15em 0.5em; border-radius: 999px;
 		background: var(--wash); font-family: var(--mono); font-size: 0.8em;
 	}
@@ -145,8 +145,8 @@
 
 	/* THE 2D HALF OF THE NAVIGATION - the doors out of where you are, as text. */
 	.scene-nav {
-		display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.4em;
-		margin-block-start: 0.8em;
+		display: flex; flex-wrap: wrap; align-items: baseline; gap: calc(var(--gap-ramp) * 0.4);   /* was gap 0.4em - 2026-09-05 ramps */
+		margin-block-start: calc(var(--gap-ramp) * 0.8);   /* was margin-block-start 0.8em - 2026-09-05 ramps */
 	}
 
 	.scene-nav-label {
@@ -182,9 +182,9 @@
 
 	/* One row per stop: a time, the url it walks to, and the sentence. The path column
 	   is fixed so ten of them read as a column rather than as ragged prose. */
-	.scene-tour { margin-block-start: 0.8em; display: flex; flex-direction: column; gap: 0.25em; }
+	.scene-tour { margin-block-start: calc(var(--gap-ramp) * 0.8); display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.25); }   /* was margin-block-start 0.8em; gap 0.25em - 2026-09-05 ramps */
 
-	.scene-tour-stop { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.6em; font-size: 0.85em; }
+	.scene-tour-stop { display: flex; flex-wrap: wrap; align-items: baseline; gap: calc(var(--gap-ramp) * 0.6); font-size: 0.85em; }   /* was gap 0.6em - 2026-09-05 ramps */
 
 	.scene-tour-at {
 		flex: none; width: 3em;
@@ -201,7 +201,7 @@
 
 	/* THE NOTE. One shows at a time - the arrangement contract hides a marked
 	   ancestor that has a marked later sibling - so this is the leaf talking. */
-	.scene-notes { display: flex; margin-block-start: 0.9em; }
+	.scene-notes { display: flex; margin-block-start: calc(var(--gap-ramp) * 0.9); }   /* was margin-block-start 0.9em - 2026-09-05 ramps */
 
 	.page.scene-note {
 		display: block; padding: 0;
@@ -213,7 +213,7 @@
 		text-transform: uppercase; letter-spacing: 0.06em;
 	}
 
-	.page.scene-note > .page-title + * { margin-block-start: 0.2em; }
+	.page.scene-note > .page-title + * { margin-block-start: calc(var(--gap-ramp) * 0.2); }   /* was margin-block-start 0.2em - 2026-09-05 ramps */
 	.page.scene-note p { color: var(--subtle); max-width: 44em; }
 
 	/* THE CAPTION CARD - the observatory's note, and the other half of one reading.
@@ -222,8 +222,8 @@
 	   layout; the drawing brings its own colour.
 	   The plate wraps under the text below ~30em because the body asks for 16em and
 	   the plate is a fixed 9.5em - no query, just the sum. */
-	.scene-card { display: flex; flex-wrap: wrap; align-items: start; gap: 1.1em; max-width: 48em; }
-	.scene-card-body { flex: 1 1 16em; min-width: 0; display: flex; flex-direction: column; gap: 0.6em; }
+	.scene-card { display: flex; flex-wrap: wrap; align-items: start; gap: calc(var(--gap-ramp) * 1.1); max-width: 48em; }   /* was gap 1.1em - 2026-09-05 ramps */
+	.scene-card-body { flex: 1 1 16em; min-width: 0; display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.6); }   /* was gap 0.6em - 2026-09-05 ramps */
 	.scene-card-body > * { margin: 0; }
 
 	/* ONE RUNG DOWN, and deliberately the opposite direction to the magazine's ladder
@@ -241,7 +241,7 @@
 
 	/* The record's own facts, in the theme's mono - the smallest type on the page and
 	   the only place a slot name is said as data rather than as prose. */
-	.scene-facts { display: flex; flex-wrap: wrap; gap: 0.4em; }
+	.scene-facts { display: flex; flex-wrap: wrap; gap: calc(var(--gap-ramp) * 0.4); }   /* was gap 0.4em - 2026-09-05 ramps */
 
 	.scene-fact {
 		padding: 0.1em 0.6em; border: 1px solid var(--line); border-radius: 999px;

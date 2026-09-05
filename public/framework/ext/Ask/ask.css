@@ -1,21 +1,21 @@
 /* Layout only. Looks come from `surface` / `wash` / `muted` off framework.css. */
 @layer theme {
 
-	.chat { display: flex; flex-direction: column; gap: .75em; min-width: 0; }
+	.chat { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.75); min-width: 0; }   /* was gap .75em - 2026-09-05 ramps */
 
-	.chat-list { display: flex; flex-direction: column; gap: .75em; min-width: 0; max-height: 30em; overflow-y: auto; }
+	.chat-list { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.75); min-width: 0; max-height: 30em; overflow-y: auto; }   /* was gap .75em - 2026-09-05 ramps */
 
-	.chat-turn { display: flex; flex-direction: column; gap: .25em; padding: .5em .75em; border-radius: var(--radius); background: var(--wash); min-width: 0; }
+	.chat-turn { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.25); padding: .5em .75em; border-radius: var(--radius); background: var(--wash); min-width: 0; }   /* was gap .25em - 2026-09-05 ramps */
 	.chat-user { background: color-mix(in srgb, var(--prim) 10%, transparent); }
 
 	.chat-role { font-size: .8em; text-transform: uppercase; letter-spacing: .05em; }
-	.chat-body { display: flex; flex-direction: column; gap: .5em; min-width: 0; }
+	.chat-body { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.5); min-width: 0; }   /* was gap .5em - 2026-09-05 ramps */
 	.chat-body > * { margin: 0; }
 
 	.chat-cost { font-size: .8em; }
 	.chat-error { color: var(--error, crimson); }
 
-	.chat-form { display: flex; gap: .5em; align-items: flex-end; }
+	.chat-form { display: flex; gap: calc(var(--gap-ramp) * 0.5); align-items: flex-end; }   /* was gap .5em - 2026-09-05 ramps */
 	.chat-input { flex: 1; min-width: 0; resize: vertical; font: inherit; padding: .5em; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--ink); }
 	.chat-send { padding: .5em 1em; }
 	.chat-send:disabled { opacity: .5; }

@@ -2314,5 +2314,326 @@ export default {
    "growth_a": 0.84,
    "has_pair": true
   }
- ]
+ ],
+ "components": {
+  "pages": 84,
+  "median_1280_before": 8.1,
+  "median_1280_after": 9.1,
+  "median_3440_before": 9.7,
+  "median_3440_after": 25.3,
+  "growth_before": 1.2,
+  "growth_after": 2.78,
+  "rules_found": 475,
+  "rules_changed": 365,
+  "rules_kept": 110,
+  "kept_why": {
+   "a painted hairline seam (px), not spacing": 30,
+   "zero on purpose": 21,
+   "composed value / already a token": 47,
+   "the class name states the value (.gap-2em)": 1,
+   "mixed / non-length value": 5,
+   "auto - centring, not spacing": 6
+  },
+  "invariants": "0 page errors, 0 horizontal overflow, 0 new boxes at x:0, across all 84 pages at both widths",
+  "realms": [
+   {
+    "realm": "/notes/",
+    "pages": 4,
+    "m3440_b": 54,
+    "m3440_a": 54,
+    "growth_b": 1.8,
+    "growth_a": 1.8
+   },
+   {
+    "realm": "/framework/",
+    "pages": 11,
+    "m3440_b": 51.3,
+    "m3440_a": 51.3,
+    "growth_b": 1.75,
+    "growth_a": 1.75
+   },
+   {
+    "realm": "/imagine/cms/",
+    "pages": 2,
+    "m3440_b": 37.3,
+    "m3440_a": 41.1,
+    "growth_b": 1.7,
+    "growth_a": 1.88
+   },
+   {
+    "realm": "/web/",
+    "pages": 2,
+    "m3440_b": 31.2,
+    "m3440_a": 31.4,
+    "growth_b": 1.89,
+    "growth_a": 1.9
+   },
+   {
+    "realm": "/resume/",
+    "pages": 1,
+    "m3440_b": 29.1,
+    "m3440_a": 29.1,
+    "growth_b": 1.2,
+    "growth_a": 1.2
+   },
+   {
+    "realm": "/",
+    "pages": 1,
+    "m3440_b": 10.8,
+    "m3440_a": 27.7,
+    "growth_b": 1.2,
+    "growth_a": 3.07
+   },
+   {
+    "realm": "/imagine/codrops/",
+    "pages": 3,
+    "m3440_b": 25.9,
+    "m3440_a": 25.9,
+    "growth_b": 2.39,
+    "growth_a": 2.39
+   },
+   {
+    "realm": "/imagine/stream/",
+    "pages": 3,
+    "m3440_b": 13.4,
+    "m3440_a": 25.9,
+    "growth_b": 1.56,
+    "growth_a": 2.39
+   },
+   {
+    "realm": "/imagine/vary/",
+    "pages": 3,
+    "m3440_b": 9.7,
+    "m3440_a": 25.3,
+    "growth_b": 1.2,
+    "growth_a": 2.78
+   },
+   {
+    "realm": "/imagine/decks/",
+    "pages": 3,
+    "m3440_b": 9.7,
+    "m3440_a": 25.3,
+    "growth_b": 1.2,
+    "growth_a": 2.78
+   },
+   {
+    "realm": "/imagine/design/",
+    "pages": 3,
+    "m3440_b": 9.7,
+    "m3440_a": 25.3,
+    "growth_b": 1.2,
+    "growth_a": 2.78
+   },
+   {
+    "realm": "/imagine/gallery/",
+    "pages": 2,
+    "m3440_b": 9.7,
+    "m3440_a": 25.3,
+    "growth_b": 1.2,
+    "growth_a": 2.78
+   },
+   {
+    "realm": "/imagine/shells/",
+    "pages": 1,
+    "m3440_b": 9.7,
+    "m3440_a": 25.3,
+    "growth_b": 1.2,
+    "growth_a": 2.78
+   },
+   {
+    "realm": "/imagine/feeds/",
+    "pages": 1,
+    "m3440_b": 9.7,
+    "m3440_a": 25.3,
+    "growth_b": 1.2,
+    "growth_a": 2.78
+   },
+   {
+    "realm": "/imagine/research/",
+    "pages": 3,
+    "m3440_b": 9.7,
+    "m3440_a": 25.3,
+    "growth_b": 1.2,
+    "growth_a": 2.78
+   },
+   {
+    "realm": "/imagine/mag/",
+    "pages": 3,
+    "m3440_b": 9.2,
+    "m3440_a": 23.8,
+    "growth_b": 1.18,
+    "growth_a": 2.58
+   },
+   {
+    "realm": "/imagine/screens/",
+    "pages": 3,
+    "m3440_b": 9,
+    "m3440_a": 23.1,
+    "growth_b": 1.2,
+    "growth_a": 3.07
+   },
+   {
+    "realm": "/blog/",
+    "pages": 4,
+    "m3440_b": 17.8,
+    "m3440_a": 22.1,
+    "growth_b": 0.86,
+    "growth_a": 1.06
+   },
+   {
+    "realm": "/imagine/team/",
+    "pages": 3,
+    "m3440_b": 6.5,
+    "m3440_a": 16.8,
+    "growth_b": 1.06,
+    "growth_a": 1.74
+   },
+   {
+    "realm": "/imagine/review/",
+    "pages": 2,
+    "m3440_b": 8.9,
+    "m3440_a": 16.7,
+    "growth_b": 1.2,
+    "growth_a": 2.1
+   },
+   {
+    "realm": "/imagine/generated/",
+    "pages": 1,
+    "m3440_b": 16.2,
+    "m3440_a": 16.2,
+    "growth_b": 1.2,
+    "growth_a": 1.2
+   },
+   {
+    "realm": "/imagine/blogx/",
+    "pages": 3,
+    "m3440_b": 6.3,
+    "m3440_a": 16.2,
+    "growth_b": 1.2,
+    "growth_a": 3.08
+   },
+   {
+    "realm": "/imagine/youtube/",
+    "pages": 2,
+    "m3440_b": 7.5,
+    "m3440_a": 14.7,
+    "growth_b": 1.17,
+    "growth_a": 2.08
+   },
+   {
+    "realm": "/imagine/layouts/",
+    "pages": 3,
+    "m3440_b": 6.8,
+    "m3440_a": 12.0,
+    "growth_b": 1.12,
+    "growth_a": 1.76
+   },
+   {
+    "realm": "/imagine/scenes/",
+    "pages": 3,
+    "m3440_b": 3.2,
+    "m3440_a": 8.4,
+    "growth_b": 1.2,
+    "growth_a": 2.79
+   },
+   {
+    "realm": "/imagine/paging/",
+    "pages": 8,
+    "m3440_b": 8.5,
+    "m3440_a": 7.6,
+    "growth_b": 1.14,
+    "growth_a": 1.02
+   },
+   {
+    "realm": "/imagine/game/",
+    "pages": 3,
+    "m3440_b": 1.8,
+    "m3440_a": 4.6,
+    "growth_b": 1.2,
+    "growth_a": 3.07
+   }
+  ],
+  "movers": [
+   {
+    "slug": "framework-ext",
+    "url": "/framework/ext/",
+    "m3440_b": 10.8,
+    "m3440_a": 27.7,
+    "growth_b": 1.2,
+    "growth_a": 3.07
+   },
+   {
+    "slug": "framework-core",
+    "url": "/framework/core/",
+    "m3440_b": 10.8,
+    "m3440_a": 27.7,
+    "growth_b": 1.2,
+    "growth_a": 3.07
+   },
+   {
+    "slug": "imagine-design-journey",
+    "url": "/imagine/design/journey/",
+    "m3440_b": 9.7,
+    "m3440_a": 25.3,
+    "growth_b": 1.2,
+    "growth_a": 2.78
+   },
+   {
+    "slug": "imagine-decks",
+    "url": "/imagine/decks/",
+    "m3440_b": 9.7,
+    "m3440_a": 25.3,
+    "growth_b": 1.2,
+    "growth_a": 2.78
+   },
+   {
+    "slug": "imagine-blogx",
+    "url": "/imagine/blogx/",
+    "m3440_b": 9.7,
+    "m3440_a": 25.3,
+    "growth_b": 1.2,
+    "growth_a": 2.78
+   },
+   {
+    "slug": "imagine-review-rethink",
+    "url": "/imagine/review/rethink/",
+    "m3440_b": 9.7,
+    "m3440_a": 25.3,
+    "growth_b": 1.2,
+    "growth_a": 2.78
+   },
+   {
+    "slug": "imagine-shells",
+    "url": "/imagine/shells/",
+    "m3440_b": 9.7,
+    "m3440_a": 25.3,
+    "growth_b": 1.2,
+    "growth_a": 2.78
+   },
+   {
+    "slug": "imagine-screens",
+    "url": "/imagine/screens/",
+    "m3440_b": 9.7,
+    "m3440_a": 25.3,
+    "growth_b": 1.2,
+    "growth_a": 2.78
+   },
+   {
+    "slug": "framework",
+    "url": "/framework/",
+    "m3440_b": 10.8,
+    "m3440_a": 18,
+    "growth_b": 1.2,
+    "growth_a": 2.0
+   },
+   {
+    "slug": "blog-framework-how-this-blog-works",
+    "url": "/blog/framework/how-this-blog-works/",
+    "m3440_b": 17.8,
+    "m3440_a": 22.1,
+    "growth_b": 0.8,
+    "growth_a": 1.0
+   }
+  ]
+ }
 };

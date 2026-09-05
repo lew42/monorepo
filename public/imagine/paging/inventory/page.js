@@ -16,7 +16,6 @@ export default new Paging({
 	title: "Inventory",
 	description: "What already matches icon · page · children · navigation — one row per thing, in the paging vocabulary.",
 	icon: "inventory_2",
-	width: "full",
 
 	content(){
 		md("**One row per thing on this site that is already an icon, a page and a list of children — and which of paging's four words it uses.** The owner's question was \"what else have we made that matches this pattern?\"; this table is the answer.").ac("paging-lede");

@@ -7,7 +7,7 @@
 
    This file is the seam that fixes it, and it is three functions:
 
-       from_url(base)     on mount — the words in `?…` win over the page's own
+       from_url(base, url) on mount — the words in `?…` win over the page's own
        write_url(...)     on every change — one `history.replaceState`
        link_for(...)      the address, for the drawer's "copy this link"
 
@@ -23,21 +23,34 @@ import { PRESETS } from "./presets.js";
 
 const AXES = CONTROLS.map(control => control.axis);
 
-/* ⚠ THE ENTRY QUERY, READ ONCE, AT MODULE LOAD. core's Router navigates by the
-     link's PATHNAME alone and pushes the new address AFTER the page has drawn — so
-     `location.search` at render time is the query of the page you just LEFT
-     (`/framework/core/new/1/agents/urls/`, "one thing the Router does owe"). A stage
-     that read it live would inherit the previous page's words. Reading it here, at
-     the cold load, and refusing it on any other pathname is the whole guard. */
+/* ⚠ THE ENTRY QUERY, READ ONCE, AT MODULE LOAD — which is the cold load. core's
+     Router navigates by the link's PATHNAME alone and pushes the new address AFTER
+     the page has drawn, so `location.search` read later is never a reliable answer
+     (`/framework/core/new/1/agents/urls/`, "one thing the Router does owe"). Read it
+     here, hold it, and hand it only to the page it names. */
 const ENTRY = { path: location.pathname, params: new URLSearchParams(location.search) };
-let unread = true;
 
 /* THE WORDS THIS PAGE OPENS ON: its own, with anything in `?…` written over them.
    A value that is not in that word's list is ignored, so `?room=banana` opens the
-   page rather than a broken one. */
-export function from_url(base){
-	if (!unread || location.pathname !== ENTRY.path) return { config: { ...base }, nest: null };
-	unread = false;
+   page rather than a broken one.
+
+   ⚠ THE GUARD IS THE PAGE'S OWN URL, not `location.pathname`, and not "the first
+     stage to ask". Both of those were tried here on 2026-09-05 and both are wrong:
+
+       first-to-ask   the app's home page is BUILT on every cold load, even when a
+                      deep child is what you opened (it is hidden by CSS, not
+                      skipped) — so the hub's invisible stage ate the query and the
+                      page you actually asked for got none of it.
+       location       core's Router loads the next page and pushes its address
+                      AFTERWARDS, so during a client-side navigation
+                      `location.pathname` is still the page you just LEFT. Every
+                      stage you navigated to inherited the previous page's words.
+
+     A page's own `url` is neither: it is decided when the page is added and it is
+     never the address bar's opinion. `?…` applies to the page the entry url names,
+     and to nothing else. */
+export function from_url(base, path){
+	if (!path || path !== ENTRY.path) return { config: { ...base }, nest: null };
 
 	const config = { ...base };
 

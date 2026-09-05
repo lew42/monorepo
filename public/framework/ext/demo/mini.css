@@ -39,7 +39,7 @@
 
 	.demo-mini-pad {
 		display: flex; flex: 1 1 0; min-height: 0;
-		gap: 0.5em;
+		gap: calc(var(--gap-ramp) * 0.5);   /* was gap 0.5em - 2026-09-05 ramps */
 		padding: var(--mini-pad, 0.55em);
 	}
 	.demo-mini-pad.v { flex-direction: column; }
@@ -47,7 +47,7 @@
 	.demo-mini-stack {
 		display: flex; flex-direction: column; flex: 1 1 0; min-height: 0;
 		align-items: center; justify-content: center;
-		gap: 0.5em; padding: 0.6em;
+		gap: calc(var(--gap-ramp) * 0.5); padding: 0.6em;   /* was gap 0.5em - 2026-09-05 ramps */
 	}
 
 	/* ── a box on the field: one page, one region, one pane ── */
@@ -81,13 +81,13 @@
 
 	.demo-mini-pane { display: flex; flex-direction: column; flex: 1 1 0; min-width: 0; min-height: 0; background: var(--surface); }
 
-	.demo-mini-lines { display: flex; flex-direction: column; flex: 1 1 0; min-height: 0; gap: 0.4em; padding: 0.55em; }
+	.demo-mini-lines { display: flex; flex-direction: column; flex: 1 1 0; min-height: 0; gap: calc(var(--gap-ramp) * 0.4); padding: 0.55em; }   /* was gap 0.4em - 2026-09-05 ramps */
 	.demo-mini-line { flex: 0 0 0.32em; border-radius: 2px; background: var(--line); }
 	.demo-mini-line:nth-child(3n) { width: 62%; }
 	.demo-mini-line:nth-child(4n) { width: 84%; }
 
 	/* ── top tabs: the strip sits ON the pane's top edge, the open tab merged with it ── */
-	.demo-mini-tabs { display: flex; flex: none; gap: 0.25em; padding: 0.4em 0.45em 0; border-bottom: 1px solid var(--line); }
+	.demo-mini-tabs { display: flex; flex: none; gap: calc(var(--gap-ramp) * 0.25); padding: 0.4em 0.45em 0; border-bottom: 1px solid var(--line); }   /* was gap 0.25em - 2026-09-05 ramps */
 	.demo-mini-tab {
 		flex: 0 0 2.6em; height: 0.95em; margin-bottom: -1px;
 		background: var(--tint);
@@ -97,7 +97,7 @@
 
 	/* The same strip stood on its end — the inner left tabs a Doc's API tab uses. */
 	.demo-mini-tabs.v {
-		flex-direction: column; flex: 0 0 5.5em; gap: 0.3em;
+		flex-direction: column; flex: 0 0 5.5em; gap: calc(var(--gap-ramp) * 0.3);   /* was gap 0.3em - 2026-09-05 ramps */
 		padding: 0.45em 0 0.45em 0.45em;
 		border-bottom: none; border-inline-end: 1px solid var(--line);
 	}
@@ -108,10 +108,10 @@
 
 	/* ── nav rows: a filled rail, or a plain list ── */
 	.demo-mini-rail {
-		display: flex; flex-direction: column; flex: 0 0 5em; gap: 0.35em; padding: 0.45em;
+		display: flex; flex-direction: column; flex: 0 0 5em; gap: calc(var(--gap-ramp) * 0.35); padding: 0.45em;   /* was gap 0.35em - 2026-09-05 ramps */
 		background: var(--tint); border-inline-end: 1px solid var(--line);
 	}
-	.demo-mini-list { display: flex; flex-direction: column; flex: 1 1 0; min-height: 0; gap: 0.35em; padding: 0.45em; }
+	.demo-mini-list { display: flex; flex-direction: column; flex: 1 1 0; min-height: 0; gap: calc(var(--gap-ramp) * 0.35); padding: 0.45em; }   /* was gap 0.35em - 2026-09-05 ramps */
 
 	/* A ROW, not a bar: drawn as a thin `--line` bar a list was indistinguishable from
 	   prose at this size — same stack, same widths, and only the lit one told them
@@ -122,11 +122,11 @@
 	/* ── an inbox: preview rows on the left, the detail beside them. A `list` row shows a
 	     line OF the page behind it, which is exactly what a `rail` row above does not. ── */
 	.demo-mini-previews {
-		display: flex; flex-direction: column; flex: 0 0 6.5em; gap: 0.35em; padding: 0.45em;
+		display: flex; flex-direction: column; flex: 0 0 6.5em; gap: calc(var(--gap-ramp) * 0.35); padding: 0.45em;   /* was gap 0.35em - 2026-09-05 ramps */
 		border-inline-end: 1px solid var(--line);
 	}
 	.demo-mini-preview {
-		display: flex; flex-direction: column; flex: 0 0 auto; gap: 0.25em; padding: 0.3em;
+		display: flex; flex-direction: column; flex: 0 0 auto; gap: calc(var(--gap-ramp) * 0.25); padding: 0.3em;   /* was gap 0.25em - 2026-09-05 ramps */
 		border-radius: 2px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line);
 	}
 	.demo-mini-preview.on { background: color-mix(in srgb, var(--prim) 14%, var(--surface)); box-shadow: inset 0 0 0 1px var(--prim); }
@@ -154,7 +154,7 @@
 	.demo-mini--dashboard .demo-mini-tile:nth-child(4) { grid-row: span 2; }
 
 	/* ── a crumb trail: thin chips, a leaning separator, the last one lit ── */
-	.demo-mini-crumbs { display: flex; flex: none; align-items: center; gap: 0.5em; padding: 0.45em 0.5em; border-bottom: 1px solid var(--line); }
+	.demo-mini-crumbs { display: flex; flex: none; align-items: center; gap: calc(var(--gap-ramp) * 0.5); padding: 0.45em 0.5em; border-bottom: 1px solid var(--line); }   /* was gap 0.5em - 2026-09-05 ramps */
 	.demo-mini-crumb { flex: 0 0 1.7em; height: 0.38em; border-radius: 2px; background: var(--line); }
 	.demo-mini-crumb.on { background: var(--prim); }
 	.demo-mini-crumb + .demo-mini-crumb { position: relative; }
@@ -165,12 +165,12 @@
 
 	/* ── a rail of cards (catalog), a row of them that scrolls (strip) ── */
 	.demo-mini-cards {
-		display: flex; flex-direction: column; flex: 0 0 4.6em; gap: 0.4em; padding: 0.45em;
+		display: flex; flex-direction: column; flex: 0 0 4.6em; gap: calc(var(--gap-ramp) * 0.4); padding: 0.45em;   /* was gap 0.4em - 2026-09-05 ramps */
 		border-inline-end: 1px solid var(--line);
 	}
 	.demo-mini-cards .demo-mini-tile { flex: 0 0 1.7em; }
 
-	.demo-mini-strip { display: flex; flex: 1 1 0; min-height: 0; gap: 0.45em; padding: 0.55em; align-items: start; overflow: hidden; }
+	.demo-mini-strip { display: flex; flex: 1 1 0; min-height: 0; gap: calc(var(--gap-ramp) * 0.45); padding: 0.55em; align-items: start; overflow: hidden; }   /* was gap 0.45em - 2026-09-05 ramps */
 	.demo-mini-strip .demo-mini-tile { flex: 0 0 4em; height: 3.2em; }
 
 	/* ── a row of full-height columns, seamed the way core's are ── */
@@ -186,7 +186,7 @@
 	/* ── two names for one entry: a short key beside its long title, both lit ── */
 	.demo-mini-key { flex: 0 0 1.8em; height: 0.45em; align-self: center; border-radius: 2px; background: var(--line); }
 	.demo-mini-key.on { background: var(--prim); }
-	.demo-mini--labels .demo-mini-row { gap: 0.5em; }
+	.demo-mini--labels .demo-mini-row { gap: calc(var(--gap-ramp) * 0.5); }   /* was gap 0.5em - 2026-09-05 ramps */
 	.demo-mini--labels .demo-mini-line { flex: 1 1 auto; height: 0.32em; align-self: center; }
 	.demo-mini--labels .demo-mini-line.on { background: var(--prim); }
 

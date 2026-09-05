@@ -30,7 +30,7 @@
 	.vary-tone-live-wrap { border: 1px solid var(--line); border-radius: var(--radius); }
 
 	.vary-tone-controls {
-		display: flex; flex-wrap: wrap; gap: 0.5em;
+		display: flex; flex-wrap: wrap; gap: calc(var(--gap-ramp) * 0.5);   /* was gap 0.5em - 2026-09-05 ramps */
 		padding: 0.8em; border-bottom: 1px solid var(--line);
 	}
 	.vary-tone-controls button.active { outline: 2px solid var(--prim); outline-offset: 2px; }

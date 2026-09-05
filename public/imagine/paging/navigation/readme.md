@@ -23,7 +23,7 @@ before it changes.**
 - [Fixed columns](/imagine/paging/navigation/columns/) — `.paging-nav-fixed` on a columns
   host. Every column takes the width its word floors at, so a new one is appended rather
   than paid for by its neighbours.
-- [Reserved stage](/imagine/paging/navigation/stage/) — `.paging-nav-reserve`. Two lines
+- [Reserved height](/imagine/paging/navigation/reserved/) — `.paging-nav-reserve`. Two lines
   of CSS: every panel stays in the box, invisible ones are still measured, so the box is
   always as tall as the tallest.
 - [Reserved tabs](/imagine/paging/navigation/tabs/) — the same two lines under a tab strip.

@@ -53,7 +53,7 @@
 	   UTIL-layer rule beats a same-specificity THEME-layer one outright regardless of
 	   selector order (`code` skill §7) — the only way to pick a smaller number is to
 	   never let `.gap` apply at all. */
-	.pg-toolbar { padding: 0.5em 0.75em; gap: 0.4em; border-block-end: 1px solid var(--line); overflow-x: auto; }
+	.pg-toolbar { padding: 0.5em 0.75em; gap: calc(var(--gap-ramp) * 0.4); border-block-end: 1px solid var(--line); overflow-x: auto; }   /* was gap 0.4em - 2026-09-05 ramps */
 	/* `.theme-lew42 :is(button, .btn)` (`styles/layers/theme/lew42/lew42.css`) is
 	   0.7em/1.4em padding and OUTSPECIFICITIES a bare `.pg-btn` (two classes beat one,
 	   same `theme` layer) — meant for a normal button, not eleven packed into one row.
@@ -92,16 +92,16 @@
 	   wherever a scrollbar occupies layout space. Reserving the gutter always costs those
 	   15px permanently and is worth it; headless Chromium cannot show the bug at all
 	   (overlay scrollbars, `offsetWidth - clientWidth === 0` even in `channel: chrome`). */
-	.pg-properties-body { display: flex; flex-direction: column; gap: 0.5em; padding: 0.75em; scrollbar-gutter: stable; }
+	.pg-properties-body { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.5); padding: 0.75em; scrollbar-gutter: stable; }   /* was gap 0.5em - 2026-09-05 ramps */
 	.pg-props-head { font-size: 0.8em; font-weight: 700; letter-spacing: 0.02em; }
-	.pg-field { display: flex; flex-direction: column; gap: 0.2em; }
+	.pg-field { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.2); }   /* was gap 0.2em - 2026-09-05 ramps */
 	.pg-field-label { font-size: 0.75em; color: var(--subtle); }
 	.pg-seg { display: flex; flex-wrap: wrap; gap: 2px; }
 
 	/* A conditional field GROUP (pg-sidebar brief §1) — the flex/grid config, "in parent" —
 	   set off from the always-on fields above it by a rule, same visual move `.pg-readout`
 	   already makes for the readout below. */
-	.pg-section { display: flex; flex-direction: column; gap: 0.5em; padding-block-start: 0.5em; border-block-start: 1px solid var(--line); }
+	.pg-section { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.5); padding-block-start: 0.5em; border-block-start: 1px solid var(--line); }   /* was gap 0.5em - 2026-09-05 ramps */
 	.pg-section-head { font-size: 0.7em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--subtle); }
 
 	/* The bg dropdown's own picture (properties.js `BG_TOKENS`) — a token's actual colour,
@@ -113,7 +113,7 @@
 	.pg-properties-body button.pg-seg-btn { padding: 0.15em 0.4em; font-size: 0.75em; }
 	.pg-seg-btn.pg-seg-active { background: var(--prim); color: white; border-color: var(--prim); }
 	.pg-readout {
-		margin-block-start: 0.25em; padding-block-start: 0.75em; border-block-start: 1px solid var(--line);
+		margin-block-start: calc(var(--gap-ramp) * 0.25); padding-block-start: 0.75em; border-block-start: 1px solid var(--line);   /* was margin-block-start 0.25em - 2026-09-05 ramps */
 		font-family: monospace; font-size: 0.75em; color: var(--subtle); white-space: pre-wrap; word-break: break-word;
 	}
 	/* One line per declaration (pg-edges item 5) so the last change can be POINTED AT —
@@ -122,7 +122,7 @@
 	   highlight is the whole feature, and a tooltip system was explicitly not the ask. */
 	.pg-decl { display: block; }
 	.pg-decl-new { background: var(--tint); color: var(--prim-ink); font-weight: 700; }
-	.pg-decl-note { display: block; margin-block-start: 0.4em; color: var(--prim-ink); }
+	.pg-decl-note { display: block; margin-block-start: calc(var(--gap-ramp) * 0.4); color: var(--prim-ink); }   /* was margin-block-start 0.4em - 2026-09-05 ramps */
 
 	/* Every canvas node is real DOM wearing the ITEM's own inline style (design §4) —
 	   this is chrome only, never a property `item.styles()` could also write: a border

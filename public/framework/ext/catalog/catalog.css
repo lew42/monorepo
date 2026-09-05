@@ -9,7 +9,7 @@
 	     bound it — `flex-start` sizes every child to its own content instead, which is
 	     the row growing to whatever the mounted child page's height is. `.page:has(>
 	     .page-catalog)` below is what gives this row a definite height to stretch INTO. */
-	.page-catalog:where(:not(.page)) { display: flex; align-items: stretch; gap: 2em; }
+	.page-catalog:where(:not(.page)) { display: flex; align-items: stretch; gap: calc(var(--flow-ramp) * 1); }   /* was gap 2em - 2026-09-05 ramps */
 
 	/* The rail's first entry IS the page's own content, heading and all — so the shell
 	   around it must not print the same title again. ⚠ `.page-title` is Page.css's;
@@ -69,7 +69,7 @@
 
 		/* ⚠ `row-gap`, not `--gap`: the wall's knob INHERITS, so a live thumb's own
 		   `.gap` utilities would retune themselves to the rail's rhythm. */
-		row-gap: 1.2em;
+		row-gap: calc(var(--gap-ramp) * 1.2);   /* was row-gap 1.2em - 2026-09-05 ramps */
 
 		position: sticky; top: 0;
 		max-height: 100dvh;

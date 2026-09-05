@@ -79,7 +79,7 @@ added — so the pair is the argument.
 | demo | gesture | today | with the rule |
 |---|---|---|---|
 | [Fixed columns](/imagine/paging/navigation/columns/) | open a fourth column | moved **134 / 161** | moved **0 / 0** |
-| [Reserved stage](/imagine/paging/navigation/stage/) | swap Overview → Pricing | jumped **252 / 301** | jumped **0 / 0** |
+| [Reserved height](/imagine/paging/navigation/reserved/) | swap Overview → Pricing | jumped **252 / 301** | jumped **0 / 0** |
 | [Reserved tabs](/imagine/paging/navigation/tabs/) | press the Pricing tab | jumped **252 / 302** | jumped **0 / 0** |
 | [Full screen](/imagine/paging/navigation/screen/) | three sub pages in a row | — | rail **0 / 0**, centre **0 / 0** |
 

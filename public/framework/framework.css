@@ -107,6 +107,27 @@
         --gap-ramp:  clamp(1em, 1.5vw - 0.3em, 2.6em);
         --flow-ramp: clamp(2em, 1.4vw + 0.8em, 3em);
 
+        /* ---- how a COMPONENT reads these (spacing-components, 2026-09-05) --------
+           The tokens above grew and the site did not, because 365 gaps were written
+           as constants inside components. The transform, applied site-wide and worth
+           copying for any new one:
+
+             gap: 0.6em      →  gap: calc(var(--gap-ramp) * 0.6)
+             (2em and up)    →  calc(var(--flow-ramp) * N/2), which caps at 3em
+
+           The multiplier IS the old em number, so 1280 does not move and 3440 grows
+           3.07× — the ramp's own rate. A section-scale gap takes the flow ramp
+           instead, for the reason its cap exists: past a point a gap reads as a
+           break, not as breathing. Site-wide median sibling gap at 3440: 9.7px →
+           25.3px. [The measurement](/imagine/design/spacing/audit/).
+           ⚠ Small print: the `1em` floor resolves at the element USING the token, so
+             on a 0.72em chip the `vw` branch already wins at 1280 and the converted
+             value lands a little above the old one there (site-wide 1280: 8.1 → 9.1).
+           ⚠ A CONTROL's padding is not converted — a chip that hugs already carries a
+             ratio of its own text (the control rule's 0.6–1em), and `--pad-ramp` is a
+             % of the CONTAINING BLOCK, so it would put 52px a side on a chip in a
+             3400px strip. Convert a container's padding, never a control's. */
+
         /* ---- the three spacing levels: one number, `--spacing` -----------------
            tight .6 · regular 1 · airy 1.6 — a 1 : 1.67 : 2.67 ladder, so a newcomer
            can SEE the step. (The paging realm's type levels are 0.88 : 1 : 1.06 and
@@ -518,7 +539,7 @@
        the token is the size. */
     .pad { padding: var(--pad, var(--pad-default)); }
     .all-pad > * { padding: var(--pad, var(--pad-default)); }
-    .mb { margin-bottom: 1em; }
+    .mb { margin-bottom: calc(var(--gap-ramp) * 1); }   /* was margin-bottom 1em - 2026-09-05 ramps */
 
     /* Base sizes every select 100% — form fields align. A CHROME select (a toolbar
        picker, a column-head menu) opts back out with one word. Same word, two
@@ -662,6 +683,19 @@
 
     .grid { display: grid; }
     .grid.auto { grid-template-columns: repeat(auto-fit, minmax(min(var(--column), 100%), 1fr)); }
+
+    /* ⚠ `auto-FILL` when the cells are preview CARDS (2026-09-05, spacing-components).
+       `auto-fit` collapses the empty tracks and hands the leftover to whatever is
+       there, so a wall of one card became a 3,342px card at 3440 on
+       `/imagine/design/journey/` — 54 of them site-wide read as strips. `.wall`
+       already chose `auto-fill` for exactly this, measured 2026-08-17 ("two children
+       must not become two enormous cards"); a `grid auto` that holds `.page-preview`
+       now makes the same choice, and the leftover track stays empty on purpose.
+       Scoped, not swapped: `.grid.auto` has ~90 call sites and flipping all of them
+       is the owner's call. */
+    .grid.auto:has(> .page-preview) {
+        grid-template-columns: repeat(auto-fill, minmax(min(var(--column), 100%), 1fr));
+    }
     .grid.three { grid-template-columns: repeat(auto-fit,
 		minmax(clamp(100% / 3 - 1rem, (var(--column)* 3 - 100%) * 999, 100%), 1fr)); }
 
@@ -786,7 +820,7 @@
 
     /* Markdown emits `<li><p>` for a loose list, and a UA paragraph margin
        inside a list item is a gap nobody asked for. */
-    :where(.flow) :is(li, td, th) > p { margin-block: 0.35em; }
+    :where(.flow) :is(li, td, th) > p { margin-block: calc(var(--gap-ramp) * 0.35); }   /* was margin-block 0.35em - 2026-09-05 ramps */
 
     /* ── a link in prose ──
        Scoped to text, not to `a`, and that is the whole decision. Every piece

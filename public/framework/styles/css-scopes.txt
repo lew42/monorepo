@@ -120,13 +120,14 @@ journey-     /imagine/design/journey
 layouts-     /imagine/layouts (the numbered system: the 3-column card, the frame, the chips)
              ⚠ NOT `layout-`, which is ext/layout above. One letter apart on purpose:
              this realm's classes are all `.layouts-*` and none is ever `.layout-*`.
-paging-      /imagine/paging (the styles, the mode toolbar, the mechanism items)
+paging-      /imagine/paging (the app: rail, stage, toolbar, the surface words)
 build-       /imagine/paging/build (the page builder: controls | stage | file)
 paging-nav-  /imagine/paging/navigation (stable vs dynamic navigation)
-             Three of these are meant to be lifted, not just used there:
-             `.paging-nav-reserve` a box always as tall as its tallest panel ·
-             `.paging-nav-fixed` a columns host whose columns stop negotiating widths ·
-             `.paging-nav-screen`/`-rail`/`-centre` a full screen whose rail never moves.
+             ⚠ `.paging-nav-reserve` / `-hidden` moved UP to paging.css on 2026-09-05
+             — the whole realm reserves its box that way now, so there is one copy.
+             Still declared in navigation.css: `.paging-nav-fixed` a columns host
+             whose columns stop negotiating widths · `.paging-nav-screen`/`-rail`/
+             `-centre` a full screen whose rail never moves.
 templates-   /imagine/paging/templates (the miniature frame and the type axis)
 baseline-    /imagine/paging/baseline.js (the "this page remembers you" mark — used by every realm that persists)
 color-       /imagine/design/color

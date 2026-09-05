@@ -3,10 +3,10 @@
 	/* Layout only. The cards below borrow `--surface` and `--line` rather than
 	   inventing a look, because a rules page that ships its own skin is not
 	   following its own rules. */
-	.rules-demo { margin-block: 1em; }
+	.rules-demo { margin-block: calc(var(--gap-ramp) * 1); }   /* was margin-block 1em - 2026-09-05 ramps */
 
 	.rules-row { align-items: start; }
-	.rules-cell { min-width: 0; gap: 0.4em; }
+	.rules-cell { min-width: 0; gap: calc(var(--gap-ramp) * 0.4); }   /* was gap 0.4em - 2026-09-05 ramps */
 
 	.rules-card {
 		background: var(--surface);
@@ -15,11 +15,11 @@
 	}
 
 	.rules-card > * { margin: 0; }
-	.rules-card > * + * { margin-block-start: 0.4em; }
+	.rules-card > * + * { margin-block-start: calc(var(--gap-ramp) * 0.4); }   /* was margin-block-start 0.4em - 2026-09-05 ramps */
 
 	.rules-verdict { font-size: 0.85em; font-variant-numeric: tabular-nums; }
 
-	.rules-nest { gap: 0.4em; }
+	.rules-nest { gap: calc(var(--gap-ramp) * 0.4); }   /* was gap 0.4em - 2026-09-05 ramps */
 	.rules-name { font-weight: 700; }
 
 	/* The proportion rule, applied to this page's own frames — a rules page that

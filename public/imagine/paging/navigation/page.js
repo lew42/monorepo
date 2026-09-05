@@ -32,13 +32,12 @@ export default new Paging({
 	title: "Navigation",
 	description: "Stable or dynamic: does the click move what you were reading?",
 	icon: "swipe_left",
-	axes: "",
 	index: true,
 	depth: 1,
 
 	takeaway: "**Press the buttons in both boxes below.** The left box moves the thing you were reading; the right box does not. That is the whole difference between the two kinds of navigation on this site.",
 
-	children: "columns stage tabs screen doc",
+	children: "columns reserved tabs screen doc",
 
 	content(){
 		this.lede();

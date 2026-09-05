@@ -47,7 +47,7 @@ export class PagingStage extends View {
 
 		// ⚠ A NESTED STAGE NEVER READS OR WRITES THE ADDRESS. It is a page inside a
 		//   box, not the page you are on; two stages writing one url would fight.
-		const opening = this.inner ? { config: this.base, nest: null } : from_url(this.base);
+		const opening = this.inner ? { config: this.base, nest: null } : from_url(this.base, this.page?.url);
 
 		this.config = opening.config;
 		this.nest ??= opening.nest;
@@ -397,7 +397,11 @@ export class PagingStage extends View {
 	caption(){
 		const change = this.change;
 
-		if (!change) return p.c("muted", "Click a page name. This line will say what changed.");
+		// ⚠ The invitation has to match the page. On a stage whose navigation word is
+		//   `none` there are no page names to click, and the line said to click one.
+		if (!change) return p.c("muted", this.config.navigation === "none"
+			? "Click a chip in the bar above. This line will say what changed, in pixels."
+			: "Click a page name, or a chip in the bar above. This line will say what changed.");
 
 		const moved = this.moved(change.before, change.after);
 

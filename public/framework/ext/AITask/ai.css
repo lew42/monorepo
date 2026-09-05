@@ -2,9 +2,9 @@
    `muted` off framework.css. */
 @layer theme {
 
-	.ai-log { display: flex; flex-direction: column; gap: 1em; min-width: 0; }
+	.ai-log { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 1); min-width: 0; }   /* was gap 1em - 2026-09-05 ramps */
 
-	.ai-header { display: flex; align-items: baseline; gap: .5em; flex-wrap: wrap; }
+	.ai-header { display: flex; align-items: baseline; gap: calc(var(--gap-ramp) * 0.5); flex-wrap: wrap; }   /* was gap .5em - 2026-09-05 ramps */
 
 	/* One line each, ellipsis past the fold; `title` carries what this clips.
 	   ⚠ It lives on `wide` now (`.ai-timeline`, dashboard.js) — clipping a
@@ -29,13 +29,13 @@
 	   34rem floor, which replaced the 60em media query this used to need. */
 	.ai-columns { --cols-aside: 38em; --cols-align: start; }
 
-	.ai-rail { order: -1; display: flex; flex-direction: column; gap: .75em; min-width: 0; }
+	.ai-rail { order: -1; display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.75); min-width: 0; }   /* was gap .75em - 2026-09-05 ramps */
 
 	.ai-thread { padding: .5em .75em; cursor: pointer; }
-	.ai-thread .ai-meta { display: flex; gap: .5em; align-items: baseline; }
+	.ai-thread .ai-meta { display: flex; gap: calc(var(--gap-ramp) * 0.5); align-items: baseline; }   /* was gap .5em - 2026-09-05 ramps */
 
 	/* Sticky so a long thread reads beside the rail, not below it. */
-	.ai-detail { position: sticky; top: 0; max-height: 100dvh; overflow-y: auto; display: flex; flex-direction: column; gap: .75em; min-width: 0; }
+	.ai-detail { position: sticky; top: 0; max-height: 100dvh; overflow-y: auto; display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.75); min-width: 0; }   /* was gap .75em - 2026-09-05 ramps */
 
 	.ai-fold-bar { cursor: pointer; padding: .25em .75em; }
 	.ai-fold-body { display: none; }
@@ -52,14 +52,14 @@
 	   request each only once scrolled near. `.missing` (off localhost, or a shot
 	   whose file 404s before a restart) swaps the frame for a plain swatch instead
 	   of a broken-image icon — shots.js never even creates the <img> off localhost. */
-	.ai-shots { display: grid; grid-template-columns: repeat(auto-fill, minmax(9em, 1fr)); gap: .6em; }
+	.ai-shots { display: grid; grid-template-columns: repeat(auto-fill, minmax(9em, 1fr)); gap: calc(var(--gap-ramp) * 0.6); }   /* was gap .6em - 2026-09-05 ramps */
 	.ai-shot-frame { display: flex; aspect-ratio: 4 / 3; overflow: hidden; border-radius: .3em;
 		background: color-mix(in srgb, currentColor 6%, transparent); }
 	.ai-shot-img { width: 100%; height: 100%; object-fit: cover; }
 	.ai-shot-fallback { display: none; flex: 1; align-items: center; justify-content: center; font-size: .8em; }
 	.ai-shot.missing .ai-shot-img { display: none; }
 	.ai-shot.missing .ai-shot-fallback { display: flex; }
-	.ai-shot-label { margin-block-start: .3em; font-size: .8em; }
+	.ai-shot-label { margin-block-start: calc(var(--gap-ramp) * 0.3); font-size: .8em; }   /* was margin-block-start .3em - 2026-09-05 ramps */
 
 	/* Dashboard: usage meters + task rows. --pct and --at are written inline by usage.js.
 	   ⚠ Auto-fit, not a column: at board width a stacked meter is a 3000px-long bar
@@ -68,9 +68,9 @@
 	.ai-usage {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(min(22em, 100%), 1fr));
-		gap: .9em 2em;
+		gap: calc(var(--gap-ramp) * 0.9) calc(var(--flow-ramp) * 1);   /* was gap .9em 2em - 2026-09-05 ramps */
 	}
-	.ai-meter { display: flex; flex-direction: column; gap: .15em; min-width: 0; }
+	.ai-meter { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.15); min-width: 0; }   /* was gap .15em - 2026-09-05 ramps */
 	.ai-pct { font-weight: 700; font-variant-numeric: tabular-nums; }
 	.ai-note { font-size: .9em; }
 
@@ -95,7 +95,7 @@
 
 	/* Steps as segments — the bar jumps a notch per step, which is what it measures.
 	   Running tasks only; a dormant task shows none at all. */
-	.ai-steps { display: flex; gap: .2em; }
+	.ai-steps { display: flex; gap: calc(var(--gap-ramp) * 0.2); }   /* was gap .2em - 2026-09-05 ramps */
 	.ai-seg { flex: 1; height: .3em; border-radius: 999px;
 		background: color-mix(in srgb, currentColor 12%, transparent); }
 	.ai-seg.done { background: var(--ok); }
@@ -104,8 +104,8 @@
 	     as one step done. Now the running colour is the running dot's colour. */
 	.ai-seg.now { background: var(--prim); animation: ai-pulse 1.6s ease-in-out infinite; }
 
-	.ai-checklist { display: flex; flex-direction: column; gap: .3em; margin-block-start: .6em; }
-	.ai-check { display: flex; gap: .6em; align-items: baseline; color: var(--subtle); }
+	.ai-checklist { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.3); margin-block-start: calc(var(--gap-ramp) * 0.6); }   /* was gap .3em; margin-block-start .6em - 2026-09-05 ramps */
+	.ai-check { display: flex; gap: calc(var(--gap-ramp) * 0.6); align-items: baseline; color: var(--subtle); }   /* was gap .6em - 2026-09-05 ramps */
 	.ai-box { flex: 0 0 auto; width: .85em; height: .85em; border-radius: .2em;
 		border: 1px solid currentColor; translate: 0 .1em; }
 	.ai-check.done { color: inherit; }
@@ -127,7 +127,7 @@
 	.page:has(> .ai-dashboard) > .page-title { font-size: 1.4em; }
 	.page:has(> .ai-dashboard) > .page-title + * { margin-block-start: var(--flow); }
 
-	.ai-group { display: flex; flex-direction: column; gap: .4em; }
+	.ai-group { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.4); }   /* was gap .4em - 2026-09-05 ramps */
 	.ai-group-title { font-weight: 700; font-size: .9em; letter-spacing: .04em; text-transform: uppercase; }
 
 	.ai-dot { width: .55em; height: .55em; border-radius: 999px; background: var(--prim); flex: 0 0 auto; }
@@ -146,7 +146,7 @@
 	.ai-list {
 		display: flex;
 		flex-direction: column;
-		gap: .6em;
+		gap: calc(var(--gap-ramp) * 0.6);   /* was gap .6em - 2026-09-05 ramps */
 		container-type: inline-size;
 	}
 
@@ -173,7 +173,7 @@
 		     to one or two, and the whole line is read at once. Below ~1500px the cap
 		     never binds and nothing changes. */
 		grid-template-columns: minmax(15em, 22em) minmax(0, 60em) max-content;
-		gap: .3em 1.5em;
+		gap: calc(var(--gap-ramp) * 0.3) calc(var(--gap-ramp) * 1.5);   /* was gap .3em 1.5em - 2026-09-05 ramps */
 		align-items: start;
 		padding: .55em 1em;
 		line-height: 1.4;

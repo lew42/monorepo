@@ -193,30 +193,30 @@
 	/* ── The wall: every theme at a glance, first paint ──
 	   Tiles, so 3440 gets six across and 1280 beside three rails still gets two.
 	   17em is the mock's natural size; below that the nav strip wraps. */
-	.themes-wall { display: grid; gap: 1.6em; grid-template-columns: repeat(auto-fill, minmax(min(17em, 100%), 1fr)); }
+	.themes-wall { display: grid; gap: calc(var(--gap-ramp) * 1.6); grid-template-columns: repeat(auto-fill, minmax(min(17em, 100%), 1fr)); }   /* was gap 1.6em - 2026-09-05 ramps */
 
 	/* One specimen — the label, the surface, the swatches. `theme-*` goes on THIS
 	   box, so everything inside it repaints. That is the entire demo mechanism. */
-	.themes-spec { display: flex; flex-direction: column; gap: 0.5em; margin: 0; padding: 0.7em; background: var(--wash); border: 1px solid var(--line); border-radius: var(--radius); }
+	.themes-spec { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.5); margin: 0; padding: 0.7em; background: var(--wash); border: 1px solid var(--line); border-radius: var(--radius); }   /* was gap 0.5em - 2026-09-05 ramps */
 	.themes-spec-name { font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; font-size: 0.72em; color: var(--subtle); }
 
 	/* ── The mock mini-UI. Tokens only. ── */
 	.themes-ui { display: flex; flex-direction: column; background: var(--surface); color: var(--ink); font-family: var(--font); border-radius: var(--radius); box-shadow: 0 0 0 1px var(--card-ring), 0 1px 2px var(--card-shadow), 0 6px 18px var(--card-shadow); overflow: hidden; }
 
-	.themes-nav { display: flex; align-items: center; gap: 0.8em; padding: 0.5em 0.7em; background: var(--tint); border-bottom: 1px solid var(--line); font-size: 0.72em; }
+	.themes-nav { display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.8); padding: 0.5em 0.7em; background: var(--tint); border-bottom: 1px solid var(--line); font-size: 0.72em; }   /* was gap 0.8em - 2026-09-05 ramps */
 	.themes-brand { font-weight: 800; letter-spacing: -0.01em; }
 	.themes-brand::before { content: ""; display: inline-block; width: 0.7em; height: 0.7em; margin-right: 0.4em; background: var(--prim); border-radius: calc(var(--radius) / 2); }
 	.themes-navlink { color: var(--subtle); }
 	.themes-navlink.on { color: var(--prim-ink); box-shadow: 0 2px 0 var(--prim); }
 
-	.themes-body { display: flex; flex-direction: column; gap: 0.5em; padding: 0.8em 0.7em; }
+	.themes-body { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.5); padding: 0.8em 0.7em; }   /* was gap 0.5em - 2026-09-05 ramps */
 	.themes-title { font-size: 1.15em; font-weight: 700; line-height: 1.2; margin: 0; }
 	.themes-text { font-size: 0.8em; line-height: 1.5; margin: 0; }
 	.themes-caption { font-size: 0.7em; color: var(--subtle); margin: 0; }
 
 	/* Real `button` elements, so the theme's voice is tested against framework.css
 	   and lew42's own `button, .btn` rule rather than against a private class. */
-	.themes-btns { display: flex; gap: 0.5em; align-items: center; }
+	.themes-btns { display: flex; gap: calc(var(--gap-ramp) * 0.5); align-items: center; }   /* was gap 0.5em - 2026-09-05 ramps */
 	.themes-btns button { font-size: 0.62em; padding: 0.6em 1em; }
 
 	/* Three lines of "code", the --syn-* trap made visible. */
@@ -240,6 +240,6 @@
 
 	/* ── The generated row: the seed, then what it measured ── */
 	.themes-seed { font-family: var(--mono, ui-monospace, monospace); font-size: 0.72em; color: var(--subtle); }
-	.themes-ratio { font-size: 0.7em; color: var(--subtle); display: flex; flex-wrap: wrap; gap: 0.1em 0.7em; }
+	.themes-ratio { font-size: 0.7em; color: var(--subtle); display: flex; flex-wrap: wrap; gap: calc(var(--gap-ramp) * 0.1) calc(var(--gap-ramp) * 0.7); }   /* was gap 0.1em 0.7em - 2026-09-05 ramps */
 	.themes-ratio b { color: var(--ink); font-weight: 700; }
 }

@@ -13,11 +13,11 @@
 	.vary-carousel-slide { flex: 0 0 100%; min-width: 0; padding: 1.2em 1.4em; }
 
 	.vary-carousel-nav {
-		display: flex; align-items: center; justify-content: space-between; gap: 0.6em;
+		display: flex; align-items: center; justify-content: space-between; gap: calc(var(--gap-ramp) * 0.6);   /* was gap 0.6em - 2026-09-05 ramps */
 		padding: 0.5em 0.8em; border-top: 1px solid var(--line);
 	}
 
-	.vary-carousel-dots { display: flex; gap: 0.4em; }
+	.vary-carousel-dots { display: flex; gap: calc(var(--gap-ramp) * 0.4); }   /* was gap 0.4em - 2026-09-05 ramps */
 }
 
 @layer site {

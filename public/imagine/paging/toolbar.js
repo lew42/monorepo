@@ -61,7 +61,11 @@ export class PagingToolbar extends View {
 
 		div.c("paging-toolbar-row", () => {
 			CONTROLS.forEach(control => this.group(control));
-			this.more();
+
+			div.c("paging-group paging-toolbar-outs", () => {
+				this.code();
+				this.more();
+			});
 		});
 
 		// The marks are written by the same call an external change uses, so there is
@@ -98,6 +102,19 @@ export class PagingToolbar extends View {
 
 		this.marks.push({ $mark: $swatch, axis, id: surface.id });
 		return $swatch;
+	}
+
+	/* ── THE WAY OUT ──────────────────────────────────────────────────────────
+	   Seven words are a page, and a page has to be able to stop being seven words.
+	   This opens the same drawer `More` does, and it is labelled for the one thing a
+	   reader goes looking for: the `page.js` this configuration would be, ready to
+	   copy into a directory of your own. (Build has printed its nodes since it
+	   shipped; the stage had no way out at all until now.) */
+	code(){
+		return press(span.c("paging-more paging-more-quiet")
+			.attr("title", "the page.js this page would be, ready to copy")
+			.append(() => { icon("code"); span("Code"); }),
+			() => fill_drawer(this.stage, this.page));
 	}
 
 	// ── everything else lives in the drawer ──────────────────────────────────

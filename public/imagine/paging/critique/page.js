@@ -143,7 +143,6 @@ export default new Paging({
 	title: "Critique",
 	description: "Every /imagine/ realm, shot at 1280 and 3440 and ranked worst-first — column ratio, alignment and nesting against the viewport.",
 	icon: "rate_review",
-	width: "full",
 
 	content(){
 		md("**Every realm in /imagine/ was screenshotted cold, measured, and ranked worst-first — this page is that reading.** Nothing was edited to produce it: it says where each realm wastes the screen, where it is cramped, and what an alternate layout or palette would do.").ac("paging-lede");

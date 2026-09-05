@@ -59,7 +59,7 @@
 	.research-badge.parked { color: var(--warn); }
 
 	/* A score as a shape, not a number to read. */
-	.research-dots { gap: 0.25em; padding-top: 0.6em; margin-left: auto; }
+	.research-dots { gap: calc(var(--gap-ramp) * 0.25); padding-top: 0.6em; margin-left: auto; }   /* was gap 0.25em - 2026-09-05 ramps */
 	.research-dot { flex: 0 0 auto; width: 0.5em; height: 0.5em; border-radius: 50%; border: 1px solid var(--line); }
 	.research-dot.on { background: var(--prim); border-color: var(--prim); }
 
@@ -89,8 +89,8 @@
 	.research-node .research-node > .research-row { padding: 0.5em 0.75em; }
 
 	/* ── the topics index, /framework/research/ ── */
-	.research-topic { gap: 0.15em; max-width: var(--measure); }
-	.research-topic .research-status { align-self: start; margin-top: 0.4em; }
+	.research-topic { gap: calc(var(--gap-ramp) * 0.15); max-width: var(--measure); }   /* was gap 0.15em - 2026-09-05 ramps */
+	.research-topic .research-status { align-self: start; margin-top: calc(var(--gap-ramp) * 0.4); }   /* was margin-top 0.4em - 2026-09-05 ramps */
 
 	/* ══ a PROGRAM — Program.js, doc/program.md ═══════════════════════════════
 	   Several topics dug at once, one page. It lives in a COLUMN (28–64em under
@@ -156,7 +156,7 @@
 
 	/* A topic with no page.js of its own still has a way in: core serves any
 	   `.md` beside it as a page. Listed only until the minion writes one. */
-	.research-card-pages { font-size: 0.85em; gap: 0.1em; padding-top: 0.2em; }
+	.research-card-pages { font-size: 0.85em; gap: calc(var(--gap-ramp) * 0.1); padding-top: 0.2em; }   /* was gap 0.1em - 2026-09-05 ramps */
 	.research-card-page { color: var(--prim-ink); text-decoration: none; }
 	.research-card-page:hover { text-decoration: underline; }
 

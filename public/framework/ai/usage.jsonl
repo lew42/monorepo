@@ -473,3 +473,6 @@
 {"log": {"at": "2026-09-05T14:57:04-05:00", "session": 22, "weekly_all": 22, "weekly_scoped": 22, "resets_at": "2026-09-05T23:20:00.469110+00:00"}}
 {"log": {"at": "2026-09-05T15:00:09-05:00", "session": 23, "weekly_all": 22, "weekly_scoped": 14, "resets_at": "2026-09-05T23:20:00.187031+00:00"}}
 {"log": {"at": "2026-09-05T15:24:08-05:00", "session": 27.0, "weekly_all": 23.0, "weekly_scoped": 23.0, "resets_at": "2026-09-05T23:20:00Z"}}
+{"log": {"at": "2026-09-05T15:43:43-05:00", "session": 30, "weekly_all": 23, "weekly_scoped": 15, "resets_at": "2026-09-05T23:20:00Z"}}
+{"log": {"at": "2026-09-05T15:48:40-05:00", "session": 31, "weekly_all": 23, "weekly_scoped": 15, "resets_at": "2026-09-05T23:20:00.338675+00:00"}}
+{"log": {"at": "2026-09-05T15:51:49-05:00", "session": 32.0, "weekly_all": 24.0, "weekly_scoped": null, "resets_at": "2026-09-05T23:19:59Z"}}

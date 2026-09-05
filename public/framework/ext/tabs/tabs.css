@@ -179,7 +179,7 @@
 
 	/* The same set, turned on its side — only the axis changes. The bar is sticky
 	   because the panel is usually taller. */
-	.tabs.vertical { flex-direction: row; align-items: flex-start; gap: 4em; }
+	.tabs.vertical { flex-direction: row; align-items: flex-start; gap: calc(var(--flow-ramp) * 2); }   /* was gap 4em - 2026-09-05 ramps */
 
 	/* ⚠ NOT framework.css's `.basis` utility: `.tabs` is a COLUMN and
 	   `.tabs.vertical` is a ROW, so `flex-basis` — the MAIN size — would give every

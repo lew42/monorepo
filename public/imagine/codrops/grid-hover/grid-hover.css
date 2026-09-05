@@ -14,7 +14,7 @@
 		grid-template-columns: repeat(2, 1fr);
 		grid-template-rows: repeat(2, 1fr);
 		grid-template-areas: "a b" "c d";
-		gap: 0.5em;
+		gap: calc(var(--gap-ramp) * 0.5);   /* was gap 0.5em - 2026-09-05 ramps */
 		padding: 0.5em;
 		cursor: pointer;
 		--cut: 14px;

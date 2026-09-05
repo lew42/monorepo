@@ -22,7 +22,7 @@
 
     /* One shot's rating, under the shot it belongs to. `ext/DesignTool`'s taste tier
        turns the ruler into an instrument that answers rather than one that shows. */
-    .space-mark { display: inline-flex; align-items: baseline; gap: 0.45em; }
+    .space-mark { display: inline-flex; align-items: baseline; gap: calc(var(--gap-ramp) * 0.45); }   /* was gap 0.45em - 2026-09-05 ramps */
     .space-grade { font-weight: 700; font-variant-numeric: tabular-nums; }
 
     /* compose/ — the stage declares its OWN height, because a Doc tab has none to give
@@ -35,8 +35,8 @@
        own screen's share of the room. Below the scale floor the row scrolls rather
        than shrinking the phone to a smudge. */
     .space-row { display: flex; flex-wrap: nowrap; align-items: flex-start;
-        gap: 1.2em; overflow-x: auto; }
-    .space-shot { flex: 0 0 auto; min-width: 0; display: flex; flex-direction: column; gap: 0.35em; }
+        gap: calc(var(--gap-ramp) * 1.2); overflow-x: auto; }   /* was gap 1.2em - 2026-09-05 ramps */
+    .space-shot { flex: 0 0 auto; min-width: 0; display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.35); }   /* was gap 0.35em - 2026-09-05 ramps */
 
     /* ⚠ The clip is what makes a shot a shot: `zoom` lays the render out at its real
        width, and this box shows however much room there was for it. */

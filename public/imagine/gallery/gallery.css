@@ -45,7 +45,7 @@
 
 	/* The title filter, `lists/page.js`. `max-width` so it reads as a field over a
 	   column, not a bar the width of the row. */
-	.gal-filter { display: block; margin-block-end: 0.8em; max-width: 22em; }
+	.gal-filter { display: block; margin-block-end: calc(var(--gap-ramp) * 0.8); max-width: 22em; }   /* was margin-block-end 0.8em - 2026-09-05 ramps */
 
 	/* Before and after, side by side, wrapping to one column when the pair no longer
 	   fits — a floor and a ceiling, so neither half can squeeze its cards.

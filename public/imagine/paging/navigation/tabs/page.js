@@ -20,7 +20,6 @@ export default new Paging({
 	title: "Reserved tabs",
 	description: "The tab strip never moves; make the panel behave too.",
 	icon: "tab",
-	axes: "",
 
 	takeaway: "**A tab strip is already stable — it is the panel under it that jumps.** Press the tabs in both boxes: the strip holds still in each, but in the first box the panel under it becomes a different height every time, and everything below it moves.",
 
@@ -35,7 +34,7 @@ export default new Paging({
 
 		h2("The rule");
 
-		md("The same two lines as [the reserved stage](/imagine/paging/navigation/stage/) — a tab panel is a stage with a strip on top of it:\n\n```css\n.paging-nav-reserve { display: grid; }\n.paging-nav-reserve > * { grid-area: 1 / 1; }\n.paging-nav-hidden { visibility: hidden; }\n```");
+		md("The same two lines as [the reserved stage](/imagine/paging/navigation/reserved/) — a tab panel is a stage with a strip on top of it:\n\n```css\n.paging-nav-reserve { display: grid; }\n.paging-nav-reserve > * { grid-area: 1 / 1; }\n.paging-nav-hidden { visibility: hidden; }\n```");
 
 		h2("Why the real tabs cannot just wear it yet");
 

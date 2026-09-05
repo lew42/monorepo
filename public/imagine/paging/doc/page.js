@@ -60,5 +60,10 @@ export default new Paging({
 		})).style("--column", "18em");
 
 		md("The short version is the [readme](/imagine/paging/readme/); the shortest is the [hub](/imagine/paging/) itself, which shows all four mechanisms as small live examples you can click before reading anything.");
+
+		/* ⚠ TWO PAGES NOTHING LINKED TO. `critique/` and `inventory/` answered on their
+		   urls and were reachable from nowhere at all (paging-audit-2). They are
+		   readings rather than records, so they hang here rather than in the rail. */
+		md("Two readings, taken once and kept: [the critique](/imagine/paging/critique/) — every realm in `/imagine/` screenshotted, measured and ranked worst-first — and [the inventory](/imagine/paging/inventory/), one row per thing on this site that is already an icon, a page and a list of children.");
 	},
 });

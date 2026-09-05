@@ -380,7 +380,7 @@
 	     measured a 108px bar (2026-09-04) — do not; this only moves the END. */
 	.page-column-head {
 		position: sticky; top: 0; z-index: 1;
-		display: flex; align-items: center; gap: 0.4em;
+		display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.4);   /* was gap 0.4em - 2026-09-05 ramps */
 		padding-block: var(--page-column-pad-y, 0.7em);
 		padding-inline: var(--page-column-pad-x, 0.9em) var(--page-column-pad-y, 0.7em);
 		background: var(--wash);
@@ -464,7 +464,7 @@
 	   inline edge — `.tabs.vertical`'s own declarations, restated because no call site
 	   can put `.tab` on these anchors. */
 	.page-column-item {
-		display: flex; align-items: center; gap: 0.4em;
+		display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.4);   /* was gap 0.4em - 2026-09-05 ramps */
 		padding: 0.35em var(--page-column-pad-x, 0.9em);
 		font-size: 0.9em;
 		color: var(--subtle);
@@ -506,7 +506,7 @@
 	/* ── the trail — `crumbs()`, derived from chain() so it cannot be wrong ──
 	   `framework.css` has no rule for `a` at all, so the links keep the UA underline
 	   until a descendant rule says otherwise; that is the whole reason for line two. */
-	.page-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3em; font-size: 0.9em; }
+	.page-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--gap-ramp) * 0.3); font-size: 0.9em; }   /* was gap 0.3em - 2026-09-05 ramps */
 	.page-crumbs a { text-decoration: none; }
 	.page-crumbs .icon { font-size: 1em; color: var(--subtle); }
 
@@ -690,7 +690,7 @@
 
 	/* A child's `group:` heads the run it starts — a whole row, so the cards on
 	   either side of it keep counting their own columns. */
-	.page-previews > .page-previews-group { grid-column: 1 / -1; margin-block-start: 0.6em; }
+	.page-previews > .page-previews-group { grid-column: 1 / -1; margin-block-start: calc(var(--gap-ramp) * 0.6); }   /* was margin-block-start 0.6em - 2026-09-05 ramps */
 	.page-previews > .page-previews-group:first-child { margin-block-start: 0; }
 
 	/* ⚠ `bleed` spends the grid's gutter tracks, so a top-level wall would sit flush
@@ -711,7 +711,7 @@
 		display: flex;
 		flex-direction: column;
 		align-items: stretch;
-		gap: 0.6em;
+		gap: calc(var(--gap-ramp) * 0.6);   /* was gap 0.6em - 2026-09-05 ramps */
 		text-decoration: none;
 		color: inherit;
 		border-radius: var(--radius);
@@ -763,7 +763,7 @@
 		display: flex;
 		width: fit-content; max-width: 100%;
 		align-items: center;
-		gap: 0.45em;
+		gap: calc(var(--gap-ramp) * 0.45);   /* was gap 0.45em - 2026-09-05 ramps */
 		text-decoration: none;
 		color: inherit;
 	}

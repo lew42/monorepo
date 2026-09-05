@@ -113,11 +113,11 @@
 	}
 
 	.depth-ctrl {
-		display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0.4em 1.2em;
+		display: inline-flex; flex-wrap: wrap; align-items: center; gap: calc(var(--gap-ramp) * 0.4) calc(var(--gap-ramp) * 1.2);   /* was gap 0.4em 1.2em - 2026-09-05 ramps */
 		font-size: 0.8rem; color: var(--subtle);
 	}
 
-	.depth-slider { display: inline-flex; align-items: center; gap: 0.5em; cursor: pointer; }
+	.depth-slider { display: inline-flex; align-items: center; gap: calc(var(--gap-ramp) * 0.5); cursor: pointer; }   /* was gap 0.5em - 2026-09-05 ramps */
 
 	.depth-slider-range { inline-size: 7em; }
 

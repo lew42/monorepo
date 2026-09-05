@@ -1,8 +1,97 @@
 # Decisions — the record
 
-Rebuilt 2026-09-05 (`/framework/ai/2026-09-05/paging-v3/`); the record below it is from
-2026-09-04 and earlier, kept because most of its traps are still live. Every verdict here
-is revisable; the ⚠ ones were found by measuring rather than by thinking.
+Rebuilt 2026-09-05 (`/framework/ai/2026-09-05/paging-v3/`), then fixed the same day after
+two more critics read it (`.../paging-fix-2/`). The record below is from 2026-09-04 and
+earlier, kept because most of its traps are still live. Every verdict here is revisable;
+the ⚠ ones were found by measuring rather than by thinking.
+
+---
+
+# 2026-09-05, later — the fix pass
+
+Two critics went back over the rebuild: a newcomer at 1280 and 3440
+(`/framework/ai/2026-09-05/paging-audit-2/`) and a designer reading the code
+(`.../paging-audit-2b/`). They found four things broken, and this is what was done.
+
+## A control may not cover the thing it controls
+
+The bar was `position: absolute` over the stage's top edge, revealed on hover. On the
+realm's own front page it was drawn exactly on the demo's tab strip — so moving a mouse
+toward a tab made the bar appear on the tab, and the headline gesture of the realm could
+not be clicked at any width. A Playwright click on **Pricing** timed out at 1280 and at
+3440, twice, before and after.
+
+**The bar is now a sibling above the stage and it reserves its height.** It also stopped
+being five native `<select>`s (80–111px wide, clipping their own values) and became the
+drawer's labelled chip groups, which was the better control language all along.
+
+## The box reserves its height, so the caption is a measurement
+
+The realm's first demo said **THE BOX DID NOT MOVE** directly above a line reading *the
+box is 335px shorter*. Both were drawn by the same click.
+
+`nav-stability`'s [reserved height](/imagine/paging/navigation/reserved/) rule was lifted
+into `paging.css`: every panel is drawn, all of them in one grid cell, and the ones you
+are not reading are `visibility: hidden` — hidden, but still measured. The caption now
+reads *The box did not move: still 2847 × 609px* at 3440 and *927 × 476px* at 1280.
+
+⚠ **Only for the STABLE navigation words** (`tabs`, `rail`, `rail-right`). `columns` and
+`takeover` exist to move things, so their child opens beside the box or over the whole
+stage and the caption reports the pixels it really moved (decision 5, above).
+
+## A full-screen stage takes the screen, never the rail
+
+`.paging-room-full` was `position: fixed; inset: 0`, so at 1280 the takeover preset
+painted straight over the rail and — once you opened a child — had no exit of any kind.
+Browser Back was the only way out.
+
+**The FRAME goes fixed now**, starting at `--paging-rail-w`, with the bar at the top of it
+and the stage under the bar; the rail carries `z-index: 36` over the stage's 35. And
+`taken()` draws the exit chip as well as the crumb, so a takeover always has two doors.
+
+⚠ **Found while fixing it:** `columns` and `takeover` drew no child list at all — both
+presets rendered a box with nothing to click, so neither gesture could be reached. The
+children are listed inside the box for both words now.
+
+## The configuration lives in the url
+
+Seven words spanning about 100,800 pages, of which the realm could SEND 43. Every change
+now writes itself into the address with one `history.replaceState` (`url.js`), and the
+drawer has **Copy this link** beside **Make this a page**.
+
+⚠ **The guard is the PAGE'S OWN url.** Two other guards were tried and measured wrong:
+*first stage to ask* fails because the app's home page is built on every cold load even
+when a deep child is what you opened (it is hidden by CSS, not skipped), so the hub's
+invisible stage ate the query; *`location.pathname`* fails because core loads the next
+page and pushes its address afterwards, so mid-navigation it is still the page you left
+and every page you clicked to inherited the previous one's words.
+
+## One vocabulary, one schema
+
+`navigation` had **five** live definitions and `surface` five more. `blocks.js` is the one
+list now; `build/words.js` imports it and adds only the two keys a `page.json` stores
+(`kids`/`mech`), which is a translation, not a second vocabulary.
+
+Make wrote `style`/`content`/`mech`/`kids` while the drawer on the same page wrote the
+seven words — and the reader preferred the seven, so clicking a chip in Make changed a key
+nothing was reading. `config_of()` (`make/tabs.js`) is the one reader and migrates old
+nodes on the way in; `edit_at()` migrates a node before it changes it.
+
+⚠ **`navigation` and `arrangement` may not both say "Left rail".** A navigation rail lists
+*this page's children*; an arrangement panel is anything else beside the content. The
+arrangement pair is **Panel left / Panel right**.
+
+## Small, and measured
+
+- The hub's wall is twelve **live miniatures**, seven across at 3440. The first screen was
+  58% bare grey; it is 32%, and the row beside the stage went from 1785px to 90px.
+- The rail lost its seven section notes and fits a 1440 fold at 3440 (it was 2205px tall).
+- **37 class names** left `paging.css` — every one with no JavaScript writing it — along
+  with `axes:` on sixteen pages and `width:` on sixteen, which had no consumers at all.
+- Skin has three words and now three urls: `/skin/surface/`, `/skin/background/`,
+  `/skin/type/`. `background` and `type` had a control and no link.
+- Two pages called Stage became one: the navigation demo is
+  [Reserved height](/imagine/paging/navigation/reserved/).
 
 ---
 

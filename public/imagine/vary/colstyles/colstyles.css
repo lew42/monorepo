@@ -6,9 +6,9 @@
 @layer theme {
 
 	/* ── hooks page — a demo box, its caption, and a side-by-side pair ── */
-	.vary-colstyles-hook { margin-block-end: 1.6em; }
-	.vary-colstyles-hook-cap { margin-block-start: 0.4em; font-size: 0.88em; color: var(--subtle); }
-	.vary-colstyles-pair { display: flex; flex-wrap: wrap; gap: 1em; }
+	.vary-colstyles-hook { margin-block-end: calc(var(--gap-ramp) * 1.6); }   /* was margin-block-end 1.6em - 2026-09-05 ramps */
+	.vary-colstyles-hook-cap { margin-block-start: calc(var(--gap-ramp) * 0.4); font-size: 0.88em; color: var(--subtle); }   /* was margin-block-start 0.4em - 2026-09-05 ramps */
+	.vary-colstyles-pair { display: flex; flex-wrap: wrap; gap: calc(var(--gap-ramp) * 1); }   /* was gap 1em - 2026-09-05 ramps */
 	.vary-colstyles-pair > .demo-app { flex: 1 1 16em; min-width: 0; }
 
 	/* Hook 2 — the SAME two tokens every width word already sets, retuned by
@@ -21,7 +21,7 @@
 
 	/* Hook 3 — `column()` thrown away and redrawn as a chip wall; no head,
 	   no rows, nothing core's default body would have drawn. */
-	.vary-colstyles-chips { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 0.4em; padding: 0.9em; }
+	.vary-colstyles-chips { display: flex; flex-wrap: wrap; align-content: flex-start; gap: calc(var(--gap-ramp) * 0.4); padding: 0.9em; }   /* was gap 0.4em - 2026-09-05 ramps */
 	.vary-colstyles-chip {
 		padding: 0.3em 0.7em; font-size: 0.85em;
 		background: var(--fill-a08); border: 1px solid var(--line); border-radius: 999px;

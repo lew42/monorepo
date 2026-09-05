@@ -1,12 +1,12 @@
 /* Layout only — turn/meta/flow spacing. Looks are wash/muted off framework.css. */
 @layer theme {
 
-	.ai-feed { display: flex; flex-direction: column; gap: .75em; min-width: 0; }
+	.ai-feed { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.75); min-width: 0; }   /* was gap .75em - 2026-09-05 ramps */
 
-	.ai-feed-list { display: flex; flex-direction: column; gap: .75em; min-width: 0; }
+	.ai-feed-list { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.75); min-width: 0; }   /* was gap .75em - 2026-09-05 ramps */
 
-	.ai-turn { display: flex; flex-direction: column; gap: .5em; padding: .5em .75em; }
-	.ai-turn .ai-meta { display: flex; gap: .5em; align-items: baseline; flex-wrap: wrap; }
+	.ai-turn { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.5); padding: .5em .75em; }   /* was gap .5em - 2026-09-05 ramps */
+	.ai-turn .ai-meta { display: flex; gap: calc(var(--gap-ramp) * 0.5); align-items: baseline; flex-wrap: wrap; }   /* was gap .5em - 2026-09-05 ramps */
 
-	.ai-turn-flow { display: flex; flex-direction: column; gap: .5em; min-width: 0; }
+	.ai-turn-flow { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.5); min-width: 0; }   /* was gap .5em - 2026-09-05 ramps */
 }

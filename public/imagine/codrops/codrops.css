@@ -19,7 +19,7 @@
 		padding: 0.85em 1em 1em;
 		display: flex;
 		flex-direction: column;
-		gap: 0.35em;
+		gap: calc(var(--gap-ramp) * 0.35);   /* was gap 0.35em - 2026-09-05 ramps */
 	}
 
 	/* `fit-content` (spacing-judge 2026-09-05, rule c): the body is a flex column and
@@ -30,7 +30,7 @@
 		font-size: 0.85em;
 		display: inline-flex;
 		align-items: center;
-		gap: 0.25em;
+		gap: calc(var(--gap-ramp) * 0.25);   /* was gap 0.25em - 2026-09-05 ramps */
 		width: fit-content;
 	}
 
@@ -42,7 +42,7 @@
 		display: flex;
 		align-items: baseline;
 		flex-wrap: wrap;
-		gap: 0.5em;
+		gap: calc(var(--gap-ramp) * 0.5);   /* was gap 0.5em - 2026-09-05 ramps */
 		margin: 1.75em 0 0.75em;
 	}
 

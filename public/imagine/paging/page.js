@@ -11,8 +11,9 @@ import { DEMOS } from "./demos.js";
                 413px at 3440; the middle takes everything else. At 3440 that is
                 ~3000px of middle, against the 1152px column this page used to be.
    3 OWN LAYOUT one sentence, one live page on the stage, the twelve presets as a
-                wall, then the four gestures as miniatures. The stage claims `wide`,
-                so it grows with the middle instead of stopping at the 40em measure.
+                wall of LIVE MINIATURES, then the four gestures. The stage claims
+                `wide` and opens on the `wide` room word, so it grows with the middle
+                instead of stopping at the 40em reading cap.
    4 REGIONS    two: the rail, and the middle (`$pages`). Every page in the realm
                 mounts in the middle, so one click changes exactly one thing.
    5 PREVIEW    core's default card, on /imagine/'s own wall.
@@ -23,14 +24,16 @@ import { DEMOS } from "./demos.js";
      what they were about to be shown instead of showing it (the owner, 2026-09-05).
      doc/decisions.md.                                                            */
 
-/* The page that is on the stage when you arrive. Docs with tabs on top: the most
+/* THE PAGE THAT IS ON THE STAGE WHEN YOU ARRIVE. Tabs over one panel: the most
    familiar shape there is, and the one where "the box does not move" is obvious.
 
-   ⚠ `room: "wide"`, not the preset's own `reading`. At 3440 a `reading` stage stops
-     at its 64em cap — 1152px — and the first screen of the realm's front page was
-     58% bare grey (measured here; the audit said 52%). The front page opens on the
-     word that uses the screen. */
-const OPENING = { ...PRESETS.find(preset => preset.id === "docs-tabs").config, room: "wide" };
+   ⚠ `wide`, and a CARD WALL rather than the preset's prose. At 3440 a `reading` stage
+     stops at its 64em cap — 1152px — and the first screen of the realm's front page
+     was 58% bare grey (measured here; the audit said 52%). Prose in a `wide` box is
+     no better: it keeps its 40em measure and leaves the rest of the box white. A wall
+     reflows into whatever width it is given, so the front page uses the screen it is
+     on at every size, and a tab click still swaps the panel without moving the box. */
+const OPENING = { ...PRESETS.find(preset => preset.id === "docs-tabs").config, room: "wide", content: "cards" };
 
 // old name → where it went. `route()` below turns each into a one-line page.
 const MOVED = {
@@ -57,12 +60,12 @@ export default new Realm({
 
 	// ⚠ Nothing crawls: a page exists once this list names it. `navigation` is built
 	//   by the nav-stability task and shares this list.
-	children: "library stage navigation content room arrangement skin mechanisms templates toolbars make build doc",
+	children: "library stage navigation content room arrangement skin cross mechanisms templates toolbars make build doc critique inventory",
 
 	content(){
 		h1.c("page-title", "Paging");
 
-		p.c("paging-lede", "Click a chip in the bar and watch the page under it change.");
+		this.lede("Click a chip in the bar and watch the page under it change.");
 
 		this.stage(OPENING);
 

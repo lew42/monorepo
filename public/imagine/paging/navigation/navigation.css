@@ -25,11 +25,12 @@
 	   ones you are not reading are `visibility: hidden` — hidden but still measured.
 	   So the box is always the height of its TALLEST panel, the browser works that
 	   number out, and swapping what is inside can never resize it.
-	   ⚠ `visibility`, never `display: none` — a display-hidden panel is not measured,
-	     which is the whole thing being bought here. */
-	.paging-nav-reserve { display: grid; }
-	.paging-nav-reserve > * { grid-area: 1 / 1; }
-	.paging-nav-hidden { visibility: hidden; }
+
+	   ⚠ THE RULE MOVED, on 2026-09-05: it is in `../paging.css` now, because the whole
+	     realm uses it — every stage whose navigation word is stable reserves its box
+	     this way, which is what makes the caption under it true. This page loads that
+	     sheet too (it is a page of the realm), so the demo below still gets it, and
+	     there is one copy rather than two that can drift. */
 
 	/* ══ 2 · FIXED-WIDTH COLUMNS — the whole of the horizontal fix ════════════
 	   A columns host wearing this stops its columns negotiating. Every column takes

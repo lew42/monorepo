@@ -86,11 +86,12 @@ export default new Paging({
 	title: "Make",
 	description: "Make real pages — a real url, and in dev a real page.json file on disk.",
 	icon: "add_circle_outline",
-	width: "large",
 	index: true,
 
 
-	takeaway: "**Type a name and you get a real page: a real url, the real router, real columns — and, in dev, a real file on disk.** Each page below is one small JSON file under `made/`; open one in an editor and it is the whole page. On a static host with no dev server there is nothing to write to, so the same tree is kept in your browser instead — the line under the list always says which.",
+	// ⚠ WHICH EDITOR FIRST. Two editors with no order between them was the question
+	//   every newcomer asked (paging-audit-2). Make is first, and both pages say so.
+	takeaway: "**Start here. Type a name and you get a real page: a real url, the real router, real columns — and, in dev, a real file on disk.** Each page below is one small JSON file under `made/`; open one in an editor and it is the whole page. On a static host with no dev server there is nothing to write to, so the same tree is kept in your browser instead — the line under the list always says which. When a page exists, **[Build](/imagine/paging/build/)** is where you fill it in.",
 
 	// ── loading ───────────────────────────────────────────────────────────────
 	// ⚠ NOT `initialize()` any more: the file store is a fetch, so the tree arrives

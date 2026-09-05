@@ -102,7 +102,7 @@
 		width: min(100%, var(--screens-block));
 		margin-inline: auto;
 		display: flex; flex-direction: column;
-		gap: 0.5em;
+		gap: calc(var(--gap-ramp) * 0.5);   /* was gap 0.5em - 2026-09-05 ramps */
 	}
 
 	/* A BAND IS WIDE AND SHORT, so it cannot take the same composition as a screen: at
@@ -237,7 +237,7 @@
 		padding: 0.9em;
 	}
 
-	.screens-frames { display: flex; align-items: center; gap: 0.45em; }
+	.screens-frames { display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.45); }   /* was gap 0.45em - 2026-09-05 ramps */
 	.screens-frames .icon { font-size: 0.85em; color: var(--subtle); }
 
 	.screens-frame {

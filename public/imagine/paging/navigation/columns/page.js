@@ -57,7 +57,6 @@ export default new Paging({
 	title: "Fixed columns",
 	description: "A column opens and nothing already open moves.",
 	icon: "view_column",
-	axes: "",
 
 	takeaway: "**Click `Detail` in both boxes below and watch the left edge of the `Setup` column.** In the top box it slides left, because the fourth column is paid for out of its neighbours' width. In the bottom box it does not move at all.",
 
