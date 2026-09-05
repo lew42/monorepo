@@ -1,0 +1,246 @@
+/* /imagine/paging/navigation/ — stable vs dynamic navigation.
+   Classes: .paging-nav-* (the `paging-` namespace, css-scopes.txt line 122).
+
+   Three of the rules here are the deliverable and are meant to be lifted:
+     .paging-nav-reserve   a box that is always as tall as its tallest panel
+     .paging-nav-fixed     a columns host whose columns stop negotiating widths
+     .paging-nav-screen    a full screen: a rail that never moves, a centre that scrolls
+   Everything else is this page's own furniture. */
+
+@layer util {
+
+	/* The arrangement contract's own "stand down" rule, said for the screen's centre —
+	   the same shape ext/tabs writes for its panel, and here for the same reason: the
+	   child shown on ARRIVAL has to give way the moment a real one is routed beside it.
+	   ⚠ In `util`, beside the contract it belongs to (Page.css), or the layer order
+	     would let a theme-layer `display` win. */
+	.paging-nav-centre:has(> .page:is(.active-page, .active-ancestor))
+		> .page.default:not(.active-page, .active-ancestor) { display: none; }
+}
+
+@layer theme {
+
+	/* ══ 1 · RESERVED HEIGHT — the whole of the vertical fix ══════════════════
+	   Every panel stays in the DOM, all of them stacked in ONE grid cell, and the
+	   ones you are not reading are `visibility: hidden` — hidden but still measured.
+	   So the box is always the height of its TALLEST panel, the browser works that
+	   number out, and swapping what is inside can never resize it.
+	   ⚠ `visibility`, never `display: none` — a display-hidden panel is not measured,
+	     which is the whole thing being bought here. */
+	.paging-nav-reserve { display: grid; }
+	.paging-nav-reserve > * { grid-area: 1 / 1; }
+	.paging-nav-hidden { visibility: hidden; }
+
+	/* ══ 2 · FIXED-WIDTH COLUMNS — the whole of the horizontal fix ════════════
+	   A columns host wearing this stops its columns negotiating. Every column takes
+	   the width its word FLOORS at and neither grows nor shrinks, so a new column is
+	   appended rather than paid for by its neighbours — and because a floor is
+	   narrow, several of them fit in a row that one elastic column would have filled.
+	   `small` is unchanged: it was already `flex: 0 0` in Page.css, which is why a
+	   rail is the one column on this site that never moved.
+
+	   THE FLOOR, not the ceiling, and the reason is arithmetic. Elastic columns fill
+	   the row exactly; fixing them at their CEILING makes the row overflow the moment
+	   a second one opens, and the auto-reveal then scrolls — which moves what you
+	   were reading after all. At the floor they fit, and the number is really zero.
+	   Want one wider? Drag its seam: a dragged column is `--page-column-flex: 0 0
+	   <px>` (core/Page/doc/columns.md), which is this rule applied by hand to one
+	   column. Same mechanism, no second idea.
+
+	   ⚠ `fill`, `full` and `hug` are exempt. `fill`/`full` exist to take the leftover,
+	     and `hug` is `0 0 auto` already — fixing it at its 6em floor would stop it
+	     hugging anything. */
+	.paging-nav-fixed .page.columns .page-column-body:not(.page-column-fill, .page-column-full, .page-column-hug) {
+		--page-column-flex: 0 0 var(--page-column-min, 16em);
+		--page-column-max: var(--page-column-min, 16em);
+	}
+
+	/* ⚠ THE `--page-column-*` TOKENS INHERIT, and a columns row nested inside a
+	   COLUMN inherits that column's own three. This page is a `full` column, so its
+	   body carries `--page-column-flex: 1 0 100%` and `--page-column-max: none` — and
+	   every demo column below that declares no width word of its own was silently
+	   taking them (measured here first, 2026-09-05: a default column 1202px wide in a
+	   1202px row). Reset them at the nested host so a demo row starts from core's own
+	   defaults. `initial` on a custom property is the guaranteed-invalid value, which
+	   is exactly what makes `var(--x, fallback)` fall back.
+	   Proposed for Page.css: /framework/ai/2026-09-05/nav-stability/ */
+	.paging-nav-demo .page.columns {
+		--page-column-flex: initial;
+		--page-column-min: initial;
+		--page-column-max: initial;
+	}
+
+	/* ══ 3 · THE FULL SCREEN — a rail that never moves ════════════════════════
+	   The rail and the centre are both sized by the flex row, and the row is the
+	   viewport. So neither box changes when a sub page opens: only what is INSIDE
+	   the centre changes, and the centre scrolls it. */
+	.paging-nav-screen { display: flex; height: 100dvh; overflow: hidden; }
+
+	.paging-nav-rail {
+		flex: 0 0 clamp(11rem, 16vw, 20rem);
+		display: flex; flex-direction: column; gap: 0.2em;
+		padding: var(--pad, var(--pad-default));
+		overflow-y: auto;
+		background: var(--wash);
+		border-inline-end: 1px solid var(--line);
+	}
+
+	.paging-nav-rail-name { font-weight: 700; font-size: 0.8em; letter-spacing: 0.05em; text-transform: uppercase; color: var(--subtle); margin-block-end: 0.6em; }
+
+	.paging-nav-rail-link {
+		display: flex; align-items: center; gap: 0.4em;
+		padding: 0.4em 0.6em;
+		border-radius: var(--radius);
+		color: var(--ink); text-decoration: none;
+		/* Reserved on EVERY link, transparent until selected — a mark that ADDS width
+		   would shift its own label by 2px on every click, which is the very defect
+		   this page is about. */
+		border-inline-start: 2px solid transparent;
+	}
+	.paging-nav-rail-link:hover { background: var(--fill-a08); }
+
+	/* ⚠ `:not(.paging-nav-rail-out)`. The way-out link's href is the PARENT's url, and
+	     every sub page's url starts with it — so the router marks it `.in-path` on
+	     every page in the screen and it read as the selected one. Exactly the trap
+	     `ext/tabs` names as `tab-default`. */
+	.paging-nav-rail-link:is(.active, .in-path, [aria-current]):not(.paging-nav-rail-out) {
+		background: var(--fill-a16); border-inline-start-color: var(--prim); font-weight: 600;
+	}
+
+	/* Arriving at the screen's OWN url routes nothing deeper, so nothing is marked and
+	   the panel showing is the `default` one. Light its link, or the rail reads as
+	   having no selection while the centre plainly holds a page. */
+	.paging-nav-rail:not(:has(.paging-nav-rail-link:is(.active, .in-path, [aria-current]):not(.paging-nav-rail-out)))
+		.paging-nav-rail-link:first-of-type {
+		background: var(--fill-a16); border-inline-start-color: var(--prim); font-weight: 600;
+	}
+
+	.paging-nav-rail-out { margin-block-start: auto; color: var(--subtle); font-size: 0.9em; }
+
+	.paging-nav-centre { flex: 1 1 0; min-width: 0; overflow-y: auto; padding: var(--pad, var(--pad-default)); }
+	.paging-nav-sub { max-width: var(--measure, 40em); }
+
+	/* ══ THE LAB — two boxes, same content, one rule different ════════════════ */
+	/* ⚠ THE CEILING IS ON THE TEXT, NOT ON THE BOX. Capping the pair itself left
+	   1551px of the 2847px `wide` track empty at 3440 — the owner's own complaint
+	   about this site. The boxes take the whole track; the prose inside them keeps a
+	   34em measure, which is also what keeps the two panels' heights genuinely
+	   different at 3440 (an uncapped paragraph is one line on a 1400px box, and the
+	   demo would then prove nothing there). */
+	.paging-nav-labs { --column: 21em; align-items: start; }
+
+	.paging-nav-lab {
+		display: flex; flex-direction: column; gap: 0.7em;
+		padding: var(--pad, var(--pad-default));
+		border: 1px solid var(--line); border-radius: var(--radius);
+		background: var(--surface);
+	}
+
+	.paging-nav-name { display: flex; align-items: center; gap: 0.35em; margin: 0; font-size: 1.05em; }
+	.paging-nav-fluid .paging-nav-name .icon { color: var(--warn-ink, var(--prim-ink)); }
+	.paging-nav-steady .paging-nav-name .icon { color: var(--prim-ink); }
+	.paging-nav-lede { margin: 0; max-width: 34em; color: var(--subtle); font-size: 0.92em; }
+
+	/* The miniature row. `overflow-x: auto` is half of the stable answer: when the
+	   fixed columns stop fitting, the row scrolls instead of squeezing them. */
+	.paging-nav-row {
+		display: flex; gap: 2px;
+		height: 4.5em;
+		overflow-x: auto; scrollbar-width: thin;
+		background: var(--wash);
+		border: 1px solid var(--line); border-radius: var(--radius);
+		padding: 2px;
+	}
+
+	.paging-nav-col {
+		display: flex; align-items: center; justify-content: center;
+		background: var(--surface);
+		border-radius: calc(var(--radius) / 2);
+		color: var(--subtle); font-size: 0.85em; font-weight: 600;
+	}
+
+	/* Fluid: every column shares the row, so a new one is paid for by the others. */
+	.paging-nav-fluid .paging-nav-col { flex: 1 1 0; min-width: 2em; }
+
+	/* Fixed: each column keeps its width whatever else arrives.
+	   ⚠ A PERCENTAGE BASIS IS STILL FIXED. It resolves against the ROW's width, and
+	     adding a child does not change that — so the columns scale with the box (90px
+	     of a 1400px row read as a mistake) and still do not move when one more
+	     arrives. The floor and ceiling are there because every track needs both. */
+	.paging-nav-steady .paging-nav-col { flex: 0 0 clamp(4.5em, 22%, 16em); }
+
+	.paging-nav-watched { background: var(--prim); color: white; }
+
+	.paging-nav-panel { border: 1px solid var(--line); border-radius: var(--radius); padding: 0.6em 0.8em; }
+	.paging-nav-face { max-width: 34em; font-size: 0.92em; }
+	.paging-nav-face > p:first-child { margin-top: 0; }
+	.paging-nav-face > p:last-child { margin-bottom: 0; }
+
+	.paging-nav-after {
+		font-size: 0.8em; letter-spacing: 0.04em; text-transform: uppercase;
+		color: var(--subtle);
+		border-block-start: 1px dashed var(--line); padding-block-start: 0.4em;
+	}
+
+	.paging-nav-note { min-height: 4.2em; }
+	.paging-nav-hint { margin: 0; color: var(--subtle); font-size: 0.88em; }
+	.paging-nav-nums { display: flex; flex-direction: column; gap: 0.2em; }
+	.paging-nav-did { font-size: 0.8em; text-transform: uppercase; letter-spacing: 0.04em; color: var(--subtle); }
+	.paging-nav-num { display: flex; align-items: baseline; gap: 0.4em; }
+	.paging-nav-px { font-weight: 700; font-variant-numeric: tabular-nums; min-width: 3.5em; }
+	.paging-nav-zero .paging-nav-px { color: var(--prim-ink); }
+	.paging-nav-what { font-size: 0.88em; color: var(--subtle); }
+
+	/* The stack — a picker and one box. `.paging-tabs` / `.paging-tab-panel` are
+	   this realm's existing folder-tab classes (paging.css), reused whole: a tab
+	   strip is a different picker on the same box, not a different mechanism. */
+	.paging-nav-set { display: flex; flex-direction: column; gap: 0.6em; }
+	.paging-nav-set.paging-tabs { gap: 0; }
+
+	.paging-nav-stage:not(.paging-tab-panel) {
+		padding: 0.7em 0.9em;
+		background: var(--surface);
+		border: 1px solid var(--line); border-radius: var(--radius);
+	}
+
+	/* ══ THE MEASURED WALL — one card per mechanism ═══════════════════════════ */
+	.paging-nav-grid { --column: 15em; }
+
+	.paging-nav-card {
+		display: flex; flex-direction: column; gap: 0.4em;
+		padding: var(--pad, var(--pad-default));
+		border: 1px solid var(--line); border-radius: var(--radius);
+		background: var(--surface);
+		color: var(--ink); text-decoration: none;
+	}
+	.paging-nav-card:is(:hover, :focus-visible) { border-color: var(--prim); }
+
+	.paging-nav-card-name { font-weight: 600; font-size: 0.95em; }
+	.paging-nav-card-say { margin: 0; font-size: 0.85em; color: var(--subtle); }
+
+	.paging-nav-kind { align-self: start; font-size: 0.72em; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.1em 0.45em; border-radius: var(--radius); }
+	.paging-nav-kind-stable { background: var(--prim); color: white; }
+	.paging-nav-kind-dynamic { background: var(--fill-a16); color: var(--subtle); }
+
+	.paging-nav-metric { display: flex; align-items: center; gap: 0.35em; font-size: 0.78em; }
+	.paging-nav-metric-name { flex: 0 0 4.2em; color: var(--subtle); }
+	.paging-nav-metric-px { flex: 0 0 5.2em; font-variant-numeric: tabular-nums; font-weight: 600; }
+	.paging-nav-bar { flex: 1 1 auto; min-width: 2em; height: 0.45em; background: var(--fill-a08); border-radius: 999px; overflow: hidden; }
+	.paging-nav-bar-fill { height: 100%; background: var(--prim); border-radius: 999px; }
+	.paging-nav-good .paging-nav-metric-px { color: var(--prim-ink); }
+
+	/* ══ SIDE BY SIDE — a demo and the rule that made it ═════════════════════ */
+	.paging-nav-pair { --column: 20em; align-items: start; }
+	.paging-nav-demo { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+
+	/* ⚠ A CEILING ON THE COLUMN DEMO, and it is the demo's whole honesty. An elastic
+	   row only has to take width off somebody when it is FULL — at 3440 an uncapped
+	   demo box has ~2950px and three columns fit with room to spare, so clicking does
+	   nothing and the "today" side appears to prove the opposite of what the site
+	   measures. 62em is a real browser window, full at both widths. (And it is the
+	   site's own finding said again: the reflow is worst at 1280, which is the width
+	   most readers have.) */
+	.paging-nav-cols { max-width: 62em; }
+	.paging-nav-demo-name { padding: 0.35em 0.7em; font-size: 0.8em; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--subtle); background: var(--wash); border-block-end: 1px solid var(--line); }
+	.paging-nav-demo-body { padding: var(--pad, var(--pad-default)); }
+}

@@ -23,9 +23,9 @@ import { press } from "../../paging.js";
 /* The three panels. Deliberately the same three a tab strip on a marketing site
    would carry, because the point is that you already know this gesture. */
 export const PANELS = [
-	["Overview", "Two decisions on top of a page: where a child goes when you click it, and what the surface looks like."],
-	["Pricing", "Nothing here changed but the words. Same place, same size, same edges — the caption below has the numbers."],
-	["Contact", "You know this gesture already. The strip is not the mechanism; the chips above draw the same swap three other ways."],
+	["Overview", "What the product is, in one paragraph, on the panel a tab strip opens onto."],
+	["Pricing", "Three plans, and the one in the middle is the one most teams pick. The line under the stage has the measurements."],
+	["Contact", "One address, one form, one map. Press the chips above to watch this same panel arrive three other ways."],
 ];
 
 /* The four visuals, and the one sentence each earns. `says` is printed under the

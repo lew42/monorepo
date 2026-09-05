@@ -393,6 +393,65 @@ grepping every `page.js` under `public/` for a `store` field or a `this.store` r
 — the other `store` in the tree is a module-scope `const` in `ext/Saver` consumers, which
 cannot shadow a method. Do that grep before the next noun goes on this prototype.
 
+### `fill` yields to an open child, and heads breathe on `pad-y` — 2026-09-05
+
+**`fill` yields.** `width: "fill"` claims everything left over — right, until a page wearing
+it is also `.active-ancestor`, meaning a child column opened beside it and "everything left
+over" is no longer this page's to take. `imagine/platform/research/`'s `fill` was reverted
+to `large` on 2026-09-04 for exactly this: a verdict beside it sat at its 16em floor. The
+fix is one rule, the same two tokens `large` already sets:
+
+```css
+.page.active-ancestor > .page-column-body.page-column-fill {
+	--page-column-flex: 1 1 0;   /* the base fallback — no more claiming 100% */
+	--page-column-max: 64em;     /* large's own ceiling */
+}
+```
+
+Both research fronts are back on `width: "fill"`. Measured (headless, 3440):
+
+| path | rail | hub | front | topic | verdict |
+|---|---|---|---|---|---|
+| `/imagine/research/` alone | 432 | — | **3008** (the whole row) | — | — |
+| `/imagine/research/stone/barabar-caves/` | 432 | — | 1090 | 828 | 1090 (leaf) |
+| `/imagine/platform/research/cloudflare/verdict/` | 432 | 752 | 752 | 752 | 752 |
+
+Alone, the front still fills the row. With a child open, every column reads well over
+600px — the four unconstrained columns on the cloudflare path split the leftover evenly
+(none hit its own ceiling), which reads *better* than the rough pre-measurement estimate
+in `ai/2026-09-05/mastermind-day/requirements.md` ("rail 432 / hub 500 / front ~1150 /
+topic ~700 / verdict ~700"). Direct child only, same shape as the `full` collapse above —
+`.active-page` is excluded on purpose, so a `fill` leaf with nothing open beside it still
+fills. `./columns.md` has the rule and the doc-level explanation.
+
+**Heads breathe on `pad-y`.** The head's padding was a hard `0.55em` that never grew with
+the row, while its horizontal inset (`--page-column-pad-x`) is a clamp reaching 3em at
+3440 — the title breathed, the head around it did not. Fix: `padding-block` on the token,
+and `padding-inline` split so the title's side (start) keeps `pad-x` while the `×`'s side
+(end) drops to `pad-y` — a square inset, the same token on both axes, for the first time:
+
+```css
+.page-column-head {
+	padding-block: var(--page-column-pad-y, 0.7em);
+	padding-inline: var(--page-column-pad-x, 0.9em) var(--page-column-pad-y, 0.7em);
+}
+```
+
+Measured (headless, the cloudflare verdict path, a head with a `×`):
+
+| viewport | head height | `×` inset from top | `×` inset from the right |
+|---|---|---|---|
+| 1280 | 73px | 25px | 11px |
+| 2474 | 71px | 21px | 20px |
+| 3440 | 87px | 29px | 28px |
+
+The two insets converge as the row widens (11 vs 41px was the old gap at 2474; 20 vs 20
+now) — a small residual is the close button's own `0.25em` touch-target padding, unchanged
+and identical on both axes since it no longer inherits `pad-x`'s much larger number on one
+side only. **Matching `pad-x` on both axes was tried on 2026-09-04 and measured a 108px
+bar — rejected.** This only moves the head's trailing edge to `pad-y`; the title keeps
+`pad-x`.
+
 ## Traps
 
 - **`:has()` does not care whether a page is painted.** A closed page is still in the

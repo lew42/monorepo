@@ -1,7 +1,180 @@
 # Decisions — the record
 
-Built 2026-09-04 (`/framework/ai/2026-09-04/paging-core/`). Every verdict here is revisable;
-the ⚠ ones are the two that were found by measuring rather than by thinking.
+Rebuilt 2026-09-05 (`/framework/ai/2026-09-05/paging-v3/`); the record below it is from
+2026-09-04 and earlier, kept because most of its traps are still live. Every verdict here
+is revisable; the ⚠ ones were found by measuring rather than by thinking.
+
+---
+
+# 2026-09-05 — the rebuild
+
+Two critics walked the realm first: an overwhelmed newcomer at 3440
+(`/framework/ai/2026-09-05/paging-audit-1/`) and a systems designer reading the code
+(`.../paging-audit-1b/`). Their two verdicts are the input to everything below.
+
+## The handful — six building blocks, and nothing else
+
+The owner: *"i want the paging system to have a small handful of concrete building blocks
+… and i want to be able to see examples of them, and explore alternatives, either by
+generating, or configuring, or whatever."*
+
+**One box, and five words over it.**
+
+| block | one line | its page |
+| --- | --- | --- |
+| **Stage** | the box a click changes the inside of; it never moves | `/stage/` |
+| **Navigation** | what a click on a child does, and how children are drawn | `/navigation/` |
+| **Content** | what is in the box | `/content/` |
+| **Room** | how much of the screen the box gets | `/room/` |
+| **Arrangement** | where the page's other parts sit around the box | `/arrangement/` |
+| **Skin** | the colours and the type size | `/skin/` |
+
+This is the designer critic's list, adopted whole, with two changes said out loud:
+
+- **Skin has three knobs, not one** — content surface, page background, type size. The
+  owner asked for exactly that (*"card gives the content a bg, whereas the other colors
+  change the whole column. i think we want the ability to switch either one to any
+  color"*), so pretending skin is one control would have been tidier and wrong.
+- **The stage is not a word you set.** It is the box the other five act on, so its page
+  has no control of its own — it is the box, holding still, while you click inside it.
+
+`blocks.js` is the one place these live and it imports nothing, so a page, a rail tile, a
+toolbar chip, a dropdown, a url and a doc all read the same lists.
+
+## The realm is an app, not a directory of pages
+
+**Decided:** `/imagine/paging/` mounts in `app.$pages` as its own screen (the same line
+`/imagine/shells/Shell.js` uses), draws a persistent left rail, and hands its middle to
+`this.$pages`. Core's `container()` walks up for the nearest `$pages`, so **every page in
+the realm mounts in that middle with no page knowing anything about it.**
+
+`Paging.column_host()` returns `undefined` — the one line that takes the realm out of
+/imagine/'s columns row.
+
+**Why:** the owner's report was *"a lot of links launch 2 columns at once … quite
+jarring"*, and the newcomer critic hit it on his second click ("The real swap" opened
+Mechanisms **and** Swap). In one region the arrangement contract shows the deepest page and
+hides its ancestors, so **a link three levels down still changes exactly one thing**.
+Measured in the ui-test: three presets picked in a row, `visible: 1` every time, the rail's
+rect `x: 0, width: 240` unchanged throughout.
+
+**What it cost:** `launch` and `takeover` can no longer be shown as real core columns
+inside the realm, because the realm is not a columns row any more. They are demonstrated
+inside the stage instead, and each page links to the real thing (`/imagine/` is the biggest
+columns row on the site). That is decision 5 of 2026-09-05 — *the paging realm runs on
+stable navigation; dynamic mechanisms are demonstrated inside a stable frame.*
+
+**Dead space at 3440, measured before and after** (headless, 3440×1440, the rightmost
+right-edge of anything that draws text or a picture on the first screen):
+
+| | before | after |
+| --- | --- | --- |
+| the hub | 1551px used — **54.9% dead** | 3350px used — **2.6% dead** |
+
+The newcomer critic independently measured 54% on the same page, by a different method.
+
+## One renderer, and every page is a configuration of it
+
+`stage.js` is the only thing in the realm that draws a page. A preset is a configuration; a
+block page is a configuration with one word highlighted; the hover toolbar edits one; the
+drawer prints one as JSON; "make this a page" writes one to disk. There is no second
+renderer and no second vocabulary.
+
+**Merged away** (all three were written out two or three times before):
+
+- navigation — `words.js` MECHANISMS, `make/tabs.js` KIDS and `build/words.js` NAVS were
+  one control in three vocabularies. `blocks.js` `NAVIGATION` is the one that survived.
+- surfaces — three copies (`words.js`, `build/words.js`, `imagine/layouts/system.js`) plus
+  a fourth translation in `families.js`. One list now, read by **both** colour controls.
+- arrangement — five vocabularies. `/imagine/layouts/` owns the numbered layouts and each
+  arrangement value names the number it compiles to rather than restating it.
+
+**Deleted:** `explorer/` (55 lines of prose about a thing that did not exist), `center/`
+(an alignment, not a width), `transitions/` (crossed two blocks; the four swap visuals live
+on the swap page), `examples/`, `rightnav/` (a right rail is one value of the navigation
+word), `samples.js` and the `xs`–`xl` content axis (one canned sample at five heights,
+which the owner read as a content switcher because that is what it was), and the thirteen
+one-value directories under `styles/` `sizes/` `toolbars/` — one `route()` gives all of
+them urls, which is what the designer critic proposed.
+
+**Kept, and why:** `templates/` (eleven real running pages — the only page the newcomer
+critic understood by looking), `make/` and `build/` (the two editors, and the only things
+that save), `demos.js`'s four miniatures (a gesture you can click before reading anything),
+`mechanisms/swap/swap.js`'s four swap visuals. `critique/` and `inventory/` are site
+surveys rather than paging blocks and the designer critic voted to delete them — they are
+**delisted instead**: twelve links to them exist in other realms and in the task logs, and
+a 404 is a worse defect than an unlisted page. They are linked from Docs and nowhere else.
+
+**Six old urls answer instead of 404ing.** `route()` on the hub turns `styles`, `sizes`,
+`center`, `transitions`, `explorer`, `examples` and `rightnav` into a one-line page saying
+where each went. Delete a row when nothing points at it any more.
+
+## Demos never persist
+
+`Paging` no longer writes its mode to storage at all, and `lede()` no longer draws the
+modified mark. A refresh puts every demo back to the page it is. Only Make and Build save,
+and `baseline.js`'s mark shrank from a bordered, filled, 3px-edged strip with two sentences
+to **a dot and four words on one line** — the owner's report was *"the modified and reset ux
+is too bulky, it's a massive alert box."* Proven in the ui-test: colours changed on a
+preset, page reloaded, `paging-surface-card` and no nest — back to what it ships as.
+
+## No telling before showing
+
+Deleted: the hub's *"Every page on this site is three things: an icon, some content, and a
+list of children"*; the swap page's *"Nothing on this page navigates"* and its three
+children **Same box**, **Same width**, **One way back**; every matter-of-fact blockquote in
+the realm. The owner: *"Yes, if you show me some examples, I'll just see and know that. If
+I'm capable of understanding that statement, I don't need you to tell me."*
+
+Where a page needs words it is **one sentence saying what to do** — "Click Pricing on the
+page below, then Docs. Watch the white box." A caption under the stage says what just
+changed and what it did to the box, in pixels: *"Prim — the box did not move: still 760 ×
+355px."* Never a conclusion.
+
+## ⚠ Four traps found by measuring, in one afternoon
+
+1. **A View's class name IS a CSS class.** `View.classify()` walks the constructor chain
+   and adds each name lowercased, so a class called `Stage` wore the framework's own
+   `.stage` layout word — `container-type: inline-size; overflow: hidden` — and
+   **shrink-wrapped itself to 307px inside a 1546px frame** with nothing thrown. A View's
+   class name goes through the same `new-css-class` check as a hand-written selector:
+   `PagingStage` → `.paging-stage`, `PagingToolbar` → `.paging-toolbar`.
+2. **Set a View's fields before `super.initialize()`.** `View.initialize()` IS the render
+   (`append(this.render)`), so a field assigned after it is assigned to a view that has
+   already drawn — `render()` threw on an undefined `pages` list.
+3. **A field shadows a method, for the third time in this realm.** A hub method named
+   `card()` is read by core's `Page.nav()` as the card CLASS, handed to `.ac()` as a
+   function, and every preview on the site's own wall throws. (`opens`, `chosen` and
+   `nested` were the earlier three.)
+4. **`container-type: inline-size` + `align-self: start` = 0px.** A container-query element
+   may not be sized by its own contents in the inline axis, so `blog.css`'s `.blog-hero`
+   collapsed to 0px inside the stage's flex column while holding a whole hero, silently.
+   `.paging-canvas > * { align-self: stretch }`.
+
+Plus one layout finding: `auto-fill` leaves empty tracks a four-card wall never fills —
+1816px of them at 3440. `auto-fit` with a 24em ceiling collapses them and keeps a card a
+card (the layout skill's "every track needs a floor and a ceiling").
+
+## What is still open
+
+- **`room/` still reads 29% dead at 3440**, and that is on purpose: its stage opens on the
+  `reading` word because that word is what the page is about. Changing the dropdown to
+  `wide` fills the row.
+- **Two dead links in `navigation/findings.js`** point at `/imagine/paging/styles/` and
+  `/imagine/paging/sizes/`. That file belongs to the `nav-stability` task, so this one did
+  not edit it; the `route()` redirect above means both now land on a page that says where
+  they went rather than 404ing, and the rows should be repointed at `/skin/` and `/room/`
+  when that task next touches the file.
+- **`paging.css` still carries the older machinery's rules** (~250 lines) for the three
+  places that still use them: the editors' chips, the hub's four miniatures and the swap
+  page's four visuals. Nothing applies the dead half; the tidy is a later pass.
+
+---
+
+# The record before 2026-09-05
+
+Built 2026-09-04 (`/framework/ai/2026-09-04/paging-core/`). Most of the traps below are
+still live; the pages some of them name were merged or deleted in the rebuild above.
 
 ## ⚠ The layout axis derives its default from the page's own `width`
 
@@ -509,3 +682,67 @@ Headless, 2026-09-05, against a private server:
   `made/notes/page.json` on disk; `+ tab` added a page; the down arrow reordered
   `["Today", "Later", "New tab"]` → `["Later", "Today", "New tab"]` in the file's `children`.
 - Zero console errors on the hub and all four mechanism pages at 400 / 1280 / 1920 / 3440.
+
+## Navigation is categorized: stable or dynamic (2026-09-05, `ai/2026-09-05/nav-stability/`)
+
+**Stable navigation is navigation where the thing you were reading does not move.** Dynamic
+navigation is navigation where something moves — a column appears and the row reflows, a
+panel becomes a different height, a page takes the whole screen.
+
+Two numbers say which one a mechanism is, and every mechanism the site has was driven
+headless at 1280 and 3440 to get them: **how far the thing you were reading slid sideways**,
+and **how far it slid up or down**. The table, the element watched in each case, and the
+runner: [`/imagine/paging/navigation/doc/measurements.md`](/imagine/paging/navigation/doc/measurements/).
+
+**The rule for this realm.** The frame is stable; the demonstration inside it may be dynamic.
+
+- The realm's own chrome — the rail, the crumb strip, a tab strip — never moves. All three
+  measured **0px, 0px**.
+- **A box that swaps its contents is given a size first.** Either a reserved height (every
+  panel in the box, the unread ones `visibility: hidden`, so the box is always as tall as the
+  tallest) or a size that comes from the screen (a full-height region that scrolls its own
+  content). Without one, a swap moved the page below it by **259px**, a tab switch by
+  **1720px**, and a toolbar word by **920px**.
+- **A link opens ONE column.** A link that opened two at once was the worst sideways number
+  measured — **194px at 1280**, because the column you were reading dropped from its 64em
+  ceiling (963px) to its 28em floor (421px) in one click. Deep-link on purpose or not at all.
+- **A dynamic mechanism is demonstrated, not used as the way around.** `takeover` and a
+  column opening are real answers to real problems and both stay; they are what the
+  [mechanisms](/imagine/paging/mechanisms/) pages are for. Getting from page to page in this
+  realm is the rail.
+
+**The two pieces that make a jumpy thing stable**, both in
+`/imagine/paging/navigation/navigation.css` and both meant to be lifted:
+
+```css
+/* a box that is always as tall as its tallest panel — no JS, no magic number */
+.paging-nav-reserve { display: grid; }
+.paging-nav-reserve > * { grid-area: 1 / 1; }
+.paging-nav-hidden { visibility: hidden; }
+
+/* a columns host whose columns stop negotiating: each takes the width its word FLOORS at */
+.paging-nav-fixed .page.columns .page-column-body:not(.page-column-fill, .page-column-full, .page-column-hug) {
+	--page-column-flex: 0 0 var(--page-column-min, 16em);
+	--page-column-max: var(--page-column-min, 16em);
+}
+```
+
+⚠ **The floor, not the ceiling.** Elastic columns fill the row exactly, so pinning them at
+their widest overflows the row as soon as a second one opens — and `reveal_column()` then
+scrolls the row to show the new column, which moves what you were reading after all. At the
+floor they fit and the number is really zero. Measured both ways: at the ceiling, 9px at 1280;
+at the floor, 0px at 1280 and 3440.
+
+⚠ **`visibility: hidden`, never `display: none`,** for a reserved panel: a display-hidden
+panel is not measured, which is the whole thing being bought. And a reserved box builds every
+panel — right for a handful of similar panels, wrong for forty or for anything expensive.
+`ext/tabs` cannot wear it as it stands, because it mounts one page at a time.
+
+⚠ **The `--page-column-*` tokens INHERIT.** A columns row nested inside a *column* takes that
+column's three tokens: a demo row inside a `full` column rendered a default-width column
+1202px wide in a 1202px row. Proposed for `Page.css`, with the diff, in the task log.
+
+**Proven:** the four demos under [`/imagine/paging/navigation/`](/imagine/paging/navigation/)
+each measure **0px on both numbers at 1280 and 3440**, against the same gesture on the
+unchanged version measuring 134–161px sideways and 252–302px vertically. Zero console errors
+on every page at 400 / 1280 / 1920 / 3440.

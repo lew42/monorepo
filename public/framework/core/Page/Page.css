@@ -297,6 +297,24 @@
 	.page-column-fill  { --page-column-flex: 1 1 100%; --page-column-min: 16em; --page-column-max: none; }
 	.page-column-full  { --page-column-flex: 1 0 100%; --page-column-min: 100%; --page-column-max: none; }
 
+	/* `fill` YIELDS TO AN OPEN CHILD (2026-09-05, doc/columns.md, decisions.md).
+	   `fill` means "the one page with something to spend the row on" — but a page
+	   marked `.active-ancestor` no longer IS alone: a child column is open beside
+	   it, and `1 1 100%` with no ceiling left that child squeezed to its 16em
+	   floor (measured 2026-09-04 on `imagine/platform/research/`, reverted to
+	   `large` that day rather than fixed). Same two tokens `large` sets — the
+	   base flex fallback (`1 1 0`, `.page-column-body` above) and its 64em
+	   ceiling — so the page still takes most of a wide row, not all of it.
+	   ⚠ DIRECT CHILD ONLY, same shape as the `full` collapse below: the body
+	     `render_column()` builds is a direct child of the page's OWN `.page.column`
+	     wrapper (`display: contents`), never reached through a descendant of the
+	     row. `.active-page` is excluded on purpose — the leaf has no child open
+	     beside it, so a `fill` leaf still fills. */
+	.page.active-ancestor > .page-column-body.page-column-fill {
+		--page-column-flex: 1 1 0;
+		--page-column-max: 64em;
+	}
+
 	/* ── the seam you can drag (`column_grab()`) ──
 	   A 6px item pulled back onto the column it resizes: `flex-basis: 6px` with
 	   `margin-inline-start: -6px` is an outer size of ZERO, so the row's arithmetic is
@@ -344,11 +362,21 @@
 
 	/* The heading stays put while its own list scrolls. ⚠ Opaque, and the SAME fill as
 	   the row: a sticky head needs something to cover the text going under it, and a
-	   different colour here is the alternating band the ux/* pages had. */
+	   different colour here is the alternating band the ux/* pages had.
+	   ⚠ HEADS BREATHE ON `pad-y`, NOT `pad-x` (2026-09-05, decisions.md): a hard
+	     0.55em never grew with the row, so the title's own inset (`pad-x`, up to
+	     3em at 3440) badly outgrew the head's. `padding-inline` takes the title's
+	     side (start) and the `×`'s side (end) separately — start keeps `pad-x`,
+	     end drops to `pad-y` — so the title still reads with the column's prose
+	     while the `×` sits in a SQUARE inset: `pad-y` from the top (the block
+	     padding) and `pad-y` from the corner (this end padding), the same number
+	     on both axes for the first time. Matching pad-x on BOTH axes was tried and
+	     measured a 108px bar (2026-09-04) — do not; this only moves the END. */
 	.page-column-head {
 		position: sticky; top: 0; z-index: 1;
 		display: flex; align-items: center; gap: 0.4em;
-		padding: 0.55em var(--page-column-pad-x, 0.9em);
+		padding-block: var(--page-column-pad-y, 0.7em);
+		padding-inline: var(--page-column-pad-x, 0.9em) var(--page-column-pad-y, 0.7em);
 		background: var(--wash);
 		border-bottom: 1px solid var(--line);
 	}

@@ -1,4 +1,5 @@
-import { Page, md } from "/app.js";
+import { md } from "/app.js";
+import { Paging } from "../paging.js";
 
 /* Container: a column in /imagine/paging/'s row (itself /imagine/'s row). Size: `full` —
    an 8-column table needs the room, and this is a one-screen reference, not a place you
@@ -10,7 +11,7 @@ import { Page, md } from "/app.js";
    pattern?" This is the answer — one row per thing already built that way, in the
    vocabulary the rest of /imagine/paging/ shares (mechanisms/, styles/, sizes/). */
 
-export default new Page({
+export default new Paging({
 	meta: import.meta,
 	title: "Inventory",
 	description: "What already matches icon · page · children · navigation — one row per thing, in the paging vocabulary.",

@@ -156,10 +156,13 @@ for the browser store, and the line under the list changes on the same repaint.
 
 ### Proved — `ui-test`, 2026-09-05, 1280 and 3440
 
-- **The mark appears on the first press, not the next reload.** `/imagine/paging/sizes/` opens
-  with an empty mark; one `content: xl` chip → `lew42:paging:/imagine/paging/sizes/` is
-  `{"content":"xl"}` and the amber mark reads *"Modified…"*. Two presses on Reset → the key is
-  `null` and the mark is empty again.
+- ~~**The mark appears on the first press, not the next reload.**~~ **Superseded 2026-09-05:
+  a demo does not persist at all any more, so it can never reach the mark.** `Paging` writes
+  nothing to storage and `lede()` draws no mark; a refresh puts every demo back to the page it
+  is. Re-proved by ui-test the same day: two colours changed on a preset, reload, and the box
+  is back to `paging-surface-card` with no nest. The mark now only appears in the two editors,
+  and it is a dot and four words on one line rather than a bordered strip
+  ([decisions](/imagine/paging/doc/decisions/)).
 - **Make writes real files.** Adding *"Probe page"* created
   `public/imagine/paging/made/probe-page/page.json` on disk and rewrote `made/page.json`'s
   `children` to name it. Reload → still there. **×** → the row went (6 → 5) and the directory

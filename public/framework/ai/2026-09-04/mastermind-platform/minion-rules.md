@@ -4,6 +4,8 @@ Three laws (CLAUDE.md): **less is more** (as simple as possible, fastest working
 
 ## Two laws from the owner, 2026-09-04 — they outrank the length budget in your brief
 - **Clear beats brief, by far.** Explain like the reader is five. Start with the basics in full, plain sentences; say the one thing a page is for at its top; a demo or a snippet must make its takeaway obvious. Detail that can move somewhere better moves there with a link. Clipped fragments, undefined words and jargon standing in for an explanation are defects.
+- **Always the overwhelmed newcomer.** Level 1 is one screen, mostly above the fold: the thing shown, its parts, the way in, room to breathe. Detail nests one click down; it is never on the first page and never deleted. Don't tell the reader what you are about to show; show it. Delete matter-of-fact blockquotes. Demos and reports are held to this harder than docs.
+- **Demos do not persist.** A refresh resets a demo to the page it is. Only an editor (Make, Build) saves, and it must be visually obvious that it does. No bulky "modified" alerts — a dot at most.
 - **Resolve, don't park.** A problem you find is yours to fix the best way you can now, kept easy to change, with its caveat written beside it. "Left open" needs a reason a reader accepts (an owner's decision, a fence, a missing fact) — never "out of scope".
 
 ## Before the first edit

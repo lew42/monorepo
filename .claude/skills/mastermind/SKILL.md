@@ -139,6 +139,10 @@ Visual when possible; clickable links, screenshots, measurements — a claim wit
 is not a result. When text, minimum text. The morning report is one page, two minutes: what
 landed (clickable), in flight, parked, spend. Detail stays in the task logs.
 
+## Simplify with the minions — nest detail, never dump it (the owner, 2026-09-05)
+
+"I'm overwhelmed with the complexity of this project, and getting these reports with nitty gritty details that I can't follow doesn't help me at all." It is the mastermind's job to work with the minions to simplify — not by removing important detail, but by nesting it in the proper place. Always imagine an overwhelmed newcomer. Every page a minion lands is level 1 first: one screen, mostly above the fold, the thing shown, its parts named, a way in, room to breathe; the rest one click down. Don't add a wall of text with complicated detail unless it is absolutely necessary; don't tell the reader what you are going to show if showing is as good. A demonstration page that needs its blockquote explained has failed; delete the blockquote. Reports to the owner: one screen, five or six plain sentences each with a link, the numbers in the task log. When a minion's landing report is a wall, the mastermind rewrites it before it reaches the owner — the wall goes in the log.
+
 ## Step back on a cadence
 
 Every few cycles, with numbers: cost per unit of result and which tier produced most per

@@ -1,8 +1,18 @@
 import { Page, div, p, h3, span, a, input, textarea, icon, md } from "/app.js";
-import { Paging, press, STYLES, CONTENT, MECHANISMS } from "../paging.js";
+import { Paging, press, MECHANISMS } from "../paging.js";
+import { SURFACES, CONTENT as CONTENT_KINDS, DEFAULT } from "../blocks.js";
+
 import { baseline } from "../baseline.js";
 import { store_for, FileStore, LocalStore, at, walk, name_for, clone, SEED, DEFAULTS, DIR } from "./made.js";
-import { KIDS, KIDS_ICON, kids_of, tabs_items, row_acts } from "./tabs.js";
+import { KIDS, KIDS_ICON, kids_of, row_acts } from "./tabs.js";
+
+/* THE WORDS A ROW CYCLES. The realm's one vocabulary (`../blocks.js`), read as plain
+   id lists — the chips were written against three lists that no longer exist after
+   the 2026-09-05 rebuild, and this is the whole of the change. A node saved under the
+   old words still opens: `config_for()` below translates it once. */
+const STYLES = SURFACES.map(surface => surface.id);
+const CONTENT = CONTENT_KINDS.map(kind => kind.id);
+
 
 /* ── layout, answered before the first factory call ────────────────────────────
    1 CONTAINER  a column in /imagine/'s row (no page grid; `.page-column-prose`).
@@ -49,29 +59,50 @@ const next = (list, word) => list[(list.indexOf(word) + 1) % list.length];
    hands each one a real url derived from this page's. */
 function grow(nodes){
 	return nodes.map(node => {
-		const { style, content, mech } = words(node);
-
-		/* ⚠ THE FOURTH WORD. `kids` says how this page draws its CHILDREN — as
-		   columns you launch (the url changes), or as tabs in a panel (it does not).
-		   It is only ever an `items()` override, so a page with `tabs` is the same
-		   page with a different picker; `make/tabs.js` has the argument. */
 		const kids = kids_of(node);
+		const config = config_for(node, kids);
 
 		return new Paging({
 			name: node.name,
 			title: node.title,
 			icon: node.icon ?? "description",
-			description: node.description ?? ("A page you made, wearing " + style + " · " + content + " · " + mech + "."),
-			takeaway: "**You made this page, and it is a real page** — a real url, the real router, real columns. Everything about it comes from one small JSON file: `"
-				+ JSON.stringify({ title: node.title, mode: { style, content, mech, kids } }) + "`. Its chips work exactly like every other page's here"
-				+ (kids === "tabs" ? ", and its children are drawn as **tabs**: clicking one shows it in the panel and does NOT change the url. Each panel links to the same page as a column, which does." : "."),
-			axes: "style content mech",
-			mode: { style, content, mech, kids },
+			description: node.description ?? "A page you made.",
 			children: grow(node.children ?? []),
-			content(){ this.lede(); this.paging(); },
-			...(kids === "tabs" ? { items(){ return tabs_items(this); } } : {}),
+
+			content(){
+				this.lede("A real page, at a real url, drawn from one small JSON file. Point at it to change it.");
+
+				this.stage(config);
+
+				md("This page is `" + JSON.stringify({ title: node.title, mode: config }) + "` — nothing else. [Back to the list](/imagine/paging/make/).");
+			},
 		});
 	});
+}
+
+/* ── OLD WORDS, NEW WORDS ─────────────────────────────────────────────────────
+   A `page.json` written before 2026-09-05 says `style` / `content` / `mech` / `kids`;
+   one written after says the realm's seven words. Both open, because this is the one
+   place that has to know — and a node saved again from a made page is written in the
+   new words, so the translation is a ramp rather than a fork.                     */
+export function config_for(node, kids = kids_of(node)){
+	const mode = node?.mode ?? {};
+
+	if (mode.navigation) return { ...DEFAULT, ...mode };
+
+	const navigation = kids === "tabs" ? "tabs"
+		: mode.mech === "swap" ? "tabs"
+		: mode.mech === "expand" ? "rail"
+		: mode.mech === "takeover" ? "takeover"
+		: "columns";
+
+	return {
+		...DEFAULT,
+		navigation,
+		content: CONTENT.includes(mode.content) ? mode.content : "article",
+		surface: STYLES.includes(mode.style) ? mode.style : "card",
+		background: "tint",
+	};
 }
 
 export default new Paging({
@@ -81,7 +112,7 @@ export default new Paging({
 	icon: "add_circle_outline",
 	width: "large",
 	index: true,
-	axes: "",
+
 
 	takeaway: "**Type a name and you get a real page: a real url, the real router, real columns — and, in dev, a real file on disk.** Each page below is one small JSON file under `made/`; open one in an editor and it is the whole page. On a static host with no dev server there is nothing to write to, so the same tree is kept in your browser instead — the line under the list always says which.",
 
@@ -207,7 +238,7 @@ export default new Paging({
 
 		// ⚠ Captured NOW, filled in the callback: `ready()` is a fetch, and a factory
 		//   call after the await would land in whatever box is current by then.
-		this.$list = div.c("paging-make-list", $list => {
+		this.$list = div.c("paging-make-list wide", $list => {
 			$list.append(() => p.c("muted", "Loading…"));
 			this.ready().then(() => this.redraw());
 		});

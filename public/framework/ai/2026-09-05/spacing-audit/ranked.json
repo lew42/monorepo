@@ -1,0 +1,2458 @@
+{
+ "generated_from": [
+  "spacing-audit-a/findings.json",
+  "spacing-audit-b/findings.json",
+  "spacing-audit-c/findings.json",
+  "spacing-audit-d/findings.json"
+ ],
+ "totals": {
+  "pages": 92,
+  "findings": 9177,
+  "by_kind": {
+   "ratio": 279,
+   "strip": 899,
+   "no-growth": 76,
+   "padding-thin": 4419,
+   "x0": 19,
+   "touching": 2715,
+   "padding-inversion": 146,
+   "padding-fat": 624
+  },
+  "median_growth_1280_to_3440": 1.2,
+  "pages_under_1p3_growth": 76,
+  "pages_measured": 84,
+  "pages_that_shrink": 7
+ },
+ "clusters": [
+  {
+   "kind": "no-growth",
+   "selector": "(page)",
+   "instances": 66,
+   "pages": 66,
+   "groups": "ABC",
+   "max_severity": 5,
+   "widths": [
+    3440
+   ],
+   "example_url": "/imagine/platform/existing/",
+   "example_numbers": {
+    "median_1280": 27.1,
+    "median_3440": 10,
+    "growth": 0.37
+   },
+   "example_detail": "Spacing barely grows with the screen: the median gap is 27.1px at 1280 and only 10px at 3440 (0.37x), well under the 1.3x a 2.69x-wider screen should show.",
+   "reason": null,
+   "crop": null,
+   "_g": "A",
+   "reach": 330
+  },
+  {
+   "kind": "padding-thin",
+   "selector": "a",
+   "instances": 881,
+   "pages": 36,
+   "groups": "AB",
+   "max_severity": 4,
+   "widths": [
+    400,
+    1280,
+    1920,
+    2560,
+    3440
+   ],
+   "example_url": "/imagine/paging/",
+   "example_numbers": {
+    "padding": 0,
+    "font_size": 16,
+    "half_em": 8
+   },
+   "example_detail": "a has only 0px of side padding, under half its own font-size (8px).",
+   "reason": null,
+   "crop": null,
+   "_g": "A",
+   "reach": 144
+  },
+  {
+   "kind": "padding-thin",
+   "selector": "a.page-column-close.in-path",
+   "instances": 147,
+   "pages": 47,
+   "groups": "AB",
+   "max_severity": 3,
+   "widths": [
+    400,
+    1280,
+    1920,
+    2560,
+    3440
+   ],
+   "example_url": "/imagine/paging/",
+   "example_numbers": {
+    "padding": 5,
+    "font_size": 18,
+    "half_em": 9
+   },
+   "example_detail": "a.page-column-close.in-path has only 5px of side padding, under half its own font-size (9px).",
+   "reason": null,
+   "crop": null,
+   "_g": "A",
+   "reach": 141
+  },
+  {
+   "kind": "strip",
+   "selector": "a.page-preview-link",
+   "instances": 432,
+   "pages": 19,
+   "groups": "ABCD",
+   "max_severity": 5,
+   "widths": [
+    400,
+    1280,
+    1920,
+    2560,
+    3440
+   ],
+   "example_url": "/imagine/design/journey/",
+   "example_numbers": {
+    "width": 3342,
+    "ink": 6,
+    "ratio": 525.5,
+    "padding": 0
+   },
+   "example_detail": "a.page-preview-link is 3342px wide but its content is only 6px of that (525.5x) \u2014 a big empty strip, stretched by its flex / column parent.",
+   "reason": null,
+   "crop": null,
+   "_g": "A",
+   "reach": 95
+  },
+  {
+   "kind": "padding-thin",
+   "selector": "a.page-preview-link",
+   "instances": 1528,
+   "pages": 23,
+   "groups": "ABC",
+   "max_severity": 4,
+   "widths": [
+    400,
+    1280,
+    1920,
+    2560,
+    3440
+   ],
+   "example_url": "/imagine/paging/",
+   "example_numbers": {
+    "padding": 0,
+    "font_size": 16,
+    "half_em": 8
+   },
+   "example_detail": "a.page-preview-link has only 0px of side padding, under half its own font-size (8px).",
+   "reason": null,
+   "crop": null,
+   "_g": "A",
+   "reach": 92
+  },
+  {
+   "kind": "touching",
+   "selector": "div.page-column-head + div.page-column-prose.flow",
+   "instances": 140,
+   "pages": 28,
+   "groups": "B",
+   "max_severity": 3,
+   "widths": [
+    400,
+    1280,
+    1920,
+    2560,
+    3440
+   ],
+   "example_url": "/imagine/scenes/",
+   "example_numbers": {
+    "gap": 0
+   },
+   "example_detail": "div.page-column-head and div.page-column-prose.flow sit 0.0px apart \u2014 they visually touch.",
+   "reason": null,
+   "crop": null,
+   "_g": "B",
+   "reach": 84
+  },
+  {
+   "kind": "touching",
+   "selector": "div.page-column-head",
+   "instances": 32,
+   "pages": 26,
+   "groups": "A",
+   "max_severity": 3,
+   "widths": [
+    3440
+   ],
+   "example_url": "/imagine/game/",
+   "example_numbers": {
+    "gap": 0
+   },
+   "example_detail": "div.page-column-head and div.imagine-hud (under div.page-column-body.page-column-small) sit 0px apart and both paint something \u2014 they visually touch.",
+   "reason": null,
+   "crop": null,
+   "_g": "A",
+   "reach": 78
+  },
+  {
+   "kind": "touching",
+   "selector": "li",
+   "instances": 742,
+   "pages": 16,
+   "groups": "ACD",
+   "max_severity": 4,
+   "widths": [
+    400,
+    1280,
+    1920,
+    2560,
+    3440
+   ],
+   "example_url": "/imagine/platform/",
+   "example_numbers": {
+    "gap": 0
+   },
+   "example_detail": "li and li (under ul) sit 0px apart and both paint something \u2014 they visually touch.",
+   "reason": null,
+   "crop": null,
+   "_g": "A",
+   "reach": 64
+  },
+  {
+   "kind": "no-growth",
+   "selector": ".page",
+   "instances": 10,
+   "pages": 10,
+   "groups": "D",
+   "max_severity": 5,
+   "widths": [
+    3440
+   ],
+   "example_url": "/blog/systems/layout-generators/",
+   "example_numbers": {
+    "median_1280": 19.46,
+    "median_3440": 11.03,
+    "growth": 0.57
+   },
+   "example_detail": "The typical gap between elements barely changes as the screen grows: 19.46px at 1280 wide vs 11.03px at 3440 wide (0.57x), even though the viewport itself is 2.69x wider.",
+   "reason": null,
+   "crop": null,
+   "_g": "D",
+   "reach": 50
+  },
+  {
+   "kind": "padding-thin",
+   "selector": "summary",
+   "instances": 123,
+   "pages": 11,
+   "groups": "ABC",
+   "max_severity": 4,
+   "widths": [
+    400,
+    1280,
+    1920,
+    2560,
+    3440
+   ],
+   "example_url": "/imagine/paging/",
+   "example_numbers": {
+    "padding": 0,
+    "font_size": 16,
+    "half_em": 8
+   },
+   "example_detail": "summary has only 0px of side padding, under half its own font-size (8px).",
+   "reason": null,
+   "crop": null,
+   "_g": "A",
+   "reach": 44
+  },
+  {
+   "kind": "padding-thin",
+   "selector": "div.page-preview",
+   "instances": 689,
+   "pages": 10,
+   "groups": "AB",
+   "max_severity": 4,
+   "widths": [
+    400,
+    1280,
+    1920,
+    2560,
+    3440
+   ],
+   "example_url": "/imagine/design/",
+   "example_numbers": {
+    "padding": 0,
+    "font_size": 16,
+    "half_em": 8
+   },
+   "example_detail": "div.page-preview has only 0px of side padding, under half its own font-size (8px).",
+   "reason": null,
+   "crop": null,
+   "_g": "A",
+   "reach": 40
+  },
+  {
+   "kind": "strip",
+   "selector": "summary",
+   "instances": 45,
+   "pages": 8,
+   "groups": "ABC",
+   "max_severity": 5,
+   "widths": [
+    400,
+    1280,
+    1920,
+    2560,
+    3440
+   ],
+   "example_url": "/imagine/paging/",
+   "example_numbers": {
+    "width": 962,
+    "ink": 137,
+    "ratio": 7,
+    "padding": 0
+   },
+   "example_detail": "summary is 962px wide but its content is only 137px of that (7x) \u2014 a big empty strip, stretched by its block parent.",
+   "reason": null,
+   "crop": null,
+   "_g": "A",
+   "reach": 40
+  },
+  {
+   "kind": "touching",
+   "selector": "tr",
+   "instances": 175,
+   "pages": 9,
+   "groups": "C",
+   "max_severity": 4,
+   "widths": [
+    400,
+    1280,
+    1920,
+    2560,
+    3440
+   ],
+   "example_url": "/framework/core/",
+   "example_numbers": {
+    "gap": 0
+   },
+   "example_detail": "These two adjacent boxes are 0px apart \u2014 visually touching.",
+   "reason": null,
+   "crop": null,
+   "_g": "C",
+   "reach": 36
+  },
+  {
+   "kind": "touching",
+   "selector": "thead",
+   "instances": 60,
+   "pages": 8,
+   "groups": "C",
+   "max_severity": 4,
+   "widths": [
+    400,
+    1280,
+    1920,
+    2560,
+    3440
+   ],
+   "example_url": "/framework/ext/markdown/doc/decisions/",
+   "example_numbers": {
+    "gap": 0
+   },
+   "example_detail": "These two adjacent boxes are 0px apart \u2014 visually touching.",
+   "reason": null,
+   "crop": null,
+   "_g": "C",
+   "reach": 32
+  },
+  {
+   "kind": "ratio",
+   "selector": "code",
+   "instances": 12,
+   "pages": 6,
+   "groups": "A",
+   "max_severity": 5,
+   "widths": [
+    3440
+   ],
+   "example_url": "/imagine/review/",
+   "example_numbers": {
+    "gap_before": 7,
+    "gap_after": 68,
+    "ratio": 9.7
+   },
+   "example_detail": "Under p, one gap is 7px and the very next gap is 68px \u2014 a 9.7x jump between neighbours.",
+   "reason": null,
+   "crop": "shots/before/crop-A-224.jpg",
+   "_g": "A",
+   "reach": 30
+  },
+  {
+   "kind": "touching",
+   "selector": "summary",
+   "instances": 35,
+   "pages": 7,
+   "groups": "C",
+   "max_severity": 4,
+   "widths": [
+    400,
+    1280,
+    1920,
+    2560,
+    3440
+   ],
+   "example_url": "/framework/",
+   "example_numbers": {
+    "gap": 0
+   },
+   "example_detail": "These two adjacent boxes are 0px apart \u2014 visually touching.",
+   "reason": null,
+   "crop": null,
+   "_g": "C",
+   "reach": 28
+  },
+  {
+   "kind": "padding-thin",
+   "selector": "a.page-column-close.active",
+   "instances": 17,
+   "pages": 9,
+   "groups": "AB",
+   "max_severity": 3,
+   "widths": [
+    400,
+    1280,
+    1920,
+    2560,
+    3440
+   ],
+   "example_url": "/imagine/platform/",
+   "example_numbers": {
+    "padding": 5,
+    "font_size": 18,
+    "half_em": 9
+   },
+   "example_detail": "a.page-column-close.active has only 5px of side padding, under half its own font-size (9px).",
+   "reason": null,
+   "crop": null,
+   "_g": "A",
+   "reach": 27
+  },
+  {
+   "kind": "padding-thin",
+   "selector": "span.paging-swatch.paging-surface-plain",
+   "instances": 10,
+   "pages": 5,
+   "groups": "A",
+   "max_severity": 4,
+   "widths": [
+    3440
+   ],
+   "example_url": "/imagine/paging/toolbars/",
+   "example_numbers": {
+    "padding": 0,
+    "font_size": 18,
+    "half_em": 9
+   },
+   "example_detail": "span.paging-swatch.paging-surface-plain has only 0px of side padding, under half its own font-size (9px).",
+   "reason": null,
+   "crop": null,
+   "_g": "A",
+   "reach": 20
+  },
+  {
+   "kind": "padding-thin",
+   "selector": "span.paging-swatch.paging-surface-card",
+   "instances": 10,
+   "pages": 5,
+   "groups": "A",
+   "max_severity": 4,
+   "widths": [
+    3440
+   ],
+   "example_url": "/imagine/paging/toolbars/",
+   "example_numbers": {
+    "padding": 0,
+    "font_size": 18,
+    "half_em": 9
+   },
+   "example_detail": "span.paging-swatch.paging-surface-card has only 0px of side padding, under half its own font-size (9px).",
+   "reason": null,
+   "crop": null,
+   "_g": "A",
+   "reach": 20
+  },
+  {
+   "kind": "padding-thin",
+   "selector": "span.paging-swatch.paging-surface-tint",
+   "instances": 10,
+   "pages": 5,
+   "groups": "A",
+   "max_severity": 4,
+   "widths": [
+    3440
+   ],
+   "example_url": "/imagine/paging/toolbars/",
+   "example_numbers": {
+    "padding": 0,
+    "font_size": 18,
+    "half_em": 9
+   },
+   "example_detail": "span.paging-swatch.paging-surface-tint has only 0px of side padding, under half its own font-size (9px).",
+   "reason": null,
+   "crop": null,
+   "_g": "A",
+   "reach": 20
+  },
+  {
+   "kind": "padding-thin",
+   "selector": "span.paging-swatch.paging-surface-prim",
+   "instances": 10,
+   "pages": 5,
+   "groups": "A",
+   "max_severity": 4,
+   "widths": [
+    3440
+   ],
+   "example_url": "/imagine/paging/toolbars/",
+   "example_numbers": {
+    "padding": 0,
+    "font_size": 18,
+    "half_em": 9
+   },
+   "example_detail": "span.paging-swatch.paging-surface-prim has only 0px of side padding, under half its own font-size (9px).",
+   "reason": null,
+   "crop": null,
+   "_g": "A",
+   "reach": 20
+  },
+  {
+   "kind": "padding-thin",
+   "selector": "span.paging-swatch.paging-surface-dark",
+   "instances": 10,
+   "pages": 5,
+   "groups": "A",
+   "max_severity": 4,
+   "widths": [
+    3440
+   ],
+   "example_url": "/imagine/paging/toolbars/",
+   "example_numbers": {
+    "padding": 0,
+    "font_size": 18,
+    "half_em": 9
+   },
+   "example_detail": "span.paging-swatch.paging-surface-dark has only 0px of side padding, under half its own font-size (9px).",
+   "reason": null,
+   "crop": null,
+   "_g": "A",
+   "reach": 20
+  },
+  {
+   "kind": "ratio",
+   "selector": "strong",
+   "instances": 8,
+   "pages": 4,
+   "groups": "A",
+   "max_severity": 5,
+   "widths": [
+    3440
+   ],
+   "example_url": "/imagine/review/rethink/",
+   "example_numbers": {
+    "gap_before": 9,
+    "gap_after": 67,
+    "ratio": 7.4
+   },
+   "example_detail": "Under p, one gap is 9px and the very next gap is 67px \u2014 a 7.4x jump between neighbours.",
+   "reason": null,
+   "crop": "shots/before/crop-A-284.jpg",
+   "_g": "A",
+   "reach": 20
+  },
+  {
+   "kind": "x0",
+   "selector": "h1.page-title",
+   "instances": 5,
+   "pages": 5,
+   "groups": "A",
+   "max_severity": 4,
+   "widths": [
+    3440
+   ],
+   "example_url": "/imagine/paging/toolbars/",
+   "example_numbers": {
+    "left": 503
+   },
+   "example_detail": "\"Toolbars\" (h1.page-title) sits flush at the page's own left edge with no inset.",
+   "reason": null,
+   "crop": null,
+   "_g": "A",
+   "reach": 20
+  },
+  {
+   "kind": "x0",
+   "selector": "h2",
+   "instances": 5,
+   "pages": 5,
+   "groups": "A",
+   "max_severity": 4,
+   "widths": [
+    3440
+   ],
+   "example_url": "/imagine/paging/toolbars/",
+   "example_numbers": {
+    "left": 503
+   },
+   "example_detail": "\"The four, each at its own url\" (h2) sits flush at the page's own left edge with no inset.",
+   "reason": null,
+   "crop": null,
+   "_g": "A",
+   "reach": 20
+  },
+  {
+   "kind": "padding-inversion",
+   "selector": "select",
+   "instances": 26,
+   "pages": 6,
+   "groups": "AB",
+   "max_severity": 3,
+   "widths": [
+    400,
+    3440
+   ],
+   "example_url": "/imagine/paging/toolbars/",
+   "example_numbers": {
+    "box_padding": 6,
+    "page_gutter": 0
+   },
+   "example_detail": "select is padded 6px, more than the page's own 0px gutter.",
+   "reason": null,
+   "crop": null,
+   "_g": "A",
+   "reach": 18
+  },
+  {
+   "kind": "padding-thin",
+   "selector": "a.in-path",
+   "instances": 15,
+   "pages": 4,
+   "groups": "AB",
+   "max_severity": 4,
+   "widths": [
+    400,
+    1280,
+    1920,
+    2560,
+    3440
+   ],
+   "example_url": "/imagine/review/rethink/",
+   "example_numbers": {
+    "padding": 0,
+    "font_size": 16,
+    "half_em": 8
+   },
+   "example_detail": "a.in-path has only 0px of side padding, under half its own font-size (8px).",
+   "reason": null,
+   "crop": null,
+   "_g": "A",
+   "reach": 16
+  },
+  {
+   "kind": "x0",
+   "selector": "p.md.paging-lede",
+   "instances": 4,
+   "pages": 4,
+   "groups": "A",
+   "max_severity": 4,
+   "widths": [
+    3440
+   ],
+   "example_url": "/imagine/paging/toolbars/top/",
+   "example_numbers": {
+    "left": 503
+   },
+   "example_detail": "\"A bar of controls above the content. It \" (p.md.paging-lede) sits flush at the page's own left edge with no inset.",
+   "reason": null,
+   "crop": null,
+   "_g": "A",
+   "reach": 16
+  },
+  {
+   "kind": "x0",
+   "selector": "p.md",
+   "instances": 4,
+   "pages": 4,
+   "groups": "A",
+   "max_severity": 4,
+   "widths": [
+    3440
+   ],
+   "example_url": "/imagine/paging/toolbars/top/",
+   "example_numbers": {
+    "left": 503
+   },
+   "example_detail": "\"A bar is one value of arrangement, which\" (p.md) sits flush at the page's own left edge with no inset.",
+   "reason": null,
+   "crop": null,
+   "_g": "A",
+   "reach": 16
+  },
+  {
+   "kind": "strip",
+   "selector": "a.sidebar-link",
+   "instances": 124,
+   "pages": 3,
+   "groups": "CD",
+   "max_severity": 5,
+   "widths": [
+    1280,
+    1920,
+    2560,
+    3440
+   ],
+   "example_url": "/framework/",
+   "example_numbers": {
+    "width": 227.6,
+    "ink": 44.8,
+    "padding": 16.5
+   },
+   "example_detail": "This control is 227.6px wide but its content is only 44.8px \u2014 a 5.08x empty strip.",
+   "reason": null,
+   "crop": null,
+   "_g": "C",
+   "reach": 15
+  },
+  {
+   "kind": "padding-fat",
+   "selector": "button",
+   "instances": 95,
+   "pages": 5,
+   "groups": "BC",
+   "max_severity": 3,
+   "widths": [
+    400,
+    1280,
+    1920,
+    2560,
+    3440
+   ],
+   "example_url": "/imagine/stream/deck/",
+   "example_numbers": {
+    "width": 60,
+    "padding": 13
+   },
+   "example_detail": "button carries 13px of side padding on a 60px box \u2014 over a fifth of its own width.",
+   "reason": null,
+   "crop": null,
+   "_g": "B",
+   "reach": 15
+  },
+  {
+   "kind": "ratio",
+   "selector": "p",
+   "instances": 47,
+   "pages": 3,
+   "groups": "D",
+   "max_severity": 5,
+   "widths": [
+    400,
+    1280,
+    1920,
+    2560,
+    3440
+   ],
+   "example_url": "/blog/systems/layout-generators/",
+   "example_numbers": {
+    "gap_a": 83.92,
+    "gap_b": 7.53,
+    "ratio": 11.14
+   },
+   "example_detail": "Inside p, one gap between rows is 83.92px and the very next gap is 7.53px (11.14x) \u2014 no heading, no <details>, no visible reason for the jump.",
+   "reason": null,
+   "crop": null,
+   "_g": "D",
+   "reach": 15
+  },
+  {
+   "kind": "padding-thin",
+   "selector": "a.toc-link",
+   "instances": 25,
+   "pages": 3,
+   "groups": "D",
+   "max_severity": 5,
+   "widths": [
+    400,
+    1280,
+    1920,
+    2560,
+    3440
+   ],
+   "example_url": "/blog/framework/hello-lew42/",
+   "example_numbers": {
+    "padding": 0,
+    "font_size": 12.6
+   },
+   "example_detail": "\"a.toc-link\" has only 0px of side padding, less than half its own 12.6px letter size \u2014 the text sits almost at the edge of its own box.",
+   "reason": null,
+   "crop": null,
+   "_g": "D",
+   "reach": 15
+  },
+  {
+   "kind": "padding-inversion",
+   "selector": "a.paging-card",
+   "instances": 16,
+   "pages": 5,
+   "groups": "A",
+   "max_severity": 3,
+   "widths": [
+    3440
+   ],
+   "example_url": "/imagine/paging/toolbars/",
+   "example_numbers": {
+    "box_padding": 14,
+    "page_gutter": 0
+   },
+   "example_detail": "a.paging-card is padded 14px, more than the page's own 0px gutter.",
+   "reason": null,
+   "crop": null,
+   "_g": "A",
+   "reach": 15
+  },
+  {
+   "kind": "strip",
+   "selector": "button.yt-start",
+   "instances": 15,
+   "pages": 3,
+   "groups": "B",
+   "max_severity": 5,
+   "widths": [
+    400,
+    1280,
+    1920,
+    2560,
+    3440
+   ],
+   "example_url": "/imagine/youtube/",
+   "example_numbers": {
+    "width": 374,
+    "ink": 40,
+    "padding": 0
+   },
+   "example_detail": "button.yt-start is 374px wide but its content only needs 40px \u2014 a 9.3x empty strip.",
+   "reason": null,
+   "crop": null,
+   "_g": "B",
+   "reach": 15
+  },
+  {
+   "kind": "padding-thin",
+   "selector": "a.toc-link.current",
+   "instances": 15,
+   "pages": 3,
+   "groups": "D",
+   "max_severity": 5,
+   "widths": [
+    400,
+    1280,
+    1920,
+    2560,
+    3440
+   ],
+   "example_url": "/blog/framework/hello-lew42/",
+   "example_numbers": {
+    "padding": 0,
+    "font_size": 12.6
+   },
+   "example_detail": "\"a.toc-link.current\" has only 0px of side padding, less than half its own 12.6px letter size \u2014 the text sits almost at the edge of its own box.",
+   "reason": null,
+   "crop": null,
+   "_g": "D",
+   "reach": 15
+  },
+  {
+   "kind": "padding-inversion",
+   "selector": "div.paging-stage.paging-bg-tint",
+   "instances": 5,
+   "pages": 5,
+   "groups": "A",
+   "max_severity": 3,
+   "widths": [
+    3440
+   ],
+   "example_url": "/imagine/paging/toolbars/",
+   "example_numbers": {
+    "box_padding": 36,
+    "page_gutter": 0
+   },
+   "example_detail": "div.paging-stage.paging-bg-tint is padded 36px, more than the page's own 0px gutter.",
+   "reason": null,
+   "crop": null,
+   "_g": "A",
+   "reach": 15
+  },
+  {
+   "kind": "padding-inversion",
+   "selector": "div.paging-canvas.paging-surface-card",
+   "instances": 5,
+   "pages": 5,
+   "groups": "A",
+   "max_severity": 3,
+   "widths": [
+    3440
+   ],
+   "example_url": "/imagine/paging/toolbars/",
+   "example_numbers": {
+    "box_padding": 36,
+    "page_gutter": 0
+   },
+   "example_detail": "div.paging-canvas.paging-surface-card is padded 36px, more than the page's own 0px gutter.",
+   "reason": null,
+   "crop": null,
+   "_g": "A",
+   "reach": 15
+  },
+  {
+   "kind": "padding-inversion",
+   "selector": "div.paging-toolbar",
+   "instances": 5,
+   "pages": 5,
+   "groups": "A",
+   "max_severity": 3,
+   "widths": [
+    3440
+   ],
+   "example_url": "/imagine/paging/toolbars/",
+   "example_numbers": {
+    "box_padding": 13,
+    "page_gutter": 0
+   },
+   "example_detail": "div.paging-toolbar is padded 13px, more than the page's own 0px gutter.",
+   "reason": null,
+   "crop": null,
+   "_g": "A",
+   "reach": 15
+  },
+  {
+   "kind": "padding-inversion",
+   "selector": "span.paging-more",
+   "instances": 5,
+   "pages": 5,
+   "groups": "A",
+   "max_severity": 3,
+   "widths": [
+    3440
+   ],
+   "example_url": "/imagine/paging/toolbars/",
+   "example_numbers": {
+    "box_padding": 7,
+    "page_gutter": 0
+   },
+   "example_detail": "span.paging-more is padded 7px, more than the page's own 0px gutter.",
+   "reason": null,
+   "crop": null,
+   "_g": "A",
+   "reach": 15
+  },
+  {
+   "kind": "padding-fat",
+   "selector": "button.demo-btn",
+   "instances": 99,
+   "pages": 3,
+   "groups": "CD",
+   "max_severity": 4,
+   "widths": [
+    400,
+    1280,
+    1920,
+    2560,
+    3440
+   ],
+   "example_url": "/framework/core/",
+   "example_numbers": {
+    "padding": 26.7,
+    "width": 40.6,
+    "pct": 65.6
+   },
+   "example_detail": "This control's side padding is 65.6% of its own width (26.7px of 40.6px).",
+   "reason": null,
+   "crop": null,
+   "_g": "C",
+   "reach": 12
+  },
+  {
+   "kind": "padding-thin",
+   "selector": "a.page-link",
+   "instances": 53,
+   "pages": 3,
+   "groups": "A",
+   "max_severity": 4,
+   "widths": [
+    3440
+   ],
+   "example_url": "/imagine/paging/",
+   "example_numbers": {
+    "padding": 0,
+    "font_size": 16,
+    "half_em": 8
+   },
+   "example_detail": "a.page-link has only 0px of side padding, under half its own font-size (8px).",
+   "reason": null,
+   "crop": null,
+   "_g": "A",
+   "reach": 12
+  },
+  {
+   "kind": "touching",
+   "selector": "a.page-column-item + a.page-column-item",
+   "instances": 45,
+   "pages": 4,
+   "groups": "B",
+   "max_severity": 3,
+   "widths": [
+    400,
+    1280,
+    1920,
+    2560,
+    3440
+   ],
+   "example_url": "/imagine/vary/scroll/",
+   "example_numbers": {
+    "gap": 0
+   },
+   "example_detail": "a.page-column-item and a.page-column-item sit 0.0px apart \u2014 they visually touch.",
+   "reason": null,
+   "crop": null,
+   "_g": "B",
+   "reach": 12
+  },
+  {
+   "kind": "touching",
+   "selector": "a.toc-link",
+   "instances": 25,
+   "pages": 3,
+   "groups": "D",
+   "max_severity": 4,
+   "widths": [
+    400,
+    1280,
+    1920,
+    2560,
+    3440
+   ],
+   "example_url": "/blog/framework/hello-lew42/",
+   "example_numbers": {
+    "gap": 0
+   },
+   "example_detail": "\"a.toc-link.current\" and \"a.toc-link\" (both under div.toc-links) are only 0px apart \u2014 they visually touch.",
+   "reason": null,
+   "crop": null,
+   "_g": "D",
+   "reach": 12
+  },
+  {
+   "kind": "touching",
+   "selector": "div.page-column-prose.flow + a.page-column-item",
+   "instances": 20,
+   "pages": 4,
+   "groups": "B",
+   "max_severity": 3,
+   "widths": [
+    400,
+    1280,
+    1920,
+    2560,
+    3440
+   ],
+   "example_url": "/imagine/vary/scroll/",
+   "example_numbers": {
+    "gap": 0
+   },
+   "example_detail": "div.page-column-prose.flow and a.page-column-item sit 0.0px apart \u2014 they visually touch.",
+   "reason": null,
+   "crop": null,
+   "_g": "B",
+   "reach": 12
+  },
+  {
+   "kind": "padding-fat",
+   "selector": "button.demo-btn.demo-scrub",
+   "instances": 19,
+   "pages": 3,
+   "groups": "CD",
+   "max_severity": 4,
+   "widths": [
+    400,
+    1280,
+    1920,
+    2560,
+    3440
+   ],
+   "example_url": "/framework/core/",
+   "example_numbers": {
+    "padding": 31.4,
+    "width": 45.7,
+    "pct": 68.7
+   },
+   "example_detail": "This control's side padding is 68.7% of its own width (31.4px of 45.7px).",
+   "reason": null,
+   "crop": null,
+   "_g": "C",
+   "reach": 12
+  },
+  {
+   "kind": "touching",
+   "selector": "span.imagine-row-name",
+   "instances": 17,
+   "pages": 4,
+   "groups": "A",
+   "max_severity": 3,
+   "widths": [
+    3440
+   ],
+   "example_url": "/imagine/team/",
+   "example_numbers": {
+    "gap": 1.8
+   },
+   "example_detail": "span.imagine-row-name and span.imagine-row-meta (under a.imagine-row) sit 1.8px apart and both paint something \u2014 they visually touch.",
+   "reason": null,
+   "crop": null,
+   "_g": "A",
+   "reach": 12
+  },
+  {
+   "kind": "padding-inversion",
+   "selector": "div.decks-region",
+   "instances": 16,
+   "pages": 3,
+   "groups": "B",
+   "max_severity": 4,
+   "widths": [
+    400,
+    1280,
+    1920,
+    2560
+   ],
+   "example_url": "/imagine/decks/half/",
+   "example_numbers": {
+    "padding": 45,
+    "pagePad": 20.5
+   },
+   "example_detail": "div.decks-region is padded 45px on its own side \u2014 more than the page's own 20.5px gutter.",
+   "reason": null,
+   "crop": null,
+   "_g": "B",
+   "reach": 12
+  },
+  {
+   "kind": "ratio",
+   "selector": "div.page.flow > div.page-previews.bleed",
+   "instances": 16,
+   "pages": 4,
+   "groups": "C",
+   "max_severity": 3,
+   "widths": [
+    400,
+    1280,
+    1920,
+    2560
+   ],
+   "example_url": "/framework/core/",
+   "example_numbers": {
+    "smaller": 14,
+    "larger": 42,
+    "ratio": 3
+   },
+   "example_detail": "Two neighbouring gaps in the same parent differ by 3x (14px next to 42px), with no visible reason.",
+   "reason": null,
+   "crop": null,
+   "_g": "C",
+   "reach": 12
+  },
+  {
+   "kind": "strip",
+   "selector": "a.blog-more-link.in-path",
+   "instances": 16,
+   "pages": 3,
+   "groups": "D",
+   "max_severity": 4,
+   "widths": [
+    400,
+    1280,
+    1920,
+    2560,
+    3440
+   ],
+   "example_url": "/blog/framework/hello-lew42/",
+   "example_numbers": {
+    "width": 344,
+    "ink": 55.89,
+    "padding": 144.05
+   },
+   "example_detail": "\"a.blog-more-link.in-path\" is 344px wide but its own text only needs 56px \u2014 the rest, about 288px, is empty strip inside a flex / column container.",
+   "reason": null,
+   "crop": null,
+   "_g": "D",
+   "reach": 12
+  },
+  {
+   "kind": "padding-thin",
+   "selector": "a.page-link.active",
+   "instances": 15,
+   "pages": 3,
+   "groups": "B",
+   "max_severity": 4,
+   "widths": [
+    400,
+    1280,
+    1920,
+    2560,
+    3440
+   ],
+   "example_url": "/imagine/scenes/",
+   "example_numbers": {
+    "width": 30,
+    "padding": 0,
+    "fontSize": 9
+   },
+   "example_detail": "a.page-link.active has only 0px of side padding against a 9px font \u2014 under half an em.",
+   "reason": null,
+   "crop": null,
+   "_g": "B",
+   "reach": 12
+  },
+  {
+   "kind": "padding-thin",
+   "selector": "button.yt-start",
+   "instances": 15,
+   "pages": 3,
+   "groups": "B",
+   "max_severity": 4,
+   "widths": [
+    400,
+    1280,
+    1920,
+    2560,
+    3440
+   ],
+   "example_url": "/imagine/youtube/",
+   "example_numbers": {
+    "width": 374,
+    "padding": 0,
+    "fontSize": 10
+   },
+   "example_detail": "button.yt-start has only 0px of side padding against a 10px font \u2014 under half an em.",
+   "reason": null,
+   "crop": null,
+   "_g": "B",
+   "reach": 12
+  },
+  {
+   "kind": "touching",
+   "selector": "a.blog-more-link.in-path",
+   "instances": 15,
+   "pages": 3,
+   "groups": "D",
+   "max_severity": 4,
+   "widths": [
+    400,
+    1280,
+    1920,
+    2560,
+    3440
+   ],
+   "example_url": "/blog/framework/hello-lew42/",
+   "example_numbers": {
+    "gap": 0
+   },
+   "example_detail": "\"a.blog-more-link.in-path\" and \"a.blog-more-link.in-path\" (both under div.blog-more) are only 0px apart \u2014 they visually touch.",
+   "reason": null,
+   "crop": null,
+   "_g": "D",
+   "reach": 12
+  },
+  {
+   "kind": "padding-inversion",
+   "selector": "p.md.paging-lede",
+   "instances": 4,
+   "pages": 4,
+   "groups": "A",
+   "max_severity": 3,
+   "widths": [
+    3440
+   ],
+   "example_url": "/imagine/paging/toolbars/top/",
+   "example_numbers": {
+    "box_padding": 17,
+    "page_gutter": 0
+   },
+   "example_detail": "p.md.paging-lede is padded 17px, more than the page's own 0px gutter.",
+   "reason": null,
+   "crop": null,
+   "_g": "A",
+   "reach": 12
+  },
+  {
+   "kind": "ratio",
+   "selector": "span.muted",
+   "instances": 3,
+   "pages": 3,
+   "groups": "A",
+   "max_severity": 4,
+   "widths": [
+    3440
+   ],
+   "example_url": "/imagine/team/",
+   "example_numbers": {
+    "gap_before": 38,
+    "gap_after": 7,
+    "ratio": 5.2
+   },
+   "example_detail": "Under div.imagine-board-right.flow, one gap is 38px and the very next gap is 7px \u2014 a 5.2x jump between neighbours.",
+   "reason": null,
+   "crop": null,
+   "_g": "A",
+   "reach": 12
+  },
+  {
+   "kind": "strip",
+   "selector": "a.decks-chip",
+   "instances": 40,
+   "pages": 2,
+   "groups": "B",
+   "max_severity": 5,
+   "widths": [
+    400,
+    1280,
+    1920,
+    2560,
+    3440
+   ],
+   "example_url": "/imagine/decks/half/",
+   "example_numbers": {
+    "width": 284,
+    "ink": 33,
+    "padding": 10
+   },
+   "example_detail": "a.decks-chip is 284px wide but its content only needs 33px \u2014 a 8.7x empty strip.",
+   "reason": null,
+   "crop": "shots/before/crop-B-03.jpg",
+   "_g": "B",
+   "reach": 10
+  },
+  {
+   "kind": "padding-thin",
+   "selector": "a.blog-part-link",
+   "instances": 25,
+   "pages": 2,
+   "groups": "D",
+   "max_severity": 5,
+   "widths": [
+    400,
+    1280,
+    1920,
+    2560,
+    3440
+   ],
+   "example_url": "/blog/framework/hello-lew42/",
+   "example_numbers": {
+    "padding": 0,
+    "font_size": 12.6
+   },
+   "example_detail": "\"a.blog-part-link\" has only 0px of side padding, less than half its own 12.6px letter size \u2014 the text sits almost at the edge of its own box.",
+   "reason": null,
+   "crop": "shots/before/crop-D-119.jpg",
+   "_g": "D",
+   "reach": 10
+  },
+  {
+   "kind": "strip",
+   "selector": "a.decks-chip.decks-on",
+   "instances": 8,
+   "pages": 2,
+   "groups": "B",
+   "max_severity": 5,
+   "widths": [
+    1280,
+    1920,
+    2560,
+    3440
+   ],
+   "example_url": "/imagine/decks/half/",
+   "example_numbers": {
+    "width": 550,
+    "ink": 55,
+    "padding": 12
+   },
+   "example_detail": "a.decks-chip.decks-on is 550px wide but its content only needs 55px \u2014 a 10.1x empty strip.",
+   "reason": null,
+   "crop": "shots/before/crop-B-05.jpg",
+   "_g": "B",
+   "reach": 10
+  },
+  {
+   "kind": "ratio",
+   "selector": "a",
+   "instances": 4,
+   "pages": 2,
+   "groups": "A",
+   "max_severity": 5,
+   "widths": [
+    3440
+   ],
+   "example_url": "/imagine/review/rethink/",
+   "example_numbers": {
+    "gap_before": 9,
+    "gap_after": 67,
+    "ratio": 7.4
+   },
+   "example_detail": "Under p, one gap is 9px and the very next gap is 67px \u2014 a 7.4x jump between neighbours.",
+   "reason": null,
+   "crop": "shots/before/crop-A-285.jpg",
+   "_g": "A",
+   "reach": 10
+  },
+  {
+   "kind": "strip",
+   "selector": "a.imagine-clear.in-path",
+   "instances": 2,
+   "pages": 2,
+   "groups": "A",
+   "max_severity": 5,
+   "widths": [
+    3440
+   ],
+   "example_url": "/imagine/team/ada/",
+   "example_numbers": {
+    "width": 262,
+    "ink": 16,
+    "ratio": 16.2,
+    "padding": 0
+   },
+   "example_detail": "a.imagine-clear.in-path is 262px wide but its content is only 16px of that (16.2x) \u2014 a big empty strip, stretched by its flex / column parent.",
+   "reason": null,
+   "crop": null,
+   "_g": "A",
+   "reach": 10
+  }
+ ],
+ "pages": [
+  {
+   "url": "/imagine/platform/existing/",
+   "group": "A",
+   "growth": 0.37,
+   "m1280": 27.1,
+   "m3440": 10,
+   "widest_strip": null
+  },
+  {
+   "url": "/blog/systems/layout-generators/",
+   "group": "D",
+   "growth": 0.57,
+   "m1280": 19.46,
+   "m3440": 11.03,
+   "widest_strip": {
+    "selector": "a.toc-link",
+    "width": 344,
+    "ink": 96.17,
+    "ratio": 3.58,
+    "parent": "flex / column"
+   }
+  },
+  {
+   "url": "/imagine/vary/scroll/",
+   "group": "B",
+   "growth": 0.6,
+   "m1280": 8.1,
+   "m3440": 4.9,
+   "widest_strip": {
+    "selector": "a.page-preview-link",
+    "width": 1280,
+    "ink": 105,
+    "ratio": 2,
+    "parent": "flex / column"
+   }
+  },
+  {
+   "url": "/imagine/team/ada/",
+   "group": "A",
+   "growth": 0.9,
+   "m1280": 8.1,
+   "m3440": 7.3,
+   "widest_strip": {
+    "selector": "a.imagine-clear.in-path",
+    "width": 262,
+    "ink": 16,
+    "ratio": 16.2,
+    "parent": "flex / column"
+   }
+  },
+  {
+   "url": "/imagine/team/iver/",
+   "group": "A",
+   "growth": 0.9,
+   "m1280": 8.1,
+   "m3440": 7.3,
+   "widest_strip": {
+    "selector": "a.imagine-clear.in-path",
+    "width": 262,
+    "ink": 16,
+    "ratio": 16.2,
+    "parent": "flex / column"
+   }
+  },
+  {
+   "url": "/framework/ui/",
+   "group": "C",
+   "growth": 0.9,
+   "m1280": 6.01,
+   "m3440": 5.39,
+   "widest_strip": {
+    "selector": "summary:nth-child(1)",
+    "width": 720,
+    "ink": 69.2,
+    "ratio": 10.4,
+    "parent": "block"
+   }
+  },
+  {
+   "url": "/",
+   "group": "D",
+   "growth": 0.95,
+   "m1280": 7.28,
+   "m3440": 6.92,
+   "widest_strip": {
+    "selector": "a.sidebar-link",
+    "width": 272.59,
+    "ink": 38.23,
+    "ratio": 7.13,
+    "parent": "flex / column"
+   }
+  },
+  {
+   "url": "/imagine/scenes/",
+   "group": "B",
+   "growth": 1,
+   "m1280": 6.5,
+   "m3440": 6.5,
+   "widest_strip": {
+    "selector": "a.scene-nav-link",
+    "width": 400,
+    "ink": 26,
+    "ratio": 1.7,
+    "parent": "flex / row"
+   }
+  },
+  {
+   "url": "/imagine/scenes/worlds/",
+   "group": "B",
+   "growth": 1,
+   "m1280": 6.5,
+   "m3440": 6.5,
+   "widest_strip": {
+    "selector": "a.scene-nav-link",
+    "width": 400,
+    "ink": 30,
+    "ratio": 1.6,
+    "parent": "flex / row"
+   }
+  },
+  {
+   "url": "/imagine/scenes/plinth/",
+   "group": "B",
+   "growth": 1,
+   "m1280": 6.5,
+   "m3440": 6.5,
+   "widest_strip": {
+    "selector": "a.scene-nav-link",
+    "width": 400,
+    "ink": 28,
+    "ratio": 1.6,
+    "parent": "flex / row"
+   }
+  },
+  {
+   "url": "/imagine/paging/mechanisms/",
+   "group": "A",
+   "growth": 1.06,
+   "m1280": 8.7,
+   "m3440": 9.2,
+   "widest_strip": {
+    "selector": "span.paging-chip",
+    "width": 21,
+    "ink": 4,
+    "ratio": 5.5,
+    "parent": "flex / row"
+   }
+  },
+  {
+   "url": "/imagine/decks/half/",
+   "group": "B",
+   "growth": 1.1,
+   "m1280": 8,
+   "m3440": 8.8,
+   "widest_strip": {
+    "selector": "a.decks-chip",
+    "width": 3440,
+    "ink": 37,
+    "ratio": 14.4,
+    "parent": "flex / row"
+   }
+  },
+  {
+   "url": "/imagine/layouts/",
+   "group": "A",
+   "growth": 1.11,
+   "m1280": 8.3,
+   "m3440": 9.2,
+   "widest_strip": null
+  },
+  {
+   "url": "/imagine/platform/prior/",
+   "group": "A",
+   "growth": 1.11,
+   "m1280": 8.3,
+   "m3440": 9.2,
+   "widest_strip": null
+  },
+  {
+   "url": "/imagine/layouts/1/",
+   "group": "A",
+   "growth": 1.15,
+   "m1280": 6.1,
+   "m3440": 7,
+   "widest_strip": null
+  },
+  {
+   "url": "/imagine/layouts/2/",
+   "group": "A",
+   "growth": 1.15,
+   "m1280": 6.1,
+   "m3440": 7,
+   "widest_strip": null
+  },
+  {
+   "url": "/imagine/mag/",
+   "group": "B",
+   "growth": 1.18,
+   "m1280": 7.8,
+   "m3440": 9.2,
+   "widest_strip": {
+    "selector": "a.mag-cover-area",
+    "width": 1920,
+    "ink": 788,
+    "ratio": 2.4,
+    "parent": "flex / column"
+   }
+  },
+  {
+   "url": "/imagine/review/",
+   "group": "A",
+   "growth": 1.19,
+   "m1280": 6.8,
+   "m3440": 8.1,
+   "widest_strip": null
+  },
+  {
+   "url": "/imagine/mag/doc/",
+   "group": "B",
+   "growth": 1.19,
+   "m1280": 9.5,
+   "m3440": 11.3,
+   "widest_strip": {
+    "selector": "a.page-column-close.in-path",
+    "width": 400,
+    "ink": 15,
+    "ratio": 1.5,
+    "parent": "flex / row"
+   }
+  },
+  {
+   "url": "/imagine/blogx/front/",
+   "group": "B",
+   "growth": 1.19,
+   "m1280": 5.3,
+   "m3440": 6.3,
+   "widest_strip": {
+    "selector": "a.blogx-link",
+    "width": 1280,
+    "ink": 52,
+    "ratio": 4.3,
+    "parent": "flex / column"
+   }
+  },
+  {
+   "url": "/imagine/paging/",
+   "group": "A",
+   "growth": 1.2,
+   "m1280": 8.1,
+   "m3440": 9.7,
+   "widest_strip": {
+    "selector": "summary",
+    "width": 962,
+    "ink": 137,
+    "ratio": 7,
+    "parent": "block"
+   }
+  },
+  {
+   "url": "/imagine/codrops/grid-hover/",
+   "group": "A",
+   "growth": 1.2,
+   "m1280": 10.8,
+   "m3440": 13,
+   "widest_strip": null
+  },
+  {
+   "url": "/imagine/review/rethink/",
+   "group": "A",
+   "growth": 1.2,
+   "m1280": 8.1,
+   "m3440": 9.7,
+   "widest_strip": null
+  },
+  {
+   "url": "/imagine/team/",
+   "group": "A",
+   "growth": 1.2,
+   "m1280": 5.4,
+   "m3440": 6.5,
+   "widest_strip": null
+  },
+  {
+   "url": "/imagine/design/",
+   "group": "A",
+   "growth": 1.2,
+   "m1280": 8.1,
+   "m3440": 9.7,
+   "widest_strip": {
+    "selector": "a.page-preview-link",
+    "width": 350,
+    "ink": 69,
+    "ratio": 5.1,
+    "parent": "flex / column"
+   }
+  },
+  {
+   "url": "/imagine/design/journey/",
+   "group": "A",
+   "growth": 1.2,
+   "m1280": 8.1,
+   "m3440": 9.7,
+   "widest_strip": {
+    "selector": "a.page-preview-link",
+    "width": 3342,
+    "ink": 6,
+    "ratio": 525.5,
+    "parent": "flex / column"
+   }
+  },
+  {
+   "url": "/imagine/design/padding/",
+   "group": "A",
+   "growth": 1.2,
+   "m1280": 5.4,
+   "m3440": 6.5,
+   "widest_strip": null
+  },
+  {
+   "url": "/imagine/game/",
+   "group": "A",
+   "growth": 1.2,
+   "m1280": 4.5,
+   "m3440": 5.4,
+   "widest_strip": null
+  },
+  {
+   "url": "/imagine/game/verge/",
+   "group": "A",
+   "growth": 1.2,
+   "m1280": 1.5,
+   "m3440": 1.8,
+   "widest_strip": null
+  },
+  {
+   "url": "/imagine/game/hollow/",
+   "group": "A",
+   "growth": 1.2,
+   "m1280": 1.5,
+   "m3440": 1.8,
+   "widest_strip": null
+  },
+  {
+   "url": "/imagine/gallery/",
+   "group": "A",
+   "growth": 1.2,
+   "m1280": 8.1,
+   "m3440": 9.7,
+   "widest_strip": {
+    "selector": "a.page-preview-link",
+    "width": 335,
+    "ink": 66,
+    "ratio": 5,
+    "parent": "flex / column"
+   }
+  },
+  {
+   "url": "/imagine/gallery/lists/",
+   "group": "A",
+   "growth": 1.2,
+   "m1280": 8.1,
+   "m3440": 9.7,
+   "widest_strip": {
+    "selector": "a.page-preview-link",
+    "width": 321,
+    "ink": 94,
+    "ratio": 3.4,
+    "parent": "flex / column"
+   }
+  },
+  {
+   "url": "/imagine/paging/toolbars/",
+   "group": "A",
+   "growth": 1.2,
+   "m1280": 10.5,
+   "m3440": 12.6,
+   "widest_strip": null
+  },
+  {
+   "url": "/imagine/paging/toolbars/left/",
+   "group": "A",
+   "growth": 1.2,
+   "m1280": 10.5,
+   "m3440": 12.6,
+   "widest_strip": null
+  },
+  {
+   "url": "/imagine/paging/toolbars/right/",
+   "group": "A",
+   "growth": 1.2,
+   "m1280": 10.5,
+   "m3440": 12.6,
+   "widest_strip": null
+  },
+  {
+   "url": "/imagine/vary/",
+   "group": "B",
+   "growth": 1.2,
+   "m1280": 8.1,
+   "m3440": 9.7,
+   "widest_strip": {
+    "selector": "a.page-preview-link",
+    "width": 400,
+    "ink": 53,
+    "ratio": 7,
+    "parent": "flex / column"
+   }
+  },
+  {
+   "url": "/imagine/vary/tone/",
+   "group": "B",
+   "growth": 1.2,
+   "m1280": 8.1,
+   "m3440": 9.7,
+   "widest_strip": {
+    "selector": "a.page-preview-link",
+    "width": 1280,
+    "ink": 106,
+    "ratio": 2,
+    "parent": "flex / column"
+   }
+  },
+  {
+   "url": "/imagine/screens/",
+   "group": "B",
+   "growth": 1.2,
+   "m1280": 8.1,
+   "m3440": 9.7,
+   "widest_strip": {
+    "selector": "a.page-preview-link",
+    "width": 1280,
+    "ink": 48,
+    "ratio": 4.6,
+    "parent": "flex / column"
+   }
+  },
+  {
+   "url": "/imagine/screens/divide/",
+   "group": "B",
+   "growth": 1.2,
+   "m1280": 7.5,
+   "m3440": 9,
+   "widest_strip": {
+    "selector": "a.screens-area",
+    "width": 3440,
+    "ink": 1264,
+    "ratio": 2.7,
+    "parent": "flex / row"
+   }
+  },
+  {
+   "url": "/imagine/screens/stack/",
+   "group": "B",
+   "growth": 1.2,
+   "m1280": 7.5,
+   "m3440": 9,
+   "widest_strip": {
+    "selector": "a.screens-area",
+    "width": 3440,
+    "ink": 1264,
+    "ratio": 2.7,
+    "parent": "flex / row"
+   }
+  },
+  {
+   "url": "/imagine/shells/",
+   "group": "B",
+   "growth": 1.2,
+   "m1280": 8.1,
+   "m3440": 9.7,
+   "widest_strip": {
+    "selector": "a.page-preview-link",
+    "width": 1280,
+    "ink": 76,
+    "ratio": 2.9,
+    "parent": "flex / column"
+   }
+  },
+  {
+   "url": "/imagine/feeds/",
+   "group": "B",
+   "growth": 1.2,
+   "m1280": 8.1,
+   "m3440": 9.7,
+   "widest_strip": {
+    "selector": "a.page-preview-link",
+    "width": 1280,
+    "ink": 52,
+    "ratio": 4.3,
+    "parent": "flex / column"
+   }
+  },
+  {
+   "url": "/imagine/mag/contents/",
+   "group": "B",
+   "growth": 1.2,
+   "m1280": 2,
+   "m3440": 2.4,
+   "widest_strip": {
+    "selector": "a.page-column-close.in-path",
+    "width": 400,
+    "ink": 15,
+    "ratio": 1.5,
+    "parent": "flex / row"
+   }
+  },
+  {
+   "url": "/imagine/blogx/",
+   "group": "B",
+   "growth": 1.2,
+   "m1280": 8.1,
+   "m3440": 9.7,
+   "widest_strip": {
+    "selector": "a.page-preview-link",
+    "width": 2560,
+    "ink": 102,
+    "ratio": 2.4,
+    "parent": "flex / column"
+   }
+  },
+  {
+   "url": "/imagine/blogx/board/",
+   "group": "B",
+   "growth": 1.2,
+   "m1280": 1.5,
+   "m3440": 1.8,
+   "widest_strip": {
+    "selector": "a.blogx-link",
+    "width": 1280,
+    "ink": 52,
+    "ratio": 4.3,
+    "parent": "flex / column"
+   }
+  },
+  {
+   "url": "/imagine/decks/",
+   "group": "B",
+   "growth": 1.2,
+   "m1280": 8.1,
+   "m3440": 9.7,
+   "widest_strip": {
+    "selector": "a.page-preview-link",
+    "width": 400,
+    "ink": 48,
+    "ratio": 7.8,
+    "parent": "flex / column"
+   }
+  },
+  {
+   "url": "/imagine/youtube/",
+   "group": "B",
+   "growth": 1.2,
+   "m1280": 5.4,
+   "m3440": 6.5,
+   "widest_strip": {
+    "selector": "button.yt-start",
+    "width": 1280,
+    "ink": 43,
+    "ratio": 11.3,
+    "parent": "block"
+   }
+  },
+  {
+   "url": "/imagine/youtube/panel/",
+   "group": "B",
+   "growth": 1.2,
+   "m1280": 5.4,
+   "m3440": 6.5,
+   "widest_strip": {
+    "selector": "button.yt-start",
+    "width": 1280,
+    "ink": 43,
+    "ratio": 11.3,
+    "parent": "block"
+   }
+  },
+  {
+   "url": "/imagine/cms/",
+   "group": "B",
+   "growth": 1.2,
+   "m1280": 27.1,
+   "m3440": 32.4,
+   "widest_strip": {
+    "selector": "a.page-column-close.active",
+    "width": 400,
+    "ink": 15,
+    "ratio": 1.5,
+    "parent": "flex / row"
+   }
+  },
+  {
+   "url": "/imagine/cms/thinking/",
+   "group": "B",
+   "growth": 1.2,
+   "m1280": 27.1,
+   "m3440": 32.4,
+   "widest_strip": {
+    "selector": "a.page-column-close.in-path",
+    "width": 400,
+    "ink": 15,
+    "ratio": 1.5,
+    "parent": "flex / row"
+   }
+  },
+  {
+   "url": "/imagine/research/stone/",
+   "group": "B",
+   "growth": 1.2,
+   "m1280": 8.1,
+   "m3440": 9.7,
+   "widest_strip": {
+    "selector": "a.page-preview-link",
+    "width": 1280,
+    "ink": 115,
+    "ratio": 1.8,
+    "parent": "flex / column"
+   }
+  },
+  {
+   "url": "/imagine/research/depictions/",
+   "group": "B",
+   "growth": 1.2,
+   "m1280": 25.7,
+   "m3440": 30.8,
+   "widest_strip": {
+    "selector": "summary",
+    "width": 1920,
+    "ink": 248,
+    "ratio": 2.7,
+    "parent": "block"
+   }
+  },
+  {
+   "url": "/imagine/stream/",
+   "group": "B",
+   "growth": 1.2,
+   "m1280": 10.8,
+   "m3440": 13,
+   "widest_strip": {
+    "selector": "summary",
+    "width": 1280,
+    "ink": 328,
+    "ratio": 2.7,
+    "parent": "block"
+   }
+  },
+  {
+   "url": "/imagine/stream/wire/",
+   "group": "B",
+   "growth": 1.2,
+   "m1280": 8.6,
+   "m3440": 10.3,
+   "widest_strip": {
+    "selector": "button.prim",
+    "width": 400,
+    "ink": 59,
+    "ratio": 1.5,
+    "parent": "flex / row"
+   }
+  },
+  {
+   "url": "/imagine/generated/",
+   "group": "B",
+   "growth": 1.2,
+   "m1280": 13.5,
+   "m3440": 16.2,
+   "widest_strip": {
+    "selector": "a.btn",
+    "width": 400,
+    "ink": 80,
+    "ratio": 4.4,
+    "parent": "flex / column"
+   }
+  },
+  {
+   "url": "/framework/",
+   "group": "C",
+   "growth": 1.2,
+   "m1280": 9.02,
+   "m3440": 10.8,
+   "widest_strip": {
+    "selector": "summary:nth-child(1)",
+    "width": 720,
+    "ink": 69.2,
+    "ratio": 10.4,
+    "parent": "block"
+   }
+  },
+  {
+   "url": "/framework/core/",
+   "group": "C",
+   "growth": 1.2,
+   "m1280": 9.02,
+   "m3440": 10.8,
+   "widest_strip": {
+    "selector": "summary:nth-child(1)",
+    "width": 720,
+    "ink": 69.2,
+    "ratio": 10.4,
+    "parent": "block"
+   }
+  },
+  {
+   "url": "/framework/core/View/doc/capturing/",
+   "group": "C",
+   "growth": 1.2,
+   "m1280": 30.08,
+   "m3440": 36,
+   "widest_strip": null
+  },
+  {
+   "url": "/framework/ext/",
+   "group": "C",
+   "growth": 1.2,
+   "m1280": 9.02,
+   "m3440": 10.8,
+   "widest_strip": {
+    "selector": "summary:nth-child(1)",
+    "width": 720,
+    "ink": 69.2,
+    "ratio": 10.4,
+    "parent": "block"
+   }
+  },
+  {
+   "url": "/framework/ext/markdown/doc/decisions/",
+   "group": "C",
+   "growth": 1.2,
+   "m1280": 30.08,
+   "m3440": 36,
+   "widest_strip": null
+  },
+  {
+   "url": "/framework/styles/",
+   "group": "C",
+   "growth": 1.2,
+   "m1280": 28.56,
+   "m3440": 34.19,
+   "widest_strip": {
+    "selector": "summary:nth-child(1)",
+    "width": 720,
+    "ink": 69.2,
+    "ratio": 10.4,
+    "parent": "block"
+   }
+  },
+  {
+   "url": "/framework/styles/layouts/cols/doc/indictment/",
+   "group": "C",
+   "growth": 1.2,
+   "m1280": 30.08,
+   "m3440": 36,
+   "widest_strip": null
+  },
+  {
+   "url": "/framework/ui/doc/record/",
+   "group": "C",
+   "growth": 1.2,
+   "m1280": 30.08,
+   "m3440": 36,
+   "widest_strip": null
+  },
+  {
+   "url": "/framework/ux/",
+   "group": "C",
+   "growth": 1.2,
+   "m1280": 7.52,
+   "m3440": 9,
+   "widest_strip": {
+    "selector": "summary:nth-child(1)",
+    "width": 720,
+    "ink": 69.2,
+    "ratio": 10.4,
+    "parent": "block"
+   }
+  },
+  {
+   "url": "/framework/ux/doc/system/",
+   "group": "C",
+   "growth": 1.2,
+   "m1280": 30.08,
+   "m3440": 36,
+   "widest_strip": null
+  },
+  {
+   "url": "/web/",
+   "group": "C",
+   "growth": 1.2,
+   "m1280": 28.56,
+   "m3440": 34.19,
+   "widest_strip": {
+    "selector": "a.page-preview-link:nth-child(1)",
+    "width": 316,
+    "ink": 103.8,
+    "ratio": 3.04,
+    "parent": "flex / column"
+   }
+  },
+  {
+   "url": "/blog/",
+   "group": "D",
+   "growth": 1.2,
+   "m1280": 9.02,
+   "m3440": 10.8,
+   "widest_strip": {
+    "selector": "a.blog-more-link",
+    "width": 352,
+    "ink": 96.56,
+    "ratio": 3.65,
+    "parent": "flex / column"
+   }
+  },
+  {
+   "url": "/blog/framework/hello-lew42/",
+   "group": "D",
+   "growth": 1.2,
+   "m1280": 10.25,
+   "m3440": 12.34,
+   "widest_strip": {
+    "selector": "a.blog-part-link",
+    "width": 344,
+    "ink": 100.5,
+    "ratio": 3.42,
+    "parent": "flex / column"
+   }
+  },
+  {
+   "url": "/resume/",
+   "group": "D",
+   "growth": 1.2,
+   "m1280": 20.89,
+   "m3440": 25.01,
+   "widest_strip": null
+  },
+  {
+   "url": "/notes/",
+   "group": "D",
+   "growth": 1.2,
+   "m1280": 9.02,
+   "m3440": 10.8,
+   "widest_strip": {
+    "selector": "a.page-preview-link",
+    "width": 316,
+    "ink": 101.19,
+    "ratio": 3.12,
+    "parent": "flex / column"
+   }
+  },
+  {
+   "url": "/notes/auth/",
+   "group": "D",
+   "growth": 1.2,
+   "m1280": 30.08,
+   "m3440": 36,
+   "widest_strip": null
+  },
+  {
+   "url": "/notes/git-branch-names/",
+   "group": "D",
+   "growth": 1.2,
+   "m1280": 30.08,
+   "m3440": 36,
+   "widest_strip": null
+  },
+  {
+   "url": "/notes/team-note/",
+   "group": "D",
+   "growth": 1.2,
+   "m1280": 30.08,
+   "m3440": 36,
+   "widest_strip": null
+  },
+  {
+   "url": "/imagine/codrops/",
+   "group": "A",
+   "growth": 1.21,
+   "m1280": 4.7,
+   "m3440": 5.7,
+   "widest_strip": {
+    "selector": "a.codrops-demo-title",
+    "width": 1021,
+    "ink": 144,
+    "ratio": 7.1,
+    "parent": "flex / column"
+   }
+  },
+  {
+   "url": "/imagine/research/",
+   "group": "B",
+   "growth": 1.21,
+   "m1280": 2.4,
+   "m3440": 2.9,
+   "widest_strip": {
+    "selector": "a.research-card-name.h3",
+    "width": 3440,
+    "ink": 120,
+    "ratio": 24,
+    "parent": "flex / column"
+   }
+  },
+  {
+   "url": "/blog/framework/how-this-blog-works/",
+   "group": "D",
+   "growth": 1.28,
+   "m1280": 9.67,
+   "m3440": 12.34,
+   "widest_strip": {
+    "selector": "a.toc-link",
+    "width": 344,
+    "ink": 68.28,
+    "ratio": 5.04,
+    "parent": "flex / column"
+   }
+  },
+  {
+   "url": "/imagine/decks/golden/",
+   "group": "B",
+   "growth": 1.4,
+   "m1280": 10.6,
+   "m3440": 14.8,
+   "widest_strip": {
+    "selector": "a.decks-chip",
+    "width": 3440,
+    "ink": 37,
+    "ratio": 14.4,
+    "parent": "flex / row"
+   }
+  },
+  {
+   "url": "/imagine/paging/examples/",
+   "group": "A",
+   "growth": 1.51,
+   "m1280": 5.3,
+   "m3440": 8,
+   "widest_strip": {
+    "selector": "a.page-link",
+    "width": 1054,
+    "ink": 316,
+    "ratio": 3.3,
+    "parent": "flex / column"
+   }
+  },
+  {
+   "url": "/web/nav/",
+   "group": "C",
+   "growth": 1.62,
+   "m1280": 3.75,
+   "m3440": 6.09,
+   "widest_strip": {
+    "selector": "a.page-preview-link:nth-child(2)",
+    "width": 305,
+    "ink": 40.6,
+    "ratio": 7.51,
+    "parent": "flex / column"
+   }
+  },
+  {
+   "url": "/imagine/paging/toolbars/top/",
+   "group": "A",
+   "growth": 1.63,
+   "m1280": 15,
+   "m3440": 24.4,
+   "widest_strip": null
+  },
+  {
+   "url": "/imagine/paging/toolbars/bottom/",
+   "group": "A",
+   "growth": 1.63,
+   "m1280": 15,
+   "m3440": 24.4,
+   "widest_strip": null
+  },
+  {
+   "url": "/imagine/stream/deck/",
+   "group": "B",
+   "growth": 1.68,
+   "m1280": 8,
+   "m3440": 13.4,
+   "widest_strip": {
+    "selector": "button",
+    "width": 400,
+    "ink": 29,
+    "ratio": 2,
+    "parent": "flex / row"
+   }
+  },
+  {
+   "url": "/imagine/codrops/line-hover/",
+   "group": "A",
+   "growth": 1.76,
+   "m1280": 13.5,
+   "m3440": 23.7,
+   "widest_strip": {
+    "selector": "a.codrops-link.codrops-link--sweep",
+    "width": 598,
+    "ink": 39,
+    "ratio": 15.5,
+    "parent": "flex / column"
+   }
+  },
+  {
+   "url": "/imagine/platform/",
+   "group": "A",
+   "growth": 2.16,
+   "m1280": 13.5,
+   "m3440": 29.2,
+   "widest_strip": {
+    "selector": "a.page-preview-link",
+    "width": 213,
+    "ink": 45,
+    "ratio": 4.8,
+    "parent": "flex / column"
+   }
+  }
+ ]
+}

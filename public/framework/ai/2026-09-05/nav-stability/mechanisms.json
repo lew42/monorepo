@@ -1,0 +1,1640 @@
+[
+  {
+    "name": "launch-1col",
+    "width": 1280,
+    "url": "http://localhost:8097/imagine/paging/mechanisms/",
+    "before": {
+      "x": 745,
+      "y": 40,
+      "w": 535,
+      "h": 860,
+      "text": "Mechanisms close One page, one piece of content, and four r"
+    },
+    "also_before": {
+      "x": 766,
+      "y": 110,
+      "w": 493,
+      "h": 154,
+      "text": "One page, one piece of content, and four rows — and each row"
+    },
+    "snap_before": {
+      "cols": [
+        211,
+        535,
+        535
+      ],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "after": {
+      "x": 619,
+      "y": 40,
+      "w": 421,
+      "h": 860,
+      "text": "Mechanisms close One page, one piece of content, and four r"
+    },
+    "also_after": {
+      "x": 639,
+      "y": 110,
+      "w": 379,
+      "h": 179,
+      "text": "One page, one piece of content, and four rows — and each row"
+    },
+    "snap_after": {
+      "cols": [
+        211,
+        421,
+        421,
+        241
+      ],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "reflow_x": 126,
+    "jump_y": 0,
+    "dh": 0,
+    "dw": -114,
+    "also_x": 127,
+    "also_y": 0,
+    "errors": []
+  },
+  {
+    "name": "launch-1col",
+    "width": 3440,
+    "url": "http://localhost:8097/imagine/paging/mechanisms/",
+    "before": {
+      "x": 1584,
+      "y": 48,
+      "w": 1152,
+      "h": 1352,
+      "text": "Mechanisms close One page, one piece of content, and four r"
+    },
+    "also_before": {
+      "x": 1633,
+      "y": 174,
+      "w": 680,
+      "h": 153,
+      "text": "One page, one piece of content, and four rows — and each row"
+    },
+    "snap_before": {
+      "cols": [
+        432,
+        1152,
+        1152
+      ],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "after": {
+      "x": 1522,
+      "y": 48,
+      "w": 1090,
+      "h": 1352,
+      "text": "Mechanisms close One page, one piece of content, and four r"
+    },
+    "also_after": {
+      "x": 1571,
+      "y": 174,
+      "w": 680,
+      "h": 153,
+      "text": "One page, one piece of content, and four rows — and each row"
+    },
+    "snap_after": {
+      "cols": [
+        432,
+        1090,
+        1090,
+        828
+      ],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "reflow_x": 62,
+    "jump_y": 0,
+    "dh": 0,
+    "dw": -62,
+    "also_x": 62,
+    "also_y": 0,
+    "errors": []
+  },
+  {
+    "name": "launch-2col-deep",
+    "width": 1280,
+    "url": "http://localhost:8097/imagine/paging/",
+    "before": {
+      "x": 211,
+      "y": 40,
+      "w": 963,
+      "h": 860,
+      "text": "Paging close Every page on this site is three things: an ic"
+    },
+    "also_before": {
+      "x": 231,
+      "y": -2921,
+      "w": 569,
+      "h": 128,
+      "text": "Every page on this site is three things: an icon, some conte"
+    },
+    "snap_before": {
+      "cols": [
+        211,
+        963
+      ],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "after": {
+      "x": 17,
+      "y": 40,
+      "w": 421,
+      "h": 860,
+      "text": "Paging close Every page on this site is three things: an ic"
+    },
+    "also_after": {
+      "x": 37,
+      "y": -4023,
+      "w": 379,
+      "h": 179,
+      "text": "Every page on this site is three things: an icon, some conte"
+    },
+    "snap_after": {
+      "cols": [
+        211,
+        421,
+        421,
+        421
+      ],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "reflow_x": 194,
+    "jump_y": 0,
+    "dh": 0,
+    "dw": -542,
+    "also_x": 194,
+    "also_y": 1102,
+    "errors": []
+  },
+  {
+    "name": "launch-2col-deep",
+    "width": 3440,
+    "url": "http://localhost:8097/imagine/paging/",
+    "before": {
+      "x": 432,
+      "y": 48,
+      "w": 1152,
+      "h": 1352,
+      "text": "Paging close Every page on this site is three things: an ic"
+    },
+    "also_before": {
+      "x": 481,
+      "y": -3250,
+      "w": 680,
+      "h": 153,
+      "text": "Every page on this site is three things: an icon, some conte"
+    },
+    "snap_before": {
+      "cols": [
+        432,
+        1152
+      ],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "after": {
+      "x": 432,
+      "y": 48,
+      "w": 1003,
+      "h": 1352,
+      "text": "Paging close Every page on this site is three things: an ic"
+    },
+    "also_after": {
+      "x": 481,
+      "y": -3354,
+      "w": 680,
+      "h": 153,
+      "text": "Every page on this site is three things: an icon, some conte"
+    },
+    "snap_after": {
+      "cols": [
+        432,
+        1003,
+        1003,
+        1003
+      ],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 0,
+    "dh": 0,
+    "dw": -149,
+    "also_x": 0,
+    "also_y": 104,
+    "errors": []
+  },
+  {
+    "name": "takeover-full",
+    "width": 1280,
+    "url": "http://localhost:8097/imagine/paging/mechanisms/",
+    "before": {
+      "x": 745,
+      "y": 40,
+      "w": 535,
+      "h": 860,
+      "text": "Mechanisms close One page, one piece of content, and four r"
+    },
+    "also_before": {
+      "x": 766,
+      "y": 110,
+      "w": 493,
+      "h": 154,
+      "text": "One page, one piece of content, and four rows — and each row"
+    },
+    "snap_before": {
+      "cols": [
+        211,
+        535,
+        535
+      ],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "after": null,
+    "also_after": null,
+    "snap_after": {
+      "cols": [
+        1280
+      ],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "reflow_x": "gone",
+    "jump_y": "gone",
+    "errors": []
+  },
+  {
+    "name": "takeover-full",
+    "width": 3440,
+    "url": "http://localhost:8097/imagine/paging/mechanisms/",
+    "before": {
+      "x": 1584,
+      "y": 48,
+      "w": 1152,
+      "h": 1352,
+      "text": "Mechanisms close One page, one piece of content, and four r"
+    },
+    "also_before": {
+      "x": 1633,
+      "y": 174,
+      "w": 680,
+      "h": 153,
+      "text": "One page, one piece of content, and four rows — and each row"
+    },
+    "snap_before": {
+      "cols": [
+        432,
+        1152,
+        1152
+      ],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "after": null,
+    "also_after": null,
+    "snap_after": {
+      "cols": [
+        3440
+      ],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "reflow_x": "gone",
+    "jump_y": "gone",
+    "errors": []
+  },
+  {
+    "name": "crumb-back",
+    "width": 1280,
+    "url": "http://localhost:8097/imagine/paging/mechanisms/takeover/",
+    "before": {
+      "x": 20,
+      "y": 8,
+      "w": 58,
+      "h": 24,
+      "text": "Imagine"
+    },
+    "also_before": {
+      "x": 0,
+      "y": 40,
+      "w": 1280,
+      "h": 860,
+      "text": "Takeover close Arriving here WAS the takeover, and it chang"
+    },
+    "snap_before": {
+      "cols": [
+        1280
+      ],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "after": {
+      "x": 20,
+      "y": 8,
+      "w": 58,
+      "h": 24,
+      "text": "Imagine"
+    },
+    "also_after": {
+      "x": 0,
+      "y": 40,
+      "w": 211,
+      "h": 860,
+      "text": "Imagine grid_view Start groups Team chevron_right palette De"
+    },
+    "snap_after": {
+      "cols": [
+        211,
+        535,
+        535
+      ],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 0,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 0,
+    "errors": []
+  },
+  {
+    "name": "crumb-back",
+    "width": 3440,
+    "url": "http://localhost:8097/imagine/paging/mechanisms/takeover/",
+    "before": {
+      "x": 54,
+      "y": 9,
+      "w": 69,
+      "h": 29,
+      "text": "Imagine"
+    },
+    "also_before": {
+      "x": 0,
+      "y": 48,
+      "w": 3440,
+      "h": 1352,
+      "text": "Takeover close Arriving here WAS the takeover, and it chang"
+    },
+    "snap_before": {
+      "cols": [
+        3440
+      ],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "after": {
+      "x": 54,
+      "y": 9,
+      "w": 69,
+      "h": 29,
+      "text": "Imagine"
+    },
+    "also_after": {
+      "x": 0,
+      "y": 48,
+      "w": 432,
+      "h": 1352,
+      "text": "Imagine grid_view Start groups Team chevron_right palette De"
+    },
+    "snap_after": {
+      "cols": [
+        432,
+        1152,
+        1152
+      ],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 0,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 0,
+    "errors": []
+  },
+  {
+    "name": "tab-switch",
+    "width": 1280,
+    "url": "http://localhost:8097/framework/ext/tabs/",
+    "before": {
+      "x": 352,
+      "y": 0,
+      "w": 929,
+      "h": 72,
+      "text": "OVERVIEW API DOCS FILES"
+    },
+    "also_before": {
+      "x": 229,
+      "y": 72,
+      "w": 1051,
+      "h": 4247,
+      "text": "import \"/framework/ext/tabs/tabs.js\"; // once, anywhere c"
+    },
+    "snap_before": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "after": {
+      "x": 352,
+      "y": 0,
+      "w": 929,
+      "h": 72,
+      "text": "OVERVIEW API DOCS FILES"
+    },
+    "also_after": {
+      "x": 229,
+      "y": 72,
+      "w": 1051,
+      "h": 2527,
+      "text": "tabs Replaced at runtime — an ext has patched Page.tabs, an"
+    },
+    "snap_after": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 0,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 0,
+    "errors": []
+  },
+  {
+    "name": "tab-switch",
+    "width": 3440,
+    "url": "http://localhost:8097/framework/ext/tabs/",
+    "before": {
+      "x": 460,
+      "y": 0,
+      "w": 2980,
+      "h": 87,
+      "text": "OVERVIEW API DOCS FILES"
+    },
+    "also_before": {
+      "x": 274,
+      "y": 87,
+      "w": 3166,
+      "h": 5010,
+      "text": "import \"/framework/ext/tabs/tabs.js\"; // once, anywhere c"
+    },
+    "snap_before": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "after": {
+      "x": 460,
+      "y": 0,
+      "w": 2980,
+      "h": 87,
+      "text": "OVERVIEW API DOCS FILES"
+    },
+    "also_after": {
+      "x": 274,
+      "y": 87,
+      "w": 3166,
+      "h": 3077,
+      "text": "tabs Replaced at runtime — an ext has patched Page.tabs, an"
+    },
+    "snap_after": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 0,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 0,
+    "errors": []
+  },
+  {
+    "name": "accordion-expand",
+    "width": 1280,
+    "url": "http://localhost:8097/imagine/paging/mechanisms/",
+    "before": {
+      "x": 256,
+      "y": 562,
+      "w": 443,
+      "h": 52,
+      "text": "When is it the wrong one?"
+    },
+    "also_before": {
+      "x": 256,
+      "y": 503,
+      "w": 443,
+      "h": 52,
+      "text": "When is it the right answer?"
+    },
+    "snap_before": {
+      "cols": [
+        211,
+        535,
+        535
+      ],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "after": {
+      "x": 256,
+      "y": 643,
+      "w": 443,
+      "h": 52,
+      "text": "When is it the wrong one?"
+    },
+    "also_after": {
+      "x": 256,
+      "y": 584,
+      "w": 443,
+      "h": 52,
+      "text": "When is it the right answer?"
+    },
+    "snap_after": {
+      "cols": [
+        211,
+        535,
+        535
+      ],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 81,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 81,
+    "errors": []
+  },
+  {
+    "name": "accordion-expand",
+    "width": 3440,
+    "url": "http://localhost:8097/imagine/paging/mechanisms/",
+    "before": {
+      "x": 510,
+      "y": 1454,
+      "w": 995,
+      "h": 63,
+      "text": "When is it the wrong one?"
+    },
+    "also_before": {
+      "x": 510,
+      "y": 1383,
+      "w": 995,
+      "h": 63,
+      "text": "When is it the right answer?"
+    },
+    "snap_before": {
+      "cols": [
+        432,
+        1152,
+        1152
+      ],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "after": {
+      "x": 510,
+      "y": 1522,
+      "w": 995,
+      "h": 63,
+      "text": "When is it the wrong one?"
+    },
+    "also_after": {
+      "x": 510,
+      "y": 1451,
+      "w": 995,
+      "h": 63,
+      "text": "When is it the right answer?"
+    },
+    "snap_after": {
+      "cols": [
+        432,
+        1152,
+        1152
+      ],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 68,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 68,
+    "errors": []
+  },
+  {
+    "name": "paging-expand",
+    "width": 1280,
+    "url": "http://localhost:8097/imagine/paging/mechanisms/",
+    "before": {
+      "x": 766,
+      "y": 795,
+      "w": 493,
+      "h": 39,
+      "text": "open_in_full Takeover open_in_full"
+    },
+    "also_before": {
+      "x": 766,
+      "y": 880,
+      "w": 493,
+      "h": 146,
+      "text": "Which ones change the url. launch and takeover are core's co"
+    },
+    "snap_before": {
+      "cols": [
+        211,
+        535,
+        535
+      ],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "after": {
+      "x": 766,
+      "y": 908,
+      "w": 493,
+      "h": 39,
+      "text": "open_in_full Takeover open_in_full"
+    },
+    "also_after": {
+      "x": 766,
+      "y": 993,
+      "w": 493,
+      "h": 146,
+      "text": "Which ones change the url. launch and takeover are core's co"
+    },
+    "snap_after": {
+      "cols": [
+        211,
+        535,
+        535
+      ],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 113,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 113,
+    "errors": []
+  },
+  {
+    "name": "paging-expand",
+    "width": 3440,
+    "url": "http://localhost:8097/imagine/paging/mechanisms/",
+    "before": {
+      "x": 1633,
+      "y": 970,
+      "w": 1054,
+      "h": 46,
+      "text": "open_in_full Takeover open_in_full"
+    },
+    "also_before": {
+      "x": 1633,
+      "y": 1079,
+      "w": 648,
+      "h": 175,
+      "text": "Which ones change the url. launch and takeover are core's co"
+    },
+    "snap_before": {
+      "cols": [
+        432,
+        1152,
+        1152
+      ],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "after": {
+      "x": 1633,
+      "y": 1105,
+      "w": 1054,
+      "h": 46,
+      "text": "open_in_full Takeover open_in_full"
+    },
+    "also_after": {
+      "x": 1633,
+      "y": 1214,
+      "w": 648,
+      "h": 175,
+      "text": "Which ones change the url. launch and takeover are core's co"
+    },
+    "snap_after": {
+      "cols": [
+        432,
+        1152,
+        1152
+      ],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 135,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 135,
+    "errors": []
+  },
+  {
+    "name": "swap-generic-box",
+    "width": 1280,
+    "url": "http://localhost:8097/imagine/paging/mechanisms/swap/",
+    "before": {
+      "x": 1060,
+      "y": 720,
+      "w": 199,
+      "h": 170,
+      "text": "Measured: the stage's top-left is identical before and after"
+    },
+    "also_before": {
+      "x": 1060,
+      "y": 7,
+      "w": 199,
+      "h": 623,
+      "text": "What does a click do? Four answers, and every item on this "
+    },
+    "snap_before": {
+      "cols": [
+        211,
+        421,
+        421,
+        241
+      ],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "after": {
+      "x": 1060,
+      "y": 719,
+      "w": 199,
+      "h": 170,
+      "text": "Measured: the stage's top-left is identical before and after"
+    },
+    "also_after": {
+      "x": 1060,
+      "y": 265,
+      "w": 199,
+      "h": 364,
+      "text": "SWAPPED IN — THE BOX DID NOT MOVE Same box The stage above "
+    },
+    "snap_after": {
+      "cols": [
+        211,
+        421,
+        421,
+        241
+      ],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 1,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 258,
+    "errors": []
+  },
+  {
+    "name": "swap-generic-box",
+    "width": 3440,
+    "url": "http://localhost:8097/imagine/paging/mechanisms/swap/",
+    "before": {
+      "x": 2661,
+      "y": 1287,
+      "w": 648,
+      "h": 87,
+      "text": "Measured: the stage's top-left is identical before and after"
+    },
+    "also_before": {
+      "x": 2661,
+      "y": 779,
+      "w": 730,
+      "h": 445,
+      "text": "What does a click do? Four answers, and every item on this "
+    },
+    "snap_before": {
+      "cols": [
+        432,
+        1090,
+        1090,
+        828
+      ],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "after": {
+      "x": 2661,
+      "y": 1287,
+      "w": 648,
+      "h": 87,
+      "text": "Measured: the stage's top-left is identical before and after"
+    },
+    "also_after": {
+      "x": 2661,
+      "y": 868,
+      "w": 730,
+      "h": 356,
+      "text": "SWAPPED IN — THE BOX DID NOT MOVE Same box The stage above "
+    },
+    "snap_after": {
+      "cols": [
+        432,
+        1090,
+        1090,
+        828
+      ],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 0,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 89,
+    "errors": []
+  },
+  {
+    "name": "swap-reserved-stage",
+    "width": 1280,
+    "url": "http://localhost:8097/imagine/paging/mechanisms/swap/",
+    "before": {
+      "x": 1060,
+      "y": 924,
+      "w": 199,
+      "h": 76,
+      "text": "So is swap just tabs?"
+    },
+    "also_before": {
+      "x": 1060,
+      "y": 490,
+      "w": 199,
+      "h": 156,
+      "text": "PANEL Overview Two decisions on top of a page: where a chil"
+    },
+    "snap_before": {
+      "cols": [
+        211,
+        421,
+        421,
+        241
+      ],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "after": {
+      "x": 1060,
+      "y": 924,
+      "w": 199,
+      "h": 76,
+      "text": "So is swap just tabs?"
+    },
+    "also_after": {
+      "x": 1060,
+      "y": 490,
+      "w": 199,
+      "h": 156,
+      "text": "PANEL Overview Two decisions on top of a page: where a chil"
+    },
+    "snap_after": {
+      "cols": [
+        211,
+        421,
+        421,
+        241
+      ],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 0,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 0,
+    "errors": []
+  },
+  {
+    "name": "swap-reserved-stage",
+    "width": 3440,
+    "url": "http://localhost:8097/imagine/paging/mechanisms/swap/",
+    "before": {
+      "x": 2661,
+      "y": 988,
+      "w": 730,
+      "h": 46,
+      "text": "So is swap just tabs?"
+    },
+    "also_before": {
+      "x": 2661,
+      "y": 627,
+      "w": 730,
+      "h": 211,
+      "text": "PANEL Overview Two decisions on top of a page: where a chil"
+    },
+    "snap_before": {
+      "cols": [
+        432,
+        1090,
+        1090,
+        828
+      ],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "after": {
+      "x": 2661,
+      "y": 988,
+      "w": 730,
+      "h": 46,
+      "text": "So is swap just tabs?"
+    },
+    "also_after": {
+      "x": 2661,
+      "y": 627,
+      "w": 730,
+      "h": 211,
+      "text": "PANEL Overview Two decisions on top of a page: where a chil"
+    },
+    "snap_after": {
+      "cols": [
+        432,
+        1090,
+        1090,
+        828
+      ],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 0,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 0,
+    "errors": []
+  },
+  {
+    "name": "sidebar-rail",
+    "width": 1280,
+    "url": "http://localhost:8097/framework/",
+    "before": {
+      "x": 0,
+      "y": 0,
+      "w": 229,
+      "h": 900,
+      "text": "Framework flag Start here smart_toy AI travel_explore Resear"
+    },
+    "also_before": {
+      "x": 0,
+      "y": 0,
+      "w": 1280,
+      "h": 900,
+      "text": "Framework flag Start here smart_toy AI travel_explore Resear"
+    },
+    "snap_before": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "after": {
+      "x": 0,
+      "y": 0,
+      "w": 229,
+      "h": 900,
+      "text": "Framework flag Start here smart_toy AI travel_explore Resear"
+    },
+    "also_after": {
+      "x": 0,
+      "y": 0,
+      "w": 1280,
+      "h": 900,
+      "text": "Framework flag Start here smart_toy AI travel_explore Resear"
+    },
+    "snap_after": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 0,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 0,
+    "errors": []
+  },
+  {
+    "name": "sidebar-rail",
+    "width": 3440,
+    "url": "http://localhost:8097/framework/",
+    "before": {
+      "x": 0,
+      "y": 0,
+      "w": 274,
+      "h": 1400,
+      "text": "Framework flag Start here smart_toy AI travel_explore Resear"
+    },
+    "also_before": {
+      "x": 0,
+      "y": 0,
+      "w": 3440,
+      "h": 1400,
+      "text": "Framework flag Start here smart_toy AI travel_explore Resear"
+    },
+    "snap_before": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "after": {
+      "x": 0,
+      "y": 0,
+      "w": 274,
+      "h": 1400,
+      "text": "Framework flag Start here smart_toy AI travel_explore Resear"
+    },
+    "also_after": {
+      "x": 0,
+      "y": 0,
+      "w": 3440,
+      "h": 1400,
+      "text": "Framework flag Start here smart_toy AI travel_explore Resear"
+    },
+    "snap_after": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 0,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 0,
+    "errors": []
+  },
+  {
+    "name": "drawer-open",
+    "width": 1280,
+    "url": "http://localhost:8097/framework/ext/drawer/",
+    "before": {
+      "x": 323,
+      "y": 367,
+      "w": 602,
+      "h": 108,
+      "text": "Drag its inline edge. The strip just inside it is a grip — e"
+    },
+    "also_before": {
+      "x": 323,
+      "y": 681,
+      "w": 602,
+      "h": 42,
+      "text": "Two slots"
+    },
+    "snap_before": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "after": {
+      "x": 305,
+      "y": 367,
+      "w": 595,
+      "h": 108,
+      "text": "Drag its inline edge. The strip just inside it is a grip — e"
+    },
+    "also_after": {
+      "x": 305,
+      "y": 681,
+      "w": 595,
+      "h": 42,
+      "text": "Two slots"
+    },
+    "snap_after": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "reflow_x": 18,
+    "jump_y": 0,
+    "dh": 0,
+    "dw": -7,
+    "also_x": 18,
+    "also_y": 0,
+    "errors": []
+  },
+  {
+    "name": "drawer-open",
+    "width": 3440,
+    "url": "http://localhost:8097/framework/ext/drawer/",
+    "before": {
+      "x": 491,
+      "y": 439,
+      "w": 720,
+      "h": 130,
+      "text": "Drag its inline edge. The strip just inside it is a grip — e"
+    },
+    "also_before": {
+      "x": 491,
+      "y": 815,
+      "w": 720,
+      "h": 51,
+      "text": "Two slots"
+    },
+    "snap_before": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "after": {
+      "x": 491,
+      "y": 439,
+      "w": 720,
+      "h": 130,
+      "text": "Drag its inline edge. The strip just inside it is a grip — e"
+    },
+    "also_after": {
+      "x": 491,
+      "y": 815,
+      "w": 720,
+      "h": 51,
+      "text": "Two slots"
+    },
+    "snap_after": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 0,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 0,
+    "errors": []
+  },
+  {
+    "name": "toolbar-style-chip",
+    "width": 1280,
+    "url": "http://localhost:8097/imagine/paging/mechanisms/",
+    "before": {
+      "x": 766,
+      "y": 880,
+      "w": 493,
+      "h": 146,
+      "text": "Which ones change the url. launch and takeover are core's co"
+    },
+    "also_before": {
+      "x": 766,
+      "y": 446,
+      "w": 493,
+      "h": 387,
+      "text": "What does a click do? Four answers, and every item on this "
+    },
+    "snap_before": {
+      "cols": [
+        211,
+        535,
+        535
+      ],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "after": {
+      "x": 766,
+      "y": 1038,
+      "w": 493,
+      "h": 146,
+      "text": "Which ones change the url. launch and takeover are core's co"
+    },
+    "also_after": {
+      "x": 766,
+      "y": 509,
+      "w": 493,
+      "h": 439,
+      "text": "What does a click do? Four answers, and every item on this "
+    },
+    "snap_after": {
+      "cols": [
+        211,
+        535,
+        535
+      ],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 158,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 63,
+    "errors": []
+  },
+  {
+    "name": "toolbar-style-chip",
+    "width": 3440,
+    "url": "http://localhost:8097/imagine/paging/mechanisms/",
+    "before": {
+      "x": 1633,
+      "y": 1079,
+      "w": 648,
+      "h": 175,
+      "text": "Which ones change the url. launch and takeover are core's co"
+    },
+    "also_before": {
+      "x": 1633,
+      "y": 554,
+      "w": 1054,
+      "h": 462,
+      "text": "What does a click do? Four answers, and every item on this "
+    },
+    "snap_before": {
+      "cols": [
+        432,
+        1152,
+        1152
+      ],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "after": {
+      "x": 1633,
+      "y": 1212,
+      "w": 648,
+      "h": 175,
+      "text": "Which ones change the url. launch and takeover are core's co"
+    },
+    "also_after": {
+      "x": 1633,
+      "y": 629,
+      "w": 1054,
+      "h": 494,
+      "text": "What does a click do? Four answers, and every item on this "
+    },
+    "snap_after": {
+      "cols": [
+        432,
+        1152,
+        1152
+      ],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 133,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 75,
+    "errors": []
+  },
+  {
+    "name": "toolbar-size-chip",
+    "width": 1280,
+    "url": "http://localhost:8097/imagine/paging/mechanisms/",
+    "before": {
+      "x": 766,
+      "y": 880,
+      "w": 493,
+      "h": 146,
+      "text": "Which ones change the url. launch and takeover are core's co"
+    },
+    "also_before": {
+      "x": 766,
+      "y": 446,
+      "w": 493,
+      "h": 387,
+      "text": "What does a click do? Four answers, and every item on this "
+    },
+    "snap_before": {
+      "cols": [
+        211,
+        535,
+        535
+      ],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "after": {
+      "x": 766,
+      "y": 1800,
+      "w": 493,
+      "h": 146,
+      "text": "Which ones change the url. launch and takeover are core's co"
+    },
+    "also_after": {
+      "x": 766,
+      "y": 509,
+      "w": 493,
+      "h": 1201,
+      "text": "What does a click do? Four answers, and every item on this "
+    },
+    "snap_after": {
+      "cols": [
+        211,
+        535,
+        535
+      ],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 920,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 63,
+    "errors": []
+  },
+  {
+    "name": "toolbar-size-chip",
+    "width": 3440,
+    "url": "http://localhost:8097/imagine/paging/mechanisms/",
+    "before": {
+      "x": 1633,
+      "y": 1079,
+      "w": 648,
+      "h": 175,
+      "text": "Which ones change the url. launch and takeover are core's co"
+    },
+    "also_before": {
+      "x": 1633,
+      "y": 554,
+      "w": 1054,
+      "h": 462,
+      "text": "What does a click do? Four answers, and every item on this "
+    },
+    "snap_before": {
+      "cols": [
+        432,
+        1152,
+        1152
+      ],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "after": {
+      "x": 1633,
+      "y": 1795,
+      "w": 648,
+      "h": 175,
+      "text": "Which ones change the url. launch and takeover are core's co"
+    },
+    "also_after": {
+      "x": 1633,
+      "y": 629,
+      "w": 1054,
+      "h": 1077,
+      "text": "What does a click do? Four answers, and every item on this "
+    },
+    "snap_after": {
+      "cols": [
+        432,
+        1152,
+        1152
+      ],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 716,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 75,
+    "errors": []
+  }
+]

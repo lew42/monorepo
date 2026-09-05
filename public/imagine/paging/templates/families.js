@@ -334,7 +334,7 @@ export const FAMILIES = [
 			["The columns doc", "/framework/core/Page/doc/columns/", "every width word, floored and capped"],
 			["The finder", "/framework/core/Page/overview/columns/finder/", "Miller columns, built out of nothing new"],
 			["Launch", "/imagine/paging/mechanisms/launch/", "a click that opens a column to the right"],
-			["Sizes", "/imagine/paging/sizes/", "press a chip and read what the box did, in pixels"],
+			["Room", "/imagine/paging/room/", "four width words, and what each one does to the box in pixels"],
 		],
 	},
 

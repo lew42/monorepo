@@ -11,23 +11,23 @@
 
 @layer theme {
 
+	/* ⚠ A LINE, NOT A BOX. It was a bordered, filled, 3px-edged strip on every demo in
+	     the paging realm; the owner's report was "the modified and reset ux is too
+	     bulky, it's a massive alert box" (2026-09-05). Demos no longer persist at all,
+	     so this only ever appears in an editor — where a dot, four words and a Reset
+	     on one line is the whole of it. No border, no fill, no left edge. */
 	.baseline-mark {
 		max-width: var(--measure, 40em);   /* a nested p escapes the column-prose cap: 3207px wide at 3440 (2026-09-05) */
 		display: flex;
 		flex-wrap: wrap;
 		align-items: center;
-		gap: 0.4em 0.75em;
+		gap: 0.3em 0.6em;
 
 		margin-block-end: var(--gap, 1em);
-		padding: 0.45em 0.7em;
 
-		border: 1px solid var(--line);
-		border-inline-start: 3px solid var(--edge, var(--line));
-		border-radius: var(--radius);
-		background: var(--wash);
-
-		font-size: 0.9em;
+		font-size: 0.85em;
 		line-height: 1.35;
+		color: var(--subtle);
 	}
 
 	/* ⚠ An empty mark is a real element with real padding and a real border — the
@@ -44,7 +44,7 @@
 
 	/* The sentence takes the room that is left and the controls stay on the line
 	   beside it until there is not enough, at which point they wrap under it. */
-	.baseline-words { flex: 1 1 18em; }
+	.baseline-words { flex: 0 1 auto; }
 
 	/* ⚠ `md()` wraps its text in a <p>, and a paragraph inside a flex row brings its
 	     own block margins — which would make a one-line strip three lines tall. */

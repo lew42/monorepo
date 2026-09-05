@@ -5,9 +5,11 @@ import { View, div, p, a, span, details, summary } from "/app.js";
 View.stylesheet(import.meta, "research-front.css");
 
 /* Container: a COLUMN in /imagine/'s columns host — not a page grid, so no
-   `wide` and no breakout; the column is the width. Size: `large`, 28–64em, and
-   the owner can drag the seam. Own layout: the program's, one call. Regions:
-   one — Program.content() draws the whole front. Preview: the default card.
+   `wide` and no breakout; the column is the width. Size: `fill`, the leftover:
+   alone it takes the row, and yields to a plain flex share (64em ceiling) the
+   moment a topic column opens beside it — the seam still drags either way.
+   Own layout: the program's, one call. Regions: one — Program.content() draws
+   the whole front. Preview: the default card.
 
    The topics are NOT declared as `children`. Four minions own those dirs and
    write their own `page.js` when they have something to show; core probes the
@@ -20,10 +22,12 @@ View.stylesheet(import.meta, "research-front.css");
 
    ⚠ RANK 1 in the 2026-09-04 paging critique: 368 entries flattened this front
      into one column 14,517px deep (10.4 screens at 3440) while `width: "fill"`
-     was tried and REVERTED the same day (squeezes an open topic column to its
+     was tried and REVERTED the same day (squeezed an open topic column to its
      288px floor — public/framework/ai/2026-09-04/realm-alternates/task.jsonl).
-     So the depth fix stands: `head()` is one sentence, and the flat "Latest"
-     feed stays behind a closed-by-default `<details>`.
+     The depth fix (below) stands regardless: `head()` is one sentence, and the
+     flat "Latest" feed stays behind a closed-by-default `<details>`. `fill` is
+     back 2026-09-05 now that Page.css makes it yield to an open child instead
+     of starving it — doc/columns.md, doc/decisions.md have the numbers.
 
    ⚠ 2026-09-05 UX PASS — the second problem the depth fix left standing: the
      front told you HOW MUCH was in each topic (a count, a bar) but never WHAT
@@ -169,7 +173,7 @@ export default new ResearchFront({
 	description: "Four topics in ancient technology, dug in parallel and streamed live — every claim carrying how sure anyone actually is.",
 	icon: "explore",
 
-	width: "large",
+	width: "fill",
 
 	question: "What do we actually know about ancient technology — and how sure is anyone?",
 

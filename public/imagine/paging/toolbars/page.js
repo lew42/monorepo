@@ -1,37 +1,84 @@
-import { md } from "/app.js";
+import { div, h2, p, span, a, icon, md } from "/app.js";
 import { Paging } from "../paging.js";
+import { DEFAULT } from "../blocks.js";
 
-/* Container: a column in /imagine/'s row. Size: `large` (28–64em) — enough width for
-   a left/right toolbar to sit beside real content without the demo lying about the
-   room a reader actually has. Own layout: prose, then the stage (toolbar, box, two
-   rows). Regions: one, core's — `index: true` from `Paging.column()`, since `items()`
-   already draws the two children below. Preview: core's card.
+/* Container: the app's middle. Size: prose at the measure, the stage on `wide` —
+   a left or right bar beside real content needs the leftover. Own layout: a
+   sentence, one live page, a nav grid of four. Regions: one. Preview: core's card,
+   in the rail's Toolbars section.
 
-   THE READER SWITCHES THIS PAGE'S OWN TOOLBAR, LIVE — eight placements × five surfaces,
-   no navigation, which is the owner's ask verbatim ("top toolbars, left toolbars, right
-   toolbars, bottom toolbars, both in the card, and outside the card"). `toolbars/<side>/`
-   below are the four stops worth a url: each lands `inside` a card, still switchable. */
+   ⚠ FOUR URLS, NO DIRECTORIES. `toolbars/top/`, `/left/`, `/right/` and `/bottom/`
+     were four `page.js` files saying one word each; `route()` is core's own seam for
+     a child that is not a directory, so the four urls survived the 2026-09-05
+     rebuild and the four files did not. The owner's own complaint about these pages
+     — 981px-wide buttons with 50px of padding and a hundred pixels of content — is
+     answered by the stage, which lays its bar out at the width it is given.       */
+
+const SIDES = {
+	top:    { title: "Top",    icon: "vertical_align_top",    arrangement: "bar-top",    says: "A bar of controls above the content. It stays put; the content scrolls under it." },
+	bottom: { title: "Bottom", icon: "vertical_align_bottom", arrangement: "bar-bottom", says: "The same bar underneath — a footer, or a phone's tab bar." },
+	left:   { title: "Left",   icon: "format_align_left",     arrangement: "rail-left",  says: "A column of links before the content, sharing its top edge. This is what the app around you does." },
+	right:  { title: "Right",  icon: "format_align_right",    arrangement: "rail-right", says: "The column after the content — a contents list, or a properties panel." },
+};
+
+class Bar extends Paging {
+
+	content(){
+		this.lede(this.line);
+
+		this.stage({ ...DEFAULT, content: "article", room: "wide", arrangement: this.arrangement, surface: "card", background: "tint", navigation: "none" });
+
+		h2("The other three");
+
+		div.c("paging-cards", () => Object.entries(SIDES).forEach(([name, side]) => {
+			if (name === this.side) return;
+
+			a.c("paging-card").href("/imagine/paging/toolbars/" + name + "/").append(() => {
+				span.c("paging-card-head", () => { icon(side.icon); span(side.title); });
+				span.c("paging-card-say", side.says);
+			});
+		}));
+
+		md("A bar is one value of [arrangement](/imagine/paging/arrangement/), which has seven. The numbered layouts they compile to live next door in [/imagine/layouts/](/imagine/layouts/).");
+	}
+}
 
 export default new Paging({
 	meta: import.meta,
 	title: "Toolbars",
-	description: "Where the mode toolbar sits — top, left, right or bottom, inside the card or outside it — across all five surfaces.",
+	description: "The same bar on four edges — top, bottom, left and right.",
 	icon: "web_asset",
-	width: "large",
-	axes: "toolbar style",
 
-	takeaway: "**A page's own toolbar can sit in eight places — top, left, right or bottom, and inside the card or outside it.** Press a chip and THIS page's toolbar moves; nothing navigates, so you can compare all eight without leaving.",
-	children: "top left right bottom",
+	index: true,
+	depth: 0,
 
 	content(){
-		this.lede();
+		p.c("paging-lede", "Change the **arrangement** dropdown on the page below and the bar moves. The content never changes.");
 
-		md("**Eight placements, one seam.** `top left right bottom` × `inside` (a flex child of the box — on `card` that is literally inside the white padded shadowed frame) or `outside` (a sibling of the box, on the stage). Same call the other three axes already make: `page.pick(\"toolbar\", \"left-outside\")` — [code](" + this.url + "code/).");
+		this.stage({ ...DEFAULT, content: "article", room: "wide", arrangement: "bar-top", surface: "card", background: "tint", navigation: "none" });
 
-		this.paging();
+		h2("The four, each at its own url");
 
-		md("**On `card`** the difference reads at a glance: `outside` sits on the ambient floor above/beside the white box, `inside` shares its padding and shadow. On `plain` `tint` `prim` `dark` there is no separate frame, so the two only differ in flow order — still real, just quieter.");
+		div.c("paging-cards", () => Object.entries(SIDES).forEach(([name, side]) =>
+			a.c("paging-card").href(this.url + name + "/").append(() => {
+				span.c("paging-card-head", () => { icon(side.icon); span(side.title); });
+				span.c("paging-card-say", side.says);
+			})));
+	},
 
-		md("Four of the eight are worth a url of their own, each landing `inside` a card and still switchable: " + ["top", "left", "right", "bottom"].map(w => "[" + w + "](" + this.url + w + "/)").join(" · ") + ".");
+	// ⚠ `route()` sees UNDECLARED names only, so it can never shadow a real child.
+	route(name){
+		const side = SIDES[name];
+		if (!side) return;
+
+		return new Bar({
+			title: side.title + " toolbar",
+			label: side.title,
+			icon: side.icon,
+			description: side.says,
+			side: name,
+			arrangement: side.arrangement,
+			line: side.says + " Point at it to move it somewhere else.",
+		});
 	},
 });

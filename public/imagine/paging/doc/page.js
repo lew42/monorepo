@@ -1,10 +1,10 @@
-import { Page, md, div, a, span } from "/app.js";
+import { md, div, a, span } from "/app.js";
+import { Paging } from "../paging.js";
 
 /* ── layout, answered before the first factory call ────────────────────────────
-   1 CONTAINER  a column in /imagine/'s row. No page grid — content sits in
-                `.page-column-prose`, so only `bleed` reaches the edge.
-   2 SIZE       `large` — 28–64em. A wall of five cards wants more than the reading
-                column and never more than 64em.
+   1 CONTAINER  the app's middle — a `.pages` region with core's page grid in it.
+   2 SIZE       prose at the 40em measure; the wall of five cards is `.page-previews`,
+                which pays its own gutter back and spreads with the middle.
    3 OWN LAYOUT one sentence, then the wall. One rhythm.
    4 REGIONS    one — core's. The records are `route()` children, not columns.
    5 PREVIEW    core's default card.
@@ -31,31 +31,28 @@ const RECORDS = {
 	builder: ["Builder", "How a page is built with a UI: the census of every page file (22% pure configuration, 42% one renderer away, 35% code), the controls in order, and why a tab is just a child page."],
 };
 
-export default new Page({
+export default new Paging({
 	meta: import.meta,
 	title: "Docs",
 	description: "The long form — the mechanisms, the decisions, persistence, templates.",
 	icon: "menu_book",
-	width: "large",
-
 	route(name){
 		const record = RECORDS[name];
 		if (!record) return null;
 
 		const meta = this.meta;
 
-		return {
+		return new Paging({
 			title: record[0],
 			description: record[1],
-			width: "large",
 			content(){ return md.file(meta, name + ".md", { h1: false }); },
-		};
+		});
 	},
 
 	content(){
 		md("**The long form for [Paging](/imagine/paging/).** The hub and its pages show you the vocabulary; these four write down why it is that way, what was measured, and what was rejected. Every one of them is a plain markdown file in `public/imagine/paging/doc/`.");
 
-		div.c("page-previews", () => Object.entries(RECORDS).forEach(([name, [title, says]]) => {
+		div.c("page-previews wide", () => Object.entries(RECORDS).forEach(([name, [title, says]]) => {
 			a.c("page-preview").href(this.url + name + "/").append(() => {
 				span.c("page-preview-title", title);
 				div.c("page-preview-desc", says);

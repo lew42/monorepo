@@ -1,147 +1,134 @@
-import { div, p, h2, h3, span, a, ol, li, icon, md, ui } from "/app.js";
-import { Paging, MECHANISMS, LAYOUT_MEANS, RUNGS } from "./paging.js";
+import { div, h1, h2, p, span, a, icon, md } from "/app.js";
+import { Realm, Paging } from "./paging.js";
+import { PRESETS, preset_url } from "./presets.js";
+import { BLOCKS } from "./blocks.js";
 import { DEMOS } from "./demos.js";
 
 /* ── layout, answered before the first factory call ────────────────────────────
-   1 CONTAINER  /imagine/ is a columns host, so this is ONE COLUMN in its row.
-                There is no page grid down here: content sits in
-                `.page-column-prose`, `wide` is meaningless, only `bleed` reaches
-                the edge (core/Page/doc/columns.md).
-   2 SIZE       `large` — 28–64em: 421px at 1280, 1005 at 1920, 1152 at 3440. Wide
-                enough for four teaching miniatures and a table, capped so the
-                prose above them stays readable.
-   3 OWN LAYOUT prose, then four teaching blocks (a heading, one sentence, a live
-                miniature, a link), then the reference sections. One rhythm per
-                box, `gap` throughout.
-   4 REGIONS    one — core's. The children are columns of the SAME row, not regions
-                of this page. `index: true`, so core leaves its rail out: the
-                `previews()` wall at the bottom already shows every child once.
-   5 PREVIEW    core's default card, on /imagine/'s rail and its Start wall.
+   1 CONTAINER  its own screen — `app.$pages`, not a column of /imagine/'s row. The
+                realm is an app: a rail that never moves, and a middle that swaps.
+   2 SIZE       the whole row. Rail `clamp(15rem, 12vw, 26rem)` — 240px at 1280,
+                413px at 3440; the middle takes everything else. At 3440 that is
+                ~3000px of middle, against the 1152px column this page used to be.
+   3 OWN LAYOUT one sentence, one live page on the stage, the twelve presets as a
+                wall, then the four gestures as miniatures. The stage claims `wide`,
+                so it grows with the middle instead of stopping at the 40em measure.
+   4 REGIONS    two: the rail, and the middle (`$pages`). Every page in the realm
+                mounts in the middle, so one click changes exactly one thing.
+   5 PREVIEW    core's default card, on /imagine/'s own wall.
 
-   ⚠ THE HUB HAS NO MODE TOOLBAR AND NO STAGE, on purpose. It is the page that
-     TEACHES the vocabulary, so it must not also be a page that demonstrates it —
-     a reader meeting five chip groups before meeting the four words has been given
-     controls for a thing they cannot name yet. Every other page in the realm has
-     the toolbar; this one has the explanation and four things you can click.
-     (Before 2026-09-04 the hub carried the toolbar and a five-stop "walk" of bare
-     links; the owner's report was that the realm was confusing to enter.
-     doc/decisions.md.)                                                          */
+   ⚠ NO OPENING PARAGRAPH. The page under the sentence is a real, running page you
+     can change by pointing at it, and the old opening ("Every page on this site is
+     three things: an icon, some content, and a list of children…") told a reader
+     what they were about to be shown instead of showing it (the owner, 2026-09-05).
+     doc/decisions.md.                                                            */
 
-/* THE THREE STEPS. Written as a real list with real links so "how to explore this"
-   is itself explorable, rather than a paragraph describing a journey. */
-const STEPS = [
-	["Examples", "/imagine/paging/examples/", "Five pages, each showing the result on one side and the four lines of code that made it on the other. Read them in order and you have seen the whole vocabulary used."],
-	["Sizes", "/imagine/paging/sizes/", "Press the size chips and watch the SAME sample grow. A caption under the box tells you what just changed, in pixels."],
-	["Make", "/imagine/paging/make/", "Type a name and a real page appears at a real url — and in dev, a real `page.json` on disk you can open in an editor. Four words configure it; one of them turns its children into tabs."],
-];
+// The page that is on the stage when you arrive. Docs with tabs on top: the most
+// familiar shape there is, and the one where "the box does not move" is obvious.
+const OPENING = PRESETS.find(preset => preset.id === "docs-tabs");
 
-/* WHICH THING THE SITE ALREADY BUILT SHOWS UP WHERE. The owner's ask was to use as
-   much of what exists as possible rather than inventing placeholder prose; this is
-   the honest list, and every row is a link you can go and check. */
-const BUILT = [
-	["ext/tabs", "/framework/ext/tabs/", "the site's tab strip, and the thing the swap example above is a FIX of — its panel is transparent, so a tab opens onto nothing you can see ([the argument](/imagine/paging/doc/decisions/))"],
-	["ui/accordion", "/framework/ui/accordion/", "the expand example on this page — `<details class=\"ui-accordion-item\">`, no JavaScript at all"],
-	["ui/card", "/framework/ui/card/", "the `l` rung of every sample — four cards in the template verbatim"],
-	["core previews()", "/framework/core/Page/doc/columns/", "the card wall at the bottom of this page, and the `xl` rung's wall of posts"],
-	["the blog's manifest", "/blog/", "the `xl` rung's cards are real posts, read from `/blog/posts.js`"],
-	["styles/layouts/cols", "/framework/styles/layouts/cols/", "every Example row — `cols-row cols-half` puts the result beside its configuration"],
-	["ui/table", "/framework/ui/table/", "this table"],
-	["the page generator", "/framework/core/Page/generator/", "Make builds its pages from spec text, using the generator's own `parse()` and `serialize()`"],
-	["ext/Panel", "/framework/ext/Panel/", "not used here — a Panel is a resizable workspace, and every page in this realm is a column instead"],
-];
+// old name → where it went. `route()` below turns each into a one-line page.
+const MOVED = {
+	styles:      ["Skin", "/imagine/paging/skin/", "the five surfaces, and now two independent colour controls instead of one."],
+	sizes:       ["Room", "/imagine/paging/room/", "the four width words, said in plain English."],
+	center:      ["Room", "/imagine/paging/room/", "centring is an alignment, not a width — it lives with the width words."],
+	transitions: ["Swap", "/imagine/paging/mechanisms/swap/", "the four swap visuals are on the swap page, on one stage."],
+	explorer:    ["Library", "/imagine/paging/library/", "twelve configured pages you can change by pointing at them."],
+	examples:    ["Library", "/imagine/paging/library/", "twelve real pages, each with its own configuration and its own url."],
+	rightnav:    ["A settings page with a right rail", "/imagine/paging/library/settings/", "a right rail is one value of the navigation word."],
+};
 
-export default new Paging({
+export default new Realm({
 	meta: import.meta,
 	title: "Paging",
-	description: "What a click does, and what the page looks like while it does it.",
+	description: "One configurable page, six building blocks, and twelve ready-made shapes.",
 	icon: "auto_stories",
-	width: "large",
 
-	takeaway: "**Every page on this site is three things: an icon, some content, and a list of children you can click.** A *page system* is the two decisions taken on top of that shape — **where a child goes when you click it**, and **what the page looks like** while it goes there. This realm takes those two decisions apart so you can try them on.",
-
-	// Cards, not a rail: `previews()` below already draws every child once.
+	// Nothing is drawn from the children list — the rail is the navigation, and it
+	// is built from `rail.js`. Depth 0 keeps a visit to the hub from fetching a
+	// whole program of pages nobody asked for.
 	index: true,
+	depth: 0,
 
-	// One level. The wall needs my children's titles and icons, nothing deeper —
-	// depth 2 would pull the whole program down on every arrival.
-	depth: 1,
-
-	// No chips here — see the head note.
-	axes: "",
-
-	// ⚠ Nothing crawls: a page exists once this list names it, and a name whose dir
-	//   has no page.js 404s the whole probe.
-	children: "examples mechanisms styles sizes make build templates center transitions toolbars rightnav explorer inventory critique doc",
+	// ⚠ Nothing crawls: a page exists once this list names it. `navigation` is built
+	//   by the nav-stability task and shares this list.
+	children: "library stage navigation content room arrangement skin mechanisms templates toolbars make build doc",
 
 	content(){
-		this.lede();
+		h1.c("page-title", "Paging");
 
-		h2("What a click can do — four answers");
+		p.c("paging-lede", "Point at the page below and a toolbar appears — change what a click does, how it is laid out, and its two colours. Or pick another shape from the rail.");
 
-		md("Each one below has a small live example. Click it first; the words underneath will make more sense afterwards. None of these four examples navigates anywhere — they are miniatures, so you can see the whole gesture without leaving this page.");
+		this.stage(OPENING.config);
 
-		DEMOS.forEach(demo => this.teach(demo));
+		h2("Twelve pages, ready made");
 
-		h2("What the page looks like while it does it");
+		div.c("paging-cards", () => PRESETS.forEach(preset => this.preset_card(preset)));
 
-		md("That was the first decision. The second is the **surface** — what the page itself looks like — and **how much room** it gets. Both are single words, and both are independent of the mechanism: any surface can be opened by any mechanism.");
+		h2("What one click can do");
 
-		md("**Five surfaces.** `plain` is the site's own floor with no frame · `card` is white and padded with a drop shadow · `tint` is one subtle step off the parent · `prim` is tinted with the accent colour · `dark` is a colour-scheme island, which flips every token below it with one declaration. See them all: [Styles](/imagine/paging/styles/).");
+		p("Each of these four is live. Click it.");
 
-		md("**Two size axes.** How much content there is — " + RUNGS.map(rung => "`" + rung.word + "` " + rung.adds.replace(/^\+ /, "")).join(" · ") + " — and how much room it gets — " + Object.entries(LAYOUT_MEANS).map(([word, means]) => "`" + word + "` " + means).join(" · ") + ". See them move: [Sizes](/imagine/paging/sizes/).");
+		div.c("paging-cards", () => DEMOS.forEach(demo => this.gesture(demo)));
 
-		h2("How to explore this");
-
-		md("Three pages, in this order. Half an hour and you will have used every word in the vocabulary.");
-
-		ol.c("paging-steps", () => STEPS.forEach(([title, url, says]) => li(() => {
-			a.c("page-link", title).href(url);
-			p(says);
-		})));
-
-		h2("What is remembered — and how to put it all back");
-
-		md("Every chip you press anywhere in this realm is remembered **in your browser**, keyed on the page's own address — and a page you have changed says so, with an amber mark above its first line. That mark is the rule: **a demo never persists silently.** The one exception is [Make](/imagine/paging/make/), whose pages are the point rather than a demo, and which writes real files in dev.");
-
-		md("That is useful right up until you want the demos back the way they shipped. **Reset** forgets every one of those changes — the modes, the pages you made under [Make](/imagine/paging/make/), the right-nav variants — and nothing else on the site: they all live under one key prefix, `lew42:paging:` ([the contract](/imagine/paging/doc/persistence.md)).");
-
-		new Paging.Reset();
-
-		h2("Which of the site's own parts this realm uses");
-
-		md("The owner's ask was to build this out of what already exists rather than out of placeholder prose. Every row is a link — go and check.");
-
-		ui.table(["what", "where it shows up here"], BUILT.map(([name, url, where]) => [
-			() => a.c("page-link", name).href(url),
-			() => md(where).ac("paging-cell"),
-		]));
-
-		h2("Every page in this realm");
-
-		this.previews();
-
-		md("The long form is [Docs](/imagine/paging/doc/) — [the four mechanisms, with the numbers](/imagine/paging/doc/mechanisms/) · [what is remembered, and where it is kept](/imagine/paging/doc/persistence/) · [every decision, and what was rejected](/imagine/paging/doc/decisions/). The short version is the [readme](/imagine/paging/readme/).");
+		md("The six building blocks everything here is made of: "
+			+ BLOCKS.map(block => "[" + block.title + "](" + block.url + ")").join(" · ")
+			+ ". The long form is [Docs](/imagine/paging/doc/); the short version is the [readme](/imagine/paging/readme/).");
 	},
 
-	/* ONE TEACHING BLOCK — the word, the one sentence a reader should leave with,
-	   the live miniature, and the way to the real thing. Same shape four times, so
-	   the four mechanisms are obviously four answers to one question. */
-	teach(demo){
-		return div.c("paging-teach", () => {
-			h3.c("paging-teach-head", () => {
-				icon(MECHANISMS[demo.word].icon).ac("paging-sign");
+	/* One preset card: what it is, in a name a newcomer understands, and one line.
+	   The whole card is the link, and it lands on that preset and nothing else.
+	   ⚠ NOT `card()`. Core's `Page.nav()` reads `this.card` as the card CLASS for a
+	     preview, so a method of that name is handed to `.ac()` as a function and
+	     every preview on the site's own wall throws. The shadowing trap the code
+	     skill names, met for the third time in this realm. */
+	preset_card(preset){
+		return a.c("paging-card").href(preset_url(preset)).append(() => {
+			span.c("paging-card-head", () => {
+				icon(preset.icon);
+				span(preset.title);
+			});
+			span.c("paging-card-say", preset.one_line);
+		});
+	},
+
+	/* ── WHERE THE OLD PAGES WENT ─────────────────────────────────────────────
+	   Six directories were merged into the six blocks on 2026-09-05, and links to
+	   them exist in other realms, in the task logs, and in anything anyone saved. A
+	   url that used to work should say where it went rather than 404 — so `route()`
+	   answers each old name with one line and the way on. Core asks `route()` only
+	   for names `children:` does not have, so none of these can shadow a real page.
+	   Delete a row once nothing points at it any more. */
+	route(name){
+		const moved = MOVED[name];
+		if (!moved) return;
+
+		const [title, url, says] = moved;
+
+		return new Paging({
+			title: "Moved: " + name,
+			icon: "moving",
+			description: "This page is now " + title + ".",
+			content(){
+				this.lede("**This page moved.** It is now [" + title + "](" + url + ") — " + says);
+			},
+		});
+	},
+
+	// One gesture: the miniature does its thing right here, with nothing to read
+	// first, and the link under it goes to the page that does it at full size.
+	gesture(demo){
+		return div.c("paging-card", () => {
+			span.c("paging-card-head", () => {
+				icon(demo.icon);
 				span(demo.word);
 			});
 
-			p.c("paging-teach-say", demo.takeaway);
-
 			demo.draw();
 
-			/* ⚠ THE LINK SAYS WHAT ITS PAGE DOES. All four used to read "The real X, at
-			   full size", which is only true of `takeover` — the other three open as an
-			   ordinary column of the row. `demos.js` carries the sentence per
-			   mechanism now, and each one is the landing page's own first words. */
-			a.c("page-link paging-teach-more", demo.says).href(demo.real);
+			span.c("paging-card-say", demo.takeaway);
+
+			a.c("page-link", demo.says).href(demo.real);
 		});
 	},
 });

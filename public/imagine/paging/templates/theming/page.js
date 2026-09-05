@@ -1,6 +1,13 @@
 import { div, h2, h3, p, span, md } from "/app.js";
-import { Paging, STYLES } from "../../paging.js";
-import { TYPE } from "../templates.js";
+import { Paging } from "../../paging.js";
+import { SURFACES } from "../../blocks.js";
+
+// The five surface words, in the realm's one list. `blocks.js` holds them as
+// objects now; this wall only ever wanted the words.
+const STYLES = SURFACES.map(surface => surface.id);
+import { TYPE as TYPE_WORDS } from "../../blocks.js";
+
+const TYPE = TYPE_WORDS.map(step => step.id);
 import { family } from "../families.js";
 import { Post } from "/blog/Post.js";
 import { listed } from "/blog/posts.js";
@@ -76,7 +83,7 @@ export default new Paging({
 					span.c("templates-theming-token", SURFACE_TOKEN[style]);
 				});
 
-				TYPE.forEach(type => div.c("templates-cell paging-" + style + " templates-type-" + type, () => {
+				TYPE.forEach(type => div.c("templates-cell paging-surface-" + style + " templates-type-" + type, () => {
 					div.c("paging-box", () => { cell(); });
 				}));
 			});

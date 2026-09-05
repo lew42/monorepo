@@ -1,4 +1,5 @@
-import { Page, div, h2, h3, p, a, img, figure, figcaption, span, md } from "/app.js";
+import { div, h2, h3, p, a, img, figure, figcaption, span, md } from "/app.js";
+import { Paging } from "../paging.js";
 
 const here = new URL(".", import.meta.url).pathname;
 const shots = here + "shots/";
@@ -137,7 +138,7 @@ const card = r => div.c("flex gap").style({ alignItems: "flex-start", padding: "
 	});
 });
 
-export default new Page({
+export default new Paging({
 	meta: import.meta,
 	title: "Critique",
 	description: "Every /imagine/ realm, shot at 1280 and 3440 and ranked worst-first — column ratio, alignment and nesting against the viewport.",

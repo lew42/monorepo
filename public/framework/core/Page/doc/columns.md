@@ -56,6 +56,12 @@ from a 100% basis; `fill` *shrinks*, so every column left of it keeps its floor 
 hidden, and it has a 16em floor of its own. There is no `:has()` rule for `fill` and there must
 not be one — collapsing the ancestors is the whole of what makes `full` a different word.
 
+⚠ **`fill` yields to an open child** (2026-09-05): a `fill` page that is also `.active-ancestor`
+— a child column open beside it — falls back to the default flex share and the `large` ceiling
+(64em) instead of claiming the row alone, so the child gets a real width. Both research fronts
+(`imagine/research/`, `imagine/platform/research/`) are `width: "fill"` again for it. Numbers
+and the rule: `doc/decisions.md`.
+
 ⚠ **`fill` is for a page whose content is not prose.** It removes the ceiling, so at 3440 it hands
 one paragraph a 2410px line — the [`layout`](/framework/styles/rules/) rule "widening a column is
 never the fix for dead space" applies to it exactly. A grid, a table, a canvas, a preview wall:
@@ -131,10 +137,14 @@ pulled back onto the column it resizes, so the arithmetic below is still nothing
   cannot host an event; the body is a scroller, so an overlay inside it would scroll out of view.
   `column_grab()` puts the seam between the body and the child region, where the row sees it.
 - **Nothing to drag under 32em.** The row is already one column at a time down there.
-- **The `×` never collides**: it sits one `--page-column-pad-x` (14px) further in, and the seam is
-  the outer 6px. The seam *does* overlay the outer few px of a scrolling column's thin scrollbar —
-  the wheel is the other way to move a column. (No probe on this repo can see that: headless
-  Chromium has overlay scrollbars.)
+- **The `×` never collides**: it sits inset from the column's right edge and the seam is the outer
+  6px. The seam *does* overlay the outer few px of a scrolling column's thin scrollbar — the wheel
+  is the other way to move a column. (No probe on this repo can see that: headless Chromium has
+  overlay scrollbars.)
+- **The head's padding is `--page-column-pad-y`, not `--page-column-pad-x`** (2026-09-05): a hard
+  `0.55em` never grew with the row, so the `×`'s corner inset badly outgrew the title's — the head
+  now takes `pad-y` on both blocks and on the `×`'s (trailing) side, `pad-x` only on the title's
+  (leading) side, a square `pad-y` inset for the close button at every width. Measured: `doc/decisions.md`.
 
 ## `default` — the column a host arrives with
 

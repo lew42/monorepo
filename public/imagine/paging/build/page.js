@@ -54,7 +54,7 @@ export default new Paging({
 	description: "Seven controls, a live page, and the JSON it writes.",
 	icon: "construction",
 	width: "full",
-	axes: "",
+
 
 	takeaway: "**This is “new page” to a finished page, with nothing but controls.** Pick how its children appear, what it looks like, how it is laid out, then add blocks and pages to it — the middle column is the page assembling as you click, and the right column is the `page.json` that gets written. Save puts it on disk beside every other page you have made.",
 
@@ -148,7 +148,7 @@ export default new Paging({
 		     beats this sheet's `display: grid` at any specificity and the card came out
 		     as two 612px columns with the file column pushed off the bottom. The fix is
 		     to drop the utility, never to fight it (`css` skill; measured 2026-09-05). */
-		return div.c("build", () => div.c("build-card", () => {
+		return div.c("build wide", () => div.c("build-card", () => {
 			this.$controls = div.c("build-controls flex v gap", () => { this.controls(); });
 			this.$screen = div.c("build-centre", () => { this.screen(); });
 			this.$json = div.c("build-json flex v gap", () => { this.json_box(); });

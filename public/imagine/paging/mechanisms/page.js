@@ -1,47 +1,46 @@
-import { div, md } from "/app.js";
-import { Paging, MECHANISMS } from "../paging.js";
+import { div, h2, p, span, a, icon, md } from "/app.js";
+import { Paging } from "../paging.js";
+import { MECHANISMS } from "../words.js";
 
-/* Container: one column in /imagine/'s row. Size: `large` (28–64em). Own layout:
-   prose, then the stage (toolbar, one sample, four items). Regions: one, core's.
-   Preview: core's card.
+/* Container: the app's middle. Size: prose at the measure, the stage on `wide`.
+   Own layout: a sentence, one live page, a nav grid of four. Regions: one.
+   Preview: core's card, in the rail's Mechanisms section.
 
-   ONE PAGE, ONE CONTENT, FOUR ITEMS — and each item carries a DIFFERENT mechanism,
-   so the four are felt against the same words from the same place. Two of them
-   navigate (a column, then the whole row); two never leave this box. The style and
-   content chips are live; there is no mechanism chip here, because the mechanism
-   is what each ROW is. */
+   ONE PAGE, ONE SET OF CHILDREN, FOUR ANSWERS. Change the navigation dropdown on
+   the page below and the same four rows behave four different ways — which is the
+   whole idea, and it is one gesture rather than four pages of prose. */
+
+const FOUR = [
+	["swap", "Swap", "The box keeps its place and changes what it holds."],
+	["launch", "Launch", "A new column opens to the right; the page you clicked from stays."],
+	["expand", "Expand", "The row grows downward, in place. Nothing else moves."],
+	["takeover", "Takeover", "One child fills the screen; everything behind it becomes the trail."],
+];
 
 export default new Paging({
 	meta: import.meta,
 	title: "Mechanisms",
-	description: "The four things a click can do, all four on one page, against the same content.",
+	description: "The four things a click can do, against the same four children.",
 	icon: "alt_route",
-	width: "large",
-	axes: "style content",
 
-	takeaway: "**One page, one piece of content, and four rows — and each row does something different when you click it.** Two of the four change the url and take you somewhere (`launch` opens a column, `takeover` takes the whole row); two never leave this box and leave the address bar alone (`expand`, `swap`). Each row's icon is its promise.",
+	index: true,
+	depth: 1,
+
 	children: "launch expand swap takeover",
 
 	content(){
-		this.lede();
+		p.c("paging-lede", "Click the four page names on the page below. Then change the **navigation** dropdown and click them again — same children, different answer.");
 
-		md("Each row's icon is the promise it makes: " +
-			Object.entries(MECHANISMS).map(([word, m]) => "`" + word + "` " + m.does).join(" · ") + ".");
+		this.stage({ navigation: "tabs", content: "article", room: "wide", arrangement: "plain", surface: "card", background: "tint", type: "regular" });
 
-		this.paging();
+		h2("The four, each on its own page");
 
-		md("**Which ones change the url.** `launch` and `takeover` are core's columns vocabulary — a child column and `width: \"full\"` — so both are real navigation with a real address, a back button and a link you can send. `expand` and `swap` are states of the page you are already on: no url, no back button, and every one of them offers the column as the way out. The full argument, and what was rejected: [the four mechanisms](/imagine/paging/doc/mechanisms.md).");
+		div.c("paging-cards", () => FOUR.forEach(([name, title, says]) =>
+			a.c("paging-card").href(this.url + name + "/").append(() => {
+				span.c("paging-card-head", () => { icon(MECHANISMS[name].icon); span(title); });
+				span.c("paging-card-say", says);
+			})));
 
-		md("Each row also has a page of its own, at full size and with the site's own machinery — not a demo frame. [Launch](/imagine/paging/mechanisms/launch/) opens real columns three levels deep; [Expand](/imagine/paging/mechanisms/expand/) never routes; [Swap](/imagine/paging/mechanisms/swap/) puts four different swap visuals on one bounded stage; [Takeover](/imagine/paging/mechanisms/takeover/) fills the row. [Code](/imagine/paging/mechanisms/code/).");
-	},
-
-	/* THE SEAM. Core's `items()` gives every row the toolbar's mechanism; here the
-	   row's own NAME is its mechanism, which is what puts all four on one page. */
-	items(){
-		return div.c("paging-items", () => this.children.forEach((child, name) => {
-			if (!child || !MECHANISMS[name]) return;   // `code` arrives here once opened
-			this.item(name, name);
-			if (this.opened === name) this.panel(child);
-		}));
+		md("**Two of the four change the url.** `launch` and `takeover` are core's own columns vocabulary — a child column, and `width: \"full\"` — so both are real navigation with a real address and a real Back button. `expand` and `swap` are states of the page you are already on. The long form: [the four mechanisms](/imagine/paging/doc/mechanisms/) · [columns](/framework/core/Page/doc/columns/).");
 	},
 });

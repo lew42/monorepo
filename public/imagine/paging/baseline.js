@@ -8,11 +8,12 @@ View.stylesheet(import.meta, "baseline.css");
    back next week, and you are reading a page that quietly remembers you — with
    nothing on screen saying so, and no way back to what the page originally showed.
 
-   THE RULE (doc/persistence.md): demos never persist silently. Three states, and a
-   reader can always tell which one they are in:
+   THE RULE (doc/persistence.md, decision 4 of 2026-09-05): A DEMO NEVER PERSISTS AT
+   ALL. A refresh puts it back to the page it is, so a demo can never reach this mark.
+   Only an EDITOR saves, and it must be obvious that it does. Three states:
 
      BASELINE   nothing is saved — nothing is drawn, because the page IS the example
-     MODIFIED   an amber dot, one sentence, and a two-press Reset
+     MODIFIED   an amber dot and four words, with a two-press Reset beside them
      SAVED      a green dot naming the store — for a thing you kept ON PURPOSE
                 (a board, a run, a page you made), which is not a defect to undo
 
@@ -64,7 +65,12 @@ export function forget_all(){
 	return all.length;
 }
 
-const MODIFIED = "**Modified.** You changed something here and this browser remembered it — so this is no longer the example the page shipped with.";
+/* ⚠ ONE SHORT LINE, NOT AN ALERT. This used to be a two-sentence amber box on every
+     demo in the paging realm; the owner's report was that "the modified and reset ux
+     is too bulky, it's a massive alert box". Demos do not persist at all any more
+     (decision 4, 2026-09-05), so the only pages that can reach this state are the two
+     EDITORS — where a dot and four words are the whole of what a reader needs. */
+const MODIFIED = "**Changed here**, and remembered in this browser.";
 
 export class BaselineMark extends View {
 

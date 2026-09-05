@@ -165,6 +165,7 @@ export function takeover_demo(){
 export const DEMOS = [
 	{
 		word: "swap",
+		icon: "swap_horiz",
 		takeaway: "Click a tab and the panel's content changes. The box itself does not move — that is swap, and you already use it every day.",
 		draw: swap_demo,
 		real: "/imagine/paging/mechanisms/swap/",
@@ -172,6 +173,7 @@ export const DEMOS = [
 	},
 	{
 		word: "launch",
+		icon: "chevron_right",
 		takeaway: "Click a row and a new pane opens to the RIGHT. The page you clicked from stays exactly where it was.",
 		draw: launch_demo,
 		real: "/imagine/paging/mechanisms/launch/",
@@ -179,6 +181,7 @@ export const DEMOS = [
 	},
 	{
 		word: "expand",
+		icon: "expand_more",
 		takeaway: "Click a row and it grows downward, in place. Nothing opens anywhere else and everything below simply slides down.",
 		draw: expand_demo,
 		real: "/imagine/paging/mechanisms/expand/",
@@ -186,6 +189,7 @@ export const DEMOS = [
 	},
 	{
 		word: "takeover",
+		icon: "open_in_full",
 		takeaway: "Click the maximise icon and one pane fills the whole frame. The others are not closed — they become the crumb strip above it.",
 		draw: takeover_demo,
 		real: "/imagine/paging/mechanisms/takeover/",

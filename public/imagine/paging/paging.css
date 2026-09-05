@@ -619,3 +619,391 @@
 	   somewhere to put its Cancel. */
 	.paging-reset { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5em; }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   THE APP, AND THE STAGE  (2026-09-05 — the rebuild; doc/decisions.md)
+
+   Everything above this line is the older machinery the realm still uses in three
+   places: the two editors' chips (.paging-chip), the hub's four miniatures
+   (.paging-mini-*, .paging-tab*) and the swap page's four visuals
+   (.paging-swapper-*, .paging-face-*). Everything below is the app: a rail that
+   never moves, a middle that swaps, and one configurable stage.
+   ═══════════════════════════════════════════════════════════════════════════════ */
+@layer site {
+
+	/* ── THE APP ──────────────────────────────────────────────────────────────
+	   .page is a grid in @layer theme; this is @layer site, which is later, so the
+	   flex row wins without a specificity fight. height: 100% + align-self: stretch
+	   is the same pair .page.columns uses to own its own scrolling — the rail is
+	   full height and the middle is the only thing that scrolls. */
+	.paging-app {
+		display: flex; align-self: stretch;
+		height: 100%; min-height: 0;
+		padding: 0; max-width: none;
+		background: var(--wash);
+	}
+
+	/* ⚠ A FLOOR IN rem, A CEILING IN rem, and a viewport share in between: at 1280
+	     the rail is its 15rem floor, at 3440 it is 12vw ≈ 413px, which is two tiles
+	     of nav grid across. Wider than that and the tiles start to look like cards. */
+	.paging-app-rail {
+		flex: 0 0 clamp(15rem, 12vw, 26rem);
+		display: flex; flex-direction: column;
+		gap: 1.2em;
+		min-height: 0; overflow-y: auto;
+		padding: var(--pad, var(--pad-default));
+		background: var(--surface);
+		border-inline-end: 1px solid var(--line);
+	}
+
+	.paging-app-home, .paging-app-out {
+		display: flex; align-items: center; gap: 0.4em;
+		font-weight: 700; color: var(--ink); text-decoration: none;
+	}
+	.paging-app-home { font-size: 1.15em; }
+	.paging-app-out { font-size: 0.85em; color: var(--subtle); margin-block-start: auto; }
+	.paging-app-home:hover, .paging-app-out:hover { color: var(--prim-ink); }
+
+	/* THE MIDDLE. .pages already gives it flex, its own scrollbar and the measure
+	   token; this only has to keep it from inheriting a width it should not have. */
+	.paging-app-centre { min-width: 0; align-self: stretch; }
+
+	/* ⚠ THE HUB'S OWN CONTENT AND ITS CHILDREN SHARE ONE REGION. When a child page is
+	     on screen the hub's home has to stand down — the same question core's own
+	     arrangement contract asks of a .default page, asked here of a sibling that is
+	     not a .page at all. */
+	.paging-app-centre:has(> .page:is(.active-page, .active-ancestor)) > .paging-home { display: none; }
+
+	.paging-home {
+		flex: 1 1 auto; min-width: 0;
+		padding: var(--pad-y, clamp(1.5em, 4%, 3em)) clamp(2em, 4%, 5em);
+	}
+
+	/* ⚠ THE HUB'S HOME IS NOT A `.page`, so core's three-track grid does not reach it
+	     and prose here would run the whole 3000px of a 3440 middle. One rule gives it
+	     the same reading cap the grid's `main` track would have — and leaves the
+	     stage and the card walls to take the full width, which is the point of them. */
+	.paging-home > :is(p, h2, h3, ul, ol, .md, .paging-lede) { max-width: var(--measure, 40em); }
+
+	/* ── THE RAIL'S NAV GRIDS ─────────────────────────────────────────────────
+	   Sections of small tiles. auto-fill with a real --column, so a narrow rail is
+	   one tile across and a 3440 rail is two — never a stretched single column. */
+	.paging-sec { display: flex; flex-direction: column; gap: 0.35em; }
+
+	.paging-sec-head {
+		font-size: 0.72em; font-weight: 700; letter-spacing: 0.08em;
+		text-transform: uppercase; color: var(--subtle);
+	}
+	.paging-sec-note { font-size: 0.8em; color: var(--subtle); margin-block-end: 0.2em; }
+
+	.paging-grid {
+		--column: 8.5em;
+		display: grid; gap: 0.3em;
+		grid-template-columns: repeat(auto-fill, minmax(min(var(--column), 100%), 1fr));
+	}
+
+	.paging-tile {
+		display: flex; align-items: center; gap: 0.35em;
+		padding: 0.4em 0.55em;
+		font-size: 0.85em; line-height: 1.25;
+		color: var(--ink); text-decoration: none;
+		background: var(--fill-a04);
+		border: 1px solid transparent; border-radius: var(--radius);
+	}
+	.paging-tile-icon { font-size: 1.05em; color: var(--prim-ink); flex: none; }
+	.paging-tile-words { min-width: 0; }
+	.paging-tile:is(:hover, :focus-visible) { border-color: var(--prim); background: var(--fill-a08); }
+	.paging-tile.active { border-color: var(--prim); background: var(--fill-a16); font-weight: 600; }
+
+	/* ── THE FRAME AND ITS HOVER TOOLBAR ──────────────────────────────────────
+	   The toolbar is INSIDE the frame and absolutely placed over the stage's top
+	   edge, so "point at the stage" and "the toolbar appears" are one gesture. */
+	.paging-frame { position: relative; }
+
+	.paging-toolbar {
+		position: absolute; inset-block-start: 0; inset-inline: 0; z-index: 5;
+		display: flex; flex-direction: column; gap: 0.35em;
+		padding: 0.5em 0.7em;
+		background: var(--surface);
+		border: 1px solid var(--line); border-radius: var(--radius);
+		box-shadow: 0 6px 20px var(--shade-a16, rgba(0,0,0,0.16));
+		opacity: 0; pointer-events: none;
+		transition: opacity 120ms ease-out;
+	}
+	.paging-frame:is(:hover, :focus-within) .paging-toolbar { opacity: 1; pointer-events: auto; }
+
+	/* A full-screen stage covers the region, so its toolbar has to leave the frame
+	   and follow it — one rule rather than a second toolbar. */
+	.paging-frame:has(.paging-room-full) .paging-toolbar {
+		position: fixed; inset-block-start: 0.5em; inset-inline: 0.5em; z-index: 36;
+	}
+
+	@media (prefers-reduced-motion: reduce) { .paging-toolbar { transition-duration: 1ms; } }
+
+	.paging-toolbar-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3em 0.9em; }
+	.paging-pick, .paging-swatches { display: flex; align-items: center; gap: 0.3em; }
+
+	.paging-pick-label {
+		font-size: 0.68em; font-weight: 700; letter-spacing: 0.06em;
+		text-transform: uppercase; color: var(--subtle);
+	}
+	.paging-pick select { font-size: 0.85em; padding: 0.15em 0.4em; }
+
+	/* THE TWO COLOUR ROWS. A swatch IS its colour — the one control whose value you
+	   can see rather than read. */
+	.paging-swatch {
+		width: 1.35em; height: 1.35em;
+		border: 1px solid var(--line); border-radius: 50%;
+		cursor: pointer;
+	}
+	.paging-swatch:is(:hover, :focus-visible) { outline: 2px solid var(--prim); outline-offset: 1px; }
+	.paging-swatch.on { outline: 2px solid var(--prim); outline-offset: 2px; }
+
+	.paging-more {
+		display: inline-flex; align-items: center; gap: 0.25em;
+		margin-inline-start: auto;
+		padding: 0.15em 0.5em;
+		font-size: 0.8em; color: var(--prim-ink);
+		background: var(--fill-a08); border-radius: var(--radius);
+		cursor: pointer;
+	}
+	.paging-more:is(:hover, :focus-visible) { background: var(--fill-a16); }
+
+	/* ── THE FIVE SURFACE WORDS ───────────────────────────────────────────────
+	   ONE list, read by BOTH colour controls and by nothing else. dark declares
+	   color-scheme, which is what makes every token inside it flip with one line. */
+	.paging-surface-plain { background: transparent; }
+	.paging-surface-tint  { background: var(--tint); }
+	.paging-surface-prim  { background: color-mix(in srgb, var(--prim) 10%, var(--surface)); }
+	.paging-surface-card {
+		background: var(--surface);
+		border: 1px solid var(--line); border-radius: var(--radius);
+		box-shadow: 0 1px 3px var(--shade-a08, rgba(0,0,0,0.08));
+	}
+	.paging-surface-dark {
+		color-scheme: dark;
+		background: #17161a; color: #e8e8ea;
+		border-radius: var(--radius);
+	}
+
+	.paging-bg-plain { background: var(--wash); }
+	.paging-bg-tint  { background: var(--tint); }
+	.paging-bg-prim  { background: color-mix(in srgb, var(--prim) 10%, var(--surface)); }
+	.paging-bg-card  { background: var(--surface); border: 1px solid var(--line); }
+	.paging-bg-dark  { color-scheme: dark; background: #101014; color: #e8e8ea; }
+
+	/* ── THE STAGE ────────────────────────────────────────────────────────────
+	   A frame with padding, a body that is a row, and one caption underneath. */
+	.paging-stage {
+		display: flex; flex-direction: column;
+		gap: var(--gap, var(--gap-default));
+		padding: var(--pad, var(--pad-default));
+		border-radius: var(--radius);
+	}
+
+	.paging-stage-body { display: flex; align-items: stretch; gap: var(--gap, var(--gap-default)); min-width: 0; }
+	.paging-stage-mid  { display: flex; flex-direction: column; gap: 0.6em; flex: 1 1 auto; min-width: 0; }
+
+	/* THE BOX. The only thing the caption measures, and the only thing wearing the
+	   CONTENT colour — the first of the two independent colour controls. */
+	.paging-canvas {
+		display: flex; flex-direction: column; gap: 0.7em;
+		flex: 1 1 auto; min-width: 0;
+		padding: var(--pad, var(--pad-default));
+	}
+	.paging-canvas > :is(h2, h3, p) { margin-block: 0; }
+
+	/* ⚠ EVERY CHILD OF THE BOX STRETCHES. A child that declares `container-type:
+	     inline-size` may not be sized by its own contents in the inline axis, so one
+	     that ALSO carries `align-self: start` — `blog.css`'s `.blog-hero` does —
+	     collapses to 0px inside this flex column while holding a whole hero, and
+	     nothing throws (measured 2026-09-05, 1920 and 3440). This is the same trap
+	     `container-type` has sprung on this site twice before. */
+	.paging-canvas > * { align-self: stretch; }
+
+	/* ── ROOM — the one width word ────────────────────────────────────────────
+	   narrow and reading cap the stage; wide takes the whole .wide track it already
+	   sits in; full leaves the flow entirely.
+	   ⚠ full is fixed, not absolute: the middle is a scrolling region, so an
+	     absolutely-placed takeover would scroll away from the reader who opened it.
+	     z-index 35 sits over .demo.max (30) and under ext/drawer (40), so the drawer
+	     can still be opened on top of a full-screen stage. */
+	.paging-room-narrow  { max-width: 40em; }
+	.paging-room-reading { max-width: 64em; }
+	.paging-room-wide    { max-width: none; }
+	.paging-room-full {
+		position: fixed; inset: 0; z-index: 35;
+		max-width: none; overflow: auto;
+		padding: clamp(1em, 2vw, 3em);
+	}
+
+	.paging-exit {
+		display: inline-flex; align-items: center; gap: 0.3em; align-self: start;
+		padding: 0.2em 0.6em;
+		font-size: 0.85em; color: var(--prim-ink);
+		background: var(--fill-a08); border-radius: var(--radius);
+		cursor: pointer;
+	}
+	.paging-exit:is(:hover, :focus-visible) { background: var(--fill-a16); }
+
+	/* ── THE TYPE SCALE ───────────────────────────────────────────────────────
+	   One declaration each, on the stage — so a surface and a type scale compose
+	   without either knowing the other exists. */
+	.paging-type-compact { font-size: 0.9em; line-height: 1.4; }
+	.paging-type-regular { font-size: 1em; }
+	.paging-type-display { font-size: 1.15em; }
+	.paging-type-display :is(h1, h2) { letter-spacing: -0.02em; line-height: 1.05; }
+	.paging-type-display h2 { font-size: 2em; }
+
+	/* ── THE CHILD LIST, DRAWN FOUR WAYS ──────────────────────────────────────
+	   A tab strip whose selected tab JOINS its panel: the strip and the box share
+	   one surface with no line between them, which is what says "this is the thing
+	   that is about to change" before you click anything. */
+	.paging-strip { display: flex; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; gap: 0.15em; }
+
+	.paging-strip-tab {
+		flex: none; white-space: nowrap;
+		padding: 0.4em 0.9em;
+		font-size: 0.9em; font-weight: 600; color: var(--subtle);
+		border: 1px solid transparent; border-bottom: none;
+		border-radius: var(--radius) var(--radius) 0 0;
+		cursor: pointer;
+	}
+	.paging-strip-tab:is(:hover, :focus-visible) { color: var(--ink); }
+	.paging-strip-tab.on {
+		color: var(--ink);
+		background: var(--surface);
+		border-color: var(--line);
+		margin-block-end: -1px;
+	}
+
+	/* A RAIL OF PAGES, either side of the box. em, so it tracks the type scale the
+	   stage is set in — a compact dashboard gets a compact rail. */
+	.paging-rail {
+		flex: 0 0 clamp(7em, 22%, 13em);
+		display: flex; flex-direction: column; gap: 0.25em;
+		min-width: 0;
+	}
+	.paging-rail-right { order: 2; }
+
+	.paging-row {
+		display: flex; align-items: center; gap: 0.4em;
+		padding: 0.35em 0.55em;
+		font-size: 0.9em; color: var(--ink);
+		background: var(--fill-a04);
+		border: 1px solid transparent; border-radius: var(--radius);
+		cursor: pointer;
+	}
+	.paging-row-words { flex: 1 1 auto; min-width: 0; }
+	.paging-row-glyph { font-size: 1em; }
+	.paging-row:is(:hover, :focus-visible) { border-color: var(--prim); }
+	.paging-row.on { border-color: var(--prim); background: var(--fill-a16); font-weight: 600; }
+
+	/* columns — the pane a click opens to the RIGHT, inside the stage. The box beside
+	   it shrinks, and the caption says by how many pixels. */
+	.paging-pane {
+		flex: 0 0 clamp(10em, 38%, 22em);
+		display: flex; flex-direction: column; gap: 0.5em; align-items: start;
+		padding: var(--pad, var(--pad-default));
+		background: var(--surface);
+		border: 1px solid var(--prim); border-radius: var(--radius);
+	}
+	.paging-stage-mid:has(> .paging-pane) { flex-direction: row; align-items: stretch; }
+
+	/* takeover — the trail is what everything behind it collapsed into. */
+	.paging-trail { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3em; font-size: 0.85em; }
+	.paging-crumb { color: var(--prim-ink); cursor: pointer; }
+	.paging-crumb.on { color: var(--subtle); cursor: default; }
+
+	.paging-eyebrow {
+		font-size: 0.68em; font-weight: 700; letter-spacing: 0.06em;
+		text-transform: uppercase; color: var(--subtle);
+	}
+
+	/* ── THE CHROME THE ARRANGEMENT WORD ADDS ─────────────────────────────────── */
+	.paging-bar {
+		display: flex; flex-wrap: wrap; align-items: center; gap: 0.4em;
+		padding: 0.4em 0.6em;
+		background: var(--surface);
+		border: 1px solid var(--line); border-radius: var(--radius);
+	}
+	.paging-bar-btn { padding: 0.15em 0.6em; font-size: 0.85em; background: var(--fill-a08); border-radius: var(--radius); }
+	.paging-bar-gap { flex: 1 1 auto; }
+	.paging-bar-note { font-size: 0.7em; letter-spacing: 0.06em; text-transform: uppercase; color: var(--subtle); }
+
+	.paging-aside {
+		flex: 0 0 clamp(8em, 26%, 16em);
+		display: flex; flex-direction: column; gap: 0.3em;
+		min-width: 0;
+	}
+	.paging-aside-row { font-size: 0.85em; color: var(--subtle); }
+
+	/* wall — no chrome, and the content spreads into as many tracks as fit. */
+	.paging-arr-wall .paging-canvas > .page-previews { --column: 13em; }
+
+	/* ── WHAT JUST CHANGED ────────────────────────────────────────────────────
+	   A report, never a conclusion: the words that changed, then the pixels the box
+	   moved by. "Nothing on this page navigates" and "Same box" were deleted for
+	   being things you only understand after you have already seen it work. */
+	.paging-cap { font-size: 0.85em; color: var(--subtle); }
+	.paging-cap p { margin: 0; }
+	.paging-cap-what { font-weight: 700; color: var(--prim-ink); }
+
+	/* ── A PAGE INSIDE A PAGE ─────────────────────────────────────────────────── */
+	.paging-nest {
+		display: flex; flex-direction: column; gap: 0.3em;
+		padding: 0.5em;
+		border: 1px dashed var(--prim);
+		border-radius: var(--radius);
+	}
+
+	/* ── A WALL OF CARDS ──────────────────────────────────────────────────────
+	   ⚠ THE WALL TAKES THE `wide` TRACK, always. Core's page grid puts an undeclared
+	     child in `main`, which is capped at the 40em reading measure — a twelve-card
+	     wall in it wasted 29% of a 3440 screen (measured 2026-09-05). One rule here
+	     rather than `.ac("wide")` on six call sites, because a card wall never wants
+	     the reading cap. */
+	.page > .paging-cards { grid-column: wide; }
+
+	/* ⚠ BOTH ENDS BOUNDED. `auto-fill` leaves empty tracks a four-card wall never
+	     fills — 1816px of them at 3440 — and a bare `1fr` ceiling makes four cards
+	     713px wide instead. `auto-fit` collapses the empty tracks and the 24em
+	     ceiling keeps a card a card. */
+	.paging-cards {
+		--column: 15em;
+		display: grid; gap: var(--gap, var(--gap-default));
+		grid-template-columns: repeat(auto-fit, minmax(min(var(--column), 100%), 24em));
+	}
+	.paging-card {
+		display: flex; flex-direction: column; gap: 0.3em;
+		padding: 0.8em;
+		color: var(--ink); text-decoration: none;
+		background: var(--surface);
+		border: 1px solid var(--line); border-radius: var(--radius);
+	}
+	.paging-card:is(:hover, :focus-visible) { border-color: var(--prim); }
+	.paging-card-head { display: flex; align-items: center; gap: 0.35em; font-weight: 700; }
+	.paging-card-say { font-size: 0.85em; color: var(--subtle); }
+
+	/* ── THE DRAWER'S OWN ROWS ────────────────────────────────────────────────── */
+	.paging-drawer-row { display: flex; flex-direction: column; gap: 0.25em; margin-block-end: 0.9em; }
+	.paging-drawer-values { display: flex; flex-wrap: wrap; gap: 0.25em; }
+	.paging-means { margin: 0; font-size: 0.85em; }
+	.paging-said { display: flex; align-items: center; gap: 0.4em; margin-block: 0.4em; }
+	.paging-said-ok { color: var(--prim); }
+
+	/* ── NARROW: the rail becomes a strip across the top ──────────────────────
+	   Below this the middle has no room for a reading measure beside a rail, so the
+	   rail lies down and the middle keeps its width — the same answer core/Sidebar
+	   gives at its own breakpoint. */
+	@media (max-width: 56rem) {
+		.paging-app { flex-direction: column; }
+		.paging-app-rail {
+			flex: none; max-height: 40vh;
+			border-inline-end: none; border-block-end: 1px solid var(--line);
+		}
+		.paging-app-out { margin-block-start: 0; }
+		.paging-stage-body { flex-wrap: wrap; }
+		.paging-rail, .paging-aside, .paging-pane { flex-basis: 100%; }
+	}
+}
