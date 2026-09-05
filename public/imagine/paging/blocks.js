@@ -46,6 +46,13 @@ export const NAVIGATION = [
 
 export const nav_of = id => NAVIGATION.find(nav => nav.id === id) ?? NAVIGATION[0];
 
+/* THE TWO WORDS FOR THE SPLIT ABOVE, spelled once. `stage.js` re-typed the stable
+   words as a hand-written array and `navigation/findings.js` named them a third time
+   (paging-audit-4b, fix 5) — three lists, one idea. Everything reads the flag. */
+export const STABLE = "stable", DYNAMIC = "dynamic";
+
+export const kind_of = id => (nav_of(id).stable ? STABLE : DYNAMIC);
+
 /* ── 3 · CONTENT — what is in the box ─────────────────────────────────────────
    Eight kinds, and every one of them is REAL: the renderer is a module this site
    already ships (`content.js` says which). Content is not a size — the old `xs`–`xl`
@@ -188,18 +195,36 @@ export const DEFAULT = {
 	type: "regular",
 };
 
-/* The five controls the hover toolbar shows, in the order they matter. `values` is
-   the list; `label` is what the reader is choosing. One table, so the toolbar, the
-   drawer form and the JSON can never offer different words. */
+/* ── THE SEVEN CONTROLS, AND THE FOUR NAMES EACH ONE USED TO HAVE ─────────────
+
+   One row per control, and four fields that used to disagree:
+
+       axis    the key inside a page's `mode` — what the file on disk says
+       block   which of the six building blocks it belongs to, so the BAR is
+               labelled with the same six words the RAIL is
+       label   what the reader is choosing, in the reader's words
+       key     what the address bar says — THE SAME WORDS AS THE LABEL
+
+   ⚠ THE LABEL AND THE URL KEY ARE ONE WORD NOW. The rail said six blocks, the bar
+     said seven labels, and the address said `surface` / `background` / `type` where
+     the controls said *content colour* / *page colour* / *type size* — three sets of
+     names for one thing, and the newcomer's whole reason for scoring `simple` a 4
+     (paging-audit-4). The bar groups the three skin controls under SKIN, and the
+     address says `?content-colour=tint`. The old keys are still READ, so every link
+     anybody saved keeps working (`url.js`).                                       */
 export const CONTROLS = [
-	{ axis: "navigation",  label: "navigation",  values: NAVIGATION },
-	{ axis: "arrangement", label: "arrangement", values: ARRANGEMENT },
-	{ axis: "content",     label: "content",     values: CONTENT },
-	{ axis: "room",        label: "room",        values: ROOM },
-	{ axis: "surface",     label: "content colour", values: SURFACES },
-	{ axis: "background",  label: "page colour",    values: SURFACES },
-	{ axis: "type",        label: "type size",      values: TYPE },
+	{ axis: "navigation",  block: "navigation",  key: "navigation",      label: "navigation",     values: NAVIGATION },
+	{ axis: "content",     block: "content",     key: "content",         label: "content",        values: CONTENT },
+	{ axis: "room",        block: "room",        key: "room",            label: "room",           values: ROOM },
+	{ axis: "arrangement", block: "arrangement", key: "arrangement",     label: "arrangement",    values: ARRANGEMENT },
+	{ axis: "surface",     block: "skin",        key: "content-colour",  label: "content colour", values: SURFACES },
+	{ axis: "background",  block: "skin",        key: "page-colour",     label: "page colour",    values: SURFACES },
+	{ axis: "type",        block: "skin",        key: "type-size",       label: "type size",      values: TYPE },
 ];
+
+// The controls one building block owns — one for five of them, three for Skin, none
+// for Stage (it is the box the other words act on). The bar is built from this.
+export const controls_of = block => CONTROLS.filter(control => control.block === block);
 
 export const values_for = axis => CONTROLS.find(control => control.axis === axis)?.values ?? [];
 

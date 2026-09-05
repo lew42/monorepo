@@ -1,5 +1,5 @@
 import { View, div, span, select, option, icon } from "/app.js";
-import { CONTROLS, SURFACES } from "./blocks.js";
+import { BLOCKS, SURFACES, controls_of } from "./blocks.js";
 import { PRESETS, preset_of, preset_url } from "./presets.js";
 import { fill_drawer } from "./config.js";
 
@@ -70,7 +70,13 @@ export class PagingToolbar extends View {
 
 		div.c("paging-toolbar-row", () => {
 			this.shape();
-			CONTROLS.forEach(control => this.group(control));
+
+			/* ⚠ ONE GROUP PER BUILDING BLOCK, not one per word. The rail says six
+			     blocks; the bar used to say seven labels, three of which were Skin —
+			     so a newcomer counted three sets of names for one realm
+			     (paging-audit-4). Now the bar's labels ARE the rail's, in the rail's
+			     order, and SKIN holds its three controls under one heading. */
+			BLOCKS.forEach(block => this.block_group(block));
 
 			div.c("paging-group paging-toolbar-outs", () => {
 				this.code();
@@ -121,10 +127,29 @@ export class PagingToolbar extends View {
 		return this;
 	}
 
+	/* ── ONE BUILDING BLOCK'S CONTROLS ────────────────────────────────────────
+	   Five of the six blocks own exactly one word, so the block's name and the
+	   control's label are the same thing and there is one dropdown under it. SKIN
+	   owns three — the content's colour, the page's colour and the type size — so its
+	   heading is SKIN and each dropdown keeps its own small caption underneath it.
+	   STAGE owns none: it is the box the other five words act on, so it has nothing
+	   in the bar and its own page says so. */
+	block_group(block){
+		const controls = controls_of(block.id);
+		if (!controls.length) return null;
+
+		if (controls.length === 1) return this.group(controls[0], controls[0].label);
+
+		return div.c("paging-group paging-group-many").append(() => {
+			span.c("paging-pick-label", block.title);
+			div.c("paging-group-row", () => controls.forEach(control => this.group(control, control.label, true)));
+		});
+	}
+
 	// ── one labelled dropdown ────────────────────────────────────────────────
-	group({ axis, label, values }){
-		return div.c("paging-group").append(() => {
-			span.c("paging-pick-label", label);
+	group({ axis, label, values }, heading, small){
+		return div.c("paging-group").ac(small && "paging-group-small").append(() => {
+			span.c("paging-pick-label", heading);
 
 			div.c("paging-pick", () => {
 				if (COLOURS.includes(axis)) this.dots.set(axis, span.c("paging-dot"));

@@ -4,9 +4,11 @@ Open [/imagine/paging/](/imagine/paging/). A real page is on the stage; the bar 
 has every word that page is made of, one labelled dropdown each. Change one and the page
 changes. Pick another shape from the rail. That is the whole thing.
 
-**The configuration is in the address.** Every word you change writes itself into the url
-(`?navigation=rail&content=dashboard`), so the page you are looking at is always the page
-the url names — copy it, send it, open it cold and you get the same page. `url.js`.
+**The configuration is in the address, in the words the bar shows you.** Every change writes
+itself into the url (`?navigation=rail&page-colour=tint`), so the page you are looking at is
+always the page the url names — copy it, send it, open it cold and you get the same page. The
+key is the label a reader sees; the old `surface`/`background`/`type` keys are still read, so
+saved links keep working. `url.js`.
 
 **One vocabulary, one file format.** The seven words are the same seven everywhere: the bar
 over a stage, the drawer, the url, and both editors write them into one `mode` object in one
@@ -45,17 +47,20 @@ export default new Paging({
 
 - `stage()` draws the page, the bar above it and the way into the drawer. Every configured
   page in the realm is this one call — the [library](/imagine/paging/library/)'s twelve
-  presets, the block pages, the nine cells of [Cross](/imagine/paging/cross/) and the pages
-  you [make](/imagine/paging/make/). ([Build](/imagine/paging/build/) still draws its own and
-  [should not](/imagine/paging/doc/builder/).)
+  presets, the block pages, every cell of [Cross](/imagine/paging/cross/), the pages you
+  [make](/imagine/paging/make/), and the middle column of [Build](/imagine/paging/build/).
+- **Two seams for what a word cannot say**: `draw` puts your own thing IN the box (a template
+  family, a built page's blocks); `draw_child` draws a child's panel. `pages:` is which children
+  the navigation word draws — hand it your own or it draws four samples.
 - The vocabulary is [`blocks.js`](./blocks.js) and it imports nothing, so a page, a rail
   tile, a chip, a url and a doc all read the same lists.
 - **Two colour controls, independent**: `surface` paints the content box, `background`
   paints the page behind it. Each is a dropdown with a dot beside it in the colour it
   is currently on — the one control whose value is a thing rather than a word.
 - The drawer (**More**) holds the link to this exact page, the full form with a sentence
-  per value, the JSON, **the `page.js` this would be**, **nest** (any preset inside this
-  one) and **make this a page**, which writes a real `page.json` to disk in dev.
+  per value, the JSON, **the `page.js` this would be**, **nest** — any of the twelve presets
+  *or any url*, including a page you made — and **make this a page**, which takes a name you
+  type and writes a real `page.json` to disk in dev.
 
 ## Watch out
 
@@ -80,12 +85,16 @@ export default new Paging({
   edge until 2026-09-05, revealed on hover — so pointing at the front page's tab strip
   made the bar appear on top of it and the tab could not be clicked at all, at any width.
   It is a sibling above the stage now and it reserves its height.
-- **Seven dropdowns, and no width written anywhere** — eight on a [library](/imagine/paging/library/)
-  page, where the extra one is *page shape* and names the ready-made page you are on. Chip groups for 40 values sprawled
-  four rows deep; dropdowns fit one row at 3440 and two at 1280. A `<select>` in a flex
-  row shrinks below its content, which is why the bar's old selects clipped their own
-  values — `flex: none` on the control, and no `padding` shorthand (it takes away the
-  reserve the browser draws the arrow in).
+- **The bar is labelled with the SIX BLOCKS, in the rail's order** — five of them own one
+  word each and SKIN holds its three under one heading, so the rail, the bar and the address
+  say the same words. (A [library](/imagine/paging/library/) page gets one more, *page shape*,
+  naming the ready-made page you are on.) No width is written anywhere: a `<select>` in a flex
+  row shrinks below its content, which is why the bar's old selects clipped their own values —
+  `flex: none` on the control, and no `padding` shorthand (it takes away the reserve the
+  browser draws the arrow in).
+- **A `<pre>` inside a flex column collapses to nothing.** `.drawer-body` is `flex v` and a
+  `<pre>` scrolls, so its automatic minimum height is 0 — the drawer's `page.js` box was 22px
+  tall holding nineteen lines. `flex: none` on the wrapper, and let the box scroll itself.
 - **A stable navigation word reserves the box's height** (`.paging-nav-reserve`), so the
   caption under the stage can say "the box did not move" and be right. `columns` and
   `takeover` are the dynamic words and report the pixels they really moved ·
@@ -110,8 +119,8 @@ export default new Paging({
   [the four mechanisms](/imagine/paging/doc/mechanisms/) ·
   [persistence](/imagine/paging/doc/persistence/) ·
   [templates](/imagine/paging/doc/templates/) · [builder](/imagine/paging/doc/builder/)
-- Files that matter: `blocks.js` (the vocabulary) · `stage.js` (the one renderer **for a
-  configured page** — the builder draws its own, [and should not](/imagine/paging/doc/builder/)) ·
+- Files that matter: `blocks.js` (the vocabulary) · `stage.js` (**the one renderer**, the
+  builder's middle column included since 2026-09-05 — [how](/imagine/paging/doc/builder/)) ·
   `presets.js` (the twelve) · `paging.js` (the app, and the base class) ·
   `rail.js` (the nav grids) · `toolbar.js` (the bar of chips) · `url.js` (the address) ·
   `config.js` (the drawer)
@@ -119,7 +128,8 @@ export default new Paging({
   [/imagine/shells/](/imagine/shells/) owns app chrome; [/imagine/sections/](/imagine/sections/)
   owns the full-width bands; [templates](/imagine/paging/templates/) is the eleven shapes the
   rest of the site already ships.
-- [Cross](/imagine/paging/cross/) — two words at once, nine live pages; the other
-  crossing is [the theming wall](/imagine/paging/templates/theming/).
+- [Cross](/imagine/paging/cross/) — **pick any two of the seven words** and every pair of
+  values is a live page; the other crossing is
+  [the theming wall](/imagine/paging/templates/theming/).
 - Two readings, linked from [Docs](/imagine/paging/doc/) and nowhere else:
   [critique](/imagine/paging/critique/) · [inventory](/imagine/paging/inventory/).

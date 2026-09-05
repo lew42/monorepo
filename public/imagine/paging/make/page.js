@@ -5,6 +5,11 @@ import { CONTROLS, title_of, mode_for } from "../blocks.js";
 import { baseline } from "../baseline.js";
 import { store_for, FileStore, LocalStore, at, walk, name_for, clone, SEED, DEFAULTS, DIR } from "./made.js";
 import { config_of, kids_of, row_acts } from "./tabs.js";
+/* ⚠ THE BUILDER'S RENDERER, ON A MADE PAGE. Build's blocks are saved inside `mode`
+     and were drawn by nothing outside `build/`; this is the one call that puts them
+     on the page they belong to (`../doc/builder.md`). */
+import { blocks_of } from "../build/words.js";
+import { draw_blocks } from "../build/draw.js";
 
 /* THE FOUR WORDS A ROW CYCLES, and they are four of the realm's own seven
    (`../blocks.js`) — the same keys the drawer writes, so a chip here and a chip in
@@ -56,12 +61,28 @@ const control_of = axis => CONTROLS.find(control => control.axis === axis);
 // The next word in a list, wrapping — what a click on a word chip does.
 const next = (list, word) => list[(list.indexOf(word) + 1) % list.length];
 
+/* A PAGE'S OWN CHILDREN, in the shape the stage draws a child in: a title, an icon,
+   a line, and the child's REAL url so the panel can link to it.
+
+   ⚠ THIS IS WHAT THE STAGE WAS MISSING. `this.stage(config)` alone let the stage
+     fall back to `content.js`'s four canned samples, so a page you made whose
+     navigation word was `tabs` drew a strip reading Overview · Pricing · Docs ·
+     Contact and carried no link to either of its own two children (paging-audit-4b).
+     The word says how the children are drawn; they had better be its children. */
+const pages_of = (node, page) => (node.children ?? []).map(kid => ({
+	title: kid.title,
+	icon: kid.icon ?? "description",
+	text: kid.description || "A page you made. Open it on its own and it gets the whole middle, with its own bar over it.",
+	url: page?.children?.get(kid.name)?.url,
+}));
+
 /* JSON → REAL PAGES. Each node becomes a `Paging` wearing its seven words, and its
    own children are built the same way. `Page.add()` (called by `regrow()` below)
    hands each one a real url derived from this page's. */
 function grow(nodes){
 	return nodes.map(node => {
 		const config = config_of(node);
+		const blocks = blocks_of(node);
 
 		return new Paging({
 			name: node.name,
@@ -73,7 +94,16 @@ function grow(nodes){
 			content(){
 				this.lede("A real page, at a real url, drawn from one small JSON file. Change a word in the bar and it changes.");
 
-				this.stage(config);
+				/* THE STAGE DRAWS THIS PAGE: its own children by its own navigation word,
+				   and its own blocks in the box. `draw` is the stage's seam for "put my
+				   thing in the box" — the same one the templates realm uses — so a block
+				   you added in Build appears on the page Build saved. When there are no
+				   blocks the `content` word draws its sample instead, which is what every
+				   demo in the realm shows. `../doc/builder.md` records the decision. */
+				this.stage(config, {
+					pages: node.children?.length ? pages_of(node, this) : undefined,
+					draw: blocks.length ? () => draw_blocks(node, this) : undefined,
+				});
 
 				md("This page is `" + JSON.stringify({ title: node.title, mode: config }) + "` — nothing else. [Back to the list](/imagine/paging/make/).");
 			},

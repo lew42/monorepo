@@ -342,7 +342,13 @@
 	   ⚠ `flex: none` on the word chips and the acts: a flex row under its content
 	     width shrinks each item to min-content FIRST, so a two-word title would go
 	     three lines tall before the row ever wrapped. */
-	.paging-make-list { display: flex; flex-direction: column; gap: 0.35em; }
+	/* ⚠ THE LIST IS CAPPED, AND THE TITLE DOES NOT GROW. At 3440 the row was 2847px
+	     wide with the title box taking 2299px of it, so a page's name sat 2,300px from
+	     the four words describing it — one row nobody can read in one look
+	     (paging-audit-4). The cap is Make's own declared size (`large`, 28–64em), and
+	     `flex: 0 1 auto` puts the words right beside the name they belong to; the acts
+	     keep their `margin-inline-start: auto` and stay against the far edge. */
+	.paging-make-list { display: flex; flex-direction: column; gap: 0.35em; max-inline-size: 64rem; }
 
 	.paging-make-row {
 		display: flex; flex-wrap: wrap; align-items: center; gap: 0.4em;
@@ -351,7 +357,7 @@
 		border: 1px solid var(--line);
 		border-radius: var(--radius);
 	}
-	.paging-make-title { flex: 1 1 8em; min-width: 0; font-weight: 600; text-decoration: none; color: var(--ink); }
+	.paging-make-title { flex: 0 1 auto; min-width: 0; font-weight: 600; text-decoration: none; color: var(--ink); }
 	.paging-make-title:is(:hover, :focus-visible) { color: var(--prim-ink); }
 
 	.paging-make-word { flex: none; white-space: nowrap; font-size: 0.8em; cursor: pointer; }
@@ -550,10 +556,20 @@
 	     this row is a flex ITEM and shrink-wraps to its content. Without a width it
 	     sits at the bar's start edge and `justify-content: center` has nothing to
 	     distribute: the controls read as left-aligned in a 2847px bar at 3440. */
+	/* ⚠ IT STARTS AT THE LEFT EDGE, AT EVERY WIDTH. Centred, the bar read left-aligned
+	     at 1280 (where it wraps and fills the row) and centred at 3440 with 760px of
+	     white each side — one control in two places depending on the screen
+	     (paging-audit-4, item 9). Chrome starts where the reading starts. */
 	.paging-toolbar-row {
-		display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-end;
+		display: flex; flex-wrap: wrap; justify-content: flex-start; align-items: flex-end;
 		width: 100%; gap: 0.4em 1.1em;
 	}
+
+	/* SKIN — the one block with three words. Its heading sits over the three, each of
+	   which keeps its own caption, so the bar's labels are the rail's six names. */
+	.paging-toolbar .paging-group-many { gap: 0.15em; }
+	.paging-group-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.4em 0.7em; }
+	.paging-group-small .paging-pick-label { font-size: 0.62em; font-weight: 600; }
 
 	/* ONE LABELLED DROPDOWN — the label above it, which is what makes seven of them
 	   fit one row (beside, they are ~1190px against a 1040px middle at 1280).
@@ -848,6 +864,12 @@
 		border-radius: var(--radius);
 	}
 
+	/* A nested page that came from a url rather than from the twelve: its own name,
+	   and the box that holds the "reading it…" line until the file arrives. */
+	.paging-nest-name { font-weight: 700; font-size: 0.85em; color: var(--prim-ink); }
+	.paging-nest-fetch { display: flex; flex-direction: column; gap: 0.3em; }
+	.paging-nest-fetch p { margin: 0; font-size: 0.85em; }
+
 	/* ── A WALL OF CARDS ──────────────────────────────────────────────────────
 	   ⚠ THE WALL TAKES THE `wide` TRACK, always. Core's page grid puts an undeclared
 	     child in `main`, which is capped at the 40em reading measure — a twelve-card
@@ -905,15 +927,30 @@
 	.paging-shot:is(:hover, :focus-visible) .paging-shot-head { color: var(--prim-ink); }
 
 	/* ── THE CROSSING: TWO WORDS AT ONCE ──────────────────────────────────────
-	   `cross/page.js`. Navigation across, arrangement down, nine live pages in the
-	   cells — so "which arrangement" is something you look at rather than something
-	   you remember. The first track is the row label and hugs it. */
+	   `cross/page.js`. One word across, another down, a live page in every cell — so
+	   "which arrangement" is something you look at rather than something you remember.
+	   The first track is the row label and hugs it.
+
+	   ⚠ THE TRACK COUNT IS THE PAGE'S, NOT THIS SHEET'S. It was `repeat(3, …)` while
+	     the wall was a hard-coded three-by-three; the two dropdowns can now put three
+	     to eight columns across, so the number arrives as `--paging-cross-n` from the
+	     one place that knows it. */
+	/* ⚠ AND EVERY CELL HAS A FLOOR. A cell is a whole page; below about 13rem its
+	     prose sets one letter per line. Six navigation words across a 1024px middle
+	     is 130px a cell, so the wall SCROLLS ITSELF rather than squeezing — the
+	     site's rule for wide content, and the page body never scrolls sideways. At
+	     3440 the six get ~460px each and there is nothing to scroll. */
+	.paging-cross-wall { overflow-x: auto; }
+
 	.paging-cross {
 		display: grid;
-		grid-template-columns: auto repeat(3, minmax(0, 1fr));
+		grid-template-columns: auto repeat(var(--paging-cross-n, 3), minmax(13rem, 1fr));
 		gap: var(--gap, var(--gap-default));
 		align-items: center;
 	}
+
+	/* The two dropdowns that choose the pair, in the bar's own labelled shape. */
+	.paging-cross-picks { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.4em 1.1em; margin-block-end: 0.8em; }
 	.paging-cross-head, .paging-cross-side {
 		font-size: 0.72em; font-weight: 700; letter-spacing: 0.08em;
 		text-transform: uppercase; color: var(--subtle);
@@ -933,6 +970,25 @@
 	.paging-means { margin: 0; font-size: 0.85em; }
 	.paging-said { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4em; margin-block: 0.4em; }
 	.paging-said-ok { display: inline-flex; align-items: center; gap: 0.2em; color: var(--prim); font-size: 0.85em; }
+
+	/* ── A CODE BOX IN THE DRAWER ─────────────────────────────────────────────
+	   ⚠ THE BOX HAS TO SAY `flex: none`, or it shows one line of nineteen. The rail's
+	     body is `.drawer-body flex v` with `overflow: auto`, so everything in it is a
+	     flex ITEM — and a `<pre>` scrolls (framework.css gives it `overflow-x: auto`),
+	     which makes its automatic minimum height 0. A flex item that may shrink to 0
+	     does: the `page.js` box came out 22px tall holding 352px and nineteen lines,
+	     under a button whose tooltip promises the code (paging-audit-4).
+	     So the wrapper refuses to shrink and the <pre> inside it scrolls ITSELF —
+	     a tall box in a rail you can already scroll is not a problem; a 22px one is. */
+	.paging-code-box { flex: none; }
+
+	.paging-code-box > pre {
+		margin: 0;
+		/* Tall enough for the whole `page.js` at 3440 and most of it at 1280; past
+		   that the box scrolls rather than pushing the button below it off screen. */
+		max-block-size: 26em;
+		overflow: auto;
+	}
 
 	/* THE ADDRESS OF THIS EXACT PAGE. `readonly`, never `disabled` — a disabled input
 	   cannot be selected, and select-then-ctrl-C is the fallback wherever

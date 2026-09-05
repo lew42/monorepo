@@ -38,10 +38,23 @@ class Block extends Paging {
 		this.stage({ ...DEFAULT, ...this.config });
 
 		if (this.axes) this.groups();
-		else {
-			h2(this.axis ? "The " + values_for(this.axis).length + " values, each at its own url" : "Where it shows up");
-			if (this.axis) this.values(this.axis);
-			else this.elsewhere();
+		else if (this.axis){
+			h2("The " + values_for(this.axis).length + " values, each at its own url");
+			this.values(this.axis);
+		} else {
+			/* ⚠ THE ONE BLOCK WITH NOTHING IN THE BAR, said out loud — and only on the
+			     BLOCK's own page, never on a value's (`/room/wide/` reaches this branch
+			     too, and its `name` is not one of the six). Five of the six name a
+			     dropdown over every page in the realm and this one names none, which
+			     reads as an omission until somebody says it is the point
+			     (paging-audit-4: "one line on Stage saying it has no control"). */
+			if (BLOCKS.some(block => block.id === this.name)){
+				h2("Why this block has no control");
+				md("**The bar over the page above has no `stage` dropdown, and it never will.** The stage IS that box — the thing the other five words act on. Change any of them and you have changed the stage; that is the whole idea the word names, and the line under the box measures it in pixels after every click.");
+			}
+
+			h2("Where it shows up");
+			this.elsewhere();
 		}
 
 		md("The other blocks: " + BLOCKS.filter(block => block.id !== this.name)

@@ -952,12 +952,92 @@ A two-stage side-by-side page was proposed and is not being built.
 [`cross/`](/imagine/paging/cross/) is the better version of the same ask — nine live pages, not
 two — and every cell is now a link. Recorded in [`builder.md`](./builder.md).
 
+## One name per thing: the rail, the bar and the address say the same words (2026-09-05)
+
+The rail said **six blocks**, the bar said **seven labels** (three of them Skin, none of them
+Stage), and the address said `surface` / `background` / `type` where the controls said *content
+colour* / *page colour* / *type size*. Three sets of names for one realm, and the newcomer's
+stated reason for scoring `simple` a 4 out of 5 (`paging-audit-4`).
+
+- **The bar is built from `BLOCKS`, in the rail's order.** Five blocks own one word; **SKIN**
+  holds its three under one heading, each keeping its own small caption.
+- **`STAGE` owns none**, because it IS the box the other five act on — and its page now says
+  so out loud instead of leaving the reader to notice a control missing.
+- **The url key is the label.** `?content-colour=tint&page-colour=plain&type-size=compact`.
+  `CONTROLS` in `blocks.js` carries `axis` (the key on disk), `block`, `label` and `key`, so
+  the four can never drift apart again.
+- **The old keys are still read.** `?surface=tint` opens exactly as it did; every link written
+  before today keeps working, and nothing writes the old spelling any more.
+
+## `?nest=` takes any page, and taking one out can be sent (2026-09-05)
+
+The owner's sentence is *"put any one of these page types inside any other"*. `?nest=` took a
+**preset id**, so the twelve ready-made pages were the only things that could go inside a page
+and the page you had just made could not. It takes a url now — a preset id, a preset's own
+address, or `/imagine/paging/make/<name>/`, whose `page.json` the stage fetches and draws.
+
+Two things that were wrong and are not:
+
+- **The address wins over the page's own nest.** `this.nest ??= opening.nest` meant
+  `library/nest/?nest=magazine` was ignored, on the one page whose whole subject is the nest.
+- **"No nested page" is a thing the address can say.** `query_for()` wrote `nest` only when
+  there WAS one, so clicking the nested page off left the url untouched and a refresh brought it
+  back. `from_url()` now returns `undefined` for "the address said nothing" and `null` for "the
+  address said none" — two different answers that `??` had been collapsing into one.
+
+## Cross is two dropdowns, not a hard-coded three by three (2026-09-05)
+
+`cross/` crossed **navigation × arrangement**, three values each, out of the seven words the
+vocabulary has. Two dropdowns choose which word goes across and which goes down; the wall draws
+every value of each. The two can never be the same word — picking one that is already chosen
+swaps them rather than crossing a word with itself.
+
+⚠ **Every cell has a floor and the wall scrolls itself.** Six navigation words across a 1024px
+middle is 130px a cell, and a page in 130px sets one letter per line. `minmax(13rem, 1fr)` with
+`overflow-x: auto` on the wall: the wall scrolls, the document never does.
+
+## A `<pre>` in a flex column collapses to nothing (2026-09-05)
+
+The drawer's **Code** button promises *"the page.js this page would be, ready to copy"* and
+delivered a dark strip **22px tall holding 352px and nineteen lines**. `.drawer-body` is
+`flex v` with `overflow: auto`, and a `<pre>` scrolls (`framework.css` gives it `overflow-x:
+auto`) — which makes its automatic minimum height **0**. A flex item that may shrink to nothing
+does. The fix is `flex: none` on a wrapper and a ceiling on the box, which then scrolls itself:
+291px and 282px at 1280, 348px and 338px at 3440.
+
+## A page you made draws its own children, and its own blocks (2026-09-05)
+
+Two halves of one defect — a control writing something nothing reads.
+
+- **Children.** `make/page.js` never handed the stage `pages:`, so a page whose navigation word
+  was `tabs` drew the demo's four canned samples (Overview · Pricing · Docs · Contact) and
+  carried no link to either of its own two children. It hands them in now, with each child's
+  real url, and falls back to the samples only when a page has none.
+- **Blocks.** Build's fifth control collected prose, card walls and template families, saved
+  them into `mode.blocks`, and nothing outside `build/` read them. One renderer (`build/draw.js`)
+  with two callers: the builder's middle column, and a made page through the stage's `draw`
+  seam. The rule: **a page draws its blocks if it has any, and the `content` word's sample if it
+  has none.** [`builder.md`](./builder.md) has the record.
+
+## `BuildStage` renders a `PagingStage` (2026-09-05)
+
+The realm claimed one renderer for a configured page and had two; the copies had already
+disagreed. `build/stage.js` went from 260 lines to 98 and `build.css` lost 91 — the tab strip,
+the rail, the sheet, the row list and five surface classes are `paging.css`'s now. `stage.js`
+grew three hooks, seven lines together: `draw` (the caller's own content), `draw_child` (a
+child's panel) and `picked` (which child is open, for a caller that rebuilds the stage on every
+keystroke). Full record in [`builder.md`](./builder.md).
+
 ## Checked
 
 34 pages x 400 / 1280 / 1920 / 3440 = 136 loads, zero console errors, no sideways scroll, no
 literal asterisks. Save on Make writes the seven words to disk and reads them back. A page built
 in Build, saved, opened in Make and changed there changes on disk. A cross cell click lands on
-its own configuration; the nest chip lights, links out and clicks off.
+its own configuration; the nest chip lights, links out and clicks off. **2026-09-05, fourth
+pass:** `make/notes/` draws Today and Later and links both; a page named in the drawer lands at
+its own url and opens cold with its seven words; a prose block added in Build appears in the box
+of the page it saved; `?nest=/imagine/paging/make/<name>/` runs a page you made inside another;
+`?nest=` empty survives a refresh.
 
 ⚠ **One thing found and not fixed, because it is not this realm's:** pressing **More** and then
 **Code** and then a chip in the drawer hands the rail to `ext/layout`'s own empty state (the dev

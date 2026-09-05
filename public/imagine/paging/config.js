@@ -1,7 +1,7 @@
 import { div, p, span, a, code, input, icon, md, drawer, Page } from "/app.js";
 import { CONTROLS, means_of } from "./blocks.js";
 import { PRESETS, preset_url } from "./presets.js";
-import { link_for } from "./url.js";
+import { link_for, nest_of } from "./url.js";
 import store_for, { name_for } from "./make/made.js";
 
 /* ── THE DRAWER ────────────────────────────────────────────────────────────────
@@ -68,7 +68,7 @@ export function fill_drawer(stage, page, focus){
 function link_box(stage){
 	p.c("h4 muted", "The link to this page");
 
-	const url = link_for(stage.config, stage.base, stage.nest);
+	const url = link_for(stage.config, stage.base, stage.nest, stage.base_nest);
 
 	let $said;
 
@@ -138,10 +138,44 @@ function nesting(stage){
 	});
 
 	p.c("muted paging-means", stage.nest
-		? "The box holds " + stage.nest.title + ", running. Click it again to take it out — or open it at its own url below."
+		? "The box holds " + stage.nest.title + ", running. Click it again to take it out."
 		: "Click one and it runs inside this page's box, with its own navigation and its own colours.");
 
-	if (stage.nest) a.c("page-link", "Open " + stage.nest.title + " on its own →").href(preset_url(stage.nest));
+	// A preset's own page has a url; a page you made has one too, and it is the field.
+	if (stage.nest?.id && !stage.nest.url) a.c("page-link", "Open " + stage.nest.title + " on its own →").href(preset_url(stage.nest));
+	if (stage.nest?.url) a.c("page-link", "Open " + stage.nest.title + " on its own →").href(stage.nest.url);
+
+	any_page(stage);
+}
+
+/* ── ANY PAGE, NOT ONE OF TWELVE ──────────────────────────────────────────────
+   The owner's sentence is *"put any one of these page types inside any other"*, and
+   until now `?nest=` took a preset id — so the twelve ready-made pages were the only
+   things that could go inside a page and the page you had just MADE could not
+   (paging-audit-4). It takes a url now, and this is where you type one. */
+function any_page(stage){
+	p.c("muted paging-means", "…or the address of any page you have made:");
+
+	const $url = input().ac("paging-link-field paging-nest-field").attr("type", "text")
+		.attr("placeholder", "/imagine/paging/make/notes/");
+
+	$url.el.value = stage.nest?.url ?? "";
+
+	const put = () => {
+		const url = ($url.el.value || "").trim();
+		nest(stage, url ? nest_of(url) : null);
+	};
+
+	$url.on("keydown", event => { if (event.key === "Enter"){ event.preventDefault(); put(); } });
+
+	div.c("paging-said", () => {
+		span.c("paging-chip on")
+			.attr("role", "button").attr("tabindex", "0")
+			.append(() => { icon("layers"); span("Put it inside"); })
+			.click(put);
+
+		a.c("page-link", "the pages you have made →").href("/imagine/paging/make/");
+	});
 }
 
 // One seam, and it is the stage's: `nest_to()` redraws AND writes `?nest=` into the
@@ -153,11 +187,22 @@ function nest(stage, preset){
 
 /* ── 3 · THE JSON, AND THE PAGE IT WOULD BE ───────────────────────────────────
    The configuration is data. This is that data, and the button that turns it into a
-   real directory with a real `page.json` in it. */
+   real directory with a real `page.json` in it.
+
+   ⚠ YOU NAME THE PAGE. Until now this took the title, icon and description of the
+     page you happened to be STANDING ON — so making a page from the hub gave you a
+     second page called "Paging", described as the realm's own front page, and the
+     line that said it had worked linked Make's list rather than the thing you had
+     just made (paging-audit-4). A new page is a new page: it gets a name you type,
+     a slug derived from it, and a link to its own url. */
 function json_box(stage, page){
 	p.c("h4 muted", "This page, as a file");
 
-	code.js(JSON.stringify(node_for(stage, page), null, "\t"));
+	const $box = div.c("paging-code-box");
+	const draw = () => $box.empty(() => { code.js(JSON.stringify(node_for(stage), null, "\t")); });
+
+	name_field(stage, draw);
+	draw();
 
 	const $said = div.c("paging-said");
 
@@ -169,6 +214,26 @@ function json_box(stage, page){
 	md("It lands under [Make](/imagine/paging/make/) — one directory and one `page.json`, on disk in dev, in the list beside every other page you have made.").ac("muted paging-means");
 }
 
+/* THE NAME. Held on the STAGE, not in this function: `ext/drawer` refills the whole
+   rail on `drawer.refresh()` (every chip press), so a name kept in a local would be
+   gone the first time you changed a word after typing it. */
+function name_field(stage, draw){
+	return div.c("paging-drawer-row", () => {
+		span.c("paging-pick-label", "the new page's name");
+
+		const $name = input().ac("paging-link-field paging-name-field").attr("type", "text")
+			.attr("placeholder", "A name — “Docs browser”");
+
+		$name.el.value = stage.new_title ?? "";
+
+		// ⚠ Redraws the JSON box only — never the drawer. `drawer.refresh()` here would
+		//   delete the input the cursor is in on every keystroke.
+		$name.on("input", () => { stage.new_title = $name.el.value; draw(); });
+
+		stage.$new_title = $name;
+	});
+}
+
 /* ── 4 · THE PAGE.JS THIS WOULD BE ────────────────────────────────────────────
    The seven words as a real, runnable file. `page.json` is the version a machine
    writes; this is the version a hand writes, and it is the way OUT of the realm —
@@ -178,7 +243,7 @@ function json_box(stage, page){
 function code_box(stage, page){
 	p.c("h4 muted", "The same page, as code");
 
-	code.js(code_for_config(stage.config, page));
+	div.c("paging-code-box", () => { code.js(code_for_config(stage.config, page)); });
 
 	return md("One directory, one `page.js`. Every word above is an argument.").ac("muted paging-means");
 }
@@ -205,16 +270,15 @@ export function code_for_config(config, page){
 	].join("\n");
 }
 
-// What gets written. `mode` is passed through whole by `made.js`, so the whole
-// configuration rides safely inside it — the five top-level keys are all that store
-// keeps (`FileStore.file()`), and anything outside `mode` would be silently dropped.
-function node_for(stage, page){
-	const title = (page?.title ?? "New page");
-
+/* WHAT GETS WRITTEN — the NEW page, not the one you are standing on. `mode` is
+   passed through whole by `made.js`, so the whole configuration rides safely inside
+   it; the five top-level keys are all that store keeps (`FileStore.file()`), and
+   anything outside `mode` would be silently dropped. */
+function node_for(stage){
 	return {
-		title,
-		icon: page?.icon ?? "description",
-		description: page?.description ?? "A page made from a paging configuration.",
+		title: (stage.new_title || "").trim() || "New page",
+		icon: "description",
+		description: "A page made from a paging configuration.",
 		mode: { ...stage.config },
 		children: [],
 	};
@@ -225,21 +289,32 @@ function node_for(stage, page){
      current tree has to be read first, or the write would delete every page already
      there. */
 async function save(stage, page, $said){
+	// A page with no name would be one more "New page" in a list of them, so the
+	// answer is the field, focused — not a silent default.
+	if (!(stage.new_title || "").trim()){
+		stage.$new_title?.el?.focus();
+		return $said.empty(() => { p.c("muted", "Give the page a name first — the field just above."); });
+	}
+
 	$said.empty(() => { p.c("muted", "Writing…"); });
 
 	const store = store_for(page ?? { store: () => ({ get: () => ({}), patch(){} }) });
 	const tree = await store.load();
 
-	const node = node_for(stage, page);
+	const node = node_for(stage);
 	node.name = name_for(node.title, tree, Page.slug);
 
 	const ok = await store.save([...tree, node], tree);
 
+	// The url is a child of MAKE (`/imagine/paging/make/<name>/`) while the file is
+	// under `made/` — make/page.js's own note explains why the two differ.
+	const url = "/imagine/paging/make/" + node.name + "/";
+
 	$said.empty(() => {
-		if (!ok) return void p.c("muted", "No dev server here, so nothing was written to disk — it is kept in this browser instead.");
+		if (!ok) return void p.c("muted", "No dev server here, so nothing was written to disk — it is kept in this browser instead, and it is still a real page: [open " + node.title + "](" + url + ").");
 
 		icon("check_circle").ac("paging-said-ok");
-		md("**Saved to disk** as `" + node.name + "` — a real directory under `public/imagine/paging/made/`. It is in [Make's list](/imagine/paging/make/) now.");
+		md("**Saved to disk** as `public/imagine/paging/made/" + node.name + "/page.json`. **[Open " + node.title + "](" + url + ")** — or find it in [Make's list](/imagine/paging/make/).");
 	});
 }
 

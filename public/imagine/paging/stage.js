@@ -8,6 +8,14 @@ import { from_url, write_url } from "./url.js";
 //   which is exactly what the 2026-09-05 audit found five of.
 const ids = list => list.map(entry => entry.id);
 
+/* THE FILE BEHIND A MADE PAGE'S URL. `/imagine/paging/make/notes/` is the page;
+   `/imagine/paging/made/notes/page.json` is the file it is drawn from (`make/made.js`
+   owns that directory, and `make/page.js` says why the two differ). Anything else is
+   fetched as it was given, so a `page.json` written by hand can be nested too. */
+const file_for = url => (url.startsWith("/imagine/paging/make/")
+	? url.replace("/imagine/paging/make/", "/imagine/paging/made/")
+	: url).replace(/\/?$/, "/") + "page.json";
+
 /* ⚠ `paging.css` is loaded by `paging.js`, not here. Every page that puts a Stage on
      screen is a page of this realm and so extends `Paging`; loading the sheet twice
      would put two identical <link>s in the head for one file. */
@@ -52,14 +60,18 @@ export class PagingStage extends View {
 
 		// ⚠ A NESTED STAGE NEVER READS OR WRITES THE ADDRESS. It is a page inside a
 		//   box, not the page you are on; two stages writing one url would fight.
-		const opening = this.inner ? { config: this.base, nest: null } : from_url(this.base, this.page?.url);
+		const opening = this.inner ? { config: this.base, nest: undefined } : from_url(this.base, this.page?.url);
 
 		this.config = opening.config;
 
-		// The page's OWN nested page, before the url gets a vote — the same idea as
-		// `base`, and what `reopen()` falls back to when the address names none.
+		/* The page's OWN nested page, before the url gets a vote — the same idea as
+		   `base`, and what the address falls back to when it says nothing.
+		   ⚠ THE ADDRESS WINS, exactly as it does for the seven words. `??=` was here,
+		     which meant a page that ships WITH a nested page (`library/nest/`) ignored
+		     `?nest=magazine` entirely. `undefined` is "the address said nothing";
+		     `null` is "the address said none" (`url.js`). */
 		this.base_nest = this.nest ?? null;
-		this.nest ??= opening.nest;
+		this.nest = opening.nest === undefined ? this.base_nest : opening.nest;
 		this.pages ??= PAGES;
 		this.open ??= null;
 		super.initialize();
@@ -160,19 +172,43 @@ export class PagingStage extends View {
 		});
 	}
 
-	// Which navigation words change what is IN the box (rather than beside or over it).
-	swaps(){ return ["tabs", "rail", "rail-right"].includes(this.config.navigation); }
+	/* Which navigation words change what is IN the box (rather than beside or over it)
+	   — the STABLE ones, which is a flag `blocks.js` already carries on each word.
+	   ⚠ `none` is stable and has nothing to swap: no child list is drawn at all, so
+	     reserving four hidden panels would make the box as tall as its tallest unseen
+	     child for nothing. (This used to be a hand-typed list of three ids here — the
+	     second of three places the realm said stable-versus-dynamic; paging-audit-4b.) */
+	swaps(){ return nav_of(this.config.navigation).stable && this.config.navigation !== "none"; }
 
 	// One reserved panel. `i === null` is the page's own content.
 	slot(i, child){
 		return div.c("paging-slot").ac(this.open !== i && "paging-nav-hidden").append(() => {
 			if (i === null) return void this.own_panel();
 
-			div.c("paging-held", () => {
-				p.c("h2", child.title);
-				p(child.text);
-			});
+			div.c("paging-held", () => { this.child_panel(child, i); });
 		});
+	}
+
+	/* ONE CHILD, DRAWN — and the SEAM a caller overrides to draw its own. The four
+	   demo children are a title and a paragraph; a REAL child — a page you made —
+	   also has a url, and then the panel carries the way to it. Before this a page you
+	   made drew four canned samples and had no link to any of its own children
+	   (paging-audit-4b); `make/page.js` hands the real ones in.
+
+	   ⚠ `draw_child` IS THE OTHER HALF OF `draw`. `draw` puts the caller's own thing in
+	     the box; `draw_child` puts the caller's own thing in a CHILD's panel. The
+	     builder needs both — its panel says "the url did not change" under a page that
+	     does not exist yet — and it is the seam `doc/builder.md` named as missing. */
+	child_panel(child, i){
+		if (this.draw_child) return this.draw_child(child, i, this);
+
+		p.c("h2", child.title);
+		p(child.text);
+
+		if (child.url) a.c("paging-panel-link").href(child.url)
+			.append(() => { span("open " + child.title + " as its own page — this is where the url changes"); icon("chevron_right"); });
+
+		return this;
 	}
 
 	/* THE PAGE'S OWN CONTENT, and the list of children when the navigation word draws
@@ -197,7 +233,7 @@ export class PagingStage extends View {
 	nest_to(preset){
 		this.nest = preset ? (preset.config ? { ...preset.config, id: preset.id, title: preset.title } : preset) : null;
 		this.redraw();
-		if (!this.inner) write_url(this.config, this.base, this.nest);
+		if (!this.inner) write_url(this.config, this.base, this.nest, this.base_nest);
 		return this;
 	}
 
@@ -216,7 +252,39 @@ export class PagingStage extends View {
 
 		return div.c("paging-nest", () => {
 			span.c("paging-eyebrow", "a whole page, running inside this box");
-			new PagingStage({ config: { ...this.nest, room: "reading" }, inner: true });
+
+			// A preset arrives with its words. Any other url arrives as a promise.
+			if (this.nest.navigation) return void this.inside(this.nest);
+
+			this.fetched(this.nest);
+		});
+	}
+
+	inside(config, title){
+		if (title) span.c("paging-nest-name", title);
+		return new PagingStage({ config: { ...config, room: "reading" }, inner: true });
+	}
+
+	/* A PAGE YOU MADE, RUNNING INSIDE THIS ONE. `?nest=` takes any url now, and a url
+	   that is not one of the twelve presets has to be READ before it can be drawn: a
+	   made page is a `page.json` under `made/`, and its seven words are in its `mode`.
+
+	   ⚠ NO DOM AFTER THE AWAIT. The box is captured synchronously and filled in the
+	     callback — the realm's oldest trap, and the reason this is not one `await`.
+	   ⚠ THE URL AND THE FILE ARE DIFFERENT PATHS. A made page lives at
+	     `/imagine/paging/make/notes/` and its file at `/imagine/paging/made/notes/`
+	     (`make/page.js` says why), so the url is translated rather than fetched. */
+	fetched(nest){
+		return div.c("paging-nest-fetch", $box => {
+			$box.append(() => { p.c("muted", "Reading " + nest.url + "…"); });
+
+			fetch(file_for(nest.url), { cache: "no-cache" })
+				.then(res => (res.ok ? res.json() : Promise.reject(res.status)))
+				.then(node => $box.empty(() => { this.inside({ ...clean(node.mode), room: "reading" }, node.title); }))
+				.catch(() => $box.empty(() => {
+					p.c("muted", "There is no page at " + nest.url + " to put inside this one.");
+					a.c("page-link", "Every page you have made →").href("/imagine/paging/make/");
+				}));
 		});
 	}
 
@@ -267,8 +335,7 @@ export class PagingStage extends View {
 
 		return div.c("paging-pane", () => {
 			span.c("paging-eyebrow", "opened to the right — the box shrank to make room");
-			p.c("h2", child.title);
-			p(child.text);
+			this.child_panel(child, this.open);
 			this.press(span.c("paging-back", () => { icon("close"); span("close this column"); }), this.open);
 		});
 	}
@@ -294,8 +361,7 @@ export class PagingStage extends View {
 		div.c("paging-canvas").ac("paging-surface-" + this.config.surface).append(() => {
 			div.c("paging-held", () => {
 				span.c("paging-eyebrow", "this child took the whole stage — everything behind it is the trail above");
-				p.c("h2", child.title);
-				p(child.text);
+				this.child_panel(child, this.open);
 			});
 		});
 
@@ -380,6 +446,12 @@ export class PagingStage extends View {
 		};
 
 		this.$cap?.empty(() => { this.caption(); });
+
+		/* ⚠ WHICH CHILD IS OPEN LIVES HERE, and a caller that REBUILDS this view on
+		     every press needs to know it — the builder redraws its whole middle column
+		     when you touch a control, so without this hook the tab you were on reset
+		     itself. One hook, same shape as `changed`. */
+		this.picked?.(this.open);
 		return this;
 	}
 
@@ -401,7 +473,7 @@ export class PagingStage extends View {
 		/* THE ADDRESS IS THE CONFIGURATION. One `replaceState` per change, so the page
 		   you are looking at is always the page the url names — copy it, send it, open
 		   it cold, and you get this. `url.js` has the whole seam. */
-		if (!this.inner) write_url(this.config, this.base, this.nest);
+		if (!this.inner) write_url(this.config, this.base, this.nest, this.base_nest);
 
 		this.change = { axis, from: title_of(axis, was), to: title_of(axis, value), before, after: this.rect() };
 		this.$cap?.empty(() => { this.caption(); });
@@ -429,7 +501,9 @@ export class PagingStage extends View {
 		const opening = from_url(this.base, this.page?.url);
 
 		this.config = opening.config;
-		this.nest = opening.nest ?? this.base_nest;   // ⚠ never lose the page's own nest
+		// ⚠ `undefined` is "the address said nothing", so the page keeps its own nest;
+		//   `null` is "the address said none", which is a nest you clicked off and sent.
+		this.nest = opening.nest === undefined ? this.base_nest : opening.nest;
 		this.open = null;
 		this.change = null;
 

@@ -21,8 +21,6 @@
 import { CONTROLS, values_for } from "./blocks.js";
 import { PRESETS } from "./presets.js";
 
-const AXES = CONTROLS.map(control => control.axis);
-
 /* ⚠ THE ENTRY QUERY, READ ONCE, AT MODULE LOAD — which is the cold load. core's
      Router navigates by the link's PATHNAME alone and pushes the new address AFTER
      the page has drawn, so `location.search` read later is never a reliable answer
@@ -78,46 +76,85 @@ const entry_for = path => (CLICKED?.path === path ? CLICKED : ENTRY.path === pat
      A page's own `url` is neither: it is decided when the page is added and it is
      never the address bar's opinion. `?…` applies to the page the entry url names,
      and to nothing else. */
+/* ⚠ `nest: undefined` MEANS "THE ADDRESS SAYS NOTHING ABOUT IT" and `nest: null`
+     means "the address says there is none". They are different answers and the
+     caller needs both: without the difference, clicking a nested page OFF could not
+     be sent — the key was simply absent, so a refresh put the page's own nest back
+     (paging-audit-4b, fix 6). `stage.js` reads `undefined` as "keep my own". */
 export function from_url(base, path){
 	const entry = path && entry_for(path);
-	if (!entry) return { config: { ...base }, nest: null };
+	if (!entry) return { config: { ...base }, nest: undefined };
 
 	const config = { ...base };
 
-	AXES.forEach(axis => {
-		const value = entry.params.get(axis);
-		if (value && values_for(axis).some(entry_id => entry_id.id === value)) config[axis] = value;
+	CONTROLS.forEach(({ axis, key }) => {
+		// The label's word first, the old key second: every link written before
+		// 2026-09-05 says `?surface=tint`, and those still have to open.
+		const value = entry.params.get(key) ?? entry.params.get(axis);
+		if (value && values_for(axis).some(word => word.id === value)) config[axis] = value;
 	});
 
-	return { config, nest: nest_of(entry.params.get("nest")) };
+	return {
+		config,
+		nest: entry.params.has("nest") ? nest_of(entry.params.get("nest")) : undefined,
+	};
 }
 
-// `?nest=dashboard` — a whole second page, running inside this one's box.
-export const nest_of = id => {
-	const preset = PRESETS.find(entry => entry.id === id);
-	return preset ? { ...preset.config, id: preset.id, title: preset.title } : null;
+/* ── `?nest=` TAKES ANY PAGE ───────────────────────────────────────────────────
+   A preset id (`?nest=dashboard`), a preset's own address, or the url of a page you
+   MADE (`?nest=/imagine/paging/make/notes/`). It used to take a preset id and
+   nothing else, so the twelve ready-made pages were the only things that could go
+   inside a page and the page you had just made could not — which is the owner's
+   sentence "put any page inside any other" unmet (paging-audit-4).
+
+   A preset answers with its seven words, here and now. Any other url answers with a
+   PROMISE — `{ url }` and no words — and `stage.js` fetches that page's `page.json`
+   when it draws the box. Reading a file is not this file's job. */
+export const nest_of = value => {
+	if (!value) return null;
+
+	const preset = PRESETS.find(entry => entry.id === value);
+	if (preset) return { ...preset.config, id: preset.id, title: preset.title };
+
+	if (!value.startsWith("/")) return null;
+
+	// A preset's own address is still that preset — one nested page, not two ideas.
+	const library = value.match(/^\/imagine\/paging\/library\/([^/]+)\/?$/);
+	if (library) return nest_of(library[1]);
+
+	return { id: value, url: value, title: title_from(value) };
 };
+
+// "…/make/notes/today/" → "today". The page's real title arrives with its file.
+const title_from = url => url.replace(/\/+$/, "").split("/").pop() || "that page";
 
 /* ONLY WHAT YOU CHANGED. A preset's url stays clean until you touch a control, and
    then the query says exactly which words you moved — which is also what makes the
-   link readable when you paste it to somebody. */
-export function query_for(config, base, nest){
+   link readable when you paste it to somebody.
+
+   ⚠ `base_nest` IS WHY TAKING A NEST OUT IS SENDABLE. On a page that ships with a
+     nested page, "none" is a change from the page's own words, so it has to be said
+     out loud: `?nest=` with nothing after it. Leaving the key out said nothing, and
+     a refresh brought the nested page back (measured, paging-audit-4b). */
+export function query_for(config, base, nest, base_nest){
 	const params = new URLSearchParams();
 
-	AXES.forEach(axis => { if (config[axis] !== base?.[axis]) params.set(axis, config[axis]); });
+	CONTROLS.forEach(({ axis, key }) => { if (config[axis] !== base?.[axis]) params.set(key, config[axis]); });
+
 	if (nest?.id) params.set("nest", nest.id);
+	else if (base_nest?.id) params.set("nest", "");
 
 	return params.toString();
 }
 
-export const link_for = (config, base, nest) =>
-	location.origin + location.pathname + suffix(query_for(config, base, nest));
+export const link_for = (config, base, nest, base_nest) =>
+	location.origin + location.pathname + suffix(query_for(config, base, nest, base_nest));
 
 /* ⚠ `replaceState`, NEVER `pushState`. Changing a colour is not a navigation: a push
      would put every swatch you tried into the Back button, and the way out of the
      page would be twenty presses away. Replace keeps one entry and keeps it true. */
-export function write_url(config, base, nest){
-	const query = query_for(config, base, nest);
+export function write_url(config, base, nest, base_nest){
+	const query = query_for(config, base, nest, base_nest);
 	history.replaceState(history.state, "", location.pathname + suffix(query) + location.hash);
 	return query;
 }

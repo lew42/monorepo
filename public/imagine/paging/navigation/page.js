@@ -2,6 +2,7 @@ import { View, div, span, p, a, h2, md } from "/app.js";
 import { Paging } from "../paging.js";
 import { PagingNavLab } from "./lab.js";
 import { FINDINGS, WORST } from "./findings.js";
+import { DEFAULT } from "../blocks.js";
 
 View.stylesheet(import.meta, "navigation.css");
 
@@ -19,9 +20,12 @@ View.stylesheet(import.meta, "navigation.css");
                 wall at the bottom — not regions of this page.
    5 PREVIEW    core's default card, on /imagine/paging/'s wall.
 
-   ⚠ NO MODE TOOLBAR (`axes: ""`). This page is about what a click does to the
-     screen; a strip of chips that changes the screen on every press would be
-     competing with the thing being measured.                                     */
+   ⚠ THE BAR SITS BELOW THE MEASUREMENTS, not above them. This page is about what
+     a click does to the screen, so a control that repaints the screen cannot sit
+     beside the two labs — it would compete with the thing being measured. It was
+     left off entirely until 2026-09-05, which made this the one block page where you
+     could not change the word it is about (paging-audit-4). It is the last thing on
+     the page instead.                                                             */
 
 // Calmest first, so the wall reads from "nothing moved" to "everything did".
 const worst = f => (f.moved && f.jumped) ? Math.max(...f.moved, ...f.jumped) : Infinity;
@@ -54,6 +58,19 @@ export default new Paging({
 		md("Two numbers per card — how far the thing you were reading slid **sideways**, and how far it slid **up or down**. Each pair is `1280 · 3440`, and **clicking a card takes you to where that gesture lives**, so you can go and feel the number. (The bars are a square-root scale so the small ones stay visible; the numbers are exact.)");
 
 		div.c("grid auto gap paging-nav-grid wide", () => ROWS.forEach(row => this.finding(row)));
+
+		/* ── THE BLOCK'S OWN CONTROL ──────────────────────────────────────────
+		   This is the page for the word `navigation`, and it was the ONE block page
+		   where you could not change that word (paging-audit-4, item 8) — six words
+		   described in prose on a page with no bar to try them on. It sits BELOW the
+		   two labs and the measured wall on purpose: the labs are a measurement, and a
+		   control that repaints the screen beside them would compete with the thing
+		   being measured. Here, everything above has been read. */
+		h2("Now change the word yourself");
+
+		md("The bar over the page below sets all six navigation words — and the other five building blocks with them. **The line under the box says what your click did, in pixels**, which is the same number the wall above reports.");
+
+		this.stage({ ...DEFAULT, navigation: "tabs", content: "cards", room: "wide", background: "tint" });
 
 		h2("Four demos that measure zero");
 

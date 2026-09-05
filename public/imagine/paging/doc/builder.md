@@ -339,18 +339,7 @@ it is written out below rather than applied: `make/` is another task's file.
    + }
    ```
 
-4. **Make should draw a node's blocks.** `make/page.js`'s `grow()` builds a `Paging` whose
-   `content()` is `this.lede(); this.paging();` — so a page built here shows its title, its
-   words and its children under Make, but not its blocks. The stage on the build page is the
-   renderer; one call would give Make the same one:
-
-   ```diff
-   - content(){ this.lede(); this.paging(); },
-   + content(){ this.lede(); new BuildStage({ page: this, node, classes: "build-screen" }); this.paging(); },
-   ```
-
-   Whether Make *should* draw them, or whether a made page should route to the builder to be
-   edited, is the realm owner's call — which is why this is a proposal and not a patch.
+4. ~~**Make should draw a node's blocks.**~~ **DONE, 2026-09-05 — and the decision is below.**
 
 5. **`build-` in `framework/styles/css-scopes.txt`.** The prefix is registered by the
    `new-css-class` skill and this task's fence is `build/` only:
@@ -358,6 +347,45 @@ it is written out below rather than applied: `make/` is another task's file.
    ```diff
    + build-       /imagine/paging/build (the three-column builder card, its stage and its file pane)
    ```
+
+## Decided: the blocks reach the page, through the stage's `draw` seam (2026-09-05)
+
+**The problem.** Build's fifth control collected prose, card walls and template families; they
+were saved to disk inside `mode.blocks`; and outside `build/` **nothing in the realm read them**.
+So a paragraph you typed survived the save and appeared on no page. It is the same defect the
+previous pass fixed for the seven words — a control writing a key nothing reads — one level
+down (`paging-audit-4b`, break 2).
+
+**The two answers, and why this one.** Either a made page draws the blocks, or `PIECES` and
+Build's step 5 come out. Taking them out would delete the only content a built page can have
+that is not one of the eight canned samples, and the census above is the argument for keeping
+them: "data chooses, js supplies". So the blocks are drawn.
+
+**How.** One renderer, `build/draw.js`, with two callers:
+
+```js
+// build/stage.js — the middle column of the builder
+draw_blocks(this.node, this.page);
+
+// make/page.js — the page that was saved, through the stage's own seam
+this.stage(config, { pages: …, draw: () => draw_blocks(node, this) });
+```
+
+`draw` is the seam `stage.js` already had for "put my own thing in the box" — the templates realm
+hands a family's real machinery over the same way. **What you see while building is what the saved
+page shows**, because it is the same function.
+
+**The rule this sets, in one line:** *a page draws its blocks if it has any, and the `content`
+word's sample if it has none.* Nothing else changed about `content`.
+
+**What it costs.** `make/page.js` imports `build/draw.js`, which loads `build.css` — the sheet
+that owns `.build-block*`. A made page needs those rules and never loads `build/page.js`, so the
+module that draws the classes is the module that asks for the sheet. `View.stylesheet()` is keyed
+by href, so the builder loading it twice costs nothing.
+
+**And it decides the merge's shape.** `BuildStage` → `PagingStage` needs a `draw` seam and a
+`draw_child` seam; `draw` is now proven on a real page, and the renderer it calls no longer lives
+inside the class being deleted.
 
 ## What it still cannot do
 
@@ -374,47 +402,52 @@ it is written out below rather than applied: `make/` is another task's file.
   width word (`large`, `fill`, `full`) is still only reachable through the Navigation control's
   takeover option. Splitting them would be a fifth control for a word 27 pages use.
 
-## Left open: BuildStage should be a PagingStage (2026-09-05, updated after the third audit)
+## Done: `BuildStage` renders a `PagingStage` (2026-09-05, after the fourth audit)
 
-`build/stage.js` draws a page — crumbs, tabs, a rail, a toolbar, blocks — and `stage.js`
-draws a page. The realm says it has "one renderer" and that is only true of a *configured*
-page while both exist. It should be one:
+**The realm has one renderer for a configured page, and it is now true of the builder too.**
+`build/stage.js` used to draw a page by hand — crumbs, tabs, a rail, a toolbar, side panels,
+five surface classes — beside `stage.js` doing the same job for everything else. The two copies
+had already started to disagree (four properties rows here against three there). The builder's
+middle column is a `PagingStage`:
 
 ```js
-new PagingStage({
+this.$stage = new PagingStage({
 	config: config_of(node),                     // the seven words — blocks.js reads them
 	pages: kids.map(kid => ({ title: kid.title, icon: kid.icon, text: kid.description })),
-	draw: () => this.blocks(),                   // the blocks, in this page's arrangement
-	draw_child: (stage, kid) => this.panel(kid), // the tab panel — the seam that is missing
+	open: this.page.tab ?? default_index(node),  // Build rebuilds this view on every press
 	inner: true,                                 // a picture: no caption, no url, no nest
-	classes: "build-screen",
+	draw: () => this.blocks(),                   // the blocks, in this page's arrangement
+	draw_child: (child, i) => this.panel(child), // a child's panel — the seam that was missing
+	picked: i => { this.page.tab = i; },         // which tab you were on, kept
 });
 ```
 
-**What used to block it, and does not any more.** The blocker was never the seam — it was the
-SCHEMA. Build kept its own five words (`style`, `mech`, `kids`, `layout`, `arrange`), so
-handing its node to `PagingStage` handed over an object with none of the seven words in it and
-you got the default page. That is fixed: **Build writes the seven words now** (2026-09-05,
-`paging-fix-3`), `config_of()` lives in `blocks.js` beside the words, and the numbered layout
-the blocks use is derived from the arrangement word rather than stored a second time.
+**What it cost, in lines.** `build/stage.js` went from 260 to 98; `build/build.css` lost 91
+lines — the tab strip, the rail, the sheet, the row list and the five `build-screen-*`
+surfaces are `paging.css`'s now, drawn once. `stage.js` grew two hooks, seven lines together.
 
-**What is left, in the order to do it in.**
+**The three things a builder has that a page does not**, and they are all that is left in
+`build/stage.js`: the crumb strip (core draws it on a real page's columns host), the node's
+title above the box, and the child panel's one sentence — *the url did not change* — which
+only a page that does not exist yet needs to say.
 
-1. **`draw_child(stage, child)` in `stage.js`**, called from the three places a child is drawn
-   — `slot()`, `pane()` and `taken()` — falling back to today's title-and-text panel. Prove it
-   on a preset before touching the builder.
-2. **Build's crumbs and sheet title move into the seam.** They are the two things the stage has
-   no word for; the crumb strip is the columns host's job on a real page.
-3. **Swap the class.** `BuildStage extends PagingStage`, `inner: true`, `open` kept on the page
-   (`this.page.tab`) because Build rebuilds the stage on every control press.
-4. **Delete** the 250 lines of `build/stage.js` that draw chrome, and the `.build-tab*`,
-   `.build-rail`, `.build-screen-row` and `.build-screen-*` rules that go with them — the
-   surface and background classes come from `paint()` once the stage is a `PagingStage`.
+**Two seams, and why they had to be seams rather than options.** `draw` puts the caller's own
+thing IN the box; `draw_child` puts it in a CHILD's panel. A configuration has no way to name
+either, because neither is a word — they are code the caller supplies, which is exactly what
+the census above says a third of this site needs. `picked` is the third and smallest: it hands
+back which child is open, because a caller that rebuilds the stage on every keystroke cannot
+keep that inside it.
 
-**One thing to decide while doing it.** Build has controls for three of the seven words
-(navigation, surface, arrangement); room, page colour and type size arrive at their defaults and
-are changed on the page itself once it is saved. Once the builder's middle IS a `PagingStage` it
-can simply wear the realm's own bar, and those four controls arrive for free.
+**Proven.** Two tabs added in the builder draw as the realm's own tab strip; clicking the second
+selects it and shows its panel; pressing a control afterwards leaves you on the tab you were on;
+Surface → Dark paints `paging-surface-dark` on the box; Navigation → Left rail draws a
+`paging-rail`; Arrangement → Wall lays the blocks out as `build-arrange-4-wall` inside
+`paging-arr-wall`. 1280 / 3440 / 400, zero console errors.
+
+**What it opens.** The builder's middle can now wear the realm's own bar with one line
+(`stage.changed = (axis, value) => this.set_words({ [axis]: value })`), which would give Build
+the four words it has no control for — room, page colour, type size and content. That is the
+next thing here, and it is small.
 
 ## Dropped from the plan: `compare/` (2026-09-05)
 

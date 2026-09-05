@@ -13,8 +13,11 @@
    /framework/ai/2026-09-05/nav-stability/ — and doc/measurements.md beside this file
    has the before/after numbers each pair came from.                              */
 
-// stable — nothing you were reading moves. dynamic — something moves.
-export const STABLE = "stable", DYNAMIC = "dynamic";
+/* stable — nothing you were reading moves. dynamic — something moves. The two
+   words are `../blocks.js`'s, where every navigation word already carries the flag:
+   one list, so a gesture cannot be stable here and dynamic there (paging-audit-4b). */
+import { STABLE, DYNAMIC } from "../blocks.js";
+export { STABLE, DYNAMIC };
 
 export const FINDINGS = [
 

@@ -196,31 +196,47 @@ export const default_index = node => Math.max(0, (node.children ?? []).findIndex
      `page.js`; they are given different things, and both were called `code_for`
      (paging-audit-3b, fix 7). A node has blocks and children, so its file is a
      `Page` with a `content()`; a configuration is seven words, so its file is one
-     `this.stage({…})` call. The name now says which you are looking at.          */
+     `this.stage({…})` call. The name now says which you are looking at.
+
+   ⚠ IT PRINTS THE SEVEN WORDS. It used to print `title`, `icon`, `description`,
+     `children` and `width: "large"` — five of the seven words missing, and the one
+     word it did print was core's `width`, which this realm calls ROOM and which no
+     control on the page writes (paging-audit-4). So the printed file is a `Paging`
+     page with one `this.stage({…})` call in it, exactly like the drawer's
+     `code_for_config` — and exactly like the file `make/page.js` actually runs.   */
 export function code_for_node(node){
 	const mode = mode_of(node);
 	const kids = node.children ?? [];
 	const blocks = blocks_of(node);
 
-	const factories = ["Page", ...(blocks.some(b => b.type === "prose") ? ["md"] : [])].join(", ");
+	// The two things the stage needs beyond the words: whose children to draw, and
+	// what to put in the box. Both are omitted when the page has neither.
+	const extras = [
+		kids.length ? `\t\t\tpages: [\n` + kids.map(kid =>
+			`\t\t\t\t{ title: ${JSON.stringify(kid.title)}, icon: ${JSON.stringify(kid.icon ?? "description")}, text: ${JSON.stringify(kid.description || "")} },`).join("\n") + `\n\t\t\t],` : null,
+		blocks.length ? `\t\t\tdraw: () => {\n` + blocks.map(block => `\t\t\t\t${call_for(block)}`).join("\n") + `\n\t\t\t},` : null,
+	].filter(Boolean);
 
 	const lines = [
-		`import { ${factories} } from "/app.js";`,
+		`import { Paging } from "/imagine/paging/paging.js";`,
+		blocks.some(block => block.type === "prose") ? `import { md } from "/app.js";` : null,
 		``,
-		`export default new Page({`,
+		`export default new Paging({`,
 		`\tmeta: import.meta,`,
 		`\ttitle: ${JSON.stringify(node.title)},`,
 		node.icon ? `\ticon: ${JSON.stringify(node.icon)},` : null,
 		node.description ? `\tdescription: ${JSON.stringify(node.description)},` : null,
-		mode.room === "full" || mode.navigation === "takeover"
-			? `\twidth: "full",   // the whole screen — core's own word`
-			: `\twidth: "large",`,
 		kids.length ? `\tchildren: ${JSON.stringify(kids.map(kid => kid.name).join(" "))},` : null,
-		blocks.some(b => b.type === "cards") ? `\tindex: true,     // my content already shows my children` : null,
+		blocks.some(block => block.type === "cards") ? `\tindex: true,     // my content already shows my children` : null,
 		``,
 		`\tcontent(){`,
-		...blocks.map(block => "\t\t" + call_for(block)),
-		blocks.length ? `` : `\t\t// nothing here yet — add a block in the builder`,
+		`\t\t// the seven words this page is made of`,
+		`\t\tthis.stage({`,
+		...Object.keys(DEFAULT).map(key => `\t\t\t${key}: ${JSON.stringify(mode[key])},`),
+		extras.length ? `\t\t}, {` : `\t\t});`,
+		...extras,
+		extras.length ? `\t\t});` : null,
+		``,
 		`\t\t// ↓ anything the builder cannot say goes here, and this is why page.js exists`,
 		`\t},`,
 		kids.some(is_default) ? `\n\t// the tab that opens first` : null,
@@ -230,6 +246,9 @@ export function code_for_node(node){
 	return lines.filter(line => line !== null).join("\n");
 }
 
+/* ⚠ ARROWS, NOT METHODS. `draw` is called by the stage, so `this` inside a method
+     would be the STAGE — an arrow keeps the page's own `this`, which is what
+     `previews()` and a family's `example()` both need. */
 const call_for = block => block.type === "prose" ? `md(${JSON.stringify(block.text ?? "")});`
 	: block.type === "cards" ? `this.previews();`
 	: `family(${JSON.stringify(block.family ?? "magazine")}).example(this);`;

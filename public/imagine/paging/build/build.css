@@ -23,21 +23,28 @@
 		grid-template-columns: minmax(0, 1fr);
 	}
 
-	/* 64rem, in rem and not em: `em` here is the body's viewport clamp (14px → 18px),
+	/* 54rem, in rem and not em: `em` here is the body's viewport clamp (14px → 18px),
 	   so an `em` threshold stacks at a different PIXEL width on a phone than on a
 	   monitor. Above it: a capped control column, a capped file column, and the
-	   stage takes everything left — which at 3440 is most of the screen. */
+	   stage takes everything left — which at 3440 is most of the screen.
+
+	   ⚠ THE FLOOR WAS 64rem AND 1280 FELL UNDER IT. The card is 957px inside the
+	     realm's middle at 1280 — 59.8rem — so the three tracks stacked and the live
+	     stage landed 2,100px down, two folds below the first screen, on the page
+	     whose whole claim is "the middle column is the page assembling as you click"
+	     (paging-audit-4b). 54rem puts the three columns on screen at 1280 with a
+	     ~400px stage, and the sides' floors came down to match. */
 	/* ⚠ EVERY TRACK HAS A FLOOR AND A CEILING, and the ceilings are `min(%, rem)` on
 	     purpose: a flat `24rem` cap took 384px of a 1238px row and left the STAGE —
 	     the thing the page is about — as the narrowest of the three at 347px. The
 	     percentage keeps the sides proportional at 1280; the rem stops them running
 	     away at 3440, where the leftover all goes to the stage. Measured both. */
-	@container (min-width: 64rem) {
+	@container (min-width: 54rem) {
 		.build-card {
 			grid-template-columns:
-				minmax(13rem, min(24%, 26rem))
+				minmax(11rem, min(24%, 26rem))
 				minmax(0, 1fr)
-				minmax(15rem, min(30%, 30rem));
+				minmax(12rem, min(30%, 30rem));
 		}
 
 		/* THE STAGE AND THE FILE FOLLOW YOU DOWN. Seven control groups are about three
@@ -185,31 +192,29 @@
 	/* ── THE STAGE — one drawn rectangle ───────────────────────────────────────
 	   The owner, 2026-09-05: *"make sure the stage they're swapping on is visually
 	   evident. it could be a white card, and a new white card comes in."* So the
-	   screen has an edge, a radius and a shadow, and every swap happens inside it. */
+	   screen has an edge, a radius and a shadow, and every swap happens inside it.
+
+	   ⚠ 43 LINES LEFT THIS SECTION ON 2026-09-05 and they are not coming back: the
+	     tab strip, the rail, the sheet, the row list and the five surface classes
+	     were `build/stage.js` drawing a page by hand. It renders a `PagingStage` now,
+	     so every one of those is `paging.css`'s, drawn once, for the builder and for
+	     a real page alike (`../doc/builder.md`). What is left here is the frame
+	     AROUND the stage — the card, the crumbs, the title — which a real page gets
+	     from the columns host and a page that does not exist yet cannot. */
 	.build-centre { display: flex; flex-direction: column; gap: 0.5em; }
 
 	.build-screen {
-		display: flex; flex-direction: column;
+		display: flex; flex-direction: column; gap: 0.5em;
+		padding: 0 0 0.7em;
 		border: 1px solid var(--line); border-radius: var(--radius);
 		background: var(--surface);
 		box-shadow: 0 1px 2px var(--shade-a08), 0 10px 28px var(--shade-a16);
 		overflow: hidden;
 	}
 
-	.build-screen-plain { background: var(--wash); }
-	.build-screen-tint  { background: var(--tint); }
-	.build-screen-prim  { background: color-mix(in srgb, var(--prim) 10%, var(--surface)); }
-	.build-screen-dark  { color-scheme: dark; background: var(--surface); color: var(--ink); }
-
-	/* `card` is the one surface that is not the screen itself: the screen stays the
-	   ambient floor and the SHEET inside it becomes the white card — the same split
-	   `paging.css` makes, for the same reason. */
-	.build-screen-card { background: var(--wash); }
-	.build-screen-card .build-sheet {
-		margin: 0.6em; border-radius: var(--radius);
-		background: var(--surface);
-		box-shadow: 0 1px 2px var(--shade-a08);
-	}
+	/* The stage inside the card gets the card's padding, and the crumb strip above it
+	   spans the full edge — so the strip reads as chrome and the page reads as page. */
+	.build-screen > :is(.build-sheet-title, .paging-stage) { margin-inline: 0.8em; }
 
 	.build-crumbs {
 		display: flex; flex-wrap: wrap; align-items: center; gap: 0.15em;
@@ -221,82 +226,20 @@
 	.build-crumbs > :last-child + .icon { display: none; }
 	.build-crumb.on { color: var(--ink); font-weight: 600; }
 
-	/* THE TAB STRIP. The selected tab JOINS the panel below it — no bottom edge, the
-	   same background — which is the thing an underline alone never says: WHICH
-	   rectangle is about to change. */
-	.build-tabs {
-		display: flex; flex-wrap: wrap; gap: 0.2em;
-		padding: 0.4em 0.6em 0;
-		border-block-end: 1px solid var(--line);
-	}
-
-	.build-tab {
-		display: inline-flex; align-items: center; gap: 0.3em;
-		flex: none; white-space: nowrap;
-		padding: 0.3em 0.7em;
-		border: 1px solid transparent; border-block-end: none;
-		border-start-start-radius: var(--radius); border-start-end-radius: var(--radius);
-		font-size: 0.8em; cursor: pointer; color: var(--subtle);
-	}
-	.build-tab:is(:hover, :focus-visible) { color: var(--ink); background: var(--fill-a04); }
-	.build-tab.on {
-		background: var(--surface); color: var(--ink); font-weight: 600;
-		border-color: var(--line);
-		margin-block-end: -1px; padding-block-end: calc(0.3em + 1px);
-	}
-	.build-tab .icon { font-size: 1em; }
-	.build-tab-default { color: var(--prim); }
-
-	.build-screen-row { display: flex; min-height: 12em; }
-	.build-screen-flip { flex-direction: row-reverse; }
-
-	.build-rail {
-		display: flex; flex-direction: column; gap: 0.15em;
-		flex: 0 0 10rem; min-width: 0;
-		padding: 0.5em;
-		background: var(--fill-a04);
-	}
-	.build-screen-row .build-rail:first-child { border-inline-end: 1px solid var(--line); }
-	.build-screen-flip .build-rail { border-inline-start: 1px solid var(--line); border-inline-end: none; }
-	.build-rail .build-tab {
-		border: 1px solid transparent; border-radius: var(--radius);
-		margin: 0; padding: 0.3em 0.5em;
-	}
-	.build-rail .build-tab.on { border-color: var(--line); margin-block-end: 0; padding-block-end: 0.3em; }
-
-	/* ⚠ A CONTAINER OF ITS OWN, so the block arrangements below query the SHEET and not
-	     the whole card. `@container` resolves against the nearest containing ancestor;
-	     without this line the aside would stack or not by how wide the page is, which
-	     is the one thing it must not depend on. `inline-size`, never `size`: `size`
-	     would stop the sheet being sized by its own contents at all. */
-	.build-sheet { padding: 0.8em; min-width: 0; container-type: inline-size; }
 	.build-sheet-title { display: flex; align-items: center; gap: 0.35em; margin: 0 0 0.5em; font-size: 1.05em; }
 
-	/* ⚠ THE STAGE APPLIES THE MEASURE A REAL PAGE APPLIES. It is drawing a page, and
-	     `Page.css` caps a page's prose at `--measure` however wide the column is — so
-	     without this the stage taught the opposite of the site at 3440: a 2351px
-	     paragraph inside a 2398px sheet (measured 2026-09-05). Same shape as core's
-	     rule, one container down, and ARRANGEMENTS are left out of the list on purpose
-	     — a card wall may take the sheet, text may not. */
-	.build-sheet :is(p, h3, h4, ul, ol, .md), .build-caption { max-width: var(--measure, 40em); }
-
-	.build-panel { display: flex; flex-direction: column; gap: 0.5em; }
-	.build-panel > * { margin: 0; }
 	.build-panel-note { font-size: 0.75em; }
-
-	.build-rows { display: flex; flex-direction: column; gap: 0.15em; }
-	.build-row {
-		display: flex; align-items: center; gap: 0.4em;
-		padding: 0.35em 0.5em;
-		border: 1px solid var(--line); border-radius: var(--radius);
-		font-size: 0.9em;
-	}
-	.build-row-title { flex: 1 1 auto; min-width: 0; }
-	.build-row-mech { color: var(--subtle); }
 
 	/* ── the blocks, in the arrangement ───────────────────────────────────────
 	   Four rules, one per layout number. Every track has a floor and a ceiling: an
-	   unbounded `1fr` keeps its content minimum and overflows at 400.  */
+	   unbounded `1fr` keeps its content minimum and overflows at 400.
+
+	   ⚠ THE BLOCKS NEED A CONTAINER TO ASK, and they cannot be their own. The sheet
+	     used to be it; the sheet is gone, so the wrapper is. Without one, the
+	     `@container` rule below never matches and main+aside stays two 150px tracks
+	     at 400 (a box cannot restyle itself with its own container query). */
+	.build-blocks-box { container-type: inline-size; min-width: 0; }
+
 	.build-blocks { display: grid; gap: var(--gap, var(--gap-default)); margin-block-end: 0.6em; }
 	.build-blocks > * { margin: 0; min-width: 0; }
 

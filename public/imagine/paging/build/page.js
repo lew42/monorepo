@@ -18,11 +18,14 @@ View.stylesheet(import.meta, "build.css");
                 a builder is a TOOL, and three columns of controls do not fit in a
                 shared row. Takeover gives it the whole row at every width, and the
                 crumb strip is how you get back out.
-   2 SIZE       the row: 1238px at 1280, ~3300px at 3440. The card is a three-track
+   2 SIZE       the card is 957px at 1280 and ~2850px at 3440 — the realm's middle,
+                which is the window minus the app's rail (the note here used to say
+                "the row: 1238px at 1280", true only while Build was a column of
+                /imagine/'s row rather than a page of this app). It is a three-track
                 grid, each track with a floor and a ceiling; the side tracks cap at
                 `min(24%, 26rem)` and `min(30%, 30rem)` so the STAGE takes everything
-                3440 has spare (measured 297 / 542 / 371 at 1280). Under 64rem of
-                CARD width - not window width - the three stack.
+                3440 has spare. Under 54rem of CARD width - not window width - the
+                three stack, which at 1280 they no longer do.
    3 OWN LAYOUT each column is a `flex v gap` stack of small titled groups. The stage
                 is one drawn rectangle — the white card the swap happens on.
    4 REGIONS    one, core's. This page has NO children: the pages it builds are real
