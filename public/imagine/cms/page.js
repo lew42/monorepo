@@ -57,5 +57,20 @@ git JSON/JSONL, \`node:sqlite\`, Cloudflare D1, Durable Objects, KV, R2 — and 
 seam instead of a service.`);
 
 		this.previews(new Map([...this.children].filter(([name]) => name !== "guide")));
+
+		// ⚠ The constant this page was missing: every healthy-growth sibling (platform,
+		// blogx, stream) has real prose AFTER its previews wall too, so its exit margin
+		// rides `--flow` like the rest of the page. This page stopped cold right after
+		// the wall — nothing there to measure but the wall's own tight, non-scaling
+		// card-internal gaps (`.page-preview`'s `gap: 0.6em`), which is why its median
+		// barely moved between 1280 and 3440 (1.03×, spacing-study 2026-09-05) even
+		// after the previews-wall fix.
+		// ⚠ TWO blocks, not one: `md()` "adopts" a single root block directly (a bare
+		// `<p class="md">`, no `.flow`), so it inherits whatever `--flow` a column has
+		// scoped down instead of resetting to the page's own 2em — the exact bug this
+		// task just fixed on the wall, one call away from recurring here.
+		md(`The **Guide** column beside this one walks the same five in the order to read them.
+
+Either way, [\`edit\`](/imagine/cms/edit/) is the only one that writes anything back.`);
 	},
 });

@@ -2,3 +2,5 @@
 {"action":{"at":"2026-09-05T02:10:10-05:00","did":"edit","files":["public/framework/ai/2026-09-05/ux-rethink/reviewer-brief.md"]}}
 {"assign": {"now": "round 1 of 6 - platform, research, generated", "step": 3}}
 {"log": {"at": "2026-09-05T02:10:20-05:00", "msg": "reviewer-brief.md written; shared private server up on port 8110 (pid 12256) for all eighteen reviewers - one server, not eighteen"}}
+{"assign": {"now": "round 2 of 6 - design, gallery, screens", "step": 3}}
+{"log": {"at": "2026-09-05T02:40:32-05:00", "msg": "round 1 landed: platform (reverted a tile wall, +20pct height, moved the real page wall above the prose), research (KEPT the owner 3-column card - every topic front now shows a real credence-tagged theory; caught a click that grew a card 5412px), generated (KEPT a 3-column card built off page.children). Pattern already twice: the ~1856px dead band at 3440 is the columns row past the large ceiling, not a realm defect. 708k tokens for three."}}

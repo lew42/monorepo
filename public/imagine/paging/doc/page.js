@@ -17,17 +17,18 @@ import { Page, md, div, a, span } from "/app.js";
 
    ⚠ `route()`, NOT `children:` — the blog's `doc/` learned it first. A DECLARED
      child is loaded eagerly (`load_all_children()`), and a child whose directory
-     has no `page.js` only resolves after that probe 404s. Declaring five markdown
-     records would put five 404s in the console of every page under
+     has no `page.js` only resolves after that probe 404s. Declaring four markdown
+     records would put four 404s in the console of every page under
      /imagine/paging/. `route()` is asked only for a name somebody navigated to. */
 
 /* THE RECORDS, and one plain sentence each. The list you see and the pages you open
    come off the same object, so they cannot disagree. */
 const RECORDS = {
-	mechanisms: ["The four mechanisms", "What `launch`, `expand`, `swap` and `takeover` actually are, how each one is built out of parts the site already had, and the numbers measured at 1280 and 3440."],
-	decisions: ["Decisions — the record", "Every verdict this realm has taken, what was rejected and why, and the traps that were found by measuring rather than by thinking. Start here if you are about to change something."],
-	persistence: ["Persistence", "What remembers you, how you can tell, and how to put it back — the rule that demos never persist silently, the audit of every page under /imagine/ that saves anything, and where a page you make is written."],
-	templates: ["Templates", "Which template family's machinery is imported from where, and what a made page cannot express yet."],
+	mechanisms: ["The four mechanisms", "What launch, expand, swap and takeover actually are, how each is built out of parts the site already had, and the numbers measured at 1280 and 3440."],
+	decisions: ["Decisions — the record", "Every verdict this realm has taken, what was rejected, and the traps found by measuring. Start here before you change anything."],
+	persistence: ["Persistence", "What remembers you, how you can tell, and how to put it back — the rule that demos never persist silently, and where a page you make is written."],
+	templates: ["Templates", "Which template family's machinery is imported from where, and what a page you make cannot express yet."],
+	builder: ["Builder", "How a page is built with a UI: the census of every page file (22% pure configuration, 42% one renderer away, 35% code), the controls in order, and why a tab is just a child page."],
 };
 
 export default new Page({

@@ -4,7 +4,6 @@
 	"children": [
 		"notes",
 		"ideas",
-		"archive",
-		"survives-a-reload"
+		"archive"
 	]
 }

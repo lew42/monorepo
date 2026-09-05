@@ -1,0 +1,77 @@
+/* /imagine/design/ — the landing page's own 3-column card, 2026-09-05 (ux-rethink pass 2).
+
+   WHAT THIS SHEET IS FOR. One shape: `.design-card`, the owner's "left = small title +
+   intro, centre = a demo/section, right = readouts/metrics" — tried here as the ALTERNATIVE
+   to the tile wall the front door wore since 2026-09-04. See doc/layout-alternative.md for
+   the measurements that decided whether this shipped or got reverted.
+
+   THE SHAPE IS BORROWED, NOT INVENTED — `/imagine/layouts/layouts.css` (`.layouts-card`)
+   and `/imagine/research/research-front.css` (`.rfront-card`) already solved this exact
+   three-track, floor-and-ceiling, wraps-to-a-stack row twice tonight; this is the same
+   `rem` floor + stack-term trick under a third name, not a fourth invention. Colour and
+   spacing are borrowed too — `--surface --tint --line --radius --gap-default --prim-ink
+   --subtle` — not one hex value, not one constant length in this file. */
+
+@layer theme {
+
+	.design-card {
+		--design-floor: 42rem;
+		--design-stack: calc((var(--design-floor) - 100%) * 999);
+
+		position: relative; /* the stretched .page-preview-link's ::after anchors here */
+		display: flex;
+		flex-wrap: wrap;
+		align-items: start;
+		gap: var(--gap, var(--gap-default));
+		padding: 1em 1.1em;
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		background: var(--surface);
+
+		/* A ceiling the borrowed pattern didn't need: its own `--rfront-stage`/
+		   `--layouts-stage` hold a bounded demo, but ours holds a flat 1280×800
+		   screenshot — with no cap, `max(46%, …)` made the image (and so the
+		   whole card) 1593px tall at 3440 (measured), stretching a raster past
+		   its own resolution for nothing. Capped + centred: the column stays
+		   `full`, the CARD doesn't have to be — "accept the gutter" (layout skill). */
+		max-width: 76em;
+		margin-inline: auto;
+	}
+
+	.design-card > * { min-width: 0; }
+
+	.design-intro { flex: 0 1 max(clamp(11em, 20%, 16em), var(--design-stack)); }
+	.design-stage { flex: 1 1 max(46%, var(--design-stack)); max-width: 40em; }
+	.design-reads { flex: 0 1 max(clamp(10em, 18%, 14em), var(--design-stack)); }
+
+	/* Stacked with a gap, not a border between — each card is already its own bordered
+	   box (unlike layouts-card's plain rule-between rows), so a hairline on top of that
+	   would double the edge. */
+	.design-cards { display: flex; flex-direction: column; gap: var(--gap, var(--gap-default)); }
+
+	.design-thumb {
+		display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover;
+		border: 1px solid var(--line); border-radius: calc(var(--radius) * 0.7);
+	}
+
+	/* The two studies with no screenshot of their own (vocabulary, system — both are
+	   data/prose, not a picture of a page) get the icon they already wear elsewhere,
+	   large, instead of a fabricated photo. */
+	.design-thumb-icon {
+		display: flex; align-items: center; justify-content: center;
+		width: 100%; aspect-ratio: 16 / 9;
+		border: 1px solid var(--line); border-radius: calc(var(--radius) * 0.7);
+		background: var(--tint); font-size: 2.6em; color: var(--prim-ink);
+	}
+
+	.design-name { font-size: 1.1em; font-weight: 700; margin: 0 0 0.3em; }
+	.design-blurb { font-size: 0.92em; line-height: 1.5; color: var(--subtle); margin: 0; }
+
+	.design-find {
+		font-size: 0.88em; line-height: 1.45; margin: 0;
+		border-left: 3px solid var(--prim-ink);
+		background: var(--tint);
+		border-radius: 0 var(--radius) var(--radius) 0;
+		padding: 0.5em 0.7em;
+	}
+}

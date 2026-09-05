@@ -1,0 +1,46 @@
+@layer theme {
+
+	/* One export, three columns — what it is, its shape, its numbers. Reuses
+	   `.page-preview`'s surface (border, radius, shadow, hover ring) for the frame;
+	   only the direction changes, a row instead of the wall's stacked card.
+	   ⚠ Qualified `.page-preview.generated-seed`, not a bare `.generated-seed`:
+	     `.page-preview` sets `flex-direction: column` and a 0.6em `gap` at the
+	     same (0,1,0) specificity in the same `theme` layer, so a tie would be
+	     load order alone. The compound selector wins on specificity instead,
+	     regardless of which sheet loads second. */
+	.page-preview.generated-seed {
+		flex-direction: row;
+		flex-wrap: wrap;
+		align-items: stretch;
+		gap: 1.4em;
+	}
+	.generated-seed > * { flex: 1 1 14em; min-width: 0; }
+	.generated-seed-shape { flex: 1.6 1 16em; }
+
+	/* The shape — two or more branches, drawn as small linked chips instead of a
+	   paragraph naming them. Generic: works for however many branches a seed has. */
+	.generated-branches {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.6em;
+	}
+	.generated-branch {
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		padding: 0.5em 0.8em;
+		background: var(--wash);
+	}
+
+	/* The empty slot — dashed, so it never reads as a card that already holds
+	   something real; the whole point of it is that it does not, yet. */
+	.generated-slot {
+		border: 2px dashed var(--line);
+		border-radius: var(--radius);
+		padding: 1em 1.2em;
+		display: flex;
+		align-items: center;
+		gap: 0.9em;
+		color: var(--subtle);
+	}
+	.generated-slot .icon { font-size: 1.6em; }
+}

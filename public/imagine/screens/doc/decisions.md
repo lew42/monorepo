@@ -155,6 +155,41 @@ own box → `/two/` → click again → `/two/detail/`. Title's cover, similarly
 document on a second click rather than sitting there as a dead one. Zero console errors on
 every url.
 
+## Tried and reverted 2026-09-05 — the owner's 3-column card, on the index
+
+The ask (the owner, in the reviewer brief): *"large cards... the card has 3 columns: the
+center column is a card itself, a demo... and on the left we have a small title + intro and
+maybe some controls. on the right, we have some readouts, metrics, feedback, config, etc."*
+
+**Built:** the index's eight tiles became eight full-width rows, one per demo — left: icon +
+title + description; center: the same hop diagram, handed more room; right: the number that
+demo actually measured, pulled from the readme's table.
+
+**Measured** (`.page.active-page > .page-column-body`'s own content extent, not the document's
+— `document.documentElement.scrollHeight` is pinned to the viewport by the columns shell and
+says nothing):
+
+| | before (tile wall) | after (3-col rows) |
+|---|---|---|
+| content height, 1280 | 695px | 1439px |
+| content height, 3440 | 856px | 1747px |
+| width used, 3440 (both unchanged — same `large` word) | 46% | 46% |
+| dead space, 3440 (the columns host's reserved sibling column, not this page's) | 1857px | 1857px |
+
+**Reverted.** The row shape roughly *doubled* the column's own height for zero change in
+width used or dead space — this column is capped near 64em by the `large` width word either
+way, so stacking three columns per row bought nothing the tile wall didn't already have, and
+cost a reader twice the scroll to see all eight. The brief's own test says it plainly: "a page
+that got shorter without losing anything got better" — the inverse happened. The pattern's
+real strength (a live demo or a dashboard of readouts in the center/right) also doesn't fit
+here: every "demo" is an inert diagram (`frames()` — Page.css makes a thumb inert on purpose)
+and every "readout" is one short sentence, not a metrics panel, so three columns had much
+less to hold than the pattern is built for.
+
+**Kept from the attempt:** the right-column idea, shrunk to fit the tile wall instead of
+replacing it — each existing card now shows the number it measured as a fourth, small line
+(`.screens-verdict`), which is the visual/informational gain without the height cost.
+
 ## Cut
 
 - **A vertical `writing-mode` spine** for the compressed cover. It reads well and it is one

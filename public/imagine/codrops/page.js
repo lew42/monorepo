@@ -36,6 +36,30 @@ const DEMOS = [
 		needed: "JS (Locomotive Scroll, Splitting.js) + CSS",
 		changed: "Locomotive Scroll and Splitting.js dropped — both a library we cannot take (npm-only; this site has no smooth-scroll wrapper to hang one on). Reads each heading's own `getBoundingClientRect()` every animation frame instead of a scroll listener; the character split is one `[...word]`. The bend formula itself is unchanged.",
 	},
+	{
+		slug: "circle-reveal",
+		title: "Circle reveal",
+		original: "https://github.com/codrops/UnrevealEffects",
+		licence_url: "https://github.com/codrops/UnrevealEffects/blob/main/LICENSE",
+		needed: "JS (GSAP, imagesloaded) + CSS clip-path",
+		changed: "This realm's own `swap` mechanism (/imagine/paging/mechanisms/swap/), drawn as a fifth swap visual: a circular `clip-path` wipe from the click point, instead of a tab strip, a sliding card, a cross-fade or a flip — same stage, no url change. GSAP's multi-property timeline (image position, four text blocks and a back control staggered over ~1s) dropped for one CSS `transition: clip-path`; placeholder gradients stand in for the original's photography.",
+	},
+	{
+		slug: "sticky-stack",
+		title: "Sticky stack",
+		original: "https://github.com/codrops/StickySections",
+		licence_url: "https://github.com/codrops/StickySections/blob/main/LICENSE",
+		needed: "JS (GSAP ScrollTrigger, Lenis) + CSS",
+		changed: "GSAP's `ScrollTrigger` (`scrub: true`) and Lenis (a smooth-scroll wrapper around the whole page) dropped — both a library we cannot take. The stage is its own bounded scroll container (`overflow-y: auto`), so a plain `scroll` listener on that one element (not the page, not the window) drives the same dim/scale/drift formula from demo1 and demo3, throttled to one `requestAnimationFrame` per burst.",
+	},
+	{
+		slug: "type-shuffle",
+		title: "Type shuffle",
+		original: "https://github.com/codrops/TypeShuffleAnimation",
+		licence_url: "https://github.com/codrops/TypeShuffleAnimation/blob/main/LICENSE",
+		needed: "JS (Splitting.js) + CSS",
+		changed: "Splitting.js dropped for one `[...word].forEach()` per word — the three loops kept (fx1 `cascade`, fx3 `scramble`, fx6 `glitch`) are otherwise the original's own cache-copy and stagger tricks, unchanged. 3 of the original's 6 effects ported this round.",
+	},
 ];
 
 export default new Page({
@@ -46,7 +70,7 @@ export default new Page({
 	width: "large",
 	index: true,
 
-	children: "grid-hover line-hover scroll-bend",
+	children: "grid-hover line-hover scroll-bend circle-reveal sticky-stack type-shuffle",
 
 	content(){
 		md("**Codrops publishes free demos of web effects; these are a few of them rebuilt as pages on this framework, so you can see what carries over and what does not.**");

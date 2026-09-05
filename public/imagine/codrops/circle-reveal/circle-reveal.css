@@ -1,0 +1,67 @@
+/* Ported from Codrops' "Unreveal Effects" (MIT licence, LICENSE file read on
+   github.com/codrops/UnrevealEffects) — https://tympanus.net/codrops/?p=65427 — the
+   circle variant (demo 2 / src/js/index2.js). Rebuilt: see page.js for what changed. */
+@layer site {
+	.codrops-reveal-stage {
+		position: relative;
+		overflow: hidden;
+		border-radius: 0.75em;
+		min-height: 22em;
+		isolation: isolate;
+	}
+
+	.codrops-reveal-grid {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: var(--gap-default);
+		height: 100%;
+	}
+
+	.codrops-reveal-tile {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-end;
+		gap: 0.25em;
+		padding: 1em;
+		color: #fff;
+		background: var(--codrops-reveal-bg);
+		cursor: pointer;
+	}
+
+	.codrops-reveal-tile-num { font-size: 1.4em; opacity: 0.7; }
+	.codrops-reveal-tile-name { font-weight: 600; }
+
+	.codrops-reveal-detail {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 0.75em;
+		padding: 2em;
+		text-align: center;
+		color: #fff;
+		background: var(--codrops-reveal-detail-bg, #111);
+		clip-path: circle(0% at var(--rx, 50%) var(--ry, 50%));
+		transition: clip-path 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+		pointer-events: none;
+	}
+
+	.codrops-reveal-stage.is-open .codrops-reveal-detail {
+		clip-path: circle(150% at var(--rx, 50%) var(--ry, 50%));
+		pointer-events: auto;
+	}
+
+	.codrops-reveal-detail-title { margin: 0; font-size: 1.8em; }
+	.codrops-reveal-detail-desc { margin: 0; max-width: 28em; opacity: 0.85; }
+
+	.codrops-reveal-back {
+		margin-top: 0.5em;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.codrops-reveal-detail { transition: none; }
+	}
+}

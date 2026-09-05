@@ -129,6 +129,24 @@ A measurement recipe that works (adapt it; `.active-page` is the page you are lo
 })()
 ```
 
+### Known already — do not spend tokens re-deriving these
+
+Three reviewers found each of these independently in round 1. They are true, they are
+site-wide, and they are **not your realm's finding**:
+
+- **The ~1,856px empty band on the right at 3440 is the columns row**, not your page. Every
+  realm's landing page sits in a Finder-style columns host whose `large` width word caps a
+  column near 64em; the leftover is held for a sibling column to open into. It does not move
+  when you change your page, and **widening the column is not the fix** — `fill` was tried and
+  reverted twice (2026-08-31, 2026-09-04) because it starves a page opened beneath it. So
+  "width used" at 3440 will read around 46% on most realms before *and* after. Report it, then
+  judge your layout on **page height, the invariants, and the five sentences**.
+- **The document's `scrollHeight` at 3440 is pinned to the viewport** by that same columns
+  shell. Measure your column's own body height (`.page.active-page`'s rect), not the document's.
+- **A `doc/*.md` link ends in a file extension and the router will not intercept it** — the
+  click leaves the app onto raw markdown. Six realms had this yesterday. If you meet one, just
+  fix it; it is not worth a paragraph.
+
 ## 3. Make it more visual
 
 Wherever a paragraph *explains* something the page could simply *show*, show it: the thing

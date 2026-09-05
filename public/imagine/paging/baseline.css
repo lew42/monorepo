@@ -12,6 +12,7 @@
 @layer theme {
 
 	.baseline-mark {
+		max-width: var(--measure, 40em);   /* a nested p escapes the column-prose cap: 3207px wide at 3440 (2026-09-05) */
 		display: flex;
 		flex-wrap: wrap;
 		align-items: center;

@@ -9,8 +9,13 @@ content(){ this.tabs("guide api"); }          // children by name; the first is 
 this.tabs("guide api").ac("vertical");       // same set as a left rail; .ac("block") for folder tabs
 ```
 
+Every set shows its panel as a bounded surface now — the strip's own rule becomes the panel's
+top edge, and the selected tab is cut out of it, so there is no gap between a tab and what it
+opens onto. `.ac("underline")` asks for the old, transparent strip.
+
 ## Watch out
 
+- The floor above is the default; `.underline` is the one word back to the old look — [doc/decisions.md](./doc/decisions.md)
 - Only the first `tabs()` on a page can own the parent's url; two sets sharing a child name collide silently — [doc/decisions.md](./doc/decisions.md)
 - A tab bar suits a page with no prose of its own whose children flip *between* and fit its measure; otherwise `previews()` — [doc/usage.md](./doc/usage.md)
 - A bar is one strip that scrolls, never a wrapping block; past ~fifty members it is untested — [doc/overflow.md](./doc/overflow.md)

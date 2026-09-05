@@ -42,6 +42,7 @@ const shot = s => figure.c("flex v gap").style({ margin: 0, gap: "0.4em" }).appe
 
 export default new Page({
 	meta: import.meta,
+	children: "ceilings",
 	title: "Spacing",
 	description: "Every /imagine/ realm's vertical spacing, measured box by box at 1280 and 3440 — the neighbour-ratio pairs with no legitimate reason, the cramped ranking, and one proposal that fixes all three.",
 	icon: "height",

@@ -1,0 +1,354 @@
+[
+ {
+  "n": 1,
+  "step": "goto",
+  "verb": "goto",
+  "args": [],
+  "png": "01-goto.png",
+  "value": null,
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 1280,
+   "cw": 1280,
+   "sh": 1400,
+   "ch": 1400
+  },
+  "rects": {
+   ".rfront-stage": {
+    "before": null,
+    "after": {
+     "x": 450,
+     "y": 584,
+     "w": 512,
+     "h": 348
+    },
+    "moved": null
+   },
+   ".rfront-card": {
+    "before": null,
+    "after": {
+     "x": 231,
+     "y": 569,
+     "w": 921,
+     "h": 377
+    },
+    "moved": null
+   }
+  }
+ },
+ {
+  "n": 2,
+  "step": "eval (() => { const l = document.querySelector('.rfront-stage .research-more'); return { text: l?.textContent, href: l?.getAttribute('href') }; })()",
+  "verb": "eval",
+  "args": [
+   "(() => { const l = document.querySelector('.rfront-stage .research-more'); return { text: l?.textContent, href: l?.getAttribute('href') }; })()"
+  ],
+  "png": "02-eval.png",
+  "value": {
+   "text": "22 more theories on stone",
+   "href": "/imagine/research/stone/"
+  },
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 1280,
+   "cw": 1280,
+   "sh": 1400,
+   "ch": 1400
+  },
+  "rects": {
+   ".rfront-stage": {
+    "before": {
+     "x": 450,
+     "y": 584,
+     "w": 512,
+     "h": 348
+    },
+    "after": {
+     "x": 450,
+     "y": 584,
+     "w": 512,
+     "h": 348
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   },
+   ".rfront-card": {
+    "before": {
+     "x": 231,
+     "y": 569,
+     "w": 921,
+     "h": 377
+    },
+    "after": {
+     "x": 231,
+     "y": 569,
+     "w": 921,
+     "h": 377
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   }
+  }
+ },
+ {
+  "n": 3,
+  "step": "click \"text=22 more theories on stone\"",
+  "verb": "click",
+  "args": [
+   "text=22 more theories on stone"
+  ],
+  "png": "03-click.png",
+  "value": null,
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 1280,
+   "cw": 1280,
+   "sh": 1400,
+   "ch": 1400
+  },
+  "rects": {
+   ".rfront-stage": {
+    "before": {
+     "x": 450,
+     "y": 584,
+     "w": 512,
+     "h": 348
+    },
+    "after": {
+     "x": 247,
+     "y": 909,
+     "w": 461,
+     "h": 372
+    },
+    "moved": {
+     "dx": -203,
+     "dy": 325,
+     "dw": -51,
+     "dh": 24
+    }
+   },
+   ".rfront-card": {
+    "before": {
+     "x": 231,
+     "y": 569,
+     "w": 921,
+     "h": 377
+    },
+    "after": {
+     "x": 231,
+     "y": 752,
+     "w": 493,
+     "h": 684
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 183,
+     "dw": -428,
+     "dh": 307
+    }
+   },
+   "text=22 more theories on stone": {
+    "before": null,
+    "after": null,
+    "moved": null
+   }
+  }
+ },
+ {
+  "n": 4,
+  "step": "wait 500",
+  "verb": "wait",
+  "args": [
+   "500"
+  ],
+  "png": "04-wait.png",
+  "value": null,
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 1280,
+   "cw": 1280,
+   "sh": 1400,
+   "ch": 1400
+  },
+  "rects": {
+   ".rfront-stage": {
+    "before": {
+     "x": 247,
+     "y": 909,
+     "w": 461,
+     "h": 372
+    },
+    "after": {
+     "x": 247,
+     "y": 909,
+     "w": 461,
+     "h": 372
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   },
+   ".rfront-card": {
+    "before": {
+     "x": 231,
+     "y": 752,
+     "w": 493,
+     "h": 684
+    },
+    "after": {
+     "x": 231,
+     "y": 752,
+     "w": 493,
+     "h": 684
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   }
+  }
+ },
+ {
+  "n": 5,
+  "step": "eval (() => location.pathname)",
+  "verb": "eval",
+  "args": [
+   "(() => location.pathname)"
+  ],
+  "png": "05-eval.png",
+  "value": null,
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 1280,
+   "cw": 1280,
+   "sh": 1400,
+   "ch": 1400
+  },
+  "rects": {
+   ".rfront-stage": {
+    "before": {
+     "x": 247,
+     "y": 909,
+     "w": 461,
+     "h": 372
+    },
+    "after": {
+     "x": 247,
+     "y": 909,
+     "w": 461,
+     "h": 372
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   },
+   ".rfront-card": {
+    "before": {
+     "x": 231,
+     "y": 752,
+     "w": 493,
+     "h": 684
+    },
+    "after": {
+     "x": 231,
+     "y": 752,
+     "w": 493,
+     "h": 684
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   }
+  }
+ },
+ {
+  "n": 6,
+  "step": "eval (() => document.querySelector('.page-column-large h1, .page-column-large .h1')?.textContent ?? document.title)",
+  "verb": "eval",
+  "args": [
+   "(() => document.querySelector('.page-column-large h1, .page-column-large .h1')?.textContent ?? document.title)"
+  ],
+  "png": "06-eval.png",
+  "value": null,
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 1280,
+   "cw": 1280,
+   "sh": 1400,
+   "ch": 1400
+  },
+  "rects": {
+   ".rfront-stage": {
+    "before": {
+     "x": 247,
+     "y": 909,
+     "w": 461,
+     "h": 372
+    },
+    "after": {
+     "x": 247,
+     "y": 909,
+     "w": 461,
+     "h": 372
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   },
+   ".rfront-card": {
+    "before": {
+     "x": 231,
+     "y": 752,
+     "w": 493,
+     "h": 684
+    },
+    "after": {
+     "x": 231,
+     "y": 752,
+     "w": 493,
+     "h": 684
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   }
+  }
+ }
+]

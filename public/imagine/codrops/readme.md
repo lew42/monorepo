@@ -2,9 +2,10 @@
 
 [Codrops](https://tympanus.net/codrops/) publishes free demos of web effects. This realm
 ports a few of them as real pages, so a reader can see what carries over onto this
-framework's own words and what does not. Round 1: three demos, one hover effect on a
-grid, one menu of hover effects, one scroll effect — [the table is on the index
-page](/imagine/codrops/).
+framework's own words and what does not. Round 1: a grid hover effect, a menu of hover
+effects, a scroll effect. Round 2: a click-triggered reveal (this realm's own `swap`
+mechanism, drawn as a circular wipe), a scroll-driven sticky stack, a text-scramble effect —
+[the table is on the index page](/imagine/codrops/).
 
 ## The porting rules (read before adding a fourth)
 
@@ -50,6 +51,19 @@ page](/imagine/codrops/).
   in `deactivate()` — `Page`'s own `/framework/core/new/1/site/motion/release/` is the
   worked example this follows; the default `deactivate()` does nothing on purpose, so a
   page that starts a loop must say so itself or it runs forever after you navigate away.
+- **A sticky effect needs its own scroll container, not a workaround.** `sticky-stack`
+  (round 2) gives its stage `overflow-y: auto` and listens for `scroll` on that one element
+  outright — legitimate because the page owns it, unlike the page-level scroll a columns
+  host makes awkward.
+- **`View.stylesheet()` loads its css file asynchronously.** A page that measures its own
+  layout the moment it activates (`sticky-stack`'s first progress read) can run before that
+  `<link>` has applied, baking a wrong value into an inline style that a later stylesheet
+  load never overwrites. Fixed with a `ResizeObserver` on the stage that re-runs the same
+  update once the real layout lands — cheaper than guessing a delay.
+- **Not every reveal needs a new mechanism name.** `circle-reveal` (round 2) is this realm's
+  own [`swap`](/imagine/paging/mechanisms/swap/) — same stage, no url change — drawn as a
+  fifth visual (a circular `clip-path` wipe) alongside `mechanisms/swap/`'s tabs, card-in,
+  cross-fade and flip, not a new fifth mechanism.
 
 ## More
 

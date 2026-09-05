@@ -634,7 +634,9 @@
 	     sections one heading out of step — measured on styles/layouts/, where Fit and
 	     Flex rendered above the VOCABULARY heading that owns them. It bought a tidier
 	     ragged edge on plain walls and cost reading order on grouped ones. */
-	.page-previews:where(:not(.page)) { --column: 14em; --gap: 0.8em; }
+	/* Flat `--gap: 0.8em` let the wall's own entrance margin follow the buggy, scoped
+	   `--flow` it inherits (10.8px vs a prose neighbour's 27.1px, 2.5×, blogx@1280) — `--gap-default`'s clamp fixes both that margin and the internal card gap (spacing-study, 2026-09-05). */
+	.page-previews:where(:not(.page)) { --column: 14em; --gap: var(--gap-default); margin-block: var(--gap-default); }
 
 	/* A child's `group:` heads the run it starts — a whole row, so the cards on
 	   either side of it keep counting their own columns. */

@@ -71,7 +71,7 @@ export default new Paging({
 
 	// ⚠ Nothing crawls: a page exists once this list names it, and a name whose dir
 	//   has no page.js 404s the whole probe.
-	children: "examples mechanisms styles sizes make templates center transitions toolbars rightnav explorer inventory critique doc",
+	children: "examples mechanisms styles sizes make build templates center transitions toolbars rightnav explorer inventory critique doc",
 
 	content(){
 		this.lede();

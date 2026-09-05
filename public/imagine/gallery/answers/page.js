@@ -1,10 +1,15 @@
-import { Page, md, div, p, a, span, button } from "/app.js";
+import { Page, md, div, p, a, span, button, img } from "/app.js";
 import { load, wall, body } from "../foreign.js";
 
 /**
  * The four answers, each with the demo that settles it. The written-up version is
  * [core/Page/doc/previews.md](/framework/core/Page/doc/previews/).
  */
+
+// A picture of the live Import readout, not the readout itself — a card thumb is
+// never a live instance (2026-08-17 finding). Regenerate with `make-thumbs.mjs`
+// (session scratchpad) if the demo's own look changes.
+const THUMB = new URL("./thumb.jpg", import.meta.url);
 
 // Q1's subject: far from here, and nothing on this page is its parent.
 const SUBJECT = "/framework/core/Page/overview/columns/";
@@ -88,6 +93,12 @@ export default new Page({
 	title: "Answers",
 	description: "Can you import a page from anywhere and preview it? Four questions, four demos.",
 	icon: "help",
+
+	// Show the live readout instead of naming it: a static shot of Q1's meter, pressed.
+	preview(nav){
+		return this.preview_card(nav, () => img().attr("src", THUMB).attr("alt", "The live import readout, pressed")
+			.style({ width: "100%", height: "100%", objectFit: "cover" }));
+	},
 
 	content(){
 		md("Four questions about borrowing a page, each with the demo that settles it.");

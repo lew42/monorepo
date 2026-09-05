@@ -264,4 +264,17 @@
 	@container screens-block (width < 11em) {
 		.screens-note { display: none; }
 	}
+
+	/* ── THE INDEX CARD'S MEASURED LINE (2026-09-05) ──
+	   A 3-column-row alternative was tried here (owner's brief) and reverted:
+	   doc/decisions.md has the numbers. What it got right survives as one line — the
+	   number each demo actually measured, now on the tile wall's own card instead of
+	   only behind the readme link. */
+	.screens-verdict {
+		margin: 0;
+		color: var(--prim-ink);
+		font-size: 0.78em;
+		font-weight: 600;
+		line-height: 1.4;
+	}
 }

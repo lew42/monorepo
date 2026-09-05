@@ -109,6 +109,69 @@ reads it the same way, for the same reason.
   pushed a *vertical* rail past `core/View`'s fifty members, and the `64em` breakpoint
   was measured against one topic region. [`overflow.md`](./overflow.md).
 
+## 2026-09-05 — the floor: every tab set shows its panel
+
+> the current underline tabs (with underline becoming orange (--prim) when active..) don't
+> really illustrate their tab content area, it's transparent, and so the link below the tab
+> area stays, but there's no visual boundary between them. (the owner, 2026-09-05)
+
+**The panel is a bounded surface now, by default.** A real background, a 1px frame, a radius —
+the strip's own rule is the panel's TOP edge, and the selected tab paints its bottom border in
+the panel's colour instead of the rule, so the label and the box read as one thing with no seam.
+`.ac("underline")` is the one word back to the old, transparent strip; it needs no rules of its
+own, since the floor rules are all gated `:not(.underline)` and simply stop matching.
+
+Applied as `.tabs:not(.underline):not(.vertical)` — excluded from `.vertical` because that
+skin's tab-level shape (padding, `border-inline-end`, the axis flip under `64em`) has LOWER
+specificity than a blanket default would, and the default would have silently overridden it.
+`.vertical` gets its own, simpler floor instead: just the panel's background/border/radius,
+composed as `.tabs.vertical:not(.underline) > .tab-panel`, since the rail sits BESIDE the panel
+with no shared edge to cut into.
+
+**Composes with `.block` on purpose.** `:not(.underline):not(.vertical)` is three classes
+against `.tabs.block`'s two, so on a set wearing both, the floor's colours win on every
+overlapping property while `.block`'s type (the `h4` labels) stays untouched — the same
+"whichever is heavier" shape the [proposal](/framework/ai/2026-09-05/paging-mechanisms-v2/ext-tabs-proposal.md)
+worked out for its opt-in `.panel`, reused here for a default instead.
+
+**Padding is asymmetric on purpose.** The pre-floor `.tab-panel` was `padding-top: 3em` only —
+that number is the whole site's vertical rhythm under a tab set, a Doc module page included, so
+it stays. Left/right/bottom take `var(--pad, var(--pad-default))`, since those were never
+anything before the floor existed. Left open: a future pass could unify all four sides once
+someone looks hard at whether 3em still reads right against a visible border; nothing regressed
+by leaving it.
+
+**Where this was checked and is safe:**
+- `ext/Doc`'s well already set `--tab-fill: var(--wash)` on `.page.doc-page` before this task —
+  the floor's background and the selected tab's cut both read that token, so a doc page's own
+  well colour carries through with no new rule needed there.
+- `.tab` is an anchor, never `.btn`; the theme's `:is(button, .btn)` rule (`css` skill, the
+  (0,2,0) caveat) has nothing to match here.
+- The six shots below and `mag`/blog control pages are pixel-identical before/after where they
+  don't touch `.tabs` — the floor did not leak.
+
+**A rail of one still needs its top edge.** `.tab-bar:not(:has(> .tab + .tab))` hides the bar
+(above), which would otherwise leave the floored panel's top open with nothing to draw it — a
+`:has()` rule restores `border-top` and the full radius on exactly that case.
+
+**Six before/after shots**, `scratchpad/tabs-panel/shots/` (1280 and 3440 each): `/framework/ext/Panel/`
+(a Doc page, `.block` top bar), `/framework/core/Page/` (another Doc page), `/imagine/mag/` and
+`/blog/systems/layout-generators/` (unrelated pages — confirmed byte-identical before/after,
+the floor doesn't leak), `/imagine/paging/mechanisms/swap/` (the reference — also identical,
+see below), `/framework/ext/tabs/` (this module's own demo, the clearest before/after: a
+transparent underline strip becomes a bordered white box against the demo's checkerboard).
+Proved with `ui-test` on this module's own Doc page: clicking Overview → API → Docs → Overview
+kept the panel's `x`/`y`/`width` exactly constant across all three clicks (only height moved,
+with content), and the selected tab's `border-bottom-color` equalled the panel's
+`background-color` every time (`match: true`, all four reads) — `scratchpad/tabs-panel/ui-test-out/steps.json`.
+
+**The reference (`/imagine/paging/paging.css`'s `.paging-tab-panel` etc.) should drop its own
+four classes now that `ext/tabs` matches it** — the [proposal](/framework/ai/2026-09-05/paging-mechanisms-v2/ext-tabs-proposal.md)
+said so and this task agrees. Left undone: two of its three call sites (`demos.js`'s
+`swap_demo()`, `make/tabs.js`'s `tabs_items()`) sit outside this task's fence (only
+`mechanisms/swap/` and `paging.css` itself were open to it), and removing the shared rules
+without moving all three would break the two left behind. A fence, not a shrug.
+
 ## 2026-08-18 — `--tab-fade` removed
 
 > also, there's a --tab-fade on the .tab-bar that's completely misplaced...

@@ -1,0 +1,70 @@
+/* /imagine/research/ — the front's own 3-column topic card, 2026-09-05.
+
+   WHAT THIS SHEET IS FOR. One shape: `.rfront-card`, the owner's "left = small
+   title + intro, centre = a demo/section, right = readouts/metrics" — applied
+   to each of the four topic cards on the front (page.js `topic_card()`).
+   Everything else on this page is ext/Research's own `Research.css`, already
+   loaded by `Program.js`; this file only adds what that stylesheet has no
+   words for.
+
+   THE WRAP MECHANISM IS BORROWED, NOT INVENTED — `/imagine/layouts/layouts.css`
+   reached the same three-track shape first (`.layouts-card`) for the exact
+   same three columns, so the percentage-basis-plus-stack-term trick is copied
+   from there rather than reinvented: a `rem` floor (never `em` — a floor has
+   to be the same PIXEL width on a phone and a monitor, not the same viewport
+   fraction), and the stack term wraps every track onto its own line below it.
+
+   COLOUR AND SPACING ARE BORROWED TOO — `--surface --tint --line --radius
+   --gap-default --measure`, and every credence colour is `--research-cred`,
+   already set per-entry by Research.css. Not one hex value, not one constant
+   length in this file. */
+
+@layer theme {
+
+	/* ── THE CARD ──
+	   Narrower floor than `/imagine/layouts/`'s 52rem: this card's intro and
+	   reads columns are a few words each, not a chip strip, so three columns
+	   stay readable well below that — measured comfortable to 40rem (640px),
+	   which is inside this page's OWN column floor (28em = 448px) only once
+	   the reader drags the seam past halfway; the default column width keeps
+	   three columns at every width from 1280 to 3440 alike. */
+	.rfront-card {
+		--rfront-floor: 40rem;
+		--rfront-stack: calc((var(--rfront-floor) - 100%) * 999);
+
+		display: flex;
+		flex-wrap: wrap;
+		align-items: start;
+		gap: var(--gap, var(--gap-default));
+		padding: 1em 1.1em;
+	}
+
+	.rfront-card > * { min-width: 0; }
+
+	.rfront-intro { flex: 0 1 max(clamp(9em, 22%, 14em), var(--rfront-stack)); }
+	.rfront-stage { flex: 3 1 max(50%, var(--rfront-stack)); }
+	.rfront-reads { flex: 0 1 max(clamp(8em, 18%, 12em), var(--rfront-stack)); }
+
+	/* One card per topic, each its own `.surface` box (border + radius already
+	   set there) — the parent `.research-topics.flow`'s rhythm is the rule
+	   between them, the same way the capstone and legend cards above it are
+	   already spaced. Four topics of one research program, the same three
+	   columns every time, is what makes scrolling from one to the next show
+	   the relation the owner asked for — no extra separator needed on top of
+	   the boxes themselves. */
+
+	/* ── the readouts (right column) ──
+	   The credence bar, spelled out as numbers — the bar already says the MIX
+	   at a glance; a stranger who wants the count reads these instead of
+	   hovering a title attribute for it. */
+	.rfront-reads-list { --flow: 0.3em; }
+	.rfront-read {
+		justify-content: space-between;
+		border-left: 3px solid var(--research-cred, var(--line));
+		background: var(--tint);
+		border-radius: 0 var(--radius) var(--radius) 0;
+		padding: 0.15em 0.6em;
+		font-size: 0.85em;
+	}
+	.rfront-read-n { font-weight: 800; }
+}
