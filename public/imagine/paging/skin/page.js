@@ -25,5 +25,11 @@ export default block({
 
 	lede_line: "Change **content colour**, then **page colour**. They are two independent controls: one paints the box, one paints the page behind it — the dot beside each one shows where it is.",
 
-	config: { navigation: "tabs", content: "article", room: "wide", arrangement: "plain", surface: "card", background: "prim", type: "regular" },
+	/* ⚠ OPENS ON THE DASHBOARD, not an article. Two reasons, and the second is the
+	     one that picked it over a card wall: an article's prose is capped at the 720px
+	     reading measure, so at 3440 this page's first screen was a narrow column in a
+	     2,739px box (paging-audit-3) — and the dashboard's tiles are small islands, so
+	     the CONTENT COLOUR is visible all around them, which is the thing this page is
+	     about. A wall of cards would have covered it. */
+	config: { navigation: "tabs", content: "dashboard", room: "wide", arrangement: "plain", surface: "card", background: "prim", type: "regular" },
 });

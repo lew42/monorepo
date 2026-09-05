@@ -83,7 +83,7 @@ no page under `/imagine/` touches `localStorage` directly except the realm reset
 | [`/imagine/cms/edit/`](/imagine/cms/edit/) | `lew42:/imagine/cms/edit/` | an unsaved draft, between pauses in typing | **yes** — a draft note and a **Discard**, and it only appears when the draft differs from disk | yes | **keep** — the model the rest copied. Untouched |
 | [`/imagine/platform/topic/`](/imagine/platform/topic/) | `lew42:/imagine/platform/topic/` | the actions you "earned" in the topic demo | partly — the level line moves | yes — "Erase this run" | **demote** — a doc demo. Mark added |
 | [`/imagine/platform/topic/async/`](/imagine/platform/topic/async/) | `lew42:/imagine/platform/topic/async/` | the same, for the async twin | partly | yes — "Erase" | **demote** — same. Mark added |
-| every page under [`/imagine/paging/`](/imagine/paging/) | `lew42:paging:<page url>` | its five mode words — style, content, layout, mech, toolbar | **no** | realm-wide, on the hub only | **demote** — the chips are the demo. Mark added on every one at once, in `Paging.content()`'s `lede()` |
+| every page under [`/imagine/paging/`](/imagine/paging/) | *(nothing — 2026-09-05: demos do not persist)* | its mode words, when it still kept them | **no** | realm-wide, on the hub only | **demote** — the chips are the demo. Mark added on every one at once, in `Paging.content()`'s `lede()` |
 | [`/imagine/paging/rightnav/`](/imagine/paging/rightnav/) | `lew42:paging:/imagine/paging/rightnav/` | that demo's own four variants | **no** | realm-wide only | **demote** — same, and it gets the same mark |
 | [`/imagine/paging/make/`](/imagine/paging/make/) | files under `made/`, or `lew42:paging:/imagine/paging/make/` | the pages you made | yes — the list *is* the page | yes — "Back to the baseline five" | **keep**, and **moved to disk** — see below |
 
@@ -123,7 +123,8 @@ A page.json is the whole declaration:
 {
 	"title": "Notes",
 	"icon": "description",
-	"mode": { "style": "card", "content": "m", "mech": "launch" },
+	"mode": { "navigation": "tabs", "content": "docs", "room": "reading",
+	          "arrangement": "plain", "surface": "card", "background": "plain", "type": "regular" },
 	"children": ["today", "later"]
 }
 ```
@@ -247,7 +248,7 @@ already works today with no new code.
 `md`, `cards` (both already written), `tabs`, and `list` — cover every structural page on the
 site. Everything left over is a page with *behaviour*, and behaviour is code.
 
-**The pattern to copy is the `kids` word**, added to Make on 2026-09-05 and already live: the
+**The pattern to copy is the `navigation` word**, added to Make on 2026-09-05 and already live: the
 JSON says `"kids": "tabs"` and js supplies the `items()` that draws a strip. Nothing about the
 node got more complicated — one more word beside the three it had — and nothing in the store
 had to learn what a tab is. Every row marked **no** above becomes a **yes** the same way: name

@@ -1,6 +1,6 @@
 import { div, p, h3, span, a, input, icon } from "/app.js";
 import { press } from "../paging.js";
-import { DEFAULT, CONTENT, SURFACES, nav_of } from "../blocks.js";
+import { config_of, nav_of } from "../blocks.js";
 import { at, clone } from "./made.js";
 
 /* ── TABS ON A PAGE YOU MADE ───────────────────────────────────────────────────
@@ -28,41 +28,12 @@ import { at, clone } from "./made.js";
 
 /* ── ONE SCHEMA FOR A MADE PAGE ────────────────────────────────────────────────
 
-   A `page.json` written before 2026-09-05 says `style` / `content` / `mech` / `kids`;
-   one written after says the realm's seven words (`../blocks.js`). This function is
-   the ONE place that knows both, and everything else in Make reads a node through it.
-
-   ⚠ WHY IT MATTERS. Make's row chips wrote `style`/`mech`/`kids` while the drawer on
-     the same page wrote the seven words — and the reader below preferred the seven,
-     so clicking a chip in Make changed a key nothing on screen was reading and the
-     page did not move (paging-audit-2b, Q3, "two schemas into one store"). One
-     schema, and the old words migrate on the way in. */
-export function config_of(node){
-	const mode = node?.mode ?? {};
-
-	// Already the new words: nothing to translate.
-	if (mode.navigation) return { ...DEFAULT, ...pick(mode) };
-
-	const navigation = mode.kids === "tabs" ? "tabs"
-		: mode.kids === "rail" || mode.kids === "rail-right" ? mode.kids
-		: mode.mech === "swap" ? "tabs"
-		: mode.mech === "expand" ? "rail"
-		: mode.mech === "takeover" ? "takeover"
-		: "columns";
-
-	return {
-		...DEFAULT,
-		navigation,
-		content: has(CONTENT, mode.content) ? mode.content : DEFAULT.content,
-		surface: has(SURFACES, mode.style) ? mode.style : DEFAULT.surface,
-		background: "tint",
-	};
-}
-
-// Only the seven words, so an old key riding inside `mode` never reaches the stage.
-const pick = mode => Object.fromEntries(Object.keys(DEFAULT).map(key => [key, mode[key]]).filter(([, value]) => value != null));
-
-const has = (list, id) => list.some(entry => entry.id === id);
+   `config_of()` reads a saved page's seven words, and it lives in `../blocks.js` with
+   the words themselves — Make read it through a copy here, Build did not read it at
+   all, and that is how the realm ended up with two editors writing two vocabularies
+   into one file (paging-audit-3b). One reader, one file, re-exported here because
+   this is where Make's own code reaches for it. */
+export { config_of };
 
 // How this node draws its children — the one word `tabs_items()` and the "+ tab"
 // button ask about. `nav_of()` is the realm's own lookup, so there is no second list.

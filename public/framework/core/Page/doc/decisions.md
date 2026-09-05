@@ -452,6 +452,21 @@ side only. **Matching `pad-x` on both axes was tried on 2026-09-04 and measured 
 bar — rejected.** This only moves the head's trailing edge to `pad-y`; the title keeps
 `pad-x`.
 
+### Two measured core defects, fixed at the cause — 2026-09-05
+
+**Nested columns now keep their own tokens.** `--page-column-flex` / `-min` / `-max` inherit, and a
+`demo.app()` row built inside a `full` column took that column's own three, rendering a wordless
+nested column 1202px wide in a 1202px row (nav-stability's finding). Fix: `.page.columns` resets
+all three to `initial`, so a nested host starts from its own defaults — one rule, `./columns.md`.
+
+**`bleed`'s block-margin half is no longer dead.** `framework.css`'s util-layer `:first-child` /
+`:last-child` beat this file's theme-layer bleed rule at any specificity, leaving a
+`--page-column-pad-y` strip above/below a bled first/last child in every column (the sections
+realm's finding, which restated the two lines in `util` locally as a workaround). Fix: the same two
+lines moved into `@layer util` here, beside the rule they were losing to — `styles/doc/cascade.md`.
+Both measured before/after at 1280 and 3440 on the reporting pages, with three unrelated columns
+pages checked unchanged: `ai/2026-09-05/core-fixes/`.
+
 ## Traps
 
 - **`:has()` does not care whether a page is painted.** A closed page is still in the

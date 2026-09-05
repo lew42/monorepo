@@ -29,9 +29,15 @@ import { DEFAULT } from "../blocks.js";
 
    ```json
    { "title": "Notes", "icon": "description",
-     "mode": { "style": "card", "content": "m", "mech": "launch" },
+     "mode": { "navigation": "tabs", "content": "docs", "room": "reading",
+               "arrangement": "plain", "surface": "card", "background": "plain",
+               "type": "regular" },
      "children": ["today", "later"] }
    ```
+
+   `mode` is the realm's SEVEN WORDS (`../blocks.js`) — the same seven the bar over
+   every stage sets, and the same seven the builder writes. It said `style`/`content`/
+   `mech` here until 2026-09-05, which was one of two vocabularies going into one file.
 
    `children` is an ARRAY OF DIRECTORY NAMES, not nested objects. That is the same
    rule the rest of the site follows — nothing crawls, a page exists once its parent

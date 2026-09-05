@@ -26,7 +26,17 @@ import store_for, { name_for } from "./make/made.js";
      the old DOM with them; nothing here subscribes to anything that outlives the
      rail, so there is nothing to unbind (ext/drawer/readme.md).                   */
 
-export function fill_drawer(stage, page){
+/* `focus` names the one thing the caller came for. Today there is one: `"code"`, the
+   bar's **Code** button — which promises the `page.js` and used to open this rail at
+   the top with that box below the fold, byte-identical to what **More** opened
+   (paging-audit-3, item 4). So Code puts the code box FIRST and More leaves it last:
+   two buttons, two drawers, each one delivering what its label says.
+
+   ⚠ IT REORDERS RATHER THAN SCROLLING. Scrolling to the box was tried first and it
+     races: `code.js()` highlights asynchronously, so the JSON block above grows AFTER
+     the scroll and pushes the code back off the bottom (measured: the box landed 765px
+     down a 800px rail). Order is not a race. */
+export function fill_drawer(stage, page, focus){
 	return drawer(($slot, $body) => {
 		$slot.empty(() => {
 			icon("tune");
@@ -35,10 +45,13 @@ export function fill_drawer(stage, page){
 
 		$body.empty(() => {
 			link_box(stage);
+			if (focus === "code") code_box(stage, page);
+
 			form(stage);
 			nesting(stage);
 			json_box(stage, page);
-			code_box(stage, page);
+
+			if (focus !== "code") code_box(stage, page);
 		});
 	});
 }
@@ -165,12 +178,16 @@ function json_box(stage, page){
 function code_box(stage, page){
 	p.c("h4 muted", "The same page, as code");
 
-	code.js(code_for(stage.config, page));
+	code.js(code_for_config(stage.config, page));
 
 	return md("One directory, one `page.js`. Every word above is an argument.").ac("muted paging-means");
 }
 
-export function code_for(config, page){
+/* ⚠ `code_for_config`, and `build/words.js` has `code_for_node`. Both print a
+     `page.js` and both were called `code_for` (paging-audit-3b, fix 7). A
+     CONFIGURATION is seven words, so its file is one `this.stage({…})` call; a NODE
+     has blocks and children, so its file is a `Page` with a `content()`. */
+export function code_for_config(config, page){
 	const words = Object.entries(config).map(([key, value]) => "\n\t\t\t" + key + ": " + JSON.stringify(value) + ",").join("");
 
 	return [

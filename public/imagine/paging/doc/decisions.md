@@ -856,3 +856,110 @@ column's three tokens: a demo row inside a `full` column rendered a default-widt
 each measure **0px on both numbers at 1280 and 3440**, against the same gesture on the
 unchanged version measuring 134–161px sideways and 252–302px vertically. Zero console errors
 on every page at 400 / 1280 / 1920 / 3440.
+
+
+# One vocabulary, and it reaches the editors too (`paging-fix-3`, 2026-09-05)
+
+The third audit found the realm saying its seven words everywhere except in the two places that
+WRITE them to disk. These are the decisions that closed that, in the order they were made.
+
+## The seven words are read in exactly one place, and it is `blocks.js`
+
+`config_of(node)` — a saved page's seven words — moved out of `make/tabs.js` and into
+`blocks.js`, beside the words themselves. `mode_for(node)` is its writing half: the seven words
+plus the two fields that must ride inside `mode` (`blocks`, and a child's `default: true`),
+because `FileStore.file()` writes five top-level keys and silently drops the rest.
+
+**The migration table is gone with it.** A `page.json` written before 2026-09-05 said
+`style` / `mech` / `kids` / `layout`; there used to be a branch here translating those. A key
+that is not one of the seven is now simply dropped and the default takes its place. Keeping the
+translation kept the second vocabulary alive, and while both existed a chip in Build wrote a key
+that nothing on screen read — the bug the fix pass before this one moved rather than removed.
+
+## Build has no vocabulary of its own
+
+`build/words.js` used to hold its own navigation list, its own surface list, its own layout
+numbers and its own `DEFAULT_MODE` of five keys. It now imports the three lists and adds only
+the CONTENT PIECES a built page is made of. **Step 4 was "Layout" and wrote a key called
+`arrange`, while the key actually named `layout` in the JSON beside it was the width word and
+had no control at all** — one word, two meanings, one screen. Step 4 is **Arrangement** now, it
+writes the realm's own `arrangement`, and the numbered layout the blocks use is DERIVED from it
+by `layout_of()` rather than stored a second time.
+
+## One meaning per name
+
+- `BLOCKS` in `build/words.js` became **`PIECES`**. `BLOCKS` is the realm's headline word and it
+  is taken: the six building blocks the whole realm is organized around.
+- `nav_of` had two definitions; `blocks.js`'s is the one.
+- `code_for` had two: **`code_for_node`** (a node has blocks and children, so its file is a
+  `Page` with a `content()`) and **`code_for_config`** (a configuration is seven words, so its
+  file is one `this.stage({…})` call).
+
+## A panel is not a rail
+
+`arrangement: rail-left` / `rail-right` drew the page's CHILDREN — which is what the vocabulary
+says a panel is not. A navigation rail lists this page's children; an arrangement panel is
+anything else beside the content, so it draws filters on the left and properties on the right.
+
+## Two buttons, two drawers
+
+**Code** and **More** called the same function with the same argument and opened a
+byte-identical rail, with the `page.js` Code promises below its fold. Code now puts the code box
+FIRST. ⚠ **Reordering, not scrolling** — scrolling to the box was tried and it races: `code.js()`
+highlights asynchronously, the block above it grows after the scroll, and the code lands 765px
+down an 800px rail. Order is not a race.
+
+## The address is re-read on arrival, not only on a cold load
+
+A configuration is a url, and [`cross/`](/imagine/paging/cross/) turned its nine cells into
+links carrying one. Clicked inside the app they did nothing, for two separate reasons:
+
+1. **The Router navigates by pathname and pushes the address afterwards**, so a page drawing
+   mid-navigation cannot read its own query out of `location`. `url.js` records the clicked
+   link in the capture phase instead — before core's own listener sees it.
+2. **A page here is built once.** Core caches it and `activate()` re-appends the view it already
+   has, so the stage still holds the answer it worked out when it was built. `Paging.activated()`
+   re-reads the address on arrival — and the realm's FRONT page never activates at all (core
+   activates only what CHANGED, and the front page stays in the shared part of the chain), so
+   `Realm` watches for a click on its own url.
+
+When the address says nothing about a page, its stage goes back to the page's own words. That is
+decision 4 — a demo does not persist — and it is why `base_nest` exists: a preset's own nested
+page must survive the reset that clears a url's.
+
+## The eighth control
+
+The Library's "PICK ONE OF TWELVE" was a grey chip-button above the bar, in a style nothing else
+on the page used, reading as UNSET while a preset was already running underneath it. It is the
+bar's eighth labelled dropdown now, showing the running page's own name, and it appears only on
+a page that carries a `shape`.
+
+## Wide screens: what the box is actually for
+
+At 3440 the stage is 2,739px and an article's prose is capped at the 720px reading measure, so
+`/stage/`, `/skin/`, `/arrangement/` and `/mechanisms/swap/` opened on **26%** of their own box.
+None of those pages is about the content word, so they open on content that uses the width they
+are given — a card wall, and the dashboard on `/skin/`, whose small tiles leave the content
+colour visible around them. **Measured: 720px of 2,739 before, 2,634px of 2,739 after.**
+
+The card wall needed one more thing: `.paging-wall` used `auto-fill`, which KEEPS the empty
+tracks it makes, so six cards sat in the first six of eleven columns and the right half of the
+box stayed white. `auto-fit` collapses the tracks nothing landed in.
+
+## Dropped: `compare/`
+
+A two-stage side-by-side page was proposed and is not being built.
+[`cross/`](/imagine/paging/cross/) is the better version of the same ask — nine live pages, not
+two — and every cell is now a link. Recorded in [`builder.md`](./builder.md).
+
+## Checked
+
+34 pages x 400 / 1280 / 1920 / 3440 = 136 loads, zero console errors, no sideways scroll, no
+literal asterisks. Save on Make writes the seven words to disk and reads them back. A page built
+in Build, saved, opened in Make and changed there changes on disk. A cross cell click lands on
+its own configuration; the nest chip lights, links out and clicks off.
+
+⚠ **One thing found and not fixed, because it is not this realm's:** pressing **More** and then
+**Code** and then a chip in the drawer hands the rail to `ext/layout`'s own empty state (the dev
+DesignTool claims the drawer when a selection clears). Dev chrome only, and `ext/` is another
+module's file.

@@ -1,17 +1,17 @@
-import { NAVIGATION, SURFACES, LAYOUTS } from "../blocks.js";
+import { NAVIGATION, SURFACES, ARRANGEMENT, DEFAULT, config_of, mode_for, layout_of } from "../blocks.js";
 
-/* ── THE BUILDER'S VOCABULARY ──────────────────────────────────────────────────
+/* ── THE BUILDER'S VOCABULARY ─────────────────────────────────────────
 
-   Everything the builder can SAY about a page. It used to import nothing and write
-   the realm's words out again — three of the five duplicate vocabularies the
-   2026-09-05 audit found were in this file. It now imports the three lists from
-   `../blocks.js` (which itself imports nothing) and adds only the KEYS a `page.json`
-   stores, which is a translation, not a second vocabulary.
+   THE BUILDER HAS NO VOCABULARY OF ITS OWN. Everything it can say about a page is
+   the realm's seven words (`../blocks.js`), and this file adds exactly two things
+   on top of them: the CONTENT PIECES a built page is made of, and the plain-object
+   algebra every control edits a node with.
 
-   THE ONE RULE: every word here is written into the SAME `page.json` Make already
-   writes (`../make/made.js` is the only store, `../doc/persistence.md` is the
-   contract). This file adds words to that node; it never adds a second file, a
-   second directory or a second store.
+   It used to add a third: its own list of navigation words, stored under its own
+   keys (`kids`, `mech`, `style`, `layout`, `arrange`). That is how the realm ended
+   up with TWO editors writing TWO schemas into ONE file — and because Make reads the
+   seven, Build's Navigation, Surface and Layout controls changed nothing at all on
+   any page Make had made (measured 2026-09-05, paging-audit-3b). One vocabulary.
 
    A NODE, in full:
 
@@ -20,77 +20,47 @@ import { NAVIGATION, SURFACES, LAYOUTS } from "../blocks.js";
          "icon": "description",              the material icon, everywhere it appears
          "description": "…",                 the card's second line
          "mode": {
-           "style": "card",                  SURFACE   — one of five
-           "content": "m",                   Make's own content rung, left alone
-           "mech":  "launch",                what a click on a CHILD does
-           "kids":  "tabs",                  how the children are DRAWN
-           "layout": "wide",                 the column width word
-           "arrange": "1.stack",             how the BLOCKS are laid out
-           "blocks": [ … ]                   the content, as data
+           "navigation": "tabs",             what a click on a child does, and how
+                                             the children are drawn — one of six
+           "content": "article",             what is in the box — one of eight
+           "room": "reading",                how much of the screen the box gets
+           "arrangement": "plain",           where the page's other parts sit
+           "surface": "card",                the CONTENT's own fill
+           "background": "plain",            the PAGE behind it
+           "type": "regular",                the type scale
+           "blocks": [ … ]                   the content, as data — the builder's
          },
          "children": [ … more nodes … ] }
 
-   ⚠ WHY `blocks` AND `arrange` LIVE INSIDE `mode`. `FileStore.file()` writes exactly
-     five keys — title, icon, description, `mode`, children — and drops anything else
-     at the top level, so a top-level `blocks` would be lost the moment it was saved.
-     `mode` is passed through whole, so everything the builder invents rides safely
-     inside it and Make needs no change at all. The honest home for `blocks` is the
-     top level, and that is a ONE-LINE diff to `made.js` — written out in
-     `../doc/builder.md`, not applied here: `make/` is another task's file.          */
+   ⚠ WHY `blocks` LIVES INSIDE `mode`. `FileStore.file()` writes exactly five keys —
+     title, icon, description, `mode`, children — and drops anything else at the top
+     level, so a top-level `blocks` would be lost the moment it was saved. `mode` is
+     passed through whole (`mode_for()` in `../blocks.js` is what keeps it there).   */
 
-/* ── 1 · NAVIGATION — one control, six answers, ONE LIST ──────────────────────
+/* ── THE THREE CONTROLS THAT WERE THE BUILDER'S OWN ─────────────────────────
 
-   The owner asked whether top tabs, left tabs and column pages should be one
-   control. They should: all three are answers to ONE question — *how do the pages
-   under this one appear?*
+   Navigation, Surface and Arrangement are `NAVIGATION`, `SURFACES` and `ARRANGEMENT`
+   from `../blocks.js`, unchanged and un-copied — re-exported here only so the builder
+   imports its words from one place. `config_of(node)` reads them back off a node.
 
-   ⚠ THE WORDS COME FROM `../blocks.js`. This file used to write the six out again,
-     with its own titles and its own sentences — one of FIVE live definitions of
-     `navigation` in the realm (paging-audit-2b, Q1). The ids, titles, icons and
-     sentences now have exactly one home, and all this file adds is the pair of keys
-     a `page.json` stores: `kids` is how the children are DRAWN, `mech` is what a
-     click on one DOES. A translation table is not a second vocabulary. */
-const STORED = {
-	"none":       { kids: "none",       mech: "launch" },
-	"columns":    { kids: "columns",    mech: "launch" },
-	"tabs":       { kids: "tabs",       mech: "swap" },
-	"rail":       { kids: "rail",       mech: "swap" },
-	"rail-right": { kids: "rail-right", mech: "swap" },
-	"takeover":   { kids: "columns",    mech: "takeover" },
-};
+   ⚠ STEP 4 IS `arrangement`, NOT `arrange`. The control was labelled "Layout" and
+     wrote a key called `arrange`, while the key actually named `layout` in the JSON
+     beside it was the width word and had no control at all — one word, two meanings,
+     on one screen (paging-audit-3, item 2). There is now ONE arrangement word, it is
+     the realm's, and the numbered layout the blocks use is DERIVED from it by
+     `layout_of()` rather than stored a second time.                                */
+export { NAVIGATION, SURFACES, ARRANGEMENT, config_of, layout_of };
 
-export const NAVS = NAVIGATION.map(nav => ({ ...nav, ...STORED[nav.id] }));
-
-export const nav_of = node => {
-	const mode = node?.mode ?? {};
-	return NAVS.find(nav => nav.kids === (mode.kids ?? "none") && nav.mech === (mode.mech ?? "launch"))
-		?? NAVS.find(nav => nav.kids === (mode.kids ?? "none"))
-		?? NAVS[0];
-};
-
-/* ── 2 · SURFACE — the realm's own five, imported, not restated ───────────────
-   This list was written out here a second time with its own sentences, and its own
-   comment admitted the copy. It is `../blocks.js`'s list now. (One more copy still
-   exists, in `/imagine/layouts/system.js` — a sibling realm, and not this task's
-   file to change; it is the remaining place the two can disagree.) */
-export { SURFACES };
-
-/* ── 3 · LAYOUT — the /imagine/layouts/ numbers ───────────────────────────────
-   Also one list, in `../blocks.js`, where the ARRANGEMENT words already named these
-   numbers. All this adds is the "see it full size" link the builder's control shows.
-   Four is enough: the census found 743 of the site's 890 pages are one column and
-   144 are a card wall (`../doc/builder.md`). */
-export const ARRANGES = LAYOUTS.map(layout => ({
-	...layout,
-	means: layout.means + " [See " + layout.title + " full size](" + layout.url + ").",
-}));
-
-/* ── 4 · BLOCKS — the content, as data ────────────────────────────────────────
-   Three types, and every one is a RENDERER that already exists: `md()` for prose,
+/* ── PIECES — the content of a built page, as data ────────────────────────────
+   Three kinds, and every one is a RENDERER that already exists: `md()` for prose,
    core's own `previews()` for a card wall, and the templates realm's own module for
-   a family. `../doc/persistence.md` calls this "data chooses, js supplies" and it is
-   the same pattern `"kids": "tabs"` used.                                          */
-export const BLOCKS = [
+   a family. `../doc/persistence.md` calls this "data chooses, js supplies".
+
+   ⚠ CALLED `PIECES`, NOT `BLOCKS`. `BLOCKS` is the realm's headline word and it is
+     taken: `../blocks.js` `BLOCKS` is the SIX BUILDING BLOCKS the whole realm is
+     organized around. Two lists of that name, one of them three items long, on the
+     realm whose front page is called "the six blocks" (paging-audit-3b, fix 7).   */
+export const PIECES = [
 	{ id: "prose", title: "Prose", icon: "notes", means: "a paragraph of markdown. Drawn by `md()`." },
 	{ id: "cards", title: "Card wall", icon: "grid_view", means: "the children of this page, as cards. Drawn by core's own `previews()`." },
 	{ id: "template", title: "Template", icon: "dashboard", means: "one of the eleven template families, drawn by the family's own module." },
@@ -113,7 +83,11 @@ export const next_in = (list, value) => list[(list.indexOf(value) + 1) % list.le
 
 export const clone = value => JSON.parse(JSON.stringify(value));
 
-export const DEFAULT_MODE = { style: "card", content: "m", mech: "launch", kids: "none", layout: "wide", arrange: "1.stack", blocks: [] };
+/* WHAT A NEW PAGE ARRIVES WEARING: the realm's seven words, and no blocks yet. It
+   used to be `{ style, content: "m", mech, kids, layout, arrange }` — six keys, of
+   which `content: "m"` named a rung of an axis DELETED on 2026-09-05, and none of
+   which any other control in the realm could read. */
+export const DEFAULT_MODE = { ...DEFAULT, blocks: [] };
 
 export const NEW_PAGE = () => ({
 	name: "", title: "New page", icon: "description",
@@ -122,7 +96,13 @@ export const NEW_PAGE = () => ({
 	children: [],
 });
 
-export const mode_of = node => ({ ...DEFAULT_MODE, ...node?.mode });
+/* A NODE'S WHOLE `mode`: the seven words, plus the blocks and the default-tab flag
+   that ride inside it. `mode_for()` (`../blocks.js`) is the one reader; this only
+   guarantees `blocks` is an array so nothing below has to check. */
+export const mode_of = node => {
+	const mode = mode_for(node);
+	return { ...mode, blocks: mode.blocks ?? [] };
+};
 
 export const blocks_of = node => mode_of(node).blocks ?? [];
 
@@ -171,7 +151,7 @@ export function add_child(node, title, slug){
 			title,
 			icon: ICONS[kids.length % ICONS.length],
 			description: "",
-			mode: { ...DEFAULT_MODE, kids: "none" },
+			mode: { ...DEFAULT_MODE, navigation: "none" },
 			children: [],
 		}],
 	});
@@ -210,8 +190,14 @@ export const default_index = node => Math.max(0, (node.children ?? []).findIndex
    amount of JSON will ever supply one (`../doc/builder.md` has the census). So the
    builder's last control prints the `page.js` a hand would write for the node you
    have built — the real file, ready to paste into a directory, with the block calls
-   already in it and a marked line where the code goes.                            */
-export function code_for(node){
+   already in it and a marked line where the code goes.
+
+   ⚠ `code_for_node`, and `../config.js` has `code_for_config`. Both print a
+     `page.js`; they are given different things, and both were called `code_for`
+     (paging-audit-3b, fix 7). A node has blocks and children, so its file is a
+     `Page` with a `content()`; a configuration is seven words, so its file is one
+     `this.stage({…})` call. The name now says which you are looking at.          */
+export function code_for_node(node){
 	const mode = mode_of(node);
 	const kids = node.children ?? [];
 	const blocks = blocks_of(node);
@@ -226,7 +212,9 @@ export function code_for(node){
 		`\ttitle: ${JSON.stringify(node.title)},`,
 		node.icon ? `\ticon: ${JSON.stringify(node.icon)},` : null,
 		node.description ? `\tdescription: ${JSON.stringify(node.description)},` : null,
-		mode.mech === "takeover" ? `\twidth: "full",   // takeover — core's own word` : `\twidth: "large",`,
+		mode.room === "full" || mode.navigation === "takeover"
+			? `\twidth: "full",   // the whole screen — core's own word`
+			: `\twidth: "large",`,
 		kids.length ? `\tchildren: ${JSON.stringify(kids.map(kid => kid.name).join(" "))},` : null,
 		blocks.some(b => b.type === "cards") ? `\tindex: true,     // my content already shows my children` : null,
 		``,

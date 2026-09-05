@@ -18,7 +18,13 @@ export default block({
 
 	lede_line: "Click the tabs on the page below and watch its white box. The line under it measures the box after every click.",
 
-	config: { navigation: "tabs", content: "article", room: "wide", arrangement: "plain", surface: "card", background: "tint", type: "regular" },
+	/* ⚠ OPENS ON A CARD WALL, NOT AN ARTICLE. At 3440 this box is 2739px wide and an
+	     article's prose is capped at the 720px reading measure, so the page's whole
+	     first screen was one narrow column and 2,000px of white (paging-audit-3). The
+	     content word is not the subject of this page — the BOX is — so it opens on the
+	     one kind of content that uses the width it is given. Every other kind is one
+	     click away on [Content](/imagine/paging/content/). */
+	config: { navigation: "tabs", content: "cards", room: "wide", arrangement: "plain", surface: "card", background: "tint", type: "regular" },
 
 	places: [
 		["Swap", "/imagine/paging/mechanisms/swap/", "four ways to draw the same swap, on one fixed-height stage"],

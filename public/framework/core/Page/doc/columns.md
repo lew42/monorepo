@@ -217,6 +217,12 @@ between two paragraphs keeps its rhythm; the local hatch this replaced
 (`examples/grids/grids.css`, `margin: -0.7em -0.9em`) cancelled both ends unconditionally and got
 away with it only because it was always alone in its column.
 
+⚠ **That block-margin half was silently dead until 2026-09-05.** `framework.css`'s
+`@layer util` declares a bare `:first-child { margin-top: 0 }` / `:last-child { margin-bottom: 0 }`,
+which beats a `theme`-layer rule at any specificity — so a bled block that was its column's first or
+last child kept a full `--page-column-pad-y` strip above/below it no matter what this selector said.
+Fixed by moving these two declarations into `@layer util` alongside it (`styles/doc/cascade.md`).
+
 ## Measured 2026-08-29 (headless, the live page, 900 tall / 1400 at 3440)
 
 ⚠ Historical: measured before 2026-09-01, when `small` and the default ceiling became
@@ -303,6 +309,12 @@ Colours: transparent bodies over one `--wash` floor, every seam a 1px `--line` h
   own — computes to (0,4,0) and beat `.page.columns` (0,2,0) outright, so a host inside a panel lost
   its whole row. The rule is now split: the sheet half says `:not(.columns)`, and a host asks the
   region for a flex share and nothing else.
+- **The three width tokens inherit, and a nested `.page.columns` row used to take its ancestor's.**
+  `--page-column-flex` / `-min` / `-max` are declared on a column BODY, and custom properties
+  inherit — so a `demo.app()` row built inside a `full` column took `1 0 100%` / `none` for every
+  wordless column of its own, rendering one 1202px wide in a 1202px row. Fixed 2026-09-05: `.page.columns`
+  resets all three to `initial`, so a nested host starts from its own defaults regardless of what
+  wraps it (`ai/2026-09-05/core-fixes/`).
 
 ## The empty room — absorb was tried, and the answer is empty SLOTS
 

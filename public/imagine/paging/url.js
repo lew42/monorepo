@@ -30,6 +30,35 @@ const AXES = CONTROLS.map(control => control.axis);
      here, hold it, and hand it only to the page it names. */
 const ENTRY = { path: location.pathname, params: new URLSearchParams(location.search) };
 
+/* ── AND THE SAME QUESTION FOR A LINK YOU CLICK ───────────────────────────────
+
+   A cold load is not the only way to arrive at a configured page: `cross/` links its
+   nine cells to `/imagine/paging/?navigation=…&arrangement=…`, and the drawer hands
+   out addresses exactly like it. Clicked INSIDE the app, those did nothing — the
+   query was dropped and the hub opened on its own words (measured 2026-09-05).
+
+   The reason is the same one `from_url()` explains below: core's Router navigates by
+   the link's PATHNAME and pushes the whole address AFTER the page has drawn, so a
+   page being built mid-navigation cannot read its own query out of `location`. The
+   answer is to read it off THE LINK THAT WAS CLICKED, before the Router gets it.
+
+   ⚠ CAPTURE PHASE. The Router listens on `document` in the bubble phase, so a capture
+     listener here runs first and the query is recorded before the navigation starts.
+   ⚠ EVERY same-origin link, not only the ones with a query. A rail link back to
+     `/imagine/paging/` has no query and MUST clear what a cross cell left behind,
+     or the hub would keep re-opening on words you navigated away from. */
+let CLICKED = null;
+
+document.addEventListener("click", event => {
+	const link = event.target?.closest?.("a[href]");
+	if (!link || link.origin !== location.origin) return;
+	CLICKED = { path: link.pathname, params: new URLSearchParams(link.search) };
+}, true);
+
+// The query that belongs to THIS page: the one on the link that brought you here, or
+// the one the browser was opened with. Never "whatever is in the address bar now".
+const entry_for = path => (CLICKED?.path === path ? CLICKED : ENTRY.path === path ? ENTRY : null);
+
 /* THE WORDS THIS PAGE OPENS ON: its own, with anything in `?…` written over them.
    A value that is not in that word's list is ignored, so `?room=banana` opens the
    page rather than a broken one.
@@ -50,16 +79,17 @@ const ENTRY = { path: location.pathname, params: new URLSearchParams(location.se
      never the address bar's opinion. `?…` applies to the page the entry url names,
      and to nothing else. */
 export function from_url(base, path){
-	if (!path || path !== ENTRY.path) return { config: { ...base }, nest: null };
+	const entry = path && entry_for(path);
+	if (!entry) return { config: { ...base }, nest: null };
 
 	const config = { ...base };
 
 	AXES.forEach(axis => {
-		const value = ENTRY.params.get(axis);
-		if (value && values_for(axis).some(entry => entry.id === value)) config[axis] = value;
+		const value = entry.params.get(axis);
+		if (value && values_for(axis).some(entry_id => entry_id.id === value)) config[axis] = value;
 	});
 
-	return { config, nest: nest_of(ENTRY.params.get("nest")) };
+	return { config, nest: nest_of(entry.params.get("nest")) };
 }
 
 // `?nest=dashboard` — a whole second page, running inside this one's box.

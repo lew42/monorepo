@@ -1,6 +1,6 @@
 import { Page, div, p, h3, span, a, input, textarea, icon, md } from "/app.js";
 import { Paging, press } from "../paging.js";
-import { CONTROLS, title_of } from "../blocks.js";
+import { CONTROLS, title_of, mode_for } from "../blocks.js";
 
 import { baseline } from "../baseline.js";
 import { store_for, FileStore, LocalStore, at, walk, name_for, clone, SEED, DEFAULTS, DIR } from "./made.js";
@@ -10,8 +10,8 @@ import { config_of, kids_of, row_acts } from "./tabs.js";
    (`../blocks.js`) — the same keys the drawer writes, so a chip here and a chip in
    the drawer change the same thing. The other three (room, arrangement, type) are on
    the page itself, where you can see them; a row in a list is not the place for a
-   width. `config_of()` (make/tabs.js) is the one reader, and it migrates the old
-   words on the way in. */
+   width. `config_of()` (`../blocks.js`) is the one reader, and Build reads the same
+   one — two editors reading two vocabularies is the bug this realm keeps re-finding. */
 const ROW_WORDS = ["navigation", "content", "surface", "background"];
 
 const control_of = axis => CONTROLS.find(control => control.axis === axis);
@@ -35,7 +35,7 @@ const control_of = axis => CONTROLS.find(control => control.axis === axis);
    can open in an editor, edit by hand, and commit.
 
    ── HOW IT WORKS, IN THREE SENTENCES ──────────────────────────────────────────
-   1. A page is a plain JSON object: a title, three words, and a list of the names
+   1. A page is a plain JSON object: a title, the realm's seven words, and a list of the names
       of its children. Nothing else.
    2. `children:` already accepts real `Page` objects and `Page.add()` gives each one
       a real url — so turning that JSON into a live tree needs no new machinery.
@@ -56,7 +56,7 @@ const control_of = axis => CONTROLS.find(control => control.axis === axis);
 // The next word in a list, wrapping — what a click on a word chip does.
 const next = (list, word) => list[(list.indexOf(word) + 1) % list.length];
 
-/* JSON → REAL PAGES. Each node becomes a `Paging` wearing its three words, and its
+/* JSON → REAL PAGES. Each node becomes a `Paging` wearing its seven words, and its
    own children are built the same way. `Page.add()` (called by `regrow()` below)
    hands each one a real url derived from this page's. */
 function grow(nodes){
@@ -245,7 +245,7 @@ export default new Paging({
 
 		h3("The same tree, as the JSON it actually is");
 
-		md("This is the whole tree as data — the exact shape that goes into the files. One object per page: a `title`, three `mode` words, and `children`. Change it and press Save.");
+		md("This is the whole tree as data — the exact shape that goes into the files. One object per page: a `title`, a `mode` of the realm's **seven words**, and `children`. Change it and press Save.");
 
 		this.editor();
 
@@ -329,10 +329,11 @@ export default new Paging({
 		const node = at(tree, path);
 		if (!node) return this;
 
-		/* ⚠ MIGRATE, THEN CHANGE. A node written in the old words is rewritten in the
-		     seven on its first edit, so the store only ever gains new-word nodes and
-		     the translation in `config_of()` is a ramp rather than a fork. */
-		node.mode = { ...config_of(node), ...change };
+		/* ⚠ THE WHOLE MODE IS REWRITTEN, not patched. `mode_for()` returns the seven
+		     words plus the two fields the builder keeps, so a node written in some older
+		     vocabulary is rewritten in the current one on its first edit and the store
+		     only ever gains nodes every control can read. */
+		node.mode = { ...mode_for(node), ...change };
 		return this.apply(tree);
 	},
 
@@ -418,13 +419,19 @@ export default new Paging({
 		return this.apply(this.named(tree));
 	},
 
+	/* ⚠ `mode_for()`, and it used to be a call to a function called `words()` that was
+	     never imported, never defined and exported by nothing — so **Save under the JSON
+	     box threw `ReferenceError: words is not defined` and wrote nothing at all**. The
+	     whole-tree editor, which is this page's third control, had never worked
+	     (measured 2026-09-05, paging-audit-3b). `mode_for()` is the realm's own writer:
+	     the seven words, plus the two fields the builder keeps inside `mode`. */
 	named(nodes, path = []){
 		const out = [];
 
 		nodes.forEach(node => {
 			const title = String(node?.title ?? "Untitled");
 			const name = node?.name || name_for(title, out, Page.slug);
-			out.push({ ...node, name, title, mode: words(node ?? {}), children: this.named(node?.children ?? [], [...path, name]) });
+			out.push({ ...node, name, title, mode: mode_for(node), children: this.named(node?.children ?? [], [...path, name]) });
 		});
 
 		return out;

@@ -37,6 +37,16 @@
 	   to match this rule against its own mark and hide the whole branch (found by the
 	   gallery build, 2026-08-29). A stale default is neither active nor an ancestor. */
 	.page-column-pages:has(> .page:is(.active-page, .active-ancestor)) > .page.default:not(.active-page, .active-ancestor) { display: none; }
+
+	/* bleed's BLOCK-margin half, moved here from theme (2026-09-05, core-fixes):
+	   framework.css's :first-child { margin-top: 0 } / :last-child { margin-bottom: 0 }
+	   are ALSO util, so a theme-layer rule can never out-rank them no matter its
+	   selector -- measured, a bled first/last child in a column kept a full
+	   --page-column-pad-y strip of column floor above/below it (2026-09-05,
+	   /imagine/sections/). Same layer as the rule it needs to beat, so ordinary
+	   specificity decides: this selector's four classes beat a bare :first-child. */
+	.page-column-prose > .bleed:not(.page-previews, .page-walls):first-child { margin-block-start: calc(var(--page-column-pad-y) * -1); }
+	.page-column-prose > .bleed:not(.page-previews, .page-walls):last-child  { margin-block-end:   calc(var(--page-column-pad-y) * -1); }
 }
 
 @layer theme {
@@ -250,6 +260,18 @@
 	.page.column,
 	.page-column-pages { display: contents; }
 
+	/* ⚠ THE THREE WIDTH TOKENS INHERIT, and a columns row nested inside a COLUMN of
+	   another row would otherwise take that column's own three — a demo row inside a
+	   `full` column gave every wordless column `1 0 100%` / `max-width: none` and one
+	   of them rendered 1202px wide in a 1202px row (2026-09-05, nav-stability). A host
+	   starts from the defaults. `initial` on a custom property is the guaranteed-invalid
+	   value, which is exactly what makes `var(--x, fallback)` fall back. doc/columns.md. */
+	.page.columns {
+		--page-column-flex: initial;
+		--page-column-min: initial;
+		--page-column-max: initial;
+	}
+
 	/* ONE COLUMN. ⚠ (0,3,0) on purpose: `.page > *` above sets `min-width: 0` at
 	     (0,1,0) in the same layer, and a tie would be decided by stylesheet order.
 	   ⚠ Its OWN tokens, not `--measure`: a region may set `--measure: none` (every
@@ -457,8 +479,13 @@
 	   should use the padding just like the text content" (the owner, 2026-08-29).
 	   An author's own bled block still reaches the edge. */
 	.page-column-prose > .bleed:not(.page-previews, .page-walls) { margin-inline: calc(var(--page-column-pad-x) * -1); }
-	.page-column-prose > .bleed:not(.page-previews, .page-walls):first-child { margin-block-start: calc(var(--page-column-pad-y) * -1); }
-	.page-column-prose > .bleed:not(.page-previews, .page-walls):last-child  { margin-block-end:   calc(var(--page-column-pad-y) * -1); }
+	/* The BLOCK-margin half (:first-child / :last-child) moved to @layer util, top of
+	   file (2026-09-05, core-fixes) -- framework.css util-layer :first-child { margin-top: 0 }
+	   / :last-child { margin-bottom: 0 } beat this rule at ANY specificity from theme,
+	   so a bled block that is its column's first or last child kept a --page-column-pad-y
+	   strip above/below it no matter what selector was tried here. Same layer now, and
+	   this selector's higher specificity wins the ordinary way.
+	   doc/columns.md, doc/decisions.md. */
 
 	/* The list is a vertical tab bar: a label, the open child lit, a 2px mark on the
 	   inline edge — `.tabs.vertical`'s own declarations, restated because no call site

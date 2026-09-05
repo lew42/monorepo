@@ -4,9 +4,13 @@ Open [/imagine/paging/](/imagine/paging/). A real page is on the stage; the bar 
 has every word that page is made of, one labelled dropdown each. Change one and the page
 changes. Pick another shape from the rail. That is the whole thing.
 
-**The configuration is in the address.** Every chip you press writes itself into the url
+**The configuration is in the address.** Every word you change writes itself into the url
 (`?navigation=rail&content=dashboard`), so the page you are looking at is always the page
 the url names — copy it, send it, open it cold and you get the same page. `url.js`.
+
+**One vocabulary, one file format.** The seven words are the same seven everywhere: the bar
+over a stage, the drawer, the url, and both editors write them into one `mode` object in one
+`page.json`. `config_of()` in [`blocks.js`](./blocks.js) is the only thing that reads it.
 
 ## The six blocks
 
@@ -39,9 +43,11 @@ export default new Paging({
 });
 ```
 
-- `stage()` draws the page, the bar of chips above it and the way into the drawer. There is no
-  second renderer — the [library](/imagine/paging/library/)'s twelve presets, the block
-  pages and the pages you [make](/imagine/paging/make/) are all this one call.
+- `stage()` draws the page, the bar above it and the way into the drawer. Every configured
+  page in the realm is this one call — the [library](/imagine/paging/library/)'s twelve
+  presets, the block pages, the nine cells of [Cross](/imagine/paging/cross/) and the pages
+  you [make](/imagine/paging/make/). ([Build](/imagine/paging/build/) still draws its own and
+  [should not](/imagine/paging/doc/builder/).)
 - The vocabulary is [`blocks.js`](./blocks.js) and it imports nothing, so a page, a rail
   tile, a chip, a url and a doc all read the same lists.
 - **Two colour controls, independent**: `surface` paints the content box, `background`
@@ -74,7 +80,8 @@ export default new Paging({
   edge until 2026-09-05, revealed on hover — so pointing at the front page's tab strip
   made the bar appear on top of it and the tab could not be clicked at all, at any width.
   It is a sibling above the stage now and it reserves its height.
-- **Seven dropdowns, and no width written anywhere.** Chip groups for 40 values sprawled
+- **Seven dropdowns, and no width written anywhere** — eight on a [library](/imagine/paging/library/)
+  page, where the extra one is *page shape* and names the ready-made page you are on. Chip groups for 40 values sprawled
   four rows deep; dropdowns fit one row at 3440 and two at 1280. A `<select>` in a flex
   row shrinks below its content, which is why the bar's old selects clipped their own
   values — `flex: none` on the control, and no `padding` shorthand (it takes away the
@@ -83,10 +90,16 @@ export default new Paging({
   caption under the stage can say "the box did not move" and be right. `columns` and
   `takeover` are the dynamic words and report the pixels they really moved ·
   [navigation](/imagine/paging/navigation/)
-- **`?...` belongs to the page the ENTRY url names** — not to `location.pathname` (core
-  pushes the address after the page draws, so mid-navigation it is the page you left) and
-  not to "the first stage that asks" (the app's home page is built on every cold load,
-  even when a deep child is what you opened) · `url.js`
+- **`?...` belongs to the page named by the url you ARRIVED on** — the address the browser
+  opened, or the link you clicked. Not `location.pathname` (core pushes the address after the
+  page draws, so mid-navigation it is still the page you left) and not "the first stage that
+  asks" (the app's home page is built on every cold load, even when a deep child is what you
+  opened) · `url.js`
+- **A page here is built once and then shown again.** Core caches it and `activate()`
+  re-appends the view it already has, so a stage that read the address when it was built shows
+  that answer for ever. `Paging.activated()` re-reads it on arrival; the app's FRONT page never
+  activates at all (core only activates what changed) so `Realm` watches for a click on its own
+  url instead · `paging.js`
 - Six old directories are gone; their urls answer with one line saying where they went
   (`route()` in `page.js`). Delete a row when nothing points at it.
 
@@ -97,13 +110,15 @@ export default new Paging({
   [the four mechanisms](/imagine/paging/doc/mechanisms/) ·
   [persistence](/imagine/paging/doc/persistence/) ·
   [templates](/imagine/paging/doc/templates/) · [builder](/imagine/paging/doc/builder/)
-- Files that matter: `blocks.js` (the vocabulary) · `stage.js` (the one renderer) ·
+- Files that matter: `blocks.js` (the vocabulary) · `stage.js` (the one renderer **for a
+  configured page** — the builder draws its own, [and should not](/imagine/paging/doc/builder/)) ·
   `presets.js` (the twelve) · `paging.js` (the app, and the base class) ·
   `rail.js` (the nav grids) · `toolbar.js` (the bar of chips) · `url.js` (the address) ·
   `config.js` (the drawer)
 - Next door: [/imagine/layouts/](/imagine/layouts/) owns the numbered arrangements;
-  [/imagine/shells/](/imagine/shells/) owns app chrome; [templates](/imagine/paging/templates/)
-  is the eleven shapes the rest of the site already ships.
+  [/imagine/shells/](/imagine/shells/) owns app chrome; [/imagine/sections/](/imagine/sections/)
+  owns the full-width bands; [templates](/imagine/paging/templates/) is the eleven shapes the
+  rest of the site already ships.
 - [Cross](/imagine/paging/cross/) — two words at once, nine live pages; the other
   crossing is [the theming wall](/imagine/paging/templates/theming/).
 - Two readings, linked from [Docs](/imagine/paging/doc/) and nowhere else:

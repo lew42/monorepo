@@ -96,7 +96,13 @@ export const PRESETS = [
 		icon: "layers",
 		one_line: "A whole second page, running inside this one's box.",
 		config: { navigation: "tabs", content: "article", room: "wide", arrangement: "plain", surface: "card", background: "tint", type: "regular" },
-		nest: { navigation: "rail", content: "dashboard", room: "reading", arrangement: "plain", surface: "tint", background: "plain", type: "compact" },
+
+		/* ⚠ `nest` IS A PRESET ID, not a configuration of its own. `?nest=` can only
+		     name one of the twelve (`url.js` `nest_of`), so a nest written out longhand
+		     here had no id — which meant this page, whose whole subject is the nest,
+		     opened with twelve nest chips and NONE of them lit, no `?nest=` in its
+		     address, and no way to take the nested page back out (paging-audit-3b). */
+		nest: "dashboard",
 	},
 ];
 

@@ -18,5 +18,8 @@ export default block({
 
 	lede_line: "Change the **arrangement** dropdown. The content in the box never changes — only what is arranged around it.",
 
-	config: { navigation: "none", content: "article", room: "wide", arrangement: "bar-top", surface: "card", background: "tint", type: "regular" },
+	/* ⚠ A CARD WALL, so the box is full at 3440. The content in the box is beside the
+	     point here — the chrome around it is the subject — and an article capped at the
+	     720px reading measure left 2,000px of the 2,739px box white (paging-audit-3). */
+	config: { navigation: "none", content: "cards", room: "wide", arrangement: "bar-top", surface: "card", background: "tint", type: "regular" },
 });

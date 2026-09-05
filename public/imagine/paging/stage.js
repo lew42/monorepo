@@ -20,8 +20,13 @@ const ids = list => list.map(entry => entry.id);
 
        new Stage({ config: { navigation: "tabs", content: "article", … } })
 
-   Everything in this realm is this class. A preset is a configuration; the hover
-   toolbar edits one; the drawer prints one as JSON. There is no second renderer.
+   THIS IS THE ONE RENDERER FOR A CONFIGURED PAGE. A preset is a configuration; the
+   bar edits one; the drawer prints one as JSON; a `?…` url names one — and every one
+   of those goes through this class. What is NOT drawn here is the two tools that
+   draw something else: the BUILDER draws a node you are still assembling
+   (`build/stage.js`), and the navigation labs draw one gesture at a time
+   (`navigation/lab.js`). The builder should be this class too, and the schema stopped
+   being the reason it is not — `doc/builder.md` has the order it happens in.
 
    ⚠ THE BOX NEVER MOVES unless the configuration says it should. That is the whole
      idea a "stage" names, and it is why the caption measures the box before and
@@ -50,6 +55,10 @@ export class PagingStage extends View {
 		const opening = this.inner ? { config: this.base, nest: null } : from_url(this.base, this.page?.url);
 
 		this.config = opening.config;
+
+		// The page's OWN nested page, before the url gets a vote — the same idea as
+		// `base`, and what `reopen()` falls back to when the address names none.
+		this.base_nest = this.nest ?? null;
 		this.nest ??= opening.nest;
 		this.pages ??= PAGES;
 		this.open ??= null;
@@ -95,7 +104,8 @@ export class PagingStage extends View {
 		if (c.arrangement === "bar-top") this.bar("top");
 
 		div.c("paging-stage-body", () => {
-			if (c.navigation === "rail" || c.arrangement === "rail-left") this.rail("left");
+			if (c.navigation === "rail") this.rail("left");
+			if (c.arrangement === "rail-left") this.panel("left");
 
 			div.c("paging-stage-mid", () => {
 				if (c.navigation === "tabs") this.tabs();
@@ -103,7 +113,8 @@ export class PagingStage extends View {
 				if (c.navigation === "columns" && this.open !== null) this.pane();
 			});
 
-			if (c.navigation === "rail-right" || c.arrangement === "rail-right") this.rail("right");
+			if (c.navigation === "rail-right") this.rail("right");
+			if (c.arrangement === "rail-right") this.panel("right");
 			if (c.arrangement === "main-aside") this.aside();
 		});
 
@@ -301,6 +312,23 @@ export class PagingStage extends View {
 		});
 	}
 
+	/* ── A PANEL IS NOT A RAIL ────────────────────────────────────────────────
+	   `arrangement: rail-left` and `navigation: rail` both put a column beside the
+	   content, and they hold DIFFERENT THINGS: a navigation rail lists this page's
+	   children, and an arrangement panel is anything else — a filter, the properties
+	   of the thing you are reading. `blocks.js` has said so in words since 2026-09-05
+	   and this renderer drew the children for both, which made the distinction the
+	   vocabulary insists on invisible on screen. */
+	panel(side){
+		return div.c("paging-aside", () => {
+			span.c("paging-eyebrow", side === "left" ? "filters" : "properties");
+			(side === "left"
+				? ["Everything", "Only mine", "Shared with me", "Archived"]
+				: ["Anyone with the link can read", "Edited 2 hours ago", "4 pages under this one", "Comments on"])
+				.forEach(words => span.c("paging-aside-row", words));
+		});
+	}
+
 	aside(){
 		return div.c("paging-aside", () => {
 			span.c("paging-eyebrow", "on this page");
@@ -383,6 +411,32 @@ export class PagingStage extends View {
 	}
 
 	redraw(){ this.paint(); this.empty(() => { this.frame(); }); return this; }
+
+	/* ── ARRIVING AT A PAGE THAT WAS ALREADY BUILT ────────────────────────────
+	   A page in this realm is built ONCE: core caches it, and the second time you
+	   arrive `activate()` re-appends the view it already has. So a stage that read the
+	   address when it was built is still showing that answer — and the realm's FRONT
+	   page is worse, because it is built at boot and merely hidden, so a link into it
+	   carrying a configuration (`cross/`'s nine cells) reached a stage that had made up
+	   its mind before the link existed. Measured 2026-09-05.
+
+	   This re-reads the address and redraws. When the address says nothing about this
+	   page, the words go back to the page's own — which is decision 4, a demo does not
+	   persist. `paging.js` calls it on arrival. */
+	reopen(){
+		if (this.inner) return this;
+
+		const opening = from_url(this.base, this.page?.url);
+
+		this.config = opening.config;
+		this.nest = opening.nest ?? this.base_nest;   // ⚠ never lose the page's own nest
+		this.open = null;
+		this.change = null;
+
+		this.redraw();
+		this.changed?.();        // the toolbar writes its dropdowns back
+		return this;
+	}
 
 	rect(){
 		const box = this.$box?.el?.getBoundingClientRect();

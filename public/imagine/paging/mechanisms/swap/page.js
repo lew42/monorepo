@@ -24,7 +24,10 @@ export default new Paging({
 	content(){
 		this.lede("Click **Pricing** on the page below, then **Docs**. Watch the white box: the line under it measures it for you every time.");
 
-		this.stage({ navigation: "tabs", content: "article", room: "wide", arrangement: "plain", surface: "card", background: "tint", type: "regular" });
+		// ⚠ A card wall, not an article: at 3440 the box is 2,739px and prose is capped
+		//   at the 720px reading measure, so the first screen was mostly white
+		//   (paging-audit-3). What this page asks you to watch is the box's EDGES.
+		this.stage({ navigation: "tabs", content: "cards", room: "wide", arrangement: "plain", surface: "card", background: "tint", type: "regular" });
 
 		h2("The same swap, drawn three other ways");
 

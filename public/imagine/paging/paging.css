@@ -106,11 +106,18 @@
 	.paging-panel-link { display: inline-flex; align-items: center; gap: 0.2em; }
 
 	/* The card wall a demo box draws inside itself — core's `.page-previews`, sized
-	   for a box rather than for a page region. */
+	   for a box rather than for a page region.
+
+	   ⚠ `auto-fit`, NOT `auto-fill`. `auto-fill` keeps the empty tracks it made, so at
+	     3440 six cards sat in the first six of eleven 240px columns and the right half
+	     of a 2,634px box was white — the very thing this wall is here to stop
+	     (paging-audit-3, "wide screens"). `auto-fit` collapses the tracks nothing
+	     landed in and the six cards share the whole width. Nothing changes at 1280,
+	     where every track has a card in it. */
 	.paging-wall {
 		--column: 12em;
 		display: grid; gap: 0.6em;
-		grid-template-columns: repeat(auto-fill, minmax(min(var(--column), 100%), 1fr));
+		grid-template-columns: repeat(auto-fit, minmax(min(var(--column), 100%), 1fr));
 	}
 
 	/* ── A MINIATURE — a small frame that behaves like the real mechanism ─────
@@ -294,7 +301,6 @@
 	.paging-face-fade-out { animation: paging-fade-out 180ms ease-in both; }
 
 	/* FLIP — the stage turns over and the new panel is on its back. */
-	.paging-stage-flip { perspective: 1200px; }
 	.paging-swapper-flipper {
 		position: absolute; inset: 0;
 		transform-style: preserve-3d;

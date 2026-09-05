@@ -109,6 +109,15 @@ export class Paging extends Page {
 		return words ? md(words).ac("paging-lede") : null;
 	}
 
+	/* ⚠ A PAGE IN THIS REALM IS BUILT ONCE and then shown again — core caches it, and
+	     `activate()` re-appends the view it already has rather than rebuilding it. So a
+	     stage that read the address when it was BUILT is still showing that answer the
+	     second time you arrive, and a link carrying a configuration does nothing.
+	     `reopen()` re-reads it (`stage.js`); when the address says nothing about this
+	     page the stage goes back to the page's own words, which is the realm's rule
+	     that a demo does not persist (`doc/decisions.md`, decision 4). */
+	activated(){ this.$stage?.reopen(); }
+
 	/* PUT A CONFIGURED PAGE ON SCREEN — the stage, its hover toolbar, and the drawer
 	   button. One call, and it is the same call on the hub, on a preset, on a block
 	   page and on a made page. `config` is the seven words; anything else is handed
@@ -144,6 +153,23 @@ export class Paging extends Page {
 
 /* ── THE APP ──────────────────────────────────────────────────────────────────── */
 export class Realm extends Paging {
+
+	/* ⚠ THE FRONT PAGE NEVER ACTIVATES. Core activates only what CHANGED, so going from
+	     a child of this realm back to the realm's own page leaves THIS page in the
+	     shared part of the chain and `activated()` never fires — for the one page that
+	     needs it most, since the app's home is built at boot and only hidden afterwards.
+	     A click on a link to my own url IS the arrival, so that is what this listens
+	     for. (`cross/`'s nine cells are exactly such links: `/imagine/paging/?…`.)
+	   ⚠ Capture phase and a microtask: `url.js` records the clicked link in the same
+	     phase, and core's Router acts in the bubble phase — the microtask runs after
+	     both, so the query is recorded and the navigation is under way. */
+	initialize(){
+		document.addEventListener("click", event => {
+			const link = event.target?.closest?.("a[href]");
+			if (link && link.origin === location.origin && link.pathname === this.url)
+				queueMicrotask(() => this.activated());
+		}, true);
+	}
 
 	// A shell is its own screen, not a column: mounting beside the row's host is the
 	// arrangement contract's own sibling rule, and /imagine/ stands down. The same

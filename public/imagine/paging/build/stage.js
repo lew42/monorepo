@@ -1,5 +1,6 @@
 import { View, div, p, h3, h4, span, a, icon, md } from "/app.js";
-import { mode_of, blocks_of, nav_of, default_index, is_default } from "./words.js";
+import { blocks_of, default_index, is_default } from "./words.js";
+import { config_of, nav_of, layout_of } from "../blocks.js";
 
 /* ── THE STAGE — the page you are building, drawn live ─────────────────────────
 
@@ -26,10 +27,10 @@ import { mode_of, blocks_of, nav_of, default_index, is_default } from "./words.j
 export class BuildStage extends View {
 
 	render(){
-		const mode = mode_of(this.node);
-		const nav = nav_of(this.node);
+		const config = this.config = config_of(this.node);
+		const nav = nav_of(config.navigation);
 
-		this.ac("build-screen-" + mode.style);
+		this.ac("build-screen-" + config.surface);
 
 		// The trail. Core draws this on the COLUMNS HOST after every activation, not
 		// on the page — so it is here for the same reason it is there: to say where
@@ -37,10 +38,13 @@ export class BuildStage extends View {
 		// off per page today. (`/imagine/layouts/` added the switch; it is the host's.)
 		this.crumbs();
 
+		if (config.arrangement === "bar-top") this.chrome_bar("top");
+
 		if (nav.id === "tabs") this.tabbar();
 
 		div.c("build-screen-row").ac(nav.id === "rail-right" && "build-screen-flip").append(() => {
 			if (nav.id === "rail" || nav.id === "rail-right") this.rail();
+			if (config.arrangement === "rail-left") this.side_panel("left");
 
 			div.c("build-sheet flex-1", () => {
 				// The PAGE's title, always. The tab's own title is the panel's heading below,
@@ -52,6 +56,48 @@ export class BuildStage extends View {
 				this.blocks();
 				if (nav.id === "columns" || nav.id === "takeover") this.rows(nav);
 			});
+
+			if (config.arrangement === "rail-right") this.side_panel("right");
+			if (config.arrangement === "main-aside") this.aside();
+		});
+
+		if (config.arrangement === "bar-bottom") this.chrome_bar("bottom");
+	}
+
+	/* ── THE CHROME THE ARRANGEMENT WORD ADDS ─────────────────────────────────
+	   Step 4 sets one of the realm's seven arrangement words, so the picture in the
+	   middle has to SHOW that word or the control is a lie — a bar, a footer, a side
+	   panel, an aside. These three methods wear `paging.css`'s own chrome classes, so
+	   the toolbar Build draws and the toolbar a real page draws are the same picture.
+
+	   ⚠ THIS IS THE ONE THING LEFT TO DELETE. `../doc/builder.md` has the plan: this
+	     class should BE a `PagingStage`, which already draws every one of these. The
+	     schema had to become one first, and now it has. */
+	chrome_bar(where){
+		return div.c("paging-bar paging-bar-" + where, () => {
+			["Save", "Share", "History"].forEach(word => span.c("paging-bar-btn", word));
+			span.c("paging-bar-gap");
+			span.c("paging-bar-note", where === "top" ? "toolbar" : "footer");
+		});
+	}
+
+	// A panel is NOT the navigation rail: a rail lists this page's children, a panel
+	// is anything else beside the content. `../blocks.js` draws the same distinction.
+	side_panel(side){
+		return div.c("paging-aside", () => {
+			span.c("paging-eyebrow", side === "left" ? "filters" : "properties");
+			(side === "left"
+				? ["Everything", "Only mine", "Shared with me", "Archived"]
+				: ["Anyone with the link can read", "Edited 2 hours ago", "Comments on"])
+				.forEach(words => span.c("paging-aside-row", words));
+		});
+	}
+
+	aside(){
+		return div.c("paging-aside", () => {
+			span.c("paging-eyebrow", "on this page");
+			["What this page is for", "What a child costs", "Writing a page"]
+				.forEach(words => span.c("paging-aside-row", words));
 		});
 	}
 
@@ -133,13 +179,19 @@ export class BuildStage extends View {
 	}
 
 	// ── the blocks, in the arrangement ───────────────────────────────────────
+	/* ⚠ THE NUMBERED LAYOUT IS DERIVED, NEVER STORED. `layout_of()` (`../blocks.js`)
+	     answers which of the four numbered layouts an arrangement word compiles to, so
+	     the builder cannot say `wall` and lay the blocks out in one column. It used to
+	     store its own `arrange` key beside a control labelled "Layout", which is the
+	     one-word-two-meanings defect this pass deleted (paging-audit-3, item 2). */
 	blocks(){
-		const mode = mode_of(this.node);
 		const blocks = blocks_of(this.node);
 
 		if (!blocks.length) return p.c("muted build-blocks-empty", "No blocks yet. Add a block on the left and it appears here.");
 
-		return div.c("build-blocks").ac("build-arrange-" + mode.arrange.replace(".", "-"))
+		const layout = layout_of(config_of(this.node).arrangement);
+
+		return div.c("build-blocks").ac("build-arrange-" + layout.replace(".", "-"))
 			.append(() => blocks.forEach((block, i) => this.block(block, i)));
 	}
 

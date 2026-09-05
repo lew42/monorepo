@@ -1,5 +1,6 @@
 import { View, div, span, select, option, icon } from "/app.js";
 import { CONTROLS, SURFACES } from "./blocks.js";
+import { PRESETS, preset_of, preset_url } from "./presets.js";
 import { fill_drawer } from "./config.js";
 
 /* ── THE TOOLBAR ───────────────────────────────────────────────────────────────
@@ -68,6 +69,7 @@ export class PagingToolbar extends View {
 		this.dots = new Map();
 
 		div.c("paging-toolbar-row", () => {
+			this.shape();
 			CONTROLS.forEach(control => this.group(control));
 
 			div.c("paging-group paging-toolbar-outs", () => {
@@ -79,6 +81,44 @@ export class PagingToolbar extends View {
 		// The values are written by the same call an external change uses, so there is
 		// one place that decides what the bar is showing.
 		this.sync();
+	}
+
+	/* ── THE EIGHTH CONTROL: WHICH READY-MADE PAGE ────────────────────────────
+	   On the twelve library pages, the one thing you change that is not a single word
+	   is WHICH ready-made page you are looking at — so it belongs in the bar, in the
+	   same shape as the other seven, showing the name of the page that is running.
+
+	   It used to be a grey chip-button sitting ABOVE the bar reading "Pick one of
+	   twelve" — an eighth control in a ninth style, and it read as UNSET while the
+	   blog preset was already running underneath it (paging-audit-3, item 5).
+
+	   ⚠ ONLY WHERE THERE IS ONE. A page says which ready-made page it is by carrying
+	     a `shape` (`library/page.js`); every other page in the realm has none, and
+	     gets the seven words alone — a control that navigates has no business in the
+	     bar of a page it cannot name. */
+	shape(){
+		const here = this.page?.shape;
+		if (!here) return null;
+
+		return div.c("paging-group").append(() => {
+			span.c("paging-pick-label", "page shape");
+
+			div.c("paging-pick", () => {
+				const $select = select(() => PRESETS.forEach(preset => option(preset.title).attr("value", preset.id)))
+					.attr("title", "page shape")
+					.attr("aria-label", "page shape")
+					.on("change", event => this.go_to(event.target.value));
+
+				$select.el.value = here.id;
+			});
+		});
+	}
+
+	// A real navigation, through core's own Router — so the address changes, the back
+	// button works, and the page you land on is the preset's own url with its own words.
+	go_to(id){
+		this.page?.app?.router?.go(preset_url(preset_of(id)));
+		return this;
 	}
 
 	// ── one labelled dropdown ────────────────────────────────────────────────
@@ -110,7 +150,7 @@ export class PagingToolbar extends View {
 		return press(span.c("paging-more paging-more-quiet")
 			.attr("title", "the page.js this page would be, ready to copy")
 			.append(() => { icon("code"); span("Code"); }),
-			() => fill_drawer(this.stage, this.page));
+			() => fill_drawer(this.stage, this.page, "code"));
 	}
 
 	// ── everything else lives in the drawer ──────────────────────────────────

@@ -78,20 +78,28 @@ export const ROOM = [
    `ARRANGEMENT` below and the builder's own control (`build/words.js`) can both
    point at one list instead of writing the numbers out twice. */
 export const LAYOUTS = [
-	{ id: "1.stack",      title: "1.stack",      url: "/imagine/layouts/1/stack/",
+	{ id: "1.stack",      title: "1.stack",      url: "/imagine/layouts/1/stack/", words: "one column",
 	  means: "One column. Every block under the last, at the reading measure." },
-	{ id: "2.main-aside", title: "2.main-aside", url: "/imagine/layouts/2/main-aside/",
+	{ id: "2.main-aside", title: "2.main-aside", url: "/imagine/layouts/2/main-aside/", words: "a main track with a narrower one beside it",
 	  means: "The first block is the main track; every other block stacks in an aside beside it." },
-	{ id: "3.thirds",     title: "3.thirds",     url: "/imagine/layouts/3/thirds/",
+	{ id: "3.thirds",     title: "3.thirds",     url: "/imagine/layouts/3/thirds/", words: "three equal tracks",
 	  means: "Three equal tracks, blocks dealt across them." },
-	{ id: "4.wall",       title: "4.wall",       url: "/imagine/layouts/4/wall/",
+	{ id: "4.wall",       title: "4.wall",       url: "/imagine/layouts/4/wall/", words: "a wall of tiles",
 	  means: "A wall: as many tracks as fit, each block a tile." },
 ];
 
+/* ⚠ THE NUMBER IS NEVER THE WHOLE SENTENCE. Every arrangement's sentence used to end
+     with the bare string "Layout 1.stack." — a numbered name from a realm the reader
+     has not met yet, in the first control they touch (paging-audit-3, item 3). It says
+     what the number MEANS in plain words now, and the number is the link beside it. */
 export const layout_link = id => {
 	const layout = LAYOUTS.find(entry => entry.id === id);
-	return layout ? " Layout [" + layout.title + "](" + layout.url + ")." : "";
+	return layout ? " Inside the box the blocks are " + layout.words + " — [layout " + layout.title + "](" + layout.url + ")." : "";
 };
+
+// Which numbered layout an arrangement word compiles to. One lookup, so the builder
+// and the layouts realm cannot end up naming two different numbers for one word.
+export const layout_of = id => ARRANGEMENT.find(entry => entry.id === id)?.layout ?? "1.stack";
 
 /* ── 5 · ARRANGEMENT — where the other parts sit ──────────────────────────────
    The short list of shapes a PAGE wears — chrome around one content box — each
@@ -200,3 +208,34 @@ export const means_of = (axis, id) => values_for(axis).find(value => value.id ==
 export const title_of = (axis, id) => values_for(axis).find(value => value.id === id)?.title ?? id;
 
 export const clean = config => ({ ...DEFAULT, ...config });
+
+/* ── READING A SAVED PAGE ─────────────────────────────────────────────────────
+
+   A page you made is a `page.json`, and its configuration lives in one object called
+   `mode`. These two functions are the ONLY way anything reads that object, so Make,
+   Build and the stage can never disagree about what a saved page says.
+
+       config_of(node)   the seven words, and nothing else — what the stage draws
+       mode_for(node)    what gets WRITTEN back: the seven words, plus the two extra
+                         fields the builder keeps (below)
+
+   ⚠ A KEY THAT IS NOT ONE OF THE SEVEN IS DROPPED. A `page.json` written before
+     2026-09-05 said `style` / `mech` / `kids` / `layout`, and there was a translation
+     table here that turned those into the seven. It is gone, and so is the bug it was
+     hiding: while two editors wrote two vocabularies into one file, a chip in Build
+     changed a key nothing on screen read and the page did not move (paging-audit-3b).
+     One vocabulary means the translation has nothing left to translate. An old node
+     opens on the defaults, which is a page, and its first edit rewrites it properly.
+
+   ⚠ WHY `blocks` AND `default` RIDE INSIDE `mode`. `FileStore.file()` (make/made.js)
+     writes exactly five top-level keys — title, icon, description, `mode`, children —
+     and silently drops anything else, so a top-level `blocks` or `default: true` was
+     written into memory, drawn on screen, and lost on save. `mode` is the one object
+     passed through whole. */
+export const EXTRAS = ["blocks", "default"];
+
+const only = (object, keys) => Object.fromEntries(keys.map(key => [key, object[key]]).filter(([, value]) => value != null));
+
+export const config_of = node => clean(only(node?.mode ?? {}, Object.keys(DEFAULT)));
+
+export const mode_for = node => ({ ...config_of(node), ...only(node?.mode ?? {}, EXTRAS) });

@@ -2,6 +2,7 @@ import { div, h1, h2, p, span, a, icon, md } from "/app.js";
 import { Realm, Paging, Stage } from "./paging.js";
 import { PRESETS, preset_url } from "./presets.js";
 import { BLOCKS } from "./blocks.js";
+import { nest_of } from "./url.js";
 import { DEMOS } from "./demos.js";
 
 /* ── layout, answered before the first factory call ────────────────────────────
@@ -99,7 +100,7 @@ export default new Realm({
 	preset_card(preset){
 		return a.c("paging-shot").href(preset_url(preset)).append(() => {
 			div.c("paging-shot-frame", () => {
-				new Stage({ config: preset.config, nest: preset.nest ?? null, inner: true });
+				new Stage({ config: preset.config, nest: nest_of(preset.nest), inner: true });
 			});
 
 			span.c("paging-shot-head", () => {

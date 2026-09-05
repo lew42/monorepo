@@ -150,9 +150,9 @@ column the page assembling as you press them, right column the `page.json` that 
 | # | control | what it is | what it writes |
 |---|---|---|---|
 | 1 | **Name** | a title, a description, and an icon you click to cycle | `"title"`, `"description"`, `"icon"` |
-| 2 | **Navigation** | six pictures: none · columns · top tabs · left rail · right rail · takeover | `"mode": { "kids": …, "mech": … }` |
-| 3 | **Surface** | five chips: plain · card · tint · prim · dark | `"mode": { "style": … }` |
-| 4 | **Layout** | four chips, the layout numbers: 1.stack · 2.main-aside · 3.thirds · 4.wall | `"mode": { "arrange": … }` |
+| 2 | **Navigation** | six pictures: none · columns · top tabs · left rail · right rail · takeover | `"mode": { "navigation": … }` |
+| 3 | **Surface** | five chips: plain · card · tint · prim · dark | `"mode": { "surface": … }` |
+| 4 | **Arrangement** | seven chips: plain · toolbar top · footer · panel left · panel right · main + aside · wall | `"mode": { "arrangement": … }` |
 | 5 | **Blocks** | add a block: prose · card wall · template | `"mode": { "blocks": [ … ] }` |
 | 6 | **Pages** | add a child; each row is its icon, name, order and default | `"children": [ … ]` |
 | 7 | **Code** | the `page.js` a hand would write for what you have built | nothing — it is the way out |
@@ -167,17 +167,18 @@ second, right after the page has a name.
 > **Top tabs, left tabs and column pages are one question asked once — *how do the pages under
 > this one appear?* — so they are one control with six pictures, not three settings.**
 
-Each option writes a PAIR of words that already exist in this realm: `kids` (how the children
-are *drawn*) and `mech` (what a click on one *does*). One control, two words, no new vocabulary:
+Each option writes ONE word — `navigation`, the realm's own (`blocks.js`). It used to write a
+pair of keys of the builder's own (`kids` and `mech`); that was a second vocabulary in the same
+file, and it is gone (2026-09-05).
 
-| the picture you pick | `kids` | `mech` | what you get |
-|---|---|---|---|
-| **None** | `none` | `launch` | a leaf. 464 of the site's pages. |
-| **Columns** | `columns` | `launch` | rows you click; each opens as a column to the right and the url changes. |
-| **Top tabs** | `tabs` | `swap` | a strip over one bounded panel. No url. |
-| **Left rail** | `rail` | `swap` | the same strip, down the left. |
-| **Right rail** | `rail-right` | `swap` | the same again, on the other side. |
-| **Takeover** | `columns` | `takeover` | a click fills the screen; everything behind collapses to the crumb strip. |
+| the picture you pick | `navigation` | what you get |
+|---|---|---|
+| **None** | `none` | a leaf. 464 of the site's pages. |
+| **Columns** | `columns` | rows you click; each opens as a column to the right and the url changes. |
+| **Top tabs** | `tabs` | a strip over one bounded panel. No url. |
+| **Left rail** | `rail` | the same strip, down the left. |
+| **Right rail** | `rail-right` | the same again, on the other side. |
+| **Takeover** | `takeover` | a click fills the screen; everything behind collapses to the crumb strip. |
 
 And the thing the owner suspected is true and is now said out loud in the UI: **"swap" is not
 offered as a navigation at all, because a swap with a bar on it is a tab strip and a swap
@@ -289,12 +290,13 @@ The builder's own draft is kept under this realm's one key,
 [mark](/imagine/paging/doc/persistence.md): amber while the draft is only in your browser, green
 once it is a file, with the way back to an empty page either way.
 
-### ⚠ Why `blocks` and `arrange` live inside `mode`
+### ⚠ Why `blocks` lives inside `mode`
 
 `FileStore.file()` writes exactly five keys — `title`, `icon`, `description`, `mode`,
 `children` — and drops anything else at the top level. So a top-level `"blocks"` would be lost
 the moment it was saved. `mode` is passed through whole, so everything the builder invents rides
-safely inside it and **Make needed no change at all**.
+safely inside it and **Make needed no change at all**. (`arrange` used to ride there too; it is
+gone — the numbered layout is derived from the arrangement word, not stored.)
 
 The honest home for `blocks` is the top level. That is a one-line diff to `make/made.js`, and
 it is written out below rather than applied: `make/` is another task's file.
@@ -372,28 +374,52 @@ it is written out below rather than applied: `make/` is another task's file.
   width word (`large`, `fill`, `full`) is still only reachable through the Navigation control's
   takeover option. Splitting them would be a fifth control for a word 27 pages use.
 
-## Left open: BuildStage should be a PagingStage (2026-09-05)
+## Left open: BuildStage should be a PagingStage (2026-09-05, updated after the third audit)
 
-`build/stage.js` is 208 lines that draw a page — tabs, a rail, crumbs, blocks — and
-`stage.js` is 343 lines that draw a page. The realm says it has "one renderer" and that is
-not true while both exist. It should be one:
+`build/stage.js` draws a page — crumbs, tabs, a rail, a toolbar, blocks — and `stage.js`
+draws a page. The realm says it has "one renderer" and that is only true of a *configured*
+page while both exist. It should be one:
 
 ```js
 new PagingStage({
-	config: config_of(node),                     // the seven words, from build/words.js
+	config: config_of(node),                     // the seven words — blocks.js reads them
 	pages: kids.map(kid => ({ title: kid.title, icon: kid.icon, text: kid.description })),
-	draw: () => this.blocks(),                   // the blocks, in Build's own arrangement
+	draw: () => this.blocks(),                   // the blocks, in this page's arrangement
+	draw_child: (stage, kid) => this.panel(kid), // the tab panel — the seam that is missing
+	inner: true,                                 // a picture: no caption, no url, no nest
 	classes: "build-screen",
 });
 ```
 
-**Why it did not happen in the fix pass.** `PagingStage` has a `draw` seam for the box's own
-content and no seam for a CHILD's panel — and Build's panel is the thing that carries the
-child's description, its blocks and the "the url did not change" note. It also draws crumbs
-and a sheet title the stage has no word for. So the merge needs one new seam
-(`draw_child(stage, child)`) plus a pass over the builder, and the builder is the realm's most
-complex page. Half a merge on it would be worse than two renderers.
+**What used to block it, and does not any more.** The blocker was never the seam — it was the
+SCHEMA. Build kept its own five words (`style`, `mech`, `kids`, `layout`, `arrange`), so
+handing its node to `PagingStage` handed over an object with none of the seven words in it and
+you got the default page. That is fixed: **Build writes the seven words now** (2026-09-05,
+`paging-fix-3`), `config_of()` lives in `blocks.js` beside the words, and the numbered layout
+the blocks use is derived from the arrangement word rather than stored a second time.
 
-**The order to do it in:** add `draw_child` to `stage.js` and prove it on a preset · move
-Build's crumbs and sheet title into the `draw` seam · swap the class · delete `build/stage.js`
-and the `.build-tab*` / `.build-rail` / `.build-panel` rules that go with it.
+**What is left, in the order to do it in.**
+
+1. **`draw_child(stage, child)` in `stage.js`**, called from the three places a child is drawn
+   — `slot()`, `pane()` and `taken()` — falling back to today's title-and-text panel. Prove it
+   on a preset before touching the builder.
+2. **Build's crumbs and sheet title move into the seam.** They are the two things the stage has
+   no word for; the crumb strip is the columns host's job on a real page.
+3. **Swap the class.** `BuildStage extends PagingStage`, `inner: true`, `open` kept on the page
+   (`this.page.tab`) because Build rebuilds the stage on every control press.
+4. **Delete** the 250 lines of `build/stage.js` that draw chrome, and the `.build-tab*`,
+   `.build-rail`, `.build-screen-row` and `.build-screen-*` rules that go with them — the
+   surface and background classes come from `paint()` once the stage is a `PagingStage`.
+
+**One thing to decide while doing it.** Build has controls for three of the seven words
+(navigation, surface, arrangement); room, page colour and type size arrive at their defaults and
+are changed on the page itself once it is saved. Once the builder's middle IS a `PagingStage` it
+can simply wear the realm's own bar, and those four controls arrive for free.
+
+## Dropped from the plan: `compare/` (2026-09-05)
+
+A two-stage side-by-side page was proposed and is not being built.
+[`cross/`](/imagine/paging/cross/) shipped and is the better version of the same ask: **nine**
+live pages at once, navigation across and arrangement down, and every cell is a link to that
+page full size. A compare page would have needed a shared toolbar and a second set of state to
+show one fewer comparison.

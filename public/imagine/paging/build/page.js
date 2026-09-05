@@ -4,8 +4,8 @@ import { baseline } from "../baseline.js";
 import { store_for, LocalStore, DIR } from "../make/made.js";
 import BuildStage from "./stage.js";
 import {
-	NAVS, SURFACES, ARRANGES, BLOCKS, ICONS,
-	NEW_PAGE, mode_of, blocks_of, nav_of, name_for, next_in, code_for,
+	NAVIGATION, SURFACES, ARRANGEMENT, PIECES, ICONS,
+	NEW_PAGE, mode_of, blocks_of, config_of, name_for, next_in, code_for_node,
 	is_default, edit, set_mode, add_block, edit_block, remove_block, move_block,
 	add_child, edit_child, remove_child, move_child, set_default,
 } from "./words.js";
@@ -134,7 +134,7 @@ export default new Paging({
 
 		h2("What this can and cannot build");
 
-		md("Every `page.js` on this site was read and sorted by what a UI would have to offer to build it — 890 files, 890 rows. **About a fifth are pure configuration already**, a further **two fifths need the page to NAME something js supplies** (the pattern `\"kids\": \"tabs\"` uses), and **the last third are code and should stay code**: a live control, content computed from data, something fetched. The counts, the method and the decision are in [doc/builder.md](/imagine/paging/doc/builder.md).");
+		md("Every `page.js` on this site was read and sorted by what a UI would have to offer to build it — 890 files, 890 rows. **About a fifth are pure configuration already**, a further **two fifths need the page to NAME something js supplies** (the pattern `\"kids\": \"tabs\"` uses), and **the last third are code and should stay code**: a live control, content computed from data, something fetched. The counts, the method and the decision are in [doc/builder.md](/imagine/paging/doc/builder/).");
 
 		md("That is why the last control is **Code**. When the builder cannot say a thing, it prints the `page.js` a hand would write for what you have built so far — with the line where your code goes already marked.");
 
@@ -161,11 +161,11 @@ export default new Paging({
 	controls(){
 		this.part(1, "Name", "What the page is called. It is the head, the crumb, the card and — if its parent draws tabs — the tab.", () => this.name_controls());
 
-		this.part(2, "Navigation", "How the pages UNDER this one appear. Top tabs, a left rail and column pages are the same question asked once, so they are one control.", () => this.picker(NAVS, nav_of(this.node).id, nav => this.set_words({ kids: nav.kids, mech: nav.mech })));
+		this.part(2, "Navigation", "How the pages UNDER this one appear. Top tabs, a left rail and column pages are the same question asked once, so they are one control.", () => this.picker(NAVIGATION, config_of(this.node).navigation, nav => this.set_words({ navigation: nav.id })));
 
-		this.part(3, "Surface", "What the page looks like while it does it. One word, five answers, independent of everything else.", () => this.word_chips(SURFACES, mode_of(this.node).style, it => this.set_words({ style: it.id })));
+		this.part(3, "Surface", "The colour of the content box. One word, five answers, independent of everything else.", () => this.word_chips(SURFACES, config_of(this.node).surface, it => this.set_words({ surface: it.id })));
 
-		this.part(4, "Layout", "How the blocks are arranged, numbered the way the layout system numbers them — 1.* is one column, 2.* is two.", () => this.word_chips(ARRANGES, mode_of(this.node).arrange, it => this.set_words({ arrange: it.id })));
+		this.part(4, "Arrangement", "Where the page's other parts sit around the content — a toolbar, a footer, a panel, an aside. The same seven words the bar over every page in this realm sets.", () => this.word_chips(ARRANGEMENT, config_of(this.node).arrangement, it => this.set_words({ arrangement: it.id })));
 
 		this.part(5, "Blocks", "The content, as data. Three kinds, and every one is drawn by something that already exists.", () => this.block_controls());
 
@@ -249,7 +249,7 @@ export default new Paging({
 
 		if (!blocks.length) p.c("muted", "No blocks yet. The page is a title and nothing else — which is a real page, and 91 on this site are exactly that.");
 
-		return div.c("build-adds", () => BLOCKS.forEach(kind => press(
+		return div.c("build-adds", () => PIECES.forEach(kind => press(
 			span.c("paging-chip on").attr("title", kind.means).append(() => { icon(kind.icon); span(kind.title); }),
 			() => this.apply(add_block(this.node, kind.id)))));
 	},
@@ -257,8 +257,8 @@ export default new Paging({
 	block_row(block, i){
 		return div.c("build-item", () => {
 			div.c("build-item-head", () => {
-				icon(BLOCKS.find(kind => kind.id === block.type)?.icon ?? "notes");
-				span.c("build-item-title", BLOCKS.find(kind => kind.id === block.type)?.title ?? block.type);
+				icon(PIECES.find(kind => kind.id === block.type)?.icon ?? "notes");
+				span.c("build-item-title", PIECES.find(kind => kind.id === block.type)?.title ?? block.type);
 
 				this.act("arrow_upward", "move this block up", () => this.apply(move_block(this.node, i, -1)));
 				this.act("arrow_downward", "move this block down", () => this.apply(move_block(this.node, i, 1)));
@@ -305,7 +305,7 @@ export default new Paging({
 	// ── 6 · pages, which is to say tabs ──────────────────────────────────────
 	child_controls(){
 		const kids = this.node.children ?? [];
-		const tabs = nav_of(this.node).id === "tabs";
+		const tabs = config_of(this.node).navigation === "tabs";
 
 		kids.forEach((kid, i) => this.child_row(kid, i, kids.length));
 
@@ -345,7 +345,7 @@ export default new Paging({
 	code_control(){
 		md("A third of this site's pages need a `content()` that computes something, and no JSON will ever supply one. So here is the `page.js` this node would be if you wrote it by hand — copy it into a directory and the builder has handed the page over to you.");
 
-		return pre.c("build-code", code_for(this.node));
+		return pre.c("build-code", code_for_node(this.node));
 	},
 
 	// ════ THE STAGE ═══════════════════════════════════════════════════════════
