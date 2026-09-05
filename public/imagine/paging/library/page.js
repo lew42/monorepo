@@ -45,7 +45,7 @@ class Preset extends Paging {
 
 		this.stage(this.preset.config, this.preset.nest ? { nest: { ...this.preset.nest, title: "the nested page" } } : null);
 
-		md("Every word of this page is a **configuration**, not code — click a chip in the bar to change one, or press **More** for the whole form, the link to this exact page, the JSON, the `page.js`, and the button that writes it to disk. The seven words are [the six building blocks](/imagine/paging/).");
+		md("Every word of this page is a **configuration**, not code — change one in the bar, or press **More** for the whole form, the link to this exact page, the JSON, the `page.js`, and the button that writes it to disk. The seven words are [the six building blocks](/imagine/paging/).");
 	}
 }
 
@@ -67,7 +67,7 @@ export default new Paging({
 	})),
 
 	content(){
-		this.lede("Pick a shape from the menu, then click a chip in the bar to change it.");
+		this.lede("Pick a shape from the menu, then change a word in the bar to make it your own.");
 
 		chooser(null);
 

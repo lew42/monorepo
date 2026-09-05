@@ -17,7 +17,7 @@ export default block({
 
 	axis: "content",
 
-	lede_line: "Click a **content** chip in the bar. The box stays exactly where it is, and something else entirely appears inside it.",
+	lede_line: "Change the **content** dropdown in the bar. The box stays exactly where it is, and something else entirely appears inside it.",
 
 	config: { navigation: "none", content: "cards", room: "wide", arrangement: "plain", surface: "card", background: "tint", type: "regular" },
 });

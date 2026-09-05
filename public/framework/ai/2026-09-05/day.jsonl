@@ -96,3 +96,4 @@
 {"log": {"at": "2026-09-05T15:49:40-05:00", "task": "sections", "msg": "task opened - multi-column sections that fill 3440: one class, five parts, sticky sidebars confined to their section"}}
 {"log": {"at": "2026-09-05T15:51:27-05:00", "task": "spacing-components", "msg": "landed - 365 component spacing constants now read the ramps; site-wide median gap at 3440 9.7px -> 25.3px, growth 1.20x -> 2.78x; 110 kept with reasons; the three regressions fixed at their causes; 0 errors, 0 overflow, 0 new x:0 across 84 pages"}}
 {"log": {"at": "2026-09-05T15:52:19-05:00", "task": "paging-fix-2", "msg": "landed - four breaks fixed and measured, the configuration is in the url, one vocabulary and one schema, the hub wall is live miniatures"}}
+{"log": {"at": "2026-09-05T16:06:48-05:00", "task": "paging-fix-2", "msg": "landed (revised) - the bar is seven dropdowns after the owner's note, the swap page's icons align, and all the earlier proofs re-run clean"}}

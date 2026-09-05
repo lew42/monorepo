@@ -29,7 +29,7 @@ export default new Paging({
 	children: "launch expand swap takeover",
 
 	content(){
-		this.lede("Click the four page names on the page below. Then click a different **navigation** chip in the bar and click them again — same children, different answer.");
+		this.lede("Click the four page names on the page below. Then change the **navigation** dropdown and click them again — same children, different answer.");
 
 		this.stage({ navigation: "tabs", content: "article", room: "wide", arrangement: "plain", surface: "card", background: "tint", type: "regular" });
 

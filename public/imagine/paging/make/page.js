@@ -71,7 +71,7 @@ function grow(nodes){
 			children: grow(node.children ?? []),
 
 			content(){
-				this.lede("A real page, at a real url, drawn from one small JSON file. Click a chip in the bar to change it.");
+				this.lede("A real page, at a real url, drawn from one small JSON file. Change a word in the bar and it changes.");
 
 				this.stage(config);
 

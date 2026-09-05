@@ -1,4 +1,4 @@
-import { View, div, span, icon } from "/app.js";
+import { View, div, span, select, option, icon } from "/app.js";
 import { CONTROLS, SURFACES } from "./blocks.js";
 import { fill_drawer } from "./config.js";
 
@@ -17,20 +17,27 @@ import { fill_drawer } from "./config.js";
      Playwright click on "Pricing" timed out at 1280 and at 3440). A control that
      covers the thing it controls is not a control. It now reserves its own height.
 
-   ⚠ CHIPS, NOT `<select>`s. Five native dropdowns, 80–111px wide, clipped their own
-     values ("Top tabs" read "Top tab") and the two colour rows were unlabelled dots.
-     The drawer had the good version all along — a label, the values as chips, and a
-     sentence saying what the current one means. This is that, minus the sentences,
-     which stay in the drawer where there is room for them.
+   ⚠ ONE DROPDOWN PER WORD, NOT A ROW OF CHIPS. Seven words means 40 values, and as
+     chip groups that was a sprawling bar three and four rows deep (the owner,
+     2026-09-05: *"if there are button groups, just make them a dropdown to save
+     space"*). Seven labelled dropdowns fit one row at 3440 and two at 1280.
 
-   ⚠ A CHIP IS A SPAN, NOT A `<button>`. The site theme styles every `button` as a
-     small uppercase CTA — `.theme-lew42 :is(button, .btn)` at (0,2,0), in the same
-     layer — so a chip cannot win that at its own specificity. The keyboard half is
-     what a `<button>` gave for free, so it is restated in `press()` below.        */
+   ⚠ AND NOTHING CLIPS. The bar HAD native selects until this morning and they were
+     80–111px wide, cutting their own values off ("Top tabs" read "Top tab") — because
+     a `<select>` in a flex row shrinks below its content like any other flex item.
+     `flex: none` on the control and `width: auto` on the select is the whole fix: the
+     browser then sizes each one to its longest option. There is no width in this file.
 
-// The two colour words draw swatches instead of chips: a swatch IS its value, and
-// no word in a list can show you what `prim` looks like.
-const SWATCHES = ["surface", "background"];
+   ⚠ THE LABEL SITS ABOVE THE SELECT, not beside it. Beside, seven labelled controls
+     are ~1190px and wrap to three rows in a 1040px middle at 1280; above, they are
+     ~770px and fit one row, and the bar is two lines tall instead of four.
+
+   ⚠ A COLOUR YOU CAN SEE. `surface` and `background` are the two controls whose value
+     is a thing rather than a word, so each keeps one dot beside its dropdown painted
+     in the colour it is currently set to. A dropdown alone cannot show you `prim`.  */
+
+// The two words whose current value is painted beside the dropdown.
+const COLOURS = ["surface", "background"];
 
 const press = ($el, act) => $el
 	.attr("role", "button").attr("tabindex", "0")
@@ -57,7 +64,8 @@ export class PagingToolbar extends View {
 	//   constructor in the chain, so `PagingToolbar` is `.paging-toolbar` and a class
 	//   called `Toolbar` would have worn the framework's own `.toolbar`.
 	render(){
-		this.marks = [];
+		this.picks = new Map();
+		this.dots = new Map();
 
 		div.c("paging-toolbar-row", () => {
 			CONTROLS.forEach(control => this.group(control));
@@ -68,40 +76,28 @@ export class PagingToolbar extends View {
 			});
 		});
 
-		// The marks are written by the same call an external change uses, so there is
-		// one place that decides what "selected" looks like.
+		// The values are written by the same call an external change uses, so there is
+		// one place that decides what the bar is showing.
 		this.sync();
 	}
 
-	// ── one labelled group ───────────────────────────────────────────────────
-	group(control){
+	// ── one labelled dropdown ────────────────────────────────────────────────
+	group({ axis, label, values }){
 		return div.c("paging-group").append(() => {
-			span.c("paging-pick-label", control.label);
+			span.c("paging-pick-label", label);
 
-			div.c("paging-group-values", () => control.values.forEach(value =>
-				SWATCHES.includes(control.axis)
-					? this.swatch(control.axis, value)
-					: this.chip(control.axis, value)));
+			div.c("paging-pick", () => {
+				if (COLOURS.includes(axis)) this.dots.set(axis, span.c("paging-dot"));
+
+				const $select = select(() => values.forEach(value =>
+					option(value.title).attr("value", value.id).attr("title", value.means)))
+					.attr("title", label)
+					.attr("aria-label", label)
+					.on("change", event => this.stage.set(axis, event.target.value));
+
+				this.picks.set(axis, $select);
+			});
 		});
-	}
-
-	chip(axis, value){
-		const $chip = press(span.c("paging-chip")
-			.attr("title", value.title + " — " + value.means)
-			.append(() => { if (value.icon) icon(value.icon); span(value.title); }),
-			() => this.stage.set(axis, value.id));
-
-		this.marks.push({ $mark: $chip, axis, id: value.id });
-		return $chip;
-	}
-
-	swatch(axis, surface){
-		const $swatch = press(span.c("paging-swatch paging-surface-" + surface.id)
-			.attr("title", surface.title + " — " + surface.means),
-			() => this.stage.set(axis, surface.id));
-
-		this.marks.push({ $mark: $swatch, axis, id: surface.id });
-		return $swatch;
 	}
 
 	/* ── THE WAY OUT ──────────────────────────────────────────────────────────
@@ -127,16 +123,19 @@ export class PagingToolbar extends View {
 			() => fill_drawer(this.stage, this.page));
 	}
 
-	/* ⚠ SYNC, NEVER REBUILD. A click on a chip runs while that chip has focus, and
-	     emptying this view from inside its own handler would delete the element the
-	     reader is standing on. So the controls are built once and only their MARKS
-	     are written back — which is also what keeps an external change (the drawer,
-	     the library dropdown, a url) showing up here. */
+	/* ⚠ SYNC, NEVER REBUILD. A `<select>` fires `change` while it still has focus, and
+	     emptying this view from inside that handler would delete the element the reader
+	     is standing on. So the controls are built once and only their VALUES are
+	     written back — which is also what keeps an external change (the drawer, the
+	     library's own menu, a url) showing up here. */
 	sync(){
-		this.marks?.forEach(({ $mark, axis, id }) => {
-			const on = this.stage.config[axis] === id;
-			$mark.tc("on", on).attr("aria-pressed", String(on));
+		this.picks?.forEach(($select, axis) => { $select.el.value = this.stage.config[axis]; });
+
+		this.dots?.forEach(($dot, axis) => {
+			$dot.rc(...SURFACES.map(surface => "paging-surface-" + surface.id))
+				.ac("paging-surface-" + this.stage.config[axis]);
 		});
+
 		return this;
 	}
 }

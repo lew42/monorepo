@@ -21,9 +21,30 @@ toward a tab made the bar appear on the tab, and the headline gesture of the rea
 not be clicked at any width. A Playwright click on **Pricing** timed out at 1280 and at
 3440, twice, before and after.
 
-**The bar is now a sibling above the stage and it reserves its height.** It also stopped
-being five native `<select>`s (80–111px wide, clipping their own values) and became the
-drawer's labelled chip groups, which was the better control language all along.
+**The bar is now a sibling above the stage and it reserves its height.**
+
+What goes in it took two passes. Chip groups came first — the drawer's own shape, a label
+and every value visible — and 40 values across seven words sprawled four rows deep. The
+owner, looking at `/mechanisms/swap/`: *"if there are button groups, just make them a
+dropdown to save space."* So the bar is **seven labelled dropdowns**, one row at 3440 and
+two at 1280, 114px tall against 250-plus. The values with their sentences stay in the
+drawer, where there is room for them.
+
+⚠ **AND NOTHING CLIPS — the fix is not a width.** The bar had native selects before all
+this and they were 80–111px wide, cutting their own values off ("Top tabs" read "Top
+tab"). A `<select>` in a flex row shrinks below its content like any other flex item, and
+a `padding` shorthand takes away the end reserve the browser draws its arrow in. `flex:
+none` on the control, no width and no padding: the browser then sizes each one to its
+longest option. Measured at 400 / 1280 / 3440: zero clipped.
+
+⚠ **THE LABEL SITS ABOVE THE SELECT.** Beside it, seven labelled controls are ~1190px and
+wrap to three rows in a 1040px middle at 1280; above, they are ~770px and fit one row.
+
+⚠ **AN ICON'S LINE BOX IS ITS OWN FONT SIZE, not the prose's.** Beside a line of text in a
+`flex-start` row an icon's box is ~13px against the text's ~24px, so the glyph sits about
+5px above the words — which is what "the icons are out of alignment" means, and why
+nudging a margin does not fix it. `line-height: inherit` on the icon makes its box the
+same height as the first line and the glyph centres in it.
 
 ## The box reserves its height, so the caption is a measurement
 

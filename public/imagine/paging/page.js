@@ -65,7 +65,7 @@ export default new Realm({
 	content(){
 		h1.c("page-title", "Paging");
 
-		this.lede("Click a chip in the bar and watch the page under it change.");
+		this.lede("Change a word in the bar and watch the page under it change.");
 
 		this.stage(OPENING);
 

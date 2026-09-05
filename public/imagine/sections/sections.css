@@ -1,0 +1,336 @@
+/* /imagine/sections/ — one multi-column section, and a stack of them.
+   Classes: `.sections-*` (css-scopes.txt). The class NAMES come from the constructor
+   names in `sections.js` — `SectionsSide` IS `.sections-side`.
+
+   THREE THINGS THIS SHEET DOES, and nothing else:
+
+     1  THE ROW      a grid whose track list is one custom property, so six
+                     distributions x three column counts is arithmetic, not 18 rules.
+     2  THE FRAME    head, side, aside and foot share one colour with no gutter
+                     between them, so the middle reads as framed. The seams are
+                     hairlines, not gaps.
+     3  THE STICK    a sticky box INSIDE the column cell, never the cell itself.
+
+   SPACING IS ALWAYS A RAMP. `--pad-default`, `--gap-default` and `--flow-default` are
+   framework.css's three ramps times the inherited spacing level; every number below
+   is one of them, or one of them times a ratio. There is no constant length in this
+   file except hairlines and the two stacking floors, which are `rem` on purpose
+   (`rem` is 16px at every viewport; `em` here is a viewport clamp). */
+
+@layer theme {
+
+	/* ── THE STACK ─────────────────────────────────────────────────────────────
+	   Sections down a page, and the one decision above a section: how much room
+	   between them. `airy` sets the spacing LEVEL rather than a bigger gap, so the
+	   inside of every section in the stack opens up with it — framework.css's
+	   ramp x level, used as designed. */
+	.sections-stack {
+		display: flex;
+		flex-direction: column;
+		gap: var(--gap-default);
+		min-width: 0;
+	}
+
+	.sections-space-0 { gap: 0; }
+	.sections-space-airy { --spacing: 1.6; }
+
+	/* Butted sections share one hairline instead of drawing two. */
+	.sections-space-0 > .sections-band + .sections-band { border-block-start: 0; }
+
+	/* A bled stack spends the column's inset so a FLUSH section reaches the edges;
+	   a CARD section pays it straight back, because a card never bleeds. The fallback
+	   is for a stack that is not in a columns host. */
+	.sections-stack.bleed > .sections-card { margin-inline: var(--page-column-pad-x, var(--pad-default)); }
+
+	/* ── THE SECTION ───────────────────────────────────────────────────────────
+	   The band is the CONTAINER (a container query never matches its own container,
+	   so the stacking rules at the bottom of this file need the grid to be a child)
+	   and it is the frame. */
+	.sections-band {
+		container: sections-band / inline-size;
+		min-width: 0;
+	}
+
+	/* ⚠ `overflow: clip`, NEVER `overflow: hidden`. Both clip the corners; only
+	     `hidden` makes the box a SCROLL CONTAINER, and a sticky sidebar inside a
+	     scroll container that never scrolls can never move. `clip` keeps the sticky
+	     box anchored to the page's real scroller. (Measured — doc/decisions.md.) */
+	.sections-card {
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		overflow: clip;
+	}
+
+	.sections-flush { border-block: 1px solid var(--line); }
+
+	/* ── THE ROW ───────────────────────────────────────────────────────────────
+	   `--sections-cols` is written by `dress()` from the two chips; `--sections-tracks`
+	   is written only by the stacking queries at the bottom, and wins when it exists.
+	   Two names, because an inline style would out-rank any stylesheet. */
+	.sections-grid {
+		display: grid;
+		grid-template-columns: var(--sections-tracks, var(--sections-cols, minmax(0, 1fr)));
+		align-items: stretch;
+		min-width: 0;
+
+		/* The rail is `em` ON PURPOSE — it holds type, and type on this site is a
+		   viewport clamp, so 16em is the same number of characters at 400 and at 3440.
+		   The aside cap is `rem`: it is a PLACE, and 32% of 3440 is 1100px of a 350px
+		   list (`styles/layouts/cols/cols.css` measured exactly this). */
+		--sections-rail: 16em;
+		--sections-aside: 22rem;
+	}
+
+	.sections-head, .sections-foot { grid-column: 1 / -1; }
+
+	/* ── THE FIVE PARTS ────────────────────────────────────────────────────────
+	   The seams: one hairline between neighbours, drawn by whichever part owns the
+	   edge, so no two ever double up. */
+	.sections-head, .sections-side, .sections-main, .sections-aside, .sections-notes, .sections-foot { min-width: 0; }
+
+	.sections-head { border-block-end: 1px solid var(--line); }
+	.sections-foot { border-block-start: 1px solid var(--line); }
+	.sections-side { border-inline-end: 1px solid var(--line); }
+	.sections-aside, .sections-notes { border-inline-start: 1px solid var(--line); }
+
+	.sections-head, .sections-foot {
+		display: flex; flex-wrap: wrap; align-items: center;
+		gap: var(--gap-default);
+		padding: calc(var(--pad-default) * 0.45) var(--pad-default);
+	}
+
+	/* The middle. `--sections-tall` is how many SCREENS of content it holds — the
+	   demo knob that makes a section long enough to scroll past. 0 by default, and
+	   `calc(anything * 0)` is 0, so nothing is reserved unless a section asks. */
+	.sections-main {
+		display: flex; flex-direction: column;
+		gap: var(--gap-default);
+		padding: var(--pad-default);
+		min-height: calc(var(--sections-screen, 100dvh) * var(--sections-tall, 0));
+	}
+
+	/* ── THE STICKY BOX ────────────────────────────────────────────────────────
+	   Inside the cell, never the cell. The cell stretches to the row and paints the
+	   frame; this box is what stays on screen. Its containing block is the cell, so
+	   it CANNOT leave the section — the next section's own hold takes over with
+	   nothing watching the scroll. */
+	.sections-hold {
+		display: flex; flex-direction: column;
+		min-height: 0;
+	}
+
+	.sections-stuck .sections-hold { position: sticky; top: 0; }
+
+	.sections-body {
+		display: flex; flex-direction: column;
+		gap: var(--gap-default);
+		padding: var(--pad-default);
+		min-height: 0;
+	}
+
+	/* A SIDEBAR TALLER THAN THE SCREEN. Cap the hold at one screen, scroll its body,
+	   and the footer stays because flex put it last and told it not to shrink.
+	   `--sections-screen` is measured by the band (the box that actually scrolls is
+	   the column, not the window); `100dvh` is the fallback and is right on a
+	   full-screen page. */
+	.sections-inner .sections-hold { max-height: var(--sections-screen, 100dvh); }
+	.sections-inner .sections-body { flex: 1 1 auto; overflow-y: auto; scrollbar-width: thin; }
+
+	.sections-pin {
+		flex: 0 0 auto;
+		display: flex; flex-wrap: wrap; align-items: center;
+		gap: calc(var(--gap-ramp) * 0.4);
+		padding: calc(var(--pad-default) * 0.5) var(--pad-default);
+		border-block-start: 1px solid var(--line);
+	}
+
+	/* ── THE SAME SECTION, AS ONE SCREEN ───────────────────────────────────────
+	   The other half of the owner's distinction. A tall section is taller than the
+	   screen and the PAGE scrolls, so its sides stick. A screen section is exactly as
+	   tall as the box that scrolls, so nothing outside it moves at all and the MIDDLE
+	   is the only thing with a scrollbar — a decision, not a side effect.
+
+	   ⚠ The rows are placed by hand. `grid-template-rows: auto 1fr auto` alone would
+	     put the body in row 1 whenever a section has no head, and the 1fr row would be
+	     the empty one. */
+	.sections-screen { height: var(--sections-screen, 100dvh); display: flex; }
+
+	.sections-screen > .sections-grid {
+		flex: 1 1 auto; min-height: 0;
+		grid-template-rows: auto minmax(0, 1fr) auto;
+	}
+
+	.sections-screen > .sections-grid > .sections-head { grid-row: 1; }
+	.sections-screen > .sections-grid > .sections-foot { grid-row: 3; }
+	.sections-screen > .sections-grid > :not(.sections-head, .sections-foot) { grid-row: 2; }
+
+	.sections-screen .sections-main { overflow-y: auto; scrollbar-width: thin; }
+	.sections-screen .sections-hold { height: 100%; max-height: none; }
+	.sections-screen .sections-body { overflow-y: auto; scrollbar-width: thin; flex: 1 1 auto; }
+
+	/* ── THE FIVE COLOURS ──────────────────────────────────────────────────────
+	   The same five words the paging realm uses, whose LIST `sections.js` imports so
+	   the two can never drift. The paint is restated here rather than imported,
+	   because loading `paging.css` would put that realm's stylesheet on every page in
+	   this one. Fills are alpha (framework.css's ladder), so each one is one step off
+	   whatever is under it and the same word works on every floor. */
+	.sections-skin-plain { background: transparent; }
+	.sections-skin-tint  { background: var(--tint); }
+	.sections-skin-card  { background: var(--surface); }
+	.sections-skin-prim  { background: color-mix(in srgb, var(--prim) 10%, var(--surface)); }
+
+	/* ⚠ `color-scheme: dark` is what makes an always-dark island work: every
+	     `light-dark()` token inside it flips, including the alpha rungs. */
+	.sections-skin-dark  { color-scheme: dark; background: #101014; color: #e8e8ea; }
+
+	/* ── THE CONTENT A SECTION HOLDS ───────────────────────────────────────────
+	   Furniture, not vocabulary. */
+	.sections-title { margin: 0; font-size: 1.05em; line-height: 1.25; }
+	.sections-text { margin: 0; line-height: 1.55; max-width: var(--measure, 40em); }
+	.sections-note { font-size: 0.78em; line-height: 1.5; color: var(--subtle); }
+
+	.sections-tiles {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(min(14em, 100%), 1fr));
+		gap: var(--gap-default);
+	}
+
+	.sections-tile {
+		display: flex; align-items: flex-end;
+		min-height: 5em;
+		padding: calc(var(--pad-default) * 0.6);
+		background: var(--fill-a04);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+	}
+
+	.sections-tile-name { font-size: 0.85em; font-weight: 600; }
+
+	/* ── THE CHIPS — every word a section offers, live ─────────────────────────
+	   A control HUGS its content (the spacing decision's control rule): never a
+	   full-width strip, and a strip of them is a wrapping flex row. */
+	.sections-chips { display: flex; flex-direction: column; gap: var(--gap-default); }
+
+	.sections-group { display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--gap-ramp) * 0.3); }
+
+	.sections-axis {
+		flex: 1 0 100%;
+		font-size: 0.72em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+		color: var(--subtle);
+	}
+
+	.sections-chip {
+		display: inline-flex; align-items: center; gap: 0.3em;
+		width: fit-content;
+		padding: 0.3em 0.7em;
+		font-size: 0.8em; line-height: 1.3;
+		background: var(--fill-a04);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		cursor: pointer;
+		user-select: none;
+	}
+
+	.sections-chip:is(:hover, :focus-visible) { border-color: var(--prim); color: var(--prim-ink); }
+	.sections-chip.on { background: var(--prim); border-color: var(--prim); color: white; }
+	.sections-chip .icon { font-size: 1em; }
+
+	.sections-mark { display: inline-flex; align-items: center; gap: 0.3em; font-size: 0.78em; color: var(--prim-ink); }
+	.sections-mark .icon { font-size: 1em; }
+
+	.sections-reads { display: flex; flex-wrap: wrap; gap: calc(var(--gap-ramp) * 0.3); }
+
+	.sections-px {
+		padding: 0.15em 0.45em;
+		border-radius: var(--radius);
+		background: color-mix(in srgb, var(--prim) 12%, transparent);
+		color: var(--prim-ink);
+		font-family: var(--mono); font-size: 0.72em; font-weight: 700;
+		white-space: nowrap;
+	}
+
+	.sections-link {
+		display: inline-flex; align-items: center; gap: 0.35em;
+		width: fit-content;
+		padding: 0.35em 0.75em;
+		font-size: 0.85em;
+		color: var(--ink); text-decoration: none;
+		background: var(--fill-a04);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+	}
+
+	.sections-link:is(:hover, :focus-visible) { border-color: var(--prim); color: var(--prim-ink); }
+	.sections-link .icon { font-size: 1em; }
+
+	/* ── A NAV INSIDE A SECTION ────────────────────────────────────────────────
+	   A vertical list of rows. A row of ONE LIST may span its box — the list is the
+	   control and the row is its part (the spacing decision, U3). */
+	.sections-nav { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.25); }
+
+	/* The mobile collapse: hidden until the section stacks (bottom of this file). */
+	.sections-nav-bar {
+		display: none; align-items: center; gap: 0.4em;
+		width: fit-content;
+		padding: 0.35em 0.75em;
+		font-size: 0.85em;
+		background: var(--fill-a04);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		cursor: pointer;
+	}
+
+	.sections-nav-list { display: flex; flex-direction: column; }
+
+	.sections-nav-item {
+		padding: 0.4em 0.6em;
+		font-size: 0.9em; line-height: 1.3;
+		color: var(--subtle);
+		border-inline-start: 2px solid transparent;
+		border-radius: 0 var(--radius) var(--radius) 0;
+		cursor: pointer;
+	}
+
+	.sections-nav-item:is(:hover, :focus-visible) { background: var(--fill-a08); color: var(--ink); }
+	.sections-nav-item.on { border-inline-start-color: var(--prim); background: var(--fill-a08); color: var(--ink); font-weight: 600; }
+
+	/* ── RESERVED HEIGHT — the whole of stable navigation, vertically ──────────
+	   Every panel stays in the DOM, all of them in ONE grid cell, and the ones you
+	   are not reading are `visibility: hidden` — hidden but still MEASURED. So the
+	   middle is always the height of its tallest panel and clicking the nav cannot
+	   move anything. (The same rule `/imagine/paging/paging.css` carries, written
+	   here rather than imported: see the note on the five colours above.) */
+	.sections-reserve { display: grid; }
+	.sections-reserve > .sections-panel { grid-area: 1 / 1; display: flex; flex-direction: column; gap: var(--gap-default); }
+	.sections-panel.sections-off { visibility: hidden; }
+
+	/* ── OUT OF ROOM ───────────────────────────────────────────────────────────
+	   Two floors, in `rem` so they are the same number of pixels at every viewport.
+
+	     70rem  four columns become two. Four tracks of a 1100px row is 270px each,
+	            which is the hierarchy problem the owner predicted; two rows of two
+	            keeps the pairs.
+	     52rem  everything stacks. The same floor `.cols-thirds` carries, and the
+	            point at which a rail, a middle and an aside stop being three things.
+
+	   Below the stack floor: the sticky boxes stand down (there is nothing beside
+	   them to stay level with), the inner scroll lifts (the page scrolls instead),
+	   the seams turn horizontal, and a nav collapses into a menu. */
+	@container sections-band (width < 70rem) {
+		.sections-n4 > .sections-grid { --sections-tracks: repeat(2, minmax(0, 1fr)); }
+	}
+
+	@container sections-band (width < 52rem) {
+		.sections-grid { --sections-tracks: minmax(0, 1fr); }
+
+		.sections-hold { position: static; max-height: none; }
+		.sections-body { overflow: visible; }
+
+		.sections-side { border-inline-end: 0; }
+		.sections-aside, .sections-notes { border-inline-start: 0; }
+		.sections-side, .sections-main, .sections-aside { border-block-end: 1px solid var(--line); }
+
+		.sections-nav-bar { display: flex; }
+		.sections-nav:not(.open) .sections-nav-list { display: none; }
+	}
+}

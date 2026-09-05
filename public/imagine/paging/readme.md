@@ -1,8 +1,8 @@
 # paging — one configurable page, six building blocks, twelve ready-made shapes. The realm is an app: a rail that never moves, and a middle that swaps
 
 Open [/imagine/paging/](/imagine/paging/). A real page is on the stage; the bar above it
-has every word that page is made of, as chips. Click one and the page changes. Pick
-another shape from the rail. That is the whole thing.
+has every word that page is made of, one labelled dropdown each. Change one and the page
+changes. Pick another shape from the rail. That is the whole thing.
 
 **The configuration is in the address.** Every chip you press writes itself into the url
 (`?navigation=rail&content=dashboard`), so the page you are looking at is always the page
@@ -45,7 +45,8 @@ export default new Paging({
 - The vocabulary is [`blocks.js`](./blocks.js) and it imports nothing, so a page, a rail
   tile, a chip, a url and a doc all read the same lists.
 - **Two colour controls, independent**: `surface` paints the content box, `background`
-  paints the page behind it. Both are rows of swatches in the bar.
+  paints the page behind it. Each is a dropdown with a dot beside it in the colour it
+  is currently on — the one control whose value is a thing rather than a word.
 - The drawer (**More**) holds the link to this exact page, the full form with a sentence
   per value, the JSON, **the `page.js` this would be**, **nest** (any preset inside this
   one) and **make this a page**, which writes a real `page.json` to disk in dev.
@@ -73,6 +74,11 @@ export default new Paging({
   edge until 2026-09-05, revealed on hover — so pointing at the front page's tab strip
   made the bar appear on top of it and the tab could not be clicked at all, at any width.
   It is a sibling above the stage now and it reserves its height.
+- **Seven dropdowns, and no width written anywhere.** Chip groups for 40 values sprawled
+  four rows deep; dropdowns fit one row at 3440 and two at 1280. A `<select>` in a flex
+  row shrinks below its content, which is why the bar's old selects clipped their own
+  values — `flex: none` on the control, and no `padding` shorthand (it takes away the
+  reserve the browser draws the arrow in).
 - **A stable navigation word reserves the box's height** (`.paging-nav-reserve`), so the
   caption under the stage can say "the box did not move" and be right. `columns` and
   `takeover` are the dynamic words and report the pixels they really moved ·

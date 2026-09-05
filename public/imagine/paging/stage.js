@@ -400,8 +400,8 @@ export class PagingStage extends View {
 		// ⚠ The invitation has to match the page. On a stage whose navigation word is
 		//   `none` there are no page names to click, and the line said to click one.
 		if (!change) return p.c("muted", this.config.navigation === "none"
-			? "Click a chip in the bar above. This line will say what changed, in pixels."
-			: "Click a page name, or a chip in the bar above. This line will say what changed.");
+			? "Change a word in the bar above. This line will say what changed, in pixels."
+			: "Click a page name, or change a word in the bar above. This line will say what changed.");
 
 		const moved = this.moved(change.before, change.after);
 

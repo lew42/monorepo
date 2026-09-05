@@ -15,7 +15,7 @@ export default block({
 
 	axis: "room",
 
-	lede_line: "Click a **room** chip, then read the line under the box: it says how many pixels the box just grew or shrank by.",
+	lede_line: "Change the **room** dropdown, then read the line under the box: it says how many pixels the box just grew or shrank by.",
 
 	config: { navigation: "none", content: "cards", room: "reading", arrangement: "plain", surface: "card", background: "tint", type: "regular" },
 });

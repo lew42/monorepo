@@ -23,7 +23,7 @@ export default block({
 
 	axes: ["surface", "background", "type"],
 
-	lede_line: "Click a swatch under **content colour**, then one under **page colour**. They are two independent controls: one paints the box, one paints the page behind it.",
+	lede_line: "Change **content colour**, then **page colour**. They are two independent controls: one paints the box, one paints the page behind it — the dot beside each one shows where it is.",
 
 	config: { navigation: "tabs", content: "article", room: "wide", arrangement: "plain", surface: "card", background: "prim", type: "regular" },
 });

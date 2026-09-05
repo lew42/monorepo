@@ -128,6 +128,9 @@ paging-nav-  /imagine/paging/navigation (stable vs dynamic navigation)
              Still declared in navigation.css: `.paging-nav-fixed` a columns host
              whose columns stop negotiating widths · `.paging-nav-screen`/`-rail`/
              `-centre` a full screen whose rail never moves.
+sections-    /imagine/sections (one multi-column section: .sections-band and its five
+             parts .sections-head/-side/-main/-aside/-foot, plus .sections-stack,
+             .sections-skin-* and .sections-hold, the sticky box inside a column cell)
 templates-   /imagine/paging/templates (the miniature frame and the type axis)
 baseline-    /imagine/paging/baseline.js (the "this page remembers you" mark — used by every realm that persists)
 color-       /imagine/design/color

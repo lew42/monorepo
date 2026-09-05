@@ -323,8 +323,14 @@
 	}
 	.paging-swapper-cap p { margin: 0; }
 	.paging-swapper-cap strong { color: var(--prim-ink); }
+	/* ⚠ AN ICON'S LINE BOX IS ITS OWN FONT SIZE, not the prose's. Beside a line of
+	     text in a `flex-start` row its box is ~13px against the text's ~24px, so the
+	     glyph sits about 5px above the words it belongs to — which is what "the icons
+	     are out of alignment" means and why it is not fixed by nudging a margin.
+	     Giving it the prose's line-height makes its box the same height as the first
+	     line, and the glyph centres in it. (the owner, 2026-09-05) */
 	.paging-swapper-what { display: flex; align-items: flex-start; gap: 0.4em; }
-	.paging-swapper-what .icon { color: var(--prim-ink); }
+	.paging-swapper-what .icon { color: var(--prim-ink); line-height: inherit; }
 
 	/* ── MAKE — the CRUD list, the form, and the text box ─────────────────────
 	   ⚠ `flex: none` on the word chips and the acts: a flex row under its content
@@ -532,39 +538,49 @@
 		border: 1px solid var(--line); border-radius: var(--radius);
 	}
 
-	/* Centred over the stage, and the groups wrap as a block rather than a ragged
-	   line: `align-items: flex-start` keeps every label on one baseline. */
+	/* Centred over the stage; the controls sit on one baseline and wrap as whole
+	   labelled units. */
+	/* ⚠ `width: 100%` — `.paging-toolbar` is itself a flex container (theme layer), so
+	     this row is a flex ITEM and shrink-wraps to its content. Without a width it
+	     sits at the bar's start edge and `justify-content: center` has nothing to
+	     distribute: the controls read as left-aligned in a 2847px bar at 3440. */
 	.paging-toolbar-row {
-		display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-start;
-		gap: 0.5em 1.3em;
+		display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-end;
+		width: 100%; gap: 0.4em 1.1em;
 	}
 
-	/* ONE LABELLED GROUP — the drawer's own shape, which is the control language that
-	   worked. `.paging-group` in the theme layer is the older chip row; this is the
-	   toolbar's, and it wins by being later. */
-	.paging-toolbar .paging-group { display: flex; flex-direction: column; gap: 0.15em; }
-	.paging-group-values { display: flex; flex-wrap: wrap; align-items: center; gap: 0.2em; }
+	/* ONE LABELLED DROPDOWN — the label above it, which is what makes seven of them
+	   fit one row (beside, they are ~1190px against a 1040px middle at 1280).
+	   ⚠ `flex: none` on the control and `width: auto` on the select. A `<select>` in a
+	     flex row shrinks below its own content like any other flex item, and that —
+	     not the font, not the padding — is why the bar's dropdowns used to be 80–111px
+	     wide with "Top tabs" reading "Top tab". No width is written here: the browser
+	     sizes each one to its longest option. */
+	.paging-toolbar .paging-group { display: flex; flex-direction: column; gap: 0.1em; flex: none; }
+	.paging-pick { display: flex; align-items: center; gap: 0.3em; flex: none; }
+	/* ⚠ NO WIDTH, NO PADDING SHORTHAND, NO FONT SIZE. A `<select>`'s own intrinsic
+	     width is its longest option PLUS the arrow the browser draws in its end
+	     padding — write `padding: 0.2em 0.4em` and you take that reserve away, which
+	     is how a control sized to fit clips anyway. The base theme already fills,
+	     pads and borders it; all this adds is "do not shrink". */
+	.paging-pick select { flex: none; width: auto; max-width: none; }
 
-	/* A notch smaller than a chip elsewhere: seven groups of them is a lot of bar, and
-	   the bar is chrome around the thing you came to look at. */
-	.paging-toolbar .paging-chip { padding: 0.15em 0.5em; font-size: 0.8em; }
+	/* THE COLOUR YOU ARE ON, beside its dropdown — the one control whose value is a
+	   thing rather than a word. */
+	.paging-dot {
+		width: 1.25em; height: 1.25em; flex: none;
+		border: 1px solid var(--line); border-radius: 50%;
+		box-shadow: inset 0 1px 2px var(--shade-a08, rgba(0,0,0,0.08));
+	}
+
+	/* `plain` is "no fill of its own", and a transparent dot reads as an empty
+	   checkbox — so the dot shows the floor that would show through. */
+	.paging-dot.paging-surface-plain { background: var(--wash); }
 
 	.paging-pick-label {
 		font-size: 0.68em; font-weight: 700; letter-spacing: 0.06em;
 		text-transform: uppercase; color: var(--subtle);
 	}
-
-	/* THE TWO COLOUR CONTROLS. A swatch IS its colour — the one control whose value
-	   you can see rather than read. Independent, on purpose: the first paints the
-	   content box, the second paints the page behind it. */
-	.paging-swatch {
-		display: inline-block;
-		width: 1.35em; height: 1.35em;
-		border: 1px solid var(--line); border-radius: 50%;
-		cursor: pointer;
-	}
-	.paging-swatch:is(:hover, :focus-visible) { outline: 2px solid var(--prim); outline-offset: 1px; }
-	.paging-swatch.on { outline: 2px solid var(--prim); outline-offset: 2px; }
 
 	/* MORE — a real button, at the end of the bar: the whole form, the code, and the
 	   link to this exact page. */
@@ -580,7 +596,10 @@
 
 	/* Two buttons at the end of the bar, one of them quieter: `Code` is the way OUT
 	   (the page.js this would be) and `More` is everything else. */
-	.paging-toolbar-outs { align-self: center; gap: 0.35em; }
+	/* ⚠ A ROW, not a column. `.paging-toolbar .paging-group` stacks a label over its
+	     control, and these two are buttons with no label — inheriting the column put
+	     them one under the other and made the bar a line taller for nothing. */
+	.paging-toolbar .paging-toolbar-outs { flex-direction: row; align-items: center; gap: 0.35em; }
 	.paging-more-quiet { color: var(--subtle); background: transparent; border-color: var(--line); }
 	.paging-more-quiet:is(:hover, :focus-visible) { color: var(--prim-ink); border-color: var(--prim); background: var(--fill-a08); }
 

@@ -16,7 +16,7 @@ export default block({
 
 	axis: "arrangement",
 
-	lede_line: "Click an **arrangement** chip. The content in the box never changes — only what is arranged around it.",
+	lede_line: "Change the **arrangement** dropdown. The content in the box never changes — only what is arranged around it.",
 
 	config: { navigation: "none", content: "article", room: "wide", arrangement: "bar-top", surface: "card", background: "tint", type: "regular" },
 });

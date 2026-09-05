@@ -101,7 +101,7 @@ class Block extends Paging {
 				icon: this.icon,
 				description: "The " + control.values.length + " values of " + control.label + ".",
 				axis: name,
-				lede_line: "Click a value below, or a chip in the bar — this page is the **" + control.label + "** word on its own.",
+				lede_line: "Pick a value below, or change **" + control.label + "** in the bar — this page is that one word on its own.",
 				config: { ...DEFAULT, ...this.config },
 			});
 		}

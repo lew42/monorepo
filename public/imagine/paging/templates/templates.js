@@ -39,7 +39,7 @@ export class Template extends Paging {
 	}
 
 	content(){
-		this.lede("Click a swatch in the bar, and a type size: this real " + this.title.toLowerCase() + " repaints, live.");
+		this.lede("Change the two colour dropdowns in the bar, and the type size: this real " + this.title.toLowerCase() + " repaints, live.");
 
 		/* ⚠ THE ADAPTER, not the page. `families.js` asks its host for `at("style")`
 		     to pick a tone word, and a `Paging` has no axes any more — so the draw
