@@ -1,6 +1,7 @@
-import { div, p, span, a, code, icon, md, drawer, Page } from "/app.js";
+import { div, p, span, a, code, input, icon, md, drawer, Page } from "/app.js";
 import { CONTROLS, means_of } from "./blocks.js";
 import { PRESETS, preset_url } from "./presets.js";
+import { link_for } from "./url.js";
 import store_for, { name_for } from "./make/made.js";
 
 /* ── THE DRAWER ────────────────────────────────────────────────────────────────
@@ -33,11 +34,47 @@ export function fill_drawer(stage, page){
 		});
 
 		$body.empty(() => {
+			link_box(stage);
 			form(stage);
 			nesting(stage);
 			json_box(stage, page);
+			code_box(stage, page);
 		});
 	});
+}
+
+/* ── 0 · THE LINK TO THIS EXACT PAGE ──────────────────────────────────────────
+   Every word you change is written into the address (`url.js`), so this box is just
+   showing you the address — but showing it is the whole point: until 2026-09-05 the
+   realm could reach about 100,800 configurations by clicking and send 43 of them,
+   because nothing ever appeared in the url. Copy this and the page travels.
+
+   ⚠ The field is `readonly`, not disabled: a disabled input cannot be selected, and
+     "select it and press ctrl-C" is the fallback for every browser that refuses
+     `navigator.clipboard` outside a secure context (which localhost is not always). */
+function link_box(stage){
+	p.c("h4 muted", "The link to this page");
+
+	const url = link_for(stage.config, stage.base, stage.nest);
+
+	let $said;
+
+	const $field = input().ac("paging-link-field").attr("type", "text").attr("readonly", "readonly");
+	$field.el.value = url;
+
+	div.c("paging-said", () => {
+		span.c("paging-chip on")
+			.attr("role", "button").attr("tabindex", "0")
+			.append(() => { icon("link"); span("Copy this link"); })
+			.click(async () => {
+				try { await navigator.clipboard.writeText(url); $said.empty(() => { icon("check_circle"); span("copied"); }); }
+				catch { $field.el.select(); $said.empty(() => span("select it and press ctrl-C")); }
+			});
+
+		$said = span.c("paging-said-ok");
+	});
+
+	return md("Open it cold, in any browser, and you get exactly this page.").ac("muted paging-means");
 }
 
 /* ── 1 · THE FULL FORM ────────────────────────────────────────────────────────
@@ -94,10 +131,10 @@ function nesting(stage){
 	if (stage.nest) a.c("page-link", "Open " + stage.nest.title + " on its own →").href(preset_url(stage.nest));
 }
 
-// One seam: the nested preset, kept whole (its title is what the drawer reads back).
+// One seam, and it is the stage's: `nest_to()` redraws AND writes `?nest=` into the
+// address, so a page inside a page is a link like every other configuration.
 function nest(stage, preset){
-	stage.nest = preset ? { ...preset.config, id: preset.id, title: preset.title } : null;
-	stage.redraw();
+	stage.nest_to(preset);
 	drawer.refresh();
 }
 
@@ -117,6 +154,38 @@ function json_box(stage, page){
 		.click(() => save(stage, page, $said));
 
 	md("It lands under [Make](/imagine/paging/make/) — one directory and one `page.json`, on disk in dev, in the list beside every other page you have made.").ac("muted paging-means");
+}
+
+/* ── 4 · THE PAGE.JS THIS WOULD BE ────────────────────────────────────────────
+   The seven words as a real, runnable file. `page.json` is the version a machine
+   writes; this is the version a hand writes, and it is the way OUT of the realm —
+   copy it into a directory of your own and the configuration is now code you can
+   change in ways no control offers. (Build has said this for its own nodes since it
+   shipped; the stage had no way out at all until now.) */
+function code_box(stage, page){
+	p.c("h4 muted", "The same page, as code");
+
+	code.js(code_for(stage.config, page));
+
+	return md("One directory, one `page.js`. Every word above is an argument.").ac("muted paging-means");
+}
+
+export function code_for(config, page){
+	const words = Object.entries(config).map(([key, value]) => "\n\t\t\t" + key + ": " + JSON.stringify(value) + ",").join("");
+
+	return [
+		'import { Paging } from "/imagine/paging/paging.js";',
+		"",
+		"export default new Paging({",
+		"\tmeta: import.meta,",
+		"\ttitle: " + JSON.stringify(page?.title ?? "My page") + ",",
+		"\ticon: " + JSON.stringify(page?.icon ?? "description") + ",",
+		"",
+		"\tcontent(){",
+		"\t\tthis.stage({" + words + "\n\t\t});",
+		"\t},",
+		"});",
+	].join("\n");
 }
 
 // What gets written. `mode` is passed through whole by `made.js`, so the whole

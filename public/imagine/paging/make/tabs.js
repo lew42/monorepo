@@ -1,5 +1,6 @@
 import { div, p, h3, span, a, input, icon } from "/app.js";
 import { press } from "../paging.js";
+import { DEFAULT, CONTENT, SURFACES, nav_of } from "../blocks.js";
 import { at, clone } from "./made.js";
 
 /* ── TABS ON A PAGE YOU MADE ───────────────────────────────────────────────────
@@ -15,23 +16,57 @@ import { at, clone } from "./made.js";
      columns   a click opens the child as a column of the row, and the url changes
      tabs      a click shows the child in the panel below the strip, and it does not
 
-   That word is `kids`, it lives in the parent's own `page.json` beside the three it
-   already had, and every control below writes it through `Make`'s ONE write seam
-   (`apply()` → `made.save()`) — this file owns no storage of its own and never
-   touches a file. `../doc/persistence.md` is where the pages actually go.
+   That word is `navigation`, it lives in the parent's own `page.json` beside the six
+   others, and every control writes it through `Make`'s ONE write seam (`apply()` →
+   `made.save()`) — this file owns no storage of its own and never touches a file.
+   `../doc/persistence.md` is where the pages actually go.
 
    ⚠ TABS DO NOT ROUTE, and the panel says so out loud with a link to the column.
      That is the same honesty the mechanisms pages keep: `swap` (which is what a tab
      strip is) has no url, so a tab cannot be linked to or reached with the Back
      button. If a child deserves an address, present it as a column.               */
 
-export const KIDS = ["columns", "tabs"];
+/* ── ONE SCHEMA FOR A MADE PAGE ────────────────────────────────────────────────
 
-export const KIDS_ICON = { columns: "view_column", tabs: "tab" };
+   A `page.json` written before 2026-09-05 says `style` / `content` / `mech` / `kids`;
+   one written after says the realm's seven words (`../blocks.js`). This function is
+   the ONE place that knows both, and everything else in Make reads a node through it.
 
-// A node's presentation word, defaulting to the one every page had before this
-// existed — so an older `page.json` with no `kids` reads exactly as it always did.
-export const kids_of = node => KIDS.includes(node?.mode?.kids) ? node.mode.kids : "columns";
+   ⚠ WHY IT MATTERS. Make's row chips wrote `style`/`mech`/`kids` while the drawer on
+     the same page wrote the seven words — and the reader below preferred the seven,
+     so clicking a chip in Make changed a key nothing on screen was reading and the
+     page did not move (paging-audit-2b, Q3, "two schemas into one store"). One
+     schema, and the old words migrate on the way in. */
+export function config_of(node){
+	const mode = node?.mode ?? {};
+
+	// Already the new words: nothing to translate.
+	if (mode.navigation) return { ...DEFAULT, ...pick(mode) };
+
+	const navigation = mode.kids === "tabs" ? "tabs"
+		: mode.kids === "rail" || mode.kids === "rail-right" ? mode.kids
+		: mode.mech === "swap" ? "tabs"
+		: mode.mech === "expand" ? "rail"
+		: mode.mech === "takeover" ? "takeover"
+		: "columns";
+
+	return {
+		...DEFAULT,
+		navigation,
+		content: has(CONTENT, mode.content) ? mode.content : DEFAULT.content,
+		surface: has(SURFACES, mode.style) ? mode.style : DEFAULT.surface,
+		background: "tint",
+	};
+}
+
+// Only the seven words, so an old key riding inside `mode` never reaches the stage.
+const pick = mode => Object.fromEntries(Object.keys(DEFAULT).map(key => [key, mode[key]]).filter(([, value]) => value != null));
+
+const has = (list, id) => list.some(entry => entry.id === id);
+
+// How this node draws its children — the one word `tabs_items()` and the "+ tab"
+// button ask about. `nav_of()` is the realm's own lookup, so there is no second list.
+export const kids_of = node => (nav_of(config_of(node).navigation).id === "tabs" ? "tabs" : "columns");
 
 /* ── THE PAGE SIDE: children drawn as a tab strip ─────────────────────────────
    Replaces `Paging.items()` on a made page whose `kids` is `tabs`. The strip and

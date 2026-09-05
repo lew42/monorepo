@@ -72,25 +72,52 @@ export const ROOM = [
 	{ id: "full",    title: "Full",     icon: "open_in_full", means: "The whole screen, rail and all. A takeover — there is a way back at the top." },
 ];
 
+/* ── THE NUMBERED LAYOUTS ──────────────────────────────────────────────────────
+   `/imagine/layouts/` is the realm that OWNS arrangement. These four are the ones
+   this realm's words compile to, and they are the SAME names that realm uses — so
+   `ARRANGEMENT` below and the builder's own control (`build/words.js`) can both
+   point at one list instead of writing the numbers out twice. */
+export const LAYOUTS = [
+	{ id: "1.stack",      title: "1.stack",      url: "/imagine/layouts/1/stack/",
+	  means: "One column. Every block under the last, at the reading measure." },
+	{ id: "2.main-aside", title: "2.main-aside", url: "/imagine/layouts/2/main-aside/",
+	  means: "The first block is the main track; every other block stacks in an aside beside it." },
+	{ id: "3.thirds",     title: "3.thirds",     url: "/imagine/layouts/3/thirds/",
+	  means: "Three equal tracks, blocks dealt across them." },
+	{ id: "4.wall",       title: "4.wall",       url: "/imagine/layouts/4/wall/",
+	  means: "A wall: as many tracks as fit, each block a tile." },
+];
+
+export const layout_link = id => {
+	const layout = LAYOUTS.find(entry => entry.id === id);
+	return layout ? " Layout [" + layout.title + "](" + layout.url + ")." : "";
+};
+
 /* ── 5 · ARRANGEMENT — where the other parts sit ──────────────────────────────
-   `/imagine/layouts/` is the realm that OWNS arrangement (17 numbered layouts). This
-   is the short list of the ones a PAGE wears — chrome around one content box — and
-   each entry names the layout number it is, so the two vocabularies stay one. */
+   The short list of shapes a PAGE wears — chrome around one content box — each
+   naming the numbered layout it compiles to, so the two vocabularies stay one.
+
+   ⚠ NOT "LEFT RAIL" AND "RIGHT RAIL". Navigation already has those two words, and
+     for a different thing: a navigation rail lists THIS PAGE'S CHILDREN, and an
+     arrangement panel is anything else beside the content — a contents list, a
+     properties panel, a filter. Two controls offering the same two words for two
+     different jobs was the single most confusing thing in the realm's vocabulary
+     (paging-audit-2). The arrangement pair is a PANEL; the navigation pair is a RAIL. */
 export const ARRANGEMENT = [
 	{ id: "plain",      title: "Plain",       icon: "crop_square",   layout: "1.stack",
-	  means: "The content, and nothing around it. Layout [1.stack](/imagine/layouts/1/stack/)." },
+	  means: "The content, and nothing around it." + layout_link("1.stack") },
 	{ id: "bar-top",    title: "Toolbar top", icon: "web_asset",       layout: "1.stack",
-	  means: "A bar of controls above the content. The bar stays; the content scrolls. Layout [1.stack](/imagine/layouts/1/stack/)." },
+	  means: "A bar of controls above the content. The bar stays; the content scrolls." + layout_link("1.stack") },
 	{ id: "bar-bottom", title: "Footer",      icon: "vertical_align_bottom", layout: "1.stack",
-	  means: "The same bar under the content — a footer, or a phone's tab bar. Layout [1.stack](/imagine/layouts/1/stack/)." },
-	{ id: "rail-left",  title: "Left rail",   icon: "view_sidebar",  layout: "2.main-aside",
-	  means: "A column of links before the content, sharing its top edge. Layout [2.main-aside](/imagine/layouts/2/main-aside/)." },
-	{ id: "rail-right", title: "Right rail",  icon: "view_sidebar",  layout: "2.main-aside",
-	  means: "The column after the content — a contents list, or a properties panel. Layout [2.main-aside](/imagine/layouts/2/main-aside/)." },
+	  means: "The same bar under the content — a footer, or a phone's tab bar." + layout_link("1.stack") },
+	{ id: "rail-left",  title: "Panel left",  icon: "view_sidebar",  layout: "2.main-aside",
+	  means: "A panel before the content, sharing its top edge — a filter, a properties panel. Not the page's children: that is Navigation." + layout_link("2.main-aside") },
+	{ id: "rail-right", title: "Panel right", icon: "view_sidebar",  layout: "2.main-aside",
+	  means: "The same panel after the content — a contents list, or the properties of what you are reading." + layout_link("2.main-aside") },
 	{ id: "main-aside", title: "Main + aside", icon: "view_quilt",   layout: "2.main-aside",
-	  means: "Two tracks of content: the main story, and a narrower one beside it. Layout [2.main-aside](/imagine/layouts/2/main-aside/)." },
+	  means: "Two tracks of content: the main story, and a narrower one beside it." + layout_link("2.main-aside") },
 	{ id: "wall",       title: "Wall",        icon: "grid_view",     layout: "4.wall",
-	  means: "No chrome at all — the content spreads into as many tracks as fit. Layout [4.wall](/imagine/layouts/4/wall/)." },
+	  means: "No chrome at all — the content spreads into as many tracks as fit." + layout_link("4.wall") },
 ];
 
 /* ── 6 · SKIN — the colours and the type size ─────────────────────────────────
@@ -132,7 +159,10 @@ export const BLOCKS = [
 	  one_line: "How much of the screen the box gets." },
 	{ id: "arrangement", title: "Arrangement", icon: "view_quilt", url: "/imagine/paging/arrangement/", axis: "arrangement",
 	  one_line: "Where the page's other parts sit around the box." },
+	// ⚠ The one block with THREE words rather than one — content colour, page colour
+	//   and type size — so its page is three nav grids and each word has its own url.
 	{ id: "skin", title: "Skin", icon: "palette", url: "/imagine/paging/skin/", axis: "surface",
+	  axes: ["surface", "background", "type"],
 	  one_line: "The colours and the type size." },
 ];
 

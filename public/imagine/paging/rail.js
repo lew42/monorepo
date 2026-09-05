@@ -21,20 +21,27 @@ const preset_tile = preset => ({
 	icon: preset.icon,
 });
 
+/* ⚠ NO SECTION NOTES. Every section used to carry a sentence saying what it was
+     about to show; the tiles say it better, and the seven sentences pushed the last
+     three sections below the fold at 3440 (paging-audit-2). */
 export const RAIL = [
 	{
 		title: "The six blocks",
-		note: "everything here is one of these",
 		items: BLOCKS.map(block => ({ url: block.url, title: block.title, icon: block.icon })),
 	},
 	{
 		title: "Library",
-		note: "whole pages, already configured",
 		items: PRESETS.map(preset_tile),
 	},
 	{
+		title: "Cross",
+		items: [
+			{ url: "/imagine/paging/cross/", title: "Two at once", icon: "compare_arrows" },
+			{ url: "/imagine/paging/templates/theming/", title: "Colour x type", icon: "palette" },
+		],
+	},
+	{
 		title: "Mechanisms",
-		note: "what one click does",
 		items: [
 			{ url: "/imagine/paging/mechanisms/swap/", title: "Swap", icon: "swap_horiz" },
 			{ url: "/imagine/paging/mechanisms/launch/", title: "Launch", icon: "chevron_right" },
@@ -44,7 +51,6 @@ export const RAIL = [
 	},
 	{
 		title: "Templates",
-		note: "eleven whole-page shapes",
 		items: [
 			{ url: "/imagine/paging/templates/", title: "All eleven", icon: "dashboard_customize" },
 			{ url: "/imagine/paging/templates/magazine/", title: "Magazine", icon: "auto_stories" },
@@ -54,7 +60,6 @@ export const RAIL = [
 	},
 	{
 		title: "Toolbars",
-		note: "the same bar, on four edges",
 		items: [
 			{ url: "/imagine/paging/toolbars/top/", title: "Top", icon: "vertical_align_top" },
 			{ url: "/imagine/paging/toolbars/left/", title: "Left", icon: "format_align_left" },
@@ -63,16 +68,18 @@ export const RAIL = [
 		],
 	},
 	{
-		title: "Make & Build",
-		note: "the two editors — these DO save",
+		// ⚠ START WITH MAKE — it is first here and it says so on both pages. Two
+		//   editors with no order between them was the question every newcomer asked
+		//   (paging-audit-2): Make types a name and gets a page; Build configures the
+		//   page Make made.
+		title: "Editors (these save)",
 		items: [
-			{ url: "/imagine/paging/build/", title: "Build a page", icon: "construction" },
-			{ url: "/imagine/paging/make/", title: "Make (files)", icon: "add_circle_outline" },
+			{ url: "/imagine/paging/make/", title: "1 Make a page", icon: "add_circle_outline" },
+			{ url: "/imagine/paging/build/", title: "2 Build it out", icon: "construction" },
 		],
 	},
 	{
 		title: "Next door",
-		note: "the realms this one borrows from",
 		items: [
 			{ url: "/imagine/layouts/", title: "Layouts", icon: "grid_view" },
 			{ url: "/imagine/shells/", title: "Shells", icon: "dashboard" },

@@ -1,5 +1,6 @@
 import Socket from "/framework/dev/Socket/Socket.js";
 import FileSaver from "/framework/ext/Saver/FileSaver.js";
+import { DEFAULT } from "../blocks.js";
 
 /* ── WHERE THE PAGES YOU MAKE ARE KEPT ────────────────────────────────────────
 
@@ -47,16 +48,22 @@ const PROBE = 2500;
 
 // The pages Make ships with, and what "Back to the baseline" restores. They exist
 // as real files in the repo too, so a fresh checkout opens straight onto them.
+/* ⚠ REAL WORDS, from `../blocks.js`. The four seeded pages used to claim content
+     rungs `xs`–`l`, an axis DELETED on 2026-09-05 — so all four fell back to
+     `article` and the first chip click jumped to the head of a different list
+     (paging-audit-2b, fix 7). Every value below is in the list its control offers. */
 export const SEED = [
-	{ name: "notes", title: "Notes", mode: { style: "card", content: "m", mech: "launch" }, children: [
-		{ name: "today", title: "Today", mode: { style: "plain", content: "s", mech: "launch" }, children: [] },
-		{ name: "later", title: "Later", mode: { style: "tint", content: "xs", mech: "expand" }, children: [] },
+	{ name: "notes", title: "Notes", mode: { ...DEFAULT, navigation: "tabs", content: "docs" }, children: [
+		{ name: "today", title: "Today", mode: { ...DEFAULT, navigation: "none", content: "article", surface: "plain" }, children: [] },
+		{ name: "later", title: "Later", mode: { ...DEFAULT, navigation: "none", content: "settings", surface: "tint" }, children: [] },
 	] },
-	{ name: "ideas", title: "Ideas", mode: { style: "tint", content: "l", mech: "swap" }, children: [] },
-	{ name: "archive", title: "Archive", mode: { style: "dark", content: "m", mech: "takeover" }, children: [] },
+	{ name: "ideas", title: "Ideas", mode: { ...DEFAULT, navigation: "rail", content: "cards", surface: "tint", background: "tint" }, children: [] },
+	{ name: "archive", title: "Archive", mode: { ...DEFAULT, navigation: "takeover", content: "dashboard", surface: "dark", background: "dark" }, children: [] },
 ];
 
-export const DEFAULTS = { style: "card", content: "m", mech: "launch" };
+// The words a NEW page arrives wearing — the realm's own default configuration, so
+// a page you make and a page the drawer writes start from the same seven words.
+export const DEFAULTS = { ...DEFAULT };
 
 export const clone = value => JSON.parse(JSON.stringify(value));
 

@@ -121,13 +121,21 @@ export class Paging extends Page {
 	stage(config, extra){
 		let stage;
 
-		/* ⚠ ONE WRAPPER, and the toolbar is INSIDE it — that is what makes "hover the
-		     stage" mean the same thing as "the toolbar appears". A toolbar drawn as a
-		     sibling of the stage would need its own hover target, and pointing at the
-		     stage would not be it. `position: relative` here, `absolute` on the bar. */
+		/* ⚠ THE BAR IS DRAWN FIRST, ABOVE THE STAGE — and the empty `$bar` is why. The
+		     Toolbar needs the Stage to exist before it can be built, but it has to sit
+		     BEFORE it in the DOM: above it on screen, and before it in the tab order.
+		     So the slot is claimed first and filled after. (The alternative, `order:
+		     -1` in CSS, moves the picture and leaves a reader tabbing into the stage
+		     before its own controls.)
+		     Until 2026-09-05 the bar was absolutely placed OVER the stage's top edge
+		     and revealed on hover, which put it on top of the demo's tab strip —
+		     paging-audit-2's break #1. It reserves its height now. */
 		div.c("paging-frame wide", () => {
+			const $bar = div.c("paging-toolbar-slot");
+
 			stage = this.$stage = new Stage({ config, ...extra, page: this });
-			this.$toolbar = new Toolbar({ stage, page: this });
+
+			$bar.append(() => { this.$toolbar = new Toolbar({ stage, page: this }); });
 		});
 
 		return stage;
@@ -183,11 +191,13 @@ export class Realm extends Paging {
 		});
 	}
 
-	section({ title, note, items }){
+	// ⚠ NO SECTION NOTE. Each section used to carry a sentence saying what it was
+	//   about to show ("whole pages, already configured"); the tiles under it say it
+	//   better, and the seven sentences put the last three sections below the fold at
+	//   3440 (paging-audit-2). The heading is the label; the grid is the answer.
+	section({ title, items }){
 		return div.c("paging-sec", () => {
 			span.c("paging-sec-head", title);
-			if (note) span.c("paging-sec-note", note);
-
 			div.c("paging-grid", () => items.forEach(item => this.tile(item)));
 		});
 	}

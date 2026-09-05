@@ -61,6 +61,10 @@
 	   14px right of the items they head. One knob, one column. */
 	.sidebar { --gutter: 1.75em; font-size: 0.8em; }
 	.sidebar-nav { overflow-y: auto; scrollbar-width: thin; }
+	/* A rail ROW spans its rail on purpose (spacing-judge 2026-09-05, rule c): the
+	   list is the control and the row is its part, the hover fill IS the row — like
+	   `li` and `tr`. The auditors' 228px box / 24px ink is that row, not a strip.
+	   Its side inset is the sidebar's own `--gutter` (21px at 1280, 25px at 3440). */
 	.sidebar-link { padding-block: 0.8em; }
 	.sidebar-group { margin-block: 1em; }
 	.sidebar-link:is(.active, .in-path) .sidebar-label { font-weight: 600; }

@@ -1,6 +1,12 @@
 import { View, div, p, span, a, icon } from "/app.js";
-import { clean, nav_of, title_of } from "./blocks.js";
+import { clean, nav_of, title_of, NAVIGATION, ARRANGEMENT, ROOM, SURFACES, TYPE } from "./blocks.js";
 import { CONTENT_DRAW, PAGES } from "./content.js";
+import { from_url, write_url } from "./url.js";
+
+// ⚠ ONE LIST PER WORD, and it is the list in `blocks.js`. These five used to be
+//   hand-typed arrays of ids in `paint()` below — a sixth copy of the vocabulary,
+//   which is exactly what the 2026-09-05 audit found five of.
+const ids = list => list.map(entry => entry.id);
 
 /* ⚠ `paging.css` is loaded by `paging.js`, not here. Every page that puts a Stage on
      screen is a page of this realm and so extends `Paging`; loading the sheet twice
@@ -34,7 +40,17 @@ export class PagingStage extends View {
 	     undefined `pages` list. `PagingSwapper` in this realm already had it in this
 	     order; the note was not written down until now. */
 	initialize(){
-		this.config = clean(this.config);
+		/* `base` is the page's OWN words, before the url gets a vote — the drawer's
+		   link and `write_url()` both send only what differs from it, so a preset's
+		   address stays clean until you change something. */
+		this.base = clean(this.config);
+
+		// ⚠ A NESTED STAGE NEVER READS OR WRITES THE ADDRESS. It is a page inside a
+		//   box, not the page you are on; two stages writing one url would fight.
+		const opening = this.inner ? { config: this.base, nest: null } : from_url(this.base);
+
+		this.config = opening.config;
+		this.nest ??= opening.nest;
 		this.pages ??= PAGES;
 		this.open ??= null;
 		super.initialize();
@@ -57,11 +73,11 @@ export class PagingStage extends View {
 	paint(){
 		const c = this.config;
 
-		this.rc(...["plain", "card", "tint", "prim", "dark"].map(w => "paging-bg-" + w))
-			.rc(...["compact", "regular", "display"].map(w => "paging-type-" + w))
-			.rc(...["narrow", "reading", "wide", "full"].map(w => "paging-room-" + w))
-			.rc(...["plain", "bar-top", "bar-bottom", "rail-left", "rail-right", "main-aside", "wall"].map(w => "paging-arr-" + w))
-			.rc(...["none", "tabs", "rail", "rail-right", "columns", "takeover"].map(w => "paging-nav-" + w))
+		this.rc(...ids(SURFACES).map(w => "paging-bg-" + w))
+			.rc(...ids(TYPE).map(w => "paging-type-" + w))
+			.rc(...ids(ROOM).map(w => "paging-room-" + w))
+			.rc(...ids(ARRANGEMENT).map(w => "paging-arr-" + w))
+			.rc(...ids(NAVIGATION).map(w => "paging-nav-" + w))
 			.ac("paging-bg-" + c.background, "paging-type-" + c.type,
 				"paging-room-" + c.room, "paging-arr-" + c.arrangement, "paging-nav-" + c.navigation);
 
@@ -105,28 +121,73 @@ export class PagingStage extends View {
 			.append(() => { this.held(); });
 	}
 
-	// What the box holds: the child that is open, or the page's own content.
+	/* ── WHAT THE BOX HOLDS ───────────────────────────────────────────────────
+
+	   ⚠ THE BOX RESERVES ITS HEIGHT. Every panel is drawn — the page's own content
+	     AND all four children — stacked in ONE grid cell, and the ones you are not
+	     reading are `visibility: hidden`: hidden, but still MEASURED. So the box is
+	     always as tall as its tallest panel, the browser works that number out, and
+	     clicking a tab cannot resize it.
+
+	     This is `nav-stability`'s own rule (`navigation/navigation.css`,
+	     `.paging-nav-reserve`), lifted here because the caption underneath is a
+	     MEASUREMENT: before it, the first demo in the realm said "the box did not
+	     move" over a line reading "the box is 335px shorter" (paging-audit-2, break
+	     #2). `visibility`, never `display: none` — a display-hidden panel is not
+	     measured, which is the whole thing being bought.
+
+	   ⚠ STABLE NAVIGATION ONLY. `columns` and `takeover` are the DYNAMIC words
+	     (decision 5, 2026-09-05): they are supposed to move things, so their child
+	     opens beside the box or over the whole stage and the caption reports the
+	     real pixels. Reserving there would hide the very thing they demonstrate. */
 	held(){
-		const child = this.open !== null && this.pages[this.open];
+		if (!this.swaps()) return this.own_panel();
 
-		// ⚠ Called from inside `box()`'s own captured callback, so the factories in
-		// the drawing function append to the box on their own — nothing may `empty()`
-		// the box from in here, which would clear the append that is still running.
-		if (!child){
-			// `draw` is the seam a page uses to put its OWN thing in the box — the
-			// templates realm hands over a family's real machinery this way, so the
-			// two colours and the type scale repaint a real magazine cover.
-			if (this.draw) this.draw(this);
-			else (CONTENT_DRAW[this.config.content] ?? CONTENT_DRAW.article)();
-
-			return this.nest_box();
-		}
-
-		div.c("paging-held", () => {
-			span.c("paging-eyebrow", "the box did not move — only this did");
-			p.c("h2", child.title);
-			p(child.text);
+		div.c("paging-nav-reserve", () => {
+			this.slot(null);
+			this.pages.forEach((child, i) => this.slot(i, child));
 		});
+	}
+
+	// Which navigation words change what is IN the box (rather than beside or over it).
+	swaps(){ return ["tabs", "rail", "rail-right"].includes(this.config.navigation); }
+
+	// One reserved panel. `i === null` is the page's own content.
+	slot(i, child){
+		return div.c("paging-slot").ac(this.open !== i && "paging-nav-hidden").append(() => {
+			if (i === null) return void this.own_panel();
+
+			div.c("paging-held", () => {
+				p.c("h2", child.title);
+				p(child.text);
+			});
+		});
+	}
+
+	/* THE PAGE'S OWN CONTENT, and the list of children when the navigation word draws
+	   that list inside the box (`columns` and `takeover` both do — before this, both
+	   presets drew a box with nothing to click and the gesture could not be reached
+	   at all). ⚠ Called from inside `box()`'s own captured callback, so the factories
+	   append on their own — nothing here may `empty()` the box. */
+	own_panel(){
+		if (this.config.navigation === "columns" || this.config.navigation === "takeover") this.rows();
+
+		// `draw` is the seam a page uses to put its OWN thing in the box — the
+		// templates realm hands over a family's real machinery this way, so the
+		// two colours and the type scale repaint a real magazine cover.
+		if (this.draw) this.draw(this);
+		else (CONTENT_DRAW[this.config.content] ?? CONTENT_DRAW.article)();
+
+		return this.nest_box();
+	}
+
+	/* PUT A PAGE INSIDE THIS ONE (or take it out), and say so in the address — one
+	   seam, so the drawer, a `?nest=` url and a preset all arrive the same way. */
+	nest_to(preset){
+		this.nest = preset ? (preset.config ? { ...preset.config, id: preset.id, title: preset.title } : preset) : null;
+		this.redraw();
+		if (!this.inner) write_url(this.config, this.base, this.nest);
+		return this;
 	}
 
 	/* A WHOLE PAGE INSIDE THIS ONE. `nest` is another configuration, and it is drawn
@@ -167,6 +228,15 @@ export class PagingStage extends View {
 		});
 	}
 
+	// The same rows, listed INSIDE the box — what `columns` and `takeover` navigate
+	// from. A page that opens its children as columns lists them; that is the gesture.
+	rows(){
+		return div.c("paging-rows", () => {
+			span.c("paging-eyebrow", "pages under this one");
+			this.pages.forEach((child, i) => this.row(child, i));
+		});
+	}
+
 	// A row, for the rail and for the two mechanisms that navigate. It carries the
 	// icon of what clicking it will DO, which is the promise the row makes.
 	row(child, i){
@@ -192,12 +262,20 @@ export class PagingStage extends View {
 		});
 	}
 
-	// `takeover` — the child has the whole stage, and the trail is the way back.
+	/* `takeover` — the child has the whole stage, and the trail is the way back.
+	   ⚠ THE WAY OUT IS DRAWN TWICE, on purpose: the crumb (back to the page that was
+	     here) and, when the stage has the whole screen, the exit chip (back to the
+	     app). Before this, a takeover on a `full` stage had NEITHER — `frame()`
+	     returned here before the `full` branch ran, so at 1280 the only way out of
+	     `/library/takeover/` was the browser's Back button (paging-audit-2, break
+	     #4). A gesture that fills the screen owes the reader a door. */
 	taken(){
 		const child = this.pages[this.open];
 
+		if (this.config.room === "full") this.exit();
+
 		div.c("paging-trail", () => {
-			this.press(span.c("paging-crumb", "Northwind"), this.open);
+			this.press(span.c("paging-crumb", () => { icon("arrow_back"); span("Northwind"); }), this.open);
 			icon("chevron_right");
 			span.c("paging-crumb on", child.title);
 		});
@@ -291,6 +369,11 @@ export class PagingStage extends View {
 		if (axis === "navigation" && value === "none") this.open = null;
 
 		this.redraw();
+
+		/* THE ADDRESS IS THE CONFIGURATION. One `replaceState` per change, so the page
+		   you are looking at is always the page the url names — copy it, send it, open
+		   it cold, and you get this. `url.js` has the whole seam. */
+		if (!this.inner) write_url(this.config, this.base, this.nest);
 
 		this.change = { axis, from: title_of(axis, was), to: title_of(axis, value), before, after: this.rect() };
 		this.$cap?.empty(() => { this.caption(); });

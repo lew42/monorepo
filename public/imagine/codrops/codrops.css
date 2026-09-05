@@ -22,7 +22,9 @@
 		gap: 0.35em;
 	}
 
-	.codrops-demo-title { font-weight: 600; }
+	/* `fit-content` (spacing-judge 2026-09-05, rule c): the body is a flex column and
+	   stretched this link to the card — 1,021px for 144px of ink at 3440. */
+	.codrops-demo-title { font-weight: 600; width: fit-content; }
 
 	.codrops-demo-original {
 		font-size: 0.85em;

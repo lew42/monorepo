@@ -1,0 +1,13 @@
+# paging-audit-2 — the audit AFTER the rebuild (two critics, Opus)
+
+Read first: the repo's `CLAUDE.md` (law 2 and the Presentation section), `../mastermind-day/requirements.md` (the owner's brief verbatim — his paging paragraphs are the rubric; his follow-up: *"don't stop until the paging system is perfect - simple, powerful, organized, intuitive, easy to browse, infinite potential"*), `../../2026-09-04/mastermind-platform/minion-rules.md`, then the first audit's verdicts (`../paging-audit-1/task.jsonl`, `../paging-audit-1b/task.jsonl`) and the rebuild's landing (`../paging-v3/task.jsonl`, last lines). Then walk `/imagine/paging/` on a private server (never port 80; kill by the pid you started) at 1280 and 3440 with screenshots. Skills: `new-task` (your own dir, group `paging`), `layout`, `finish-task`.
+
+## Two critics
+
+**Critic A — the overwhelmed newcomer, second visit** (task dir `paging-audit-2/`, this one). Same walk as before, cold, twenty minutes, screenshots. This time also score the realm on the owner's six words — simple · powerful · organized · intuitive · easy to browse · infinite potential — each 1–5 with the one sentence that justifies it. Then: what is still confusing, ranked (quote what you read or saw); what got worse; what a newcomer still cannot do that the owner asked for (SEE layouts × navigation × appearance × hierarchy; configure without writing a page; put any page inside any other; previews that link to demos; every page within a few clicks). End with a ranked FIX LIST: each item one line — what · where (url) · how (one sentence) · effort (S/M/L).
+
+**Critic B — the systems designer, second visit** (task dir `../paging-audit-2b/`; create it with `new-task`). Read the rebuilt code (`public/imagine/paging/`: `paging.js`, `words.js`, the rail, the library, the toolbar, the drawer, `doc/*`) and answer: are the six blocks now one name, one control and one page each (list the remaining synonyms with file:line); does a reader cross blocks (the owner's "layouts × navigation × appearance × hierarchy") anywhere — say exactly where and what is missing; is "the realm is one configurable page" true in the code (how many code paths draw a stage; how many places define the surface words; how many times navigation is defined); what "infinite potential" would mean here concretely (what a reader could generate that the authors did not anticipate) and the one seam that would unlock it. End with a ranked FIX LIST in the same one-line form.
+
+## Rules
+
+Fix nothing; change nothing under `public/`. Never `find /`; never spawn agents; never `git stash`/commit. Budget ~200k each. Each reports in ≤ 10 plain lines plus the fix list; the mastermind merges the two lists and hands them to the fix minion.

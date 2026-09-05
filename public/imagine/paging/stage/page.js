@@ -16,7 +16,7 @@ export default block({
 
 	axis: null,
 
-	lede_line: "Click the tabs on the page below and watch its white box. The line under it measures the box for you, every time.",
+	lede_line: "Click the tabs on the page below and watch its white box. The line under it measures the box after every click.",
 
 	config: { navigation: "tabs", content: "article", room: "wide", arrangement: "plain", surface: "card", background: "tint", type: "regular" },
 

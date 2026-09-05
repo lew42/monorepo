@@ -49,6 +49,8 @@
 	     width is untouched, so this does not touch the golden-share numbers above it.
 	     Caveat: this is a feel fix, not a width fix — the % used at 3440 is unchanged;
 	     undo by reverting the fallback to 0% if a flatter white reads better. */
+	/* D5 (spacing-judge 2026-09-05): 64px at 3440 against a 20px gutter — a cover is
+	   the site's own `airy` case (1.6x a page); the gutter is 50px there now. Kept. */
 	.mag-cover-area {
 		flex: 1;
 		display: flex; flex-direction: column; justify-content: center;

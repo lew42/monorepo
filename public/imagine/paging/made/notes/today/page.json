@@ -3,9 +3,13 @@
 	"icon": "description",
 	"description": "A page you made.",
 	"mode": {
-		"style": "plain",
-		"content": "s",
-		"mech": "launch"
+		"navigation": "none",
+		"content": "article",
+		"room": "reading",
+		"arrangement": "plain",
+		"surface": "plain",
+		"background": "plain",
+		"type": "regular"
 	},
 	"children": []
 }

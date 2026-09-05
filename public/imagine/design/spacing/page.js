@@ -42,7 +42,7 @@ const shot = s => figure.c("flex v gap").style({ margin: 0, gap: "0.4em" }).appe
 
 export default new Page({
 	meta: import.meta,
-	children: "ceilings",
+	children: "ceilings audit",
 	title: "Spacing",
 	description: "Every /imagine/ realm's vertical spacing, measured box by box at 1280 and 3440 — the neighbour-ratio pairs with no legitimate reason, the cramped ranking, and one proposal that fixes all three.",
 	icon: "height",
@@ -55,6 +55,9 @@ export default new Page({
 	},
 
 	content(){
+		// The ruling this study led to, one click down (spacing-judge, 2026-09-05).
+		md.details(import.meta, "decision.md", "The decision — 2026-09-05, the spacing judge: the scale, the three levels, the control rule");
+
 		md("**What was measured:** every `/imagine/` realm's landing page, plus `/imagine/design/padding/` as a control — 1,166 visible boxes at 1,280px and 1,166 at 3,440px, each one's own padding, margin, container gap, inherited `--flow`, and the *real* rendered distance to its previous and next sibling ([raw tables + method](" + "/framework/ai/2026-09-05/spacing-study/" + ")). **The one rule the numbers suggest:** `.page-previews` (the wall `previews()` draws, used by 13 of these 22 realms) carries its own flat `--gap: 0.8em` instead of the site's `--flow`/`--gap-default` clamp — that single token is behind both defects below.");
 
 		h2("The neighbour ratio");

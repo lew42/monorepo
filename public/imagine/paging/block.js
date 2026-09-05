@@ -1,6 +1,6 @@
 import { div, h2, p, span, a, icon, md } from "/app.js";
 import { Paging } from "./paging.js";
-import { BLOCKS, DEFAULT, values_for } from "./blocks.js";
+import { BLOCKS, CONTROLS, DEFAULT, values_for } from "./blocks.js";
 
 /* ── ONE BUILDING BLOCK, AS A PAGE ────────────────────────────────────────────
 
@@ -27,25 +27,49 @@ const plain = text => String(text).replace(/\[([^\]]+)\]\([^)]+\)/g, "$1");
 
 class Block extends Paging {
 
+	/* ⚠ `lede()`, NOT `p.c("paging-lede", …)`. Only `md()` reads markdown, and four of
+	     these six pages open with a bolded word — so a plain `p()` printed the
+	     asterisks on screen, above the fold, on the pages that name the vocabulary
+	     (paging-audit-2, break #3). `Paging.lede()` is the one call that gets it
+	     right, and now every page in the realm uses it. */
 	content(){
-		p.c("paging-lede", this.lede_line);
+		this.lede(this.lede_line);
 
 		this.stage({ ...DEFAULT, ...this.config });
 
-		h2(this.axis ? "The " + values_for(this.axis).length + " values, each at its own url" : "Where it shows up");
-
-		if (this.axis) this.values();
-		else this.elsewhere();
+		if (this.axes) this.groups();
+		else {
+			h2(this.axis ? "The " + values_for(this.axis).length + " values, each at its own url" : "Where it shows up");
+			if (this.axis) this.values(this.axis);
+			else this.elsewhere();
+		}
 
 		md("The other blocks: " + BLOCKS.filter(block => block.id !== this.name)
 			.map(block => "[" + block.title + "](" + block.url + ")").join(" · ") + ".");
 	}
 
-	// A nav grid of this word's values. Clicking one opens that value's page —
+	/* A BLOCK THAT IS MORE THAN ONE WORD. Skin is three controls — the content's
+	   colour, the page's colour and the type size — and until now only the first had
+	   a page, so `background` and `type` were words the toolbar could set and no url
+	   could name (paging-audit-2b, fix 3). Each axis gets a heading, a nav grid, and
+	   a page of its own at `/skin/<axis>/`, whose values are at `/skin/<axis>/<id>/`. */
+	groups(){
+		return this.axes.forEach(axis => {
+			const control = CONTROLS.find(entry => entry.axis === axis);
+
+			h2(() => {
+				a.c("page-link").href(this.url + axis + "/").append(() => span(control.label));
+			});
+
+			this.values(axis, this.url + axis + "/");
+		});
+	}
+
+	// A nav grid of a word's values. Clicking one opens that value's page —
 	// same page, same stage, that one word already set.
-	values(){
-		return div.c("paging-cards", () => values_for(this.axis).forEach(value =>
-			a.c("paging-card").href(this.url + value.id + "/").append(() => {
+	values(axis, base = this.url){
+		return div.c("paging-cards", () => values_for(axis).forEach(value =>
+			a.c("paging-card").href(base + value.id + "/").append(() => {
 				span.c("paging-card-head", () => { if (value.icon) icon(value.icon); span(value.title); });
 				span.c("paging-card-say", plain(value.means));
 			})));
@@ -66,6 +90,22 @@ class Block extends Paging {
 	     returns nothing and core falls through to a filesystem probe, which 404s,
 	     which is the right answer for `/room/banana/`. */
 	route(name){
+		// A block with several words routes to ONE of them first: `/skin/background/`
+		// is a whole Block whose own values then route under it.
+		if (this.axes?.includes(name)){
+			const control = CONTROLS.find(entry => entry.axis === name);
+
+			return new Block({
+				title: this.title + ": " + control.label,
+				label: control.label,
+				icon: this.icon,
+				description: "The " + control.values.length + " values of " + control.label + ".",
+				axis: name,
+				lede_line: "Click a value below, or a chip in the bar — this page is the **" + control.label + "** word on its own.",
+				config: { ...DEFAULT, ...this.config },
+			});
+		}
+
 		if (!this.axis) return;
 
 		const value = values_for(this.axis).find(entry => entry.id === name);

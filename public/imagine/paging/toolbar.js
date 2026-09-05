@@ -1,28 +1,45 @@
-import { View, div, span, select, option, icon } from "/app.js";
+import { View, div, span, icon } from "/app.js";
 import { CONTROLS, SURFACES } from "./blocks.js";
 import { fill_drawer } from "./config.js";
 
-/* ── THE HOVER TOOLBAR ─────────────────────────────────────────────────────────
+/* ── THE TOOLBAR ───────────────────────────────────────────────────────────────
 
-   The one control surface in the realm. It is INVISIBLE until you point at the
-   stage (or tab into it), and then it is five dropdowns, two rows of colour, and
-   the way into the drawer.
+   The control surface of the realm: every word this page is made of, as a labelled
+   group of chips, sitting ABOVE the stage. Click a chip and the page under it
+   changes; the caption under the stage says what that did, in pixels.
 
-   It replaced the floating chip rows the realm used to carry on every page. The
-   owner's report on those: *"it just sort of floats there, not visually clear what
-   its for until you give the page a bg with card"* — so this one sits ON the stage,
-   at its top edge, and shows up only when you are looking at the stage.
+   ⚠ IT SITS ABOVE THE STAGE, IN THE FLOW — it does not float over it. It used to:
+     the bar was `position: absolute` at the stage's top edge, and it appeared on
+     hover, which meant that on the realm's own front page it covered the demo's tab
+     strip. Moving the mouse toward a tab made the bar appear ON the tab, so the tab
+     could not be clicked with a mouse at all, at any width — the headline gesture of
+     the realm, unreachable (paging-audit-2, break #1; measured again here: a
+     Playwright click on "Pricing" timed out at 1280 and at 3440). A control that
+     covers the thing it controls is not a control. It now reserves its own height.
 
-   ⚠ TWO COLOUR CONTROLS, SIDE BY SIDE, INDEPENDENT — the owner's exact ask: "card
-     gives the content a bg, whereas the other colors change the whole column. i
-     think we want the ability to switch either one to any color." The first row
-     paints the CONTENT box, the second paints the PAGE behind it, and both read the
-     same five words.
+   ⚠ CHIPS, NOT `<select>`s. Five native dropdowns, 80–111px wide, clipped their own
+     values ("Top tabs" read "Top tab") and the two colour rows were unlabelled dots.
+     The drawer had the good version all along — a label, the values as chips, and a
+     sentence saying what the current one means. This is that, minus the sentences,
+     which stay in the drawer where there is room for them.
 
-   ⚠ `:focus-within` as well as `:hover` (paging.css) — a toolbar you can only reach
-     with a mouse is a toolbar half the readers do not have.                      */
+   ⚠ A CHIP IS A SPAN, NOT A `<button>`. The site theme styles every `button` as a
+     small uppercase CTA — `.theme-lew42 :is(button, .btn)` at (0,2,0), in the same
+     layer — so a chip cannot win that at its own specificity. The keyboard half is
+     what a `<button>` gave for free, so it is restated in `press()` below.        */
 
-const PICKERS = CONTROLS.filter(control => control.axis !== "surface" && control.axis !== "background");
+// The two colour words draw swatches instead of chips: a swatch IS its value, and
+// no word in a list can show you what `prim` looks like.
+const SWATCHES = ["surface", "background"];
+
+const press = ($el, act) => $el
+	.attr("role", "button").attr("tabindex", "0")
+	.click(act)
+	.on("keydown", event => {
+		if (event.key !== "Enter" && event.key !== " ") return;
+		event.preventDefault();
+		act();
+	});
 
 export class PagingToolbar extends View {
 
@@ -30,8 +47,8 @@ export class PagingToolbar extends View {
 	//   `append(this.render)`) — a hook registered after it would miss nothing today,
 	//   but the field order is the one this class must not get wrong twice.
 	initialize(){
-		// The stage tells me when anything changed it — a swatch here, a control in
-		// the drawer, or the library's own dropdown. One hook, one direction.
+		// The stage tells me when anything changed it — a chip here, a control in the
+		// drawer, or the library's own dropdown. One hook, one direction.
 		this.stage.changed = () => this.sync();
 		super.initialize();
 	}
@@ -40,17 +57,11 @@ export class PagingToolbar extends View {
 	//   constructor in the chain, so `PagingToolbar` is `.paging-toolbar` and a class
 	//   called `Toolbar` would have worn the framework's own `.toolbar`.
 	render(){
-		this.selects = new Map();
 		this.marks = [];
 
 		div.c("paging-toolbar-row", () => {
-			PICKERS.forEach(control => this.picker(control));
+			CONTROLS.forEach(control => this.group(control));
 			this.more();
-		});
-
-		div.c("paging-toolbar-row paging-toolbar-colours", () => {
-			this.swatches("surface", "content colour");
-			this.swatches("background", "page colour");
 		});
 
 		// The marks are written by the same call an external change uses, so there is
@@ -58,77 +69,56 @@ export class PagingToolbar extends View {
 		this.sync();
 	}
 
-	// ── one dropdown ─────────────────────────────────────────────────────────
-	// A real `<select>`: the base theme already fills, pads and borders it, it is
-	// keyboard- and screen-reader-complete for free, and it is the smallest control
-	// that can offer six values without becoming a wall of chips.
-	picker({ axis, label, values }){
-		return div.c("paging-pick", () => {
-			span.c("paging-pick-label", label);
+	// ── one labelled group ───────────────────────────────────────────────────
+	group(control){
+		return div.c("paging-group").append(() => {
+			span.c("paging-pick-label", control.label);
 
-			const $select = select(() => values.forEach(value => option(value.title).attr("value", value.id)))
-				.attr("title", label)
-				.attr("aria-label", label)
-				.on("change", event => this.stage.set(axis, event.target.value));
-
-			$select.el.value = this.stage.config[axis];
-			this.selects.set(axis, $select);
+			div.c("paging-group-values", () => control.values.forEach(value =>
+				SWATCHES.includes(control.axis)
+					? this.swatch(control.axis, value)
+					: this.chip(control.axis, value)));
 		});
 	}
 
-	/* ── the two colour rows ──────────────────────────────────────────────────
-	   Five swatches each, and the swatch IS the colour — a word in a dropdown cannot
-	   show you what `prim` looks like, and this is the one control whose value is a
-	   thing you can see. */
-	swatches(axis, label){
-		return div.c("paging-swatches", () => {
-			span.c("paging-pick-label", label);
-			SURFACES.forEach(surface => this.swatch(axis, surface));
-		});
+	chip(axis, value){
+		const $chip = press(span.c("paging-chip")
+			.attr("title", value.title + " — " + value.means)
+			.append(() => { if (value.icon) icon(value.icon); span(value.title); }),
+			() => this.stage.set(axis, value.id));
+
+		this.marks.push({ $mark: $chip, axis, id: value.id });
+		return $chip;
 	}
 
 	swatch(axis, surface){
-		const act = () => this.stage.set(axis, surface.id);
+		const $swatch = press(span.c("paging-swatch paging-surface-" + surface.id)
+			.attr("title", surface.title + " — " + surface.means),
+			() => this.stage.set(axis, surface.id));
 
-		const $swatch = span.c("paging-swatch paging-surface-" + surface.id)
-			.attr("role", "button").attr("tabindex", "0")
-			.attr("title", surface.title + " — " + surface.means)
-			.click(act)
-			.on("keydown", event => {
-				if (event.key !== "Enter" && event.key !== " ") return;
-				event.preventDefault();
-				act();
-			});
-
-		this.marks.push({ $swatch, axis, id: surface.id });
+		this.marks.push({ $mark: $swatch, axis, id: surface.id });
 		return $swatch;
 	}
 
 	// ── everything else lives in the drawer ──────────────────────────────────
+	// The whole form with its sentences, the JSON, the page.js, the link to this
+	// exact configuration, `nest`, and "make this a page".
 	more(){
-		const act = () => fill_drawer(this.stage, this.page);
-
-		return span.c("paging-more")
-			.attr("role", "button").attr("tabindex", "0")
-			.append(() => { icon("tune"); span("More"); })
-			.click(act)
-			.on("keydown", event => {
-				if (event.key !== "Enter" && event.key !== " ") return;
-				event.preventDefault();
-				act();
-			});
+		return press(span.c("paging-more")
+			.attr("title", "the whole configuration, the code, and the link to this page")
+			.append(() => { icon("tune"); span("More"); }),
+			() => fill_drawer(this.stage, this.page));
 	}
 
-	/* ⚠ SYNC, NEVER REBUILD. A `<select>` fires `change` while it still has focus, and
-	     emptying this view from inside that handler would delete the element the
-	     reader is standing on. So the controls are built once and only their VALUES
+	/* ⚠ SYNC, NEVER REBUILD. A click on a chip runs while that chip has focus, and
+	     emptying this view from inside its own handler would delete the element the
+	     reader is standing on. So the controls are built once and only their MARKS
 	     are written back — which is also what keeps an external change (the drawer,
-	     the library dropdown) showing up here. */
+	     the library dropdown, a url) showing up here. */
 	sync(){
-		this.selects?.forEach(($select, axis) => { $select.el.value = this.stage.config[axis]; });
-		this.marks?.forEach(({ $swatch, axis, id }) => {
+		this.marks?.forEach(({ $mark, axis, id }) => {
 			const on = this.stage.config[axis] === id;
-			$swatch.tc("on", on).attr("aria-pressed", String(on));
+			$mark.tc("on", on).attr("aria-pressed", String(on));
 		});
 		return this;
 	}

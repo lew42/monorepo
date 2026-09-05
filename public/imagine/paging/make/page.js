@@ -1,17 +1,20 @@
 import { Page, div, p, h3, span, a, input, textarea, icon, md } from "/app.js";
-import { Paging, press, MECHANISMS } from "../paging.js";
-import { SURFACES, CONTENT as CONTENT_KINDS, DEFAULT } from "../blocks.js";
+import { Paging, press } from "../paging.js";
+import { CONTROLS, title_of } from "../blocks.js";
 
 import { baseline } from "../baseline.js";
 import { store_for, FileStore, LocalStore, at, walk, name_for, clone, SEED, DEFAULTS, DIR } from "./made.js";
-import { KIDS, KIDS_ICON, kids_of, row_acts } from "./tabs.js";
+import { config_of, kids_of, row_acts } from "./tabs.js";
 
-/* THE WORDS A ROW CYCLES. The realm's one vocabulary (`../blocks.js`), read as plain
-   id lists — the chips were written against three lists that no longer exist after
-   the 2026-09-05 rebuild, and this is the whole of the change. A node saved under the
-   old words still opens: `config_for()` below translates it once. */
-const STYLES = SURFACES.map(surface => surface.id);
-const CONTENT = CONTENT_KINDS.map(kind => kind.id);
+/* THE FOUR WORDS A ROW CYCLES, and they are four of the realm's own seven
+   (`../blocks.js`) — the same keys the drawer writes, so a chip here and a chip in
+   the drawer change the same thing. The other three (room, arrangement, type) are on
+   the page itself, where you can see them; a row in a list is not the place for a
+   width. `config_of()` (make/tabs.js) is the one reader, and it migrates the old
+   words on the way in. */
+const ROW_WORDS = ["navigation", "content", "surface", "background"];
+
+const control_of = axis => CONTROLS.find(control => control.axis === axis);
 
 
 /* ── layout, answered before the first factory call ────────────────────────────
@@ -49,7 +52,6 @@ const CONTENT = CONTENT_KINDS.map(kind => kind.id);
      `/imagine/paging/made/notes/page.json`. `make/` is the tool and stays one
      directory of code; `made/` is the data it writes.                             */
 
-const words = node => ({ ...DEFAULTS, ...node.mode });
 
 // The next word in a list, wrapping — what a click on a word chip does.
 const next = (list, word) => list[(list.indexOf(word) + 1) % list.length];
@@ -59,8 +61,7 @@ const next = (list, word) => list[(list.indexOf(word) + 1) % list.length];
    hands each one a real url derived from this page's. */
 function grow(nodes){
 	return nodes.map(node => {
-		const kids = kids_of(node);
-		const config = config_for(node, kids);
+		const config = config_of(node);
 
 		return new Paging({
 			name: node.name,
@@ -70,7 +71,7 @@ function grow(nodes){
 			children: grow(node.children ?? []),
 
 			content(){
-				this.lede("A real page, at a real url, drawn from one small JSON file. Point at it to change it.");
+				this.lede("A real page, at a real url, drawn from one small JSON file. Click a chip in the bar to change it.");
 
 				this.stage(config);
 
@@ -78,31 +79,6 @@ function grow(nodes){
 			},
 		});
 	});
-}
-
-/* ── OLD WORDS, NEW WORDS ─────────────────────────────────────────────────────
-   A `page.json` written before 2026-09-05 says `style` / `content` / `mech` / `kids`;
-   one written after says the realm's seven words. Both open, because this is the one
-   place that has to know — and a node saved again from a made page is written in the
-   new words, so the translation is a ramp rather than a fork.                     */
-export function config_for(node, kids = kids_of(node)){
-	const mode = node?.mode ?? {};
-
-	if (mode.navigation) return { ...DEFAULT, ...mode };
-
-	const navigation = kids === "tabs" ? "tabs"
-		: mode.mech === "swap" ? "tabs"
-		: mode.mech === "expand" ? "rail"
-		: mode.mech === "takeover" ? "takeover"
-		: "columns";
-
-	return {
-		...DEFAULT,
-		navigation,
-		content: CONTENT.includes(mode.content) ? mode.content : "article",
-		surface: STYLES.includes(mode.style) ? mode.style : "card",
-		background: "tint",
-	};
 }
 
 export default new Paging({
@@ -260,7 +236,7 @@ export default new Paging({
 
 		md("⚠ **Tabs do not change the url.** A tab strip is `swap`: the panel changes and the address bar does not, so a tab cannot be linked to or reached with the Back button. Every panel therefore carries a link that opens the same child as a column, which does change the url. If a child deserves an address, leave the parent on `columns` ([the four mechanisms](/imagine/paging/mechanisms/)).");
 
-		md("The word you just set is written into the parent's own file as `\"kids\": \"tabs\"`, beside the three it already had — **watch the JSON box below change as you click**. That box is the tree exactly as it goes to disk.");
+		md("The word you just set is written into the parent's own file as `\"navigation\": \"tabs\"`, beside the other six — **watch the JSON box below change as you click**. That box is the tree exactly as it goes to disk.");
 
 		h3("Add a page");
 
@@ -306,7 +282,7 @@ export default new Paging({
 	   rename · up · down · add · delete. `$row` is captured so the rename can turn
 	   this row into an input in place rather than opening a dialog somewhere else. */
 	row(node, path){
-		const mode = words(node);
+		const config = config_of(node);
 		const page = this.at_path(path);
 		const kids = kids_of(node);
 
@@ -315,10 +291,7 @@ export default new Paging({
 
 			a.c("paging-make-title", node.title).href(page?.url ?? this.url);
 
-			this.word(path, "style", mode.style, STYLES);
-			this.word(path, "content", mode.content, CONTENT);
-			this.word(path, "mech", mode.mech, Object.keys(MECHANISMS));
-			this.word(path, "kids", kids, KIDS);
+			ROW_WORDS.forEach(axis => this.word(path, axis, config[axis]));
 
 			row_acts(this, node, path, kids, $row);
 		});
@@ -333,13 +306,16 @@ export default new Paging({
 
 	/* A WORD YOU CAN CLICK. One chip per axis, and a click advances it to the next
 	   word in that axis — three chips instead of fourteen, and the cycling is what
-	   teaches the vocabulary: press `style` five times and you have seen all five
+	   teaches the vocabulary: press `content colour` five times and you have seen all five
 	   surfaces without reading a list of them. */
-	word(path, axis, value, list){
-		return press(span.c("paging-chip paging-make-word").attr("title", axis + " — click for the next one").append(() => {
-			if (axis === "mech") icon(MECHANISMS[value].icon);
-			if (axis === "kids") icon(KIDS_ICON[value]);
-			span(value);
+	word(path, axis, value){
+		const control = control_of(axis);
+		const list = control.values.map(entry => entry.id);
+		const glyph = control.values.find(entry => entry.id === value)?.icon;
+
+		return press(span.c("paging-chip paging-make-word").attr("title", control.label + " — click for the next one").append(() => {
+			if (glyph) icon(glyph);
+			span(title_of(axis, value));
 		}), () => this.edit_at(path, { [axis]: next(list, value) }));
 	},
 
@@ -352,7 +328,10 @@ export default new Paging({
 		const node = at(tree, path);
 		if (!node) return this;
 
-		node.mode = { ...words(node), ...change };
+		/* ⚠ MIGRATE, THEN CHANGE. A node written in the old words is rewritten in the
+		     seven on its first edit, so the store only ever gains new-word nodes and
+		     the translation in `config_of()` is a ramp rather than a fork. */
+		node.mode = { ...config_of(node), ...change };
 		return this.apply(tree);
 	},
 
@@ -402,7 +381,7 @@ export default new Paging({
 
 			press(span.c("paging-chip on").append(() => { icon("add"); span("Add the page"); }), add);
 
-			p.c("muted", "It arrives wearing " + DEFAULTS.style + " · " + DEFAULTS.content + " · " + DEFAULTS.mech + ". Click its words in the list to change them.");
+			p.c("muted", "It arrives wearing " + ROW_WORDS.map(axis => title_of(axis, DEFAULTS[axis])).join(" · ") + ". Click its words in the list to change them.");
 		});
 	},
 

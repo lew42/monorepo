@@ -1,0 +1,80 @@
+[
+  {
+    "name": "deep-two-columns",
+    "width": 1280,
+    "url": "http://localhost:8097/imagine/layouts/",
+    "before": {
+      "x": 211,
+      "y": 40,
+      "w": 963,
+      "h": 860,
+      "text": "Layouts close A layout is how a page divides its room. Ever"
+    },
+    "snap_before": {
+      "cols": [
+        211,
+        963
+      ],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "after": null,
+    "snap_after": {
+      "cols": [
+        1280
+      ],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "reflow_x": "gone",
+    "jump_y": "gone",
+    "errors": []
+  },
+  {
+    "name": "deep-two-columns",
+    "width": 3440,
+    "url": "http://localhost:8097/imagine/layouts/",
+    "before": {
+      "x": 432,
+      "y": 48,
+      "w": 1152,
+      "h": 1352,
+      "text": "Layouts close A layout is how a page divides its room. Ever"
+    },
+    "snap_before": {
+      "cols": [
+        432,
+        1152
+      ],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "after": null,
+    "snap_after": {
+      "cols": [
+        3440
+      ],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "reflow_x": "gone",
+    "jump_y": "gone",
+    "errors": []
+  }
+]

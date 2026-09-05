@@ -184,9 +184,15 @@
 	     inversion stays exact. Floors are yesterday's constants: nothing changes
 	     under a ~910px row; at 3440 the inset reaches ~3em. A subtree still retunes
 	     with plain ems (colstyles' hook 2 does). */
+	/* ⚠ CONFIRMED, not raised, by the spacing judge (2026-09-05, decision.md): pad-x
+	     already reads 16px at 1280 → 50px at 3440 (3.2x) and pad-y 10.5 → 25px (2.4x),
+	     both past the day's "about double" — doubling pad-x's cap to 6em would spend
+	     216px of a 46em column on inset. What changed: both multiply by the host's
+	     `--spacing` level (framework.css), so a tight or airy columns host retunes its
+	     bar, heads, rows and prose together. */
 	.page.columns {
-		--page-column-pad-x: clamp(0.9em, 1.6cqi, 3em);
-		--page-column-pad-y: clamp(0.7em, 0.8cqi, 1.6em);
+		--page-column-pad-x: calc(clamp(0.9em, 1.6cqi, 3em) * var(--spacing, 1));
+		--page-column-pad-y: calc(clamp(0.7em, 0.8cqi, 1.6em) * var(--spacing, 1));
 		display: flex; flex-direction: column;
 		align-self: stretch; height: 100%;
 		padding: 0;
@@ -381,6 +387,12 @@
 		border-bottom: 1px solid var(--line);
 	}
 
+	/* D6, the head/body seam (spacing-judge 2026-09-05): head and body TOUCH by design —
+	   the head is sticky and the hairline is the seam, like `thead`/`tbody`. What breathes
+	   is the body's first thing: prose already sits one `pad-y` under the line; a rail's
+	   first ROW sat 5px under it on 28 of 92 pages. The same inset for both. */
+	.page-column-head + .page-column-item { margin-block-start: var(--page-column-pad-y, 0.7em); }
+
 	.page-column-title { font-weight: 600; font-size: 0.95em; }
 
 	/* ⚠ A PADDED target, not a bare glyph: the × closes this column and everything right
@@ -407,7 +419,13 @@
 	     so the head, the item rows and the crumb bar indent by the same number. */
 	.page-column-prose {
 		padding: var(--page-column-pad-y, 0.7em) var(--page-column-pad-x, 0.9em);
-		font-size: 0.9em; --flow: 0.8em;
+		font-size: 0.9em;
+		/* The note rhythm, ramped (spacing-judge 2026-09-05): 10.8px at 1280 as before,
+		   25px at 3440 (was 13px) — the same `cqi` line pad-y rides, × the level.
+		   ⚠ An `.md`/`.flow` box INSIDE this prose keeps the site rhythm for its own
+		     paragraphs (27px at 1280): closing that gap at 1280 would tighten every
+		     column's prose, the wrong direction — decision.md, "not yet". */
+		--flow: calc(clamp(0.8em, 0.8cqi, 1.6em) * var(--spacing, 1));
 	}
 	.page-column-prose > .md > :first-child { margin-block-start: 0; }
 
@@ -644,6 +662,10 @@
 	/* `.active` / `.in-path` are applied by Router.mark_links().
 	   ⚠ `color: inherit` is load-bearing: without it six call sites wrote it
 	     inline, and an inline colour out-ranks `.page-link.active` below. */
+	/* Rule c's inline-text exception (spacing-judge 2026-09-05): a `.page-link` is
+	   text, not a control — no padding, and it hugs (measured 130px box / 130px ink on
+	   /framework/, 335 / 330 on /imagine/paging/). The one strip the auditors named,
+	   /imagine/paging/examples/, no longer exists. */
 	.page-link { font-weight: 600; color: inherit; }
 	/* ⚠ `--prim-ink`, not `--prim` (framework.css): an accent is chosen to be seen as
 	   a FILL, and lew42's is 2.25:1 as text. This is the one mark an active link
@@ -731,9 +753,15 @@
 	     fell back to `auto`. `--stage: auto` is the same escape hatch, said out loud. */
 	.page-preview-thumb { aspect-ratio: var(--stage, 16 / 10); }
 
-	/* The only real link in the card; its ::after covers the rest of it. */
+	/* The only real link in the card; its ::after covers the rest of it.
+	   D3 (spacing-judge 2026-09-05, rule c): the CARD is the control — its frame is
+	   padded and its track is the wall's. This row hugs its icon+title now
+	   (`fit-content`), so the 432 "strips" the auditors measured — a flex row as
+	   wide as its card with 0 padding, 190px for 78px of ink on /framework/ — stop
+	   existing without the card changing at all. */
 	.page-preview-link {
 		display: flex;
+		width: fit-content; max-width: 100%;
 		align-items: center;
 		gap: 0.45em;
 		text-decoration: none;

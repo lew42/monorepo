@@ -6,7 +6,7 @@ import { MECHANISMS } from "../words.js";
    Own layout: a sentence, one live page, a nav grid of four. Regions: one.
    Preview: core's card, in the rail's Mechanisms section.
 
-   ONE PAGE, ONE SET OF CHILDREN, FOUR ANSWERS. Change the navigation dropdown on
+   ONE PAGE, ONE SET OF CHILDREN, FOUR ANSWERS. Click a different navigation chip on
    the page below and the same four rows behave four different ways — which is the
    whole idea, and it is one gesture rather than four pages of prose. */
 
@@ -29,7 +29,7 @@ export default new Paging({
 	children: "launch expand swap takeover",
 
 	content(){
-		p.c("paging-lede", "Click the four page names on the page below. Then change the **navigation** dropdown and click them again — same children, different answer.");
+		this.lede("Click the four page names on the page below. Then click a different **navigation** chip in the bar and click them again — same children, different answer.");
 
 		this.stage({ navigation: "tabs", content: "article", room: "wide", arrangement: "plain", surface: "card", background: "tint", type: "regular" });
 

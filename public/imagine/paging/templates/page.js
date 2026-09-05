@@ -25,7 +25,7 @@ export default new Paging({
 	children: "magazine blog screens shells decks columns layouts sections ui ux navigation theming",
 
 	content(){
-		p.c("paging-lede", "Every picture below is the real thing running. Click one to open it with the colour and type controls over it.");
+		this.lede("Every picture below is the real thing running. Click one to open it with the colour and type controls over it.");
 
 		div.c("templates-wall grid auto gap wide", () => FAMILIES.forEach(family => card(family)))
 			.style("--column", "21em");

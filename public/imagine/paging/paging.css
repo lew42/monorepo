@@ -637,6 +637,10 @@
 	   is the same pair .page.columns uses to own its own scrolling — the rail is
 	   full height and the middle is the only thing that scrolls. */
 	.paging-app {
+		/* ONE TOKEN FOR THE RAIL'S WIDTH, declared here and read twice: by the rail
+		   itself, and by a `full` stage, which starts where the rail ends. */
+		--paging-rail-w: clamp(15rem, 12vw, 26rem);
+
 		display: flex; align-self: stretch;
 		height: 100%; min-height: 0;
 		padding: 0; max-width: none;
@@ -645,11 +649,14 @@
 
 	/* ⚠ A FLOOR IN rem, A CEILING IN rem, and a viewport share in between: at 1280
 	     the rail is its 15rem floor, at 3440 it is 12vw ≈ 413px, which is two tiles
-	     of nav grid across. Wider than that and the tiles start to look like cards. */
+	     of nav grid across. Wider than that and the tiles start to look like cards.
+	   ⚠ `z-index` ABOVE A FULL-SCREEN STAGE (35). The rail is the way out of every
+	     page in the realm; nothing this app draws may paint over it. */
 	.paging-app-rail {
-		flex: 0 0 clamp(15rem, 12vw, 26rem);
+		flex: 0 0 var(--paging-rail-w);
+		position: relative; z-index: 36;
 		display: flex; flex-direction: column;
-		gap: 1.2em;
+		gap: 0.9em;
 		min-height: 0; overflow-y: auto;
 		padding: var(--pad, var(--pad-default));
 		background: var(--surface);
@@ -688,24 +695,28 @@
 	/* ── THE RAIL'S NAV GRIDS ─────────────────────────────────────────────────
 	   Sections of small tiles. auto-fill with a real --column, so a narrow rail is
 	   one tile across and a 3440 rail is two — never a stretched single column. */
-	.paging-sec { display: flex; flex-direction: column; gap: 0.35em; }
+	/* ⚠ THE WHOLE RAIL HAS TO FIT ONE FOLD. It measured 2205px against a 1440-tall
+	     screen at 3440, so its last three sections — the two editors, next door, and
+	     the way back to Imagine — were below the fold on the biggest screen there is
+	     (paging-audit-2). The section notes went (they told the reader what a section
+	     was about to show), the gaps came in, and the tiles are two-up sooner. */
+	.paging-sec { display: flex; flex-direction: column; gap: 0.25em; }
 
 	.paging-sec-head {
 		font-size: 0.72em; font-weight: 700; letter-spacing: 0.08em;
 		text-transform: uppercase; color: var(--subtle);
 	}
-	.paging-sec-note { font-size: 0.8em; color: var(--subtle); margin-block-end: 0.2em; }
 
 	.paging-grid {
-		--column: 8.5em;
-		display: grid; gap: 0.3em;
+		--column: 7em;
+		display: grid; gap: 0.25em;
 		grid-template-columns: repeat(auto-fill, minmax(min(var(--column), 100%), 1fr));
 	}
 
 	.paging-tile {
-		display: flex; align-items: center; gap: 0.35em;
-		padding: 0.4em 0.55em;
-		font-size: 0.85em; line-height: 1.25;
+		display: flex; align-items: center; gap: 0.3em;
+		padding: 0.28em 0.45em;
+		font-size: 0.8em; line-height: 1.2;
 		color: var(--ink); text-decoration: none;
 		background: var(--fill-a04);
 		border: 1px solid transparent; border-radius: var(--radius);
@@ -715,43 +726,48 @@
 	.paging-tile:is(:hover, :focus-visible) { border-color: var(--prim); background: var(--fill-a08); }
 	.paging-tile.active { border-color: var(--prim); background: var(--fill-a16); font-weight: 600; }
 
-	/* ── THE FRAME AND ITS HOVER TOOLBAR ──────────────────────────────────────
-	   The toolbar is INSIDE the frame and absolutely placed over the stage's top
-	   edge, so "point at the stage" and "the toolbar appears" are one gesture. */
-	.paging-frame { position: relative; }
+	/* ── THE FRAME: THE TOOLBAR, THEN THE STAGE ───────────────────────────────
+	   ⚠ THE BAR RESERVES ITS OWN HEIGHT. It used to be `position: absolute` at the
+	     stage's top edge, revealed on hover — and on the realm's own front page that
+	     put it exactly on top of the demo's tab strip. Pointing at a tab made the bar
+	     appear over the tab, so the headline gesture of the realm could not be clicked
+	     with a mouse at any width (paging-audit-2, break #1; re-measured here: a click
+	     on "Pricing" timed out at 1280 and at 3440). A control may not cover the thing
+	     it controls. It is a sibling above the stage now, and it costs its height. */
+	.paging-frame { display: flex; flex-direction: column; gap: 0.5em; }
+
+	/* The slot exists only to fix the ORDER (paging.js) and takes no space of its own. */
+	.paging-toolbar-slot { display: contents; }
 
 	.paging-toolbar {
-		position: absolute; inset-block-start: 0; inset-inline: 0; z-index: 5;
-		display: flex; flex-direction: column; gap: 0.35em;
-		padding: 0.5em 0.7em;
+		padding: 0.45em 0.7em;
 		background: var(--surface);
 		border: 1px solid var(--line); border-radius: var(--radius);
-		box-shadow: 0 6px 20px var(--shade-a16, rgba(0,0,0,0.16));
-		opacity: 0; pointer-events: none;
-		transition: opacity 120ms ease-out;
-	}
-	.paging-frame:is(:hover, :focus-within) .paging-toolbar { opacity: 1; pointer-events: auto; }
-
-	/* A full-screen stage covers the region, so its toolbar has to leave the frame
-	   and follow it — one rule rather than a second toolbar. */
-	.paging-frame:has(.paging-room-full) .paging-toolbar {
-		position: fixed; inset-block-start: 0.5em; inset-inline: 0.5em; z-index: 36;
 	}
 
-	@media (prefers-reduced-motion: reduce) { .paging-toolbar { transition-duration: 1ms; } }
+	/* Centred over the stage, and the groups wrap as a block rather than a ragged
+	   line: `align-items: flex-start` keeps every label on one baseline. */
+	.paging-toolbar-row {
+		display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-start;
+		gap: 0.5em 1.3em;
+	}
 
-	.paging-toolbar-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3em 0.9em; }
-	.paging-pick, .paging-swatches { display: flex; align-items: center; gap: 0.3em; }
+	/* ONE LABELLED GROUP — the drawer's own shape, which is the control language that
+	   worked. `.paging-group` in the theme layer is the older chip row; this is the
+	   toolbar's, and it wins by being later. */
+	.paging-toolbar .paging-group { display: flex; flex-direction: column; gap: 0.15em; }
+	.paging-group-values { display: flex; flex-wrap: wrap; align-items: center; gap: 0.2em; }
 
 	.paging-pick-label {
 		font-size: 0.68em; font-weight: 700; letter-spacing: 0.06em;
 		text-transform: uppercase; color: var(--subtle);
 	}
-	.paging-pick select { font-size: 0.85em; padding: 0.15em 0.4em; }
 
-	/* THE TWO COLOUR ROWS. A swatch IS its colour — the one control whose value you
-	   can see rather than read. */
+	/* THE TWO COLOUR CONTROLS. A swatch IS its colour — the one control whose value
+	   you can see rather than read. Independent, on purpose: the first paints the
+	   content box, the second paints the page behind it. */
 	.paging-swatch {
+		display: inline-block;
 		width: 1.35em; height: 1.35em;
 		border: 1px solid var(--line); border-radius: 50%;
 		cursor: pointer;
@@ -759,12 +775,14 @@
 	.paging-swatch:is(:hover, :focus-visible) { outline: 2px solid var(--prim); outline-offset: 1px; }
 	.paging-swatch.on { outline: 2px solid var(--prim); outline-offset: 2px; }
 
+	/* MORE — a real button, at the end of the bar: the whole form, the code, and the
+	   link to this exact page. */
 	.paging-more {
-		display: inline-flex; align-items: center; gap: 0.25em;
-		margin-inline-start: auto;
-		padding: 0.15em 0.5em;
-		font-size: 0.8em; color: var(--prim-ink);
-		background: var(--fill-a08); border-radius: var(--radius);
+		display: inline-flex; align-items: center; gap: 0.3em; align-self: center;
+		padding: 0.35em 0.8em;
+		font-size: 0.85em; font-weight: 600; color: var(--prim-ink);
+		background: var(--fill-a08);
+		border: 1px solid var(--prim); border-radius: var(--radius);
 		cursor: pointer;
 	}
 	.paging-more:is(:hover, :focus-visible) { background: var(--fill-a16); }
@@ -813,6 +831,33 @@
 	}
 	.paging-canvas > :is(h2, h3, p) { margin-block: 0; }
 
+	/* ══ THE BOX RESERVES ITS HEIGHT ══════════════════════════════════════════
+	   Lifted, not re-derived, from `navigation/navigation.css` — the nav-stability
+	   task measured it on 2026-09-05 and this is the same two rules.
+
+	   Every panel is drawn and all of them share ONE grid cell; the ones you are not
+	   reading are hidden but still MEASURED. So the box is always as tall as its
+	   tallest panel and clicking a tab cannot resize it — which is what makes the
+	   caption under the stage true. (It was not: "THE BOX DID NOT MOVE" sat directly
+	   over "the box is 335px shorter" on the realm's front page.)
+
+	   ⚠ `visibility`, never `display: none` — a display-hidden panel is not measured,
+	     which is the whole thing being bought here. */
+	.paging-nav-reserve { display: grid; }
+	.paging-nav-reserve > * { grid-area: 1 / 1; }
+	.paging-nav-hidden { visibility: hidden; }
+
+	/* A panel repeats the box's own rhythm, because it is now a grandchild of the box
+	   rather than a child and the two rules below stop reaching it. */
+	.paging-slot { display: flex; flex-direction: column; gap: 0.7em; min-width: 0; }
+	.paging-slot > :is(h2, h3, p) { margin-block: 0; }
+	.paging-slot > * { align-self: stretch; }
+
+	/* THE CHILDREN, LISTED INSIDE THE BOX — what `columns` and `takeover` navigate
+	   from. Both words used to draw no list at all, so neither preset could be
+	   operated: the box sat there with nothing to click (measured 2026-09-05). */
+	.paging-rows { display: flex; flex-direction: column; gap: 0.25em; }
+
 	/* ⚠ EVERY CHILD OF THE BOX STRETCHES. A child that declares `container-type:
 	     inline-size` may not be sized by its own contents in the inline axis, so one
 	     that ALSO carries `align-self: start` — `blog.css`'s `.blog-hero` does —
@@ -823,18 +868,30 @@
 
 	/* ── ROOM — the one width word ────────────────────────────────────────────
 	   narrow and reading cap the stage; wide takes the whole .wide track it already
-	   sits in; full leaves the flow entirely.
-	   ⚠ full is fixed, not absolute: the middle is a scrolling region, so an
-	     absolutely-placed takeover would scroll away from the reader who opened it.
-	     z-index 35 sits over .demo.max (30) and under ext/drawer (40), so the drawer
-	     can still be opened on top of a full-screen stage. */
+	   sits in; full leaves the flow entirely. */
 	.paging-room-narrow  { max-width: 40em; }
 	.paging-room-reading { max-width: 64em; }
 	.paging-room-wide    { max-width: none; }
-	.paging-room-full {
-		position: fixed; inset: 0; z-index: 35;
-		max-width: none; overflow: auto;
-		padding: clamp(1em, 2vw, 3em);
+	.paging-room-full    { max-width: none; }
+
+	/* ⚠ `full` TAKES THE SCREEN, NOT THE RAIL. The whole FRAME goes fixed — the bar at
+	     the top of it, the stage under the bar — so a full-screen page still has its
+	     own controls and the app's navigation is still there beside it. The start edge
+	     is the rail's own width token, and the rail is painted over nothing.
+	     Before this the STAGE was `inset: 0` and the rail was underneath it: at 1280
+	     `/library/takeover/` covered the rail completely and, once you opened a child,
+	     had no exit of any kind — Back was the only way out (paging-audit-2, break #4).
+	   ⚠ fixed, not absolute: the middle is a scrolling region, so an absolutely-placed
+	     takeover would scroll away from the reader who opened it. z-index 35 sits over
+	     `.demo.max` (30) and under `ext/drawer` (40), so the drawer still opens on top
+	     of a full-screen stage. */
+	.paging-frame:has(> .paging-stage.paging-room-full) {
+		position: fixed; z-index: 35;
+		inset-block: 0; inset-inline-end: 0;
+		inset-inline-start: var(--paging-rail-w, 0);
+		padding: clamp(0.7em, 1.6vw, 2em);
+		overflow: auto;
+		background: var(--wash);
 	}
 
 	.paging-exit {
@@ -985,23 +1042,67 @@
 	.paging-card-head { display: flex; align-items: center; gap: 0.35em; font-weight: 700; }
 	.paging-card-say { font-size: 0.85em; color: var(--subtle); }
 
+	/* ── A WALL OF LIVE MINIATURES ────────────────────────────────────────────
+	   Twelve real pages, RUNNING, each one clipped into a frame — the same answer
+	   `/templates/` already gives for its eleven, and the reason it was the best page
+	   in the realm. A picture of a page shape beats a sentence about one.
+	   `auto-fill` with a real `--column`, so 3440 gets seven across and 400 gets one. */
+	.paging-wall-live {
+		--column: 19em;
+		display: grid; gap: var(--gap, var(--gap-default));
+		grid-template-columns: repeat(auto-fill, minmax(min(var(--column), 100%), 1fr));
+	}
+
+	.paging-shot { display: flex; flex-direction: column; gap: 0.4em; color: var(--ink); text-decoration: none; }
+	.paging-shot-head { display: flex; align-items: center; gap: 0.35em; font-weight: 700; }
+	.paging-shot-say { font-size: 0.85em; color: var(--subtle); }
+
+	/* THE FRAME. A whole page put in a card is being cropped on purpose, so this is
+	   the one place a clip is wanted. ⚠ `pointer-events: none` on the miniature: the
+	   CARD is the link, and a live stage inside it would swallow the click. */
+	.paging-shot-frame {
+		container: paging-shot / inline-size;
+		height: 13em; overflow: hidden;
+		background: var(--wash);
+		border: 1px solid var(--line); border-radius: var(--radius);
+	}
+	.paging-shot-frame > .paging-stage { font-size: 0.6em; height: 100%; pointer-events: none; }
+	.paging-shot:is(:hover, :focus-visible) .paging-shot-frame { border-color: var(--prim); }
+	.paging-shot:is(:hover, :focus-visible) .paging-shot-head { color: var(--prim-ink); }
+
 	/* ── THE DRAWER'S OWN ROWS ────────────────────────────────────────────────── */
 	.paging-drawer-row { display: flex; flex-direction: column; gap: 0.25em; margin-block-end: 0.9em; }
 	.paging-drawer-values { display: flex; flex-wrap: wrap; gap: 0.25em; }
 	.paging-means { margin: 0; font-size: 0.85em; }
-	.paging-said { display: flex; align-items: center; gap: 0.4em; margin-block: 0.4em; }
-	.paging-said-ok { color: var(--prim); }
+	.paging-said { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4em; margin-block: 0.4em; }
+	.paging-said-ok { display: inline-flex; align-items: center; gap: 0.2em; color: var(--prim); font-size: 0.85em; }
+
+	/* THE ADDRESS OF THIS EXACT PAGE. `readonly`, never `disabled` — a disabled input
+	   cannot be selected, and select-then-ctrl-C is the fallback wherever
+	   `navigator.clipboard` is refused. */
+	.paging-link-field {
+		width: 100%;
+		padding: 0.35em 0.5em;
+		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+		font-size: 0.8em;
+		color: var(--ink); background: var(--surface);
+		border: 1px solid var(--line); border-radius: var(--radius);
+	}
 
 	/* ── NARROW: the rail becomes a strip across the top ──────────────────────
 	   Below this the middle has no room for a reading measure beside a rail, so the
 	   rail lies down and the middle keeps its width — the same answer core/Sidebar
 	   gives at its own breakpoint. */
 	@media (max-width: 56rem) {
-		.paging-app { flex-direction: column; }
+		/* The rail lies down across the top, so it has a HEIGHT rather than a width —
+		   and a `full` stage starts under it instead of beside it. An exact height,
+		   not a maximum, because the fixed frame below has to know the number. */
+		.paging-app { flex-direction: column; --paging-rail-w: 0px; }
 		.paging-app-rail {
-			flex: none; max-height: 40vh;
+			flex: none; height: 40vh;
 			border-inline-end: none; border-block-end: 1px solid var(--line);
 		}
+		.paging-frame:has(> .paging-stage.paging-room-full) { inset-block-start: 40vh; }
 		.paging-app-out { margin-block-start: 0; }
 		.paging-stage-body { flex-wrap: wrap; }
 		.paging-rail, .paging-aside, .paging-pane { flex-basis: 100%; }

@@ -81,20 +81,46 @@
            and `--wash` painted it as dark as the floor two levels below. */
         --tint:    light-dark(rgba(0,0,0,0.035), rgba(255,255,255,0.04));
 
-        /* ---- spacing defaults: a clamp, never a constant (2026-09-01) ------
-           A flat `1em` was right at 1280 and cramped at 3440 — the owner's rule:
-           gaps and padding scale with the space they sit in, floored and capped.
-           These are the FALLBACKS `var(--pad, …)` / `var(--gap, …)` read; a
-           subtree still retunes with one declaration and wins as before.
-           ⚠ `--pad-default` is a %, so it resolves against the padded box's
-             CONTAINING BLOCK — content-aware (a card in a track stays at the
-             floor while a full-width band grows). The floor is calibrated so
-             nothing changes at ≤1280: 1.3% of 1280 IS 1em.
-           ⚠ `--gap-default` is vw, NEVER % — percentage row-gap resolves against
-             the box's own block size, which is indefinite in every auto-height
-             stack, and browsers disagree on what that means. */
-        --pad-default: clamp(1em, 1.3%, 2em);
-        --gap-default: clamp(1em, 0.4em + 0.5vw, 1.6em);
+        /* ---- the spacing scale: three ramps, floored at 1280, about 2x at 3440 --
+           (spacing-judge 2026-09-05 — the decision and the alternatives it beat:
+           /imagine/design/spacing/decision.md.) The 2026-09-01 clamps were right at
+           1280 and grew only 1.2x by 3440 while the screen grew 2.69x — 76 of 84
+           measured pages, all four auditors. Each ramp keeps its 1280 floor to the
+           pixel and reaches about double its old 3440 value; in between it is a line.
+           These are what `var(--pad, …)` / `var(--gap, …)` / `--flow` fall back to
+           (through the `:where(*)` rule under this block); a subtree still retunes
+           with one declaration and wins as before.
+
+             ramp           @1280    @1920    @3440    was @3440
+             --pad-ramp     16.5px   32px     70px     36px     (a full-width box)
+             --gap-ramp     15px     24px     46px     24px
+             --flow-ramp    30px     40px     54px     36px     (per child em)
+
+           ⚠ `--pad-ramp` is a %, so it resolves against the padded box's CONTAINING
+             BLOCK — content-aware: a card in a track stays at the floor, a band
+             grows. The `- 1.1em` pins the line to 1em at exactly 1280.
+           ⚠ `--gap-ramp` is vw, NEVER % — percentage row-gap resolves against the
+             box's own block size, which is indefinite in every auto-height stack.
+           ⚠ `--flow-ramp` caps at 3em, not 4em: a paragraph gap past two lines reads
+             as a section break, and a heading already gets more through its own em. */
+        --pad-ramp:  clamp(1em, 2.6% - 1.1em, 4em);
+        --gap-ramp:  clamp(1em, 1.5vw - 0.3em, 2.6em);
+        --flow-ramp: clamp(2em, 1.4vw + 0.8em, 3em);
+
+        /* ---- the three spacing levels: one number, `--spacing` -----------------
+           tight .6 · regular 1 · airy 1.6 — a 1 : 1.67 : 2.67 ladder, so a newcomer
+           can SEE the step. (The paging realm's type levels are 0.88 : 1 : 1.06 and
+           the owner called them "hardly noticeable" — those move type and stay
+           type-only; these move space, and sit beside them.) Where each belongs:
+             spacing-tight    a rail, a toolbar, a table, a dense list
+             (regular)        a page — the default, no class
+             spacing-airy     a cover, a hero, a landing band
+           ⚠ The three `-default` tokens are derived on EVERY element (`:where(*)`
+             below), not here: a custom property substitutes `var()` where it is
+             DECLARED, so a default computed at :root would never see a subtree's
+             `--spacing`. A theme retunes a RAMP (`--gap-ramp` on `.app`), never a
+             default — the `*` rule would re-derive the default underneath it. */
+        --spacing: 1;
 
         /* ---- the alpha ladder: FLOORS ARE OPAQUE, FILLS ARE ALPHA ----------
            The tokens above name a FLOOR — a box paints one and the thing under it
@@ -159,7 +185,7 @@
         --hot:  light-dark(#c2410c, #fb923c);
 
         /* rhythm lives with the flow rules (theme layer, below): one em token,
-           `--flow: 2em`, declared per flow root. */
+           `--flow`, declared per flow root from `--flow-ramp` above. */
 
         --column: 14em;
         --sidebar: 19em;   /* any sidebar's width — shared on purpose, so two can't drift.
@@ -169,6 +195,17 @@
         --font: system-ui, -apple-system, sans-serif;
         --mono: Consolas, 'Courier New', Monaco, monospace;
     }
+
+    /* Every element derives its three spacing defaults from the ramps × its
+       inherited level — the tokens block above says why this is `*`, not `:root`. */
+    :where(*) {
+        --pad-default:  calc(var(--pad-ramp)  * var(--spacing, 1));
+        --gap-default:  calc(var(--gap-ramp)  * var(--spacing, 1));
+        --flow-default: calc(var(--flow-ramp) * var(--spacing, 1));
+    }
+    .spacing-tight   { --spacing: 0.6; }
+    .spacing-regular { --spacing: 1; }
+    .spacing-airy    { --spacing: 1.6; }
 
     /* ════ this block is THE BASE THEME ══════════════════════════════════════
        Not "the framework's unavoidable styles" — a theme, the one you get when you
@@ -381,7 +418,20 @@
        light text on yellow. Paired, like every other colour here. */
     mark { background: light-dark(#fff3a3, #6b5a00); color: var(--ink); }
 
-    summary { cursor: pointer; }   /* a real UA gap */
+    /* A `<details>` toggle is a CONTROL, and the UA lays it out as a full-width
+       block — so every summary on the site was a strip: 962px wide for 137px of ink
+       on /imagine/paging/, 2,910px for 380px on /imagine/research/, 720px for 69px
+       on /framework/, all at 3440 with 0 side padding (the owner's "981px control";
+       spacing-judge 2026-09-05, rule c). It hugs its text like a button now, and the
+       padding is where the hover fill paints. A component's summary (md-details,
+       research-node) keeps its own look at its own specificity. */
+    summary {
+        cursor: pointer;   /* a real UA gap */
+        width: fit-content; max-width: 100%;
+        padding: 0.25em 0.6em;
+        border-radius: var(--radius);
+    }
+    summary:hover { background: var(--fill-a08); }
 
     /* ---- form controls -------------------------------------------------- */
 
@@ -711,12 +761,15 @@
 
     /* A **flow** is a box whose children are stacked prose, and spacing belongs
        to the flow rather than to the things in it. `--flow` is an unregistered
-       em token, so it inherits as `2em` and resolves at each child — a heading's
-       gap scales with the heading's own font-size. Every selector is `:where()`d
+       em token, so it inherits and resolves at each child — a heading's gap
+       scales with the heading's own font-size. Every selector is `:where()`d
        to zero, so a component that genuinely needs its own spacing wins by
-       being an ordinary class. */
+       being an ordinary class.
+       ⚠ Was a flat `2em` — 30px at 1280 and 36px at 3440, the 1.2x cluster. It is
+         `--flow-ramp` × the level now: 30px at 1280, 54px at 3440 (spacing-judge
+         2026-09-05, /imagine/design/spacing/decision.md). */
 
-    :where(.flow, blockquote) { --flow: 2em; }
+    :where(.flow, blockquote) { --flow: var(--flow-default); }
 
     :where(.flow, blockquote) > * { margin-block: 0; }
     :where(.flow, blockquote) > * + * { margin-block-start: var(--flow); }

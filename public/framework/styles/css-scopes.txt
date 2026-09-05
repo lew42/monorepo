@@ -56,6 +56,7 @@ zoom-responsive
 
 # framework.css — new words prefixed, not bare (see the note at the top)
 table-       framework.css (table-equal — equalize a table's columns)
+spacing-     framework.css (spacing-tight · spacing-regular · spacing-airy — the three spacing levels)
 
 # core
 page-        core/Page

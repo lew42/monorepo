@@ -4,9 +4,12 @@
    `scale`/`swap`/`grow`/`double`/`sweep`/`pill` — for a reader who has never seen the
    original); the nine SVG-stroke ones are dropped, noted on codrops/page.js's table. */
 @layer site {
+	/* `fit-content` (spacing-judge 2026-09-05, rule c): each link sits in a `flex v`
+	   item, which stretched it to the item — 721px for 59px of ink at 3440. */
 	.codrops-link {
 		position: relative;
 		display: inline-block;
+		width: fit-content;
 		font-weight: 600;
 		text-decoration: none;
 		color: var(--codrops-link-color, inherit);

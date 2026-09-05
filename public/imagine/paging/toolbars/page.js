@@ -53,7 +53,7 @@ export default new Paging({
 	depth: 0,
 
 	content(){
-		p.c("paging-lede", "Change the **arrangement** dropdown on the page below and the bar moves. The content never changes.");
+		this.lede("Click an **arrangement** chip in the bar and the page's own bar moves. The content never changes.");
 
 		this.stage({ ...DEFAULT, content: "article", room: "wide", arrangement: "bar-top", surface: "card", background: "tint", navigation: "none" });
 
@@ -78,7 +78,7 @@ export default new Paging({
 			description: side.says,
 			side: name,
 			arrangement: side.arrangement,
-			line: side.says + " Point at it to move it somewhere else.",
+			line: side.says + " Click an **arrangement** chip to move it somewhere else.",
 		});
 	},
 });

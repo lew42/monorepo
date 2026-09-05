@@ -52,7 +52,7 @@ export default new Paging({
 
 		h2("Every way this site navigates, measured");
 
-		md("Two numbers per card — how far the thing you were reading slid **sideways**, and how far it slid **up or down**. Each pair is `1280 · 3440`, and **clicking a card performs that gesture on the real page**, so you can feel the number. (The bars are a square-root scale so the small ones stay visible; the numbers are exact.)");
+		md("Two numbers per card — how far the thing you were reading slid **sideways**, and how far it slid **up or down**. Each pair is `1280 · 3440`, and **clicking a card takes you to where that gesture lives**, so you can go and feel the number. (The bars are a square-root scale so the small ones stay visible; the numbers are exact.)");
 
 		div.c("grid auto gap paging-nav-grid wide", () => ROWS.forEach(row => this.finding(row)));
 

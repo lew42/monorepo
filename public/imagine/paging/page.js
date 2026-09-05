@@ -1,5 +1,5 @@
 import { div, h1, h2, p, span, a, icon, md } from "/app.js";
-import { Realm, Paging } from "./paging.js";
+import { Realm, Paging, Stage } from "./paging.js";
 import { PRESETS, preset_url } from "./presets.js";
 import { BLOCKS } from "./blocks.js";
 import { DEMOS } from "./demos.js";
@@ -23,9 +23,14 @@ import { DEMOS } from "./demos.js";
      what they were about to be shown instead of showing it (the owner, 2026-09-05).
      doc/decisions.md.                                                            */
 
-// The page that is on the stage when you arrive. Docs with tabs on top: the most
-// familiar shape there is, and the one where "the box does not move" is obvious.
-const OPENING = PRESETS.find(preset => preset.id === "docs-tabs");
+/* The page that is on the stage when you arrive. Docs with tabs on top: the most
+   familiar shape there is, and the one where "the box does not move" is obvious.
+
+   ⚠ `room: "wide"`, not the preset's own `reading`. At 3440 a `reading` stage stops
+     at its 64em cap — 1152px — and the first screen of the realm's front page was
+     58% bare grey (measured here; the audit said 52%). The front page opens on the
+     word that uses the screen. */
+const OPENING = { ...PRESETS.find(preset => preset.id === "docs-tabs").config, room: "wide" };
 
 // old name → where it went. `route()` below turns each into a one-line page.
 const MOVED = {
@@ -57,13 +62,13 @@ export default new Realm({
 	content(){
 		h1.c("page-title", "Paging");
 
-		p.c("paging-lede", "Point at the page below and a toolbar appears — change what a click does, how it is laid out, and its two colours. Or pick another shape from the rail.");
+		p.c("paging-lede", "Click a chip in the bar and watch the page under it change.");
 
-		this.stage(OPENING.config);
+		this.stage(OPENING);
 
 		h2("Twelve pages, ready made");
 
-		div.c("paging-cards", () => PRESETS.forEach(preset => this.preset_card(preset)));
+		div.c("paging-wall-live", () => PRESETS.forEach(preset => this.preset_card(preset)));
 
 		h2("What one click can do");
 
@@ -76,19 +81,30 @@ export default new Realm({
 			+ ". The long form is [Docs](/imagine/paging/doc/); the short version is the [readme](/imagine/paging/readme/).");
 	},
 
-	/* One preset card: what it is, in a name a newcomer understands, and one line.
-	   The whole card is the link, and it lands on that preset and nothing else.
+	/* ONE PRESET, AS A LIVE MINIATURE. The card holds the preset RUNNING — the same
+	   `Stage` the full-size page uses, at 0.6em in a clipped frame — so the wall is
+	   twelve pictures of twelve page shapes rather than twelve sentences about them.
+	   `/templates/` has done this since it shipped and was the best page in the realm
+	   for it; this wall was still twelve text cards (paging-audit-2).
+
+	   ⚠ `inner: true` — a nested stage draws no caption, cannot take the screen, and
+	     never touches the address bar. Twelve stages writing one url would fight.
 	   ⚠ NOT `card()`. Core's `Page.nav()` reads `this.card` as the card CLASS for a
-	     preview, so a method of that name is handed to `.ac()` as a function and
-	     every preview on the site's own wall throws. The shadowing trap the code
-	     skill names, met for the third time in this realm. */
+	     preview, so a method of that name is handed to `.ac()` as a function and every
+	     preview on the site's own wall throws. The shadowing trap the code skill
+	     names, met for the third time in this realm. */
 	preset_card(preset){
-		return a.c("paging-card").href(preset_url(preset)).append(() => {
-			span.c("paging-card-head", () => {
+		return a.c("paging-shot").href(preset_url(preset)).append(() => {
+			div.c("paging-shot-frame", () => {
+				new Stage({ config: preset.config, nest: preset.nest ?? null, inner: true });
+			});
+
+			span.c("paging-shot-head", () => {
 				icon(preset.icon);
 				span(preset.title);
 			});
-			span.c("paging-card-say", preset.one_line);
+
+			span.c("paging-shot-say", preset.one_line);
 		});
 	},
 

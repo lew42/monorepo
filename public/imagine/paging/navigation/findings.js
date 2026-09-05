@@ -54,9 +54,9 @@ export const FINDINGS = [
 		says: "The same gesture as an accordion, drawn inside this realm's own list of children." },
 
 	{ name: "A toolbar word — the surface", kind: DYNAMIC, moved: [0, 0], jumped: [158, 133],
-		url: "/imagine/paging/styles/",
+		url: "/imagine/paging/skin/",
 		watched: "the paragraph under the stage",
-		says: "Pressing `card` adds a frame and padding, so the box grows and the page under it moves." },
+		says: "Pressing `card` adds a frame and padding, so the box grows and the page under it moves. (Measured on `/imagine/paging/styles/`, which is now Skin.)" },
 
 	{ name: "A column opening beside you", kind: DYNAMIC, moved: [126, 62], jumped: [0, 0],
 		url: "/imagine/paging/mechanisms/launch/",
@@ -74,14 +74,14 @@ export const FINDINGS = [
 		says: "The worst vertical case measured. Nothing slides — the panel simply becomes a completely different height, so the scrollbar and everything below it jump." },
 
 	{ name: "A toolbar word — how much content", kind: DYNAMIC, moved: [0, 0], jumped: [920, 716],
-		url: "/imagine/paging/sizes/",
+		url: "/imagine/paging/room/",
 		watched: "the paragraph under the stage",
-		says: "Pressing `xl` puts a wall of posts where four cards were, and the prose under it goes off the bottom of the screen." },
+		says: "Pressing `xl` puts a wall of posts where four cards were, and the prose under it goes off the bottom of the screen. (Measured on `/imagine/paging/sizes/`, which is now Room.)" },
 
 	{ name: "A link that opens TWO columns at once", kind: DYNAMIC, moved: [194, 0], jumped: [0, 0], big: true,
-		url: "/imagine/paging/doc/mechanisms/",
+		url: "/imagine/",
 		watched: "the column you clicked in",
-		says: "The worst sideways case measured. At 1280 the column you were reading drops from its 64em ceiling (963px) to its 28em floor (421px) in one click. At 3440 there is room, so it only narrows." },
+		says: "The worst sideways case measured. At 1280 the column you were reading drops from its 64em ceiling (963px) to its 28em floor (421px) in one click. At 3440 there is room, so it only narrows. This opens the columns row it happens in — click any link two levels down and watch the column you were in." },
 
 	{ name: "A page taking the whole screen", kind: DYNAMIC, moved: null, jumped: null, big: true,
 		url: "/imagine/paging/mechanisms/takeover/",

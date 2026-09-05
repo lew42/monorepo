@@ -60,6 +60,9 @@
 	     includes the padding, so 61.8% is 61.8% of the row whatever the inset is, and
 	     shrink is proportional to the basis — which is what keeps the ratio exact once
 	     the 1px seams push the sum past 100%. Measured after: 1185 / 733 = 1.618. */
+	/* D5 (spacing-judge 2026-09-05): 45px of inset at 3440 inside a 20px page gutter
+	   was flagged as an inversion. A slide FILLS an unpadded region, so it carries the
+	   inset itself; and with the ramped scale the column gutter is 50px there. Kept. */
 	.decks-region {
 		container: decks-region / inline-size;
 		flex: 1 1 var(--decks-share, 100%);
@@ -272,16 +275,24 @@
 	.decks-bar:nth-child(even) { background: color-mix(in srgb, var(--prim) 22%, transparent); }
 
 	/* ── the strip — a footer redrawn per screen that reads as persistent ── */
+	/* Paper, so the leftover after the last chip is paper and not a `--line` band. */
 	.decks-foot {
 		flex: 0 0 auto;
 		display: flex; flex-wrap: wrap; align-items: stretch;
 		gap: 1px;
 		margin-block-start: 1px;
+		background: var(--surface);
 	}
 
+	/* A chip HUGS (spacing-judge 2026-09-05, rule c). `flex: 1 1 auto` grew four chips
+	   into four 700px cells at 3440 — 8.7–10.1x their ink on /imagine/decks/half/. Now
+	   each takes its label plus 1.4em a side, the seam is its own hairline, and the
+	   strip's leftover stays empty. The phone query below still lets them span: a
+	   phone's tab bar is a row of equal cells, and that is the one place it should be. */
 	.decks-chip {
-		flex: 1 1 auto;
-		padding: 0.7em 0.9em;
+		flex: 0 1 auto;
+		padding: 0.7em 1.4em;
+		border-inline-end: 1px solid var(--line);
 		background: var(--surface);
 		color: var(--subtle); text-decoration: none; text-align: center;
 		font-size: 0.72em; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;

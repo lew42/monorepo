@@ -68,3 +68,9 @@
 	}
 	.rfront-read-n { font-weight: 800; }
 }
+
+/* The topic's name link hugs (spacing-judge 2026-09-05, rule c): `.rfront-intro` is
+   a flow column and stretched it to the card — 2,879px for 120px of ink at 3440. */
+@layer theme {
+	.rfront-intro > .research-card-name { width: fit-content; max-width: 100%; }
+}

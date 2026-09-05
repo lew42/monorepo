@@ -35,7 +35,10 @@
 	.yt-poster { width: 100%; height: 100%; object-fit: cover; }
 
 	/* (0,2,1) for the same reason as `.yt-keys button` above: this is a hit area, not
-	   a call to action, and the theme's padding would push the glyph off centre. */
+	   a call to action, and the theme's padding would push the glyph off centre.
+	   D4 (spacing-judge 2026-09-05): the auditors read 1,067px for 52px of ink — 20x —
+	   but a poster's play overlay is a HIT AREA over the whole picture, the way every
+	   video player does it; the rule's exception for an overlay, kept on purpose. */
 	.yt-stage button.yt-start {
 		position: absolute; inset: 0;
 		display: grid; place-items: center;

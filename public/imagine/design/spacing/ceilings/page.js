@@ -35,6 +35,8 @@ export default new Page({
 
 		p.c("muted", "Raising just the clamp's ceiling (the literal max) turned out to be a no-op here — at 3440 the clamp's middle (`0.4em + 0.5vw`) already lands under today's `1.6em` cap, so widening only the cap changes nothing (confirmed live before shooting anything). The three candidates below instead scale the whole clamp — floor, middle and ceiling together, ×1 / ×1.5 / ×2 — which is what actually moves a number at 3440.");
 
+		md.c("muted", "**Chosen (2026-09-05, the spacing judge): the 2× row’s destination, none of the three rows as written.** Each candidate here scales the whole clamp, floor included, so the 1.5× and 2× rows moved 1280 too (to 22px and 30px beside the wall) — and the day’s decision holds 1280 exactly. What landed is a ramp that keeps the 1em floor at 1280 and lands next to the 2× row at 3440: `--gap-ramp: clamp(1em, 1.5vw - 0.3em, 2.6em)`, 15px → 46px. The 1× and 1.5× rows stay on this page as the alternatives it beat, and the crops are what those numbers look like on a real page; the whole ruling is one click from the [study](" + "/imagine/design/spacing/" + ").");
+
 		h2("The nine crops");
 		CANDIDATES.forEach(c => {
 			md.c("muted", `**${c.label}** (${c.mult} the clamp) — median gap beside the wall **${c.gap}**. ${c.note}`);

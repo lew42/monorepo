@@ -3,9 +3,13 @@
 	"icon": "description",
 	"description": "A page you made.",
 	"mode": {
-		"style": "tint",
-		"content": "l",
-		"mech": "swap"
+		"navigation": "rail",
+		"content": "cards",
+		"room": "reading",
+		"arrangement": "plain",
+		"surface": "tint",
+		"background": "tint",
+		"type": "regular"
 	},
 	"children": []
 }

@@ -1,8 +1,12 @@
+import { NAVIGATION, SURFACES, LAYOUTS } from "../blocks.js";
+
 /* ── THE BUILDER'S VOCABULARY ──────────────────────────────────────────────────
 
-   Everything the builder can SAY about a page, in one file that imports nothing —
-   the same shape `../words.js` uses for the realm, so the controls, the stage, the
-   JSON box and the doc all read one list and cannot disagree.
+   Everything the builder can SAY about a page. It used to import nothing and write
+   the realm's words out again — three of the five duplicate vocabularies the
+   2026-09-05 audit found were in this file. It now imports the three lists from
+   `../blocks.js` (which itself imports nothing) and adds only the KEYS a `page.json`
+   stores, which is a translation, not a second vocabulary.
 
    THE ONE RULE: every word here is written into the SAME `page.json` Make already
    writes (`../make/made.js` is the only store, `../doc/persistence.md` is the
@@ -34,45 +38,28 @@
      top level, and that is a ONE-LINE diff to `made.js` — written out in
      `../doc/builder.md`, not applied here: `make/` is another task's file.          */
 
-/* ── 1 · NAVIGATION — one control, six answers ────────────────────────────────
+/* ── 1 · NAVIGATION — one control, six answers, ONE LIST ──────────────────────
 
    The owner asked whether top tabs, left tabs and column pages should be one
    control. They should: all three are answers to ONE question — *how do the pages
-   under this one appear?* — and each is a pair of words that already exist in the
-   realm. `kids` is how the children are DRAWN; `mech` is what a click on one DOES.
-   The builder shows one row of pictures and writes both.                          */
-export const NAVS = [
-	{
-		id: "none", title: "None", icon: "remove",
-		kids: "none", mech: "launch",
-		means: "This page has no pages under it. Nothing is drawn.",
-	},
-	{
-		id: "columns", title: "Columns", icon: "view_column",
-		kids: "columns", mech: "launch",
-		means: "Each child is a row you click, and it opens as a COLUMN to the right. The url changes, so a child can be linked to and the Back button works. This is the site's default and 274 of its pages use it.",
-	},
-	{
-		id: "tabs", title: "Top tabs", icon: "tab",
-		kids: "tabs", mech: "swap",
-		means: "The children become a strip of tabs over one bounded panel. Clicking a tab swaps the panel and does NOT change the url — so a tab cannot be linked to. Each panel carries a link to the same child as a column, which can.",
-	},
-	{
-		id: "rail", title: "Left rail", icon: "view_sidebar",
-		kids: "rail", mech: "swap",
-		means: "The same tabs, stacked down the left instead of across the top. Same swap, same panel, same no-url — a long list of children reads better vertically.",
-	},
-	{
-		id: "rail-right", title: "Right rail", icon: "view_sidebar",
-		kids: "rail-right", mech: "swap",
-		means: "The rail on the other side, for a contents list or a properties panel: the eye keeps its home edge on the left and the list stays out of the reading line.",
-	},
-	{
-		id: "takeover", title: "Takeover", icon: "open_in_full",
-		kids: "columns", mech: "takeover",
-		means: "A click fills the screen with the child and collapses everything behind it into the crumb strip. `width: \"full\"` is core's own word for it.",
-	},
-];
+   under this one appear?*
+
+   ⚠ THE WORDS COME FROM `../blocks.js`. This file used to write the six out again,
+     with its own titles and its own sentences — one of FIVE live definitions of
+     `navigation` in the realm (paging-audit-2b, Q1). The ids, titles, icons and
+     sentences now have exactly one home, and all this file adds is the pair of keys
+     a `page.json` stores: `kids` is how the children are DRAWN, `mech` is what a
+     click on one DOES. A translation table is not a second vocabulary. */
+const STORED = {
+	"none":       { kids: "none",       mech: "launch" },
+	"columns":    { kids: "columns",    mech: "launch" },
+	"tabs":       { kids: "tabs",       mech: "swap" },
+	"rail":       { kids: "rail",       mech: "swap" },
+	"rail-right": { kids: "rail-right", mech: "swap" },
+	"takeover":   { kids: "columns",    mech: "takeover" },
+};
+
+export const NAVS = NAVIGATION.map(nav => ({ ...nav, ...STORED[nav.id] }));
 
 export const nav_of = node => {
 	const mode = node?.mode ?? {};
@@ -81,29 +68,22 @@ export const nav_of = node => {
 		?? NAVS[0];
 };
 
-/* ── 2 · SURFACE — five, and they are the realm's own five ────────────────────
-   Restated here rather than imported so this file keeps its "imports nothing"
-   promise; `../words.js` `STYLES` is the same list and `../../layouts/system.js`
-   `SURFACES` is the same list again. If they ever disagree, that is the bug.      */
-export const SURFACES = [
-	{ id: "plain", means: "no frame at all — the page sits on whatever is under it" },
-	{ id: "card", means: "a white card with a hairline and a shadow: the surface that says “this is one thing”" },
-	{ id: "tint", means: "one subtle step off the parent, for a panel that is part of the page" },
-	{ id: "prim", means: "10% of the accent mixed in — an island you are meant to notice" },
-	{ id: "dark", means: "an always-dark island; every token inside it flips" },
-];
+/* ── 2 · SURFACE — the realm's own five, imported, not restated ───────────────
+   This list was written out here a second time with its own sentences, and its own
+   comment admitted the copy. It is `../blocks.js`'s list now. (One more copy still
+   exists, in `/imagine/layouts/system.js` — a sibling realm, and not this task's
+   file to change; it is the remaining place the two can disagree.) */
+export { SURFACES };
 
-/* ── 3 · LAYOUT — the /imagine/layouts/ numbers, and what they do to the blocks ──
-   The SAME names the layout system uses, and each `means` links to the full-screen
-   version of that arrangement, so the builder and the catalogue cannot drift into two
-   vocabularies. Four is enough: the census found 743 of the site's 890 pages are one
-   column and 144 are a card wall (`../doc/builder.md`). */
-export const ARRANGES = [
-	{ id: "1.stack", title: "1.stack", means: "One column. Every block under the last, at the reading measure. [See 1.stack full size](/imagine/layouts/1/stack/)." },
-	{ id: "2.main-aside", title: "2.main-aside", means: "The first block is the main track; every other block stacks in an aside beside it. [See 2.main-aside full size](/imagine/layouts/2/main-aside/)." },
-	{ id: "3.thirds", title: "3.thirds", means: "Three equal tracks, blocks dealt across them. [See 3.thirds full size](/imagine/layouts/3/thirds/)." },
-	{ id: "4.wall", title: "4.wall", means: "A wall: as many tracks as fit, each block a tile. [See 4.wall full size](/imagine/layouts/4/wall/)." },
-];
+/* ── 3 · LAYOUT — the /imagine/layouts/ numbers ───────────────────────────────
+   Also one list, in `../blocks.js`, where the ARRANGEMENT words already named these
+   numbers. All this adds is the "see it full size" link the builder's control shows.
+   Four is enough: the census found 743 of the site's 890 pages are one column and
+   144 are a card wall (`../doc/builder.md`). */
+export const ARRANGES = LAYOUTS.map(layout => ({
+	...layout,
+	means: layout.means + " [See " + layout.title + " full size](" + layout.url + ").",
+}));
 
 /* ── 4 · BLOCKS — the content, as data ────────────────────────────────────────
    Three types, and every one is a RENDERER that already exists: `md()` for prose,

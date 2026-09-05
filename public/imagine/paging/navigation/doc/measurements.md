@@ -55,12 +55,17 @@ takes the watched element per case:
 
 **The two worst cases, in full.**
 
-- **Two columns at once, 1280.** Before the click the row is `[211, 963]` — the `/imagine/paging/`
-  column is at its 64em ceiling because nothing else is asking for room. After, it is
+- **Two columns at once, 1280.** Before the click the row is `[211, 963]` — the column you
+  are reading is at its 64em ceiling because nothing else is asking for room. After, it is
   `[211, 421, 421, 421]`: the column drops **542px of width** and its left edge moves
   **194px**. At 3440 the same click leaves the left edge at 432px and only narrows the
   column from 1152 to 1003, because there was room to spare — the same gesture is far worse
   on the smaller screen.
+  ⚠ Measured at 13:5x on `/imagine/paging/` → `/imagine/paging/doc/mechanisms/`. Later the
+  same day the paging realm became [its own screen with a rail](/imagine/paging/), so that
+  particular pair of urls no longer opens columns at all — which is the finding being acted
+  on rather than a stale number. The behaviour is the columns arrangement's, and it is still
+  every other realm's: [`/imagine/`](/imagine/) is the row it happens in.
 - **A tab switch.** The `ext/tabs` panel is 4247px tall on `Overview` and 2527px on `API` at
   1280 (5010 → 3077 at 3440). Nothing slides; the document simply becomes a different
   height, so the scrollbar jumps and anything below the panel is somewhere else.
