@@ -23,6 +23,11 @@ export default new Page({
 		+ "strengths-and-weaknesses layouts-need-fit switch-or-transition notebook-cooked "
 		+ "each-meme-is-a-community levels-and-points personal-specs basketball-tower "
 		+ "edge-selection parallel-generation doodles "
+		+ "ai-research-list-ui-ux split-responsive-viewer simplify-my-website "
+		+ "laws-rules-suggestions short-minded analyze-spacing-as-percent column-vs-swap "
+		+ "the-editor edit-mode-toolbar my-docs-are-bad page-active-display "
+		+ "tabs-and-lazy-pages we-think load-but-dont-render nested-rendering "
+		+ "readme-one-to-n "
 		+ "git-branch-names auth team-note",
 	// ⚠ Add a slug here ONLY once its `page.js` exists: a declared child without one 404s
 	// twice on EVERY page in the realm (the wall still renders — a null child falls back
