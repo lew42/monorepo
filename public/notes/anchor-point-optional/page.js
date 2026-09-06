@@ -104,7 +104,7 @@ video notes are all reacting to.`);
 - [ext/Panel](/framework/ext/Panel/) — the site's existing placement machine: a panel
   already sizes and places itself against a parent, which is what "Parent + Pos → Point P"
   is asking for.
-- [ext/Playground](/framework/ext/Playground/) — the layout lab where placement is a
+- [core/Layout](/framework/core/Layout/) — the layout lab where placement is a
   gesture rather than a number.
 - [Video research](/imagine/platform/research/video/) — the dug verdict on what video the
   platform actually needs, which is where "hire & record people" gets answered.

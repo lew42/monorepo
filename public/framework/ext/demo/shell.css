@@ -26,19 +26,19 @@
 	   Off unless a caller passes one (`title: ""` on the prototype) — spacing only,
 	   the `<h3>` already carries its own size and weight. Same ramp as the path's own
 	   `margin-block-end` below, so the two read as one stack. */
-	.demo-shell-title { margin-block-end: calc(var(--gap-ramp) * 0.6); }
+	.demo-shell-title { margin-block-end: calc(var(--gap) * 0.6); }
 
 	.demo-shell-code {
 		flex: 1 1 28em; min-width: 0;
-		display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.35);   /* was gap 0.35em - 2026-09-05 ramps */
+		display: flex; flex-direction: column; gap: calc(var(--gap) * 0.35);   /* was gap 0.35em - 2026-09-05 ramps */
 	}
 
 	/* ── the path, always ──
 	   The demo app's url strip, promoted out of the box so a demo with no app has
 	   one too. It is a breadcrumb of real urls: routing is the thing being shown. */
 	.demo-shell-path {
-		display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--gap-ramp) * 0.25);   /* was gap 0.25em - 2026-09-05 ramps */
-		margin-block-end: calc(var(--gap-ramp) * 0.6);   /* was margin-block-end 0.6em - 2026-09-05 ramps */
+		display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--gap) * 0.25);   /* was gap 0.25em - 2026-09-05 ramps */
+		margin-block-end: calc(var(--gap) * 0.6);   /* was margin-block-end 0.6em - 2026-09-05 ramps */
 		padding: 0.35em 0.8em;
 		font-family: var(--mono); font-size: 0.78em;
 		background: var(--tint);
@@ -58,7 +58,7 @@
 	   new type. Off unless a caller passes one (`foot: ""` on the prototype). */
 	.demo-shell-foot {
 		flex: 1 1 100%; min-width: 0;
-		margin-block-start: calc(var(--gap-ramp) * 0.6);
+		margin-block-start: calc(var(--gap) * 0.6);
 		font-size: 0.9em;
 		color: var(--subtle);
 	}
@@ -67,7 +67,7 @@
 	   Under the render it steers, inside its column: the band pays the gutter, so a
 	   bar indented again under a full-width render would read as belonging to
 	   something else. */
-	.demo-shell-steer { margin-block-start: calc(var(--gap-ramp) * 0.6); }   /* was margin-block-start 0.6em - 2026-09-05 ramps */
+	.demo-shell-steer { margin-block-start: calc(var(--gap) * 0.6); }   /* was margin-block-start 0.6em - 2026-09-05 ramps */
 
 	/* ── the ground under a specimen ──
 	   A specimen needs an EDGE. A layout paints `--surface`, the page under it is

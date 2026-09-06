@@ -8,7 +8,7 @@ import { FAMILIES, SILENT, DECLARATIONS, PARTS, spec } from "./words.js";
 
 // `space-words` and not `auto`: the track needs a ceiling, or a four-card family
 // stretches across the whole wall. space.css carries the one rule and why.
-const wall = fill => div.c("grid gap space-words", fill).style("--gap", "var(--gap-ramp)");
+const wall = fill => div.c("grid gap space-words", fill).style("--gap", "var(--gap)");
 
 /* ⚠ `data-layout-ignore` goes on the MINIATURE, never on the wall around it. On the
  *   wall it hides the cards' real text too, and ext/DesignTool then reads the whole
@@ -27,7 +27,7 @@ const card = (name, note, text) => div.c("space-word surface pad flex v gap", ()
 	code(name);
 	shot(text);
 	p.c("muted", note);
-}).style({ "--gap": "calc(var(--gap-ramp) * 0.5)", "--pad": "calc(var(--pad-ramp) * 0.8)" }).attr("title", text);
+}).style({ "--gap": "calc(var(--gap) * 0.5)", "--pad": "calc(var(--pad) * 0.8)" }).attr("title", text);
 
 export default new Page({
 	meta: import.meta,

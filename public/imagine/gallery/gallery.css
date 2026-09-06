@@ -45,16 +45,16 @@
 
 	/* The title filter, `lists/page.js`. `max-width` so it reads as a field over a
 	   column, not a bar the width of the row. */
-	.gal-filter { display: block; margin-block-end: calc(var(--gap-ramp) * 0.8); max-width: 22em; }   /* was margin-block-end 0.8em - 2026-09-05 ramps */
+	.gal-filter { display: block; margin-block-end: calc(var(--gap) * 0.8); max-width: 22em; }   /* was margin-block-end 0.8em - 2026-09-05 ramps */
 
 	/* Before and after, side by side, wrapping to one column when the pair no longer
 	   fits — a floor and a ceiling, so neither half can squeeze its cards.
-	   `--gap-default` (framework.css) instead of a fixed 1.5em: the row is meant to
+	   `--gap` (framework.css) instead of a fixed 1.5em: the row is meant to
 	   breathe more at 3440 than at 1280, same as every other grid on the site. */
 	.gal-pair {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(min(22em, 100%), 1fr));
-		gap: var(--gap, var(--gap-default));
+		gap: var(--gap);
 	}
 	.gal-pair > * { min-width: 0; }
 

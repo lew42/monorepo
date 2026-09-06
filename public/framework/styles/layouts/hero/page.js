@@ -37,9 +37,9 @@ export default new Page(demo.layout({
 						div.c("wash flex v-center h-center", () => icon("image"))
 							.style({ flex: "1 1 20em", alignSelf: "stretch", minHeight: "13em", borderRadius: "var(--radius)" });
 
-					site.hero().style({ flex: "1 1 24em", "--pad": "calc(var(--pad-ramp) * 1.5) 0" });
+					site.hero().style({ flex: "1 1 24em", "--pad": "calc(var(--pad) * 1.5) 0" });
 
-				}).style({ "--gap": "calc(var(--gap-ramp) * 1.5)", "--pad": "1.5em clamp(1em, 3%, 3.5em)" });
+				}).style({ "--gap": "calc(var(--gap) * 1.5)", "--pad": "1.5em clamp(1em, 3%, 3.5em)" });
 
 				if (this.shows("features"))
 					div.c("flex v gap pad wash", () => {
@@ -49,16 +49,16 @@ export default new Page(demo.layout({
 						div.c("flex v gap", () => {
 							h2("Engineered for system designers");
 							p("Maintain one source of truth that maps from a design configuration to clean web code.");
-						}).style({ "--gap": "calc(var(--gap-ramp) * 0.4)", maxWidth: "34em" });
+						}).style({ "--gap": "calc(var(--gap) * 0.4)", maxWidth: "34em" });
 
 						div.c("grid gap auto", () => FEATURES.forEach(([name, blurb], i) =>
 							div.c("flex v gap", () => {
 								span.c("h4 muted", "0" + (i + 1));
 								span.c("h3", name);
 								span.c("muted", blurb);
-							}).style("--gap", "calc(var(--gap-ramp) * 0.3)"))).style("--column", "22em");
+							}).style("--gap", "calc(var(--gap) * 0.3)"))).style("--column", "22em");
 
-					}).style({ "--gap": "calc(var(--gap-ramp) * 1.6)", "--pad": "2.5em clamp(1em, 3%, 3.5em)" });
+					}).style({ "--gap": "calc(var(--gap) * 1.6)", "--pad": "2.5em clamp(1em, 3%, 3.5em)" });
 
 			}).style({ minHeight: "0", overflowY: "auto" });
 

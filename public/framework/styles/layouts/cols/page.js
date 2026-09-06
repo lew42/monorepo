@@ -63,12 +63,12 @@ export default new Doc({
 					h3("cols-" + word.name);
 					span.c("cols-px", word.claim);
 					span.c("cols-note", "stacks below " + word.floor);
-				}).style("--gap", "calc(var(--gap-ramp) * 0.6)");
+				}).style("--gap", "calc(var(--gap) * 0.6)");
 
 				p.c("cols-note", word.note);
 				demo(word);
 
-			}).style("--gap", "calc(var(--gap-ramp) * 0.5)").attr("data-word", word.name);
+			}).style("--gap", "calc(var(--gap) * 0.5)").attr("data-word", word.name);
 		}));
 	},
 });

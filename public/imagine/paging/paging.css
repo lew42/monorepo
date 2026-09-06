@@ -232,7 +232,7 @@
 	   tab cut out of it. That one missing line is the whole of "these two things are
 	   one box". */
 	.paging-tab-panel {
-		padding: var(--pad, var(--pad-default));
+		padding: var(--pad);
 		background: var(--surface);
 		border: 1px solid var(--line);
 		border-top: none;
@@ -273,7 +273,7 @@
 	.paging-face {
 		position: absolute; inset: 0; overflow: auto;
 		display: flex; flex-direction: column; gap: 0.35em;
-		padding: var(--pad, var(--pad-default));
+		padding: var(--pad);
 		background: var(--surface);
 	}
 	.paging-face :is(h3, p) { margin: 0; }
@@ -463,8 +463,8 @@
 	     of nav grid across. Wider than that and the tiles start to look like cards.
 	   ⚠ `z-index` ABOVE A FULL-SCREEN STAGE (35). The rail is the way out of every
 	     page in the realm; nothing this app draws may paint over it. */
-	/* ⚠ THE RAIL PADS ON ITS OWN WIDTH, NEVER THE APP ROW'S. `--pad-default` comes from
-	     `--pad-ramp`, which is a PERCENTAGE, and a percentage padding resolves against
+	/* ⚠ THE RAIL PADS ON ITS OWN WIDTH, NEVER THE APP ROW'S. `--pad` comes from
+	     `--pad`, which is a PERCENTAGE, and a percentage padding resolves against
 	     the containing block — here the whole app row. Measured 2026-09-06: at 3440 the
 	     row is 3440px, so the ramp read 2.6% − 1.1em = 69.6px and put it on a 413px
 	     rail: 33.7% of the rail spent on inset, which is the owner's "the paging left
@@ -752,8 +752,8 @@
 	   A frame with padding, a body that is a row, and one caption underneath. */
 	.paging-stage {
 		display: flex; flex-direction: column;
-		gap: var(--gap, var(--gap-default));
-		padding: var(--pad, var(--pad-default));
+		gap: var(--gap);
+		padding: var(--pad);
 		border-radius: var(--radius);
 	}
 
@@ -783,7 +783,7 @@
 	.paging-canvas {
 		display: flex; flex-direction: column; gap: 0.7em;
 		flex: 1 1 auto; min-width: 0;
-		padding: var(--pad, var(--pad-default));
+		padding: var(--pad);
 	}
 	.paging-canvas > :is(h2, h3, p) { margin-block: 0; }
 
@@ -946,7 +946,7 @@
 	.paging-pane {
 		flex: 0 0 clamp(10em, 38%, 22em);
 		display: flex; flex-direction: column; gap: 0.5em; align-items: start;
-		padding: var(--pad, var(--pad-default));
+		padding: var(--pad);
 		background: var(--surface);
 		border: 1px solid var(--prim); border-radius: var(--radius);
 	}
@@ -1049,7 +1049,7 @@
 	     ceiling keeps a card a card. */
 	.paging-cards {
 		--column: 15em;
-		display: grid; gap: var(--gap, var(--gap-default));
+		display: grid; gap: var(--gap);
 		grid-template-columns: repeat(auto-fit, minmax(min(var(--column), 100%), 24em));
 	}
 	.paging-card {
@@ -1082,7 +1082,7 @@
 	   `auto-fill` with a real `--column`, so 3440 gets seven across and 400 gets one. */
 	.paging-wall-live {
 		--column: 19em;
-		display: grid; gap: var(--gap, var(--gap-default));
+		display: grid; gap: var(--gap);
 		grid-template-columns: repeat(auto-fill, minmax(min(var(--column), 100%), 1fr));
 	}
 
@@ -1146,7 +1146,7 @@
 	.paging-cross {
 		display: grid;
 		grid-template-columns: auto repeat(var(--paging-cross-n, 3), minmax(13rem, 1fr));
-		gap: var(--gap, var(--gap-default));
+		gap: var(--gap);
 		align-items: center;
 	}
 

@@ -29,12 +29,12 @@
 	   children, and the card ends where its two columns end. */
 	.build {
 		container-type: inline-size;
-		display: flex; flex-direction: column; gap: var(--gap, var(--gap-default));
+		display: flex; flex-direction: column; gap: var(--gap);
 	}
 
 	.build-card {
 		display: grid;
-		gap: var(--gap, var(--gap-default));
+		gap: var(--gap);
 		grid-template-columns: minmax(0, 1fr);
 	}
 
@@ -231,7 +231,7 @@
 	     at 400 (a box cannot restyle itself with its own container query). */
 	.build-blocks-box { container-type: inline-size; min-width: 0; }
 
-	.build-blocks { display: grid; gap: var(--gap, var(--gap-default)); margin-block-end: 0.6em; }
+	.build-blocks { display: grid; gap: var(--gap); margin-block-end: 0.6em; }
 	.build-blocks > * { margin: 0; min-width: 0; }
 
 	.build-arrange-1-stack { grid-template-columns: minmax(0, 1fr); }

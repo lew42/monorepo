@@ -142,3 +142,21 @@ So the layout tree shows layouts with fixture content, never real content; a sec
 > I'm going to send a bunch of pictures from the last few weeks. I want you to save each image in /notes/, try to read them, and try to generate UI to match, when possible. if there's something my notes are referencing that we've built, link to it from the note page. create a page for each note, so I can browse them, see the image, click through to productions, etc.
 
 Drop folder: `public/notes/inbox/`. Each image becomes `public/notes/<slug>/` with the image, a page (image · transcription · what it references, linked · UI built to match when possible), registered in `/notes/` `children:`; the notes index becomes a wall of previews.
+
+
+## Addendum 4 (the owner, 2026-09-06 ~10:25) — verbatim
+
+> quick note on layout: I think the content length thing might be more important. some containers can fit endless content (they just keep growing). but some containers cannot. if you put something big in something small, it doesn't fit.
+>
+> but for many sections, it's not a problem. you can just keep stacking.
+>
+> maybe we need to be more proactive about the dynamic (wrapping) layouts. if we use flex with wrap, or auto grid, this forces misalignments at times.
+>
+> layouts could have a max width? or should they just scale up to compensate?
+
+### The call
+
+- **Every layout says whether it grows.** `grows: true` — a stack; content length can never break it. `grows: false` — a bounded box (a hero, a viewport-height band, a card in an equal-height row, an inner-scroll rail) that must ALSO say what happens when the content is longer than the box: `overflow: "scroll" | "clip" | "truncate"`. A bounded layout that says nothing is a draft. This is the vertical twin of LayoutRule #1: width range across, growth down.
+- **The longest-text fixture is that test.** For bounded layouts the checker reads `scrollHeight > clientHeight` and asks whether the declared overflow happened; for growing layouts it only asks that nothing else moved.
+- **Wrapping layouts declare it and are proven with awkward counts.** A layout that wraps (`flex wrap`, `grid auto-fill`) gets item-count fixtures — 1, 2, 3, 5, 7 items — at every strip width, and a ragged last row is a finding. Prefer `grid auto-fill` for walls (columns stay aligned, the last row left-aligns); `flex wrap` only for a row of controls, where raggedness is the point.
+- **Max width is the ceiling it already declares.** Above it a layout holds and centres; it never scales up to compensate — content scale is CSS's job (the size standard) and it is bounded on purpose.

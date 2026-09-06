@@ -148,7 +148,7 @@ const wall = (min, gap, max = "1fr") => ({
 
 const card = () => ({
 	border: "1px solid var(--line)", borderRadius: "0.4em",
-	padding: "clamp(0.9em, 3.5%, 1.6em)", display: "flex", flexDirection: "column", gap: "calc(var(--gap-ramp) * 0.5)",
+	padding: "clamp(0.9em, 3.5%, 1.6em)", display: "flex", flexDirection: "column", gap: "calc(var(--gap) * 0.5)",
 });
 
 const flaw_card = f => div().style(card()).append(() => {
@@ -162,11 +162,11 @@ const flaw_card = f => div().style(card()).append(() => {
 	   `cramped · high` — 6 × div.flow, "nearest text sits 0px from the frame" — off the three
 	   unpadded sides. Exactly the one-sided-rule false positive tonight's padding study named,
 	   met on this page's own draft. 0.5em over a 13.5px face is 0.5×, inside `frame-gap`'s band. */
-	div.c("flow").style({ borderInlineStart: "3px solid var(--prim)", padding: "calc(var(--pad-ramp) * 0.5) calc(var(--pad-ramp) * 0.8)" })
+	div.c("flow").style({ borderInlineStart: "3px solid var(--prim)", padding: "calc(var(--pad) * 0.5) calc(var(--pad) * 0.8)" })
 		.append(() => md("**→ " + f.fix + "**"));
 });
 
-const part_card = s => div().style({ ...card(), gap: "calc(var(--gap-ramp) * 0.6)" }).append(() => {
+const part_card = s => div().style({ ...card(), gap: "calc(var(--gap) * 0.6)" }).append(() => {
 	span(s.key).style({ fontSize: "0.8em", fontWeight: "700", letterSpacing: "0.08em", color: "var(--prim)" });
 	h3(s.title).style({ margin: 0 });
 	div.c("flow").append(() => md(s.body));
@@ -197,7 +197,7 @@ export default new Page({
 
 		div().append(() => div().style(wall("22em", "1.2em", "44em")).append(() => PARTS.map(part_card)));
 
-		div().style({ marginBlock: "calc(var(--flow-ramp) * 1.4)" }).append(() =>
+		div().style({ marginBlock: "calc(var(--flow) * 1.4)" }).append(() =>
 			div().style(wall("30em", "1.2em", "52em")).append(() => {
 				div.c("flow").append(() => md(SKETCH_PAGE));
 				div.c("flow").append(() => md(SKETCH_CSS));
@@ -205,8 +205,8 @@ export default new Page({
 
 		// Two bounded reading columns, not one — `widescreen.md`'s "more tracks" applied
 		// to prose, which is the only move this page's own shell allows it.
-		div().style({ marginBlockStart: "calc(var(--flow-ramp) * 1.2)" }).append(() => div().style({
-			display: "grid", gap: "calc(var(--gap-ramp) * 1.6)", alignItems: "start",
+		div().style({ marginBlockStart: "calc(var(--flow) * 1.2)" }).append(() => div().style({
+			display: "grid", gap: "calc(var(--gap) * 1.6)", alignItems: "start",
 			gridTemplateColumns: "repeat(auto-fit, minmax(min(30em, 100%), 44em))",
 		}).append(() => {
 		prose("**Why a measure in characters is the load-bearing idea.** [widescreen.md](/framework/ext/DesignTool/knowledge/widescreen/) is right that widening a column is never the fix for dead space — it trades a `dead-space` medium for a `measure` high. But **scaling** one is: `--measure` is an `em`, so growing the type grows the column in pixels while the character count does not move. A 3440 screen gets a 1024px column of comfortable large type instead of a 640px column adrift in grey, and the band that would have punished it reads the same number it always did. That is how `holds: \"one\"` spends a widescreen without breaking anything.");

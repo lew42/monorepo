@@ -4,13 +4,13 @@ import word from "../word.js";
 const n = count => Array(count).fill("");
 
 // three visible boxes — the same three in every comparison below
-const boxes = () => ["one", "two", "three"].forEach(t => div.c("pad wash", t).style("--pad", "calc(var(--pad-ramp) * 0.5)"));
+const boxes = () => ["one", "two", "three"].forEach(t => div.c("pad wash", t).style("--pad", "calc(var(--pad) * 0.5)"));
 
 // a third box taller than its neighbours — same idiom, one class added
-const uneven = () => { div.c("pad wash h1", "one").style("--pad", "calc(var(--pad-ramp) * 0.5)"); div.c("pad wash", "two").style("--pad", "calc(var(--pad-ramp) * 0.5)"); div.c("pad wash", "three").style("--pad", "calc(var(--pad-ramp) * 0.5)"); };
+const uneven = () => { div.c("pad wash h1", "one").style("--pad", "calc(var(--pad) * 0.5)"); div.c("pad wash", "two").style("--pad", "calc(var(--pad) * 0.5)"); div.c("pad wash", "three").style("--pad", "calc(var(--pad) * 0.5)"); };
 
 // six numbered boxes — wrap vs squeeze needs more than three to be visible
-const six = () => n(6).forEach((_, i) => div.c("pad wash", String(i + 1)).style("--pad", "calc(var(--pad-ramp) * 0.5)"));
+const six = () => n(6).forEach((_, i) => div.c("pad wash", String(i + 1)).style("--pad", "calc(var(--pad) * 0.5)"));
 
 // no word says "grow twice as fast" or "don't blow out on a long word" — the two
 // demos below are the only inline .style() on this page, and each one says so
@@ -59,7 +59,7 @@ export default new Page({
 
 	content(){
 
-		this.previews().style({ "--column": "13em", "--gap": "calc(var(--gap-ramp) * 1.2)" });
+		this.previews().style({ "--column": "13em", "--gap": "calc(var(--gap) * 1.2)" });
 
 		md("**Nine class strings, each one word from its neighbour.** Click any of them: the shape opens at real size on a stage you can drag, the source is under it, and clicking a box opens the panel with the words it is wearing. Nothing here is a component or a function — you copy the string.");
 
@@ -67,8 +67,8 @@ export default new Page({
 
 		demo(() => {
 			div.c("flex gap", () => {
-				div.c("pad wash", "flex: 2").style({ "--pad": "calc(var(--pad-ramp) * 0.5)", flex: "2" });
-				div.c("pad wash", "flex: 1").style({ "--pad": "calc(var(--pad-ramp) * 0.5)", flex: "1" });
+				div.c("pad wash", "flex: 2").style({ "--pad": "calc(var(--pad) * 0.5)", flex: "2" });
+				div.c("pad wash", "flex: 1").style({ "--pad": "calc(var(--pad) * 0.5)", flex: "1" });
 			});
 		}, "No class sets an unequal share — every flexible word splits space evenly, so a bigger box is inline `flex: 2` on purpose.").ac("wide");
 
@@ -76,16 +76,16 @@ export default new Page({
 			div.c("flex v gap", () => {
 				div.c("h4", "flex gap — a bare child");
 				div.c("flex gap", () => {
-					div.c("pad wash", "one").style("--pad", "calc(var(--pad-ramp) * 0.5)");
-					div.c("pad wash", LONG).style("--pad", "calc(var(--pad-ramp) * 0.5)");
-					div.c("pad wash", "three").style("--pad", "calc(var(--pad-ramp) * 0.5)");
+					div.c("pad wash", "one").style("--pad", "calc(var(--pad) * 0.5)");
+					div.c("pad wash", LONG).style("--pad", "calc(var(--pad) * 0.5)");
+					div.c("pad wash", "three").style("--pad", "calc(var(--pad) * 0.5)");
 				});
 
 				div.c("h4", "flex gap — min-width: 0, inline");
 				div.c("flex gap", () => {
-					div.c("pad wash", "one").style("--pad", "calc(var(--pad-ramp) * 0.5)");
-					div.c("pad wash", LONG).style({ "--pad": "calc(var(--pad-ramp) * 0.5)", "min-width": "0" });
-					div.c("pad wash", "three").style("--pad", "calc(var(--pad-ramp) * 0.5)");
+					div.c("pad wash", "one").style("--pad", "calc(var(--pad) * 0.5)");
+					div.c("pad wash", LONG).style({ "--pad": "calc(var(--pad) * 0.5)", "min-width": "0" });
+					div.c("pad wash", "three").style("--pad", "calc(var(--pad) * 0.5)");
 				});
 			});
 		}, "A bare child floors at its longest word and blows out the row; `.flex-1`/`.basis`/`.flex.auto > *` already carry `min-width: 0` — a bare child does not, so here it's inline.").ac("wide");
@@ -118,9 +118,9 @@ export default new Page({
 
 		demo(() => {
 			div.c("flex v gap", () => {
-				div.c("pad wash", "top").style("--pad", "calc(var(--pad-ramp) * 0.5)");
+				div.c("pad wash", "top").style("--pad", "calc(var(--pad) * 0.5)");
 				div.c("flex gap", boxes);
-				div.c("pad wash", "bottom").style("--pad", "calc(var(--pad-ramp) * 0.5)");
+				div.c("pad wash", "bottom").style("--pad", "calc(var(--pad) * 0.5)");
 			});
 		}, "A column holds a row just as easily as a box — `flex v gap` outside, `flex gap` inside, two levels and nothing fancier.").ac("wide");
 
@@ -149,9 +149,9 @@ export default new Page({
 
 				div.c("h4", "flex gap wrap + basis — the first box keeps 14em, the rest drop under it");
 				div.c("flex gap wrap", () => {
-					div.c("pad wash basis", "basis").style("--pad", "calc(var(--pad-ramp) * 0.5)");
-					div.c("pad wash flex-1", "flex-1").style("--pad", "calc(var(--pad-ramp) * 0.5)");
-					div.c("pad wash flex-1", "flex-1").style("--pad", "calc(var(--pad-ramp) * 0.5)");
+					div.c("pad wash basis", "basis").style("--pad", "calc(var(--pad) * 0.5)");
+					div.c("pad wash flex-1", "flex-1").style("--pad", "calc(var(--pad) * 0.5)");
+					div.c("pad wash flex-1", "flex-1").style("--pad", "calc(var(--pad) * 0.5)");
 				});
 			});
 		}, "Same three boxes, three break behaviours: no wrap at all, a whole line at once, or one child holding its width while its neighbours re-flow around it. Pick the one that matches what the content *is* — a fixed rail is fixed, a set of peers is peers.").ac("wide");

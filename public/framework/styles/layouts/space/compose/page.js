@@ -83,7 +83,7 @@ export default new Page({
 				this.$seed = span.c("space-tag muted");
 				button(() => icon("chevron_right")).click(() => this.open(this.seed + 1));
 				button(() => icon("casino")).attr("title", "Roll a layout").click(() => this.open(roll()));
-			}).style("--gap", "calc(var(--gap-ramp) * 0.4)");
+			}).style("--gap", "calc(var(--gap) * 0.4)");
 
 			div.c("flex gap v-center", () => {
 				span.c("space-tag muted", "depth");
@@ -92,7 +92,7 @@ export default new Page({
 					.attr("value", String(this.depth))
 					.on("change", () => this.open(this.seed, { depth: +this.$depth.el.value }));
 				this.$note = span.c("space-tag muted");
-			}).style("--gap", "calc(var(--gap-ramp) * 0.5)");
+			}).style("--gap", "calc(var(--gap) * 0.5)");
 
 			div.c("flex gap v-center", () => {
 				span.c("space-tag muted", "chaos");
@@ -100,7 +100,7 @@ export default new Page({
 					.attr("type", "range").attr("min", "0").attr("max", "100")
 					.attr("value", String(Math.round(this.chaos * 100)))
 					.on("change", () => this.open(this.seed, { chaos: +this.$chaos.el.value / 100 }));
-			}).style("--gap", "calc(var(--gap-ramp) * 0.5)");
+			}).style("--gap", "calc(var(--gap) * 0.5)");
 
 			// A fixed area or a long one — the question the reroll button on every bar
 			// is really asking, so it is a control rather than an assumption.
@@ -108,7 +108,7 @@ export default new Page({
 				.attr("title", "Fixed-size layouts, or long scrolling ones")
 				.click(() => this.open(this.seed, { fit: this.fit === "screen" ? "page" : "screen" }));
 
-		}).style("--gap", "calc(var(--gap-ramp) * 1.2)");
+		}).style("--gap", "calc(var(--gap) * 1.2)");
 	},
 
 	/* ⚠ Held in a box of its own and refilled in a CALLBACK. `panel()` builds with bare

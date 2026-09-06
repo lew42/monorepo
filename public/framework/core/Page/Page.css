@@ -198,11 +198,14 @@
 	     already reads 16px at 1280 → 50px at 3440 (3.2x) and pad-y 10.5 → 25px (2.4x),
 	     both past the day's "about double" — doubling pad-x's cap to 6em would spend
 	     216px of a 46em column on inset. What changed: both multiply by the host's
-	     `--spacing` level (framework.css), so a tight or airy columns host retunes its
-	     bar, heads, rows and prose together. */
+	     `--size` level (framework.css, renamed from `--size` 2026-09-06), so a
+	     small or large columns host retunes its bar, heads, rows and prose together.
+	     Kept as its own clamp, not aliased to `--pad` — the size study measured it
+	     within 2.6% of `--pad` but pad-y is not a constant fraction of pad-x (0.68 at
+	     1280, 0.50 at 3440), /imagine/design/size/alternatives.md. */
 	.page.columns {
-		--page-column-pad-x: calc(clamp(0.9em, 1.6cqi, 3em) * var(--spacing, 1));
-		--page-column-pad-y: calc(clamp(0.7em, 0.8cqi, 1.6em) * var(--spacing, 1));
+		--page-column-pad-x: calc(clamp(0.9em, 1.6cqi, 3em) * var(--size, 1));
+		--page-column-pad-y: calc(clamp(0.7em, 0.8cqi, 1.6em) * var(--size, 1));
 		display: flex; flex-direction: column;
 		align-self: stretch; height: 100%;
 		padding: 0;
@@ -402,7 +405,7 @@
 	     measured a 108px bar (2026-09-04) — do not; this only moves the END. */
 	.page-column-head {
 		position: sticky; top: 0; z-index: 1;
-		display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.4);   /* was gap 0.4em - 2026-09-05 ramps */
+		display: flex; align-items: center; gap: calc(var(--gap) * 0.4);   /* was gap 0.4em - 2026-09-05 ramps */
 		padding-block: var(--page-column-pad-y, 0.7em);
 		padding-inline: var(--page-column-pad-x, 0.9em) var(--page-column-pad-y, 0.7em);
 		background: var(--wash);
@@ -447,7 +450,7 @@
 		   ⚠ An `.md`/`.flow` box INSIDE this prose keeps the site rhythm for its own
 		     paragraphs (27px at 1280): closing that gap at 1280 would tighten every
 		     column's prose, the wrong direction — decision.md, "not yet". */
-		--flow: calc(clamp(0.8em, 0.8cqi, 1.6em) * var(--spacing, 1));
+		--flow: calc(clamp(0.8em, 0.8cqi, 1.6em) * var(--size, 1));
 	}
 	.page-column-prose > .md > :first-child { margin-block-start: 0; }
 
@@ -492,7 +495,7 @@
 	   can put `.tab` on these anchors. */
 	/* ⚠ THE GAP IS THE ITEM'S OWN em, never a ramp. A ramp is space BETWEEN things;
 	     this one is inside ONE control, between its icon and its label, and
-	     `--gap-ramp` is pinned at its 2.6em cap above ~1400px, so `× 0.4` is 1.04em at
+	     `--gap` is pinned at its 2.6em cap above ~1400px, so `× 0.4` is 1.04em at
 	     3440 on a 0.9em row. (2026-09-06, the rule on
 	     /imagine/design/spacing/decision.md; the homepage nav went fat the same way.) */
 	.page-column-item {
@@ -538,7 +541,7 @@
 	/* ── the trail — `crumbs()`, derived from chain() so it cannot be wrong ──
 	   `framework.css` has no rule for `a` at all, so the links keep the UA underline
 	   until a descendant rule says otherwise; that is the whole reason for line two. */
-	.page-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--gap-ramp) * 0.3); font-size: 0.9em; }   /* was gap 0.3em - 2026-09-05 ramps */
+	.page-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--gap) * 0.3); font-size: 0.9em; }   /* was gap 0.3em - 2026-09-05 ramps */
 	.page-crumbs a { text-decoration: none; }
 	.page-crumbs .icon { font-size: 1em; color: var(--subtle); }
 
@@ -636,21 +639,21 @@
 	   ⚠ Every gap is a RAMP times a level, never a flat em — the multiplier IS the old
 	     em number and only 3440 moves (framework.css:106). The flat-em era is what made
 	     every audit read 3440 as cramped. */
-	.page-frame     { display: flex; flex-direction: column; gap: var(--gap, var(--gap-default)); min-width: 0; }
+	.page-frame     { display: flex; flex-direction: column; gap: var(--gap); min-width: 0; }
 	/* ⚠ `flex: 1 1 0`, NEVER `1 1 auto`. With `auto` the basis is the middle's own
 	     max-content width — a paragraph's — so rail + content + panel overflowed the
 	     line and the middle wrapped onto a row of its own at EVERY width, not just the
 	     narrow one (measured 2026-09-06: the canvas took the whole 965px row at 1280
 	     with the rail and the panel stacked under it). A basis of 0 asks for nothing
 	     and takes the leftover, which is what a middle means. */
-	.page-frame-mid { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.6); flex: 1 1 0; min-width: 0; }
+	.page-frame-mid { display: flex; flex-direction: column; gap: calc(var(--gap) * 0.6); flex: 1 1 0; min-width: 0; }
 
 	/* ⚠ `flex-wrap` lives here, never in the query below: a container query cannot
 	     restyle its own container, so a `flex-wrap` written in there would silently do
 	     nothing. */
 	.page-frame-body {
 		display: flex; flex-wrap: wrap; align-items: stretch;
-		gap: var(--gap, var(--gap-default)); min-width: 0;
+		gap: var(--gap); min-width: 0;
 	}
 
 	/* ⚠ THE CONTAINER IS ONLY ON THE PAGE'S OWN FRAME, and this one selector is the
@@ -670,9 +673,9 @@
 	.page-frame-page > .page-frame-body { container: page-frame / inline-size; }
 
 	.page-canvas {
-		display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.7);
+		display: flex; flex-direction: column; gap: calc(var(--gap) * 0.7);
 		flex: 1 1 auto; min-width: 0;
-		padding: var(--pad, var(--pad-default));
+		padding: var(--pad);
 	}
 
 	/* ⚠ PROSE IN THE BOX KEEPS ITS MEASURE. The canvas is as wide as the frame — 2171px
@@ -691,7 +694,7 @@
 
 	/* A slot repeats the canvas's own rhythm, because under a swapping navigation word
 	   the content is a grandchild of the canvas rather than a child. */
-	.page-slot { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.7); min-width: 0; }
+	.page-slot { display: flex; flex-direction: column; gap: calc(var(--gap) * 0.7); min-width: 0; }
 
 	/* The three side boxes an arrangement word opens, and the rail a navigation word
 	   opens. All four are the same shape — a column beside the content — so they are
@@ -699,7 +702,7 @@
 	   ⚠ `em`, and a rail is the one box where `em` is right: it is sized by its own
 	     text, not by the viewport.
 	   ⚠ A SIDE BOX PADS ON ITS OWN WIDTH, NEVER THE ROW'S — `--pad` is redeclared here
-	     for everything inside it. `--pad-default` comes from `--pad-ramp`, which is a
+	     for everything inside it. `--pad` comes from `--pad`, which is a
 	     PERCENTAGE, and a percentage padding resolves against the containing block: a
 	     narrow column inside a wide row pads like the row. Measured 2026-09-06 on
 	     `/imagine/paging/`: a 413px rail in a 3440px row took 69.6px of padding a
@@ -713,7 +716,7 @@
 	.page-rail, .page-panel, .page-aside {
 		--page-side-w: clamp(11em, 22%, 18em);
 		--pad: clamp(0.6em, calc(var(--page-side-w) * 0.06), 1.2em);
-		display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.4);
+		display: flex; flex-direction: column; gap: calc(var(--gap) * 0.4);
 		flex: 0 0 var(--page-side-w); min-width: 0;
 	}
 
@@ -727,11 +730,11 @@
 		.page-frame-mid { flex: 1 0 100%; }
 	}
 
-	.page-bar { display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--gap-ramp) * 0.5); }
+	.page-bar { display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--gap) * 0.5); }
 
 	/* The children, listed — in the rail, or inside the box. */
-	.page-rows { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.25); }
-	.page-row  { display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.4); text-decoration: none; }
+	.page-rows { display: flex; flex-direction: column; gap: calc(var(--gap) * 0.25); }
+	.page-row  { display: flex; align-items: center; gap: calc(var(--gap) * 0.4); text-decoration: none; }
 
 	/* ── the height reservation: a swap may not resize the box ──
 	   The page's own content and the region a child mounts in share ONE grid cell, so
@@ -839,7 +842,7 @@
 	.wall, .page-previews:where(:not(.page)) {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(min(var(--column, 18em), 100%), 1fr));
-		gap: var(--gap, var(--gap-default));
+		gap: var(--gap);
 	}
 	.wall > *, .page-previews > * { margin: 0; }
 
@@ -908,12 +911,17 @@
 	     Flex rendered above the VOCABULARY heading that owns them. It bought a tidier
 	     ragged edge on plain walls and cost reading order on grouped ones. */
 	/* Flat `--gap: 0.8em` let the wall's own entrance margin follow the buggy, scoped
-	   `--flow` it inherits (10.8px vs a prose neighbour's 27.1px, 2.5×, blogx@1280) — `--gap-default`'s clamp fixes both that margin and the internal card gap (spacing-study, 2026-09-05). */
-	.page-previews:where(:not(.page)) { --column: 14em; --gap: var(--gap-default); margin-block: var(--gap-default); }
+	   `--flow` it inherits (10.8px vs a prose neighbour's 27.1px, 2.5×, blogx@1280) —
+	   the size standard's `--gap` clamp fixes both that margin and the internal card
+	   gap (spacing-study, 2026-09-05). ⚠ No `--gap:` reassignment here any more
+	   (size-apply 2026-09-06): framework.css's `:where(*)` already gives THIS element
+	   its own `--gap`, so re-declaring `--gap: var(--gap)` would be a self-reference —
+	   the old two-step (`--gap` → a local `--gap` copy) collapsed into one. */
+	.page-previews:where(:not(.page)) { --column: 14em; margin-block: var(--gap); }
 
 	/* A child's `group:` heads the run it starts — a whole row, so the cards on
 	   either side of it keep counting their own columns. */
-	.page-previews > .page-previews-group { grid-column: 1 / -1; margin-block-start: calc(var(--gap-ramp) * 0.6); }   /* was margin-block-start 0.6em - 2026-09-05 ramps */
+	.page-previews > .page-previews-group { grid-column: 1 / -1; margin-block-start: calc(var(--gap) * 0.6); }   /* was margin-block-start 0.6em - 2026-09-05 ramps */
 	.page-previews > .page-previews-group:first-child { margin-block-start: 0; }
 
 	/* ⚠ `bleed` spends the grid's gutter tracks, so a top-level wall would sit flush
@@ -944,7 +952,7 @@
 		display: flex;
 		flex-direction: column;
 		align-items: stretch;
-		gap: calc(var(--gap-ramp) * 0.6);   /* was gap 0.6em - 2026-09-05 ramps */
+		gap: calc(var(--gap) * 0.6);   /* was gap 0.6em - 2026-09-05 ramps */
 		text-decoration: none;
 		color: inherit;
 		border-radius: var(--radius);

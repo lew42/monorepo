@@ -15,9 +15,9 @@ const pager = () => {
 		releases.slice((current - 1) * per_page, current * per_page).forEach(name => p(name)));
 
 	const $box = div.c("flex v gap", () => {
-		$list = div.c("flex v gap", () => {}).style("--gap", "calc(var(--gap-ramp) * 0.3)");
+		$list = div.c("flex v gap", () => {}).style("--gap", "calc(var(--gap) * 0.3)");
 		new Pagination({ pages: page_labels(), current: 1, onChange: show });
-	}).style("--gap", "calc(var(--gap-ramp) * 0.6)");
+	}).style("--gap", "calc(var(--gap) * 0.6)");
 
 	show(1);
 	return $box;
@@ -26,8 +26,8 @@ const pager = () => {
 /* The words proof: both tiers read the same tokens, so ONE class on the section
  * re-skins the ui/ template and the ux/ class in one pass. */
 const words = () => div.c("flex v gap-2em", () => {
-	div.c("flex v gap", () => { div.c("h4 muted", "default"); pager(); }).style("--gap", "calc(var(--gap-ramp) * 0.5)");
-	div.c("flex v gap", () => { div.c("h4 muted", "ui-contrast ui-compact"); pager().ac("ui-contrast ui-compact"); }).style("--gap", "calc(var(--gap-ramp) * 0.5)");
+	div.c("flex v gap", () => { div.c("h4 muted", "default"); pager(); }).style("--gap", "calc(var(--gap) * 0.5)");
+	div.c("flex v gap", () => { div.c("h4 muted", "ui-contrast ui-compact"); pager().ac("ui-contrast ui-compact"); }).style("--gap", "calc(var(--gap) * 0.5)");
 });
 
 export default new Doc({

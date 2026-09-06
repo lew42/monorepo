@@ -42,7 +42,7 @@ const context = () => div.c("pad flex v gap", () => {
 		}).attr("tabindex", "0");
 		span(" while you type.");
 	});
-}).style("--gap", "calc(var(--gap-ramp) * 0.4)");
+}).style("--gap", "calc(var(--gap) * 0.4)");
 
 export default new Page({
 	meta: import.meta,

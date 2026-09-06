@@ -28,7 +28,7 @@ const row = () => div.c("ui-controls-row", () => {
 const base_row = () => div.c("ui-controls-base", row);
 
 const sizes = () => div.c("ui-controls-sizes", () => {
-	[["size-small", "size-small — 0.75"], ["", "default — 1"], ["size-large", "size-large — 1.25"]]
+	[["size-small", "size-small — 0.75"], ["", "default — 1"], ["size-large", "size-large — 1.5"]]
 		.forEach(([word, label]) => div.c("ui-controls-panel ui-controls-base " + word, () => {
 			div.c("ui-controls-label", label);
 			row();

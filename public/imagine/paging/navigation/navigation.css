@@ -80,7 +80,7 @@
 	.paging-nav-rail {
 		flex: 0 0 clamp(11rem, 16vw, 20rem);
 		display: flex; flex-direction: column; gap: 0.2em;
-		padding: var(--pad, var(--pad-default));
+		padding: var(--pad);
 		overflow-y: auto;
 		background: var(--wash);
 		border-inline-end: 1px solid var(--line);
@@ -118,7 +118,7 @@
 
 	.paging-nav-rail-out { margin-block-start: auto; color: var(--subtle); font-size: 0.9em; }
 
-	.paging-nav-centre { flex: 1 1 0; min-width: 0; overflow-y: auto; padding: var(--pad, var(--pad-default)); }
+	.paging-nav-centre { flex: 1 1 0; min-width: 0; overflow-y: auto; padding: var(--pad); }
 	.paging-nav-sub { max-width: var(--measure, 40em); }
 
 	/* ══ THE LAB — two boxes, same content, one rule different ════════════════ */
@@ -132,7 +132,7 @@
 
 	.paging-nav-lab {
 		display: flex; flex-direction: column; gap: 0.7em;
-		padding: var(--pad, var(--pad-default));
+		padding: var(--pad);
 		border: 1px solid var(--line); border-radius: var(--radius);
 		background: var(--surface);
 	}
@@ -209,7 +209,7 @@
 
 	.paging-nav-card {
 		display: flex; flex-direction: column; gap: 0.4em;
-		padding: var(--pad, var(--pad-default));
+		padding: var(--pad);
 		border: 1px solid var(--line); border-radius: var(--radius);
 		background: var(--surface);
 		color: var(--ink); text-decoration: none;
@@ -243,5 +243,5 @@
 	   most readers have.) */
 	.paging-nav-cols { max-width: 62em; }
 	.paging-nav-demo-name { padding: 0.35em 0.7em; font-size: 0.8em; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--subtle); background: var(--wash); border-block-end: 1px solid var(--line); }
-	.paging-nav-demo-body { padding: var(--pad, var(--pad-default)); }
+	.paging-nav-demo-body { padding: var(--pad); }
 }

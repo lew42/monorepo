@@ -46,7 +46,7 @@ const WALL = [
 ];
 
 const card = c => figure.c("flex v gap ctl-card").style({
-	margin: 0, padding: "calc(var(--pad-ramp) * 0.8)", border: "1px solid var(--line)", borderRadius: "0.4em", background: "var(--surface)",
+	margin: 0, padding: "calc(var(--pad) * 0.8)", border: "1px solid var(--line)", borderRadius: "0.4em", background: "var(--surface)",
 }).append(() => {
 	div.c("flex gap wrap").append(() => c.shots.forEach(f =>
 		img().attr("src", shot(f)).attr("alt", c.name).style({ maxHeight: "160px", border: "1px solid var(--line)", borderRadius: "0.3em" }))
@@ -54,13 +54,13 @@ const card = c => figure.c("flex v gap ctl-card").style({
 	figcaption(() => {
 		span.c("ctl-name", c.name).style({ fontWeight: "700", display: "block" });
 		span.c("muted", `used in ${c.n} ${c.files}`).style({ display: "block", fontSize: "0.85em" });
-		div.c("flex gap wrap").style({ fontSize: "0.85em", margin: "calc(var(--flow-ramp) * 0.2) 0" }).append(() =>
+		div.c("flex gap wrap").style({ fontSize: "0.85em", margin: "calc(var(--flow) * 0.2) 0" }).append(() =>
 			c.examples.forEach(([url, label], i) => {
 				if (i) span.c("muted", " · ");
 				a(label).href(url.startsWith("/") ? url : "#");
 			})
 		);
-		p.c("muted", c.note).style({ fontSize: "0.85em", margin: "calc(var(--flow-ramp) * 0.3) 0 0" });
+		p.c("muted", c.note).style({ fontSize: "0.85em", margin: "calc(var(--flow) * 0.3) 0 0" });
 	});
 });
 
@@ -73,7 +73,7 @@ const BUTTON_STYLES = [
 	{ file: "style-mode-btn.png", label: "mode-btn — bordered square, icon-only" },
 ];
 
-const swatch = s => figure.c("flex v gap").style({ margin: 0, gap: "calc(var(--gap-ramp) * 0.3)" }).append(() => {
+const swatch = s => figure.c("flex v gap").style({ margin: 0, gap: "calc(var(--gap) * 0.3)" }).append(() => {
 	img().attr("src", shot(s.file)).attr("alt", s.label).style({ border: "1px solid var(--line)", borderRadius: "0.3em", background: "var(--surface)" });
 	figcaption.c("muted", s.label).style({ fontSize: "0.8em" });
 });

@@ -18,7 +18,7 @@ const basics = () => {
 
 const data = () => {
 	table(() => {
-		el("caption", "Routes under /framework/styles/").style({ textAlign: "left", paddingBottom: "calc(var(--pad-ramp) * 0.5)" });
+		el("caption", "Routes under /framework/styles/").style({ textAlign: "left", paddingBottom: "calc(var(--pad) * 0.5)" });
 		thead(() => tr(() => { th("route"); th("page"); th("ships CSS"); }));
 		tbody(() => {
 			[["base/", "the reset", "no"], ["theme/", "tokens + the look", "no"], ["util/", "opt-in classes", "no"], ["elements/", "this reference", "no"]]

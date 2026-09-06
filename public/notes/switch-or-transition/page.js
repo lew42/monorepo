@@ -99,7 +99,7 @@ The original, which only opens on a local checkout (the inbox is not in the repo
   things, each with its own fixed icon. A switch is one of them; a transition is not.
 - [ext/Panel](/framework/ext/Panel/) — the modal in-place switcher's nearest built thing:
   a panel that overlays, sizes per axis, and remembers.
-- [ext/Playground](/framework/ext/Playground/) — small previews of a layer, already
+- [core/Layout](/framework/core/Layout/) — small previews of a layer, already
   running, as the lab's own way of picking a layout.
 - [core/Layout](/framework/core/Layout/) — the tree of variants a right sidebar would
   navigate.`);

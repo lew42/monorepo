@@ -93,8 +93,8 @@
 	   a `tags:` yet on some corpora and an empty strip is a lie about a control. */
 	.omnibox-chips {
 		flex: none;
-		display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.4);
-		padding: calc(var(--pad-ramp) * 0.35) calc(var(--pad-ramp) * 0.5);
+		display: flex; flex-direction: column; gap: calc(var(--gap) * 0.4);
+		padding: calc(var(--pad) * 0.35) calc(var(--pad) * 0.5);
 		background: var(--surface);
 		color: var(--ink);
 		border: 1px solid var(--line);
@@ -138,7 +138,7 @@
 		min-block-size: 0;
 		overflow: auto;
 		scrollbar-width: thin; scrollbar-gutter: stable;
-		padding: calc(var(--pad-ramp) * 0.5);
+		padding: calc(var(--pad) * 0.5);
 		background: var(--surface);
 		color: var(--ink);
 		border: 1px solid var(--line);
@@ -158,8 +158,8 @@
 	}
 
 	.omnibox-card {
-		display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.2);
-		padding: calc(var(--pad-ramp) * 0.5);
+		display: flex; flex-direction: column; gap: calc(var(--gap) * 0.2);
+		padding: calc(var(--pad) * 0.5);
 		color: var(--ink);
 		text-decoration: none;
 		overflow: hidden;
@@ -179,7 +179,7 @@
 
 	.omnibox-empty { grid-column: 1 / -1; padding: 0.6em; }
 
-	.omnibox-more:not(:empty) { padding-block-start: calc(var(--pad-ramp) * 0.4); }
+	.omnibox-more:not(:empty) { padding-block-start: calc(var(--pad) * 0.4); }
 	/* (0,2,1) again — `.omnibox button.omnibox-btn` above sets a transparent border. */
 	.omnibox button.omnibox-show-more { justify-content: center; inline-size: 100%; border-color: var(--line); }
 }

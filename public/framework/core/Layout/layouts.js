@@ -38,7 +38,7 @@
    ⚠ `decl` — not `rules`. `rules` on this site now means LayoutRules (rules.js);
      these are CSS declarations, which is what `ext/DesignTool/library` calls `decl`. */
 
-const gap = "var(--gap, var(--gap-default))";
+const gap = "var(--gap)";
 
 const COLS  = "/framework/styles/layouts/cols/";
 const WORDS = "/framework/styles/doc/layout-system.md";
@@ -119,7 +119,7 @@ export const LAYOUTS = [
 		room: "page",
 		word: { label: ".wash + .measure.start", href: "/framework/styles/sections/" },
 		config: 'div.c("wash").style({ paddingInline: "clamp(1.5em, 3.5%, 3.5em)" }, () => div.c("measure start flow", …))',
-		decl: { display: "block", background: "var(--wash)", "padding-block": "calc(var(--pad-ramp) * 1.5)", "padding-inline": "clamp(1.5em, 3.5%, 3.5em)", "border-radius": "6px" },
+		decl: { display: "block", background: "var(--wash)", "padding-block": "calc(var(--pad) * 1.5)", "padding-inline": "clamp(1.5em, 3.5%, 3.5em)", "border-radius": "6px" },
 		boxes: [{ label: "The band's prose", note: "back on the measure", kind: "prose", decl: { "max-width": "min(40em, 100%)" } }],
 		widths: [400, 3440],
 		tags: ["single-column", "landing"],
@@ -156,7 +156,7 @@ export const LAYOUTS = [
 		room: "page",
 		word: { label: ".flex.gap.v-center.wrap", href: "/framework/framework.css" },
 		config: 'div.c("flex gap v-center wrap", () => { span("Filter"); …buttons })',
-		decl: { display: "flex", "flex-wrap": "wrap", "align-items": "center", gap, padding: "var(--pad, var(--pad-default))", border: "1px solid var(--line)", "border-radius": "6px" },
+		decl: { display: "flex", "flex-wrap": "wrap", "align-items": "center", gap, padding: "var(--pad)", border: "1px solid var(--line)", "border-radius": "6px" },
 		boxes: [{ label: "Controls", kind: "controls" }],
 		widths: [400, 3440],
 		wraps: true,

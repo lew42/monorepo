@@ -11,7 +11,9 @@ block marked **THE CONTROL GRAMMAR** — this directory is the page that shows t
   `.tab` already wears it; `.btn` puts it on an `<a>`.
 - Two variants, both filled: `.prim` (the accent) and `.bg` (the dark neutral).
 - One size word on the *container*: `.size-small` (0.75), `.size-regular` (1),
-  `.size-large` (1.25). It moves the controls inside and leaves the prose alone.
+  `.size-large` (1.5). It moves the controls inside and leaves the prose alone —
+  and (size-apply, 2026-09-06) the same three classes now also carry every box's
+  `--pad`/`--gap`/`--flow`: [`/imagine/design/size/`](/imagine/design/size/).
 
 ## Watch out
 

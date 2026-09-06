@@ -57,7 +57,7 @@ const row = m => div.c("nav-row").style({ borderBottom: "1px solid var(--line)",
 		div().style({ flex: "1 1 420px", minWidth: "300px" }).append(() => shot(m.file, m.tag));
 		div().style({ flex: "1 1 320px", minWidth: "260px" }).append(() => {
 			span.c("code", m.tag);
-			p.c("muted", m.def).style({ margin: "calc(var(--flow-ramp) * 0.4) 0" });
+			p.c("muted", m.def).style({ margin: "calc(var(--flow) * 0.4) 0" });
 			p().style({ fontSize: "0.9em" }).append(() => { span.c("muted", "Where: "); span(m.where); });
 			p().style({ fontSize: "0.9em" }).append(() => { span.c("muted", "Used: "); span(m.used); });
 		});
@@ -65,7 +65,7 @@ const row = m => div.c("nav-row").style({ borderBottom: "1px solid var(--line)",
 });
 
 const pair = ph => div.c("nav-phone-row").style({ borderBottom: "1px solid var(--line)", paddingBlock: "1.4em" }).append(() => {
-	h3.c("code", ph.tag).style({ marginBlockEnd: "calc(var(--flow-ramp) * 0.5)" });
+	h3.c("code", ph.tag).style({ marginBlockEnd: "calc(var(--flow) * 0.5)" });
 	div.c("flex gap wrap", () => {
 		if (ph.a) figure.c("flex v gap").style({ margin: 0, flex: "2 1 500px" }).append(() => {
 			shot(ph.a, ph.tag + " at 1280");
@@ -80,7 +80,7 @@ const pair = ph => div.c("nav-phone-row").style({ borderBottom: "1px solid var(-
 			figcaption.c("muted", "390, opened");
 		});
 	});
-	p.c("muted", ph.note).style({ marginBlockStart: "calc(var(--flow-ramp) * 0.6)" });
+	p.c("muted", ph.note).style({ marginBlockStart: "calc(var(--flow) * 0.6)" });
 });
 
 const TRAILS = [
@@ -96,8 +96,8 @@ const TRAILS = [
 ];
 
 const trail = t => div.c("nav-trail").style({ borderBottom: "1px solid var(--line)", paddingBlock: "1.2em" }).append(() => {
-	h3(t.title + " — " + t.clicks + " clicks").style({ marginBlockEnd: "calc(var(--flow-ramp) * 0.3)" });
-	div.c("flex gap wrap v-center").style({ fontSize: "0.85em", marginBlock: "calc(var(--flow-ramp) * 0.5)" }).append(() =>
+	h3(t.title + " — " + t.clicks + " clicks").style({ marginBlockEnd: "calc(var(--flow) * 0.3)" });
+	div.c("flex gap wrap v-center").style({ fontSize: "0.85em", marginBlock: "calc(var(--flow) * 0.5)" }).append(() =>
 		t.path.forEach((seg, i) => {
 			if (i) span.c("muted", " → ");
 			span.c("code", seg);

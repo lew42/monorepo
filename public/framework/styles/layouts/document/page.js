@@ -28,7 +28,7 @@ export default new Page(demo.layout({
 				div.c("measure flow", () => {
 					site.hero();
 					site.sections(4, this.shows("sticky"));
-				}).style({ "--measure": "46em", padding: "0 calc(var(--pad-ramp) * 2) calc(var(--pad-ramp) * 3)" });
+				}).style({ "--measure": "46em", padding: "0 calc(var(--pad) * 2) calc(var(--pad) * 3)" });
 			}).style({ minHeight: "0", overflowY: "auto" });
 
 			if (this.shows("footer")) site.footer();

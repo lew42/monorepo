@@ -69,7 +69,7 @@ const SPREAD = [
 const shot = (file, alt) => img().attr("src", here + "shots/" + file).attr("alt", alt || "")
 	.style({ width: "100%", border: "1px solid var(--line)", borderRadius: "0.3em" });
 
-const shell_card = s => figure.c("flex v gap").style({ margin: 0, gap: "calc(var(--gap-ramp) * 0.5)" }).append(() => {
+const shell_card = s => figure.c("flex v gap").style({ margin: 0, gap: "calc(var(--gap) * 0.5)" }).append(() => {
 	shot(s.file, s.name);
 	figcaption(() => {
 		span(s.name).style({ fontWeight: "700" });
@@ -80,7 +80,7 @@ const shell_card = s => figure.c("flex v gap").style({ margin: 0, gap: "calc(var
 	if (s.see) p.c("muted", s.see);
 });
 
-const fail_card = f => figure.c("flex v gap").style({ margin: 0, gap: "calc(var(--gap-ramp) * 0.4)" }).append(() => {
+const fail_card = f => figure.c("flex v gap").style({ margin: 0, gap: "calc(var(--gap) * 0.4)" }).append(() => {
 	shot(f.file, f.url + " at " + f.w);
 	figcaption(() => {
 		a(f.url).href(f.url).style({ fontWeight: "700" });
@@ -90,7 +90,7 @@ const fail_card = f => figure.c("flex v gap").style({ margin: 0, gap: "calc(var(
 });
 
 const nowrap = { whiteSpace: "nowrap", flex: "0 0 auto", fontVariantNumeric: "tabular-nums" };
-const spread_row = ([url, w1280, w3440, grades]) => div.c("flex gap wrap").style({ alignItems: "baseline", padding: "calc(var(--pad-ramp) * 0.5) calc(var(--pad-ramp) * 0.6)", borderBlockEnd: "1px solid var(--line)" }).append(() => {
+const spread_row = ([url, w1280, w3440, grades]) => div.c("flex gap wrap").style({ alignItems: "baseline", padding: "calc(var(--pad) * 0.5) calc(var(--pad) * 0.6)", borderBlockEnd: "1px solid var(--line)" }).append(() => {
 	a(url).href(url).style({ flex: "1 1 12em" });
 	span(`1280: ${w1280}`).style(nowrap).ac("muted");
 	span(`3440: ${w3440}`).style({ ...nowrap, fontWeight: "700", color: "var(--ink)" });
@@ -134,11 +134,11 @@ export default new Page({
 		h2("The three shells");
 		/* Not `bleed` (2026-09-01): these are framed cards, and bleed is for paint —
 		   the prose pad is the inset that keeps them off the edge. */
-		div.c("gap").style({ display: "grid", gap: "calc(var(--gap-ramp) * 1.2)", gridTemplateColumns: "repeat(auto-fill, minmax(min(20em, 100%), 28em))" }).append(() => SHELLS.map(shell_card));
+		div.c("gap").style({ display: "grid", gap: "calc(var(--gap) * 1.2)", gridTemplateColumns: "repeat(auto-fill, minmax(min(20em, 100%), 28em))" }).append(() => SHELLS.map(shell_card));
 
 		h2("Content patterns, not shells");
 		prose("Live inside the shells above — never a page's whole shape in this sample.");
-		div.c("gap").style({ display: "grid", gap: "var(--gap-ramp)", gridTemplateColumns: "repeat(auto-fill, minmax(min(20em, 100%), 26em))" }).append(() => CONTENT_PATTERNS.map(s => figure.c("flex v gap").style({ margin: 0, gap: "calc(var(--gap-ramp) * 0.5)" }).append(() => {
+		div.c("gap").style({ display: "grid", gap: "var(--gap)", gridTemplateColumns: "repeat(auto-fill, minmax(min(20em, 100%), 26em))" }).append(() => CONTENT_PATTERNS.map(s => figure.c("flex v gap").style({ margin: 0, gap: "calc(var(--gap) * 0.5)" }).append(() => {
 			shot(s.file, s.name);
 			figcaption(() => span(s.name).style({ fontWeight: "700" }));
 			p.c("muted", s.note);
@@ -146,7 +146,7 @@ export default new Page({
 
 		h2("Where it fails");
 		prose("Every shot below is the LIVE page, at the width shown — click through. Two distinct failure modes, both dead-space, not overlap or clipping: a **columns-host default column** that never grows (`/imagine/*`), and a **rail-and-content ceiling** with nothing added beside it (`/michael/*`). No page in this sample overflowed, clipped, or scrolled sideways at 390, 1280 or 3440 — the site's failures here are all *waste*, not breakage.");
-		div.c("gap").style({ display: "grid", gap: "calc(var(--gap-ramp) * 1.2)", gridTemplateColumns: "repeat(auto-fill, minmax(min(22em, 100%), 30em))" }).append(() => FAILURES.map(fail_card));
+		div.c("gap").style({ display: "grid", gap: "calc(var(--gap) * 1.2)", gridTemplateColumns: "repeat(auto-fill, minmax(min(22em, 100%), 30em))" }).append(() => FAILURES.map(fail_card));
 
 		h2("The 3440 question");
 		prose("width_used — content span ÷ viewport (`ext/DesignTool`'s own metric) — for the 9 of 20 sampled pages it could score; the other 11 are framework doc/demo pages the tool skips as \"mostly picture\" (a known tool gap, not a layout failure — doc/learned.md). Worst 3440 number first.");

@@ -25,13 +25,13 @@ export default new Page(demo.layout({
 				div.c("flex v gap pad", () => {
 					site.cards(6, "9em");
 					site.tiles(4, "20em");
-				}).style({ flex: "1 1 24em", minWidth: "0", "--gap": "calc(var(--gap-ramp) * 1.2)" });
+				}).style({ flex: "1 1 24em", minWidth: "0", "--gap": "calc(var(--gap) * 1.2)" });
 
 				if (this.shows("aside"))
 					div.c("basis pad flex v gap", () => {
 						span.c("h4", "Activity");
 						site.rows(4);
-					}).style({ "--basis": "17em", "--gap": "calc(var(--gap-ramp) * 0.8)" });
+					}).style({ "--basis": "17em", "--gap": "calc(var(--gap) * 0.8)" });
 
 			}).style({ minHeight: "0", overflowY: "auto" });
 		});

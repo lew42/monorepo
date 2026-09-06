@@ -53,7 +53,7 @@ export default new Page(demo.layout({
 						position: "sticky", top: "1em", alignSelf: "flex-start",
 					});
 
-			}).style({ "--pad": "1.5em clamp(1em, 3%, 3.5em)", "--gap": "calc(var(--flow-ramp) * 1.25)", minHeight: "0", overflowY: "auto" });
+			}).style({ "--pad": "1.5em clamp(1em, 3%, 3.5em)", "--gap": "calc(var(--flow) * 1.25)", minHeight: "0", overflowY: "auto" });
 
 			if (this.shows("footer"))
 				div.c("flex split v-center pad wash", () => {

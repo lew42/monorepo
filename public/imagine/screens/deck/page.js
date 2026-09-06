@@ -17,7 +17,7 @@ const slide = (page, n, label, note) => sheet(null, () => {
 	div.c("flex gap", () => {
 		if (page.prev) a.c("btn", "Back").href(page.prev);
 		if (page.next) a.c("btn", "Next").href(page.next);
-	}).style("--gap", "calc(var(--gap-ramp) * 0.5)");
+	}).style("--gap", "calc(var(--gap) * 0.5)");
 })
 	// The whole slide advances — but a real link inside it has to win, or Back
 	// would step forwards.

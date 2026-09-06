@@ -201,7 +201,7 @@
 	   only the sides and bottom take the standard pad token, since those were
 	   never anything before. */
 	.tabs.bounded:not(.vertical) > .tab-panel {
-		padding: 3em var(--pad, var(--pad-default)) var(--pad, var(--pad-default));
+		padding: 3em var(--pad) var(--pad);
 		background: var(--tab-fill, var(--surface));
 		border: 1px solid var(--line);
 		border-top: none;
@@ -225,7 +225,7 @@
 
 	/* The same set, turned on its side — only the axis changes. The bar is sticky
 	   because the panel is usually taller. */
-	.tabs.vertical { flex-direction: row; align-items: flex-start; gap: calc(var(--flow-ramp) * 2); }   /* was gap 4em - 2026-09-05 ramps */
+	.tabs.vertical { flex-direction: row; align-items: flex-start; gap: calc(var(--flow) * 2); }   /* was gap 4em - 2026-09-05 ramps */
 
 	/* ⚠ NOT framework.css's `.basis` utility: `.tabs` is a COLUMN and
 	   `.tabs.vertical` is a ROW, so `flex-basis` — the MAIN size — would give every
@@ -271,7 +271,7 @@
 	   narrow-width `padding-top: 1rem` below (0,2,0 each), on purpose: a floored
 	   rail keeps its own padding at every width. */
 	.tabs.vertical.bounded > .tab-panel {
-		padding: var(--pad, var(--pad-default));
+		padding: var(--pad);
 		background: var(--tab-fill, var(--surface));
 		border: 1px solid var(--line);
 		border-radius: var(--radius);

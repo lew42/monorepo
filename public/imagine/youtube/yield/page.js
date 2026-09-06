@@ -61,7 +61,7 @@ export default new Page({
 
 			div.c("yt-keys flex wrap gap", () => BEATS.forEach(beat =>
 				button.c("yt-btn", clock(beat.at) + " " + (beat.step ? "aside" : "back")).click(() => this.player.seek(beat.at))
-			)).style("--gap", "calc(var(--gap-ramp) * 0.4)");
+			)).style("--gap", "calc(var(--gap) * 0.4)");
 
 			this.$sum = div.c("yt-sum", "Nothing entered yet.");
 
@@ -114,7 +114,7 @@ export default new Page({
 	step_card(title, fn){
 		return div.c("yt-step", () => {
 			span.c("yt-ctl-label", title);
-			div.c("flex v gap", fn).style("--gap", "calc(var(--gap-ramp) * 0.6)");
+			div.c("flex v gap", fn).style("--gap", "calc(var(--gap) * 0.6)");
 		});
 	},
 

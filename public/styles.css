@@ -15,7 +15,7 @@
 	   touch it. */
 
 	.nav {
-		display: flex; flex-wrap: wrap; gap: calc(var(--gap-ramp) * 1.25); flex: 0 0 auto;   /* was gap 1.25em - 2026-09-05 ramps */
+		display: flex; flex-wrap: wrap; gap: calc(var(--gap) * 1.25); flex: 0 0 auto;   /* was gap 1.25em - 2026-09-05 ramps */
 		padding: 0.9em 6%; border-bottom: 1px solid var(--line);
 	}
 	.nav-link { text-decoration: none; color: var(--subtle); }
@@ -70,7 +70,7 @@
 	     size IS the rail's width. Un-stretching it would leave a ragged rail whose
 	     hover fill is a different width on every row, which is worse than the ratio.
 	   ⚠ Its HEIGHT is its own em, and that is not negotiable. For one day
-	     (2026-09-05 → 2026-09-06) this read `calc(var(--gap-ramp) * 0.6)`, on the
+	     (2026-09-05 → 2026-09-06) this read `calc(var(--gap) * 0.6)`, on the
 	     theory that a 3440 rail of 11px-padded rows was cramped. That is a control
 	     riding a page ramp, which the spacing decision forbids: the ramp caps at
 	     2.6em, so block padding reached 22.5px and a nav item stood 67.6px tall at
@@ -78,14 +78,14 @@
 	     the next morning. A rail row that genuinely needs more air gets a bigger
 	     number here, in em; it never gets a ramp. */
 	.sidebar-link { padding-block: 0.8em; }
-	.sidebar-group { margin-block: calc(var(--gap-ramp) * 1); }   /* was margin-block 1em - 2026-09-05 ramps */
+	.sidebar-group { margin-block: calc(var(--gap) * 1); }   /* was margin-block 1em - 2026-09-05 ramps */
 	.sidebar-link:is(.active, .in-path) .sidebar-label { font-weight: 600; }
 	.sidebar-link.active::after, .sidebar-link.in-path::after { margin-bottom: 1px; }
 
 	/* ⚠ The token, not `2em` (2026-08-17): a two-line snippet under 2em of padding
 	     reads as an empty dark void with some text in a corner — vision-after #7,
 	     new at 1280. `--pad` is the size everything else on this site is padded by. */
-	.code-block { padding: var(--pad, var(--pad-default, 1em)); }
+	.code-block { padding: var(--pad, var(--pad, 1em)); }
 
 	/* ---- a topic: its own nav beside its own region ----
 	   A topic page overrides render(), so its `.page` element IS the row — there is no
@@ -150,7 +150,7 @@
 	.home-front {
 		display: grid;
 		align-content: start;
-		gap: calc(var(--gap-ramp) * 1.25);   /* was gap 1.25em - 2026-09-05 ramps */
+		gap: calc(var(--gap) * 1.25);   /* was gap 1.25em - 2026-09-05 ramps */
 		--column: 18em;
 		--gap: 0.8em;
 
@@ -207,7 +207,7 @@
 	}
 
 	/* A region's label and the way in, on one line. */
-	.home-head { display: flex; align-items: baseline; gap: calc(var(--gap-ramp) * 1); margin-bottom: calc(var(--gap-ramp) * 0.6); }   /* was gap 1em; margin-bottom 0.6em - 2026-09-05 ramps */
+	.home-head { display: flex; align-items: baseline; gap: calc(var(--gap) * 1); margin-bottom: calc(var(--gap) * 0.6); }   /* was gap 1em; margin-bottom 0.6em - 2026-09-05 ramps */
 	.home-head-link { margin-inline-start: auto; font-size: 0.85em; }
 
 	.home-date { display: block; font-size: 0.8em; color: var(--subtle); }
@@ -246,7 +246,7 @@
 	     (and the same 34em stage.css already breaks at), but it is two questions in
 	     one block, measured at 400 / 1280 / 1920 / 3440 rather than assumed. */
 	@container (max-width: 34em) {
-		.home-front { gap: calc(var(--gap-ramp) * 1); }   /* was gap 1em - 2026-09-05 ramps */
+		.home-front { gap: calc(var(--gap) * 1); }   /* was gap 1em - 2026-09-05 ramps */
 		.home-stage .demo { --demo-pad: 0.8rem; }
 		.home-stage .demo-tools, .home-stage .demo-size { display: none; }
 
@@ -334,7 +334,7 @@
 	   this silently loses. See styles/layers/theme/lew42/readme.md §7. */
 	.app { background: var(--wash); }
 
-	.page-link-block { background: rgba(0,0,0,0.1); display: block; padding: 1em; margin-bottom: calc(var(--gap-ramp) * 1); }   /* was margin-bottom 1em - 2026-09-05 ramps */
+	.page-link-block { background: rgba(0,0,0,0.1); display: block; padding: 1em; margin-bottom: calc(var(--gap) * 1); }   /* was margin-bottom 1em - 2026-09-05 ramps */
 
 	/* Docs tables lead with a keyword — keep it on one line. "My first column is a
 	   term" is an opinion about *this site's writing*, not about markdown, which is

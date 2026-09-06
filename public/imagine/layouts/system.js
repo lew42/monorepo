@@ -93,20 +93,20 @@ export const DIVISIONS = [
 		id: "fixed",
 		title: "by fixed size",
 		note: "Two tracks are a measurement and the third takes what is left. A fixed track is a PLACE, so it never moves when the area does.",
-		rules: { display: "grid", "grid-template-columns": "7em 10em minmax(0, 1fr)", gap: "var(--gap, var(--gap-default))" },
+		rules: { display: "grid", "grid-template-columns": "7em 10em minmax(0, 1fr)", gap: "var(--gap)" },
 	},
 	{
 		id: "flex",
 		title: "by flex-grow / basis",
 		note: "Every track starts from a basis and the leftover is split by grow. This is the only one of the four where the tracks can WRAP when the area gets small.",
-		rules: { display: "flex", "flex-wrap": "wrap", gap: "var(--gap, var(--gap-default))" },
+		rules: { display: "flex", "flex-wrap": "wrap", gap: "var(--gap)" },
 		weights: ["1 1 8em", "2 1 12em", "1 1 8em"],
 	},
 	{
 		id: "fr",
 		title: "by fr tracks",
 		note: "`fr` is grid's own unit for a share of the LEFTOVER — the gaps come off first, then the fractions divide what remains. The one to reach for by default.",
-		rules: { display: "grid", "grid-template-columns": "1fr 2fr 1fr", gap: "var(--gap, var(--gap-default))" },
+		rules: { display: "grid", "grid-template-columns": "1fr 2fr 1fr", gap: "var(--gap)" },
 	},
 ];
 
@@ -122,7 +122,7 @@ export const STACK_RULES = { display: "block" };
 
 /* ── THE ENTRIES ───────────────────────────────────────────────────────────────── */
 
-const gap = "var(--gap, var(--gap-default))";
+const gap = "var(--gap)";
 
 const cols = href => ({ label: "styles/layouts/cols", href: href ?? "/framework/styles/layouts/cols/" });
 

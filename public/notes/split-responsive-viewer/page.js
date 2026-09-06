@@ -58,7 +58,7 @@ last word on the page is **LostMinds**.`);
   a chosen width, and its code shown beside it.
 - [ext/Panel](/framework/ext/Panel/) — *Panels*, built: twelve gestures, per-axis sizing,
   live duplicates, and the overlay toolbar.
-- [ext/Playground](/framework/ext/Playground/) — *Layout Generator* and *Editor*, built as
+- [core/Layout](/framework/core/Layout/) — *Layout Generator* and *Editor*, built as
   one lab: edges are insert points, sizes write nothing, and the chrome does not jank.
 - [/framework/ai/](/framework/ai/) — *AI Dashboard*, built: one page per working day
   showing tasks, their sessions and what each one landed.

@@ -8,7 +8,7 @@ const alert = () => div.c("ui-alert surface pad flex gap accent", () => {
 	div.c("flex-1 flex v gap", () => {
 		div.c("h4", "Heads up");
 		p("Never build DOM after an `await` — capturing is synchronous.");
-	}).style("--gap", "calc(var(--gap-ramp) * 0.2)");
+	}).style("--gap", "calc(var(--gap) * 0.2)");
 });
 
 const tones = () => div.c("flex v gap", () => {

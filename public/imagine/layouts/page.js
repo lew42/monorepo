@@ -97,7 +97,7 @@ class LayoutsIdea extends View {
 				const $box = div.c("layouts-box");
 
 				if (opts.weights) $box.el.style.setProperty("flex", opts.weights[i]);
-				if (opts.margin && i < THREE.length - 1) $box.el.style.setProperty("margin-bottom", "var(--gap, var(--gap-default))");
+				if (opts.margin && i < THREE.length - 1) $box.el.style.setProperty("margin-bottom", "var(--gap)");
 
 				$box.append(() => {
 					span.c("layouts-box-label", box.label);

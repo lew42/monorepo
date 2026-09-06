@@ -53,7 +53,7 @@
 		border-radius: var(--radius);
 		box-shadow: 0 0.5em 1.5em rgb(0 0 0 / 0.18);
 	}
-	.dropdown-list:popover-open { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.1); }   /* was gap 0.1em - 2026-09-05 ramps */
+	.dropdown-list:popover-open { display: flex; flex-direction: column; gap: calc(var(--gap) * 0.1); }   /* was gap 0.1em - 2026-09-05 ramps */
 
 	/* Same reclaim as the trigger, same reason — and the same grammar underneath, so
 	   an option is one row tall, exactly like the trigger that opened it. A row in a

@@ -40,9 +40,9 @@ export default new Page(demo.layout({
 				div.c("flex gap v-center", () => {
 					div.c("wash").style({ flex: "0 0 auto", width: "2.2em", height: "2.2em", borderRadius: "50%" });
 					div.c("flex v", () => { span.c("h3", who); span.c("muted", role); });
-				}).style("--gap", "calc(var(--gap-ramp) * 0.6)");
+				}).style("--gap", "calc(var(--gap) * 0.6)");
 
-			}).style({ flex: "0 0 min(26em, 82%)", minWidth: "0", scrollSnapAlign: "center", "--gap": "calc(var(--gap-ramp) * 0.8)" });
+			}).style({ flex: "0 0 min(26em, 82%)", minWidth: "0", scrollSnapAlign: "center", "--gap": "calc(var(--gap) * 0.8)" });
 
 		return div.c("page full fill flex v", () => {
 
@@ -53,7 +53,7 @@ export default new Page(demo.layout({
 				div.c("flex v gap pad", () => {
 					h2("What teams say");
 					p(site.blurb);
-				}).style({ "--gap": "calc(var(--gap-ramp) * 0.4)", "--pad": "2em clamp(1em, 3%, 3.5em) 0", maxWidth: "34em" });
+				}).style({ "--gap": "calc(var(--gap) * 0.4)", "--pad": "2em clamp(1em, 3%, 3.5em) 0", maxWidth: "34em" });
 
 				/* ⚠ No `wrap` on the track, and the scroller IS the track: a wrapping
 				   flex line is sized by its content, so `overflow-x` one level out
@@ -62,7 +62,7 @@ export default new Page(demo.layout({
 				     box, so padding on the track would put the cut-off slide flush
 				     against the page edge instead of on the page's own left line. */
 				div.c("pad", () => div.c("flex gap", () => QUOTES.forEach(slide))
-					.style({ overflowX: "auto", scrollSnapType: "x mandatory", "--gap": "var(--gap-ramp)" }))
+					.style({ overflowX: "auto", scrollSnapType: "x mandatory", "--gap": "var(--gap)" }))
 					.style("--pad", "0 clamp(1em, 3%, 3.5em) 1em");
 
 				if (this.shows("specs"))
@@ -72,7 +72,7 @@ export default new Page(demo.layout({
 							span.c("h4 muted", "Usage");
 							p("Keep a quote inside three lines at the widest slide. A rail that has to be dragged twice to reach its last card wants fewer cards, not a smaller track.")
 								.style("max-width", "34em");
-						}).style("--gap", "calc(var(--gap-ramp) * 0.5)");
+						}).style("--gap", "calc(var(--gap) * 0.5)");
 
 						div.c("flex v gap", () => {
 							span.c("h4 muted", "Track variables");
@@ -81,11 +81,11 @@ export default new Page(demo.layout({
 								tbody(() => SPECS.forEach(([prop, value, note]) =>
 									tr(() => { td(() => code(prop)); td(() => code(value)); td(note); })));
 							});
-						}).style("--gap", "calc(var(--gap-ramp) * 0.5)");
+						}).style("--gap", "calc(var(--gap) * 0.5)");
 
-					}).style({ "--column": "24em", "--gap": "var(--flow-ramp)", "--pad": "2em clamp(1em, 3%, 3.5em)" });
+					}).style({ "--column": "24em", "--gap": "var(--flow)", "--pad": "2em clamp(1em, 3%, 3.5em)" });
 
-			}).style({ minHeight: "0", overflowY: "auto", "--gap": "calc(var(--gap-ramp) * 1.5)" });
+			}).style({ minHeight: "0", overflowY: "auto", "--gap": "calc(var(--gap) * 1.5)" });
 
 			if (this.shows("footer")) site.footer();
 		});

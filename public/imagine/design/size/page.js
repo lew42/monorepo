@@ -41,7 +41,7 @@ const CANDIDATE = [
 	"    --flow: calc(clamp(2em, 1.4cqi + 0.8em, 3em)   * var(--size));",
 	"}",
 	"",
-	".size-small { --size: 0.75 }  .size-regular { --size: 1 }  .size-large { --size: 1.25 }",
+	".size-small { --size: 0.75 }  .size-regular { --size: 1 }  .size-large { --size: 1.5 }",
 ].join("\n");
 
 const LEVELS = ["small", "regular", "large"];
@@ -63,7 +63,7 @@ export default new Page({
 	},
 
 	content(){
-		md("Four separate systems decide how much room is around things today: three width ramps, three level classes, the columns host's own pads, and the body type clamp. A reader has to hold all four at once. This page tests one replacement — a single knob called `--size`.\n\n**Drag the box below by its right edge.** Padding, gap and rhythm follow the box's own width. The reading text never changes size, at any box width; only the big display line does, and that is the one deliberate exception.");
+		md("**Landed 2026-09-06.** Four separate systems used to decide how much room is around things: three width ramps, three level classes, the columns host's own pads, and the body type clamp. A reader had to hold all four at once. `framework.css` now has one replacement — a single knob called `--size` — and every `--pad-ramp` / `--gap-ramp` / `--flow-ramp` / `--spacing` name in the codebase (945 call sites) is gone. `.size-small` / `.size-large` are also the control grammar's own size words, at 0.75 / 1 / **1.5** (the owner's ladder — wider than this study's own 1.25, so `.size-large` reads as a real step next to regular).\n\n**Drag the box below by its right edge.** Padding, gap and rhythm follow the box's own width. The reading text never changes size, at any box width; only the big display line does, and that is the one deliberate exception.");
 
 		this.lab();
 		p.c("muted", "Below about a 1,000px box, every ramp sits on its floor and nothing moves — that is the 2026-09-05 spacing decision working, where each ramp holds its 1280 value to the pixel and only then grows. Drag past that and all three take off together; at 3440 this box has about 3,300px of travel. The level chips move it at any width. (The drag edge hides under 34em of screen, where a rail stops being a rail — use the chips there.)");
@@ -71,14 +71,14 @@ export default new Page({
 		md("### The whole standard, eight lines\n\n```css\n" + CANDIDATE + "\n```").ac("wide");
 		md("`--size` is a plain number — never a length, and never a function of width. That is what lets it scale a whole clamp: floor, fluid middle and cap together. Padding is a **percentage**, which every box already resolves against its own container with nothing declared. Gap and rhythm are **`cqi`**, which reads the nearest container and falls back to the viewport when there is none — so they are exactly today's numbers on a plain page, and follow the box inside a column, a rail or a frame. **Type is absent on purpose:** the body font-size clamp is the one thing on this site that ramps type with width, and it stays where it is.");
 
-		md("### The verdict\n\n**One knob: yes. One ramp: no.** `--size` replaces the three level classes and the six spacing token names for free — the 20 audit pages measure identically at 400 and 1280 and within 6% at 3440 — but padding, gap and rhythm keep their own three clamps, because one ramp with fixed multipliers cuts the paragraph rhythm at 1280 from 28.8px to 13.5px.");
+		md("### The verdict\n\n**One knob: yes. One ramp: no.** `--size` replaced the three level classes and the six spacing token names for free — the 20 audit pages measure identically at 400 and 1280 and within 6% at 3440 — but padding, gap and rhythm keep their own three clamps, because one ramp with fixed multipliers cuts the paragraph rhythm at 1280 from 28.8px to 13.5px. That is what's in `framework.css` now.");
 
 		md("| medians over 20 pages | 400 | 1280 | 1920 | 3440 |\n|---|---|---|---|---|\n" +
 			MEDIANS.map(r => "| " + r.join(" | ") + " |").join("\n")).ac("wide");
 		p.c("muted", "Every cell is `pad / gap / flow` in px — the median box on each of the 20 pages the 2026-09-05 spacing audit measured, then the median of those 20. The candidate's only real movement is at 3440, where writing the gap ramp in `cqi` instead of `vw` sizes a box inside a column or a rail to its own container rather than to the window: 22.1px → 20.8px.");
 
 		md.details(import.meta, "alternatives.md", "What was tried and refuted — the one-ramp collapse, `--size` written as an em, and the compound test");
-		md.details(import.meta, "landing.md", "What lands if this is approved — the exact block, and the 945 renames it costs");
+		md.details(import.meta, "landing.md", "What landed — the exact block, the 945 renames, and the two calls the owner made");
 	},
 
 	/* The live box. Built synchronously, then measured from a ResizeObserver — the

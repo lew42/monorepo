@@ -27,13 +27,13 @@ const strip = word => div.c("flex v gap", () => {
 		h3(word.cls ? word.name : "cols-" + word.name);
 		span.c("cols-px", word.claim);
 		if (word.floor) span.c("cols-note", "stacks below " + word.floor);
-	}).style("--gap", "calc(var(--gap-ramp) * 0.6)");
+	}).style("--gap", "calc(var(--gap) * 0.6)");
 
 	p.c("cols-note", word.note);
 
 	div.c("cols-strip", () => WIDTHS.forEach(width => screen(word, width)));
 
-}).style("--gap", "calc(var(--gap-ramp) * 0.5)").attr("data-word", word.name);
+}).style("--gap", "calc(var(--gap) * 0.5)").attr("data-word", word.name);
 
 export default new Page({
 	meta: import.meta,
@@ -81,7 +81,7 @@ export default new Page({
 		div.c("bleed flex v gap-2em", () => TODAY.forEach(word => div.c("flex v gap", () => {
 			h3(word.name);
 			demo(word);
-		}).style("--gap", "calc(var(--gap-ramp) * 0.5)").attr("data-word", word.name)));
+		}).style("--gap", "calc(var(--gap) * 0.5)").attr("data-word", word.name)));
 	},
 
 	/* `bleed`, because these strips ARE the page — a column demo measured inside a 52em

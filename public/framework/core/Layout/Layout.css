@@ -35,7 +35,7 @@
 	   gutters, so "text at the edge" means the layout escaped them, and it paints
 	   the tone the fixture asked for. */
 	.page-layout-host {
-		padding: var(--pad, var(--pad-default));
+		padding: var(--pad);
 		min-width: 0;
 	}
 

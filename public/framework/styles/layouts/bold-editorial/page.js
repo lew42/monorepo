@@ -17,15 +17,15 @@ import full from "../full.js";
 const rowHeading = label => div.c("flex gap v-center pad", () => {
 	div.c("wash").style({ width: "0.9em", height: "2px", flex: "0 0 auto" });
 	span.c("h4 muted", label);
-}).style({ "--gap": "calc(var(--gap-ramp) * 0.6)", "--pad": "calc(var(--pad-ramp) * 1.6) 0 calc(var(--pad-ramp) * 0.6)" });
+}).style({ "--gap": "calc(var(--gap) * 0.6)", "--pad": "calc(var(--pad) * 1.6) 0 calc(var(--pad) * 0.6)" });
 
 const model = (n, title, tag) => div.c("flex gap wrap split v-center", () => {
 	div.c("flex v gap", () => {
 		span.c("h4 muted", `// SYSTEM MODEL 0${n}`);
 		h2(title);
-	}).style("--gap", "calc(var(--gap-ramp) * 0.4)");
+	}).style("--gap", "calc(var(--gap) * 0.4)");
 	span.c("h4 muted", tag);
-}).style("--gap", "calc(var(--gap-ramp) * 0.5)");
+}).style("--gap", "calc(var(--gap) * 0.5)");
 
 /* A panel recessed INTO a band — one more elevation step, `.wash` sitting on
    `.tint`. Both move with the same colour-scheme axis as the page, so this nesting
@@ -62,7 +62,7 @@ export default new Page(demo.layout({
 	layout(){
 
 		const band = fn => div.c("tint pad flex v gap", fn)
-			.style({ "--pad": "clamp(1.5em, 3vw, 3em)", "--gap": "var(--flow-ramp)", border: "1px solid var(--line)", borderRadius: "var(--radius)" });
+			.style({ "--pad": "clamp(1.5em, 3vw, 3em)", "--gap": "var(--flow)", border: "1px solid var(--line)", borderRadius: "var(--radius)" });
 
 		return div.c("page full flex v", () => {
 
@@ -79,10 +79,10 @@ export default new Page(demo.layout({
 								h1("The shift in digital form");
 								p.c("muted", "Disruptive spatial structure built for publication and high-impact messaging — the same six primitives as every other page here.");
 								button.c("prim", "Explore Thesis");
-							}).style("--gap", "calc(var(--gap-ramp) * 0.9)");
+							}).style("--gap", "calc(var(--gap) * 0.9)");
 
 							recess(() => span.c("h1", "01").style("color", "var(--prim-ink)"), "3 / 2");
-						}).style({ "--column": "24em", "--gap": "calc(var(--flow-ramp) * 1.25)" });
+						}).style({ "--column": "24em", "--gap": "calc(var(--flow) * 1.25)" });
 					});
 				}
 
@@ -100,9 +100,9 @@ export default new Page(demo.layout({
 									span.c("h1", n).style("color", "var(--prim-ink)");
 									icon("north_east");
 								});
-								div.c("flex v gap", () => { h3(title); p.c("muted", blurb); }).style("--gap", "calc(var(--gap-ramp) * 0.5)");
-							}).style({ "--pad": "calc(var(--pad-ramp) * 1.5)", "--gap": "calc(var(--gap-ramp) * 1.5)", border: "1px solid " + (i === 1 ? "var(--prim)" : "var(--line)") })))
-							.style({ "--column": "18em", "--gap": "calc(var(--gap-ramp) * 1.5)" });
+								div.c("flex v gap", () => { h3(title); p.c("muted", blurb); }).style("--gap", "calc(var(--gap) * 0.5)");
+							}).style({ "--pad": "calc(var(--pad) * 1.5)", "--gap": "calc(var(--gap) * 1.5)", border: "1px solid " + (i === 1 ? "var(--prim)" : "var(--line)") })))
+							.style({ "--column": "18em", "--gap": "calc(var(--gap) * 1.5)" });
 					});
 				}
 
@@ -117,8 +117,8 @@ export default new Page(demo.layout({
 						].forEach(([value, caption]) => div.c("flex v gap", () => {
 							span.c("h1", value).style("color", "var(--prim-ink)");
 							span.c("h4 muted", caption);
-						}).style("--gap", "calc(var(--gap-ramp) * 0.2)")))
-							.style({ "--column": "12em", "--gap": "var(--flow-ramp)" });
+						}).style("--gap", "calc(var(--gap) * 0.2)")))
+							.style({ "--column": "12em", "--gap": "var(--flow)" });
 					});
 				}
 
@@ -134,15 +134,15 @@ export default new Page(demo.layout({
 									input().attr("placeholder", "operator@domain.com").style("flex", "1 1 auto");
 									button.c("prim", "Join");
 								});
-							}).style({ "--gap": "var(--gap-ramp)", "--grow": "0.8" });
+							}).style({ "--gap": "var(--gap)", "--grow": "0.8" });
 
 							div.c("flex gap wrap", () => FOOTER_COLS.forEach(([head, links]) =>
 								div.c("flex v gap", () => {
 									span.c("h4", head).style("color", "var(--prim-ink)");
-									div.c("flex v gap", () => links.forEach(l => span.c("muted", l))).style("--gap", "calc(var(--gap-ramp) * 0.4)");
-								}).style("--gap", "calc(var(--gap-ramp) * 0.6)")))
-								.style({ "--gap": "calc(var(--flow-ramp) * 1.25)", "--grow": "1.4" });
-						}).style({ "--column": "22em", "--gap": "calc(var(--flow-ramp) * 1.5)" });
+									div.c("flex v gap", () => links.forEach(l => span.c("muted", l))).style("--gap", "calc(var(--gap) * 0.4)");
+								}).style("--gap", "calc(var(--gap) * 0.6)")))
+								.style({ "--gap": "calc(var(--flow) * 1.25)", "--grow": "1.4" });
+						}).style({ "--column": "22em", "--gap": "calc(var(--flow) * 1.5)" });
 					});
 				}
 

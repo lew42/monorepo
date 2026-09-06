@@ -63,7 +63,7 @@ const knob = () => {
 		input().attr("type", "range").attr("min", "0.5").attr("max", "3").attr("step", "0.25").attr("value", "1.25")
 			.on("input", function(){ $t.style("--ui-tree-indent", this.el.value + "em"); $out.text(this.el.value + "em"); });
 		$out = span.c("muted", "1.25em");
-	}).style("--gap", "calc(var(--gap-ramp) * 0.5)");
+	}).style("--gap", "calc(var(--gap) * 0.5)");
 };
 
 export default new Page({

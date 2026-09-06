@@ -34,7 +34,7 @@ export default new Page(demo.layout({
 
 				if (this.shows("aside"))
 					div.c("basis pad flex v gap surface", () => { span.c("h4", "Inspector"); site.toc(); })
-						.style({ "--basis": "17em", "--gap": "calc(var(--gap-ramp) * 0.8)" });
+						.style({ "--basis": "17em", "--gap": "calc(var(--gap) * 0.8)" });
 
 			}).style({ minHeight: "0", overflowY: "auto" });
 
@@ -42,7 +42,7 @@ export default new Page(demo.layout({
 				div.c("flex gap v-center split pad wash", () => {
 					span.c("h4 muted", "READY");
 					span.c("h4 muted", "8 TOPICS");
-				}).style("--pad", "calc(var(--pad-ramp) * 0.4) var(--pad-ramp)");
+				}).style("--pad", "calc(var(--pad) * 0.4) var(--pad)");
 		});
 	},
 }));

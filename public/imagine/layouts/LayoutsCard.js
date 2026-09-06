@@ -1,6 +1,12 @@
 import { View, div, span, a, p, pre, icon } from "/app.js";
-import { apply, spell, SURFACES, SURFACE_CLASS, SURFACE_MEANS, PADS, PAD_CLASS, PAD_MEANS,
+import { apply, spell, SURFACES, SURFACE_CLASS, PADS, PAD_CLASS, PAD_MEANS,
          NAVS, NAV_MEANS, name_of, url_of } from "./system.js";
+
+/* The five surface words are core's now (`core/Page/words.js`), so an entry is an
+   OBJECT — `{ id, title, means }` — where this file used to read a bare string and a
+   separate `SURFACE_MEANS` map. Three reads, one helper. (2026-09-06, slice 3.) */
+const surface_ids = SURFACES.map(word => word.id);
+const surface_means = id => SURFACES.find(word => word.id === id)?.means ?? "";
 
 /* ── THE 3-COLUMN CARD ─────────────────────────────────────────────────────────
    One class, and every entry in the catalogue is drawn with it — the owner's own
@@ -125,7 +131,7 @@ export class LayoutsCard extends View {
 
 	chips(){
 		this.group("padding", PADS, "pad");
-		this.group("surface", SURFACES, "surface");
+		this.group("surface", surface_ids, "surface");
 		this.group("navigation", NAVS, "nav");
 
 		if (!this.modified()) return;
@@ -242,7 +248,7 @@ export class LayoutsCard extends View {
 		if (!this.$frame) return this;
 
 		this.$frame
-			.rc(...SURFACES.map(word => SURFACE_CLASS[word]))
+			.rc(...surface_ids.map(id => SURFACE_CLASS[id]))
 			.rc(...PADS.map(word => PAD_CLASS[word]))
 			.ac(SURFACE_CLASS[this.at("surface")])
 			.ac(PAD_CLASS[this.at("pad")]);
@@ -348,7 +354,7 @@ export class LayoutsCard extends View {
 	why(){
 		div.c("layouts-read-head", "what the chips say");
 		p.c("layouts-navnote", "Padding " + this.at("pad") + " — " + PAD_MEANS[this.at("pad")] + ".");
-		p.c("layouts-navnote", "Surface " + this.at("surface") + " — " + SURFACE_MEANS[this.at("surface")] + ".");
+		p.c("layouts-navnote", "Surface " + this.at("surface") + " — " + surface_means(this.at("surface")) + ".");
 		p.c("layouts-navnote", "Navigation " + this.at("nav") + " — " + NAV_MEANS[this.at("nav")]);
 	}
 }

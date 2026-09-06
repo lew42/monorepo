@@ -93,7 +93,7 @@ The original, which only opens on a local checkout (the inbox is not in the repo
 
 		md(`## What it points at
 
-- [ext/Playground](/framework/ext/Playground/) — the layout lab, where an edge IS the
+- [core/Layout](/framework/core/Layout/) — the layout lab, where an edge IS the
   insert point: the sibling-insert model, pad and gap floors, and the zero-jank chrome
   this note is describing from the outside.
 - [Page builder (Make)](/imagine/paging/build/) — controls, stage and file side by side: a
@@ -114,7 +114,7 @@ the note asks, the \`+\` regions disappear and nothing selects.`);
 		edge_demo();
 
 		md(`Nothing here is saved, and the resize handle is drawn rather than draggable: the
-gesture the note wants is [ext/Playground](/framework/ext/Playground/)'s, and it already
+gesture the note wants is [core/Layout](/framework/core/Layout/)'s, and it already
 works there. What this box is for is the note's own question — what edit mode should
 *hide* — and the answer it gives is: the affordances, all of them, the moment you leave.`);
 	}

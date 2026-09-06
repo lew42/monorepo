@@ -9,20 +9,20 @@ const tags = () => {
 		names.forEach(name => span.c("ui-pill h4 flex v-center gap", () => {
 			span(name);
 			span.c("muted", "×").style("cursor", "pointer");
-		}).style("--gap", "calc(var(--gap-ramp) * 0.4)"));
+		}).style("--gap", "calc(var(--gap) * 0.4)"));
 
 		input().ac("ui-tags-input flex-1").attr("placeholder", "add a tag…");
-	}).style("--gap", "calc(var(--gap-ramp) * 0.4)");
+	}).style("--gap", "calc(var(--gap) * 0.4)");
 };
 
 const list = () => div.c("flex wrap gap", () =>
 	["core", "no-build", "esm", "native"].forEach(name => span.c("ui-badge ui-pill h4", name)))
-	.style("--gap", "calc(var(--gap-ramp) * 0.4)");
+	.style("--gap", "calc(var(--gap) * 0.4)");
 
 const plain = () => div.c("flex v gap", () => {
 	span.c("h4", "Tags");
 	input().attr("placeholder", "core, esm, no-build");
-}).style("--gap", "calc(var(--gap-ramp) * 0.4)");
+}).style("--gap", "calc(var(--gap) * 0.4)");
 
 export default new Page({
 	meta: import.meta,

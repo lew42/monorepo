@@ -69,7 +69,7 @@
 
 	.templates-card {
 		display: flex; flex-direction: column; gap: 0.6em;
-		padding: var(--pad, var(--pad-default));
+		padding: var(--pad);
 		background: var(--surface);
 		border: 1px solid var(--line);
 		border-radius: var(--radius);
@@ -150,7 +150,7 @@
 
 	.templates-shell-full { --shell-rail: 11em; min-height: calc(var(--templates-mini, 11em) * 1.5); font-size: 1em; }
 	.templates-shell .shell-main { overflow: hidden; }
-	.templates-shell .shell-doc { --flow: 0.7em; padding: var(--pad, var(--pad-default)); }
+	.templates-shell .shell-doc { --flow: 0.7em; padding: var(--pad); }
 
 	/* ══ 4 · THE OTHER SEVEN ═══════════════════════════════════════════════════ */
 

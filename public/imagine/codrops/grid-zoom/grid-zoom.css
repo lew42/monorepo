@@ -20,8 +20,8 @@
 		display: grid;
 		grid-template-columns: repeat(4, 1fr);
 		grid-auto-rows: 1fr;
-		gap: var(--gap-default);
-		padding: var(--gap-default);
+		gap: var(--gap);
+		padding: var(--gap);
 	}
 
 	.codrops-zoom-tile {
@@ -58,7 +58,7 @@
 		display: flex;
 		flex-direction: column;
 		justify-content: center;
-		gap: calc(var(--gap-ramp) * 0.6);   /* was gap 0.6em - 2026-09-05 ramps */
+		gap: calc(var(--gap) * 0.6);   /* was gap 0.6em - 2026-09-05 ramps */
 		background: var(--bg-alt, #fff);
 		opacity: 0;
 		transform: translateX(1em);

@@ -9,7 +9,7 @@ const editor = () => {
 	const $box = div.c("flex v gap", () => {
 		new Tags({ tags: ["core", "no-build", "esm"], onChange: tags => $out.text(tags.join(", ") || "(none)") });
 		$out = span.c("muted", "core, no-build, esm");
-	}).style("--gap", "calc(var(--gap-ramp) * 0.5)");
+	}).style("--gap", "calc(var(--gap) * 0.5)");
 
 	return $box;
 };
@@ -17,8 +17,8 @@ const editor = () => {
 /* The words proof: both tiers read the same tokens, so ONE class on the section
  * re-skins the ui/ template and the ux/ class in one pass. */
 const words = () => div.c("flex v gap-2em", () => {
-	div.c("flex v gap", () => { div.c("h4 muted", "default"); editor(); }).style("--gap", "calc(var(--gap-ramp) * 0.5)");
-	div.c("flex v gap", () => { div.c("h4 muted", "ui-contrast ui-compact"); editor().ac("ui-contrast ui-compact"); }).style("--gap", "calc(var(--gap-ramp) * 0.5)");
+	div.c("flex v gap", () => { div.c("h4 muted", "default"); editor(); }).style("--gap", "calc(var(--gap) * 0.5)");
+	div.c("flex v gap", () => { div.c("h4 muted", "ui-contrast ui-compact"); editor().ac("ui-contrast ui-compact"); }).style("--gap", "calc(var(--gap) * 0.5)");
 });
 
 export default new Doc({

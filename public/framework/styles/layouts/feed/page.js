@@ -19,11 +19,11 @@ export default new Page(demo.layout({
 			div.c("flex gap v-center", () => {
 				div.c("wash").style({ width: "1.8em", height: "1.8em", borderRadius: "50%" });
 				span.c("h4", word);
-			}).style("--gap", "calc(var(--gap-ramp) * 0.5)");
+			}).style("--gap", "calc(var(--gap) * 0.5)");
 
 			p(site.blurb);
 			div.c("wash").style({ height: "5em", borderRadius: "var(--radius)" });
-		}).style("--gap", "calc(var(--gap-ramp) * 0.6)");
+		}).style("--gap", "calc(var(--gap) * 0.6)");
 
 		return div.c("page full fill flex v", () => {
 
@@ -36,7 +36,7 @@ export default new Page(demo.layout({
 						.style({ "--basis": "14em", position: "sticky", top: "0", alignSelf: "flex-start" });
 
 				div.c("flex v gap pad", () => site.topics.split(" ").slice(0, 3).forEach(post))
-					.style({ flex: "1 1 30em", maxWidth: "36em", minWidth: "0", "--gap": "var(--gap-ramp)" });
+					.style({ flex: "1 1 30em", maxWidth: "36em", minWidth: "0", "--gap": "var(--gap)" });
 
 				if (this.shows("aside"))
 					div.c("basis pad", () => site.toc())

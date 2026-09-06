@@ -86,6 +86,6 @@ export default new Page({
 		div.c("flex v gap", () => {
 			this.children.forEach((page, name) => seed_card(this, name, page));
 			next_slot();
-		}).style("--gap", "var(--gap-ramp)");
+		}).style("--gap", "var(--gap)");
 	},
 });

@@ -15,7 +15,7 @@ const pager = () => {
 			: button.c(+label === current && "prim", label).click(() => go(+label)));
 
 		button("Next ›").click(() => go(current + 1));
-	}).style("--gap", "calc(var(--gap-ramp) * 0.3)");
+	}).style("--gap", "calc(var(--gap) * 0.3)");
 };
 
 const wired = () => div.c("flex v gap", () => {
@@ -23,16 +23,16 @@ const wired = () => div.c("flex v gap", () => {
 
 	div.c("flex wrap v-center gap", () => ["1", "2", "3"].forEach(label =>
 		button.c(label === "1" && "prim", label).click(() => $picked.text("picked: " + label))))
-		.style("--gap", "calc(var(--gap-ramp) * 0.3)");
+		.style("--gap", "calc(var(--gap) * 0.3)");
 });
 
 /* The card's own context — the row under the short list it pages through, since
    the row alone floated with nothing above it at zoom-50 (wall-polish, 2026-08-17). */
 const context = () => div.c("pad flex v gap", () => {
 	div.c("flex v gap", () => ["Alpha release", "Beta release", "Release candidate"].forEach(label => p(label)))
-		.style("--gap", "calc(var(--gap-ramp) * 0.3)");
+		.style("--gap", "calc(var(--gap) * 0.3)");
 	pager();
-}).style("--gap", "calc(var(--gap-ramp) * 0.6)");
+}).style("--gap", "calc(var(--gap) * 0.6)");
 
 export default new Page({
 	meta: import.meta,

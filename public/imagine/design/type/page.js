@@ -26,14 +26,14 @@ const row = lv => div.c("flex v gap", () => {
 		else if (lv.cls) p.c(lv.cls, lv.sample);
 		else p(lv.sample);
 	});
-}).style({ gap: "calc(var(--gap-ramp) * 0.3)", borderBlockEnd: "1px solid var(--line)", paddingBlock: "calc(var(--pad-ramp) * 0.8)" });
+}).style({ gap: "calc(var(--gap) * 0.3)", borderBlockEnd: "1px solid var(--line)", paddingBlock: "calc(var(--pad) * 0.8)" });
 
 const CH_DEMO_TEXT = "Every HTML tag is a function. Call it, and the element appears — that box is this code, running here, with no build step between the file and the browser that reads it.";
 
 const ch_col = n => div.c("flex v gap", () => {
 	span.c("muted", `${n}ch`);
 	p(CH_DEMO_TEXT).style({ width: `${n}ch`, maxWidth: "100%", margin: "0" });
-}).style({ gap: "calc(var(--gap-ramp) * 0.3)", paddingBlockEnd: "var(--pad-ramp)" });
+}).style({ gap: "calc(var(--gap) * 0.3)", paddingBlockEnd: "var(--pad)" });
 
 const RATIOS = [
 	["h1 / h2", "3 / 2.25", "1.33×"],
@@ -46,7 +46,7 @@ const ratio_row = ([pair, ems, mult]) => div.c("flex gap", () => {
 	span(pair).style({ flex: "0 0 10em", fontWeight: "700" });
 	span.c("muted", ems).style({ flex: "0 0 8em" });
 	span(mult);
-}).style({ gap: "var(--gap-ramp)", padding: "calc(var(--pad-ramp) * 0.4) 0", borderBlockEnd: "1px solid var(--line)" });
+}).style({ gap: "var(--gap)", padding: "calc(var(--pad) * 0.4) 0", borderBlockEnd: "1px solid var(--line)" });
 
 const CRIT = [
 	{ file: "h5h6-fail.jpg", verdict: "FAILURE", title: "h5/h6 = bold body, exactly", note: "the theme overrides h1–h4 upward but never touches h5/h6 — they ship at framework.css's base 1em/700, pixel-identical to a bold sentence. Used 3× site-wide; a trap waiting for the 4th." },
@@ -60,9 +60,9 @@ const crit_card = c => figure.c("flex v gap", () => {
 	figcaption(() => {
 		span(c.verdict + " — ").style({ fontWeight: "700", color: c.verdict === "GOOD" ? "var(--prim)" : "inherit" });
 		span(c.title);
-		p.c("muted", c.note).style({ margin: "calc(var(--flow-ramp) * 0.3) 0 0" });
+		p.c("muted", c.note).style({ margin: "calc(var(--flow) * 0.3) 0 0" });
 	});
-}).style({ gap: "calc(var(--gap-ramp) * 0.4)", margin: "0" });
+}).style({ gap: "calc(var(--gap) * 0.4)", margin: "0" });
 
 /**
  * The type study (2026-09-01) — faces, weights, line-height, measure, hierarchy.

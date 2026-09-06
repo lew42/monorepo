@@ -23,17 +23,17 @@
 		container-type: inline-size;
 		display: flex;
 		flex-direction: column;
-		gap: var(--gap-default);
-		margin-block: var(--gap-default);
+		gap: var(--gap);
+		margin-block: var(--gap);
 	}
 
 	/* NARROW: one column, everything stacked. This is what 1280 gets, because three
 	   open columns share that viewport and this one is only ~535px of it. */
 	.rethink-card {
 		display: grid;
-		gap: var(--gap-default);
+		gap: var(--gap);
 		align-items: start;
-		padding: var(--pad-default);
+		padding: var(--pad);
 		border: 1px solid var(--line);
 		border-radius: 0.4em;
 	}
@@ -51,7 +51,7 @@
 		display: flex;
 		flex-wrap: wrap;
 		align-items: baseline;
-		gap: calc(var(--gap-ramp) * 0.6);   /* was gap 0.6em - 2026-09-05 ramps */
+		gap: calc(var(--gap) * 0.6);   /* was gap 0.6em - 2026-09-05 ramps */
 	}
 
 	/* THE PAIR. Side by side is the comparison, so it holds as long as each half is
@@ -59,7 +59,7 @@
 	.rethink-shots {
 		display: grid;
 		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: var(--gap-default);
+		gap: var(--gap);
 		margin: 0;
 	}
 
@@ -89,7 +89,7 @@
 
 	.rethink-shot figcaption {
 		font-size: 0.8em;
-		margin-top: calc(var(--gap-ramp) * 0.35);   /* was margin-top 0.35em - 2026-09-05 ramps */
+		margin-top: calc(var(--gap) * 0.35);   /* was margin-top 0.35em - 2026-09-05 ramps */
 		text-transform: uppercase;
 		letter-spacing: 0.06em;
 	}
@@ -97,7 +97,7 @@
 	.rethink-col {
 		display: flex;
 		flex-direction: column;
-		gap: calc(var(--gap-ramp) * 0.6);   /* was gap 0.6em - 2026-09-05 ramps */
+		gap: calc(var(--gap) * 0.6);   /* was gap 0.6em - 2026-09-05 ramps */
 		min-width: 0;
 	}
 

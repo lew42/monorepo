@@ -1,5 +1,7 @@
 # Spacing — the decision (2026-09-05, the spacing judge)
 
+**Superseded 2026-09-06.** The three ramps below are now one `--size` knob and the same three clamps, `.spacing-tight`/`.spacing-airy` are now `.size-small`/`.size-large` (a wider 0.75/1/1.5 ladder) — [the size standard](/imagine/design/size/) has the current names and numbers; this page stays as the record of how the clamps themselves were chosen.
+
 **Decision.** Three spacing ramps that hold their 1280 floor to the pixel and reach about double by 3440; three visible levels (`spacing-tight` · regular · `spacing-airy`, 1 : 1.67 : 2.67); one control rule — a control hugs, a row spans, inline text is not a control. Applied in `framework.css` and `core/Page/Page.css`; the numbers it beat stay on [ceilings](/imagine/design/spacing/ceilings/).
 
 **Problem.** Spacing grew 1.2× while the screen grew 2.69× — 76 of 84 measured pages, four auditors, the owner's "ALL TOO CRAMPED". Raising a clamp's cap alone did nothing: at 3440 the middle branch already sat under it.

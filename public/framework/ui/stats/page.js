@@ -9,7 +9,7 @@ const stats = () => {
 		div.c("surface pad flex v gap", () => {
 			div.c("h4 muted", label);
 			div.c("h2", value);
-		}).style("--gap", "calc(var(--gap-ramp) * 0.1)"))).style("--column", "9em");
+		}).style("--gap", "calc(var(--gap) * 0.1)"))).style("--column", "9em");
 };
 
 const with_icons = () => div.c("grid gap auto", () => [
@@ -19,9 +19,9 @@ const with_icons = () => div.c("grid gap auto", () => [
 	div.c("flex v-center gap", () => {
 		icon(glyph).style({ color: "var(--prim)", fontSize: "1em" });
 		div.c("h4 muted", label);
-	}).style("--gap", "calc(var(--gap-ramp) * 0.4)");
+	}).style("--gap", "calc(var(--gap) * 0.4)");
 	div.c("h2", value);
-}).style("--gap", "calc(var(--gap-ramp) * 0.1)"))).style("--column", "10em");
+}).style("--gap", "calc(var(--gap) * 0.1)"))).style("--column", "10em");
 
 export default new Page({
 	meta: import.meta,

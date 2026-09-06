@@ -28,7 +28,7 @@ const APPROVED = [
 		holds: "its own render(), its own risk — solo is APPROVED but never DEFAULT, and each new one is the owner's call by name." },
 ];
 
-const card = s => figure.c("flex v gap").style({ margin: 0, gap: "calc(var(--gap-ramp) * 0.5)" }).append(() => {
+const card = s => figure.c("flex v gap").style({ margin: 0, gap: "calc(var(--gap) * 0.5)" }).append(() => {
 	img().attr("src", shots + s.file).attr("alt", s.name)
 		.style({ width: "100%", border: "1px solid var(--line)", borderRadius: "0.3em" });
 	figcaption(() => span(s.name).style({ fontWeight: "700" }));
@@ -52,7 +52,7 @@ export default new Page({
 		h2("Why these can't break");
 		md("Each one is the same three promises, kept at every level:\n\n" +
 			"1. **Every track has a floor AND a ceiling** — no bare `1fr`, no uncapped basis, no fixed px that one width regrets.\n" +
-			"2. **Spacing is the two clamped tokens** (`--pad-default`, `--gap-default`, and the columns pads) — never a constant, so 390 and 3440 are the same declaration.\n" +
+			"2. **Spacing is the two clamped tokens** (`--pad`, `--gap`, and the columns pads) — never a constant, so 390 and 3440 are the same declaration.\n" +
 			"3. **`bleed` is for paint.** A background may butt its container; cards and text never do — a framed box on the edge rides a padded track instead.");
 
 		h2("The gate");

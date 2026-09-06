@@ -40,7 +40,7 @@ export default new Page({
 			this.$note = div.c("space-tag muted", "not run yet");
 		}).style("--measure", "52em");
 
-		this.$out = div.c("bleed flex v gap").style("--gap", "var(--flow-ramp)");
+		this.$out = div.c("bleed flex v gap").style("--gap", "var(--flow)");
 	},
 
 	bar(){
@@ -49,7 +49,7 @@ export default new Page({
 			this.dial("seeds", "count", 12, 240, 12);
 			this.dial("depth", "depth", 0, 6, 1);
 			this.dial("chaos", "chaos", 0, 100, 5, 100);
-		}).style("--gap", "calc(var(--gap-ramp) * 1.4)");
+		}).style("--gap", "calc(var(--gap) * 1.4)");
 	},
 
 	// One knob, three times. `scale` is what divides the slider to reach the property.
@@ -64,7 +64,7 @@ export default new Page({
 				.on("input", function(){ $tag.text(this.el.value); });
 
 			this["$" + prop] = $tag;
-		}).style("--gap", "calc(var(--gap-ramp) * 0.5)");
+		}).style("--gap", "calc(var(--gap) * 0.5)");
 	},
 
 	read(prop, scale = 1){ return (+this["$" + prop].el.textContent || 0) / scale; },
@@ -118,7 +118,7 @@ export default new Page({
 							span.c("space-tag muted", `n ${g.n}`);
 							span.c("space-grade", Math.round(g.mean));
 						}));
-				}).style("--gap", "calc(var(--gap-ramp) * 0.35)");
+				}).style("--gap", "calc(var(--gap) * 0.35)");
 			});
 		});
 

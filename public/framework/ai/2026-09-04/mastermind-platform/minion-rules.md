@@ -28,3 +28,6 @@ Three laws (CLAUDE.md): **less is more** (as simple as possible, fastest working
 - One line in the misled skill's `improvements.md` when a skill let you down (the `skill-improvement` skill; thirty seconds). Mandatory when it happened, forbidden when it did not.
 - `finish-task` skill to land: landing line with `outcome`, every deliverable in `links`, day log closed.
 - Report tokens honestly; "none found" is a valid, complete result.
+
+- **Playwright is at `file:///C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.mjs`** — `import { chromium } from` that url in an `.mjs` script run with `MSYS_NO_PATHCONV=1 node`. Never search the disk for it: two `find / -iname playwright` scans burned a core each for ten minutes on 2026-09-06 while the owner's machine stuttered. `find /` is forbidden in every form.
+- **Delete with `rm`, never `git rm`** — `git rm` stages the deletion into whoever commits next (2026-09-06).

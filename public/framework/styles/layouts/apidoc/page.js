@@ -95,14 +95,14 @@ const crumbs = (trail, measured) => div.c("pad").style({
 	div.c("ui-crumbs flex wrap v-center gap h4", () => trail.forEach((name, i) => {
 		if (i) icon("chevron_right").style({ color: "var(--subtle)", fontSize: "1em" });
 		i === trail.length - 1 ? span(name) : a.c("page-link muted", name).href("/framework/core/App/");
-	})).style("--gap", "calc(var(--gap-ramp) * 0.35)");
+	})).style("--gap", "calc(var(--gap) * 0.35)");
 
 	div.c("flex gap wrap v-center", () => {
 		a.c("page-link h4 muted", "DOCS HOME").href("/framework/");
 		span.c("ui-badge ui-pill h4 accent", "v1.2.0");
-	}).style("--gap", "calc(var(--gap-ramp) * 0.9)");
+	}).style("--gap", "calc(var(--gap) * 0.9)");
 
-}).style("--gap", "calc(var(--gap-ramp) * 0.75)"));
+}).style("--gap", "calc(var(--gap) * 0.75)"));
 
 // 2 · the strip. Real ext/tabs CSS; a tab lights when its section is shown, so the
 // bar and the chips can never disagree.
@@ -115,14 +115,14 @@ const title = () => div.c("flex v gap", () => {
 	span.c("h1", "App");
 	p("Boot, and the one container every page mounts into — a site constructs it once, in `/app.js`.").ac("muted");
 	hr();
-}).style("--gap", "calc(var(--gap-ramp) * 0.5)");
+}).style("--gap", "calc(var(--gap) * 0.5)");
 
 // 4 · a section heading plus its body, the one rhythm every band below uses.
-const band = (heading, body) => div.c("flex v gap", () => { h2(heading); body(); }).style("--gap", "calc(var(--gap-ramp) * 0.9)");
+const band = (heading, body) => div.c("flex v gap", () => { h2(heading); body(); }).style("--gap", "calc(var(--gap) * 0.9)");
 
 // 5 · a dark code block is `pre` — `--code-bg` is already a theme token, and
 // `pre > code` already un-rings the inline hairline. No rule, no class.
-const block = text => pre(() => code(text)).style({ borderRadius: "var(--radius)", padding: "var(--pad-ramp) calc(var(--pad-ramp) * 1.2)" });
+const block = text => pre(() => code(text)).style({ borderRadius: "var(--radius)", padding: "var(--pad) calc(var(--pad) * 1.2)" });
 
 // 6 · the Overview body: prose, a sample, three cards.
 const overview = () => div.c("flex v gap", () => {
@@ -144,9 +144,9 @@ const overview = () => div.c("flex v gap", () => {
 				span();
 				a.c("btn prim", cta).href(url);
 			});
-		}).style("--gap", "calc(var(--gap-ramp) * 0.5)"))).style({ "--column": "18em", "--gap": "var(--gap-ramp)" }));
+		}).style("--gap", "calc(var(--gap) * 0.5)"))).style({ "--column": "18em", "--gap": "var(--gap)" }));
 
-}).style("--gap", "calc(var(--flow-ramp) * 1.1)");
+}).style("--gap", "calc(var(--flow) * 1.1)");
 
 // 7 · the API body: a signature, the parameter table, three member cards.
 const api = () => div.c("flex v gap", () => {
@@ -171,9 +171,9 @@ const api = () => div.c("flex v gap", () => {
 			});
 			p(blurb).ac("muted");
 			block(sample);
-		}).style("--gap", "calc(var(--gap-ramp) * 0.6)"))).style("--gap", "var(--gap-ramp)"));
+		}).style("--gap", "calc(var(--gap) * 0.6)"))).style("--gap", "var(--gap)"));
 
-}).style("--gap", "calc(var(--flow-ramp) * 1.1)");
+}).style("--gap", "calc(var(--flow) * 1.1)");
 
 // 8 · the Source body: a file header, then the window.
 const source = () => band("Source Code", () => div.c("flex v gap", () => {
@@ -196,8 +196,8 @@ const source = () => band("Source Code", () => div.c("flex v gap", () => {
 		   than mint red, amber and green. */
 		div.c("flex gap v-center pad", () => {
 			[0, 1, 2].forEach(() => span().style({ width: "0.7em", height: "0.7em", borderRadius: "50%", background: "var(--subtle)", opacity: "0.6" }));
-			span.c("h4 muted", "App.js — core/App/").style("marginInlineStart", "calc(var(--flow-ramp) * 0.6)");
-		}).style({ "--pad": "calc(var(--pad-ramp) * 0.6) var(--pad-ramp)", "--gap": "calc(var(--gap-ramp) * 0.4)", borderBottom: "1px solid var(--line)" });
+			span.c("h4 muted", "App.js — core/App/").style("marginInlineStart", "calc(var(--flow) * 0.6)");
+		}).style({ "--pad": "calc(var(--pad) * 0.6) var(--pad)", "--gap": "calc(var(--gap) * 0.4)", borderBottom: "1px solid var(--line)" });
 
 		/* The gutter is its own `pre` so it stays put while the code scrolls — same
 		   element, so the two can never disagree about line height. ⚠ `min-width: 0`
@@ -205,17 +205,17 @@ const source = () => band("Source Code", () => div.c("flex v gap", () => {
 		   scrolls instead of the block. */
 		div.c("flex").append(() => {
 			pre(() => code(SOURCE.split("\n").map((_, i) => i + 1).join("\n")))
-				.style({ flex: "0 0 auto", textAlign: "right", padding: "var(--pad-ramp) calc(var(--pad-ramp) * 0.6) var(--pad-ramp) calc(var(--pad-ramp) * 1.2)", opacity: "0.45", margin: "0" });
-			pre(() => code(SOURCE)).style({ flex: "1 1 0", minWidth: "0", padding: "var(--pad-ramp) calc(var(--pad-ramp) * 1.2) var(--pad-ramp) calc(var(--pad-ramp) * 0.6)", margin: "0" });
+				.style({ flex: "0 0 auto", textAlign: "right", padding: "var(--pad) calc(var(--pad) * 0.6) var(--pad) calc(var(--pad) * 1.2)", opacity: "0.45", margin: "0" });
+			pre(() => code(SOURCE)).style({ flex: "1 1 0", minWidth: "0", padding: "var(--pad) calc(var(--pad) * 1.2) var(--pad) calc(var(--pad) * 0.6)", margin: "0" });
 		});
 	});
-}).style("--gap", "var(--gap-ramp)"));
+}).style("--gap", "var(--gap)"));
 
 // 9 · the pager.
 const pager = () => div.c("flex gap wrap split v-center", () => {
 	div.c("flex gap v-center", () => { span.c("muted", "Next:"); a.c("page-link", "API Reference →").href("/framework/core/App/api/"); });
 	a.c("page-link", "View Source →").href("/framework/core/App/files/");
-}).style({ "--gap": "calc(var(--gap-ramp) * 0.5)", paddingTop: "calc(var(--pad-ramp) * 1.5)", borderTop: "1px solid var(--line)" });
+}).style({ "--gap": "calc(var(--gap) * 0.5)", paddingTop: "calc(var(--pad) * 1.5)", borderTop: "1px solid var(--line)" });
 
 /* ---- the reassembly ---------------------------------------------------------- */
 
@@ -305,7 +305,7 @@ export default new Page(demo.layout({
 							if (this.shows("source")) source();
 							if (this.shows("footer")) pager();
 
-						}).style("--gap", "calc(var(--flow-ramp) * 1.25)");
+						}).style("--gap", "calc(var(--flow) * 1.25)");
 					});
 				});
 			});

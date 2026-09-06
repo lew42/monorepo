@@ -8,14 +8,14 @@ const badges = () => div.c("flex wrap v-center gap", () => {
 	span.c("ui-badge ui-pill h4 outline", "outline");
 	span.c("ui-badge ui-pill h4 dot accent", "live");
 	span.c("ui-badge ui-pill h4 count accent", "7");
-}).style("--gap", "calc(var(--gap-ramp) * 0.4)");
+}).style("--gap", "calc(var(--gap) * 0.4)");
 
 const composed = () => div.c("flex wrap v-center gap", () =>
 	[["verified", "check"], ["draft", "edit"], ["archived", "inventory_2"]].forEach(([text, glyph]) =>
 		span.c("ui-badge ui-pill h4 flex v-center gap", () => {
 			icon(glyph).style("fontSize", "1em");
 			span(text);
-		}).style("--gap", "calc(var(--gap-ramp) * 0.35)"))).style("--gap", "calc(var(--gap-ramp) * 0.4)");
+		}).style("--gap", "calc(var(--gap) * 0.35)"))).style("--gap", "calc(var(--gap) * 0.4)");
 
 export default new Page({
 	meta: import.meta,

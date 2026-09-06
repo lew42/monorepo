@@ -41,7 +41,7 @@ const explorer = () => {
 		div.c("flex v-center gap", () => {
 			icon(node.body ? "description" : "folder");
 			span.c("h3", node.text);
-		}).style("--gap", "calc(var(--gap-ramp) * 0.4)");
+		}).style("--gap", "calc(var(--gap) * 0.4)");
 
 		span.c("muted", node.body ? "file" : node.children.length + " items");
 
@@ -83,8 +83,8 @@ const keyboard = () => {
 /* The words proof: both tiers read the same tokens, so ONE class on the section
  * re-skins the ui/ template and the ux/ class in one pass. */
 const words = () => div.c("flex v gap-2em", () => {
-	div.c("flex v gap", () => { div.c("h4 muted", "default"); explorer(); }).style("--gap", "calc(var(--gap-ramp) * 0.5)");
-	div.c("flex v gap", () => { div.c("h4 muted", "ui-contrast ui-compact"); explorer().ac("ui-contrast ui-compact"); }).style("--gap", "calc(var(--gap-ramp) * 0.5)");
+	div.c("flex v gap", () => { div.c("h4 muted", "default"); explorer(); }).style("--gap", "calc(var(--gap) * 0.5)");
+	div.c("flex v gap", () => { div.c("h4 muted", "ui-contrast ui-compact"); explorer().ac("ui-contrast ui-compact"); }).style("--gap", "calc(var(--gap) * 0.5)");
 });
 
 export default new Doc({

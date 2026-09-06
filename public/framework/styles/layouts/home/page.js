@@ -29,7 +29,7 @@ const badge = text => span.c("h4 tint pad", text)
 
 const tags = str => div.c("flex gap wrap", () => list(str).forEach(t =>
 	span.c("h4 muted wash pad", t).style({ "--pad": "0.3em 0.7em", borderRadius: "var(--radius)" })))
-	.style("--gap", "calc(var(--gap-ramp) * 0.4)");
+	.style("--gap", "calc(var(--gap) * 0.4)");
 
 export default new Page(demo.layout({
 	meta: import.meta,
@@ -55,7 +55,7 @@ export default new Page(demo.layout({
 		/* A band bleeds; the words don't — `landing/`'s sandwich, with one `--measure`
 		   for the whole page so every band shares one left and right edge. */
 		const band = (fill, fn) => div.c("pad", () =>
-			div.c("measure flex v gap", fn).style({ "--measure": "96em", "--gap": "calc(var(--flow-ramp) * 1.25)" }))
+			div.c("measure flex v gap", fn).style({ "--measure": "96em", "--gap": "calc(var(--flow) * 1.25)" }))
 			.ac(fill !== "dark" && fill)
 			.style({ "--pad": "clamp(2.5em, 5vw, 5em) clamp(1em, 4vw, 3em)", ...(fill === "dark" ? DARK : {}) });
 
@@ -70,10 +70,10 @@ export default new Page(demo.layout({
 				div.c("h3", () => { span(home.brand[0]); span.c("muted", home.brand[1]); });
 
 				div.c("flex gap wrap v-center", () => list(home.nav).forEach(word =>
-					span.c("muted", word))).style({ "--gap": "calc(var(--gap-ramp) * 0.6) calc(var(--gap-ramp) * 1.4)", flex: "1 1 22em" });
+					span.c("muted", word))).style({ "--gap": "calc(var(--gap) * 0.6) calc(var(--gap) * 1.4)", flex: "1 1 22em" });
 
 				button.c("bg", "Consultation");
-			}).style({ "--pad": "0.9em clamp(1em, 4vw, 3em)", "--gap": "var(--gap-ramp)", borderBottom: "1px solid var(--line)" });
+			}).style({ "--pad": "0.9em clamp(1em, 4vw, 3em)", "--gap": "var(--gap)", borderBottom: "1px solid var(--line)" });
 
 			/* ⚠ NOT `flex-1` + `overflow-y: auto`. That is the app-shell shape — a fixed
 			   chrome around one scrolling pane — and on a page whose bands add up to
@@ -93,7 +93,7 @@ export default new Page(demo.layout({
 						div.c("flex gap v-center", () => {
 							icon("circle").style({ color: "var(--prim)", fontSize: "0.55em" });
 							span.c("h4 muted", home.hero.eyebrow);
-						}).style("--gap", "calc(var(--gap-ramp) * 0.6)");
+						}).style("--gap", "calc(var(--gap) * 0.6)");
 
 						h1(home.hero.title);
 						p.c("muted", home.hero.blurb);
@@ -102,7 +102,7 @@ export default new Page(demo.layout({
 							button.c("prim", home.hero.ctas[0]);
 							button(home.hero.ctas[1]);
 						});
-					}).style("--gap", "calc(var(--gap-ramp) * 1.1)");
+					}).style("--gap", "calc(var(--gap) * 1.1)");
 
 					div.c("flex v gap", () => {
 						media("4 / 3");
@@ -110,10 +110,10 @@ export default new Page(demo.layout({
 						div.c("surface pad flex v gap", () => {
 							span.c("h1", home.hero.kpi[0]).style("color", "var(--prim-ink)");
 							span.c("muted", home.hero.kpi[1]);
-						}).style({ "--pad": "calc(var(--pad-ramp) * 1.2)", "--gap": "calc(var(--gap-ramp) * 0.2)", alignSelf: "start", maxWidth: "18em", marginTop: "-3.5em", marginInlineStart: "calc(var(--flow-ramp) * 1.5)" });
+						}).style({ "--pad": "calc(var(--pad) * 1.2)", "--gap": "calc(var(--gap) * 0.2)", alignSelf: "start", maxWidth: "18em", marginTop: "-3.5em", marginInlineStart: "calc(var(--flow) * 1.5)" });
 					}).style("--gap", "0");
 
-				}).style({ "--gap": "calc(var(--flow-ramp) * 1.5)" }));
+				}).style({ "--gap": "calc(var(--flow) * 1.5)" }));
 
 				/* ── Trust-Logos ── `flex gap wrap v-center h-center`, and the gap is
 				   what makes 5-across at 1920 and 3-then-2 at 375 the same line. */
@@ -136,10 +136,10 @@ export default new Page(demo.layout({
 				band("", () => {
 					div.c("flex auto gap", () => {
 						div.c("flex v gap", () => { badge(home.services.badge); h2(home.services.title); })
-							.style({ "--gap": "calc(var(--gap-ramp) * 0.8)", "--grow": "1.4" });
+							.style({ "--gap": "calc(var(--gap) * 0.8)", "--grow": "1.4" });
 
 						p.c("muted", home.services.blurb);
-					}).style({ "--column": "18em", "--gap": "var(--flow-ramp)" });
+					}).style({ "--column": "18em", "--gap": "var(--flow)" });
 
 					div.c("grid auto gap", () => home.services.cards.forEach(([glyph, title, blurb, tag]) =>
 						div.c("surface pad flex v gap", () => {
@@ -149,8 +149,8 @@ export default new Page(demo.layout({
 							h3(title);
 							p.c("muted", blurb);
 							tags(tag);
-						}).style({ "--pad": "calc(var(--pad-ramp) * 2)", "--gap": "var(--gap-ramp)" })))
-						.style({ "--column": "22em", "--gap": "var(--flow-ramp)" });
+						}).style({ "--pad": "calc(var(--pad) * 2)", "--gap": "var(--gap)" })))
+						.style({ "--column": "22em", "--gap": "var(--flow)" });
 				});
 
 				/* ── Philosophy-Section ── the picture is FIRST in source, so it is the
@@ -167,17 +167,17 @@ export default new Page(demo.layout({
 						div.c("surface pad flex v gap", () => {
 							p(home.philosophy.quote);
 							span.c("h4 muted", home.philosophy.by);
-						}).style({ "--pad": "calc(var(--pad-ramp) * 1.5)", "--gap": "calc(var(--gap-ramp) * 0.6)" });
-					}).style("--gap", "var(--gap-ramp)");
+						}).style({ "--pad": "calc(var(--pad) * 1.5)", "--gap": "calc(var(--gap) * 0.6)" });
+					}).style("--gap", "var(--gap)");
 
-				}).style({ "--gap": "calc(var(--flow-ramp) * 1.5)" }));
+				}).style({ "--gap": "calc(var(--flow) * 1.5)" }));
 
 				/* ── Portfolio-Section ── `grid auto` at a 16em column, so four cards is
 				   four across at 1920, two at a tablet and one at 375. */
 				band("", () => {
 					div.c("flex gap wrap split v-center", () => {
 						div.c("flex v gap", () => { badge(home.portfolio.badge); h2(home.portfolio.title); })
-							.style("--gap", "calc(var(--gap-ramp) * 0.8)");
+							.style("--gap", "calc(var(--gap) * 0.8)");
 
 						button(home.portfolio.cta);
 					});
@@ -189,11 +189,11 @@ export default new Page(demo.layout({
 							div.c("flex gap wrap split", () => {
 								span.c("h4", client).style("color", "var(--eyebrow, var(--prim))");
 								span.c("h4 muted", kind);
-							}).style("--gap", "calc(var(--gap-ramp) * 0.5)");
+							}).style("--gap", "calc(var(--gap) * 0.5)");
 
 							p.c("h3", title);
-						}).style("--gap", "calc(var(--gap-ramp) * 0.7)")))
-						.style({ "--column": "16em", "--gap": "var(--flow-ramp)" });
+						}).style("--gap", "calc(var(--gap) * 0.7)")))
+						.style({ "--column": "16em", "--gap": "var(--flow)" });
 				});
 
 				/* ── Highlight-Section ── a dark CARD inside a light band, and the same
@@ -207,20 +207,20 @@ export default new Page(demo.layout({
 
 						div.c("flex gap wrap", () => home.highlight.stats.forEach(([n, caption]) =>
 							div.c("flex v", () => { span.c("h1", n); span.c("h4 muted", caption); })))
-							.style("--gap", "calc(var(--flow-ramp) * 1.25)");
+							.style("--gap", "calc(var(--flow) * 1.25)");
 
 						button(home.highlight.cta).style("align-self", "flex-start");
-					}).style("--gap", "var(--gap-ramp)");
+					}).style("--gap", "var(--gap)");
 
 					media("16 / 10");
 
-				}).style({ "--column": "24em", "--gap": "calc(var(--flow-ramp) * 1.5)", "--pad": "clamp(1.5em, 3vw, 3.5em)", borderRadius: "var(--radius)", ...DARK }));
+				}).style({ "--column": "24em", "--gap": "calc(var(--flow) * 1.5)", "--pad": "clamp(1.5em, 3vw, 3.5em)", borderRadius: "var(--radius)", ...DARK }));
 
 				/* ── Testimonials-Section ── the same wall as Services, one word apart
 				   (`--column: 22em`), which is the point of a vocabulary. */
 				band("wash", () => {
 					div.c("flex v gap v-center", () => { badge(home.testimonials.badge); h2(home.testimonials.title); })
-						.style("--gap", "calc(var(--gap-ramp) * 0.8)");
+						.style("--gap", "calc(var(--gap) * 0.8)");
 
 					div.c("grid auto gap", () => home.testimonials.cards.forEach(([quote, name, role]) =>
 						div.c("surface pad flex v gap", () => {
@@ -230,9 +230,9 @@ export default new Page(demo.layout({
 							div.c("flex gap v-center", () => {
 								div.c("wash").style({ flex: "0 0 auto", width: "2.6em", height: "2.6em", borderRadius: "50%" });
 								div.c("flex v", () => { span.c("h3", name); span.c("h4 muted", role); });
-							}).style({ "--gap": "calc(var(--gap-ramp) * 0.8)", marginTop: "auto" });
-						}).style({ "--pad": "calc(var(--pad-ramp) * 2)", "--gap": "var(--gap-ramp)" })))
-						.style({ "--column": "22em", "--gap": "var(--flow-ramp)" });
+							}).style({ "--gap": "calc(var(--gap) * 0.8)", marginTop: "auto" });
+						}).style({ "--pad": "calc(var(--pad) * 2)", "--gap": "var(--gap)" })))
+						.style({ "--column": "22em", "--gap": "var(--flow)" });
 				});
 
 				/* ── Contact-Section ── copy beside a real form; `cols half` again. */
@@ -247,8 +247,8 @@ export default new Page(demo.layout({
 							div.c("flex gap v-center", () => {
 								icon(glyph).style("color", "var(--eyebrow, var(--prim))");
 								span(line);
-							}).style("--gap", "calc(var(--gap-ramp) * 0.6)"))).style("--gap", "calc(var(--gap-ramp) * 0.5)");
-					}).style("--gap", "var(--gap-ramp)");
+							}).style("--gap", "calc(var(--gap) * 0.6)"))).style("--gap", "calc(var(--gap) * 0.5)");
+					}).style("--gap", "var(--gap)");
 
 					div.c("surface pad flex v gap", () => {
 						h3(home.contact.form.title);
@@ -257,13 +257,13 @@ export default new Page(demo.layout({
 							label.c("flex v gap", () => {
 								span.c("h4", caption);
 								input().attr("type", type).attr("placeholder", placeholder);
-							}).style("--gap", "calc(var(--gap-ramp) * 0.35)"));
+							}).style("--gap", "calc(var(--gap) * 0.35)"));
 
 						button.c("prim", home.contact.form.cta);
 						p.c("h4 muted", home.contact.form.fine).style("text-align", "center");
-					}).style({ "--pad": "calc(var(--pad-ramp) * 2)", "--gap": "calc(var(--gap-ramp) * 1.1)" });
+					}).style({ "--pad": "calc(var(--pad) * 2)", "--gap": "calc(var(--gap) * 1.1)" });
 
-				}).style({ "--gap": "calc(var(--flow-ramp) * 1.5)" }));
+				}).style({ "--gap": "calc(var(--flow) * 1.5)" }));
 
 			});
 
@@ -273,21 +273,21 @@ export default new Page(demo.layout({
 					div.c("flex v gap", () => {
 						div.c("h2", () => { span(home.brand[0]); span.c("muted", home.brand[1]); });
 						p.c("muted", home.footer.blurb);
-					}).style({ "--gap": "calc(var(--gap-ramp) * 0.6)", "--grow": "0.8" });
+					}).style({ "--gap": "calc(var(--gap) * 0.6)", "--grow": "0.8" });
 
 					div.c("flex gap wrap", () => home.footer.columns.forEach(([head, links]) =>
 						div.c("flex v gap", () => {
 							span.c("h4", head);
 							list(links).forEach(link => span.c("muted", link));
-						}).style("--gap", "calc(var(--gap-ramp) * 0.35)"))).style({ "--gap": "calc(var(--flow-ramp) * 1.25)" });
-				}).style({ "--column": "16em", "--gap": "calc(var(--flow-ramp) * 1.5)" });
+						}).style("--gap", "calc(var(--gap) * 0.35)"))).style({ "--gap": "calc(var(--flow) * 1.25)" });
+				}).style({ "--column": "16em", "--gap": "calc(var(--flow) * 1.5)" });
 
 				hr();
 
 				div.c("flex gap wrap split v-center", () => {
 					span.c("muted", home.footer.copyright);
 					div.c("flex gap", () => home.footer.social.split(" ").forEach(glyph =>
-						icon(glyph).style("opacity", "0.7"))).style("--gap", "var(--gap-ramp)");
+						icon(glyph).style("opacity", "0.7"))).style("--gap", "var(--gap)");
 				});
 			});
 		});

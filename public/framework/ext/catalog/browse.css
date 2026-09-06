@@ -13,7 +13,7 @@
 	   is not a section of the page. Emitted only when a caller declares facets, so a
 	   plain wall's rail is the rail it always was. */
 	.browse-facet-head {
-		margin: calc(var(--gap-ramp) * 0.6) 0 0.2em;
+		margin: calc(var(--gap) * 0.6) 0 0.2em;
 		font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.06em;
 		opacity: 0.6;
 	}

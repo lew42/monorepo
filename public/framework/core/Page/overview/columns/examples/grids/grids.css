@@ -15,7 +15,7 @@
 		align-content: start;
 		/* ⚠ KEPT ON THE RAMP: this is the gap between sibling TILES in the wall, which
 		     is space between things rather than the size of one (2026-09-06). */
-		gap: calc(var(--gap-ramp) * 0.6);
+		gap: calc(var(--gap) * 0.6);
 		padding-block-end: 0.6em;
 	}
 	.page--grid-detail .page-columns-row > .page-column-body > :is(.page-column-head, .page-column-prose) {

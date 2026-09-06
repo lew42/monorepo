@@ -105,7 +105,7 @@
 		     thing that has to fit one viewport; the image is only most of it. */
 		.page:has(> .notes-shot) > .notes-shot {
 			float: left;
-			width: calc(50% - var(--gap, var(--gap-default)) / 2);
+			width: calc(50% - var(--gap) / 2);
 			max-height: calc(100vh - 2 * var(--pad-y, 3em));
 			margin: 0;
 			position: sticky;
@@ -136,7 +136,7 @@
 		     fighting the split this way is named in this task's log, not
 		     edited here). It still gets the `margin-left`, so it lands beside
 		     the photo, not under it. */
-		.page:has(> .notes-shot) > :not(.notes-shot) { margin-left: calc(50% + var(--gap, var(--gap-default)) / 2); }
+		.page:has(> .notes-shot) > :not(.notes-shot) { margin-left: calc(50% + var(--gap) / 2); }
 		.page:has(> .notes-shot) > :not(.notes-shot, .wide, .bleed) { max-width: var(--measure, 40em); }
 	}
 }

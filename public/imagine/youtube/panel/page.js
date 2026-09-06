@@ -165,7 +165,7 @@ export default new Page({
 				this.key("Go", () => this.call("seekTo", () => this.player.seek(seconds(this.$to.el.value))));
 				this.key("-10s", () => this.call("seekTo", () => this.player.seek(this.player.time() - 10)));
 				this.key("+10s", () => this.call("seekTo", () => this.player.seek(this.player.time() + 10)));
-			}).style("--gap", "calc(var(--gap-ramp) * 0.4)");
+			}).style("--gap", "calc(var(--gap) * 0.4)");
 		});
 	},
 
@@ -177,7 +177,7 @@ export default new Page({
 				this.key("Play", () => this.call("playVideo", () => this.player.play()));
 				this.key("Pause", () => this.call("pauseVideo", () => this.player.pause()));
 				this.key("Stop", () => this.call("stopVideo", () => this.player.stop()));
-			}).style("--gap", "calc(var(--gap-ramp) * 0.4)");
+			}).style("--gap", "calc(var(--gap) * 0.4)");
 		});
 	},
 
@@ -194,7 +194,7 @@ export default new Page({
 				div.c("yt-shortcut flex v-center gap", () => {
 					ui.keys(row.cap);
 					span.c("yt-shortcut-say", row.say);
-				}).style("--gap", "calc(var(--gap-ramp) * 0.4)");
+				}).style("--gap", "calc(var(--gap) * 0.4)");
 			}));
 		});
 	},
@@ -217,7 +217,7 @@ export default new Page({
 	speed(){
 		div.c("yt-ctl", () => {
 			span.c("yt-ctl-label", "setPlaybackRate — from getAvailablePlaybackRates()");
-			this.$rates = div.c("yt-keys flex wrap gap").style("--gap", "calc(var(--gap-ramp) * 0.4)");
+			this.$rates = div.c("yt-keys flex wrap gap").style("--gap", "calc(var(--gap) * 0.4)");
 		});
 	},
 
@@ -232,7 +232,7 @@ export default new Page({
 			div.c("yt-keys flex wrap gap", () => {
 				this.key("Mute", () => this.call("mute", () => this.player.mute(true)));
 				this.key("Unmute", () => this.call("unMute", () => this.player.mute(false)));
-			}).style("--gap", "calc(var(--gap-ramp) * 0.4)");
+			}).style("--gap", "calc(var(--gap) * 0.4)");
 		});
 	},
 
@@ -245,7 +245,7 @@ export default new Page({
 				this.$id = input.c("yt-id").attr("type", "text").attr("value", TALKS.sinek).attr("placeholder", "video id");
 				this.key("Load", () => this.call("loadVideoById", () => this.swap(false)));
 				this.key("Cue", () => this.call("cueVideoById", () => this.swap(true)));
-			}).style("--gap", "calc(var(--gap-ramp) * 0.4)");
+			}).style("--gap", "calc(var(--gap) * 0.4)");
 		});
 	},
 

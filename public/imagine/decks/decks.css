@@ -121,7 +121,7 @@
 		width: min(100%, var(--decks-block, max(34em, 56%)));
 		margin-inline: auto;
 		display: flex; flex-direction: column;
-		gap: calc(var(--gap-ramp) * 0.35);   /* was gap 0.35em - 2026-09-05 ramps */
+		gap: calc(var(--gap) * 0.35);   /* was gap 0.35em - 2026-09-05 ramps */
 	}
 
 	/* 13% of the block. The ceiling is a safety for a screen wider than any monitor
@@ -141,7 +141,7 @@
 	.decks-rule {
 		flex: 0 0 auto;
 		width: clamp(2rem, 16cqw, 8rem); height: 0.3em;
-		margin-block: calc(var(--gap-ramp) * 0.35);   /* was margin-block 0.35em - 2026-09-05 ramps */
+		margin-block: calc(var(--gap) * 0.35);   /* was margin-block 0.35em - 2026-09-05 ramps */
 		background: var(--prim);
 	}
 
@@ -158,7 +158,7 @@
 	.decks-notes {
 		width: min(100%, 34em);
 		margin-inline: auto;
-		display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.7);   /* was gap 0.7em - 2026-09-05 ramps */
+		display: flex; flex-direction: column; gap: calc(var(--gap) * 0.7);   /* was gap 0.7em - 2026-09-05 ramps */
 	}
 
 	.decks-notes-title { font-weight: 700; font-size: 1.05em; }
@@ -171,11 +171,11 @@
 	.decks-wall {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(min(13em, 100%), 1fr));
-		gap: calc(var(--gap-ramp) * 0.6);   /* was gap 0.6em - 2026-09-05 ramps */
+		gap: calc(var(--gap) * 0.6);   /* was gap 0.6em - 2026-09-05 ramps */
 	}
 
 	.decks-card {
-		display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.2);   /* was gap 0.2em - 2026-09-05 ramps */
+		display: flex; flex-direction: column; gap: calc(var(--gap) * 0.2);   /* was gap 0.2em - 2026-09-05 ramps */
 		padding: 0.8em 0.9em;
 		background: var(--tint);
 		border: 1px solid var(--line);
@@ -205,7 +205,7 @@
 	.decks-stack {
 		width: min(100%, 26em);
 		margin-inline: auto;
-		display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.9);   /* was gap 0.9em - 2026-09-05 ramps */
+		display: flex; flex-direction: column; gap: calc(var(--gap) * 0.9);   /* was gap 0.9em - 2026-09-05 ramps */
 	}
 
 	.decks-stack > .decks-list { width: 100%; margin-inline: 0; }
@@ -253,7 +253,7 @@
 	/* ── a stage — an aspect box takes whatever it is given ──
 	   The one kind with no natural width at all, which is why it belongs in the MAJOR
 	   share of every cut in the lab. */
-	.decks-stage { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.6); min-height: 0; }   /* was gap 0.6em - 2026-09-05 ramps */
+	.decks-stage { display: flex; flex-direction: column; gap: calc(var(--gap) * 0.6); min-height: 0; }   /* was gap 0.6em - 2026-09-05 ramps */
 
 	.decks-frame {
 		flex: 1 1 auto; min-height: 0;

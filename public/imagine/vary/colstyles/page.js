@@ -46,7 +46,7 @@ export default new Page({
 				div.c("flex gap wrap", () => LOOKS.forEach(look =>
 					div.c("zoom-25", () => demo.app(tree(look)).style({ height: "11em", width: w }))));
 			});
-		}).style("--gap", "calc(var(--gap-ramp) * 0.5)");
+		}).style("--gap", "calc(var(--gap) * 0.5)");
 
 		md("**Verdict:** the two axes are independent — no look breaks, hides a rung, or reflows badly at either width — which is exactly what \"control over rendering\" should mean. What is still missing is the reverse crossing (one look, several *structural* layouts — add/swap/carousel from `place/`) — out of this task's build budget, named here so it isn't lost.");
 	},

@@ -43,7 +43,7 @@ const stat_tiles = rows => {
 		div.c("surface pad flex v gap", () => {
 			div.c("h4 muted", label);
 			div.c("h2", value);
-		}).style("--gap", "calc(var(--gap-ramp) * 0.1)"))).style("--column", "9em");
+		}).style("--gap", "calc(var(--gap) * 0.1)"))).style("--column", "9em");
 };
 
 const card = row => div.c("surface pad flex v gap", () => {
@@ -53,7 +53,7 @@ const card = row => div.c("surface pad flex v gap", () => {
 		span.c("muted", row.kind);
 		span.c("muted", row.lines + " lines");
 	});
-}).style("--gap", "calc(var(--gap-ramp) * 0.2)");
+}).style("--gap", "calc(var(--gap) * 0.2)");
 
 const wall = rows => rows.length
 	? div.c("grid gap auto", () => rows.forEach(card)).style("--column", "14em")
@@ -110,8 +110,8 @@ const words_demo = () => {
 	};
 
 	return div.c("flex v gap-2em", () => {
-		div.c("flex v gap", () => { div.c("h4 muted", "default"); mini(); }).style("--gap", "calc(var(--gap-ramp) * 0.5)");
-		div.c("flex v gap", () => { div.c("h4 muted", "ui-contrast ui-compact"); mini().ac("ui-contrast ui-compact"); }).style("--gap", "calc(var(--gap-ramp) * 0.5)");
+		div.c("flex v gap", () => { div.c("h4 muted", "default"); mini(); }).style("--gap", "calc(var(--gap) * 0.5)");
+		div.c("flex v gap", () => { div.c("h4 muted", "ui-contrast ui-compact"); mini().ac("ui-contrast ui-compact"); }).style("--gap", "calc(var(--gap) * 0.5)");
 	});
 };
 

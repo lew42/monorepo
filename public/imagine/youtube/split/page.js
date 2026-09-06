@@ -64,7 +64,7 @@ export default new Page({
 
 				div.c("yt-keys flex wrap gap", () => STEPS.forEach(step =>
 					button.c("yt-btn", clock(step.at)).click(() => this.player.seek(step.at))
-				)).style("--gap", "calc(var(--gap-ramp) * 0.4)");
+				)).style("--gap", "calc(var(--gap) * 0.4)");
 			});
 		});
 

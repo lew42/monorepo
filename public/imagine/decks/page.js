@@ -44,7 +44,7 @@ export default new Page({
 		// children, so this is core's own method called three times, not a fork of it.
 		[...new Set([...this.children.values()].map(page => page?.group).filter(Boolean))].forEach(name => {
 			const subset = new Map([...this.children].filter(([, page]) => page?.group === name));
-			this.previews(subset).style("--column", "22em").style("max-width", `calc(${subset.size} * 22em + ${subset.size - 1} * var(--gap-default))`);
+			this.previews(subset).style("--column", "22em").style("max-width", `calc(${subset.size} * 22em + ${subset.size - 1} * var(--gap))`);
 		});
 
 		md("### The five kinds, and the one property that separates them");

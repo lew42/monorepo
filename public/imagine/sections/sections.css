@@ -11,7 +11,7 @@
                      hairlines, not gaps.
      3  THE STICK    a sticky box INSIDE the column cell, never the cell itself.
 
-   SPACING IS ALWAYS A RAMP. `--pad-default`, `--gap-default` and `--flow-default` are
+   SPACING IS ALWAYS A RAMP. `--pad`, `--gap` and `--flow` are
    framework.css's three ramps times the inherited spacing level; every number below
    is one of them, or one of them times a ratio. There is no constant length in this
    file except hairlines and the two stacking floors, which are `rem` on purpose
@@ -46,12 +46,12 @@
 	.sections-stack {
 		display: flex;
 		flex-direction: column;
-		gap: var(--gap-default);
+		gap: var(--gap);
 		min-width: 0;
 	}
 
 	.sections-space-0 { gap: 0; }
-	.sections-space-airy { --spacing: 1.6; }
+	.sections-space-airy { --size: 1.6; }
 
 	/* Butted sections share one hairline instead of drawing two. */
 	.sections-space-0 > .sections-band + .sections-band { border-block-start: 0; }
@@ -59,7 +59,7 @@
 	/* A bled stack spends the column's inset so a FLUSH section reaches the edges;
 	   a CARD section pays it straight back, because a card never bleeds. The fallback
 	   is for a stack that is not in a columns host. */
-	.sections-stack.bleed > .sections-card { margin-inline: var(--page-column-pad-x, var(--pad-default)); }
+	.sections-stack.bleed > .sections-card { margin-inline: var(--page-column-pad-x, var(--pad)); }
 
 	/* ── THE SECTION ───────────────────────────────────────────────────────────
 	   The band is the CONTAINER (a container query never matches its own container,
@@ -114,8 +114,8 @@
 
 	.sections-head, .sections-foot {
 		display: flex; flex-wrap: wrap; align-items: center;
-		gap: var(--gap-default);
-		padding: calc(var(--pad-default) * 0.45) var(--pad-default);
+		gap: var(--gap);
+		padding: calc(var(--pad) * 0.45) var(--pad);
 	}
 
 	/* The middle. `--sections-tall` is how many SCREENS of content it holds — the
@@ -123,8 +123,8 @@
 	   `calc(anything * 0)` is 0, so nothing is reserved unless a section asks. */
 	.sections-main {
 		display: flex; flex-direction: column;
-		gap: var(--gap-default);
-		padding: var(--pad-default);
+		gap: var(--gap);
+		padding: var(--pad);
 		min-height: calc(var(--sections-screen, 100dvh) * var(--sections-tall, 0));
 	}
 
@@ -142,8 +142,8 @@
 
 	.sections-body {
 		display: flex; flex-direction: column;
-		gap: var(--gap-default);
-		padding: var(--pad-default);
+		gap: var(--gap);
+		padding: var(--pad);
 		min-height: 0;
 	}
 
@@ -158,8 +158,8 @@
 	.sections-pin {
 		flex: 0 0 auto;
 		display: flex; flex-wrap: wrap; align-items: center;
-		gap: calc(var(--gap-ramp) * 0.4);
-		padding: calc(var(--pad-default) * 0.5) var(--pad-default);
+		gap: calc(var(--gap) * 0.4);
+		padding: calc(var(--pad) * 0.5) var(--pad);
 		border-block-start: 1px solid var(--line);
 	}
 
@@ -212,8 +212,8 @@
 
 	.sections-row {
 		display: flex; flex-wrap: wrap; align-items: baseline;
-		gap: calc(var(--gap-ramp) * 0.5);
-		padding: calc(var(--pad-default) * 0.3) 0;
+		gap: calc(var(--gap) * 0.5);
+		padding: calc(var(--pad) * 0.3) 0;
 		border-block-end: 1px solid var(--line);
 	}
 
@@ -222,13 +222,13 @@
 	.sections-tiles {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(min(14em, 100%), 1fr));
-		gap: var(--gap-default);
+		gap: var(--gap);
 	}
 
 	.sections-tile {
 		display: flex; align-items: flex-end;
 		min-height: 5em;
-		padding: calc(var(--pad-default) * 0.6);
+		padding: calc(var(--pad) * 0.6);
 		background: var(--fill-a04);
 		border: 1px solid var(--line);
 		border-radius: var(--radius);
@@ -239,9 +239,9 @@
 	/* ── THE CHIPS — every word a section offers, live ─────────────────────────
 	   A control HUGS its content (the spacing decision's control rule): never a
 	   full-width strip, and a strip of them is a wrapping flex row. */
-	.sections-chips { display: flex; flex-direction: column; gap: var(--gap-default); }
+	.sections-chips { display: flex; flex-direction: column; gap: var(--gap); }
 
-	.sections-group { display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--gap-ramp) * 0.3); }
+	.sections-group { display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--gap) * 0.3); }
 
 	.sections-axis {
 		flex: 1 0 100%;
@@ -268,7 +268,7 @@
 	.sections-mark { display: inline-flex; align-items: center; gap: 0.3em; font-size: 0.78em; color: var(--prim-ink); }
 	.sections-mark .icon { font-size: 1em; }
 
-	.sections-reads { display: flex; flex-wrap: wrap; gap: calc(var(--gap-ramp) * 0.3); }
+	.sections-reads { display: flex; flex-wrap: wrap; gap: calc(var(--gap) * 0.3); }
 
 	.sections-px {
 		padding: 0.15em 0.45em;
@@ -296,7 +296,7 @@
 	/* ── A NAV INSIDE A SECTION ────────────────────────────────────────────────
 	   A vertical list of rows. A row of ONE LIST may span its box — the list is the
 	   control and the row is its part (the spacing decision, U3). */
-	.sections-nav { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.25); }
+	.sections-nav { display: flex; flex-direction: column; gap: calc(var(--gap) * 0.25); }
 
 	/* The mobile collapse: hidden until the section stacks (bottom of this file). */
 	.sections-nav-bar {
@@ -331,7 +331,7 @@
 	   move anything. (The same rule `/imagine/paging/paging.css` carries, written
 	   here rather than imported: see the note on the five colours above.) */
 	.sections-reserve { display: grid; }
-	.sections-reserve > .sections-panel { grid-area: 1 / 1; display: flex; flex-direction: column; gap: var(--gap-default); }
+	.sections-reserve > .sections-panel { grid-area: 1 / 1; display: flex; flex-direction: column; gap: var(--gap); }
 	.sections-panel.sections-off { visibility: hidden; }
 
 	/* ── OUT OF ROOM ───────────────────────────────────────────────────────────

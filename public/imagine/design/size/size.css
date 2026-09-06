@@ -1,8 +1,8 @@
 /* /imagine/design/size/ — the size-standard study.
 
-   ⚠ EVERYTHING here is scoped under `.size-lab`. This page proposes a change to
-     framework.css's `:root`; it must not make that change. The candidate below is a
-     copy that reaches the demo box and nothing else on the site.
+   ⚠ EVERYTHING here is scoped under `.size-lab`. The candidate below LANDED in
+     framework.css 2026-09-06 (size-apply) — this copy stays scoped to the demo box
+     on purpose, so dragging it never depends on load order with the real thing.
    ⚠ `@layer theme` — the layer order is declared once, in framework.css. This sheet
      loads after it, so at equal specificity these rules win, which is what lets
      `.size-chips .size-chip` (0,2,0) beat lew42.css's `.theme-lew42 :is(button, .btn)`
@@ -27,7 +27,7 @@
 	}
 	.size-lab.size-small   { --size: 0.75; }
 	.size-lab.size-regular { --size: 1; }
-	.size-lab.size-large   { --size: 1.25; }
+	.size-lab.size-large   { --size: 1.5; }
 
 	/* ══ THE BOX YOU DRAG ═════════════════════════════════════════════════════
 	   `container-type: inline-size` is what makes the `cqi` terms above read THIS
@@ -88,7 +88,7 @@
 	.size-lab p { margin: 0; }
 
 	/* ══ CHROME — outside the lab on purpose, so it holds still while you drag ══ */
-	.size-chips { display: flex; flex-wrap: wrap; gap: calc(var(--gap-ramp) * 0.4); align-items: center; }
+	.size-chips { display: flex; flex-wrap: wrap; gap: calc(var(--gap) * 0.4); align-items: center; }
 	.size-chips .size-chip {
 		width: fit-content;
 		padding: 0.35em 0.9em;
@@ -102,7 +102,7 @@
 
 	.size-readout {
 		display: flex; flex-wrap: wrap;
-		gap: calc(var(--gap-ramp) * 0.25) calc(var(--gap-ramp) * 0.8);
+		gap: calc(var(--gap) * 0.25) calc(var(--gap) * 0.8);
 		font-family: var(--mono); font-size: 0.8em; color: var(--subtle);
 	}
 	.size-readout b { color: var(--ink); font-weight: 600; }

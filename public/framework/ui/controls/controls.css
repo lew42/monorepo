@@ -30,7 +30,7 @@
 	   a control hugs, a strip of them wraps). */
 	.ui-controls-row {
 		display: flex; flex-wrap: wrap; align-items: center;
-		gap: calc(var(--gap-ramp) * 0.5);
+		gap: calc(var(--gap) * 0.5);
 	}
 	.ui-controls-row > * { flex: 0 0 auto; }
 	.ui-controls-row :is(input, select, textarea) { width: auto; }
@@ -40,11 +40,11 @@
 	   a reading column each row wrapped to three lines and the comparison was gone. */
 	.ui-controls-sizes {
 		display: flex; flex-direction: column;
-		gap: calc(var(--gap-ramp) * 0.8);
+		gap: calc(var(--gap) * 0.8);
 	}
 	.ui-controls-panel {
 		min-width: 0;
-		padding: calc(var(--gap-ramp) * 0.8);
+		padding: calc(var(--gap) * 0.8);
 		border: 1px solid var(--line);
 		border-radius: var(--radius);
 	}

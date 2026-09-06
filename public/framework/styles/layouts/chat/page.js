@@ -32,15 +32,15 @@ export default new Page(demo.layout({
 						div.c("flex gap v-center split pad wash", () => {
 							span.c("h4", site.title.toUpperCase());
 							span.c("muted", "8 people");
-						}).style("--pad", "calc(var(--pad-ramp) * 0.6) var(--pad-ramp)");
+						}).style("--pad", "calc(var(--pad) * 0.6) var(--pad)");
 
 					div.c("flex v gap pad", () => site.topics.split(" ").slice(0, 6).forEach(bubble))
-						.style({ flex: "1 1 auto", minHeight: "0", overflowY: "auto", "--gap": "calc(var(--gap-ramp) * 0.6)" });
+						.style({ flex: "1 1 auto", minHeight: "0", overflowY: "auto", "--gap": "calc(var(--gap) * 0.6)" });
 
 					div.c("flex gap pad wash", () => {
 						input.c("flex-1").attr("placeholder", "Message " + site.title);
 						button.c("prim", "Send");
-					}).style({ "--gap": "calc(var(--gap-ramp) * 0.5)", "--pad": "calc(var(--pad-ramp) * 0.7)" });
+					}).style({ "--gap": "calc(var(--gap) * 0.5)", "--pad": "calc(var(--pad) * 0.7)" });
 
 				}).style({ flex: "1 1 22em", minWidth: "0" });
 

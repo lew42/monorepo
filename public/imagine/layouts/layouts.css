@@ -17,7 +17,7 @@
    this realm is their index.
 
    COLOUR AND SPACING ARE BORROWED, NEVER INVENTED — `--surface --wash --tint --line
-   --prim --bg --fill-a08 --pad-default --gap-default --radius --measure --mono`. There
+   --prim --bg --fill-a08 --pad --gap --radius --measure --mono`. There
    is not one hex value and not one constant length in this file. */
 
 @layer theme {
@@ -47,7 +47,7 @@
 		display: flex;
 		flex-wrap: wrap;
 		align-items: start;
-		gap: var(--gap, var(--gap-default));
+		gap: var(--gap);
 	}
 
 	.layouts-card > * { min-width: 0; }
@@ -61,7 +61,7 @@
 	   separator is what makes the relation legible: same three columns, same sample
 	   content, one line of difference. */
 	.layouts-cards { display: flex; flex-direction: column; }
-	.layouts-cards > * { padding-block: var(--gap, var(--gap-default)); }
+	.layouts-cards > * { padding-block: var(--gap); }
 	.layouts-cards > * + * { border-top: 1px solid var(--line); }
 
 	/* ── the intro column ── */
@@ -75,9 +75,9 @@
 	.layouts-when { font-size: 0.82em; line-height: 1.5; color: var(--subtle); }
 
 	/* ── the chips ── */
-	.layouts-chips { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.45); margin-block: calc(var(--gap-ramp) * 0.7); }   /* was gap 0.45em; margin-block 0.7em - 2026-09-05 ramps */
+	.layouts-chips { display: flex; flex-direction: column; gap: calc(var(--gap) * 0.45); margin-block: calc(var(--gap) * 0.7); }   /* was gap 0.45em; margin-block 0.7em - 2026-09-05 ramps */
 
-	.layouts-group { display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--gap-ramp) * 0.25); }   /* was gap 0.25em - 2026-09-05 ramps */
+	.layouts-group { display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--gap) * 0.25); }   /* was gap 0.25em - 2026-09-05 ramps */
 
 	.layouts-axis {
 		flex: 0 0 100%;
@@ -109,7 +109,7 @@
 	   marks are per visit — but a reader three chips deep still deserves to be told
 	   they are no longer looking at the base example. */
 	.layouts-mark {
-		display: inline-flex; align-items: center; gap: calc(var(--gap-ramp) * 0.25);   /* was gap 0.25em - 2026-09-05 ramps */
+		display: inline-flex; align-items: center; gap: calc(var(--gap) * 0.25);   /* was gap 0.25em - 2026-09-05 ramps */
 		font-size: 0.74em; color: var(--prim-ink);
 	}
 
@@ -124,11 +124,11 @@
 	     259px on card, 260px on dark). The border-box is now identical across all
 	     five and only the paint changes. */
 	.layouts-frame {
-		padding: var(--pad, var(--pad-default));
+		padding: var(--pad);
 		border: 1px solid transparent;
 		border-radius: var(--radius);
 		display: flex; flex-direction: column;
-		gap: var(--gap, var(--gap-default));
+		gap: var(--gap);
 	}
 
 	/* THE FIVE SURFACES — paging's vocabulary (plain card tint prim dark), said in
@@ -155,24 +155,27 @@
 
 	/* THE THREE PADDING STEPS. Multiples of the two spacing clamps, never a
 	   constant — so 400 and 3440 are the same declaration and `tight` at 3440 is
-	   still bigger than `airy` at 400. */
-	.layouts-tight { --pad: calc(var(--pad-default) * 0.5); --gap: calc(var(--gap-default) * 0.5); }
-	.layouts-airy  { --pad: calc(var(--pad-default) * 2);   --gap: calc(var(--gap-default) * 2); }
+	   still bigger than `airy` at 400. ⚠ Written from the raw clamps, not
+	   `var(--pad)`/`var(--gap)` (size-apply 2026-09-06): those two now ARE this
+	   element's own `--pad`/`--gap` (`:where(*)`, framework.css), so reading them
+	   here to define themselves would be a self-reference. */
+	.layouts-tight { --pad: calc(clamp(1em, 2.6% - 1.1em, 4em) * var(--size) * 0.5);   --gap: calc(clamp(1em, 1.5cqi - 0.3em, 2.6em) * var(--size) * 0.5); }
+	.layouts-airy  { --pad: calc(clamp(1em, 2.6% - 1.1em, 4em) * var(--size) * 2);     --gap: calc(clamp(1em, 1.5cqi - 0.3em, 2.6em) * var(--size) * 2); }
 
 	/* ── THE LIVE LAYOUT ───────────────────────────────────────────────────────
 	   Every declaration that makes an arrangement arrives inline from the entry's
 	   `rules` object. This class supplies only the two things every one of them
 	   needs and none of them should have to say. */
 	.layouts-layout {
-		gap: var(--gap, var(--gap-default));
+		gap: var(--gap);
 		min-width: 0;
 	}
 
 	.layouts-box {
 		display: flex; flex-direction: column; justify-content: center;
-		gap: calc(var(--gap-ramp) * 0.2);   /* was gap 0.2em - 2026-09-05 ramps */
+		gap: calc(var(--gap) * 0.2);   /* was gap 0.2em - 2026-09-05 ramps */
 		min-width: 0;
-		padding: var(--pad, var(--pad-default));
+		padding: var(--pad);
 		border: 1px solid var(--line);
 		border-radius: var(--radius);
 		background: var(--fill-a08);
@@ -197,7 +200,7 @@
 		border: 1px dashed var(--line);
 		border-radius: var(--radius);
 		grid-template-columns: minmax(0, 1fr);
-		gap: var(--gap, var(--gap-default));
+		gap: var(--gap);
 	}
 
 	/* SCROLL SECTIONS. A scrollport is a DECISION here, not a side effect: the
@@ -210,7 +213,7 @@
 	   Not imported: a miniature of each, so the reader sees how much of the room a
 	   navigation costs the layout under it. Each one names the real module it
 	   stands for in the readout column. */
-	.layouts-navrow { display: flex; gap: var(--gap, var(--gap-default)); min-width: 0; }
+	.layouts-navrow { display: flex; gap: var(--gap); min-width: 0; }
 
 	/* ⚠ `flex: 1 1 0`, never `1 1 auto`. Every layout in the catalogue sizes its
 	     tracks as a PERCENTAGE of this box, and a percentage against an `auto` basis
@@ -224,7 +227,7 @@
 
 	.layouts-rail {
 		flex: 0 0 clamp(4em, 14%, 9em);
-		display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.3);   /* was gap 0.3em - 2026-09-05 ramps */
+		display: flex; flex-direction: column; gap: calc(var(--gap) * 0.3);   /* was gap 0.3em - 2026-09-05 ramps */
 		padding: 0.4em;
 		border: 1px solid var(--line); border-radius: var(--radius);
 		background: var(--fill-a04);
@@ -232,13 +235,13 @@
 	}
 
 	.layouts-crumbline {
-		display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.25);   /* was gap 0.25em - 2026-09-05 ramps */
+		display: flex; align-items: center; gap: calc(var(--gap) * 0.25);   /* was gap 0.25em - 2026-09-05 ramps */
 		font-size: 0.78em; color: var(--subtle);
 		padding-bottom: 0.3em;
 		border-bottom: 1px solid var(--line);
 	}
 
-	.layouts-tabs { display: flex; gap: calc(var(--gap-ramp) * 0.25); border-bottom: 1px solid var(--line); }   /* was gap 0.25em - 2026-09-05 ramps */
+	.layouts-tabs { display: flex; gap: calc(var(--gap) * 0.25); border-bottom: 1px solid var(--line); }   /* was gap 0.25em - 2026-09-05 ramps */
 
 	.layouts-tab {
 		padding: 0.25em 0.7em;
@@ -253,7 +256,7 @@
 	.layouts-tab.on { background: var(--surface); font-weight: 700; margin-bottom: -1px; padding-bottom: calc(0.25em + 1px); }
 
 	.layouts-bar {
-		display: flex; justify-content: space-around; gap: calc(var(--gap-ramp) * 0.3);   /* was gap 0.3em - 2026-09-05 ramps */
+		display: flex; justify-content: space-around; gap: calc(var(--gap) * 0.3);   /* was gap 0.3em - 2026-09-05 ramps */
 		padding: 0.35em;
 		border: 1px solid var(--line); border-radius: var(--radius);
 		background: var(--fill-a04);
@@ -279,20 +282,20 @@
 	.layouts-viewport { margin-inline: auto; }
 
 	.layouts-scale {
-		display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--gap-ramp) * 0.3) calc(var(--gap-ramp) * 0.6);   /* was gap 0.3em 0.6em - 2026-09-05 ramps */
-		margin-top: calc(var(--gap-ramp) * 0.4);   /* was margin-top 0.4em - 2026-09-05 ramps */
+		display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--gap) * 0.3) calc(var(--gap) * 0.6);   /* was gap 0.3em 0.6em - 2026-09-05 ramps */
+		margin-top: calc(var(--gap) * 0.4);   /* was margin-top 0.4em - 2026-09-05 ramps */
 		font-family: var(--mono); font-size: 0.72em; color: var(--subtle);
 	}
 
 	/* ── THE READOUTS ──────────────────────────────────────────────────────────
 	   The CSS the layout IS, the widths it measured, and the one line that makes a
 	   page from it. */
-	.layouts-read + .layouts-read { margin-top: calc(var(--gap-ramp) * 0.7); }   /* was margin-top 0.7em - 2026-09-05 ramps */
+	.layouts-read + .layouts-read { margin-top: calc(var(--gap) * 0.7); }   /* was margin-top 0.7em - 2026-09-05 ramps */
 
 	.layouts-read-head {
 		font-family: var(--mono); font-size: 0.68em; font-weight: 700;
 		text-transform: uppercase; letter-spacing: 0.05em; color: var(--subtle);
-		margin-bottom: calc(var(--gap-ramp) * 0.25);   /* was margin-bottom 0.25em - 2026-09-05 ramps */
+		margin-bottom: calc(var(--gap) * 0.25);   /* was margin-bottom 0.25em - 2026-09-05 ramps */
 	}
 
 	/* ⚠ `color`, and it is not optional: framework.css paints every `pre` with
@@ -312,7 +315,7 @@
 		white-space: pre-wrap; overflow-wrap: anywhere;
 	}
 
-	.layouts-tracks { display: flex; flex-wrap: wrap; gap: calc(var(--gap-ramp) * 0.25); }   /* was gap 0.25em - 2026-09-05 ramps */
+	.layouts-tracks { display: flex; flex-wrap: wrap; gap: calc(var(--gap) * 0.25); }   /* was gap 0.25em - 2026-09-05 ramps */
 
 	.layouts-px {
 		padding: 0.1em 0.4em;
@@ -329,21 +332,21 @@
 	   arrangements can do when there is room for one. */
 	/* The opening demo as a whole: the toggle, the pair, the explanation. A stack,
 	   which is the joke it is entitled to make. */
-	.layouts-idea { display: flex; flex-direction: column; gap: var(--gap, var(--gap-default)); }
+	.layouts-idea { display: flex; flex-direction: column; gap: var(--gap); }
 
 	.layouts-pair {
 		--layouts-floor: 44rem;
 		--layouts-stack: calc((var(--layouts-floor) - 100%) * 999);
 		display: flex; flex-wrap: wrap;
 		align-items: start;   /* so the stack side is visibly taller — that IS the lesson */
-		gap: var(--gap, var(--gap-default));
+		gap: var(--gap);
 	}
 
-	.layouts-pair > * { flex: 1 1 max(calc(50% - var(--gap, var(--gap-default))), var(--layouts-stack)); min-width: 0; }
+	.layouts-pair > * { flex: 1 1 max(calc(50% - var(--gap)), var(--layouts-stack)); min-width: 0; }
 
 	.layouts-side {
-		display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.4);   /* was gap 0.4em - 2026-09-05 ramps */
-		padding: var(--pad, var(--pad-default));
+		display: flex; flex-direction: column; gap: calc(var(--gap) * 0.4);   /* was gap 0.4em - 2026-09-05 ramps */
+		padding: var(--pad);
 		border: 1px solid var(--line); border-radius: var(--radius);
 		background: var(--surface);
 	}
@@ -351,7 +354,7 @@
 	/* The chosen side of the comparison, marked — the toggle's whole visible job. */
 	.layouts-side.on { border-color: var(--prim); box-shadow: 0 0 0 1px var(--prim); }
 
-	.layouts-side-head { display: flex; align-items: baseline; gap: calc(var(--gap-ramp) * 0.4); }   /* was gap 0.4em - 2026-09-05 ramps */
+	.layouts-side-head { display: flex; align-items: baseline; gap: calc(var(--gap) * 0.4); }   /* was gap 0.4em - 2026-09-05 ramps */
 	.layouts-side-title { font-weight: 700; }
 	.layouts-side-sub { font-size: 0.8em; color: var(--subtle); }
 
@@ -359,12 +362,12 @@
 	   A `full` column loses the row and, at 3440, the crumb strip is a thin line a
 	   very long way from the reader's eye. So a full page carries its own way on:
 	   a bar that is part of the layout, pinned to the top of the column body. */
-	.layouts-full { display: flex; flex-direction: column; gap: var(--gap, var(--gap-default)); min-height: 100%; }
+	.layouts-full { display: flex; flex-direction: column; gap: var(--gap); min-height: 100%; }
 
 	.layouts-fullbar {
 		position: sticky; top: 0; z-index: 2;
-		display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--gap-ramp) * 0.4);   /* was gap 0.4em - 2026-09-05 ramps */
-		padding: 0.45em var(--pad, var(--pad-default));
+		display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--gap) * 0.4);   /* was gap 0.4em - 2026-09-05 ramps */
+		padding: 0.45em var(--pad);
 		border: 1px solid var(--line); border-radius: var(--radius);
 		background: var(--surface);
 		box-shadow: 0 1px 3px var(--shade-a08);
@@ -393,11 +396,11 @@
 	.layouts-full .layouts-reads { flex: 0 1 max(clamp(14em, 18%, 26em), var(--layouts-stack)); }
 
 	/* ── the hub's wall of numbers ── */
-	.layouts-numbers { display: grid; gap: var(--gap, var(--gap-default)); grid-template-columns: repeat(auto-fill, minmax(min(15em, 100%), 1fr)); }
+	.layouts-numbers { display: grid; gap: var(--gap); grid-template-columns: repeat(auto-fill, minmax(min(15em, 100%), 1fr)); }
 
 	.layouts-number {
-		display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.3);   /* was gap 0.3em - 2026-09-05 ramps */
-		padding: var(--pad, var(--pad-default));
+		display: flex; flex-direction: column; gap: calc(var(--gap) * 0.3);   /* was gap 0.3em - 2026-09-05 ramps */
+		padding: var(--pad);
 		border: 1px solid var(--line); border-radius: var(--radius);
 		background: var(--surface);
 		text-decoration: none; color: inherit;

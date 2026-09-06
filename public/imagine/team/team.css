@@ -24,9 +24,9 @@
 	.imagine-board-card {
 		display: grid;
 		grid-template-columns: minmax(14em, 18em) minmax(0, 1fr) minmax(14em, 18em);
-		gap: var(--gap-default);
+		gap: var(--gap);
 		align-items: start;
-		padding: var(--pad-default);
+		padding: var(--pad);
 	}
 
 	/* Narrower than three columns' floors can share — stack instead of squeezing.
@@ -54,5 +54,5 @@
 	.imagine-readout-row + .imagine-readout-row { border-top: 1px solid var(--line); }
 	.imagine-readout-row .imagine-count { margin-inline-start: auto; }
 
-	.imagine-board-right .imagine-tally { border: none; padding: 0; margin-top: calc(var(--gap-ramp) * 0.6); }   /* was margin-top 0.6em - 2026-09-05 ramps */
+	.imagine-board-right .imagine-tally { border: none; padding: 0; margin-top: calc(var(--gap) * 0.6); }   /* was margin-top 0.6em - 2026-09-05 ramps */
 }

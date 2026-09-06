@@ -112,8 +112,8 @@
 	   so it never takes space and never intercepts a click. */
 	.doodle-corner {
 		position: absolute;
-		inset-block-start: var(--gap-default);
-		inset-inline-end: var(--gap-default);
+		inset-block-start: var(--gap);
+		inset-inline-end: var(--gap);
 		opacity: 0.22;
 		pointer-events: none;
 	}

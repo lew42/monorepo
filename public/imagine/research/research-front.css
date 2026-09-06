@@ -15,7 +15,7 @@
    fraction), and the stack term wraps every track onto its own line below it.
 
    COLOUR AND SPACING ARE BORROWED TOO — `--surface --tint --line --radius
-   --gap-default --measure`, and every credence colour is `--research-cred`,
+   --gap --measure`, and every credence colour is `--research-cred`,
    already set per-entry by Research.css. Not one hex value, not one constant
    length in this file. */
 
@@ -35,7 +35,7 @@
 		display: flex;
 		flex-wrap: wrap;
 		align-items: start;
-		gap: var(--gap, var(--gap-default));
+		gap: var(--gap);
 		padding: 1em 1.1em;
 	}
 

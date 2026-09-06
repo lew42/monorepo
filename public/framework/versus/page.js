@@ -12,7 +12,7 @@ const surface = {
 const panel = (title, body) => div.c("pad flex v", () => {
 	div.c("h4", title).style("color", "var(--subtle)");
 	md(body);
-}).style({ ...surface, gap: "calc(var(--gap-ramp) * 0.6)" });
+}).style({ ...surface, gap: "calc(var(--gap) * 0.6)" });
 
 export default new Page({
 	meta: import.meta,

@@ -56,10 +56,10 @@ zoom-responsive
 
 # framework.css — new words prefixed, not bare (see the note at the top)
 table-       framework.css (table-equal — equalize a table's columns)
-spacing-     framework.css (spacing-tight · spacing-regular · spacing-airy — the three spacing levels)
-size-        framework.css (size-small · size-regular · size-large — the one --size knob, which
-             scales every control inside the box that wears it; /imagine/design/size/ also
-             uses .size-lab/-chip/-stage for the study page that proposed it)
+size-        framework.css (size-small · size-regular · size-large — the one --size knob, .75/1/1.5,
+             landed 2026-09-06; scales a control's own height AND every box's --pad/--gap/--flow.
+             spacing-tight/-regular/-airy and --spacing are deleted, not aliased. /imagine/design/size/
+             also uses .size-lab/-chip/-stage for the study page that proposed it)
 
 # core
 page-        core/Page

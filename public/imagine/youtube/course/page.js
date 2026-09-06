@@ -159,7 +159,7 @@ export default new Page({
 			if (chapter.links.length) div.c("yt-links flex v gap", () => {
 				span.c("yt-ctl-label", "resources");
 				chapter.links.forEach(([text, href]) => a.c("yt-link", text).href(href).attr("target", "_blank"));
-			}).style("--gap", "calc(var(--gap-ramp) * 0.4)");
+			}).style("--gap", "calc(var(--gap) * 0.4)");
 		},
 
 		// ════ NAV -> TIME ═════════════════════════════════════════════════════
