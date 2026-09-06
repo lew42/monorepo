@@ -32,7 +32,9 @@ Beside it, `note.jpg` — a web-size copy (longest side 1600, JPEG ~0.84) of the
 `inbox/`. Then add the slug to this directory's `page.js` `children:`; nothing crawls.
 
 `NotesNote` (`note.js`) gives you `shot(caption)` and the photo card on the index. The
-picture is capped by **height** so a page is one screen at 400, 1280, 1920 and 3440 alike.
+picture is capped by **height** so a page is one screen at 400, 1280, 1920 and 3440 alike —
+and above 900px wide it moves to the left half and stays in view (`position: sticky`) while
+everything else, on the right, scrolls under it (`notes.css`; below 900px it just stacks).
 
 ## Watch out
 
@@ -55,5 +57,6 @@ picture is capped by **height** so a page is one screen at 400, 1280, 1920 and 3
 ## More
 
 - [The realm](/notes/) — the wall of cards
-- Files that matter: `note.js` (`NotesNote`: the photo, the card), `notes.css` (three rules —
-  the fold-capped picture, the card thumb, the spread marker), `page.js` (the wall)
+- Files that matter: `note.js` (`NotesNote`: the photo, the card), `notes.css` (four rules —
+  the fold-capped picture, the card thumb, the spread marker, the picture/prose split),
+  `page.js` (the wall)

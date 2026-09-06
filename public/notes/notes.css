@@ -1,7 +1,7 @@
 /* /notes/ — the photographed-notebook pages.
    Loaded once, from /notes/page.js, so every note in the realm has it.
 
-   Three rules only. Everything else on a note page is a framework utility
+   Four rules. Everything else on a note page is a framework utility
    (`surface`, `pad`, `flex v gap`, `muted`) or `.md` prose — see the css skill's
    ladder: nothing → a utility → a word → a component → the module's own sheet.
    The `notes-` prefix is NOT yet in framework/styles/css-scopes.txt: this task's
@@ -10,11 +10,13 @@
    rule exists in any stylesheet in the repo). */
 @layer site {
 
-	/* The photo IS the note, so it leads the page — but a 1600px scan of a
-	   notebook page is taller than any screen, and would push every word of the
-	   transcription below the fold. Cap it at a fold and let the reader open the
-	   full file: `min(66vh, 44em)` holds one screen at 400, 1280, 1920 and 3440
-	   alike. Height, never width — the photo keeps its own proportions.
+	/* Below the split's 900px floor (see "THE SPLIT" further down), this is the
+	   whole story: the photo IS the note, so it leads the page — but a 1600px
+	   scan of a notebook page is taller than any screen, and would push every
+	   word of the transcription below the fold. Cap it at a fold and let the
+	   reader open the full file: `min(66vh, 44em)` holds one screen at 400 and
+	   at any width under the floor. Height, never width — the photo keeps its
+	   own proportions.
 	   ⚠ Measured 2026-09-06: at a 900px-tall 1280 viewport this is a 594px-tall,
 	   446px-wide render of a 1200x1600 scan. Handwriting is legible at that size;
 	   58vh (511px) was not, which is why the cap is a fold and not less. */
@@ -22,6 +24,7 @@
 
 	.notes-shot img {
 		max-height: min(66vh, 44em);
+		max-width: 100%;
 		width: auto;
 		border: 1px solid var(--line);
 		border-radius: var(--radius);
@@ -44,5 +47,96 @@
 		border-radius: 50%;
 		background: var(--prim);
 		box-shadow: 0 0 0 2px var(--surface);   /* a ring, so two close marks stay two */
+	}
+
+	/* ════ THE SPLIT — picture left, everything else right, picture stays put ═══
+	   2026-09-06. A note page is half a photograph, half words about it; below
+	   this a reader has to keep both a scan and its transcription in their head
+	   while scrolling, so instead the photo parks on the left and stays in view
+	   while the right side scrolls under it.
+
+	   ⚠ 900px is the floor, not a round number: the photo needs about 400px of
+	   width to keep handwriting legible (measured on this page's own scans), the
+	   two halves need a gap between them, and the page keeps a gutter on each
+	   edge — 400 + 400 + gap + two gutters lands at ~900. Below it the numbers
+	   don't work (a 190px-wide scan is not a photo you can read), so the rule
+	   below never matches and the page falls back to the plain stack straight
+	   above: photo first, then measure-capped prose, nothing sticky. That
+	   fallback is not written twice — it is just what happens when this rule
+	   is off.
+	   ⚠ Scoped by `:has(> .notes-shot)`, not a JS change: `.notes-shot` is
+	   note.js's `shot()`, already the first thing after the crumb bar on every
+	   note page, so no note `page.js` has to know the split exists — this is
+	   also why `scale-1920-to-3413/page.js` (a plain `Page`, not a `NotesNote`,
+	   that draws its own `.notes-shot` by hand) gets the split too, for free.
+	   ⚠ FLOAT, not CSS Grid, and that was a real dead end first: giving the
+	   photo `grid-row: 1 / -1` beside auto-placed siblings measured a 467px-tall
+	   FIRST row on a 51px `<h1>` (2026-09-06) — the track-sizing algorithm
+	   handed that whole row the spanning item's full height, leaving the
+	   heading marooned above a few hundred px of blank space before the crumb
+	   bar. A float sidesteps the question entirely: the photo's own box is
+	   just its own height, `.page` only needs to CONTAIN it (`flow-root`), and
+	   every other child is normal block flow with a `margin-left` carved out
+	   for it — no shared row to size.
+	   ⚠ `@layer site` beats Page.css's page-grid rules in `@layer theme`
+	   outright (framework.css's layer order), so `display: flow-root` below
+	   needs no extra specificity or `!important` to replace `.page`'s grid. */
+	@media (min-width: 900px) {
+
+		/* Drop the page's own grid for one row of two floated halves — and
+		   `flow-root`, not plain `block`, so `.page`'s own box (and the
+		   region's scroll range) grows to include the floated photo even on a
+		   short note where the photo is the taller of the two.
+		   `padding-inline` puts back the left/right gutter the grid's own
+		   `bleed` tracks used to give for free. */
+		.page:has(> .notes-shot) {
+			display: flow-root;
+			padding-inline: var(--gutter-x);
+		}
+
+		/* The picture: floated left at half the content width (minus half the
+		   gap), then pinned there — `position: sticky` still applies to a
+		   float, and its "stuck" range is `.page`'s own box, which `flow-root`
+		   just made as tall as the right side.
+		   ⚠ `max-height` moves to the FIGURE, not just the `<img>`: capping
+		     only the image and letting the caption add on top of that measured
+		     816px on a 900px-tall viewport at 1280 — 78px hanging off the
+		     bottom, "fully visible" failed the scroll proof. The figure is the
+		     thing that has to fit one viewport; the image is only most of it. */
+		.page:has(> .notes-shot) > .notes-shot {
+			float: left;
+			width: calc(50% - var(--gap, var(--gap-default)) / 2);
+			max-height: calc(100vh - 2 * var(--pad-y, 3em));
+			margin: 0;
+			position: sticky;
+			top: var(--pad-y);
+		}
+
+		/* Once the photo is pinned by height instead of by a fold, it can be
+		   as tall as the figure's own budget has room for once the caption
+		   takes its share — `min-height: 0` is what lets a flex child (the
+		   figure is `flex v`) shrink an image below its natural size instead
+		   of overflowing the figure's `max-height`. */
+		.page:has(> .notes-shot) > .notes-shot img {
+			min-height: 0;
+			object-fit: contain;
+		}
+
+		/* Everything else: pushed clear of the float into the right half, in
+		   the order content() drew it — ordinary block flow, so each piece is
+		   just as tall as it needs to be and nothing borrows another's row.
+		   `:not(.wide, .bleed)` also caps it to the page's own `--measure` and
+		   leaves it flush left in its half — a half is often wider than one
+		   measure at 3440, and centring a block that mixes headings, lists and
+		   code ragged both edges instead of one.
+		   ⚠ `.wide`/`.bleed` are excluded from the measure cap on purpose, the
+		     same opt-out the page grid itself uses (Page.css) — a page that
+		     draws its own full-width wall still gets it, just sized to the
+		     right half rather than the old full-width breakout (a page
+		     fighting the split this way is named in this task's log, not
+		     edited here). It still gets the `margin-left`, so it lands beside
+		     the photo, not under it. */
+		.page:has(> .notes-shot) > :not(.notes-shot) { margin-left: calc(50% + var(--gap, var(--gap-default)) / 2); }
+		.page:has(> .notes-shot) > :not(.notes-shot, .wide, .bleed) { max-width: var(--measure, 40em); }
 	}
 }

@@ -21,8 +21,13 @@ export class NotesNote extends Page {
 		});
 	}
 
-	// The picture, upright, capped to one fold (notes.css) and linked to the full file —
-	// which is how the handwriting stays readable without the page becoming a scroll.
+	// The picture, upright, linked to the full file — which is how the handwriting stays
+	// readable without the page becoming a scroll. Below notes.css's 900px floor it is
+	// capped to one fold, full width, then the prose runs under it. Above the floor,
+	// notes.css puts it in the left half instead and pins it there (`position: sticky`)
+	// while the rest of the page — everything content() draws after this call — scrolls
+	// past it in the right half. Nothing here knows which mode is active: the split is
+	// pure CSS, scoped to `.notes-shot`, so every note page gets it for free.
 	shot(caption = "Open it for the full-size scan."){
 		const src = this.dir() + "note.jpg";
 

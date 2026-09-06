@@ -1,0 +1,212 @@
+[
+  {
+    "slug": "layouts-need-fit",
+    "width": 400,
+    "errors": [],
+    "sideScroll": false,
+    "scrollWidth": 400,
+    "clientWidth": 400,
+    "hasShot": true,
+    "shotPosition": "static",
+    "shotWidth": 344,
+    "shotLeft": 28
+  },
+  {
+    "slug": "layouts-need-fit",
+    "width": 900,
+    "errors": [],
+    "sideScroll": false,
+    "scrollWidth": 900,
+    "clientWidth": 900,
+    "hasShot": true,
+    "shotPosition": "sticky",
+    "shotWidth": 407,
+    "shotLeft": 36
+  },
+  {
+    "slug": "layouts-need-fit",
+    "width": 1280,
+    "errors": [],
+    "sideScroll": false,
+    "scrollWidth": 1280,
+    "clientWidth": 1280,
+    "hasShot": true,
+    "shotPosition": "sticky",
+    "shotWidth": 581,
+    "shotLeft": 51
+  },
+  {
+    "slug": "layouts-need-fit",
+    "width": 1920,
+    "errors": [],
+    "sideScroll": false,
+    "scrollWidth": 1920,
+    "clientWidth": 1920,
+    "hasShot": true,
+    "shotPosition": "sticky",
+    "shotWidth": 871,
+    "shotLeft": 77
+  },
+  {
+    "slug": "layouts-need-fit",
+    "width": 3440,
+    "errors": [],
+    "sideScroll": false,
+    "scrollWidth": 3440,
+    "clientWidth": 3440,
+    "hasShot": true,
+    "shotPosition": "sticky",
+    "shotWidth": 1607,
+    "shotLeft": 90
+  },
+  {
+    "slug": "scale-1920-to-3413",
+    "width": 400,
+    "errors": [],
+    "sideScroll": false,
+    "scrollWidth": 400,
+    "clientWidth": 400,
+    "hasShot": true,
+    "shotPosition": "static",
+    "shotWidth": 344,
+    "shotLeft": 28
+  },
+  {
+    "slug": "scale-1920-to-3413",
+    "width": 900,
+    "errors": [],
+    "sideScroll": false,
+    "scrollWidth": 900,
+    "clientWidth": 900,
+    "hasShot": true,
+    "shotPosition": "sticky",
+    "shotWidth": 407,
+    "shotLeft": 36
+  },
+  {
+    "slug": "scale-1920-to-3413",
+    "width": 1280,
+    "errors": [],
+    "sideScroll": false,
+    "scrollWidth": 1280,
+    "clientWidth": 1280,
+    "hasShot": true,
+    "shotPosition": "sticky",
+    "shotWidth": 581,
+    "shotLeft": 51
+  },
+  {
+    "slug": "scale-1920-to-3413",
+    "width": 1920,
+    "errors": [],
+    "sideScroll": false,
+    "scrollWidth": 1920,
+    "clientWidth": 1920,
+    "hasShot": true,
+    "shotPosition": "sticky",
+    "shotWidth": 871,
+    "shotLeft": 77
+  },
+  {
+    "slug": "scale-1920-to-3413",
+    "width": 3440,
+    "errors": [],
+    "sideScroll": false,
+    "scrollWidth": 3440,
+    "clientWidth": 3440,
+    "hasShot": true,
+    "shotPosition": "sticky",
+    "shotWidth": 1607,
+    "shotLeft": 90
+  },
+  {
+    "slug": "doodles",
+    "width": 400,
+    "errors": [],
+    "sideScroll": false,
+    "scrollWidth": 400,
+    "clientWidth": 400,
+    "hasShot": false,
+    "shotPosition": null,
+    "shotWidth": null,
+    "shotLeft": null
+  },
+  {
+    "slug": "doodles",
+    "width": 900,
+    "errors": [],
+    "sideScroll": false,
+    "scrollWidth": 900,
+    "clientWidth": 900,
+    "hasShot": false,
+    "shotPosition": null,
+    "shotWidth": null,
+    "shotLeft": null
+  },
+  {
+    "slug": "doodles",
+    "width": 1280,
+    "errors": [],
+    "sideScroll": false,
+    "scrollWidth": 1280,
+    "clientWidth": 1280,
+    "hasShot": false,
+    "shotPosition": null,
+    "shotWidth": null,
+    "shotLeft": null
+  },
+  {
+    "slug": "doodles",
+    "width": 1920,
+    "errors": [],
+    "sideScroll": false,
+    "scrollWidth": 1920,
+    "clientWidth": 1920,
+    "hasShot": false,
+    "shotPosition": null,
+    "shotWidth": null,
+    "shotLeft": null
+  },
+  {
+    "slug": "doodles",
+    "width": 3440,
+    "errors": [],
+    "sideScroll": false,
+    "scrollWidth": 3440,
+    "clientWidth": 3440,
+    "hasShot": false,
+    "shotPosition": null,
+    "shotWidth": null,
+    "shotLeft": null
+  },
+  {
+    "slug": "layouts-need-fit",
+    "scrollProof": {
+      "before": {
+        "top": 162.1875,
+        "bottom": 640.75,
+        "height": 478.5625
+      },
+      "after": {
+        "top": 162.1875,
+        "bottom": 640.75,
+        "fullyVisible": true
+      }
+    }
+  },
+  {
+    "slug": "scale-1920-to-3413",
+    "scrollProof": {
+      "before": {
+        "top": 162.1875,
+        "bottom": 798.296875,
+        "height": 636.109375
+      },
+      "after": {
+        "top": 162.1875,
+        "bottom": 798.296875,
+        "fullyVisible": true
+      }
+    }
+  }
+]
