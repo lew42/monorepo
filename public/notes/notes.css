@@ -1,0 +1,48 @@
+/* /notes/ — the photographed-notebook pages.
+   Loaded once, from /notes/page.js, so every note in the realm has it.
+
+   Three rules only. Everything else on a note page is a framework utility
+   (`surface`, `pad`, `flex v gap`, `muted`) or `.md` prose — see the css skill's
+   ladder: nothing → a utility → a word → a component → the module's own sheet.
+   The `notes-` prefix is NOT yet in framework/styles/css-scopes.txt: this task's
+   write fence is public/notes/**, so the registry line is left for the owner —
+   readme.md says so. The name was censused clean on 2026-09-06 (no `.notes*`
+   rule exists in any stylesheet in the repo). */
+@layer site {
+
+	/* The photo IS the note, so it leads the page — but a 1600px scan of a
+	   notebook page is taller than any screen, and would push every word of the
+	   transcription below the fold. Cap it at a fold and let the reader open the
+	   full file: `min(66vh, 44em)` holds one screen at 400, 1280, 1920 and 3440
+	   alike. Height, never width — the photo keeps its own proportions.
+	   ⚠ Measured 2026-09-06: at a 900px-tall 1280 viewport this is a 594px-tall,
+	   446px-wide render of a 1200x1600 scan. Handwriting is legible at that size;
+	   58vh (511px) was not, which is why the cap is a fold and not less. */
+	.notes-shot { margin: 0; }
+
+	.notes-shot img {
+		max-height: min(66vh, 44em);
+		width: auto;
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+	}
+
+	/* The card thumb on /notes/. `.page-preview-thumb` is a 16/10 box, so a
+	   portrait photo has to be cropped: `top` keeps the writing, which on every
+	   note so far starts at the top of the page. */
+	.notes-thumb { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+
+	/* One position on the spread bar (visual-context). Left is set per marker
+	   from the data, so it is a runtime value and stays inline; everything
+	   static about the marker lives here. */
+	.notes-mark {
+		position: absolute;
+		top: 50%;
+		translate: -50% -50%;
+		width: 0.9em;
+		height: 0.9em;
+		border-radius: 50%;
+		background: var(--prim);
+		box-shadow: 0 0 0 2px var(--surface);   /* a ring, so two close marks stay two */
+	}
+}

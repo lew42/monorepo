@@ -1,15 +1,38 @@
-import { Page, md } from "/app.js";
+import { Page, View, md } from "/app.js";
 
+// One sheet for the whole realm, loaded here so every note in it is styled — the
+// same shape as /imagine/design/page.js loading design.css for its children.
+View.stylesheet(import.meta, "notes.css");
+
+/* Layout (the `layout` skill's five): a plain page grid in the app's main region —
+   /notes/ is a ROOT realm, not the /imagine/ columns host. One line of prose, then
+   one wall: `previews()` is already `bleed`, and each card sizes itself. The
+   photographed notes lead because their cards are pictures — show, don't tell — and
+   the three written notes follow as icon cards. No group headings: a wall of sixteen
+   cards where thirteen carry a photograph separates itself.
+
+   Order is the notebook's own — the sequence the pages were photographed in — because
+   several of them are two halves of one argument and read best in order. */
 export default new Page({
 	meta: import.meta,
 	title: "Notes",
-	description: "Short working notes for the team.",
-	children: "git-branch-names auth team-note",
+	description: "Short working notes for the team, and the notebook pages behind them.",
+	children: "scale-1920-to-3413 visual-context drop-target-ux anchor-point-optional "
+		+ "record-long-cut-to-60s shotgun-or-lav meeting-notes-are-ip one-video-everywhere "
+		+ "sign-up-flow topic-dbs-and-claims what-is-openmike right-people-not-many "
+		+ "strengths-and-weaknesses layouts-need-fit switch-or-transition notebook-cooked "
+		+ "each-meme-is-a-community levels-and-points personal-specs basketball-tower "
+		+ "edge-selection parallel-generation doodles "
+		+ "git-branch-names auth team-note",
+	// ⚠ Add a slug here ONLY once its `page.js` exists: a declared child without one 404s
+	// twice on EVERY page in the realm (the wall still renders — a null child falls back
+	// to the default card — so nothing looks wrong). Measured 2026-09-06 with `doodles`.
 
-	// Line first, then the cards — a reader who lands here should know what the
-	// section is before deciding which of three notes to open.
 	content(){
-		md("Anything that isn't documentation but everyone needs to know once.");
+		md("Anything that isn't documentation but everyone needs to know once — plus the "
+			+ "owner's photographed notebook pages. Each one is transcribed, linked to "
+			+ "whatever it turned into on this site, and built where it described "
+			+ "something buildable.");
 		this.previews();
 	}
 });

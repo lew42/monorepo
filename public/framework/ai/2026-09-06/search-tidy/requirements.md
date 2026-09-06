@@ -1,0 +1,11 @@
+# search-tidy — three loose ends the search build left outside its fence (Sonnet)
+
+Read first: `../../2026-09-04/mastermind-platform/minion-rules.md`; `../omnibox-search/task.jsonl` (the landing lines — read the "Left" items and the sandbox-stylesheet finding). Skills: `new-task` (this dir, group `web-ui`), `code`, `documentation`, `finish-task`.
+
+1. **`/imagine/platform/omnibox/`** still describes the retired prototype and reads "indexing…" for ever. Rewrite `public/imagine/platform/omnibox/page.js` as one screen: what the Omnibox is now (press `/` anywhere), a link to `/framework/core/Search/`, and the platform research this page was the home of (keep its links to the research entries; delete the dead prototype wiring). Zero console errors at 400 / 1280 / 3440.
+2. **`core/page.js`'s count sentence** ("four are an element, three are not") is wrong now that Search and Layout exist — make the sentence true by reading the dir (do not guess), or remove the count if it will only rot again.
+3. **The four personal sandboxes that repaint the site when imported** (`/castin/main.css` opens an undeclared `@layer theme_cm`; `/alex/` and `/edric/` ship unlayered CSS; `/arya/lib/Page.js` runs `app.$body.ac("arya")` at module scope) — these are the owner's guests' sandboxes, so do not restyle their work: the fix is containment. For each, the smallest change that stops the leak when the module is merely imported (wrap the sheet in a declared layer that sorts first, or scope its rules under the sandbox's own root; move the body-class line into the page's `initialize()`), proven by `Search.check()` reporting nothing and the computed styles of `/framework/` byte-identical before/after importing each sandbox page. Then delete the four skip lines in `core/Search` and prove the corpus count rose by the sandbox pages.
+
+## Fences and budget
+
+Write only: `public/imagine/platform/omnibox/page.js`, `public/framework/core/page.js` (one sentence), the four sandbox files named above, the skip list in `public/framework/core/Search/` (read its readme for where), this task dir. Shared server `http://localhost:8123/` — start none, kill none. Never `find /`; never spawn agents; never `git stash`/commit. Budget ~120k tokens. Report in ≤ 6 plain lines.
