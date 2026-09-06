@@ -66,9 +66,9 @@ export default new Paging({
 	})),
 
 	content(){
-		this.lede("Pick a shape in the bar over the page, then change a word to make it your own.");
-
 		this.stage(PRESETS[0].config);
+
+		this.lede("Pick a shape in the bar over the page, then change a word to make it your own.");
 
 		h2("All twelve");
 

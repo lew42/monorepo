@@ -58,13 +58,20 @@ export const RAIL = [
 			{ url: "/imagine/paging/templates/shells/", title: "Shells", icon: "dashboard" },
 		],
 	},
+	/* ⚠ THESE FOUR USED TO SAY `toolbars/` AND THEY SAY `arrangement/` NOW. The four
+	     `/imagine/paging/toolbars/<side>/` pages drew the same stage as four of
+	     arrangement's seven values, under a second set of names — so the realm had two
+	     words for one thing and the tiles read as four more pages than there were.
+	     The page is deleted (its urls still answer, saying where they went) and the
+	     tiles point at the value each one always was, with that value's own title.
+	     2026-09-06; doc/decisions.md. */
 	{
-		title: "Toolbars",
+		title: "Bars and panels",
 		items: [
-			{ url: "/imagine/paging/toolbars/top/", title: "Top", icon: "vertical_align_top" },
-			{ url: "/imagine/paging/toolbars/left/", title: "Left", icon: "format_align_left" },
-			{ url: "/imagine/paging/toolbars/right/", title: "Right", icon: "format_align_right" },
-			{ url: "/imagine/paging/toolbars/bottom/", title: "Bottom", icon: "vertical_align_bottom" },
+			{ url: "/imagine/paging/arrangement/bar-top/", title: "Toolbar top", icon: "vertical_align_top" },
+			{ url: "/imagine/paging/arrangement/rail-left/", title: "Panel left", icon: "format_align_left" },
+			{ url: "/imagine/paging/arrangement/rail-right/", title: "Panel right", icon: "format_align_right" },
+			{ url: "/imagine/paging/arrangement/bar-bottom/", title: "Footer", icon: "vertical_align_bottom" },
 		],
 	},
 	{

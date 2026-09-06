@@ -59,13 +59,12 @@ export default new Paging({
 
 	takeaway: "**One template, fifteen times: five surfaces across, three type scales down — every combination this site can make, in one screen.** Every cell is the same real blog section — `Post.hero()` for the lead and `Post.card()` for the row under it, over the same two real posts. Nothing but the two words on the box changed.",
 
+	/* ⚠ THE WALL IS THE FIRST THING ON THE PAGE. It used to open with the sentence,
+	     a paragraph and a heading called "The wall" — three blocks of prose before the
+	     fifteen cells the page is about (the owner, 2026-09-06: go straight into the
+	     demo). The sentence and the paragraph are underneath it now, and the heading is
+	     gone: a wall does not need a label when it IS the top of the page. */
 	content(){
-		this.lede();
-
-		md("**Colour is one class and typography is another, and neither knows about the other.** That is why there are fifteen cells and not fifteen designs: a surface is one declaration on the page's box (`paging.css`), a type scale is one custom property on the same box, and any pair composes. The token that does each one is printed beside it.");
-
-		h2("The wall");
-
 		div.c("templates-theming bleed", () => {
 			// The head row: nothing over the labels, then one heading per type scale.
 			div.c("templates-theming-corner", "surface ↓ / type →");
@@ -86,6 +85,10 @@ export default new Paging({
 				}));
 			});
 		});
+
+		this.lede();
+
+		md("**Colour is one class and typography is another, and neither knows about the other.** That is why there are fifteen cells and not fifteen designs: a surface is one declaration on the page's box (`paging.css`), a type scale is one custom property on the same box, and any pair composes. The token that does each one is printed beside it.");
 
 		h2("What you are looking at");
 

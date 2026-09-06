@@ -16,9 +16,9 @@ export default new Paging({
 	icon: "open_in_full",
 
 	content(){
-		this.lede("The page below has taken the screen. Click a page name in it, then use the trail at the top to come back — and *leave full screen* to put it in its box again.");
-
 		this.stage({ navigation: "takeover", content: "article", room: "full", arrangement: "plain", surface: "dark", background: "dark", type: "display" });
+
+		this.lede("The page above has taken the screen. Click a page name in it, then use the trail at the top to come back — and *leave full screen* to put it in its box again.");
 
 		h2("What it is made of");
 

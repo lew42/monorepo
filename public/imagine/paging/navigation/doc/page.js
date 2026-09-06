@@ -16,6 +16,12 @@ export default new Paging({
 	description: "How every number on the Navigation page was taken.",
 	icon: "straighten",
 
+	// ⚠ `heading: true` — a document keeps its title. Every DEMO page in this realm
+	//   drops core's `h1` so the demo starts at the top (`paging.js` `render()`); a
+	//   record whose markdown is rendered with `{ h1: false }` would then have no
+	//   title at all, on screen or in an outline.
+	heading: true,
+
 	route(name){
 		const record = RECORDS[name];
 		if (!record) return null;
@@ -28,6 +34,7 @@ export default new Paging({
 		return new Paging({
 			title: record[0],
 			description: record[1],
+			heading: true,
 			content(){ return md.file(meta, name + ".md", { h1: false }); },
 		});
 	},

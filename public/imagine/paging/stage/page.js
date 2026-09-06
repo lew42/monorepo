@@ -16,7 +16,7 @@ export default block({
 
 	axis: null,
 
-	lede_line: "Click the tabs on the page below and watch its white box. The line under it measures the box after every click.",
+	lede_line: "Click the tabs on the page above and watch its white box. The line under it measures the box after every click.",
 
 	/* ⚠ OPENS ON A CARD WALL, NOT AN ARTICLE. At 3440 this box is 2739px wide and an
 	     article's prose is capped at the 720px reading measure, so the page's whole

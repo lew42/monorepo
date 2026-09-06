@@ -29,9 +29,9 @@ export default new Paging({
 	children: "launch expand swap takeover",
 
 	content(){
-		this.lede("Click the four page names on the page below. Then change the **navigation** dropdown and click them again — same children, different answer.");
-
 		this.stage({ navigation: "tabs", content: "article", room: "wide", arrangement: "plain", surface: "card", background: "tint", type: "regular" });
+
+		this.lede("Click the four page names on the page above. Then change the **navigation** dropdown and click them again — same children, different answer.");
 
 		h2("The four, each on its own page");
 

@@ -39,8 +39,6 @@ export class Template extends Paging {
 	}
 
 	content(){
-		this.lede("Change the two colour dropdowns in the bar, and the type size: this real " + this.title.toLowerCase() + " repaints, live.");
-
 		/* ⚠ THE ADAPTER, not the page. `families.js` asks its host for `at("style")`
 		     to pick a tone word, and a `Paging` has no axes any more — so the draw
 		     seam hands the family a two-line object reading the STAGE's own config.
@@ -48,6 +46,8 @@ export class Template extends Paging {
 		this.stage(this.config(), {
 			draw: stage => this.family.example({ at: axis => stage.config[axis === "style" ? "surface" : axis] }, true),
 		});
+
+		this.lede("Change the two colour dropdowns in the bar, and the type size: this real " + this.title.toLowerCase() + " repaints, live.");
 
 		this.about();
 		this.made();

@@ -1,5 +1,5 @@
 import { div, h2, p, span, a, icon, md } from "/app.js";
-import { Paging } from "./paging.js";
+import { Paging, Stage } from "./paging.js";
 import { BLOCKS, CONTROLS, DEFAULT, values_for, layout_url } from "./blocks.js";
 
 /* ── ONE BUILDING BLOCK, AS A PAGE ────────────────────────────────────────────
@@ -35,9 +35,9 @@ class Block extends Paging {
 	     (paging-audit-2, break #3). `Paging.lede()` is the one call that gets it
 	     right, and now every page in the realm uses it. */
 	content(){
-		this.lede(this.lede_line);
-
 		this.stage({ ...DEFAULT, ...this.config });
+
+		this.lede(this.lede_line);
 
 		if (this.axes) this.groups();
 		else if (this.axis){
@@ -84,9 +84,22 @@ class Block extends Paging {
 		});
 	}
 
-	// A nav grid of a word's values. Clicking one opens that value's page —
-	// same page, same stage, that one word already set.
+	/* A GRID OF A WORD'S VALUES. Clicking one opens that value's page — same page,
+	   same stage, that one word already set.
+
+	   ⚠ `live: true` MAKES EVERY CARD A RUNNING PAGE. `/imagine/paging/toolbars/` used
+	     to be a second page for four of arrangement's seven values, and its cards were
+	     an icon and a sentence — so you clicked one to find out what it meant (the
+	     owner, 2026-09-06: *"these paging toolbars links don't really show anything
+	     meaningful"*). That page is deleted and this is where its job went: a card holds
+	     the stage RUNNING with that one word set, so the wall is seven pictures of seven
+	     page shapes and the click is confirmation rather than discovery.
+	     Arrangement is the one block that says it today. Any of the other four can, with
+	     the same word and no other change — it is the front page's `preset_card()`
+	     machinery (`.paging-shot`), which has been on screen since the wall shipped. */
 	values(axis, base = this.url){
+		if (this.live) return div.c("paging-wall-live wide", () => values_for(axis).forEach(value => this.value_shot(value, base, axis)));
+
 		return div.c("paging-cards", () => values_for(axis).forEach(value => this.value_card(value, base)));
 	}
 
@@ -103,6 +116,34 @@ class Block extends Paging {
 			span.c("paging-card-say", plain(value.means));
 		});
 
+		return this.with_layout(value, card);
+	}
+
+	/* THE SAME VALUE, DRAWN AS THE PAGE IT MAKES. The card is the front page's
+	   `.paging-shot`: a clipped frame with a real `Stage` in it at 0.6em, this block's
+	   own configuration with one word replaced.
+	   ⚠ `inner: true` — a nested stage draws no path bar and no caption, cannot take
+	     the screen, and never touches the address bar. Seven of them writing one url
+	     would fight, exactly as twelve would on the hub.
+	   ⚠ AND THE MINIATURE IS NOT CLICKABLE — `.paging-shot-frame > .paging-stage` is
+	     `pointer-events: none` in the stylesheet, because the CARD is the link and a
+	     live page inside it would swallow the click. */
+	value_shot(value, base, axis){
+		const shot = () => a.c("paging-shot").href(base + value.id + "/").append(() => {
+			div.c("paging-shot-frame", () => {
+				new Stage({ config: { ...DEFAULT, ...this.config, [axis]: value.id }, inner: true });
+			});
+
+			span.c("paging-shot-head", () => { if (value.icon) icon(value.icon); span(value.title); });
+			span.c("paging-shot-say", plain(value.means));
+		});
+
+		return this.with_layout(value, shot);
+	}
+
+	// The card, and — only where the value names one — the layout it compiles to,
+	// beside it rather than inside it.
+	with_layout(value, card){
 		if (!value.layout) return card();
 
 		return div.c("paging-card-cell", () => {
@@ -154,7 +195,7 @@ class Block extends Paging {
 			icon: value.icon ?? this.icon,
 			description: value.means,
 			axis: null,
-			lede_line: "**" + value.title + "** — " + value.means + " The page below is set to it.",
+			lede_line: "**" + value.title + "** — " + value.means + " The page above is set to it.",
 			config: { ...DEFAULT, ...this.config, [this.axis]: value.id },
 			places: [[this.title, this.url, "back to all " + values_for(this.axis).length + " values"]],
 		});

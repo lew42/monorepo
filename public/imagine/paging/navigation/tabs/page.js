@@ -21,16 +21,16 @@ export default new Paging({
 	description: "The tab strip never moves; make the panel behave too.",
 	icon: "tab",
 
-	takeaway: "**A tab strip is already stable — it is the panel under it that jumps.** Press the tabs in both boxes: the strip holds still in each, but in the first box the panel under it becomes a different height every time, and everything below it moves.",
+	takeaway: "**A tab strip is already stable — it is the panel under it that jumps.** Press the tabs in both boxes above: the strip holds still in each, but in the first box the panel under it becomes a different height every time, and everything below it moves.",
 
 	content(){
-		this.lede();
-
 		div.c("grid auto gap paging-nav-pair wide", () => {
 			this.box("Tabs as they work today", "The panel holds one page at a time and takes its height from it. On the site's own tabs page, switching `Overview` to `API` changes the panel's height by 1720px at 1280 and 1933px at 3440 — the worst vertical jump measured anywhere on the site.", false);
 
 			this.box("Tabs with a reserved panel", "The same strip, over a panel that is always as tall as its tallest tab. Nothing below the set moves, and the scrollbar stops jumping.", true);
 		});
+
+		this.lede();
 
 		h2("The rule");
 

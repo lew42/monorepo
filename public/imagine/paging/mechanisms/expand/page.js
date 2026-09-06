@@ -23,9 +23,9 @@ export default new Paging({
 	icon: "expand_more",
 
 	content(){
-		this.lede("**Open a page name on the page below.** The row grows downward, the line under the box says how many pixels the box grew by, and the address bar does not change at all.");
-
 		this.stage({ navigation: "expand", content: "article", room: "reading", arrangement: "plain", surface: "card", background: "plain", type: "regular" });
+
+		this.lede("**Open a page name on the page above.** The row grows downward, the line under the box says how many pixels the box grew by, and the address bar does not change at all.");
 
 		h2("What it is made of");
 

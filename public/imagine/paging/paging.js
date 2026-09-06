@@ -92,18 +92,40 @@ export class Paging extends Page {
 		return kid;
 	}
 
-	// The surface word a page may wear, stamped on its own view rather than on a
-	// column body — there is no column body any more.
+	/* THE SURFACE WORD a page may wear, stamped on its own view rather than on a
+	   column body — there is no column body any more.
+
+	   ⚠ AND NO `h1`. Core opens every page with `h1.page-title` written from its title,
+	     and on a page whose whole point is the demo that heading is the first 193px of
+	     the screen at 1280 before anything happens (measured before this change: the
+	     h1 at 41.6px down, 49.6px tall, then a 45px rhythm gap, then the sentence, then
+	     30px more). The owner, 2026-09-06: *"we don't need to write the h1, taking up so
+	     much space. instead, let's go straight into the demo."* So the demo starts at
+	     the top of the page, and the title is still said in the two places it already
+	     was: the BROWSER TAB (`Router` writes `document.title` on every navigation) and
+	     the RAIL TILE, which `Router.mark_links()` lights `.active` as you arrive.
+	   ⚠ A DOCUMENT IS NOT A DEMO. `heading: true` keeps the h1 — `doc/` renders its
+	     markdown with `{ h1: false }`, so core's heading IS that page's title, and a
+	     record with no title is not a record. Set it on anything that is prose. */
 	render(){
 		const view = super.render();
+
+		if (!this.heading) view.el.querySelector(":scope > h1.page-title")?.remove();
+
 		if (this.surface) view.ac("page-surface-" + this.surface);
 		return view;
 	}
 
-	/* ONE SENTENCE, saying what to DO. Not what you are about to be shown — the
-	   showing is right below it. (Every "Every page on this site is three things…"
-	   opening in this realm was deleted on 2026-09-05: if a reader can understand
-	   the sentence they did not need it, and if they cannot it is noise.) */
+	/* ONE SENTENCE, saying what to DO — and it goes UNDER the demo, small.
+
+	   ⚠ CALL IT AFTER `stage()`, NEVER BEFORE. A sentence above the demo pushes the
+	     demo down the screen, which is the whole thing the 2026-09-06 pass removed; and
+	     a reader who can understand the sentence did not need it first anyway. So the
+	     order on every page in this realm is: the demo, then the line that says what to
+	     do with it. If you write `this.lede(...)` at the top of a `content()` you have
+	     put prose above the fold again — move it below the `stage()` call.
+	   ⚠ AND SAY *ABOVE*, NOT *BELOW*. Every sentence that pointed at "the page below"
+	     was rewritten on 2026-09-06 when it moved under the stage. */
 	lede(text){
 		const words = text ?? this.takeaway;
 		return words ? md(words).ac("paging-lede") : null;
@@ -140,7 +162,14 @@ export class Paging extends Page {
 		     and revealed on hover, which put it on top of the demo's tab strip —
 		     paging-audit-2's break #1. It reserves its height now. */
 		div.c("paging-frame wide", () => {
-			const $bar = div.c("paging-toolbar-slot");
+			/* ⚠ `size-small` IS THE FRAMEWORK'S OWN SIZE WORD, and it is worth a line.
+			     `framework.css` gives every control one box whose height is a `min-height`
+			     in `em`, and `--size` scales that em: `.size-small` on any container takes
+			     every control inside it to exactly 0.75x — 36.09px to 27.06px at 1280, and
+			     43.19px to 32.39px at 3440. This bar is seven dropdowns and two buttons
+			     over a demo; it is chrome, not the subject, so it takes the small size and
+			     gives the pixels back to the page under it. */
+			const $bar = div.c("paging-toolbar-slot size-small");
 
 			stage = this.$stage = new Stage({ config, ...extra, page: this });
 

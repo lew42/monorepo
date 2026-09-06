@@ -16,16 +16,16 @@ export default new Paging({
 	description: "A box that keeps its height whatever you put in it.",
 	icon: "crop_free",
 
-	takeaway: "**Press the three panel names in both boxes and watch the dashed line underneath each one.** In the first box the line moves every time, because the box resizes itself to fit the panel. In the second box it never moves.",
+	takeaway: "**Press the three panel names in both boxes above and watch the dashed line underneath each one.** In the first box the line moves every time, because the box resizes itself to fit the panel. In the second box it never moves.",
 
 	content(){
-		this.lede();
-
 		div.c("grid auto gap paging-nav-pair wide", () => {
 			this.box("A box that fits its content", "The panel you are not reading is not there at all, so the box is whatever the panel needs. Switch panels and the box resizes — and everything on the page below it moves by the difference.", false);
 
 			this.box("A box with a reserved height", "Every panel is always in the box, stacked in one place, and the ones you are not reading are invisible rather than absent. So the box is always as tall as the TALLEST panel, and switching cannot change it.", true);
 		});
+
+		this.lede();
 
 		h2("The rule");
 

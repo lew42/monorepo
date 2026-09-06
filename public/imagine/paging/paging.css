@@ -517,6 +517,16 @@
 	     stage and the card walls to take the full width, which is the point of them. */
 	.paging-home > :is(p, h2, h3, ul, ol, .md, .paging-lede) { max-width: var(--measure, 40em); }
 
+	/* ── THE ONE SENTENCE, UNDER THE DEMO ─────────────────────────────────────
+	   It used to be a lede: full size, above the stage, under an `h1`. Both of those
+	   are gone (the owner, 2026-09-06: go straight into the demo), so it is now a
+	   caption for the thing above it and it is sized like one — the same 0.9em register
+	   as the rest of the realm's small print, one step up from `.paging-cap`'s 0.85em
+	   grey so the INSTRUCTION still reads louder than the pixel meter beside it.
+	   ⚠ The measure cap is on it wherever it lands: on the hub it comes from the rule
+	     above, and on a `.page` it comes from core's `main` track. */
+	.paging-lede { font-size: 0.9em; max-width: var(--measure, 40em); }
+
 	/* ── THE RAIL'S NAV GRIDS ─────────────────────────────────────────────────
 	   Sections of small tiles. auto-fill with a real --column, so a narrow rail is
 	   one tile across and a 3440 rail is two — never a stretched single column. */
@@ -1090,6 +1100,15 @@
 		border: 1px solid var(--line); border-radius: var(--radius);
 	}
 	.paging-shot-frame > .paging-stage { font-size: 0.6em; height: 100%; pointer-events: none; }
+
+	/* ⚠ A BAR AT THE BOTTOM HAS TO SURVIVE THE CROP. The frame is 13em tall and the
+	     page inside it is taller, so a `bar-bottom` page — the *Footer* value, and the
+	     hub's own *A page with a footer bar* preset — pushed its bar out of the bottom
+	     of the picture and the card was identical to `Plain`. The stage is a column;
+	     letting its BODY be the part that shrinks and clips puts the bar back on the
+	     frame's bottom edge, where the whole point of the value is that it sits.
+	     (`min-height: 0` because a flex item's floor is its content, not zero.) */
+	.paging-shot-frame > .paging-stage > .page-frame-body { flex: 1 1 auto; min-height: 0; overflow: hidden; }
 
 	/* ⚠ A STAGE DRAWN AS A PICTURE IS NOT A PAGE. The rule that used to turn core's
 	     container OFF in here is gone: core now puts it only on a page's OWN frame

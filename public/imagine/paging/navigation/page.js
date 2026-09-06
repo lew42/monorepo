@@ -39,17 +39,17 @@ export default new Paging({
 	index: true,
 	depth: 1,
 
-	takeaway: "**Press the buttons in both boxes below.** The left box moves the thing you were reading; the right box does not. That is the whole difference between the two kinds of navigation on this site.",
+	takeaway: "**Press the buttons in both boxes above.** The left box moves the thing you were reading; the right box does not. That is the whole difference between the two kinds of navigation on this site.",
 
 	children: "columns reserved tabs screen doc",
 
 	content(){
-		this.lede();
-
 		div.c("grid auto gap paging-nav-labs wide", () => {
 			new PagingNavLab({ says: "Something moves. A column appears and the row reflows; a panel changes height and the page under it slides." });
 			new PagingNavLab({ steady: true, says: "Nothing you were looking at moves. The columns keep their widths; the panel keeps its height." });
 		});
+
+		this.lede();
 
 		md("Same three columns, same two panels, same two buttons. **Two CSS rules** are the only difference, and both are on the next page: [columns that keep their width](/imagine/paging/navigation/columns/).");
 

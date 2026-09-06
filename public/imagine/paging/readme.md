@@ -52,9 +52,11 @@ export default new Paging({
     meta: import.meta,
     title: "A dashboard",
     content(){
-        this.lede("One sentence saying what to do.");
+        // The demo comes FIRST. There is no h1 on a page here, and nothing above the stage.
         this.stage({ navigation: "rail", content: "dashboard", room: "wide",
                      arrangement: "bar-top", surface: "card", background: "tint", type: "compact" });
+
+        this.lede("One sentence saying what to do with the page above.");
     },
 });
 ```
@@ -99,6 +101,11 @@ export default new Paging({
 
 ## Watch out
 
+- **No `h1` on a page here, and nothing above the stage.** `Paging.render()` takes core's
+  title heading off — it was the first 193px of the screen at 1280 — and the title is said by
+  the browser tab and the lit rail tile instead. Call `lede()` AFTER `stage()`; a document
+  (`doc/`, a reading) says `heading: true` to keep its title ·
+  [doc/decisions.md](/imagine/paging/doc/decisions/)
 - **A demo never persists.** A refresh puts every page here back to what it ships as.
   Only [Make](/imagine/paging/make/) and [Build](/imagine/paging/build/) save, and they
   say so out loud · [doc/persistence.md](/imagine/paging/doc/persistence/)

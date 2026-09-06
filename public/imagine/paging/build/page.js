@@ -149,12 +149,18 @@ export default new Paging({
 	},
 
 	// ── the page ─────────────────────────────────────────────────────────────
+	/* ⚠ THE MARK STAYS ON TOP, THE PARAGRAPH DOES NOT. Every demo page in this realm
+	     now opens on its demo with the sentence underneath (`paging.js` `lede()`), and
+	     the builder is this page's demo. The one thing that must be visible BEFORE you
+	     touch anything is the draft mark, because this page really does write to disk —
+	     so `lede()` (which is the mark, above) stays first and the explanation moves
+	     under the builder. */
 	content(){
 		this.lede();
 
-		md("Everything below writes into one small JSON file. **The left column names the page and fills it with blocks and pages; the middle is the page you are building, live, with the realm's own seven-word bar over it; the file underneath is what goes to disk.** Nothing here is a mock-up — press a tab in the middle and it really swaps, and the file below is really what gets written.");
-
 		this.builder();
+
+		md("Everything above writes into one small JSON file. **The left column names the page and fills it with blocks and pages; the middle is the page you are building, live, with the realm's own seven-word bar over it; the file underneath is what goes to disk.** Nothing here is a mock-up — press a tab in the middle and it really swaps, and the file below is really what gets written.");
 
 		h2("Adding a tab, and configuring one");
 
@@ -395,7 +401,9 @@ export default new Paging({
 	screen(){
 		p.c("muted build-caption", "The page, as it will be. Click a tab or a row — this rectangle is the only thing that changes.");
 
-		const $bar = div.c("paging-toolbar-slot");
+		// `size-small` — the same word the realm's own bar wears (`paging.js`): the
+		// framework's `--size` knob takes every control in here to 0.75x.
+		const $bar = div.c("paging-toolbar-slot size-small");
 
 		const build = new BuildStage({ page: this, node: this.node, classes: "build-screen" });
 

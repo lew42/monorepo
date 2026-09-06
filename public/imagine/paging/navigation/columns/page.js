@@ -58,14 +58,14 @@ export default new Paging({
 	description: "A column opens and nothing already open moves.",
 	icon: "view_column",
 
-	takeaway: "**Click `Detail` in both boxes below and watch the left edge of the `Setup` column.** In the top box it slides left, because the fourth column is paid for out of its neighbours' width. In the bottom box it does not move at all.",
+	takeaway: "**Click `Detail` in both boxes above and watch the left edge of the `Setup` column.** In the top box it slides left, because the fourth column is paid for out of its neighbours' width. In the bottom box it does not move at all.",
 
 	content(){
-		this.lede();
-
 		this.box("As the site works today", "Every column is elastic: it has a floor and a ceiling and takes a share of the row. A new column means a new share for everybody, so every open column narrows and slides.", false);
 
 		this.box("With one rule added", "Each column takes its own ceiling as a fixed width and neither grows nor shrinks. The new column is simply appended, and when the row runs out of space it scrolls — a scroll you can undo, rather than a reflow you cannot.", true);
+
+		this.lede();
 
 		h2("The rule");
 

@@ -1327,3 +1327,69 @@ width in a token, so a fraction of that token is the same intent with no extra e
 inside it). After: **22.7px at 3440, 11.0% of the rail, 1.26em**; 16.7 → 13.2px at 1280. Core's
 side boxes (`.page-rail`, `.page-panel`, `.page-aside`) name their width `--page-side-w` and
 derive `--pad` from it the same way.
+
+## The demo is the page — no `h1` over it (the owner, 2026-09-06)
+
+> on this paging system, we don't need to write the h1, taking up so much space. instead,
+> let's go straight into the demo to take less space.
+
+Core opens every page with `h1.page-title` written from its title. On `/imagine/paging/` that
+heading and the sentence under it were the **first 193.5px** of the content at 1280 before the
+bar even started: the h1 41.6px down and 49.6px tall, a 45px rhythm gap, a 27.1px sentence, then
+30px more. The demo's own top edge was **330.8px** at 1280 and **396.8px** at 3440.
+
+**What changed.** `Paging.render()` removes the `h1` unless the page says `heading: true`, so
+every demo page in the realm now starts at its stage — the toolbar's top edge is **41.6px**, the
+page's own top padding and nothing else, and the stage's is **129.9px at 1280** and **159.3px at
+3440** (−61% and −60%). The sentence a page needs moved UNDER the demo at 0.9em (`.paging-lede`),
+and every one that said *"the page below"* now says *above*.
+
+**The title is still said twice, in places that were already there.** `Router` writes
+`document.title` on every navigation, so the browser tab names the page; and `Router.mark_links()`
+puts `.active` on the rail tile you are standing on, which `.paging-tile.active` has painted since
+the rail shipped. Nothing new had to be built for either.
+
+**`heading: true` is for documents.** `doc/` and `navigation/doc/` render their markdown with
+`{ h1: false }`, so core's heading IS their title; `critique/` and `inventory/` are readings; a
+`Moved: …` page is one sentence and needs a name over it. Those say the word. A page that is a
+demo never should.
+
+**The two editors keep their opening line, and it is not prose.** Make and Build write to disk, so
+the first thing on each is its draft mark — the realm's rule is that nothing persists silently
+(`persistence.md`). Build's long paragraph moved under the builder; the mark did not move.
+
+## `toolbars/` is deleted — it was arrangement under a second name (the owner, 2026-09-06)
+
+> these paging toolbars links don't really show anything meaningful
+
+Every link on it was opened and judged. The four cards (`/toolbars/top|bottom|left|right/`) each
+opened a **live** stage, so none was broken — but `/toolbars/top/` and `/arrangement/bar-top/`
+drew the *same stage*, and `arrangement` already carries all seven values, each with its own url
+and a link to the proven `core/Layout` it compiles to. Twenty-four links across five pages, every
+one of them naming a placement in text without showing one, for four values that already existed.
+
+So the page went, and its job moved to where the vocabulary already was:
+
+- **`/imagine/paging/arrangement/` says `live: true`**, and every value is drawn as the page it
+  makes — a real `Stage` inside the card (`block.js` `value_shot()`, the front page's own
+  `.paging-shot` machinery). Seven pictures instead of seven sentences.
+- **The rail's *Toolbars* section is *Bars and panels***, pointing at `arrangement/bar-top/`,
+  `rail-left/`, `rail-right/` and `bar-bottom/` under the titles the rest of the realm uses.
+- **The five old urls still answer.** `/imagine/paging/toolbars/` and each `/toolbars/<side>/`
+  render a one-line moved page pointing at the arrangement value it was — the realm's own `MOVED`
+  table in `page.js`, extended one level for the four children.
+
+**One bug the miniatures found.** In a 13em clipped frame a `bar-bottom` page pushed its bar out
+of the bottom of the picture, so *Footer* was pixel-identical to *Plain* — and the hub's own *A
+page with a footer bar* preset had had the same defect since that wall shipped. The stage's BODY
+takes the shrink now (`flex: 1 1 auto; min-height: 0; overflow: hidden`), so the bar sits on the
+frame's bottom edge. One rule, both walls.
+
+## The bar over a demo takes the small size (2026-09-06)
+
+`framework.css` gives every control one box whose height is a `min-height` in `em`, and `--size`
+scales that em — so `.size-small` on any container takes every control inside it to exactly
+**0.75x**, corner and text included, with the border scaling because `box-sizing: border-box`
+puts it inside the height. One class on `.paging-toolbar-slot` (`paging.js`, and the same word on
+Build's own slot): the bar's seven dropdowns and two buttons went **36.09px → 27.06px at 1280**
+and **43.19px → 32.39px at 3440**. The bar is chrome over a demo, not the subject.

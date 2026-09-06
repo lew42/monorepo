@@ -18,9 +18,9 @@ export default new Paging({
 	icon: "chevron_right",
 
 	content(){
-		this.lede("Click a page name on the page below. A column opens to its right, and the line underneath says what that did to the box.");
-
 		this.stage({ navigation: "columns", content: "article", room: "wide", arrangement: "plain", surface: "card", background: "tint", type: "regular" });
+
+		this.lede("Click a page name on the page above. A column opens to its right, and the line under it says what that did to the box.");
 
 		h2("What it costs");
 

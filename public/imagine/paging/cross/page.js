@@ -37,8 +37,6 @@ export default new Paging({
 	down: "arrangement",
 
 	content(){
-		this.lede("**Pick two of the seven words.** Every cell below is a real page running that pair, and every cell is a link that opens it full size.");
-
 		this.pickers();
 
 		/* ⚠ THE WALL SAYS HOW WIDE IT IS. Six columns in a 957px middle at 1280 is a
@@ -47,6 +45,8 @@ export default new Paging({
 		this.$count = p.c("muted paging-cross-count", () => { this.count(); });
 
 		this.$wall = div.c("paging-cross-wall wide", () => { this.wall(); });
+
+		this.lede("**Those two dropdowns pick which word crosses which.** Every cell above is a real page running that pair, and every cell is a link that opens it full size.");
 
 		md("The other crossing is colour by type: [the theming wall](/imagine/paging/templates/theming/) puts fifteen of those on one screen. "
 			+ "One cell on its own, full size and configurable, is any page in [the library](/imagine/paging/library/).");
