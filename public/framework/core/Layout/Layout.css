@@ -1,0 +1,189 @@
+/* core/Layout — the tree, a layout page, and the fixture boxes.
+
+   Every rule is in `@layer theme`: the order lives once, in framework.css, and
+   `@layer util` beats `theme` at any specificity, so nothing here may go there.
+
+   ⚠ The whole file is one namespace, `page-layout-`, declared in
+   styles/css-scopes.txt. `page-` is core/Page's; `layout-` is ext/layout's. */
+
+@layer theme {
+
+	/* ── the tree ──────────────────────────────────────────────────────────── */
+
+	.page-layout-tree { align-items: flex-start; }
+
+	.page-layout-wall { flex: 1 1 22em; min-width: 0; }
+
+	.page-layout-rail input[type="search"] { width: 100%; min-width: 0; }
+
+	.page-layout-facet-head {
+		margin: calc(var(--gap-ramp) * 0.6) 0 0.2em;
+		font-size: 0.85em;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		opacity: 0.6;
+	}
+
+	.page-layout-facet { width: 100%; text-align: start; }
+
+	.page-layout-more { align-self: flex-start; }
+
+	/* ── a layout page: the viewport, and the strip beside it ──────────────── */
+
+	.page-layout-top { align-items: flex-start; }
+
+	/* `flex` is written per layout by Layout.js — the basis is the FLOOR. */
+	.page-layout-viewport { min-width: 0; }
+
+	.page-layout-aside { flex: 1 1 18em; min-width: 0; }
+
+	.page-layout-chips { margin-block-end: 0.5em; }
+
+	.page-layout-chip { font-size: 0.85em; padding: 0.2em 0.6em; min-height: 2.2em; }
+
+	/* The fixture host — the box a layout is placed IN. It carries the page's own
+	   gutters, so "text at the edge" means the layout escaped them, and it paints
+	   the tone the fixture asked for. */
+	.page-layout-host {
+		padding: var(--pad, var(--pad-default));
+		min-width: 0;
+	}
+
+	.page-layout-render { min-width: 0; }
+
+	/* A hairline on every box, drawn with `box-shadow` so it costs no layout: an
+	   arrangement you cannot see the tracks of teaches nothing. */
+	.page-layout-box {
+		min-width: 0;
+		box-shadow: inset 0 0 0 1px var(--line);
+		border-radius: 4px;
+		padding: 0.4em 0.6em;
+	}
+
+	.page-layout-box > h3,
+	.page-layout-box > h4 { margin: 0 0 0.3em; font-size: 1em; }
+
+	.page-layout-box > p { margin: 0 0 0.4em; }
+
+	/* ── the fixture kinds ─────────────────────────────────────────────────── */
+
+	.page-layout-row { display: block; padding: 0.25em 0; min-height: 2.2em; }
+
+	.page-layout-plate {
+		display: block;
+		aspect-ratio: 4 / 3;
+		background: var(--wash);
+		border-radius: 4px;
+	}
+
+	.page-layout-image { display: block; width: 100%; height: auto; border-radius: 4px; }
+
+	.page-layout-tile {
+		box-shadow: inset 0 0 0 1px var(--line);
+		border-radius: 4px;
+		padding: 0.5em 0.6em;
+		break-inside: avoid;
+	}
+
+	/* A token slot's LABEL ROW — never `.page-layout-bare` itself. `bare` is also the
+	   kind a STRUCTURAL box wears (a track that holds a split of its own), and that
+	   box carries its own `display: grid`; `align-items: baseline` on it stopped the
+	   rows stretching and two bounded layouts started spilling with nothing thrown
+	   (measured 2026-09-06). Style what the kind DRAWS, never the box it drew into. */
+	.page-layout-tokens {
+		display: flex;
+		gap: 0.4em;
+		flex-wrap: wrap;
+		align-items: baseline;
+	}
+
+	.page-layout-legend { font-weight: 700; }
+
+	.page-layout-btn { min-height: 2.2em; padding: 0 0.9em; }
+
+	.page-layout-table { border-collapse: collapse; width: max-content; }
+	.page-layout-table :is(th, td) { padding: 0.3em 0.6em; border-bottom: 1px solid var(--line); text-align: start; }
+
+	/* ── the strip ─────────────────────────────────────────────────────────── */
+
+	.page-layout-pane-head {
+		display: flex;
+		gap: 0.4em;
+		align-items: baseline;
+		flex-wrap: wrap;
+		font-size: 0.8em;
+		margin-block-end: 0.2em;
+	}
+
+	.page-layout-pane-below { opacity: 0.75; }
+
+	/* ── the props table, the word, the config ─────────────────────────────── */
+
+	.page-layout-props { border-collapse: collapse; width: 100%; }
+	.page-layout-props :is(th, td) { padding: 0.35em 0.6em; border-bottom: 1px solid var(--line); text-align: start; vertical-align: top; }
+
+	.page-layout-value { font-variant-numeric: tabular-nums; font-weight: 600; }
+
+	.page-layout-word { margin-block: 0.6em 0.3em; }
+
+	.page-layout-config { display: block; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+	/* ── a violation: visible, never blocking ──────────────────────────────── */
+
+	.page-layout-warn { position: relative; outline: 2px dashed var(--warn); outline-offset: 2px; }
+
+	.page-layout-warn-badge {
+		position: absolute;
+		inset-block-start: 0;
+		inset-inline-end: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.2em;
+		max-width: min(28em, 100%);
+		padding: 0.3em 0.5em;
+		background: var(--warn);
+		color: var(--surface);
+		border-radius: 0 4px 0 4px;
+		font-size: 0.8em;
+	}
+
+	.page-layout-warn-line { color: inherit; text-decoration: underline; }
+
+	/* ── the fixture verdict ───────────────────────────────────────────────── */
+
+	.page-layout-run { min-height: 2.2em; }
+
+	.page-layout-finding {
+		display: flex;
+		gap: 0.6em;
+		flex-wrap: wrap;
+		padding: 0.25em 0;
+		border-bottom: 1px solid var(--line);
+	}
+
+	.page-layout-bad .page-layout-value { color: var(--error); }
+
+	/* ── the card's picture ────────────────────────────────────────────────── */
+
+	.page-layout-picture {
+		width: 100%;
+		height: 100%;
+		gap: 6px;
+		grid-auto-rows: 1fr;
+		align-content: stretch;
+		align-items: stretch;
+	}
+
+	/* `flex: 1 1 0` so the tracks of a stack share the height evenly — a box that
+	   declares its own `flex` (a rail's `0 0 15em`) overrides this the ordinary way. */
+	.page-layout-block {
+		background: var(--wash);
+		box-shadow: inset 0 0 0 1px var(--line);
+		border-radius: 3px;
+		min-width: 0;
+		min-height: 8px;
+		flex: 1 1 0;
+	}
+
+	.page-layout-block .page-layout-block { background: color-mix(in srgb, var(--ink) 12%, transparent); }
+}

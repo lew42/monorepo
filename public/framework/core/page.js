@@ -3,7 +3,7 @@ import { Page, md, code, h2, demo, div, span, toc } from "/app.js";
 export default new Page({
 	meta: import.meta,
 	title: "Core",
-	description: "The core classes. Four are an element you can point at in the inspector; three are not.",
+	description: "The core classes. Five are an element you can point at in the inspector; four are not.",
 	icon: "dashboard",
 
 	children: "View Page Router App Sidebar Search Layout Item List",
