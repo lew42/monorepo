@@ -76,6 +76,23 @@ export const SEED = [
 // a page you make and a page the drawer writes start from the same seven words.
 export const DEFAULTS = { ...DEFAULT };
 
+/* ── ONE NODE → ONE FILE ──────────────────────────────────────────────────────
+   `children` becomes an array of DIRECTORY NAMES: the only difference between the node
+   in memory and the file on disk.
+
+   ⚠ A FUNCTION, not only a method, because two things print this answer. The store
+     writes it; the drawer SHOWS it on a page you made ("this page, as a file"), and it
+     was composing its own guess instead — seven words with no blocks and no children,
+     thirty pixels from the real thing (paging-audit-7b). One writer, one printer, one
+     answer. */
+export const file_of = node => ({
+	title: node.title,
+	icon: node.icon ?? "description",
+	description: node.description ?? "A page you made.",
+	mode: { ...DEFAULTS, ...node.mode },
+	children: (node.children ?? []).map(kid => kid.name),
+});
+
 export const clone = value => JSON.parse(JSON.stringify(value));
 
 /* ── walking a tree ────────────────────────────────────────────────────────────
@@ -184,17 +201,9 @@ export class FileStore extends Store {
 		return nodes.filter(Boolean);
 	}
 
-	// ONE NODE → ONE FILE. `children` becomes the array of directory names, which is
-	// the only difference between the node in memory and the node on disk.
-	file(node){
-		return {
-			title: node.title,
-			icon: node.icon ?? "description",
-			description: node.description ?? "A page you made.",
-			mode: { ...DEFAULTS, ...node.mode },
-			children: (node.children ?? []).map(kid => kid.name),
-		};
-	}
+	// ONE NODE → ONE FILE, and it is `file_of()` above — a method so a subclass could
+	// change it, a function so the drawer can print the same answer without a store.
+	file(node){ return file_of(node); }
 
 	/* ⚠ EVERY WRITE IS RACED. See `PROBE` above — an unanswered `rpc` never rejects,
 	     it simply never settles, so without this a dead server is a frozen page.

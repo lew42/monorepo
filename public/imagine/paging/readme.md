@@ -73,26 +73,35 @@ export default new Paging({
   paints the page behind it. Each is a dropdown with a dot beside it in the colour it
   is currently on — the one control whose value is a thing rather than a word.
 - The drawer (**More**) holds the link to this exact page, the full form with a sentence
-  per value, the JSON, **the `page.js` this would be**, **nest** — any of the twelve presets
-  *or any url*, including a page you made — and **make this a page**, which takes a name you
-  type and writes a real `page.json` to disk in dev.
+  per value, **nest** — any of the twelve presets *or any url*, including a page you made —
+  the page **as a file**, the page **as code**, and, on a page you made, **delete**.
+- **The drawer asks the page what it is**, because the same rail hangs over three different
+  kinds of page. A demo is only seven words, so it gets the file it *would* be and *make this
+  a page*. A page you **made** answers `node_now()`, so it gets the file it already **is** and
+  the `page.js` for its real children — and it can be deleted. **Build** also sets
+  `prints_own_file`, so the drawer prints neither: the builder shows one file, one code box
+  and one Save on the page itself, and the drawer points at them.
 
 ## Watch out
 
 - **A demo never persists.** A refresh puts every page here back to what it ships as.
   Only [Make](/imagine/paging/make/) and [Build](/imagine/paging/build/) save, and they
-  say so out loud · [doc/persistence.md](./doc/persistence.md)
+  say so out loud · [doc/persistence.md](/imagine/paging/doc/persistence/)
 - **The realm is not a columns row.** `Paging.column_host()` returns nothing, so a page
   here is a plain page in the app's middle — that is what makes a deep link change one
-  thing instead of opening two columns · [doc/decisions.md](./doc/decisions.md)
+  thing instead of opening two columns · [doc/decisions.md](/imagine/paging/doc/decisions/)
 - **A View's class name IS a CSS class.** `View.classify()` lowercases every constructor
   in the chain, so a class called `Stage` wore the framework's own `.stage` word and
   shrink-wrapped itself to 307px inside a 1546px frame, silently. Names here are
-  `PagingStage` / `PagingToolbar` · [doc/decisions.md](./doc/decisions.md)
+  `PagingStage` / `PagingToolbar` · [doc/decisions.md](/imagine/paging/doc/decisions/)
 - **Set a View's fields before `super.initialize()`** — `View.initialize()` IS the render.
 - **A field shadows a method.** `card`, `opens`, `chosen`, `nested` have each bitten this
   realm; core's `Page.nav()` reads `this.card`, so a method of that name throws on every
-  preview · [doc/decisions.md](./doc/decisions.md)
+  preview · [doc/decisions.md](/imagine/paging/doc/decisions/)
+- **A sticky grid item is held by the grid CONTAINER, not by its own row** (Chromium). The
+  builder's middle column stayed pinned over the file and the code boxes the whole way down,
+  because those were rows of the same grid. They are siblings under the card now, so the
+  column lets go where the card ends · [doc/decisions.md](/imagine/paging/doc/decisions/)
 - **A child with `container-type: inline-size` may not be sized by its own contents** —
   one that also carries `align-self: start` collapses to 0px inside a flex column
   (`blog.css`'s `.blog-hero`). `.paging-canvas > *` stretches them back.

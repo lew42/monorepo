@@ -216,6 +216,11 @@ export function code_for_node(node){
 		   own words; this is the line that reads it back, and until 2026-09-05 the printed
 		   file carried the COMMENT with no code under it (paging-audit-6b, break 1). */
 		kids.some(is_default) ? `\t\t\topen: ${default_index(node)},     // the tab that opens first` : null,
+		/* THE PAGE INSIDE THIS ONE — the eighth thing a page says, and it rides in `mode`
+		   like the blocks (`../blocks.js` EXTRAS). Without this line the drawer printed a
+		   `page.js` for a page with a whole other page running in its box and the file
+		   drew an empty one (paging-audit-7b). */
+		mode.nest ? `\t\t\tnest: ${JSON.stringify(mode.nest)},   // a whole page, running inside this one` : null,
 		kids.length ? `\t\t\tpages: [\n` + kids.map(kid =>
 			`\t\t\t\t{ title: ${JSON.stringify(kid.title)}, icon: ${JSON.stringify(kid.icon ?? "description")}, text: ${JSON.stringify(kid.description || "")} },`).join("\n") + `\n\t\t\t],` : null,
 		blocks.length ? `\t\t\tdraw: () => {\n` + blocks.map(block => `\t\t\t\t${call_for(block)}`).join("\n") + `\n\t\t\t},` : null,

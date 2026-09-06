@@ -1,12 +1,12 @@
 /* ── THE BUILDER ───────────────────────────────────────────────────────────────
-   Two columns — the controls and the page being built — and two full-width rows under
-   them: the file it writes, then the `page.js` it would be.
+   A two-column card — the controls and the page being built — and, UNDER the card, two
+   full-width boxes: the file it writes, then the `page.js` it would be.
 
    ⚠ IT WAS THREE COLUMNS UNTIL 2026-09-05, and the third was 287px holding a 455px
      line: `"navigation": "tabs"` and every other value ran off the right edge of the
      box whose whole job is to show you the file (paging-audit-6, item 6). A page.json
-     line is as long as a page.js line, so it gets what step 7 already had — the row
-     under both columns, and its own scroll.
+     line is as long as a page.js line, so it gets what step 7 already had — the whole
+     width under both columns, and its own scroll.
 
    ⚠ A GRID, NOT `.cols`. The utility is a TWO-track ratio row, and three tracks
      with two capped sides would mean overriding `--cols-w` — which lives in
@@ -22,7 +22,15 @@
 
 @layer theme {
 
-	.build { container-type: inline-size; }
+	/* THE CARD, THEN THE TWO BOXES UNDER IT. They were rows of the card's own grid until
+	   2026-09-05; Chromium holds a sticky GRID ITEM inside the whole grid container
+	   rather than inside its own row, so the middle column painted over both of them
+	   all the way down the page (paging-audit-7b, fix 5). One flex column, three
+	   children, and the card ends where its two columns end. */
+	.build {
+		container-type: inline-size;
+		display: flex; flex-direction: column; gap: var(--gap, var(--gap-default));
+	}
 
 	.build-card {
 		display: grid;
@@ -60,7 +68,17 @@
 		   start` is what makes it possible: a stretched grid item is as tall as its
 		   area and has nowhere to stick. Only in the three-column layout — when they
 		   are stacked, the stage is already next to the control you just pressed. */
-		.build-centre { position: sticky; top: 0.5em; align-self: start; }
+		/* ⚠ AND A STICKY COLUMN NEEDS A CEILING. Without one, the moment the middle is
+		     taller than the window — one nested page, or a couple of blocks — the card
+		     sticks at its own top and its BOTTOM hangs past the viewport, painting over
+		     the file pane you scroll down to. Measured at 3440: the column was 1617px in
+		     a 1400px window, and 3 of 4 probe points along the file pane's own line hit
+		     this element instead of the text (paging-audit-7b, fix 5). A ceiling and its
+		     own scroll: the column follows you down and stays inside the screen. */
+		.build-centre {
+			position: sticky; top: 0.5em; align-self: start;
+			max-height: calc(100vh - 1em); overflow: auto;
+		}
 	}
 
 	/* ── the two side columns ─────────────────────────────────────────────── */
@@ -147,7 +165,7 @@
 	   not grow with it, so this one box scrolls and nothing else on the page does. */
 	/* THE FILE TAKES THE ROW UNDER BOTH COLUMNS, with its own scroll in both axes -
 	   the same answer step 7's code box already had, for the same reason. */
-	.build-file-row { grid-column: 1 / -1; min-width: 0; }
+	.build-file-row { min-width: 0; }
 	.build-json-text { max-height: 26em; overflow: auto; }
 
 	/* ── STEP 7 TAKES THE WHOLE CARD ──────────────────────────────────────────
@@ -156,7 +174,7 @@
 	     each line — every value off the right edge (paging-audit-5, item 1). It is the
 	     last step, so it costs nothing to give it the row under all three columns: full
 	     width, and its own scroll in both axes rather than pushing the card wider. */
-	.build-code-row { grid-column: 1 / -1; min-width: 0; }
+	.build-code-row { min-width: 0; }
 	.build-code { max-height: 30em; overflow: auto; }
 
 	.build-where { font-size: 0.85em; }

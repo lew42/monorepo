@@ -233,6 +233,23 @@ but `made/` is **user data in the repo**, so stray test pages want pruning befor
 with its parent. The parent's `page.json` is rewritten first, so a half-finished delete leaves
 an orphan directory nothing names rather than a name pointing at nothing.
 
+### Unmaking a page — the two places, and why both halves go together
+
+A page you make has to be un-makeable, and until 2026-09-05 the only way out was the
+filesystem — which left the parent's `children:` naming a directory that is not there, the
+one trap `CLAUDE.md` warns about (paging-audit-7). There are two doors now, and **both go
+through `Make.remove_at()`**, which is the same one write seam every other edit takes:
+
+- **Make's list.** The `×` on a row turns that row into the question — *Delete Notes and the
+  2 pages under it?* — with **Delete it** and **Cancel**. It was a one-press `×` with no label.
+- **The page's own drawer.** *Delete ‹title›*, then *Yes — delete ‹title› and its file*. The
+  page you are standing on has just stopped existing, so this one **navigates to the parent**
+  rather than leaving a live view of a deleted page on screen.
+
+`FileStore.save(tree, was)` does both halves in one write: `rm` on the directory, and the
+parent's `page.json` rewritten without the name. There is no way to do one without the other,
+which is the whole point.
+
 ---
 
 ## Pages as pure JSON — what the format can and cannot say
@@ -334,7 +351,8 @@ that persists.
   `Map` when `localStorage` throws, and neither reset can reach that map — so in a browser that
   blocks storage the *reload* is what puts the demos back, not the clear.
 - **A page you delete under Make while its column is open stays on screen until you navigate.**
-  The row is gone from the tree and from disk; core does not unmount a column it was not asked to.
+  The row is gone from the tree and from disk; core does not unmount a column it was not asked
+  to. Deleting from the page's OWN drawer does not have this problem — it navigates for you.
 - **A mode is not shareable.** It is `localStorage` per url, which is honest — nothing in the
   address can be stale on another machine — but a look you like is not a link you can send. A
   query string would fix it and would be the first state this site puts in a url. The owner decides.

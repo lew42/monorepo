@@ -1,8 +1,9 @@
 # Build — the page builder
 
-**"New page" to a finished page, with nothing but controls.** Seven controls on the left, the
-page assembling live in the middle, and the `page.json` it writes on the right — changing with
-every click. Save puts it on disk beside every other page you have made.
+**"New page" to a finished page, with nothing but controls.** Three controls on the left, the
+page assembling live in the middle under the realm's own seven-word bar, and — under both — the
+`page.json` it writes and the `page.js` it would be, changing with every click. Save puts it on
+disk beside every other page you have made.
 
 Live: [/imagine/paging/build/](/imagine/paging/build/)
 
@@ -68,6 +69,13 @@ left is the crumb strip, the node's title, and the child panel's *"the url did n
   data core reads off a page. The head note in `page.js` names each one.
 - **`.cols` is `display: flex` in `@layer util`** and beat this sheet's `display: grid` at any
   specificity — the card shipped as two columns until the class came out of the markup.
+- **A sticky grid item is held by the grid CONTAINER, not its own row** (Chromium). The middle
+  column stayed pinned over the file and the code the whole way down while those were rows of
+  the same grid; they are siblings under the card now.
+- **The drawer over this page prints nothing of its own.** `prints_own_file: true` and
+  `node_now()` are what tell it so — otherwise it printed a second file and a second `page.js`,
+  neither of them the page you were building ·
+  [`../doc/builder.md`](/imagine/paging/doc/builder/)
 - **`pre` is a dark code block in this theme.** Overriding only its background left #e6e6e6 ink
   on a near-white box; the JSON pane read as an empty grey rectangle in three screenshots.
 - The template families are imported **lazily** — `families.js` pulls the magazine, the blog

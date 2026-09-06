@@ -79,6 +79,37 @@ function grow(nodes, make, path = []){
 			description: node.description ?? "A page you made.",
 			children: grow(node.children ?? [], make, here),
 
+			/* ── WHAT THE DRAWER ASKS THIS PAGE ───────────────────────────────
+			   The bar over this stage brings the drawer with it, and the drawer's boxes
+			   were written for a page that IS SEVEN WORDS. This page is a node: it has
+			   children, and it is a file on disk already. So it hands the drawer that
+			   node and the drawer prints the real thing — on `make/notes/` the printed
+			   `page.js` had no `pages:` and no `children:`, so the file it gave you would
+			   have drawn four canned strangers instead of Today and Later
+			   (paging-audit-7b, fix 1).
+
+			   ⚠ READ OUT OF THE TREE, NOT OUT OF THE CLOSURE. `node` is the node this
+			     page was GROWN from; every edit rebuilds the tree, and this view stays on
+			     screen — so the closure's copy goes stale the moment you set a word in the
+			     bar, and the drawer would print the page as it was one click ago. */
+			node_now(){ return at(make.tree, here); },
+
+			/* ── AND IT CAN BE UNMADE ─────────────────────────────────────────
+			   There was no delete anywhere in the realm, so every trial page was a
+			   permanent row, and removing the directory by hand left this page's PARENT
+			   naming a child that 404s (paging-audit-7, item 3). `remove_at()` is Make's
+			   own one write seam and it does both halves in one save: `rm` on the
+			   directory, and the parent's file rewritten without the name.
+
+			   ⚠ IT ANSWERS WITH WHERE TO GO. The page you are standing on has just
+			     stopped existing, so the caller navigates — and the parent url is read
+			     BEFORE the removal, while the parent page is still in the tree. */
+			delete_now(){
+				const back = here.length > 1 ? (make.at_path(here.slice(0, -1))?.url ?? make.url) : make.url;
+				make.remove_at(here);
+				return back;
+			},
+
 			content(){
 				this.lede("A real page, at a real url, drawn from one small JSON file. **Change a word in the bar and it is written to the file** — reload and it is still there.");
 
@@ -272,7 +303,7 @@ export default new Paging({
 
 		h3("The pages you have made");
 
-		md("Each row is a real page. **Click its title** to open it as a column. **Click one of its four words** to change it — the word cycles through the vocabulary and the page is rebuilt immediately. Then the five buttons at the end of the row: **rename** it in place, move it **up** or **down** among its siblings, **add** a child under it, **delete** it and its file.");
+		md("Each row is a real page. **Click its title** to open it as a column. **Click one of its four words** to change it — the word cycles through the vocabulary and the page is rebuilt immediately. Then the five buttons at the end of the row: **rename** it in place, move it **up** or **down** among its siblings, **add** a child under it, and **delete** it — the row turns into the question first, and the second press removes the directory and its `page.json` and takes the name out of the page above it.");
 
 		// ⚠ Captured NOW, filled in the callback: `ready()` is a fetch, and a factory
 		//   call after the await would land in whatever box is current by then.
@@ -294,7 +325,7 @@ export default new Paging({
 			"- **Add a tab** — the `+ tab` button on that row. (On a `columns` page the same button says `+ page`, because that is what you get.)\n" +
 			"- **Rename a tab** — the pencil on the tab's own row. The label changes; the file does not move, so a url somebody saved still works.\n" +
 			"- **Reorder the tabs** — the ↑ and ↓ buttons on the tab's row. Tabs appear in the order the parent lists its children, which is the order you see here.\n" +
-			"- **Remove a tab** — `×`. It is a page, so this deletes the page.");
+			"- **Remove a tab** — `×`, then *Delete it*. A tab is a page, so this deletes the page: the directory goes and the parent stops naming it.");
 
 		md("⚠ **Tabs do not change the url.** A tab strip is `swap`: the panel changes and the address bar does not, so a tab cannot be linked to or reached with the Back button. Every panel therefore carries a link that opens the same child as a column, which does change the url. If a child deserves an address, leave the parent on `columns` ([the four mechanisms](/imagine/paging/mechanisms/)).");
 
@@ -312,7 +343,7 @@ export default new Paging({
 
 		h3("What a page can and cannot say as JSON");
 
-		md("`title`, `icon`, `description`, `width` and `children` are read straight off the object by core's own `declare()` — that is why these are real pages with real urls and no code. What JSON *cannot* say is a `content()` body: for that a page needs a renderer, which is js. The full table, and the shortest path from here to every kind of page on the site: [doc/persistence.md](/imagine/paging/doc/persistence.md).");
+		md("`title`, `icon`, `description`, `width` and `children` are read straight off the object by core's own `declare()` — that is why these are real pages with real urls and no code. What JSON *cannot* say is a `content()` body: for that a page needs a renderer, which is js. The full table, and the shortest path from here to every kind of page on the site: [Persistence](/imagine/paging/doc/persistence/).");
 	},
 
 	// The one line that says where these pages actually are. Redrawn on every edit,

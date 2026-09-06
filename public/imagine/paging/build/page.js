@@ -87,6 +87,18 @@ export default new Paging({
 		this.saved_to = kept.saved_to;
 	},
 
+	/* ── WHAT THE DRAWER ASKS THIS PAGE ───────────────────────────────────────
+	   The bar over the stage brings the drawer with it, and every box in that drawer was
+	   written for a page that IS SEVEN WORDS. This page is not one: it is a node with
+	   blocks and children, and it prints its own file and its own `page.js` full-width
+	   under the builder, with the one Save that writes them. So it answers the drawer's
+	   two questions and the drawer stops printing a second, different answer
+	   (paging-audit-7b, fixes 1 and 4). `named()` is what gives every child a directory
+	   name, which is what the printed file and the printed code both need. */
+	node_now(){ return this.named(this.node); },
+
+	prints_own_file: true,
+
 	// ⚠ `patch`, never `set`: this page's own mode record lives under the same key and
 	//   a `set` would replace the whole record and drop it. Make's own note, same store.
 	keep(){
@@ -158,7 +170,7 @@ export default new Paging({
 
 		md("That is why the last control is **Code**. When the builder cannot say a thing, it prints the `page.js` a hand would write for what you have built so far — with the line where your code goes already marked.");
 
-		md("Where the pages go, what the mark at the top means, and why there is exactly one store: [doc/persistence.md](/imagine/paging/doc/persistence.md). The CRUD list of everything you have made: [Make](/imagine/paging/make/).");
+		md("Where the pages go, what the mark at the top means, and why there is exactly one store: [Persistence](/imagine/paging/doc/persistence/). The CRUD list of everything you have made: [Make](/imagine/paging/make/).");
 	},
 
 	/* ── THE THREE-COLUMN CARD ────────────────────────────────────────────────
@@ -170,23 +182,33 @@ export default new Paging({
 		     beats this sheet's `display: grid` at any specificity and the card came out
 		     as two 612px columns with the file column pushed off the bottom. The fix is
 		     to drop the utility, never to fight it (`css` skill; measured 2026-09-05). */
-		return div.c("build wide", () => div.c("build-card", () => {
-			this.$controls = div.c("build-controls flex v gap", () => { this.controls(); });
-			this.$screen = div.c("build-centre", () => { this.screen(); });
-			/* ⚠ THE FILE SPANS THE CARD TOO, for step 7's reason. A `page.json` line is
+		/* ⚠ THE TWO BOXES ARE UNDER THE CARD, NOT ROWS OF IT — and that is what lets the
+		     middle column stick. In Chromium a `position: sticky` GRID ITEM is held inside
+		     its grid CONTAINER, not inside its own grid area, so while the file and the
+		     code were rows of the same grid the stage stayed pinned to the top of the
+		     window the whole way down and painted over both of them (measured at 3440:
+		     3 of 4 probe points along the file pane's own first line hit the stage —
+		     paging-audit-7b, fix 5). As siblings, the card ends where the columns end,
+		     and the stage lets go exactly there. */
+		return div.c("build wide", () => {
+			div.c("build-card", () => {
+				this.$controls = div.c("build-controls flex v gap", () => { this.controls(); });
+				this.$screen = div.c("build-centre", () => { this.screen(); });
+			});
+
+			/* ⚠ THE FILE TAKES THE WHOLE WIDTH, for step 7's reason. A `page.json` line is
 			     60–80 characters and the column was 287px holding 455 — `"navigation":
 			     "tabs"` and every other value off the right edge, in the box whose whole
 			     job is to show you the file (paging-audit-6, item 6). */
 			this.$json = div.c("build-file-row flex v gap", () => { this.json_box(); });
 
-			/* ⚠ STEP 7 SPANS THE WHOLE CARD, and it is the last control for that reason:
-			     it prints a `page.js`, whose lines are 60–80 characters. In the 230px
-			     control column that showed a QUARTER of each line — `navigation:`, `room:`
-			     and the other five keys had their values off the right edge, on the step
-			     whose entire job is to show you the seven words (paging-audit-5, item 1).
-			     A full-width row and its own scroll, like the drawer's code boxes. */
+			/* ⚠ AND SO DOES STEP 7, which is the last control for that reason: it prints a
+			     `page.js`, whose lines are 60–80 characters. In the 230px control column
+			     that showed a QUARTER of each line — `navigation:`, `room:` and the other
+			     five keys had their values off the right edge, on the step whose entire job
+			     is to show you the seven words (paging-audit-5, item 1). */
 			this.$code = div.c("build-code-row", () => { this.code_part(); });
-		}));
+		});
 	},
 
 	/* ════ THE CONTROLS, IN ORDER ══════════════════════════
@@ -378,6 +400,13 @@ export default new Paging({
 		const build = new BuildStage({ page: this, node: this.node, classes: "build-screen" });
 
 		build.$stage.keep = (axis, value) => this.set_words({ [axis]: value }, { screen: false });
+
+		/* THE EIGHTH WORD: the page inside this one. Its own hook because it is not one of
+		   the seven and has no axis to name — the twin of `make/page.js`'s, on the page a
+		   builder is building rather than one already saved. Without it the nest chips
+		   changed the picture and wrote nothing (paging-audit-7b, break a). */
+		build.$stage.keep_nest = id => this.set_words({ nest: id ?? undefined }, { screen: false });
+
 		$bar.append(() => new Toolbar({ stage: build.$stage, page: this }));
 
 		return p.c("muted build-caption", () => { md("A **picture that works**: the tabs really swap and the prose really goes through `md()`. Every word in the bar above is written straight into the file on the right. What it cannot do is route — the page has no url until you save it."); });

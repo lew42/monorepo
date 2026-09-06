@@ -93,7 +93,7 @@ export default new Paging({
 
 		md("**Across the page, hierarchy.** One custom property moves the type step, and the heading ramp follows it: `compact` is a dense index or a rail, `regular` is every page you have read on this site, `display` is a cover or a slide. The words are identical in all fifteen cells — only the ratio between them moved.");
 
-		md("**What this proves for templates.** A template family and a theme are independent choices, the same way a mechanism and a surface are ([Paging](/imagine/paging/)). Any of the eleven [templates](/imagine/paging/templates/) can be worn in any of these fifteen ways, which is why a made page needs FOUR words and not two: a template, a surface, a type scale, and what a click does. [The proposal](/imagine/paging/doc/templates.md).");
+		md("**What this proves for templates.** A template family and a theme are independent choices, the same way a mechanism and a surface are ([Paging](/imagine/paging/)). Any of the eleven [templates](/imagine/paging/templates/) can be worn in any of these fifteen ways, which is why a made page needs FOUR words and not two: a template, a surface, a type scale, and what a click does. [The proposal](/imagine/paging/doc/templates/).");
 
 		p.c("muted", "Every cell is a real link — the lead in it goes to the real post it names.");
 	},

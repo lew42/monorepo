@@ -265,6 +265,12 @@ export class PagingToolbar extends View {
 	   copy into a directory of your own. (Build has printed its nodes since it
 	   shipped; the stage had no way out at all until now.) */
 	code(){
+		/* ⚠ NOT ON A PAGE THAT ALREADY PRINTS ITS OWN. Build shows the `page.js` for the
+		     node you are building, full-width, as its fourth control — so this button
+		     would open a drawer to show you a second copy of a box already on screen
+		     (paging-audit-7b, fix 4). One code box per screen. */
+		if (this.page?.prints_own_file) return null;
+
 		return press(span.c("paging-more paging-more-quiet")
 			.attr("title", "the page.js this page would be, ready to copy")
 			.append(() => { icon("code"); span("Code"); }),

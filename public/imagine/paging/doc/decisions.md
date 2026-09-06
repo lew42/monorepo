@@ -701,6 +701,33 @@ three frames away, on the PARENT page, with the item itself looking fine. The fi
 now. This is exactly the shadowing trap the `code` skill names (`text`, `toggle`, `show`,
 `hide`, `html`, `click` are the others); `on` was not on that list and now is.
 
+## The drawer answers to the page (2026-09-05, seventh pass)
+
+The sixth pass mounted the realm's own bar over Build so all seven words could be saved there.
+It worked, and the bar brought the DRAWER with it — a rail whose every box was written for a
+page that IS seven words, hanging over two pages that are not. Three boxes then said things
+that were not true, and a fourth offered a second Save.
+
+**Rejected: teach the drawer about editors.** A branch per page inside `config.js` puts the
+knowledge of what Build is into a file Build does not own, and the next editor repeats it.
+**Taken: the page answers two questions.** `node_now()` — "the node I am, if I am one" — and
+`prints_own_file` — "I already show my own file and my own code". A demo answers neither and
+gets exactly what it had. Build sets both. A page you made sets `node_now()` and
+`delete_now()`. `build/words.js`'s `code_for_node()` was already the correct printer for a node
+and is now the only one used on a node; `made.js`'s `file_of()` became a function so the store
+and the drawer print one answer to "as a file". [`builder.md`](./builder.md) has the table.
+
+## A sticky grid item is held by the grid CONTAINER (2026-09-05)
+
+The builder's middle column is `position: sticky` so the page you are building follows you down
+the seven controls. Capping its height stopped it hanging past the bottom of the window, and did
+**not** stop it painting over the file and the code boxes: in Chromium a sticky grid item's
+constraint rectangle is the whole grid container, not its own grid area, so a card whose rows
+were `controls | stage`, then the file, then the code kept the stage pinned over both. The two
+boxes are **siblings under the card** now — the card ends where its columns end, and the column
+lets go exactly there. Measured at 3440: 4 of 4 probe points along the file pane's own first
+line hit the file pane; 3 of 4 hit the stage before.
+
 ## Checked
 
 148 page-widths — the hub and every page in the realm at 400 / 1280 / 1920 / 3440 — **zero**

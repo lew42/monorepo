@@ -57,9 +57,37 @@ export function row_acts(page, node, path, kids, $row){
 			.append(() => { icon("add"); span(kids === "tabs" ? "tab" : "page"); }),
 			() => page.add_under(path, kids === "tabs" ? "New tab" : "New page"));
 
-		act("close", "delete " + node.title, () => page.remove_at(path), "paging-make-del");
+		delete_act(page, node, path, $row);
 	});
 }
+
+/* DELETE — the row becomes the question, in place, exactly as rename does.
+
+   ⚠ IT ASKS FIRST, and it says WHAT IT IS ABOUT TO TAKE. One press used to remove the
+     page and its directory with nothing said, and the only clue that a delete existed at
+     all was a bare `×` glyph among five others — a newcomer walked the whole realm and
+     reported that a page you make can never be unmade (paging-audit-7). The question
+     names the page and counts the pages under it, so nobody loses a tree by a mis-click.
+   ⚠ AND IT DELETES THE FILE. `remove_at()` → `apply()` → `made.save(next, was)`, which
+     `rm`s the directory and rewrites the parent's file without the name — both halves in
+     one write, so nothing is left naming a page that is not there. */
+function delete_act(page, node, path, $row){
+	return act("close", "delete " + node.title, () => $row.empty(() => {
+		icon("delete");
+		span.c("paging-make-title", "Delete " + node.title + kids_line(node) + "?");
+
+		// The same second press the drawer's own delete has, so one gesture is one shape.
+		press(span.c("paging-act paging-act-warn").append(() => { icon("delete_forever"); span("Delete it"); }),
+			() => page.remove_at(path));
+
+		press(span.c("paging-chip", "Cancel"), () => page.redraw());
+	}), "paging-make-del");
+}
+
+const kids_line = node => {
+	const kids = node.children?.length ?? 0;
+	return kids ? " and the " + kids + " page" + (kids === 1 ? "" : "s") + " under it" : "";
+};
 
 const act = (glyph, title, run, extra) =>
 	press(span.c("paging-make-act").ac(extra).attr("title", title).append(() => icon(glyph)), run);

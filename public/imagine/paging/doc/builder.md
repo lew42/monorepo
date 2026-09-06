@@ -473,6 +473,24 @@ the same reason on the text fields.
 **room** on `/imagine/paging/make/notes/` and `made/notes/page.json` says `"room": "wide"` within
 the second; reload with a bare url and it is still there.
 
+**And the bar brought the drawer with it.** That was the cost nobody priced: every box in the
+drawer is written for a page that IS seven words, and neither editor is one. Over Build it
+printed a `page.json` with no blocks and no children, a `page.js` titled after the page you were
+standing on, a link promising a cold address that Build's `inner` stage never reads, and a second
+Save beside the one already on screen (paging-audit-7b). Two questions fixed all four, and the
+PAGE answers them:
+
+| the page says | and the drawer |
+| --- | --- |
+| nothing | prints the file this configuration WOULD be, with *make this a page* — the twelve presets and every demo |
+| `node_now()` | prints the file it already IS and `code_for_node()`'s `page.js`, with **delete** — a page you made |
+| `prints_own_file` | prints neither, and points at the page's own boxes — Build, which has one file, one code box and one Save of its own |
+
+**And the eighth word.** `build/stage.js` passes `nest: mode_of(node).nest` and `build/page.js`
+sets `keep_nest` beside `keep`, so a nest chip in the builder writes to the node like every other
+word. Without those two lines the nest chips put a whole page in the box, saved nothing, and one
+press of *Add a tab* threw it away with nothing said.
+
 **Step 7 moved out of the control column.** A `page.js` line is 60–80 characters and that column
 is 230px at 1280, so the step whose entire job is to show you the seven words showed a quarter of
 each line. It is a row spanning the whole card now, with its own scroll and a **Copy** button —

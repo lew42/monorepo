@@ -671,6 +671,11 @@
 	.paging-act:is(:hover, :focus-visible) { filter: brightness(1.08); }
 	.paging-act .icon { font-size: 1em; }
 
+	/* THE ONE ACT THAT DESTROYS SOMETHING — the second press of "delete this page", and
+	   only the second. It is the same shape as every other act so it is obviously a
+	   button, and `--error` so it is obviously not the same kind of button. */
+	.paging-act-warn { background: var(--error); border-color: var(--error); }
+
 	/* MORE — a real button, at the end of the bar: the whole form, the code, and the
 	   link to this exact page. */
 	.paging-more {

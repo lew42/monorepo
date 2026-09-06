@@ -1,5 +1,5 @@
 import { View, div, p, h3, h4, span, icon } from "/app.js";
-import { default_index } from "./words.js";
+import { default_index, mode_of } from "./words.js";
 import { config_of } from "../blocks.js";
 import { PagingStage } from "../stage.js";
 import { draw_blocks } from "./draw.js";
@@ -48,8 +48,14 @@ export class BuildStage extends View {
 		     no `?…` in the address, and it cannot take the screen. And `open` comes
 		     from the PAGE, because Build rebuilds this whole view on every control
 		     press — `picked` writes it back so the tab you were on survives. */
+		/* ⚠ AND `nest` COMES FROM THE NODE. Without this line the drawer's nest chips put
+		     a whole page in the builder's box, the file gained nothing, and the next press
+		     of any control on the left rebuilt this view and threw the nested page away
+		     with nothing said (paging-audit-7b, break a). Its twin is `make/page.js`,
+		     which passes the same word to the same class on a page you made. */
 		this.$stage = new PagingStage({
 			config: config_of(node),
+			nest: mode_of(node).nest,
 			pages: kids.map(kid => ({ title: kid.title, icon: kid.icon ?? "description", text: kid.description })),
 			open: kids.length ? Math.min(this.page.tab ?? default_index(node), kids.length - 1) : null,
 			inner: true,
