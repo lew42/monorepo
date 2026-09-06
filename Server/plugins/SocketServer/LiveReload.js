@@ -1,12 +1,19 @@
 import Events from "../../Events.js";
 import Tail from "./Tail.js";
-import chokidar from "chokidar";
+import watch from "../../watch.js";
+import fs from "fs";
 import path from "path";
 
 const PUBLIC = path.resolve("public");
 
 // Every path on the wire is a url-path: forward slashes, no `public/` prefix.
 const url_path = file => "/" + path.relative(PUBLIC, path.resolve(file)).replace(/\\/g, "/");
+
+/* fs.watch reports the PARENT DIRECTORY alongside the file that changed inside it.
+ * A directory is never a resource a page loaded, so sending one only pads the
+ * batch. A path that no longer exists still goes through — it may be a file that
+ * was just deleted, and the client wants to hear about that. */
+const is_dir = file => { try { return fs.statSync(file).isDirectory(); } catch { return false; } };
 
 export default class LiveReload extends Events {
 
@@ -18,30 +25,14 @@ export default class LiveReload extends Events {
 		console.log("Initializing LiveReload");
         this.muted = new Map();
         this.queue = new Set();
-        this.watcher = chokidar.watch("public", {
-            ignored: (path, stats) => {
-                if (stats && stats.isDirectory()) return false;
-                return path.endsWith(".json") || path.includes(".git") ||
-                    path.includes("node_modules");
-            },
-            ignoreInitial: true
-        });
 
-        // A file a page 404-probed earlier is in that page's resource entries, so
-        // "add" has to reach the client too — that's what makes the probe succeed.
-
-        /* ⚠ Seen once (2026-08-15): a file created in a NEVER-EXISTED directory
-         * emitted its "add" and then nothing — no "change" for the next append, no
-         * "unlink" for the delete. Reading: the new dir's own watcher lost the race.
-         * Unreproduced in 28 later runs; a browser recovers by re-subscribing (a
-         * reload). public/framework/dev/Socket/doc/wire.md. */
-        for (const event of ["change", "add", "unlink"])
-            this.watcher.on(event, this.changed.bind(this));
-
-        // Without this, chokidar failures are swallowed: a watcher that has
-        // wedged into a readdir/ENOENT retry loop (burning a core) looks
-        // exactly like a healthy idle one, and the log stays empty.
-        this.watcher.on("error", err => console.error("LiveReload watcher error:", err));
+        /* Every event, whatever kind: a file appearing matters as much as one
+         * changing — a file a page 404-probed earlier is in that page's resource
+         * entries, so its arrival is what makes the probe succeed on reload.
+         * The watcher is ../../watch.js, ONE recursive fs.watch handle shared with
+         * Directory.js; it used to be a chokidar of its own, and a second chokidar
+         * in Directory.js, which is what pinned a core (Server/doc/spin.md). */
+        watch(file => { if (!is_dir(file)) this.changed(file); });
     }
 
     /* A socket that writes a file shouldn't be reloaded by its own write — it

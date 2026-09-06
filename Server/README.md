@@ -1,9 +1,9 @@
 # Server
 
 Dev only — `node server.js` (port 80, `PORT` to override); production is static.
-Reuse the one already running. ⚠ Every few days it pins a core (~130%) while still
-serving; `pkill` matches nothing on Windows — kill by pid, restart it in your terminal, and
-profile it first if you can: [`doc/spin.md`](./doc/spin.md).
+Reuse the one already running. ⚠ It used to pin a core (~130%) every few days;
+**fixed 2026-09-06**, but a server started before that is still running the old
+code — restart it. What it was: [`doc/spin.md`](./doc/spin.md).
 
 ```javascript
 import Server from "./Server/Server.js";
@@ -17,8 +17,18 @@ new Server();
 
 ## Watching public/
 
-One chokidar watcher, in `LiveReload`, feeds two channels — the protocol both
-sides build to is `public/framework/dev/Socket/doc/wire.md`.
+**One** recursive `fs.watch` handle on `public/` — [`watch.js`](./watch.js) — feeds
+both `LiveReload` and `Directory`. `watch(fn)` calls `fn(absolute path, "rename" |
+"change")`; Windows says `"rename"` for anything that changes the shape of the tree
+and `"change"` for a write into an existing file. `LiveReload` takes both,
+`Directory` only `"rename"`.
+
+⚠ **One handle, not one per directory, is the whole point.** chokidar opened 8,532
+of them, and a handle whose directory is deleted underneath it spins for ever on
+Windows — that is what pinned a core. [`doc/spin.md`](./doc/spin.md).
+
+`LiveReload` feeds two channels — the protocol both sides build to is
+`public/framework/dev/Socket/doc/wire.md`.
 
 - **`.jsonl` → `Tail`** (a `Socket` plugin, `DevSocket.Socket.use(Tail)`): the
   subscribed sockets get the appended lines, nothing reloads. A file's byte
@@ -32,9 +42,9 @@ sides build to is `public/framework/dev/Socket/doc/wire.md`.
 `Directory` rebuilds the two `directory.json` files and reports them by name, so
 a new file reloads the boards that list it without reloading the whole site.
 
-⚠ **On Windows the watcher locks every directory under `public/` against renaming**
-(one `fs.watch` handle per dir; *Permission denied* from `git mv` and `Rename-Item`
-alike, files inside untouched). Stop the server, rename, restart (2026-08-17).
+The watcher used to lock every directory under `public/` against renaming (*Permission
+denied* from `git mv` and `Rename-Item` alike). Fixed with the same change — only
+`public/` itself carries a handle now.
 
 ## The socket wire is loopback-only
 

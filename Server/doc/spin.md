@@ -1,63 +1,115 @@
-# The dev server pins a core
+# The dev server pinned a core — fixed 2026-09-06
 
-Every few days `node server.js` starts burning ~130–140% of a core while still serving
-normally — the fans come on, nothing else looks wrong. Seen 2026-08-08, -12, -16, -18, -19.
-Always this process; never the other `node.exe`s (playwright MCP, Adobe) and not the
-idle `claude.exe` sessions, which sit at 0–4%.
+**Fixed.** For a year the dev server would, every few days, start burning ~130% of a
+core while still serving normally. The cause is named below, the fix is in
+[`Server/watch.js`](../watch.js), and a fresh server now idles at **0.1%**.
 
-## What it is doing — profiled 2026-08-19
+A server started before 2026-09-06 is still running the old code. **Restart it** —
+the fix arrives no other way.
 
-First profile of a spinning server (pid 29784, 5 s, 3308 samples). **It is not idle and
-not wedged in a retry loop** — the watchers are being flooded:
+## The cause, in one sentence
+
+**On Windows, an `fs.watch` handle whose directory is deleted underneath it never
+closes and never goes quiet — it fires `change` events in a tight loop, for ever,
+at about 6,400 a second — and chokidar opened one such handle for every one of the
+1,865 directories under `public/`.**
+
+So the moment anything deleted a directory under `public/` while the server was
+running — a scratch dir, a sandbox, a `rm -rf` of some temp tree — that directory's
+handle was stranded, and the server spun until it was killed.
+
+## The measurement
+
+Reproduced on demand: 12 directories created and deleted under `public/` (400 ms
+apart) took a server from **2.9% to 134%**, where it stayed after the churn stopped.
+Probing that live process through its own inspector — a hook on every `FSWatcher`'s
+`onchange` — counted:
 
 ```
- 36%  (idle)
- 30%  FSWatcher._handle.onchange  →  chokidar handleEvent  →  path.join / fsWatchBroadcast
- 29%  chokidar _handleRead  →  readdirp  →  fs.promises.readdir / lstat     (threadpool)
-  4%  handleErrorFromBinding                                  (readdir of a vanished dir)
+191,058 change events in 5 seconds        =  38,212 events/s
+    ...of which six handles produced 31,842 each
+    ...and all six watched directories that had already been deleted
+8,532 FSWatcher handles in the process
 ```
 
-Read: raw `fs.watch` change notifications are arriving by the tens of thousands per second;
-each one costs a `handleEvent` on the main thread and, once per second per directory, a
-re-`readdir` of that directory (chokidar re-reads *again* when events arrived during the
-throttle window — "one more time in case changes came in extremely quickly"). Two watchers
-cover all of `public/` (`Directory.js`, `LiveReload.js` — 1142 dirs, 3337 files each), so
-everything is doubled. Main thread ~60% + threadpool readdir/lstat = the 130–140%.
+The CPU profile is the same one taken on 2026-08-19, now explained: 36%
+`FSWatcher._handle.onchange` → chokidar `handleEvent` → `fsWatchBroadcast` → 33%
+`_handleRead` → `path.join`, `readdirp`, and `handleErrorFromBinding` — a `readdir`
+of a directory that is not there.
 
-## What feeds it — measured the same day
+**Why five earlier hunts failed to name it.** `watchspy.mjs` starts a *fresh*
+chokidar with the server's exact options and saw 0–7 events/s while three servers
+beside it burned 120% each. A new watcher never watched the deleted directory, so
+it cannot see the flood. Everything else in the old notes follows from the same
+fact: the source "died with the process" because the handle did; it "came back
+every few days" because that is how often something deletes a directory under
+`public/`; and the cost was doubled because `Directory.js` and `LiveReload.js` each
+opened their own chokidar over the same tree.
 
-- **Data reads fire change events on this machine.** Last-access updates are on
-  (`fsutil behavior query DisableLastAccess` → 2, system managed). The first *read* of a file
-  whose atime is >1 h stale fires **two** `change` events; a second read within the hour fires
-  none; `stat`-only walks (`find`, `-type d`) fire none. So any sweep that reads `public/` after
-  a quiet hour — a `grep -r`, the server serving a page, a Claude `Read`, `cat` — hands the
-  watchers a burst of 2 × files-touched events and a readdir of every touched dir. A burst, not
-  a sustain.
-- **Deleting a watched dir** — 23 events, then quiet. Harmless.
-- **Renaming a watched dir — `EPERM`.** The watch handle locks it; a `mv` under `public/` fails
-  while the server runs. Stop the server (or rename by copy + delete).
-- **Normal write churn** (5–16 files/min across every Claude session) is three orders of
-  magnitude too small to be the flood.
-- The server started 2026-08-19 13:31 was idle at 13:33 and at 141% by 14:03; killed and
-  relaunched, the new one sat at 2% with the same tabs and sessions active. **The sustained
-  source died with the process and is still unnamed.** Best candidates: a browser tab in a
-  save/reload loop through the server (Saver RPC → file → LiveReload → save …), or a
-  reader/writer in a loop under `public/data/`.
+## The fix
 
-## Next time — name it, then kill
+[`Server/watch.js`](../watch.js) — **one** recursive `fs.watch` handle on `public/`
+itself, shared by both consumers:
 
-Both take ten seconds and neither touches the server:
+```js
+fs.watch(PUBLIC, { recursive: true }, (event, name) => …)
+```
+
+`public/` is never deleted, so there is nothing to strand. `Directory.js` and
+`LiveReload.js` both subscribe to it; chokidar is gone from `Server/`.
+
+Windows reports create/delete/rename as `"rename"` and a write into an existing
+file as `"change"`, which is exactly the split the two consumers needed:
+`Directory` rebuilds `directory.json` only on `"rename"` (a `"change"` leaves it
+byte-identical and the rebuild costs ~110 ms of blocking walk), with a 100 ms
+trailing debounce and a 1 s ceiling. `LiveReload` takes both.
+
+| | before | after |
+|---|---|---|
+| idle CPU | 0.1% → **134%** after 12 dir deletions, permanently | **0.1%**, and **1.9%** after 20 |
+| `fs.watch` handles | 8,532 | **1** (262 process handles, was 8,726) |
+| memory | 224 → 480 MB | 125 MB |
+
+Still verified working on the fixed server: an edit under `public/` reloads in
+**326 ms**; a new directory reaches `directory.json` in **542 ms**; an appended
+`ai/…/task.jsonl` line reaches a subscriber in **2 ms**; `/framework/` serves 200.
+
+**Bonus:** renaming a directory under `public/` no longer fails with `EPERM`. Only
+`public/` itself carries a handle now. (Any *other* old server still running keeps
+its own 8,532 locks until it too is restarted.)
+
+## What is left
+
+**Rebuilding `directory.json` is now the server's biggest cost — ~110 ms of
+blocking walk per structural change.** Idle that is nothing. With six agents
+writing files at once it was measured at 69 rebuilds in 221 s, which is why the
+same server reads **0.1% alone and ~5% under that load**. Making it incremental
+instead of a full double walk of `public/` is the next win, and a bigger change
+than this one. (The two walks overlap almost entirely — `public/framework/`'s
+listing is the `framework` subtree of `public/`'s, apart from a stale `path` value
+of `./framework/` instead of `framework` on its 19 top entries. Deriving one from
+the other changes a file the site reads, so it wants its own task.)
+
+Windows' `ReadDirectoryChangesW` has a fixed buffer, so a burst bigger than it — a
+`git checkout` that rewrites thousands of files at once — can overflow and drop
+events. chokidar's per-directory `readdir` diffing was more thorough about that,
+and cost a core to be so. If a page ever looks stale after a huge tree operation,
+reload it.
+
+`chokidar` is still in `package.json`: nothing in `Server/` imports it any more, but
+the `fans` skill's `watchspy.mjs` loads it from `node_modules` to reproduce what the
+old watcher saw. Three mentions of it in `public/framework/dev/` (`page.js:30`,
+`doc/decisions.md:13`, `Socket/doc/wire.md:307`) are now stale.
+
+## Reset (unchanged)
+
+`pkill -f "node server.js"` matches nothing on Windows. Kill by pid, and start it
+again yourself **in a terminal you keep open**:
 
 ```powershell
-cd c:\Code\lew42\monorepo
-node ~/.claude/skills/fans/watchspy.mjs 10     # raw events/s + the top paths — the flood, by name
-node ~/.claude/skills/fans/profile.mjs <pid> 5 # the CPU profile, if it looks different from the above
+Stop-Process -Id <pid> -Force
+node server.js          # in your terminal — not -WindowStyle Hidden, not nohup
 ```
-
-`watchspy` runs the same chokidar with the same options as the server; if its counter is in
-the thousands per second, the listed paths *are* the cause. Paste them here.
-
-## Find it
 
 Cumulative `CPU` in `Get-Process` is misleading — only a delta shows who burns *now*:
 
@@ -66,31 +118,11 @@ $p = @(Get-Process node); $a = $p | % CPU; sleep 4; $p | % Refresh
 $p | % { $_.Id, [int](($_.CPU - $a[$p.IndexOf($_)]) / 4 * 100), $_.StartTime -join "  " }
 ```
 
-Or just: `Get-NetTCPConnection -LocalPort 80 -State Listen | % OwningProcess`.
+## The other thing that fires events on this box
 
-## Reset
-
-`pkill -f "node server.js"` matches nothing on Windows. Kill by pid — then start it
-again yourself, **in a terminal you keep open**, where you can see it:
-
-```powershell
-Stop-Process -Id <pid> -Force
-node server.js          # in your terminal — not Start-Process -WindowStyle Hidden, not nohup
-```
-
-A hidden restart (2026-08-18; twice on 2026-08-19 via `nohup node server.js` from a shell that
-then exited, no `nohup.out` anywhere) is one nobody can find, and it throws away the watcher
-`error` output. If an agent must start it: a visible window (`Start-Process node server.js`,
-no `-WindowStyle Hidden`), and say the pid.
-
-That is a reset, not a cure — it has come back within four days every time. If the
-server simply *vanished* overnight, it probably spun: on the dev machine a scheduled
-watchdog kills any node/claude process >12h old sustaining >90% across two 15-minute
-samples (not part of this repo — the machine-level `fans` skill knows it).
-
-## Cheap mitigations, not yet done
-
-Ask before any of these — each changes server behaviour.
-- One watcher instead of two (`Directory.js` could subscribe to `LiveReload`'s).
-- `ignored` already skips `.json`; the ai logs are `.jsonl` and are not skipped.
-- `fsutil behavior set DisableLastAccess 1` (admin) removes the read-fires-events class outright.
+Last-access updates are on (`fsutil behavior query DisableLastAccess` → 2, system
+managed): the first *read* of a file whose atime is over an hour stale fires **two**
+`change` events. So a `grep -r`, a page being served, a `cat` — any sweep after a
+quiet hour hands the watcher a burst of 2 × files-touched. A burst, not a sustain,
+and the 300 ms debounce in `LiveReload` absorbs it. `fsutil behavior set
+DisableLastAccess 1` (admin) removes the class outright — ask first.

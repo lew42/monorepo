@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import chokidar from "chokidar";
+import watch from "../watch.js";
 
 export default class Directory {
 
@@ -15,40 +15,47 @@ export default class Directory {
     }
 
     initialize() {
-        this.watcher = chokidar.watch("public", {
-            ignored: (path, stats) => {
-                if (stats && stats.isDirectory()) return false;
-                return path.endsWith(".json") || path.includes(".git") || path.includes("node_modules");
-            },
-            ignoreInitial: true
-        });
-
-        this.watcher.on("add", this.update.bind(this));
-        this.watcher.on("unlink", this.update.bind(this));
-
-        // see LiveReload — an unobserved "error" makes a wedged watcher
-        // indistinguishable from an idle one.
-        this.watcher.on("error", err => console.error("Directory watcher error:", err));
+        /* Only a "rename" changes the SHAPE of the tree — a file or directory
+         * created, deleted or renamed. A write into an existing file leaves both
+         * directory.json files byte-identical, and rebuilding them costs ~110ms of
+         * blocking walk, so those are dropped here. (This also fixes an old gap:
+         * a new EMPTY directory used to appear in directory.json only once a file
+         * landed in it.) The watcher itself: ../watch.js. */
+        watch((file, kind) => { if (kind === "rename") this.update(); });
 
         this.update();
     }
 
-    update(e) {
-        if (this.rebuilding) return;
-        this.rebuilding = setTimeout(() => {
-            console.log("Rebuilding Framework Directories");
-            fs.writeFileSync("./public/directory.json", JSON.stringify({ files: this.build_dir("./public/") }, null, "\t"));
-            fs.writeFileSync("./public/framework/directory.json", JSON.stringify({ files: this.build_dir("./public/framework/") }, null, "\t"));
+    /* Trailing debounce. One tool writing one file is three renames — temp file in,
+     * temp file out, target replaced — and they arrive inside a few milliseconds;
+     * this collapses them into a single rebuild AFTER the burst. `since` is the
+     * ceiling: a stream of renames that never pauses still rebuilds every second,
+     * instead of starving the timer for ever. */
+    update() {
+        this.since ??= Date.now();
+        clearTimeout(this.rebuilding);
 
-            const live_reload = this.server.socket_server?.live_reload;
-            if (live_reload) {
-                live_reload.changed("./public/directory.json");
-                live_reload.changed("./public/framework/directory.json");
-                if (e) live_reload.changed(e);
-            }
+        if (Date.now() - this.since > 1000) return this.rebuild();
+        this.rebuilding = setTimeout(() => this.rebuild(), 100);
+    }
 
-            this.rebuilding = null;
-        }, 100);
+    rebuild() {
+        clearTimeout(this.rebuilding);
+        this.rebuilding = this.since = null;
+
+        console.log("Rebuilding Framework Directories");
+        fs.writeFileSync("./public/directory.json", JSON.stringify({ files: this.build_dir("./public/") }, null, "\t"));
+        fs.writeFileSync("./public/framework/directory.json", JSON.stringify({ files: this.build_dir("./public/framework/") }, null, "\t"));
+
+        /* Both files are `.json`, which watch.js ignores — so nothing else will
+         * announce them, and a board that lists files would never hear. The file
+         * that CAUSED this rebuild needs no forwarding: LiveReload is on the same
+         * watcher and already has it. */
+        const live_reload = this.server.socket_server?.live_reload;
+        if (live_reload) {
+            live_reload.changed("./public/directory.json");
+            live_reload.changed("./public/framework/directory.json");
+        }
     }
 
     build_dir(dir) {
