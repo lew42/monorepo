@@ -21,23 +21,37 @@
      the same rule `/imagine/layouts/system.js` follows.                          */
 
 /* ── 2 · NAVIGATION ────────────────────────────────────────────────────────────
-   One control, six answers. `kids` is how the children are DRAWN; `mech` is what a
-   click on one DOES. The pair is the ruling `build/words.js` already made, and this
-   is the one surviving copy of it — the realm used to write navigation out three
-   times in three vocabularies.
+   ONE CONTROL, SEVEN ANSWERS, and each one settles two questions at once: how the
+   children are DRAWN, and what a click on one DOES. They used to be two keys in two
+   vocabularies (`kids` and `mech`); this is the one surviving list.
 
    `stable` is decision 5 of 2026-09-05: STABLE navigation never moves what you were
    already looking at; DYNAMIC navigation does. The paging app itself runs on stable
-   navigation, and the dynamic ones are demonstrated inside it. */
+   navigation, and the dynamic ones are demonstrated inside it.
+
+   `swaps` is the OTHER question, and it is a different one: does clicking a child
+   change what is INSIDE the box? Three words do — `tabs`, `rail` and `rail-right` hold
+   one panel at a time with the child list as chrome beside or above it — and the stage
+   reserves the box's height for those three, so a click cannot resize it. The other
+   four put the child somewhere else: nowhere (`none`), in the row itself (`expand`),
+   beside the box (`columns`), over the whole stage (`takeover`). It used to be `stable`
+   plus a hand-written "and not `none`" in `stage.js`; two words, two flags, no
+   exceptions. */
 export const NAVIGATION = [
 	{ id: "none",       title: "None",       icon: "remove",       stable: true,
 	  means: "Nothing under this page, so nothing is drawn." },
-	{ id: "tabs",       title: "Top tabs",   icon: "tab",          stable: true,
+	{ id: "tabs",       title: "Top tabs",   icon: "tab",          stable: true,  swaps: true,
 	  means: "A strip of tabs over one panel. Click a tab and only the panel changes — the strip does not move." },
-	{ id: "rail",       title: "Left rail",  icon: "view_sidebar", stable: true,
+	{ id: "rail",       title: "Left rail",  icon: "view_sidebar", stable: true,  swaps: true,
 	  means: "The same list, stacked down the left. The rail stays put and the middle swaps. This is what the app around you is doing." },
-	{ id: "rail-right", title: "Right rail", icon: "view_sidebar", stable: true,
+	{ id: "rail-right", title: "Right rail", icon: "view_sidebar", stable: true,  swaps: true,
 	  means: "The list on the other side, so your eye keeps its home edge on the left." },
+	/* ⚠ `expand` IS A NAVIGATION WORD, and until 2026-09-05 it was the one gesture the
+	     realm named on a page of its own and could not do — so `/mechanisms/expand/`
+	     ran a left rail and nothing on it expanded (paging-audit-5). It is `<details>`
+	     and the site's own `ui/accordion` rules: no JavaScript in the gesture at all. */
+	{ id: "expand",     title: "Expand",     icon: "expand_more",  stable: false,
+	  means: "Each child is a row you open in place. The row grows downward, everything below it moves down, and the address never changes — so an opened row cannot be linked to." },
 	{ id: "columns",    title: "Columns",    icon: "view_column",  stable: false,
 	  means: "Each child is a row you click, and it opens as a new column to the right. Everything already on screen shifts left to make room." },
 	{ id: "takeover",   title: "Takeover",   icon: "open_in_full", stable: false,
@@ -57,7 +71,15 @@ export const kind_of = id => (nav_of(id).stable ? STABLE : DYNAMIC);
    Eight kinds, and every one of them is REAL: the renderer is a module this site
    already ships (`content.js` says which). Content is not a size — the old `xs`–`xl`
    axis was one canned sample at five heights, which the owner read as a content
-   switcher because that is what it was. */
+   switcher because that is what it was.
+
+   ⚠ AND A NINTH ANSWER THAT IS NOT IN THIS LIST: A URL. `content` takes the address
+     of a page or of a `.md` file, exactly the way `nest` does — `is_url()` below is
+     the whole test, and `stage.js` reads the file and draws it. Until 2026-09-05 this
+     was the last CLOSED list in the realm: all ~100,000 configurations held one of
+     eight things, which is what kept the owner's own word *infinite potential* off
+     full marks in five audits running. The dropdown keeps the eight and gains a
+     field. */
 export const CONTENT = [
 	{ id: "article",   title: "Article",     icon: "article",        means: "A heading and prose at the reading measure." },
 	{ id: "cards",     title: "Card wall",   icon: "grid_view",      means: "A wall of cards that reflows to fit its box." },
@@ -169,7 +191,7 @@ export const BLOCKS = [
 	{ id: "navigation", title: "Navigation", icon: "alt_route", url: "/imagine/paging/navigation/", axis: "navigation",
 	  one_line: "What a click on a child does, and how the children are drawn." },
 	{ id: "content", title: "Content", icon: "article", url: "/imagine/paging/content/", axis: "content",
-	  one_line: "What is in the box." },
+	  one_line: "What is in the box — one of eight kinds, or the address of any page or file." },
 	{ id: "room", title: "Room", icon: "width_wide", url: "/imagine/paging/room/", axis: "room",
 	  one_line: "How much of the screen the box gets." },
 	{ id: "arrangement", title: "Arrangement", icon: "view_quilt", url: "/imagine/paging/arrangement/", axis: "arrangement",
@@ -228,7 +250,20 @@ export const controls_of = block => CONTROLS.filter(control => control.block ===
 
 export const values_for = axis => CONTROLS.find(control => control.axis === axis)?.values ?? [];
 
-export const means_of = (axis, id) => values_for(axis).find(value => value.id === id)?.means ?? "";
+export const label_of = axis => CONTROLS.find(control => control.axis === axis)?.label ?? axis;
+
+/* ── A VALUE A WORD WILL ACCEPT ───────────────────────────────────────────────
+   Every word takes one of its own listed values. `content` takes one more thing: a
+   URL, which is any value starting with `/` — a page's address, or a `.md` file's.
+   One test, read by the address (`url.js`), the bar (`toolbar.js`) and the renderer
+   (`stage.js`), so the three cannot disagree about what is allowed. */
+export const is_url = value => typeof value === "string" && value.startsWith("/");
+
+export const takes = (axis, value) =>
+	values_for(axis).some(word => word.id === value) || (axis === "content" && is_url(value));
+
+export const means_of = (axis, id) => values_for(axis).find(value => value.id === id)?.means
+	?? (is_url(id) ? "The page or file at `" + id + "`, fetched and drawn right here." : "");
 
 export const title_of = (axis, id) => values_for(axis).find(value => value.id === id)?.title ?? id;
 

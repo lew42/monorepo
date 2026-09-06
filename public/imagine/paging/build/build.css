@@ -138,6 +138,10 @@
 	.build-thumb-tabs { flex-direction: column; }
 	.build-thumb-tabs .build-thumb-bar { height: 22%; }
 
+	/* `expand` — the row you clicked, and what grew under it. */
+	.build-thumb-expand { flex-direction: column; }
+	.build-thumb-expand .build-thumb-bar { height: 38%; }
+
 	.build-thumb-rail .build-thumb-bar { width: 22%; }
 	.build-thumb-rail-right { flex-direction: row-reverse; }
 	.build-thumb-rail-right .build-thumb-bar { width: 22%; }
@@ -185,6 +189,15 @@
 	/* A DECIDED SCROLLBAR: the file grows with the page you build and the column must
 	   not grow with it, so this one box scrolls and nothing else on the page does. */
 	.build-json-text { max-height: 26em; overflow-y: auto; }
+
+	/* ── STEP 7 TAKES THE WHOLE CARD ──────────────────────────────────────────
+	   ⚠ A `page.js` LINE IS 60–80 CHARACTERS and the control column is 230px at 1280,
+	     so the step whose whole job is to show you the seven words showed a QUARTER of
+	     each line — every value off the right edge (paging-audit-5, item 1). It is the
+	     last step, so it costs nothing to give it the row under all three columns: full
+	     width, and its own scroll in both axes rather than pushing the card wider. */
+	.build-code-row { grid-column: 1 / -1; min-width: 0; }
+	.build-code { max-height: 30em; overflow: auto; }
 
 	.build-where { font-size: 0.85em; }
 	.build-where p { margin: 0; }

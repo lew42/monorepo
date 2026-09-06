@@ -7,6 +7,83 @@ the ⚠ ones were found by measuring rather than by thinking.
 
 ---
 
+# 2026-09-05, the fifth fix pass — the three closed things opened
+
+Two critics went round for a fifth time (`/framework/ai/2026-09-05/paging-audit-5/` and
+`.../paging-audit-5b/`). Both closed on the same shape of defect, and it is worth naming because
+the realm produced it four rounds running: **a control that writes a key something reads only
+sometimes, with nothing on screen saying which.**
+
+## A saved page becomes a stage in ONE place
+
+`stage_props(node, { page, url_of })` in `stage.js` is the only translation from a `page.json` to
+the two things a stage needs beyond its seven words — whose children the navigation word draws,
+and what goes in the box.
+
+It had been written in `make/page.js` alone. So a page you made drew its own children when you
+opened it, and **four canned strangers when the same page was nested inside another** — the same
+defect the previous pass had fixed one level up. Fixing it at the seam is what stops there being
+a third level: both callers, at any depth, ask the same function.
+
+Two things fell out of doing it there. A page read off disk names its children by DIRECTORY NAME,
+so the titles cost one more fetch each — which is what a child costs anywhere on this site. And a
+saved page with NO children now hands over an **empty list** rather than `undefined`: `undefined`
+means "draw the four samples", which is right for a demo and wrong for somebody's own page.
+`made/ideas/` listed Overview · Pricing · Docs · Contact until this.
+
+## All seven words can be SAVED, not only sent — `changed` tells, `keep` writes
+
+Make's rows wrote four words and Build's controls wrote three, so `room` and `type size` were set
+by no editor in the realm at all, and the bar on a page you had MADE changed the address and never
+the file.
+
+The bar already owned the stage's `changed` hook — it writes its own dropdowns back through it —
+so a page that wanted to save the word you just set had nowhere to hang. **`keep` is the second
+hook**, and it runs BEFORE the address is written, so a page that keeps a word also moves its own
+`base` and the query stays clean instead of carrying a `?room=wide` the file already says.
+
+- A page you made sets `keep` to Make's own `edit_at()` — one writer, one store — and prints a
+  tick, because a save you cannot see is the one thing decision 4 forbids.
+- Build's middle column wears **the realm's own bar**, which `doc/builder.md` had already written
+  down as the one line that would do it. `redraw({ screen: false })` is what keeps it from
+  deleting the `<select>` the reader is standing in.
+
+## `content` takes a url — the last closed list
+
+Eight canned renderers meant every one of ~117,600 configurations held one of eight things. The
+word takes an ADDRESS now, exactly the way `nest` does and through the same code path: a page's
+url is fetched as its `page.json` and RUN inside the box, a `.md` url is fetched and rendered as
+prose. `is_url()` in `blocks.js` is the whole test, read by the address, the bar and the renderer.
+The dropdown keeps its eight and gains **A page or file…**, which reveals a field.
+
+⚠ **A url in `content` needs a loop fuse, and it is not hypothetical.** The bar on a page you
+made writes to that page's file, so a reader can set a page's `content` to its OWN address in two
+clicks — and the box would then read itself, draw itself, read itself, for ever, with nothing
+thrown. A nested stage carries a `level`; two levels deep draw, and the third says so and hands
+over a link.
+
+## Blocks and the content word compose
+
+A page with one block used to draw nothing for its `content` word while Make's chip and the bar's
+dropdown both still cycled it and still wrote it to the file. They stack instead — blocks first,
+then the content word's own sample under a line naming it — so both controls are live and the box
+says which half is which. `made/ideas/` ships a block, so the realm has an example of its own rule.
+
+## `expand` is a navigation word
+
+Three of the four mechanisms were navigation values and `expand` was not, so the page called
+Expand ran a left rail and nothing on it expanded. It is `<details>` per child wearing
+`ui/accordion`'s own hairline — **no JavaScript in the gesture at all**. Measured at 1280: opening
+a row grows the box +138px tall, 0 wide; closing takes exactly the 138 back; the address never
+changes, and the page says so.
+
+Adding it split one flag into two, which was the real cleanup. `stable` answers *does anything you
+were looking at move*; **`swaps`** answers *does the box's own contents change*. `stage.js` had
+been asking the first question with a hand-written "and not `none`" bolted on, and `expand` would
+have made that two exceptions. Two questions, two flags, no exceptions.
+
+---
+
 # 2026-09-05, later — the fix pass
 
 Two critics went back over the rebuild: a newcomer at 1280 and 3440
@@ -76,7 +153,7 @@ children are listed inside the box for both words now.
 
 ## The configuration lives in the url
 
-Seven words spanning about 100,800 pages, of which the realm could SEND 43. Every change
+Seven words spanning about 117,600 pages - and more since one of them, `content`, took a url - of which the realm could SEND 43. Every change
 now writes itself into the address with one `history.replaceState` (`url.js`), and the
 drawer has **Copy this link** beside **Make this a page**.
 

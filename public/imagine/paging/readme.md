@@ -14,6 +14,11 @@ saved links keep working. `url.js`.
 over a stage, the drawer, the url, and both editors write them into one `mode` object in one
 `page.json`. `config_of()` in [`blocks.js`](./blocks.js) is the only thing that reads it.
 
+**And all seven can be SAVED, not only sent.** The bar over a page you *made* writes straight
+into that page's `page.json` — change **room** on [`/make/notes/`](/imagine/paging/make/notes/),
+reload with a bare url, and it is still there. Build's middle wears the same bar, so both editors
+write all seven · `stage.js`'s `keep` hook.
+
 ## The six blocks
 
 Everything in this realm is one of these, or a preset made out of them.
@@ -22,7 +27,7 @@ Everything in this realm is one of these, or a preset made out of them.
 | --- | --- |
 | [Stage](/imagine/paging/stage/) | the box a click changes the inside of. It never moves. |
 | [Navigation](/imagine/paging/navigation/) | what a click on a child does, and how the children are drawn |
-| [Content](/imagine/paging/content/) | what is in the box |
+| [Content](/imagine/paging/content/) | what is in the box — one of eight kinds, or the address of any page or `.md` file |
 | [Room](/imagine/paging/room/) | how much of the screen the box gets |
 | [Arrangement](/imagine/paging/arrangement/) | where the page's other parts sit around the box |
 | [Skin](/imagine/paging/skin/) | the colours and the type size |
@@ -51,7 +56,12 @@ export default new Paging({
   [make](/imagine/paging/make/), and the middle column of [Build](/imagine/paging/build/).
 - **Two seams for what a word cannot say**: `draw` puts your own thing IN the box (a template
   family, a built page's blocks); `draw_child` draws a child's panel. `pages:` is which children
-  the navigation word draws — hand it your own or it draws four samples.
+  the navigation word draws — hand it your own or it draws four samples. **`stage_props(node)`
+  (`stage.js`) is the one place that works both out from a saved `page.json`** — a page you made
+  and the same page *nested inside another* go through it, so they cannot draw different children.
+- **`content` also takes a url.** Pick *A page or file…* in the bar and type an address: a page's
+  `page.json` is fetched and RUN inside the box, a `.md` file is fetched and rendered as prose.
+  It is the same idea as `nest` and the same code path · [Content](/imagine/paging/content/)
 - The vocabulary is [`blocks.js`](./blocks.js) and it imports nothing, so a page, a rail
   tile, a chip, a url and a doc all read the same lists.
 - **Two colour controls, independent**: `surface` paints the content box, `background`
@@ -95,10 +105,10 @@ export default new Paging({
 - **A `<pre>` inside a flex column collapses to nothing.** `.drawer-body` is `flex v` and a
   `<pre>` scrolls, so its automatic minimum height is 0 — the drawer's `page.js` box was 22px
   tall holding nineteen lines. `flex: none` on the wrapper, and let the box scroll itself.
-- **A stable navigation word reserves the box's height** (`.paging-nav-reserve`), so the
-  caption under the stage can say "the box did not move" and be right. `columns` and
-  `takeover` are the dynamic words and report the pixels they really moved ·
-  [navigation](/imagine/paging/navigation/)
+- **A navigation word that SWAPS the box reserves its height** (`.paging-nav-reserve`), so the
+  caption under the stage can say "the box did not move" and be right. That is a `swaps` flag on
+  the word, not a guess: `expand`, `columns` and `takeover` are the dynamic words and report the
+  pixels they really moved · [navigation](/imagine/paging/navigation/)
 - **`?...` belongs to the page named by the url you ARRIVED on** — the address the browser
   opened, or the link you clicked. Not `location.pathname` (core pushes the address after the
   page draws, so mid-navigation it is still the page you left) and not "the first stage that

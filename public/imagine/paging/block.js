@@ -41,6 +41,10 @@ class Block extends Paging {
 		else if (this.axis){
 			h2("The " + values_for(this.axis).length + " values, each at its own url");
 			this.values(this.axis);
+
+			// One block has something to say beyond its list of values — `content/`
+			// also takes a url, and that is the only place worth saying it.
+			this.extra?.();
 		} else {
 			/* ⚠ THE ONE BLOCK WITH NOTHING IN THE BAR, said out loud — and only on the
 			     BLOCK's own page, never on a value's (`/room/wide/` reaches this branch

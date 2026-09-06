@@ -188,13 +188,22 @@ export class Realm extends Paging {
 		if (this.view) return this.view;
 
 		this.view = div.c("page paging-app", () => {
+			/* ⚠ THE FIRST THING THE TAB KEY FINDS. The rail is forty tiles, so a keyboard
+			     reached the bar over the page after about forty-five presses — on the one
+			     control every page in this realm is about (paging-audit-5, item 8). One
+			     link, invisible until it has focus, and the middle takes it: the toolbar
+			     slot is the first thing inside it. */
+			a.c("paging-skip").href("#paging-middle").append(() => span("Skip the rail — go to the page and its controls"));
+
 			this.$rail = div.c("paging-app-rail", () => { this.rail(); });
 
+			// `tabindex: -1` so the skip link can put FOCUS here, not just the scroll
+			// position — otherwise the next Tab starts from the rail again.
 			this.$pages = div.c("pages paging-app-centre", () => {
 				this.$home = div.c("paging-home flow", () => {
 					if (is.fn(this.content)) this.content();
 				});
-			});
+			}).attr("id", "paging-middle").attr("tabindex", "-1");
 		});
 
 		return this.view;

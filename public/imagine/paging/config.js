@@ -4,6 +4,37 @@ import { PRESETS, preset_url } from "./presets.js";
 import { link_for, nest_of } from "./url.js";
 import store_for, { name_for } from "./make/made.js";
 
+/* ⚠ A CLICKABLE THAT IS NOT A `<button>` — the realm's own note, restated here rather
+     than imported: `paging.js` imports `toolbar.js`, which imports THIS file, so
+     reaching back up for `press` would close the loop. Four lines beats a cycle. */
+const press = ($el, act) => $el
+	.attr("role", "button").attr("tabindex", "0")
+	.click(act)
+	.on("keydown", event => {
+		if (event.key !== "Enter" && event.key !== " ") return;
+		event.preventDefault();
+		act();
+	});
+
+/* ── COPY IT ──────────────────────────────────────────────────────────────────
+   Two boxes in this rail hand you text you are meant to take away — the link to this
+   page, and the `page.js` it would be. The link had a button and the code did not, so
+   the nineteen-line file was hand-selected inside a 280px window (paging-audit-5).
+   One helper, both boxes, and the same fallback: `navigator.clipboard` is refused
+   outside a secure context, and localhost is not always one. */
+export function copy_chip(text, words, fallback, says){
+	return press(span.c("paging-act").append(() => { icon("content_copy"); span(words); }),
+		async () => {
+			try {
+				await navigator.clipboard.writeText(text);
+				says?.(() => { icon("check_circle"); span("copied"); });
+			} catch {
+				fallback?.();
+				says?.(() => span("select it and press ctrl-C"));
+			}
+		});
+}
+
 /* ── THE DRAWER ────────────────────────────────────────────────────────────────
 
    The hover toolbar has the five words you change while you look at a page. Every
@@ -59,8 +90,10 @@ export function fill_drawer(stage, page, focus){
 /* ── 0 · THE LINK TO THIS EXACT PAGE ──────────────────────────────────────────
    Every word you change is written into the address (`url.js`), so this box is just
    showing you the address — but showing it is the whole point: until 2026-09-05 the
-   realm could reach about 100,800 configurations by clicking and send 43 of them,
-   because nothing ever appeared in the url. Copy this and the page travels.
+   realm could reach about 117,600 configurations by clicking and send 43 of them,
+   because nothing ever appeared in the url. Copy this and the page travels. (And the
+   count is a floor, not a ceiling: `content` takes a url now, so the box can hold any
+   page or `.md` file on the site.)
 
    ⚠ The field is `readonly`, not disabled: a disabled input cannot be selected, and
      "select it and press ctrl-C" is the fallback for every browser that refuses
@@ -76,14 +109,7 @@ function link_box(stage){
 	$field.el.value = url;
 
 	div.c("paging-said", () => {
-		span.c("paging-chip on")
-			.attr("role", "button").attr("tabindex", "0")
-			.append(() => { icon("link"); span("Copy this link"); })
-			.click(async () => {
-				try { await navigator.clipboard.writeText(url); $said.empty(() => { icon("check_circle"); span("copied"); }); }
-				catch { $field.el.select(); $said.empty(() => span("select it and press ctrl-C")); }
-			});
-
+		copy_chip(url, "Copy this link", () => $field.el.select(), said => $said.empty(said));
 		$said = span.c("paging-said-ok");
 	});
 
@@ -169,10 +195,7 @@ function any_page(stage){
 	$url.on("keydown", event => { if (event.key === "Enter"){ event.preventDefault(); put(); } });
 
 	div.c("paging-said", () => {
-		span.c("paging-chip on")
-			.attr("role", "button").attr("tabindex", "0")
-			.append(() => { icon("layers"); span("Put it inside"); })
-			.click(put);
+		press(span.c("paging-act").append(() => { icon("layers"); span("Put it inside"); }), put);
 
 		a.c("page-link", "the pages you have made →").href("/imagine/paging/make/");
 	});
@@ -206,10 +229,8 @@ function json_box(stage, page){
 
 	const $said = div.c("paging-said");
 
-	span.c("paging-chip on")
-		.attr("role", "button").attr("tabindex", "0")
-		.append(() => { icon("save"); span("Make this a page"); })
-		.click(() => save(stage, page, $said));
+	press(span.c("paging-act").append(() => { icon("save"); span("Make this a page"); }),
+		() => save(stage, page, $said));
 
 	md("It lands under [Make](/imagine/paging/make/) — one directory and one `page.json`, on disk in dev, in the list beside every other page you have made.").ac("muted paging-means");
 }
@@ -243,9 +264,28 @@ function name_field(stage, draw){
 function code_box(stage, page){
 	p.c("h4 muted", "The same page, as code");
 
-	div.c("paging-code-box", () => { code.js(code_for_config(stage.config, page)); });
+	const text = code_for_config(stage.config, page);
+	const $box = div.c("paging-code-box", () => { code.js(text); });
+
+	// ⚠ THE SELECT FALLBACK IS A RANGE, not `input.select()`: this is a `<pre>`, not a
+	//   field, so "select it and press ctrl-C" has to select the element's own text.
+	let $said;
+	div.c("paging-said", () => {
+		copy_chip(text, "Copy the code", () => select_text($box.el), said => $said.empty(said));
+		$said = span.c("paging-said-ok");
+	});
 
 	return md("One directory, one `page.js`. Every word above is an argument.").ac("muted paging-means");
+}
+
+/* Selecting a `<pre>`'s own text — the fallback when `navigator.clipboard` is refused.
+   `input.select()` cannot do this: a code block is not a field. */
+export function select_text(el){
+	const range = document.createRange();
+	range.selectNodeContents(el);
+	const selection = getSelection();
+	selection.removeAllRanges();
+	selection.addRange(range);
 }
 
 /* ⚠ `code_for_config`, and `build/words.js` has `code_for_node`. Both print a

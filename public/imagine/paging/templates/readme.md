@@ -19,18 +19,23 @@ const it = family("magazine");
 export default new Template({
     meta: import.meta,
     title: "Magazine",
-    width: "large",
-    axes: "style type layout",     // five surfaces, three type scales, four widths
-    family: it,                    // what it says AND what draws it — families.js
+    description: "A cover, a contents, a reading column.",
+    icon: "auto_stories",
+    family: it,             // what it says AND what draws it — families.js
     takeaway: it.what,
 });
 ```
 
+That is the whole file. It used to show a `width` word and an `axes` list here; `Template` reads
+neither, and no page in this directory has ever carried them — they were the vocabulary the realm
+deleted on 2026-09-05, still being taught in the example a reader copies (paging-audit-5b, fix 5).
+The words a template page can wear are the realm's [seven](/imagine/paging/), and the bar over the
+example sets all seven.
+
 Everything a family page says and draws lives in one entry in
 [`families.js`](/imagine/paging/templates/families.js), so its sentence and its picture cannot
-drift apart. A `Template` is a [`Paging`](/imagine/paging/) with two additions: the box holds the
-family instead of the teaching sample, and there is a sixth chip group — `compact` `regular`
-`display`.
+drift apart. A `Template` is a [`Paging`](/imagine/paging/) whose box holds the family instead of
+the teaching sample.
 
 ## Nothing here is a copy
 

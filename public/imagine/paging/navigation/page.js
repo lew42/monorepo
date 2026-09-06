@@ -68,7 +68,7 @@ export default new Paging({
 		   being measured. Here, everything above has been read. */
 		h2("Now change the word yourself");
 
-		md("The bar over the page below sets all six navigation words — and the other five building blocks with them. **The line under the box says what your click did, in pixels**, which is the same number the wall above reports.");
+		md("The bar over the page below sets all seven navigation words — and the other five building blocks with them. **The line under the box says what your click did, in pixels**, which is the same number the wall above reports.");
 
 		this.stage({ ...DEFAULT, navigation: "tabs", content: "cards", room: "wide", background: "tint" });
 

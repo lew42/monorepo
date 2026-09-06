@@ -35,7 +35,7 @@ that forces it to be code**, if anything does.
 | tier | pages | what it means |
 |---|---:|---|
 | **configuration** | **197 (22%)** | a title, a description, some prose, children, maybe a card wall. **The builder can write this today** — there is no code in it at all. |
-| **one word away** | **378 (42%)** | the page has to NAME something js supplies: a house factory, a page class, a stylesheet. That is exactly the `"kids": "tabs"` pattern — data chooses, js supplies. |
+| **one word away** | **378 (42%)** | the page has to NAME something js supplies: a house factory, a page class, a stylesheet. That is exactly the `"navigation": "tabs"` pattern — data chooses, js supplies. |
 | **code** | **315 (35%)** | a live control, content computed from data, something fetched. **These should stay code**, and `page.js` is what they are for. |
 
 ### The three things that force code
@@ -238,7 +238,7 @@ field of that child in the JSON:
 
 | you want to | you do | it writes |
 |---|---|---|
-| make a page use tabs | pick **Top tabs** in Navigation | `"mode": { "kids": "tabs", "mech": "swap" }` on the PARENT |
+| make a page use tabs | pick **Top tabs** in Navigation | `"mode": { "navigation": "tabs" }` on the PARENT |
 | add a tab | **+ Add a tab** — the same button says **+ Add a page** when the navigation is columns | a new node in `"children"` |
 | rename a tab | type in its row | that child's `"title"` |
 | reorder the tabs | the ↑ ↓ arrows; tabs appear in the order the parent lists its children | the order of `"children"` |
@@ -398,9 +398,10 @@ inside the class being deleted.
   middle column does nothing; you type in the left one. Editing in place is a bigger idea
   (`ext/editor` already has it) and mixing the two would make the stage stop being a picture of
   the file.
-- **The layout number is the arrangement of the BLOCKS, not of the page in its row.** A page's
-  width word (`large`, `fill`, `full`) is still only reachable through the Navigation control's
-  takeover option. Splitting them would be a fifth control for a word 27 pages use.
+- **The layout number is the arrangement of the BLOCKS, not of the page in its row.** How much of
+  the screen the page itself gets is the realm's own `room` word — `narrow` `reading` `wide`
+  `full` — and since 2026-09-05 the builder sets it, because the builder's middle wears the
+  realm's own bar. Core's `width` field is a different thing and nothing here writes it.
 
 ## Done: `BuildStage` renders a `PagingStage` (2026-09-05, after the fourth audit)
 
@@ -444,10 +445,35 @@ Surface → Dark paints `paging-surface-dark` on the box; Navigation → Left ra
 `paging-rail`; Arrangement → Wall lays the blocks out as `build-arrange-4-wall` inside
 `paging-arr-wall`. 1280 / 3440 / 400, zero console errors.
 
-**What it opens.** The builder's middle can now wear the realm's own bar with one line
-(`stage.changed = (axis, value) => this.set_words({ [axis]: value })`), which would give Build
-the four words it has no control for — room, page colour, type size and content. That is the
-next thing here, and it is small.
+## Done: the builder's middle wears the realm's own bar (2026-09-05, after the fifth audit)
+
+**Build can save all seven words now.** Its own controls write three — navigation, content colour,
+arrangement — and [Make](/imagine/paging/make/)'s rows write four, so between the realm's two
+editors `room` and `type size` were set by **nothing at all** (paging-audit-5b). The middle column
+carries the same bar every other stage in the realm has.
+
+The one line this section predicted turned out to need a second hook rather than `changed`: the
+bar itself owns `changed` (it writes its own dropdowns back through it), so a page that wants to
+SAVE the word you set has nowhere to hang. `stage.js` grew **`keep`** beside it — *`changed` tells,
+`keep` writes* — and Build's is
+
+```js
+build.$stage.keep = (axis, value) => this.set_words({ [axis]: value }, { screen: false });
+```
+
+`screen: false` is the whole subtlety. A `<select>` fires `change` while it still has focus and
+the stage has already repainted itself by then, so rebuilding the middle column would delete the
+dropdown mid-gesture and change nothing on screen. It joins `controls: false`, which exists for
+the same reason on the text fields.
+
+**A page you made sets the same hook**, to Make's own `edit_at()` — one writer, one store. Set
+**room** on `/imagine/paging/make/notes/` and `made/notes/page.json` says `"room": "wide"` within
+the second; reload with a bare url and it is still there.
+
+**Step 7 moved out of the control column.** A `page.js` line is 60–80 characters and that column
+is 230px at 1280, so the step whose entire job is to show you the seven words showed a quarter of
+each line. It is a row spanning the whole card now, with its own scroll and a **Copy** button —
+the same helper the drawer's code box got.
 
 ## Dropped from the plan: `compare/` (2026-09-05)
 

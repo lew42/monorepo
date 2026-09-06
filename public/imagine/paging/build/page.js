@@ -1,6 +1,8 @@
 import { Page, View, div, p, h2, h3, span, icon, md, input, textarea, pre } from "/app.js";
-import { Paging, press } from "../paging.js";
+import { Paging, press, Toolbar } from "../paging.js";
 import { baseline } from "../baseline.js";
+import { label_of } from "../blocks.js";
+import { copy_chip, select_text } from "../config.js";
 import { store_for, LocalStore, DIR } from "../make/made.js";
 import BuildStage from "./stage.js";
 import {
@@ -88,10 +90,10 @@ export default new Paging({
 	   anywhere else assigns `this.node`. `controls: false` is for the text fields,
 	   which must not have the box they are being typed in rebuilt under the cursor.
 	   Named `apply()` after Make's own write seam, which does the same job. */
-	apply(node, { controls = true } = {}){
+	apply(node, options){
 		this.node = node;
 		this.keep();
-		return this.redraw({ controls });
+		return this.redraw(options);
 	},
 
 	edit_node(change, options){ return this.apply(edit(this.node, change), options); },
@@ -102,10 +104,17 @@ export default new Paging({
 	   writing this file. */
 	set_words(change, options){ return this.apply(set_mode(this.node, change), options); },
 
-	redraw({ controls = true } = {}){
+	/* ⚠ TWO THINGS A REDRAW MAY BE ASKED TO LEAVE ALONE, and both for the same reason:
+	     you must not delete the element the reader is standing on. `controls: false` is
+	     for the text fields, which are being typed in. `screen: false` is for the BAR
+	     over the stage — a `<select>` fires `change` while it still has focus, and the
+	     stage has already repainted itself by then, so rebuilding it would throw away
+	     the dropdown mid-gesture and change nothing on screen. */
+	redraw({ controls = true, screen = true } = {}){
 		if (controls) this.$controls?.empty(() => { this.controls(); });
-		this.$screen?.empty(() => { this.screen(); });
+		if (screen) this.$screen?.empty(() => { this.screen(); });
 		this.$json?.empty(() => { this.json_box(); });
+		this.$code?.empty(() => { this.code_part(); });
 		this.$baseline?.check();
 		return this;
 	},
@@ -157,24 +166,40 @@ export default new Paging({
 			this.$controls = div.c("build-controls flex v gap", () => { this.controls(); });
 			this.$screen = div.c("build-centre", () => { this.screen(); });
 			this.$json = div.c("build-json flex v gap", () => { this.json_box(); });
+
+			/* ⚠ STEP 7 SPANS THE WHOLE CARD, and it is the last control for that reason:
+			     it prints a `page.js`, whose lines are 60–80 characters. In the 230px
+			     control column that showed a QUARTER of each line — `navigation:`, `room:`
+			     and the other five keys had their values off the right edge, on the step
+			     whose entire job is to show you the seven words (paging-audit-5, item 1).
+			     A full-width row and its own scroll, like the drawer's code boxes. */
+			this.$code = div.c("build-code-row", () => { this.code_part(); });
 		}));
 	},
 
-	// ════ THE CONTROLS, IN ORDER ══════════════════════════════════════════════
+	/* ════ THE CONTROLS, IN ORDER ══════════════════════════════════════════════
+	   ⚠ THE LABELS ARE READ OFF `CONTROLS`, not typed here. Step 3 was called *Surface*
+	     while the bar, Make's chip and the address all said *content colour* — a fourth
+	     name for one thing, on the realm whose whole fifth audit was about having one
+	     set of names (paging-audit-5b, fix 6). `label_of()` is `../blocks.js`. */
 	controls(){
 		this.part(1, "Name", "What the page is called. It is the head, the crumb, the card and — if its parent draws tabs — the tab.", () => this.name_controls());
 
-		this.part(2, "Navigation", "How the pages UNDER this one appear. Top tabs, a left rail and column pages are the same question asked once, so they are one control.", () => this.picker(NAVIGATION, config_of(this.node).navigation, nav => this.set_words({ navigation: nav.id })));
+		this.part(2, this.word_title("navigation"), "How the pages UNDER this one appear. Top tabs, a left rail and column pages are the same question asked once, so they are one control.", () => this.picker(NAVIGATION, config_of(this.node).navigation, nav => this.set_words({ navigation: nav.id })));
 
-		this.part(3, "Surface", "The colour of the content box. One word, five answers, independent of everything else.", () => this.word_chips(SURFACES, config_of(this.node).surface, it => this.set_words({ surface: it.id })));
+		this.part(3, this.word_title("surface"), "The colour of the content box. One word, five answers, independent of everything else.", () => this.word_chips(SURFACES, config_of(this.node).surface, it => this.set_words({ surface: it.id })));
 
-		this.part(4, "Arrangement", "Where the page's other parts sit around the content — a toolbar, a footer, a panel, an aside. The same seven words the bar over every page in this realm sets.", () => this.word_chips(ARRANGEMENT, config_of(this.node).arrangement, it => this.set_words({ arrangement: it.id })));
+		this.part(4, this.word_title("arrangement"), "Where the page's other parts sit around the content — a toolbar, a footer, a panel, an aside. The same seven words the bar over every page in this realm sets.", () => this.word_chips(ARRANGEMENT, config_of(this.node).arrangement, it => this.set_words({ arrangement: it.id })));
 
-		this.part(5, "Blocks", "The content, as data. Three kinds, and every one is drawn by something that already exists.", () => this.block_controls());
+		this.part(5, "Blocks", "The content, as data. Three kinds, and every one is drawn by something that already exists — and they sit ABOVE whatever the content word says.", () => this.block_controls());
 
 		this.part(6, "Pages", "The children. Under `tabs` each one is a tab; under `columns` each one is a row that opens to the right. Same pages either way.", () => this.child_controls());
+	},
 
-		this.part(7, "Code", "For everything the controls cannot say — and a third of this site is exactly that.", () => this.code_control());
+	// The reader's own word for an axis, with a capital — one list, `../blocks.js`.
+	word_title(axis){
+		const label = label_of(axis);
+		return label[0].toUpperCase() + label.slice(1);
 	},
 
 	/* ⚠ NOT `group()`. `group` is DATA core reads off a page — `previews()` groups a
@@ -344,20 +369,43 @@ export default new Paging({
 		return press(span.c("build-act").ac(extra).attr("title", title).append(() => icon(glyph)), run);
 	},
 
-	// ── 7 · the code escape ──────────────────────────────────────────────────
-	code_control(){
-		md("A third of this site's pages need a `content()` that computes something, and no JSON will ever supply one. So here is the `page.js` this node would be if you wrote it by hand — copy it into a directory and the builder has handed the page over to you.");
+	// ── 7 · the code escape, across the whole card ───────────────────────────
+	code_part(){
+		return this.part(7, "Code", "For everything the controls cannot say — and a third of this site is exactly that.", () => {
+			md("A third of this site's pages need a `content()` that computes something, and no JSON will ever supply one. So here is the `page.js` this node would be if you wrote it by hand — copy it into a directory and the builder has handed the page over to you.");
 
-		return pre.c("build-code", code_for_node(this.node));
+			const text = code_for_node(this.node);
+			const $box = pre.c("build-code", text);
+
+			let $said;
+			div.c("paging-said", () => {
+				copy_chip(text, "Copy the code", () => select_text($box.el), said => $said.empty(said));
+				$said = span.c("paging-said-ok");
+			});
+		});
 	},
 
-	// ════ THE STAGE ═══════════════════════════════════════════════════════════
+	/* ════ THE STAGE, AND THE REALM'S OWN BAR OVER IT ══════════════════════════
+	   ⚠ THE BAR IS WHY BUILD CAN SAVE ALL SEVEN WORDS. Its own controls write three —
+	     navigation, content colour, arrangement — and Make's rows write four, so
+	     between the realm's two editors `room` and `type size` could be set by NOTHING
+	     (paging-audit-5b, break 2). The bar over every other stage in the realm sets
+	     all seven, so the builder wears it too: one line, and `doc/builder.md` had
+	     already written that line down as the next thing to do here.
+	   ⚠ IT REPAINTS THE STAGE AND NOT THIS COLUMN. `keep` is the stage's write hook;
+	     the stage has already redrawn itself by the time it fires, so `screen: false`
+	     leaves the `<select>` the reader is standing in exactly where it was. */
 	screen(){
 		p.c("muted build-caption", "The page, as it will be. Click a tab or a row — this rectangle is the only thing that changes.");
 
-		new BuildStage({ page: this, node: this.node, classes: "build-screen" });
+		const $bar = div.c("paging-toolbar-slot");
 
-		return p.c("muted build-caption", () => { md("A **picture that works**: the tabs really swap and the prose really goes through `md()`. What it cannot do is route — the page has no url until you save it."); });
+		const build = new BuildStage({ page: this, node: this.node, classes: "build-screen" });
+
+		build.$stage.keep = (axis, value) => this.set_words({ [axis]: value }, { screen: false });
+		$bar.append(() => new Toolbar({ stage: build.$stage, page: this }));
+
+		return p.c("muted build-caption", () => { md("A **picture that works**: the tabs really swap and the prose really goes through `md()`. Every word in the bar above is written straight into the file on the right. What it cannot do is route — the page has no url until you save it."); });
 	},
 
 	// ════ THE FILE ════════════════════════════════════════════════════════════

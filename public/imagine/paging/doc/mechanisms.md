@@ -58,11 +58,16 @@ its walk items each carry a fixed mechanism instead.
 
 ## `expand` — a panel below, in place
 
-No navigation, no url. The item is a clickable span; clicking it sets `this.opened` and
-repaints the stage, which draws a `.paging-panel` directly under that item. Everything below
-slides down; nothing else on screen moves and no column opens.
+No navigation, no url. **And since 2026-09-05 it is one of the seven `navigation` words**, so
+`this.stage({ navigation: "expand" })` draws it and [its own page](/imagine/paging/mechanisms/expand/)
+finally does the thing it is named after — before that, the page called Expand ran a left rail
+(paging-audit-5). The renderer is a `<details>` per child wearing the site's own
+[`ui/accordion`](/framework/ui/accordion/) hairline: **there is no JavaScript in the gesture at
+all**. The browser opens the row; the only listener is the one that measures the box afterwards.
 
-**Measured**: visible columns 4 → 4 at both widths, the panel present from the click onward.
+**Measured** (`/imagine/paging/mechanisms/expand/`, the `.paging-canvas` watched, 1280): opening
+*Pricing* grows the box **+138px tall, 0px wide**, closing it takes exactly the 138 back, and the
+address bar does not change on either press. Visible columns 4 → 4.
 
 ## `swap` — the box stays, its content changes
 

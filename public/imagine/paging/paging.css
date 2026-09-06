@@ -369,11 +369,6 @@
 	.paging-make-acts { display: flex; align-items: center; gap: 0.15em; flex: none; margin-inline-start: auto; }
 	.paging-make-add { font-size: 0.8em; }
 
-	/* A made page whose children are TABS. The strip and panel are the realm's own
-	   bounded set; the floor stops an empty panel reading as a stray line. */
-	.paging-make-tabs .paging-tab-panel { min-height: 5em; }
-	.paging-make-tabs .paging-tab-panel h3 { margin-top: 0; }
-
 	.paging-make-act {
 		display: inline-flex; align-items: center; flex: none;
 		padding: 0.15em;
@@ -447,7 +442,26 @@
 		height: 100%; min-height: 0;
 		padding: 0; max-width: none;
 		background: var(--wash);
+		/* the skip link below is absolute, and this is what it is absolute to */
+		position: relative;
 	}
+
+	/* ── SKIP THE RAIL ────────────────────────────────────────────────────────
+	   ⚠ OFF SCREEN, NOT `display: none`. A hidden element is not focusable, so a skip
+	     link that is display-none is a skip link that never appears — it has to be in
+	     the tab order at all times and only VISIBLE once it has focus. The rail is
+	     forty tiles, which is how many presses the bar over the page used to cost
+	     (paging-audit-5, item 8). */
+	.paging-skip {
+		position: absolute; z-index: 37;
+		inset-block-start: 0.4em; inset-inline-start: 0.4em;
+		transform: translateY(-200%);
+		padding: 0.4em 0.9em;
+		font-size: 0.85em; font-weight: 600;
+		color: white; background: var(--prim);
+		border-radius: var(--radius); text-decoration: none;
+	}
+	.paging-skip:focus-visible, .paging-skip:focus { transform: none; }
 
 	/* ⚠ A FLOOR IN rem, A CEILING IN rem, and a viewport share in between: at 1280
 	     the rail is its 15rem floor, at 3440 it is 12vw ≈ 413px, which is two tiles
@@ -604,6 +618,38 @@
 		text-transform: uppercase; color: var(--subtle);
 	}
 
+	/* ── THE ADDRESS FIELD UNDER THE `content` DROPDOWN ───────────────────────
+	   `content` is the one word that also takes a url. The field is hidden until you
+	   pick "A page or file…" or arrive on a page whose content IS a url — a permanent
+	   text input would add a row to the bar over every page in the realm. */
+	.paging-address { display: flex; align-items: center; gap: 0.3em; margin-block-start: 0.25em; }
+	.paging-address-off { display: none; }
+
+	.paging-address-field {
+		flex: 1 1 16em; min-width: 0;
+		padding: 0.25em 0.45em;
+		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+		font-size: 0.75em;
+		color: var(--ink); background: var(--surface);
+		border: 1px solid var(--line); border-radius: var(--radius);
+	}
+
+	/* ── AN ACT, NOT A VALUE ──────────────────────────────────────────────────
+	   `Copy this link`, `Put it inside`, `Make this a page` and `Draw it` DO something.
+	   They wore `.paging-chip.on` — pixel-identical to the forty chips where `on` means
+	   "this is the value in force", and without the `aria-pressed` those carry
+	   (paging-audit-5b, fix 7). A verb gets its own shape: filled, and never `on`. */
+	.paging-act {
+		display: inline-flex; align-items: center; gap: 0.3em;
+		padding: 0.35em 0.8em;
+		font-size: 0.85em; font-weight: 600; line-height: 1.3;
+		color: white; background: var(--prim);
+		border: 1px solid var(--prim); border-radius: var(--radius);
+		cursor: pointer;
+	}
+	.paging-act:is(:hover, :focus-visible) { filter: brightness(1.08); }
+	.paging-act .icon { font-size: 1em; }
+
 	/* MORE — a real button, at the end of the bar: the whole form, the code, and the
 	   link to this exact page. */
 	.paging-more {
@@ -707,6 +753,9 @@
 	   from. Both words used to draw no list at all, so neither preset could be
 	   operated: the box sat there with nothing to click (measured 2026-09-05). */
 	.paging-rows { display: flex; flex-direction: column; gap: 0.25em; }
+
+	/* A page you made with no children of its own. It used to list four strangers. */
+	.paging-no-pages { margin: 0; font-size: 0.85em; }
 
 	/* ⚠ EVERY CHILD OF THE BOX STRETCHES. A child that declares `container-type:
 	     inline-size` may not be sized by its own contents in the inline axis, so one
@@ -865,10 +914,37 @@
 	}
 
 	/* A nested page that came from a url rather than from the twelve: its own name,
-	   and the box that holds the "reading it…" line until the file arrives. */
-	.paging-nest-name { font-weight: 700; font-size: 0.85em; color: var(--prim-ink); }
+	   and the box that holds the "reading it…" line until the file arrives.
+	   ⚠ THE NAME IS A LINK. The band said which page was inside this one and gave no
+	     way to it — the drawer was the only door (paging-audit-5, item 7). */
+	.paging-nest-name {
+		display: inline-flex; align-items: center; gap: 0.15em; align-self: flex-start;
+		font-weight: 700; font-size: 0.85em; color: var(--prim-ink); text-decoration: none;
+	}
+	.paging-nest-name:is(:hover, :focus-visible) { text-decoration: underline; }
+	.paging-nest-name .icon { font-size: 1em; }
+
 	.paging-nest-fetch { display: flex; flex-direction: column; gap: 0.3em; }
 	.paging-nest-fetch p { margin: 0; font-size: 0.85em; }
+
+	/* ── `content` HOLDING A URL ──────────────────────────────────────────────
+	   A `.md` file, fetched and rendered where the eight canned samples go. It gets
+	   the box's own rhythm and the reading measure, because it is prose. */
+	.paging-content-url { display: flex; flex-direction: column; gap: 0.6em; }
+	.paging-content-url > :is(h1, h2, h3, h4, p, ul, ol) { margin-block: 0; max-inline-size: 40em; }
+
+	/* ── `expand` — THE CHILD OPENS IN THE ROW ────────────────────────────────
+	   A `<details>` per child, wearing `ui/accordion`'s own hairline. No JavaScript in
+	   the gesture: the browser opens the row and the box grows downward. */
+	.paging-expand {
+		display: flex; flex-direction: column;
+		border: 1px solid var(--line); border-radius: var(--radius);
+		padding: 0.5em 0.7em;
+	}
+	.paging-expand-item { padding-block: 0.5em; }
+	.paging-expand-head { cursor: pointer; font-weight: 600; }
+	.paging-expand-head .icon { font-size: 1em; vertical-align: -0.15em; margin-inline-end: 0.3em; }
+	.paging-expand-item > .paging-held { margin-block-start: 0.5em; }
 
 	/* ── A WALL OF CARDS ──────────────────────────────────────────────────────
 	   ⚠ THE WALL TAKES THE `wide` TRACK, always. Core's page grid puts an undeclared
@@ -941,6 +1017,16 @@
 	     site's rule for wide content, and the page body never scrolls sideways. At
 	     3440 the six get ~460px each and there is nothing to scroll. */
 	.paging-cross-wall { overflow-x: auto; }
+	.paging-cross-count { margin: 0; font-size: 0.85em; }
+
+	/* THE TICK ON A PAGE YOU MADE. The bar over a made page WRITES, and a save you
+	   cannot see is the one thing this realm's persistence rule forbids. A line, not
+	   an alert - it is empty until something has actually been written. */
+	.paging-kept {
+		display: flex; align-items: center; gap: 0.3em;
+		margin: 0; font-size: 0.85em; color: var(--prim-ink);
+	}
+	.paging-kept .icon { font-size: 1em; }
 
 	.paging-cross {
 		display: grid;

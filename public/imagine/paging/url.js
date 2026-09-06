@@ -1,9 +1,10 @@
 /* ── THE CONFIGURATION LIVES IN THE URL ────────────────────────────────────────
 
    A page in this realm is seven words (`blocks.js`). Those seven words are worth
-   100,800 different pages, and until now you could reach them all by clicking and
-   send none of them to anybody: nothing wrote what you had picked into the address
-   bar, so a shape you found was gone the moment you refreshed.
+   117,600 different pages - and more, because one of them takes a url - and until now
+   you could reach them all by clicking and send none of them to anybody: nothing wrote
+   what you had picked into the address bar, so a shape you found was gone the moment
+   you refreshed.
 
    This file is the seam that fixes it, and it is three functions:
 
@@ -18,7 +19,7 @@
    ⚠ IMPORTS ONLY DATA — `blocks.js` and `presets.js`, both of which import nothing.
      `stage.js` and `paging.js` both use this, so it has to sit under both of them. */
 
-import { CONTROLS, values_for } from "./blocks.js";
+import { CONTROLS, takes } from "./blocks.js";
 import { PRESETS } from "./presets.js";
 
 /* ⚠ THE ENTRY QUERY, READ ONCE, AT MODULE LOAD — which is the cold load. core's
@@ -90,8 +91,10 @@ export function from_url(base, path){
 	CONTROLS.forEach(({ axis, key }) => {
 		// The label's word first, the old key second: every link written before
 		// 2026-09-05 says `?surface=tint`, and those still have to open.
+		// ⚠ `takes()`, not "is one of this word's values" — `content` also accepts a
+		//   url, so `?content=/notes/auth/readme.md` is a legal address (`blocks.js`).
 		const value = entry.params.get(key) ?? entry.params.get(axis);
-		if (value && values_for(axis).some(word => word.id === value)) config[axis] = value;
+		if (value && takes(axis, value)) config[axis] = value;
 	});
 
 	return {

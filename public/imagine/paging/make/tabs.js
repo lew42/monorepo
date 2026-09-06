@@ -1,4 +1,4 @@
-import { div, p, h3, span, a, input, icon } from "/app.js";
+import { div, span, input, icon } from "/app.js";
 import { press } from "../paging.js";
 import { config_of, nav_of } from "../blocks.js";
 import { at, clone } from "./made.js";
@@ -35,46 +35,9 @@ import { at, clone } from "./made.js";
    this is where Make's own code reaches for it. */
 export { config_of };
 
-// How this node draws its children — the one word `tabs_items()` and the "+ tab"
-// button ask about. `nav_of()` is the realm's own lookup, so there is no second list.
+// How this node draws its children — the one word the "+ tab" button asks about.
+// `nav_of()` is the realm's own lookup, so there is no second list.
 export const kids_of = node => (nav_of(config_of(node).navigation).id === "tabs" ? "tabs" : "columns");
-
-/* ── THE PAGE SIDE: children drawn as a tab strip ─────────────────────────────
-   Replaces `Paging.items()` on a made page whose `kids` is `tabs`. The strip and
-   its panel are the realm's own bounded set (`paging.css`) — one box, the selected
-   tab joined to it — so the reader can point at the rectangle that is about to
-   change before they click. */
-export function tabs_items(page){
-	const kids = [...page.children].filter(([, child]) => child);
-
-	if (!kids.length) return p.c("muted", "This page shows its children as tabs, and it has none yet. Add one with the “+ tab” button on its row in Make.");
-
-	// A tab that was removed must not leave the panel pointing past the end.
-	page.tab_n = Math.min(page.tab_n ?? 0, kids.length - 1);
-
-	return div.c("paging-tabs paging-make-tabs", () => {
-		const $bar = div.c("paging-tab-bar");
-		const $panel = div.c("paging-tab-panel");
-
-		const show = i => {
-			page.tab_n = i;
-			$bar.el.querySelectorAll(".paging-tab").forEach((el, n) => el.classList.toggle("on", n === i));
-			$panel.empty(() => { tab_panel(kids[i][1]); });
-		};
-
-		$bar.append(() => kids.forEach(([, child], i) =>
-			press(span.c("paging-tab", child.title).ac(i === page.tab_n && "on"), () => show(i))));
-
-		$panel.append(() => { tab_panel(kids[page.tab_n][1]); });
-	});
-}
-
-// One tab's panel: the child, and the way to it as a real page.
-function tab_panel(child){
-	h3(child.title);
-	p(child.description ?? "A page you made.");
-	a.c("paging-panel-link", () => { span("open it as a column instead — this is where the url changes"); icon("chevron_right"); }).href(child.url);
-}
 
 /* ── THE MAKE SIDE: the controls on a row ─────────────────────────────────────
    Rename · move up · move down · add (a tab, or a child page) · delete. Every one
@@ -153,4 +116,4 @@ export function move_at(page, path, delta){
 	return page.apply(tree);
 }
 
-export default tabs_items;
+export default row_acts;

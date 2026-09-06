@@ -1,4 +1,4 @@
-import { div, span, a, select, option, md } from "/app.js";
+import { div, p, span, a, select, option, md } from "/app.js";
 import { Paging, Stage } from "../paging.js";
 import { CONTROLS, DEFAULT, title_of } from "../blocks.js";
 
@@ -41,6 +41,11 @@ export default new Paging({
 
 		this.pickers();
 
+		/* ⚠ THE WALL SAYS HOW WIDE IT IS. Six columns in a 957px middle at 1280 is a
+		     1,400px wall inside a 957px box: it scrolls itself, and two of the six were
+		     simply invisible with nothing on screen saying so (paging-audit-5, item 5). */
+		this.$count = p.c("muted paging-cross-count", () => { this.count(); });
+
 		this.$wall = div.c("paging-cross-wall wide", () => { this.wall(); });
 
 		md("The other crossing is colour by type: [the theming wall](/imagine/paging/templates/theming/) puts fifteen of those on one screen. "
@@ -81,8 +86,18 @@ export default new Paging({
 		this[which === "across" ? "down" : "across"] = OTHER(axis, this[which === "across" ? "down" : "across"]);
 
 		this.$wall?.empty(() => { this.wall(); });
+		this.$count?.empty(() => { this.count(); });
 		this.pickers_sync();
 		return this;
+	},
+
+	// How many cells, and the one thing a narrow screen needs told: it scrolls.
+	count(){
+		const across = values_of(this.across).length, down = values_of(this.down).length;
+
+		return span(across + " across × " + down + " down = " + (across * down)
+			+ " live pages. Each cell has a floor of 13rem, so on a narrow screen "
+			+ "the wall scrolls sideways — drag it, or shift-scroll.");
 	},
 
 	// The other dropdown may have been moved out of the way; write its value back.

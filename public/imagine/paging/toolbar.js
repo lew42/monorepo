@@ -1,5 +1,5 @@
-import { View, div, span, select, option, icon } from "/app.js";
-import { BLOCKS, SURFACES, controls_of } from "./blocks.js";
+import { View, div, span, select, option, input, icon } from "/app.js";
+import { BLOCKS, SURFACES, controls_of, is_url } from "./blocks.js";
 import { PRESETS, preset_of, preset_url } from "./presets.js";
 import { fill_drawer } from "./config.js";
 
@@ -39,6 +39,10 @@ import { fill_drawer } from "./config.js";
 
 // The two words whose current value is painted beside the dropdown.
 const COLOURS = ["surface", "background"];
+
+/* The `content` dropdown's ninth entry. It is not a content word — it is the way to
+   type one, and the value the select shows while `content` is holding a url. */
+const ADDRESS = "…url";
 
 const press = ($el, act) => $el
 	.attr("role", "button").attr("tabindex", "0")
@@ -154,16 +158,68 @@ export class PagingToolbar extends View {
 			div.c("paging-pick", () => {
 				if (COLOURS.includes(axis)) this.dots.set(axis, span.c("paging-dot"));
 
-				const $select = select(() => values.forEach(value =>
-					option(value.title).attr("value", value.id).attr("title", value.means)))
+				const $select = select(() => {
+					values.forEach(value => option(value.title).attr("value", value.id).attr("title", value.means));
+
+					// ⚠ ONE WORD HAS A NINTH ANSWER. See `address()` below.
+					if (axis === "content") option("A page or file…").attr("value", ADDRESS)
+						.attr("title", "the address of a page, or of a .md file — it is fetched and drawn in the box");
+				})
 					.attr("title", label)
 					.attr("aria-label", label)
-					.on("change", event => this.stage.set(axis, event.target.value));
+					.on("change", event => this.chose(axis, event.target.value));
 
 				this.picks.set(axis, $select);
 			});
+
+			if (axis === "content") this.address();
 		});
 	}
+
+	// Picking a value sets the word. Picking "A page or file…" is not a value — it
+	// opens the field where you type one, which is the next thing your eye needs.
+	chose(axis, value){
+		if (value !== ADDRESS) return this.stage.set(axis, value);
+
+		this.show_address(true);
+		this.$address_field?.el?.focus();
+		return this;
+	}
+
+	/* ── THE NINTH ANSWER TO "WHAT IS IN THE BOX": AN ADDRESS ─────────────────
+	   Eight canned samples were the last CLOSED list in the realm — every one of its
+	   ~100,000 configurations held one of eight things, which is what kept *infinite
+	   potential* off full marks for five audits (paging-audit-5). `content` takes a
+	   url now, exactly the way `nest` does: a PAGE's address is fetched as its
+	   `page.json` and run inside the box, and a `.md` address is fetched and rendered
+	   as prose (`stage.js`). This is where you type one.
+
+	   ⚠ HIDDEN UNTIL IT IS WANTED. Seven dropdowns already fit one row at 3440 and two
+	     at 1280; a permanent text field under one of them would add a row to the bar
+	     over every page in the realm for a control most readers never touch. */
+	address(){
+		return this.$address = div.c("paging-address paging-address-off", () => {
+			this.$address_field = input().ac("paging-address-field").attr("type", "text")
+				.attr("aria-label", "the address of a page or a .md file")
+				.attr("placeholder", "/imagine/paging/make/notes/   or   /notes/auth/readme.md");
+
+			const put = () => {
+				const url = (this.$address_field.el.value || "").trim();
+				if (url) this.stage.set("content", url);
+			};
+
+			this.$address_field.on("keydown", event => {
+				if (event.key !== "Enter") return;
+				event.preventDefault();
+				put();
+			});
+
+			press(span.c("paging-act").attr("title", "read that address and draw it in the box")
+				.append(() => { icon("open_in_new"); span("Draw it"); }), put);
+		});
+	}
+
+	show_address(on){ this.$address?.[on ? "rc" : "ac"]("paging-address-off"); return this; }
 
 	/* ── THE WAY OUT ──────────────────────────────────────────────────────────
 	   Seven words are a page, and a page has to be able to stop being seven words.
@@ -194,7 +250,19 @@ export class PagingToolbar extends View {
 	     written back — which is also what keeps an external change (the drawer, the
 	     library's own menu, a url) showing up here. */
 	sync(){
-		this.picks?.forEach(($select, axis) => { $select.el.value = this.stage.config[axis]; });
+		// ⚠ A URL IS NOT ONE OF THE EIGHT OPTIONS, so writing it into the select would
+		//   leave the dropdown blank. It shows "A page or file…", and the field under it
+		//   shows the address itself — which is the honest pair.
+		this.picks?.forEach(($select, axis) => {
+			const value = this.stage.config[axis];
+			$select.el.value = is_url(value) ? ADDRESS : value;
+		});
+
+		const content = this.stage.config.content;
+		if (is_url(content)){
+			if (this.$address_field) this.$address_field.el.value = content;
+			this.show_address(true);
+		}
 
 		this.dots?.forEach(($dot, axis) => {
 			$dot.rc(...SURFACES.map(surface => "paging-surface-" + surface.id))

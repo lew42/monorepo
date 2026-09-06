@@ -1,7 +1,15 @@
-import { View, div, p, span, a, icon } from "/app.js";
-import { clean, nav_of, title_of, NAVIGATION, ARRANGEMENT, ROOM, SURFACES, TYPE } from "./blocks.js";
+import { View, div, p, span, a, icon, details, summary, md } from "/app.js";
+import { clean, is_url, nav_of, title_of, NAVIGATION, ARRANGEMENT, ROOM, SURFACES, TYPE } from "./blocks.js";
 import { CONTENT_DRAW, PAGES } from "./content.js";
 import { from_url, write_url } from "./url.js";
+import { blocks_of } from "./build/words.js";
+import { draw_blocks } from "./build/draw.js";
+
+/* ⚠ IMPORTED FOR ITS TWO CSS RULES, and that is the whole of `ui/accordion`: there is
+     no `ui.accordion()` to call, because the component is a `<details>` element and a
+     hairline between two of them. The `expand` navigation word below is that element.
+     (`/framework/ui/accordion/` says why the counter that used to be here was deleted.) */
+import "/framework/ui/accordion/accordion.js";
 
 // ⚠ ONE LIST PER WORD, and it is the list in `blocks.js`. These five used to be
 //   hand-typed arrays of ids in `paint()` below — a sixth copy of the vocabulary,
@@ -12,9 +20,89 @@ const ids = list => list.map(entry => entry.id);
    `/imagine/paging/made/notes/page.json` is the file it is drawn from (`make/made.js`
    owns that directory, and `make/page.js` says why the two differ). Anything else is
    fetched as it was given, so a `page.json` written by hand can be nested too. */
-const file_for = url => (url.startsWith("/imagine/paging/make/")
+const dir_of = url => url.replace(/\/?$/, "/");
+
+const file_for = url => dir_of(url.startsWith("/imagine/paging/make/")
 	? url.replace("/imagine/paging/make/", "/imagine/paging/made/")
-	: url).replace(/\/?$/, "/") + "page.json";
+	: url) + "page.json";
+
+// A url ending in `.md` is prose to render; anything else is a page to run.
+const is_md = url => /\.md(\?|#|$)/i.test(url);
+
+/* ⚠ A MISSING FILE CAN ANSWER 200 WITH `index.html`. The dev server's SPA fallback
+     means `res.ok` is not "the file is there" — the CONTENT-TYPE is the 404. The same
+     guard `make/made.js`'s `FileStore.read()` carries, for the same reason. */
+async function read_file(path, as){
+	const res = await fetch(path, { cache: "no-cache" }).catch(() => null);
+	if (!res?.ok || res.headers.get("content-type")?.includes("html")) return null;
+	return res[as]().catch(() => null);
+}
+
+/* ── A SAVED PAGE, READ WHOLE ──────────────────────────────────────────────────
+   A `page.json` names its children by DIRECTORY NAME (`make/made.js`), so the titles
+   a tab strip needs are one more fetch each — which is what a child costs anywhere on
+   this site. A child that is missing is skipped rather than fatal. */
+async function read_node(url){
+	const node = await read_file(file_for(url), "json");
+	if (!node) throw new Error("no page at " + url);
+
+	const kids = await Promise.all((node.children ?? []).map(async name => {
+		const kid = await read_file(file_for(dir_of(url) + name + "/"), "json");
+		return kid && { ...kid, name };
+	}));
+
+	return { ...node, children: kids.filter(Boolean) };
+}
+
+/* ── A SAVED PAGE, AS THE TWO THINGS A STAGE NEEDS BEYOND ITS SEVEN WORDS ──────
+
+   A `page.json` says more than seven words. It has CHILDREN, and it may have BLOCKS —
+   and the stage draws neither on its own: `pages:` is whose children the navigation
+   word draws, and `draw:` is what goes in the box. Something has to turn one into the
+   other, and THIS IS THE ONE PLACE THAT DOES IT.
+
+   ⚠ ONE PLACE ON PURPOSE. The same translation was written into `make/page.js` alone,
+     so a page you made drew its own children when you opened it and FOUR CANNED
+     SAMPLES when the same page was nested inside another — the identical defect, one
+     level deeper, four audits running (paging-audit-5b). Every caller comes through
+     here now, at every depth, so there is no third level for it to reappear at.
+
+   `url_of` answers where a child actually lives — a live `Page`'s own url on a made
+   page, a path under the parent's url for a page read off disk.                     */
+export function stage_props(node, { page, url_of } = {}){
+	const kids = node?.children ?? [];
+
+	return {
+		/* ⚠ ALWAYS AN ARRAY, EVEN AN EMPTY ONE. `undefined` means "I have no children to
+		     give you, draw the four samples", which is right for a demo and wrong for a
+		     saved page: `made/ideas/` has no children, and with a rail it listed
+		     Overview · Pricing · Docs · Contact — four strangers on somebody's own page.
+		     An empty list is the truth, and the stage says so out loud. */
+		pages: kids.map(kid => child_for(kid, url_of)),
+
+		/* ⚠ THE BLOCKS DO NOT SWITCH THE CONTENT WORD OFF. `draw` used to be the whole
+		     of the box, so one prose block silently made `content` draw nothing while
+		     the control still cycled it and still wrote it to the file (paging-audit-5b).
+		     They COMPOSE: your blocks first, then the content word's own sample under a
+		     line naming it. Both controls are live, and the box says which half is which. */
+		draw: blocks_of(node).length
+			? stage => { draw_blocks(node, page); stage.sample(true); }
+			: undefined,
+	};
+}
+
+// The one thing to say when a url answers with nothing, and the way on from it.
+const missing = url => {
+	p.c("muted", "There is no page or file at " + url + ".");
+	a.c("page-link", "Every page you have made →").href("/imagine/paging/make/");
+};
+
+const child_for = (kid, url_of) => ({
+	title: kid.title,
+	icon: kid.icon ?? "description",
+	text: kid.description || "A page you made. Open it on its own and it gets the whole middle, with its own bar over it.",
+	url: url_of?.(kid),
+});
 
 /* ⚠ `paging.css` is loaded by `paging.js`, not here. Every page that puts a Stage on
      screen is a page of this realm and so extends `Paging`; loading the sheet twice
@@ -159,10 +247,11 @@ export class PagingStage extends View {
 	     #2). `visibility`, never `display: none` — a display-hidden panel is not
 	     measured, which is the whole thing being bought.
 
-	   ⚠ STABLE NAVIGATION ONLY. `columns` and `takeover` are the DYNAMIC words
-	     (decision 5, 2026-09-05): they are supposed to move things, so their child
-	     opens beside the box or over the whole stage and the caption reports the
-	     real pixels. Reserving there would hide the very thing they demonstrate. */
+	   ⚠ ONLY THE WORDS THAT SWAP. `expand`, `columns` and `takeover` are the DYNAMIC
+	     words (decision 5, 2026-09-05): they are supposed to move things, so their
+	     child opens in the row, beside the box or over the whole stage, and the
+	     caption reports the real pixels. Reserving there would hide the very thing
+	     they demonstrate. `swaps()` below is the one question this asks. */
 	held(){
 		if (!this.swaps()) return this.own_panel();
 
@@ -172,13 +261,15 @@ export class PagingStage extends View {
 		});
 	}
 
-	/* Which navigation words change what is IN the box (rather than beside or over it)
-	   — the STABLE ones, which is a flag `blocks.js` already carries on each word.
-	   ⚠ `none` is stable and has nothing to swap: no child list is drawn at all, so
-	     reserving four hidden panels would make the box as tall as its tallest unseen
-	     child for nothing. (This used to be a hand-typed list of three ids here — the
-	     second of three places the realm said stable-versus-dynamic; paging-audit-4b.) */
-	swaps(){ return nav_of(this.config.navigation).stable && this.config.navigation !== "none"; }
+	/* Which navigation words change what is IN the box (rather than beside, below or
+	   over it) — a flag `blocks.js` carries on each word, and reading it is the whole
+	   of this method.
+	   ⚠ IT IS NOT `stable`. It was `stable && id !== "none"`, and adding `expand`
+	     would have made it `stable && !== "none" && !== "expand"` — two exceptions
+	     hand-written here, which is how the realm grew five copies of its vocabulary
+	     in the first place. "Does the box swap?" is its own question, so it is its own
+	     flag, answered once, in the list. */
+	swaps(){ return nav_of(this.config.navigation).swaps === true; }
 
 	// One reserved panel. `i === null` is the page's own content.
 	slot(i, child){
@@ -212,20 +303,58 @@ export class PagingStage extends View {
 	}
 
 	/* THE PAGE'S OWN CONTENT, and the list of children when the navigation word draws
-	   that list inside the box (`columns` and `takeover` both do — before this, both
-	   presets drew a box with nothing to click and the gesture could not be reached
-	   at all). ⚠ Called from inside `box()`'s own captured callback, so the factories
-	   append on their own — nothing here may `empty()` the box. */
+	   that list INSIDE the box. Three words do: `columns` and `takeover` list the rows
+	   you navigate from (before this, both presets drew a box with nothing to click and
+	   the gesture could not be reached at all), and `expand` draws the rows themselves.
+	   ⚠ Called from inside `box()`'s own captured callback, so the factories append on
+	     their own — nothing here may `empty()` the box. */
 	own_panel(){
 		if (this.config.navigation === "columns" || this.config.navigation === "takeover") this.rows();
+		if (this.config.navigation === "expand") this.expander();
 
 		// `draw` is the seam a page uses to put its OWN thing in the box — the
 		// templates realm hands over a family's real machinery this way, so the
-		// two colours and the type scale repaint a real magazine cover.
+		// two colours and the type scale repaint a real magazine cover. A page with
+		// blocks draws them AND its content word, through `stage_props()` above.
 		if (this.draw) this.draw(this);
-		else (CONTENT_DRAW[this.config.content] ?? CONTENT_DRAW.article)();
+		else this.sample();
 
 		return this.nest_box();
+	}
+
+	/* ── THE CONTENT WORD, DRAWN ──────────────────────────────────────────────
+	   Eight canned samples (`content.js`) — or a URL, which is the ninth answer and
+	   the one that is not a list. A page's address is fetched as its `page.json` and
+	   RUN inside the box, wearing its own seven words; a `.md` address is fetched and
+	   rendered as prose. So the stage can hold a page nobody wrote when this realm
+	   was written, by address, cold.
+
+	   `named` is true when BLOCKS were drawn above this: the sample then gets a line
+	   over it saying which control it belongs to, because two things in one box with
+	   nothing between them is how a reader ends up blaming the wrong dropdown. */
+	sample(named){
+		const kind = this.config.content;
+
+		if (named) span.c("paging-eyebrow", "and the content word — " + title_of("content", kind));
+
+		if (is_url(kind)) return is_md(kind) ? this.prose_at(kind) : this.page_at(kind);
+
+		return (CONTENT_DRAW[kind] ?? CONTENT_DRAW.article)();
+	}
+
+	/* A `.md` FILE, IN THE BOX. ⚠ NO DOM AFTER THE AWAIT: the box is captured
+	   synchronously and filled in the callback — the realm's oldest trap. */
+	prose_at(url){
+		return div.c("paging-content-url", $box => {
+			$box.append(() => { p.c("muted", "Reading " + url + "…"); });
+
+			read_file(url, "text")
+				.then(text => $box.empty(() => {
+					if (text === null) return void missing(url);
+					md(text);
+				}))
+				.catch(() => $box.empty(() => { missing(url); }));
+		});
 	}
 
 	/* PUT A PAGE INSIDE THIS ONE (or take it out), and say so in the address — one
@@ -256,42 +385,118 @@ export class PagingStage extends View {
 			// A preset arrives with its words. Any other url arrives as a promise.
 			if (this.nest.navigation) return void this.inside(this.nest);
 
-			this.fetched(this.nest);
+			this.page_at(this.nest.url, true);
 		});
 	}
 
-	inside(config, title){
-		if (title) span.c("paging-nest-name", title);
-		return new PagingStage({ config: { ...config, room: "reading" }, inner: true });
+	/* ⚠ `level` IS A LOOP FUSE, and it is needed because `content` takes a url: a page
+	     whose saved `content` is its OWN address would read itself, draw itself, read
+	     itself… for ever, with nothing thrown. The bar on a page you made writes to the
+	     file, so a reader can produce exactly that in two clicks. Two levels of nesting
+	     draw; the third says so and hands over a link. */
+	inside(config, extra){
+		return new PagingStage({
+			config: { ...config, room: "reading" },
+			inner: true,
+			level: (this.level ?? 0) + 1,
+			...extra,
+		});
 	}
 
-	/* A PAGE YOU MADE, RUNNING INSIDE THIS ONE. `?nest=` takes any url now, and a url
-	   that is not one of the twelve presets has to be READ before it can be drawn: a
-	   made page is a `page.json` under `made/`, and its seven words are in its `mode`.
+	/* ── A PAGE AT A URL, READ AND RUN INSIDE THIS BOX ────────────────────────
+	   Two controls arrive here: `?nest=` puts a page inside this one, and the `content`
+	   word can BE a page. Both are a url, both are read the same way, and both end up
+	   as a stage — one path, so a fix to either is a fix to both.
+
+	   ⚠ IT HANDS THE INNER STAGE THE NODE'S OWN CHILDREN AND BLOCKS. It used to hand
+	     over the seven words alone, so `library/blog-post/?nest=/imagine/paging/make/notes/`
+	     drew Notes wearing the demo's four canned tabs — Overview · Pricing · Docs ·
+	     Contact — while the same page opened on its own read Today · Later
+	     (paging-audit-5b). `stage_props()` at the top of this file is that seam.
 
 	   ⚠ NO DOM AFTER THE AWAIT. The box is captured synchronously and filled in the
 	     callback — the realm's oldest trap, and the reason this is not one `await`.
 	   ⚠ THE URL AND THE FILE ARE DIFFERENT PATHS. A made page lives at
 	     `/imagine/paging/make/notes/` and its file at `/imagine/paging/made/notes/`
 	     (`make/page.js` says why), so the url is translated rather than fetched. */
-	fetched(nest){
-		return div.c("paging-nest-fetch", $box => {
-			$box.append(() => { p.c("muted", "Reading " + nest.url + "…"); });
-
-			fetch(file_for(nest.url), { cache: "no-cache" })
-				.then(res => (res.ok ? res.json() : Promise.reject(res.status)))
-				.then(node => $box.empty(() => { this.inside({ ...clean(node.mode), room: "reading" }, node.title); }))
-				.catch(() => $box.empty(() => {
-					p.c("muted", "There is no page at " + nest.url + " to put inside this one.");
-					a.c("page-link", "Every page you have made →").href("/imagine/paging/make/");
-				}));
+	page_at(url, named){
+		if ((this.level ?? 0) >= 2) return div.c("paging-nest-fetch", () => {
+			p.c("muted", "Two pages deep is as far as this box draws.");
+			a.c("page-link").href(url).append(() => { span("Open " + url + " on its own"); icon("chevron_right"); });
 		});
+
+		return div.c("paging-nest-fetch", $box => {
+			$box.append(() => { p.c("muted", "Reading " + url + "…"); });
+
+			read_node(url)
+				.then(node => $box.empty(() => { this.run(node, url, named); }))
+				.catch(() => $box.empty(() => { missing(url); }));
+		});
+	}
+
+	/* ONE NODE, RUNNING. ⚠ THE NAME IS A LINK. The dashed band said which page was
+	   inside this one and gave no way to it — the only door was the drawer
+	   (paging-audit-5, item 7). */
+	run(node, url, named){
+		if (named) a.c("paging-nest-name").href(url)
+			.append(() => { span(node.title); icon("chevron_right"); });
+
+		return this.inside(clean(node.mode),
+			stage_props(node, { page: this.page, url_of: kid => dir_of(url) + kid.name + "/" }));
+	}
+
+	/* ── `expand` — THE CHILD OPENS IN THE ROW ────────────────────────────────
+	   A `<details>` per child and the site's own `ui/accordion` rules, which means
+	   there is no JavaScript in the gesture: the browser opens the row, the box grows
+	   downward, and nothing above it moves. It is the one navigation word that never
+	   changes the address, so an opened row cannot be linked to or reached with Back —
+	   which is what `/imagine/paging/mechanisms/expand/` is for.
+
+	   ⚠ THE RECT IS TAKEN ON THE PRESS, NOT IN `toggle`. `toggle` fires AFTER the
+	     browser has already opened the row, so the "before" would be the "after" and
+	     the caption would report 0px on a gesture whose whole point is that it grows. */
+	expander(){
+		return div.c("paging-expand", () => {
+			span.c("paging-eyebrow", "pages under this one — open one and it grows right here");
+			if (this.none_yet()) return;
+
+			this.pages.forEach((child, i) => details.c("ui-accordion-item paging-expand-item", () => {
+				summary.c("paging-expand-head", () => { icon(child.icon); span(child.title); })
+					.on("mousedown", () => { this.grew_from = this.rect(); })
+					.on("keydown", event => { if (event.key === "Enter" || event.key === " ") this.grew_from = this.rect(); });
+
+				div.c("paging-held", () => { this.child_panel(child, i); });
+			}).on("toggle", event => this.grew(child, event.target.open)));
+		});
+	}
+
+	// What opening a row did to the box, in pixels — the same report every other
+	// gesture in this realm files, so `expand` can be compared with the other five.
+	grew(child, open){
+		this.change = {
+			from: open ? "closed" : child.title,
+			to: open ? child.title : "closed",
+			before: this.grew_from, after: this.rect(),
+		};
+
+		this.$cap?.empty(() => { this.caption(); });
+		return this;
 	}
 
 	// ── the child list, drawn four ways ──────────────────────────────────────
 
+	/* ⚠ A LIST WITH NOTHING IN IT SAYS SO. A page you MADE hands over its real children
+	     — and a page with none hands over an empty list rather than the four samples, so
+	     every one of these four drawings has to have an answer for it. */
+	none_yet(){
+		if (this.pages.length) return false;
+		p.c("muted paging-no-pages", "No pages under this one yet.");
+		return true;
+	}
+
 	tabs(){
 		return div.c("paging-strip", () => {
+			if (this.none_yet()) return;
 			this.pages.forEach((child, i) => this.tab(child, i));
 		});
 	}
@@ -303,6 +508,7 @@ export class PagingStage extends View {
 	rail(side){
 		return div.c("paging-rail paging-rail-" + side, () => {
 			span.c("paging-eyebrow", "pages");
+			if (this.none_yet()) return;
 			this.pages.forEach((child, i) => this.row(child, i));
 		});
 	}
@@ -312,6 +518,7 @@ export class PagingStage extends View {
 	rows(){
 		return div.c("paging-rows", () => {
 			span.c("paging-eyebrow", "pages under this one");
+			if (this.none_yet()) return;
 			this.pages.forEach((child, i) => this.row(child, i));
 		});
 	}
@@ -469,6 +676,19 @@ export class PagingStage extends View {
 		if (axis === "navigation" && value === "none") this.open = null;
 
 		this.redraw();
+
+		/* ⚠ `changed` TELLS; `keep` WRITES — and they are two hooks because the bar
+		     already owns `changed` (it writes its own dropdowns back through it), so a
+		     page that wanted to SAVE the word you just set had nowhere to hang. That is
+		     why five of the seven words could be saved and two could not: the bar on a
+		     page you made changed the address and never the file (paging-audit-5b).
+		     A stage on a page that OWNS these words sets `keep`; a demo leaves it unset
+		     and nothing persists, which is decision 4.
+		   ⚠ AND IT RUNS BEFORE THE ADDRESS IS WRITTEN. A page that keeps the word also
+		     moves its OWN words (`base`) to match, and the query says only what differs
+		     from those — so saving a word leaves the address clean instead of carrying
+		     a `?room=wide` the file already says. */
+		this.keep?.(axis, value);
 
 		/* THE ADDRESS IS THE CONFIGURATION. One `replaceState` per change, so the page
 		   you are looking at is always the page the url names — copy it, send it, open

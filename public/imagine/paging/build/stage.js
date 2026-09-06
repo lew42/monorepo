@@ -53,7 +53,7 @@ export class BuildStage extends View {
 			pages: kids.map(kid => ({ title: kid.title, icon: kid.icon ?? "description", text: kid.description })),
 			open: kids.length ? Math.min(this.page.tab ?? default_index(node), kids.length - 1) : null,
 			inner: true,
-			draw: () => this.blocks(),
+			draw: stage => this.blocks(stage),
 			draw_child: (child, i) => this.panel(child, i),
 			picked: i => { this.page.tab = i; },
 		});
@@ -68,28 +68,39 @@ export class BuildStage extends View {
 		});
 	}
 
-	/* ── THE BLOCKS ───────────────────────────────────────────────────────────
+	/* ── THE BLOCKS, AND THEN THE CONTENT WORD ────────────────────────────────
 	   ⚠ ONE RENDERER, TWO CALLERS, and it lives in `draw.js`. The blocks used to be
 	     drawn here and only here, so everything Build's fifth control collected was
 	     saved to disk and shown on no page (paging-audit-4b). A page you made draws
-	     the same call through this same `draw` seam now. */
-	blocks(){
-		if (!draw_blocks(this.node, this.page))
-			p.c("muted build-blocks-empty", "No blocks yet. Add a block on the left and it appears here — and on the page once you save it.");
+	     the same call through this same `draw` seam now.
 
-		if (!(this.node.children ?? []).length)
-			p.c("muted build-tabs-empty", "No pages under this one yet. “Add a page” on the left adds one, and the navigation word above decides whether it is a tab or a row.");
+	   ⚠ AND THE BLOCKS DO NOT SWITCH THE CONTENT WORD OFF. `draw` used to be the whole
+	     of the box, so a page with one prose block drew nothing for its `content` word
+	     while every control still cycled it (paging-audit-5b). They COMPOSE — blocks
+	     first, then the content word's own sample under a line naming it — and
+	     `stage_props()` in `../stage.js` composes them the same way on a saved page, so
+	     what you see while building is what the page shows. */
+	blocks(stage){
+		const drew = draw_blocks(this.node, this.page);
 
+		if (!drew) p.c("muted build-blocks-empty", "No blocks yet. Add a block on the left and it appears here — and on the page once you save it.");
+
+		stage.sample(!!drew);
+
+		// ⚠ NO "no pages yet" LINE HERE ANY MORE. The stage says it itself now, in the
+		//   strip or rail where the pages would BE (`stage.js` `none_yet()`), so saying
+		//   it again inside the box printed the same sentence twice in one rectangle.
 		return this;
 	}
 
 	/* ONE CHILD'S PANEL — the `draw_child` seam. Everything a real page's panel has,
-	   plus the one sentence only a builder can say: this child has no address yet. */
+	   plus the one sentence only a builder can say: this child has no address yet.
+	   ⚠ NOT THE PARENT'S BLOCKS. This drew `blocks()` too, so every tab panel showed
+	     the blocks belonging to the page ABOVE it — and the two "nothing here yet"
+	     hints with them — which is not what the saved page draws. */
 	panel(child, i){
 		h4(child.title);
 		p(child.description || child.text || "This page has no description yet. Give it one in the controls and it shows on its card, in its preview and here.");
-
-		this.blocks();
 
 		return p.c("muted build-panel-note", "The url did not change. A tab is a swap, so this panel cannot be linked to — the child gets its own address when you save it and open it as a column.");
 	}

@@ -1,7 +1,7 @@
 {
 	"title": "Ideas",
 	"icon": "description",
-	"description": "A page you made.",
+	"description": "A page you made — and the one that ships with a block, so the rule about blocks and the content word is visible.",
 	"mode": {
 		"navigation": "rail",
 		"content": "cards",
@@ -9,7 +9,13 @@
 		"arrangement": "plain",
 		"surface": "tint",
 		"background": "tint",
-		"type": "regular"
+		"type": "regular",
+		"blocks": [
+			{
+				"type": "prose",
+				"text": "**This paragraph is a block.** It was typed into Build's fifth control and saved inside this page's `mode`. Under it is whatever the **content** word says — right now `Card wall` — because the two compose: your blocks first, then the content word's own sample, with a line naming it. Change the content word in the bar and only the half below the line changes."
+			}
+		]
 	},
 	"children": []
 }

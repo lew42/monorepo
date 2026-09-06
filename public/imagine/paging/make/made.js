@@ -63,7 +63,12 @@ export const SEED = [
 		{ name: "today", title: "Today", mode: { ...DEFAULT, navigation: "none", content: "article", surface: "plain" }, children: [] },
 		{ name: "later", title: "Later", mode: { ...DEFAULT, navigation: "none", content: "settings", surface: "tint" }, children: [] },
 	] },
-	{ name: "ideas", title: "Ideas", mode: { ...DEFAULT, navigation: "rail", content: "cards", surface: "tint", background: "tint" }, children: [] },
+	/* ⚠ ONE SEEDED PAGE HAS A BLOCK, on purpose. Blocks and the `content` word COMPOSE
+	     — your blocks first, then the content word's sample under a line naming it —
+	     and until 2026-09-05 no page under `made/` had a block at all, so the realm
+	     shipped no example of its own rule (paging-audit-5b, break 3). */
+	{ name: "ideas", title: "Ideas", mode: { ...DEFAULT, navigation: "rail", content: "cards", surface: "tint", background: "tint",
+		blocks: [{ type: "prose", text: "**This paragraph is a block.** It was typed into Build's fifth control and saved inside this page's `mode`. Under it is whatever the **content** word says — right now `Card wall` — because the two compose." }] }, children: [] },
 	{ name: "archive", title: "Archive", mode: { ...DEFAULT, navigation: "takeover", content: "dashboard", surface: "dark", background: "dark" }, children: [] },
 ];
 
@@ -99,16 +104,27 @@ export function name_for(title, siblings, slug){
 }
 
 /* ── the two stores ────────────────────────────────────────────────────────────
-   The same three methods, so the page never asks which one it is talking to:
+   The same four methods, so the page never asks which one it is talking to:
    `load()` → the tree · `save(tree, was)` → true when it landed · `label(n)` → the
-   sentence the page prints saying where its pages are. */
+   sentence under the list saying where the pages are · `mark(n)` → the FEW WORDS the
+   green mark at the top of the page carries.
+
+   ⚠ TWO SENTENCES, NOT ONE. The mark and the line both called `label()`, so Make
+     printed the same thirty words verbatim at the top of the page and again at the
+     bottom (paging-audit-5). The mark says the count; the line explains it. */
 
 export class Store {
 	constructor(...args){ Object.assign(this, ...args); }
 	async load(){ return clone(SEED); }
 	async save(){ return false; }
 	label(){ return ""; }
+	mark(count){ return pages(count); }
 }
+
+/* ⚠ A FUNCTION, NOT A `super.mark()` CALL. `LocalStore extends FileStore`, so `super`
+     in the browser store reaches the FILE store's sentence and the mark would read
+     "on disk" on a host with no disk to write to. */
+const pages = count => count + " page" + (count === 1 ? "" : "s");
 
 /* FILES — the default. Every write is `FileSaver`, which is `rpc:write` with the
    "no dev socket → warn once, never throw" rule already inside it. */
@@ -208,6 +224,8 @@ export class FileStore extends Store {
 		return "**Saved to disk.** " + count + " page" + (count === 1 ? "" : "s") + " under `public" + DIR
 			+ "` — one directory and one `page.json` each, real files you can open in an editor and commit.";
 	}
+
+	mark(count){ return "**On disk** — " + pages(count) + " under `made/`."; }
 }
 
 /* THIS BROWSER — the fallback. Your own edits go in one record under the page's own
@@ -240,6 +258,11 @@ export class LocalStore extends FileStore {
 				+ "[Reset](/imagine/paging/) puts the committed files back."
 			: "**Read from the files, and not writable here.** These " + count + " pages came out of `page.json` files in the repo, "
 				+ "but there is no dev server on this host — so anything you change is kept in this browser only, and never written to disk.";
+	}
+
+	mark(count){
+		return (this.page.store().get({ tree: null }).tree ? "**In this browser** — " : "**Read from the files** — ")
+			+ pages(count) + ".";
 	}
 }
 

@@ -134,6 +134,19 @@ children" rule the rest of the site follows, so loading the tree is: fetch the r
 it names, repeat. That works on a static host with no server at all, which is why it is an array
 of names and not one giant nested file.
 
+### The bar on a page you made is an EDITOR, not a preview
+
+Every other stage in the realm is a demo: change a word, the address says so, a refresh puts it
+back. **A page you made is yours**, so the bar over it writes into that page's own `page.json` —
+change **room** on [`/make/notes/`](/imagine/paging/make/notes/), reload with a bare url, and it
+is still `wide`. It goes through Make's own `edit_at()`, which is the single write seam, so there
+is still exactly one writer and one store.
+
+That is not an exception to [the rule](#the-rule); it is the rule. Only an editor saves, and it
+has to be obvious that it did — so the page prints a tick and one line naming the file. Until
+2026-09-05 the bar there changed the address and nothing else, and two of the seven words
+(`room`, `type size`) could be saved by no control in the realm at all.
+
 ### The two stores, and how a page says which one it is on
 
 | | when | writer | where |
@@ -217,7 +230,7 @@ object and built a real page from it, recursively:
 | `title` | `"Notes"` | the head, the crumb, the card, the rail row |
 | `description` | `"…"` | the card's line, the preview |
 | `icon` | `"description"` | the material icon everywhere the page appears |
-| `width` | `"large"` `"full"` | its column track — `full` **is** takeover |
+| `width` | `"full"` | its column track. ⚠ **This realm does not use it.** The width of a paging page is the `room` word inside `mode`, which is one of the seven — `width` is core's own field and no control in the realm writes it |
 | `children` | `["today", "later"]` | real child pages with real urls, at any depth |
 | `index` | `false` | whether core lists the children under the content |
 
@@ -237,9 +250,9 @@ already works today with no new code.
 | A page with children in the rail | `children: [...]` | **yes** — core draws the rail |
 | A **card wall** | `index: true` + a `cards` block (`previews()`) | **yes** — the renderer exists in `json.js` |
 | A **column page** (launch — a child opens to the right) | nothing at all: children of a columns host already do this | **yes** — it is the default |
-| A **takeover** page | `width: "full"` | **yes** — one field |
-| A **tabs** page | **one word in the JSON**: `"mode": { "kids": "tabs" }` — the strip itself is an `items()` override supplied by `make/tabs.js` | **yes, as of 2026-09-05** — and it is the exact shape every "no" below wants: data chooses, js supplies |
-| A **swap** page (tabs without the tab bar) | `Paging`'s `swap()` — page state plus a repaint | **no** — needs a class; a renderer could host it |
+| A **takeover** page | `"mode": { "navigation": "takeover" }` | **yes** — one word |
+| A **tabs** page | **one word in the JSON**: `"mode": { "navigation": "tabs" }` — the strip itself is drawn by the realm's one renderer, `stage.js` | **yes** — and it is the exact shape every "no" below wants: data chooses, js supplies |
+| A **swap** page (tabs without the tab bar) | page state plus a repaint, which is what `stage.js` already does for the `tabs` and `rail` words | **yes** — `"navigation"` is the word, and the strip is only one way of drawing it |
 | A **mag front** | a hand-laid grid of feature/standard/brief cards | **no** — needs its own `content()`, and its cards read a manifest |
 | A **blog section** | a list built from `/blog/posts.js` | **no** — the data comes from a module, not from the node |
 | A page with any **live control** (chips, a form, a drag) | its own state, its own handlers | **no**, and it should not be — this is what `page.js` is for |
@@ -248,12 +261,16 @@ already works today with no new code.
 `md`, `cards` (both already written), `tabs`, and `list` — cover every structural page on the
 site. Everything left over is a page with *behaviour*, and behaviour is code.
 
-**The pattern to copy is the `navigation` word**, added to Make on 2026-09-05 and already live: the
-JSON says `"kids": "tabs"` and js supplies the `items()` that draws a strip. Nothing about the
-node got more complicated — one more word beside the three it had — and nothing in the store
-had to learn what a tab is. Every row marked **no** above becomes a **yes** the same way: name
-the presentation in the node, register the function that draws it. Ten lines each, and the file
-format does not change.
+**The pattern to copy is the `navigation` word.** The JSON says `"navigation": "tabs"` and js
+supplies the renderer that draws a strip. Nothing about the node got more complicated — one word
+beside the other six — and nothing in the store had to learn what a tab is. Every row marked
+**no** above becomes a **yes** the same way: name the presentation in the node, register the
+function that draws it. Ten lines each, and the file format does not change.
+
+**And one word already takes an address rather than a name.** `content` accepts the url of a page
+(its `page.json` is fetched and RUN inside the box) or of a `.md` file (fetched and rendered as
+prose), which is how a page nobody wrote when this realm was written gets into it — `blocks.js`
+`is_url()` is the whole test.
 
 ---
 

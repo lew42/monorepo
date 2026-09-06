@@ -5,11 +5,11 @@ import { CONTROLS, title_of, mode_for } from "../blocks.js";
 import { baseline } from "../baseline.js";
 import { store_for, FileStore, LocalStore, at, walk, name_for, clone, SEED, DEFAULTS, DIR } from "./made.js";
 import { config_of, kids_of, row_acts } from "./tabs.js";
-/* ⚠ THE BUILDER'S RENDERER, ON A MADE PAGE. Build's blocks are saved inside `mode`
-     and were drawn by nothing outside `build/`; this is the one call that puts them
-     on the page they belong to (`../doc/builder.md`). */
-import { blocks_of } from "../build/words.js";
-import { draw_blocks } from "../build/draw.js";
+/* ⚠ THE ONE TRANSLATION FROM A SAVED `page.json` TO A STAGE — whose children to draw
+     and what to put in the box. It lives in `../stage.js` because a page NESTED inside
+     another needs exactly the same answer, and writing it here alone is what made a
+     made page draw somebody else's tabs the moment it was nested (paging-audit-5b). */
+import { stage_props } from "../stage.js";
 
 /* THE FOUR WORDS A ROW CYCLES, and they are four of the realm's own seven
    (`../blocks.js`) — the same keys the drawer writes, so a chip here and a chip in
@@ -61,49 +61,61 @@ const control_of = axis => CONTROLS.find(control => control.axis === axis);
 // The next word in a list, wrapping — what a click on a word chip does.
 const next = (list, word) => list[(list.indexOf(word) + 1) % list.length];
 
-/* A PAGE'S OWN CHILDREN, in the shape the stage draws a child in: a title, an icon,
-   a line, and the child's REAL url so the panel can link to it.
-
-   ⚠ THIS IS WHAT THE STAGE WAS MISSING. `this.stage(config)` alone let the stage
-     fall back to `content.js`'s four canned samples, so a page you made whose
-     navigation word was `tabs` drew a strip reading Overview · Pricing · Docs ·
-     Contact and carried no link to either of its own two children (paging-audit-4b).
-     The word says how the children are drawn; they had better be its children. */
-const pages_of = (node, page) => (node.children ?? []).map(kid => ({
-	title: kid.title,
-	icon: kid.icon ?? "description",
-	text: kid.description || "A page you made. Open it on its own and it gets the whole middle, with its own bar over it.",
-	url: page?.children?.get(kid.name)?.url,
-}));
-
 /* JSON → REAL PAGES. Each node becomes a `Paging` wearing its seven words, and its
    own children are built the same way. `Page.add()` (called by `regrow()` below)
-   hands each one a real url derived from this page's. */
-function grow(nodes){
+   hands each one a real url derived from this page's.
+
+   `make` is the Make page itself and `path` is where this node sits in its tree —
+   the two things the bar over a made page needs in order to WRITE what you set. */
+function grow(nodes, make, path = []){
 	return nodes.map(node => {
 		const config = config_of(node);
-		const blocks = blocks_of(node);
+		const here = [...path, node.name];
 
 		return new Paging({
 			name: node.name,
 			title: node.title,
 			icon: node.icon ?? "description",
 			description: node.description ?? "A page you made.",
-			children: grow(node.children ?? []),
+			children: grow(node.children ?? [], make, here),
 
 			content(){
-				this.lede("A real page, at a real url, drawn from one small JSON file. Change a word in the bar and it changes.");
+				this.lede("A real page, at a real url, drawn from one small JSON file. **Change a word in the bar and it is written to the file** — reload and it is still there.");
 
 				/* THE STAGE DRAWS THIS PAGE: its own children by its own navigation word,
-				   and its own blocks in the box. `draw` is the stage's seam for "put my
-				   thing in the box" — the same one the templates realm uses — so a block
-				   you added in Build appears on the page Build saved. When there are no
-				   blocks the `content` word draws its sample instead, which is what every
-				   demo in the realm shows. `../doc/builder.md` records the decision. */
-				this.stage(config, {
-					pages: node.children?.length ? pages_of(node, this) : undefined,
-					draw: blocks.length ? () => draw_blocks(node, this) : undefined,
-				});
+				   and its own blocks in the box. `stage_props()` (`../stage.js`) is the one
+				   translation, so this page and the same page nested inside another draw
+				   the same thing. `../doc/builder.md` records the decision. */
+				const stage = this.stage(config, stage_props(node, {
+					page: this,
+					url_of: kid => this.children?.get(kid.name)?.url,
+				}));
+
+				/* ── THE BAR ON YOUR OWN PAGE IS AN EDITOR ────────────────────────
+				   Every other stage in the realm is a demo: you change a word, the address
+				   says so, and a refresh puts it back (decision 4). THIS page is yours —
+				   the words in the bar are the words in its file — so the bar writes them.
+				   `keep` is the stage's write hook (`../stage.js`); `edit_at()` below is
+				   Make's own one write seam, so there is no second writer and no second
+				   store. Before this, `room` and `type size` could be set by no editor in
+				   the realm at all (paging-audit-5b). */
+				/* ⚠ AND IT HAS TO BE OBVIOUS THAT IT SAVED. Every other stage in the realm
+				     forgets on refresh, so a bar that quietly writes a file would be the one
+				     thing this realm's own rule forbids (`../doc/persistence.md`, decision 4).
+				     A tick and one short line — never an alert box. */
+				const $kept = p.c("muted paging-kept");
+
+				stage.keep = (axis, value) => {
+					// The file says this now, so it is one of the page's OWN words and the
+					// address has nothing left to say about it.
+					stage.base = { ...stage.base, [axis]: value };
+					make.edit_at(here, { [axis]: value });
+
+					$kept.empty(() => {
+						icon("check_circle");
+						span("Saved. " + title_of(axis, value) + " is in " + here.join("/") + "/page.json now — reload and it is still there.");
+					});
+				};
 
 				md("This page is `" + JSON.stringify({ title: node.title, mode: config }) + "` — nothing else. [Back to the list](/imagine/paging/make/).");
 			},
@@ -200,7 +212,7 @@ export default new Paging({
 
 	regrow(){
 		this.children = new Map();
-		grow(this.tree ?? []).forEach(page => this.add(page.name, page));
+		grow(this.tree ?? [], this).forEach(page => this.add(page.name, page));
 		return this;
 	},
 
@@ -229,7 +241,10 @@ export default new Paging({
 			what: "the pages you made",
 			restorable: true,
 			restore: () => this.apply(clone(SEED)),
-			saved: () => this.tree ? this.made.label(this.count()) : null,
+			// ⚠ THE MARK SAYS THE COUNT; the line under the list says the whole sentence.
+			//   Both used to call `label()`, so the same 30 words appeared verbatim twice
+			//   on one screen (paging-audit-5, item 6).
+			saved: () => this.tree ? this.made.mark(this.count()) : null,
 		});
 
 		return md(text ?? this.takeaway).ac("paging-lede");
