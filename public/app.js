@@ -3,6 +3,7 @@ import Socket from "./framework/dev/Socket/Socket.js";
 import devbar from "./framework/dev/DevBar/DevBar.js";
 import { lew42 } from "./framework/styles/layers/theme/lew42/lew42.js";
 import mode from "./framework/core/App/mode.js";
+import omnibox from "./framework/core/Search/Omnibox.js";
 
 /* ⚠ The default resource-timing buffer holds ~250 entries and then silently stops
  * recording, so a long-lived tab would stop recognising its own files as loaded
@@ -81,6 +82,9 @@ const app = window.app = new App({
 			// stored mode on routes that don't render one.
 			mode.apply(this);
 		});
+
+		// The site's one search box — bottom-centre, `/` or Ctrl K. core/Search.
+		omnibox(this);
 
 		// Ctrl + \ — the dev rail, on <body> beside the shell rather than inside it.
 		devbar(this);

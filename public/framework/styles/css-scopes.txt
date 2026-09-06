@@ -60,7 +60,10 @@ spacing-     framework.css (spacing-tight · spacing-regular · spacing-airy —
 
 # core
 page-        core/Page
+page-layout- core/Layout (the tree, a layout page, the fixture boxes — inside core/Page's
+             namespace on purpose: `layout-` is ext/layout's, and `Layout extends Page`)
 sidebar-     core/Sidebar
+omnibox-     core/Search (the one search box; the class `.omnibox` itself is the View subclass's own name)
 brand-       core/Sidebar
 looks-       core/Page/overview/columns/examples/looks
 
@@ -79,7 +82,6 @@ grip-        ext/grip
 hljs-        ext/highlight (vendored)
 layout-      ext/layout
 md-          ext/markdown
-omnibox-     ext/Omnibox
 panel-       ext/Panel
 pg-          ext/Playground
 research-    ext/Research
@@ -149,6 +151,8 @@ rethink-     /imagine/review/rethink (the second UX pass: one report card per re
 vision-      ai/2026-08-17/vision-browse
 
 # pages
+doodle       /notes/doodles (the notebook doodles as SVG: .doodle is the drawing itself,
+             .doodle-<name> one of the twenty-one, plus -draw -band -texture -corner -wall -tile)
 blog-        /blog (blogx- is the /imagine/ lab, above)
 imagine-     /imagine/ (root, team, game)
 mag-         /imagine/mag

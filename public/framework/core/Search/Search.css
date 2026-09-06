@@ -1,0 +1,185 @@
+/* The one search box: a slim field pinned to the bottom-centre of the window that
+   grows upward into a wall of cards. Every colour is a token; every constant that
+   scales with the screen is a ramp. Record: readme.md · doc/decisions.md. */
+@layer theme {
+
+	/* ⚠ `position: fixed` inside `.app` — the box has to inherit the theme class the
+	   app paints, and `.app` sets no transform, so fixed is still the WINDOW.
+	   ⚠ z-index 45 keeps the site's own ladder: under the dev rail (50) and the
+	   colour-scheme pill (60), over ext/DesignTool's overlay (40) and a maximised
+	   demo (30). */
+	.omnibox {
+		position: fixed;
+		inset-inline: 0;
+		z-index: 45;
+		margin-inline: auto;
+		display: flex;
+		flex-direction: column;
+		gap: 0.5em;
+		inline-size: min(46em, 100% - 2rem);
+		max-block-size: min(72vh, 46em);
+		transition: inline-size 0.15s;
+	}
+
+	/* ⚠ THE SHELL OWES THE BOX THE STRIP IT STANDS ON. The field is permanent chrome
+	   over a `position: fixed` layer, so without this it covers the last row of any
+	   layout that fills the window — three card titles on /imagine/, one post title
+	   on /blog/, measured 2026-09-06. Reserving it on `.app` is the same trade
+	   `--devbar` already makes on the inline edge, and it works for a page that
+	   scrolls and a full-height columns row alike. 4.25em = the pill, its inset, and air. */
+	.app:has(> .omnibox.bottom) { padding-block-end: 4.25em; }
+	.app:has(> .omnibox.top)    { padding-block-start: 4.25em; }
+
+	/* Closed, the field sits at the window edge. Open, the wall grows out of it —
+	   which is what `column-reverse` buys: one DOM order (field, chips, results)
+	   reads correctly from both ends of the screen. */
+	.omnibox.bottom { inset-block-end: 1rem; flex-direction: column-reverse; }
+	.omnibox.top    { inset-block-start: 1rem; }
+
+	.omnibox.open { inline-size: min(132em, 100% - 2rem); }
+
+	/* ---- the field ------------------------------------------------------ */
+
+	.omnibox-bar {
+		flex: none;
+		padding: 0.45em 0.7em;
+		background: var(--surface);
+		color: var(--ink);
+		border: 1px solid var(--line);
+		border-radius: 999px;
+		box-shadow: 0 0.4em 1.4em rgb(0 0 0 / 0.14);
+	}
+	.omnibox.open .omnibox-bar { border-radius: var(--radius); }
+	.omnibox-bar > .icon { color: var(--subtle); }
+
+	/* ⚠ Scoped `.omnibox-bar > .omnibox-input`, restated from the base `input` rule
+	   it has to beat: that selector is `input:not([type=…], …)` — (0,1,1) in the
+	   SAME layer — so a bare `.omnibox-input` at (0,1,0) loses its border back. */
+	.omnibox-bar > .omnibox-input {
+		border: 0; padding: 0; background: none; color: inherit; min-width: 0;
+	}
+	.omnibox-bar > .omnibox-input:focus { outline: none; }
+
+	.omnibox-status { font-size: 0.85em; white-space: nowrap; }
+	.omnibox:not(.open) .omnibox-status { display: none; }
+
+	/* ⚠ (0,2,1), because `.theme-lew42 :is(button, .btn)` is (0,2,0) and loads after
+	   this sheet — at (0,1,0) these would come out UPPERCASE, bold and 1.4em-padded,
+	   and the uppercase would also break the icon ligature inside them (framework.css
+	   says why: Material Icons matches the WORD). Tag + class is the honest way past
+	   it; the theme's voice is for a call to action, and these are chrome. */
+	.omnibox button.omnibox-btn {
+		flex: none;
+		display: flex; align-items: center;
+		padding: 0.15em 0.5em;
+		font-size: 0.85em; font-weight: 400;
+		letter-spacing: normal; text-transform: none;
+		color: var(--subtle);
+		background: none;
+		border: 1px solid transparent;
+		border-radius: 999px;
+		cursor: pointer;
+	}
+	.omnibox button.omnibox-btn:hover { color: var(--prim); border-color: var(--line); }
+	.omnibox:not(.open) .omnibox-hint { pointer-events: none; }
+
+	/* ---- the chips, and the wall, only once it is open ------------------- */
+
+	.omnibox:not(.open) .omnibox-chips,
+	.omnibox:not(.open) .omnibox-results { display: none; }
+
+	/* Its own panel, like the field and the wall — three floating surfaces, so the
+	   page never shows through between them. `:empty` because nothing has declared
+	   a `tags:` yet on some corpora and an empty strip is a lie about a control. */
+	.omnibox-chips {
+		flex: none;
+		display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.4);
+		padding: calc(var(--pad-ramp) * 0.35) calc(var(--pad-ramp) * 0.5);
+		background: var(--surface);
+		color: var(--ink);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		box-shadow: 0 0.4em 1.4em rgb(0 0 0 / 0.14);
+	}
+	.omnibox-chips:empty { display: none; }
+	.omnibox-group-label {
+		flex: none;
+		font-size: 0.78em; text-transform: uppercase; letter-spacing: 0.06em;
+		min-inline-size: 7em;
+	}
+
+	/* (0,2,1) for the same reason as `.omnibox-btn` above. */
+	.omnibox button.omnibox-chip {
+		display: flex; align-items: baseline; gap: calc(var(--gap-ramp) * 0.25);
+		padding: 0.15em 0.6em;
+		font-size: 0.85em; font-weight: 400;
+		letter-spacing: normal; text-transform: none;
+		color: var(--ink);
+		background: var(--fill-a08);
+		border: 1px solid transparent;
+		border-radius: 999px;
+		cursor: pointer;
+	}
+	.omnibox button.omnibox-chip:hover { border-color: var(--line); }
+	/* ⚠ The text-shadow is accessibility, not decoration — framework.css's own
+	   `button.prim` carries it and says why: white on `--prim` measures ~2.2:1, and
+	   the shadow lifts the edges where a letterform is thinnest. Same fill, same
+	   fix, rather than a second answer to one question. */
+	.omnibox button.omnibox-chip.on {
+		background: var(--prim); color: white; border-color: var(--prim);
+		text-shadow: 0 1px 2px rgba(0,0,0,0.45);
+	}
+	.omnibox-chip-count { font-size: 0.85em; }
+	.omnibox button.omnibox-chip.on .omnibox-chip-count { --muted: 85%; }
+
+	/* ⚠ `min-block-size: 0` is what lets this scroll instead of pushing the field
+	   off the screen — a flex child's floor is its content, not zero. */
+	.omnibox-results {
+		min-block-size: 0;
+		overflow: auto;
+		scrollbar-width: thin; scrollbar-gutter: stable;
+		padding: calc(var(--pad-ramp) * 0.5);
+		background: var(--surface);
+		color: var(--ink);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		box-shadow: 0 0.4em 1.4em rgb(0 0 0 / 0.14);
+	}
+
+	/* ⚠ auto-FILL, not the `.grid.auto` utility's auto-fit: three matches must stay
+	   three cards, not three enormous ones. `--column` is the knob — 400 gets one
+	   column, 1280 four, 3440 seven. framework.css special-cases a `.page-preview`
+	   wall for exactly this reason, and a util-layer rule cannot be beaten from
+	   here, so the tracks are declared rather than borrowed. */
+	.omnibox-wall {
+		--column: 17em;
+		grid-template-columns: repeat(auto-fill, minmax(min(var(--column), 100%), 1fr));
+		align-content: start;
+	}
+
+	.omnibox-card {
+		display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.2);
+		padding: calc(var(--pad-ramp) * 0.5);
+		color: var(--ink);
+		text-decoration: none;
+		overflow: hidden;
+	}
+	.omnibox-card:hover { border-color: var(--prim); }
+	.omnibox-card.active { border-color: var(--prim); box-shadow: 0 0 0 2px var(--prim); }
+	.omnibox-card .icon { font-size: 1em; color: var(--subtle); }
+	.omnibox-card-title { font-weight: 600; }
+
+	/* One line each, because a card is a glance — the whole page is one click away. */
+	.omnibox-card-url { font-size: 0.8em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.omnibox-card-desc {
+		font-size: 0.85em;
+		display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3;
+		overflow: hidden;
+	}
+
+	.omnibox-empty { grid-column: 1 / -1; padding: 0.6em; }
+
+	.omnibox-more:not(:empty) { padding-block-start: calc(var(--pad-ramp) * 0.4); }
+	/* (0,2,1) again — `.omnibox button.omnibox-btn` above sets a transparent border. */
+	.omnibox button.omnibox-show-more { justify-content: center; inline-size: 100%; border-color: var(--line); }
+}

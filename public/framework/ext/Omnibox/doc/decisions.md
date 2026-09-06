@@ -1,67 +1,44 @@
-# Decisions — the interaction model, and why
+# Decisions — the 2026-09-04 prototype's verdicts, kept as the record
 
-The brief (`ai/2026-09-04/omnibox-prototype/`) named ideas, not requirements: *"prototype
-and evaluate the best interaction model."* These are the verdicts.
+This prototype graduated into [`core/Search`](/framework/core/Search/) on 2026-09-06. What
+survived, what was dropped, and why is
+[core/Search's own decisions page](/framework/core/Search/doc/decisions/) — read that one first.
 
-## A visible field, not a modal-only box
+Kept here because it is the record of how the interaction model was arrived at, and because two
+of its arguments are still the ones core acts on.
 
-**Decided: always on screen, closed or open.** A modal-only omnibox (Ctrl+K conjures a
-whole overlay from nothing) hides its own existence — a reader who never learns the
-shortcut never learns the feature exists at all. A field that is simply *there*, in the
-shell, teaches itself: it looks like search because it is search, and the open keys
-(`/`, Ctrl/Cmd+K) are an accelerator for a control that already worked by clicking into
-it. The cost is real — it spends shell space permanently — and worth it for something
-the brief calls "always prominent, available throughout the site."
+## A visible field, not a modal-only box — still the rule
 
-## Ranking: "strong" means an exact title match
+A modal-only omnibox (Ctrl+K conjures a whole overlay from nothing) hides its own existence: a
+reader who never learns the shortcut never learns the feature exists. A field that is simply
+*there* teaches itself, and the open keys are an accelerator for a control that already worked by
+clicking into it. Core kept this and paid for it with a slim closed bar rather than a full field.
 
-Order: **current topic's subtree, then everywhere else; inside each, prefix > word-start >
-substring.** A **strong** global match is an exact, case-insensitive match on the whole
-title (`"page" === "Page"`, not `"Page".startsWith("page")`) — and it jumps ahead of
-*every* local result, not just other global ones. Reasoning: a local prefix match is a
-guess about what you probably want from where you are standing; an exact title match
-elsewhere is not a guess, it is very likely the one thing you typed the whole word for.
-Two exact matches (one local, one global) simply tie on tier — nothing forces the local
-one second.
+## Ranking: "strong" means an exact title match — still the rule
 
-## The Space-bar mode switch — prototyped, and here is where it breaks
+An exact, case-insensitive match on the WHOLE title is not a guess; a prefix match is. So an
+exact match is the top tier and outranks everything. Core kept the tier idea and dropped the
+"current topic first" bucket that sat under it: the box is app-level now, so there is no page
+context to prefer, and the filter chips do the same job explicitly.
 
-**Decided: the cheapest version, Space on an EMPTY box only** toggles search → command
-(and back). Typing continues normally the instant the box is non-empty, so an ordinary
-multi-word query (`"design system"`) is completely unaffected — the naive version (any
-space anywhere) is not what got built.
+## The Space-bar mode switch — prototyped, and dropped
 
-**The one way this is still wrong:** a query whose first real character is the word
-*"space"* — or anyone who clears the box and means to *start* typing with a leading
-space — collides with the trigger. Rare on a ~1000-url site index (few titles begin with
-a literal space), but a real false-positive class, not a theoretical one; the verdict is
-"cheap and mostly right," not "correct."
+Space on an EMPTY box toggled search → command. The one way it was wrong is real, not
+theoretical: a query whose first character is meant to be a space, or the word "space" itself,
+collided with the trigger. Command mode was three hardcoded links — enough to prove the branch
+existed and nothing more. Core dropped both: a command *palette* is a different feature, and a
+mode switch nobody can see is not one.
 
-**Command mode itself is a stub, on purpose** — three hardcoded links (home, Framework,
-Platform), enough to prove the branch is real and nothing more. A command *palette* (site
-actions, not just links) is the next question, not this one's.
+## The preview is borrowed, never rebuilt — dropped, and why that is fine
 
-## The preview is borrowed, never rebuilt
+The highlighted row drew the real `page.preview(page.nav())` — one dynamic import per settled
+highlight, guarded by a token so a fast arrow-key run kept only the last paint. Core draws a wall
+of forty cards instead, so every match shows itself at once and no single row needs a preview of
+its own.
 
-The highlighted row's card is the real `page.preview(page.nav())` — for a `page.js` row,
-the same dynamic import `core/Page/doc/previews.md` already blesses for borrowing a
-page's card; for an `.md` row, the identical fetch `Page.file()` makes internally,
-wrapped in a throwaway `Page` so the SAME renderer draws it. A token guard discards a
-stale import if a faster arrow-key press already moved on. Cost accepted: one import (or
-fetch) per settled highlight, cached by the browser on every repeat.
+## Reused, not reinvented — dropped with the popover
 
-## Reused, not reinvented
-
-The results panel is Dropdown's exact top-layer recipe (`popover="auto"`, `place()`
-measured off the field, clamped to the viewport) — a column or a panel host is
-`overflow: hidden` all the way down, and that is the one thing already proven to escape
-it. Unlike Dropdown, `place()` reruns on every keystroke, not once per open: the panel's
-own height changes with the match count.
-
-## Cut, in order
-
-Per the brief's own priority: **modes** first if anything had to give (the whole Space
-branch is the smallest, most speculative piece), then **previews**. Neither was cut —
-budget held. What was never in scope at all: content search inside a page, users, chat,
-and any url that only exists through a page's own `route()` (nothing on disk for the
-index to read — `doc/declaring.md`'s own limit on the filesystem probe).
+The results panel was Dropdown's top-layer recipe (`popover="auto"`, measured `place()`), because
+a column or a panel host is `overflow: hidden` all the way down. Core does not need it: the box
+is mounted on `app.$app`, not inside a page, so nothing can clip it and a plain `position: fixed`
+is enough.
