@@ -28,6 +28,14 @@ export default new Page({
 		+ "the-editor edit-mode-toolbar my-docs-are-bad page-active-display "
 		+ "tabs-and-lazy-pages we-think load-but-dont-render nested-rendering "
 		+ "readme-one-to-n "
+		+ "walk-down-or-jump-to-topic starter-repo-vs-scaffolding an-element-browser "
+		+ "mobile-tabs-are-tricky tabs-vs-breadcrumbs oop-course-equals-freedom "
+		+ "page-previews-and-columns jsdelivr-or-your-own-cdn a-localhost-cdn "
+		+ "too-many-patterns-to-exemplify build-now-architect-later forgot-to-branch "
+		+ "links-that-dont-break straight-talk perfectly-simple-syntax page-is-not-prose "
+		+ "tests-on-pages does-save-hold-up page-nav-from-sub standardized-web-services "
+		+ "web-of-lies realtime-web-design property-screens multi-column-contents "
+		+ "just-a-note drop-then-rerender type-slash-for-the-menu right-click-hug-fill "
 		+ "git-branch-names auth team-note",
 	// ⚠ Add a slug here ONLY once its `page.js` exists: a declared child without one 404s
 	// twice on EVERY page in the realm (the wall still renders — a null child falls back
