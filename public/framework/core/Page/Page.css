@@ -575,7 +575,12 @@
 	   flips every token inside the island.
 	   ⚠ `plain` means ONE thing: no fill of its own. In the lab it meant transparent
 	     on the box and `var(--wash)` on the frame — the grey a lab frame shows is the
-	     region's grey, not the word's. */
+	     region's grey, not the word's.
+	   ⚠ ONE CLASS EACH, ON TWO DIFFERENT ELEMENTS. `page-bg-*` goes on the PAGE
+	     (`word_classes()`) and `page-surface-*` goes on the CONTENT BOX and nowhere else
+	     (`Frame.box()`). They are listed together below because they are one list of
+	     colours, not because anything ever wears both: stamped in both places for one
+	     build, `surface: "card"` drew a card inside a card. */
 	.page-surface-plain, .page-bg-plain { background: transparent; }
 	.page-surface-tint,  .page-bg-tint  { background: var(--tint); }
 	.page-surface-prim,  .page-bg-prim  { background: color-mix(in srgb, var(--prim) 10%, var(--surface)); }
@@ -619,10 +624,10 @@
 
 	/* ── the frame's own box ──
 	   The skeleton, not the furniture: a column, a row inside it, a middle that grows,
-	   and the content box with somewhere to breathe. The lab's `.paging-stage-body` /
-	   `.paging-stage-mid` / `.paging-canvas` are the same declarations one level down
-	   (`imagine/paging/paging.css:726–742`); without them here a page that says a word
-	   draws bare stacked blocks.
+	   and the content box with somewhere to breathe. Without them a page that says a
+	   word draws bare stacked blocks. `imagine/paging`'s own stage wears `.page-frame`,
+	   `.page-frame-body` and `.page-frame-mid` since 2026-09-06 — it deleted its copies
+	   and extends `Page.Frame`, so there is one set of these declarations on the site.
 	   ⚠ Every gap is a RAMP times a level, never a flat em — the multiplier IS the old
 	     em number and only 3440 moves (framework.css:106). The flat-em era is what made
 	     every audit read 3440 as cramped. */
@@ -635,17 +640,29 @@
 	     and takes the leftover, which is what a middle means. */
 	.page-frame-mid { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.6); flex: 1 1 0; min-width: 0; }
 
-	/* ⚠ `flex-wrap` and `container` BOTH live here, never in the query below: a
-	     container query cannot restyle its own container, so a `flex-wrap` written in
-	     there would silently do nothing.
-	   ⚠ `container-type: inline-size` also makes this a containing block for
-	     `position: fixed` descendants. Only a page that SAID one of the six words has a
-	     frame at all, so nothing else on the site pays that containment. */
+	/* ⚠ `flex-wrap` lives here, never in the query below: a container query cannot
+	     restyle its own container, so a `flex-wrap` written in there would silently do
+	     nothing. */
 	.page-frame-body {
 		display: flex; flex-wrap: wrap; align-items: stretch;
 		gap: var(--gap, var(--gap-default)); min-width: 0;
-		container: page-frame / inline-size;
 	}
+
+	/* ⚠ THE CONTAINER IS ONLY ON THE PAGE'S OWN FRAME, and this one selector is the
+	     whole of it. `Page.render()` stamps `page-frame-page` on the frame it builds
+	     for a page; a frame drawn as a PICTURE — a miniature of a page inside a cell —
+	     never gets it, so the stacking query below cannot reach one.
+	     Measured 2026-09-06 on `/imagine/paging/cross/`: with every frame a container,
+	     each of the 49 cells was 208px wide, the query fired, and every LEFT RAIL and
+	     RIGHT RAIL cell drew its rail with the box wrapped underneath and cropped away
+	     — the shape the wall exists to show was the one thing missing, 95,341 px of
+	     difference. A picture of a page is not a page you are reading, and it must not
+	     respond to the size of the stamp it is printed on.
+	   ⚠ `container-type: inline-size` also makes this a containing block for
+	     `position: fixed` descendants — the trap `.rail` spells out below. Only a page
+	     that SAID one of the six words has a frame at all, and now only its OWN frame
+	     pays that containment. */
+	.page-frame-page > .page-frame-body { container: page-frame / inline-size; }
 
 	.page-canvas {
 		display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.7);
@@ -675,10 +692,24 @@
 	   opens. All four are the same shape — a column beside the content — so they are
 	   one rule; what goes INSIDE one is the page's own child, never core's furniture.
 	   ⚠ `em`, and a rail is the one box where `em` is right: it is sized by its own
-	     text, not by the viewport. */
+	     text, not by the viewport.
+	   ⚠ A SIDE BOX PADS ON ITS OWN WIDTH, NEVER THE ROW'S — `--pad` is redeclared here
+	     for everything inside it. `--pad-default` comes from `--pad-ramp`, which is a
+	     PERCENTAGE, and a percentage padding resolves against the containing block: a
+	     narrow column inside a wide row pads like the row. Measured 2026-09-06 on
+	     `/imagine/paging/`: a 413px rail in a 3440px row took 69.6px of padding a
+	     side — 33.7% of the rail, the owner's "at least 20%".
+	     `cqi` is the fix the columns host uses, and it is unavailable here: an element
+	     is never its OWN query container, so a box cannot pad in `cqi` off itself
+	     without an inner wrapper to hold the padding. A side box declares its width, so
+	     the honest answer is a fraction of THAT — same intent, no extra element and no
+	     `container-type` (which would make every rail a containing block for
+	     `position: fixed`, the trap `.rail` spells out below). */
 	.page-rail, .page-panel, .page-aside {
+		--page-side-w: clamp(11em, 22%, 18em);
+		--pad: clamp(0.6em, calc(var(--page-side-w) * 0.06), 1.2em);
 		display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.4);
-		flex: 0 0 clamp(11em, 22%, 18em); min-width: 0;
+		flex: 0 0 var(--page-side-w); min-width: 0;
 	}
 
 	/* OUT OF ROOM: the side boxes take their own line and the middle gets the row.
@@ -886,6 +917,16 @@
 	   ⚠ `.page`, not `.page.standard`: a `classes: "full"` page carries previews too,
 	     and never wore `standard` to be caught by the old selector. */
 	.page > :is(.page-previews, .page-walls) { padding-inline: var(--gutter-x); }
+
+	/* The cause behind the previous rule, generalised (bleed-gutter, 2026-09-06):
+	   `bleed` is for PAINT, never a framed box (the layout skill's own rule) — but
+	   nothing enforced it, so any hand-built `bleed grid` or `bleed flex` wall (a
+	   photo wall, a row of screens) sat its own children flush against the window
+	   with no gutter, same bug as `.page-previews` above and found live on
+	   `/notes/doodles/`. A `.grid`/`.flex` IS a wall of boxes by definition — this
+	   pads it back the same way, so only a bare `bleed` (one block, no wall) still
+	   reaches the true edge, which is the one thing `bleed` is for. */
+	.page > .bleed:is(.grid, .flex) { padding-inline: var(--gutter-x); }
 
 	/* ⚠ `stretch`: a live thumb that shrink-to-fits lies about its own width.
 	   ⚠ The ring is drawn on EVERY card and starts transparent, so hover and the mark

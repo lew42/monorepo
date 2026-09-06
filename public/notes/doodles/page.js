@@ -11,8 +11,10 @@ const ref = name => new URL("ref/" + name + ".png", import.meta.url).href;
    1. Container — a plain page in the app's main region. /notes/doodles/ is a
       child of the /notes/ realm, not a columns host.
    2. Size — everything fills. The wall is framework.css's `grid auto gap` with
-      `--column: 6.4em` and `bleed`, so it is 3 tiles wide at 400 and the whole
-      library in one row at 3440; the four use-cards are a `cols` row that
+      `--column: 6.4em` and `wide` (the tiles are framed — a photo plus a drawing —
+      so they ride the padded track, not the bare gutter): 3 tiles across at 400,
+      10 at 1280, 20 at 3440 (2 short rows, not 1 — `wide`'s own gutter costs it
+      the row `bleed` used to steal); the four use-cards are a `cols` row that
       stacks under 34rem.
    3. Own layout — one word, `.doodle-wall`, and all it does is set `--column`.
    4. Regions — none nested.
@@ -40,11 +42,18 @@ export default new Page({
 
 	/* The wall. Photograph beside redrawing, twenty-three times, and nothing else:
 	   the comparison IS the page.
-	   `bleed` spends the page's own inset back, so the wall spans the whole region
-	   while the prose above it keeps the measure — three tiles across at 400, eleven
-	   at 1280 and the whole set in one row at 3440 — one `--column`, no media query. */
+	   `wide`, not `bleed`: every tile is a FRAMED pair (a photo plus a drawing), and
+	   the layout skill's own rule is "a framed box never bleeds — cards ride the
+	   padded track". `wide` spends the page's leftover track and keeps the same one
+	   left edge as the prose above it, so the wall never touches the window —
+	   three tiles across at 400, ten at 1280, twenty at 3440 (wrapping to a short
+	   second row of three — `wide` costs the wall the row `bleed` used to steal from
+	   the gutter, and 23 tiles at a tile size that clears the photo+drawing pair
+	   simply do not fit one row of it), one `--column`, no media query. (Before this
+	   fix `bleed` sat the tiles flush against the viewport with no gutter at all —
+	   the owner's report, 2026-09-06.) */
 	wall(){
-		div.c("doodle-wall bleed grid auto gap", () => {
+		div.c("doodle-wall wide grid auto gap", () => {
 			names.forEach(name => {
 				figure.c("doodle-tile", () => {
 					div.c("doodle-tile-pair", () => {
