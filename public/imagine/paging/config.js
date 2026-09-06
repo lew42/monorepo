@@ -2,6 +2,7 @@ import { div, p, span, a, code, input, icon, md, drawer, Page } from "/app.js";
 import { CONTROLS, means_of } from "./blocks.js";
 import { PRESETS, preset_url } from "./presets.js";
 import { link_for, nest_of } from "./url.js";
+import { read_node } from "./stage.js";
 import { code_for_node } from "./build/words.js";
 import store_for, { name_for, file_of } from "./make/made.js";
 
@@ -89,10 +90,19 @@ export function copy_chip(text, words, fallback, says){
                                 code on the page itself (Build), so the drawer must not
                                 print a second, different answer to the same question. */
 export function fill_drawer(stage, page, focus){
-	const node = page?.node_now?.() ?? null;
-	const own = page?.prints_own_file === true;
-
 	return drawer(($slot, $body) => {
+		/* ⚠ READ FRESH ON EVERY FILL, NOT ONCE PER OPEN. This used to be computed above,
+		     outside `drawer(...)` — but `ext/drawer.refresh()` re-invokes ONLY this
+		     callback (`ext/drawer/drawer.js:44`), and every chip press calls refresh, so
+		     a `node` read out here was the page as it was when the drawer FIRST opened,
+		     forever after. `node_now()` already reads the live tree fresh on every call
+		     (`make/page.js:95`) — the bug was asking it too early, not the method itself.
+		     Measured: press Wide, and without this the box thirty pixels down kept
+		     saying `room: reading` until the drawer was closed and reopened
+		     (paging-audit-8b, fix 1). */
+		const node = page?.node_now?.() ?? null;
+		const own = page?.prints_own_file === true;
+
 		/* ⚠ THE LAST FILL'S FIELDS ARE DEAD. `ext/drawer` replaces the whole rail on every
 		     call, so a field held from the previous fill is a detached input still holding
 		     what was typed into it — and `nest_now()` reads that field. `Code` puts its box
@@ -264,7 +274,13 @@ function any_page(stage){
 	/* SAY WHAT IT MEANS WHILE YOU TYPE, and redraw the file box under it — so the file
 	   you are about to save visibly gains the `nest` line as you type the address into
 	   this field. A reader never has to wonder whether the box heard them. */
-	$url.on("input", () => { say(); stage.draw_json?.(); });
+	/* ⚠ THE REAL TITLE IS ASKED FOR ONCE TYPING PAUSES, NOT ON EVERY KEYSTROKE. Every
+	     letter is a legal-looking address to `nest_of()`, and `resolve_title()` fetches
+	     one — so asking on every `input` fetched a 404 for `/`, `/i`, `/im`… on the way
+	     to a real url, twenty-four requests and twenty-four console errors for one typed
+	     path (measured). `say()` itself stays instant and free (`nest_of()` never
+	     fetches); only the network ask waits out a short pause in typing. */
+	$url.on("input", () => { say(); stage.draw_json?.(); ask_title(stage, say); });
 
 	/* ⚠ AND COMMITTED ON THE WAY OUT — but WITHOUT `drawer.refresh()`. A refresh fired
 	     from a blur handler deletes the button you are in the middle of pressing and the
@@ -279,6 +295,7 @@ function any_page(stage){
 	});
 
 	say();
+	ask_title(stage, say);   // a deep-linked address (`?nest=/imagine/paging/make/notes/`) earns the same real title on arrival
 }
 
 /* ── WHAT THE NEST IS, RIGHT NOW ──────────────────────────────────────────────
@@ -306,16 +323,49 @@ function nest_now(stage){
 
 const id_of = nest => nest?.url ?? nest?.id ?? null;
 
+/* ⚠ A TYPED ADDRESS IS NAMED BY ITS TITLE, NOT ITS DIRECTORY. The twelve preset
+     chips carry a real title (`presets.js`) and this line always had it — but
+     `nest_of()` can only GUESS one for a typed address, the last slash of the url
+     (`title_from()`, `url.js`), because reading the real `page.json` is not that
+     file's job. `notes` said "notes goes inside this page's box" while every chip
+     said a real name (paging-audit-8, fix 2). `read_node()` is the SAME fetch
+     `stage.js` makes to actually draw the page — one cache, filled once, and this
+     line catches up the moment it lands. */
+const nest_titles = new Map();
+
 // The sentence under the field: what this value means, or why it means nothing.
+// PURE and SYNCHRONOUS — it never fetches, only reads the cache `ask_title()` (below)
+// fills, so calling it on every keystroke (`say()` does) costs nothing.
 function means_of_nest(stage){
 	const typed = (stage.$nest_field?.el?.value || "").trim();
 	if (!typed) return "";
 
 	const found = nest_of(typed);
+	if (!found) return "`" + typed + "` is not a page. An address starts with `/` — or type one of the twelve names above, like `dashboard`.";
 
-	return found
-		? "**" + found.title + "** goes inside this page's box, running, with its own navigation and its own colours."
-		: "`" + typed + "` is not a page. An address starts with `/` — or type one of the twelve names above, like `dashboard`.";
+	const title = (found.url && nest_titles.get(found.url)) || found.title;
+	return "**" + title + "** goes inside this page's box, running, with its own navigation and its own colours.";
+}
+
+/* ⚠ ASKED FOR ONCE TYPING SETTLES, NEVER PER KEYSTROKE. Every character on the way to
+     a real address is itself a legal-looking one to `nest_of()` — `/`, `/i`, `/im`… —
+     and fetching each guess hit the server with a 404 per letter, twenty-four requests
+     and twenty-four console errors for one typed path (measured on `/imagine/paging/`).
+     The timer lives on the STAGE, like `$nest_field` two lines up: a fresh `any_page()`
+     closure is built on every drawer refresh, so a plain local would forget a pending
+     timer the instant a chip elsewhere was pressed mid-type. */
+function ask_title(stage, redraw){
+	clearTimeout(stage.$nest_ask);
+
+	stage.$nest_ask = setTimeout(() => {
+		const found = nest_of((stage.$nest_field?.el?.value || "").trim());
+		if (!found?.url || nest_titles.has(found.url)) return;   // a preset, empty, or already known/asked
+
+		nest_titles.set(found.url, null);
+		read_node(found.url)
+			.then(node => { nest_titles.set(found.url, node.title); redraw(); })
+			.catch(() => nest_titles.delete(found.url));   // stays a guess; the line above already says the address may be wrong
+	}, 300);
 }
 
 // One seam, and it is the stage's: `nest_to()` redraws AND writes `?nest=` into the
@@ -324,6 +374,13 @@ function nest(stage, preset){
 	stage.nest_to(preset);
 	drawer.refresh();
 }
+
+/* THE FILE'S OWN DIALECT — said once, here, rather than left for the reader to guess.
+   The url and the bar both say `content colour` / `page colour` / `type size`
+   (`doc/decisions.md`, "One name per thing"); the disk was not renamed with them, so
+   the same three words show up in this box as `surface` / `background` / `type` and
+   nothing on screen says the two are the same thing (paging-audit-8, fix 1). */
+const DIALECT_NOTE = "`surface` is content colour, `background` is page colour, `type` is type size — the disk keys are older than the labels.";
 
 /* ── 3 · THE JSON, AND THE PAGE IT WOULD BE ───────────────────────────────────
    The configuration is data. This is that data, and the button that turns it into a
@@ -337,6 +394,7 @@ function nest(stage, preset){
      a slug derived from it, and a link to its own url. */
 function json_box(stage, page){
 	p.c("h4 muted", "This page, as a file");
+	md(DIALECT_NOTE).ac("muted paging-means");
 
 	const $box = div.c("paging-code-box");
 	const draw = () => $box.empty(() => { code.js(JSON.stringify(node_for(stage), null, "\t")); });
@@ -416,12 +474,16 @@ function code_box(stage, page, node){
    (paging-audit-7b, fix 1). To make a NEW page from these words, that is Make. */
 function file_box(node){
 	p.c("h4 muted", "This page, as a file");
+	md(DIALECT_NOTE).ac("muted paging-means");
 
-	const text = JSON.stringify(file_of(node), null, "\t");
-	const $box = div.c("paging-code-box", () => { code.js(text); });
+	const text = () => JSON.stringify(file_of(node), null, "\t");
+	const $box = div.c("paging-code-box", () => { code.js(text()); });
 
 	let $said;
 	div.c("paging-said", () => {
+		// ⚠ A GETTER, like the address field in `link_box`. `text` is read ON THE PRESS
+		//   rather than baked in when this button was built — copy_chip's own comment
+		//   at :26 names this exact caller. (paging-audit-8b, fix 1)
 		copy_chip(text, "Copy the file", () => select_text($box.el), said => $said.empty(said));
 		$said = span.c("paging-said-ok");
 	});

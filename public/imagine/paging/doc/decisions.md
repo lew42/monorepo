@@ -1147,3 +1147,35 @@ of the page it saved; `?nest=/imagine/paging/make/<name>/` runs a page you made 
 **Code** and then a chip in the drawer hands the rail to `ext/layout`'s own empty state (the dev
 DesignTool claims the drawer when a selection clears). Dev chrome only, and `ext/` is another
 module's file.
+
+## The closing pass after the eighth visit (2026-09-05)
+
+Two small decisions worth keeping, out of six items — the other four are self-explanatory
+fixes, recorded where they happened (`config.js`, `make/tabs.js`, `templates/families.js`).
+
+**A typed nest is named by the same fetch that draws it, not a second one.** The twelve preset
+chips carry a real title; a typed address had only `title_from()`'s guess (`url.js`) — the last
+slash of the url — because reading a file was declared not `url.js`'s job. `stage.js`'s
+`read_node()` is now exported and the drawer's nest caption calls it directly: one fetch,
+cached by url, and the caption redraws itself once the real title lands. `config.js` importing
+from `stage.js` is a new edge, and it runs only one way — `stage.js` still imports nothing back.
+
+**The drawer's own resize edge lit for a keystroke, not a hover.** `ext/drawer` already
+imports `ext/grip` for its edge, and it already works — dragging it takes the drawer 304 →
+797px — but `ext/grip`'s whole design is "no permanent handle": a line that lights on hover
+and nothing before it. Two audits mistook it for the dev bar's grip, parked past the right
+edge at a wide window, because neither is marked at rest. `ext/grip`/`ext/drawer`'s own files
+are someone else's; the fix reads what they already draw instead: `paging.css` has
+`.drawer:has(.paging-drawer-row) .grip::before { opacity: 0.35 }` — the hairline `ext/grip`
+already paints, kept faintly lit only while this realm's own content fills the shared rail.
+`.paging-drawer-row` is drawn by every fill (`config.js`'s `form()`, even Build's), so the mark
+is never left lit for a page that opens the drawer for something else, and nothing here
+duplicates a line of `ext/grip`'s or `ext/drawer`'s own code. A sibling rule widens the drawer's
+*default* on a window over 1920 (`--drawer-w: 30rem`, media-queried on `.app`) — a default only:
+`ext/drawer` writes `--drawer-w` as an inline style the moment a reader drags, which always
+outranks a stylesheet rule regardless of the query.
+
+Checked: `ui-test` on both the stale-drawer fix and the default-tab star (proof in
+`ai/2026-09-05/paging-fix-8/`); the drawer shot at 1280 and 3440; 109 pages × 400 / 1280 / 1920
+/ 3440 = 436 cold loads with one console error per width, the known `readme/page.js` probe
+404; `made/` byte-identical to baseline by git diff after every test.

@@ -548,7 +548,7 @@ export const FAMILIES = [
 
 		uses: [
 			["div.c(\"ui-crumbs flex wrap v-center h4 gap\")", "/framework/ui/crumbs/", "the ui/crumbs template, verbatim"],
-			["new Paging.Item({ … })", "/imagine/paging/mechanisms/", "imagine/paging/paging.js — one row, wearing its mechanism's icon"],
+			["new Paging.Item({ … })", "/imagine/paging/paging.js", "imagine/paging/paging.js — one row, wearing its mechanism's icon"],
 			["MECHANISMS", "/imagine/paging/words.js", "imagine/paging/words.js — the four, said once"],
 		],
 

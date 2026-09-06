@@ -2,6 +2,7 @@ import { div, span, input, icon } from "/app.js";
 import { press } from "../paging.js";
 import { config_of, nav_of } from "../blocks.js";
 import { at, clone } from "./made.js";
+import { set_default, is_default } from "../build/words.js";
 
 /* ── TABS ON A PAGE YOU MADE ───────────────────────────────────────────────────
    The owner's two questions: *"what's the ux for adding tabs to a page? what's the
@@ -40,15 +41,17 @@ export { config_of };
 export const kids_of = node => (nav_of(config_of(node).navigation).id === "tabs" ? "tabs" : "columns");
 
 /* ── THE MAKE SIDE: the controls on a row ─────────────────────────────────────
-   Rename · move up · move down · add (a tab, or a child page) · delete. Every one
-   of them builds a NEW TREE and hands it to `Make.apply()`, which works out the
-   files. Nothing here writes. */
+   Rename · move up · move down · star (the default tab) · add (a tab, or a child
+   page) · delete. Every one of them builds a NEW TREE and hands it to
+   `Make.apply()`, which works out the files. Nothing here writes. */
 export function row_acts(page, node, path, kids, $row){
 	return div.c("paging-make-acts", () => {
 		rename_act(page, node, path, $row);
 
 		act("arrow_upward", "move " + node.title + " up", () => move_at(page, path, -1));
 		act("arrow_downward", "move " + node.title + " down", () => move_at(page, path, 1));
+
+		default_act(page, node, path);
 
 		// THE "+ TAB" CONTROL. Same button, same call — a child under a `tabs` parent
 		// IS a tab, so the LABEL is the only thing that changes, and it changes because
@@ -59,6 +62,42 @@ export function row_acts(page, node, path, kids, $row){
 
 		delete_act(page, node, path, $row);
 	});
+}
+
+/* THE STAR — "open when you arrive", among THIS row's own siblings. It is the one
+   act Build had and Make did not (paging-audit-8b, fix 2): a page you make from
+   Make's own list could never say which of its tabs opens first, even though the
+   stage has read that flag correctly (`stage.js:97`) since Build shipped. Same
+   `set_default` build/words.js already exports, same `page.apply()` write seam —
+   no second way to say "this one opens first". */
+function default_act(page, node, path){
+	return act(is_default(node) ? "star" : "star_outline", "make " + node.title + " the one showing when its page opens",
+		() => default_at(page, path), is_default(node) && "on");
+}
+
+/* `set_default(parent, i)` edits ONE node — the parent — replacing its `children`
+   with every sibling's `default` flag recomputed. A top-level row's "parent" is
+   the tree itself, not a node with a `.children` property, so it gets the same
+   stand-in `remove_at()` already uses one level up, and the same care: `.map()`
+   returns a NEW array, so for a top-level row the result is handed straight to
+   `apply()` rather than written onto a wrapper nothing reads back (measured
+   2026-09-05 for delete; the same shape, so fixed here before it bit twice). */
+export function default_at(page, path){
+	const tree = clone(page.tree);
+	const name = path.at(-1);
+
+	if (path.length === 1){
+		const i = tree.findIndex(kid => kid.name === name);
+		if (i < 0) return page;
+		return page.apply(set_default({ children: tree }, i).children);
+	}
+
+	const parent = at(tree, path.slice(0, -1));
+	const i = parent?.children.findIndex(kid => kid.name === name) ?? -1;
+	if (i < 0) return page;
+
+	parent.children = set_default(parent, i).children;
+	return page.apply(tree);
 }
 
 /* DELETE — the row becomes the question, in place, exactly as rename does.

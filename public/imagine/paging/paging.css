@@ -377,6 +377,7 @@
 		cursor: pointer;
 	}
 	.paging-make-act:is(:hover, :focus-visible) { color: var(--ink); background: var(--fill-a08); }
+	.paging-make-act.on { color: var(--prim); }
 	.paging-make-del:is(:hover, :focus-visible) { color: var(--prim); }
 
 	/* A child page, indented under its parent — the same two spaces the spec text
@@ -1082,6 +1083,32 @@
 	.paging-means { margin: 0; font-size: 0.85em; }
 	.paging-said { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4em; margin-block: 0.4em; }
 	.paging-said-ok { display: inline-flex; align-items: center; gap: 0.2em; color: var(--prim); font-size: 0.85em; }
+
+	/* ── THE DRAWER'S OWN RESIZE EDGE ─────────────────────────────────────────
+	   `ext/drawer` already imports `ext/grip` for this and it already works — dragging
+	   it took the drawer 304 → 797px, measured — but the strip is 12 pixels with no
+	   permanent mark (`ext/grip`'s own design: a line that lights on hover, nothing
+	   before it), and both eighth-visit audits mistook it for the dev bar's grip
+	   parked past the right edge at a wide window. Never `ext/grip`'s or
+	   `ext/drawer`'s own files — this reads the elements they already draw and never
+	   duplicates their pointer code.
+	   ⚠ `:has()`, not a class this file adds and forgets to remove: `.paging-drawer-row`
+	     exists only while THIS realm's own content fills the shared rail (`config.js`'s
+	     `form()` draws one on every fill, even Build's), so the mark is never left
+	     lit for a page that opens the same drawer for something else. */
+	.drawer:has(.paging-drawer-row) .grip::before { opacity: 0.35; }
+
+	/* ⚠ A DEFAULT, NEVER A FIGHT. `--drawer-w` is the exact property `ext/drawer`
+	     reads for its own width and only ever sets once a reader has actually
+	     dragged the edge (`drawer.js`'s own `localStorage` key) — so this only
+	     supplies a starting number. The moment a reader drags, `ext/drawer` writes
+	     `--drawer-w` as an INLINE style on the same element, which always wins over
+	     a stylesheet rule regardless of this media query. 30rem clears the 430px the
+	     JSON box needs with room to spare; below 1920 the drawer keeps its 19rem
+	     floor, which is what most windows already had. */
+	@media (min-width: 1920px) {
+		.app:has(.paging-drawer-row) { --drawer-w: 30rem; }
+	}
 
 	/* ── A CODE BOX IN THE DRAWER ─────────────────────────────────────────────
 	   ⚠ THE BOX HAS TO SAY `flex: none`, or it shows one line of nineteen. The rail's

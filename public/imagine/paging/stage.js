@@ -41,8 +41,14 @@ async function read_file(path, as){
 /* ── A SAVED PAGE, READ WHOLE ──────────────────────────────────────────────────
    A `page.json` names its children by DIRECTORY NAME (`make/made.js`), so the titles
    a tab strip needs are one more fetch each — which is what a child costs anywhere on
-   this site. A child that is missing is skipped rather than fatal. */
-async function read_node(url){
+   this site. A child that is missing is skipped rather than fatal.
+
+   ⚠ EXPORTED so `config.js`'s nest field can ask the same question this file asks
+     when it actually draws the page — a typed address's caption used to guess its
+     title from the last slash (`title_from()`, `url.js`) and never correct itself,
+     while the twelve preset chips had a real title all along (paging-audit-8,
+     fix 2). One fetch, read by both the caption and the box it describes. */
+export async function read_node(url){
 	const node = await read_file(file_for(url), "json");
 	if (!node) throw new Error("no page at " + url);
 

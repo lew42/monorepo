@@ -135,6 +135,11 @@ export default new Paging({
   url instead · `paging.js`
 - Six old directories are gone; their urls answer with one line saying where they went
   (`route()` in `page.js`). Delete a row when nothing points at it.
+- **Read the page's own state INSIDE the callback `ext/drawer` re-invokes, never above it.**
+  `fill_drawer(stage, page, focus)` read `page.node_now()` once, before `drawer(fn)`, and every
+  later `drawer.refresh()` (every chip press) ran the same closure holding that first answer —
+  so the file box kept showing the page as it was when the drawer opened. The same shape bit
+  six times, one level deeper each time, before it held · [doc/decisions.md](/imagine/paging/doc/decisions/)
 
 ## More
 
