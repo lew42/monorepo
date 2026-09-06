@@ -19,7 +19,7 @@ function navigation(){
 		let $box;
 
 		div.c("flex v-center wrap gap", () => pick(MODES, name => $box.empty(() => open(name)), "rail"))
-			.style("--gap", "0.3em");
+			.style("--gap", "calc(var(--gap-ramp) * 0.3)");
 
 		$box = div(() => open("rail"));
 	}));

@@ -30,8 +30,8 @@ const orbit = () => new Page({
 				div.c("flex gap", () => this.children.forEach((page, name) => {
 					const nav = this.nav_for(name);
 					a.c("page-link", nav.label).href(nav.url);
-				})).style("--gap", "1.2em");
-			}).style("--pad", "0.7em 1em");
+				})).style("--gap", "calc(var(--gap-ramp) * 1.2)");
+			}).style("--pad", "calc(var(--pad-ramp) * 0.7) var(--pad-ramp)");
 
 			// Children mount HERE, inside my own view, so the bar can never move.
 			this.$pages = div.c("flex-1");

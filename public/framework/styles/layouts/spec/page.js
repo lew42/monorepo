@@ -53,10 +53,10 @@ const article_rail = () => div.c("section-band", () =>
 			p.c("h4", "ON THIS PAGE").style("color", "var(--eyebrow, var(--prim))");
 			["The clamp", "Sticky, and its ceiling", "What wrapping costs"].forEach(t =>
 				a.c("page-link", t).href("#").style({ textDecoration: "none" }));
-		}).style("--gap", "0.4em");
+		}).style("--gap", "calc(var(--gap-ramp) * 0.4)");
 
 	}).style("--measure", "72em")
-).style({ background: "var(--surface)", padding: "2.5em 2em" });
+).style({ background: "var(--surface)", padding: "calc(var(--pad-ramp) * 2.5) calc(var(--pad-ramp) * 2)" });
 
 /* wrapper-4 · "Mobile Stacked Card List". The Figma's one spec worth keeping —
    "min 48px" touch targets — is `3em`, so it survives a text-size change that a
@@ -71,13 +71,13 @@ const card_list = () => div.c("flex v gap surface pad", () =>
 		a.c("pad flex gap v-center wash").href("#").style({
 			textDecoration: "none", minHeight: "3em", borderRadius: "var(--radius)",
 		}).append(() => {
-			div.c("flex v").style("gap", "0.15em").append(() => {
+			div.c("flex v").style("gap", "calc(var(--gap-ramp) * 0.15)").append(() => {
 				p.c("h4", title);
 				p.c("muted", desc);
 			});
 			icon("chevron_right").style("marginInlineStart", "auto");
 		}))
-).style("--gap", "0.5em");
+).style("--gap", "calc(var(--gap-ramp) * 0.5)");
 
 /* wrapper-4 · "Mobile Bottom Sheet Sizing". `position: absolute` inside a box that
    declares its own height — the sheet covers the page it belongs to, which is what
@@ -99,7 +99,7 @@ const bottom_sheet = () => div.c("flex v").style({
 
 	div.c("pad flex v gap surface").style({
 		position: "absolute", insetInline: "0", bottom: "0",
-		borderRadius: "1em 1em 0 0", "--gap": "0.5em",
+		borderRadius: "1em 1em 0 0", "--gap": "calc(var(--gap-ramp) * 0.5)",
 	}).append(() => {
 		div().style({ width: "3em", height: "0.3em", borderRadius: "999px", background: "var(--line)", alignSelf: "center" });
 		p.c("h4", "Open in");
@@ -324,7 +324,7 @@ const spec_row = (row, shows) => div.c("flex gap wrap", () => {
 			h3(row.title);
 			p.c("muted", row.note);
 			if (row.link) a.c("page-link", row.link[0] + " →").href(row.link[1]).style({ textDecoration: "none" });
-		}).style("--gap", "0.6em");
+		}).style("--gap", "calc(var(--gap-ramp) * 0.6)");
 
 	div.c("flex v gap").style({ flex: "999 1 18em", minWidth: "0" }).append(() => {
 
@@ -336,7 +336,7 @@ const spec_row = (row, shows) => div.c("flex gap wrap", () => {
 		     `surface`, and every specimen on the page renders white — silently. */
 		div().style({ maxWidth: row.width, width: "100%" }).append(() => row.specimen(row.tone));
 
-		if (row.badges) div.c("flex gap wrap", () => row.badges.forEach(chip)).style("--gap", "0.4em");
+		if (row.badges) div.c("flex gap wrap", () => row.badges.forEach(chip)).style("--gap", "calc(var(--gap-ramp) * 0.4)");
 
 		if (row.code && shows("code")) code.html(row.code);
 
@@ -405,23 +405,23 @@ export default new Page(demo.layout({
 					   345px ("Documentation" at `h1`) inside a 321px header and pushed
 					   24px out. `min-width: 0` lets it shrink, and the break-word that
 					   was there all along finally applies. Measured, both directions. */
-					div.c("flex v gap").style({ "--gap": "0.3em", flex: "1 1 16em", minWidth: "0" }).append(() => {
+					div.c("flex v gap").style({ "--gap": "calc(var(--gap-ramp) * 0.3)", flex: "1 1 16em", minWidth: "0" }).append(() => {
 						p.c("h4", "GLOBAL SPECS").style("color", "var(--eyebrow, var(--prim))");
 						p.c("h1", "Layout Documentation System");
 						p.c("muted", "Standardized responsive section containers, spacing, and structural behavior standards — checked against the tokens that already exist.");
 					});
 
 					div.c("flex gap wrap", () => { chip("Active Specs"); chip("System v2.4"); })
-						.style("--gap", "0.4em");
+						.style("--gap", "calc(var(--gap-ramp) * 0.4)");
 				});
 
 			/* The Figma's `wrapper-1..4` — a washed card per width tier, the specimen
 			   bands sitting white on top of it. `.wash` is 8% ink, so it is a tint of
 			   whatever ground it lands on and follows a theme swap. */
 			TIERS.forEach(tier =>
-				div.c("wide wash pad flex v gap").style({ "--gap": "2em", "--pad": "1.5em", borderRadius: "var(--radius)" }).append(() => {
+				div.c("wide wash pad flex v gap").style({ "--gap": "var(--flow-ramp)", "--pad": "calc(var(--pad-ramp) * 1.5)", borderRadius: "var(--radius)" }).append(() => {
 
-					div.c("flex v gap").style("--gap", "0.3em").append(() => {
+					div.c("flex v gap").style("--gap", "calc(var(--gap-ramp) * 0.3)").append(() => {
 						h2(tier.title);
 						p.c("muted", tier.blurb);
 					});

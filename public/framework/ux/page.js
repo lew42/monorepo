@@ -8,7 +8,7 @@ const box = () => div.c("surface pad flex v gap", () => {
 	div.c("h4 muted", "Core");
 	h3("View");
 	span.c("muted", "A chainable DOM element.");
-	div.c("flex gap", () => { button("Docs"); button.c("prim", "Open"); }).style("--gap", "0.3em");
+	div.c("flex gap", () => { button("Docs"); button.c("prim", "Open"); }).style("--gap", "calc(var(--gap-ramp) * 0.3)");
 });
 
 export default new Doc({
@@ -32,11 +32,11 @@ export default new Doc({
 		// The page's one live thing, and it opens the page: the SAME template twice,
 		// the right one wearing both config words. The argument for it is below.
 		div.c("flex wrap gap", () => {
-			div.c("flex v gap", () => { div.c("h4 muted", "default"); box(); }).style("--gap", "0.5em");
+			div.c("flex v gap", () => { div.c("h4 muted", "default"); box(); }).style("--gap", "calc(var(--gap-ramp) * 0.5)");
 			div.c("flex v gap", () => {
 				div.c("h4 muted", "ui-contrast ui-compact");
 				box().ac("ui-contrast ui-compact");   // on the component itself — a word needs no section
-			}).style("--gap", "0.5em");
+			}).style("--gap", "calc(var(--gap-ramp) * 0.5)");
 		});
 
 		md("**Eight classes live here now** — [Auth](/framework/ux/Auth/), [Wizard](/framework/ux/Wizard/), [Tree](/framework/ux/Tree/), [Course](/framework/ux/Course/), [Filter](/framework/ux/Filter/), [Menu](/framework/ux/Menu/), [Pagination](/framework/ux/Pagination/), [Tags](/framework/ux/Tags/) — built 2026-08-21 against the contract below.");

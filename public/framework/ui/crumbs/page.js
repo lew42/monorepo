@@ -8,7 +8,7 @@ const crumbs = () => div.c("ui-crumbs flex wrap v-center h4 gap", () => {
 	a.c("page-link", "UI").href("/framework/ui/");
 	span.c("muted", "/");
 	span.c("muted", "Breadcrumbs");
-}).style("--gap", "0.5em");
+}).style("--gap", "calc(var(--gap-ramp) * 0.5)");
 
 const chevrons = () => div.c("ui-crumbs flex wrap v-center gap", () => {
 	// `/` is never marked in-path (it is a prefix of everything), so this one says
@@ -19,14 +19,14 @@ const chevrons = () => div.c("ui-crumbs flex wrap v-center gap", () => {
 		icon("chevron_right").style({ color: "var(--subtle)", fontSize: "1em" });
 		a.c("page-link", url.split("/").at(-2)).href(url);
 	});
-}).style("--gap", "0.3em");
+}).style("--gap", "calc(var(--gap-ramp) * 0.3)");
 
 /* The card's own context — the trail above the page heading it belongs to, since
    the trail alone was one thin line at zoom-50 (wall-polish, 2026-08-17). */
 const context = () => div.c("pad flex v gap", () => {
 	crumbs();
 	h2("Breadcrumbs");
-}).style("--gap", "0.4em");
+}).style("--gap", "calc(var(--gap-ramp) * 0.4)");
 
 export default new Page({
 	meta: import.meta,

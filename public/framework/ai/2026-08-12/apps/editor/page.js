@@ -47,12 +47,12 @@ function editor(){
 
 	const $editor = widget(div.c("apps-editor surface flex v", () => {
 		// Placed now, filled last: its toggles point at panels built below.
-		const $bar = div.c("apps-bar flex v-center gap wash pad").style("--pad", "0.3em 0.6em");
+		const $bar = div.c("apps-bar flex v-center gap wash pad").style("--pad", "calc(var(--pad-ramp) * 0.3) calc(var(--pad-ramp) * 0.6)");
 
 		div.c("apps-body flex", () => {
-			$layers = div.c("apps-panel basis flex v wash pad").style({ "--basis": "9em", "--pad": "0.5em" });
+			$layers = div.c("apps-panel basis flex v wash pad").style({ "--basis": "9em", "--pad": "calc(var(--pad-ramp) * 0.5)" });
 			$canvas = div.c("apps-canvas flex-1 pad");
-			$props  = div.c("apps-panel basis flex v gap wash pad").style({ "--basis": "14em", "--gap": "0.6em", "--pad": "0.6em" });
+			$props  = div.c("apps-panel basis flex v gap wash pad").style({ "--basis": "14em", "--gap": "calc(var(--gap-ramp) * 0.6)", "--pad": "calc(var(--pad-ramp) * 0.6)" });
 		});
 
 		$bar.append(() => {
@@ -109,7 +109,7 @@ function properties($el){
 	row(() => layout.words.pad($el));
 }
 
-const row = fn => div.c("flex wrap gap", fn).style("--gap", "0.3em");
+const row = fn => div.c("flex wrap gap", fn).style("--gap", "calc(var(--gap-ramp) * 0.3)");
 const words_of = $el => [...$el.el.classList].filter(word => word !== "apps-node" && word !== "on").join(" ");
 
 export default new Page(demo.layout({

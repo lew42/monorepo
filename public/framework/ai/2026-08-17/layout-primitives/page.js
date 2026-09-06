@@ -77,7 +77,7 @@ export default new Page({
 					span("after · ");
 					a.c("", "before").href(`${BEFORE}contact-${w}.png`);
 				});
-			}))).style({ "--column": "22em", "--gap": "1.5em" });
+			}))).style({ "--column": "22em", "--gap": "calc(var(--gap-ramp) * 1.5)" });
 	},
 
 	/* One card per change. `wall` counts its own columns, so this is six across at 3440
@@ -100,13 +100,13 @@ export default new Page({
 				h3(c.title);
 				md(c.line);
 
-				div.c("flex v gap").style("--gap", "0.25em").append(() => {
+				div.c("flex v gap").style("--gap", "calc(var(--gap-ramp) * 0.25)").append(() => {
 					div.c("muted", `before — ${c.before}`);
 					div(`after — ${c.after}`);
 				});
 
-				if (c.imgs) div.c("flex v gap").style("--gap", "0.6em").append(() => c.imgs.forEach(s =>
-					div.c("flex v gap").style("--gap", "0.25em").append(() => {
+				if (c.imgs) div.c("flex v gap").style("--gap", "calc(var(--gap-ramp) * 0.6)").append(() => c.imgs.forEach(s =>
+					div.c("flex v gap").style("--gap", "calc(var(--gap-ramp) * 0.25)").append(() => {
 						span.c("muted h4", `${s.w}px — table ${s.beforeW} → ${s.afterW}px, page ${s.beforeH} → ${s.afterH}px tall`);
 						div.c("flex gap wrap", () => [["before", s.before], ["after", s.after]].forEach(([label, src]) =>
 							a.c("", () => img.c("").attr("src", `${HERE}${src}`).attr("alt", label).style({ maxWidth: "16em", display: "block" })).href(`${HERE}${src}`)));
@@ -120,9 +120,9 @@ export default new Page({
 				md(`**Deletes:** ${c.deletes}`);
 				span.c("muted", c.files.join(" · "));
 
-				const $status = div.c("flex v gap").style("--gap", "0.5em");
+				const $status = div.c("flex v gap").style("--gap", "calc(var(--gap-ramp) * 0.5)");
 				this.ready.then(() => this.render_status(c, $status));
-			}))).style({ "--column": "26em", "--gap": "1.2em" });
+			}))).style({ "--column": "26em", "--gap": "calc(var(--gap-ramp) * 1.2)" });
 	},
 
 	/* One line, filled once `this.ready` resolves — see the top-of-file comment. */
@@ -148,7 +148,7 @@ export default new Page({
 					.style("color", v.accept ? "var(--ok)" : "var(--error)");
 			});
 
-			if (v?.accept === false) div.c("flex v gap").style("--gap", "0.25em").append(() => {
+			if (v?.accept === false) div.c("flex v gap").style("--gap", "calc(var(--gap-ramp) * 0.25)").append(() => {
 				span.c("muted h4", "to apply");
 				md(c.deletes);
 			});

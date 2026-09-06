@@ -13,12 +13,12 @@ import { Page, demo, div, h2, h3, p, md } from "/app.js";
 const card = (label, tone = "") => div.c("pad flex v gap surface " + tone, () => {
 	if (label) h3(label);
 	p.c("muted measure start", "Et commodo turpis orci porta auctor curabitur vel sed.");
-}).style("--gap", "0.4em");
+}).style("--gap", "calc(var(--gap-ramp) * 0.4)");
 
 const heading = () => div.c("flex v gap", () => {
 	h3("Section Title");
 	p.c("muted measure start", "Et commodo turpis orci porta auctor curabitur vel sed.");
-}).style("--gap", "0.3em");
+}).style("--gap", "calc(var(--gap-ramp) * 0.3)");
 
 /* Frame 54:980 — a centred header over three equal cards. `flex three` clamps
    straight from three tracks to one; it never shows two-and-an-orphan. */
@@ -27,7 +27,7 @@ function three(){
 		heading();
 		div.c("flex three gap", () => { card("Vitae Volutpat"); card("Vitae Volutpat", "wash"); card("Vitae Volutpat"); })
 			.style("--column", "16em");
-	}).style("--gap", "1.4em");
+	}).style("--gap", "calc(var(--gap-ramp) * 1.4)");
 }
 
 /* The other five frames (54:994, 54:1040, 61:1251, 61:1271, 65:1306) — a rail, a fluid
@@ -43,7 +43,7 @@ function columns(){
 			card("Centre").style("--grow", "2");
 			card("Right", "tint");
 		}).style("--column", "12em");
-	}).style("--gap", "1.4em");
+	}).style("--gap", "calc(var(--gap-ramp) * 1.4)");
 }
 
 export default new Page({

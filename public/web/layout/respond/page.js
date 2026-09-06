@@ -3,7 +3,7 @@ import { Page, demo, md, div, p, span } from "/app.js";
 // One component, one class string, no width of its own and no query anywhere.
 const release = title => div.c("pad surface flex v gap", () => {
 	div.c("flex gap wrap", () => {
-		div.c("basis pad wash h4", "cover").style({ "--basis": "8em", "--pad": "2.4em" });
+		div.c("basis pad wash h4", "cover").style({ "--basis": "8em", "--pad": "calc(var(--pad-ramp) * 2.4)" });
 
 		div.c("flex-1 flow", () => {
 			p.c("h3", title);
@@ -15,8 +15,8 @@ const release = title => div.c("pad surface flex v gap", () => {
 		.forEach(([value, label]) => div.c("pad wash flex v", () => {
 			span.c("h4", value);
 			span.c("muted", label);
-		}).style("--pad", "0.6em")))
-		.style({ "--column": "7em", "--gap": "0.5em" });
+		}).style("--pad", "calc(var(--pad-ramp) * 0.6)")))
+		.style({ "--column": "7em", "--gap": "calc(var(--gap-ramp) * 0.5)" });
 });
 
 // The same component twice: once in a rail that is always narrow, once in

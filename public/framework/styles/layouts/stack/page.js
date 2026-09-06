@@ -1,7 +1,7 @@
 import { Page, demo, div, span, h2, input, textarea, button } from "/app.js";
 import { site } from "../web.js";
 
-const field = (label, control) => div.c("flex v gap").style("--gap", "0.3em").append(() => {
+const field = (label, control) => div.c("flex v gap").style("--gap", "calc(var(--gap-ramp) * 0.3)").append(() => {
 	span.c("h4", label);
 	control();
 });
@@ -39,9 +39,9 @@ export default new Page(demo.layout({
 							button.c("prim", "Send");
 							button("Cancel");
 						});
-					}).style("--gap", "0.9em");
+					}).style("--gap", "calc(var(--gap-ramp) * 0.9)");
 
-				}).style({ padding: "2em" });
+				}).style({ padding: "calc(var(--pad-ramp) * 2)" });
 			}).style({ minHeight: "0", overflowY: "auto" });
 
 			if (this.shows("footer")) site.footer();

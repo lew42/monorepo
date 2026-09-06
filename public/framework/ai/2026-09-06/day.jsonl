@@ -15,3 +15,7 @@
 {"log": {"at": "2026-09-06T10:16:21-05:00", "task": "graduate-1", "msg": "landed - core Page gained the six words (words/word_classes, content-as-url, Page.from, Page.Frame) and nobody says one: ten of twelve control shots pixel-identical, the other two differ only in /framework/'s live clock"}}
 {"log": {"at": "2026-09-06T10:17:19-05:00", "task": "server-spin", "msg": "task opened - name the flood that pins the dev server at 130% and fix the cause"}}
 {"log": {"at": "2026-09-06T10:17:23-05:00", "task": "layout-study", "msg": "landed - 19 layout-ish dirs censused; ONE demo system (ext/demo, 202 callers, +a title +a footer), core/Layout + core/Section both extending Page, a three-rule deny list because CSS answers the rest, 30 layouts ported not invented, ~2600 lines to delete"}}
+{"log": {"at": "2026-09-06T10:20:33-05:00", "task": "layout-a", "msg": "task opened - slice A: core/Layout, the ported catalogue and the browsable tree"}}
+{"log": {"at": "2026-09-06T10:21:22-05:00", "task": "demo-parts", "msg": "task opened - ext/demo gains title and footer, the two missing parts of the demo (layout-study plan slice C1)"}}
+{"log":{"at":"2026-09-06T10:24:11-05:00","task":"graduate-2","msg":"task opened - slice 2 of the graduate plan: the paging lab imports core Page words, plus the four corrections slice 1 found"}}
+{"log": {"at": "2026-09-06T10:29:47-05:00", "task": "doodles", "msg": "task opened - notebook doodles to hand-authored SVGs: icons, decoration, texture, one animated"}}

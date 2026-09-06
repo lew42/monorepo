@@ -34,7 +34,7 @@ export default new Page({
 	},
 
 	pair(n, url, caption){
-		div.c("wide flex v gap").style("--gap", "0.4em").append(() => {
+		div.c("wide flex v gap").style("--gap", "calc(var(--gap-ramp) * 0.4)").append(() => {
 			a.c("h4").href(url).text(url);
 			div.c("flex gap wrap").append(() => {
 				["before", "after"].forEach(when => a.c("")

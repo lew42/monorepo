@@ -12,7 +12,7 @@ const rung = n => div.c("flex v gap", () => {
 	span.c("muted", `${n}× — ` + Object.entries(ROOTS).map(([w, px]) => `${Math.round(px * n)}px@${w}`).join("  ·  "));
 	div().style({ fontSize: `${n}em`, fontWeight: "900", lineHeight: "1.1" }).text("Read this at every step.");
 	if (n >= 1.6) div().style({ fontSize: `${n * 0.42}em`, color: "var(--subtle)" }).text("Five sizes of the same two lines — this is what growing with the screen feels like.");
-}).style({ gap: "0.3em", borderBlockEnd: "1px solid var(--line)", paddingBlockEnd: "1em" });
+}).style({ gap: "calc(var(--gap-ramp) * 0.3)", borderBlockEnd: "1px solid var(--line)", paddingBlockEnd: "var(--pad-ramp)" });
 
 const SPECTRUM = {
 	390:  { distinct: 18, rows: [[11, 35.8], [13, 24.5], [12, 18.0], [14, 15.8], [10, 3.6]] },
@@ -25,13 +25,13 @@ const bar = ([px, pct]) => div.c("flex v-center gap", () => {
 	div(() => div().style({ width: pct + "%", height: "0.85em", borderRadius: "0.2em", background: "var(--prim)" }))
 		.style({ flex: "1 1 auto", background: "var(--line)", borderRadius: "0.2em" });
 	span.c("muted", pct + "%").style({ width: "3.5em", flex: "0 0 auto" });
-}).style({ gap: "0.6em" });
+}).style({ gap: "calc(var(--gap-ramp) * 0.6)" });
 
 const spectrum_col = w => div.c("flex v gap", () => {
 	h3(w + "px");
 	span.c("muted", `${SPECTRUM[w].distinct} distinct sizes — top 5 by character count`);
 	SPECTRUM[w].rows.forEach(row => bar(row));
-}).style({ gap: "0.5em" });
+}).style({ gap: "calc(var(--gap-ramp) * 0.5)" });
 
 const SHOTS = [
 	{ file: "gallery.jpg", url: "/imagine/gallery/", used: "13%", verdict: "MISS", note: "a catalog list + an empty detail pane — 108 nodes, all of them in a 290px column" },
@@ -50,7 +50,7 @@ const shot = s => figure.c("flex v gap", () => {
 		a(s.url).href(s.url);
 		span.c("muted", ` — ${s.used} of a 3440 screen used. ${s.note}`);
 	});
-}).style({ gap: "0.4em", margin: "0" });
+}).style({ gap: "calc(var(--gap-ramp) * 0.4)", margin: "0" });
 
 /**
  * The scale study (2026-09-01) — the owner's hypothesis was "if it's 3440 and we

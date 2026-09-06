@@ -10,7 +10,7 @@ const dash = () => sample({
 
 	content(){
 		div.c("flex gap", () => {
-			div.c("basis", () => this.previews().style({ "--column": "100%", "--gap": "0.4em" }))
+			div.c("basis", () => this.previews().style({ "--column": "100%", "--gap": "calc(var(--gap-ramp) * 0.4)" }))
 				.style("--basis", "9.5em");
 
 			// Children mount HERE, so clicking a card swaps this half and only this half.

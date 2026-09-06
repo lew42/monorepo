@@ -52,20 +52,20 @@ const shot = (file, alt, w) => a().href("#").attr("tabindex", "-1").append(() =>
 	img().attr("src", here + "shots/" + file).attr("alt", alt)
 		.style({ width: w || "100%", border: "1px solid var(--line)", borderRadius: "0.3em", display: "block" }));
 
-const row = m => div.c("nav-row").style({ borderBottom: "1px solid var(--line)", paddingBlock: "1.4em" }).append(() => {
+const row = m => div.c("nav-row").style({ borderBottom: "1px solid var(--line)", paddingBlock: "calc(var(--pad-ramp) * 1.4)" }).append(() => {
 	div.c("flex gap wrap").style({ alignItems: "flex-start" }).append(() => {
 		div().style({ flex: "1 1 420px", minWidth: "300px" }).append(() => shot(m.file, m.tag));
 		div().style({ flex: "1 1 320px", minWidth: "260px" }).append(() => {
 			span.c("code", m.tag);
-			p.c("muted", m.def).style({ margin: "0.4em 0" });
+			p.c("muted", m.def).style({ margin: "calc(var(--flow-ramp) * 0.4) 0" });
 			p().style({ fontSize: "0.9em" }).append(() => { span.c("muted", "Where: "); span(m.where); });
 			p().style({ fontSize: "0.9em" }).append(() => { span.c("muted", "Used: "); span(m.used); });
 		});
 	});
 });
 
-const pair = ph => div.c("nav-phone-row").style({ borderBottom: "1px solid var(--line)", paddingBlock: "1.4em" }).append(() => {
-	h3.c("code", ph.tag).style({ marginBlockEnd: "0.5em" });
+const pair = ph => div.c("nav-phone-row").style({ borderBottom: "1px solid var(--line)", paddingBlock: "calc(var(--pad-ramp) * 1.4)" }).append(() => {
+	h3.c("code", ph.tag).style({ marginBlockEnd: "calc(var(--flow-ramp) * 0.5)" });
 	div.c("flex gap wrap", () => {
 		if (ph.a) figure.c("flex v gap").style({ margin: 0, flex: "2 1 500px" }).append(() => {
 			shot(ph.a, ph.tag + " at 1280");
@@ -80,7 +80,7 @@ const pair = ph => div.c("nav-phone-row").style({ borderBottom: "1px solid var(-
 			figcaption.c("muted", "390, opened");
 		});
 	});
-	p.c("muted", ph.note).style({ marginBlockStart: "0.6em" });
+	p.c("muted", ph.note).style({ marginBlockStart: "calc(var(--flow-ramp) * 0.6)" });
 });
 
 const TRAILS = [
@@ -95,9 +95,9 @@ const TRAILS = [
 		carried: "The crumb strip above the row (`Finder › Guides › Words › Fill`) is generated fresh on every click from `chain()`, and it is the ONLY orientation left once the row is narrower than the screen — see the phone story above, where the columns themselves disappear and the crumb strip is what remains." },
 ];
 
-const trail = t => div.c("nav-trail").style({ borderBottom: "1px solid var(--line)", paddingBlock: "1.2em" }).append(() => {
-	h3(t.title + " — " + t.clicks + " clicks").style({ marginBlockEnd: "0.3em" });
-	div.c("flex gap wrap v-center").style({ fontSize: "0.85em", marginBlock: "0.5em" }).append(() =>
+const trail = t => div.c("nav-trail").style({ borderBottom: "1px solid var(--line)", paddingBlock: "calc(var(--pad-ramp) * 1.2)" }).append(() => {
+	h3(t.title + " — " + t.clicks + " clicks").style({ marginBlockEnd: "calc(var(--flow-ramp) * 0.3)" });
+	div.c("flex gap wrap v-center").style({ fontSize: "0.85em", marginBlock: "calc(var(--flow-ramp) * 0.5)" }).append(() =>
 		t.path.forEach((seg, i) => {
 			if (i) span.c("muted", " → ");
 			span.c("code", seg);

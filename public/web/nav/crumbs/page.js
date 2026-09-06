@@ -5,7 +5,7 @@ import { Page, demo, md, div, a, span } from "/app.js";
 const trail = page => div.c("flex gap v-center", () => page.chain().forEach((up, i) => {
 	if (i) span.c("muted", "/");
 	a.c("page-link", up.title).href(up.url);
-})).style("--gap", "0.4em");
+})).style("--gap", "calc(var(--gap-ramp) * 0.4)");
 
 const leaf = (name, title, text) => ({ name, title, content(){ trail(this); md(text); } });
 

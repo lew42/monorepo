@@ -81,7 +81,7 @@ export default new Doc({
 
 			// The same five screens, rated. Under the row, so the curve and the
 			// numbers for it are read in one glance.
-			this.$grades = div.c("space-marks flex gap wrap v-center").style("--gap", "1.4em");
+			this.$grades = div.c("space-marks flex gap wrap v-center").style("--gap", "calc(var(--gap-ramp) * 1.4)");
 		});
 
 		this.show(this.landed() ?? PRESETS.document);
@@ -100,7 +100,7 @@ export default new Doc({
 				this.$seed = span.c("space-tag muted", "seed " + this.seed);
 				button(() => icon("chevron_right")).click(() => this.open(this.seed + 1));
 				button(() => icon("casino")).click(() => this.open(Math.floor(Math.random() * 1e6)));
-			}).style("--gap", "0.4em");
+			}).style("--gap", "calc(var(--gap-ramp) * 0.4)");
 
 			div.c("flex gap v-center", () => {
 				span.c("space-tag muted", "depth");
@@ -112,7 +112,7 @@ export default new Doc({
 					.on("input", () => this.level({ depth: +this.$depth.el.value }))
 					.on("change", () => this.tiles(this.from));
 				this.$note = span.c("space-tag muted");
-			}).style("--gap", "0.5em");
+			}).style("--gap", "calc(var(--gap-ramp) * 0.5)");
 
 			/* The distance from the model. Left is `model.js` exactly — the shapes,
 			   roles and size bands the rulebook asks for; right is uniform over
@@ -126,11 +126,11 @@ export default new Doc({
 					.on("input", () => this.level({ chaos: +this.$chaos.el.value / 100 }))
 					.on("change", () => this.tiles(this.from));
 				this.$chaos_note = span.c("space-tag muted");
-			}).style("--gap", "0.5em");
+			}).style("--gap", "calc(var(--gap-ramp) * 0.5)");
 
 			div.c("grid gap auto", () => Object.keys(PRESETS).forEach(name =>
 				button(name).attr("title", "the " + name + " layout, as a string").click(() => this.show(PRESETS[name]))))
-				.style({ "--column": "8.5em", "--gap": "0.4em" });
+				.style({ "--column": "8.5em", "--gap": "calc(var(--gap-ramp) * 0.4)" });
 		});
 	},
 
@@ -150,7 +150,7 @@ export default new Doc({
 				button("next twelve").click(() => this.tiles(this.from + SEEDS));
 				button("back").click(() => this.tiles(Math.max(0, this.from - SEEDS)));
 				this.$range = span.c("space-tag muted");
-			}).style("--gap", "0.4em");
+			}).style("--gap", "calc(var(--gap-ramp) * 0.4)");
 		});
 
 		this.tiles(this.from);

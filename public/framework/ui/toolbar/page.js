@@ -6,7 +6,7 @@ const toolbar = () => div.c("surface pad flex wrap gap v-center", () => {
 	div.c("flex v-center gap", () => {
 		button.c("prim", "New");
 		button("Import");
-	}).style("--gap", "0.3em");
+	}).style("--gap", "calc(var(--gap-ramp) * 0.3)");
 
 	input().ac("flex-1").attr("type", "search").attr("placeholder", "Filter modules…")
 		.style("minWidth", "9em");
@@ -14,19 +14,19 @@ const toolbar = () => div.c("surface pad flex wrap gap v-center", () => {
 	div.c("flex v-center gap", () => {
 		button(() => icon("view_list"));
 		button(() => icon("view_module"));
-	}).style("--gap", "0.3em");
+	}).style("--gap", "calc(var(--gap-ramp) * 0.3)");
 });
 
 const group = () => div.c("flex wrap gap", () => {
 	div.c("flex v-center gap", () => {
 		button.c("prim", "Save");
 		button("Save as…");
-	}).style("--gap", "0.3em");
+	}).style("--gap", "calc(var(--gap-ramp) * 0.3)");
 
 	div.c("flex v-center gap", () => {
 		["format_bold", "format_italic", "format_underlined"].forEach(glyph =>
 			button(() => icon(glyph)).style("padding", "0.5em"));
-	}).style("--gap", "0.15em");
+	}).style("--gap", "calc(var(--gap-ramp) * 0.15)");
 });
 
 const heading = () => div.c("surface pad flex wrap gap v-center split", () => {
@@ -38,7 +38,7 @@ const heading = () => div.c("surface pad flex wrap gap v-center split", () => {
 	div.c("flex v-center gap", () => {
 		button("Discard");
 		button.c("prim", "Publish");
-	}).style("--gap", "0.3em");
+	}).style("--gap", "calc(var(--gap-ramp) * 0.3)");
 });
 
 // A segment, not a group: `.prim` marks the SELECTED option among three
@@ -49,7 +49,7 @@ const filter = () => div.c("surface pad flex wrap gap v-center", () => {
 	div.c("flex v-center gap", () => {
 		["All", "Active", "Archived"].forEach((label, i) =>
 			i === 0 ? button.c("prim", label) : button(label));
-	}).style("--gap", "0.15em");
+	}).style("--gap", "calc(var(--gap-ramp) * 0.15)");
 
 	input().ac("flex-1").attr("type", "search").attr("placeholder", "Filter…")
 		.style("minWidth", "9em");
@@ -63,10 +63,10 @@ const filter = () => div.c("surface pad flex wrap gap v-center", () => {
 const ROW = ["New", "Import", "Export", "Share", "Archive"];
 const row = () => ROW.forEach((label, i) => i === 0 ? button.c("prim", label) : button(label));
 
-const wrapping = () => div.c("surface pad flex wrap gap v-center", row).style("--gap", "0.3em");
+const wrapping = () => div.c("surface pad flex wrap gap v-center", row).style("--gap", "calc(var(--gap-ramp) * 0.3)");
 
 const scrolling = () => div.c("surface pad flex gap v-center", row)
-	.style({ "--gap": "0.3em", flexWrap: "nowrap", overflowX: "auto" });
+	.style({ "--gap": "calc(var(--gap-ramp) * 0.3)", flexWrap: "nowrap", overflowX: "auto" });
 
 const mobile = () => div.c("flex v gap", () => {
 	div.c("flex v gap", () => { div.c("h4 muted", "wrap"); wrapping(); });

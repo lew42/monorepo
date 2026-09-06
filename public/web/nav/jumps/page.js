@@ -27,7 +27,7 @@ const drift = () => new Page({
 		{ name: "about", title: "About", render(){ return this.view ??= div.c("page full flex v gap pad", () => {
 			h1.c("page-title", this.title);
 			md("And now no nav at all until the bottom. Three clicks, three places to look for the same two things.");
-			links(this); }).style("--pad", "2.5em"); } },
+			links(this); }).style("--pad", "calc(var(--pad-ramp) * 2.5)"); } },
 	],
 
 	content(){ md("Pick a page — each brings its own."); this.previews(); },
@@ -51,7 +51,7 @@ const anchor = () => new Page({
 					const nav = this.nav_for(name);
 					a.c("page-link", nav.label).href(nav.url);
 				});
-			}).style({ "--basis": "9em", "--gap": "0.5em" });
+			}).style({ "--basis": "9em", "--gap": "calc(var(--gap-ramp) * 0.5)" });
 
 			this.$pages = div.c("flex-1");
 		});

@@ -22,7 +22,7 @@ function step_name(wizard){
 		} else {
 			span.c("muted", "Lowercase, no spaces - renameable later.");
 		}
-	}).style("--gap", "0.4em");
+	}).style("--gap", "calc(var(--gap-ramp) * 0.4)");
 }
 
 function step_options(wizard){
@@ -38,15 +38,15 @@ function step_options(wizard){
 					if (wizard.values.visibility === v) $o.attr("selected", "");
 				});
 			}).on("change", function(){ wizard.values.visibility = this.el.value; });
-		}).style("--gap", "0.4em");
+		}).style("--gap", "calc(var(--gap-ramp) * 0.4)");
 
 		label.c("flex gap v-center", () => {
 			const $box = input().attr("type", "checkbox");
 			$box.el.checked = wizard.values.readme;
 			$box.on("change", function(){ wizard.values.readme = this.el.checked; });
 			span("Add a README");
-		}).style("--gap", "0.4em");
-	}).style("--gap", "1em");
+		}).style("--gap", "calc(var(--gap-ramp) * 0.4)");
+	}).style("--gap", "var(--gap-ramp)");
 }
 
 function step_confirm(wizard){
@@ -55,7 +55,7 @@ function step_confirm(wizard){
 		div.c("flex v gap", () => {
 			[["Name", wizard.values.name], ["Visibility", wizard.values.visibility], ["README", wizard.values.readme ? "Yes" : "No"]]
 				.forEach(([k, v]) => div.c("flex split", () => { span.c("muted", k); span(String(v)); }));
-		}).style("--gap", "0.3em");
+		}).style("--gap", "calc(var(--gap-ramp) * 0.3)");
 	});
 }
 

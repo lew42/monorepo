@@ -16,8 +16,8 @@ export default new Page(demo.layout({
 	layout(){
 
 		const band = (tone, fn) => div.c("pad", () =>
-			div.c("measure flex v gap", fn).style({ "--measure": "62em", "--gap": "1.2em" }))
-			.ac(tone).style("--pad", "3.5em 2em");
+			div.c("measure flex v gap", fn).style({ "--measure": "62em", "--gap": "calc(var(--gap-ramp) * 1.2)" }))
+			.ac(tone).style("--pad", "calc(var(--pad-ramp) * 3.5) calc(var(--pad-ramp) * 2)");
 
 		return div.c("page full fill flex v", () => {
 
@@ -31,7 +31,7 @@ export default new Page(demo.layout({
 
 				if (this.shows("cta")) band("", () => {
 					div.c("flex gap wrap v-center split", () => {
-						div.c("flex v gap", () => { h2("Start today"); p(site.blurb); }).style("--gap", "0.4em");
+						div.c("flex v gap", () => { h2("Start today"); p(site.blurb); }).style("--gap", "calc(var(--gap-ramp) * 0.4)");
 						button.c("prim", "Get " + site.title);
 					});
 				});

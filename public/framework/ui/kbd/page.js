@@ -13,18 +13,18 @@ const list = () => div.c("surface pad flex v gap", () => {
 	shortcut("Command palette", "Ctrl", "K");
 	shortcut("Go to file", "Ctrl", "P");
 	shortcut("Dismiss", "Esc");
-}).style("--gap", "0.6em");
+}).style("--gap", "calc(var(--gap-ramp) * 0.6)");
 
 const rows = () => div.c("flex v gap", () => {
 	keys("Ctrl", "Shift", "P");
 	keys("⌘", "K");
 	keys("Esc");
-}).style("--gap", "0.6em");
+}).style("--gap", "calc(var(--gap-ramp) * 0.6)");
 
 const bare = () => div.c("flex v gap", () => {
 	p(() => { span("Bare: press "); span.c("code", "Ctrl"); span(" then "); span.c("code", "K"); });
 	p(() => { span("Keyed: press "); kbd.c("ui-key surface", "Ctrl"); span(" then "); kbd.c("ui-key surface", "K"); });
-}).style("--gap", "0.8em");
+}).style("--gap", "calc(var(--gap-ramp) * 0.8)");
 
 export default new Page({
 	meta: import.meta,

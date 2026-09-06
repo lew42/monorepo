@@ -12,7 +12,7 @@ function panes(){
 			spec.slice(1).forEach((kid, i) => { if (i) grip(); build(kid); }))
 		: pane(spec);
 
-	return widget(div.c("apps-panes flex pad", () => build(LAYOUT))).style("--pad", "0.5em");
+	return widget(div.c("apps-panes flex pad", () => build(LAYOUT))).style("--pad", "calc(var(--pad-ramp) * 0.5)");
 }
 
 export default new Page(demo.layout({

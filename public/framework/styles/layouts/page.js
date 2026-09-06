@@ -44,7 +44,7 @@ export default new Page({
 	   desktop. A narrower card would show every layout in its tablet form. */
 	content(){
 		h1.c("h3", this.title);
-		this.browse(BANDS, { "--column": "22em", "--gap": "2em", "--stage-max": "14em" });
+		this.browse(BANDS, { "--column": "22em", "--gap": "var(--flow-ramp)", "--stage-max": "14em" });
 	},
 
 	/* The layouts nav, as plain entries — handed to whichever layout draws one, so a

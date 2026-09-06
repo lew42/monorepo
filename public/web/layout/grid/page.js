@@ -3,9 +3,9 @@ import layout from "/framework/ext/layout/layout.js";
 import { toggle } from "/framework/ext/layout/controls.js";
 
 const cells = () => [1, 2, 3, 4, 5, 6, 7, 8].forEach(x =>
-	div.c("pad wash", "cell " + x).style("--pad", "0.9em"));
+	div.c("pad wash", "cell " + x).style("--pad", "calc(var(--pad-ramp) * 0.9)"));
 
-const wall = () => div.c("grid gap auto", cells).style({ "--gap": "1em", "--column": "14em" });
+const wall = () => div.c("grid gap auto", cells).style({ "--gap": "var(--gap-ramp)", "--column": "14em" });
 
 export default new Page({
 	meta: import.meta,
@@ -14,7 +14,7 @@ export default new Page({
 
 	// A tighter `--column` than the demo's: at card size the count is the message.
 	preview(nav){ return this.preview_card(nav, () => div.c("zoom-50 pad", () =>
-		wall().style({ "--column": "6em", "--gap": "0.6em" }))); },
+		wall().style({ "--column": "6em", "--gap": "calc(var(--gap-ramp) * 0.6)" }))); },
 
 	content(){
 		// `layout.words` is the documented extension point — one word, one control

@@ -78,7 +78,7 @@ export default new Doc({
 		   ⚠ `--column: 18em`. A thumb is the component at `zoom-50`, so the card's width
 		   times TWO is the width the component lays out at — 18em lands a table, a toolbar
 		   and a dialog on ~580px, which is the width each of them is actually used at. */
-		this.browse(BANDS, { "--column": "18em", "--gap": "2em" }).ac("bleed");
+		this.browse(BANDS, { "--column": "18em", "--gap": "var(--flow-ramp)" }).ac("bleed");
 
 		md("## Three functions, sixteen templates");
 

@@ -30,7 +30,7 @@ function meter(){
 	const js = () => performance.getEntriesByType("resource").filter(r => r.name.endsWith(".js")).length;
 	const css = () => document.querySelectorAll("link[rel=stylesheet]").length;
 
-	const $out = div.c("gal-meter flex v gap").style("--gap", "0.3em");
+	const $out = div.c("gal-meter flex v gap").style("--gap", "calc(var(--gap-ramp) * 0.3)");
 
 	button.c("prim", "Import " + SUBJECT).click(function(){
 		this.el.disabled = true;                         // ⚠ `this` is the View, not the element
@@ -157,7 +157,7 @@ export default new Page({
 						span.c("page-preview-title", entry.title);
 						span.c("muted", entry.path);
 					});
-				})).style("--gap", "0.3em");
+				})).style("--gap", "calc(var(--gap-ramp) * 0.3)");
 
 				md("`route(name)` claims the name and returns a page **spec** — a title, and a `content()` that calls the foreign page's own `content()` with the foreign page as `this`, exactly the move `ext/catalog` makes when it turns a page's content into a child.\n\nThe foreign page is **read, never moved**: its url, its parent and its cached `view` are untouched, so `/framework/core/Page/overview/prose/` still works. ⚠ Never `render()` it — that caches `page.view`, and the original would find its own body parented inside yours.\n\nThis is the answer to \"the Router would intervene\": stop borrowing its links and **borrow its body**. The Router serves your url scheme because it is a real one.");
 			},

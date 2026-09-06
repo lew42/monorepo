@@ -23,7 +23,7 @@ export default new Page({
 	preview(nav){ return this.preview_card(nav, () => div.c("zoom-50 pad", () =>
 		div.c("flex gap", () => "Alpha Beta Gamma Delta Epsilon".split(" ")
 			.forEach(word => div.c("pad surface h4 flex-1", word)))
-			.style({ "--pad": "0.8em" }))); },
+			.style({ "--pad": "calc(var(--pad-ramp) * 0.8)" }))); },
 
 	content(){
 		// `layout.words` is the documented extension point — one word, one control
@@ -31,7 +31,7 @@ export default new Page({
 		"v v-center split auto wrap".split(" ").forEach(word => layout.words[word] = $el => toggle($el, word));
 
 		div.c("layout bleed", () => {
-			const $row = div.c("flex gap wrap", boxes).style({ "--gap": "1em", "--column": "14em" });
+			const $row = div.c("flex gap wrap", boxes).style({ "--gap": "var(--gap-ramp)", "--column": "14em" });
 
 			layout.bar($row, "v wrap auto v-center split gap column");
 		});

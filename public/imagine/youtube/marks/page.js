@@ -61,8 +61,8 @@ export default new Page({
 					div.c("yt-shortcut flex v-center gap", () => {
 						ui.keys("M");
 						span.c("yt-shortcut-say", "mark here");
-					}).style("--gap", "0.4em");
-				}).style("--gap", "0.6em");
+					}).style("--gap", "calc(var(--gap-ramp) * 0.4)");
+				}).style("--gap", "calc(var(--gap-ramp) * 0.6)");
 
 				this.$list = div.c("yt-mark-list");
 				this.output();
@@ -133,7 +133,7 @@ export default new Page({
 		div.c("yt-ctl", () => {
 			span.c("yt-ctl-label", "player.cues(...) — copy this");
 			this.$out = pre.c("yt-out");
-			div.c("yt-keys flex wrap gap", () => this.$copy = this.key("Copy", () => this.copy())).style("--gap", "0.4em");
+			div.c("yt-keys flex wrap gap", () => this.$copy = this.key("Copy", () => this.copy())).style("--gap", "calc(var(--gap-ramp) * 0.4)");
 		});
 	},
 

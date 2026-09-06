@@ -14,7 +14,7 @@ export default new Page({
 		md("**[/framework/styles/layouts/](/framework/styles/layouts/)** — a ninth tab on the `Page` class page, between Page flow and API. Ten whole-page layouts, one content object under all ten, and **every card is the layout twice: a whole 390px phone screen beside a whole 3440px monitor screen, both live, neither cropped.** Three of them, running, right here:");
 
 		div.c("page-previews wide", () => [docs, shell, mail].forEach(page => page.preview(page.nav())))
-			.style({ "--column": "20em", "--gap": "1em" });
+			.style({ "--column": "20em", "--gap": "var(--gap-ramp)" });
 
 		md("Click one: the pair opens on a stage with the handle between them, and dragging it moves both simulated widths in opposite directions. **The stage is auto-height** — the taller pane sets it and the shorter page grows to meet it, so you get the whole layout at both widths instead of a strip. The layout bar is wired to the wide pane, the source is open below, and **the layout's regions are chips in the right drawer** — [App shell](/framework/styles/layouts/shell/) has five, and turning all five off leaves you looking at [Document](/framework/styles/layouts/document/).");
 

@@ -28,7 +28,7 @@ const APPROVED = [
 		holds: "its own render(), its own risk — solo is APPROVED but never DEFAULT, and each new one is the owner's call by name." },
 ];
 
-const card = s => figure.c("flex v gap").style({ margin: 0, gap: "0.5em" }).append(() => {
+const card = s => figure.c("flex v gap").style({ margin: 0, gap: "calc(var(--gap-ramp) * 0.5)" }).append(() => {
 	img().attr("src", shots + s.file).attr("alt", s.name)
 		.style({ width: "100%", border: "1px solid var(--line)", borderRadius: "0.3em" });
 	figcaption(() => span(s.name).style({ fontWeight: "700" }));

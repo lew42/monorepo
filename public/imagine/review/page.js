@@ -124,13 +124,13 @@ const badge = (text, loud) => {
    sentences to 2,900px at 3440, which is the exact defect this page reports about other realms
    (pattern 3: a wide screen gets more columns, never a wider one). A 24em grid track keeps every
    line inside the measure at any width and still claims the whole row. */
-const card = (r, i) => div.c("flex v gap").style({ gap: "0.5em", alignItems: "stretch" }).append(() => {
+const card = (r, i) => div.c("flex v gap").style({ gap: "calc(var(--gap-ramp) * 0.5)", alignItems: "stretch" }).append(() => {
 	h3(() => {
 		span.c("muted", `${i + 1}. `);
 		a(r.title).attr("href", "/imagine/" + r.slug + "/");
 	}).style({ margin: 0 });
 
-	div.c("flex gap").style({ alignItems: "center", flexWrap: "wrap", gap: "0.4em" }).append(() => {
+	div.c("flex gap").style({ alignItems: "center", flexWrap: "wrap", gap: "calc(var(--gap-ramp) * 0.4)" }).append(() => {
 		badge(r.cold === "unclear" ? "was unclear" : "was clear", r.cold === "unclear");
 		span.c("muted", "→");
 		badge("now clear", false);
@@ -140,7 +140,7 @@ const card = (r, i) => div.c("flex v gap").style({ gap: "0.5em", alignItems: "st
 		img().attr("src", shots + r.slug + ".jpg").attr("alt", r.title + " at 1280, after the fixes")
 			.style({ width: "100%", height: "auto", display: "block", border: "1px solid var(--line)", borderRadius: "0.3em" });
 		figcaption(() => { span.c("muted", `as it stands now, at 1280 · ${r.fixed} fixed · ${r.proposed} proposed`); })
-			.style({ fontSize: "0.8em", marginTop: "0.35em" });
+			.style({ fontSize: "0.8em", marginTop: "calc(var(--flow-ramp) * 0.35)" });
 	}).style({ margin: 0 });
 
 	p(() => { span.c("muted", "A stranger said: "); span(r.stranger); });
@@ -156,7 +156,7 @@ const wall = () => div(() => REALMS.forEach(card)).style({
 	gridTemplateColumns: "repeat(auto-fill, minmax(24em, 1fr))",
 	gap: "var(--gap-default, 1.5em) var(--gap-default, 1.5em)",
 	alignItems: "start",
-	marginTop: "1em",
+	marginTop: "var(--flow-ramp)",
 });
 
 export default new Page({

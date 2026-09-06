@@ -6,13 +6,13 @@ const card = () => div.c("surface pad flex v gap", () => {
 	div.c("h4 muted", "Core");
 	h3("View");
 	p("A DOM element with a chainable API, and one idea: capturing.");
-}).style("--gap", "0.5em");
+}).style("--gap", "calc(var(--gap-ramp) * 0.5)");
 
 const linked = () => div.c("surface pad flex v gap", () => {
 	h3("View");
 	p("A DOM element with a chainable API.");
 	a.c("page-link", "Read →").href("/framework/core/View/").style("color", "var(--prim)");
-}).style("--gap", "0.5em");
+}).style("--gap", "calc(var(--gap-ramp) * 0.5)");
 
 const media = () => div.c("surface flex v", () => {
 	div.c("wash").style({ aspectRatio: "16 / 9" });
@@ -21,7 +21,7 @@ const media = () => div.c("surface flex v", () => {
 		div.c("h4 muted", "Core");
 		h3("View");
 		p("A DOM element with a chainable API.");
-	}).style("--gap", "0.5em");
+	}).style("--gap", "calc(var(--gap-ramp) * 0.5)");
 });
 
 // Multiple actions, not one — `flex v-center gap` is the exact class list
@@ -33,8 +33,8 @@ const action = () => div.c("surface pad flex v gap", () => {
 	div.c("flex v-center gap", () => {
 		button.c("prim", "Upgrade");
 		button("Compare");
-	}).style("--gap", "0.3em");
-}).style("--gap", "0.5em");
+	}).style("--gap", "calc(var(--gap-ramp) * 0.3)");
+}).style("--gap", "calc(var(--gap-ramp) * 0.5)");
 
 // A card as a container for a repeated row — `flex v-center split gap` is
 // `alert`'s action row minus the icon, looped instead of written once.
@@ -45,7 +45,7 @@ const list = () => div.c("surface pad flex v gap", () => {
 			span(line);
 			span.c("muted h4", "2h");
 		}));
-}).style("--gap", "0.6em");
+}).style("--gap", "calc(var(--gap-ramp) * 0.6)");
 
 // The words matrix: the SAME card, four times, with a class appended and
 // nothing else — proof that a template needs no compact or contrast rule of

@@ -18,7 +18,7 @@ const section = () => div.c("flex v gap", () => {
 		div.c("flex v-center gap", () => {
 			button("Import");
 			button.c("prim", "New");
-		}).style("--gap", "0.3em");
+		}).style("--gap", "calc(var(--gap-ramp) * 0.3)");
 	});
 
 	div.c("grid auto gap", () => [
@@ -39,7 +39,7 @@ const section = () => div.c("flex v gap", () => {
 		div.c("h4", "Filter");
 		input().attr("type", "search").attr("value", "core/");
 		span.c("muted", "Matches a module path.");
-	}).style("--gap", "0.4em"));
+	}).style("--gap", "calc(var(--gap-ramp) * 0.4)"));
 });
 
 /* A captioned half of the comparison. The caption is OUTSIDE the box the words go on,
@@ -58,7 +58,7 @@ const mini = () => div.c("surface pad flex v gap", () => {
 	div.c("h4 muted", "Core");
 	h3("View");
 	span.c("muted", "A chainable DOM element.");
-	div.c("flex gap", () => { button("Docs"); button.c("prim", "Open"); }).style("--gap", "0.3em");
+	div.c("flex gap", () => { button("Docs"); button.c("prim", "Open"); }).style("--gap", "calc(var(--gap-ramp) * 0.3)");
 });
 
 export default new Page({
@@ -96,7 +96,7 @@ export default new Page({
 
 			$density.on("input", () => $words.style("--density", $density.el.value));
 
-		}).style("--gap", "0.5em");
+		}).style("--gap", "calc(var(--gap-ramp) * 0.5)");
 
 		/* ⚠ Two panels of real UI never fit the reading measure — `bleed`, and
 		   `--column: 22em` is the width one panel needs before it is worth splitting

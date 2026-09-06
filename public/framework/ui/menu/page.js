@@ -37,7 +37,7 @@ const context = () => div.c("pad flex gap v-center", () => {
 			a.c("ui-menu-item", "Delete").href("#");
 		});
 	}).attr("open", "");
-}).style("--gap", "0.5em");
+}).style("--gap", "calc(var(--gap-ramp) * 0.5)");
 
 const sections = () => div.c("pad", () => details.c("ui-menu", $menu => {
 	summary.c("ui-menu-trigger btn flex v-center", () => {

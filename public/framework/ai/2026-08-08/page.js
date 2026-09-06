@@ -28,7 +28,7 @@ export default new Page({
 		// `regions.forEach` inside shape() ran on a three-word class string instead.
 		// Restored per the prose two lines down ("hover a name for its classes") — a
 		// title tooltip, not a caption — via the current 3-arg call + `.attr("title")`.
-		demo.stage(() => div.c("grid gap auto").style({ "--column": "18em", "--gap": "1.8em" }).append(() => {
+		demo.stage(() => div.c("grid gap auto").style({ "--column": "18em", "--gap": "calc(var(--gap-ramp) * 1.8)" }).append(() => {
 			preview("flex gap", n(3)).attr("title", "A row with air in it");
 			preview("flex gap", ["basis", "flex-1"]).attr("title", "A fixed rail, a fluid rest");
 			preview("flex gap auto", n(3), "3em").attr("title", "Equal peers, that wrap");

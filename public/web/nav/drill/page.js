@@ -3,7 +3,7 @@ import sample from "/framework/ext/demo/sample.js";
 
 // A column of cards, beside the region whatever you pick mounts in.
 const rail = (page, basis) => {
-	div.c("basis", () => page.previews().style({ "--column": "100%", "--gap": "0.35em" })).style("--basis", basis);
+	div.c("basis", () => page.previews().style({ "--column": "100%", "--gap": "calc(var(--gap-ramp) * 0.35)" })).style("--basis", basis);
 	page.$pages = div.c("flex-1");
 };
 
@@ -25,7 +25,7 @@ const vault = () => {
 		title: "Vault",
 
 		content(){
-			this.$trail = div.c("flex gap v-center").style("--gap", "0.4em");
+			this.$trail = div.c("flex gap v-center").style("--gap", "calc(var(--gap-ramp) * 0.4)");
 			div.c("flex gap", () => {
 				this.$rail = div.c("basis").style("--basis", "8.5em");
 				this.$pages = div.c("flex-1");
@@ -35,7 +35,7 @@ const vault = () => {
 		focus(page){
 			const at = page.children.size ? page : page.parent;
 
-			this.$rail.empty(() => at.previews().style({ "--column": "100%", "--gap": "0.35em" }));
+			this.$rail.empty(() => at.previews().style({ "--column": "100%", "--gap": "calc(var(--gap-ramp) * 0.35)" }));
 			this.$trail.empty(() => page.chain().forEach((up, i) => {
 				if (i) span.c("muted", "/");
 				a.c("page-link", up.title).href(up.url);

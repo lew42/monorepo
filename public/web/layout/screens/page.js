@@ -3,7 +3,7 @@ import { Page, demo, md, div, p, span, a } from "/app.js";
 const tile = (label, value) => div.c("pad surface flex v gap", () => {
 	span.c("h2", value);
 	span.c("muted", label);
-}).style({ "--gap": "0.1em", "--pad": "0.8em" });
+}).style({ "--gap": "calc(var(--gap-ramp) * 0.1)", "--pad": "calc(var(--pad-ramp) * 0.8)" });
 
 const tiles = () => {
 	tile("Open orders", "1,284");
@@ -17,7 +17,7 @@ const tiles = () => {
 const throughput = () => div.c("flex gap flex-1", () =>
 	[38, 61, 47, 84, 72, 95, 66, 51, 79, 88, 43, 70].forEach(h =>
 		div.c("wash flex-1").style("height", h + "%")))
-	.style({ alignItems: "flex-end", "--gap": "0.4em", minHeight: "4em" });
+	.style({ alignItems: "flex-end", "--gap": "calc(var(--gap-ramp) * 0.4)", minHeight: "4em" });
 
 const feed = () => div.c("flex v gap", () => [
 	["PO-4471 received", "2m"], ["Bay 12 released", "9m"],
@@ -25,20 +25,20 @@ const feed = () => div.c("flex v gap", () => [
 ].forEach(([what, when]) => div.c("flex split gap", () => {
 	span(what);
 	span.c("muted", when);
-}))).style("--gap", "0.55em");
+}))).style("--gap", "calc(var(--gap-ramp) * 0.55)");
 
 const panel = (title, fn) => div.c("pad surface flex v gap flex-1", () => {
 	p.c("h4", title);
 	fn();
-}).style({ "--pad": "0.9em", minWidth: "0" });
+}).style({ "--pad": "calc(var(--pad-ramp) * 0.9)", minWidth: "0" });
 
 const bays = () => div.c("grid gap auto", () => {
 	for (let i = 1; i <= 48; i++)
 		div.c("pad wash flex v", () => {
 			span.c("h4", "B" + String(i).padStart(2, "0"));
 			span.c("muted", i % 5 ? "held" : "free");
-		}).style("--pad", "0.6em");
-}).style({ "--column": "7em", "--gap": "0.6em" });
+		}).style("--pad", "calc(var(--pad-ramp) * 0.6)");
+}).style({ "--column": "7em", "--gap": "calc(var(--gap-ramp) * 0.6)" });
 
 const depot = () => new Page({
 	title: "Depot",
@@ -71,7 +71,7 @@ const depot = () => new Page({
 					const nav = this.nav_for(name);
 					a.c("page-link", nav.label).href(nav.url);
 				});
-			}).style({ "--basis": "9em", "--gap": "0.4em", "--pad": "0.9em" });
+			}).style({ "--basis": "9em", "--gap": "calc(var(--gap-ramp) * 0.4)", "--pad": "calc(var(--pad-ramp) * 0.9)" });
 
 			this.$pages = div.c("flex-1");
 		});

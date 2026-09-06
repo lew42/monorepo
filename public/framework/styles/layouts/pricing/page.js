@@ -42,17 +42,17 @@ export default new Page(demo.layout({
 				div.c("flex gap v-center", () => {
 					span.c("h1", price);
 					if (per) span.c("muted", per);
-				}).style("--gap", "0.3em");
+				}).style("--gap", "calc(var(--gap-ramp) * 0.3)");
 
 				/* `flex-1` on the list, so three lists of different length still land
 				   their buttons on one line. */
 				div.c("flex v gap flex-1", () => has.split("|").forEach(line =>
-					div.c("flex gap v-center", () => { icon("check"); span(line); }).style("--gap", "0.4em")))
-					.style("--gap", "0.4em");
+					div.c("flex gap v-center", () => { icon("check"); span(line); }).style("--gap", "calc(var(--gap-ramp) * 0.4)")))
+					.style("--gap", "calc(var(--gap-ramp) * 0.4)");
 
 				button("Select plan").ac(tag && "prim");
 
-			}).ac(tag && "wash").style("--gap", "0.7em");
+			}).ac(tag && "wash").style("--gap", "calc(var(--gap-ramp) * 0.7)");
 
 		return div.c("page full fill flex v", () => {
 
@@ -63,7 +63,7 @@ export default new Page(demo.layout({
 				div.c("flex v gap", () => {
 					h2("One wall, three tiers");
 					p(site.blurb);
-				}).style({ "--gap": "0.4em", maxWidth: "34em" });
+				}).style({ "--gap": "calc(var(--gap-ramp) * 0.4)", maxWidth: "34em" });
 
 				div.c("grid gap auto", () => TIERS.forEach(tier)).style("--column", "17em");
 
@@ -73,13 +73,13 @@ export default new Page(demo.layout({
 						div.c("flex v gap", () => {
 							span.c("h4 muted", "Markup");
 							code.js('div.c("grid gap auto", tiers)\n\t.style("--column", "17em");\n\ndiv.c("surface pad flex v gap", tier)\n\t.ac(popular && "wash");');
-						}).style("--gap", "0.5em");
+						}).style("--gap", "calc(var(--gap-ramp) * 0.5)");
 
 						div.c("flex v gap", () => {
 							span.c("h4 muted", "Guideline");
 							p("The emphasized tier borrows two classes it already had. A modifier that only exists to draw a stroke is a name the whole system has to carry, and the wall behind it re-counts columns either way.")
 								.style("max-width", "34em");
-						}).style("--gap", "0.5em");
+						}).style("--gap", "calc(var(--gap-ramp) * 0.5)");
 
 						div.c("flex v gap", () => {
 							span.c("h4 muted", "Properties");
@@ -88,11 +88,11 @@ export default new Page(demo.layout({
 								tbody(() => SPECS.forEach(([prop, value, note]) =>
 									tr(() => { td(() => code(prop)); td(value); td(note); })));
 							});
-						}).style("--gap", "0.5em");
+						}).style("--gap", "calc(var(--gap-ramp) * 0.5)");
 
-					}).style({ "--column": "21em", "--gap": "2em" });
+					}).style({ "--column": "21em", "--gap": "var(--flow-ramp)" });
 
-			}).style({ minHeight: "0", overflowY: "auto", "--gap": "2em", "--pad": "2em clamp(1em, 3%, 3.5em)" });
+			}).style({ minHeight: "0", overflowY: "auto", "--gap": "var(--flow-ramp)", "--pad": "2em clamp(1em, 3%, 3.5em)" });
 
 			if (this.shows("footer")) site.footer();
 		});

@@ -18,14 +18,14 @@ const chip = tag => span.c("code", tag).style({
 	border: "1px solid var(--line)",
 });
 
-const tag_row = t => div.c("flex gap wrap v-center").style({ padding: "0.3em 0", borderBlockEnd: "1px solid var(--line)" }).append(() => {
+const tag_row = t => div.c("flex gap wrap v-center").style({ padding: "calc(var(--pad-ramp) * 0.3) 0", borderBlockEnd: "1px solid var(--line)" }).append(() => {
 	chip(t.tag);
 	p.c("muted", t.def).style({ margin: 0, flex: "1 1 20em" });
 });
 
 const axis_block = name => {
 	const own = axes.filter(a => a.axis === name);
-	h3(name).style({ marginBlockEnd: "0.2em" });
+	h3(name).style({ marginBlockEnd: "calc(var(--flow-ramp) * 0.2)" });
 	if (name === "navigation") prose(
 		"The marked subset (deep-nav) is what actually carries a trail past one level — everything else here is one flat bar or panel."
 	);
@@ -33,13 +33,13 @@ const axis_block = name => {
 };
 
 const site_card = s => div.c("flex v gap").style({
-	border: "1px solid var(--line)", borderRadius: "0.4em", padding: "0.9em 1em",
+	border: "1px solid var(--line)", borderRadius: "0.4em", padding: "calc(var(--pad-ramp) * 0.9) var(--pad-ramp)",
 }).append(() => {
 	div.c("flex gap wrap v-center").style({ justifyContent: "space-between" }).append(() => {
 		a(s.site).href(s.url).style({ fontWeight: "700" });
 		span.c("muted", s.url);
 	});
-	div.c("flex gap wrap").style({ marginBlock: "0.4em" }).append(() => s.tags.map(t => chip(t)));
+	div.c("flex gap wrap").style({ marginBlock: "calc(var(--flow-ramp) * 0.4)" }).append(() => s.tags.map(t => chip(t)));
 	p.c("muted", s.notes).style({ margin: 0, fontSize: "0.92em" });
 });
 

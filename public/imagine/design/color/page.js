@@ -57,7 +57,7 @@ const GROUPS = [
 	]},
 ];
 
-const swatch = ([name, paints, lhex, dhex]) => figure.c("flex v gap").style({ margin: 0, gap: "0.35em" }).append(() => {
+const swatch = ([name, paints, lhex, dhex]) => figure.c("flex v gap").style({ margin: 0, gap: "calc(var(--gap-ramp) * 0.35)" }).append(() => {
 	span(name).style({ fontWeight: "700", fontFamily: "var(--mono)", fontSize: "0.85em" });
 	div.c("color-swatch", () => {
 		div.c("color-island", () => div.c("color-chip").style({ background: `var(${name})` }));
@@ -119,7 +119,7 @@ export default new Page({
 
 		h2("Contrast findings");
 		md("210 raw element/mode pairs read below the WCAG small-text floor (4.5:1) or the large-text floor (3:1); deduplicated by (foreground, background, ratio) and excluding icon glyphs (a ligature font's \"text\" isn't prose), **7 unique real failures** remain.");
-		div.c("color-pairbox").style({ gridTemplateColumns: "repeat(auto-fill, minmax(min(22em, 100%), 1fr))" }).append(() => FAILS.map(f => figure.c("flex v gap color-fail").style({ margin: 0, gap: "0.4em" }).append(() => {
+		div.c("color-pairbox").style({ gridTemplateColumns: "repeat(auto-fill, minmax(min(22em, 100%), 1fr))" }).append(() => FAILS.map(f => figure.c("flex v gap color-fail").style({ margin: 0, gap: "calc(var(--gap-ramp) * 0.4)" }).append(() => {
 			shot(f.file, f.where);
 			figcaption(() => {
 				span(f.ratio).style({ fontWeight: "700" });
@@ -130,7 +130,7 @@ export default new Page({
 		md("Two near-misses just under AA, from `--subtle` on a slightly-lighter-than-`--wash` fill: `a.tab` at 4.23:1, `button.demo-btn` at 4.26:1 — both a rounding error, not `--subtle` itself (5.41:1 on white, 4.83:1 on `--wash`, both over AA). `button.prim` (white on `--prim`, 2.25:1) is excluded from the \"real failure\" count above — framework.css already documents the tradeoff and mitigates with bold caps + a text shadow; it repeats through `FAILS` above only as the *accent-overload* example, not a fresh contrast finding.");
 
 		h3("Where color works");
-		div.c("color-pairbox").style({ gridTemplateColumns: "repeat(auto-fill, minmax(min(22em, 100%), 1fr))" }).append(() => OKS.map(o => figure.c("flex v gap color-ok").style({ margin: 0, gap: "0.4em" }).append(() => {
+		div.c("color-pairbox").style({ gridTemplateColumns: "repeat(auto-fill, minmax(min(22em, 100%), 1fr))" }).append(() => OKS.map(o => figure.c("flex v gap color-ok").style({ margin: 0, gap: "calc(var(--gap-ramp) * 0.4)" }).append(() => {
 			shot(o.file, o.where);
 			figcaption(() => span.c("muted", o.where));
 			p.c("muted", o.what).style({ fontSize: "0.88em" });

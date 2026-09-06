@@ -6,19 +6,19 @@ const field = () => label.c("flex v gap", () => {
 	div.c("h4", "Email");
 	input().attr("type", "email").attr("value", "mike@lew42");
 	span.c("muted", "We never send anything.");
-}).style("--gap", "0.4em");
+}).style("--gap", "calc(var(--gap-ramp) * 0.4)");
 
 const invalid = () => label.c("flex v gap", () => {
 	div.c("h4", "Email");
 	input().attr("type", "email").attr("value", "mike@lew42")
 		.attr("aria-invalid", "true").style("borderColor", "var(--prim)");
 	span("That address is missing a domain.").style("color", "var(--prim)");
-}).style("--gap", "0.4em");
+}).style("--gap", "calc(var(--gap-ramp) * 0.4)");
 
 const chooser = () => label.c("flex v gap", () => {
 	div.c("h4", "Tier");
 	select(() => { option("core"); option("ext"); option("util"); });
-}).style("--gap", "0.4em");
+}).style("--gap", "calc(var(--gap-ramp) * 0.4)");
 
 const form = () => div.c("flex v gap", () => { field(); chooser(); });
 

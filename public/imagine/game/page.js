@@ -448,7 +448,7 @@ export default new Page({
 						span.c("imagine-card3-label", "realms");
 						WORLD.forEach(realm => a.c("imagine-exit imagine-card3-readout").href(this.parent.url + realm.name + "/").append(() => {
 							div.c("imagine-card3-readout-head flex v-center split", () => {
-								span.c("flex v-center gap", () => { icon(AIR_ICON[realm.air]).ac("imagine-card3-air"); span(realm.title); }).style("--gap", "0.35em");
+								span.c("flex v-center gap", () => { icon(AIR_ICON[realm.air]).ac("imagine-card3-air"); span(realm.title); }).style("--gap", "calc(var(--gap-ramp) * 0.35)");
 								span.c("imagine-load", run.seen(realm.name) + "/" + realm.rooms.length);
 							});
 							span(realm.blurb);

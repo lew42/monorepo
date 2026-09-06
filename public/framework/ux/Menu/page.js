@@ -19,7 +19,7 @@ const picker = () => {
 			icon("description");
 			span("README.md");
 			new Menu({ items: items(), onPick: item => $out.text("picked: " + item.text) });
-		}).style("--gap", "0.5em");
+		}).style("--gap", "calc(var(--gap-ramp) * 0.5)");
 
 		$out = span.c("muted", "nothing picked yet");
 	});
@@ -30,8 +30,8 @@ const picker = () => {
 /* The words proof: both tiers read the same tokens, so ONE class on the section
  * re-skins the ui/ template and the ux/ class in one pass. */
 const words = () => div.c("flex v gap-2em", () => {
-	div.c("flex v gap", () => { div.c("h4 muted", "default"); picker(); }).style("--gap", "0.5em");
-	div.c("flex v gap", () => { div.c("h4 muted", "ui-contrast ui-compact"); picker().ac("ui-contrast ui-compact"); }).style("--gap", "0.5em");
+	div.c("flex v gap", () => { div.c("h4 muted", "default"); picker(); }).style("--gap", "calc(var(--gap-ramp) * 0.5)");
+	div.c("flex v gap", () => { div.c("h4 muted", "ui-contrast ui-compact"); picker().ac("ui-contrast ui-compact"); }).style("--gap", "calc(var(--gap-ramp) * 0.5)");
 });
 
 export default new Doc({

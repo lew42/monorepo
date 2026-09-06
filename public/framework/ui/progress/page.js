@@ -9,7 +9,7 @@ const bars = () => {
 			if (value) div.c("h4 muted", value);
 		});
 		bar().style("width", "100%");
-	}).style("--gap", "0.3em");
+	}).style("--gap", "calc(var(--gap-ramp) * 0.3)");
 
 	return div.c("flex v gap", () => {
 		row("Uploading", () => progress().attr("max", "100").attr("value", "70"), "70%");

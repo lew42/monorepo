@@ -38,7 +38,7 @@ const pocket = () => new Page({
 					this.text(over ? "overlay" : "push");
 					$drawer.style({ position: over ? "absolute" : "static", zIndex: "2" });
 				});
-			}).style("--pad", "0.6em 0.9em");
+			}).style("--pad", "calc(var(--pad-ramp) * 0.6) calc(var(--pad-ramp) * 0.9)");
 
 			div.c("flex flex-1", () => {
 
@@ -47,7 +47,7 @@ const pocket = () => new Page({
 				$drawer = div.c("basis flex v gap pad wash", () => this.children.forEach((page, name) => {
 					const nav = this.nav_for(name);
 					a.c("page-link", nav.label).href(nav.url);
-				})).style({ "--basis": "9em", "--gap": "0.5em", "--pad": "1em", top: "0", bottom: "0", insetInlineStart: "0" });
+				})).style({ "--basis": "9em", "--gap": "calc(var(--gap-ramp) * 0.5)", "--pad": "var(--pad-ramp)", top: "0", bottom: "0", insetInlineStart: "0" });
 
 				this.$pages = div.c("flex-1");
 			}).style("position", "relative");

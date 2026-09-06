@@ -28,7 +28,7 @@ function splits(){
 		redraw();
 	}).attr("title", dir === "row" ? "Split beside" : "Split below");
 
-	$root = widget(div.c("apps-panes flex pad")).style("--pad", "0.5em");
+	$root = widget(div.c("apps-panes flex pad")).style("--pad", "calc(var(--pad-ramp) * 0.5)");
 	redraw();
 	return $root;
 }

@@ -45,8 +45,8 @@ const chapters = () => [
 const course = () => new Course({ chapters: chapters() });
 
 const words = () => div.c("flex v gap-2em", () => {
-	div.c("flex v gap").style("--gap", "0.5em").append(() => { div.c("h4 muted", "default"); course(); });
-	div.c("flex v gap").style("--gap", "0.5em").append(() => { div.c("h4 muted", "ui-contrast ui-compact"); course().ac("ui-contrast ui-compact"); });
+	div.c("flex v gap").style("--gap", "calc(var(--gap-ramp) * 0.5)").append(() => { div.c("h4 muted", "default"); course(); });
+	div.c("flex v gap").style("--gap", "calc(var(--gap-ramp) * 0.5)").append(() => { div.c("h4 muted", "ui-contrast ui-compact"); course().ac("ui-contrast ui-compact"); });
 });
 
 export default new Doc({

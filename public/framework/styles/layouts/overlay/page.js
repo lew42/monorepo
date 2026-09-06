@@ -31,7 +31,7 @@ export default new Page(demo.layout({
 				if (on) icon("check");
 			/* No side pad: a row inset inside an already-padded sheet puts two left
 			   edges a reader has to choose between. */
-			}).ac(on && "wash").style({ "--pad": "0.55em 0", borderRadius: "var(--radius)" });
+			}).ac(on && "wash").style({ "--pad": "calc(var(--pad-ramp) * 0.55) 0", borderRadius: "var(--radius)" });
 
 		return div.c("page full fill flex v", () => {
 
@@ -60,9 +60,9 @@ export default new Page(demo.layout({
 						span.c("muted", "Choose the layout density this account renders at.");
 					});
 
-					div.c("flex v gap", () => OPTIONS.forEach(o => row(...o))).style("--gap", "0.3em");
+					div.c("flex v gap", () => OPTIONS.forEach(o => row(...o))).style("--gap", "calc(var(--gap-ramp) * 0.3)");
 
-				}).style({ position: "absolute", insetInline: "0", insetBlockEnd: "0", "--gap": "1em" });
+				}).style({ position: "absolute", insetInline: "0", insetBlockEnd: "0", "--gap": "var(--gap-ramp)" });
 
 			if (this.shows("menu"))
 				div.c("surface pad flex v gap", () => {
@@ -70,11 +70,11 @@ export default new Page(demo.layout({
 					div.c("flex gap v-center split", () => { site.brand(); icon("close"); });
 
 					div.c("flex v gap", () => site.topics.split(" ").forEach((word, i) =>
-						row(word, "", i === 0))).style("--gap", "0.2em");
+						row(word, "", i === 0))).style("--gap", "calc(var(--gap-ramp) * 0.2)");
 
 				}).style({
 					position: "absolute", insetBlock: "0", insetInlineStart: "0",
-					width: "min(20em, 100%)", "--gap": "1.2em",
+					width: "min(20em, 100%)", "--gap": "calc(var(--gap-ramp) * 1.2)",
 				});
 
 		}).style("position", "relative");
