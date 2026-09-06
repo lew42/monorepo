@@ -38,6 +38,12 @@ A component inside a container — a rail section, a card, a panel — answers 1
 3. **What is its own layout?** Prose → `.flow`. A row of UI → `flex gap` (+ `wrap`). Tiles →
    `.grid.auto` with a real `--column` (14–22em) so 3440 gets 4+ columns. Reading columns →
    bound both ends: `repeat(auto-fill, minmax(min(34em, 100%), 38em))`.
+   ⚠ The tile wall's "3440 gets 4+ columns" assumes a container that WIDENS with the viewport —
+   a page inside a Miller-columns pane does not (a `large` column caps ~535px at 1280 and
+   ~1152px at 3440, set by the column token, not the browser), so the wall wraps to one or two
+   tracks and is TALLER than the list it replaced: `/imagine/platform/`'s nine verdicts measured
+   2254 → 2714px at 1280 (+20%) and 2389 → 2601px at 3440 (+9%), and were reverted (2026-09-05).
+   Same host, same trap as Q1's "under a COLUMNS host there is no page grid".
    ⚠ A 2:1 seam is `--grow: 2` on the child — `.flex.auto > *` reads `flex: var(--grow,1) 1 calc(var(--column) * var(--grow,1))` (shipped 2026-08-18; exact 2.000 at all widths, `styles/layouts/cols/doc/indictment.md`). What the vocabulary still cannot say: a CEILING on a flexible track (a 32% aside holds its ratio and hits 1010px at 3440 — `cols-main-aside` caps it), and the wrap threshold is `em`, which on this site is a viewport clamp — the same 460px box is two columns at a 400 viewport and a stack at 3440. Floors belong in `rem`; only a rail belongs in `em`.
 4. **How many containers can the page have?** Usually two or three regions. A page shows
    each thing once — not a dashboard *and* a wall of the same children. Nested pages
@@ -54,12 +60,22 @@ was 545px, not the 965px assumed), both states were identical and the card taugh
 
 ## Spacing and bleed — the 3440 rules (the owner, 2026-09-01)
 
-- **Spacing is a clamp, never a constant.** With no override, `.pad`/`.gap` read
-  `--pad-default: clamp(1em, 1.3%, 2em)` / `--gap-default: clamp(1em, 0.4em + 0.5vw, 1.6em)`
-  (framework.css `:root`), and the columns host scales `--page-column-pad-x/y` with its row
-  (`cqi` — bar, heads, items and prose share one indent, 0.9em → 3em). A hand-typed `1em`
-  on a container that can be wide is the smell; the flat-em era is what made every audit
-  find 3440 cramped.
+- **Spacing is a ramp × a level, never a constant.** With no override, `.pad`/`.gap`/`.flow`
+  read `--pad-default` / `--gap-default` / `--flow-default`, and every element derives those
+  three from framework.css's three ramps (`--pad-ramp`, `--gap-ramp`, `--flow-ramp`) × its
+  `--spacing` level (`spacing-tight` 0.6 · regular 1, no class · `spacing-airy` 1.6). Each
+  ramp holds its 1280 floor to the pixel and about doubles by 3440 — pad 16.5 → 70px, gap
+  15 → 46px, flow 30 → 54px. A theme retunes a RAMP, never a default (the `:where(*)` rule
+  re-derives a default underneath it). The columns host scales `--page-column-pad-x/y` with
+  its row (`cqi` — bar, heads, items and prose share one indent). A hand-typed `1em` on a
+  container that can be wide is the smell; the flat-em era is what made every audit find 3440
+  cramped. The numbers, and the alternatives they beat:
+  [/imagine/design/spacing/decision.md](/imagine/design/spacing/decision.md) — 2026-09-05,
+  superseding the 2026-09-01 clamps this section used to quote.
+  ⚠ A component's own constant is the other half: `gap: 0.6em` becomes
+  `calc(var(--gap-ramp) * 0.6)` (a section-scale gap, 2em and up, takes `--flow-ramp` × N/2),
+  so the multiplier IS the old em number and only 3440 moves. A CONTROL's padding is never
+  converted — `--pad-ramp` is a % of the containing block and would put 52px a side on a chip.
 - **`bleed` is for PAINT.** A background image or wash may butt its container. A framed
   box — a card, a figure, a table — or bare text NEVER bleeds: "CLOSEST REAL MISS" sat
   0px from the viewport edge on a bled card wall, on the padding study page itself
@@ -84,6 +100,12 @@ was 545px, not the 965px assumed), both states were identical and the card taugh
 
 `.flow` for stacked prose (the page already is one); `flex v gap` for UI stacks. Never
 both in one box, never `flow` inside a card.
+⚠ **A wall or grid dropped into flowed prose keeps the FLOW's rhythm** — its entrance and exit
+margins ride `--flow`, not its own flat `--gap`. In a 1,166-box crawl of every `/imagine/` realm
+at 1280 + 3440, the only three neighbour-spacing jumps over 2.5× with no legitimate reason in the
+whole site were one bug of exactly this shape: `.page-previews`' hardcoded `--gap: 0.8em` beside
+the surrounding `.md.flow`'s `--flow: 2em` — a 10.8px wall margin against 27.1px of paragraph
+rhythm, read live off both boxes (2026-09-05, `/imagine/design/spacing/`).
 
 ## Look at it, then cycle
 
@@ -91,10 +113,15 @@ Close the dev rail and stop editing before you measure — open, it displaced `.
 and manufactured the top finding on 12 of 24 page-widths. Four widths: **400, 1280, 1920,
 3440** — 1280 is where an unbounded reading track fails alone. At each width, three
 invariants before anything else: **no text or framed box at x:0** (a viewport edge is
-paint-only), **no prose past the measure**, **no constant where a spacing clamp exists**. Headless Playwright or
+paint-only), **no prose past the measure**, **no constant where a spacing token exists**. Headless Playwright or
 `ext/DesignTool`: `analyze()` = what is broken, `rate()` = how good, `frame(url, 3440)` =
 any page at any width. Read the finding, fix the cause one rung up (a missing
 `min-width: 0`, an unbounded track, prose in `main`). Then back to question 1.
+⚠ **When a class is retired for a new one, diff the RULES, not just the call sites.** A rebuild
+replaced `.paging-box` with `.paging-canvas` and did not carry over `max-width: var(--measure)`,
+so every `wide` stage in the realm ran its prose the whole box — 2739px paragraphs at 3440 on 14
+pages, no console error, no overflow (2026-09-05). The invariant that fails is a silent one; only
+a sweep at four widths finds it.
 ⚠ `scrollWidth === clientWidth` proves only that nothing overflows *horizontally*: the homepage passed it with 4549px of bands inside a 284px `flex-1` region of a `page full fill` shell — seven bands invisible, no symptom. Also check the content region's `scrollHeight <= clientHeight` (or that the document is what scrolls), scoped to regions INSIDE the layout — `div.pages` is the SPA's own scroller and reads 24× at 400 legitimately. An odd width (1440) found it when 400/1280/1920/3440 all missed.
 ⚠ Counting a wrapped row by distinct `Math.round(rect.top)` is wrong under `v-center` — centred children of different heights get different tops on the SAME line (the homepage topbar read as 3 lines at 1920; it is 1). Two children are one line when their vertical ranges OVERLAP.
 

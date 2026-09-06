@@ -136,3 +136,5 @@
 {"log": {"at": "2026-09-05T22:48:10-05:00", "task": "paging-fix-8", "msg": "task opened - closing fix pass after eighth-visit audits, six small items"}}
 {"log": {"at": "2026-09-05T23:29:56-05:00", "task": "paging-fix-8", "msg": "landed - all six items: drawer boxes never go stale, default-tab star on Make, file dialect explained once, typed nest named by title, drawer grip marked plus wider default, one link fixed"}}
 {"log": {"at": "2026-09-05T23:31:28-05:00", "task": "mastermind-day", "msg": "landed - paging v3 through eight audit/fix rounds to 6/6 at 5; sections realm; layouts; navigation study; spacing decision applied sitewide; core column rules; pushed 9e7d54f"}}
+{"log": {"at": "2026-09-05T23:35:32-05:00", "task": "skill-hygiene", "msg": "task opened - folding today's improvement entries into the skills themselves"}}
+{"log": {"at": "2026-09-05T23:48:56-05:00", "task": "skill-hygiene", "msg": "landed - 42 improvement entries folded into the skills: 38 applied and deleted, 4 left as proposals; the spacing-clamp and view-class-name corrections made"}}

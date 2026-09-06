@@ -34,7 +34,11 @@ board renders it in place of the generic viewer.
 deduped by `message.id`). A subagent cannot sum its own tokens (its turns are not in that
 file) — write `"tokens": null` and let the parent log the cost from its notification. `landed_at` and `outcome` go **inside** `assign`. Re-read the clock immediately before
 writing `landed_at` — one composed by hand while drafting the outcome landed 7 minutes in the
-future (2026-08-31); the timestamp drifts even in a Write-tool payload. Never write a
+future (2026-08-31); the timestamp drifts even in a Write-tool payload. ⚠ Read it in **bash**
+(`NOW=$(date -Iseconds)`) and pass it into a script as an argument: inside `node -e` /
+`execSync("date -Iseconds")` on Windows, `date` resolves to cmd's `date.exe`, which PROMPTS for a
+new date and exits 1 ("The system cannot accept the date entered"), so a script that builds its own
+stamp dies mid-append (2026-09-05). Never write a
 `.jsonl` with `Out-File`/`Set-Content` (BOM) — bash `printf`, `Add-Content`, or the Write tool.
 ⚠ **The outcome is full of backticks, and a DOUBLE-QUOTED shell string eats every one as a
 command substitution** — the append succeeds, the JSON parses, and the card renders with the

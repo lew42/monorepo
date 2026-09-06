@@ -16,10 +16,16 @@ styles every `button, .btn` from `.theme-lew42 :is(button, .btn)` in lew42.css �
 component `@layer theme` rule by layer order alone — a tree toggle glyph silently got 33px of
 padding (2026-08-19; the fix was a clickable span, not a fight). Most CSS doesn't interact —
 parent layout and theme trickle are where it does.
-⚠ The costliest miss so far was not cascade but a property already ON the box: `container-type: size`
-means it may not be sized by its own contents — a flex column with it measured **0px while holding
-963px** of children, clipped by the parent's `overflow: hidden`, nothing thrown (2026-08-18). Before
-making any box content-sized, read its own `container-type` back from computed style.
+⚠ The costliest miss so far was not cascade but a property already ON the box: a `container-type`
+means the box may not be sized by its own contents — `size` always, and `inline-size` whenever
+something else has already made the box shrink-to-fit. A flex column with `size` measured **0px
+while holding 963px** of children, clipped by the parent's `overflow: hidden`, nothing thrown
+(2026-08-18); `/blog/`'s `.blog-hero` declares `container: blog-hero / inline-size` AND
+`align-self: start`, which never meet on the blog front (a stretched track) but did inside a flex
+COLUMN — the hero measured a few px wide and set its own title one character per line, no error, no
+overflow flag (2026-09-05). Before making any box content-sized — and before reusing another
+module's box inside a container of yours — read back BOTH its `container-type` and whether your
+container stretches it.
 ⚠ A class that does not exist paints nothing and throws nothing — verify a word by reading its rule in framework.css AND reading a computed style back, never by inference from a token: `--tint` is a real token with no `.tint` class, and `div.c("pad flex v gap tint")` shipped on eight layouts looking plausible until a probe read `rgba(0,0,0,0)` on every box.
 
 **2. Climb the ladder, stop at the first rung that works:**

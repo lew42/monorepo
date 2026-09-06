@@ -51,10 +51,15 @@ a leaf demo page stays a plain `Page`. Pass the class, never an instance.
 
 A new `doc/<name>.md` is in the Docs rail only once `page.js` names it (`notes:`; a new file goes in
 `files:`) — `ext/Doc` declares, it does not crawl.
-⚠ Only a **Doc**-based module registers the pretty `/module/doc/<name>/` route. Beside a plain
-**Page**-based module, link the literal file path — `./doc/decisions.md` from inside the module,
-absolute **with `.md`** from outside; the pretty form 404s in console while a static server's SPA
-fallback masks it with a 200 (bit ext/Panel 2026-08-19 and ux-graduations 2026-08-21 — twice).
+⚠ The pretty `/module/doc/<name>/` route exists only where something registers it. A **Doc**-based
+module does; a plain **Page**-based module can, by adding a small `doc/page.js` with a `route()` —
+what the paging realm ships, copied to `/imagine/mag/doc/page.js` (2026-09-05). Without one, link
+the literal file path — `./doc/decisions.md` from inside the module, absolute **with `.md`** from
+outside; the pretty form 404s in console while a static server's SPA fallback masks it with a 200
+(bit ext/Panel 2026-08-19 and ux-graduations 2026-08-21 — twice). Prefer the `doc/page.js` when the
+module can afford one extra small file: verified live, the `.md` link leaves the SPA entirely (the
+url ends in `.md`, zero `.page` elements in the DOM) while the routed pretty url resolves in-app
+both directions, real title, no console errors.
 Written along the way when a caveat surfaces, or at the end. Absolute links only
 (`/framework/core/View/api/capture/`) — a fetched file's relative links resolve against
 `doc/`. Never cite a line number; cite the method or selector. `doc/decisions.md` holds

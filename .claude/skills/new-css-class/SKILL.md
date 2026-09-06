@@ -12,6 +12,13 @@ description: Run every time you are about to introduce (or rename) a CSS class n
    A hit in another module is a collision — pick another name. ⚠ Look at WHERE a hit is before it vetoes a name: the census includes vendored bundles — `.grip` reported 2 hits, both inside `public/fly/three.core.js` (minified three.js, no stylesheet). Add `-n` and read the line.
 3. **Prefix with the owning module** (`.panel-grip`, not `.grip`) unless the selector
    already starts with the module's own class.
+   ⚠ **A `View` subclass's NAME is a CSS class too**, in this same namespace — `View.classify()`
+   kebab-cases every constructor in the chain, so `class Stage` wore the framework's own
+   `.stage` and shrink-wrapped itself to 307px inside a 1546px frame; `class Swapper` wore a
+   bare global `.swapper` while the `.paging-swapper` rules written for it matched nothing;
+   `class LayoutsPair` wore `.layouts-pair`, its own two-track flex row, and laid its toggle
+   and its caption out sideways. Three agents, one night, nothing thrown in any of them
+   (2026-09-05). Prefix the class as you would the string: `PagingStage` → `.paging-stage`.
 4. **Opening a namespace?** A new module's first class adds its prefix to
    `css-scopes.txt` (one line, `prefix-   owner`).
 5. ⚠ **`page-<slug>` is stamped on every page** — `.page-<x>` collides with any route

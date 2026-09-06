@@ -41,7 +41,12 @@ Anything that changes the repo is a **task**: a dir at
   `{at, msg}`. An invented verb or key renders as nothing.
 - **Escapes:** never backslash `$`, `<`, `>` or a backtick. Windows paths go in with forward
   slashes — through the Bash tool a doubled backslash arrives single, so a `C:\Users\…` path
-  lands as `\U`, an invalid JSON escape, and the viewer drops the whole line.
+  lands as `\U`, an invalid JSON escape, and the viewer drops the whole line. The same missing
+  layer eats a `\"` inside an UNQUOTED heredoc (`<<PY`) — bash takes one backslash, python takes
+  the other, the quote lands raw, and the line appends, prints fine in the terminal and breaks
+  `json.loads` at column 154 (2026-09-05). Build any line holding a quote or a backslash with the
+  **Write tool** (`code` §7) or quote the delimiter (`<<'PY'`), and **re-parse every line of the
+  jsonl after an append**, not just the one you wrote.
 
 **`steps` — the outline IS the progress bar.** `steps` is the proposal outline from `requirements.md`; `step` is the 1-based index of the one underway — the card's segmented bar, its `3/8` and the detail checklist all derive from those two fields, so nothing can disagree.
 Aim for **5–10 steps**; bump `step` when one genuinely finishes, carrying a `now` line that says what's happening *inside* it.
