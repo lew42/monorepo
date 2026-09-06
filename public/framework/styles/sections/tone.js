@@ -7,6 +7,13 @@ import { pick } from "../../ext/layout/controls.js";
  *
  * The four surfaces the theme already defines. A fifth would be a section inventing
  * a colour the rest of the site does not have.
+ *
+ * ⚠ THESE ARE THE SAME COLOURS A PAGE SAYS, UNDER TWO OLDER NAMES. A page's five
+ * surface words are `plain card tint prim dark` (`core/Page/words.js`, the site's one
+ * copy) and the two lists met without anybody noticing: `surface` here IS `card`
+ * there, and `wash` here IS `tint`. `Page.words()` reads both older names on the way
+ * in, so a page may say either. This list stays four because a BAND is not a page —
+ * a band always paints, so it has no `plain`. (2026-09-06, slice 3.)
  */
 export const TONES = ["surface", "wash", "prim", "dark"];
 

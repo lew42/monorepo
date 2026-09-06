@@ -463,13 +463,27 @@
 	     of nav grid across. Wider than that and the tiles start to look like cards.
 	   ⚠ `z-index` ABOVE A FULL-SCREEN STAGE (35). The rail is the way out of every
 	     page in the realm; nothing this app draws may paint over it. */
+	/* ⚠ THE RAIL PADS ON ITS OWN WIDTH, NEVER THE APP ROW'S. `--pad-default` comes from
+	     `--pad-ramp`, which is a PERCENTAGE, and a percentage padding resolves against
+	     the containing block — here the whole app row. Measured 2026-09-06: at 3440 the
+	     row is 3440px, so the ramp read 2.6% − 1.1em = 69.6px and put it on a 413px
+	     rail: 33.7% of the rail spent on inset, which is the owner's "the paging left
+	     sidebar has too much padding — at least 20%. The padding is calculated on the
+	     PARENT width, not its own."
+	     `cqi` — the columns host's answer — cannot be used, because an element is never
+	     its own query container: a box can only pad in `cqi` if the CONTAINER is an
+	     ancestor and the padding is on something inside it. This rail declares its own
+	     width in a token, so the honest fix with no extra element is a fraction of that
+	     token: 15rem × 0.055 at 1280 (the 0.7em floor), 413px × 0.055 = 22.7px at 3440,
+	     which is 5.5% a side instead of 16.9%. */
 	.paging-app-rail {
 		flex: 0 0 var(--paging-rail-w);
 		position: relative; z-index: 36;
 		display: flex; flex-direction: column;
 		gap: 0.9em;
 		min-height: 0; overflow-y: auto;
-		padding: var(--pad, var(--pad-default));
+		--pad: clamp(0.7em, calc(var(--paging-rail-w) * 0.055), 1.4em);
+		padding: var(--pad);
 		background: var(--surface);
 		border-inline-end: 1px solid var(--line);
 	}
@@ -551,10 +565,14 @@
 	.paging-toolbar-slot { display: contents; }
 
 	.paging-toolbar {
-		/* A clamp, never a constant: the bar spans the whole middle, and a flat em left
-		   it as tight at 3440 as at 1280 (the spacing law, 2026-09-01). Its ceiling is
-		   low on purpose — this is chrome around the thing you came to look at. */
-		padding: clamp(0.45em, 0.6vw, 1.1em) clamp(0.7em, 0.8vw, 1.6em);
+		/* ⚠ THE BAR'S OWN EM, never a viewport clamp. From 2026-09-05 to 2026-09-06
+		   this was `clamp(0.45em, 0.6vw, 1.1em) clamp(0.7em, 0.8vw, 1.6em)`, on the
+		   theory that the spacing law applies to a bar that spans the middle. It does
+		   not: the law is about space between and around CONTENT, and a toolbar is a
+		   control — its size is its own. The clamp took the bar from 7.7px of block
+		   padding at 1280 to 19.8px at 3440 (2.6×) and made it 130.7px of chrome over
+		   the stage; "the paging toolbar is way too big" — the owner, 2026-09-06. */
+		padding: 0.45em 0.7em;
 		background: var(--surface);
 		border: 1px solid var(--line); border-radius: var(--radius);
 	}
@@ -738,6 +756,18 @@
 	     query that stacks the rail, the box and the panel below 34em instead of
 	     squeezing the box to nothing. */
 
+	/* ⚠ THE STAGE OPTS IN TO CORE'S STACKING QUERY, and the `:not` is the whole point.
+	     Core makes only a PAGE'S OWN frame a container (`.page-frame-page`), because a
+	     frame drawn as a miniature must show its shape rather than respond to the size
+	     of the cell it is printed in. A full-size stage IS page-sized — at a 400
+	     viewport its rail plus its panel plus their gaps leave the box 34px wide, so it
+	     wants the query — and the twelve pictures on `/cross/` and the preset wall are
+	     the exception. One rule says both, where the old `container-type: normal` patch
+	     said the second half in a second place. */
+	.paging-stage:not(.paging-shot-frame > .paging-stage) > .page-frame-body {
+		container: page-frame / inline-size;
+	}
+
 	/* THE BOX. The only thing the caption measures, and the only thing wearing the
 	   CONTENT colour — the first of the two independent colour controls. */
 	.paging-canvas {
@@ -851,6 +881,33 @@
 		border-color: var(--line);
 		margin-block-end: -1px;
 	}
+
+	/* ⚠ THE STRIP AND THE BOX ARE ONE THING — no gap between them, ever. The selected
+	     tab is cut out of the box's top edge (`margin-block-end: -1px` above), and the
+	     frame's own middle gap put 9px at 1280 and 28px at 3440 in the middle of that
+	     seam, so the tab hung in the air over a separate bordered card. Measured
+	     2026-09-06; the owner: "there's a gap between tab buttons and tab content (and
+	     a border on tab content). I prefer the flush, seamless tab look."
+	     Only under the `tabs` word: every other navigation word draws a rail or rows,
+	     which are separate boxes and want the gap. */
+	.paging-nav-tabs .page-frame-mid { gap: 0; }
+
+	/* The box's top corners square off under a strip, so the joint reads as one
+	   surface rather than a card with a lid. */
+	.paging-nav-tabs .page-frame-mid > .paging-canvas {
+		border-start-start-radius: 0;
+		border-start-end-radius: 0;
+	}
+
+	/* THE HOME TAB — the page itself, and the one that is lit at rest. `stage.js` draws
+	   it first so the strip is never a bar with nothing selected, which is what the box
+	   showing the page's own content actually means. It carries the path it opens. */
+	.paging-strip-home { font-weight: 700; }
+
+	/* THE PATH BAR is `ext/demo`'s (`.demo-shell-path`, whose sheet `app.js` already
+	   loads everywhere) with one change: no gap, because the two spans are the two
+	   halves of ONE address rather than two crumbs. */
+	.paging-path { gap: 0; }
 
 	/* A RAIL OF PAGES, either side of the box. em, so it tracks the type scale the
 	   stage is set in — a compact dashboard gets a compact rail. */
@@ -996,6 +1053,18 @@
 	.paging-card-head { display: flex; align-items: center; gap: 0.35em; font-weight: 700; }
 	.paging-card-say { font-size: 0.85em; color: var(--subtle); }
 
+	/* ⚠ A CARD IS ONE `<a>` AND MAY NOT HOLD ANOTHER. An arrangement value has a second
+	     link — the `core/Layout` it compiles to — so the two are SIBLINGS in one grid
+	     cell rather than a link inside a card. The card takes the cell's height so a
+	     row of them still lines up. */
+	.paging-card-cell { display: flex; flex-direction: column; gap: 0.3em; min-width: 0; }
+	.paging-card-cell > .paging-card { flex: 1 1 auto; }
+	.paging-card-link {
+		display: flex; align-items: center; gap: 0.3em;
+		font-size: 0.8em; color: var(--subtle); text-decoration: none;
+	}
+	.paging-card-link:is(:hover, :focus-visible) { color: var(--prim-ink); }
+
 	/* ── A WALL OF LIVE MINIATURES ────────────────────────────────────────────
 	   Twelve real pages, RUNNING, each one clipped into a frame — the same answer
 	   `/templates/` already gives for its eleven, and the reason it was the best page
@@ -1022,16 +1091,10 @@
 	}
 	.paging-shot-frame > .paging-stage { font-size: 0.6em; height: 100%; pointer-events: none; }
 
-	/* ⚠ A STAGE DRAWN AS A PICTURE IS NOT A PAGE, so core's frame must not reflow it.
-	     `Page.css` stacks a frame's rail, box and panel below 34em — right for a page
-	     you are reading on a phone, wrong for a 208px cell whose entire job is to show
-	     what a rail BESIDE a box looks like. Measured 2026-09-06 at 1280 on
-	     `/imagine/paging/cross/`: with the query live, every LEFT RAIL and RIGHT RAIL
-	     cell of the 49 showed its rail with the box wrapped underneath and clipped away
-	     by the 13em crop, so the shape the wall exists to show was the one thing
-	     missing. Turning the CONTAINER off is the whole fix — a query with no container
-	     to ask never fires. */
-	.paging-shot-frame .page-frame-body { container-type: normal; }
+	/* ⚠ A STAGE DRAWN AS A PICTURE IS NOT A PAGE. The rule that used to turn core's
+	     container OFF in here is gone: core now puts it only on a page's OWN frame
+	     (`.page-frame-page`, `Page.css`), so a miniature never had one to turn off.
+	     The opt-in for the realm's full-size stage is one rule, at the stage. */
 	.paging-shot:is(:hover, :focus-visible) .paging-shot-frame { border-color: var(--prim); }
 	.paging-shot:is(:hover, :focus-visible) .paging-shot-head { color: var(--prim-ink); }
 

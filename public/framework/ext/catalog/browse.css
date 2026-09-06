@@ -8,6 +8,28 @@
 	   a card rail. */
 	.browse-rail { flex-basis: 12em; }
 
+	/* A rail with FACETS has headings in it — one per facet, plus Band — so the rows
+	   under each one read as a group. An eyebrow, not a heading: it names a filter, it
+	   is not a section of the page. Emitted only when a caller declares facets, so a
+	   plain wall's rail is the rail it always was. */
+	.browse-facet-head {
+		margin: calc(var(--gap-ramp) * 0.6) 0 0.2em;
+		font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.06em;
+		opacity: 0.6;
+	}
+	.browse-facet-head:first-child { margin-block-start: 0; }
+
+	/* The cap's control — only drawn when a caller passed one. It hugs its own text
+	   rather than stretching the wall's width, because it is a control and not a band. */
+	.browse-more { align-self: flex-start; }
+
+	/* ⚠ SCOPED TO A FACETED RAIL, `:has()`. A search box in a 12em rail has to be
+	     allowed to be 12em wide — the UA's own `size` attribute shrink-wraps an
+	     `<input>` to about 20 characters — but three walls on this site have shipped
+	     with the UA width for months and a byte-identical rebuild is the proof this
+	     fold rests on. A rail that declares facets is new, so it may start right. */
+	.browse-rail:has(.browse-facet-head) input[type="search"] { width: 100%; min-width: 0; }
+
 	/* ⚠ A REAL BASIS, never `.flex-1`. `.flex-1` is `flex: 1; min-width: 0`, so the wall
 	   shrinks for ever instead of wrapping and the rail keeps its 12em at 390 — measured,
 	   the wall got 155px of a 390 screen and the whole page was one card wide. A wrapping

@@ -55,10 +55,11 @@ among them, which is why every demo on the site can wear a control bar. It steer
 words; `core/Layout` catalogues arrangements. Two different jobs that share four letters — which
 is also why every class here is `page-layout-` and never `layout-`.
 
-## The one thing that could not be done inside the fence
+## The one thing that could not be done inside the fence — and was, an hour later
 
-The tree's wall is `tree.js`, a near-copy of `ext/catalog/browse.js` with three facet rows and a
-sixty-card cap added. Those twenty-five lines belong **in `browse()`**, on the same `state` object
-it already keeps; `ext/` was outside this task's write fence, so they live here instead. When the
-fence lifts they move, `tree.js` goes, and `page.js` calls `this.browse(BANDS)` like every other
-wall on the site.
+The tree's wall was `tree.js`, a near-copy of `ext/catalog/browse.js` with three facet rows and a
+sixty-card cap added, because `ext/` was outside slice A's write fence. **It is gone.** Those
+twenty-five lines are options on `browse()` itself now — `cap`, `facets` and `search` — and
+`page.js` calls `this.browse(BANDS, tokens, { cap: 60, facets: FACETS })` like every other wall on
+the site. A facet reads a page prop straight, so the three filters here are still `columns`, `tags`
+and `approved` and nothing registers anything. (2026-09-06, slice 3 of the graduation.)

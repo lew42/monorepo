@@ -9,13 +9,15 @@ content(){ this.tabs("guide api"); }          // children by name; the first is 
 this.tabs("guide api").ac("vertical");       // same set as a left rail; .ac("block") for folder tabs
 ```
 
-Every set shows its panel as a bounded surface now — the strip's own rule becomes the panel's
-top edge, and the selected tab is cut out of it, so there is no gap between a tab and what it
-opens onto. `.ac("underline")` asks for the old, transparent strip.
+A set is **flush and seamless** by default (the owner, 2026-09-06): a strip of labels, a
+hairline under the set, a 2px accent under the selected tab, and the panel below it with no box
+of its own. `.ac("bounded")` asks for the rectangle instead — a fill, a frame and a radius on
+the panel, with the selected tab cut out of its top edge.
 
 ## Watch out
 
-- The floor above is the default; `.underline` is the one word back to the old look — [doc/decisions.md](./doc/decisions.md)
+- Flush is the default and `.bounded` is the one word for the rectangle — the reverse of the 2026-09-05 call, and nothing on the site asks for the box today (`.underline` still parses and names the default) — [doc/decisions.md](./doc/decisions.md)
+- A tab wears the **control grammar's metrics** (2026-09-06) — the same font-size, `min-height: 2.4em` and padding as a button or a field, so a strip lines up with a toolbar and `.size-small` shrinks both. Its skin stays its own. [/framework/ui/controls/](/framework/ui/controls/)
 - Only the first `tabs()` on a page can own the parent's url; two sets sharing a child name collide silently — [doc/decisions.md](./doc/decisions.md)
 - A tab bar suits a page with no prose of its own whose children flip *between* and fit its measure; otherwise `previews()` — [doc/usage.md](./doc/usage.md)
 - A bar is one strip that scrolls, never a wrapping block; past ~fifty members it is untested — [doc/overflow.md](./doc/overflow.md)
@@ -24,7 +26,7 @@ opens onto. `.ac("underline")` asks for the old, transparent strip.
 
 ## More
 
-- [Overview](/framework/ext/tabs/) — live demos: underline, `.block`, `.vertical`
+- [Overview](/framework/ext/tabs/) — live demos: the default strip, `.block`, `.vertical`
 - [doc/decisions.md](./doc/decisions.md) — placement not marking, nest pages not sets, the quiet default, `.block`/`--tab-fill`, traps, caller census
 - [doc/usage.md](./doc/usage.md) — which page earns a tab bar (the four-condition test)
 - [doc/overflow.md](./doc/overflow.md) — one strip that scrolls; the hidden-scrollbar bargain

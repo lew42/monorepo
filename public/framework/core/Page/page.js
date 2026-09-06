@@ -44,7 +44,7 @@ export default new Doc({
 	properties: "meta title children content url name label icon card classes "
 		+ "description parent app view loading route regions depth",
 
-	notes: "declaring labels css layout columns roles panels previews findings decisions",
+	notes: "words declaring labels css layout columns roles panels previews findings decisions",
 
 	// Doc.overview_section()'s default calls catalog() — a rail, wrong for a wall this
 	// size. This override keeps the section's real children (the `overview:` list above,
@@ -80,7 +80,7 @@ export default new Doc({
 		});
 	},
 
-	files: "Page.class.js Page.css old/page.js old/children/page.js old/flow/page.js "
+	files: "Page.class.js Page.css words.js Frame.js old/page.js old/children/page.js old/flow/page.js "
 		+ "old/nav/page.js old/previews/page.js old/shell/page.js old/intro/page.js page.js readme.md "
 		+ "old/overview/readme.md overview/readme.md "
 		+ "overview/tabs/page.js overview/vtabs/page.js overview/rail/page.js overview/list/page.js "

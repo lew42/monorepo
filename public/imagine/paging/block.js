@@ -1,6 +1,6 @@
 import { div, h2, p, span, a, icon, md } from "/app.js";
 import { Paging } from "./paging.js";
-import { BLOCKS, CONTROLS, DEFAULT, values_for } from "./blocks.js";
+import { BLOCKS, CONTROLS, DEFAULT, values_for, layout_url } from "./blocks.js";
 
 /* ── ONE BUILDING BLOCK, AS A PAGE ────────────────────────────────────────────
 
@@ -20,9 +20,11 @@ import { BLOCKS, CONTROLS, DEFAULT, values_for } from "./blocks.js";
 
 /* ⚠ A CARD IS ONE `<a>`, so nothing inside it may be a link — `md()` in here would
      nest an anchor in an anchor, which is invalid and which the browser un-nests
-     (core's own `preview_card()` carries the same note about its thumb). The values'
-     sentences carry markdown links to `/imagine/layouts/`; this flattens them to
-     their text, and the drawer — which is not a link — renders them properly. */
+     (core's own `preview_card()` carries the same note about its thumb). A value's
+     sentence is plain English now (`core/Page/words.js`), and the one link a value
+     has — the layout it compiles to — is drawn as a SIBLING of the card by
+     `value_card()` below. This stays as the guard for any sentence that ever carries
+     markdown again; the drawer, which is not a link, renders those properly. */
 const plain = text => String(text).replace(/\[([^\]]+)\]\([^)]+\)/g, "$1");
 
 class Block extends Paging {
@@ -85,11 +87,29 @@ class Block extends Paging {
 	// A nav grid of a word's values. Clicking one opens that value's page —
 	// same page, same stage, that one word already set.
 	values(axis, base = this.url){
-		return div.c("paging-cards", () => values_for(axis).forEach(value =>
-			a.c("paging-card").href(base + value.id + "/").append(() => {
-				span.c("paging-card-head", () => { if (value.icon) icon(value.icon); span(value.title); });
-				span.c("paging-card-say", plain(value.means));
-			})));
+		return div.c("paging-cards", () => values_for(axis).forEach(value => this.value_card(value, base)));
+	}
+
+	/* ONE VALUE. An arrangement value gets a SECOND link under its card — the proven
+	   layout it compiles to, in `core/Layout`'s catalogue of thirty — so "Panel left"
+	   is one click from the shape it makes, at seven widths, with its rules.
+	   ⚠ THE PAIR ARE SIBLINGS, never a link inside the card: a card IS one `<a>`, and
+	     an `<a>` inside an `<a>` is invalid and silently un-nested by the browser (the
+	     same note `preview_card()` carries about its thumb). Only a value that names a
+	     layout gets the wrapper, so every other word's grid is the markup it was. */
+	value_card(value, base){
+		const card = () => a.c("paging-card").href(base + value.id + "/").append(() => {
+			span.c("paging-card-head", () => { if (value.icon) icon(value.icon); span(value.title); });
+			span.c("paging-card-say", plain(value.means));
+		});
+
+		if (!value.layout) return card();
+
+		return div.c("paging-card-cell", () => {
+			card();
+			a.c("paging-card-link").href(layout_url(value.layout))
+				.append(() => { icon("view_quilt"); span("the " + value.layout + " layout, proven at seven widths"); });
+		});
 	}
 
 	// The stage has no word of its own — it is the box every other word acts on —

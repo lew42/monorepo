@@ -13,6 +13,7 @@ content(){ return this.browse(BANDS, { "--column": "18em" }); }  // wall — one
 
 - Call `catalog()` from `initialize()`, never `content()` — the intro child needs a url before the router walks: [`doc/method/catalog.md`](./doc/method/catalog.md).
 - `browse`, not `browser` — on a `Doc`, `this.browser()` is the Files tab and silently draws a file tree where the wall should be: [`doc/decisions.md`](./doc/decisions.md).
+- `browse(bands, tokens, options)` takes three options for a big catalogue — `cap` (how many cards before a *show more*), `facets` (rail rows read straight off a child page's own props, defaulting to *all*) and `search` (extra props the box reads); a call with none renders byte for byte what it did: [`doc/method/browse.md`](./doc/method/browse.md).
 - `browse()` band sizes are load-bearing: `auto-fit` + `1fr` stretch a band of three across the whole wall; the heading sits outside its grid: [`doc/method/browse.md`](./doc/method/browse.md).
 - The rail/region height ceiling stays scoped to `.pages > .page:has(> .page-catalog)` and to a routed child — unscoped it clipped 18 pages, then a `Doc` regression, then 15000px of `/framework/ai/`: [`doc/decisions.md`](./doc/decisions.md).
 - Left open: a second `catalog()` call isn't guarded; `--rail` (19em) is eyeballed, not a token; `/framework/ai/<day>/` at `< 64em` while routed still clips (fix belongs in `ai.css`): [`doc/decisions.md`](./doc/decisions.md).

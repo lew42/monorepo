@@ -16,66 +16,33 @@
    trees and 50 directories saying these six things; the audit that found that is
    `/framework/ai/2026-09-05/paging-audit-1b/`.)
 
-   ⚠ THIS FILE IMPORTS NOTHING, on purpose. A page, a rail tile, a toolbar chip, a
-     dropdown, a url and a doc all read the same lists, so they cannot disagree —
-     the same rule `/imagine/layouts/system.js` follows.
+   ⚠ THE FIVE WORD LISTS ARE CORE'S NOW, AND THIS FILE RE-EXPORTS THEM.
+     `core/Page/words.js` holds navigation, width (which this realm calls ROOM),
+     arrangement, the five surfaces and the three type steps — one copy for the whole
+     site, so `grep -rn "SURFACES\s*=" public/` finds exactly one definition. Every
+     importer here keeps working unchanged: `stage.js`, `toolbar.js`, `build/words.js`,
+     `templates/theming/`, `/imagine/sections/sections.js` and `/imagine/layouts/`
+     all read the same objects they always did. (2026-09-06, slice 3 of
+     `ai/2026-09-06/graduate-plan/`.)
 
-   ⚠ AND THE FIVE WORD LISTS BELOW ARE STILL THE SITE'S ONE COPY. The plan that
-     graduated these words into core (`ai/2026-09-06/graduate-plan/`) expected this
-     file to re-export them from `/app.js` instead. Core took the six words, the
-     classes and the frame — it did NOT take the LISTS, because a list here is a
-     title, an icon and a sentence of plain English per value, which is a reader's
-     vocabulary and not a renderer's. So there is nothing in core to re-export from
-     yet, and pointing this file at an empty seam would break every importer
-     (`/imagine/sections/sections.js` reads `SURFACES` straight out of here).
-     `/imagine/layouts/system.js` still writes its own copy of the five surface
-     words out by hand; folding that one in is slice 3's job, and this file is
-     where it should point.                                                       */
+   ⚠ WHAT STAYS HERE IS THE LAB'S OWN CONTROL SURFACE: `CONTENT` (eight canned
+     samples, demo fixtures), `BLOCKS` (the six building blocks as pages), `CONTROLS`
+     (the seven dropdowns), `DEFAULT` (a configuration) and the readers below. Those
+     describe this realm, not a page.                                             */
 
-/* ── 2 · NAVIGATION ────────────────────────────────────────────────────────────
-   ONE CONTROL, SEVEN ANSWERS, and each one settles two questions at once: how the
-   children are DRAWN, and what a click on one DOES. They used to be two keys in two
-   vocabularies (`kids` and `mech`); this is the one surviving list.
+/* ── 2 · NAVIGATION · 4 · ROOM · 5 · ARRANGEMENT · 6 · SKIN ────────────────────
+   Five lists, one copy, in `core/Page/words.js` — with the reasons for each value
+   written beside it there. Re-exported under the names this realm has always used:
+   `ROOM` is core's `WIDTH` and `TYPE` is core's `TYPE_SIZE`. */
+/* ⚠ IMPORTED **AND** RE-EXPORTED, both lines. `export … from …` is a pass-through:
+     it publishes the names without binding them in this module's own scope, so
+     `CONTROLS` below — which lists `NAVIGATION` and friends — would have thrown
+     `NAVIGATION is not defined` on the first import of this file, with every page in
+     the realm blank. */
+import { NAVIGATION, ROOM, ARRANGEMENT, SURFACES, TYPE, STABLE, DYNAMIC, nav_of, arrangement_of, layout_url }
+	from "/framework/core/Page/words.js";
 
-   `stable` is decision 5 of 2026-09-05: STABLE navigation never moves what you were
-   already looking at; DYNAMIC navigation does. The paging app itself runs on stable
-   navigation, and the dynamic ones are demonstrated inside it.
-
-   `swaps` is the OTHER question, and it is a different one: does clicking a child
-   change what is INSIDE the box? Three words do — `tabs`, `rail` and `rail-right` hold
-   one panel at a time with the child list as chrome beside or above it — and the stage
-   reserves the box's height for those three, so a click cannot resize it. The other
-   four put the child somewhere else: nowhere (`none`), in the row itself (`expand`),
-   beside the box (`columns`), over the whole stage (`takeover`). It used to be `stable`
-   plus a hand-written "and not `none`" in `stage.js`; two words, two flags, no
-   exceptions. */
-export const NAVIGATION = [
-	{ id: "none",       title: "None",       icon: "remove",       stable: true,
-	  means: "Nothing under this page, so nothing is drawn." },
-	{ id: "tabs",       title: "Top tabs",   icon: "tab",          stable: true,  swaps: true,
-	  means: "A strip of tabs over one panel. Click a tab and only the panel changes — the strip does not move." },
-	{ id: "rail",       title: "Left rail",  icon: "view_sidebar", stable: true,  swaps: true,
-	  means: "The same list, stacked down the left. The rail stays put and the middle swaps. This is what the app around you is doing." },
-	{ id: "rail-right", title: "Right rail", icon: "view_sidebar", stable: true,  swaps: true,
-	  means: "The list on the other side, so your eye keeps its home edge on the left." },
-	/* ⚠ `expand` IS A NAVIGATION WORD, and until 2026-09-05 it was the one gesture the
-	     realm named on a page of its own and could not do — so `/mechanisms/expand/`
-	     ran a left rail and nothing on it expanded (paging-audit-5). It is `<details>`
-	     and the site's own `ui/accordion` rules: no JavaScript in the gesture at all. */
-	{ id: "expand",     title: "Expand",     icon: "expand_more",  stable: false,
-	  means: "Each child is a row you open in place. The row grows downward, everything below it moves down, and the address never changes — so an opened row cannot be linked to." },
-	{ id: "columns",    title: "Columns",    icon: "view_column",  stable: false,
-	  means: "Each child is a row you click, and it opens as a new column to the right. Everything already on screen shifts left to make room." },
-	{ id: "takeover",   title: "Takeover",   icon: "open_in_full", stable: false,
-	  means: "The child fills the whole screen and everything behind it collapses into the trail at the top." },
-];
-
-export const nav_of = id => NAVIGATION.find(nav => nav.id === id) ?? NAVIGATION[0];
-
-/* THE TWO WORDS FOR THE SPLIT ABOVE, spelled once. `stage.js` re-typed the stable
-   words as a hand-written array and `navigation/findings.js` named them a third time
-   (paging-audit-4b, fix 5) — three lists, one idea. Everything reads the flag. */
-export const STABLE = "stable", DYNAMIC = "dynamic";
+export { NAVIGATION, ROOM, ARRANGEMENT, SURFACES, TYPE, STABLE, DYNAMIC, nav_of, arrangement_of, layout_url };
 
 /* ── 3 · CONTENT — what is in the box ─────────────────────────────────────────
    Eight kinds, and every one of them is REAL: the renderer is a module this site
@@ -101,91 +68,23 @@ export const CONTENT = [
 	{ id: "docs",      title: "Docs",        icon: "menu_book",      means: "Prose with a code block in it." },
 ];
 
-/* ── 4 · ROOM — how much of the screen the box gets ───────────────────────────
-   One width word. These are core's own column words said in plain English, and the
-   translation table lives beside the renderer so there is one copy of it. */
-export const ROOM = [
-	{ id: "narrow",  title: "Narrow",  icon: "width_normal", means: "One reading column, about 40em, and nothing wider. An article." },
-	{ id: "reading", title: "Reading",  icon: "width_wide",  means: "The reading column, and anything that asks may grow past it — the site's default." },
-	{ id: "wide",    title: "Wide",     icon: "width_full",  means: "Every pixel the middle has, minus its gutters. A wall, a dashboard, a table." },
-	{ id: "full",    title: "Full",     icon: "open_in_full", means: "The whole screen, rail and all. A takeover — there is a way back at the top." },
-];
-
-/* ── THE NUMBERED LAYOUTS ──────────────────────────────────────────────────────
-   `/imagine/layouts/` is the realm that OWNS arrangement. These four are the ones
-   this realm's words compile to, and they are the SAME names that realm uses — so
-   `ARRANGEMENT` below and the builder's own control (`build/words.js`) can both
-   point at one list instead of writing the numbers out twice. */
-export const LAYOUTS = [
-	{ id: "1.stack",      title: "1.stack",      url: "/imagine/layouts/1/stack/", words: "one column",
-	  means: "One column. Every block under the last, at the reading measure." },
-	{ id: "2.main-aside", title: "2.main-aside", url: "/imagine/layouts/2/main-aside/", words: "a main track with a narrower one beside it",
-	  means: "The first block is the main track; every other block stacks in an aside beside it." },
-	{ id: "3.thirds",     title: "3.thirds",     url: "/imagine/layouts/3/thirds/", words: "three equal tracks",
-	  means: "Three equal tracks, blocks dealt across them." },
-	{ id: "4.wall",       title: "4.wall",       url: "/imagine/layouts/4/wall/", words: "a wall of tiles",
-	  means: "A wall: as many tracks as fit, each block a tile." },
-];
-
-/* ⚠ THE NUMBER IS NEVER THE WHOLE SENTENCE. Every arrangement's sentence used to end
-     with the bare string "Layout 1.stack." — a numbered name from a realm the reader
-     has not met yet, in the first control they touch (paging-audit-3, item 3). It says
-     what the number MEANS in plain words now, and the number is the link beside it. */
-export const layout_link = id => {
-	const layout = LAYOUTS.find(entry => entry.id === id);
-	return layout ? " Inside the box the blocks are " + layout.words + " — [layout " + layout.title + "](" + layout.url + ")." : "";
+/* ── THE BUILDER'S BLOCK GRID ──────────────────────────────────────────────────
+   `build/draw.js` lays a built page's blocks out in one of FOUR grids, and
+   `build.css` names them `build-arrange-1-stack`, `-2-main-aside`, `-3-thirds`,
+   `-4-wall`. This is that translation and nothing else: an arrangement word already
+   names the `core/Layout` it compiles to, and these four are the grids this realm's
+   own stylesheet has rules for. Not a word list — a map from core's catalogue onto
+   four class names in one CSS file. */
+const GRID = {
+	"stack": "1.stack",
+	"rail-and-content": "2.main-aside",
+	"main-aside": "2.main-aside",
+	"thirds": "3.thirds",
+	"wall": "4.wall",
 };
 
-// Which numbered layout an arrangement word compiles to. One lookup, so the builder
-// and the layouts realm cannot end up naming two different numbers for one word.
-export const layout_of = id => ARRANGEMENT.find(entry => entry.id === id)?.layout ?? "1.stack";
+export const layout_of = id => GRID[arrangement_of(id)?.layout] ?? "1.stack";
 
-/* ── 5 · ARRANGEMENT — where the other parts sit ──────────────────────────────
-   The short list of shapes a PAGE wears — chrome around one content box — each
-   naming the numbered layout it compiles to, so the two vocabularies stay one.
-
-   ⚠ NOT "LEFT RAIL" AND "RIGHT RAIL". Navigation already has those two words, and
-     for a different thing: a navigation rail lists THIS PAGE'S CHILDREN, and an
-     arrangement panel is anything else beside the content — a contents list, a
-     properties panel, a filter. Two controls offering the same two words for two
-     different jobs was the single most confusing thing in the realm's vocabulary
-     (paging-audit-2). The arrangement pair is a PANEL; the navigation pair is a RAIL. */
-export const ARRANGEMENT = [
-	{ id: "plain",      title: "Plain",       icon: "crop_square",   layout: "1.stack",
-	  means: "The content, and nothing around it." + layout_link("1.stack") },
-	{ id: "bar-top",    title: "Toolbar top", icon: "web_asset",       layout: "1.stack",
-	  means: "A bar of controls above the content. The bar stays; the content scrolls." + layout_link("1.stack") },
-	{ id: "bar-bottom", title: "Footer",      icon: "vertical_align_bottom", layout: "1.stack",
-	  means: "The same bar under the content — a footer, or a phone's tab bar." + layout_link("1.stack") },
-	{ id: "rail-left",  title: "Panel left",  icon: "view_sidebar",  layout: "2.main-aside",
-	  means: "A panel before the content, sharing its top edge — a filter, a properties panel. Not the page's children: that is Navigation." + layout_link("2.main-aside") },
-	{ id: "rail-right", title: "Panel right", icon: "view_sidebar",  layout: "2.main-aside",
-	  means: "The same panel after the content — a contents list, or the properties of what you are reading." + layout_link("2.main-aside") },
-	{ id: "main-aside", title: "Main + aside", icon: "view_quilt",   layout: "2.main-aside",
-	  means: "Two tracks of content: the main story, and a narrower one beside it." + layout_link("2.main-aside") },
-	{ id: "wall",       title: "Wall",        icon: "grid_view",     layout: "4.wall",
-	  means: "No chrome at all — the content spreads into as many tracks as fit." + layout_link("4.wall") },
-];
-
-/* ── 6 · SKIN — the colours and the type size ─────────────────────────────────
-   THREE knobs, and two of them are colours, because the owner asked for exactly
-   that: "card gives the content a bg, whereas the other colors change the whole
-   column. i think we want the ability to switch either one to any color." So the
-   CONTENT's surface and the PAGE's background are two independent controls reading
-   one list of five words. */
-export const SURFACES = [
-	{ id: "plain", title: "Plain", means: "no fill of its own — whatever is underneath shows through" },
-	{ id: "card",  title: "Card",  means: "white, with a hairline and a soft shadow: the surface that says 'this is one thing'" },
-	{ id: "tint",  title: "Tint",  means: "one subtle step off whatever is under it" },
-	{ id: "prim",  title: "Prim",  means: "a tenth of the accent colour mixed in — an island you are meant to notice" },
-	{ id: "dark",  title: "Dark",  means: "an always-dark island; every colour inside it flips" },
-];
-
-export const TYPE = [
-	{ id: "compact", title: "Compact", means: "0.9x the base step, tighter lines — a dense index, a rail, a table" },
-	{ id: "regular", title: "Regular", means: "the site's own step — every page you have read so far" },
-	{ id: "display", title: "Display", means: "1.15x the base step with a steeper heading ramp — a cover, a slide, a hero" },
-];
 
 /* ── THE SIX BLOCKS, as the realm's own map ───────────────────────────────────
    `url` is where the block's page lives; `axis` is the config key its control

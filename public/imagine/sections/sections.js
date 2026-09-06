@@ -1,5 +1,8 @@
 import { View, div, span, p, a, h3, icon } from "/app.js";
-import { SURFACES } from "../paging/blocks.js";
+/* The five surface words are CORE's — `core/Page/words.js`, the site's one copy —
+   and this realm reads them straight from there rather than through the paging lab,
+   which only re-exports them. (2026-09-06, slice 3.) */
+import { SURFACES } from "/framework/core/Page/words.js";
 
 // The sheet travels with the class, not with one page: four pages in this realm draw
 // sections and every one of them imports this file.

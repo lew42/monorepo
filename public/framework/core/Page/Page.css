@@ -490,8 +490,13 @@
 	/* The list is a vertical tab bar: a label, the open child lit, a 2px mark on the
 	   inline edge — `.tabs.vertical`'s own declarations, restated because no call site
 	   can put `.tab` on these anchors. */
+	/* ⚠ THE GAP IS THE ITEM'S OWN em, never a ramp. A ramp is space BETWEEN things;
+	     this one is inside ONE control, between its icon and its label, and
+	     `--gap-ramp` is pinned at its 2.6em cap above ~1400px, so `× 0.4` is 1.04em at
+	     3440 on a 0.9em row. (2026-09-06, the rule on
+	     /imagine/design/spacing/decision.md; the homepage nav went fat the same way.) */
 	.page-column-item {
-		display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.4);   /* was gap 0.4em - 2026-09-05 ramps */
+		display: flex; align-items: center; gap: 0.4em;
 		padding: 0.35em var(--page-column-pad-x, 0.9em);
 		font-size: 0.9em;
 		color: var(--subtle);
@@ -991,7 +996,8 @@
 		display: flex;
 		width: fit-content; max-width: 100%;
 		align-items: center;
-		gap: calc(var(--gap-ramp) * 0.45);   /* was gap 0.45em - 2026-09-05 ramps */
+		/* the card title's own icon-to-text gap — one control, so its own em */
+		gap: 0.45em;
 		text-decoration: none;
 		color: inherit;
 	}

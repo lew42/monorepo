@@ -183,3 +183,41 @@ the `mask-image` repeat inside the `max-width: 64em` vertical rule. All removed;
 `border-bottom` hairline, `scrollbar-width: none` and `reveal()` are untouched. The
 measurements that argued for it are kept in [`overflow.md`](./overflow.md) so the cost of the
 removal is on the record — hard cuts at both edges, no affordance but `reveal()`.
+
+
+## 2026-09-06 — reversed: flush is the default, the rectangle is the opt-in
+
+> the top tabs in the paging demo look broken: the default tab doesn't start selected, and
+> there's a gap between tab buttons and tab content (and a border on tab content). I prefer the
+> flush, seamless tab look. (the owner, 2026-09-06)
+
+**The floor above became `.tabs.bounded`.** Every rule the 2026-09-05 pass added — the panel's
+fill, its 1px frame, its radius, and the selected tab cut out of its top edge — is now gated on
+a class the caller says, and **nothing on the site says it**. A set with no word is the
+pre-floor strip again: a hairline under the bar, a 2px accent under the selected tab, and the
+panel below it with no box.
+
+`.underline` still parses and now names the default, so any call site that ever typed it keeps
+working; there were none. The weight is unchanged — `.tabs.bounded:not(.vertical)` is (0,3,0),
+the same as the old `:not(.underline):not(.vertical)` — so it still composes with `.block`
+exactly as before: the folder skin's type stays, the rectangle's colours win.
+
+**The panel's `padding-top: 3em` did NOT change.** It is the pre-floor number and the whole
+site's vertical rhythm under a tab set; the owner's "gap" was measured on
+[`/imagine/paging/`](/imagine/paging/), whose demo draws its own strip and had 9px at 1280 and
+28px at 3440 of frame gap between the strip and the box. That is fixed in the lab
+([`/imagine/paging/doc/decisions.md`](/imagine/paging/doc/decisions.md)); this module's 3em is
+untouched.
+
+**Two of the three heavy users, measured before and after at 1280 and 3440** —
+[`/framework/core/Page/`](/framework/core/Page/) and [`/framework/ext/Doc/`](/framework/ext/Doc/),
+both `.tabs.block`: the panel's border went **1px → 0** and its background
+**`rgb(242,242,242)` → transparent**, the bar-to-panel gap stayed 0, the top padding stayed
+45.1px / 54px, and the selected tab stayed lit at every reading. The flip to flush is the only
+change they show.
+
+**The first tab was never the bug.** `.tab-bar:not(:has(.tab.active, …)) > .tab:first-child`
+has lit the default tab since the floor landed, and both pages read the accent on Overview
+before this task touched anything. What was unlit was the paging lab's own `.paging-strip`,
+which listed only the children and so had nothing to light while the box showed the page's own
+content; it gained a `Home` tab — this module's `tab-default` idea, in the lab's own renderer.

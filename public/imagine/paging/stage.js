@@ -217,6 +217,17 @@ export class PagingStage extends Page.Frame {
 		   put `open` back to "the page's own content" instead, so the default tab
 		   opened cold and never again. */
 		this.base_open = this.open;
+
+		/* THE CONTENT WORD, PER PATH. The demo is a page SYSTEM, so the six words
+		   describe a page and the page you are looking at is the one at the current
+		   path: "/" at rest, "/overview" once you have clicked a child. A child
+		   INHERITS the root's content word until you set one on it, which is why
+		   clicking Overview at rest shows the same content it showed a moment ago.
+		   (The owner, 2026-09-06: "when you swap the Content dropdown it changes the
+		   default page's content, but if you've clicked to another page the dropdown
+		   does nothing.") Memory only, like `open` — a refresh is the page it is. */
+		this.content_at ??= new Map();
+
 		super.initialize();
 	}
 
@@ -256,6 +267,16 @@ export class PagingStage extends Page.Frame {
 		if (c.navigation === "takeover" && this.open !== null) return this.taken();
 
 		if (c.room === "full") this.exit();
+
+		/* THE PATH, ABOVE EVERYTHING — where you are INSIDE the demo. "/" is the page
+		   itself and "/overview" is the child you clicked, so a click that changes the
+		   box also changes something you can read. (The owner, 2026-09-06: "we
+		   definitely want a url bar to see the current path ... so the default demo
+		   page would be '/'.") It is `ext/demo`'s own path bar — the same
+		   `.demo-shell-path`, whose sheet `app.js` already loads on every page — and
+		   not a second one. A nested stage is a picture and draws none. */
+		if (!this.inner) this.path_bar();
+
 		if (c.arrangement === "bar-top") this.bar("top");
 
 		div.c("page-frame-body", () => {
@@ -351,6 +372,15 @@ export class PagingStage extends Page.Frame {
 		p.c("h2", child.title);
 		p(child.text);
 
+		/* ⚠ AND THE CONTENT WORD AT THIS CHILD'S PATH. Every page in the demo is a page,
+		     so every one of them has a content word; a child inherits the root's until
+		     the dropdown sets one on it. Before this, clicking a child left the box
+		     showing two canned sentences and the Content dropdown appeared dead.
+		   ⚠ NOT IN A NESTED STAGE. An `inner` stage is a PICTURE of a page — 49 of them
+		     on `/cross/` — and drawing five content samples in each of 49 cells buys a
+		     reader nothing they can see at 208px. */
+		if (!this.inner) this.sample(false, this.content_word(i));
+
 		if (child.url) a.c("paging-panel-link").href(child.url)
 			.append(() => { span("open " + child.title + " as its own page — this is where the url changes"); icon("chevron_right"); });
 
@@ -387,8 +417,7 @@ export class PagingStage extends Page.Frame {
 	   `named` is true when BLOCKS were drawn above this: the sample then gets a line
 	   over it saying which control it belongs to, because two things in one box with
 	   nothing between them is how a reader ends up blaming the wrong dropdown. */
-	sample(named){
-		const kind = this.config.content;
+	sample(named, kind = this.config.content){
 
 		if (named) span.c("paging-eyebrow", "and the content word — " + title_of("content", kind));
 
@@ -590,11 +619,44 @@ export class PagingStage extends Page.Frame {
 		return true;
 	}
 
+	/* ── WHERE YOU ARE ───────────────────────────────────────────────────────
+	   One string, read by the path bar and by the tab strip, so the two can never
+	   disagree: "/" is the page itself, "/<child>" is the child that is open. */
+	path(){ return this.open === null ? "/" : "/" + Page.slug(this.pages[this.open].title); }
+
+	/* ⚠ NO SEPARATOR BETWEEN THE TWO PARTS. This is an ADDRESS, not a trail of
+	     crumbs: the owner asked to "see the current path (relative to
+	     /imagine/paging/) — so the default demo page would be '/'", and `/ > overview`
+	     is not a path anybody would type. The two spans are the two halves of one
+	     string, so `.paging-path` closes the shell's own gap. */
+	path_bar(){
+		return this.$path = div.c("demo-shell-path paging-path", () => {
+			const $root = span.c("demo-app-crumb", "/");
+
+			if (this.open === null) return void $root.ac("on");
+
+			// clicking "/" closes the child — `pick()` on the open one toggles it
+			this.press($root, this.open);
+			span.c("demo-app-crumb on", this.path().slice(1));
+		});
+	}
+
+	/* ── THE TAB STRIP ───────────────────────────────────────────────────────
+	   ⚠ THE FIRST TAB IS THE PAGE ITSELF, and it is lit at rest. Without it the strip
+	     opened with nothing selected — the box was showing the page's own content and
+	     no tab said so, which the owner read as broken ("the default tab doesn't start
+	     selected", 2026-09-06). It is exactly what `ext/tabs` calls `tab-default`: the
+	     member of the set whose address is the page's own. */
 	tabs(){
 		return div.c("paging-strip", () => {
+			this.tab_home();
 			if (this.none_yet()) return;
 			this.pages.forEach((child, i) => this.tab(child, i));
 		});
+	}
+
+	tab_home(){
+		return this.press(span.c("paging-strip-tab paging-strip-home", "Home").ac(this.open === null && "on"), null);
 	}
 
 	tab(child, i){
@@ -755,12 +817,31 @@ export class PagingStage extends Page.Frame {
 		     when you touch a control, so without this hook the tab you were on reset
 		     itself. One hook, same shape as `changed`. */
 		this.picked?.(this.open);
+
+		// ⚠ AND THE BAR RESYNCS. Moving to another path moves which page the `content`
+		//   dropdown is editing, so the dropdown has to show that page's word.
+		this.changed?.("content", this.content_word());
 		return this;
+	}
+
+	/* THE VALUE OF A WORD AT THE CURRENT PATH — what the toolbar shows and what the box
+	   draws. Six of the seven belong to the whole demo; `content` belongs to the page
+	   you are looking at, which is the distinction the path bar makes visible. */
+	word(axis){ return axis === "content" ? this.content_word() : this.config[axis]; }
+
+	content_word(i = this.open){
+		return (i !== null && this.content_at.get(i)) || this.config.content;
 	}
 
 	// Change one word of the configuration. The toolbar, the drawer and the preset
 	// dropdown all come through here, so "a chip" and "a line of code" are one call.
 	set(axis, value){
+		/* ⚠ `content` IS SET ON THE PAGE AT THE CURRENT PATH. At rest that is the root,
+		     and everything below runs unchanged; with a child open it is that child's,
+		     so the root keeps what it had and the address — which describes the root —
+		     is not touched. */
+		if (axis === "content" && this.open !== null) return this.set_child_content(value);
+
 		const was = this.config[axis];
 		if (was === value) return this;
 
@@ -795,6 +876,25 @@ export class PagingStage extends Page.Frame {
 		this.$cap?.empty(() => { this.caption(); });
 
 		this.changed?.(axis, value);
+		return this;
+	}
+
+	/* THE CONTENT WORD ON AN OPEN CHILD. Same shape as `set()` — measure, change,
+	   redraw, caption, tell the bar — minus the two things that belong to the root: the
+	   configuration object and the address. */
+	set_child_content(value){
+		const was = this.content_word();
+		if (was === value) return this;
+
+		const before = this.rect();
+		this.content_at.set(this.open, value);
+		this.redraw();
+
+		this.change = { axis: "content", from: title_of("content", was), to: title_of("content", value),
+			before, after: this.rect() };
+		this.$cap?.empty(() => { this.caption(); });
+
+		this.changed?.("content", value);
 		return this;
 	}
 

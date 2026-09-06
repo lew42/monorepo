@@ -101,8 +101,12 @@
 	   the same reason: one keeps the tree in your browser, this one keeps it on disk,
 	   and a reader should not have to learn two shapes to tell them apart. */
 	.page-gen-export { padding: 0.4em 0 0.2em; border-top: 1px solid var(--line); margin-top: calc(var(--gap-ramp) * 0.6); }   /* was margin-top 0.6em - 2026-09-05 ramps */
+	/* ⚠ KEPT ON THE RAMP, and it is the other half of the rule: this gap is between
+	     TWO SIBLING CONTROLS — a field and a button — which is space between things,
+	     exactly what a ramp is for. (`.nav`, `.omnibox-chips` and the codrops menus
+	     kept theirs for the same reason, 2026-09-06.) */
 	.page-gen-export-row {
-		display: flex; gap: calc(var(--gap-ramp) * 0.5); align-items: center;   /* was gap 0.5em - 2026-09-05 ramps */
+		display: flex; gap: calc(var(--gap-ramp) * 0.5); align-items: center;
 		padding: 0.15em 0.9em 0.4em;
 	}
 	.page-gen-export-name {
@@ -204,8 +208,9 @@
 	   above would keep a flex wall in a column. */
 	.page-gen-nav.flex { flex-direction: row; }
 
+	/* a nav item's own icon-to-label gap: its own em, never a ramp (2026-09-06) */
 	.page-gen-item {
-		display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.3);   /* was gap 0.3em - 2026-09-05 ramps */
+		display: flex; align-items: center; gap: 0.3em;
 		padding: 0.32em 0.8em;
 		font-size: 0.85em;
 		color: var(--subtle); text-decoration: none;
@@ -288,7 +293,9 @@
 	     css skill's: a squeezed flex row shrinks its items to min-content and goes
 	     two-line before it ever overflows. `flex: none` + `nowrap` + `overflow-x`. */
 	.page-gen-tabs > .page-gen-nav {
-		flex-flow: row nowrap; gap: calc(var(--gap-ramp) * 0.25);   /* was gap 0.25em - 2026-09-05 ramps */
+		/* ⚠ KEPT ON THE RAMP: a gap between sibling TABS in a strip is space between
+		     things, the same call `.demo-mini-tabs` and `.pg-toolbar` got (2026-09-06). */
+		flex-flow: row nowrap; gap: calc(var(--gap-ramp) * 0.25);
 		overflow-x: auto; scrollbar-width: none;
 		padding: 0.5em 0.6em 0;
 		border-bottom: 1px solid var(--line);
@@ -332,7 +339,8 @@
 	     which is the columns mechanic, so there is no new machinery, only a row that
 	     shows what is behind it. */
 	.page-gen-list > .page-gen-nav > .page-gen-item {
-		flex-direction: column; align-items: stretch; gap: calc(var(--gap-ramp) * 0.35);   /* was gap 0.35em - 2026-09-05 ramps */
+		/* the row's own two lines — inside one control, so its own em */
+		flex-direction: column; align-items: stretch; gap: 0.35em;
 		padding: 0.6em 0.8em;
 		border-bottom: 1px solid var(--line);
 	}
@@ -372,7 +380,8 @@
 	     disagreed — ours would simply never have painted. */
 	.page-gen-wall > .page-gen-nav { --gap: var(--gen-gap, 0.5em); padding: 0.7em; }
 	.page-gen-wall > .page-gen-nav > .page-gen-item {
-		flex-direction: column; align-items: stretch; gap: calc(var(--gap-ramp) * 0.3);   /* was gap 0.3em - 2026-09-05 ramps */
+		/* the tile's own two lines — inside one control, so its own em */
+		flex-direction: column; align-items: stretch; gap: 0.3em;
 		min-height: 4em;
 		padding: 0.45em 0.55em;
 		border: 1px solid var(--line); border-radius: 4px;

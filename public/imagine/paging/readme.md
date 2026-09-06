@@ -76,8 +76,14 @@ export default new Paging({
 - **`nest` is the eighth thing a page says**, and it is saved like the seven: a preset id or a
   page's address, kept in `mode.nest`, printed by both exports, read back by `stage.js`. So a
   page with a whole page inside it survives *Make this a page* and a cold reload.
-- The vocabulary is [`blocks.js`](./blocks.js) and it imports nothing, so a page, a rail
-  tile, a chip, a url and a doc all read the same lists.
+- **The vocabulary is core's** — [`core/Page/words.js`](/framework/core/Page/words.js) holds the
+  five word lists for the whole site, and [`blocks.js`](./blocks.js) re-exports them under this
+  realm's older names (`ROOM` is core's `WIDTH`, `TYPE` is its `TYPE_SIZE`). What is still this
+  realm's own is in that file: the eight content samples, the six blocks, the seven controls and
+  a configuration. The six words, in a table: [`core/Page/doc/words.md`](/framework/core/Page/doc/words.md)
+- **The demo has an address.** A path bar over the stage reads `/` at rest and `/overview` once
+  you click a child, the first tab IS the page itself, and the `content` word edits the page at
+  the current path: [`doc/decisions.md`](./doc/decisions.md)
 - **Two colour controls, independent**: `surface` paints the content box, `background`
   paints the page behind it. Each is a dropdown with a dot beside it in the colour it
   is currently on — the one control whose value is a thing rather than a word.

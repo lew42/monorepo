@@ -296,12 +296,16 @@ export class PagingToolbar extends View {
 		// ⚠ A URL IS NOT ONE OF THE EIGHT OPTIONS, so writing it into the select would
 		//   leave the dropdown blank. It shows "A page or file…", and the field under it
 		//   shows the address itself — which is the honest pair.
+		/* ⚠ `stage.word(axis)`, NEVER `stage.config[axis]`. Six of the seven words belong
+		     to the whole demo and the seventh — `content` — belongs to the page at the
+		     CURRENT PATH, so with a child open this dropdown is editing that child and
+		     has to show that child's word. `word()` is the one reader (`stage.js`). */
 		this.picks?.forEach(($select, axis) => {
-			const value = this.stage.config[axis];
+			const value = this.stage.word(axis);
 			$select.el.value = is_url(value) ? ADDRESS : value;
 		});
 
-		const content = this.stage.config.content;
+		const content = this.stage.word("content");
 		if (is_url(content)){
 			if (this.$address_field) this.$address_field.el.value = content;
 			this.show_address(true);
@@ -310,7 +314,7 @@ export class PagingToolbar extends View {
 
 		this.dots?.forEach(($dot, axis) => {
 			$dot.rc(...SURFACES.map(surface => "page-surface-" + surface.id))
-				.ac("page-surface-" + this.stage.config[axis]);
+				.ac("page-surface-" + this.stage.word(axis));
 		});
 
 		return this;

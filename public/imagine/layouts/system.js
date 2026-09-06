@@ -34,8 +34,16 @@ export const apply = ($el, rules) => {
 // The same object, printed. One source, so the readout cannot drift from the result.
 export const spell = rules => Object.entries(rules).map(([prop, value]) => prop + ": " + value + ";").join("\n");
 
-/* ── THE FIVE SURFACES ── paging's vocabulary, and the class each one wears here. */
-export const SURFACES = ["plain", "card", "tint", "prim", "dark"];
+/* ── THE FIVE SURFACES ─────────────────────────────────────────────────────────
+   CORE'S LIST, re-exported — `core/Page/words.js` is the one copy on the site. This
+   file used to write the same five words out by hand with its own sentences beside
+   them, which is how two realms ended up describing `tint` two different ways; the
+   entries are `{ id, title, means }` and a card reads `means` off the entry.
+   (2026-09-06, slice 3 of `ai/2026-09-06/graduate-plan/`.)
+
+   What stays here is `SURFACE_CLASS` — this realm's own paint for each word, which
+   is a stylesheet's business and not a vocabulary's. */
+export { SURFACES } from "/framework/core/Page/words.js";
 
 export const SURFACE_CLASS = {
 	plain: "layouts-plain",
@@ -43,14 +51,6 @@ export const SURFACE_CLASS = {
 	tint: "layouts-tint",
 	prim: "layouts-prim",
 	dark: "layouts-dark",
-};
-
-export const SURFACE_MEANS = {
-	plain: "no frame at all — the layout sits on whatever is under it",
-	card: "a white card with a hairline and a shadow: the surface that says 'this is one thing'",
-	tint: "one subtle step off the parent, for a panel that is part of the page",
-	prim: "10% of the accent mixed into the surface — an island you are meant to notice",
-	dark: "an always-dark island; it declares color-scheme, so every token inside flips",
 };
 
 /* ── THE THREE PADDING STEPS ── multiples of the two spacing clamps, never a

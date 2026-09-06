@@ -257,27 +257,42 @@ export class Page {
 	     override, carry core's own guard across (`if (levels <= this.loaded) return this;`)
 	     or a second call reads back the promise being assigned and throws "Chaining cycle
 	     detected for promise" with no file, no line and no stack. */
+	/* ⚠ `new this(…)` AND `this.from(…)`, NEVER `new Page(…)`. A static is inherited, so
+	     `Section.from(url)` reaches this method — and with `Page` hard-coded it handed
+	     back a plain `Page`, which is why `core/Section` had a near-copy of the whole
+	     thing. One word each, and the subclass is the thing that gets built, root and
+	     children alike. (2026-09-06; the copy in `Section.js` is deleted.)
+	   ⚠ THE KEYS ARE `props()`, one method down, so a subclass ADDS its own without
+	     copying the reader — `Section` reads `layout` and `editing` that way. */
 	static async from(source, adopt){
 		const url  = is.str(source) ? source.replace(/\/?$/, "/") : null;
-		const data = url ? await Page.read_json(url + "page.json") : source;
+		const data = url ? await this.read_json(url + "page.json") : source;
 		if (!data) return null;
 
-		const mode = data.mode ?? {};
-		const page = new Page({
+		const page = new this({ url, ...this.props(data, data.mode ?? {}) }, adopt);
+
+		// ⚠ `url &&` — an object handed in directly has no address for its children to
+		//   hang off, so they are declared by name and left to resolve the ordinary way.
+		for (const name of data.children ?? [])
+			page.add(name, (url && await this.from(url + name + "/")) ?? { title: name });
+
+		return page;
+	}
+
+	/* WHAT A `page.json` BECOMES — the six page words plus the three labels, read off
+	   the file's own shape. Its own method so a subclass overrides ONE thing:
+
+	       static props(data, mode){ return { ...super.props(data, mode),
+	           layout: data.layout ?? mode.layout }; }                              */
+	static props(data, mode){
+		return {
 			title: data.title, icon: data.icon, description: data.description,
 			navigation: mode.navigation, arrangement: mode.arrangement,
 			surface: mode.surface, background: mode.background,
 			type_size: mode.type,                       // the disk key is older than the label
 			width: mode.room ?? mode.width,
 			content: mode.content,                      // a url, or the page's own function
-		}, adopt);
-
-		// ⚠ `url &&` — an object handed in directly has no address for its children to
-		//   hang off, so they are declared by name and left to resolve the ordinary way.
-		for (const name of data.children ?? [])
-			page.add(name, (url && await Page.from(url + name + "/")) ?? { title: name });
-
-		return page;
+		};
 	}
 
 	static missing(error){
@@ -356,11 +371,17 @@ export class Page {
 		this.view = div.c("page flow", () => {
 			if (this.title) h1.c("page-title", this.title);
 
-			// A page that said one of the six words gets a FRAME: the chrome its
-			// arrangement word asks for, around the box its content goes in. A page
-			// that said none has no frame at all and draws exactly what it drew before
-			// the words existed. Frame.js.
-			if (this.words_said()) return void new this.constructor.Frame({ page: this });
+			/* A page that said one of the six words gets a FRAME: the chrome its
+			   arrangement word asks for, around the box its content goes in. A page
+			   that said none has no frame at all and draws exactly what it drew before
+			   the words existed. Frame.js.
+			   ⚠ `page-frame-page` — THIS frame is the page's own, as opposed to one
+			     drawn as a picture of a page inside a cell. It is the only frame whose
+			     body becomes a container, so it is the only one the `< 34em` stacking
+			     query can reach (Page.css says what that cost when every frame had
+			     one). A demo that draws a page-sized frame of its own opts in with the
+			     same class. */
+			if (this.words_said()) return void new this.constructor.Frame({ page: this }).ac("page-frame-page");
 
 			return this.render_content();
 		})
@@ -375,8 +396,17 @@ export class Page {
 	// WHAT IS IN THE BOX: a function, a string of text, or — a string starting with
 	// `/` — an ADDRESS to render. Split out of `render()` because `Page.Frame` needs
 	// to draw the same thing inside its own canvas.
+	/* ⚠ A PLAIN STRING BECOMES A PARAGRAPH, never a bare text node. `.page` is a GRID,
+	     and its `main` / `wide` / `bleed` tracks are assigned by `.page > *` — a rule
+	     that cannot reach a text node. So a returned string became an ANONYMOUS grid
+	     item in the first implicit track, which is the gutter: measured 2026-09-06, a
+	     40-word `content: "…"` drew one character a line and 4,766px tall at 1280, with
+	     nothing in the console. `p()` puts it in the same element the function form
+	     produces, in the reading track, and reads backticks as code the way every other
+	     paragraph on the site does. */
 	render_content(){
 		if (is_address(this.content)) return this.content_at(this.content);
+		if (is.str(this.content)) return p(this.content);
 		return is.fn(this.content) ? this.content() : this.content;
 	}
 

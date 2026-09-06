@@ -137,35 +137,21 @@ export class Section extends Page {
 
 	/* ── FROM A `page.json` ────────────────────────────────────────────────────
 	   The third way a page arrives — data that describes one — and a Section reads
-	   the same file a Page does, plus one key: `layout`.
+	   the same file a Page does, plus two keys: `layout` and `editing`.
 
 	       { "title": "Team", "layout": "main-aside", "children": ["main", "aside"] }
 
-	   ⚠ `Page.from()` already does all of this and CANNOT be inherited: it says
-	     `new Page(…)` in the middle, so a subclass calling it gets a Page back. One
-	     word there — `new this(…)` — would hand it to every subclass at once;
-	     `core/Page/` was outside this task's write fence, so the read is repeated
-	     here and the finding is logged for whoever owns that file next. The
-	     CHILDREN still go through core's own reader: only the root is a Section.
-	   ⚠ NO DOM IN HERE. It is async, so it builds no view — the caller captures its
-	     box synchronously and fills it in a `.then()`. */
-	static async from(source, adopt){
-		const url  = typeof source === "string" ? source.replace(/\/?$/, "/") : null;
-		const data = url ? await Page.read_json(url + "page.json") : source;
-		if (!data) return null;
-
-		const mode = data.mode ?? {};
-
-		const section = new Section({
-			url, title: data.title, icon: data.icon, description: data.description,
+	   ⚠ THERE IS NO `from()` HERE ANY MORE, and that is the point. `Page.from()` says
+	     `new this(…)` and `this.from(…)` since 2026-09-06, so a static inherited by
+	     this class builds THIS class — root and children alike. All a subclass owes is
+	     the extra keys, and `props()` is the one method that names them. Eighteen
+	     lines of copied reader deleted. */
+	static props(data, mode){
+		return {
+			...super.props(data, mode),
 			layout: data.layout ?? mode.layout,
 			editing: data.editing ?? mode.editing ?? false,
-		}, adopt);
-
-		for (const name of data.children ?? [])
-			section.add(name, (url && await Page.from(url + name + "/")) ?? { title: name });
-
-		return section;
+		};
 	}
 
 	/* ── THE LAYOUT ────────────────────────────────────────────────────────────

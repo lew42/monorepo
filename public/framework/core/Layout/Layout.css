@@ -8,25 +8,15 @@
 
 @layer theme {
 
-	/* ── the tree ──────────────────────────────────────────────────────────── */
+	/* ── the tree ──────────────────────────────────────────────────────────────
+	   ONE RULE. The wall, the rail, the facet heads and the show-more control are
+	   `ext/catalog/browse.js`'s now — `page.js` calls `this.browse(BANDS, tokens,
+	   { cap: 60, facets: FACETS })` and the six selectors that used to live here went
+	   with `tree.js` (2026-09-06, slice 3; doc/porting.md). This one stays because a
+	   rail beside a wall must not stretch to the wall's height, and it is the tree's
+	   own opinion rather than browse's. */
 
 	.page-layout-tree { align-items: flex-start; }
-
-	.page-layout-wall { flex: 1 1 22em; min-width: 0; }
-
-	.page-layout-rail input[type="search"] { width: 100%; min-width: 0; }
-
-	.page-layout-facet-head {
-		margin: calc(var(--gap-ramp) * 0.6) 0 0.2em;
-		font-size: 0.85em;
-		text-transform: uppercase;
-		letter-spacing: 0.06em;
-		opacity: 0.6;
-	}
-
-	.page-layout-facet { width: 100%; text-align: start; }
-
-	.page-layout-more { align-self: flex-start; }
 
 	/* ── a layout page: the viewport, and the strip beside it ──────────────── */
 

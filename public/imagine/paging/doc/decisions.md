@@ -1216,12 +1216,19 @@ the CSS and the shape; what stayed is the instrument.
   and `full` takes the screen. Two halves of one axis, in two hosts — the same split
   `core/Page/doc/columns.md` already records for a columns row.
 
-**And one rule the graduation made necessary.** Core's frame stacks its rail, box and panel
-below 34em, which is right for a page you are reading and wrong for a 208px cell whose whole
-job is to show a rail *beside* a box. Measured at 1280 on [Cross](/imagine/paging/cross/): with
-the query live, every LEFT RAIL and RIGHT RAIL cell of the 49 drew its rail with the box wrapped
-underneath and clipped away by the 13em crop. `.paging-shot-frame .page-frame-body {
-container-type: normal }` is the whole fix — a query with no container to ask never fires.
+**And one rule the graduation made necessary — fixed properly the same day.** Core's frame
+stacks its rail, box and panel below 34em, which is right for a page you are reading and wrong
+for a 208px cell whose whole job is to show a rail *beside* a box. Measured at 1280 on
+[Cross](/imagine/paging/cross/): with the query live, every LEFT RAIL and RIGHT RAIL cell of the
+49 drew its rail with the box wrapped underneath and clipped away by the 13em crop. The first
+fix was a patch here (`.paging-shot-frame .page-frame-body { container-type: normal }`); the
+real one is in core, one slice later — **only a page's OWN frame is a container**
+(`.page-frame-page`, stamped by `Page.render()`), so a frame drawn as a picture has no container
+to ask and the query cannot reach it. This realm's full-size stage opts back IN with one rule
+(`.paging-stage:not(.paging-shot-frame > .paging-stage) > .page-frame-body`), because at a 400
+viewport its rail plus its panel leave the box 34px wide. Proved after: the stage stacks at 400
+(rail 316px = the whole row) and sits beside at 1280; a page saying all six words stacks at 400
+and not above.
 
 **What the graduation gave back, measured.** At 400 and 1280 the switch moves **zero pixels**
 on eleven of twelve sampled realm pages (`/cross/` reflows one column of text). At 1920 and
@@ -1234,3 +1241,89 @@ five console messages, zero new (the known `readme/page.js` probe 404); the nine
 end to end with every step screenshotted, the page made deleted by the feature under test, and
 `made/` byte-identical to baseline by md5; and a class-by-class check that no selector left in
 `paging.css` names a class no file emits.
+
+
+## 2026-09-06 (slice 3) — one copy of every word, a path bar, and the rail's own padding
+
+**The five word lists are `core/Page/words.js` now, and this realm re-exports them.**
+`blocks.js` used to hold the site's only copy of navigation, room, arrangement, the five
+surfaces and the three type steps; `/imagine/layouts/system.js` held a second copy of the
+surfaces written out by hand with different sentences. There is **one** definition on the site
+now — `grep -rn "SURFACES\s*=" public/` returns one line — and nine importers were not touched,
+because `blocks.js` publishes them under the names this realm has always used (`ROOM` is core's
+`WIDTH`, `TYPE` is core's `TYPE_SIZE`).
+
+⚠ **`export … from …` is a pass-through, not a binding.** It publishes a name without putting it
+in the module's own scope, so `CONTROLS` — which lists `NAVIGATION` and friends — would have
+thrown `NAVIGATION is not defined` on the first import of `blocks.js`, blanking every page in the
+realm. The file **imports and re-exports**; both lines are load-bearing.
+
+**What stayed here, and it is the same test as last time: is it a copy, or is it the lab?**
+`CONTENT` (eight canned samples), `BLOCKS`, `CONTROLS`, `DEFAULT` and the readers are this
+realm's own control surface. `layout_of()` stayed too, reduced to what it actually is: a
+four-entry map from a `core/Layout` name onto the four grid classes `build.css` has rules for.
+
+**Each arrangement value now links to the layout it compiles to** — `core/Layout`'s catalogue of
+thirty, each proven at seven widths — instead of `/imagine/layouts/N/<id>/`. The link is a
+SIBLING of the value's card, never inside it: a card is one `<a>`, and an `<a>` in an `<a>` is
+un-nested by the browser without a word.
+
+## The demo has an address (the owner, 2026-09-06)
+
+> The demo shows the default content, and when you click Overview it's not the default content.
+> When you swap the Content dropdown it changes the default page's content, but if you've
+> clicked to another page the dropdown does nothing. We definitely want a url bar to see the
+> current path (relative to `/imagine/paging/`) — so the default demo page would be `/`.
+
+Three things, one idea: **the demo is a page system, so the page you are looking at has an
+address, and the words describe THAT page.**
+
+- **A path bar over the stage** — `/` at rest, `/overview` once you click a child. It is
+  `ext/demo`'s own `.demo-shell-path` (whose sheet `app.js` already loads on every page), not a
+  second one, with no separator and no gap: this is an address, and `/ › overview` is not a path
+  anybody would type.
+- **The first tab is the page itself.** The strip listed only the four children, so at rest —
+  when the box is showing the page's own content — nothing was lit, which the owner read as
+  broken: *"the default tab doesn't start selected"*. A `Home` tab, lit when no child is open,
+  is exactly what `ext/tabs` calls `tab-default`.
+- **`content` is set on the page at the current path.** At rest that is the root and nothing
+  changed; with a child open the dropdown edits that child, and the root keeps its word and its
+  address. A child INHERITS the root's content word until you set one on it, which is why
+  clicking Overview no longer changes what kind of thing is in the box. Nine steps of `ui-test`
+  in `ai/2026-09-06/graduate-3/`.
+- ⚠ **Not in a nested stage.** An `inner` stage is a picture of a page — 49 of them on
+  `/cross/` — and five content samples in each of 49 cells buys nothing a reader can see at
+  208px.
+
+## The tab strip and the box are one thing (the owner, 2026-09-06)
+
+> there's a gap between tab buttons and tab content (and a border on tab content). I prefer the
+> flush, seamless tab look.
+
+Measured before, at 1280 and 3440 on `/imagine/paging/`: **9px and 28px** between the strip and
+the box, from the frame's own middle gap — so the selected tab's `margin-block-end: -1px`, which
+exists to cut it into the box's top edge, was landing on nothing. `.paging-nav-tabs
+.page-frame-mid { gap: 0 }` and squared top corners on the canvas. After: **0px at both widths**,
+one tab lit. (`ext/tabs` itself was already lighting its default tab correctly; the sitewide
+half of that complaint — flush as the default, the bounded panel as `.tabs.bounded` — is
+[`ext/tabs/doc/decisions.md`](/framework/ext/tabs/doc/decisions.md).)
+
+## The rail padded on the app row's width (the owner, 2026-09-06)
+
+> the paging left sidebar has too much padding — at least 20%. The padding is calculated on the
+> PARENT width, not its own.
+
+Exactly right, and the number is worse than 20%. `--pad-ramp` is `clamp(1em, 2.6% - 1.1em, 4em)`
+— a **percentage**, and a percentage padding resolves against the containing block. At 3440 the
+app row is 3440px and the rail is 413px, so the ramp read **69.6px** and spent **33.7% of the
+rail** on inset.
+
+**Why not `cqi`, which is what the columns host uses.** An element is never its own query
+container: a box can only pad in `cqi` if the CONTAINER is an ancestor and the padding sits on
+something INSIDE it. `.page.columns` is the container and `.page-column-item` is the padded
+thing, which is why that seam works and why it needs the nesting. This rail declares its own
+width in a token, so a fraction of that token is the same intent with no extra element and no
+`container-type` (which would make the rail a containing block for every `position: fixed`
+inside it). After: **22.7px at 3440, 11.0% of the rail, 1.26em**; 16.7 → 13.2px at 1280. Core's
+side boxes (`.page-rail`, `.page-panel`, `.page-aside`) name their width `--page-side-w` and
+derive `--pad` from it the same way.
