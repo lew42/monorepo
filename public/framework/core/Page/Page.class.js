@@ -1,10 +1,21 @@
 import { View, div, p, h1, h2, h4, a, span, icon, is } from "../View/View.js";
+import PageFrame from "./Frame.js";
 
 View.stylesheet(import.meta, "Page.css");
 
 // ⚠ Localhost only, the gate dev/Socket keeps: nothing below may ship behaviour.
 const dev = ["localhost", "127.0.0.1"].includes(location.hostname) || location.hostname.endsWith(".localhost");
 const marked = el => el?.matches(".page.active-page, .page.active-ancestor, .page.default");
+
+// The two page words that mean the same thing under an older name. `card` used to be
+// `surface` (the theme's own tone list still says so, styles/sections/tone.js:11) and
+// `tint` used to be `wash`. Read on the way in; never mentioned again.
+const ALIAS = { surface: "card", wash: "tint" };
+
+// A `content` string that starts with `/` is an ADDRESS, not text; a `.md` one is
+// prose, anything else is the `page.json` at that address.
+const is_address = value => is.str(value) && value.startsWith("/");
+const is_md = url => /\.md(\?|#|$)/i.test(url);
 
 export class Page {
 
@@ -30,7 +41,44 @@ export class Page {
 		             : undefined;
 		this.name  ??= this.url?.split("/").filter(Boolean).at(-1);
 		this.title ??= this.name;
+		return this.words();
+	}
+
+	// ════ THE SIX PAGE WORDS ══════════════════════════════════════════════════
+	// `navigation` `width` `arrangement` `surface` `background` `type_size` — the
+	// six things a page can say about its own shape, resolved ONCE here so nothing
+	// downstream can disagree about what the page said. `Frame.js` is the box they
+	// open; the map from each word to what core already did is
+	// `ai/2026-09-06/graduate-plan/plan.md` until doc/ catches up.
+	//
+	// EVERY DEFAULT IS `undefined`: a word nobody says writes no class at all, which
+	// is what lets the whole feature land without moving a pixel on any page.
+	//
+	// ⚠ IDEMPOTENT ON PURPOSE. `naming()` runs twice for an adopted page — once in the
+	//   constructor and again from `add()` — so every line here has to survive being
+	//   run on its own output. `??=` does; so does the ALIAS pass, because ALIAS has
+	//   no entry for its own answers (`card` and `tint` are not keys).
+	// ⚠ THERE IS NO LINE FOR `type`. `type` is already a page METHOD
+	//   (`generator/page.js:261`); the page's key is `type_size` everywhere except
+	//   inside a `mode` object, where it is data and shadows nothing.
+	words(){
+		this.width      ??= this.room;                                  // the lab's older key
+		this.surface     = ALIAS[this.surface]    ?? this.surface;
+		this.background  = ALIAS[this.background] ?? this.background;
 		return this;
+	}
+
+	// The classes those words stamp. ONE method, so `render()` and `render_column()`
+	// cannot drift — and `render()` asks whether this list is empty to decide whether
+	// the page needs a `Frame` at all.
+	word_classes(){
+		return [
+			this.navigation  && "page-nav-" + this.navigation,
+			this.arrangement && "page-arr-" + this.arrangement,
+			this.surface     && "page-surface-" + this.surface,
+			this.background  && "page-bg-" + this.background,
+			this.type_size   && "page-type-" + this.type_size,
+		].filter(Boolean);
 	}
 
 	// One Map, in declaration order: undefined = not mine, null = declared, Page = here.
@@ -172,6 +220,56 @@ export class Page {
 		}
 	}
 
+	// ⚠ THE SPA FALLBACK ANSWERS EVERY MISS WITH index.html AT 200, so `res.ok` is not
+	//   "the file is there" — the CONTENT-TYPE is the 404. The identical guard is in
+	//   Page.file() above, in imagine/paging/stage.js and in make/made.js.
+	static async read_json(url){
+		const res = await fetch(url).catch(() => null);
+		if (!res?.ok || res.headers.get("content-type")?.includes("html")) return null;
+		return res.json().catch(() => null);
+	}
+
+	/* A `page.json` — an object, or the url of a directory holding one — AS A REAL PAGE.
+	   Parents first, children by DIRECTORY NAME, which is exactly the shape
+	   `imagine/paging/make/made.js` writes:
+
+	       { "title": "Notes", "icon": "description",
+	         "mode": { "navigation": "tabs", "room": "reading", … },
+	         "children": ["today", "later"] }
+
+	   THE THIRD WAY A PAGE ARRIVES. `Page.load()` is "the page.js at this url" and
+	   `Page.file()` is "the .md beside me"; this one is "the data that describes a
+	   page". It reads the way `Array.from` does.
+
+	   ⚠ DO NOT WIRE IT INTO `child()`'s PROBE CHAIN. A third fetch on every would-be-404
+	     child is paid by every `.md` child on the site. A page that owns a JSON subtree
+	     calls this itself — the pattern `cms/json/page.js` documents. If you write that
+	     override, carry core's own guard across (`if (levels <= this.loaded) return this;`)
+	     or a second call reads back the promise being assigned and throws "Chaining cycle
+	     detected for promise" with no file, no line and no stack. */
+	static async from(source, adopt){
+		const url  = is.str(source) ? source.replace(/\/?$/, "/") : null;
+		const data = url ? await Page.read_json(url + "page.json") : source;
+		if (!data) return null;
+
+		const mode = data.mode ?? {};
+		const page = new Page({
+			title: data.title, icon: data.icon, description: data.description,
+			navigation: mode.navigation, arrangement: mode.arrangement,
+			surface: mode.surface, background: mode.background,
+			type_size: mode.type,                       // the disk key is older than the label
+			width: mode.room ?? mode.width,
+			content: mode.content,                      // a url, or the page's own function
+		}, adopt);
+
+		// ⚠ `url &&` — an object handed in directly has no address for its children to
+		//   hang off, so they are declared by name and left to resolve the ordinary way.
+		for (const name of data.children ?? [])
+			page.add(name, (url && await Page.from(url + name + "/")) ?? { title: name });
+
+		return page;
+	}
+
 	static missing(error){
 		return /Failed to fetch dynamically imported module|error loading dynamically imported module|MIME type|Expected a JavaScript/i
 			.test(error?.message ?? "");
@@ -247,12 +345,65 @@ export class Page {
 		// `standard` is the default page shape; a declared `classes` replaces it whole.
 		this.view = div.c("page flow", () => {
 			if (this.title) h1.c("page-title", this.title);
-			return is.fn(this.content) ? this.content() : this.content;
+
+			// A page that said one of the six words gets a FRAME: the chrome its
+			// arrangement word asks for, around the box its content goes in. A page
+			// that said none has no frame at all and draws exactly what it drew before
+			// the words existed. Frame.js.
+			if (this.word_classes().length) return void new this.constructor.Frame({ page: this });
+
+			return this.render_content();
 		})
 			.ac(this.name && "page--" + this.name)
+			.ac(this.width && !this.column_host() && "page-w-" + this.width)
+			.ac(...this.word_classes())
 			.ac(this.classes ?? "standard");
 
 		return this.view;
+	}
+
+	// WHAT IS IN THE BOX: a function, a string of text, or — a string starting with
+	// `/` — an ADDRESS to render. Split out of `render()` because `Page.Frame` needs
+	// to draw the same thing inside its own canvas.
+	render_content(){
+		if (is_address(this.content)) return this.content_at(this.content);
+		return is.fn(this.content) ? this.content() : this.content;
+	}
+
+	/* A PAGE OR A FILE, AT AN ADDRESS, DRAWN IN THIS PAGE'S BOX. `content: "/notes/x.md"`
+	   is that file as prose; `content: "/notes/x/"` is the `page.json` at that address,
+	   run as a real page. There is no `content: "/…"` anywhere on the site today, so no
+	   existing page changes. `imagine/paging/stage.js:466` is where this was learned.
+
+	   ⚠ A LOOP FUSE, and it is needed BECAUSE content takes a url: a page whose content
+	     is its OWN address would read itself, draw itself, read itself… for ever, with
+	     nothing thrown — and the bar on a page you made can produce exactly that in two
+	     clicks. Two levels draw; the third hands over a link.
+	   ⚠ NO DOM AFTER THE AWAIT. The box is captured synchronously and filled in the
+	     callback — this framework's oldest trap. */
+	content_at(url){
+		const level = (this.content_level ?? 0) + 1;
+
+		if (level > 2) return a.c("page-link", "Open " + url + " on its own").href(url);
+
+		return div.c("page-content-at", $box => {
+			$box.append(() => { p.c("muted", "Reading " + url + "…"); });
+
+			(is_md(url) ? Page.file(url) : Page.from(url))
+				.then(source => $box.empty(() => { this.drew_content(source, url, level); }))
+				.catch(() => $box.empty(() => { this.drew_content(null, url, level); }));
+		});
+	}
+
+	// What came back, on screen — or the one sentence that says nothing did. A page
+	// read from an address is BUILT here, never the module page at that url, so
+	// nothing is shared with the real page and `render()`'s view cache is not stolen.
+	drew_content(source, url, level){
+		if (!source) return p.c("muted", "Nothing could be read at " + url + ".");
+
+		const page = source instanceof Page ? source : new Page(source);
+		page.content_level = level;
+		return page.render().ac("default");
 	}
 
 	link(text){ return a.c("page-link", text ?? this.title).href(this.url); }
@@ -314,7 +465,10 @@ export class Page {
 			this.$row = div.c("page-columns-row", stack);
 		} : stack);
 
-		return this.view.ac(this.name && "page--" + this.name).ac(this.classes);
+		// ⚠ No `page-w-*` here: a column's width is already stamped by `column()` below,
+		//   and under a columns host the page grid the width words move things in does
+		//   not exist. The other five words are plain classes and work in both hosts.
+		return this.view.ac(this.name && "page--" + this.name).ac(...this.word_classes()).ac(this.classes);
 	}
 
 	// The child that opens when nothing deeper is routed — a column browser that arrives
@@ -554,6 +708,14 @@ export class Page {
 	// ext/tabs patches `tabs()` onto this prototype and fills `regions`, which
 	// container() reads. Nothing here declares either.
 }
+
+// The box the six page words open, in its own file because this one is long enough.
+// `extends` copies the static side, so a Page subclass gets the whole machine with
+// nothing to wire and a method inside reaches it as `this.constructor.Frame`.
+// ⚠ `PageFrame`, never `Frame` or `Stage` — View.classify() mints a CSS class from
+//   every constructor name in the chain, and `.stage` is a framework layout word that
+//   would shrink-wrap the frame with nothing thrown. Frame.js says it at length.
+Page.Frame = PageFrame;
 
 // Where a save goes when localStorage will not take it — private mode, a full
 // quota, a blocked third-party frame. It throws WHOLE, and a UI that loses its

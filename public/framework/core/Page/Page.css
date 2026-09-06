@@ -554,6 +554,166 @@
 		.page-column-grab { display: none; }
 	}
 
+	/* ════ THE SIX PAGE WORDS ══════════════════════════════════════════════════
+	   A page says a word — `navigation`, `width`, `arrangement`, `surface`,
+	   `background`, `type_size` — and `render()` stamps one class for it.
+	   `Page.class.js`'s `word_classes()` is the one place those names are built and
+	   `Frame.js` is the box they open.
+
+	   ⚠ EVERY DEFAULT WRITES NOTHING. A page that says none of the six wears none of
+	     these classes, so nothing below can reach it. That is what makes the whole
+	     block additive.
+	   ⚠ `@layer theme`, like everything else in this file. `@layer util` at the top
+	     beats theme at ANY specificity, so nothing here can disturb the arrangement
+	     contract or the bleed payback — and nothing here needs to.
+
+	   ── the two colour words ──
+	   FIVE VALUES, READ TWICE ON PURPOSE: `surface` is the content box's own fill and
+	   `background` is the page behind it, because a page wants to be able to switch
+	   either one to any colour. Every value is an existing theme token, so nothing new
+	   is invented here. `dark` declares `color-scheme`, which is the one line that
+	   flips every token inside the island.
+	   ⚠ `plain` means ONE thing: no fill of its own. In the lab it meant transparent
+	     on the box and `var(--wash)` on the frame — the grey a lab frame shows is the
+	     region's grey, not the word's. */
+	.page-surface-plain, .page-bg-plain { background: transparent; }
+	.page-surface-tint,  .page-bg-tint  { background: var(--tint); }
+	.page-surface-prim,  .page-bg-prim  { background: color-mix(in srgb, var(--prim) 10%, var(--surface)); }
+
+	.page-surface-card, .page-bg-card {
+		background: var(--surface);
+		border: 1px solid var(--line); border-radius: var(--radius);
+		box-shadow: 0 1px 3px var(--shade-a08, rgba(0,0,0,0.08));
+	}
+
+	.page-surface-dark, .page-bg-dark {
+		color-scheme: dark;
+		background: #17161a; color: #e8e8ea;
+		border-radius: var(--radius);
+	}
+
+	/* ── the type scale ──
+	   One declaration each, on the page — so a colour and a type size compose without
+	   either knowing the other exists.
+	   ⚠ The page's key is `type_size`, NEVER `type`. `type` is already a page METHOD
+	     (`core/Page/generator/page.js:261`), and a field of that name would read the
+	     function back and stamp a class made out of a function body. */
+	.page-type-compact { font-size: 0.9em; line-height: 1.4; }
+	.page-type-regular { font-size: 1em; }
+	.page-type-display { font-size: 1.15em; }
+	.page-type-display :is(h1, h2) { letter-spacing: -0.02em; line-height: 1.05; }
+	.page-type-display h2 { font-size: 2em; }
+
+	/* ── room, in the page grid ──
+	   Four words, two rules: `reading` is the default and writes nothing at all, and
+	   `full` is `.page.solo`, which this file already has one section up.
+	   ⚠ `page-w-*` is stamped only when the page is NOT in a columns row. Under a
+	     columns host the content sits in `.page-column-prose`, where `grid-column`
+	     means nothing; the column half of the width word (`small hug large fill full`)
+	     is `.page-column-*`, further up this file. doc/columns.md.
+	   ⚠ `wide` moves the FRAME to the wide track and leaves prose on its measure. It
+	     may never remove the measure cap — `--measure: none` is what gave three shells
+	     104, 105 and 250 characters a line (`styles/doc/layout-system.md`). */
+	.page-w-narrow { max-width: calc(var(--measure) + var(--gutter-x) * 2); }
+	.page-w-wide > .page-frame { grid-column: wide; }
+
+	/* ── the frame's own box ──
+	   The skeleton, not the furniture: a column, a row inside it, a middle that grows,
+	   and the content box with somewhere to breathe. The lab's `.paging-stage-body` /
+	   `.paging-stage-mid` / `.paging-canvas` are the same declarations one level down
+	   (`imagine/paging/paging.css:726–742`); without them here a page that says a word
+	   draws bare stacked blocks.
+	   ⚠ Every gap is a RAMP times a level, never a flat em — the multiplier IS the old
+	     em number and only 3440 moves (framework.css:106). The flat-em era is what made
+	     every audit read 3440 as cramped. */
+	.page-frame     { display: flex; flex-direction: column; gap: var(--gap, var(--gap-default)); min-width: 0; }
+	/* ⚠ `flex: 1 1 0`, NEVER `1 1 auto`. With `auto` the basis is the middle's own
+	     max-content width — a paragraph's — so rail + content + panel overflowed the
+	     line and the middle wrapped onto a row of its own at EVERY width, not just the
+	     narrow one (measured 2026-09-06: the canvas took the whole 965px row at 1280
+	     with the rail and the panel stacked under it). A basis of 0 asks for nothing
+	     and takes the leftover, which is what a middle means. */
+	.page-frame-mid { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.6); flex: 1 1 0; min-width: 0; }
+
+	/* ⚠ `flex-wrap` and `container` BOTH live here, never in the query below: a
+	     container query cannot restyle its own container, so a `flex-wrap` written in
+	     there would silently do nothing.
+	   ⚠ `container-type: inline-size` also makes this a containing block for
+	     `position: fixed` descendants. Only a page that SAID one of the six words has a
+	     frame at all, so nothing else on the site pays that containment. */
+	.page-frame-body {
+		display: flex; flex-wrap: wrap; align-items: stretch;
+		gap: var(--gap, var(--gap-default)); min-width: 0;
+		container: page-frame / inline-size;
+	}
+
+	.page-canvas {
+		display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.7);
+		flex: 1 1 auto; min-width: 0;
+		padding: var(--pad, var(--pad-default));
+	}
+
+	/* ⚠ PROSE IN THE BOX KEEPS ITS MEASURE. The canvas is as wide as the frame — 2171px
+	     at 3440 on a `wide` page — and a paragraph the whole width of it is unreadable.
+	     The same cap `.page-column-prose` carries, for the same reason: a rebuild in the
+	     lab dropped this one declaration and ran 2739px paragraphs on 14 pages with no
+	     console error and no overflow (2026-09-05). A wall or a table opts out with
+	     `wide` / `bleed`, exactly as it does in a column. */
+	/* ⚠ BOTH BOXES, and that is not belt and braces: under a navigation word that
+	     swaps, the content is a grandchild of the canvas (canvas → reserve → slot), so
+	     the `>` form alone missed it and a 3440 paragraph measured 2055px. */
+	.page-canvas > :is(p, h1, h2, h3, h4, h5, h6, ul, ol, blockquote, .flow, .md):not(.wide, .bleed),
+	.page-slot   > :is(p, h1, h2, h3, h4, h5, h6, ul, ol, blockquote, .flow, .md):not(.wide, .bleed) {
+		max-width: var(--measure, 40em);
+	}
+
+	/* A slot repeats the canvas's own rhythm, because under a swapping navigation word
+	   the content is a grandchild of the canvas rather than a child. */
+	.page-slot { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.7); min-width: 0; }
+
+	/* The three side boxes an arrangement word opens, and the rail a navigation word
+	   opens. All four are the same shape — a column beside the content — so they are
+	   one rule; what goes INSIDE one is the page's own child, never core's furniture.
+	   ⚠ `em`, and a rail is the one box where `em` is right: it is sized by its own
+	     text, not by the viewport. */
+	.page-rail, .page-panel, .page-aside {
+		display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.4);
+		flex: 0 0 clamp(11em, 22%, 18em); min-width: 0;
+	}
+
+	/* OUT OF ROOM: the side boxes take their own line and the middle gets the row.
+	   ⚠ A CONTAINER query, never `@media`. The frame sits in a region that is the
+	     window minus the app's own sidebar, so a window breakpoint is wrong by exactly
+	     that much — and at 400 a rail plus a panel plus their gaps left the content box
+	     34px wide (measured, before this rule). */
+	@container page-frame (width < 34em) {
+		.page-rail, .page-panel, .page-aside { flex: 1 0 100%; }
+		.page-frame-mid { flex: 1 0 100%; }
+	}
+
+	.page-bar { display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--gap-ramp) * 0.5); }
+
+	/* The children, listed — in the rail, or inside the box. */
+	.page-rows { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.25); }
+	.page-row  { display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.4); text-decoration: none; }
+
+	/* ── the height reservation: a swap may not resize the box ──
+	   The page's own content and the region a child mounts in share ONE grid cell, so
+	   the browser has measured both and opening a child cannot resize the box.
+	   ⚠ `visibility`, never `display: none` — a display-hidden panel is not measured,
+	     which is the entire thing being bought. (`imagine/paging`'s first demo said
+	     "the box did not move" directly over a line reading "the box is 335px
+	     shorter", before this rule existed.) */
+	.page-nav-reserve { display: grid; }
+	.page-nav-reserve > * { grid-area: 1 / 1; }
+	.page-nav-hidden { visibility: hidden; }
+
+	/* The page's own content stands down the moment a real child opens in the panel
+	   sharing its cell — the same idea `.page-column-pages > .default` records for
+	   columns, one region down. Hidden, not removed, so the box keeps the taller of
+	   the two heights. */
+	.page-nav-reserve:has(> .page-frame-panel > .page:is(.active-page, .active-ancestor)) > .page-frame-own { visibility: hidden; }
+
 	/* ── `.rail` — a side region, sized by its ROW, never by the window ──
 	   Every `@media` breakpoint in a component measures the WINDOW while styling a
 	   box inside a region that is window − 220–274px of sidebar; each one is wrong

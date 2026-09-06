@@ -9,8 +9,12 @@ export default new Page({
 	title: "2026-09-06",
 	icon: "history",
 
-	// No `children:` — a task dir with its own page.js is found by NOT being
-	// claimed here; everything else renders live from its task.jsonl.
+	// ⚠ ONLY task dirs that have their own `page.js` are named here. Everything else
+	//   is left undeclared so `route()` below builds it live from its task.jsonl —
+	//   a declared name skips route(), which is exactly what a page.js dir wants and
+	//   exactly what a log-only dir must not have.
+	children: "graduate-plan layout-study",
+
 	route(name){
 		if (name.includes(".") || has_page_js(this.name, name)) return;
 		return new AITask({

@@ -88,6 +88,17 @@ was 545px, not the 965px assumed), both states were identical and the card taugh
   [/imagine/design/layout/approved/](/imagine/design/layout/approved/). A new page picks
   one by name; a sixth is a proposal for the owner, never a commit.
 
+## Content scale follows the box (the owner, 2026-09-06)
+
+- **Small columns never get large content; a massive container is careful with tiny content.**
+  Written down because we make this mistake too often: a 3440 section dropped into a column, a
+  hero in a rail, a one-line chip wall alone in a 3440 band. Before placing anything, say the
+  box's width range and the content's natural range in one line; if they do not overlap, the
+  placement is wrong before any CSS is.
+- A layout is proven for a **range**: above its ceiling it holds its measure and centres, never
+  stretches; below its floor it stacks to a named 1-column fallback. Say the range when you pick
+  one, and prove a new one at 400 / 1000 / 2000 / 3440 and the widths between.
+
 ## The two bounds rules
 
 - **Every track needs a floor and a ceiling.** `1fr` alone keeps its content minimum and
