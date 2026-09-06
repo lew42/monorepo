@@ -1,0 +1,109 @@
+/* /imagine/design/size/ — the size-standard study.
+
+   ⚠ EVERYTHING here is scoped under `.size-lab`. This page proposes a change to
+     framework.css's `:root`; it must not make that change. The candidate below is a
+     copy that reaches the demo box and nothing else on the site.
+   ⚠ `@layer theme` — the layer order is declared once, in framework.css. This sheet
+     loads after it, so at equal specificity these rules win, which is what lets
+     `.size-chips .size-chip` (0,2,0) beat lew42.css's `.theme-lew42 :is(button, .btn)`
+     (also 0,2,0) instead of wearing a CTA's uppercase bold padding. */
+
+@layer theme {
+
+	/* ══ THE CANDIDATE, scoped ═══════════════════════════════════════════════
+	   The eight lines this study is about. `--size` is a per-box UNITLESS
+	   multiplier — never a function of width — so it can scale a whole clamp,
+	   floor and fluid middle and cap together. Type is deliberately absent: the
+	   root font-size clamp in framework.css is the only thing that ramps type
+	   with width.
+	   ⚠ `.size-lab *`, not `.size-lab`: a custom property that holds a `var()` is
+	     substituted where it is DECLARED, so a value computed once on the box
+	     would not re-derive under a nested `--size`. Same reason framework.css
+	     writes its defaults on `:where(*)`. */
+	.size-lab, .size-lab * {
+		--pad:  calc(clamp(1em, 2.6% - 1.1em,   4em)   * var(--size, 1));
+		--gap:  calc(clamp(1em, 1.5cqi - 0.3em, 2.6em) * var(--size, 1));
+		--flow: calc(clamp(2em, 1.4cqi + 0.8em, 3em)   * var(--size, 1));
+	}
+	.size-lab.size-small   { --size: 0.75; }
+	.size-lab.size-regular { --size: 1; }
+	.size-lab.size-large   { --size: 1.25; }
+
+	/* ══ THE BOX YOU DRAG ═════════════════════════════════════════════════════
+	   `container-type: inline-size` is what makes the `cqi` terms above read THIS
+	   box instead of the window.
+	   ⚠ A container query unit never measures its own element — it measures the
+	     nearest ANCESTOR container. So `.size-lab`'s own gap would read the page;
+	     everything measured on this page is a DESCENDANT of the box, which is the
+	     honest reading anyway.
+	   ⚠ The width is explicit (`62%`, then a pixel value while dragging). A
+	     content-sized box with `container-type` can measure 0 and clip its own
+	     children with nothing thrown — never leave one to shrink-to-fit. */
+	.size-lab {
+		container-type: inline-size;
+		position: relative;                       /* the grip mounts INSIDE the box */
+		width: 62%; min-width: 15rem; max-width: 100%;
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		background: var(--surface);
+		overflow: hidden;
+	}
+
+	/* The sample. Its padding is `2.6%` of `.size-lab`'s content box, so it follows
+	   the box you drag and not the window — that is the whole claim, shown. */
+	.size-stage { padding: var(--pad); }
+	/* ⚠ (0,2,0), not `.size-stage > * + *` (0,1,0): `.size-lab p { margin: 0 }` below is
+	     (0,1,1) and silently won, so the rhythm this page exists to show read 0px at every
+	     width. Same layer, same file — specificity, not order. */
+	.size-lab .size-stage > * + * { margin-block-start: var(--flow); }
+
+	/* A wrapping row of three blocks, so the gap is a thing you can see. */
+	.size-row { display: flex; flex-wrap: wrap; gap: var(--gap); }
+	.size-row > * {
+		flex: 1 1 4rem; min-width: 0;
+		height: 2.5rem;
+		border-radius: var(--radius);
+		background: var(--fill-a08);
+	}
+
+	/* THE ONE EXCEPTION. Display type is decoration, not reading, so it may take
+	   `cqi` and shrink with the box. Every other line of type on this page holds
+	   its size at every box width — drag the handle and watch which is which. */
+	.size-display {
+		font-size: clamp(1.1rem, 6cqi, 3rem);
+		font-weight: 700; line-height: 1.05; letter-spacing: -0.02em;
+		margin: 0;
+	}
+
+	/* The compound proof: a container inside a container. Its paragraph must read at
+	   exactly the same font size as the one above it, while its padding follows its
+	   own smaller box. */
+	.size-nested {
+		container-type: inline-size;
+		width: 60%; min-width: 8rem;
+		border: 1px dashed var(--line);
+		border-radius: var(--radius);
+	}
+
+	.size-lab p { margin: 0; }
+
+	/* ══ CHROME — outside the lab on purpose, so it holds still while you drag ══ */
+	.size-chips { display: flex; flex-wrap: wrap; gap: calc(var(--gap-ramp) * 0.4); align-items: center; }
+	.size-chips .size-chip {
+		width: fit-content;
+		padding: 0.35em 0.9em;
+		font: inherit; font-size: 0.85em; text-transform: none; font-weight: 500; letter-spacing: 0;
+		color: var(--ink);
+		background: var(--fill-a08);
+		border: 1px solid transparent; border-radius: 999px;
+		cursor: pointer;
+	}
+	.size-chips .size-chip[aria-pressed="true"] { border-color: var(--prim); color: var(--prim-ink); }
+
+	.size-readout {
+		display: flex; flex-wrap: wrap;
+		gap: calc(var(--gap-ramp) * 0.25) calc(var(--gap-ramp) * 0.8);
+		font-family: var(--mono); font-size: 0.8em; color: var(--subtle);
+	}
+	.size-readout b { color: var(--ink); font-weight: 600; }
+}
