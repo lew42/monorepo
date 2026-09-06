@@ -2,7 +2,7 @@
    Classes: .paging-nav-* (the `paging-` namespace, css-scopes.txt line 122).
 
    Three of the rules here are the deliverable and are meant to be lifted:
-     .paging-nav-reserve   a box that is always as tall as its tallest panel
+     .page-nav-reserve   a box that is always as tall as its tallest panel
      .paging-nav-fixed     a columns host whose columns stop negotiating widths
      .paging-nav-screen    a full screen: a rail that never moves, a centre that scrolls
    Everything else is this page's own furniture. */

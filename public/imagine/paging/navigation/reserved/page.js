@@ -29,7 +29,7 @@ export default new Paging({
 
 		h2("The rule");
 
-		md("Two lines of CSS, and no measuring, no JavaScript and no magic number — the browser works out the tallest panel because all of them are still there:\n\n```css\n.paging-nav-reserve { display: grid; }\n.paging-nav-reserve > * { grid-area: 1 / 1; }\n.paging-nav-hidden { visibility: hidden; }\n```\n\n`visibility: hidden` and not `display: none`, and that is the whole trick: a `display: none` panel is not measured, so the box would go back to fitting whichever panel is showing.");
+		md("Two lines of CSS, and no measuring, no JavaScript and no magic number — the browser works out the tallest panel because all of them are still there:\n\n```css\n.page-nav-reserve { display: grid; }\n.page-nav-reserve > * { grid-area: 1 / 1; }\n.page-nav-hidden { visibility: hidden; }\n```\n\n`visibility: hidden` and not `display: none`, and that is the whole trick: a `display: none` panel is not measured, so the box would go back to fitting whichever panel is showing.");
 
 		md("**What it costs.** Every panel is built and laid out even when you cannot see it, so this is for a handful of panels of similar weight — a form, a summary, a set of settings — not for forty of them or for anything expensive to build. The other answer for those is a height you choose ([the swap stage](/imagine/paging/mechanisms/swap/) uses a fixed one), and its cost is that a panel taller than the number you chose scrolls.");
 
@@ -37,7 +37,7 @@ export default new Paging({
 	},
 
 	box(name, says, reserved){
-		return div.c("paging-nav-demo").ac(reserved && "paging-nav-reserved").append(() => {
+		return div.c("paging-nav-demo").ac(reserved && "page-nav-reserved").append(() => {
 			div.c("paging-nav-demo-name", name);
 			div.c("paging-nav-demo-body", () => {
 				md(says);

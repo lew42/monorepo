@@ -18,7 +18,19 @@
 
    ⚠ THIS FILE IMPORTS NOTHING, on purpose. A page, a rail tile, a toolbar chip, a
      dropdown, a url and a doc all read the same lists, so they cannot disagree —
-     the same rule `/imagine/layouts/system.js` follows.                          */
+     the same rule `/imagine/layouts/system.js` follows.
+
+   ⚠ AND THE FIVE WORD LISTS BELOW ARE STILL THE SITE'S ONE COPY. The plan that
+     graduated these words into core (`ai/2026-09-06/graduate-plan/`) expected this
+     file to re-export them from `/app.js` instead. Core took the six words, the
+     classes and the frame — it did NOT take the LISTS, because a list here is a
+     title, an icon and a sentence of plain English per value, which is a reader's
+     vocabulary and not a renderer's. So there is nothing in core to re-export from
+     yet, and pointing this file at an empty seam would break every importer
+     (`/imagine/sections/sections.js` reads `SURFACES` straight out of here).
+     `/imagine/layouts/system.js` still writes its own copy of the five surface
+     words out by hand; folding that one in is slice 3's job, and this file is
+     where it should point.                                                       */
 
 /* ── 2 · NAVIGATION ────────────────────────────────────────────────────────────
    ONE CONTROL, SEVEN ANSWERS, and each one settles two questions at once: how the

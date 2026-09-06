@@ -39,7 +39,7 @@ const cell = () => { blog.example(null, false); Post.card(listed()[1]).ac("templ
 // picture always has the declaration that made it beside it.
 const SURFACE_TOKEN = {
 	plain: "background: var(--wash)",
-	card:  ".paging-surface-card: var(--surface) + --shade-a08",
+	card:  ".page-surface-card: var(--surface) + --shade-a08",
 	tint:  "background: var(--surface)",
 	prim:  "color-mix(in srgb, var(--prim) 10%, var(--surface))",
 	dark:  "color-scheme: dark — every light-dark() token flips",
@@ -81,7 +81,7 @@ export default new Paging({
 					span.c("templates-theming-token", SURFACE_TOKEN[style]);
 				});
 
-				TYPE.forEach(type => div.c("templates-cell paging-surface-" + style + " templates-type-" + type, () => {
+				TYPE.forEach(type => div.c("templates-cell page-surface-" + style + " templates-type-" + type, () => {
 					div.c("paging-box", () => { cell(); });
 				}));
 			});

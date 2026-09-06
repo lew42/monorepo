@@ -309,8 +309,8 @@ export class PagingToolbar extends View {
 		}
 
 		this.dots?.forEach(($dot, axis) => {
-			$dot.rc(...SURFACES.map(surface => "paging-surface-" + surface.id))
-				.ac("paging-surface-" + this.stage.config[axis]);
+			$dot.rc(...SURFACES.map(surface => "page-surface-" + surface.id))
+				.ac("page-surface-" + this.stage.config[axis]);
 		});
 
 		return this;

@@ -930,9 +930,9 @@ runner: [`/imagine/paging/navigation/doc/measurements.md`](/imagine/paging/navig
 
 ```css
 /* a box that is always as tall as its tallest panel — no JS, no magic number */
-.paging-nav-reserve { display: grid; }
-.paging-nav-reserve > * { grid-area: 1 / 1; }
-.paging-nav-hidden { visibility: hidden; }
+.page-nav-reserve { display: grid; }
+.page-nav-reserve > * { grid-area: 1 / 1; }
+.page-nav-hidden { visibility: hidden; }
 
 /* a columns host whose columns stop negotiating: each takes the width its word FLOORS at */
 .paging-nav-fixed .page.columns .page-column-body:not(.page-column-fill, .page-column-full, .page-column-hug) {
@@ -1179,3 +1179,58 @@ Checked: `ui-test` on both the stale-drawer fix and the default-tab star (proof 
 `ai/2026-09-05/paging-fix-8/`); the drawer shot at 1280 and 3440; 109 pages × 400 / 1280 / 1920
 / 3440 = 436 cold loads with one console error per width, the known `readme/page.js` probe
 404; `made/` byte-identical to baseline by git diff after every test.
+
+## 2026-09-06 — the words graduated, and this realm became a reader
+
+`core/Page` gained the six page words (`navigation`, `width`, `arrangement`, `surface`,
+`background`, `type_size`), the classes they stamp, and `Page.Frame` — the box they open.
+This realm's job in that plan was to **delete its own copy and import core's**. It deleted
+what was genuinely a copy, and it kept what only looked like one. Both halves matter.
+
+**What the realm deleted, because core has the identical declarations.** The five surface
+words (`.paging-surface-*` → `.page-surface-*`), the three type steps (`.paging-type-*` →
+`.page-type-*`), the height reservation (`.paging-nav-reserve` / `.paging-nav-hidden`, which
+the navigation lab says too), and the stage's own skeleton (`.paging-stage-body` /
+`.paging-stage-mid` → core's `.page-frame-body` / `.page-frame-mid`, which `PagingStage`
+now wears by *extending* `Page.Frame`). One dead rule went with them — `.paging-panel`, which
+nothing had emitted since the expand rows became `.paging-held`.
+
+**Why `PagingStage` still draws every box itself.** The plan expected the sixteen drawing
+methods to be deleted into `Page.Frame`. They cannot be, and the reason is not effort: core's
+frame draws a **real page** — its children are `Page`s, a child row is an `<a href>`, a click
+is a Router navigation, and `this.page` IS the page. This stage draws a **demo of a page** —
+its children are four made-up objects, a click swaps a panel in memory and changes no address,
+`this.page` is the page the stage is standing *on*, and the caption underneath measures the box
+before and after so it can report the pixels. Same boxes, different machine. What graduated is
+the CSS and the shape; what stayed is the instrument.
+
+**Two rules the realm keeps on purpose, each with a reason.**
+
+- `.paging-bg-*`, the five page colours. Three of the five mean something different on a demo
+  frame than on a page: `plain` is `var(--wash)` here because a demo box needs a floor to sit
+  on (core's `plain` is *no fill*), `card` drops the radius and shadow because the frame is the
+  flat sheet *behind* the card in the box, and `dark` is one step darker so a dark island inside
+  a dark page still has an edge.
+- `.paging-room-*`. Core's `width` words move a page between the tracks of the **page grid**;
+  the stage is a `View` inside a page and has no grid to claim, so `narrow`/`reading` cap it
+  and `full` takes the screen. Two halves of one axis, in two hosts — the same split
+  `core/Page/doc/columns.md` already records for a columns row.
+
+**And one rule the graduation made necessary.** Core's frame stacks its rail, box and panel
+below 34em, which is right for a page you are reading and wrong for a 208px cell whose whole
+job is to show a rail *beside* a box. Measured at 1280 on [Cross](/imagine/paging/cross/): with
+the query live, every LEFT RAIL and RIGHT RAIL cell of the 49 drew its rail with the box wrapped
+underneath and clipped away by the 13em crop. `.paging-shot-frame .page-frame-body {
+container-type: normal }` is the whole fix — a query with no container to ask never fires.
+
+**What the graduation gave back, measured.** At 400 and 1280 the switch moves **zero pixels**
+on eleven of twelve sampled realm pages (`/cross/` reflows one column of text). At 1920 and
+3440 the stage's inner gaps finally ramp with the rest of the site (`calc(var(--gap-ramp) *
+0.6)` instead of a flat `0.6em` — 14px and 25px instead of 10px), which is the one thing the
+lab's hand-written copy had been missing since the spacing pass.
+
+Checked: 109 urls × 400 / 1280 / 1920 / 3440 before and after — the same url list, the same
+five console messages, zero new (the known `readme/page.js` probe 404); the nine-step use test
+end to end with every step screenshotted, the page made deleted by the feature under test, and
+`made/` byte-identical to baseline by md5; and a class-by-class check that no selector left in
+`paging.css` names a class no file emits.

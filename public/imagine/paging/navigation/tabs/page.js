@@ -34,7 +34,7 @@ export default new Paging({
 
 		h2("The rule");
 
-		md("The same two lines as [the reserved stage](/imagine/paging/navigation/reserved/) — a tab panel is a stage with a strip on top of it:\n\n```css\n.paging-nav-reserve { display: grid; }\n.paging-nav-reserve > * { grid-area: 1 / 1; }\n.paging-nav-hidden { visibility: hidden; }\n```");
+		md("The same two lines as [the reserved stage](/imagine/paging/navigation/reserved/) — a tab panel is a stage with a strip on top of it:\n\n```css\n.page-nav-reserve { display: grid; }\n.page-nav-reserve > * { grid-area: 1 / 1; }\n.page-nav-hidden { visibility: hidden; }\n```");
 
 		h2("Why the real tabs cannot just wear it yet");
 
@@ -46,7 +46,7 @@ export default new Paging({
 	},
 
 	box(name, says, reserved){
-		return div.c("paging-nav-demo").ac(reserved && "paging-nav-reserved").append(() => {
+		return div.c("paging-nav-demo").ac(reserved && "page-nav-reserved").append(() => {
 			div.c("paging-nav-demo-name", name);
 			div.c("paging-nav-demo-body", () => {
 				md(says);

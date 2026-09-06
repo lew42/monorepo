@@ -94,15 +94,9 @@
 	.paging-item-on { border-color: var(--prim); background: var(--fill-a16); font-weight: 600; }
 	.paging-item-on .paging-sign { color: var(--prim); }
 
-	/* ── expand: the panel that opens BELOW the item, in place ─────────────── */
-	.paging-panel {
-		display: flex; flex-direction: column; gap: 0.4em; align-items: start;
-		margin-inline-start: 1.1em;
-		padding: 0.6em 0.8em;
-		background: var(--fill-a04);
-		border-inline-start: 2px solid var(--prim);
-		border-radius: 0 var(--radius) var(--radius) 0;
-	}
+	/* ⚠ `.paging-panel` was deleted on 2026-09-06: nothing had emitted it since the
+	     expand rows became `.paging-held`, and a rule no element can reach is a rule
+	     the next reader has to disprove. The check is in the task's log. */
 	.paging-panel-link { display: inline-flex; align-items: center; gap: 0.2em; }
 
 	/* The card wall a demo box draws inside itself — core's `.page-previews`, sized
@@ -612,7 +606,7 @@
 
 	/* `plain` is "no fill of its own", and a transparent dot reads as an empty
 	   checkbox — so the dot shows the floor that would show through. */
-	.paging-dot.paging-surface-plain { background: var(--wash); }
+	.paging-dot.page-surface-plain { background: var(--wash); }
 
 	.paging-pick-label {
 		font-size: 0.68em; font-weight: 700; letter-spacing: 0.06em;
@@ -698,23 +692,28 @@
 	.paging-more-quiet { color: var(--subtle); background: transparent; border-color: var(--line); }
 	.paging-more-quiet:is(:hover, :focus-visible) { color: var(--prim-ink); border-color: var(--prim); background: var(--fill-a08); }
 
-	/* ── THE FIVE SURFACE WORDS ───────────────────────────────────────────────
-	   ONE list, read by BOTH colour controls and by nothing else. dark declares
-	   color-scheme, which is what makes every token inside it flip with one line. */
-	.paging-surface-plain { background: transparent; }
-	.paging-surface-tint  { background: var(--tint); }
-	.paging-surface-prim  { background: color-mix(in srgb, var(--prim) 10%, var(--surface)); }
-	.paging-surface-card {
-		background: var(--surface);
-		border: 1px solid var(--line); border-radius: var(--radius);
-		box-shadow: 0 1px 3px var(--shade-a08, rgba(0,0,0,0.08));
-	}
-	.paging-surface-dark {
-		color-scheme: dark;
-		background: #17161a; color: #e8e8ea;
-		border-radius: var(--radius);
-	}
+	/* ── THE FIVE SURFACE WORDS ARE CORE'S NOW ────────────────────────────────
+	   `.page-surface-plain|tint|prim|card|dark` live in `core/Page/Page.css`, and the
+	   five declarations there are the five that used to be here, character for
+	   character. The stage, the toolbar's colour dot and a `Paging` page that wears a
+	   surface all say `page-surface-<word>`; there is one copy on the site.
+	   (2026-09-06, slice 2 of `ai/2026-09-06/graduate-plan/`.)
 
+	   ── AND THE FIVE PAGE COLOURS, WHICH ARE STILL THE LAB'S ──────────────────
+	   `background` paints the FRAME OF A DEMO, and three of its five words mean
+	   something different here than they do on a real page, on purpose:
+
+	       plain   `var(--wash)` — a demo box needs a floor to sit on, so the frame
+	               shows the region's own grey. On a page `plain` is core's meaning:
+	               no fill of its own, nothing drawn.
+	       card    no radius and no shadow — the frame is the flat sheet BEHIND the
+	               card in the box, and two shadows one inside the other read as one
+	               smudge.
+	       dark    one step darker than the box's own `dark`, so a dark island inside
+	               a dark page still has an edge.
+
+	   Three deliberate differences is why these five did not move; the two that DO
+	   agree are kept beside them rather than split across two files. */
 	.paging-bg-plain { background: var(--wash); }
 	.paging-bg-tint  { background: var(--tint); }
 	.paging-bg-prim  { background: color-mix(in srgb, var(--prim) 10%, var(--surface)); }
@@ -730,8 +729,14 @@
 		border-radius: var(--radius);
 	}
 
-	.paging-stage-body { display: flex; align-items: stretch; gap: var(--gap, var(--gap-default)); min-width: 0; }
-	.paging-stage-mid  { display: flex; flex-direction: column; gap: 0.6em; flex: 1 1 auto; min-width: 0; }
+	/* ⚠ NO `.paging-stage-body` / `.paging-stage-mid` HERE ANY MORE. `PagingStage`
+	     extends `Page.Frame`, so the stage draws `.page-frame-body` and
+	     `.page-frame-mid` and wears core's rules for both (`core/Page/Page.css`). Core's
+	     are the same declarations plus the two fixes the lab's copy never got: a middle
+	     with `flex: 1 1 0` instead of `1 1 auto` (with `auto` a paragraph's max-content
+	     width is the basis, so the box wraps onto a row of its own) and a container
+	     query that stacks the rail, the box and the panel below 34em instead of
+	     squeezing the box to nothing. */
 
 	/* THE BOX. The only thing the caption measures, and the only thing wearing the
 	   CONTENT colour — the first of the two independent colour controls. */
@@ -754,21 +759,12 @@
 	.paging-held p,
 	.paging-cap p { max-width: var(--measure, 40em); }
 
-	/* ══ THE BOX RESERVES ITS HEIGHT ══════════════════════════════════════════
-	   Lifted, not re-derived, from `navigation/navigation.css` — the nav-stability
-	   task measured it on 2026-09-05 and this is the same two rules.
-
-	   Every panel is drawn and all of them share ONE grid cell; the ones you are not
-	   reading are hidden but still MEASURED. So the box is always as tall as its
-	   tallest panel and clicking a tab cannot resize it — which is what makes the
-	   caption under the stage true. (It was not: "THE BOX DID NOT MOVE" sat directly
-	   over "the box is 335px shorter" on the realm's front page.)
-
-	   ⚠ `visibility`, never `display: none` — a display-hidden panel is not measured,
-	     which is the whole thing being bought here. */
-	.paging-nav-reserve { display: grid; }
-	.paging-nav-reserve > * { grid-area: 1 / 1; }
-	.paging-nav-hidden { visibility: hidden; }
+	/* ══ THE BOX RESERVES ITS HEIGHT — AND THE RULE IS CORE'S ═════════════════
+	   `.page-nav-reserve` and `.page-nav-hidden` are in `core/Page/Page.css` now, with
+	   the reason written out beside them: every panel drawn in ONE grid cell, the ones
+	   you are not reading `visibility: hidden` so they are still MEASURED, so the box
+	   is as tall as its tallest panel and a click cannot resize it. The stage and the
+	   navigation lab both say core's two words. (2026-09-06, slice 2.) */
 
 	/* A panel repeats the box's own rhythm, because it is now a grandchild of the box
 	   rather than a child and the two rules below stop reaching it. */
@@ -829,14 +825,10 @@
 	}
 	.paging-exit:is(:hover, :focus-visible) { background: var(--fill-a16); }
 
-	/* ── THE TYPE SCALE ───────────────────────────────────────────────────────
-	   One declaration each, on the stage — so a surface and a type scale compose
-	   without either knowing the other exists. */
-	.paging-type-compact { font-size: 0.9em; line-height: 1.4; }
-	.paging-type-regular { font-size: 1em; }
-	.paging-type-display { font-size: 1.15em; }
-	.paging-type-display :is(h1, h2) { letter-spacing: -0.02em; line-height: 1.05; }
-	.paging-type-display h2 { font-size: 2em; }
+	/* ── THE TYPE SCALE IS CORE'S ─────────────────────────────────────────────
+	   `.page-type-compact|regular|display` are in `core/Page/Page.css`, and the five
+	   declarations there are the five that used to be here. The stage says
+	   `page-type-<word>`. (2026-09-06, slice 2.) */
 
 	/* ── THE CHILD LIST, DRAWN FOUR WAYS ──────────────────────────────────────
 	   A tab strip whose selected tab JOINS its panel: the strip and the box share
@@ -891,7 +883,10 @@
 		background: var(--surface);
 		border: 1px solid var(--prim); border-radius: var(--radius);
 	}
-	.paging-stage-mid:has(> .paging-pane) { flex-direction: row; align-items: stretch; }
+	/* ⚠ `.page-frame-mid`, core's class — the stage is a `Page.Frame` and its middle is
+	     core's box. `.paging-pane` is the lab's own and exists nowhere else, so this
+	     cannot reach a page outside the realm. */
+	.page-frame-mid:has(> .paging-pane) { flex-direction: row; align-items: stretch; }
 
 	/* takeover — the trail is what everything behind it collapsed into. */
 	.paging-trail { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3em; font-size: 0.85em; }
@@ -1026,6 +1021,17 @@
 		border: 1px solid var(--line); border-radius: var(--radius);
 	}
 	.paging-shot-frame > .paging-stage { font-size: 0.6em; height: 100%; pointer-events: none; }
+
+	/* ⚠ A STAGE DRAWN AS A PICTURE IS NOT A PAGE, so core's frame must not reflow it.
+	     `Page.css` stacks a frame's rail, box and panel below 34em — right for a page
+	     you are reading on a phone, wrong for a 208px cell whose entire job is to show
+	     what a rail BESIDE a box looks like. Measured 2026-09-06 at 1280 on
+	     `/imagine/paging/cross/`: with the query live, every LEFT RAIL and RIGHT RAIL
+	     cell of the 49 showed its rail with the box wrapped underneath and clipped away
+	     by the 13em crop, so the shape the wall exists to show was the one thing
+	     missing. Turning the CONTAINER off is the whole fix — a query with no container
+	     to ask never fires. */
+	.paging-shot-frame .page-frame-body { container-type: normal; }
 	.paging-shot:is(:hover, :focus-visible) .paging-shot-frame { border-color: var(--prim); }
 	.paging-shot:is(:hover, :focus-visible) .paging-shot-head { color: var(--prim-ink); }
 

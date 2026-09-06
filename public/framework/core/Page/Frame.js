@@ -28,9 +28,13 @@ import { View, div, p, span, a, icon, details, summary, is } from "../View/View.
    reserved. `expand` grows the row, `columns` is `Page.columns()` and `takeover` is
    `width: "full"`: all three are MEANT to move things, and reserving there would
    hide the very thing they do.
-   ⚠ `tabs` is not here either, and that is the one place this list differs from the
-     lab's `swaps` flag: `ext/tabs` draws its own panel and fills the same `regions`
-     Map, so a second reserved panel would be a second copy of the child. */
+   ⚠ `tabs` IS DELIBERATELY NOT HERE — LEAVE IT OUT. It is the one place this list
+     differs from the paging lab's own `swaps` flag, and the difference is not an
+     oversight: `ext/tabs` brings its OWN panel and fills this same `regions` Map, so
+     adding `tabs` here reserves a second panel and the child is drawn twice, once in
+     each. Whoever reads the lab's list and this one side by side: the lab reserves for
+     `tabs` because the lab draws its own tab strip; core delegates to `ext/tabs`, which
+     has already done it. (Decided 2026-09-06, slice 2.) */
 const SWAPS = ["rail", "rail-right"];
 
 export default class PageFrame extends View {
@@ -60,9 +64,13 @@ export default class PageFrame extends View {
 		if (page.arrangement === "bar-bottom") this.bar("bottom");
 	}
 
-	/* THE BOX. The one element wearing the CONTENT colour, which is the second of the
+	/* THE BOX. THE ONLY element wearing the CONTENT colour, which is the second of the
 	   two independent colour controls — the first is the page's own background, and
-	   `word_classes()` puts that on the page. */
+	   `word_classes()` puts that, and only that, on the page.
+	   ⚠ ONE WORD, ONE CLASS, ONE ELEMENT. `page-surface-*` was stamped up on the page
+	     as well for one build, so `surface: "card"` drew a bordered, shadowed card and
+	     then drew a second one inside it. `Page.word_classes()` is where that was fixed
+	     and why. */
 	box(){
 		return this.$box = div.c("page-canvas")
 			.ac(this.page.surface && "page-surface-" + this.page.surface)

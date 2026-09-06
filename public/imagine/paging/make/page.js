@@ -66,7 +66,17 @@ const next = (list, word) => list[(list.indexOf(word) + 1) % list.length];
    hands each one a real url derived from this page's.
 
    `make` is the Make page itself and `path` is where this node sits in its tree —
-   the two things the bar over a made page needs in order to WRITE what you set. */
+   the two things the bar over a made page needs in order to WRITE what you set.
+
+   ⚠ NOT `Page.from()`, AND THE TWO ARE NOT DOING THE SAME JOB. Core's `Page.from()`
+     (2026-09-06) reads a `page.json` OFF DISK, at a url, and hands back a plain
+     `Page` — the right seam for "run the page at this address", which is what the
+     stage's `content` word and `?nest=` use. This walks a tree Make ALREADY HAS IN
+     MEMORY (`make.tree`, the one thing every edit rebuilds) and hangs the editor on
+     each node: `node_now()` so the drawer prints the page as it is now rather than
+     as it was one click ago, `delete_now()` so a page can be unmade, and a
+     `content()` whose bar WRITES what you set. Swapping this for `Page.from()` would
+     re-fetch every file Make is holding and drop all three. */
 function grow(nodes, make, path = []){
 	return nodes.map(node => {
 		const config = config_of(node);

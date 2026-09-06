@@ -1,4 +1,4 @@
-import { View, div, p, span, a, icon, details, summary, md } from "/app.js";
+import { Page, div, p, span, a, icon, details, summary, md } from "/app.js";
 import { clean, is_url, is_off_site, nav_of, title_of, NAVIGATION, ARRANGEMENT, ROOM, SURFACES, TYPE } from "./blocks.js";
 import { CONTENT_DRAW, PAGES } from "./content.js";
 import { from_url, write_url, nest_of } from "./url.js";
@@ -154,7 +154,25 @@ const child_for = (kid, url_of) => ({
      "0px" out loud, and `columns`/`takeover` read the real number they moved it by.
      (Decision 5 of 2026-09-05 — stable navigation versus dynamic.)               */
 
-export class PagingStage extends View {
+/* ── IT IS A `Page.Frame` ──────────────────────────────────────────────────────
+
+   `Page.Frame` (`framework/core/Page/Frame.js`) is the box the six page words open,
+   and it graduated OUT of this file on 2026-09-06: core draws a frame for any page
+   that says one of the words, wearing `.page-frame`, `.page-frame-body`,
+   `.page-frame-mid`, `.page-canvas`, `.page-surface-*` and `.page-type-*`. Extending
+   it is what makes the lab a CONSUMER rather than a second copy — this stage wears
+   `.paging-stage.page-frame` and the skeleton, the surface colours, the type steps
+   and the height reservation are all core's now. `paging.css` deleted its own.
+
+   ⚠ WHAT DID NOT GRADUATE, AND WHY THE METHODS BELOW ARE STILL HERE. Core's frame
+     draws a REAL page: its children are `Page`s, a child row is an `<a href>`, and a
+     click is a navigation the Router handles. This stage draws a DEMO of a page: its
+     children are four made-up objects, a click swaps a panel in memory and changes no
+     address, and the caption underneath measures the box before and after so it can
+     report the pixels. Same boxes, different machine — so every drawing method below
+     overrides core's rather than deleting into it. `doc/decisions.md` records it.  */
+
+export class PagingStage extends Page.Frame {
 
 	// ── state ────────────────────────────────────────────────────────────────
 	// `open` is which child is showing (null = the page's own content). Held in
@@ -220,11 +238,11 @@ export class PagingStage extends View {
 		const c = this.config;
 
 		this.rc(...ids(SURFACES).map(w => "paging-bg-" + w))
-			.rc(...ids(TYPE).map(w => "paging-type-" + w))
+			.rc(...ids(TYPE).map(w => "page-type-" + w))
 			.rc(...ids(ROOM).map(w => "paging-room-" + w))
 			.rc(...ids(ARRANGEMENT).map(w => "paging-arr-" + w))
 			.rc(...ids(NAVIGATION).map(w => "paging-nav-" + w))
-			.ac("paging-bg-" + c.background, "paging-type-" + c.type,
+			.ac("paging-bg-" + c.background, "page-type-" + c.type,
 				"paging-room-" + c.room, "paging-arr-" + c.arrangement, "paging-nav-" + c.navigation);
 
 		return this;
@@ -240,11 +258,11 @@ export class PagingStage extends View {
 		if (c.room === "full") this.exit();
 		if (c.arrangement === "bar-top") this.bar("top");
 
-		div.c("paging-stage-body", () => {
+		div.c("page-frame-body", () => {
 			if (c.navigation === "rail") this.rail("left");
 			if (c.arrangement === "rail-left") this.panel("left");
 
-			div.c("paging-stage-mid", () => {
+			div.c("page-frame-mid", () => {
 				if (c.navigation === "tabs") this.tabs();
 				this.box();
 				if (c.navigation === "columns" && this.open !== null) this.pane();
@@ -265,7 +283,7 @@ export class PagingStage extends View {
 	   controls (the first is the frame's background, above). */
 	box(){
 		return this.$box = div.c("paging-canvas")
-			.ac("paging-surface-" + this.config.surface)
+			.ac("page-surface-" + this.config.surface)
 			.append(() => { this.held(); });
 	}
 
@@ -292,7 +310,7 @@ export class PagingStage extends View {
 	held(){
 		if (!this.swaps()) return this.own_panel();
 
-		div.c("paging-nav-reserve", () => {
+		div.c("page-nav-reserve", () => {
 			this.slot(null);
 			this.pages.forEach((child, i) => this.slot(i, child));
 		});
@@ -310,7 +328,7 @@ export class PagingStage extends View {
 
 	// One reserved panel. `i === null` is the page's own content.
 	slot(i, child){
-		return div.c("paging-slot").ac(this.open !== i && "paging-nav-hidden").append(() => {
+		return div.c("paging-slot").ac(this.open !== i && "page-nav-hidden").append(() => {
 			if (i === null) return void this.own_panel();
 
 			div.c("paging-held", () => { this.child_panel(child, i); });
@@ -643,7 +661,7 @@ export class PagingStage extends View {
 			span.c("paging-crumb on", child.title);
 		});
 
-		div.c("paging-canvas").ac("paging-surface-" + this.config.surface).append(() => {
+		div.c("paging-canvas").ac("page-surface-" + this.config.surface).append(() => {
 			div.c("paging-held", () => {
 				span.c("paging-eyebrow", "this child took the whole stage — everything behind it is the trail above");
 				this.child_panel(child, this.open);

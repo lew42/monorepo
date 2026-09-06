@@ -19,6 +19,15 @@ into that page's `page.json` — change **room** on [`/make/notes/`](/imagine/pa
 reload with a bare url, and it is still there. Build's middle wears the same bar, so both editors
 write all seven · `stage.js`'s `keep` hook.
 
+**Six of the words are core's now, and this realm is one of its readers.** On 2026-09-06
+`core/Page` gained `navigation`, `width`, `arrangement`, `surface`, `background` and
+`type_size` as things *any* page can say, plus `Page.Frame` — the box they open. So
+`PagingStage extends Page.Frame`, and the surface colours, the type steps, the height
+reservation and the frame's own skeleton are core's CSS: this realm deleted its copies.
+What did **not** graduate is the demo machine — canned children, a click that swaps a panel
+in memory instead of navigating, and the caption that measures the box before and after —
+which is why `stage.js` still draws every box itself · [decisions](/imagine/paging/doc/decisions/)
+
 ## The six blocks
 
 Everything in this realm is one of these, or a preset made out of them.
@@ -119,7 +128,7 @@ export default new Paging({
 - **A `<pre>` inside a flex column collapses to nothing.** `.drawer-body` is `flex v` and a
   `<pre>` scrolls, so its automatic minimum height is 0 — the drawer's `page.js` box was 22px
   tall holding nineteen lines. `flex: none` on the wrapper, and let the box scroll itself.
-- **A navigation word that SWAPS the box reserves its height** (`.paging-nav-reserve`), so the
+- **A navigation word that SWAPS the box reserves its height** (`.page-nav-reserve`), so the
   caption under the stage can say "the box did not move" and be right. That is a `swaps` flag on
   the word, not a guess: `expand`, `columns` and `takeover` are the dynamic words and report the
   pixels they really moved · [navigation](/imagine/paging/navigation/)

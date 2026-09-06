@@ -96,7 +96,7 @@ export class Paging extends Page {
 	// column body — there is no column body any more.
 	render(){
 		const view = super.render();
-		if (this.surface) view.ac("paging-surface-" + this.surface);
+		if (this.surface) view.ac("page-surface-" + this.surface);
 		return view;
 	}
 

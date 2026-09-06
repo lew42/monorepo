@@ -75,8 +75,8 @@ export class PagingNavLab extends View {
 	panel(){
 		if (!this.steady) return p.c("paging-nav-face", PANELS[this.n]);
 
-		div.c("paging-nav-reserve", () => PANELS.forEach((text, i) =>
-			p.c("paging-nav-face", text).ac(i !== this.n && "paging-nav-hidden")));
+		div.c("page-nav-reserve", () => PANELS.forEach((text, i) =>
+			p.c("paging-nav-face", text).ac(i !== this.n && "page-nav-hidden")));
 	}
 
 	chip(sign, label, act){
@@ -192,7 +192,7 @@ export class PagingNavStack extends View {
 			this.picker();
 			this.$stage = div.c("paging-nav-stage")
 				.ac(this.tabbed && "paging-tab-panel")
-				.ac(this.reserved && "paging-nav-reserve")
+				.ac(this.reserved && "page-nav-reserve")
 				.append(() => { this.faces(); });
 		});
 
@@ -221,7 +221,7 @@ export class PagingNavStack extends View {
 		if (!this.reserved) return div.c("paging-nav-face", () => FACES[this.n][1].forEach(line => p(line)));
 
 		FACES.forEach(([, lines], i) =>
-			div.c("paging-nav-face", () => lines.forEach(line => p(line))).ac(i !== this.n && "paging-nav-hidden"));
+			div.c("paging-nav-face", () => lines.forEach(line => p(line))).ac(i !== this.n && "page-nav-hidden"));
 	}
 
 	spot(){

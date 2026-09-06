@@ -68,18 +68,28 @@ export class Page {
 		return this;
 	}
 
-	// The classes those words stamp. ONE method, so `render()` and `render_column()`
-	// cannot drift — and `render()` asks whether this list is empty to decide whether
-	// the page needs a `Frame` at all.
+	/* The classes those words stamp ON THE PAGE. ONE method, so `render()` and
+	   `render_column()` cannot drift.
+
+	   ⚠ `surface` IS NOT IN THIS LIST, and that is the difference between a card and a
+	     card inside a card. The two colour words paint two DIFFERENT boxes: the page
+	     wears `background`, and the content box — the one `Frame.box()` draws — wears
+	     `surface`. One word, one class, one element. Stamped in both places for one
+	     build, `surface: "card"` drew a bordered, shadowed card and then drew a second
+	     one inside it (measured 2026-09-06 at 1280 with the paging lab's `card` word). */
 	word_classes(){
 		return [
 			this.navigation  && "page-nav-" + this.navigation,
 			this.arrangement && "page-arr-" + this.arrangement,
-			this.surface     && "page-surface-" + this.surface,
 			this.background  && "page-bg-" + this.background,
 			this.type_size   && "page-type-" + this.type_size,
 		].filter(Boolean);
 	}
+
+	// DID THE PAGE SAY ANY WORD AT ALL? This is what `render()` asks before it builds a
+	// `Frame`, rather than `word_classes().length` — `surface` writes no class up here
+	// and still needs the frame, because the frame draws the very box it paints.
+	words_said(){ return !!(this.surface || this.word_classes().length); }
 
 	// One Map, in declaration order: undefined = not mine, null = declared, Page = here.
 	// A POJO declares by title — the key is the title, Page.slug(key) the url segment.
@@ -350,7 +360,7 @@ export class Page {
 			// arrangement word asks for, around the box its content goes in. A page
 			// that said none has no frame at all and draws exactly what it drew before
 			// the words existed. Frame.js.
-			if (this.word_classes().length) return void new this.constructor.Frame({ page: this });
+			if (this.words_said()) return void new this.constructor.Frame({ page: this });
 
 			return this.render_content();
 		})
@@ -492,8 +502,14 @@ export class Page {
 				if (this !== host) a.c("page-column-close", () => icon("close")).href(this.parent.url);
 			});
 
+			/* ⚠ `render_content()`, NOT the two-branch version written out by hand. It is
+			     the SAME reader `render()` uses, so `content: "/notes/columns.md"` is that
+			     file drawn HERE too. Written out here for one build, a `content` url in a
+			     columns row printed its own address as a line of text (2026-09-06) — one
+			     of the two places what-is-in-the-box is decided, disagreeing with the
+			     other. There is one now. */
 			if (this.content)
-				div.c("page-column-prose flow", () => is.fn(this.content) ? this.content() : this.content);
+				div.c("page-column-prose flow", () => this.render_content());
 
 			// ⚠ `index: true` — my content ALREADY shows my children, as a `previews()`
 			//   wall, so this rail would say the same things a second time (`layout` Q4:
