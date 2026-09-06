@@ -22,6 +22,12 @@
 
 	.demo-shell-run  { flex: 3 1 52em; min-width: 0; }
 
+	/* ── the title, above the path ──
+	   Off unless a caller passes one (`title: ""` on the prototype) — spacing only,
+	   the `<h3>` already carries its own size and weight. Same ramp as the path's own
+	   `margin-block-end` below, so the two read as one stack. */
+	.demo-shell-title { margin-block-end: calc(var(--gap-ramp) * 0.6); }
+
 	.demo-shell-code {
 		flex: 1 1 28em; min-width: 0;
 		display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.35);   /* was gap 0.35em - 2026-09-05 ramps */
@@ -44,6 +50,18 @@
 
 	/* The source column is `.demo-source`, demo.css's — ONE code surface, so the
 	   shell's peer column and a leaf page's block cannot drift apart. */
+
+	/* ── the footer, under the whole band ──
+	   A caption for the demo, not for the render or the code alone — `flex-basis: 100%`
+	   always forces its own full-width line, however the band above it split. Same
+	   look as `.demo-note` (demo.css) — the sentence that belongs to the example, not
+	   new type. Off unless a caller passes one (`foot: ""` on the prototype). */
+	.demo-shell-foot {
+		flex: 1 1 100%; min-width: 0;
+		margin-block-start: calc(var(--gap-ramp) * 0.6);
+		font-size: 0.9em;
+		color: var(--subtle);
+	}
 
 	/* ── the layout bar ──
 	   Under the render it steers, inside its column: the band pays the gutter, so a

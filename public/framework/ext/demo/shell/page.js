@@ -40,5 +40,9 @@ five-step order: [ai/2026-08-30/demo-merge/](/framework/ai/2026-08-30/demo-merge
 		h2("A generated page");
 		md("`core/Page/generator` — the same shell, code off. `widths: false` would drop the presets too.");
 		generator.demo({ code: false });
+
+		h2("Title and footer");
+		md("Two more options, both empty by default — neither moves any demo above. `title:` is a string above the path; `foot:` is a string or a function, drawn under the whole band.");
+		feed.demo({ title: "Feed", code: false, foot: () => md("A footer can be a function, drawing whatever belongs under the code.") });
 	},
 });

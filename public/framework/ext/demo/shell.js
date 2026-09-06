@@ -1,4 +1,4 @@
-import View, { div, a, span, is } from "../../core/View/View.js";
+import View, { div, a, span, h3, is } from "../../core/View/View.js";
 import { Page } from "../../core/Page/Page.class.js";
 import { stage, WIDTHS } from "./stage.js";
 import { source, source_block, source_code, source_file } from "./demo.js";
@@ -47,6 +47,8 @@ View.stylesheet(import.meta, "shell.css");
  *   min     a minimum height — a FLOOR. There is deliberately no `height`
  *   path    false to drop the path bar
  *   bar     the layout bar under the render — `ext/layout`, pointed at what is shown
+ *   title   a heading above the path — a string. Off (`""`) unless a caller passes one
+ *   foot    a caption under the whole band — a string or a function. Off (`""`) too
  *   run     `fn(shell)` — the run column, prebuilt. This is what makes the four
  *           sugars thin: `demo.page`, `demo.tree`, `demo.exhibit` and `demo.layout`
  *           each know one thing the shell should not (a bleeding canvas, a bare
@@ -69,6 +71,10 @@ class DemoShell extends View {
 		// path bar is for. A leaf has nothing to route to, so it renders bare.
 		this.app ??= !this.run && this.page.children.size > 0;
 
+		// Both off by default (the prototype's `title: "", foot: ""`), so none of the
+		// site's existing callers — who pass neither — move a pixel.
+		if (this.title) div.c("demo-shell-title", () => h3(this.title));
+
 		div.c("demo-shell-run", () => {
 			if (this.path) this.$path = div.c("demo-shell-path");
 
@@ -81,6 +87,9 @@ class DemoShell extends View {
 		});
 
 		if (this.code !== false) div.c("demo-shell-code", () => { this.source(); });
+
+		// A string or a function — `append()` (View.js) already runs either one.
+		if (this.foot) div.c("demo-shell-foot", this.foot);
 
 		this.crumbs(this.page);
 	}
@@ -173,7 +182,7 @@ class DemoShell extends View {
 
    `bleed` is the page's widest grid track (Page.css): a demo is an exhibit, and the
    whole point of the two-column band is spending a 3440 on it. */
-Object.assign(DemoShell.prototype, { classes: "bleed", code: true, path: true, bar: false, widths: WIDTHS, min: "" });
+Object.assign(DemoShell.prototype, { classes: "bleed", code: true, path: true, bar: false, widths: WIDTHS, min: "", title: "", foot: "" });
 
 export default Page.prototype.demo;
 export { DemoShell };

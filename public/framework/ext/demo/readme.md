@@ -16,6 +16,8 @@ demo.app(sample());           // a Page tree playing App and Router in a box
 
 Four rules `page.demo()` cannot break: the **path** is always above, the **width readout** always under the render, the **source is a column** beside the render where there is room and a block under it where there isn't, and the render has **no height, only a floor** (`min:`). There is deliberately no `height` — that is what silently cut 17 demos off.
 
+**2026-09-06 — a title and a footer.** `title:` (a string) draws an `<h3>` above the path; `foot:` (a string or a function) draws a caption under the whole band. Both are off (`""`) unless a demo asks for one, so none of the 202 existing callers move a pixel.
+
 ```js
 import { mini } from "/framework/ext/demo/mini.js";
 
