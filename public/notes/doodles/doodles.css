@@ -1,0 +1,152 @@
+/* /notes/doodles/ — the notebook doodles, redrawn as SVG.
+   Loaded by page.js. Any page that imports doodles.js needs this sheet too:
+   the drawings carry no colour or line weight of their own, and these rules
+   are where they get them.
+
+   `@layer site`, like every other page sheet on the site. The `doodle-`
+   prefix is registered in framework/styles/css-scopes.txt. */
+@layer site {
+
+	/* THE ONE RULE. Every drawing is a stroke, in the colour of the text around
+	   it — so a doodle inside `.muted` is muted, inside a `--prim` heading it is
+	   the accent, and dark mode needs no second rule anywhere.
+
+	   Height, not width: three of the twenty are not square, and doodles.js
+	   writes each one's `aspect-ratio` from its viewBox, so setting the height
+	   keeps every shape's own proportions. */
+	.doodle {
+		display: inline-block;
+		vertical-align: -0.15em;         /* sits on the text baseline, not below it */
+		block-size: var(--doodle-size, 1em);
+		inline-size: auto;
+		overflow: visible;               /* a stroke half-outside the viewBox still draws */
+	}
+
+	.doodle path {
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 1.5;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+
+	/* Line weight is in viewBox units, and the box height is what the CSS size
+	   sets — so a taller box needs a proportionally thicker stroke to LOOK the
+	   same weight. These five are the only doodles whose box is not 24 tall.
+	   Tuned by eye at 1em and at 6em, not calculated: the dense ones (truss,
+	   wireframe) read better a little finer than the arithmetic wants. */
+	.doodle-compass path   { stroke-width: 2.6; }
+	.doodle-camera path    { stroke-width: 2.2; }
+	.doodle-truss path     { stroke-width: 2.4; }
+	.doodle-wireframe path { stroke-width: 1.4; }
+	.doodle-heli path      { stroke-width: 1.9; }
+
+	/* ── the drawn-on animation ──────────────────────────────────────────────
+	   Put `doodle-draw` on any box that contains doodles: they start undrawn
+	   and draw themselves in when the pointer enters the box, or the moment
+	   the box gains the `is-drawn` class.
+
+	   ⚠ The wrapper is the hover target on purpose. A doodle is `fill: none`,
+	   so hovering the <svg> itself only fires over the ~1.5px of painted line
+	   — you would have to trace the drawing with the mouse to start it.
+
+	   `stroke-dasharray: 100` works for every doodle without measuring anything
+	   because doodles.js stamps `pathLength="100"` on every path: the browser
+	   then treats each stroke as exactly 100 units long, whatever its real
+	   length. One dash of 100, offset by 100, is a line not yet drawn. */
+	.doodle-draw .doodle path {
+		stroke-dasharray: 100;
+		animation: doodle-drawn 1.2s ease-out both;
+	}
+
+	/* ⚠ Two keyframe rules with identical steps and different NAMES. That is the
+	   whole trick: a transition cannot replay an animation that has already
+	   finished, but changing `animation-name` restarts one — so pointing at the
+	   card redraws every stroke, and moving away redraws it again. Merging these
+	   into one @keyframes would make the hover do nothing at all. */
+	.doodle-draw:hover .doodle path,
+	.doodle-draw:focus-within .doodle path {
+		animation: doodle-drawn-again 1.2s ease-out both;
+	}
+
+	@keyframes doodle-drawn       { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
+	@keyframes doodle-drawn-again { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
+
+	/* Reduced motion means no drawing-on at all — not a faster one. The doodle
+	   is simply there, complete, which is the state the animation was heading
+	   for anyway. */
+	@media (prefers-reduced-motion: reduce) {
+		.doodle-draw .doodle path,
+		.doodle-draw:hover .doodle path { animation: none; stroke-dashoffset: 0; }
+	}
+
+	/* ── the texture ─────────────────────────────────────────────────────────
+	   `doodles.texture(name)` returns the tiled <svg>; `.doodle-band` is the box
+	   it paints behind. The band clips, so tiles cut off at its edges instead of
+	   spilling, and it stacks its own content above the tiles. */
+	.doodle-band { position: relative; overflow: hidden; }
+	/* ⚠ `.doodle-corner` is excluded on purpose: it is (0,1,0) and this selector is
+	   (0,2,0), so without the exclusion this rule wins and turns the absolutely
+	   placed corner doodle back into an in-flow one — which lands it top-LEFT,
+	   over the heading, with no error anywhere. */
+	.doodle-band > :not(.doodle-texture, .doodle-corner) { position: relative; }
+
+	.doodle-texture {
+		position: absolute;
+		inset: 0;
+		inline-size: 100%;
+		block-size: 100%;
+		pointer-events: none;
+	}
+
+	.doodle-texture path {
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 1.6;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+
+	/* ── a doodle as a corner decoration ─────────────────────────────────────
+	   Big, faint and out of the way: it decorates the card, it is not content,
+	   so it never takes space and never intercepts a click. */
+	.doodle-corner {
+		position: absolute;
+		inset-block-start: var(--gap-default);
+		inset-inline-end: var(--gap-default);
+		opacity: 0.22;
+		pointer-events: none;
+	}
+
+	/* ── the wall on this page ───────────────────────────────────────────────
+	   `grid auto gap` from framework.css does the columns; this only says how
+	   wide a doodle's tile wants to be. 8em holds the crop, the drawing and a
+	   one-word name without wrapping the name. */
+	/* ⚠ `--column` must clear the WHOLE pair, not one picture. The first draft set
+	   5.6em while a tile held two 3.2em pictures plus their gap (6.6em), so every
+	   tile overflowed its grid column and the wall's first and last tiles were
+	   sliced by the region's edges — with no overflow warning anywhere. */
+	.doodle-wall { --column: 6.4em; }
+
+	/* One tile: the photograph on top, the redrawing under it, the name last.
+	   Fixed picture heights so the drawings line up across the wall — a row of
+	   tiles whose baselines wander is harder to compare than one that doesn't. */
+	/* ⚠ Both pictures get the SAME BOX — height AND width — and are scaled to fit
+	   inside it. Height alone is not enough: the crops range from square (star) to
+	   3:1 (the span bar), so a height-only rule made some tiles three times wider
+	   than others and the wall came out ragged. `object-fit: contain` does it for
+	   the photograph; an SVG with a viewBox does it by itself. */
+	.doodle-tile { text-align: center; }
+	.doodle-tile img { block-size: 2.5em; inline-size: 2.7em; object-fit: contain; }
+	.doodle-tile .doodle { block-size: 2.5em; inline-size: 2.7em; }
+	.doodle-tile figcaption { font-size: 0.8em; }
+
+	/* The strip between photo and drawing, so it is obvious which is which. */
+	.doodle-tile-pair {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.2em;
+		min-block-size: 2.9em;
+	}
+}
