@@ -10,8 +10,8 @@ anything is *writing a file*; `Doc` is what serves those files as a browsable pa
 content()                Overview          /View/
 overview: demos          Overview's rail   /View/overview/<demo>/   demo configs (array) or dir names
 children: "guide"        a top tab         /View/guide/             ← guide/page.js
-properties: "el"         API               /View/api/el/            + doc/property/el.md
-methods:    "append"     API               /View/api/append/        + doc/method/append.md
+properties: "el"         API               /View/api/el/            + doc/property/el.md   (also /View/doc/property/el/)
+methods:    "append"     API               /View/api/append/        + doc/method/append.md (also /View/doc/method/append/)
 notes:      "capturing"  Docs              /View/doc/capturing/     = doc/capturing.md
 files:      "View.js"    Files             /View/files/             + doc/file/View.js.md
 ```
@@ -161,6 +161,34 @@ being outside this change's file fence.
   Three independent readers expecting the same thing is the design telling you
   which binding is right. `overview_section()` now binds it. ⚠ The consequence:
   `this.parent` inside `content()` is the module's parent, not the section.
+
+**A member page opens from either of its two addresses now** (2026-09-06). `api()` /
+`members()` always built the member page at `/api/<name>/` — the tab — and that address
+always cold-loaded fine. But every note, decision and comment on the site (including the
+table at the top of this file) writes the member's `.md` file as `doc/method/<name>.md` /
+`doc/property/<name>.md`, and nothing ever answered a request for the PAGE at that same
+address, `/doc/method/<name>/` / `/doc/property/<name>/` — `Page.child()` had no route for
+`method` or `property` under the `doc` section, so the App's own router 404'd before any
+`.md` fetch happened. (The `.md` file itself was never the problem — `Page.file()` serves
+any `.md` on disk; the missing piece was the PAGE, the url with no extension.) Six such
+urls, cited from real prose across the site, were the finding that named this.
+
+Fix: `member_page()` now also records each member's config into `this.member_index`, keyed
+by kind (`"method"` / `"property"`) — a plain `Map` built as `members()` runs, so a second,
+prefixed subject (the `History` example above `api()`) aliases exactly like the first.
+`docs_section()` now builds the `doc` node whenever a module has notes OR members (it used
+to require notes), and gives it `route("method"|"property")` → `member_group(kind)`, a
+lazy container whose own `route(name)` looks the name up in `member_index` and builds the
+identical page a second time, via `member_page_config()` (pulled out of `member_page()` for
+exactly this reuse). Nothing about `/api/<name>/` changed.
+
+**This is deliberately invisible.** A module with methods/properties but no notes now has
+a `doc` node in its tree (so the second address has somewhere to live), but `bar()` only
+shows the "Docs" tab when there is a real note to read, and the `doc` section's own
+`render()` lists only note names — never `method`/`property` — so no module gained a tab
+it did not already have. Verified: crawled every declared member of every Doc on the site
+(29 modules, 379 method/property names) at both addresses; all 379 render cold with no
+routing error at either.
 
 ## Open
 

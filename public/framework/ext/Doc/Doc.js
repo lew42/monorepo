@@ -86,10 +86,43 @@ export class Doc extends Page {
 		return this.section("api", "API", { initialize(){ this.parent.api(this); } });
 	}
 
+	// The "Docs" tab, PLUS a second door every member gets at the same time: whatever
+	// api() (above) just built landed in `member_index` by kind, and member_group()
+	// below answers `doc/method/<name>/` / `doc/property/<name>/` from it — the address
+	// where the `.md` itself actually sits (declaring.md), same as a note's own
+	// `doc/<name>/`. A module with members but no notes still gets this node; render()
+	// only ever lists real notes, and bar() only shows the tab when one exists, so
+	// nothing looks different until you go looking for the second door.
+	// ⚠ Order matters: api_section() (above) runs first, so `member_index` is already
+	// filled by the time this checks it — sections() calls them in that order.
 	docs_section(){
-		if (!Doc.names(this.notes).length) return;
+		const has_notes = Doc.names(this.notes).length > 0;
+		const has_members = [...(this.member_index?.values() ?? [])].some(names => names.size);
 
-		return this.section("doc", "Docs", { initialize(){ this.parent.docs(this); } });
+		if (!has_notes && !has_members) return;
+
+		const doc = this;
+
+		return this.section("doc", "Docs", {
+			initialize(){ if (has_notes) doc.docs(this); },
+			render(){
+				const names = Doc.names(doc.notes);
+				return this.view ??= div.c("page doc-section", () => { if (names.length) this.tabs(names.join(" ")).ac("vertical"); })
+					.ac("page--" + this.name);
+			},
+			route(name){ return (name === "method" || name === "property") && doc.member_group(name); },
+		});
+	}
+
+	// One container per kind, answering `doc/<kind>/<name>/` from whatever api() (via
+	// member_page()) actually recorded — so a second, prefixed subject
+	// (`members(section, History, { prefix: "History." })`, readme.md's own example)
+	// aliases exactly like the first, with nothing here naming it specially.
+	member_group(kind){
+		const doc = this;
+		const names = this.member_index?.get(kind) ?? new Map();
+
+		return { title: `${this.title} ${kind}s`, route(name){ return names.has(name) && doc.member_page_config(name, names.get(name)); } };
 	}
 
 	// One view, not a rail — so it declares its own render rather than taking section()'s.
@@ -134,7 +167,7 @@ export class Doc extends Page {
 			subject,
 			call: `${name}: …`,
 			file: `doc/property/${prefix}${name}.md`,
-		}));
+		}, "property"));
 
 		Doc.names(methods).forEach(name => {
 			const fn = subject && member(subject, name);
@@ -151,7 +184,7 @@ export class Doc extends Page {
 				banner: Doc.declared(subject, name) && patched(fn, name) &&
 					`> Replaced at runtime — an ext has patched \`${Doc.label(subject)}.${name}\`, and what you see below is the replacement. That is what actually runs.`,
 				file: `doc/method/${prefix}${name}.md`,
-			});
+			}, "method");
 		});
 
 		return section;
@@ -171,10 +204,26 @@ export class Doc extends Page {
 	}
 
 	// The one member page shape: an optional banner, an optional source pane, the prose.
-	member_page(section, name, { title = name, source, subject, call, banner, file }){
+	// `kind` ("method" | "property") is the ONLY thing that makes a member open a
+	// second way — recorded here into `member_index`, read back by member_group()
+	// above. A note (docs(), no kind) keeps its one address, `doc/<name>/`.
+	member_page(section, name, config, kind){
+		if (kind) this.remember_member(kind, name, config);
+		return section.add(name, this.member_page_config(name, config));
+	}
+
+	remember_member(kind, name, config){
+		this.member_index ??= new Map();
+		if (!this.member_index.has(kind)) this.member_index.set(kind, new Map());
+		this.member_index.get(kind).set(name, config);
+	}
+
+	// Pulled out of member_page() so member_group() can build the SAME page a second
+	// time, at a second address, without member_page() growing a second job.
+	member_page_config(name, { title = name, source, subject, call, banner, file }){
 		const doc = this;
 
-		return section.add(name, {
+		return {
 			title,
 			content(){
 				if (banner) md(banner);
@@ -185,7 +234,7 @@ export class Doc extends Page {
 				// places it in a view that was captured synchronously.
 				return md.file(doc.meta, file, { h1: false });
 			},
-		});
+		};
 	}
 
 	// The framework's own override lever, and the only one a member page can name from
@@ -201,10 +250,13 @@ export class Doc extends Page {
 	}
 
 	// Overview first and the reference sections last, whatever order they were added in;
-	// a declared child sits between. Filtered, because an empty section was never added.
+	// a declared child sits between. Filtered, because an empty section was never added
+	// — except "doc", which docs_section() now also builds for a module with members and
+	// no notes (so `doc/method/<name>/` has a node to live under): that one shows only
+	// when there is a real NOTE to read, so a module gains no tab it did not have before.
 	bar(){
 		return ["overview", ...[...this.children.keys()].filter(name => !Doc.SECTIONS.includes(name)), "api", "doc", "files"]
-			.filter(name => this.children.has(name));
+			.filter(name => name === "doc" ? Doc.names(this.notes).length > 0 : this.children.has(name));
 	}
 
 	// My declared children as a wall, WITHOUT the sections I derived — those are the tab

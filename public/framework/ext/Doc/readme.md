@@ -24,8 +24,9 @@ Empty section, no tab. Nothing at the call site says "tab" — a different shape
 - `content()` is bound to the Doc, not the Overview section — `this.parent` is the module's parent: [doc/decisions.md](./doc/decisions.md)
 - No class fields in `Doc.js`; a name dropped from `bar()` also loses its mount region and renders over the page: [doc/decisions.md](./doc/decisions.md)
 - `subject.prototype[name]` executes a getter; `/app.js`'s default export is an instance, so member pages come up empty: [doc/decisions.md](./doc/decisions.md)
+- A member page has two addresses — `/api/<name>/` (the tab) and `/doc/method|property/<name>/` (where the `.md` sits) — cold-loading either used to only work for the first, since nothing ever registered the second: [doc/decisions.md](./doc/decisions.md)
 
 ## More
 - [Overview](/framework/ext/Doc/) · [`doc/decisions.md`](./doc/decisions.md) the record — verdicts, traps, open items · [`doc/rail.md`](./doc/rail.md) why the Overview is a catalog · [`doc/reflection.md`](./doc/reflection.md) why the lists are hand-typed · [`doc/files.md`](./doc/files.md) why files are declared
-- `doc/method/`, `doc/property/`, `doc/file/` — one prose file per listed member or file, served at `/api/<name>/`, `/doc/<name>/`, `/files/`
+- `doc/method/`, `doc/property/`, `doc/file/` — one prose file per listed member or file. The page is at `/api/<name>/` (the tab) and, since this fix, also cold-loads at `/doc/method/<name>/` or `/doc/property/<name>/` — the same address the `.md` file itself sits at. A note (`doc/<name>.md`) has just the one address, `/doc/<name>/`. A file's is `/files/`.
 - Files that matter: `Doc.js` (the class, every seam), `Doc.css` (well, panel height), `page.js` (Doc documenting Doc)
