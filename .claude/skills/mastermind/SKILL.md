@@ -104,7 +104,7 @@ long it may be — a report is a screen; a page leads with the thing itself. The
   that must agree; ask for a ratio, not an opinion; say which artifact is the deliverable and
   what to cut first.
 - Findings go in the worker's own `task.jsonl` as `log` lines, never a `findings.md`.
-- A worker that needs a server starts a PRIVATE one (`PORT=809x node server.js` from the repo root) and kills it at landing; `netstat -ano | grep LISTENING | grep -E ":80(8|9)[0-9]\s"` lists the ports already claimed (a sibling held 8097 on the first try, 2026-08-31).
+- A worker that needs a server starts a PRIVATE one (`PORT=809x node server.js` from the repo root) and kills it at landing; `netstat -ano | grep LISTENING | grep -E ":80(8|9)[0-9]\s"` lists the ports already claimed (a sibling held 8097 on the first try, 2026-08-31). The mastermind's own private server runs on **port 8123**, outside this 809x minion range; a brief that starts a server names the port it may use.
 - ⚠ Search with Glob/rg scoped to the repo, never `find /` — two orphaned root-scans in two
   days each burned a core for hours after their agent landed (3673 and 887 cpu-sec, 08-30/31),
   both reaped by the mastermind.

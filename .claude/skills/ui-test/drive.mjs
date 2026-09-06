@@ -10,9 +10,10 @@
 import pw from "file:///C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.js";
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { resolve, join } from "node:path";
+import os from "node:os";
 
 const plan = JSON.parse(readFileSync(process.argv[2], "utf8"));
-const out = resolve(plan.out ?? "ui-test-out");
+const out = resolve(plan.out ?? join(os.tmpdir(), "claude-ui-test"));
 const vp = plan.viewport ?? { width: 1280, height: 900 };
 const SEL = { click: 1, hover: 1, type: 1 };   // verbs whose first arg is a selector to watch
 

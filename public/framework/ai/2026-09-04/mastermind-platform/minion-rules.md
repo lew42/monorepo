@@ -13,7 +13,7 @@ Three laws (CLAUDE.md): **less is more** (as simple as possible, fastest working
 - Findings go in your `task.jsonl` as `log` lines. Never a `findings.md`.
 
 ## Never
-- **Never kill, restart or start the dev server on port 80.** None is running today; the owner starts it in their own terminal. If you need a server to verify a page, start a PRIVATE one from the repo root — `PORT=8092 node server.js` (pick a free port: `netstat -ano | grep LISTENING | grep -E ":80(8|9)[0-9]\s"` lists the taken ones) — and kill THAT PID when you land — by the pid you started, never by name or port pattern: a minion killed the mastermind's own :8091 server on 2026-09-05 by matching `node server.js`.
+- **Never kill, restart or start the dev server on port 80.** None is running today; the owner starts it in their own terminal. If you need a server to verify a page, start a PRIVATE one from the repo root — `PORT=8092 node server.js` (pick a free port: `netstat -ano | grep LISTENING | grep -E ":80(8|9)[0-9]\s"` lists the taken ones) — and kill THAT PID when you land — by the pid you started, never by name or port pattern: a minion killed the mastermind's own :8091 server on 2026-09-05 by matching `node server.js`. **Kill only the pid you started; never a port you did not open.**
 - **Never drive the owner's browser tabs.** Headless Playwright only (`file:///C:/...` import form).
 - **Never `git stash`, `git checkout --`, `git reset`, commit or push.** The tree is shared with other agents in flight. Diff, don't stash.
 - **Never `find /`** or any search outside the repo — scope Glob/rg to the repo. Two orphaned root scans burned a core for hours each.

@@ -73,6 +73,9 @@ Each refresh, also append the snapshot to `public/framework/ai/usage.jsonl`:
 {"log": {"at": "<ISO>", "session": <pct>, "weekly_all": <pct>, "weekly_scoped": <pct>, "resets_at": "<five_hour.resets_at>"}}
 ```
 
+If your brief's write fence excludes `ai/usage.json`, skip this refresh — the mastermind keeps
+the snapshot current — and log that you skipped it.
+
 ## 3. While working, log — don't just narrate
 
 ⚠ **An append streams to the open tab over the socket (no reload); creating the task DIR full-reloads every tab that has read `directory.json`.** Log milestones, not keystrokes. (Verified 2026-08-18: `/framework/research/livereload/`.)

@@ -38,13 +38,15 @@ with one backslash and the runner reports `Bad escaped character in JSON at posi
 `SyntaxError: Invalid or unexpected token` **as that STEP's error** — which reads like a bug in
 the page rather than in your quoting. Four runs lost to it across three tasks (2026-09-04/05);
 `code/SKILL.md` §7 has the general form.
-⚠ **`out` is not optional in practice.** `drive.mjs` resolves `plan.out ?? "ui-test-out"` against
-the invoking cwd, so a plan without it writes a `ui-test-out/` dir into the REPO ROOT — outside
-every stated fence, caught by `git status` noise rather than by any error. That dir is also
-already git-TRACKED from an earlier agent's same mistake, so `rm -rf` on it shows as tracked
-deletions: before deleting any out-of-fence dir you did not expect to exist, `git status` it —
-it may be someone's committed mistake, not your scratch (recovered per file with
-`git show HEAD:<path> > <path>`, never `checkout --`) (2026-09-05, twice).
+⚠ **`out` still isn't optional in practice.** `drive.mjs` now resolves
+`plan.out ?? path.join(os.tmpdir(), "claude-ui-test")` — a plan without it writes under the OS
+temp dir, not the repo, so `git status` stays quiet. But every un-named run lands in that SAME
+temp folder, one agent's pngs overwriting the last agent's. **Always set `out` yourself, into the
+session scratchpad**, named after your task (`<scratchpad>/<task>-grip`) — same as the plan file.
+(It used to default to `"ui-test-out"` against the repo root, and that dir is still git-TRACKED
+from an earlier agent's same mistake — before deleting any out-of-fence dir you did not expect
+to exist, `git status` it first; recovered per file with `git show HEAD:<path> > <path>`, never
+`checkout --`; default fixed 2026-09-06.)
 
 ## Verbs
 
