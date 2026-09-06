@@ -8,18 +8,23 @@
 	   styles every `button` as a small uppercase LABEL (0-2-0, padded 0.7em/1.4em) — right
 	   for READ GUIDE, four times too wide for a picture and a word. `:is()` takes the
 	   specificity of its most specific arm, so this reads 0-3-0. Only the BOX is reclaimed. */
+	/* ⚠ Only the BOX is reclaimed — and since 2026-09-06 the box is framework.css's
+	   control grammar, so the padding, the hairline, the corner, the fill and the
+	   hover all come from there and are deleted here: a trigger is exactly as tall as
+	   the button or the field beside it, and `.size-small` on the rail shrinks all
+	   three together. What is left is what a trigger alone needs — it fills its rail,
+	   its label is a row that can ellipsise, and the skin's uppercase CTA voice is
+	   turned off (`font: inherit`, which the grammar cannot do from a flat selector).
+	   ⚠ `font: inherit` RESETS `font-size` too, so the grammar's `--size` line loses;
+	     the `font-size` after it puts the knob back. Order matters. */
 	.dropdown > .dropdown-trigger:is(button, .btn) {
-		display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.35);   /* was gap 0.35em - 2026-09-05 ramps */
+		display: flex; align-items: center; gap: 0.35em;   /* the control's own em, never a page ramp - 2026-09-06 nav-fat */
 		inline-size: 100%; min-inline-size: 0;
-		padding: 0.15em 0.4em;
 		font: inherit; letter-spacing: normal; text-transform: none;
+		font-size: calc(1em * var(--size, 1)); line-height: 1.5;
 		color: var(--ink);
-		background: none;
-		border: 1px solid var(--line);
-		border-radius: calc(var(--radius) / 2);
 		cursor: pointer;
 	}
-	.dropdown > .dropdown-trigger:hover { background: var(--wash); }
 
 	/* The NAME gives, never the picture: a trigger in a 19rem rail is narrower than some
 	   template names, and an ellipsis is the honest end of one. */
@@ -50,21 +55,22 @@
 	}
 	.dropdown-list:popover-open { display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.1); }   /* was gap 0.1em - 2026-09-05 ramps */
 
-	/* Same reclaim as the trigger, same reason. */
+	/* Same reclaim as the trigger, same reason — and the same grammar underneath, so
+	   an option is one row tall, exactly like the trigger that opened it. A row in a
+	   list carries no edge of its own (the list's box is the edge), and it stays
+	   unfilled until you point at it: those are the two things stated back. */
 	.dropdown-list > .dropdown-option:is(button, .btn) {
-		display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.5);   /* was gap 0.5em - 2026-09-05 ramps */
+		display: flex; align-items: center; gap: 0.5em;   /* the control's own em, never a page ramp - 2026-09-06 nav-fat */
 		inline-size: 100%;
-		padding: 0.25em 0.5em;
 		font: inherit; letter-spacing: normal; text-transform: none;
+		font-size: calc(1em * var(--size, 1)); line-height: 1.5;
 		text-align: start;
 		color: var(--ink);
-		background: none;
+		background-color: transparent;
 		border: 0;
-		border-radius: calc(var(--radius) / 2);
 		cursor: pointer;
 	}
-	.dropdown-list > .dropdown-option:hover,
-	.dropdown-list > .dropdown-option:focus-visible { background: var(--wash); }
+	.dropdown-list > .dropdown-option:focus-visible { background-color: var(--wash); }
 	.dropdown-list > .dropdown-option.on {
 		color: var(--prim);
 		background: color-mix(in srgb, var(--prim) 15%, transparent);

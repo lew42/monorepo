@@ -2,11 +2,16 @@
    without touching a selector. `.active` / `.in-path` come from
    Router.mark_links(), so the selected tab needs no JS.
 
-   THE FLOOR (the owner, 2026-09-05): a click changes what's inside a rectangle
-   you can already see; the rectangle stays. Every set now draws that rectangle —
-   the strip's own rule becomes the panel's top edge, and the selected tab is cut
-   out of it, so the label and the box read as one thing with no line between
-   them. `.underline` asks for the old, unbounded strip (doc/decisions.md). */
+   THE DEFAULT IS FLUSH (the owner, 2026-09-06): "I prefer the flush, seamless tab
+   look." A strip of labels, a hairline under the set, a 2px mark under the selected
+   one, and the panel below it with no box of its own.
+
+   ⚠ THIS REVERSES THE 2026-09-05 CALL, which made a bounded panel — a fill, a
+     border and a radius, with the selected tab cut out of its top edge — the default
+     for every set and left the flush look behind `.underline`. The rectangle is now
+     the OPT-IN, `.tabs.bounded`, and nothing on the site asks for it today.
+     `.underline` still parses and now names the default, so any call site that ever
+     typed it keeps working. (doc/decisions.md.) */
 
 @layer util {
 
@@ -16,13 +21,28 @@
 	   asked two ways, and a rule reading one breaks a level deeper. */
 	.tab-panel:has(> .page:is(.active-page, .active-ancestor))
 		> .page.default:not(.active-page, .active-ancestor) { display: none; }
+
+	/* ⚠ framework.css's util-layer `:last-child { margin-bottom: 0 }` reaches the LAST
+	   tab in a strip and cancels the -1px that seats a tab ON the bar's rule. One tab
+	   per strip therefore sat a pixel low — and because the bar stretches its items,
+	   every other tab grew a pixel to match it, which is how a set of "equal" tabs
+	   measured 37.09 and 36.09px side by side (2026-09-06). It has to be restated in
+	   `util` because `util` is the layer that took it away; scoped to `underline`
+	   because that is the only set still using the negative margin (block, vertical
+	   and the default floor each set 0 in the theme layer). */
+	.tabs.underline > .tab-bar > .tab:last-child { margin-bottom: -1px; }
 }
 
 @layer theme {
 
 	/* `--tab-pad-x` is exposed so a host can pull the strip left by exactly one tab's
 	   padding and land the LABELS on its own text axis — ext/Doc's well does. */
-	.tabs { display: flex; flex-direction: column; min-width: 0; --tab-pad-x: 0.9rem; }
+	/* ⚠ `--tab-pad-x` is `em` now, not `rem` — it is the control grammar's own
+	   horizontal padding (framework.css), and the grammar's whole point is that every
+	   length on a control is an em of that control's text, so `.size-small` moves all
+	   of them at once. ext/Doc's well subtracts this token to land its tab LABELS on
+	   its text axis; both boxes read 1em, so the offset is unchanged. */
+	.tabs { display: flex; flex-direction: column; min-width: 0; --tab-pad-x: 0.8em; }
 
 	/* ⚠ One strip that scrolls, never a wrapping block: a fifty-member rail flipped to
 	   a wrapped bar was 500px of links above the content it navigates.
@@ -38,15 +58,32 @@
 
 	/* Quiet by construction: a text label, a hairline under the set, a 2px mark under
 	   the selected one. No box, no fill, no gap between tabs — the strip is the group. */
+	/* ⚠ A TAB IS A CONTROL, and it wears the grammar's METRICS — the same font-size,
+	     line-height, `min-height: 2.4em` and horizontal padding as a button, a select
+	     and a text field, so a tab strip lines up with a toolbar beside it and
+	     `.size-small` shrinks both by the same 0.75. (Before 2026-09-06 a tab was a
+	     fixed `0.5rem 0.9rem` at 0.95em and measured 43.7px against a field's 36.6px.)
+	   ⚠ Its SKIN stays its own, and that is why the paint is stated back here: the
+	     grammar fills a control with `--fill-a08` and rings it in a hairline, and a
+	     tab is "quiet by construction" — a label, a rule under the set, a 2px mark on
+	     the selected one. `border: 1px solid transparent` reserves the box the floored
+	     variant below draws, so no click ever moves a label by a pixel.
+	   ⚠ `display: inline-flex` matters only OUTSIDE a bar: `styles/elements/text`
+	     shows a bare `.tab`, and an inline box ignores `min-height`. Inside `.tab-bar`
+	     it is a flex item and blockifies anyway. */
 	.tab {
-		/* ⚠ The fallback is not redundant: `styles/elements/text` shows a BARE `.tab`
-		   with no `.tabs` above it, and an undeclared var takes `padding` to 0. */
-		padding: 0.5rem var(--tab-pad-x, 0.9rem);
-		font-size: 0.95em;
+		display: inline-flex; align-items: center; justify-content: center;
+		font-size: calc(1em * var(--size, 1));
+		line-height: 1.5;
+		min-height: 2.4em;
+		padding: 0.2em var(--tab-pad-x, 0.8em);
 		font-weight: 500;
 		color: var(--subtle);
+		background-color: transparent;
 		text-decoration: none;
-		border-bottom: 2px solid transparent;
+		border: 1px solid transparent;
+		border-bottom-width: 2px;
+		border-radius: 0;
 		margin-bottom: -1px;               /* sit ON the bar's rule, not above it */
 		white-space: nowrap;
 	}
@@ -77,6 +114,14 @@
 	   Also covers the window before the bar is filled. */
 	.tab-bar:not(:has(> .tab + .tab)) { display: none; }
 
+	/* ⚠ `--size: 0.8` ON THE BAR, not on `.tabs` (2026-09-06). The folder skin wants a
+	     SMALLER CONTROL, and under the grammar that is one number — height, padding,
+	     corner and text take the 0.8 together, so a folder tab is exactly 0.8x a
+	     standard one instead of 0.8x its text on a height that never moved. It sits on
+	     the BAR because `--size` inherits and `.tabs` also contains the panel: on
+	     `.tabs` it would shrink every control on the page inside it. */
+	.tabs.block > .tab-bar { --size: 0.8; }
+
 	/* `block` — folder tabs: the selected one is a box open onto the page below.
 	   ⚠ The rule moves off the bar and ONTO the tabs, so under the selected tab it is
 	     absent rather than covered. Unfilled by default, so the tab's interior simply
@@ -91,10 +136,10 @@
 	   section labels is. ⚠ Restated rather than handed to the element as `.h4`: the
 	   variant is a class on the SET and `.tab` is emitted by this module's JS, so no
 	   call site can put the level on the anchor. Keep in step with framework.css. */
-	.tabs.block { --tab-pad-x: 1.35rem; }
+	.tabs.block { --tab-pad-x: 1.2em; }
 
 	.tabs.block > .tab-bar > .tab {
-		font-size: 0.8em; font-weight: 700;
+		font-weight: 700;
 		letter-spacing: 0.05em; text-transform: uppercase;
 		border: 1px solid transparent;
 		border-top-width: 2px;             /* reserved on EVERY tab: the accent must not shift one label */
@@ -112,20 +157,21 @@
 		background: var(--tab-fill, transparent);
 	}
 
-	/* `underline` — the one word that asks for the OLD look: no floor, the strip's
-	   hairline stays the only mark. Needs no rules of its own; it only has to stop
-	   the floor rules below from matching, which `:not(.underline)` does for free.
-
-	   THE FLOOR ITSELF — default now, for every set that is not `.underline` and
-	   not `.vertical` (whose rail is its own shape, floored separately below).
-	   ⚠ `:not(.underline):not(.vertical)` outweighs `.tabs.block` on every
-	     overlapping property (3 classes vs. 2), so this composes with `block`
-	     automatically: the folder skin's type stays, the floor's colours win. */
-	.tabs:not(.underline):not(.vertical) > .tab-bar { border-bottom: none; }
+	/* ── `bounded` — THE OPT-IN RECTANGLE ────────────────────────────────────
+	   A fill, a border and a radius on the panel, with the selected tab cut out of its
+	   top edge: a click changes what is inside a rectangle you can already see, and
+	   the rectangle stays. It was the DEFAULT between 2026-09-05 and 2026-09-06, and
+	   the owner reversed that: flush is the default, this is the word you say when you
+	   want the box. Nothing on the site says it today.
+	   ⚠ `.bounded:not(.vertical)` is (0,3,0) — the same weight the old
+	     `:not(.underline):not(.vertical)` carried — so it still outweighs `.tabs.block`
+	     (0,2,0) on every overlapping property and composes with the folder skin the
+	     same way: `block`'s type stays, these colours win. */
+	.tabs.bounded:not(.vertical) > .tab-bar { border-bottom: none; }
 
 	/* ⚠ The 2px top border is reserved on EVERY tab, transparent until selected: a
 	     mark that ADDS height would shift its own label by 1px on every click. */
-	.tabs:not(.underline):not(.vertical) > .tab-bar > .tab {
+	.tabs.bounded:not(.vertical) > .tab-bar > .tab {
 		border: 1px solid transparent;
 		border-top-width: 2px;
 		border-bottom: 1px solid var(--line);
@@ -134,14 +180,14 @@
 	}
 
 	/* carries the strip's rule past the last tab, so the panel's top edge is whole */
-	.tabs:not(.underline):not(.vertical) > .tab-bar::after { content: ""; flex: 1; border-bottom: 1px solid var(--line); }
+	.tabs.bounded:not(.vertical) > .tab-bar::after { content: ""; flex: 1; border-bottom: 1px solid var(--line); }
 
 	/* THE SELECTED TAB IS PART OF THE PANEL: same surface, top accent kept, the
 	   bottom border painted in the panel's OWN colour rather than in the rule — so
 	   the eye runs straight from the label down into the box with no seam. */
-	.tabs:not(.underline):not(.vertical) > .tab-bar > .tab.active,
-	.tabs:not(.underline):not(.vertical) > .tab-bar > .tab:is(.in-path, [aria-current]):not(.tab-default),
-	.tabs:not(.underline):not(.vertical) > .tab-bar:not(:has(.tab.active, .tab:is(.in-path, [aria-current]):not(.tab-default))) > .tab:first-child {
+	.tabs.bounded:not(.vertical) > .tab-bar > .tab.active,
+	.tabs.bounded:not(.vertical) > .tab-bar > .tab:is(.in-path, [aria-current]):not(.tab-default),
+	.tabs.bounded:not(.vertical) > .tab-bar:not(:has(.tab.active, .tab:is(.in-path, [aria-current]):not(.tab-default))) > .tab:first-child {
 		color: var(--ink);
 		border-color: var(--line);
 		border-top-color: var(--prim);
@@ -154,7 +200,7 @@
 	   vertical rhythm around a tab-panel was tuned to it — a doc page included);
 	   only the sides and bottom take the standard pad token, since those were
 	   never anything before. */
-	.tabs:not(.underline):not(.vertical) > .tab-panel {
+	.tabs.bounded:not(.vertical) > .tab-panel {
 		padding: 3em var(--pad, var(--pad-default)) var(--pad, var(--pad-default));
 		background: var(--tab-fill, var(--surface));
 		border: 1px solid var(--line);
@@ -165,7 +211,7 @@
 	/* ⚠ "A rail of one is not a rail" (above) hides the bar, so there is nothing
 	   left to draw the panel's top edge — close the box on that side instead of
 	   leaving it open. */
-	.tabs:not(.underline):not(.vertical):has(> .tab-bar:not(:has(> .tab + .tab))) > .tab-panel {
+	.tabs.bounded:not(.vertical):has(> .tab-bar:not(:has(> .tab + .tab))) > .tab-panel {
 		border-top: 1px solid var(--line);
 		border-radius: var(--radius);
 	}
@@ -199,8 +245,11 @@
 		border-inline-end: 1px solid var(--line);
 	}
 
+	/* A rail row spans sideways and hugs vertically, so the label goes to the start
+	   edge and the padding is the grammar's em — not a `rem`, which ignored `--size`. */
 	.tabs.vertical > .tab-bar > .tab {
-		padding: 0.35rem 0.8rem;
+		padding: 0.2em 0.8em;
+		justify-content: flex-start;
 		white-space: normal;
 		border-bottom: none;
 		border-inline-end: 2px solid transparent;
@@ -221,7 +270,7 @@
 	   edge to open onto). ⚠ (0,4,0) beats the `padding-top: 0` above AND the
 	   narrow-width `padding-top: 1rem` below (0,2,0 each), on purpose: a floored
 	   rail keeps its own padding at every width. */
-	.tabs.vertical:not(.underline) > .tab-panel {
+	.tabs.vertical.bounded > .tab-panel {
 		padding: var(--pad, var(--pad-default));
 		background: var(--tab-fill, var(--surface));
 		border: 1px solid var(--line);

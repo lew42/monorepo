@@ -4,13 +4,13 @@ import { Doc, md, code, ui } from "/app.js";
    it so no component is named twice.
    ⚠ Order is editorial, not alphabetical: a reader landing here meets `card`,
      `toolbar`, `table` and `dialog` long before `kbd`.
-   ⚠ Five, five, five and four — the sizes are load-bearing. A band is its own grid and
+   ⚠ Five, six, six and five — the sizes are load-bearing. A band is its own grid and
      `auto-fit` stretches it to fill the row, so at 3440 a band of three would draw
      three cards a thousand pixels wide. Even bands mean even cards. */
 const BANDS = {
 	Surfaces: "card toolbar panel stats accordion",
 	Data:     "table timeline tree progress pagination crumbs",
-	Forms:    "field dialog tags menu tooltip",
+	Forms:    "controls field dialog tags menu tooltip",
 	Marks:    "badge alert avatar kbd words",
 };
 
@@ -19,7 +19,7 @@ const names = Object.values(BANDS).flatMap(band => band.split(" "));
 export default new Doc({
 	meta: import.meta,
 	title: "UI",
-	description: "Nineteen components in four bands — three functions, sixteen copy-paste templates.",
+	description: "Twenty-two in four bands — the control grammar, three functions, eighteen copy-paste templates.",
 	icon: "widgets",
 
 	// ⚠ Required on a Doc that is ALSO a nav section. framework/page.js's sections()
@@ -62,7 +62,7 @@ export default new Doc({
 		+ "tooltip/tooltip.js tooltip/page.js avatar/avatar.js avatar/page.js dialog/dialog.js dialog/page.js "
 		+ "progress/page.js menu/menu.js menu/page.js accordion/accordion.js accordion/page.js "
 		+ "timeline/timeline.js timeline/page.js kbd/kbd.js kbd/page.js "
-		+ "words/words.js words/page.js",
+		+ "words/words.js words/page.js controls/page.js controls/controls.css",
 
 	content(){
 
@@ -82,7 +82,7 @@ export default new Doc({
 
 		md("## Three functions, sixteen templates");
 
-		md("Only [Data table](/framework/ui/table/), [Timeline](/framework/ui/timeline/) and `keys()` on [Keys](/framework/ui/kbd/) are functions, and each is a **loop** — the one thing markup cannot express. The other sixteen pages hand you the markup with a copy button: some ship a class or two of CSS beside it, several ship none at all.");
+		md("Only [Data table](/framework/ui/table/), [Timeline](/framework/ui/timeline/) and `keys()` on [Keys](/framework/ui/kbd/) are functions, and each is a **loop** — the one thing markup cannot express. The other eighteen pages hand you the markup with a copy button: some ship a class or two of CSS beside it, several ship none at all.");
 
 		code.js(`import { ui } from "/app.js";
 

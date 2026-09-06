@@ -19,6 +19,7 @@ new Dropdown({ options, value, pick }).draw();   // the class — every method i
 - It closes on a pick and hands you the value; **redraw the trigger yourself** if the value it shows can change from elsewhere — nothing here watches your data
 - A picture is a Material Icons **ligature**: a name the font lacks renders as the whole word, hundreds of px wide. Measure before you ship one
 - `place()` runs once per open, off `getBoundingClientRect()` — a trigger that moves while the list is open takes the list nowhere with it
+- The trigger and the options wear the **control grammar** (2026-09-06): their padding, hairline, corner, fill and hover all come from `framework.css`, so a trigger is exactly as tall as the button beside it. Only the fit (full width, ellipsis) and the skin's uppercase voice are reclaimed here. [/framework/ui/controls/](/framework/ui/controls/)
 
 ## More
 - [/framework/ext/Dropdown/](/framework/ext/Dropdown/) — the page: pick one, see it

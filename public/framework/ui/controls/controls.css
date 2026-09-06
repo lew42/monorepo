@@ -1,0 +1,55 @@
+/* This page's own layout, plus the one rule that lets the BASE theme be seen.
+   Record: readme.md. */
+@layer theme {
+
+	/* ⚠ THE SKIN'S BUTTON VOICE, OFF — for this page's demo rows only.
+	   The page is about framework.css's control grammar, which is the base theme:
+	   the look you get when you load no other. This site loads another. Its skin
+	   says `.theme-lew42 :is(button, .btn)` — 0.8em, 700, uppercase, its own padding
+	   and corner — at (0,2,0), and framework.css's grammar is a flat selector list
+	   that cannot out-rank that at any load order. So a page that shows the base
+	   theme has to clear it, exactly as ext/Dropdown clears it for its trigger and
+	   for the same reason.
+	   ⚠ How it wins: (0,2,0), the same as the skin's rule, and this stylesheet is
+	     appended to `<head>` after lew42's, so equal specificity resolves by order.
+	   ⚠ It is a MIRROR, not a second grammar — every value here is copied from the
+	     control grammar in framework.css. Delete those five declarations from the
+	     skin and this rule goes with them. */
+	.ui-controls-base :is(button, .btn) {
+		font-size: calc(1em * var(--size, 1));
+		font-weight: 400;
+		letter-spacing: normal;
+		text-transform: none;
+		padding: var(--pad-control, 0.2em 0.8em);
+		border-radius: var(--radius);
+	}
+
+	/* One row of controls. ⚠ `width: auto` because framework.css's base layer gives
+	   every field `width: 100%` — right for a form, wrong for a strip, and the reason
+	   `select.auto` exists. A row of controls is a `flex wrap` row (the control rule:
+	   a control hugs, a strip of them wraps). */
+	.ui-controls-row {
+		display: flex; flex-wrap: wrap; align-items: center;
+		gap: calc(var(--gap-ramp) * 0.5);
+	}
+	.ui-controls-row > * { flex: 0 0 auto; }
+	.ui-controls-row :is(input, select, textarea) { width: auto; }
+
+	/* The three size panels, STACKED — one under another, so the heights line up in
+	   the eye and the 0.75 is something you can see rather than read. Side by side in
+	   a reading column each row wrapped to three lines and the comparison was gone. */
+	.ui-controls-sizes {
+		display: flex; flex-direction: column;
+		gap: calc(var(--gap-ramp) * 0.8);
+	}
+	.ui-controls-panel {
+		min-width: 0;
+		padding: calc(var(--gap-ramp) * 0.8);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+	}
+	/* ⚠ The label does not shrink with the panel, and nothing had to be written to
+	   stop it: `--size` is read by CONTROLS only. That is the whole point of the knob
+	   — a word on a panel moves its controls and leaves its prose alone. */
+	.ui-controls-label { color: var(--subtle); margin-bottom: 0.5em; }
+}

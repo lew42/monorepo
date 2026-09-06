@@ -439,32 +439,112 @@
        light text on yellow. Paired, like every other colour here. */
     mark { background: light-dark(#fff3a3, #6b5a00); color: var(--ink); }
 
-    /* A `<details>` toggle is a CONTROL, and the UA lays it out as a full-width
-       block — so every summary on the site was a strip: 962px wide for 137px of ink
-       on /imagine/paging/, 2,910px for 380px on /imagine/research/, 720px for 69px
-       on /framework/, all at 3440 with 0 side padding (the owner's "981px control";
-       spacing-judge 2026-09-05, rule c). It hugs its text like a button now, and the
-       padding is where the hover fill paints. A component's summary (md-details,
-       research-node) keeps its own look at its own specificity. */
-    summary {
-        cursor: pointer;   /* a real UA gap */
-        width: fit-content; max-width: 100%;
-        padding: 0.25em 0.6em;
+    /* A `<details>` toggle is a CONTROL — it wears the control grammar below,
+       with the rest of them. */
+
+    /* ════ THE CONTROL GRAMMAR ═══════════════════════════════════════════════
+       ONE BOX, EVERY CONTROL. A button, a link that acts as one, a select, a text
+       field, a textarea and a disclosure summary are the same rectangle: same
+       height, same padding, same hairline, same corner, same fill, same hover,
+       same focus ring. Only what a control DOES differs.
+
+       Before this there were four different boxes written in this one file — a
+       button (0.25em/1em, a `--line` hairline, a radius), a field (0.25em/0.6em, a
+       `--subtle` hairline, NO radius), a summary (padding, radius, no border at
+       all) — and a fifth in `ext/tabs` (a fixed `0.5rem/0.9rem`, so it scaled with
+       nothing). Measured side by side at 1280 they stood 40.5, 36.6, 34.6 and
+       43.7px tall. They are all 36.1px now, and 43.2px at 3440.
+
+       ⚠ THE HEIGHT IS A `min-height`, NOT PADDING — and that is what makes `--size`
+         exact. `box-sizing: border-box` is on for everything (base layer), so
+         `min-height: 2.4em` INCLUDES the 1px border; scale the em and the whole box
+         scales with it. Sized by padding instead, a 1px border that cannot scale
+         leaves `.size-small` at 0.79x rather than 0.75x. The padding is deliberately
+         SMALLER than the height needs, so the min-height governs and
+         `align-content: center` puts the label in the middle of it. A textarea,
+         whose content is taller, simply grows past it.
+
+       ⚠ `--size` IS THE ONLY KNOB, and ONE declaration carries it. `font-size:
+         calc(1em * var(--size, 1))` reads the PARENT's em; every other length here
+         is an `em` of the control's OWN font-size, so each is already scaled — no
+         second multiplication anywhere. Put `.size-small` on a toolbar, a rail or a
+         dense list and every control inside it is 0.75x: height, padding, corner and
+         text together, nothing else on the page touched. `--size` is unitless and
+         never a function of width. Default 1, and the default control is exactly the
+         base font size — NOTHING about the default size changed.
+
+       ⚠ THE HAIRLINE IS `--fill-a32`, not `--line` and not `--subtle`. `--line` is a
+         floor's rule (0.15 alpha, and the lew42 skin flattens it to #e6e6e6): it
+         measured 1.15:1 against a card and is simply not there on a 3440 screen.
+         `--subtle` is a TEXT colour at 0.55, which is why every field looked twice as
+         heavy as the button beside it. `a32` is the rung between them — 2.29:1 in
+         light, the same alpha in dark, one value on every control.
+
+       ⚠ HOVER IS AN INSET SHADOW, not a background swap. A background cannot serve
+         both the translucent default fill and the solid `.prim` / `.bg` fills, which
+         is why hover used to need three rules — one of them existing only to put
+         `color: white` back afterwards. An inset shadow paints ON TOP of whatever
+         fill is already there, so one rule darkens a plain button, a text field and
+         an orange CTA by exactly one rung of the alpha ladder.
+
+       ⚠ THE SKIN STILL OVERRULES THE BUTTON. `styles/layers/theme/lew42/lew42.css`
+         gives `.theme-lew42 :is(button, .btn)` its own voice — `font-size: 0.8em`,
+         700, uppercase, `padding: 0.7em 1.4em`, its own radius — at (0,2,0), which
+         beats every flat selector here. So on THIS site a button is still 40.5px
+         tall and 0.8em while a field beside it is 36.1px and 1em. Deleting those
+         five declarations is the whole fix and it belongs to whoever owns the skin;
+         `/framework/ui/controls/` shows the two side by side.
+
+       The variants are the two that exist: `.prim` and `.bg`. No `ghost`, no
+       `danger` — nothing on the site asks for one, and a word with no caller is
+       shelf-ware. */
+
+    /* The knob. Unitless, per box, inherited — a panel wears it, its controls read
+       it. ⚠ Provisional home: the size standard (/imagine/design/size/) puts the
+       spacing ramps on this same knob, and the task that lands that rename owns
+       these three lines from then on. */
+    .size-small   { --size: 0.75; }
+    .size-regular { --size: 1; }
+    .size-large   { --size: 1.25; }
+
+    /* THE BOX. `range`, `checkbox`, `radio` and `color` are excluded: a hairline
+       rectangle drawn around a slider or a tick-box is not a control anyone
+       designed. `file` and `submit` keep it — both genuinely read as a box. This
+       list and `base`'s `width: 100%` one deliberately DIFFER: a submit button wants
+       the box and not the full width.
+       ⚠ `background-color`, never the `background` shorthand — the shorthand would
+         wipe `select`'s arrow, which is a background-image declared below at LOWER
+         specificity. */
+    .btn, button, summary, select, textarea,
+    input:not([type="checkbox"], [type="radio"], [type="color"], [type="range"]) {
+        font-size: calc(1em * var(--size, 1));
+        line-height: 1.5;
+        min-height: 2.4em;
+        padding: var(--pad-control, 0.2em 0.8em);
+        align-content: center;
+        background-color: var(--fill-a08);
+        color: var(--ink);          /* A CONTROL NEVER INHERITS ITS CONTRAST */
+        border: 1px solid var(--fill-a32);
         border-radius: var(--radius);
+        box-shadow: inset 0 0 0 999px var(--ctl-lift, transparent);
     }
-    summary:hover { background: var(--fill-a08); }
 
-    /* ---- form controls -------------------------------------------------- */
-
-    /* `range` is excluded because a 1px border drawn around a slider is not a
-       control anyone designed — it was taking the text-field treatment purely by
-       not being named. `file` keeps it: its button half genuinely reads as a field.
-       This list and `base`'s `width: 100%` one deliberately DIFFER — a submit button
-       wants the padding and not the full width. */
-    input:not([type="checkbox"], [type="radio"], [type="color"], [type="range"]), select, textarea {
-        padding: var(--pad-control, 0.25em 0.6em);
-        border: 1px solid var(--subtle);   /* also gives input[type=submit] its height and hover */
+    /* An anchor is INLINE, and `min-height` does nothing to an inline box — so the
+       one control that is a link has to become a box before it can join the row. */
+    .btn {
+        display: inline-flex; align-items: center; justify-content: center;
+        text-decoration: none;
+        cursor: pointer;
     }
+
+    button, summary { cursor: pointer; }   /* two real UA gaps */
+
+    /* The UA lays a summary out as a full-width block, so every one on the site was
+       a strip: 962px wide for 137px of ink on /imagine/paging/, 2,910px for 380px on
+       /imagine/research/ (the owner's "981px control"; spacing-judge 2026-09-05,
+       rule c). It hugs its text like a button now. A component's summary (md-details,
+       research-node) keeps its own look at its own specificity. */
+    summary { width: fit-content; max-width: 100%; }
 
     fieldset > p:first-of-type { margin-top: 0; }
 
@@ -478,38 +558,40 @@
          `background-color`, never the shorthand. */
     select {
         appearance: none;
-        background: field no-repeat right 0.5em center;
+        background-repeat: no-repeat;
+        background-position: right 0.5em center;
         background-size: 0.5em;
         background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='40' fill='%23555'><polygon points='0,0 60,0 30,40'/></svg>");
         padding-inline-end: 1.4em;
     }
 
-    /* `.btn` makes a non-button look like a button; a bare `button` matches it,
-       because that promise is only true if they do. `.prim` and `.bg` promote it.
-
-       ⚠ A CONTROL NEVER INHERITS ITS CONTRAST. This was `color: inherit` — right
-       for the `<a>` it was written for, and on a real `<button class="btn">` it
-       replaced the UA's `ButtonText` with whatever the band around it happened to
-       be. On a dark section: white on the UA's light grey.
-
-       ⚠ THE FILL IS A RUNG, NOT `--surface`. This one line was the single biggest
-         source of invisible controls on the site: a default button and the card it
-         sits on painted from the SAME token, so most buttons measured ΔL* 0.00
-         against their own floor (2026-08-30 — 101 invisible pairs, 504 elements, and
-         `.btn, button` reached the large majority of them). `--fill-a08` composites
-         against whatever is actually beneath, in both modes, so a button reads on a
-         card, on a wash, in a panel and inside a dark island without any of them
-         knowing about it. `styles/doc/stacking.md`. */
-    .btn, button {
-        padding: var(--pad-control, 0.25em 1em);
-        cursor: pointer;
-        background: var(--fill-a08);
-        color: var(--ink);
-        border: 1px solid var(--line);
-        border-radius: var(--radius);
-        text-decoration: none;
+    /* ONE HOVER AND ONE ACTIVE, for every control in the grammar. `--ctl-lift` is
+       the rung; the box rule above owns the `box-shadow` that paints it, so a
+       variant with its own solid fill needs no hover of its own. `border-color`
+       moves too — and it is stated here, AHEAD of `.prim` and `.bg`, so those two
+       keep their own edge colour under the pointer, exactly as they did before.
+       ⚠ `color` deliberately does NOT move any more. Turning the label `--prim` on
+         hover was what forced a third rule whose entire job was `color: white` on
+         the two filled variants. */
+    :is(.btn, button, summary, select, textarea,
+        input:not([type="checkbox"], [type="radio"], [type="color"], [type="range"])):hover {
+        --ctl-lift: var(--fill-a08);
+        border-color: var(--prim);
     }
-    .btn:hover, button:hover { border-color: var(--prim); color: var(--prim); }
+    :is(.btn, button, summary, select, textarea,
+        input:not([type="checkbox"], [type="radio"], [type="color"], [type="range"])):active {
+        --ctl-lift: var(--fill-a16);
+    }
+
+    /* One disabled look. There was none: a disabled button was indistinguishable
+       from a live one, in both modes. `[aria-disabled]` is the anchor's version —
+       `:disabled` never matches an `<a class="btn">`. */
+    :is(.btn, button, select, textarea, input):disabled,
+    .btn[aria-disabled="true"] {
+        opacity: 0.5;
+        cursor: not-allowed;
+        --ctl-lift: transparent;
+    }
 
     a * { cursor: pointer; }
     /* ⚠ THESE TWO STAY OPAQUE, on purpose. `--prim` and `--bg` are the two SOLID
@@ -523,13 +605,11 @@
 
        The shadow is accessibility, not decoration: white on `--prim` is ~2.2:1, and
        a shadow lifts the edges where a letterform is thinnest. */
-    button.bg, .btn.bg { background: var(--bg); color: white; border-color: var(--bg); }
+    button.bg, .btn.bg { background-color: var(--bg); color: white; border-color: var(--bg); }
     button.prim, .btn.prim {
-        background: var(--prim); color: white; border-color: var(--prim);
+        background-color: var(--prim); color: white; border-color: var(--prim);
         text-shadow: 0 1px 2px rgba(0,0,0,0.45);
     }
-    button.bg:hover, .btn.bg:hover,
-    button.prim:hover, .btn.prim:hover { color: white; filter: brightness(1.08); }
 
 }
 
