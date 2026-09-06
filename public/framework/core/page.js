@@ -6,7 +6,7 @@ export default new Page({
 	description: "The core classes. Five are an element you can point at in the inspector; four are not.",
 	icon: "dashboard",
 
-	children: "View Page Router App Sidebar Search Layout Item List",
+	children: "View Page Router App Sidebar Search Layout Section Item List",
 
 	content(){
 

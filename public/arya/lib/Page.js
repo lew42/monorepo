@@ -4,8 +4,10 @@ import Router from "./Router.js";
 
 // Every page imports Page, so this is the one place the theme has to be opted into.
 // App awaits the stylesheet before it injects anything, so there is no unstyled flash.
+// The class that scopes styles.css to `body.arya` waits for initialize() below —
+// importing this module (as core/Search's corpus build does) must never touch the
+// document a reader is already standing on.
 app.stylesheet("/arya/styles.css");
-app.$body.ac("arya");
 
 /*
  * A page.js that renders when you import it can only ever be used one way.
@@ -30,7 +32,15 @@ export default class Page {
 	// App.load_page() appends the module's default export, and View.append()
 	// calls .render() on anything that has one. That is the only hook we need.
 	render() {
+		this.initialize();
 		Router.singleton().mount(this);
+	}
+
+	// Adds the theme class only when a page of mine is actually shown, never at
+	// import. One class on <body> used to run at module scope, so merely reading
+	// this file for the search index re-themed whatever page a reader was on.
+	initialize() {
+		app.$body.ac("arya");
 	}
 
 	// what the router swaps in and out: everything below the sidebar

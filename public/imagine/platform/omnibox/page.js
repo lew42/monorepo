@@ -1,72 +1,34 @@
-import { Page, md, span } from "/app.js";
-import { Omnibox } from "/framework/ext/Omnibox/Omnibox.js";
+import { Page, md } from "/app.js";
 
 /* Container: a COLUMN under /imagine/platform/ in /imagine/'s columns host (the
    mastermind wires this in via the hub's `children:` — never edited here). Size:
-   `large`, 28–64em — prose, one live widget capped at 32em, three short result
-   lists. Own layout: prose + the widget. Regions: one. Preview: the default card.
+   `large`, 28–64em — prose and a short link list, nothing wider. Own layout:
+   prose only. Regions: one. Preview: the default card.
 
-   The box is bound to `this.parent` (Platform), not to this page: this page has no
-   subtree of its own to search inside, so scenario 2 needs a real topic context —
-   its own parent is the nearest one with real children, and it is a genuine `Page`,
-   never a stand-in built for the demo. */
+   This page used to hold a working search prototype, bound to `this.parent` so it
+   could demonstrate scoped-vs-global ranking. That prototype graduated into
+   `core/Search` on 2026-09-06 — first as a site-wide box, then (same day) scoped
+   to just the Search page after it started breaking others — so there is nothing
+   left to mount here. This page is the pointer, and the record of the question
+   it answered. */
 
 export default new Page({
 	meta: import.meta,
 	title: "Omnibox",
-	description: "Keyboard-first search, live over 1,056 site urls.",
+	description: "The site's search box started here, as a platform question. Now it lives on core/Search's own page.",
 	icon: "search",
 	width: "large",
 
 	content(){
-		md(`**\`ext/Omnibox\`, live over this site's real index** — built from \`/directory.json\`, the same generated file the dev server already writes. No crawl, no fake tree: every result below is a real url on this site, right now.`);
+		md(`**Open [\`core/Search\`](/framework/core/Search/) to use it.** That page holds the site's one search box — press \`/\` or \`Ctrl\`/\`Cmd\` \`K\` there and it grows up from the bottom of the window. Type a few letters, arrow through the results, hit Enter to go. It lives on that page only, on purpose (a site-wide box broke other pages), so it is not on this one.`);
 
-		let $stats;
+		md(`This page used to hold a *working prototype* of that box, built to answer one platform question: **can a community platform have keyboard-first search with no backend at all?** The answer was yes — the prototype proved it, then graduated into the real thing on 2026-09-06. Nothing is demonstrated here any more, on purpose.`);
 
-		new Omnibox({
-			app: this.app,
-			page: this.parent,
-			built: index => $stats.text(`${index.rows.length.toLocaleString()} urls indexed in ${index.ms.toFixed(1)}ms`),
-		});
+		md(`## Where this fits
 
-		$stats = span.c("muted", "indexing…");
-
-		md("Open it with **`/`** (nothing else focused) or **Ctrl/Cmd K**, from anywhere on this page. Arrows move, **Enter** goes, **Tab** completes the top match, **Esc** closes. The interaction-model verdicts — why a visible field, what \"strong\" means, the Space-bar call — are in [`ext/Omnibox/doc/decisions.md`](/framework/ext/Omnibox/doc/decisions/).");
-
-		md("## Three ways in\n\nEach is a real query against the real index — try it in the box above.");
-
-		md(`### 1 · Find a topic from cold
-
-Type **\`gam\`**. Nothing under this box's own subtree (Platform — bound below) matches,
-so it falls straight through to a pure global search and lands on **Game** —
-\`/imagine/game/\`, one clean prefix match, no local subtree to prefer.`);
-
-		md(`### 2 · Search inside the current topic first
-
-This box is bound to **Platform** — neither it nor this page claims \`is: "topic"\`, so
-that is the fallback rule itself: *a page's own subtree, when it has no topic ancestor.*
-
-Type **\`res\`**. **Research** (\`/imagine/platform/research/\`) — inside Platform — comes
-first, ahead of *Resume*, *Respond* and three other pages also named or prefixed
-"Research" elsewhere on the site. Local wins on tier, not luck.
-
-Now type the WHOLE word, **\`model\`**. Platform has "Topic Model" — a local
-**word-start** match — but the page titled exactly **Model**
-(\`/framework/styles/layouts/model/\`), elsewhere on the site, is a **strong** match (its
-whole title equals your query) and jumps ahead of it anyway. Locally close is not the
-same as an exact hit.`);
-
-		md(`### 3 · Jump to a page you half-remember
-
-You don't remember the name, only a fragment. Type **\`board\`** — not a prefix of
-anything obvious — and the substring tier still finds **Dashboard**, four times over,
-plus **Board**. Nothing here needed the exact word, only a piece of it.`);
-
-		md(`## Not now
-
-Three things the brief named and this prototype deliberately leaves alone: **users**
-(nobody is signed in to have a personal history), **content search inside a page**
-(only titles are indexed, never a page's own prose), and **chat** (the command mode
-below is three hardcoded links, not a conversation).`);
+- [\`core/Search\`](/framework/core/Search/) — the box itself, live, plus [what changed](/framework/core/Search/doc/decisions/) between the prototype and the real thing.
+- [Existing framework](/imagine/platform/existing/) — the gap this filled. Before this, nothing keyboard-first existed anywhere on the site.
+- [The MVP slice](/imagine/platform/mvp/) — step 3, "The Omnibox over a static index": search over \`/directory.json\`, zero backend.
+- [Data research](/imagine/platform/research/data/) — the open half. Today's index is a static list, read fresh at search time; a live, always-current index (D1 full-text search) waits until the platform has a database at all.`);
 	},
 });

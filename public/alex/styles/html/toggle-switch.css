@@ -1,3 +1,7 @@
+/* Contained in the framework's declared `base` layer (framework.css) so importing
+   this sandbox for search can never outrank a framework rule — this sheet had no
+   layer at all. Not restyled otherwise. framework/ai/2026-09-06/search-tidy. */
+@layer base {
 toggle-switch {
   display: inline-flex;
   align-items: center;
@@ -47,4 +51,5 @@ toggle-switch input:checked + .slider::after {
   margin-left: 0.75rem;
   font-weight: 600;
   min-width: 2ch;
+}
 }

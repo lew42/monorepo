@@ -110,7 +110,7 @@
 
 	/* (0,2,1) for the same reason as `.omnibox-btn` above. */
 	.omnibox button.omnibox-chip {
-		display: flex; align-items: baseline; gap: calc(var(--gap-ramp) * 0.25);
+		display: flex; align-items: baseline; gap: 0.25em;   /* the control's own em, never a page ramp - 2026-09-06 nav-fat */
 		padding: 0.15em 0.6em;
 		font-size: 0.85em; font-weight: 400;
 		letter-spacing: normal; text-transform: none;

@@ -1,4 +1,4 @@
-# grip — a rail's resize edge: a strip just inside the edge it drags, and a pill that rides your pointer. No permanent handle. Shared by [`ext/drawer`](/framework/ext/drawer/), [`dev/DevBar`](/framework/dev/DevBar/) and [`ext/Playground`](/framework/ext/Playground/).
+# grip — a rail's resize edge: a strip just inside the edge it drags, and a pill that rides your pointer. No permanent handle. Shared by [`ext/drawer`](/framework/ext/drawer/) and [`dev/DevBar`](/framework/dev/DevBar/) (`ext/Playground` also used it, deleted 2026-09-06 — see `core/Layout`).
 
 ## Use
 

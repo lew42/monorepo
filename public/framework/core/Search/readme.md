@@ -7,15 +7,7 @@ upward into a wall of cards.
 
 ## Use
 
-There is nothing to import. `app.js` mounts **one** box for the whole site:
-
-```js
-import omnibox from "./framework/core/Search/Omnibox.js";
-// …inside App.render()
-omnibox(this);
-```
-
-Press `/` (when you are not already typing) or `Ctrl`/`Cmd` `K` from any page. `Esc` closes it.
+The box lives on **its own page** now, not the whole site — [`/framework/core/Search/`](/framework/core/Search/) mounts it in `activated()` and tears it down in `deactivated()` (2026-09-06: a site-wide box was repainting other pages). Press `/` (when you are not already typing) or `Ctrl`/`Cmd` `K` while standing on that page. `Esc` closes it.
 The corpus by itself, headless:
 
 ```js

@@ -8,10 +8,16 @@ const PAGE = 40;   // cards drawn before the "more" control — never the whole 
 const ARROWS = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
 
 /**
- * Omnibox — the site's one search box. A slim field pinned to the bottom-centre of
- * the window; type in it and it grows upward into a wall of result cards.
+ * Omnibox — the search box. A slim field pinned to the bottom-centre of the
+ * window; type in it and it grows upward into a wall of result cards.
  *
- *   omnibox(app);        // once, from app.js — that is the whole installation
+ *   omnibox(app);        // build it, appended and listening
+ *   app.omnibox.unmount();  // gone — DOM, hotkeys, all of it
+ *
+ * ⚠ Lives on ONE page now, not the whole site: `core/Search/page.js` builds it
+ *   in `activated()` and calls `unmount()` in `deactivated()` (2026-09-06 — a
+ *   site-wide box was breaking other pages). `mount()`/`unmount()` are the seam;
+ *   nothing else calls them.
  *
  * `/` (when you are not already typing somewhere) and Ctrl/Cmd+K open it, Escape
  * closes it, the arrow keys walk the wall and Enter opens the card. The ⌃/⌄ button
@@ -34,11 +40,26 @@ export class Omnibox extends View {
 		this.results();
 
 		this.place(this.store.get({ place: "bottom" }).place);
+	}
 
-		// ⚠ Never removed. This box is the site's search for as long as the tab
-		// lives, the same lifetime as the shell it is pinned to.
-		document.addEventListener("keydown", e => this.hotkey(e));
-		document.addEventListener("pointerdown", e => this.outside(e), true);
+	// Bound once, so `unmount()` can remove the exact function `mount()` added —
+	// an inline arrow can only ever be added, never found again to remove.
+	mount(){
+		this._hotkey ??= e => this.hotkey(e);
+		this._outside ??= e => this.outside(e);
+		document.addEventListener("keydown", this._hotkey);
+		document.addEventListener("pointerdown", this._outside, true);
+		return this;
+	}
+
+	// The page that owns me calls this on the way out: no listeners left behind
+	// on `document`, and no `.omnibox` element left in the DOM either.
+	unmount(){
+		document.removeEventListener("keydown", this._hotkey);
+		document.removeEventListener("pointerdown", this._outside, true);
+		this.close();
+		this.remove();
+		return this;
 	}
 
 	// ════ THE THREE REGIONS, top to bottom when open ════════════════════════
@@ -297,7 +318,8 @@ export class Omnibox extends View {
 	}
 }
 
-/* The one installation, called once from app.js.
+/* Called from `core/Search/page.js`'s `activated()` — once per visit to that
+ * page, not once for the site. `deactivated()` calls `app.omnibox.unmount()`.
  *
  * ⚠ Into `app.$app`, not `<body>`: the box is site UI and has to inherit the theme
  * class the app paints. `.app` sets no transform, so `position: fixed` inside it is
@@ -306,6 +328,7 @@ export class Omnibox extends View {
 export default function omnibox(app){
 	const box = new Omnibox({ app, capture: false });
 	app.styles_loaded().then(() => box.append_to(app.$app));
+	box.mount();
 	return app.omnibox = box;
 }
 

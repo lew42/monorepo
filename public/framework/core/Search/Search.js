@@ -251,14 +251,27 @@ Search.LAYERS = ["base", "theme", "site", "util"];
  * ⚠ `core/new/1/` is the prior-art sandbox — "read, never import" (the `code` skill),
  *   and one page in it throws at import ON PURPOSE. 264 page.js files, none of them
  *   a page anybody is looking for.
- * ⚠ The three personal sandboxes below ship CSS that breaks the layer law
- *   (CLAUDE.md): `/castin/main.css` opens an undeclared `@layer theme_cm`, and
- *   `/alex/styles.css`, `/alex/styles/html/toggle-switch.css` and
- *   `/edric/style/css/demo.css` are unlayered outright. Importing any of them
- *   repaints the whole site — links went #212121 and the body ground went #ddd,
- *   measured 2026-09-06. `/arya/`, `/michael/`, `/resume/` and `/fly/` are clean
- *   and are in the corpus. Fix the four sheets and these three lines go. */
-Search.prototype.skip = ["/framework/core/new/", "/alex/", "/arya/", "/castin/", "/edric/"];
+ * ⚠ The four named hazards are FIXED (2026-09-06, search-tidy): `/castin/main.css`'s
+ *   undeclared `@layer theme_cm` and `/alex/`'s and `/edric/`'s unlayered sheets are
+ *   now wrapped in the framework's own declared `@layer base` — same rules, contained
+ *   where they sort, so a framework rule always wins a conflict. `/arya/lib/Page.js`'s
+ *   `app.$body.ac("arya")` moved out of module scope into a new `initialize()`, which
+ *   only runs when one of arya's pages is actually shown.
+ * ⚠ `/arya/` is OUT of skip: its whole tree checks clean (`Search.check()` reports
+ *   nothing importing all twelve of its pages, computed styles on `/framework/`
+ *   unchanged). It adds 12 candidates and 0 rows — `/arya/lib/Page.js` is arya's own
+ *   hand-rolled `Page` class, never this framework's, so `page instanceof Page` is
+ *   false for every one of them. That is a separate, pre-existing fact about how
+ *   arya's pages are built, not a search bug.
+ * ⚠ `/alex/`, `/castin/` and `/edric/` stay IN, for a DIFFERENT reason found while
+ *   proving the above: `/alex/page.js`, `/edric/page.js` and six files under
+ *   `/castin/` (`root/page.js` among them) each run `app.$body.ac("theme-1")` — the
+ *   site's own real theme, declared in `/styles.css` — at MODULE SCOPE. Same shape of
+ *   bug as arya's, in files this task's fence did not cover. Measured 2026-09-06:
+ *   importing any of these three trees still repaints the site and `Search.check()`
+ *   names it. Move each `app.$body.ac("theme-1")` into a lifecycle hook and these
+ *   three lines go too. */
+Search.prototype.skip = ["/framework/core/new/", "/alex/", "/castin/", "/edric/"];
 
 /* The facets. A group is a name and a way to read a row's values for it; a chip is
  * one value. Nothing is selected by default, and nothing selected means everything

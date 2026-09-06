@@ -1,3 +1,8 @@
+/* Contained in the framework's declared `base` layer (framework.css) so importing
+   this sandbox for search can never outrank a framework rule — this sheet had no
+   layer at all, and an unlayered rule always beats every layered one regardless of
+   specificity. Not restyled otherwise. framework/ai/2026-09-06/search-tidy. */
+@layer base {
 /* following up reset, adding docs styles */
 .doc { padding-top: 2em; } /* remove once menu is hidden */
 
@@ -87,4 +92,5 @@
 .card-list {
     --card-min: min(16rem, 100%);
     grid-template-columns: repeat(auto-fit, minmax(var(--card-min), 1fr));
+}
 }

@@ -1,4 +1,5 @@
 import { Doc, md, h2, div, span, button } from "/app.js";
+import omnibox from "./Omnibox.js";
 
 /* Container: the framework docs shell — rail + one prose column, `--measure`.
    Size: prose width at every screen; the control band rides the same measure.
@@ -8,11 +9,25 @@ import { Doc, md, h2, div, span, button } from "/app.js";
 export default new Doc({
 	meta: import.meta,
 	title: "Search",
-	description: "The site's corpus and the one search box over it — press / anywhere.",
+	description: "The site's corpus and its one search box — open here, press / anywhere on this page.",
 	icon: "search",
 
 	files: "Search.js Omnibox.js Search.css tags.js page.js readme.md",
 	notes: "decisions corpus filters",
+
+	// The box lives on THIS page only (2026-09-06 — a site-wide box was breaking
+	// other pages). `activated()`/`deactivated()` fire once per visit here, not once per site —
+	// same seam `uses/split` writes by hand. Doc's own tabs (Overview, decisions,
+	// corpus, filters) stay inside this page's chain, so the box survives moving
+	// between them and only tears down on the way out.
+	activated(){
+		this.app.omnibox ??= omnibox(this.app);
+	},
+
+	deactivated(){
+		this.app.omnibox?.unmount();
+		delete this.app.omnibox;
+	},
 
 	content(){
 		// `this.app` while the page is rendering — the band's callbacks run later,
@@ -34,7 +49,7 @@ export default new Doc({
 			$stats = span.c("muted", "The corpus is read the first time anybody searches — never on a page load.");
 		});
 
-		md("**That box is the site's search** — one of it, on every page, put there by a single line in `app.js`. **Press `/`** when you are not already typing, or `Ctrl`/`Cmd` `K`. Type three letters and it fills with cards; the arrow keys walk them and Enter opens one. `Esc` closes it, and the small **⇧** button moves the whole box to the top of the window and remembers that you did.");
+		md("**That box is search over the whole site** — but it only exists here, on this page, so it never surprises you anywhere else. **Press `/`** when you are not already typing, or `Ctrl`/`Cmd` `K`. Type three letters and it fills with cards; the arrow keys walk them and Enter opens one. `Esc` closes it, and the small **⇧** button moves the whole box to the top of the window and remembers that you did.");
 
 		md("**The corpus is the Router's own walk.** Every row was produced by `Page.load()` — the exact call that runs when you navigate — so a result can never promise a url the Router then fails to open. Reading all of them is about a second, once per tab. [How it is counted](/framework/core/Search/doc/corpus/).");
 
