@@ -1,5 +1,6 @@
 import { Page, div, span, button, md } from "/app.js";
 import { baseline } from "/imagine/paging/baseline.js";
+import { like, who } from "/imagine/platform/like.js";
 
 /* Container: a COLUMN in /imagine/'s columns host (the shallowest columnar ancestor, three
    levels up) — so there is no page grid here, `wide` means nothing, and every child opens to
@@ -105,7 +106,17 @@ export default new Page({
 			span.c("muted", this.points() + " pts · " + this.log.length + " done");
 		})));
 
-		md("[The record](/imagine/platform/decisions/topic-model/) this runs on.");
+		/* THE ONE THING ON THIS PAGE THAT IS NOT THIS BROWSER'S. Everything above is
+		   `store()` — your run, nobody else's, gone if you clear the browser. This button is
+		   a row in a real database, written by a signed-in user through a real Worker: the
+		   whole slice, on one url. It is a dash until the harness is running, on purpose —
+		   `npm run dev`, then [the recipe](/framework/ai/2026-09-06/platform-slice/run.md). */
+		div.c("flex v gap", () => {
+			like(this.url);
+			who();
+		});
+
+		md("[The record](/imagine/platform/decisions/topic-model/) this runs on, and [the slice that runs](/imagine/platform/mvp/).");
 	},
 
 	children: [
@@ -160,8 +171,11 @@ order is keyed on this page's url, so nothing invents a second naming scheme and
 central has to list the channels — [realtime](/imagine/platform/research/realtime/),
 [the record](/imagine/platform/decisions/topic-model/).
 
-Nothing here writes yet. The site is static until the identity step of
-[the slice](/imagine/platform/mvp/), and a channel with no author is a guestbook.`);
+**One thing here writes now.** Every channel below carries a like button, and a like is a row
+in D1 written by a signed-in user — the smallest possible version of the identity step of
+[the slice](/imagine/platform/mvp/), running for real on the local harness. Messages still do
+not write: a channel with no author is a guestbook, and the author is what the like just
+proved we have.`);
 			},
 
 			children: [
@@ -175,6 +189,15 @@ Nothing here writes yet. The site is static until the identity step of
 				content(){
 					md(blurb);
 					md("Durable Object key: `" + this.url + "` — the page url, nothing else.");
+
+					/* The same url is also the like's key (/notes/auth/ §4), which is why this
+					   button and the topic's own button are two independent counts with nothing
+					   central listing them. Like both and look at the `likes` table: two rows,
+					   two urls, one user. */
+					div.c("flex v gap", () => {
+						like(this.url);
+						span.c("muted", "Liked per page, keyed on this url.");
+					});
 
 					if (!points) return;
 

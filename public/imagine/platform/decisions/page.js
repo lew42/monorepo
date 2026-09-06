@@ -19,6 +19,8 @@ const RECORDS = [
 		"`node server.js` and `npx wrangler dev` side by side on one origin, seeded fake users, roles, the anonymous path, and a room tested from two browser contexts. No new npm dependency."],
 	["identity", "Who a user is, and what they may do",
 		"One `users` row and a stateless HMAC cookie — GitHub and Google, no vendor, no dependency. A ban is one KV key; authorization is one `can(user, action, url)` the router calls. The dev login is **absent** from the deployed bundle, not disabled in it."],
+	["slice", "What gets built first",
+		"A **like** — one D1 row, written by a signed-in user, keyed on the page's url. The only thing small enough to prove identity → API → database → screen and still be a real write. [It runs](/imagine/platform/mvp/); [the recipe](/framework/ai/2026-09-06/platform-slice/run/)."],
 ];
 
 export default new Page({

@@ -62,7 +62,11 @@ it earns them, a community, subtopics, levels and experiences.
 
 **Start here:** [the Topic demo](./topic/) is the one page below you can actually click around
 in — earn points, open a subtopic, watch a level change. Everything below that card is the
-research and reasoning behind it, not the thing itself.`);
+research and reasoning behind it, not the thing itself.
+
+**Where this stands:** the smallest end-to-end slice now runs on one machine in about fifteen
+seconds — a topic, a page inside it, a signed-in user and a like that is a real database row
+([see it](./mvp/), [run it](/framework/ai/2026-09-06/platform-slice/run/)).`);
 
 		this.previews();
 
@@ -78,12 +82,14 @@ itself.*
 ### Landed — nine verdicts, dug in parallel
 ${VERDICTS.map(([slug, name, n]) => `- [${name}](./research/${slug}/verdict/) — **${n} entries**`).join("\n")}
 
-Plus four decision records — [topic model](./decisions/topic-model/),
-[data](./decisions/data/), [identity](./decisions/identity/) and
-[local dev](./decisions/local-dev/) — each ruled off a verdict above.
+Plus five decision records — [topic model](./decisions/topic-model/),
+[data](./decisions/data/), [identity](./decisions/identity/),
+[local dev](./decisions/local-dev/) and [slice](./decisions/slice/) — each ruled off a verdict
+above.
 
-### In flight or next
-- This report — the card descriptions, this section, the local-dev correction line ([run log](/framework/ai/2026-09-04/))
+### Since — the slice runs
+2026-09-06: a like is a real D1 row, and all four nouns of the smallest slice run locally in ~15
+seconds ([Running](./mvp/), [the recipe](/framework/ai/2026-09-06/platform-slice/run/)).
 
 ### Still open — only the project's owner can decide these
 ${PARKED.map(([q, url]) => `- [${q}](./${url})`).join("\n")}

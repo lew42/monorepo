@@ -164,9 +164,42 @@ the first bill, and the first thing that can be down.
 Built on eight verdicts ([research](/imagine/platform/research/)) and two scouts. Where they
 disagree, the table rules it once.`);
 
+		this.running();
 		this.conflicts();
 		this.steps();
 		this.excluded();
+	},
+
+	/* The picture first, then one line per noun — the newcomer rule: don't tell the reader what
+	   you are about to show them. Everything here was run, not described; the numbers in the
+	   shot are the ones the twelve assertions in slice-test.mjs read back out of the DOM. */
+	running(){
+		md("## Running");
+
+		/* `.ac("wide")` for the same reason the two tables below take it: the column's measure cap
+		   is set for prose, and a screenshot of a four-column page is unreadable inside it. */
+		md(`![The topic world and a page inside it, side by side: JavaScript liked twice, #general liked once, signed in as carol](/framework/ai/2026-09-06/platform-slice/slice.png)`).ac("wide");
+
+		md(`*One command, about fifteen seconds, one machine, no Cloudflare account.* Steps 0, 1 and 4
+of the list below, plus the smallest possible write, running on \`workerd\` — the same engine
+Cloudflare runs — entirely offline.
+
+- **The topic world** — [\`/imagine/platform/topic/\`](/imagine/platform/topic/), a page that says
+  \`is: "topic"\`. **Real**, and it needs no server at all.
+- **A page inside it** — its \`#general\` channel, its own url. **Real**, the same way.
+- **A signed-in user** — the **session is real**: HMAC-SHA256 over WebCrypto, an \`HttpOnly\`
+  cookie, verified against a \`users\` row on every single request. The **identity behind it is
+  faked** — five seeded people and a \`?as=carol\` url, where GitHub OAuth will go.
+- **One like** — **real**: a row in D1, one per user per page (the primary key says so), counted
+  with \`COUNT(*)\` and never stored. It survives a reload, a sign-out and a restart.
+
+**[The recipe →](/framework/ai/2026-09-06/platform-slice/run/)** — one command and six steps,
+with what you should see at each. A cold terminal to twelve green browser assertions took **14
+seconds**.
+
+And the acceptance test step 4 below calls "not a slogan", actually run: load the same page on
+plain \`node server.js\` with no Worker anywhere and it renders in full, throwing nothing — the
+like button just says it has no API.`);
 	},
 
 	conflicts(){

@@ -4,3 +4,6 @@
 {"log":{"at":"2026-09-06T09:22:56-05:00","task":"spacing-constants","msg":"task opened - hand-typed spacing in page.js files reads the ramps"}}
 {"log":{"at":"2026-09-06T09:24:49-05:00","task":"skill-decisions","msg":"task opened - apply the mastermind decisions on the four 2026-09-05 skill improvement proposals"}}
 {"log":{"at":"2026-09-06T09:29:51-05:00","task":"skill-decisions","msg":"landed - all four 2026-09-05 skill proposals applied and their entries deleted; grep -c 2026-09-05 improvements.md reads 0 everywhere"}}
+{"log": {"at": "2026-09-06T09:43:31-05:00", "task": "graduate-plan", "msg": "landed - the plan to graduate paging's six words into core Page: the map with file:line, the seam (Page.Frame + Page.from), three slices, ~90 lines in, ~580 out"}}
+{"log": {"at": "2026-09-06T09:46:02-05:00", "task": "graduate-1", "msg": "task opened - slice 1 of the graduate plan: core Page gains the six words, nobody uses them yet"}}
+{"log": {"at": "2026-09-06T09:46:54-05:00", "task": "platform-slice", "msg": "landed - the first vertical slice runs end to end in 14 seconds: a topic world, a page inside it, a signed-in user, and a like that is a real D1 row. Recipe, Running section, decision record; found and fixed a foreign-key bug that would have killed the second npm run dev."}}

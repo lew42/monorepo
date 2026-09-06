@@ -11,7 +11,11 @@
 import { spawn, spawnSync } from "node:child_process";
 import net from "node:net";
 
+// Both ports are overridable, because two people (or an agent) can want this
+// harness at once and :80 is the owner's. `PORT=8097 API_PORT=8201 npm run dev`
+// is the whole gesture — see public/framework/ai/2026-09-06/platform-slice/run.md.
 const PORT = process.env.PORT || 80;
+const API_PORT = process.env.API_PORT || 8787;
 const children = [];
 
 function isListening(port) {
@@ -53,10 +57,11 @@ if (await isListening(PORT)) {
     console.log(`[dev] node server.js  → http://localhost:${PORT}`);
 }
 
-const wrangler = spawn("npx --yes wrangler dev -c wrangler.dev.jsonc --port 8787", { shell: true });
+const wrangler = spawn(`npx --yes wrangler dev -c wrangler.dev.jsonc --port ${API_PORT}`, { shell: true });
 prefixed("wrangler", wrangler);
 children.push(wrangler);
-console.log("[dev] wrangler dev    → http://localhost:8787   (identity + rooms; DEV_LOGIN=1)");
-console.log("[dev] switch users at http://localhost:8787/api/dev/login?as=alice   (alice bob carol dave eve; ?as=none clears it)");
+console.log(`[dev] wrangler dev    → http://localhost:${API_PORT}   (the whole site + identity, rooms and likes; DEV_LOGIN=1)`);
+console.log(`[dev] switch users at http://localhost:${API_PORT}/api/dev/login?as=carol   (alice bob carol dave eve; ?as=none clears it)`);
+console.log(`[dev] the slice       → http://localhost:${API_PORT}/imagine/platform/topic/   (sign in, then like it)`);
 
 wrangler.on("exit", (code) => { stopAll(); process.exit(code ?? 0); });

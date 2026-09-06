@@ -9,6 +9,7 @@
 import { verify, readCookie, DEV_SECRET_FALLBACK } from "./session.js";
 import { can } from "./can.js";
 import { me } from "./me.js";
+import { likes, toggle } from "./likes.js";
 export { Room } from "./room.js";   // re-exported so whichever module wrangler binds the DO class to (this file, or dev.js locally) can find it
 
 function json(data, status = 200) {
@@ -35,6 +36,30 @@ export async function route(request, env) {
 
     if (url.pathname === "/api/me") {
         return json(me(user));
+    }
+
+    if (url.pathname === "/api/likes") {
+        const target = url.searchParams.get("url");
+        if (!target) return json({ error: "missing ?url=" }, 400);
+
+        // POST is the only mutation this worker has, so it is the only place
+        // identity.md's Security row applies: SameSite=Lax still rides a
+        // cross-site GET, so a write is refused unless the browser says the
+        // request came from our own origin. A caller that sends no
+        // Sec-Fetch-Site at all (curl, the recipe in run.md) is allowed — it is
+        // not a browser being steered by somebody else's page, which is the
+        // whole threat. A real deploy adds the Origin check beside this one.
+        if (request.method === "POST") {
+            if (!can(user, "write")) return json({ error: "forbidden" }, 403);
+
+            const site = request.headers.get("Sec-Fetch-Site");
+            if (site && site !== "same-origin") return json({ error: "forbidden" }, 403);
+
+            return json(await toggle(target, user, env));
+        }
+
+        if (!can(user, "read")) return json({ error: "forbidden" }, 403);
+        return json(await likes(target, user, env));
     }
 
     if (url.pathname === "/api/room") {
