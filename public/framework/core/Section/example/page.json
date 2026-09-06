@@ -1,0 +1,5 @@
+{
+  "title": "From a page.json",
+  "layout": "main-aside",
+  "children": ["main", "aside"]
+}

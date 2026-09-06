@@ -50,3 +50,5 @@
 {"log": {"at": "2026-09-06T11:36:05-05:00", "task": "mvp-table", "msg": "task opened - platform mvp table looks broken, find what changed today and fix the cause, census every table"}}
 {"log": {"at": "2026-09-06T11:36:59-05:00", "task": "bleed-gutter", "msg": "landed - doodles bleed to wide, plus the one Page.css payback rule (.page > .bleed:is(.grid, .flex)) that also fixed 6 more pages; framed-at-x:0 crawl 1 -> 0 site-wide, 4 more found in the imagine columns host left as findings"}}
 {"log": {"at": "2026-09-06T11:37:34-05:00", "task": "doc-member-routes", "msg": "task opened - Doc member pages 404 cold, find the cause and mint routes sitewide"}}
+{"log": {"at": "2026-09-06T11:42:03-05:00", "task": "site-diff", "msg": "task opened — site-diff.mjs: baseline+compare over 40 pages, mask the framework clock, exit non-zero on new errors/sideways"}}
+{"log": {"at": "2026-09-06T11:48:16-05:00", "task": "section-b", "msg": "landed - core/Section: a page inside a page that picks an approved layout; picker fits by live width (21/30 at 1280, 0 at 400), stacks below the floor"}}

@@ -57,11 +57,16 @@ zoom-responsive
 # framework.css — new words prefixed, not bare (see the note at the top)
 table-       framework.css (table-equal — equalize a table's columns)
 spacing-     framework.css (spacing-tight · spacing-regular · spacing-airy — the three spacing levels)
+size-        framework.css (size-small · size-regular · size-large — the one --size knob, which
+             scales every control inside the box that wears it; /imagine/design/size/ also
+             uses .size-lab/-chip/-stage for the study page that proposed it)
 
 # core
 page-        core/Page
 page-layout- core/Layout (the tree, a layout page, the fixture boxes — inside core/Page's
              namespace on purpose: `layout-` is ext/layout's, and `Layout extends Page`)
+page-section- core/Section (the band, its overlay and slots — same namespace, same
+             reason: `section-` is /imagine/sections' and `.section` is a live rule)
 sidebar-     core/Sidebar
 omnibox-     core/Search (the one search box; the class `.omnibox` itself is the View subclass's own name)
 brand-       core/Sidebar

@@ -1,0 +1,124 @@
+/* core/Section — one band inside a page. Structure only: where the overlay sits and
+   what a slot is. The ARRANGEMENT is never here — it comes from the layout entry's
+   own `decl`, applied inline, so the thirty layouts have one definition and this
+   file cannot drift away from them. Record: readme.md.
+
+   css: .page-section, .page-section-editing, .page-section-overlay,
+        .page-section-render, .page-section-slot, .page-section-name,
+        .page-section-list, .page-section-unfit, .page-section-note. */
+@layer theme {
+
+	/* THE DEFAULT DIV, and that is nearly the whole component: a box two and a half
+	   lines tall with no padding, no colour and no chrome (the owner: "it starts as
+	   a default div, min height of 2 or 3 em").
+	   ⚠ `position: relative` is the only thing added for the overlay, and it is what
+	     makes the overlay cost ZERO pixels of layout. */
+	.page-section {
+		position: relative;
+		min-height: 2.5em;
+		min-width: 0;
+	}
+
+	/* ── editing ──────────────────────────────────────────────────────────────
+	   A resting hairline, then the corner control on hover. The hairline is an
+	   OUTLINE, not a border: an outline takes no space, so turning editing on moves
+	   nothing on the page.
+	   ⚠ It is drawn at REST as well, faintly, because an invisible box is a box
+	     nobody can find to hover. `outline-offset: -1px` keeps it inside its own
+	     bounds, so a section at the edge of a clipped demo screen still shows all
+	     four sides. */
+	.page-section-editing {
+		outline: 1px dashed var(--line);
+		outline-offset: -1px;
+	}
+	.page-section-editing:hover,
+	.page-section-editing:focus-within { outline-color: var(--prim); }
+
+	/* ⚠ `position: absolute` and only `opacity` moves — `ext/Playground` measured
+	     its way to that rule across a ten-point hover sweep, and any chrome that
+	     reflows on hover makes a section impossible to aim at. */
+	.page-section-overlay {
+		position: absolute;
+		inset-block-start: 0.25em;   /* a control's own em, never a page ramp */
+		inset-inline-end: 0.25em;
+		z-index: 1;
+		opacity: 0;
+		transition: opacity 0.12s;
+
+		/* ⚠ A COLUMN, and the FLOOR IS ON EACH CHILD rather than on the overlay. As a
+		   row it was as wide as the sentence beside the control — a shrink-to-fit
+		   absolute box takes all the room it is offered — and its background then
+		   covered the section's own first heading at a 400 viewport (measured: the
+		   `Main` title was gone while hovering). A column is as wide as its widest
+		   child, right-aligned, and leaves the rest of the corner alone. */
+		display: flex;
+		flex-direction: column;
+		align-items: flex-end;
+		gap: 0.25em;
+		max-inline-size: calc(100% - 0.5em);
+	}
+
+	/* Each piece paints its own floor: they float OVER the section's content, and a
+	   sentence read across whatever text happens to be under it is unreadable. */
+	.page-section-overlay > .page-section-note,
+	.page-section-overlay .dropdown > .dropdown-trigger:is(button, .btn) {
+		padding: 0.15em 0.4em;
+		background: var(--surface);
+		border-radius: var(--radius);
+	}
+	.page-section-editing:hover > .page-section-overlay,
+	.page-section-editing:focus-within > .page-section-overlay { opacity: 1; }
+
+	/* ── the arrangement ──────────────────────────────────────────────────────
+	   The box the layout's own declarations land on, and the boxes its named tracks
+	   land on. Both carry `min-width: 0` for the reason every flexible track on this
+	   site does: the default floors a child at its MIN-CONTENT, so one long word or
+	   one `<pre>` pushes the row wider than the section. */
+	.page-section-render { min-width: 0; }
+
+	.page-section-slot { min-width: 0; }
+
+	/* An empty slot says its own name, so a reader can see WHERE content would go
+	   and what to call the child that goes there. Editing only — a real page shows
+	   an empty slot as empty. */
+	.page-section-name { font-size: 0.8em; }
+
+	/* A CHILD PAGE inside a slot is a band's content, not a page: it keeps the
+	   reading measure and drops the page grid's own gutters, which would inset it
+	   again from a box the layout has already placed. `Page.css` makes the same
+	   move for a column.
+	   ⚠ `0px`, never `0` — `--gutter-x` is multiplied inside a `calc()`, and a
+	     unitless zero there drops the whole grid template with nothing thrown.
+	   ⚠ A DESCENDANT selector, not a child one. `content: "/…md"` wraps the file in a
+	     SECOND page inside the first (`Page.content_at()`), and a child-only rule
+	     left that inner page paying the gutter again — its prose sat 30px right of
+	     its own title, measured on the JSON demo. */
+	.page-section .page {
+		--gutter-x: 0px;
+		padding: 0;
+	}
+
+	/* ── the picker ───────────────────────────────────────────────────────────
+	   `ext/Dropdown` draws the list; these three rules are what a LAYOUT list needs
+	   that a generic one does not.
+	   ⚠ A cap, because the rows carry a sentence: without it the list is as wide as
+	     its longest reason and a top-layer box has nothing to be bounded by. */
+	.page-section-list { max-inline-size: min(30em, 92vw); }
+
+	/* In a picker row it must not shrink — the range is the point of the row. In the
+	   overlay it must, because there it is a sentence in a box that can be 276px. */
+	.page-section-note { flex: 0 0 auto; font-size: 0.85em; }
+	.page-section-overlay > .page-section-note { flex: 0 1 auto; min-inline-size: 0; max-inline-size: 16em; text-align: end; }
+
+	/* A layout that does not fit this box is a ROW, not an option: it cannot be
+	   clicked, focused, or reached with the arrow keys, and it says why in the same
+	   breath. That is LayoutRule #1 — the width range — where a reader meets it. */
+	.page-section-unfit {
+		display: flex;
+		align-items: center;
+		gap: 0.5em;                  /* the control's own em, never a page ramp */
+		padding: 0.25em 0.5em;
+		opacity: 0.55;
+		cursor: default;
+	}
+}
