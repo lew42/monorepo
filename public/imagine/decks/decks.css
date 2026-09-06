@@ -211,7 +211,7 @@
 	.decks-stack > .decks-list { width: 100%; margin-inline: 0; }
 
 	.decks-row {
-		display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.1);   /* was gap 0.1em - 2026-09-05 ramps */
+		display: flex; flex-direction: column; gap: 0.1em;   /* the control's own em, never a page ramp - 2026-09-06 nav-fat */
 		padding: 0.55em 0.7em;
 		color: inherit; text-decoration: none;
 		border-block-end: 1px solid var(--line);

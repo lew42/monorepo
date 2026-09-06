@@ -44,6 +44,13 @@ once, in framework.css — never restate it, never invent a fifth name.
 **4. Constrain the container, not the items.** A child opts out by claiming a wider
 track. Prefer a token (`--gap`, `--column`, `--measure`) to a rule — a subtree
 re-declares it, no specificity war.
+⚠ A spacing ramp (`--pad-ramp` / `--gap-ramp` / `--flow-ramp`) is space BETWEEN and AROUND content
+— a row's gap, a page or card's padding, the rhythm between paragraphs — and never the size OF a
+control: a chip's, button's or nav item's padding, its height, and the gap between its own icon and
+label stay in the control's own `em`. `calc(var(--gap-ramp) * 1.3)` is not "1.3em, roomier at 3440":
+the ramp caps at 2.6em, so it is 3.38em there, and a homepage nav item stood 67.6px tall. A `vw`
+clamp on a control is the same mistake in different clothes (the paging toolbar, 130.7px of chrome at
+3440) (2026-09-06 — [the addendum](/imagine/design/spacing/decision.md)).
 ⚠ A flex row squeezed under its content width does not overflow first — default `flex-shrink`
 takes each item to min-content, and a multi-word label wraps to lower min-content further: six
 toolbar buttons went two-line before the row ever scrolled, silently (2026-08-19). The fix shape:

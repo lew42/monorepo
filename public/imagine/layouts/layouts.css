@@ -86,7 +86,7 @@
 	}
 
 	.layouts-chip {
-		display: inline-flex; align-items: center; gap: calc(var(--gap-ramp) * 0.2);   /* was gap 0.2em - 2026-09-05 ramps */
+		display: inline-flex; align-items: center; gap: 0.2em;   /* the control's own em, never a page ramp - 2026-09-06 nav-fat */
 		padding: 0.14em 0.5em;
 		border: 1px solid var(--line); border-radius: var(--radius);
 		background: var(--fill-a04);

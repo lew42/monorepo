@@ -72,10 +72,16 @@ was 545px, not the 965px assumed), both states were identical and the card taugh
   cramped. The numbers, and the alternatives they beat:
   [/imagine/design/spacing/decision.md](/imagine/design/spacing/decision.md) — 2026-09-05,
   superseding the 2026-09-01 clamps this section used to quote.
-  ⚠ A component's own constant is the other half: `gap: 0.6em` becomes
-  `calc(var(--gap-ramp) * 0.6)` (a section-scale gap, 2em and up, takes `--flow-ramp` × N/2),
-  so the multiplier IS the old em number and only 3440 moves. A CONTROL's padding is never
-  converted — `--pad-ramp` is a % of the containing block and would put 52px a side on a chip.
+  ⚠ **A ramp is space BETWEEN and AROUND content — never the size OF a control** (2026-09-06).
+  Convert a container's own constant (`gap: 0.6em` → `calc(var(--gap-ramp) * 0.6)`; a
+  section-scale gap, 2em and up, takes `--flow-ramp` × N/2). Never convert a control's own
+  dimensions — a chip's, button's or nav item's padding, its height, or the gap between its
+  own icon and its own label. Those stay in the control's `em`. `× N` is NOT "N em with a
+  little extra at 3440": `--gap-ramp` equals 1em only at its floor and is pinned at its 2.6em
+  cap above ~1400px, so `× 1.3` is 3.38em at 3440 — and `--pad-ramp`, a % of the containing
+  block, put 90.7px of padding on a nav row. A homepage nav item reached 67.6px tall this way, and
+  a `vw` clamp is the same thing in different clothes — `clamp(0.45em, 0.6vw, 1.1em)` on the paging
+  toolbar made it 130.7px of chrome at 3440. If the rule sizes a control, it gets neither.
 - **`bleed` is for PAINT.** A background image or wash may butt its container. A framed
   box — a card, a figure, a table — or bare text NEVER bleeds: "CLOSEST REAL MISS" sat
   0px from the viewport edge on a bled card wall, on the padding study page itself
@@ -95,6 +101,11 @@ was 545px, not the 965px assumed), both states were identical and the card taugh
   hero in a rail, a one-line chip wall alone in a 3440 band. Before placing anything, say the
   box's width range and the content's natural range in one line; if they do not overlap, the
   placement is wrong before any CSS is.
+- **Some boxes grow, some cannot.** A stack takes endless content; a hero, a viewport-height band,
+  an equal-height card row or an inner-scroll rail does not — say which yours is, and for a bounded
+  box say what happens to content that is longer than it (scroll, clip, truncate) before you fill
+  it. Wrapping layouts (`flex wrap`, `grid auto-fill`) misalign at awkward counts: prove one with
+  1 · 2 · 3 · 5 · 7 items; walls take `grid auto-fill`, only a control row takes `flex wrap`.
 - A layout is proven for a **range**: above its ceiling it holds its measure and centres, never
   stretches; below its floor it stacks to a named 1-column fallback. Say the range when you pick
   one, and prove a new one at 400 / 1000 / 2000 / 3440 and the widths between.

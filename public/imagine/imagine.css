@@ -59,7 +59,7 @@
 	.imagine-rows { display: flex; flex-direction: column; }
 
 	.imagine-row {
-		display: flex; flex-direction: column; gap: calc(var(--gap-ramp) * 0.1);   /* was gap 0.1em - 2026-09-05 ramps */
+		display: flex; flex-direction: column; gap: 0.1em;   /* the control's own em, never a page ramp - 2026-09-06 nav-fat */
 		padding: 0.5em 0.9em;
 		color: var(--ink); text-decoration: none;
 		border-bottom: 1px solid var(--line);
@@ -81,7 +81,7 @@
 	.imagine-row-name { font-size: 0.9em; font-weight: 600; }
 
 	.imagine-row-meta {
-		display: flex; gap: calc(var(--gap-ramp) * 0.5); justify-content: space-between;   /* was gap 0.5em - 2026-09-05 ramps */
+		display: flex; gap: 0.5em; justify-content: space-between;   /* the control's own em, never a page ramp - 2026-09-06 nav-fat */
 		font-size: 0.75em; color: var(--subtle);
 	}
 

@@ -279,7 +279,7 @@
 	.panel-t-link {
 		display: flex;
 		align-items: center;
-		gap: calc(var(--gap-ramp) * 0.4);   /* was gap 0.4em - 2026-09-05 ramps */
+		gap: 0.4em;   /* the control's own em, never a page ramp - 2026-09-06 nav-fat */
 		padding: 0.35em 0.7em;
 		border-radius: var(--radius);
 		white-space: nowrap;

@@ -48,7 +48,7 @@
 	/* `app.brand()` builds this, and it is only ever placed inside a Sidebar — which
 	   owns the padding around it. No margin here: spacing belongs to whatever holds
 	   the brand. */
-	.brand { display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.75); padding: 1em 1.2em; }   /* was gap 0.75em - 2026-09-05 ramps */
+	.brand { display: flex; align-items: center; gap: 0.75em; padding: 1em 1.2em; }   /* the mark's own em, never a ramp (2026-09-06) */
 	.brand-logo { display: flex; font-size: 1.3em; }
 	.brand-text {
 		font-weight: 800; font-size: 1.3em;
@@ -69,11 +69,15 @@
 	     declares that; `.sidebar-nav` is a flex COLUMN and a column's default cross
 	     size IS the rail's width. Un-stretching it would leave a ragged rail whose
 	     hover fill is a different width on every row, which is worse than the ratio.
-	     What was actually cramped is the row's own height: `0.8em` of block padding
-	     never grew, so a 3440 rail was a 272px column of 11px-padded rows. It reads
-	     the gap ramp now (2026-09-05: was a flat `0.8em` — 9.6px at 1280 and 11.5px
-	     at 3440; now 9.4px → 22.4px, so the rail breathes where the screen is). */
-	.sidebar-link { padding-block: calc(var(--gap-ramp) * 0.6); }
+	   ⚠ Its HEIGHT is its own em, and that is not negotiable. For one day
+	     (2026-09-05 → 2026-09-06) this read `calc(var(--gap-ramp) * 0.6)`, on the
+	     theory that a 3440 rail of 11px-padded rows was cramped. That is a control
+	     riding a page ramp, which the spacing decision forbids: the ramp caps at
+	     2.6em, so block padding reached 22.5px and a nav item stood 67.6px tall at
+	     3440 (45.7px before). "The homepage nav items got way too fat" — the owner,
+	     the next morning. A rail row that genuinely needs more air gets a bigger
+	     number here, in em; it never gets a ramp. */
+	.sidebar-link { padding-block: 0.8em; }
 	.sidebar-group { margin-block: calc(var(--gap-ramp) * 1); }   /* was margin-block 1em - 2026-09-05 ramps */
 	.sidebar-link:is(.active, .in-path) .sidebar-label { font-weight: 600; }
 	.sidebar-link.active::after, .sidebar-link.in-path::after { margin-bottom: 1px; }
@@ -157,6 +161,17 @@
 	/* What `.grid > *` says for a grid claimed by its utility class — the `more`
 	   line is a `<p>`, and its default block margin is not the row gap. */
 	.home-front > * { margin: 0; }
+
+	/* SIX SECTION CARDS SINCE 2026-09-06 (Imagine and Notes joined the rail, and
+	   the rail and the cards come off one list in page.js). Six wrap differently
+	   from four: measured across seven widths, the front's own `--column: 18em`
+	   left 4+2 at 1600 and a lone stretched card at 1920. Six 12em cards plus five
+	   0.8em gaps need 76em of row, so that is exactly where the threshold drops —
+	   below it 18em still gives even rows (one per row at 400, 2+2+2 at 900,
+	   3+3 at 1280), above it all six sit on one line. */
+	@container (min-width: 76em) {
+		.home-nav > .flex { --column: 12em; }
+	}
 
 	.home-hero  { grid-area: hero; }
 	.home-stage { grid-area: stage; }

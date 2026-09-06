@@ -156,7 +156,7 @@
 	.feeds-live-status { font-size: 0.75em; color: var(--subtle); }
 
 	.feeds-weather-row {
-		display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.6);   /* was gap 0.6em - 2026-09-05 ramps */
+		display: flex; align-items: center; gap: 0.6em;   /* the control's own em, never a page ramp - 2026-09-06 nav-fat */
 		padding: 0.5em 0.2em;
 		border-bottom: 1px solid var(--line);
 	}

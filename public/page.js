@@ -7,6 +7,8 @@ const sections = [
 	{ title: "Blog", url: "/blog/", desc: "Working notes on the framework, the tools built on it, and the AI board that watches it get built." },
 	{ title: "Framework", url: "/framework/", desc: "The docs — View, Page, Router, App, and the CSS layers." },
 	{ title: "Web", url: "/web/", desc: "The guide — how to build things on the web, shown live." },
+	{ title: "Imagine", url: "/imagine/", desc: "A place made of column pages — a team to run, a world to walk, and three trees of variations." },
+	{ title: "Notes", url: "/notes/", desc: "Short working notes for the team, and the notebook pages behind them." },
 	{ title: "Résumé", url: "/resume/", desc: "Design engineer, 12+ years — and a 3D parallax scroll running underneath it." },
 
 	// ⚠ Trailing slash is load-bearing: `/fly/` is a real index.html outside the SPA,
@@ -72,8 +74,10 @@ export default new Page({
 			this.posts();
 			this.cards();
 
-			// The owner's line. Everything here is a real page; nothing is a stub.
-			md.c("home-more", "Also here: [imagine](/imagine/) — a place built out of column pages, short working [notes](/notes/), and five personal sandboxes — [Alex](/alex/), [Arya](/arya/), [Castin](/castin/), [Edric](/edric/), [Michael](/michael/).");
+			// The owner's line — what is NOT in the nav above it. Imagine and Notes
+			// moved into `sections` on 2026-09-06, so they are a rail row and a card
+			// now; naming them here again would be the same link three times.
+			md.c("home-more", "Also here: five personal sandboxes — [Alex](/alex/), [Arya](/arya/), [Castin](/castin/), [Edric](/edric/), [Michael](/michael/).");
 		});
 	},
 

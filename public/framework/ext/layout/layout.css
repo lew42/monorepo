@@ -46,7 +46,7 @@
 	   `border: none` cancelling the transparent border below and the hover that
 	   recoloured it. */
 	.layout-btn {
-		display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.3);   /* was gap 0.3em - 2026-09-05 ramps */
+		display: flex; align-items: center; gap: 0.3em;   /* the control's own em, never a page ramp - 2026-09-06 nav-fat */
 		padding: 0.15em 0.6em;
 		font-family: var(--mono);
 		color: var(--subtle);

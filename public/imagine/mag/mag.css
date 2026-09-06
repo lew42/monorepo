@@ -123,7 +123,7 @@
 	}
 
 	.mag-cover-lines-item {
-		display: flex; align-items: baseline; gap: calc(var(--gap-ramp) * 0.5);   /* was gap 0.5em - 2026-09-05 ramps */
+		display: flex; align-items: baseline; gap: 0.5em;   /* the control's own em, never a page ramp - 2026-09-06 nav-fat */
 		font-size: clamp(0.75rem, 2cqw, 1.05rem);
 	}
 

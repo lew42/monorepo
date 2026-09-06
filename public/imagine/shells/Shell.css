@@ -92,7 +92,7 @@
 	     wrong direction and reads as no hover at all (Page.css says the same, at
 	     length, about `.page-column-item`). */
 	.shell-link {
-		display: flex; align-items: center; gap: calc(var(--gap-ramp) * 0.45);   /* was gap 0.45em - 2026-09-05 ramps */
+		display: flex; align-items: center; gap: 0.45em;   /* the control's own em, never a page ramp - 2026-09-06 nav-fat */
 		padding: 0.4em 0.9em;
 		font-size: 0.9em;
 		color: var(--subtle); text-decoration: none;
