@@ -212,6 +212,10 @@ export function code_for_node(node){
 	// The two things the stage needs beyond the words: whose children to draw, and
 	// what to put in the box. Both are omitted when the page has neither.
 	const extras = [
+		/* WHICH TAB OPENS FIRST. The star control writes `default: true` into the child's
+		   own words; this is the line that reads it back, and until 2026-09-05 the printed
+		   file carried the COMMENT with no code under it (paging-audit-6b, break 1). */
+		kids.some(is_default) ? `\t\t\topen: ${default_index(node)},     // the tab that opens first` : null,
 		kids.length ? `\t\t\tpages: [\n` + kids.map(kid =>
 			`\t\t\t\t{ title: ${JSON.stringify(kid.title)}, icon: ${JSON.stringify(kid.icon ?? "description")}, text: ${JSON.stringify(kid.description || "")} },`).join("\n") + `\n\t\t\t],` : null,
 		blocks.length ? `\t\t\tdraw: () => {\n` + blocks.map(block => `\t\t\t\t${call_for(block)}`).join("\n") + `\n\t\t\t},` : null,
@@ -239,7 +243,6 @@ export function code_for_node(node){
 		``,
 		`\t\t// ↓ anything the builder cannot say goes here, and this is why page.js exists`,
 		`\t},`,
-		kids.some(is_default) ? `\n\t// the tab that opens first` : null,
 		`});`,
 	];
 

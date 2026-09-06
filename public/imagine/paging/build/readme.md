@@ -13,22 +13,16 @@ The controls, in the order you meet them, and what each writes:
 | # | control | writes |
 |---|---|---|
 | 1 | Name, description, icon | `title` · `description` · `icon` |
-| 2 | **Navigation** — none · top tabs · left rail · right rail · expand · columns · takeover | `mode.navigation` |
-| 3 | **Content colour** — plain · card · tint · prim · dark | `mode.surface` |
-| 4 | **Arrangement** — plain · toolbar top · footer · panel left · panel right · main + aside · wall | `mode.arrangement` |
-| 5 | Blocks — prose · card wall · template | `mode.blocks[]` |
-| 6 | Pages — each row is icon, name, order, default | `children[]` |
-| 7 | Code — the `page.js` a hand would write, **all seven words in it** | nothing; it is the way out |
-| — | **the bar over the middle column** — the realm's own, all seven words | every one of `mode`'s seven |
+| 2 | Blocks — prose · card wall · template | `mode.blocks[]` |
+| 3 | Pages — each row is icon, name, order, default | `children[]` |
+| 4 | Code — the `page.js` a hand would write, **all seven words in it** | nothing; it is the way out |
+| — | **the bar over the middle** — the realm's own seven dropdowns | every one of `mode`'s seven |
 
-The three labels in **bold** are read off `CONTROLS` in `blocks.js`, so the builder cannot call a
-word something the bar and the address do not. Step 3 said *Surface* until 2026-09-05 while
-everything else said *content colour*.
-
-**The bar is why all seven words can be saved.** Steps 2–4 write three of them and
-[Make](/imagine/paging/make/)'s rows write four; between them `room` and `type size` were set by
-nothing. The middle column wears the same bar every other stage in the realm has, and it writes
-through the stage's `keep` hook straight into the node.
+**The bar owns the seven words, and only the bar.** This column had its own Navigation, Content
+colour and Arrangement controls beside that bar until 2026-09-05 — two controls for one word, on
+one screen, on the realm whose rule is one name, one control. They are gone; the bar writes
+through the stage's `keep` hook straight into the node, which is also what made `room` and
+`type size` savable at all.
 
 **Adding a tab is adding a page and picking "top tabs".** Configuring one is the four things
 every child has — name, order, default, icon.
@@ -68,10 +62,10 @@ left is the crumb strip, the node's title, and the child panel's *"the url did n
 - **A redraw from the BAR must not rebuild the middle column.** A `<select>` fires `change` while
   it still has focus, and the stage has already repainted itself by then — `redraw({ screen:
   false })` is the option that exists for it, beside `controls: false` for the text fields.
-- **`$stage`, `$frame`, `$note`, `chips()`, `naming()`, `group`, `card` are taken.** Four of
-  them bit while this was written: `naming()` is core's own url-deriving method and overriding
-  it 404'd the whole page; `chips()` is `Paging`'s axis list and `dress()` calls it on every
-  render. The head note in `page.js` names each one.
+- **`$stage`, `naming()`, `group`, `card` are taken.** `naming()` is core's own url-deriving
+  method and overriding it 404'd the whole page; `$stage` is assigned by `Paging.stage()`, so
+  the builder's boxes are `$controls`, `$screen`, `$json` and `$code`; `group` and `card` are
+  data core reads off a page. The head note in `page.js` names each one.
 - **`.cols` is `display: flex` in `@layer util`** and beat this sheet's `display: grid` at any
   specificity — the card shipped as two columns until the class came out of the markup.
 - **`pre` is a dark code block in this theme.** Overriding only its background left #e6e6e6 ink
@@ -87,6 +81,6 @@ left is the crumb strip, the node's title, and the child panel's *"the url did n
 - [`../doc/persistence.md`](/imagine/paging/doc/persistence.md) — where the pages go, and why
   there is exactly one store
 - [Make](/imagine/paging/make/) — the CRUD list of everything built here: rename, reorder, delete
-- Files: `page.js` (the page and its seven controls) · `words.js` (the vocabulary and the node
+- Files: `page.js` (the page and its four controls) · `words.js` (the vocabulary and the node
   operations) · `stage.js` (`BuildStage` — the frame around a `PagingStage`) · `draw.js` (the
   blocks, drawn; a made page calls this too) · `build.css`

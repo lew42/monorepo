@@ -1,12 +1,11 @@
 import { Page, View, div, p, h2, h3, span, icon, md, input, textarea, pre } from "/app.js";
 import { Paging, press, Toolbar } from "../paging.js";
 import { baseline } from "../baseline.js";
-import { label_of } from "../blocks.js";
 import { copy_chip, select_text } from "../config.js";
 import { store_for, LocalStore, DIR } from "../make/made.js";
 import BuildStage from "./stage.js";
 import {
-	NAVIGATION, SURFACES, ARRANGEMENT, PIECES, ICONS,
+	PIECES, ICONS,
 	NEW_PAGE, mode_of, blocks_of, config_of, name_for, next_in, code_for_node,
 	is_default, edit, set_mode, add_block, edit_block, remove_block, move_block,
 	add_child, edit_child, remove_child, move_child, set_default,
@@ -15,6 +14,14 @@ import {
 View.stylesheet(import.meta, "build.css");
 
 /* ── layout, answered before the first factory call ────────────────────────────
+   ⚠ TWO COLUMNS AND TWO ROWS, since 2026-09-05. The card was controls | page | file.
+     The bar over the middle sets all seven words, so the left column stopped repeating
+     three of them — and the FILE moved out of a 287px column onto its own full-width
+     row, because a `page.json` line runs past 60 characters and every value was off the
+     right edge (paging-audit-6, item 6). Left: the things only the left column can say
+     (Name, Blocks, Pages). Middle: the page, under the realm's own bar. Under both: the
+     file, then the code.
+
    1 CONTAINER  a column in /imagine/'s columns row — no page grid, so `wide` means
                 nothing here and only the prose is measure-capped. `width: "full"`:
                 a builder is a TOOL, and three columns of controls do not fit in a
@@ -36,8 +43,9 @@ View.stylesheet(import.meta, "build.css");
 
    ── WHAT THIS PAGE IS ─────────────────────────────────────────────────────────
    The page BUILDER. It answers the owner's question — "how would I build this with
-   a UI?" — by being the UI: seven controls on the left, the page assembling live in
-   the middle, and the `page.json` it writes on the right, changing with every click.
+   a UI?" — by being the UI: the controls on the left, the page assembling live in the
+   middle under the realm's own seven-word bar, and the `page.json` it writes underneath,
+   changing with every click.
 
    ── HOW IT WORKS, IN THREE SENTENCES ──────────────────────────────────────────
    1. Everything you press edits ONE plain object — the node in the box on the right
@@ -48,10 +56,10 @@ View.stylesheet(import.meta, "build.css");
       directory, one `page.json`, on disk in dev. There is no second store and there
       will not be one (`../doc/persistence.md`).
 
-   ⚠ `$stage`, `$frame` and `$note` ARE PAGING'S, not mine. `Paging.dress()` restamps
-     toolbar classes onto `this.$stage` on every repaint, so the builder's own boxes
-     are `$controls`, `$screen` and `$json`. A field of the same name would have been
-     silently re-classed on the first chip press.                                  */
+   ⚠ `$stage` IS PAGING'S, not mine. `Paging.stage()` assigns `this.$stage` on the page
+     it is called on, so the builder's own boxes are `$controls`, `$screen`, `$json` and
+     `$code`. A field of either name would be overwritten the first time the middle
+     drew.                                                                          */
 
 export default new Paging({
 	meta: import.meta,
@@ -63,7 +71,7 @@ export default new Paging({
 	// ⚠ SECOND OF THE TWO EDITORS. Make types a name and gets a page; Build fills
 	//   that page in. Both say so, because "which one do I open?" was the newcomer's
 	//   first question about them (paging-audit-2).
-	takeaway: "**The second of the two editors: [Make](/imagine/paging/make/) creates a page, this one fills it in.** New page to finished page, with nothing but controls. Pick how its children appear, what it looks like, how it is laid out, then add blocks and pages to it — the middle column is the page assembling as you click, and the right column is the `page.json` that gets written. Save puts it on disk beside every other page you have made.",
+	takeaway: "**The second of the two editors: [Make](/imagine/paging/make/) creates a page, this one fills it in.** New page to finished page, with nothing but controls. Name it, fill it with blocks and pages on the left, and set its seven words in the bar over the middle — the middle is the page assembling as you click, and the file underneath is the `page.json` that gets written. Save puts it on disk beside every other page you have made.",
 
 	// ── state ────────────────────────────────────────────────────────────────
 	/* The node being built, and where it goes. Both are read back out of this page's
@@ -132,7 +140,7 @@ export default new Paging({
 	content(){
 		this.lede();
 
-		md("Everything below writes into one small JSON file. **The left column is the controls, in the order you meet them; the middle is the page you are building, live; the right is the file.** Nothing here is a mock-up — press a tab in the middle and it really swaps, and the file on the right is really what goes to disk.");
+		md("Everything below writes into one small JSON file. **The left column names the page and fills it with blocks and pages; the middle is the page you are building, live, with the realm's own seven-word bar over it; the file underneath is what goes to disk.** Nothing here is a mock-up — press a tab in the middle and it really swaps, and the file below is really what gets written.");
 
 		this.builder();
 
@@ -165,7 +173,11 @@ export default new Paging({
 		return div.c("build wide", () => div.c("build-card", () => {
 			this.$controls = div.c("build-controls flex v gap", () => { this.controls(); });
 			this.$screen = div.c("build-centre", () => { this.screen(); });
-			this.$json = div.c("build-json flex v gap", () => { this.json_box(); });
+			/* ⚠ THE FILE SPANS THE CARD TOO, for step 7's reason. A `page.json` line is
+			     60–80 characters and the column was 287px holding 455 — `"navigation":
+			     "tabs"` and every other value off the right edge, in the box whose whole
+			     job is to show you the file (paging-audit-6, item 6). */
+			this.$json = div.c("build-file-row flex v gap", () => { this.json_box(); });
 
 			/* ⚠ STEP 7 SPANS THE WHOLE CARD, and it is the last control for that reason:
 			     it prints a `page.js`, whose lines are 60–80 characters. In the 230px
@@ -177,29 +189,20 @@ export default new Paging({
 		}));
 	},
 
-	/* ════ THE CONTROLS, IN ORDER ══════════════════════════════════════════════
-	   ⚠ THE LABELS ARE READ OFF `CONTROLS`, not typed here. Step 3 was called *Surface*
-	     while the bar, Make's chip and the address all said *content colour* — a fourth
-	     name for one thing, on the realm whose whole fifth audit was about having one
-	     set of names (paging-audit-5b, fix 6). `label_of()` is `../blocks.js`. */
+	/* ════ THE CONTROLS, IN ORDER ══════════════════════════
+
+	   ⚠ THE SEVEN WORDS ARE THE BAR'S, AND ONLY THE BAR'S. This column had its own
+	     Navigation, Content colour and Arrangement controls beside the realm's own
+	     seven-select bar over the stage — two controls for one word, on one screen, on
+	     the realm whose whole rule is one name, one control (paging-audit-6b, fix 4).
+	     They stayed in sync, so nothing was broken; it was the same word said twice.
+	     What is left is the three things ONLY this column can say, and the code escape. */
 	controls(){
 		this.part(1, "Name", "What the page is called. It is the head, the crumb, the card and — if its parent draws tabs — the tab.", () => this.name_controls());
 
-		this.part(2, this.word_title("navigation"), "How the pages UNDER this one appear. Top tabs, a left rail and column pages are the same question asked once, so they are one control.", () => this.picker(NAVIGATION, config_of(this.node).navigation, nav => this.set_words({ navigation: nav.id })));
+		this.part(2, "Blocks", "The content, as data. Three kinds, and every one is drawn by something that already exists — and they sit ABOVE whatever the content word says.", () => this.block_controls());
 
-		this.part(3, this.word_title("surface"), "The colour of the content box. One word, five answers, independent of everything else.", () => this.word_chips(SURFACES, config_of(this.node).surface, it => this.set_words({ surface: it.id })));
-
-		this.part(4, this.word_title("arrangement"), "Where the page's other parts sit around the content — a toolbar, a footer, a panel, an aside. The same seven words the bar over every page in this realm sets.", () => this.word_chips(ARRANGEMENT, config_of(this.node).arrangement, it => this.set_words({ arrangement: it.id })));
-
-		this.part(5, "Blocks", "The content, as data. Three kinds, and every one is drawn by something that already exists — and they sit ABOVE whatever the content word says.", () => this.block_controls());
-
-		this.part(6, "Pages", "The children. Under `tabs` each one is a tab; under `columns` each one is a row that opens to the right. Same pages either way.", () => this.child_controls());
-	},
-
-	// The reader's own word for an axis, with a capital — one list, `../blocks.js`.
-	word_title(axis){
-		const label = label_of(axis);
-		return label[0].toUpperCase() + label.slice(1);
+		this.part(3, "Pages", "The children. Under `tabs` each one is a tab; under `columns` each one is a row that opens to the right. Same pages either way.", () => this.child_controls());
 	},
 
 	/* ⚠ NOT `group()`. `group` is DATA core reads off a page — `previews()` groups a
@@ -241,35 +244,7 @@ export default new Paging({
 		});
 	},
 
-	// ── 2 · navigation: pictures, not words ──────────────────────────────────
-	/* SIX PICTURES. A word alone cannot tell you what "swap" does to a page, and the
-	   realm learned that the hard way (`../doc/decisions.md`): each option draws the
-	   shape it makes, so the choice is made by looking rather than by reading. */
-	picker(list, current, run){
-		div.c("build-picker", () => list.forEach(it => press(
-			div.c("build-option").ac(it.id === current && "on").append(() => {
-				div.c("build-thumb build-thumb-" + it.id, () => { div.c("build-thumb-bar"); div.c("build-thumb-body"); });
-				span.c("build-option-title", () => { icon(it.icon); span(it.title); });
-			}),
-			() => run(it))));
-
-		return p.c("muted build-means", list.find(it => it.id === current)?.means ?? "");
-	},
-
-	/* ⚠ NOT `chips()`. `Paging.chips()` is the list of axes its toolbar shows, and
-	   `dress()` calls it on EVERY column render — overriding it with a different
-	   signature throws before this page draws a single word. */
-	word_chips(list, current, run){
-		div.c("build-chips", () => list.forEach(it => press(
-			span.c("paging-chip").ac(it.id === current && "on").append(() => span(it.title ?? it.id)),
-			() => run(it))));
-
-		// A statement, not an expression: a captured callback's RETURN VALUE is appended
-		// too, and the second append MOVES what the first one already placed.
-		return p.c("muted build-means", () => { md(list.find(it => it.id === current)?.means ?? ""); });
-	},
-
-	// ── 5 · blocks ───────────────────────────────────────────────────────────
+	// ── 2 · blocks ────────────────────────
 	block_controls(){
 		const blocks = blocks_of(this.node);
 
@@ -330,7 +305,7 @@ export default new Paging({
 		return this;
 	},
 
-	// ── 6 · pages, which is to say tabs ──────────────────────────────────────
+	// ── 3 · pages, which is to say tabs ──────────────────────────────────────
 	child_controls(){
 		const kids = this.node.children ?? [];
 		const tabs = config_of(this.node).navigation === "tabs";
@@ -369,9 +344,9 @@ export default new Paging({
 		return press(span.c("build-act").ac(extra).attr("title", title).append(() => icon(glyph)), run);
 	},
 
-	// ── 7 · the code escape, across the whole card ───────────────────────────
+	// ── 4 · the code escape, across the whole card ───────────────────────────
 	code_part(){
-		return this.part(7, "Code", "For everything the controls cannot say — and a third of this site is exactly that.", () => {
+		return this.part(4, "Code", "For everything the controls cannot say — and a third of this site is exactly that.", () => {
 			md("A third of this site's pages need a `content()` that computes something, and no JSON will ever supply one. So here is the `page.js` this node would be if you wrote it by hand — copy it into a directory and the builder has handed the page over to you.");
 
 			const text = code_for_node(this.node);
@@ -413,7 +388,17 @@ export default new Paging({
 		h3.c("build-group-title", () => { span.c("build-n", "→"); span("The file"); });
 		p.c("muted build-group-line", "The node exactly as it goes to disk. It changes with every control you press.");
 
-		pre.c("build-json-text", JSON.stringify(this.file(), null, "\t"));
+		const text = JSON.stringify(this.file(), null, "\t");
+		const $box = pre.c("build-json-text", text);
+
+		/* THE SAME COPY BUTTON AS THE CODE BOX BELOW IT. The file is a thing you take
+		   away — into an editor, into a commit — and it was the one box in the realm
+		   handing you text with no way to lift it (paging-audit-6, item 6). */
+		let $said;
+		div.c("paging-said", () => {
+			copy_chip(text, "Copy the file", () => select_text($box.el), said => $said.empty(said));
+			$said = span.c("paging-said-ok");
+		});
 
 		this.where();
 

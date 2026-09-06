@@ -142,25 +142,28 @@ scoring eleven template pages as pure configuration when each one needs its clas
 
 ---
 
-## 2 · The builder — seven controls, in this order
+## 2 · The builder — four controls and the realm's own bar
 
 Live: **[/imagine/paging/build/](/imagine/paging/build/)**. Left column the controls, middle
-column the page assembling as you press them, right column the `page.json` that gets written.
+column the page assembling as you press them, and under both the `page.json` that gets written.
 
 | # | control | what it is | what it writes |
 |---|---|---|---|
+| — | **the bar over the middle** | the realm's own seven dropdowns, the same ones over every page in the realm | all seven of `"mode"` |
 | 1 | **Name** | a title, a description, and an icon you click to cycle | `"title"`, `"description"`, `"icon"` |
-| 2 | **Navigation** | six pictures: none · columns · top tabs · left rail · right rail · takeover | `"mode": { "navigation": … }` |
-| 3 | **Surface** | five chips: plain · card · tint · prim · dark | `"mode": { "surface": … }` |
-| 4 | **Arrangement** | seven chips: plain · toolbar top · footer · panel left · panel right · main + aside · wall | `"mode": { "arrangement": … }` |
-| 5 | **Blocks** | add a block: prose · card wall · template | `"mode": { "blocks": [ … ] }` |
-| 6 | **Pages** | add a child; each row is its icon, name, order and default | `"children": [ … ]` |
-| 7 | **Code** | the `page.js` a hand would write for what you have built | nothing — it is the way out |
+| 2 | **Blocks** | add a block: prose · card wall · template | `"mode": { "blocks": [ … ] }` |
+| 3 | **Pages** | add a child; each row is its icon, name, order and default | `"children": [ … ]` |
+| 4 | **Code** | the `page.js` a hand would write for what you have built | nothing — it is the way out |
 
-The order is not arbitrary: **1–4 are decisions about the whole page and 5–6 are its
+**The seven words are the bar's.** Until 2026-09-05 this column had its own Navigation, Surface
+and Arrangement controls as well — three of the seven words with two controls each, on one
+screen. They stayed in sync, so nothing was broken; it was simply the same word said twice, on
+the realm whose rule is one name, one control (paging-audit-6b). What is left in the column is
+the four things only the column can say.
+
+The order is still not arbitrary: **the bar decides what the whole page is, and 2–3 are its
 contents.** You cannot sensibly add a block before you know whether the page is one column or a
-wall, and the navigation control changes what "add a page" even means — which is why it comes
-second, right after the page has a name.
+wall, and the navigation word changes what "add a page" even means.
 
 ### The ruling: navigation is ONE control
 

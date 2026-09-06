@@ -59,9 +59,14 @@ export default new Paging({
   the navigation word draws — hand it your own or it draws four samples. **`stage_props(node)`
   (`stage.js`) is the one place that works both out from a saved `page.json`** — a page you made
   and the same page *nested inside another* go through it, so they cannot draw different children.
-- **`content` also takes a url.** Pick *A page or file…* in the bar and type an address: a page's
-  `page.json` is fetched and RUN inside the box, a `.md` file is fetched and rendered as prose.
-  It is the same idea as `nest` and the same code path · [Content](/imagine/paging/content/)
+- **`content` also takes a url.** Pick *A page or file…* in the bar and the address gets its own
+  full-width line under the seven words. Three addresses answer: a page you made, a ready-made
+  page, and a `.md` file — the first two are fetched and RUN inside the box, the third is
+  rendered as prose. Anything else says so, including an off-site `https://…`, which this site
+  cannot read · [Content](/imagine/paging/content/)
+- **`nest` is the eighth thing a page says**, and it is saved like the seven: a preset id or a
+  page's address, kept in `mode.nest`, printed by both exports, read back by `stage.js`. So a
+  page with a whole page inside it survives *Make this a page* and a cold reload.
 - The vocabulary is [`blocks.js`](./blocks.js) and it imports nothing, so a page, a rail
   tile, a chip, a url and a doc all read the same lists.
 - **Two colour controls, independent**: `surface` paints the content box, `background`

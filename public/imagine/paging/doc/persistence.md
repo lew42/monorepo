@@ -147,6 +147,23 @@ has to be obvious that it did — so the page prints a tick and one line naming 
 2026-09-05 the bar there changed the address and nothing else, and two of the seven words
 (`room`, `type size`) could be saved by no control in the realm at all.
 
+### `mode` carries more than the seven words
+
+Three keys ride inside `mode` beside them, and they ride there because `FileStore.file()` writes
+exactly five top-level keys — title, icon, description, `mode`, children — and drops anything
+else, so a top-level field is written into memory, drawn on screen and lost on save.
+
+| key | what it is | who writes it |
+|---|---|---|
+| `blocks` | the content, as data | Build's *Blocks* control |
+| `default` | on a CHILD: the tab that opens when you arrive | Build's star |
+| `nest` | a whole page running inside this one — a preset id, or a page's address | the drawer's nest chips, on any page; the bar's own `keep_nest` on a page you made |
+
+Each one is written by a control, kept by the file, and READ BACK by the saved page — the last
+part is the one that kept failing: `default` was written and read by the builder's preview only,
+and `nest` was sendable in a url and dropped by both exports (paging-audit-6b). `stage_props()`
+in `stage.js` is the one place that reads all three back.
+
 ### The two stores, and how a page says which one it is on
 
 | | when | writer | where |

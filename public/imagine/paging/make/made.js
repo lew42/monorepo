@@ -128,6 +128,29 @@ const pages = count => count + " page" + (count === 1 ? "" : "s");
 
 /* FILES — the default. Every write is `FileSaver`, which is `rpc:write` with the
    "no dev socket → warn once, never throw" rule already inside it. */
+/* ── A FILE ENDS WITH A NEWLINE ───────────────────────────────────────
+   A `page.json` here is a REAL FILE in the repository, and every other file in it ends
+   with a newline. `ext/Saver`'s `FileSaver` stringifies without one, so setting one word
+   in the bar rewrote the file one byte short of what git had — a whole-file diff on a
+   page whose content had not changed (paging-audit-6b, fix 7). `ext/` is shared with
+   every other realm, so the newline is added HERE, in the one write this store makes.  */
+class PageFile extends FileSaver {
+
+	async write(item){
+		const socket = Socket.singleton();
+		if (socket.disabled) return this.read_only();
+
+		const reply = await socket.async_rpc("write", this.path, JSON.stringify(item, null, "\t") + "\n");
+
+		if (reply?.response === "write failed"){
+			console.warn("PageFile: the server refused to write " + this.path + ".");
+			return false;
+		}
+
+		return true;
+	}
+}
+
 export class FileStore extends Store {
 
 	url(path){ return DIR + path.map(name => name + "/").join(""); }
@@ -182,7 +205,7 @@ export class FileStore extends Store {
 		return !!answer;
 	}
 
-	put(path, body){ return this.raced(new FileSaver({ path: this.url(path) + "page.json" }).save(body)); }
+	put(path, body){ return this.raced(new PageFile({ path: this.url(path) + "page.json" }).save(body)); }
 
 	// The DIRECTORY, not the file — `rpc:rm` is recursive, so a page's children go
 	// with it, exactly as deleting a directory of `page.js` files would.

@@ -117,6 +117,22 @@ function grow(nodes, make, path = []){
 					});
 				};
 
+				/* THE EIGHTH THING A PAGE SAYS: the page INSIDE it. `nest` is a word like the
+				   seven — the drawer sets it, the file keeps it, the address sends it — so the
+				   bar on your own page writes it too. Its own hook, because it is not one of
+				   the seven and has no axis to name. */
+				stage.keep_nest = id => {
+					stage.base_nest = stage.nest;
+					make.edit_at(here, { nest: id ?? undefined });
+
+					$kept.empty(() => {
+						icon("check_circle");
+						span(id
+							? "Saved. " + (stage.nest.title ?? id) + " is running inside this page now — reload and it is still there."
+							: "Saved. The page that was inside this one has been taken out.");
+					});
+				};
+
 				md("This page is `" + JSON.stringify({ title: node.title, mode: config }) + "` — nothing else. [Back to the list](/imagine/paging/make/).");
 			},
 		});

@@ -22,11 +22,14 @@ const press = ($el, act) => $el
    the nineteen-line file was hand-selected inside a 280px window (paging-audit-5).
    One helper, both boxes, and the same fallback: `navigator.clipboard` is refused
    outside a secure context, and localhost is not always one. */
+/* ⚠ `text` MAY BE A FUNCTION, and one of the three callers needs it to be: the bar's
+     address field is TYPED IN, so a string captured when the button was built would copy
+     whatever was in the box when the page loaded. A getter is read on the press. */
 export function copy_chip(text, words, fallback, says){
 	return press(span.c("paging-act").append(() => { icon("content_copy"); span(words); }),
 		async () => {
 			try {
-				await navigator.clipboard.writeText(text);
+				await navigator.clipboard.writeText(typeof text === "function" ? text() : text);
 				says?.(() => { icon("check_circle"); span("copied"); });
 			} catch {
 				fallback?.();
@@ -157,7 +160,10 @@ function nesting(stage){
 			const on = stage.nest && stage.nest.id === preset.id;
 
 			span.c("paging-chip").ac(on && "on")
-				.attr("role", "button").attr("tabindex", "0").attr("title", preset.one_line)
+				.attr("role", "button").attr("tabindex", "0").attr("aria-pressed", String(!!on))
+				// ⚠ `aria-pressed`, like the 39 chips in the form above — twelve chips that
+				//   look identical to those and announced nothing (paging-audit-6b, fix 6).
+				.attr("title", preset.one_line)
 				.append(() => { icon(preset.icon); span(preset.title); })
 				.click(() => nest(stage, on ? null : preset));
 		});
@@ -264,7 +270,7 @@ function name_field(stage, draw){
 function code_box(stage, page){
 	p.c("h4 muted", "The same page, as code");
 
-	const text = code_for_config(stage.config, page);
+	const text = code_for_config(stage.config, page, stage.nest);
 	const $box = div.c("paging-code-box", () => { code.js(text); });
 
 	// ⚠ THE SELECT FALLBACK IS A RANGE, not `input.select()`: this is a `<pre>`, not a
@@ -292,8 +298,14 @@ export function select_text(el){
      `page.js` and both were called `code_for` (paging-audit-3b, fix 7). A
      CONFIGURATION is seven words, so its file is one `this.stage({…})` call; a NODE
      has blocks and children, so its file is a `Page` with a `content()`. */
-export function code_for_config(config, page){
+export function code_for_config(config, page, nest){
 	const words = Object.entries(config).map(([key, value]) => "\n\t\t\t" + key + ": " + JSON.stringify(value) + ",").join("");
+
+	/* THE PAGE INSIDE THIS ONE is the stage's second argument, exactly as `pages:` and
+	   `draw:` are - so the file you copy runs the nested page too. */
+	const inside = nest?.id
+		? ", {\n\t\t\tnest: " + JSON.stringify(nest.id) + ",   // a whole page, running inside this one\n\t\t}"
+		: "";
 
 	return [
 		'import { Paging } from "/imagine/paging/paging.js";',
@@ -304,7 +316,7 @@ export function code_for_config(config, page){
 		"\ticon: " + JSON.stringify(page?.icon ?? "description") + ",",
 		"",
 		"\tcontent(){",
-		"\t\tthis.stage({" + words + "\n\t\t});",
+		"\t\tthis.stage({" + words + "\n\t\t}" + inside + ");",
 		"\t},",
 		"});",
 	].join("\n");
@@ -314,12 +326,18 @@ export function code_for_config(config, page){
    passed through whole by `made.js`, so the whole configuration rides safely inside
    it; the five top-level keys are all that store keeps (`FileStore.file()`), and
    anything outside `mode` would be silently dropped. */
+/* ⚠ AND THE PAGE INSIDE THIS ONE RIDES WITH IT. The box two rows above hands you
+     `…?nest=dashboard` — the nested page is real and sendable — and this export printed
+     the seven words and dropped it, so the one control the owner asked for by name was
+     the one thing a saved page lost (paging-audit-6b, break 2). `nest` is a STRING here
+     (a preset id, or a page's address), and it rides inside `mode` because `mode` is the
+     one object `made.js` passes through whole. */
 function node_for(stage){
 	return {
 		title: (stage.new_title || "").trim() || "New page",
 		icon: "description",
 		description: "A page made from a paging configuration.",
-		mode: { ...stage.config },
+		mode: { ...stage.config, ...(stage.nest?.id ? { nest: stage.nest.id } : {}) },
 		children: [],
 	};
 }

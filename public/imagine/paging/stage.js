@@ -1,8 +1,8 @@
 import { View, div, p, span, a, icon, details, summary, md } from "/app.js";
-import { clean, is_url, nav_of, title_of, NAVIGATION, ARRANGEMENT, ROOM, SURFACES, TYPE } from "./blocks.js";
+import { clean, is_url, is_off_site, nav_of, title_of, NAVIGATION, ARRANGEMENT, ROOM, SURFACES, TYPE } from "./blocks.js";
 import { CONTENT_DRAW, PAGES } from "./content.js";
-import { from_url, write_url } from "./url.js";
-import { blocks_of } from "./build/words.js";
+import { from_url, write_url, nest_of } from "./url.js";
+import { blocks_of, is_default } from "./build/words.js";
 import { draw_blocks } from "./build/draw.js";
 
 /* ⚠ IMPORTED FOR ITS TWO CSS RULES, and that is the whole of `ui/accordion`: there is
@@ -88,12 +88,30 @@ export function stage_props(node, { page, url_of } = {}){
 		draw: blocks_of(node).length
 			? stage => { draw_blocks(node, page); stage.sample(true); }
 			: undefined,
+
+		/* WHICH TAB OPENS FIRST. Build's star writes `default: true` into a child's
+		   `mode`, the file kept it, the builder's own preview opened it — and the SAVED
+		   page read nothing, so the tab you marked opened first in one place and nowhere
+		   else (paging-audit-6b, break 1). `null` is "the page's own content", which is
+		   what a page with no default shows. */
+		open: kids.findIndex(is_default) < 0 ? null : kids.findIndex(is_default),
+
+		/* THE PAGE INSIDE THIS PAGE. A string in the file — a preset id, or the address
+		   of a page — and `initialize()` below turns it into the page it names. */
+		nest: node?.mode?.nest,
 	};
 }
 
-// The one thing to say when a url answers with nothing, and the way on from it.
+/* WHAT TO SAY WHEN AN ADDRESS ANSWERS WITH NOTHING — and it has to say WHICH
+   addresses work, because the old sentence ("There is no page or file at /framework/ui/")
+   was false about a page that plainly exists: it is a `page.js`, so there is no
+   `page.json` for the box to read (paging-audit-6, item 3). */
 const missing = url => {
-	p.c("muted", "There is no page or file at " + url + ".");
+	p.c("muted", "Nothing here could be read at " + url + ".");
+
+	md("An address in this box is **a page you made**, **a ready-made page** from the library, or **a `.md` file** — those are the three things that answer with something to draw. "
+		+ "Every other page of this site is a `page.js`, which is code: there is no file here to fetch and draw.").ac("muted paging-means");
+
 	a.c("page-link", "Every page you have made →").href("/imagine/paging/make/");
 };
 
@@ -158,10 +176,23 @@ export class PagingStage extends View {
 		     which meant a page that ships WITH a nested page (`library/nest/`) ignored
 		     `?nest=magazine` entirely. `undefined` is "the address said nothing";
 		     `null` is "the address said none" (`url.js`). */
+		/* ⚠ `nest` MAY ARRIVE AS A STRING — a preset id or a page's address, which is
+		     what the FILE says and what `?nest=` says. One line turns it into the page
+		     it names, so a saved page, a url and a hand-written `page.js` can all say
+		     `nest: "dashboard"` and mean the same thing. */
+		if (typeof this.nest === "string") this.nest = nest_of(this.nest);
+
 		this.base_nest = this.nest ?? null;
 		this.nest = opening.nest === undefined ? this.base_nest : opening.nest;
 		this.pages ??= PAGES;
 		this.open ??= null;
+
+		/* WHICH TAB THIS PAGE OPENS ON — `base` and `base_nest`'s third sibling. A saved
+		   page says which child is the default (`stage_props()` above), and `reopen()`
+		   below puts the page back to its own words on every arrival: without this it
+		   put `open` back to "the page's own content" instead, so the default tab
+		   opened cold and never again. */
+		this.base_open = this.open;
 		super.initialize();
 	}
 
@@ -337,9 +368,25 @@ export class PagingStage extends View {
 
 		if (named) span.c("paging-eyebrow", "and the content word — " + title_of("content", kind));
 
+		if (is_off_site(kind)) return this.off_site(kind);
 		if (is_url(kind)) return is_md(kind) ? this.prose_at(kind) : this.page_at(kind);
 
 		return (CONTENT_DRAW[kind] ?? CONTENT_DRAW.article)();
+	}
+
+	/* AN ADDRESS ON SOMEBODY ELSE'S SITE — said out loud, and not drawn. This site is
+	   static: a page here can only read files this site serves, so `https://…` is a
+	   value the box keeps, shows and refuses, rather than one it drops. (Before this
+	   the value was thrown away, the dropdown fell back to Card wall and the address
+	   bar still said `?content=https://…` — the page and its own url disagreeing, which
+	   is the one promise this realm makes on every page. paging-audit-6, item 4.) */
+	off_site(url){
+		return div.c("paging-content-url", () => {
+			p.c("muted", "That address is on another site: " + url);
+
+			md("This box reads files **from this site**, so an address here starts with `/` — a page you made, a ready-made page, or a `.md` file. "
+				+ "An off-site address is kept in the url and in the field above, and nothing is fetched.").ac("muted paging-means");
+		});
 	}
 
 	/* A `.md` FILE, IN THE BOX. ⚠ NO DOM AFTER THE AWAIT: the box is captured
@@ -362,6 +409,13 @@ export class PagingStage extends View {
 	nest_to(preset){
 		this.nest = preset ? (preset.config ? { ...preset.config, id: preset.id, title: preset.title } : preset) : null;
 		this.redraw();
+
+		/* ⚠ `keep_nest` IS `keep` FOR THE EIGHTH THING A PAGE SAYS, and it runs BEFORE
+		     the address is written for the same reason: a page that SAVES the page
+		     inside it has moved its own words, so the query has nothing left to say. A
+		     demo leaves the hook unset and nothing persists (decision 4). */
+		this.keep_nest?.(this.nest?.id ?? null);
+
 		if (!this.inner) write_url(this.config, this.base, this.nest, this.base_nest);
 		return this;
 	}
@@ -425,6 +479,18 @@ export class PagingStage extends View {
 			a.c("page-link").href(url).append(() => { span("Open " + url + " on its own"); icon("chevron_right"); });
 		});
 
+		/* ⚠ ASK `nest_of()` FIRST. A ready-made page has no `page.json` — it IS seven
+		     words, written in `presets.js` — so fetching its address answered nothing and
+		     `?content=/imagine/paging/library/blog-post/` said "there is no page or file
+		     at…" about one of the twelve pages the rail links, while `?nest=` with the
+		     SAME address ran it (paging-audit-6b, break 3). Two fields that look
+		     identical now accept the same pages, because they ask the same question. */
+		const preset = nest_of(url);
+		if (preset?.navigation) return div.c("paging-nest-fetch", () => {
+			if (named) this.nest_name(url, preset.title);
+			this.inside(preset);
+		});
+
 		return div.c("paging-nest-fetch", $box => {
 			$box.append(() => { p.c("muted", "Reading " + url + "…"); });
 
@@ -438,11 +504,17 @@ export class PagingStage extends View {
 	   inside this one and gave no way to it — the only door was the drawer
 	   (paging-audit-5, item 7). */
 	run(node, url, named){
-		if (named) a.c("paging-nest-name").href(url)
-			.append(() => { span(node.title); icon("chevron_right"); });
+		if (named) this.nest_name(url, node.title);
 
 		return this.inside(clean(node.mode),
 			stage_props(node, { page: this.page, url_of: kid => dir_of(url) + kid.name + "/" }));
+	}
+
+	// The band's name, and it is a LINK: the dashed band said which page was inside this
+	// one and gave no way to it (paging-audit-5, item 7).
+	nest_name(url, title){
+		return a.c("paging-nest-name").href(url)
+			.append(() => { span(title); icon("chevron_right"); });
 	}
 
 	/* ── `expand` — THE CHILD OPENS IN THE ROW ────────────────────────────────
@@ -724,7 +796,7 @@ export class PagingStage extends View {
 		// ⚠ `undefined` is "the address said nothing", so the page keeps its own nest;
 		//   `null` is "the address said none", which is a nest you clicked off and sent.
 		this.nest = opening.nest === undefined ? this.base_nest : opening.nest;
-		this.open = null;
+		this.open = this.base_open ?? null;
 		this.change = null;
 
 		this.redraw();

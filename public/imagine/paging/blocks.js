@@ -65,8 +65,6 @@ export const nav_of = id => NAVIGATION.find(nav => nav.id === id) ?? NAVIGATION[
    (paging-audit-4b, fix 5) — three lists, one idea. Everything reads the flag. */
 export const STABLE = "stable", DYNAMIC = "dynamic";
 
-export const kind_of = id => (nav_of(id).stable ? STABLE : DYNAMIC);
-
 /* ── 3 · CONTENT — what is in the box ─────────────────────────────────────────
    Eight kinds, and every one of them is REAL: the renderer is a module this site
    already ships (`content.js` says which). Content is not a size — the old `xs`–`xl`
@@ -257,7 +255,16 @@ export const label_of = axis => CONTROLS.find(control => control.axis === axis)?
    URL, which is any value starting with `/` — a page's address, or a `.md` file's.
    One test, read by the address (`url.js`), the bar (`toolbar.js`) and the renderer
    (`stage.js`), so the three cannot disagree about what is allowed. */
-export const is_url = value => typeof value === "string" && value.startsWith("/");
+/* ⚠ AN ADDRESS ON THIS SITE STARTS WITH `/`. `https://…` is a legal thing to type and
+     an illegal thing to draw: this site is static, and a page here cannot read a file
+     off somebody else's server unless that server says it may. So an off-site address
+     is a RECOGNISED value that is REFUSED out loud — the box says so, the field under
+     the dropdown says so, and the address bar keeps what you typed. It used to be
+     none of the three: the value was dropped, the dropdown fell back to Card wall, and
+     the url still said `?content=https://…` (paging-audit-6, item 4). */
+export const is_off_site = value => typeof value === "string" && /^https?:\/\//i.test(value);
+
+export const is_url = value => typeof value === "string" && (value.startsWith("/") || is_off_site(value));
 
 export const takes = (axis, value) =>
 	values_for(axis).some(word => word.id === value) || (axis === "content" && is_url(value));
@@ -292,7 +299,14 @@ export const clean = config => ({ ...DEFAULT, ...config });
      and silently drops anything else, so a top-level `blocks` or `default: true` was
      written into memory, drawn on screen, and lost on save. `mode` is the one object
      passed through whole. */
-export const EXTRAS = ["blocks", "default"];
+/* ⚠ AND `nest` RIDES HERE TOO. A page can hold a whole other page inside its box, the
+     drawer hands you `…?nest=dashboard` for it — and until 2026-09-05 both exports
+     printed the seven words and dropped it, so the one thing the owner asked for by
+     name ("put any one of these page types inside any other") was the one thing you
+     could not save (paging-audit-6b, break 2). It is a STRING here — a preset id or a
+     page's address, the same value `?nest=` takes — and `stage.js` turns it back into
+     a page. */
+export const EXTRAS = ["blocks", "default", "nest"];
 
 const only = (object, keys) => Object.fromEntries(keys.map(key => [key, object[key]]).filter(([, value]) => value != null));
 

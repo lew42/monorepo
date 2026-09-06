@@ -1,5 +1,12 @@
 /* ── THE BUILDER ───────────────────────────────────────────────────────────────
-   Three columns: the controls, the page being built, and the file it writes.
+   Two columns — the controls and the page being built — and two full-width rows under
+   them: the file it writes, then the `page.js` it would be.
+
+   ⚠ IT WAS THREE COLUMNS UNTIL 2026-09-05, and the third was 287px holding a 455px
+     line: `"navigation": "tabs"` and every other value ran off the right edge of the
+     box whose whole job is to show you the file (paging-audit-6, item 6). A page.json
+     line is as long as a page.js line, so it gets what step 7 already had — the row
+     under both columns, and its own scroll.
 
    ⚠ A GRID, NOT `.cols`. The utility is a TWO-track ratio row, and three tracks
      with two capped sides would mean overriding `--cols-w` — which lives in
@@ -42,9 +49,8 @@
 	@container (min-width: 54rem) {
 		.build-card {
 			grid-template-columns:
-				minmax(11rem, min(24%, 26rem))
-				minmax(0, 1fr)
-				minmax(12rem, min(30%, 30rem));
+				minmax(11rem, min(26%, 26rem))
+				minmax(0, 1fr);
 		}
 
 		/* THE STAGE AND THE FILE FOLLOW YOU DOWN. Seven control groups are about three
@@ -54,7 +60,7 @@
 		   start` is what makes it possible: a stretched grid item is as tall as its
 		   area and has nowhere to stick. Only in the three-column layout — when they
 		   are stacked, the stage is already next to the control you just pressed. */
-		.build-centre, .build-json { position: sticky; top: 0.5em; align-self: start; }
+		.build-centre { position: sticky; top: 0.5em; align-self: start; }
 	}
 
 	/* ── the two side columns ─────────────────────────────────────────────── */
@@ -72,8 +78,7 @@
 		font-size: 0.8em; font-weight: 700;
 	}
 
-	.build-group-line, .build-means, .build-caption { margin: 0; font-size: 0.85em; }
-	.build-means { border-inline-start: 2px solid var(--line); padding-inline-start: 0.7em; }
+	.build-group-line, .build-caption { margin: 0; font-size: 0.85em; }
 
 	.build-field { display: flex; flex-direction: column; gap: 0.2em; }
 	.build-label { font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.06em; }
@@ -95,61 +100,13 @@
 	}
 
 	.build-row-line { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4em; font-size: 0.85em; }
-	.build-chips, .build-adds { display: flex; flex-wrap: wrap; gap: 0.35em; }
+	.build-adds { display: flex; flex-wrap: wrap; gap: 0.35em; }
 
 	/* ── navigation: six pictures ─────────────────────────────────────────────
 	   A word cannot say what `swap` does to a page. Each option draws the SHAPE it
 	   makes — a bar on top, a bar down the side, rows, one filled screen — so the
 	   choice is made by looking. `auto-fill` with a 5.5rem floor: three across in a
 	   narrow control column, six across in a wide one. */
-	.build-picker {
-		display: grid; gap: 0.4em;
-		grid-template-columns: repeat(auto-fill, minmax(min(5.5rem, 100%), 1fr));
-	}
-
-	.build-option {
-		display: flex; flex-direction: column; gap: 0.3em;
-		padding: 0.4em;
-		border: 1px solid var(--line); border-radius: var(--radius);
-		background: var(--surface); cursor: pointer;
-	}
-	.build-option:is(:hover, :focus-visible) { border-color: var(--prim); }
-	.build-option.on { border-color: var(--prim); box-shadow: inset 0 0 0 1px var(--prim); }
-
-	.build-option-title { display: flex; align-items: center; gap: 0.25em; font-size: 0.75em; }
-	.build-option-title .icon { font-size: 1em; }
-
-	/* THE THUMBNAILS. One box, one bar, drawn with nothing but a border and a fill —
-	   `--build-bar` is where the bar goes and the six rules below move it. */
-	.build-thumb {
-		display: flex; gap: 2px;
-		height: 2.6em; padding: 2px;
-		border: 1px solid var(--line); border-radius: 3px;
-		background: var(--fill-a04);
-	}
-	.build-thumb-bar { flex: none; background: var(--prim); border-radius: 1px; }
-	.build-thumb-body { flex: 1; background: var(--fill-a16); border-radius: 1px; }
-
-	.build-thumb-none .build-thumb-bar { display: none; }
-
-	.build-thumb-columns { flex-direction: row; }
-	.build-thumb-columns .build-thumb-bar { width: 30%; }
-
-	.build-thumb-tabs { flex-direction: column; }
-	.build-thumb-tabs .build-thumb-bar { height: 22%; }
-
-	/* `expand` — the row you clicked, and what grew under it. */
-	.build-thumb-expand { flex-direction: column; }
-	.build-thumb-expand .build-thumb-bar { height: 38%; }
-
-	.build-thumb-rail .build-thumb-bar { width: 22%; }
-	.build-thumb-rail-right { flex-direction: row-reverse; }
-	.build-thumb-rail-right .build-thumb-bar { width: 22%; }
-
-	.build-thumb-takeover .build-thumb-bar { display: none; }
-	.build-thumb-takeover .build-thumb-body { background: var(--prim); }
-
-	/* ── a block row, a child row ─────────────────────────────────────────── */
 	.build-item {
 		display: flex; flex-direction: column; gap: 0.35em;
 		padding: 0.45em 0.5em;
@@ -188,7 +145,10 @@
 
 	/* A DECIDED SCROLLBAR: the file grows with the page you build and the column must
 	   not grow with it, so this one box scrolls and nothing else on the page does. */
-	.build-json-text { max-height: 26em; overflow-y: auto; }
+	/* THE FILE TAKES THE ROW UNDER BOTH COLUMNS, with its own scroll in both axes -
+	   the same answer step 7's code box already had, for the same reason. */
+	.build-file-row { grid-column: 1 / -1; min-width: 0; }
+	.build-json-text { max-height: 26em; overflow: auto; }
 
 	/* ── STEP 7 TAKES THE WHOLE CARD ──────────────────────────────────────────
 	   ⚠ A `page.js` LINE IS 60–80 CHARACTERS and the control column is 230px at 1280,

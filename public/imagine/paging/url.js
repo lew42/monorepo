@@ -144,8 +144,11 @@ export function query_for(config, base, nest, base_nest){
 
 	CONTROLS.forEach(({ axis, key }) => { if (config[axis] !== base?.[axis]) params.set(key, config[axis]); });
 
-	if (nest?.id) params.set("nest", nest.id);
-	else if (base_nest?.id) params.set("nest", "");
+	/* ⚠ ONLY WHAT YOU CHANGED — the nest included. A page can now SAVE the page inside
+	     it (`blocks.js` EXTRAS), so `?nest=dashboard` on a page whose own file already
+	     says `dashboard` would be the address repeating what the page already is. */
+	if (nest?.id && nest.id !== base_nest?.id) params.set("nest", nest.id);
+	else if (base_nest?.id && !nest?.id) params.set("nest", "");
 
 	return params.toString();
 }

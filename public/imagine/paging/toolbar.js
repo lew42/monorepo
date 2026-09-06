@@ -1,7 +1,7 @@
 import { View, div, span, select, option, input, icon } from "/app.js";
-import { BLOCKS, SURFACES, controls_of, is_url } from "./blocks.js";
+import { BLOCKS, SURFACES, controls_of, is_url, is_off_site } from "./blocks.js";
 import { PRESETS, preset_of, preset_url } from "./presets.js";
-import { fill_drawer } from "./config.js";
+import { fill_drawer, copy_chip } from "./config.js";
 
 /* ── THE TOOLBAR ───────────────────────────────────────────────────────────────
 
@@ -86,6 +86,16 @@ export class PagingToolbar extends View {
 				this.code();
 				this.more();
 			});
+
+			/* ⚠ THE ADDRESS IS ITS OWN LINE, UNDER THE SEVEN WORDS. It used to sit
+			     inside the `content` dropdown's own group, which made that ONE group
+			     106px tall against its four siblings' 57, pushed its label 50px above
+			     theirs and wrapped `Draw it` onto a second line — so the moment you
+			     typed an address the row of seven words stopped looking like a row
+			     (paging-audit-6, item 1). A full-width line under them costs the bar
+			     nothing when it is hidden, and gives the field the whole row when it
+			     is not. */
+			this.address();
 		});
 
 		// The values are written by the same call an external change uses, so there is
@@ -172,7 +182,6 @@ export class PagingToolbar extends View {
 				this.picks.set(axis, $select);
 			});
 
-			if (axis === "content") this.address();
 		});
 	}
 
@@ -199,6 +208,8 @@ export class PagingToolbar extends View {
 	     over every page in the realm for a control most readers never touch. */
 	address(){
 		return this.$address = div.c("paging-address paging-address-off", () => {
+			span.c("paging-pick-label", "the address in the box");
+
 			this.$address_field = input().ac("paging-address-field").attr("type", "text")
 				.attr("aria-label", "the address of a page or a .md file")
 				.attr("placeholder", "/imagine/paging/make/notes/   or   /notes/auth/readme.md");
@@ -216,7 +227,33 @@ export class PagingToolbar extends View {
 
 			press(span.c("paging-act").attr("title", "read that address and draw it in the box")
 				.append(() => { icon("open_in_new"); span("Draw it"); }), put);
+
+			/* ⚠ A GETTER, NOT THE STRING. The field is typed in, so a value captured
+			     here would copy whatever the box held when the page loaded
+			     (`config.js` `copy_chip`). 56 characters in a 153px field is a thing
+			     you cannot read, and it was the second half of item 2. */
+			copy_chip(() => this.$address_field.el.value, "Copy",
+				() => this.$address_field.el.select(),
+				said => this.$address_said?.empty(said));
+
+			this.$address_said = span.c("paging-said-ok");
+
+			// The one address this box will not read, said where you typed it.
+			this.$address_note = span.c("paging-address-note");
 		});
+	}
+
+	/* AN ADDRESS THIS BOX WILL NOT READ, SAID AT THE FIELD. `https://…` is a legal
+	   thing to type and this site cannot fetch it (`blocks.js` `is_off_site`), so the
+	   value is kept, shown and refused — rather than silently dropped while the url
+	   went on carrying it (paging-audit-6, item 4). */
+	note_address(url){
+		this.$address_note?.empty(() => {
+			if (!is_off_site(url)) return;
+			span("Off-site — not read. An address here starts with / : a page you made, a ready-made page, or a .md file.");
+		});
+
+		return this;
 	}
 
 	show_address(on){ this.$address?.[on ? "rc" : "ac"]("paging-address-off"); return this; }
@@ -262,6 +299,7 @@ export class PagingToolbar extends View {
 		if (is_url(content)){
 			if (this.$address_field) this.$address_field.el.value = content;
 			this.show_address(true);
+			this.note_address(content);
 		}
 
 		this.dots?.forEach(($dot, axis) => {

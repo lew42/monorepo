@@ -40,21 +40,28 @@ while it is the deepest thing open.
 layout is gone, and the crumb strip — derived from the page's own `chain()`, so it cannot be
 stale — brings the row back exactly as it was.
 
-## ⚠ A child's track is its PARENT's mechanism
+## ⚠ The child's width is what takes the screen
 
-That is the whole of how one set of children can be launched *or* taken over:
+A takeover is not a mode a parent remembers — it is one word on the page that opens. The
+child declares `width: "full"`, and one `:has()` rule in `Page.css` hides every column left
+of it while it is the deepest thing open. Nothing is stored, so nothing is left behind for
+the reader's next visit.
+
+That is the whole difference between the two navigating words:
 
 ```js
-// paging.js, column()
-const drives = parent?.chips?.().includes("mech");
-this.width = drives && parent.at("mech") === "takeover" ? "full" : this.declared();
+// the child of a `columns` page
+export default new Page({ meta: import.meta, title: "Pricing" });
+
+// the child of a `takeover` page — one word more
+export default new Page({ meta: import.meta, title: "Pricing", width: "full" });
 ```
 
-Only a parent whose toolbar actually offers the `mech` chips can do it. That guard is
-deliberate: the mode is remembered in `localStorage` against the page's url, so a hub that
-offered the word could leave a full-screen child behind for the reader's *next* visit. The
-`/imagine/paging/` hub therefore declares `axes: "style content"` and no mechanism chips —
-its walk items each carry a fixed mechanism instead.
+**This section used to describe machinery that no longer exists** — a `chips()` list, an
+`at("mech")` lookup and an `axes: "style content"` declaration on the hub, all of which were
+deleted when the realm collapsed to seven words (`../blocks.js`). One control answers "how are
+the children drawn, and what does a click do" now, and its seven values are on
+[Navigation](/imagine/paging/navigation/).
 
 ## `expand` — a panel below, in place
 

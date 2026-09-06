@@ -55,11 +55,12 @@ paging hub's own card wall is unaffected.
 
 ## 2. The type axis
 
-`compact` · `regular` · `display` is a sixth chip group, added by subclassing rather than by
-widening `words.js` — `paging.js` belongs to another task's fence. `Template` adds one key to
-`opening()`, one stamp in `dress()`, one sentence in `note_axis()`, and `Template.Toolbar`
-overrides `group()` for that one axis. Everything else — the press, the keyboard half, the
-`aria-pressed`, the storage, the pixel caption — is inherited unchanged.
+`compact` · `regular` · `display` is **one of the realm's own seven words** — `type`, in
+`../blocks.js` — and every page in the realm sets it from the same dropdown in the bar. It
+was a sixth chip group added by subclassing when this was written, with a `Template.Toolbar`
+and a stamp in `dress()`; that whole tier was deleted on 2026-09-05 when the realm collapsed
+to one vocabulary (`templates/templates.js` is what is left). The two custom properties below
+are the part that survived, and they are what the word actually moves.
 
 Two custom properties do the work:
 

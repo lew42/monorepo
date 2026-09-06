@@ -622,16 +622,37 @@
 	   `content` is the one word that also takes a url. The field is hidden until you
 	   pick "A page or file…" or arrive on a page whose content IS a url — a permanent
 	   text input would add a row to the bar over every page in the realm. */
-	.paging-address { display: flex; align-items: center; gap: 0.3em; margin-block-start: 0.25em; }
+	/* ⚠ ITS OWN LINE, UNDER THE SEVEN WORDS — and `flex: 1 0 100%` is the whole of
+	     how. Inside the `content` dropdown's group it made that ONE group 106px tall
+	     against its four siblings' 57, put its label 50px above theirs and wrapped
+	     `Draw it` onto a second line: the row of seven words stopped being a row the
+	     moment you typed an address (paging-audit-6, item 1). A 100% flex-basis in a
+	     wrapping row always starts a new line, so the seven words keep their row and
+	     the address gets the whole of the next one — which is also what makes the
+	     field readable: it takes the spare width instead of 153px of a 357px value. */
+	.paging-address {
+		display: flex; flex-wrap: wrap; align-items: center;
+		flex: 1 0 100%;
+		gap: 0.3em 0.5em; margin-block-start: 0.35em;
+	}
 	.paging-address-off { display: none; }
 
+	/* The row's spare width, with a floor: the two buttons and the label are content
+	   sized, and everything left over is the address you are trying to read. */
 	.paging-address-field {
-		flex: 1 1 16em; min-width: 0;
+		flex: 1 1 24em; min-width: 0;
 		padding: 0.25em 0.45em;
 		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 		font-size: 0.75em;
 		color: var(--ink); background: var(--surface);
 		border: 1px solid var(--line); border-radius: var(--radius);
+	}
+
+	/* The one address this box will not read, said where you typed it. Its own line
+	   under the field, so it never squeezes the field it is about. */
+	.paging-address-note:not(:empty) {
+		flex: 1 0 100%;
+		font-size: 0.72em; color: var(--subtle);
 	}
 
 	/* ── AN ACT, NOT A VALUE ──────────────────────────────────────────────────
