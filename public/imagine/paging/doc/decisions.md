@@ -1232,7 +1232,7 @@ and not above.
 
 **What the graduation gave back, measured.** At 400 and 1280 the switch moves **zero pixels**
 on eleven of twelve sampled realm pages (`/cross/` reflows one column of text). At 1920 and
-3440 the stage's inner gaps finally ramp with the rest of the site (`calc(var(--gap-ramp) *
+3440 the stage's inner gaps finally scale with the rest of the site (`calc(var(--gap) *
 0.6)` instead of a flat `0.6em` — 14px and 25px instead of 10px), which is the one thing the
 lab's hand-written copy had been missing since the spacing pass.
 
@@ -1313,8 +1313,8 @@ half of that complaint — flush as the default, the bounded panel as `.tabs.bou
 > the paging left sidebar has too much padding — at least 20%. The padding is calculated on the
 > PARENT width, not its own.
 
-Exactly right, and the number is worse than 20%. `--pad-ramp` is `clamp(1em, 2.6% - 1.1em, 4em)`
-— a **percentage**, and a percentage padding resolves against the containing block. At 3440 the
+Exactly right, and the number is worse than 20%. `--pad` is `clamp(1em, 2.6% - 1.1em, 4em)` ×
+`--size` — a **percentage**, and a percentage padding resolves against the containing block. At 3440 the
 app row is 3440px and the rail is 413px, so the ramp read **69.6px** and spent **33.7% of the
 rail** on inset.
 

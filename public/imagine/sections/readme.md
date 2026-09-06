@@ -45,7 +45,7 @@ section back to what the page declared.
   in `util`; the upstream fix is a proposal. [`doc/decisions.md`](./doc/decisions.md)
 - **One stacking floor, 52rem**, and four columns become two at 70rem first. Below the floor
   everything stacks, sticky stands down and a nav collapses to a menu.
-- **Spacing is always a ramp** — `--pad-default` / `--gap-default`, never a constant.
+- **Spacing is always the `--size` knob** — `--pad` / `--gap`, never a constant.
 
 ## More
 

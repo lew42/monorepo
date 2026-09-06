@@ -12,7 +12,7 @@ a defect in `framework.css`, not a rule.
 | the worry | what already handles it |
 |---|---|
 | "a 400 layout should look fine at 1000" | the measure **holds and centres** instead of stretching — a one-column layout at 1000 keeps its 40em track |
-| padding and gap on a big screen vs a small one | the three ramps (`--pad-ramp` `--gap-ramp` `--flow-ramp`), clamped, following the box |
+| padding and gap on a big screen vs a small one | `--pad` / `--gap` / `--flow`, clamped and scaled by one `--size` knob (0.75 · 1 · 1.5), following the box |
 | "small columns shouldn't get large content" | column-relative units: `small` is `clamp(14em, 16cqi, 24em)`; the box tells the content how big it is |
 | a wall of tiles on a 3440 | `auto-fill` against a real `--column`: as many tracks as fit, never a stretched pair |
 | type on a 3440 | one body clamp against the **viewport**, not the box — text does not grow because its column did |

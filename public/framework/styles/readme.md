@@ -20,7 +20,7 @@ A module stylesheet, when a rung-4 rule is unavoidable: `View.stylesheet(import.
 - Never invent a font-size: six levels, each also a class; margins are rhythm and belong to whatever arranges the content. [`doc/theme.md`](./doc/theme.md)
 - `.flex > * { margin: 0 }` kills `margin-inline: auto` inside a flex row — reach for `.measure`. [`doc/decisions.md`](./doc/decisions.md)
 - An opaque fill guesses which floor it will land on and guesses wrong somewhere: `.btn, button` and `.surface` name the same token, so 101 button/pill pairs on the site are invisible. Floors opaque, fills alpha. [`doc/stacking.md`](./doc/stacking.md)
-- Spacing is three ramps × one level, never a constant: `--pad-ramp` / `--gap-ramp` / `--flow-ramp` hold their 1280 floor and reach about 2× at 3440; `spacing-tight` · regular · `spacing-airy` multiply all three (0.6 / 1 / 1.6). A theme retunes a ramp, never a `-default` — those are re-derived on every element. The numbers, the levels and the control rule (a control hugs, a row spans, inline text is not a control): [`/imagine/design/spacing/decision.md`](/imagine/design/spacing/decision.md)
+- Spacing is one knob, never a constant: `--pad` / `--gap` / `--flow` hold their 1280 floor and reach about 2× at 3440; `.size-small` · `.size-regular` · `.size-large` scale all three by `--size` (0.75 / 1 / 1.5). A theme retunes a clamp, never a per-element value — `:where(*)` re-derives it on every box. The numbers, the ladder and the control rule (a control hugs, a row spans, inline text is not a control): [`/imagine/design/size/`](/imagine/design/size/)
 
 ## More
 - Page: [/framework/styles/](/framework/styles/) — the ladder, the layers, the ratchet, the type scale, shown.

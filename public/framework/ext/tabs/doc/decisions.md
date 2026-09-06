@@ -136,7 +136,7 @@ worked out for its opt-in `.panel`, reused here for a default instead.
 
 **Padding is asymmetric on purpose.** The pre-floor `.tab-panel` was `padding-top: 3em` only —
 that number is the whole site's vertical rhythm under a tab set, a Doc module page included, so
-it stays. Left/right/bottom take `var(--pad, var(--pad-default))`, since those were never
+it stays. Left/right/bottom take `var(--pad)`, since those were never
 anything before the floor existed. Left open: a future pass could unify all four sides once
 someone looks hard at whether 3em still reads right against a visible border; nothing regressed
 by leaving it.

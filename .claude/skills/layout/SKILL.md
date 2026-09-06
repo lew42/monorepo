@@ -60,25 +60,17 @@ was 545px, not the 965px assumed), both states were identical and the card taugh
 
 ## Spacing and bleed — the 3440 rules (the owner, 2026-09-01)
 
-- **Spacing is a ramp × a level, never a constant.** With no override, `.pad`/`.gap`/`.flow`
-  read `--pad-default` / `--gap-default` / `--flow-default`, and every element derives those
-  three from framework.css's three ramps (`--pad-ramp`, `--gap-ramp`, `--flow-ramp`) × its
-  `--spacing` level (`spacing-tight` 0.6 · regular 1, no class · `spacing-airy` 1.6). Each
-  ramp holds its 1280 floor to the pixel and about doubles by 3440 — pad 16.5 → 70px, gap
-  15 → 46px, flow 30 → 54px. A theme retunes a RAMP, never a default (the `:where(*)` rule
-  re-derives a default underneath it). The columns host scales `--page-column-pad-x/y` with
-  its row (`cqi` — bar, heads, items and prose share one indent). A hand-typed `1em` on a
-  container that can be wide is the smell; the flat-em era is what made every audit find 3440
-  cramped. The numbers, and the alternatives they beat:
-  [/imagine/design/spacing/decision.md](/imagine/design/spacing/decision.md) — 2026-09-05,
-  superseding the 2026-09-01 clamps this section used to quote.
-  ⚠ **A ramp is space BETWEEN and AROUND content — never the size OF a control** (2026-09-06).
-  Convert a container's own constant (`gap: 0.6em` → `calc(var(--gap-ramp) * 0.6)`; a
-  section-scale gap, 2em and up, takes `--flow-ramp` × N/2). Never convert a control's own
+- **Spacing is one knob, never a constant.** `:where(*)` sets `--pad` / `--gap` / `--flow` from
+  framework.css's clamps × `--size`, and `.size-small` / `.size-regular` / `.size-large` set that
+  knob to 0.75 / 1 / 1.5 — the ladder, the numbers and the control rule:
+  [/imagine/design/size/](/imagine/design/size/).
+  ⚠ **A spacing clamp is space BETWEEN and AROUND content — never the size OF a control** (2026-09-06).
+  Convert a container's own constant (`gap: 0.6em` → `calc(var(--gap) * 0.6)`; a
+  section-scale gap, 2em and up, takes `--flow` × N/2). Never convert a control's own
   dimensions — a chip's, button's or nav item's padding, its height, or the gap between its
   own icon and its own label. Those stay in the control's `em`. `× N` is NOT "N em with a
-  little extra at 3440": `--gap-ramp` equals 1em only at its floor and is pinned at its 2.6em
-  cap above ~1400px, so `× 1.3` is 3.38em at 3440 — and `--pad-ramp`, a % of the containing
+  little extra at 3440": `--gap` equals 1em only at its floor and is pinned at its 2.6em
+  cap above ~1400px, so `× 1.3` is 3.38em at 3440 — and `--pad`, a % of the containing
   block, put 90.7px of padding on a nav row. A homepage nav item reached 67.6px tall this way, and
   a `vw` clamp is the same thing in different clothes — `clamp(0.45em, 0.6vw, 1.1em)` on the paging
   toolbar made it 130.7px of chrome at 3440. If the rule sizes a control, it gets neither.
