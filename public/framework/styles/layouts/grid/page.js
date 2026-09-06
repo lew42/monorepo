@@ -16,13 +16,13 @@ export default new Page({
 	// Inline object children: three real pages, three urls, no directories. Each one
 	// draws its own card (word.js) and the wall below is those cards.
 	children: [
-		word({ name: "stack", label: "A single column", words: "grid gap", kids: n(3),
+		word({ name: "stack", label: "A single column", string: "grid gap", kids: n(3),
 			note: "No column class at all — a plain `grid gap` is one column with even spacing, which is the cheapest stack there is." }),
 
-		word({ name: "auto", label: "A wall that counts itself", words: "grid gap auto", kids: n(6), column: "3.5em",
+		word({ name: "auto", label: "A wall that counts itself", string: "grid gap auto", kids: n(6), column: "3.5em",
 			note: "`auto` — the browser counts the columns and you name a comfortable width. The default `--column` is `14em`; **drag the handle** and the count is a consequence. This is the wall on nearly every index page on the site." }),
 
-		word({ name: "three", label: "Three, then straight to one", words: "grid gap three", kids: n(3), column: "3em",
+		word({ name: "three", label: "Three, then straight to one", string: "grid gap three", kids: n(3), column: "3em",
 			note: "`three` — exactly three columns, then straight to one. `clamp()` doing a breakpoint's job, and it never spends time at two." }),
 	],
 

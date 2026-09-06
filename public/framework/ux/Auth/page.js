@@ -25,9 +25,8 @@ export default new Doc({
 
 	content(){
 
-		// No `page:` — this Doc's own children mix the derived API/Docs/Files tabs
-		// in with `magic-auth`, and demo.exhibit's Variants wall does not filter them.
 		demo.exhibit({
+			page: this,
 			stage: steer => demo.stage(card, steer).ac("bleed"),
 			def: card,
 			file: new URL("Auth.js", import.meta.url).pathname,

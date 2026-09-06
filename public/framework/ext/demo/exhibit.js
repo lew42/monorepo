@@ -30,19 +30,24 @@ View.stylesheet(import.meta, "exhibit.css");
  * the render in front of them, not the imports and the `export default` wrapped
  * around it. `file` is for whoever wants those too.
  *
- * `page` is the page being built — hand it `this` and its children become the
- * Variants wall below.
+ * `page` is required — the page being built, hand it `this`. It draws the band
+ * (below), and its own non-chrome children become the Variants wall.
  *
  * Three sugars are config over this: `demo.page()` and `demo.tree()` below, and
  * `demo.layout()` in layout.js — a function, a site tree and a whole page.
  */
 demo.exhibit = ({ page, stage, def, file, note }) => {
+	// ⚠ `page` is not optional: it is what `.demo()` draws the band onto below, so a
+	// missing one used to throw three frames away, inside `.demo()`, as "Cannot read
+	// properties of undefined (reading 'demo')" — this says what's missing, on the spot.
+	if (!page) throw new Error("demo.exhibit({ page }) needs the page being built — hand it `this`.");
+
 	page.demo({ bar: true, code: def ?? true, file, run: shell => stage(target => shell.steer(target)) });
 
 	if (note) caption(note);
 	if (def) overrides(def);
 
-	if (page?.children.size) variants(page);
+	variants(page);
 };
 
 /* What a consumer can change, read off the definition itself: the argument it takes —
@@ -61,10 +66,20 @@ function overrides(def){
 /* The simple example IS the category for the complex ones: a demo page's children
    are its variants, drawn with the ONE card system rather than a wall of its own.
    ⚠ Called after the band, as direct children of the page — `previews()` carries
-   `bleed`, and both the track and its gutter payback need the child combinator. */
+   `bleed`, and both the track and its gutter payback need the child combinator.
+   ⚠ A `Doc`'s own Overview/API/Docs/Files sections are chrome, not a variant — they
+   are `page.children` too, so without this they show up IN the Variants wall,
+   including Overview previewing itself. `page.constructor.SECTIONS` (ext/Doc/Doc.js)
+   is the same list `Doc.wall()` already subtracts for its own index; read generically
+   here (a plain `Page` has none, so nothing changes for it) rather than importing Doc. */
 function variants(page){
+	const chrome = page.constructor.SECTIONS ?? [];
+	const pages = chrome.length ? new Map([...page.children].filter(([name]) => !chrome.includes(name))) : page.children;
+
+	if (!pages.size) return;
+
 	h2("Variants");
-	return page.previews();
+	return page.previews(pages);
 }
 
 /**

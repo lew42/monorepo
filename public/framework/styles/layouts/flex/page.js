@@ -26,34 +26,34 @@ export default new Page({
 	// Inline object children: nine real pages, nine urls, no directories. Each one
 	// draws its own card (word.js) and the wall below is those cards.
 	children: [
-		word({ name: "row", label: "A row", words: "flex", kids: n(3),
+		word({ name: "row", label: "A row", string: "flex", kids: n(3),
 			note: "`flex` and nothing else. No gap, so the boxes touch — and they squeeze rather than wrap, at any width." }),
 
-		word({ name: "gap", label: "A row with air in it", words: "flex gap", kids: n(3),
+		word({ name: "gap", label: "A row with air in it", string: "flex gap", kids: n(3),
 			note: "`gap` — two utility classes, no stylesheet, and the start of every layout on this site." }),
 
-		word({ name: "v", label: "A column", words: "flex v gap", kids: n(3),
+		word({ name: "v", label: "A column", string: "flex v gap", kids: n(3),
 			note: "`v` — a column. Same gap, other axis." }),
 
-		word({ name: "v-center", label: "Middles lined up", words: "flex gap v-center", kids: ["h1", "", ""],
+		word({ name: "v-center", label: "Middles lined up", string: "flex gap v-center", kids: ["h1", "", ""],
 			note: "`v-center` — unequal heights line up on their middles." }),
 
-		word({ name: "split", label: "Ends apart, middle empty", words: "flex gap split", kids: n(2),
+		word({ name: "split", label: "Ends apart, middle empty", string: "flex gap split", kids: n(2),
 			note: "`split` — `space-between`. A title left, a control right: this is every toolbar." }),
 
-		word({ name: "auto", label: "Equal peers, that wrap", words: "flex gap auto", kids: n(3), column: "3em",
+		word({ name: "auto", label: "Equal peers, that wrap", string: "flex gap auto", kids: n(3), column: "3em",
 			note: "`auto` — every child asks for `--column` and takes an equal share, so peers are equal without being measured. Two panes that stack themselves, with no breakpoint and no number outside the token." }),
 
-		// `words` is the title everywhere else; this one shares it with `gap`, and the
+		// `string` is the title everywhere else; this one shares it with `gap`, and the
 		// two item classes are what actually differ.
 		word({ name: "basis", title: "flex gap › basis + flex-1", label: "A fixed rail, a fluid rest",
-			words: "flex gap", kids: ["basis", "flex-1"],
+			string: "flex gap", kids: ["basis", "flex-1"],
 			note: "`basis` beside `flex-1` — the fixed track and the fluid one. This is [Sidebar](/framework/styles/layouts/sidebar/), and with a second `basis` it is [App shell](/framework/styles/layouts/shell/)." }),
 
-		word({ name: "wrap", label: "Wraps to a second line", words: "flex gap wrap", kids: n(6),
+		word({ name: "wrap", label: "Wraps to a second line", string: "flex gap wrap", kids: n(6),
 			note: "`wrap` — boxes drop to a second line instead of squeezing. **Drag the handle.** Add it to anything that could ever be narrow, which is everything." }),
 
-		word({ name: "three", label: "Three, then straight to one", words: "flex gap three", kids: n(3), column: "3em",
+		word({ name: "three", label: "Three, then straight to one", string: "flex gap three", kids: n(3), column: "3em",
 			note: "`three` — three columns, then straight to one. Two columns is the width nobody designed for." }),
 	],
 
