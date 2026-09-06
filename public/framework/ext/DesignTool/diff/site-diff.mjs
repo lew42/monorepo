@@ -141,17 +141,30 @@ async function runCompare(){
 		rows = await diffAll(browser, base, results, baselineDir, out);
 	} finally { await browser.close(); }
 
-	rows.sort((a, b) => (b.pixels_changed ?? -1) - (a.pixels_changed ?? -1));
+	// Unknown (errored) shots sort to the very top — the pages a human most
+	// needs to look at — then real changes worst-first.
+	rows.sort((a, b) => {
+		const au = a.changed === "unknown", bu = b.changed === "unknown";
+		if (au !== bu) return au ? -1 : 1;
+		return (b.pixels_changed ?? -1) - (a.pixels_changed ?? -1);
+	});
 
-	const changedUrls = new Set(rows.filter(r => r.changed).map(r => r.url));
+	const total = new Set(rows.map(r => r.url)).size;
+	const changedUrls = new Set(rows.filter(r => r.changed === true).map(r => r.url));
+	const unknownUrls = new Set(rows.filter(r => r.changed === "unknown").map(r => r.url));
 	const newErrors = rows.reduce((n, r) => n + (r.new_console_errors || 0), 0);
 	const newSideways = rows.filter(r => r.new_sideways_scroll).length;
 	const summary = {
-		total_pages: new Set(rows.map(r => r.url)).size,
+		total_pages: total,
 		changed_pages: changedUrls.size,
+		unknown_pages: unknownUrls.size,
 		new_console_errors: newErrors,
 		new_sideways_scroll: newSideways,
-		text: `${changedUrls.size} of ${new Set(rows.map(r => r.url)).size} pages changed; ${newErrors} new errors`,
+		// "unknown" gets its own clause — a shot that errored is never quietly
+		// counted among the pages that stayed the same.
+		text: `${changedUrls.size} of ${total} pages changed`
+			+ (unknownUrls.size ? ` (${unknownUrls.size} unknown — shot errored)` : "")
+			+ `; ${newErrors} new errors`,
 	};
 
 	fs.writeFileSync(path.join(out, "report.json"), JSON.stringify({
@@ -162,7 +175,9 @@ async function runCompare(){
 	const secs = ((Date.now() - t0) / 1000).toFixed(1);
 	console.log(`\n${summary.text} · ${secs}s → ${path.join(out, "report.json")}`);
 
-	if (newErrors > 0 || newSideways > 0) process.exitCode = 1;
+	// An unknown page is a page nothing could verify — that fails the run just
+	// as surely as a page that got provably worse.
+	if (newErrors > 0 || newSideways > 0 || unknownUrls.size > 0) process.exitCode = 1;
 }
 
 function printTable(rows){
@@ -178,27 +193,66 @@ function printTable(rows){
 function must(v, msg){ if (!v) throw new Error(msg); return v; }
 
 // ════ THE SHOOT ═══════════════════════════════════════════════════════════
-// One browser, ≤4 pages at a time. Each worker owns one page and recycles it
-// every 30 navigations (headless Chrome wedges after ~85–110 — DesignTool/readme.md).
+// A pool of ≤4 Page objects, created ONE AT A TIME (never `Promise.all` over
+// `newPage()`, so pool setup itself cannot race) before any navigation starts.
+// Each slot is owned by exactly one worker for its whole run — goto → settle
+// → shoot always finishes on that page before the next url touches it, and
+// recycling (every 30 navs — headless Chrome wedges after ~85–110,
+// DesignTool/readme.md) replaces the slot's page rather than sharing it.
+//
+// `inFlight` is a loud ASSERTION, not the fix itself: if a page is ever handed
+// a second url while its first is still running, this throws immediately,
+// naming both urls — instead of surfacing 1000 lines deep inside Playwright as
+// "goto: Navigation to X is interrupted by another navigation to Y" (hit for
+// real 2026-09-06: the compare path drove two `styles/layouts/*` urls on one
+// shared Page — the pool below is what stops it happening again).
 async function shoot(browser, jobs, { server, inject, outDir }){
 	const queue = jobs.slice();
 	const results = [];
-	const workers = Math.max(1, Math.min(4, queue.length));
+	const poolSize = Math.max(1, Math.min(4, queue.length));
 
-	await Promise.all(Array.from({ length: workers }, () => worker()));
+	const initial = [];
+	for (let i = 0; i < poolSize; i++) initial.push(await browser.newPage());
+	const everOpened = [...initial];   // + every page a recycle creates — all of them get closed at the end
+
+	const inFlight = new Map();   // page → "url@width" currently running on it
+
+	await Promise.all(initial.map(page => worker(page)));
+	await Promise.all(everOpened.map(page => page.close().catch(() => {})));
 	return results;
 
-	async function worker(){
-		let page = await browser.newPage();
+	async function worker(page){
 		let navs = 0;
 		while (queue.length){
 			const job = queue.shift();
 			if (!job) break;
-			if (++navs > 30){ await page.close(); page = await browser.newPage(); navs = 1; }
-			results.push(await shootOne(page, job, { server, inject, outDir }));
+			if (++navs > 30){ await page.close(); page = await browser.newPage(); everOpened.push(page); navs = 1; }
+
+			if (inFlight.has(page)) throw new Error(`site-diff: page still on ${inFlight.get(page)} — ${job.url}@${job.width} would share it`);
+			inFlight.set(page, `${job.url}@${job.width}`);
+			try { results.push(await shootOne(page, job, { server, inject, outDir })); }
+			finally { inFlight.delete(page); }
 		}
 		await page.close();
 	}
+}
+
+// ⚠ Not a page-ownership bug — `shoot()`'s pool already gives every url its own
+// Page for the whole goto → settle → shoot lifecycle, and the assertion in there
+// never fires. This is Chromium/Playwright itself: two DIFFERENT Page objects
+// calling `.goto()` within the same instant can cross-wire, and one of them fails
+// with "Navigation to X is interrupted by another navigation to Y" even though
+// neither page issued a second navigation of its own (measured 2026-09-06 — it
+// still happened after switching page creation to strictly sequential). The fix
+// is to never let two `.goto()` CALLS overlap at all, browser-wide — everything
+// else about a shot (waiting for fonts, masking, screenshotting) still runs
+// concurrently across the pool; only the moment of starting a navigation is
+// serialized.
+let navLock = Promise.resolve();
+function serialGoto(page, url, opts){
+	const turn = navLock.then(() => page.goto(url, opts));
+	navLock = turn.then(() => {}, () => {});   // never let one failed nav wedge every shot after it
+	return turn;
 }
 
 async function shootOne(page, { url, width }, { server, inject, outDir }){
@@ -213,7 +267,7 @@ async function shootOne(page, { url, width }, { server, inject, outDir }){
 
 	try {
 		await page.setViewportSize({ width, height: vh(width) });
-		const res = await page.goto(server + url, { waitUntil: "load", timeout: 20000 });   // ⚠ never networkidle — a live-reload socket never idles
+		const res = await serialGoto(page, server + url, { waitUntil: "load", timeout: 20000 });   // ⚠ never networkidle — a live-reload socket never idles
 		const status = res?.status() ?? null;
 
 		// ⚠ A missing page is HTTP 200 — the SPA fallback serves index.html and
@@ -295,17 +349,23 @@ async function diffAll(browser, base, curResults, baselineDir, outDir){
 		const cur = byKey.get(b.url + "|" + b.width);
 		const row = { url: b.url, width: b.width };
 
-		if (!cur){ row.error = "not re-shot this run"; rows.push(row); continue; }
-		if (cur.error){ row.error = cur.error; rows.push(row); continue; }
+		// Anything that stops this from being an honest pixel compare — this run's
+		// shot errored (a navigation race, a timeout, a dead page), it never ran at
+		// all, or either PNG is missing on disk — is reported as "unknown", never
+		// silently folded into "unchanged". An unknown page is exactly the page a
+		// human most needs to look at, so it also fails the run (see runCompare).
+		const havePngs = b.file && cur?.file
+			&& fs.existsSync(path.join(baselineDir, b.file)) && fs.existsSync(path.join(outDir, cur.file));
+		const reason = !cur ? "not re-shot this run" : cur.error || (!havePngs ? "screenshot missing" : null);
 
-		if (b.file && cur.file && fs.existsSync(path.join(baselineDir, b.file))){
+		if (reason){ row.error = reason; row.changed = "unknown"; rows.push(row); continue; }
+
+		{
 			const before = fs.readFileSync(path.join(baselineDir, b.file));
 			const after = fs.readFileSync(path.join(outDir, cur.file));
 			const { diff, total } = await pixelDiff(lab, before, after, b.width, vh(b.width));
 			row.pixels_changed = diff;
 			row.pct_changed = total ? +(diff / total * 100).toFixed(3) : 0;
-		} else {
-			row.baseline_missing = true;
 		}
 
 		row.console_errors_before = b.console_errors ?? 0;
