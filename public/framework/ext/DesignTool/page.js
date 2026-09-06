@@ -8,7 +8,7 @@ export default new Doc({
 	title: "DesignTool",
 	description: "Measures a layout and scores it. Ratios, not eyeballs — and no AI at runtime.",
 	icon: "straighten",
-	children: "library taste tests audit knowledge widths vision",
+	children: "library taste tests audit knowledge widths vision diff",
 
 	notes: "cost addressing decisions",
 	files: "DesignTool.css DesignTool.js address.js audit/findings.json audit/page.js audit/pages.js audit/twin.js "
