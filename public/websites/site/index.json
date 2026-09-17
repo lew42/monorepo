@@ -1,0 +1,1740 @@
+{
+	"generated_at": "2026-09-08T07:12:21.030Z",
+	"sites": [
+		{
+			"name": "alistapart-home",
+			"title": "A List Apart – For people who make websites",
+			"url": "https://alistapart.com/",
+			"category": "blog",
+			"layout": {
+				"400": "1-flow",
+				"1280": "1-centered",
+				"1920": "1-centered",
+				"3440": "1-centered"
+			},
+			"tags": [
+				"1-centered",
+				"1-flow",
+				"3-equal",
+				"3 column flex",
+				"measure",
+				"max-width",
+				"hamburger",
+				"blog"
+			],
+			"shot": "site/alistapart-home/1280.jpg"
+		},
+		{
+			"name": "allbirds-home",
+			"title": "Allbirds: Comfortable, Sustainable Shoes & Apparel",
+			"url": "https://www.allbirds.com/",
+			"category": "shop",
+			"layout": {
+				"400": "1-flow",
+				"1280": "1-bands",
+				"1920": "1-bands",
+				"3440": "1-bands"
+			},
+			"tags": [
+				"1-flow",
+				"1-bands",
+				"3-equal",
+				"full-bleed",
+				"carousel",
+				"hamburger",
+				"sticky header",
+				"shop"
+			],
+			"shot": "site/allbirds-home/1280.jpg"
+		},
+		{
+			"name": "amazon-kindle-product",
+			"title": "Amazon.com: Apple 2024 MacBook Air 13-inch Laptop with M3 chip: Built for Apple Intelligence, 13.6-inch Liquid Retina Display, 8GB Unified Memory, 256GB SSD Storage, Backlit Keyboard, Touch ID; Midnight : Electronics",
+			"url": "https://www.amazon.com/dp/B0CX23V2ZK",
+			"category": "shop",
+			"layout": {
+				"400": "3-holy-grail",
+				"1280": "3-holy-grail",
+				"1920": "3-holy-grail",
+				"3440": "3-holy-grail"
+			},
+			"tags": [
+				"3-holy-grail",
+				"2-sidebar",
+				"left",
+				"shop"
+			],
+			"shot": "site/amazon-kindle-product/1280.jpg"
+		},
+		{
+			"name": "apple-home",
+			"title": "Apple",
+			"url": "https://www.apple.com",
+			"category": "marketing",
+			"layout": {
+				"400": "1-bands",
+				"1280": "1-bands",
+				"1920": "1-bands",
+				"3440": "1-bands"
+			},
+			"tags": [
+				"1-flow",
+				"1-bands",
+				"2-equal",
+				"full-bleed",
+				"hamburger",
+				"mega footer",
+				"max-width",
+				"marketing"
+			],
+			"shot": "site/apple-home/1280.jpg"
+		},
+		{
+			"name": "arstechnica-home",
+			"title": "Ars Technica - Serving the Technologist since 1998. News, reviews, and analysis.",
+			"url": "https://arstechnica.com",
+			"category": "news",
+			"layout": {
+				"400": "1-flow",
+				"1280": "2-equal",
+				"1920": "2-equal",
+				"3440": "2-equal"
+			},
+			"tags": [
+				"1-flow",
+				"3-equal",
+				"3 column grid",
+				"full-bleed",
+				"measure",
+				"max-width",
+				"cards",
+				"dark",
+				"layout switcher",
+				"news",
+				"2-equal"
+			],
+			"shot": "site/arstechnica-home/1280.jpg"
+		},
+		{
+			"name": "astral-codex-ten-home",
+			"title": "Astral Codex Ten | Scott Alexander | Substack",
+			"url": "https://www.astralcodexten.com/",
+			"category": "blog",
+			"layout": {
+				"400": "1-flow",
+				"1280": "2-sidebar",
+				"1920": "2-sidebar",
+				"3440": "2-sidebar"
+			},
+			"tags": [
+				"2-sidebar",
+				"1-flow",
+				"2 column flex",
+				"max-width",
+				"right",
+				"blog"
+			],
+			"shot": "site/astral-codex-ten-home/1280.jpg"
+		},
+		{
+			"name": "bbc-news-home",
+			"title": "BBC News - Breaking news, video and the latest top stories from the U.S. and around the world",
+			"url": "https://www.bbc.com/news",
+			"category": "news",
+			"layout": {
+				"400": "1-flow",
+				"1280": "3-holy-grail",
+				"1920": "3-holy-grail",
+				"3440": "3-holy-grail"
+			},
+			"tags": [
+				"3-holy-grail",
+				"1-flow",
+				"n-wall",
+				"full-bleed",
+				"max-width",
+				"hamburger",
+				"news"
+			],
+			"shot": "site/bbc-news-home/1280.jpg"
+		},
+		{
+			"name": "cctype-foundry",
+			"title": "CcTimeline – Contemporary Font Family by CcType | CcType Foundry",
+			"url": "https://cctype.com/",
+			"category": "marketing",
+			"layout": {
+				"400": "1-flow",
+				"1280": "1-flow",
+				"1920": "1-flow",
+				"3440": "1-flow"
+			},
+			"tags": [
+				"1-flow",
+				"n-wall",
+				"sticky header",
+				"fluid type",
+				"dark",
+				"hamburger",
+				"full-bleed",
+				"marketing"
+			],
+			"shot": "site/cctype-foundry/1280.jpg"
+		},
+		{
+			"name": "css-tricks-home",
+			"title": "CSS-Tricks - Learning for front-end designers and developers",
+			"url": "https://css-tricks.com/",
+			"category": "blog",
+			"layout": {
+				"400": "1-flow",
+				"1280": "1-flow",
+				"1920": "1-centered",
+				"3440": "1-centered"
+			},
+			"tags": [
+				"1-flow",
+				"1-centered",
+				"n-wall",
+				"2 column grid",
+				"2-equal",
+				"dark",
+				"max-width",
+				"overlapping cards",
+				"blog"
+			],
+			"shot": "site/css-tricks-home/1280.jpg"
+		},
+		{
+			"name": "designmill-home",
+			"title": "designmill®",
+			"url": "https://designmill.in/",
+			"category": "marketing",
+			"layout": {
+				"400": "1-bands",
+				"1280": "1-bands",
+				"1920": "1-bands",
+				"3440": "1-bands"
+			},
+			"tags": [
+				"1-bands",
+				"2-equal",
+				"1-flow",
+				"2 column grid",
+				"full-bleed",
+				"carousel",
+				"hamburger",
+				"marketing"
+			],
+			"shot": "site/designmill-home/1280.jpg"
+		},
+		{
+			"name": "django-docs-index",
+			"title": "Django documentation | Django documentation | Django",
+			"url": "https://docs.djangoproject.com/en/5.1/",
+			"category": "documentation",
+			"layout": {
+				"400": "1-flow",
+				"1280": "2-sidebar",
+				"1920": "2-sidebar",
+				"3440": "2-sidebar"
+			},
+			"tags": [
+				"2-sidebar",
+				"1-flow",
+				"float",
+				"right",
+				"rail",
+				"hamburger",
+				"mega footer",
+				"fluid",
+				"documentation"
+			],
+			"shot": "site/django-docs-index/1280.jpg"
+		},
+		{
+			"name": "figma-home",
+			"title": "Figma: The collaborative canvas for design, code, and AI",
+			"url": "https://www.figma.com",
+			"category": "marketing",
+			"layout": {
+				"400": "1-bands",
+				"1280": "1-bands",
+				"1920": "1-bands",
+				"3440": "1-bands"
+			},
+			"tags": [
+				"1-bands",
+				"1-flow",
+				"2-equal",
+				"n-wall",
+				"2 column grid",
+				"4 column grid",
+				"full-bleed",
+				"measure",
+				"max-width",
+				"carousel",
+				"mega footer",
+				"marketing"
+			],
+			"shot": "site/figma-home/1280.jpg"
+		},
+		{
+			"name": "framer-home",
+			"title": "Framer: AI design agent",
+			"url": "https://www.framer.com",
+			"category": "marketing",
+			"layout": {
+				"400": "1-flow",
+				"1280": "1-centered",
+				"1920": "1-centered",
+				"3440": "1-centered"
+			},
+			"tags": [
+				"1-centered",
+				"1-flow",
+				"2-equal",
+				"n-wall",
+				"dark",
+				"cards",
+				"hamburger",
+				"max-width",
+				"marketing"
+			],
+			"shot": "site/framer-home/1280.jpg"
+		},
+		{
+			"name": "github-vscode-repo",
+			"title": "GitHub - microsoft/vscode: Visual Studio Code · GitHub",
+			"url": "https://github.com/microsoft/vscode",
+			"category": "app",
+			"layout": {
+				"400": "1-flow",
+				"1280": "2-sidebar",
+				"1920": "2-sidebar",
+				"3440": "2-sidebar"
+			},
+			"tags": [
+				"2-sidebar",
+				"1-flow",
+				"2 column grid",
+				"hamburger",
+				"right",
+				"fixed content width",
+				"app"
+			],
+			"shot": "site/github-vscode-repo/1280.jpg"
+		},
+		{
+			"name": "gitlab-explore",
+			"title": "Explore projects · GitLab",
+			"url": "https://gitlab.com/explore",
+			"category": "app",
+			"layout": {
+				"400": "1-flow",
+				"1280": "2-sidebar",
+				"1920": "2-sidebar",
+				"3440": "2-sidebar"
+			},
+			"tags": [
+				"2-sidebar",
+				"1-flow",
+				"1-centered",
+				"2 column flex",
+				"left",
+				"rail",
+				"drawer",
+				"hamburger",
+				"max-width",
+				"app"
+			],
+			"shot": "site/gitlab-explore/1280.jpg"
+		},
+		{
+			"name": "gov-uk-home",
+			"title": "Welcome to GOV.UK",
+			"url": "https://www.gov.uk/",
+			"category": "system",
+			"layout": {
+				"400": "1-flow",
+				"1280": "1-centered",
+				"1920": "1-centered",
+				"3440": "1-centered"
+			},
+			"tags": [
+				"1-flow",
+				"1-centered",
+				"2-sidebar",
+				"3-equal",
+				"max-width",
+				"system"
+			],
+			"shot": "site/gov-uk-home/1280.jpg"
+		},
+		{
+			"name": "grafana-play-home",
+			"title": "Dashboards - Grafana",
+			"url": "https://play.grafana.org/",
+			"category": "app",
+			"layout": {
+				"400": "1-flow",
+				"1280": "2-sidebar",
+				"1920": "2-sidebar",
+				"3440": "2-sidebar"
+			},
+			"tags": [
+				"2-sidebar",
+				"1-flow",
+				"2 column flex",
+				"left",
+				"sticky header",
+				"dark",
+				"hamburger",
+				"app"
+			],
+			"shot": "site/grafana-play-home/1280.jpg"
+		},
+		{
+			"name": "guardian-international",
+			"title": "Latest news, sport and opinion from the Guardian",
+			"url": "https://www.theguardian.com/international",
+			"category": "news",
+			"layout": {
+				"400": "1-flow",
+				"1280": "1-flow",
+				"1920": "1-centered",
+				"3440": "1-centered"
+			},
+			"tags": [
+				"1-flow",
+				"1-centered",
+				"2 column grid",
+				"3 column grid",
+				"carousel",
+				"max-width",
+				"news"
+			],
+			"shot": "site/guardian-international/1280.jpg"
+		},
+		{
+			"name": "hacker-news-home",
+			"title": "Hacker News",
+			"url": "https://news.ycombinator.com/",
+			"category": "app",
+			"layout": {
+				"400": "1-flow",
+				"1280": "1-flow",
+				"1920": "1-flow",
+				"3440": "1-flow"
+			},
+			"tags": [
+				"1-flow",
+				"table",
+				"fluid",
+				"no gap",
+				"app"
+			],
+			"shot": "site/hacker-news-home/1280.jpg"
+		},
+		{
+			"name": "ikea-home",
+			"title": "Shop Affordable Home Furnishings & Home Goods - IKEA",
+			"url": "https://www.ikea.com/us/en/",
+			"category": "shop",
+			"layout": {
+				"400": "1-flow",
+				"1280": "4-1",
+				"1920": "4-1",
+				"3440": "4-1"
+			},
+			"tags": [
+				"4-1",
+				"1-flow",
+				"n-wall",
+				"cards",
+				"hamburger",
+				"shop"
+			],
+			"shot": "site/ikea-home/1280.jpg"
+		},
+		{
+			"name": "josh-comeau-blog",
+			"title": "Josh W. Comeau",
+			"url": "https://www.joshwcomeau.com/",
+			"category": "blog",
+			"layout": {
+				"400": "1-flow",
+				"1280": "2-sidebar",
+				"1920": "2-sidebar",
+				"3440": "2-sidebar"
+			},
+			"tags": [
+				"2-sidebar",
+				"1-flow",
+				"2 column grid",
+				"right",
+				"sticky sidebar",
+				"max-width",
+				"dark",
+				"blog"
+			],
+			"shot": "site/josh-comeau-blog/1280.jpg"
+		},
+		{
+			"name": "kent-c-dodds-blog",
+			"title": "The Kent C. Dodds Blog",
+			"url": "https://kentcdodds.com/blog",
+			"category": "blog",
+			"layout": {
+				"400": "1-flow",
+				"1280": "3-equal",
+				"1920": "3-equal",
+				"3440": "3-equal"
+			},
+			"tags": [
+				"3-equal",
+				"cards",
+				"2-equal",
+				"1-flow",
+				"3 column grid",
+				"2 column flex",
+				"max-width",
+				"hamburger",
+				"blog"
+			],
+			"shot": "site/kent-c-dodds-blog/1280.jpg"
+		},
+		{
+			"name": "kubernetes-docs-home",
+			"title": "Kubernetes Documentation | Kubernetes",
+			"url": "https://kubernetes.io/docs/home/",
+			"category": "documentation",
+			"layout": {
+				"400": "1-flow",
+				"1280": "3-holy-grail",
+				"1920": "3-holy-grail",
+				"3440": "3-holy-grail"
+			},
+			"tags": [
+				"3-holy-grail",
+				"1-flow",
+				"3-equal",
+				"3 column flex",
+				"toc",
+				"sticky sidebar",
+				"hamburger",
+				"full-bleed",
+				"dark",
+				"cards",
+				"documentation"
+			],
+			"shot": "site/kubernetes-docs-home/1280.jpg"
+		},
+		{
+			"name": "linear-home",
+			"title": "Linear – The system for product development",
+			"url": "https://linear.app",
+			"category": "marketing",
+			"layout": {
+				"400": "1-flow",
+				"1280": "1-flow",
+				"1920": "1-centered",
+				"3440": "1-centered"
+			},
+			"tags": [
+				"1-flow",
+				"1-centered",
+				"dark",
+				"sticky header",
+				"hamburger",
+				"max-width",
+				"marketing"
+			],
+			"shot": "site/linear-home/1280.jpg"
+		},
+		{
+			"name": "material3-home",
+			"title": "Material Design 3 - Google's latest open source design system",
+			"url": "https://m3.material.io/",
+			"category": "system",
+			"layout": {
+				"400": "1-flow",
+				"1280": "2-sidebar",
+				"1920": "2-sidebar",
+				"3440": "2-sidebar"
+			},
+			"tags": [
+				"2-sidebar",
+				"1-flow",
+				"left",
+				"rail",
+				"measure",
+				"max-width",
+				"hamburger",
+				"cards",
+				"system"
+			],
+			"shot": "site/material3-home/1280.jpg"
+		},
+		{
+			"name": "mdn-css",
+			"title": "CSS: Cascading Style Sheets | MDN",
+			"url": "https://developer.mozilla.org/en-US/docs/Web/CSS",
+			"category": "documentation",
+			"layout": {
+				"400": "1-flow",
+				"1280": "3-holy-grail",
+				"1920": "3-holy-grail",
+				"3440": "3-holy-grail"
+			},
+			"tags": [
+				"3-holy-grail",
+				"1-flow",
+				"3 column grid",
+				"sticky header",
+				"sticky sidebar",
+				"hamburger",
+				"max-width",
+				"left",
+				"right",
+				"toc",
+				"documentation"
+			],
+			"shot": "site/mdn-css/1280.jpg"
+		},
+		{
+			"name": "mocean-home",
+			"title": "Home | Mocean",
+			"url": "https://moceanla.com/",
+			"category": "marketing",
+			"layout": {
+				"400": "1-bands",
+				"1280": "1-bands",
+				"1920": "1-bands",
+				"3440": "1-bands"
+			},
+			"tags": [
+				"1-bands",
+				"1-flow",
+				"4 column grid",
+				"gradient",
+				"full-bleed",
+				"scroll-pinned hero",
+				"dark",
+				"marketing"
+			],
+			"shot": "site/mocean-home/1280.jpg"
+		},
+		{
+			"name": "nike-home",
+			"title": "Nike. Just Do It. Nike.com",
+			"url": "https://www.nike.com/",
+			"category": "shop",
+			"layout": {
+				"400": "2-equal",
+				"1280": "4-1",
+				"1920": "4-1",
+				"3440": "4-1"
+			},
+			"tags": [
+				"4-1",
+				"n-wall",
+				"carousel",
+				"hamburger",
+				"max-width",
+				"shop",
+				"2-equal"
+			],
+			"shot": "site/nike-home/1280.jpg"
+		},
+		{
+			"name": "notion-home",
+			"title": "The AI workspace that works for you. | Notion",
+			"url": "https://www.notion.so",
+			"category": "marketing",
+			"layout": {
+				"400": "1-bands",
+				"1280": "1-bands",
+				"1920": "1-bands",
+				"3440": "1-bands"
+			},
+			"tags": [
+				"1-bands",
+				"1-flow",
+				"2-equal",
+				"n-wall",
+				"4-1",
+				"full-bleed",
+				"measure",
+				"max-width",
+				"mega footer",
+				"marketing"
+			],
+			"shot": "site/notion-home/1280.jpg"
+		},
+		{
+			"name": "nytimes-home",
+			"title": "The New York Times - Breaking News, US News, World News and Videos",
+			"url": "https://www.nytimes.com",
+			"category": "news",
+			"layout": {
+				"400": "1-flow",
+				"1280": "2-sidebar",
+				"1920": "2-sidebar",
+				"3440": "2-sidebar"
+			},
+			"tags": [
+				"2-sidebar",
+				"1-flow",
+				"2-equal",
+				"right",
+				"full-bleed",
+				"measure",
+				"max-width",
+				"news"
+			],
+			"shot": "site/nytimes-home/1280.jpg"
+		},
+		{
+			"name": "overreacted-blog",
+			"title": "overreacted — A blog by Dan Abramov",
+			"url": "https://overreacted.io/",
+			"category": "blog",
+			"layout": {
+				"400": "1-flow",
+				"1280": "1-centered",
+				"1920": "1-centered",
+				"3440": "1-centered"
+			},
+			"tags": [
+				"1-flow",
+				"1-centered",
+				"measure",
+				"max-width",
+				"minimal",
+				"blog"
+			],
+			"shot": "site/overreacted-blog/1280.jpg"
+		},
+		{
+			"name": "privy-home",
+			"title": "Privy – Digital asset infrastructure for global financial products",
+			"url": "https://privy.io/",
+			"category": "marketing",
+			"layout": {
+				"400": "1-flow",
+				"1280": "1-bands",
+				"1920": "1-bands",
+				"3440": "1-bands"
+			},
+			"tags": [
+				"1-flow",
+				"1-bands",
+				"2-equal",
+				"logo marquee",
+				"cards",
+				"full-bleed",
+				"hamburger",
+				"marketing"
+			],
+			"shot": "site/privy-home/1280.jpg"
+		},
+		{
+			"name": "python-docs-index",
+			"title": "3.14.7 Documentation",
+			"url": "https://docs.python.org/3/",
+			"category": "documentation",
+			"layout": {
+				"400": "1-flow",
+				"1280": "2-sidebar",
+				"1920": "2-sidebar",
+				"3440": "2-sidebar"
+			},
+			"tags": [
+				"2-sidebar",
+				"1-flow",
+				"left",
+				"drawer",
+				"hamburger",
+				"fixed content width",
+				"2 column grid",
+				"rail",
+				"documentation"
+			],
+			"shot": "site/python-docs-index/1280.jpg"
+		},
+		{
+			"name": "rust-book-intro",
+			"title": "Introduction - The Rust Programming Language",
+			"url": "https://doc.rust-lang.org/book/ch00-00-introduction.html",
+			"category": "documentation",
+			"layout": {
+				"400": "1-flow",
+				"1280": "2-sidebar",
+				"1920": "2-sidebar",
+				"3440": "2-sidebar"
+			},
+			"tags": [
+				"2-sidebar",
+				"1-flow",
+				"1-centered",
+				"left",
+				"rail",
+				"measure",
+				"max-width",
+				"drawer",
+				"fixed sidebar",
+				"hamburger",
+				"documentation"
+			],
+			"shot": "site/rust-book-intro/1280.jpg"
+		},
+		{
+			"name": "shopify-polaris-home",
+			"title": "Polaris references",
+			"url": "https://polaris.shopify.com/",
+			"category": "system",
+			"layout": {
+				"400": "1-flow",
+				"1280": "2-sidebar",
+				"1920": "2-sidebar",
+				"3440": "2-sidebar"
+			},
+			"tags": [
+				"2-sidebar",
+				"1-centered",
+				"1-flow",
+				"2-equal",
+				"left",
+				"rail",
+				"measure",
+				"max-width",
+				"sticky header",
+				"system"
+			],
+			"shot": "site/shopify-polaris-home/1280.jpg"
+		},
+		{
+			"name": "simon-willison-blog",
+			"title": "Simon Willison’s Weblog",
+			"url": "https://simonwillison.net/",
+			"category": "blog",
+			"layout": {
+				"400": "1-flow",
+				"1280": "2-sidebar",
+				"1920": "2-sidebar",
+				"3440": "2-sidebar"
+			},
+			"tags": [
+				"2-sidebar",
+				"1-flow",
+				"float",
+				"right",
+				"max-width",
+				"blog"
+			],
+			"shot": "site/simon-willison-blog/1280.jpg"
+		},
+		{
+			"name": "smashing-magazine-home",
+			"title": "Smashing Magazine — For Web Designers And Developers",
+			"url": "https://www.smashingmagazine.com/",
+			"category": "blog",
+			"layout": {
+				"400": "1-flow",
+				"1280": "2-equal",
+				"1920": "2-equal",
+				"3440": "2-equal"
+			},
+			"tags": [
+				"2-equal",
+				"1-flow",
+				"2 column grid",
+				"2 column flex",
+				"cards",
+				"measure",
+				"max-width",
+				"hamburger",
+				"blog"
+			],
+			"shot": "site/smashing-magazine-home/1280.jpg"
+		},
+		{
+			"name": "stripe",
+			"title": "Stripe | Financial Infrastructure to Grow Your Revenue",
+			"url": "https://stripe.com/",
+			"category": "marketing",
+			"layout": {
+				"400": "1-flow",
+				"1280": "1-flow",
+				"1920": "1-centered",
+				"3440": "1-centered"
+			},
+			"tags": [
+				"1-centered",
+				"1-flow",
+				"3-equal",
+				"cards",
+				"4-1",
+				"2 column grid",
+				"full-bleed",
+				"hamburger",
+				"max-width",
+				"n-wall",
+				"marketing"
+			],
+			"shot": "site/stripe/1280.jpg"
+		},
+		{
+			"name": "susanne-kaufmann-home",
+			"title": "Susanne Kaufmann | Skincare Powered By Nature – Susanne Kaufmann",
+			"url": "https://susannekaufmann.com/",
+			"category": "shop",
+			"layout": {
+				"400": "1-bands",
+				"1280": "1-bands",
+				"1920": "1-bands",
+				"3440": "1-bands"
+			},
+			"tags": [
+				"1-bands",
+				"1-flow",
+				"n-wall",
+				"4 column grid",
+				"full-bleed",
+				"carousel",
+				"mega footer",
+				"shop"
+			],
+			"shot": "site/susanne-kaufmann-home/1280.jpg"
+		},
+		{
+			"name": "svelte-docs-overview",
+			"title": "Overview • Svelte Docs",
+			"url": "https://svelte.dev/docs/svelte",
+			"category": "documentation",
+			"layout": {
+				"400": "1-flow",
+				"1280": "3-holy-grail",
+				"1920": "3-holy-grail",
+				"3440": "3-holy-grail"
+			},
+			"tags": [
+				"3-holy-grail",
+				"1-flow",
+				"3 column flex",
+				"measure",
+				"max-width",
+				"bottom toolbar",
+				"dark",
+				"documentation"
+			],
+			"shot": "site/svelte-docs-overview/1280.jpg"
+		},
+		{
+			"name": "uswds-home",
+			"title": "USWDS: The United States Web Design System | U.S. Web Design System (USWDS)",
+			"url": "https://designsystem.digital.gov/",
+			"category": "system",
+			"layout": {
+				"400": "1-bands",
+				"1280": "1-bands",
+				"1920": "1-bands",
+				"3440": "1-bands"
+			},
+			"tags": [
+				"1-bands",
+				"1-flow",
+				"n-wall",
+				"3-equal",
+				"4 column flex",
+				"3 column flex",
+				"full-bleed",
+				"measure",
+				"max-width",
+				"cards",
+				"system"
+			],
+			"shot": "site/uswds-home/1280.jpg"
+		},
+		{
+			"name": "vercel-home",
+			"title": "Agentic Infrastructure - Vercel",
+			"url": "https://vercel.com",
+			"category": "marketing",
+			"layout": {
+				"400": "1-flow",
+				"1280": "2-equal",
+				"1920": "2-equal",
+				"3440": "2-equal"
+			},
+			"tags": [
+				"2-equal",
+				"1-flow",
+				"6 column grid",
+				"max-width",
+				"sticky header",
+				"marketing"
+			],
+			"shot": "site/vercel-home/1280.jpg"
+		},
+		{
+			"name": "verge-home",
+			"title": "The Verge",
+			"url": "https://www.theverge.com",
+			"category": "news",
+			"layout": {
+				"400": "1-flow",
+				"1280": "2-sidebar",
+				"1920": "2-sidebar",
+				"3440": "2-sidebar"
+			},
+			"tags": [
+				"2-sidebar",
+				"1-flow",
+				"right",
+				"rail",
+				"max-width",
+				"news"
+			],
+			"shot": "site/verge-home/1280.jpg"
+		},
+		{
+			"name": "vuejs-guide-intro",
+			"title": "Introduction | Vue.js",
+			"url": "https://vuejs.org/guide/introduction.html",
+			"category": "documentation",
+			"layout": {
+				"400": "1-flow",
+				"1280": "3-holy-grail",
+				"1920": "3-holy-grail",
+				"3440": "3-holy-grail"
+			},
+			"tags": [
+				"3-holy-grail",
+				"1-flow",
+				"left",
+				"right",
+				"rail",
+				"toc",
+				"drawer",
+				"max-width",
+				"hamburger",
+				"documentation"
+			],
+			"shot": "site/vuejs-guide-intro/1280.jpg"
+		},
+		{
+			"name": "waabi-home",
+			"title": "Waabi Self Driving Trucks and Robotaxis",
+			"url": "https://waabi.ai/",
+			"category": "marketing",
+			"layout": {
+				"400": "1-bands",
+				"1280": "1-bands",
+				"1920": "1-bands",
+				"3440": "1-bands"
+			},
+			"tags": [
+				"1-bands",
+				"1-flow",
+				"3-equal",
+				"2-equal",
+				"full-bleed",
+				"carousel",
+				"dark",
+				"marketing"
+			],
+			"shot": "site/waabi-home/1280.jpg"
+		},
+		{
+			"name": "webflow-home",
+			"title": "Webflow: The agentic web platform for modern businesses",
+			"url": "https://webflow.com",
+			"category": "marketing",
+			"layout": {
+				"400": "1-flow",
+				"1280": "1-bands",
+				"1920": "1-bands",
+				"3440": "1-bands"
+			},
+			"tags": [
+				"1-flow",
+				"1-bands",
+				"n-wall",
+				"full-bleed",
+				"cards",
+				"hamburger",
+				"marketing"
+			],
+			"shot": "site/webflow-home/1280.jpg"
+		},
+		{
+			"name": "wikipedia-css",
+			"title": "CSS - Wikipedia",
+			"url": "https://en.wikipedia.org/wiki/CSS",
+			"category": "documentation",
+			"layout": {
+				"400": "1-flow",
+				"1280": "3-holy-grail",
+				"1920": "3-holy-grail",
+				"3440": "3-holy-grail"
+			},
+			"tags": [
+				"3-holy-grail",
+				"1-flow",
+				"3 column grid",
+				"2 column grid",
+				"float",
+				"toc",
+				"max-width",
+				"left",
+				"right",
+				"rail",
+				"documentation"
+			],
+			"shot": "site/wikipedia-css/1280.jpg"
+		}
+	],
+	"tags": {
+		"1-bands": [
+			"allbirds-home",
+			"apple-home",
+			"designmill-home",
+			"figma-home",
+			"mocean-home",
+			"notion-home",
+			"privy-home",
+			"susanne-kaufmann-home",
+			"uswds-home",
+			"waabi-home",
+			"webflow-home"
+		],
+		"1-centered": [
+			"alistapart-home",
+			"css-tricks-home",
+			"framer-home",
+			"gitlab-explore",
+			"gov-uk-home",
+			"guardian-international",
+			"linear-home",
+			"overreacted-blog",
+			"rust-book-intro",
+			"shopify-polaris-home",
+			"stripe"
+		],
+		"1-flow": [
+			"alistapart-home",
+			"allbirds-home",
+			"apple-home",
+			"arstechnica-home",
+			"astral-codex-ten-home",
+			"bbc-news-home",
+			"cctype-foundry",
+			"css-tricks-home",
+			"designmill-home",
+			"django-docs-index",
+			"figma-home",
+			"framer-home",
+			"github-vscode-repo",
+			"gitlab-explore",
+			"gov-uk-home",
+			"grafana-play-home",
+			"guardian-international",
+			"hacker-news-home",
+			"ikea-home",
+			"josh-comeau-blog",
+			"kent-c-dodds-blog",
+			"kubernetes-docs-home",
+			"linear-home",
+			"material3-home",
+			"mdn-css",
+			"mocean-home",
+			"notion-home",
+			"nytimes-home",
+			"overreacted-blog",
+			"privy-home",
+			"python-docs-index",
+			"rust-book-intro",
+			"shopify-polaris-home",
+			"simon-willison-blog",
+			"smashing-magazine-home",
+			"stripe",
+			"susanne-kaufmann-home",
+			"svelte-docs-overview",
+			"uswds-home",
+			"vercel-home",
+			"verge-home",
+			"vuejs-guide-intro",
+			"waabi-home",
+			"webflow-home",
+			"wikipedia-css"
+		],
+		"2 column flex": [
+			"astral-codex-ten-home",
+			"gitlab-explore",
+			"grafana-play-home",
+			"kent-c-dodds-blog",
+			"smashing-magazine-home"
+		],
+		"2 column grid": [
+			"css-tricks-home",
+			"designmill-home",
+			"figma-home",
+			"github-vscode-repo",
+			"guardian-international",
+			"josh-comeau-blog",
+			"python-docs-index",
+			"smashing-magazine-home",
+			"stripe",
+			"wikipedia-css"
+		],
+		"2-equal": [
+			"apple-home",
+			"arstechnica-home",
+			"css-tricks-home",
+			"designmill-home",
+			"figma-home",
+			"framer-home",
+			"kent-c-dodds-blog",
+			"nike-home",
+			"notion-home",
+			"nytimes-home",
+			"privy-home",
+			"shopify-polaris-home",
+			"smashing-magazine-home",
+			"vercel-home",
+			"waabi-home"
+		],
+		"2-sidebar": [
+			"amazon-kindle-product",
+			"astral-codex-ten-home",
+			"django-docs-index",
+			"github-vscode-repo",
+			"gitlab-explore",
+			"gov-uk-home",
+			"grafana-play-home",
+			"josh-comeau-blog",
+			"material3-home",
+			"nytimes-home",
+			"python-docs-index",
+			"rust-book-intro",
+			"shopify-polaris-home",
+			"simon-willison-blog",
+			"verge-home"
+		],
+		"3 column flex": [
+			"alistapart-home",
+			"kubernetes-docs-home",
+			"svelte-docs-overview",
+			"uswds-home"
+		],
+		"3 column grid": [
+			"arstechnica-home",
+			"guardian-international",
+			"kent-c-dodds-blog",
+			"mdn-css",
+			"wikipedia-css"
+		],
+		"3-equal": [
+			"alistapart-home",
+			"allbirds-home",
+			"arstechnica-home",
+			"gov-uk-home",
+			"kent-c-dodds-blog",
+			"kubernetes-docs-home",
+			"stripe",
+			"uswds-home",
+			"waabi-home"
+		],
+		"3-holy-grail": [
+			"amazon-kindle-product",
+			"bbc-news-home",
+			"kubernetes-docs-home",
+			"mdn-css",
+			"svelte-docs-overview",
+			"vuejs-guide-intro",
+			"wikipedia-css"
+		],
+		"4 column flex": [
+			"uswds-home"
+		],
+		"4 column grid": [
+			"figma-home",
+			"mocean-home",
+			"susanne-kaufmann-home"
+		],
+		"4-1": [
+			"ikea-home",
+			"nike-home",
+			"notion-home",
+			"stripe"
+		],
+		"6 column grid": [
+			"vercel-home"
+		],
+		"app": [
+			"github-vscode-repo",
+			"gitlab-explore",
+			"grafana-play-home",
+			"hacker-news-home"
+		],
+		"blog": [
+			"alistapart-home",
+			"astral-codex-ten-home",
+			"css-tricks-home",
+			"josh-comeau-blog",
+			"kent-c-dodds-blog",
+			"overreacted-blog",
+			"simon-willison-blog",
+			"smashing-magazine-home"
+		],
+		"bottom toolbar": [
+			"svelte-docs-overview"
+		],
+		"cards": [
+			"arstechnica-home",
+			"framer-home",
+			"ikea-home",
+			"kent-c-dodds-blog",
+			"kubernetes-docs-home",
+			"material3-home",
+			"privy-home",
+			"smashing-magazine-home",
+			"stripe",
+			"uswds-home",
+			"webflow-home"
+		],
+		"carousel": [
+			"allbirds-home",
+			"designmill-home",
+			"figma-home",
+			"guardian-international",
+			"nike-home",
+			"susanne-kaufmann-home",
+			"waabi-home"
+		],
+		"dark": [
+			"arstechnica-home",
+			"cctype-foundry",
+			"css-tricks-home",
+			"framer-home",
+			"grafana-play-home",
+			"josh-comeau-blog",
+			"kubernetes-docs-home",
+			"linear-home",
+			"mocean-home",
+			"svelte-docs-overview",
+			"waabi-home"
+		],
+		"documentation": [
+			"django-docs-index",
+			"kubernetes-docs-home",
+			"mdn-css",
+			"python-docs-index",
+			"rust-book-intro",
+			"svelte-docs-overview",
+			"vuejs-guide-intro",
+			"wikipedia-css"
+		],
+		"drawer": [
+			"gitlab-explore",
+			"python-docs-index",
+			"rust-book-intro",
+			"vuejs-guide-intro"
+		],
+		"fixed content width": [
+			"github-vscode-repo",
+			"python-docs-index"
+		],
+		"fixed sidebar": [
+			"rust-book-intro"
+		],
+		"float": [
+			"django-docs-index",
+			"simon-willison-blog",
+			"wikipedia-css"
+		],
+		"fluid": [
+			"django-docs-index",
+			"hacker-news-home"
+		],
+		"fluid type": [
+			"cctype-foundry"
+		],
+		"full-bleed": [
+			"allbirds-home",
+			"apple-home",
+			"arstechnica-home",
+			"bbc-news-home",
+			"cctype-foundry",
+			"designmill-home",
+			"figma-home",
+			"kubernetes-docs-home",
+			"mocean-home",
+			"notion-home",
+			"nytimes-home",
+			"privy-home",
+			"stripe",
+			"susanne-kaufmann-home",
+			"uswds-home",
+			"waabi-home",
+			"webflow-home"
+		],
+		"gradient": [
+			"mocean-home"
+		],
+		"hamburger": [
+			"alistapart-home",
+			"allbirds-home",
+			"apple-home",
+			"bbc-news-home",
+			"cctype-foundry",
+			"designmill-home",
+			"django-docs-index",
+			"framer-home",
+			"github-vscode-repo",
+			"gitlab-explore",
+			"grafana-play-home",
+			"ikea-home",
+			"kent-c-dodds-blog",
+			"kubernetes-docs-home",
+			"linear-home",
+			"material3-home",
+			"mdn-css",
+			"nike-home",
+			"privy-home",
+			"python-docs-index",
+			"rust-book-intro",
+			"smashing-magazine-home",
+			"stripe",
+			"vuejs-guide-intro",
+			"webflow-home"
+		],
+		"layout switcher": [
+			"arstechnica-home"
+		],
+		"left": [
+			"amazon-kindle-product",
+			"gitlab-explore",
+			"grafana-play-home",
+			"material3-home",
+			"mdn-css",
+			"python-docs-index",
+			"rust-book-intro",
+			"shopify-polaris-home",
+			"vuejs-guide-intro",
+			"wikipedia-css"
+		],
+		"logo marquee": [
+			"privy-home"
+		],
+		"marketing": [
+			"apple-home",
+			"cctype-foundry",
+			"designmill-home",
+			"figma-home",
+			"framer-home",
+			"linear-home",
+			"mocean-home",
+			"notion-home",
+			"privy-home",
+			"stripe",
+			"vercel-home",
+			"waabi-home",
+			"webflow-home"
+		],
+		"max-width": [
+			"alistapart-home",
+			"apple-home",
+			"arstechnica-home",
+			"astral-codex-ten-home",
+			"bbc-news-home",
+			"css-tricks-home",
+			"figma-home",
+			"framer-home",
+			"gitlab-explore",
+			"gov-uk-home",
+			"guardian-international",
+			"josh-comeau-blog",
+			"kent-c-dodds-blog",
+			"linear-home",
+			"material3-home",
+			"mdn-css",
+			"nike-home",
+			"notion-home",
+			"nytimes-home",
+			"overreacted-blog",
+			"rust-book-intro",
+			"shopify-polaris-home",
+			"simon-willison-blog",
+			"smashing-magazine-home",
+			"stripe",
+			"svelte-docs-overview",
+			"uswds-home",
+			"vercel-home",
+			"verge-home",
+			"vuejs-guide-intro",
+			"wikipedia-css"
+		],
+		"measure": [
+			"alistapart-home",
+			"arstechnica-home",
+			"figma-home",
+			"material3-home",
+			"notion-home",
+			"nytimes-home",
+			"overreacted-blog",
+			"rust-book-intro",
+			"shopify-polaris-home",
+			"smashing-magazine-home",
+			"svelte-docs-overview",
+			"uswds-home"
+		],
+		"mega footer": [
+			"apple-home",
+			"django-docs-index",
+			"figma-home",
+			"notion-home",
+			"susanne-kaufmann-home"
+		],
+		"minimal": [
+			"overreacted-blog"
+		],
+		"n-wall": [
+			"bbc-news-home",
+			"cctype-foundry",
+			"css-tricks-home",
+			"figma-home",
+			"framer-home",
+			"ikea-home",
+			"nike-home",
+			"notion-home",
+			"stripe",
+			"susanne-kaufmann-home",
+			"uswds-home",
+			"webflow-home"
+		],
+		"news": [
+			"arstechnica-home",
+			"bbc-news-home",
+			"guardian-international",
+			"nytimes-home",
+			"verge-home"
+		],
+		"no gap": [
+			"hacker-news-home"
+		],
+		"overlapping cards": [
+			"css-tricks-home"
+		],
+		"rail": [
+			"django-docs-index",
+			"gitlab-explore",
+			"material3-home",
+			"python-docs-index",
+			"rust-book-intro",
+			"shopify-polaris-home",
+			"verge-home",
+			"vuejs-guide-intro",
+			"wikipedia-css"
+		],
+		"right": [
+			"astral-codex-ten-home",
+			"django-docs-index",
+			"github-vscode-repo",
+			"josh-comeau-blog",
+			"mdn-css",
+			"nytimes-home",
+			"simon-willison-blog",
+			"verge-home",
+			"vuejs-guide-intro",
+			"wikipedia-css"
+		],
+		"scroll-pinned hero": [
+			"mocean-home"
+		],
+		"shop": [
+			"allbirds-home",
+			"amazon-kindle-product",
+			"ikea-home",
+			"nike-home",
+			"susanne-kaufmann-home"
+		],
+		"sticky header": [
+			"allbirds-home",
+			"cctype-foundry",
+			"grafana-play-home",
+			"linear-home",
+			"mdn-css",
+			"shopify-polaris-home",
+			"vercel-home"
+		],
+		"sticky sidebar": [
+			"josh-comeau-blog",
+			"kubernetes-docs-home",
+			"mdn-css"
+		],
+		"system": [
+			"gov-uk-home",
+			"material3-home",
+			"shopify-polaris-home",
+			"uswds-home"
+		],
+		"table": [
+			"hacker-news-home"
+		],
+		"toc": [
+			"kubernetes-docs-home",
+			"mdn-css",
+			"vuejs-guide-intro",
+			"wikipedia-css"
+		]
+	},
+	"sections": {
+		"1-centered": [
+			"alistapart-home",
+			"css-tricks-home",
+			"framer-home",
+			"gitlab-explore",
+			"gov-uk-home",
+			"guardian-international",
+			"linear-home",
+			"overreacted-blog",
+			"rust-book-intro",
+			"shopify-polaris-home",
+			"smashing-magazine-home"
+		],
+		"1-flow": [
+			"alistapart-home",
+			"allbirds-home",
+			"amazon-kindle-product",
+			"apple-home",
+			"arstechnica-home",
+			"astral-codex-ten-home",
+			"bbc-news-home",
+			"cctype-foundry",
+			"css-tricks-home",
+			"designmill-home",
+			"django-docs-index",
+			"figma-home",
+			"framer-home",
+			"github-vscode-repo",
+			"gitlab-explore",
+			"gov-uk-home",
+			"grafana-play-home",
+			"guardian-international",
+			"hacker-news-home",
+			"ikea-home",
+			"josh-comeau-blog",
+			"kent-c-dodds-blog",
+			"kubernetes-docs-home",
+			"linear-home",
+			"material3-home",
+			"mdn-css",
+			"mocean-home",
+			"nike-home",
+			"notion-home",
+			"nytimes-home",
+			"overreacted-blog",
+			"privy-home",
+			"python-docs-index",
+			"rust-book-intro",
+			"shopify-polaris-home",
+			"simon-willison-blog",
+			"smashing-magazine-home",
+			"stripe",
+			"susanne-kaufmann-home",
+			"svelte-docs-overview",
+			"uswds-home",
+			"vercel-home",
+			"verge-home",
+			"vuejs-guide-intro",
+			"waabi-home",
+			"webflow-home",
+			"wikipedia-css"
+		],
+		"2-equal": [
+			"apple-home",
+			"arstechnica-home",
+			"astral-codex-ten-home",
+			"css-tricks-home",
+			"designmill-home",
+			"figma-home",
+			"framer-home",
+			"guardian-international",
+			"kent-c-dodds-blog",
+			"notion-home",
+			"nytimes-home",
+			"privy-home",
+			"python-docs-index",
+			"rust-book-intro",
+			"smashing-magazine-home",
+			"vercel-home",
+			"waabi-home"
+		],
+		"2-sidebar": [
+			"amazon-kindle-product",
+			"astral-codex-ten-home",
+			"css-tricks-home",
+			"django-docs-index",
+			"figma-home",
+			"github-vscode-repo",
+			"gitlab-explore",
+			"gov-uk-home",
+			"grafana-play-home",
+			"josh-comeau-blog",
+			"material3-home",
+			"nytimes-home",
+			"python-docs-index",
+			"rust-book-intro",
+			"shopify-polaris-home",
+			"simon-willison-blog",
+			"verge-home",
+			"wikipedia-css"
+		],
+		"3-equal": [
+			"alistapart-home",
+			"allbirds-home",
+			"arstechnica-home",
+			"gov-uk-home",
+			"kent-c-dodds-blog",
+			"kubernetes-docs-home",
+			"stripe",
+			"uswds-home",
+			"waabi-home"
+		],
+		"3-holy-grail": [
+			"amazon-kindle-product",
+			"bbc-news-home",
+			"kubernetes-docs-home",
+			"mdn-css",
+			"svelte-docs-overview",
+			"vuejs-guide-intro",
+			"wikipedia-css"
+		],
+		"4-1": [
+			"ikea-home",
+			"nike-home"
+		],
+		"n-wall": [
+			"apple-home",
+			"bbc-news-home",
+			"cctype-foundry",
+			"css-tricks-home",
+			"django-docs-index",
+			"figma-home",
+			"framer-home",
+			"ikea-home",
+			"material3-home",
+			"mocean-home",
+			"nike-home",
+			"notion-home",
+			"susanne-kaufmann-home",
+			"uswds-home",
+			"vercel-home",
+			"waabi-home",
+			"webflow-home"
+		]
+	}
+}

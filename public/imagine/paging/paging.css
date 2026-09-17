@@ -332,83 +332,6 @@
 	.paging-swapper-what { display: flex; align-items: flex-start; gap: 0.4em; }
 	.paging-swapper-what .icon { color: var(--prim-ink); line-height: inherit; }
 
-	/* ── MAKE — the CRUD list, the form, and the text box ─────────────────────
-	   ⚠ `flex: none` on the word chips and the acts: a flex row under its content
-	     width shrinks each item to min-content FIRST, so a two-word title would go
-	     three lines tall before the row ever wrapped. */
-	/* ⚠ THE LIST IS CAPPED, AND THE TITLE DOES NOT GROW. At 3440 the row was 2847px
-	     wide with the title box taking 2299px of it, so a page's name sat 2,300px from
-	     the four words describing it — one row nobody can read in one look
-	     (paging-audit-4). The cap is Make's own declared size (`large`, 28–64em), and
-	     `flex: 0 1 auto` puts the words right beside the name they belong to; the acts
-	     keep their `margin-inline-start: auto` and stay against the far edge. */
-	.paging-make-list { display: flex; flex-direction: column; gap: 0.35em; max-inline-size: 64rem; }
-
-	.paging-make-row {
-		display: flex; flex-wrap: wrap; align-items: center; gap: 0.4em;
-		padding: 0.4em 0.6em;
-		background: var(--fill-a04);
-		border: 1px solid var(--line);
-		border-radius: var(--radius);
-	}
-	.paging-make-title { flex: 0 1 auto; min-width: 0; font-weight: 600; text-decoration: none; color: var(--ink); }
-	.paging-make-title:is(:hover, :focus-visible) { color: var(--prim-ink); }
-
-	.paging-make-word { flex: none; white-space: nowrap; font-size: 0.8em; cursor: pointer; }
-
-	/* THE ACTS — rename · up · down · add · delete, in one group at the end of the
-	   row. `margin-inline-start: auto` puts them all against the far edge, so the
-	   same five buttons are in the same place on every row however long the title;
-	   `flex: none` keeps the group whole when the row wraps under a long title. */
-	.paging-make-acts { display: flex; align-items: center; gap: 0.15em; flex: none; margin-inline-start: auto; }
-	.paging-make-add { font-size: 0.8em; }
-
-	.paging-make-act {
-		display: inline-flex; align-items: center; flex: none;
-		padding: 0.15em;
-		color: var(--subtle);
-		border-radius: var(--radius);
-		cursor: pointer;
-	}
-	.paging-make-act:is(:hover, :focus-visible) { color: var(--ink); background: var(--fill-a08); }
-	.paging-make-act.on { color: var(--prim); }
-	.paging-make-del:is(:hover, :focus-visible) { color: var(--prim); }
-
-	/* A child page, indented under its parent — the same two spaces the spec text
-	   uses, said in pixels. */
-	.paging-make-kids {
-		display: flex; flex-direction: column; gap: 0.35em;
-		margin-inline-start: 1.4em;
-		border-inline-start: 2px solid var(--line);
-		padding-inline-start: 0.6em;
-	}
-
-	.paging-make-form { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5em; }
-	.paging-make-form p { margin: 0; font-size: 0.85em; }
-
-	.paging-make-name {
-		flex: 1 1 12em; min-width: 0;
-		padding: 0.35em 0.6em;
-		font: inherit;
-		color: var(--ink);
-		background: var(--surface);
-		border: 1px solid var(--line);
-		border-radius: var(--radius);
-	}
-
-	.paging-make-editor { display: flex; flex-direction: column; gap: 0.5em; }
-	.paging-make-text {
-		width: 100%;
-		padding: 0.6em 0.7em;
-		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-		font-size: 0.85em;
-		line-height: 1.5;
-		color: var(--ink);
-		background: var(--surface);
-		border: 1px solid var(--line);
-		border-radius: var(--radius);
-		resize: vertical;
-	}
 }
 
 /* ══════════════════════════════════════════════════════════════════════════════
@@ -417,7 +340,8 @@
    Everything above this line is the older machinery the realm still uses in four
    places: the two editors' chips (.paging-chip), the hub's four miniatures
    (.paging-mini-*, .paging-tab*), the swap page's four visuals (.paging-swapper-*,
-   .paging-face-*) and Make's rows (.paging-make-*). Everything below is the app: a
+   .paging-face-*). Make's own rows moved to `make/make.css` on 2026-09-13, with the
+   screen they belong to. Everything below is the app: a
    rail that never moves, a middle that swaps, one configurable stage, and the bar
    of labelled chip groups above it.
    ═══════════════════════════════════════════════════════════════════════════════ */
@@ -505,6 +429,20 @@
 	     arrangement contract asks of a .default page, asked here of a sibling that is
 	     not a .page at all. */
 	.paging-app-centre:has(> .page:is(.active-page, .active-ancestor)) > .paging-home { display: none; }
+
+	/* ⚠ THE SITE RULE ASKS "does this region show a `.page.active-page` or a `.default`?"
+	     and hides overflow when the answer is no — right for every other `.pages`, wrong
+	     here: this region's own default is `.paging-home`, which is neither, so the site
+	     rule hides scrolling on the ONE moment this region is the leaf (the hub at home).
+	     Answer the site rule's own question for this region — no child `.page.active-page`
+	     or `.page.active-ancestor` on screen means `.paging-home` is showing and this is
+	     the leaf — and hand back core's own `.pages` value (`overflow-y: scroll`,
+	     `core/Page/Page.css:61`). The selector's specificity (0,6,0) beats the site rule's
+	     (0,4,0) outright, so it wins whichever of the two files loads second — a child page
+	     still matches neither `:not()` and this rule stands down, unchanged from today. */
+	.pages.paging-app-centre:not(:has(> .page.active-page)):not(:has(> .page.active-ancestor)) {
+		overflow-y: scroll;
+	}
 
 	.paging-home {
 		flex: 1 1 auto; min-width: 0;
@@ -625,16 +563,35 @@
 	.paging-pick select { flex: none; width: auto; max-width: none; }
 
 	/* THE COLOUR YOU ARE ON, beside its dropdown — the one control whose value is a
-	   thing rather than a word. */
+	   thing rather than a word.
+
+	   ⚠ A WIDE SWATCH, NOT A CIRCLE. A 19px circle beside a label sits exactly where a
+	     radio button sits, and the two of them before CONTENT COLOUR and PAGE COLOUR
+	     read as an unchecked pair — they carry no state and clicking one does nothing
+	     (self-evident-critique-2, finding 8). A square is no better: at that size it
+	     reads as a checkbox. A RECTANGLE wider than it is tall is a colour swatch and
+	     nothing else, and `--fill-a32` is the control hairline (framework.css:
+	     `--line` is a floor's rule at 1.15:1 against a card, so a WHITE swatch on a
+	     white card had nothing at all to show). Five surfaces can land here — plain,
+	     tint, prim, card, dark — so it is showing something real. */
 	.paging-dot {
-		width: 1.25em; height: 1.25em; flex: none;
-		border: 1px solid var(--line); border-radius: 50%;
+		width: 2em; height: 1.2em; flex: none;
+		border: 1px solid var(--fill-a32); border-radius: var(--radius);
 		box-shadow: inset 0 1px 2px var(--shade-a08, rgba(0,0,0,0.08));
 	}
 
 	/* `plain` is "no fill of its own", and a transparent dot reads as an empty
 	   checkbox — so the dot shows the floor that would show through. */
 	.paging-dot.page-surface-plain { background: var(--wash); }
+
+	/* CARD AND TINT ARE BOTH NEAR-WHITE — 255 and 248, a difference too small to see
+	   at 2em (self-evident-critique-3, finding 2). Card keeps the outer shadow the
+	   real surface has (SURFACES' own "means" text: "white, with a hairline and a
+	   soft shadow"); tint's hairline goes dashed instead of solid. Three surfaces,
+	   three different edges — nothing relies on the reader spotting a 7-value
+	   luminance step. */
+	.paging-dot.page-surface-card { box-shadow: inset 0 1px 2px var(--shade-a08, rgba(0,0,0,0.08)), 0 1px 3px var(--shade-a08, rgba(0,0,0,0.08)); }
+	.paging-dot.page-surface-tint { border-style: dashed; }
 
 	.paging-pick-label {
 		font-size: 0.68em; font-weight: 700; letter-spacing: 0.06em;
@@ -943,8 +900,16 @@
 
 	/* columns — the pane a click opens to the RIGHT, inside the stage. The box beside
 	   it shrinks, and the caption says by how many pixels. */
+	/* ⚠ IT SHARES THE ROOM, IT DOES NOT TAKE A FIXED SLICE. This was
+	     `flex: 0 0 clamp(10em, 38%, 22em)` — a hard 352px at anything above ~930px of
+	     stage, which is what the owner saw on a page you made: *"the Today and Later
+	     pages have like... 300px columns? shouldn't this split the remaining space
+	     with the parent column?"*. `1 1 0` with a floor splits the leftover evenly
+	     between the box and the column opened beside it, at every width, and the
+	     `min-width` is what stops either of them collapsing to min-content.
+	     (2026-09-13, page-cms.) */
 	.paging-pane {
-		flex: 0 0 clamp(10em, 38%, 22em);
+		flex: 1 1 0; min-width: min(10em, 100%);
 		display: flex; flex-direction: column; gap: 0.5em; align-items: start;
 		padding: var(--pad);
 		background: var(--surface);
@@ -954,6 +919,13 @@
 	     core's box. `.paging-pane` is the lab's own and exists nowhere else, so this
 	     cannot reach a page outside the realm. */
 	.page-frame-mid:has(> .paging-pane) { flex-direction: row; align-items: stretch; }
+
+	/* AND THE BOX SPLITS WITH IT. `.paging-canvas` is `flex: 1 1 auto`, so its basis
+	   is its own content and it would keep all of that plus half the leftover — the
+	   column beside it getting whatever was left rather than half the room. Both on a
+	   zero basis is what "split the remaining space" actually means, and it is scoped
+	   to the one arrangement where the box has a sibling at all. (2026-09-13.) */
+	.page-frame-mid:has(> .paging-pane) > .paging-canvas { flex: 1 1 0; }
 
 	/* takeover — the trail is what everything behind it collapsed into. */
 	.paging-trail { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3em; font-size: 0.85em; }
@@ -1015,6 +987,19 @@
 
 	.paging-nest-fetch { display: flex; flex-direction: column; gap: 0.3em; }
 	.paging-nest-fetch p { margin: 0; font-size: 0.85em; }
+
+	/* THE PICKED NEST CHIP IS A VALUE, NOT AN ACT (self-evident-critique-3, finding 1).
+	   `.paging-chip.on`'s solid orange fill is pixel-identical to `.paging-act` —
+	   "Put it inside" sits 280px under this row wearing the exact same fill — so the
+	   picked chip read as a button still waiting to be pressed. Scoped to this row
+	   only: an outline and a tick, never the solid fill. */
+	.paging-nest-chips .paging-chip.picked {
+		background: var(--fill-a16);
+		border-color: var(--prim);
+		color: var(--prim-ink);
+		font-weight: 600;
+	}
+	.paging-nest-chips .paging-chip.picked::after { content: "\2713"; margin-inline-start: 0.15em; }
 
 	/* ── `content` HOLDING A URL ──────────────────────────────────────────────
 	   A `.md` file, fetched and rendered where the eight canned samples go. It gets

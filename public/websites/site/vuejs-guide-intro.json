@@ -1,0 +1,1256 @@
+{
+	"name": "vuejs-guide-intro",
+	"url": "https://vuejs.org/guide/introduction.html",
+	"title": "Introduction | Vue.js",
+	"category": "documentation",
+	"captured_at": "2026-09-08T05:56:49.899Z",
+	"embed": "blocked",
+	"embed_note": "x-frame-options: ALLOW-FROM https://staging.certification.vuejs.org https://certification.vuejs.org https://certificates.dev https://staging.certificates.dev https://alemira.com https://*.alemira.com",
+	"shots": {
+		"400": "site/vuejs-guide-intro/400.jpg",
+		"1280": "site/vuejs-guide-intro/1280.jpg",
+		"1920": "site/vuejs-guide-intro/1920.jpg",
+		"3440": "site/vuejs-guide-intro/3440.jpg",
+		"long": "site/vuejs-guide-intro/long.jpg"
+	},
+	"layout": {
+		"400": "1-flow",
+		"1280": "3-holy-grail",
+		"1920": "3-holy-grail",
+		"3440": "3-holy-grail"
+	},
+	"sections": [
+		{
+			"name": "top nav",
+			"layout": "1-flow",
+			"css": "flex",
+			"note": "logo, Docs/Playground/Ecosystem/About/Support menu, search box, theme toggle and social icons; below 768px the menu and search collapse and a hamburger-style \"Menu\" button plus an \"On this page\" button take their place."
+		},
+		{
+			"name": "left nav",
+			"layout": "3-holy-grail left",
+			"css": "block, off-canvas drawer below 768px",
+			"note": "the grouped list of every guide page (Essentials, Components In-Depth, Reusability, Scaling Up…); the scan shows its box moved to x=-320 below 768px — off the left edge, ready to slide in — rather than restacking above the article."
+		},
+		{
+			"name": "article",
+			"layout": "3-holy-grail",
+			"css": "flex",
+			"note": "the Introduction text and code samples. The column itself is capped (about 688px, unmoving between 1920 and 3440) — it is the space AROUND the three columns that grows on a big screen, not the columns themselves."
+		},
+		{
+			"name": "right rail",
+			"layout": "3-holy-grail right",
+			"css": "block",
+			"note": "an \"On this page\" table of contents above a stack of sponsor logos, both a fixed ~224px wide; hidden below 768px behind the top bar's \"On this page\" button instead of moving underneath the article."
+		}
+	],
+	"tags": [
+		"3-holy-grail",
+		"1-flow",
+		"left",
+		"right",
+		"rail",
+		"toc",
+		"drawer",
+		"max-width",
+		"hamburger",
+		"documentation"
+	],
+	"responsive": {
+		"strategy": "Below 768px this is one column: both side columns go off-canvas behind buttons in the top bar instead of stacking, so a phone shows only the article. From 768px up to about 1920px the three columns (nav, article, table of contents) sit edge to edge and use the full window. Past that, our measurements show the whole three-column group stops growing at roughly 1400px total width and centres itself — the same trick Wikipedia's CSS grid page uses — so a 3440 monitor gets a wide empty margin on both sides instead of a wider nav or a wider article.",
+		"breakpoints": [
+			768,
+			960
+		]
+	},
+	"scan": {
+		"scanned_at": "2026-09-08T05:57:01.081Z",
+		"css": {
+			"sheets": 3,
+			"bytes": 191074,
+			"inline_bytes": 0
+		},
+		"media": [
+			"(width<=1439px){",
+			"(width<=370px){",
+			"(width<=463px){",
+			"(width<=480px){",
+			"(width<=576px){",
+			"(width<=639px){",
+			"(width<=720px){",
+			"(width<=768px){",
+			"(width<=794px){",
+			"(width<=959px){",
+			"(width<=960px){",
+			"(width>=1024px){",
+			"(width>=1280px){",
+			"(width>=1377px){",
+			"(width>=1440px){",
+			"(width>=1441px){",
+			"(width>=512px){",
+			"(width>=640px){",
+			"(width>=721px){",
+			"(width>=768px){",
+			"(width>=960px){",
+			"print{",
+			"screen and (prefers-reduced-motion:reduce){"
+		],
+		"container": [],
+		"breakpoints_seen": [
+			{
+				"px": 768,
+				"count": 2
+			},
+			{
+				"px": 960,
+				"count": 2
+			},
+			{
+				"px": 370,
+				"count": 1
+			},
+			{
+				"px": 463,
+				"count": 1
+			},
+			{
+				"px": 480,
+				"count": 1
+			},
+			{
+				"px": 512,
+				"count": 1
+			},
+			{
+				"px": 576,
+				"count": 1
+			},
+			{
+				"px": 639,
+				"count": 1
+			},
+			{
+				"px": 640,
+				"count": 1
+			},
+			{
+				"px": 720,
+				"count": 1
+			},
+			{
+				"px": 721,
+				"count": 1
+			},
+			{
+				"px": 794,
+				"count": 1
+			}
+		],
+		"widths": {
+			"400": {
+				"doc": [
+					400,
+					9745
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "VPNav nav-bar",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							400,
+							55
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "aside",
+						"class": "VPSidebar",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							-320,
+							0,
+							320,
+							844
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"id": "VPSidebarNav",
+						"display": "block",
+						"rect": [
+							-288,
+							0,
+							256,
+							2307
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "VPSidebarGroup",
+						"display": "block",
+						"rect": [
+							-288,
+							139,
+							256,
+							96
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "VPSidebarGroup",
+						"display": "block",
+						"rect": [
+							-288,
+							259,
+							256,
+							448
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "VPSidebarGroup",
+						"display": "block",
+						"rect": [
+							-288,
+							731,
+							256,
+							288
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "VPSidebarGroup",
+						"display": "block",
+						"rect": [
+							-288,
+							1043,
+							256,
+							128
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "VPSidebarGroup",
+						"display": "block",
+						"rect": [
+							-288,
+							1195,
+							256,
+							192
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "VPSidebarGroup",
+						"display": "block",
+						"rect": [
+							-288,
+							1411,
+							256,
+							224
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "VPSidebarGroup",
+						"display": "block",
+						"rect": [
+							-288,
+							1659,
+							256,
+							160
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "VPSidebarGroup",
+						"display": "block",
+						"rect": [
+							-288,
+							1843,
+							256,
+							128
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "VPSidebarGroup",
+						"display": "block",
+						"rect": [
+							-288,
+							1995,
+							256,
+							256
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"display": "block",
+						"rect": [
+							24,
+							135,
+							352,
+							9482
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "app",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							400,
+							9745
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "VPApp",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							400,
+							9745
+						],
+						"side_by_side": 4
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "VPContent",
+						"class": "VPContent has-sidebar",
+						"display": "block",
+						"rect": [
+							0,
+							103,
+							400,
+							9642
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "VPContentDoc has-aside",
+						"display": "block",
+						"rect": [
+							0,
+							103,
+							400,
+							9642
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "container",
+						"display": "block",
+						"rect": [
+							24,
+							135,
+							352,
+							9482
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1280": {
+				"doc": [
+					1280,
+					7513
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "VPNav nav-bar",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							1280,
+							55
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "VPNavBarMenu menu",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							573,
+							0,
+							517,
+							55
+						],
+						"side_by_side": 7
+					},
+					{
+						"why": "landmark",
+						"tag": "aside",
+						"class": "VPSidebar",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							55,
+							272,
+							745
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"id": "VPSidebarNav",
+						"display": "block",
+						"rect": [
+							32,
+							55,
+							207,
+							2027
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "VPSidebarGroup",
+						"display": "block",
+						"rect": [
+							32,
+							194,
+							207,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "VPSidebarGroup",
+						"display": "block",
+						"rect": [
+							32,
+							294,
+							207,
+							392
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "VPSidebarGroup",
+						"display": "block",
+						"rect": [
+							32,
+							702,
+							207,
+							252
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "VPSidebarGroup",
+						"display": "block",
+						"rect": [
+							32,
+							970,
+							207,
+							112
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "VPSidebarGroup",
+						"display": "block",
+						"rect": [
+							32,
+							1098,
+							207,
+							168
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "VPSidebarGroup",
+						"display": "block",
+						"rect": [
+							32,
+							1282,
+							207,
+							196
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "VPSidebarGroup",
+						"display": "block",
+						"rect": [
+							32,
+							1494,
+							207,
+							140
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "VPSidebarGroup",
+						"display": "block",
+						"rect": [
+							32,
+							1650,
+							207,
+							112
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "VPSidebarGroup",
+						"display": "block",
+						"rect": [
+							32,
+							1778,
+							207,
+							224
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"display": "block",
+						"rect": [
+							1024,
+							147,
+							224,
+							168
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"display": "block",
+						"rect": [
+							336,
+							119,
+							624,
+							7266
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "app",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1280,
+							7513
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "VPApp",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							1280,
+							7513
+						],
+						"side_by_side": 4
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "VPContent",
+						"class": "VPContent has-sidebar",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1280,
+							7513
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "VPContentDoc has-aside",
+						"display": "block",
+						"rect": [
+							272,
+							55,
+							1008,
+							7458
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "container",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							336,
+							119,
+							944,
+							7298
+						],
+						"side_by_side": 2
+					}
+				]
+			},
+			"1920": {
+				"doc": [
+					1920,
+					7381
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "VPNav nav-bar",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							1920,
+							55
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "VPNavBarMenu menu",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							973,
+							0,
+							517,
+							55
+						],
+						"side_by_side": 7
+					},
+					{
+						"why": "landmark",
+						"tag": "aside",
+						"class": "VPSidebar",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							55,
+							544,
+							1025
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"id": "VPSidebarNav",
+						"display": "block",
+						"rect": [
+							272,
+							55,
+							239,
+							2011
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "VPSidebarGroup",
+						"display": "block",
+						"rect": [
+							272,
+							202,
+							239,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "VPSidebarGroup",
+						"display": "block",
+						"rect": [
+							272,
+							302,
+							239,
+							392
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "VPSidebarGroup",
+						"display": "block",
+						"rect": [
+							272,
+							710,
+							239,
+							252
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "VPSidebarGroup",
+						"display": "block",
+						"rect": [
+							272,
+							978,
+							239,
+							112
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "VPSidebarGroup",
+						"display": "block",
+						"rect": [
+							272,
+							1106,
+							239,
+							168
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "VPSidebarGroup",
+						"display": "block",
+						"rect": [
+							272,
+							1290,
+							239,
+							196
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "VPSidebarGroup",
+						"display": "block",
+						"rect": [
+							272,
+							1502,
+							239,
+							140
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "VPSidebarGroup",
+						"display": "block",
+						"rect": [
+							272,
+							1658,
+							239,
+							112
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "VPSidebarGroup",
+						"display": "block",
+						"rect": [
+							272,
+							1786,
+							239,
+							224
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"display": "block",
+						"rect": [
+							1424,
+							147,
+							224,
+							168
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"display": "block",
+						"rect": [
+							640,
+							119,
+							688,
+							7134
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "app",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1920,
+							7381
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "VPApp",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							1920,
+							7381
+						],
+						"side_by_side": 4
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "VPContent",
+						"class": "VPContent has-sidebar",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1920,
+							7381
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "VPContentDoc has-aside",
+						"display": "block",
+						"rect": [
+							544,
+							55,
+							1376,
+							7326
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "container",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							640,
+							119,
+							1280,
+							7166
+						],
+						"side_by_side": 2
+					}
+				]
+			},
+			"3440": {
+				"doc": [
+					3440,
+					7381
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "VPNav nav-bar",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							3440,
+							55
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "VPNavBarMenu menu",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							1733,
+							0,
+							517,
+							55
+						],
+						"side_by_side": 7
+					},
+					{
+						"why": "landmark",
+						"tag": "aside",
+						"class": "VPSidebar",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							55,
+							1304,
+							1385
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"id": "VPSidebarNav",
+						"display": "block",
+						"rect": [
+							1032,
+							55,
+							239,
+							2011
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "VPSidebarGroup",
+						"display": "block",
+						"rect": [
+							1032,
+							202,
+							239,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "VPSidebarGroup",
+						"display": "block",
+						"rect": [
+							1032,
+							302,
+							239,
+							392
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "VPSidebarGroup",
+						"display": "block",
+						"rect": [
+							1032,
+							710,
+							239,
+							252
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "VPSidebarGroup",
+						"display": "block",
+						"rect": [
+							1032,
+							978,
+							239,
+							112
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "VPSidebarGroup",
+						"display": "block",
+						"rect": [
+							1032,
+							1106,
+							239,
+							168
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "VPSidebarGroup",
+						"display": "block",
+						"rect": [
+							1032,
+							1290,
+							239,
+							196
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "VPSidebarGroup",
+						"display": "block",
+						"rect": [
+							1032,
+							1502,
+							239,
+							140
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "VPSidebarGroup",
+						"display": "block",
+						"rect": [
+							1032,
+							1658,
+							239,
+							112
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "VPSidebarGroup",
+						"display": "block",
+						"rect": [
+							1032,
+							1786,
+							239,
+							224
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"display": "block",
+						"rect": [
+							2184,
+							147,
+							224,
+							168
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"display": "block",
+						"rect": [
+							1400,
+							119,
+							688,
+							7134
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "app",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							3440,
+							7381
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "VPApp",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							3440,
+							7381
+						],
+						"side_by_side": 4
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "VPContent",
+						"class": "VPContent has-sidebar",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							3440,
+							7381
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "VPContentDoc has-aside",
+						"display": "block",
+						"rect": [
+							1304,
+							55,
+							2136,
+							7326
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "container",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							1400,
+							119,
+							2040,
+							7166
+						],
+						"side_by_side": 2
+					}
+				]
+			}
+		}
+	},
+	"notes": "This is Vue's own documentation, and it is the textbook three-column layout: a list of every page on the left, the article in the middle, and a table of contents for the CURRENT page on the right. What is worth knowing is what happens as the window gets very wide: past about 1920px the three columns stop growing and the whole group just floats in the middle of the screen with more empty space on both sides, the same way Wikipedia's article pages do — a 3440 ultrawide monitor does not get a wider article, it gets wider margins. On a phone both side columns vanish behind small buttons in the top bar (\"Menu\" and \"On this page\") rather than dropping underneath the article the way a simpler sidebar layout would, so getting to the navigation on a phone takes an extra tap.",
+	"wire": {
+		"role": "page",
+		"kids": [
+			{
+				"role": "header",
+				"h": "3.5em"
+			},
+			{
+				"role": "main",
+				"dir": "row",
+				"floor": "48rem",
+				"kids": [
+					{
+						"role": "nav",
+						"w": "17em",
+						"lines": 16
+					},
+					{
+						"role": "main",
+						"w": 1,
+						"lines": 10
+					},
+					{
+						"role": "aside",
+						"w": "14em",
+						"lines": 6
+					}
+				]
+			}
+		]
+	}
+}

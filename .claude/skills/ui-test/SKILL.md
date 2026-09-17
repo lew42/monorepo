@@ -71,6 +71,7 @@ resize — a breakpoint bug becomes a same-run before/after) · `shot` (every st
   field first (`eval` its `.value = ""`, or `key "Control+a"` after the click) whenever it is not
   empty (2026-09-05).
 - `dblclick x y` is a distinct gesture — `down`/`up` twice never synthesizes one (2026-08-29).
+- There is no `select` verb. `click sel` then `key "ArrowDown"` + `key "Enter"` sets a `<select>` headless and fires the real `change`; `key` alone (no click) sends the arrow to the document and reads back as "the dropdown did nothing". And this site keeps a hidden duplicate of a realm's toolbar in the DOM, so `select[title='navigation']` matched the hidden one and `click` timed out 30 s on a control plainly visible in the png — add `:visible` (2026-09-13).
 - `eval` runs as native `page.evaluate` — a Playwright-only selector engine (`text=`, `:has-text()`) inside its `document.querySelector` throws `not a valid selector`; plain CSS only there (2026-09-04).
 - `eval` is ONE expression (`(() => { … })()` for statements); its value lands in `steps.json`,
   and a promise is awaited — `eval import('/app.js').then(m => m.drawer(…))`.
@@ -152,6 +153,8 @@ scroll/client width and height; `errors` carries the console since the last step
 Overlap is **not** flagged (a child overlaps its parent by design) — eval the two rects:
 `b.right - a.left` positive means the rail is covering the page.
 
+⚠ **A CSS ellipsis is not a character.** `text-overflow: ellipsis` leaves the DOM text whole and paints the dots, so a sweep for `/…$/` over `innerText` returned 0 on a wall where 19 of 24 cards were visibly cut mid-word, and none of the flags above fire on clipped inline text. Measure it as `el.scrollWidth > el.clientWidth + 1` per element, or read the png (2026-09-13).
+
 ## The `site` MCP tools — and the one rule
 
 `mcp__site__shot` is a fresh headless png of a url (no gestures); `mcp__site__eval` reads DOM
@@ -190,6 +193,7 @@ component rule** — check `display`, not just the class list.
 ## Traps
 
 - The run does **not** stop on a step error — it records `error` and carries on. Read the field.
+- **A timed-out `click` leaves focus on BODY, so the next `key` step fires at the DOCUMENT** and can commit a real action: `click .imp-who` matched a hidden duplicate inside a closed `<details>` in the next column, timed out 30 s, and the following `key "2"` reached the page's global keydown handler and appended a real judgment to the owner's committed `.jsonl` — the step itself reported no error (2026-09-13). In a tool that writes, never put a bare `key` after a `click`/`type` you have not proved landed: assert `document.activeElement` in an `eval` between them, or scope the selector and resolve it in an `eval` first.
 - `console` errors are per step, so the step that broke the page is the one that names them.
 - No `move` after `down` = no drag at all: `pointerdown` alone commits nothing.
 - `click sel` silently no-ops on an element revealed only by an ANCESTOR's `:hover`
@@ -266,6 +270,8 @@ component rule** — check `display`, not just the class list.
   (2026-08-27) — and the step's own output only said the watch went `missing`. In a tool that
   writes, resolve the selector in an `eval` first and read back what it matched; "never gesture
   on the owner's document" covers smoke steps you did not think of as gestures.
+  ⚠ `[title=…]` and `[aria-label=…]` are no more unique than `text=`: `span[title='delete New page']` in a cleanup plan matched the OWNER's `notes/later/new-page/` row before the agent's own and deleted it, file and directory, reporting success (2026-09-13). In a tool that writes, name your probe pages something the app never generates (`zzz-probe`), and resolve any attribute selector in an `eval` first.
+  ⚠ And some clicks write with no Save in the way: a nest chip in Paging's drawer on a page you MADE wrote `nest: "blog-post"` into the owner's `made/notes/page.json` on the spot (2026-09-13). Before the first gesture in a tool that writes, copy its data dir into the scratchpad and `diff -r` against THAT copy at the end — `git diff HEAD` hides the one new line among older uncommitted changes.
 - Restart nothing. The dev server stays up; you never touch it.
 
 Improve this skill: append to `improvements.md`.

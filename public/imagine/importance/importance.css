@@ -1,0 +1,230 @@
+/* Layout only — where the ranked rows and the two choices sit. Everything else is
+   framework.css's vocabulary: `.flex v gap` for the page stack, `.muted` for the
+   counts, the `--fill-a*` alpha ladder for fills and hairlines, `--radius`, `--prim`.
+
+   ⚠ Every gap here is `calc(var(--gap) * n)` — a container's space, which scales with
+     the size standard. The CONTROL sizes (a tap target's own padding, the meter's
+     height, the rank column's width) stay in `em` of their own text, which is the rule
+     the size standard draws: a clamp is space AROUND content, never the size OF a control.
+
+   ⚠ The things you click to move around are `role="button"` spans and divs, NOT
+     `<button>` — the lew42 skin makes every real button 0.8em uppercase bold in a box,
+     which would shout a question you are meant to read. See `tap()` in views.js. */
+
+@layer theme {
+
+	/* ════ which topic ════════════════════════════════════════════════════ */
+
+	/* THE ONLY WAY BETWEEN TOPICS. `?at=` is this page's whole address bar, so without
+	   this row a second topic can be reached only by typing its id. It draws at all
+	   only when there IS a second one - one topic is not a choice.
+
+	   ⚠ CHIPS, NOT `.imp-name` LINKS. A name wears the prose-link underline because it
+	     sits in a column of ranked prose; a row of them across the top of the screen
+	     reads as a sentence somebody underlined. */
+	.imp-topics { display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--gap) * 0.4); }
+
+	.imp-topic {
+		font-size: 0.85em;
+		border: 1px solid var(--fill-a32); border-radius: var(--radius);
+		padding: 0.2em 0.7em;
+	}
+	.imp-topic[role="button"] { cursor: pointer; color: var(--prim-ink); }
+	.imp-topic[role="button"]:hover, .imp-topic:focus-visible { background: var(--fill-a08); border-color: var(--prim); }
+
+	/* You are here: the same chip, filled and unpressable. A picker with no visible
+	   state is a row of words that appear to do nothing. */
+	.imp-topic-here { background: var(--fill-a16); font-weight: 600; }
+
+	/* ════ where you are ══════════════════════════════════════════════════ */
+
+	.imp-trail {
+		display: flex; flex-wrap: wrap; align-items: baseline;
+		gap: calc(var(--gap) * 0.4);
+		font-size: 0.9em;
+	}
+
+	.imp-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: calc(var(--gap) * 0.5); }
+	.imp-head-text { font-size: 1.3em; font-weight: 600; line-height: 1.25; }
+	.imp-glyph { color: var(--subtle); }
+
+	.imp-tag {
+		font-size: 0.7em; text-transform: uppercase; letter-spacing: 0.06em;
+		color: var(--subtle);
+		border: 1px solid var(--fill-a32); border-radius: var(--radius);
+		padding: 0.1em 0.5em;
+	}
+
+	.imp-ways { display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--gap) * 0.6); }
+	.imp-says { font-size: 0.85em; }
+
+	/* A name you can click to be AT it — and it has to LOOK like one at rest. It used
+	   to underline on hover only, on the reasoning that a list of underlined lines
+	   reads as a menu rather than a ranking; a reader who had never seen the screen
+	   did not guess a single name was clickable (self-evident-critique, 2026-09-13).
+	   So it wears the site's own prose-link mark — body ink, a `--prim` underline —
+	   thinner than a paragraph's, because a whole column of them is a lot of line. */
+	.imp-name {
+		cursor: pointer;
+		text-decoration-line: underline;
+		text-decoration-color: var(--prim);
+		text-decoration-thickness: 0.08em;
+		text-underline-offset: 0.22em;
+	}
+	.imp-name:hover, .imp-name:focus-visible { color: var(--prim-ink); text-decoration-thickness: 0.16em; }
+
+	/* ════ the ranked list ════════════════════════════════════════════════ */
+
+	/* THE STREAMED REGION — emptied and rebuilt every time a line arrives from any
+	   window. It is a real box with a real rule, not a bare marker class: the propose
+	   form sits OUTSIDE it precisely so it survives the redraw. */
+	.imp-live { display: flex; flex-direction: column; gap: var(--gap); }
+
+	.imp-rank { display: flex; flex-direction: column; gap: calc(var(--gap) * 0.75); }
+	.imp-row { display: flex; align-items: flex-start; gap: calc(var(--gap) * 0.6); }
+
+	/* The rank. Fixed width so every row's text starts on the same axis however many
+	   digits the place has. It is a SHORTCUT to the judgments as well — the owner's
+	   "click a rank to see them" — so it takes the control look only when it is one:
+	   an unranked row draws the same box with no `role`, and no pointer. */
+	.imp-place {
+		flex: none; width: 3em; text-align: center;
+		padding: 0.15em 0; border-radius: var(--radius);
+	}
+	.imp-place[role="button"] { cursor: pointer; }
+	.imp-place[role="button"]:hover, .imp-place:focus-visible { background: var(--fill-a08); }
+	.imp-number { display: block; font-size: 1.3em; font-weight: 700; line-height: 1.15; }
+
+	/* THE TRACE CONTROL, DRAWN AS ONE. It used to be the word "why?" at 0.65em under
+	   the rank numeral, which reads as a caption — and the only thing that said it was
+	   pressable was a paragraph above the list, which is gone. It is a labelled toggle
+	   on the row now: it says what it opens, how many rows that is, and its label flips
+	   to "Hide…" while they are open. */
+	/* ⚠ `.imp-mark` RIDES THIS SAME RULE, not a copy of it. The reuse mark beside it is
+	     the same gesture answering a different question - press it, a list opens under
+	     it - and two controls that behave alike must never look like two kinds of thing.
+	     One rule is also the only way they cannot drift apart. */
+	.imp-why, .imp-mark {
+		cursor: pointer;
+		font-size: 0.8em; color: var(--prim-ink);
+		border: 1px solid var(--fill-a32); border-radius: var(--radius);
+		padding: 0.15em 0.6em;
+	}
+	.imp-why:hover, .imp-why:focus-visible,
+	.imp-mark:hover, .imp-mark:focus-visible { background: var(--fill-a08); border-color: var(--prim); }
+
+	/* The two things a row can open, on one strip under the bar. Either can be absent -
+	   an unranked row has no judgments, and most nodes live in one topic - so the strip
+	   folds away when both are, or it would still eat the column's gap. */
+	.imp-toggles { display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--gap) * 0.4); }
+	.imp-toggles:empty { display: none; }
+
+	.imp-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: calc(var(--gap) * 0.3); align-items: flex-start; }
+	.imp-main > .imp-name { font-weight: 600; }
+
+	.imp-bar { display: flex; align-items: center; gap: calc(var(--gap) * 0.5); }
+	.imp-meter { flex: none; width: 6em; height: 0.45em; border-radius: 999px; background: var(--fill-a16); overflow: hidden; }
+	.imp-fill { height: 100%; background: var(--prim); }
+	.imp-count { font-size: 0.85em; }
+
+	/* A caveat hangs off what it qualifies — indented, hairlined, never on a rank line. */
+	.imp-attach {
+		display: flex; flex-wrap: wrap; align-items: baseline;
+		gap: calc(var(--gap) * 0.35);
+		font-size: 0.92em;
+		border-left: 2px solid var(--fill-a16);
+		padding-left: 0.7em;
+	}
+
+	/* ════ the trace — the rows behind one rank ═══════════════════════════ */
+
+	.imp-slot:not(:empty) { align-self: stretch; }
+
+	/* ⚠ AN EMPTY SLOT IS STILL A FLEX ITEM, and a flex item still takes the container's
+	     gap - so a closed toggle left a blank line's worth of space under every row it
+	     sat on. Folded away until there is something in it. */
+	.imp-slot:empty { display: none; }
+
+	/* The mark's slot opens on its OWN line whatever row it was dropped into - the
+	   caveat's attachment line, a rank's toggle strip, or the head - because all three
+	   are wrapping flex rows and a list is not a word on the end of a sentence. */
+	.imp-also-slot:not(:empty) { flex: 1 0 100%; }
+
+	/* ⚠ `.imp-also` SHARES THE TRACE'S BOX for the same reason the two toggles share
+	     one rule: the judgments behind a rank and the topics a node is reached from are
+	     one gesture asking two questions, and they answer in the same kind of box. */
+	.imp-trace, .imp-also {
+		display: flex; flex-direction: column; gap: 0.2em;
+		font-size: 0.85em;
+		background: var(--tint); border-radius: var(--radius);
+		padding: 0.5em 0.7em;
+	}
+	.imp-trace-row, .imp-also-row { display: flex; flex-wrap: wrap; gap: 0.35em; align-items: baseline; }
+	.imp-trace-win { font-weight: 700; }
+	.imp-won { color: var(--prim-ink); }
+	.imp-lost { color: var(--subtle); }
+
+	/* ════ propose ════════════════════════════════════════════════════════ */
+
+	.imp-form { display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--gap) * 0.5); margin-top: calc(var(--gap) * 0.5); }
+	.imp-form .imp-text { flex: 1 1 16rem; }
+	.imp-kind { flex: 0 1 9rem; }
+	.imp-who { flex: 0 1 7rem; }
+
+	/* ════ which matters more? ════════════════════════════════════════════ */
+
+	/* The one sentence the two cards cannot draw: that they are pressable, and that
+	   the keys on them are the same gesture. It sits ABOVE the pair, in body ink —
+	   muted grey would file it as a caption and it is the instruction.
+	   ⚠ `.imp-ask` was here, the question in the page's own voice one line under the
+	     column head that already prints it. Deleted with the rule it styled. */
+	.imp-how { margin: 0; }
+
+	/* Two cards, side by side from ~30rem of column and stacked below it — the floor
+	   is `rem`, so it is the COLUMN's width that decides, not the viewport's. */
+	.imp-choices { display: flex; flex-wrap: wrap; gap: var(--gap); align-items: stretch; }
+
+	.imp-choice {
+		flex: 1 1 14rem; min-width: 0;
+		display: flex; flex-direction: column; align-items: flex-start; gap: 0.4em;
+		padding: 0.9em 1em;
+		border: 1px solid var(--fill-a32); border-radius: var(--radius);
+		background: var(--fill-a04);
+		cursor: pointer;
+	}
+	.imp-choice:hover, .imp-choice:focus-visible { background: var(--fill-a08); border-color: var(--prim); }
+	.imp-choice:active { transform: translateY(1px); }
+	.imp-choice-text { font-size: 1.1em; font-weight: 600; line-height: 1.3; }
+
+	/* The glyph and the one-word kind tag, side by side above the title
+	   (self-evident-critique-3, finding 3) — its own small `em` gap, a control's
+	   space, not the page's `--gap` rhythm. */
+	.imp-choice-kind { display: flex; align-items: center; gap: 0.35em; }
+
+	/* THE CARD'S OWN BUTTON — the card is the target, and this strip at its foot is
+	   what says so: a verb, then the two keys that do the same thing. Before this
+	   there were two bare key caps and the cursor, and neither says "press me".
+	   Its own `em`, never a gap clamp: it is the size of a control, not space. */
+	.imp-pick {
+		display: flex; align-items: center; gap: 0.4em;
+		margin-top: auto; padding-top: 0.5em;
+		font-size: 0.85em; font-weight: 600; color: var(--prim-ink);
+	}
+	.imp-pick kbd {
+		font-size: 0.8em; line-height: 1; padding: 0.25em 0.45em;
+		border: 1px solid var(--fill-a32); border-radius: var(--radius);
+		background: var(--surface); color: var(--subtle);
+	}
+
+	/* After the pick: both scores arrive and the one you chose is marked. A plain
+	   border, not a fill — the fill is what `:hover` uses, and the two would fight. */
+	.imp-choice-won { border-color: var(--prim); }
+
+	/* The result's own row, below the pair: the next two wait behind a control, so a
+	   pick is never a screen that replaced itself. Empty until there is a result —
+	   an empty flex box with a gap still occupies a line, so it lays out only then. */
+	.imp-after:not(:empty) { display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--gap) * 0.5); }
+
+	.imp-controls { display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--gap) * 0.5); }
+	.imp-controls .imp-reason { flex: 1 1 12rem; }
+}

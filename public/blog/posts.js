@@ -142,6 +142,21 @@ export const posts = [
 
 	{
 		section: "ai",
+		name: "playwright",
+		title: "Playwright: a browser you can write to",
+		date: "2026-09-08",
+		description: "A real browser, driven by a script with nobody watching. What people use it for, the three ways an AI agent gets hands on a page, and where it stops working.",
+
+		/* `card.png` is `demo/01-screenshot-widths-desktop.jpg` cropped to 1200x628 — the
+		 * post shows the full jpeg in its own prose, and this is the same picture in the
+		 * shape a social card actually is. PNG on purpose: `meta.mjs` reads real pixels out
+		 * of a PNG header and nothing else, so a .jpg here would ship no og:image:width. */
+		image: "/blog/ai/playwright/card.png",
+		alt: "This site’s home page as a headless browser photographed it: the sidebar, the live code demo in the middle, the column of blog cards beside it.",
+	},
+
+	{
+		section: "ai",
 		name: "dashboard",
 		title: "The AI dashboard",
 		date: "2026-08-19",

@@ -119,8 +119,13 @@ export class BaselineMark extends View {
 	   second does it. A one-click control that throws away everything you changed is
 	   the wrong shape however clearly it is labelled — the same shape Paging.Reset
 	   already uses on the hub. */
+	/* ⚠ THE LABEL CARRIES THE SCOPE, like the second press already does (`confirm()`
+	     two methods down prints "Press again to forget " + this.what). The first
+	     press said only "Reset" — a step into the dark on every page this ships on
+	     (self-evident-critique-3, finding 7). `this.what` defaults to "what you
+	     changed here", so an ordinary demo reads "Reset what you changed here". */
 	arm(){
-		this.act("restart_alt", "Reset", () => { this.armed = true; this.check(); });
+		this.act("restart_alt", "Reset " + this.what, () => { this.armed = true; this.check(); });
 	}
 
 	/* ⚠ DISARM BEFORE RESTORING, not after. The default `restore()` reloads, so it
@@ -129,13 +134,37 @@ export class BaselineMark extends View {
 	     a still-armed mark would come back up asking to be confirmed a second time. */
 	confirm(){
 		this.act("restart_alt", "Press again to forget " + this.what, () => { this.armed = false; this.restore(); }, true);
-		this.act(null, "Cancel", () => { this.armed = false; this.check(); });
+		this.act(null, "Cancel", () => { this.armed = false; this.all_armed = false; this.check(); });
 
 		/* THE SITE-WIDE RESET LIVES HERE, and nowhere else. This is the moment a
 		   reader has just discovered that a page remembered them — so it is the one
 		   place the offer "then forget all of them" is actually wanted. No new page,
 		   no new route, and it is reachable from every realm that persists. */
-		this.act("delete_sweep", "…or every demo on the site", () => { forget_all(); location.reload(); });
+		this.all_armed ? this.confirm_all() : this.arm_all();
+	}
+
+	/* ── AND THE BIGGER DESTROYER ASKS THE BIGGER QUESTION ────────────────────
+	   ⚠ IT TOOK ONE PRESS WHILE THE SMALLER ONE TOOK TWO. Reset asks twice before it
+	     forgets the pages on THIS page; the offer sitting beside it wiped every saved
+	     page, board and run on the whole origin on a single click, with nothing said
+	     about how much that was (self-evident-critique, defect 7). Same shape for both
+	     now — arm, then a second press that NAMES WHAT GOES and counts it. */
+	/* ⚠ AND IT IS NOT OFFERED WHEN THERE IS NOTHING TO FORGET. A control that would say
+	     "all 0 saved pages" is a control that does nothing, and a reader who presses it
+	     learns nothing either. Nothing saved anywhere, no offer. */
+	arm_all(){
+		if (!keys().length) return this;
+
+		return this.act("delete_sweep", "…or every demo on the site", () => { this.all_armed = true; this.check(); });
+	}
+
+	confirm_all(){
+		const n = keys().length;
+
+		this.act("delete_sweep", "Press again to forget all " + n + " saved page" + (n === 1 ? "" : "s") + " on this site",
+			() => { forget_all(); location.reload(); }, true);
+
+		this.act(null, "Keep them", () => { this.all_armed = false; this.check(); });
 	}
 
 	act(glyph, words, run, on){

@@ -1,0 +1,883 @@
+{
+	"name": "allbirds-home",
+	"url": "https://www.allbirds.com/",
+	"title": "Allbirds: Comfortable, Sustainable Shoes & Apparel",
+	"category": "shop",
+	"captured_at": "2026-09-08T06:09:51.638Z",
+	"embed": "blocked",
+	"embed_note": "x-frame-options: DENY",
+	"shots": {
+		"400": "site/allbirds-home/400.jpg",
+		"1280": "site/allbirds-home/1280.jpg",
+		"1920": "site/allbirds-home/1920.jpg",
+		"3440": "site/allbirds-home/3440.jpg",
+		"long": "site/allbirds-home/long.jpg"
+	},
+	"layout": {
+		"400": "1-flow",
+		"1280": "1-bands",
+		"1920": "1-bands",
+		"3440": "1-bands"
+	},
+	"sections": [
+		{
+			"name": "announcement bar",
+			"layout": "1-flow",
+			"css": "block, sticky",
+			"note": "a thin full-width bar ('Free ground shipping...') with arrow controls either side, unchanged in shape at every width."
+		},
+		{
+			"name": "header nav",
+			"layout": "1-flow",
+			"css": "flex row",
+			"note": "the full link row (New Arrivals, Shop All, Men, Women) shows from 1280 up; at 400 only the logo, search and bag remain, with the links moved behind a hamburger icon."
+		},
+		{
+			"name": "hero carousel",
+			"layout": "1-flow",
+			"css": "block, full-bleed swiper slider",
+			"note": "the scan measures this band at essentially the full viewport width (just a 10px page gutter) at 1280, 1920 AND 3440 — it never caps. Its composition also changes, not just its size: one tall portrait photo at 400, a two-image landscape split (person, then shoe close-up) from 1280 up, which is why the band's height roughly doubles between 1280 and 3440 instead of staying in proportion."
+		},
+		{
+			"name": "3x promo tiles",
+			"layout": "3-equal",
+			"css": "grid, template swaps",
+			"note": "the scan catches the actual grid definition changing, not just wrapping: 3 columns by 1 row at 3440, 1 column by 3 rows at 400."
+		}
+	],
+	"tags": [
+		"1-flow",
+		"1-bands",
+		"3-equal",
+		"full-bleed",
+		"carousel",
+		"hamburger",
+		"sticky header",
+		"shop"
+	],
+	"responsive": {
+		"strategy": "Full-bleed shop bands stacked one after another — hero, colour tiles, a black footer — and unlike Apple's or Linear's marketing pages, nothing here ever caps or centres: the scan measures the hero carousel at essentially edge-to-edge width at 1280, 1920 AND 3440 alike. What does change is the hero's own composition — one tall portrait photo at 400, a two-image landscape split from 1280 up — which is why that band's height roughly doubles rather than just stretching. Further down, a promo-tile section swaps cleanly between a 3-column grid on a desktop and a 3-row stack on a phone. Below about 750px the header's full link row disappears behind a hamburger icon.",
+		"breakpoints": [
+			750,
+			1280
+		],
+		"queries": [
+			"(hover:hover){",
+			"(min-width:120rem){",
+			"(min-width:160rem){",
+			"(min-width:30rem){",
+			"(min-width:3120px){",
+			"(min-width:40rem){",
+			"(min-width:48rem){",
+			"(min-width:64rem){",
+			"(min-width:80rem){",
+			"(min-width:96rem){",
+			"not all and (min-width:30rem){",
+			"not all and (min-width:40rem){",
+			"not all and (min-width:48rem){",
+			"not all and (min-width:64rem){",
+			"screen and (forced-colors:active){",
+			"screen and (width<=750px){"
+		]
+	},
+	"scan": {
+		"scanned_at": "2026-09-08T06:10:09.186Z",
+		"css": {
+			"sheets": 7,
+			"bytes": 471080,
+			"inline_bytes": 6137
+		},
+		"media": [
+			"(hover:hover){",
+			"(min-width:120rem){",
+			"(min-width:160rem){",
+			"(min-width:30rem){",
+			"(min-width:3120px){",
+			"(min-width:40rem){",
+			"(min-width:48rem){",
+			"(min-width:64rem){",
+			"(min-width:80rem){",
+			"(min-width:96rem){",
+			"not all and (min-width:30rem){",
+			"not all and (min-width:40rem){",
+			"not all and (min-width:48rem){",
+			"not all and (min-width:64rem){",
+			"screen and (forced-colors:active){",
+			"screen and (width<=750px){"
+		],
+		"container": [
+			"(min-width:300px){",
+			"wrapper (width<=210px){",
+			"wrapper (width<=320px){",
+			"wrapper (width<=430px){",
+			"wrapper (width<=540px){",
+			"wrapper (width>=100px) and (width<=500px){"
+		],
+		"breakpoints_seen": [
+			{
+				"px": 750,
+				"count": 1
+			},
+			{
+				"px": 3120,
+				"count": 1
+			}
+		],
+		"widths": {
+			"400": {
+				"doc": [
+					400,
+					4670
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "shopify-section-sections--16476871000144__global-banner",
+						"class": "shopify-section shopify-section-group-header-group",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							0,
+							0,
+							400,
+							31
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"class": "template-index template-",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							41,
+							400,
+							3287
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "shopify-section-template--16476860579920__full-bleed-hero-us",
+						"class": "shopify-section",
+						"display": "block",
+						"rect": [
+							0,
+							41,
+							400,
+							681
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "shopify-section-template--16476860579920__category_row_T4fLWz",
+						"class": "shopify-section",
+						"display": "block",
+						"rect": [
+							0,
+							732,
+							400,
+							369
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "shopify-section-template--16476860579920__standard-product-carousel-2-us",
+						"class": "shopify-section",
+						"display": "block",
+						"rect": [
+							0,
+							1141,
+							400,
+							455
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "shopify-section-template--16476860579920__3x-promo-tiles-us",
+						"class": "shopify-section",
+						"display": "block",
+						"rect": [
+							0,
+							1636,
+							400,
+							1693
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "bg-black px-5",
+						"display": "block",
+						"rect": [
+							0,
+							3894,
+							400,
+							776
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "my-10 px-2.5",
+						"display": "block",
+						"rect": [
+							0,
+							1636,
+							400,
+							1693
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "grid gap-8",
+						"display": "grid",
+						"cols": "380px",
+						"rows": "542.844px 542.844px 542.844px",
+						"rect": [
+							10,
+							1636,
+							380,
+							1693
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "z-takeover fixed",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							400,
+							844
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "z-takeover fixed",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "fixed",
+						"rect": [
+							400,
+							0,
+							400,
+							844
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "header-mobile-menu pointer-events-none",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							31,
+							400,
+							813
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1280": {
+				"doc": [
+					1280,
+					3389
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "shopify-section-sections--16476871000144__global-banner",
+						"class": "shopify-section shopify-section-group-header-group",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							0,
+							0,
+							1280,
+							32
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"class": "template-index template-",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							42,
+							1280,
+							2304
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "shopify-section-template--16476860579920__full-bleed-hero-us",
+						"class": "shopify-section",
+						"display": "block",
+						"rect": [
+							0,
+							42,
+							1280,
+							684
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "shopify-section-template--16476860579920__category_row_T4fLWz",
+						"class": "shopify-section",
+						"display": "block",
+						"rect": [
+							0,
+							736,
+							1280,
+							419
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "shopify-section-template--16476860579920__standard-product-carousel-2-us",
+						"class": "shopify-section",
+						"display": "block",
+						"rect": [
+							0,
+							1195,
+							1280,
+							520
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "shopify-section-template--16476860579920__3x-promo-tiles-us",
+						"class": "shopify-section",
+						"display": "block",
+						"rect": [
+							0,
+							1755,
+							1280,
+							590
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "bg-black px-5",
+						"display": "block",
+						"rect": [
+							0,
+							2626,
+							1280,
+							763
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "z-takeover fixed",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							1280,
+							800
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "shopify-section-sections--16476870967376__footer",
+						"class": "shopify-section shopify-section-group-footer-group",
+						"display": "block",
+						"rect": [
+							0,
+							2626,
+							1280,
+							763
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "hero-height-dynamic relative",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							10,
+							42,
+							1260,
+							684
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "swiper relative",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							10,
+							42,
+							1260,
+							684
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "ul",
+						"class": "swiper-wrapper relative",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							10,
+							42,
+							1260,
+							684
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1920": {
+				"doc": [
+					1920,
+					4335
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "shopify-section-sections--16476871000144__global-banner",
+						"class": "shopify-section shopify-section-group-header-group",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							0,
+							0,
+							1920,
+							32
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"class": "template-index template-",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							42,
+							1920,
+							3274
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "shopify-section-template--16476860579920__full-bleed-hero-us",
+						"class": "shopify-section",
+						"display": "block",
+						"rect": [
+							0,
+							42,
+							1920,
+							964
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "shopify-section-template--16476860579920__category_row_T4fLWz",
+						"class": "shopify-section",
+						"display": "block",
+						"rect": [
+							0,
+							1016,
+							1920,
+							627
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "shopify-section-template--16476860579920__standard-product-carousel-2-us",
+						"class": "shopify-section",
+						"display": "block",
+						"rect": [
+							0,
+							1683,
+							1920,
+							698
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "shopify-section-template--16476860579920__3x-promo-tiles-us",
+						"class": "shopify-section",
+						"display": "block",
+						"rect": [
+							0,
+							2421,
+							1920,
+							895
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "bg-black px-5",
+						"display": "block",
+						"rect": [
+							0,
+							3596,
+							1920,
+							739
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "z-takeover fixed",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							1920,
+							1080
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "hero-height-dynamic relative",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							10,
+							42,
+							1900,
+							964
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "swiper relative",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							10,
+							42,
+							1900,
+							964
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "ul",
+						"class": "swiper-wrapper relative",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							10,
+							42,
+							1900,
+							964
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "li",
+						"class": "swiper-slide text-white",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							10,
+							42,
+							1900,
+							964
+						],
+						"side_by_side": 2
+					}
+				]
+			},
+			"3440": {
+				"doc": [
+					3440,
+					6311
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "shopify-section-sections--16476871000144__global-banner",
+						"class": "shopify-section shopify-section-group-header-group",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							0,
+							0,
+							3440,
+							32
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"class": "template-index template-",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							42,
+							3440,
+							5274
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "shopify-section-template--16476860579920__full-bleed-hero-us",
+						"class": "shopify-section",
+						"display": "block",
+						"rect": [
+							0,
+							42,
+							3440,
+							1324
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "shopify-section-template--16476860579920__category_row_T4fLWz",
+						"class": "shopify-section",
+						"display": "block",
+						"rect": [
+							0,
+							1376,
+							3440,
+							1121
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "shopify-section-template--16476860579920__standard-product-carousel-2-us",
+						"class": "shopify-section",
+						"display": "block",
+						"rect": [
+							0,
+							2537,
+							3440,
+							1120
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "shopify-section-template--16476860579920__3x-promo-tiles-us",
+						"class": "shopify-section",
+						"display": "block",
+						"rect": [
+							0,
+							3697,
+							3440,
+							1619
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "bg-black px-5",
+						"display": "block",
+						"rect": [
+							0,
+							5596,
+							3440,
+							715
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "my-10 px-2.5",
+						"display": "block",
+						"rect": [
+							0,
+							3697,
+							3440,
+							1619
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "grid gap-8",
+						"display": "grid",
+						"cols": "1133.33px 1133.33px 1133.34px",
+						"rows": "1619.06px",
+						"rect": [
+							10,
+							3697,
+							3420,
+							1619
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "z-takeover fixed",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							3440,
+							1440
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "hero-height-dynamic relative",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							10,
+							42,
+							3420,
+							1324
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "swiper relative",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							10,
+							42,
+							3420,
+							1324
+						],
+						"side_by_side": 1
+					}
+				]
+			}
+		}
+	},
+	"notes": "Allbirds' homepage is built from full-bleed shop bands — one big hero photo, a row of colour tiles, a black footer — and true to a shoe brand's site, the pictures do the talking: nothing on this page ever caps its width or grows a quiet margin, even on the widest ultrawide screen tested here. The hero image is not just a bigger version of the phone photo, either — on a phone it is one tall picture of the shoe, and on a laptop or wider it becomes two pictures side by side, a person walking and a close-up of the shoe, which is why that band gets much taller as the screen widens rather than simply wider. Further down, a row of three promo tiles switches cleanly from three side-by-side columns on a desktop to three stacked rows on a phone. The top menu also collapses to a hamburger icon on a phone, leaving just the logo, search and shopping bag.",
+	"wire": {
+		"role": "page",
+		"kids": [
+			{
+				"role": "nav",
+				"h": "1.5em"
+			},
+			{
+				"role": "header",
+				"h": "4em"
+			},
+			{
+				"role": "hero"
+			},
+			{
+				"role": "cards",
+				"dir": "row",
+				"h": "10em",
+				"floor": "47rem",
+				"kids": [
+					{
+						"role": "card",
+						"w": 1,
+						"fill": "none"
+					},
+					{
+						"role": "card",
+						"w": 1,
+						"fill": "none"
+					},
+					{
+						"role": "card",
+						"w": 1,
+						"fill": "none"
+					}
+				]
+			},
+			{
+				"role": "footer",
+				"h": "6em"
+			}
+		]
+	}
+}

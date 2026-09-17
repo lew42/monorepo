@@ -1,0 +1,311 @@
+/* ── ONE SCREEN FOR MAKING PAGES ───────────────────────────────────────────────
+
+   Three panes: the tree you drag rows around in, the page itself, and everything
+   that page says about itself. A TOOL layout, not an article — so every space in
+   here is `--gap` (the rhythm between things in a box), never `--flow` (the rhythm
+   between paragraphs), and nothing is capped at `--measure`.
+
+   ⚠ THAT IS THE WHOLE OF THE 3440 FIX. This screen was a prose column: at 3440 the
+     middle was 3027px wide, the sentence at the top was capped at 648px, `--flow`
+     was 54px between blocks, an `h3` carried 104px of margin-top, and the list of
+     pages was 1024px inside it — an article layout wearing a tool's job (the owner,
+     2026-09-13: *"we have like 8em padding, looks bad, wastes space"*). The prose is
+     gone; what is left is three panes that use the width they are given.
+
+   ⚠ A BOX CANNOT ANSWER ITS OWN CONTAINER QUERY, so there are two elements and not
+     one: `.paging-make-screen` measures, `.paging-make-panes` is the grid that reads
+     the measurement. The same shape `build.css` used, for the same reason.
+
+   ⚠ AND THE QUERY ASKS ABOUT THE SCREEN, NOT THE WINDOW. This page is `wide` inside
+     the realm's middle, which is the window minus the rail — so a media query would
+     stack the panes at the wrong moment, and does not know about the rail at all. */
+
+@layer theme {
+
+	.paging-make-screen { container-type: inline-size; }
+
+	.paging-make-panes {
+		display: grid;
+		gap: var(--gap);
+		grid-template-columns: minmax(0, 1fr);
+		align-items: start;
+	}
+
+	/* 54rem, in rem and not em: `em` here is the body's viewport clamp (14px → 18px),
+	   so an `em` threshold stacks at a different PIXEL width on a phone than on a
+	   monitor. Above it, three tracks; below it they stack in reading order — the
+	   tree, then the page, then its settings.
+
+	   ⚠ EVERY TRACK HAS A FLOOR AND A CEILING, and the ceilings are `min(%, rem)`: a
+	     flat `26rem` cap would take a third of a 1238px row and leave the PAGE — the
+	     thing this screen is about — as the narrowest of the three. The percentage
+	     keeps the sides proportional at 1280; the rem stops them running away at
+	     3440, where every leftover pixel goes to the page in the middle. */
+	@container (min-width: 54rem) {
+		.paging-make-panes {
+			grid-template-columns:
+				minmax(11rem, min(24%, 26rem))
+				minmax(0, 1fr)
+				minmax(11rem, min(30%, 30rem));
+		}
+
+		/* THE PAGE FOLLOWS YOU DOWN. The settings pane is two or three times the
+		   height of the page it configures, so without this the middle scrolls off the
+		   top the moment you reach the blocks — on the screen whose whole claim is
+		   that you can see what you are making. `align-self: start` is what makes it
+		   possible: a stretched grid item is as tall as its area and has nowhere to
+		   stick.
+		   ⚠ A STICKY COLUMN NEEDS A CEILING. Without one, a page taller than the
+		     window pins at its own top and hangs its bottom past the viewport, painting
+		     over whatever you scrolled down to. A ceiling and its own scroll: it
+		     follows you down and stays inside the screen. This is the ONE box on this
+		     screen that scrolls on purpose. */
+		.paging-make-middle {
+			position: sticky; top: 0.5em; align-self: start;
+			max-height: calc(100vh - 1em); overflow: auto;
+		}
+	}
+
+	/* ── a pane ───────────────────────────────────────────────────────────────
+	   ⚠ `calc(var(--gap) * 0.5)`, not `0.5em`. A spacing clamp is the site's one
+	     spacing knob: it is 0.5em at the floor and 1.3em at 3440, so the panes
+	     breathe with the screen instead of staying at a 1280 constant. */
+	/* ⚠ A PANE IS A BOX, NOT A FLOAT. The owner, 2026-09-13: *"shouldn't that right
+	     sidebar have a white bg? it looks like it's hovering"* — right: a stack of
+	     controls on the page's own background reads as loose furniture, and three of
+	     them read as one confusing screen. Each pane paints its own surface, so the
+	     screen is three boxes and every control is obviously inside one of them. */
+	.paging-make-pane {
+		display: flex; flex-direction: column; gap: calc(var(--gap) * 0.5);
+		min-width: 0;
+		padding: calc(var(--gap) * 0.6);
+		background: var(--surface);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+	}
+
+	.paging-make-pane p { margin: 0; }
+
+	/* The pane's own name, and the one control that belongs to the pane rather than
+	   to a row in it. */
+	.paging-make-pane-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5em; }
+
+	.paging-make-group { display: flex; flex-direction: column; gap: 0.4em; }
+	.paging-make-group-title { font-weight: 600; font-size: 0.95em; }
+
+	/* ── the tree ─────────────────────────────────────────────────────────── */
+	.paging-make-tree,
+	.paging-make-roots,
+	.paging-make-node { display: flex; flex-direction: column; gap: 0.25em; }
+
+	/* ⚠ NO `flex-wrap` HERE, AND THAT IS MEASURED. A wrapping row wraps BEFORE it
+	     shrinks — flexbox lays every item out at its base size first and only
+	     distributes shrinkage inside a line that is already there — so one `wrap` on
+	     this rule pushed the star, + and × onto a second line on every row whose title
+	     was longer than its indent left room for, instead of ellipsising the title the
+	     way it has always done (measured at 1280, three rows deep). The two things that
+	     DO need a second line get it elsewhere: the "opens first" tag is its own line
+	     under the row, and the delete question replaces the row's contents entirely. */
+	.paging-make-row {
+		display: flex; align-items: center; gap: 0.25em;
+		padding: 0.25em 0.35em;
+		font-size: 0.9em;
+		background: var(--fill-a04);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+	}
+
+	/* THE ROW YOU ARE EDITING. One border and one wash — the middle and the right
+	   pane are already saying which page this is, so the tree only has to agree. */
+	.paging-make-row-on {
+		border-color: var(--prim);
+		background: color-mix(in srgb, var(--prim) 12%, transparent);
+	}
+
+	/* THE GRIP — the only thing a drag starts from. `Draggable` adds `.drag-handle`
+	   (cursor and `touch-action`) to whatever it is given; this is the target you aim
+	   at, so it gets a hit area of its own and never shrinks. */
+	.paging-make-grip { display: inline-flex; align-items: center; flex: none; padding: 0.1em 0; color: var(--subtle); }
+	.paging-make-grip:is(:hover, :focus-visible) { color: var(--ink); }
+
+	/* THE WHOLE NAME IS THE BUTTON that picks this page, and it takes the leftover so
+	   a click anywhere along the row lands. ⚠ `min-width: 0` and the ellipsis: a flex
+	   item shrinks to min-content first, so a two-word title would go three lines tall
+	   before the row ever wrapped. */
+	.paging-make-pick {
+		display: flex; align-items: center; gap: 0.3em;
+		flex: 1 1 auto; min-width: 0;
+		cursor: pointer;
+	}
+	.paging-make-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+	.paging-make-pick:is(:hover, :focus-visible) .paging-make-title { color: var(--prim-ink); }
+
+	/* WHY THIS ROW IS STARRED, IN WORDS. A filled star is a mark and not a sentence:
+	   pressing it moved nothing else on the screen, so nobody could say what it had
+	   done. Its own line directly under the row, indented to the row's title — so it
+	   takes no width from the name and only a starred row is a line taller. */
+	/* ⚠ IT CARRIES THE STAR. Under a page that HAS children the tag sits between the
+	     row and its children, where "opens first" alone could be read as a heading for
+	     them — the glyph ties it back to the button that was pressed. */
+	.paging-make-first {
+		display: flex; align-items: center; gap: 0.2em;
+		margin-block-start: -0.1em;
+		padding-inline-start: 1.85em;
+		font-size: 0.68em; font-weight: 600; letter-spacing: 0.03em;
+		color: var(--prim);
+	}
+	.paging-make-first .icon { font-size: 1.15em; }
+
+	/* ── THE ROW WHILE IT IS ASKING ───────────────────────────────────────────
+	   The question takes the whole first line and WRAPS — the one control whose job
+	   is to say what it is about to destroy read "D…" inside a 210px pane, because it
+	   wore the title's own `nowrap` + ellipsis. Its buttons sit under it on the second
+	   line, which is where the eye wants them anyway: read, then answer. */
+	/* ⚠ `wrap` IS SAFE HERE AND ONLY HERE: the question REPLACES the row's contents,
+	     so there is no title to ellipsise and no acts to push off the end. */
+	.paging-make-row-ask { flex-wrap: wrap; row-gap: 0.35em; border-color: var(--error); }
+
+	.paging-make-ask-title {
+		display: flex; align-items: flex-start; gap: 0.25em;
+		flex: 1 1 100%; min-width: 0;
+		font-weight: 600;
+	}
+
+	/* THE ACTS — star, add, delete — in one group against the far edge, so the same
+	   three buttons are in the same place on every row however long the title. */
+	.paging-make-acts { display: flex; align-items: center; gap: 0.1em; flex: none; margin-inline-start: auto; }
+
+	.paging-make-act {
+		display: inline-flex; align-items: center; flex: none;
+		padding: 0.1em;
+		color: var(--subtle);
+		border-radius: var(--radius);
+		cursor: pointer;
+	}
+	.paging-make-act:is(:hover, :focus-visible) { color: var(--ink); background: var(--fill-a08); }
+	.paging-make-act.on { color: var(--prim); }
+	.paging-make-del:is(:hover, :focus-visible) { color: var(--error); }
+
+	/* A page's children, indented under it — and the box a dragged row lands in to
+	   BECOME one of them. */
+	/* ⚠ THE INDENT IS AS SMALL AS IT CAN BE AND STILL READ. Every level costs the
+	     TITLE its width, and a title is what a row is for: at 1.1em + 0.5em a
+	     third-level row had about 60px left for its name and read "Ne…". Two thirds
+	     of that, and the rule line does the work the whitespace was doing. */
+	.paging-make-kids {
+		display: flex; flex-direction: column; gap: 0.25em;
+		margin-inline-start: 0.55em;
+		border-inline-start: 2px solid var(--line);
+		padding-inline-start: 0.4em;
+	}
+
+	/* ⚠ AN EMPTY PAGE IS STILL A PLACE A ROW CAN LAND. `draggable.css` gives every
+	     registered container `min-height: 1.75em` for exactly this reason — with no
+	     height there is no surface to drop onto, the single most common "drag doesn't
+	     work" report. 1.75em under every leaf row is a lot of empty tree, so it is
+	     trimmed here and made obviously a slot instead. */
+	.paging-make-kids:empty { min-height: 0.9em; border-inline-start-style: dashed; }
+
+	.paging-make-where-line { font-size: 0.8em; }
+
+	/* ── the middle: the page itself ──────────────────────────────────────── */
+	/* THE HEADING AND ITS CAPTION, stacked — which is the order the page itself puts
+	   them in: core's `h1.page-title` first, the address under it. */
+	.paging-make-head { display: flex; flex-direction: column; align-items: flex-start; gap: 0.15em; }
+
+	/* ⚠ THE SIZE IS CORE'S, DELIBERATELY. This used to say `font-size: 1.2em`, which
+	     made the preview open with a heading the real page does not have — the page
+	     opens at `clamp(1.75rem, 9vw, 3em)` and the picture of it opened at 19px. Only
+	     the MARGIN is overridden, because core's h1 leads a page body and this one
+	     leads a pane.
+	   ⚠ AND THE SELECTOR CARRIES THE ELEMENT: core's `.page h1.page-title` is (0,2,1)
+	     in this same layer, so a plain `.paging-make-head-title` at (0,1,0) cannot
+	     touch it at all. */
+	.paging-make-head h1.paging-make-head-title { margin: 0; }
+
+	/* THE REAL ADDRESS, as a link that opens it — the one thing a picture of a page
+	   cannot be. Small, because it is the caption and the page is the subject. */
+	.paging-make-url {
+		display: inline-flex; align-items: center; gap: 0.2em;
+		font-size: 0.78em; color: var(--subtle); text-decoration: none;
+		min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+	}
+	.paging-make-url:is(:hover, :focus-visible) { color: var(--prim-ink); }
+	.paging-make-url .icon { font-size: 1em; }
+
+	.paging-make-live { border: 1px solid var(--line); border-radius: var(--radius); }
+
+	/* ⚠ CAPPED. The middle is 1877px at 3440, and one line of prose across 1830px is
+	     a line the eye cannot get back from — the layout rule's second invariant. The
+	     pane keeps the width; the sentence in it does not. */
+	.paging-make-note { font-size: 0.8em; max-width: var(--measure, 40em); }
+
+	/* ── the settings pane ────────────────────────────────────────────────── */
+	.paging-make-field { display: flex; flex-direction: column; gap: 0.15em; }
+	.paging-make-label { font-size: 0.72em; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+
+	/* ⚠ `flex: none`, NEVER a basis. `.paging-make-field` is a flex COLUMN, so a
+	     `flex-basis: 12em` copied from a row control is read as a HEIGHT: the Title
+	     field came out a 192px-tall grey slab with the text sitting at the bottom of
+	     it, and nothing warned. A field in a column stack takes the width it is given
+	     and its own line height. */
+	.paging-make-input {
+		flex: none; width: 100%; min-width: 0;
+		padding: 0.3em 0.5em;
+		font: inherit; font-size: 0.9em;
+		color: var(--ink);
+		background: var(--surface);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+	}
+
+	/* ── THE REALM'S BAR, INSIDE A 265px PANE ─────────────────────────────────
+	   ⚠ CONSTRAIN THE GROUP, NOT ITS DROPDOWNS. `.paging-toolbar .paging-group` is
+	     `flex: none` — right across a 1040px middle, where a group sizing itself to
+	     its longest option is the whole reason the seven words fit one row. In this
+	     pane the SKIN group is three of those side by side: 279px of group in 265px of
+	     pane, so its third dropdown (TYPE SIZE) crossed the card's border by 14px and
+	     the page does not scroll sideways, so nothing warned
+	     (self-evident-critique-2, finding 7). Letting the GROUP shrink is enough —
+	     `.paging-group-row` already wraps, so the third pick drops to its own line and
+	     every dropdown keeps its own full width. */
+	.paging-make-right .paging-toolbar .paging-group { flex: 0 1 auto; max-width: 100%; }
+
+	.paging-make-line { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35em; }
+
+	/* A CLOSED LIST OF VALUES, in the shape the seven words above it use. ⚠ `flex: 1 1
+	   auto` with `min-width: 0`, NOT the bar's `flex: none; width: auto`: the bar sits
+	   across a 1040px middle where a select may size itself to its longest option, and
+	   this one sits in a 210px pane where that same rule would push its own row wider
+	   than the pane. It takes the leftover of its row and shrinks. */
+	.paging-make-select {
+		flex: 1 1 auto; min-width: 0; max-width: 100%;
+		font: inherit; font-size: 0.85em;
+	}
+	.paging-make-line-note { font-size: 0.8em; }
+
+	.paging-make-adds { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35em; }
+
+	.paging-make-item {
+		display: flex; flex-direction: column; gap: 0.3em;
+		padding: 0.4em;
+		background: var(--fill-a04);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+	}
+	.paging-make-item-head { display: flex; align-items: center; gap: 0.3em; }
+	.paging-make-item-title { flex: 1 1 auto; min-width: 0; font-weight: 600; font-size: 0.85em; }
+
+	.paging-make-text {
+		width: 100%;
+		padding: 0.4em 0.5em;
+		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+		font-size: 0.8em;
+		line-height: 1.5;
+		color: var(--ink);
+		background: var(--surface);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		resize: vertical;
+	}
+}

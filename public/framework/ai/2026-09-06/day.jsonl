@@ -66,3 +66,4 @@
 {"log": {"at": "2026-09-06T13:22:42-05:00", "task": "size-apply", "msg": "landed - one --size knob (.75/1/1.5), 957 renames, --pad-ramp/--gap-ramp/--flow-ramp/--spacing/spacing-tight/spacing-airy deleted not aliased, vw->cqi, two self-reference bugs caught and fixed by hand, controls page re-measured, zero console errors on the crawl"}}
 {"log": {"at": "2026-09-06T13:30:16-05:00", "task": "docs-after-size", "msg": "task opened - rename old spacing token names to the landed --size/--pad/--gap/--flow in the docs left stale by size-apply"}}
 {"log": {"at": "2026-09-06T13:35:40-05:00", "task": "docs-after-size", "msg": "landed - 10 docs rewritten to --size/--pad/--gap/--flow, grep clean outside history pages and one historical skill log entry"}}
+{"log": {"at": "2026-09-08T09:15:01-05:00", "task": "mastermind-graduate", "msg": "landed - closed by the mastermind of 2026-09-08 at the owner's stand-down; its session had ended without a landing line"}}

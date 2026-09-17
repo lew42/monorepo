@@ -18,12 +18,29 @@ rendering nothing.
   "now": "one line, updated as state changes",
   "window": { "before": 0.15, "after": 0.4 },
   "links": [{ "url": "…", "label": "…" }],
-  "outcome": "markdown — first line is what the card shows"
+  "outcome": "markdown — first line is what the card shows",
+  "highlight": { "icon": "explore", "title": "five words or fewer",
+                 "line": "one plain sentence", "url": "/the/thing/" }
 }}
 {"agent": {"kind": "agent|cli", "task": "one line", "tokens": …, "outcome": "…"}}
 {"chat": {"at": "…", "role": "user|assistant", "text": "…", "cost_usd": …}}
 {"shot": {"at": "…", "path": "absolute — never in the repo", "url": "…", "width": 1400, "label": "…"}}
 ```
+
+## `highlight` puts the task on the front page
+
+The one optional field a task adds when it produced something the owner will
+go looking for weeks later — a tier, a realm, a study, a post, a tool, a
+standard. It draws one card on the wall at [`/framework/ai/`](/framework/ai/),
+grouped under its day, and the card links to `url` — **the thing**, not the
+task page.
+
+Four fields, all required if the field is present at all: `icon` (one of six
+Material Icons names, one per kind of thing), `title` (five words or fewer),
+`line` (one plain sentence a newcomer follows) and `url`. Nothing curates it
+and nothing crawls: the task record is the only source, so deleting the line
+removes the card. What earns one, the six icons and the traps:
+[`doc/highlights.md`](/framework/ext/AITask/doc/highlights.md).
 
 ## `window` is fractions, not percents
 

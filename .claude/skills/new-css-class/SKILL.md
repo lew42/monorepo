@@ -25,6 +25,10 @@ description: Run every time you are about to introduce (or rename) a CSS class n
    (2026-09-05). Prefix the class as you would the string: `PagingStage` → `.paging-stage`.
 5. **Opening a namespace?** A new module's first class adds its prefix to
    `css-scopes.txt` (one line, `prefix-   owner`).
+   ⚠ When `css-scopes.txt` is outside your write fence, the reservation is still a
+   deliverable — write the literal line (`prefix-   /module`) into the module's own
+   `doc/decisions.md` under Open, so the next agent who can write the file finds it
+   instead of it getting dropped (`/websites/` opened `site-`, 2026-09-08).
 6. ⚠ **`page--<slug>` is stamped on every page** — TWO dashes (`Page.class.js`), so the
    instance stamp for route slug `<x>` is `.page--<x>` and it can never collide with a
    `page-` component class. Don't start a module class with `page-` unless you are

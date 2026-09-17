@@ -14,6 +14,27 @@
 
 @layer theme {
 
+	/* ════ START — the wall of 24 ════════════════════════════════════════════
+	   Core's `.page-preview-desc` (`core/Page/Page.css`) clamps every card's own
+	   description to two lines with `overflow: hidden` — so whichever word
+	   straddles the clamp is hard-cut wherever the box happens to end, mid-word as
+	   often as not (self-evident-critique-3, finding 5, 19 of 24 cards). Raising
+	   the clamp still cut 9; a description is one sentence, not a caption, and the
+	   only truncation point that is ALWAYS a word boundary is none at all — normal
+	   text wrap never splits a word. `.page--start` is this page's own instance
+	   stamp (`Page.class.js`); the fix belongs to THIS wall's rule, not core's, so
+	   it is written here at a higher specificity rather than edited up there.
+	   ⚠ Rows stay even: the grid's own `align-items: stretch` (Page.css, the
+	     owner's 2026-09-04 call against a "skyline of uneven card bottoms") matches
+	     every card in a ROW to that row's tallest, clamp or none — this only lets a
+	     row with one long sentence in it be taller than the rows around it. */
+	.page--start .page-preview-desc {
+		display: block;
+		-webkit-line-clamp: unset;
+		line-clamp: unset;
+		overflow: visible;
+	}
+
 	/* ════ SEGMENTED CONTROL — the one control that replaces a file per state ═══
 	   ⚠ (0,3,0), and it has to be. The site theme styles every `button` as an
 	     uppercase CTA at `.theme-lew42 :is(button, .btn)` — (0,2,0) in THIS layer —

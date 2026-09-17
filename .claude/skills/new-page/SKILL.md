@@ -21,8 +21,18 @@ description: Run every time you create a page.js — the blessed shape, the pare
    A module index is `new Doc({ … })` instead (`documentation` skill). Never name a page
    method `render()` — it collides with core; `draw()`, `report()` are free.
 3. **Add its name to the parent's `children:`.** Nothing crawls; an unlinked page does not
-   exist. ⚠ A name declared in `children:` whose dir has no `page.js` 404s the whole
-   probe — declare only what exists.
+   exist. ⚠ A name declared in `children:` whose dir has no `page.js` and no `.md` 404s
+   the whole probe — declare only what exists. Backed only by a `.md`, it still renders
+   (core's probe tries `page.js` first, `.md` last) but logs a console 404 for the
+   missing `page.js` on every page in that subtree — declare the note as a config that
+   names the file instead: `["Naming", { content(){ return md.file(import.meta, "naming.md", { h1: false }); } }]`
+   for a clean console (`/layouts/doc/`, 3 errors × 16 pages, 2026-09-08).
+   ⚠ Not every subtree wants this line at all, and not every `page.js` is a `Page` —
+   `public/blog/readme.md` documents `/blog/` posts as deliberately undeclared (the
+   manifest `blog/posts.js` lists them so the front need not import every post to print
+   a title), and a post is `export default new Post({ meta: import.meta })`, four lines,
+   no `content()`. Check the module's own readme before assuming step 2/3 apply
+   (`/blog/ai/playwright/`, 2026-09-08).
    ⚠ `icon:` is unverified and fails silently: the site loads **Material Icons**, not Symbols — a name only the newer set has (`developer_guide`) renders as its literal word, ~291px in a 219px card label, and nothing throws. Probe a new name's `offsetWidth` in the live page: a glyph is ~19px, a miss is 100px+.
 4. **`doc/`** beside it when there is a topic worth a url; `readme.md` for a module.
 5. Log the url in your task's `links`. Then `documentation` and `finish-task` when done.

@@ -41,9 +41,9 @@ const atlas = () => new Page({
 						div.c("flex v gap", () => page.children.forEach((_, sub) => {
 							const kid = page.nav_for(sub);
 							a.c("page-link", kid.label).href(kid.url);
-						})).style({ "--gap": "calc(var(--gap-ramp) * 0.3)", "padding-inline-start": "var(--pad-ramp)", "font-size": "0.9em" });
+						})).style({ "--gap": "calc(var(--gap) * 0.3)", "padding-inline-start": "var(--pad)", "font-size": "0.9em" });
 				});
-			}).style({ "--basis": "10em", "--gap": "calc(var(--gap-ramp) * 0.55)", "--pad": "var(--pad-ramp)" });
+			}).style({ "--basis": "10em", "--gap": "calc(var(--gap) * 0.55)", "--pad": "var(--pad)" });
 
 			this.$pages = div.c("flex-1");
 		});

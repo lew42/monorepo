@@ -1,0 +1,525 @@
+{
+	"name": "simon-willison-blog",
+	"url": "https://simonwillison.net/",
+	"title": "Simon Willison’s Weblog",
+	"category": "blog",
+	"captured_at": "2026-09-08T05:50:04.476Z",
+	"embed": "allowed",
+	"embed_note": "no x-frame-options and no restrictive frame-ancestors",
+	"shots": {
+		"400": "site/simon-willison-blog/400.jpg",
+		"1280": "site/simon-willison-blog/1280.jpg",
+		"1920": "site/simon-willison-blog/1920.jpg",
+		"3440": "site/simon-willison-blog/3440.jpg",
+		"long": "site/simon-willison-blog/long.jpg"
+	},
+	"layout": {
+		"400": "1-flow",
+		"1280": "2-sidebar",
+		"1920": "2-sidebar",
+		"3440": "2-sidebar"
+	},
+	"sections": [
+		{
+			"name": "header",
+			"layout": "1-flow",
+			"css": "block",
+			"note": "wordmark, a row of top-tag pill links, a search box and a sponsor banner; all full width of the centred wrapper at every size, no columns here."
+		},
+		{
+			"name": "section nav",
+			"layout": "1-flow",
+			"css": "block, inline links",
+			"note": "a solid purple bar of text links (Entries, Links, Quotes, Notes, Guides, Elsewhere); it never wraps into a menu, it just sits on one line under the search box at every width tested."
+		},
+		{
+			"name": "entries column",
+			"layout": "2-sidebar right",
+			"css": "float: left, fixed 560px inside a centred 960px wrapper",
+			"note": "the day-by-day posts; a plain old CSS float, not flex or grid — the oldest of the three techniques this corpus has seen so far."
+		},
+		{
+			"name": "highlights sidebar",
+			"layout": "2-sidebar right",
+			"css": "float: left, fixed 280px",
+			"note": "a top-10 list of recent posts; floats beside the entries column above 800px and drops underneath it, near the very end of the page, at 400px."
+		}
+	],
+	"tags": [
+		"2-sidebar",
+		"1-flow",
+		"float",
+		"right",
+		"max-width",
+		"blog"
+	],
+	"responsive": {
+		"strategy": "A fixed 960px wrapper, centred on the page — same trick as the Josh Comeau blog, but built with the oldest CSS layout tool there is: two `float: left` columns (560px of entries, 280px of highlights) instead of flex or grid. A wide screen just adds more empty margin on both sides; the columns themselves never resize. Below about 800px the floats give way and the highlights list drops to the bottom of the page, after every entry.",
+		"breakpoints": [
+			480,
+			800,
+			940
+		]
+	},
+	"scan": {
+		"scanned_at": "2026-09-08T05:50:16.771Z",
+		"css": {
+			"sheets": 1,
+			"bytes": 55653,
+			"inline_bytes": 3943
+		},
+		"media": [
+			"(max-width: 480px) {",
+			"(max-width: 800px) {",
+			"(max-width: 940px) and (min-width: 801px) {",
+			"(prefers-color-scheme: dark) {"
+		],
+		"container": [],
+		"breakpoints_seen": [
+			{
+				"px": 480,
+				"count": 1
+			},
+			{
+				"px": 800,
+				"count": 1
+			},
+			{
+				"px": 801,
+				"count": 1
+			},
+			{
+				"px": 940,
+				"count": 1
+			}
+		],
+		"widths": {
+			"400": {
+				"doc": [
+					400,
+					22820
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"display": "block",
+						"rect": [
+							10,
+							83,
+							276,
+							31
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"display": "block",
+						"rect": [
+							10,
+							22457,
+							380,
+							235
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "wrapper",
+						"display": "block",
+						"rect": [
+							0,
+							325,
+							400,
+							22391
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "primary",
+						"display": "block",
+						"float": "left",
+						"rect": [
+							10,
+							325,
+							380,
+							20218
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "secondary",
+						"display": "block",
+						"rect": [
+							10,
+							20543,
+							380,
+							2149
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "ul",
+						"display": "block",
+						"rect": [
+							10,
+							20616,
+							380,
+							1817
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "blogmark segment",
+						"display": "block",
+						"rect": [
+							10,
+							16702,
+							380,
+							1616
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1280": {
+				"doc": [
+					1280,
+					19075
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"display": "block",
+						"rect": [
+							679,
+							32,
+							276,
+							31
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"display": "block",
+						"rect": [
+							765,
+							2497,
+							280,
+							257
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "wrapper",
+						"display": "block",
+						"rect": [
+							160,
+							210,
+							960,
+							18800
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "primary",
+						"display": "block",
+						"float": "left",
+						"rect": [
+							170,
+							210,
+							560,
+							18800
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "blogmark segment",
+						"display": "block",
+						"rect": [
+							170,
+							15350,
+							560,
+							1388
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "secondary",
+						"display": "block",
+						"float": "left",
+						"rect": [
+							765,
+							210,
+							280,
+							2568
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "beat segment",
+						"display": "block",
+						"rect": [
+							170,
+							9659,
+							560,
+							1208
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1920": {
+				"doc": [
+					1920,
+					19055
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"display": "block",
+						"rect": [
+							999,
+							32,
+							276,
+							31
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"display": "block",
+						"rect": [
+							1085,
+							2497,
+							280,
+							257
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "wrapper",
+						"display": "block",
+						"rect": [
+							480,
+							210,
+							960,
+							18800
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "primary",
+						"display": "block",
+						"float": "left",
+						"rect": [
+							490,
+							210,
+							560,
+							18800
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "blogmark segment",
+						"display": "block",
+						"rect": [
+							490,
+							15350,
+							560,
+							1388
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "secondary",
+						"display": "block",
+						"float": "left",
+						"rect": [
+							1085,
+							210,
+							280,
+							2568
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "beat segment",
+						"display": "block",
+						"rect": [
+							490,
+							9659,
+							560,
+							1208
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"3440": {
+				"doc": [
+					3440,
+					19055
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"display": "block",
+						"rect": [
+							1759,
+							32,
+							276,
+							31
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"display": "block",
+						"rect": [
+							1845,
+							2497,
+							280,
+							257
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "wrapper",
+						"display": "block",
+						"rect": [
+							1240,
+							210,
+							960,
+							18800
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "primary",
+						"display": "block",
+						"float": "left",
+						"rect": [
+							1250,
+							210,
+							560,
+							18800
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "blogmark segment",
+						"display": "block",
+						"rect": [
+							1250,
+							15350,
+							560,
+							1388
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "secondary",
+						"display": "block",
+						"float": "left",
+						"rect": [
+							1845,
+							210,
+							280,
+							2568
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "beat segment",
+						"display": "block",
+						"rect": [
+							1250,
+							9659,
+							560,
+							1208
+						],
+						"side_by_side": 1
+					}
+				]
+			}
+		}
+	},
+	"notes": "This is a classic two-column blog: a day-by-day list of posts on the left and a short 'Highlights' list floating beside it on the right, both fixed widths sitting inside a 960px column that centres itself on the page — so a wide monitor just adds space on the sides, it never makes the columns bigger. What makes this one different from the other blogs in this batch is HOW the two columns are built: plain CSS float, the technique the web used for multi-column pages before flexbox and grid existed. It still works exactly the way it always has — the text wraps around the floated box until the box ends. Below about 800px the float layout gives up and the highlights list moves down to the very bottom of the page, well after the last post, rather than appearing near the top.",
+	"wire": {
+		"role": "page",
+		"kids": [
+			{
+				"role": "header",
+				"h": "9em"
+			},
+			{
+				"role": "nav",
+				"h": "2.5em"
+			},
+			{
+				"role": "main",
+				"dir": "row",
+				"center": true,
+				"floor": "50rem",
+				"kids": [
+					{
+						"role": "main",
+						"w": "35em",
+						"lines": 10
+					},
+					{
+						"role": "aside",
+						"w": "17.5em",
+						"lines": 8
+					}
+				]
+			}
+		]
+	}
+}

@@ -29,6 +29,8 @@ board renders it in place of the generic viewer.
 {"assign": {"step": <last>, "landed_at": "<ISO with local offset>", "outcome": "**what landed** — …", "links": [{"url": "/…/", "label": "…"}], "window": {"before": <carried>, "after": <5h fraction now>}, "tokens": <total>, "usage": {"input": …, "cache_write": …, "cache_read": …, "output": …, "calls": …}}}
 ```
 
+Optional, and only when this landing produced something the owner will go looking for later — a tier, a realm, a system, a class, a standard, a post, a tool, a study with a page — append one more line so it draws a card on the front of `/framework/ai/`: `{"assign": {"highlight": {"icon": "<one of layers explore science article build straighten>", "title": "<five words or fewer>", "line": "<one plain sentence>", "url": "<THE THING, never this task page>"}}}` — what earns one and what the six icons mean: [`ext/AITask/doc/highlights.md`](/framework/ext/AITask/doc/highlights.md).
+
 `window.after` from `check-claude-usage`; `tokens`/`usage` summed from
 `~/.claude/projects/<cwd-slug>/<session_id>.jsonl` (assistant lines' `message.usage`,
 deduped by `message.id`). A subagent cannot sum its own tokens (its turns are not in that

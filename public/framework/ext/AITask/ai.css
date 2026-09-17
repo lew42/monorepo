@@ -127,6 +127,19 @@
 	.page:has(> .ai-dashboard) > .page-title { font-size: 1.4em; }
 	.page:has(> .ai-dashboard) > .page-title + * { margin-block-start: var(--flow); }
 
+	/* The same argument, one page up (2026-09-08, ai-highlights). The heading a
+	   reader SEES on `/framework/ai/` is not this page's own `.page-title` — that
+	   one is empty and 0px tall. It is the title of the `intro` child `catalog()`
+	   adds, inside `.page-catalog-pages`: a 53px `AI` over a 60px flow gap, 237px
+	   of a 1080 screen spent before the first thing worth clicking, on the page
+	   whose whole job is "find the thing you are looking for in ten seconds" —
+	   and the sidebar entry two inches to its left already says AI.
+	   ⚠ Also matches when a day or `log/` is routed (the rail is hidden, not
+	     removed, so `:has()` still fires) — which is wanted: the day page reaches
+	     the same 1.4em by its own rule above, and `log/` should agree with it. */
+	.page-catalog:has(> .ai-index-rail) > .page-catalog-pages > .page > .page-title { font-size: 1.4em; }
+	.page-catalog:has(> .ai-index-rail) > .page-catalog-pages > .page > .page-title + * { margin-block-start: var(--flow); }
+
 	.ai-group { display: flex; flex-direction: column; gap: calc(var(--gap) * 0.4); }   /* was gap .4em - 2026-09-05 ramps */
 	.ai-group-title { font-weight: 700; font-size: .9em; letter-spacing: .04em; text-transform: uppercase; }
 
@@ -229,6 +242,69 @@
 		.ai-card { grid-template-columns: minmax(0, 1fr); }
 		.ai-figures { text-align: left; white-space: normal; display: flex; flex-wrap: wrap; gap: 0 1em; }
 	}
+
+	/* ── THE HIGHLIGHTS WALL (2026-09-08, ai-highlights) ──
+	   The front used to end with `dated()` — 572 task rows, newest first, on the
+	   page the owner opens to find one thing. It is a WALL now, not a list: a
+	   card is a target you scan, an icon says what KIND of thing it is before
+	   any word is read, and forty-five of them fit where forty-five rows do not.
+	   The archive did not go away — it is `/framework/ai/log/`, named in the one
+	   line below the wall. */
+	.ai-highlights { display: flex; flex-direction: column; gap: calc(var(--gap) * 0.5); }
+
+	/* ⚠ `--column` on the WALL, not a track list of its own: `.grid.auto`
+	     (framework.css) is `repeat(auto-fit, minmax(min(--column, 100%), 1fr))`,
+	     so this one token is the whole responsive answer — one card wide at 400,
+	     four at 1920, nine at 3440, and never a card too narrow for its sentence.
+	   ⚠ `align-items: start` so a card with a two-line title does not stretch
+	     every other card in its row to match. */
+	.ai-hl-wall { --column: 20em; align-items: start; }
+
+	/* The day heading over each run of cards, and the way into that day's own
+	   board. Same shape as `.ai-when` on the log spine, so the two pages agree.
+	   ⚠ `display: block` — it is an `<a>`, and inline it would sit beside the
+	     wall's first card rather than over the run it heads. */
+	.ai-hl-day {
+		display: block; text-decoration: none;
+		margin-block: 1.1em calc(var(--gap) * 0.5);
+		font-weight: 700; font-size: .9em; letter-spacing: .04em; text-transform: uppercase;
+	}
+	.ai-highlights > .ai-hl-day:first-of-type { margin-block-start: 0; }
+	.ai-hl-day:hover { color: var(--prim); }
+
+	/* A card is a row of facts, not prose — 1.4 leading against the theme's 1.8,
+	   the same argument `.ai-card` makes: reading leading adds ~11px to each of
+	   its five lines, which over five rows is most of a 1080 screen. */
+	.ai-hl {
+		position: relative;
+		display: flex;
+		gap: calc(var(--gap) * 0.4);
+		padding: .6em .8em;
+		line-height: 1.4;
+		min-width: 0;
+	}
+
+	/* `--prim-ink`, not `--prim`: prim is a fill, 2.2:1 as text (color study 2026-09-01). */
+	.ai-hl-icon { color: var(--prim-ink); }
+	.ai-hl-body { display: flex; flex-direction: column; min-width: 0; }
+
+	/* The title's ::after spreads the card's link over the whole card — so the
+	   `log` link, the one thing here that goes somewhere else, lifts above it. */
+	.ai-hl-title { font-weight: 700; color: var(--prim-ink); text-decoration: none; }
+	.ai-hl-title::after { content: ""; position: absolute; inset: 0; }
+
+	.ai-hl-line { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+	.ai-hl-foot { display: flex; gap: .8em; align-items: baseline; font-size: .85em; }
+	.ai-hl-task { position: relative; z-index: 1; color: inherit; text-decoration: none; }
+	.ai-hl-task:hover { color: var(--prim); }
+
+	/* The one "Show more" both walls use. `align-self: start` because it is a
+	   button in a flex column, and a stretched one is a 100%-wide grey bar. */
+	.ai-more { align-self: start; }
+
+	/* The way out of the front page, and the way the log page paginates. */
+	.ai-out { margin-block-start: calc(var(--flow) * 0.5); }
+	.ai-all, .ai-paged { display: flex; flex-direction: column; gap: calc(var(--gap) * 0.75); }
 
 	.ai-nested { margin-inline-start: 2em; }
 

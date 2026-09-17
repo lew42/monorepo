@@ -55,6 +55,7 @@ clamp on a control is the same mistake in different clothes (the paging toolbar,
 takes each item to min-content, and a multi-word label wraps to lower min-content further: six
 toolbar buttons went two-line before the row ever scrolled, silently (2026-08-19). The fix shape:
 `white-space: nowrap; flex: none` on the items, `overflow-x: auto` on the row.
+⚠ The mirror image: `flex-wrap: wrap` WRAPS BEFORE IT SHRINKS. Flexbox lays every item out at its base size and only distributes shrinkage inside a line that already exists, so one `wrap` added to a row that relied on `flex: 1 1 auto; min-width: 0` ellipsising its title pushed the star, `+` and `×` of every long-titled tree row onto their own line — nothing thrown, the rule looks right in devtools (2026-09-13). Give the second line its own element outside the row; wrap only a row whose contents were replaced.
 
 **5. A new class name → run `new-css-class`** (reserved prefixes in
 `framework/styles/css-scopes.txt`; prefix with the owning module).

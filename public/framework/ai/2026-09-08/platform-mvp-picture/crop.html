@@ -1,0 +1,15 @@
+<!doctype html><meta charset="utf-8">
+<title>crop: two columns out of slice.png</title>
+<!-- Open through the dev server and screenshot the #fig element (the site `shot` tool, selector
+     "#fig") — the result is slice-columns.png. Boxes are pixels of the 1800x1040 slice.png:
+     the topic column x 121-525 and the #general column x 1336-1800, both from y 76. -->
+<style>
+  body { margin: 0; background: #fff; }
+  #fig { display: flex; gap: 14px; width: max-content; background: #e9e7e3; }
+  #fig > div { width: var(--w); height: 964px; overflow: hidden; position: relative; background: #fff; }
+  #fig img { position: absolute; top: -76px; left: var(--x); max-width: none; }
+</style>
+<div id="fig">
+  <div style="--w:404px"><img src="../../2026-09-06/platform-slice/slice.png" style="--x:-121px"></div>
+  <div style="--w:464px"><img src="../../2026-09-06/platform-slice/slice.png" style="--x:-1336px"></div>
+</div>

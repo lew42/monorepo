@@ -172,8 +172,10 @@ list now; `build/words.js` imports it and adds only the two keys a `page.json` s
 
 Make wrote `style`/`content`/`mech`/`kids` while the drawer on the same page wrote the
 seven words — and the reader preferred the seven, so clicking a chip in Make changed a key
-nothing was reading. `config_of()` (`make/tabs.js`) is the one reader and migrates old
-nodes on the way in; `edit_at()` migrates a node before it changes it.
+nothing was reading. `config_of()` is the one reader and migrates old nodes on the way in;
+`edit_at()` migrates a node before it changes it. (It lived in `make/tabs.js` when this was
+written; it moved to `blocks.js` beside the words themselves, and `make/tabs.js` became
+`make/tree.js` when the two editors became one screen on 2026-09-13.)
 
 ⚠ **`navigation` and `arrangement` may not both say "Left rail".** A navigation rail lists
 *this page's children*; an arrangement panel is anything else beside the content. The
@@ -269,8 +271,9 @@ renderer and no second vocabulary.
 
 **Merged away** (all three were written out two or three times before):
 
-- navigation — `words.js` MECHANISMS, `make/tabs.js` KIDS and `build/words.js` NAVS were
-  one control in three vocabularies. `blocks.js` `NAVIGATION` is the one that survived.
+- navigation — `words.js` MECHANISMS, `make/tabs.js` KIDS (that file is `make/tree.js`
+  since 2026-09-13) and `build/words.js` NAVS were one control in three vocabularies.
+  `blocks.js` `NAVIGATION` is the one that survived.
 - surfaces — three copies (`words.js`, `build/words.js`, `imagine/layouts/system.js`) plus
   a fourth translation in `families.js`. One list now, read by **both** colour controls.
 - arrangement — five vocabularies. `/imagine/layouts/` owns the numbered layouts and each
@@ -879,9 +882,11 @@ not — you cannot link to a tab or reach one with the Back button. Every panel 
 a link that opens the same child as a column, which does. If a child deserves an address, leave
 the parent on `columns`.
 
-The controls are `make/tabs.js`; they own no storage and never write a file — each one builds a
-new tree and hands it to `Make.apply()`, the one write seam
-([persistence](/imagine/paging/doc/persistence/)).
+The controls are `make/tree.js` (the acts on a row — the default star, add a page under this
+one, delete) and `make/settings.js` (the seven words, the name fields, the blocks); they were
+one file, `make/tabs.js`, until the two editors became one screen on 2026-09-13. Neither owns
+any storage and neither writes a file — each control builds a new tree and hands it to
+`Make.apply()`, the one write seam ([persistence](/imagine/paging/doc/persistence/)).
 
 ## Checked
 

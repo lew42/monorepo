@@ -1,0 +1,437 @@
+{
+	"name": "amazon-kindle-product",
+	"url": "https://www.amazon.com/dp/B0CX23V2ZK",
+	"title": "Amazon.com: Apple 2024 MacBook Air 13-inch Laptop with M3 chip: Built for Apple Intelligence, 13.6-inch Liquid Retina Display, 8GB Unified Memory, 256GB SSD Storage, Backlit Keyboard, Touch ID; Midnight : Electronics",
+	"category": "shop",
+	"captured_at": "2026-09-08T06:07:29.522Z",
+	"embed": "blocked",
+	"embed_note": "x-frame-options: SAMEORIGIN",
+	"shots": {
+		"400": "site/amazon-kindle-product/400.jpg",
+		"1280": "site/amazon-kindle-product/1280.jpg",
+		"1920": "site/amazon-kindle-product/1920.jpg",
+		"3440": "site/amazon-kindle-product/3440.jpg",
+		"long": "site/amazon-kindle-product/long.jpg"
+	},
+	"layout": {
+		"400": "3-holy-grail",
+		"1280": "3-holy-grail",
+		"1920": "3-holy-grail",
+		"3440": "3-holy-grail"
+	},
+	"sections": [
+		{
+			"name": "category strip",
+			"layout": "1-flow",
+			"css": "flex row, horizontally scrollable",
+			"note": "a row of related Apple product categories sits above the listing itself; confirmed only at 400 and 1280, the two widths that returned the real page."
+		},
+		{
+			"name": "thumbnail rail",
+			"layout": "2-sidebar left",
+			"css": "flex column, fixed ~56-72px",
+			"note": "stays a persistent narrow column beside the product photo even at 400px — unusual in this batch, where most side columns disappear by the phone width; here it never does."
+		},
+		{
+			"name": "product image",
+			"layout": "1-flow",
+			"css": "block, fluid",
+			"note": "the single largest element on the page, growing to fill whatever room is left between the thumbnail rail and the details column."
+		},
+		{
+			"name": "details + buy box",
+			"layout": "3-holy-grail",
+			"css": "block, two separate boxes side by side (~470px details, ~236px buy box)",
+			"note": "Amazon's classic three-part product page: a narrow thumbnail rail, a wide middle of image-plus-details, and a narrow, visually boxed-off buy box on the right holding stock status and the add-to-list button."
+		}
+	],
+	"tags": [
+		"3-holy-grail",
+		"2-sidebar",
+		"left",
+		"shop"
+	],
+	"responsive": {
+		"strategy": "This page did not respond to a 400px window at all in this capture: the 400 shot is the desktop product page running off the right edge of the screen, with the search box and the details column cut mid-word, so all four widths are the same three-part arrangement - a narrow thumbnail rail, a flexible product image, a details column and a separate narrow buy box. That split is confirmed at 400 and 1280; what it does at 1920 and 3440 could not be confirmed, because a bot check answered those two - see the note below.",
+		"breakpoints": [
+			768,
+			979
+		]
+	},
+	"scan": {
+		"scanned_at": "2026-09-08T06:07:43.327Z",
+		"css": {
+			"sheets": 1,
+			"bytes": 168705,
+			"inline_bytes": 0
+		},
+		"media": [
+			"(max-width:767px){",
+			"(min-width:768px) and (max-width:979px){"
+		],
+		"container": [],
+		"breakpoints_seen": [
+			{
+				"px": 767,
+				"count": 1
+			},
+			{
+				"px": 768,
+				"count": 1
+			},
+			{
+				"px": 979,
+				"count": 1
+			}
+		],
+		"widths": {
+			"400": {
+				"doc": [
+					400,
+					844
+				],
+				"elements": [
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "a-container a-padding-double-large",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							400,
+							435
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "a-row a-spacing-double-large",
+						"display": "block",
+						"rect": [
+							25,
+							44,
+							350,
+							235
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "a-section",
+						"display": "block",
+						"rect": [
+							25,
+							180,
+							350,
+							99
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "a-box a-color-offset-background",
+						"display": "block",
+						"rect": [
+							25,
+							180,
+							350,
+							99
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "a-box-inner a-padding-extra-large",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							26,
+							181,
+							348,
+							97
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1280": {
+				"doc": [
+					1280,
+					800
+				],
+				"elements": [
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "a-container a-padding-double-large",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1280,
+							435
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "a-row a-spacing-double-large",
+						"display": "block",
+						"rect": [
+							465,
+							44,
+							350,
+							235
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "a-divider a-divider-section",
+						"display": "block",
+						"rect": [
+							0,
+							323,
+							1280,
+							44
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "a-divider-inner",
+						"display": "block",
+						"rect": [
+							0,
+							323,
+							1280,
+							44
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "a-section",
+						"display": "block",
+						"rect": [
+							465,
+							180,
+							350,
+							99
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1920": {
+				"doc": [
+					1920,
+					1080
+				],
+				"elements": [
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "a-container a-padding-double-large",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1920,
+							435
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "a-divider a-divider-section",
+						"display": "block",
+						"rect": [
+							0,
+							323,
+							1920,
+							44
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "a-divider-inner",
+						"display": "block",
+						"rect": [
+							0,
+							323,
+							1920,
+							44
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "a-row a-spacing-double-large",
+						"display": "block",
+						"rect": [
+							785,
+							44,
+							350,
+							235
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "a-section",
+						"display": "block",
+						"rect": [
+							785,
+							180,
+							350,
+							99
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"3440": {
+				"doc": [
+					3440,
+					1440
+				],
+				"elements": [
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "a-container a-padding-double-large",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							3440,
+							435
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "a-divider a-divider-section",
+						"display": "block",
+						"rect": [
+							0,
+							323,
+							3440,
+							44
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "a-divider-inner",
+						"display": "block",
+						"rect": [
+							0,
+							323,
+							3440,
+							44
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "a-row a-spacing-double-large",
+						"display": "block",
+						"rect": [
+							1545,
+							44,
+							350,
+							235
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "a-text-center a-spacing-small",
+						"display": "block",
+						"rect": [
+							0,
+							349,
+							3440,
+							16
+						],
+						"side_by_side": 2
+					}
+				]
+			}
+		}
+	},
+	"notes": "This listing's product name in the brief was a Kindle, but the ASIN now resolves to a MacBook Air — Amazon evidently reassigned or discontinued the original listing, so this record describes whatever page the URL actually serves today. More importantly: Amazon's bot defenses kicked in partway through this capture. The two smaller screenshots (400 and 1280) show the real page — a narrow thumbnail rail, the product photo, a details column and a separate buy box, the classic three-part Amazon product page. The two larger screenshots (1920 and 3440), and every width in the CSS scan, instead show a plain 'Click the button below to continue shopping' interstitial — a bot check, not a design choice. So the 1920 and 3440 entries in this record are a best guess carried forward from the confirmed 1280 layout, not something this tool actually saw; a real re-capture from a fresh, unflagged session would be needed to confirm them.",
+	"wire": {
+		"role": "page",
+		"kids": [
+			{
+				"role": "header",
+				"h": "3.5em"
+			},
+			{
+				"role": "nav",
+				"h": "2.5em"
+			},
+			{
+				"role": "nav",
+				"h": "9em",
+				"scroll": true
+			},
+			{
+				"role": "main",
+				"dir": "row",
+				"floor": "none",
+				"kids": [
+					{
+						"role": "aside",
+						"w": "4em"
+					},
+					{
+						"role": "main",
+						"dir": "row",
+						"floor": "979px",
+						"kids": [
+							{
+								"role": "image",
+								"w": 1.3
+							},
+							{
+								"role": "text",
+								"w": 1,
+								"lines": 8
+							},
+							{
+								"role": "aside",
+								"w": "14em"
+							}
+						]
+					}
+				]
+			},
+			{
+				"role": "footer",
+				"h": "5em"
+			}
+		]
+	}
+}

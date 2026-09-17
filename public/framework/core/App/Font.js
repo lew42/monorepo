@@ -5,9 +5,15 @@ export class Font {
 
 	// ⚠ Both halves are required: `FontFace.load()` fetches the file,
 	// `document.fonts.add()` is what makes the family usable in CSS.
+	// A failed fetch (offline, CDN down) must never reject this promise — `App`
+	// awaits every font in `Promise.all` (`App.js` `loaded()`), so one rejection
+	// would take the whole app down and leave the page blank. Warn once, skip
+	// `document.fonts.add()`, and let the CSS fallback stack (`--font: Montserrat,
+	// system-ui, …`) carry the text; a ligature icon font instead shows its name.
 	async load(){
 		this.face = new FontFace(this.name, `url(${this.url})`, this.options);
-		document.fonts.add(await this.face.load());
+		try { document.fonts.add(await this.face.load()); }
+		catch (error){ console.warn(`Font "${this.name}" failed to load from ${this.url} — falling back to the next family in --font`, error); }
 		return this;
 	}
 
@@ -19,8 +25,9 @@ export class Font {
 }
 
 // A site adds its own with `Font.fonts.Inter = { name, url, options }`.
-// ⚠ Fetched from Google's CDN at runtime, not vendored — offline these silently
-// fall back. readme.md and doc/fonts.md say why that trade stands.
+// ⚠ Fetched from Google's CDN at runtime, not vendored — offline these fall
+// back to the next family in `--font`, logging one console.warn each. readme.md
+// and doc/fonts.md say why that trade stands.
 Font.fonts = {
 	Montserrat: {
 		name: "Montserrat",

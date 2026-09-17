@@ -551,6 +551,14 @@ threads names rather than pages through its call sites.
 **Recommendation: keep, and document the constraint** (done, in
 `./method/nav_for.md`). Revisit if a fourth consumer has to thread names.
 
+### 5. Children that live in data — 2026-09-13
+
+`children` could be a **function** returning a promise of configs, awaited once by `child()`
+and `load_all_children()`, which deletes the two overrides `imagine/cms/json` and
+`imagine/paging/make` each wrote by hand — and the restated guard both shipped the
+"Chaining cycle detected for promise" bug without. A core `redraw()` is **refuted** in the
+same page: [`./data-children.md`](/framework/core/Page/doc/data-children/).
+
 ## Open
 
 - **One variation still has no demo.** *An undeclared child resolves anyway* cannot be

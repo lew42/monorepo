@@ -1,0 +1,654 @@
+{
+	"name": "kent-c-dodds-blog",
+	"url": "https://kentcdodds.com/blog",
+	"title": "The Kent C. Dodds Blog",
+	"category": "blog",
+	"captured_at": "2026-09-08T05:51:21.289Z",
+	"embed": "blocked",
+	"embed_note": "x-frame-options: SAMEORIGIN",
+	"shots": {
+		"400": "site/kent-c-dodds-blog/400.jpg",
+		"1280": "site/kent-c-dodds-blog/1280.jpg",
+		"1920": "site/kent-c-dodds-blog/1920.jpg",
+		"3440": "site/kent-c-dodds-blog/3440.jpg",
+		"long": "site/kent-c-dodds-blog/long.jpg"
+	},
+	"layout": {
+		"400": "1-flow",
+		"1280": "3-equal",
+		"1920": "3-equal",
+		"3440": "3-equal"
+	},
+	"sections": [
+		{
+			"name": "top nav",
+			"layout": "1-flow",
+			"css": "flex",
+			"note": "logo, the Blog/Talks/Courses/Better/Discord/Calls/About links and two icon buttons sit in one row; below 1024px the links vanish and only the logo, search icon and avatar remain (the scan's own media query names 1024px exactly)."
+		},
+		{
+			"name": "hero",
+			"layout": "2-equal",
+			"css": "flex",
+			"note": "the headline and search box sit beside a 3D illustration; at 400 the picture moves above the text. Unlike the sections below it, this band's side margins are a percentage of the window (10vw) and keep growing forever — it never caps at a fixed width."
+		},
+		{
+			"name": "topic pills",
+			"layout": "1-flow",
+			"css": "flex",
+			"note": "a wrapping row of rounded topic tags (ai, react, css, testing, …) that simply reflows to more or fewer per line as the window resizes."
+		},
+		{
+			"name": "featured article",
+			"layout": "2-equal",
+			"css": "flex",
+			"note": "one post gets a wide grey card of its own — title and read-time on the left, a thumbnail on the right — sitting above the regular grid."
+		},
+		{
+			"name": "article grid",
+			"layout": "3-equal",
+			"css": "grid",
+			"note": "the rest of the posts are a 3-column grid of thumbnail-over-title cards. This section and the featured-article band above it stop growing past 1280px and just centre with more margin, unlike the hero band above them."
+		}
+	],
+	"tags": [
+		"3-equal",
+		"cards",
+		"2-equal",
+		"1-flow",
+		"3 column grid",
+		"2 column flex",
+		"max-width",
+		"hamburger",
+		"blog"
+	],
+	"responsive": {
+		"strategy": "Two different rules live on the same page. The top nav and the hero band use a fluid margin (10% of the window on each side) that never stops growing, so the ski illustration genuinely gets more room to breathe on a 3440 screen than on a laptop. But the featured-article card and the 3-column post grid below it are capped at 1280px and centred, so the actual list of articles looks identical on a desktop monitor and an ultrawide one — only the empty space around it grows. Below 1024px the nav's text links disappear, and below that again everything (hero, cards) drops to one column.",
+		"breakpoints": [
+			1024,
+			1500
+		]
+	},
+	"scan": {
+		"scanned_at": "2026-09-08T05:51:32.334Z",
+		"css": {
+			"sheets": 5,
+			"bytes": 133120,
+			"inline_bytes": 0
+		},
+		"media": [
+			"(hover:hover){",
+			"(min-width:1024px){",
+			"(min-width:1500px){",
+			"(min-width:480px){",
+			"(min-width:640px){",
+			"(min-width:96rem){",
+			"(prefers-reduced-motion){",
+			"(prefers-reduced-motion:no-preference){",
+			"(prefers-reduced-motion:reduce){",
+			"not all and (min-width:1024px){"
+		],
+		"container": [
+			"(max-width: 1150px){",
+			"(min-width:20rem){",
+			"(min-width:24rem){",
+			"(min-width:32rem){",
+			"(min-width:42rem){",
+			"\\/grid{",
+			"grid (min-width:42rem){",
+			"grid (min-width:48rem){",
+			"grid (min-width:72rem){"
+		],
+		"breakpoints_seen": [
+			{
+				"px": 1024,
+				"count": 2
+			},
+			{
+				"px": 480,
+				"count": 1
+			},
+			{
+				"px": 640,
+				"count": 1
+			},
+			{
+				"px": 1500,
+				"count": 1
+			}
+		],
+		"widths": {
+			"400": {
+				"doc": [
+					400,
+					13928
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "navbar-container text-primary",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							20,
+							36,
+							360,
+							56
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "relative mx-10vw",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							40,
+							128,
+							320,
+							830
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "border-t border-gray-200",
+						"display": "block",
+						"rect": [
+							0,
+							11801,
+							400,
+							2127
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "set-color-team-current-yellow",
+						"display": "block",
+						"rect": [
+							0,
+							128,
+							400,
+							11513
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							0,
+							2042,
+							400,
+							8630
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "relative mx-10vw",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							40,
+							2879,
+							320,
+							7461
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "relative grid",
+						"display": "grid",
+						"cols": "68px 68px 68px 68px",
+						"rows": "642.906px 612.109px 612.109px 612.109px 642.906px 642.906px ",
+						"position": "relative",
+						"rect": [
+							40,
+							2879,
+							320,
+							7461
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "mx-10vw relative",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							40,
+							11994,
+							320,
+							1870
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1280": {
+				"doc": [
+					1280,
+					7213
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "navbar-container text-primary",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							64,
+							48,
+							1152,
+							56
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "relative mx-10vw",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							128,
+							152,
+							1024,
+							640
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "border-t border-gray-200",
+						"display": "block",
+						"rect": [
+							0,
+							5911,
+							1280,
+							1302
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "set-color-team-current-yellow",
+						"display": "block",
+						"rect": [
+							0,
+							152,
+							1280,
+							5567
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							0,
+							1392,
+							1280,
+							3619
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "relative mx-10vw",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							128,
+							2053,
+							1024,
+							2627
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "relative grid",
+						"display": "grid",
+						"cols": "63.3281px 63.3281px 63.3281px 63.3281px 63.3281px 63.3281px ",
+						"rows": "660.562px 655.359px 655.359px 655.359px",
+						"position": "relative",
+						"rect": [
+							128,
+							2053,
+							1024,
+							2627
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "mx-10vw relative",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							128,
+							6104,
+							1024,
+							1045
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1920": {
+				"doc": [
+					1920,
+					7390
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "navbar-container text-primary",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							192,
+							48,
+							1536,
+							56
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "relative mx-10vw",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							192,
+							152,
+							1536,
+							684
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "border-t border-gray-200",
+						"display": "block",
+						"rect": [
+							0,
+							6356,
+							1920,
+							1034
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "set-color-team-current-yellow",
+						"display": "block",
+						"rect": [
+							0,
+							152,
+							1920,
+							6012
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							0,
+							1372,
+							1920,
+							4017
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "relative mx-10vw",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							192,
+							2139,
+							1536,
+							2917
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "relative grid",
+						"display": "grid",
+						"cols": "84.6562px 84.6562px 84.6562px 84.6562px 84.6562px 84.6562px ",
+						"rows": "738.359px 738.359px 738.359px 702.359px",
+						"position": "relative",
+						"rect": [
+							320,
+							2139,
+							1280,
+							2917
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "mb-10",
+						"display": "block",
+						"rect": [
+							0,
+							1434,
+							1920,
+							665
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"3440": {
+				"doc": [
+					3440,
+					7468
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "navbar-container text-primary",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							952,
+							48,
+							1536,
+							56
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "relative mx-10vw",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							344,
+							152,
+							2752,
+							763
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "border-t border-gray-200",
+						"display": "block",
+						"rect": [
+							0,
+							6435,
+							3440,
+							1034
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "set-color-team-current-yellow",
+						"display": "block",
+						"rect": [
+							0,
+							152,
+							3440,
+							6091
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							0,
+							1451,
+							3440,
+							4017
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "relative mx-10vw",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							344,
+							2218,
+							2752,
+							2917
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "relative grid",
+						"display": "grid",
+						"cols": "84.6562px 84.6562px 84.6562px 84.6562px 84.6562px 84.6562px ",
+						"rows": "738.359px 738.359px 738.359px 702.359px",
+						"position": "relative",
+						"rect": [
+							1080,
+							2218,
+							1280,
+							2917
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "mb-10",
+						"display": "block",
+						"rect": [
+							0,
+							1513,
+							3440,
+							665
+						],
+						"side_by_side": 1
+					}
+				]
+			}
+		}
+	},
+	"notes": "This is a blog index with 212 posts. At the top there is a welcome banner (a title and a 3D picture of skis) whose margins are a percentage of the screen, so it really does stretch wider on a bigger monitor. But scroll past it — visible only in our full-page shot — and the actual list of posts is a row of three equal cards that stops growing at 1280 pixels no matter how wide the screen gets; a desktop and an ultrawide monitor show the exact same size grid; you just get more empty space on the sides. On a phone both parts collapse to a single column and the picture moves above the words instead of beside them. It is a small but real example of the same page mixing a growing, fluid section with a capped, centred one, which is exactly the kind of thing a screenshot alone hides and only measuring the boxes reveals.",
+	"wire": {
+		"role": "page",
+		"kids": [
+			{
+				"role": "header",
+				"h": "5em"
+			},
+			{
+				"role": "hero",
+				"dir": "row",
+				"h": "24em",
+				"floor": "64rem",
+				"kids": [
+					{
+						"role": "hero",
+						"w": 1
+					},
+					{
+						"role": "image",
+						"w": "20em"
+					}
+				]
+			},
+			{
+				"role": "nav",
+				"h": "3em"
+			},
+			{
+				"role": "main",
+				"dir": "row",
+				"h": "10em",
+				"floor": "64rem",
+				"kids": [
+					{
+						"role": "card",
+						"w": 1
+					},
+					{
+						"role": "image",
+						"w": 1
+					}
+				]
+			},
+			{
+				"role": "cards",
+				"dir": "row",
+				"h": "16em",
+				"floor": "64rem",
+				"n": 3
+			}
+		]
+	}
+}

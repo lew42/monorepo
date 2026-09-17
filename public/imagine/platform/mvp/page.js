@@ -176,9 +176,15 @@ disagree, the table rules it once.`);
 	running(){
 		md("## Running");
 
-		/* `.ac("wide")` for the same reason the two tables below take it: the column's measure cap
-		   is set for prose, and a screenshot of a four-column page is unreadable inside it. */
-		md(`![The topic world and a page inside it, side by side: JavaScript liked twice, #general liked once, signed in as carol](/framework/ai/2026-09-06/platform-slice/slice.png)`).ac("wide");
+		/* TWO COLUMNS CUT FROM THE SHOT, not the shot. The full screenshot is 1800px of a four-column
+		   row; in this ~560px column it shrank to a third and read as a LIVE column pager with its
+		   first column chopped off and no scroll (the owner, 2026-09-08). `slice-columns.png` is the
+		   topic column and the #general column from the same picture, side by side: 882px, so it
+		   lands near 1:1 here and both like counts read. Cut again from a new shot with
+		   ai/2026-09-08/platform-mvp-picture/crop.html (`shot` it, selector `#fig`).
+		   `.ac("wide")`: the column's measure cap is set for prose and would squeeze it further. */
+		md(`![The topic column and its #general channel, side by side: JavaScript liked twice, #general liked once, signed in as carol](/framework/ai/2026-09-06/platform-slice/slice-columns.png)`).ac("wide");
+		md(`*A screenshot, cut to the two columns that carry the numbers — [the whole row](/framework/ai/2026-09-06/platform-slice/slice.png). The live topic is [one click away](/imagine/platform/topic/); its like button shows a dash until the API runs.*`);
 
 		md(`*One command, about fifteen seconds, one machine, no Cloudflare account.* Steps 0, 1 and 4
 of the list below, plus the smallest possible write, running on \`workerd\` — the same engine

@@ -1,0 +1,220 @@
+/* /websites/ — the corpus. Layout only: where things sit and how they size.
+ * Colour, type and the control grammar come from framework.css and the theme.
+ * Every class here is `.site-*` (css-scopes.txt: the prefix this module opened). */
+
+@layer theme {
+
+	/* ── THE STRIP: four widths at ONE height ───────────────────────────────
+	 * A 400 shot is portrait and a 3440 shot is a wide band. Set them all to the
+	 * same height and the difference in WIDTH is the responsive story, read in one
+	 * glance. Their aspects add up to about 6.2:1, so at any sensible height the
+	 * row is wider than the page — which is why it scrolls sideways rather than
+	 * wrapping. `flex: none` on the figures is load-bearing: without it flexbox
+	 * shrinks each one to its min-content instead of overflowing, and you get four
+	 * squeezed slivers with no scrollbar (framework.css's own note on this shape). */
+	.site-strip {
+		display: flex;
+		gap: var(--gap);
+		overflow-x: auto;
+		padding-block-end: 0.5em;   /* room for the scrollbar, not spacing */
+	}
+
+	.site-shot { flex: none; display: flex; flex-direction: column; gap: 0.4em; }
+
+	.site-shot img {
+		height: var(--site-strip-h, clamp(11em, 24vh, 22em));
+		width: auto; max-width: none;   /* framework.css caps every img at 100%; here the HEIGHT rules */
+		border-radius: var(--radius);
+		box-shadow: 0 0 0 1px var(--line), 0 1px 3px rgba(0, 0, 0, 0.12);
+	}
+
+	.site-shot-cap { display: flex; align-items: baseline; gap: 0.5em; font-size: 0.8em; }
+	.site-shot-w { font-weight: 700; }
+
+	/* The one line that says what the four pictures ARE. Prose, so it takes the page's
+	 * measure rather than the strip's scrolling width. */
+	.site-strip-note { max-width: var(--measure); }
+
+	/* A WIDTH WE DID NOT PHOTOGRAPH. Drawn only when `Site.shot()` marks the figure —
+	 * either the record names no file or the file would not decode. Same height as a
+	 * real shot so the row keeps its rhythm; dashed and empty so it can never be
+	 * mistaken for a picture of the site. */
+	.site-shot-missing { display: none; }
+
+	.site-shot.is-missing img { display: none; }
+
+	.site-shot.is-missing .site-shot-missing {
+		display: flex; align-items: center; justify-content: center; text-align: center;
+		height: var(--site-strip-h, clamp(11em, 24vh, 22em));
+		width: 12em; padding: 1em;
+		border: 1px dashed var(--line); border-radius: var(--radius);
+		font-size: 0.8em;
+	}
+
+	/* ── CHIPS ──────────────────────────────────────────────────────────────
+	 * A chip is a CONTROL, so its padding and radius are its own `em` and never
+	 * `--pad` / `--gap` — those are a % and a cqi of the container, and on a 0.78em
+	 * chip in a 3400px row they measure tens of pixels. */
+	.site-id,
+	.site-tag,
+	.site-card-tag {
+		display: inline-flex; align-items: center; gap: 0.35em;
+		padding: 0.2em 0.6em;
+		border-radius: 0.4em;
+		background: var(--fill-a08);
+		font-size: 0.78em; line-height: 1.6;
+		white-space: nowrap;
+		text-decoration: none; color: inherit;
+	}
+
+	.site-id { font-family: var(--mono); font-size: 0.72em; }
+	a.site-id:hover, a.site-tag:hover { background: var(--fill-a16); }
+
+	.site-tags { display: flex; flex-wrap: wrap; gap: 0.4em; }
+
+	.site-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.4em 1em; }
+	.site-head-url { font-family: var(--mono); font-size: 0.85em; }
+
+	/* The url slug beside the site's real name in the h1. `small` alone only steps one
+	 * notch down from its parent, so inside a display heading it still read as a second
+	 * title; this pins it to a third of the heading and makes it monospace, which is
+	 * what it is — a url segment, not a subtitle. */
+	/* ⚠ `nowrap`: a slug is full of hyphens and the heading broke inside one —
+	 *   "python-" on the first line and "docs-index" on the second, which reads as two
+	 *   different names. A slug is one word wherever it appears. */
+	.site-title-slug {
+		font-family: var(--mono); font-size: 0.34em; font-weight: 500;
+		white-space: nowrap;
+	}
+
+	/* ── THE ASK ────────────────────────────────────────────────────────────
+	 * The button that fetches a third party, and the one sentence that says so.
+	 * A row that wraps: the button never shrinks, the sentence takes the rest and
+	 * still caps itself at the reading measure, so at 3440 it is a sentence beside
+	 * a button and not a 2000px ribbon of small print.
+	 * ⚠ The gap is the ROW'S OWN em, not `--gap`. `--gap` is a cqi of the container
+	 *   (2.6em at 3440), which is the rhythm between blocks of content; a control
+	 *   and the label that explains it are one thing, and 2.6em floats them apart. */
+	.site-viewer-ask {
+		display: flex; flex-wrap: wrap; align-items: center;
+		gap: 0.6em 1.2em;
+	}
+
+	.site-viewer-ask > button { flex: none; }
+
+	.site-viewer-ask-note {
+		flex: 1 1 18em;
+		max-width: var(--measure);
+		margin: 0;
+		font-size: 0.9em;
+	}
+
+	/* ── THE VIEWER ─────────────────────────────────────────────────────────
+	 * The stage is a window onto a frame that is bigger than it. `overflow: hidden`
+	 * so a 3440-wide frame cannot push the page sideways; `transform-origin` at the
+	 * top left so the scaled frame stays pinned to the corner. The frame's own
+	 * width, height and scale are written by JS — they are measured values, the one
+	 * thing a stylesheet cannot know (Site.js `set()`). */
+	.site-viewer { display: flex; flex-direction: column; gap: 0.6em; }
+
+	.site-viewer-stage {
+		position: relative;
+		overflow: hidden;
+		max-width: 100%;
+		margin-inline: auto;   /* a 400px view is a 400px BOX, centred — obviously a phone */
+		border-radius: var(--radius);
+		background: var(--fill-a04);
+		box-shadow: inset 0 0 0 1px var(--line);
+	}
+
+	/* ⚠ `max-width: none` is the whole reason this works. framework.css's base layer
+	   caps EVERY iframe at `max-width: 100%`, so a frame told to be 3440px wide was
+	   silently laid out at its container's width and then scaled down again: the
+	   viewer rendered the site at 1766px while its label said 3440, with no error
+	   anywhere. Measured 2026-09-08 — the painted box read 907px, not 1766. */
+	.site-viewer-frame {
+		position: absolute; inset-block-start: 0; inset-inline-start: 0;
+		transform-origin: top left;
+		max-width: none;
+		border: 0;
+		background: #fff;   /* a framed site that paints no background must not show ours through */
+	}
+
+	/* A control row: nowrap items, its own em sizing, and it scrolls rather than
+	   going two-line when the page is narrow. */
+	.site-viewer-bar { font-size: 0.85em; }
+	.site-viewer-preset { flex: none; }
+	/* ⚠ A CEILING. `flex: 1 1 10em` in a `wide` band made this a 2700px slider at 3440
+	   — a control does not get bigger because the page did, and a thumb with three
+	   metres of track is harder to aim, not easier. */
+	.site-viewer-range { flex: 1 1 10em; min-width: 6em; width: auto; max-width: 26em; }
+	.site-viewer-w { flex: none; font-family: var(--mono); min-width: 5.5em; }
+
+	.site-blocked {
+		padding: 1em 1.2em;
+		border-radius: var(--radius);
+		background: var(--fill-a04);
+		box-shadow: inset 0 0 0 1px var(--line);
+	}
+
+	/* ── FOLDS AND PROSE ────────────────────────────────────────────────────*/
+	.site-fold > summary { cursor: pointer; }
+	.site-long { border-radius: var(--radius); box-shadow: 0 0 0 1px var(--line); margin-block-start: 0.8em; }
+	.site-raw-link { display: inline-block; margin-block-start: 0.6em; font-size: 0.85em; }
+
+	/* ── THE WALL ───────────────────────────────────────────────────────────
+	 * `auto-fill`, never `auto-fit`: with `auto-fit` the empty tracks collapse and
+	 * a wall of one card becomes one enormous card at 3440 (framework.css's own
+	 * finding, 54 of them site-wide). The leftover track stays empty on purpose. */
+	.site-wall {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(min(var(--column, 20em), 100%), 1fr));
+		gap: var(--gap);
+		--column: 20em;
+	}
+
+	.site-card {
+		display: flex; flex-direction: column; gap: 0.6em;
+		text-decoration: none; color: inherit;
+		border-radius: var(--radius);
+		outline: 2px solid transparent; outline-offset: 3px;
+		transition: outline-color 0.15s, transform 0.05s;
+	}
+	.site-card:hover { outline-color: color-mix(in srgb, var(--prim) 45%, transparent); }
+	.site-card:active { transform: translateY(1px); }
+
+	/* An ASPECT, not a fixed height — right at 400 and at 3440 alike, and every card
+	   in a row is the same width, so the rows stay bottom-aligned either way. */
+	.site-card-thumb {
+		aspect-ratio: 16 / 10;
+		overflow: hidden;
+		border-radius: var(--radius);
+		background: var(--fill-a04);
+		box-shadow: 0 0 0 1px var(--line), 0 1px 3px rgba(0, 0, 0, 0.1);
+	}
+	.site-card-thumb img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+
+	.site-card-body { display: flex; flex-direction: column; gap: 0.4em; }
+
+	/* Clamped, not truncated: a card sets its row's height, so one long title would
+	   deal every card beside it the same dead space. Real titles run long
+	   ("CSS: Cascading Style Sheets | MDN"), so two lines is the budget. */
+	.site-card-title {
+		font-weight: 700; line-height: 1.3;
+		display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+		overflow: hidden;
+	}
+
+	.site-card-ids, .site-card-tags { display: flex; flex-wrap: wrap; gap: 0.3em; }
+	.site-card-tags { opacity: 0.8; }
+
+	/* ── THE FILTER ROW ─────────────────────────────────────────────────────*/
+	.site-filter { font-size: 0.85em; }
+	.site-filter-chip { flex: none; white-space: nowrap; }
+	.site-filter-chip.is-on { background: var(--prim); color: #fff; border-color: transparent; }
+	.site-filter-count { opacity: 0.6; font-size: 0.85em; }
+	.site-filter-note { font-size: 0.9em; margin-block: 0.6em; }
+	.site-filter-more { flex: none; white-space: nowrap; font-size: 0.95em; }
+	.site-taglist { font-size: 0.95em; }
+	.site-wall-box { display: flex; flex-direction: column; gap: var(--gap); }
+}

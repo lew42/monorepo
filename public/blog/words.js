@@ -2,6 +2,7 @@
    Re-run `node public/blog/meta.mjs --write` after writing or editing a post.
    `posts.js` reads this to say how long a post is; the words-per-minute is there. */
 export default {
+	"ai/playwright": 1809,
 	"framework/hello-lew42": 1380,
 	"framework/how-this-blog-works": 952,
 	"systems/layout-generators": 792,

@@ -75,14 +75,23 @@ export const RAIL = [
 		],
 	},
 	{
-		// ⚠ START WITH MAKE — it is first here and it says so on both pages. Two
-		//   editors with no order between them was the question every newcomer asked
-		//   (paging-audit-2): Make types a name and gets a page; Build configures the
-		//   page Make made.
-		title: "Editors (these save)",
+		/* ⚠ ONE EDITOR SINCE 2026-09-13, and the numbering went with the second one.
+		     "1 Make a page / 2 Build it out" answered the question every newcomer asked
+		     of two editors with no order between them (paging-audit-2) — there is no
+		     order to give any more, so the numbers are noise.
+
+		   ⚠ AND BUILD IS NOT A TILE ANY MORE. It sat directly under Make reading
+		     "Build — now in Make": a live link, one row below the thing that replaced
+		     it, whose own label said it was the old one — so a newcomer who had finally
+		     found the editor was handed a choice between two of them
+		     (self-evident-critique-2, the way in). `/imagine/paging/build/` still
+		     answers and still says where it went, which is all a saved link needs. The
+		     rule at the top of this file — every page in the realm is one click from
+		     here — is about places to GO, and a page that exists only to redirect is
+		     not one. */
+		title: "The editor (it saves)",
 		items: [
-			{ url: "/imagine/paging/make/", title: "1 Make a page", icon: "add_circle_outline" },
-			{ url: "/imagine/paging/build/", title: "2 Build it out", icon: "construction" },
+			{ url: "/imagine/paging/make/", title: "Make a page", icon: "add_circle_outline" },
 		],
 	},
 	{

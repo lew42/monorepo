@@ -44,7 +44,7 @@ export default new Doc({
 	properties: "meta title children content url name label icon card classes "
 		+ "description parent app view loading route regions depth",
 
-	notes: "words declaring labels css layout columns roles panels previews findings decisions",
+	notes: "words declaring labels css layout columns roles panels previews findings decisions data-children",
 
 	// Doc.overview_section()'s default calls catalog() — a rail, wrong for a wall this
 	// size. This override keeps the section's real children (the `overview:` list above,

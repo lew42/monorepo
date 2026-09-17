@@ -1,0 +1,8 @@
+{"id": "car", "kind": "topic", "text": "Buying a used car", "author": "alice", "created": "2026-09-13T18:00:00-05:00"}
+{"id": "q1", "kind": "question", "text": "Has it been in an accident?", "author": "alice", "created": "2026-09-13T18:01:00-05:00"}
+{"id": "q2", "kind": "question", "text": "What color is it?", "author": "bob", "created": "2026-09-13T18:02:00-05:00"}
+{"id": "c1", "kind": "caveat", "text": "Carfax misses unreported accidents", "author": "bot_7", "created": "2026-09-13T18:03:00-05:00"}
+{"id":"tmu0st0xlclc","kind":"topic","text":"Selling a used car","author":"bot_seed","created":"2026-09-14T05:24:23.673Z"}
+{"id":"qmu0st419951","kind":"question","text":"Should I disclose the fender-bender?","author":"bot_seed","created":"2026-09-14T05:24:27.693Z"}
+{"id":"qmu0st42qrcn","kind":"question","text":"What price should I ask?","author":"bot_seed","created":"2026-09-14T05:24:27.746Z"}
+{"id":"qmu0st445hrj","kind":"question","text":"Private sale or dealer trade-in?","author":"bot_seed","created":"2026-09-14T05:24:27.797Z"}

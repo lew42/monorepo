@@ -39,8 +39,10 @@ and because a face has an identity that outlives its load.
 
 **Both registered faces are `fonts.gstatic.com` urls** — the one place in the
 framework that breaks the "vendor the dependency" rule `ext/` is held to. Offline,
-they silently fall back. Vendoring costs ~166KB in the repo for a look most sites
-will never load. Stated, not settled.
+each logs one `console.warn` naming the font and its url, then the page renders in
+the next family of `--font` (or the ligature's own name, for Material Icons).
+Vendoring costs ~166KB in the repo for a look most sites will never load. Stated,
+not settled.
 
 ## Two facts about the shipped faces
 

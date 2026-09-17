@@ -1,0 +1,858 @@
+{
+	"name": "cctype-foundry",
+	"url": "https://cctype.com/",
+	"title": "CcTimeline – Contemporary Font Family by CcType | CcType Foundry",
+	"category": "marketing",
+	"captured_at": "2026-09-08T05:56:10.331Z",
+	"embed": "allowed",
+	"embed_note": "no x-frame-options and no restrictive frame-ancestors",
+	"shots": {
+		"400": "site/cctype-foundry/400.jpg",
+		"1280": "site/cctype-foundry/1280.jpg",
+		"1920": "site/cctype-foundry/1920.jpg",
+		"3440": "site/cctype-foundry/3440.jpg",
+		"long": "site/cctype-foundry/long.jpg"
+	},
+	"layout": {
+		"400": "1-flow",
+		"1280": "1-flow",
+		"1920": "1-flow",
+		"3440": "1-flow"
+	},
+	"sections": [
+		{
+			"name": "header",
+			"layout": "1-flow",
+			"css": "flex row, fixed",
+			"note": "position: fixed the whole time (a true sticky header); it shows four items — brand, typeface name, Trials, Buy — from 1280 up, and drops to brand, Buy and a menu icon on a phone."
+		},
+		{
+			"name": "type ramp hero",
+			"layout": "1-flow",
+			"css": "block rows, fluid (vw-based) font-size",
+			"note": "six rows all read 'Timeline', each set larger than the last; the font-size scales with the viewport rather than jumping at a breakpoint, so every row stays close to edge-to-edge whether the window is 400px or 3440px — a phone gets fewer, still-enormous rows rather than smaller type."
+		},
+		{
+			"name": "glyph specimen grid",
+			"layout": "n-wall",
+			"css": "grid",
+			"note": "the scan finds a 6-column CSS grid further down the page at every width — this section never appears in these four screenshots because the page is 17,000 to 35,000px tall and the shots only cover one viewport's height each."
+		},
+		{
+			"name": "footer",
+			"layout": "1-flow",
+			"css": "flex column",
+			"note": "a plain stacked block; present at every width, seen only at the very top of the scan's element list, not in the pictures themselves."
+		}
+	],
+	"tags": [
+		"1-flow",
+		"n-wall",
+		"sticky header",
+		"fluid type",
+		"dark",
+		"hamburger",
+		"full-bleed",
+		"marketing"
+	],
+	"responsive": {
+		"strategy": "There is barely a column layout to speak of — the whole page is one column, and the responsive trick is in the type, not the grid. Each 'Timeline' row's font-size scales continuously with the window's width instead of jumping between fixed sizes at breakpoints, so the words stay close to full-bleed at every size tested. The one real breakpoint is the header, which goes from four items to three-plus-a-menu-button somewhere around 900px (inferred from the site's own media queries, not caught by one of these four exact shots).",
+		"breakpoints": [
+			768,
+			900,
+			1280
+		],
+		"queries": [
+			"(hover:hover){",
+			"(max-width:1199px){",
+			"(max-width:1280px){",
+			"(max-width:389px){",
+			"(max-width:450px){",
+			"(max-width:480px){",
+			"(max-width:834px){",
+			"(max-width:899px){",
+			"(min-width:1024px){",
+			"(min-width:1200px){",
+			"(min-width:1280px){",
+			"(min-width:1728px){",
+			"(min-width:768px){",
+			"(min-width:834px){",
+			"(min-width:900px){",
+			"(min-width:96rem){",
+			"(pointer:fine){",
+			"not all and (min-width:1024px){",
+			"not all and (min-width:1280px){",
+			"not all and (min-width:834px){",
+			"screen and (max-width:1000px){",
+			"screen and (max-width:599px){",
+			"screen and (min-width:600px){"
+		]
+	},
+	"scan": {
+		"scanned_at": "2026-09-08T05:56:23.444Z",
+		"css": {
+			"sheets": 3,
+			"bytes": 230680,
+			"inline_bytes": 1933
+		},
+		"media": [
+			"(hover:hover){",
+			"(max-width:1199px){",
+			"(max-width:1280px){",
+			"(max-width:389px){",
+			"(max-width:450px){",
+			"(max-width:480px){",
+			"(max-width:834px){",
+			"(max-width:899px){",
+			"(min-width:1024px){",
+			"(min-width:1200px){",
+			"(min-width:1280px){",
+			"(min-width:1728px){",
+			"(min-width:768px){",
+			"(min-width:834px){",
+			"(min-width:900px){",
+			"(min-width:96rem){",
+			"(pointer:fine){",
+			"not all and (min-width:1024px){",
+			"not all and (min-width:1280px){",
+			"not all and (min-width:834px){",
+			"screen and (max-width:1000px){",
+			"screen and (max-width:599px){",
+			"screen and (min-width:600px){"
+		],
+		"container": [
+			"not (max-inline-size:0){"
+		],
+		"breakpoints_seen": [
+			{
+				"px": 834,
+				"count": 3
+			},
+			{
+				"px": 1280,
+				"count": 3
+			},
+			{
+				"px": 1024,
+				"count": 2
+			},
+			{
+				"px": 389,
+				"count": 1
+			},
+			{
+				"px": 450,
+				"count": 1
+			},
+			{
+				"px": 480,
+				"count": 1
+			},
+			{
+				"px": 599,
+				"count": 1
+			},
+			{
+				"px": 600,
+				"count": 1
+			},
+			{
+				"px": 768,
+				"count": 1
+			},
+			{
+				"px": 899,
+				"count": 1
+			},
+			{
+				"px": 900,
+				"count": 1
+			},
+			{
+				"px": 1000,
+				"count": 1
+			}
+		],
+		"widths": {
+			"400": {
+				"doc": [
+					400,
+					17707
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"id": "navbar",
+						"class": "fixed top-0",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							400,
+							60
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"class": "bg-black pb-10",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							400,
+							16923
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "bg-grey relative",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							16923,
+							400,
+							784
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "notranslate public-DraftEditor-content",
+						"role": "textbox",
+						"display": "block",
+						"rect": [
+							13,
+							3355,
+							375,
+							59
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "notranslate public-DraftEditor-content",
+						"role": "textbox",
+						"display": "block",
+						"rect": [
+							13,
+							3608,
+							375,
+							54
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							0,
+							844,
+							400,
+							15979
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							0,
+							4006,
+							400,
+							3251
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "cctimeline-glyph-preview",
+						"class": "custom-grid glyph-preview-section",
+						"display": "grid",
+						"cols": "54.3281px 54.3281px 54.3281px 54.3281px 54.3281px 54.3281px",
+						"rows": "128.797px 2989.59px",
+						"rect": [
+							12,
+							4006,
+							376,
+							3251
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "glyph-preview-expandable col-span-full",
+						"display": "grid",
+						"cols": "subgrid [] [] [] [] [] [] []",
+						"rows": "2963.59px 26px",
+						"rect": [
+							12,
+							4196,
+							376,
+							2990
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "col-span-full grid",
+						"display": "grid",
+						"cols": "subgrid [] [] [] [] [] [] []",
+						"rows": "2963.59px",
+						"rect": [
+							12,
+							4196,
+							376,
+							2964
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1280": {
+				"doc": [
+					1280,
+					21271
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"id": "navbar",
+						"class": "fixed top-0",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							1280,
+							60
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"class": "bg-black pb-10",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1280,
+							20531
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "bg-grey relative",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							20531,
+							1280,
+							740
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "notranslate public-DraftEditor-content",
+						"role": "textbox",
+						"display": "block",
+						"rect": [
+							21,
+							4396,
+							1239,
+							198
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "notranslate public-DraftEditor-content",
+						"role": "textbox",
+						"display": "block",
+						"rect": [
+							21,
+							4777,
+							1239,
+							184
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "notranslate public-DraftEditor-content",
+						"role": "textbox",
+						"display": "block",
+						"rect": [
+							21,
+							5144,
+							1239,
+							171
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							0,
+							800,
+							1280,
+							19601
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "absolute top-0",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							-4095,
+							1283,
+							9471,
+							533
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "absolute top-0",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							-4095,
+							1284,
+							9471,
+							533
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "absolute top-0",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							-4095,
+							1285,
+							9471,
+							533
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "absolute top-0",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							-3204,
+							862,
+							7688,
+							432
+						],
+						"side_by_side": 0
+					}
+				]
+			},
+			"1920": {
+				"doc": [
+					1920,
+					27057
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"id": "navbar",
+						"class": "fixed top-0",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							1920,
+							60
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"class": "bg-black pb-10",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1920,
+							26037
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "bg-grey relative",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							26037,
+							1920,
+							1020
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "notranslate public-DraftEditor-content",
+						"role": "textbox",
+						"display": "block",
+						"rect": [
+							21,
+							5097,
+							1879,
+							302
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "notranslate public-DraftEditor-content",
+						"role": "textbox",
+						"display": "block",
+						"rect": [
+							21,
+							5582,
+							1879,
+							280
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "notranslate public-DraftEditor-content",
+						"role": "textbox",
+						"display": "block",
+						"rect": [
+							21,
+							6045,
+							1879,
+							261
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							0,
+							1080,
+							1920,
+							24827
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							0,
+							6413,
+							1920,
+							4645
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "cctimeline-glyph-preview",
+						"class": "custom-grid glyph-preview-section",
+						"display": "grid",
+						"cols": "145.656px 145.656px 145.656px 145.656px 145.656px 145.656px ",
+						"rows": "180px 3832.61px",
+						"rect": [
+							20,
+							6413,
+							1880,
+							4645
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "absolute top-0",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							-6130,
+							1278,
+							14180,
+							532
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "absolute top-0",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							-6130,
+							1279,
+							14180,
+							532
+						],
+						"side_by_side": 0
+					}
+				]
+			},
+			"3440": {
+				"doc": [
+					3440,
+					34832
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"id": "navbar",
+						"class": "fixed top-0",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							3440,
+							60
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"class": "bg-black pb-10",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							3440,
+							33452
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "bg-grey relative",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							33452,
+							3440,
+							1380
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "notranslate public-DraftEditor-content",
+						"role": "textbox",
+						"display": "block",
+						"rect": [
+							21,
+							6992,
+							3399,
+							548
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "notranslate public-DraftEditor-content",
+						"role": "textbox",
+						"display": "block",
+						"rect": [
+							21,
+							7723,
+							3399,
+							509
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "notranslate public-DraftEditor-content",
+						"role": "textbox",
+						"display": "block",
+						"rect": [
+							21,
+							8415,
+							3399,
+							473
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							0,
+							1440,
+							3440,
+							31882
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							0,
+							2432,
+							3440,
+							4394
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "cctimeline-timeline",
+						"class": "relative",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							2432,
+							3440,
+							4394
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "absolute top-0",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							-11101,
+							1300,
+							25642,
+							537
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "absolute top-0",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							-11101,
+							1301,
+							25642,
+							537
+						],
+						"side_by_side": 0
+					}
+				]
+			}
+		}
+	},
+	"notes": "This is a type foundry's page showing off one typeface, and its trick is not columns, it's type that grows with the window. Six rows all say the word 'Timeline', each bigger than the last, and the letters are sized so a row nearly touches both edges of the screen whether you're on a phone or an ultrawide monitor — a small screen does not get smaller type, it just gets fewer of the huge rows before you have to scroll. Apart from the header, which drops from four items to three-plus-a-menu-button on a phone, the whole visible page is one plain column, top to bottom. The scan also shows a glyph-specimen grid and a footer much further down the page — this page is 17,000 to 35,000 pixels tall, and no single screenshot at a normal window height ever reaches that far, so the pictures alone would miss them entirely.",
+	"wire": {
+		"role": "page",
+		"kids": [
+			{
+				"role": "header",
+				"h": "3.5em"
+			},
+			{
+				"role": "text",
+				"h": "4em",
+				"lines": 1
+			},
+			{
+				"role": "text",
+				"h": "5em",
+				"lines": 1
+			},
+			{
+				"role": "text",
+				"h": "7em",
+				"lines": 1
+			},
+			{
+				"role": "text",
+				"h": "9em",
+				"lines": 1
+			},
+			{
+				"role": "text",
+				"h": "12em",
+				"lines": 1
+			},
+			{
+				"role": "text",
+				"h": "16em",
+				"lines": 1
+			},
+			{
+				"role": "footer",
+				"h": "3em"
+			}
+		]
+	}
+}

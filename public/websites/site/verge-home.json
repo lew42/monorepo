@@ -1,0 +1,2070 @@
+{
+	"name": "verge-home",
+	"url": "https://www.theverge.com",
+	"title": "The Verge",
+	"category": "news",
+	"captured_at": "2026-09-08T06:17:13.815Z",
+	"embed": "blocked",
+	"embed_note": "content-security-policy: frame-ancestors https://platform.theverge.com https://*.theverge.com https://platform.theverge.com https://*.theverge.com 'self'",
+	"shots": {
+		"400": "site/verge-home/400.jpg",
+		"1280": "site/verge-home/1280.jpg",
+		"1920": "site/verge-home/1920.jpg",
+		"3440": "site/verge-home/3440.jpg",
+		"long": "site/verge-home/long.jpg"
+	},
+	"layout": {
+		"400": "1-flow",
+		"1280": "2-sidebar",
+		"1920": "2-sidebar",
+		"3440": "2-sidebar"
+	},
+	"sections": [
+		{
+			"name": "top nav",
+			"layout": "1-flow",
+			"css": "flex",
+			"note": "The Verge logo, a Tech/Reviews/Science/Entertainment/AI/Policy strip, Subscribe/Sign in; at 400 the category strip disappears and only the logo, a bell and a hamburger remain. A full-width ad banner sits ABOVE this bar on every desktop shot, pushing the real site header down the page."
+		},
+		{
+			"name": "hero + rail",
+			"layout": "2-sidebar right",
+			"css": "flex",
+			"note": "the lead story (big image, bold headline) sits in an 800px-wide left column; a 380px-wide right rail (\"Latest/Following\" story list, ads) is a fixed measurement, not a share of the room — it stays 380px whether the window is 1280 or 3440. The whole pair is capped at 1300px total and centred from 1920 up, exactly the fluid-then-capped pattern several other sites in this set use."
+		},
+		{
+			"name": "content shelves",
+			"layout": "1-flow",
+			"css": "flex",
+			"note": "the rest of the homepage is a long single column of headed shelves (\"Most Popular\", \"Most Discussed\", topic shelves), each its own full-width block one after another all the way down."
+		}
+	],
+	"tags": [
+		"2-sidebar",
+		"1-flow",
+		"right",
+		"rail",
+		"max-width",
+		"news"
+	],
+	"responsive": {
+		"strategy": "The lead-story-plus-rail pair is already two columns at 1280 (fluid, filling the window), and by 1920 the whole pair stops growing at 1300px total width and centres — a laptop and an ultrawide monitor show the same size page, just with different margins. Below that, at 400, the rail is dropped and the whole page becomes one column of stacked stories and shelves. The Verge's own site loaded slowly and timed out on the first attempt of every width; the second attempt succeeded, which is worth knowing if this record is ever re-shot.",
+		"breakpoints": [
+			768,
+			1180,
+			1300
+		]
+	},
+	"scan": {
+		"scanned_at": "2026-09-08T06:17:49.487Z",
+		"css": {
+			"sheets": 70,
+			"bytes": 1641510,
+			"inline_bytes": 106893
+		},
+		"media": [
+			"(hover:hover) and (pointer:fine){",
+			"(min-width: 400px){",
+			"(min-width: 550px){",
+			"(min-width:1180px){",
+			"(min-width:1181px){",
+			"(min-width:2200px){",
+			"(min-width:768px){",
+			"(prefers-reduced-motion:no-preference){",
+			"(prefers-reduced-motion:reduce){",
+			"only screen and (max-width: 600px){",
+			"only screen and (min-width: 426px)and (max-width: 896px)and (orientation: landsc",
+			"print{",
+			"screen and (-ms-high-contrast:active){",
+			"screen and (forced-colors:active) and (prefers-color-scheme:dark){",
+			"screen and (max-width:1179px){",
+			"screen and (max-width:1180px){",
+			"screen and (max-width:325px){",
+			"screen and (max-width:420px){",
+			"screen and (max-width:656px){",
+			"screen and (max-width:767px){",
+			"screen and (max-width:768px){",
+			"screen and (max-width:901px){",
+			"screen and (min-height:605px){",
+			"screen and (min-width:0){",
+			"screen and (min-width:1024px){",
+			"screen and (min-width:1180px){",
+			"screen and (min-width:1200px){",
+			"screen and (min-width:1294px) and (min-height:630px){",
+			"screen and (min-width:1300px){",
+			"screen and (min-width:1600px){",
+			"screen and (min-width:1720px) and (min-height:980px){",
+			"screen and (min-width:768px) and (max-width:1179px){",
+			"screen and (min-width:768px) and (max-width:900px){",
+			"screen and (min-width:768px){",
+			"screen and (min-width:901px){"
+		],
+		"container": [
+			"(min-width:768px){",
+			"_1cnxcye2 (min-width:100px){",
+			"_1cnxcye2 (min-width:150px){",
+			"_1cnxcye2 (min-width:300px){",
+			"_1cnxcye2 (min-width:500px){",
+			"gc3ws20 (min-width:335px){",
+			"gc3ws20 (min-width:550px){",
+			"gc3ws22 (min-width:0){",
+			"x96f280 (min-width:0){",
+			"x96f280 (min-width:600px){",
+			"x96f280 (min-width:700px){"
+		],
+		"breakpoints_seen": [
+			{
+				"px": 768,
+				"count": 5
+			},
+			{
+				"px": 1180,
+				"count": 3
+			},
+			{
+				"px": 901,
+				"count": 2
+			},
+			{
+				"px": 1179,
+				"count": 2
+			},
+			{
+				"px": 325,
+				"count": 1
+			},
+			{
+				"px": 400,
+				"count": 1
+			},
+			{
+				"px": 420,
+				"count": 1
+			},
+			{
+				"px": 426,
+				"count": 1
+			},
+			{
+				"px": 550,
+				"count": 1
+			},
+			{
+				"px": 600,
+				"count": 1
+			},
+			{
+				"px": 605,
+				"count": 1
+			},
+			{
+				"px": 630,
+				"count": 1
+			}
+		],
+		"widths": {
+			"400": {
+				"doc": [
+					400,
+					16652
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "content",
+						"class": "_1e7jslx0",
+						"display": "block",
+						"rect": [
+							0,
+							45,
+							400,
+							15693
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "_1ks5mod0",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							10,
+							1947,
+							380,
+							1809
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_1e7ii3f0",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							10,
+							1947,
+							380,
+							33
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "_1ks5mod0 duet--homepage-top-curated-content-section-0",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							10,
+							3796,
+							380,
+							1276
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_1e7ii3f0",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							10,
+							3796,
+							380,
+							77
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "_1ks5mod0 duet--homepage-top-curated-content-section-1",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							10,
+							5462,
+							380,
+							1168
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_1e7ii3f0",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							10,
+							5462,
+							380,
+							55
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "pnbklw0 duet--homepage--most-popular",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							10,
+							7020,
+							380,
+							542
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "_1ks5mod0 duet--homepage-bottom-curated-content-section-0",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							10,
+							7602,
+							380,
+							1246
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_1e7ii3f0",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							10,
+							7602,
+							380,
+							77
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "_1ks5mod0 duet--homepage-bottom-curated-content-section-1",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							10,
+							9238,
+							380,
+							1198
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_1e7ii3f0",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							10,
+							9238,
+							380,
+							55
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "pnbklw0 duet--homepage--most-discussed",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							10,
+							10476,
+							380,
+							560
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "_1ks5mod0 duet--homepage--category-shelf",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							16,
+							11426,
+							368,
+							555
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_1e7ii3f0",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							16,
+							11426,
+							368,
+							33
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "_1ks5mod0 duet--homepage--category-shelf",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							16,
+							12021,
+							368,
+							567
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_1e7ii3f0",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							16,
+							12021,
+							368,
+							33
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "_1ks5mod0 duet--homepage--category-shelf",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							16,
+							12978,
+							368,
+							567
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_1e7ii3f0",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							16,
+							12978,
+							368,
+							33
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "_1ks5mod0 duet--homepage--category-shelf",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							16,
+							13585,
+							368,
+							567
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "duet--content-cards--content-card duet--content-cards--quick-post",
+						"role": "article",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							10,
+							2010,
+							380,
+							456
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "duet--content-cards--content-card duet--content-cards--quick-post",
+						"role": "article",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							10,
+							2550,
+							380,
+							527
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "duet--content-cards--content-card duet--content-cards--quick-post",
+						"role": "article",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							10,
+							3077,
+							380,
+							627
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "aside",
+						"class": "duet--navigation--pmc-privacy-banner _1bjmjup0",
+						"role": "dialog",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							549,
+							400,
+							295
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "__next",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							400,
+							16652
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "duet--app _1044qiz1",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							400,
+							16652
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "duet--page-layout--homepage _1044qiz0",
+						"display": "block",
+						"rect": [
+							0,
+							45,
+							400,
+							15693
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "_1e7jslx3",
+						"display": "block",
+						"rect": [
+							0,
+							135,
+							400,
+							10902
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "_1e7jslx4",
+						"display": "block",
+						"rect": [
+							10,
+							201,
+							380,
+							10836
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1280": {
+				"doc": [
+					1280,
+					25296
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "_1bzhflwc _1bzhflwb",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							382,
+							305,
+							808,
+							36
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "content",
+						"class": "_1e7jslx0",
+						"display": "block",
+						"rect": [
+							0,
+							370,
+							1280,
+							24264
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "_1ks5mod0 duet--homepage-top-curated-content-section-0",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							18,
+							1996,
+							783,
+							706
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_1e7ii3f0",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							18,
+							1996,
+							783,
+							64
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "_1ks5mod0 duet--homepage-top-curated-content-section-1",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							18,
+							2832,
+							783,
+							769
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_1e7ii3f0",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							18,
+							2832,
+							783,
+							64
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "pnbklw0 duet--homepage--most-popular",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							18,
+							3951,
+							783,
+							481
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "_1ks5mod0 duet--homepage-bottom-curated-content-section-0",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							18,
+							4693,
+							783,
+							824
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_1e7ii3f0",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							18,
+							4693,
+							783,
+							64
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "_1ks5mod0 duet--homepage-bottom-curated-content-section-1",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							18,
+							5867,
+							783,
+							770
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_1e7ii3f0",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							18,
+							5867,
+							783,
+							64
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "pnbklw0 duet--homepage--most-discussed",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							18,
+							6766,
+							783,
+							481
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_81r1ju4 _81r1ju3",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							18,
+							7378,
+							783,
+							54
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "duet--article--gallery _1044qizj",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							882,
+							4785,
+							380,
+							296
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "duet--article--gallery _1044qizj",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							882,
+							5739,
+							380,
+							296
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "_1ks5mod0 duet--homepage--category-shelf",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							16,
+							21674,
+							908,
+							335
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_1e7ii3f0",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							16,
+							21674,
+							908,
+							37
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "_1ks5mod0 duet--homepage--category-shelf",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							16,
+							22139,
+							908,
+							315
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_1e7ii3f0",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							16,
+							22139,
+							908,
+							37
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "_1ks5mod0 duet--homepage--category-shelf",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							16,
+							22714,
+							908,
+							335
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "storyStream-panel",
+						"class": "_1e7jslxd _1e7jslxe",
+						"role": "tabpanel",
+						"display": "block",
+						"rect": [
+							882,
+							444,
+							380,
+							21084
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "latest-dmcyOnF1aWNrUG9zdDo5OTExMDI=",
+						"class": "duet--content-cards--content-card duet--content-cards--quick-post",
+						"role": "article",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							882,
+							1351,
+							380,
+							480
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "latest-dmcyOnF1aWNrUG9zdDo5OTEwODA=",
+						"class": "duet--content-cards--content-card duet--content-cards--quick-post",
+						"role": "article",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							882,
+							1983,
+							380,
+							527
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "latest-dmcyOnF1aWNrUG9zdDo5OTA5NzQ=",
+						"class": "duet--content-cards--content-card duet--content-cards--quick-post",
+						"role": "article",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							882,
+							2821,
+							380,
+							627
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "latest-dmcyOnF1aWNrUG9zdDo5OTEwNjU=",
+						"class": "duet--content-cards--content-card duet--content-cards--quick-post",
+						"role": "article",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							882,
+							3448,
+							380,
+							360
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "latest-dmcyOnF1aWNrUG9zdDo5OTEwMzA=",
+						"class": "duet--content-cards--content-card duet--content-cards--quick-post",
+						"role": "article",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							882,
+							4511,
+							380,
+							621
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "__next",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1280,
+							25296
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "duet--app _1044qiz1",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							1280,
+							25296
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "duet--page-layout--homepage _1044qiz0",
+						"display": "block",
+						"rect": [
+							0,
+							370,
+							1280,
+							24264
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "_1e7jslx3",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							380,
+							1280,
+							21164
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "_1e7jslx4",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							18,
+							380,
+							783,
+							21164
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1920": {
+				"doc": [
+					1920,
+					25316
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "_1bzhflwc _1bzhflwb",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							702,
+							305,
+							808,
+							36
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "content",
+						"class": "_1e7jslx0",
+						"display": "block",
+						"rect": [
+							310,
+							370,
+							1300,
+							24283
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "_1ks5mod0 duet--homepage-top-curated-content-section-0",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							328,
+							1996,
+							800,
+							706
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_1e7ii3f0",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							328,
+							1996,
+							800,
+							64
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "_1ks5mod0 duet--homepage-top-curated-content-section-1",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							328,
+							2832,
+							800,
+							727
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_1e7ii3f0",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							328,
+							2832,
+							800,
+							64
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "pnbklw0 duet--homepage--most-popular",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							328,
+							3909,
+							800,
+							481
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "_1ks5mod0 duet--homepage-bottom-curated-content-section-0",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							328,
+							4650,
+							800,
+							761
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_1e7ii3f0",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							328,
+							4650,
+							800,
+							64
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "_1ks5mod0 duet--homepage-bottom-curated-content-section-1",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							328,
+							5761,
+							800,
+							748
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_1e7ii3f0",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							328,
+							5761,
+							800,
+							64
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "pnbklw0 duet--homepage--most-discussed",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							328,
+							6769,
+							800,
+							481
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_81r1ju4 _81r1ju3",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							328,
+							7381,
+							800,
+							54
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "duet--article--gallery _1044qizj",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1209,
+							4785,
+							380,
+							296
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "duet--article--gallery _1044qizj",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1209,
+							5739,
+							380,
+							296
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "_1ks5mod0 duet--homepage--category-shelf",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							326,
+							21674,
+							928,
+							339
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_1e7ii3f0",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							326,
+							21674,
+							928,
+							37
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "_1ks5mod0 duet--homepage--category-shelf",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							326,
+							22142,
+							928,
+							319
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_1e7ii3f0",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							326,
+							22142,
+							928,
+							37
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "_1ks5mod0 duet--homepage--category-shelf",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							326,
+							22721,
+							928,
+							339
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "storyStream-panel",
+						"class": "_1e7jslxd _1e7jslxe",
+						"role": "tabpanel",
+						"display": "block",
+						"rect": [
+							1209,
+							444,
+							380,
+							21084
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "latest-dmcyOnF1aWNrUG9zdDo5OTExMDI=",
+						"class": "duet--content-cards--content-card duet--content-cards--quick-post",
+						"role": "article",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1209,
+							1351,
+							380,
+							480
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "latest-dmcyOnF1aWNrUG9zdDo5OTEwODA=",
+						"class": "duet--content-cards--content-card duet--content-cards--quick-post",
+						"role": "article",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1209,
+							1983,
+							380,
+							527
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "latest-dmcyOnF1aWNrUG9zdDo5OTA5NzQ=",
+						"class": "duet--content-cards--content-card duet--content-cards--quick-post",
+						"role": "article",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1209,
+							2821,
+							380,
+							627
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "latest-dmcyOnF1aWNrUG9zdDo5OTEwNjU=",
+						"class": "duet--content-cards--content-card duet--content-cards--quick-post",
+						"role": "article",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1209,
+							3448,
+							380,
+							360
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "latest-dmcyOnF1aWNrUG9zdDo5OTEwMzA=",
+						"class": "duet--content-cards--content-card duet--content-cards--quick-post",
+						"role": "article",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1209,
+							4511,
+							380,
+							621
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "__next",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1920,
+							25316
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "duet--app _1044qiz1",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							1920,
+							25316
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "duet--page-layout--homepage _1044qiz0",
+						"display": "block",
+						"rect": [
+							0,
+							370,
+							1920,
+							24283
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "_1e7jslx3",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							310,
+							380,
+							1300,
+							21164
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "_1e7jslx4",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							328,
+							380,
+							800,
+							21164
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"3440": {
+				"doc": [
+					3440,
+					25992
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "_1bzhflwc _1bzhflwb",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							1462,
+							305,
+							808,
+							36
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "content",
+						"class": "_1e7jslx0",
+						"display": "block",
+						"rect": [
+							1070,
+							370,
+							1300,
+							24959
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "_1ks5mod0 duet--homepage-top-curated-content-section-0",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							1088,
+							2086,
+							800,
+							706
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_1e7ii3f0",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							1088,
+							2086,
+							800,
+							64
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "_1ks5mod0 duet--homepage-top-curated-content-section-1",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							1088,
+							2922,
+							800,
+							727
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_1e7ii3f0",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							1088,
+							2922,
+							800,
+							64
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "pnbklw0 duet--homepage--most-popular",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							1088,
+							3999,
+							800,
+							481
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "_1ks5mod0 duet--homepage-bottom-curated-content-section-0",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							1088,
+							4740,
+							800,
+							761
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_1e7ii3f0",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							1088,
+							4740,
+							800,
+							64
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "_1ks5mod0 duet--homepage-bottom-curated-content-section-1",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							1088,
+							5851,
+							800,
+							748
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_1e7ii3f0",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							1088,
+							5851,
+							800,
+							64
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "pnbklw0 duet--homepage--most-discussed",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							1088,
+							6729,
+							800,
+							481
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_81r1ju4 _81r1ju3",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1088,
+							7341,
+							800,
+							54
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "duet--article--gallery _1044qizj",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1969,
+							5461,
+							380,
+							296
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "duet--article--gallery _1044qizj",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1969,
+							6414,
+							380,
+							296
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "_1ks5mod0 duet--homepage--category-shelf",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							1086,
+							22349,
+							928,
+							339
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_1e7ii3f0",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							1086,
+							22349,
+							928,
+							37
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "_1ks5mod0 duet--homepage--category-shelf",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							1086,
+							22818,
+							928,
+							319
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_1e7ii3f0",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							1086,
+							22818,
+							928,
+							37
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "_1ks5mod0 duet--homepage--category-shelf",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							1086,
+							23397,
+							928,
+							339
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "storyStream-panel",
+						"class": "_1e7jslxd _1e7jslxe",
+						"role": "tabpanel",
+						"display": "block",
+						"rect": [
+							1969,
+							444,
+							380,
+							21759
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "latest-dmcyOnF1aWNrUG9zdDo5OTExMDI=",
+						"class": "duet--content-cards--content-card duet--content-cards--quick-post",
+						"role": "article",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1969,
+							1571,
+							380,
+							480
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "latest-dmcyOnF1aWNrUG9zdDo5OTEwODA=",
+						"class": "duet--content-cards--content-card duet--content-cards--quick-post",
+						"role": "article",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1969,
+							2203,
+							380,
+							527
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "latest-dmcyOnF1aWNrUG9zdDo5OTA5NzQ=",
+						"class": "duet--content-cards--content-card duet--content-cards--quick-post",
+						"role": "article",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1969,
+							3041,
+							380,
+							1082
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "latest-dmcyOnF1aWNrUG9zdDo5OTEwNjU=",
+						"class": "duet--content-cards--content-card duet--content-cards--quick-post",
+						"role": "article",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1969,
+							4124,
+							380,
+							360
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "latest-dmcyOnF1aWNrUG9zdDo5OTEwMzA=",
+						"class": "duet--content-cards--content-card duet--content-cards--quick-post",
+						"role": "article",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1969,
+							5187,
+							380,
+							621
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "__next",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							3440,
+							25992
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "duet--app _1044qiz1",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							3440,
+							25992
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "duet--page-layout--homepage _1044qiz0",
+						"display": "block",
+						"rect": [
+							0,
+							370,
+							3440,
+							24959
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "_1e7jslx3",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							1070,
+							380,
+							1300,
+							21839
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "_1e7jslx4",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							1088,
+							380,
+							800,
+							21839
+						],
+						"side_by_side": 1
+					}
+				]
+			}
+		}
+	},
+	"notes": "The Verge's homepage is a classic two-column news front: one big lead story on the left, and a narrower rail of the latest headlines on the right. What is worth noticing is that the rail is a fixed 380 pixels wide no matter the screen — it does not get any share of a bigger monitor's extra width, because a list of headlines does not get more useful when it is wider. Past 1920px the whole two-column area itself stops growing too and just centres in the middle of the screen. On a phone the rail disappears and the page becomes one long column of story after story. One technical curiosity: a full-width advert sits above the site's own logo and menu on every desktop shot, which is an unusual place to put one.",
+	"wire": {
+		"role": "page",
+		"kids": [
+			{
+				"role": "image",
+				"h": "8em"
+			},
+			{
+				"role": "header",
+				"h": "6em"
+			},
+			{
+				"role": "main",
+				"dir": "row",
+				"h": "34em",
+				"floor": "74rem",
+				"kids": [
+					{
+						"role": "image",
+						"w": 1
+					},
+					{
+						"role": "aside",
+						"w": "24em",
+						"lines": 6
+					}
+				]
+			},
+			{
+				"role": "main",
+				"lines": 24
+			}
+		]
+	}
+}

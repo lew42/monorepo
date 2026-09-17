@@ -1,0 +1,148 @@
+/* /websites/patterns/ — the bars, the legend and the transition table.
+ *
+ * Layout only: where things sit and how they size. Every colour is a token, so the
+ * page works in both modes without a second rule — `--wash` and `--tint` are
+ * `light-dark()` pairs, and the "at 400" fill derives from the ink beside it rather
+ * than naming a grey.
+ *
+ * Names carry the module's own prefix (`site-`, /websites, css-scopes.txt) plus
+ * `pat` for this page, so nothing here can reach the corpus wall or a site page. */
+
+@layer theme {
+
+	/* A PANEL. Its own gap, not the utility `gap`: eight bar rows a `--gap` apart
+	   read as eight separate things at 3440 (the clamp caps at 2.6em). The
+	   multiplier IS the old em number, the site-wide spacing transform. */
+	.site-pat-panel {
+		display: flex; flex-direction: column;
+		gap: calc(var(--gap) * 0.45);
+	}
+
+	.site-pat-panel-head { margin: 0; }
+	.site-pat-note { margin: 0; font-size: 0.85em; }
+
+	.site-pat-legend { display: flex; flex-wrap: wrap; gap: 1em; font-size: 0.8em; }
+	.site-pat-key { display: inline-flex; align-items: center; gap: 0.4em; }
+	.site-pat-swatch { width: 1.4em; height: 0.55em; border-radius: 999px; background: var(--prim); }
+
+	/* A ROW: the id on a fixed track so every bar in the panel starts on the same
+	   axis, and the bars take whatever is left. `minmax(0, …)` on both — a `1fr`
+	   alone keeps its content minimum and overflows at 400. */
+	.site-pat-row {
+		display: grid;
+		grid-template-columns: minmax(0, 8em) minmax(0, 1fr);
+		align-items: center;
+		column-gap: 0.6em;
+	}
+
+	.site-pat-id { font-size: 0.85em; overflow-wrap: anywhere; }
+	.site-pat-alias { font-size: 0.85em; }
+
+	.site-pat-bars { display: flex; flex-direction: column; gap: 0.2em; }
+	.site-pat-bar { display: flex; align-items: center; gap: 0.4em; }
+
+	.site-pat-track {
+		flex: 1 1 auto; min-width: 0;
+		height: 0.6em; border-radius: 999px;
+		background: var(--wash);
+	}
+
+	/* The only runtime value on the page: `--w` is written inline because the count
+	   is not known until the manifest lands. */
+	.site-pat-fill { width: var(--w, 0%); height: 100%; border-radius: 999px; background: var(--prim); }
+
+	/* The phone reading, derived from the ink beside it so it reads as "the same bar,
+	   quieter" in light and dark alike. */
+	.site-pat-bar.is-small .site-pat-fill,
+	.site-pat-swatch.is-small { background: color-mix(in srgb, currentColor 45%, transparent); }
+
+	.site-pat-n { flex: 0 0 1.8em; text-align: right; font-size: 0.8em; font-variant-numeric: tabular-nums; }
+
+	/* THE TABLE takes a fixed reading width, not the room it is in: three short columns
+	   stretched to 3440 would be three numbers a screen apart, and framework.css's own
+	   `width: max-content` shrank it to 226px at 1920 and clipped the last header. */
+	.site-pat-table { font-size: 0.9em; border-collapse: collapse; width: min(26em, 100%); }
+
+	.site-pat-table :is(th, td) {
+		text-align: left;
+		padding: 0.3em 1.2em 0.3em 0;
+		border-bottom: 1px solid var(--line);
+	}
+
+	.site-pat-table :is(th, td):last-child {
+		text-align: right; padding-right: 0;
+		font-variant-numeric: tabular-nums;
+	}
+
+	/* THE NO-CHANGE MARK. The neutral shades are the wrong tool here: the page ground
+	   is already a light grey, so `--tint` (3.5% black) and `--wash` (8%) both composited
+	   to within a couple of values of it and the caption promising a shaded row would
+	   have been a lie. The accent at 14% reads against a neutral ground in both modes,
+	   and it is the same colour the "at 1920" bars use, so it says "look here". */
+	.site-pat-same :is(td) { background: color-mix(in srgb, var(--prim) 14%, transparent); }
+
+	.site-pat-holds { font-size: 0.9em; }
+
+	/* ── /websites/patterns/best/ — a verdict and the site it judges ────────────
+	 * Every section on that page is one paragraph of judgment about one website,
+	 * with a photograph of that website under it. It used to render in the reading
+	 * track, and at 3440 that meant a 40em column hard left, 2700px of empty screen
+	 * beside it, an 11,036px scroll, and each 1920-wide screenshot squeezed to about
+	 * 700px — the evidence was there and unreadable. The page now claims `wide`
+	 * (patterns/page.js) and each verdict is a two-track grid: the words on the left
+	 * at their own measure, the picture beside them at up to its real 1920px.
+	 * At 400 it is one column with the picture directly under the heading, so a phone
+	 * meets the evidence before it meets a wall of prose. */
+
+	/* `wide` takes the reading cap off everything inside, so the sentences claim it
+	   back — the pictures and the verdict grid are what may spread. */
+	.site-best > :is(p, h2, h3, ul, ol, blockquote) { max-width: var(--measure); }
+
+	.site-best-verdict {
+		display: grid;
+		gap: calc(var(--gap) * 0.7);
+		align-items: start;
+	}
+
+	/* Grid gap owns the rhythm in here, so the blocks bring none of their own. */
+	.site-best-verdict > * { margin-block: 0; max-width: var(--measure); }
+
+	.site-best-verdict > p:has(img) { max-width: none; }
+
+	/* Never bigger than the photograph really is — a 1920-wide jpeg blown up to 2500px
+	   on an ultrawide is soft exactly where the point is to read the site's own type. */
+	.site-best-verdict img {
+		width: 100%;
+		max-width: var(--site-best-shot, 1920px);
+		border-radius: var(--radius);
+		box-shadow: 0 0 0 1px var(--line), 0 1px 3px rgba(0, 0, 0, 0.12);
+	}
+
+	/* ⚠ 76em is 1216px, not 1216 of the page's own type: a media query's `em` is
+	     always the initial 16px, never this site's viewport-clamped body size.
+	     Below it the verdict stays one column, which is the right answer on a laptop
+	     as well as a phone — 28em of words plus a picture needs about 1200px before
+	     both halves are worth having. */
+	@media (min-width: 76em) {
+		.site-best-verdict {
+			/* The words take the measure and no more; the picture takes the rest, up to
+			   its own real size. Any leftover on an ultrawide lands to the RIGHT of the
+			   picture rather than as a canyon between the words and the thing they are
+			   about. */
+			grid-template-columns: minmax(28em, var(--measure)) minmax(0, 1fr);
+			/* ⚠ `auto auto 1fr`, not three implicit rows. The picture spans all three,
+			     and a spanning item hands its extra height to the rows it crosses — so
+			     the heading, the judgment and the link were dealt 300px of white between
+			     them (measured 2026-09-08). Content-sized rows, and the leftover goes to
+			     the bottom one, where nothing is looking. */
+			grid-template-rows: auto auto 1fr;
+			column-gap: calc(var(--gap) * 1.1);
+		}
+
+		.site-best-verdict > * { grid-column: 1; align-self: start; }
+
+		/* The picture sits beside the whole verdict: heading, judgment, and the link
+		   to the record. Three rows is exactly what a verdict has. */
+		.site-best-verdict > p:has(img) { grid-column: 2; grid-row: 1 / span 3; }
+	}
+}

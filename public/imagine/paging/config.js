@@ -1,4 +1,4 @@
-import { div, p, span, a, code, input, icon, md, drawer, Page } from "/app.js";
+import { div, p, span, a, code, input, select, option, icon, md, drawer, Page } from "/app.js";
 import { CONTROLS, means_of } from "./blocks.js";
 import { PRESETS, preset_url } from "./presets.js";
 import { link_for, nest_of } from "./url.js";
@@ -111,14 +111,24 @@ export function fill_drawer(stage, page, focus){
 		stage.$nest_field = null;
 		stage.draw_json = null;
 
+		/* ⚠ THE HEADING IS THE PAGE THE DRAWER IS ABOUT. Over Make it said "Make" — the
+		     screen you are standing on — while every box below it was about the page you
+		     had PICKED in the tree (self-evident-critique, defect 1). */
 		$slot.empty(() => {
 			icon("tune");
-			span(page?.title ?? "This page");
+			span(node?.title ?? page?.title ?? "This page");
 		});
 
+		/* ⚠ `Code` OPENS AT THE CODE. Both buttons fill the same rail, so the only thing
+		     that makes `Code` deliver what its label says is what the rail opens ON: its
+		     box goes FIRST, above the link. Without that the two drawers began with the
+		     same heading and the same paragraph and read as one button drawn twice
+		     (self-evident-critique, defect 1). Order, not scrolling: `code.js()`
+		     highlights asynchronously, so a box above this one grows AFTER a scroll and
+		     pushes it back off the bottom (measured: 765px down an 800px rail). */
 		$body.empty(() => {
-			link_box(stage);
 			if (focus === "code" && !own) code_box(stage, page, node);
+			link_box(stage, page);
 
 			form(stage);
 			nesting(stage);
@@ -157,12 +167,21 @@ function on_the_page(){
      you get exactly this page" opened on the page's own words instead. Measured on Build,
      which is an inner stage: *room=wide&type-size=display* came back reading and regular
      (paging-audit-7b, fix 3). A box that cannot keep its promise says so instead. */
-function link_box(stage){
+/* ⚠ AND A PAGE IS ASKED FOR ITS OWN ADDRESS FIRST. "This stage cannot write the address
+     bar" and "this page has no address" are two different facts, and reading the first as
+     the second is how this box came to say **There is no link to this exact page** on
+     Make — with the picked page's real url printed as a live link in the middle pane and
+     "On disk — 10 pages under made/" across the top (self-evident-critique, defect 1).
+     A page that has one answers `node_url()`: Make gives the url of the page you PICKED,
+     a page you made gives its own. Nothing else on the site has the method, so every
+     demo keeps the old two answers exactly. */
+function link_box(stage, page){
 	p.c("h4 muted", "The link to this page");
 
-	if (stage.inner) return md("**There is no link to this exact page.** What you are looking at is a page drawn *inside* another page, so it has no address of its own — the words you set here are not in the browser's address bar and cannot be sent to anybody. Save it as a page and it gets a real address.").ac("muted paging-means");
+	const own = page?.node_url?.() ?? null;
+	if (!own && stage.inner) return md("**There is no link to this exact page.** What you are looking at is a page drawn *inside* another page, so it has no address of its own — the words you set here are not in the browser's address bar and cannot be sent to anybody. Save it as a page and it gets a real address.").ac("muted paging-means");
 
-	const url = link_for(stage.config, stage.base, stage.nest, stage.base_nest);
+	const url = own ?? link_for(stage.config, stage.base, stage.nest, stage.base_nest);
 
 	let $said;
 
@@ -174,32 +193,39 @@ function link_box(stage){
 		$said = span.c("paging-said-ok");
 	});
 
-	return md("Open it cold, in any browser, and you get exactly this page.").ac("muted paging-means");
+	return md(own
+		? "This is the page's own address, on disk and in the browser. Open it cold and you get the page — the words you set above are written into its file, not into this link."
+		: "Open it cold, in any browser, and you get exactly this page.").ac("muted paging-means");
 }
 
 /* ── 1 · THE FULL FORM ────────────────────────────────────────────────────────
    The same seven controls the toolbar has, with the sentence each value means. The
-   toolbar is for changing; this is for understanding what you just changed. */
+   toolbar is for changing; this is for understanding what you just changed.
+
+   ⚠ A LABELLED DROPDOWN, NOT A ROW OF CHIPS. Every value wore `.paging-chip`, and the
+     one in force wore `.on` — the same solid orange as `Copy this link` three inches
+     above it, which is an ACT. One fill, one shape, two meanings, a press apart: the
+     reader cannot tell the value they have chosen from the button they are being
+     invited to press (self-evident-critique-2, finding 3). This is the shape the
+     settings pane already moved to for exactly this reason (`make/settings.js`) — the
+     chosen value is the one the control shows, and orange is left meaning "press me".
+   ⚠ AND IT STILL REFRESHES THE WHOLE DRAWER, because the box above it prints the LINK
+     to this configuration and a word you change here changes that link. A `<select>`
+     is not a text field: there is no cursor to throw away, which is why the settings
+     pane's "never rebuild under the reader" rule does not reach this one. */
 function form(stage){
 	p.c("h4 muted", "The whole configuration");
 
 	CONTROLS.forEach(control => div.c("paging-drawer-row", () => {
 		span.c("paging-pick-label", control.label);
 
-		div.c("paging-drawer-values", () => control.values.forEach(value => {
-			const on = stage.config[control.axis] === value.id;
+		const $pick = select(() => control.values.forEach(value =>
+			option(value.title).attr("value", value.id).attr("title", value.means)))
+			.attr("title", control.label)
+			.attr("aria-label", control.label)
+			.on("change", event => { stage.set(control.axis, event.target.value); drawer.refresh(); });
 
-			span.c("paging-chip").ac(on && "on")
-				.attr("role", "button").attr("tabindex", "0").attr("aria-pressed", String(on))
-				.append(() => span(value.title))
-				.click(() => { stage.set(control.axis, value.id); drawer.refresh(); })
-				.on("keydown", event => {
-					if (event.key !== "Enter" && event.key !== " ") return;
-					event.preventDefault();
-					stage.set(control.axis, value.id);
-					drawer.refresh();
-				});
-		}));
+		$pick.el.value = stage.config[control.axis];
 
 		md(means_of(control.axis, stage.config[control.axis])).ac("muted paging-means");
 	}));
@@ -220,7 +246,12 @@ function nesting(stage){
 		PRESETS.forEach(preset => {
 			const on = stage.nest && stage.nest.id === preset.id;
 
-			span.c("paging-chip").ac(on && "on")
+			// ⚠ `.picked`, NOT `.on`. `.on` is the realm's solid-fill ACT shape
+			//   (`.paging-act` — "Put it inside" two lines below, "Copy this link" above
+			//   it — wears the same orange) and a VALUE that borrows an act's shape reads
+			//   as a button not yet pressed (self-evident-critique-3, finding 1). `.picked`
+			//   is scoped to `.paging-nest-chips` only: an outline and a tick.
+			span.c("paging-chip").ac(on && "picked")
 				.attr("role", "button").attr("tabindex", "0").attr("aria-pressed", String(!!on))
 				// ⚠ `aria-pressed`, like the 39 chips in the form above — twelve chips that
 				//   look identical to those and announced nothing (paging-audit-6b, fix 6).

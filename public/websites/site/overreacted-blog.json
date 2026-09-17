@@ -1,0 +1,1424 @@
+{
+	"name": "overreacted-blog",
+	"url": "https://overreacted.io/",
+	"title": "overreacted — A blog by Dan Abramov",
+	"category": "blog",
+	"captured_at": "2026-09-08T05:50:38.818Z",
+	"embed": "allowed",
+	"embed_note": "no x-frame-options and no restrictive frame-ancestors",
+	"shots": {
+		"400": "site/overreacted-blog/400.jpg",
+		"1280": "site/overreacted-blog/1280.jpg",
+		"1920": "site/overreacted-blog/1920.jpg",
+		"3440": "site/overreacted-blog/3440.jpg",
+		"long": "site/overreacted-blog/long.jpg"
+	},
+	"layout": {
+		"400": "1-flow",
+		"1280": "1-centered",
+		"1920": "1-centered",
+		"3440": "1-centered"
+	},
+	"sections": [
+		{
+			"name": "site title bar",
+			"layout": "1-flow",
+			"css": "flex row",
+			"note": "the site title sits left and 'by [avatar]' sits right in one flex row; it does not change shape at any of the four widths."
+		},
+		{
+			"name": "post list",
+			"layout": "1-flow",
+			"css": "block (a plain flow of articles)",
+			"note": "every post is a title, a date and one short line, stacked with equal space between them — no border, no background, no card, and the list never becomes a grid at any width."
+		},
+		{
+			"name": "content column",
+			"layout": "1-centered",
+			"css": "block, fixed max-width",
+			"note": "the scan measures the column at exactly 632px wide at 1280, 1920 AND 3440 — the same pixel number on a laptop and an ultrawide monitor — and it only becomes a fluid full width below about 672px."
+		}
+	],
+	"tags": [
+		"1-flow",
+		"1-centered",
+		"measure",
+		"max-width",
+		"minimal",
+		"blog"
+	],
+	"responsive": {
+		"strategy": "One measured column and nothing else changes. Below about 672px the column is fluid, full width minus a little side padding. Above that it locks to a fixed 632px and centres itself, and it stays exactly that width all the way out to 3440 — there is no second act, no sidebar that appears, no nav that becomes a menu, because the page never had those things to begin with.",
+		"breakpoints": [
+			672
+		],
+		"queries": [
+			"(max-width:550px){",
+			"(max-width:672px){",
+			"(min-width:1024px){",
+			"(min-width:1280px){",
+			"(min-width:1536px){",
+			"(min-width:400px){",
+			"(min-width:640px){",
+			"(min-width:768px){",
+			"(prefers-color-scheme:dark){",
+			"(prefers-reduced-motion){"
+		]
+	},
+	"scan": {
+		"scanned_at": "2026-09-08T05:50:53.083Z",
+		"css": {
+			"sheets": 4,
+			"bytes": 26087,
+			"inline_bytes": 0
+		},
+		"media": [
+			"(max-width:550px){",
+			"(max-width:672px){",
+			"(min-width:1024px){",
+			"(min-width:1280px){",
+			"(min-width:1536px){",
+			"(min-width:400px){",
+			"(min-width:640px){",
+			"(min-width:768px){",
+			"(prefers-color-scheme:dark){",
+			"(prefers-reduced-motion){"
+		],
+		"container": [],
+		"breakpoints_seen": [
+			{
+				"px": 400,
+				"count": 1
+			},
+			{
+				"px": 550,
+				"count": 1
+			},
+			{
+				"px": 640,
+				"count": 1
+			},
+			{
+				"px": 672,
+				"count": 1
+			},
+			{
+				"px": 768,
+				"count": 1
+			},
+			{
+				"px": 1024,
+				"count": 1
+			},
+			{
+				"px": 1280,
+				"count": 1
+			},
+			{
+				"px": 1536,
+				"count": 1
+			}
+		],
+		"widths": {
+			"400": {
+				"doc": [
+					400,
+					10043
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "mb-14 flex",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							20,
+							48,
+							360,
+							32
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"display": "block",
+						"rect": [
+							20,
+							136,
+							360,
+							9859
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							20,
+							142,
+							360,
+							112
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							20,
+							318,
+							360,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							20,
+							465,
+							360,
+							112
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							20,
+							641,
+							360,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							20,
+							788,
+							360,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							20,
+							936,
+							360,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							20,
+							1083,
+							360,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							20,
+							1231,
+							360,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							20,
+							1378,
+							360,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							20,
+							1526,
+							360,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							20,
+							1673,
+							360,
+							112
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							20,
+							1849,
+							360,
+							112
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							20,
+							2024,
+							360,
+							112
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							20,
+							2200,
+							360,
+							112
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							20,
+							2375,
+							360,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							20,
+							2523,
+							360,
+							140
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							20,
+							2726,
+							360,
+							136
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							20,
+							2926,
+							360,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "relative -top-[10px]",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							20,
+							126,
+							360,
+							9859
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "a",
+						"class": "block py-4",
+						"display": "block",
+						"rect": [
+							20,
+							2507,
+							360,
+							172
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "a",
+						"class": "block py-4",
+						"display": "block",
+						"rect": [
+							20,
+							5661,
+							360,
+							172
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "a",
+						"class": "block py-4",
+						"display": "block",
+						"rect": [
+							20,
+							6742,
+							360,
+							172
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "a",
+						"class": "block py-4",
+						"display": "block",
+						"rect": [
+							20,
+							7269,
+							360,
+							172
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1280": {
+				"doc": [
+					1280,
+					8875
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "mb-14 flex",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							324,
+							48,
+							632,
+							32
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"display": "block",
+						"rect": [
+							324,
+							136,
+							632,
+							8691
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							324,
+							142,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							324,
+							290,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							324,
+							437,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							324,
+							585,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							324,
+							732,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							324,
+							880,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							324,
+							1027,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							324,
+							1175,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							324,
+							1322,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							324,
+							1470,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							324,
+							1617,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							324,
+							1765,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							324,
+							1912,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							324,
+							2060,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							324,
+							2207,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							324,
+							2355,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							324,
+							2502,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							324,
+							2650,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "relative -top-[10px]",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							324,
+							126,
+							632,
+							8691
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "a",
+						"class": "block py-4",
+						"display": "block",
+						"rect": [
+							324,
+							6026,
+							632,
+							144
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "a",
+						"class": "block py-4",
+						"display": "block",
+						"rect": [
+							324,
+							6497,
+							632,
+							144
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "a",
+						"class": "block py-4",
+						"display": "block",
+						"rect": [
+							324,
+							7115,
+							632,
+							144
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "a",
+						"class": "block py-4",
+						"display": "block",
+						"rect": [
+							324,
+							7585,
+							632,
+							144
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1920": {
+				"doc": [
+					1920,
+					8875
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "mb-14 flex",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							644,
+							48,
+							632,
+							32
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"display": "block",
+						"rect": [
+							644,
+							136,
+							632,
+							8691
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							644,
+							142,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							644,
+							290,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							644,
+							437,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							644,
+							585,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							644,
+							732,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							644,
+							880,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							644,
+							1027,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							644,
+							1175,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							644,
+							1322,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							644,
+							1470,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							644,
+							1617,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							644,
+							1765,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							644,
+							1912,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							644,
+							2060,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							644,
+							2207,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							644,
+							2355,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							644,
+							2502,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							644,
+							2650,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "relative -top-[10px]",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							644,
+							126,
+							632,
+							8691
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "a",
+						"class": "block py-4",
+						"display": "block",
+						"rect": [
+							644,
+							6026,
+							632,
+							144
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "a",
+						"class": "block py-4",
+						"display": "block",
+						"rect": [
+							644,
+							6497,
+							632,
+							144
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "a",
+						"class": "block py-4",
+						"display": "block",
+						"rect": [
+							644,
+							7115,
+							632,
+							144
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "a",
+						"class": "block py-4",
+						"display": "block",
+						"rect": [
+							644,
+							7585,
+							632,
+							144
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"3440": {
+				"doc": [
+					3440,
+					8875
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "mb-14 flex",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							1404,
+							48,
+							632,
+							32
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"display": "block",
+						"rect": [
+							1404,
+							136,
+							632,
+							8691
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							1404,
+							142,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							1404,
+							290,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							1404,
+							437,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							1404,
+							585,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							1404,
+							732,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							1404,
+							880,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							1404,
+							1027,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							1404,
+							1175,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							1404,
+							1322,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							1404,
+							1470,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							1404,
+							1617,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							1404,
+							1765,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							1404,
+							1912,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							1404,
+							2060,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							1404,
+							2207,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							1404,
+							2355,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							1404,
+							2502,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							1404,
+							2650,
+							632,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "relative -top-[10px]",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							1404,
+							126,
+							632,
+							8691
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "a",
+						"class": "block py-4",
+						"display": "block",
+						"rect": [
+							1404,
+							6026,
+							632,
+							144
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "a",
+						"class": "block py-4",
+						"display": "block",
+						"rect": [
+							1404,
+							6497,
+							632,
+							144
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "a",
+						"class": "block py-4",
+						"display": "block",
+						"rect": [
+							1404,
+							7115,
+							632,
+							144
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "a",
+						"class": "block py-4",
+						"display": "block",
+						"rect": [
+							1404,
+							7585,
+							632,
+							144
+						],
+						"side_by_side": 1
+					}
+				]
+			}
+		}
+	},
+	"notes": "This is about as simple as a blog can get: one column of text, centred on the page, nothing else. On a phone that column just fills the screen with a little padding on each side. Past about 672 pixels wide the column stops growing and locks to exactly 632 pixels — the scan shows that same number on a laptop screen and on an ultrawide monitor, so a bigger screen only adds quiet space on both sides, never a longer line of text. There is no menu, no sidebar and no images in the list, so nearly all of the page's personality comes from the pink headline colour rather than from the layout.",
+	"wire": {
+		"role": "page",
+		"kids": [
+			{
+				"role": "header",
+				"h": "3em"
+			},
+			{
+				"role": "main",
+				"dir": "row",
+				"center": true,
+				"floor": "42rem",
+				"kids": [
+					{
+						"role": "main",
+						"w": "40em",
+						"lines": 20
+					}
+				]
+			}
+		]
+	}
+}

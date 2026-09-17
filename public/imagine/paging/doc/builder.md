@@ -12,8 +12,9 @@ This file is the answer in three parts: **the census** (every `page.js` on the s
 what a UI would have to offer to build it), **the builder** (which controls, in what order, and
 what each one writes into the JSON), and **tabs** (adding one, configuring one).
 
-The builder itself is a page you can open: **[/imagine/paging/build/](/imagine/paging/build/)**.
-Where the pages go and why there is exactly one store is
+The builder itself is a page you can open: **[/imagine/paging/make/](/imagine/paging/make/)**.
+(It was `/imagine/paging/build/` until 2026-09-13, when the two editors became one screen —
+[below](#done-one-screen-2026-09-13).) Where the pages go and why there is exactly one store is
 [`persistence.md`](/imagine/paging/doc/persistence.md) beside this file — read that first if you
 have not; this file assumes its "pages as pure JSON" table.
 
@@ -144,8 +145,11 @@ scoring eleven template pages as pure configuration when each one needs its clas
 
 ## 2 · The builder — four controls and the realm's own bar
 
-Live: **[/imagine/paging/build/](/imagine/paging/build/)**. Left column the controls, middle
-column the page assembling as you press them, and under both the `page.json` that gets written.
+Live: **[/imagine/paging/make/](/imagine/paging/make/)**. The tree on the left, the page
+assembling in the middle as you press things, and the controls below on the right. (Until
+2026-09-13 this was `/imagine/paging/build/`, whose left column held controls 1-3 and whose
+middle held the same live page; the table below is unchanged, the controls simply live in the
+right pane of one screen now.)
 
 | # | control | what it is | what it writes |
 |---|---|---|---|
@@ -288,10 +292,11 @@ a real directory, `public/imagine/paging/made/<name>/page.json`. Proved 2026-09-
 tabs at 1280, saved, reloaded, still there; opened cold at its own url and the Router walked
 five columns to it.
 
-The builder's own draft is kept under this realm's one key,
-`lew42:paging:/imagine/paging/build/`, and the page carries the
-[mark](/imagine/paging/doc/persistence.md): amber while the draft is only in your browser, green
-once it is a file, with the way back to an empty page either way.
+Since 2026-09-13 there is no separate DRAFT at all: you are always editing a page that already
+exists, so every control writes straight through `Make.apply()` and the page carries the green
+[mark](/imagine/paging/doc/persistence.md) naming the store, with the way back to the baseline
+beside it. The old builder kept an unsaved node under `lew42:paging:/imagine/paging/build/` and
+wore the amber mark until you pressed Save; that key is dead.
 
 ### ⚠ Why `blocks` lives inside `mode`
 
@@ -503,3 +508,57 @@ A two-stage side-by-side page was proposed and is not being built.
 live pages at once, navigation across and arrangement down, and every cell is a link to that
 page full size. A compare page would have needed a shared toolbar and a second set of state to
 show one fewer comparison.
+
+---
+
+## Done: one screen, 2026-09-13
+
+**Two screens for one job was the defect.** `/imagine/paging/build/` had the live page and no
+tree; `/imagine/paging/make/` had the tree and no live page. You made a page in one place and
+found out what it looked like in the other, and neither could finish the job alone — the
+owner's report was *"this imagine/paging/make/ demo sucks… i click buttons, nothing happens. i
+have no idea what this is… are they rendered somewhere? were they supposed to be?"*
+
+`/imagine/paging/make/` is now ONE screen with three panes:
+
+| pane | what it is | what it writes |
+|---|---|---|
+| **left** | the page tree — every page you have made, nested the way the files are | order and nesting, by dragging |
+| **middle** | the page you picked, drawn by the same `PagingStage` it draws at its own url | nothing; it is the consequence |
+| **right** | Page (title · description · icon) · Words (the realm's seven-dropdown bar) · Blocks | every field of the node |
+
+**Up and down are gone.** Dragging says three things a pair of buttons could not — put this
+page third, put it inside that one, take it back out to the top level — and all three are one
+call, `Make.move_to()`. `ext/Draggable`'s `Sortable` does it with **one override**,
+`TreeSort.locate()`: every row in a page tree is itself a container, so `Sortable`'s
+innermost-container rule made every point on a row mean *inside it* and left only the 4px gap
+between rows meaning *before it*. A row is three bands now — its top 10px is "above me", its
+middle is "inside me", its bottom 10px is "below me" — and an empty page's indented slot is
+"inside me" too.
+
+**What moved out of `build/`, and where it went.** `build/stage.js` was deleted: `../stage.js`'s
+`PagingStage` draws the page, which is the same class a saved page draws at its own url.
+`build/build.css` lost ~190 lines of card, control and file-pane layout and keeps only the
+blocks. `build/words.js` (the node vocabulary) and `build/draw.js` (the one renderer for a
+page's blocks) stayed exactly where they were — Make's settings pane and `stage_props()` import
+them. `/imagine/paging/build/` is one sentence and a link, because the rail, the docs and five
+task logs link that url and a 404 is a worse answer.
+
+**Two things the old file box and code box became.** They are the realm's own drawer now: the
+bar in the settings pane carries **Code** and **More**, and `Make.node_now()` answers with the
+SELECTED node, so the drawer prints that page's real `page.json` and the `page.js` it would be.
+One code box per screen, which is the rule `prints_own_file` already existed to keep.
+
+**The 3440 report, same day.** The screen was a prose column: the middle was 3027px wide, the
+lede capped at 648px, `--flow` 54px between blocks, an `h3` carrying 104px of margin-top and
+the list of pages 1024px inside it (*"we have like 8em padding, looks bad, wastes space"*). It
+is a tool layout now — `--gap` everywhere, no `--measure` on a pane — and at 3440 it measures
+tree 416 · page 1877 · settings 480 inside 2847.
+
+**And three things the owner asked for while it was being built:** a page you made keeps core's
+own `h1` (`heading: true` on the grown pages — `Paging.render()` strips it from every page in
+this realm, and a page you made is not a demo); each pane paints its own surface, so the screen
+reads as three boxes rather than loose controls; and a child column opened inside a stage
+**splits the room** with the box instead of taking a fixed 22em slice — `.paging-pane` was
+`flex: 0 0 clamp(10em, 38%, 22em)`, a hard 352px, and is `flex: 1 1 0` with a floor, measured
+485/485 in a 979px stage at 1920.

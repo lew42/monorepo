@@ -43,6 +43,11 @@ plain `node public/blog/meta.mjs` lists what has drifted and exits non-zero.
   featured flag is `featured:`, deliberately not `lead:`. A card crops to 1.91:1, so a
   picture much wider than that needs `card_image:` — and the field is not called `card:`,
   which `Page.nav()` already reads as a CSS class. [Meta tags](/blog/doc/meta-tags/)
+- **The card has to be a PNG.** `meta.mjs` reads its real size out of the picture's own
+  bytes — the width and height at bytes 16 and 20 of a PNG's IHDR header, Node core only,
+  no image library — so a `.jpg` named in `image:` or `card_image:` ships with no
+  `og:image:width` and no `og:image:height`, and a reader that pre-sizes the card before
+  fetching it will not unfurl. Save the card as `.png`. [Meta tags](/blog/doc/meta-tags/)
 - **The pinned first exhibit leaves the float chain.** Above 130em of *container* it is
   absolutely positioned beside the head, so the next exhibit's `clear: right` has nothing
   to clear and `Post.check_pin()` has to measure. [Reading page](/blog/doc/reading-page/)

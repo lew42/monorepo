@@ -91,9 +91,14 @@ export function stage_props(node, { page, url_of } = {}){
 		     the control still cycled it and still wrote it to the file (paging-audit-5b).
 		     They COMPOSE: your blocks first, then the content word's own sample under a
 		     line naming it. Both controls are live, and the box says which half is which. */
+		/* ⚠ AND A PAGE WITH NO BLOCKS STILL GETS A `draw`, for the one line at the top
+		     of it: on YOUR page the content word's sample is somebody else's article
+		     under your own title, and it has to say so ABOVE itself rather than in a
+		     grey line under 300 words (self-evident-critique, defect 2). `sample_note()`
+		     is the same eyebrow the blocks case puts between the two halves. */
 		draw: blocks_of(node).length
 			? stage => { draw_blocks(node, page); stage.sample(true); }
-			: undefined,
+			: stage => { stage.sample_note(); stage.sample(false); },
 
 		/* WHICH TAB OPENS FIRST. Build's star writes `default: true` into a child's
 		   `mode`, the file kept it, the builder's own preview opened it — and the SAVED
@@ -416,10 +421,35 @@ export class PagingStage extends Page.Frame {
 
 	   `named` is true when BLOCKS were drawn above this: the sample then gets a line
 	   over it saying which control it belongs to, because two things in one box with
-	   nothing between them is how a reader ends up blaming the wrong dropdown. */
+	   nothing between them is how a reader ends up blaming the wrong dropdown.
+
+	   ⚠ AND IT STILL SAYS "SAMPLE TEXT". It read "and the content word — Article", so
+	     the word *sample* was in the eyebrow of an EMPTY page and gone from the eyebrow
+	     of the same page one block later: you did the one thing the line invited and
+	     300 words of somebody else's article stopped being labelled
+	     (self-evident-critique-2, finding 1). Both eyebrows open with the same two
+	     words now, and the label never depends on the page being empty. */
+	/* ── AND ON A PAGE YOU MADE, THE SAMPLE SAYS IT IS A SAMPLE ───────────────
+	   The same eyebrow, one line above the box's contents instead of between two of
+	   them — because on a page of your own the canned article is not an illustration,
+	   it is 300 words of somebody else's writing sitting under YOUR title and YOUR
+	   url, and the only thing that said so was a grey line below the whole article,
+	   off screen at a 900px window (self-evident-critique, defect 2).
+
+	   ⚠ NOT ON A DEMO. The twelve ready-made pages ARE the sample — saying so on each
+	     of them is noise on every page in the realm. Only a page with a `page.json`
+	     behind it draws this, which is `make/page.js` and `stage_props()` above.
+	   ⚠ AND NOT OVER A REAL PAGE. `content` also takes an address, and what comes back
+	     from one is the page at that address — not a sample of anything. */
+	sample_note(kind = this.config.content){
+		if (is_url(kind)) return null;
+
+		return span.c("paging-eyebrow", "sample text — the content word (" + title_of("content", kind) + ") draws this until you add a block");
+	}
+
 	sample(named, kind = this.config.content){
 
-		if (named) span.c("paging-eyebrow", "and the content word — " + title_of("content", kind));
+		if (named) span.c("paging-eyebrow", "sample text — the content word (" + title_of("content", kind) + ") draws this under your blocks");
 
 		if (is_off_site(kind)) return this.off_site(kind);
 		if (is_url(kind)) return is_md(kind) ? this.prose_at(kind) : this.page_at(kind);

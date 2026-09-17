@@ -51,6 +51,7 @@ a leaf demo page stays a plain `Page`. Pass the class, never an instance.
 
 A new `doc/<name>.md` is in the Docs rail only once `page.js` names it (`notes:`; a new file goes in
 `files:`) — `ext/Doc` declares, it does not crawl.
+⚠ An unregistered `doc/<name>.md` still RESOLVES at `/module/doc/<name>/` — `Page.file()` is the last-resort fallback — but only after `Page.load()` misses, so every load logs `404 …/<name>/page.js` in the console. A brief that says "zero console errors" reads that as a defect. Add the name to `notes:` (one word), or say in the report that the one 404 is the fallback's documented cost (2026-09-13, `core/Page/doc/data-children.md`).
 ⚠ The pretty `/module/doc/<name>/` route exists only where something registers it. A **Doc**-based
 module does; a plain **Page**-based module can, by adding a small `doc/page.js` with a `route()` —
 what the paging realm ships, copied to `/imagine/mag/doc/page.js` (2026-09-05). Without one, link

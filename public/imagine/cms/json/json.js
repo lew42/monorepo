@@ -51,10 +51,18 @@ export function config(node, name){
 
 		content(){ this.$body = div.c("flow", () => { body(this.node, this); }); },
 
-		// The live half of an edit: a delta MUTATES the node this page holds, so redrawing
-		// this one box is redrawing from the new state — no reload, no rebuild. Structure
-		// (a child added, a title changed) is next-load; readme.md says why.
-		redraw(){ this.$body?.empty(() => body(this.node, this)); },
+		/* The live half of an edit: a delta MUTATES the node this page holds, so redrawing
+		   this one box is redrawing from the new state — no reload, no rebuild. Structure
+		   (a child added, a title changed) is next-load; readme.md says why.
+
+		   ⚠ AND THE ROUTER MARKS THE LINKS AGAIN. A rebuilt box holds NEW anchors — a
+		     `cards` block draws one per child — and the mark that says "you are here" was
+		     put on the elements that just went in the bin, so the rebuilt link was never
+		     marked. `Make.redraw()` has always ended on this line; this one had not. */
+		redraw(){
+			this.$body?.empty(() => body(this.node, this));
+			this.app?.router?.mark_links();
+		},
 
 		children: Object.fromEntries(
 			Object.entries(node.children ?? {}).map(([key, kid]) => [key, config(kid, key)])),

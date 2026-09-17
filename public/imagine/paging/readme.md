@@ -16,8 +16,8 @@ over a stage, the drawer, the url, and both editors write them into one `mode` o
 
 **And all seven can be SAVED, not only sent.** The bar over a page you *made* writes straight
 into that page's `page.json` — change **room** on [`/make/notes/`](/imagine/paging/make/notes/),
-reload with a bare url, and it is still there. Build's middle wears the same bar, so both editors
-write all seven · `stage.js`'s `keep` hook.
+reload with a bare url, and it is still there · `stage.js`'s `keep` hook. There is one editor,
+[Make](/imagine/paging/make/); `/imagine/paging/build/` is a url that says where it went.
 
 **Six of the words are core's now, and this realm is one of its readers.** On 2026-09-06
 `core/Page` gained `navigation`, `width`, `arrangement`, `surface`, `background` and
@@ -64,7 +64,7 @@ export default new Paging({
 - `stage()` draws the page, the bar above it and the way into the drawer. Every configured
   page in the realm is this one call — the [library](/imagine/paging/library/)'s twelve
   presets, the block pages, every cell of [Cross](/imagine/paging/cross/), the pages you
-  [make](/imagine/paging/make/), and the middle column of [Build](/imagine/paging/build/).
+  [make](/imagine/paging/make/), and the middle pane of [Make](/imagine/paging/make/) itself.
 - **Two seams for what a word cannot say**: `draw` puts your own thing IN the box (a template
   family, a built page's blocks); `draw_child` draws a child's panel. `pages:` is which children
   the navigation word draws — hand it your own or it draws four samples. **`stage_props(node)`
@@ -87,17 +87,21 @@ export default new Paging({
   you click a child, the first tab IS the page itself, and the `content` word edits the page at
   the current path: [`doc/decisions.md`](./doc/decisions.md)
 - **Two colour controls, independent**: `surface` paints the content box, `background`
-  paints the page behind it. Each is a dropdown with a dot beside it in the colour it
-  is currently on — the one control whose value is a thing rather than a word.
-- The drawer (**More**) holds the link to this exact page, the full form with a sentence
-  per value, **nest** — any of the twelve presets *or any url*, including a page you made —
+  paints the page behind it. Each is a dropdown with a **swatch** beside it in the colour it
+  is currently on — the one control whose value is a thing rather than a word. (A circle read
+  as a radio button; it is a rectangle for that reason.)
+- The drawer (**More**) holds the link to this exact page, the full form — every word as a
+  labelled dropdown with the sentence its value means — **nest**, any of the twelve presets
+  *or any url*, including a page you made —
   the page **as a file**, the page **as code**, and, on a page you made, **delete**.
 - **The drawer asks the page what it is**, because the same rail hangs over three different
   kinds of page. A demo is only seven words, so it gets the file it *would* be and *make this
   a page*. A page you **made** answers `node_now()`, so it gets the file it already **is** and
-  the `page.js` for its real children — and it can be deleted. **Build** also sets
-  `prints_own_file`, so the drawer prints neither: the builder shows one file, one code box
-  and one Save on the page itself, and the drawer points at them.
+  the `page.js` for its real children — and it can be deleted. On the EDITOR screen the
+  drawer is where the file and the code live, which is why `Make.node_now()` answers with the
+  page you have SELECTED. (`prints_own_file` is the opposite arrangement — a page that shows
+  its own file on itself, so the drawer points at it instead of printing a second copy. The old
+  builder set it; nothing does today, and the flag stays for the next page that needs it.)
 
 ## Watch out
 
@@ -107,8 +111,7 @@ export default new Paging({
   (`doc/`, a reading) says `heading: true` to keep its title ·
   [doc/decisions.md](/imagine/paging/doc/decisions/)
 - **A demo never persists.** A refresh puts every page here back to what it ships as.
-  Only [Make](/imagine/paging/make/) and [Build](/imagine/paging/build/) save, and they
-  say so out loud · [doc/persistence.md](/imagine/paging/doc/persistence/)
+  Only [Make](/imagine/paging/make/) saves — the one editor — and it says so out loud · [doc/persistence.md](/imagine/paging/doc/persistence/)
 - **The realm is not a columns row.** `Paging.column_host()` returns nothing, so a page
   here is a plain page in the app's middle — that is what makes a deep link change one
   thing instead of opening two columns · [doc/decisions.md](/imagine/paging/doc/decisions/)
@@ -121,12 +124,16 @@ export default new Paging({
   realm; core's `Page.nav()` reads `this.card`, so a method of that name throws on every
   preview · [doc/decisions.md](/imagine/paging/doc/decisions/)
 - **A sticky grid item is held by the grid CONTAINER, not by its own row** (Chromium). The
-  builder's middle column stayed pinned over the file and the code boxes the whole way down,
-  because those were rows of the same grid. They are siblings under the card now, so the
-  column lets go where the card ends · [doc/decisions.md](/imagine/paging/doc/decisions/)
+  editor's middle pane is sticky so the page follows you down the settings; anything that must
+  sit UNDER the three panes is a sibling of the grid, never a fourth row of it · [doc/decisions.md](/imagine/paging/doc/decisions/)
 - **A child with `container-type: inline-size` may not be sized by its own contents** —
   one that also carries `align-self: start` collapses to 0px inside a flex column
   (`blog.css`'s `.blog-hero`). `.paging-canvas > *` stretches them back.
+- **A `.pages` whose default content is not a `.page` is hidden by the site's leaf rule.**
+  `styles.css` only lets the region showing `.page.active-page` (or a `.default`) scroll;
+  the hub's home is neither, so `.paging-app-centre` lost its scrollbar the moment it showed
+  its own home. One higher-specificity rule answers the site's own question for this region
+  · `paging.css`
 - **The bar may never cover the demo.** It was `position: absolute` over the stage's top
   edge until 2026-09-05, revealed on hover — so pointing at the front page's tab strip
   made the bar appear on top of it and the tab could not be clicked at all, at any width.
@@ -171,9 +178,9 @@ export default new Paging({
   [persistence](/imagine/paging/doc/persistence/) ·
   [templates](/imagine/paging/doc/templates/) · [builder](/imagine/paging/doc/builder/)
 - Files that matter: `blocks.js` (the vocabulary) · `stage.js` (**the one renderer**, the
-  builder's middle column included since 2026-09-05 — [how](/imagine/paging/doc/builder/)) ·
+  editor's middle pane included — [how](/imagine/paging/doc/builder/)) ·
   `presets.js` (the twelve) · `paging.js` (the app, and the base class) ·
-  `rail.js` (the nav grids) · `toolbar.js` (the bar of chips) · `url.js` (the address) ·
+  `rail.js` (the nav grids) · `toolbar.js` (the bar of dropdowns) · `url.js` (the address) ·
   `config.js` (the drawer)
 - Next door: [/imagine/layouts/](/imagine/layouts/) owns the numbered arrangements;
   [/imagine/shells/](/imagine/shells/) owns app chrome; [/imagine/sections/](/imagine/sections/)

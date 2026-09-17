@@ -38,7 +38,7 @@ const CANDIDATE = [
 	":where(*) {",
 	"    --pad:  calc(clamp(1em, 2.6% - 1.1em,   4em)   * var(--size));",
 	"    --gap:  calc(clamp(1em, 1.5cqi - 0.3em, 2.6em) * var(--size));",
-	"    --flow: calc(clamp(2em, 1.4cqi + 0.8em, 3em)   * var(--size));",
+	"    --flow: calc(clamp(2em, 1.4cqi + 0.8em, 2.5em) * var(--size));",
 	"}",
 	"",
 	".size-small { --size: 0.75 }  .size-regular { --size: 1 }  .size-large { --size: 1.5 }",
@@ -69,6 +69,7 @@ export default new Page({
 		p.c("muted", "Below about a 1,000px box, every ramp sits on its floor and nothing moves — that is the 2026-09-05 spacing decision working, where each ramp holds its 1280 value to the pixel and only then grows. Drag past that and all three take off together; at 3440 this box has about 3,300px of travel. The level chips move it at any width. (The drag edge hides under 34em of screen, where a rail stops being a rail — use the chips there.)");
 
 		md("### The whole standard, eight lines\n\n```css\n" + CANDIDATE + "\n```").ac("wide");
+		p.c("muted", "One number has moved since this landed: `--flow`'s ceiling was `3em` until 2026-09-13. At `3em` a paragraph gap reached 54px at 3440 against 30px at 1280 — 1.80x, where the verdict was 1.5x — because body prose sits on the clamp's floor at 1280 and on its ceiling at 3440, so the two ends multiply the body font's own ramp. `2.5em` makes it 45px, 1.50x, and 1280 does not move at all. The live number lives in one place, `framework.css`.");
 		md("`--size` is a plain number — never a length, and never a function of width. That is what lets it scale a whole clamp: floor, fluid middle and cap together. Padding is a **percentage**, which every box already resolves against its own container with nothing declared. Gap and rhythm are **`cqi`**, which reads the nearest container and falls back to the viewport when there is none — so they are exactly today's numbers on a plain page, and follow the box inside a column, a rail or a frame. **Type is absent on purpose:** the body font-size clamp is the one thing on this site that ramps type with width, and it stays where it is.");
 
 		md("### The verdict\n\n**One knob: yes. One ramp: no.** `--size` replaced the three level classes and the six spacing token names for free — the 20 audit pages measure identically at 400 and 1280 and within 6% at 3440 — but padding, gap and rhythm keep their own three clamps, because one ramp with fixed multipliers cuts the paragraph rhythm at 1280 from 28.8px to 13.5px. That is what's in `framework.css` now.");

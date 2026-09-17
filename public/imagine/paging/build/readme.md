@@ -1,94 +1,31 @@
-# Build — the page builder
+# Build — the builder moved into Make on 2026-09-13
 
-**"New page" to a finished page, with nothing but controls.** Three controls on the left, the
-page assembling live in the middle under the realm's own seven-word bar, and — under both — the
-`page.json` it writes and the `page.js` it would be, changing with every click. Save puts it on
-disk beside every other page you have made.
+**There is no builder here any more.** It is the right pane of
+[Make](/imagine/paging/make/), beside the tree it always needed and over the live page it
+already had.
 
-Live: [/imagine/paging/build/](/imagine/paging/build/)
+Two screens for one job was the defect: this page had the live page and no tree, Make had the
+tree and no live page, so you made a page in one place and found out what it looked like in the
+other. Nothing was lost — the seven-word bar, the name fields, the icon, the blocks, the file
+and the `page.js` are all on that one screen.
 
-## Use
+Live: [/imagine/paging/build/](/imagine/paging/build/) — one sentence and a link. The url stays
+alive because the rail, the docs and five task logs point at it, and a 404 is a worse answer.
 
-The controls, in the order you meet them, and what each writes:
+## What is still in this directory, and why it is not dead
 
-| # | control | writes |
-|---|---|---|
-| 1 | Name, description, icon | `title` · `description` · `icon` |
-| 2 | Blocks — prose · card wall · template | `mode.blocks[]` |
-| 3 | Pages — each row is icon, name, order, default | `children[]` |
-| 4 | Code — the `page.js` a hand would write, **all seven words in it** | nothing; it is the way out |
-| — | **the bar over the middle** — the realm's own seven dropdowns | every one of `mode`'s seven |
+| file | who imports it |
+|---|---|
+| `words.js` | the node vocabulary — the blocks, the icons, the default flag, the `page.js` printer. `make/settings.js`, `make/tree.js` and `../stage.js` all read it. |
+| `draw.js` | the ONE renderer for a page's blocks, for Make's middle and for a saved page alike |
+| `build.css` | `draw.js`'s own sheet — the block grids and the card wall, and nothing else since the move |
+| `page.js` | the pointer |
 
-**The bar owns the seven words, and only the bar.** This column had its own Navigation, Content
-colour and Arrangement controls beside that bar until 2026-09-05 — two controls for one word, on
-one screen, on the realm whose rule is one name, one control. They are gone; the bar writes
-through the stage's `keep` hook straight into the node, which is also what made `room` and
-`type size` savable at all.
-
-**Adding a tab is adding a page and picking "top tabs".** Configuring one is the four things
-every child has — name, order, default, icon.
-
-```js
-import { NEW_PAGE, add_child, set_default, code_for_node } from "/imagine/paging/build/words.js";
-import { NAVIGATION, config_of } from "/imagine/paging/blocks.js";
-import BuildStage from "/imagine/paging/build/stage.js";
-
-// The stage draws any node, anywhere. Inside, it is the realm's own `PagingStage`.
-new BuildStage({ page: this, node, classes: "build-screen" });
-```
-
-**The middle column is a `PagingStage`** (2026-09-05). This file no longer draws tabs, a rail, a
-toolbar or a surface — `stage.js` does, the same as for every other page in the realm. What is
-left is the crumb strip, the node's title, and the child panel's *"the url did not change"*.
-[`../doc/builder.md`](/imagine/paging/doc/builder/) has the seams and the numbers.
-
-## Watch out
-
-- **The builder has no words of its own.** Every control writes one of the realm's
-  [seven words](/imagine/paging/) into `mode`, read back by `config_of()` in `blocks.js`. Until
-  2026-09-05 it wrote `style`/`mech`/`kids`/`layout`/`arrange` instead — a second schema in the
-  same file, which meant a chip here changed nothing at all on a page Make had made.
-- **`blocks` rides inside `mode`.** `FileStore.file()` writes five keys and drops everything else
-  at the top level, so a top-level `blocks` is lost on save. The same trap ate a child's
-  `default: true` before it moved into `mode` too —
-  [`../doc/builder.md`](/imagine/paging/doc/builder/) has the one-line diff that would fix it
-  properly.
-- **A block you add has to reach the page you save.** They were collected, written to disk and
-  drawn by nothing outside this directory until 2026-09-05. `draw.js` is the one renderer and a
-  made page calls it through the stage's `draw` seam — what you see while building is what the
-  saved page shows.
-- **Blocks and the content word COMPOSE — neither switches the other off.** Your blocks first,
-  then the content word's own sample under a line naming it. With `draw` owning the whole box, a
-  page with one prose block drew nothing at all for `content` while every control still cycled it.
-- **A redraw from the BAR must not rebuild the middle column.** A `<select>` fires `change` while
-  it still has focus, and the stage has already repainted itself by then — `redraw({ screen:
-  false })` is the option that exists for it, beside `controls: false` for the text fields.
-- **`$stage`, `naming()`, `group`, `card` are taken.** `naming()` is core's own url-deriving
-  method and overriding it 404'd the whole page; `$stage` is assigned by `Paging.stage()`, so
-  the builder's boxes are `$controls`, `$screen`, `$json` and `$code`; `group` and `card` are
-  data core reads off a page. The head note in `page.js` names each one.
-- **`.cols` is `display: flex` in `@layer util`** and beat this sheet's `display: grid` at any
-  specificity — the card shipped as two columns until the class came out of the markup.
-- **A sticky grid item is held by the grid CONTAINER, not its own row** (Chromium). The middle
-  column stayed pinned over the file and the code the whole way down while those were rows of
-  the same grid; they are siblings under the card now.
-- **The drawer over this page prints nothing of its own.** `prints_own_file: true` and
-  `node_now()` are what tell it so — otherwise it printed a second file and a second `page.js`,
-  neither of them the page you were building ·
-  [`../doc/builder.md`](/imagine/paging/doc/builder/)
-- **`pre` is a dark code block in this theme.** Overriding only its background left #e6e6e6 ink
-  on a near-white box; the JSON pane read as an empty grey rectangle in three screenshots.
-- The template families are imported **lazily** — `families.js` pulls the magazine, the blog
-  manifest, the shells and two `ux` modules with it.
+`stage.js` was deleted: `../stage.js`'s `PagingStage` draws the page now, which is the same
+class a saved page draws at its own url.
 
 ## More
 
-- [`../doc/builder.md`](/imagine/paging/doc/builder/) — the census of all 890 `page.js` on the
-  site, the ruling that navigation is one control, the tabs answer, where a built page's blocks
-  go, and how this stage became the realm's own `PagingStage`.
-- [`../doc/persistence.md`](/imagine/paging/doc/persistence.md) — where the pages go, and why
-  there is exactly one store
-- [Make](/imagine/paging/make/) — the CRUD list of everything built here: rename, reorder, delete
-- Files: `page.js` (the page and its four controls) · `words.js` (the vocabulary and the node
-  operations) · `stage.js` (`BuildStage` — the frame around a `PagingStage`) · `draw.js` (the
-  blocks, drawn; a made page calls this too) · `build.css`
+- [Make](/imagine/paging/make/) · [`make/readme.md`](/imagine/paging/make/readme.md)
+- [`../doc/builder.md`](/imagine/paging/doc/builder.md) — the census, the controls in order,
+  tabs, and the record of the move

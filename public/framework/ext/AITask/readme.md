@@ -1,4 +1,4 @@
-# AITask — the AI working log, rendered: one task's page, a day's dashboard, and the board over every task, for the owner and the agents that log to it
+# AITask — the AI working log, rendered: one task's page, a day's dashboard, the highlights wall the front opens with, and the board over every task
 
 ## Use
 ```js framework/ai/<date>/<slug>/page.js
@@ -13,7 +13,15 @@ export default new AITask({
 ```
 A task's page is three tabs — **Requirements · Report · Session**, Report open by default: `report()` is the outline — `outcome`, `links`, `status`, `checklist`, `extra`, `shots`, `figures` build Report; `chat` + `log` build Session; `head` builds Requirements — override any one. A task dir is never declared in `children:` either way: no `page.js` of its own gets this template through its day's `route()` fallback, and one WITH its own `page.js` is found the same way, ahead of the fallback.
 
+A landing that produced something worth going back to adds one more line, and the front page grows a card for it:
+
+```json ai/<date>/<slug>/task.jsonl
+{"assign": {"highlight": {"icon": "explore", "title": "The layouts encyclopedia", "line": "Thirteen named layouts, defined, drawn and tagged to point at.", "url": "/layouts/"}}}
+```
+
 ## Watch out
+- The front (`/framework/ai/`) is the **highlights wall**; every task of every day is [`/framework/ai/log/`](/framework/ai/log/), forty at a time. `url` is THE THING, never the task page — [doc/highlights.md](./doc/highlights.md).
+- A task holding only a legacy `session.json` cannot take a highlight: creating a `task.jsonl` beside it HIDES the session snapshot, outcome and all — [doc/highlights.md](./doc/highlights.md).
 - A `.md` deliverable beside the task dir is a page: a link to `audit.md` in `outcome` or `requirements.md` opens at `audit/`, rendered. The `links:` pills are plain anchors, not markdown — write those urls as the route (`…/audit/`) yourself. [`/framework/core/Page/doc/declaring.md`](/framework/core/Page/doc/declaring.md)
 - Pace, not percentage: the usage bar is spend and the ▼ is the clock — on pace while used% ≤ elapsed%, over once the fill passes the marker — [doc/pace.md](./doc/pace.md).
 - `session_id` is the one `task.jsonl` field that matters; without it there is no session log — [doc/manifest.md](./doc/manifest.md).
@@ -27,5 +35,5 @@ A task's page is three tabs — **Requirements · Report · Session**, Report op
 
 ## More
 - [Overview](/framework/ext/AITask/) · [`doc/decisions.md`](./doc/decisions.md) — the record: the time-spine board, the file table, every trap in full, open items, where replays come from
-- [`doc/manifest.md`](./doc/manifest.md) the schema · [`doc/effort.md`](./doc/effort.md) the `group` tag · [`doc/pace.md`](./doc/pace.md) the usage rail · [`doc/template.md`](./doc/template.md) `report()` and its override · [`doc/starting-work.md`](./doc/starting-work.md) `rpc:start` · [`doc/waves.md`](./doc/waves.md) how it got here
-- Files that matter: `AITask.js` (the task template), `dashboard.js` (rail, day board, the `day.jsonl` timeline fold), `card.js` (one task row), `stats.js` (pure derivations)
+- [`doc/highlights.md`](./doc/highlights.md) the front page's wall · [`doc/manifest.md`](./doc/manifest.md) the schema · [`doc/effort.md`](./doc/effort.md) the `group` tag · [`doc/pace.md`](./doc/pace.md) the usage rail · [`doc/template.md`](./doc/template.md) `report()` and its override · [`doc/starting-work.md`](./doc/starting-work.md) `rpc:start` · [`doc/waves.md`](./doc/waves.md) how it got here
+- Files that matter: `AITask.js` (the task template), `dashboard.js` (rail, day board, the `day.jsonl` timeline fold), `card.js` (one task row), `highlights.js` (the front page's wall), `stats.js` (pure derivations)

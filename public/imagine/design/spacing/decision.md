@@ -12,13 +12,13 @@
 |---|---|---|---|---|
 | `--pad-ramp` · `clamp(1em, 2.6% - 1.1em, 4em)` · a full-width box | 16.5px | 70px | 36px | 1.9 |
 | `--gap-ramp` · `clamp(1em, 1.5vw - 0.3em, 2.6em)` | 15px | 46px | 24px | 1.9 |
-| `--flow-ramp` · `clamp(2em, 1.4vw + 0.8em, 3em)` · per child em | 30px | 54px | 36px | 1.5 |
+| `--flow-ramp` · `clamp(2em, 1.4vw + 0.8em, 3em)` · per child em — *as decided that day; the cap is **2.5em** today and the middle term is `cqi`* | 30px | 54px → **45px since 2026-09-13** | 36px | 1.5 |
 | `--page-column-pad-x` · confirmed as is | 16px | 50px | 50px | — |
 | `--page-column-pad-y` · confirmed as is | 10.5px | 25px | 25px | — |
 | column prose `--flow` · `clamp(0.8em, 0.8cqi, 1.6em)` | 10.8px | 25px | 13px | 1.9 |
 | the section gap · 1.5 × `--flow` before h3/h4, the heading's own em before h2 | a ratio, so it rides the ramp | | | |
 
-A card in a track stays at the floor (`--pad-ramp` is a % of its container); a band, a stage, a wall and every paragraph grow. The flow caps at 3em because a paragraph gap past two lines reads as a section break.
+A card in a track stays at the floor (`--pad-ramp` is a % of its container); a band, a stage, a wall and every paragraph grow. The flow caps because a paragraph gap past two lines reads as a section break — **the cap was 3em here and is 2.5em today** (lowered 2026-09-13: at 3em the gap reached 1.80× its 1280 value at 3440, where the verdict was 1.5×; [the measurements](/framework/ai/2026-09-13/paging-spacing-3440/spacing.md)). The live number is in `public/framework/framework.css`, never in a copy.
 
 ## The levels
 

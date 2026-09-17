@@ -172,15 +172,20 @@ export function move_child(node, i, delta){
 
 /* THE DEFAULT CHILD — the tab that is open when you arrive. Exactly one, so setting
    it clears the others: two defaults is a state the renderer would have to break a
-   tie in, and a tie broken silently is the bug that state produces. */
-/* ⚠ THE FLAG LIVES IN THE CHILD'S `mode`, not beside its title. `FileStore.file()`
+   tie in, and a tie broken silently is the bug that state produces.
+
+   READING it is here; WRITING it is `make/tree.js` `default_at()`, and that is not an
+   accident. The writer used to live here too, and it stamped the flag onto EVERY
+   sibling — so one star press added `"default": false` to the file of every page that
+   had never had the key, and dirtied pages nobody had touched (self-evident-critique,
+   defect 5). A writer that rewrites the siblings it did not change cannot be made safe
+   by its caller, so it is deleted rather than fixed.
+
+   ⚠ THE FLAG LIVES IN THE CHILD'S `mode`, not beside its title. `FileStore.file()`
      writes exactly five keys and drops everything else at the top level, so a
      top-level `default: true` was written into memory, drawn on screen, and SILENTLY
      LOST on save - the tab came back un-defaulted after a reload with nothing said.
      Measured 2026-09-05; `mode` is the one object that rides through whole. */
-export const set_default = (node, i) =>
-	edit(node, { children: (node.children ?? []).map((kid, n) => ({ ...kid, mode: { ...mode_of(kid), default: n === i } })) });
-
 export const is_default = kid => mode_of(kid).default === true;
 
 export const default_index = node => Math.max(0, (node.children ?? []).findIndex(is_default));

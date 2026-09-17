@@ -1,0 +1,1185 @@
+{
+	"name": "astral-codex-ten-home",
+	"url": "https://www.astralcodexten.com/",
+	"title": "Astral Codex Ten | Scott Alexander | Substack",
+	"category": "blog",
+	"captured_at": "2026-09-08T05:49:21.282Z",
+	"embed": "blocked",
+	"embed_note": "content-security-policy: frame-ancestors 'self' https://*.substack.com https://substack.com",
+	"shots": {
+		"400": "site/astral-codex-ten-home/400.jpg",
+		"1280": "site/astral-codex-ten-home/1280.jpg",
+		"1920": "site/astral-codex-ten-home/1920.jpg",
+		"3440": "site/astral-codex-ten-home/3440.jpg",
+		"long": "site/astral-codex-ten-home/long.jpg"
+	},
+	"layout": {
+		"400": "1-flow",
+		"1280": "2-sidebar",
+		"1920": "2-sidebar",
+		"3440": "2-sidebar"
+	},
+	"sections": [
+		{
+			"name": "top nav",
+			"layout": "1-flow",
+			"css": "flex",
+			"note": "logo, the Home/Mistakes/Archive/About links, and Subscribe/Sign in sit in one row; at 400 the text links vanish and only the logo, a search icon and the Subscribe button remain."
+		},
+		{
+			"name": "featured post",
+			"layout": "2-equal",
+			"css": "flex",
+			"note": "the newest post shows as a big illustration beside its title in two side-by-side blocks; at 400 the picture moves above the title instead of beside it."
+		},
+		{
+			"name": "feed + sidebar",
+			"layout": "2-sidebar right",
+			"css": "flex",
+			"note": "the scrolling list of post previews (thumbnail, title, byline) sits in a 616px-wide left column, and a narrow right column carries the author card, a subscribe box, and Recommendations/Community link lists; at 400 the right column disappears from view entirely and only the feed remains."
+		},
+		{
+			"name": "footer",
+			"layout": "1-flow",
+			"css": "flex",
+			"note": "a second subscribe box, About/Archive/Recommendations/Sitemap links and a copyright line, each its own centred row; only visible in the full-page shot because a large blank gap (likely reserved for lazy-loaded content) sits above it."
+		}
+	],
+	"tags": [
+		"2-sidebar",
+		"1-flow",
+		"2 column flex",
+		"max-width",
+		"right",
+		"blog"
+	],
+	"responsive": {
+		"strategy": "The whole page is capped at 1280px and centred no matter how wide the window gets — 1280, 1920 and 3440 all show the identical 1280px block, just with more empty margin around it, the same trick as GitHub's repo page. Inside that fixed block sits a two-column layout: the post feed on the left, an author/subscribe/recommendations sidebar on the right. Below about 768px (this site's own most-common breakpoint) that inner split collapses to one column and the sidebar is dropped from the visible page rather than moved underneath it — at 400 we never see it again in the same viewport.",
+		"breakpoints": [
+			768,
+			1024
+		]
+	},
+	"scan": {
+		"scanned_at": "2026-09-08T05:49:33.276Z",
+		"css": {
+			"sheets": 19,
+			"bytes": 1218452,
+			"inline_bytes": 1821
+		},
+		"media": [
+			"(dynamic-range:high){",
+			"(forced-colors:active){",
+			"(hover:hover){",
+			"(max-height:100px){",
+			"(max-height:160px){",
+			"(max-height:240px){",
+			"(max-height:280px){",
+			"(max-height:320px){",
+			"(max-height:400px){",
+			"(max-height:460px){",
+			"(max-width:1000px){",
+			"(max-width:1024px){",
+			"(max-width:1032px){",
+			"(max-width:1100px){",
+			"(max-width:1130px){",
+			"(max-width:1200px){",
+			"(max-width:1300px){",
+			"(max-width:1440px){",
+			"(max-width:400px){",
+			"(max-width:420px){",
+			"(max-width:500px){",
+			"(max-width:600px){",
+			"(max-width:640px){",
+			"(max-width:650px){",
+			"(max-width:700px){",
+			"(max-width:750px){",
+			"(max-width:767px){",
+			"(max-width:768px){",
+			"(max-width:769px){",
+			"(max-width:800px){",
+			"(max-width:816px){",
+			"(max-width:825px){",
+			"(max-width:870px){",
+			"(max-width:875px){",
+			"(max-width:890px){",
+			"(max-width:900px){",
+			"(max-width:992px){",
+			"(min-height:550px){",
+			"(min-width:1024px){",
+			"(min-width:1025px){",
+			"(min-width:1300px){",
+			"(min-width:250px){",
+			"(min-width:300px){",
+			"(min-width:350px){",
+			"(min-width:400px){",
+			"(min-width:600px){",
+			"(min-width:650px){",
+			"(min-width:651px){",
+			"(min-width:678px){",
+			"(min-width:684px){",
+			"(min-width:768px) and (max-width:1024px){",
+			"(min-width:768px){",
+			"(min-width:769px) and (max-width:1024px){",
+			"(min-width:769px){",
+			"(prefers-reduced-motion:no-preference){",
+			"(prefers-reduced-motion:reduce){",
+			"(scripting:none){",
+			"all and (-ms-high-contrast:none),(-ms-high-contrast:active){",
+			"not all and (min-resolution:.001dpcm){",
+			"only screen and (max-width:1024px){",
+			"only screen and (max-width:650px){",
+			"only screen and (max-width:768px){",
+			"only screen and (min-width:630px){",
+			"print{",
+			"screen and (max-height:480px){",
+			"screen and (max-height:550px){",
+			"screen and (max-height:620px){",
+			"screen and (max-width:1000px){",
+			"screen and (max-width:1024px){",
+			"screen and (max-width:1124px){",
+			"screen and (max-width:1200px){",
+			"screen and (max-width:1240px){",
+			"screen and (max-width:370px){",
+			"screen and (max-width:540px){",
+			"screen and (max-width:600px){",
+			"screen and (max-width:650px){",
+			"screen and (max-width:768px){",
+			"screen and (max-width:800px){",
+			"screen and (max-width:912px){",
+			"screen and (min-width:1241px){",
+			"screen and (min-width:541px){",
+			"screen and (min-width:768px){",
+			"screen and (min-width:769px){",
+			"screen and (min-width:984px){"
+		],
+		"container": [
+			"(width<=500px){",
+			"(width<=560px){",
+			"(width<=60px){"
+		],
+		"breakpoints_seen": [
+			{
+				"px": 768,
+				"count": 6
+			},
+			{
+				"px": 1024,
+				"count": 6
+			},
+			{
+				"px": 650,
+				"count": 4
+			},
+			{
+				"px": 769,
+				"count": 4
+			},
+			{
+				"px": 400,
+				"count": 3
+			},
+			{
+				"px": 600,
+				"count": 3
+			},
+			{
+				"px": 550,
+				"count": 2
+			},
+			{
+				"px": 800,
+				"count": 2
+			},
+			{
+				"px": 1000,
+				"count": 2
+			},
+			{
+				"px": 1200,
+				"count": 2
+			},
+			{
+				"px": 1300,
+				"count": 2
+			},
+			{
+				"px": 100,
+				"count": 1
+			}
+		],
+		"widths": {
+			"400": {
+				"doc": [
+					400,
+					2877
+				],
+				"elements": [
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"role": "article",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							89,
+							400,
+							371
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"role": "navigation",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							16,
+							509,
+							368,
+							56
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"role": "article",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							16,
+							573,
+							368,
+							124
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"role": "article",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							16,
+							722,
+							368,
+							124
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"role": "article",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							16,
+							871,
+							368,
+							124
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"role": "article",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							16,
+							1020,
+							368,
+							100
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"role": "article",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							16,
+							1145,
+							368,
+							100
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"role": "article",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							16,
+							1270,
+							368,
+							148
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"role": "article",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							16,
+							1443,
+							368,
+							100
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "entry",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							400,
+							2877
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "main",
+						"class": "main typography",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							400,
+							2877
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "home-page home-page--modular",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							89,
+							400,
+							2568
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							0,
+							89,
+							400,
+							2216
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							89,
+							400,
+							2216
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1280": {
+				"doc": [
+					1280,
+					2215
+				],
+				"elements": [
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"role": "article",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							174,
+							138,
+							932,
+							321
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"role": "navigation",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							174,
+							508,
+							616,
+							56
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"role": "article",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							174,
+							564,
+							616,
+							123
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"role": "article",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							174,
+							704,
+							616,
+							144
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"role": "article",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							174,
+							865,
+							616,
+							144
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"role": "article",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							174,
+							1026,
+							616,
+							123
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"role": "article",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							174,
+							1166,
+							616,
+							123
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"role": "article",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							174,
+							1305,
+							616,
+							144
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"role": "article",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							174,
+							1466,
+							616,
+							123
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "entry",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1280,
+							2215
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "main",
+						"class": "main typography",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							1280,
+							2215
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "home-page home-page--modular",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							122,
+							1280,
+							1901
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							0,
+							122,
+							1280,
+							1541
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							122,
+							1280,
+							1541
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1920": {
+				"doc": [
+					1920,
+					2215
+				],
+				"elements": [
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"role": "article",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							494,
+							138,
+							932,
+							321
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"role": "navigation",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							494,
+							508,
+							616,
+							56
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"role": "article",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							494,
+							564,
+							616,
+							123
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"role": "article",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							494,
+							704,
+							616,
+							144
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"role": "article",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							494,
+							865,
+							616,
+							144
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"role": "article",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							494,
+							1026,
+							616,
+							123
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"role": "article",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							494,
+							1166,
+							616,
+							123
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"role": "article",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							494,
+							1305,
+							616,
+							144
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"role": "article",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							494,
+							1466,
+							616,
+							123
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "entry",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1920,
+							2215
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "main",
+						"class": "main typography",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							1920,
+							2215
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "home-page home-page--modular",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							122,
+							1920,
+							1901
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							0,
+							122,
+							1920,
+							1541
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							320,
+							122,
+							1280,
+							1541
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"3440": {
+				"doc": [
+					3440,
+					2215
+				],
+				"elements": [
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"role": "article",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							1254,
+							138,
+							932,
+							321
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"role": "navigation",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							1254,
+							508,
+							616,
+							56
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"role": "article",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							1254,
+							564,
+							616,
+							123
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"role": "article",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							1254,
+							704,
+							616,
+							144
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"role": "article",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							1254,
+							865,
+							616,
+							144
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"role": "article",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							1254,
+							1026,
+							616,
+							123
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"role": "article",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							1254,
+							1166,
+							616,
+							123
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"role": "article",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							1254,
+							1305,
+							616,
+							144
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"role": "article",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							1254,
+							1466,
+							616,
+							123
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "entry",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							3440,
+							2215
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "main",
+						"class": "main typography",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							3440,
+							2215
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "home-page home-page--modular",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							122,
+							3440,
+							1901
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							0,
+							122,
+							3440,
+							1541
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "pencraft pc-display-flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							1080,
+							122,
+							1280,
+							1541
+						],
+						"side_by_side": 1
+					}
+				]
+			}
+		}
+	},
+	"notes": "This is a Substack blog, and it never gets wider than 1280 pixels no matter the screen — on an ultrawide monitor it just floats in the middle with empty blue on both sides, so the reading experience is identical on a laptop and on a giant screen. Inside that fixed-width block, a desktop shows two columns: the list of posts on the left, and a narrow column on the right with the author's photo, a subscribe box, and lists of other things to read. On a phone that narrow column is not stacked below the feed the way most sidebars are — it just disappears, and the phone gets only the post list. The first automatic scan guessed this page was one plain centred column (`1-centered`); looking at the actual pictures shows a real two-column sidebar living inside that centred box, which is the more accurate call and the two calls disagreeing is itself worth knowing.",
+	"wire": {
+		"role": "page",
+		"kids": [
+			{
+				"role": "header",
+				"h": "7em"
+			},
+			{
+				"role": "hero",
+				"dir": "row",
+				"h": "20em",
+				"floor": "48rem",
+				"kids": [
+					{
+						"role": "image",
+						"w": "29em"
+					},
+					{
+						"role": "hero",
+						"w": 1
+					}
+				]
+			},
+			{
+				"role": "main",
+				"dir": "row",
+				"floor": "48rem",
+				"kids": [
+					{
+						"role": "main",
+						"w": 1,
+						"lines": 10
+					},
+					{
+						"role": "aside",
+						"w": "20em",
+						"lines": 6
+					}
+				]
+			},
+			{
+				"role": "footer",
+				"h": "8em"
+			}
+		]
+	}
+}

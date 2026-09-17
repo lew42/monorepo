@@ -1,0 +1,254 @@
+/* /layouts/ — the layout standard. Two halves:
+
+     1. THE DRAWING (.std-frame … .std-bar) — a wireframe of a layout, built at a real
+        viewport size and shrunk to fit. Layout.js writes the sizing; everything here
+        is what the boxes look like.
+     2. THE PAGES (.std-tree … .std-tag) — the tree, a layout's page, a tag's page.
+
+   `std-` is this module's prefix — the STANDARD. Not `layouts-` (that is
+   /imagine/layouts/, the numbered lab) and not `layout-` (ext/layout). Three
+   namespaces, deliberately not one letter apart. Registered in
+   framework/styles/css-scopes.txt.
+
+   Everything is in @layer theme: this is a component's own look, and nothing here
+   needs to beat a utility class. */
+
+@layer theme {
+
+/* ══ 1 · THE DRAWING ══════════════════════════════════════════════════════════ */
+
+/* The frame is the box on the page; the drawing inside it is built at the real
+   viewport size and shrunk with `zoom`. `container-type: inline-size` is what gives
+   the drawing a `cqw` to divide by — a container query UNIT read by a descendant,
+   never a container query trying to restyle this box. `aspect-ratio` is what gives
+   the frame a height with nothing measured. */
+.std-frame {
+	container-type: inline-size;
+	aspect-ratio: var(--w) / var(--h);
+	width: 100%;
+	overflow: hidden;
+	border-radius: var(--radius);
+	box-shadow: inset 0 0 0 1px var(--line);
+	background: var(--surface);
+}
+
+/* ⚠ `font-size: 16px`, pinned. The site's body size is a viewport clamp (14 → 18px),
+     so without this a `16em` sidebar would measure 288px inside a drawing labelled
+     1920 and the picture would lie about the layout it is drawing. */
+.std-draw {
+	--std-gap: 0.75em;
+	--std-pad: 1.25em;
+	width: calc(var(--w) * 1px);
+	height: calc(var(--h) * 1px);
+	zoom: calc(100cqw / (var(--w) * 1px));
+	font-size: 16px;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+/* Every box in a drawing. `min-width: 0` / `min-height: 0` because a flex child is
+   floored at its content by default, and one bar too many would then push a column
+   wider than the drawing instead of clipping like a real screen does. */
+.std-box {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	min-height: 0;
+	overflow: hidden;
+}
+
+/* A container's children. The row is the one that wraps — see Layout.js `size()`
+   for the stack term each child carries. */
+.std-kids { flex: 1 1 0; min-width: 0; min-height: 0; display: flex; gap: var(--std-gap); }
+.std-col  { flex-direction: column; }
+.std-row  { flex-direction: row; flex-wrap: wrap; align-content: stretch; }
+
+/* A wall names a column WIDTH and lets the room count the tracks — the one
+   arrangement in the book that responds with no breakpoint. auto-FILL, not auto-fit:
+   auto-fit collapses the empty tracks and hands the leftover to whatever is there,
+   which turns a wall of one card into one enormous card. */
+.std-wall {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(var(--std-column, 14em), 100%), 1fr));
+	grid-auto-rows: 9em;
+	align-content: start;
+	overflow: hidden;
+}
+
+/* THE DIVIDER — the owner's "any layout-indicators could be visualized, like section
+   dividers, especially if the section contributes to layout". Every box in a drawing
+   IS a section that contributes, so every box carries the hairline; only `.std-page`
+   is exempt, because the frame around the whole drawing already draws that edge. */
+.std-box:not(.std-page) { box-shadow: inset 0 0 0 1px var(--line); }
+
+/* A row whose children are centred rather than stretched — one column of capped
+   width with the leftover split either side, which is what `1-centered` IS. */
+.std-center { justify-content: center; }
+
+/* ── the roles, one rule each ── the paint IS the role, so a spec's `role` word is
+   the only place a colour decision is made. */
+.std-page   { background: var(--surface); padding: var(--std-pad); }
+.std-header { background: var(--fill-a08); box-shadow: inset 0 0 0 1px var(--line); }
+.std-nav    { background: var(--fill-a04); }
+.std-main   { background: transparent; }
+.std-aside  { background: var(--fill-a04); }
+.std-footer { background: var(--fill-a16); box-shadow: inset 0 0 0 1px var(--line); }
+.std-hero   { background: var(--fill-a08); box-shadow: inset 0 0 0 1px var(--line); }
+.std-card   { background: var(--surface); border-radius: calc(var(--radius) * 0.6); box-shadow: inset 0 0 0 1px var(--line); }
+
+/* Tone overrides — a wire may repaint one box without inventing a role for it. */
+.std-tone-none    { background: transparent; }
+.std-tone-a04     { background: var(--fill-a04); }
+.std-tone-a08     { background: var(--fill-a08); }
+.std-tone-a16     { background: var(--fill-a16); }
+.std-tone-surface { background: var(--surface); }
+
+/* Padding is per role, not a knob: a header and a card hold different things. */
+.std-header, .std-footer { padding-inline: var(--std-pad); justify-content: center; }
+.std-nav, .std-aside, .std-main, .std-text { padding: calc(var(--std-pad) * 0.6); }
+.std-hero { padding: calc(var(--std-pad) * 1.4); }
+.std-card { padding: calc(var(--std-pad) * 0.5); }
+
+/* A box that scrolls says so — the one behaviour a still picture cannot show, drawn
+   as the scrollbar it would have. */
+.std-scroll { position: relative; }
+.std-scroll::after {
+	content: ""; position: absolute; inset-block: 0.4em; inset-inline-end: 0.25em;
+	width: 0.35em; border-radius: 0.35em; background: var(--fill-a32);
+}
+
+/* A newspaper flows ONE piece of content through its columns, so its lines have to
+   be plain blocks — a flex column is a single unbreakable box and would all land in
+   column one. This is the one place the drawing stops being flex. */
+.std-newspaper { display: block; column-gap: var(--std-gap); }
+.std-newspaper .std-lines { display: block; }
+.std-newspaper .std-bar { margin-block-end: 0.4em; }
+
+/* ── the fillers ── nothing readable anywhere: the eye reads the arrangement. */
+.std-lines { display: flex; flex-direction: column; gap: 0.4em; }
+.std-bar { height: 0.45em; border-radius: 0.25em; background: var(--fill-a16); flex: none; }
+
+.std-topbar { display: flex; align-items: center; justify-content: space-between; height: 100%; }
+.std-mark { width: 4.5em; height: 1.1em; border-radius: 0.2em; background: var(--fill-a32); }
+.std-navlinks { display: flex; gap: 1em; }
+.std-navlink { width: 3em; height: 0.5em; border-radius: 0.25em; background: var(--fill-a32); }
+
+.std-hero-in { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.7em; height: 100%; width: 100%; }
+.std-claim { width: 52%; height: 2.4em; border-radius: 0.3em; background: var(--fill-a32); }
+.std-hero-in .std-bar { width: 40%; }
+.std-button { width: 8em; height: 2.2em; border-radius: var(--radius); background: var(--prim); margin-top: 0.5em; }
+
+.std-card-in { display: flex; flex-direction: column; gap: 0.5em; height: 100%; }
+.std-image {
+	flex: 1 1 3em; min-height: 2em; border-radius: 0.2em; background: var(--fill-a16);
+	background-image:
+		linear-gradient(to top right,    transparent calc(50% - 0.5px), var(--line) 50%, transparent calc(50% + 0.5px)),
+		linear-gradient(to bottom right, transparent calc(50% - 0.5px), var(--line) 50%, transparent calc(50% + 0.5px));
+}
+
+/* ══ 2 · THE PAGES ════════════════════════════════════════════════════════════ */
+
+/* THE TREE — one branch per column count, each a heading and a wall of drawings.
+   `--column: 15em` so a 3440 screen gets six thumbnails across and a phone gets one. */
+.std-tree { display: flex; flex-direction: column; gap: var(--flow); }
+.std-branch { display: flex; flex-direction: column; gap: calc(var(--gap) * 0.7); }
+.std-branch-head { display: flex; align-items: baseline; gap: 0.7em; flex-wrap: wrap; }
+.std-n { font-size: 1.6em; font-weight: 900; line-height: 1; }
+.std-branch-say { color: var(--subtle); }
+
+/* ⚠ auto-FIT with a CEILING, not auto-fill with `1fr`. A branch holds two to four
+   layouts, and auto-fill declared six tracks at 1920 and ten at 3440 — so the `2`
+   branch drew two 284px drawings in a 3260px row and the wall read as broken. auto-fit
+   collapses the tracks nobody is standing in, and the 22em ceiling stops the survivors
+   growing into billboards; a wireframe is unreadable under about 18em anyway. Measured
+   2026-09-08: 274px → 352px per drawing at 1920, four across, same wall at 400. */
+.std-thumbs {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(15em, 100%), 22em));
+	gap: var(--gap);
+}
+
+.std-thumb { display: flex; flex-direction: column; gap: 0.5em; text-decoration: none; color: inherit; }
+.std-thumb:hover .std-frame { box-shadow: inset 0 0 0 2px var(--prim); }
+.std-thumb-id { font-family: var(--mono); font-weight: 700; }
+/* ⚠ A CEILING ON THE CAPTION. It is `when` straight out of layouts.json, so anybody who
+   adds a sentence there is editing this wall — one entry grew to eleven lines and made
+   its card twice its neighbours' height. Four lines, then an ellipsis; the whole sentence
+   is on the layout's own page, one click away, which is where a caption sends you. */
+.std-thumb-say {
+	color: var(--subtle); font-size: 0.85em; line-height: 1.35;
+	display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; overflow: hidden;
+}
+
+/* THE BODY OF A LAYOUT'S PAGE — and of a tag's. It claims `wide`, so the tag chips,
+   the two folds and the list of real websites get every pixel the page has; without
+   that they stood in a 40em column with 2700px of empty screen beside them at 3440,
+   and twelve site chips wrapped to three lines in an 800px box (measured 2026-09-08).
+   ⚠ THE SENTENCES TAKE THEIR MEASURE BACK HERE. `wide` removes the reading cap from
+     everything inside it, so a paragraph would run 3260px. Prose is `.md` and `p`;
+     everything else in this box is a ROW of small things and is meant to spread. */
+.std-body > :is(.md, p) { max-width: var(--measure); }
+
+/* THE THREE WIDTHS, scaled to a common height. `flex-grow` is the drawing's own
+   aspect ratio and the basis is 0, so each frame's width comes out proportional to
+   its aspect and every frame lands the same height — no measuring, no script.
+   Below 48rem the stack term takes over and they go one per line. */
+.std-shots { display: flex; flex-wrap: wrap; gap: var(--gap); align-items: start; }
+.std-shot {
+	flex: var(--a) 1 max(0px, calc((48rem - 100%) * 999));
+	display: flex; flex-direction: column; gap: 0.4em; min-width: 0;
+	/* A CEILING ON THE HEIGHT, written as a width because the aspect ratio does the
+	   rest: `--a` x the height is the width at which every frame is that tall. Its one
+	   real job is the STACKED phone drawing — at 400 a 400x844 frame drawn full width
+	   would be 726px tall, and a reader would scroll a whole screen of wireframe before
+	   the first sentence.
+	   ⚠ It was a flat `22rem`, and that is a FOLD budget written as a constant: at
+	     3440x1440 the three frames then measured 1720px of a 3260px row and left half
+	     the screen white, which is the waste this whole tier is about (measured
+	     2026-09-08). A fold budget belongs in `vh` (the layout skill), so it is now
+	     40vh: 354px at 400x844 — the phone drawing is unchanged — 432px at 1080, where
+	     the row fills 1766px exactly, and 576px at 1440, where it fills 2638px of 3260
+	     and the definition still starts above the fold. The `rem` bounds keep it sane
+	     on a very short or very tall window. */
+	max-width: calc(var(--a) * clamp(18rem, 40vh, 44rem));
+}
+.std-shot-label { font-family: var(--mono); font-size: 0.8em; color: var(--subtle); }
+.std-shot-label b { color: var(--ink); }
+
+/* TAG CHIPS — the navigation. Every id, word, technique and trait is one of these,
+   and every one of them goes to /layouts/tag/<tag>/. */
+.std-tags { display: flex; flex-wrap: wrap; gap: 0.4em; }
+.std-tag {
+	display: inline-flex; align-items: center; gap: 0.4em;
+	padding: 0.25em 0.7em; border-radius: 2em;
+	background: var(--fill-a08); box-shadow: inset 0 0 0 1px var(--line);
+	font-size: 0.85em; text-decoration: none; color: inherit; white-space: nowrap;
+}
+.std-tag:hover { box-shadow: inset 0 0 0 1px var(--prim); color: var(--prim-ink); }
+.std-tag-n { color: var(--subtle); font-variant-numeric: tabular-nums; }
+.std-tag-on { background: var(--prim); color: #fff; box-shadow: none; }
+.std-tag-on .std-tag-n { color: rgba(255,255,255,0.75); }
+
+/* A RECIPE — one technique, its rules, and what wrap does to it. */
+.std-recipes { display: flex; flex-direction: column; gap: var(--gap); }
+.std-recipe { display: flex; flex-direction: column; gap: 0.5em; }
+.std-recipe pre { margin: 0; }
+.std-recipe-note { color: var(--subtle); font-size: 0.92em; }
+
+/* A WORD and what it means — the vocabulary, on the tree page and the tag page. */
+.std-words { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(20em, 100%), 1fr)); gap: var(--gap); }
+.std-word { display: flex; flex-direction: column; gap: 0.3em; }
+.std-word-name { font-family: var(--mono); font-weight: 700; }
+.std-word-kind { font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.06em; color: var(--subtle); }
+
+/* The id, big and monospaced, at the top of a layout's page. */
+.std-id { font-family: var(--mono); font-size: 1.1em; color: var(--subtle); }
+
+/* ONE CLICK DOWN. framework.css already hugs a `summary` to its own text and gives
+   it the control grammar, so this only has to say what an open one looks like. */
+.std-details { display: block; }
+.std-details > summary { font-weight: 600; }
+.std-details[open] > summary { margin-block-end: var(--gap); }
+
+}

@@ -47,7 +47,8 @@ everything else, on the right, scrolls under it (`notes.css`; below 900px it jus
 - **Some pages are reduced.** Third parties' names become initials; two spreads (021, 022)
   had a home address, utility account numbers and apartment logistics on the right-hand
   page, so their image is **cropped to the left page** and that half is not transcribed.
-  Every reduced page says so in one line and links the original.
+  Every reduced page says so in one line and links the original — the full list, verbatim
+  where it can be, is [/notes/redactions/](/notes/redactions/).
 - **`notes-` is not yet in `framework/styles/css-scopes.txt`.** The name was censused clean
   on 2026-09-06 (no `.notes*` rule exists in any stylesheet), but the task that opened it
   could only write under `public/notes/**`. One line — `notes-   /notes/` — is owed.

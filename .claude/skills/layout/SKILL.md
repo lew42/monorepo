@@ -138,6 +138,7 @@ pages, no console error, no overflow (2026-09-05). The invariant that fails is a
 a sweep at four widths finds it.
 ⚠ `scrollWidth === clientWidth` proves only that nothing overflows *horizontally*: the homepage passed it with 4549px of bands inside a 284px `flex-1` region of a `page full fill` shell — seven bands invisible, no symptom. Also check the content region's `scrollHeight <= clientHeight` (or that the document is what scrolls), scoped to regions INSIDE the layout — `div.pages` is the SPA's own scroller and reads 24× at 400 legitimately. An odd width (1440) found it when 400/1280/1920/3440 all missed.
 ⚠ Counting a wrapped row by distinct `Math.round(rect.top)` is wrong under `v-center` — centred children of different heights get different tops on the SAME line (the homepage topbar read as 3 lines at 1920; it is 1). Two children are one line when their vertical ranges OVERLAP.
+⚠ `page.screenshot({ fullPage: true })` captures the VIEWPORT ONLY here — the real scroller is `div.pages`, not the document, so the shot looks like a correct full-page capture while the lower half is silently missing (a table and a preview card, gone, nothing warns). To see a whole page: give the viewport the height (e.g. 1920×2400), or scroll `.pages`; never trust `fullPage` on this site (2026-09-08).
 
 ⚠ A grid can be the RIGHT HEIGHT and still leave the fold white: `min-height: 100%` sizes
 the GRID while `align-content: start` leaves its one ROW content-sized — together they left

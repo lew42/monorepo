@@ -6,8 +6,17 @@
 	<id>https://lew42.com/blog/</id>
 	<link rel="alternate" type="text/html" href="https://lew42.com/blog/"/>
 	<link rel="self" type="application/atom+xml" href="https://lew42.com/blog/feed.xml"/>
-	<updated>2026-08-30T00:00:00Z</updated>
+	<updated>2026-09-08T00:00:00Z</updated>
 	<author><name>lew42</name></author>
+	<entry>
+		<title>Playwright: a browser you can write to</title>
+		<id>https://lew42.com/blog/ai/playwright/</id>
+		<link rel="alternate" type="text/html" href="https://lew42.com/blog/ai/playwright/"/>
+		<published>2026-09-08T00:00:00Z</published>
+		<updated>2026-09-08T00:00:00Z</updated>
+		<category term="ai"/>
+		<summary type="text">A real browser, driven by a script with nobody watching. What people use it for, the three ways an AI agent gets hands on a page, and where it stops working.</summary>
+	</entry>
 	<entry>
 		<title>Hello, lew42</title>
 		<id>https://lew42.com/blog/framework/hello-lew42/</id>

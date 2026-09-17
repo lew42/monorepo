@@ -155,6 +155,22 @@
 	.page > .wide  { grid-column: wide; }
 	.page > .bleed { grid-column: bleed; }
 
+	/* The theme sets every `h1` to a flat `3em` (`lew42.css`). A TITLE THAT IS ONE
+	   LONG WORD has no space to wrap on, so at a phone width that word can be wider
+	   than the column — framework.css's base-layer `overflow-wrap: break-word` then
+	   does the only thing it can and breaks the word itself, mid-letter: `Documentatio`
+	   / `n` at 400 (`/websites/python-docs-index/`, title "3.14.7 Documentation").
+	   `overflow-wrap: anywhere` breaks it the same way; `hyphens` still SPLITS the
+	   word, just tidily. Shrinking is the only option that keeps it whole, so the
+	   clamp's floor is a smaller font, not a broken word.
+	   ⚠ Unchanged at 1280+ on purpose: the max branch is the theme's own `3em`, the
+	   same expression already in `lew42.css`, so above the crossover (~460px, where
+	   `9vw` first exceeds it) this clamp resolves to the exact value it always did.
+	   `.page h1.page-title` is (0,2,1) in the same `theme` layer as the (0,2,0)
+	   `.theme-lew42 :is(h1, .h1)` it overrides — it wins on specificity alone, so the
+	   fix holds no matter which stylesheet happens to load second. */
+	.page h1.page-title { font-size: clamp(1.75rem, 9vw, 3em); }
+
 	/* ── `.solo` — the one full-screen word ──
 	   The page takes the whole region and owns its own scrolling. No `position`, no
 	   `z-index`: it fills the region rather than covering the window, so it cannot

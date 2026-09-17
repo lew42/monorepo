@@ -34,6 +34,10 @@ real database. Step by step, with what you should see at each:
   of prose that re-linked (as bare text) six pages a card wall further down already showed —
   the same page named three times on one screen. Fixed 2026-09-05: the card wall now runs
   right after the opening two sentences, and the duplicate text links are cut.
+- The picture under [MVP](./mvp/)'s "Running" heading was the whole 1800px screenshot of a
+  four-column row, shrunk to a third inside a column — it read as a live column pager with its
+  first column chopped off and nothing scrolling (2026-09-08). It is now two columns cut from
+  that shot, captioned as a picture; the recipe is `ai/2026-09-08/platform-mvp-picture/crop.html`.
 - A verdict-cards tile wall was tried for the nine research entries and reverted — this
   page is a fixed-width Miller-columns pane, and a card grid measured taller at every width
   than the list it replaced. The reasoning and the numbers are in `page.js`'s own comment.

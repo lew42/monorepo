@@ -1,0 +1,1021 @@
+{
+	"name": "kubernetes-docs-home",
+	"url": "https://kubernetes.io/docs/home/",
+	"title": "Kubernetes Documentation | Kubernetes",
+	"category": "documentation",
+	"captured_at": "2026-09-08T05:51:26.215Z",
+	"embed": "allowed",
+	"embed_note": "no x-frame-options and no restrictive frame-ancestors",
+	"shots": {
+		"400": "site/kubernetes-docs-home/400.jpg",
+		"1280": "site/kubernetes-docs-home/1280.jpg",
+		"1920": "site/kubernetes-docs-home/1920.jpg",
+		"3440": "site/kubernetes-docs-home/3440.jpg",
+		"long": "site/kubernetes-docs-home/long.jpg"
+	},
+	"layout": {
+		"400": "1-flow",
+		"1280": "3-holy-grail",
+		"1920": "3-holy-grail",
+		"3440": "3-holy-grail"
+	},
+	"sections": [
+		{
+			"name": "header hero",
+			"layout": "1-flow",
+			"css": "flex row nav + block hero",
+			"note": "a full-bleed dark banner with circuit-pattern art behind the page title; the top nav's eight links collapse behind a hamburger below 768px."
+		},
+		{
+			"name": "left nav tree",
+			"layout": "3-holy-grail",
+			"css": "flex row, PERCENTAGE-width column (not a fixed rail)",
+			"note": "the section tree grows from 209px to 569px as the window goes from 1280 to 3440 — a share of the row, not a measured rail — so it gets noticeably wider on an ultrawide screen even though a list of links does not need it. Collapses to a short closed accordion above the article below 768px."
+		},
+		{
+			"name": "cards grid",
+			"layout": "3-equal",
+			"css": "flex/grid (bootstrap columns), nested inside main",
+			"note": "nine link cards (Understand, Try, Set up, Learn, Reference, Contribute, Training, Download, About), three per row above about 768px, one per row on a phone."
+		},
+		{
+			"name": "right toc rail",
+			"layout": "3-holy-grail",
+			"css": "block, position: sticky, same percentage-width trick as the left rail",
+			"note": "grows from 209px to 569px the same way the left rail does; on this particular page it holds only two utility links because the page itself has no in-page headings to list."
+		},
+		{
+			"name": "footer",
+			"layout": "1-flow",
+			"css": "flex row, wraps",
+			"note": "a dark full-width band of link columns; stays a row and wraps at every width tested rather than switching to a single stacked column."
+		}
+	],
+	"tags": [
+		"3-holy-grail",
+		"1-flow",
+		"3-equal",
+		"3 column flex",
+		"toc",
+		"sticky sidebar",
+		"hamburger",
+		"full-bleed",
+		"dark",
+		"cards",
+		"documentation"
+	],
+	"responsive": {
+		"strategy": "The classic docs shape — a link tree on the left, the article in the middle, a table of contents on the right — but built so the ROOM decides the split, not a fixed measurement: both side rails are a percentage of the row's width, so they get wider as the window does (209px at 1280 growing to 569px at 3440), and so does the middle column, which reaches over 2200px wide on an ultrawide screen with no cap. Below 768px the grid stacks: the nav tree becomes a closed accordion above the article and the right rail disappears entirely.",
+		"breakpoints": [
+			768,
+			1024,
+			1500
+		]
+	},
+	"scan": {
+		"scanned_at": "2026-09-08T05:51:39.370Z",
+		"css": {
+			"sheets": 5,
+			"bytes": 637424,
+			"inline_bytes": 3330
+		},
+		"media": [
+			"(hover:hover) and (pointer:fine){",
+			"(hover:none) and (pointer:coarse),(max-width:576px){",
+			"(max-width:10cm){",
+			"(max-width:1199.98px) and (prefers-reduced-motion:reduce){",
+			"(max-width:1199.98px){",
+			"(max-width:1399.98px) and (prefers-reduced-motion:reduce){",
+			"(max-width:1399.98px){",
+			"(max-width:480px){",
+			"(max-width:575.98px) and (prefers-reduced-motion:reduce){",
+			"(max-width:575.98px){",
+			"(max-width:60rem){",
+			"(max-width:767.98px) and (prefers-reduced-motion:reduce){",
+			"(max-width:767.98px){",
+			"(max-width:768px){",
+			"(max-width:799px){",
+			"(max-width:991.98px) and (prefers-reduced-motion:reduce){",
+			"(max-width:991.98px){",
+			"(min-width: 600px) {",
+			"(min-width:1200px){",
+			"(min-width:120rem){",
+			"(min-width:1400px){",
+			"(min-width:1500px){",
+			"(min-width:576px){",
+			"(min-width:60rem){",
+			"(min-width:768px){",
+			"(min-width:800px) and (max-width:1285px){",
+			"(min-width:992px){",
+			"(prefers-reduced-motion:no-preference){",
+			"(prefers-reduced-motion:reduce){",
+			"only screen and (max-width:1024px){",
+			"only screen and (max-width:1500px){",
+			"only screen and (max-width:480px){",
+			"only screen and (max-width:640px) and (orientation:portrait){",
+			"only screen and (max-width:640px){",
+			"only screen and (max-width:650px){",
+			"only screen and (max-width:767px){",
+			"only screen and (max-width:945px){",
+			"only screen and (min-width:1024px){",
+			"only screen and (min-width:768px){",
+			"only screen{",
+			"print{",
+			"screen and (max-aspect-ratio:9/15){",
+			"screen and (max-width:1024px){",
+			"screen and (max-width:568px){",
+			"screen and (max-width:650px){",
+			"screen and (max-width:768px){",
+			"screen and (min-width:1281px){",
+			"screen and (min-width:768px){"
+		],
+		"container": [],
+		"breakpoints_seen": [
+			{
+				"px": 98,
+				"count": 10
+			},
+			{
+				"px": 768,
+				"count": 5
+			},
+			{
+				"px": 1024,
+				"count": 3
+			},
+			{
+				"px": 480,
+				"count": 2
+			},
+			{
+				"px": 576,
+				"count": 2
+			},
+			{
+				"px": 640,
+				"count": 2
+			},
+			{
+				"px": 650,
+				"count": 2
+			},
+			{
+				"px": 1500,
+				"count": 2
+			},
+			{
+				"px": 568,
+				"count": 1
+			},
+			{
+				"px": 600,
+				"count": 1
+			},
+			{
+				"px": 767,
+				"count": 1
+			},
+			{
+				"px": 799,
+				"count": 1
+			}
+		],
+		"widths": {
+			"400": {
+				"doc": [
+					400,
+					4306
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							400,
+							247
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "js-navbar-scroll navbar",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							400,
+							64
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "header-hero text-white",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							400,
+							247
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "aside",
+						"class": "col-12 col-md-3",
+						"display": "block",
+						"rect": [
+							12,
+							247,
+							376,
+							98
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"class": "col-12 col-md-9",
+						"display": "block",
+						"rect": [
+							12,
+							345,
+							376,
+							3585
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "td-breadcrumbs",
+						"display": "block",
+						"rect": [
+							44,
+							369,
+							332,
+							48
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "bg-dark py-5",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "wrap",
+						"rect": [
+							0,
+							3931,
+							400,
+							375
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "container-fluid td-outer",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							247,
+							400,
+							3683
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "td-main",
+						"display": "block",
+						"rect": [
+							12,
+							247,
+							376,
+							3683
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "row flex-xl-nowrap",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "wrap",
+						"rect": [
+							12,
+							247,
+							376,
+							3683
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "td-content",
+						"display": "block",
+						"rect": [
+							44,
+							433,
+							332,
+							3465
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "launch-content",
+						"display": "block",
+						"rect": [
+							44,
+							433,
+							332,
+							3465
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1280": {
+				"doc": [
+					1280,
+					2515
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1280,
+							201
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "js-navbar-scroll navbar",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							1280,
+							64
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "header-hero text-white",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							1280,
+							201
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "aside",
+						"class": "col-12 col-md-3",
+						"display": "block",
+						"rect": [
+							12,
+							201,
+							209,
+							2065
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"id": "td-section-nav",
+						"class": "collapse td-sidebar-nav",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							9,
+							335,
+							210,
+							315
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "aside",
+						"class": "d-none d-xl-block",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							1059,
+							201,
+							209,
+							736
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"class": "col-12 col-md-9",
+						"display": "block",
+						"rect": [
+							221,
+							201,
+							837,
+							2065
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "td-breadcrumbs",
+						"display": "block",
+						"rect": [
+							269,
+							233,
+							777,
+							24
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "bg-dark py-5",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "wrap",
+						"rect": [
+							0,
+							2266,
+							1280,
+							249
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "container-fluid td-outer",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							201,
+							1280,
+							2065
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "td-main",
+						"display": "block",
+						"rect": [
+							12,
+							201,
+							1256,
+							2065
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "row flex-xl-nowrap",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							12,
+							201,
+							1256,
+							2065
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "td-content",
+						"display": "block",
+						"rect": [
+							269,
+							273,
+							777,
+							1961
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "launch-content",
+						"display": "block",
+						"rect": [
+							269,
+							273,
+							777,
+							1961
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1920": {
+				"doc": [
+					1920,
+					1791
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1920,
+							201
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "js-navbar-scroll navbar",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							1920,
+							64
+						],
+						"side_by_side": 4
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "header-hero text-white",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							1920,
+							201
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "aside",
+						"class": "col-12 col-md-3",
+						"display": "block",
+						"rect": [
+							12,
+							201,
+							316,
+							1362
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"id": "td-section-nav",
+						"class": "collapse td-sidebar-nav",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							9,
+							335,
+							317,
+							291
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "aside",
+						"class": "d-none d-xl-block",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							1592,
+							201,
+							316,
+							1016
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"class": "col-12 col-md-9",
+						"display": "block",
+						"rect": [
+							328,
+							201,
+							1264,
+							1362
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "td-breadcrumbs",
+						"display": "block",
+						"rect": [
+							376,
+							233,
+							1204,
+							24
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "bg-dark py-5",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "wrap",
+						"rect": [
+							0,
+							1563,
+							1920,
+							228
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "container-fluid td-outer",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							201,
+							1920,
+							1362
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "td-main",
+						"display": "block",
+						"rect": [
+							12,
+							201,
+							1896,
+							1362
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "row flex-xl-nowrap",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							12,
+							201,
+							1896,
+							1362
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "td-content",
+						"display": "block",
+						"rect": [
+							376,
+							273,
+							1204,
+							1258
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "launch-content",
+						"display": "block",
+						"rect": [
+							376,
+							273,
+							1204,
+							1258
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"3440": {
+				"doc": [
+					3440,
+					1848
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							3440,
+							201
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "js-navbar-scroll navbar",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							3440,
+							64
+						],
+						"side_by_side": 4
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "header-hero text-white",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							3440,
+							201
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "aside",
+						"class": "col-12 col-md-3",
+						"display": "block",
+						"rect": [
+							12,
+							201,
+							569,
+							1440
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"id": "td-section-nav",
+						"class": "collapse td-sidebar-nav",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							9,
+							335,
+							570,
+							267
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "aside",
+						"class": "d-none d-xl-block",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							2859,
+							201,
+							569,
+							1376
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"class": "col-12 col-md-9",
+						"display": "block",
+						"rect": [
+							581,
+							201,
+							2277,
+							1440
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "td-breadcrumbs",
+						"display": "block",
+						"rect": [
+							629,
+							233,
+							2217,
+							24
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "bg-dark py-5",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "wrap",
+						"rect": [
+							0,
+							1641,
+							3440,
+							207
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "container-fluid td-outer",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							201,
+							3440,
+							1440
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "td-main",
+						"display": "block",
+						"rect": [
+							12,
+							201,
+							3416,
+							1440
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "row flex-xl-nowrap",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							12,
+							201,
+							3416,
+							1440
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "td-content",
+						"display": "block",
+						"rect": [
+							629,
+							273,
+							2217,
+							1186
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "launch-content",
+						"display": "block",
+						"rect": [
+							629,
+							273,
+							2217,
+							1186
+						],
+						"side_by_side": 1
+					}
+				]
+			}
+		}
+	},
+	"notes": "This is a documentation site built the way most docs sites are: a link tree on the left, the article in the middle, and a short table of contents on the right. What makes it worth a second look is HOW the three columns share the room — Wikipedia and MDN give their side rails a fixed number of pixels that never changes, like a ruler taped to the page, but Kubernetes gives all three columns a PERCENTAGE of the window instead. That sounds like a small difference, but it means the link tree and the table of contents keep growing on a wider screen even though a list of short links does not get more useful at 570px wide, and the middle reading column can stretch past 2200px with no cap at all — probably wider than is comfortable to read. Below 768px, the whole thing collapses to one column: the link tree becomes a closed accordion you have to tap open, and the table of contents disappears.",
+	"wire": {
+		"role": "page",
+		"kids": [
+			{
+				"role": "header",
+				"h": "3.5em"
+			},
+			{
+				"role": "hero",
+				"h": "9em"
+			},
+			{
+				"role": "main",
+				"dir": "row",
+				"floor": "768px",
+				"kids": [
+					{
+						"role": "aside",
+						"w": 1,
+						"lines": 8
+					},
+					{
+						"role": "cards",
+						"dir": "row",
+						"w": 4,
+						"floor": "768px",
+						"h": "18em",
+						"kids": [
+							{
+								"role": "card",
+								"w": 1
+							},
+							{
+								"role": "card",
+								"w": 1
+							},
+							{
+								"role": "card",
+								"w": 1
+							}
+						]
+					},
+					{
+						"role": "aside",
+						"w": 1,
+						"lines": 2
+					}
+				]
+			},
+			{
+				"role": "footer",
+				"h": "8em"
+			}
+		]
+	}
+}

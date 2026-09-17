@@ -1,0 +1,2109 @@
+{
+	"name": "nike-home",
+	"url": "https://www.nike.com/",
+	"title": "Nike. Just Do It. Nike.com",
+	"category": "shop",
+	"captured_at": "2026-09-08T06:12:31.327Z",
+	"embed": "blocked",
+	"embed_note": "x-frame-options: sameorigin",
+	"shots": {
+		"400": "site/nike-home/400.jpg",
+		"1280": "site/nike-home/1280.jpg",
+		"1920": "site/nike-home/1920.jpg",
+		"3440": "site/nike-home/3440.jpg",
+		"long": "site/nike-home/long.jpg"
+	},
+	"layout": {
+		"400": "2-equal",
+		"1280": "4-1",
+		"1920": "4-1",
+		"3440": "4-1"
+	},
+	"sections": [
+		{
+			"name": "header",
+			"layout": "1-flow",
+			"css": "fixed",
+			"note": "at 400 only four icons show (search, account, bag, menu); the full link row (Men, Women, Kids, Jordan, NikeSKIMS, Sport) only appears from about 1024px up."
+		},
+		{
+			"name": "hero mosaic",
+			"layout": "4-1",
+			"css": "grid, 10 fixed tracks, tiles span different widths",
+			"note": "the scan finds the SAME 10-column grid underneath at every width — the photos are given different column spans on purpose, which is exactly the standard's 'mosaic' recipe. What changes is tiles-per-row: 2 across at 400 (each spanning 5 tracks), 4 across from 1280 up (each spanning 2-3 tracks) — unlike the standard's own fallback, it never drops to a single column even on a phone."
+		},
+		{
+			"name": "hero mosaic cap",
+			"layout": "1-flow",
+			"css": "block, capped and right-pinned",
+			"note": "from 1920 up the grid stops growing at 1678px and the scan shows it flush against the RIGHT edge of the browser, not centred — the empty gutter only appears on the left, which the picture alone would not tell you."
+		},
+		{
+			"name": "product carousels",
+			"layout": "n-wall",
+			"css": "block, horizontally-scrolling rows",
+			"note": "everything below the hero, for a very long page, is a series of full-width carousels, one after another."
+		}
+	],
+	"tags": [
+		"4-1",
+		"n-wall",
+		"carousel",
+		"hamburger",
+		"max-width",
+		"shop",
+		"2-equal"
+	],
+	"responsive": {
+		"strategy": "The hero banner is a fixed 10-track CSS grid at every width, with photos given different column spans on purpose — the standard's own 'mosaic' layout (id 4-1). What changes with the window is only how many tiles fit per row: 2 across at 400, 4 across from 1280 up — it never falls back to one column the way the standard's own recipe expects, not even on a phone. The grid also stops growing at 1678px, and from 1920 up it is pinned flush to the right edge rather than centred, so the empty space piles up on the left only. Below about 1024px the full nav row disappears and the header keeps just four icons.",
+		"breakpoints": [
+			1024
+		],
+		"queries": [
+			"(any-hover:none){",
+			"(hover:hover) and (pointer:fine) and (prefers-reduced-motion:reduce){",
+			"(hover:hover) and (pointer:fine){",
+			"(hover:none) and (prefers-reduced-motion:reduce){",
+			"(hover:none){",
+			"(max-width:1023px){",
+			"(max-width:1279px){",
+			"(max-width:20em){",
+			"(max-width:304px){",
+			"(max-width:30em){",
+			"(max-width:319px){",
+			"(max-width:479px){",
+			"(max-width:480px){",
+			"(max-width:48em){",
+			"(max-width:599px){",
+			"(max-width:600px){",
+			"(max-width:639px){",
+			"(max-width:64em){",
+			"(max-width:767px){",
+			"(min-width:1024px){",
+			"(min-width:1280px){",
+			"(min-width:20em){",
+			"(min-width:30em){",
+			"(min-width:320px) and (max-width:479px){",
+			"(min-width:320px){",
+			"(min-width:480px) and (max-width:767px){",
+			"(min-width:480px){",
+			"(min-width:48em){",
+			"(min-width:600px) and (max-width:890px){",
+			"(min-width:600px){",
+			"(min-width:640px){",
+			"(min-width:64em){",
+			"(min-width:768px) and (max-width:1023px){",
+			"(min-width:768px){",
+			"(min-width:891px){",
+			"(pointer:coarse) and (hover:none){",
+			"(prefers-reduced-motion:reduce){",
+			"all and (-ms-high-contrast:none),(-ms-high-contrast:active){",
+			"only screen and (max-width:960px){",
+			"only screen and (min-width:0px) and (max-width:600px){",
+			"only screen and (min-width:0px){",
+			"only screen and (min-width:1024px){",
+			"only screen and (min-width:1440px){",
+			"only screen and (min-width:15em) and (max-width:47.9375em){",
+			"only screen and (min-width:1920px){",
+			"only screen and (min-width:23.125em) and (max-width:51em) and (-webkit-device-pi",
+			"only screen and (min-width:48em){",
+			"only screen and (min-width:600px) and (max-width:960px){",
+			"only screen and (min-width:600px){",
+			"only screen and (min-width:960px){",
+			"only screen and (min-width:961px) and (max-width:1023px){",
+			"print{",
+			"screen and (prefers-reduced-motion:reduce),(update:slow){"
+		]
+	},
+	"scan": {
+		"scanned_at": "2026-09-08T06:12:54.778Z",
+		"css": {
+			"sheets": 7,
+			"bytes": 1683754,
+			"inline_bytes": 480606
+		},
+		"media": [
+			"(any-hover:none){",
+			"(hover:hover) and (pointer:fine) and (prefers-reduced-motion:reduce){",
+			"(hover:hover) and (pointer:fine){",
+			"(hover:none) and (prefers-reduced-motion:reduce){",
+			"(hover:none){",
+			"(max-width:1023px){",
+			"(max-width:1279px){",
+			"(max-width:20em){",
+			"(max-width:304px){",
+			"(max-width:30em){",
+			"(max-width:319px){",
+			"(max-width:479px){",
+			"(max-width:480px){",
+			"(max-width:48em){",
+			"(max-width:599px){",
+			"(max-width:600px){",
+			"(max-width:639px){",
+			"(max-width:64em){",
+			"(max-width:767px){",
+			"(min-width:1024px){",
+			"(min-width:1280px){",
+			"(min-width:20em){",
+			"(min-width:30em){",
+			"(min-width:320px) and (max-width:479px){",
+			"(min-width:320px){",
+			"(min-width:480px) and (max-width:767px){",
+			"(min-width:480px){",
+			"(min-width:48em){",
+			"(min-width:600px) and (max-width:890px){",
+			"(min-width:600px){",
+			"(min-width:640px){",
+			"(min-width:64em){",
+			"(min-width:768px) and (max-width:1023px){",
+			"(min-width:768px){",
+			"(min-width:891px){",
+			"(pointer:coarse) and (hover:none){",
+			"(prefers-reduced-motion:reduce){",
+			"all and (-ms-high-contrast:none),(-ms-high-contrast:active){",
+			"only screen and (max-width:960px){",
+			"only screen and (min-width:0px) and (max-width:600px){",
+			"only screen and (min-width:0px){",
+			"only screen and (min-width:1024px){",
+			"only screen and (min-width:1440px){",
+			"only screen and (min-width:15em) and (max-width:47.9375em){",
+			"only screen and (min-width:1920px){",
+			"only screen and (min-width:23.125em) and (max-width:51em) and (-webkit-device-pi",
+			"only screen and (min-width:48em){",
+			"only screen and (min-width:600px) and (max-width:960px){",
+			"only screen and (min-width:600px){",
+			"only screen and (min-width:960px){",
+			"only screen and (min-width:961px) and (max-width:1023px){",
+			"print{",
+			"screen and (prefers-reduced-motion:reduce),(update:slow){"
+		],
+		"container": [],
+		"breakpoints_seen": [
+			{
+				"px": 600,
+				"count": 6
+			},
+			{
+				"px": 480,
+				"count": 3
+			},
+			{
+				"px": 960,
+				"count": 3
+			},
+			{
+				"px": 1023,
+				"count": 3
+			},
+			{
+				"px": 0,
+				"count": 2
+			},
+			{
+				"px": 320,
+				"count": 2
+			},
+			{
+				"px": 479,
+				"count": 2
+			},
+			{
+				"px": 767,
+				"count": 2
+			},
+			{
+				"px": 768,
+				"count": 2
+			},
+			{
+				"px": 1024,
+				"count": 2
+			},
+			{
+				"px": 304,
+				"count": 1
+			},
+			{
+				"px": 319,
+				"count": 1
+			}
+		],
+		"widths": {
+			"400": {
+				"doc": [
+					400,
+					11674
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "no-peekaboo pre-l-header-container",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							400,
+							60
+						],
+						"side_by_side": 4
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "no-animation nav-css-gpek3",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							400,
+							60
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "nav-css-1v5wbpr",
+						"display": "grid",
+						"cols": "40px 40px 40px 40px 40px 40px 40px 40px 40px 40px",
+						"rows": "108px 265px",
+						"rect": [
+							0,
+							-368,
+							400,
+							469
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "nds-carousel _37j5pXS8",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							919,
+							400,
+							409
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "nds-carousel _37j5pXS8",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							3054,
+							400,
+							455
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "nds-carousel _37j5pXS8",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							5084,
+							400,
+							495
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "nds-carousel _37j5pXS8",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							6325,
+							400,
+							554
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "nds-carousel _37j5pXS8",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							8967,
+							400,
+							508
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "ncss-container fixed-fluid",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "wrap",
+						"position": "relative",
+						"rect": [
+							24,
+							10248,
+							352,
+							110
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "false nav-css-1vxx61x",
+						"role": "contentinfo",
+						"display": "block",
+						"rect": [
+							0,
+							10670,
+							400,
+							1003
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"role": "main",
+						"display": "block",
+						"rect": [
+							0,
+							60,
+							400,
+							10590
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							24,
+							945,
+							300,
+							353
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							336,
+							945,
+							300,
+							353
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							648,
+							945,
+							300,
+							353
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							24,
+							3080,
+							300,
+							399
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							336,
+							3080,
+							300,
+							399
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							648,
+							3080,
+							300,
+							399
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							960,
+							3080,
+							300,
+							399
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1272,
+							3080,
+							300,
+							399
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1584,
+							3080,
+							300,
+							399
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							24,
+							5110,
+							300,
+							439
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							336,
+							5110,
+							300,
+							439
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							648,
+							5110,
+							300,
+							439
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							960,
+							5110,
+							300,
+							439
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1272,
+							5110,
+							300,
+							439
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							24,
+							6351,
+							300,
+							498
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "experience-wrapper",
+						"display": "block",
+						"rect": [
+							0,
+							60,
+							400,
+							10610
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "__next",
+						"display": "block",
+						"rect": [
+							0,
+							60,
+							400,
+							10610
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "ciclp-app",
+						"display": "block",
+						"rect": [
+							0,
+							60,
+							400,
+							10610
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "footer-wrapper",
+						"display": "block",
+						"rect": [
+							0,
+							10670,
+							400,
+							1003
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "gen-nav-footer",
+						"display": "block",
+						"rect": [
+							0,
+							10670,
+							400,
+							1003
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1280": {
+				"doc": [
+					1280,
+					12479
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "no-peekaboo pre-l-header-container",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							1280,
+							96
+						],
+						"side_by_side": 4
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"display": "block",
+						"rect": [
+							48,
+							0,
+							592,
+							36
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "no-animation nav-css-gpek3",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							36,
+							1280,
+							60
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "nav-css-1q2uc33",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							0,
+							36,
+							1280,
+							60
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "nav-css-1v5wbpr",
+						"display": "grid",
+						"cols": "128px 128px 128px 128px 128px 128px 128px 128px 128px 128px",
+						"rows": "96px 161px",
+						"rect": [
+							0,
+							-86,
+							1280,
+							353
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "nds-carousel _37j5pXS8",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							1031,
+							1280,
+							507
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "nds-carousel _37j5pXS8",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							3302,
+							1280,
+							606
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "nds-carousel _37j5pXS8",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							5783,
+							1280,
+							646
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "nds-carousel _37j5pXS8",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							7402,
+							1280,
+							670
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "nds-carousel _37j5pXS8",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							9994,
+							1280,
+							635
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "ncss-container fixed-fluid",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "wrap",
+						"rect": [
+							48,
+							11421,
+							1184,
+							110
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "false nav-css-1vxx61x",
+						"role": "contentinfo",
+						"display": "block",
+						"rect": [
+							0,
+							11867,
+							1280,
+							611
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "nav-css-w3vz3o",
+						"role": "menu",
+						"display": "block",
+						"rect": [
+							888,
+							58,
+							134,
+							314
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "ul",
+						"class": "desktop-category",
+						"role": "menu",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "wrap",
+						"rect": [
+							308,
+							36,
+							664,
+							60
+						],
+						"side_by_side": 6
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"role": "main",
+						"display": "block",
+						"rect": [
+							0,
+							96,
+							1280,
+							11715
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							48,
+							1057,
+							387,
+							451
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							447,
+							1057,
+							387,
+							451
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							845,
+							1057,
+							387,
+							451
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							48,
+							3364,
+							387,
+							514
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							447,
+							3364,
+							387,
+							514
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							845,
+							3364,
+							387,
+							514
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1244,
+							3364,
+							387,
+							514
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1643,
+							3364,
+							387,
+							514
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							2041,
+							3364,
+							387,
+							514
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							48,
+							5845,
+							387,
+							554
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							447,
+							5845,
+							387,
+							554
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "experience-wrapper",
+						"display": "block",
+						"rect": [
+							0,
+							96,
+							1280,
+							11771
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "__next",
+						"display": "block",
+						"rect": [
+							0,
+							96,
+							1280,
+							11771
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "ciclp-app",
+						"display": "block",
+						"rect": [
+							0,
+							96,
+							1280,
+							11771
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "ac50fbeb-1c2d-4ee6-89e3-29061bc41fe1",
+						"class": "grid Z25uR9U5",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							96,
+							1280,
+							887
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "33ca6d37-c33d-48fc-9cc4-dc7e3d237de1",
+						"class": "ncss-row grid-row",
+						"display": "block",
+						"rect": [
+							0,
+							96,
+							1280,
+							887
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1920": {
+				"doc": [
+					1920,
+					17317
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "no-peekaboo pre-l-header-container",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							1920,
+							96
+						],
+						"side_by_side": 4
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"display": "block",
+						"rect": [
+							48,
+							0,
+							912,
+							36
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "no-animation nav-css-gpek3",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							36,
+							1920,
+							60
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "nav-css-1q2uc33",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							0,
+							36,
+							1920,
+							60
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "nav-css-1v5wbpr",
+						"display": "grid",
+						"cols": "167.797px 167.797px 167.797px 167.797px 167.797px 167.797px ",
+						"rows": "96px 109px",
+						"rect": [
+							242,
+							-60,
+							1678,
+							301
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "nds-carousel _37j5pXS8",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							1378,
+							1920,
+							730
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "nds-carousel _37j5pXS8",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							4702,
+							1920,
+							890
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "nds-carousel _37j5pXS8",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							8268,
+							1920,
+							934
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "nds-carousel _37j5pXS8",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							10668,
+							1920,
+							933
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "nds-carousel _37j5pXS8",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							14438,
+							1920,
+							928
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "ncss-container fixed-fluid",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "wrap",
+						"rect": [
+							48,
+							16258,
+							1824,
+							110
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "false nav-css-1vxx61x",
+						"role": "contentinfo",
+						"display": "block",
+						"rect": [
+							0,
+							16705,
+							1920,
+							611
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "nav-css-w3vz3o",
+						"role": "menu",
+						"display": "block",
+						"rect": [
+							1528,
+							58,
+							134,
+							314
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "ul",
+						"class": "desktop-category",
+						"role": "menu",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "wrap",
+						"rect": [
+							333,
+							36,
+							1255,
+							60
+						],
+						"side_by_side": 6
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"role": "main",
+						"display": "block",
+						"rect": [
+							0,
+							96,
+							1920,
+							16553
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							48,
+							1404,
+							600,
+							674
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							660,
+							1404,
+							600,
+							674
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1272,
+							1404,
+							600,
+							674
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							48,
+							4764,
+							600,
+							798
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							660,
+							4764,
+							600,
+							798
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1272,
+							4764,
+							600,
+							798
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1884,
+							4764,
+							600,
+							798
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							2496,
+							4764,
+							600,
+							798
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							3108,
+							4764,
+							600,
+							798
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							48,
+							8330,
+							600,
+							842
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							660,
+							8330,
+							600,
+							842
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "experience-wrapper",
+						"display": "block",
+						"rect": [
+							0,
+							96,
+							1920,
+							16609
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "__next",
+						"display": "block",
+						"rect": [
+							0,
+							96,
+							1920,
+							16609
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "ciclp-app",
+						"display": "block",
+						"rect": [
+							0,
+							96,
+							1920,
+							16609
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "ac50fbeb-1c2d-4ee6-89e3-29061bc41fe1",
+						"class": "grid Z25uR9U5",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							96,
+							1920,
+							1234
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "33ca6d37-c33d-48fc-9cc4-dc7e3d237de1",
+						"class": "ncss-row grid-row",
+						"display": "block",
+						"rect": [
+							0,
+							96,
+							1920,
+							1234
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"3440": {
+				"doc": [
+					3440,
+					21291
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "no-peekaboo pre-l-header-container",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							3440,
+							96
+						],
+						"side_by_side": 4
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"display": "block",
+						"rect": [
+							808,
+							0,
+							912,
+							36
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "no-animation nav-css-gpek3",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							36,
+							3440,
+							60
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "nav-css-1q2uc33",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							0,
+							36,
+							3440,
+							60
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "nav-css-1v5wbpr",
+						"display": "grid",
+						"cols": "167.797px 167.797px 167.797px 167.797px 167.797px 167.797px ",
+						"rows": "96px 109px",
+						"rect": [
+							1762,
+							-60,
+							1678,
+							301
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "nds-carousel _37j5pXS8",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							760,
+							2117,
+							1920,
+							730
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "nds-carousel _37j5pXS8",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							760,
+							6401,
+							1920,
+							890
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "nds-carousel _37j5pXS8",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							760,
+							10707,
+							1920,
+							934
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "nds-carousel _37j5pXS8",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							760,
+							13328,
+							1920,
+							933
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "nds-carousel _37j5pXS8",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							760,
+							18190,
+							1920,
+							928
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "ncss-container fixed-fluid",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "wrap",
+						"rect": [
+							808,
+							20232,
+							1824,
+							110
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "false nav-css-1vxx61x",
+						"role": "contentinfo",
+						"display": "block",
+						"rect": [
+							760,
+							20679,
+							1920,
+							611
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "nav-css-w3vz3o",
+						"role": "menu",
+						"display": "block",
+						"rect": [
+							2288,
+							58,
+							134,
+							314
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "ul",
+						"class": "desktop-category",
+						"role": "menu",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "wrap",
+						"rect": [
+							1093,
+							36,
+							1255,
+							60
+						],
+						"side_by_side": 6
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"role": "main",
+						"display": "block",
+						"rect": [
+							0,
+							96,
+							3440,
+							20527
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							808,
+							2143,
+							600,
+							674
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1420,
+							2143,
+							600,
+							674
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							2032,
+							2143,
+							600,
+							674
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							808,
+							6463,
+							600,
+							798
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1420,
+							6463,
+							600,
+							798
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							2032,
+							6463,
+							600,
+							798
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							2644,
+							6463,
+							600,
+							798
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							3256,
+							6463,
+							600,
+							798
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							3868,
+							6463,
+							600,
+							798
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							808,
+							10769,
+							600,
+							842
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "figure",
+						"class": "_2FHRgMdp",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1420,
+							10769,
+							600,
+							842
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "experience-wrapper",
+						"display": "block",
+						"rect": [
+							0,
+							96,
+							3440,
+							20583
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "__next",
+						"display": "block",
+						"rect": [
+							0,
+							96,
+							3440,
+							20583
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "ciclp-app",
+						"display": "block",
+						"rect": [
+							0,
+							96,
+							3440,
+							20583
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "ac50fbeb-1c2d-4ee6-89e3-29061bc41fe1",
+						"class": "grid Z25uR9U5",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							96,
+							3440,
+							1973
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "33ca6d37-c33d-48fc-9cc4-dc7e3d237de1",
+						"class": "ncss-row grid-row",
+						"display": "block",
+						"rect": [
+							0,
+							96,
+							3440,
+							1973
+						],
+						"side_by_side": 1
+					}
+				]
+			}
+		}
+	},
+	"notes": "Nike's homepage opens with a big wall of photos arranged like a mosaic — some wider, some narrower, not a plain grid of equal boxes — and that arrangement holds at every size tested, it just fits 2 photos per row on a phone and 4 per row on a laptop or wider. On the very widest screen the scan shows something the picture alone would not: the photo wall stops growing at about 1678 pixels and then sits pushed against the right edge of the window, so empty space builds up on the left instead of splitting evenly on both sides. On a phone the top menu shrinks to four icons — search, account, bag, and a menu button — and the full row of section links only shows up once the window is wider than about 1024 pixels. Below the photo wall, the rest of this very long page is one horizontally-scrolling product carousel after another.",
+	"wire": {
+		"role": "page",
+		"kids": [
+			{
+				"role": "header",
+				"h": "3.5em"
+			},
+			{
+				"role": "hero",
+				"dir": "row",
+				"h": "26em",
+				"floor": "64rem",
+				"kids": [
+					{
+						"role": "image",
+						"w": 2
+					},
+					{
+						"role": "image",
+						"w": 1
+					},
+					{
+						"role": "image",
+						"w": 2
+					},
+					{
+						"role": "image",
+						"w": 1
+					}
+				]
+			},
+			{
+				"role": "hero",
+				"dir": "row",
+				"h": "26em",
+				"floor": "64rem",
+				"kids": [
+					{
+						"role": "image",
+						"w": 1
+					},
+					{
+						"role": "image",
+						"w": 1
+					},
+					{
+						"role": "image",
+						"w": 1
+					},
+					{
+						"role": "image",
+						"w": 1
+					}
+				]
+			},
+			{
+				"role": "cards",
+				"h": "20em",
+				"floor": "none",
+				"scroll": true,
+				"n": 4
+			}
+		]
+	}
+}

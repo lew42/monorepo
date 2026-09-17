@@ -1,0 +1,1306 @@
+{
+	"name": "mdn-css",
+	"url": "https://developer.mozilla.org/en-US/docs/Web/CSS",
+	"title": "CSS: Cascading Style Sheets | MDN",
+	"category": "documentation",
+	"captured_at": "2026-09-08T05:14:46.986Z",
+	"embed": "blocked",
+	"embed_note": "x-frame-options: DENY",
+	"shots": {
+		"400": "site/mdn-css/400.jpg",
+		"1280": "site/mdn-css/1280.jpg",
+		"1920": "site/mdn-css/1920.jpg",
+		"3440": "site/mdn-css/3440.jpg",
+		"long": "site/mdn-css/long.jpg"
+	},
+	"layout": {
+		"400": "1-flow",
+		"1280": "3-holy-grail",
+		"1920": "3-holy-grail",
+		"3440": "3-holy-grail"
+	},
+	"sections": [
+		{
+			"name": "top bar",
+			"layout": "1-flow",
+			"css": "grid",
+			"note": "one grid row of four tracks — logo, the menu, the search field, the sign-in button. The menu inside it is a flex row of nine links. Below 769 the menu is replaced by a hamburger and the row drops to three tracks."
+		},
+		{
+			"name": "body",
+			"layout": "3-holy-grail",
+			"css": "grid",
+			"note": "the module list (288px), the article (768px) and the 'In this article' rail with an ad under it (297px). Measured at 1280, 1920 and 3440: the article stays 768px at all three — only the margins grow."
+		},
+		{
+			"name": "article rail",
+			"layout": "1-flow",
+			"css": "flex, sticky",
+			"note": "the right column sticks while the article scrolls (position: sticky at 1920, static at 400). Below 769 it stops being a column and becomes a plain block after the article."
+		},
+		{
+			"name": "footer",
+			"layout": "1-flow",
+			"css": "block",
+			"note": "full width, edge to edge — the only band on the page that is not inside the 1416px measure."
+		}
+	],
+	"tags": [
+		"3-holy-grail",
+		"1-flow",
+		"3 column grid",
+		"sticky header",
+		"sticky sidebar",
+		"hamburger",
+		"max-width",
+		"left",
+		"right",
+		"toc",
+		"documentation"
+	],
+	"responsive": {
+		"strategy": "Three columns while there is room, then one. The module list and the article rail both drop below the article as the window narrows, and the top menu becomes a hamburger. The content block stops growing at about 1416px, so 1920 and 3440 render the same page with different margins.",
+		"breakpoints": [
+			480,
+			769,
+			1044
+		]
+	},
+	"scan": {
+		"scanned_at": "2026-09-08T05:16:38.536Z",
+		"css": {
+			"sheets": 17,
+			"bytes": 66406,
+			"inline_bytes": 0
+		},
+		"media": [
+			"(hover:hover){",
+			"(hover:none){",
+			"(prefers-color-scheme:dark){",
+			"(prefers-reduced-motion:reduce){",
+			"(width < calc(1rem * 2 + (15rem + 2rem) * 2 + 31rem)){",
+			"(width < calc(1rem * 2 + 15rem + 2rem + 31rem)){",
+			"(width <= 1044px){",
+			"(width <= 1104px){",
+			"(width <= 426px){",
+			"(width <= 769px) or (width < calc(1rem * 2 + 15rem + 2rem + 31rem)){",
+			"(width <= 769px){",
+			"(width <= 992px){",
+			"(width > 1000px){",
+			"(width > 1044px){",
+			"(width > 480px){",
+			"(width > 640px){",
+			"(width > 840px){",
+			"(width >= calc(1rem * 2 + (15rem + 2rem) * 2 + 31rem)){",
+			"not (width <= 769px){",
+			"print{",
+			"screen and (width <= 480px){"
+		],
+		"container": [],
+		"breakpoints_seen": [
+			{
+				"px": 769,
+				"count": 3
+			},
+			{
+				"px": 480,
+				"count": 2
+			},
+			{
+				"px": 1044,
+				"count": 2
+			},
+			{
+				"px": 426,
+				"count": 1
+			},
+			{
+				"px": 640,
+				"count": 1
+			},
+			{
+				"px": 840,
+				"count": 1
+			},
+			{
+				"px": 992,
+				"count": 1
+			},
+			{
+				"px": 1000,
+				"count": 1
+			},
+			{
+				"px": 1104,
+				"count": 1
+			}
+		],
+		"widths": {
+			"400": {
+				"doc": [
+					385,
+					7022
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "page-layout__header",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							0,
+							0,
+							385,
+							78
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "navigation",
+						"display": "grid",
+						"cols": "250.625px 80px 46.375px",
+						"rows": "46.3906px",
+						"rect": [
+							0,
+							0,
+							385,
+							46
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "content-section",
+						"display": "block",
+						"rect": [
+							16,
+							210,
+							353,
+							872
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "aside",
+						"class": "layout__right-sidebar reference-layout__toc",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "wrap",
+						"rect": [
+							16,
+							1098,
+							353,
+							680
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "reference-toc",
+						"display": "block",
+						"rect": [
+							16,
+							1098,
+							178,
+							288
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "content-section",
+						"display": "block",
+						"rect": [
+							16,
+							1794,
+							353,
+							852
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "content-section",
+						"display": "block",
+						"rect": [
+							16,
+							2662,
+							353,
+							576
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "content-section",
+						"display": "block",
+						"rect": [
+							16,
+							3254,
+							353,
+							288
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "content-section",
+						"display": "block",
+						"rect": [
+							16,
+							3558,
+							353,
+							978
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "content-section",
+						"display": "block",
+						"rect": [
+							16,
+							4552,
+							353,
+							516
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "content-section",
+						"display": "block",
+						"rect": [
+							16,
+							5084,
+							353,
+							168
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "content-section article-footer",
+						"display": "block",
+						"rect": [
+							16,
+							5284,
+							353,
+							332
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "footer",
+						"display": "block",
+						"rect": [
+							0,
+							5768,
+							385,
+							1254
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "page-layout__main",
+						"display": "block",
+						"rect": [
+							0,
+							78,
+							385,
+							5618
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "layout__2-sidebars-inline reference-layout",
+						"display": "block",
+						"cols": "[full-start sidebar-start left-sidebar-start] minmax(240px, ",
+						"rows": "min-content 1fr",
+						"rect": [
+							0,
+							94,
+							385,
+							5602
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "layout__body reference-layout__body",
+						"display": "block",
+						"rect": [
+							16,
+							1794,
+							353,
+							3902
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "page-layout__footer",
+						"display": "block",
+						"rect": [
+							0,
+							5696,
+							385,
+							1326
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "footer__mdn",
+						"display": "grid",
+						"cols": "353px",
+						"rows": "64px 24px 246px 210px 246px",
+						"rect": [
+							0,
+							5769,
+							385,
+							974
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1280": {
+				"doc": [
+					1265,
+					4302
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "page-layout__header",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							0,
+							91,
+							1265,
+							98
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "navigation",
+						"display": "grid",
+						"cols": "93px 978px 80px 34px",
+						"rows": "42px",
+						"rect": [
+							0,
+							91,
+							1265,
+							66
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "menu",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							205,
+							106,
+							819,
+							37
+						],
+						"side_by_side": 9
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "content-section",
+						"display": "block",
+						"rect": [
+							288,
+							271,
+							689,
+							480
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "aside",
+						"class": "layout__right-sidebar reference-layout__toc",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "wrap",
+						"position": "sticky",
+						"rect": [
+							1009,
+							189,
+							256,
+							702
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "reference-toc",
+						"display": "block",
+						"rect": [
+							1025,
+							189,
+							163,
+							264
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "content-section",
+						"display": "block",
+						"rect": [
+							288,
+							783,
+							689,
+							572
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "content-section",
+						"display": "block",
+						"rect": [
+							288,
+							1371,
+							689,
+							464
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "content-section",
+						"display": "block",
+						"rect": [
+							288,
+							1851,
+							689,
+							204
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "content-section",
+						"display": "block",
+						"rect": [
+							288,
+							2071,
+							689,
+							753
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "content-section",
+						"display": "block",
+						"rect": [
+							288,
+							2840,
+							689,
+							404
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "content-section",
+						"display": "block",
+						"rect": [
+							288,
+							3260,
+							689,
+							140
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "content-section article-footer",
+						"display": "block",
+						"rect": [
+							288,
+							3432,
+							689,
+							276
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "aside",
+						"id": "main-sidebar",
+						"class": "layout__left-sidebar",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							0,
+							189,
+							256,
+							702
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "left-sidebar",
+						"display": "block",
+						"rect": [
+							16,
+							189,
+							224,
+							2796
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "footer",
+						"display": "block",
+						"rect": [
+							0,
+							3878,
+							1265,
+							424
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "page-layout__main",
+						"display": "block",
+						"rect": [
+							0,
+							189,
+							1265,
+							3599
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "layout__2-sidebars-inline reference-layout",
+						"display": "grid",
+						"cols": "[full-start left-sidebar-start] 240px [left-sidebar-end] 32p",
+						"rows": "578px 3020.5px",
+						"rect": [
+							0,
+							189,
+							1265,
+							3599
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "layout__body reference-layout__body",
+						"display": "block",
+						"rect": [
+							288,
+							767,
+							689,
+							3021
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "ol",
+						"display": "block",
+						"rect": [
+							32,
+							2617,
+							208,
+							7176
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "ol",
+						"display": "block",
+						"rect": [
+							32,
+							2937,
+							208,
+							4528
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1920": {
+				"doc": [
+					1905,
+					4190
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "page-layout__header",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							0,
+							91,
+							1905,
+							98
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "navigation",
+						"display": "grid",
+						"cols": "93px 1138px 80px 34px",
+						"rows": "42px",
+						"rect": [
+							0,
+							91,
+							1905,
+							66
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "menu",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							525,
+							106,
+							819,
+							37
+						],
+						"side_by_side": 9
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "content-section",
+						"display": "block",
+						"rect": [
+							569,
+							271,
+							768,
+							424
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "aside",
+						"class": "layout__right-sidebar reference-layout__toc",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "wrap",
+						"position": "sticky",
+						"rect": [
+							1369,
+							189,
+							297,
+							982
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "reference-toc",
+						"display": "block",
+						"rect": [
+							1385,
+							189,
+							163,
+							264
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "content-section",
+						"display": "block",
+						"rect": [
+							569,
+							727,
+							768,
+							572
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "content-section",
+						"display": "block",
+						"rect": [
+							569,
+							1315,
+							768,
+							464
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "content-section",
+						"display": "block",
+						"rect": [
+							569,
+							1795,
+							768,
+							176
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "content-section",
+						"display": "block",
+						"rect": [
+							569,
+							1987,
+							768,
+							753
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "content-section",
+						"display": "block",
+						"rect": [
+							569,
+							2756,
+							768,
+							404
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "content-section",
+						"display": "block",
+						"rect": [
+							569,
+							3176,
+							768,
+							112
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "content-section article-footer",
+						"display": "block",
+						"rect": [
+							569,
+							3320,
+							768,
+							276
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "aside",
+						"id": "main-sidebar",
+						"class": "layout__left-sidebar",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							240,
+							189,
+							297,
+							982
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "left-sidebar",
+						"display": "block",
+						"rect": [
+							256,
+							189,
+							265,
+							2748
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "footer",
+						"display": "block",
+						"rect": [
+							0,
+							3766,
+							1905,
+							424
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "page-layout__main",
+						"display": "block",
+						"rect": [
+							0,
+							189,
+							1905,
+							3487
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "layout__2-sidebars-inline reference-layout",
+						"display": "grid",
+						"cols": "[full-start left-sidebar-start] 280.5px [left-sidebar-end] 3",
+						"rows": "522px 2964.5px",
+						"rect": [
+							0,
+							189,
+							1905,
+							3487
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "layout__body reference-layout__body",
+						"display": "block",
+						"rect": [
+							569,
+							711,
+							768,
+							2965
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "ol",
+						"display": "block",
+						"rect": [
+							272,
+							2569,
+							249,
+							7176
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "ol",
+						"display": "block",
+						"rect": [
+							272,
+							2889,
+							249,
+							4504
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"3440": {
+				"doc": [
+					3425,
+					4190
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "page-layout__header",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							0,
+							91,
+							3425,
+							98
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "navigation",
+						"display": "grid",
+						"cols": "93px 1138px 80px 34px",
+						"rows": "42px",
+						"rect": [
+							0,
+							91,
+							3425,
+							66
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "menu",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							1285,
+							106,
+							819,
+							37
+						],
+						"side_by_side": 9
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "content-section",
+						"display": "block",
+						"rect": [
+							1329,
+							271,
+							768,
+							424
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "aside",
+						"class": "layout__right-sidebar reference-layout__toc",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "wrap",
+						"position": "sticky",
+						"rect": [
+							2129,
+							189,
+							297,
+							1342
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "reference-toc",
+						"display": "block",
+						"rect": [
+							2145,
+							189,
+							163,
+							264
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "content-section",
+						"display": "block",
+						"rect": [
+							1329,
+							727,
+							768,
+							572
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "content-section",
+						"display": "block",
+						"rect": [
+							1329,
+							1315,
+							768,
+							464
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "content-section",
+						"display": "block",
+						"rect": [
+							1329,
+							1795,
+							768,
+							176
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "content-section",
+						"display": "block",
+						"rect": [
+							1329,
+							1987,
+							768,
+							753
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "content-section",
+						"display": "block",
+						"rect": [
+							1329,
+							2756,
+							768,
+							404
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "content-section",
+						"display": "block",
+						"rect": [
+							1329,
+							3176,
+							768,
+							112
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "content-section article-footer",
+						"display": "block",
+						"rect": [
+							1329,
+							3320,
+							768,
+							276
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "aside",
+						"id": "main-sidebar",
+						"class": "layout__left-sidebar",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							1000,
+							189,
+							297,
+							1342
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "left-sidebar",
+						"display": "block",
+						"rect": [
+							1016,
+							189,
+							265,
+							2748
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "footer",
+						"display": "block",
+						"rect": [
+							0,
+							3766,
+							3425,
+							424
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "page-layout__main",
+						"display": "block",
+						"rect": [
+							0,
+							189,
+							3425,
+							3487
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "layout__2-sidebars-inline reference-layout",
+						"display": "grid",
+						"cols": "[full-start left-sidebar-start] 280.5px [left-sidebar-end] 3",
+						"rows": "522px 2964.5px",
+						"rect": [
+							0,
+							189,
+							3425,
+							3487
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "layout__body reference-layout__body",
+						"display": "block",
+						"rect": [
+							1329,
+							711,
+							768,
+							2965
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "ol",
+						"display": "block",
+						"rect": [
+							1032,
+							2569,
+							249,
+							7176
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "page-layout__footer",
+						"display": "block",
+						"rect": [
+							0,
+							3676,
+							3425,
+							514
+						],
+						"side_by_side": 1
+					}
+				]
+			}
+		}
+	},
+	"notes": "A documentation page in the classic three-column shape: a list of what else there is on the left, the article in the middle at a fixed 768px, and a table of contents on the right that follows you down the page. The middle column never gets wider than 768px no matter how big the window is — at 3440 the whole three-column block just sits in the middle of the screen with about a thousand pixels of white on either side. On a phone the two side columns are not hidden, they are moved: the table of contents and the module list end up below the article, and the top menu becomes a hamburger.",
+	"wire": {
+		"role": "page",
+		"kids": [
+			{
+				"role": "header",
+				"h": "4.5em"
+			},
+			{
+				"role": "main",
+				"dir": "row",
+				"center": true,
+				"floor": "50rem",
+				"kids": [
+					{
+						"role": "nav",
+						"w": "16em",
+						"lines": 9
+					},
+					{
+						"role": "main",
+						"w": "48em",
+						"lines": 9
+					},
+					{
+						"role": "aside",
+						"w": "16em",
+						"lines": 6
+					}
+				]
+			},
+			{
+				"role": "footer",
+				"h": "6em"
+			}
+		]
+	}
+}

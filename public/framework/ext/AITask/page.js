@@ -12,8 +12,8 @@ export default new Doc({
 	subject: AITask,
 	properties: "src",
 	methods:    "content session legacy base requirements report refresh outcome links head status checklist unparsed extra shots figures chat log",
-	notes:      "manifest effort starting-work pace template waves decisions",
-	files:      "AITask.js ai.css board.js card.js compose.js dashboard.js effort.js feed.js feed.css message.js prompt.js replay.js shots.js stats.js usage.js page.js readme.md",
+	notes:      "highlights manifest effort starting-work pace template waves decisions",
+	files:      "AITask.js ai.css board.js card.js compose.js dashboard.js effort.js feed.js feed.css highlights.js message.js prompt.js replay.js shots.js stats.js usage.js page.js readme.md",
 	overview:   [
 		{ title: "Task card", content(){
 			demo(() => {

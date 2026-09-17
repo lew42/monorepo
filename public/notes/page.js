@@ -22,7 +22,7 @@ export default new Page({
 		+ "sign-up-flow topic-dbs-and-claims what-is-openmike right-people-not-many "
 		+ "strengths-and-weaknesses layouts-need-fit switch-or-transition notebook-cooked "
 		+ "each-meme-is-a-community levels-and-points personal-specs basketball-tower "
-		+ "edge-selection parallel-generation doodles "
+		+ "edge-selection parallel-generation doodles redactions "
 		+ "ai-research-list-ui-ux split-responsive-viewer simplify-my-website "
 		+ "laws-rules-suggestions short-minded analyze-spacing-as-percent column-vs-swap "
 		+ "the-editor edit-mode-toolbar my-docs-are-bad page-active-display "

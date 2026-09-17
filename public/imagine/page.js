@@ -43,7 +43,11 @@ export default new Page({
 			classes: "default",
 
 			content(){
-				md("**Pick a way in.** A card below, or the rail beside it — same urls, same row. Nothing here opens a new screen.");
+				// ⚠ "Nothing here opens a new screen" is gone — it read as a warning that
+				//   something would not work, when every card below IS a real link that
+				//   navigates; the true claim ("same urls, same row") needs no second half
+				//   (self-evident-critique-3, finding 5).
+				md("**Pick a way in.** A card below, or the rail beside it — same urls, same row.");
 
 				// My siblings, drawn by themselves. `previews()` takes a subset because
 				// this page is the index and an index does not list itself.
@@ -54,6 +58,6 @@ export default new Page({
 			},
 		},
 
-		"team", "design", "platform", "paging", "layouts", "sections", "codrops", "review", "game", "gallery", "scenes", "vary", "screens", "shells", "feeds", "mag", "blogx", "decks", "youtube", "cms", "research", "stream", "generated",
+		"team", "design", "platform", "importance", "paging", "layouts", "sections", "codrops", "review", "game", "gallery", "scenes", "vary", "screens", "shells", "feeds", "mag", "blogx", "decks", "youtube", "cms", "research", "stream", "generated",
 	],
 });

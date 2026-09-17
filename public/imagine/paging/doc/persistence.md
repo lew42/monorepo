@@ -324,9 +324,15 @@ inside the walk skips every other match.
 [`baseline.js`](/imagine/paging/baseline.js): every `lew42:` key, which is every page that uses
 core's `store()` — nine writers today, and any future one for free. It does **not** live on a
 page of its own. It lives **inside the mark**, so it is offered exactly where a reader has just
-discovered that something remembered them: arm the Reset and the second line is *"…or forget
-every demo on the site."* Twelve lines, no new page, no new route, reachable from every realm
-that persists.
+discovered that something remembered them: arm the Reset and the second line is *"…or every
+demo on the site."* No new page, no new route, reachable from every realm that persists.
+
+⚠ **And it asks twice, like the smaller one.** It used to go on a single press — the most
+destructive control on the screen needing one click while the Reset beside it needed two
+(the self-evident critique, 2026-09-13). It arms, and the second press names what goes and
+counts it: *"Press again to forget all 4 saved pages on this site"*, with **Keep them** beside
+it. It is not offered at all when `keys()` is empty: a control that would say *all 0 saved
+pages* does nothing and teaches nothing.
 
 ---
 

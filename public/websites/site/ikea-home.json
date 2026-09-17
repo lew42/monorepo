@@ -1,0 +1,2073 @@
+{
+	"name": "ikea-home",
+	"url": "https://www.ikea.com/us/en/",
+	"title": "Shop Affordable Home Furnishings & Home Goods - IKEA",
+	"category": "shop",
+	"captured_at": "2026-09-08T06:19:19.270Z",
+	"embed": "blocked",
+	"embed_note": "content-security-policy: frame-ancestors *.ikea.com *.ingka.com",
+	"shots": {
+		"400": "site/ikea-home/400.jpg",
+		"1280": "site/ikea-home/1280.jpg",
+		"1920": "site/ikea-home/1920.jpg",
+		"3440": "site/ikea-home/3440.jpg",
+		"long": "site/ikea-home/long.jpg"
+	},
+	"layout": {
+		"400": "1-flow",
+		"1280": "4-1",
+		"1920": "4-1",
+		"3440": "4-1"
+	},
+	"sections": [
+		{
+			"name": "header",
+			"layout": "1-flow",
+			"css": "flex",
+			"note": "a thin utility bar (country, delivery zip, store) above the logo, Products/Rooms/Deals/Design & ideas/Services menu, a wide search box, and account/wishlist/cart icons; at 400 the menu collapses behind a hamburger and the search box stays full width."
+		},
+		{
+			"name": "category shortcuts",
+			"layout": "n-wall",
+			"css": "flex, horizontal scroll",
+			"note": "square icon tiles (Deals, Storage & organization, Sofas & armchairs, Lighting, …) in one row — 7 fit at 1280, 10 at 3440 — that most likely scrolls sideways rather than wrapping, based on how tightly they pack."
+		},
+		{
+			"name": "promo mosaic",
+			"layout": "4-1",
+			"css": "grid or masonry flex (the scan could not resolve which)",
+			"note": "one tall \"Up to 20% off storage\" tile on the left spans the full height of two rows, and four smaller promo tiles (PAX wardrobe, Join IKEA Family, ALEX drawer, kids' storage) fill a 2x2 area beside it — the mosaic shape the layout standard calls 4-1. This is a case where the picture is the only real evidence: the scan's landmark pass never broke this box down far enough to say grid or flex for certain."
+		},
+		{
+			"name": "content shelves",
+			"layout": "1-flow",
+			"css": "block",
+			"note": "the scan shows roughly 15 more full-width sections stacking below the mosaic, all the way down a very long page (over 14,000px tall) — more promo rows and category rails we did not open individually."
+		}
+	],
+	"tags": [
+		"4-1",
+		"1-flow",
+		"n-wall",
+		"cards",
+		"hamburger",
+		"shop"
+	],
+	"responsive": {
+		"strategy": "The promo mosaic (one big tile plus four smaller ones) is the widest, most distinctive shape on the page and holds from 1280 up; we do not have a shot narrow enough to catch it mid-collapse, but the layout standard's own note on this shape (tiles lose their spans and stack in DOM order) is the likely story below phone width, matching what the 400 shot shows: the big tile alone, full width, with no visible smaller tiles beside it. The header's full text menu is present already at 1280 and gone at 400; our shots do not pin down the exact pixel where that switch happens.",
+		"breakpoints": [
+			896,
+			1400
+		]
+	},
+	"scan": {
+		"scanned_at": "2026-09-08T06:19:37.554Z",
+		"css": {
+			"sheets": 77,
+			"bytes": 1718950,
+			"inline_bytes": 49961
+		},
+		"media": [
+			"(forced-colors: active){",
+			"(forced-colors:active){",
+			"(height>=25.625em){",
+			"(hover: hover){",
+			"(hover: none)and (pointer: coarse){",
+			"(hover: none){",
+			"(hover:hover)and (prefers-reduced-motion:no-preference){",
+			"(hover:hover){",
+			"(hover:none) and (pointer:coarse){",
+			"(hover:none)and (pointer:coarse){",
+			"(hover:none)and (prefers-reduced-motion:no-preference){",
+			"(hover:none){",
+			"(max-width: 37.5em){",
+			"(max-width: 400px){",
+			"(max-width: 430px){",
+			"(max-width: 56.25em){",
+			"(max-width: 767px){",
+			"(max-width: 896px){",
+			"(max-width: calc(37.5em - .0625rem)){",
+			"(max-width:37.4375em){",
+			"(max-width:37.5em){",
+			"(max-width:56.25em){",
+			"(max-width:699.99px){",
+			"(max-width:74.99em)and (min-width:37.5em){",
+			"(max-width:74.99em){",
+			"(min-height: 25.625em){",
+			"(min-height:25.625em){",
+			"(min-height:350px){",
+			"(min-width: 1400px){",
+			"(min-width: 37.5em)and (prefers-contrast: more){",
+			"(min-width: 37.5em){",
+			"(min-width: 400px){",
+			"(min-width: 550px){",
+			"(min-width: 56.25em)and (prefers-contrast: more){",
+			"(min-width: 56.25em){",
+			"(min-width: 75em){",
+			"(min-width:1300px){",
+			"(min-width:1350px){",
+			"(min-width:1400px){",
+			"(min-width:1500px){",
+			"(min-width:1700px){",
+			"(min-width:30em){",
+			"(min-width:37.5em) and (prefers-contrast:more){",
+			"(min-width:37.5em),(orientation:landscape){",
+			"(min-width:37.5em)and (prefers-contrast:more){",
+			"(min-width:37.5em){",
+			"(min-width:370px){",
+			"(min-width:48em){",
+			"(min-width:56.25em) and (prefers-contrast:more){",
+			"(min-width:56.25em)and (prefers-contrast:more){",
+			"(min-width:56.25em){",
+			"(min-width:64em){",
+			"(min-width:700px){",
+			"(min-width:75em)and (min-width:1400px){",
+			"(min-width:75em){",
+			"(orientation: landscape),(min-width: 37.5em){",
+			"(orientation: landscape)and (max-width: 56.25em){",
+			"(orientation:landscape) and (max-width:56.25em){",
+			"(orientation:landscape) and (width<=56.25em){",
+			"(orientation:landscape),(min-width:37.5em){",
+			"(orientation:landscape),(width>=37.5em){",
+			"(orientation:landscape)and (max-width:56.25em){",
+			"(pointer:fine){",
+			"(prefers-color-scheme:dark){",
+			"(prefers-contrast: more){",
+			"(prefers-contrast:more) or (forced-colors:active){",
+			"(prefers-contrast:more){",
+			"(prefers-reduced-motion){",
+			"(prefers-reduced-motion: reduce){",
+			"(prefers-reduced-motion:no-preference){",
+			"(prefers-reduced-motion:reduce){",
+			"(width>=37.5em) and (prefers-contrast:more){",
+			"(width>=37.5em){",
+			"(width>=56.25em) and (prefers-contrast:more){",
+			"(width>=56.25em){",
+			"(width>=75em){",
+			"not all and (-webkit-min-device-pixel-ratio:.0000264583),not all and (min-resolu",
+			"not all and (min-resolution: 0.001dpcm){",
+			"not all and (min-resolution:.001dpcm){",
+			"not all and (min-resolution:0.001dpcm){",
+			"not all and (resolution>=.001dpcm){",
+			"only screen and (max-width: 600px){",
+			"only screen and (min-width: 426px)and (max-width: 889px){",
+			"only screen and (min-width: 426px)and (max-width: 896px)and (orientation: landsc",
+			"only screen and (min-width: 890px){",
+			"print{",
+			"screen and (max-width: 37.5em){",
+			"screen and (max-width: 56.25em){",
+			"screen and (max-width: 75em){",
+			"screen and (max-width: calc(37.5em - 1px)){",
+			"screen and (max-width:37.5em){",
+			"screen and (max-width:550px){",
+			"screen and (max-width:56.25em){",
+			"screen and (min-height:350px){",
+			"screen and (min-width: 100vh),(min-width: 37.5em){",
+			"screen and (min-width: 75em){",
+			"screen and (min-width:20em){",
+			"screen and (min-width:37.5em){",
+			"screen and (min-width:48em){",
+			"screen and (min-width:56.25em){",
+			"screen and (min-width:75em){",
+			"screen and (prefers-reduced-motion:reduce){",
+			"screen{"
+		],
+		"container": [
+			"bento-box-card (max-width: 250px){",
+			"bento-box-card (min-width: 1200px){",
+			"bento-box-card (min-width: 390px){",
+			"bento-box-card (min-width: 600px){",
+			"bento-box-card (min-width: 900px){",
+			"bento-box-text (max-height: 10rem){",
+			"bento-box-text (max-width: 4.25rem){",
+			"bento-box-text (max-width: 5.5rem){",
+			"bento-box-text (min-width: 10.5rem) and (max-width: 13.625rem){",
+			"bento-box-text (min-width: 10.5rem) and (min-height: 16.75rem){",
+			"bento-box-text (min-width: 13.625rem) and (max-width: 16.75rem){",
+			"bento-box-text (min-width: 16.75rem) and (max-width: 19.875rem){",
+			"bento-box-text (min-width: 16.75rem){",
+			"bento-box-text (min-width: 19.875rem) and (max-width: 26.125rem){",
+			"bento-box-text (min-width: 19.875rem){",
+			"bento-box-text (min-width: 26.125rem){",
+			"bento-box-text (min-width: 4.25rem) and (max-width: 7.375rem){",
+			"bento-box-text (min-width: 7.375rem) and (max-width: 10.5rem){",
+			"product-card-list (min-width: 350px){",
+			"product-card-list (min-width: 37.5em){",
+			"product-list (max-width: 48em){",
+			"product-list (min-width: 112.5em){",
+			"product-list (min-width: 350px){",
+			"product-list (min-width: 37.5em){",
+			"product-list (min-width: 48em){",
+			"product-list (min-width: 56.25em){",
+			"product-list (min-width: 64em){",
+			"shelf-carousel (min-width: 0px){",
+			"shelf-carousel (min-width: 30em){",
+			"shelf-carousel (min-width: 37.5em){",
+			"shelf-carousel (min-width: 48em){",
+			"shelf-carousel (min-width: 56.25em){",
+			"shelf-carousel (min-width: 75em){",
+			"shelf-carousel (min-width: 90em){"
+		],
+		"breakpoints_seen": [
+			{
+				"px": 1400,
+				"count": 3
+			},
+			{
+				"px": 350,
+				"count": 2
+			},
+			{
+				"px": 400,
+				"count": 2
+			},
+			{
+				"px": 426,
+				"count": 2
+			},
+			{
+				"px": 550,
+				"count": 2
+			},
+			{
+				"px": 896,
+				"count": 2
+			},
+			{
+				"px": 1,
+				"count": 1
+			},
+			{
+				"px": 99,
+				"count": 1
+			},
+			{
+				"px": 370,
+				"count": 1
+			},
+			{
+				"px": 430,
+				"count": 1
+			},
+			{
+				"px": 600,
+				"count": 1
+			},
+			{
+				"px": 700,
+				"count": 1
+			}
+		],
+		"widths": {
+			"400": {
+				"doc": [
+					400,
+					15937
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "hnf-header",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							400,
+							181
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "hnf-navbar__icons",
+						"display": "block",
+						"rect": [
+							220,
+							64,
+							160,
+							40
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"display": "block",
+						"rect": [
+							0,
+							181,
+							400,
+							14248
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							0,
+							181,
+							400,
+							14248
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							20,
+							181,
+							360,
+							138
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section _visuallyHidden_9qqcz_1",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							19,
+							361,
+							1,
+							1
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							20,
+							323,
+							360,
+							879
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							20,
+							1244,
+							360,
+							431
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							20,
+							1717,
+							360,
+							601
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							20,
+							2360,
+							360,
+							552
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							20,
+							2955,
+							360,
+							788
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							20,
+							3785,
+							360,
+							819
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							20,
+							4646,
+							360,
+							533
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							20,
+							5220,
+							360,
+							814
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							20,
+							6076,
+							360,
+							879
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							20,
+							6997,
+							360,
+							945
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							20,
+							7985,
+							360,
+							455
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							20,
+							8481,
+							360,
+							560
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							20,
+							9083,
+							360,
+							525
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							20,
+							9650,
+							360,
+							793
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "hnf-overlay",
+						"role": "presentation",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							400,
+							844
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "hnf-carousel__hnf-inpage-nav",
+						"class": "hnf-carousel__content hnf-content-container__carousel",
+						"role": "list",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							181,
+							400,
+							50
+						],
+						"side_by_side": 24
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "hri-carousel__hri-dynamic-layout-showcase-cms-1AFUtSNBzm9apsWNyEvrtC",
+						"class": "hri-carousel__content hri-carousel__content--snap-slide",
+						"role": "list",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							20,
+							1244,
+							360,
+							341
+						],
+						"side_by_side": 5
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "hri-carousel-slide _carouselItemFit_1jlmx_1",
+						"role": "listitem",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							20,
+							1252,
+							233,
+							325
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "hri-carousel-slide _carouselItemFit_1jlmx_1",
+						"role": "listitem",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							273,
+							1252,
+							233,
+							325
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "hri-carousel-slide _carouselItemFit_1jlmx_1",
+						"role": "listitem",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							526,
+							1252,
+							233,
+							325
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							0,
+							181,
+							400,
+							14248
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "hri-content-container",
+						"display": "block",
+						"rect": [
+							0,
+							181,
+							400,
+							14248
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							20,
+							181,
+							360,
+							14248
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							0,
+							14460,
+							400,
+							1477
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "footer",
+						"class": "hnf-footer",
+						"display": "block",
+						"rect": [
+							0,
+							14574,
+							400,
+							1363
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1280": {
+				"doc": [
+					1280,
+					15813
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "hnf-header",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1280,
+							138
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "hnf-menu__entrypoints",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							186,
+							70,
+							407,
+							46
+						],
+						"side_by_side": 5
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "hnf-navbar__icons",
+						"display": "block",
+						"rect": [
+							1096,
+							73,
+							136,
+							40
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"display": "block",
+						"rect": [
+							0,
+							138,
+							1280,
+							14581
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							0,
+							138,
+							1280,
+							14581
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							48,
+							138,
+							1184,
+							205
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section _visuallyHidden_9qqcz_1",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							47,
+							407,
+							1,
+							1
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							48,
+							407,
+							1184,
+							722
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							48,
+							1193,
+							1184,
+							409
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							48,
+							1666,
+							1184,
+							510
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							48,
+							2240,
+							1184,
+							608
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							48,
+							2912,
+							1184,
+							936
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							48,
+							3912,
+							1184,
+							684
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							48,
+							4659,
+							1184,
+							452
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							48,
+							5175,
+							1184,
+							753
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							48,
+							5993,
+							1184,
+							722
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							48,
+							6778,
+							1184,
+							913
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							48,
+							7755,
+							1184,
+							464
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							48,
+							8283,
+							1184,
+							561
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							48,
+							8908,
+							1184,
+							664
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "hnf-menu__backdrop",
+						"role": "presentation",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							0,
+							138,
+							1280,
+							662
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "role",
+						"tag": "form",
+						"class": "search-box-form",
+						"role": "search",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							633,
+							69,
+							423,
+							48
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "hnf-carousel__hnf-inpage-nav",
+						"class": "hnf-carousel__content hnf-content-container__carousel",
+						"role": "list",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							48,
+							154,
+							1184,
+							189
+						],
+						"side_by_side": 24
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "hnf-carousel-slide",
+						"role": "listitem",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							48,
+							162,
+							150,
+							173
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "hnf-carousel-slide",
+						"role": "listitem",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							218,
+							162,
+							150,
+							173
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "hnf-carousel-slide",
+						"role": "listitem",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							388,
+							162,
+							150,
+							173
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							0,
+							138,
+							1280,
+							14581
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "hri-content-container",
+						"display": "block",
+						"rect": [
+							0,
+							138,
+							1280,
+							14581
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							48,
+							138,
+							1184,
+							14581
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							48,
+							12368,
+							1184,
+							1311
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							48,
+							12368,
+							1184,
+							1311
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1920": {
+				"doc": [
+					1920,
+					18459
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "hnf-header",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1920,
+							138
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "hnf-menu__entrypoints",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							250,
+							70,
+							467,
+							46
+						],
+						"side_by_side": 5
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "hnf-navbar__icons",
+						"display": "block",
+						"rect": [
+							1490,
+							73,
+							318,
+							40
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"display": "block",
+						"rect": [
+							0,
+							138,
+							1920,
+							17299
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							0,
+							138,
+							1920,
+							17299
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							112,
+							138,
+							1696,
+							205
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section _visuallyHidden_9qqcz_1",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							111,
+							407,
+							1,
+							1
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							112,
+							407,
+							1696,
+							1020
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							112,
+							1491,
+							1696,
+							515
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							112,
+							2070,
+							1696,
+							749
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							112,
+							2883,
+							1696,
+							736
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							112,
+							3683,
+							1696,
+							1162
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							112,
+							4908,
+							1696,
+							982
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							112,
+							5955,
+							1696,
+							711
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							112,
+							6730,
+							1696,
+							748
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							112,
+							7541,
+							1696,
+							1020
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							112,
+							8626,
+							1696,
+							913
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							112,
+							9603,
+							1696,
+							551
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							112,
+							10218,
+							1696,
+							561
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							112,
+							10843,
+							1696,
+							664
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "hnf-menu__backdrop",
+						"role": "presentation",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							0,
+							138,
+							1920,
+							942
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "role",
+						"tag": "form",
+						"class": "search-box-form",
+						"role": "search",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							804,
+							69,
+							600,
+							48
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "hnf-carousel__hnf-inpage-nav",
+						"class": "hnf-carousel__content hnf-content-container__carousel",
+						"role": "list",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							112,
+							154,
+							1696,
+							189
+						],
+						"side_by_side": 24
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "hnf-carousel-slide",
+						"role": "listitem",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							112,
+							162,
+							150,
+							173
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "hnf-carousel-slide",
+						"role": "listitem",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							282,
+							162,
+							150,
+							173
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "hnf-carousel-slide",
+						"role": "listitem",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							452,
+							162,
+							150,
+							173
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							0,
+							138,
+							1920,
+							17299
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "hri-content-container",
+						"display": "block",
+						"rect": [
+							64,
+							138,
+							1792,
+							17299
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							112,
+							138,
+							1696,
+							17299
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							112,
+							14561,
+							1696,
+							1732
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							112,
+							14561,
+							1696,
+							1732
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"3440": {
+				"doc": [
+					3440,
+					18459
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "hnf-header",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							3440,
+							138
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "hnf-menu__entrypoints",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							1010,
+							70,
+							467,
+							46
+						],
+						"side_by_side": 5
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "hnf-navbar__icons",
+						"display": "block",
+						"rect": [
+							2250,
+							73,
+							318,
+							40
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"display": "block",
+						"rect": [
+							0,
+							138,
+							3440,
+							17299
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							0,
+							138,
+							3440,
+							17299
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							872,
+							138,
+							1696,
+							205
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section _visuallyHidden_9qqcz_1",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							871,
+							407,
+							1,
+							1
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							872,
+							407,
+							1696,
+							1020
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							872,
+							1491,
+							1696,
+							515
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							872,
+							2070,
+							1696,
+							749
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							872,
+							2883,
+							1696,
+							736
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							872,
+							3683,
+							1696,
+							1162
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							872,
+							4908,
+							1696,
+							982
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							872,
+							5955,
+							1696,
+							711
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							872,
+							6730,
+							1696,
+							748
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							872,
+							7541,
+							1696,
+							1020
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							872,
+							8626,
+							1696,
+							913
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							872,
+							9603,
+							1696,
+							551
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							872,
+							10218,
+							1696,
+							561
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hri-section",
+						"display": "block",
+						"rect": [
+							872,
+							10843,
+							1696,
+							664
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "hnf-menu__backdrop",
+						"role": "presentation",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							0,
+							138,
+							3440,
+							1302
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "role",
+						"tag": "form",
+						"class": "search-box-form",
+						"role": "search",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							1564,
+							69,
+							600,
+							48
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "hnf-carousel__hnf-inpage-nav",
+						"class": "hnf-carousel__content hnf-content-container__carousel",
+						"role": "list",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							872,
+							154,
+							1696,
+							189
+						],
+						"side_by_side": 24
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "hnf-carousel-slide",
+						"role": "listitem",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							872,
+							162,
+							150,
+							173
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "hnf-carousel-slide",
+						"role": "listitem",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1042,
+							162,
+							150,
+							173
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "hnf-carousel-slide",
+						"role": "listitem",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1212,
+							162,
+							150,
+							173
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							0,
+							138,
+							3440,
+							17299
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "hri-content-container",
+						"display": "block",
+						"rect": [
+							824,
+							138,
+							1792,
+							17299
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							872,
+							138,
+							1696,
+							17299
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "hnf-modal-wrapper hnf-modal-wrapper--close",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							3440,
+							1440
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "hnf-modal-wrapper__backdrop hnf-modal-wrapper__backdrop--dark",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							0,
+							0,
+							3440,
+							1440
+						],
+						"side_by_side": 0
+					}
+				]
+			}
+		}
+	},
+	"notes": "IKEA's homepage opens with a row of category shortcuts (little square icons for Storage, Sofas, Lighting, and so on), then a mosaic of promo tiles: one big tile on the left taller than the rest, with four smaller square deals stacked two-by-two beside it. That mosaic shape — one large tile plus several small ones instead of a plain even grid — is a named layout in this project's own standard (id `4-1`, also called a bento or mosaic grid), and this is a clean real-world example of it. On a phone the mosaic simplifies to just the one big tile, full width, with the smaller deals presumably continuing below it further down the page than our screenshot reaches. The page overall is very long — the scan counts roughly fifteen more full-width sections below the fold that we did not examine one by one.",
+	"wire": {
+		"role": "page",
+		"kids": [
+			{
+				"role": "header",
+				"h": "9em"
+			},
+			{
+				"role": "main",
+				"dir": "row",
+				"h": "6em",
+				"floor": "none",
+				"scroll": true,
+				"kids": [
+					{
+						"role": "image",
+						"w": 1
+					},
+					{
+						"role": "image",
+						"w": 1
+					},
+					{
+						"role": "image",
+						"w": 1
+					},
+					{
+						"role": "image",
+						"w": 1
+					},
+					{
+						"role": "image",
+						"w": 1
+					},
+					{
+						"role": "image",
+						"w": 1
+					},
+					{
+						"role": "image",
+						"w": 1
+					},
+					{
+						"role": "image",
+						"w": 1
+					}
+				]
+			},
+			{
+				"role": "main",
+				"dir": "row",
+				"h": "22em",
+				"floor": "56rem",
+				"kids": [
+					{
+						"role": "image",
+						"w": 1
+					},
+					{
+						"role": "main",
+						"dir": "col",
+						"w": 1,
+						"kids": [
+							{
+								"role": "main",
+								"dir": "row",
+								"h": "11em",
+								"kids": [
+									{
+										"role": "image",
+										"w": 1
+									},
+									{
+										"role": "image",
+										"w": 1
+									}
+								]
+							},
+							{
+								"role": "main",
+								"dir": "row",
+								"h": "11em",
+								"kids": [
+									{
+										"role": "image",
+										"w": 1
+									},
+									{
+										"role": "image",
+										"w": 1
+									}
+								]
+							}
+						]
+					}
+				]
+			},
+			{
+				"role": "main",
+				"lines": 30
+			}
+		]
+	}
+}

@@ -1,0 +1,1533 @@
+{
+	"name": "linear-home",
+	"url": "https://linear.app",
+	"title": "Linear – The system for product development",
+	"category": "marketing",
+	"captured_at": "2026-09-08T06:03:35.064Z",
+	"embed": "blocked",
+	"embed_note": "content-security-policy: frame-ancestors 'self' https://cms.linear.app",
+	"shots": {
+		"400": "site/linear-home/400.jpg",
+		"1280": "site/linear-home/1280.jpg",
+		"1920": "site/linear-home/1920.jpg",
+		"3440": "site/linear-home/3440.jpg",
+		"long": "site/linear-home/long.jpg"
+	},
+	"layout": {
+		"400": "1-flow",
+		"1280": "1-flow",
+		"1920": "1-centered",
+		"3440": "1-centered"
+	},
+	"sections": [
+		{
+			"name": "header nav",
+			"layout": "1-flow",
+			"css": "flex, fixed",
+			"note": "fixed to the top at every width; the scan shows the link list itself switches from a row (desktop) to a column (phone), which is how the hamburger menu is built here rather than just hiding links."
+		},
+		{
+			"name": "hero headline",
+			"layout": "1-centered",
+			"css": "block, capped column",
+			"note": "left-aligned text, not centred text — but the COLUMN it sits in is centred on the page and stops growing past a point, the same trick as the product mockup below it."
+		},
+		{
+			"name": "product mockup",
+			"layout": "1-centered",
+			"css": "block, fixed ~1303px width, centred",
+			"note": "the scan measures this UI screenshot at the same ~1303px total width at 1280, 1920 AND 3440 — it is centred on the page and nearly touches both edges at 1280, then grows quiet margin on both sides above that; on a phone it does not crop, it shrinks (its inner sidebar measures exactly half the desktop size)."
+		},
+		{
+			"name": "product screenshot panels",
+			"layout": "1-centered",
+			"css": "block, same ~1344px cap",
+			"note": "more screenshots further down the page repeat the exact same centred, capped-width treatment as the hero mockup."
+		}
+	],
+	"tags": [
+		"1-flow",
+		"1-centered",
+		"dark",
+		"sticky header",
+		"hamburger",
+		"max-width",
+		"marketing"
+	],
+	"responsive": {
+		"strategy": "A fixed dark header stays put at every width. Below it, the hero content is nearly edge to edge at 1280, then from 1920 up the scan shows the same roughly 1300-1340px-wide block simply centred with growing black margin either side — Apple and Stripe's own homepages tell the same 'flow then centred' story. On a phone the product screenshot does not just get cropped, it visibly shrinks in proportion, and the header's link row becomes a stacked list, which is how the hamburger menu is built here.",
+		"breakpoints": [
+			768,
+			1024,
+			1280
+		],
+		"queries": [
+			"(any-hover: hover) and (any-pointer: fine) {",
+			"(any-hover:hover) and (any-pointer:fine){",
+			"(any-hover:hover){",
+			"(any-hover:none){",
+			"(dynamic-range:high) or (color-gamut:p3){",
+			"(hover:none){",
+			"(max-width:1024px){",
+			"(max-width:1140px){",
+			"(max-width:1280px){",
+			"(max-width:1439px){",
+			"(max-width:640px){",
+			"(max-width:768px){",
+			"(max-width:928px){",
+			"(min-aspect-ratio:16/9){",
+			"(min-aspect-ratio:4/3){",
+			"(min-width:1025px){",
+			"(min-width:1281px) and (max-width:1440px){",
+			"(min-width:1281px){",
+			"(min-width:1536px){",
+			"(min-width:641px){",
+			"(min-width:769px){",
+			"(prefers-color-scheme:dark){",
+			"(prefers-reduced-motion: reduce) {",
+			"(prefers-reduced-motion:no-preference){",
+			"(prefers-reduced-motion:reduce){",
+			"(prefers-reduced-motion:reduced){",
+			"not (any-hover:hover){",
+			"only screen and ((min-device-pixel-ratio:2) or (-webkit-min-device-pixel-ratio:2"
+		]
+	},
+	"scan": {
+		"scanned_at": "2026-09-08T06:03:48.535Z",
+		"css": {
+			"sheets": 91,
+			"bytes": 509659,
+			"inline_bytes": 19976
+		},
+		"media": [
+			"(any-hover: hover) and (any-pointer: fine) {",
+			"(any-hover:hover) and (any-pointer:fine){",
+			"(any-hover:hover){",
+			"(any-hover:none){",
+			"(dynamic-range:high) or (color-gamut:p3){",
+			"(hover:none){",
+			"(max-width:1024px){",
+			"(max-width:1140px){",
+			"(max-width:1280px){",
+			"(max-width:1439px){",
+			"(max-width:640px){",
+			"(max-width:768px){",
+			"(max-width:928px){",
+			"(min-aspect-ratio:16/9){",
+			"(min-aspect-ratio:4/3){",
+			"(min-width:1025px){",
+			"(min-width:1281px) and (max-width:1440px){",
+			"(min-width:1281px){",
+			"(min-width:1536px){",
+			"(min-width:641px){",
+			"(min-width:769px){",
+			"(prefers-color-scheme:dark){",
+			"(prefers-reduced-motion: reduce) {",
+			"(prefers-reduced-motion:no-preference){",
+			"(prefers-reduced-motion:reduce){",
+			"(prefers-reduced-motion:reduced){",
+			"not (any-hover:hover){",
+			"only screen and ((min-device-pixel-ratio:2) or (-webkit-min-device-pixel-ratio:2"
+		],
+		"container": [
+			"(width<=420px){",
+			"_91f_Kq_video-player (width<=640px){"
+		],
+		"breakpoints_seen": [
+			{
+				"px": 1281,
+				"count": 2
+			},
+			{
+				"px": 640,
+				"count": 1
+			},
+			{
+				"px": 641,
+				"count": 1
+			},
+			{
+				"px": 768,
+				"count": 1
+			},
+			{
+				"px": 769,
+				"count": 1
+			},
+			{
+				"px": 928,
+				"count": 1
+			},
+			{
+				"px": 1024,
+				"count": 1
+			},
+			{
+				"px": 1025,
+				"count": 1
+			},
+			{
+				"px": 1140,
+				"count": 1
+			},
+			{
+				"px": 1280,
+				"count": 1
+			},
+			{
+				"px": 1439,
+				"count": 1
+			},
+			{
+				"px": 1440,
+				"count": 1
+			}
+		],
+		"widths": {
+			"400": {
+				"doc": [
+					400,
+					5868
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "TZTsQG_header",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							400,
+							65
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "TZTsQG_menuRoot",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							400,
+							64
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"class": "_5l06ia_content",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							400,
+							4990
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "Mmx1Wq_sidebar",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							22,
+							525,
+							116,
+							352
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_1uFtza_header _1uFtza_locationBar",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							139,
+							526,
+							535,
+							22
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "b-30Va_root b-30Va_rootHomepage",
+						"display": "flex",
+						"dir": "column-reverse",
+						"wrap": "nowrap",
+						"rect": [
+							16,
+							1868,
+							368,
+							581
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "qM9FAa_header",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							17,
+							1655,
+							366,
+							61
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "b-30Va_root b-30Va_rootHomepage",
+						"display": "flex",
+						"dir": "column-reverse",
+						"wrap": "nowrap",
+						"rect": [
+							16,
+							2459,
+							368,
+							583
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "b-30Va_root b-30Va_rootHomepage",
+						"display": "flex",
+						"dir": "column-reverse",
+						"wrap": "nowrap",
+						"rect": [
+							16,
+							3052,
+							368,
+							579
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "b-30Va_root b-30Va_rootHomepage",
+						"display": "flex",
+						"dir": "column-reverse",
+						"wrap": "nowrap",
+						"rect": [
+							16,
+							3641,
+							368,
+							583
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "dYXc1G_homepagePrefooter",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							16,
+							4727,
+							368,
+							168
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "Jmh1Wq_footer",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							4990,
+							400,
+							878
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							400,
+							5868
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "_5l06ia_container MwJdiW_root",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							400,
+							5868
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "_7bwwmq_root _7bwwmq_homepage",
+						"display": "block",
+						"rect": [
+							0,
+							64,
+							400,
+							4926
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "NAY0wa_inner",
+						"display": "grid",
+						"cols": "0px 328px 328px 328px 0px",
+						"rows": "440px",
+						"rect": [
+							0,
+							1303,
+							1016,
+							440
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "NAY0wa_inner",
+						"display": "grid",
+						"cols": "0px 320px 320px 320px 0px",
+						"rows": "360px",
+						"rect": [
+							0,
+							4268,
+							992,
+							360
+						],
+						"side_by_side": 3
+					}
+				]
+			},
+			"1280": {
+				"doc": [
+					1280,
+					9619
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "TZTsQG_header",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							1280,
+							73
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "TZTsQG_menuRoot",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							1280,
+							72
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"class": "_5l06ia_content",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							1280,
+							9125
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "Mmx1Wq_sidebar",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							40,
+							558,
+							232,
+							704
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_1uFtza_header _1uFtza_locationBar",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							273,
+							559,
+							1070,
+							44
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "b-30Va_root b-30Va_rootHomepage",
+						"display": "block",
+						"rect": [
+							10,
+							2265,
+							1260,
+							1226
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "qM9FAa_header",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							19,
+							2617,
+							478,
+							61
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "b-30Va_root b-30Va_rootHomepage",
+						"display": "block",
+						"rect": [
+							10,
+							3501,
+							1260,
+							1229
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_9Zs8oG_initiativesBoxHeader",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							598,
+							3849,
+							672,
+							56
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "b-30Va_root b-30Va_rootHomepage",
+						"display": "block",
+						"rect": [
+							10,
+							4740,
+							1260,
+							1232
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "NN4GVa_header",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							-177,
+							5193,
+							398,
+							48
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "NN4GVa_header",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							235,
+							5193,
+							398,
+							48
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "NN4GVa_header",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							647,
+							5193,
+							398,
+							48
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "NN4GVa_header",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							1059,
+							5193,
+							398,
+							48
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "b-30Va_root b-30Va_rootHomepage",
+						"display": "block",
+						"rect": [
+							10,
+							5982,
+							1260,
+							1220
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "customers",
+						"class": "Dc5tqa_container hide-laptop",
+						"display": "block",
+						"rect": [
+							10,
+							7941,
+							1260,
+							564
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "dYXc1G_homepagePrefooter",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							10,
+							8729,
+							1260,
+							172
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "Jmh1Wq_footer",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							9125,
+							1280,
+							494
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "_8fVXdW_codeSectionDesktop",
+						"role": "group",
+						"display": "block",
+						"rect": [
+							430,
+							6421,
+							1260,
+							497
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1280,
+							9619
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "_5l06ia_container MwJdiW_root",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							1280,
+							9619
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "_7bwwmq_root _7bwwmq_homepage",
+						"display": "block",
+						"rect": [
+							0,
+							72,
+							1280,
+							9053
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "WS84WW_shadows hide-laptop",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "absolute",
+						"rect": [
+							-325,
+							416,
+							1920,
+							891
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "img",
+						"class": "Sz_9La_root",
+						"display": "block",
+						"rect": [
+							-325,
+							416,
+							1920,
+							891
+						],
+						"side_by_side": 0
+					}
+				]
+			},
+			"1920": {
+				"doc": [
+					1920,
+					10024
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "TZTsQG_header",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							1920,
+							73
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "TZTsQG_menuRoot",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							1920,
+							72
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"class": "_5l06ia_content",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							1920,
+							9530
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "Mmx1Wq_sidebar",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							308,
+							535,
+							232,
+							704
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_1uFtza_header _1uFtza_locationBar",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							541,
+							536,
+							1070,
+							44
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "b-30Va_root b-30Va_rootHomepage",
+						"display": "block",
+						"rect": [
+							288,
+							2610,
+							1344,
+							1226
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "qM9FAa_header",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							297,
+							2962,
+							478,
+							61
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "b-30Va_root b-30Va_rootHomepage",
+						"display": "block",
+						"rect": [
+							288,
+							3846,
+							1344,
+							1229
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_9Zs8oG_initiativesBoxHeader",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							960,
+							4194,
+							672,
+							56
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "b-30Va_root b-30Va_rootHomepage",
+						"display": "block",
+						"rect": [
+							288,
+							5085,
+							1344,
+							1232
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "NN4GVa_header",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							143,
+							5538,
+							398,
+							48
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "NN4GVa_header",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							555,
+							5538,
+							398,
+							48
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "NN4GVa_header",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							967,
+							5538,
+							398,
+							48
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "NN4GVa_header",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							1379,
+							5538,
+							398,
+							48
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "b-30Va_root b-30Va_rootHomepage",
+						"display": "block",
+						"rect": [
+							288,
+							6327,
+							1344,
+							1220
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "customers",
+						"class": "Dc5tqa_container hide-laptop",
+						"display": "block",
+						"rect": [
+							288,
+							8290,
+							1344,
+							564
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "dYXc1G_homepagePrefooter",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							288,
+							9078,
+							1344,
+							228
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "Jmh1Wq_footer",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							9530,
+							1920,
+							494
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "_8fVXdW_codeSectionDesktop",
+						"role": "group",
+						"display": "block",
+						"rect": [
+							736,
+							6766,
+							1344,
+							497
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1920,
+							10024
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "_5l06ia_container MwJdiW_root",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							1920,
+							10024
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "_7bwwmq_root _7bwwmq_homepage",
+						"display": "block",
+						"rect": [
+							242,
+							72,
+							1436,
+							9458
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "WS84WW_shade hide-laptop",
+						"display": "grid",
+						"cols": "1920px",
+						"rows": "1071.75px",
+						"position": "absolute",
+						"rect": [
+							0,
+							287,
+							1920,
+							1072
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "img",
+						"class": "Sz_9La_root",
+						"display": "block",
+						"rect": [
+							0,
+							287,
+							1920,
+							1072
+						],
+						"side_by_side": 0
+					}
+				]
+			},
+			"3440": {
+				"doc": [
+					3440,
+					10024
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "TZTsQG_header",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							3440,
+							73
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "TZTsQG_menuRoot",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							3440,
+							72
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"class": "_5l06ia_content",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							3440,
+							9530
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "Mmx1Wq_sidebar",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1068,
+							535,
+							232,
+							704
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_1uFtza_header _1uFtza_locationBar",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							1301,
+							536,
+							1070,
+							44
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "b-30Va_root b-30Va_rootHomepage",
+						"display": "block",
+						"rect": [
+							1048,
+							2610,
+							1344,
+							1226
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "qM9FAa_header",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							1057,
+							2962,
+							478,
+							61
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "b-30Va_root b-30Va_rootHomepage",
+						"display": "block",
+						"rect": [
+							1048,
+							3846,
+							1344,
+							1229
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_9Zs8oG_initiativesBoxHeader",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							1720,
+							4194,
+							672,
+							56
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "b-30Va_root b-30Va_rootHomepage",
+						"display": "block",
+						"rect": [
+							1048,
+							5085,
+							1344,
+							1232
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "NN4GVa_header",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							903,
+							5538,
+							398,
+							48
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "NN4GVa_header",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							1315,
+							5538,
+							398,
+							48
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "NN4GVa_header",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							1727,
+							5538,
+							398,
+							48
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "NN4GVa_header",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							2139,
+							5538,
+							398,
+							48
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "b-30Va_root b-30Va_rootHomepage",
+						"display": "block",
+						"rect": [
+							1048,
+							6327,
+							1344,
+							1220
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "customers",
+						"class": "Dc5tqa_container hide-laptop",
+						"display": "block",
+						"rect": [
+							1048,
+							8290,
+							1344,
+							564
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "dYXc1G_homepagePrefooter",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							1048,
+							9078,
+							1344,
+							228
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "Jmh1Wq_footer",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							9530,
+							3440,
+							494
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "_8fVXdW_codeSectionDesktop",
+						"role": "group",
+						"display": "block",
+						"rect": [
+							1496,
+							6766,
+							1344,
+							497
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							3440,
+							10024
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "_5l06ia_container MwJdiW_root",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							3440,
+							10024
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "_7bwwmq_root _7bwwmq_homepage",
+						"display": "block",
+						"rect": [
+							1002,
+							72,
+							1436,
+							9458
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "WS84WW_shade hide-laptop",
+						"display": "grid",
+						"cols": "3440px",
+						"rows": "1071.75px",
+						"position": "absolute",
+						"rect": [
+							0,
+							287,
+							3440,
+							1072
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "-B0yXq_root",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							527,
+							3440,
+							832
+						],
+						"side_by_side": 1
+					}
+				]
+			}
+		}
+	},
+	"notes": "Linear's homepage is almost all dark background, white text, and one big picture of its own app sitting front and centre. On a laptop that picture and the headline above it stretch nearly the full width of the window; on a bigger screen they stop growing and hold at about 1300 pixels wide, with more black space appearing on both sides instead. On a phone the picture does not get chopped off at the edges — it shrinks all the way down so the whole app screenshot still fits, and the menu bar turns into a stacked list rather than a row of links. Further down the page, more screenshots of the product repeat the exact same centred, capped-width trick as the hero.",
+	"wire": {
+		"role": "page",
+		"kids": [
+			{
+				"role": "header",
+				"h": "4em"
+			},
+			{
+				"role": "hero",
+				"dir": "row",
+				"center": true,
+				"floor": "none",
+				"kids": [
+					{
+						"role": "hero",
+						"w": "60em"
+					}
+				]
+			},
+			{
+				"role": "main",
+				"dir": "row",
+				"center": true,
+				"floor": "none",
+				"kids": [
+					{
+						"role": "image",
+						"w": "84em"
+					}
+				]
+			}
+		]
+	}
+}

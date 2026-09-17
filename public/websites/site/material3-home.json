@@ -1,0 +1,2024 @@
+{
+	"name": "material3-home",
+	"url": "https://m3.material.io/",
+	"title": "Material Design 3 - Google's latest open source design system",
+	"category": "system",
+	"captured_at": "2026-09-08T06:12:02.791Z",
+	"embed": "allowed",
+	"embed_note": "no x-frame-options and no restrictive frame-ancestors",
+	"shots": {
+		"400": "site/material3-home/400.jpg",
+		"1280": "site/material3-home/1280.jpg",
+		"1920": "site/material3-home/1920.jpg",
+		"3440": "site/material3-home/3440.jpg",
+		"long": "site/material3-home/long.jpg"
+	},
+	"layout": {
+		"400": "1-flow",
+		"1280": "2-sidebar",
+		"1920": "2-sidebar",
+		"3440": "2-sidebar"
+	},
+	"sections": [
+		{
+			"name": "nav rail",
+			"layout": "2-sidebar left",
+			"css": "flex column, fixed 88px",
+			"note": "a true measured rail: exactly 88px wide at 1280, 1920 and 3440 alike, never growing. Collapses entirely to a hamburger overlay below about 600px."
+		},
+		{
+			"name": "hero",
+			"layout": "1-flow",
+			"css": "grid, two roughly-equal halves inside one rounded card",
+			"note": "headline and a 'Get started' button on the left half, a collage of app screenshots bleeding off the right edge of the same card; stacks to text-over-image on a phone."
+		},
+		{
+			"name": "content article",
+			"layout": "1-flow",
+			"css": "block, capped at a 1200px column",
+			"note": "beyond about 1920px of leftover room next to the rail, the article centres itself in a 1200px column instead of stretching; a couple of its rows hold two large cards side by side."
+		},
+		{
+			"name": "footer",
+			"layout": "n-wall",
+			"css": "grid, one wide column plus three narrow ones",
+			"note": "keeps three narrow link columns even at 400px instead of collapsing to one stacked list — the same trick Notion's footer uses elsewhere in this batch."
+		}
+	],
+	"tags": [
+		"2-sidebar",
+		"1-flow",
+		"left",
+		"rail",
+		"measure",
+		"max-width",
+		"hamburger",
+		"cards",
+		"system"
+	],
+	"responsive": {
+		"strategy": "A fixed 88px icon rail runs down the left side at every desktop width — a true rail, unlike the fluid sidebars on the Kubernetes docs site in this batch — while the content beside it is capped at 1200px and centres itself once there is more than that much room left over. Below about 600px the rail disappears behind a hamburger and everything becomes one column, but the footer keeps three narrow columns even at a phone's width.",
+		"breakpoints": [
+			600,
+			960,
+			1294
+		]
+	},
+	"scan": {
+		"scanned_at": "2026-09-08T06:12:23.570Z",
+		"css": {
+			"sheets": 1,
+			"bytes": 187751,
+			"inline_bytes": 148933
+		},
+		"media": [
+			"screen and (max-width: 600px){",
+			"screen and (max-width: 960px){",
+			"screen and (min-width: 601px) and (max-width: 1294px){"
+		],
+		"container": [],
+		"breakpoints_seen": [
+			{
+				"px": 600,
+				"count": 1
+			},
+			{
+				"px": 601,
+				"count": 1
+			},
+			{
+				"px": 960,
+				"count": 1
+			},
+			{
+				"px": 1294,
+				"count": 1
+			}
+		],
+		"widths": {
+			"400": {
+				"doc": [
+					400,
+					9422
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "main_content",
+						"class": "ng-tns-c30-2",
+						"role": "main",
+						"display": "block",
+						"rect": [
+							0,
+							72,
+							400,
+							8358
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "split-asset",
+						"display": "grid",
+						"cols": "188px 188px",
+						"rows": "362px 192px",
+						"rect": [
+							8,
+							72,
+							384,
+							562
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "ng-star-inserted",
+						"role": "tabpanel",
+						"display": "block",
+						"rect": [
+							8,
+							714,
+							384,
+							7716
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"display": "block",
+						"rect": [
+							8,
+							8558,
+							384,
+							856
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "about",
+						"display": "grid",
+						"cols": "98.6562px 98.6719px 98.6562px",
+						"rows": "200px 350px",
+						"rect": [
+							32,
+							8622,
+							336,
+							550
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "legal",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							32,
+							9236,
+							336,
+							114
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "mio-toolbar",
+						"class": "ng-tns-c42-0 ng-star-inserted",
+						"role": "banner",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							400,
+							64
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "1f0411d7-5f7a-4839-87ed-47d4fb26bdc6",
+						"class": "block snug",
+						"role": "region",
+						"display": "block",
+						"cols": "68px repeat(auto-fit, minmax(calc(25% - 20px), 1fr))",
+						"position": "relative",
+						"rect": [
+							8,
+							714,
+							384,
+							88
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "3f26e38c-b724-49dc-a648-006bf0747256",
+						"class": "block snug",
+						"role": "region",
+						"display": "block",
+						"cols": "68px repeat(auto-fit, minmax(calc(25% - 20px), 1fr))",
+						"position": "relative",
+						"rect": [
+							8,
+							826,
+							384,
+							396
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "c78ec556-b934-4d96-a0f6-50a67f3e96fc",
+						"class": "block is-card-row",
+						"role": "region",
+						"display": "block",
+						"cols": "68px repeat(auto-fit, minmax(calc(25% - 20px), 1fr))",
+						"position": "relative",
+						"rect": [
+							8,
+							1230,
+							384,
+							752
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "9f2db05b-ebbb-47c2-892d-1cca35afa386",
+						"class": "block snug",
+						"role": "region",
+						"display": "block",
+						"cols": "68px repeat(auto-fit, minmax(calc(25% - 20px), 1fr))",
+						"position": "relative",
+						"rect": [
+							8,
+							2062,
+							384,
+							260
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "cb481de5-c74c-4b57-9c19-2182735a43c4",
+						"class": "block snug",
+						"role": "region",
+						"display": "block",
+						"cols": "68px repeat(auto-fit, minmax(calc(25% - 20px), 1fr))",
+						"position": "relative",
+						"rect": [
+							8,
+							2346,
+							384,
+							684
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "b6ac6de0-5892-46a0-88cf-2b78a42154c7",
+						"class": "block is-card-row",
+						"role": "region",
+						"display": "block",
+						"cols": "68px repeat(auto-fit, minmax(calc(25% - 20px), 1fr))",
+						"position": "relative",
+						"rect": [
+							8,
+							3038,
+							384,
+							1084
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "7e27cac6-953a-4284-aeba-bbf5a8031710",
+						"class": "block snug",
+						"role": "region",
+						"display": "block",
+						"cols": "68px repeat(auto-fit, minmax(calc(25% - 20px), 1fr))",
+						"position": "relative",
+						"rect": [
+							8,
+							4202,
+							384,
+							88
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "eb109072-f175-4a74-b71d-95c4311ea726",
+						"class": "block snug",
+						"role": "region",
+						"display": "block",
+						"cols": "68px repeat(auto-fit, minmax(calc(25% - 20px), 1fr))",
+						"position": "relative",
+						"rect": [
+							8,
+							4314,
+							384,
+							704
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "9238b06c-41e7-42e7-9f0b-6b2c72d49adf",
+						"class": "block is-card-row",
+						"role": "region",
+						"display": "block",
+						"cols": "68px repeat(auto-fit, minmax(calc(25% - 20px), 1fr))",
+						"position": "relative",
+						"rect": [
+							8,
+							5026,
+							384,
+							1052
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "b4f240da-235e-4d9e-8cf3-356f262c99fd",
+						"class": "block snug",
+						"role": "region",
+						"display": "block",
+						"cols": "68px repeat(auto-fit, minmax(calc(25% - 20px), 1fr))",
+						"position": "relative",
+						"rect": [
+							8,
+							6158,
+							384,
+							88
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "2b8e0043-8981-4736-9c45-de05e4e13efe",
+						"class": "block is-card-row",
+						"role": "region",
+						"display": "block",
+						"cols": "68px repeat(auto-fit, minmax(calc(25% - 20px), 1fr))",
+						"position": "relative",
+						"rect": [
+							8,
+							6270,
+							384,
+							736
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "9fea63f1-7da9-47a0-ba06-7edeae969501",
+						"class": "block snug",
+						"role": "region",
+						"display": "block",
+						"cols": "68px repeat(auto-fit, minmax(calc(25% - 20px), 1fr))",
+						"position": "relative",
+						"rect": [
+							8,
+							7086,
+							384,
+							88
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "d28fcb35-e101-4061-93ea-a06683a4cc6b",
+						"class": "block is-card-row",
+						"role": "region",
+						"display": "block",
+						"cols": "68px repeat(auto-fit, minmax(calc(25% - 20px), 1fr))",
+						"position": "relative",
+						"rect": [
+							8,
+							7198,
+							384,
+							684
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "aa098813-7bd2-45b4-a18d-fa861ad3f978",
+						"class": "block snug",
+						"role": "region",
+						"display": "block",
+						"cols": "68px repeat(auto-fit, minmax(calc(25% - 20px), 1fr))",
+						"position": "relative",
+						"rect": [
+							8,
+							8030,
+							384,
+							264
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "b80da700-ada1-463f-beba-bcb156fc4165",
+						"class": "block is-card-row",
+						"role": "region",
+						"display": "block",
+						"cols": "68px repeat(auto-fit, minmax(calc(25% - 20px), 1fr))",
+						"position": "relative",
+						"rect": [
+							8,
+							8302,
+							384,
+							128
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "mio-root",
+						"class": "play-mode",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							400,
+							9422
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "navigation",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							400,
+							9422
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "mio-navigation-drawer",
+						"class": "ng-tns-c42-0",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							400,
+							9422
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "mwc-drawer",
+						"class": "ng-tns-c42-0",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							400,
+							9422
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "page-content page-content-height",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							400,
+							9422
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1280": {
+				"doc": [
+					1280,
+					800
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "nav-rail-content",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							20,
+							88,
+							582
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "main_content",
+						"class": "ng-tns-c30-2",
+						"role": "main",
+						"display": "block",
+						"rect": [
+							88,
+							8,
+							1192,
+							6268
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "split-asset",
+						"display": "grid",
+						"cols": "584px 584px",
+						"rows": "360px 542px",
+						"rect": [
+							96,
+							8,
+							1176,
+							910
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "ng-star-inserted",
+						"role": "tabpanel",
+						"display": "block",
+						"rect": [
+							88,
+							1030,
+							1104,
+							5246
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"display": "block",
+						"rect": [
+							96,
+							6404,
+							1176,
+							446
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "about",
+						"display": "grid",
+						"cols": "518px 172.656px 172.672px 172.672px",
+						"rows": "228px",
+						"rect": [
+							136,
+							6468,
+							1096,
+							228
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "legal",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							136,
+							6760,
+							1096,
+							26
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "1f0411d7-5f7a-4839-87ed-47d4fb26bdc6",
+						"class": "block snug",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1016px 0px 0px",
+						"rows": "100px",
+						"position": "relative",
+						"rect": [
+							88,
+							1030,
+							1104,
+							100
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "3f26e38c-b724-49dc-a648-006bf0747256",
+						"class": "block snug",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1016px 0px 0px",
+						"rows": "298px",
+						"position": "relative",
+						"rect": [
+							88,
+							1130,
+							1104,
+							298
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "c78ec556-b934-4d96-a0f6-50a67f3e96fc",
+						"class": "block is-card-row",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1016px 0px 0px",
+						"rows": "450px",
+						"position": "relative",
+						"rect": [
+							88,
+							1436,
+							1104,
+							450
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "9f2db05b-ebbb-47c2-892d-1cca35afa386",
+						"class": "block snug",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1016px 0px 0px",
+						"rows": "198px",
+						"position": "relative",
+						"rect": [
+							88,
+							1966,
+							1104,
+							198
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "cb481de5-c74c-4b57-9c19-2182735a43c4",
+						"class": "block snug",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1016px 0px 0px",
+						"rows": "434px",
+						"position": "relative",
+						"rect": [
+							88,
+							2164,
+							1104,
+							434
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "b6ac6de0-5892-46a0-88cf-2b78a42154c7",
+						"class": "block is-card-row",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1016px 0px 0px",
+						"rows": "680px",
+						"position": "relative",
+						"rect": [
+							88,
+							2606,
+							1104,
+							680
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "7e27cac6-953a-4284-aeba-bbf5a8031710",
+						"class": "block snug",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1016px 0px 0px",
+						"rows": "100px",
+						"position": "relative",
+						"rect": [
+							88,
+							3366,
+							1104,
+							100
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "eb109072-f175-4a74-b71d-95c4311ea726",
+						"class": "block snug",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1016px 0px 0px",
+						"rows": "458px",
+						"position": "relative",
+						"rect": [
+							88,
+							3466,
+							1104,
+							458
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "9238b06c-41e7-42e7-9f0b-6b2c72d49adf",
+						"class": "block is-card-row",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1016px 0px 0px",
+						"rows": "680px",
+						"position": "relative",
+						"rect": [
+							88,
+							3932,
+							1104,
+							680
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "b4f240da-235e-4d9e-8cf3-356f262c99fd",
+						"class": "block snug",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1016px 0px 0px",
+						"rows": "100px",
+						"position": "relative",
+						"rect": [
+							88,
+							4692,
+							1104,
+							100
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "2b8e0043-8981-4736-9c45-de05e4e13efe",
+						"class": "block is-card-row",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1016px 0px 0px",
+						"rows": "434px",
+						"position": "relative",
+						"rect": [
+							88,
+							4792,
+							1104,
+							434
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "9fea63f1-7da9-47a0-ba06-7edeae969501",
+						"class": "block snug",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1016px 0px 0px",
+						"rows": "100px",
+						"position": "relative",
+						"rect": [
+							88,
+							5306,
+							1104,
+							100
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "d28fcb35-e101-4061-93ea-a06683a4cc6b",
+						"class": "block is-card-row",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1016px 0px 0px",
+						"rows": "434px",
+						"position": "relative",
+						"rect": [
+							88,
+							5406,
+							1104,
+							434
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "2975b4d9-9a9e-4e2e-ae61-4483a1064de1",
+						"class": "block snug",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1016px 0px 0px",
+						"rows": "100px",
+						"position": "relative",
+						"rect": [
+							88,
+							5920,
+							1104,
+							100
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "aa098813-7bd2-45b4-a18d-fa861ad3f978",
+						"class": "block snug",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1016px 0px 0px",
+						"rows": "136px",
+						"position": "relative",
+						"rect": [
+							88,
+							6020,
+							1104,
+							136
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "b80da700-ada1-463f-beba-bcb156fc4165",
+						"class": "block is-card-row",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1016px 0px 0px",
+						"rows": "112px",
+						"position": "relative",
+						"rect": [
+							88,
+							6164,
+							1104,
+							112
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "content-container ng-star-inserted",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							88,
+							0,
+							1192,
+							6858
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "mio-landing-page",
+						"class": "ng-tns-c30-2 ng-star-inserted",
+						"display": "block",
+						"rect": [
+							88,
+							8,
+							1192,
+							6842
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "animation-container ng-tns-c30-2",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							88,
+							8,
+							1192,
+							6842
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "content-container ng-tns-c30-2",
+						"display": "block",
+						"rect": [
+							88,
+							1030,
+							1192,
+							5246
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "carbon-container ng-tns-c30-2",
+						"display": "block",
+						"rect": [
+							88,
+							1030,
+							1192,
+							5246
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1920": {
+				"doc": [
+					1920,
+					1080
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "nav-rail-content",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							20,
+							88,
+							582
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "main_content",
+						"class": "ng-tns-c30-2",
+						"role": "main",
+						"display": "block",
+						"rect": [
+							124,
+							8,
+							1760,
+							5398
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "split-asset",
+						"display": "grid",
+						"cols": "868px 868px",
+						"rows": "544px",
+						"rect": [
+							132,
+							8,
+							1744,
+							544
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "ng-star-inserted",
+						"role": "tabpanel",
+						"display": "block",
+						"rect": [
+							316,
+							664,
+							1288,
+							4742
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"display": "block",
+						"rect": [
+							364,
+							5534,
+							1280,
+							446
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "about",
+						"display": "grid",
+						"cols": "570px 190px 190px 190px",
+						"rows": "228px",
+						"rect": [
+							404,
+							5598,
+							1200,
+							228
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "legal",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							404,
+							5890,
+							1200,
+							26
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "1f0411d7-5f7a-4839-87ed-47d4fb26bdc6",
+						"class": "block snug",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1200px 0px 0px",
+						"rows": "112px",
+						"position": "relative",
+						"rect": [
+							316,
+							664,
+							1288,
+							112
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "3f26e38c-b724-49dc-a648-006bf0747256",
+						"class": "block snug",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1200px 0px 0px",
+						"rows": "298px",
+						"position": "relative",
+						"rect": [
+							316,
+							776,
+							1288,
+							298
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "c78ec556-b934-4d96-a0f6-50a67f3e96fc",
+						"class": "block is-card-row",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1200px 0px 0px",
+						"rows": "450px",
+						"position": "relative",
+						"rect": [
+							316,
+							1082,
+							1288,
+							450
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "9f2db05b-ebbb-47c2-892d-1cca35afa386",
+						"class": "block snug",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1200px 0px 0px",
+						"rows": "210px",
+						"position": "relative",
+						"rect": [
+							316,
+							1628,
+							1288,
+							210
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "cb481de5-c74c-4b57-9c19-2182735a43c4",
+						"class": "block snug",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1200px 0px 0px",
+						"rows": "434px",
+						"position": "relative",
+						"rect": [
+							316,
+							1838,
+							1288,
+							434
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "b6ac6de0-5892-46a0-88cf-2b78a42154c7",
+						"class": "block is-card-row",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1200px 0px 0px",
+						"rows": "392px",
+						"position": "relative",
+						"rect": [
+							316,
+							2280,
+							1288,
+							392
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "7e27cac6-953a-4284-aeba-bbf5a8031710",
+						"class": "block snug",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1200px 0px 0px",
+						"rows": "112px",
+						"position": "relative",
+						"rect": [
+							316,
+							2768,
+							1288,
+							112
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "eb109072-f175-4a74-b71d-95c4311ea726",
+						"class": "block snug",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1200px 0px 0px",
+						"rows": "434px",
+						"position": "relative",
+						"rect": [
+							316,
+							2880,
+							1288,
+							434
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "9238b06c-41e7-42e7-9f0b-6b2c72d49adf",
+						"class": "block is-card-row",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1200px 0px 0px",
+						"rows": "360px",
+						"position": "relative",
+						"rect": [
+							316,
+							3322,
+							1288,
+							360
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "b4f240da-235e-4d9e-8cf3-356f262c99fd",
+						"class": "block snug",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1200px 0px 0px",
+						"rows": "112px",
+						"position": "relative",
+						"rect": [
+							316,
+							3778,
+							1288,
+							112
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "2b8e0043-8981-4736-9c45-de05e4e13efe",
+						"class": "block is-card-row",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1200px 0px 0px",
+						"rows": "434px",
+						"position": "relative",
+						"rect": [
+							316,
+							3890,
+							1288,
+							434
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "9fea63f1-7da9-47a0-ba06-7edeae969501",
+						"class": "block snug",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1200px 0px 0px",
+						"rows": "112px",
+						"position": "relative",
+						"rect": [
+							316,
+							4420,
+							1288,
+							112
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "d28fcb35-e101-4061-93ea-a06683a4cc6b",
+						"class": "block is-card-row",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1200px 0px 0px",
+						"rows": "434px",
+						"position": "relative",
+						"rect": [
+							316,
+							4532,
+							1288,
+							434
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "2975b4d9-9a9e-4e2e-ae61-4483a1064de1",
+						"class": "block snug",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1200px 0px 0px",
+						"rows": "112px",
+						"position": "relative",
+						"rect": [
+							316,
+							5062,
+							1288,
+							112
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "aa098813-7bd2-45b4-a18d-fa861ad3f978",
+						"class": "block snug",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1200px 0px 0px",
+						"rows": "112px",
+						"position": "relative",
+						"rect": [
+							316,
+							5174,
+							1288,
+							112
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "b80da700-ada1-463f-beba-bcb156fc4165",
+						"class": "block is-card-row",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1200px 0px 0px",
+						"rows": "112px",
+						"position": "relative",
+						"rect": [
+							316,
+							5294,
+							1288,
+							112
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "content-container ng-star-inserted",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							88,
+							0,
+							1832,
+							5988
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "mio-landing-page",
+						"class": "ng-tns-c30-2 ng-star-inserted",
+						"display": "block",
+						"rect": [
+							88,
+							8,
+							1832,
+							5972
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "animation-container ng-tns-c30-2",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							88,
+							8,
+							1832,
+							5972
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "content-container ng-tns-c30-2",
+						"display": "flex",
+						"dir": "row-reverse",
+						"wrap": "nowrap",
+						"rect": [
+							124,
+							552,
+							1760,
+							4854
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "carbon-container ng-tns-c30-2",
+						"display": "block",
+						"rect": [
+							316,
+							552,
+							1288,
+							4854
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"3440": {
+				"doc": [
+					3440,
+					1440
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "nav-rail-content",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							20,
+							88,
+							582
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "main_content",
+						"class": "ng-tns-c30-2",
+						"role": "main",
+						"display": "block",
+						"rect": [
+							884,
+							8,
+							1760,
+							5398
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "split-asset",
+						"display": "grid",
+						"cols": "868px 868px",
+						"rows": "544px",
+						"rect": [
+							892,
+							8,
+							1744,
+							544
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "ng-star-inserted",
+						"role": "tabpanel",
+						"display": "block",
+						"rect": [
+							1076,
+							664,
+							1288,
+							4742
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"display": "block",
+						"rect": [
+							1124,
+							5534,
+							1280,
+							446
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "about",
+						"display": "grid",
+						"cols": "570px 190px 190px 190px",
+						"rows": "228px",
+						"rect": [
+							1164,
+							5598,
+							1200,
+							228
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "legal",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							1164,
+							5890,
+							1200,
+							26
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "1f0411d7-5f7a-4839-87ed-47d4fb26bdc6",
+						"class": "block snug",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1200px 0px 0px",
+						"rows": "112px",
+						"position": "relative",
+						"rect": [
+							1076,
+							664,
+							1288,
+							112
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "3f26e38c-b724-49dc-a648-006bf0747256",
+						"class": "block snug",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1200px 0px 0px",
+						"rows": "298px",
+						"position": "relative",
+						"rect": [
+							1076,
+							776,
+							1288,
+							298
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "c78ec556-b934-4d96-a0f6-50a67f3e96fc",
+						"class": "block is-card-row",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1200px 0px 0px",
+						"rows": "450px",
+						"position": "relative",
+						"rect": [
+							1076,
+							1082,
+							1288,
+							450
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "9f2db05b-ebbb-47c2-892d-1cca35afa386",
+						"class": "block snug",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1200px 0px 0px",
+						"rows": "210px",
+						"position": "relative",
+						"rect": [
+							1076,
+							1628,
+							1288,
+							210
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "cb481de5-c74c-4b57-9c19-2182735a43c4",
+						"class": "block snug",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1200px 0px 0px",
+						"rows": "434px",
+						"position": "relative",
+						"rect": [
+							1076,
+							1838,
+							1288,
+							434
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "b6ac6de0-5892-46a0-88cf-2b78a42154c7",
+						"class": "block is-card-row",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1200px 0px 0px",
+						"rows": "392px",
+						"position": "relative",
+						"rect": [
+							1076,
+							2280,
+							1288,
+							392
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "7e27cac6-953a-4284-aeba-bbf5a8031710",
+						"class": "block snug",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1200px 0px 0px",
+						"rows": "112px",
+						"position": "relative",
+						"rect": [
+							1076,
+							2768,
+							1288,
+							112
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "eb109072-f175-4a74-b71d-95c4311ea726",
+						"class": "block snug",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1200px 0px 0px",
+						"rows": "434px",
+						"position": "relative",
+						"rect": [
+							1076,
+							2880,
+							1288,
+							434
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "9238b06c-41e7-42e7-9f0b-6b2c72d49adf",
+						"class": "block is-card-row",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1200px 0px 0px",
+						"rows": "360px",
+						"position": "relative",
+						"rect": [
+							1076,
+							3322,
+							1288,
+							360
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "b4f240da-235e-4d9e-8cf3-356f262c99fd",
+						"class": "block snug",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1200px 0px 0px",
+						"rows": "112px",
+						"position": "relative",
+						"rect": [
+							1076,
+							3778,
+							1288,
+							112
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "2b8e0043-8981-4736-9c45-de05e4e13efe",
+						"class": "block is-card-row",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1200px 0px 0px",
+						"rows": "434px",
+						"position": "relative",
+						"rect": [
+							1076,
+							3890,
+							1288,
+							434
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "9fea63f1-7da9-47a0-ba06-7edeae969501",
+						"class": "block snug",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1200px 0px 0px",
+						"rows": "112px",
+						"position": "relative",
+						"rect": [
+							1076,
+							4420,
+							1288,
+							112
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "d28fcb35-e101-4061-93ea-a06683a4cc6b",
+						"class": "block is-card-row",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1200px 0px 0px",
+						"rows": "434px",
+						"position": "relative",
+						"rect": [
+							1076,
+							4532,
+							1288,
+							434
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "2975b4d9-9a9e-4e2e-ae61-4483a1064de1",
+						"class": "block snug",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1200px 0px 0px",
+						"rows": "112px",
+						"position": "relative",
+						"rect": [
+							1076,
+							5062,
+							1288,
+							112
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "aa098813-7bd2-45b4-a18d-fa861ad3f978",
+						"class": "block snug",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1200px 0px 0px",
+						"rows": "112px",
+						"position": "relative",
+						"rect": [
+							1076,
+							5174,
+							1288,
+							112
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "b80da700-ada1-463f-beba-bcb156fc4165",
+						"class": "block is-card-row",
+						"role": "region",
+						"display": "grid",
+						"cols": "68px 1200px 0px 0px",
+						"rows": "112px",
+						"position": "relative",
+						"rect": [
+							1076,
+							5294,
+							1288,
+							112
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "content-container ng-star-inserted",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							88,
+							0,
+							3352,
+							5988
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "mio-landing-page",
+						"class": "ng-tns-c30-2 ng-star-inserted",
+						"display": "block",
+						"rect": [
+							88,
+							8,
+							3352,
+							5972
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "animation-container ng-tns-c30-2",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							88,
+							8,
+							3352,
+							5972
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "content-container ng-tns-c30-2",
+						"display": "flex",
+						"dir": "row-reverse",
+						"wrap": "nowrap",
+						"rect": [
+							884,
+							552,
+							1760,
+							4854
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "carbon-container ng-tns-c30-2",
+						"display": "block",
+						"rect": [
+							1076,
+							552,
+							1288,
+							4854
+						],
+						"side_by_side": 1
+					}
+				]
+			}
+		}
+	},
+	"notes": "Google's Material Design homepage puts a narrow icon-and-label rail on the left at every desktop width, and it is a genuine rail in the sense this corpus's own layout standard means it: exactly 88 pixels wide whether the window is a laptop or an ultrawide monitor, never growing to fill space. Everything to its right is capped at 1200px, so on a very wide screen that content simply centres itself in the space next to the rail rather than stretching. Below about 600px the rail disappears behind a hamburger button and the page becomes one plain column — except the footer, which keeps three narrow link columns even on a phone instead of stacking them, the same unusual choice Notion's footer makes elsewhere in this batch.",
+	"wire": {
+		"role": "page",
+		"kids": [
+			{
+				"role": "main",
+				"dir": "row",
+				"floor": "37.5rem",
+				"kids": [
+					{
+						"role": "aside",
+						"w": "5.5em",
+						"lines": 4
+					},
+					{
+						"role": "main",
+						"w": 1,
+						"kids": [
+							{
+								"role": "hero",
+								"dir": "row",
+								"floor": "none",
+								"h": "18em",
+								"kids": [
+									{
+										"role": "text",
+										"w": 1,
+										"lines": 4
+									},
+									{
+										"role": "image",
+										"w": 1
+									}
+								]
+							},
+							{
+								"role": "main",
+								"lines": 6
+							},
+							{
+								"role": "cards",
+								"dir": "row",
+								"floor": "50rem",
+								"h": "14em",
+								"kids": [
+									{
+										"role": "card",
+										"w": 1
+									},
+									{
+										"role": "card",
+										"w": 1
+									}
+								]
+							}
+						]
+					}
+				]
+			},
+			{
+				"role": "footer",
+				"dir": "row",
+				"floor": "none",
+				"h": "8em",
+				"kids": [
+					{
+						"role": "nav",
+						"w": 2
+					},
+					{
+						"role": "nav",
+						"w": 1
+					},
+					{
+						"role": "nav",
+						"w": 1
+					},
+					{
+						"role": "nav",
+						"w": 1
+					}
+				]
+			}
+		]
+	}
+}

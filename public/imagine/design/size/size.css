@@ -1,8 +1,9 @@
 /* /imagine/design/size/ — the size-standard study.
 
-   ⚠ EVERYTHING here is scoped under `.size-lab`. The candidate below LANDED in
-     framework.css 2026-09-06 (size-apply) — this copy stays scoped to the demo box
-     on purpose, so dragging it never depends on load order with the real thing.
+   ⚠ EVERYTHING here is scoped under `.size-lab`. The standard itself is NOT copied
+     here any more — it landed in framework.css 2026-09-06 (size-apply), so the lab
+     sets only `--size` and reads `--pad` / `--gap` / `--flow` live from the real
+     thing. See the note on the level classes below for why the copy had to go.
    ⚠ `@layer theme` — the layer order is declared once, in framework.css. This sheet
      loads after it, so at equal specificity these rules win, which is what lets
      `.size-chips .size-chip` (0,2,0) beat lew42.css's `.theme-lew42 :is(button, .btn)`
@@ -10,21 +11,20 @@
 
 @layer theme {
 
-	/* ══ THE CANDIDATE, scoped ═══════════════════════════════════════════════
-	   The eight lines this study is about. `--size` is a per-box UNITLESS
-	   multiplier — never a function of width — so it can scale a whole clamp,
-	   floor and fluid middle and cap together. Type is deliberately absent: the
-	   root font-size clamp in framework.css is the only thing that ramps type
-	   with width.
-	   ⚠ `.size-lab *`, not `.size-lab`: a custom property that holds a `var()` is
-	     substituted where it is DECLARED, so a value computed once on the box
-	     would not re-derive under a nested `--size`. Same reason framework.css
-	     writes its defaults on `:where(*)`. */
-	.size-lab, .size-lab * {
-		--pad:  calc(clamp(1em, 2.6% - 1.1em,   4em)   * var(--size, 1));
-		--gap:  calc(clamp(1em, 1.5cqi - 0.3em, 2.6em) * var(--size, 1));
-		--flow: calc(clamp(2em, 1.4cqi + 0.8em, 3em)   * var(--size, 1));
-	}
+	/* ══ THE KNOB — and NO copy of the standard ══════════════════════════════
+	   This lab used to re-declare `--pad` / `--gap` / `--flow` here, from the days
+	   when the candidate had not landed yet. It has (framework.css, 2026-09-06), so
+	   the copy is deleted: everything below reads the REAL tokens, and a demo that
+	   restates a number is a demo that can lie about it. It did — the copy still
+	   said `3em` after the live ceiling became `2.5em`, so this page showed 54px
+	   at 3440 while every other page showed 45px (paging-spacing-3440, 2026-09-13).
+	   Nothing behaves differently without it: framework.css declares all three on
+	   `:where(*)`, which re-substitutes at every element, so they already pick up
+	   the `--size` set below and the `cqi` terms already measure the box.
+	   `--size` is a per-box UNITLESS multiplier — never a function of width — so it
+	   scales a whole clamp, floor and fluid middle and cap together. Type is
+	   deliberately absent: the root font-size clamp in framework.css is the only
+	   thing that ramps type with width. */
 	.size-lab.size-small   { --size: 0.75; }
 	.size-lab.size-regular { --size: 1; }
 	.size-lab.size-large   { --size: 1.5; }

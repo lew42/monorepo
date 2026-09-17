@@ -1,0 +1,310 @@
+[
+ {
+  "w": 400,
+  "name": "front",
+  "path": "/framework/ai/",
+  "errors": [],
+  "before": {
+   "title": "AI",
+   "hl": 81,
+   "cards": 1,
+   "more": null,
+   "out": "Every task of every day, newest first — the whole log",
+   "sideways": false,
+   "overflow": [],
+   "h1": "A web framework with no build step"
+  },
+  "after": null
+ },
+ {
+  "w": 400,
+  "name": "log",
+  "path": "/framework/ai/log/",
+  "errors": [],
+  "before": {
+   "title": "Everything",
+   "hl": 0,
+   "cards": 41,
+   "more": "Show 40 more of 531",
+   "out": null,
+   "sideways": false,
+   "overflow": [],
+   "h1": "A web framework with no build step"
+  },
+  "after": {
+   "title": "Everything",
+   "hl": 0,
+   "cards": 81,
+   "more": "Show 40 more of 491",
+   "out": null,
+   "sideways": false,
+   "overflow": [],
+   "h1": "A web framework with no build step"
+  }
+ },
+ {
+  "w": 400,
+  "name": "day",
+  "path": "/framework/ai/2026-09-08/",
+  "errors": [],
+  "before": {
+   "title": "2026-09-08",
+   "hl": 0,
+   "cards": 24,
+   "more": null,
+   "out": null,
+   "sideways": false,
+   "overflow": [],
+   "h1": "A web framework with no build step"
+  },
+  "after": null
+ },
+ {
+  "w": 400,
+  "name": "effort",
+  "path": "/framework/ai/effort/websites/",
+  "errors": [],
+  "before": {
+   "title": "websites",
+   "hl": 0,
+   "cards": 16,
+   "more": null,
+   "out": null,
+   "sideways": false,
+   "overflow": [],
+   "h1": "A web framework with no build step"
+  },
+  "after": null
+ },
+ {
+  "w": 1280,
+  "name": "front",
+  "path": "/framework/ai/",
+  "errors": [],
+  "before": {
+   "title": "AI",
+   "hl": 81,
+   "cards": 1,
+   "more": null,
+   "out": "Every task of every day, newest first — the whole log",
+   "sideways": false,
+   "overflow": [],
+   "h1": "A web framework with no build step"
+  },
+  "after": null
+ },
+ {
+  "w": 1280,
+  "name": "log",
+  "path": "/framework/ai/log/",
+  "errors": [],
+  "before": {
+   "title": "Everything",
+   "hl": 0,
+   "cards": 41,
+   "more": "Show 40 more of 531",
+   "out": null,
+   "sideways": false,
+   "overflow": [],
+   "h1": "A web framework with no build step"
+  },
+  "after": {
+   "title": "Everything",
+   "hl": 0,
+   "cards": 81,
+   "more": "Show 40 more of 491",
+   "out": null,
+   "sideways": false,
+   "overflow": [],
+   "h1": "A web framework with no build step"
+  }
+ },
+ {
+  "w": 1280,
+  "name": "day",
+  "path": "/framework/ai/2026-09-08/",
+  "errors": [],
+  "before": {
+   "title": "2026-09-08",
+   "hl": 0,
+   "cards": 24,
+   "more": null,
+   "out": null,
+   "sideways": false,
+   "overflow": [],
+   "h1": "A web framework with no build step"
+  },
+  "after": null
+ },
+ {
+  "w": 1280,
+  "name": "effort",
+  "path": "/framework/ai/effort/websites/",
+  "errors": [],
+  "before": {
+   "title": "websites",
+   "hl": 0,
+   "cards": 16,
+   "more": null,
+   "out": null,
+   "sideways": false,
+   "overflow": [],
+   "h1": "A web framework with no build step"
+  },
+  "after": null
+ },
+ {
+  "w": 1920,
+  "name": "front",
+  "path": "/framework/ai/",
+  "errors": [],
+  "before": {
+   "title": "AI",
+   "hl": 81,
+   "cards": 1,
+   "more": null,
+   "out": "Every task of every day, newest first — the whole log",
+   "sideways": false,
+   "overflow": [],
+   "h1": "A web framework with no build step"
+  },
+  "after": null
+ },
+ {
+  "w": 1920,
+  "name": "log",
+  "path": "/framework/ai/log/",
+  "errors": [],
+  "before": {
+   "title": "Everything",
+   "hl": 0,
+   "cards": 41,
+   "more": "Show 40 more of 531",
+   "out": null,
+   "sideways": false,
+   "overflow": [],
+   "h1": "A web framework with no build step"
+  },
+  "after": {
+   "title": "Everything",
+   "hl": 0,
+   "cards": 81,
+   "more": "Show 40 more of 491",
+   "out": null,
+   "sideways": false,
+   "overflow": [],
+   "h1": "A web framework with no build step"
+  }
+ },
+ {
+  "w": 1920,
+  "name": "day",
+  "path": "/framework/ai/2026-09-08/",
+  "errors": [],
+  "before": {
+   "title": "2026-09-08",
+   "hl": 0,
+   "cards": 24,
+   "more": null,
+   "out": null,
+   "sideways": false,
+   "overflow": [],
+   "h1": "A web framework with no build step"
+  },
+  "after": null
+ },
+ {
+  "w": 1920,
+  "name": "effort",
+  "path": "/framework/ai/effort/websites/",
+  "errors": [],
+  "before": {
+   "title": "websites",
+   "hl": 0,
+   "cards": 16,
+   "more": null,
+   "out": null,
+   "sideways": false,
+   "overflow": [],
+   "h1": "A web framework with no build step"
+  },
+  "after": null
+ },
+ {
+  "w": 3440,
+  "name": "front",
+  "path": "/framework/ai/",
+  "errors": [],
+  "before": {
+   "title": "AI",
+   "hl": 81,
+   "cards": 1,
+   "more": null,
+   "out": "Every task of every day, newest first — the whole log",
+   "sideways": false,
+   "overflow": [],
+   "h1": "A web framework with no build step"
+  },
+  "after": null
+ },
+ {
+  "w": 3440,
+  "name": "log",
+  "path": "/framework/ai/log/",
+  "errors": [],
+  "before": {
+   "title": "Everything",
+   "hl": 0,
+   "cards": 41,
+   "more": "Show 40 more of 531",
+   "out": null,
+   "sideways": false,
+   "overflow": [],
+   "h1": "A web framework with no build step"
+  },
+  "after": {
+   "title": "Everything",
+   "hl": 0,
+   "cards": 81,
+   "more": "Show 40 more of 491",
+   "out": null,
+   "sideways": false,
+   "overflow": [],
+   "h1": "A web framework with no build step"
+  }
+ },
+ {
+  "w": 3440,
+  "name": "day",
+  "path": "/framework/ai/2026-09-08/",
+  "errors": [],
+  "before": {
+   "title": "2026-09-08",
+   "hl": 0,
+   "cards": 24,
+   "more": null,
+   "out": null,
+   "sideways": false,
+   "overflow": [],
+   "h1": "A web framework with no build step"
+  },
+  "after": null
+ },
+ {
+  "w": 3440,
+  "name": "effort",
+  "path": "/framework/ai/effort/websites/",
+  "errors": [],
+  "before": {
+   "title": "websites",
+   "hl": 0,
+   "cards": 16,
+   "more": null,
+   "out": null,
+   "sideways": false,
+   "overflow": [],
+   "h1": "A web framework with no build step"
+  },
+  "after": null
+ }
+]

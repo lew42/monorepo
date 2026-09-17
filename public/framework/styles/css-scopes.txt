@@ -127,6 +127,7 @@ journey-     /imagine/design/journey
 layouts-     /imagine/layouts (the numbered system: the 3-column card, the frame, the chips)
              ⚠ NOT `layout-`, which is ext/layout above. One letter apart on purpose:
              this realm's classes are all `.layouts-*` and none is ever `.layout-*`.
+imp-         /imagine/importance (the ranked context view, the judge screen, the propose form)
 paging-      /imagine/paging (the app: rail, stage, toolbar, the surface words)
 build-       /imagine/paging/build (the page builder: controls | stage | file)
 paging-nav-  /imagine/paging/navigation (stable vs dynamic navigation)
@@ -156,6 +157,8 @@ rethink-     /imagine/review/rethink (the second UX pass: one report card per re
 vision-      ai/2026-08-17/vision-browse
 
 # pages
+std-         /layouts (the layout standard)
+site-        /websites
 doodle       /notes/doodles (the notebook doodles as SVG: .doodle is the drawing itself,
              .doodle-<name> one of the twenty-three, plus -draw -band -texture -corner -wall -tile)
 blog-        /blog (blogx- is the /imagine/ lab, above)

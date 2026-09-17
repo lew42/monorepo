@@ -67,9 +67,19 @@
 	.baseline-act:hover,
 	.baseline-act:focus-visible { background: var(--surface); border-color: var(--edge, var(--line)); }
 
+	/* ── AN ARMED DESTROYER IS RED, WHATEVER THE MARK IS ──────────────────────
+	   `.on` is the second press — the one that actually forgets something — and it
+	   took `--edge`, which is GREEN on a mark that says "saved". So Make's two armed
+	   buttons ("forget the pages you made", "forget all 4 saved pages on this site")
+	   were the same green as the tick beside them, while the tree's delete fifteen
+	   pixels away was red: the screen painted its two biggest destroyers with the
+	   colour it uses for success (self-evident-critique-2, finding 4).
+	   `--error` is what every other destroy-confirm on this site wears
+	   (`.paging-act-warn`, the tree's delete). The green stays on the DOT, where it
+	   means "this page remembered you". */
 	.baseline-act.on {
-		background: var(--edge, var(--prim));
-		border-color: var(--edge, var(--prim));
+		background: var(--error);
+		border-color: var(--error);
 		color: var(--surface);
 	}
 

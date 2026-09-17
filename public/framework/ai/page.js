@@ -1,21 +1,24 @@
 import { Page, md, AITask } from "/app.js";
-import { dashboard, rail, effort_board, has_page_js, warm } from "/framework/ext/AITask/dashboard.js";
+import { dashboard, rail, effort_board, log_board, has_page_js, warm } from "/framework/ext/AITask/dashboard.js";
 
 export default new Page({
 	meta: import.meta,
 	title: "AI",
-	description: "One page per working day — what the sessions changed, decided, and queued.",
+	description: "The work worth going back to, newest first.",
 	icon: "smart_toy",
 
 	// One nav link, whatever the date children say: the rail below is the way in.
 	leaf: true,
-	children: "2026-09-06 2026-09-05 2026-09-04 2026-09-01 2026-08-31 2026-08-30 2026-08-29 2026-08-28 2026-08-27 2026-08-26 2026-08-21 2026-08-19 2026-08-18 2026-08-17 2026-08-16 2026-08-15 2026-08-14 2026-08-13 2026-08-12 2026-08-11 2026-08-10 2026-08-09 2026-08-08",
+	children: "2026-09-14 2026-09-13 2026-09-08 2026-09-06 2026-09-05 2026-09-04 2026-09-01 2026-08-31 2026-08-30 2026-08-29 2026-08-28 2026-08-27 2026-08-26 2026-08-21 2026-08-19 2026-08-18 2026-08-17 2026-08-16 2026-08-15 2026-08-14 2026-08-13 2026-08-12 2026-08-11 2026-08-10 2026-08-09 2026-08-08",
 
 	// The board IS the dashboard — catalog's previews() override, split-screen for free.
 	// content() becomes the "intro" child catalog() adds (readme.md's own note) — the
 	// only rendered copy of `description` above, since nav cards read the field but the
 	// page itself never did (audit 2026-08-30: blank title, no orienting line).
-	content(){ md("One page per working day — what the sessions changed, decided, and queued."); },
+	// ⚠ ONE short line (2026-09-08). It said "One page per working day", which stopped
+	//   being true when the day spine moved to `log/` — and two lines of prose above the
+	//   fold is telling the reader what they are about to be shown.
+	content(){ md("A card for each thing worth going back to. Everything else is in [the log](/framework/ai/log/)."); },
 	initialize(){ this.catalog(); },
 	previews(){ return rail(this); },
 
@@ -52,6 +55,17 @@ export default new Page({
 				},
 			});
 		}
+
+		// `log/` is the archive this page used to BE: every task of every day,
+		// in-flight first, forty at a time. A route rather than a `log/` dir with
+		// its own page.js, for one reason — the date route above is a regex on the
+		// SAME segment, and a declared child would have to be kept out of its way
+		// forever. `effort/` is the prior art; `log` can never look like a date.
+		if (name === "log") return new Page({
+			title: "Everything", icon: "history", url: this.url + "log/",
+			description: "Every task of every day, in-flight first, forty at a time.",
+			content(){ return log_board(this); },
+		});
 
 		if (name === "effort") return new Page({
 			title: "Efforts", icon: "label", url: this.url + "effort/",

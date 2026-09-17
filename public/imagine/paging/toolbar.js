@@ -166,7 +166,10 @@ export class PagingToolbar extends View {
 			span.c("paging-pick-label", heading);
 
 			div.c("paging-pick", () => {
-				if (COLOURS.includes(axis)) this.dots.set(axis, span.c("paging-dot"));
+				// ⚠ THE LABEL RIDES WITH THE DOT, so `sync()` can title it "content
+				//   colour: Card" instead of leaving an untitled box between the
+				//   label and the dropdown (self-evident-critique-3, finding 2).
+				if (COLOURS.includes(axis)) this.dots.set(axis, { $dot: span.c("paging-dot"), label });
 
 				const $select = select(() => {
 					values.forEach(value => option(value.title).attr("value", value.id).attr("title", value.means));
@@ -312,9 +315,18 @@ export class PagingToolbar extends View {
 			this.note_address(content);
 		}
 
-		this.dots?.forEach(($dot, axis) => {
-			$dot.rc(...SURFACES.map(surface => "page-surface-" + surface.id))
-				.ac("page-surface-" + this.stage.word(axis));
+		// ⚠ A `title` NAMING THE SURFACE. An untitled box between a label and a
+		//   dropdown reads as a field you could type a colour into — the dropdown
+		//   two centimetres away already carries the whole answer, so the swatch's
+		//   own job is to say WHICH answer, on hover (self-evident-critique-3,
+		//   finding 2).
+		this.dots?.forEach(({ $dot, label }, axis) => {
+			const value = this.stage.word(axis);
+			const surface = SURFACES.find(s => s.id === value);
+
+			$dot.rc(...SURFACES.map(s => "page-surface-" + s.id))
+				.ac("page-surface-" + value)
+				.attr("title", label + ": " + (surface?.title ?? value));
 		});
 
 		return this;

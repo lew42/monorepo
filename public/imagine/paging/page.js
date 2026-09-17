@@ -92,7 +92,14 @@ export default new Realm({
 	content(){
 		this.stage(OPENING);
 
-		this.lede("Change a word in the bar above and watch the page under it change.");
+		/* ⚠ AND THE SECOND SENTENCE IS THE WAY IN. The hub never named the editor
+		     anywhere in its body: the only way to it was a rail tile 255px below the
+		     fold, behind 34 other links, under a heading reading THE EDITOR (IT SAVES)
+		     — so a newcomer who arrived asking "how do I make one of these?" had to
+		     scroll a rail past six blocks, eleven library pages and four mechanisms to
+		     find out (self-evident-critique-2, the way in). It is one sentence, under
+		     the running page it is about, where the question gets asked. */
+		this.lede("Change a word in the bar above and watch the page under it change. When you want one of your own, [Make a page](/imagine/paging/make/) — it saves to a real file at a real address.");
 
 		h2("Twelve pages, ready made");
 

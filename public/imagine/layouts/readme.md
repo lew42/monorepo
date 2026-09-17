@@ -1,5 +1,7 @@
 # Layouts — every way a page divides its room, numbered; for anyone choosing a shape
 
+**The names these arrangements answer to live at [/layouts/](/layouts/)** — the standard, where every layout is `N-name` and every tag is clickable. This is the lab where the arrangements are played with; that is where they are named.
+
 One idea and an index of everywhere it goes. **A STACK is what a `div` does on its own** —
 things follow each other down the page, each as tall as its own content. **A SPLIT divides a
 fixed or specified area into pieces** — by percent, by fixed sizes, by `flex-grow`/`flex-basis`,

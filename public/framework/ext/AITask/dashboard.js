@@ -7,6 +7,7 @@ import { compose } from "./compose.js";
 import { fold } from "./message.js";
 import { state } from "./stats.js";
 import { when } from "./card.js";
+import { highlights, more } from "./highlights.js";
 
 /* The day dashboard and the ai index rail, over the same rows. A task directory
    speaks through its files: requirements.md alone is PROPOSED, a manifest with
@@ -221,12 +222,19 @@ export function active_strip(list){
 }
 
 /**
- * The ai index's rail — what's running, the usage windows, then every dormant
- * task of every day down one time spine, newest first. A running task appears
- * once, at the top: the strip is the listing, not a pin over a second one.
+ * The ai index — what is running right now, the usage windows, then the
+ * HIGHLIGHTS: the work worth going back to, newest first, one card each.
+ *
+ * ⚠ It used to end with `dated()` — every task of every day, 572 rows on one
+ *   page. That is the archive, and an archive is not an answer: the owner came
+ *   here to find the controls study they asked for weeks ago and could not.
+ *   The whole spine moved to `/framework/ai/log/` (`log_board()` below), which
+ *   this page names in one line, and the front now holds only what a reader
+ *   scans in ten seconds. `compose()` — start work from the board — went with
+ *   it: starting work is a working action, and the log is the working surface.
  * ⚠ Returns the element synchronously (catalog's previews() has no time to
- * await) and fills it inside a callback, which re-establishes the captor the
- * first await dropped.
+ *   await) and fills it inside a callback, which re-establishes the captor the
+ *   first await dropped.
  */
 export function rail(page){
 	return div.c("ai-index-rail flow", async $r => {
@@ -234,12 +242,60 @@ export function rail(page){
 		$r.append(() => {
 			active_strip(list);
 			usage_rail(usage);
-			compose(efforts(list));
-			dated(list.filter(t => !running(t)));
+			highlights(list);
+			div.c("ai-out", () => {
+				span.c("muted", "Every task of every day, newest first — ");
+				a.c("ai-link", "the whole log").href("/framework/ai/log/");
+			});
 		});
 
 		// ⚠ These cards were built after catalog's mark pass, so they missed it —
 		// on a cold deep link nothing in the rail would be lit.
+		page?.app?.router?.mark_links();
+	});
+}
+
+// 40 rows is roughly two screens at 1920 — enough to keep scrolling in, few
+// enough that 572 cards never all exist at once.
+const PAGE = 40;
+
+/* The spine, a page at a time. `shown` lives in this closure only: a refresh
+   starts over at 40, which is the honest default for a log nobody asked to
+   keep a place in. `dated()` re-sorts what it is given, so the slice has to be
+   sorted FIRST or page two would draw rows page one already showed. */
+function paged(rows){
+	const sorted = [...rows].sort(newest);
+	let shown = PAGE;
+
+	return div.c("ai-paged", $p => {
+		const draw = () => $p.empty(() => {
+			dated(sorted.slice(0, shown));
+			if (sorted.length > shown) more(PAGE, sorted.length - shown, () => { shown += PAGE; draw(); });
+			else div.c("muted", `All ${sorted.length} tasks.`);
+		});
+
+		draw();
+	});
+}
+
+/**
+ * `/framework/ai/log/` — everything, in-flight first, then newest first,
+ * `PAGE` at a time. The same rows the front used to end with, and the same
+ * compose box: this is the working surface the board always was.
+ */
+export function log_board(page){
+	// ⚠ `wide`, the same word `dashboard()` says: without it the board sits in the
+	//   page's `main` track and every card is 640px of a 1920 screen, its three
+	//   regions stacked. `wide` is main + breakout; `bleed` would spend the page's
+	//   two gutter tracks (see dashboard()'s own note).
+	return div.c("ai-all flow wide", async $l => {
+		const list = await all_tasks();
+		$l.append(() => {
+			active_strip(list);
+			compose(efforts(list));
+			paged(list.filter(t => !running(t)));
+		});
+
 		page?.app?.router?.mark_links();
 	});
 }

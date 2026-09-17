@@ -51,7 +51,7 @@ class ResearchFront extends Program {
 		div.c("research-head flow", () => {
 			if (this.question) p.c("research-question", this.question);
 
-			p("Each topic card below leads with its newest theory, live — open the card's own “+N more” for the rest of its theories and every assessment filed against them, or open “Latest” further down for the raw claims across all four topics. Every claim is tagged established, contested, fringe or speculation.");
+			p("Each topic card below leads with its newest theory, live — open the card's own “+N more” for the rest of its theories and every assessment filed against them, or open “Latest” further down for the raw claims across all five topics. Every claim is tagged established, contested, fringe or speculation.");
 
 			const digging = this.logs.filter(log => log.loaded).length;
 
@@ -170,12 +170,12 @@ class ResearchFront extends Program {
 export default new ResearchFront({
 	meta: import.meta,
 	title: "Research",
-	description: "Four topics in ancient technology, dug in parallel and streamed live — every claim carrying how sure anyone actually is.",
+	description: "Five topics — four in ancient technology, one on browser automation — dug in parallel and streamed live, every claim carrying how sure anyone actually is.",
 	icon: "explore",
 
 	width: "fill",
 
-	question: "What do we actually know about ancient technology — and how sure is anyone?",
+	question: "What do we actually know — about ancient technology, and about driving a browser from code — and how sure is anyone?",
 
-	topics: "stone depictions disclosure theories",
+	topics: "stone depictions disclosure theories playwright",
 });

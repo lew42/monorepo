@@ -11,5 +11,8 @@
 		"background": "plain",
 		"type": "regular"
 	},
-	"children": []
+	"children": [
+		"new-page",
+		"new-page-2"
+	]
 }

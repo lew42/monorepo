@@ -1,52 +1,61 @@
-import { Page, div, p, h3, span, a, input, textarea, icon, md } from "/app.js";
-import { Paging, press } from "../paging.js";
-import { CONTROLS, title_of, mode_for } from "../blocks.js";
-
+import { Page, View, div, p, h1, span, a, icon, md } from "/app.js";
+import { Paging } from "../paging.js";
+import { Stage } from "../stage.js";
+import { config_of, mode_for } from "../blocks.js";
 import { baseline } from "../baseline.js";
-import { store_for, FileStore, LocalStore, at, walk, name_for, clone, SEED, DEFAULTS, DIR } from "./made.js";
-import { config_of, kids_of, row_acts } from "./tabs.js";
+import { draw_blocks } from "../build/draw.js";
+import { store_for, LocalStore, at, walk, name_for, clone, SEED, DEFAULTS } from "./made.js";
+import { tree_pane } from "./tree.js";
+import { settings_pane } from "./settings.js";
 /* ⚠ THE ONE TRANSLATION FROM A SAVED `page.json` TO A STAGE — whose children to draw
      and what to put in the box. It lives in `../stage.js` because a page NESTED inside
      another needs exactly the same answer, and writing it here alone is what made a
      made page draw somebody else's tabs the moment it was nested (paging-audit-5b). */
 import { stage_props } from "../stage.js";
 
-/* THE FOUR WORDS A ROW CYCLES, and they are four of the realm's own seven
-   (`../blocks.js`) — the same keys the drawer writes, so a chip here and a chip in
-   the drawer change the same thing. The other three (room, arrangement, type) are on
-   the page itself, where you can see them; a row in a list is not the place for a
-   width. `config_of()` (`../blocks.js`) is the one reader, and Build reads the same
-   one — two editors reading two vocabularies is the bug this realm keeps re-finding. */
-const ROW_WORDS = ["navigation", "content", "surface", "background"];
-
-const control_of = axis => CONTROLS.find(control => control.axis === axis);
-
+View.stylesheet(import.meta, "make.css");
 
 /* ── layout, answered before the first factory call ────────────────────────────
-   1 CONTAINER  a column in /imagine/'s row (no page grid; `.page-column-prose`).
-   2 SIZE       `large` — 28–64em. A row here is a title, three word chips and two
-                icon buttons: it needs more than the 40em reading column and never
-                more than 64em.
-   3 OWN LAYOUT prose, then the list (a flex column of rows), then the form, then
-                the JSON box. One rhythm per box.
+   1 CONTAINER  the realm's middle (`.paging-app-centre`), which is a page grid —
+                so the screen claims `wide`, the same track Build's card claimed.
+                Not a columns host: `Paging.column_host()` returns undefined.
+   2 SIZE       `wide` is 957px at 1280, ~1500px at 1920 and ~2850px at 3440. Three
+                tracks, each with a floor and a ceiling: the tree `min(24%, 26rem)`,
+                the settings `min(30%, 30rem)`, and the LIVE PAGE takes everything
+                left — which at 3440 is most of the screen. Under 54rem of SCREEN
+                width (not window width) the three stack, in the reading order
+                tree · page · settings.
+   3 OWN LAYOUT every pane is a `flex v gap` stack — tool rhythm (`--gap`), never
+                prose rhythm (`--flow`), and no `--measure` cap on any of them.
    4 REGIONS    one — core's. The pages you make are real CHILDREN of this page and
-                open as columns of the same row. `index: true`, because the list
-                below already draws every one of them.
+                open at their own urls; `index: true`, because this screen already
+                lists every one of them.
    5 PREVIEW    core's default card.
 
    ── WHAT THIS PAGE IS ─────────────────────────────────────────────────────────
-   The CRUD screen for pages. Type a name and you get a real page — a real url, the
-   real Router, core's own columns — and in dev it is a REAL FILE on disk that you
-   can open in an editor, edit by hand, and commit.
+   ONE SCREEN for making pages, and there is no second one. The tree on the left is
+   every page you have made; the middle is the page you have selected, drawn for
+   real; the right is everything that page says about itself. Click a row and all
+   three agree; change anything on the right and the middle moves on the same frame.
+
+   In dev every page here is a REAL FILE on disk that you can open in an editor,
+   edit by hand, and commit.
+
+   ⚠ IT USED TO BE TWO SCREENS. `/imagine/paging/build/` had the live page and no
+     tree; this page had the tree and no live page — so you made a page in one place
+     and found out what it looked like in the other, and neither could do the job
+     alone (the owner, 2026-09-13: *"are they rendered somewhere? were they supposed
+     to be?"*). Build is one sentence and a link now; everything it could do is here.
 
    ── HOW IT WORKS, IN THREE SENTENCES ──────────────────────────────────────────
-   1. A page is a plain JSON object: a title, the realm's seven words, and a list of the names
-      of its children. Nothing else.
+   1. A page is a plain JSON object: a title, the realm's seven words, and a list of
+      the names of its children. Nothing else.
    2. `children:` already accepts real `Page` objects and `Page.add()` gives each one
       a real url — so turning that JSON into a live tree needs no new machinery.
-   3. Every edit produces a NEW TREE and hands it to `save()`, which works out the
-      smallest set of files that gets there. Nothing is patched in place, so the
-      list, the JSON box and the files on disk can never disagree.
+   3. Every edit produces a NEW TREE and hands it to `apply()`, which redraws the
+      screen and works out the smallest set of files that gets there. Nothing is
+      patched in place, so the tree, the live page and the files on disk can never
+      disagree.
 
    ⚠ WHERE the pages live is `made.js`, and only `made.js`: files under
      `public/imagine/paging/made/` when a dev socket answers, `localStorage` when
@@ -58,9 +67,6 @@ const control_of = axis => CONTROLS.find(control => control.axis === axis);
      directory of code; `made/` is the data it writes.                             */
 
 
-// The next word in a list, wrapping — what a click on a word chip does.
-const next = (list, word) => list[(list.indexOf(word) + 1) % list.length];
-
 /* JSON → REAL PAGES. Each node becomes a `Paging` wearing its seven words, and its
    own children are built the same way. `Page.add()` (called by `regrow()` below)
    hands each one a real url derived from this page's.
@@ -69,14 +75,14 @@ const next = (list, word) => list[(list.indexOf(word) + 1) % list.length];
    the two things the bar over a made page needs in order to WRITE what you set.
 
    ⚠ NOT `Page.from()`, AND THE TWO ARE NOT DOING THE SAME JOB. Core's `Page.from()`
-     (2026-09-06) reads a `page.json` OFF DISK, at a url, and hands back a plain
-     `Page` — the right seam for "run the page at this address", which is what the
-     stage's `content` word and `?nest=` use. This walks a tree Make ALREADY HAS IN
-     MEMORY (`make.tree`, the one thing every edit rebuilds) and hangs the editor on
-     each node: `node_now()` so the drawer prints the page as it is now rather than
-     as it was one click ago, `delete_now()` so a page can be unmade, and a
-     `content()` whose bar WRITES what you set. Swapping this for `Page.from()` would
-     re-fetch every file Make is holding and drop all three. */
+     reads a `page.json` OFF DISK, at a url, and hands back a plain `Page` — the right
+     seam for "run the page at this address", which is what the stage's `content` word
+     and `?nest=` use. This walks a tree Make ALREADY HAS IN MEMORY (`make.tree`, the
+     one thing every edit rebuilds) and hangs the editor on each node: `node_now()` so
+     the drawer prints the page as it is now rather than as it was one click ago,
+     `delete_now()` so a page can be unmade, and a `content()` whose bar WRITES what
+     you set. Swapping this for `Page.from()` would re-fetch every file Make is holding
+     and drop all three. */
 function grow(nodes, make, path = []){
 	return nodes.map(node => {
 		const config = config_of(node);
@@ -86,34 +92,33 @@ function grow(nodes, make, path = []){
 			name: node.name,
 			title: node.title,
 			icon: node.icon ?? "description",
+
+			/* ⚠ KEEP CORE'S OWN `h1`. `Paging.render()` removes it from every page in
+			     this realm, because a demo page opens on its demo and the h1 was the
+			     first 193px of the screen. A page you MADE is not a demo — it is a page,
+			     and the one thing every page on this site says at the top is its own
+			     name (the owner, 2026-09-13). */
+			heading: true,
 			description: node.description ?? "A page you made.",
 			children: grow(node.children ?? [], make, here),
 
-			/* ── WHAT THE DRAWER ASKS THIS PAGE ───────────────────────────────
-			   The bar over this stage brings the drawer with it, and the drawer's boxes
-			   were written for a page that IS SEVEN WORDS. This page is a node: it has
-			   children, and it is a file on disk already. So it hands the drawer that
-			   node and the drawer prints the real thing — on `make/notes/` the printed
-			   `page.js` had no `pages:` and no `children:`, so the file it gave you would
-			   have drawn four canned strangers instead of Today and Later
-			   (paging-audit-7b, fix 1).
-
-			   ⚠ READ OUT OF THE TREE, NOT OUT OF THE CLOSURE. `node` is the node this
+			/* ⚠ READ OUT OF THE TREE, NOT OUT OF THE CLOSURE. `node` is the node this
 			     page was GROWN from; every edit rebuilds the tree, and this view stays on
 			     screen — so the closure's copy goes stale the moment you set a word in the
 			     bar, and the drawer would print the page as it was one click ago. */
 			node_now(){ return at(make.tree, here); },
 
-			/* ── AND IT CAN BE UNMADE ─────────────────────────────────────────
-			   There was no delete anywhere in the realm, so every trial page was a
-			   permanent row, and removing the directory by hand left this page's PARENT
-			   naming a child that 404s (paging-audit-7, item 3). `remove_at()` is Make's
-			   own one write seam and it does both halves in one save: `rm` on the
-			   directory, and the parent's file rewritten without the name.
+			/* WHERE THIS PAGE ACTUALLY IS. The drawer's first box asks the page for its
+			   own address before it decides there isn't one — a page you made HAS one,
+			   whether you are standing on it or looking at it in Make's middle. */
+			node_url(){ return this.url; },
 
-			   ⚠ IT ANSWERS WITH WHERE TO GO. The page you are standing on has just
-			     stopped existing, so the caller navigates — and the parent url is read
-			     BEFORE the removal, while the parent page is still in the tree. */
+			/* ── AND IT CAN BE UNMADE ─────────────────────────────────────────
+			   `remove_at()` is Make's own one write seam and it does both halves in one
+			   save: `rm` on the directory, and the parent's file rewritten without the
+			   name. ⚠ IT ANSWERS WITH WHERE TO GO — the page you are standing on has
+			   just stopped existing — and the parent url is read BEFORE the removal,
+			   while the parent page is still in the tree. */
 			delete_now(){
 				const back = here.length > 1 ? (make.at_path(here.slice(0, -1))?.url ?? make.url) : make.url;
 				make.remove_at(here);
@@ -121,8 +126,6 @@ function grow(nodes, make, path = []){
 			},
 
 			content(){
-				this.lede("A real page, at a real url, drawn from one small JSON file. **Change a word in the bar and it is written to the file** — reload and it is still there.");
-
 				/* THE STAGE DRAWS THIS PAGE: its own children by its own navigation word,
 				   and its own blocks in the box. `stage_props()` (`../stage.js`) is the one
 				   translation, so this page and the same page nested inside another draw
@@ -135,15 +138,8 @@ function grow(nodes, make, path = []){
 				/* ── THE BAR ON YOUR OWN PAGE IS AN EDITOR ────────────────────────
 				   Every other stage in the realm is a demo: you change a word, the address
 				   says so, and a refresh puts it back (decision 4). THIS page is yours —
-				   the words in the bar are the words in its file — so the bar writes them.
-				   `keep` is the stage's write hook (`../stage.js`); `edit_at()` below is
-				   Make's own one write seam, so there is no second writer and no second
-				   store. Before this, `room` and `type size` could be set by no editor in
-				   the realm at all (paging-audit-5b). */
-				/* ⚠ AND IT HAS TO BE OBVIOUS THAT IT SAVED. Every other stage in the realm
-				     forgets on refresh, so a bar that quietly writes a file would be the one
-				     thing this realm's own rule forbids (`../doc/persistence.md`, decision 4).
-				     A tick and one short line — never an alert box. */
+				   the words in the bar are the words in its file — so the bar writes them,
+				   through Make's own one write seam. */
 				const $kept = p.c("muted paging-kept");
 
 				stage.keep = (axis, value) => {
@@ -154,54 +150,50 @@ function grow(nodes, make, path = []){
 
 					$kept.empty(() => {
 						icon("check_circle");
-						span("Saved. " + title_of(axis, value) + " is in " + here.join("/") + "/page.json now — reload and it is still there.");
+						span("Saved to " + here.join("/") + "/page.json. Reload and it is still there.");
 					});
 				};
 
-				/* THE EIGHTH THING A PAGE SAYS: the page INSIDE it. `nest` is a word like the
-				   seven — the drawer sets it, the file keeps it, the address sends it — so the
-				   bar on your own page writes it too. Its own hook, because it is not one of
-				   the seven and has no axis to name. */
 				stage.keep_nest = id => {
 					stage.base_nest = stage.nest;
 					make.edit_at(here, { nest: id ?? undefined });
 
 					$kept.empty(() => {
 						icon("check_circle");
-						span(id
-							? "Saved. " + (stage.nest.title ?? id) + " is running inside this page now — reload and it is still there."
+						span(id ? "Saved. " + (stage.nest?.title ?? id) + " runs inside this page now."
 							: "Saved. The page that was inside this one has been taken out.");
 					});
 				};
 
-				md("This page is `" + JSON.stringify({ title: node.title, mode: config }) + "` — nothing else. [Back to the list](/imagine/paging/make/).");
+				this.lede("A real page at a real url, drawn from one small JSON file. Change a word in the bar and it is written to the file. [Edit it in Make](/imagine/paging/make/).");
 			},
 		});
 	});
 }
 
+
 export default new Paging({
 	meta: import.meta,
 	title: "Make",
-	description: "Make real pages — a real url, and in dev a real page.json file on disk.",
+	description: "One screen for making pages: the tree, the page itself, and everything it says.",
 	icon: "add_circle_outline",
 	index: true,
 
-
-	// ⚠ WHICH EDITOR FIRST. Two editors with no order between them was the question
-	//   every newcomer asked (paging-audit-2). Make is first, and both pages say so.
-	takeaway: "**Start here. Type a name and you get a real page: a real url, the real router, real columns — and, in dev, a real file on disk.** Each page below is one small JSON file under `made/`; open one in an editor and it is the whole page. On a static host with no dev server there is nothing to write to, so the same tree is kept in your browser instead — the line under the list always says which. When a page exists, **[Build](/imagine/paging/build/)** is where you fill it in.",
+	/* ⚠ NO TAKEAWAY, AND NO LEDE. It described the three panes the reader is looking at
+	     — "the tree on the left is every page you have made, the middle is the one you
+	     picked drawn for real…" — 55 words telling you what the picture already shows,
+	     which is the defect that was deleted from the other screen and left on this one
+	     (self-evident-critique-2, finding 5). The one sentence that was doing real work
+	     is the one the picture CANNOT show — which host is writing, disk or browser —
+	     and `where()` below has said it, under the screen, all along. */
 
 	// ── loading ───────────────────────────────────────────────────────────────
-	// ⚠ NOT `initialize()` any more: the file store is a fetch, so the tree arrives
+	// ⚠ NOT `initialize()`: the file store is a fetch, so the tree arrives
 	//   asynchronously and the two overrides below are what make a cold deep url
-	//   (`/imagine/paging/make/notes/today/`) still work. The same two `cms/json`
-	//   needs, for the same reason — and `route()` is NOT the seam, because core
-	//   calls it synchronously and would assign a promise onto a Page.
-	/* ⚠ `made`, NOT `store` — `store()` is core's own method on every Page (the
-	     localStorage handle), and a FIELD of that name shadows it: `LocalStore` calls
-	     `this.page.store()` and would get an object instead of a function. Exactly the
-	     shadowing trap the code skill names, met once already in this realm. */
+	//   (`/imagine/paging/make/notes/today/`) still work.
+	/* ⚠ `made`, NOT `store` — `store()` is core's own method on every Page, and a FIELD
+	     of that name shadows it: `LocalStore` calls `this.page.store()` and would get an
+	     object instead of a function. */
 	initialize(){ this.made = store_for(this); },
 
 	ready(){
@@ -221,10 +213,7 @@ export default new Paging({
 	     with a message that names nothing: "Chaining cycle detected for promise".
 	     Core's `load_all_children` returns `this` UNCHANGED when `levels <= this.loaded`
 	     — it does not touch `this.loading` — so on the second call `.loading` is the
-	     promise being assigned on that very line, and `p.then(() => p)` is a cycle.
-	     So: answer core's guard here, then clear it so core still does the real walk.
-	     (`cms/json/page.js` carries the same override without the guard and throws the
-	     same error; the fix is this block, and it belongs in that file too.) */
+	     promise being assigned on that very line, and `p.then(() => p)` is a cycle. */
 	load_all_children(levels = this.depth){
 		if (levels <= this.loaded) return this;
 		this.loaded = levels;
@@ -242,27 +231,29 @@ export default new Paging({
 	   new tree immediately and the store catches up behind it, so a click never waits
 	   on a file — and if the write fails (the dev server went away mid-session) the
 	   page falls back to the browser store and says so rather than losing the edit. */
-	apply(next_tree){
+	apply(next_tree, options){
 		const was = this.tree;
 
 		this.tree = next_tree;
 		this.regrow();
-		this.redraw();
+		this.redraw(options);
 
 		this.made.save(next_tree, was).then(() => this.settled()).catch(() => this.settled());
 
 		return this;
 	},
 
-	/* THE FALLBACK, in one readable idea: a file store that could not write (the dev
-	   server went away mid-session) is swapped for the browser store, the edit is
-	   saved there instead, and the line under the list changes on the same repaint to
-	   say so. The edit is never lost and nothing throws. */
+	/* ⚠ IT REDRAWS ONLY WHEN THE STORE CHANGED UNDER IT. This used to redraw after
+	     EVERY save, which was invisible while the only control was a chip — and is a
+	     cursor thrown out of a text field one keystroke later now that the right pane
+	     is full of inputs. The fallback (the dev server went away mid-session) is the
+	     one case where the screen really is out of date: the edit is saved in the
+	     browser instead and the line under the tree changes to say so. */
 	async settled(){
-		if (this.made.failed){
-			this.made = new LocalStore({ page: this });
-			await this.made.save(this.tree, []);
-		}
+		if (!this.made.failed) return this;
+
+		this.made = new LocalStore({ page: this });
+		await this.made.save(this.tree, []);
 
 		return this.redraw();
 	},
@@ -273,12 +264,27 @@ export default new Paging({
 		return this;
 	},
 
-	// One seam every write goes through, so the list, the JSON box, the mark and the
-	// tree can never show four different answers.
-	redraw(){
-		this.$list?.empty(() => { this.rows(); });
-		if (this.$text) this.$text.el.value = this.json();
+	/* ── THE ONE REDRAW ───────────────────────────────────────────────────────
+	   Three panes, and a caller says which of them it is standing in. The rules:
+
+	     tree      cheap, and nothing in it holds focus — redrawn unless a drag is
+	               mid-flight.
+	     centre    a NEW `Stage`, so the settings go with it (below).
+	     settings  holds the text fields, so anything that types passes `false`.
+
+	   ⚠ THE SETTINGS FOLLOW THE CENTRE, ALWAYS. The bar in the settings pane holds a
+	     reference to the stage in the centre (`Toolbar.stage`), so a rebuilt centre
+	     with the old bar over it leaves seven dropdowns wired to a stage that is no
+	     longer on screen — every one of them a silent no-op. One `||` is the whole
+	     fix, and it is why no caller ever passes `centre: true, settings: false`. */
+	redraw({ tree = true, centre = true, settings = true } = {}){
+		this.settle_pick();
+
+		if (tree) this.$tree?.empty(() => { this.tree_pane(); });
 		this.$where?.empty(() => { this.where(); });
+		if (centre) this.$centre?.empty(() => { this.centre(); });
+		if (centre || settings) this.$settings?.empty(() => { this.settings(); });
+
 		this.$baseline?.check();
 		this.app?.router?.mark_links();
 		return this;
@@ -286,166 +292,263 @@ export default new Paging({
 
 	count(){ return walk(this.tree ?? []).length; },
 
-	json(){ return JSON.stringify(this.tree ?? [], null, "\t"); },
+	// ── which page you are editing ────────────────────────────────────────────
+	/* A PATH, not a node — the node is looked up fresh on every read, so a redraw can
+	   never show you the page as it was one edit ago. `[]` means nothing is picked,
+	   which is only true when you have no pages at all. */
+	/* ⚠ AND IT HAS TO SURVIVE A DELETE. The page you were editing can stop existing
+	     (you deleted it, or an ancestor took it with it), so this walks up to the
+	     nearest surviving ancestor and falls back to the first page in the tree. */
+	settle_pick(){
+		const nodes = this.tree ?? [];
 
-	// ── the mark: these pages are KEPT, not a demo you drifted off ────────────
-	// ⚠ Overrides `Paging.lede()`, which draws the amber "modified" mark every other
-	//   page in the realm gets. Wrong here: the pages you made are the point of the
-	//   page, not a demo that quietly desynced — so it is the green "saved" mark,
-	//   naming the store, with the way back to the baseline. ../doc/persistence.md.
-	lede(text){
-		baseline(this, {
-			what: "the pages you made",
-			restorable: true,
-			restore: () => this.apply(clone(SEED)),
-			// ⚠ THE MARK SAYS THE COUNT; the line under the list says the whole sentence.
-			//   Both used to call `label()`, so the same 30 words appeared verbatim twice
-			//   on one screen (paging-audit-5, item 6).
-			saved: () => this.tree ? this.made.mark(this.count()) : null,
-		});
+		if (this.picked?.length && at(nodes, this.picked)) return this;
 
-		return md(text ?? this.takeaway).ac("paging-lede");
+		let path = (this.picked ?? []).slice(0, -1);
+		while (path.length && !at(nodes, path)) path = path.slice(0, -1);
+
+		this.picked = path.length ? path : (nodes[0] ? [nodes[0].name] : []);
+		return this;
 	},
 
-	// ── the page ──────────────────────────────────────────────────────────────
-	content(){
-		this.lede();
-
-		h3("The pages you have made");
-
-		md("Each row is a real page. **Click its title** to open it as a column. **Click one of its four words** to change it — the word cycles through the vocabulary and the page is rebuilt immediately. Then the five buttons at the end of the row: **rename** it in place, move it **up** or **down** among its siblings, **add** a child under it, and **delete** it — the row turns into the question first, and the second press removes the directory and its `page.json` and takes the name out of the page above it.");
-
-		// ⚠ Captured NOW, filled in the callback: `ready()` is a fetch, and a factory
-		//   call after the await would land in whatever box is current by then.
-		this.$list = div.c("paging-make-list wide", $list => {
-			$list.append(() => p.c("muted", "Loading…"));
-			this.ready().then(() => this.redraw());
-		});
-
-		this.$where = div.c("paging-make-where", () => { this.where(); });
-
-		h3("Tabs — how to add one, and how to configure them");
-
-		/* THE OWNER'S TWO QUESTIONS, ANSWERED WHERE THE CONTROLS ARE. "what's the ux
-		   for adding tabs to a page? what's the ux for configuring tabs?" — so the
-		   answer sits directly under the list those controls are in, not in a doc. */
-		md("**A tab is a child page, drawn as a tab instead of as a column.** There is no separate tab object to create, and nothing new to learn: the fourth word on every row above is `columns` or `tabs`, and it decides how that page draws *its children*.");
-
-		md("- **Make a page use tabs** — click its fourth word until it says `tabs`. Its children immediately become a tab strip with a bounded panel underneath, instead of a list of rows you launch.\n" +
-			"- **Add a tab** — the `+ tab` button on that row. (On a `columns` page the same button says `+ page`, because that is what you get.)\n" +
-			"- **Rename a tab** — the pencil on the tab's own row. The label changes; the file does not move, so a url somebody saved still works.\n" +
-			"- **Reorder the tabs** — the ↑ and ↓ buttons on the tab's row. Tabs appear in the order the parent lists its children, which is the order you see here.\n" +
-			"- **Remove a tab** — `×`, then *Delete it*. A tab is a page, so this deletes the page: the directory goes and the parent stops naming it.");
-
-		md("⚠ **Tabs do not change the url.** A tab strip is `swap`: the panel changes and the address bar does not, so a tab cannot be linked to or reached with the Back button. Every panel therefore carries a link that opens the same child as a column, which does change the url. If a child deserves an address, leave the parent on `columns` ([the four mechanisms](/imagine/paging/mechanisms/)).");
-
-		md("The word you just set is written into the parent's own file as `\"navigation\": \"tabs\"`, beside the other six — **watch the JSON box below change as you click**. That box is the tree exactly as it goes to disk.");
-
-		h3("Add a page");
-
-		this.form();
-
-		h3("The same tree, as the JSON it actually is");
-
-		md("This is the whole tree as data — the exact shape that goes into the files. One object per page: a `title`, a `mode` of the realm's **seven words**, and `children`. Change it and press Save.");
-
-		this.editor();
-
-		h3("What a page can and cannot say as JSON");
-
-		md("`title`, `icon`, `description`, `width` and `children` are read straight off the object by core's own `declare()` — that is why these are real pages with real urls and no code. What JSON *cannot* say is a `content()` body: for that a page needs a renderer, which is js. The full table, and the shortest path from here to every kind of page on the site: [Persistence](/imagine/paging/doc/persistence/).");
+	pick(path){
+		this.picked = path;
+		return this.redraw();
 	},
 
-	// The one line that says where these pages actually are. Redrawn on every edit,
-	// because the answer can change mid-session if the dev server goes away.
-	where(){
-		if (!this.tree) return p.c("muted", "Looking for the pages…");
+	// The node you are editing, read live out of the tree. `null` when there is none.
+	// ⚠ `at(tree, [])` answers the tree's STAND-IN PARENT, which is not a page.
+	node_now(){ return this.picked?.length ? (at(this.tree ?? [], this.picked) ?? null) : null; },
 
-		md(this.made.label(this.count()));
+	/* THE ADDRESS OF THE PAGE YOU PICKED — the same one the middle prints under its
+	   title, answered for the drawer.
 
-		// ⚠ `LocalStore extends FileStore` (it reads files, it just cannot write them),
-		//   so this asks the narrow question, not the broad one.
-		if (!(this.made instanceof LocalStore))
-			md("The page at `/imagine/paging/make/notes/` is the file at `public" + DIR + "notes/page.json` — the url is a child of this page, the file is beside it. [Open the root file](" + DIR + "page.json).");
-	},
+	   ⚠ THE DRAWER IS ABOUT THE PICKED PAGE, NOT ABOUT THIS SCREEN. Its first box used
+	     to open with "There is no link to this exact page" while that page's real url
+	     was a live link four inches to the left: the box asks `stage.inner`, and this
+	     screen's stage IS inner (a page drawn inside another page never reads or writes
+	     the address bar) — but "cannot write the address" is not "has no address"
+	     (self-evident-critique, defect 1). */
+	node_url(){ return this.at_path(this.picked)?.url ?? null; },
 
-	// ── the list: one row per made page, at any depth ─────────────────────────
-	rows(path = [], nodes = this.tree ?? []){
-		if (!nodes.length && !path.length)
-			return p.c("muted", "No pages. Add one below, or press “Back to the baseline” on the mark above.");
-
-		nodes.forEach(node => {
-			const here = [...path, node.name];
-			this.row(node, here);
-			if (node.children?.length) div.c("paging-make-kids", () => { this.rows(here, node.children); });
-		});
-	},
-
-	/* ONE ROW. The title, the four words that configure the page, then the acts:
-	   rename · up · down · add · delete. `$row` is captured so the rename can turn
-	   this row into an input in place rather than opening a dialog somewhere else. */
-	row(node, path){
-		const config = config_of(node);
-		const page = this.at_path(path);
-		const kids = kids_of(node);
-
-		return div.c("paging-make-row", $row => {
-			icon(node.icon ?? "description");
-
-			a.c("paging-make-title", node.title).href(page?.url ?? this.url);
-
-			ROW_WORDS.forEach(axis => this.word(path, axis, config[axis]));
-
-			row_acts(this, node, path, kids, $row);
-		});
-	},
-
-	// The live page a row stands for, so the title can link to its real url.
+	// The live page a path stands for, so the middle can link its real url.
 	at_path(path){
 		let page = this;
 		for (const name of path) page = page?.children?.get(name);
 		return page;
 	},
 
-	/* A WORD YOU CAN CLICK. One chip per axis, and a click advances it to the next
-	   word in that axis — three chips instead of fourteen, and the cycling is what
-	   teaches the vocabulary: press `content colour` five times and you have seen all five
-	   surfaces without reading a list of them. */
-	word(path, axis, value){
-		const control = control_of(axis);
-		const list = control.values.map(entry => entry.id);
-		const glyph = control.values.find(entry => entry.id === value)?.icon;
+	// ── the screen ────────────────────────────────────────────────────────────
+	content(){
+		// ⚠ THE MARK STAYS ON TOP. Every other page in this realm opens straight onto
+		//   its demo with the sentence underneath — but this page really does write
+		//   files, and "it remembered you" is the one thing that must be visible before
+		//   you touch anything (`../doc/persistence.md`).
+		mark(this);
 
-		return press(span.c("paging-chip paging-make-word").attr("title", control.label + " — click for the next one").append(() => {
-			if (glyph) icon(glyph);
-			span(title_of(axis, value));
-		}), () => this.edit_at(path, { [axis]: next(list, value) }));
+		this.screen();
+
+		// ⚠ UNDER THE SCREEN, NOT IN THE TREE. It is one sentence naming the store and
+		//   it wrapped to six lines inside a 230px pane. Redrawn on every edit, because
+		//   the answer can change mid-session if the dev server goes away.
+		this.$where = p.c("muted paging-make-where-line", () => { this.where(); });
+
+		md.details(import.meta, "readme.md", "Readme — what each pane does, and the traps");
 	},
+
+	/* ── THE THREE PANES ──────────────────────────────────────────────────────
+	   ⚠ CAPTURED NOW, FILLED IN A CALLBACK. `ready()` is a fetch, and a factory call
+	     after the await would land in whatever box is current by then. */
+	screen(){
+		return div.c("paging-make-screen wide", () => {
+			/* ⚠ TWO ELEMENTS, NOT ONE. A box cannot answer its own container query,
+			     so the outer one measures and this one reads the measurement. */
+			div.c("paging-make-panes", () => {
+				this.$tree = div.c("paging-make-pane paging-make-left", () => { p.c("muted", "Loading…"); });
+				this.$centre = div.c("paging-make-pane paging-make-middle");
+				this.$settings = div.c("paging-make-pane paging-make-right");
+			});
+
+			this.ready().then(() => this.redraw());
+		});
+	},
+
+	tree_pane(){ return tree_pane(this); },
+
+	settings(){
+		const node = this.node_now();
+		return node && this.$stage ? settings_pane(this, node, this.picked, this.$stage) : null;
+	},
+
+	/* ── THE MIDDLE: THE PAGE ITSELF ──────────────────────────────────────────
+	   Not a picture of it and not a description of it — the same `Stage` a made page
+	   draws at its own url, from the same `stage_props()`. What you see here is what
+	   the page shows. */
+	centre(){
+		const node = this.node_now();
+
+		if (!node) return p.c("muted", "No page yet. Press “New page” on the left and it appears here.");
+
+		const page = this.at_path(this.picked);
+
+		this.head_line();
+
+
+		/* ⚠ `draw` READS THE NODE FRESH, rather than closing over this one. Typing in a
+		     prose block must move the middle WITHOUT rebuilding it — the textarea being
+		     typed in is on screen and the cursor is in it — so the stage is redrawn in
+		     place, and a closure over `node` would redraw the text as it was one
+		     keystroke ago. Everything else `stage_props()` answers is structural and is
+		     rebuilt with the pane. */
+		const props = stage_props(node, { page: this, url_of: kid => page?.children?.get(kid.name)?.url });
+
+		this.$stage = new Stage({
+			config: config_of(node),
+			...props,
+			/* ⚠ `sample()` IS ALWAYS CALLED, with or without blocks. `draw` REPLACES the
+			     stage's own call to it, so a `draw` that returns early on a page with no
+			     blocks left the box holding nothing but its children list — the content
+			     word set in the bar drew nothing at all, and no control said so. `named`
+			     is "blocks were drawn above this", which is what puts the eyebrow over
+			     the sample naming the control it belongs to.
+			   ⚠ AND WITH NO BLOCKS THE SAMPLE STILL NAMES ITSELF, above the box's first
+			     word: a page you just made opened on 300 words of somebody else's article
+			     under your own title, and the only thing that said so was a grey line
+			     below the whole article — off screen at a 900px window
+			     (self-evident-critique, defect 2). */
+			draw: stage => {
+				const drew = !!draw_blocks(this.node_now(), this);
+				if (!drew) stage.sample_note();
+				stage.sample(drew);
+			},
+			// ⚠ `inner` — a page drawn INSIDE another page never reads or writes the
+			//   address. Two stages writing one url would fight, and this screen's own
+			//   url is not the edited page's.
+			inner: true,
+			page: this,
+			classes: "paging-make-live",
+		});
+
+		this.$stage.keep = (axis, value) => {
+			// The file says this now, so it is one of the page's OWN words.
+			this.$stage.base = { ...this.$stage.base, [axis]: value };
+			this.edit_at(this.picked, { [axis]: value }, { centre: false, settings: false });
+		};
+
+		/* THE EIGHTH THING A PAGE SAYS: the page INSIDE it. Its own hook, because it is
+		   not one of the seven and has no axis to name. */
+		this.$stage.keep_nest = id => {
+			this.$stage.base_nest = this.$stage.nest;
+			this.edit_at(this.picked, { nest: id ?? undefined }, { centre: false, settings: false });
+		};
+
+		/* ⚠ AND NOTHING IS SAID UNDER THE PAGE. There was a grey line here explaining
+		     that the text in the box is the content word's sample — 300 words BELOW the
+		     sample it was about, off screen at a 900px window. The sample says it itself
+		     now, one line above its own first word (self-evident-critique, defect 2). */
+		return this.$stage;
+	},
+
+	/* THE PAGE'S OWN TITLE, and its real address as a link that opens it — the one
+	   thing a picture of a page cannot be.
+
+	   ⚠ A REAL `h1.page-title`, the same heading core writes at the top of every page
+	     on this site. The owner, 2026-09-13: *"the Notes page should have an h1 'Notes'
+	     right?"* — right, and a page you made had none anywhere: `Paging.render()`
+	     strips core's h1 on every page in this realm (a demo opens on its demo), so a
+	     made page was the one page where that rule was wrong. The pages `grow()` builds
+	     carry `heading: true` now, so the page at its own url has it too.
+
+	   `$head` is its own box so renaming redraws the title without rebuilding the
+	   stage under it. */
+	head_line(){
+		return this.$head = div.c("paging-make-head", () => { this.head_parts(); });
+	},
+
+	/* ⚠ THE HEAD IS WHAT THE PAGE'S OWN HEAD IS, and nothing else. Core writes
+	     `h1.page-title` at the top of every page body, ABOVE the stage — so on
+	     `/imagine/paging/make/notes/` you get "Notes" at `clamp(1.75rem, 9vw, 3em)`
+	     and then the box. This preview draws the same h1, at core's own size, in the
+	     same place, so the picture and the page agree.
+
+	     Putting the h1 INSIDE the stage box instead was the other option and it is
+	     the wrong one: the page does not do that, and a preview that invents a
+	     heading the page has not got is a picture of a different page.
+
+	     The icon went with the change for the same reason — the page shows no icon
+	     beside its title, and the icon is already said twice (the tree row, and the
+	     ICON control on the right). The url drops to its own line under the heading
+	     as the caption it is. */
+	head_parts(){
+		const node = this.node_now();
+		if (!node) return null;
+
+		const page = this.at_path(this.picked);
+
+		h1.c("page-title paging-make-head-title", node.title);
+
+		if (page?.url) a.c("paging-make-url").attr("title", "open " + node.title + " at its own address")
+			.href(page.url).append(() => { span(page.url); icon("open_in_new"); });
+
+		/* ⚠ AND WHEN THE TWO DISAGREE, IT SAYS SO. Rename a page and the title, the
+		     tree row and the file all change on the keystroke — the address does not,
+		     because the directory is named once, when the page is made, so a url
+		     anybody saved keeps working (`move_to()` below keeps the same rule). That
+		     is deliberate and it was invisible: a page renamed on the keystroke sat four
+		     lines above `/imagine/paging/make/new-page/` with nothing between them
+		     (self-evident-critique-2, finding 11). Only when they actually disagree —
+		     on a page whose name still matches its title there is nothing to explain. */
+		if (page?.url && Page.slug(node.title) !== node.name)
+			p.c("muted paging-make-note", "The address was set when this page was made. Renaming it never moves the page, so links anybody saved still work.");
+
+		return this;
+	},
+
+	// Redrawn on its own when the title or the icon changes — the two edits the stage
+	// does not show and the header does.
+	rehead(){ this.$head?.empty(() => { this.head_parts(); }); return this; },
 
 	// ── create · update · delete, each one a new tree ─────────────────────────
 	// ⚠ The tree is CLONED before it is changed. `apply()` compares the new tree with
 	//   the old one to decide which files to write, and mutating the old one in place
 	//   would make every comparison say "nothing changed".
-	edit_at(path, change){
+
+	// One of the seven words, or one of the three the builder keeps inside `mode`.
+	/* ⚠ THE WHOLE MODE IS REWRITTEN, not patched. `mode_for()` returns the seven words
+	     plus the fields the builder keeps, so a node written in some older vocabulary is
+	     rewritten in the current one on its first edit. */
+	edit_at(path, change, options){
 		const tree = clone(this.tree);
 		const node = at(tree, path);
 		if (!node) return this;
 
-		/* ⚠ THE WHOLE MODE IS REWRITTEN, not patched. `mode_for()` returns the seven
-		     words plus the two fields the builder keeps, so a node written in some older
-		     vocabulary is rewritten in the current one on its first edit and the store
-		     only ever gains nodes every control can read. */
 		node.mode = { ...mode_for(node), ...change };
-		return this.apply(tree);
+		return this.apply(tree, options);
 	},
 
+	// A top-level field — title, description, icon. Not a word.
+	set_at(path, change, options){
+		const tree = clone(this.tree);
+		const node = at(tree, path);
+		if (!node) return this;
+
+		Object.assign(node, change);
+		return this.apply(tree, options);
+	},
+
+	/* A NEW PAGE, under `path` — `[]` for a top-level one. It is SELECTED as it
+	   arrives, because the next thing you do is name it, and the field that names it
+	   is in the right pane. */
 	add_under(path, title){
 		const tree = clone(this.tree);
 		const parent = at(tree, path);
 		if (!parent) return this;
 
 		const siblings = parent.children ??= [];
-		siblings.push({ name: name_for(title, siblings, Page.slug), title, mode: { ...DEFAULTS }, children: [] });
+		const name = name_for(title, siblings, Page.slug);
+
+		siblings.push({ name, title, mode: { ...DEFAULTS }, children: [] });
+		this.picked = [...path, name];
 
 		return this.apply(tree);
 	},
@@ -454,8 +557,7 @@ export default new Paging({
 	     hands back a stand-in parent `{ children: tree }`, which is fine for `push`
 	     (it mutates the real array) and silently WRONG for `filter` (it assigns a new
 	     array onto the stand-in and the tree never changes). Deleting a top-level page
-	     did nothing at all until this line — the row came back on the next redraw and
-	     the file stayed on disk. Measured 2026-09-05. */
+	     did nothing at all until this line. Measured 2026-09-05. */
 	remove_at(path){
 		const tree = clone(this.tree);
 
@@ -468,76 +570,67 @@ export default new Paging({
 		return this.apply(tree);
 	},
 
-	// ── create ───────────────────────────────────────────────────────────────
-	form(){
-		return div.c("paging-make-form", () => {
-			const $name = input().attr("type", "text").attr("placeholder", "A name — “Reading list”").ac("paging-make-name");
+	/* ── A DROP ───────────────────────────────────────────────────────────────
+	   The one thing drag-and-drop asks of the tree: take the node at `from`, put it
+	   inside the node at `to`, before the node at `before` (or last, when `before` is
+	   null). Reordering among siblings and moving into another page are the SAME call
+	   with a different `to` — which is why there are no up and down buttons any more.
 
-			const add = () => {
-				const title = ($name.el.value || "").trim();
-				if (!title) return $name.el.focus();
+	   ⚠ A MOVE CAN COLLIDE. A directory name is unique among its siblings, so landing
+	     `today` next to a `today` that is already there renames the arrival the way a
+	     new page is named. The file follows: `save()` sees a path that is gone and one
+	     that is new, so it `rm`s the old directory and writes the new one.
+	   ⚠ AND THE SELECTION FOLLOWS THE PAGE. You dragged it; it is still the page you
+	     are editing, at its new address. */
+	move_to(from, to, before){
+		const tree = clone(this.tree);
 
-				$name.el.value = "";
-				this.add_under([], title);
-			};
+		const source = at(tree, from.slice(0, -1))?.children;
+		const i = source?.findIndex(kid => kid.name === from.at(-1)) ?? -1;
+		if (i < 0) return this;
 
-			$name.on("keydown", event => { if (event.key === "Enter"){ event.preventDefault(); add(); } });
+		const [node] = source.splice(i, 1);
 
-			press(span.c("paging-chip on").append(() => { icon("add"); span("Add the page"); }), add);
+		const parent = at(tree, to);
+		if (!parent) return this;
 
-			p.c("muted", "It arrives wearing " + ROW_WORDS.map(axis => title_of(axis, DEFAULTS[axis])).join(" · ") + ". Click its words in the list to change them.");
-		});
+		const list = parent.children ??= [];
+
+		/* ⚠ ONLY ON A COLLISION. A directory name is unique among its siblings, so a
+		     page landing next to one that already has its name is renamed the way a new
+		     page is named — but a page whose TITLE was changed keeps the directory it
+		     has, because renaming never moves a file here and a url somebody saved has
+		     to keep working. Recomputing the name every move would have quietly moved
+		     `made/notes/` to `made/reading-list/` the first time anybody dragged it. */
+		if (list.some(kid => kid.name === node.name)) node.name = name_for(node.title, list, Page.slug);
+
+		const j = before ? list.findIndex(kid => kid.name === before.at(-1)) : -1;
+		list.splice(j < 0 ? list.length : j, 0, node);
+
+		this.picked = [...to, node.name];
+		return this.apply(tree);
 	},
 
-	// ── update, the whole tree at once ────────────────────────────────────────
-	editor(){
-		return div.c("paging-make-editor", () => {
-			this.$text = textarea.c("paging-make-text").attr("rows", "12").attr("spellcheck", "false");
-			this.$text.el.value = this.json();
+	// ── the mark, and the one line that says where these pages are ────────────
+	where(){
+		if (!this.tree) return span("Looking for the pages…");
 
-			this.$says = p.c("muted", "");
-
-			div.c("paging-make-form", () => {
-				press(span.c("paging-chip on").append(() => { icon("save"); span("Save"); }), () => this.save_json());
-
-				press(span.c("paging-chip").append(() => { icon("refresh"); span("Back to the baseline"); }),
-					() => this.apply(clone(SEED)));
-			});
-		});
+		md(this.made.label(this.count()));
 	},
-
-	/* ⚠ A TYPED TREE IS UNTRUSTED TEXT. Bad JSON says so in the line under the box
-	     rather than throwing, and a node with no `name` is given one from its title —
-	     otherwise it would be written to a directory called `undefined`. */
-	save_json(){
-		let tree;
-
-		try { tree = JSON.parse(this.$text.el.value); }
-		catch (error){ return this.says("That is not valid JSON — " + error.message); }
-
-		if (!Array.isArray(tree)) return this.says("The top level has to be an array of pages — `[ { \"title\": \"…\" } ]`.");
-
-		this.says("");
-		return this.apply(this.named(tree));
-	},
-
-	/* ⚠ `mode_for()`, and it used to be a call to a function called `words()` that was
-	     never imported, never defined and exported by nothing — so **Save under the JSON
-	     box threw `ReferenceError: words is not defined` and wrote nothing at all**. The
-	     whole-tree editor, which is this page's third control, had never worked
-	     (measured 2026-09-05, paging-audit-3b). `mode_for()` is the realm's own writer:
-	     the seven words, plus the two fields the builder keeps inside `mode`. */
-	named(nodes, path = []){
-		const out = [];
-
-		nodes.forEach(node => {
-			const title = String(node?.title ?? "Untitled");
-			const name = node?.name || name_for(title, out, Page.slug);
-			out.push({ ...node, name, title, mode: mode_for(node), children: this.named(node?.children ?? [], [...path, name]) });
-		});
-
-		return out;
-	},
-
-	says(line){ this.$says?.empty(() => { if (line) span(line); }); return this; },
 });
+
+
+/* THE MARK — "these pages are KEPT, not a demo you drifted off". Green, naming the
+   store, with the way back to the baseline. `../doc/persistence.md` is the rule; it
+   is kept out of the object literal because it is the persistence CONTRACT rather
+   than a control. */
+function mark(page){
+	return baseline(page, {
+		what: "the pages you made",
+		restorable: true,
+		restore: () => page.apply(clone(SEED)),
+		// ⚠ THE MARK SAYS THE COUNT; the line under the tree says the whole sentence.
+		//   Both used to call `label()`, so the same 30 words appeared verbatim twice.
+		saved: () => page.tree ? page.made.mark(page.count()) : null,
+	});
+}

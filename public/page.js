@@ -8,6 +8,8 @@ const sections = [
 	{ title: "Framework", url: "/framework/", desc: "The docs — View, Page, Router, App, and the CSS layers." },
 	{ title: "Web", url: "/web/", desc: "The guide — how to build things on the web, shown live." },
 	{ title: "Imagine", url: "/imagine/", desc: "A place made of column pages — a team to run, a world to walk, and three trees of variations." },
+	{ title: "Layouts", url: "/layouts/", desc: "The encyclopedia of page layouts — every arrangement named, defined and drawn at three widths." },
+	{ title: "Websites", url: "/websites/", desc: "Real sites, photographed at four widths and tagged by the layout they use." },
 	{ title: "Notes", url: "/notes/", desc: "Short working notes for the team, and the notebook pages behind them." },
 	{ title: "Résumé", url: "/resume/", desc: "Design engineer, 12+ years — and a 3D parallax scroll running underneath it." },
 

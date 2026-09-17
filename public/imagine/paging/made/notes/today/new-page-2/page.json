@@ -1,0 +1,15 @@
+{
+	"title": "New page",
+	"icon": "description",
+	"description": "A page you made.",
+	"mode": {
+		"navigation": "tabs",
+		"content": "article",
+		"room": "reading",
+		"arrangement": "plain",
+		"surface": "card",
+		"background": "plain",
+		"type": "regular"
+	},
+	"children": []
+}

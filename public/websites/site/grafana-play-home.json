@@ -1,0 +1,832 @@
+{
+	"name": "grafana-play-home",
+	"url": "https://play.grafana.org/",
+	"title": "Dashboards - Grafana",
+	"category": "app",
+	"captured_at": "2026-09-08T05:44:35.243Z",
+	"embed": "blocked",
+	"embed_note": "content-security-policy: frame-ancestors 'none'",
+	"shots": {
+		"400": "site/grafana-play-home/400.jpg",
+		"1280": "site/grafana-play-home/1280.jpg",
+		"1920": "site/grafana-play-home/1920.jpg",
+		"3440": "site/grafana-play-home/3440.jpg",
+		"long": "site/grafana-play-home/long.jpg"
+	},
+	"layout": {
+		"400": "1-flow",
+		"1280": "2-sidebar",
+		"1920": "2-sidebar",
+		"3440": "2-sidebar"
+	},
+	"sections": [
+		{
+			"name": "site header",
+			"layout": "1-flow",
+			"css": "flex row, position: fixed",
+			"note": "logo, a hamburger, a search box and Sign in stay in one fixed bar at every width; only the search box shrinks."
+		},
+		{
+			"name": "nav rail",
+			"layout": "2-sidebar left",
+			"css": "flex column, fixed 319px",
+			"note": "a measured rail of nine icon+label links; it disappears completely under about 769px and the header's hamburger presumably opens it as a drawer, which this headless capture never clicked."
+		},
+		{
+			"name": "content canvas",
+			"layout": "1-flow",
+			"css": "flex column (empty in the shots) / JS-positioned panel grid (seen once in the scan)",
+			"note": "every screenshot shows this pane empty under the Dashboards breadcrumb — an anonymous demo account with nothing to list, or a slow API call our 1.5s settle missed. One scan pass at 3440 caught real dashboard panels here, arranged by react-grid-layout's own absolute positioning (a full-width row, then three across, then two, then one) — a layout engine outside CSS entirely, which is why it never shows in the CSSOM or in a plain screenshot of the list view."
+		}
+	],
+	"tags": [
+		"2-sidebar",
+		"1-flow",
+		"2 column flex",
+		"left",
+		"sticky header",
+		"dark",
+		"hamburger",
+		"app"
+	],
+	"responsive": {
+		"strategy": "A fixed app shell: a header bar and a 319px icon-and-label nav rail that never resize, only appear or disappear. Above roughly 769px the rail sits permanently on the left; below it the rail is removed from the page entirely and only a hamburger icon remains in the header (this capture never opened it, so what it reveals — an overlay or a slide-in drawer — is not confirmed). The content pane to the right of the rail is the only part that stretches with the window.",
+		"breakpoints": [
+			544,
+			769,
+			992,
+			1200
+		]
+	},
+	"scan": {
+		"scanned_at": "2026-09-08T05:44:49.128Z",
+		"css": {
+			"sheets": 2,
+			"bytes": 118369,
+			"inline_bytes": 17677
+		},
+		"media": [
+			"(min-width:0px){",
+			"(min-width:1200px){",
+			"(min-width:544px){",
+			"(min-width:769px){",
+			"(min-width:992px){",
+			"(prefers-color-scheme:dark){",
+			"(prefers-reduced-motion){"
+		],
+		"container": [],
+		"breakpoints_seen": [
+			{
+				"px": 0,
+				"count": 1
+			},
+			{
+				"px": 544,
+				"count": 1
+			},
+			{
+				"px": 769,
+				"count": 1
+			},
+			{
+				"px": 992,
+				"count": 1
+			},
+			{
+				"px": 1200,
+				"count": 1
+			}
+		],
+		"widths": {
+			"400": {
+				"doc": [
+					400,
+					844
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "css-1bgjk0t",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							400,
+							48
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "css-gmphh4",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							82,
+							9,
+							90,
+							30
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "pageContent",
+						"class": "css-1d1v5u1-page-container",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							48,
+							400,
+							796
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "reactRoot",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							400,
+							844
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "grafana-app",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							400,
+							844
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "floating-boundary",
+						"class": "main-view",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							400,
+							844
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "css-1s9mrkf-page-content",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							400,
+							844
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "css-1xh1fv2-page-panes",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							48,
+							400,
+							796
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1280": {
+				"doc": [
+					1280,
+					800
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "css-5p5oyr",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							48,
+							319,
+							752
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "css-7xlf3b",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "fixed",
+						"rect": [
+							320,
+							0,
+							960,
+							48
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "css-gmphh4",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							348,
+							9,
+							85,
+							30
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "pageContent",
+						"class": "css-1gdbj1n-page-container",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							48,
+							1280,
+							752
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "reactRoot",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1280,
+							800
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "grafana-app",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							1280,
+							800
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "floating-boundary",
+						"class": "main-view",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							1280,
+							800
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "css-1s9mrkf-page-content",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							1280,
+							800
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "css-1xh1fv2-page-panes",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							48,
+							1280,
+							752
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1920": {
+				"doc": [
+					1920,
+					1080
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "css-5p5oyr",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							48,
+							319,
+							1032
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "css-7xlf3b",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "fixed",
+						"rect": [
+							320,
+							0,
+							1600,
+							48
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "css-gmphh4",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							348,
+							9,
+							85,
+							30
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "pageContent",
+						"class": "css-1gdbj1n-page-container",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							48,
+							1920,
+							1032
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "reactRoot",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1920,
+							1080
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "grafana-app",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							1920,
+							1080
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "floating-boundary",
+						"class": "main-view",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							1920,
+							1080
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "css-1s9mrkf-page-content",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							1920,
+							1080
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "css-1xh1fv2-page-panes",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							48,
+							1920,
+							1032
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"3440": {
+				"doc": [
+					3440,
+					1440
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "css-5p5oyr",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							48,
+							319,
+							1392
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "css-7xlf3b",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "fixed",
+						"rect": [
+							320,
+							0,
+							3120,
+							48
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "css-gmphh4",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							348,
+							9,
+							328,
+							30
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "pageContent",
+						"class": "css-1gdbj1n-page-container",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							48,
+							3440,
+							1392
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "css-ct6n9l-panel-container-panel-transparent-container",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							336,
+							113,
+							3022,
+							182
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "css-ct6n9l-panel-container-panel-transparent-container",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							336,
+							303,
+							750,
+							296
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "css-ct6n9l-panel-container-panel-transparent-container",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							1094,
+							303,
+							1507,
+							296
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "css-ct6n9l-panel-container-panel-transparent-container",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							2609,
+							303,
+							750,
+							296
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "css-iwhfbi-panel-container",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							336,
+							607,
+							1255,
+							372
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "css-iwhfbi-panel-container",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							1599,
+							607,
+							1760,
+							790
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "css-ct6n9l-panel-container-panel-transparent-container",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							336,
+							987,
+							1255,
+							410
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "css-1ggvxq5",
+						"role": "presentation",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							0,
+							48,
+							319,
+							67
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "css-yt5niv",
+						"role": "presentation",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							0,
+							1324,
+							319,
+							67
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "reactRoot",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							3440,
+							1440
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "grafana-app",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							3440,
+							1440
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "floating-boundary",
+						"class": "main-view",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							3440,
+							1440
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "css-1s9mrkf-page-content",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							3440,
+							1440
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "css-1xh1fv2-page-panes",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							48,
+							3440,
+							1392
+						],
+						"side_by_side": 1
+					}
+				]
+			}
+		}
+	},
+	"notes": "This is a dashboard app, not a page of prose, so its shell barely changes shape: a thin fixed header on top and a fixed-width icon menu down the left side, both built with flexbox. The only things that ever resize are the search box in the header and the big empty area to the right where a dashboard would draw its charts. On a phone the left menu vanishes and only a hamburger button is left, which this tool never clicked open. Oddly, every screenshot at every width shows that big area completely empty — this looks like an anonymous demo account with no dashboard to show, or a slow-loading list the capture's 1.5-second wait missed, rather than a real layout choice. One scan happened to catch real chart panels rendering, and they are placed by the app's own JavaScript grid system, not by CSS grid or flexbox — a third way to build a layout that neither a screenshot nor the page's stylesheets can show you on their own.",
+	"wire": {
+		"role": "page",
+		"kids": [
+			{
+				"role": "header",
+				"h": "3em"
+			},
+			{
+				"role": "main",
+				"dir": "row",
+				"floor": "769px",
+				"kids": [
+					{
+						"role": "nav",
+						"w": "20em",
+						"lines": 9
+					},
+					{
+						"role": "main",
+						"w": 1
+					}
+				]
+			}
+		]
+	}
+}

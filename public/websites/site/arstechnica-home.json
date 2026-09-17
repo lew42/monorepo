@@ -1,0 +1,1739 @@
+{
+	"name": "arstechnica-home",
+	"url": "https://arstechnica.com",
+	"title": "Ars Technica - Serving the Technologist since 1998. News, reviews, and analysis.",
+	"category": "news",
+	"captured_at": "2026-09-08T06:03:29.426Z",
+	"embed": "blocked",
+	"embed_note": "x-frame-options: SAMEORIGIN",
+	"shots": {
+		"400": "site/arstechnica-home/400.jpg",
+		"1280": "site/arstechnica-home/1280.jpg",
+		"1920": "site/arstechnica-home/1920.jpg",
+		"3440": "site/arstechnica-home/3440.jpg",
+		"long": "site/arstechnica-home/long.jpg"
+	},
+	"layout": {
+		"400": "1-flow",
+		"1280": "2-equal",
+		"1920": "2-equal",
+		"3440": "2-equal"
+	},
+	"sections": [
+		{
+			"name": "promo ad band",
+			"layout": "1-flow",
+			"css": "block, full-bleed",
+			"note": "a full-width cannabis-dispensary ad sits above the masthead, edge to edge at every width — the one part of the page that ignores the measure everything else uses."
+		},
+		{
+			"name": "header + view switcher",
+			"layout": "1-flow",
+			"css": "flex row, inside the same centred measure as the content",
+			"note": "below the masthead is a row of FOUR view-mode tabs — Classic, Grid, List, Neutron star — plus a 'Grid settings' control. The reader picks which layout renders the same articles; this capture used whatever 'Grid' produces, which is exactly the brief's 'one appearance, several stylesheets' case, except here the site hands the choice to the reader instead of a breakpoint."
+		},
+		{
+			"name": "featured pair",
+			"layout": "2-equal",
+			"css": "block, two tracks (528px list + 576px image) inside the capped measure",
+			"note": "a short headline list beside one big featured story image; both stack full width, list first, on a phone."
+		},
+		{
+			"name": "story grid",
+			"layout": "3-equal",
+			"css": "grid, three fixed 370px tracks, repeated in bands",
+			"note": "the rest of the front page is band after band of three-card grid rows, every one capped at the same ~1152px measure as the header — a 3440 screen just gets much bigger side margins, not a fourth column."
+		}
+	],
+	"tags": [
+		"1-flow",
+		"3-equal",
+		"3 column grid",
+		"full-bleed",
+		"measure",
+		"max-width",
+		"cards",
+		"dark",
+		"layout switcher",
+		"news",
+		"2-equal"
+	],
+	"responsive": {
+		"strategy": "A centred 1152px measure holds the masthead and every article grid, at every width from 1280 up to 3440 — only the promo ad above the masthead ignores it and runs edge to edge. Below that measure the page is bands of three-card rows, all falling to one column below about 1024px. The genuinely unusual thing here is that the SITE ITSELF offers four different named layouts for its own front page (Classic, Grid, List, Neutron star) as a reader preference, which is a different mechanism from a responsive breakpoint doing the same job.",
+		"breakpoints": [
+			768,
+			1024,
+			1280
+		]
+	},
+	"scan": {
+		"scanned_at": "2026-09-08T06:03:55.769Z",
+		"css": {
+			"sheets": 6,
+			"bytes": 570080,
+			"inline_bytes": 392353
+		},
+		"media": [
+			"(max-width:10180px){",
+			"(max-width:450px){",
+			"(max-width:768px){",
+			"(min-width:1024px){",
+			"(min-width:1100px){",
+			"(min-width:1160px){",
+			"(min-width:1280px){",
+			"(min-width:1360px){",
+			"(min-width:425px){",
+			"(min-width:640px){",
+			"(min-width:768px){",
+			"print{"
+		],
+		"container": [],
+		"breakpoints_seen": [
+			{
+				"px": 768,
+				"count": 2
+			},
+			{
+				"px": 425,
+				"count": 1
+			},
+			{
+				"px": 450,
+				"count": 1
+			},
+			{
+				"px": 640,
+				"count": 1
+			},
+			{
+				"px": 1024,
+				"count": 1
+			},
+			{
+				"px": 1100,
+				"count": 1
+			},
+			{
+				"px": 1160,
+				"count": 1
+			},
+			{
+				"px": 1280,
+				"count": 1
+			},
+			{
+				"px": 1360,
+				"count": 1
+			},
+			{
+				"px": 10180,
+				"count": 1
+			}
+		],
+		"widths": {
+			"400": {
+				"doc": [
+					400,
+					18909
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"id": "site-header",
+						"class": "banner font-impact",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "sticky",
+						"rect": [
+							0,
+							265,
+							400,
+							56
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "main",
+						"class": "main relative",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							333,
+							400,
+							17402
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2164159",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							369,
+							400,
+							438
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170682",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							847,
+							400,
+							404
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170495",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							1272,
+							400,
+							426
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170655",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							1717,
+							400,
+							404
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170441",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							2142,
+							400,
+							426
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170653",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							2588,
+							400,
+							404
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170552",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							3012,
+							400,
+							404
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170611",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							3436,
+							400,
+							404
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2169818",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							3860,
+							400,
+							426
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170566",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							4306,
+							400,
+							404
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170523",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							4730,
+							400,
+							404
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170372",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							5155,
+							400,
+							510
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170537",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							5835,
+							400,
+							404
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "flex flex-row",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							6259,
+							400,
+							44
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170529",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							7108,
+							400,
+							404
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170485",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							7532,
+							400,
+							380
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170528",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							7932,
+							400,
+							426
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170494",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							8378,
+							400,
+							435
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "app",
+						"display": "block",
+						"rect": [
+							0,
+							20,
+							400,
+							18889
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "mx-auto my-5",
+						"display": "grid",
+						"cols": "380px 0px",
+						"rows": "434.656px 434.656px 434.656px 434.656px 434.656px 434.656px ",
+						"rect": [
+							0,
+							8378,
+							400,
+							3163
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "mx-auto my-5",
+						"display": "grid",
+						"cols": "380px 0px",
+						"rows": "434.656px 434.656px 405.859px 405.859px 405.859px 428.266px ",
+						"rect": [
+							0,
+							11711,
+							400,
+							3041
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "mx-auto my-5",
+						"display": "grid",
+						"cols": "380px 0px",
+						"rows": "434.656px 458.266px 434.656px 434.656px 427.453px 434.656px",
+						"rect": [
+							0,
+							14922,
+							400,
+							2724
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "mx-auto grid",
+						"display": "grid",
+						"cols": "400px",
+						"rows": "404.266px 404.266px 404.266px 425.859px 404.266px 404.266px",
+						"rect": [
+							0,
+							2588,
+							400,
+							2547
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1280": {
+				"doc": [
+					1280,
+					10494
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"id": "site-header",
+						"class": "banner font-impact",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "sticky",
+						"rect": [
+							64,
+							407,
+							1152,
+							40
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "main",
+						"class": "main relative",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							487,
+							1280,
+							9386
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2164159",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							640,
+							545,
+							576,
+							573
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170682",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							64,
+							545,
+							528,
+							104
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170495",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							64,
+							682,
+							528,
+							104
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170655",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							64,
+							819,
+							528,
+							83
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170441",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							64,
+							935,
+							528,
+							83
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170653",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							64,
+							1158,
+							371,
+							388
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170552",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							455,
+							1158,
+							371,
+							388
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170611",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							845,
+							1158,
+							371,
+							388
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2169818",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							64,
+							1566,
+							371,
+							409
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170566",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							455,
+							1566,
+							371,
+							409
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170523",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							845,
+							1566,
+							371,
+							409
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170372",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							64,
+							1995,
+							1152,
+							324
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170537",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							64,
+							2489,
+							371,
+							409
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "flex flex-row",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							845,
+							2489,
+							371,
+							44
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170529",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							455,
+							2489,
+							371,
+							409
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170485",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							455,
+							2918,
+							371,
+							431
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170528",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							64,
+							2918,
+							371,
+							431
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170494",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							64,
+							3369,
+							761,
+							250
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "app",
+						"display": "block",
+						"rect": [
+							0,
+							20,
+							1280,
+							10474
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "mx-auto my-5",
+						"display": "grid",
+						"cols": "370.656px 370.656px 370.656px",
+						"rows": "250px 250px 250px 250px 250px 591.891px 250px",
+						"rect": [
+							64,
+							5409,
+							1152,
+							2212
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "mx-auto my-5",
+						"display": "grid",
+						"cols": "370.656px 370.656px 370.656px",
+						"rows": "250px 633.875px 250px 250px 250px 250px",
+						"rect": [
+							64,
+							7791,
+							1152,
+							1984
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "mx-auto my-5",
+						"display": "grid",
+						"cols": "370.656px 370.656px 370.656px",
+						"rows": "250px 250px 250px 250px 250px 250px 250px",
+						"rect": [
+							64,
+							3369,
+							1152,
+							1870
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "mx-auto my-5",
+						"display": "grid",
+						"cols": "370.656px 370.672px 370.656px",
+						"rows": "409.453px 431.031px",
+						"rect": [
+							64,
+							2489,
+							1152,
+							860
+						],
+						"side_by_side": 3
+					}
+				]
+			},
+			"1920": {
+				"doc": [
+					1920,
+					10668
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"id": "site-header",
+						"class": "banner font-impact",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "sticky",
+						"rect": [
+							280,
+							580,
+							1360,
+							40
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "main",
+						"class": "main relative",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							660,
+							1920,
+							9386
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2164159",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							960,
+							718,
+							576,
+							573
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170682",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							384,
+							718,
+							528,
+							104
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170495",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							384,
+							855,
+							528,
+							104
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170655",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							384,
+							992,
+							528,
+							83
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170441",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							384,
+							1108,
+							528,
+							83
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170653",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							384,
+							1331,
+							371,
+							388
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170552",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							775,
+							1331,
+							371,
+							388
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170611",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1165,
+							1331,
+							371,
+							388
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2169818",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							384,
+							1739,
+							371,
+							409
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170566",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							775,
+							1739,
+							371,
+							409
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170523",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1165,
+							1739,
+							371,
+							409
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170372",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							384,
+							2168,
+							1152,
+							324
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170537",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							384,
+							2662,
+							371,
+							409
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "flex flex-row",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							1165,
+							2662,
+							371,
+							44
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170529",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							775,
+							2662,
+							371,
+							409
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170485",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							775,
+							3092,
+							371,
+							431
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170528",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							384,
+							3092,
+							371,
+							431
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170494",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							384,
+							3543,
+							761,
+							250
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "app",
+						"display": "block",
+						"rect": [
+							0,
+							20,
+							1920,
+							10648
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "mx-auto my-5",
+						"display": "grid",
+						"cols": "370.656px 370.656px 370.656px",
+						"rows": "250px 250px 250px 250px 250px 591.891px 250px",
+						"rect": [
+							384,
+							5583,
+							1152,
+							2212
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "mx-auto my-5",
+						"display": "grid",
+						"cols": "370.656px 370.656px 370.656px",
+						"rows": "250px 633.875px 250px 250px 250px 250px",
+						"rect": [
+							384,
+							7965,
+							1152,
+							1984
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "mx-auto my-5",
+						"display": "grid",
+						"cols": "370.656px 370.656px 370.656px",
+						"rows": "250px 250px 250px 250px 250px 250px 250px",
+						"rect": [
+							384,
+							3543,
+							1152,
+							1870
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "dusk:bg-gray-700 mb-5",
+						"display": "block",
+						"rect": [
+							0,
+							698,
+							1920,
+							613
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"3440": {
+				"doc": [
+					3440,
+					11097
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"id": "site-header",
+						"class": "banner font-impact",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "sticky",
+						"rect": [
+							1040,
+							580,
+							1360,
+							40
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "main",
+						"class": "main relative",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							660,
+							3440,
+							9816
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2164159",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1720,
+							718,
+							576,
+							573
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170682",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1144,
+							718,
+							528,
+							104
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170495",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1144,
+							855,
+							528,
+							104
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170655",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1144,
+							992,
+							528,
+							83
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170441",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1144,
+							1108,
+							528,
+							83
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170653",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1144,
+							1331,
+							371,
+							388
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170552",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1535,
+							1331,
+							371,
+							388
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170611",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1925,
+							1331,
+							371,
+							388
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2169818",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1144,
+							1739,
+							371,
+							409
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170566",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1535,
+							1739,
+							371,
+							409
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170523",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1925,
+							1739,
+							371,
+							409
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170372",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1144,
+							2168,
+							1152,
+							324
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170537",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1144,
+							3092,
+							371,
+							409
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "flex flex-row",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							1925,
+							3092,
+							371,
+							44
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170529",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1535,
+							3092,
+							371,
+							409
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170485",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1535,
+							3522,
+							371,
+							431
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170528",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1144,
+							3522,
+							371,
+							431
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "card-2170494",
+						"class": "relative group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1144,
+							3973,
+							761,
+							250
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "app",
+						"display": "block",
+						"rect": [
+							0,
+							20,
+							3440,
+							11077
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "mx-auto my-5",
+						"display": "grid",
+						"cols": "370.656px 370.656px 370.656px",
+						"rows": "250px 250px 250px 250px 250px 591.891px 250px",
+						"rect": [
+							1144,
+							6013,
+							1152,
+							2212
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "mx-auto my-5",
+						"display": "grid",
+						"cols": "370.656px 370.656px 370.656px",
+						"rows": "250px 633.875px 250px 250px 250px 250px",
+						"rect": [
+							1144,
+							8395,
+							1152,
+							1984
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "mx-auto my-5",
+						"display": "grid",
+						"cols": "370.656px 370.656px 370.656px",
+						"rows": "250px 250px 250px 250px 250px 250px 250px",
+						"rect": [
+							1144,
+							3973,
+							1152,
+							1870
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "dusk:bg-gray-700 mb-5",
+						"display": "block",
+						"rect": [
+							0,
+							698,
+							3440,
+							613
+						],
+						"side_by_side": 1
+					}
+				]
+			}
+		}
+	},
+	"notes": "Ars Technica's front page keeps its masthead and every row of story cards inside the same centred column, about 1152px wide, no matter how wide the browser gets — an ultrawide monitor just gets bigger empty margins on both sides, the same trick as several other sites in this batch. What makes this one worth a second look is a control bar just under the masthead offering four named view modes — Classic, Grid, List, and something called Neutron star — plus a 'Grid settings' button. That is the clearest possible example of the owner's point that one page's appearance can be styled multiple ways: instead of the CSS quietly switching layouts at a breakpoint, this site lets the reader pick the layout by hand, and what this record describes is only the 'Grid' mode. On a phone, everything — the two-up featured story, the three-up card rows — drops to one plain column.",
+	"wire": {
+		"role": "page",
+		"kids": [
+			{
+				"role": "hero",
+				"dir": "row",
+				"floor": "none",
+				"h": "35em",
+				"kids": [
+					{
+						"role": "hero",
+						"w": 1
+					},
+					{
+						"role": "cards",
+						"w": 1,
+						"n": 10,
+						"column": "6em",
+						"fill": "none"
+					}
+				]
+			},
+			{
+				"role": "header",
+				"h": "4em"
+			},
+			{
+				"role": "nav",
+				"h": "3em"
+			},
+			{
+				"role": "main",
+				"dir": "row",
+				"center": true,
+				"floor": "64rem",
+				"kids": [
+					{
+						"role": "main",
+						"w": "33em",
+						"lines": 4
+					},
+					{
+						"role": "image",
+						"w": "36em"
+					}
+				]
+			},
+			{
+				"role": "cards",
+				"dir": "row",
+				"center": true,
+				"floor": "64rem",
+				"h": "16em",
+				"kids": [
+					{
+						"role": "card",
+						"w": "23em"
+					},
+					{
+						"role": "card",
+						"w": "23em"
+					},
+					{
+						"role": "card",
+						"w": "23em"
+					}
+				]
+			},
+			{
+				"role": "footer",
+				"h": "6em"
+			}
+		]
+	}
+}

@@ -1,0 +1,1508 @@
+{
+	"name": "framer-home",
+	"url": "https://www.framer.com",
+	"title": "Framer: AI design agent",
+	"category": "marketing",
+	"captured_at": "2026-09-08T06:04:43.436Z",
+	"embed": "blocked",
+	"embed_note": "x-frame-options: DENY",
+	"shots": {
+		"400": "site/framer-home/400.jpg",
+		"1280": "site/framer-home/1280.jpg",
+		"1920": "site/framer-home/1920.jpg",
+		"3440": "site/framer-home/3440.jpg",
+		"long": "site/framer-home/long.jpg"
+	},
+	"layout": {
+		"400": "1-flow",
+		"1280": "1-centered",
+		"1920": "1-centered",
+		"3440": "1-centered"
+	},
+	"sections": [
+		{
+			"name": "top nav",
+			"layout": "1-flow",
+			"css": "flex",
+			"note": "logo, a Platform/Solutions/Resources/Enterprise/Pricing menu, and Log in/Sign up buttons; the page's one and only media query (max-width: 410px) collapses this to a logo and a hamburger icon — an unusually narrow threshold, tighter than most phones in this set."
+		},
+		{
+			"name": "hero",
+			"layout": "1-centered",
+			"css": "flex",
+			"note": "a big headline, two buttons, and a glowing chat-style demo card, all inside the same 1200px-wide centred column as every band below it."
+		},
+		{
+			"name": "trusted-by logos",
+			"layout": "n-wall",
+			"css": "flex, wrap",
+			"note": "a row of partner logos (Dribbble, Zapier, Perplexity, Cal.com…) that only appears inside our fold on the 3440 shot; the scan shows it wrapping, so it is likely fewer per row on narrower screens rather than a fixed grid."
+		},
+		{
+			"name": "feature bands",
+			"layout": "2-equal",
+			"css": "flex",
+			"note": "several repeating bands further down (confirmed by the scan, below the fold in every shot) each pairing a headline/text block with a screenshot on a 930px + rest split."
+		},
+		{
+			"name": "footer",
+			"layout": "1-flow",
+			"css": "flex",
+			"note": "the closing links block, same 1200px centred width as the rest of the page."
+		}
+	],
+	"tags": [
+		"1-centered",
+		"1-flow",
+		"2-equal",
+		"n-wall",
+		"dark",
+		"cards",
+		"hamburger",
+		"max-width",
+		"marketing"
+	],
+	"responsive": {
+		"strategy": "The page's content column is capped at 1200px and centred, and that cap is already fully in effect at our narrowest desktop shot (1280px, where the maths is exact: 40px margin + 1200px + 40px margin = 1280) — so unlike some other sites here, we never catch this one in a fluid, uncapped state above phone width. At 400px the column is fluid and fills the screen with a 20px margin. The one written breakpoint on the whole page is a very tight 410px, where the nav collapses to a hamburger — most sites in this set switch closer to 768px.",
+		"breakpoints": [
+			410,
+			1280
+		]
+	},
+	"scan": {
+		"scanned_at": "2026-09-08T06:04:58.246Z",
+		"css": {
+			"sheets": 1,
+			"bytes": 525503,
+			"inline_bytes": 524807
+		},
+		"media": [
+			"only screen and (max-width:410px){"
+		],
+		"container": [],
+		"breakpoints_seen": [
+			{
+				"px": 410,
+				"count": 1
+			}
+		],
+		"widths": {
+			"400": {
+				"doc": [
+					400,
+					11038
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "framer-MwtE6 framer-140pdlc",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							400,
+							64
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"class": "framer-1px687r",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							64,
+							400,
+							8692
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "hero",
+						"class": "framer-1yvisnx",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							64,
+							400,
+							527
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "framer-1jlb7t0",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							64,
+							400,
+							283
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "agents",
+						"class": "framer-ra1skp",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							746,
+							400,
+							2195
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "framer-b98irc",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							20,
+							766,
+							360,
+							111
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "framer-1kfypmz",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							2941,
+							400,
+							3742
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "framer-ihc3yh",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							20,
+							3001,
+							360,
+							62
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "framer-1fjbrlw",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							6683,
+							400,
+							771
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "framer-2or15l",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							20,
+							6763,
+							360,
+							62
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "framer-1468qj4",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							7454,
+							400,
+							591
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "framer-2slawz",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							20,
+							7514,
+							360,
+							111
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "framer-3eo824",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							8045,
+							400,
+							712
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "framer-8y299w",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							20,
+							8105,
+							360,
+							111
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "framer-fd1hfd",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							8875,
+							400,
+							121
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "framer-VfNB7 framer-FmnPF",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							9327,
+							400,
+							1711
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "main",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							400,
+							11038
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "framer-2C6Pk framer-Grv0o",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							400,
+							11038
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "framer-imdnr5",
+						"display": "grid",
+						"cols": "360px",
+						"rows": "480px 480px 480px 640px 480px 480px 480px",
+						"position": "relative",
+						"rect": [
+							20,
+							3103,
+							360,
+							3520
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "framer-16rgdoz",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							20,
+							3103,
+							360,
+							3520
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "framer-xfj4bh",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							20,
+							766,
+							360,
+							2115
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1280": {
+				"doc": [
+					1280,
+					10878
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "framer-MwtE6 framer-140pdlc",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							1280,
+							64
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"class": "framer-1px687r",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							64,
+							1280,
+							9425
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "hero",
+						"class": "framer-1yvisnx",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							64,
+							1280,
+							981
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "framer-1jlb7t0",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							64,
+							1280,
+							308
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "agents",
+						"class": "framer-ra1skp",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							1381,
+							1280,
+							3017
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "framer-b98irc",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							40,
+							1401,
+							1200,
+							97
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "framer-1kfypmz",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							4398,
+							1280,
+							1817
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "framer-ihc3yh",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							40,
+							4518,
+							1200,
+							97
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "framer-1fjbrlw",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							6215,
+							1280,
+							1238
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "framer-2or15l",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							40,
+							6335,
+							1200,
+							48
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "framer-1468qj4",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							7453,
+							1280,
+							819
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "framer-2slawz",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							40,
+							7573,
+							1200,
+							97
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "framer-3eo824",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							8272,
+							1280,
+							1217
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "framer-8y299w",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							40,
+							8392,
+							1200,
+							97
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "framer-fd1hfd",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							40,
+							9628,
+							1200,
+							54
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "framer-VfNB7 framer-FmnPF",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							20,
+							10150,
+							1240,
+							728
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "main",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1280,
+							10878
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "framer-2C6Pk framer-Grv0o",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							1280,
+							10878
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "framer-xfj4bh",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							20,
+							1401,
+							1240,
+							2177
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "framer-uif5ie",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							40,
+							1538,
+							1200,
+							2040
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "framer-1f8d6dl",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							40,
+							1538,
+							930,
+							2040
+						],
+						"side_by_side": 0
+					}
+				]
+			},
+			"1920": {
+				"doc": [
+					1920,
+					10878
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "framer-MwtE6 framer-140pdlc",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							1920,
+							64
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"class": "framer-1px687r",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							64,
+							1920,
+							9425
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "hero",
+						"class": "framer-1yvisnx",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							64,
+							1920,
+							981
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "framer-1jlb7t0",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							64,
+							1920,
+							308
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "agents",
+						"class": "framer-ra1skp",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							1381,
+							1920,
+							3017
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "framer-b98irc",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							360,
+							1401,
+							1200,
+							97
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "framer-1kfypmz",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							4398,
+							1920,
+							1817
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "framer-ihc3yh",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							360,
+							4518,
+							1200,
+							97
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "framer-1fjbrlw",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							6215,
+							1920,
+							1238
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "framer-2or15l",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							360,
+							6335,
+							1200,
+							48
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "framer-1468qj4",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							7453,
+							1920,
+							819
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "framer-2slawz",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							360,
+							7573,
+							1200,
+							97
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "framer-3eo824",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							8272,
+							1920,
+							1217
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "framer-8y299w",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							360,
+							8392,
+							1200,
+							97
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "framer-fd1hfd",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							360,
+							9628,
+							1200,
+							54
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "framer-VfNB7 framer-FmnPF",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							340,
+							10150,
+							1240,
+							728
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "main",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1920,
+							10878
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "framer-2C6Pk framer-Grv0o",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							1920,
+							10878
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "framer-xfj4bh",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							20,
+							1401,
+							1880,
+							2177
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "framer-uif5ie",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							360,
+							1538,
+							1200,
+							2040
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "framer-1f8d6dl",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							360,
+							1538,
+							930,
+							2040
+						],
+						"side_by_side": 0
+					}
+				]
+			},
+			"3440": {
+				"doc": [
+					3440,
+					10878
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "framer-MwtE6 framer-140pdlc",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							3440,
+							64
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"class": "framer-1px687r",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							64,
+							3440,
+							9425
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "hero",
+						"class": "framer-1yvisnx",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							64,
+							3440,
+							981
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "framer-1jlb7t0",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							64,
+							3440,
+							308
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "agents",
+						"class": "framer-ra1skp",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							1381,
+							3440,
+							3017
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "framer-b98irc",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							1120,
+							1401,
+							1200,
+							97
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "framer-1kfypmz",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							4398,
+							3440,
+							1817
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "framer-ihc3yh",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							1120,
+							4518,
+							1200,
+							97
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "framer-1fjbrlw",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							6215,
+							3440,
+							1238
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "framer-2or15l",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							1120,
+							6335,
+							1200,
+							48
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "framer-1468qj4",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							7453,
+							3440,
+							819
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "framer-2slawz",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							1120,
+							7573,
+							1200,
+							97
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "framer-3eo824",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							8272,
+							3440,
+							1217
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "framer-8y299w",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							1120,
+							8392,
+							1200,
+							97
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "framer-fd1hfd",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							1120,
+							9628,
+							1200,
+							54
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "framer-VfNB7 framer-FmnPF",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							1100,
+							10150,
+							1240,
+							728
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "main",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							3440,
+							10878
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "framer-2C6Pk framer-Grv0o",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							3440,
+							10878
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "framer-xfj4bh",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							20,
+							1401,
+							3400,
+							2177
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "framer-vx0zoi",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							10150,
+							3440,
+							728
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "framer-uif5ie",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							1120,
+							1538,
+							1200,
+							2040
+						],
+						"side_by_side": 2
+					}
+				]
+			}
+		}
+	},
+	"notes": "Framer's own homepage (which, fittingly, is built with Framer) is a dark, one-column marketing page: a headline and a live-looking AI chat demo up top, then a row of trusted-by logos, then several repeating sections that pair some text with a picture. The whole thing never gets wider than 1200 pixels no matter the monitor — an ultrawide screen just gets more black space on the sides, the same trick several other marketing and blog sites in this set use. The one unusual thing here is how late the mobile menu appears: most sites switch to a hamburger icon around 768px, but this page waits until 410px, so it keeps its full text menu on nearly every phone.",
+	"wire": {
+		"role": "page",
+		"center": true,
+		"kids": [
+			{
+				"role": "header",
+				"w": "75em",
+				"h": "4.5em"
+			},
+			{
+				"role": "hero",
+				"w": "75em",
+				"h": "20em"
+			},
+			{
+				"role": "cards",
+				"w": "75em",
+				"h": "5em",
+				"n": 5
+			},
+			{
+				"role": "main",
+				"dir": "row",
+				"w": "75em",
+				"h": "18em",
+				"floor": "58rem",
+				"kids": [
+					{
+						"role": "text",
+						"w": 1,
+						"lines": 5
+					},
+					{
+						"role": "image",
+						"w": 1
+					}
+				]
+			},
+			{
+				"role": "footer",
+				"w": "75em",
+				"h": "6em"
+			}
+		]
+	}
+}

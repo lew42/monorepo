@@ -99,7 +99,7 @@
            applied site-wide and worth copying for any new one:
 
              gap: 0.6em      →  gap: calc(var(--gap) * 0.6)
-             (2em and up)    →  calc(var(--flow) * N/2), which caps at 3em
+             (2em and up)    →  calc(var(--flow) * N/2), which caps at 2.5em
 
            The multiplier IS the old em number, so 1280 does not move and 3440 grows
            3.07× — the clamp's own rate. A section-scale gap takes `--flow` instead,
@@ -194,10 +194,22 @@
        which reads the nearest container and falls back to the viewport with none —
        a plain page measures exactly as before, a box inside a column, rail or
        frame follows its own width instead of the window's. */
+    /* ⚠ `--flow`'s ceiling is 2.5em, not the 3em it shipped with (paging-spacing-3440,
+       2026-09-13). Body prose sits on the clamp's 2em FLOOR at 1280 and on its CEILING
+       at 3440, so the ceiling/floor ratio multiplies the body font ramp (15.04 → 18px,
+       1.2×): 3em gave 30.08 → 54px, 1.80×, and the owner's verdict on it was "looks bad,
+       wastes space". 2.5em gives 30.08 → 45px, 1.50×. At 1280 it changes NOTHING —
+       measured, every visible element on five pages is byte-identical, because the
+       ceiling never binds down there. At 1920 it binds only for text SMALLER than the
+       body (0.9em prose lost 2.4px of gap); body-size prose is untouched, and the two
+       curves meet exactly at ~1958px, so no width sees a jump.
+       ⚠ The numbers above are the CEILING's, not the whole token's: an element whose own
+         font is large (an h2 at 2.25em) sits on the 2em FLOOR at every width and this
+         change cannot reach it (ai/2026-09-13/paging-spacing-3440/). */
     :where(*) {
         --pad:  calc(clamp(1em, 2.6% - 1.1em,   4em)   * var(--size));
         --gap:  calc(clamp(1em, 1.5cqi - 0.3em, 2.6em) * var(--size));
-        --flow: calc(clamp(2em, 1.4cqi + 0.8em, 3em)   * var(--size));
+        --flow: calc(clamp(2em, 1.4cqi + 0.8em, 2.5em) * var(--size));
     }
 
     /* ════ this block is THE BASE THEME ══════════════════════════════════════
@@ -532,10 +544,10 @@
     select {
         appearance: none;
         background-repeat: no-repeat;
-        background-position: right 0.5em center;
+        background-position: right 1em center;
         background-size: 0.5em;
         background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='40' fill='%23555'><polygon points='0,0 60,0 30,40'/></svg>");
-        padding-inline-end: 1.4em;
+        padding-inline-end: 2.2em;
     }
 
     /* ONE HOVER AND ONE ACTIVE, for every control in the grammar. `--ctl-lift` is
@@ -854,7 +866,7 @@
        being an ordinary class.
        ⚠ Was a flat `2em` — 30px at 1280 and 36px at 3440, the 1.2x cluster. `--flow`
          is now the size standard's own clamp × `--size` (size-apply 2026-09-06,
-         /imagine/design/size/): 30px at 1280, 54px at 3440 — every element already
+         /imagine/design/size/): 30px at 1280, 45px at 3440 — every element already
          carries it from the `:where(*)` rule above, so `.flow`/`blockquote` need
          not re-derive it (the old two-step `--flow-default` → `--flow` copy is
          gone; re-declaring `--flow: var(--flow)` here would be a self-reference). */

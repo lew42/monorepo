@@ -31,3 +31,4 @@
 {"action":{"at":"2026-08-29T14:08:52-05:00","did":"edit","files":[".claude/skills/code/improvements.md"]}}
 {"action":{"at":"2026-08-29T14:09:01-05:00","did":"edit","files":["public/imagine/readme.md"]}}
 {"action":{"at":"2026-08-29T14:09:05-05:00","did":"edit","files":[".claude/skills/layout/improvements.md"]}}
+{"assign":{"highlight":{"icon":"explore","title":"Variation labs","line":"The same page varied one axis at a time: scroll, tone, place.","url":"/imagine/vary/"}}}

@@ -1,0 +1,1608 @@
+{
+	"name": "bbc-news-home",
+	"url": "https://www.bbc.com/news",
+	"title": "BBC News - Breaking news, video and the latest top stories from the U.S. and around the world",
+	"category": "news",
+	"captured_at": "2026-09-08T06:09:02.063Z",
+	"embed": "blocked",
+	"embed_note": "x-frame-options: SAMEORIGIN",
+	"shots": {
+		"400": "site/bbc-news-home/400.jpg",
+		"1280": "site/bbc-news-home/1280.jpg",
+		"1920": "site/bbc-news-home/1920.jpg",
+		"3440": "site/bbc-news-home/3440.jpg",
+		"long": "site/bbc-news-home/long.jpg"
+	},
+	"layout": {
+		"400": "1-flow",
+		"1280": "3-holy-grail",
+		"1920": "3-holy-grail",
+		"3440": "3-holy-grail"
+	},
+	"sections": [
+		{
+			"name": "header + nav",
+			"layout": "1-flow",
+			"css": "flex",
+			"note": "logo, Watch Live, Subscribe/Sign In, a row of section tabs (Home/News/Sport/…) and a row of region tabs (US & Canada/UK/Africa/…); at 400 both nav rows vanish and only a hamburger-and-search icon remain."
+		},
+		{
+			"name": "ad slot",
+			"layout": "1-flow",
+			"css": "block",
+			"note": "the scan names this box `AdSlot` — the large empty grey rectangle under the nav in every desktop screenshot is a real advert placeholder that simply had nothing to show our headless browser, not a broken layout."
+		},
+		{
+			"name": "featured story",
+			"layout": "3-holy-grail",
+			"css": "grid",
+			"note": "a narrow text-only headline on the left, a wide photo-led lead story in the middle, and a second narrower story on the right — narrow/wide/narrow, the textbook holy-grail shape. At 400 it becomes one column: photo, then headline, then the next story underneath."
+		},
+		{
+			"name": "story grid",
+			"layout": "n-wall",
+			"css": "grid",
+			"note": "four smaller story cards (thumbnail, headline, summary) in one row on a desktop; at 400 each becomes its own row with a small thumbnail beside the text rather than above it."
+		},
+		{
+			"name": "footer",
+			"layout": "1-flow",
+			"css": "block",
+			"note": "a link list, a language dropdown and legal links — capped at 1280px and centred, in contrast to every section above it, which stretches edge to edge with no cap at all even on the 3440 shot."
+		}
+	],
+	"tags": [
+		"3-holy-grail",
+		"1-flow",
+		"n-wall",
+		"full-bleed",
+		"max-width",
+		"hamburger",
+		"news"
+	],
+	"responsive": {
+		"strategy": "Everything above the footer is genuinely full-bleed and uncapped: the featured-story band and the four-card row both stretch to the full window width even at 3440, using BBC's own multi-column grid system rather than a fixed measure. Only the footer breaks that pattern — it caps at 1280px and centres, so it stays a normal reading width while the news content around it keeps growing. Below about 600px both nav rows collapse to a hamburger-and-search icon and the featured story and card row both fall to one column.",
+		"breakpoints": [
+			600
+		]
+	},
+	"scan": {
+		"scanned_at": "2026-09-08T06:09:13.992Z",
+		"css": {
+			"sheets": 2,
+			"bytes": 432979,
+			"inline_bytes": 26274
+		},
+		"media": [
+			"(max-width:360px){",
+			"(max-width:380px){",
+			"(max-width:450px){",
+			"(max-width:480px){",
+			"(max-width:500px){",
+			"(max-width:584px){",
+			"(max-width:600px){",
+			"(max-width:734px){",
+			"screen and (max-width:335px){",
+			"screen and (max-width:500px){",
+			"screen and (max-width:600px){",
+			"screen and (min-width:336px) and (max-width:400px){"
+		],
+		"container": [],
+		"breakpoints_seen": [
+			{
+				"px": 500,
+				"count": 2
+			},
+			{
+				"px": 600,
+				"count": 2
+			},
+			{
+				"px": 335,
+				"count": 1
+			},
+			{
+				"px": 336,
+				"count": 1
+			},
+			{
+				"px": 360,
+				"count": 1
+			},
+			{
+				"px": 380,
+				"count": 1
+			},
+			{
+				"px": 400,
+				"count": 1
+			},
+			{
+				"px": 450,
+				"count": 1
+			},
+			{
+				"px": 480,
+				"count": 1
+			},
+			{
+				"px": 584,
+				"count": 1
+			},
+			{
+				"px": 734,
+				"count": 1
+			}
+		],
+		"widths": {
+			"400": {
+				"doc": [
+					400,
+					9927
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"id": "bbc-header",
+						"class": "Header-styles__HeaderStyled-sc-36071384-0 lkxsBq",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							0,
+							0,
+							400,
+							49
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "bbc-main",
+						"display": "block",
+						"rect": [
+							0,
+							49,
+							400,
+							8425
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "IndexPage-styles__IndexPageArticleStyled-sc-1de4b86e-0 ciTEIc",
+						"display": "block",
+						"rect": [
+							0,
+							49,
+							400,
+							8425
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "Container-styles__ContainerStyled-sc-8b855a6c-0 eWVxhX",
+						"display": "grid",
+						"cols": "400px",
+						"rows": "1587px",
+						"position": "relative",
+						"rect": [
+							0,
+							207,
+							400,
+							1587
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "Section-styles__SectionOuterStyled-sc-934b69c3-1 edUGjI",
+						"display": "grid",
+						"cols": "400px",
+						"rows": "291px",
+						"rect": [
+							0,
+							1826,
+							400,
+							291
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "Container-styles__ContainerStyled-sc-8b855a6c-0 eWVxhX",
+						"display": "grid",
+						"cols": "400px",
+						"rows": "1456px",
+						"position": "relative",
+						"rect": [
+							0,
+							2193,
+							400,
+							1456
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "Section-styles__SectionOuterStyled-sc-934b69c3-1 NFunO",
+						"display": "grid",
+						"cols": "400px",
+						"rows": "324px",
+						"rect": [
+							0,
+							4006,
+							400,
+							324
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "Container-styles__ContainerStyled-sc-8b855a6c-0 eWVxhX",
+						"display": "grid",
+						"cols": "400px",
+						"rows": "1386px",
+						"position": "relative",
+						"rect": [
+							0,
+							4406,
+							400,
+							1386
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "Section-styles__SectionOuterStyled-sc-934b69c3-1 NFunO",
+						"display": "grid",
+						"cols": "400px",
+						"rows": "604px",
+						"rect": [
+							0,
+							6149,
+							400,
+							604
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "Container-styles__ContainerStyled-sc-8b855a6c-0 eWVxhX",
+						"display": "grid",
+						"cols": "400px",
+						"rows": "1320px",
+						"position": "relative",
+						"rect": [
+							0,
+							6829,
+							400,
+							1320
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"id": "bbc-footer",
+						"class": "Footer-styles__FooterStyled-sc-7046f1ed-0 gEbLfI",
+						"display": "block",
+						"rect": [
+							0,
+							8611,
+							400,
+							1133
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "ContentLinks-styles__ContentLinksSectionStyled-sc-9a221ef-0 crpOpn",
+						"display": "block",
+						"rect": [
+							16,
+							8665,
+							368,
+							690
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"role": "navigation",
+						"display": "block",
+						"rect": [
+							16,
+							8665,
+							368,
+							690
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "LanguageDropdown-styles__LanguageDropDownSectionStyled-sc-bc6bb5-0 knnpYP",
+						"display": "block",
+						"rect": [
+							16,
+							9395,
+							368,
+							44
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "LegalLinks-styles__LegalLinksSectionStyled-sc-f9fd086a-0 bhvVdu",
+						"display": "block",
+						"rect": [
+							16,
+							9552,
+							368,
+							104
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"display": "block",
+						"rect": [
+							16,
+							9552,
+							368,
+							104
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "edr_lwrap_first",
+						"class": "edr_lwrap",
+						"role": "alertdialog",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							-100000,
+							-100000,
+							400,
+							844
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "__next",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							400,
+							9924
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "app",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							400,
+							9924
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "Grid-styles__GridStyled-sc-70d90311-0 ldvJot",
+						"display": "grid",
+						"cols": "23.3281px 23.3281px 23.3281px 23.3281px 23.3281px 23.3281px ",
+						"rows": "460px 133px 111px 133px 133px 133px 169px 147px",
+						"rect": [
+							16,
+							207,
+							368,
+							1587
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "Grid-styles__GridStyled-sc-70d90311-0 ldvJot",
+						"display": "grid",
+						"cols": "23.3281px 23.3281px 23.3281px 23.3281px 23.3281px 23.3281px ",
+						"rows": "460px 155px 111px 155px 133px 169px 129px",
+						"rect": [
+							16,
+							2193,
+							368,
+							1456
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "Grid-styles__GridStyled-sc-70d90311-0 ldvJot",
+						"display": "grid",
+						"cols": "23.3281px 23.3281px 23.3281px 23.3281px 23.3281px 23.3281px ",
+						"rows": "460px 111px 133px 133px 111px 147px 147px",
+						"rect": [
+							16,
+							4406,
+							368,
+							1386
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1280": {
+				"doc": [
+					1280,
+					6156
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"id": "bbc-header",
+						"class": "Header-styles__HeaderStyled-sc-36071384-0 lkxsBq",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							0,
+							0,
+							1280,
+							81
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"id": "main-navigation-container",
+						"class": "Navigation-styles__NavigationContainerStyled-sc-f1c1fa10-9 gUOgcu",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							0,
+							81,
+							1280,
+							74
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "Navigation-styles__NavigationSectionStyled-sc-f1c1fa10-0 hZiVmC",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							81,
+							1280,
+							42
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "Navigation-styles__NavigationWrapper-sc-f1c1fa10-1 kidpOc",
+						"display": "inline-block",
+						"rect": [
+							204,
+							81,
+							871,
+							42
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "SubNavigation-styles__SubNavigationContainerStyled-sc-6091112f-2 dmMDLd",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							123,
+							1280,
+							32
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "SubNavigation-styles__SubNavigationInnerStyled-sc-6091112f-1 kEdqUO",
+						"display": "block",
+						"rect": [
+							0,
+							123,
+							1280,
+							32
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "bbc-main",
+						"display": "block",
+						"rect": [
+							0,
+							155,
+							1280,
+							5428
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "IndexPage-styles__IndexPageArticleStyled-sc-1de4b86e-0 ciTEIc",
+						"display": "block",
+						"rect": [
+							0,
+							155,
+							1280,
+							5428
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "Container-styles__ContainerStyled-sc-8b855a6c-0 eWVxhX",
+						"display": "grid",
+						"cols": "1280px",
+						"rows": "777.812px",
+						"position": "relative",
+						"rect": [
+							0,
+							529,
+							1280,
+							778
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "Section-styles__SectionOuterStyled-sc-934b69c3-1 edUGjI",
+						"display": "grid",
+						"cols": "1280px",
+						"rows": "82px",
+						"rect": [
+							0,
+							1355,
+							1280,
+							82
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "Container-styles__ContainerStyled-sc-8b855a6c-0 eWVxhX",
+						"display": "grid",
+						"cols": "1280px",
+						"rows": "782.25px",
+						"position": "relative",
+						"rect": [
+							0,
+							1539,
+							1280,
+							782
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "Section-styles__SectionOuterStyled-sc-934b69c3-1 NFunO",
+						"display": "grid",
+						"cols": "1280px",
+						"rows": "150px",
+						"rect": [
+							0,
+							2710,
+							1280,
+							150
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "Container-styles__ContainerStyled-sc-8b855a6c-0 eWVxhX",
+						"display": "grid",
+						"cols": "1280px",
+						"rows": "782.25px",
+						"position": "relative",
+						"rect": [
+							0,
+							2962,
+							1280,
+							782
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "Section-styles__SectionOuterStyled-sc-934b69c3-1 NFunO",
+						"display": "grid",
+						"cols": "1280px",
+						"rows": "246px",
+						"rect": [
+							0,
+							4133,
+							1280,
+							246
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "Container-styles__ContainerStyled-sc-8b855a6c-0 eWVxhX",
+						"display": "grid",
+						"cols": "1280px",
+						"rows": "760.25px",
+						"position": "relative",
+						"rect": [
+							0,
+							4481,
+							1280,
+							760
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"id": "bbc-footer",
+						"class": "Footer-styles__FooterStyled-sc-7046f1ed-0 gEbLfI",
+						"display": "block",
+						"rect": [
+							0,
+							5720,
+							1280,
+							309
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "ContentLinks-styles__ContentLinksSectionStyled-sc-9a221ef-0 crpOpn",
+						"display": "block",
+						"rect": [
+							16,
+							5779,
+							1248,
+							18
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"role": "navigation",
+						"display": "block",
+						"rect": [
+							16,
+							5779,
+							1248,
+							18
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "LanguageDropdown-styles__LanguageDropDownSectionStyled-sc-bc6bb5-0 knnpYP",
+						"display": "block",
+						"rect": [
+							16,
+							5818,
+							1248,
+							44
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "LegalLinks-styles__LegalLinksSectionStyled-sc-f9fd086a-0 bhvVdu",
+						"display": "block",
+						"rect": [
+							16,
+							5935,
+							1248,
+							46
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "__next",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1280,
+							6153
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "app",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1280,
+							6153
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "Backdrop-styles__BackdropStyled-sc-9f7d4825-0 gcnTDO",
+						"display": "grid",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							1280,
+							800
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "Grid-styles__GridStyled-sc-70d90311-0 ldvJot",
+						"display": "grid",
+						"cols": "36.6562px 36.6562px 36.6562px 36.6562px 36.6562px 36.6562px ",
+						"rows": "370.5px 379.75px",
+						"rect": [
+							16,
+							1539,
+							1248,
+							782
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "Grid-styles__GridStyled-sc-70d90311-0 ldvJot",
+						"display": "grid",
+						"cols": "36.6562px 36.6562px 36.6562px 36.6562px 36.6562px 36.6562px ",
+						"rows": "370.5px 379.75px",
+						"rect": [
+							16,
+							2962,
+							1248,
+							782
+						],
+						"side_by_side": 3
+					}
+				]
+			},
+			"1920": {
+				"doc": [
+					1920,
+					6156
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"id": "bbc-header",
+						"class": "Header-styles__HeaderStyled-sc-36071384-0 lkxsBq",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							0,
+							0,
+							1920,
+							81
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"id": "main-navigation-container",
+						"class": "Navigation-styles__NavigationContainerStyled-sc-f1c1fa10-9 gUOgcu",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							0,
+							81,
+							1920,
+							74
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "Navigation-styles__NavigationSectionStyled-sc-f1c1fa10-0 hZiVmC",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							81,
+							1920,
+							42
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "Navigation-styles__NavigationWrapper-sc-f1c1fa10-1 kidpOc",
+						"display": "inline-block",
+						"rect": [
+							524,
+							81,
+							871,
+							42
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "SubNavigation-styles__SubNavigationContainerStyled-sc-6091112f-2 dmMDLd",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							123,
+							1920,
+							32
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "SubNavigation-styles__SubNavigationInnerStyled-sc-6091112f-1 kEdqUO",
+						"display": "block",
+						"rect": [
+							0,
+							123,
+							1920,
+							32
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "bbc-main",
+						"display": "block",
+						"rect": [
+							0,
+							155,
+							1920,
+							5428
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "IndexPage-styles__IndexPageArticleStyled-sc-1de4b86e-0 ciTEIc",
+						"display": "block",
+						"rect": [
+							0,
+							155,
+							1920,
+							5428
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "Container-styles__ContainerStyled-sc-8b855a6c-0 eWVxhX",
+						"display": "grid",
+						"cols": "1920px",
+						"rows": "777.812px",
+						"position": "relative",
+						"rect": [
+							0,
+							529,
+							1920,
+							778
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "Section-styles__SectionOuterStyled-sc-934b69c3-1 edUGjI",
+						"display": "grid",
+						"cols": "1920px",
+						"rows": "82px",
+						"rect": [
+							0,
+							1355,
+							1920,
+							82
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "Container-styles__ContainerStyled-sc-8b855a6c-0 eWVxhX",
+						"display": "grid",
+						"cols": "1920px",
+						"rows": "782.25px",
+						"position": "relative",
+						"rect": [
+							0,
+							1539,
+							1920,
+							782
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "Section-styles__SectionOuterStyled-sc-934b69c3-1 NFunO",
+						"display": "grid",
+						"cols": "1920px",
+						"rows": "150px",
+						"rect": [
+							0,
+							2710,
+							1920,
+							150
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "Container-styles__ContainerStyled-sc-8b855a6c-0 eWVxhX",
+						"display": "grid",
+						"cols": "1920px",
+						"rows": "782.25px",
+						"position": "relative",
+						"rect": [
+							0,
+							2962,
+							1920,
+							782
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "Section-styles__SectionOuterStyled-sc-934b69c3-1 NFunO",
+						"display": "grid",
+						"cols": "1920px",
+						"rows": "246px",
+						"rect": [
+							0,
+							4133,
+							1920,
+							246
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "Container-styles__ContainerStyled-sc-8b855a6c-0 eWVxhX",
+						"display": "grid",
+						"cols": "1920px",
+						"rows": "760.25px",
+						"position": "relative",
+						"rect": [
+							0,
+							4481,
+							1920,
+							760
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"id": "bbc-footer",
+						"class": "Footer-styles__FooterStyled-sc-7046f1ed-0 gEbLfI",
+						"display": "block",
+						"rect": [
+							320,
+							5720,
+							1280,
+							309
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "ContentLinks-styles__ContentLinksSectionStyled-sc-9a221ef-0 crpOpn",
+						"display": "block",
+						"rect": [
+							336,
+							5779,
+							1248,
+							18
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"role": "navigation",
+						"display": "block",
+						"rect": [
+							336,
+							5779,
+							1248,
+							18
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "LanguageDropdown-styles__LanguageDropDownSectionStyled-sc-bc6bb5-0 knnpYP",
+						"display": "block",
+						"rect": [
+							336,
+							5818,
+							1248,
+							44
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "LegalLinks-styles__LegalLinksSectionStyled-sc-f9fd086a-0 bhvVdu",
+						"display": "block",
+						"rect": [
+							336,
+							5935,
+							1248,
+							46
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "edr_lwrap_first",
+						"class": "edr_lwrap",
+						"role": "alertdialog",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							-100000,
+							-100000,
+							1920,
+							1080
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "__next",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1920,
+							6153
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "app",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1920,
+							6153
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "iframe",
+						"id": "edr_l_first",
+						"display": "inline",
+						"rect": [
+							-100000,
+							-100000,
+							1920,
+							1080
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "Backdrop-styles__BackdropStyled-sc-9f7d4825-0 gcnTDO",
+						"display": "grid",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							1920,
+							1080
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "Grid-styles__GridStyled-sc-70d90311-0 ldvJot",
+						"display": "grid",
+						"cols": "36.6562px 36.6562px 36.6562px 36.6562px 36.6562px 36.6562px ",
+						"rows": "370.5px 379.75px",
+						"rect": [
+							336,
+							1539,
+							1248,
+							782
+						],
+						"side_by_side": 3
+					}
+				]
+			},
+			"3440": {
+				"doc": [
+					3440,
+					6170
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"id": "bbc-header",
+						"class": "Header-styles__HeaderStyled-sc-36071384-0 lkxsBq",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							0,
+							0,
+							3440,
+							81
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"id": "main-navigation-container",
+						"class": "Navigation-styles__NavigationContainerStyled-sc-f1c1fa10-9 gUOgcu",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							0,
+							81,
+							3440,
+							74
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "Navigation-styles__NavigationSectionStyled-sc-f1c1fa10-0 hZiVmC",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							81,
+							3440,
+							42
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "Navigation-styles__NavigationWrapper-sc-f1c1fa10-1 kidpOc",
+						"display": "inline-block",
+						"rect": [
+							1284,
+							81,
+							871,
+							42
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "SubNavigation-styles__SubNavigationContainerStyled-sc-6091112f-2 dmMDLd",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							123,
+							3440,
+							32
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "SubNavigation-styles__SubNavigationInnerStyled-sc-6091112f-1 kEdqUO",
+						"display": "block",
+						"rect": [
+							0,
+							123,
+							3440,
+							32
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "bbc-main",
+						"display": "block",
+						"rect": [
+							0,
+							155,
+							3440,
+							5442
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "IndexPage-styles__IndexPageArticleStyled-sc-1de4b86e-0 ciTEIc",
+						"display": "block",
+						"rect": [
+							0,
+							155,
+							3440,
+							5442
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "Container-styles__ContainerStyled-sc-8b855a6c-0 eWVxhX",
+						"display": "grid",
+						"cols": "3440px",
+						"rows": "777.812px",
+						"position": "relative",
+						"rect": [
+							0,
+							543,
+							3440,
+							778
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "Section-styles__SectionOuterStyled-sc-934b69c3-1 edUGjI",
+						"display": "grid",
+						"cols": "3440px",
+						"rows": "82px",
+						"rect": [
+							0,
+							1369,
+							3440,
+							82
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "Container-styles__ContainerStyled-sc-8b855a6c-0 eWVxhX",
+						"display": "grid",
+						"cols": "3440px",
+						"rows": "782.25px",
+						"position": "relative",
+						"rect": [
+							0,
+							1553,
+							3440,
+							782
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "Section-styles__SectionOuterStyled-sc-934b69c3-1 NFunO",
+						"display": "grid",
+						"cols": "3440px",
+						"rows": "150px",
+						"rect": [
+							0,
+							2724,
+							3440,
+							150
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "Container-styles__ContainerStyled-sc-8b855a6c-0 eWVxhX",
+						"display": "grid",
+						"cols": "3440px",
+						"rows": "782.25px",
+						"position": "relative",
+						"rect": [
+							0,
+							2976,
+							3440,
+							782
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "Section-styles__SectionOuterStyled-sc-934b69c3-1 NFunO",
+						"display": "grid",
+						"cols": "3440px",
+						"rows": "246px",
+						"rect": [
+							0,
+							4147,
+							3440,
+							246
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "Container-styles__ContainerStyled-sc-8b855a6c-0 eWVxhX",
+						"display": "grid",
+						"cols": "3440px",
+						"rows": "760.25px",
+						"position": "relative",
+						"rect": [
+							0,
+							4495,
+							3440,
+							760
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"id": "bbc-footer",
+						"class": "Footer-styles__FooterStyled-sc-7046f1ed-0 gEbLfI",
+						"display": "block",
+						"rect": [
+							1080,
+							5734,
+							1280,
+							309
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "ContentLinks-styles__ContentLinksSectionStyled-sc-9a221ef-0 crpOpn",
+						"display": "block",
+						"rect": [
+							1096,
+							5793,
+							1248,
+							18
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"role": "navigation",
+						"display": "block",
+						"rect": [
+							1096,
+							5793,
+							1248,
+							18
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "LanguageDropdown-styles__LanguageDropDownSectionStyled-sc-bc6bb5-0 knnpYP",
+						"display": "block",
+						"rect": [
+							1096,
+							5832,
+							1248,
+							44
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "LegalLinks-styles__LegalLinksSectionStyled-sc-f9fd086a-0 bhvVdu",
+						"display": "block",
+						"rect": [
+							1096,
+							5949,
+							1248,
+							46
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "__next",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							3440,
+							6167
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "app",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							3440,
+							6167
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "Backdrop-styles__BackdropStyled-sc-9f7d4825-0 gcnTDO",
+						"display": "grid",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							3440,
+							1440
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "AdSlot-styles__AdSlotContainerStyled-sc-4b576bed-0 cIETQw",
+						"display": "block",
+						"rect": [
+							0,
+							2383,
+							3440,
+							293
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "AdSlot-styles__AdSlotContainerStyled-sc-4b576bed-0 cIETQw",
+						"display": "block",
+						"rect": [
+							0,
+							3806,
+							3440,
+							293
+						],
+						"side_by_side": 0
+					}
+				]
+			}
+		}
+	},
+	"notes": "BBC News is a good example of a page that genuinely gets WIDER content on a bigger screen rather than just wider margins — the lead story and the four-card row underneath both stretch to fill a 3440 monitor, unlike several other sites in this set that cap themselves and centre. The only part of the page that behaves like those other sites is the footer, which stays a fixed 1280px and centres itself no matter how wide the window gets. The top story block is a classic narrow-wide-narrow shape: a text headline, a big photo story, and a second story, side by side; on a phone all of that becomes a single stacked column, photo first. One thing worth knowing: the big empty grey box under the navigation in every desktop screenshot is not a mistake — the scan shows it is a real advertisement slot that simply had no ad to show a headless browser.",
+	"wire": {
+		"role": "page",
+		"kids": [
+			{
+				"role": "header",
+				"h": "7em"
+			},
+			{
+				"role": "image",
+				"h": "8em"
+			},
+			{
+				"role": "main",
+				"dir": "row",
+				"h": "24em",
+				"floor": "38rem",
+				"kids": [
+					{
+						"role": "text",
+						"w": 1,
+						"lines": 5
+					},
+					{
+						"role": "image",
+						"w": "38em"
+					},
+					{
+						"role": "card",
+						"w": 1
+					}
+				]
+			},
+			{
+				"role": "cards",
+				"dir": "row",
+				"h": "14em",
+				"floor": "38rem",
+				"n": 4
+			},
+			{
+				"role": "footer",
+				"h": "5em"
+			}
+		]
+	}
+}

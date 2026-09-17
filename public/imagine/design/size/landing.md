@@ -12,10 +12,17 @@ same day, for a control's own height) now carry the spacing job too: one class, 
 :where(*) {
     --pad:  calc(clamp(1em, 2.6% - 1.1em,   4em)   * var(--size));
     --gap:  calc(clamp(1em, 1.5cqi - 0.3em, 2.6em) * var(--size));
-    --flow: calc(clamp(2em, 1.4cqi + 0.8em, 3em)   * var(--size));
+    --flow: calc(clamp(2em, 1.4cqi + 0.8em, 2.5em) * var(--size));
 }
 .size-small { --size: 0.75 }  .size-regular { --size: 1 }  .size-large { --size: 1.5 }
 ```
+
+One number has moved since: `--flow`'s ceiling shipped at `3em` and became **`2.5em`** on
+2026-09-13. At `3em` a paragraph gap was 54px at 3440 against 30px at 1280 — 1.80×, against a
+1.5× verdict — because body prose sits on the clamp's floor at 1280 and on its ceiling at 3440,
+so the two ends multiply the body font's own ramp. `2.5em` makes it 45px, 1.50×, and 1280 is
+byte-identical. The live number always lives in one place, `public/framework/framework.css`;
+[the measurements](/framework/ai/2026-09-13/paging-spacing-3440/spacing.md).
 
 `:where(*)` and not `:root`, for the reason framework.css already gives: a custom property
 holding a `var()` is substituted where it is declared, so a value computed once on the root

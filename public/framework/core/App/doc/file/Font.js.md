@@ -17,9 +17,10 @@ which is the right loudness for a design bug.
 
 1. **Both shipped faces are unvendored `fonts.gstatic.com` urls** — the one place
    in the framework that breaks `ext/`'s "vendor the dependency" rule. Offline,
-   these fall back silently with no warning. Stated in `../fonts.md` and the
-   readme, not settled: vendoring costs ~166KB for a look most sites won't load.
-   *(medium, useful — a decision for the owner, not a bug.)*
+   each logs one `console.warn` and the page falls back to the next family in
+   `--font`. Stated in `../fonts.md` and the readme, not settled: vendoring costs
+   ~166KB for a look most sites won't load. *(medium, useful — a decision for the
+   owner, not a bug.)*
 2. **The instance could collapse into a single function.** Three properties, one
    method; it stays a class because `Font.fonts` reads as data about *fonts* and a
    face has an identity that outlives its load. Recorded, not a real cost.
