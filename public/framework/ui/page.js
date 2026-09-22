@@ -4,11 +4,11 @@ import { Doc, md, code, ui } from "/app.js";
    it so no component is named twice.
    ⚠ Order is editorial, not alphabetical: a reader landing here meets `card`,
      `toolbar`, `table` and `dialog` long before `kbd`.
-   ⚠ Five, six, six and five — the sizes are load-bearing. A band is its own grid and
+   ⚠ Six, six, six and five — the sizes are load-bearing. A band is its own grid and
      `auto-fit` stretches it to fill the row, so at 3440 a band of three would draw
      three cards a thousand pixels wide. Even bands mean even cards. */
 const BANDS = {
-	Surfaces: "card toolbar panel stats accordion",
+	Surfaces: "card toolbar panel stats accordion decision",
 	Data:     "table timeline tree progress pagination crumbs",
 	Forms:    "controls field dialog tags menu tooltip",
 	Marks:    "badge alert avatar kbd words",
@@ -28,7 +28,11 @@ export default new Doc({
 	leaf: true,
 
 	// Real directories, real urls — Router.child() resolves each from <name>/page.js.
-	children: names.join(" "),
+	// ⚠ `background` is appended here, NOT added to BANDS above: it would make
+	// Surfaces seven and break the "six, six, six, five" the browse() wall's own
+	// grid math depends on. It still routes and still shows up in this page's own
+	// nav — background-layer task, 2026-09-19, ai/2026-09-19/background-layer/.
+	children: names.join(" ") + " background",
 
 	/* Overview · API · Docs · Files, and nothing else. Doc's own bar() lists every
 	   declared child between the Overview and the reference sections, which is right

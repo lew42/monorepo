@@ -1,0 +1,499 @@
+[
+  {
+    "url": "/framework/ext/AITask/",
+    "name": "AITask",
+    "what": "The AI working log rendered as task pages, day dashboards, and a board over every task ever.",
+    "parts": [
+      "task card",
+      "usage rail",
+      "step checklist",
+      "tab system",
+      "needs strip",
+      "ranking"
+    ],
+    "features": [
+      "renders task manifests",
+      "tracks usage spend",
+      "displays chat panel",
+      "shows transcript viewer",
+      "streams live updates"
+    ],
+    "demos": [
+      {
+        "url": "/framework/ext/AITask/",
+        "shows": "task card, quiet state, usage pace, step checklist",
+        "covers": 70
+      }
+    ],
+    "coverage": 70,
+    "gaps": [
+      "interactive Asks/Requirements/Decisions tabs not shown live",
+      "full decision approval flow",
+      "ranking drag gestures"
+    ],
+    "blurb": "The AI log displayed as task pages, day dashboards and board.",
+    "clarity": 4,
+    "stage": {
+      "kind": "wide",
+      "cap": null,
+      "should_cap": null
+    },
+    "reads": [
+      "readme.md",
+      "page.js",
+      "doc/"
+    ]
+  },
+  {
+    "url": "/framework/ext/Ask/",
+    "name": "Ask",
+    "what": "Talk to Claude Code sessions from the browser; one socket message starts one headless CLI turn on the dev server.",
+    "parts": [
+      "picker (crosshair)",
+      "chat panel",
+      "reply in place",
+      "mic input",
+      "shot capture"
+    ],
+    "features": [
+      "asks Claude questions",
+      "picks page elements",
+      "gets design feedback",
+      "replies to items inline",
+      "dictates into ask cards"
+    ],
+    "demos": [
+      {
+        "url": "/framework/ext/Ask/",
+        "shows": "ask button, picker readout, chat panel, reply buttons, shot capture",
+        "covers": 80
+      }
+    ],
+    "coverage": 80,
+    "gaps": [
+      "full reply save to task.jsonl not shown",
+      "mic input browser detection",
+      "task threading flow"
+    ],
+    "blurb": "Talk to Claude from the browser; ask questions, pick elements, get feedback.",
+    "clarity": 4,
+    "stage": {
+      "kind": "wide",
+      "cap": null,
+      "should_cap": null
+    },
+    "reads": [
+      "readme.md",
+      "page.js",
+      "doc/"
+    ]
+  },
+  {
+    "url": "/framework/ext/DesignTool/",
+    "name": "DesignTool",
+    "what": "Measures layout numerically to find what is broken, off, or good without AI at runtime.",
+    "parts": [
+      "analyzer (nodes and styles)",
+      "taste grader (eleven ranges)",
+      "vision tier (AI feedback)",
+      "audit system",
+      "library of patterns"
+    ],
+    "features": [
+      "measures every rect and computed style",
+      "reports findings ranked by severity",
+      "grades against ideal ranges",
+      "sweeps widths for breakpoints"
+    ],
+    "demos": [
+      {
+        "url": "/framework/ext/DesignTool/",
+        "shows": "live measurement of this page",
+        "covers": 50
+      }
+    ],
+    "coverage": 50,
+    "gaps": [
+      "vision tier AI feedback not shown",
+      "full audit workflow",
+      "taste grading interface",
+      "library patterns demo"
+    ],
+    "blurb": "Measures layouts numerically — broken, off, or good with no AI.",
+    "clarity": 3,
+    "stage": {
+      "kind": "wide",
+      "cap": null,
+      "should_cap": null
+    },
+    "reads": [
+      "readme.md",
+      "page.js (first 80 lines)",
+      "doc/"
+    ]
+  },
+  {
+    "url": "/framework/ext/Doc/",
+    "name": "Doc",
+    "what": "A module documented as a page with Overview, API, Docs, and Files tabs; each member is a real URL backed by markdown.",
+    "parts": [
+      "overview section",
+      "API tab (methods and properties)",
+      "docs tab",
+      "files tab",
+      "left rail of subsections"
+    ],
+    "features": [
+      "documents classes and functions",
+      "shows method signatures",
+      "links to markdown docs",
+      "lists all files"
+    ],
+    "demos": [
+      {
+        "url": "/framework/ext/Doc/",
+        "shows": "Doc documenting itself with all four tabs",
+        "covers": 60
+      }
+    ],
+    "coverage": 60,
+    "gaps": [
+      "creating a new Doc from scratch not shown",
+      "multiple subject examples",
+      "inheritance patterns"
+    ],
+    "blurb": "A module as a page: files and members, each backed by markdown",
+    "clarity": 3,
+    "stage": {
+      "kind": "measure",
+      "cap": null,
+      "should_cap": null
+    },
+    "reads": [
+      "readme.md",
+      "page.js (first 50 lines)",
+      "doc/"
+    ]
+  },
+  {
+    "url": "/framework/ext/Draggable/",
+    "name": "Draggable",
+    "what": "Grab-and-move for any View; Sortable reorders, crosses list boundaries and nests on one code path.",
+    "parts": [
+      "drag handle",
+      "drag ghost",
+      "drop placeholder",
+      "Sortable subclass",
+      "hit-testing"
+    ],
+    "features": [
+      "grabs and moves items",
+      "Sortable crosses lists",
+      "nests on same path",
+      "keyboard cancel on Escape"
+    ],
+    "demos": [
+      {
+        "url": "/framework/ext/Draggable/",
+        "shows": "nested board with three columns",
+        "covers": 60
+      }
+    ],
+    "coverage": 60,
+    "gaps": [
+      "basic Draggable alone not shown",
+      "drop_check guard pattern",
+      "empty list edge case"
+    ],
+    "blurb": "Grab-and-move for any view; Sortable crosses lists and nests.",
+    "clarity": 4,
+    "stage": {
+      "kind": "measure",
+      "cap": null,
+      "should_cap": null
+    },
+    "reads": [
+      "readme.md",
+      "page.js (first 50 lines)",
+      "doc/"
+    ]
+  },
+  {
+    "url": "/framework/ext/Dropdown/",
+    "name": "Dropdown",
+    "what": "One choice out of a list — trigger showing its picture and name, list opens in the top layer so nothing clips it.",
+    "parts": [
+      "trigger with icon",
+      "list in top layer",
+      "keyboard navigation",
+      "popover positioning"
+    ],
+    "features": [
+      "picks values",
+      "top-layer list never clipped",
+      "arrow-key navigation",
+      "closes on pick or Escape"
+    ],
+    "demos": [
+      {
+        "url": "/framework/ext/Dropdown/",
+        "shows": "live dropdown picker with display options",
+        "covers": 85
+      }
+    ],
+    "coverage": 85,
+    "gaps": [
+      "keyboard-only selection",
+      "custom icon rendering"
+    ],
+    "blurb": "One choice from a list — picture and name, never clipped.",
+    "clarity": 5,
+    "stage": {
+      "kind": "measure",
+      "cap": null,
+      "should_cap": null
+    },
+    "reads": [
+      "readme.md",
+      "page.js (first 50 lines)",
+      "doc/"
+    ]
+  },
+  {
+    "url": "/framework/ext/JSONL/",
+    "name": "JSONL",
+    "what": "Append-only .jsonl logs that the AI blindly appends to, replayed into object state through verbs.",
+    "parts": [
+      "verb handlers (assign/log/action/agent/ask/decision)",
+      "TaskJSONL subclass",
+      "streaming socket",
+      "log replay"
+    ],
+    "features": [
+      "parses JSON lines",
+      "replays verbs to build state",
+      "merges agents and asks by id",
+      "streams live updates from dev server"
+    ],
+    "demos": [
+      {
+        "url": "/framework/ext/JSONL/",
+        "shows": "TaskJSONL agent merge, streaming real task.jsonl",
+        "covers": 65
+      }
+    ],
+    "coverage": 65,
+    "gaps": [
+      "full ask/decision/verdict schema",
+      "rank verb behavior",
+      "complete streaming flow"
+    ],
+    "blurb": "Append-only logs the AI blindly appends to; replayed into object state.",
+    "clarity": 2,
+    "stage": {
+      "kind": "measure",
+      "cap": null,
+      "should_cap": null
+    },
+    "reads": [
+      "readme.md",
+      "page.js (first 50 lines)",
+      "doc/"
+    ]
+  },
+  {
+    "url": "/framework/ext/Omnibox/",
+    "name": "Omnibox",
+    "what": "Moved to core/Search on 2026-09-06; this directory is a deprecated pointer to the new location.",
+    "parts": [],
+    "features": [],
+    "demos": [],
+    "coverage": 0,
+    "gaps": [
+      "all functionality moved to core/Search",
+      "this is a redirect only"
+    ],
+    "blurb": "Moved to core/Search; this is a deprecated pointer.",
+    "clarity": 1,
+    "stage": {
+      "kind": "none",
+      "cap": null,
+      "should_cap": null
+    },
+    "reads": [
+      "readme.md"
+    ]
+  },
+  {
+    "url": "/framework/ext/Panel/",
+    "name": "Panel",
+    "what": "Chrome for arranging regions — divide, drag, align, fill and persist any region without shipping it.",
+    "parts": [
+      "workspace",
+      "items (panels)",
+      "drag grips on seams",
+      "properties rail",
+      "focus system",
+      "flow scrubber"
+    ],
+    "features": [
+      "divides and drags seams",
+      "aligns to corners",
+      "fills space",
+      "persists layouts",
+      "replays gestures",
+      "12 gestures total"
+    ],
+    "demos": [
+      {
+        "url": "/framework/ext/Panel/",
+        "shows": "live workspace with six controls, flow scrubber, gesture table",
+        "covers": 70
+      }
+    ],
+    "coverage": 70,
+    "gaps": [
+      "persistence to file not shown",
+      "multi-select and grouping",
+      "nested panels edge cases",
+      "document mode scrolling"
+    ],
+    "blurb": "Chrome for arranging regions — divide, drag, align, fill and persist.",
+    "clarity": 3,
+    "stage": {
+      "kind": "wide",
+      "cap": null,
+      "should_cap": null
+    },
+    "reads": [
+      "readme.md",
+      "page.js (first 50 lines)",
+      "doc/"
+    ]
+  },
+  {
+    "url": "/framework/ext/Research/",
+    "name": "Research",
+    "what": "A question dug by minions into append-only files, rendered live with conclusions first and every claim a card.",
+    "parts": [
+      "topics (single questions)",
+      "programs (multiple topics)",
+      "entries with credence",
+      "minion workflow",
+      "verdict system"
+    ],
+    "features": [
+      "minions append nodes and votes",
+      "page streams live updates",
+      "credence tracking with visual channels",
+      "conclusions first"
+    ],
+    "demos": [
+      {
+        "url": "/framework/ext/Research/",
+        "shows": "links to live examples at /imagine/research/ and /framework/research/livereload/",
+        "covers": 40
+      }
+    ],
+    "coverage": 40,
+    "gaps": [
+      "no live demo of research process on this page",
+      "minion workflow not shown",
+      "verdict approval flow"
+    ],
+    "blurb": "Questions dug by minions into append-only files, rendered live.",
+    "clarity": 3,
+    "stage": {
+      "kind": "measure",
+      "cap": null,
+      "should_cap": null
+    },
+    "reads": [
+      "readme.md",
+      "page.js",
+      "doc/"
+    ]
+  },
+  {
+    "url": "/framework/ext/Saver/",
+    "name": "Saver",
+    "what": "Where a document goes — save, load and delete over one write queue for JSON persistence.",
+    "parts": [
+      "Saver base queue",
+      "FileSaver (dev socket)",
+      "LocalStorageSaver (production)",
+      "MemorySaver (tests)"
+    ],
+    "features": [
+      "queued writes collapse rapid saves",
+      "multiple storage backends",
+      "handles mid-flight saves",
+      "delete operation"
+    ],
+    "demos": [
+      {
+        "url": "/framework/ext/Saver/",
+        "shows": "live test cases of queue behavior, rapid saves, mid-flight saves",
+        "covers": 90
+      }
+    ],
+    "coverage": 90,
+    "gaps": [],
+    "blurb": "JSON persistence — save, load, delete over one write queue.",
+    "clarity": 4,
+    "stage": {
+      "kind": "measure",
+      "cap": null,
+      "should_cap": null
+    },
+    "reads": [
+      "readme.md",
+      "page.js",
+      "doc/"
+    ]
+  },
+  {
+    "url": "/framework/ext/Timeline/",
+    "name": "Timeline",
+    "what": "A general horizontal or vertical timeline for plotting dated items with CSS-var positioning and zoom.",
+    "parts": [
+      "bars (tasks with time range)",
+      "dots (log events)",
+      "lanes (named tracks)",
+      "window bands",
+      "ruler"
+    ],
+    "features": [
+      "CSS-variable positioning",
+      "zoom levels",
+      "greedy lane packing",
+      "nested children",
+      "window bands skipping packer"
+    ],
+    "demos": [
+      {
+        "url": "/framework/ext/Timeline/",
+        "shows": "orientation and lanes, windows and nested children",
+        "covers": 60
+      }
+    ],
+    "coverage": 60,
+    "gaps": [
+      "window bands behavior fully",
+      "phase 2 features",
+      "nested depth limits"
+    ],
+    "blurb": "H/V timeline for dated items — CSS-vars, zoom, greedy lanes.",
+    "clarity": 3,
+    "stage": {
+      "kind": "measure",
+      "cap": null,
+      "should_cap": null
+    },
+    "reads": [
+      "readme.md",
+      "page.js",
+      "doc/"
+    ]
+  }
+]

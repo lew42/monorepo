@@ -1,0 +1,94 @@
+@layer base, theme, site, util;
+
+/* css: .color-sections-wall .color-sections-cell .color-sections-stack
+ *      .color-sections-ground .color-sections-card .color-sections-p
+ *      .color-sections-list .color-sections-meta .color-sections-name
+ *      .color-sections-num .color-sections-cap .color-sections-lab
+ *      .color-sections-takeaway .color-sections-probes .color-sections-probe
+ *
+ * Inside `color-`, the prefix /framework/styles/system/studies/color already owns. NOT `sections-`,
+ * which belongs to /imagine/sections, and not the bare `.color-ground` / `.color-bar`
+ * the lighten/darken study next door already uses.
+ *
+ * The slider row, the slider itself and the takeaway box are NOT redeclared here — this
+ * page loads `../color-study.css` and wears `.color-sliders` / `.color-slider` /
+ * `.color-takeaway` as they are. Only the two things that differ are below.
+ */
+@layer theme {
+
+	/* One cell per pairing. `rem`, not `em`: this site's type scales with the viewport,
+	   so an `em` wrap floor shrinks the tile at 400 instead of holding it (the sibling
+	   study measured two 182px tiles side by side that way). 19rem is what a heading, a
+	   paragraph, a three-item list and a `#ffffff 12.6:1 text ok` readout need without
+	   the readout wrapping; at 1280 that is three across, at 3440 seven or eight. */
+	.color-sections-wall { --column: 19rem; }
+
+	.color-sections-cell { margin: 0; }
+
+	/* The seam runs the full width of the cell. Nothing is inset, nothing is rounded,
+	   and there is no rule drawn between the two halves — the edge you are looking at
+	   is the only thing making it, which is the whole question this page asks. */
+	.color-sections-stack { border-radius: var(--radius); overflow: hidden; }
+
+	/* A ground is a BOX — a background different from its parent's — so it is padded.
+	   That is the box rule, and `--pad` is the site's word for space around content.
+	   In a 19rem cell the clamp lands on its 1em floor, which is right at this scale. */
+	.color-sections-ground { padding: var(--pad); }
+
+	/* ⚠ `color-scheme`, not a hardcoded ink. `--ink` is `light-dark(#3f3f3f, #e6e6e6)`,
+	     so flipping the scheme on a box is how this site makes a dark band pick the
+	     light half — the same island trick the palette page uses. Set it and every
+	     token in the box follows, instead of one property the author remembered. */
+	.color-sections-ground.dark, .color-sections-card.dark { color-scheme: dark; }
+
+	.color-sections-ground, .color-sections-card { color: var(--ink); }
+
+	/* The nested card. Padded for the same reason the section is, and given the
+	   theme's own radius so it reads as a card rather than a stripe. */
+	.color-sections-card {
+		padding: var(--pad);
+		border-radius: var(--radius);
+		margin-block: var(--gap-50);
+	}
+
+	/* ⚠ `margin`, not padding, between the text blocks: they paint no ground of their
+	     own, so padding would float them off the edges their siblings line up with.
+	     Nothing zeroes the first child's top margin here — framework.css already does
+	     that for every first child on the site, in `@layer util`, which this sheet
+	     could not override anyway. */
+	.color-sections-p { margin-block: var(--gap-35); }
+
+	.color-sections-list { margin-block: var(--gap-35); padding-inline-start: 1.2em; }
+	.color-sections-list li { line-height: 1.5; }
+
+	/* The readout. `em`, not a spacing token: this is a one-line label whose size
+	   belongs to its own text, not space between content. `--num` is written by
+	   `measure()` in white or black, whichever the ground can carry, so the number
+	   itself is always readable even where the ink above it is not. */
+	.color-sections-meta {
+		display: flex; flex-wrap: wrap; align-items: baseline;
+		gap: 0.2em 0.6em; margin-block-start: 0.7em;
+		font-size: 0.78em; line-height: 1.4;
+	}
+	.color-sections-name { font-weight: 700; }
+	.color-sections-num { font-family: var(--mono); }
+
+	.color-sections-cap {
+		font-size: 0.85em; color: var(--subtle);
+		margin-block-start: var(--gap-35);
+	}
+
+	/* The page head. The sliders come first and the sentence they rewrite sits directly
+	   under them — the sibling study measured what happens otherwise: a slider rewriting
+	   a sentence 900px off screen. */
+	.color-sections-lab { margin-block-end: var(--flow); }
+	.color-sections-takeaway { min-height: calc(1.45em * 6); }
+
+	/* Two zero-size boxes painted with the theme's floor and its card, so the page can
+	   MEASURE its own quietest deliberate step rather than quote a number at it. They
+	   are real elements because `getComputedStyle` has nothing to answer with otherwise. */
+	.color-sections-probes { height: 0; overflow: hidden; }
+	.color-sections-probe { width: 1px; height: 1px; }
+	.color-sections-probe.wash { background: var(--wash); }
+	.color-sections-probe.surface { background: var(--surface); }
+}

@@ -1,0 +1,194 @@
+[
+  {
+    "url": "/layouts/",
+    "name": "Layouts",
+    "what": "Encyclopedia of every way a page can divide its room, with IDs combining column count and division name, drawn at three widths.",
+    "parts": ["Tree view grouped by column count", "Layout pages routed from data", "Tag navigation system", "CSS recipe details", "Responsive demonstrations"],
+    "features": ["Point at screenshot and name the ID", "View layouts at 400px, 1920px, 3440px", "Click tags to see similar layouts", "See CSS grid and flex recipes", "Find real websites using each layout"],
+    "demos": [
+      {
+        "url": "/layouts/",
+        "shows": "Twelve layouts drawn at three widths, organized by column count",
+        "covers": 100
+      }
+    ],
+    "coverage": 100,
+    "gaps": [],
+    "blurb": "Every layout named, defined and drawn at three widths.",
+    "clarity": 5,
+    "stage": {
+      "kind": "measure",
+      "cap": null,
+      "should_cap": "Layout drawings are scaled/zoomed, no full-bleed spreading"
+    },
+    "reads": ["readme.md", "page.js"]
+  },
+  {
+    "url": "/layouts/browse/",
+    "name": "Browse",
+    "what": "Every layout on the site displayed as pictures in three tiers (global, sections, components) with approve and improve verdict buttons.",
+    "parts": ["Global layouts tier", "Sections tier", "Components tier", "Tier navigation strip", "Item detail pages", "Verdict tracking"],
+    "features": ["Switch between three layout tiers", "View 99+ layouts at 400, 1920, 3440", "Approve or improve each layout", "See live verdict history", "View single item details", "Access layout documentation"],
+    "demos": [
+      {
+        "url": "/layouts/browse/",
+        "shows": "Three walls of layout pictures with tier selector and verdict marks",
+        "covers": 95
+      },
+      {
+        "url": "/layouts/browse/shell-left/",
+        "shows": "Single layout at three widths with decisions and verdict interface",
+        "covers": 70
+      }
+    ],
+    "coverage": 85,
+    "gaps": ["Cannot add or delete items from UI", "Verdict buttons only work on dev server", "Does not show interactivity of layouts"],
+    "blurb": "Every layout on the site in three tiers, approve or improve each.",
+    "clarity": 5,
+    "stage": {
+      "kind": "wide",
+      "cap": null,
+      "should_cap": "Card wall stretches but no individual card spreads past measure"
+    },
+    "reads": ["readme.md", "page.js", "doc/inventory.md"]
+  },
+  {
+    "url": "/layouts/practice/",
+    "name": "Practice",
+    "what": "Three full-page layouts (workbench, reader, catalog) built at 3440 and responsive to 400, filled with real site content and showing design decisions.",
+    "parts": ["Workbench page with panel and tile grid", "Reader page with article and margin", "Catalog page with hero, card wall, footer", "Design decision fold", "Padding and spacing rules", "Container query examples"],
+    "features": ["View three complete page layouts", "Read design answers fold", "See responsive behavior at actual width", "Understand padding and spacing rules", "Learn container query patterns", "See focus and interaction design"],
+    "demos": [
+      {
+        "url": "/layouts/practice/workbench/",
+        "shows": "Three-column layout with panel on left, tiles on right at 3440",
+        "covers": 90
+      },
+      {
+        "url": "/layouts/practice/reader/",
+        "shows": "Article reading layout with wide margin at 3440",
+        "covers": 85
+      },
+      {
+        "url": "/layouts/practice/catalog/",
+        "shows": "Hero, card wall, and footer layout at 3440",
+        "covers": 90
+      }
+    ],
+    "coverage": 88,
+    "gaps": ["Only shown at one primary viewport width at a time", "Responsive behavior to other widths not demonstrated", "Edge cases and error states not shown"],
+    "blurb": "Three layouts built big, filled with site content and decisions.",
+    "clarity": 5,
+    "stage": {
+      "kind": "full bleed",
+      "cap": "3440px",
+      "should_cap": "These pages are designed for 3440 and spread to that width intentionally"
+    },
+    "reads": ["readme.md", "page.js"]
+  },
+  {
+    "url": "/layouts/shell/",
+    "name": "Shell",
+    "what": "A resizable sidebar with tree navigation and viewport beside it showing eight homepage designs, each changing one design decision from its parent.",
+    "parts": ["Fixed sidebar with navigation tree", "Resizable drag handle", "Viewport for design preview", "Base homepage design", "Seven design variations", "Change explanation fold"],
+    "features": ["Drag sidebar to resize", "Click tree to switch designs", "See design change explanation", "View responsive layout in viewport", "Understand design decisions", "Navigate five levels deep"],
+    "demos": [
+      {
+        "url": "/layouts/shell/",
+        "shows": "Base homepage with seven variations accessible via tree, viewport responds to sidebar width",
+        "covers": 80
+      }
+    ],
+    "coverage": 80,
+    "gaps": ["Only one design visible at a time", "Cannot compare two designs side-by-side", "No export or save functionality", "Desktop-only interaction pattern"],
+    "blurb": "Resizable sidebar and tree of homepage designs varying one change at a time.",
+    "clarity": 5,
+    "stage": {
+      "kind": "full bleed",
+      "cap": null,
+      "should_cap": "Fills viewport edge-to-edge for sidebar and design view"
+    },
+    "reads": ["readme.md", "page.js"]
+  },
+  {
+    "url": "/layouts/labs/",
+    "name": "Labs",
+    "what": "Six shape experiments moved from /imagine/ with demonstrations: app shells, click behavior, horizontal band, blog at 3440, magazine, and deck layouts.",
+    "parts": ["Shells lab with app chrome variants", "Screens lab showing click interactions", "Sections lab with horizontal bands", "Blogx lab for blog at 3440", "Mag lab for magazine layout", "Decks lab for deck with regions"],
+    "features": ["View six experimental arrangements", "Understand what earned each an id", "See app shell variations", "Experience click behavior demonstrations", "View responsive layouts", "Learn from research process"],
+    "demos": [
+      {
+        "url": "/layouts/labs/shells/",
+        "shows": "Ten app shell variations demonstrating different chrome approaches",
+        "covers": 60
+      },
+      {
+        "url": "/layouts/labs/screens/",
+        "shows": "Click behavior demonstrations showing screen changes",
+        "covers": 70
+      },
+      {
+        "url": "/layouts/labs/blogx/",
+        "shows": "Blog layout demonstration at 3440",
+        "covers": 75
+      }
+    ],
+    "coverage": 68,
+    "gaps": ["Limited responsive demonstrations", "Not all experiments fully interactive", "Research process explanation missing", "Comparison between experiments not provided"],
+    "blurb": "Six shape experiments moved from /imagine/, arrangements earning ids.",
+    "clarity": 4,
+    "stage": {
+      "kind": "full",
+      "cap": null,
+      "should_cap": "Experiments use full width, may spread at 3440"
+    },
+    "reads": ["page.js"]
+  },
+  {
+    "url": "/layouts/tag/",
+    "name": "Tags",
+    "what": "Navigation system where clicking any layout tag (technique, word, trait) shows every layout that carries it.",
+    "parts": ["Tag chip row navigation", "Word definitions and meanings", "Tagged layouts wall", "Related real websites", "Tag categorization", "Candidate words tracking"],
+    "features": ["Click tag to filter layouts", "Search by word meanings", "View layouts as thumbnails", "See real websites using layouts", "Understand tag categories", "Navigate tag relationships"],
+    "demos": [
+      {
+        "url": "/layouts/tag/",
+        "shows": "Tag chip row and word definitions with example layouts",
+        "covers": 70
+      },
+      {
+        "url": "/layouts/tag/2-column-flex/",
+        "shows": "Layouts tagged with 2-column-flex technique",
+        "covers": 60
+      }
+    ],
+    "coverage": 65,
+    "gaps": ["Does not show full layout pages with CSS", "Need to click through to see details", "Real sites data only shown if corpus populated", "No multi-tag filtering"],
+    "blurb": "Click any tag to see every layout that carries it.",
+    "clarity": 4,
+    "stage": {
+      "kind": "measure",
+      "cap": null,
+      "should_cap": "Tag row and layout wall stay within measure"
+    },
+    "reads": ["page.js"]
+  },
+  {
+    "url": "/layouts/doc/",
+    "name": "Docs",
+    "what": "Three technical reference documents defining the layout standard: naming rules, wire drawing specification, and settlement record.",
+    "parts": ["Naming rules and conventions", "Namespace documentation", "Wire specification", "CSS implementation reference", "Decisions and measurements", "Open questions"],
+    "features": ["Learn naming rules for IDs", "Understand column count system", "Learn wire drawing spec", "See CSS recipes", "Understand design decisions", "Find what is still open"],
+    "demos": [],
+    "coverage": 0,
+    "gaps": ["No interactive demonstrations", "No visual examples of naming or wires in docs", "Heavy on reference, light on tutorial", "Cannot experiment with naming rules"],
+    "blurb": "Naming rules, wire spec, and settlement record for the standard.",
+    "clarity": 3,
+    "stage": {
+      "kind": "measure",
+      "cap": null,
+      "should_cap": null
+    },
+    "reads": ["page.js", "doc/naming.md", "doc/wire.md", "doc/decisions.md"]
+  }
+]

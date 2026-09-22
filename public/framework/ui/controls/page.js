@@ -41,6 +41,8 @@ export default new Page({
 	description: "One box for every control — one height, one padding, one hairline, one corner.",
 	icon: "tune",
 
+	children: "study",
+
 	content(){
 
 		p("A button, a link that acts like one, a select, a text field, a textarea, a disclosure summary and a tab are all the same rectangle. Same height, same padding, same hairline, same corner, same fill, same hover. Only what they do is different.");
@@ -67,7 +69,7 @@ export default new Page({
 
 		md.details(import.meta, "doc/grammar.md", "The whole grammar, and every before/after number");
 
-		md("Also: [the base theme's own rules, line by line](/framework/styles/layers/theme/) · [the 2026-09-01 survey that counted the families](/imagine/design/controls/) · [where `--size` came from](/imagine/design/size/) · back to [UI](/framework/ui/).");
+		md("Also: [the base theme's own rules, line by line](/framework/styles/layers/theme/) · [the 2026-09-01 survey that counted the families](/framework/ui/controls/study/) · [where `--size` came from](/framework/styles/system/studies/size/) · back to [UI](/framework/ui/).");
 	},
 
 	preview(nav){ return this.preview_card(nav, () => div.c("zoom-75 pad ui-controls-base", row)); },

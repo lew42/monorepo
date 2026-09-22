@@ -38,13 +38,13 @@ export default new Doc({
 	// then the derivation the constructor does, then the plumbing and the statics.
 	methods: "child add move previews walls preview preview_card preview_link link crumbs "
 		+ "nav nav_for chain nearest topic document container activate render columns default_column warn_if_hidden store "
-		+ "naming declare load_all_children deactivate "
+		+ "naming declare source_children load_all_children deactivate "
 		+ "mounts_in log_label assign load missing slug",
 
 	properties: "meta title children content url name label icon card classes "
-		+ "description parent app view loading route regions depth",
+		+ "description parent app view loading route regions depth related",
 
-	notes: "words declaring labels css layout columns roles panels previews findings decisions data-children",
+	notes: "declaring labels css layout columns roles panels previews findings decisions",
 
 	// Doc.overview_section()'s default calls catalog() — a rail, wrong for a wall this
 	// size. This override keeps the section's real children (the `overview:` list above,
@@ -80,7 +80,7 @@ export default new Doc({
 		});
 	},
 
-	files: "Page.class.js Page.css words.js Frame.js old/page.js old/children/page.js old/flow/page.js "
+	files: "Page.class.js Page.css old/page.js old/children/page.js old/flow/page.js "
 		+ "old/nav/page.js old/previews/page.js old/shell/page.js old/intro/page.js page.js readme.md "
 		+ "old/overview/readme.md overview/readme.md "
 		+ "overview/tabs/page.js overview/vtabs/page.js overview/rail/page.js overview/list/page.js "

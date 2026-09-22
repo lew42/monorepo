@@ -234,3 +234,123 @@ instead of `--ink`: an island that inverts with the mode cannot declare a fixed
 `color-scheme`, because the same line flips its own background. That also hands the band
 `--wash` and `--tint` in the right direction, which is the "background twin of `.muted`"
 `layouts/home/page.js` says it never had.
+
+## 2026-09-17 — the spacing rungs, and one page that IS the design system
+
+The owner: *"why do the ai cards use custom padding? ... WE NEED A DESIGN SYSTEM.
+MINIMAL TOKENS USED WHEREVER POSSIBLE."* Two things were wrong, and they were the same
+thing. There was no page that said what the design system is — the tokens were explained
+across 25 markdown files and 7 study pages — and the tokens were being *multiplied* at the
+call site rather than used, so the system existed on paper and not in the CSS.
+
+**The census.** Every `padding` / `margin` / `gap` declaration under `public/` was read and
+classified: **1,894 rows** across 125 stylesheets and 918 JavaScript files
+(`ai/2026-09-17/spacing-census/`). 1,064 (56%) were a bespoke number. 451 (24%) were a token
+times a multiplier, and those 451 held **28 different multipliers** — `0.5` 76 times, `0.4`
+61, `0.6` 55, `0.3` 45, `0.35` 33, down a tail to `0.05`. Only 125 rows (7%) used a token as
+it stands.
+
+**The fit.** The 451 rows carry 470 multipliers. Each candidate ladder was scored by asking,
+of all 470: is this multiplier within 15% of a rung? Fewest rungs clearing 80% wins.
+
+| ladder | rungs | covered |
+| --- | --- | --- |
+| `{0.5, 1}` — the owner's own instinct, a standard and a section | 2 | 27.4% |
+| `{0.25, 0.5, 1}` | 3 | 33.4% |
+| the best three rungs at any values | 3 | 72.6% |
+| the best four on a readable 0.05 grid | 4 | 79.6% |
+| **`{0.25, 0.35, 0.5, 0.7, 1}` — shipped** | **5** | **83.0%** |
+| the best five at any values (`1.05` is not a name) | 5 | 85.5% |
+
+Two rungs cover a quarter of what the site actually wrote; **no four readable rungs reach
+80%**. Five do — 390 of 470 multipliers, and 373 of the 451 whole rows (82.7%).
+
+**The shape nobody chose.** The five are **1, 0.707, 0.5, 0.354, 0.25** — each rung half the
+rung two steps above it, a root-2 ladder. The search found that in the data; it was not
+imposed. It is why the steps read as even rather than lumpy.
+
+**What landed in `framework.css`, additively** (one write, no existing value or selector
+changed): four tokens on a second `:where(*)` rule — `--gap-70` `--gap-50` `--gap-35`
+`--gap-25`, each `--gap` times its percent — and four classes in `@layer util`, `.gap-70`
+`.gap-50` `.gap-35` `.gap-25`. **The number in the name is a percent of `--gap`, never a
+length** (`.gap-2em`, which predates the standard, is the one word that means a literal
+length; a number with a unit is that length, a bare number is a percent).
+
+**The rule, for the next author:** *a spacing value is a token or a rung, never a multiplier
+and never a raw number; a control's own padding is `em`.*
+
+**The residue is the rule's other half.** Of the 80 multipliers the ladder misses, 39 are
+*above* the gap (1.2 to 3) — the step above `--gap` already exists and is `--flow` — and 41
+are *below* 0.21, under 3px at 1280. A value that small is never the space between two
+blocks; it is a control's own geometry. So: **under a quarter of the gap you are sizing a
+control, not spacing content.**
+
+**One defect named and not fixed.** Measured live: `--flow` is twice `--gap` at 1280
+(30.08px against 15.04px) but *smaller* than it at 3440 (45px against 46.2px), because the
+clamps cap at 2.5em and 2.6em. "The section step is bigger than the row gap" stops being
+true above roughly 2,000px. Changing a clamp every page already renders against is the
+owner's call, not a line added in passing — it is painted on the system page, where the two
+bars cross over at 3440.
+
+**The page.** [/framework/styles/system/](/framework/styles/system/) is the answer to "what
+should I look at to see our padding" — seven lengths painted at their real size at the
+reader's own window width, the class you type beside each, the `--size` ladder as three
+buttons, and the rule in one sentence. It ships **no stylesheet**, like every page under
+`styles/`: the page that is the design system is built out of the design system. It is the
+first line of `styles/readme.md`'s Use and the first child in `styles/page.js`.
+
+**The first consumer.** `ext/AITask/ai.css` — the file the owner pointed at — went onto the
+ladder in the same task. Its 55 spacing rows: 7 plain tokens → **12**, 0 rungs → **23**, 24
+token-times-a-multiplier → **0**, 6 control-`em` → **13** (every one now carrying a line
+saying why it is `em`), 12 raw → **1**, and that one is `margin-block-start: auto`, a
+keyword. A true A/B — the same page seconds apart with only `ai.css` swapped — differs by
+**0.52% of pixels** over four shots (Asks tab 0.00% at 1280 and 3440; a frozen day dashboard
+0.79% and 1.12%). Fewer numbers, not a redesign.
+
+**No new CSS scope was opened.** `css-scopes.txt` already reserves the bare word `gap` for
+`framework.css`, and a bare line reserves `.gap` *and* `.gap-*` — so `.gap-70` / `.gap-50` /
+`.gap-35` / `.gap-25` are inside a namespace this file already owns. The census over
+`public/` found no other `.gap-*` class anywhere (`.gap-2em` is framework.css's own;
+`.gap-half` appears once, as a wish in a personal sandbox's notes, not as a rule).
+
+## 2026-09-18 — the two calls the mastermind had left open, made
+
+The owner, after finding two spacing questions logged as "the owner's call" and left
+unimplemented: *"just make a decision and document the alternative, or make a toggle that
+switches between each one. I don't want you to wait and not implement something because
+you're the mastermind. Make the call."* Both calls below were made the same day
+(`ai/2026-09-17/calls-styles/`), each with its alternative kept on record rather than deleted.
+
+**Call 1 — `--gap`'s ceiling: 2.6em → 2.4em.** The census above already named the defect:
+`--flow` (the step between sections) is supposed to be the bigger of the two tokens, but its
+2.5em ceiling is lower than `--gap`'s old 2.6em ceiling, so above ~3000px wide the row gap
+overtook the section step. Measured at 400/1280/1920/2400/3440px, `--gap` before/after:
+14/15.03/24/30.69/46.19px → 14/15.03/24/30.69/**43.19**px, against `--flow`'s unchanged
+28/30.08/39.67/44.19/45px. Only the 3440 column moves — the floor and the `cqi` slope are
+untouched, so every page's spacing below ~3000px wide is byte-identical. A 20-page crawl at
+3440 (before and after, wrapped-row counts in every `.flex.wrap` and `.grid.auto` wall) found
+zero layout changes traceable to the edit — the one wall-count diff seen (`/framework/ai/`,
+28 → 29) was the live dashboard picking up this very task's own new log lines between the two
+crawls, not the CSS.
+
+Two alternatives were weighed and rejected:
+- **Raise `--flow`'s ceiling to 2.7em instead.** Rejected — it undoes the owner's own 1.5×
+  paragraph-gap verdict from 2026-09-13 (`framework.css`'s comment above the standard block),
+  which chose 2.5em specifically because 3em "looks bad, wastes space."
+- **Define `--flow` *from* `--gap`** (e.g. `--flow: calc(var(--gap) * 1.5)`), which would make
+  the crossing structurally impossible. Rejected — it welds two tokens the rest of the system
+  tunes independently (a page can raise its own `--gap` via `--size` without wanting its
+  paragraph rhythm to move by the same ratio), for a problem a smaller ceiling already fixes.
+
+Full numbers and the live picture: [`/framework/styles/system/`](/framework/styles/system/),
+[`doc/census.md`](/framework/styles/system/doc/census.md).
+
+**Call 2 — the ladder stays five rungs; two is the documented alternative.** Nothing on
+`/framework/styles/system/` itself changed — the five rungs (`--gap`, `--gap-70/-50/-35/-25`)
+were already the fitted answer, covering 83% of the 470-multiplier census within 15%. The
+owner's own instinct — two rungs, `--gap` and `--flow` alone, standard and section, closer to
+how Figma thinks about spacing — covers 27.4% within 15%, so the other 72.6% (about seven in
+ten of the multipliers the site actually wrote) would move by more than 15% if the ladder
+shrank to two. Two rungs wins on exactly one occasion: a brand-new site with no existing
+spacing to retrofit, where there is nothing yet to be within 15% of. Full fit table:
+[`doc/census.md`](/framework/styles/system/doc/census.md).

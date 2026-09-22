@@ -23,7 +23,7 @@ export default new Page({
 	description: "What matters most here, ranked by comparison",
 	icon: "equalizer",
 
-	children: "judge doc",
+	children: "judge ranked doc",
 
 	// ⚠ My own `screen()` draws both children as the things they are — a big way in and
 	//   a quiet docs link — so core's column list would print them a second time.
@@ -112,6 +112,7 @@ export default new Page({
 				? store.rows(at).length + " judgments cast here"
 				: "nothing to compare yet — add a second thing below and this turns on");
 
+			a.c("imp-doclink muted", "Ranked").href("/imagine/importance/ranked/");
 			a.c("imp-doclink muted", "Docs").href("/imagine/importance/doc/");
 		});
 

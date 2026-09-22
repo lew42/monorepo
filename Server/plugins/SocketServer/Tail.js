@@ -6,9 +6,41 @@ const files = new Map();   // abs file -> { offset }
 const subs = new Map();    // abs file -> Set<socket>
 
 /* ⚠ Browser input reaches fs.read here: a subscribed path must resolve under
- * public/ and name a .jsonl. */
+ * public/ and name a .jsonl.
+ *
+ * ⚠ A caller may hand this a bare url-path ("/framework/ai/v/3/board.jsonl",
+ * what dev/DevBar/says.js sends) OR a full absolute url WITH an origin
+ * ("http://localhost:8140/framework/ai/v/3/board.jsonl" — what
+ * `import.meta.resolve(".../board.jsonl")` returns, the framework's own
+ * ordinary way to build a module-relative url, per `code#4`). The old version
+ * here only ever stripped a LEADING SLASH before handing the string to
+ * `path.resolve`, so an absolute url's `http:` prefix survived and
+ * `path.resolve(PUBLIC, "http://localhost:8140/…")` built a nonexistent path
+ * UNDER public/ that still happened to end in ".jsonl" and so still passed
+ * the checks below — subscribe() then answered with THAT bogus path, which
+ * never matched the reader's own `streams` map key back in ext/JSONL/live.js,
+ * so a subscribe on that url got NO live frames, ever. The only thing that
+ * ever produced a value was live.js's own 1.5s client-side timeout, which
+ * falls back to a ONE-TIME plain fetch() AND — this is what made it read as
+ * "needs a reload" — removes the reader from the live registry at that same
+ * moment, so it never hears another append until the next full page load
+ * creates a brand-new subscribe. Bug found from the owner's report (2026-09-19,
+ * "my chat stream doesn't update without reloading"): confirmed nothing to do
+ * with `window.$BLOCKRELOAD` (a live probe of the WORKING pattern — a bare
+ * pathname, exactly what says.js already sends — delivered every appended
+ * line instantly with Block on, zero reloads); `/framework/ai/v/3/page.js`'s
+ * own `import.meta.resolve("./board.jsonl")` was the one call site using the
+ * broken form. `new URL(url, "http://x/")` reads either shape the same way —
+ * an absolute input keeps its own origin and this base is never used; a bare
+ * path resolves against the placeholder base — so `.pathname` is always just
+ * the path, and every existing caller (bare paths and `import.meta.resolve()`
+ * alike) now resolves correctly with no caller-side change. */
 function resolve(url){
-    const file = path.resolve(PUBLIC, String(url ?? "").replace(/^[\\/]+/, ""));
+    let pathname;
+    try { pathname = new URL(String(url ?? ""), "http://x/").pathname; }
+    catch { pathname = String(url ?? ""); }
+
+    const file = path.resolve(PUBLIC, pathname.replace(/^[\\/]+/, ""));
     return file.startsWith(PUBLIC + path.sep) && file.endsWith(".jsonl") ? file : null;
 }
 

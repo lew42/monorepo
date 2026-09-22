@@ -12,6 +12,9 @@ argues against adding a backend yet. Four pages, one stylesheet-free prototype, 
 - **[`edit/`](/imagine/cms/edit/)** — the editor. Source beside a live preview, one Save button.
 - **[`services/`](/imagine/cms/services/)** — a **mock** management UI for Cloudflare. Every
   control prints its `npx wrangler` line instead of running it.
+- **[`d1/`](/imagine/cms/d1/)** — the same idea against a real database instead of a file:
+  three rows in Cloudflare D1, read over `GET /api/pages?under=`, local-only until the
+  owner deploys it (`ai/2026-09-17/pages-in-d1/`).
 
 ## The two seams it is built from
 

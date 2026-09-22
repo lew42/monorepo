@@ -5,15 +5,45 @@ Reuse the one already running. ⚠ It used to pin a core (~130%) every few days;
 **fixed 2026-09-06**, but a server started before that is still running the old
 code — restart it. What it was: [`doc/spin.md`](./doc/spin.md).
 
-```javascript
-import Server from "./Server/Server.js";
-import SocketServer from "./Server/plugins/SocketServer/SocketServer.js";
-import LiveReload from "./Server/plugins/SocketServer/LiveReload.js";
+The owner-facing server also starts `whisper-server` for dictation on its own —
+[`plugins/Whisper.js`](./plugins/Whisper.js), `NO_WHISPER=1` to opt out; see
+[`ux/Dictate`](/framework/ux/Dictate/).
 
-SocketServer.use(LiveReload);
-Server.use(SocketServer);
-new Server();
-```
+**`node Server/health.mjs`** is a separate, optional "is it working" watcher — not a
+plugin, no port of its own, safe to run beside any of these servers or none: it
+headless-checks a page after the file that could have broken it changes, and tells
+the editing agent at its very next write. `HEALTH_BASE` picks which server to load
+pages against (default `http://localhost:8123`, the mastermind's). Full story:
+[`public/framework/ai/health/readme.md`](/framework/ai/health/).
+
+## The supervisor
+
+`server.js` at the repo root is a small supervisor: it forks the real server —
+[`run.js`](./run.js), every `Server.use(...)` — as a child, and restarts that
+child when `Server/` or `server.js` itself really changes (never on a plain
+read — same [`MtimeFilter.js`](./MtimeFilter.js) as below). `NO_SUPERVISE=1
+node server.js` skips it and runs `run.js` bare, exactly as `server.js` always
+used to.
+
+**It boot-tests a change before it ever touches the live child (2026-09-19).**
+A four-minute outage on 2026-09-19 (a `Server/` file that parsed but threw at
+boot) showed `node --check` proves a file *parses*, never that it *boots* — so
+now every real change first forks a CANDIDATE on a spare port with
+`BOOT_TEST=1` (a flag `Directory.js` and `LiveReload.js` honour with one line
+each, so a candidate never rebuilds `directory.json` or touches the
+reload-hold lock) and waits up to 8s for a real HTTP 200. Only then does it
+kill the old live child and start the new one — on any failure the live child
+is never touched, and `.server-boot-failed.json` at the repo root says why.
+Every kill is deadline-bounded, so the supervisor itself can never wedge, and
+a cold start into an already-broken tree stays up and waits for a fixing
+change instead of crash-looping. Full story and the eight-case proof:
+[`doc/watch.md`](./doc/watch.md).
+
+⚠ **Saving `server.js` does not upgrade a supervisor already running** — the
+owner's and the mastermind's each keep their own in-memory copy until
+restarted by hand (their *child* still restarts on any `Server/` change, same
+as always). Restart by hand only once you know this exact file boots — see
+`doc/watch.md`.
 
 ## Watching public/
 
@@ -26,6 +56,12 @@ and `"change"` for a write into an existing file. `LiveReload` takes both,
 ⚠ **One handle, not one per directory, is the whole point.** chokidar opened 8,532
 of them, and a handle whose directory is deleted underneath it spins for ever on
 Windows — that is what pinned a core. [`doc/spin.md`](./doc/spin.md).
+
+⚠ **A "change" event fires on a plain file READ too**, not just a write — this
+machine has Windows' last-access tracking on. [`MtimeFilter.js`](./MtimeFilter.js)
+only lets a "change" through when the file's `mtime` really moved; the
+supervisor above uses the same class on `Server/`. The trap, the measurement,
+and the proof: [`doc/watch.md`](./doc/watch.md).
 
 `LiveReload` feeds two channels — the protocol both sides build to is
 `public/framework/dev/Socket/doc/wire.md`.
@@ -42,9 +78,41 @@ Windows — that is what pinned a core. [`doc/spin.md`](./doc/spin.md).
 `Directory` rebuilds the two `directory.json` files and reports them by name, so
 a new file reloads the boards that list it without reloading the whole site.
 
+### Holding every reload for a batch of writes
+
+`node Server/hold.mjs on "<who> — <what>"` — before a batch of edits that touch a file the
+live site loads, this pauses `LiveReload`'s broadcast for every server watching this repo at
+once (the owner's, the mastermind's, any private one): changes still queue, deduped, but
+nothing gets sent until `node Server/hold.mjs off "<who>"` — one reload, once, for the whole
+batch. `.jsonl` streams (`Tail`, above) are a separate channel and are never held. The lock is
+one small JSON file at the repo **root** (`.reload-hold.json`, git-ignored, outside
+`public/` — a hold must never itself look like a change to watch), a list so two agents can
+hold at once, and it expires on its own after 5 minutes so it can never stick. `LiveReload`
+polls that one file every 500ms rather than opening a second watch handle — a hold also has to
+expire on a timer with no file write at all, so one mechanism does both jobs. Full design, the
+"prove" numbers and why the first poll has to wait for the server's own `"listening"` event
+(touching `socket_server.sockets` any earlier crashed the child at boot — Server.js hadn't
+finished constructing it yet): `public/framework/ai/2026-09-19/reload-hold/requirements.md`.
+
 The watcher used to lock every directory under `public/` against renaming (*Permission
 denied* from `git mv` and `Rename-Item` alike). Fixed with the same change — only
 `public/` itself carries a handle now.
+
+## What a browser can ask the dev server to do
+
+Every one of these is a `Socket` plugin, and every one comes in through the loopback-only
+upgrade below.
+
+| rpc | file | what it does |
+| --- | --- | --- |
+| `write(file, data)` | `Runtime.js` | writes one file under `public/`, creating directories |
+| `ls(dir)` | `Runtime.js` | lists a directory |
+| `rm(dir)` | `Runtime.js` | removes a path, recursively |
+| `move(from, to)` | `Runtime.js` | **renames one path to another under `public/`** — one atomic `fs.rename`, refusing a path that escapes `public/`, a source that is not there and a target that already exists; the reply carries the reverse move so the caller can undo. Also rewrites every link and import that pointed at `from`, site-wide, using the census `core/Page/tools/links.mjs` keeps at `public/links.json` — the reply's `links: {count, files}` says how many. Added 2026-09-18 for Make's real-page drag (`/imagine/paging/make/readme.md`) |
+| `append(file, lines)` | `Append.js` | appends whole lines to a `.jsonl` |
+| `cmd(command)` | `Runtime.js` | ⚠ `child_process.exec`, no allowlist — see below |
+| `ask({..., stream: true, preset})` | `Ask.js`, `Assistant.js` | a `claude -p` turn; `stream` adds `--include-partial-messages` and streams `ask_chunk`/`ask_done` as it generates — `ext/Ask/doc/decisions.md` |
+| `card_answer({id, answer})` | `CardAnswer.js` | the doorbell for a card that asked the owner a question (`say.mjs --ask`): appends the answer onto the same card on the board, tells the mastermind's inbox, and RINGS the session named on the card (`ask_to`) with one tiny headless turn given only the `SendMessage` tool — pushes `card_rung` when that finishes. `ai/2026-09-19/card-replies/` |
 
 ## The socket wire is loopback-only
 
@@ -76,6 +144,14 @@ serves unguarded to the same LAN — so reading one task log handed an attacker
 the id needed to fetch the next transcript. Same guard, same import, same
 shape as the socket fix above; a loopback caller (the dashboard's own
 `replay()` fetch) is unaffected, verified on a throwaway `PORT=8081` instance.
+
+**`AILogs.js` grew three more routes (2026-09-19, `devbar-chat`):** `GET
+/ai-logs/` (a cached index of every session — mtime+size cache, so 1.1GB of
+transcripts is not re-read per request), `GET /ai-logs/<id>/subagents/` and
+`/subagents/<file>` (a minion's own list and transcript, filename validated
+against `^agent-[0-9a-f]+\.jsonl$` — no path traversal). Same `loopback()`
+guard on every one; `AI_LOGS_DIR` is a test-only env override, never set
+against a real server.
 
 **`GET /screenshot` (`Screenshots.js`) is `loopback()`-gated from birth
 (2026-08-17, `shots-in-log`).** Serves screenshots a worker takes outside the

@@ -1,4 +1,4 @@
-import { Page, div, a, span, p, md } from "/app.js";
+import { Page, View, div, a, span, p, md } from "/app.js";
 import { Blog } from "../Blog.js";
 import { lead, when } from "../posts.js";
 

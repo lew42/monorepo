@@ -63,3 +63,91 @@ not sorted by counting. It went into Data rather than a new band: the band doc
 warns a band of *three* over-widens its cards at 3440px; six only narrows them, so
 that risk doesn't apply in this direction. `ui/readme.md`'s "nineteen" is now one
 behind — outside this task's fence, left for the next pass through `ui/`.
+
+## Two rules came back from the class (2026-09-17)
+
+`ux/Tree` merged into one class that day (its [`doc/decisions.md`](/framework/ux/Tree/doc/decisions/)
+has the argument), and two rules belong here rather than there.
+
+**`.ui-tree-row:focus` — the focus ring.** It lived in `Tree.css` scoped as
+`.ux-tree-keys .ui-tree-row:focus`, because the keyboard was a named subclass whose class
+could scope it. The keyboard is in the base class now, so there is no such class to scope
+with — and a focus ring is a rule about a **state**, which is exactly what this tier is for:
+it sits beside `:hover` and `.ui-tree-selected`. It is `:focus`, not `:focus-visible`,
+because the focus is *moved by script* on an arrow key and whether that counts as "visible"
+is a UA heuristic; it is always visible here, and that is the whole feature. The
+`outline-offset` is negative because the framework's positive 3px is drawn outside the row,
+which a 14em rail clips.
+
+**`.ui-tree-text` gained `min-width: 0`.** It already had `overflow: hidden` and
+`text-overflow: ellipsis`, and neither did anything: a flex item's floor is its **content**
+width unless you say otherwise, so a long label made the row wider rather than truncating.
+Nothing showed it while a row held only a caret, an icon and a label — the row simply grew.
+It showed the moment the class added a star and two row buttons after the label, which a
+long label then pushed off the end of the rail.
+
+## 2026-09-19 — one square frame, and a fold arrow you can see
+
+Two rules changed, and both reach every tree on the site, so both were re-checked on
+`/framework/ux/Tree/`, `/framework/ui/tree/`, `/imagine/paging/make/` and
+`/framework/styles/system/` afterwards: no page error, no row overflowing its rail.
+
+### The fold was a 9px glyph in a 9px box
+
+It read `font-size: 0.7em; width: 1em`. **A length in `em` resolves against the
+element's own font size**, so that "1em" box was 0.7 of the row's — on the site's rail
+(an 0.8em font) the whole control measured 9 × 9px. The owner could barely see it and
+nobody could hit it.
+
+It now sets no font size at all and takes the shared frame below: 12.8px of glyph in a
+16.6px square on the rail, 16px in a 20.8px square at a page's font size. It stays quiet
+by **colour** (`--subtle`), which is the right knob for "secondary", rather than by
+being too small to hit. GitHub's file tree and Notion's sidebar are the two references.
+
+### The frame both children wear
+
+The owner, 2026-09-19: *"the icons should be properly framed so that they always look
+good — in some sort of square frame, centered vertically and horizontally … sized in ems
+so they respond with the font size … fixed height and width, aspect ratio square."*
+
+```css
+.ui-tree-row { --ui-tree-frame: 1.3em; }
+.ui-tree-toggle, .ui-tree-icon {
+    display: grid; place-items: center;
+    width: var(--ui-tree-frame); aspect-ratio: 1;
+    line-height: 1;
+}
+```
+
+⚠ **`line-height: 1` is the half that actually fixes the drift.** The two boxes were
+already centred on the label — the row is `align-items: center`. What rode high was the
+glyph *inside* its box: it inherited the row's 1.4 line-height, which draws a line box
+taller than the glyph and then sits the glyph on its own baseline instead of in the
+middle. `place-items: center` centres the line box; `line-height: 1` makes that line box
+the glyph's own em square, so centring it centres the glyph. Measured at 1920: the icon
+ink's centre is 0.08px from the label ink's centre, on five rows out of five.
+
+⚠ **`aspect-ratio: 1` with only a width**, never a second length — one number cannot then
+disagree with itself.
+
+### An `em` in a custom property resolves where it is USED
+
+Worth knowing before writing another token like this one. An **unregistered** custom
+property inherits as a *token stream*, not as a computed length: `--ui-tree-frame: 1.3em`
+declared on the row is still the literal `1.3em` when a child reads it, and resolves
+against **that child's** font size. While the fold still carried `font-size: 0.9em`, this
+one token produced a 16.63px icon box and a 14.97px fold box — read back from the live
+page, both looking perfectly plausible in the stylesheet.
+
+Dropping the fold's font-size override is what makes one token mean one number. The
+alternative, `@property { syntax: "<length>" }`, would compute it to px at the row and
+inherit that — but it needs a computationally-independent `initial-value`, so any
+`.ui-tree-icon` used outside a row would collapse to a 0px box. Not worth it for one
+element that has no business setting its own font size anyway.
+
+### Both are `ui/`'s, not the class's
+
+Unchanged rule, restated because this change tested it: a rule about a **relationship or
+a state** stays in `ui/tree`, and `ux/Tree` wears these same classes. The frame is a
+relationship between the row's three parts, so it belongs here — which is also why one
+edit fixed the rail and every other tree at the same time.

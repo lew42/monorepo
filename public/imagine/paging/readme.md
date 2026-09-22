@@ -1,8 +1,9 @@
 # paging — one configurable page, six building blocks, twelve ready-made shapes. The realm is an app: a rail that never moves, and a middle that swaps
 
-Open [/imagine/paging/](/imagine/paging/). A real page is on the stage; the bar above it
-has every word that page is made of, one labelled dropdown each. Change one and the page
-changes. Pick another shape from the rail. That is the whole thing.
+Open [/imagine/paging/](/imagine/paging/). Six pictures, and every one of them is a real page
+running — one per building block, each configured so that block's own word is the thing you can
+see. Click one and you are on that word's page, with that one dropdown over a live page. Change
+it and the page changes. That is the whole thing.
 
 **The configuration is in the address, in the words the bar shows you.** Every change writes
 itself into the url (`?navigation=rail&page-colour=tint`), so the page you are looking at is
@@ -70,6 +71,13 @@ export default new Paging({
   the navigation word draws — hand it your own or it draws four samples. **`stage_props(node)`
   (`stage.js`) is the one place that works both out from a saved `page.json`** — a page you made
   and the same page *nested inside another* go through it, so they cannot draw different children.
+- **`bar_axes` says which words THIS page's bar shows.** Say nothing and it is all seven —
+  which is what the hub and the twelve library pages want. Say `bar_axes: ["room"]` and the bar
+  is one dropdown, and `More` reads *6 more words* and opens the drawer with every one of them
+  in it. Every block page derives it from the word it is about (`block.js`), the four mechanism
+  pages say `navigation`, and a template family says the three skin words — because its box is
+  drawn by the family, so the `content` dropdown could not reach it and did nothing at all
+  (measured 2026-09-17) · `toolbar.js` `shows()`
 - **`content` also takes a url.** Pick *A page or file…* in the bar and the address gets its own
   full-width line under the seven words. Three addresses answer: a page you made, a ready-made
   page, and a `.md` file — the first two are fetched and RUN inside the box, the third is
@@ -120,6 +128,14 @@ export default new Paging({
   shrink-wrapped itself to 307px inside a 1546px frame, silently. Names here are
   `PagingStage` / `PagingToolbar` · [doc/decisions.md](/imagine/paging/doc/decisions/)
 - **Set a View's fields before `super.initialize()`** — `View.initialize()` IS the render.
+- **A default on a PAGE subclass goes in `initialize()`, never a class field.** A class field
+  runs after `super()` returns, and `Page`'s constructor does `assign() → naming() → declare()
+  → initialize()` inside that `super()` — so the field silently overwrites what the page passed
+  in. `Block` and `Template` both set `bar_axes` with `??=` in `initialize()` for this reason.
+- **`grid-column: span 2` does not clamp on a one-column grid — it FORCES a second track.**
+  The hub's Room card is two columns wide, and at 400 the six-card wall came out `266px +
+  120.938px` with a 401px card in a 344px wall, scrolling the realm's middle sideways. It is
+  behind a container query on the wall now (`min-width: 40em`) · `paging.css` `.paging-shot-wide`
 - **A field shadows a method.** `card`, `opens`, `chosen`, `nested` have each bitten this
   realm; core's `Page.nav()` reads `this.card`, so a method of that name throws on every
   preview · [doc/decisions.md](/imagine/paging/doc/decisions/)
@@ -182,8 +198,8 @@ export default new Paging({
   `presets.js` (the twelve) · `paging.js` (the app, and the base class) ·
   `rail.js` (the nav grids) · `toolbar.js` (the bar of dropdowns) · `url.js` (the address) ·
   `config.js` (the drawer)
-- Next door: [/imagine/layouts/](/imagine/layouts/) owns the numbered arrangements;
-  [/imagine/shells/](/imagine/shells/) owns app chrome; [/imagine/sections/](/imagine/sections/)
+- Next door: [/layouts/](/layouts/) owns the numbered arrangements;
+  [/layouts/labs/shells/](/layouts/labs/shells/) owns app chrome; [/layouts/labs/sections/](/layouts/labs/sections/)
   owns the full-width bands; [templates](/imagine/paging/templates/) is the eleven shapes the
   rest of the site already ships.
 - [Cross](/imagine/paging/cross/) — **pick any two of the seven words** and every pair of

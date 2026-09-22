@@ -12,7 +12,7 @@ export default new Page({
 	initialize(){ this.columns(); },
 
 	content(){
-		md("No `width:` word — the **default** column: a 16em floor, 40em to grow into. Six fields, two columns.");
+		md("No `width:` word — the **default** column: 40em of reading width, frozen, with a 16em floor. Six fields, two columns.");
 		div.c("grid auto gap pad tint", () => {
 			[["Name", "Ada"], ["Role", "Engineer"], ["Team", "Core"], ["Since", "2019"], ["Status", "Active"], ["Level", "L5"]]
 				.forEach(([k, v]) => p(`${k}: ${v}`));   // p() reads backticks only, not bold — plain text

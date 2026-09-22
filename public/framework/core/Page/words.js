@@ -17,11 +17,11 @@
 
    ⚠ THIS FILE IMPORTS NOTHING AND TOUCHES NO DOM, on purpose. It is data. It is
      also THE ONE COPY on the site: `/imagine/paging/blocks.js` re-exports these five
-     lists rather than keeping its own, `/imagine/sections/` and `/imagine/layouts/`
-     read them from here, and `grep -rn "SURFACES\s*=" public/` finds exactly one
-     definition — this one. Before 2026-09-06 there were three, and two of them had
-     already drifted (`/imagine/layouts/system.js` wrote the same five words out by
-     hand with different sentences).
+     lists rather than keeping its own, `/layouts/labs/sections/` reads them from here,
+     and `grep -rn "SURFACES\s*=" public/` finds exactly one definition — this one.
+     Before 2026-09-06 there were three, and two of them had already drifted (the
+     numbered `/imagine/layouts/` lab, deleted 2026-09-18, was one — it wrote the
+     same five words out by hand with different sentences).
 
    ⚠ EACH ENTRY IS `{ id, title, means }` plus whatever its own control needs — an
      `icon`, the two navigation flags, the arrangement's layout. `id` is the value a
@@ -110,8 +110,9 @@ export const arrangement_of = id => ARRANGEMENT.find(entry => entry.id === id) ?
 /* WHERE A LAYOUT LIVES. One catalogue, `/framework/core/Layout/` — thirty
    arrangements, each proven at seven widths — so an arrangement word is a link to
    the shape it makes rather than a number a reader has to look up.
-   ⚠ It used to point at `/imagine/layouts/N/<id>/`, a realm's numbered grid. The
-     realm is still there; the proven catalogue is core's. */
+   ⚠ It used to point at `/imagine/layouts/N/<id>/`, a realm's numbered grid — deleted
+     2026-09-18, its arrangements mapped onto `/layouts/` ids instead
+     (`/layouts/doc/decisions/`); the proven catalogue is core's. */
 export const layout_url = id => "/framework/core/Layout/" + id + "/";
 
 // The layout an arrangement word compiles to, as a url. Undefined for a word with

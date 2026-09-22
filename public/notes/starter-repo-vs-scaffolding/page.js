@@ -81,7 +81,7 @@ a header bar over a wide band with four small boxes under it.`);
   a module that touches \`app\` before that exists is a bug.
 - [core/Layout](/framework/core/Layout/) — the "Holy Burger" wireframes, live. The
   holy-grail arrangement is one of the layouts the tree can build, at any width.
-- [Themes](/framework/styles/layers/theme/) — the note's answer is the one that shipped:
+- [Themes](/framework/styles/doc/theme/) — the note's answer is the one that shipped:
   a theme is a **class**, and switching it removes the other theme classes. Seen working
   on [/imagine/design/themes/](/imagine/design/themes/).
 - [The framework docs](/framework/) — the entry the "starter repo" would point a stranger

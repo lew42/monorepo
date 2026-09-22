@@ -9,8 +9,9 @@ demo(() => { h1("Hello"); }, "Caption — the code shown IS the code that ran.")
 rail.demo({ min: "26em" });   // any page, as a demo PAGE: path, stage, bar, source column
 demo.stage(hero);             // the render alone: the one resizable viewport
 demo.app(sample());           // a Page tree playing App and Router in a box
+demo.steps({ steps: [{ say: "Drag Jackets into Shoes", when: "move" }], stage: () => demo.stage(tree) });   // a demo beside the steps that explain it
 ```
-`page.demo()` is the whole demo UX and the only thing that draws one. `demo.exhibit()`, `demo.page()`, `demo.tree()` and `demo.layout()` are page **shapes** over it — `children:` factories — and `demo.source()` is the shell's own code block on its own. Each at [/framework/ext/demo/api/](/framework/ext/demo/api/); prototype and prose at [Shell](/framework/ext/demo/shell/).
+`page.demo()` is the whole demo UX and the only thing that draws one. `demo.exhibit()`, `demo.page()`, `demo.tree()` and `demo.layout()` are page **shapes** over it — `children:` factories — and `demo.source()` is the shell's own code block on its own. `demo.steps()` is a leaf door, the way `demo()`/`demo.stage()` are: a two-column hero for a page that used to lead with a title and a paragraph — a numbered list of minimal steps beside the demo, each one marking itself done when the demo fires the event it names, or on a click — [doc/method/steps.md](./doc/method/steps.md). Each door at [/framework/ext/demo/api/](/framework/ext/demo/api/); prototype and prose at [Shell](/framework/ext/demo/shell/).
 
 **Landed 2026-08-30 — the merge: 14 render variants to 6.** `demo(fn)`, `page.demo()`, `mini()`, and three engines (`stage`, `demo.app`, `layout.bar`). Deleted: `demo.stage.two()`, `two.js`, `two.css`, `twin()`, the `<details>` expando. The audit and the five-step order are in [ai/2026-08-30/demo-merge/proposal.md](/framework/ai/2026-08-30/demo-merge/); what each step actually did is in [doc/decisions.md](./doc/decisions.md).
 
@@ -42,5 +43,5 @@ preview(nav){ return this.preview_card(nav, () => mini("tabs")); }   // a card's
 - [doc/record.md](./doc/record.md) — twenty sections of question → options → verdict: the HTML pane, the toolbar, the width presets, the two-up's drag, the exhibit band at 390/810/1440/3440, every open question
 - [doc/decisions.md](./doc/decisions.md) — the retired readme: who uses it (counts), trap detail, the two soft dependencies, open items
 - `doc/method/*.md`, `doc/file/*.md` — one page per door and per file (the Doc's `methods:` / `files:`)
-- Files that matter: `shell.js` (`page.demo()` — the one demo UX), `demo.js` (demo, stage, `source_block()`), `exhibit.js` (exhibit, page, tree — shapes over the shell), `stage.js` (the one viewport), `mini.js` (the picture a preview card wants instead of a zoomed instance)
+- Files that matter: `shell.js` (`page.demo()` — the one demo UX), `demo.js` (demo, stage, `source_block()`), `exhibit.js` (exhibit, page, tree — shapes over the shell), `stage.js` (the one viewport), `mini.js` (the picture a preview card wants instead of a zoomed instance), `steps.js` (a demo beside its own steps, `steps.css` the four rules it needs)
 - `stage.js` exports `simulate`/`watch`/`drag`/`magnifier`/`ruler`/`WIDTHS`; `pane.js` (was `twin.js`) exports one device frame, for `ext/Panel/Workspace/viewports.js`

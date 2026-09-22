@@ -11,7 +11,7 @@ export default new Doc({
 
 	properties: "ready disabled connected",
 
-	methods: "singleton initialize connect open reconnect message reload changed eval send request rpc",
+	methods: "singleton initialize connect open reconnect message reload changed hold eval send request rpc",
 
 	notes: "localhost backoff wire decisions",
 

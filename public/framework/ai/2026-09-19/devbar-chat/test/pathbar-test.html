@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>pathbar test harness — not a real page, never linked</title>
+<link rel="stylesheet" href="/framework/framework.css">
+<link rel="stylesheet" href="/framework/dev/DevBar/devbar.css">
+<style>
+	body { margin: 0; background: #ddd; font-family: sans-serif; padding: 16px; }
+	.rig { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; }
+	.label { font: 12px/1.4 sans-serif; color: #333; margin-bottom: 4px; }
+	.head {
+		color-scheme: dark; color: var(--ink); background: var(--surface);
+		font-family: var(--mono); font-size: 0.8rem;
+		padding: 0.7em 0.9em; border: 2px dashed #999;
+	}
+	.dev-head-line { gap: 0.5em; }
+</style>
+</head>
+<body>
+
+<div class="rig">
+	<div>
+		<div class="label">340px (normal rail width) — deep url</div>
+		<div class="head" style="width:340px;">
+			<div class="dev-head-line flex v-center" id="head-a"></div>
+		</div>
+	</div>
+	<div>
+		<div class="label">250px — the owner's own test width, deep url</div>
+		<div class="head" style="width:250px;">
+			<div class="dev-head-line flex v-center" id="head-b"></div>
+		</div>
+	</div>
+	<div>
+		<div class="label">340px — short url (/framework/)</div>
+		<div class="head" style="width:340px;">
+			<div class="dev-head-line flex v-center" id="head-c"></div>
+		</div>
+	</div>
+</div>
+
+<script type="module">
+	import { span, label, input, button } from "/framework/core/View/View.js";
+	import pathbar from "/framework/dev/DevBar/pathbar.js";
+
+	const DEEP = "/framework/ai/2026-09-19/devbar-chat/test/";
+	const SHORT = "/framework/";
+
+	function head(id, url) {
+		const $head = document.getElementById(id);
+		const app = { router: { active: { url } } };
+
+		pathbar(app).append_to($head);
+		span.c("dev-hint", "ctrl + \\").append_to($head);
+		label.c("dev-knob", () => { input().attr("type", "checkbox"); span("block"); }).append_to($head);
+		label.c("dev-knob", () => { input().attr("type", "checkbox"); span("edit"); }).append_to($head);
+		button.c("dev-x", "✕").append_to($head);
+	}
+
+	head("head-a", DEEP);
+	head("head-b", DEEP);
+	head("head-c", SHORT);
+</script>
+
+</body>
+</html>

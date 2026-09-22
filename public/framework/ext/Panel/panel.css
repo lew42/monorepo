@@ -67,7 +67,7 @@
 	}
 
 	/* One class is the whole contract for "my top edge holds controls": the body reserves
-	   the bar's published height (`--panel-bar-h`, toolbar.css) and the overlay can never
+	   the bar's published height (`--panel-bar-h`, controls.css) and the overlay can never
 	   land on the first row it lights over. ⚠ Not emitted here — properties.js puts
 	   `.panel-controls` on the inspector's root, which workspace.js reaches through
 	   templates.js; any other control surface adopts it the same way, with no second rule. */
@@ -95,14 +95,14 @@
 	   A split wearing `.panel-group` (size.js's `grouped()`) collapses "innermost wins"
 	   onto ITSELF while nobody has drilled past it (`focus.js`): a descendant gets no
 	   hover affordance of its own, and the group's bar/edges light instead — reaching into
-	   toolbar.css's `.panel-bar` and split.css's `.panel-edge` from here rather than
+	   controls.css's `.panel-bar` and split.css's `.panel-edge` from here rather than
 	   editing either file. Higher specificity than their base reveal rules (six class
 	   selectors against four), so load order cannot flip this. The moment the group OR
 	   anything inside it holds `.focus`, both guards below stop matching and ordinary
 	   innermost-wins resumes underneath, unchanged. doc/focus.md. */
 	.panel-group:not(.focus):not(:has(.focus)) .panel > .panel-bar,
 	.panel-group:not(.focus):not(:has(.focus)) .panel > .panel-display { opacity: 0; pointer-events: none; }
-	/* ⚠ `.panel-bar *`, not just the bar: toolbar.css keeps the bar's own box permanently
+	/* ⚠ `.panel-bar *`, not just the bar: controls.css keeps the bar's own box permanently
 	   non-hit-testing (a full-width invisible strip would eat the split-edge clicks under
 	   it) and reveals its BUTTONS instead — so a descendant's handle/verbs need the same
 	   two-part suppress-then-reveal or a bar we meant to gate off stays draggable. */

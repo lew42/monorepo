@@ -1,0 +1,36 @@
+@layer site {
+	.as-sect { margin-block-end: calc(var(--gap) * 2); }
+	.as-h2 { margin-block-end: calc(var(--gap) * 0.5); }
+
+	.as-sent { font-style: italic; }
+	.as-reply {
+		min-height: 3em;
+		padding: var(--pad);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		white-space: pre-wrap;
+	}
+	.as-timing { margin-block-start: 0.4em; }
+	.as-num { font-family: monospace; }
+
+	.as-input { width: 100%; max-width: 40em; }
+
+	/* The streaming caret — a plain static mark by default; the blink is an
+	   enhancement, only where the viewer has not asked for less motion. */
+	.ask-stream-caret {
+		display: inline-block;
+		width: 0.5em;
+		height: 1em;
+		background: currentColor;
+		vertical-align: text-bottom;
+		opacity: 0.6;
+	}
+	@media (prefers-reduced-motion: no-preference) {
+		.ask-stream-caret { animation: as-blink 1s step-start infinite; }
+	}
+	@keyframes as-blink { 50% { opacity: 0; } }
+
+	.as-table { display: grid; grid-template-columns: repeat(4, auto); gap: 0.3em 1.2em; overflow-x: auto; }
+	.as-table > .as-th { font-weight: 600; }
+	.as-table > * { white-space: nowrap; }
+}

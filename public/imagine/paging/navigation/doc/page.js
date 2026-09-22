@@ -12,7 +12,13 @@ const RECORDS = {
 
 export default new Paging({
 	meta: import.meta,
-	title: "Docs",
+
+	/* ⚠ NOT "Docs". The realm already has a page called Docs — `/imagine/paging/doc/`,
+	     the long form for the whole realm — and this one is the measurement record for
+	     one page in it. Two pages under one title in one rail is a reader's problem,
+	     not a filing problem; the DIRECTORY is still `doc/` because six live links
+	     point at `navigation/doc/measurements/`. (2026-09-17.) */
+	title: "Measurements",
 	description: "How every number on the Navigation page was taken.",
 	icon: "straighten",
 

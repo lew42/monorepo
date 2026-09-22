@@ -21,8 +21,9 @@
      arrangement, the five surfaces and the three type steps — one copy for the whole
      site, so `grep -rn "SURFACES\s*=" public/` finds exactly one definition. Every
      importer here keeps working unchanged: `stage.js`, `toolbar.js`, `build/words.js`,
-     `templates/theming/`, `/imagine/sections/sections.js` and `/imagine/layouts/`
-     all read the same objects they always did. (2026-09-06, slice 3 of
+     `templates/theming/` and `/layouts/labs/sections/sections.js`
+     all read the same objects they always did. (`/imagine/layouts/system.js` did
+     too, until that realm was deleted 2026-09-18.) (2026-09-06, slice 3 of
      `ai/2026-09-06/graduate-plan/`.)
 
    ⚠ WHAT STAYS HERE IS THE LAB'S OWN CONTROL SURFACE: `CONTENT` (eight canned
@@ -62,7 +63,7 @@ export const CONTENT = [
 	{ id: "cards",     title: "Card wall",   icon: "grid_view",      means: "A wall of cards that reflows to fit its box." },
 	{ id: "dashboard", title: "Dashboard",   icon: "bar_chart",     means: "A row of numbers over a table." },
 	{ id: "settings",  title: "Settings",    icon: "tune",           means: "Labelled form fields in one column." },
-	{ id: "magazine",  title: "Magazine",    icon: "auto_stories",   means: "A real magazine cover — /imagine/mag/'s own code." },
+	{ id: "magazine",  title: "Magazine",    icon: "auto_stories",   means: "A real magazine cover — /layouts/labs/mag/'s own code." },
 	{ id: "blog",      title: "Blog",        icon: "rss_feed",       means: "A real blog lead and card wall, from the blog's own manifest." },
 	{ id: "sections",  title: "Sections",    icon: "view_agenda",    means: "Full-width bands stacked down the page — a hero, then stats." },
 	{ id: "docs",      title: "Docs",        icon: "menu_book",      means: "Prose with a code block in it." },

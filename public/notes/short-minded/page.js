@@ -66,10 +66,10 @@ The margin carries two timestamps, \`22:17\` and \`22:11\`.`);
 - [/imagine/paging/mechanisms/](/imagine/paging/mechanisms/) — **Full Swap**, built and
   named: swap is one of the four paging mechanisms, and "full" is its takeover mode. The
   four small frames on the right page are what its demos do.
-- [/imagine/layouts/](/imagine/layouts/) — "3–5 of the most categorical examples, as a
-  quick starting point": the realm is exactly that, a small approved set rather than a
+- \`/imagine/layouts/\` (deleted 2026-09-18) — "3–5 of the most categorical examples, as a
+  quick starting point": the realm was exactly that, a small approved set rather than a
   catalogue.
-- [/imagine/sections/](/imagine/sections/) — the \`SECTIONS\` half of the ladder, as three
+- [/layouts/labs/sections/](/layouts/labs/sections/) — the \`SECTIONS\` half of the ladder, as three
   frames become a real stack.
 - [/imagine/scenes/](/imagine/scenes/) — "3D Web via CSS 3D transforms", answered by
   building it: transforms, no WebGL.

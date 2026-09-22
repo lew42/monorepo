@@ -21,7 +21,7 @@ export default new Doc({
 	// spills Overview - Docs into the site nav as if they were pages (ui/page.js).
 	leaf: true,
 
-	children: "Auth Wizard Tree Course Filter Menu Pagination Tags",
+	children: "Auth Wizard Tree Course Filter Menu Pagination Tags Dictate Popover",
 
 	notes: "system decisions",
 

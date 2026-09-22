@@ -166,7 +166,7 @@ export class Layout extends Page {
 			["grows", String(this.grows), this.grows ? "a stack — content length can never break it" : "a bounded box: content longer than it has to go somewhere"],
 			["overflow", this.overflow ?? "—", this.grows ? "not asked of a growing layout" : "what happens to content longer than the box"],
 			["wraps", String(this.wraps), this.wraps ? "the track count follows the room — proven at 1 · 2 · 3 · 5 · 7 items" : "a fixed number of tracks"],
-			["tags", (this.tags ?? []).join(" · ") || "—", "facets, from /imagine/design/vocabulary/"],
+			["tags", (this.tags ?? []).join(" · ") || "—", "facets, from /framework/styles/system/studies/vocabulary/"],
 			["accepts", this.accepts, "what may go inside it"],
 			["allowed_in", this.allowed_in, "what it may go inside"],
 			["denies", (this.denies ?? []).join(" · ") || "—", "the deny list — three rules exist, and most layouts use none"],

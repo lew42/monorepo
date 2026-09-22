@@ -1,14 +1,13 @@
 import View, { div } from "/framework/core/View/View.js";
 import Panel from "./Panel.js";
-import { PanelDrag } from "./PanelDrag.js";
+import { PanelDrag, handle } from "./PanelDrag.js";
 import { grip } from "./grip.js";
-import { toolbar, handle } from "./toolbar.js";
 import { zoom_scrub } from "./tools.js";
 import { edges } from "./split.js";
 import { insert_bar } from "./insert.js";
 import { sizing } from "./size.js";
 import { scatter, resolve } from "./random.js";
-import { vocab, tools, offer, standard } from "./vocab.js";
+import { vocab, tools } from "./vocab.js";
 import { focus, focused, inspects, selection } from "./focus.js";
 import { overlays, drain } from "./overlays.js";
 import { views, paint, repaint, show, repaint_mirrors } from "./paint.js";
@@ -27,8 +26,15 @@ import Workspace from "./Workspace/Workspace.js";
    css: .panel-workspace, .panel, .panel-body, .panel-items — plus `.drag-placeholder`, whose
    module is imported above, `.section-band`, which reaches a panel through templates.js's
    lazy import, and `.panel-controls`, a payload's claim that the body reserve `--panel-bar-h`
-   for its top edge. `.panel-grip` is grip.css's, the bar is toolbar.css's. */
+   for its top edge. `.panel-grip` is grip.css's.
+
+   ⚠ IT LOADS `controls.css` TOO, AND THAT FILE USED TO BE `toolbar.css` — because the bar
+     it was named after is deleted (2026-09-18). What is in it now is the ONE button box the
+     rail, a seam's menu and the drag grip all share, and the strip the grip rides on. The
+     sheet had no other owner once `toolbar.js` went; this file builds `.panel-bar` and is
+     the module's front door, so it asks for it. doc/decisions.md. */
 View.stylesheet(import.meta, "panel.css");
+View.stylesheet(import.meta, "controls.css");
 
 /* One managed leaf: a name from the T vocabulary, or content the call site draws — or a
    whole `Panel` tree, which is what `structure(seed)` hands back. No saver, so save()
@@ -143,29 +149,25 @@ function view(item){
 	   with every overlay off still has to know how wide its panels are. */
 	sizing(item, $panel);
 
-	$bar.append(() => {
-		toolbar(item, $panel, $body, {
-			names: offer(item),
-			// `random` is offer()'s verb rather than a template, so its picture is ours too.
-			entries: { random: { icon: "casino" }, ...vocab(item) },
-			roll: name => roll(item, $body, name),
-			repaint: () => paint(item, $body),
-			// Lazy, like `space` itself — the layout space stays off every page that
-			// only wanted a panel. The mutation lands after the microtask, which is
-			// fine: `sow` moves items, and `draw()` rebuilds the DOM from the tree.
-			// ⚠ Except a one-leaf seed, which moves nothing — hence the repaint.
-			sow: standard(item) && (() => import("./generate.js").then(m => repaint(m.sow(sown(item))))),
-			// Handed in as a FACTORY, like `sow` — tools.js reads toolbar.js, so the bar
-			// can only ever be given its tools, never import them.
-			tool: $body && t.zoom ? () => zoom_scrub(item, $body) : undefined,
-			// The bar picks the word; what it MEANS is a class paint.js owns.
-			display: $body && (() => show(item, $body)),
-			// ⚠ A copy keeps its OWN grow — `mirror()` shares content and look, never a
-			// share of a row, or two duplicates would fight over one number.
-			copy: $body && (() => item.divide(item.parent?.get("dir") ?? "row",
-				new Panel({ data: { grow: item.get("grow") } }).mirror(item))),
-		});
-	});
+	/* ── THE STRIP AT THE TOP OF A PANEL, AND WHAT IS LEFT ON IT ──────────────────
+	   A drag grip. That is all.
+
+	   ⚠ THE FLOATING BAR IS DELETED (2026-09-18, `toolbar.js` with it). It carried FIFTEEN
+	     icons in 2026-08-19 and was cut to four — split into columns, split into rows, tune,
+	     close — because "nobody could remember them and half of them were clipped". Those
+	     four are now four ROWS in the rail (`properties.js`): split is one row of two
+	     buttons, close is the rail's own Close row, and `tune` is not needed because
+	     selecting a panel opens the rail (`tools.js`). The reason is the one this realm has
+	     measured twice: a control that floats over the thing it controls is not a control —
+	     it covers what you are trying to read, and it appears and disappears under the
+	     pointer. `doc/decisions.md`, and the report at `ai/2026-09-17/editor-select/`.
+
+	   ⚠ WHAT THE BAR'S `T` OBJECT CARRIED IS NOT LOST: `offer()`, `vocab()`, `roll()`,
+	     `sow()` and `copy()` are all still reachable — the rail draws every one of those
+	     words, and the seam's own menu draws the sizes. The one thing that had no other home
+	     was the magnifier, which never lived in the row anyway (it draws ON the body), so it
+	     is built here directly. */
+	if ($body && t.zoom) $bar.append(() => { zoom_scrub(item, $body); });
 
 	// ⚠ Out here, not in the builder above: `edges()` takes `$panel`, which the builder's
 	// own callback runs too early to see — the const is assigned only once `div.c()` returns.
@@ -181,31 +183,11 @@ function view(item){
 	return $panel;
 }
 
-/* WHAT a roll lands in. `sow()` replaces a panel's data and children in place, which is
-   right for the panel you struck — that panel becomes the layout. On the ROOT of a
-   `mode: document` workspace it is wrong: the layout's top-level rows become sections, and
-   twelve mini-panels is what the owner saw. A layout is a PAGE and a document is a stack of
-   pages' worth of band, so one roll = one section — sow into a fresh child instead.
-   ⚠ `document()`, never `get("mode")`: `split()` hands a root's data down to its first
-   section, so a section can be wearing the word (Panel.js). design §5. */
-const sown = item => item.document() ? new Panel().move(item) : item;
-
-/* The T menu picked a name. `random` is a verb, not a template — random.js knows what it
-   means, this file knows which vocabulary it draws from. */
-const roll = (item, $body, name) => {
-	if (name !== "random"){
-		item.set("template", name);
-		return paint(item, $body);
-	}
-
-	// ⚠ One redraw for the whole roll: `scatter()` adds up to twelve panels, and every
-	// `add` would otherwise rebuild the workspace and refetch every lazy template with it.
-	drawing = true;
-	scatter(item, vocab(item));
-	drawing = false;
-
-	if (item.leaf()) return paint(item, $body);
-	item.emit("add");                     // the one announcement the suppressed adds owe
-};
+/* ⚠ `roll()` AND `sown()` ARE DELETED (2026-09-18) — the two functions the bar's `T`
+     object carried. They were already dead: `toolbar.js` read `T.tool` and nothing else,
+     so `T.roll`, `T.sow`, `T.copy`, `T.names`, `T.entries`, `T.display` and `T.repaint`
+     had no reader at all, and the rail (`properties.js`) has its own door to every one of
+     those words. They went out with the bar rather than sitting here unreachable.
+     `doc/decisions.md`. */
 
 export { panel, Panel, scatter, vocab, tools, focused, repaint, show };

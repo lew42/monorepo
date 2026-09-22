@@ -1,5 +1,4 @@
-import { place } from "./toolbar.js";
-import { word_vars } from "./glyphs.js";
+import { word_vars, place } from "./glyphs.js";
 import { sizing } from "./size.js";
 import { text_apply, text_commit } from "./persist.js";
 import { repeat_apply } from "./repeat.js";

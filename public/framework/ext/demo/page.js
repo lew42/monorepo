@@ -1,6 +1,10 @@
 import { Doc, md, demo, h2, p, div, code, toc } from "/app.js";
 import { sample } from "./sample.js";
 
+/* Patches demo.steps() on — a page-local side effect, the way this file's own
+   door pages already patch each other. */
+import "./steps.js";
+
 const hero = () => {
 	div.c("wash pad flex v gap v-center", () => {
 		p.c("h2", "Ship it");
@@ -17,9 +21,9 @@ export default new Doc({
 	children: "shell",
 
 	subject: demo,
-	methods: "stage exhibit page tree layout app source",
+	methods: "stage exhibit page tree layout app source steps",
 	notes:   "record decisions",
-	files:   "app.css app.js demo.css demo.js exhibit.css exhibit.js layout.js mini.css mini.js page.js pane.js readme.md sample.js shell.css shell.js stage.css stage.js",
+	files:   "app.css app.js demo.css demo.js exhibit.css exhibit.js layout.js mini.css mini.js page.js pane.js readme.md sample.js shell.css shell.js stage.css stage.js steps.css steps.js",
 
 	content(){
 
@@ -153,6 +157,30 @@ demo.app(page, { scope: page, urls: true })   // scope is a REAL page — keep r
 		md("`demo.app()` plays **App and Router for one tree**: a url strip that is also a breadcrumb, an optional rail, and the region the pages mount in. The pages inside are ordinary `Page`s doing their own `render()` and `previews()`, and the clicks never reach the real Router — the url in your address bar stays put. The [Page demos](/framework/core/Page/) are fourteen of these. ⚠ A title is address enough (`Web` → `/web/`) — and object children only; a name string probes the server for a `page.js`. ⚠ Those derived urls are NAMES, not addresses, and by default the box emits `data-demo-url` instead of an `href` that 404s on middle-click; pass `urls: true` only when `scope:` is a real page.");
 
 		md("`sample()` is the shared sample tree — nine children, three of them a level deeper — so a demo that needs *a tree* takes this one and overrides the root. What changes between demos is then exactly the thing each demo teaches: [Navigation](/framework/core/Page/old/nav/) shows the same nine children as a wall, a rail, a sidebar and a set of crumbs, one `sample()` each.");
+
+		h2("demo.steps() — a demo beside its own steps");
+
+		demo.steps({
+			steps: [
+				{ say: "Read this step" },
+				{ say: "Read this one too" },
+				{ say: "Now click the box" },
+			],
+			stage: () => demo.stage(hero),
+		}).ac("toc-skip");
+
+		code.js(`demo.steps({
+    steps: [
+        { say: "Expand a branch", when: "expand" },
+        { say: "Drag Jackets into Shoes", when: "move" },
+        { say: "Turn on Adapt", when: "adapt" },
+    ],
+    stage: () => demo.stage(tree),
+});`);
+
+		md("**The shape a title and an intro paragraph used to be, replaced.** A numbered list of minimal steps — a verb phrase each, eight at most — beside whatever `stage:` builds. The reader does step one *in the demo*, right there, and the checkmark lands on its own: a step with `when` finishes itself the moment the demo fires that event anywhere inside itself (`$tree.el.dispatchEvent(new CustomEvent(\"move\", { bubbles: true }))` is the whole wiring on the demo's side); a step with none — like the three above, which have nothing to listen for — finishes on a click, same as every step can. The one above you has no events wired at all: click each line to see it happen.");
+
+		md("**The collapse at a narrow width is the `.rail` word's, not a new one** — the steps column already knows how to stack itself to a full-width top strip below 38em, reordering itself first, so `demo.steps()` writes zero new breakpoints. `side: \"left\"`/`\"right\"` only changes which one is built first; the [full record](/framework/ext/demo/api/steps/) has the why, the one-cue rule for the current step, and where a task hit a wall trying to wrap a page's OWN fixed-height layout in this.");
 
 		h2("Why");
 

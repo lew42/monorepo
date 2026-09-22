@@ -24,7 +24,7 @@ export default function ask(app){
 		//   after it textually would land in <body> instead of in here.
 		div.c("dev-ai flex v", async $ai => {
 			const found = await threads(url);
-			$ai.append(() => panel(url, found));
+			$ai.append(() => panel(app, url, found));
 		});
 	});
 }
@@ -75,7 +75,7 @@ const walk = (files, [head, ...rest]) => {
 const slugify = name => (name ?? "").trim().toLowerCase()
 	.replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40);
 
-function panel(url, found){
+function panel(app, url, found){
 	const pills = [];
 	let $lit;
 
@@ -89,7 +89,7 @@ function panel(url, found){
 	// ⚠ `empty()` is called AFTER the await, from inside a callback, for the captor.
 	const show = async task => {
 		const m = await new TaskJSONL({ url: `/${task}/task.jsonl` }).load();
-		$open.empty(() => chat({ task, resume: m.chat_session_id, history: m.chats,
+		$open.empty(() => chat({ app, task, resume: m.chat_session_id, history: m.chats,
 			context: selection, placeholder: "Ask about this page…" }));
 	};
 
@@ -128,9 +128,16 @@ function panel(url, found){
 	// with a click that only re-selects where you already were.
 	const last = pills.find(([, task]) => task === settings.threads?.[url]);
 
+	/* No thread open still gets a chat — an unrecorded one, with no `task`. It is
+	   what makes this tab usable the moment you open it: its **pick an element**
+	   button works straight away, and `+` is what turns the exchange into a record. */
 	if (last) pick(...last);
-	else $open.append(() => span.c("dev-val off",
-		pills.length ? "Pick a thread, or + for a new one." : "No threads on this page yet."));
+	else $open.append(() => {
+		span.c("dev-val off", pills.length
+			? "No thread open — ask away, or pick one above to record the exchange."
+			: "No thread here yet — ask away; + records the exchange.");
+		chat({ app, context: selection, placeholder: "Ask about this page…" });
+	});
 }
 
 export { ask, selection };

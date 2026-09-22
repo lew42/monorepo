@@ -31,6 +31,27 @@ it** — the fix was deleting the second sidebar, not changing the number.
 
 Three placements, one component, no `width` in `Sidebar.css`.
 
+## 2026-09-18 — resizing is not a fallback
+
+`Sidebar.css` now writes `.sidebar { --sidebar: clamp(12rem, var(--sidebar-w), 50%) }`
+— which reads, at a glance, like the exact `var(--sidebar, 19em)` mistake this file
+just spent a section warning against. It isn't one, and the difference is worth
+being precise about: a **fallback** (`var(--x, y)`) is read *by the consumer*, so
+every consumer has to agree to skip it — the two-numbers-that-drift problem. This
+is the **producer** re-declaring the token on itself, once, and a property declared
+directly on an element always wins over one it would otherwise inherit, regardless
+of layer or specificity. `.topic > .sidebar { flex: 0 0 var(--sidebar) }` in
+`/styles.css` never changed and never needed to: it still reads one token, still
+has no idea a `Sidebar` can resize itself, and still can't disagree with it — it is
+just reading a value the panel now sets instead of one `:root` always did. Nothing
+downstream of `.sidebar` gets a fallback either; it is `--sidebar`, the same name,
+resolving to a different real value because a `Sidebar` is now allowed to be the
+one thing on the page that says how wide it is. `doc/decisions.md`'s 2026-09-18
+section has the rest — including the one thing this DOES cost: a box elsewhere
+that reads `var(--sidebar)` to *match* a sidebar's width without being one
+(`apidoc/page.js` and two others) still reads `framework.css`'s plain `19em`,
+because that inheritance chain runs through `:root`, not through this element.
+
 ## The corollary
 
 **A component that ships a look has decided something that wasn't its call**, and

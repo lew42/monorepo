@@ -507,3 +507,24 @@ from `data.items` onto whichever child now carries the same key.
 on one cell only, `self → align-self: center`, grid `span → grid-column:
 span 2`, a forced `repaint()` keeps both, `toJSON → hydrate` round-trips
 `data.items` exactly, two Escapes (item then leaf), zero console errors.
+
+
+## `panel-focus` is the SITE's selection contract now (2026-09-18)
+
+It was always a document event carrying "the selected thing, or `null`", with no import in
+either direction. As of 2026-09-18 a **second editor announces on it**:
+[`/imagine/paging/make/`](/imagine/paging/make/) sends a page, a block or a run of text from
+its own middle pane, over a page drawn by a completely different renderer. It wears the same
+outline too — `.panel-ring` in `focus.css` is one declaration with two arms, the workspace
+arm written by this module's `focus.js` and the other by its consumer.
+
+**So a `detail` on this event may not be a panel, and may have no `root()`.** Two places ask:
+
+- `tools.js` returns early (`typeof e.detail.root !== "function"`) — the rail it fills is
+  this module's and cannot draw a page's words.
+- `focus.js`'s cross-root listener reads the announcement as "something else is selected
+  now" and lets go, without asking what root it came from.
+
+Before those two lines, a Make selection on a page that also held a workspace threw
+`e.detail.root is not a function` from a document listener, which names neither editor.
+**Sharing a contract means checking what arrived on it.**

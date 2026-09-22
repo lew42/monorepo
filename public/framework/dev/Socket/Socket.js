@@ -112,6 +112,18 @@ export default class Socket {
 			window.location.reload();
 	}
 
+	// ⚠ Called BY the server, like reload() — Server/plugins/SocketServer/LiveReload.js
+	// broadcasts this every time the reload-hold's holder list changes (never on
+	// every poll tick, only when it differs). `hold_holders` is read by
+	// dev/DevBar/hold.js for the readout beside Block; this file stays the one
+	// place that knows the wire shape, so hold.js never has to. A plain window
+	// event, not a bare property, because a tab can open dev/DevBar/hold.js
+	// AFTER a hold already changed the socket's state at least once.
+	hold(holders) {
+		this.hold_holders = holders || [];
+		window.dispatchEvent(new CustomEvent("dev-hold", { detail: this.hold_holders }));
+	}
+
 	// ⚠ Called BY the server, like reload() — this is MCP's `eval` tool, and it
 	// must never throw: message() has no catch, so one bad expression would take
 	// down every frame after it.

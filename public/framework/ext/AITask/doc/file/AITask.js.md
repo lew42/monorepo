@@ -24,8 +24,8 @@ module.
 `legacy()` and `requirements()` both check
 `!headers.get("content-type")?.includes("html")` before trusting a fetch's
 `res.ok` — the SPA fallback answers a 404 with `index.html` at HTTP 200, so
-`res.ok` alone would parse a webpage as JSON. `dashboard.js`, `feed.js` and
-`replay.js` each carry an independent copy of the same guard; see
+`res.ok` alone would parse a webpage as JSON. `dashboard.js` and
+`conversation.js` each carry an independent copy of the same guard; see
 [Improvements](#improvements).
 
 ## `base()` is the one seam that makes dynamic routing work
@@ -38,8 +38,8 @@ over `this.meta.url` for exactly that case — see
 ## Improvements
 
 1. **Hoist the content-type-sniffing fetch guard into one helper.** `legacy()`
-   here, plus `dashboard.js`'s `json()`, `feed.js`'s `load()` and
-   `replay.js`'s `load()` all inline the identical
+   here, plus `dashboard.js`'s `json()` and `conversation.js`'s `load()`
+   all inline the identical
    `!res?.ok || headers.get("content-type")?.includes("html")` check. Four
    independent copies of one trap. *(simple, important)*
 2. **`session()` probes `task.jsonl` blind.** On the dev server that is a socket

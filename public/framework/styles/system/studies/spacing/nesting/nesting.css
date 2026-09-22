@@ -1,0 +1,84 @@
+@layer base, theme, site, util;
+
+/* css: .nesting-wall .nesting-variant .nesting-name .nesting-note .nesting-demo
+ *      .nesting-box .nesting-label .nesting-blurb .nesting-stack .nesting-topic-head
+ *      .nesting-row .nesting-row-label .nesting-row-detail .nesting-flat
+ *      .nesting-flat-item .nesting-flat-label .nesting-flat-detail .nesting-readout
+ *      .nesting-takeaway .nesting-guidance
+ *
+ * `nesting-` is this page's own prefix, opened here. `styles/css-scopes.txt` is outside
+ * this task's write fence; the reservation line is in `decisions.md` under Open.
+ *
+ * Every box that has its OWN ground wears the framework's own `.surface.pad` — nothing
+ * here re-declares a background or a padding number. What is here is only the shapes
+ * around them: the wall's four-then-one grid, the stack's gap, the flat list's hairlines
+ * and indent. `nesting.js`'s `measure()` reads every one of these paddings back live off
+ * the render, so a number changed here changes the readout too — the two can never drift
+ * apart by hand.
+ */
+@layer theme {
+
+	/* THE WALL — four columns at 1280, one column at 400. A fixed breakpoint, not
+	   `auto-fit`: `auto-fit` counts its repetitions using the track's OWN max, and a
+	   `minmax(min(16rem,100%), 1fr)` track can undercount at exactly the width this page
+	   is trying to prove something at — `type/anchors/anchors.css` hit this same trap, and
+	   the fix there was the same one used here: say the ceiling, don't infer it. 900px
+	   sits comfortably between this brief's two named widths, 400 and 1280. */
+	.nesting-wall {
+		display: grid;
+		gap: var(--gap);
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+	}
+	@media (max-width: 900px) {
+		.nesting-wall { grid-template-columns: 1fr; }
+	}
+
+	.nesting-variant { display: flex; flex-direction: column; gap: var(--gap-35); min-width: 0; }
+	.nesting-name { margin: 0; }
+	.nesting-note { margin: 0; }
+	.nesting-demo { min-width: 0; }
+
+	/* Every `.surface.pad` box in the demo gets room from its neighbour via MARGIN, never
+	   padding — `measure()` only reads `padding-left`, so a margin here can never be
+	   mistaken for one more level of the thing the page is measuring. */
+	.nesting-box { margin: 0; }
+	.nesting-stack { display: flex; flex-direction: column; gap: var(--gap-35); margin-block-start: var(--gap-35); }
+
+	.nesting-label { margin: 0; }
+	.nesting-blurb { margin: calc(var(--gap-35) / 2) 0 0; }
+
+	/* (b) and (c) — the topic said once, above the demo's own box(es), and never boxed
+	   itself: neither variant spends a ground on it. */
+	.nesting-topic-head { font-weight: 700; margin: 0 0 var(--gap-35); }
+
+	/* (b) — one box, every item a row inside it. A hairline between rows, never a
+	   background change: that split is the whole point of this variant. */
+	.nesting-row { padding-block: calc(var(--pad) * 0.35); }
+	.nesting-row:not(:last-child) { border-block-end: 1px solid var(--line); }
+	.nesting-row-label { font-weight: 700; }
+	.nesting-row-detail { margin: 0.15em 0 0; font-size: 0.92em; }
+
+	/* (c) — no boxes anywhere. `padding-inline-start` on the item AND again on its detail
+	   is the "indent per level" the brief asks for — a REAL padding, so `measure()` reads
+	   it exactly the way it reads a card's own `.pad`, no special case needed for this
+	   variant. */
+	.nesting-flat-item {
+		padding: calc(var(--pad) * 0.3) 0 calc(var(--pad) * 0.3) 0.8em;
+		border-block-end: 1px solid var(--line);
+	}
+	.nesting-flat-item:last-child { border-block-end: none; }
+	.nesting-flat-label { font-weight: 700; }
+	.nesting-flat-detail { padding-inline-start: 0.8em; margin: 0.15em 0 0; font-size: 0.92em; color: var(--subtle); }
+
+	/* The readout under every demo — a fact, not a heading, so it stays small and mono. */
+	.nesting-readout { font-family: var(--mono); font-size: 0.8em; color: var(--subtle); }
+
+	/* The two computed sentences at the top of the page. `max-width: var(--measure)` so
+	   they read as prose even sitting above a `.wide` wall. */
+	.nesting-takeaway, .nesting-guidance {
+		max-width: var(--measure);
+		border-inline-start: 3px solid var(--prim);
+		padding-inline-start: 0.8em;
+		margin-block-end: var(--flow);
+	}
+}

@@ -69,7 +69,7 @@ Then two more ideas:
   and the usage tab leads.
 - [/imagine/paging/navigation/](/imagine/paging/navigation/) — "view trees w/ columns →
   preview → details → full-viewport", built as nine navigation mechanisms.
-- [/imagine/design/layout/](/imagine/design/layout/) — **"Breakout"**: wide sections are a
+- [/layouts/doc/studies/](/layouts/doc/studies/) — **"Breakout"**: wide sections are a
   word (\`wide\`, \`bleed\`) rather than negative margins, and this note is where the
   question was asked.`);
 

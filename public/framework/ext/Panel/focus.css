@@ -9,8 +9,21 @@
 	/* THE selection: one ring, written by focus.js and nobody else. Inset, so the panel's
 	   box never moves; `::after` so the hover ring below (`::before`) can sit under it. The
 	   `:has(.panel-props)` guard it once carried is gone (2026-08-16): the rail is a
-	   document-level surface now, so there is always a reader. */
-	.panel-workspace .panel.focus::after {
+	   document-level surface now, so there is always a reader.
+
+	   ⚠ TWO ARMS, ONE DECLARATION, AND THE SECOND ONE IS NOT A PANEL. `.panel-ring` is the
+	     same ring for anything that is not a panel at all — `/imagine/paging/make/` puts it
+	     on the page, the block or the run of text you selected in its middle pane, over a
+	     page drawn by a completely different renderer. The two editors share the `panel-focus`
+	     event already (doc/focus.md); sharing the OUTLINE as well is what stops the site
+	     growing a second, slightly different idea of what "selected" looks like. A second
+	     class rather than one generic name because the workspace arm is written by focus.js
+	     and this one by its consumer — they are two writers of one look, not one mechanism.
+	   ⚠ `position: relative` is on this arm and not the first: a panel is already positioned;
+	     a paragraph in somebody's page is not, and an inset ring on a static box would be
+	     drawn against whatever ancestor happens to be positioned. */
+	.panel-workspace .panel.focus::after,
+	.panel-ring::after {
 		content: "";
 		position: absolute;
 		inset: 0;
@@ -18,6 +31,8 @@
 		box-shadow: inset 0 0 0 2px var(--prim);
 		pointer-events: none;
 	}
+
+	.panel-ring { position: relative; }
 
 	.panel-workspace .panel.panel-hover::before {
 		content: "";

@@ -1,0 +1,23 @@
+/* Page health — the reader for Server/health.mjs's log. Small on purpose: one
+   status colour (the same --error/--warn/--ok tokens framework.css already
+   ships for a ramp like this — framework.css ~line 202), everything else
+   plain block flow. `@layer theme`, the same layer ai/v/2/v2.css uses for its
+   own dashboard look. */
+@layer theme {
+
+	.health { display: grid; gap: 1em; }
+
+	.health-clear { color: var(--ok); }
+
+	.health-section { display: grid; gap: 0.35em; }
+	.health-head { font-weight: 700; }
+
+	.health-row {
+		display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.4em 0.75em;
+		padding-block: 0.3em; border-bottom: 1px solid var(--fill-a08);
+	}
+	.health-error .health-url { color: var(--error); }
+	.health-warning .health-url { color: var(--warn); }
+	.health-text { flex: 1 1 20em; min-width: 0; }
+	.health-file, .health-time { font-size: 0.85em; }
+}

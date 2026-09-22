@@ -18,8 +18,9 @@ so an undeclared folder still resolves — *forgetting to declare costs the menu
 not the url.* See the [Children](/framework/core/Page/old/children/) guide, which is this
 property's long form.
 
-**Simplicity** — one line, four accepted shapes: a space-separated string, an array
-of names, an array of Pages or option objects, and **a plain object keyed by title**.
+**Simplicity** — one line, five accepted shapes: a space-separated string, an array
+of names, an array of Pages or option objects, **a plain object keyed by title**, and
+**a function** that answers with any of those, or a promise of one.
 An option object in the array form derives its `name` from `Page.slug(title)` when
 it declares no `name` of its own — `overview: [{ title: "A", … }, { title: "B", … }]`
 without a `name:` on either still gets two distinct cards.
@@ -31,6 +32,18 @@ children: {
     JS: null,                                    // declared only, like a bare name
 }
 ```
+
+## A function, when the children live in data
+
+```js
+children(){ return fetch("/my/tree.json").then(r => r.json()).then(tree => tree.pages); }
+```
+
+Core stores the function and calls it **once**, the first time anyone asks for a child —
+the Router walking into a deep url, or someone landing on the page itself — then declares
+whatever it answered with. Nothing is fetched at import, and a page that declares its
+children the ordinary way pays nothing for this. `../method/source_children.md`, and the
+record is `../data-children.md`.
 
 The key **is** the title, and `Page.slug(key)` is the url segment — the same
 derivation `naming()` makes for a standalone page, so `HTML` lands at `…/html/`.

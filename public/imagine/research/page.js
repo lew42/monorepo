@@ -36,8 +36,8 @@ View.stylesheet(import.meta, "research-front.css");
      far below them, re-grouped by topic all over again for no reason the data
      needs (Program.js: no field pairs an opinion to a theory, but the TOPIC
      grouping there was already redundant with the cards above it). Tried the
-     owner's 3-column card (public/imagine/layouts/LayoutsCard.js is the same
-     shape): left = who/what, centre = the topic's own newest theory LIVE (not
+     owner's 3-column card (`/imagine/layouts/`'s catalogue used the same shape,
+     before that realm was deleted 2026-09-18): left = who/what, centre = the topic's own newest theory LIVE (not
      a stat), right = the credence readouts. Kept — see doc/decisions.md for
      the measurements. `topic_cards()`/`topic_card()` override the base grid of
      small tiles; `board()` is gone because its job now lives inside each card,
@@ -78,7 +78,8 @@ class ResearchFront extends Program {
 	}
 
 	/* ── the dig, as 3-column cards ──
-	   Same shape as /imagine/layouts/'s catalogue: a small intro on the left, the
+	   Same shape `/imagine/layouts/`'s catalogue used, before that realm was deleted
+	   2026-09-18: a small intro on the left, the
 	   actual thing in the middle, its numbers on the right. Here the "thing" is
 	   the topic's own newest theory — real research, not a stat about it. */
 	topic_cards(all){

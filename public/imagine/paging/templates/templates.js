@@ -24,6 +24,28 @@ View.stylesheet(import.meta, "templates.css");
 
 export class Template extends Paging {
 
+	/* ── THREE WORDS IN THE BAR, AND THE FOURTH WAS A LIE ────────────────────
+	   A family page's box is drawn by the family itself (`draw:` below), so the
+	   CONTENT word cannot reach it: measured 2026-09-17 on `/templates/columns/` —
+	   switching content from Article to Card wall left the stage's text
+	   byte-identical, while navigation, room, arrangement and the three skin words
+	   all changed it. A dropdown that does nothing reads as broken (the owner's
+	   standing rule), and it sat in the bar of all twelve family pages.
+
+	   So the bar carries the three words this page's own sentence promises — the
+	   content's colour, the page's colour and the type size — and the rest are
+	   behind `More`. `toolbar.js` `shows()`.
+
+	   ⚠ IN `initialize()`, NOT AS A CLASS FIELD. A class field initializes AFTER
+	     `super()` returns — and `Page`'s constructor does `assign() → naming() →
+	     declare() → initialize()` inside that `super()` — so a field would silently
+	     overwrite a `bar_axes` a page passed in. This is the `classes = "x"` trap
+	     the code skill names, in its other direction. */
+	initialize(){
+		this.bar_axes ??= ["surface", "background", "type"];
+		return super.initialize?.();
+	}
+
 	// What the stage opens on. A family page is about the SHAPE, so the surface and
 	// the type scale start where the family looks most like itself.
 	config(){
@@ -39,6 +61,11 @@ export class Template extends Paging {
 	}
 
 	content(){
+		// ⚠ ABOVE THE DEMO, and it is the only thing that may be. A family whose
+		//   premise the owner has moved away from says so in one line before you
+		//   read it (`Paging.supersedes()`); every other family draws nothing here.
+		if (this.superseded) this.supersedes(this.superseded);
+
 		/* ⚠ THE ADAPTER, not the page. `families.js` asks its host for `at("style")`
 		     to pick a tone word, and a `Paging` has no axes any more — so the draw
 		     seam hands the family a two-line object reading the STAGE's own config.

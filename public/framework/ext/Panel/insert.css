@@ -26,7 +26,7 @@
 	/* ⚠ And past the BAR, not just the grip strip (the owner, 2026-08-19: "it interferes
 	   with underlying buttons"): at a vertical seam's head sit the left panel's `close` and
 	   the right panel's handle; at a horizontal seam's start, the lower panel's handle. The
-	   stub starts one bar-height in (`--panel-bar-h`, toolbar.css) plus the grip clearance,
+	   stub starts one bar-height in (`--panel-bar-h`, controls.css) plus the grip clearance,
 	   so it never sits on a button it is not. */
 	.panel-insert {
 		position: absolute;

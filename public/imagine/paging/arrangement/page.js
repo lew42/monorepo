@@ -5,7 +5,7 @@ import { block } from "../block.js";
    page, a nav grid of seven. Regions: one. Preview: core's card.
 
    Arrangement is where the page's OTHER parts sit: a bar, a rail, an aside. The
-   sibling realm /imagine/layouts/ owns the numbered layouts these compile to, and
+   sibling realm /layouts/ owns the numbered layouts these compile to, and
    each value below names its number rather than inventing a second vocabulary. */
 
 export default block({

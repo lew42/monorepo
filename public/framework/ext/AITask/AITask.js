@@ -3,12 +3,15 @@ import { View, div, span, p, button } from "../../core/View/View.js";
 import { TaskJSONL } from "../JSONL/JSONL.js";
 import md from "../markdown/md.js";
 import { ui } from "../../ui/ui.js";
-import { replay } from "./replay.js";
-import { feed } from "./feed.js";
+import { conversation, reveal, wanted_message } from "./conversation.js";
+import { asks as ask_wall } from "./asks.js";
+import { needs_of } from "./needs.js";
+import { decisions as decision_wall } from "./decisions.js";
 import { progress, spend } from "./stats.js";
 import { segments, current, links_row } from "./card.js";
 import { shot_wall } from "./shots.js";
 import { chat } from "../Ask/chat.js";
+import { streamed as reply_streamed } from "../Ask/reply.js";
 import { fold } from "./message.js";
 
 View.stylesheet(import.meta, "ai.css");
@@ -25,10 +28,13 @@ const outcome_cell = text => {
 	return brief.length >= text.trim().length ? text : () => fold(brief + " …", () => p(text));
 };
 
-/* A local Requirements · Report · Session toggle, built from `ext/tabs`'s own
-   CSS classes by hand (`web/nav/tabs/page.js` sets the precedent) — this is a
+/* A local Asks · Requirements · Report · Session toggle, built from `ext/tabs`'s
+   own CSS classes by hand (`web/nav/tabs/page.js` sets the precedent) — this is a
    JS-only swap between named sections of ONE page, not a routed page set, so
-   `Page.prototype.tabs` (linkable urls over declared children) doesn't fit. */
+   `Page.prototype.tabs` (linkable urls over declared children) doesn't fit.
+
+   Returns `{ select }` so one tab can send the reader to another: the Asks tab's
+   "the prompt" link opens Session at the message the ask was made in. */
 function tab_bar(sections, active){
 	const panels = new Map();
 	const built = new Set();
@@ -67,6 +73,8 @@ function tab_bar(sections, active){
 		panels.forEach(($p, n) => $p.el.hidden = n !== name);
 		[...$bar.el.children].forEach((el, i) => el.classList.toggle("active", sections[i][0] === name));
 	}
+
+	return { select };
 }
 
 /**
@@ -89,8 +97,15 @@ function tab_bar(sections, active){
  */
 export class AITask extends Page {
 
+	/* ⚠ `wide`, not the default `main` track. A task page is not prose: it is a
+	   wall of ask cards, a conversation with a rail beside it, and four tables of
+	   figures, and at 1280 the reading column gave all of that 602px — two of the
+	   three tabs were squeezed into a third of the screen. `wide` is main plus the
+	   breakout (890px at 1280, 1419 at 1920), and `ai.css` keeps every paragraph,
+	   heading and list inside it on `--measure`, exactly the way a page column does
+	   — so the prose is unchanged and only the things that wanted room get it. */
 	content(){
-		div.c("ai-task flow", async $s => {
+		div.c("ai-task flow wide", async $s => {
 			const [m, req] = await Promise.all([this.session(), this.requirements()]);
 			$s.append(() => m || req ? this.report(m, req) : md("No `task.jsonl` or `session.json` beside this page yet."));
 		});
@@ -100,7 +115,7 @@ export class AITask extends Page {
 	// dev server, so a running task's own page follows its log.
 	async session(){
 		const t = new TaskJSONL({ url: this.base() + "task.jsonl" });
-		await t.live(() => this.$live && this.refresh(t));
+		await t.live(() => this.streamed(t));
 		if (t.loaded) return t;
 
 		// ⚠ A legacy task's task.jsonl never appears, so the probe would stand as a
@@ -125,18 +140,100 @@ export class AITask extends Page {
 		return res?.ok && !res.headers.get("content-type")?.includes("html") ? res.text() : null;
 	}
 
-	/** The outline: Requirements · Report · Session, Report open by default —
-	    the answer, not the brief, is what a task page leads with. A task with
-	    only a brief (proposed, not yet running) has nothing to tab between.
-	    Override a part, not this — unless you mean to reorder them. */
+	/** The outline: Asks · Requirements · Report · Session.
+	 *
+	 *  **Asks comes first and opens by default whenever the log carries any** —
+	 *  what the owner asked for outranks what a session did about it. Without
+	 *  asks the page is what it always was: Report open, the answer before the
+	 *  brief. A task with only a brief (proposed, not yet running) has nothing
+	 *  to tab between.
+	 *
+	 *  A url carrying `?m=<uuid>` or `#m-<uuid>` names one message of the
+	 *  transcript, so it opens Session instead and scrolls there.
+	 *  Override a part, not this — unless you mean to reorder them. */
 	report(m, req){
 		if (!m) return this.head(m, req);
 
-		tab_bar([
+		let tabs;
+		const to_prompt = uuid => { tabs.select("session"); reveal(uuid); };
+
+		const sections = [
 			["requirements", "Requirements", () => this.head(m, req)],
 			["report", "Report", () => { this.$live = div.c("ai-live flow"); this.refresh(m); }],
 			["session", "Session", () => { this.chat(m); this.log(m); }],
-		], "report");
+		];
+		// After Asks, before Report: what was wanted, the brief, what was chosen, the answer.
+		if (m.decisions?.length) sections.splice(1, 0, ["decisions", "Decisions", () => this.decisions(m)]);
+		if (m.asks?.length) sections.unshift(["asks", "Asks", () => this.asks(m, to_prompt)]);
+
+		const message = wanted_message();
+		tabs = tab_bar(sections, message ? "session" : m.asks?.length ? "asks" : "report");
+		if (message) reveal(message);
+	}
+
+	/**
+	 * Everything the owner asked for, as preview cards, with the "needs you"
+	 * strip above them. See `asks.js`.
+	 *
+	 * ⚠ Redrawn on a streamed append only when something this tab SHOWS has
+	 *   changed — the owner's order, or the set of items waiting on the owner.
+	 *   Every other append (a log line, an agent landing) leaves it alone,
+	 *   because rebuilding the wall re-fetches every serving task's manifest and
+	 *   closes whatever sheet the reader had open. `sign()` is that test.
+	 */
+	asks(m, to_prompt){
+		const sign = () => JSON.stringify([m.ranks ?? {}, needs_of(m, this.base()).map(n => n.id + n.minutes)]);
+
+		// ⚠ A statement, not an expression: a captured callback's RETURN VALUE is
+		//   appended too, which would move the tab to the end of its own wrapper.
+		const state = this.asks_state = {
+			was: sign(),
+			redraw: () => this.$asks?.empty(() => { ask_wall(m, this.base(), to_prompt, state.redraw); }),
+			streamed: () => {
+				const now = sign();
+				if (now === state.was) return;
+				state.was = now;
+				state.redraw();
+			},
+		};
+
+		return this.$asks = div.c("ai-asks-panel", () => { ask_wall(m, this.base(), to_prompt, state.redraw); });
+	}
+
+	/**
+	 * Every choice this task made, with Approve / Improve on each. See
+	 * `decisions.js`.
+	 *
+	 * The open row and the note box are held HERE, not in the module, so a
+	 * verdict arriving over the socket can redraw the whole tab without closing
+	 * what the reader had open — `state.redraw` is the seam that does it.
+	 */
+	decisions(m){
+		// ⚠ A statement, not an expression: a captured callback's RETURN VALUE is
+		//   appended too, which would move the tab to the end of its own wrapper.
+		const state = this.decision_state = {
+			open: null,
+			improving: null,
+			redraw: () => this.$decisions?.empty(() => { decision_wall(m, state); }),
+		};
+		return this.$decisions = div.c("ai-decisions-panel", () => { decision_wall(m, state); });
+	}
+
+	/**
+	 * Every panel that draws from the manifest, redrawn on each appended line.
+	 *
+	 * ⚠ Each one is guarded because a tab's panel is not built until the reader
+	 *   first selects it (`tab_bar`) — before this existed the callback said
+	 *   `this.$live && …`, so on a task that opens on Asks NOTHING streamed.
+	 */
+	streamed(m){
+		if (this.$live) this.refresh(m);
+		this.decision_state?.redraw();
+		this.asks_state?.streamed();
+		// A reply filed from ANY tab arrives here as an appended `chat` line, so
+		// every reply thread on this page redraws itself from the log — no
+		// reload, and a second window follows along. `ext/Ask/reply.js`.
+		reply_streamed();
 	}
 
 	/* Where this is right now — the same `now` the card shows, above the checklist
@@ -240,9 +337,16 @@ export class AITask extends Page {
 
 	/* Talk to this task's session from the page. The first message FORKS the
 	   task's own session — a headless turn must never share a transcript a human
-	   still has open — and the fork's id lands as `chat_session_id`. See ext/Ask. */
+	   still has open — and the fork's id lands as `chat_session_id`. See ext/Ask.
+	   ⚠ Folded, and it is the fold that matters: open, the composer and its
+	   history were the whole first screen of the Session tab and the conversation
+	   the tab is FOR began below the fold. Talking to a session is a tool you
+	   reach for; reading it is why you came. */
 	chat(m){
-		div.c("ai-header", () => span.c("ai-group-title muted", "Chat with this session"));
+		return fold("chat with this session", () => this.composer(m));
+	}
+
+	composer(m){
 		chat({
 			// A thread's path under `public/` — the one shape every Ask RPC takes.
 			task: this.base().replace(/^\/|\/$/g, ""),
@@ -252,14 +356,20 @@ export class AITask extends Page {
 		});
 	}
 
-	/* ⚠ No `session_id` in the manifest means NO log at all — feed()/replay() both
-	   return silently, which reads as "the server can't serve it". Say which. */
+	/* The transcript, read as a conversation — `conversation.js`.
+	   ⚠ No `session_id` in the manifest means NO log at all, and the renderer
+	   would just return silently, which reads as "the server can't serve it".
+	   Say which. */
 	log(m){
 		if (!m.session_id) return p.c("muted", "No `session_id` in this manifest — the transcript can't be found. A task's first `assign` should carry it.");
 
-		feed(m.session_id);
-		replay(m.session_id, "this session — as threads");
-		div.c("ai-nested", () => m.agents?.forEach(a => replay(a.session_id, a.task ?? "agent")));
+		conversation(m.session_id);
+
+		/* An agent that ran in its OWN session has its own transcript; one spawned
+		   inside this session is a sidechain and is already folded into the steps
+		   above, so it is not listed twice. */
+		const own = (m.agents ?? []).filter(a => a.session_id && a.session_id !== m.session_id);
+		own.forEach(a => fold("agent — " + (a.task ?? "agent"), () => conversation(a.session_id)));
 	}
 }
 

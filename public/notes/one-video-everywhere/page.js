@@ -65,9 +65,7 @@ and beside it **Intro + Outcome + ToC**. Then the distribution sketch: a box mar
 > ③ Group, Form, Message → **1,000 group members → launch Discord** → *100 will care?*
 
 Then: *FB → explain OpenMike, Discord? Live events, Stream ↓ Stage, $, Roles, etc* and
-*Join Group? ↓ Send message? ↓ Form? On Record?*
-
-The original, which only opens on a local checkout (the inbox is not in the repo): [2026-09-06-008.jpg](/notes/inbox/2026-09-06-008.jpg).`);
+*Join Group? ↓ Send message? ↓ Form? On Record?*`);
 
 		md(`## What it points at
 

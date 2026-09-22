@@ -4,6 +4,8 @@ import { rail, restore, set, settings } from "./settings.js";
 import { reclaim } from "../Claim/claim.js";
 import grip from "../../ext/grip/grip.js";
 import width from "./width.js";
+import { edit, set_edit } from "../../ext/Ask/edit.js";
+import pathbar from "./pathbar.js";
 
 View.stylesheet(import.meta, "devbar.css");
 
@@ -27,7 +29,7 @@ export default function devbar(a){
 		// live on a different screen from the readout. width.js says why.
 		div.c("dev-head flex v", () => {
 			div.c("dev-head-line flex v-center", () => {
-				span.c("dev-title", "dev");
+				pathbar(app);
 				span.c("dev-hint", "ctrl + \\");
 
 				// ⚠ The global IS the state — Socket reads it live — and this is the one
@@ -39,6 +41,20 @@ export default function devbar(a){
 					if (window.$BLOCKRELOAD) $box.attr("checked", true);
 					span("block");
 				}).attr("title", "Block live reload — window.$BLOCKRELOAD");
+
+				// The one switch every editor control on the site reads instead of its
+				// own dev-socket check (ext/Ask/edit.js). Its own document, not
+				// settings.js, so ext/ and layouts/ modules can read it without
+				// importing the rail — readme.md, doc/decisions.md. Reloads on flip:
+				// every control decides whether to render at construction time, not
+				// live, the same reason a navigation is what applies most settings here.
+				label.c("dev-knob", () => {
+					const $box = input().attr("type", "checkbox")
+						.on("change", function(){ set_edit(this.el.checked); location.reload(); });
+
+					if (edit()) $box.attr("checked", true);
+					span("edit");
+				}).attr("title", "Edit mode — on shows drag/drop, verdicts, Make's writes and every other editor control; off previews production");
 
 				button.c("dev-x", "✕")
 					.attr("title", "Close (Ctrl + \\)")

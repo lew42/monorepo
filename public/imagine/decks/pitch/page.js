@@ -127,6 +127,7 @@ export default new Deck({
 	group: "The deck",
 	// Three of the six, not all six: at a card's width a sixth frame is 40px and says
 	// nothing. The cover, the widest cut, and the close.
+	shapes: ["1:s", "1:l 3:s 1:n", "q"],
 
 	width: "full",
 	index: true,

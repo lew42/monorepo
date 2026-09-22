@@ -13,7 +13,11 @@ export const MIN = 200;
  * ⚠ `restore()` settles on a MICROTASK, and microtasks drain before the first paint
  *   — so the rail comes back the way you left it with no flash, despite `load()`
  *   being a promise. Anything that needs the state must chain onto it. */
-export const settings = { open: false, width: null, tab: "page", knobs: [], threads: {} };
+// ⚠ `tab: "chat"` is the FRESH-PROFILE default only — `restore()` below
+// Object.assigns whatever was saved straight over it, so anyone who already
+// has a `tab` remembered (even the old "page" default) keeps opening on that
+// one; this only decides what a browser that has never opened the rail sees.
+export const settings = { open: false, width: null, tab: "chat", knobs: [], threads: {} };
 
 export function set(values){
 	Object.assign(settings, values);

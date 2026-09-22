@@ -1,7 +1,9 @@
 # Styles — the CSS strategy under every page: four layers, six type levels, as little else as possible
 
 ## Use
-Stop at the first rung that works: nothing → a utility class → an existing component's class → the module's own `.css`, layout only → `/styles.css`, skin.
+**The design system: [/framework/styles/system/](/framework/styles/system/)** — the seven lengths every space on this site is made of, painted live, and the class you type to ask for each one. Three tokens (`--pad` `--gap` `--flow`) and four rungs under the gap (`--gap-70` `--gap-50` `--gap-35` `--gap-25`); a spacing value is one of them, never a multiplier and never a raw number. [`system/readme.md`](./system/readme.md)
+
+Then: stop at the first rung that works: nothing → a utility class → an existing component's class → the module's own `.css`, layout only → `/styles.css`, skin.
 
 ```js
 div.c("flex gap v-center pad", () => {

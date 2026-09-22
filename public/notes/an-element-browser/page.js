@@ -33,7 +33,7 @@ const TABS = [
 		note: "The note names three.",
 		items: [
 			{ name: "Flex", url: "/framework/styles/layouts/flex/", desc: "the row-and-column word set" },
-			{ name: "Gap",  url: "/imagine/design/spacing/",        desc: "one spacing scale, clamped" },
+			{ name: "Gap",  url: "/framework/styles/system/studies/spacing/",        desc: "one spacing scale, clamped" },
 			{ name: "Wrap", url: "/framework/core/Layout/doc/props/", desc: "the props a layout node takes" },
 		],
 	},
@@ -42,7 +42,7 @@ const TABS = [
 		note: "The note draws the tab and leaves it blank. The site filled it in twice.",
 		items: [
 			{ name: "Section styles", url: "/framework/styles/sections/", desc: "hero, features, footer, FAQ…" },
-			{ name: "Sections lab",   url: "/imagine/sections/",          desc: "the same sections, composed into pages" },
+			{ name: "Sections lab",   url: "/layouts/labs/sections/",          desc: "the same sections, composed into pages" },
 		],
 	},
 	{
@@ -176,15 +176,15 @@ actually has.`);
   nodes.
 - [styles/elements](/framework/styles/elements/) — the *Elements* tab, built: text,
   lists, code, table, forms, media, misc, each one shown rather than described.
-- [/imagine/sections/](/imagine/sections/) — the *Sections* tab, built as compositions
+- [/layouts/labs/sections/](/layouts/labs/sections/) — the *Sections* tab, built as compositions
   you can read a page out of.
 - [ext/demo](/framework/ext/demo/) — "if each example is its own sub-page.js, you can
   easily link to it" — that is what the demo shell does: every demo has its own URL, its
   code beside it, and a width you can set.
-- [/imagine/design/spacing/](/imagine/design/spacing/) — the *Squeeze* vs *section
+- [/framework/styles/system/studies/spacing/](/framework/styles/system/studies/spacing/) — the *Squeeze* vs *section
   padding* argument, settled: padding is a clamp, so it collapses at 400 and does not
   blow out on a mega screen.
-- [/imagine/design/themes/](/imagine/design/themes/) — the theme dropdown the note draws,
+- [/framework/styles/system/studies/themes/](/framework/styles/system/studies/themes/) — the theme dropdown the note draws,
   working. A theme is a class on the root, and switching it removes the others.
 
 The container-query line is still true and still bites: a container query **cannot

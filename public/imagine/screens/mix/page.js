@@ -14,7 +14,7 @@ const here = new URL(".", import.meta.url).pathname;
 export default new Screen({
 	meta: import.meta,
 	title: "Mix",
-	description: "A column that splits its own height.",
+	description: "A column that splits its own height — bands are click targets that open a third column.",
 	icon: "dashboard",
 	shapes: ["1", "1 1/2", "1 1/2 1"],
 

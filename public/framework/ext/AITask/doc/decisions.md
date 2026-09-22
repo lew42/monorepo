@@ -17,7 +17,8 @@ and a task dir with no `page.js` of its own still gets one, through its day's
 | `board.js` | the listing's shape — `dated()` (the time spine), `list()`, `group()` |
 | `dashboard.js` | enumeration + loading — `rail()` (index), `active_strip()`, `dashboard()` (a day), `effort_board()` (one tag), `glance()` (a thumb) |
 | `AITask.js` | one task's detail page, and the template a task's own `page.js` extends |
-| `feed.js` / `replay.js` | the transcript, as a live feed and as browsable threads |
+| `asks.js` | the **Asks** tab — what the owner asked for, as preview cards with the detail one click down |
+| `conversation.js` | the transcript, read as a chat: talk in the stream, tool calls folded to one line |
 | `shots.js` | the screenshot wall — `shot_wall()`, lazy thumbnails of a task's logged `shot` lines |
 | `chat()` (in `AITask.js`) | ext/Ask's panel — talk to this task's session, from the page |
 | `stats.js` | pure derivations — `progress`, `spend`, `usage_of`, `tail_activity`, `timeline_of` |
@@ -91,11 +92,13 @@ Each usage window is fixed-length, so `resets_at` gives how far in we are — a
 
 ## The template, and its override
 
-`report()` is `AITask`'s outline: a local Requirements · Report · Session tab
-bar over named methods a task's own `page.js` can override — `outcome`,
-`links`, `status`, `checklist`, `extra`, `shots`, `figures` build the Report
-tab (the answer leads); `chat` + `log` build Session; `head` builds
-Requirements. [doc/template.md](template.md).
+`report()` is `AITask`'s outline: a local Asks · Requirements · Report ·
+Session tab bar over named methods a task's own `page.js` can override.
+**Asks is first and open by default whenever the log carries any**
+([doc/asks.md](asks.md)); without asks, Report opens, because the answer leads.
+`outcome`, `links`, `status`, `checklist`, `extra`, `shots`, `figures` build
+Report; `chat` + `log` build Session; `head` builds Requirements.
+[doc/template.md](template.md).
 
 ## Who uses this
 
@@ -300,9 +303,16 @@ No file in this module goes uncalled.
   assume the two-level `ai/<date>/<slug>/` shape — a browsable `<page>/ai/`
   would need a generalized walk, not a hardcoded depth.
 - Subagent transcripts (`<session>/subagents/agent-*.jsonl`) aren't served.
-- `replay.js`'s `load()`/`turns()`/`is_prompt()` are not exported, so
-  `feed.js` carries ~15 lines of the same shape. Hoist when a third caller
-  wants it.
+- ~~`replay.js`'s `load()`/`turns()`/`is_prompt()` duplicated in `feed.js`~~ —
+  closed 2026-09-17: both files were replaced by one `conversation.js`, so
+  there is one copy of that shape again. `replay.js`'s other recorded
+  improvement, "a specific turn can't be deep-linked", closed with it: every
+  owner message is `id="m-<uuid>"` and `?m=<uuid>` opens the Session tab
+  there.
+- The conversation still POLLS the transcript (localhost, `Range` request, 30s)
+  rather than streaming it. A socket would be exact, but the transcript lives
+  outside the repo, so the dev server would have to watch
+  `~/.claude/projects/` to offer one.
 
 ## Where replays come from
 

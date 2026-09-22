@@ -23,11 +23,11 @@ rewrites it.
   ```
   `set` replaces what `path` ends at, `del` removes it, `append` pushes `value` onto the
   array `path` ends at. `apply()` in `json.js` is the whole replayer, in nine lines.
-- **`page.js` is the handoff** and the only code in the tree: it fetches both files and
-  hands each node to `add()`. Two overrides make a cold deep url work — `child()`, because
-  the Router asks the PARENT for each segment, and `load_all_children()`, because landing
-  on the parent itself has no segment to walk. ⚠ `route()` is not the seam: core calls it
-  synchronously and would assign a promise onto a Page as if it were a config.
+- **`page.js` is the handoff** and the only code in the tree: it declares `children()` as a
+  **function**, and core calls it once — on the Router's walk in, or on a cold landing here —
+  and waits for it before anything renders. Since 2026-09-17 that is all this file does;
+  it used to write `child()` and `load_all_children()` overrides of its own
+  ([`core/Page/doc/data-children.md`](/framework/core/Page/doc/data-children/)).
 
 ## Can a page exist *entirely* as json?
 
@@ -50,9 +50,10 @@ that computes. That page can live in this tree as one more child — `edit/` is 
    the node's own content box (`redraw()` in `json.js`), but a changed **title**, a new child,
    or a deleted page is next-load, because core builds the column head and the rail and there
    is no way to ask it to build them again.
-2. **A declared data source** — `children: source` where the source is a promise of configs,
-   so the two overrides in `page.js` become one word and every page in the site can be
-   data-backed without repeating them.
+2. ~~**A declared data source**~~ — **done, 2026-09-17.** `children()` may be a function that
+   returns a promise of configs, so the two overrides that used to live in `page.js` are one
+   word now and every page in the site can be data-backed without repeating them:
+   [`core/Page/doc/data-children.md`](/framework/core/Page/doc/data-children/).
 
 ## Watch out
 
@@ -70,10 +71,11 @@ that computes. That page can live in this tree as one more child — `edit/` is 
   the real `edit/page.js` directory. Any child with a `page.js` wins over data.
 - **Nothing fetches at import.** A page constructs itself when its module loads, so the load
   is memoised behind `ready()` and only a visit pays for it.
-- **`load_all_children()` needs core's own guard restated**, or a cold deep url throws
-  "Chaining cycle detected for promise" from the microtask queue (fixed 2026-09-05 — the guard
-  is `paging/make/page.js`'s, copied verbatim, and its own comment names this file as the
-  other place the bug lived).
+- **The "Chaining cycle detected for promise" guard is core's now**, not this file's. Writing
+  the wait as a `load_all_children()` override — which both this page and `paging/make/page.js`
+  used to do — means restating core's own `levels <= this.loaded` guard inside it, and both
+  shipped without it until 2026-09-05. The override went away on 2026-09-17:
+  [`core/Page/doc/data-children.md`](/framework/core/Page/doc/data-children/).
 
 ## More
 

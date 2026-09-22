@@ -12,6 +12,7 @@ exactly that.
 (`Saver.js:23`) now wraps the loop in `try/finally`, so `this.writing` always
 clears — a rejected write is warned (`console.warn`) and costs that one save,
 not every save after it. Still prefer resolving `false` on a handled failure over
-throwing: `LocalStorageSaver.write()` does exactly that around `setItem`
-(`QuotaExceededError`), which is why the common case never reaches `drain()`'s
-catch at all.
+throwing: `LocalStorageSaver.write()` does exactly that, delegating to
+`Page.Store.write_raw` (`core/Page/Page.class.js`, merged 2026-09-18 — the one
+guarded `setItem`/`QuotaExceededError` catch `core/Sidebar`'s own store now
+shares too), which is why the common case never reaches `drain()`'s catch at all.

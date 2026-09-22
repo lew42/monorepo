@@ -1,3 +1,8 @@
+> **Superseded 2026-09-17.** `feed.js` and `replay.js`, the two transcript
+> viewers this file's later waves describe, were replaced by one
+> `conversation.js` (its notes are on the [Files tab](/framework/ext/AITask/files/)). What is
+> below is the record of how they got there, kept as history.
+
 # AITask — how it got here
 
 Session-by-session record of the waves that built this module. The readme beside

@@ -51,7 +51,7 @@ export default new Page({
 	icon: "public",
 	width: "large",
 
-	children: "existing prior research decisions mvp topic omnibox local",
+	children: "existing prior research decisions mvp topic omnibox local workflows",
 	index: true,   // content() draws the children; core leaves its row list out
 
 	content(){
@@ -66,7 +66,11 @@ research and reasoning behind it, not the thing itself.
 
 **Where this stands:** the smallest end-to-end slice now runs on one machine in about fifteen
 seconds — a topic, a page inside it, a signed-in user and a like that is a real database row
-([see it](./mvp/), [run it](/framework/ai/2026-09-06/platform-slice/run/)).`);
+([see it](./mvp/), [run it](/framework/ai/2026-09-06/platform-slice/run/)).
+
+**How would sign-up actually look?** [Workflows](./workflows/) is a wall of every sign-up and
+sign-in flow as a demo app you click through, landing page to logged in, with a live click count
+on each one.`);
 
 		this.previews();
 

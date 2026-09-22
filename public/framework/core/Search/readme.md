@@ -45,4 +45,4 @@ search.rank("columns");        // best first
 - [`doc/filters.md`](/framework/core/Search/doc/filters/) — the facet model, and why the tag groups are empty today
 - Files: `Search.js` (the corpus, the ranking, `Search.Filters`), `Omnibox.js` (the box and its
   one `omnibox(app)` installer), `Search.css` (`omnibox-`), `tags.js` (tag → axis, the only
-  thing core knows about the [vocabulary](/imagine/design/vocabulary/))
+  thing core knows about the [vocabulary](/framework/styles/system/studies/vocabulary/))

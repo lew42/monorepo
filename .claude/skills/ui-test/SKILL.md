@@ -55,6 +55,14 @@ to exist, `git status` it first; recovered per file with `git show HEAD:<path> >
 resize — a breakpoint bug becomes a same-run before/after) · `shot` (every step shoots;
 `shot` only names a moment).
 
+⚠ A punctuation key in `key "..."` needs its US-layout physical NAME, never its glyph —
+`key "Control+\\"` fails with `Unknown key`; `key "Control+Backslash"` is the one that works
+(2026-09-19). ⚠ A known `drive.mjs` bug: the `offscreen-x` flag compares against the viewport
+width captured ONCE at plan start, so a mid-run `viewport w h` resize moves the page but not
+that stored width, and anything past the OLD width false-positives as offscreen after a later
+resize — double check with `doc.sw <= doc.cw` if a `viewport` step precedes the flag you're
+reading (2026-09-04).
+
 - `move x y steps` is the drag — **steps ≥ 10**, or one jump lands where no handler expected it.
 - `sel` is **CSS** for `watch`; Playwright engines (`"text=Open the rail"`, quoted) work for
   `click`/`hover` but read as `null` in the rects.
@@ -62,17 +70,16 @@ resize — a breakpoint bug becomes a same-run before/after) · `shot` (every st
   compound (`.a>.b:nth-of-type(1)`) — args split on bare whitespace and `click` silently uses
   only the first token, no error (2026-08-21: clicked the whole `.pg-viewport` instead of the
   intended child).
-- `type sel text` — `sel` must be ONE bare token; quotes do NOT protect it (the first space
-  splits selector from text, the rest lands in `text`, and the mangled selector's parse error
-  hides in that step's `error` field). Focus first (`click "<compound sel>"`), then
-  `type input:focus <text>`. And it **APPENDS**: it does not select-all first, so typing into
-  Build's Name field (prefilled "New page") produced "New pageBlock proof" and saved a page to a
-  directory called `new-pageblock-proof` — nothing warned, the step read as a success. Clear the
-  field first (`eval` its `.value = ""`, or `key "Control+a"` after the click) whenever it is not
-  empty (2026-09-05).
+- **`type sel text` wants `sel` bare, always — unlike `click`/`hover`, never quoted.** `type`
+  splits its args on the first space either way: unquoted, a compound selector's tail mangles
+  into `text`; quoted, the quote marks ride into the selector and it never resolves ("the input
+  is disabled"). Focus first (`click "<compound sel>"`), then `type input:focus <text>`.
+- **`type` APPENDS, no select-all** — it turned Build's prefilled "New page" field into "New
+  pageBlock proof" with no warning (2026-09-05). Clear it first (`eval .value = ""`, or
+  `key "Control+a"` after the click) when it isn't empty.
 - `dblclick x y` is a distinct gesture — `down`/`up` twice never synthesizes one (2026-08-29).
 - There is no `select` verb. `click sel` then `key "ArrowDown"` + `key "Enter"` sets a `<select>` headless and fires the real `change`; `key` alone (no click) sends the arrow to the document and reads back as "the dropdown did nothing". And this site keeps a hidden duplicate of a realm's toolbar in the DOM, so `select[title='navigation']` matched the hidden one and `click` timed out 30 s on a control plainly visible in the png — add `:visible` (2026-09-13).
-- `eval` runs as native `page.evaluate` — a Playwright-only selector engine (`text=`, `:has-text()`) inside its `document.querySelector` throws `not a valid selector`; plain CSS only there (2026-09-04).
+- `eval` runs as native `page.evaluate` — a Playwright-only selector engine (`text=`, `:has-text()`, and `:visible` too) inside its `document.querySelector` throws `not a valid selector`; plain CSS only there. `:visible` IS the right fix inside a `click`/`hover`/locator string — just never inside an `eval`'s `document.querySelector` — filter with `e.checkVisibility()` there instead (2026-09-04, 2026-09-17).
 - `eval` is ONE expression (`(() => { … })()` for statements); its value lands in `steps.json`,
   and a promise is awaited — `eval import('/app.js').then(m => m.drawer(…))`.
 - **A synthetic `input`/`change` is not typing.** Setting `f.value` and dispatching `input`/
@@ -98,7 +105,7 @@ or numbers that look like a finding and belong to the wrong element.
   alike. The root is the deepest `.active-page` with `offsetWidth > 0` that is not inside the
   thing you are measuring, or the module's own class (`.yt-marks .yt-start`). Reach a page
   object by DOM containment, never `Foo.all.at(-1)` — construction order is import order.
-- **`:visible` settles a duplicate in one token**: `click ".paging-more:not(.paging-more-quiet):visible"`.
+- **`:visible` settles a duplicate in one token**: `click ".paging-more:not(.paging-more-quiet):visible"`. When two duplicates are BOTH visible-shaped (an SPA keeps a whole hidden trail of ancestor pages in the DOM), `:visible` alone still matches more than one — add something structural too (`:not(.std-browse-tier)`), never `:visible` alone. And an `eval` that reads a hidden page's `innerText` gets a real string back (it falls through to `textContent`, which walks hidden children) — filter every `eval` selector the same way you filter a `click`, with `checkVisibility()` or a nonzero `getBoundingClientRect().height`, not just the ones that use `click`/`hover` (2026-09-17).
 - **Filter every structural sweep** through `e.checkVisibility()` (or `rect.width > 0`) — a
   zero-size sweep that skips it flags nearly every page in a realm, all of them `display: none`
   or `contents` and correct by design. For the same reason, `watch` a real box on a columns
@@ -196,18 +203,16 @@ component rule** — check `display`, not just the class list.
 - **A timed-out `click` leaves focus on BODY, so the next `key` step fires at the DOCUMENT** and can commit a real action: `click .imp-who` matched a hidden duplicate inside a closed `<details>` in the next column, timed out 30 s, and the following `key "2"` reached the page's global keydown handler and appended a real judgment to the owner's committed `.jsonl` — the step itself reported no error (2026-09-13). In a tool that writes, never put a bare `key` after a `click`/`type` you have not proved landed: assert `document.activeElement` in an `eval` between them, or scope the selector and resolve it in an `eval` first.
 - `console` errors are per step, so the step that broke the page is the one that names them.
 - No `move` after `down` = no drag at all: `pointerdown` alone commits nothing.
-- `click sel` silently no-ops on an element revealed only by an ANCESTOR's `:hover`
+- **`click sel` silently no-ops on an element revealed only by an ANCESTOR's `:hover`**
   (`.parent:hover > .child { display: … }`) — Playwright's actionability re-check breaks the
-  hover chain, even right after a `hover parent` step (2026-08-21, `.pg-add`). Best route,
-  no coordinates: `hover ancestor-sel`, then `hover "ancestor-sel>.child"`, then `down`/`up` —
-  the pointer is already inside the ancestor, so the reveal survives the actionability check
-  (2026-08-27, proved on `.pg-add`). Fallback: coordinate `move cx cy` + `down` + `up` —
-  **centres from a probe eval, never rect corners**: a corner lands on the boundary and clicks
-  the neighbour, a real action on the wrong node, no error (2026-08-27, tree-row miss). Aim at
-  a SHALLOW/leaf target: hovering an outer box whose center lands inside a nested child reveals
-  both their hover-children, and the `move` toward the outer's can transit out of the nested
-  hover zone, shifting the target before `down` lands — no error, nothing happens (2026-08-21,
-  three silent misses on a root `.pg-add`; diagnosed via `elementFromPoint`).
+  hover chain even right after a `hover parent` step. Best route, no coordinates:
+  `hover ancestor-sel`, then `hover "ancestor-sel>.child"`, then `down`/`up` — the pointer stays
+  inside the ancestor, so the reveal survives. Coordinate fallback (`move cx cy` + `down` +
+  `up`) needs **centres from a probe eval, never rect corners** (a corner clicks the neighbour
+  instead, no error) and a SHALLOW/leaf target — an outer box's centre can sit inside a nested
+  child and the `move` toward it can shift the real target mid-transit, no error, nothing
+  happens. Four real misses taught this, all on `.pg-add`/a tree row, 2026-08-21/27; diagnosed
+  with `elementFromPoint`.
 - **A full-card `::after` overlay eats a `text=` click**, no hover involved. `.page-preview-link::after`
   (Page.css) is spread `position: absolute; inset: 0` over the whole card so the whole thing is
   clickable — Playwright's actionability check needs the element receiving the hit to be the target
@@ -230,6 +235,7 @@ component rule** — check `display`, not just the class list.
   settles any hover/click that silently does nothing: `hover` the ancestor, then eval
   `document.elementFromPoint()` at the target's centre — present + opaque + `pointer-events:
   auto` but hit-testing to something else is occlusion, not movement.
+- **Block LiveReload in the browser context instead of fighting it**: `await ctx.addInitScript(() => { window.$BLOCKRELOAD = true; })` before `newPage()` makes the reload a no-op for that context only (`framework/dev/Socket/Socket.js`) — cheaper than carrying a stamp through every step (2026-09-17).
 - The dev server's LiveReload reloads every headless tab whenever ANY agent saves under
   `public/` (`Directory.js` calls `LiveReload.changed()` with no path = reload everything) —
   never park state on `window` across steps; re-acquire in each `eval`
@@ -265,13 +271,14 @@ component rule** — check `display`, not just the class list.
   so a png written under `public/` fires LiveReload and the NEXT step lands mid-reload:
   intermittent empty results, zero console errors, reads exactly like a page bug (2026-08-27).
   Copy the keeper pngs into the task dir at the END of the run.
-- A speculative selector in a plan is a REAL gesture on real data. A throwaway
-  `click "button:nth-of-type(1)"` in a tool that saves appended a box to the owner's document
-  (2026-08-27) — and the step's own output only said the watch went `missing`. In a tool that
-  writes, resolve the selector in an `eval` first and read back what it matched; "never gesture
-  on the owner's document" covers smoke steps you did not think of as gestures.
-  ⚠ `[title=…]` and `[aria-label=…]` are no more unique than `text=`: `span[title='delete New page']` in a cleanup plan matched the OWNER's `notes/later/new-page/` row before the agent's own and deleted it, file and directory, reporting success (2026-09-13). In a tool that writes, name your probe pages something the app never generates (`zzz-probe`), and resolve any attribute selector in an `eval` first.
-  ⚠ And some clicks write with no Save in the way: a nest chip in Paging's drawer on a page you MADE wrote `nest: "blog-post"` into the owner's `made/notes/page.json` on the spot (2026-09-13). Before the first gesture in a tool that writes, copy its data dir into the scratchpad and `diff -r` against THAT copy at the end — `git diff HEAD` hides the one new line among older uncommitted changes.
+- **A speculative selector in a plan is a REAL gesture on real data, and some writes have no Save button in the way.** Three ways this bit: a throwaway `click "button:nth-of-type(1)"` appended a box to the owner's document reporting only `missing` (2026-08-27); `[title=…]`/`[aria-label=…]` proved no more unique than `text=` and deleted the OWNER's page instead of the agent's own probe, reporting success; a nest chip in Paging's drawer wrote straight to the owner's `made/notes/page.json` on click, no save step in the way ([self-evident-minors](/framework/ai/2026-09-13/self-evident-minors/), both 2026-09-13).
+  Resolve every selector in an `eval` first and read back what it matched; name probe pages something the app never generates (`zzz-probe`); and before the first gesture in a tool that writes, copy its data dir into the scratchpad and `diff -r` against that copy at the end — `git diff HEAD` hides the one new line among older uncommitted changes.
+- **A hand-rolled probe that collects everything into one object and writes it at the end loses the whole run when one `page.evaluate` throws.** Wrap each section in a `safe(name, fn)` that catches, records `<name>_ERROR`, and writes the report file after every section — a re-run can then redo only what failed (asks-critic, 2026-09-17).
+- **A multi-hundred-url crawl needs a watchdog, and must never be piped into `tail`.** Two identical 630-url runs hung with every page already measured — workers stuck inside `page.goto` past its own timeout, and `await context.close()` never returned either, so the results file was never written. End on a clock (write whatever rows exist, mark the rest NOT RUN) and call `context.close()`/`browser.close()` WITHOUT awaiting, then `process.exit(0)`. Separately, `node crawl.mjs ... | tail -70` swallows all progress output if the Bash tool later backgrounds it — redirect to a log file and `tail` the file (core-data-children, 2026-09-17).
+- **`click("text=word")` times out when that word also appears in ordinary page prose** — drive the click with an `eval` on the exact element instead of a text selector when the label is a common word (design-system, 2026-09-17).
+- **A before/after screenshot diff against a LIVE page measures the page's own data churn, not your change.** A day dashboard read 18.66% different because an unrelated task card changed between the two shots — swap the stylesheet with `page.route()` in one single run and diff that instead (0.52%) (design-system, 2026-09-17).
+- **A generic-looking class can now also match the site's own sidebar** (e.g. `.ui-tree-text`, since the sidebar became a `ux/Tree`) — a headless click meant for a demo's tree can land on the sidebar and write a wrong value to disk. Scope any tree/list probe to the demo's own root (`#<demo> .ui-tree-text`), never the bare document (page-json-core, 2026-09-18).
+- **Chromium's `--use-file-for-fake-audio-capture` LOOPS the wav file for as long as `getUserMedia` stays open** — a test waiting for real silence to trigger a pause/auto-stop behavior can wait forever. Synthesize a dedicated all-zero-sample silence wav (a 44-byte header plus zero bytes) and launch a separate browser with that as the fake-audio file for the silence-dependent test only; the real recording proves everything else (whisper-local, 2026-09-19).
 - Restart nothing. The dev server stays up; you never touch it.
 
 Improve this skill: append to `improvements.md`.

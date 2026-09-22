@@ -10,8 +10,8 @@ export default new Doc({
 
 	subject: devbar,
 	methods: "refresh toggle",
-	notes: "docking sizing structure threads measuring decisions",
-	files: "DevBar.js ask.js devbar.css layout.js parts.js readme.md settings.js structure.js tools.js width.js page.js",
+	notes: "docking sizing structure threads measuring decisions chat",
+	files: "DevBar.js ask.js chat.js log.js sessions.js pathbar.js says.js devbar.css layout.js parts.js readme.md settings.js structure.js tools.js width.js page.js",
 
 	content(){
 

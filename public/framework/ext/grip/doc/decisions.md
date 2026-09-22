@@ -92,6 +92,45 @@ carry a 1px `border-inline-start`. The 1px `--line` border and the 2px `--prim` 
 adjacent and read as one lit edge; pulling the strip out to `-1px` would start straddling
 the edge that rule 1 above exists to forbid.
 
+## 2026-09-18 — two more callers, and the one piece they needed that grip didn't have
+
+`core/Sidebar` and `/layouts/shell/Shell.js` each had their own hand-copied version of
+this exact gesture (pointer capture, a drag, a double-click reset) — `Sidebar`'s own
+comment named where it copied it FROM, the same day it was written
+(`core/Sidebar/doc/decisions.md`, "the resize mechanism is `/layouts/shell/`'s
+`Shell.grab()`, copied, not imported"). The overlap study
+(`ai/2026-09-18/overlap-study/overlap.md`, `overlap-shared-resize-grab`) flagged exactly
+that: a gesture copied from one file's own comment is the cheapest possible thing to
+un-copy, the same day.
+
+**Everything both callers needed already existed except one thing.** `write`/`done`
+already covered "what does a width mean" and "remember the one I let go of." What
+neither copy had a grip equivalent for was **double-click resets** — both `Sidebar.grab()`
+and `Shell.grab()` had their own `dblclick` handler calling `size(null)` /
+`size_rail()` with no argument, and `grip.js` had no hook for a caller to supply that
+at all. Added: an optional `reset` callback, wired to the strip's own `dblclick`,
+firing with no argument — "what reset means" is exactly as much the caller's business
+as "what a width means" already was for `write`.
+
+**`done` became genuinely optional, not just unused by convention.** `Shell`'s own
+`page.size_rail(px)` already saves on every call, not just on release (it always has —
+the clamp lives in CSS, so there is nothing to postpone), so its `grip()` call has no
+use for a `done` at all. The old code was `if (width) done(width);`, which would have
+thrown calling `undefined` as a function the moment a caller left `done` out — changed
+to `done?.(width)`, matching `reset` and making the contract honest: pass what your
+rail needs, skip what it doesn't.
+
+**Both merges deleted more CSS than JS.** `Sidebar.css`'s `.sidebar-grab` block (25
+lines: a straddling 10px target, a `::after` line, a `-grabbing` class) and
+`shell.css`'s `.std-shell-grab` block (26 lines, the same shape) are both gone —
+`grip.css`'s own `.grip`/`.grip-start`/`.grip-pill` draws both rails now, which also
+means both rails' resize handle moved from straddling the track's border (half in,
+half out) to sitting wholly inside it, this module's own rule 1 above. Total, across
+both `.js` files and both stylesheets: 101 lines deleted, 57 added, a net 44-line
+reduction (`core/Sidebar/doc/decisions.md` has the hunk-by-hunk count) — bigger than
+the overlap study's own ~30-line estimate, which only ever measured the two `.js`
+files against each other and never looked at either file's CSS.
+
 ## Rejected
 
 - **A `side` option.** Both rails dock at the inline end and grip their inline-start

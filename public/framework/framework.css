@@ -17,7 +17,7 @@
     /* font-family lives in the theme layer, not here — a typeface is a look, and
        a theme must be able to change it by loading later. */
     body { margin: 0; line-height: 1.5; -webkit-font-smoothing: antialiased; overflow-wrap: break-word; }
-    
+
     /* `audio` and `iframe` were missing here for a long time, and both have View
        factories: they kept the inline baseline gap this rule exists to remove, and
        an iframe could overflow its column. */
@@ -26,7 +26,7 @@
     p, h1, h2, h3, h4, h5, h6 { overflow-wrap: break-word; }
 
     pre { overflow-x: auto; }
-    
+
     /* The UA indents these with a 40px MARGIN, which is a different quantity from
        every other indent on the page. Same fix for all three: no margin, and an
        `em` padding that scales with the text. */
@@ -42,7 +42,7 @@
         width: 100%;
     }
     textarea { max-width: 100%;resize: vertical; }
-}        
+}
 
 @layer theme {
     /* ---- tokens: the vocabulary a theme retunes -------------------------
@@ -82,8 +82,8 @@
         --tint:    light-dark(rgba(0,0,0,0.035), rgba(255,255,255,0.04));
 
         /* ---- the size standard: one knob, three clamps (size-apply 2026-09-06 —
-           the study and every measurement: /imagine/design/size/. Supersedes the
-           2026-09-05 spacing decision, /imagine/design/spacing/decision.md.)
+           the study and every measurement: /framework/styles/system/studies/size/. Supersedes the
+           2026-09-05 spacing decision, /framework/styles/system/studies/spacing/decision.md.)
            `--pad` / `--gap` / `--flow` are declared below, on `:where(*)`, not here
            — a `var()` inside a custom property substitutes where it is DECLARED, so
            a value computed once at `:root` would never see a subtree's own `--size`.
@@ -105,7 +105,7 @@
            3.07× — the clamp's own rate. A section-scale gap takes `--flow` instead,
            for the reason its cap exists: past a point a gap reads as a break, not as
            breathing. Site-wide median sibling gap at 3440: 9.7px → 25.3px. [The
-           measurement](/imagine/design/spacing/audit/).
+           measurement](/framework/styles/system/studies/spacing/audit/).
            ⚠ Small print: the `1em` floor resolves at the element USING the token, so
              on a 0.72em chip the fluid branch already wins at 1280 and the converted
              value lands a little above the old one there (site-wide 1280: 8.1 → 9.1).
@@ -160,6 +160,40 @@
         --fill-a16: light-dark(var(--shade-a16), var(--paper-a16));
         --fill-a32: light-dark(var(--shade-a32), var(--paper-a32));
 
+        /* ---- lighten / darken: the same ladder, said the way you think ------
+           "Lighten" is white at some alpha; "darken" is black at some alpha. That
+           is exactly what `--paper-aNN` and `--shade-aNN` above already are, so
+           these SIX NAMES ARE ALIASES — nothing new is mixed, no existing value
+           moves, and a call site that says `--darken-2` and one that says
+           `--shade-a16` paint the identical pixel.
+
+           Why they exist: `--fill-aNN` is the word you want most of the time,
+           because it flips with the colour scheme and elevation is lighter on both
+           sides. But when you are painting a step onto a GROUND OF YOUR OWN — a
+           light grey card, a dark band, a photo — you know which direction you
+           mean, and the mode-aware word would go the wrong way half the time. Then
+           you say lighten or darken and mean it.
+
+           Three rungs, not the ladder's four: `a04` is a floor's worth, too quiet
+           to read as a step, and stays available under its own name. These three
+           DOUBLE, so one step up is always the same relative move:
+
+             1   0.08   a quiet step — a hover, a chip, a stripe
+             2   0.16   a visible step — a hairline, a ring, a panel edge
+             3   0.32   a step that reads as its own surface
+
+           ⚠ Every one of these is TRANSLUCENT, so what it becomes depends on the
+             ground it lands on, and so does whether text still reads on it. The
+             grid that paints all six on five grounds, with the live hex and the
+             WCAG ratio of `--ink` on each: /framework/styles/system/studies/color/. */
+        --lighten-1: var(--paper-a08);
+        --lighten-2: var(--paper-a16);
+        --lighten-3: var(--paper-a32);
+
+        --darken-1: var(--shade-a08);
+        --darken-2: var(--shade-a16);
+        --darken-3: var(--shade-a32);
+
         --radius: 0.5em;
 
         /* The one error colour, paired. Replaces `#c00` hardcoded in md.css and
@@ -206,10 +240,104 @@
        ⚠ The numbers above are the CEILING's, not the whole token's: an element whose own
          font is large (an h2 at 2.25em) sits on the 2em FLOOR at every width and this
          change cannot reach it (ai/2026-09-13/paging-spacing-3440/). */
+    /* ⚠ `--gap`'s ceiling dropped from 2.6em to 2.4em (calls-styles, 2026-09-18, the
+       owner's call: "just make a decision and document the alternative"). At 3440 the
+       OLD cap let `--gap` reach 46.19px, past `--flow`'s own 2.5em ceiling of 45px —
+       the space between two things in a ROW wider than the space between two SECTIONS,
+       backwards. Measured at 400/1280/1920/2400/3440px: `--gap` was
+       14/15.03/24/30.69/46.19px against `--flow`'s 28/30.08/39.67/44.19/45px — crossed
+       only at 3440, the widest step measured. 2.4em fixes just that row: `--gap` is now
+       14/15.03/24/30.69/43.19px at the same five widths, under `--flow` at every one.
+       The floor and the cqi slope are untouched — 400, 1280, 1920 and 2400 are
+       byte-identical before and after, because the old cap never bound there either.
+       Two alternatives, considered and rejected the same day, are in
+       `styles/doc/decisions.md`: raise `--flow`'s ceiling to 2.7em instead (undoes the
+       owner's 1.5× paragraph-gap verdict, 2026-09-13); or define `--flow` FROM `--gap`
+       (removes the crossing by construction, but welds together two tokens the rest of
+       the system tunes separately). */
     :where(*) {
         --pad:  calc(clamp(1em, 2.6% - 1.1em,   4em)   * var(--size));
-        --gap:  calc(clamp(1em, 1.5cqi - 0.3em, 2.6em) * var(--size));
+        --gap:  calc(clamp(1em, 1.5cqi - 0.3em, 2.4em) * var(--size));
         --flow: calc(clamp(2em, 1.4cqi + 0.8em, 2.5em) * var(--size));
+    }
+
+    /* `--pad-card` — same knob (`--size`), same layer, a DIFFERENT band from
+       `--pad` above it. `--pad` is a page REGION's word: it stays pinned at
+       its 1em floor under any containing block narrower than ~1292px (the
+       `- 1.1em` above), so a card reaching for `--pad` directly measured
+       14/15/16/18px at 400/1280/1920/3440 while a full-page region on the
+       SAME token ramped to 69.6px — the padding audit's finding,
+       2026-09-19. `--pad-card` drops that deferral so a card's own width
+       feeds it straight — a padding PERCENTAGE already resolves against the
+       box's own containing block, so it never needed a container query. A
+       `cqi` form (`1.6cqi + 0.4em`) was measured against it and rejected:
+       outside a declared container — the honest default, since `.page` and
+       every rail on this site deliberately are NOT one (padding-audit,
+       `rails-as-containers`) — `cqi` reads the VIEWPORT, so a 250px card
+       and a 1400px card at 3440 landed on the exact same 32px, and the
+       SAME 250px card measured 12.8px at 400 and 32px at 3440: the padding
+       tracked the screen, not the box wearing it.
+
+       ⚠ The FLOOR moved from `0.5em` to `1rem` the same day (`card-adopt`,
+       correcting its own first pass here). `0.5em` is relative to the
+       card's OWN font-size, not the page's — inside a smaller-type context
+       (the dev bar's own rail runs its whole body at `0.8rem`) the floor
+       shrank right along with the type, to 6.4px, MORE cramped than the
+       12.8px the owner had already seen and accepted as fixed, on the exact
+       card the owner's original complaint was about. `1rem` is relative to
+       the ROOT element instead, which nothing on this site resizes — so the
+       floor stays a real, readable 16px regardless of how small a
+       component's own local type runs, while the `2em` ceiling stays
+       relative to the CARD's own font on purpose (a card with deliberately
+       large type, e.g. a heading-only tile, still gets proportionally more
+       room at the top end; only the floor was the bug). Measured at the
+       dev bar's own card widths, 0.8rem local type: 16 / 16px at 250 / 480px
+       (both now floor-pinned — previously 8 / 12.5px); at a normal 1rem
+       page's card widths: 16 / 16 / 19.2 / 32px at 250 / 480 / 740 / 1400px
+       (previously 8 / 12.5 / 19.2 / 32 — only the two narrowest widths
+       change; a card past ~615px wide was already clear of the old floor
+       and is untouched). Full table and screenshots:
+       `/framework/ai/2026-09-19/card-word/` (the original) and
+       `/framework/ai/2026-09-19/card-adopt/` (this correction). */
+    :where(*) {
+        --pad-card: calc(clamp(1rem, 2.6%, 2em) * var(--size));
+    }
+
+    /* THE RUNGS - four steps UNDER `--gap`, and nothing above it.
+
+       They exist because the site wrote twenty-eight different multipliers
+       instead: `calc(var(--gap) * 0.35)` and its cousins were 451 of the 1,894
+       spacing declarations counted on 2026-09-17 (ai/2026-09-17/spacing-census/).
+       The four are FITTED to that census, not invented: five rungs - the gap
+       itself plus these - put 390 of the 470 multipliers (83%) within 15% of a
+       rung, and no four readable rungs reach 80% (the best is 79.6%).
+
+       **The number in the name is a PERCENT OF `--gap`, never a length.**
+       `--gap-50` is half the gap; `--gap-35` is about a third of it. Each rung
+       is half the rung two steps above it - a root-2 ladder, which is why the
+       steps feel even rather than lumpy.
+
+       ⚠ Declared on `:where(*)`, like the three tokens above and for the same
+         reason: a rung computed once at `:root` would inherit as a frozen length
+         and never see a subtree's own `--size` or its own container.
+       ⚠ There is no rung ABOVE the gap. The step between sections is `--flow`,
+         which already exists. `--flow` is about 2x `--gap` at 1280 (30.08px
+         against 15.03px) and still ahead of it at 3440 (45px against
+         43.19px) - `--gap`'s ceiling dropped from 2.6em to 2.4em on
+         2026-09-18 (calls-styles) so the row gap can never again outgrow the
+         section step. The numbers and the two rejected alternatives are
+         above, and in `styles/doc/decisions.md`.
+       ⚠ And under the smallest rung there is nothing either. A value below a
+         quarter of the gap is a CONTROL's own geometry - a chip's padding, the
+         gap between a meter's label and its bar - and that stays in the
+         control's own `em`. /framework/styles/system/studies/size/ has the whole argument.
+
+       Shown, painted, live: /framework/styles/system/ */
+    :where(*) {
+        --gap-70: calc(var(--gap) * 0.7);
+        --gap-50: calc(var(--gap) * 0.5);
+        --gap-35: calc(var(--gap) * 0.35);
+        --gap-25: calc(var(--gap) * 0.25);
     }
 
     /* ════ this block is THE BASE THEME ══════════════════════════════════════
@@ -315,19 +443,94 @@
 
        ⚠ `.surface` sets `color` on purpose — A BOX THAT PAINTS ITS OWN FILL OWNS
        ITS OWN INK. Without it a card on a coloured band inherits that band's
-       white and renders white-on-white. */
-    .surface {
+       white and renders white-on-white.
+
+       `.card` shares this exact selector on purpose — one declaration, never
+       a fork of the look — and adds only the one thing `.surface` leaves
+       out: padding, from `--pad-card` above, not the page-region `--pad`,
+       because a card's padding scales with ITSELF, not with the page. It is
+       padded BY DEFINITION, so nothing wearing it can forget the second
+       word the way 180 hand-rolled card/tile classes across the site did
+       (padding-audit, 2026-09-19). `--pad-card` already reads `--size`, so
+       `.card.size-small` is the dense form with no `.tight` word needed. */
+    .surface, .card {
         background: var(--surface);
         color: var(--ink);
         border: 1px solid var(--line);
         border-radius: var(--radius);
     }
+    /* The owner, 2026-09-19 (mid-task addition to `card-word`): a plain
+       `div.card` holding a heading and a paragraph must look finished with
+       ZERO extra CSS — no `flex`, no second class. Two more lines do it:
+
+       `border-inline-start` — a STATUS edge. `--card-edge` is unset by
+       default, so the fallback `transparent` paints nothing; setting it
+       (`.style("--card-edge", "var(--warn)")`, say) draws a 3px colour bar
+       on the leading edge with no second class. ⚠ The 3px is reserved on
+       EVERY card, set or not — a `.card` is always 3px narrower inside than
+       a `.surface` of the same outer width. Tried the alternative (an
+       absolutely-positioned pseudo-element overlaying the hairline, costing
+       nothing when unset) and kept this instead: one line beats two
+       declarations plus `position: relative`, and 3px is not a width a
+       reader's eye can find without a ruler — [three
+       candidates, chosen by looking](/framework/ai/2026-09-19/card-word/).
+
+       The rhythm rule — `.card`'s children get spacing automatically,
+       WITHOUT `.flow`. `.flow` was tried first and rejected: it is PAGE
+       rhythm (`--flow`, ~28–45px, built for the gap between page sections)
+       and `ui/card/page.js` already measured it too large for a card's own
+       heading-to-paragraph gap once, in the old hand-written version of this
+       exact box. `--gap` (~15–24px, the same token a control row already
+       uses between its own children) is the component-scale rhythm a card
+       actually wants — the SAME owl-selector shape `.flow` uses, one word
+       smaller. A child that wants MORE room from its neighbour still can:
+       `.mb`, a rung class, or its own margin all still apply — this only
+       sets what nothing else does. */
+    .card { padding: var(--pad-card); border-inline-start: 3px solid var(--card-edge, transparent); }
+    :where(.card) > * { margin-block: 0; }
+    :where(.card) > * + * { margin-block-start: var(--gap); }
+
+    /* The SELECTED look. Not an accent-coloured border on an off-white
+       ground — the owner tried that on V3 and it read as broken, not
+       chosen ("the background looks odd; selection is not clear"). An inset
+       ring in the page's own ink, not the accent, at a strength strong
+       enough to read as deliberate: `--ink` against `--surface` measures
+       17.4:1 in light mode and 14.7:1 in dark (needs only 3:1, a UI-shape
+       ratio) — the two rejected candidates, screenshotted side by side, and
+       why: the task's own record. `--card-edge` still
+       reads through a selected card, so a selected+flagged card shows both. */
+    .card.selected { box-shadow: inset 0 0 0 2px var(--ink); }
     .wash { background: var(--wash); }
     /* ⚠ `--tint` existed as a token with no class, so `div.c("tint")` painted nothing and
        threw nothing — a whole wireframe set shipped invisible before a probe read
        rgba(0,0,0,0). The pair is the point: a token whose class is missing is a silent
        failure. 2026-08-18, styles/doc/decisions.md. */
     .tint { background: var(--tint); }
+
+    /* ---- a ground you paint yourself, and the fields on it ---------------
+       `--darken-1/2/3` (up with the tokens) are what you reach for when you are
+       painting a step onto a ground of your own and you know which direction you
+       mean. These are the three CLASSES for them, so a toolbar or a rail can say
+       it in markup instead of an inline style — the same pairing `--tint` was
+       missing above, and for the same reason.
+
+       ⚠ THE ONE EXTRA THING THEY DO. A field's default fill is `--fill-a08`: one
+         quiet step DOWN from whatever is behind it. Put that field on a ground
+         that is ALREADY a step down and you get a box inside a box — which is
+         exactly what the sidebar's filter looked like until 2026-09-19. So a
+         darkened ground ALSO declares `--field-bg`, and the field rule further
+         down reads it: ON A DARKENED GROUND A FIELD IS THE SURFACE COLOUR. The
+         ground and the fields on it are one decision, made in one place, so a bar
+         cannot be given the ground and forget the fields.
+
+       Live example, a bar with a field on it beside a plain one:
+       /framework/styles/system/. The owner's words: "what if you could reliably
+       force any element using the darken as a theme to then use white form
+       fields?" */
+    .darken-1, .darken-2, .darken-3 { --field-bg: var(--surface); }
+    .darken-1 { background: var(--darken-1); }
+    .darken-2 { background: var(--darken-2); }
+    .darken-3 { background: var(--darken-3); }
 
     /* De-emphasis derived from the band's own ink, never from a fixed grey:
        `--subtle` on a `prim` band measures 1.06:1.
@@ -486,7 +689,7 @@
     /* THE knob, one instance, both jobs. Unitless, per box, inherited — a panel
        wears it, its controls (below) and its `--pad` / `--gap` / `--flow` (above)
        both read the same `--size` (size-apply 2026-09-06, landing the study at
-       /imagine/design/size/). 0.75 / 1 / 1.5 — the owner's ladder, wider than the
+       /framework/styles/system/studies/size/). 0.75 / 1 / 1.5 — the owner's ladder, wider than the
        study's own 1.25 so `.size-large` is not "hardly noticeable" next to regular. */
     .size-small   { --size: 0.75; }
     .size-regular { --size: 1; }
@@ -512,6 +715,20 @@
         border: 1px solid var(--fill-a32);
         border-radius: var(--radius);
         box-shadow: inset 0 0 0 999px var(--ctl-lift, transparent);
+    }
+
+    /* THE FIELDS FOLLOW THE GROUND. `--field-bg` is declared by a ground class
+       (`.darken-1` and friends, up beside `.surface`) and by nothing else, so the
+       fallback here is the exact fill every control has always had — nothing moves
+       until something opts in.
+       ⚠ BUTTONS ARE DELIBERATELY NOT IN THIS LIST. A button already carries a fill
+         to say what it is; turning every button on a grey bar white is a different
+         design, not this one. This is the three boxes you TYPE INTO.
+       ⚠ It has to sit AFTER the box rule above: same selectors, same specificity,
+         so source order is the only thing deciding it. */
+    select, textarea,
+    input:not([type="checkbox"], [type="radio"], [type="color"], [type="range"]) {
+        background-color: var(--field-bg, var(--fill-a08));
     }
 
     /* An anchor is INLINE, and `min-height` does nothing to an inline box — so the
@@ -752,7 +969,7 @@
     /* ⚠ `auto-FILL` when the cells are preview CARDS (2026-09-05, spacing-components).
        `auto-fit` collapses the empty tracks and hands the leftover to whatever is
        there, so a wall of one card became a 3,342px card at 3440 on
-       `/imagine/design/journey/` — 54 of them site-wide read as strips. `.wall`
+       `/framework/ext/DesignTool/journey/` — 54 of them site-wide read as strips. `.wall`
        already chose `auto-fill` for exactly this, measured 2026-08-17 ("two children
        must not become two enormous cards"); a `grid auto` that holds `.page-preview`
        now makes the same choice, and the leftover track stays empty on purpose.
@@ -761,8 +978,10 @@
     .grid.auto:has(> .page-preview) {
         grid-template-columns: repeat(auto-fill, minmax(min(var(--column), 100%), 1fr));
     }
+    /* The gap allowance is the live --gap, not 1rem: --gap reaches 43.5px at 3440, and with 1rem
+       a three-item wall fell to TWO tracks up there (measured 2026-09-17, /layouts/practice/). */
     .grid.three { grid-template-columns: repeat(auto-fit,
-		minmax(clamp(100% / 3 - 1rem, (var(--column)* 3 - 100%) * 999, 100%), 1fr)); }
+		minmax(clamp(100% / 3 - var(--gap), (var(--column)* 3 - 100%) * 999, 100%), 1fr)); }
 
     /* Two masonry walls, and the ONLY difference that matters is reading order.
        Both read `--column` and `--gap`, so a `grid auto gap` wall converts by
@@ -803,6 +1022,18 @@
        `--flow-sub` put a card's eyebrow 32px from its own title. */
     .gap { gap: var(--gap); }
     .gap-2em { gap: 2em; }
+
+    /* The four rungs as classes - the same "the class is the request, the token
+       is the size" shape `.pad` and `.gap` take. `.gap-50` is half the gap.
+       ⚠ `.gap-2em` above is the odd one out, written before the standard
+         existed: a number WITH a unit is that literal length, a bare number is a
+         percent of `--gap`. Nothing else in this file spells a rung with a unit.
+       For a whole box that wants less of everything, the word is `.size-small`
+       (0.75x pad, gap AND flow) - not four tighter classes. */
+    .gap-70 { gap: var(--gap-70); }
+    .gap-50 { gap: var(--gap-50); }
+    .gap-35 { gap: var(--gap-35); }
+    .gap-25 { gap: var(--gap-25); }
 
     /* A ladder rather than `.zoom` + `--zoom`, which is the shape `.pad`, `.gap`
        and `.basis` all take — and it was audited as exactly that mistake, "a scale
@@ -866,7 +1097,7 @@
        being an ordinary class.
        ⚠ Was a flat `2em` — 30px at 1280 and 36px at 3440, the 1.2x cluster. `--flow`
          is now the size standard's own clamp × `--size` (size-apply 2026-09-06,
-         /imagine/design/size/): 30px at 1280, 45px at 3440 — every element already
+         /framework/styles/system/studies/size/): 30px at 1280, 45px at 3440 — every element already
          carries it from the `:where(*)` rule above, so `.flow`/`blockquote` need
          not re-derive it (the old two-step `--flow-default` → `--flow` copy is
          gone; re-declaring `--flow: var(--flow)` here would be a self-reference). */

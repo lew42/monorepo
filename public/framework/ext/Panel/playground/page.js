@@ -1,80 +1,56 @@
-import { Page, View, div, a, span, button, icon, Sidebar } from "/app.js";
+import { Page, View, div, a, span, icon } from "/app.js";
 import Workspace from "../Workspace/Workspace.js";
-import { list, open, create } from "../Workspace/documents.js";
+import { open } from "../Workspace/documents.js";
 import { dock } from "../tools.js";
 
 View.stylesheet(import.meta, "playground.css");
 
-/* The whole-window Workspace: a left rail (the framework sidebar's own logo + brand
-   as the way OUT — no ✕), the document list, `+`; the Workspace itself with its bar
-   in the middle; `ext/drawer` docked on the right, its own `ext/grip` IS the `fill`
-   viewport's responsive handle — zero code for that part (Workspace/design §3, §6).
+/* THE WHOLE-WINDOW WORKSPACE — one document, its viewport set, and `ext/drawer` docked on
+   the right, whose `ext/grip` IS the `fill` viewport's responsive handle (zero code for
+   that part: Workspace/design §3, §6).
 
-   The url carries the document: `route(name)` claims ANY segment instead of 404ing
-   (the day page's own pattern, `ai/2026-08-18/page.js`) so `/playground/untitled/`
-   resolves to the SAME shell, opened on `untitled`; the root page answers `default`
-   the same way, just without a segment. Record: readme.md, doc/decisions.md.
-   css: playground.css. */
+   The url carries the document: `route(name)` claims ANY segment instead of 404ing (the
+   day page's own pattern, `ai/2026-08-18/page.js`), so `/playground/untitled/` resolves to
+   the SAME shell opened on `untitled`; the root page answers `default` the same way, just
+   without a segment.
 
-// Composes `core/Sidebar` — brand, logo, narrow-screen toggle all its own; only
-// `menu()` is replaced, with the document list standing in for a page nav. No
-// `footer`: an account avatar and a second dark-mode toggle have no home in a tool
-// this narrow-purposed, and `menu()` never calls it.
-// ⚠ Not `Rail`: View classifies a view by its whole constructor chain, so `Rail` would
-// wear `.rail` — Page.css's side-REGION shape (sticky, `align-self: start`, a 22em cap,
-// and `:has(> .rail)` turns the row into a size container). The owner saw it as a
-// sidebar stopping 129px down. `playground-rail` collides with nothing.
-class PlaygroundRail extends Sidebar {
-	menu(){
-		this.$menu = div.c("sidebar-menu", () => this.documents());
+   ⚠ THE DOCUMENT RAIL IS GONE (2026-09-18), AND THIS PAGE IS A THIN WRAPPER NOW.
+     It used to carry a 22rem `Sidebar` down the left listing every saved document with a
+     `+` to mint one — a second list of things-you-made, in a second place, beside an editor
+     whose own screen already had one. That list is a group in Make's tree now
+     (`/imagine/paging/make/`), and the one line above the workspace is the way back to it.
 
-		/* A document deleted from the rail's own block (properties.js announces it): every
-		   shell's list redraws — the Router keeps each visited shell alive, and a stale list
-		   would come back with it — and the shell standing on the deleted one goes home. */
-		document.addEventListener("document-removed", e => {
-			this.$menu.empty(() => this.documents());
-			if (this.el.isConnected && this.open === e.detail) this.app.router.go(this.base);
-		});
+     THE ALTERNATIVE WAS A REDIRECT — make `/playground/<name>/` bounce to Make and delete
+     this file. It is the wrong one: what the playground has that Make does not is the
+     `Workspace` chrome — the viewport set (1 / all / twin, fit / 100%) and the drawer grip
+     as a responsive handle — and a redirect would delete a working tool to save a file.
+     What folded is the RAIL, not the page. `doc/decisions.md`.                          */
 
-		return this.$menu;
-	}
+/* ONE LINE ABOVE THE WORKSPACE: where you are, and the way back to the list.
+   ⚠ IT LISTENS FOR ITS OWN DOCUMENT BEING DELETED. The rail's Delete button is in the
+     drawer (`properties.js`'s document block) and it announces on the document — so the
+     shell standing on the deleted one has to leave, or it sits on a file that is gone. The
+     rail used to do this; it is one line here instead. */
+function head(page, name){
+	const $head = div.c("panel-playground-head", () => {
+		a.c("panel-playground-back").href("/imagine/paging/make/")
+			.attr("title", "every page and every layout you have made")
+			.append(() => { icon("chevron_left"); span("Pages and layouts"); });
 
-	documents(){
-		const $nav = div.c("sidebar-nav");
+		span.c("panel-playground-name", () => { icon("dashboard"); span(name); });
+	});
 
-		list().then(names => $nav.empty(() => {
-			names.forEach(name => this.entry(name));
+	document.addEventListener("document-removed", e => {
+		if ($head.el.isConnected && e.detail === name) page.app.router.go("/imagine/paging/make/");
+	});
 
-			button.c("sidebar-link panel-playground-new")
-				.click(() => this.add())
-				.append(() => { icon("add"); span.c("sidebar-label", "New"); });
-		}));
-
-		return $nav;
-	}
-
-	entry(name){
-		return a.c("sidebar-link")
-			.ac(name === this.open && "active")
-			.href(this.base + name + "/")
-			.append(() => span.c("sidebar-label", name));
-	}
-
-	// Mints a blank document and hands off to the Router — `documents.js` never
-	// touches history, and a raw `location.href` would reload the whole app.
-	async add(){
-		const name = await create();
-		this.app.router.go(this.base + name + "/");
-	}
+	return $head;
 }
 
 function build(page, name){
 	return div.c("page layout-full panel-playground-page", () => {
-		div.c("panel-playground flex", () => {
-			new PlaygroundRail({
-				brand: "Framework", brand_url: "/framework/", footer: null,
-				app: page.app, base: page.url, open: name,
-			}).ac("basis").style("--basis", "var(--sidebar)");
+		div.c("panel-playground flex v", () => {
+			head(page, name);
 
 			div.c("panel-playground-main flex-1", () => {
 				dock();
@@ -84,9 +60,9 @@ function build(page, name){
 	});
 }
 
-// The shape `route(name)` hands to `add()` — same builder as the root page, just a
-// different document name closed over. `full.js` is the model: `render()`, never
-// `content()`, so there is nothing above the layout (no h1, no `.page.flow`).
+// The shape `route(name)` hands back — the same builder as the root page, with a different
+// document name closed over. `full.js` is the model: `render()`, never `content()`, so
+// there is nothing above the layout (no h1, no `.page.flow`).
 function shell(page, name){
 	return {
 		title: page.title,

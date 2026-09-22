@@ -40,6 +40,7 @@ const post_page = post => new Page({
 const notes = new Page({
 	title: "Blogx Notes",
 	label: "Notes",
+	width: "small",
 	initialize(){ this.columns(); },
 
 	children: [

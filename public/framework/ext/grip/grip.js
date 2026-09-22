@@ -12,12 +12,19 @@ const html = document.documentElement;
  * Mount it inside the rail's box (`dev/DevBar`, `ext/drawer` both do) and give it two
  * functions: `write(px)` on every move — px is the width the pointer implies, and what
  * that means is yours — and `done(width)` once, on release, to remember it. Return the
- * width you actually applied from `write` and that is what `done` is handed.
+ * width you actually applied from `write` and that is what `done` is handed. `done` is
+ * optional — skip it when `write` already persists on every call, as `size_rail()` in
+ * `/layouts/shell/page.js` does.
+ *
+ * `reset`, also optional: fires on a double-click with no argument, for "put the width
+ * back" — `core/Sidebar` and `/layouts/shell/Shell.js` both had their own copy of this
+ * gesture (grab, drag, double-click-to-reset) before they were merged onto this file,
+ * 2026-09-18, and this is the one piece grip did not already have.
  *
  * ⚠ No rAF throttle, unlike ext/demo's `drag()`: `pointermove` is already delivered
  * once per frame, and this sets one custom property rather than re-laying-out a
  * live render. Not worth importing the demo system for. */
-export default function grip({ write, done, from = "end" }){
+export default function grip({ write, done, reset, from = "end" }){
 	let width, edge;
 
 	// `from` is one decision, and grip.css owns every consequence of it: the strip AND its
@@ -48,12 +55,16 @@ export default function grip({ write, done, from = "end" }){
 		})
 
 		// Written once, at the end: `write()` moves the rail every frame, and only the
-		// width you let go of is worth remembering.
+		// width you let go of is worth remembering. `done` is optional.
 		.on("pointerup", function(e){
 			this.el.releasePointerCapture(e.pointerId);
 			html.classList.remove("grip-sizing");
-			if (width) done(width);
-		});
+			if (width) done?.(width);
+		})
+
+		// The width back to whatever `write(undefined)` (or the caller's own default)
+		// means — never touched by drag, so nothing here decides what "reset" means.
+		.on("dblclick", () => reset?.());
 }
 
 export { grip };

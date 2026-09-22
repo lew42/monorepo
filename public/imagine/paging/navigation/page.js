@@ -41,6 +41,13 @@ export default new Paging({
 
 	takeaway: "**Press the buttons in both boxes above.** The left box moves the thing you were reading; the right box does not. That is the whole difference between the two kinds of navigation on this site.",
 
+	/* ⚠ ONE DROPDOWN IN THE BAR, NOT SEVEN. This is the page for the word
+	     `navigation`, so that is the word its bar carries; the other six are behind
+	     the bar's `More` button, which counts them. (The owner, 2026-09-17: *"the
+	     number of controls in the toolbar became way too many."*) `toolbar.js`
+	     `shows()`. */
+	bar_axes: ["navigation"],
+
 	children: "columns reserved tabs screen doc",
 
 	content(){
@@ -68,7 +75,7 @@ export default new Paging({
 		   being measured. Here, everything above has been read. */
 		h2("Now change the word yourself");
 
-		md("The bar over the page below sets all seven navigation words — and the other five building blocks with them. **The line under the box says what your click did, in pixels**, which is the same number the wall above reports.");
+		md("One dropdown over the page below, holding all seven navigation words. **The line under the box says what your click did, in pixels** — the same number the wall above reports. (The other six building blocks are still there, behind **6 more words**.)");
 
 		this.stage({ ...DEFAULT, navigation: "tabs", content: "cards", room: "wide", background: "tint" });
 

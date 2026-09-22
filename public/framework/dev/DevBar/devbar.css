@@ -55,12 +55,44 @@
 	.dev-width { gap: 0.5em; }
 	.dev-width > .dev-sizes { flex: 1 1 auto; min-width: 0; }
 	.dev-width-val { flex: 0 0 auto; color: var(--subtle); font-variant-numeric: tabular-nums; }
+	/* ⚠ `.dev-title` is DEAD — the word "DEV" it styled is gone (2026-09-19,
+	   `pathbar.js` took its place). Left defined, unused, rather than pulled:
+	   deleting a class a THEME could still reference from outside this file is
+	   a bigger question than this task's own fence covers. */
 	.dev-title { font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--prim); }
-	/* The slack in the head, so everything after it rides the inline end.
-	   ⚠ `flex-grow`, NOT the `margin-inline-end: auto` that stood here and never
-	     worked: `.flex > * { margin: 0 }` is `@layer util`, and a later layer beats
-	     any specificity in `theme`. Grow is not a margin, so nothing zeroes it. */
-	.dev-hint { flex-grow: 1; color: var(--subtle); }
+	/* The path bar is the slack now (`.dev-pathbar`'s own `flex: 1 1 auto`,
+	   pathbar.js) — the hint beside it keeps its own natural width. */
+	.dev-hint { color: var(--subtle); flex: 0 0 auto; }
+
+	/* dev/DevBar/hold.js — plain text, same subdued tone as the hint beside it.
+	   Empty and `hidden` (native [hidden]{display:none}, nothing here overrides
+	   it) whenever nobody holds live reload. */
+	.dev-hold { color: var(--warn); }
+
+	/* THE PATH BAR (pathbar.js) — replaces the word "DEV". One solid
+	   background for the whole bar, never one pill per part (the owner:
+	   "I think it should be one solid background"). It is the head line's
+	   own slack-absorber now (`.dev-hint`'s old job, `flex-grow`), and it
+	   SCROLLS rather than wraps — `pathbar.js` starts it scrolled to its own
+	   right edge, so a deep url truncates from the left, the current page's
+	   own name always in view. */
+	.dev-pathbar {
+		display: flex; align-items: center; flex: 1 1 auto; min-width: 0;
+		gap: 0.1em;
+		overflow-x: auto; scrollbar-width: none;
+		background: var(--wash); border-radius: var(--radius);
+		padding: 0.2em 0.4em;
+	}
+	.dev-pathbar::-webkit-scrollbar { display: none; }
+	.dev-pathbar-home, .dev-pathbar-part {
+		flex: 0 0 auto; white-space: nowrap;
+		color: var(--ink); text-decoration: none;
+		padding: 0.1em 0.3em; border-radius: 0.2em;
+	}
+	.dev-pathbar-home { display: inline-flex; align-items: center; color: var(--subtle); }
+	.dev-pathbar-home .icon { font-size: 1rem; }
+	.dev-pathbar-home:hover, .dev-pathbar-part:hover { color: var(--prim); background: color-mix(in srgb, var(--prim) 18%, transparent); }
+	.dev-pathbar-slash { flex: 0 0 auto; color: var(--subtle); }
 
 	.dev-x {
 		padding: 0 0.4em;
@@ -232,4 +264,270 @@
 			transform: translateY(100%);
 		}
 	}
+
+	/* THE MASTERMIND LOG (says.js) - you, the assistant, the mastermind and every
+	   minion, one joint timeline of compact cards; click one and it becomes a
+	   reader that takes over the dev bar's body. The log scrolls in its own box,
+	   so a new message never moves what is being read.
+	   ⚠ `.dev-says-section` is what makes the log FILL the page tab (2026-09-19,
+	   pass 5): every OTHER page-tab section is a normal content-sized flex child,
+	   so growing only this one absorbs all the leftover height `.dev-body` has —
+	   the rest sit below it, reachable by scrolling `.dev-body` itself. */
+	/* `overflow: hidden` as a second guard, not the fix itself (the pinned
+	   strip's own `max-height` below is): a flex child squeezed by `min-height:
+	   0` shows whatever a bounded descendant does not scroll on its own,
+	   painted straight over the NEXT section rather than clipped — this is
+	   what stops that happening again if some future child forgets its own. */
+	.dev-says-section { flex: 1 1 auto; min-height: 0; overflow: hidden; }
+	.dev-says { flex: 1 1 auto; min-height: 0; gap: 0.35em; overflow-y: auto; padding-inline-end: 0.25em; scrollbar-width: thin; }
+	/* ⚠ COLUMN, not a row beside the text — the meta line (dot · author · time)
+	   is its own row ABOVE the text now, so the text's own left edge is always
+	   the card's own padding edge, the same x on every card. Beside it (the
+	   first shape this file shipped), that x moved per card: no dot on the
+	   owner's own cards, no time on a pinned row — measured, five cards, five
+	   different starting x's for the first letter (2026-09-19).
+	   ⚠ `padding: var(--pad-card)`, not `var(--pad)` (card-adopt, 2026-09-19,
+	   correcting the previous pass here) — `--pad` is the PAGE-REGION word
+	   and stays pinned at its 1em floor (12.8px) under any containing block
+	   this narrow, while `--pad-card` is the word framework.css built for
+	   exactly this: a framed box whose padding scales with ITS OWN width,
+	   not the page's (`framework.css`'s own comment above `.card`). Measured
+	   before/after, geometrically (a padding percent inside `calc()` reads
+	   back from `getComputedStyle` as the calc string, never px): 12.8px
+	   before this line, at the card's own token now — see task.jsonl.
+	   ⚠ NOT wearing the `.card` class itself, on purpose: `.card`'s own
+	   child-rhythm rule (`:where(.card) > * + * { margin-block-start:
+	   var(--gap); }`) would ADD on top of this card's flex `gap: 0.2em`
+	   between the meta row and the body, not replace it — two spacing rules
+	   stacking, since a flex `gap` and a margin never cancel. A card that
+	   already sets its own internal rhythm via flex `gap` (this one; also
+	   `.dev-chat-card` below) takes the TOKEN directly; only a freestanding
+	   box with no rhythm of its own should take the whole class. */
+	.dev-says-card {
+		flex: 0 0 auto;   /* a card keeps its height: a flex column SHRINKS its children, and shrunken rows overlapped */
+		display: flex; flex-direction: column; gap: 0.2em; width: 100%;
+		padding: var(--pad-card); margin: 0; min-height: 0;
+		text-align: start; font: inherit; color: inherit; cursor: pointer;
+		background: var(--wash); border: 0; border-radius: 0.3em;
+	}
+	.dev-says-card:hover { background: color-mix(in srgb, var(--prim) 14%, transparent); }
+	.dev-says-card-meta { flex: 0 0 auto; gap: 0.4em; }
+	.dev-says-card-meta > .dev-val { flex: 0 0 auto; margin-inline-start: auto; }
+	.dev-says-card-author { flex: 0 0 auto; font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.06em; }
+	.dev-says-card-title { min-width: 0; font-weight: 600; line-height: 1.3; }
+	.dev-says-card-body { min-width: 0; line-height: 1.4; overflow-wrap: anywhere; white-space: pre-wrap; }
+	.dev-says-new { align-self: start; cursor: pointer; font-weight: 700; color: var(--prim-ink, var(--prim)); }
+
+	/* The three fixed voices, and every minion's own slug sharing one look
+	   (`author_kind()` maps any slug to "minion" — devbar.css cannot enumerate
+	   every task that will ever post here). Backgrounds only — text stays
+	   readable at every size, no colour depends on it to be understood. */
+	.dev-says-card-owner { background: color-mix(in srgb, var(--prim) 14%, var(--wash)); }
+	.dev-says-card-owner:hover { background: color-mix(in srgb, var(--prim) 22%, var(--wash)); }
+	.dev-says-card-minion { background: color-mix(in srgb, var(--subtle) 16%, var(--wash)); }
+
+	/* A dot, not a border — the owner's own words never get one (they cannot
+	   need their own yes). `.dev-says-needs-you` is the ACCENT on the card
+	   itself, wherever it sits in the stream, on top of the dot. */
+	.dev-says-dot { flex: 0 0 auto; width: 0.55em; height: 0.55em; margin-block: 0.35em; border-radius: 50%; background: var(--subtle); }
+	.dev-says-dot-working { background: var(--warn); }
+	.dev-says-dot-done { background: var(--ok); }
+	.dev-says-dot-needs-you { background: var(--prim); }
+	.dev-says-needs-you { border-inline-start: 3px solid var(--prim); }
+
+	/* The pinned strip — a small, separate list above the main log, mirroring
+	   only what needs the owner's yes RIGHT NOW; gone the moment nothing does. */
+	/* ⚠ `max-height` + its own scroll — WITHOUT this the strip is `flex: 0 0
+	   auto` (natural size) inside `.dev-says-section`, which is ITSELF
+	   flex-shrunk to fit `.dev-body` (`min-height: 0`); several needs-you
+	   cards made the strip taller than the section had room for, and with no
+	   `overflow` of its own to catch that, the extra cards painted straight
+	   over the ROUTE section below instead of scrolling — measured live,
+	   2026-09-19. Bounded here, the strip stays a glance, never a second log. */
+	.dev-says-pinned { flex: 0 0 auto; gap: 0.3em; max-height: 9em; overflow-y: auto; padding-block-end: 0.4em; margin-block-end: 0.4em; border-block-end: 1px solid var(--line); }
+	.dev-says-pinned .dev-says-card { background: color-mix(in srgb, var(--prim) 10%, var(--wash)); }
+
+	/* A card that changed just now — the "evolve" pass's own cue, not a colour
+	   swap (a colour would fight the author backgrounds above). */
+	.dev-says-flash { animation: dev-says-flash 1s ease-out; }
+	@keyframes dev-says-flash { from { outline: 2px solid var(--prim); outline-offset: 1px; } to { outline-color: transparent; } }
+
+	/* A card mid-stream — the caret blinks at the growing edge; the card itself
+	   gets no special treatment beyond that (its body already shows full text). */
+	.dev-says-caret { display: inline-block; margin-inline-start: 0.05em; color: var(--prim); animation: dev-says-caret 1s step-start infinite; }
+	@keyframes dev-says-caret { 50% { opacity: 0; } }
+
+	.dev-says-new { align-self: start; cursor: pointer; font-weight: 700; color: var(--prim-ink, var(--prim)); }
+
+	/* Reading: every other section of the body steps aside, the log too. */
+	.dev-says-reader { gap: 0.6em; }
+	.dev-says-reader-head { gap: 0.6em; }
+	.dev-says-reader-author { font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.06em; }
+	.dev-says-back { align-self: start; }
+	.dev-says-title { font-weight: 700; font-size: 1.1em; line-height: 1.3; }
+	.dev-says-text { line-height: 1.5; }
+	.dev-says-text-mine { white-space: pre-wrap; }
+	.dev-says-stale {
+		padding: 0.4em 0.6em;
+		background: color-mix(in srgb, var(--prim) 14%, var(--wash));
+		border-radius: var(--radius);
+	}
+	.dev-says-show { flex: 0 0 auto; font-weight: 700; color: var(--prim-ink, var(--prim)); background: none; border: 0; cursor: pointer; font: inherit; }
+}
+
+/* THE CHAT TAB (chat.js, log.js, sessions.js) — the live conversation with
+   the current mastermind session, past sessions, a session's minions, and a
+   composer that appends a line for the mastermind's own next cycle to read.
+   `readme.md` names the shape; `doc/decisions.md` has the choices (the
+   card-log presentation, the today-only run-task scope, why the composer's
+   target and the transcript it shows are two different files). */
+@layer theme {
+
+	/* The chat tab fills whatever height .dev-body gives it (the rail's full
+	   height on desktop, 45dvh on the bottom-sheet at <34em) and becomes the
+	   ONE scroll container — the log scrolls, the picker/composer stay put —
+	   instead of `.dev-body`'s own overflow-y doing it and losing the composer
+	   off the bottom on a long conversation. */
+	.dev-chat { flex: 1 1 auto; min-height: 0; gap: 0.6em; }
+
+	.dev-chat-degrade { padding-block: 0.3em; }
+
+	.dev-chat-back-row { gap: 0.5em; }
+	.dev-chat-linkback {
+		display: flex; align-items: center; gap: 0.3em;
+		padding: 0.15em 0.5em;
+		color: var(--ink);
+		background: var(--wash);
+		border: 1px solid transparent;
+		border-radius: var(--radius);
+		font: inherit; cursor: pointer;
+	}
+	.dev-chat-linkback:hover { color: var(--prim); border-color: var(--prim); }
+
+	/* The session picker — one solid-background dropdown, full width, so it
+	   reads as "which conversation" rather than one more small control. */
+	.dev-chat-picker-row { min-width: 0; }
+	.dev-chat-picker.dropdown-trigger,
+	.dev-chat-picker-row .dropdown-trigger { width: 100%; justify-content: space-between; }
+
+	/* ── the log itself: a scrolling list of compact cards ─────────────── */
+
+	.dev-chat-logbox { flex: 1 1 auto; min-height: 0; gap: 0.4em; }
+
+	.dev-chat-list {
+		flex: 1 1 auto; min-height: 0;
+		gap: 0.35em;
+		overflow-y: auto;
+		scrollbar-width: thin;
+		padding-inline-end: 0.2em;
+	}
+	/* ⚠ `flex-shrink: 0` — without it, a column of many flex items inside a
+	   height-capped ancestor (`.dev-chat-minions`'s `max-height`, or a long
+	   live log filling `.dev-chat-list`) SQUISHES every card down to a sliver
+	   to fit rather than overflowing and letting the ancestor's own
+	   `overflow-y: auto` scroll — the automatic minimum size of a flex item
+	   whose content has `overflow: hidden` is 0, not its content size, so
+	   flexbox happily shrinks it to nothing (measured: 81 real minion cards
+	   collapsed to 0.3px tall each, the text present in the DOM but invisible,
+	   2026-09-19). Every row card in this file needs it. */
+	/* ⚠ `padding: var(--pad-card)`, not the hand-written `0.4em 0.6em` this
+	   replaced (card-adopt, 2026-09-19) — the same ad-hoc pattern the owner's
+	   complaint was about, found by reading this file for the fix above; not
+	   the `.card` class itself, same reason as `.dev-says-card`: this row's
+	   own `gap` is its rhythm, and `.card`'s child-margin rule would stack a
+	   second gap on top of it rather than replacing it. */
+	.dev-chat-card {
+		display: flex; align-items: baseline; gap: 0.6em; width: 100%;
+		flex-shrink: 0;
+		padding: var(--pad-card); margin: 0; min-width: 0;
+		text-align: start; font: inherit; color: inherit; cursor: pointer;
+		background: var(--wash);
+		border: 0; border-radius: 0.35em;
+	}
+	.dev-chat-card:hover { background: color-mix(in srgb, var(--prim) 14%, transparent); }
+	.dev-chat-you { background: color-mix(in srgb, var(--prim) 10%, var(--wash)); }
+	.dev-chat-sent { background: color-mix(in srgb, var(--warn) 16%, var(--wash)); }
+	.dev-chat-card-role { flex: 0 0 auto; font-weight: 600; text-transform: uppercase; font-size: 0.75em; letter-spacing: 0.06em; }
+	/* rem, not em — the rail's own text is 0.8rem, and chat is prose to READ,
+	   not one more diagnostic readout (doc/decisions.md, "no 11px chat"). */
+	.dev-chat-card-text { flex: 1 1 auto; min-width: 0; font-size: 1rem; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.dev-chat-card-time { flex: 0 0 auto; font-variant-numeric: tabular-nums; }
+
+	/* ── the reader: one card, expanded to fill the whole box ───────────── */
+
+	.dev-chat-reader { flex: 1 1 auto; min-height: 0; gap: 0.5em; }
+	.dev-chat-reader-head { gap: 0.6em; }
+	.dev-chat-back {
+		display: flex; align-items: center; gap: 0.25em;
+		padding: 0.15em 0.5em;
+		color: var(--ink);
+		background: var(--wash);
+		border: 1px solid transparent; border-radius: var(--radius);
+		font: inherit; cursor: pointer;
+	}
+	.dev-chat-back:hover { color: var(--prim); border-color: var(--prim); }
+	.dev-chat-reader-body {
+		flex: 1 1 auto; min-height: 0;
+		overflow-y: auto;
+		font-size: 1rem; line-height: 1.5;
+		overflow-wrap: anywhere;
+	}
+
+	/* ── minions ──────────────────────────────────────────────────────── */
+
+	.dev-chat-minions-row { flex: 0 0 auto; }
+	.dev-chat-minions-head { font-size: 0.85em; letter-spacing: 0.06em; padding-block-end: 0.3em; }
+	.dev-chat-minions { gap: 0.3em; max-height: 12em; overflow-y: auto; scrollbar-width: thin; }
+	.dev-chat-minion {
+		display: flex; flex-direction: column; gap: 0.15em; width: 100%;
+		flex-shrink: 0;
+		padding: var(--pad-card); margin: 0; min-width: 0;
+		text-align: start; font: inherit; color: inherit; cursor: pointer;
+		background: var(--wash);
+		border: 0; border-radius: 0.35em;
+	}
+	.dev-chat-minion:hover { background: color-mix(in srgb, var(--prim) 14%, transparent); }
+	.dev-chat-minion-brief { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.dev-chat-minion-report { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+	/* ── the composer ─────────────────────────────────────────────────── */
+
+	.dev-chat-compose { flex: 0 0 auto; gap: 0.35em; padding-block-start: 0.4em; border-block-start: 1px solid var(--line); }
+	.dev-chat-compose-row { align-items: flex-end; gap: 0.5em; }
+	.dev-chat-input {
+		flex: 1 1 auto; min-width: 0; resize: vertical;
+		padding: 0.4em 0.5em;
+		font: inherit; font-size: 1rem; color: var(--ink);
+		background: var(--surface);
+		border: 1px solid var(--line); border-radius: var(--radius);
+	}
+	.dev-chat-send {
+		flex: 0 0 auto;
+		padding: 0.4em 0.9em;
+		border-radius: var(--radius);
+		font: inherit; cursor: pointer;
+	}
+	.dev-chat-compose-note { font-size: 0.85em; }
+
+	/* Below 34em the rail is the bottom sheet (devbar.css's own media query) —
+	   the log gets most of the 45dvh and the minions strip shrinks first,
+	   since the composer and the picker are what makes the tab usable at all. */
+	@media (width < 34em) {
+		.dev-chat-minions { max-height: 6em; }
+	}
+}
+
+/* Hiding, in the UTIL layer on purpose: these boxes wear the `.flex` word, which lives in
+   util and sets `display: flex` - a `display: none` from the theme layer above loses to it
+   (layer order beats specificity), and so does the bare `hidden` attribute. */
+@layer util {
+	.dev-says-reading > .dev-sect:not(.dev-says-host),
+	.dev-says-reading .dev-says,
+	.dev-says-reading .dev-says-new,
+	.dev-says-reader[hidden],
+	.dev-says-new[hidden],
+	.dev-says-pinned[hidden],
+	.dev-says-stale[hidden],
+	.dev-chat-list[hidden],
+	.dev-chat-reader[hidden] { display: none; }
 }

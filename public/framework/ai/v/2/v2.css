@@ -1,0 +1,215 @@
+/* AI dashboard v2 — dense and full width.
+
+   DENSITY IS ONE KNOB: --size, the design system's own (framework.css
+   ~line 577 — .size-small/.size-regular/.size-large set it to 0.75/1/1.5;
+   the size standard's studies/size/ shows the same knob at work elsewhere).
+   page.js's density switch puts one of those three classes on `.v2` itself;
+   every font-size below reads --size back out through `max(12px, …)`, so no
+   density can ever put a letter under 12px — the owner's own rule — and every
+   padding/gap below reads it too, so compact really packs tighter and roomy
+   really breathes, off the one knob the whole site already has. Nothing here
+   is a page-region token (`--pad`/`--gap`/`--flow`): a dense board is not a
+   page's reading column, so it keeps its own small rem/em ramp, exactly as
+   the first cut did — this file only adds the one multiplier. */
+@layer theme {
+
+	.v2 {
+		font-size: max(12px, calc(0.875rem * var(--size, 1)));
+		line-height: 1.4;
+		padding: calc(0.5rem * var(--size, 1)) calc(0.75rem * var(--size, 1)) calc(2rem * var(--size, 1));
+		display: grid; gap: calc(0.6rem * var(--size, 1));
+	}
+
+	/* One line: what this is, the run it's showing, what is happening now,
+	   the density switch, what it has cost. */
+	.v2-top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 1rem; }
+	.v2-title { font-weight: 800; font-size: max(12px, calc(1.15rem * var(--size, 1))); }
+	.v2-run { font-size: max(12px, calc(0.75rem * var(--size, 1))); }
+	.v2-now { flex: 1 1 30em; }
+	.v2-usage { color: var(--subtle); font-size: max(12px, calc(0.8125rem * var(--size, 1))); white-space: pre-wrap; }
+
+	/* Compact / cozy / roomy: three plain buttons, the active one marked —
+	   a CONTROL, so its own padding stays in its own em (the layout skill's
+	   "never a spacing clamp on a control"), not run through --size at all;
+	   `font: inherit` already carries the board's current size into it. */
+	.v2-density { display: flex; gap: 0.25em; }
+	.v2-density-btn {
+		font: inherit; text-transform: capitalize;
+		padding: 0.2em 0.7em; border-radius: 999px;
+		background: var(--fill-a08); border: 1px solid transparent; color: var(--ink);
+		cursor: pointer;
+	}
+	.v2-density-btn.active { border-color: var(--prim); color: var(--prim-ink); font-weight: 600; }
+
+	.v2-row { display: grid; gap: calc(0.6rem * var(--size, 1)); grid-template-columns: repeat(auto-fit, minmax(min(20em, 100%), 1fr)); align-items: start; }
+
+	.v2-panel, .v2-topic {
+		background: var(--paper, #fff);
+		border: 1px solid var(--line); border-radius: 0.375rem;
+		padding: calc(0.4rem * var(--size, 1)) calc(0.55rem * var(--size, 1));
+	}
+
+	.v2-head {
+		display: flex; justify-content: space-between; align-items: baseline; gap: 1em;
+		font-size: max(12px, calc(0.75rem * var(--size, 1))); font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+		padding-bottom: 0.25rem; margin-bottom: 0.25rem; border-bottom: 1px solid var(--line);
+	}
+	.v2-head .v2-time { text-transform: none; letter-spacing: 0; font-weight: 400; }
+	.v2-fold-head { cursor: pointer; }
+	.v2-fold-head:hover { background: var(--wash); }
+
+	.v2-note, .v2-agent, .v2-need, .v2-ask > summary, .v2-agent > summary {
+		display: flex; align-items: baseline; gap: 0.5em;
+		padding: 0.2rem 0;
+	}
+	.v2-agent.v2-done { display: block; padding: 0; }
+	.v2-msg { flex: 1 1 auto; min-width: 0; }
+	.v2-strong { font-weight: 600; }
+	.v2-time { flex: 0 0 auto; color: var(--subtle); font-size: max(12px, calc(0.8125rem * var(--size, 1))); white-space: nowrap; }
+	.v2-quiet { color: var(--subtle); }
+	.v2-min { flex: 0 0 4em; color: var(--prim-ink, var(--prim)); font-weight: 700; text-align: right; }
+
+	.v2-dot { flex: 0 0 auto; width: 0.55em; height: 0.55em; border-radius: 50%; background: var(--line); align-self: center; }
+	.v2-landed { background: var(--ok); }
+	.v2-building { background: var(--warn); animation: v2-pulse 1.6s ease-in-out infinite; }
+	.v2-open { background: none; box-shadow: inset 0 0 0 2px var(--subtle); }
+	@keyframes v2-pulse { 50% { opacity: 0.35; } }
+
+	/* A dismiss × on a note. The LINE stays in the run's own log forever —
+	   this only hides that id on this board, remembered in Page.Store, so it
+	   is reversible the same way every other browser-local preference here is
+	   (clear the key, or reopen it from "earlier" before it drops off the 5). */
+	.v2-dismiss {
+		flex: 0 0 auto; font: inherit; line-height: 1;
+		width: 1.4em; height: 1.4em; border-radius: 50%;
+		background: none; border: 0; color: var(--subtle); cursor: pointer;
+	}
+	.v2-dismiss:hover { background: var(--wash); color: var(--ink); }
+	.v2-earlier { margin-top: 0.2rem; }
+	.v2-earlier > summary { cursor: pointer; list-style: none; color: var(--subtle); font-size: max(12px, calc(0.8125rem * var(--size, 1))); }
+	.v2-earlier > summary::-webkit-details-marker { display: none; }
+
+	/* The asks: a WALL of topic cards, not CSS multi-column text — the first
+	   cut's `columns: 26em` let the browser split a tall topic wherever the
+	   column happened to end, dropping its heading into the next column with
+	   nothing to say whose rows those were (found live, /framework/ai/2026-
+	   09-17/mastermind-layout-browser/'s own 33-row "AI LOG" topic). A grid
+	   item cannot be split across a track the way flowed text can, so a topic
+	   keeps its own heading whatever its length — the tradeoff, accepted by
+	   the shot: columns of very different heights, since nothing here packs
+	   them level (no `masonry` value on this engine yet, and a JS packer was
+	   more machinery than a dashboard needs). */
+	.v2-asks {
+		display: grid; align-items: start;
+		grid-template-columns: repeat(auto-fit, minmax(min(24em, 100%), 1fr));
+		gap: calc(0.6rem * var(--size, 1));
+	}
+	.v2-ask { border-bottom: 1px solid color-mix(in srgb, var(--line) 50%, transparent); }
+	.v2-ask:last-child { border-bottom: 0; }
+
+	/* The framework dresses every `summary` as a control (a filled, padded rectangle).
+	   Here a summary is a ROW of a list, so the control dress comes off. */
+	.v2-ask > summary, .v2-agent > summary {
+		cursor: pointer; list-style: none;
+		width: 100%; min-height: 0; margin: 0;
+		background: none; border: 0; border-radius: 0; box-shadow: none;
+		font: inherit; color: inherit; text-align: start;
+	}
+	.v2 details { background: none; border: 0; padding: 0; margin: 0; }
+
+	/* A closed row is two lines at most; open it to read the rest. Covers
+	   both an ask's conclusion and a landed agent's first sentence. */
+	.v2-ask:not([open]) > summary .v2-msg,
+	.v2-agent:not([open]) > summary .v2-msg {
+		display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+	}
+
+	/* The board is its own title: the page's big h1 and its top margin stand down. */
+	.page:has(> .v2) > .page-title { display: none; }
+	.page:has(> .v2) { padding-block-start: 0; }
+
+	/* This board wants the owner's own words: "take over the full screen space,
+	   not including the sidebar." It is mounted as a catalog DETAIL child of
+	   /framework/ai/ (ext/catalog/catalog.js: "a catalog takes wide — the whole
+	   region — and no call site gets to decide otherwise"), so by design every
+	   catalog page is inset by the OUTER ai/ page's own --gutter-x (both sides)
+	   and --pad-y (top/bottom) — consistent chrome for every other catalog page,
+	   which this board alone opts out of. `:has()` re-evaluates with the route,
+	   so this only fires while THIS board is the mounted leaf; every other
+	   catalog child (the task pages, the day pages) keeps its normal gutter.
+	   Measured at 1920: 83px top / 66px each side of empty space → 35px top /
+	   0px sides once this fires; the rest of the top gap is this file's own
+	   small padding above, which now also answers to density. */
+	.page:has(> .page-catalog .v2) { --gutter-x: 0px; --pad-y: 0px; }
+
+	.v2-ask > summary::-webkit-details-marker, .v2-agent > summary::-webkit-details-marker { display: none; }
+	.v2-ask > summary:hover, .v2-agent > summary:hover { background: var(--wash); }
+	.v2-ask[open] > summary .v2-msg, .v2-agent[open] > summary .v2-msg { font-weight: 600; }
+
+	.v2-more { padding: 0.25rem 0 0.5rem 1.05em; display: grid; gap: 0.35rem; color: var(--ink); }
+	.v2-quote { color: var(--subtle); font-style: italic; }
+	.v2-links { display: flex; flex-wrap: wrap; gap: 0.15rem 0.9em; }
+	.v2-link { white-space: nowrap; }
+
+	/* The Decisions panel calls ext/AITask/decisions.js's own function — the
+	   same writer the real Decisions tab uses, not a fork of it. Its rows are
+	   already built from framework.css's own flex/split/wrap utilities, so
+	   almost nothing is needed here; these handful of rules are copied
+	   verbatim from ai.css's own touches (the arrow, the status pill, the
+	   rule chip, the drag grip) so this panel reads exactly like the real
+	   tab. `.v2` never loads ai.css itself — that sheet styles a dozen other
+	   things this board doesn't use, which is the whole point of copying six
+	   lines instead of importing it whole.
+
+	   ⚠ `--size` RESETS TO 1 HERE, on purpose. framework.css's own controls
+	   (button/summary/select/textarea) already read `--size` themselves
+	   (`font-size: calc(1em * var(--size))`) — that is how `.size-small`
+	   normally shrinks a toolbar. But THIS board's `.v2` rule above ALSO
+	   multiplies its own base font by `--size` for the density switch, so a
+	   control nested in here would be multiplied twice (0.75 × 0.75 = 0.5625
+	   at compact) — measured live, a reply box's textarea and its Send
+	   button both rendered at 9px, under the floor, with `.v2`'s own text
+	   sitting correctly at exactly 12px right beside them. Approving or
+	   improving a decision, and replying to one, are real work, not reading —
+	   so this whole panel (and the reply box `decisions.js` opens per row)
+	   holds its natural, comfortable size at every density, never shrinking
+	   below what the rest of the site already uses for it. */
+	.v2 .ai-decisions-tab { --size: 1; }
+
+	.v2 .ai-group-title { font-weight: 700; font-size: max(12px, 0.9em); letter-spacing: 0.04em; text-transform: uppercase; }
+	.v2 .ai-decision { border-block-start: 1px solid var(--line); padding-block-start: var(--gap-35); }
+	.v2 .ai-decision:first-child { border-block-start: 0; padding-block-start: 0; }
+	.v2 .ai-decision-line { cursor: pointer; }
+	.v2 .ai-decision-about { font-weight: 600; }
+	.v2 .ai-decision-about::before { content: "▸ "; opacity: 0.5; font-weight: 400; }
+	.v2 .ai-decision.active .ai-decision-about::before { content: "▾ "; }
+	.v2 .ai-decision-status {
+		font-size: max(12px, 0.8em); letter-spacing: 0.04em; text-transform: uppercase; font-weight: 700;
+		padding: 0 0.6em; border-radius: 999px;
+		outline: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+	}
+	.v2 .ai-decision-status.approved { color: var(--ok); outline-color: var(--ok); }
+	.v2 .ai-decision-status.improve { color: var(--error); outline-color: var(--error); }
+	.v2 .ai-decision-rule {
+		font-family: var(--mono); font-size: max(12px, 0.85em);
+		background: var(--wash); border-radius: 999px; padding: 0.1em 0.7em;
+	}
+	.v2 .ai-decision-note { color: var(--error); }
+	.v2 .ai-rank-grip {
+		position: absolute; inset-inline-end: 0.35em; top: var(--gap-35);
+		font-size: max(12px, 0.9em); line-height: 1; padding: 0.15em 0.3em; border-radius: 0.25em;
+		opacity: 0.4; color: inherit;
+	}
+	.v2 .ai-rank-grip:hover { opacity: 1; outline: 1px solid var(--line); }
+	.v2 .ai-decision:has(> .ai-rank-grip) { position: relative; padding-inline-end: 1.8em; }
+
+	/* Each decision opens `ext/Ask/reply.js`'s own reply box (its own
+	   question, mic and send). Same 12px floor, same reason — these are
+	   ask.css's own `.8em` rules, still under 12px even after the --size
+	   reset above, so they get the same explicit floor, matched to ask.css's
+	   own selectors so this wins regardless of which sheet loaded last. */
+	.v2 .ask-reply-acts > button.ask-reply-btn,
+	.v2 .ask-reply-acts > button.ask-mic,
+	.v2 .ask-reply-foot > button.ask-reply-send { font-size: max(12px, 1em); }
+	.v2 .ask-reply-note, .v2 .ask-reply-hint, .v2 .ask-reply-say { font-size: max(12px, 1em); }
+}

@@ -29,4 +29,4 @@ numbers. Click a shot for full size; click "the reviewer's log" for that agent's
 **More.** The reviewers' full logs, with the reverted code and every caveat, are under
 [the day's tasks](/framework/ai/2026-09-05/); the manager's own log is
 [ux-rethink](/framework/ai/2026-09-05/ux-rethink/). The rule this pass produced lives in
-[the layout system](/imagine/layouts/) and [the approved five](/imagine/design/layout/approved/).
+[the layout system](/layouts/) and [the approved five](/layouts/doc/studies/approved/).

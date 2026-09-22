@@ -12,8 +12,11 @@ const LOCAL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) || location.h
 export function shot_wall(list){
 	if (!list?.length) return;
 	div.c("ai-header", () => span.c("ai-group-title muted", `Screenshots · ${list.length}`));
-	div.c("ai-shots", () => list.forEach(thumb));
+	div.c("ai-shots", () => list.forEach(s => thumb(s)));
 }
+
+/** One thumbnail on its own — what an ask card shows when its task produced a picture. */
+export const shot_thumb = s => thumb(s);
 
 function thumb(s){
 	const src = "/screenshot?path=" + encodeURIComponent(s.path);

@@ -54,6 +54,7 @@ const REALMS = [
 		better: "Wire the cue table in as a live companion column beside the panel by default, so the page also shows where its own cue tables come from without a click.",
 		numbers: "The panel column's own scrollHeight 1110px → 859px at 3440, which fits its 852px box with no internal scroll left; 1199px → 988px at 1280.",
 		visual: "The five one-word lab names — Course, Yield, Split, Chat, Marks — became real screenshots of each lab's own distinguishing UI instead of a generic icon and a repeated description.",
+		persists: "Nothing.",
 		counts: "3 fixed · 0 proposed — including a genuine crash: a method named `card()` shadowed core's `nav().card` field and threw the instant the page got a real preview." },
 
 	{ slug: "research", title: "Research", verdict: KEPT,
@@ -66,6 +67,7 @@ const REALMS = [
 		better: "Rank the highlighted theory by how contested it is rather than defaulting to newest.",
 		numbers: "Page height 877px → 2,855px at 3440 — three times taller, and kept anyway. Width used and dead space unchanged at 46.0% and 1,856px, which is the columns row, not this page.",
 		visual: "Each topic card's centre column now shows the topic's actual newest theory — title, credence badge, full reasoning, and a source link — where a bare entry count and a coloured bar used to be.",
+		persists: "Nothing.",
 		counts: "2 fixed · 1 proposed — and one real bug found by driving it: a \"+N more theories\" disclosure dumped all 22 remaining theories inline, growing the card 5,412px in one click. It is a plain link now." },
 
 	{ slug: "game", title: "Game", verdict: KEPT,
@@ -104,6 +106,7 @@ const REALMS = [
 		better: "Give the four remaining doors the same ultrawide-aspect fix the foyer and the crossroads got, so every one uses the width it is given.",
 		numbers: "Page height 987.6px → 856.8px at 3440, 13% shorter. Width used reads 100% before and after and is not an informative number for this page, which opts out of the columns cap — the reviewer said so rather than hiding it.",
 		visual: "A bug no DOM measurement could ever see: past a certain aspect ratio the 3D camera's field of view kept widening with screen width alone, so the five doors shrank toward the centre of an ultrawide canvas. They used about a third of the frame; now they use 63%.",
+		persists: "Nothing.",
 		counts: "4 fixed · 1 proposed" },
 
 	{ slug: "generated", title: "Generated", verdict: KEPT,
@@ -116,6 +119,7 @@ const REALMS = [
 		better: "When a second seed exists, add one line comparing the two cards, so scrolling from one to the next shows the relation rather than two similar boxes.",
 		numbers: "Width used, dead space and page height all unchanged — and the report says why, at length, instead of claiming a win it did not measure.",
 		visual: "The seed's own tree structure, previously buried in a source-code comment no reader would ever see, is now two labelled chips drawn live off the page's actual children.",
+		persists: "Nothing.",
 		counts: "2 fixed · 0 proposed" },
 
 	// ════ THE ELEVEN THAT PUT IT BACK ═════════════════════════════════════════
@@ -130,6 +134,7 @@ const REALMS = [
 		better: "The two text-only cards could get a small generated glyph of their own data, closing the gap between all twelve.",
 		numbers: "The alternative: 852px → 5,280px at 3440. What was kept instead: 852px → 734px, and 860px → 786px at 1280 — the page got SHORTER, because the framework drops a card's two-line description once it has a thumbnail.",
 		visual: "Ten cards that showed a generic icon and two lines of caption now show the actual screenshot the study is about — a padding ladder, a dark theme, a resize handle, a magazine headline.",
+		persists: "Nothing.",
 		counts: "5 fixed · 0 proposed" },
 
 	{ slug: "shells", title: "Shells", verdict: BACK,
@@ -142,6 +147,7 @@ const REALMS = [
 		better: "A short hover-scrub of the keyboard rail-toggle on one card would show the hide/show behaviour without a click.",
 		numbers: "The alternative: 1,289px → 4,038px at 3440. What was kept: 1,289px → 1,989px, the honest cost of ten real stills.",
 		visual: "The ten cards changed from a generic icon to a real screenshot of that exact shell, so a reader can tell left-rail from canvas-centre from nested-columns before clicking any of them.",
+		persists: "Nothing.",
 		counts: "4 fixed · 0 proposed — including a doc page that 404'd outright, and four readme links that left the app for raw markdown." },
 
 	{ slug: "decks", title: "Decks", verdict: BACK,
@@ -154,6 +160,7 @@ const REALMS = [
 		better: "A \"try both\" toggle on the Persistent and Swap cards, so that specific comparison is felt in one click instead of two page visits.",
 		numbers: "Width used 98.6% → 79.6% — and the drop is the fix, not a loss. An under-filled auto-fill grid was reaching out to 3,390px behind a group holding one card; each group is now capped to its own card count, so up to 2,667px of dead space — 78% of a 3440 screen — went to zero.",
 		visual: "Every card's picture stopped being a colour-toned rectangle standing in for a ratio and became a real screenshot of the actual slide, ratio label and all.",
+		persists: "Nothing.",
 		counts: "3 fixed · 1 proposed — make core's grouped card wall render one grid per group, so every other grouped wall on the site gets that 2,667px fix for free." },
 
 	{ slug: "screens", title: "Screens", verdict: BACK,
@@ -166,6 +173,7 @@ const REALMS = [
 		better: "A hover state that animates the hop a card represents, in place, would remove the last reason to click through blind.",
 		numbers: "The alternative: 856px → 1,747px at 3440. What was kept: 856px → 979px, one added line of real information per card.",
 		visual: "Each card gained a fourth line — the concrete number that demo actually measured — pulled out from behind the readme link and onto the card itself.",
+		persists: "Nothing.",
 		counts: "3 fixed · 0 proposed" },
 
 	{ slug: "vary", title: "Vary", verdict: BACK,
@@ -178,6 +186,7 @@ const REALMS = [
 		better: "Add a one-word hint under Colstyles' title (\"4 looks × 2 widths\") so the permutation is visible before the click, not only after it.",
 		numbers: "The alternative: 852px → 1,373px at 3440, so the page no longer fit one screen where it used to. What was kept: 852px → 852px, because the framework needs no extra room once an icon and a description become a thumbnail.",
 		visual: "The four lab cards now show a real screenshot of what clicking each one reveals, on a page whose entire subject is visual comparison and which was showing none of it.",
+		persists: "Nothing.",
 		counts: "2 fixed · 0 proposed — including the colour-by-layout permutation the owner asked for tonight, which existed here in name only and is now real: four looks crossed against two real column widths." },
 
 	{ slug: "mag", title: "Magazine", verdict: BACK,
@@ -216,6 +225,7 @@ const REALMS = [
 		better: "Carry the same treatment a layer deeper, to each of the 42 individual pages inside the six lists — which needs a pre-rendered sprite sheet, not a live import.",
 		numbers: "Unchanged either way — 33.5% width used, the same column height. The real change here is density, not extent.",
 		visual: "The three top-level cards and Lists' own six-card index all traded an icon and a caption for a real picture of what is actually inside.",
+		persists: "Nothing.",
 		counts: "2 fixed · 0 proposed — including Lists' own index, which had no card wall at all and fell through to the framework's bare default link rail." },
 
 	{ slug: "feeds", title: "Feeds", verdict: BACK,
@@ -228,6 +238,7 @@ const REALMS = [
 		better: "The data wall's own cards, one level in, are still text-only; a few named building photos there would read even faster.",
 		numbers: "340.8px → 406.9px on the column's own body — the honest cost of three 16:10 thumbnails replacing two lines of text.",
 		visual: "Each of the three cards traded a generic glyph for a real screenshot of the thing itself: Steve Jobs mid-talk at the podium, the real twenty-building card wall, the real five-city weather board with real temperatures.",
+		persists: "Nothing.",
 		counts: "1 fixed · 0 proposed" },
 
 	{ slug: "cms", title: "CMS", verdict: BACK,
@@ -253,6 +264,7 @@ const REALMS = [
 		better: "Formalise the click from the wall into a shell as the paging vocabulary's own takeover word, instead of the custom escape it uses today.",
 		numbers: "774px → 838px at 3440, 736px → 833px at 1280 — an honest 8–13% of height bought with eight real screenshots. Width used stays 100%: this realm already fixed its own dead space before tonight.",
 		visual: "Eight identical-looking icon-and-caption cards became eight real screenshots — a hero-and-wall magazine front, a shut-rail title deck, a nested Finder-style archive and a four-column side-by-side reader are visibly different things now.",
+		persists: "Nothing.",
 		counts: "1 fixed · 1 proposed" },
 ];
 

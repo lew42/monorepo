@@ -10,28 +10,25 @@
  */
 @layer site {
 
-	/* ---- the site's chrome ----
-	   `.nav` is built once in /app.js, outside `$pages`, so navigation can never
-	   touch it. */
-
-	.nav {
-		display: flex; flex-wrap: wrap; gap: calc(var(--gap) * 1.25); flex: 0 0 auto;   /* was gap 1.25em - 2026-09-05 ramps */
-		padding: 0.9em 6%; border-bottom: 1px solid var(--line);
-	}
+	/* ---- link styles ----
+	   `.nav-link` used to style the site-wide top nav app.js built once outside
+	   `$pages` — deleted 2026-09-18 (`ai/2026-09-18/dead-nav/`): the root page
+	   (`/page.js`) has always carried `classes: "hides-nav"`, and root is a
+	   structural ancestor of every url (`Router.js`'s `load_segments()` always
+	   starts from `app.root`), so the nav's own `.app:has(.page.hides-nav
+	   .active-ancestor)` rule matched on all 14 real destinations tested headless,
+	   with no exception — the bar could never have painted, on any page, ever. The
+	   class survives here because `/framework/styles/elements/text/` still
+	   demonstrates it as one of three named link styles (`page-link` / `nav-link` /
+	   `tab`) beside real prose links — deleting the rule would leave that swatch
+	   unstyled. `hides-nav` itself (the class, and its old `--nav-display`
+	   mechanism) is gone with the nav it gated; four other files still wear the
+	   class name for their OWN local nav-hiding (`imagine/paging`,
+	   `layouts/labs/blogx`, `layouts/labs/shells`) — harmless now, just inert,
+	   since nothing reads it any more. */
 	.nav-link { text-decoration: none; color: var(--subtle); }
 	.nav-link:hover { color: var(--prim); }
 	.nav-link.active, .nav-link.in-path { color: var(--prim); font-weight: 600; }
-
-	/* A topic that brings its own navigation hides the global one — the app nav is
-	   for moving BETWEEN sections, and inside one it is noise.
-
-	   An inert class on the page (`classes: "hides-nav"`), not a call in a hook.
-	   Router.mark() rewrites the active classes on every navigation including Back,
-	   so this unsets itself: there is no paired show/hide to keep in sync, and any
-	   number of pages in the chain can carry it. */
-	.app:has(.page.hides-nav.active-page),
-	.app:has(.page.hides-nav.active-ancestor) { --nav-display: none; }
-	.nav { display: var(--nav-display, flex); }
 
 	/* ---- the mark ----
 	   mask, not <img>: an image can't take a fill from CSS, and inlining the markup

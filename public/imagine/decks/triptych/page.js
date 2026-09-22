@@ -11,6 +11,7 @@ export default new Deck({
 	description: "25 / 50 / 25 — the presenter's shape: place, statement, notes.",
 	icon: "view_agenda",
 	group: "The slices",
+	shapes: ["1:l 2:s 1:n"],
 	ring: slices,
 	...arrows,
 	...neighbor("triptych"),

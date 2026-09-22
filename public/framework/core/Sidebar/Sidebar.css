@@ -4,6 +4,34 @@
 	   color-mix — so a theme cannot set them inconsistently, and a dark panel over a
 	   light page (a supported combination) stays right. Placement is never here. */
 	.sidebar {
+		--gutter: 2.6em;   /* one number, for the brand, the group titles and the links */
+
+		/* THE WIDTH. `--sidebar-w` is what a drag (or a saved one) asks for; `--sidebar`
+		   is what `.topic > .sidebar { flex: 0 0 var(--sidebar) }` (/styles.css) actually
+		   reads. Clamped HERE, never in the drag handler, so it stays honest when the
+		   WINDOW changes size mid-drag rather than the width that was last asked for
+		   (`/layouts/shell/`'s own Shell.grab() rule, copied). Declaring `--sidebar`
+		   again, locally, on `.sidebar` itself, is what lets this ONE component own its
+		   own width with no fallback in the shared token: a property declared directly
+		   on an element always beats one it would otherwise have inherited, so this line
+		   — not layer order, not specificity — is what overrides framework.css's
+		   `:root { --sidebar: 19em }` for a real `Sidebar` and everything inside it. A
+		   hand-rolled rail elsewhere reading `var(--sidebar)` still gets 19em; that
+		   drift, and why the default moved to 18rem, are doc/decisions.md's. */
+		/* ⚠ `em`, not `rem` — this site's fluid type scale lives on `body`
+		   (framework.css), and `rem` is always relative to `html`'s fixed 16px, so a
+		   `rem` default measured 288px at 400, 1280 AND 3440 alike: the exact "widening
+		   the window did nothing" bug this component's own doc/comp.md already named
+		   once. `em` is what let the old `19em` answer 229 / 243 / 274px across
+		   1280/1920/3440 (measured); `20em` keeps that same fluid floor-to-ceiling
+		   shape and reads 241 / 256 / 288px — larger everywhere, most at 3440, which is
+		   doc/decisions.md's answer to "decide a default that reads well". The clamp's
+		   OWN floor stays the brief's literal `12rem`: a drag's minimum is a fixed
+		   usability floor, not something that should shrink further on a small screen. */
+		--sidebar-w: 20em;
+		--sidebar: clamp(12rem, var(--sidebar-w), 50%);
+
+		position: relative;
 		display: flex;
 		flex-direction: column;
 		background: var(--sidebar-bg, var(--bg));
@@ -11,14 +39,35 @@
 		border-right: 1px solid var(--line);
 	}
 
-	/* ⚠ No overflow on the panel: `.sidebar-nav` scrolls, so the bar above it and
-	   the footer below it stay put by structure rather than by `position`. */
+	/* THE TRACK is `.sidebar` itself — the flex item /styles.css sizes — and THIS is
+	   THE RAIL, sticking inside it. They cannot be one element: a box exactly as
+	   tall as its own content has no travel, so `position: sticky` on it can never
+	   fire (`/layouts/shell/`'s own measurement, copied here). `max-height` is what
+	   bounds `.sidebar-nav`'s `flex: 1 1 auto; min-height: 0; overflow-y: auto` to
+	   "the viewport" rather than to whatever the row's own content happens to be
+	   tall — which is what lets the header and footer stay pinned by structure even
+	   on a page whose content runs past one screen. */
+	/* ⚠ `height`, not `max-height` — 2026-09-19, and this one line is the whole
+	     "big white chunk" the owner saw. `max-height` only CAPS a box; it never
+	     fills one. So the rail was exactly as tall as its own content, and on a page
+	     whose tree is short (the home page: nine rows) the footer stopped where the
+	     last row stopped, with the rest of the rail left as blank white below it —
+	     it read as a huge empty footer because the border above it was the last line
+	     on screen. With a real height the rail always fills the viewport, `.sidebar-
+	     nav`'s `flex: 1 1 auto` takes every pixel the brand, the filter bar and the
+	     footer do not, and the footer is pinned to the bottom where chrome belongs.
+	     Any white left over is now inside the scroller — the tree's own free space,
+	     which is what the owner asked for. */
+	.sidebar-rail {
+		position: sticky;
+		top: 0;
+		height: 100dvh;
+		display: flex;
+		flex-direction: column;
+	}
 
 	.sidebar-bar { display: flex; align-items: center; flex: 0 0 auto; }
 	.sidebar-bar > .brand { flex: 1 1 auto; min-width: 0; }
-
-	/* One number for the brand, the group titles and the links. */
-	.sidebar { --gutter: 2.6em; }
 
 	.sidebar .brand {
 		display: flex;
@@ -56,79 +105,115 @@
 		display: flex; flex-direction: column;
 	}
 
-	/* THE scroller. ⚠ `min-height: 0` is what lets a flex child scroll at all. */
+	/* THE SCROLLER. ⚠ `min-height: 0` is what lets a flex child scroll at all. */
 	.sidebar-nav {
 		display: flex; flex-direction: column;
 		flex: 1 1 auto; min-height: 0;
 		overflow-y: auto;
 	}
 
-	.sidebar-group { display: flex; flex-direction: column; }
+	/* ════ THE TREE — `ux/Tree`'s rows, dressed as this component's own links ═════
+	   The row, the indent and the keyboard focus ring are `ui/tree`'s; everything
+	   below is only what turns a generic tree row into THIS panel's link: the roomy
+	   padding, the 18px label, the icon's tint, and the `.active`/`.in-path`
+	   highlight `Router.mark_links()` already stamps on every anchor on the site
+	   (`ux/Tree` rows are real `<a>`s, so nothing extra was needed for that part). */
+	.sidebar .ui-tree { padding-inline-start: 0; }
 
-	.sidebar-group-title {
-		padding: 0.4em var(--gutter);
-		color: color-mix(in srgb, var(--sidebar-ink, #fff) 60%, transparent);
-	}
-
-	/* ⚠ `line-height` is pinned: it decides the row height together with the label,
-	   and a theme is entitled to a loose one for body copy — lew42's 1.8 turned a
-	   56px row into 64px. Rhythm in a fixed-height control is the control's. */
-	.sidebar-link {
-		display: flex;
-		align-items: center;
-		gap: 1.3em;   /* ⚠ the ROW's own em, never a page ramp. This read
-		                 `calc(var(--gap) * 1.3)` from 2026-09-05 to 2026-09-06:
-		                 the ramp caps at 2.6em, so the space between a nav item's
-		                 icon and its label reached 3.38em — 48.7px at 3440 instead
-		                 of 18.7px. A ramp is space BETWEEN things; the inside of one
-		                 control is the control's own size. */
-		padding: 1em 1em 1em var(--gutter);
+	/* THE ROW. Every number is the ROW's own `em`, never `--pad`/`--gap` — those are
+	   page ramps that cap at 2.6em, and one of them read 48.7px on this very row at
+	   3440 (the spacing decision, 2026-09-06). At the rail's 0.8em font (12.8px at
+	   1920) this is a 31.7px row: GitHub's file tree is 32, Notion's 30, VS Code's 22.
+	   It was 46.5px, with a 1.3em gap applied twice. That was the OLD FLAT MENU's
+	   chrome — eight roomy links, each an icon and a label — left in place when the
+	   rail became a TREE of forty rows that each hold three things, so a page's whole
+	   section no longer fit on a screen and the labels floated 80px into a 256px rail
+	   with 25px of dead air between the fold arrow and the icon. 2026-09-19. */
+	.sidebar .ui-tree-row {
+		gap: 0.35em;
+		padding: 0.45em 0.6em 0.45em 1.2em;
+		border-radius: 0;
 		line-height: 1.4;
 		color: var(--sidebar-ink, #fff);
-		text-decoration: none;
 	}
 
-	/* ⚠ On the LABEL, never the padded row: `em` resolves against the element that
-	   uses it, so sizing and padding the same element misaligns the column. */
-	.sidebar-label { font-size: 1.125em; }
+	/* ⚠ 1.2em, and it is the same 1.2em `/styles.css` gives `.brand` — THE RAIL HAS
+	   ONE LEFT EDGE, and the brand mark, the fold arrows and the footer's gear all
+	   stand on it. `--gutter` (1.75em) is the wider column the old flat links used;
+	   a tree row starts with chrome, not with a word, so it hugs the edge instead —
+	   which is what every file tree people use all day does. */
 
-	.sidebar-link .icon { color: color-mix(in srgb, var(--sidebar-ink, #fff) 60%, transparent); }
+	/* A RAIL THAT NEEDS NEITHER COLUMN DOES NOT PAY FOR THEM. `ux/Tree` always draws
+	   the fold span and the icon span, empty or not, so by default every row reserves
+	   both — and on the home page, where nothing folds and nothing carries an icon,
+	   that left nine labels sitting 60px in with nothing whatever to their left.
+	   ⚠ `:has()` asks THE WHOLE TREE, not the row and not the list. Per row would
+	     break the alignment a tree is for: a leaf among branches (core/Page's "Files")
+	     has no arrow of its own and must still line up with its siblings. Per list
+	     would be wrong the other way — a nested list keeping its parent's columns is
+	     exactly what puts a child's icon under its parent's. So the column goes only
+	     when no row ANYWHERE in this tree has anything to put in it, and it comes
+	     back by itself the moment a lazy branch loads one. 2026-09-19. */
+	.sidebar .ui-tree:not(:has(.ui-tree-toggle:not(:empty))) .ui-tree-toggle { display: none; }
+	.sidebar .ui-tree:not(:has(.ui-tree-icon:not(:empty))) .ui-tree-icon { display: none; }
 
-	.sidebar-link:hover {
+	/* ⚠ Size the text, pad the box, never the same element — an `em` token resolves
+	   per element (doc/comp.md). The label is its own span, not the padded row. */
+	.sidebar .ui-tree-text { font-size: 1.125em; }
+
+	.sidebar .ui-tree-icon { color: color-mix(in srgb, var(--sidebar-ink, #fff) 60%, transparent); font-size: 1em; }
+
+	.sidebar .ui-tree-row:hover {
 		background: color-mix(in srgb, var(--sidebar-ink, #fff) 4%, transparent);
 	}
+
+	/* `ux/Tree`'s own click-to-select highlight would be a second, disagreeing mark
+	   beside Router's — this component keeps exactly one: `.active`/`.in-path`,
+	   Router.mark_links()'s. `select()` still runs (it is what drives `adapt`'s
+	   fold-on-click); only its OWN paint is turned off here. */
+	.sidebar .ui-tree-selected { background: none; font-weight: inherit; }
 
 	/* ⚠ `.active` only. A grouped sidebar has a heading for "you are in here", so
 	   lighting `.in-path` too left two rows looking chosen. /styles.css gives
 	   `.in-path` a semibold label instead. Both classes are Router.mark_links()'. */
-	.sidebar-link.active {
+	.sidebar .ui-tree-row.active {
 		background: color-mix(in srgb, var(--sidebar-ink, #fff) 7%, transparent);
+		font-weight: inherit;
 	}
-	.sidebar-link.active .icon { color: var(--prim); }
+	.sidebar .ui-tree-row.active .ui-tree-icon { color: var(--prim); }
 
-	/* ⚠ A plain character, not a Material Icons ligature — this file must not depend
-	   on a font the app may never have loaded. And an ESCAPE, never the literal:
-	   the deployed host serves CSS with no charset, so a raw › decodes as "â€º". */
-	.sidebar-link.active::after {
-		content: "\203A";
-		margin-left: auto;
-		font-size: 1.4em;
-		line-height: 1;
-		opacity: 0.5;
-	}
-
+	/* ONE BUTTON ROW, pinned to the bottom by the rail's own height above. The owner,
+	   2026-09-19: "the framework sidebar's footer should be like one row, like one
+	   button row." So it is exactly as tall as the controls in it plus a hair —
+	   0.35em of block padding, and both controls the same square — instead of the
+	   47px strip it was.
+	   ⚠ `0.35em`, not `calc(var(--gap) * 0.8)`. A strip of controls is a CONTROL, and
+	     a control never rides a page ramp — the same rule the tree row above obeys,
+	     and the same mistake this file made once before (2026-09-05). Its 1.2em
+	     inline padding is the rail's one left edge, shared with the brand, the filter
+	     bar and every row. */
 	.sidebar-footer {
 		flex: 0 0 auto;
-		display: flex; align-items: center; justify-content: space-between; gap: calc(var(--gap) * 0.8);   /* was gap 0.8em - 2026-09-05 ramps */
-		padding: 0.8em var(--gutter);
+		display: flex; align-items: center; justify-content: space-between; gap: 0.5em;
+		padding: 0.35em 1.2em;
 		border-top: 1px solid color-mix(in srgb, var(--sidebar-ink, #fff) 15%, transparent);
 	}
+
+	/* ⚠ THE SAME SQUARE, for every control in the row — the tree's own frame idea one
+	   tier up. Both are boxes of one declared size with their glyph centred in them,
+	   so the row reads as a row of buttons rather than as two unrelated marks that
+	   happen to share a line. */
+	.sidebar-footer > * { --sidebar-mark: 1.9em; }
 
 	/* ⚠ Two classes, so this out-specifies both mode.css's `(0,1,0)` fixed pill and
 	   a theme's `:is(button)` at `(0,1,1)` without leaning on load order. */
 	.sidebar-footer .mode-btn {
 		position: static;
-		padding: 0.45em;
+		display: grid; place-items: center;
+		width: var(--sidebar-mark, 1.9em); height: var(--sidebar-mark, 1.9em);
+		min-height: 0;                 /* ⚠ framework's control box says 2.4em; a
+		                                  chrome mark is not a page control */
+		padding: 0; line-height: 1;
 		box-shadow: none;
 		background: none;
 		color: color-mix(in srgb, var(--sidebar-ink, #fff) 70%, transparent);
@@ -136,14 +221,34 @@
 	}
 	.sidebar-footer .mode-btn:hover { color: var(--prim); border-color: var(--prim); }
 
-	/* a slot for the account mark a site will want */
+	/* THE ACCOUNT MARK, with nobody signed in. An empty grey circle reads as an image
+	   that failed to load, so it holds the anonymous person every product draws
+	   instead: a small circle for the head over a bigger circle for the body, the
+	   body clipped by the avatar's own edge. The owner's words, 2026-09-19: "put a
+	   little anonymous guy in there: just a circle, a smaller circle for the head and
+	   a bigger circle for the body."
+	   Two pseudo-elements — no asset to fetch, no markup for `Sidebar.js` to carry,
+	   and a real photo replaces the whole box anyway. `overflow: hidden` is what does
+	   the clipping; the percentages are of the circle, so it scales with the rail. */
 	.sidebar-avatar {
 		flex: 0 0 auto;
-		width: 2em; height: 2em;
+		position: relative;
+		overflow: hidden;
+		width: var(--sidebar-mark, 1.9em); height: var(--sidebar-mark, 1.9em);
 		border-radius: 999px;
-		background: color-mix(in srgb, var(--sidebar-ink, #fff) 14%, transparent);
-		border: 1px solid color-mix(in srgb, var(--sidebar-ink, #fff) 30%, transparent);
+		background: color-mix(in srgb, var(--sidebar-ink, #fff) 10%, transparent);
+		border: 1px solid color-mix(in srgb, var(--sidebar-ink, #fff) 25%, transparent);
 	}
+
+	.sidebar-avatar::before, .sidebar-avatar::after {
+		content: "";
+		position: absolute; left: 50%;
+		aspect-ratio: 1; border-radius: 999px;
+		background: color-mix(in srgb, var(--sidebar-ink, #fff) 42%, transparent);
+		transform: translateX(-50%);
+	}
+	.sidebar-avatar::before { width: 36%; top: 16%; }   /* the head */
+	.sidebar-avatar::after  { width: 64%; top: 56%; }   /* the body */
 
 	/* ⚠ `.sidebar` prefix so the box beats a theme's `:is(button, .btn)` at (0,1,1). */
 	.sidebar .sidebar-toggle {
@@ -165,6 +270,40 @@
 		background: currentColor;
 	}
 
+	/* THE GRAB is `ext/grip`'s own `.grip`/`.grip-start` now (grip.css, loaded the
+	   moment `Sidebar.js` imports `ext/grip/grip.js`) — nothing to declare here.
+	   2026-09-18: this used to be a 10px target straddling the track's own border,
+	   copied from `/layouts/shell/`; both copies merged onto the one shared file,
+	   and grip's own strip sits wholly INSIDE the box instead (its own doc/
+	   decisions.md says why — a straddling strip left an invisible resize column
+	   hanging past a shut rail on another consumer). */
+
+	/* THE FILTER IS A BAR, NOT A CARD IN A RAIL. It sits directly under the brand,
+	   the full width of the rail, on a darkened ground with a WHITE field on it —
+	   the owner's direction, 2026-09-19: "it's like a UI bar: it goes from the logo
+	   to the UI bar — darken background for the UI bar, and white background for the
+	   form field."
+	   ⚠ The white half is NOT written here, on purpose. `.darken-1` (framework.css)
+	     carries the ground AND the `--field-bg` every field reads, so the next bar
+	     anyone builds gets the same pair for free instead of copying two lines. The
+	     class is added in `Sidebar.js`, with `chrome: false` telling `ux/Filter` not
+	     to draw its own `.surface.pad` card inside this one.
+	   Before: a white card with a 1px border, inset 22px, holding a GREY field inset
+	   another 39px — a box in a box in a box, which is what the owner was looking at.
+	   Its padding-inline is the rail's own 1.2em, so the field's left edge stands on
+	   the same line as the brand mark, the fold arrows and the footer's gear.
+	   Never scrolls with the tree: `.sidebar-menu` is a flex column and this is its
+	   first, fixed-height child. */
+	.sidebar-filter {
+		flex: 0 0 auto;
+		margin: 0;
+		padding: 0.6em 1.2em;
+	}
+
+	/* A little air under the bar, so the first row is not stuck to it. The row's own
+	   block padding does the rest. */
+	.sidebar-nav { padding-block: 0.4em; }
+
 	/* Below 52em the panel IS a top bar. ⚠ Same breakpoint as the topic's stacking
 	   in /styles.css. The menu is absolute against the sticky bar, so opening it
 	   moves nothing else. */
@@ -174,6 +313,17 @@
 			border-right: none;
 			border-bottom: 1px solid var(--line);
 		}
+
+		/* The rail's own stickiness is `.sidebar`'s job here — a second sticky box
+		   inside a sticky bar would make the absolutely-positioned menu below
+		   (`.sidebar.open .sidebar-menu`) measure itself against the RAIL instead
+		   of the bar it has to hang from. Keep whatever the panel does at 400 —
+		   this class stands down rather than changing it. */
+		/* ⚠ `height: auto` too, since the rail took a real `height: 100dvh` above
+		     (2026-09-19). A top strip must be as tall as its own bar, not as tall as
+		     the screen — leaving the viewport height on would have made the open
+		     menu a full-screen white sheet. */
+		.sidebar-rail { position: static; height: auto; max-height: none; }
 
 		.sidebar .sidebar-toggle { display: flex; }
 
@@ -189,5 +339,12 @@
 			background: var(--sidebar-bg, var(--bg));
 			border-bottom: 1px solid var(--line);
 		}
+
+		/* Nothing to drag when the sidebar is a top strip the width of the screen.
+		   ⚠ `ext/grip`'s own rule hides `.grip` below 34em, narrower than the 52em
+		   this panel already stacks at — this rail needs the extra margin, since the
+		   grip would otherwise still show, uselessly, on a stacked top strip between
+		   34em and 52em. */
+		.sidebar .grip { display: none; }
 	}
 }

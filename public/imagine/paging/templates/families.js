@@ -1,4 +1,4 @@
-import { div, p, h4, span, a, ui } from "/app.js";
+import { div, p, h4, span, a, icon, button, ui, md } from "/app.js";
 import { Paging, MECHANISMS } from "../paging.js";
 
 /* ── THE ELEVEN FAMILIES, AND THE REAL THING THAT DRAWS EACH ONE ───────────────
@@ -116,7 +116,7 @@ export const FAMILIES = [
 				// The magazine's own index, drawn by Article.preview() — real entries,
 				// real read-marks, real urls into the issue.
 				if (full) div.c("templates-mag-contents", () => { contents.previews(); });
-			});
+			}).ac(tone_of(page) === "dark" && "templates-mag-dark");
 		},
 
 		spec: "The Column: magazine tint display launch",
@@ -152,7 +152,7 @@ export const FAMILIES = [
 
 		example(page, full){
 			div.c("templates-blog", () => {
-				Post.hero(featured());
+				Post.hero(featured()).ac("templates-blog-hero");
 
 				// A REAL Section drawing itself: its blurb, then Post.wall() over the
 				// posts the manifest says are in it.
@@ -332,9 +332,15 @@ export const FAMILIES = [
 
 		members: [
 			["The columns doc", "/framework/core/Page/doc/columns/", "every width word, floored and capped"],
-			["The finder", "/framework/core/Page/overview/columns/finder/", "Miller columns, built out of nothing new"],
+			/* ⚠ KEPT, AND RE-LABELLED. Continuous Miller columns are not the direction
+			     as of 2026-09-17 (the owner: N even columns and fixed navigation are).
+			     The page is still the clearest thing on the site about what a column
+			     row IS, so it stays — but a members list is a list of things to reach
+			     for, and this row now says what it is: the older model. */
+			["The finder", "/framework/core/Page/overview/columns/finder/", "Miller columns — the continuous row, and the model even columns replaced"],
+			["Columns that keep their width", "/imagine/paging/navigation/columns/", "the same row with one rule added: nothing already open moves"],
 			["Launch", "/imagine/paging/mechanisms/launch/", "a click that opens a column to the right"],
-			["Room", "/imagine/paging/room/", "four width words, and what each one does to the box in pixels"],
+			["Sizes", "/imagine/paging/sizes/", "press a chip and read what the box did, in pixels"],
 		],
 	},
 
@@ -534,8 +540,8 @@ export const FAMILIES = [
 						tag: "a",
 						url: "/imagine/paging/mechanisms/" + word + "/",
 						words: word,
-						glyph: "article",
-						sign: mech.icon,
+						glyph: mech.icon,
+						sign: "chevron_right",
 					})));
 			});
 		},
@@ -549,7 +555,7 @@ export const FAMILIES = [
 		uses: [
 			["div.c(\"ui-crumbs flex wrap v-center h4 gap\")", "/framework/ui/crumbs/", "the ui/crumbs template, verbatim"],
 			["new Paging.Item({ … })", "/imagine/paging/paging.js", "imagine/paging/paging.js — one row, wearing its mechanism's icon"],
-			["MECHANISMS", "/imagine/paging/words.js", "imagine/paging/words.js — the four, said once"],
+			["MECHANISMS", "/imagine/paging/doc/mechanisms.md", "imagine/paging/words.js — the four, said once"],
 		],
 
 		members: [

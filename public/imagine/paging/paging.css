@@ -23,7 +23,7 @@
 
 	/* ── the stage ───────────────────────────────────────────────────────────── */
 
-	.paging-box   { display: flex; flex-direction: column; gap: 0.7em; }
+	.paging-box   { display: flex; flex-direction: column; gap: var(--gap-70); }
 
 	/* Prose keeps its measure whatever the layout word says — a `full` box at
 	   3440 would otherwise hand one paragraph a 3000px line. */
@@ -39,19 +39,19 @@
 	   ⚠ `nowrap` + `flex: none` on the chip, `wrap` on the row: a flex row under
 	     its content width shrinks each item to min-content FIRST, so a two-word
 	     label goes two lines long before the row ever wraps. */
-	.paging-toolbar { display: flex; flex-wrap: wrap; gap: 0.4em 1.2em; align-items: center; }
-	.paging-group   { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3em; }
+	.paging-toolbar { display: flex; flex-wrap: wrap; gap: 0.4em 1.2em; /* control */ align-items: center; }
+	.paging-group   { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3em; /* control */ }
 
 	.paging-axis {
 		font-size: 0.7em; font-weight: 700; letter-spacing: 0.06em;
 		text-transform: uppercase; color: var(--subtle);
-		margin-inline-end: 0.15em;
+		margin-inline-end: 0.15em; /* control */
 	}
 
 	.paging-chip {
-		display: inline-flex; align-items: center; gap: 0.25em;
+		display: inline-flex; align-items: center; gap: 0.25em; /* control */
 		flex: none; white-space: nowrap;
-		padding: 0.15em 0.55em;
+		padding: 0.15em 0.55em; /* control */
 		font-size: 0.85em; font-weight: 500; text-transform: none; letter-spacing: normal;
 		color: var(--ink); background: var(--fill-a08);
 		border: 1px solid transparent; border-radius: var(--radius);
@@ -74,12 +74,12 @@
 	   ⚠ THE FILL IS A RUNG. On `card` it composites over white to the light grey
 	     the owner asked for; on `plain` it composites over the wash; inside the
 	     dark island it flips to a white rung. One declaration, five styles. */
-	.paging-items { display: flex; flex-direction: column; gap: 0.35em; }
+	.paging-items { display: flex; flex-direction: column; gap: var(--gap-35); }
 
 	.paging-item {
-		display: flex; align-items: center; gap: 0.5em;
+		display: flex; align-items: center; gap: 0.5em; /* control */
 		width: 100%; text-align: start;
-		padding: 0.45em 0.7em;
+		padding: 0.45em 0.7em; /* control */
 		font: inherit; text-transform: none; letter-spacing: normal;
 		color: var(--ink); background: var(--fill-a08);
 		border: 1px solid var(--line); border-radius: var(--radius);
@@ -97,7 +97,7 @@
 	/* ⚠ `.paging-panel` was deleted on 2026-09-06: nothing had emitted it since the
 	     expand rows became `.paging-held`, and a rule no element can reach is a rule
 	     the next reader has to disprove. The check is in the task's log. */
-	.paging-panel-link { display: inline-flex; align-items: center; gap: 0.2em; }
+	.paging-panel-link { display: inline-flex; align-items: center; gap: 0.2em; /* control */ }
 
 	/* The card wall a demo box draws inside itself — core's `.page-previews`, sized
 	   for a box rather than for a page region.
@@ -110,7 +110,7 @@
 	     where every track has a card in it. */
 	.paging-wall {
 		--column: 12em;
-		display: grid; gap: 0.6em;
+		display: grid; gap: 0.6em; /* control: this wall renders inside a demo box (.paging-mini or a .paging-shot-frame miniature) shown at many different sizes on the same page — reverted after a geometry diff (find-geometry-diff.mjs, paging-ladder) showed the rung compounding into a multi-pixel cascade across the hub's six stacked previews */
 		grid-template-columns: repeat(auto-fit, minmax(min(var(--column), 100%), 1fr));
 	}
 
@@ -118,18 +118,18 @@
 	   `min-height` so an empty state still looks like a stage rather than a line,
 	   and the panes stretch so a `launch` visibly claims half the frame. */
 	.paging-mini {
-		display: flex; flex-direction: column; gap: 0.5em;
+		display: flex; flex-direction: column; gap: var(--gap-50);
 		min-height: 8em;
-		padding: 0.7em;
+		padding: var(--gap-70);
 		background: var(--wash);
 		border-radius: var(--radius);
 	}
 	.paging-mini-row { flex-direction: row; align-items: stretch; }
 
 	.paging-mini-pane {
-		display: flex; flex-direction: column; gap: 0.4em;
+		display: flex; flex-direction: column; gap: var(--gap-35);
 		flex: 1 1 0; min-width: 0;
-		padding: 0.6em 0.7em;
+		padding: var(--gap-70);
 		background: var(--surface);
 		border-radius: var(--radius);
 	}
@@ -148,13 +148,13 @@
 	.paging-mini-opened { outline: 2px solid var(--prim); }
 	.paging-mini-on { border-color: var(--prim); background: var(--fill-a16); }
 
-	.paging-mini .paging-item { padding: 0.3em 0.5em; font-size: 0.9em; }
+	.paging-mini .paging-item { padding: 0.3em 0.5em; /* control */ font-size: 0.9em; }
 
 	/* The crumb strip a takeover leaves behind — the ancestors, still there. */
-	.paging-mini-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4em; }
+	.paging-mini-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-35); }
 	.paging-mini-crumb {
-		display: inline-flex; align-items: center; gap: 0.2em;
-		padding: 0.1em 0.5em;
+		display: inline-flex; align-items: center; gap: 0.2em; /* control */
+		padding: 0.1em 0.5em; /* control */
 		font-size: 0.8em;
 		color: var(--prim-ink);
 		background: var(--fill-a08);
@@ -163,8 +163,8 @@
 	}
 
 	.paging-mini-max {
-		display: inline-flex; align-items: center; gap: 0.25em; align-self: start;
-		padding: 0.15em 0.5em;
+		display: inline-flex; align-items: center; gap: 0.25em; /* control */ align-self: start;
+		padding: 0.15em 0.5em; /* control */
 		font-size: 0.8em;
 		color: var(--prim-ink);
 		background: var(--fill-a08);
@@ -202,7 +202,7 @@
 	     a mark that ADDS height would shift its own label by 1px on every click. */
 	.paging-tab {
 		flex: none; white-space: nowrap;
-		padding: 0.45em 1em;
+		padding: 0.45em 1em; /* control */
 		font-size: 0.85em; font-weight: 600;
 		color: var(--subtle);
 		background: transparent;
@@ -245,10 +245,10 @@
 	   `mechanisms/swap/swap.js`. tabs · card-in · cross-fade · flip, all on the
 	   same box, so the reader can see that the VISUAL is a choice and the mechanism
 	   underneath it is one thing. */
-	.paging-swapper { display: flex; flex-direction: column; gap: 0.7em; }
-	.paging-swapper-visuals { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3em; }
+	.paging-swapper { display: flex; flex-direction: column; gap: 0.7em; /* control: the swap mechanism's own demo stage — a rung's cqi growth roughly doubled this gap at 3440 and pushed /imagine/paging/mechanisms/swap/ over the pixel-diff budget (find-geometry-diff.mjs, paging-ladder); reverted */ }
+	.paging-swapper-visuals { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3em; /* control: same reason as .paging-swapper above */ }
 	.paging-swapper-set { display: flex; flex-direction: column; }
-	.paging-swapper-pick { display: flex; flex-wrap: wrap; gap: 0.3em; margin-block-end: 0.5em; }
+	.paging-swapper-pick { display: flex; flex-wrap: wrap; gap: var(--gap-35); margin-block-end: var(--gap-50); }
 
 	/* ⚠ A FIXED HEIGHT, on purpose, and the only one in this realm. This is the box
 	     that PROMISES its rectangle does not move, and four visuals have to be
@@ -272,7 +272,7 @@
 	   card-in or a cross-fade takes, without either one moving the box. */
 	.paging-face {
 		position: absolute; inset: 0; overflow: auto;
-		display: flex; flex-direction: column; gap: 0.35em;
+		display: flex; flex-direction: column; gap: 0.35em; /* control: same reason as .paging-swapper above */
 		padding: var(--pad);
 		background: var(--surface);
 	}
@@ -316,10 +316,10 @@
 
 	/* WHAT JUST CHANGED — the visual's own sentence, then the panel and the pixels. */
 	.paging-swapper-cap {
-		display: flex; flex-direction: column; gap: 0.3em;
+		display: flex; flex-direction: column; gap: 0.3em; /* control: same reason as .paging-swapper above */
 		font-size: 0.9em; color: var(--subtle);
 		border-inline-start: 2px solid var(--line);
-		padding-inline-start: 0.7em;
+		padding-inline-start: 0.7em; /* control */
 	}
 	.paging-swapper-cap p { margin: 0; }
 	.paging-swapper-cap strong { color: var(--prim-ink); }
@@ -329,7 +329,7 @@
 	     are out of alignment" means and why it is not fixed by nudging a margin.
 	     Giving it the prose's line-height makes its box the same height as the first
 	     line, and the glyph centres in it. (the owner, 2026-09-05) */
-	.paging-swapper-what { display: flex; align-items: flex-start; gap: 0.4em; }
+	.paging-swapper-what { display: flex; align-items: flex-start; gap: 0.4em; /* control */ }
 	.paging-swapper-what .icon { color: var(--prim-ink); line-height: inherit; }
 
 }
@@ -375,7 +375,7 @@
 		position: absolute; z-index: 37;
 		inset-block-start: 0.4em; inset-inline-start: 0.4em;
 		transform: translateY(-200%);
-		padding: 0.4em 0.9em;
+		padding: 0.4em 0.9em; /* control */
 		font-size: 0.85em; font-weight: 600;
 		color: white; background: var(--prim);
 		border-radius: var(--radius); text-decoration: none;
@@ -404,7 +404,7 @@
 		flex: 0 0 var(--paging-rail-w);
 		position: relative; z-index: 36;
 		display: flex; flex-direction: column;
-		gap: 0.9em;
+		gap: 0.9em; /* control: rail chrome, fold-constrained (see the note below on .paging-sec) — a rung's cqi growth compounds across ~8 sections into a visible sag by the bottom of the list (measured 2026-09-18, paging-ladder) */
 		min-height: 0; overflow-y: auto;
 		--pad: clamp(0.7em, calc(var(--paging-rail-w) * 0.055), 1.4em);
 		padding: var(--pad);
@@ -413,7 +413,7 @@
 	}
 
 	.paging-app-home, .paging-app-out {
-		display: flex; align-items: center; gap: 0.4em;
+		display: flex; align-items: center; gap: 0.4em; /* control */
 		font-weight: 700; color: var(--ink); text-decoration: none;
 	}
 	.paging-app-home { font-size: 1.15em; }
@@ -446,7 +446,7 @@
 
 	.paging-home {
 		flex: 1 1 auto; min-width: 0;
-		padding: var(--pad-y, clamp(1.5em, 4%, 3em)) clamp(2em, 4%, 5em);
+		padding: var(--pad-y, clamp(1.5em, 4%, 3em)) clamp(2em, 4%, 5em); /* own clamp, bigger floor than --pad on purpose — the hub's main content margin, not a card (2026-09-18) */
 	}
 
 	/* ⚠ THE HUB'S HOME IS NOT A `.page`, so core's three-track grid does not reach it
@@ -473,7 +473,7 @@
 	     the way back to Imagine — were below the fold on the biggest screen there is
 	     (paging-audit-2). The section notes went (they told the reader what a section
 	     was about to show), the gaps came in, and the tiles are two-up sooner. */
-	.paging-sec { display: flex; flex-direction: column; gap: 0.25em; }
+	.paging-sec { display: flex; flex-direction: column; gap: 0.25em; /* control: rail chrome — this rail's own gaps were measured to a fold budget ("the gaps came in, and the tiles are two-up sooner", above), and a repeated-~40-times cqi rung compounds into a visible sag by the bottom of a tall list where the fixed em does not (measured 2026-09-18: a full-page pixel diff on /imagine/paging/make/ dropped from double digits to near zero once this rail's own three gaps (here, the grid below, and the rail's own gap above) went back to their own em) */ }
 
 	.paging-sec-head {
 		font-size: 0.72em; font-weight: 700; letter-spacing: 0.08em;
@@ -482,13 +482,13 @@
 
 	.paging-grid {
 		--column: 7em;
-		display: grid; gap: 0.25em;
+		display: grid; gap: 0.25em; /* control: rail chrome, same reason as .paging-sec above */
 		grid-template-columns: repeat(auto-fill, minmax(min(var(--column), 100%), 1fr));
 	}
 
 	.paging-tile {
-		display: flex; align-items: center; gap: 0.3em;
-		padding: 0.28em 0.45em;
+		display: flex; align-items: center; gap: 0.3em; /* control */
+		padding: 0.28em 0.45em; /* control */
 		font-size: 0.8em; line-height: 1.2;
 		color: var(--ink); text-decoration: none;
 		background: var(--fill-a04);
@@ -507,7 +507,7 @@
 	     with a mouse at any width (paging-audit-2, break #1; re-measured here: a click
 	     on "Pricing" timed out at 1280 and at 3440). A control may not cover the thing
 	     it controls. It is a sibling above the stage now, and it costs its height. */
-	.paging-frame { display: flex; flex-direction: column; gap: 0.5em; }
+	.paging-frame { display: flex; flex-direction: column; gap: 0.5em; /* control: the gap between the toolbar bar and the stage below it reads as part of the toolbar's own chrome (the file already argues the toolbar's size is its own) — a rung more than doubled it at 3440 and pushed both the hub and mechanisms/swap/ over the pixel-diff budget (find-geometry-diff.mjs, paging-ladder); reverted */ }
 
 	/* The slot exists only to fix the ORDER (paging.js) and takes no space of its own. */
 	.paging-toolbar-slot { display: contents; }
@@ -520,7 +520,7 @@
 		   control — its size is its own. The clamp took the bar from 7.7px of block
 		   padding at 1280 to 19.8px at 3440 (2.6×) and made it 130.7px of chrome over
 		   the stage; "the paging toolbar is way too big" — the owner, 2026-09-06. */
-		padding: 0.45em 0.7em;
+		padding: 0.45em 0.7em; /* control */
 		background: var(--surface);
 		border: 1px solid var(--line); border-radius: var(--radius);
 	}
@@ -537,13 +537,13 @@
 	     (paging-audit-4, item 9). Chrome starts where the reading starts. */
 	.paging-toolbar-row {
 		display: flex; flex-wrap: wrap; justify-content: flex-start; align-items: flex-end;
-		width: 100%; gap: 0.4em 1.1em;
+		width: 100%; gap: 0.4em 1.1em; /* control */
 	}
 
 	/* SKIN — the one block with three words. Its heading sits over the three, each of
 	   which keeps its own caption, so the bar's labels are the rail's six names. */
-	.paging-toolbar .paging-group-many { gap: 0.15em; }
-	.paging-group-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.4em 0.7em; }
+	.paging-toolbar .paging-group-many { gap: 0.15em; /* control */ }
+	.paging-group-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.4em 0.7em; /* control */ }
 	.paging-group-small .paging-pick-label { font-size: 0.62em; font-weight: 600; }
 
 	/* ONE LABELLED DROPDOWN — the label above it, which is what makes seven of them
@@ -553,8 +553,8 @@
 	     not the font, not the padding — is why the bar's dropdowns used to be 80–111px
 	     wide with "Top tabs" reading "Top tab". No width is written here: the browser
 	     sizes each one to its longest option. */
-	.paging-toolbar .paging-group { display: flex; flex-direction: column; gap: 0.1em; flex: none; }
-	.paging-pick { display: flex; align-items: center; gap: 0.3em; flex: none; }
+	.paging-toolbar .paging-group { display: flex; flex-direction: column; gap: 0.1em; /* control */ flex: none; }
+	.paging-pick { display: flex; align-items: center; gap: 0.3em; /* control */ flex: none; }
 	/* ⚠ NO WIDTH, NO PADDING SHORTHAND, NO FONT SIZE. A `<select>`'s own intrinsic
 	     width is its longest option PLUS the arrow the browser draws in its end
 	     padding — write `padding: 0.2em 0.4em` and you take that reserve away, which
@@ -613,7 +613,7 @@
 	.paging-address {
 		display: flex; flex-wrap: wrap; align-items: center;
 		flex: 1 0 100%;
-		gap: 0.3em 0.5em; margin-block-start: 0.35em;
+		gap: 0.3em 0.5em; /* control */ margin-block-start: 0.35em; /* control */
 	}
 	.paging-address-off { display: none; }
 
@@ -621,7 +621,7 @@
 	   sized, and everything left over is the address you are trying to read. */
 	.paging-address-field {
 		flex: 1 1 24em; min-width: 0;
-		padding: 0.25em 0.45em;
+		padding: 0.25em 0.45em; /* control */
 		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 		font-size: 0.75em;
 		color: var(--ink); background: var(--surface);
@@ -641,8 +641,8 @@
 	   "this is the value in force", and without the `aria-pressed` those carry
 	   (paging-audit-5b, fix 7). A verb gets its own shape: filled, and never `on`. */
 	.paging-act {
-		display: inline-flex; align-items: center; gap: 0.3em;
-		padding: 0.35em 0.8em;
+		display: inline-flex; align-items: center; gap: 0.3em; /* control */
+		padding: 0.35em 0.8em; /* control */
 		font-size: 0.85em; font-weight: 600; line-height: 1.3;
 		color: white; background: var(--prim);
 		border: 1px solid var(--prim); border-radius: var(--radius);
@@ -659,8 +659,8 @@
 	/* MORE — a real button, at the end of the bar: the whole form, the code, and the
 	   link to this exact page. */
 	.paging-more {
-		display: inline-flex; align-items: center; gap: 0.3em; align-self: center;
-		padding: 0.35em 0.8em;
+		display: inline-flex; align-items: center; gap: 0.3em; /* control */ align-self: center;
+		padding: 0.35em 0.8em; /* control */
 		font-size: 0.85em; font-weight: 600; color: var(--prim-ink);
 		background: var(--fill-a08);
 		border: 1px solid var(--prim); border-radius: var(--radius);
@@ -673,7 +673,7 @@
 	/* ⚠ A ROW, not a column. `.paging-toolbar .paging-group` stacks a label over its
 	     control, and these two are buttons with no label — inheriting the column put
 	     them one under the other and made the bar a line taller for nothing. */
-	.paging-toolbar .paging-toolbar-outs { flex-direction: row; align-items: center; gap: 0.35em; }
+	.paging-toolbar .paging-toolbar-outs { flex-direction: row; align-items: center; gap: 0.35em; /* control */ }
 	.paging-more-quiet { color: var(--subtle); background: transparent; border-color: var(--line); }
 	.paging-more-quiet:is(:hover, :focus-visible) { color: var(--prim-ink); border-color: var(--prim); background: var(--fill-a08); }
 
@@ -738,7 +738,7 @@
 	/* THE BOX. The only thing the caption measures, and the only thing wearing the
 	   CONTENT colour — the first of the two independent colour controls. */
 	.paging-canvas {
-		display: flex; flex-direction: column; gap: 0.7em;
+		display: flex; flex-direction: column; gap: 0.7em; /* control: the stage's own content wrapper — a .paging-stage is reused at a scaled-down font-size for live-miniature previews (.paging-shot-frame > .paging-stage { font-size: 0.6em }), and a rung would ignore that local scale where em tracks it (measured 2026-09-18, paging-ladder) */
 		flex: 1 1 auto; min-width: 0;
 		padding: var(--pad);
 	}
@@ -765,14 +765,14 @@
 
 	/* A panel repeats the box's own rhythm, because it is now a grandchild of the box
 	   rather than a child and the two rules below stop reaching it. */
-	.paging-slot { display: flex; flex-direction: column; gap: 0.7em; min-width: 0; }
+	.paging-slot { display: flex; flex-direction: column; gap: 0.7em; /* control: same reason as .paging-canvas above — repeats the box's own rhythm, so it repeats the box's own em too */ min-width: 0; }
 	.paging-slot > :is(h2, h3, p) { margin-block: 0; }
 	.paging-slot > * { align-self: stretch; }
 
 	/* THE CHILDREN, LISTED INSIDE THE BOX — what `columns` and `takeover` navigate
 	   from. Both words used to draw no list at all, so neither preset could be
 	   operated: the box sat there with nothing to click (measured 2026-09-05). */
-	.paging-rows { display: flex; flex-direction: column; gap: 0.25em; }
+	.paging-rows { display: flex; flex-direction: column; gap: 0.25em; /* control: stage content, same reason as .paging-canvas above */ }
 
 	/* A page you made with no children of its own. It used to list four strangers. */
 	.paging-no-pages { margin: 0; font-size: 0.85em; }
@@ -808,14 +808,14 @@
 		position: fixed; z-index: 35;
 		inset-block: 0; inset-inline-end: 0;
 		inset-inline-start: var(--paging-rail-w, 0);
-		padding: clamp(0.7em, 1.6vw, 2em);
+		padding: clamp(0.7em, 1.6vw, 2em); /* own clamp, tighter ceiling than --pad on purpose — a full-screen takeover wants less border than a card (2026-09-18) */
 		overflow: auto;
 		background: var(--wash);
 	}
 
 	.paging-exit {
-		display: inline-flex; align-items: center; gap: 0.3em; align-self: start;
-		padding: 0.2em 0.6em;
+		display: inline-flex; align-items: center; gap: 0.3em; /* control */ align-self: start;
+		padding: 0.2em 0.6em; /* control */
 		font-size: 0.85em; color: var(--prim-ink);
 		background: var(--fill-a08); border-radius: var(--radius);
 		cursor: pointer;
@@ -831,11 +831,11 @@
 	   A tab strip whose selected tab JOINS its panel: the strip and the box share
 	   one surface with no line between them, which is what says "this is the thing
 	   that is about to change" before you click anything. */
-	.paging-strip { display: flex; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; gap: 0.15em; }
+	.paging-strip { display: flex; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; gap: 0.15em; /* control */ }
 
 	.paging-strip-tab {
 		flex: none; white-space: nowrap;
-		padding: 0.4em 0.9em;
+		padding: 0.4em 0.9em; /* control */
 		font-size: 0.9em; font-weight: 600; color: var(--subtle);
 		border: 1px solid transparent; border-bottom: none;
 		border-radius: var(--radius) var(--radius) 0 0;
@@ -846,7 +846,7 @@
 		color: var(--ink);
 		background: var(--surface);
 		border-color: var(--line);
-		margin-block-end: -1px;
+		margin-block-end: -1px; /* 1px seam overlap, not a spacing value */
 	}
 
 	/* ⚠ THE STRIP AND THE BOX ARE ONE THING — no gap between them, ever. The selected
@@ -880,14 +880,14 @@
 	   stage is set in — a compact dashboard gets a compact rail. */
 	.paging-rail {
 		flex: 0 0 clamp(7em, 22%, 13em);
-		display: flex; flex-direction: column; gap: 0.25em;
+		display: flex; flex-direction: column; gap: var(--gap-25);
 		min-width: 0;
 	}
 	.paging-rail-right { order: 2; }
 
 	.paging-row {
-		display: flex; align-items: center; gap: 0.4em;
-		padding: 0.35em 0.55em;
+		display: flex; align-items: center; gap: 0.4em; /* control */
+		padding: 0.35em 0.55em; /* control */
 		font-size: 0.9em; color: var(--ink);
 		background: var(--fill-a04);
 		border: 1px solid transparent; border-radius: var(--radius);
@@ -910,7 +910,7 @@
 	     (2026-09-13, page-cms.) */
 	.paging-pane {
 		flex: 1 1 0; min-width: min(10em, 100%);
-		display: flex; flex-direction: column; gap: 0.5em; align-items: start;
+		display: flex; flex-direction: column; gap: 0.5em; /* control: stage content (a columns/takeover pane), same reason as .paging-canvas above */ align-items: start;
 		padding: var(--pad);
 		background: var(--surface);
 		border: 1px solid var(--prim); border-radius: var(--radius);
@@ -928,7 +928,7 @@
 	.page-frame-mid:has(> .paging-pane) > .paging-canvas { flex: 1 1 0; }
 
 	/* takeover — the trail is what everything behind it collapsed into. */
-	.paging-trail { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3em; font-size: 0.85em; }
+	.paging-trail { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-35); font-size: 0.85em; }
 	.paging-crumb { color: var(--prim-ink); cursor: pointer; }
 	.paging-crumb.on { color: var(--subtle); cursor: default; }
 
@@ -939,18 +939,18 @@
 
 	/* ── THE CHROME THE ARRANGEMENT WORD ADDS ─────────────────────────────────── */
 	.paging-bar {
-		display: flex; flex-wrap: wrap; align-items: center; gap: 0.4em;
-		padding: 0.4em 0.6em;
+		display: flex; flex-wrap: wrap; align-items: center; gap: 0.4em; /* control */
+		padding: 0.4em 0.6em; /* control */
 		background: var(--surface);
 		border: 1px solid var(--line); border-radius: var(--radius);
 	}
-	.paging-bar-btn { padding: 0.15em 0.6em; font-size: 0.85em; background: var(--fill-a08); border-radius: var(--radius); }
+	.paging-bar-btn { padding: 0.15em 0.6em; /* control */ font-size: 0.85em; background: var(--fill-a08); border-radius: var(--radius); }
 	.paging-bar-gap { flex: 1 1 auto; }
 	.paging-bar-note { font-size: 0.7em; letter-spacing: 0.06em; text-transform: uppercase; color: var(--subtle); }
 
 	.paging-aside {
 		flex: 0 0 clamp(8em, 26%, 16em);
-		display: flex; flex-direction: column; gap: 0.3em;
+		display: flex; flex-direction: column; gap: var(--gap-35);
 		min-width: 0;
 	}
 	.paging-aside-row { font-size: 0.85em; color: var(--subtle); }
@@ -968,8 +968,8 @@
 
 	/* ── A PAGE INSIDE A PAGE ─────────────────────────────────────────────────── */
 	.paging-nest {
-		display: flex; flex-direction: column; gap: 0.3em;
-		padding: 0.5em;
+		display: flex; flex-direction: column; gap: 0.3em; /* control: stage content ("nest" is one of the content values a .paging-stage can hold), same reason as .paging-canvas above */
+		padding: 0.5em; /* control: same reason */
 		border: 1px dashed var(--prim);
 		border-radius: var(--radius);
 	}
@@ -979,13 +979,13 @@
 	   ⚠ THE NAME IS A LINK. The band said which page was inside this one and gave no
 	     way to it — the drawer was the only door (paging-audit-5, item 7). */
 	.paging-nest-name {
-		display: inline-flex; align-items: center; gap: 0.15em; align-self: flex-start;
+		display: inline-flex; align-items: center; gap: 0.15em; /* control */ align-self: flex-start;
 		font-weight: 700; font-size: 0.85em; color: var(--prim-ink); text-decoration: none;
 	}
 	.paging-nest-name:is(:hover, :focus-visible) { text-decoration: underline; }
 	.paging-nest-name .icon { font-size: 1em; }
 
-	.paging-nest-fetch { display: flex; flex-direction: column; gap: 0.3em; }
+	.paging-nest-fetch { display: flex; flex-direction: column; gap: 0.3em; /* control: stage content, same reason as .paging-canvas above */ }
 	.paging-nest-fetch p { margin: 0; font-size: 0.85em; }
 
 	/* THE PICKED NEST CHIP IS A VALUE, NOT AN ACT (self-evident-critique-3, finding 1).
@@ -999,12 +999,12 @@
 		color: var(--prim-ink);
 		font-weight: 600;
 	}
-	.paging-nest-chips .paging-chip.picked::after { content: "\2713"; margin-inline-start: 0.15em; }
+	.paging-nest-chips .paging-chip.picked::after { content: "\2713"; margin-inline-start: 0.15em; /* control */ }
 
 	/* ── `content` HOLDING A URL ──────────────────────────────────────────────
 	   A `.md` file, fetched and rendered where the eight canned samples go. It gets
 	   the box's own rhythm and the reading measure, because it is prose. */
-	.paging-content-url { display: flex; flex-direction: column; gap: 0.6em; }
+	.paging-content-url { display: flex; flex-direction: column; gap: 0.6em; /* control: stage content ("content" holding a url is one of the values a .paging-stage can hold), same reason as .paging-canvas above */ }
 	.paging-content-url > :is(h1, h2, h3, h4, p, ul, ol) { margin-block: 0; max-inline-size: 40em; }
 
 	/* ── `expand` — THE CHILD OPENS IN THE ROW ────────────────────────────────
@@ -1013,12 +1013,12 @@
 	.paging-expand {
 		display: flex; flex-direction: column;
 		border: 1px solid var(--line); border-radius: var(--radius);
-		padding: 0.5em 0.7em;
+		padding: 0.5em 0.7em; /* control: stage content ("expand" is one of the values a .paging-stage can hold), same reason as .paging-canvas above */
 	}
-	.paging-expand-item { padding-block: 0.5em; }
+	.paging-expand-item { padding-block: 0.5em; /* control */ }
 	.paging-expand-head { cursor: pointer; font-weight: 600; }
-	.paging-expand-head .icon { font-size: 1em; vertical-align: -0.15em; margin-inline-end: 0.3em; }
-	.paging-expand-item > .paging-held { margin-block-start: 0.5em; }
+	.paging-expand-head .icon { font-size: 1em; vertical-align: -0.15em; margin-inline-end: 0.3em; /* control */ }
+	.paging-expand-item > .paging-held { margin-block-start: 0.5em; /* control: same reason as .paging-expand above */ }
 
 	/* ── A WALL OF CARDS ──────────────────────────────────────────────────────
 	   ⚠ THE WALL TAKES THE `wide` TRACK, always. Core's page grid puts an undeclared
@@ -1038,24 +1038,24 @@
 		grid-template-columns: repeat(auto-fit, minmax(min(var(--column), 100%), 24em));
 	}
 	.paging-card {
-		display: flex; flex-direction: column; gap: 0.3em;
-		padding: 0.8em;
+		display: flex; flex-direction: column; gap: var(--gap-35);
+		padding: var(--gap-70);
 		color: var(--ink); text-decoration: none;
 		background: var(--surface);
 		border: 1px solid var(--line); border-radius: var(--radius);
 	}
 	.paging-card:is(:hover, :focus-visible) { border-color: var(--prim); }
-	.paging-card-head { display: flex; align-items: center; gap: 0.35em; font-weight: 700; }
+	.paging-card-head { display: flex; align-items: center; gap: 0.35em; /* control */ font-weight: 700; }
 	.paging-card-say { font-size: 0.85em; color: var(--subtle); }
 
 	/* ⚠ A CARD IS ONE `<a>` AND MAY NOT HOLD ANOTHER. An arrangement value has a second
 	     link — the `core/Layout` it compiles to — so the two are SIBLINGS in one grid
 	     cell rather than a link inside a card. The card takes the cell's height so a
 	     row of them still lines up. */
-	.paging-card-cell { display: flex; flex-direction: column; gap: 0.3em; min-width: 0; }
+	.paging-card-cell { display: flex; flex-direction: column; gap: var(--gap-35); min-width: 0; }
 	.paging-card-cell > .paging-card { flex: 1 1 auto; }
 	.paging-card-link {
-		display: flex; align-items: center; gap: 0.3em;
+		display: flex; align-items: center; gap: 0.3em; /* control */
 		font-size: 0.8em; color: var(--subtle); text-decoration: none;
 	}
 	.paging-card-link:is(:hover, :focus-visible) { color: var(--prim-ink); }
@@ -1065,14 +1065,51 @@
 	   `/templates/` already gives for its eleven, and the reason it was the best page
 	   in the realm. A picture of a page shape beats a sentence about one.
 	   `auto-fill` with a real `--column`, so 3440 gets seven across and 400 gets one. */
+	/* ⚠ `dense` IS FOR THE ONE CARD THAT IS TWO WIDE. With four columns — a 1920
+	     screen — the six block cards on the hub filled slots 1-3, the two-column Room
+	     card would not fit in slot 4, and it wrapped: a 368px hole at the end of the
+	     first row, on the realm's first screen. `dense` backfills that slot with the
+	     next card that fits. Every other wall here is uniform-sized cards, where dense
+	     does nothing at all. (Tab order is DOM order and does not move; only one
+	     card's visual position does.) */
 	.paging-wall-live {
 		--column: 19em;
-		display: grid; gap: var(--gap);
+		container: paging-wall / inline-size;
+		display: grid; gap: var(--gap); grid-auto-flow: dense;
 		grid-template-columns: repeat(auto-fill, minmax(min(var(--column), 100%), 1fr));
 	}
 
-	.paging-shot { display: flex; flex-direction: column; gap: 0.4em; color: var(--ink); text-decoration: none; }
-	.paging-shot-head { display: flex; align-items: center; gap: 0.35em; font-weight: 700; }
+	/* ONE LINE SAYING A PREMISE MOVED — `Paging.supersedes()`. It sits above the
+	   demo, so it has to read as a margin note rather than as the page's own first
+	   sentence: a rule down the start edge, the quiet ink, and no box. */
+	.paging-superseded {
+		border-inline-start: 3px solid var(--prim);
+		padding-inline-start: 0.75em; /* control: letterform inset, scales with its own text (like .paging-swapper-cap) */
+		font-size: 0.9em; color: var(--subtle);
+	}
+
+	.paging-shot { display: flex; flex-direction: column; gap: 0.4em; /* control: repeats up to six times down the hub page, so even a fraction-of-a-pixel rung difference cascades into a visible sag by the last one — see .paging-wall's note above */ color: var(--ink); text-decoration: none; }
+
+	/* ⚠ ONE CARD IN SIX IS TWO COLUMNS WIDE, AND IT IS THE ONE ABOUT WIDTH. `room`
+	     says how much of the screen the box gets, and in a one-column 368px frame the
+	     narrow value's 40em cap works out at 384px — it never binds, so the Room card
+	     on the hub drew a box filling its frame, which is the picture EVERY other word
+	     draws (measured 2026-09-17: frame 366px, max-width 384px). Two columns give it
+	     a ~750px frame, the narrow box stops dead at 384px, and the empty gutter beside
+	     it IS the lesson.
+
+	   ⚠ AND IT IS BEHIND A CONTAINER QUERY, because `span 2` does NOT clamp. A grid
+	     whose `auto-fill` would give ONE column is forced to two by an item asking to
+	     span two — measured at 400: the wall's own tracks read `266px 120.938px`, the
+	     Room card came out 401px wide inside a 344px wall, and the realm's middle
+	     scrolled sideways (429 against a 400 client). So the span only exists once the
+	     wall is 40em wide, which is where two 19em columns and their gap fit. The
+	     query is on the WALL and styles its CHILD — a container cannot restyle
+	     itself. */
+	@container paging-wall (min-width: 40em){
+		.paging-shot-wide { grid-column: span 2; }
+	}
+	.paging-shot-head { display: flex; align-items: center; gap: 0.35em; /* control */ font-weight: 700; }
 	.paging-shot-say { font-size: 0.85em; color: var(--subtle); }
 
 	/* THE FRAME. A whole page put in a card is being cropped on purpose, so this is
@@ -1123,7 +1160,7 @@
 	   cannot see is the one thing this realm's persistence rule forbids. A line, not
 	   an alert - it is empty until something has actually been written. */
 	.paging-kept {
-		display: flex; align-items: center; gap: 0.3em;
+		display: flex; align-items: center; gap: 0.3em; /* control */
 		margin: 0; font-size: 0.85em; color: var(--prim-ink);
 	}
 	.paging-kept .icon { font-size: 1em; }
@@ -1136,7 +1173,7 @@
 	}
 
 	/* The two dropdowns that choose the pair, in the bar's own labelled shape. */
-	.paging-cross-picks { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.4em 1.1em; margin-block-end: 0.8em; }
+	.paging-cross-picks { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.4em 1.1em; /* control */ margin-block-end: var(--gap-70); }
 	.paging-cross-head, .paging-cross-side {
 		font-size: 0.72em; font-weight: 700; letter-spacing: 0.08em;
 		text-transform: uppercase; color: var(--subtle);
@@ -1151,11 +1188,11 @@
 	}
 
 	/* ── THE DRAWER'S OWN ROWS ────────────────────────────────────────────────── */
-	.paging-drawer-row { display: flex; flex-direction: column; gap: 0.25em; margin-block-end: 0.9em; }
-	.paging-drawer-values { display: flex; flex-wrap: wrap; gap: 0.25em; }
+	.paging-drawer-row { display: flex; flex-direction: column; gap: var(--gap-25); margin-block-end: var(--gap); }
+	.paging-drawer-values { display: flex; flex-wrap: wrap; gap: var(--gap-25); }
 	.paging-means { margin: 0; font-size: 0.85em; }
-	.paging-said { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4em; margin-block: 0.4em; }
-	.paging-said-ok { display: inline-flex; align-items: center; gap: 0.2em; color: var(--prim); font-size: 0.85em; }
+	.paging-said { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4em; /* control */ margin-block: var(--gap-35); }
+	.paging-said-ok { display: inline-flex; align-items: center; gap: 0.2em; /* control */ color: var(--prim); font-size: 0.85em; }
 
 	/* ── THE DRAWER'S OWN RESIZE EDGE ─────────────────────────────────────────
 	   `ext/drawer` already imports `ext/grip` for this and it already works — dragging
@@ -1207,7 +1244,7 @@
 	   `navigator.clipboard` is refused. */
 	.paging-link-field {
 		width: 100%;
-		padding: 0.35em 0.5em;
+		padding: 0.35em 0.5em; /* control */
 		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 		font-size: 0.8em;
 		color: var(--ink); background: var(--surface);

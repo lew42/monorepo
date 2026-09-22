@@ -9,7 +9,25 @@ const streams = new Map();
 const WAIT = 1500;
 
 const each = (path, fn) => streams.get(path)?.forEach(fn);
-const subscribe = s => Socket.singleton().send({ method: "subscribe", args: [s.jsonl.url, s.jsonl.offset ?? 0] });
+
+/* ⚠ THE `streams` MAP MUST BE KEYED BY THE SAME SHAPE THE SERVER ECHOES BACK.
+ * `Server/plugins/SocketServer/Tail.js` always replies with a bare url-path
+ * (its own `url_path()` — no origin, ever), but a caller here may have built
+ * `jsonl.url` with `import.meta.resolve("./board.jsonl")` — the framework's
+ * ordinary way to address a module-relative file (`code#4`) — which returns
+ * a FULL url WITH an origin. Keyed by that raw string, `each()` above would
+ * never find a match for the reply, so `jsonl()`/`jsonl_reset()` below would
+ * silently do nothing for that reader, forever: the only thing that ever
+ * showed a value was `stream()`'s own 1.5s timeout falling back to a ONE-TIME
+ * fetch() — which then reads as "needs a reload" (found from the owner's
+ * report, 2026-09-19: `/framework/ai/v/3/page.js`'s board, built exactly this
+ * way, confirmed nothing to do with `window.$BLOCKRELOAD` — a bare-pathname
+ * subscription, `dev/DevBar/says.js`'s own style, streamed every appended
+ * line live with Block on). `key()` reads either shape the same way, so
+ * every existing caller now matches what comes back over the wire with no
+ * caller-side change. */
+const key = url => new URL(url, location.href).pathname;
+const subscribe = s => Socket.singleton().send({ method: "subscribe", args: [key(s.jsonl.url), s.jsonl.offset ?? 0] });
 const settle = s => { clearTimeout(s.timer); s.first?.(); s.first = null; };
 
 /* ⚠ Both called BY the dev server, through Socket.message()'s method lookup — a
@@ -61,16 +79,17 @@ export function stream(jsonl, changed){
 
 	return new Promise(resolve => {
 		const s = { jsonl, changed, first: () => resolve(jsonl) };
+		const k = key(jsonl.url);
 
 		s.timer = setTimeout(() => {
-			streams.get(jsonl.url)?.delete(s);
+			streams.get(k)?.delete(s);
 			s.first = null;
 			console.warn("JSONL.live(): no answer from the dev server, fetching —", jsonl.url);
 			jsonl.load().then(resolve);
 		}, WAIT);
 
-		if (!streams.has(jsonl.url)) streams.set(jsonl.url, new Set());
-		streams.get(jsonl.url).add(s);
+		if (!streams.has(k)) streams.set(k, new Set());
+		streams.get(k).add(s);
 		subscribe(s);
 	});
 }
@@ -81,14 +100,15 @@ export function stream(jsonl, changed){
  * leaves: a board card and an open task page stream the same log.
  */
 export function drop(jsonl){
-	const set = streams.get(jsonl.url);
+	const k = key(jsonl.url);
+	const set = streams.get(k);
 	if (!set) return;
 
 	for (const s of set) if (s.jsonl === jsonl){ settle(s); set.delete(s); }
 	if (set.size) return;
 
-	streams.delete(jsonl.url);
-	Socket.singleton().send({ method: "unsubscribe", args: [jsonl.url] });
+	streams.delete(k);
+	Socket.singleton().send({ method: "unsubscribe", args: [k] });
 }
 
 export default stream;

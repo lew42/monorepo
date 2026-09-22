@@ -93,15 +93,21 @@ export class Page {
 
 	// One Map, in declaration order: undefined = not mine, null = declared, Page = here.
 	// A POJO declares by title — the key is the title, Page.slug(key) the url segment.
-	declare(){
-		const source = this.children ?? [];
-		const list = is.str(source) ? source.trim().split(/\s+/)
-		           : is.arr(source) ? source
-		           : Object.entries(source);
+	// ⚠ `list` IS THE DECLARATION — the config's own `children` when the constructor
+	//   calls this, and whatever a data source answered with later, so a SECOND call
+	//   ADDS and the children declared by name keep their places. A FUNCTION is a data
+	//   SOURCE: it declares nothing now and is called on the first ask, by
+	//   source_children() below. doc/data-children.md.
+	declare(list = this.children ?? []){
+		if (is.fn(list)) { this.child_source = list; list = []; }
 
-		this.children = new Map();
+		const entries = is.str(list) ? list.trim().split(/\s+/)
+		              : is.arr(list) ? list
+		              : Object.entries(list);
 
-		list.forEach(child => {
+		if (!(this.children instanceof Map)) this.children = new Map();
+
+		entries.forEach(child => {
 			if (is.str(child)) return this.children.set(child, null);
 
 			if (!is.arr(child)) {
@@ -169,6 +175,16 @@ export class Page {
 	topic(){ return this.nearest("topic"); }
 	document(){ return this.nearest("document"); }
 
+	// A `children()` FUNCTION is called here, ONCE — the first time anyone asks for a
+	// child: child() asks for the Router's walk, load_all_children() for a landing with
+	// no segment to walk. So a page whose children live in data costs nothing until it
+	// is visited, and it answers with anything `children:` takes — or a promise of it.
+	// ⚠ Memoised on `this.sourcing`: the second ask reuses the first one's promise.
+	source_children(){
+		return this.sourcing ??= Promise.resolve(this.child_source.call(this))
+			.then(list => this.declare(list ?? []));
+	}
+
 	// Memory, then route(), then a filesystem probe. One of the two places `app` is
 	// handed down — `render_column()` is the other, for the child nothing routes to.
 	// route() sees undeclared names only, so it cannot shadow a child.
@@ -177,6 +193,8 @@ export class Page {
 	// own subtree, and NOTHING when the Router walked in here — which means the child
 	// loads as deep as its own `depth` reaches. doc/declaring.md.
 	async child(name, levels){
+		if (this.child_source) await this.source_children();
+
 		const known = this.children.get(name);
 
 		if (known) return known.assign({ app: this.app }).load_all_children(levels);
@@ -327,6 +345,19 @@ export class Page {
 		if (this.render().el.parentNode !== container.el)
 			container.append(this.view);
 
+		// ⚠ THE FALLBACK for a page whose OWN `render()` replaced this class's —
+		//   `ext/Doc`'s well-and-tabs shell is the one on the site today. render()
+		//   above already draws the aside for the ordinary grid page and for a
+		//   columns row (column()); `related_drawn` is how those two say "already
+		//   mine", so this never fires twice. `activate()` is generic and Doc
+		//   does not override it, which is what makes this the one place related:
+		//   still reaches a page whose chrome core does not own — appended after
+		//   whatever that chrome already built, so it reads as a block at the
+		//   end rather than a right rail (`.page-related`'s own `flex-basis:
+		//   100%` is for exactly this shape; doc/decisions.md).
+		if (this.related && !this.related_drawn)
+			this.view.append(() => { this.related_aside(); });
+
 		this.activated?.();
 		this.column_host()?.reveal_column(this);
 		this.warn_if_hidden();
@@ -389,6 +420,15 @@ export class Page {
 			.ac(this.width && !this.column_host() && "page-w-" + this.width)
 			.ac(...this.word_classes())
 			.ac(this.classes ?? "standard");
+
+		// ⚠ APPENDED, not woven into the callback above: the two branches above
+		//   this line already return their own value on purpose (the Frame or
+		//   render_content()'s own view, which `.append()` — the capturing trap
+		//   this whole codebase is built around — would otherwise re-append A
+		//   SECOND TIME). `.append(fn)` on the finished view re-opens it as the
+		//   captor for exactly this one call, the same shape content_at() uses,
+		//   so nothing about the two branches above has to change.
+		if (this.related) this.view.append(() => { this.related_aside(); });
 
 		return this.view;
 	}
@@ -459,11 +499,84 @@ export class Page {
 		}));
 	}
 
+	// ════ RELATED — a pinned aside of links to other pages ═══════════════════
+	// `related: "/a/ /b/"` — a string of urls, one row each. doc/property/related.md.
+	related_list(){ return (this.related ?? "").trim().split(/\s+/).filter(Boolean); }
+
+	// Is there already a heading with this word ON MY OWN VIEW? Unlike ext/toc's
+	// headings (scanned before content() has drawn any), the aside is always
+	// appended AFTER whatever it sits beside, so the check can run synchronously
+	// against the real DOM — no microtask needed.
+	has_heading(word){
+		return [...this.view?.el.querySelectorAll("h1,h2,h3,h4,h5,h6") ?? []]
+			.some(node => node.textContent.trim().toLowerCase() === word);
+	}
+
+	// The aside itself: a small "Related" heading (skipped if the page already
+	// has one of its own), then one row per url — its target's OWN icon and
+	// title, read live so a renamed target updates this row without anyone
+	// touching this page.
+	// ⚠ `Page.load(url, 0)`, not `Page.from(url)`. `Page.from()` reads a
+	//   `page.json` beside the url and answers null when there is none — which
+	//   is every ordinary page.js-backed page on the site, our two consumers
+	//   included. `Page.load()` is the one that already does what a related
+	//   link needs: a DYNAMIC `import(url + "page.js")`, so it costs no static
+	//   import (no cycle) and reads the target's real, current title and icon —
+	//   `0` for its depth budget, so it fetches none of the target's own
+	//   children. doc/property/related.md has the alternative this gave up.
+	// ⚠ A url that 404s, or whose module throws, drops its row SILENTLY — the
+	//   `.catch(() => null)` here, not Page.load()'s own partial logging (which
+	//   still consoles a real syntax error). `related:` is a small nicety; it
+	//   must never be the thing that puts a red line in someone's console.
+	related_aside(){
+		this.related_drawn = true;
+		const urls = this.related_list();
+		if (!urls.length) return null;
+
+		return div.c("page-related", () => {
+			if (!this.has_heading("related")) span.c("page-related-title h4", "Related");
+
+			div.c("page-related-links", () => urls.forEach(url => {
+				const $row = div.c("page-related-row");
+
+				Page.load(url, 0).catch(() => null).then(page => {
+					if (!page?.title) return void $row.remove();
+
+					$row.empty(() => a.c("page-related-link", () => {
+						if (page.icon) icon(page.icon);
+						span(page.title);
+					}).href(page.url ?? url));
+				});
+			}));
+		});
+	}
+
 	// ════ COLUMNS — the Finder shape ══════════════════════════════════════════
 	// One call on a host page and its whole subtree lays out as full-height columns,
 	// each child opening to the right. The arrangement is CSS (Page.css); this is the
 	// box each page needs. doc/columns.md.
-	columns(){ this.columnar = true; return this; }
+	// ⚠ `this.columns({ even: true })`, never a declared `columns: "even"` field. A
+	//   page's config is Object.assign'd OVER the prototype, so `columns:` as data
+	//   would shadow this very method and the next page to write
+	//   `initialize(){ this.columns(); }` would die on "this.columns is not a
+	//   function" — the `opens()` collision below, one line higher up. The option is
+	//   translated into a PREFIXED field for the same reason: a bare `even` is a word
+	//   a page may well want for itself. (The owner asked for the mode by name on
+	//   2026-09-17, which is what stands in for the propose-a-name step.)
+	// `fit` is how the even mode turns a room into a COUNT, and it only means
+	//   something when `even` is on:
+	//     floor  (the default) N = floor(room / recommended). A column is never
+	//            narrower than the width it recommends, so prose never falls under its
+	//            measure; the cost is room left over, spent as padding inside the
+	//            columns - about 227px a column at 3440.
+	//     round  N = round(room / recommended). Fills the room tighter, and a column
+	//            CAN go under its recommendation to do it.
+	//   `floor` is the default because a reading column under its measure is the
+	//   failure this site has been fighting; `round` is one word away for a host that
+	//   would rather fill the room. doc/columns.md has the N at three widths for both.
+	//   ⚠ `column_fit`, prefixed, for the same reason `column_even` is: a page's config
+	//     is assigned OVER the prototype, so a bare `fit` is a word a page may want.
+	columns({ even = false, fit = "floor" } = {}){ this.columnar = true; this.column_even = even; this.column_fit = fit; return this; }
 
 	// The narrowest a DRAG may leave a column: past this the head's title and its `×`
 	// have nowhere to sit, and a column you cannot read is a column you cannot widen
@@ -494,11 +607,15 @@ export class Page {
 			//   `app`, the SECOND place that happens (`child()` is the other). Nothing
 			//   routes to a default column, so `child()` never runs for it and the `app`
 			//   it was adopted with at module scope is still undefined: `this.app.router`
-			//   in its content threw (`imagine/screens/deck`, 2026-08-29).
+			//   in its content threw (`layouts/labs/screens/deck`, 2026-08-29).
 			this.$pages = div.c("page-column-pages", () => this.default_column()?.assign({ app: this.app }).render());
 		};
 
-		this.view = div.c("page").ac(this === host ? "columns" : "column");
+		// The mode is the HOST's, so the class is the host's too — Page.css reads it as
+		// `.page.columns.page-columns-even`, one row, one answer for N.
+		this.view = div.c("page")
+			.ac(this === host ? "columns" : "column")
+			.ac(this === host && this.column_even && "page-columns-even");
 
 		this.view.append(this === host ? () => {
 			this.$crumbs = div.c("page-columns-bar");
@@ -556,6 +673,14 @@ export class Page {
 					if (child?.children.size) icon("chevron_right");
 				});
 			});
+
+			// A COLUMN IS ALREADY A RAIL, so `related:` here is a short list at
+			// the end of it, never a second pinned region — there is no page
+			// grid under a columns host for a third region to open in (Q1 of
+			// the layout skill). `page-column-prose`, unclassed `flow`, so it
+			// gets the column's own pad-x/pad-y without the prose rhythm's
+			// bigger vertical gaps between the rows.
+			if (this.related) div.c("page-column-prose", () => this.related_aside());
 		}).ac(this.width && "page-column-" + this.width);
 	}
 
@@ -604,6 +729,74 @@ export class Page {
 		});
 	}
 
+	// ── `even` — N columns, all the same width, N computed from the ROOM ──
+	// N = max(1, floor(available / recommended)); width = available / N. `available`
+	// is the ROW's own inline size, not the window's — the owner asked "screen or
+	// container?" and the answer is container, because a row can be a panel, a demo
+	// box or one half of a split and still has to get this right. `floor` is what
+	// buys the guarantee: a column is never narrower than the width it recommends.
+	// Page.css turns the ONE value written here into every column's width.
+	// ⚠ STATIC, so the lab at /imagine/design/navigation/ sizes its `even` row with
+	//   the very function a real host uses. The page's own readout and a headless
+	//   measurement of the same click then cannot disagree, because there is one
+	//   copy of the arithmetic.
+	// ⚠ THE STAMP COMES OFF BEFORE THE READ. `max-width` is the recommendation only
+	//   while `--page-column-even-w` is unset (Page.css spells out why); with the
+	//   stamp on, max-width IS the even width and the row would divide its own
+	//   answer again, halving the columns on every resize.
+	// ⚠ `max-width: none` means the `< 32em` PHONE REGIME has taken over — it writes
+	//   the three properties directly and pages the row one column at a time. There
+	//   is nothing to compute down there and nothing of that regime is touched: the
+	//   stamp comes off and stays off. Core's own threshold, read off core's own
+	//   rule, so the two can never drift apart.
+	static even_columns(row, fit = "floor"){
+		if (!row) return null;
+
+		row.style.removeProperty("--page-column-even-w");
+
+		const body = row.querySelector(".page-column-body");
+		const recommended = parseFloat(body && getComputedStyle(body).maxWidth);
+		const available = row.clientWidth;
+		if (!(recommended > 0) || !available) return null;
+
+		// `floor` never lets a column fall under its recommendation; `round` fills the
+		// room tighter and lets it. Never below 1 either way: one column that is too
+		// narrow still beats none.
+		const slots = available / recommended;
+		const n = Math.max(1, fit === "round" ? Math.round(slots) : Math.floor(slots));
+		const width = available / n;
+
+		row.style.setProperty("--page-column-even-w", width + "px");
+		return { n, width, available, recommended, fit };
+	}
+
+	// My row's N and column width, or null when I am not in the mode. `column_fit`
+	// rides along so the host's own answer and the static one cannot differ.
+	even_columns(){ return this.column_even ? this.constructor.even_columns(this.$row?.el, this.column_fit) : null; }
+
+	// The room changed, or a column opened. Size the columns FIRST and scroll second,
+	// so the scroll is measured against widths that are already final — the other
+	// order scrolls to where the newest column was about to stop being.
+	// `slide` is the ONE caller-known fact: this settle came from a NAVIGATION, so
+	// the move is worth animating. The resize observer leaves it off, and that is
+	// the whole reason it is an argument rather than a CSS declaration on the row —
+	// `scroll-behavior: smooth` in the sheet would also animate the ARRIVAL, and a
+	// page that slides 3153px while you are trying to read it is not a still page.
+	settle_columns(slide){ this.even_columns(); this.scroll_column(slide); }
+
+	// Should a navigation inside this row slide, or jump? Measured headless,
+	// 5 runs × 2 widths, frames over 50ms during the move (doc/columns.md):
+	// native smooth scroll 0 · FLIP (translateX + Web Animations) 0 · View
+	// Transitions 23, worst frame 116.7ms. Smooth scroll and FLIP tie on jank, so
+	// the cheaper one wins: a scroll is ALREADY what this row does, and asking the
+	// browser to animate it costs one word.
+	// ⚠ Reduced motion is read HERE, not in a media query, for the same reason
+	//   `slide` is an argument: the sheet cannot tell an arrival from a click.
+	// ⚠ Only the `even` mode slides today. In the elastic mode the columns RESIZE
+	//   as the row scrolls, and animating a reflow is how you get the jank this
+	//   mode exists to remove. Dropping `this.column_even &&` is all it would take.
+	column_slide(){ return !!this.column_even && !matchMedia("(prefers-reduced-motion: reduce)").matches; }
+
 	// Called on the HOST after every activation in its tree: the trail says where you
 	// are — and gets back whatever a `full` page collapsed — then the newest column
 	// scrolls itself in.
@@ -617,18 +810,20 @@ export class Page {
 		// it one: a page is BUILT detached, so every rect at rAF is 0. The observer
 		// fires the moment it gets a size — and again on every resize, which is exactly
 		// when the deepest column needs revealing again.
-		if (!this.watching) (this.watching = new ResizeObserver(() => this.scroll_column())).observe(row);
+		if (!this.watching) (this.watching = new ResizeObserver(() => this.settle_columns())).observe(row);
 
 		// ⚠ One frame, for every navigation after that: Router.mark() marks what shows
 		// AFTER activate(), so right now the newest column is still `display: none`.
-		requestAnimationFrame(() => this.scroll_column());
+		// … and it is the one settle that SLIDES: the observer above owns the arrival
+		// and the resize, this owns the click.
+		requestAnimationFrame(() => this.settle_columns(true));
 	}
 
 	// The deepest column on screen, brought in by the smallest move — the columns to
 	// its left stay exactly where they are.
 	// ⚠ `scrollBy` on the row, never `scrollIntoView`: that walks up and scrolls the
 	// document around the whole host too.
-	scroll_column(){
+	scroll_column(slide){
 		const row = this.$row?.el;
 		const body = [...row?.querySelectorAll(".page-column-body") ?? []].filter(el => el.offsetWidth).at(-1);
 		if (!body) return;
@@ -637,7 +832,7 @@ export class Page {
 		const dx = to.right > from.right ? to.right - from.right
 			: to.left < from.left ? to.left - from.left : 0;
 
-		if (dx) row.scrollBy({ left: dx });
+		if (dx) row.scrollBy({ left: dx, behavior: slide && this.column_slide() ? "smooth" : "auto" });
 	}
 
 	// One menu entry: mine.
@@ -734,8 +929,15 @@ export class Page {
 		if (levels <= this.loaded) return this;
 		this.loaded = levels;
 
-		this.loading = Promise.all([...this.children.keys()].map(name =>
+		// ⚠ THE GUARD ABOVE IS WHY THE WAIT BELONGS HERE, IN CORE. A page whose children
+		//   arrive from a fetch used to write this override itself, and had to restate that
+		//   guard or read back the very promise being assigned on the next line — a
+		//   `p.then(() => p)` cycle, "Chaining cycle detected for promise", from the
+		//   microtask queue with no file and no stack. Both callers shipped that bug.
+		const walk = () => Promise.all([...this.children.keys()].map(name =>
 			this.child(name, 0).then(child => child?.load_all_children(child.leaf ? 0 : levels - 1).loading)));
+
+		this.loading = this.child_source ? this.source_children().then(walk) : walk();
 
 		return this;
 	}
@@ -770,6 +972,14 @@ Page.Frame = PageFrame;
 const memory = new Map();
 let warned = false;
 
+// ⚠ ONCE a session, not once a write: a run saves on every move, and a console
+//   filling with the same line is a console nobody reads.
+function warn(key, error){
+	if (warned) return;
+	warned = true;
+	console.warn(`store(${key}) — localStorage is unavailable (${error.name}); this session is kept in memory only.`);
+}
+
 Page.Store = class PageStore {
 
 	// The app's own namespace: one origin serves /notes/, /imagine/ and every demo,
@@ -779,24 +989,51 @@ Page.Store = class PageStore {
 	constructor(...args){ this.assign(...args); }
 	assign(...args){ return Object.assign(this, ...args); }
 
-	// The whole idea, in one line. `store_key` is the seam for a page that MOVED:
-	// move() re-addresses a whole subtree, so an adopted page would otherwise
-	// change key silently and lose everything saved under its old address.
-	key(){ return this.prefix + (this.page.store_key ?? this.page.url); }
+	// The whole idea, in one line. `id` is the seam for a caller that is not a
+	// page at all, one fixed key regardless of url — `core/Sidebar`'s rail
+	// (merged 2026-09-18, `Sidebar.Store` deleted: `new Page.Store({ id:
+	// "sidebar" })` is the same `lew42:sidebar` key that file always wrote).
+	// `store_key` is still the seam for a page that MOVED: move() re-addresses
+	// a whole subtree, so an adopted page would otherwise change key silently
+	// and lose everything saved under its old address.
+	key(){ return this.prefix + (this.id ?? this.page.store_key ?? this.page.url); }
+
+	// THE GUARDED PAIR (plus `clear_raw`) — one JSON-able value under one
+	// literal key, never throwing, even when `localStorage` itself throws on
+	// touch (private mode) or is not there at all (Node). The one place this
+	// guard lives now: `ext/Saver`'s `LocalStorageSaver` calls these three
+	// directly instead of its own copy (doc/decisions.md says why it still
+	// needs a separate class).
+	static read_raw(key){
+		try { return JSON.parse(localStorage.getItem(key) ?? "null"); }
+		catch { return undefined; }   // JSON.parse never legitimately yields undefined
+	}
+
+	static write_raw(key, value){
+		try { localStorage.setItem(key, JSON.stringify(value)); return true; }
+		catch (error){ warn(key, error); return false; }
+	}
+
+	static clear_raw(key){
+		try { localStorage.removeItem(key); return true; }
+		catch { return false; }
+	}
 
 	// null when nothing is saved OR the saved value is corrupt — `get()` decides
 	// what that means, because only the caller knows its defaults.
 	read(){
-		try { return JSON.parse(localStorage.getItem(this.key()) ?? "null"); }
-		catch { return memory.get(this.key()) ?? null; }
+		const value = PageStore.read_raw(this.key());
+		return value === undefined ? memory.get(this.key()) ?? null : value;
 	}
 
 	get(fallback = {}){ return { ...fallback, ...(this.read() ?? {}) }; }
 
+	// Always "succeeds" from the caller's own point of view — write_raw's own
+	// return is ignored here on purpose, the same silent-degrade Page.Store has
+	// always promised (see the comment above `memory`).
 	set(data){
 		memory.set(this.key(), data);
-		try { localStorage.setItem(this.key(), JSON.stringify(data)); }
-		catch (error){ this.warn(error); }
+		PageStore.write_raw(this.key(), data);
 		return data;
 	}
 
@@ -805,15 +1042,7 @@ Page.Store = class PageStore {
 
 	clear(){
 		memory.delete(this.key());
-		try { localStorage.removeItem(this.key()); } catch { /* already gone */ }
-	}
-
-	// ⚠ ONCE a session, not once a write: a run saves on every move, and a console
-	//   filling with the same line is a console nobody reads.
-	warn(error){
-		if (warned) return;
-		warned = true;
-		console.warn(`store(${this.key()}) — localStorage is unavailable (${error.name}); this session is kept in memory only.`);
+		PageStore.clear_raw(this.key());
 	}
 };
 

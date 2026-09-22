@@ -1,6 +1,19 @@
-# Children that live in data — two seams, proposed
+# Children that live in data — two seams, one applied
 
-**Proposed 2026-09-13. Nothing here is applied.** One seam is recommended, one refuted.
+**Seam 1 was applied on 2026-09-17**, on the owner's own sentence that day — *"pages are
+everything and they don't have to be real paths… even if they don't have a real path slash
+page.js, they can still use this if they can pretend as if they did"* — which is the
+reaffirmation this page had been waiting for since it was written on **2026-09-13**.
+**Seam 2 stays refuted** and was not written.
+
+What landed, in numbers: **33 lines into `Page.class.js`, 8 of them code** (820 → 845), and
+**87 lines out of the two callers with 35 written back — 52 fewer** ([Make](/imagine/paging/make/)
+636 → 615, [JSON pages](/imagine/cms/json/) 93 → 62). The 18 urls named below answered
+identically before and after — same titles, same link sets, same page counts — and a cold
+deep url into each tree, cache disabled, drew with no *"Chaining cycle detected for promise"*.
+The change is additive, so it is one revert away. Task: `ai/2026-09-17/core-data-children/`.
+
+Everything below is the proposal as it was written, kept as the reasoning.
 
 ## The problem, in five sentences
 

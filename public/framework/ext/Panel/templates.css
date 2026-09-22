@@ -243,7 +243,7 @@
 	}
 
 	/* Three controls that read as one readout. ⚠ Three classes, for the reason
-	   toolbar.css spells out: a theme styles every `button` at 0-2-0 and pads it to
+	   controls.css spells out: a theme styles every `button` at 0-2-0 and pads it to
 	   0.7em/1.4em, which balloons a 1em glyph to 39x31. Only the box is reclaimed. */
 	.panel .panel-t-space .panel-t-dial button {
 		padding: 0 0.25em;
@@ -351,6 +351,24 @@
 	}
 	.panel-props-delete:hover { color: #fff; background: var(--error); }
 
+	/* CLOSE — the one verb that came off the floating bar and wanted a WORD rather than a
+	   picture (2026-09-18, `properties.js` `hand_words()`). It reads like the Delete button
+	   above it because it is the same kind of thing — a panel you close is gone — but it is
+	   reversible in the way Delete is not (split again and you have it back), so it is the
+	   rail's own ink, not the error red. */
+	.panel-props-close {
+		justify-self: start;
+		inline-size: auto;
+		padding: 0.35em 0.8em;
+		font: inherit;
+		color: var(--subtle);
+		background: none;
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		cursor: pointer;
+	}
+	.panel-props-close:hover { color: var(--ink); background: var(--fill-a08); }
+
 	.panel-props-head {
 		display: flex;
 		align-items: center;
@@ -380,7 +398,7 @@
 	}
 
 
-	/* The inspector's buttons are `.panel-btn`, defined once in toolbar.css - the same box
+	/* The inspector's buttons are `.panel-btn`, defined once in controls.css - the same box
 	   the bar and a seam's menu wear. The near-identical copy that used to live here, and
 	   its own ligature clamp, are both gone (2026-08-16); `.panel-props-btn` no longer
 	   exists as a class. */

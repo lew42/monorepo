@@ -1,0 +1,29 @@
+/* ux/Dictate — states you can SEE. Layout is plain framework.css utilities
+ * (flex, gap, muted); everything here is the two things a utility class can't
+ * give a button: a level meter driven by a number set from JS every audio
+ * frame, and a plain still-image pulse for the one engine with no level to
+ * read. doc/decisions.md has the "why a level meter, why capped at 240 chars"
+ * calls. */
+@layer theme {
+
+	/* whisper: the real loudness of the room, not a canned animation — `--ux-dictate-level`
+	 * is set in Dictate.js's on_level(), every audio frame. */
+	.ux-dictate-btn.listening[data-engine="whisper"] {
+		box-shadow: 0 0 0 calc(var(--ux-dictate-level, 0) * .6em) color-mix(in srgb, var(--prim) 40%, transparent);
+		transition: box-shadow 80ms linear;
+	}
+
+	/* the browser engine has no level to read (SpeechRecognition owns the mic,
+	 * not this page) — the same plain pulse ext/Ask/mic.js already used. */
+	.ux-dictate-btn.listening[data-engine="browser"] { animation: ux-dictate-pulse 1.4s ease-in-out infinite; }
+
+	/* the last segment is still in flight after the owner pressed stop. */
+	.ux-dictate-btn.transcribing { animation: ux-dictate-pulse .8s ease-in-out infinite; }
+
+	@keyframes ux-dictate-pulse { 50% { opacity: .5; } }
+
+	.ux-dictate-status.error { color: var(--error); }
+
+	/* an idle caption takes no space rather than leaving an empty muted line. */
+	.ux-dictate-caption:empty { display: none; }
+}

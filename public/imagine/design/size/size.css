@@ -88,7 +88,7 @@
 	.size-lab p { margin: 0; }
 
 	/* ══ CHROME — outside the lab on purpose, so it holds still while you drag ══ */
-	.size-chips { display: flex; flex-wrap: wrap; gap: calc(var(--gap) * 0.4); align-items: center; }
+	.size-chips { display: flex; flex-wrap: wrap; gap: calc(var(--gap-ramp) * 0.4); align-items: center; }
 	.size-chips .size-chip {
 		width: fit-content;
 		padding: 0.35em 0.9em;
@@ -102,7 +102,7 @@
 
 	.size-readout {
 		display: flex; flex-wrap: wrap;
-		gap: calc(var(--gap) * 0.25) calc(var(--gap) * 0.8);
+		gap: calc(var(--gap-ramp) * 0.25) calc(var(--gap-ramp) * 0.8);
 		font-family: var(--mono); font-size: 0.8em; color: var(--subtle);
 	}
 	.size-readout b { color: var(--ink); font-weight: 600; }

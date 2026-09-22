@@ -4,9 +4,11 @@ import { Stage } from "../stage.js";
 import { config_of, mode_for } from "../blocks.js";
 import { baseline } from "../baseline.js";
 import { draw_blocks } from "../build/draw.js";
-import { store_for, LocalStore, at, walk, name_for, clone, SEED, DEFAULTS } from "./made.js";
+import { store_for, LocalStore, at, walk, name_for, clone, file_of, SEED, DEFAULTS } from "./made.js";
 import { tree_pane } from "./tree.js";
 import { settings_pane } from "./settings.js";
+import { Pick, pick_at, paint, dress, announce, clicking_off, escaping, same_path } from "./select.js";
+import { real_pane, commit as commit_real } from "./real.js";
 /* ⚠ THE ONE TRANSLATION FROM A SAVED `page.json` TO A STAGE — whose children to draw
      and what to put in the box. It lives in `../stage.js` because a page NESTED inside
      another needs exactly the same answer, and writing it here alone is what made a
@@ -68,7 +70,7 @@ View.stylesheet(import.meta, "make.css");
 
 
 /* JSON → REAL PAGES. Each node becomes a `Paging` wearing its seven words, and its
-   own children are built the same way. `Page.add()` (called by `regrow()` below)
+   own children are built the same way. `Page.add()` (reached through `declare()`)
    hands each one a real url derived from this page's.
 
    `make` is the Make page itself and `path` is where this node sits in its tree —
@@ -83,15 +85,44 @@ View.stylesheet(import.meta, "make.css");
      `delete_now()` so a page can be unmade, and a `content()` whose bar WRITES what
      you set. Swapping this for `Page.from()` would re-fetch every file Make is holding
      and drop all three. */
+/* ── A PAGE YOU MADE IS A CORE PAGE CARRYING ITS OWN FILE ─────────────────────
+   `data:` hands core the very object `made.js` writes to disk, so the title, the icon
+   and the description are read off the FILE by core's own reader — `Page.props()` — and
+   not one line below copies them. One function, `file_of()`, now answers three questions
+   that used to be answered separately: what gets written, what the drawer prints, and
+   what the live page says about itself. `core/Page/doc/data.md`.
+
+   ⚠ TWO THINGS CORE MUST NOT READ OFF THAT FILE, and both are because MAKE'S URLS ARE
+     NOT ITS FILE PATHS — a made page lives at `/imagine/paging/make/notes/` and its file
+     lives at `/imagine/paging/made/notes/page.json`.
+
+     THE SIX PAGE WORDS. This realm draws them itself, through the Stage in `content()`
+     below; letting core stamp them as well would put a second frame around every made
+     page. `props()` here answers with the three LABELS and nothing else, which is
+     exactly the one-method override core's `props()` was split out for.
+
+     THE CHILDREN. A name in a `page.json` resolves against that file's own directory,
+     which is `made/` — these pages are under `make/`, and `grow()` builds them from the
+     tree Make is already holding in memory. So `read_data()` reads the labels and
+     answers with no children at all.
+
+   ⚠ THE SAME PAGES, OPENED AT THEIR FILE URLS, ARE ORDINARY CORE PAGES — try
+     [/imagine/paging/made/notes/](/imagine/paging/made/notes/). No Make, no Paging, no
+     override: core's own `page.json` rung reads the same file and the six words DO draw
+     core's frame. Two readers, one file. */
+class MadePage extends Paging {
+	static props(data){ return { title: data.title, icon: data.icon, description: data.description }; }
+	read_data(data){ super.read_data(data); return []; }
+}
+
 function grow(nodes, make, path = []){
 	return nodes.map(node => {
 		const config = config_of(node);
 		const here = [...path, node.name];
 
-		return new Paging({
+		return new MadePage({
 			name: node.name,
-			title: node.title,
-			icon: node.icon ?? "description",
+			data: file_of(node),
 
 			/* ⚠ KEEP CORE'S OWN `h1`. `Paging.render()` removes it from every page in
 			     this realm, because a demo page opens on its demo and the h1 was the
@@ -99,7 +130,6 @@ function grow(nodes, make, path = []){
 			     and the one thing every page on this site says at the top is its own
 			     name (the owner, 2026-09-13). */
 			heading: true,
-			description: node.description ?? "A page you made.",
 			children: grow(node.children ?? [], make, here),
 
 			/* ⚠ READ OUT OF THE TREE, NOT OUT OF THE CLOSURE. `node` is the node this
@@ -134,6 +164,13 @@ function grow(nodes, make, path = []){
 					page: this,
 					url_of: kid => this.children?.get(kid.name)?.url,
 				}));
+
+				/* ⚠ THE RUN WORDS ARE PUT ON HERE TOO, not only in Make's middle. A run of
+				     text can say three things about itself (tone, size, align) and they are
+				     stored on the block; `dress()` is the one place that turns them into
+				     classes, and it has to run on BOTH drawings or the word you set in the
+				     editor would be true only inside the editor. `select.js`. */
+				dress(stage.el, at(make.tree, here));
 
 				/* ── THE BAR ON YOUR OWN PAGE IS AN EDITOR ────────────────────────
 				   Every other stage in the realm is a demo: you change a word, the address
@@ -188,42 +225,23 @@ export default new Paging({
 	     and `where()` below has said it, under the screen, all along. */
 
 	// ── loading ───────────────────────────────────────────────────────────────
-	// ⚠ NOT `initialize()`: the file store is a fetch, so the tree arrives
-	//   asynchronously and the two overrides below are what make a cold deep url
-	//   (`/imagine/paging/make/notes/today/`) still work.
 	/* ⚠ `made`, NOT `store` — `store()` is core's own method on every Page, and a FIELD
 	     of that name shadows it: `LocalStore` calls `this.page.store()` and would get an
 	     object instead of a function. */
 	initialize(){ this.made = store_for(this); },
 
-	ready(){
-		return this.fetching ??= this.made.load().then(tree => {
+	/* THE PAGES YOU MADE, AS REAL CHILDREN. `children` may be a FUNCTION that returns a
+	   promise, and core calls it ONCE, on the first ask — the Router walking into a made
+	   page, or a cold landing on this screen. So `/imagine/paging/make/notes/today/`
+	   pasted into a new tab waits for the file store, then draws.
+	   ⚠ NOT `initialize()`: the store is a fetch, and a constructor may not fetch. Until
+	     2026-09-17 this file wrote `child()` and `load_all_children()` itself, with a copy
+	     of core's own guard; `core/Page/doc/data-children.md` says why that is core's now. */
+	children(){
+		return this.made.load().then(tree => {
 			this.tree = tree;
-			this.regrow();
-			return this;
+			return grow(tree, this);
 		});
-	},
-
-	async child(name, levels){
-		await this.ready();
-		return Page.prototype.child.call(this, name, levels);
-	},
-
-	/* ⚠ THE GUARD IS MINE TO KEEP, and leaving it out throws from the microtask queue
-	     with a message that names nothing: "Chaining cycle detected for promise".
-	     Core's `load_all_children` returns `this` UNCHANGED when `levels <= this.loaded`
-	     — it does not touch `this.loading` — so on the second call `.loading` is the
-	     promise being assigned on that very line, and `p.then(() => p)` is a cycle. */
-	load_all_children(levels = this.depth){
-		if (levels <= this.loaded) return this;
-		this.loaded = levels;
-
-		this.loading = this.ready().then(() => {
-			this.loaded = -1;
-			return Page.prototype.load_all_children.call(this, levels).loading;
-		});
-
-		return this;
 	},
 
 	// ── the one write seam ────────────────────────────────────────────────────
@@ -258,11 +276,9 @@ export default new Paging({
 		return this.redraw();
 	},
 
-	regrow(){
-		this.children = new Map();
-		grow(this.tree ?? [], this).forEach(page => this.add(page.name, page));
-		return this;
-	},
+	// ⚠ A NEW MAP FIRST. `declare()` ADDS to the children already there, so re-growing
+	//   without clearing would leave the previous tree's pages standing beside the new.
+	regrow(){ this.children = new Map(); return this.declare(grow(this.tree ?? [], this)); },
 
 	/* ── THE ONE REDRAW ───────────────────────────────────────────────────────
 	   Three panes, and a caller says which of them it is standing in. The rules:
@@ -279,6 +295,7 @@ export default new Paging({
 	     fix, and it is why no caller ever passes `centre: true, settings: false`. */
 	redraw({ tree = true, centre = true, settings = true } = {}){
 		this.settle_pick();
+		this.settle_sel();
 
 		if (tree) this.$tree?.empty(() => { this.tree_pane(); });
 		this.$where?.empty(() => { this.where(); });
@@ -287,7 +304,9 @@ export default new Paging({
 
 		this.$baseline?.check();
 		this.app?.router?.mark_links();
-		return this;
+
+		// ⚠ LAST, because it reads the DOM the three lines above just rebuilt.
+		return this.repaint();
 	},
 
 	count(){ return walk(this.tree ?? []).length; },
@@ -311,9 +330,107 @@ export default new Paging({
 		return this;
 	},
 
+	/* ── THE ONE SELECTION ────────────────────────────────────────────────────
+	   Two words, and they are NOT the same thing:
+
+	     picked   WHICH PAGE the middle is drawing. It always has one (there is nowhere
+	              else for the middle to go), and the tree row for it is lit.
+	     sel      WHAT IS SELECTED inside that page — the page itself, one of its blocks,
+	              or one run inside a block. It can be NOTHING, and then the right pane
+	              says so and shows no controls at all.
+
+	   Clicking a tree row does both: it opens that page in the middle and selects the
+	   page, which is what the right pane then fills with. `select.js` is the rest. */
 	pick(path){
 		this.picked = path;
+		this.asking = false;
+		this.real_picked = this.real_move = this.real_fail = null;   // a made page and a real one are never both selected
+		this.sel = new Pick({ kind: "page", path, what: at(this.tree ?? [], path)?.title });
+
+		this.redraw();
+		announce(this.sel);
+		return this;
+	},
+
+	/* A CLICK IN THE MIDDLE. `pick_at()` answers what was clicked — and answers
+	   `undefined` for a click on a link or a button inside the drawn page, which means
+	   "leave it alone": the page you are editing is a real page and its own controls
+	   keep working. */
+	click_middle(event){
+		const node = this.node_now();
+		if (!node) return this;
+
+		const next = pick_at(event.target, node, this.sel, this.picked);
+		return next === undefined ? this : this.select(next);
+	},
+
+	/* THE ONE WRITE OF `sel`, and the only place the document is told. Only the right
+	   pane is rebuilt — the middle has not changed, and rebuilding it would throw away
+	   the very element the ring is about. */
+	select(sel){
+		this.sel = sel ?? null;
+		this.asking = false;
+
+		this.$settings?.empty(() => { this.settings(); });
+		this.repaint();
+		announce(this.sel);
+
+		return this;
+	},
+
+	// A block written AND selected in one act — what "Add a block" and the two arrows
+	// both want, since the thing you just made or moved is the thing you are editing.
+	select_block(path, at_index, blocks){
+		this.sel = new Pick({ kind: "block", path, at: at_index, what: blocks[at_index]?.type });
+		return this.edit_at(path, { blocks });
+	},
+
+	// The tree's × opens the right pane's own delete question, about the row you pressed.
+	ask_delete(path){
+		this.picked = path;
+		this.sel = new Pick({ kind: "page", path, what: at(this.tree ?? [], path)?.title });
+		this.asking = true;
 		return this.redraw();
+	},
+
+	/* THE OUTLINE AND THE BADGE, AND THE RUN WORDS — everything that is written ONTO the
+	   drawn page rather than built with it. Run after every redraw, and again by hand
+	   whenever the stage redraws itself in place (typing in a paragraph). */
+	repaint(){
+		dress(this.$centre?.el, this.node_now());
+		paint(this.$centre, this.sel);
+		return this;
+	},
+
+	/* ⚠ THE SELECTION HAS TO SURVIVE THE PAGE UNDER IT CHANGING. You can delete the block
+	     that is selected, or the page it was in; `settle_pick()` above already walks the
+	     picked path back to a page that exists, and this walks the selection back to the
+	     largest thing that still does — the page.
+
+	   ⚠ `null` AND `undefined` ARE NOT THE SAME STATE HERE, and the whole of this method
+	     turns on it. `null` is "the reader pressed Escape, or clicked off" — a state they
+	     chose, and it is left alone so the pane keeps saying "select something". `undefined`
+	     is "nobody has ever selected anything", which is only true on the first draw — and
+	     on the first draw the page in the middle IS what you are looking at, so it is what
+	     is selected. Opening this screen on an empty right pane would be a worse first
+	     screen than the one this pass replaced. */
+	settle_sel(){
+		const node = this.node_now();
+
+		if (!node) return void (this.sel = null);
+		if (this.sel === null) return this;
+
+		const here = () => new Pick({ kind: "page", path: this.picked, what: node.title });
+
+		if (!this.sel) return void (this.sel = here());
+
+		const gone = !same_path(this.sel.path, this.picked)
+			|| (this.sel.kind !== "page" && !(node.mode?.blocks ?? [])[this.sel.at]);
+
+		if (gone) this.sel = here();
+		else if (this.sel.kind === "page") this.sel.what = node.title;
+
+		return this;
 	},
 
 	// The node you are editing, read live out of the tree. `null` when there is none.
@@ -346,7 +463,20 @@ export default new Paging({
 		//   you touch anything (`../doc/persistence.md`).
 		mark(this);
 
+		// ⚠ BEFORE THE SCREEN, because the left pane reads it on its first draw.
+		this.real_for(new URLSearchParams(location.search).get("real"));
+
 		this.screen();
+
+		/* ── LETTING GO ───────────────────────────────────────────────────────
+		   Escape clears the selection; so does a click on anything that is not one of the
+		   three panes. Both are `ext/Panel`'s own rules, in `select.js`, for the reason
+		   that module records: a control that redraws its own pane has detached the
+		   clicked button by the time a bubbling listener runs. */
+		this.letting_go ??= [
+			escaping(() => this.sel && this.select(null)),
+			clicking_off(() => this.sel && this.select(null)),
+		];
 
 		// ⚠ UNDER THE SCREEN, NOT IN THE TREE. It is one sentence naming the store and
 		//   it wrapped to six lines inside a 230px pane. Redrawn on every edit, because
@@ -365,19 +495,105 @@ export default new Paging({
 			     so the outer one measures and this one reads the measurement. */
 			div.c("paging-make-panes", () => {
 				this.$tree = div.c("paging-make-pane paging-make-left", () => { p.c("muted", "Loading…"); });
-				this.$centre = div.c("paging-make-pane paging-make-middle");
+
+				/* ⚠ ONE LISTENER, ON THE PANE — not on the page inside it. The middle is
+				     emptied and rebuilt on nearly every edit, so anything bound to what it
+				     holds would be gone a keystroke later. This box is built once. */
+				this.$centre = div.c("paging-make-pane paging-make-middle").on("click", e => this.click_middle(e));
+
 				this.$settings = div.c("paging-make-pane paging-make-right");
 			});
 
-			this.ready().then(() => this.redraw());
+			this.source_children().then(() => this.redraw());
 		});
 	},
 
 	tree_pane(){ return tree_pane(this); },
 
+	/* ⚠ A REAL PAGE OWNS THE PANE WHEN IT HAS ONE. The rule this screen is built on is
+	     "a control that is not about the thing you have selected is not on screen"
+	     (doc/decisions.md), and a real page you dragged IS the selected thing — the made
+	     page's own rows would be about something else entirely. `real_pane()` answers
+	     null whenever no real page is selected and no move is pending, and then this is
+	     the pane it always was. */
 	settings(){
+		const real = real_pane(this);
+		if (real) return real;
+
 		const node = this.node_now();
 		return node && this.$stage ? settings_pane(this, node, this.picked, this.$stage) : null;
+	},
+
+	// ── real pages: the directories, moved on disk ────────────────────────────
+	/* Read on every render, because the address is where it lives — `?real=<url>` and the
+	   left pane grows a group for that subtree. Changing the url forgets everything the
+	   old one had selected or pending; nothing half-belonging to one tree survives into
+	   another. `real.js` is the whole of what a real page means here. */
+	real_for(url){
+		const want = url ? "/" + String(url).replace(/^\/+/, "").replace(/\/*$/, "/") : null;
+		if (want === this.real_url) return this;
+
+		this.real_url = want;
+		this.real = this.real_loading = null;
+		this.real_picked = this.real_move = this.real_undo = this.real_fail = null;
+		return this;
+	},
+
+	pick_real(url){
+		if (!url) return this;
+
+		this.real_picked = url;
+		this.real_move = this.real_fail = null;
+		return this.redraw({ tree: false, centre: false });
+	},
+
+	// A drop asks; it never writes. `null` is Cancel.
+	propose_real(plan){
+		this.real_move = plan;
+		this.real_fail = null;
+		if (plan) this.real_picked = plan.from;
+
+		return this.redraw({ tree: false, centre: false });
+	},
+
+	/* THE BUTTON THAT ACTUALLY MOVES A DIRECTORY. `commit()` does the four steps in
+	   `real.js`; this one owns what the screen says while they run and afterwards.
+	   ⚠ THE TREE IS REDRAWN, and it has to be: `commit()` moved the live pages in memory
+	     the same way it moved the files, so the pane rebuilt from them is the new tree. */
+	async run_real_move(plan, { undoing } = {}){
+		this.real_move = this.real_fail = null;
+		this.real_busy = plan;
+		this.redraw({ centre: false });
+
+		const done = await commit_real(plan);
+		this.real_busy = null;
+
+		if (!done.ok){
+			this.real_fail = done.why;
+			return this.redraw({ centre: false });
+		}
+
+		this.real_picked = done.was_to;
+
+		// The cached links.json preview is now stale (a move just rewrote some of it, on
+		// the server) — forget it so the NEXT proposed move fetches a fresh copy rather
+		// than showing yesterday's count. `real.js`'s `links_of()` reloads on demand.
+		this.real_links = this.real_links_loading = undefined;
+
+		// ⚠ ONE STEP, NEVER A STACK. An undo offers no undo of its own — "no history
+		//   beyond that" is the decision, and a redo is history (doc/decisions.md).
+		this.real_undo = undoing ? null : done;
+
+		clearTimeout(this.real_timer);
+		if (this.real_undo) this.real_timer = setTimeout(() => this.forget_real_undo(), 60000);
+
+		return this.redraw({ centre: false });
+	},
+
+	forget_real_undo(){
+		clearTimeout(this.real_timer);
+		this.real_undo = this.real_fail = null;
+		return this.redraw({ tree: false, centre: false });
 	},
 
 	/* ── THE MIDDLE: THE PAGE ITSELF ──────────────────────────────────────────
@@ -441,6 +657,9 @@ export default new Paging({
 			this.$stage.base_nest = this.$stage.nest;
 			this.edit_at(this.picked, { nest: id ?? undefined }, { centre: false, settings: false });
 		};
+
+		// The run words, put onto the runs — the same call the page at its own url makes.
+		dress(this.$stage.el, node);
 
 		/* ⚠ AND NOTHING IS SAID UNDER THE PAGE. There was a grey line here explaining
 		     that the text in the box is the content word's sample — 300 words BELOW the

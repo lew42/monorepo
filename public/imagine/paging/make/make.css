@@ -93,118 +93,33 @@
 	.paging-make-group { display: flex; flex-direction: column; gap: 0.4em; }
 	.paging-make-group-title { font-weight: 600; font-size: 0.95em; }
 
-	/* ── the tree ─────────────────────────────────────────────────────────── */
-	.paging-make-tree,
-	.paging-make-roots,
-	.paging-make-node { display: flex; flex-direction: column; gap: 0.25em; }
+	/* ── THE LEFT PANE: TWO `ux/Tree`s ────────────────────────────────────────
+	   The rows, the indent, the chevron, the grip and the drag line are all `ux/Tree`'s
+	   and `ui/tree`'s — 343 lines of this module's own tree went away to get them
+	   (`tree.js`). What is left here is the two things a page tree says that a generic
+	   tree does not: which row you are editing, and that this pane is dense.
 
-	/* ⚠ NO `flex-wrap` HERE, AND THAT IS MEASURED. A wrapping row wraps BEFORE it
-	     shrinks — flexbox lays every item out at its base size first and only
-	     distributes shrinkage inside a line that is already there — so one `wrap` on
-	     this rule pushed the star, + and × onto a second line on every row whose title
-	     was longer than its indent left room for, instead of ellipsising the title the
-	     way it has always done (measured at 1280, three rows deep). The two things that
-	     DO need a second line get it elsewhere: the "opens first" tag is its own line
-	     under the row, and the delete question replaces the row's contents entirely. */
-	.paging-make-row {
-		display: flex; align-items: center; gap: 0.25em;
-		padding: 0.25em 0.35em;
-		font-size: 0.9em;
-		background: var(--fill-a04);
-		border: 1px solid var(--line);
-		border-radius: var(--radius);
-	}
+	   ⚠ `.ui-tree-selected` IS THE TREE'S OWN WORD for "this row is the selected one",
+	     written by `Tree.select()`. Make only has to say what selected LOOKS like here —
+	     and it looks like the middle and the right pane, which are already showing that
+	     page: the realm's accent. */
+	.paging-make-left .ui-tree { font-size: 0.9em; }
 
-	/* THE ROW YOU ARE EDITING. One border and one wash — the middle and the right
-	   pane are already saying which page this is, so the tree only has to agree. */
-	.paging-make-row-on {
-		border-color: var(--prim);
+	.paging-make-left .ui-tree-row.ui-tree-selected {
+		color: var(--prim-ink);
 		background: color-mix(in srgb, var(--prim) 12%, transparent);
-	}
-
-	/* THE GRIP — the only thing a drag starts from. `Draggable` adds `.drag-handle`
-	   (cursor and `touch-action`) to whatever it is given; this is the target you aim
-	   at, so it gets a hit area of its own and never shrinks. */
-	.paging-make-grip { display: inline-flex; align-items: center; flex: none; padding: 0.1em 0; color: var(--subtle); }
-	.paging-make-grip:is(:hover, :focus-visible) { color: var(--ink); }
-
-	/* THE WHOLE NAME IS THE BUTTON that picks this page, and it takes the leftover so
-	   a click anywhere along the row lands. ⚠ `min-width: 0` and the ellipsis: a flex
-	   item shrinks to min-content first, so a two-word title would go three lines tall
-	   before the row ever wrapped. */
-	.paging-make-pick {
-		display: flex; align-items: center; gap: 0.3em;
-		flex: 1 1 auto; min-width: 0;
-		cursor: pointer;
-	}
-	.paging-make-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
-	.paging-make-pick:is(:hover, :focus-visible) .paging-make-title { color: var(--prim-ink); }
-
-	/* WHY THIS ROW IS STARRED, IN WORDS. A filled star is a mark and not a sentence:
-	   pressing it moved nothing else on the screen, so nobody could say what it had
-	   done. Its own line directly under the row, indented to the row's title — so it
-	   takes no width from the name and only a starred row is a line taller. */
-	/* ⚠ IT CARRIES THE STAR. Under a page that HAS children the tag sits between the
-	     row and its children, where "opens first" alone could be read as a heading for
-	     them — the glyph ties it back to the button that was pressed. */
-	.paging-make-first {
-		display: flex; align-items: center; gap: 0.2em;
-		margin-block-start: -0.1em;
-		padding-inline-start: 1.85em;
-		font-size: 0.68em; font-weight: 600; letter-spacing: 0.03em;
-		color: var(--prim);
-	}
-	.paging-make-first .icon { font-size: 1.15em; }
-
-	/* ── THE ROW WHILE IT IS ASKING ───────────────────────────────────────────
-	   The question takes the whole first line and WRAPS — the one control whose job
-	   is to say what it is about to destroy read "D…" inside a 210px pane, because it
-	   wore the title's own `nowrap` + ellipsis. Its buttons sit under it on the second
-	   line, which is where the eye wants them anyway: read, then answer. */
-	/* ⚠ `wrap` IS SAFE HERE AND ONLY HERE: the question REPLACES the row's contents,
-	     so there is no title to ellipsise and no acts to push off the end. */
-	.paging-make-row-ask { flex-wrap: wrap; row-gap: 0.35em; border-color: var(--error); }
-
-	.paging-make-ask-title {
-		display: flex; align-items: flex-start; gap: 0.25em;
-		flex: 1 1 100%; min-width: 0;
-		font-weight: 600;
-	}
-
-	/* THE ACTS — star, add, delete — in one group against the far edge, so the same
-	   three buttons are in the same place on every row however long the title. */
-	.paging-make-acts { display: flex; align-items: center; gap: 0.1em; flex: none; margin-inline-start: auto; }
-
-	.paging-make-act {
-		display: inline-flex; align-items: center; flex: none;
-		padding: 0.1em;
-		color: var(--subtle);
 		border-radius: var(--radius);
-		cursor: pointer;
-	}
-	.paging-make-act:is(:hover, :focus-visible) { color: var(--ink); background: var(--fill-a08); }
-	.paging-make-act.on { color: var(--prim); }
-	.paging-make-del:is(:hover, :focus-visible) { color: var(--error); }
-
-	/* A page's children, indented under it — and the box a dragged row lands in to
-	   BECOME one of them. */
-	/* ⚠ THE INDENT IS AS SMALL AS IT CAN BE AND STILL READ. Every level costs the
-	     TITLE its width, and a title is what a row is for: at 1.1em + 0.5em a
-	     third-level row had about 60px left for its name and read "Ne…". Two thirds
-	     of that, and the rule line does the work the whitespace was doing. */
-	.paging-make-kids {
-		display: flex; flex-direction: column; gap: 0.25em;
-		margin-inline-start: 0.55em;
-		border-inline-start: 2px solid var(--line);
-		padding-inline-start: 0.4em;
 	}
 
-	/* ⚠ AN EMPTY PAGE IS STILL A PLACE A ROW CAN LAND. `draggable.css` gives every
-	     registered container `min-height: 1.75em` for exactly this reason — with no
-	     height there is no surface to drop onto, the single most common "drag doesn't
-	     work" report. 1.75em under every leaf row is a lot of empty tree, so it is
-	     trimmed here and made obviously a slot instead. */
-	.paging-make-kids:empty { min-height: 0.9em; border-inline-start-style: dashed; }
+	/* The panel layouts, under the pages. Their rows are LINKS out to the playground, so
+	   they are quieter than the pages, which are what this screen is about. */
+	.paging-make-docs .ui-tree { font-size: 0.85em; opacity: 0.9; }
+
+	/* REAL PAGES — the `?real=` group, and the right pane when one is selected. Same
+	   quieter tree as the documents: these are pages this screen does not edit, it only
+	   moves them. `real.js`. */
+	.paging-make-real .ui-tree { font-size: 0.85em; }
+	.paging-make-real > p { margin: 0; }
 
 	.paging-make-where-line { font-size: 0.8em; }
 
@@ -284,17 +199,61 @@
 	}
 	.paging-make-line-note { font-size: 0.8em; }
 
-	.paging-make-adds { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35em; }
+	/* ── WHAT IS SELECTED, SAID AT THE TOP OF THE PANE ────────────────────────
+	   The same two words the badge in the middle says, so the thing you clicked and the
+	   pane that is about it cannot be read as two different things. */
+	.paging-make-sel-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.35em; }
+	.paging-make-sel-kind {
+		font-size: 0.68em; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+		color: var(--prim);
+	}
+	.paging-make-sel-what { font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 
-	.paging-make-item {
-		display: flex; flex-direction: column; gap: 0.3em;
-		padding: 0.4em;
-		background: var(--fill-a04);
-		border: 1px solid var(--line);
+	/* NOTHING SELECTED. One sentence, and it names the three things you can click — an
+	   empty pane with "nothing selected" on it tells a newcomer nothing they can act on. */
+	.paging-make-empty { font-size: 0.85em; }
+
+	/* A ROW OF VALUES — the chips and the acts that belong to one word. Its own box, so a
+	   row that is too long for the pane wraps under its own label rather than pushing the
+	   label off the line. */
+	.paging-make-set { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25em; }
+
+	/* A textarea is the one control that wants its label ABOVE it rather than beside it. */
+	.paging-make-line-tall { flex-direction: column; align-items: stretch; }
+
+	/* A dead arrow (the first block cannot move up) is SHOWN, not hidden: a control that
+	   disappears leaves a row that changes shape as you move through a list. */
+	.paging-make-act-dead { opacity: 0.3; cursor: default; }
+
+	/* ── THE DELETE QUESTION ──────────────────────────────────────────────────
+	   It says what it is about to take — the page by name, and the count of pages under
+	   it — and it WRAPS. The one control whose job is to name what it destroys used to
+	   wear the tree title's `nowrap` + ellipsis and read "D…" inside a 210px pane
+	   (self-evident-critique, defect 3). */
+	/* ⚠ TWO QUESTIONS, ONE SHAPE, TWO COLOURS. `.paging-make-ask` destroys something and
+	     is `--error`; `.paging-make-confirm` moves something and is the realm's accent.
+	     A move is not a deletion, and a red box saying so would be the screen lying about
+	     what the button does. Everything about them that is not the colour is shared, so
+	     they cannot drift into two different-looking questions. */
+	.paging-make-ask, .paging-make-confirm {
+		display: flex; flex-wrap: wrap; align-items: center; gap: 0.35em;
+		padding: 0.5em;
 		border-radius: var(--radius);
 	}
-	.paging-make-item-head { display: flex; align-items: center; gap: 0.3em; }
-	.paging-make-item-title { flex: 1 1 auto; min-width: 0; font-weight: 600; font-size: 0.85em; }
+	.paging-make-ask {
+		background: color-mix(in srgb, var(--error) 8%, transparent);
+		border: 1px solid var(--error);
+	}
+	.paging-make-confirm {
+		background: color-mix(in srgb, var(--prim) 8%, transparent);
+		border: 1px solid var(--prim);
+	}
+
+	/* Every sentence in one of these takes its own full row: the box is a wrapping flex
+	   row of buttons, and a sentence sharing a line with a button reads as its label. */
+	.paging-make-ask-title,
+	.paging-make-confirm > p { flex: 1 1 100%; min-width: 0; margin: 0; }
+	.paging-make-ask-title { font-weight: 600; }
 
 	.paging-make-text {
 		width: 100%;
@@ -308,4 +267,61 @@
 		border-radius: var(--radius);
 		resize: vertical;
 	}
+
+	/* ── THE NAME OF THE SELECTED THING, ON THE THING ─────────────────────────
+	   One badge, in the top-left corner of whatever the ring is around, saying what it is
+	   — "page · Notes", "block · prose", "element · h2". The notes that started this task
+	   named its absence as the defect: "a panel is a rectangle with no name — so the thing
+	   you selected has no label".
+
+	   ⚠ ABSOLUTE, AND ABOVE THE BOX'S TOP EDGE — `inset-block-end: 100%`, not
+	     `inset-block-start: 0`. Inside the box it painted straight over the first line of
+	     whatever it was labelling: an h2 reading "And a heading" showed as "…ing" with the
+	     badge over the rest of it (measured 2026-09-18). This realm has already measured
+	     the general form of that twice — "a control that covers the thing it controls is
+	     not a control" (paging-audit-2, break #1) — and it is why `ext/Panel`'s floating
+	     bar is deleted by this same task. It is absolute rather than in the flow because a
+	     badge in the flow would MOVE the thing it labels, and a selection that nudges the
+	     page every time you click is that same defect in miniature. `.panel-ring`
+	     (ext/Panel's focus.css) gives it the `position: relative` to sit against. */
+	.paging-make-badge {
+		position: absolute; inset-block-end: 100%; inset-inline-start: 0; z-index: 4;
+		display: inline-flex; align-items: center; gap: 0.2em;
+		padding: 0.05em 0.35em;
+		font-size: 0.65em; font-weight: 700; letter-spacing: 0.04em;
+		line-height: 1.7;
+		color: var(--prim-on, #fff);
+		background: var(--prim);
+		border-start-start-radius: var(--radius);
+		border-start-end-radius: var(--radius);
+		pointer-events: none;
+		white-space: nowrap;
+	}
+	.paging-make-badge .icon { font-size: 1.1em; }
+
+}
+
+/* ── AN ELEMENT'S OWN THREE WORDS ──────────────────────────────────────────────
+   A run of text can say three things about itself — its tone, its size, its alignment —
+   and two of them have no word on this site to borrow: `framework.css` has `.muted`
+   (which `tone` uses as-is) and no type-size or text-align utility at all.
+
+   ⚠ `@layer util`, AND THE LAYER IS THE WHOLE POINT. The skin styles every heading from
+     `.theme-lew42 :is(h2, .h2)` at (0,2,0) inside `@layer theme` — so a single-class
+     `font-size` on an h2 loses, and loses SILENTLY: the class landed on the element, the
+     button lit, and the heading did not move a pixel (measured 2026-09-18, `font-size`
+     read back 34.92px with and without). A utility sits in `util`, which beats `theme` by
+     layer order whatever the specificity, which is what a word like this has to do to be
+     worth having. That fact is `css`'s own §3.
+
+   ⚠ THEY ARE PREFIXED AND THEY LIVE HERE, not in `framework.css`. A site-wide `.center`
+     is a proposal for whoever owns the framework, not a side effect of an editor task —
+     and a page you made is drawn by `make/page.js`, which loads this sheet, so the class
+     works at the page's own url too. `doc/decisions.md` records both halves. */
+@layer util {
+
+	.paging-make-run-sm { zoom: 0.85; }
+	.paging-make-run-lg { zoom: 1.3; }
+	.paging-make-run-center { text-align: center; }
+	.paging-make-run-right { text-align: right; }
 }

@@ -1,0 +1,459 @@
+/* /layouts/shell/shell.css — the shell (two regions), and the designs inside it.
+   Loaded by `page.js`, which is the host and therefore always the first module of
+   this lab to evaluate: core walks a url root-to-leaf, so no design page can be
+   reached without the shell being imported first.
+
+   TWO KINDS OF RULE LIVE HERE, and the split is the reason the file is readable:
+   the SHELL's rules answer to the window (there is no container above the page),
+   and every rule for what is INSIDE the viewport answers to the viewport — a
+   container query — because the sidebar's width is the whole point and the designs
+   have to respond to what it leaves them, not to how big the screen is.
+
+   ⚠ A box cannot restyle its own container. `.std-shell-view` declares the
+     container; every rule that reads it names a DESCENDANT of it. A `@container`
+     rule whose subject is the declaring box never fires and nothing throws. */
+
+@layer util {
+
+	/* THE DEFAULT DESIGN STANDS DOWN the moment a real one is routed beside it.
+	   Core writes exactly this rule for its columns host (`Page.css`,
+	   `.page-column-pages:has(…)`); the shell is the two-region version of the same
+	   arrangement, so it needs the same one line. Without it, landing on a design
+	   would show that design AND the base design under it, and nothing would warn:
+	   `default` means "shown without being routed to", and the contract at the top
+	   of Page.css only ever HIDES a page, never un-shows one.
+	   ⚠ `util`, like the contract it pairs with — a `display` utility on a design
+	     must not be able to out-rank it. */
+	/* ⚠ IT IS A LATER MARKED SIBLING, not "something is marked". The base design is
+	     also the PARENT of every other design, so navigating to one makes the base an
+	     `.active-ancestor` — and core's own columns rule
+	     (`… > .page.default:not(.active-page, .active-ancestor)`) therefore leaves it
+	     showing. Measured: landing on the deepest design painted BOTH it and the base
+	     design, 2,718px of viewport with two topbars in it and nothing in the console.
+	     This asks the question the arrangement contract itself asks of an ancestor —
+	     "is a later sibling marked" — because in a two-region shell an ancestor design
+	     has been REPLACED, where an ancestor column is still a column in the row. */
+	.std-shell-view > .page.default:has(~ .page:is(.active-page, .active-ancestor)) { display: none; }
+
+	/* THE DESIGN IS THE PAGE. Core renders `h1.page-title` into the main track above
+	   everything a page draws, and on a homepage that is somebody else's heading
+	   bolted on top of the design. Each design says its own name in its own hero.
+	   (`/layouts/practice/` hides it for the same reason, the same way.)
+
+	   ⚠ ALL THREE RULES ARE IN `util`, and that is not a style choice. The two they
+	     have to beat both live there: framework.css's `.page-title + *`, which leaves
+	     1.5 x --flow behind after a heading that is now hidden (a hidden element is
+	     still a sibling), and `:where(.flow) > * + *`, which would put --flow between
+	     every pair of bands. A `theme`-layer rule cannot out-rank a `util` one at ANY
+	     specificity, so writing these down there would look right and do nothing.
+	   ⚠ BANDS BUTT BY DEFINITION. A gap between two bands is a strip of the page's own
+	     ground showing through, which is a third ground nobody chose. */
+	.page:has(> .std-shell-band) > .page-title { display: none; }
+	.page:has(> .std-shell-band) > .page-title + * { margin-block-start: 0; }
+	.page > :is(.std-shell-band, .std-shell-changed) + :is(.std-shell-band, .std-shell-changed) { margin-block-start: 0; }
+}
+
+@layer theme {
+
+	/* ════ THE SHELL — two regions, edge to edge ══════════════════════════════
+	   `.page.solo` (Page.css) has already made this box exactly as tall as the
+	   region and given it its own overflow; this makes it a row and takes the page
+	   grid's padding off, so the two regions really do reach the edges.
+	   ⚠ (0,2,0) in the same layer as `.page`'s own (0,1,0) grid — that is how a
+	     page declares a shell of its own (Page.css says so at the grid).
+	   ⚠ `height: 100%`, and NOTHING inside grows past it: the sidebar and the
+	     viewport each own their scrolling. That is what makes the sidebar fixed by
+	     construction — there is no page scroll to move it — and `position: sticky`
+	     below is the guarantee that holds if a future design ever does make this
+	     box scroll. */
+	.page.std-shell {
+		--std-shell-rail: 18rem;
+
+		display: flex;
+		align-items: stretch;
+		height: 100%;
+		padding: 0;
+		max-width: none;
+	}
+
+	/* ── THE TRACK — the box that stretches ──
+	   The floor and the ceiling are HERE, not in the drag handler: a width clamped
+	   in JS at drag time is stale the moment the browser is resized, and the rail
+	   would keep more than half of a narrow window with nothing to correct it.
+	   `50%` is half the shell, so the ceiling follows the window for free. */
+	.std-shell-track {
+		position: relative;
+		flex: 0 0 clamp(12rem, var(--std-shell-rail), 50%);
+		min-width: 0;
+		background: var(--fill-a04);
+		border-inline-end: 1px solid var(--line);
+	}
+
+	/* ── THE RAIL — the box that sticks inside the track ──
+	   These cannot be one element: a box exactly as tall as its own content has no
+	   travel, so `position: sticky` on it can never fire (`/layouts/practice/`
+	   measured a 330px panel beside a 2,270px wall that way).
+	   ⚠ `max-height: 100%` + `overflow-y: auto` is a DELIBERATE scrollbar, and the
+	     only one in the sidebar: a tree deeper than the screen must be reachable,
+	     and a sticky box taller than its scrollport is the classic way it is not. */
+	.std-shell-rail {
+		position: sticky;
+		top: 0;
+		max-height: 100%;
+		overflow-y: auto;
+		display: flex;
+		flex-direction: column;
+		gap: var(--gap-50);
+		padding: var(--gap);
+		font-size: 0.9em;
+	}
+
+	.std-shell-rail-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5em; }
+	.std-shell .std-shell-rail-title { font-size: 1.05em; margin: 0; }
+	.std-shell-rail-say { margin: 0; font-size: 0.9em; }
+
+	/* The fold, and the one place a control's own padding stays in the control's
+	   own `em` — a spacing clamp is space between and around content, never the
+	   size OF a button.
+	   ⚠ (0,3,0). The theme dresses every `button` from `.theme-lew42 :is(button,
+	     .btn)` at (0,2,0) INSIDE `@layer theme`, so a single-class rule here would
+	     lose on specificity whatever the load order. */
+	.std-shell .std-shell-rail-head .std-shell-fold {
+		display: none;
+		margin-inline-start: auto;
+		padding: 0.25em 0.7em;
+		font-size: 0.85em;
+		font-weight: 600;
+		text-transform: none;
+		letter-spacing: 0;
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		background: var(--fill-a08);
+		color: inherit;
+		cursor: pointer;
+	}
+
+	.std-shell-rail-foot {
+		margin-block-start: auto;
+		padding-block-start: var(--gap-50);
+		border-block-start: 1px solid var(--line);
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 0.5em;
+		font-size: 0.85em;
+	}
+
+	.std-shell-rail-doc { color: inherit; text-decoration: none; font-weight: 600; }
+	.std-shell-rail-doc:hover { color: var(--prim-ink); }
+	.std-shell-rail-width { margin-inline-start: auto; font-variant-numeric: tabular-nums; }
+
+	/* ── THE TREE ──
+	   Row colour is the ROUTER's: every row is a real `<a>`, so `mark_links()`
+	   stamps `.active` on the row you are on and `.in-path` on its ancestors after
+	   every navigation, cold deep links and Back included. One state, one rule.
+	   ⚠ `.ui-tree-text` is `white-space: nowrap` with an ellipsis (ui/tree), which
+	     is exactly what makes both sidebar sizes read: at 14rem a deep row clips
+	     cleanly, at 40rem every label is whole. That IS the demonstration. */
+	.std-shell-rail .ui-tree-row.active { background: var(--fill-a16); font-weight: 700; }
+	.std-shell-rail .ui-tree-row.in-path { font-weight: 600; }
+
+	/* ── THE GRAB is `ext/grip`'s own `.grip`/`.grip-start` now (grip.css, loaded
+	   the moment `Shell.js` imports `ext/grip/grip.js`) — nothing to declare here.
+	   2026-09-18: this used to be a 10px target straddling the track's own border;
+	   it merged onto `core/Sidebar`'s copy of the same gesture, at the one file
+	   both now share, and grip's own strip sits wholly INSIDE the box instead. */
+
+	/* ── THE VIEWPORT ──
+	   A container, so everything drawn inside it responds to the room the sidebar
+	   left rather than to the window. Its scrollbar is the second deliberate one:
+	   a design is a whole page and a whole page is taller than a viewport. */
+	.std-shell-view {
+		flex: 1 1 0;
+		min-width: 0;
+		overflow-y: auto;
+		background: var(--surface);
+		container: std-shell-view / inline-size;
+	}
+
+	/* ════ THE DESIGNS ════════════════════════════════════════════════════════
+	   Each design page is an ordinary `.page` inside the viewport, so `bleed`
+	   reaches the viewport's edges and `--gutter-x` is the page's own.
+
+	   ⚠ A BAND IS PAINT, which is why it bleeds. Its WORDS never do: `.std-shell-in`
+	     restores the page's own inline gutter, so every band shares one left edge.
+	     Block padding belongs only to a band that paints — padding with no change
+	     of ground floats a box in midair off the margins its siblings line up with,
+	     which is the commonest way a page looks wrong with nothing wrong in it. */
+	.std-shell-in { padding-inline: var(--gutter-x); }
+
+	/* ⚠ A DESIGN STARTS AT THE VIEWPORT'S TOP EDGE. `.page` carries
+	     `padding: var(--pad-y) 0` for prose that needs air above its title; a design's
+	     first band is paint, and 48px of the page's own ground above it read as a
+	     white strip between the viewport and the design (measured at 1920). Scoped to
+	     a page that HOLDS BANDS, because the doc page renders in this same viewport
+	     and wants its padding. */
+	.std-shell-view > .page:has(> .std-shell-band) { padding-block: 0; }
+
+	/* Three grounds, one step apart on the alpha ladder, and the contrast of every
+	   text-on-ground pair: `--ink` #1a1a1a on `--surface` #fff is 17.4:1; on
+	   `--fill-a04` (#f5f5f5 in light mode) 16.4:1; on `--fill-a08` (#ebebeb)
+	   15.3:1. `.muted` is `--ink` at 75%, which composites to ~#4d4d4d: 7.8:1 on
+	   the lightest of the three. Nothing here goes near the 4.5:1 floor. */
+	.std-shell-topbar { background: var(--fill-a08); border-block-end: 1px solid var(--line); }
+	.std-shell-hero { background: var(--fill-a04); }
+	.std-shell-footer { background: var(--fill-a08); border-block-start: 1px solid var(--line); }
+
+	.std-shell-topbar-in {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.6em 1.2em;
+		padding-block: 0.6em;
+	}
+
+	.std-shell-brand { font-weight: 900; letter-spacing: -0.02em; }
+	.std-shell-topbar-links { display: flex; flex-wrap: wrap; gap: 0.6em 1.1em; margin-inline-start: auto; }
+
+	/* A nav link, anywhere: the bar, the rail a design adds, the footer. One look,
+	   three places — a reader who has seen it in the bar recognises it in the foot.
+	   ⚠ `text-decoration: none` and `color: inherit` because framework.css dresses
+	     every anchor inside prose with the accent underline; a navigation anchor
+	     has already opted out of looking like a link. */
+	.std-shell-navlink {
+		color: inherit;
+		text-decoration: none;
+		font-size: 0.9em;
+		font-weight: 600;
+	}
+
+	.std-shell-navlink:hover { color: var(--prim-ink); }
+
+	/* ── THE HERO ──
+	   `--std-shell-fold` is written per design as a whole clamp, because a hero's
+	   height is a FOLD budget: `vh` is the only unit that knows how tall a fold is,
+	   and the floor and cap are as much of the decision as the middle.
+	   ⚠ `vh` IS HONEST HERE, and it is worth saying why rather than assuming it.
+	     This site has no global chrome at all — `App.render()` emits `.app > .pages`
+	     and nothing else, and `/layouts/`, `/imagine/` and this page all measure
+	     0,0,1920,1000 at a 1000px window — so the viewport's height IS the window's
+	     and 34vh really is 34% of the fold. If a strip is ever added above `.pages`,
+	     these stop agreeing: the exact answer would be `container-type: size` on the
+	     viewport, and a size container may stop being sized by its own contents (a
+	     documented way to measure 0px while holding 963px — the css skill), so the
+	     honest fix then is to re-tune the clamps, not to change the unit. */
+	.std-shell-hero-in {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		gap: var(--gap);
+		min-height: var(--std-shell-fold, clamp(13rem, 34vh, 26rem));
+		padding-block: var(--gap);
+	}
+
+	.std-shell-hero-words { display: flex; flex-direction: column; gap: var(--gap-50); max-width: var(--measure); }
+	.std-shell-eyebrow { font-size: 0.8em; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--subtle); }
+	.std-shell .std-shell-hero-title { margin: 0; font-size: clamp(1.6rem, 4.5cqi, 3rem); line-height: 1.15; }
+	.std-shell-hero-say { margin: 0; font-size: 1.05em; }
+
+	.std-shell-acts { display: flex; flex-wrap: wrap; gap: 0.6em; margin-block-start: 0.4em; }
+
+	/* A control's own padding stays in the control's own `em`. */
+	.std-shell-act {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35em;
+		padding: 0.55em 1em;
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		color: inherit;
+		text-decoration: none;
+		font-weight: 700;
+	}
+
+	.std-shell-act-prim { background: var(--prim); border-color: var(--prim); color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.45); }
+	.std-shell-act:hover { border-color: var(--prim); }
+
+	.std-shell-hero-art { display: flex; align-items: center; justify-content: center; font-size: 4em; }
+
+	/* ── THE MIDDLE BAND — the wall, and the rail a design adds beside it ──
+	   The band that does NOT paint, so it carries no block padding of its own: its
+	   air is the hero's bottom padding above and the footer's top padding below. */
+	.std-shell-middle-in { display: flex; flex-direction: column; gap: var(--gap); padding-block: calc(var(--flow) * 1.2); }
+	.std-shell-wall-col { display: flex; flex-direction: column; gap: var(--gap-50); min-width: 0; }
+	.std-shell .std-shell-band-title { margin: 0; }
+	/* ⚠ A band bleeds, so anything inside it runs the whole viewport unless it takes
+	     its measure back. This one read 1,501px at 1920 before the cap. */
+	.std-shell-band-say { margin: 0; color: var(--subtle); max-width: var(--measure); }
+	.std-shell-wall { margin-block-start: var(--gap-50); }
+
+	/* THE WALL'S COLUMN COUNT IS WRITTEN OUT, and the ladder is below, on the
+	   viewport. One column here, which is what a narrow viewport gets.
+
+	   ⚠ A WRITTEN-OUT COUNT NEEDS A CEILING, and the ceiling belongs to the COLUMN,
+	     not to the wall. Three equal columns of a 3,152px viewport are ~1,000px each
+	     and the card's own sentence then runs 829px — 51em, past the 40em measure,
+	     measured at 3440 before this line. Capping the WALL alone fixed the sentence
+	     and left the column still stretched (`flex: 1 1 0`), so a design with a rail
+	     beside the wall had 1,500px of the page's own ground in the middle of the row
+	     — the exact failure the Reader practice layout was rebuilt for. Capping the
+	     column takes the rail with it, and the leftover is one gutter on the right. */
+	.std-shell-wall-count { grid-template-columns: 1fr; }
+	.std-shell-wall-col { max-width: calc(var(--std-shell-count, 3) * 34rem); }
+
+	.std-shell-card {
+		display: flex;
+		flex-direction: column;
+		gap: 0.3em;
+		padding: var(--pad);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		background: var(--surface);
+		color: inherit;
+		text-decoration: none;
+	}
+
+	.std-shell-card:hover { border-color: var(--prim); }
+	.std-shell .std-shell-card-title { margin: 0; }
+	.std-shell-card-say { margin: 0; font-size: 0.9em; }
+
+	.std-shell-aside { display: flex; flex-direction: column; gap: 0.4em; min-width: 0; }
+	.std-shell .std-shell-aside-title { margin: 0; }
+	.std-shell-aside-links { display: flex; flex-direction: column; gap: 0.35em; }
+
+	/* ── THE DARK BAND ──
+	   ⚠ `color-scheme: dark` is the whole always-dark primitive. An island that is
+	     dark in BOTH modes and does not declare it gets the light mode's rungs — a
+	     black fill on a dark floor — because `light-dark()` reads `color-scheme` at
+	     the element it is USED on (framework.css). */
+	.std-shell-quote {
+		color-scheme: dark;
+		background: var(--bg);
+		color: var(--ink);
+	}
+
+	.std-shell-quote-in { padding-block: calc(var(--flow) * 1.2); display: flex; flex-direction: column; gap: 0.6em; }
+	/* ⚠ `24em`, NOT `--measure`. A measure in `em` is a CHARACTER count, so the page's
+	     40em cap on 1.6rem type is 1024px of perfectly ordinary line length — right by
+	     the invariant and wrong for a pull quote, which wants FEWER characters a line
+	     than body text, not the same number in bigger type. */
+	.std-shell-quote-text { margin: 0; font-size: clamp(1.1rem, 2.4cqi, 1.6rem); font-weight: 700; line-height: 1.35; max-width: 24em; }
+	.std-shell-quote-who { margin: 0; font-size: 0.85em; opacity: 0.75; max-width: var(--measure); }
+
+	/* ── THE FOOTER ── */
+	.std-shell-footer .std-shell-in { padding-block: calc(var(--flow) * 1.2); }
+	.std-shell-foot-cols { display: grid; gap: var(--gap); grid-template-columns: repeat(auto-fill, minmax(min(12rem, 100%), 1fr)); }
+	.std-shell-foot-col { display: flex; flex-direction: column; gap: 0.35em; }
+	.std-shell .std-shell-foot-title { margin: 0 0 0.2em; font-size: 0.8em; text-transform: uppercase; letter-spacing: 0.06em; color: var(--subtle); }
+
+	/* ── WHAT CHANGED, one click down ──
+	   A fold at the very bottom of the design, so the design itself is what is on
+	   screen. It bleeds like a band and pays the gutter back inside, same as one. */
+	.std-shell-changed { background: var(--fill-a04); border-block-start: 1px solid var(--line); }
+
+	/* ⚠ A `<summary>` IS DRESSED AS A BUTTON on this site — framework.css styles
+	     `.btn, button, summary, select, textarea` together — so without this it
+	     shrink-wrapped to 341px of bordered grey sitting inside a 1,632px band, which
+	     reads as a stray button rather than a fold. (0,2,1), so it beats that rule on
+	     specificity inside the same layer rather than on load order. */
+	.std-shell .std-shell-changed > summary {
+		display: block;
+		width: 100%;
+		padding: 0.7em var(--gutter-x);
+		background: none;
+		border: none;
+		border-radius: 0;
+		text-transform: none;
+		letter-spacing: 0;
+		font-weight: 700;
+		font-size: 0.9em;
+		cursor: pointer;
+	}
+	.std-shell-changed .std-shell-in { padding-block-end: var(--gap); }
+	.std-shell-changed-say { margin: 0; max-width: var(--measure); }
+}
+
+/* ════ WHAT THE VIEWPORT DECIDES ══════════════════════════════════════════════
+   Every one of these reads the VIEWPORT's width, not the window's, so dragging the
+   sidebar changes the designs exactly the way making the browser narrower would.
+   That is the whole reason the viewport is a container. */
+@layer theme {
+
+	@container std-shell-view (min-width: 40rem) {
+		.std-shell-hero-split { flex-direction: row; align-items: center; gap: calc(var(--gap) * 2); }
+		.std-shell-hero-split > .std-shell-hero-words { flex: 1 1 0; min-width: 0; }
+		.std-shell-hero-split > .std-shell-hero-art { flex: 0 1 30%; }
+	}
+
+	/* THE LADDER: 1 · 2 · 3 · the design's own count. Every rung divides six, which is
+	   why the base design holds six cards — no row is ever short at any width. Left to
+	   an `auto-fill` column width instead, this wall sat on FIVE columns with a last
+	   row of one at 1920 (measured), and `/layouts/practice/catalog/` measured the same
+	   shape at 2800–3360 before it wrote its own counts out. The last rung is the only
+	   one that reads the spec, so a design that wants three columns everywhere says
+	   `count: 3` and the rung above 3 simply repeats it.
+	   ⚠ The rungs assume a count that is a MULTIPLE OF 3 (three and six are the two in
+	     use). A count of four or five would need its own middle rung; nothing warns. */
+	@container std-shell-view (min-width: 30rem) {
+		.std-shell-wall-count { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+	}
+
+	@container std-shell-view (min-width: 46rem) {
+		.std-shell-wall-count { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+	}
+
+	@container std-shell-view (min-width: 92rem) {
+		.std-shell-wall-count { grid-template-columns: repeat(var(--std-shell-count, 3), minmax(0, 1fr)); }
+	}
+
+	@container std-shell-view (min-width: 52rem) {
+		.std-shell-has-aside { flex-direction: row; align-items: flex-start; gap: calc(var(--gap) * 1.5); }
+		.std-shell-has-aside > .std-shell-wall-col { flex: 1 1 0; }
+		.std-shell-has-aside > .std-shell-aside { flex: 0 0 14rem; }
+	}
+}
+
+/* ════ THE SHELL AT PHONE WIDTHS ══════════════════════════════════════════════
+   A MEDIA query, and this is the one place that is right: the shell IS the page
+   and the page fills the region, so there is no container above it to ask. Every
+   rule about what is INSIDE the viewport is a container query, above.
+
+   A TOP STRIP, NOT A DRAWER, and the reason is the reader. A drawer needs an
+   overlay, a scrim, a close affordance and somewhere to put focus — machinery the
+   shell needs for nothing else — and it hides the navigation exactly when the
+   screen is smallest and knowing where you are matters most. A strip keeps every
+   row one tap away, reuses the same tree, and folds to its own title when you want
+   the design to have the screen. The drag handle is hidden here because there is
+   no horizontal room to trade: a sidebar and a viewport cannot share 400px. */
+@layer theme {
+
+	@media (max-width: 44rem) {
+		.page.std-shell { flex-direction: column; }
+
+		.std-shell-track {
+			flex: 0 0 auto;
+			max-height: 40vh;
+			border-inline-end: none;
+			border-block-end: 1px solid var(--line);
+		}
+
+		.std-shell-rail { max-height: 40vh; }
+
+		/* ⚠ `ext/grip`'s own rule hides `.grip` below 34em, narrower than the 44rem
+		   this shell already stacks at — nothing to drag once the sidebar and the
+		   viewport are stacked instead of side by side, so this still needs its own
+		   override between 34em and 44rem. */
+		.std-shell-track .grip { display: none; }
+
+		/* ⚠ The readout is hidden here, not restyled: stacked, the strip is the full
+		     width of the screen and 40vh tall, so "25rem" would be a true number
+		     answering a question nobody asked. */
+		.std-shell-rail-width { display: none; }
+		.std-shell .std-shell-rail-head .std-shell-fold { display: inline-flex; }
+
+		.std-shell-folded .std-shell-track { max-height: none; }
+		.std-shell-folded .std-shell-rail-say,
+		.std-shell-folded .std-shell-rail-foot,
+		.std-shell-folded .ui-tree { display: none; }
+	}
+}

@@ -14,10 +14,11 @@ Opt a real component (not an example) out of the scan: `div.c("toc-skip", …)`.
 ## Watch out
 
 - Only `h2`/`h3` (and `.h2`/`.h3`) outside demos, file trees, rails and `.toc-skip` count — a stat tile's big number is not a section: [`doc/skip-list.md`](./doc/skip-list.md)
-- Silently shows nothing inside a `Doc` that also declares `overview:` — the catalog mounts one level too deep for `toc.css`'s selector: [`doc/decisions.md`](./doc/decisions.md)
+- Fixed 2026-09-18: used to show nothing on any `ext/Doc` page (the tab shell mounts `toc()`'s output several levels deep, past `toc.css`'s old `.pages >`-prefixed selector) — dropping that prefix, matching `Page.css`'s own related-aside rule, reaches it at any depth: [`doc/decisions.md`](./doc/decisions.md)
 - A hidden page measures every rect at 0,0, so the spy picks the last heading; the scroll listener lives on `.pages`, not `window`: [`doc/decisions.md`](./doc/decisions.md)
 - Nothing re-scans — a heading appended later (`md.file()`) is not in the nav; no `h4`: [`doc/decisions.md`](./doc/decisions.md)
 - `toc.css` stays ASCII, comments included — a charset-less host double-encodes UTF-8: [`doc/decisions.md`](./doc/decisions.md)
+- No minimum heading count — it hides only at exactly zero, never "fewer than three": [`doc/decisions.md`](./doc/decisions.md)
 
 ## More
 

@@ -839,12 +839,12 @@ console errors; no horizontal body scroll at 400, 1920 or 3440.
 
 # The magazine, and the `code` tab (2026-09-04, `paging-explorer`)
 
-Two asks from the same brief: put `/imagine/mag/`'s shape in `specs.js`, and give every
+Two asks from the same brief: put `/layouts/labs/mag/`'s shape in `specs.js`, and give every
 generated page a `code` child that shows how it was built.
 
 ## The magazine needed no sixth word
 
-`/imagine/mag/` is three real levels: a `full` cover with one child, a `large` contents column
+`/layouts/labs/mag/` is three real levels: a `full` cover with one child, a `large` contents column
 that lists six articles as previews, and an article — no width word, the plain 40em measure.
 That is `wall full` / `list large` / six `prose`, letter for letter the five words already had.
 `specs.js`'s ninth entry, appended after Handbook — inserting one moves every card after it

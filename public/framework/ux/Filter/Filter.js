@@ -29,12 +29,20 @@ export default class Filter extends View {
 		this.needle ??= "";
 		this.buttons = new Map();
 
-		this.ac("surface pad flex wrap gap v-center");
+		this.ac("flex wrap gap v-center");
+		this.ac(this.chrome && "surface pad");
 		this.segment_row();
 		this.field();
 	}
 
+	// NOTHING TO SHOW, NOTHING DRAWN. A Filter with no segments — `core/Sidebar`'s,
+	// because a rail narrows by exactly one fact (a page title) — still drew this
+	// row, empty and zero wide. The parent's own `gap` then applied to it anyway, so
+	// the field started a whole gap to the right of nothing: 25px of it at 1920, and
+	// the owner read the result as a box inside a box. 2026-09-19.
 	segment_row(){
+		if (!this.segments.length) return;
+
 		return div.c("flex v-center gap", () =>
 			this.segments.forEach(s => this.segment_button(s))).style("--gap", "0.15em");
 	}
@@ -47,11 +55,13 @@ export default class Filter extends View {
 	}
 
 	// ⚠ Kept on `this.$field` so a subclass (`FilterChips`) can blank the box when a
-	// chip's × clears the query from OUTSIDE a keystroke.
+	// chip's × clears the query from OUTSIDE a keystroke, and so Escape (below) can
+	// blank it from a keystroke that is not an `input` event at all.
 	field(){
 		return this.$field = input().ac("flex-1").attr("type", "search").attr("placeholder", this.placeholder)
 			.style("minWidth", "9em")
-			.on("input", e => this.query(e.target.value));
+			.on("input", e => this.query(e.target.value))
+			.on("keydown", e => { if (e.key === "Escape"){ e.preventDefault(); this.clear_query(); } });
 	}
 
 	// ---- the two facts ----------------------------------------------------
@@ -67,6 +77,17 @@ export default class Filter extends View {
 
 	query(text){
 		this.needle = text;
+		return this.changed();
+	}
+
+	// The base half of a chip's × — clears the QUERY only, never the segment. Added
+	// as its own method (not inlined into Escape's handler above) because
+	// `FilterChips`'s own × needs the exact same two lines — one method, two
+	// callers, added 2026-09-18 when `core/Sidebar` needed Escape to do what a chip
+	// already did (ux/Filter/doc/decisions.md).
+	clear_query(){
+		this.needle = "";
+		this.$field.el.value = "";
 		return this.changed();
 	}
 
@@ -87,6 +108,15 @@ export default class Filter extends View {
 		return predicate;
 	}
 }
+
+// ⚠ `chrome: false` drops the card — the `.surface.pad` box this draws itself in —
+// and nothing else: the same segments, the same field, the same events. It is for a
+// Filter that is ALREADY inside something with a ground and a padding of its own,
+// where a second box reads as a box inside a box (core/Sidebar's rail, 2026-09-19).
+// A config word rather than an outside `.sidebar-filter { border: none }` override,
+// because the caller that knows it is nested is the one that should say so, and
+// framework's own rule is that overriding a base look is a bug report about it.
+Filter.prototype.chrome = true;
 
 Filter.prototype.segments = ["All"];
 Filter.prototype.all = "All";

@@ -10,7 +10,7 @@ it.** The mechanism itself is [`columns.md`](/framework/core/Page/doc/columns/).
 A screen here is not a shell, it is a width word. `full` collapses every ancestor column
 into the crumb strip, so the screen you open hides the one you were on; `fill` keeps them
 and the columns left divide the row evenly. Eight experiments, and nothing else was needed.
-→ [Screens](/imagine/screens/) · [the table of eight](/imagine/screens/readme/)
+→ [Screens](/layouts/labs/screens/) · [the table of eight](/layouts/labs/screens/readme/)
 
 **Stepping the tone UP reads as hierarchy; a flip reads as *you are here*.**
 Each column a shade lighter than the one before reads as a stack lifting toward you.
@@ -34,7 +34,7 @@ and the content never even reaches the column's real width.
 Chrome *inside* a content area gets the same paper, a hairline, and one type step down — it
 navigates within the area. Chrome that moves you between screens is the outer chrome wearing
 a disguise, and giving it a fill says so.
-→ [Shells](/imagine/shells/) · [the ten findings](/imagine/shells/readme/)
+→ [Shells](/layouts/labs/shells/) · [the ten findings](/layouts/labs/shells/readme/)
 
 **Previews are navigation, not decoration.**
 A card sits on the wash with a shadow rather than on a white card — a white render inside a
@@ -51,7 +51,7 @@ also decides persistent-vs-swap navigation: kinds that CAP tolerate a persistent
 (it comes out of the gutter); kinds that SCALE want the swap (a 16em rail cost a statement
 14% of its size); a thin strip redrawn per slide reads as persistent at a fraction of the
 width.
-→ [Decks](/imagine/decks/) · [the content-kind map](/imagine/decks/doc/regions.md)
+→ [Decks](/layouts/labs/decks/) · [the content-kind map](/layouts/labs/decks/doc/regions.md)
 
 **`hug` wants a constant content width — a nav rail is not one.**
 Tried on a realm rail and reverted: it hugged to 128px on one realm and 183px on another,

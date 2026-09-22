@@ -99,3 +99,98 @@ again, and `node --check .claude/hooks/ledger.mjs` after any edit.
 
 Design record and the phase-2b deferrals:
 `public/framework/ai/2026-08-15/ledger-hooks/requirements.md`.
+
+## prompt-relay.mjs — the `UserPromptSubmit` hook
+
+**Not wired yet.** The snippet below is for the owner to paste into `.claude/settings.json`
+themselves — no agent edits that file.
+
+Fires on every prompt, in every session, and does two separate jobs:
+
+- **Every session** gets its prompt appended, verbatim, to `.claude/prompts/<day>.jsonl` — a
+  private, git-ignored daily transcript that lives outside `public/` (never served to the LAN,
+  never committed). A line that looks like it holds a secret (an API key, a token, a private
+  key block — see the script's `SECRET_PATTERNS`) is written as `[withheld: looked like a
+  secret]` instead. This is a heuristic, not a scanner — it catches common shapes, nothing more.
+- **A session that has loaded the `assistant` skill** — marked by one line `ledger.mjs`'s Skill
+  branch adds (`tool_input.skill === "assistant"` writes `claude-assistant-<session_id>` to the
+  OS temp dir), or by typing the literal `/assistant` command, which this script marks itself
+  since the Skill event for that same prompt fires too late to help it — additionally:
+  - appends the prompt to the mastermind's inbox: the same `chat` shape `say.mjs`'s `relay`
+    writes, `via: "assistant-hook"`, with `session_id` stamped on it;
+  - appends it to the V3 board as the owner's own card (the same shape `say.mjs`'s `heard`
+    writes by hand today) at `public/framework/ai/v/3/board.jsonl`, which the dev bar reads
+    live — so the owner's words are on their screen before any model has answered;
+  - prints a 3-line identity refresh to stdout, which `UserPromptSubmit` adds to the model's own
+    context for that turn, so the assistant never has to remember what it is or that the relay
+    already happened.
+
+  Empty prompts and `/slash` commands are logged (job one, above) but never relayed or carded
+  (job two) — neither is something the owner said to anyone.
+- The mastermind's own session is never marked as the assistant: the marker is only ever written
+  when a `Skill` event names `skill: "assistant"`, and the mastermind's own `SKILL.md` never
+  tells it to load that skill.
+- `LEDGER_ROOT` — the same override `ledger.mjs` already honours — relocates both the mastermind
+  inbox lookup and the V3 board file for tests, since both live under
+  `<root>/public/framework/ai/`; no second env var.
+- Never throws, never blocks the prompt (`{"decision":"block"}` is only ever `ledger.mjs`'s
+  `Stop` branch, never this script), exits 0.
+
+Add to `.claude/settings.json`'s `hooks`:
+
+```json
+"UserPromptSubmit": [
+  { "hooks": [ { "type": "command", "command": "node", "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/prompt-relay.mjs"], "timeout": 15 } ] }
+]
+```
+
+### Testing
+
+Same pattern as `ledger.mjs`'s own fixtures above: pipe real stdin JSON through the real script
+against a throwaway `LEDGER_ROOT`, never the real repo paths. Covered: an unmarked session logs
+the prompt but never relays or cards it; marking a session (as `ledger.mjs`'s Skill branch would)
+makes its next prompt land in a scratch `mastermind-*/task.jsonl` inbox AND get a card in a
+scratch `board.jsonl`; the literal `/assistant` prompt marks its own session (and is itself
+logged, not relayed — it is a command, not a message); a `Skill: mastermind` (or any other
+skill) load never creates the assistant marker; a secret-looking prompt is withheld in the log,
+the relay, and the card; a whitespace-only prompt writes nothing at all; a different `/slash`
+command is logged but not relayed or carded; one full invocation timed at ~65 ms end to end
+(node's own process startup dominates that, same as `syntax-guard.mjs`'s ~60 ms note above).
+
+Design record: `public/framework/ai/2026-09-19/prompt-relay/requirements.md`.
+
+## hold-guard.mjs — the lapsed-reload-hold check
+
+The full story and the design comment are in the file's own header; this is the short version.
+`Server/hold.mjs`'s reload hold self-expires after 5 minutes on purpose (so it can never stick
+forever), but that expiry used to be silent — an agent could believe it was still held when it
+was not, and a real write once went out unheld because of it
+(`public/framework/ai/2026-09-19/hold-guard/`).
+
+Two halves:
+
+- **`check(file, agent_key)`** — the half that works today. `ledger.mjs`'s `PostToolUse` branch
+  already imports it, exactly like `syntax-guard.mjs` and `health-guard.mjs`, so no settings.json
+  change was needed for this half. On every `Edit`/`Write`/`NotebookEdit` under `public/`, it asks
+  whether *this* agent has a recorded hold that has since lapsed — if so, it silently renews it
+  and prints one line saying so; if the agent never held one, or its hold is still genuinely
+  live, it does nothing.
+- **`record(command, agent_key)`** — remembers which `who` an agent took when it runs
+  `node Server/hold.mjs on "<who> — <what>"` in a Bash command, so `check()` above has something
+  to compare against. This half needs a **new** hook registration this repo does not have yet —
+  a `PostToolUse` matcher on the `Bash` tool — which is the owner's file and their call. **Add to
+  `.claude/settings.json`'s `hooks.PostToolUse` array:**
+
+  ```json
+  { "matcher": "Bash", "hooks": [ { "type": "command", "command": "node", "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/hold-guard.mjs"], "timeout": 15 } ] }
+  ```
+
+  Until that line is added, `record()` is simply never called, which is the safe default —
+  `check()` then always finds no record for the writing agent and does nothing, same as an agent
+  that never took a hold at all. The moment the line is added, both halves work together with no
+  other change.
+
+Proof (three real runs against the live `Server/hold.mjs` lock file, `RELOAD_HOLD_TTL_MS=5000` per
+that file's own header): a lapsed hold gets renewed and says so; a write with no hold on record is
+silent; a write while the hold is genuinely still live is silent and the lock file is untouched.
+Full transcript: `public/framework/ai/2026-09-19/hold-guard/`.

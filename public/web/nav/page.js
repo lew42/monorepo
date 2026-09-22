@@ -7,7 +7,7 @@ export default new Page({
 	icon: "explore",
 
 	// Rail order: simplest first, then the two studies. Each declares its own `group`.
-	children: "links bar tabs sidebar drawer crumbs footer wall rail jumps drill",
+	children: "links bar tabs sidebar drawer crumbs footer wall rail jumps drill doc",
 
 	// The rail IS the pattern — previews-as-nav, demonstrating itself.
 	// ⚠ From initialize(), never content(): a child added at render time has no url.
@@ -21,5 +21,7 @@ export default new Page({
 		md("Then two studies. **jumps** is what it costs when each page brings its own layout. **drill** is the one that is still open: nav → content → deeper nav, on one screen.");
 
 		md("The rail beside this text is `initialize(){ this.catalog(); }` — the [rail](/web/nav/rail/) pattern, which is also the last card in it.");
+
+		md("One more card, off the rail's simplest-first order: [Docs](/web/nav/doc/) holds the study behind that stability claim — real screenshots, before/after.");
 	},
 });

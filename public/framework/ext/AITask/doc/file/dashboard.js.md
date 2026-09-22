@@ -89,7 +89,7 @@ built before catalog's mark pass ran would miss it, so `rail()` and
    generalized walk, not a fixed-depth one. *(large, important — only once a
    sub-tier is actually wanted)*
 3. **`json()`'s SPA-fallback guard is a fourth copy** of the same check in
-   `AITask.js`, `feed.js`, `replay.js` — see that file's Improvements #1.
+   `AITask.js`, `conversation.js` — see that file's Improvements #1.
    *(simple, important)*
 4. **`effort_board()` re-walks every task of every day** to show a handful.
    Nothing caches `all_tasks()`, so opening three tags in a row is three full

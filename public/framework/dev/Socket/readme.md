@@ -18,6 +18,8 @@ new App({ socket: Socket.singleton() });   // public/app.js — the one call sit
 - `changed()` leans on `performance.setResourceTimingBufferSize(100000)` in `/app.js` — delete it and a long-lived tab silently stops reloading. [doc/method/changed.md](./doc/method/changed.md)
 - The CSS hot-swap mutates the *existing* `<link>` — replacing the element re-registers its `@layer` names last and inverts every override on the site. [doc/method/changed.md](./doc/method/changed.md)
 - `.jsonl` files stream, never reload — a page that does not call `JSONL.live()` sits stale while the file grows. [doc/wire.md](./doc/wire.md)
+- `hold()` is called BY the server too, like `reload()`/`changed()` — it only stores the holder list and fires a `dev-hold` window event; it never blocks a reload itself (the server simply stops calling `changed()`/`reload()` while held). [doc/method/hold.md](./doc/method/hold.md)
+- `window.$BLOCKRELOAD` never affected `.jsonl` streaming — a real 2026-09-19 bug that LOOKED like it did was `ext/JSONL/live.js` keying its stream registry by whatever url a caller passed (`import.meta.resolve()` returns one WITH an origin; the server's replies never carry one), so the subscribe reply never matched and the reader silently went deaf after one fallback fetch. Fixed in `live.js` and defensively in `Server/plugins/SocketServer/Tail.js`.
 - Editing `public/index.html` reloads nothing — it is a navigation entry, not a resource entry. Hard-reload by hand. [doc/method/changed.md](./doc/method/changed.md)
 
 ## More

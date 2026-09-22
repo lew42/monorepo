@@ -1,16 +1,31 @@
-/* The rail's own look is `core/Sidebar`'s (Rail composes it — page.js); the row and
-   main-column widths are `flex`/`flex-1`/`basis` utilities, nothing bespoke to size
-   here. The one real rule: `+` reads as an ADD action, not another document. */
+/* The row and main-column sizes are `flex`/`flex-1` utilities, nothing bespoke. What is
+   left here is the one line above the workspace: where you are, and the way back.
+
+   ⚠ THE RAIL'S RULES ARE DELETED (2026-09-18). `.panel-playground-new` styled the `+` at
+     the foot of a 22rem document list; that list is a group in Make's tree now
+     (`/imagine/paging/make/`) and this page is a thin wrapper. `page.js` says why. */
 @layer theme {
 
-	/* `.layout-full` pads itself 1.5em for full.js's previews; a shell with a sidebar
-	   wants none — the rail sits on the window edge, like the app's own. (0,3,0) so it
+	/* `.layout-full` pads itself 1.5em for full.js's previews; a shell like this wants
+	   none — the workspace sits on the window edge, like the app's own. (0,3,0) so it
 	   beats layouts.css whatever the load order. */
 	.page.layout-full.panel-playground-page { --page-pad: 0; }
 
-	.panel-playground-new {
-		opacity: 0.75;
-		border-top: 1px dashed color-mix(in srgb, var(--sidebar-ink, #fff) 25%, transparent);
+	/* ONE LINE, and it is chrome: it reads at the small size and gives its pixels back to
+	   the workspace under it, which is the subject. */
+	.panel-playground-head {
+		display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--gap) * 0.5);
+		flex: none;
+		padding: 0.4em 0.7em;
+		font-size: 0.85em;
+		border-block-end: 1px solid var(--line);
 	}
-	.panel-playground-new:hover { opacity: 1; }
+
+	.panel-playground-back {
+		display: inline-flex; align-items: center; gap: 0.2em;
+		color: var(--subtle); text-decoration: none;
+	}
+	.panel-playground-back:is(:hover, :focus-visible) { color: var(--prim-ink); }
+
+	.panel-playground-name { display: inline-flex; align-items: center; gap: 0.25em; font-weight: 600; }
 }

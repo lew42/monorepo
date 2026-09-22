@@ -1,8 +1,24 @@
 Layout only — every look (`surface`, `wash`, `muted`, the tone colors) comes
-from `framework.css`. Covers the log/replay shell, the dashboard's usage
+from `framework.css`. Covers the asks wall, the conversation, the dashboard's usage
 meters and pace gauge, the step checklist and segmented bars, the screenshot
 wall, the compose box, and the card list used by both the day dashboard and
 the index rail.
+
+## The task page is `wide`, and its prose is not
+
+A task page is a wall of ask cards, a conversation with a rail beside it and
+four tables of figures — none of which fit the 602px reading column it used to
+live in at 1280. `.ai-task` claims the `wide` track (890px at 1280, 1419 at
+1920) and one rule caps paragraphs, headings and lists at `--measure`, the same
+shape `core/Page/Page.css` uses for column prose.
+
+⚠ **The measure has to be handed back first.** `ext/tabs` sets
+`.tab-panel { --measure: none }` — a tab's content is meant to fill its panel —
+and this page borrows those classes for its tab bar, so a cap read from the
+token inside a panel resolved to `none` and silently did nothing: paragraphs
+measured 858px at 1280 with the rule matching and the browser reporting
+`max-width: none` (2026-09-17). `.ai-task .tab-panel { --measure: 40em }` is the
+one line that fixes it, scoped so `ext/tabs` keeps its own behaviour elsewhere.
 
 ## The list is a column, and the card spends the width
 
@@ -53,10 +69,13 @@ so the day doesn't render twice.
 
 ## Improvements
 
-1. **`.ai-compose-effort`/`.ai-compose-model`/`.ai-compose-name` each restate
-   `width: auto`** to escape framework.css's default full-width `<select>`.
-   Three near-identical overrides for the same escape — a shared
-   `.ai-inline-field` utility class would say it once. *(simple, useful)*
+1. ~~**`.ai-compose-effort`/`.ai-compose-model`/`.ai-compose-name` each restate
+   `width: auto`**~~ — resolved. `framework.css` gained a real `select.auto {
+   width: auto }` utility (2026-08-28), so the two `<select>`s
+   (`.ai-compose-effort`, `.ai-compose-model`) wear `auto` and need no rule
+   here at all; only `.ai-compose-name`, an `<input>` and so not a `<select>`,
+   still restates `width: auto` on its own line — one override, not three,
+   and the shared class the old note asked for already exists (2026-09-18).
 2. **The file is over 200 lines**, well past the module's own "most files
    under 100" guideline — but it's one `@layer theme` block covering seven
    fairly distinct UI pieces (log, dashboard, checklist, compose, cards, rail,

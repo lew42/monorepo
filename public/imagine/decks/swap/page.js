@@ -21,6 +21,7 @@ export default new Deck({
 	description: "The whole screen swaps per click — the same four slides as Persistent.",
 	icon: "swap_horiz",
 	group: "Head to head",
+	shapes: ["1:s", "1:w"],
 
 	width: "full",
 	index: true,

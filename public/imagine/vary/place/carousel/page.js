@@ -8,7 +8,7 @@ import { Page, div, h4, p, button, md } from "/app.js";
 // KEYBOARD + WHEEL TRAVEL: add and swap get keyboard for free (real <a>/tab
 // links); this is a bespoke widget, so it gets nothing for free. `activated()`
 // / `deactivated()` add and remove ONE keydown listener — same lifecycle shape
-// as imagine/decks/deck.js's `arrows` mixin — so the keys are live only while
+// as layouts/labs/decks/deck.js's `arrows` mixin — so the keys are live only while
 // this page is the one on screen. Wheel travel reads `deltaX` only, never
 // `deltaY`: a carousel that swallows a plain vertical scroll because the mouse
 // happened to be over it is worse than a carousel with no wheel at all.

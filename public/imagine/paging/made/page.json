@@ -1,6 +1,10 @@
 {
 	"title": "Made",
 	"icon": "add_circle_outline",
+	"description": "Every page you made, as files.",
+	"mode": {
+		"navigation": "takeover"
+	},
 	"children": [
 		"notes",
 		"ideas",

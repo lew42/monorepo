@@ -1,0 +1,127 @@
+/* /framework/styles/system/studies/lists/ — six ways to show one group → member → detail list.
+   Reserves the `lists-` prefix (css-scopes.txt is outside this task's write fence — the
+   reservation is recorded in doc/decisions.md instead, per the new-css-class skill's own
+   fallback for exactly that case). Everything below is what framework.css's utilities
+   (flex, v, v-center, split, gap, gap-25, surface, pad, muted, h3, h4) cannot already say:
+   the six columns' fixed `rem` width, the horizontal-scroll-to-stack switch, and each
+   shape's own small mechanism (the flush accordion, the sliding sheet, the split rail). */
+@layer theme {
+
+	/* ── The row and its six columns ──────────────────────────────────────────
+	   `container-type` sits on `.lists-row-host`, ONE LEVEL UP from `.lists-row` — the
+	   query below reads it from `.lists-row` and `.lists-col`, both DESCENDANTS, never
+	   from the container itself (css skill: a box cannot restyle its own container;
+	   measured here — `.lists-row`'s own `flex-direction` rule silently never applied
+	   until the container moved to this wrapper, 2026-09-18). Six columns at 24rem plus
+	   five gaps run wider than the host at every width up to 3440 on purpose —
+	   `overflow-x: auto` is how "side by side, one screen" stays true without shrinking
+	   a single column narrower than a phone. */
+	.lists-row-host { container-type: inline-size; container-name: lists-row; }
+
+	.lists-row {
+		align-items: flex-start;
+		overflow-x: auto;
+		padding-bottom: var(--gap-25);
+	}
+
+	.lists-col { flex: 0 0 24rem; width: 24rem; }
+
+	/* 40em is comfortably inside the outer /imagine/ columns host's own <32em
+	   one-column-at-a-time regime (core/Page/doc/columns.md) — the two switches never
+	   fight over the same width; this one is what "at 400 they stack" means. */
+	@container lists-row (max-width: 40em) {
+		.lists-row { flex-direction: column; overflow-x: visible; }
+		.lists-col { flex: 1 1 auto; width: 100%; }
+	}
+
+	.lists-col-num {
+		display: inline-flex; align-items: center; justify-content: center;
+		width: 1.6em; height: 1.6em; flex: none;
+		border-radius: 50%; background: var(--wash);
+		font-weight: 700; font-size: 0.8em;
+	}
+
+	.lists-col-body { flex: 1; }
+
+	.lists-note { color: var(--ink); }
+	.lists-note-px { font-weight: 700; }
+
+	/* ── A pressable row, shared by every shape but the accordion's own <summary> ── */
+	[role="button"] { cursor: pointer; }
+	[role="button"]:hover { background: var(--wash); }
+	[role="button"]:focus-visible { outline: 2px solid var(--prim); outline-offset: -2px; }
+
+	.lists-member-line { display: flex; align-items: baseline; gap: var(--gap-35); }
+	.lists-member-name { font-weight: 600; }
+	.lists-member-detail { margin: 0; }
+
+	/* The one visual both drag shapes share: where a chip would land. */
+	.lists-drop-over { background: var(--prim); color: var(--prim-ink); }
+
+	/* ── 1 · Rows — indent per level, a hairline between members, no box ────── */
+	.lists-rows-group { padding-block: var(--gap-25) var(--gap-35); }
+	.lists-rows-member { padding: var(--gap-25) 0 var(--gap-25) var(--pad); border-top: 1px solid var(--line); }
+	.lists-rows-group + .lists-rows-member { border-top: none; }
+
+	/* ── 2 · Title bar — a `.surface` bar per group; bigger title (`.h3`) than Rows ── */
+	.lists-bar-list > * + * { margin-top: var(--gap-35); }
+	.lists-bar-row { padding: var(--gap-35) var(--pad); }
+	.lists-bar-title { margin: 0; }
+	.lists-bar-btn { padding: 0.3em; line-height: 1; }
+	.lists-bar-member { padding: var(--gap-25) var(--pad); }
+	.lists-bar-props { padding: 0 var(--pad) var(--gap-35); margin: 0; }
+
+	/* A segmented toggle — same specificity trick `/imagine/team/`'s `.imagine-seg-btn`
+	   uses (three classes deep) to out-rank the theme's own `button` rule, which lives
+	   in `@layer theme` too and would otherwise win on load order alone (css skill §3). */
+	.lists-bar .lists-seg { display: flex; gap: var(--gap-25); padding: 0 var(--pad) var(--gap-25); }
+	.lists-bar .lists-seg .lists-seg-btn {
+		padding: 0.2em 0.6em; font-size: 0.8em; font-weight: 500; text-transform: none;
+		letter-spacing: normal; background: none; border: 1px solid var(--line); border-radius: var(--radius);
+	}
+	.lists-bar .lists-seg .lists-seg-btn.lists-on { background: var(--prim); color: var(--prim-ink); border-color: var(--prim); }
+
+	/* ── 3 · Accordion stack — the exact two rules `ui/accordion/accordion.js` documents,
+	   re-declared under this module's own prefix (ui/ is read-only). Flush: no gap of its
+	   own between items, only the hairline the `+` adds. */
+	.lists-acc { display: flex; flex-direction: column; }
+	.lists-acc-item + .lists-acc-item { border-top: 1px solid var(--line); }
+	.lists-acc-head { padding: var(--gap-35) 0; cursor: pointer; list-style: none; }
+	.lists-acc-head::-webkit-details-marker { display: none; }
+	.lists-acc-body { padding-bottom: var(--gap-25); }
+	.lists-acc-member { padding: var(--gap-25) 0 var(--gap-25) var(--pad); }
+
+	/* ── 4 · Drill-down — a crumb trail, a replaced body ─────────────────────── */
+	.lists-crumbs { padding-bottom: var(--gap-35); flex-wrap: wrap; }
+	.lists-crumb { font-size: 0.8em; }
+	.lists-crumb[role="button"] { color: var(--prim); }
+	.lists-crumb-current { font-weight: 700; color: var(--ink); }
+	.lists-drill-row { padding: var(--gap-35) 0; border-top: 1px solid var(--line); }
+	.lists-drill-row:first-child { border-top: none; }
+
+	/* ── 5 · Inbox rail — a fixed `7rem` rail, the rest of the 24rem column is the view ── */
+	.lists-inbox-rail { flex: 0 0 7rem; min-width: 0; border-right: 1px solid var(--line); padding-right: var(--gap-35); }
+	.lists-inbox-view { flex: 1 1 auto; min-width: 0; }
+	.lists-inbox-rail-row { padding: var(--gap-25) 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.lists-inbox-rail-on { color: var(--prim); }
+	.lists-inbox-rail-on .h4 { color: var(--prim); }
+
+	/* ── 6 · Launcher — a sheet that slides up over the list, which never moves ─────
+	   The host clips and anchors the sheet; the sheet is absolute so the list under it
+	   keeps its own height and scroll position untouched, exactly as it was before the
+	   press. */
+	.lists-launcher-host { position: relative; overflow: hidden; }
+	.lists-launcher-sheet {
+		position: absolute; inset: auto 0 0 0;
+		background: var(--surface); border-top: 1px solid var(--line);
+		border-radius: var(--radius) var(--radius) 0 0;
+		padding: var(--pad); box-shadow: 0 -0.5em 1em rgba(0, 0, 0, 0.12);
+		transform: translateY(100%); transition: transform 0.2s ease;
+	}
+	.lists-launcher-sheet.lists-launcher-open { transform: translateY(0); }
+	.lists-launcher-head { margin-bottom: var(--gap-35); }
+
+	/* ── The notes fold — one click down, closed by default ─────────────────── */
+	.lists-notes { margin-top: var(--flow); }
+	.lists-notes-list p { margin: 0; }
+}

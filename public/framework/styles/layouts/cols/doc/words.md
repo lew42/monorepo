@@ -42,7 +42,7 @@ Both on purpose, and they are the two halves of the same finding.
 
 - **`rem` for a floor.** This site never sets a root font size, so `rem` is 16px at every
   viewport. `em` is `body`'s clamp — 14px at 400, 18px at 3440 — and a threshold written in
-  it moves 28% while the container stands still ([indictment](/framework/styles/layouts/cols/doc/indictment/) §2).
+  it moves 28% while the container stands still ([indictment](indictment.md) §2).
 - **`em` for a rail.** A rail holds type, and type here *is* that clamp, so `--cols-rail: 16em`
   is the same number of characters at 400 as at 3440 (224px → 288px). A floor is a place; a
   rail is a measure.

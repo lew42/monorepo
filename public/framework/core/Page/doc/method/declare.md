@@ -1,6 +1,7 @@
 Turn whatever `children:` was into one Map.
 
-**Usage** — one caller: the constructor (`Page.class.js:10`). `ext/Doc` reads
+**Usage** — two callers: the constructor, with no argument, and `source_children()`
+(`./source_children.md`), with the list a data source answered with. `ext/Doc` reads
 `options.children` with the same splitting rule
 (`framework/ext/Doc/Doc.js:114`) so a declared guide and a generated
 member page join one rail.
@@ -26,6 +27,21 @@ array lands at `…/x/` with no `name:` line. Two entries deriving the same name
 **warn**, on `log_label()`, rather than silently swallowing the earlier one —
 the bug this branch had until 2026-08-15 (`ext/Timeline`'s two-card `overview:`
 rendered one card, no error).
+
+## A function is a data source, and a second call ADDS
+
+`declare(list)` takes the declaration as an **argument**, defaulting to `this.children`.
+Two things follow.
+
+**A function declares nothing now.** `children(){ … }` is stored as `this.child_source` and
+the list is left empty; `source_children()` calls it on the first ask and calls `declare()`
+back with what it answered. That is how a page whose children live in a `page.json` or a
+store gets real children with no code of its own — `../data-children.md`.
+
+**A second call adds rather than replaces.** The Map is only created when there isn't one,
+so children declared by name keep their places and the data ones land after them. A caller
+that really wants to start over — [Make](/imagine/paging/make/) does, on every edit —
+clears `this.children` itself first.
 
 A top-level POJO is `Object.entries()`'d first: the key is the child's
 **title**, `Page.slug(key)` its url segment, and a value that is not a

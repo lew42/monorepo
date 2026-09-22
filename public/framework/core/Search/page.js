@@ -74,7 +74,7 @@ as a way to search.`);
 
 		h2("The chips narrow it");
 
-		md("Under the field is a row of chips per **facet**, and none of them is on: no chip lit means *everything*, which is what \"filters default to all\" is, with no special case to write. Inside a group the chips are **or** — Framework *or* Imagine; between groups they are **and**. **Where** is the section a page lives in, and every page has one. The four groups after it are the [tag vocabulary](/imagine/design/vocabulary/)'s axes, read off a page's own `tags:` prop — no page declares one yet, so those four groups are not drawn. They appear on their own the day pages start carrying tags. [More](/framework/core/Search/doc/filters/).");
+		md("Under the field is a row of chips per **facet**, and none of them is on: no chip lit means *everything*, which is what \"filters default to all\" is, with no special case to write. Inside a group the chips are **or** — Framework *or* Imagine; between groups they are **and**. **Where** is the section a page lives in, and every page has one. The four groups after it are the [tag vocabulary](/framework/styles/system/studies/vocabulary/)'s axes, read off a page's own `tags:` prop — no page declares one yet, so those four groups are not drawn. They appear on their own the day pages start carrying tags. [More](/framework/core/Search/doc/filters/).");
 
 		md.details(import.meta, "readme.md", "Readme");
 	},

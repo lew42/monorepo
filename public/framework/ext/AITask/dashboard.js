@@ -8,6 +8,7 @@ import { fold } from "./message.js";
 import { state } from "./stats.js";
 import { when } from "./card.js";
 import { highlights, more } from "./highlights.js";
+import { needs_all, needs_strip } from "./needs.js";
 
 /* The day dashboard and the ai index rail, over the same rows. A task directory
    speaks through its files: requirements.md alone is PROPOSED, a manifest with
@@ -240,6 +241,11 @@ export function rail(page){
 	return div.c("ai-index-rail flow", async $r => {
 		const [usage, list] = await Promise.all([json("/framework/ai/usage.json"), all_tasks()]);
 		$r.append(() => {
+			// ⚠ ABOVE what is running. A bot can do almost everything here; the few
+			//   things it cannot — a login, a paid account, a deploy — stop a whole
+			//   thread until the owner spends five minutes on them, so they lead the
+			//   page. Silent when there are none, which is the normal state. needs.js.
+			needs_strip(needs_all(list));
 			active_strip(list);
 			usage_rail(usage);
 			highlights(list);

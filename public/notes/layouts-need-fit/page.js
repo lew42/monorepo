@@ -117,16 +117,16 @@ squiggle, a lone "?"), then one wider card below them. And the sentence:
 
 		md(`## What it points at
 
-- [Approved layouts](/imagine/design/layout/approved/) — the closed set of five, each with
+- [Approved layouts](/layouts/doc/studies/approved/) — the closed set of five, each with
   a floor and a ceiling, each proven at 400 / 1000 / 2000 / 3440. "Proper fit", already a
   contract rather than an opinion.
 - [core/Layout](/framework/core/Layout/) — the browsable tree of layouts, filtered and
   paged, with the rules that say what may go inside what.
-- [Layout study](/imagine/design/layout/) — the three page-level shells this site is
+- [Layout study](/layouts/doc/studies/) — the three page-level shells this site is
   actually built from, counted across a 20-page sample at three widths.
 - [The layout library](/framework/ext/DesignTool/library/) — eleven arrangements, each
   measured at four widths, with the don'ts beside them.
-- [Spacing](/imagine/design/spacing/) — the other half of fit: spacing is a ramp × a
+- [Spacing](/framework/styles/system/studies/spacing/) — the other half of fit: spacing is a ramp × a
   level, so a box that grows takes its rhythm with it.`);
 
 		md(`## The sketches, rebuilt

@@ -17,6 +17,7 @@ import "./avatar/avatar.js";
 import "./dialog/dialog.js";
 import "./menu/menu.js";
 import "./accordion/accordion.js";
+import "./decision/decision.js";
 import "./words/words.js";   // the config words — not a component; the same trap applies
 
 // Three functions, because three of the twenty carry a loop. The rest are

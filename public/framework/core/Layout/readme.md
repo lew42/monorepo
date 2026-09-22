@@ -52,7 +52,7 @@ Open [/framework/core/Layout/](/framework/core/Layout/) and click around. One co
 | **`grows`** | **`true` — a stack: content length can never break it. `false` — a bounded box, and then `overflow` is required.** |
 | **`overflow`** | **what happens to content longer than a bounded box: `"scroll"`, `"clip"` or `"truncate"`.** |
 | `wraps` | the track count follows the room, so it gets the 1 · 2 · 3 · 5 · 7 item fixtures |
-| `tags` | facets, from [/imagine/design/vocabulary/](/imagine/design/vocabulary/) |
+| `tags` | facets, from [/framework/styles/system/studies/vocabulary/](/framework/styles/system/studies/vocabulary/) |
 | `slots` | name → fixture kind, derived from `boxes` |
 | `accepts` · `allowed_in` | what may go inside it, and what it may go inside. Both default to `"any"` |
 | `denies` | the deny list. Three rules exist and most layouts use none |

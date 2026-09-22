@@ -1,9 +1,9 @@
 import { div, p, span, button, img } from "/app.js";
-import { Deck, region, quiet, statement, wall, list, notes, stack } from "/imagine/decks/deck.js";
+import { Deck, region, quiet, statement, wall, list, notes, stack } from "/layouts/labs/decks/deck.js";
 import { wire } from "../stream.js";
 import Socket from "/framework/dev/Socket/Socket.js";
 
-/* A PRESENTATION, STREAMED. The deck machinery is /imagine/decks/ — its regions, its five
+/* A PRESENTATION, STREAMED. The deck machinery is /layouts/labs/decks/ — its regions, its five
    content kinds, its screen. The only thing added is where the slide number lives: not in
    the url, in the stream.
 
@@ -17,7 +17,7 @@ import Socket from "/framework/dev/Socket/Socket.js";
      the probe can assert zero navigation events while the deck moves.
 
    ⚠ ONE stored keydown reference, and only the page you are ON may act — both learned in
-     /imagine/screens/deck/ (2026-08-29, deck.js's `arrows`). Restated rather than reused
+     /layouts/labs/screens/deck/ (2026-08-29, deck.js's `arrows`). Restated rather than reused
      because these keys push deltas instead of going to a url.
 
    Container: /imagine/'s column row. Size: `full` — a presentation replaces the row and
@@ -110,8 +110,8 @@ export default new Deck({
 	   after that landed, which drew nothing because nothing reads it any more. Also,
 	   `Deck.preview()`'s thumb path is `base + "thumbs/" + this.name + ".jpg"` where
 	   `base` is `decks/deck.js`'s OWN directory — right for a deck that lives beside
-	   it (`/imagine/decks/<name>/`), a 404 for one that does not (this page 404'd on
-	   `/imagine/decks/thumbs/deck.jpg`, found live in a before-shot's console).
+	   it (`/layouts/labs/decks/<name>/`), a 404 for one that does not (this page 404'd on
+	   `/layouts/labs/decks/thumbs/deck.jpg`, found live in a before-shot's console).
 	   PROPOSED for `decks/deck.js` (not edited here — outside this realm): swap that
 	   for `this.url + "thumbs/" + this.name + ".jpg"` (`this.url` is already this
 	   page's own directory, `Page.class.js`'s `this.meta` derivation) so every deck,

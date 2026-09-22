@@ -61,7 +61,7 @@ And the vocabulary at the foot:
   *are we using this?*": every CSS rule on the site, listed. \`ext/CSSDoc\` reads the live
   CSSOM for the same answer, but ships as a module with no page of its own yet, so this
   is the page that shows the census.
-- [/imagine/design/system/](/imagine/design/system/) — **Base/Theme:** elements, inputs
+- [/framework/styles/system/studies/system/](/framework/styles/system/studies/system/) — **Base/Theme:** elements, inputs
   and fonts, as one system rather than a pile of rules.
 - [/framework/ux/](/framework/ux/) — "\`ui.thing()\` vs \`div.c("ui-thing")\`": the ux tier
   answers it, and the answer is the class name — a word you can find, count and delete.

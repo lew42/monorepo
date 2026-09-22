@@ -27,3 +27,15 @@ CREATE TABLE IF NOT EXISTS likes (
     PRIMARY KEY (user_id, url)
 );
 CREATE INDEX IF NOT EXISTS likes_url ON likes(url);
+
+-- worker/pages.js — a page STORED as a row, not a page NAMED by a like. The rule just
+-- above ("no page table, and there should not be one") is about `likes.url` only: a
+-- like must survive a page rename, so it deliberately keys on the url string and never
+-- on an id from a table like this one. That rule says nothing about where a page's own
+-- content lives — this table does not reference likes, and likes does not reference
+-- this table; the two never touch. Proof: /imagine/cms/d1/, task ai/2026-09-17/pages-in-d1/.
+CREATE TABLE IF NOT EXISTS pages (
+    path    TEXT PRIMARY KEY,
+    json    TEXT NOT NULL,
+    updated INTEGER NOT NULL
+);

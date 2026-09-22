@@ -9,7 +9,7 @@ export default new Page({
 	title: "Styles",
 	description: "Four layers, six type levels, and as little else as possible.",
 	icon: "palette",
-	children: "rules layers elements stacks layouts sections",
+	children: "system rules layers elements stacks layouts sections",
 
 	content(){
 
@@ -17,6 +17,8 @@ export default new Page({
 
 		// what's under here, before what's on here
 		this.previews();
+
+		md("**The design system is one page: [/framework/styles/system/](/framework/styles/system/)** — the seven lengths every space on this site is made of, painted at your window's width, and the class you type to ask for each one. Start there; the rest of this page is the CSS strategy underneath it.");
 
 		demo(() => {
 			div.c("flex gap v-center pad", () => {

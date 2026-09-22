@@ -19,7 +19,7 @@ const here = new URL(".", import.meta.url).pathname;
 export default new Screen({
 	meta: import.meta,
 	title: "Quad",
-	description: "A 2x2 menu that stacks when a quadrant opens.",
+	description: "A 2x2 menu that becomes a one-column rail the moment a quadrant opens beside it.",
 	icon: "grid_view",
 	classes: "screens-minor",
 	shapes: ["q", "1 2.6"],
@@ -35,19 +35,19 @@ export default new Screen({
 
 	children: [
 		{
-			title: "Axis", width: "fill", classes: "screens-column",
+			title: "Axis", width: "fill",
 			content(){ md("**The row divides itself; the height does not.** A hop to the right is a column and costs nothing but a url. A hop downwards has no row to open into, so the screen redraws with one more band — see [Stack](/imagine/screens/stack/). Both are the same page tree; only one of them is free."); },
 		},
 		{
-			title: "Count", width: "fill", classes: "screens-column",
+			title: "Count", width: "fill",
 			content(){ md("**Four is where it stops being useful.** At 1920 a quarter of the row is 480px, which is a rail with a headline in it. Past four the row scrolls instead of shrinking, and scrolling a row of screens is a different experience than dividing one — see [Divide](/imagine/screens/divide/)."); },
 		},
 		{
-			title: "Ratio", width: "fill", classes: "screens-column",
+			title: "Ratio", width: "fill",
 			content(){ md("**A basis is a share.** Columns asking for 61.8% and 38.2% of a row are shrunk in proportion, so those two numbers are the golden section at every width — no grow weights, no media queries. [Uneven](/imagine/screens/uneven/) is three of them."); },
 		},
 		{
-			title: "Swap", width: "fill", classes: "screens-column",
+			title: "Swap", width: "fill",
 			content(){ md("**Two words, and that is the whole space.** A page saying `full` replaces the screen you were on; one saying `fill` joins it and everyone shares. A deck is the first; a split is the second; a cover is the first that changed its mind — [Title Slide](/imagine/screens/title/)."); },
 		},
 	],

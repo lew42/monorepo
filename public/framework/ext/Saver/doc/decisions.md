@@ -89,6 +89,14 @@ ones after it. `LocalStorageSaver.write()` also gained a `try/catch` around
 `setItem` (its one real throw site, `QuotaExceededError`), so the common case
 never even reaches `drain()`'s catch.
 
+*(2026-09-18: that `try/catch` moved — `LocalStorageSaver.write()` now calls
+`Page.Store.write_raw(key, item)` (`core/Page/Page.class.js`), the same
+guarded `setItem` `core/Sidebar`'s own store now shares. The behaviour this
+verdict describes — a handled failure warns once and resolves `false`, never
+throws — did not change; only which file owns the `try` did.
+`ai/2026-09-18/cleanup-2/`, `core/Page/doc/decisions.md`'s own entry has the
+full merge.)*
+
 **A failed `load()`: fold into `null`, or distinguish from absent?** A caller
 that seeds a fresh document whenever `load()` resolves falsy (`ext/Panel`'s
 `workspace()`) cannot tell "the file was never saved" from "the read failed" —

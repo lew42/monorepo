@@ -24,7 +24,7 @@ export default new Page({
 			this.$sidebar = new Sidebar({
 				app: this.app,
 				header: () => this.app.brand(this.title, this.url),
-				pages: this.sections(),
+				root: this,
 			});
 
 			// My children mount HERE, inside my own view, so the nav beside them
@@ -90,27 +90,5 @@ p("Hello world.")`);
 				});
 			});
 		}).ac(this.classes);   // `classes: "hides-nav"` still applies
-	},
-
-	/* One Sidebar entry per child: a flat link, or a titled group if that child has
-	 * children of its own. Everything comes from `nav_for()`, so a label or an icon
-	 * is declared once, beside the page it names. A child declaring `leaf: true`
-	 * stays one link however many children it has — its own page is the way in. */
-	sections(){
-		return [...this.children.keys()].map(name => {
-			const entry = this.nav_for(name);
-			const section = this.children.get(name);
-
-			if (section?.leaf || !section?.children.size)
-				return entry;
-
-			return {
-				title: entry.label,
-				pages: [
-					{ ...entry, label: "Overview" },
-					...[...section.children.keys()].map(child => section.nav_for(child)),
-				],
-			};
-		});
 	},
 });

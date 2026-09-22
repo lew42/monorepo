@@ -1,9 +1,19 @@
+import { span, icon } from "/framework/core/View/View.js";
 import Draggable from "/framework/ext/Draggable/Draggable.js";
 import Sortable from "/framework/ext/Draggable/Sortable.js";
 import Panel from "./Panel.js";
 import { views_of } from "./paint.js";
 
 const EDGE = 0.2;
+
+/* THE THING YOU PICK A PANEL UP BY, and it is the whole of what is left on a panel's top
+   strip. ⚠ The handle is the GRIP alone, never the bar — a bar-wide handle eats every
+   click, which `ux/Tree` then re-learned and recorded for its own rows.
+   ⚠ IT USED TO LIVE IN `toolbar.js`, which is deleted (2026-09-18). A drag handle was
+     never one of the bar's controls; it is this file's, and `workspace.js` now takes it
+     from here. `doc/decisions.md`. */
+export const handle = () => span.c("panel-btn panel-handle", () => { icon("drag_indicator"); })
+	.attr("title", "Drag this panel");
 
 /* A panel is a row you can grab and a box rows land in. ⚠ The handle is the grip
    alone, never the bar — a handle owning the bar swallows every button click. */

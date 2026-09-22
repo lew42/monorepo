@@ -1,13 +1,18 @@
 Renders one transcript line, block by block — text through `md()`, thinking
 folded behind `fold()`, tool calls and results clipped and preformatted,
-images as inline `data:` URIs. Shared by both `feed.js` and `replay.js`, so a
-rendering fix here fixes both viewers at once.
+images as inline `data:` URIs. Used by `conversation.js` for every line that is not
+talk — the contents of a folded tool run.
 
 ## `fold()` is this module's own expando
 
 A clickable bar over a hidden body, toggled by a class rather than the
-native `<details>` element — used for thinking blocks here and for harness
-tag bodies in `prompt.js`. Independent of `AITask.js`'s `<details>` use in
+native `<details>` element — used for thinking blocks here, for harness tag
+bodies in `prompt.js`, for the chat panel on the Session tab and for the day
+timeline on a dashboard.
+
+⚠ **The body is built on its FIRST open, not up front.** A fold's whole job is
+to keep something expensive out of the way, and a hidden subtree is still built,
+still in the DOM and, when the body is a whole nested transcript, still fetched. Independent of `AITask.js`'s `<details>` use in
 `head()`; two different expando mechanisms coexist in the module, each
 reasonable in its own spot (native semantics for a genuinely document-shaped
 disclosure, a styled div for a repeated small toggle inside a dense feed).

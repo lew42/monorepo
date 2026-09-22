@@ -28,4 +28,13 @@ export default new Template({
 
 	family: it,
 	takeaway: it.what,
+
+	/* ⚠ THE PREMISE MOVED, THE PAGE DID NOT. Everything below still describes what
+	     core does today: a column is elastic, it takes a share of the row, and five
+	     width words tune that share. What changed is what to REACH for — the owner,
+	     2026-09-17: N even columns and fixed navigation are the direction, and
+	     continuous Miller columns are not. So this page carries one line at the top
+	     rather than a rewrite, and the line points at the study that measured the
+	     alternative. `Paging.supersedes()`; `../../doc/decisions.md`. */
+	superseded: "Every column on this page takes a SHARE of the row, so opening one moves the columns already open — measured at up to 242px. Even columns that keep their width are the direction now.",
 });

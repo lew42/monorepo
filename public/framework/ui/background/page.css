@@ -1,0 +1,36 @@
+/* This page's own chrome — the live hero, the switcher row, the wall card's box.
+   The ten kinds themselves live in background.js, site-wide; nothing in here is
+   reusable outside this page. Record: readme.md, doc/decisions.md. */
+@layer theme {
+
+	.background-wall-switcher { margin-bottom: var(--gap); }
+
+	/* The height ceiling is a FOLD budget (vh), not a width one — a hero band sized
+	   in vw grows tallest exactly where a page has the least room left over. The
+	   fallback `background` matters for the one kind that doesn't fill its own box
+	   edge to edge (spotlight fades to transparent past its radius). */
+	.background-wall-hero {
+		min-height: clamp(14em, 30vh, 22em);
+		display: flex; flex-direction: column; justify-content: center;
+		padding: var(--pad);
+		background: var(--surface);
+		border-radius: var(--radius);
+	}
+
+	.background-wall-three { margin-top: var(--flow); }
+
+	.background-wall-card {
+		position: relative;
+		min-height: 11em;
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		background: var(--surface);
+		cursor: pointer;
+	}
+	.background-wall-card:hover { border-color: var(--prim); }
+	.background-wall-card .background-content {
+		height: 100%;
+		box-sizing: border-box;
+		padding: var(--pad);
+	}
+}

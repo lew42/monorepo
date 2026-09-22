@@ -1,4 +1,8 @@
 import Socket from "/framework/dev/Socket/Socket.js";
+import { edit } from "./edit.js";
+import { describe } from "./pick.js";
+
+export { pick, context, describe, where, label } from "./pick.js";
 
 const listeners = new Map();
 
@@ -6,7 +10,8 @@ const listeners = new Map();
    for callers in public/ finds none. Same live path as Socket.reload(). */
 Socket.prototype.ask_event = function(e){ listeners.get(e.id)?.(e); };
 
-export function available(){ return !Socket.singleton().disabled; }
+// The one switch every editor control reads — ext/Ask/edit.js's doc/decisions.md.
+export function available(){ return edit(); }
 
 /**
  * One turn of a Claude Code session, from the browser.
@@ -18,8 +23,12 @@ export function available(){ return !Socket.singleton().disabled; }
  * fresh one. `task` is a thread's path under `public/` — `framework/styles/ai/rhythm`
  * beside a page, or `framework/ai/2026-08-14/browser-cli-bridge` — and files the
  * exchange in that thread's log. `on` receives `{text}` / `{tool}` as the turn streams.
- * `context` is text about the page right now — the dev rail sends what is selected —
- * which the server appends to the turn's system prompt.
+ * `context` is what the page is doing right now. A STRING is text about the page —
+ * the dev rail sends what is selected — and the server appends it to the turn's
+ * system prompt. An OBJECT is one picked element, the thing `pick()` resolves to:
+ * the turn's prompt then opens with plain sentences saying what the element is,
+ * which page it is on, and where that page's readme and decisions are, with both
+ * files quoted, so the answer can cite them. See `describe()` in pick.js.
  *
  * The turn is **bound to this tab**: the server tells it this tab's id, and the `site`
  * MCP tools take that id, so a second window on the same page is never touched. It also
@@ -30,14 +39,24 @@ export function available(){ return !Socket.singleton().disabled; }
  *
  *     await ask("What is wrong with this card's layout?", { shot: ".preview-card" });
  *
- * ⚠ Rejects off localhost — there is no dev server to spawn anything. Guard with
+ * ⚠ Rejects off localhost, or with edit mode off in the dev rail. Guard with
  * `available()` and render the fallback; never let a page depend on this.
  */
 export async function ask(prompt, opts = {}){
 	const socket = Socket.singleton();
-	if (socket.disabled) throw new Error("ask(): no dev server — the bridge is localhost only.");
+	if (!edit()) throw new Error("ask(): no dev server, or edit mode is off — the bridge is localhost only.");
 
 	if (typeof opts.shot === "string") opts = { ...opts, shot: { url: location.href, selector: opts.shot } };
+
+	/* A picked element rides in the PROMPT, not in the system line: the server slices
+	   `context` to 800 characters for the system prompt, and a readme is longer than
+	   that. The system line keeps the one-sentence version, so the turn still knows
+	   what is selected on the tab it is bound to. */
+	const about = opts.context?.tag && describe(opts.context);
+	if (about){
+		prompt = about + "\n\n" + prompt;
+		opts = { ...opts, context: `the element ${opts.context.selector}, on ${opts.context.home ?? opts.context.page}` };
+	}
 
 	const id = crypto.randomUUID();
 	if (opts.on) listeners.set(id, opts.on);
@@ -66,7 +85,7 @@ export async function ask(prompt, opts = {}){
  */
 export async function thread(task, opts = {}){
 	const socket = Socket.singleton();
-	if (socket.disabled) throw new Error("thread(): no dev server — the bridge is localhost only.");
+	if (!edit()) throw new Error("thread(): no dev server, or edit mode is off — the bridge is localhost only.");
 
 	const reply = await socket.request({ method: "thread", args: [{ ...opts, task }] });
 	if (reply?.error) throw new Error(reply.error);
@@ -86,7 +105,7 @@ export async function thread(task, opts = {}){
  */
 export async function start(prompt, opts = {}){
 	const socket = Socket.singleton();
-	if (socket.disabled) throw new Error("start(): no dev server — the bridge is localhost only.");
+	if (!edit()) throw new Error("start(): no dev server, or edit mode is off — the bridge is localhost only.");
 
 	const reply = await socket.request({ method: "start", args: [{ ...opts, prompt }] });
 	if (reply?.error) throw new Error(reply.error);

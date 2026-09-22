@@ -23,6 +23,20 @@ that is the whole feature.
 - [/layouts/2-sidebar/](/layouts/2-sidebar/) — one layout: drawn at 400, 1920 and 3440, what it
   becomes on a phone, its tags, and the CSS one click down
 - [/layouts/tag/cards/](/layouts/tag/cards/) — one tag, and every layout that wears it
+- [/layouts/practice/](/layouts/practice/) — **three of these ids built big**: a workbench, a
+  reader and a catalog, each a whole page that spans 3440 and still holds at 400, filled with
+  this site's own content, with the nine design answers behind a fold at the bottom
+- [/layouts/shell/](/layouts/shell/) — **a sidebar that never moves, and a tree of homepage
+  designs**: drag the sidebar to any width, click a row, and the viewport beside it redraws —
+  a base homepage and seven designs under it, each one the design above it with a single thing
+  added, changed or taken away
+- [/layouts/browse/](/layouts/browse/) — **every layout on the whole site**, not just this
+  book's ids: the global page shapes, the section templates, the ui and ux components, each a
+  picture card, each with an Approve and an Improve button whose verdict lands in `verdicts.jsonl`
+- [/layouts/labs/](/layouts/labs/) — **six shape experiments**, moved from `/imagine/` on
+  2026-09-18: an app shell, what a click does to your screen, a horizontal band, a blog at
+  3440, a magazine page, a deck cut into regions — arrangements played with before they earned
+  an id above
 
 Adding a layout is **one object in `layouts.json`** — no page, no CSS.
 [`doc/naming.md`](/layouts/doc/naming/) has the shape and the three questions that decide whether
@@ -67,13 +81,17 @@ your new layout is really a new one.
 - [`doc/wire.md`](/layouts/doc/wire/) — the drawing spec, field by field, for writing one from a
   screenshot — also how `/websites/` draws a real site's own recreation
 - [`doc/decisions.md`](/layouts/doc/decisions/) — what was settled and why, what was measured,
-  what is open, and every `/imagine/layouts/` arrangement mapped onto an id
+  what is open, and how every arrangement the retired `/imagine/layouts/` lab had mapped onto
+  an id here
 - Files: `layouts.json` (the authority — entries, words, branches) · `Layout.js` (the drawer, the
   data helpers, the four shared views — a thumbnail, one width of a drawing, a tag row, a strip
   of chips; `/websites/Site.js` reuses the width-of-a-drawing one for a real site's wire) ·
   `layouts.css` · `page.js` (the tree, and every layout page routed from the file) · `tag/page.js`
   · `doc/`
-- Beside it: [`/imagine/layouts/`](/imagine/layouts/) the numbered lab this standard names ·
-  [`/web/layout/`](/web/layout/) the seven principles · [the five layout
-  words](/framework/styles/doc/layout-system.md) the framework builds pages from ·
-  [`/websites/`](/websites/) the corpus of real sites that cites these ids
+- Beside it: [`/layouts/labs/`](/layouts/labs/) the shape experiments that led here (the
+  numbered lab that used to name them, `/imagine/layouts/`, is gone — this standard's `N-name`
+  ids superseded its `N.name` numbering, 2026-09-18) · [`/layouts/doc/studies/`](/layouts/doc/studies/)
+  the study that closed the approved five, moved from `/imagine/design/layout/` the same day
+  · [`/web/layout/`](/web/layout/) the seven
+  principles · [the five layout words](/framework/styles/doc/layout-system.md) the framework
+  builds pages from · [`/websites/`](/websites/) the corpus of real sites that cites these ids

@@ -57,3 +57,14 @@ Decisions worth a line each:
 links to the section index, which lists every section as a card. So a phone gets
 *"where am I"* from the panel and *"somewhere else"* from the index — the same split a
 drawer would provide, without the drawer.
+
+## 2026-09-18 — resize turns itself off, not the rail
+
+The panel gained a right-edge drag handle and an inner sticky "rail" wrapper this
+task (`doc/decisions.md`). Neither changes anything below 52em, on purpose:
+`.sidebar-grab { display: none }` — nothing to drag when the panel is already the
+width of the screen — and `.sidebar-rail { position: static; max-height: none }`,
+because a SECOND sticky box inside the already-sticky top bar would give the
+absolutely-positioned dropdown menu (`.sidebar.open .sidebar-menu`) the wrong
+containing block to measure `top: 100%` against. Below 52em is still exactly what
+it was: a sticky top bar and a burger, CSS deciding, no resize listener.

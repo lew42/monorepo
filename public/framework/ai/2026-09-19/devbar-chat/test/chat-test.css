@@ -1,0 +1,142 @@
+/* Proof-only copy of what lands, once, at the end of devbar.css's own
+   @layer theme block — see chat.js/log.js/sessions.js's readme note.
+   Kept byte-identical to the block this task appends there, so testing here
+   is testing the real thing. */
+@layer theme {
+
+	/* The chat tab fills whatever height .dev-body gives it (the rail's full
+	   height on desktop, 45dvh on the bottom-sheet at <34em) and becomes the
+	   ONE scroll container — the log scrolls, the picker/composer stay put —
+	   instead of `.dev-body`'s own overflow-y doing it and losing the composer
+	   off the bottom on a long conversation. */
+	.dev-chat { flex: 1 1 auto; min-height: 0; gap: 0.6em; }
+
+	.dev-chat-degrade { padding-block: 0.3em; }
+
+	.dev-chat-back-row { gap: 0.5em; }
+	.dev-chat-linkback {
+		display: flex; align-items: center; gap: 0.3em;
+		padding: 0.15em 0.5em;
+		color: var(--ink);
+		background: var(--wash);
+		border: 1px solid transparent;
+		border-radius: var(--radius);
+		font: inherit; cursor: pointer;
+	}
+	.dev-chat-linkback:hover { color: var(--prim); border-color: var(--prim); }
+
+	/* The session picker — one solid-background dropdown, full width, so it
+	   reads as "which conversation" rather than one more small control. */
+	.dev-chat-picker-row { min-width: 0; }
+	.dev-chat-picker.dropdown-trigger,
+	.dev-chat-picker-row .dropdown-trigger { width: 100%; justify-content: space-between; }
+
+	/* ── the log itself: a scrolling list of compact cards ─────────────── */
+
+	.dev-chat-logbox { flex: 1 1 auto; min-height: 0; gap: 0.4em; }
+
+	.dev-chat-list {
+		flex: 1 1 auto; min-height: 0;
+		gap: 0.35em;
+		overflow-y: auto;
+		scrollbar-width: thin;
+		padding-inline-end: 0.2em;
+	}
+	/* ⚠ `flex-shrink: 0` — without it, a column of many flex items inside a
+	   height-capped ancestor (`.dev-chat-minions`'s `max-height`, or a long
+	   live log filling `.dev-chat-list`) SQUISHES every card down to a sliver
+	   to fit rather than overflowing and letting the ancestor's own
+	   `overflow-y: auto` scroll — the automatic minimum size of a flex item
+	   whose content has `overflow: hidden` is 0, not its content size, so
+	   flexbox happily shrinks it to nothing (measured: 81 real minion cards
+	   collapsed to 0.3px tall each, the text present in the DOM but invisible,
+	   2026-09-19). Every row card in this file needs it. */
+	.dev-chat-card {
+		display: flex; align-items: baseline; gap: 0.6em; width: 100%;
+		flex-shrink: 0;
+		padding: 0.4em 0.6em; margin: 0; min-width: 0;
+		text-align: start; font: inherit; color: inherit; cursor: pointer;
+		background: var(--wash);
+		border: 0; border-radius: 0.35em;
+	}
+	.dev-chat-card:hover { background: color-mix(in srgb, var(--prim) 14%, transparent); }
+	.dev-chat-you { background: color-mix(in srgb, var(--prim) 10%, var(--wash)); }
+	.dev-chat-sent { background: color-mix(in srgb, var(--warn) 16%, var(--wash)); }
+	.dev-chat-card-role { flex: 0 0 auto; font-weight: 600; text-transform: uppercase; font-size: 0.75em; letter-spacing: 0.06em; }
+	/* rem, not em — the rail's own text is 0.8rem, and chat is prose to READ,
+	   not one more diagnostic readout (doc/decisions.md, "no 11px chat"). */
+	.dev-chat-card-text { flex: 1 1 auto; min-width: 0; font-size: 1rem; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.dev-chat-card-time { flex: 0 0 auto; font-variant-numeric: tabular-nums; }
+
+	/* ── the reader: one card, expanded to fill the whole box ───────────── */
+
+	.dev-chat-reader { flex: 1 1 auto; min-height: 0; gap: 0.5em; }
+	.dev-chat-reader-head { gap: 0.6em; }
+	.dev-chat-back {
+		display: flex; align-items: center; gap: 0.25em;
+		padding: 0.15em 0.5em;
+		color: var(--ink);
+		background: var(--wash);
+		border: 1px solid transparent; border-radius: var(--radius);
+		font: inherit; cursor: pointer;
+	}
+	.dev-chat-back:hover { color: var(--prim); border-color: var(--prim); }
+	.dev-chat-reader-body {
+		flex: 1 1 auto; min-height: 0;
+		overflow-y: auto;
+		font-size: 1rem; line-height: 1.5;
+		overflow-wrap: anywhere;
+	}
+
+	/* ── minions ──────────────────────────────────────────────────────── */
+
+	.dev-chat-minions-row { flex: 0 0 auto; }
+	.dev-chat-minions-head { font-size: 0.85em; letter-spacing: 0.06em; padding-block-end: 0.3em; }
+	.dev-chat-minions { gap: 0.3em; max-height: 12em; overflow-y: auto; scrollbar-width: thin; }
+	.dev-chat-minion {
+		display: flex; flex-direction: column; gap: 0.15em; width: 100%;
+		flex-shrink: 0;
+		padding: 0.4em 0.6em; margin: 0; min-width: 0;
+		text-align: start; font: inherit; color: inherit; cursor: pointer;
+		background: var(--wash);
+		border: 0; border-radius: 0.35em;
+	}
+	.dev-chat-minion:hover { background: color-mix(in srgb, var(--prim) 14%, transparent); }
+	.dev-chat-minion-brief { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.dev-chat-minion-report { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+	/* ── the composer ─────────────────────────────────────────────────── */
+
+	.dev-chat-compose { flex: 0 0 auto; gap: 0.35em; padding-block-start: 0.4em; border-block-start: 1px solid var(--line); }
+	.dev-chat-compose-row { align-items: flex-end; gap: 0.5em; }
+	.dev-chat-input {
+		flex: 1 1 auto; min-width: 0; resize: vertical;
+		padding: 0.4em 0.5em;
+		font: inherit; font-size: 1rem; color: var(--ink);
+		background: var(--surface);
+		border: 1px solid var(--line); border-radius: var(--radius);
+	}
+	.dev-chat-send {
+		flex: 0 0 auto;
+		padding: 0.4em 0.9em;
+		border-radius: var(--radius);
+		font: inherit; cursor: pointer;
+	}
+	.dev-chat-compose-note { font-size: 0.85em; }
+
+	/* Below 34em the rail is the bottom sheet (devbar.css's own media query) —
+	   the log gets most of the 45dvh and the minions strip shrinks first,
+	   since the composer and the picker are what makes the tab usable at all. */
+	@media (width < 34em) {
+		.dev-chat-minions { max-height: 6em; }
+	}
+}
+
+/* Hiding, in the UTIL layer — the SAME reason devbar.css's own says.js block
+   does this in its own trailing @layer util (read that one first): these
+   boxes wear the `.flex` word, which lives in util and sets `display: flex`;
+   a `display: none` written in the theme layer above loses to it (layer
+   order beats specificity, and it beats the bare `hidden` attribute too). */
+@layer util {
+	.dev-chat-list[hidden], .dev-chat-reader[hidden] { display: none; }
+}

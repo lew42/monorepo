@@ -1,6 +1,9 @@
-Mounts [`ext/Ask`](/framework/ext/Ask/)'s `chat()` panel, pointed at this
-task's log. `task` is `this.base()` stripped of its leading/trailing
-slashes — the one path shape every Ask RPC takes
+A **fold** around [`composer()`](/framework/ext/AITask/api/composer/), which
+mounts [`ext/Ask`](/framework/ext/Ask/)'s `chat()` panel pointed at this task's
+log. It is folded because open it filled the whole first screen of the Session
+tab, pushing the conversation the tab is for below the fold.
+
+`task` is `this.base()` stripped of its leading/trailing slashes  — the one path shape every Ask RPC takes
 (`Server/plugins/Ask.js`'s `thread_dir()` resolves it under `public/`).
 
 ⚠ **The first message FORKS the task's own session.** A headless turn must

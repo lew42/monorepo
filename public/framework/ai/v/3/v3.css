@@ -1,0 +1,668 @@
+/* AI dashboard v3 - a wall of idea cards, ranked by importance.
+
+   `.v3-board` stays a container (`container-type: inline-size`), so
+   `framework.css`'s own `--pad`/`--gap` tokens resolve their `cqi` part
+   against the board's own width — no second spacing ramp of this file's own.
+
+   CSS AUDIT (2026-09-19, the owner: too much CSS restating what the
+   framework already gives — read it, wear its word, write a rule only for
+   what is left). Plain `display: flex` / `flex-direction: column` /
+   `gap: var(--gap)` / `padding: var(--pad)` are gone from here — the
+   elements wear the framework's own utility classes in the markup
+   (`page.js`: `flex`, `v`, `wrap`, `v-center`, `gap`, `pad`, `grid`)
+   instead. Every tile/inbox/detail card wears `.card` (framework.css,
+   ground + hairline + `--radius` + its own `--pad-card`) rather than a
+   hand-rolled background/border/radius/padding — which is also what let
+   the inbox's old padding stopgap go: `--pad-card` does not carry `--pad`'s
+   narrow-container floor bug. ~30 declarations cut this pass (background/
+   border/radius/padding off every card, display/flex-direction/gap off six
+   other blocks, the inbox padding stopgap and the whole `.v3-inbox-selected`
+   rule deleted outright) — the task log (`ai/2026-09-19/dashboard-next/`)
+   has the count. */
+@layer theme {
+
+	.v3 { container-type: inline-size; }
+
+	/* The head: the title and the picker on one row, the toolbar (view switch
+	   + track-width) sharing it or wrapping to its own — `flex-wrap`, no
+	   breakpoint written down. Display/wrap/align-items are the `flex wrap
+	   v-center` utility classes (page.js); only the two-value gap (row/column
+	   need different amounts here) is this file's own. */
+	/* The board itself no longer carries the `pad` utility class (full bleed,
+	   above) — the head row keeps its own default padding so the title and
+	   toolbar don't sit flush against the sidebar/viewport edge; no
+	   `padding-block-end`, because the wall/split below supplies its own. */
+	.v3-head { gap: 0.25em 1em; padding: var(--pad) var(--pad) 0; }
+	.page .v3-head > h1.v3-title { margin: 0; font-size: 1.5rem; line-height: 1.2; }   /* the same size V1's title has; outranks the theme's h1 */
+	/* The title is a link home (`page.js`), but a heading that turns link-blue
+	   reads as a stray anchor rather than a title — the owner said so of the
+	   detail page's own headings on 2026-09-20. Inherit the ink; say it is
+	   clickable with the cursor and an underline on hover only. */
+	.v3-title > a { color: inherit; text-decoration: none; }
+	.v3-title > a:hover, .v3-title > a:focus-visible { text-decoration: underline; }
+	.v3-head > .dropdown { flex: 0 0 auto; }
+
+	/* WAYS OUT (v3-ways-out, 2026-09-21) — a quiet nav crumb, not a link in
+	   prose, so it opts out of framework.css's own blue-underline link rule
+	   (`css` skill: "every piece of navigation on this site is an anchor
+	   that has already opted out of looking like a link") the same way the
+	   title link just above it does — subtle by default, ink on hover, the
+	   underline carrying the affordance. A control row, not a page region,
+	   so its gap is its own `em` (`css` skill's spacing-word rule), not the
+	   `--gap` token. `flex-wrap` lets the row itself drop to a second line
+	   at narrow widths instead of shrinking a link's own two words onto two
+	   lines — `white-space: nowrap` on the link is the other half of that. */
+	/* HEAD-MOBILE (2026-09-21) — `display: flex; align-items: center` written
+	   here now, not worn as the `flex v-center` utility classes the markup
+	   used to carry (`page.js`'s own note on `ways_out()`) — a utility class
+	   sits in `@layer util`, always later than this `theme` layer, so the
+	   narrow-width `display: none` below (inside `.v3-head:not(.v3-more-open)`)
+	   could never win the fight against it (`css` skill: "the fix is to drop
+	   the utility from the markup, never to fight it in the sheet"). */
+	.v3-ways-out { display: flex; align-items: center; flex-wrap: wrap; gap: 0.3em 0.6em; font-size: 0.875rem; }
+	.v3-ways-out-link { color: var(--subtle); text-decoration: none; font-weight: 600; white-space: nowrap; }
+	.v3-ways-out-link:hover, .v3-ways-out-link:focus-visible { color: var(--ink); text-decoration: underline; }
+
+	/* `flex-wrap` (2026-09-19, `v3-timeline`) — found live at 400px: the view
+	   switch and the card-width slider are two groups that never shrink
+	   below their own min-content, so without this the toolbar's own
+	   min-width silently pushed `.v3-head` past the viewport instead of
+	   wrapping (the same `min-width: auto` overflow trap `dashboard-next`'s
+	   own CSS audit already named once for this file). */
+	.v3-toolbar { flex: 1 1 auto; flex-wrap: wrap; justify-content: flex-end; gap: 0.75em; min-width: 0; }
+	.v3-views { gap: 0.2em; padding: 0.15em; background: var(--wash); border-radius: 0.4em; }
+	.v3-view-btn {
+		padding: 0.2em 0.6em; font: inherit; cursor: pointer;
+		color: var(--subtle); background: none; border: 0; border-radius: 0.3em;
+	}
+	.v3-view-btn.on { color: var(--ink); background: var(--surface); }
+	.v3-view-btn:disabled { cursor: default; opacity: 0.5; }
+
+	/* LIVE (v3-axis-fix, 2026-09-20) — the owner: "it should have a primary
+	   background when on and then like more like a disabled look when off...
+	   right now it does not read as on or off at a glance." Its own class,
+	   not `.v3-view-btn` (the plain view-switch tabs share one quiet
+	   "selected" look on purpose) — Live needs to read as an armed toggle at
+	   a glance. ON reuses the framework's own `.prim` utility (`css` skill:
+	   climb the ladder — `button.prim` in `framework.css` is already the
+	   site's one "primary background, white text" filled button, so this
+	   never re-declares that look); the `on`/`prim` classes are always added
+	   or removed together (`page.js`'s own `paint_live_btn()`). OFF dims
+	   toward the disabled look the owner asked for, without an actual
+	   `disabled` attribute — it has to stay clickable to turn back on. */
+	.v3-live-btn {
+		padding: 0.2em 0.7em; font: inherit; font-weight: 600; cursor: pointer;
+		border: 1px solid var(--line); border-radius: 0.3em;
+		color: var(--subtle); background: var(--wash); opacity: 0.6;
+	}
+	.v3-live-btn.on { opacity: 1; }
+	/* HEAD-MOBILE (2026-09-21) — same reason as `.v3-ways-out` above: this
+	   file owns `display` outright so the narrow-width hide below can win. */
+	.v3-track { display: flex; align-items: center; gap: 0.4em; color: var(--subtle); font-size: 0.875rem; }
+
+	/* HEAD-MOBILE (2026-09-21, `ai/2026-09-21/head-mobile/`) — the "More"
+	   toggle that folds `.v3-ways-out` and `.v3-track` away below 40em (the
+	   `@media` block further down). Hidden above that width — it has nothing
+	   to do there, since both groups already just sit in the row. Quiet, like
+	   `.v3-view-btn`'s own off state, not armed like `.v3-live-btn` — this is
+	   a disclosure, not a mode. */
+	.v3-more-btn {
+		display: none;
+		padding: 0.2em 0.6em; font: inherit; cursor: pointer;
+		color: var(--subtle); background: var(--wash); border: 0; border-radius: 0.3em;
+	}
+
+	/* ── the wall: cards, importance-ordered. A face only — an icon when the
+	   line names one, a short title (never clamped — a card is as tall as
+	   its content), the first sentence, the author, the time. The whole card
+	   is the detail; nothing here needs a click to read past. ── */
+	.v3-wall { display: contents; }   /* .v3-cards (below) or .v3-detail is the real grid/column */
+	/* 22-26em is a real CARD, not a tile — chosen at 1920 (about 6-7 a row)
+	   and checked at 3440 (about 11-12): still reads as a grid, not a wall
+	   of tiny squares. `auto-fill` keeps one lone card at one column's width.
+	   Display/gap are the `grid gap` utility classes; the template and
+	   `align-items` (a card must not stretch to its row's tallest neighbour)
+	   are this wall's own. */
+	.v3-cards { grid-template-columns: repeat(auto-fill, minmax(min(var(--v3-track, 24em), 100%), 1fr)); align-items: start; }
+
+	/* NOW AND GRID GET THE PADDING THE TIMELINE ALWAYS HAD (the owner,
+	   2026-09-21: "the now tab doesn't have any padding. The grid tab doesn't
+	   have any padding. The cards are butting up against the sidebar... The
+	   timeline page does have padding").
+
+	   Why only those two were bare: `.v3-board` deliberately drops the `pad`
+	   utility so the split view can run edge to edge (see the top of this
+	   file), and `.v3-wall` is `display: contents`, so it cannot pad anything
+	   either. The timeline looked fine only because its OWN two columns
+	   (`.v3-inbox`, `.v3-right-col`) each set `padding: var(--pad)`. Now and
+	   Grid render into the same bare wall with nobody supplying it — measured
+	   at 1920: the first card sat at x=0, flush against the sidebar.
+
+	   Padding the two real containers, not `.v3-wall`, keeps the timeline's
+	   full bleed exactly as it is — `.v3-detail-split` is not matched here. */
+	.v3-cards, .v3-now { padding: var(--pad); }
+
+	.v3-sort { padding-block-end: 0.25em; }
+	.v3-sort-note { font-size: 0.875rem; }
+	.v3-sort-toggle {
+		font: inherit; font-size: 0.8125rem; color: var(--prim-ink, var(--prim));
+		background: none; border: 0; cursor: pointer; text-decoration: underline;
+	}
+
+	/* `.card` (framework.css) IS the tile now — ground, hairline, radius,
+	   `--pad-card`, the status edge (`--card-edge`, set inline per card —
+	   `edge_of()`, page.js) and the rhythm BETWEEN its own children
+	   (`:where(.card) > * + *`, framework.css) with no flex of its own. This
+	   only adds the click affordance and the small text roles inside it —
+	   `.v3-tile-head`/`-foot` are their OWN small flex ROWS (an icon beside
+	   nothing, an author beside a time), not the card's own stacking. */
+	.v3-tile { text-align: start; font: inherit; text-decoration: none; cursor: pointer; }
+	.v3-tile:hover { border-color: var(--prim); }
+	.v3-tile-head { gap: 0.5em; }
+	.v3-tile-head > .icon { color: var(--subtle); font-size: 1.3em; }
+	.v3-tile-title { font-weight: 700; line-height: 1.3; }
+	.v3-tile-sentence { color: var(--subtle); line-height: 1.4; }
+	.v3-tile-foot { gap: 0.6em; }
+	.v3-tile-author { color: var(--subtle); font-size: 0.8125rem; text-transform: uppercase; letter-spacing: 0.04em; }
+	.v3-tile-time { color: var(--subtle); font-size: 0.8125rem; margin-inline-start: auto; }
+
+	/* Importance: the top couple of cards span two columns and read bigger —
+	   `weight()` in page.js decides which; this is only the look. */
+	.v3-tile-big { grid-column: span 2; }
+	.v3-tile-big .v3-tile-title { font-size: 1.3em; }
+	/* A meaningful icon reads as more important the bigger it is — the owner:
+	   icons on important cards "way bigger", small ones stay small. */
+	.v3-tile-big .v3-tile-head > .icon { font-size: 2.2em; }
+	@media (width < 30em) { .v3-tile-big { grid-column: span 1; } }   /* one column on a phone — nothing to span */
+
+	/* Colour-coded by status — the LEFT EDGE only, via `.card`'s own
+	   `--card-edge` custom property (framework.css), set inline per card by
+	   `edge_of()` (page.js) — no `.v3-needs-you`/`.v3-working`/`.v3-done`
+	   classes here any more, the card word already reserves the 3px and
+	   reads the colour straight off the element. `.v3-status`/
+	   `.v3-preview-dot` still carry the same three colours where a small
+	   mark IS wanted (the detail head, a child preview row). */
+	.v3-dot, .v3-preview-dot { display: inline-block; width: 0.55em; height: 0.55em; flex: 0 0 auto; border-radius: 50%; background: var(--subtle); }
+	.v3-dot-needs-you, .v3-preview-dot.v3-dot-needs-you { background: var(--prim); }
+	.v3-dot-working, .v3-preview-dot.v3-dot-working { background: var(--warn); }
+	.v3-dot-done, .v3-preview-dot.v3-dot-done { background: var(--ok); }
+
+	/* A card with children — its top three, one line each, the glance the
+	   owner asked a parent card to give without opening it. */
+	.v3-preview { gap: 0.25em; padding-block-start: 0.25em; border-block-start: 1px solid var(--line); }
+	/* ⚠ NOT the `gap` utility class in markup — it lives in `@layer util`,
+	   which beats ANY `@layer theme` rule regardless of specificity, so a
+	   `gap` class here would have silently overridden this 0.4em with
+	   `var(--gap)` (a page-level gap between a status dot and its own
+	   label — measured dead CSS, found during this file's own audit). */
+	.v3-preview-row { gap: 0.4em; font-size: 0.875rem; }
+	.v3-preview-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.v3-preview-more { font-size: 0.8125rem; }
+
+	/* ── the DEFAULT view: an inbox (left) + the selected card's detail
+	   (right), a drag handle between them, 50/50 at load. `page.js`'s own
+	   `master_detail()` sizes the columns in JS (the grip writes `flex-basis`
+	   directly) — this file only draws them. `min-height: 0` on every level
+	   down to the two columns is what lets EACH column scroll on its own
+	   instead of the whole page growing to fit the taller one.
+	   ⚠ `.v3-inbox`/`.v3-right-col` keep their OWN `display: flex` (not the
+	   utility class) on purpose — the <40em media query below toggles
+	   `display: none`/`flex` on them in this SAME layer, and the `flex`
+	   utility lives in a LATER layer that would always win and break the
+	   toggle regardless of the query matching. ─────────────────────────── */
+	.v3-wall:has(.v3-split) { display: flex; flex-direction: column; min-height: 0; }
+	/* FULL BLEED, TWO EVEN COLUMNS (2026-09-19) — the whole board is exactly
+	   the viewport's own height (`100dvh` — this view only, `:has()` scoped,
+	   so the `now`/`grid` views keep their normal page-scroll height); the
+	   grid's two rows are the head (its own natural height) and the split
+	   (everything else, `1fr`) — no `calc(100dvh - <guessed rem>)` to redo
+	   every time the head's own height changes, and no residual gap top or
+	   bottom (measured: both 0px). `.v3-split` itself takes its height from
+	   that row (a grid item stretches to fill its track by default). */
+	/* Item 5's own footer (below) is the third row here — a THIRD grid item,
+	   present always but `[hidden]` outside the timeline view, in which case
+	   it takes no track space and this degrades to the original `auto 1fr`. */
+	.v3-board:has(.v3-split) { height: 100dvh; grid-template-rows: auto 1fr auto; }
+	.v3-split {
+		position: relative; display: flex; min-height: 0;
+		height: 100%;   /* a real, DEFINITE height (not just grid-stretch) — `.v3-inbox`'s own `flex: 0 0 50%` needs one to resolve against */
+		gap: var(--gap);
+	}
+	.v3-inbox, .v3-right-col { min-height: 0; min-width: 0; overflow-y: auto; }
+	/* Each column is its own full-height scroller with the framework's own
+	   DEFAULT section padding (`css` skill: "a page region takes `.pad`") —
+	   tried first, judged by the shot, kept: it reads as two real columns,
+	   not one board cut in half with no room to breathe. `flex: 0 0 50%`
+	   plus `grip`'s own `apply_split()` (below) is what actually keeps them
+	   equal — this is only the starting point before the first drag. */
+	.v3-inbox { flex: 0 0 50%; display: flex; flex-direction: column; padding: var(--pad); }
+	.v3-right-col { flex: 1 1 auto; display: flex; flex-direction: column; gap: 0.5em; padding: var(--pad); }
+	/* No padding of its own — `.v3-detail` inside it is the `.card` now,
+	   and a card is padded by definition. */
+	.v3-right-body { min-height: 0; }
+
+	/* An inbox card is `.v3-tile` (same face the grid uses) plus `.card`
+	   (its ground/padding) — full width, one per row, never gridded.
+	   ⚠ `flex-shrink: 0` — WITHOUT it every card in this flex COLUMN shrinks
+	   to fit whatever height is left, not its own content: measured live,
+	   every inbox card 38px tall while its content wanted 60-110px, titles
+	   and footers spilling onto the next card. The identical bug, the exact
+	   same fix, hit `dev/DevBar/says.js`'s own cards earlier the same day —
+	   see that file's own note before removing this on a future pass. */
+	.v3-inbox-card { width: 100%; flex-shrink: 0; }
+	/* Selected — the owner, watching live, REJECTED `.card.selected`'s own
+	   inset ink ring for V3 too ("no black border; less white fill that
+	   lightens on select"): every v3 card now sits a step off pure white
+	   NORMALLY, and the SELECTED one is the one that goes fully white — its
+	   own status edge (`--card-edge`) is untouched either way, no ring, no
+	   border colour change. Scoped to V3 on purpose — `framework.css`'s
+	   `.card.selected` is not touched here; the owner's words are a note for
+	   whoever revisits it next, not a licence to edit it from this task. */
+	.v3-tile { background: color-mix(in srgb, var(--wash) 35%, var(--surface)); }
+	.v3-tile.selected { background: var(--surface); box-shadow: none; }
+
+	/* The owner's own words, in the inbox — included here (unlike the grid,
+	   which is the importance wall and excludes them on purpose), styled as
+	   theirs: a tinted ground, no author-as-uppercase-label needed since the
+	   tint alone already reads as "not the mastermind". */
+	.v3-tile-owner { background: color-mix(in srgb, var(--prim) 8%, var(--surface)); }
+
+	/* ── THE TIMELINE AXIS (2026-09-19, `ai/2026-09-19/v3-timeline/`) — time
+	   read spatially, in the left column. Both new pieces are PLAIN,
+	   data-driven elements (`page.js`'s own `decor_of()`/`paint_divider()`),
+	   not `ui/background/`'s repeating-pattern layer — "choose the smaller":
+	   a busy ten minutes and an overnight gap need two DIFFERENT margins on
+	   two DIFFERENT rows, which a repeating CSS pattern cannot express, so
+	   the smaller build here is a plain element per real gap, not a second
+	   drawing system. ─────────────────────────────────────────────────── */
+
+	/* live-select, 2026-09-21 — the old sticky strip held the current-hour/
+	   clock line and a "pinned `needs-you`" box; both are gone (the owner:
+	   "that box is sticky, I don't like it, it looks kind of broken — a white
+	   card that says 11am, and I'm guessing it changes to 12am"). What
+	   replaces it: `.v3-axis-hour` (below) already draws an inline hour
+	   divider above the first card of a new hour, newest included, so the
+	   hour is still always readable without a strip of its own; a
+	   `needs-you` card renders BIGGER right in the column (`.v3-tile-big`,
+	   `page.js`'s own `is_big_card()`) instead of living a second time in a
+	   box above it. Pinned to the column's own top (`position: sticky`, not
+	   `fixed` — it only ever needs to stay ahead of its own scroller,
+	   `.v3-inbox`), same as the strip it replaces, but only actually visible
+	   once scrolled (`page.js`'s own `paint_back_top()` toggles `[hidden]`).
+	   `flex: 0 0 auto` — the scrolling-flex-column trap (`code` skill) that
+	   has bitten this page three times already. */
+	.v3-back-top {
+		flex: 0 0 auto; position: sticky; top: 0; z-index: 1; display: flex; align-items: center; gap: 0.5em;
+		width: 100%; margin-inline: calc(var(--pad) * -1); margin-block-start: calc(var(--pad) * -1);
+		padding: 0.5em var(--pad); font: inherit; font-weight: 700; font-size: 0.8125rem; text-align: start; cursor: pointer;
+		color: var(--prim-ink, var(--prim)); background: var(--surface); border: 0; border-block-end: 1px solid var(--line);
+	}
+	.v3-back-top:hover { background: var(--wash); }
+	/* `[hidden]` alone loses to the `display: flex` right above it — any
+	   authored rule beats the browser's own UA style regardless of layer
+	   (`code`#7's own documented trap; this exact miss is what drew the empty
+	   white box under the old strip, `.v3-toast` below carrying the SAME bug
+	   with the `flex` utility class). Named here so it can never happen again
+	   on this element. */
+	.v3-back-top[hidden] { display: none; }
+	/* Fix 3 — the smallest honest version of "does it flash or notify": a
+	   small count, only ever shown alongside the control it belongs to. */
+	.v3-back-top-count {
+		margin-inline-start: auto; padding: 0.05em 0.55em; font-size: 0.75rem; font-weight: 700;
+		color: var(--surface); background: var(--prim); border-radius: 1em;
+	}
+	.v3-axis-list { flex: 1 1 auto; }
+
+	/* FIX 1B, 2026-09-21 — the ORDINARY rail row (the owner: "the cards are
+	   really big... vertical flow is huge... maybe we just want one-liners").
+	   This is `.v3-pinned-row`'s own shape from the strip that just got
+	   deleted, kept because it already WAS the one-liner the owner asked
+	   for — icon, bold title (ellipsis, one line), author, all on one row —
+	   just renamed now that "pinned" is gone and every non-`needs-you`,
+	   non-focus card wears it (`page.js`'s own `is_big_card()`/`row_classes()`
+	   decide which). Deliberately NOT `.card` (no `--pad-card`, no ground) —
+	   a `css` skill "control or row keeps its own em" — so an ordinary card
+	   costs one compact line instead of a full tile, which is most of what
+	   makes the rail scannable now: fewer, lighter rows fit the same
+	   1000px. */
+	.v3-tile-compact {
+		display: flex; align-items: center; gap: 0.4em; width: 100%;
+		padding: 0.3em 0.6em; font: inherit; font-size: 0.8125rem; text-align: start; cursor: pointer;
+		color: inherit; background: var(--wash); border: 0; border-inline-start: 3px solid var(--card-edge, var(--prim)); border-radius: 0.3em;
+	}
+	.v3-tile-compact:hover, .v3-tile-compact:focus-visible { background: color-mix(in srgb, var(--prim) 10%, var(--wash)); }
+	/* Selected — the same "goes to white / a stronger tint" idea `.v3-tile`
+	   below uses, scaled down for a control-weight row: no ring, no border
+	   change, just a stronger tint of the same wash it already sits on. */
+	.v3-tile-compact.selected { background: color-mix(in srgb, var(--prim) 16%, var(--wash)); }
+	.v3-tile-compact > .icon { font-size: 1.1em; color: var(--subtle); flex: 0 0 auto; }
+	.v3-tile-compact .v3-tile-title {
+		font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1 1 auto;
+	}
+	.v3-tile-compact .v3-tile-author { font-size: 0.75rem; flex: 0 0 auto; }
+
+	/* THE USAGE FOOTER (item 5, 2026-09-19) — "one SLIM footer across both
+	   columns": a real grid row of its own (`.v3-board:has(.v3-split)`,
+	   above), but capped short and its meters shrunk down from `usage_rail()`'s
+	   own default full-size look (`ext/AITask/ai.css`'s `.ai-meter` is built
+	   for a roomy sidebar rail, not a footer strip) — the two meters run
+	   side by side instead of stacked, and the track/gap sizes come down a
+	   size so "slim" is actually true, not just a word in a comment. */
+	.v3-footer {
+		flex: 0 0 auto; padding: 0.5em var(--pad); border-block-start: 1px solid var(--line);
+		font-size: 0.8125rem;
+	}
+	.v3-footer .ai-usage { display: flex; flex-wrap: wrap; gap: 1.5em; }
+	.v3-footer .ai-meter { flex: 1 1 14em; gap: 0.1em; }
+	.v3-footer .ai-gauge { padding-top: 0.3em; }
+	.v3-footer .ai-track { height: 0.3em; }
+	/* One card's own row plus its decoration above it — `margin-block-start`
+	   is set INLINE, per row, straight off the real minutes between it and
+	   the row above (`page.js`'s own `sync_inbox()`) — nothing here decides
+	   spacing, this file only draws what that number looks like. */
+	.v3-axis-divider:empty { display: none; }
+	/* An HOUR line — bold, full column width, bled past the column's own
+	   `--pad` on both sides so it visually reads as a rule the WHOLE axis
+	   runs behind, the owner's own words ("running the column's full
+	   width"), even though the card above/below it still keeps its padding. */
+	.v3-axis-hour {
+		margin-inline: calc(var(--pad) * -1); padding: 0.3em var(--pad) 0.2em;
+		font-weight: 700; font-size: 0.8125rem; border-block-start: 2px solid var(--ink);
+	}
+	/* A collapsed BREAK — a big gap (>45 minutes, so a two-hour lull and an
+	   overnight one both read the same way) as one dashed row instead of a
+	   very tall blank margin. */
+	.v3-axis-break {
+		margin-inline: calc(var(--pad) * -1); padding: 0.4em var(--pad);
+		font-size: 0.8125rem; font-style: italic; color: var(--subtle); text-align: center;
+		border-block-start: 1px dashed var(--line);
+	}
+	/* The card's own time, now OUTSIDE it (the owner's own words: "the card
+	   face loses its time") — one small line above the card, not a second
+	   column, per the brief's own "undecided; start outside the card." */
+	.v3-axis-time { display: block; padding-block-start: 0.3em; font-size: 0.75rem; }
+
+	/* RESURFACING (item 6, 2026-09-19) — the brief flash a row gets the
+	   moment it actually MOVES on the axis (`page.js`'s own `flash_resurface()`).
+	   A transition on `background`, so adding/removing one class is the whole
+	   animation — no `@keyframes`, nothing to clean up beyond the class
+	   itself. `--card-edge`-tinted so it reads as "this card", not a generic
+	   yellow flash unrelated to the row it is happening to. */
+	.v3-axis-item { transition: background-color 1.4s ease-out; }
+	.v3-axis-resurfaced { background-color: color-mix(in srgb, var(--card-edge, var(--prim)) 18%, transparent); transition: none; }
+
+	/* `see: "<card-id>"` (item 6) — a one-line preview of another card,
+	   embedded in this one's own detail. A plain link, not `.card`/`.v3-tile`
+	   — it points AWAY from this card, so it reads as a doorway, not a
+	   second face competing with the one already on screen. */
+	.v3-see { gap: 0.4em; padding: 0.4em 0.6em; margin-block-start: 0.5em; background: var(--wash); border-radius: 0.3em; font-size: 0.875rem; text-decoration: none; color: inherit; }
+	.v3-see:hover { color: var(--prim); }
+	.v3-see-title { font-weight: 600; }
+
+	/* Only exists to be pressed below 40em — see the media query, and
+	   `master_detail()`'s own note on why a real Back does not apply here
+	   (selecting is a same-page swap, not a navigation). Its own `display`
+	   for the same reason `.v3-inbox`/`.v3-right-col` keep theirs above. */
+	.v3-mobile-back {
+		display: none; align-self: start; align-items: center; gap: 0.3em;
+		padding: 0.3em 0.7em; font: inherit; cursor: pointer;
+		color: var(--ink); background: var(--wash); border: 0; border-radius: 0.4em;
+	}
+
+	@media (width < 40em) {
+		/* HEAD-MOBILE (2026-09-21, `ai/2026-09-21/head-mobile/`) — the same
+		   phone-width cut already used above for the split view. The brief's
+		   own measurement: `.v3-head` stood 255px tall at 400px wide against
+		   76px at 1920, across eleven controls wrapping into about six lines
+		   — this task's own shell had every measuring tool refused, so that
+		   number is read from the brief, not reproduced here (task.jsonl).
+		   Nothing
+		   is deleted — the two disabled tabs simply do nothing at any width,
+		   so there is nothing on a phone worth a slot for; the ways-out links
+		   and the card-width slider fold behind `.v3-more-btn`
+		   (`set_more()`, page.js) instead of vanishing, and reappear the
+		   instant that button is pressed, still in the exact spot they already
+		   sit in the row — including the two disabled tabs, which fold away
+		   with the rest rather than being deleted from the row outright, even
+		   though nothing is lost by widening back past 40em either way (a
+		   disabled button does nothing at any width). */
+		.v3-more-btn { display: inline-block; }
+		.v3-head:not(.v3-more-open) .v3-ways-out,
+		.v3-head:not(.v3-more-open) .v3-track,
+		.v3-head:not(.v3-more-open) .v3-view-btn:disabled { display: none; }
+
+		/* One pane at a time: the inbox, or the selected card's detail — a
+		   press on any inbox card (`select()`, page.js) adds
+		   `.v3-mobile-detail` to `.v3-split` and swaps which one shows; the
+		   `.v3-mobile-back` button (hidden above this width) clears it. Grip
+		   is pointless with one pane showing — hidden with it. */
+		/* Only ONE pane shows at a time down here — `.v3-inbox`'s own desktop
+		   `flex: 0 0 50%` would otherwise pin it to half height with the other
+		   50% just blank (measured live: the inbox cut off after ~200px with
+		   a large empty band below it, even though `.v3-right-col` was
+		   already `display: none`) — `1 1 auto` lets the one visible pane
+		   take the whole column. */
+		.v3-split { flex-direction: column; }   /* height still comes from `.v3-split`'s own 100% + `.v3-board`'s grid row, full bleed above */
+		.v3-inbox { flex: 1 1 auto; }
+		.v3-right-col, .v3-split .grip { display: none; }
+		.v3-split.v3-mobile-detail .v3-inbox { display: none; }
+		.v3-split.v3-mobile-detail .v3-right-col { display: flex; }
+		.v3-mobile-back { display: flex; }
+	}
+
+	/* ── the detail: one card's whole story, in the wall's own place. It is
+	   `.card` too (page.js) — its own head, heard block, paragraphs, links,
+	   children and history are all DIRECT children, so `.card`'s own rhythm
+	   rule spaces them with no flex column here; a reading measure is the
+	   only thing this file adds. ──────────────────────────────────────── */
+	.v3-detail { max-width: 46em; }
+	.v3-back {
+		align-self: start; gap: 0.3em;
+		padding: 0.3em 0.7em; font: inherit; cursor: pointer;
+		background: var(--wash); border: 0; border-radius: 0.4em;
+	}
+	.v3-back:hover { color: var(--prim); }
+	.v3-detail-head { gap: 0.6em; }
+	.v3-detail-head > .icon { font-size: 1.5em; color: var(--subtle); }
+	.v3-detail-title { flex: 1 1 auto; font-weight: 700; font-size: 1.4em; line-height: 1.25; }
+	.v3-status { flex: 0 0 auto; font-size: 0.8125rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--subtle); }
+	.v3-time { font-size: 0.8125rem; }
+	.v3-links { gap: 0.25em 1em; }
+	.v3-history { border-block-start: 1px solid var(--line); padding-block-start: var(--pad); gap: 0.2em; }
+	.v3-history-head { font-size: 0.8125rem; letter-spacing: 0.04em; }
+	.v3-history-row { font-size: 0.875rem; }
+
+	/* A live example: the code and the thing it draws, from one function in demos.js. */
+	.v3-detail > .demo, .v3-code { margin-top: 0.25em; }
+	/* ⚠ `color` is set on purpose: the theme's `pre` ink is made for a DARK code block and
+	     was near-invisible on this light wash (seen in the first 3440 shot). */
+	/* A card's body is markdown now (`page.js`, `md()`), and marked's own h1/h2
+	   come out bigger than the card's own title - the heading inside the thing
+	   outshouting the thing. Scale them to sit UNDER the title, keep the rhythm,
+	   and let everything else inherit. */
+	/* ⚠ Scoped to `.v3-detail` as well, for SPECIFICITY, not for clarity: a bare
+	   `.v3-detail-text h2` is (0,1,1) and so is `Page.css`'s own
+	   `.page-type-display h2 { font-size: 2em }` - same @layer theme, so the tie
+	   goes to whichever stylesheet loaded last, which is not something this file
+	   should be betting on. Two classes deep settles it. */
+	.v3-detail .v3-detail-text > :first-child { margin-block-start: 0; }
+	.v3-detail .v3-detail-text :is(h1, h2) { font-size: 1.05em; font-weight: 700; }
+	.v3-detail .v3-detail-text :is(h3, h4, h5, h6) { font-size: 1em; font-weight: 700; text-transform: none; letter-spacing: normal; }
+	.v3-detail .v3-detail-text :is(h1, h2, h3, h4, h5, h6) { margin-block: 0.9em 0.3em; line-height: 1.3; }
+	.v3-detail .v3-detail-text :is(ul, ol) { margin-block: 0.4em; padding-inline-start: 1.4em; }
+	.v3-detail .v3-detail-text li + li { margin-block-start: 0.25em; }
+
+	.v3-code { padding: 0.75em 1em; background: var(--wash); color: var(--ink, #222); border-radius: 0.375em; overflow-x: auto; font-size: 0.875rem; }
+
+	/* TWO COLUMNS - the example on the board (`demos.js`'s own `two_columns()`,
+	   a plain `.card` — NOT `.v3-tile`, which is the wall's own face and
+	   carries its own click/hover meaning this demo does not want). Side by
+	   side while each column has 18em of room; one column on a phone. No
+	   breakpoint: the grid decides from its own width. */
+	.v3-two { display: grid; gap: var(--gap); grid-template-columns: repeat(auto-fit, minmax(min(18em, 100%), 1fr)); }
+	.v3-two h3 { margin: 0; }
+
+	/* The board is its own title: the page's big h1 and top padding stand down. */
+	.page:has(> .v3) > .page-title { display: none; }
+	.page:has(> .v3) { padding-block-start: 0; }
+
+	/* FULL BLEED (2026-09-19, `ai/2026-09-19/v3-timeline/`) — the owner's own
+	   words: "the V3 page fills everything right of the site sidebar: zero
+	   page padding." Copied verbatim from `ai/v/2/v2.css`'s own fix for the
+	   identical problem: V3 is mounted as a catalog DETAIL child of
+	   `/framework/ai/`, so by default it inherits the OUTER `ai/` page's own
+	   `--gutter-x`/`--pad-y` (consistent chrome for every other catalog
+	   page — the day pages, the task pages — which this board alone opts out
+	   of). `:has()` re-evaluates with the route, so this only fires while V3
+	   is the mounted leaf. `.v3-board` itself also drops the `pad` utility
+	   class it used to wear (see `page.js`'s own note by that markup) —
+	   between the two, the board now touches the sidebar and the viewport's
+	   top/right/bottom edges; `.v3-head` and the two split columns (below)
+	   are what give the actual CONTENT its own default padding back. */
+	.page:has(> .page-catalog .v3) { --gutter-x: 0px; --pad-y: 0px; }
+	/* ⚠ Measured live (2026-09-19): the rule above alone still left a real
+	   ~40px gap above the board, not "this file's own small padding" the way
+	   `v2.css`'s own note guessed for the identical symptom — `.v3`'s actual
+	   DOM parent is its OWN per-route page shell (`.page.page--3`, a catalog
+	   DETAIL child nested two levels BELOW `.page-catalog`, not a child of
+	   it), and `Page.css`'s own `.page.standard` base rule re-declares
+	   `--gutter-x`/`--pad-y` fresh on every such shell — a custom property
+	   redeclared on a descendant is what that descendant's own children see,
+	   so the OUTER zeroing above never reaches `.v3` at all. This second
+	   rule catches the actual parent directly and is what closes the gap to
+	   0px, confirmed by measurement (`.v3`'s own `getBoundingClientRect().top`). */
+	.page:has(> .v3) { --gutter-x: 0px; --pad-y: 0px; }
+
+	/* ⚠ The LAST 40px, found by measuring `.v3`'s own `getBoundingClientRect()`
+	   after the two rules above still left it non-zero: `ext/AITask/ai.css`
+	   (outside this task's fence — read, never edited) carries its own
+	   `.page-title + * { margin-block-start: var(--flow); }` for the ai/
+	   index-rail layout. `.page-title` is `display: none` here (this file's
+	   own rule, just above the two gutter ones), but a hidden element still
+	   counts as the "next sibling" for `+` — so `.v3` was still getting that
+	   margin pinned to it, unrelated to `--gutter-x`/`--pad-y` entirely. A
+	   class selector beats a bare `*`, regardless of file load order, so this
+	   one rule cancels it without touching `ai.css`. Confirmed by
+	   measurement: `.v3`'s own top now reads 0px. */
+	/* Same ancestor chain as `ai.css`'s own rule, ending in `.v3` instead of a
+	   bare `*` — one more class in the selector than that rule has, so this
+	   wins on real specificity, no `!important` needed either file. */
+	.page-catalog:has(> .ai-index-rail) > .page-catalog-pages > .page > .page-title + .v3 { margin-block-start: 0; }
+
+	/* ── the NOW view: the newest thing the owner said, and what answers it,
+	   live. No clamp anywhere — "nothing here is truncated" is the owner's
+	   own rule for this view. A reading measure only, nothing else: the
+	   stack (`flex v gap`) and its rows already carry their own spacing. ─── */
+	/* `min-width: 0` — `.v3-wall` is `display: contents` (it draws no box of
+	   its own), so `.v3-now` is the REAL grid item `.v3-board` sizes; a grid
+	   item's default `min-width: auto` lets its own content's natural width
+	   (a long, unbroken line of the owner's own mono-font text) push the
+	   column wider than the viewport instead of wrapping — measured
+	   overflowing the right edge at 400px before this. */
+	.v3-now { max-width: 54em; min-width: 0; }
+	.v3-now-card-body { white-space: pre-wrap; line-height: 1.5; }
+	.v3-now-chip { align-self: start; font: inherit; font-weight: 700; color: var(--prim-ink, var(--prim)); background: none; border: 0; cursor: pointer; }
+	.v3-now-caret { display: inline-block; margin-inline-start: 0.05em; color: var(--prim); animation: v3-now-caret 1s step-start infinite; }
+	@keyframes v3-now-caret { 50% { opacity: 0; } }
+
+	/* FRONT-DOOR-TODAY (2026-09-21) — the stale-thread notice above the heard
+	   card, same `.card` ground everything else on this board uses, its own
+	   `--card-edge` (framework.css) set to the warn colour so it reads the
+	   same "pay attention" way a `needs-you` card's own edge does. Hidden by
+	   the native `[hidden]` default — nothing here carries a `flex` utility
+	   class on the OUTER box, so nothing in `@layer util` can out-rank it. */
+	.v3-now-stale { --card-edge: var(--warn); margin-block-end: var(--gap); }
+	.v3-now-stale-text { flex: 1 1 auto; }
+	.v3-now-stale-btn { flex: none; }
+
+	/* The owner's own words, verbatim — a transcription look (a quote rule,
+	   mono type, the mic icon). Reused twice: the Now view's own heard card,
+	   above, AND `detail()`'s "you said: …" block once an answer has merged
+	   an owner card out of its own inbox row (`master_detail()`'s
+	   `by_recency()`, page.js). */
+	/* `min-width: 0` — a flex item (this is one, inside `.v3-now`'s own
+	   `flex v` column) ALSO defaults to `min-width: auto`, on top of the
+	   grid-item version of the same default `.v3-now` itself just worked
+	   around: a long line of the owner's own mono text pushed this box
+	   wider than its column and off the right edge at 400px, wrapping not
+	   at all, until this was added. */
+	.v3-heard { min-width: 0; border-inline-start: 3px solid var(--prim); padding-inline-start: 0.75em; }
+	.v3-heard-text { font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, monospace); white-space: pre-wrap; }
+
+	/* ── INBOX ZERO (2026-09-19, `ai/2026-09-19/inbox-zero/`) — the head
+	   row's always-visible "N left"/"N approved" and the Approve/Improve
+	   block at the foot of a card's own detail. Plain buttons throughout —
+	   the theme already styles every `button` (padding, weight, colour) —
+	   so this only adds the small state line and the divider above it. A
+	   CONTROL keeps its own `em` here (`css` skill: `--pad`/`--pad-card`
+	   are for a page region or a framed box, never a row like this one). ── */
+	.v3-count { gap: 0.6em; font-size: 0.875rem; color: var(--subtle); }
+	.v3-count-left { font-weight: 700; color: var(--ink); }
+	.v3-count-toggle {
+		font: inherit; font-size: 0.8125rem; color: var(--prim-ink, var(--prim));
+		background: none; border: 0; cursor: pointer; text-decoration: underline; padding: 0;
+	}
+	/* SPACING (approve-loop, 2026-09-20) — the owner: "not enough vertical
+	   spacing on a lot of things... just add the default padding and default
+	   gap." Measured cause on this exact block: a hardcoded `margin-block-
+	   start: 1em` here was OVERRIDING `.card`'s own default rhythm rule
+	   (`:where(.card) > * + * { margin-block-start: var(--gap) }`,
+	   framework.css) that every OTHER child of `.v3-detail` already gets for
+	   free — so this section alone sat closer to the text above it than the
+	   rest of the card's own children sit to each other (16px measured here
+	   at 1920, against 20–27px everywhere else in the same card). Removed —
+	   `.card`'s own default now applies here too, the same "default gap" the
+	   owner asked for, with nothing new to maintain. Only the divider's own
+	   padding (between the line and this section's own content) stays,
+	   swapped from a hardcoded `1em` to the same `--gap` for the same reason. */
+	.v3-verdict { padding-block-start: var(--gap); border-block-start: 1px solid var(--line); }
+	.v3-verdict-state { display: inline-flex; align-items: center; gap: 0.3em; }
+	.v3-verdict-note { display: block; margin-block-start: 0.35em; }
+	/* "Say what the button will do, before it is pressed" (approve-loop,
+	   2026-09-20, item 4 in the owner's own words: "wasn't really clear what
+	   would happen if I click it") — one plain sentence sat above the
+	   Approve/Improve row, the same visual weight as `ineligible_reason()`'s
+	   own sentence just below this rule's own use. */
+	.v3-verdict-hint { display: block; margin-block-end: 0.4em; }
+
+	/* PROMPT CARDS (item 4, 2026-09-19) — `.v3-ask`/`.v3-ask-options` are
+	   `ask.js`'s own classes (copied verbatim from `card-replies`, which
+	   already proved they need no CSS of their own beyond the theme's plain
+	   button/`.card` rules); this block only gives the whole thing the same
+	   "a new section of the card" spacing `.v3-verdict` uses right above it —
+	   see that rule's own note (approve-loop, 2026-09-20) for why the margin
+	   is gone and the padding reads `--gap` now, not a hardcoded `1em`. */
+	.v3-ask-block { padding-block-start: var(--gap); border-block-start: 1px solid var(--line); }
+	.v3-ask, .v3-ask-options { display: flex; flex-wrap: wrap; gap: 0.5em; }
+
+	/* THE VERDICT TOAST (approve-loop, 2026-09-20) — "the card leaves the
+	   list, which is easy to read as it vanished... make the result visible
+	   and the undo obvious" (the owner's own words). Lives in the rail's own
+	   fixed head (`page.js`'s `$toast`, a sibling of `$back_top`), so it
+	   survives `advance()` moving the reader on to the next card — the exact
+	   moment the confirmation has to still be readable.
+	   `.card` gives it ground/border/padding for free; this only adds the row
+	   layout and the auto-dismiss fade. `flex: 0 0 auto` for the same reason
+	   every other child of this scrolling flex column needs it (`css` skill:
+	   the scrolling-flex-column trap already bit this file three times). */
+	.v3-toast { flex: 0 0 auto; margin-block-start: 0.5em; }
+	/* THE EMPTY WHITE BOX (live-select, 2026-09-21) — `.v3-toast` wears the
+	   `flex` utility class so its rows lay out right once it HAS content, but
+	   that same `display: flex` also beats the browser's own
+	   `[hidden] { display: none }` the moment `page.js` sets `el.hidden = true`
+	   (`code`#7's own documented trap: any authored rule, in any layer, beats
+	   a UA-origin one). The result, measured live before this fix: a ~30px
+	   `.card` with padding and nothing in it, sitting right under where the
+	   old sticky strip used to be — the exact "looks kind of broken" bug the
+	   owner flagged without knowing why. */
+	/* ⚠ STILL DRAWN after that fix, measured live: `.flex` lives in `@layer util`,
+	   and `util` beats `theme` no matter the specificity — so `.v3-toast[hidden]`
+	   HERE could never win against the `flex` class in the markup. The diagnosis
+	   above was right and the fix was in the wrong layer. The real fix is to stop
+	   wearing the utility class at all (`page.js` now builds the toast without
+	   `flex v-center gap`) and own the display here, where `[hidden]` can beat it. */
+	.v3-toast:not([hidden]) { display: flex; align-items: center; gap: var(--gap-50, 0.5em); }
+	.v3-toast[hidden] { display: none; }
+	.v3-toast-msg { flex: 1 1 auto; font-size: 0.875rem; }
+	.v3-toast-undo { font: inherit; font-weight: 700; color: var(--prim-ink, var(--prim)); background: none; border: 0; cursor: pointer; text-decoration: underline; }
+}

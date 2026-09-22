@@ -212,10 +212,15 @@ for the browser store, and the line under the list changes on the same repaint.
 *"Chaining cycle detected for promise"* from the microtask queue unless it keeps core's own
 `levels <= this.loaded` guard: core returns `this` **unchanged** in that case without touching
 `this.loading`, so the second call reads back the very promise being assigned and
-`p.then(() => p)` is a cycle. `make/page.js` now carries the guard.
-[`cms/json/page.js`](/imagine/cms/json/) has the same override **without** it and throws the same
-error today — the fix is that four-line block, and it belongs in that file too. Not applied here:
-it is another realm, outside this task's fence.
+`p.then(() => p)` is a cycle. `make/page.js` carried the guard by hand; `cms/json/page.js` had
+the same override **without** it and threw the same error.
+
+**2026-09-17: both hand-written overrides are gone.** The guard — and the one-load-then-memoise
+logic it was protecting — moved into core itself as
+[`source_children()`](/framework/core/Page/doc/data-children/): a page with data-backed children
+now writes `children(){ return …a promise…; }` and core awaits it once, guard included, for
+every caller. Neither `make/page.js` nor `cms/json/page.js` writes `child()` or
+`load_all_children()` any more.
 
 ⚠ **A missing file answers `200` with `index.html`.** The SPA fallback means `res.ok` is not
 "the file is there" — every fetch of a `page.json` checks the content-type, the guard

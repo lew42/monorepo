@@ -42,7 +42,7 @@ front links straight to it:
   3-column card) · `stone/` `depictions/` `disclosure/` `theories/` (the four topics, each its
   own `page.js` + `log.jsonl`)
 - What this stands on: [`ext/Research`](/framework/ext/Research/readme.md) (the schema, the
-  aggregator, the shared card renderers) · [the 3-column card's other user,
-  `/imagine/layouts/`](/imagine/layouts/readme.md) (same shape, borrowed CSS mechanism) ·
+  aggregator, the shared card renderers) · the 3-column card's other user,
+  `/imagine/layouts/` (deleted 2026-09-18; same shape, borrowed CSS mechanism) ·
   [the approved five](/imagine/design/layout/approved/) — this page is a column inside
   approved-layout #3 (columns row), not a layout of its own

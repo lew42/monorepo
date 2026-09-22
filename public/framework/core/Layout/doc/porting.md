@@ -6,7 +6,7 @@ source wrote for it.
 
 | n | source | what the port was |
 |---|---|---|
-| **18** | [`/imagine/layouts/system.js`](/imagine/layouts/) `ENTRIES` | already data. `n` → `columns`, `rules` → `decl`, `word` kept, `boxes` gained a `kind`. Added `widths`, `fallback`, `grows`, `tags`. |
+| **18** | `/imagine/layouts/system.js` `ENTRIES` (that realm was deleted 2026-09-18; [`/layouts/`](/layouts/) is where it pointed) | already data. `n` → `columns`, `rules` → `decl`, `word` kept, `boxes` gained a `kind`. Added `widths`, `fallback`, `grows`, `tags`. |
 | **11** | [`ext/DesignTool/library/patterns.js`](/framework/ext/DesignTool/library/) | `build()`'s container style became `decl` and its children became `boxes`; `short` became `intro`, `caption` became `note`, `see` kept. These eleven arrive with measurements at four widths already taken. |
 | **1** | [`styles/layouts/masonry`](/framework/styles/layouts/masonry/) | the one shape neither of the other two says: CSS columns, three words, no JavaScript. |
 

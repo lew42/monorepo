@@ -1,6 +1,7 @@
 import { div, span, a } from "../../core/View/View.js";
 import { Page } from "../../core/Page/Page.class.js";
 import { dur, progress, quiet, spend, state } from "./stats.js";
+import { reply } from "../Ask/reply.js";
 
 /* One task, as a row — who | what | figures, at one type size: hierarchy is
    weight and muted color, never a second size. A running task also gets its
@@ -35,14 +36,25 @@ const tag = t => t.m?.group &&
 
 /** The pill row of a manifest's own deliverable links — one function, called
     from the card AND the task page (AITask.js's `links()`), so the two never drift. */
-export const links_row = m => m?.links?.length && div.c("ai-links flex gap wrap", () =>
-	m.links.forEach(l => a.c("ai-link", l.label ?? l.url).href(route(l.url))));
+export const links_row = m => m?.links?.length && div.c("ai-links flex wrap", () =>
+	m.links.forEach(l => a.c("ai-link", l.label ?? l.url).href(route(l.url, m))));
 
-/* A deliverable `.md` inside a task dir is a page since 2026-08-18 (`Page.child()`'s
-   file fallback): `…/<date>/<slug>/audit.md` renders at `…/<date>/<slug>/audit/`, on
-   click and on reload, because every segment above it is already a page (the day, the
-   task). Only that shape — a deeper `.md` has no page above it and would 404. */
-const route = url => String(url ?? "").replace(/^(\/framework\/ai\/\d{4}-\d{2}-\d{2}\/[\w-]+\/[\w-]+)\.md(?=$|#)/, "$1/");
+/** Is this url a place a browser can go, or a path relative to something? */
+export const web_url = url => /^([a-z]+:|[/#])/i.test(String(url ?? ""));
+
+/* A relative link a task logged — a screenshot it shot, a file it wrote — is
+   relative to ITS OWN directory, never to whatever page is drawing it. The
+   manifest knows where it lives (`TaskJSONL.url`), so resolve it there: the Asks
+   tab draws one task's links inside ANOTHER task's page, and without this they
+   404 (40 relative links across the archive, measured 2026-09-17).
+   And a deliverable `.md` inside a task dir is a page since 2026-08-18
+   (`Page.child()`'s file fallback): `…/<date>/<slug>/audit.md` renders at
+   `…/<date>/<slug>/audit/`, on click and on reload, because every segment above
+   it is already a page (the day, the task). Only that shape — a deeper `.md` has
+   no page above it and would 404. */
+const dir = m => String(m?.url ?? "").replace(/[^/]*$/, "");
+const route = (url, m) => (web_url(url) ? String(url ?? "") : dir(m) + url)
+	.replace(/^(\/framework\/ai\/\d{4}-\d{2}-\d{2}\/[\w-]+\/[\w-]+)\.md(?=$|#)/, "$1/");
 
 // [value, label] pairs, so the figures column aligns instead of cramming a dotted line.
 const figures = m => {
@@ -114,6 +126,14 @@ export const manifest_card = t => div.c("ai-card surface", () => {
 		figures(t.m).forEach(([value, label]) => div(() => { span(value); span.c("muted", " " + label); }));
 		if (t.m?.model) div.c("muted", short_model(t.m.model));
 	});
+
+	/* Reply to this task from the board, without opening it — `ext/Ask`'s
+	   `reply()`. ⚠ Only when the manifest came from a `task.jsonl`: `m.url` is
+	   where the reply is filed, and a legacy `session.json` snapshot has no url
+	   and nothing that reads `chat` lines back. The control spans the card
+	   because the card is a three-track grid and a reply belongs under all of it. */
+	if (t.m?.url) reply({ m: t.m, about: { kind: "task", id: t.name,
+		summary: first(t.m) || t.brief, status: state(t.m) } });
 });
 
 // The bridge: a declared child whose OWN preview() is overridden draws its own row.

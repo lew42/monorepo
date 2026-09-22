@@ -233,7 +233,7 @@ toolbar chip, a dropdown, a url and a doc all read the same lists.
 ## The realm is an app, not a directory of pages
 
 **Decided:** `/imagine/paging/` mounts in `app.$pages` as its own screen (the same line
-`/imagine/shells/Shell.js` uses), draws a persistent left rail, and hands its middle to
+`/layouts/labs/shells/Shell.js` uses), draws a persistent left rail, and hands its middle to
 `this.$pages`. Core's `container()` walks up for the nearest `$pages`, so **every page in
 the realm mounts in that middle with no page knowing anything about it.**
 
@@ -276,7 +276,7 @@ renderer and no second vocabulary.
   `blocks.js` `NAVIGATION` is the one that survived.
 - surfaces — three copies (`words.js`, `build/words.js`, `imagine/layouts/system.js`) plus
   a fourth translation in `families.js`. One list now, read by **both** colour controls.
-- arrangement — five vocabularies. `/imagine/layouts/` owns the numbered layouts and each
+- arrangement — five vocabularies. `/layouts/` owns the numbered layouts and each
   arrangement value names the number it compiles to rather than restating it.
 
 **Deleted:** `explorer/` (55 lines of prose about a thing that did not exist), `center/`
@@ -423,7 +423,7 @@ children carrying their mechanism icons; core's rail below would say all of it a
 ## Rejected
 
 - **A `takeover` mode / shell / fixed positioning.** It is one width word. Anything more
-  would break the crumb strip, the `×` and every url, which is the trade `/imagine/screens/`
+  would break the crumb strip, the `×` and every url, which is the trade `/layouts/labs/screens/`
   already measured and refused.
 - **Urls for `expand` and `swap`.** See [`mechanisms.md`](/imagine/paging/doc/mechanisms.md) — a state of one
   page is not a place. If it deserves a link it deserves a column.
@@ -842,7 +842,7 @@ its sentence says. Two findings that are **not** this realm's:
 
 - `/imagine/paging/readme/` logs a `404` for `readme/page.js` before falling back to the
   markdown. **Every** `readme/` route on the site does — `/framework/ext/tabs/readme/`,
-  `/imagine/mag/readme/` — so it is core's probe order, and a proposal rather than a fix here.
+  `/layouts/labs/mag/readme/` — so it is core's probe order, and a proposal rather than a fix here.
 - `/framework/core/Page/generator/` lands with its `default` child open beside it, which is
   core's arrangement working, not a wrong link.
 
@@ -1398,3 +1398,155 @@ scales that em — so `.size-small` on any container takes every control inside 
 puts it inside the height. One class on `.paging-toolbar-slot` (`paging.js`, and the same word on
 Build's own slot): the bar's seven dropdowns and two buttons went **36.09px → 27.06px at 1280**
 and **43.19px → 32.39px at 3440**. The bar is chrome over a demo, not the subject.
+
+---
+
+# 2026-09-17 — the bar shows the page's own word, and the hub is one screen
+
+The owner, that evening: *"neither the panel nor playground system did a great job
+manipulating the elements in a simple intuitive way. The number of controls in the toolbar
+became way too many. Maybe we put everything in the right sidebar, and only have a selection
+scheme?"* Every page under `/imagine/paging/` was pressed headless at 400, 1280, 1920 and
+3440 (`/framework/ai/2026-09-17/paging-fix/`). Nothing was broken — no console errors, no
+404s, no horizontal overflow, nothing persisted — so what follows is about what a stranger
+sees, not about what runs.
+
+## `bar_axes` — a page says which words its bar shows
+
+Every page in this realm that put a stage on screen showed **all seven dropdowns**, plus Code
+and More: nine controls, and ten on the twelve library pages. Including `/room/`, whose own
+sentence reads *"Change the **room** dropdown"* — so the reader's first job on a page about
+one word was to find that word among nine controls.
+
+A page may now declare `bar_axes`, a list of axis names, and `toolbar.js` `shows()` filters
+the groups to it. Nothing is deleted: `More` opens the same drawer with every word in it, and
+it counts what is behind it out loud — **"6 more words"**.
+
+- `block.js` derives it in `initialize()`, so `/room/` is one dropdown, `/skin/` is three,
+  `/room/wide/` keeps its own word (a value page has no list of its own to draw, and the
+  dropdown is how you reach the next value), and **`/stage/` has none at all** — which is
+  what its own heading, *Why this block has no control*, already said.
+- The four mechanism pages and `/navigation/` say `navigation`; a mechanism **is** a value of
+  that word.
+- The hub, the twelve library pages and `/cross/` keep all seven. Those are the pages where
+  playing with every word is the point.
+
+⚠ **`Template` was showing a control that did nothing.** A family page's box is drawn by the
+family through the stage's `draw:` seam, so the CONTENT word cannot reach it: measured at
+1280 on `/templates/columns/`, switching content from Article to Card wall left the stage's
+text byte-identical, while navigation, room, arrangement and the three skin words all changed
+it. It was in the bar of all twelve family pages. They carry the three skin words now, which
+is exactly what their own sentence promises.
+
+⚠ **And the default had to go in `initialize()`, not a class field.** A class field
+initializes after `super()` returns, and `Page`'s constructor runs `assign() → naming() →
+declare() → initialize()` inside that `super()` — so a field would silently overwrite a
+`bar_axes` a page passed in. The `classes = "x"` trap, in its other direction.
+
+## The hub is six pictures and one sentence
+
+The front page opened on the nine-control bar over one running page, and the six building
+blocks the whole realm is organized around appeared only as rail text and as one markdown
+line 3,100px down. A stranger had no answer above the fold to *what is paging*.
+
+It opens on **six live miniatures**, one per block, each configured so that block's own word
+is the visible thing — Navigation gets a left rail, Content a dashboard, Room the narrow box,
+Arrangement a toolbar, Skin the dark surface. Then one sentence, which is the way in
+(*Make a page*). The playable stage stays, one heading down, with all seven words.
+
+Cards on the hub before: **16** (twelve presets, four gestures) and **none** for the blocks.
+After: **six**, all blocks. Neither wall was deleted:
+
+- the **twelve preset miniatures moved to [Library](/imagine/paging/library/)**, the page
+  whose whole job is the twelve, which had been drawing them as twelve text cards;
+- the **four gesture miniatures moved to [Mechanisms](/imagine/paging/mechanisms/)**, which
+  had been opening on an article-shaped stage — the same first screen as five other pages —
+  with its four mechanisms 1,000px down as text.
+
+⚠ **The Room card is two columns wide, and it has to be.** The shot frame is 366px and the
+narrow value's cap works out at 384px, so in a one-column card the width word could not show
+itself: the Room card drew a box filling its frame, the picture every other word draws. Two
+columns give it ~750px, the box stops dead at 384px, and the gutter is the lesson.
+
+⚠ **`grid-column: span 2` does NOT clamp on a one-column grid — it forces a second track.**
+At 400 the wall's tracks read `266px + 120.938px`, the Room card came out 401px inside a
+344px wall, and the realm's middle scrolled sideways (429 against a 400 client). The span is
+behind a container query on the wall (`min-width: 40em`); the query is on the wall and styles
+its child, because a container cannot restyle itself.
+
+## The caption at rest says only what it alone knows
+
+`Stage.caption()` at rest read *"Click a page name, or change a word in the bar above. This
+line will say what changed."* — the same sentence on twenty-odd pages, 20px above each page's
+own sentence, which says the same thing and names the actual word. It reads **"This line
+measures the box after every change."** now. The page's `lede()` keeps the instruction.
+
+## `build/page.js` is deleted; the url is a row in `MOVED`
+
+The builder became Make's right pane on 2026-09-13 and `/imagine/paging/build/` was left as a
+whole page — a heading, three paragraphs and a button — whose only job was to say so. The
+links were counted first: one live link (`make/readme.md`), the rest prose mentions. It is a
+row in the hub's `MOVED` table now, so the url still answers with one sentence and a link.
+**The directory stays**: `build/words.js` (the node vocabulary), `build/draw.js` (the one
+block renderer) and `build.css` are live code that `make/`, `config.js` and `stage.js` import.
+
+## A premise can be superseded without a rewrite
+
+The owner, the same day: N even columns and fixed navigation are the direction; continuous
+Miller columns are not. `/imagine/paging/templates/columns/` still describes what core does —
+a column is elastic and takes a share of the row — but no longer what to reach for. It
+carries **one line at the top** rather than a rewrite: *Superseded 2026-09-17 by even
+columns*, with a link to the study that measured the alternative
+([design/navigation](/web/nav/doc/study/)). `Paging.supersedes()` is the seam and
+`.paging-superseded` is the marker, so the next page that needs one is one field away.
+
+## Two small ones
+
+- `/imagine/paging/navigation/doc/` was titled **Docs** — so is `/imagine/paging/doc/`, in
+  the same rail. It is **Measurements** now; the directory keeps its name because six live
+  links point at `navigation/doc/measurements/`.
+- The colour swatch was looked at again and left alone. It carries a hairline at
+  `--fill-a32`, a different edge per surface and a hover title naming the value; a white
+  swatch that looks white is the honest picture of `card`. With `bar_axes` the two swatches
+  now appear only on Skin's own pages and the pages that keep all seven words.
+
+---
+
+# 2026-09-18, the spacing ladder — 20 of paging.css's 100 raw numbers became a token
+
+`paging.css` carried 131 of the site's 1,894 hand-typed spacing numbers, 1.7× the next-worst
+file (the census: [`ai/2026-09-17/spacing-census/`](/framework/ai/2026-09-17/spacing-census/)).
+The design system's ladder ([`/framework/styles/system/`](/framework/styles/system/)) says a
+spacing value is a token or a rung, never a raw number, except a control's own padding, which
+stays `em`. Every one of the 131 rows was reclassified by hand; **20 raw numbers became a rung
+or a token** (`--gap-70`/`-50`/`-35`/`-25`/`--gap`), and **75 stayed `em`**, each with a
+one-line `/* control */` note saying why. Combined with the 10 that were already tokens, the
+file is now 30 token/rung, 75 control-em, 21 zero and 5 raw (two keywords, a 1px hairline
+overlap, and two `clamp()`s already shaped like a token but deliberately sized differently on
+purpose — the hub's own content margin and the full-screen takeover padding).
+
+**Most of the 100 raw rows did NOT convert, and that is the finding, not a shortfall.** The
+first pass converted 40 of them; proving it with a stylesheet-swap pixel diff (the method
+`ext/AITask/ai.css` used the night before) found real problems in three shapes, each fixed by
+reverting to the control's own `em` rather than by inventing a new rule:
+
+1. **The nav rail's own gaps were already measured to a fold budget** — the file's own comment
+   says so ("the gaps came in, and the tiles are two-up sooner") — and a rung's `cqi` growth,
+   repeated ~40 times down a long list, compounds a fraction of a pixel per row into a visible
+   sag by the bottom. `.paging-app-rail`, `.paging-sec`, `.paging-grid` went back to `em`.
+2. **A `.paging-stage` is reused at other scales** — `.paging-shot-frame > .paging-stage`
+   shows a live page at `font-size: 0.6em` for a thumbnail — and a rung, unlike `em`, does not
+   reliably follow a local font-size change the same way once its own `cqi` term is in play.
+   Everything a stage's canvas can hold (`.paging-canvas`, `.paging-slot`, `.paging-pane`,
+   `.paging-rows`, `.paging-nest*`, `.paging-expand*`, `.paging-content-url`) went back to `em`.
+3. **A handful of gaps simply grow too much at 3440** to stay under a 3% pixel budget once
+   they sit inside something repeated several times on one page — the card-wall grid
+   (`.paging-wall`), the live-miniature wrapper (`.paging-shot`), the toolbar-to-stage gap
+   (`.paging-frame`), and the swap mechanism's own demo stage (`.paging-swapper*`,
+   `.paging-face`). All four went back to `em`.
+
+**Proof, on a private server (`PORT=8134`), the same stylesheet-swap method as `ai.css`:** the
+paging hub, `templates/blog/`, `mechanisms/swap/` and `make/`, each at 1280 and 3440 — **0.000%
+of pixels differ, on every one of the eight shots**, zero console errors. The census's own
+before/after table for this file, and the reasoning behind each of the 131 rows, is logged in
+[`ai/2026-09-18/paging-ladder/task.jsonl`](/framework/ai/2026-09-18/paging-ladder/).

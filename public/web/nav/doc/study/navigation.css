@@ -1,0 +1,190 @@
+/* /web/nav/doc/study/ — does the navigation stay still when a column opens?
+
+   Classes: `.dn-*` (design / navigation). The prefix is NOT yet in
+   framework/styles/css-scopes.txt — that file is outside this task's write fence, so
+   the line to add is written out in doc/decisions.md instead.
+
+   ONE rule here was the deliverable, and it is the middle row of three:
+     .dn-stable   a columns row whose open columns stop paying for the new one.
+   The THIRD row is core's shipped answer and has no rule here at all — it wears
+   `.page-columns-even` and is sized by `Page.even_columns()`. All this file gives
+   it is one number, `--page-column-recommended`, because a 66rem demo box would
+   otherwise fit exactly one 40em column. Everything else is the page's furniture.
+
+   The demo rows are built from core's OWN column classes — `.page.columns`,
+   `.page-columns-row`, `.page-column-body`, `.page-column-head`, `.page-column-item`
+   — so all three rows get exactly the cascade a real columns page gets, and the
+   only difference between them is one class each. */
+
+@layer theme {
+
+	/* ══ THE PAIR ═══════════════════════════════════════════════════════════
+	   Side by side once there is room for a 58em box, stacked below that. THREE
+	   things now: today, the proposal, and the mode that shipped.
+
+	   ⚠ `rem`, not `em`. This box inherits `.page-column-prose`'s `0.9em`, so an `em`
+	     threshold here would be 90% of the number it reads as, while the demo inside
+	     is pinned to `1rem` (below) — the two would be measuring in different units
+	     and the pair went side by side 90px too early.
+	   ⚠ 58rem is not a taste number. Each row has to hold core's own rail (14em) plus
+	     core's own reading column (40em) without the row already scrolling on
+	     arrival, and the two together are 54em before any gutter. Below that the pair
+	     stacks and each row gets a whole line instead — the layout skill's own rule,
+	     a small box never gets large content. At 1280 and 1920 the rows are stacked;
+	     at 3440, the width the complaint is about, they are side by side.
+
+	   ⚠ The track has a CEILING as well as a floor, and it is the SAME 66rem the demo
+	     needs (below). Both bounds used to sit in different places — the track grew to
+	     1fr while the demo stopped at 66rem — so every row left a strip of its own track
+	     empty: 182px at 1280, 801px at 1920 (measured 2026-09-17). One bound, in one
+	     place: past 66rem the lab holds its width and stops, the way a measure does.
+	   ⚠ Raising that ceiling to 90rem was tried and REVERTED the same hour. It made the
+	     rows wider and the slide gentler, and it cost the demo its subject: at a 1,440px
+	     row the "today" side moved a nav link 26px and a width 36px instead of the
+	     129px and 225px the real site produces at 1280. A demo that has to understate
+	     the defect to look tidy is not a demo. */
+	.dn-lab {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(58rem, 100%), 66rem));
+		gap: var(--gap);
+		justify-content: start;
+		align-items: start;
+	}
+
+	/* ⚠ `font-size: 1rem`, and it is the difference between a demo and a toy. The
+	   surrounding `.page-column-prose` is `0.9em`, and EVERY column width in core is
+	   an em — `clamp(14em, 16cqi, 24em)`, `clamp(40em, 42cqi, 46em)`. Inherited, the
+	   demo's columns would be 90% of a real page's and none of the numbers here would
+	   be the numbers out there. */
+	/* ⚠ A CEILING ON THE DEMO, and it is the demo's whole honesty — it lives on the
+	   track above, and the demo simply fills the track. Today's row only has to take
+	   width off a column when the row is FULL: give it 1874px and two reading columns
+	   both sit at their own 40em ceiling with room to spare, so pressing the button
+	   changes nothing and the "today" side appears to prove the opposite of what the
+	   site measures. 66rem is a real browser window — wide enough for a rail and one
+	   reading column, too narrow for two. (Which is the site's own finding said again:
+	   the reflow is worst around 1280, the width most readers have.) It is also the
+	   widest thing on this page; the prose beside it is capped at 40em. */
+	.dn-demo {
+		font-size: 1rem;
+		display: flex; flex-direction: column;
+		border: 1px solid var(--line); border-radius: var(--radius);
+		overflow: hidden;
+		background: var(--surface);
+	}
+
+	.dn-demo-name {
+		display: flex; align-items: center; gap: 0.35em;
+		padding: 0.35em 0.7em;
+		font-size: 0.8em; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+		color: var(--subtle);
+		background: var(--wash);
+		border-block-end: 1px solid var(--line);
+	}
+	.dn-today .dn-demo-name .icon { color: var(--warn); }
+	.dn-steady .dn-demo-name .icon { color: var(--ok); }
+	.dn-even .dn-demo-name .icon { color: var(--ok); }
+
+	/* ══ THE THIRD ROW — core's `even` mode, and one number of our own ══
+	   There is no rule for the mode here and there must not be one: the row wears
+	   core's own `.page-columns-even` (lab.js) and core's `Page.even_columns()`
+	   does its arithmetic. This ONE declaration is the demo's own tuning.
+
+	   Why it is needed: the mode fits `floor(row / recommended)` columns, and a
+	   real page recommends `clamp(40em, 42cqi, 46em)` — 640px at this box's pinned
+	   1rem. This box is 66rem (1056px) wide, so the default would fit exactly ONE
+	   column and the row would have nothing to demonstrate. 20em fits three, which
+	   is what the reader needs to see. The Finder at page width runs the default:
+	   N = 1 at 1280, 2 at 1920, 3 at 3440 (core/Page `doc/columns.md` has the table).
+	   ⚠ On the HOST, not the body. Core declares this token nowhere — it is read
+	     off `max-width` — so it simply inherits down into the row, and a declaration
+	     on the body would be the one thing that could out-rank an author. */
+	.dn-even .page.columns { --page-column-recommended: 20em; }
+
+	/* The columns host needs a height of its own: `.page.columns` asks for `height:
+	   100%`, and a percentage height inside an auto-height parent computes to `auto`,
+	   which would leave the row as tall as its tallest column. (0,3,0) so it beats
+	   `.page.columns` (0,2,0) whichever sheet loads second. */
+	.dn-demo > .page.columns { height: 18em; }
+
+	/* ══ THE RULE — a column that is open stops paying for the next one ══════
+	   Today every column is `flex: 1 1 0`: it grows and shrinks, so its width is a
+	   function of HOW MANY columns are open. Open one more and every other column
+	   gets narrower, its text rewraps, and the nav links inside it move down the
+	   page. That is the whole defect.
+
+	   The fix is one declaration. `flex: 0 0 <its own width>` makes a column's width
+	   a function of ITSELF: the same number `max-width` already caps it at. A column
+	   that is open cannot be made narrower by a column opening to its right, so
+	   nothing inside it rewraps and nothing moves. When the columns stop fitting the
+	   row scrolls sideways — the Finder way — instead of squeezing what is open.
+
+	   ⚠ `fill`, `full` and `hug` are exempt. `fill` and `full` exist to take the
+	     leftover (and `fill` already yields to an open child, Page.css 2026-09-05);
+	     `hug` is `0 0 auto` already, so it is stable without being touched.
+	   ⚠ `small` is in the list but nothing changes for it: Page.css already gives it
+	     `flex: 0 0 <w>`, which is exactly why a rail is the one column on this site
+	     that never moved. The rule generalises what `small` already does.
+	   ⚠ It sets a TOKEN, not `flex` — `.page.columns .page-column-body` reads
+	     `flex: var(--page-column-flex, 1 1 0)`, so there is no specificity war with
+	     core and a dragged column (`--page-column-flex: 0 0 <px>`) still wins. */
+	.dn-stable .page.columns .page-column-body:not(.page-column-fill, .page-column-full, .page-column-hug) {
+		--page-column-flex: 0 0 var(--page-column-max, clamp(40em, 42cqi, 46em));
+	}
+
+	/* The second half of "persistent navigation": once the row scrolls, a rail that
+	   scrolls away with it is not persistent. A `small` column sticks to the left
+	   edge of the row and the reading columns slide under it. It is opaque already
+	   (`:where(.page-column-body) { background: var(--wash) }`), so nothing shows
+	   through; `z-index` puts it over the sticky column HEADS, which sit at 1. */
+	/* ⚠ NOT ON A PHONE. Under 32em of row core pages one column at a time, every
+	     column 100% wide — a rail stuck to the left edge there would sit ON TOP of
+	     the column you just opened. The same container the paging rule uses, so the
+	     two can never disagree. */
+	/* ⚠ THE SHADOW IS NOT DECORATION. A pinned rail covers the left edge of the
+	     column sliding under it, and the words are then cut mid-letter against a flat
+	     hairline — which reads as a rendering bug, not as a panel on top. One soft
+	     edge and the same picture reads as "the column continues underneath".
+	   ⚠ It was too faint to do that job. `-0.35em` of spread ate almost all of a 0.6em
+	     blur, so at 1920 the covered column's words ended against what looked like a
+	     plain edge and a reader read the stable row — the row that is supposed to prove
+	     nothing moved — as the broken one (measured 2026-09-17). A real panel edge is a
+	     hairline plus a gradient you can see: 0.9em of blur, no spread eating it. */
+	@container page-columns (width >= 32em) {
+		.dn-stable .page.columns .page-column-small {
+			position: sticky; inset-inline-start: 0; z-index: 2;
+			box-shadow: 1px 0 0 var(--line), 0.55em 0 0.9em -0.1em var(--shade-a32);
+		}
+	}
+
+	/* ══ THE READOUT — the two numbers, measured on the click ════════════════ */
+	.dn-read {
+		display: flex; flex-wrap: wrap; gap: 0 var(--gap);
+		padding: 0.6em 0.8em;
+		border-block-start: 1px solid var(--line);
+	}
+
+	/* ⚠ The min-width belongs to the PAIR, not to the number. On the number it opened a
+	     63px hole between "129px" and "nav moved" while the gap BETWEEN the two pairs was
+	     15px, so the eye grouped a number with the wrong label (measured 2026-09-17). The
+	     pair still reserves its width, so a number that grows a digit moves nothing. */
+	.dn-num { display: flex; align-items: baseline; gap: 0.4em; min-width: 10em; }
+	.dn-px { font-weight: 700; font-variant-numeric: tabular-nums; font-size: 1.15em; }
+	.dn-what { font-size: 0.88em; color: var(--subtle); }
+	/* ⚠ `--ok` / `--warn` from framework.css, never `--prim-ink`: the lew42 accent IS
+	   an orange, so "0px" and "129px" painted in it read as the same state. The two
+	   numbers are the whole point of the page; they have to differ at a glance. */
+	.dn-zero .dn-px { color: var(--ok); }
+	.dn-moved .dn-px { color: var(--warn); }
+	/* N is neither good nor bad — it is a fact about the room — so it is neither
+	   green nor amber, and the reader's eye stays on the two that are a verdict. */
+	.dn-count .dn-px { color: var(--ink); }
+
+	/* ⚠ A measure, like every other run of prose on the site. Without one it ran 655px
+	     at 1920 against its own 544px (40em at 0.85em) — a caption is still text. */
+	.dn-say { flex: 1 1 18em; max-width: 40em; margin: 0; font-size: 0.85em; color: var(--subtle); }
+
+	/* ══ THE BUTTON — one button, both rows ═════════════════════════════════ */
+	.dn-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6em; }
+	.dn-hint { margin: 0; font-size: 0.9em; color: var(--subtle); }
+}

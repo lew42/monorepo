@@ -27,6 +27,8 @@ real database. Step by step, with what you should see at each:
 2. [Research](./research/) — nine questions, each dug to a verdict with how sure anyone is.
 3. [Decisions](./decisions/) and [MVP](./mvp/) — the hard-to-reverse calls, and the ten-step
    slice that spends them. [MVP](./mvp/)'s "Running" section is the picture of it working.
+4. [Workflows](./workflows/) — every sign-up and sign-in flow as a demo app you click through,
+   with a live click count to "logged in" on each card.
 
 ## Watch out
 

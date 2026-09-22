@@ -61,12 +61,12 @@ Then the homepage, drawn as four tiles in a row, the first two captioned: **FLY*
 - [core/App](/framework/core/App/) — \`app.use(…)\`, answered. \`App\` is composed, not
   subclassed: features are passed in, and the site's own \`app.js\` is the one place that
   says which.
-- [/imagine/sections/](/imagine/sections/) — "CONTENT IS SECTIONS", built as a realm: a
+- [/layouts/labs/sections/](/layouts/labs/sections/) — "CONTENT IS SECTIONS", built as a realm: a
   page is a stack of sections, and a section is the unit you copy.
 - [/framework/](/framework/) — the framework's own front door, which is the "starter repo"
   question answered by showing rather than publishing: the site *is* the example.
 - [/imagine/game/](/imagine/game/) — the **GAME** tile on the homepage, built.
-- [/imagine/blogx/](/imagine/blogx/) — the **Blog**, built, including the Cloudflare
+- [/layouts/labs/blogx/](/layouts/labs/blogx/) — the **Blog**, built, including the Cloudflare
   deployment path the last line asks about.
 - [/imagine/stream/](/imagine/stream/) — **STREAM WORKFLOW**, built.`);
 

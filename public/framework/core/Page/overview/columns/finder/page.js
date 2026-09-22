@@ -11,9 +11,12 @@ export default new Page({
 	icon: "view_column",
 	width: "small",
 
-	initialize(){ this.columns(); },
+	// `even` — every open column the same width, and how many fit is computed from the
+	// row (doc/columns.md). The four `uses/*` screens next door stay on the elastic
+	// mode, so the two are one click apart.
+	initialize(){ this.columns({ even: true }); },
 
-	content(){ md('The whole tree is one screen. Pick a row. **Notes** is a `hug` rail — only as wide as its longest row; **Guides › Words › Fill** spends everything left over. Drag any seam to resize a column, double-click it to put the word back.'); },
+	content(){ md('The whole tree is one screen, and every column in it is the **same width**. How many fit is the room\'s answer, not the page\'s: `N = floor(row / recommended)`. So opening a column moves nothing that is already on screen — its slot was already there — and the only thing that changes a width is changing the size of the window. Drag a seam to overrule one column for this visit; double-click it to put the even width back.'); },
 
 	children: {
 		Guides: {
@@ -21,10 +24,10 @@ export default new Page({
 			width: "small",
 			content(){ md("Its children are the rows; the open one is lit."); },
 			children: {
-				Start(){ md("A page with no children is just its prose — the row stops here. No `width:` word, so this column is the default: a floor, and 40em to grow into."); },
+				Start(){ md("A page with no children is just its prose — the row stops here. No `width:` word, so this column is the default: 40em of reading width, and it keeps it whatever opens beside it."); },
 				Words: {
 					width: "small",
-					content(){ md("The six width words, one column each. Drag any seam between two columns to override the word for this visit; double-click it to put the word back."); },
+					content(){ md("The six width words, one column each. **This Finder runs `even` columns, so five of the six are standing down right here** — every column in the row is the same width whatever word it says. Each description below is the word with the mode OFF, which is how the [demo box](/framework/core/Page/overview/columns/) and the four [uses](/framework/core/Page/overview/columns/uses/) next door still run. `full` is the exception and still works: it is the one word that means *claim the host*, not a width."); },
 					children: {
 						Small(){ md('`width: "small"` — a rail: 14em, growing with the row to 24em at 3440. Lists, pickers, an index.'); },
 						Hug: { width: "hug", content(){ md('`width: "hug"` — only what the content needs. A paragraph has no natural width, so hug gives prose a 24em note; a list of rows is what it is for — **Notes**, in the first column, is one.'); } },

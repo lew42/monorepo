@@ -118,11 +118,62 @@ const run = async () => {
 	if (event === "posttooluse" && input.tool_name === "Skill") {
 		const task = cached_task(input.agent_id, input.session_id) || (input.agent_id ? null : find_task(input.session_id, true));
 		if (task && input.tool_input?.skill) append(task, { log: { at: now(), msg: `skill: ${input.tool_input.skill}` } });
+		// The marker prompt-relay.mjs (the UserPromptSubmit hook) checks to know a session is "the assistant".
+		try { if (["assistant", "every-prompt"].includes(input.tool_input?.skill)) fs.writeFileSync(path.join(os.tmpdir(), `claude-assistant-${String(input.session_id).replace(/[^\w-]/g, "_")}`), ""); } catch {}
+		return;
+	}
+
+	/* A Bash call is not a write, so it never reaches the write path below — but it is
+	   the ONLY place the repo can see "who just took a reload hold", because
+	   `node Server/hold.mjs on …` is a plain command. hold-guard's `check()` half has
+	   always been armed (via the write path); this is its `record()` half, and without
+	   it `check()` finds no record for any agent and correctly does nothing forever.
+	   Wired here rather than in a second hook file so arming it is ONE settings matcher
+	   (`Bash` → this same script), not a new entry point. Harmless until that matcher
+	   exists: with no `Bash` matcher in settings.json this branch simply never runs. */
+	if (event === "posttooluse" && input.tool_name === "Bash") {
+		try {
+			const cmd = input.tool_input?.command;
+			if (cmd) (await import("./hold-guard.mjs")).record(cmd, input.agent_id || input.session_id);
+		} catch {}
 		return;
 	}
 
 	if (event === "posttooluse") {
 		const file = input.tool_input?.file_path || input.tool_input?.notebook_path;
+		const agent = input.agent_id || input.session_id;
+
+		/* THE THREE ALARMS — syntax-guard (a `.js` write that no longer parses),
+		   health-guard (a write that parses but broke a page), hold-guard (a write
+		   going out under a reload hold this agent let lapse). Each runs inside its
+		   own try so a fault in a guard can never stop the ledger.
+
+		   ⚠ That catch was EMPTY until 2026-09-21, which made a guard that THREW
+		   indistinguishable from a guard that passed — and agents reason from the
+		   silence: a minion the same day wrote that "the syntax-guard hook ran on
+		   every Edit/Write and none was blocked, which is the only partial proof" it
+		   had that its file was sound. A silent catch produces that same absence.
+		   So the protection stays and the silence goes: a throw becomes a finding in
+		   the day's health log, which the watcher and the health page already read.
+		   The report is itself wrapped — a logger that can break the ledger would be
+		   the very bug being fixed, one level up. */
+		const guard = async (name, run) => {
+			try { await run(); }
+			catch (e) {
+				try {
+					const day = path.join(root, "public", "framework", "ai", "health", now().slice(0, 10) + ".jsonl");
+					fs.mkdirSync(path.dirname(day), { recursive: true });
+					fs.appendFileSync(day, JSON.stringify({ warning: {
+						at: now(), url: "(hook)", kind: "guard-threw",
+						text: name + " threw and was swallowed: " + (e && e.message ? e.message : String(e)),
+						file, files: file ? [file] : [],
+					} }) + "\n");
+				} catch {}
+			}
+		};
+		await guard("syntax-guard", async () => (await import("./syntax-guard.mjs")).default(file));
+		await guard("health-guard", async () => (await import("./health-guard.mjs")).default(file, agent));
+		await guard("hold-guard",   async () => (await import("./hold-guard.mjs")).default(file, agent));
 		const r = file && rel(file);
 		if (!r) return;
 		const by_path = find_task_by_path(file);
@@ -134,7 +185,11 @@ const run = async () => {
 		if (skip.has(path.basename(r))) return;
 		// A subagent with no pin yet gets NO guess: every subagent shares the parent's
 		// session_id, so `find_task(session)` is a sibling's live task as often as not.
-		const task = by_path || cached_task(input.agent_id, input.session_id) || (input.agent_id ? null : find_task(input.session_id, true));
+		// A requirements.md with no task.jsonl beside it is a task not born yet (the mastermind
+		// writes the brief before the minion opens its ledger) — never guess an owner for it; five
+		// briefs landed in siblings' logs on 2026-09-17 before this line.
+		const unborn = path.basename(r) === "requirements.md" && !by_path;
+		const task = by_path || cached_task(input.agent_id, input.session_id) || (input.agent_id || unborn ? null : find_task(input.session_id, true));
 		if (!task) return;
 		if (lines(task).some(e => e.action?.files?.includes(r))) return; // first touch only
 		append(task, { action: { at: now(), did: "edit", files: [r] } });

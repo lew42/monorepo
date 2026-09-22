@@ -32,3 +32,17 @@ after every reply.
 There is no second fork. Once `chat_session_id` exists, nothing in this
 module ever forks again for that task — a chat thread is exactly one
 transcript, growing by `resume`, for as long as the task exists.
+
+## The one considered exception — `reply()` (2026-09-18)
+
+A **reply thread** (`reply.js`) does not fork. It starts a fresh session on its
+first message and resumes that from then on, so the rule above still holds for
+the half that matters — a human's transcript is never shared — while the thread
+under an item remembers only its own conversation.
+
+The reason is a number: forking a mastermind session that had been running all
+day cost **$0.18** and came back with *"Prompt is too long"*. A reply's prompt
+already carries the whole item, so the fork was buying context it did not need at
+a price that rose all day until it stopped working. `fork: true` opts back in, and
+recovers by starting fresh when the inherited session turns out to be too big:
+[reply](/framework/ext/Ask/doc/reply/).

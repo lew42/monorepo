@@ -27,8 +27,9 @@ classified.** The two numbers agree, and the sorter is
 `ai/2026-09-05/page-builder-ux/census.mjs` — re-runnable, so the number is checkable rather
 than remembered. Every row is in `census.tsv` beside it.
 
-A row records: what navigation the page offers · its surface · its layout number (the
-[`/imagine/layouts/`](/imagine/layouts/) numbering) · its content kind · and **the one thing
+A row records: what navigation the page offers · its surface · its layout number (the old
+`/imagine/layouts/` numbering — that realm is gone now, mapped onto
+[`/layouts/`](/layouts/) ids, 2026-09-18) · its content kind · and **the one thing
 that forces it to be code**, if anything does.
 
 ### The headline
@@ -93,7 +94,7 @@ is control 7 on the build page, and it is the honest end of a UI rather than a g
 ⚠ **`crumbs` is not on that list, because no page chooses it.** Core draws the trail on the
 columns HOST after every activation (`Page.reveal_column`), so it is the host's, not the page's
 — which is why the owner's *"will the breadcrumbs always be there?"* was answered in
-[`/imagine/layouts/`](/imagine/layouts/) with a switch on the host and not a field on a page. A
+[`/layouts/`](/layouts/) with a switch on the host and not a field on a page. A
 page builder cannot offer a crumbs control today, and saying so is more useful than a control
 that writes a field nothing reads.
 
@@ -199,7 +200,7 @@ to a page; a thumbnail with the bar in the right place can.
 ### Surface and layout are chips, and the layout chips are the layout numbers
 
 Five surfaces, four arrangements, all one word each. The arrangements are the
-[`/imagine/layouts/`](/imagine/layouts/) numbers, so the builder and the layout system say the
+[`/layouts/`](/layouts/) numbers, so the builder and the layout system say the
 same words: `1.stack`, `2.main-aside`, `3.thirds`, `4.wall`. The census says that is enough:
 **743 of the site's 890 pages are one column and 144 are a card wall** — three pages in total
 use anything else.

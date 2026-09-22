@@ -93,7 +93,7 @@ five colours the strip below rebuilds.`);
   rule on the site, with what it lands on. \`ext/CSSDoc\` does the live version — it reads
   the CSSOM for the rules that actually hit an element — but ships as a module with no
   page of its own yet.
-- [/imagine/design/color/](/imagine/design/color/) — the palette these five statuses live
+- [/framework/styles/system/studies/color/](/framework/styles/system/studies/color/) — the palette these five statuses live
   in.`);
 
 		md(`## The five status colours

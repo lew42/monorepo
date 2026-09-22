@@ -27,5 +27,6 @@ sweep("/framework/", { from: 360, to: 3440 });           // → the widths where
 - [`audit/`](./audit/) — the whole site, ranked (`findings.json` is a generated baseline) · [`tests/`](./tests/) — twenty-three layouts with a declared verdict
 - [`vision/`](./vision/) — the AI tier: a headless runner that shoots pages and regions, asks one fresh model session per image, and logs prose + findings a line at a time
 - [`taste/`](./taste/) — the third tier: eleven ideal ranges, weighted — the only score here
+- [`journey/`](./journey/) — the raw material every score here reads: one overnight crawl, a screenshot of every page on the site. Moved from `/imagine/design/journey/` 2026-09-18 (`ai/2026-09-18/imagine-move-2/`); the old address still answers.
 - [`doc/decisions.md`](./doc/decisions.md) — the record: decisions, open questions, every trap in detail · [`doc/cost.md`](./doc/cost.md) — ~25µs a node, and the quadratic trap · [`doc/addressing.md`](./doc/addressing.md) — a finding's address is a path, not an index
 - Page: [/framework/ext/DesignTool/](/framework/ext/DesignTool/) · Files: `DesignTool.js` (the front door), `probe.js` (the browser read), `rules.js` (what is broken), `polish.js` (what is off)

@@ -1,0 +1,177 @@
+/* /layouts/labs/trees/ — a seeded tree, drawn three ways with plain flex/grid boxes and
+   CSS borders for the connector lines. No `canvas`, no SVG, no absolute positioning, no
+   coordinate math anywhere in this file or in `draw.js` — every line you see is a border
+   sitting wherever the browser's own layout put the edge of a box.
+
+   Colour: `--surface` for a node, `--line` for every connector and every frame hairline,
+   `--wash` for the canvas bar. Spacing: `--gap` is the stub length between one
+   generation and the next (a "level" is conceptually a row/column gap, same as any
+   other), `--gap-50` the tighter gap between siblings.
+
+   ⚠ THE BUTTON RESET. `framework.css` (`theme-lew42`) styles every `button` at (0,2,0) —
+   uppercase, bold, 0.7em/1.4em padding, sized for a call to action. A tree with thirty
+   of those reads as thirty CTAs shouting over each other. `.std-trees-node.std-trees-node`
+   below is the doubled-class trick that matches the theme rule's own specificity inside
+   the same `theme` layer (`css` skill, "a component rule at (0,1,0) in the same layer
+   loses") — the honest alternative was a `<div role="button">`, and a real `<button>`
+   keeps Enter/Space and focus for nothing. */
+
+@layer theme {
+
+	/* ── the node, shared by all three drawings ── */
+	.std-trees-node.std-trees-node {
+		font: inherit;
+		font-size: 0.85em;
+		font-weight: 500;
+		text-transform: none;
+		padding: 0.3em 0.6em;
+		background: var(--surface);
+		border: 1px solid var(--line);
+		border-radius: var(--radius, 0.35em);
+		white-space: nowrap;
+		cursor: pointer;
+	}
+	.std-trees-node:hover { border-color: var(--prim, currentColor); }
+	.std-trees-node:focus-visible { outline: 2px solid var(--prim); outline-offset: 2px; }
+
+	/* A branch prints its own fold state on itself — `−` open, `+` shut — so the state
+	   reads without comparing it to a sibling. */
+	.std-trees-node-branch[aria-expanded="true"]::after { content: " \2212"; opacity: 0.6; }
+	.std-trees-node-branch[aria-expanded="false"] { background: var(--wash); }
+	.std-trees-node-branch[aria-expanded="false"]::after { content: " +"; opacity: 0.6; }
+
+	/* ── family tree — top-down ──
+	   Each generation is a centred flex row; a parent's row sits centred above it purely
+	   because a flex row centres its own children — nothing here says WHERE. The
+	   connector is the classic pure-CSS org-chart trick: every item draws its own
+	   L-shaped stub (`::before`/`::after`) up to one shared horizontal line
+	   (`.std-trees-family-kids`'s own `border-top`), so the line is one border, not a
+	   box this file measured or positioned. */
+	.std-trees-family, .std-trees-family-kids { display: flex; justify-content: center; }
+	.std-trees-family-item { display: flex; flex-direction: column; align-items: center; }
+
+	.std-trees-family-kids {
+		position: relative;
+		gap: var(--gap-50);
+		margin-top: var(--gap);
+		padding-top: var(--gap);
+		border-top: 1px solid var(--line);
+	}
+	.std-trees-family-kids > .std-trees-family-item { position: relative; padding-top: 0; }
+	.std-trees-family-kids > .std-trees-family-item::before {
+		content: ""; position: absolute; top: calc(var(--gap) * -1); left: 50%;
+		width: 1px; height: var(--gap); background: var(--line);
+	}
+
+	/* ── flow chart — left to right ──
+	   Each node is a 2-column grid, `align-items: center`: the node in column one, its
+	   children stacked in a flex column in column two. A parent centres itself against
+	   the full height of its own descendants because `align-items: center` does that for
+	   free, recursively — the same mechanism that, at the ROOT, is the mobile "first
+	   column is empty" problem `page.js`'s media query below fixes. */
+	.std-trees-flow { display: flex; }
+	.std-trees-flow-item {
+		display: grid;
+		grid-template-columns: auto auto;
+		align-items: center;
+		column-gap: var(--gap);
+	}
+	.std-trees-flow-kids {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		gap: var(--gap-50);
+		padding-left: var(--gap);
+		border-left: 1px solid var(--line);
+	}
+	.std-trees-flow-kids > .std-trees-flow-item { position: relative; }
+	.std-trees-flow-kids > .std-trees-flow-item::before {
+		content: ""; position: absolute; top: 50%; left: calc(var(--gap) * -1);
+		width: var(--gap); height: 1px; background: var(--line);
+	}
+
+	/* Mirrored — `draw.js` already swapped the DOM order (children before the node); the
+	   only CSS left to flip is which edge the spine and the stubs sit on. */
+	.std-trees-flow-kids.std-trees-flow-mirror {
+		padding-left: 0; padding-right: var(--gap);
+		border-left: none; border-right: 1px solid var(--line);
+	}
+	.std-trees-flow-kids.std-trees-flow-mirror > .std-trees-flow-item::before {
+		left: auto; right: calc(var(--gap) * -1);
+	}
+
+	/* ── brainstorm — root in the middle ──
+	   Two `.std-trees-flow-kids` groups either side of one bare node — the LEFT one
+	   wears `std-trees-flow-mirror` (same class the flow chart's own mirrored branches
+	   wear), so every rule above already applies with nothing new to write. */
+	.std-trees-brainstorm { display: flex; align-items: center; gap: var(--gap); }
+	.std-trees-brainstorm-root.std-trees-brainstorm-root { flex: none; }
+
+	/* ── the canvas: bar + pan area ──
+	   `.std-trees-canvas-pan` is the only thing that scrolls, both axes — a small window
+	   onto a tree that can be bigger than it. ⚠ `touch-action` is deliberately UNSET
+	   (the default, `auto`): the browser already grants a scrollable box both one-finger
+	   panning and two-finger pinch-zoom for free, and `pan-x pan-y` — the value you would
+	   reach for to make "pan" explicit — actually REMOVES pinch-zoom, because naming
+	   the gestures you want switches off every gesture you didn't name. Building a
+	   custom pinch-to-zoom (tracking two pointers, computing a scale, clamping it,
+	   keeping the point under your fingers still under your fingers) is real, fiddly
+	   code for a feature `auto` already gives away free — `doc/decisions.md` §pinch. */
+	.std-trees-canvas {
+		display: flex;
+		flex-direction: column;
+		border: 1px solid var(--line);
+		border-radius: var(--radius, 0.5em);
+		overflow: hidden;
+	}
+	.std-trees-canvas-bar {
+		display: flex;
+		align-items: center;
+		gap: var(--gap-50);
+		padding: var(--gap-35) var(--gap-50);
+		background: var(--wash);
+		border-bottom: 1px solid var(--line);
+	}
+	.std-trees-canvas-title { font-weight: 600; margin-right: auto; }
+
+	/* The bar's home/fullscreen buttons — the same doubled-class reset as the node,
+	   smaller, so the toolbar doesn't outweigh the tree it sits above. */
+	.std-trees-tool.std-trees-tool {
+		display: inline-flex; align-items: center; gap: 0.3em;
+		padding: 0.3em 0.5em; font-size: 0.8em; font-weight: 500; text-transform: none;
+	}
+
+	/* The pan area itself. `margin: auto` on the one child — not `justify-content:
+	   center` on this box — is the "safe centering" fix: centering an overflowing child
+	   with `justify-content: center` makes the overflow on ITS START side unreachable by
+	   scroll (a well-known flexbox trap), because the browser only grows scrollable
+	   range on the end side. `margin: auto` centers a SMALLER drawing and leaves a
+	   BIGGER one fully scrollable in every direction — exactly what a pan area needs. */
+	.std-trees-canvas-pan {
+		overflow: auto;
+		height: 22em;
+		padding: var(--gap);
+		display: flex;
+	}
+	.std-trees-canvas-pan > * { margin: auto; }
+
+	.std-trees-canvas:fullscreen { height: 100vh; }
+	.std-trees-canvas:fullscreen .std-trees-canvas-pan { flex: 1; height: auto; }
+
+	/* ── mobile framing — under 40rem, top-left instead of centred (page.js, decisions.md) ──
+	   Centred, a tall tree puts its root at the vertical middle: arriving at the top of
+	   the pan area on a phone shows the BOTTOM half of the row above the root — blank
+	   space — until you scroll about halfway down to find anything. Top-aligned, the
+	   root is the first thing in the box. */
+	@media (max-width: 40rem) {
+		.std-trees-canvas-pan > * { margin: 0; }
+		.std-trees-family, .std-trees-family-kids { justify-content: flex-start; }
+		.std-trees-flow-item, .std-trees-brainstorm { align-items: flex-start; }
+	}
+
+	/* ── the generator control ── */
+	.std-trees-controls { margin-block: var(--gap); }
+	.std-trees-field { display: inline-flex; align-items: center; gap: 0.3em; }
+	.std-trees-input.std-trees-input { width: 5em; padding: 0.2em 0.4em; font-size: 0.85em; text-transform: none; font-weight: 400; }
+	.std-trees-count { font-size: 0.85em; }
+}

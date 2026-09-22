@@ -30,6 +30,10 @@ This file and every `readme.md` bring a topic to your attention; the detail is i
 - `Server/` — dev server only
 - Scratch — scripts, transcripts, intermediate JSON — goes in the session scratchpad, not the repo
 
+## The site is live while you edit it (the owner, 2026-09-19)
+
+The owner works on the running site while agents write to it. Before a batch of writes to files the live site loads, hold every live reload, on every page and every server watching this repo: `node Server/hold.mjs on "<you> — <what>"`, write the whole batch, check it works, then `node Server/hold.mjs off "<you>"` — one reload instead of one per file. Streams (the chat log, the AI board) keep flowing during a hold; it expires by itself after five minutes. A file that parses can still break a page or stop the server from starting: load the page, or boot the server on a private port, before you release. Detail: `Server/doc/watch.md`.
+
 ## Traps that never throw
 
 - No DOM after an `await`: capture the box synchronously, fill it in a callback.

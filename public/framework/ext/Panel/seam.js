@@ -5,7 +5,7 @@ import { MODE, glyph } from "./glyphs.js";
    neighbour, marked with the way it lies. It flips `mode` and nothing else — the same
    `item.set("mode", …)` the panel's own bar toggles, no second sizing channel. The two
    neighbours arrive as arguments, so this file reads nothing of grip.js or workspace.js
-   and none of the three circle. `.panel-pop` is toolbar.css's block; where it opens is
+   and none of the three circle. `.panel-pop` is controls.css's block; where it opens is
    grip.css's. Record: readme.md. */
 
 const MODES = Object.keys(MODE);

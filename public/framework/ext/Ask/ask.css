@@ -19,4 +19,191 @@
 	.chat-input { flex: 1; min-width: 0; resize: vertical; font: inherit; padding: .5em; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--ink); }
 	.chat-send { padding: .5em 1em; }
 	.chat-send:disabled { opacity: .5; }
+
+
+	/* ════ THE PICKER — crosshair mode (pick.js) ═══════════════════════════════
+	   Two fixed boxes over everything: an outline that follows what you hover, and
+	   a hint pill at the top. Both `pointer-events: none`, so the click they are
+	   describing still reaches the page underneath. */
+
+	/* `!important` because a link and a button both declare `cursor: pointer`, and
+	   an important declaration in an EARLIER layer beats a later one — `theme` is
+	   earlier than `util`, so this is the only form that wins everywhere. */
+	html.ask-picking, html.ask-picking * { cursor: crosshair !important; user-select: none; }
+
+	/* Above the dev rail's 50 — the hint has to be readable with the rail open. */
+	.ask-pick-ui { position: fixed; inset: 0; z-index: 60; pointer-events: none; }
+
+	/* Sized by an inline style: this box IS the hovered element's measured rectangle. */
+	.ask-pick-box {
+		position: fixed; top: 0; left: 0; width: 0; height: 0; opacity: 0;
+		outline: 2px solid var(--prim); outline-offset: 1px; border-radius: 2px;
+		background: color-mix(in srgb, var(--prim) 12%, transparent);
+		transition: top .06s, left .06s, width .06s, height .06s;
+	}
+
+	.ask-pick-hint {
+		position: fixed; inset-block-start: 1em; inset-inline: 0;
+		width: max-content; max-width: calc(100vw - 2em); margin-inline: auto;
+		display: flex; gap: .6em; align-items: baseline;
+		padding: .4em .9em; border-radius: 999px;
+		background: var(--ink); color: var(--surface); font-size: .85em;
+	}
+	.ask-pick-what { font-family: monospace; }
+	.ask-pick-say { opacity: .7; }
+
+
+	/* ════ THE CHIP — what the next question is about (chat.js) ════════════════
+	   One line above the input. `min-width: 0` on both halves so a long page url
+	   ellipsises instead of pushing the × off the end of a 26em panel. */
+
+	.ask-chip-row { gap: .4em; min-width: 0; }
+	.ask-chip, .ask-chip-page { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+	.ask-chip { font-family: monospace; font-size: .85em; padding: .15em .5em; border-radius: var(--radius); background: var(--wash); }
+	.ask-chip-page { font-size: .8em; flex: 1; }
+
+	/* (0,2,1) — the lew42 skin gives every button 0.8em uppercase bold and
+	   0.7em/1.4em of padding at (0,2,0), which is far too much for a chip's own row.
+	   A control's size is its own em, never a spacing clamp. */
+	.ask-chip-row > button.ask-chip-pick,
+	.ask-chip-row > button.ask-chip-x {
+		font-size: .8em; min-height: 2em; padding: .1em .7em; text-transform: none;
+		font-weight: 400; letter-spacing: normal; flex: none;
+	}
+	.ask-chip-row > button.ask-chip-x { padding: .1em .55em; }
+
+
+	/* ════ THE FLOATING ? — a page opts in with mount() (chat.js) ══════════════
+	   Fixed to the corner, under the dev rail's z-index 50 so the rail always wins.
+	   Sized in the control's own em: `--pad` / `--gap` are space between content,
+	   and this is a control. */
+
+	.ask-float {
+		position: fixed; inset-block-end: 1em; inset-inline-end: 1em; z-index: 40;
+		display: flex; flex-direction: column; align-items: flex-end; gap: .6em;
+	}
+
+	.ask-float > button.ask-float-btn {
+		width: 2.6em; min-height: 2.6em; padding: 0; border-radius: 50%;
+		font-size: 1.1em; font-weight: 700; line-height: 1;
+	}
+
+	/* A bounded box: the chat list inside is what scrolls, so the panel itself never
+	   grows a scrollbar of its own. */
+	.ask-float-panel {
+		width: min(26em, calc(100vw - 2em)); max-height: min(70vh, 34em); overflow: hidden;
+		display: flex; flex-direction: column; gap: .6em;
+		padding: .8em; border: 1px solid var(--line); border-radius: var(--radius);
+		background: var(--surface); box-shadow: 0 .5em 1.5em rgba(0, 0, 0, .25);
+	}
+	.ask-float-panel[hidden] { display: none; }
+	.ask-float-panel .chat-list { max-height: 40vh; }
+	.ask-float-panel .chat-form { flex-direction: column; align-items: stretch; }
+
+	.ask-float-title { font-size: .85em; text-transform: uppercase; letter-spacing: .05em; }
+	.ask-float-head > button.ask-float-x {
+		font-size: 1em; min-height: 1.8em; padding: 0 .5em; line-height: 1;
+		text-transform: none; font-weight: 400; letter-spacing: normal;
+	}
+
+
+	/* ════ THE VERDICT — Approve / Improve on any page (verdict.js) ════════════
+	   `.ask-verdict-mark` sits beside the floating `?`, same corner, same em —
+	   a control's own size never comes from a spacing clamp (`css` skill §4).
+	   Colours match `/layouts/browse/`'s `.std-browse-mark` exactly: one page
+	   judged either way should read the same whichever control cast it. */
+
+	.ask-verdict-mark { display: inline-flex; font-size: 1.3em; line-height: 1; }
+	.ask-verdict-mark:empty { display: none; }
+	.ask-verdict-mark.is-approve { color: var(--ok, #2e7d32); }
+	.ask-verdict-mark.is-improve { color: var(--warn, #b26a00); }
+
+	.ask-verdict-acts { display: flex; gap: .4em; align-items: center; flex-wrap: wrap; }
+
+	.ask-verdict-acts > button.ask-verdict-btn {
+		font-size: .8em; min-height: 2em; padding: .1em .7em; text-transform: none;
+		font-weight: 400; letter-spacing: normal; flex: none;
+	}
+	.ask-verdict-acts > button.ask-verdict-btn.ghost { background: none; border-color: transparent; }
+
+	.ask-verdict-note { font-size: .85em; min-width: 8em; flex: 1; }
+	.ask-verdict-said { font-size: .8em; }
+
+
+	/* ════ REPLY IN PLACE — two buttons under any item (reply.js) ══════════════
+	   The control is a member of whatever it is mounted in: an ask card (a flex
+	   column), a decision row (a plain block), a task card (a three-track grid).
+	   So it states how it behaves in all three and each one ignores the parts that
+	   are not about it — `grid-column` only bites inside the grid, where a reply
+	   belongs under the WHOLE card and never inside its first track.
+	   `z-index` is for that same card: its title's `::after` spreads the link over
+	   the entire row, and a control underneath it cannot be pressed.
+	   Sized in the control's own em throughout — `--pad` and `--gap` are space
+	   between content, and every box here is a control. */
+
+	.ask-reply {
+		display: flex; flex-direction: column; gap: .4em;
+		grid-column: 1 / -1; position: relative; z-index: 1;
+		min-width: 0; cursor: auto;
+	}
+
+	.ask-thread, .ask-pending { display: flex; flex-direction: column; gap: .4em; min-width: 0; }
+	/* A long conversation under one card must not become the card. */
+	.ask-thread { max-height: 24em; overflow-y: auto; }
+	.ask-thread[hidden] { display: none; }
+
+	/* The bubbles are `chat.js`'s, one rung smaller because they sit inside a card
+	   rather than in a panel of their own. (0,2,0) beats `.chat-turn`'s (0,1,0). */
+	.ask-thread .chat-turn, .ask-pending .chat-turn { font-size: .9em; padding: .35em .6em; }
+
+	.ask-reply-acts { gap: .4em; min-width: 0; flex-wrap: wrap; }
+
+	/* (0,2,1) — the same move `.ask-chip-row`'s buttons make above, for the same
+	   reason: the lew42 skin gives every button 0.8em uppercase bold and
+	   0.7em/1.4em of padding at (0,2,0), and two 40px CTAs under each of thirteen
+	   ask cards is a second wall on top of the wall. */
+	.ask-reply-acts > button.ask-reply-btn,
+	.ask-reply-acts > button.ask-mic,
+	.ask-reply-foot > button.ask-reply-send {
+		font-size: .8em; min-height: 2em; padding: .1em .7em; text-transform: none;
+		font-weight: 400; letter-spacing: normal; flex: none;
+	}
+	.ask-reply-acts > button.ask-mic { padding: .1em .5em; }
+
+	/* Listening has to be visible from across the room — you are talking at it, not
+	   looking at it, and a microphone left on is the failure that costs money. */
+	.ask-reply-acts > button.ask-mic.listening {
+		background-color: var(--prim); border-color: var(--prim);
+		animation: ask-mic-pulse 1.4s ease-in-out infinite;
+	}
+	@keyframes ask-mic-pulse { 50% { opacity: .5; } }
+
+	.ask-reply-note, .ask-reply-hint, .ask-reply-say { font-size: .8em; min-width: 0; }
+
+	.ask-reply-box { display: flex; flex-direction: column; gap: .4em; min-width: 0; }
+	.ask-reply-box[hidden] { display: none; }
+	.ask-reply-foot { gap: .5em; }
+
+	/* framework.css already gives every `textarea` the control box — the border,
+	   the radius, the padding, the ground. Only the two things it cannot know. */
+	.ask-reply-input { font-family: inherit; resize: vertical; min-width: 0; }
+
+
+	/* ════ THE DEMO on /framework/ext/Ask/ (page.js) ═══════════════════════════ */
+
+	/* A deliberate scroll: this is a log of what one pick gathered, and the whole
+	   point is that it can be longer than the box. */
+	.ask-demo-out {
+		white-space: pre-wrap; word-break: break-word; font-size: .85em;
+		max-height: 22em; overflow: auto; margin: 0;
+	}
+
+	/* ⚠ The readme fold had no measure: `md.details` nests its markdown two levels down
+	     inside `.md-details-body`, and every cap on this site — core's column prose and
+	     the page shell alike — is written as a DIRECT-child selector, so it never
+	     reached. 15 paragraphs and list items ran 29px past their own 40em at every
+	     width from 1000 up (measured 2026-09-17). Cap them where they land. */
+	.ask-fold .md-details-body :is(p, ul, ol, h2, h3, h4, h5, blockquote) {
+		max-width: var(--measure, 40em);
+	}
 }

@@ -2,7 +2,7 @@
 
 `/blog/` is a **magazine front**: the lead post as display type, every other post as a
 card beside it, and a rail of topics on the right edge. It was chosen by building eight
-whole blog shells at `/imagine/blogx/` and judging them at 3440 first — this one put the
+whole blog shells at `/layouts/labs/blogx/` and judging them at 3440 first — this one put the
 strongest overview above the fold, and nothing in it is over the reading measure.
 
 ## The shell is the site's, not the blog's

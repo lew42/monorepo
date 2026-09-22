@@ -131,6 +131,22 @@ export class Paging extends Page {
 		return words ? md(words).ac("paging-lede") : null;
 	}
 
+	/* ── A PREMISE THAT IS NO LONGER THE DIRECTION ───────────────────────────
+	   ONE line at the very top of a page whose demo still runs and still teaches,
+	   but whose premise the owner has since moved away from. The page is not
+	   rebuilt and not deleted — the reader is simply told, before they read it,
+	   and handed the page that IS the direction.
+
+	   The owner, 2026-09-17: N even columns and fixed navigation are the
+	   direction; continuous Miller columns are not. So a page that teaches
+	   elastic shares of a row is not wrong about what the code does today — it is
+	   wrong about what to reach for — and that is exactly what one line can say.
+	   Call it FIRST in `content()`, above the demo. */
+	supersedes(says, url = "/web/nav/doc/study/"){
+		return md("**Superseded 2026-09-17 by even columns.** " + says + " [The direction, measured](" + url + ")")
+			.ac("paging-superseded");
+	}
+
 	/* ⚠ A PAGE IN THIS REALM IS BUILT ONCE and then shown again — core caches it, and
 	     `activate()` re-appends the view it already has rather than rebuilding it. So a
 	     stage that read the address when it was BUILT is still showing that answer the
@@ -202,7 +218,7 @@ export class Realm extends Paging {
 
 	// A shell is its own screen, not a column: mounting beside the row's host is the
 	// arrangement contract's own sibling rule, and /imagine/ stands down. The same
-	// line /imagine/shells/Shell.js uses, for the same reason.
+	// line /layouts/labs/shells/Shell.js uses, for the same reason.
 	container(){ return this.mounts_in(this.app.$pages, "app.$pages — the paging realm is its own screen"); }
 
 	/* ⚠ Overriding render() is ALSO what skips core's `render_column()`. The rail is

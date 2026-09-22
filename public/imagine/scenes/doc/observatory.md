@@ -66,7 +66,7 @@ a photograph, an instrument diagram, a graph. Two are dark emulsion, two are car
   so both surfaces are guaranteed the same sequence from the same seed.
 
 The caption card steps **one rung darker** into the plate (`scenes.css`, `.scene-plate`) —
-deliberately the opposite direction to [the magazine's ladder](/imagine/mag/), whose rows step
+deliberately the opposite direction to [the magazine's ladder](/layouts/labs/mag/), whose rows step
 cleaner as you go deeper because a column you walk into should lift toward you. A plate is an
 object lying on a desk; you read *into* it.
 

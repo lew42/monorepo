@@ -3,7 +3,7 @@ import { span, icon } from "/framework/core/View/View.js";
 /* What a panel's words look like. The bar, a seam's menu and the inspector all draw the
    same vocabulary, so the pictures live in one place and the three can never drift.
    Imports View and nothing else, so every surface may read it and none of them circle.
-   css: .panel-swatch (toolbar.css). Record: readme.md.
+   css: .panel-swatch (controls.css). Record: readme.md.
 
    ⚠ Material Icons is a LIGATURE font: a name it does not carry renders as the whole
    WORD — 432px of `position_top_right`, measured — and sizes every column of the grid it
@@ -17,6 +17,15 @@ export const ALIGN = ["t", "c", "b"].flatMap(y => ["l", "c", "r"].map(x => y + x
    overlay positions each BUTTON inside its own grid cell with it, which is what makes an
    arrow sit at the edge it names. */
 export const PLACE = { t: "start", c: "center", b: "end", l: "start", r: "end" };
+
+/* PUT A BODY'S CONTENT WHERE A CODE SAYS. Two readers — `paint.js` on every repaint, and
+   `tools.js`'s 3x3 overlay when you press one of its nine arrows.
+   ⚠ IT USED TO LIVE IN `toolbar.js`, which is deleted (2026-09-18): the floating bar is
+     gone and this is one of the two things in that file that was never part of the bar.
+     It reads `PLACE`, one line above it, and nothing else — so this is where it belongs.
+     `doc/decisions.md`. */
+export const place = ($body, code = "cc") =>
+	$body.style({ "--panel-y": PLACE[code[0]] ?? "center", "--panel-x": PLACE[code[1]] ?? "center" });
 
 // An arrow pointing the way it means, and a dot for the centre.
 export const COMPASS = {

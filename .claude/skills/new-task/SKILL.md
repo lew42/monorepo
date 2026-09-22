@@ -29,6 +29,8 @@ Anything that changes the repo is a **task**: a dir at
 
 **`group` is the effort** — the thread this belongs to, which outlives the day; reuse an existing slug (`ai-log`, `layout`, `panels`, `vision`, `apps`, `web-ui`), or omit it and the task files under *loose*. ⚠ **`session_id` is not optional** — without it the detail page has no transcript and renders no log at all.
 
+**There is a helper, and it removes most of what follows:** `node .claude/hooks/append.mjs <target.jsonl> <lines.json>` appends the objects in a JSON array as one line each, turns every string value that is exactly `"NOW"` into the local clock at the moment of the append, sniffs the trailing newline, then re-parses the whole file and exits non-zero naming any bad line. Write `<lines.json>` with the **Write tool** (never a heredoc) and the encoding, clock and re-parse traps below cannot bite. Verified 2026-09-21 against an em dash, a quote, a backslash, a `*/` glob and a Windows path.
+
 ⚠ **Never write a `.jsonl`/`.json` with PowerShell's `Out-File`/`Set-Content -Encoding utf8`** — the BOM makes `TaskJSONL` silently drop line 1 (task never reaches Active) and `json.load` die; use the **Write tool**, append later lines with `Add-Content`. ⚠ The READ side too: PS 5.1 `Get-Content -Raw | Set-Content -Encoding utf8` on an existing UTF-8 file double-encodes every non-ASCII character (Get-Content defaults to ANSI) — a one-word fix turns every em dash into mojibake (bit 2026-08-30). Round-trip with the Write tool or `[IO.File]::ReadAllText`/`WriteAllText`. ⚠ And `Add-Content` writes ANSI: one non-ASCII character (an em dash) becomes an invalid byte and the viewer drops that whole line (bit 2026-08-21) — keep appends pure ASCII, or append via `[IO.File]::AppendAllText` with `[Text.UTF8Encoding]::new($false)`.
 
 ⚠ **Three ways a line is silently wrong.**
@@ -37,8 +39,12 @@ Anything that changes the repo is a **task**: a dir at
   both give the local offset. Typed values drift ahead of real time (sweep-400 narrated
   sequential 17:15/17:35/17:40 lines while the real clock read 17:07), and the day strip
   shows entries that had not happened yet.
-- **The verbs are exactly** `assign` `log` `action` `agent` `chat` `shot`, and `log` is
-  `{at, msg}`. An invented verb or key renders as nothing.
+- **The verbs are exactly** `assign` `log` `action` `agent` `chat` `shot` — and, since 2026-09-17/18,
+  `ask` `decision` `verdict` `rank` (with `topic`, `needs`, `conclusion` fields on an ask; `ext/JSONL/doc/task-jsonl.md`
+  is the schema) — and `log` is `{at, msg}`. An invented verb or key renders as nothing. ⚠ `note` (`{id, at, msg,
+  links}`, merged by `id`) is one exception: it is `/framework/ai/v/2/`'s own board verb, understood only by a task
+  whose log that board reads (a `Run extends TaskJSONL` there adds it) — the mastermind writes it to say something
+  to the owner live; on any other task's log it renders as nothing, same as an invented verb.
 - **Escapes:** never backslash `$`, `<`, `>` or a backtick. Windows paths go in with forward
   slashes — through the Bash tool a doubled backslash arrives single, so a `C:\Users\…` path
   lands as `\U`, an invalid JSON escape, and the viewer drops the whole line. The same missing
@@ -61,6 +67,11 @@ Land with `step` at the last index; `landed_at` reads as all-checked whatever `s
 ## 2. Register + usage
 
 - Leave the task dir **undeclared** — do NOT add it to the day page's `children:` unless the dir has its own `page.js` (a declared child skips the dynamic `route()` and 404s). The dashboard enumerates task dirs from `directory.json` either way.
+- ⚠ **Check your brief's write fence before you run the next step.** If it does not name
+  `ai/usage.json` and `ai/usage.jsonl`, SKIP the refresh entirely and log that you skipped it —
+  the mastermind keeps the snapshot current. This caveat used to sit below the command and two
+  agents ran it before reaching it on 2026-09-19; one of them then overwrote `usage.jsonl` and
+  lost five days of samples trying to undo it.
 - Refresh the usage snapshot — **run this FIRST, before the launch line** (`window.before` is its `five_hour` percent DIVIDED BY 100 — the file says `2.0`, the line wants `0.02`; the divide happens here), then about every 15 minutes while working, never tighter (the endpoint 429s):
 
 ```bash
@@ -73,8 +84,8 @@ Each refresh, also append the snapshot to `public/framework/ai/usage.jsonl`:
 {"log": {"at": "<ISO>", "session": <pct>, "weekly_all": <pct>, "weekly_scoped": <pct>, "resets_at": "<five_hour.resets_at>"}}
 ```
 
-If your brief's write fence excludes `ai/usage.json`, skip this refresh — the mastermind keeps
-the snapshot current — and log that you skipped it.
+⚠ **Append, never rewrite** — `usage.jsonl` is shared and append-only; a Write to it destroys
+every other agent's samples (2026-09-19, five days lost).
 
 ## 3. While working, log — don't just narrate
 

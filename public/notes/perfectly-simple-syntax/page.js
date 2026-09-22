@@ -88,8 +88,9 @@ optional, exactly as the note drew it. What did **not** ship is the pager: the n
 "sounds complicated" was right, and the tier was removed. A page's parent is its pager.
 
 - [core/Page](/framework/core/Page/) — the blessed shape, and every field the note lists.
-- [Declaring children](/framework/core/Page/doc/declaring/) — the constructor and
-  \`children:\`, in detail: how a page gets its sub-pages without a pager.
+- [Declaring a page](/framework/core/Page/doc/declaring/) — the constructor, in detail.
+- [\`children:\`](/framework/core/Page/doc/property/children/) — how a page gets its
+  sub-pages without a pager.
 - [previews](/framework/core/Page/doc/previews/) — the note's \`preview()\`, built.
 - [core/Layout](/framework/core/Layout/) — \`layout: Layout.Four\`, built as a tree of rows
   and columns rather than a fixed set of four.

@@ -1,0 +1,900 @@
+/* /layouts/practice/ — three whole-page layouts, and the parts they share.
+
+   `std-practice-` is the namespace: `std-` is /layouts/'s own prefix (registered
+   in framework/styles/css-scopes.txt), and nothing anywhere under public/ used
+   `std-practice` before this file. No View subclass is declared in this module,
+   so `View.classify()` mints no class of its own.
+
+   EVERYTHING IS IN @layer theme. This is a component's own look; nothing here
+   needs to beat a utility class, and two rules that DO need to beat something
+   say so where they are written.
+
+   THE THREE RULES THIS SHEET IS BUILT ON
+   1. A BOX WITH A BACKGROUND GETS PADDING; A BOX WITHOUT ONE GETS NONE. Padding
+      with no background change floats a thing in midair, off the margins its
+      siblings line up on. Every surface in this file is listed in the module's
+      readme with which of the two it is.
+   2. SPACING IS THE TOKENS, NEVER A CONSTANT — `--pad`, `--gap`, `--flow`, all
+      three of them the size standard's clamps x `--size`. The exception the
+      standard itself names: a CONTROL's own padding, its height and the gap
+      between its own icon and its own label stay in the control's own `em`.
+   3. RESPONSIVE IS A CONTAINER QUERY, NEVER A VIEWPORT ONE. A viewport query
+      lies the moment the page is put inside a column, a panel or a frame; a
+      container query is right in all four places. Every query below asks
+      `practice`, the layout's own root. */
+
+@layer theme {
+
+/* ══ 0 · THE PAGE ═════════════════════════════════════════════════════════════
+
+   These three pages ARE their layout, so the page's own `h1.page-title` — which
+   core renders into the `main` track above everything — would be somebody else's
+   heading bolted on top. Each layout draws its title where its own design wants
+   it (`Practice.head()`).
+   ⚠ The second rule is not optional: framework.css's `.page-title + *` adds
+     1.5 x `--flow` after the title, and a hidden element is still a sibling, so
+     without it the 3em the heading occupied stays behind as a white strip. The
+     same pair, for the same reason, is in `ext/catalog/catalog.css`. */
+.page:has(> .std-practice) > .page-title { display: none; }
+.page:has(> .std-practice) > .page-title + * { margin-block-start: 0; }
+
+/* THE LAYOUT ROOT. One container per layout (or per band, on the Catalog, where
+   every band is edge to edge and so measures the viewport).
+   ⚠ `container-type: inline-size` also re-points `--gap` and `--flow` — both are
+     `cqi` — at THIS box instead of the window, which is what we want: a layout
+     inside a 1178px track should breathe like a 1178px layout. */
+.std-practice {
+	container-type: inline-size;
+	container-name: practice;
+	--std-practice-rail: 15rem;
+
+	/* QUIET INK — the second text colour this module uses, and it is NOT
+	   `--subtle`. Measured live on 2026-09-17: the lew42 skin's `--subtle`
+	   (#6a6a6a) is 4.83:1 on the page's own floor, which passes, but only 4.0:1
+	   on the `--fill-a04` this module paints its tiles, cards, notes and hero
+	   with — under AA for body text, and you cannot see 4.0 from 4.6.
+	   One step darker clears every ground here, in both modes:
+	     page floor  5.97:1 · fill-a04  5.46:1 · fill-a08  4.97:1 (light)
+	     and 9.8:1 on the dark floor, because it is mixed FROM `--ink` toward
+	     `--surface` and both of those flip with the colour scheme. */
+	--std-practice-quiet: color-mix(in srgb, var(--ink) 85%, var(--surface));
+}
+
+/* The index wall is not a layout root — it declares no container — but it wears
+   the same quiet ink, so it declares the token too. */
+.std-practice-index { --std-practice-quiet: color-mix(in srgb, var(--ink) 85%, var(--surface)); }
+
+/* NO PROSE PAST THE MEASURE, anywhere in this module, at any width. `--measure`
+   is the page's own (40em); this is the one rule that keeps a 3260px `wide`
+   track from running a paragraph the whole way across it — and a 1086px card
+   from doing the same to its own one-line description (measured: 3206px on the
+   index's cards before this rule reached them). */
+.std-practice p,
+.std-practice-index p { max-width: var(--measure); }
+
+/* ══ 1 · THE RAIL ═════════════════════════════════════════════════════════════
+
+   One markup, two shapes. MOBILE FIRST: the rail is a STRIP of wrapping chips,
+   and at 44rem of layout it becomes a column. The Catalog's top bar forces the
+   strip at every width — same eight links, same order, so a reader who has seen
+   the rail recognises the bar.
+
+   ⚠ NO BACKGROUND, so NO PADDING. The rail sits on the page's own floor and its
+     first letter lines up with the title beside it. The Catalog's bar is the one
+     exception, and it is an exception because the BAND behind it paints. */
+.std-practice-rail {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: calc(var(--gap) * 0.5);
+	grid-area: rail;
+	min-width: 0;
+}
+
+.std-practice-rail-links {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0 calc(var(--gap) * 0.55);
+	min-width: 0;
+}
+
+/* A NAV ITEM HAS NO BOX, SO IT HAS NO PADDING — not even the horizontal padding
+   a link usually gets, because that would inset its first letter from the axis
+   the brand above it and the title beside it both stand on.
+   ⚠ ITS HEIGHT IS A `min-height`, NOT PADDING. That is framework.css's own
+     control grammar, and it is what buys a comfortable hit target without
+     inventing a box: the whole 2.2em row is clickable and nothing is painted.
+   ⚠ A nav item is a CONTROL, so its height and the gap between its own icon and
+     its own label are `em` of its own text, never a spacing clamp. A clamp here
+     put a homepage nav item 67.6px tall at 3440 (the size standard). */
+.std-practice-rail-link {
+	display: flex;
+	align-items: center;
+	gap: 0.45em;
+	padding: 0;
+	min-height: 2.2em;
+	color: var(--std-practice-quiet);
+	text-decoration: none;
+	white-space: nowrap;
+	line-height: 1.3;
+}
+
+.std-practice-rail-link .icon { font-size: 1.15em; }
+.std-practice-rail-link:hover { color: var(--ink); }
+
+/* THE CURRENT SECTION, marked with WEIGHT AND THE ICON — never with a box that
+   only exists when it is on, because that box moves everything beside it, and
+   never with the accent as a word: `--prim` measures 2.25:1 as text on white. */
+.std-practice-rail-on { color: var(--ink); font-weight: 700; }
+.std-practice-rail-on .icon { color: var(--prim-ink); }
+
+.std-practice-brand {
+	display: flex;
+	align-items: center;
+	gap: 0.45em;
+	text-decoration: none;
+	color: inherit;
+	white-space: nowrap;
+}
+
+/* ⚠ A LITERAL DARK INK, on purpose. `--ink` flips to near-white in dark mode and
+   white on `--prim` is 1.8:1; this pairing is 7.7:1 in BOTH modes because the
+   accent does not flip. framework.css does the same thing for `button.bg`. */
+.std-practice-brand-mark {
+	background: var(--prim);
+	color: #1a1a1a;
+	font-weight: 900;
+	font-size: 0.8em;
+	letter-spacing: 0.04em;
+	padding: 0.25em 0.45em;
+	border-radius: var(--radius);
+}
+
+.std-practice-brand-name { font-weight: 700; }
+
+/* THE COLUMN SHAPE. One layout wide enough for a rail beside its content.
+   ⚠ 48rem, NOT 44rem, AND THE NUMBER IS A MEASUREMENT. The rail costs the wall
+     beside it 15rem plus a gap; at 44rem what is left could only hold ONE tile
+     column, so the Workbench's wall went from 2 columns at a 720 viewport to 1 at
+     800 — it got WORSE as the screen got wider. 48rem is the first width at which
+     the wall keeps the two columns it had as a strip (measured 2026-09-17). */
+@container practice (min-width: 48rem) {
+	.std-practice-rail {
+		flex-direction: column;
+		align-items: stretch;
+		gap: calc(var(--gap) * 0.6);
+	}
+
+	.std-practice-rail-links { flex-direction: column; flex-wrap: nowrap; gap: 0.15em; }
+	.std-practice-rail-link { white-space: normal; }
+}
+
+/* ══ 2 · THE HEAD AND THE SHARED FOLD ═════════════════════════════════════════ */
+
+.std-practice-head { display: flex; flex-direction: column; gap: calc(var(--gap) * 0.4); }
+
+/* The layout's own h1. `clamp` with a `rem` floor so a long name never breaks
+   mid-word at 400 — the same shape core uses for `.page-title`.
+   ⚠ EVERY HEADING RULE IN THIS FILE IS (0,2,0), and that is not decoration. The
+     lew42 skin styles headings from `.theme-lew42 :is(h1, .h1)` — a TWO-class
+     selector in the same `@layer theme` — so a single-class rule of mine loses on
+     specificity no matter which sheet loaded last. Measured 2026-09-17: the
+     panel's 0.75em uppercase label rendered at the skin's `h3` 1.5em and the
+     panel's own name at its `h2` 2.25em. Prefixing with `.std-practice` ties the
+     specificity and load order decides — and this sheet loads last. */
+.std-practice .std-practice-title {
+	font-size: clamp(1.75rem, 7vw, 2.75em);
+	line-height: 1.1;
+	margin: 0;
+}
+
+.std-practice-say { color: var(--std-practice-quiet); margin: 0; }
+
+.std-practice-crumbs { display: flex; flex-wrap: wrap; gap: calc(var(--gap) * 0.4); }
+
+.std-practice-crumb {
+	font-family: var(--mono);
+	font-size: 0.8em;
+	padding: 0.2em 0.5em;
+	border-radius: var(--radius);
+	background: var(--fill-a08);
+	color: var(--ink);
+	text-decoration: none;
+}
+
+.std-practice-crumb:hover { background: var(--fill-a16); }
+
+/* THE FOLD. A `<details>`, so its `summary` already wears the framework's
+   control grammar — one box, the same as every button and field on the site. */
+/* ⚠ THE FOLD IS A ROW OF THE LAYOUT'S OWN GRID (`grid-area: why`), not a box
+     bolted under it. Outside the grid its left edge was the PAGE's gutter — x=90
+     at 3440 — while the layout's h1, its rail and its wall all stood on x=385: a
+     295px misalignment down the left edge, at every width, on the last thing a
+     reader sees (measured 2026-09-17). On the Catalog the fold is inside a band
+     and not in a grid at all, where `grid-area` is simply inert. */
+.std-practice-why { grid-area: why; margin-block-start: calc(var(--flow) * 1.5); max-width: min(96rem, 100%); }
+
+.std-practice-why > summary { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6em; }
+.std-practice-why-mark { font-weight: 700; }
+.std-practice-why-hint { color: var(--std-practice-quiet); font-size: 0.9em; }
+
+.std-practice-why-body { margin-block-start: var(--flow); }
+.std-practice-why-body > h2 { margin-block-start: calc(var(--flow) * 1.2); }
+
+/* THE NINE ANSWERS, in three columns or one — and never in two, because NINE is
+   the count and only 1, 3 and 9 divide it. An `auto-fill` wall would have landed
+   on 2 at 1280 and 4 at 1920 (measured), each of them leaving a short last row
+   for no reason. When the count is fixed and small, WRITE the count.
+   No background on an answer, so no padding on one either: the grid gap is the
+   whole separation. */
+.std-practice-answers {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: var(--gap);
+	align-content: start;
+}
+
+@container practice (min-width: 48rem) {
+	.std-practice-answers { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+.std-practice .std-practice-answer-q {
+	font-size: 0.8em;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--std-practice-quiet);
+	margin: 0 0 calc(var(--gap) * 0.35);
+}
+
+.std-practice-answer-a { margin: 0; }
+
+.std-practice-chips { display: flex; flex-wrap: wrap; gap: 0.4em; margin-block-start: calc(var(--gap) * 0.6); }
+
+.std-practice-chip {
+	font-size: 0.8em;
+	padding: 0.25em 0.6em;
+	border-radius: var(--radius);
+	background: var(--fill-a04);
+	color: var(--std-practice-quiet);
+}
+
+/* ══ 3 · THE SHARED GRID — Workbench and Reader ═══════════════════════════════
+
+   These two are the SAME layout id (`3-holy-grail`), so they are the same grid
+   with two different side tracks. Mobile first: one column. At 44rem the rail
+   becomes a column spanning both rows. At 80rem the side region takes its own
+   third column.
+
+   ⚠ EVERY TRACK HAS A FLOOR AND A CEILING. `minmax(0, 1fr)` for the middle (a
+     bare `1fr` keeps its content minimum and overflows at 400), a `rem` rail,
+     and a `clamp` for the side — so no width starves the middle and no width
+     hands the side 900px it cannot use.
+   ⚠ `align-items: start`: the side region hugs its content and the rail sits at
+     the top of the two rows it spans. A stretched grid item is already as tall
+     as its row and has nowhere to stick to. */
+.std-practice-wb-grid,
+.std-practice-rd-grid {
+	display: grid;
+	gap: var(--gap);
+	grid-template-columns: minmax(0, 1fr);
+	grid-template-areas: "rail" "main" "side" "why";
+	align-items: start;
+}
+
+.std-practice-wb-main,
+.std-practice-article { grid-area: main; min-width: 0; }
+
+/* ⚠ THE SIDE REGION IS A TRACK, NOT THE BOX. On the Workbench the painted panel
+     sits INSIDE `.std-practice-side`, because the box that sticks and the box
+     that paints cannot be the same one here: the grid is `align-items: start`, so
+     a grid item is exactly as tall as its content and `position: sticky` on it has
+     zero travel and can never fire. The track stretches (nothing painted, so
+     nothing to see), the panel sticks inside it. Measured before the fix: a 330px
+     panel beside a 2,270px wall at 1440, and the column below it empty. */
+.std-practice-side,
+.std-practice-margin { grid-area: side; min-width: 0; }
+
+.std-practice-side { align-self: stretch; }
+
+@container practice (min-width: 48rem) {
+	.std-practice-wb-grid,
+	.std-practice-rd-grid {
+		grid-template-columns: var(--std-practice-rail) minmax(0, 1fr);
+		grid-template-areas: "rail main" "rail side" "rail why";
+		column-gap: calc(var(--gap) * 1.25);
+	}
+}
+
+@container practice (min-width: 80rem) {
+	/* ⚠ THE PANEL'S FLOOR IS 17rem, NOT 20rem, AND THAT IS WHAT KEEPS THE WALL'S
+	     COUNT. At exactly 80rem the panel arrives and takes its width out of the
+	     wall: with a 20rem floor the wall dropped from 3 columns to 2 at a 1440
+	     viewport — the page got worse as the screen got wider. 17rem is the widest
+	     floor at which the wall still holds three columns across the switch
+	     (measured 2026-09-17). A 272px panel holds its name, its path, two short
+	     paragraphs and its button with room to spare. */
+	.std-practice-wb-grid {
+		grid-template-columns: var(--std-practice-rail) minmax(0, 1fr) clamp(17rem, 22%, 26rem);
+		grid-template-areas: "rail main side" "rail why why";
+	}
+
+	/* ⚠ THE READER'S MIDDLE TRACK IS THE MEASURE, NOT `1fr`, and the MARGIN takes
+	     the leftover. Written the other way round — article `1fr`, margin a
+	     `clamp` — the article painted 720px inside a 2485px track and the page
+	     had **1,860px of grey between the article and its own notes** at 3440
+	     (measured 2026-09-17). That is the owner's "random blank spaces", and a
+	     wide page is exactly where it happens: nothing is wrong at 1280, so
+	     nothing looks wrong until you open it on the big screen. The brief's own
+	     words for this region are "the leftover turned into a third region that
+	     earns it, instead of grey" — so it takes the leftover, and the wall
+	     inside it (below) spends it on four blocks rather than one tall column. */
+	.std-practice-rd-grid {
+		/* ⚠ BOTH CONTENT TRACKS ARE BOUNDED AT BOTH ENDS, and the two bounds do
+		     different jobs. The article's FLOOR (30rem) stops the margin squeezing
+		     it: written `minmax(0, …)` the article shrank to 502px at 1440 to hand
+		     the margin its full width, because a track with a zero floor absorbs
+		     the whole deficit. The margin's CEILING (38rem) is what makes its
+		     stacked blocks about as tall as the article beside them — at 34rem the
+		     margin ran 863px PAST the article's end and left that much of the
+		     article's own column empty (measured 2026-09-17). */
+		grid-template-columns: var(--std-practice-rail) minmax(min(30rem, 100%), var(--measure)) minmax(17rem, 38rem);
+		grid-template-areas: "rail main side" "rail why why";
+		justify-content: center;
+	}
+}
+
+/* ══ 4 · THE WORKBENCH ════════════════════════════════════════════════════════ */
+
+.std-practice-wb-main { display: flex; flex-direction: column; gap: var(--flow); }
+
+/* ══ THE WALLS ════════════════════════════════════════════════════════════════
+
+   THE COUNTS ARE WRITTEN OUT, ONE `@container` QUERY EACH, and this is the single
+   biggest change a critic made to this module. `repeat(auto-fill, minmax(…, 1fr))`
+   is one line and it cannot be told WHICH counts are allowed — it lands on
+   whatever fits. Swept every 80px from 400 to 3440 on the live pages
+   (2026-09-17), the old walls landed on counts that do not divide their item
+   count, and so showed a short last row — a hole — over hundreds of pixels of
+   real screen widths:
+
+     24 tiles : 5 columns from 2240 to 2480 (last row 4 of 5)
+                7 columns from 2880 to 3120 (last row 3 of 7)
+     12 cards : 5 columns from 2800 to 3360 (last row 2 of 5)
+
+   None of that is visible at 400 / 1280 / 1920 / 3440, which is where it was
+   proved. The module's own readme already says the rule — "when the count is fixed
+   and small, WRITE the count" — and it was applied to the nine answers in the fold
+   and not to the two walls. Now every count these walls can reach is a divisor:
+   1, 2, 3, 4, 6, 8 for the 24 tiles; 1, 2, 3, 4, 6 for the 12 cards. The ladders
+   also never step BACKWARDS: each threshold was read off the live page as the
+   first width at which the next count still leaves a tile wider than 14rem. */
+.std-practice-wall {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: var(--gap);
+	align-content: start;
+}
+
+/* THE TILE WALL — 24 tiles, so 1, 2, 3, 4, 6 and 8 are the counts it may have.
+   The thresholds are the LAYOUT's width, not the wall's, because what the wall
+   gets is the layout minus whichever of the rail and the panel exist at that
+   width, and both of those switch on the same container. */
+.std-practice-wb .std-practice-wall { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+@container practice (min-width: 64rem)  { .std-practice-wb .std-practice-wall { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@container practice (min-width: 110rem) { .std-practice-wb .std-practice-wall { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@container practice (min-width: 150rem) { .std-practice-wb .std-practice-wall { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+@container practice (min-width: 195rem) { .std-practice-wb .std-practice-wall { grid-template-columns: repeat(8, minmax(0, 1fr)); } }
+
+/* A TILE IS A BOX, so it has a background and therefore padding. It is also a
+   `<button>`, which arrives wearing framework.css's control grammar — a fill, a
+   hairline, a 2.4em min-height, centred content. Six declarations put that back:
+   a tile is a card you can click, not a control.
+   ⚠ (0,2,0) so it beats a theme's own `:is(button, .btn)` rule, which is also
+     (0,2,0) and could otherwise win on load order alone. */
+.std-practice-wall .std-practice-tile {
+	display: flex;
+	flex-direction: column;
+	align-items: start;
+	gap: calc(var(--gap) * 0.25);
+	min-height: 0;
+	padding: calc(var(--gap) * 0.55);
+	text-align: start;
+	font: inherit;
+	color: inherit;
+	background: var(--fill-a04);
+	border: 1px solid transparent;
+	border-radius: var(--radius);
+	box-shadow: none;
+	cursor: pointer;
+}
+
+.std-practice-wall .std-practice-tile:hover { background: var(--fill-a08); }
+
+/* THE SELECTED TILE. The hairline is transparent on every tile, so lighting one
+   up moves nothing — the commonest way a "selected" state shoves a whole wall
+   sideways is a border that only exists when it is on. */
+.std-practice-wall .std-practice-tile-on {
+	background: var(--fill-a08);
+	border-color: var(--prim);
+}
+
+.std-practice-tile-icon { color: var(--std-practice-quiet); }
+.std-practice-tile-icon .icon { font-size: 1.3em; }
+.std-practice-tile-name { font-weight: 700; }
+.std-practice-tile-say { font-size: 0.85em; color: var(--std-practice-quiet); line-height: 1.4; }
+
+/* THE SMALL FORM IS A PICKER, NOT THE WIDE FORM WITH THE COLUMNS TAKEN OUT.
+   Below 34rem a tile shows its icon and its name, side by side: 24 three-line
+   tiles in one column made the Workbench 3,754px tall at 400 and put the panel —
+   the one thing the page exists to demonstrate — 3,400px down it. Two compact
+   columns bring the picker to about 900px and the panel within one flick. Nothing
+   is deleted: the sentence a tile drops here is the first line of the panel you
+   get by tapping it, which is what "one click down" means.
+   ⚠ THIS BLOCK SITS AFTER THE TILE'S OWN RULE ON PURPOSE. Both selectors are
+     (0,2,0), and a media or container query adds NO specificity — so written
+     above the base rule the compact tile stayed a column and nothing warned. When
+     two rules of equal weight disagree, the later one wins, query or no query. */
+@container practice (max-width: 33.99rem) {
+	.std-practice-wb .std-practice-tile-say { display: none; }
+
+	.std-practice-wall .std-practice-tile {
+		flex-direction: row;
+		align-items: center;
+		gap: 0.5em;
+	}
+}
+
+/* THE PANEL. The only box on the Workbench with a background of its own, so the
+   only one with padding of its own. It hugs its content and sticks, because a
+   panel stretched to the height of a 24-tile wall would be a column of grey. */
+/* ⚠ CAPPED AT THE MEASURE, for the width at which the panel sits UNDER the wall
+     rather than beside it: there it took the whole main column — 919px at 1280 —
+     while its own two paragraphs stopped at 600, which is 320px of painted box
+     with nothing in it, the owner's sentence about padding exactly. Beside the
+     wall the track is already narrower than the measure and this does nothing. */
+.std-practice-detail {
+	max-width: var(--measure);
+	background: var(--fill-a04);
+	border: 1px solid var(--fill-a16);
+	border-radius: var(--radius);
+	padding: var(--pad);
+	display: flex;
+	flex-direction: column;
+	gap: calc(var(--gap) * 0.5);
+	position: sticky;
+	top: var(--gap);
+}
+
+.std-practice-detail-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: calc(var(--gap) * 0.5); }
+.std-practice-detail-icon { color: var(--prim-ink); }
+.std-practice .std-practice-detail-name { font-size: 1.4em; margin: 0; }
+.std-practice-detail-path { font-family: var(--mono); font-size: 0.8em; color: var(--std-practice-quiet); }
+.std-practice-detail-say { margin: 0; }
+
+.std-practice .std-practice-detail-label {
+	font-size: 0.75em;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--std-practice-quiet);
+	margin: 0;
+}
+
+.std-practice-detail-about { margin: 0; font-size: 0.95em; }
+
+.std-practice-detail-go {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35em;
+	align-self: start;
+	padding: 0.35em 0.8em;
+	border-radius: var(--radius);
+	background: var(--fill-a16);
+	color: var(--ink);
+	text-decoration: none;
+	font-weight: 600;
+}
+
+.std-practice-detail-go:hover { background: var(--fill-a32); }
+.std-practice-detail-go .icon { font-size: 1.1em; }
+
+/* ══ 5 · THE READER ═══════════════════════════════════════════════════════════ */
+
+/* THE ARTICLE. The one region on this site that must NOT take the room it is
+   offered: past about 40em a line is tiring to read, so the article holds its
+   measure and the leftover becomes the margin column instead. */
+.std-practice-article {
+	display: flex;
+	flex-direction: column;
+	gap: var(--flow);
+	max-width: var(--measure);
+}
+
+.std-practice-article > h2 { margin: 0; }
+.std-practice-article > .md { margin: 0; }
+
+/* THE MARGIN — ONE COLUMN, at every width, and that is a correction.
+
+   IT USED TO GO TO FOUR COLUMNS ON A WIDE SCREEN, to spend the leftover rather
+   than leave it grey. Measured at 3440 (2026-09-17), that spent it on WIDTH and a
+   margin has no more content when it is wider — it just has more empty: the four
+   blocks sat in ONE grid row, so the row was as tall as the tallest of them, and
+   two of the four carried tails of 905px and 1,483px while the region as a whole
+   still ended 726px above the article's bottom. "On this page" was five links in a
+   520px column with a thousand pixels of nothing under it.
+
+   ONE COLUMN AT 34rem INSTEAD, and the arithmetic comes out: the same four blocks
+   stacked in a 544px column are about 2,550px tall against the article's 2,700 —
+   the third region now earns its room in HEIGHT, beside the words it is about,
+   which is the only way a margin ever earns it. The leftover that is left goes to
+   the page's two gutters (`justify-content: center` on the grid, above), where a
+   reader reads it as a margin rather than as a hole. That is the difference
+   between these three layouts: a wall spends a wide screen honestly because it has
+   more items to show, and an article cannot, so above its ceiling it holds its
+   measure and centres.
+
+   No background, so no padding. 0.9em, because a note that shouts beside a
+   paragraph wins an argument it should have lost.
+   ⚠ `align-self: stretch` overrides the grid's `align-items: start` for this one
+     region, and it is what gives the sticky table of contents something to stick
+     inside: a box that hugs its content has nowhere to stick to past its own
+     bottom edge. `align-content: start` then keeps the ROWS content-sized.
+   ⚠ `max-width: var(--measure)` is for the SMALL form, where the margin sits under
+     the article instead of beside it: without it the blocks ran the full width of
+     the main column (918px at 1280) while their own text stopped at 612, which put
+     300px of empty fill inside every painted note box. Capped, the margin's left
+     AND right edges land on the article's. */
+.std-practice-margin {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: var(--flow) var(--gap);
+	align-content: start;
+	align-self: stretch;
+	max-width: var(--measure);
+	font-size: 0.9em;
+}
+
+.std-practice-margin-block { display: flex; flex-direction: column; gap: calc(var(--gap) * 0.6); align-content: start; }
+
+/* THE TABLE OF CONTENTS. `ext/toc` is `display: none` until a rule turns it on —
+   its own rule only fires for a toc that is a DIRECT child of the page, in a
+   82em viewport media query. This one line is the whole cost of reusing the
+   site's component (and its scroll spy) instead of writing a second one.
+   ⚠ (0,2,0), beating `.toc`'s (0,1,0) `display: none` on specificity, not on
+     load order. */
+.std-practice-toc .toc { display: block; }
+
+/* Sticky, which is the one thing the brief asks of it: a contents list that
+   scrolls away is a contents list you cannot use.
+   ⚠ It sticks inside its PARENT's box, not inside the window — so the margin is
+     the one region that stretches (above), or this would come unstuck at the
+     bottom of a box only as tall as four small blocks. */
+.std-practice-toc {
+	position: sticky;
+	top: var(--gap);
+	align-self: start;
+}
+
+.std-practice .std-practice-margin-label {
+	font-size: 0.8em;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--std-practice-quiet);
+	margin: 0;
+}
+
+.std-practice-margin-say { color: var(--std-practice-quiet); margin: 0; }
+
+.std-practice-figs { display: flex; flex-direction: column; gap: var(--gap); }
+
+/* A NOTE IS A BOX — it is a different kind of thing from the article beside it,
+   it paints, and so it is padded. */
+.std-practice-note-box {
+	background: var(--fill-a04);
+	border-radius: var(--radius);
+	padding: calc(var(--gap) * 0.6);
+	display: flex;
+	flex-direction: column;
+	gap: calc(var(--gap) * 0.2);
+}
+
+.std-practice-note-title { font-weight: 700; }
+.std-practice-note-body { margin: 0; color: var(--std-practice-quiet); }
+
+.std-practice-margin-go {
+	align-self: start;
+	padding: 0.35em 0.8em;
+	border-radius: var(--radius);
+	background: var(--fill-a08);
+	color: var(--ink);
+	text-decoration: none;
+	font-weight: 600;
+}
+
+.std-practice-margin-go:hover { background: var(--fill-a16); }
+
+/* ══ 6 · THE CATALOG ══════════════════════════════════════════════════════════
+
+   BANDS TOUCH. A band's breathing room is its OWN padding, and only a band that
+   paints has any; an unpainted band takes its air from the painted bands either
+   side of it. That is the owner's box rule applied to a stack of bands, and it
+   is why these four zero the page's `.flow` rhythm between them.
+   ⚠ `.page.flow > * + *` is `:where()`-wrapped, so it is (0,0,0) and a single
+     class beats it. Nothing here is fighting specificity. */
+/* EVERY BAND RESTORES THE PAGE'S OWN GUTTER, on the band itself — so the bar's
+   first letter, the hero's heading, the first card and the first footer link all
+   stand on ONE axis, and the padding sits on the same element as the paint.
+   ⚠ INLINE padding that restores the page axis is not decoration and is not what
+     the box rule is about — it is the opposite of floating. BLOCK padding is the
+     decoration, and only a painted band has any.
+   ⚠ `--gutter-x` IS A CLAMP IN `em` (`clamp(2em, 4%, 5em)`), so it re-resolves
+     against whatever font-size the element using it has. The footer carried a
+     `font-size: 0.9em` and its gutter came out 81px against every other band's
+     90px at 3440 — a 9px misalignment, invisible one band at a time and obvious
+     down the left edge of the page. The band keeps the page's font size; its
+     CONTENTS are what shrink (measured 2026-09-17). */
+.std-practice-topbar,
+.std-practice-hero,
+.std-practice-band,
+.std-practice-footer { margin-block: 0; padding-inline: var(--gutter-x); }
+
+/* ⚠ THE ONE PLACE "BANDS TOUCH" NEEDED AIR, AND IT IS A MARGIN, NOT PADDING. The
+   unpainted band takes its breathing room from the painted bands either side —
+   but the footer's room is INSIDE the footer's paint, so there was nothing at all
+   below the content band's last child: the fold's box ended 12px above the
+   footer's painted top edge at 3440 (measured 2026-09-17). A margin is air between
+   two boxes and not padding inside one, so the box rule at the top of this file is
+   untouched. */
+.std-practice-band { margin-block-end: var(--flow); }
+
+/* ── the bar ── the heaviest ground on the page, because chrome reads as chrome. */
+.std-practice-topbar { background: var(--fill-a08); padding-block: calc(var(--gap) * 0.4); }
+
+/* THE BAR KEEPS THE STRIP SHAPE AT EVERY WIDTH. Without these two rules the
+   container query above turned the Catalog's bar into a COLUMN of eight links
+   the moment the band passed 44rem — 290px of vertical chrome at 3440, shoving
+   the hero most of the way down the fold (measured 2026-09-17, in a screenshot;
+   every numeric check still passed, which is exactly why you look at it).
+   (0,2,0), so it beats the query's (0,1,0) whatever the order. */
+/* ⚠ AND IT SPANS THE BAND. Left-huddled, the eight links used the left third of a
+     PAINTED bar and left 2,176px of it empty at 3440 (878 at 1920) — the single
+     largest blank rectangle on any of these three pages. `space-between` puts the
+     brand on the page's own gutter axis and the last link on the axis the hero's
+     button and the wall's last card already end on, so the bar has both edges of
+     the page rather than one. */
+.std-practice-topbar .std-practice-rail {
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.std-practice-topbar .std-practice-rail-links {
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: 0 calc(var(--gap) * 0.55);
+}
+
+/* ── the hero ── the one height decision on the page, and it is a FOLD budget.
+   `vh`, never `vw`: a hero's ceiling is "how much of the first screen may I
+   take", and only `vh` knows how tall the screen is. A `26vw` band measured
+   894px at 3440 — tallest exactly where the page had the least vertical room. */
+.std-practice-hero {
+	background: var(--fill-a04);
+	min-height: clamp(13rem, 34vh, 26rem);
+	padding-block: var(--flow);
+	display: flex;
+	align-items: center;
+}
+
+.std-practice-hero-inner {
+	display: flex;
+	flex-direction: column;
+	gap: var(--gap);
+	width: 100%;
+
+	/* ⚠ THE CAP IS WHAT KEEPS THE HERO A COMPOSITION. As a row across the whole
+	     band, `space-between` put the words at x=90 and the two buttons at x=2,817
+	     — 2,007px apart at 3440, which reads as the buttons having fallen off the
+	     edge rather than as a hero. Capped at 96rem the pair sit 283px apart and
+	     the buttons end on 96rem, the same axis the fold below them ends on. The
+	     BAND still paints the whole width; only its content is bounded. */
+	max-width: min(100%, 96rem);
+}
+
+/* ON A WIDE BAND THE HERO IS A ROW: the words on the left, the way out on the
+   right. Stacked, a hero on a 3260px band paints its text into the left fifth
+   and leaves the other four empty — which is the same "random blank space" the
+   whole task is about, just horizontal. The words still hold the measure; only
+   the buttons move. */
+@container practice (min-width: 80rem) {
+	.std-practice-hero-inner {
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--flow);
+	}
+
+	.std-practice-hero-acts { flex: none; }
+}
+
+.std-practice-hero-acts { display: flex; flex-wrap: wrap; gap: calc(var(--gap) * 0.5); }
+
+/* The two ways out. Both are controls, so both are `em` of their own text. */
+.std-practice-act {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4em;
+	padding: 0.5em 1em;
+	border-radius: var(--radius);
+	background: var(--fill-a08);
+	color: var(--ink);
+	text-decoration: none;
+	font-weight: 600;
+}
+
+.std-practice-act:hover { background: var(--fill-a16); }
+
+/* ⚠ A LITERAL DARK INK on the accent, for the reason the brand mark has one:
+   `--ink` flips and the accent does not. 7.7:1 in both modes. */
+.std-practice-act-prim { background: var(--prim); color: #1a1a1a; }
+.std-practice-act-prim:hover { background: var(--prim); filter: brightness(0.94); }
+
+/* ── the content band ── no paint, so no block padding at all. Its rhythm is the
+   framework's own `.flow`, which the band-inner wears. */
+.std-practice-band-title { margin: 0; }
+.std-practice-band-say { color: var(--std-practice-quiet); }
+
+/* THE CARD WALL — 12 cards, so 1, 2, 3, 4 and 6 are the counts it may have, and
+   never 5. The first threshold is the one that matters most to a reader: the old
+   wall was ONE column all the way from 400 to 1040, so at a 1000 viewport every
+   card was 920px of paint holding a 584px sentence — 336px of empty fill, twelve
+   times down the page. A card is never narrower than 26rem or wider than 36rem at
+   any width on this ladder (measured). */
+/* ⚠ A BAND'S CONTAINER WIDTH IS ITS CONTENT BOX, not the viewport — the band
+     carries `padding-inline: var(--gutter-x)`, so `practice` here measures about
+     92% of the screen. Read off the live page: 344 at 400, 920 at 1000, 1177.6 at
+     1280, 1324.8 at 1440, 1766.4 at 1920, 3260 at 3440. These four numbers were
+     set against THOSE, not against the screen widths, and the first one exists
+     precisely because 920 is 57.5rem and a 58rem threshold would have missed it. */
+@container practice (min-width: 57rem)  { .std-practice-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@container practice (min-width: 82rem)  { .std-practice-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@container practice (min-width: 109rem) { .std-practice-cards { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@container practice (min-width: 172rem) { .std-practice-cards { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+
+.std-practice-card2 {
+	display: flex;
+	flex-direction: column;
+	gap: calc(var(--gap) * 0.3);
+	padding: calc(var(--gap) * 0.7);
+	background: var(--fill-a04);
+	border: 1px solid transparent;
+	border-radius: var(--radius);
+	color: inherit;
+	text-decoration: none;
+}
+
+.std-practice-card2:hover { background: var(--fill-a08); border-color: var(--fill-a16); }
+.std-practice-card2-id { font-family: var(--mono); font-size: 0.8em; color: var(--std-practice-quiet); }
+.std-practice-card2-name { font-size: 1.25em; font-weight: 700; }
+.std-practice-card2-say { margin: 0; color: var(--std-practice-quiet); }
+
+/* ── the footer ── six groups, and six is the count for the same reason twelve is
+   the wall's: it divides by every column count this footer reaches. */
+.std-practice-footer { background: var(--fill-a08); padding-block: var(--flow); }
+
+/* ⚠ The 0.9em is on the CONTENTS, never on the band — the band's own
+   `padding-inline` is an `em` clamp and would shrink with it. See the note on
+   the four bands above. */
+.std-practice-foot-cols,
+.std-practice-foot-note { font-size: 0.9em; }
+
+.std-practice-foot-cols {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: var(--gap);
+}
+
+@container practice (min-width: 26rem) { .std-practice-foot-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@container practice (min-width: 48rem) { .std-practice-foot-cols { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@container practice (min-width: 100rem) { .std-practice-foot-cols { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+
+.std-practice-foot-col { display: flex; flex-direction: column; gap: 0.2em; min-width: 0; }
+
+.std-practice .std-practice-foot-title {
+	font-size: 0.85em;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--std-practice-quiet);
+	margin: 0 0 calc(var(--gap) * 0.3);
+}
+
+/* No box, so no padding — the row height is a `min-height`, the same control
+   grammar the rail links use. */
+.std-practice-foot-link { color: var(--ink); text-decoration: none; display: flex; align-items: center; min-height: 1.9em; }
+.std-practice-foot-link:hover { text-decoration: underline; }
+.std-practice-foot-note { color: var(--std-practice-quiet); margin-block-start: var(--flow); }
+
+/* ══ 7 · THE INDEX ════════════════════════════════════════════════════════════
+
+   Three picture cards, three across or one — never two, because three cards in
+   two columns is a hole.
+
+   ⚠ TWO THINGS WENT WRONG HERE, and neither threw anything.
+     1. It was a CONTAINER QUERY on this very box. `.std-practice-index` was both
+        the container and the thing the query restyled, and a container cannot
+        restyle its own container — so the wall silently stayed at ONE column at
+        every width, 3440 included.
+     2. The obvious fix, framework.css's own `.grid.three`, then gave TWO columns
+        at 3440. Its clamp subtracts a flat `1rem` for the gap, and this site's
+        `--gap` is 43.5px up there: the 1070px track it asked for could only fit
+        twice in 3260px. Three cards in two columns is a hole.
+     So the switch is written out here with the REAL gap in it. The lower bound is
+     the exact width of one of three tracks with two `--gap`s between them, so
+     `auto-fit` lands on exactly three; the middle term goes negative — and the
+     lower bound therefore wins — the moment the box is wider than three columns
+     plus their gaps. Below that it is `100%`, which is one column. Never two. */
+/* ⚠ A CONTAINER, so the card below can be restyled by the wall's width. This is
+     the legal half of the trap at the top of this block: a box may not restyle
+     ITSELF from its own container query, but it may restyle its DESCENDANTS, and
+     the card is a descendant. */
+.std-practice-index {
+	--column: 20rem;
+	container-type: inline-size;
+	container-name: pcards;
+	display: grid;
+	gap: var(--gap);
+	grid-template-columns: repeat(auto-fit, minmax(clamp(
+		calc(100% / 3 - var(--gap) * 2 / 3),
+		(var(--column) * 3 + var(--gap) * 2 - 100%) * 999,
+		100%), 1fr));
+	margin-block: var(--flow);
+}
+
+.std-practice-card {
+	display: flex;
+	flex-direction: column;
+	gap: calc(var(--gap) * 0.5);
+	padding: calc(var(--gap) * 0.6);
+	background: var(--fill-a04);
+	border: 1px solid transparent;
+	border-radius: var(--radius);
+	color: inherit;
+	text-decoration: none;
+	min-width: 0;
+}
+
+.std-practice-card:hover { background: var(--fill-a08); border-color: var(--fill-a16); }
+
+/* ONE COLUMN MEANS ONE ENORMOUS PICTURE, unless it is capped. The wall is one
+   column from 400 to about 1040, and at a 1000 viewport that made a card 920px
+   wide holding a 920x575 jpeg: the first card's bottom edge was at y=920 against
+   an 800px fold, so a reader arriving at 1000 saw ONE picture and could not tell
+   there were three. Capped, the same card is 320px of picture and the three names
+   are all on the first screen. The cap is only for the one-column case — at three
+   columns the picture is the whole point and is left alone (measured 2026-09-17).
+   ⚠ The 61rem bound is the width at which the wall's own clamp switches to three
+     columns, worked out from `--column` and `--gap`; if either moves, this moves. */
+@container pcards (max-width: 61rem) {
+	.std-practice-card-shot { max-height: 20rem; }
+}
+
+/* `aspect-ratio` reserves the picture's height before it loads, so the wall does
+   not jump when three jpegs arrive. The shots are 1920x1200.
+   ⚠ NO BACKGROUND. An image IS its own paint; a placeholder fill behind one is a
+     painted box with no padding, which is the box rule broken for nothing. The
+     `aspect-ratio` already holds the space while it loads. */
+.std-practice-card-shot {
+	width: 100%;
+	aspect-ratio: 1920 / 1200;
+	object-fit: cover;
+	object-position: top left;
+	border-radius: calc(var(--radius) * 0.6);
+	box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.std-practice-card-say { display: flex; flex-direction: column; gap: calc(var(--gap) * 0.25); }
+.std-practice-card-name { font-size: 1.35em; font-weight: 700; }
+.std-practice-card-line { margin: 0; color: var(--std-practice-quiet); }
+.std-practice-card-id { font-family: var(--mono); font-size: 0.8em; color: var(--std-practice-quiet); }
+
+}

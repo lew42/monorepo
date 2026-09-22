@@ -1,0 +1,280 @@
+/* /layouts/browse/ — the layout browser. Three walls of picture cards, and one
+   item's page under each card.
+
+   ⚠ `std-` is /layouts/'s registered prefix (framework/styles/css-scopes.txt), so
+     every class here is `std-browse-*`. Nothing in this file touches a class that
+     layouts.css already owns — the frame, the three-width row (`.std-shots` /
+     `.std-shot`) and the chips (`.std-tags` / `.std-tag`) are BORROWED from there,
+     unchanged, so a wire drawn on this page and the same wire drawn on the layout's
+     own page are the same picture.
+
+   Everything is in @layer theme: this is a component's own look. */
+
+@layer theme {
+
+/* ── THE TIER STRIP ── three chips, each the way into one wall. It is the page's
+   navigation, so it sticks to the top of the reading area: at 3440 the third wall
+   is a very long way from the first, and a reader who has scrolled past the strip
+   has lost the only control on the page. */
+.std-browse-strip {
+	position: sticky;
+	top: 0;
+	z-index: 2;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5em;
+	padding-block: 0.6em;
+	/* The strip paints, because it slides over the cards — a sticky bar with no
+	   background of its own draws the wall straight through itself. `--wash` is the
+	   page's OWN background, so the bar is invisible until it has something to cover;
+	   `--surface` (white) made it a bright band across the page with nothing in it. */
+	background: var(--wash);
+}
+
+/* A tier chip. `.std-tag` does the shape; this only says what is different — the
+   name is not a tag, so it reads at full size, and the counts are quiet beside it. */
+.std-browse-tier { font-size: 0.95em; cursor: pointer; }
+.std-browse-tier b { font-weight: 700; }
+.std-browse-count,
+.std-browse-score { color: var(--subtle); font-variant-numeric: tabular-nums; }
+
+/* ⚠ THE BAR HAS TO STAY ONE LINE. At 400 the three chips wrapped to three and the
+     sticky bar stood 122px tall — 14% of a phone screen, held there permanently, on
+     the page whose whole job is pictures (measured 2026-09-17). The word "approved"
+     and the "to improve" tail are what did not fit, so below 34rem the score keeps
+     only its number ("0/45") and the bar is 51px at every width — which is also what
+     lets one `scroll-margin-top` below clear it everywhere. The full score is two
+     words away, on any item's page; the tier's own one-line description moved to the
+     chip's `title` for the same reason (page.js's own `strip()`). */
+@media (max-width: 34rem) {
+	.std-browse-score { display: none; }
+}
+
+/* ── A BAND'S HEADING ── `this.browse()` (ext/catalog) draws one per tier now — a
+   bare `h4.page-previews-group` — and this page only adds what its OWN sticky strip
+   needs from it: a scroll target.
+
+   ⚠ `scroll-margin-top` is why this rule exists at all. The strip above is sticky, so
+     a chip that scrolled its band to y:0 put that band's heading UNDERNEATH the bar
+     the reader had just pressed: 0px of it visible at 400, 1280, 1920 and 3440 alike
+     (measured 2026-09-17, when this page drew its own heading box). You pressed
+     "Components" and the word "Components" was the one thing you could not see.
+   ⚠ `rem`, not `em`. The body font on this site is a viewport clamp (14 → 18px), so
+     an `em` margin SHRINKS exactly where the bar is TALLEST — 6em measured 84px at
+     400 against an 85px bar and left 15px of the heading under it. The root font-size
+     is a constant 16px, so 6rem is 96px at every width and clears a 51–85px bar with
+     air to spare.
+   ⚠ Scoped to `.std-browse` (this page's own class on the `browse()` call, `page.js`)
+     — `browse()` is also `core/Layout/`'s and `ui/`'s own wall, and neither of them
+     has a sticky bar above it to clear. */
+.std-browse .page-previews-group { scroll-margin-top: 6rem; }
+
+/* `this.browse()`'s own wall is `auto-fit` with a `28em` card cap (ext/catalog's
+   `stage-cap`, 2026-09-18) rather than this page's old `auto-fill` — a short band's
+   last row may now stretch its cards up to 28em instead of leaving gutter. Every
+   tier here is large (24–48 items), so a short last row is the common case, not the
+   whole wall; accepted rather than re-forking the grid this page used to hand-roll. */
+
+/* ── A CARD ── a picture, a name, a verdict mark, and nothing else. The whole card
+   is the link, because a reader's target is the picture. */
+.std-browse-card {
+	display: flex;
+	flex-direction: column;
+	gap: 0.45em;
+	text-decoration: none;
+	color: inherit;
+	min-width: 0;
+}
+.std-browse-card:hover .std-browse-pic,
+.std-browse-card:hover .std-frame { box-shadow: inset 0 0 0 2px var(--prim); }
+
+/* THE PICTURE. A jpeg of the real page, or a wire drawn live from layouts.json —
+   both land in a box of the same shape, so a wall can hold a mixture of the two and
+   still read as one wall. 16/9, because that is what a screenshot of a desktop is.
+   ⚠ `aspect-ratio` gives the box a height with nothing measured, which is what lets
+     the wall lay out before a single jpeg has loaded — without it the whole page
+     reflows image by image. */
+.std-browse-pic {
+	aspect-ratio: 16 / 9;
+	width: 100%;
+	overflow: hidden;
+	border-radius: var(--radius);
+	box-shadow: inset 0 0 0 1px var(--line);
+	background: var(--fill-a04);
+}
+.std-browse-pic img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	object-position: top left;
+	display: block;
+}
+
+/* A card whose picture is a WIRE holds `.std-frame` from layouts.css, and that class
+   already draws the same box — the ratio, the radius, the hairline, the surface. So
+   the wrapper steps out of the way rather than drawing a second border around it. */
+.std-browse-pic:has(> .std-frame) { box-shadow: none; background: none; }
+
+.std-browse-name {
+	display: flex;
+	align-items: baseline;
+	gap: 0.4em;
+	font-weight: 600;
+	line-height: 1.25;
+}
+.std-browse-name span:first-child { min-width: 0; overflow-wrap: anywhere; }
+
+/* WHERE THE CARD COMES FROM — the module, and the word "drawing" when the picture is
+   a wireframe rather than a photograph. Quiet and small: it is the tie-breaker a
+   reader needs only when two names are the same, which on this wall is four times
+   (ui/ and ux/ each own a Tree, a Menu and a Pagination; two things are called
+   Sections). It sits under the name rather than beside it so it never competes with
+   it, and never pushes the verdict mark off the line. */
+.std-browse-from {
+	color: var(--subtle);
+	font-size: 0.8em;
+	line-height: 1.2;
+	margin-top: -0.2em;
+	overflow-wrap: anywhere;
+}
+
+/* THE VERDICT MARK — a check when the newest verdict approves, a pen when it asks
+   for a change, nothing at all when the owner has not looked yet. Nothing is the
+   right picture for "not judged": a grey dot on 94 cards would read as a state. */
+.std-browse-mark { margin-inline-start: auto; font-size: 1.1em; line-height: 1; }
+.std-browse-mark.is-approve { color: var(--ok, #2e7d32); }
+.std-browse-mark.is-improve { color: var(--warn, #b26a00); }
+
+/* ── AN ITEM'S PAGE ────────────────────────────────────────────────────────────
+   The three widths come first (`.std-shots` from layouts.css draws the row), then
+   the two buttons, then everything else one click down. */
+
+/* THE PICTURE AT ONE WIDTH, inside layouts.css's `.std-shot` — same flex-by-aspect
+   row the layout standard's own pages use, so a jpeg of a real page and a wire of an
+   abstract one sit in the same row at the same height. */
+.std-browse-shot {
+	width: 100%;
+	display: block;
+	border-radius: var(--radius);
+	box-shadow: inset 0 0 0 1px var(--line);
+	background: var(--fill-a04);
+	/* `--a` is the picture's aspect ratio, set on the `.std-shot` around it (the same
+	   custom property layouts.css's own three-width row uses). Declaring the ratio is
+	   what lets the row lay out before a single jpeg has arrived — without it the
+	   whole page reflows once per image as they load. */
+	aspect-ratio: var(--a);
+	object-fit: cover;
+	object-position: top left;
+}
+
+/* ── THE DECISION ── the one box on the item page, because it is the one thing the
+   page exists for. A box means a background different from its parent's, and a box
+   needs padding to go with it (the layout skill, 2026-09-17) — everything else on
+   this page is a plain line on the page's own ground, which is what makes this one
+   read as the answer the page is waiting for.
+
+   ⚠ Before it, Approve, Improve and "Open the real page" all computed to
+     `rgba(0,0,0,0.08)` on `rgb(63,63,63)` at weight 500 — three identical grey
+     buttons stacked in a column, the one that navigates AWAY looking exactly as
+     important as the two that record what the owner thinks (measured 2026-09-17).
+     The box is the hierarchy; no colour was spent on it. */
+.std-browse-decide {
+	display: flex;
+	flex-direction: column;
+	gap: 0.8em;
+	align-items: start;
+	padding: var(--pad);
+	background: var(--surface);
+	border-radius: var(--radius);
+	box-shadow: inset 0 0 0 1px var(--line);
+	max-width: var(--measure);
+}
+
+/* ── THE PHONE PUTS THE VERDICT FIRST ──────────────────────────────────────────
+   An item page is for the verdict (the owner, 2026-09-17).
+
+   At 40rem and up the three pictures share one row and the two buttons are a short
+   scroll below them. Below it that row stacks, and three stacked pictures put Approve
+   and Improve 1,043px down the page — past a screen and a third of scrolling at 400,
+   on the page whose whole job is those two buttons (measured 2026-09-17).
+
+   So a phone gets the decision directly under the heading, then the picture of its own
+   width, then the other two one tap down (`pictures()` builds that fold; no CSS can
+   open a `<details>`, which is why that half is in JS).
+
+   `order` is the whole move here. The four boxes stay in the desktop order in the DOM
+   — which is also the order a screen reader should hear them in — and only the seat
+   jumps. `39.99rem` is the same line `PHONE` uses in page.js; move one, move both.
+
+   ⚠ The OTHER THREE move, not the seat. `order: -1` on the seat put it above the
+     `<h1>` as well, because the heading is a child of the same page grid with the
+     default order of 0 (measured: seat at y=49, heading at y=147). Pushing the other
+     three to 1 leaves the seat tied with the heading, and a tie is broken by DOM
+     order — so the heading keeps its place and the decision lands directly under it. */
+@media (max-width: 39.99rem) {
+	.std-browse-shots,
+	.std-browse-lede,
+	.std-browse-rest { order: 1; }
+
+	/* ⚠ Both framework rhythm rules follow DOM order, not `order`, so both land on the
+	     wrong box here. `.page-title + *` puts its 1.5x heading rhythm on the pictures,
+	     which are DOM child one; and `.flow > * + *` skips them entirely, so with the
+	     seat now above them they would butt straight against it. Each box takes the
+	     rhythm it would have had in the position it is actually drawn in. */
+	.std-browse-seat  { margin-block-start: calc(var(--flow) * 1.5); }
+	.std-browse-shots { margin-block-start: var(--flow); }
+}
+
+/* THE OTHER TWO WIDTHS, folded — a phone only. It is a flex child of the pictures row,
+   so it takes a line of its own under the one picture above it. */
+.std-browse-more { width: 100%; }
+
+/* THE WAY OUT — a plain link on a plain line, under the box. It used to be a `.btn`
+   directly below the two verdict buttons, which read as a third verdict. */
+.std-browse-open { color: var(--subtle); }
+.std-browse-open a { font-weight: 600; }
+
+/* A CHIP THAT IS NOT A CONTROL. `.std-tag` in layouts.css turns accent-orange under
+   the pointer, which is right for the tag chips it was written for — every one of
+   those is a link. Two spans here wear the shape without the behaviour (the tier a
+   layout is in, and the badge an already-judged layout carries), and they lit up
+   exactly like the real "Every layout" link beside them with nothing to click. */
+.std-browse-flat:hover {
+	box-shadow: inset 0 0 0 1px var(--line);
+	color: inherit;
+}
+
+/* THE TWO BUTTONS. A row, wrapping, with the note field appearing beside Improve
+   rather than below it — a control that pushes the page down when you press it
+   reads as a mistake. */
+.std-browse-acts {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.6em;
+	width: 100%;
+}
+.std-browse-note {
+	flex: 1 1 22em;
+	min-width: 0;
+	max-width: var(--measure);
+}
+.std-browse-said { color: var(--subtle); }
+
+/* THE VERDICT, as it stands. A line, not a box: it is one sentence and a box around
+   it would be a background change with nothing to separate. */
+.std-browse-verdict { display: flex; align-items: baseline; gap: 0.5em; flex-wrap: wrap; }
+.std-browse-verdict .std-browse-mark { margin-inline-start: 0; }
+.std-browse-when { color: var(--subtle); font-size: 0.9em; font-variant-numeric: tabular-nums; }
+
+/* THE HISTORY — every verdict ever cast on this item, newest last. */
+.std-browse-history { display: flex; flex-direction: column; gap: 0.4em; }
+.std-browse-history > div { display: flex; gap: 0.5em; align-items: baseline; flex-wrap: wrap; }
+
+/* WHY IT IS THE WAY IT IS — the source module's own words, fetched and rendered.
+   Quieter than the page's own prose, because it is a quotation from somewhere else. */
+.std-browse-why { border-inline-start: 2px solid var(--line); padding-inline-start: var(--gap); }
+.std-browse-why h2, .std-browse-why h3 { font-size: 1em; }
+
+}

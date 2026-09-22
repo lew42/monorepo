@@ -11,7 +11,7 @@
 		border-top: 1px solid var(--line);
 	}
 
-	/* ⚠ `button.` on purpose, exactly as `toolbar.css` reclaims `.panel-btn`: the theme
+	/* ⚠ `button.` on purpose, exactly as `controls.css` reclaims `.panel-btn`: the theme
 	   styles every `button` as a small uppercase LABEL at 0-2-0, which is four times too
 	   wide for a 1em icon. The element selector takes the box back and leaves the voice. */
 	.panel-flow-bar button.panel-flow-btn {

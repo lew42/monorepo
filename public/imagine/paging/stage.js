@@ -971,11 +971,15 @@ export class PagingStage extends Page.Frame {
 	caption(){
 		const change = this.change;
 
-		// ⚠ The invitation has to match the page. On a stage whose navigation word is
-		//   `none` there are no page names to click, and the line said to click one.
-		if (!change) return p.c("muted", this.config.navigation === "none"
-			? "Change a word in the bar above. This line will say what changed, in pixels."
-			: "Click a page name, or change a word in the bar above. This line will say what changed.");
+		/* ⚠ AT REST IT NAMES ITSELF, AND NOTHING ELSE. It used to carry the
+		     instruction too — "Click a page name, or change a word in the bar above.
+		     This line will say what changed." — the same sentence on 20-odd pages,
+		     sitting 20px above each page's OWN sentence, which says the same thing
+		     and names the actual word ("Change the **room** dropdown, then read the
+		     line under the box"). Two instructions, one gesture. The page's `lede()`
+		     keeps the instruction; this line keeps the one fact only it knows, which
+		     is that it is a measuring line and it is about to fill in. (2026-09-17.) */
+		if (!change) return p.c("muted", "This line measures the box after every change.");
 
 		const moved = this.moved(change.before, change.after);
 

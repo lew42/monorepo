@@ -1,5 +1,5 @@
 import { div, h2, span, a, icon, md } from "/app.js";
-import { Paging } from "../paging.js";
+import { Paging, Stage } from "../paging.js";
 import { PRESETS, preset_url } from "../presets.js";
 import { nest_of } from "../url.js";
 
@@ -72,10 +72,38 @@ export default new Paging({
 
 		h2("All twelve");
 
-		div.c("paging-cards", () => PRESETS.forEach(preset =>
-			a.c("paging-card").href(preset_url(preset)).append(() => {
-				span.c("paging-card-head", () => { icon(preset.icon); span(preset.title); });
-				span.c("paging-card-say", preset.one_line);
-			})));
+		div.c("paging-wall-live wide", () => PRESETS.forEach(preset => this.preset_shot(preset)));
+	},
+
+	/* ONE PRESET, AS A LIVE MINIATURE. The card holds the preset RUNNING — the same
+	   `Stage` the full-size page uses, at 0.6em in a clipped frame — so the wall is
+	   twelve pictures of twelve page shapes rather than twelve sentences about them.
+
+	   ⚠ THIS WALL CAME FROM THE HUB on 2026-09-17. It lived on the realm's front page,
+	     under "Twelve pages, ready made", while THIS page — the one called Library,
+	     whose whole job is the twelve — drew them as twelve TEXT cards. The hub is one
+	     screen now (the owner's brief: the six building blocks as picture cards, and
+	     the way in), so the twelve came to the page that is about them and arrived as
+	     pictures rather than sentences.
+
+	   ⚠ `inner: true` — a nested stage draws no path bar, no caption, cannot take the
+	     screen, and never touches the address bar. Twelve stages writing one url would
+	     fight.
+	   ⚠ NOT `card()`. Core's `Page.nav()` reads `this.card` as the card CLASS for a
+	     preview, so a method of that name is handed to `.ac()` as a function and every
+	     preview on the parent's wall throws. Met three times in this realm. */
+	preset_shot(preset){
+		return a.c("paging-shot").href(preset_url(preset)).append(() => {
+			div.c("paging-shot-frame", () => {
+				new Stage({ config: preset.config, nest: nest_of(preset.nest), inner: true });
+			});
+
+			span.c("paging-shot-head", () => {
+				icon(preset.icon);
+				span(preset.title);
+			});
+
+			span.c("paging-shot-say", preset.one_line);
+		});
 	},
 });

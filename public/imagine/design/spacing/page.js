@@ -1,4 +1,4 @@
-import { Page, md, h2, p, figure, figcaption, img, a } from "/app.js";
+import { Page, md, h2, p, span, figure, figcaption, img, a } from "/app.js";
 
 const here = new URL(".", import.meta.url).pathname;
 
@@ -42,7 +42,7 @@ const shot = s => figure.c("flex v gap").style({ margin: 0, gap: "0.4em" }).appe
 
 export default new Page({
 	meta: import.meta,
-	children: "ceilings audit",
+	children: "ceilings audit nesting",
 	title: "Spacing",
 	description: "Every /imagine/ realm's vertical spacing, measured box by box at 1280 and 3440 — the neighbour-ratio pairs with no legitimate reason, the cramped ranking, and one proposal that fixes all three.",
 	icon: "height",
@@ -59,6 +59,11 @@ export default new Page({
 		md.details(import.meta, "decision.md", "The decision — 2026-09-05, the spacing judge: the scale, the three levels, the control rule");
 
 		md("**What was measured:** every `/imagine/` realm's landing page, plus `/imagine/design/padding/` as a control — 1,166 visible boxes at 1,280px and 1,166 at 3,440px, each one's own padding, margin, container gap, inherited `--flow`, and the *real* rendered distance to its previous and next sibling ([raw tables + method](" + "/framework/ai/2026-09-05/spacing-study/" + ")). **The one rule the numbers suggest:** `.page-previews` (the wall `previews()` draws, used by 13 of these 22 realms) carries its own flat `--gap: 0.8em` instead of the site's `--flow`/`--gap-default` clamp — that single token is behind both defects below.");
+
+		p(() => {
+			a("Nesting is padding").href(here + "nesting/");
+			span(" — the same three-level list of information as cards in cards in cards, as two levels, as a flat list, and as a tree, with live readouts of how much room each shape leaves for the actual words at 400 and at 1280.");
+		});
 
 		h2("The neighbour ratio");
 		p.c("muted", "For every run of siblings, the ratio between one gap and the next gap right beside it (the larger over the smaller) — 504 such comparisons. Half read exactly 1× (perfectly even rhythm); 90% stay under 2.26×. 21 pairs cross 2.5×: 18 have a legitimate reason (a heading, a card/section boundary, a collapsible `<details>`, a game-board grid laid out to the pixel, or a grid row-wrap where the “next sibling” in DOM order is really the next ROW, not a real vertical neighbour — that last one is a measurement trap this crawl found and corrected, not a design defect: /imagine/review/'s uniform 6.8px column gaps first read as an 8.2× spike before the fix). **3 have no reason at all** — every one of them the same defect.");

@@ -45,7 +45,7 @@ function preview_shapes(){
 			lines(2);
 		});
 
-		card("Picture beside", "/framework/core/Page/", () => {
+		card("Picture beside", "/framework/core/Page/doc/method/preview_card/", () => {
 			// ⚠ Block bodies: a captured callback's return value is appended too, and
 			// the second append MOVES the element.
 			div.c("flex gap").append(() => {
@@ -142,7 +142,7 @@ built version.`);
 
 		md(`## What it points at
 
-- [\`children:\`](/framework/core/Page/doc/declaring/) — the note's
+- [\`children:\`](/framework/core/Page/doc/property/children/) — the note's
   \`pg.sub("one", "two", "three")\`, shipped, spelled as one string. A parent names its
   children and they are imported when the page needs them; nothing crawls the disk.
 - [previews](/framework/core/Page/doc/previews/) — the preview card, built: a page
@@ -158,7 +158,7 @@ built version.`);
   compositions you can read a page out of.
 - [ext/markdown](/framework/ext/markdown/) — \`md({file})\`, built as \`md.file(import.meta,
   "name.md")\`, resolved against the **module** rather than the document.
-- [Themes](/framework/styles/layers/theme/) — the note picks option (b), and option (b) is
+- [Themes](/framework/styles/doc/theme/) — the note picks option (b), and option (b) is
   what shipped: a theme is a class, not a stylesheet swap.
 
 The auto-render question is answered by the shape every page in this repo now has:

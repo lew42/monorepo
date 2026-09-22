@@ -42,7 +42,7 @@ export const PAGES = [
 	"/blog/", "/blog/framework/hello-lew42/",
 	"/notes/", "/notes/just-a-note/", "/notes/scale-1920-to-3413/",
 	"/imagine/platform/", "/imagine/platform/mvp/",
-	"/imagine/design/size/", "/imagine/design/spacing/", "/imagine/design/controls/",
+	"/framework/styles/system/studies/size/", "/framework/styles/system/studies/spacing/", "/framework/ui/controls/study/",
 	"/framework/styles/layouts/400/", "/framework/styles/layouts/anatomy/",
 	"/framework/styles/layouts/bold-editorial/", "/framework/styles/layouts/carousel/",
 	"/framework/styles/layouts/cols/", "/framework/styles/layouts/dashboard/",

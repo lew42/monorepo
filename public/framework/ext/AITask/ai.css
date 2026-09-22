@@ -2,9 +2,39 @@
    `muted` off framework.css. */
 @layer theme {
 
-	.ai-log { display: flex; flex-direction: column; gap: calc(var(--gap) * 1); min-width: 0; }   /* was gap 1em - 2026-09-05 ramps */
+	/* The AI page's head: the title and the version picker on one row (2026-09-19).
+	   The picker hugs its label; the row wraps only when a phone has no room. */
+	.ai-head { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25em 1em; }
+	/* Moved out of the page's own box, the h1 lost the size the catalog gave it and
+	   fell back to the theme's flat 3em; this is the size it had. */
+	.page .ai-head > h1.page-title { margin: 0; font-size: 1.5rem; line-height: 1.2; }   /* outranks Page.css's `.page h1.page-title` */
+	.ai-head > .ai-version-trigger { flex: 0 0 auto; }
+	/* framework.css spaces whatever FOLLOWS a page title (`.page-title + *`); in a row
+	   that pushed the picker 30px below the title it sits beside. */
+	.ai-head > .page-title + * { margin-block-start: 0; }
 
-	.ai-header { display: flex; align-items: baseline; gap: calc(var(--gap) * 0.5); flex-wrap: wrap; }   /* was gap .5em - 2026-09-05 ramps */
+
+	/* ⚠ A task page claims the `wide` track (AITask.js `content()`) because it is a
+	   wall of cards, a conversation and four tables of figures — none of which fit
+	   the 602px reading column at 1280. Prose is the exception and keeps its
+	   measure, exactly as `.page-column-prose` does in core/Page/Page.css: the
+	   frame is wide, the sentences are not. `.wide` on a block opts back out. */
+	/* ⚠ And the measure has to be handed BACK first. `ext/tabs`' own rule says
+	     `.tab-panel { --measure: none }` — a tab's content is meant to fill its
+	     panel — and this page borrows those classes for its tab bar, so a cap
+	     read from the token inside a panel resolves to `none` and silently does
+	     nothing: paragraphs measured 858px at 1280 with the rule matching and
+	     the browser reporting `max-width: none` (2026-09-17). Re-declared here,
+	     scoped to this page, so `ext/tabs` keeps its own behaviour everywhere
+	     else. 40em is the number `--measure` carries, said out loud. */
+	.ai-task .tab-panel { --measure: 40em; }
+
+	.ai-task :is(p, h1, h2, h3, h4, h5, h6, ul, ol, blockquote) {
+		max-width: var(--measure, 40em);
+	}
+	.ai-task :is(.wide, .bleed) { max-width: none; }
+
+	.ai-header { display: flex; align-items: baseline; gap: var(--gap-50); flex-wrap: wrap; }   /* was gap .5em - 2026-09-05 ramps */
 
 	/* One line each, ellipsis past the fold; `title` carries what this clips.
 	   ⚠ It lives on `wide` now (`.ai-timeline`, dashboard.js) — clipping a
@@ -24,42 +54,388 @@
 	.ai-timeline .ai-fold-bar::before { content: "▸ "; }
 	.ai-timeline .ai-fold.open .ai-fold-bar::before { content: "▾ "; }
 
-	/* `.cols.main-aside` (framework.css) — the rail is DOM-second (so it gets the
-	   capped share) and `order: -1` puts it back on the left; stacks below its own
-	   34rem floor, which replaced the 60em media query this used to need. */
-	.ai-columns { --cols-aside: 38em; --cols-align: start; }
+	/* ── The Asks tab — what the owner asked for, as preview cards ─────────────
+	   A wall, so `auto-fill`: `auto-fit` would collapse the empty tracks and hand
+	   a lone card the whole 2,900px at 3440 (framework.css says the same, with the
+	   measurements). 17em is three columns at 1280, which is one screen for a
+	   dozen asks — the whole point of the tab. */
+	/* ⚠ Cards STRETCH to their row, they are not content-sized: one ask whose task
+	     logged several links is twice the height of its neighbours, and with
+	     `align-items: start` that left a ragged hole in the wall at 1280. Equal
+	     heights plus `margin-block-start: auto` on the foot puts every chip row on
+	     the same baseline instead. */
+	.ai-asks {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(min(17em, 100%), 1fr));
+		gap: var(--gap);
+	}
+	.ai-asks > * { margin: 0; }
 
-	.ai-rail { order: -1; display: flex; flex-direction: column; gap: calc(var(--gap) * 0.75); min-width: 0; }   /* was gap .75em - 2026-09-05 ramps */
+	.ai-asks-head { margin-block-end: var(--gap-50); }
 
-	.ai-thread { padding: .5em .75em; cursor: pointer; }
-	.ai-thread .ai-meta { display: flex; gap: calc(var(--gap) * 0.5); align-items: baseline; }   /* was gap .5em - 2026-09-05 ramps */
+	/* A topic heading belongs to the wall UNDER it. The flow owl would put a
+	   full `--flow` between heading and wall AND between wall and next heading,
+	   which reads as three unrelated boxes; pulling the wall up to a half-gap
+	   binds each label to its own cards. The owl is `:where()` — zero
+	   specificity — so a plain class pair wins with nothing to fight. */
+	.ai-asks-topic + .ai-asks { margin-block-start: var(--gap-50); }
 
-	/* Sticky so a long thread reads beside the rail, not below it. */
-	.ai-detail { position: sticky; top: 0; max-height: 100dvh; overflow-y: auto; display: flex; flex-direction: column; gap: calc(var(--gap) * 0.75); min-width: 0; }   /* was gap .75em - 2026-09-05 ramps */
+	/* ⚠ THE GRIP NEEDS ITS OWN GUTTER on a heading too, same reason as the card and
+	     the decision row below: `:has()`, so a read-only page (no socket) keeps
+	     exactly the padding it had. */
+	.ai-asks-topic:has(> .ai-rank-grip) { position: relative; padding-inline-end: 1.8em; }
+	.ai-asks-topic > .ai-rank-grip { top: .1em; }
 
+	/* ── FOOTNOTES — a band's own tail, folded ─────────────────────────────────
+	   A `rank` line's `fold` cuts a band to its first N cards; the rest stay
+	   ordinary grid items (so the grip on every one keeps working, and dragging
+	   never has to reach into a nested box) and CSS alone hides them until the
+	   bar below is clicked. Full width, like the detail sheet it sits beside. */
+	.ai-asks-fold-toggle {
+		grid-column: 1 / -1; cursor: pointer;
+		padding: .25em .75em; color: var(--prim); font-weight: 600;
+	}
+	.ai-asks:not(.show-folded) .ai-ask-folded { display: none; }
+
+	/* A card paints its own ground, so it is padded — a box without a background
+	   would not be, and the padding would just float it off the margin (the owner's
+	   rule, 2026-09-17). `--pad` is 1em in a box this narrow, by its own clamp. */
+	.ai-ask {
+		display: flex; flex-direction: column; gap: var(--gap-35);
+		padding: var(--pad); border-radius: .4em; cursor: pointer; min-width: 0;
+		outline: 1px solid transparent;
+	}
+	.ai-ask:hover { outline-color: color-mix(in srgb, var(--prim) 45%, transparent); }
+	.ai-ask.active { outline: 2px solid var(--prim); }
+
+	.ai-ask-title { font-weight: 700; color: var(--prim-ink); }
+
+	/* A card opens. Nothing said so: the only cue was `cursor: pointer` and a hover
+	   outline, neither of which exists in a screenshot or under a thumb. The
+	   triangle is this page's own word for "there is more inside me" — the same one
+	   `.ai-timeline` uses — and it flips when the card is open. */
+	.ai-ask > .ai-ask-title::before { content: "▸ "; opacity: .5; }
+	.ai-ask.active > .ai-ask-title::before { content: "▾ "; opacity: .5; }
+
+	/* Two lines, then ellipsis — a card is a glance, and the verbatim quote is
+	   one click below it in the details region. */
+	.ai-ask-line { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+	/* Cards STRETCH to their row, so a card with no picture beside three that have
+	   one carries a 160px hole above its chips (2 of 13 on this run: a task that
+	   shot nothing, and an ask with no task yet). The branch is worth its keep
+	   because the space goes back to the ask's own words instead of furniture —
+	   no box, no padding, nothing new to learn. */
+	.ai-ask:not(:has(.ai-ask-pic, .ai-ask-shot)) .ai-ask-line { -webkit-line-clamp: 8; }
+
+	/* The status and the chips sit on the card's floor, so they line up across a
+	   row however long the summary above them ran. */
+	.ai-ask-foot { margin-block-start: auto; padding-block-start: var(--gap-35); }
+
+	/* A chip is a CONTROL: its padding stays in its own em, never a spacing clamp
+	   (a clamp caps at 2.6em and would make this 40px tall at 3440). */
+	.ai-ask-status {
+		font-size: .8em; letter-spacing: .04em; text-transform: uppercase; font-weight: 700;
+		padding: 0 .6em; border-radius: 999px;
+		outline: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+	}
+	.ai-ask-status.building { color: var(--prim); outline-color: var(--prim); }
+	.ai-ask-status.landed { color: var(--ok); outline-color: var(--ok); }
+
+	/* ⚠ A row of CHIPS is spaced in the chips' own em, never `--gap`. The spacing
+	     clamp caps at 2.6em, so at 3440 the `gap` utility put 47px between two
+	     pills — no two of them fit on a line, every card grew a third chip row,
+	     and the wall went to 530px cards with 250px of white inside them
+	     (measured 2026-09-17). `.gap` lives in `@layer util` and cannot be
+	     overridden from here, so the class comes off the markup instead. */
+	.ai-ask-foot, .ai-ask-links, .ai-links { gap: .5em; }
+
+	.ai-ask-links:empty { display: none; }
+	.ai-ask-shot { max-width: 12em; }
+
+	/* The preview: a picture of what the work produced, cropped from its top-left
+	   corner because a screenshot's top-left is the part you recognise. It costs
+	   about 160px a card at 1280 and it is what the owner asked the wall to be —
+	   "listed as previews, when possible". */
+	.ai-ask-pic { overflow: hidden; border-radius: .3em; }
+	.ai-ask-img {
+		display: block; width: 100%; aspect-ratio: 16 / 9;
+		object-fit: cover; object-position: top left;
+		background: color-mix(in srgb, currentColor 6%, transparent);
+	}
+
+	/* Level 2, inside the wall and in the same page — never a new url. `asks.js`
+	   moves this box under the ROW of the card that was clicked, so it spans every
+	   column; it is empty until then, so it costs nothing and takes no grid track. */
+	.ai-ask-detail { grid-column: 1 / -1; }
+	.ai-ask-detail:empty { display: none; }
+	.ai-ask-sheet { padding: var(--pad); border-radius: .4em; }
+
+	/* What was asked, displaced from the card's own title once a `conclusion`
+	   took that title's place (2026-09-18) — a small label (reuses
+	   `.ai-group-title`) then the sentence, tight together like `.ai-ask-weighed`
+	   below rather than page rhythm's full `--flow`, because a label and the one
+	   line it introduces are one thing to read, not two paragraphs. */
+	.ai-ask-asked { display: flex; flex-direction: column; gap: var(--gap-25); }
+	.ai-ask-asked > p { margin: 0; }
+
+	/* The answer of one serving task, in one line, above the lines where it was
+	   weighed. No ground of its own, so no padding — weight is the whole cue. */
+	.ai-ask-head { font-weight: 600; }
+
+	/* The weighing, as a tight list: page rhythm (`--flow`, up to 2.5em) between
+	   six one-line entries reads as six unrelated paragraphs, not one list. */
+	.ai-ask-weighed { display: flex; flex-direction: column; gap: var(--gap-35); }
+	.ai-ask-weighed > p { margin: 0; }
+	.ai-ask-close { font-size: .85em; }
+	/* A card's pill lives in a 17em column and is cut to 14em; the sheet is the
+	   full page wide, so a deliverable's real name fits here. */
+	.ai-ask-sheet .ai-link { max-width: 24em; }
+	.ai-ask-task-name { font-weight: 700; }
+	/* ⚠ `.75em` stays em, and this is the second half of the spacing rule: an inset
+	     tied to a LETTERFORM - the space between a quote rule and the text it marks -
+	     scales with the text, not with the container. A rung here is 10.5px at 1280
+	     and 32px at 3440 against 13.5px of text. */
+	.ai-ask-decision { border-inline-start: 2px solid var(--prim); padding-inline-start: .75em; }
+
+	/* ── NEEDS YOU — the few things only the owner can do ─────────────────────
+	   One box with its own ground, so it reads as a thing set apart from the
+	   board rather than another card on it; a ground means padding (the owner's
+	   rule, 2026-09-17). Inside, the lines are peers and get nothing — the set
+	   is a list you scan, not a set of alternatives you choose between.
+	   Silent when empty: `needs.js` draws no box at all. */
+	.ai-needs {
+		display: flex; flex-direction: column; gap: var(--gap-35);
+		padding: var(--pad); border-radius: .4em;
+		border-inline-start: 3px solid var(--prim);
+	}
+	.ai-needs-head { margin-block-end: var(--gap-25); }
+
+	/* ⚠ The row's gap is in its OWN em, never `--gap`: the clamp caps at 2.6em,
+	     which would put 47px between a "5 min" badge and the sentence it belongs
+	     to at 3440 — the same trap the ask cards' chip row met. */
+	.ai-need { gap: .6em; }
+
+	/* The minutes LEAD, and they line up: this is a list you scan for "what can
+	   I clear right now", and a ragged left edge makes that scan a reading job.
+	   A badge is a control, so its padding stays in em. */
+	.ai-need-mins {
+		flex: none; min-width: 4.5em; text-align: end;
+		font-weight: 700; font-variant-numeric: tabular-nums; color: var(--prim);
+	}
+	.ai-need-what { flex: 1 1 14em; min-width: 0; }
+	.ai-need-where { flex: none; }
+
+	/* The same claim on the ask's own card, so the wall and the strip agree. */
+	.ai-ask-needs {
+		align-self: start; font-size: .8em; font-weight: 700;
+		letter-spacing: .04em; text-transform: uppercase;
+		padding: 0 .6em; border-radius: 999px;
+		color: var(--prim); outline: 1px solid color-mix(in srgb, var(--prim) 40%, transparent);
+	}
+
+	/* ── RANKING — the grip that drags a card or a row into the owner's order ──
+	   A DEDICATED grip, never the whole row: both an ask card and a decision row
+	   open on a click, and `ext/Draggable` starts a drag on the first pointerdown
+	   with no movement threshold (`ux/Tree` and `ext/Panel` landed here too).
+	   `cursor: grab`, `touch-action: none` and `user-select: none` arrive with
+	   `.drag-handle`, which Draggable adds — draggable.css owns those.
+	   Drawn only where there is a dev server to write the new order to. */
+	.ai-rank-grip {
+		position: absolute; inset-inline-end: .35em;
+		font-size: .9em; line-height: 1; padding: .15em .3em; border-radius: .25em;
+		opacity: .4; color: inherit;
+	}
+	.ai-rank-grip:hover { opacity: 1; outline: 1px solid var(--line); }
+
+	/* The grip needs a gutter of its own, or it sits on top of the title on a
+	   card and on the status chip on a row. `:has()`, so a read-only page (no
+	   socket, no grip) keeps exactly the padding it had. */
+	.ai-ask:has(> .ai-rank-grip) { position: relative; padding-inline-end: calc(var(--pad) + 1.1em); }
+	.ai-ask > .ai-rank-grip { top: .35em; }
+
+	.ai-decision:has(> .ai-rank-grip) { position: relative; padding-inline-end: 1.8em; }
+	.ai-decision > .ai-rank-grip { top: var(--gap-35); }
+
+	/* ── The Decisions tab — every choice, with the options it was made over ───
+	   Level 1 is a LIST, not a wall: a dozen decisions have to fit one screen,
+	   and a question is a sentence, which a 17em card would wrap four times.
+	   Each row is one line high until it is opened. */
+	.ai-decisions { display: flex; flex-direction: column; gap: var(--gap-35); }
+	.ai-decisions-head { margin-block-end: var(--gap-50); }
+
+	/* No ground on a closed row: the rows are peers, and "siblings that are
+	   roughly equal get nothing" (the owner, 2026-09-17). The OPTIONS inside get
+	   boxes, because those are the alternatives. */
+	.ai-decision { border-block-start: 1px solid var(--line); padding-block-start: var(--gap-35); }
+	.ai-decision-line { cursor: pointer; gap: .5em; }
+	.ai-decision-about { font-weight: 600; }
+	.ai-decision-about::before { content: "▸ "; opacity: .5; font-weight: 400; }
+	.ai-decision.active .ai-decision-about::before { content: "▾ "; }
+	/* ⚠ `margin-inline-start: auto`, not `split` alone: the row wraps when the
+	     question is long, and on a wrapped second line `space-between` has only
+	     one item to push, so the mark landed LEFT on two rows of seven and right
+	     on the other five. `auto` puts it on the right of whichever line it
+	     ends up on. */
+	.ai-decision-chose { gap: .5em; min-width: 0; margin-inline-start: auto; }
+
+	/* A chip is a CONTROL: its padding stays in its own em, never a spacing
+	   clamp (a clamp caps at 2.6em and would make this 40px tall at 3440). */
+	.ai-decision-status {
+		font-size: .8em; letter-spacing: .04em; text-transform: uppercase; font-weight: 700;
+		padding: 0 .6em; border-radius: 999px;
+		outline: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+	}
+	.ai-decision-status.approved { color: var(--ok); outline-color: var(--ok); }
+	.ai-decision-status.improve { color: var(--error); outline-color: var(--error); }
+
+	.ai-decision-body { margin-block-start: var(--gap-50); }
+
+	/* ⚠ `.ai-task :is(… ul …)` caps every list on this page at the 40em measure,
+	     which would squeeze the option grid back to one column on a 1419px tab.
+	     The options are a WALL, not prose — handed the width back here. */
+	.ai-task .ui-decision-options { max-width: none; }
+
+	/* The rule that produced the decision. A chip, NOT a link: skills live in
+	   `.claude/skills/`, outside `public/`, so nothing serves them and a link
+	   would 404 — `decisions.js` has the whole argument. Monospace, because it
+	   is a path you retype. */
+	.ai-decision-rule {
+		align-self: start;
+		font-family: var(--mono); font-size: .85em;
+		background: var(--wash); border-radius: 999px; padding: .1em .7em;
+	}
+
+	.ai-decision-note { color: var(--error); }
+
+	/* The two buttons and the note field: controls, so every length here is em. */
+	.ai-decision-acts, .ai-decision-note-row { gap: .5em; }
+	.ai-decision-act { font-size: .9em; }
+	.ai-decision-input { max-width: 28em; }
+
+	/* ⚠ A CONTROL - a disclosure toggle you click - so its own padding is em, not a
+	     spacing token. (The spacing census read this row as `raw` because the class
+	     is not named like a button; it was right all along.) */
 	.ai-fold-bar { cursor: pointer; padding: .25em .75em; }
 	.ai-fold-body { display: none; }
 	.ai-fold.open > .ai-fold-body { display: block; }
 
 	.ai-msg { overflow-wrap: anywhere; }
-	.ai-msg.sidechain { margin-inline-start: 2em; }
+	.ai-msg.sidechain { margin-inline-start: var(--flow); }
 
 	.ai-tool, .ai-result { overflow-x: auto; max-height: 20em; white-space: pre-wrap; }
 
 	.ai-img { max-width: 100%; }
 
+	/* ── The Session tab — a transcript read as a conversation ─────────────────
+	   Stream and rail are one wrapping flex row: side by side while both bases
+	   fit (39rem of content), stacked below that with the rail on top, which is
+	   the "beside or above" the brief allowed. No media query decides that — the
+	   bases do, so it is right in a narrow column as well as a narrow window. */
+	.ai-chat { display: flex; flex-wrap: wrap; gap: var(--gap); align-items: start; }
+	.ai-chat-bar { flex: 1 0 100%; }   /* its own line, above both columns */
+
+	/* ⚠ Capped, and the leftover at 3440 stays empty on purpose: widening a
+	     reading column is never the fix for dead space. Prose inside is capped
+	     again at `--measure` by `.ai-task`'s rule above; the extra room here is
+	     for what is NOT prose — a folded tool result, a screenshot, a table. */
+	.ai-chat-stream {
+		flex: 1 1 24rem; min-width: 0; max-width: 60em;
+		display: flex; flex-direction: column; gap: var(--flow);
+	}
+
+	/* The prompts rail: every message the owner typed, in order. It scrolls on
+	   its own — a deliberate scrollbar, not a side effect: the conversation beside
+	   it is thousands of lines long and the index has to stay in reach. */
+	.ai-chat-rail {
+		flex: 0 1 15rem; min-width: 0;
+		position: sticky; top: 0; max-height: 85dvh;
+		display: flex; flex-direction: column;
+	}
+	/* ⚠ `display: flex` above beats the browser's own `[hidden] { display: none }`,
+	     so `el.hidden = true` on this box did nothing at all and the one-item rail
+	     stayed on screen (measured 54px tall while "hidden", 2026-09-17). Any box
+	     given a `display` has to say what hidden means for itself. */
+	.ai-chat-rail[hidden] { display: none; }
+	/* The head names the column and stays put while the list under it scrolls —
+	   a reader arriving mid-page has to be able to tell what this column is. */
+	.ai-rail-head { font-size: .8em; letter-spacing: .04em; text-transform: uppercase; font-weight: 700;
+		flex: none; padding-block-end: var(--gap-35); }
+	/* ⚠ `.2em`, not a rung: the rows are `.ai-prompt`, controls, and this is the
+	     space between two of them - under a quarter of the gap is control
+	     territory, where the control's own em is the rule. A rung here read
+	     9.2px at 3440 between 21px rows. */
+	.ai-rail-list { flex: 0 1 auto; min-height: 0; overflow-y: auto;
+		display: flex; flex-direction: column; gap: .2em; }
+	/* ⚠ `flex: none` or the rail never scrolls — it SQUASHES. The rail is a flex
+	     column with a `max-height`, and a flex item shrinks before its container
+	     overflows, so 64 prompts were compressed into 935px at 14.6px a row and
+	     every line rendered as the clipped top third of its own letters: legible
+	     as specks, and nothing thrown (measured 2026-09-13's session, 2026-09-17). */
+	.ai-prompt {
+		display: flex; align-items: baseline; gap: .5em; flex: none;
+		min-width: 0; text-decoration: none; color: inherit; font-size: .9em; padding-block: .15em;
+	}
+	/* The label truncates; the time never does. Two rows reading "/mastermind" are
+	   told apart by their clock and by nothing else. */
+	.ai-prompt-text { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+	.ai-prompt-at { flex: none; font-size: .85em; font-variant-numeric: tabular-nums; }
+	.ai-prompt:hover { color: var(--prim); }
+
+	/* Stacked, the rail is a short list above the stream, not half a phone screen.
+	   The viewport query is a proxy for "the flex row wrapped" — close enough here,
+	   because this box is always most of the page's width. */
+	@media (width < 48em) {
+		.ai-chat-rail { position: static; max-height: 14em; }
+		/* A thumb, not a mouse: a 0.15em row is a 21px target. The list is what
+		   scrolls here, so its rows get the height a finger needs. */
+		.ai-prompt { padding-block: .5em; font-size: 1em; }
+	}
+
+	.ai-turn { display: flex; flex-direction: column; gap: var(--gap-50); min-width: 0; }
+
+	/* ONE cue tells you who is talking: the owner's message is a box with its own
+	   ground, Claude's reply is the bare page. No labels, no second colour, no
+	   left/right sides — the alternation is legible on its own. */
+	/* The box stops where its text does — the measure plus its own padding — so a
+	   wide screen does not get a 1,080px card around a 720px sentence. */
+	.ai-you {
+		padding: var(--gap-70);
+		max-width: calc(var(--measure, 40em) + 3em);
+		border-radius: .4em; min-width: 0; overflow-wrap: anywhere;
+		outline: 2px solid transparent;
+	}
+	.ai-you.lit { outline-color: var(--prim); }
+	.ai-say { min-width: 0; overflow-wrap: anywhere; }
+
+	/* A stamp at a change of minute, between turns — one per row made the whole
+	   thing read as a spreadsheet. */
+	.ai-chat-time { font-size: .85em; font-variant-numeric: tabular-nums; }
+
+	/* A run of tool calls, folded to one line. No background, so no padding —
+	   a padded box with no ground of its own just floats off the margin. */
+	.ai-step-bar { padding-inline: 0; font-size: .9em; }
+	.ai-steps-fold > .ai-fold-bar::before { content: "▸ "; }
+	.ai-steps-fold.open > .ai-fold-bar::before { content: "▾ "; }
+	/* ⚠ NO `display` in this rule. `.ai-fold-body` is `display: none` at the same
+	     specificity and earlier in the sheet, so a `display: flex` here wins and
+	     the fold never closes — the whole transcript rendered open, 3,461px of it
+	     (measured 2026-09-17). The open state sets the display, below. */
+	.ai-step-body { flex-direction: column; gap: var(--gap-50); min-width: 0; }
+	.ai-fold.open > .ai-step-body { display: flex; }
+
 	/* The screenshot wall — lazy `<img loading=lazy>`, so 100 logged shots cost one
 	   request each only once scrolled near. `.missing` (off localhost, or a shot
 	   whose file 404s before a restart) swaps the frame for a plain swatch instead
 	   of a broken-image icon — shots.js never even creates the <img> off localhost. */
-	.ai-shots { display: grid; grid-template-columns: repeat(auto-fill, minmax(9em, 1fr)); gap: calc(var(--gap) * 0.6); }   /* was gap .6em - 2026-09-05 ramps */
+	.ai-shots { display: grid; grid-template-columns: repeat(auto-fill, minmax(9em, 1fr)); gap: var(--gap-70); }   /* was gap .6em - 2026-09-05 ramps */
 	.ai-shot-frame { display: flex; aspect-ratio: 4 / 3; overflow: hidden; border-radius: .3em;
 		background: color-mix(in srgb, currentColor 6%, transparent); }
 	.ai-shot-img { width: 100%; height: 100%; object-fit: cover; }
 	.ai-shot-fallback { display: none; flex: 1; align-items: center; justify-content: center; font-size: .8em; }
 	.ai-shot.missing .ai-shot-img { display: none; }
 	.ai-shot.missing .ai-shot-fallback { display: flex; }
-	.ai-shot-label { margin-block-start: calc(var(--gap) * 0.3); font-size: .8em; }   /* was margin-block-start .3em - 2026-09-05 ramps */
+	.ai-shot-label { margin-block-start: var(--gap-35); font-size: .8em; }   /* was margin-block-start .3em - 2026-09-05 ramps */
 
 	/* Dashboard: usage meters + task rows. --pct and --at are written inline by usage.js.
 	   ⚠ Auto-fit, not a column: at board width a stacked meter is a 3000px-long bar
@@ -68,14 +444,19 @@
 	.ai-usage {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(min(22em, 100%), 1fr));
-		gap: calc(var(--gap) * 0.9) calc(var(--flow) * 1);   /* was gap .9em 2em - 2026-09-05 ramps */
+		gap: var(--gap) var(--flow);   /* was gap .9em 2em - 2026-09-05 ramps */
 	}
-	.ai-meter { display: flex; flex-direction: column; gap: calc(var(--gap) * 0.15); min-width: 0; }   /* was gap .15em - 2026-09-05 ramps */
+	/* ⚠ `.15em`, not a rung: a meter is a CONTROL, and this is the space between
+	     its own label and its own bar - under a quarter of the gap, which is where
+	     the control's own em takes over from the ladder. */
+	.ai-meter { display: flex; flex-direction: column; gap: .15em; min-width: 0; }   /* was gap .15em - 2026-09-05 ramps */
 	.ai-pct { font-weight: 700; font-variant-numeric: tabular-nums; }
 	.ai-note { font-size: .9em; }
 
 	/* The marker is the clock, the fill is spend — fill behind marker = under pace.
 	   The gauge's top padding is the triangle's headroom. */
+	/* ⚠ em: this is the headroom for the .35em marker triangle above the bar - one
+	     control's own geometry, measured against the control's own parts. */
 	.ai-gauge { position: relative; padding-top: .5em; }
 	.ai-mark {
 		position: absolute; top: 0; left: var(--at, 0%); translate: -50% 0;
@@ -95,7 +476,8 @@
 
 	/* Steps as segments — the bar jumps a notch per step, which is what it measures.
 	   Running tasks only; a dormant task shows none at all. */
-	.ai-steps { display: flex; gap: calc(var(--gap) * 0.2); }   /* was gap .2em - 2026-09-05 ramps */
+	/* ⚠ `.2em`: the segments are parts of one control, not blocks on a page. */
+	.ai-steps { display: flex; gap: .2em; }   /* was gap .2em - 2026-09-05 ramps */
 	.ai-seg { flex: 1; height: .3em; border-radius: 999px;
 		background: color-mix(in srgb, currentColor 12%, transparent); }
 	.ai-seg.done { background: var(--ok); }
@@ -104,8 +486,10 @@
 	     as one step done. Now the running colour is the running dot's colour. */
 	.ai-seg.now { background: var(--prim); animation: ai-pulse 1.6s ease-in-out infinite; }
 
-	.ai-checklist { display: flex; flex-direction: column; gap: calc(var(--gap) * 0.3); margin-block-start: calc(var(--gap) * 0.6); }   /* was gap .3em; margin-block-start .6em - 2026-09-05 ramps */
-	.ai-check { display: flex; gap: calc(var(--gap) * 0.6); align-items: baseline; color: var(--subtle); }   /* was gap .6em - 2026-09-05 ramps */
+	.ai-checklist { display: flex; flex-direction: column; gap: var(--gap-35); margin-block-start: var(--gap-70); }   /* was gap .3em; margin-block-start .6em - 2026-09-05 ramps */
+	/* ⚠ `.6em`: the gap between a row's own box and its own label - a control's
+	     internal geometry, which never rides a spacing clamp. */
+	.ai-check { display: flex; gap: .6em; align-items: baseline; color: var(--subtle); }   /* was gap .6em - 2026-09-05 ramps */
 	.ai-box { flex: 0 0 auto; width: .85em; height: .85em; border-radius: .2em;
 		border: 1px solid currentColor; translate: 0 .1em; }
 	.ai-check.done { color: inherit; }
@@ -140,7 +524,7 @@
 	.page-catalog:has(> .ai-index-rail) > .page-catalog-pages > .page > .page-title { font-size: 1.4em; }
 	.page-catalog:has(> .ai-index-rail) > .page-catalog-pages > .page > .page-title + * { margin-block-start: var(--flow); }
 
-	.ai-group { display: flex; flex-direction: column; gap: calc(var(--gap) * 0.4); }   /* was gap .4em - 2026-09-05 ramps */
+	.ai-group { display: flex; flex-direction: column; gap: var(--gap-35); }   /* was gap .4em - 2026-09-05 ramps */
 	.ai-group-title { font-weight: 700; font-size: .9em; letter-spacing: .04em; text-transform: uppercase; }
 
 	.ai-dot { width: .55em; height: .55em; border-radius: 999px; background: var(--prim); flex: 0 0 auto; }
@@ -159,13 +543,13 @@
 	.ai-list {
 		display: flex;
 		flex-direction: column;
-		gap: calc(var(--gap) * 0.6);   /* was gap .6em - 2026-09-05 ramps */
+		gap: var(--gap-70);
 		container-type: inline-size;
 	}
 
 	/* The spine's heading: the time while it is still today, the weekday once it
 	   isn't — emitted only where the label changes, so it heads a run of cards. */
-	.ai-when { margin-block: 1.1em 0; font-variant-numeric: tabular-nums; }
+	.ai-when { margin-block: var(--gap) 0; font-variant-numeric: tabular-nums; }
 	.ai-list > .ai-when:first-child { margin-block-start: 0; }
 
 	/* One card, three regions — who | what | figures. The title's ::after spreads
@@ -186,9 +570,16 @@
 		     to one or two, and the whole line is read at once. Below ~1500px the cap
 		     never binds and nothing changes. */
 		grid-template-columns: minmax(15em, 22em) minmax(0, 60em) max-content;
-		gap: calc(var(--gap) * 0.3) calc(var(--gap) * 1.5);   /* was gap .3em 1.5em - 2026-09-05 ramps */
+		/* ⚠ The column gap is the GAP itself, not a multiple of it: there is no
+		     rung above `--gap`, and the step above that is `--flow`, which is prose
+		     rhythm and has no business setting a grid's columns. Rows tight (a
+		     rung), columns roomy (the token). */
+		gap: var(--gap-35) var(--gap);
 		align-items: start;
-		padding: .55em 1em;
+		/* The card paints its own ground, so it is padded - and the padding is the
+		   standard, not a number of this file's own. It was `.55em 1em`, which is
+		   9.9px on a 2,806px-wide card at 3440. */
+		padding: var(--gap-50) var(--gap);
 		line-height: 1.4;
 	}
 	/* ⚠ NOT `color: inherit` (2026-08-17, day-page-ux). It was, and `card-ux-v1`
@@ -240,7 +631,7 @@
 		/* ⚠ Bare `1fr` keeps its content-based auto-minimum — `.ai-who`'s title+tag
 		   row doesn't shrink and spills past the card. `minmax(0, …)` floors it. */
 		.ai-card { grid-template-columns: minmax(0, 1fr); }
-		.ai-figures { text-align: left; white-space: normal; display: flex; flex-wrap: wrap; gap: 0 1em; }
+		.ai-figures { text-align: left; white-space: normal; display: flex; flex-wrap: wrap; gap: 0 var(--gap); }
 	}
 
 	/* ── THE HIGHLIGHTS WALL (2026-09-08, ai-highlights) ──
@@ -250,7 +641,7 @@
 	   any word is read, and forty-five of them fit where forty-five rows do not.
 	   The archive did not go away — it is `/framework/ai/log/`, named in the one
 	   line below the wall. */
-	.ai-highlights { display: flex; flex-direction: column; gap: calc(var(--gap) * 0.5); }
+	.ai-highlights { display: flex; flex-direction: column; gap: var(--gap-50); }
 
 	/* ⚠ `--column` on the WALL, not a track list of its own: `.grid.auto`
 	     (framework.css) is `repeat(auto-fit, minmax(min(--column, 100%), 1fr))`,
@@ -266,7 +657,7 @@
 	     wall's first card rather than over the run it heads. */
 	.ai-hl-day {
 		display: block; text-decoration: none;
-		margin-block: 1.1em calc(var(--gap) * 0.5);
+		margin-block: var(--gap) var(--gap-50);
 		font-weight: 700; font-size: .9em; letter-spacing: .04em; text-transform: uppercase;
 	}
 	.ai-highlights > .ai-hl-day:first-of-type { margin-block-start: 0; }
@@ -278,8 +669,8 @@
 	.ai-hl {
 		position: relative;
 		display: flex;
-		gap: calc(var(--gap) * 0.4);
-		padding: .6em .8em;
+		gap: var(--gap-35);
+		padding: var(--gap-50) var(--gap-70);
 		line-height: 1.4;
 		min-width: 0;
 	}
@@ -294,7 +685,7 @@
 	.ai-hl-title::after { content: ""; position: absolute; inset: 0; }
 
 	.ai-hl-line { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-	.ai-hl-foot { display: flex; gap: .8em; align-items: baseline; font-size: .85em; }
+	.ai-hl-foot { display: flex; gap: var(--gap-70); align-items: baseline; font-size: .85em; }
 	.ai-hl-task { position: relative; z-index: 1; color: inherit; text-decoration: none; }
 	.ai-hl-task:hover { color: var(--prim); }
 
@@ -303,10 +694,9 @@
 	.ai-more { align-self: start; }
 
 	/* The way out of the front page, and the way the log page paginates. */
-	.ai-out { margin-block-start: calc(var(--flow) * 0.5); }
-	.ai-all, .ai-paged { display: flex; flex-direction: column; gap: calc(var(--gap) * 0.75); }
+	.ai-out { margin-block-start: var(--gap); }
+	.ai-all, .ai-paged { display: flex; flex-direction: column; gap: var(--gap-70); }
 
-	.ai-nested { margin-inline-start: 2em; }
 
 	/* The rail IS the dashboard (framework/ai/'s previews() override), so it takes
 	   catalog's rail treatment itself — wide enough for a card, sticky, scrolling

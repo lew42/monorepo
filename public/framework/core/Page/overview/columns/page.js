@@ -25,7 +25,7 @@ const finder = () => {
 							Usage(){ md("Click a row in a column further left and everything right of it closes."); },
 							Wide: {
 								width: "large",
-								content(){ md('`width: "large"` — the column a grid or a table gets, up to 64em. No word at all is the default: a floor, and 40em to grow into.'); },
+								content(){ md('`width: "large"` — the column a grid or a table gets, about half the row and never past 64em. No word at all is the default: 40em of reading width, and it keeps it whatever opens beside it.'); },
 							},
 							Reader: {
 								width: "full",

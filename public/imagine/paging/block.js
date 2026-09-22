@@ -29,6 +29,23 @@ const plain = text => String(text).replace(/\[([^\]]+)\]\([^)]+\)/g, "$1");
 
 class Block extends Paging {
 
+	/* ── THE BAR ON A BLOCK PAGE IS THAT BLOCK'S OWN WORD ────────────────────
+	   A page about `room` shows the ROOM dropdown and nothing else; the other six
+	   words are one click away, behind the bar's own `More` button, which says how
+	   many are in there. Skin is the one block with three words, so its page shows
+	   three. The stage owns no word at all, so its bar has no dropdown — which is
+	   exactly what its own heading, "Why this block has no control", says.
+
+	   ⚠ The owner, 2026-09-17: *"The number of controls in the toolbar became way
+	     too many."* Seven dropdowns over a page whose sentence read "change the
+	     **room** dropdown" made finding the word the reader's first job.
+	   ⚠ `??=`, so a page can still ask for the whole bar by declaring its own
+	     `bar_axes` — the hub and the twelve library pages do. `toolbar.js` `shows()`. */
+	initialize(){
+		this.bar_axes ??= this.axes ?? (this.axis ? [this.axis] : []);
+		return super.initialize?.();
+	}
+
 	/* ⚠ `lede()`, NOT `p.c("paging-lede", …)`. Only `md()` reads markdown, and four of
 	     these six pages open with a bolded word — so a plain `p()` printed the
 	     asterisks on screen, above the fold, on the pages that name the vocabulary
@@ -95,7 +112,7 @@ class Block extends Paging {
 	     the stage RUNNING with that one word set, so the wall is seven pictures of seven
 	     page shapes and the click is confirmation rather than discovery.
 	     Arrangement is the one block that says it today. Any of the other four can, with
-	     the same word and no other change — it is the front page's `preset_card()`
+	     the same word and no other change — it is the Library wall's `preset_shot()`
 	     machinery (`.paging-shot`), which has been on screen since the wall shipped. */
 	values(axis, base = this.url){
 		if (this.live) return div.c("paging-wall-live wide", () => values_for(axis).forEach(value => this.value_shot(value, base, axis)));
@@ -196,6 +213,12 @@ class Block extends Paging {
 			description: value.means,
 			axis: null,
 			lede_line: "**" + value.title + "** — " + value.means + " The page above is set to it.",
+
+			// ⚠ `axis: null` and yet the word IS in the bar. A value page has no list
+			//   of its own to draw, but the one dropdown it keeps is how you go to the
+			//   next value without going back up. `initialize()` would otherwise read
+			//   the null and hide every control.
+			bar_axes: [this.axis],
 			config: { ...DEFAULT, ...this.config, [this.axis]: value.id },
 			places: [[this.title, this.url, "back to all " + values_for(this.axis).length + " values"]],
 		});

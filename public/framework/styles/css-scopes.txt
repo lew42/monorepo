@@ -11,6 +11,7 @@ basis
 bg
 btn
 capitalize
+card
 checkered
 code
 cols
@@ -58,8 +59,12 @@ zoom-responsive
 table-       framework.css (table-equal — equalize a table's columns)
 size-        framework.css (size-small · size-regular · size-large — the one --size knob, .75/1/1.5,
              landed 2026-09-06; scales a control's own height AND every box's --pad/--gap/--flow.
-             spacing-tight/-regular/-airy and --spacing are deleted, not aliased. /imagine/design/size/
+             spacing-tight/-regular/-airy and --spacing are deleted, not aliased. /framework/styles/system/studies/size/
              also uses .size-lab/-chip/-stage for the study page that proposed it)
+darken-      framework.css (darken-1 · darken-2 · darken-3, landed 2026-09-19 — paint a ground with the
+             matching --darken-* token AND set --field-bg, so every input/select/textarea on that
+             ground is the surface colour instead of a second step down. Worked example: the
+             core/Sidebar filter bar. --lighten-* still has no class; add it here when one exists)
 
 # core
 page-        core/Page
@@ -99,6 +104,8 @@ toc-         ext/toc
 
 # ux
 ux-auth-     ux/Auth
+ux-dictate-  ux/Dictate
+ux-popover-  ux/Popover
 ux-tree-     ux/Tree
 ux-wizard-   ux/Wizard
 
@@ -108,6 +115,12 @@ dev-         dev/DevBar
 
 # ui — one component, one prefix: ui-<component>-*
 ui-          ui/
+
+background   ui/background (bare, not ui-background- — the owner's own word for the
+             primitive, and a general-purpose layer any page can drop behind its
+             content, not a ui-styled component variant. .background the layer itself,
+             .has-background the host's explicit opt-in (:has(> .background) is the
+             automatic one), .background-<kind> each of the ten fills)
 
 # styles
 cols-        styles/layouts/cols, the lab's remaining local words (thirds/golden/two-one/rail-main-aside)
@@ -122,8 +135,10 @@ blogx-       /imagine/blogx
 codrops-     /imagine/codrops
 feeds-       /imagine/feeds
 gal-         /imagine/gallery
-design-      /imagine/design (the landing page's own card wall)
-journey-     /imagine/design/journey
+design-      RETIRED 2026-09-18 (imagine-move-2). Its one class, `.design-shot`, moved to
+             core/Page/Page.css beside `.page-preview-thumb` — the studies that wear it now
+             live in five different trees, so no one of them owned the rule any more.
+journey-     /framework/ext/DesignTool/journey
 layouts-     /imagine/layouts (the numbered system: the 3-column card, the frame, the chips)
              ⚠ NOT `layout-`, which is ext/layout above. One letter apart on purpose:
              this realm's classes are all `.layouts-*` and none is ever `.layout-*`.
@@ -141,8 +156,8 @@ sections-    /imagine/sections (one multi-column section: .sections-band and its
              .sections-skin-* and .sections-hold, the sticky box inside a column cell)
 templates-   /imagine/paging/templates (the miniature frame and the type axis)
 baseline-    /imagine/paging/baseline.js (the "this page remembers you" mark — used by every realm that persists)
-color-       /imagine/design/color
-themes-      /imagine/design/themes
+color-       /framework/styles/system/studies/color
+themes-      /framework/styles/system/studies/themes
              (plus five demo themes — theme-press/phosphor/bloom/oled/riso — scoped inside that page until promoted to styles/layers/theme)
 scene-       /imagine/scenes
 screens-     /imagine/screens
@@ -167,3 +182,24 @@ mag-         /imagine/mag
 decks-       /imagine/decks
 home-        / (the homepage front)
 notes-   /notes/
+
+# ext/Ask — the picker, the panel, the floating ? (registered by the mastermind 2026-09-17; the minion fence excluded this file)
+ask-
+
+# web/nav/doc/study — the stable-row lab (registered by the mastermind 2026-09-17)
+dn-
+
+# framework/styles/system/studies/type — the type studies (registered by the mastermind 2026-09-17)
+type-
+
+# framework/styles/system/studies/spacing/nesting — the nesting study (registered by the mastermind 2026-09-18)
+nesting-
+
+# framework/styles/system/studies/lists — the list shapes lab (registered by the mastermind 2026-09-18)
+lists-
+
+# framework/ai/v/2 - the AI dashboard, version 2 (registered by the mastermind 2026-09-19)
+v2-
+
+# framework/ai/v/3 - the AI dashboard, version 3 (registered by the mastermind 2026-09-19)
+v3-

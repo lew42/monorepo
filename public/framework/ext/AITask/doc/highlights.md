@@ -60,7 +60,7 @@ single word is:
 | ---- | ---- | ------- |
 | `layers` | a framework tier you can browse | [`/framework/ux/`](/framework/ux/) |
 | `explore` | a place — a realm, a world, a corpus | [`/imagine/scenes/`](/imagine/scenes/) |
-| `science` | a study, measured, with a page | [`/imagine/design/color/`](/imagine/design/color/) |
+| `science` | a study, measured, with a page | [`/framework/styles/system/studies/color/`](/framework/styles/system/studies/color/) |
 | `article` | a written post | [`/blog/ai/playwright/`](/blog/ai/playwright/) |
 | `build` | a tool you operate | [`/framework/dev/DevBar/`](/framework/dev/DevBar/) |
 | `straighten` | a standard the whole site follows | [`/framework/ui/controls/`](/framework/ui/controls/) |

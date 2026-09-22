@@ -90,6 +90,27 @@ The frame goes only when the **last** reader of that path leaves. Same reason th
 registry is a Set: one url, several instances, and one of them finishing must not
 blind the others.
 
+## The registry key must match what the server echoes back
+
+`Server/plugins/SocketServer/Tail.js` always replies with a bare url-path — no origin, ever
+(its own `url_path()`). But `url` here can be built either way: a bare pathname
+(`dev/DevBar/says.js`'s own style), or `import.meta.resolve("./board.jsonl")` — the framework's
+ordinary way to address a module-relative file (`code#4`) — which returns a FULL url WITH an
+origin. Keyed by the raw string a caller happened to pass, an `import.meta.resolve()` caller's
+entry in `streams` never matched the server's bare-path reply: `each()` found nothing, so
+`jsonl()`/`jsonl_reset()` silently did nothing for that reader, forever. The only thing that
+ever showed a value was `stream()`'s own 1.5s timeout falling back to a ONE-TIME `fetch()` —
+which ALSO deletes the reader from `streams` at that same moment, so it never hears another
+append until the next full page load creates a brand-new subscribe. That reads exactly like
+"needs a reload to update," and was mistaken for a `window.$BLOCKRELOAD` bug in an owner report
+(2026-09-19) before a live probe of the working pattern — a bare pathname, with Block on —
+proved delivery has nothing to do with Block at all.
+
+Fixed with one function, `key(url) = new URL(url, location.href).pathname`, used everywhere
+`streams` is touched (`stream()`, `drop()`) and everywhere a subscribe/unsubscribe goes out
+over the wire — so every existing caller, either shape, now matches what comes back. Full
+account and the load-event proof: `ai/2026-09-19/reload-hold/requirements.md`.
+
 ## Why `JSONL.js` imports `live.js`, and not the other way round
 
 Consumers change nothing but the method name — that only works if the class itself

@@ -1,4 +1,5 @@
 import Socket from "/framework/dev/Socket/Socket.js";
+import { edit } from "/framework/ext/Ask/edit.js";
 import FileSaver from "/framework/ext/Saver/FileSaver.js";
 import { DEFAULT } from "../blocks.js";
 
@@ -95,6 +96,99 @@ export const file_of = node => ({
 
 export const clone = value => JSON.parse(JSON.stringify(value));
 
+/* ── THE SNAPSHOT AND THE HISTORY — two files, and you want both ──────────────
+
+   Every page you make keeps TWO files side by side:
+
+       made/notes/page.json     the SNAPSHOT — the page exactly as it is now
+       made/notes/page.jsonl    the HISTORY — one line per edit, append only
+
+   The snapshot is what everything READS. It is small, it is the whole page, and core
+   opens it straight as a page with no replaying of anything. The history is what the
+   snapshot cannot tell you: what changed, when, and in what order — so you can rewind,
+   and so you can CHECK the snapshot against its own past (the owner, 2026-09-18:
+   *"I like having both — the small snapshot, and the append-only history to rewind and
+   to validate the state against the log"*).
+
+   ── ONE LINE LOOKS LIKE THIS ─────────────────────────────────────────────────
+
+       {"at":"2026-09-18T18:20:01.4Z","op":"set","path":["mode","navigation"],"value":"rail"}
+
+   `op` is `set`, `del` or `append`; `path` walks into the object and its last key is
+   the thing that changed; `value` is what it became. Replaying every line of a log from
+   an empty object has to land on the snapshot — that is the check, and `validate()`
+   below runs it.
+
+   ⚠ THIS IS `/imagine/cms/json/`'s CONTRACT, TO THE CHARACTER — same four keys, same
+     three ops, same meaning (`json.js`, `apply()`). What is NOT shared is the code: the
+     eight lines below are a copy, because importing them would make this realm depend on
+     another realm's experiment for its file format. The contract is the thing worth
+     sharing; if a third page ever wants it, THAT is when it earns a home of its own. */
+
+const now_iso = () => new Date().toISOString();
+
+export const delta = (op, path, value) =>
+	value === undefined ? { at: now_iso(), op, path } : { at: now_iso(), op, path, value };
+
+// One delta, applied to a state object. `path: []` with `set` replaces the whole state,
+// which is how a log starts: line one is the page itself.
+export function apply(state, { op, path = [], value }){
+	if (!path.length) return op === "set" ? value : state;
+
+	let box = state;
+	for (const key of path.slice(0, -1)) box = box[key] ??= {};
+	const key = path.at(-1);
+
+	if (op === "set") box[key] = value;
+	else if (op === "del") Array.isArray(box) ? box.splice(key, 1) : delete box[key];
+	else if (op === "append") (box[key] ??= []).push(value);
+	else console.warn(`page.jsonl — unknown op "${op}"`, path);
+
+	return state;
+}
+
+// Every line of a log, from nothing. A line that is not JSON is dropped and named —
+// ext/JSONL's rule, and the only way an append-only log survives one bad writer.
+export function replay(text = ""){
+	const lines = text.split("\n").filter(Boolean).flatMap((line, i) => {
+		try { return [JSON.parse(line)]; }
+		catch { console.warn(`page.jsonl:${i + 1} — not JSON, dropped`); return []; }
+	});
+
+	return { lines, state: lines.reduce((state, line) => apply(state, line), {}) };
+}
+
+// THE SMALLEST SET OF LINES THAT GETS FROM ONE FILE TO THE NEXT — one per key you
+// actually changed, and `mode` one level deeper, because `mode` is where the words are
+// and "you set the navigation word to rail" is the sentence a history should be able to
+// say. No previous file at all means the page is new: line one is the whole page.
+export function deltas(was, now){
+	if (!was) return [delta("set", [], now)];
+
+	const changed = (a, b, path) => JSON.stringify(a) === JSON.stringify(b) ? []
+		: [b === undefined ? delta("del", path) : delta("set", path, b)];
+
+	const keys = box => Object.keys(box ?? {});
+	const top = [...new Set([...keys(was), ...keys(now)])].filter(key => key !== "mode");
+	const words = [...new Set([...keys(was.mode), ...keys(now.mode)])];
+
+	return [
+		...top.flatMap(key => changed(was[key], now[key], [key])),
+		...words.flatMap(key => changed(was.mode?.[key], now.mode?.[key], ["mode", key])),
+	];
+}
+
+// Deep, key-order-independent — a replayed object and a parsed file hold the same keys
+// in whatever order they were written, and `JSON.stringify` would call that a mismatch.
+export function same(a, b){
+	if (a === b) return true;
+	if (!a || !b || typeof a !== "object" || typeof b !== "object") return false;
+	if (Array.isArray(a) !== Array.isArray(b)) return false;
+
+	const ka = Object.keys(a), kb = Object.keys(b);
+	return ka.length === kb.length && ka.every(key => same(a[key], b[key]));
+}
+
 /* ── walking a tree ────────────────────────────────────────────────────────────
    A PATH is an array of names — `["notes", "today"]` — and it is both the address
    of a node in memory and the directory it lives in. One idea, two uses. */
@@ -155,7 +249,7 @@ class PageFile extends FileSaver {
 
 	async write(item){
 		const socket = Socket.singleton();
-		if (socket.disabled) return this.read_only();
+		if (!edit()) return this.read_only();
 
 		const reply = await socket.async_rpc("write", this.path, JSON.stringify(item, null, "\t") + "\n");
 
@@ -169,6 +263,10 @@ class PageFile extends FileSaver {
 }
 
 export class FileStore extends Store {
+
+	// Every page's log text, by path — see read_log(). One `Map` per store, so a fresh
+	// page load re-reads and nothing goes stale across a reload.
+	logs = new Map();
 
 	url(path){ return DIR + path.map(name => name + "/").join(""); }
 
@@ -216,6 +314,64 @@ export class FileStore extends Store {
 
 	put(path, body){ return this.raced(new PageFile({ path: this.url(path) + "page.json" }).save(body)); }
 
+	// ── the history half ──────────────────────────────────────────────────────
+	log_url(path){ return this.url(path) + "page.jsonl"; }
+
+	// The log as text, cached — `save()` asks for it once per page it is about to
+	// change, and the cache is what keeps a chip click at one fetch instead of two.
+	// ⚠ Same guard as read(): a missing file answers 200 with index.html.
+	async read_log(path){
+		const key = path.join("/");
+		if (this.logs.has(key)) return this.logs.get(key);
+
+		const res = await fetch(this.log_url(path), { cache: "no-cache" }).catch(() => null);
+		const text = !res?.ok || res.headers.get("content-type")?.includes("html") ? null : await res.text();
+
+		this.logs.set(key, text);
+		return text;
+	}
+
+	/* ONE APPEND PER EDIT, and the snapshot is never touched by it.
+		 `rpc:append` opens the file with "a", so the write is the size of the LINE — two
+		 browsers editing at once interleave between lines instead of each sending its own
+		 copy of the whole file and losing the other's.
+		 ⚠ A PAGE WITH NO LOG YET GETS ITS WHOLE SELF AS LINE ONE. Every page that existed
+		   before this feature has a snapshot and no history, and a log that began halfway
+		   through a page's life could never replay onto it — validate() would call a
+		   perfectly good page broken. The baseline line is what makes the check honest. */
+	async record(path, was, now){
+		const started = (await this.read_log(path)) !== null;
+		const lines = started ? deltas(was, now) : [delta("set", [], now)];
+		if (!lines.length) return true;
+
+		const text = lines.map(line => JSON.stringify(line)).join("\n") + "\n";
+		const key = path.join("/");
+		this.logs.set(key, (this.logs.get(key) ?? "") + text);
+
+		return this.raced(this.append(this.log_url(path), text));
+	}
+
+	// ⚠ The whole-file write is the FALLBACK, not the path: a dev server started before
+		//   the Append plugin landed answers `rpc:append` with nothing at all, and
+		//   `async_rpc` would wait for a reply that is never coming. raced() bounds it.
+	async append(url, text){
+		if (!edit()) return false;
+
+		const reply = await Socket.singleton().async_rpc("append", url, text);
+		return reply?.response === "append successful";
+	}
+
+	/* THE CHECK THE PAIR EXISTS FOR: replay the log from nothing and see whether it
+		 lands on the snapshot. Answers three things a reader can act on — whether there is
+		 a history at all, how long it is, and whether it agrees with the file beside it. */
+	async validate(path){
+		const [snapshot, text] = await Promise.all([this.read(path), this.read_log(path)]);
+		if (text === null) return { history: false, lines: 0, matches: null };
+
+		const { lines, state } = replay(text);
+		return { history: true, lines: lines.length, matches: same(state, snapshot) };
+	}
+
 	// The DIRECTORY, not the file — `rpc:rm` is recursive, so a page's children go
 	// with it, exactly as deleting a directory of `page.js` files would.
 	drop(path){ return this.raced(new FileSaver({ path: this.url(path) }).delete()); }
@@ -240,12 +396,28 @@ export class FileStore extends Store {
 		// The root is the only file that is not a page: it exists so the tree can be
 		// found with no server, and its `children` is the list of top-level pages.
 		// Written every time — it is 100 bytes, and the alternative is a class of bug.
-		await this.put([], { title: "Made", icon: "add_circle_outline", children: tree.map(node => node.name) });
+		/* ⚠ THE ROOT HAS A `mode` NOW, AND THAT IS BECAUSE IT BECAME A PAGE. It used to be
+		     "the only file that is not a page" - a list so the tree could be found with no
+		     server. Core reads a page.json as a page since 2026-09-18, so the root renders at
+		     /imagine/paging/made/ like any other, and with no word it rendered its title and
+		     nothing else. `takeover` is the one navigation word that draws the child rows,
+		     which is exactly what an index of the pages you made should be. */
+		const root = { title: "Made", icon: "add_circle_outline", description: "Every page you made, as files.",
+			mode: { navigation: "takeover" }, children: tree.map(node => node.name) };
+
+		await this.record([], this.root_was, root);
+		await this.put([], root);
+		this.root_was = root;
 
 		for (const [key, node] of now){
 			const body = this.file(node);
 			const old = before.get(key);
 			if (old && JSON.stringify(this.file(old)) === JSON.stringify(body)) continue;
+
+			// ⚠ THE HISTORY FIRST, THE SNAPSHOT SECOND. If the machine dies between the two,
+			//   a log that is one edit ahead of its snapshot can be replayed onto it; a
+			//   snapshot that is ahead of its log has lost the line that explains it.
+			await this.record(key.split("/"), old && this.file(old), body);
 			await this.put(key.split("/"), body);
 		}
 
@@ -298,11 +470,13 @@ export class LocalStore extends FileStore {
 	}
 }
 
-/* WHICH STORE. Files whenever a dev socket is reachable, this browser otherwise —
-   "fs is the default" is this one line. `Socket.disabled` is set at construction on
-   any host that is not localhost, so a production page never even tries. */
+/* WHICH STORE. Files whenever `edit()` is true (the dev socket is reachable AND
+   the rail's Edit toggle is on), this browser otherwise — "fs is the default" is
+   this one line. `edit()` is always false off localhost, so a production page
+   never even tries, and toggling edit off on localhost previews the same
+   this-browser-only behaviour without leaving the machine. */
 export function store_for(page){
-	return Socket.singleton().disabled ? new LocalStore({ page }) : new FileStore({ page });
+	return edit() ? new FileStore({ page }) : new LocalStore({ page });
 }
 
 export default store_for;

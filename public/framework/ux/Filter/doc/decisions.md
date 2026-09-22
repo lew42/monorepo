@@ -98,3 +98,31 @@ Nothing from the "never cut" list. The one trim: the words band duplicates the b
 strip only, not the full three-region dashboard — `ux/Tree/page.js`'s words child is a
 smaller reuse for the same reason (proving the config-word contract needs one region, not
 three, and a lighter page loads faster for every reader after this one).
+
+## 2026-09-18 — the first real consumer, `segments: []`, and Escape
+
+`core/Sidebar` (`ai/2026-09-18/sidebar-filter/`) is this class's first production caller —
+151 lines and zero callers before today, exactly the flag the overlap study named it as
+(`ai/2026-09-18/overlap-study/overlap.md`, `overlap-filter-into-sidebar`). Composed, not
+rewritten, per that task's brief: `segments: []` with the default `all`/`active` left alone
+is enough to make it search-only (`active === all` never stops being true when nothing ever
+calls `set()`), so no change was needed here to support a caller with one fact instead of
+two. `search_field: "text"` is the only per-caller wiring — it reads whatever field the
+caller's own rows carry, and `ux/Tree`'s node shape happens to use `text`.
+
+**The one seam actually added: Escape clears the query.** `core/Sidebar`'s brief asked for
+it by name ("Escape clears") and `Filter` had no such behaviour — `field()`'s `input`
+listener only ever answered a real keystroke, never a key that clears the box without
+typing anything into it. `FilterChips` already had the two lines this needs, under
+`clear_query()`, for its own chip's ×; that method moved UP from `FilterChips` to `Filter`
+(a subclass method promoted to its base, not a new one invented) and `field()` gained one
+`keydown` listener that calls it on `Escape`. Both existing `FilterChips` call sites
+(`ux/Filter/page.js`'s `chips` demo) keep working with no code change — the inherited method
+resolves the same way it did when it was defined locally. Every `Filter`/`FilterChips`
+instance on the site gained Escape-to-clear the moment this shipped, with no opt-in and no
+caller edited.
+
+**No toggle added.** `core/Sidebar`'s brief allowed one "if `ux/Filter` already offers one" —
+segment buttons ARE that toggle mechanism, but this caller has no second, real category to
+put in them (a page's title is the only fact worth narrowing a nav tree by), so nothing was
+added on either side.

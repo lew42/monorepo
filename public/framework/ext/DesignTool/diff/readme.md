@@ -95,7 +95,7 @@ array at the top of the script for the next thing that ticks on its own.
 3. `compare --inject "a { text-decoration: underline !important; }"` against the same baseline:
    **40 of 40 pages changed** (nearly every page has a link) — but sorted by pixels changed, the
    link-*heaviest* pages land at the top (`/imagine/paging/library/`, `/blog/`, `/`) and the
-   link-*lightest* land at the bottom (`/imagine/design/size/`, `/imagine/design/controls/`),
+   link-*lightest* land at the bottom (`/framework/styles/system/studies/size/`, `/framework/ui/controls/study/`),
    proving the ranking really tracks how much of a page the change actually touched. **19.8s.**
 
 Both real runs came in well under the 90-second budget for 40 pages × 2 widths.

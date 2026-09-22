@@ -63,11 +63,11 @@ The bottom corner turns back to the product:
   grades eleven weighted **ideal ranges** and the generator searches against that score,
   which is the note's "0 → 1" as it actually shipped: not one number per page, but a
   band per property that a measurement falls inside or outside.
-- [/imagine/design/spacing/](/imagine/design/spacing/) — "analyze the spacing": spacing is
+- [/framework/styles/system/studies/spacing/](/framework/styles/system/studies/spacing/) — "analyze the spacing": spacing is
   now a clamp, not a constant, so every gap on the site is already expressed as a range
   rather than a pixel count.
-- [/imagine/design/size/](/imagine/design/size/) — "analyze the scale (font-size)", and
-  [/imagine/design/scale/](/imagine/design/scale/) for the type scale itself.
+- [/framework/styles/system/studies/size/](/framework/styles/system/studies/size/) — "analyze the scale (font-size)", and
+  [/framework/styles/system/studies/scale/](/framework/styles/system/studies/scale/) for the type scale itself.
 - [/imagine/paging/room/](/imagine/paging/room/) — "Resizable Columns → Modes?": how much
   of the screen a box gets became a set of behaviour **words** rather than numbers, which
   is the "modes" the note is reaching for.

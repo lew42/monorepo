@@ -126,7 +126,7 @@ Then what that means for reuse:
 - [ext/Panel](/framework/ext/Panel/) — the **PANEL SYSTEM**, built, including per-axis
   sizes.
 - [/imagine/youtube/](/imagine/youtube/) — **YOUTUBE VIDEO × TIMELINE**, built.
-- [/imagine/sections/](/imagine/sections/) — "sections aren't really lib-able": the realm
+- [/layouts/labs/sections/](/layouts/labs/sections/) — "sections aren't really lib-able": the realm
   agrees. A section is something you copy, and the site keeps examples rather than a
   library.`);
 

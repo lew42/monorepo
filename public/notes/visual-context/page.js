@@ -102,8 +102,8 @@ export default new Page({
 	description: "Topic × complicating factors. Each topic has a spread.",
 
 	preview(nav){
-		return this.preview_card(nav, () => { img.c("notes-thumb").attr("src", here + "note.jpg")
-			.attr("alt", "Notebook page headed VISUAL CONTEXT"); });
+		return this.preview_card(nav, () => img().attr("src", here + "note.jpg")
+			.attr("alt", "Notebook page headed VISUAL CONTEXT").c("notes-thumb"));
 	},
 
 	content(){

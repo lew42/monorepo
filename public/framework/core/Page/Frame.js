@@ -193,7 +193,7 @@ export default class PageFrame extends View {
 	   `ext/tabs` child mounts in a panel today. The lab draws four canned filter rows
 	   and four canned property rows inside these; those stayed in the lab.
 	   ⚠ `bar`, `panel` and `aside` are Map KEYS, never fields or methods on `Page`.
-	     All three are already page words somewhere — `imagine/blogx/Blog.js` declares
+	     All three are already page words somewhere — `layouts/labs/blogx/Blog.js` declares
 	     `rail()` and `aside()` as page methods, `framework/ui/page.js` declares
 	     `bar()` — and a Map key shadows nothing. */
 	bar(where){ return this.region("bar", div.c("page-bar page-bar-" + where)); }

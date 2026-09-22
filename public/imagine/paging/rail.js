@@ -97,9 +97,9 @@ export const RAIL = [
 	{
 		title: "Next door",
 		items: [
-			{ url: "/imagine/layouts/", title: "Layouts", icon: "grid_view" },
-			{ url: "/imagine/shells/", title: "Shells", icon: "dashboard" },
-			{ url: "/imagine/sections/", title: "Sections", icon: "view_agenda" },
+			{ url: "/layouts/", title: "Layouts", icon: "grid_view" },
+			{ url: "/layouts/labs/shells/", title: "Shells", icon: "dashboard" },
+			{ url: "/layouts/labs/sections/", title: "Sections", icon: "view_agenda" },
 			{ url: "/imagine/paging/doc/", title: "Docs", icon: "menu_book" },
 			{ url: "/imagine/paging/readme/", title: "Readme", icon: "description" },
 		],

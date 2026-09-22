@@ -152,7 +152,7 @@ const board = () => ({
 	/* UX rethink 2026-09-05 — the owner's 3-column card, built for real: this is the
 	   one realm on the site where the centre column is a live thing with real numbers
 	   beside it (the shape that won on `research` and `generated` and lost on every
-	   menu page — /imagine/design/layout/approved/, the first nine reviewers' finding).
+	   menu page — /layouts/doc/studies/approved/, the first nine reviewers' finding).
 	   Left is the intro and the two controls; centre is the drag surface and nothing
 	   else; right is every number the page was already computing, given a column of
 	   its own instead of a muted line under the fold. `team.css` is the frame; every

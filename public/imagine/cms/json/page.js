@@ -10,16 +10,14 @@ import { source, config, body } from "./json.js";
    `page.jsonl`, and hands each node to `add()`; after that core owns them, so the data
    pages get real urls, the real Router, crumbs, columns and cards with nothing added.
 
-   Two overrides make a COLD DEEP URL work, and they are the only two:
+   ONE SEAM MAKES A COLD DEEP URL WORK, and it is core's: `children` may be a FUNCTION
+   that returns a promise. Core calls it once, on the first ask — the Router walking in
+   for each url segment, or a direct landing here with no segment to walk — and waits
+   for it before anything renders.
 
-     child()             — the Router's walk asks the PARENT for each segment, so the data
-                           only has to be here before the question is asked.
-     load_all_children() — landing HERE has no segment to walk, and `Router.load()` awaits
-                           `.loading` for the whole chain before it activates anything, so
-                           this is where a direct visit gets its children before render.
-
-   ⚠ `route()` is NOT the seam: core calls it synchronously and uses the return value, so a
-     promise would be assigned onto a Page as if it were a config, and nothing would throw.
+   ⚠ Until 2026-09-17 this file wrote that itself, as `child()` and `load_all_children()`
+     overrides carrying a copy of core's own guard, and so did `paging/make/page.js`.
+     `core/Page/doc/data-children.md` is the record of why it moved into core.
    ⚠ Nothing is fetched at import. A page constructs itself when its module loads, so a
      constructor that loaded its data would pull it down from every url on the site. */
 
@@ -29,49 +27,20 @@ export default new Page({
 	description: "A page tree that exists as data — page.json is the snapshot, page.jsonl the deltas.",
 	icon: "storage",
 
-	children: "edit",
-
-	// One load per visit, memoised — `child()`, `load_all_children()` and `content()` all
-	// ask, and only the first one pays.
-	ready(){ return this.fetching ??= source.load().then(() => this.mount()); },
-
-	// The whole translation, once: a node object becomes a page config, `add()` builds the
-	// Page, and `declare()` recurses into its children for free.
-	mount(){
-		// The editor is declared first (it is a real file) but reads last — a rail should
-		// open with the content, not with the tool. Re-setting a Map key moves it to the end.
-		const edit = this.children.get("edit");
-		this.children.delete("edit");
-
-		Object.entries(source.state.children ?? {})
-			.forEach(([name, node]) => this.add(name, config(node, name)));
-
-		this.children.set("edit", edit);
-		return this;
+	// MY CHILDREN ARE THE SNAPSHOT'S CHILDREN. Each node becomes a page config the same
+	// way `config()` does everywhere else, and the EDITOR is last: it is a real file
+	// beside this one, declared here by name, and a rail should open with the content
+	// rather than with the tool.
+	children(){
+		return this.ready().then(() => [
+			...Object.entries(source.state.children ?? {}).map(([name, node]) => ({ name, ...config(node, name) })),
+			"edit",
+		]);
 	},
 
-	async child(name, levels){
-		await this.ready();
-		return Page.prototype.child.call(this, name, levels);
-	},
-
-	/* ⚠ THE GUARD IS MINE TO KEEP, and leaving it out throws from the microtask queue
-	     with a message that names nothing: "Chaining cycle detected for promise" — core's
-	     `load_all_children` returns `this` unchanged when `levels <= this.loaded`, so on
-	     the second call `.loading` is the promise being assigned on that very line, and
-	     `p.then(() => p)` is a cycle. Copied from `paging/make/page.js`, which names this
-	     exact file as the other place the fix belongs. */
-	load_all_children(levels = this.depth){
-		if (levels <= this.loaded) return this;
-		this.loaded = levels;
-
-		this.loading = this.ready().then(() => {
-			this.loaded = -1;
-			return Page.prototype.load_all_children.call(this, levels).loading;
-		});
-
-		return this;
-	},
+	// One load per visit, memoised — `children()` and `content()` both ask, and only
+	// the first one pays.
+	ready(){ return this.fetching ??= source.load(); },
 
 	content(){
 		md(`Two files beside this one hold a whole page tree: [\`page.json\`](/imagine/cms/json/page.json)

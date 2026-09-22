@@ -61,10 +61,24 @@ outside; the pretty form 404s in console while a static server's SPA fallback ma
 module can afford one extra small file: verified live, the `.md` link leaves the SPA entirely (the
 url ends in `.md`, zero `.page` elements in the DOM) while the routed pretty url resolves in-app
 both directions, real title, no console errors.
-Written along the way when a caveat surfaces, or at the end. Absolute links only
-(`/framework/core/View/api/capture/`) — a fetched file's relative links resolve against
-`doc/`. Never cite a line number; cite the method or selector. `doc/decisions.md` holds
-the record; `doc/<topic>.md` holds a trap or a design worth its own url.
+Written along the way when a caveat surfaces, or at the end. **Prefer an absolute link**
+(`/framework/core/View/api/capture/`) for anything that might be read from more than one url —
+a relative link only resolves correctly against the FILE that fetched it (`md.resolve()`
+rebases against the fetch url, not the page showing it), so it is right only inside a `doc/*.md`
+that is always read the same way. Never cite a line number; cite the method or selector.
+`doc/decisions.md` holds the record; `doc/<topic>.md` holds a trap or a design worth its own url.
+
+A Doc's routes: `notes:` land at `/module/doc/<name>/`, `methods:`/`properties:` at
+`/module/api/<name>/` — both per-name. `files:` entries have **no per-name route at all**; they
+render inside the one shared `/module/files/` browser (`Doc.files_section()`), so checking
+`/module/files/<path>/` for one will 404 (ranked-lists, 2026-09-17). For a `note()`-shaped page
+(`const note = (title, file, description) => [title, { description, content(){ return
+md.file(import.meta, file); } }]`) the URL slugifies from the **title**, and the `.md` loads from
+the first argument — a note named `critique` but titled "The critic's pass" routes to
+`/doc/the-critics-pass/`, not `/doc/critique/` (practice-critic, 2026-09-17). This `note()` form
+is a simpler alternative to a hand-written `doc/page.js` with a `route()` for a plain Page-based
+module — declare the notes as children with real titles and descriptions on the cards, and the
+pretty url resolves in-app with no extra file (layout-a, 2026-09-06).
 
 ## Before finish-task
 

@@ -32,6 +32,7 @@ export default class Directory {
      * ceiling: a stream of renames that never pauses still rebuilds every second,
      * instead of starving the timer for ever. */
     update() {
+        if (process.env.BOOT_TEST) return;   // a candidate boot test must never rebuild the shared directory.json files
         this.since ??= Date.now();
         clearTimeout(this.rebuilding);
 

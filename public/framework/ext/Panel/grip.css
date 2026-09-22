@@ -44,7 +44,7 @@
 	.panel-items.v > .panel-grip .panel-grip-pill { width: 2rem; height: 0.3rem; }
 	.panel-grip:hover .panel-grip-pill, .panel-grip.on .panel-grip-pill { opacity: 1; }
 
-	/* toolbar.css's popover, hung off the pill instead of a bar button - so WHERE it opens
+	/* controls.css's popover, hung off the pill instead of a bar button - so WHERE it opens
 	   is all this overrides. It lands under the pointer with no gap to cross, because
 	   leaving the grip closes it. */
 	.panel-grip > .panel-pop {
@@ -57,7 +57,7 @@
 
 	.panel-grip-side { display: flex; align-items: center; justify-content: center; color: var(--subtle); }
 
-	/* The button itself is toolbar.css's — one definition for the bar, this menu and the
+	/* The button itself is controls.css's — one definition for the bar, this menu and the
 	   inspector, since 2026-08-16. What used to be a near-identical copy here is deleted;
 	   the two hug/fill rows are icon buttons now (arrows in, arrows out), so they need the
 	   square box the shared rule already gives them. */

@@ -37,7 +37,7 @@ class BlogNav extends Sidebar {
  * The front itself is the MAGAZINE: the lead, then every other post as a card, then a
  * rail of topics. At 3440 that is the whole archive above the fold, and the extra
  * width of a wide monitor buys MORE POSTS rather than a wider paragraph — the finding
- * eight candidate shells were built to test (/imagine/blogx/readme.md).
+ * eight candidate shells were built to test (/layouts/labs/blogx/readme.md).
  *
  * doc/structure.md · doc/reading-page.md · doc/meta-tags.md
  */

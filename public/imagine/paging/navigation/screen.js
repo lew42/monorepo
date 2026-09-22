@@ -30,7 +30,7 @@ export class PagingNavScreen extends Page {
 	//   ancestor, so by default every page under it is a column of that one row. This
 	//   is not a column; it is the whole app. Mounting beside the row's host is the
 	//   arrangement contract's own sibling rule — the ancestor stands down.
-	//   (Prior art, and where this shape came from: imagine/shells/Shell.js.)
+	//   (Prior art, and where this shape came from: layouts/labs/shells/Shell.js.)
 	container(){ return this.mounts_in(this.app.$pages, "app.$pages — a full screen is not a column"); }
 
 	// ⚠ Overriding render() is ALSO what skips core's `render_column()`.

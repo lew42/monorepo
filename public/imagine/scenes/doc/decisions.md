@@ -12,7 +12,7 @@
   nothing at or under the tuned 1280 case moves.
 - **Kept: the 3-column card, applied as a lobby grid past 100em.** Rail (title, intro, the door
   switch) beside the stage, the active door's own note as a readout on the right — the same
-  shape as `docs three-region` in `/imagine/design/layout/approved/`, and almost verbatim the
+  shape as `docs three-region` in `/layouts/doc/studies/approved/`, and almost verbatim the
   owner's 2026-09-05 brief. The real win is not a width number: three doors deep, the note
   explaining what is on screen used to sit below a 600–900px canvas, off the first screen. In
   the rail it sits beside the room it describes, at any depth, with no scroll. Below 100em
@@ -68,7 +68,7 @@ what was built on it. The technique lives in [`atmosphere.md`](./atmosphere.md) 
   illustration are the same function and cannot drift. Four idioms — chart, photograph,
   diagram, graph — so the rack reads as a series, not as four buttons.
 - **The caption card steps one rung DARKER into its plate**, the opposite direction to
-  [the magazine's tone ladder](/imagine/mag/): a column you walk into should lift toward you, a
+  [the magazine's tone ladder](/layouts/labs/mag/): a column you walk into should lift toward you, a
   plate lying on a desk should not. Written down because the two sheets now disagree on purpose.
 - **`sky()` gained one word, `fill`** — the hemisphere bounce. Backwards compatible at its old
   0.5; the observatory runs 0.2 at night. It is an extension, not a change.

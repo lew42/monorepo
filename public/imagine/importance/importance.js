@@ -18,6 +18,7 @@
 import Socket from "/framework/dev/Socket/Socket.js";
 import { JSONL } from "/framework/ext/JSONL/JSONL.js";
 import { Graph } from "./Graph.js";
+import { edit } from "/framework/ext/Ask/edit.js";
 
 export { KINDS, RELS } from "./Graph.js";
 
@@ -107,9 +108,9 @@ export class Store extends Graph {
 
 	// ════ WRITING ═════════════════════════════════════════════════════════════
 
-	// Off localhost there is no dev socket, so every writer here is disabled and the
-	// buttons say so — the rule ext/Saver and the CMS editor already follow.
-	writable(){ return !Socket.singleton().disabled; }
+	// The one switch every editor control reads (ext/Ask/edit.js) — off localhost, or
+	// with the rail's edit toggle off, every writer here is disabled and the buttons say so.
+	writable(){ return edit(); }
 
 	// A window left open across a month boundary would write to a shard it never
 	// subscribed to. Idempotent: an existing feed is returned, a new one subscribes.

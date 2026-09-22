@@ -14,7 +14,8 @@ export default new Page({
 ```
 
 **Live:** [/framework/core/Page/overview/columns/finder/](/framework/core/Page/overview/columns/finder/) — page height, real
-urls. The same tree in a box, with the source: [/framework/core/Page/overview/columns/](/framework/core/Page/overview/columns/).
+urls, and running the **even** mode below. The same tree in a box, on the elastic mode and with
+the source: [/framework/core/Page/overview/columns/](/framework/core/Page/overview/columns/).
 
 **Four real screens** built out of nothing but these words, each answering a different
 "what goes where": [Docs](/framework/core/Page/overview/columns/uses/docs/) — a deep tree
@@ -33,8 +34,8 @@ page can retune one number (`--page-column-max`) instead of asking for a seventh
 |---|---|---|
 | `small` | `clamp(14em, 16cqi, 24em)` — 14em until the row passes ~87em, then 16% of it | rails, lists, item pickers, an index |
 | `hug` | its content, 6–24em | a rail whose own labels decide the number |
-| *(none)* | 16em floor, ceiling `clamp(40em, 42cqi, 46em)` | the default — prose, a form, two columns of content |
-| `large` | 28–64em | a grid, a table, wide content |
+| *(none)* | **frozen at** `clamp(40em, 42cqi, 46em)`, floor 16em | the default — prose, a form, two columns of content |
+| `large` | **frozen at** `clamp(28em, 50cqi, 64em)` — about half the row | a grid, a table, wide content |
 | `fill` | everything left over | the one page in the row that has something to spend it on |
 | `full` | the whole host | one page at a time; the ancestors collapse into the crumb strip |
 
@@ -75,6 +76,274 @@ list; the Finder's `Notes` rail has none for exactly that reason. Its 6em floor 
 `Page.column_floor` said in `em`: the narrowest a *drag* may leave a column and the narrowest a
 *word* may ask for are one number.
 
+## A column that is open never pays for the next one
+
+**The rule, in one sentence.** A column that is already open never changes width when a
+column opens to its right; the new column takes what is left over, and when nothing is left
+the row **scrolls sideways** — the Finder way — instead of squeezing what is open.
+
+Until 2026-09-18 a column's width was a function of *how many columns were open*. Two took
+half the row each; a third arrived and all three took a third. Every open column got
+narrower, its prose rewrapped into more lines, and every nav link below that prose moved down
+the page. That was the whole defect, and it was one value in `core/Page/Page.css`:
+
+```css
+/* before */   flex: var(--page-column-flex, 1 1 0);
+/* after  */   flex: var(--page-column-flex, 0 0 var(--page-column-recommended, clamp(40em, 42cqi, 46em)));
+```
+
+A column's width is now a function of **itself**. `--page-column-recommended` is the same
+token `max-width` already read, so the width a column takes and the ceiling it may not pass
+are one number — and so is the `N` the even mode computes from it.
+
+`large` needed one more line. It never set a flex of its own; it *grew* into its 64em
+ceiling, and frozen at a flat 64em it would have been 1024px at every screen width — two of
+them scrolling a 1920 screen while 3440 kept 1.4k of empty row. It takes the same clamp shape
+the default and `small` already use: `0 0 clamp(28em, 50cqi, 64em)`.
+
+**Nothing else moved.** `small`, `hug`, `fill` and `full` all set `--page-column-flex`
+themselves, so the new fallback never reaches them; a drag writes the same token inline; the
+even mode re-declares it at (0,5,0); and the `< 32em` phone regime writes the properties
+directly, later in the file. All five still win.
+
+### What it changed, measured
+
+Twelve columns hosts — `/imagine/` and three realms two levels deep, plus the Finder and the
+four `uses/` screens — crawled at 1280 / 1920 / 3440, before and after, headless, one fresh
+context per page and width. Every open column's width, the row's horizontal overflow, and the
+console. Zero console errors on all five core hosts, before and after.
+
+| host | 1280 | 1920 | 3440 |
+|---|---|---|---|
+| `/imagine/` — the `large` Start column | 962 → **640** | 1024 → **960** | 1152 → 1152 |
+| `/imagine/platform/` — two topic columns | 535 → **640** each | 806 → **960** each | 1152 → 1152 |
+| `/imagine/platform/research/` — topic, then `fill` | 421 / 648 → **640 / 430** | 448 / 1165 → **960 / 653** | 504 / 2504 → **1152 / 1856** |
+| `uses/docs`, `uses/inbox`, `uses/split`, `uses/workbench` | unchanged | unchanged | unchanged |
+
+The four `uses/` screens did not move because their columns were already inside the room:
+a rail plus one reading column is 812px in a 1039px box, so there was never a squeeze to
+remove. The `/imagine/` realms are where two and three real columns compete, and 535px was a
+reading column **66px under its own measure**.
+
+**Where the sideways scroll appears.** Exactly where the squeeze used to be, and nowhere
+else: `/imagine/platform/` scrolls **211px at 1280** and **307px at 1920** (rail + two 640 /
+960 columns against a 1280 / 1920 row) and **0 at 3440**, where three columns still fit. On
+every other page in the crawl, at every width, the row's overflow is 0 on arrival. The empty
+room past the last column is not grey: `.page-columns-row` paints it as the column slots it
+is, so the row says *more opens here*.
+
+**Open a child and re-measure every column that was already open: 0px of width change and
+0px of nav movement**, at all three widths, on every host in the crawl. The lab's own readout
+agrees — its *today* row, which is built from core's classes, read 129px of nav movement and
+225px of width change at 1280 before this change and reads **0 and 0** now:
+[/web/nav/doc/study/](/web/nav/doc/study/).
+
+### The alternative, and the sentence that picks between them
+
+The other tuning measured was **`0 0 clamp(16em, 34cqi, 46em)`** — about a third of the row.
+It holds still exactly as well, *and* it keeps a 3440 screen full: three columns fit at 1280,
+four at 3440. What it costs is the measure. A reading column becomes **357px at 1280**, a
+note's width rather than a page's, and prose under its measure is the failure this site has
+spent months removing. It also costs a number — `34cqi`, "about a third of the row" — that
+the shipped tuning does not need, because the shipped one reuses the recommendation already
+in the file.
+
+> **Hosts that must fill a wide screen use even columns.**
+
+That is the whole of the trade. The elastic mode now optimises for one thing — an open
+column keeps its reading width — and a host that would rather spend the whole row says
+`this.columns({ even: true })` and gets N columns that divide the room exactly, with no
+leftover and no scroll until more than N are open. Two modes, one word apart, and neither
+one needs a third number.
+
+## Even columns — one width, and N is the room's answer
+
+Every column in the row is the **same width**, and how many of them there are is computed
+from the room rather than declared by the page. One option on the opt-in:
+
+```js
+initialize(){ this.columns({ even: true }); }
+```
+
+**Live:** the [Finder](/framework/core/Page/overview/columns/finder/) runs it; the four
+[uses](/framework/core/Page/overview/columns/uses/) next door and the demo box still run the
+elastic mode, so the two are one click apart. Side by side against today's behaviour and
+against the [proposal](/framework/ai/2026-09-17/nav-stability/) that came before it, with the
+numbers measured live: [/web/nav/doc/study/](/web/nav/doc/study/).
+
+Two lines of arithmetic, run on the row's own `ResizeObserver`:
+
+```
+N     = max(1, floor(available / recommended))    // `fit: "round"` rounds instead
+width = available / N
+```
+
+`available` is the **row's** inline size, not the window's. The owner asked "screen or
+container?" and the answer has to be container: the same row can be a page, a panel, a demo
+box or one half of a split, and a window measurement would be wrong in three of those four.
+A window is simply the largest container.
+
+`floor` is what buys the guarantee: **a column is never narrower than the width it
+recommends.** It costs the other side of that trade — see *what floor costs*, below —
+and a host that would rather pay it the other way says so in one word: `fit`.
+
+### The number that decides it — `--page-column-recommended`
+
+One token, and it defaults to the ceiling the elastic mode already had,
+`clamp(40em, 42cqi, 46em)`. It is not declared anywhere in core: `even_columns()` reads it
+back off the body's computed `max-width`, so the browser resolves the `em` and the `cqi` and
+there is no second copy of the number in JS. A page retunes it like any other token:
+
+```css
+/* three narrower columns at 1280 instead of one wide one */
+.page--my-browser { --page-column-recommended: 32em; }
+```
+
+⚠ **Declare it above the row, never on a column body.** Core reads it, it inherits, and a
+declaration on the body itself is the one thing that would out-rank an author's.
+
+### `fit` — how the room becomes a count
+
+```js
+initialize(){ this.columns({ even: true, fit: "round" }); }
+```
+
+Two answers, and `floor` is the default:
+
+- **`floor`** — `N = floor(room / recommended)`. A column is **never narrower** than the width
+  it recommends, so prose never falls under its measure. The cost is room left over, spent as
+  padding inside the columns — about 227px a column at 3440.
+- **`round`** — `N = round(room / recommended)`. Fills the room tighter, and a column **can go
+  under** its recommendation to do it.
+
+`floor` is the default because a reading column under its measure is the failure this site
+has been fighting. `round` is one word away for a host whose columns are a list, a grid or a
+picker rather than prose — things that would rather have one more column than a wider one.
+
+⚠ The option is stored as `column_fit`, prefixed, for the same reason `column_even` is: a
+page's config is `Object.assign`ed *over* the prototype, so a bare `fit:` is a word a page may
+well want for itself. Neither is ever a declared field.
+
+### N, measured — the Finder, on the default recommendation
+
+The `em` ramps with `--size` (15.04px at 1280, 16 at 1920, 18 at 3440), so the recommendation
+ramps with it. The Finder's row is the window minus the site sidebar.
+
+Re-measured 2026-09-18, after the freeze above widened the box the demo sits in. `round`
+is the same row read with `fit: "round"`, from the same `Page.even_columns()` call.
+
+| screen | row | recommended | **N** (`floor`) | each column | **N** (`round`) | each column |
+|---|---|---|---|---|---|---|
+| 400 | 400 | — | — | the `< 32em` phone regime, untouched: one column at a time | — | — |
+| 1280 | 1039 | 601.6 | **1** | 1039px | **2** | 519.5px — 82px **under** the recommendation |
+| 1920 | 1664 | 698.9 | **2** | 832px | **2** | 832px — the same answer |
+| 3440 | 3152 | 828 | **3** | 1050.7px | **4** | 788px — 40px **under** the recommendation |
+
+1920 is the case worth reading twice: `floor` and `round` agree there, because 1664/698.9 is
+2.38 and both round it down. The two answers only ever differ when the leftover is more than
+half a column — which is also the only time `round` is worth asking for.
+
+⚠ **N = 1 at 1280 is the honest answer and it is a real cost** — a 1280 desktop gets one
+column at a time, the phone's arrangement on a big screen, and the rail is reachable only
+through the crumb strip. `--page-column-recommended: 32em` gives that row **N = 2** at 525px
+each. Which of the two a browser wants is the page's call, which is why it is a token.
+
+### What stands down
+
+All six width words, rail included — that is the whole of what "even" means, and it is what
+the owner asked for: *"I think it was a mistake to use different sized columns, at least
+initially."* The mode re-declares the three width tokens at (0,5,0), above every word.
+
+Three things still win, and each on purpose:
+
+- **`full`**, because it is the one word that is not a width: it claims the host and collapses
+  its ancestors into the crumb strip. Left on the even width it drew one 1055px column in a
+  3166px row with two empty slots beside it.
+- **A drag.** `resize_column()` writes the same three tokens *inline*, so dragging a seam opts
+  that one column out of even for this visit; double-click puts the even width back.
+- **The `< 32em` phone regime**, which writes the three properties directly. `even_columns()`
+  sees its `max-width: none`, reads that as "the phone regime has this", and leaves the row
+  alone — core's own threshold, read off core's own rule, so the two cannot drift.
+
+### Fixed navigation — the measurement
+
+Arrive at the Finder, then open one child at a time, and after each click re-measure **every
+column that was already open**: its width, its x inside the row, and the top of its first five
+nav links. Headless, one fresh context per width.
+
+| screen | widths changed | nav links moved | x inside the row | x on screen |
+|---|---|---|---|---|
+| 400 | 0 | 0 | 0 | the phone regime's own page-turn |
+| 1280 | **0** | **0** | **0** | one column (N = 1, so every open scrolls) |
+| 1920 | **0** | **0** | **0** | 0 for the 2nd column, then one column |
+| 3440 | **0** | **0** | **0** | **0** for the 2nd and 3rd, then one column |
+
+Read the last two columns together, because that is the whole mechanism. **A column's place
+in the row never changes.** Until the row is full nothing moves on screen either — at 3440 you
+can open two more columns and not a pixel shifts, because the slots were already there. Past
+N the row scrolls by **exactly one column**, never a fraction of one, and that move is the
+slide below. The columns that leave are reachable from the crumb strip above the row.
+
+The lab prints the same two numbers from inside the page, and an independent headless
+measurement of the same click agrees with it exactly at every width: today **129px / 225px**,
+the proposal **0 / 0**, even **0 / 0** with **N = 3 (351px each)**.
+
+### The slide — three ways, measured
+
+Frames longer than 50ms during the move, 5 runs at each of two widths, counted with a rAF
+timestamp loop:
+
+| how | long frames | worst frame | what it costs to write |
+|---|---|---|---|
+| instant (what the elastic mode does) | 0 | 16.8ms | nothing — and nothing moves visibly either |
+| **native smooth scroll** | **0** | **16.8ms** | **one word on the scroll the row already does** |
+| FLIP — `translateX` + Web Animations | 0 | 16.8ms | a scroll listener and one animation per flex item |
+| View Transitions — `document.startViewTransition` | **23** | **116.7ms** | a whole-document snapshot |
+
+Smooth scroll and FLIP tie on jank, so the cheaper one wins: **the row is already a scroller**,
+and asking the browser to animate a scroll it was going to do anyway is one argument. View
+Transitions lost on its own merits — all 23 long frames were at 3440, where it snapshots a
+3440×1400 document twice and drops about 20 of the 56 frames in the window.
+
+Measured on the shipped code: a click ramps through 38 scroll positions over **600ms** at 1280
+and 33 over 517ms at 3440, with **0 long frames**; `prefers-reduced-motion: reduce` gives two
+positions and 0ms.
+
+⚠ **It is an argument, not `scroll-behavior: smooth` in the sheet.** A stylesheet cannot tell
+an arrival from a click, and a cold load straight at a four-deep url would have slid 3153px
+while you were trying to read it. `settle_columns(slide)` takes the one fact only the caller
+knows: the `ResizeObserver` owns the arrival and the resize and passes nothing, the
+`requestAnimationFrame` owns the click and passes `true`. Verified: a deep cold load polls
+exactly **one** distinct `scrollLeft`.
+
+⚠ **Only the even mode slides.** In the elastic mode the columns *resize* as the row scrolls,
+and animating a reflow is how you get the jank this mode exists to remove. Dropping
+`this.column_even &&` from `column_slide()` is all it would take to change that.
+
+### What `floor` costs, and what `/imagine/` would read
+
+`floor` never goes below the recommendation, so it can go well above it: at 3440 the Finder's
+columns are 1055px against a 828px recommendation, and since prose is still capped at
+`--measure`, about 227px of each column is padding. `round` would give four columns of 791px
+and fill the row tighter, at the cost of the guarantee. **That is a knob, not a bug** — the
+owner's sentence asked for "each column wants to be 1000px, so we render 3", which is `floor`.
+
+`/imagine/` deliberately has **not** switched. Measured by applying the class and the
+arithmetic to the live page without editing it:
+
+| screen | row | recommended | N | each | its rail today → even |
+|---|---|---|---|---|---|
+| 1280 | 1280 | 601.6 | 2 | 640px | 205 → **640px** |
+| 1920 | 1920 | 736 | 2 | 960px | 307 → **960px** |
+| 3440 | 3440 | 828 | 4 | 860px | 432 → **860px** |
+
+Its rail holds **25 children**, of which 6 / 9 / 3 already sit below the fold at 1280 / 1920 /
+3440 — a number the mode does not change, because widening a column adds no vertical room. The
+cost is sideways: with N = 2 the rail leaves the screen the moment you are two columns deep,
+taking all 25 entries with it, where today's 205px rail survives four. A place whose root IS
+its rail wants `--page-column-recommended` tuned before it switches, or it wants to keep the
+word. **The owner's call.**
+
 ## `index` — a column whose cards ARE the nav
 
 A column normally lists its children as rows under its prose. An **index** column has
@@ -91,9 +360,9 @@ export default new Page({
 });
 ```
 
-**Three pages had suppressed it by hand** before this word existed — `/imagine/shells/`
+**Three pages had suppressed it by hand** before this word existed — `/layouts/labs/shells/`
 wrote the whole of `column()` out again (ten lines, identical minus the rows),
-`/imagine/screens/` did it in CSS, and `/imagine/vary/` shipped the double list — all
+`/layouts/labs/screens/` did it in CSS, and `/imagine/vary/` shipped the double list — all
 three wear the word now (the tidy pass, later the same day). Measured on shells at 1280
 and 1920: **10 rows + 10 cards → 0 rows + 10 cards**, and the page.js override became
 one word.
@@ -171,7 +440,7 @@ columns host be marked `default` itself and live in a panel it is never routed t
 ⚠ **A default column is never routed to, so it never got an `app`.** `child()` is where a page
 is handed the app, and nothing calls `child()` for a page the host builds itself — so
 `this.app.router` inside a default column's content threw *"Cannot read properties of undefined"*
-(`/imagine/screens/deck/`, 2026-08-29). `render_column()` now assigns `app` as it builds the
+(`/layouts/labs/screens/deck/`, 2026-08-29). `render_column()` now assigns `app` as it builds the
 child, which makes it the **second** place the app is handed down. The general shape of this
 bug: `add()` copies `app` at *declaration* time, when a `page.js` at module scope has none yet,
 and only a later routing fills it in.
@@ -266,7 +535,7 @@ tree — so a child that only loads when you navigate to it is a column too.
 *inside* another one is not a host: its `columns()` call is inert and its subtree simply joins
 the outer row. `/imagine/gallery/` calls `columns()` and is a plain column of `/imagine/`'s row.
 **That is the current contract, not an oversight** — one row, one crumb strip, one scroller —
-and a page that needs a row of its own escapes the tree instead (`imagine/shells/Shell.js`
+and a page that needs a row of its own escapes the tree instead (`layouts/labs/shells/Shell.js`
 overrides `container()` and `render()`; `demo.app()` is the only way to put a real row inside
 one). Nested rows are open, and flipping to `findLast()` is not the whole of it: the crumb
 strip, the `×` and `reveal_column()` all assume one host per screen.

@@ -25,7 +25,7 @@ things people already expect from chips, and they are the whole of `Search.Filte
 | Scrolling | the *scroll* axis |
 | What it is | the *content-kind* axis |
 
-The four axes are [the tag vocabulary](/imagine/design/vocabulary/)'s: 29 tags on 4 axes,
+The four axes are [the tag vocabulary](/framework/styles/system/studies/vocabulary/)'s: 29 tags on 4 axes,
 written to describe any site's structure. `core/Search/tags.js` carries the tag → axis map and
 nothing else — core may not import a page module, and a second copy of 29 *definitions* would
 be a second thing to keep true. When a tag is added to the vocabulary, add its one line there;

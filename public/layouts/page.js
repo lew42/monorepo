@@ -36,7 +36,7 @@ export default new Page({
 	icon: "dashboard",
 	description: "Every layout named, defined and drawn at three widths.",
 
-	children: "tag doc",
+	children: "browse practice shell labs tag doc",
 
 	/* A layout's page, built from its entry. `route()` sees undeclared names only, so
 	   it can never shadow `tag` or `doc`.
@@ -70,6 +70,14 @@ export default new Page({
 		md("**A flex row and a grid that make the same picture are the same layout.** So `2-sidebar` is a narrow column beside a wide one whatever CSS built it, and the technique is a [tag](/layouts/tag/2-column-flex/) instead — as are paint, proportion, and which side the sidebar sits on. Click any tag and you get every layout that carries it. [The rules in full](/layouts/doc/naming/).");
 
 		md("**[What 47 real sites actually do →](/websites/patterns/)** — these same words, counted across the corpus next door: which arrangements the web really uses, what each one becomes on a phone, and which three are worth copying.");
+
+		md("**[Approve or improve every layout on the site →](/layouts/browse/)** — the twelve above, plus the whole-page shapes, the section templates and the ui and ux components the rest of this site is built from: every one of them a picture, in three tiers, each with a verdict button.");
+
+		md("**[Three of them built big, at 3440 →](/layouts/practice/)** — a workbench, a reader and a catalog: whole pages, filled with this site's own content, each one holding at 400 as well, with every decision behind a fold at the bottom.");
+
+		md("**[A sidebar that never moves, and a tree of homepage designs →](/layouts/shell/)** — drag the sidebar to any width and click a row: the viewport beside it redraws. A base homepage, and seven designs under it, each one the design above it with a single thing added, changed or taken away.");
+
+		md("**[Six labs where a shape got tried before it earned an id →](/layouts/labs/)** — an app shell, what a click does to your screen, a horizontal band, a blog at 3440, a magazine page, a deck cut into regions. Moved here from `/imagine/` on 2026-09-18.");
 
 		div.c("wide", $tags => {
 			load().then(data => {

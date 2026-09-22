@@ -1,6 +1,6 @@
 Splits one user-turn transcript line into what a human actually typed versus
 what the harness wrapped around it — slash-command echoes, system reminders,
-task notifications — so `feed.js` and `replay.js` can show the prose and fold
+task notifications — so `conversation.js` can show the prose and fold
 the rest.
 
 ## The tag list is the whole contract
@@ -14,7 +14,7 @@ of a fold bar — not a crash, just a slightly noisier turn. `stats.js`'s
 
 ## `trivial()` is the shared "nothing happened here" test
 
-No prose and no command — used by `feed.js`'s `finalize()` and `replay.js`'s
+No prose and no command — used by `conversation.js`'s `ingest()` and the old viewers'
 `render()` to drop a turn that opened on a bare harness artifact and picked
 up nothing real afterward.
 

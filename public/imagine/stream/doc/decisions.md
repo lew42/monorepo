@@ -30,20 +30,20 @@ unaffected: no content at `x: 0`, no prose past the measure, no framed box touch
 column edge — the hero card is a `surface` box inside the normal padded flow, never bled.
 
 Console: zero errors at 1280 and 3440, both before and after (the 1280/3440 *before*
-shots did carry one 404 each — `/imagine/decks/thumbs/deck.jpg`, unrelated to the hero
+shots did carry one 404 each — `/layouts/labs/decks/thumbs/deck.jpg`, unrelated to the hero
 card; see "the deck thumb path bug" below).
 
 ## The deck thumb path bug — a stale field and a directory that only works by luck
 
 `stream/deck/page.js` still declared `shapes: ["1:s", "62:s 38:l"]` after
-`imagine/decks/deck.js`'s own 2026-09-05 refactor removed `diagram()` and the `shapes:`
+`layouts/labs/decks/deck.js`'s own 2026-09-05 refactor removed `diagram()` and the `shapes:`
 reader that fed it in favour of a real screenshot preview — this deck was the only page
 in the repo still declaring it, and it drew nothing because nothing reads it any more.
 
 Separately, `Deck.preview()`'s thumb path is `base + "thumbs/" + this.name + ".jpg"`,
 where `base` is `decks/deck.js`'s OWN directory (`new URL(".", import.meta.url)` of that
-shared module) — correct for a deck that lives beside it (`/imagine/decks/<name>/`), a
-404 for one that does not. `stream/deck/` 404'd on `/imagine/decks/thumbs/deck.jpg`,
+shared module) — correct for a deck that lives beside it (`/layouts/labs/decks/<name>/`), a
+404 for one that does not. `stream/deck/` 404'd on `/layouts/labs/decks/thumbs/deck.jpg`,
 found live in a before-shot's console.
 
 Fixed locally: `stream/deck/page.js` now overrides `preview()` with `this.url +

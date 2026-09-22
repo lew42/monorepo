@@ -10,6 +10,7 @@ import { verify, readCookie, DEV_SECRET_FALLBACK } from "./session.js";
 import { can } from "./can.js";
 import { me } from "./me.js";
 import { likes, toggle } from "./likes.js";
+import { pages, upsert } from "./pages.js";
 export { Room } from "./room.js";   // re-exported so whichever module wrangler binds the DO class to (this file, or dev.js locally) can find it
 
 function json(data, status = 200) {
@@ -60,6 +61,22 @@ export async function route(request, env) {
 
         if (!can(user, "read")) return json({ error: "forbidden" }, 403);
         return json(await likes(target, user, env));
+    }
+
+    if (url.pathname === "/api/pages") {
+        // The write path reuses the exact five lines /api/likes's POST above already
+        // proved (can() + same-origin), so it came free — ai/2026-09-17/pages-in-d1/.
+        if (request.method === "PUT") {
+            if (!can(user, "write")) return json({ error: "forbidden" }, 403);
+            const site = request.headers.get("Sec-Fetch-Site");
+            if (site && site !== "same-origin") return json({ error: "forbidden" }, 403);
+            return json(await upsert(await request.json(), env));
+        }
+
+        // No read check below: pages are public, the same as any static file under public/.
+        const under = url.searchParams.get("under");
+        if (!under) return json({ error: "missing ?under=" }, 400);
+        return json(await pages(under, env));
     }
 
     if (url.pathname === "/api/room") {

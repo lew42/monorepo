@@ -171,6 +171,82 @@
 	   fix holds no matter which stylesheet happens to load second. */
 	.page h1.page-title { font-size: clamp(1.75rem, 9vw, 3em); }
 
+	/* ════ RELATED — a pinned third region: links to other pages ═════════════
+	   `related: "/a/ /b/"` (Page.class.js's `related_aside()`,
+	   `doc/property/related.md`) draws one row per url — the target's own icon
+	   and title, read live so a renamed target updates this row by itself. NO
+	   BOX: it sits on the page's own ground, so it gets no fill and no padding
+	   of its own beyond the grid's gutter (the layout skill's "does this need a
+	   box" rule, 2026-09-18).
+
+	   ⚠ `:has(> .page-related)`, so a page that says nothing about `related:`
+	     keeps this exact grid, byte for byte — the same discipline the six page
+	     words already keep ("every default writes nothing").
+	   ⚠ (0,2,0), already above the base `.page` rule's (0,1,0) in this same
+	     layer, so there is no load-order race to win here — unlike `ext/toc`'s
+	     own version of this trick (`toc.css:10`), which ties against a page
+	     that owns a competing template of its own and has to opt itself out.
+	   ⚠ FOLDS UNDER, never away. `ext/toc` stays `display: none` below its
+	     breakpoint — a scroll-spy nav pinned to nothing to spy on is worthless —
+	     but a related link reads fine alone, so below the breakpoint THIS rule
+	     simply never fires: `.page-related` falls into the ordinary `main`
+	     column like any other block, stacked after whatever it follows —
+	     `related_aside()` is always the LAST thing appended.
+	   ⚠ THE BREAKPOINT — 70em, narrower than toc's 82em because this rail is
+	     narrower than toc's own. The default reading column is `--measure: 40em`
+	     (toc widens its own page to 78em; this one does not change it), plus two
+	     `--gutter-x` (up to 5em each), plus the rail's own `clamp(14em, 26%,
+	     22em)` and the gap between them — about 66–71em depending on how wide
+	     the gutters have grown by that width. Below 70em, forcing the rail
+	     beside the text would either narrow `main` under its own measure or
+	     squeeze the rail under its own floor; the fold is what avoids both. */
+	@media (min-width: 70em) {
+		.page:has(> .page-related) {
+			grid-template-columns:
+				[bleed-start]           var(--gutter-x)
+				[wide-start main-start] min(var(--measure), 100% - var(--gutter-x) * 2) [main-end]
+				                        minmax(0, 1fr) [wide-end]
+				                        var(--gutter-x)
+				[bleed-end related-start] clamp(14em, 26%, 22em) [related-end]
+				                        var(--gutter-x);
+		}
+
+		/* `span 200`, not `1 / -1` — the same reason `toc.css` gives: these rows
+		   are all implicit, so `-1` resolves to line 1 and spans nothing.
+		   `align-self: start` + `sticky` is what makes a grid item stick at
+		   all — stretched, it is already as tall as its row and has nowhere to
+		   stick within. */
+		.page > .page-related {
+			grid-column: related;
+			grid-row: 1 / span 200;
+			align-self: start;
+			position: sticky;
+			top: var(--pad-y, 2em);
+		}
+	}
+
+	/* Below the breakpoint, and under a columns host (where this never matches
+	   at all — `.page-column-prose` is not a `.page`'s direct child in the grid
+	   sense, `doc/columns.md`), `.page-related` is a plain block.
+	   ⚠ `flex-basis: 100%` only means anything under an ANCESTOR this file does
+	     not own that happens to be `display: flex` — `ext/Doc`'s own tabbed
+	     shell (`ext/Doc/Doc.css`'s `.page.doc-page`) is the one on the site
+	     today. Under THIS file's `display: grid` it is inert (flex-basis has no
+	     meaning there), so it costs the grid case nothing and buys the flex
+	     case a full-width row instead of a stray narrow one. doc/decisions.md. */
+	.page-related { flex: 1 0 100%; min-width: 0; }
+
+	.page-related-title { display: block; color: var(--subtle); margin-bottom: calc(var(--gap) * 0.6); }
+
+	.page-related-links { display: flex; flex-direction: column; gap: calc(var(--gap) * 0.3); }
+
+	.page-related-link {
+		display: flex; align-items: center; gap: calc(var(--gap) * 0.35);
+		text-decoration: none; color: var(--subtle);
+	}
+	.page-related-link:hover { color: var(--ink); }
+	.page-related-link .icon { font-size: 1.05em; color: var(--subtle); }
+
 	/* ── `.solo` — the one full-screen word ──
 	   The page takes the whole region and owns its own scrolling. No `position`, no
 	   `z-index`: it fills the region rather than covering the window, so it cannot
@@ -218,7 +294,7 @@
 	     small or large columns host retunes its bar, heads, rows and prose together.
 	     Kept as its own clamp, not aliased to `--pad` — the size study measured it
 	     within 2.6% of `--pad` but pad-y is not a constant fraction of pad-x (0.68 at
-	     1280, 0.50 at 3440), /imagine/design/size/alternatives.md. */
+	     1280, 0.50 at 3440), /framework/styles/system/studies/size/alternatives.md. */
 	.page.columns {
 		--page-column-pad-x: calc(clamp(0.9em, 1.6cqi, 3em) * var(--size, 1));
 		--page-column-pad-y: calc(clamp(0.7em, 0.8cqi, 1.6em) * var(--size, 1));
@@ -297,12 +373,35 @@
 	     demo box does, ext/demo's app.css) and `max-width: none` would silently uncap
 	     every column. 40em is the number `--measure` carries, said out loud. */
 	.page.columns .page-column-body {
-		flex: var(--page-column-flex, 1 1 0);
+		/* A COLUMN'S WIDTH IS A FUNCTION OF ITSELF, NEVER OF HOW MANY ARE OPEN
+		   (2026-09-18, ai/2026-09-17/nav-stability/proposal.md). `1 1 0` here used to
+		   mean "share the row equally": two columns took half each, a third arrived and
+		   all three took a third, so every column that was ALREADY OPEN got narrower, its
+		   prose rewrapped into more lines, and every nav link below that prose moved down
+		   the page. `0 0 <the recommendation>` is the whole fix: a column takes its
+		   reading width and keeps it, the column that opens next takes what is left over,
+		   and when nothing is left the row SCROLLS SIDEWAYS — the Finder way — instead
+		   of squeezing what is open. That scroll is the price, and it is the deliberate
+		   half of the trade. The before and after, and the alternative tuning with the
+		   sentence that picks between them: doc/columns.md.
+		   ⚠ It reads `--page-column-recommended`, the SAME chain `max-width` reads two
+		     declarations down, so the basis and the ceiling are ONE number: a page that
+		     retunes that token moves the width, the ceiling and the even mode's N
+		     together, and they cannot drift apart.
+		   ⚠ Every word that sets `--page-column-flex` itself is untouched by this —
+		     `small`, `hug`, `fill`, `full`, a DRAG (inline), the `even` mode, and the
+		     `< 32em` phone regime at the bottom, which writes the property direct. */
+		flex: var(--page-column-flex, 0 0 var(--page-column-recommended, clamp(40em, 42cqi, 46em)));
 		min-width: var(--page-column-min, 16em);
 		/* 40em until the row passes ~110em, then up to 46em — a reading column may
 		   spend a little of a 3440 screen, and the growing pad-x keeps the text
-		   inside it at the measure. */
-		max-width: var(--page-column-max, clamp(40em, 42cqi, 46em));
+		   inside it at the measure.
+		   ⚠ `--page-column-recommended` is THE SAME NUMBER under the name the `even`
+		     mode below reads it by, and it sits in the middle of the chain on purpose:
+		     a page that retunes one token (`--page-column-recommended: 32em`) moves
+		     both this ceiling and the N the row computes, so the two cannot disagree.
+		     A DRAG (`--page-column-max`) still out-ranks both, the way it always did. */
+		max-width: var(--page-column-max, var(--page-column-recommended, clamp(40em, 42cqi, 46em)));
 		overflow-y: auto; scrollbar-width: thin;
 		scroll-snap-align: start;
 		border-inline-end: 1px solid var(--line);
@@ -315,8 +414,8 @@
 	   without a new word.
 	     small   a rail: lists, pickers, an index.
 	     hug     only what its rows need — a rail whose labels decide the number.
-	     (none)  the default — a floor, and 40em to grow into.
-	     large   grids and wide content.
+	     (none)  the default — a reading column, frozen at the width it recommends.
+	     large   grids and wide content — half the row, between 28em and 64em.
 	     fill    the leftover, and the neighbours keep their floor.
 	     full    the whole host; the ancestors collapse into the crumb strip.
 
@@ -340,7 +439,13 @@
 	   3440. One token so the three properties cannot disagree. */
 	.page-column-small { --page-column-w: clamp(14em, 16cqi, 24em); --page-column-flex: 0 0 var(--page-column-w); --page-column-min: var(--page-column-w); --page-column-max: var(--page-column-w); }
 	.page-column-hug   { --page-column-flex: 0 0 auto; --page-column-min: 6em;  --page-column-max: 24em; }
-	.page-column-large { --page-column-min: 28em; --page-column-max: 64em; }
+	/* `large` NEEDS A `cqi` TERM now that nothing grows (2026-09-18). It never set a
+	   flex of its own — it grew into its 64em ceiling — and frozen at a flat 64em it
+	   would be 1024px at EVERY width: two of them scroll a 1920 screen, and a 3440
+	   screen keeps 1.4k of empty row. So it takes the same clamp shape the default and
+	   `small` already use — a floor, a share of the row, a ceiling — and half the row
+	   is what `large` has always meant. */
+	.page-column-large { --page-column-flex: 0 0 clamp(28em, 50cqi, 64em); --page-column-min: 28em; --page-column-max: 64em; }
 	.page-column-fill  { --page-column-flex: 1 1 100%; --page-column-min: 16em; --page-column-max: none; }
 	.page-column-full  { --page-column-flex: 1 0 100%; --page-column-min: 100%; --page-column-max: none; }
 
@@ -360,6 +465,62 @@
 	.page.active-ancestor > .page-column-body.page-column-fill {
 		--page-column-flex: 1 1 0;
 		--page-column-max: 64em;
+	}
+
+	/* ── `even` — N columns, all the same width, and N is the room's answer ──
+	   `this.columns({ even: true })` on the host, and every open column is the same
+	   width — the rail too. The owner, 2026-09-17: "I think it was a mistake to use
+	   different sized columns, at least initially. The N should be computed on window
+	   resize … based on the columns min/max or recommended width, and available screen
+	   (or container?) space." The answer to the question inside that sentence is
+	   CONTAINER: the ROW measures itself, and a window is one container among several
+	   (a panel, a demo box, one half of a split). Two lines of arithmetic:
+	
+	       N = max(1, floor(row / recommended))          width = row / N
+	
+	   `floor` is what buys the guarantee: a column is NEVER NARROWER than the width it
+	   recommends. And N × width is the row exactly, so the row does not scroll until
+	   MORE than N columns are open — which is the fixed navigation the owner asked
+	   for: opening a column changes no width and moves no nav link, because there was
+	   already an empty slot waiting for it. `even_columns()` (Page.class.js) does the
+	   arithmetic on a ResizeObserver and writes ONE value on the row,
+	   `--page-column-even-w`. Everything below is that value arriving. doc/columns.md.
+	
+	   ⚠ (0,5,0), and every class in it is load-bearing. The six width words set the
+	     same three tokens at (0,1,0) and `fill`-yields-to-an-open-child at (0,4,0), so
+	     a lower weight would leave a `fill` ancestor on `1 1 0` — basis 0 with no
+	     leftover to grow into, which is a column 0px wide. Every column body really is
+	     inside `.page-columns-row` (`render_column()` puts the host's own body, the
+	     seam and the `$pages` region in it), so this selector is the structure said
+	     out loud, not a specificity trick.
+	   ⚠ TOKENS, not properties, so the two rules that must still win do: a DRAG
+	     writes the same three tokens INLINE (`resize_column()`), and the `< 32em`
+	     phone regime at the bottom of this section writes the three PROPERTIES.
+	     Measured at 400: the phone rule still wins and nothing about that regime
+	     changed.
+	   ⚠ `--page-column-max: var(--page-column-even-w)` HAS NO FALLBACK, and that is
+	     the whole measuring trick. Before the first measurement the var is unset, so
+	     the declaration is invalid at computed-value time and the base rule's
+	     `max-width` falls all the way back to the recommendation — which is how
+	     `even_columns()` READS that recommendation in px, off
+	     `getComputedStyle(body).maxWidth`, with the browser resolving the `em` and the
+	     `cqi` for it. One number, one place, and no second copy of it in JS. */
+	.page.columns.page-columns-even .page-columns-row .page-column-body {
+		--page-column-flex: 0 0 var(--page-column-even-w, 100%);
+		--page-column-min: 0;
+		--page-column-max: var(--page-column-even-w);
+	}
+
+	/* `full` is the one width word whose meaning is not a width: it claims the host and
+	   collapses its ancestors into the crumb strip (the `:has()` rule below). Left on
+	   the even width it would have drawn ONE 1055px column in a 3166px row with two
+	   empty slots beside it — a page that says "I am the whole screen" showing a third
+	   of it. Its ancestors are hidden, so it is still the only column open: "every open
+	   column is the same width" is not broken by it. */
+	.page.columns.page-columns-even .page-columns-row .page-column-body.page-column-full {
+		--page-column-flex: 1 0 100%;
+		--page-column-min: 100%;
+		--page-column-max: none;
 	}
 
 	/* ── the seam you can drag (`column_grab()`) ──
@@ -513,7 +674,7 @@
 	     this one is inside ONE control, between its icon and its label, and
 	     `--gap` is pinned at its 2.6em cap above ~1400px, so `× 0.4` is 1.04em at
 	     3440 on a 0.9em row. (2026-09-06, the rule on
-	     /imagine/design/spacing/decision.md; the homepage nav went fat the same way.) */
+	     /framework/styles/system/studies/spacing/decision.md; the homepage nav went fat the same way.) */
 	.page-column-item {
 		display: flex; align-items: center; gap: 0.4em;
 		padding: 0.35em var(--page-column-pad-x, 0.9em);
@@ -1009,6 +1170,16 @@
 	   ⚠ `--thumb-max: none` (the catalog rail) used to make `height` invalid so it
 	     fell back to `auto`. `--stage: auto` is the same escape hatch, said out loud. */
 	.page-preview-thumb { aspect-ratio: var(--stage, 16 / 10); }
+
+	/* `.design-shot` — a real screenshot filling a `.page-preview-thumb` box, cropped to
+	   it, instead of sitting at the image's own natural size inside it. Landed with the
+	   design studies (2026-09-01, `imagine/design/design.css`) for their own card wall;
+	   moved here 2026-09-18 (imagine-move-2, `ai/2026-09-18/imagine-move-2/`) because by
+	   then every study's own `preview()` used it and the pages carrying those studies now
+	   span five separate trees (`styles/system/studies`, `ui/controls`, `layouts/doc`,
+	   `web/nav/doc`, `ext/DesignTool/journey`) — no single one of them is the right file
+	   to own a rule the others also depend on, so it joins its own box's rule instead. */
+	.design-shot { display: block; width: 100%; height: 100%; object-fit: cover; }
 
 	/* The only real link in the card; its ::after covers the rest of it.
 	   D3 (spacing-judge 2026-09-05, rule c): the CARD is the control — its frame is

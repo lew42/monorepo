@@ -1,5 +1,4 @@
-import { md } from "/app.js";
-import { Paging } from "../paging.js";
+import { Page, md } from "/app.js";
 
 /* Container: a column in /imagine/paging/'s row (itself /imagine/'s row). Size: `full` —
    an 8-column table needs the room, and this is a one-screen reference, not a place you
@@ -11,19 +10,14 @@ import { Paging } from "../paging.js";
    pattern?" This is the answer — one row per thing already built that way, in the
    vocabulary the rest of /imagine/paging/ shares (mechanisms/, styles/, sizes/). */
 
-export default new Paging({
+export default new Page({
 	meta: import.meta,
 	title: "Inventory",
 	description: "What already matches icon · page · children · navigation — one row per thing, in the paging vocabulary.",
 	icon: "inventory_2",
-
-	// ⚠ `heading: true` — a READING, not a demo, so it keeps core's `h1`. Every demo
-	//   page in this realm drops it so the demo starts at the top (`paging.js`).
-	heading: true,
+	width: "full",
 
 	content(){
-		md("**One row per thing on this site that is already an icon, a page and a list of children — and which of paging's four words it uses.** The owner's question was \"what else have we made that matches this pattern?\"; this table is the answer.").ac("paging-lede");
-
 		md("**Icon, page, children (with navigation) — what else is already built this way?** One row per thing that already matches the [page generator](/framework/core/Page/generator/)'s own shape: a tree of pages, each with a title and an icon, that a click walks. The mechanism column is [paging](/imagine/paging/)'s own four words — `launch` (new column, right) `expand` (grows below) `swap` (replaces in place) `takeover` (fills the screen) — or `none` where the thing does not use the page tree to switch at all.");
 
 		md(`| thing | click | content | layout | surface | toolbar | nesting | verdict |

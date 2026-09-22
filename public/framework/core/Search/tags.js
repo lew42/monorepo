@@ -3,12 +3,12 @@
  * chips in two different groups instead of one flat row.
  *
  * What each tag MEANS is one page, and that page is the source of truth for the
- * vocabulary itself: /imagine/design/vocabulary/. This file deliberately carries no
+ * vocabulary itself: /framework/styles/system/studies/vocabulary/. This file deliberately carries no
  * definitions — core may not import a page module, and a second copy of 29
  * definitions is a second thing to keep true. When a tag is added over there, add
  * its one line here; a tag with no line lands in "Other" rather than disappearing.
  *
- * Next step, when someone owns that file: `/imagine/design/vocabulary/tags.js`
+ * Next step, when someone owns that file: `/framework/styles/system/studies/vocabulary/tags.js`
  * imports AXES from here and reads the axis off it, so even the grouping has one copy.
  */
 

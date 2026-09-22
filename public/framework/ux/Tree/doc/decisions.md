@@ -155,3 +155,182 @@ insertion line visible mid-drag (`drag-between-*.png`), Escape mid-drag leaves t
 byte-identical (`drag-escape-*.png`), and the printed `moved()` payload matched every
 shot. `/framework/ux/Tree/` and `/keys/` re-verified at 360 and 3440: zero overflow,
 zero non-LiveReload console errors, one Enter-selects proof on `/keys/` still passes.
+
+---
+
+# The merge — one tree (2026-09-17)
+
+Task log: [`ai/2026-09-17/tree-component/`](/framework/ai/2026-09-17/tree-component/).
+**Everything above this line is the record as it was written, and three of its claims are
+now superseded — each one is named below.**
+
+## What was wrong, and it was structural
+
+`TreeKeys` and `TreeDrag` were **siblings**: both `extends Tree`, each replacing
+`Tree.Row`. JavaScript has single inheritance, so **no tree could have the arrow keys and
+the drag at the same time.** Nobody wrote that down, because each extension was correct on
+its own; it only shows when a consumer wants both — and one did. The page CMS
+(`/imagine/paging/make/`) needed a draggable page tree, could not take `TreeDrag` and
+still have a keyboard, and wrote its own tree instead: 343 lines, with no expand and
+collapse at all.
+
+So there were three trees on the site. That is the whole case for the merge.
+
+## The comparison that settled it
+
+| | rows from | expand / collapse | keyboard | drag | selection | marks + acts |
+|---|---|---|---|---|---|---|
+| `ux/Tree`, before | a nodes array | chevron | only in `TreeKeys` | only in `TreeDrag`, 2 targets | on the tree | none |
+| `ui/tree` | hand-written markup | baked into the data | none | none | baked into the data | none |
+| `make/tree.js` | a page tree | **none — always open** | none | grip, 3 targets | a picked path | star, `+`, `×` |
+| `ux/Tree`, merged | a nodes array, **or a `Page`** | chevron + arrows | **always on** | grip, 3 targets | on the tree | star, `+`, `×` |
+
+Two near-trees were checked and are not trees. **`core/Sidebar`** is a flat list of links
+with one level of grouping — no nesting, no expand, no drag — and should *not* consume this
+class: a tree would add nesting nothing asks for. **`demo.tree()`** (`ext/demo`) is a demo
+*page shape* that wraps a whole mini app; the name is the only thing it shares.
+
+**The decision: the merged tree lives in `ux/Tree`, as one class.** `ui/tree` stays the
+markup and CSS it wears. `TreeKeys.js` and `TreeDrag.js` stay as back-compat shims so the
+documented API keeps working; new code takes `Tree`.
+
+**The alternative — Make's tree as the base — and its caveat.** Make's tree has the better
+drag and is the worse tree. Its rows carry a *path* into `made.js`, its drop commits through
+`page.move_to()`, it renders every level open (which is why a deep page tree there is a
+wall), and it lives in `/imagine/`, where nothing in `framework/` may import it. Taking it
+as the base would have meant deleting its writer half and adding folding, the keyboard and
+a nodes-array source — more work than lifting its one good idea into `ux/Tree`. **Make
+becomes a consumer of this class in a later task**, where it would lose roughly 200 of its
+343 lines and gain folding and the keyboard.
+
+## The three targets, which is Make's model
+
+A row is three drop targets and which one you get is where on it you let go: its **top
+edge** is *above it*, its **middle** is *inside it*, its **bottom edge** is *below it*. The
+edge band is a third of the row, **capped at 10px**, so the middle — nesting, which is what
+a tree is for — is always the biggest of the three.
+
+That cap is a measurement, not a taste, and Make's own file records why: `Sortable.locate()`
+takes the innermost registered container under the cursor, and every row in a page tree *is*
+one, so "anywhere on a row means inside it" left the 4px gap between two rows as the only
+place to say *before it*.
+
+**Supersedes** the 2026-08-21 rule above ("the middle half of a branch row's height reads as
+into, the rest as before/after"): two targets, and the band was a fraction with no cap. A
+node that cannot hold children (`holds()` answers that, and a subclass overrides it — a page
+tree, where any page can hold pages, is the case) has no middle at all: the row splits in
+half so you can still reorder against a leaf.
+
+## One event, and the tree never writes
+
+```js
+move({ node, into, index })   // a drop landed
+act(name, node)               // "default", "add" or "remove" was pressed
+```
+
+`into` is the node it now belongs to, `null` for the root list; `index` is counted **after**
+the node is taken out of wherever it was, so a consumer's splice-out-then-splice-in never
+corrects for its own shift. All three gestures arrive as that one event — the consumer never
+branches on *above / inside / below*, only on where the node now is.
+
+`TreeDrag`'s `moved(node, into, at)` is the same three facts in the old spelling, kept on the
+shim.
+
+## Adapt: the whole thing is four lines
+
+```js
+adapt_to(node){
+    if (!this.adapt || !node) return this;
+
+    this.rows.forEach($row => $row.item.close());
+    for (let item = this.rows.get(node)?.item; item; item = item.up) item.open();
+
+    return this;
+}
+```
+
+Everything shuts, then the chain from the root down to the selected row re-opens — the
+selected row **included**, so you see your ancestors, your siblings at every level, and your
+own children. Measured on the module page's five-level tree: **138 rows with every branch
+open, 12 at depth four with `adapt` on.**
+
+It is off by default, because a tree somebody opened by hand should stay the way they left
+it, and the chevrons still work while it is on — adapt re-folds on the *next* selection, so
+opening a second branch to peek at it is not taken away from you. The owner said getting
+this right takes practice; the switch is one property (`adapt: true`) and one method to
+override, so the next try is a small change rather than a rewrite.
+
+## Two latent bugs, found by reading
+
+1. **`moves()` was not in DOM order any more.** It read `[...rows.values()]`, and the
+   comment above it claimed that was DOM order — true only while every row was built
+   depth-first and synchronously. A lazily-loaded branch sets its rows on the Map long after
+   its neighbours, so the arrows would have walked out of order the day branches could
+   arrive late. It reads the DOM now and maps back through a `by_el` Map. **Supersedes**
+   "rows-in-DOM-order came free" above.
+2. **`locate_parent()` tested `n.children &&`.** A function is truthy, so an unopened lazy
+   branch would have thrown inside the recursion on the first drop. It tests `is.arr()`.
+
+## Where the CSS went
+
+**Supersedes "the one CSS rule".** `.ui-tree-row:focus` moved **into the template**
+(`ui/tree/tree.js`), beside `:hover` and `.ui-tree-selected`, because a focus ring is a rule
+about a *state* and that is exactly what `ui/` is for — and the keyboard is no longer a
+named subclass whose class could scope it. `Tree.css` now holds only what a *class* put on
+the screen: the grip, the two drop cues, the star and the row buttons.
+
+One template fix came with it: `.ui-tree-text` had `overflow: hidden` and `text-overflow:
+ellipsis` but no `min-width: 0`, so a flex item's floor was its content width and a long
+label pushed the row wider instead of truncating — which is what pushed the new row buttons
+off the end of a narrow rail.
+
+## Still parked
+
+- **ARIA.** Still no `role="tree"` / `aria-expanded`. Unchanged, and now worth more: with
+  the keyboard in the base class, every tree on the site would gain the roles at once.
+- **Make as a consumer.** Named above; a later task, and out of this one's fence.
+- **A `selected` that survives `draw()`.** `draw()` still resets it, and the caller still
+  owns the data — the module page shows the one line that costs (`node.open = $row.item.opened()`
+  before the redraw). Worth revisiting only if a third consumer writes the same line.
+
+## A branch row can be a link too (2026-09-18)
+
+`Row.prerender()` used to decide the tag as `!kids && href`, so a row with children could
+never be an `<a>` — `/layouts/shell/Shell.js` carried its own `StdShellRow` override just to
+get past it. The merge above already simplified the condition to plain `this.node.href`, so
+a branch with an href is now a real anchor by inheritance; the Shell override was dead code
+and is deleted. One bug came with the fix and is fixed alongside it: `caret()`'s click
+handler only called `stopPropagation()`, which stops other *listeners* but not the anchor's
+own default navigation, so clicking the chevron on a branch-as-link row folded it **and**
+followed the link. `caret()`, `mark()` and `button()` now `preventDefault()` too. Verified
+headless on `/layouts/shell/` (8 rows, all real `<a>`, chevron click leaves the url
+unchanged and flips `.ui-tree-open` true→false, a label click navigates, Enter on the
+focused branch row follows its `href`) and on the module page (568 rows, zero console
+errors, every href row an anchor, every href-less branch still a `<div>`).
+
+## Three fixes left by yesterday's landings (2026-09-18)
+
+`tree-fixes` (`ai/2026-09-18/tree-fixes/`). All three were found and worked around by
+other tasks that could not edit this module — fixed here, at the source, so nothing has
+to work around them any more.
+
+1. **`leaf: true` (`core/Page/readme.md`) now means what it says to a `root:` tree.**
+   `Tree.node_of()` used to draw a Page's own `children.size` as a branch even when that
+   page had declared itself a leaf — "I present myself, not my children." Fixed by adding
+   `!child.leaf` to the branch check. Verified on `/framework/`'s real sidebar
+   (`root: this`, added the same day — below): `AI` and `UX` (both `leaf: true`) draw with
+   no expand caret at all, while `Core` (not a leaf) still opens to its real 10 children.
+2. **A drop's own click no longer reaches the row.** The pointer goes down on the grip and
+   up on the row, so the browser fires a `click` on the row right after `Tree.Drag.release()`
+   reports the move — and a row's click means "select me," which could cancel whatever the
+   consumer's `onMove` had just asked (Make's confirm question was the case that found it).
+   `release()` now calls `swallow_click()`: a capturing listener on the tree's own root,
+   ahead of the row's own bubble-phase one, removed the next tick either way. Unit-verified:
+   the very next click on a row is swallowed, a later one is not.
+3. **A drop into a closed branch lands last, not first.** `Tree.Drag.commit()` used to count
+   `into.children` to mean "as its last child," and an unopened branch still holds a
+   *function* there, not an array — so it always counted zero. Every node now carries
+   `count` (`child.children.size`, read off the live Page synchronously, whether the branch
+   has ever been opened or not); `commit()` uses it only when there is no loaded array to
+   count instead. Make's `real.js` carried guards for both of these (`imagine/paging/make/
+   doc/decisions.md` §5); both are now deleted there as dead code.

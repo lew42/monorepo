@@ -52,4 +52,4 @@ this.stream.set(["headline"], "typed in another window");    // the editor's hal
 - Files that matter: `stream.js` (the class — snapshot, replay, append, latency),
   `data/` (a `.json` snapshot and a `.jsonl` log per demo)
 - Stands on: `ext/JSONL` (the replay and the socket half), `Server/plugins/SocketServer/Tail.js`
-  (the push), `/imagine/decks/` (the deck machinery)
+  (the push), `/layouts/labs/decks/` (the deck machinery)

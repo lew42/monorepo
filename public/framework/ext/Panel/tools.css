@@ -1,5 +1,5 @@
 /* The tools that sit ON a panel rather than in its bar. Structure and placement only;
-   the BUTTON is toolbar.css's `.panel-btn`, the same box every other control wears.
+   the BUTTON is controls.css's `.panel-btn`, the same box every other control wears.
    Record: readme.md. */
 @layer theme {
 

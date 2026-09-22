@@ -22,13 +22,17 @@ navigated(){ devbar.refresh(); },
 - The `structure` section draws twice, 400ms apart: until the page's own stylesheets land every child computes `block`: [`doc/structure.md`](./doc/structure.md)
 - The `ai` section builds after a fetch — the captor trap it dodges, and why naming a thread is a native `prompt()`: [`doc/threads.md`](./doc/threads.md)
 - The `ai` turn is bound to THIS tab and sends what you have selected; the selected text is remembered, because clicking into the chat box clears it: [`doc/threads.md`](./doc/threads.md)
+- **`chat` is the first tab and the default** (a stored `settings.tab` still wins — open the rail, switch tabs, and it remembers): the live conversation of the current mastermind session, every past session, a session's minions, and a composer that appends to the run task's own log (never a headless turn). "Current session" is resolved from TODAY's `ai/<date>/` dir only, not the whole history: [`doc/chat.md`](./doc/chat.md)
+- **The head's word "DEV" is gone** — `pathbar.js` draws the active page's own url there instead, scrolled to its own right edge so a deep url truncates from the left: [`doc/chat.md`](./doc/chat.md)
+- **"the mastermind says" is "the mastermind log" now**, and its cards EVOLVE (a later line with the same `id` updates that card in place, never a duplicate) — read `says.js`'s own header comment first, it is the fullest record of five owner passes in one place; `doc/chat.md` has the two bugs worth remembering (`flex-shrink: 0` on every row card; every `[hidden]` override lives in the trailing `@layer util` block).
 
 ## More
 
 - [Overview](/framework/dev/DevBar/) · [`doc/decisions.md`](./doc/decisions.md) — every decision, trap and open item, verbatim (moved 2026-08-17)
+- [`doc/chat.md`](./doc/chat.md) — the `chat` tab, the path bar, and the mastermind log's evolve-by-id rebuild (2026-09-19)
 - [`doc/docking.md`](./doc/docking.md) — mounts on `<body>`, one custom property, pushes instead of covering, summed with `ext/drawer`'s rail
 - [`doc/sizing.md`](./doc/sizing.md) — four presets, `innerWidth - target`, the floor they clear, why the lit button reads a setting
 - [`doc/threads.md`](./doc/threads.md) — the `ai` section: a chat is a task, the directory listing is the index
 - [`doc/structure.md`](./doc/structure.md) — the `structure` section: the nested `.page` chain, the children, and why the display is computed
 - [`doc/measuring.md`](./doc/measuring.md) — the `layout` tab: `.app` as root, the 200ms settle, panel retargeting, the hidden-page trap
-- Files that matter: `DevBar.js` (shell, toggle, refresh) · `tools.js` (sections array, no registry) · `settings.js` (one localStorage document) · `ext/grip` (the resize edge, shared)
+- Files that matter: `DevBar.js` (shell, toggle, refresh) · `tools.js` (sections array, no registry) · `settings.js` (one localStorage document) · `ext/grip` (the resize edge, shared) · `chat.js`/`log.js`/`sessions.js` (the chat tab) · `pathbar.js` (the head's own url) · `says.js` (the mastermind log)

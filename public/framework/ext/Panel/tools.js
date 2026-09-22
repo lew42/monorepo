@@ -1,7 +1,6 @@
 import View, { div, span, button, icon } from "/framework/core/View/View.js";
 import drawer from "/framework/ext/drawer/drawer.js";
-import { ALIGN, COMPASS, PLACE, glyph } from "./glyphs.js";
-import { place } from "./toolbar.js";
+import { ALIGN, COMPASS, PLACE, glyph, place } from "./glyphs.js";
 import { coalesce } from "./grip.js";
 
 /* The tools that sit ON a panel rather than in its bar — revealed by the same hover the
@@ -27,10 +26,15 @@ const EDGE_MID = ["tc", "cl", "cr", "bc"];
    document event carrying the panel or `null`, so this reads a selection with no import in
    either direction and nothing here knows who announces it.
 
-   ⚠ REVERSED 2026-08-18 (the owner: "too jumpy"): a selection used to force the rail open
-   (`drawer(fn)`); now it only FILLS one that is already open — `/framework/ext/Panel/` and
-   `/full/` `dock()` it once at load instead, so the push happens before you start.
-   decisions.md.
+   ⚠ REVERSED IN 2026-08-18 (the owner: "too jumpy") AND REVERSED BACK IN 2026-09-18, and
+   both halves are right for the world they were in. In August the floating bar carried a
+   `tune` button whose whole job was "put this panel's words in the rail", so a selection
+   did not have to open anything — it only FILLED a rail that was already open, and the
+   pages that wanted one `dock()`ed it at load. The bar is deleted now (`workspace.js`), so
+   `tune` is gone and there is NO other door: a panel on a page that never docked would
+   have no way to reach its own words at all. So a selection docks the rail. On the pages
+   that already `dock()` at load nothing changes at all — `dock()` is idempotent, the rail
+   is open before you start, and the "jumpy" push never happens. decisions.md.
 
    ⚠ `properties.js` arrives LAZILY. It imports `workspace.js`, and a static import here
    would close the ring workspace → tools → properties → workspace — the kind that breaks
@@ -38,8 +42,17 @@ const EDGE_MID = ["tc", "cl", "cr", "bc"];
    element lands inside an `empty()` callback, which re-establishes the captor. */
 document.addEventListener("panel-focus", async e => {
 	if (!e.detail) return drawer.showing() && empty();
+
+	/* ⚠ NOT EVERY `panel-focus` CARRIES A PANEL. The event is the site's one selection
+	   contract and `/imagine/paging/make/` announces its own selection on it — a page, a
+	   block or a run of text, none of which has a `root()`. Before this line, a Make
+	   selection on a page that also held a workspace threw `e.detail.root is not a function`
+	   from a document listener, which names neither editor. Sharing a contract means
+	   checking what arrived on it. */
+	if (typeof e.detail.root !== "function") return;
 	if (!(e.detail.root().tools?.inspect ?? TOOLS.inspect)) return;
-	if (!drawer.showing()) return;
+
+	await dock();
 
 	const { fields } = await import("./properties.js");
 

@@ -23,6 +23,19 @@ rendering nothing.
                  "line": "one plain sentence", "url": "/the/thing/" }
 }}
 {"agent": {"kind": "agent|cli", "task": "one line", "tokens": …, "outcome": "…"}}
+{"ask": {"id": "…", "at": "…", "summary": "one plain sentence", "quote": "verbatim",
+         "prompt": "<uuid of the owner's message>", "status": "open|building|landed",
+         "topic": "the parent subject — groups the Asks wall; optional",
+         "tasks": ["<slug>"], "links": [{"url": "…", "label": "…"}]}}
+{"ask": {"id": "…", "needs": {"owner": "what only you can do", "minutes": 5,
+         "done": "<date once you have — the off switch>"}}}
+{"rank": {"list": "asks|decisions|tasks", "at": "…", "order": ["<id>", "<id>"]}}
+{"decision": {"id": "…", "at": "…", "about": "the question, one line",
+              "options": [{"id": "…", "say": "one line", "why": "one line"}],
+              "chose": "<option id>", "because": "one sentence",
+              "rule": "<skill>#<section>", "status": "open|approved|improve", "note": "…"}}
+{"verdict": {"id": "…", "at": "…", "decision": "<decision id>",
+             "say": "approve|improve", "note": "…", "filed": "<date>"}}
 {"chat": {"at": "…", "role": "user|assistant", "text": "…", "cost_usd": …}}
 {"shot": {"at": "…", "path": "absolute — never in the repo", "url": "…", "width": 1400, "label": "…"}}
 ```
@@ -56,6 +69,34 @@ at landing (`{"agent": {"task": …, "outcome": …, "tokens": …}}`) —
 `TaskJSONL` merges the two by `task`, so the manifest's `agents[]` always
 holds one entry per sub-task, complete or not. `card.js`'s `current()` reads
 the first entry still missing an `outcome` as the live "now" line.
+
+## `ask` is one thing the owner asked for, and it opens the page
+
+Written by whoever is running the session, as they read a long prompt back.
+`summary` is one plain sentence, `quote` is what the owner actually said —
+verbatim, never tidied — and `prompt` is the `uuid` of the transcript message
+they said it in, so the card can link to the real sentence. `status` is the
+writer's claim; the card puts it next to `n of m tasks landed`, counted from
+the serving tasks' own `landed_at`, and the two are allowed to disagree.
+
+It merges by `id` the way `agent` merges by `task`, so the ask is appended
+again whenever its status moves. A task whose log carries any asks renders them
+as its FIRST tab, open by default. An optional `topic` groups the wall into one
+labelled band per subject. Full design record:
+[`doc/asks.md`](/framework/ext/AITask/doc/asks/).
+
+## `decision` and `verdict` are the feedback loop
+
+A `decision` is one choice a worker made, with the options it was made over and
+the skill rule that produced it; a `verdict` is the owner pressing **Approve**
+or **Improve** on it, from the **Decisions** tab, which appends into this same
+log. `TaskJSONL.judged()` merges the newest verdict onto the decision's
+`status` and `note`, so the two can never disagree.
+
+An Improve whose decision names a `rule` is a defect in that rule:
+`decisions.mjs` files it as one dated line in that skill's `improvements.md`
+and marks the verdict filed. Full record:
+[`doc/decisions-tab.md`](/framework/ext/AITask/doc/decisions-tab/).
 
 ## `chat` is the browser's own turn, in the same log
 

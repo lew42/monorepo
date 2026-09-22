@@ -4,6 +4,7 @@ import { section, row, check } from "./parts.js";
 import ask from "./ask.js";
 import layout from "./layout.js";
 import structure from "./structure.js";
+import says from "./says.js";
 
 /* What the rail shows, in order, one array per tab. Each section renders itself into
    the captor. ⚠ `layout` is alone on a tab on purpose — it is the one section that
@@ -12,7 +13,7 @@ import structure from "./structure.js";
    rows were the same state as the layout tab's readout, on a different screen and
    in a different unit. Both live in the head now — width.js. */
 export const tabs = [
-	["page", [route, server, xray, structure, jump]],
+	["page", [says, route, server, xray, structure, jump]],
 	["layout", [layout]],
 	["ai", [ask]],
 ];

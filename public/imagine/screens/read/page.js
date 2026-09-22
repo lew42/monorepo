@@ -12,7 +12,7 @@ const here = new URL(".", import.meta.url).pathname;
 export default new Screen({
 	meta: import.meta,
 	title: "Peek",
-	description: "Document first; the title is a strip at the edge.",
+	description: "Document first, title as a strip at the edge — opening it costs a 14em rail, not the screen.",
 	icon: "chrome_reader_mode",
 	shapes: ["1", "1 0.35"],
 

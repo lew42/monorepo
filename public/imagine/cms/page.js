@@ -10,7 +10,7 @@ const here = new URL(".", import.meta.url).pathname;
 // height even at the shortened `--stage` below — measured +74px at 1280, +25px at 3440.
 // Worth it: `preview_card()` drops the description once there is a thumb, and "Welcome"
 // went from a bare title with nothing under it to an actual picture of the rendered page.
-const SHOTS = { thinking: "thinking.jpg", welcome: "welcome.jpg", edit: "edit.jpg", services: "services.jpg", json: "json.jpg" };
+const SHOTS = { thinking: "thinking.jpg", welcome: "welcome.jpg", edit: "edit.jpg", services: "services.jpg", json: "json.jpg", d1: "d1.jpg" };
 
 /* Container: /imagine/'s columns row — one more column in it. Size: `large` (28-64em) —
    the critique (2026-09-04) found this page 99/100 on taste yet only 31% wide at 3440,
@@ -37,7 +37,12 @@ export default new Page({
 	icon: "edit_document",
 	width: "large",
 
-	children: ["thinking", "welcome", "edit", "services", "json", {
+	// ⚠ `welcome` names ITS CONTENT rather than a page.js: the probe chain still finds
+	//   welcome.md fine (Page.file(), the last of its three steps), but it gets there
+	//   only after failing to import a page.js that was never going to exist — one
+	//   console 404 on every /imagine/cms/ url. This config form skips the probe
+	//   entirely (new-page skill, step 3; the same fix already used at /layouts/doc/).
+	children: ["thinking", ["Welcome", { content(){ return md.file(import.meta, "welcome.md", { h1: false }); } }], "edit", "services", "json", "d1", {
 		title: "Guide",
 		classes: "default",
 		content(){
@@ -49,6 +54,9 @@ decides anything. [**Services**](/imagine/cms/services/) is a mock on purpose: i
 exists as \`page.json\` plus an append-only \`page.jsonl\`. Put that pair on the dev socket instead
 of fetching it once and you get [**streaming pages**](/imagine/stream/): an edit here, redrawn
 there, 9 ms later.
+
+[**D1 pages**](/imagine/cms/d1/) swaps the file for a row in a real database — the exact same
+seam, fetching Cloudflare D1 instead of \`page.json\`, proven locally; the deploy waits on the owner.
 
 How it is built, and the four traps found on the way: [\`readme\`](/imagine/cms/readme/).`);
 		},

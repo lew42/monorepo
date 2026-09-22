@@ -1,0 +1,149 @@
+/* ── THE PANEL BUTTON, AND THE STRIP THE DRAG GRIP RIDES ON ────────────────────
+
+   This file was `toolbar.css` until 2026-09-18, and the bar it was named after is gone
+   (`workspace.js` says why, and `doc/decisions.md` records it). What is left is the two
+   things that were never the bar's:
+
+     `.panel-btn`    ONE button box for every surface that draws this module's vocabulary —
+                     the rail (`properties.js`), a seam's hug/fill menu, the drag grip.
+     `.panel-bar`    the strip across the top of a panel. It holds the grip and, on a leaf,
+                     the magnifier; it is out of flow, so a panel's content is the same size
+                     whether the strip is showing or not.
+
+   Every colour is a token. */
+@layer theme {
+
+	/* The bar's height, DECLARED rather than measured, so the reserve can never drift from
+	   it: the bar is an overlay, and a payload whose own top edge holds controls asks
+	   `panel.css` for exactly this much clearance (`.panel-controls`).
+	   ⚠ `rem`, never `em` — a panel's content sets the font size, and the bar reads at
+	   0.8em of it, so an `em` token would be a different height at each end of it. */
+	.panel-workspace { --panel-bar-h: 1.8rem; }
+
+	/* Over the panel, not in it. The strip is out of flow, so a panel's content is the
+	   same size whether it is showing or not, and a nest of panels costs no strips.
+	   ⚠ `pointer-events` moves with the opacity: a bar at `opacity: 0` still hit-tests,
+	   and in a nest the invisible ancestor sits over the panel you are pointing at. */
+	.panel-bar {
+		position: absolute; inset-block-start: 0; inset-inline: 0; z-index: 3;
+		display: flex; flex-wrap: nowrap; align-items: center;
+		gap: calc(var(--gap) * 0.25);   /* was gap 0.25em - 2026-09-05 ramps */
+		block-size: var(--panel-bar-h);
+		padding: 0.2em 0.3em;
+		font-size: 0.8em;
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity 0.12s;
+	}
+
+	/* ⚠ No background, no blur, no rule under it (the owner, 2026-08-16). The bar is chrome over
+	   somebody's layout and a tinted strip across the top of every panel reads as part of
+	   the design rather than as a tool. What replaces it is restraint: the icons themselves
+	   go faint, and come up under the pointer. */
+	.panel-workspace .panel > .panel-bar .panel-btn { opacity: 0.3; }
+	.panel-workspace .panel > .panel-bar .panel-btn:hover,
+	.panel-workspace .panel > .panel-bar .panel-btn.on { opacity: 1; }
+
+	/* Innermost wins. Hovering a leaf hovers every ancestor of it, and four bars lit in
+	   the same corner is noise - so an ancestor stands down for the panel under the
+	   pointer, and is reached through the divider it alone owns. */
+	.panel:hover:not(:has(.panel:hover)) > .panel-bar,
+	.panel:focus-within:not(:has(.panel:focus-within)) > .panel-bar { opacity: 1; }
+
+	/* ⚠ The bar's own BOX never hit-tests — only what is drawn in it does. It has no
+	   background any more, so an invisible full-width strip across the top of every panel
+	   was catching the clicks meant for the top edge target under it (split.css). The
+	   original trap still holds and is why this is on the reveal rule rather than a blanket
+	   `*`: a bar at `opacity: 0` still hit-tests, and in a nest the invisible ancestor sits
+	   over the panel you are pointing at. */
+	.panel:hover:not(:has(.panel:hover)) > .panel-bar *,
+	.panel:focus-within:not(:has(.panel:focus-within)) > .panel-bar * { pointer-events: auto; }
+
+	/* A touch screen has no hover to reveal it with — and no way to point at an ancestor
+	   either, so only a leaf's bar stands rather than a stack of covered ones. */
+	@media (hover: none) {
+		.panel:not(:has(.panel)) > .panel-bar { opacity: 1; pointer-events: auto; }
+	}
+
+	/* ONE button, for all three surfaces. The bar, a seam's menu and the inspector draw the
+	   same vocabulary, so they draw it with the same box — grip.css and templates.css each
+	   kept a near-identical copy until 2026-08-16, which is three places for one look to
+	   drift.
+
+	   ⚠ TWO homes, not one. `.panel-workspace .panel` reaches a bar, a grip and an inspector
+	   drawn as a panel TEMPLATE — but the inspector also lives in `ext/drawer` now, which
+	   mounts on `.app` and is outside every workspace. Scoped to the workspace alone, the
+	   rail's buttons silently fell back to the theme's padded label: measured 25×27, 32×20,
+	   48×27 where they should all be 1.7em squares. `:is()` takes the specificity of its
+	   most specific arm, so this still clears the theme's 0-2-0 at 0-3-0.
+
+	   ⚠ Three classes on purpose. A theme styles every `button` as a small uppercase
+	   LABEL — `.theme-lew42 :is(button, .btn)` is 0-2-0 and pads to 0.7em/1.4em, which
+	   is right for READ GUIDE and four times too wide for a 1em icon. Only the BOX is
+	   reclaimed; the small-caps voice is the theme's to keep. */
+	:is(.panel-workspace .panel, .drawer .panel-props) .panel-btn {
+		display: flex; align-items: center; justify-content: center;
+		min-inline-size: 1.7em; block-size: 1.7em;
+		padding: 0 0.4em;
+		font-size: 1em;
+		font-family: var(--mono);
+		color: var(--subtle);
+		background: none;
+		border: 0;
+		border-radius: calc(var(--radius) / 2);
+		cursor: pointer;
+	}
+
+	/* Transparent until pointed at, and the background is the whole signal: hover says
+	   "this is a target", `on` says "this is what the panel wears". ⚠ A tint, not the border
+	   it replaces — a border reserved its 2px whether or not it was showing, so the two
+	   states read as unrelated and an idle button was never really transparent. */
+	:is(.panel-workspace .panel, .drawer .panel-props) .panel-btn:hover { color: var(--ink); background: var(--fill-a08); }
+	:is(.panel-workspace .panel, .drawer .panel-props) .panel-btn.on {
+		color: var(--prim);
+		background: color-mix(in srgb, var(--prim) 15%, transparent);
+	}
+
+	/* A button holding a PICTURE is a square; one holding a WORD keeps the padding above.
+	   The rule reads the button's own content, so ext/editor's region names — the one
+	   vocabulary here that ships no icons — need no flag and no second class. */
+	:is(.panel-workspace .panel, .drawer .panel-props) .panel-btn:has(> .icon, > .panel-swatch, > .panel-seat) { inline-size: 1.7em; padding: 0; }
+
+	/* A tone is a colour, so its picture is the colour. `--panel-swatch` is glyphs.js's,
+	   written inline as the same token the templates tint themselves with. */
+	.panel-swatch {
+		display: block;
+		inline-size: 1em; block-size: 1em;
+		background: var(--panel-swatch);
+		border: 1px solid var(--line);
+		border-radius: calc(var(--radius) / 2);
+	}
+
+	/* After the rule above, not before it — same specificity, so source order decides. */
+	.panel > .panel-bar .panel-handle { cursor: grab; }
+
+	/* ⚠ Material Icons is a LIGATURE font: a name the font does not carry renders as
+	   the whole WORD, and one 150px `deployed_code` sized every column of the grid
+	   below. A glyph is one em wide, so this costs a correct icon nothing — which is why
+	   it is scoped to the whole workspace rather than the bar alone: the inspector and a
+	   seam's menu draw the same vocabulary and can be blown out by the same bad name. */
+	.panel-workspace .icon { width: 1em; overflow: hidden; }
+
+	/* ⚠ ONE caller left (2026-08-19): a SEAM's hug/fill menu (`seam.js`, placed by grip.css).
+	   The bar opens nothing at all now, and the rail's two pickers are `ext/Dropdown`, which
+	   is in the TOP LAYER — so no popover in this module can be clipped by a panel any more.
+	   365 of them were, at 1280, before the sweep. doc/decisions.md.
+	   ⚠ `justify-items: center`, now the buttons are square: a fixed-width item in a `1fr`
+	   track otherwise sits at the track's start, and a 3×3 of arrows drifts off its own
+	   left edge instead of reading as a picture of nine placements. */
+	.panel-pop {
+		position: absolute; inset-block-start: 100%; inset-inline-start: 0; z-index: 1;
+		display: none; grid-template-columns: repeat(var(--panel-cols, 3), 1fr); gap: calc(var(--gap) * 0.15);   /* was gap 0.15em - 2026-09-05 ramps */
+		justify-items: center;
+		padding: 0.25em;
+		background: var(--surface);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+	}
+	.panel-pop.on { display: grid; }
+}

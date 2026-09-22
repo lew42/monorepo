@@ -1,15 +1,23 @@
 # The template, and its override
 
 `AITask` **is** the master template, and `report(m, req)` is its outline — a
-local **Requirements · Report · Session** tab bar (hand-rolled from
+local **Asks · Requirements · Report · Session** tab bar (hand-rolled from
 `ext/tabs`'s CSS classes; not `Page.prototype.tabs`, since these are sections
-of one page, not routed children), Report open by default because the answer,
-not the brief, is what a task page leads with. Report is `outcome`, then
+of one page, not routed children).
+
+**Asks is first and open by default whenever the log carries any** — what the
+owner asked for outranks what a session did about it
+([asks](/framework/ext/AITask/doc/asks/)). Without asks the page is what it
+always was: Report open, because the answer, not the brief, is what a task
+page leads with. Report is `outcome`, then
 `links` (the same pill row `card.js` renders), then `refresh` (which draws
 `status`, `checklist`, `extra`, `shots` and `figures` into the `.ai-live` box,
 and redraws them there as the log streams). Session is `chat` then `log`.
 Requirements is `head` — `requirements.md` rendered whole when there is one,
-else the request verbatim. `status` is the one-line "where this is right now"
+else the request verbatim. `tab_bar()` returns `{ select }` so one tab can send
+the reader to another: an ask card's "the prompt" link opens Session at the
+message that ask was made in, and a url carrying `?m=<uuid>` does the same on a
+cold load. `status` is the one-line "where this is right now"
 — the same `now` `card.js` shows, silent once `landed_at` is set (`outcome` is
 the truth by then) or when the manifest never wrote one. A task dir's own
 `page.js` overrides whichever one it wants and inherits the rest:

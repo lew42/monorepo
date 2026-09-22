@@ -4,7 +4,7 @@ import { div, p, h2, h3, h4, span, a, label, input, select, option, code, icon, 
    One function per CONTENT word in `blocks.js`. Every one of them draws something
    this site already ships, so a preset is a real page and not a picture of one:
 
-     magazine   /imagine/mag/'s own cover code
+     magazine   /layouts/labs/mag/'s own cover code
      blog       the blog's own hero and its real post manifest
      sections   /framework/styles/sections/ — the same hero and stats bands
      cards      core's own `previews()` card markup
@@ -19,7 +19,7 @@ import { div, p, h2, h3, h4, span, a, label, input, select, option, code, icon, 
      with no fallout; the card walls below set their own `--column` so the blog's
      value cannot reach them.                                                     */
 
-import mag from "/imagine/mag/page.js";
+import mag from "/layouts/labs/mag/page.js";
 import { Post } from "/blog/Post.js";
 import { featured, listed, url as post_url } from "/blog/posts.js";
 import hero from "/framework/styles/sections/hero.js";

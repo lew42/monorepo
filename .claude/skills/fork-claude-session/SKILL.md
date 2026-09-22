@@ -116,6 +116,12 @@ claude --resume "$LIB" --fork-session -p "I am <parent>. You are <role>. …" --
 A fork of the library has **no role to override**, so the `-p` brief is the only
 instruction in the room. The third attempt, run this way, worked first try.
 
+**The cache is keyed by effort as well as model** (measured 2026-09-19, an 80k-token Sonnet
+library built at `--effort low`): three forks at `low` each read 79k tokens from cache — 2 s,
+$0.018; the first fork at `high`, and the first at `medium`, read **zero** and rewrote all 79k —
+$0.32; a second fork at each of those efforts then hit. So a library and its forks name one
+model **and one effort**, or the first fork at each new effort pays the whole read again.
+
 **Caches are model-scoped, so the library and its forks must name the same model**
 — a version bump counts as a switch, and it invalidates tools, system and messages
 alike, with no escape hatch. A cheaper library model is still defensible: it only

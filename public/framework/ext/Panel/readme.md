@@ -11,8 +11,9 @@ workspace({ mode: "document" });                // …opened as a scrolling stac
 workspace({ saver, templates, seed });          // yours: own file, own T vocabulary
 new Workspace(options).mount();                 // ./Workspace/ — a SECOND view of the same root
 
-item.set("display", "grid").set("cols", 3);     // the words — all of them in the RAIL, none on the bar
+item.set("display", "grid").set("cols", 3);     // the words — ALL of them in the RAIL; there is no bar
                                                 // pad(+knob) · dir gap(+knob) wrap justify items · cols dense
+                                                // …and since 2026-09-18: split, and close
 root.set("mode", "document");                   // …the ROOT's word: one screen, or a scrolling document
 panel(structure("docs"));                       // …or one of nine presets, as panels
 
@@ -24,11 +25,13 @@ panel(seed);                                    // …no --panel-height: the wor
 scrubber($ws);                                  // ./flow.js — the strip that replays what you built
 ```
 
-## Careful — selection, and the sparse bar
+## Careful — selection, and there is no bar
 - **One selection per PAGE** — exactly one panel selected or none, every live view of it ringed, the rail agreeing; and **hover shows what a click would select**, from the same `drill()`. `focus.js` is the only writer of either; clear the whole document, never one workspace: [doc/focus.md](./doc/focus.md)
 - **Selection has to *feel* right.** A deselect that leaves the orange ring is a smell; so is an action that drops the selection and makes you pick the panel again. Eight of those were real bugs, and the rail is shared with `ext/layout`: [doc/focus.md](./doc/focus.md)
 - **Grouping, multi-select and multi-edit are one design, not three** — a rail editing *n* panels needs a story for a word they disagree on, and `focus` is a single id today. Design them together.
-- **The bar is deliberately sparse until the words settle** (2026-08-19: 15 controls → 6). It is what a hand does — split, close, drag, `tune`. **The rail is the UI**: [doc/decisions.md](./doc/decisions.md)
+- **The floating bar is DELETED** (2026-09-18; it had already gone 15 controls → 4). The strip at the top of a panel holds a drag grip and, on a leaf, the magnifier — nothing else. Split and close are two ROWS in the rail; `tune` is gone because **selecting a panel now opens the rail**. A control that floats over the thing it controls is not a control: [doc/decisions.md](./doc/decisions.md)
+- **`panel-focus` is the SITE's selection contract, not this module's** — `/imagine/paging/make/` announces a page, a block or a run of text on it, and none of those has a `root()`. Check what arrived before you ask it anything: [doc/focus.md](./doc/focus.md)
+- **`.panel-ring` (focus.css) is the one selection outline on this site.** Make wears it over a page drawn by a completely different renderer; the workspace arm is written by `focus.js`, this one by its consumer: [doc/decisions.md](./doc/decisions.md)
 
 ## Watch out
 - A body's arrangement is `--panel-tracks`, never `--panel-cols` — that name is already the pickers' own column count, and a custom property written on a body inherits into anything drawn in it: [doc/words.md](./doc/words.md)
@@ -53,7 +56,7 @@ scrubber($ws);                                  // ./flow.js — the strip that 
 ## More
 - [/framework/ext/Panel/](/framework/ext/Panel/) — the page
 - [`Workspace/`](./Workspace/) — holds the root; documents as files, a bar above it: [readme](./Workspace/readme.md)
-- [`playground/`](./playground/) — the whole-window home: a document, its viewport set (fill/one/all/twin), the drawer as the responsive handle
+- [`playground/`](./playground/) — a thin wrapper round one document: its viewport set (fill/one/all/twin), the drawer as the responsive handle, and one line back to the list. Its document RAIL folded into Make's tree on 2026-09-18 — the list of layouts lives at [/imagine/paging/make/](/imagine/paging/make/)
 - Demo — every feature, as a flow beside a follow-along: [/framework/ext/Panel/demo/](/framework/ext/Panel/demo/)
 - [`doc/decisions.md`](./doc/decisions.md) — every verdict, trap and open item, with measurements, and the readme as it stood before 2026-08-17
 - [`doc/words.md`](./doc/words.md) — the `WORDS` table the rail reads, toggles and dropdowns, how a word lands on a body
@@ -62,7 +65,8 @@ scrubber($ws);                                  // ./flow.js — the strip that 
 - [`doc/templates.md`](./doc/templates.md) — sizing a `T` entry; [`doc/generator.md`](./doc/generator.md) — `space` draws a layout, `structure(seed)` builds it from panels
 - [`doc/focus.md`](./doc/focus.md) — selection, the `properties` rail, and the three ways a SHARED rail bit; [`doc/overlays.md`](./doc/overlays.md) — the five body surfaces
 - `doc/file/`, `doc/method/`, `doc/property/` — one note per file, verb and property, rendered on the page
-- Files that matter: `Panel.js` (verbs, mirrors, defaults), `workspace.js` (the two doors, the redraw, the recursive `view()`), `templates.js` (the `T` vocabulary), `size.js` (per-axis fill/hug/fixed)
+- Files that matter: `Panel.js` (verbs, mirrors, defaults), `workspace.js` (the two doors, the redraw, the recursive `view()`), `templates.js` (the `T` vocabulary), `size.js` (per-axis fill/hug/fixed), `properties.js` (the rail — every word, and now split and close)
+- `controls.css` was `toolbar.css` until 2026-09-18: one `.panel-btn` box for every surface that draws this vocabulary, and the strip the drag grip rides on
 - `workspace.js`'s four neighbours, each read by it and none reading it back: `vocab.js` (what a document was opened with — its templates, its tool flags), `focus.js` (the selection), `overlays.js` (the live chrome on a body, and the disposers that release it), `paint.js` (one panel's own DOM)
 - Uses [`ext/Dropdown`](/framework/ext/Dropdown/) for the rail's `template` and `display` pickers — a list in the top layer, so nothing clips it
 - Consumers: [`ext/editor`](/framework/ext/editor/) shell, [`/framework/`](/framework/) clock, [`space/compose`](/framework/styles/layouts/space/compose/) rolls

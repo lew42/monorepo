@@ -1,0 +1,98 @@
+{
+  "run_at": "2026-09-19",
+  "server": "private, port 8133",
+  "pages_shot": 60,
+  "pages_listed": 60,
+  "widths": ["1280x900", "400x800", "3440x1300 (ten most-visited)"],
+  "findings": [
+    {
+      "rank": 1,
+      "count": 3,
+      "sentence": "Three of the links the mastermind's own log points to are completely dead — a blank page and a 404, not a styling problem.",
+      "measurement": "Every load fires the SAME three failed requests (doc/page.js, doc/page.json, doc.md, all 404) and the router prints \"nothing matches\" — reproduced at both 1280 and 400 on all three URLs.",
+      "pages": [
+        "/imagine/paging/make/doc/decisions/",
+        "/imagine/platform/workflows/doc/decisions/",
+        "/layouts/labs/trees/doc/decisions/"
+      ],
+      "file": "e.g. public/imagine/paging/make/doc/decisions.md exists with no public/imagine/paging/make/doc/page.js to route it",
+      "fix": "Add a 6-line doc/page.js per module declaring \"decisions\" as a child that renders md.file(import.meta, \"decisions.md\") — the exact idiom already used (and its own trap already documented) at public/framework/core/Layout/doc/page.js:1-14.",
+      "shot": "shots/finding-1-dead-page.jpg"
+    },
+    {
+      "rank": 2,
+      "count": 1,
+      "sentence": "The Panel module's own demo opens its inspector drawer on load, and the drawer covers part of the page's own tab bar — \"Files\" reads as \"FILE\".",
+      "measurement": "The drawer sits at x:976–1280 (304px, position:fixed, z-index:40); the \"Files\" tab's own box runs to x:999, so its last ~23px (the trailing \"s\") sits under the drawer.",
+      "pages": ["/framework/ext/Panel/"],
+      "file": "public/framework/ext/Panel/page.js:30 — if (matchMedia(\"(min-width: 26rem)\").matches) dock(); (mechanism: public/framework/ext/drawer/drawer.css:23, position: fixed; z-index: 40;)",
+      "fix": "The comment right above line 30 already documents fixing this exact class of bug for narrow phones (2026-08-30) — the same guard never considered ~1280px and up. Either drop the eager dock() on cold load, or skip it whenever the drawer's open width would reach under the tab bar.",
+      "shot": "shots/finding-2-panel-drawer.jpg"
+    },
+    {
+      "rank": 3,
+      "count": 2,
+      "sentence": "A tab strip longer than its box has no scrollbar and no fade, so a scrolled-to tab can land flush against the module title with zero gap, sliced mid-word.",
+      "measurement": "/framework/ux/ at 1280: 12 tabs = 1029px of content in a 948px slot (81px/9% overflow) — the last tab, \"Docs\", sits entirely past x:1280 with nothing to say it exists. On /framework/ux/Dictate/ the strip auto-scrolls to its maximum (scrollLeft 81px) and the \"Overview\" tab's own box (x:275–380) ends up clipped flush against the title's right edge (x:332, 0px gap) — it reads \"UX\" immediately followed by \"view\". The same mechanism clips a bare \"m\" (of \"manifest\") at the right edge of /framework/ext/AITask/'s 11-note Docs strip at 400px.",
+      "pages": ["/framework/ux/", "/framework/ux/Dictate/", "/framework/ext/AITask/doc/asks/", "/framework/ext/AITask/doc/decisions-tab/", "/framework/ext/AITask/doc/ranking/"],
+      "file": "public/framework/ext/tabs/tabs.css — .tab-bar { overflow: auto; scrollbar-width: none; } (~line 46); padding-inline-start (~line 51) pads only the FIRST tab's position, not whatever scrolls into that slot.",
+      "fix": "Restore a left-edge fade/mask on .tab-bar (removed 2026-08-18 per doc/overflow.md), or give it scroll-padding-inline-start equal to the gutter so a scrolled tab never sits flush against the title.",
+      "shot": "shots/finding-3-ux-tab-collision.jpg",
+      "shot2": "shots/finding-3b-aitask-tab-overflow.jpg"
+    },
+    {
+      "rank": 4,
+      "count": 8,
+      "sentence": "Eight \"this moved\" / \"nothing here yet\" stub pages fill a full-height column and leave about 90% of it blank.",
+      "measurement": "On /imagine/cms/d1/ and /imagine/design/color/ at 1280, the open column measures 602×860px but the real text ends by y:118–123 from the column's own top — 777–782px (90–91%) of the column is blank below two sentences.",
+      "pages": [
+        "/imagine/cms/d1/",
+        "/imagine/design/color/",
+        "/imagine/design/color/sections/",
+        "/imagine/design/lists/",
+        "/imagine/design/navigation/",
+        "/imagine/design/spacing/nesting/",
+        "/imagine/design/type/anchors/",
+        "/imagine/platform/local/room/"
+      ],
+      "file": "Every stub is a plain new Page({ content(){ md(\"...\") } }), e.g. public/imagine/design/color/page.js:8; the column that stretches it full height regardless of content is public/framework/core/Page/Page.css's .page.columns .page-column-body rules (~lines 375-404) under the row's default flex stretch.",
+      "fix": "Give the stub's content() a centered flex v gap wrapper (justify-content: center) so the message sits in the middle of the column instead of pinned to the top of a void — a few lines per stub, no change to the columns system.",
+      "shot": "shots/finding-4-empty-stub-column.jpg"
+    },
+    {
+      "rank": 5,
+      "count": 1,
+      "sentence": "At 3440, the /imagine/ realm leaves more than half the screen a flat gray void, crossed by faint divider lines that go nowhere.",
+      "measurement": "Viewport 3440px; the one open column's right edge sits at x:1584, leaving 1856px (54%) of blank gray to the right — crossed by hairline vertical rules that read as empty column slots.",
+      "pages": ["/imagine/"],
+      "file": "public/framework/core/Page/Page.css ~lines 375-394 (.page.columns .page-column-body — \"when nothing is left the row SCROLLS SIDEWAYS instead of squeezing what is open\", a deliberate trade for an OPEN row, but nothing opens a second/third column by default on this realm's root).",
+      "fix": "Not a columns-system change: either the realm's own root opens one more level by default on very wide screens, or the row's own track stops short of the viewport edge instead of stretching an almost-empty container across it.",
+      "shot": "shots/finding-5-imagine-3440-blank.jpg"
+    },
+    {
+      "rank": 6,
+      "count": 3,
+      "sentence": "The site's own sidebar tree and a module's local \"Docs\" rail show the exact same list of notes twice, side by side.",
+      "measurement": "On /framework/core/Page/doc/columns/ (and /doc/data/, /doc/data-children/) at 1280: the global tree (x:0–240) and the module's own vertical rail (x:282–454) both list the same 13 names — words, declaring, labels, css, layout, columns, roles, panels, previews, findings, decisions, data, data children — 13 of 13 match. Together the two lists spend 454px, 35% of a 1280px page, on one list shown twice.",
+      "pages": ["/framework/core/Page/doc/columns/", "/framework/core/Page/doc/data/", "/framework/core/Page/doc/data-children/"],
+      "file": "The global tree comes from public/framework/core/Sidebar/Sidebar.js (site-sidebar-tree, landed 2026-09-18); the local duplicate is built by public/framework/ext/Doc/Doc.js:106-114, docs_section().",
+      "fix": "Cap the sidebar tree's auto-expand so it stops at a module's own boundary rather than walking down into its individual note pages — that list is what the module's own local rail is already for.",
+      "shot": "shots/finding-6-duplicate-nav.jpg"
+    }
+  ],
+  "clean_pages": [
+    "/", "/framework/", "/framework/ai/2026-09-17/mastermind-layout-browser/", "/framework/ai/v/2/",
+    "/framework/core/Page/doc/property/related/", "/framework/core/Page/overview/columns/finder/",
+    "/framework/core/Sidebar/", "/framework/core/Sidebar/doc/decisions/",
+    "/framework/ext/Ask/", "/framework/ext/Ask/doc/decisions/", "/framework/ext/Ask/doc/picking/", "/framework/ext/Ask/doc/reply/",
+    "/framework/ext/demo/doc/method/steps/",
+    "/framework/styles/system/", "/framework/styles/system/studies/",
+    "/framework/ui/", "/framework/ui/decision/",
+    "/framework/ux/Auth/", "/framework/ux/Tree/", "/framework/ux/Tree/compare/",
+    "/imagine/importance/ranked/", "/imagine/paging/", "/imagine/paging/made/notes/", "/imagine/paging/make/",
+    "/imagine/platform/", "/imagine/platform/decisions/", "/imagine/platform/workflows/", "/imagine/research/",
+    "/layouts/", "/layouts/browse/", "/layouts/browse/ui-card/", "/layouts/doc/studies/approved/",
+    "/layouts/labs/", "/layouts/labs/trees/", "/layouts/practice/", "/layouts/practice/doc/critique/",
+    "/layouts/practice/workbench/", "/layouts/shell/", "/layouts/shell/doc/pages/"
+  ]
+}

@@ -11,7 +11,8 @@ open the separate "Theories on the table" section and find their topic re-groupe
 to read one real claim.
 
 **What was tried.** The owner's 3-column card, verbatim from the 2026-09-05 brief — the same
-shape `/imagine/layouts/`'s catalogue already uses (`LayoutsCard.js`): left = a small title and
+shape `/imagine/layouts/`'s catalogue used, before that realm was deleted 2026-09-18
+(`LayoutsCard.js`): left = a small title and
 what it is, centre = the actual thing, live, right = the numbers behind it. Applied per topic:
 left = the topic name and its tally, centre = the topic's own newest theory rendered in full
 (`Program.theory()`, unchanged — title, credence badge, the reasoning, the source), right = the

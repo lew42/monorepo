@@ -5,6 +5,99 @@
 The design record for `ext/Panel` — question, what was weighed, verdict. The
 readme states each verdict in one line and links here for the reasoning.
 
+## The bar is deleted, and the rail took its last four controls (2026-09-18)
+
+**Question.** The owner, 2026-09-17: *"neither the panel nor playground system did a
+great job manipulating the elements in a simple intuitive way. The number of controls
+in the toolbar became way too many. Maybe we put everything in the right sidebar, and
+only have a selection scheme?"*
+
+**What was already true.** The sweep below (2026-08-19) had already taken the bar from
+15 controls to 4 — split into columns, split into rows, `tune`, close — and moved every
+*word* into the rail. What was left was "what a hand does". But the bar's real defect
+was never its count: **a control that floats over the thing it controls is not a
+control.** It covers what you are trying to read, and it appears and disappears under
+the pointer. The paging realm measured the same shape twice on its own toolbar
+(paging-audit-2, break #1: a hover bar landed on the tab strip and made a tab
+unclickable with a mouse at any width).
+
+**Verdict.** `toolbar.js` is deleted. The strip at the top of a panel (`.panel-bar`)
+holds a **drag grip** and, on a leaf, the **magnifier** — which never lived in the row
+anyway; it draws on the body. The four controls landed as follows:
+
+| was | is |
+|---|---|
+| split into columns / into rows | one `split` row in the rail, two buttons |
+| close | a `close` row at the rail's foot, offered only where a panel has a sibling to give its space back to |
+| `tune` — "put this panel's words in the rail" | gone: **selecting a panel opens the rail** |
+
+**One `split` row, not two.** The brief that moved them said "two rows". Every other
+row in this rail is one tag and one set of buttons, and two rows holding one button
+each would be the only rows here shaped differently — which is the kind of drift that
+made the bar unreadable in the first place.
+
+**Selection opens the rail — a reversal, and both halves were right.** On 2026-08-18
+the owner called a selection that forced the rail open *"too jumpy"*, and it was
+changed to only FILL a rail that was already open; the pages that wanted one `dock()`ed
+it at load. That was right in a world where `tune` existed. With the bar deleted there
+is no other door at all: a panel in `ext/editor`, or a one-off `panel(fn)`, would have
+no way to reach its own words. So `tools.js` docks on focus. On the pages that already
+`dock()` at load nothing changes — `dock()` is idempotent, the rail is open before you
+start, and the jumpy push never happens.
+
+**A leaf still gets no name head.** The notes that started this task called that a
+defect ("a panel is a rectangle with no name"). It is not re-added: the 2026-08-19
+sweep removed it because the template dropdown directly underneath says exactly the
+same thing, and the drawer's own slot already reads `panel`.
+
+**Where the two survivors went.** `toolbar.js` held two functions that were never part
+of the bar:
+
+- `place($body, code)` → **`glyphs.js`**, beside the `PLACE` table it is the only reader of.
+- `handle()` → **`PanelDrag.js`**. A drag handle belongs to the drag.
+
+`toolbar.css` → **`controls.css`**: one `.panel-btn` box for every surface that draws
+this module's vocabulary (the rail, a seam's menu, the grip), plus the strip itself.
+`workspace.js` loads it. `.panel-gap` went with the row it pushed in.
+
+**What was deleted as already-dead.** `workspace.js`'s `roll()` and `sown()`, and the
+`T` object the bar was handed. `toolbar.js` read `T.tool` and nothing else, so
+`T.names`, `T.entries`, `T.roll`, `T.sow`, `T.copy`, `T.display` and `T.repaint` had no
+reader at all; the rail has its own door to every one of those words.
+
+## `panel-focus` is the SITE's selection contract (2026-09-18)
+
+**Question.** `/imagine/paging/make/` needed a selection scheme over a page drawn by a
+completely different renderer — a page, a block, a run of text. Its own event and its
+own ring, or this module's?
+
+**Verdict.** This module's. `panel-focus` already was a document event carrying "the
+selected thing, or `null`", with no import in either direction, and `.panel-ring` in
+`focus.css` is now the one selection outline on the site: two arms on one declaration,
+the workspace arm written by `focus.js`, the other by its consumer. Two editors with
+two slightly different ideas of what "selected" looks like is how the second one drifts.
+
+**What it cost, and where:** two guards, because a `detail` on this contract may not be
+a panel and has no `root()`. `tools.js` returns early on one; `focus.js` reads the
+announcement as "something else is selected now" and lets go without asking what root
+it came from. Both are written at the line.
+
+## The playground's document rail folded into Make's tree (2026-09-18)
+
+**Question.** The playground carried a 22rem `Sidebar` listing every saved document with
+a `+` — a second list of things-you-made, beside an editor whose own screen already had
+one.
+
+**Verdict.** The list is a group in Make's tree (`/imagine/paging/make/`); the playground
+is a **thin wrapper** with one line above the workspace naming the document and linking
+back. **Rejected:** a redirect, deleting `playground/page.js` altogether. What the
+playground has that Make does not is the `Workspace` chrome — the viewport set and the
+drawer grip as a responsive handle — and a redirect would delete a working tool to save a
+file. What folded is the rail, not the page.
+
+The full report, with the control counts before and after and the three shots:
+[`/framework/ai/2026-09-17/editor-select/`](/framework/ai/2026-09-17/editor-select/).
+
 ## The bar sweep — the rail is the UI (2026-08-19)
 
 **Question.** The owner: *"there are too many little icons. there's no way anyone

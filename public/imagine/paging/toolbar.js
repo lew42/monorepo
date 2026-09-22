@@ -1,5 +1,5 @@
 import { View, div, span, select, option, input, icon } from "/app.js";
-import { BLOCKS, SURFACES, controls_of, is_url, is_off_site } from "./blocks.js";
+import { BLOCKS, CONTROLS, SURFACES, controls_of, is_url, is_off_site } from "./blocks.js";
 import { PRESETS, preset_of, preset_url } from "./presets.js";
 import { fill_drawer, copy_chip } from "./config.js";
 
@@ -149,7 +149,7 @@ export class PagingToolbar extends View {
 	   STAGE owns none: it is the box the other five words act on, so it has nothing
 	   in the bar and its own page says so. */
 	block_group(block){
-		const controls = controls_of(block.id);
+		const controls = controls_of(block.id).filter(control => this.shows(control.axis));
 		if (!controls.length) return null;
 
 		if (controls.length === 1) return this.group(controls[0], controls[0].label);
@@ -160,16 +160,36 @@ export class PagingToolbar extends View {
 		});
 	}
 
+	/* ── DOES THIS PAGE SHOW THIS WORD? ──────────────────────────────────────
+	   A page may say which words its bar is about, as `bar_axes` — a list of axis
+	   names. Say nothing and the bar is all seven, which is what the playground
+	   pages and the library want. Say `["room"]` and the bar is ONE dropdown, and
+	   the other six are one click away behind `More`.
+
+	   ⚠ WHY: the owner, 2026-09-17 — *"the number of controls in the toolbar became
+	     way too many."* Every page in this realm that put a stage on screen showed
+	     all seven dropdowns, including the page whose own sentence read "change the
+	     **room** dropdown" — so the reader's first job on a page about one word was
+	     to find that word among nine controls. Nothing is deleted: `More` opens the
+	     same drawer it always did, with every word in it, and that button now says
+	     how many words are in there. */
+	shows(axis){
+		const only = this.page?.bar_axes;
+		return !only || only.includes(axis);
+	}
+
+	// The words this page is NOT showing in the bar — the number `More` announces.
+	hidden(){
+		return this.page?.bar_axes ? CONTROLS.filter(control => !this.shows(control.axis)).length : 0;
+	}
+
 	// ── one labelled dropdown ────────────────────────────────────────────────
 	group({ axis, label, values }, heading, small){
 		return div.c("paging-group").ac(small && "paging-group-small").append(() => {
 			span.c("paging-pick-label", heading);
 
 			div.c("paging-pick", () => {
-				// ⚠ THE LABEL RIDES WITH THE DOT, so `sync()` can title it "content
-				//   colour: Card" instead of leaving an untitled box between the
-				//   label and the dropdown (self-evident-critique-3, finding 2).
-				if (COLOURS.includes(axis)) this.dots.set(axis, { $dot: span.c("paging-dot"), label });
+				if (COLOURS.includes(axis)) this.dots.set(axis, span.c("paging-dot"));
 
 				const $select = select(() => {
 					values.forEach(value => option(value.title).attr("value", value.id).attr("title", value.means));
@@ -283,10 +303,18 @@ export class PagingToolbar extends View {
 	// ── everything else lives in the drawer ──────────────────────────────────
 	// The whole form with its sentences, the JSON, the page.js, the link to this
 	// exact configuration, `nest`, and "make this a page".
+	/* ⚠ AND IT SAYS WHAT IS IN IT. On a page showing one word, a button labelled
+	     "More" is the only sign the other six words still exist — so it counts them
+	     out loud ("6 more words") and the reader knows where they went. On a page
+	     showing all seven there is nothing to count, and it reads "More". */
 	more(){
+		const count = this.hidden();
+
 		return press(span.c("paging-more")
-			.attr("title", "the whole configuration, the code, and the link to this page")
-			.append(() => { icon("tune"); span("More"); }),
+			.attr("title", count
+				? "the other " + count + " words, the code, and the link to this page"
+				: "the whole configuration, the code, and the link to this page")
+			.append(() => { icon("tune"); span(count ? count + " more words" : "More"); }),
 			() => fill_drawer(this.stage, this.page));
 	}
 

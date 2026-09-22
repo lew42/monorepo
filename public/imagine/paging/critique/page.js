@@ -1,5 +1,4 @@
-import { div, h2, h3, p, a, img, figure, figcaption, span, md } from "/app.js";
-import { Paging } from "../paging.js";
+import { Page, div, h2, h3, p, a, img, figure, figcaption, span, md } from "/app.js";
 
 const here = new URL(".", import.meta.url).pathname;
 const shots = here + "shots/";
@@ -138,19 +137,14 @@ const card = r => div.c("flex gap").style({ alignItems: "flex-start", padding: "
 	});
 });
 
-export default new Paging({
+export default new Page({
 	meta: import.meta,
 	title: "Critique",
 	description: "Every /imagine/ realm, shot at 1280 and 3440 and ranked worst-first — column ratio, alignment and nesting against the viewport.",
 	icon: "rate_review",
-
-	// ⚠ `heading: true` — a READING, not a demo, so it keeps core's `h1`. Every demo
-	//   page in this realm drops it so the demo starts at the top (`paging.js`).
-	heading: true,
+	width: "full",
 
 	content(){
-		md("**Every realm in /imagine/ was screenshotted cold, measured, and ranked worst-first — this page is that reading.** Nothing was edited to produce it: it says where each realm wastes the screen, where it is cramped, and what an alternate layout or palette would do.").ac("paging-lede");
-
 		md(`**Nineteen realms, shot cold at 1280 and 3440, ranked worst-first.** The owner's ask: alternate layouts, alternate color schemes, different ratios of columns and alignment relative to the viewport, and how nesting interacts with all of it. No realm here was edited — this is a reading, not a fix.
 
 Method: private server, headless Playwright, \`ext/DesignTool\`'s \`analyze()\`/\`rate()\` for depth and taste, plus one added measure — the widest contiguous horizontal gap in what's actually painted, read from \`.app\` because "how much of the screen is used" is a viewport question no single column can answer for itself. Numbers before judgement:`);

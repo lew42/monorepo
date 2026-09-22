@@ -17,6 +17,7 @@ const json = await saver.load();   // the stored JSON, or null
 
 - `save()` resolves when *your* state is written, not when the next write starts — [doc/method/save.md](./doc/method/save.md)
 - `FileSaver` off localhost warns once and resolves `false`; read it and show a read-only badge — [doc/backends.md](./doc/backends.md)
+- `FileSaver.write()`/`delete()` follow the site's one edit switch (`ext/Ask/edit.js`'s `edit()`), not the dev socket directly — the dev rail's "edit" checkbox off gets the same read-only warning as off localhost, without leaving localhost — [`/framework/ext/Ask/doc/decisions.md`](/framework/ext/Ask/doc/decisions.md)
 - `load()` gives `null` for a missing document, but `FileSaver.load()` rejects on any other failure — don't seed on a rejection — [doc/decisions.md](./doc/decisions.md)
 - Defaults go on the prototype, never as class fields (`assign` runs inside `super()`) — [doc/decisions.md](./doc/decisions.md)
 

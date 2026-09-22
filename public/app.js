@@ -16,22 +16,6 @@ document.head.prepend(document.head.lastElementChild);
 
 App.stylesheet("/styles.css");
 
-/* The site's chrome, built ONCE outside $pages so navigation can never touch it.
- *
- * [url, text] — hand-typed on purpose. A nav built from app.root's children would
- * have to import every one of them just to read their titles, which is the thing
- * laziness exists to avoid. */
-const nav = [
-	["/", "Home"],
-	["/framework/", "Framework"],
-	["/web/", "Web"],
-	["/alex/", "Alex"],
-	["/arya/", "Arya"],
-	["/castin/", "Castin"],
-	["/edric/", "Edric"],
-	["/michael/", "Michael"],
-];
-
 const app = window.app = new App({
 
 	socket: Socket.singleton(),
@@ -65,12 +49,6 @@ const app = window.app = new App({
 		// `theme-lew42` is the site's look now. It's a class on a div: swap the
 		// word and the whole site is a different theme, with no component edited.
 		this.$app = div.c("app theme-lew42", () => {
-			// $nav, matching its class. A topic hides it with `classes: "hides-nav"`
-			// — an inert class, so nothing here has to know a topic exists.
-			this.$nav = div.c("nav", () => {
-				nav.forEach(([url, text]) => a.c("nav-link", text).href(url));
-			});
-
 			/* The measure is the REGION's default now (`.pages` in Page.css hands
 			 * every page the sheet), so there is nothing to declare here — `papers`
 			 * retired once the opt-in every region typed became the default.
@@ -121,6 +99,7 @@ import "./framework/ext/demo/app.js";
 // render, a layout bar over it, its definition. The side effect IS the export —
 // same shape as tabs below. It imports ext/layout, the one control surface.
 import "./framework/ext/demo/exhibit.js";
+import "./framework/ext/demo/steps.js";   // demo.steps(): numbered steps beside a demo (2026-09-18)
 
 // Patches demo.layout() on: the third exhibit sugar — a whole page as a demo page,
 // with the two-up card and the `parts:` chips. Same side-effect shape.

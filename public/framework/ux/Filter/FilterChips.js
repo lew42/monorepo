@@ -31,11 +31,9 @@ export default class FilterChips extends Filter {
 		}).style("--gap", "0.35em");
 	}
 
-	clear_query(){
-		this.needle = "";
-		this.$field.el.value = "";
-		return this.changed();
-	}
+	// `clear_query()` used to live here — moved up to `Filter` itself 2026-09-18, so
+	// Escape (`Filter.field()`) and this chip's × share the one method instead of
+	// two copies of the same two lines.
 
 	chips(){
 		return this.$chips.empty(() => this.chip_list().forEach(item => this.chip(item)));

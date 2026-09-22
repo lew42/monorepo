@@ -1,0 +1,84 @@
+/* The box every Popover draws, and the demo-only "hostile box" the comparison page
+   builds the two options inside. Record: readme.md. */
+@layer theme {
+
+	/* ⚠ `[popover]` starts `display: none`; the UA stylesheet's own `:popover-open`
+	   rule turns it back on — nothing here needs a `display` line for that half. */
+	.ux-popover {
+		position: fixed; inset: auto; margin: 0;
+		max-inline-size: min(22em, calc(100vw - 2 * var(--pad, 1em)));
+		max-block-size: min(60vh, 22em);
+		overflow: auto;
+		scrollbar-width: thin;
+		background: var(--surface);
+		color: var(--ink);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		box-shadow: 0 0.5em 1.5em rgb(0 0 0 / 0.18);
+		padding: 0.25em;
+	}
+
+	/* Declarative placement, only where the browser has it — Popover.js's own
+	   `place()` runs instead where `@supports` here does not match. */
+	@supports (anchor-name: --a) {
+		.ux-popover { position-try-fallbacks: flip-block, flip-inline; }
+		.ux-popover[data-place="bottom"] { position-area: bottom; }
+		.ux-popover[data-place="top"] { position-area: top; }
+		.ux-popover[data-place="right"] { position-area: right; }
+		.ux-popover[data-place="left"] { position-area: left; }
+	}
+
+	.ux-popover-item {
+		display: flex; align-items: center; gap: 0.5em;
+		inline-size: 100%;
+		font: inherit; letter-spacing: normal; text-transform: none;
+		text-align: start;
+		color: var(--ink);
+		background: transparent;
+		border: 0;
+		border-radius: var(--radius);
+		cursor: pointer;
+	}
+	.ux-popover-item:hover, .ux-popover-item:focus-visible { background: var(--wash); }
+
+	/* Text only, no padding meant for a row of buttons, and clicks pass through it —
+	   a tooltip is never itself the target. */
+	.ux-popover[role="tooltip"] { padding: 0.35em 0.6em; font-size: 0.9em; pointer-events: none; }
+
+	/* ═══ THE COMPARISON PAGE'S OWN HOSTILE BOX — demo-only, this page's doc ═══ */
+
+	/* A stacking context of its own — `isolation: isolate` is the honest way to
+	   make one without an unrelated `position`/`opacity` side effect. */
+	.ux-popover-hostile { position: relative; isolation: isolate; z-index: 0; }
+
+	/* The scrolling column. */
+	.ux-popover-hostile-scroll {
+		block-size: 10em; overflow-y: auto;
+		border: 1px dashed var(--line); border-radius: var(--radius);
+	}
+
+	/* The `overflow: hidden` card — option A's popup dies here. */
+	.ux-popover-hostile-card { overflow: hidden; border-bottom: 1px solid var(--line); }
+
+	/* The sibling stacking context, ABOVE the card on purpose — option A's popup,
+	   `position: absolute` inside the card, is IN that same card's stacking
+	   context and can never climb over this no matter what z-index it wears. */
+	.ux-popover-hostile-sticky {
+		position: sticky; top: 0; z-index: 1;
+		background: var(--surface);
+		border-block: 1px solid var(--line);
+	}
+
+	/* Option A's own popup — plain `position: absolute`, the pattern being
+	   compared against, nothing more. */
+	.ux-popover-a-wrap { position: relative; display: inline-block; }
+	.ux-popover-a-pop {
+		position: absolute; inset-block-start: 100%; inset-inline-start: 0; z-index: 1;
+		min-inline-size: 12em;
+		background: var(--surface);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		box-shadow: 0 0.5em 1.5em rgb(0 0 0 / 0.18);
+		padding: 0.5em;
+	}
+}

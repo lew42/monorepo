@@ -4,6 +4,10 @@ Eleven pattern pages in a `catalog()`, eight of them `demo.tree()` and three —
 `tabs`, `jumps`, `drill` — hand-shaped because they compare *two or three* sites at once.
 The reader-facing verdicts live on the pages; this is what it cost to build them.
 
+One more card, off the rail: [`doc/study/`](/web/nav/doc/study/) is a real study — does the
+navigation stay still when a column opens — moved here from `/imagine/design/navigation/`
+2026-09-18 (`ai/2026-09-18/imagine-move-2/`); the old address still answers.
+
 ## Decisions
 
 **The shells are written out, once per file, not factored into a helper.** Six of

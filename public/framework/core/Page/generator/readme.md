@@ -109,7 +109,7 @@ ignores the rules and draws what the flat table drew.
 A seed is an address against one `MODEL`, and every model bump redraws every seed — so a tree
 worth keeping is kept as its **text**. [`specs.js`](/framework/core/Page/generator/specs/) is
 where: nine page shapes that are real things — a docs site, an inbox, a settings rail, a shop,
-[the magazine](/imagine/mag/) — as a wall of the same sketches the permutation wall draws, each
+[the magazine](/layouts/labs/mag/) — as a wall of the same sketches the permutation wall draws, each
 with a sentence saying what it is for. Pick one and it becomes the tree; the address turns into
 `#s=<the text>`. The magazine's own three-level shape (a full-width cover, an inbox of
 articles, each a plain leaf) fit the five existing words with no sixth needed —

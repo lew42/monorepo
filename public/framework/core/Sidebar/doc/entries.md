@@ -13,11 +13,14 @@ Duck-typed, never `instanceof` — the same rule as `page.activate?.()`.
 
 ## The three fields, and where each comes from
 
+*Read by `tree_nodes()` for a `pages:` caller, or by `ux/Tree`'s own `node_of()`
+for a `root:` one — 2026-09-18, `nav()` stopped building rows by hand.*
+
 | field | read by | from |
 |---|---|---|
-| `label ?? title` | `link()` | the child page's own `title`, or a `label` set on it |
-| `url` | `link()` | `parent.url + name + "/"` |
-| `icon` | `link()` | the child page's own `icon` |
+| `label ?? title` | `tree_nodes()` | the child page's own `title`, or a `label` set on it |
+| `url` | `tree_nodes()` | `parent.url + name + "/"` |
+| `icon` | `tree_nodes()` | the child page's own `icon` |
 
 **A label belongs to the list it appears in; a title belongs to the page.** They
 are not two spellings of one thing, which is why `link()` prefers `label` and why
@@ -54,5 +57,8 @@ anyway, since a heading that navigates is a link pretending to be a heading — 
 the convention that pays for it is a first entry called "Overview" pointing at the
 section's own url (`framework/page.js:100`).
 
-**Nesting is one level and nothing enforces it.** A group inside a group reaches
-`link()` with an entry that has no `url`, and renders `href="undefined"` silently.
+**Nesting is one level and nothing enforces it.** A group inside a group used to
+reach `link()` with an entry that had no `url`, and render `href="undefined"`
+silently. `ux/Tree` reads the same missing `url` as "no `href`" and draws a `<div>`
+row instead of an `<a>` (`Tree.Row.prerender()`) — an inert heading, not a broken
+link, as a side effect of the move to `ux/Tree` rather than a fix aimed at this.

@@ -1,0 +1,122 @@
+@layer base, theme, site, util;
+
+/* css: .type-anchors-wall .type-anchors-cell .type-anchors-post .type-anchors-head
+ *      .type-anchor .type-anchors-eyebrow .type-anchors-cap .type-anchors-label
+ *      .type-anchors-num .type-anchors-takeaway
+ *
+ * `type-` is /framework/styles/system/studies/type's prefix, opened by this page. The reservation line
+ * for `styles/css-scopes.txt` is in `decisions.md` under Open — that file is outside
+ * this page's write fence, so the next agent who can write it will find it there.
+ *
+ * ⚠ THERE IS NOT ONE `font-size` IN THIS FILE, and that is the point of the page. Every
+ *   size on it is one of the site's six declared levels: `h1`, `h2` and the `.h4` class
+ *   worn by the eyebrow and by the mark. A "half the size of the h2" would be 1.125em,
+ *   which is not a level this site has; the h4 level (0.875em, and therefore 0.39× the
+ *   h2 beside it) is the site's small-label level, and using it is what keeps three
+ *   posts, three marks and the eyebrow on one ladder.
+ */
+@layer theme {
+
+	/* Three posts side by side, with a ceiling. The CEILING IS ON THE WALL, not on the
+	   track, and that is not a style choice: `auto-fit` counts its repetitions with the
+	   track's MAX when the max is definite, so `minmax(min(20rem,100%), 34em)` counted
+	   511px tracks at 1280 and fitted only TWO of the three — measured, 460px cells in
+	   two rows. With `1fr` as the max the count uses the 20rem floor (three fit), and the
+	   wall's own `max-width` — three reading columns plus two gaps, 34em being the width
+	   framework.css's own `.measure` class calls a reading column — stops them growing
+	   past it. Measured: 3 × 392px at 1280, 3 × 551px in a 1,737px wall at 3440, one
+	   column at 400.
+	   ⚠ LEFT-aligned, not centred. `margin-inline: auto` was tried and reverted: at 3440
+	     it put the wall in the middle of a 3,342px column while the sentence above it
+	     stayed on the left at its own measure, so the page's two regions sat on two
+	     different axes with 800px of grey between them. One axis and a gutter on the
+	     right beats two axes; widening a reading column is never the fix for dead space.
+	   ⚠ `rem` for the floor, `em` for the ceiling, on purpose: this site's type scales
+	     with the viewport, so a wrap floor in `em` shrinks exactly where the screen is
+	     smallest, while a reading measure is supposed to track the type.
+	   Between about 670 and 1020px only two tracks fit and the wall is 2 + 1. Accepted:
+	   the three posts are still on one screen and still comparable, and a width query to
+	   force a stack there costs more than the row it would tidy. */
+	.type-anchors-wall {
+		display: grid;
+		gap: var(--gap);
+		grid-template-columns: repeat(auto-fit, minmax(min(20rem, 100%), 1fr));
+		max-width: calc(34em * 3 + var(--gap) * 2);
+	}
+
+	.type-anchors-cell { margin: 0; display: flex; flex-direction: column; }
+	.type-anchors-post { flex: 1; }
+
+	/* The heading and its mark share one baseline — the mark sits after the heading, on
+	   the line the heading ends on, which is the whole shape being tested. `wrap` so a
+	   long heading in a 400px column drops the mark to its own line instead of
+	   squeezing the heading to min-content. */
+	.type-anchors-head {
+		display: flex; flex-wrap: wrap; align-items: baseline;
+		gap: 0.2em 0.6em;
+	}
+	/* The flow zeroes its own DIRECT children's margins; the h2 is a grandchild here, so
+	   it keeps whatever margin the base sheet gives it unless this says otherwise. The
+	   space above the row is the flow's, which is what it should be. */
+	.type-anchors-head h2 { margin-block: 0; }
+
+	/* The eyebrow and the h1 are one unit, so they are NOT a flow apart: a full `--flow`
+	   between them (30px at 1280) left the eyebrow floating as a block of its own rather
+	   than reading as a pre-heading. Half a gap is what makes it a pair. */
+	.type-anchors-eyebrow + h1 { margin-block-start: var(--gap-50); }
+
+	/* The three treatments. Nothing here sets a size, a weight or a letter-spacing —
+	   those all come from the h4 level the mark is already wearing.
+	   ⚠ Each modifier carries the module's prefix. A bare `.muted` is a live framework
+	     utility and it faded the whole of post B — heading, body and all — which looked
+	     like a design rather than a bug (2026-09-17). */
+	.type-anchors-accent .type-anchor { color: var(--prim-ink); }
+	.type-anchors-muted .type-anchor { color: var(--subtle); }
+	.type-anchors-rule .type-anchor {
+		color: var(--ink);
+		text-decoration-line: underline;
+		text-decoration-color: var(--prim);
+		text-decoration-thickness: 0.15em;
+		text-underline-offset: 0.35em;
+	}
+
+	/* The eyebrow, above the h1. C's is underlined, in the accent, the same way C's marks
+	   are — so the post is one treatment repeated rather than two ideas. */
+	.type-anchors-eyebrow { color: var(--subtle); }
+	.type-anchors-rule .type-anchors-eyebrow {
+		color: var(--ink);
+		text-decoration-line: underline;
+		text-decoration-color: var(--prim);
+		text-decoration-thickness: 0.15em;
+		text-underline-offset: 0.35em;
+	}
+
+	/* The caption under each post. Body size, subtle ink — the page would be arguing with
+	   itself if its own chrome invented a seventh size to say "never invent a size".
+	   `em` for the space inside it, because a one-line label is the size of a thing, not
+	   space between content. */
+	.type-anchors-cap {
+		display: flex; flex-wrap: wrap; gap: 0.2em 0.6em;
+		margin-block-start: 0.7em; color: var(--subtle);
+	}
+	.type-anchors-label { font-weight: 700; }
+	.type-anchors-num { font-family: var(--mono); }
+
+	/* ⚠ The record fold's prose has no measure of its own. Core caps a column's prose with
+	     `.page-column-prose > :is(p, h1…)` — DIRECT children only — and `md.details` nests
+	     its markdown two levels down inside `.md-details-body`, so the cap never reaches
+	     it and a paragraph in there runs the full column (3,342px at 3440). Capping it
+	     here is the smallest fix; the general one belongs to core. */
+	.type-anchors-record .md-details-body :is(p, ul, ol, h2, h3, h4, h5, blockquote) {
+		max-width: var(--measure);
+	}
+
+	/* The sentence at the top, marked with the accent it is about. Body size for the same
+	   reason as the caption, so `--measure` needs no scaling division either. */
+	.type-anchors-takeaway {
+		max-width: var(--measure);
+		border-inline-start: 3px solid var(--prim);
+		padding-inline-start: 0.8em;
+		margin-block-end: var(--flow);
+	}
+}

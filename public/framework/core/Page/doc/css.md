@@ -88,6 +88,18 @@ hid for so long. **`.active-page` and `.active-ancestor` are one question asked 
 ways: "is any of this mine."** `.tab-panel`'s twin fallback had the identical shape
 and was fixed alongside it — a pair that drifts is a pair where one gets fixed.
 
+**A columns-shaped stand-down rule leaves a two-region host's default page showing
+beside the routed one (shell-lab, 2026-09-17).**
+`.page-column-pages:has(> .page:is(.active-page, .active-ancestor)) > .page.default:not(.active-page, .active-ancestor) { display: none }`
+is right for a COLUMNS host, where an ancestor column is still a column in the row,
+but wrong for a host whose region REPLACES one child with another, because a default
+base page is also the parent of its siblings and so stays marked `.active-ancestor`
+and paints alongside the child that replaced it — found building `/layouts/shell/`,
+where the base design rendered on screen at the same time as the routed one. The
+two-region form is the same later-marked-sibling test the `.active-ancestor` twin
+above already runs — `> .page.default:has(~ .page:is(.active-page, .active-ancestor))`
+— recorded here rather than applied, since no host on the site needs it yet.
+
 ## A demo never hand-writes `.active-page`; it writes `.default`
 
 The contract cannot tell the Router's mark from one a widget wrote. On 2026-08-19

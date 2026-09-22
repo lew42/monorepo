@@ -7,12 +7,34 @@
 
 	@media (min-width: 82em) {
 
-		/* ⚠ `:not(.standard)` - a breakout page already owns `grid-template-columns`, and
-		   both rules are in @layer theme, so the winner would be whichever <link>
-		   loaded last. The two layouts do not combine; pick one.
+		/* ⚠ NO `:not(.standard)` GUARD, and that is the fix, not an oversight
+		   (ai/2026-09-18/dead-nav/): `.standard` is the ordinary page's default
+		   class now (Page.class.js: ".ac(this.classes ?? 'standard')" — nearly
+		   every page gets it, since `classes:` is only ever set by a real
+		   breakout like `.full`), so `:not(.standard)` excluded almost every
+		   caller and this rule never fired anywhere: verified headless, 0 of the
+		   site's real toc()-calling pages drew a rail before this fix.
+		   `core/Page/Page.css`'s own `.page:has(> .page-related)` rule (landed
+		   the same day, one file over) proves the guard was never needed: this
+		   selector's specificity — two classes/pseudo-classes, (0,2,0) — already
+		   beats the base `.page` rule's plain (0,1,0), so it always wins on
+		   specificity, whichever stylesheet's `<link>` loaded last. The load-order
+		   worry this comment used to record was solved by counting selectors, not
+		   by carving out `.standard`.
+		   ⚠ NO `.pages >` PREFIX EITHER (cleanup-2, same day): that ancestor
+		   combinator is why `ext/Doc`'s own seven tabbed-module pages (core/App,
+		   core/Router, core/Sidebar, ext/demo, ext/markdown, ext/toc, util/markup)
+		   still drew nothing after the fix above — `toc()` runs inside a Doc
+		   module's "Overview" SECTION, itself a real child page (`Doc.js`'s
+		   `overview_section()`), so the `.page.doc-section` carrying the `.toc` is
+		   nested inside the Doc's own `.page.doc-page` > `.tabs` > `.tab-panel`,
+		   never a DIRECT child of `.pages` at all. `.page:has(> .page-related)`
+		   (above) never had this `.pages >` prefix and already reaches that same
+		   nested `.page.doc-section` today — this rule now matches that one's own
+		   shape exactly, at the same (0,2,0) specificity, still one selector.
 		   ⚠ 15rem, not 13: at 13 the rail was 208px of 0.8em text and thirteen of the
 		   FAQ's twenty-eight entries ellipsized. */
-		.pages > .page:not(.standard):has(> .toc) {
+		.page:has(> .toc) {
 			display: grid;
 			grid-template-columns: minmax(0, 1fr) 15rem;
 			column-gap: calc(var(--flow) * 1.5);   /* was column-gap 3rem - 2026-09-05 ramps */
@@ -20,7 +42,7 @@
 		}
 
 		/* Everything that is not the rail stacks in column 1, in source order. */
-		.pages > .page:not(.standard):has(> .toc) > * { grid-column: 1; min-width: 0; }
+		.page:has(> .toc) > * { grid-column: 1; min-width: 0; }
 
 		/* ⚠ `span 200`, not `1 / -1`: `-1` counts back from the EXPLICIT grid and
 		   these rows are all implicit, so it resolves to line 1 and spans nothing.
@@ -29,7 +51,7 @@
 		   ⚠ `scrollbar-width: none`: a 32px overflow bought a full-height second bar
 		   one gutter from the window's real one. toc.js keeps the current section in
 		   view, which is what makes hiding it honest. */
-		.pages > .page:not(.standard):has(> .toc) > .toc {
+		.page:has(> .toc) > .toc {
 			display: block;
 			grid-column: 2;
 			grid-row: 1 / span 200;

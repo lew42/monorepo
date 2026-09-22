@@ -24,10 +24,11 @@ export default new Page({
 		note("naming", "Naming", "What an id is, how to add a layout, and every word the standard defines."),
 		note("wire", "Wire", "The drawing spec, field by field — enough to write one from a screenshot."),
 		note("decisions", "Decisions", "What was settled and why, what was measured, and what is still open."),
+		"studies",
 	],
 
 	content(){
-		md("Three notes, one topic each.");
+		md("Three notes, one topic each, and the study that closed the set below them: real screenshots of every failure this book's approved five actually fixed. Moved here 2026-09-18 from `/imagine/design/layout/` — the old address still answers (`ai/2026-09-18/imagine-move-2/`).");
 		this.previews();
 	},
 });

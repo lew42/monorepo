@@ -118,11 +118,15 @@ for.
 
 ## The lab, mapped
 
-`/imagine/layouts/` numbers eighteen arrangements (`2.golden` and the rest). Every one of them
-maps onto this standard, and **eighteen arrangements are eight layouts** — the other ten are the
-same division wearing a different proportion, technique, or composition.
+`/imagine/layouts/` used to number eighteen arrangements (`2.golden` and the rest). Every one of
+them mapped onto this standard, and **eighteen arrangements are eight layouts** — the other ten
+were the same division wearing a different proportion, technique, or composition. The mapping
+below is why the lab itself was deleted outright on 2026-09-18
+(`ai/2026-09-18/imagine-move-3/`), rather than moved here as a seventh entry under
+[`/layouts/labs/`](/layouts/labs/): there was nothing left in it this table doesn't already say.
+The old address is a one-line stub pointing at `/layouts/`.
 
-| `/imagine/layouts/` | this standard | what the difference was |
+| `/imagine/layouts/` (gone) | this standard | what the difference was |
 |---|---|---|
 | `1.stack` | [`1-flow`](/layouts/1-flow/) | — |
 | `1.measure` | [`1-centered`](/layouts/1-centered/) | — |
@@ -143,8 +147,8 @@ same division wearing a different proportion, technique, or composition.
 | `4.wall` | [`n-wall`](/layouts/n-wall/) | — |
 | `4.shell` | [`1-rows`](/layouts/1-rows/) | holding a `3-holy-grail` — a composition of two |
 
-The lab keeps its numbering and its cards; it is a place to *play* with arrangements, and this is
-the place to *name* them. `/imagine/layouts/readme.md` now links here in its first line.
+The lab's own readme conceded this in its first line before it was deleted: it was a place to
+*play* with arrangements, and this was always the place to *name* them.
 
 ## Why these pages claim `wide`, and where the ceiling on a drawing comes from
 

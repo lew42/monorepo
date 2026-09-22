@@ -3,6 +3,18 @@ and right-aligned figures — the row every listing in `board.js` is made of.
 Also exports `segments()` (the notch bar, reused verbatim by
 `AITask.checklist()`) and the state constant `DOT`.
 
+## A link is resolved against the task that logged it
+
+`route(url, m)` takes the manifest as well as the url, because a relative
+`links` entry — a screenshot the task shot, a file it wrote — means "in my
+own directory", never "in whatever page is drawing me". `TaskJSONL.url` is
+that directory. The Asks tab draws one task's links inside another task's
+page, and without this four images 404'd; forty relative links across the
+archive were pointing wherever they happened to land.
+
+`web_url(url)` is the same test, exported, so `asks.js` can keep a pill that
+goes nowhere off a card.
+
 ## The bridge is one ternary
 
 `card(t)` checks whether a declared child's own `preview` differs from the

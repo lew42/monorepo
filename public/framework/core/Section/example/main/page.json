@@ -1,4 +1,6 @@
 {
-  "title": "Main",
-  "mode": { "content": "/framework/core/Section/example/main/prose.md" }
+	"title": "Main",
+	"mode": {
+		"content": "/framework/core/Section/example/main/prose.md"
+	}
 }

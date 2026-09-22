@@ -1,6 +1,28 @@
 # decisions — playground
 
-**`PlaygroundRail extends Sidebar`, `menu()` only.** The owner's own words, 2026-08-19: "just put
+## The rail folded into Make's tree; this page is a thin wrapper (2026-09-18)
+
+The document list — a 22rem `Sidebar` down the left with a `+` at its foot — is a group in
+Make's tree now ([/imagine/paging/make/](/imagine/paging/make/)), because a second list of
+things-you-made beside an editor whose own screen already has one is two places for one
+answer. What is left here is one line above the workspace: where you are, and the way back.
+
+**Rejected: a redirect.** `/playground/<name>/` could have bounced to Make and this file
+could have been deleted. What the playground has that Make does not is the `Workspace`
+chrome — the viewport set (1 / all / twin, fit / 100%) and `ext/grip` on the drawer as the
+`fill` viewport's responsive handle. A redirect would delete a working tool to save a file.
+**What folded is the rail, not the page.**
+
+The `document-removed` listener came with it, and it has to: the Delete button lives in the
+drawer (`properties.js`'s document block), so the shell standing on the deleted document has
+to leave or it sits on a file that is gone. The rail used to do that; it is one line in
+`head()` now. Everything below describes the rail that was here, and is kept as the record.
+
+Report: [`/framework/ai/2026-09-17/editor-select/`](/framework/ai/2026-09-17/editor-select/).
+
+---
+
+**`PlaygroundRail extends Sidebar`, `menu()` only.** *(Deleted 2026-09-18 — see above.)* The owner's own words, 2026-08-19: "just put
 the framework sidebar's logo + framework header on the playground sidebar." `Sidebar.css`
 scopes its brand look to a `.sidebar` ancestor (`.sidebar .brand`, `.sidebar .brand-logo`)
 — cherry-picking those classes onto a hand-built header would need `.sidebar` anyway, so

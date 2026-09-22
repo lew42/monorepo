@@ -47,6 +47,15 @@ Nothing recurses it over the tree at boot. Note the asymmetry: the memory branch
 assigns `app`, and the two branches that go through `add()` get it from the adopt
 object instead — same result, two code paths.
 
+## A data source is awaited first
+
+If the page declared `children` as a **function**, this method awaits
+`source_children()` before it looks the name up — one property read on every other page
+in the site, and no new fetch anywhere. That single `await` is what makes a cold deep url
+into a tree that lives in data work at all: the Router asks the **parent** for each
+segment, so the data only has to be here before the question is asked.
+`./source_children.md`, `../data-children.md`.
+
 ## Safe to call twice
 
 Two callers racing for the same name both get the same module — the browser's

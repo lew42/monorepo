@@ -60,6 +60,7 @@ export function fields(target, { document: doc = false } = {}){
 		group_words(target);
 		words(target, "dir", { names: Object.keys(DIR), cols: 2, pics: DIR });
 		sow_words(target);
+		hand_words(target);
 		if (doc) document_block(target);
 		return;
 	}
@@ -91,8 +92,55 @@ export function fields(target, { document: doc = false } = {}){
 
 	// LAST of all — under every one of the leaf's own rows, and only while a cell is picked.
 	item_words(target);
+	hand_words(target);
 	if (doc) document_block(target);
 }
+
+/* ── WHAT A HAND DOES TO A PANEL ───────────────────────────────────────────────
+   Split it in two, and close it. These are the last three buttons off the floating bar,
+   which is deleted (2026-09-18, `workspace.js`) — a control that floats over the thing it
+   controls is not a control, and this module measured that twice.
+
+   ⚠ ONE `split` ROW, NOT TWO. The brief that moved them said "two rows"; every other row
+     in this rail is one tag and one set of buttons, and two rows holding one button each
+     would be the only rows here shaped differently — which is exactly the kind of drift
+     that made the bar unreadable. The tag says `split`; the two pictures say which way.
+     `doc/decisions.md`.
+
+   ⚠ `close` IS OFFERED ONLY WHERE IT MEANS SOMETHING — a panel with no sibling to give its
+     space back to cannot be closed, which is the same test the bar made. And it is LAST, in
+     the place this rail already puts its one irreversible verb (`document_block()` below).
+
+   ⚠ NO `apply()` AFTER EITHER. Both `divide()` and `close()` change the TREE, which raises
+     `add`/`remove` on the root — `workspace.js` redraws the whole workspace from that, and
+     `focus.js` moves the selection with it. `apply()` here would repaint a panel that the
+     redraw has already replaced. */
+const hand_words = target => {
+	row(() => {
+		span.c("panel-props-tag", "split");
+
+		div.c("panel-props-set").append(() => {
+			button.c("panel-btn", glyph(DIR.row, "columns"))
+				.attr("title", "Split this panel into columns")
+				.click(() => target.divide("row"));
+
+			button.c("panel-btn", glyph(DIR.col, "rows"))
+				.attr("title", "Split this panel into rows")
+				.click(() => target.divide("col"));
+		}).style("--panel-cols", 2);
+	});
+
+	if ((target.parent?.items.length ?? 0) < 2) return;
+
+	row(() => {
+		span.c("panel-props-tag", "close");
+
+		button.c("panel-btn panel-props-close", "Close this panel")
+			.attr("type", "button")
+			.attr("title", "Close it — its space goes back to the panel beside it")
+			.click(() => target.close());
+	});
+};
 
 /* The DOCUMENT, when the selection is a ROOT that documents.js opened (the owner,
    2026-08-19: "a right drawer selection for the document itself … a red delete button at the

@@ -13,7 +13,37 @@ public/framework/ai/usage.json
 # bulk screenshot dirs under the ai log — browsable on the dev server, never committed (Mike, 2026-08-17)
 public/framework/ai/**/shots/
 
+# page-health's day logs — machine-written console/error findings from
+# Server/health.mjs, one file a day, regenerated just by running the watcher;
+# bulky and disposable the way the usage snapshot above is, unlike a task's own
+# task.jsonl (a human's own log, kept). The module's own files (page.js,
+# devbar.js, log.js, health.css, readme.md, doc/) are NOT matched by this and
+# stay tracked normally. public/framework/ai/2026-09-19/page-health/requirements.md
+public/framework/ai/health/*.jsonl
+public/framework/ai/health/archive/
+
+# health-revive, 2026-09-19: Server/health-supervisor.mjs's own liveness readout,
+# rewritten every ~10s while it runs — machine state, not a record, same shape
+# as usage.json above.
+public/framework/ai/health/heartbeat.json
+
 .wrangler/
+
+# the live-reload hold's lock file — describes only this machine's running
+# agents, right now; Server/hold.mjs, public/framework/ai/2026-09-19/reload-hold/
+.reload-hold.json
+
+# which worktrees are up right now, on this machine — Server/worktree-up.mjs / worktree-down.mjs,
+# public/framework/ai/2026-09-21/safe-rollout/
+.worktrees.json
+
+# the owner's raw prompt transcripts, one file a day — never served, never committed
+.claude/prompts/
+
+# server.js's own supervisor writes this when a boot test fails, so an agent or the
+# owner's tools can see why without the site being up; deleted on the next pass —
+# public/framework/ai/2026-09-19/server-boot-test/
+.server-boot-failed.json
 
 branch_structure.json
 temp_auto_push.bat

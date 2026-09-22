@@ -219,8 +219,16 @@ export function selection(root, $root){
 	listen("panel-unfocus", () => back_out(root));
 
 	/* The page-wide half, with no registry: ANOTHER root announced a selection (or a drop),
-	   so this one lets go — quietly, since the announcement is already travelling. */
-	listen("panel-focus", e => { if (e.detail?.root() !== root) drop(root, false); });
+	   so this one lets go — quietly, since the announcement is already travelling.
+	   ⚠ AND THE ANNOUNCEMENT MAY NOT BE A PANEL'S. `panel-focus` is the site's one selection
+	     contract: `/imagine/paging/make/` announces a page, a block or a run of text on it,
+	     and none of those has a `root()`. It still means "something else is selected now",
+	     so this root still lets go — it just may not ask the detail what root it belongs to
+	     (2026-09-18, when Make joined the contract). */
+	listen("panel-focus", e => {
+		const from = typeof e.detail?.root === "function" ? e.detail.root() : null;
+		if (from !== root) drop(root, false);
+	});
 
 	/* Clicking off. A click that acts on the selection is guarded by OFF; everything else —
 	   page prose, a heading, the background — means "nothing, please". ⚠ CAPTURE phase, the

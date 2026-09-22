@@ -155,7 +155,7 @@ by leaving it.
 `:has()` rule restores `border-top` and the full radius on exactly that case.
 
 **Six before/after shots**, `scratchpad/tabs-panel/shots/` (1280 and 3440 each): `/framework/ext/Panel/`
-(a Doc page, `.block` top bar), `/framework/core/Page/` (another Doc page), `/imagine/mag/` and
+(a Doc page, `.block` top bar), `/framework/core/Page/` (another Doc page), `/layouts/labs/mag/` and
 `/blog/systems/layout-generators/` (unrelated pages — confirmed byte-identical before/after,
 the floor doesn't leak), `/imagine/paging/mechanisms/swap/` (the reference — also identical,
 see below), `/framework/ext/tabs/` (this module's own demo, the clearest before/after: a

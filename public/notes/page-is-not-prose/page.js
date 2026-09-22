@@ -130,7 +130,7 @@ place on this site where that arrangement is doing real work.`);
 The owl argument on the left page has an exact answer in this repo's own CSS, and the
 note reached it first.
 
-- [The cascade](/framework/styles/rules/cascade/) — \`framework.css\` ships
+- [The cascade](/framework/styles/doc/cascade/) — \`framework.css\` ships
   \`:where(.flow, blockquote) > * + * { margin-block-start: var(--flow) }\`. That is the
   lobotomized owl, **opt-in** under the name \`.flow\` instead of \`.prose\`, with
   \`blockquote\` getting it for free — and a second rule right after it gives \`h3\`/\`h4\`

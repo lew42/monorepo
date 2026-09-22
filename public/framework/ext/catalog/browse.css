@@ -52,10 +52,33 @@
 	     minimum — `minmax(18em, 26em)` measured ONE column at 1280 where `1fr` measures
 	     two, because 26em fits once in a 760px wall and 18em fits twice. The cost of
 	     `1fr` is that a short band stretches its cards; the cost of a length is that
-	     every narrow width collapses to a single column. */
+	     every narrow width collapses to a single column. **`1fr` stays here, unchanged**
+	     — the cap below is on the CARD, not this track, for exactly this reason. */
 	.browse-band > .page-previews {
 		grid-template-columns: repeat(auto-fit, minmax(min(var(--column, 14em), 100%), 1fr));
 	}
+
+	/* ⚠ 2026-09-18, site study (`ai/2026-09-18/site-study/`, then `ai/2026-09-18/stage-cap/`):
+	   the `1fr` above has no ceiling, and it is not hypothetical — a real click
+	   (`/framework/core/Layout/`'s Tags facet, `landing`) leaves exactly 2 cards in the
+	   "One column" band and measured 1347px EACH at 3440, the owner's "should be
+	   1000px, spread to 3000" complaint almost exactly.
+	   ⚠ THE CAP GOES ON THE CARD, NOT THE TRACK. `minmax(MIN, min(28em, 1fr))` — the
+	     `wall()` shape, capping the track itself — is INVALID CSS: `fr` cannot nest
+	     inside a generic `min()`, only bare inside `minmax()`. The browser drops the
+	     whole `grid-template-columns` declaration as invalid and falls back to its
+	     default (one implicit column spanning the full row) — measured live: every
+	     band's cards jumped to 100% of the wall's width, worse than the bug this was
+	     meant to fix. Swapping the max for a plain length (`minmax(MIN, 28em)`, no
+	     `fr`) avoids that crash but reads differently to `auto-fit`'s own repeat-count
+	     math (the ⚠ two rules up): at 1280 it computed ONE column where `1fr` gives
+	     two, so /framework/core/Page/'s "Building blocks" band would have gone from 6
+	     cards across to 6 cards stacked — a real regression, caught only by measuring
+	     1280 as well as 3440. `max-width` on the card leaves the grid's own repeat-count
+	     math untouched (still keyed off the `1fr` above) and just stops a card from
+	     filling a track wider than 28em — the same ~421px at 1280 / ~504px at 3440
+	     ceiling, reached with valid CSS instead. */
+	.browse-band > .page-previews > .page-preview { max-width: 28em; }
 
 	/* ⚠ `wide`, and this is the whole reason the shell's `wide` track had to stop being
 	     a capped breakout. A browse row is a rail BESIDE a wall — two columns of

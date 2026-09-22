@@ -55,11 +55,17 @@ Applied to the wall. Two matter:
 | `--column` | the card's width, which times four (`zoom-25`) or two (`zoom-50`) is **the width the thing inside it lays out at**. A legibility argument, not a taste one. |
 | `--gap` | the space **between bands**. The gap between cards is a fixed `1em`: `--gap` inherits, and a band that set it would retune every live render inside it. |
 
-## Band sizes are load-bearing
+## A card caps at `28em`, so a short band leaves gutter instead of stretching
 
-A band is its own grid and `auto-fit` stretches it to fill the row, so a band
-of three on a 2750px wall draws three cards a thousand pixels wide. Size the
-bands evenly — `ui/` runs 5, 5, 5, 4 — and the cards come out even too.
+A band is its own grid and `auto-fit` fills the row, so a short band used to
+stretch its cards to fill it — a band of three on a 2750px wall drew three
+cards a thousand pixels wide. **Fixed 2026-09-18:** every card inside
+`.browse-band` now has `max-width: 28em` (`browse.css`) — about 421px at
+1280, 504px at 3440 (the site's fluid body font-size, `framework.css`'s
+clamp). A short band now leaves empty gutter past that width instead of
+stretching its cards, the same way `wall()`'s `auto-fill` already does for a
+short *wall*. Full reasoning, including the CSS trap that made the first
+attempt worse (`fr` cannot nest inside a generic `min()`): [`../decisions.md`](../decisions.md).
 
 ## The heading is the caller's
 
@@ -70,7 +76,7 @@ zeroes the gutter its own `h1` would otherwise sit in.
 
 ## `options` — for a catalogue too big to read in one screen
 
-Three keys, all optional, and a call that passes none renders exactly the markup it always did.
+Four keys, all optional, and a call that passes none renders exactly the markup it always did.
 `core/Layout`'s tree of thirty layouts is the caller they were written for; before them it kept
 a near-copy of this whole file.
 
@@ -105,6 +111,14 @@ whole wall.
 **The cap is over the whole wall, not per band** — a reader asked for sixty cards, not sixty in
 each of four. The control says how many are held back and how many there are; a click adds
 another `cap`.
+
+**`rail: false`** skips the sticky search-and-facets rail entirely — for a caller that already
+has its own filter UI and would otherwise be showing the reader two competing ones. The wall
+itself still renders byte for byte, and every band's own heading still carries
+`data-band="<group>"` (added 2026-09-18, harmless to every existing caller) so the caller's own
+control can scroll straight to a band: `$browse.el.querySelector('[data-band="Global"]')`.
+`/layouts/browse/` is the first caller — its own sticky tier strip shows live approved-counts
+`browse()`'s rail has no notion of, so it keeps its own strip and hides this one.
 
 ⚠ **A wall with no `options` is byte for byte what it was.** Without a cap, `shown` is
 `Infinity`, nothing is held back and no control is drawn; without facets the rail is one search

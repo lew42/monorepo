@@ -393,6 +393,35 @@ grepping every `page.js` under `public/` for a `store` field or a `this.store` r
 — the other `store` in the tree is a module-scope `const` in `ext/Saver` consumers, which
 cannot shadow a method. Do that grep before the next noun goes on this prototype.
 
+### `Page.Store` absorbs `Sidebar.Store` and `LocalStorageSaver`'s own guard — 2026-09-18
+
+The overlap study (`ai/2026-09-18/overlap-study/`) found three classes each hand-rolling
+"read/write one JSON blob in `localStorage`, guarded, with a private-mode fallback":
+this one, `core/Sidebar`'s own `Sidebar.Store` (a fixed key, `lew42:sidebar` — a Sidebar
+is one piece of persistent chrome, not a per-page setting, so it could never key on
+`page.url`), and `ext/Saver`'s `LocalStorageSaver`.
+
+**`id` closed the actual gap.** `key()` now tries `this.id` before `this.page.store_key ??
+this.page.url` — a caller with no page at all gets one fixed key, `prefix + id`.
+`Sidebar.store()` is `new Page.Store({ id: "sidebar" })` now; `Sidebar.Store` is deleted,
+not a wrapper around it — the exact same `lew42:sidebar` key it always wrote.
+
+**`LocalStorageSaver` could not become a thin call to `get`/`set`, though — its own
+class stays**, because `ext/Saver`'s contract needs `write()` to report a real boolean
+(a page's `store()` is fine losing a save silently; `ext/Ask`'s `edit()` and the UI
+`saver-panel-error-paths` (2026-08-15) proved depends on `write()`'s answer are not). What
+moved instead is the GUARD itself: `read_raw`/`write_raw`/`clear_raw` (static, this class)
+are the one `try`/`catch`/`JSON.parse`/`JSON.stringify` now — `read`/`set`/`clear` above
+call them and keep their own silent-degrade promise; `LocalStorageSaver.js` calls the
+same three directly and keeps its own real-boolean promise. One guard, two contracts.
+
+**Lines:** `Sidebar.js`'s store block 25 → 13 (net −11 with its new one-line import);
+`LocalStorageSaver.js` 44 → 25 (−19); this file's `Page.Store` block 53 → 80 (+27,
+absorbing what both leaned on). Net −3 across the three — the study's 20–25 estimate
+costed deleting the duplicate CODE (about 31 lines of hand-rolled guard, gone from two
+files), not the line cost of writing the one place it lives now with this module's own
+comment density; reported as it landed, not forced to match the guess.
+
 ### `fill` yields to an open child, and heads breathe on `pad-y` — 2026-09-05
 
 **`fill` yields.** `width: "fill"` claims everything left over — right, until a page wearing
@@ -466,6 +495,33 @@ realm's finding, which restated the two lines in `util` locally as a workaround)
 lines moved into `@layer util` here, beside the rule they were losing to — `styles/doc/cascade.md`.
 Both measured before/after at 1280 and 3440 on the reporting pages, with three unrelated columns
 pages checked unchanged: `ai/2026-09-05/core-fixes/`.
+
+### `children` may be a function — children that live in data — 2026-09-17
+
+**Applied**, from the proposal held since 2026-09-13 for exactly this: the house rule is that
+a new name on `Page` is **proposed before it is written**, and the two names —
+`child_source` and `source_children()` — were. What released them is the owner's own
+sentence that day: *"pages are everything and they don't have to be real paths… even if they
+don't have a real path slash page.js, they can still use this if they can pretend as if they
+did."*
+
+A page may answer `children` with a **function** that returns a promise. `declare()` takes the
+list as an argument now and stores a function instead of declaring it; `source_children()`
+calls it **once**, memoised on `this.sourcing`; `child()` and `load_all_children()` await it,
+the second with core's own `levels <= this.loaded` guard already above the await. **33 lines
+into `Page.class.js`, 8 of them code.**
+
+That deleted the two overrides [JSON pages](/imagine/cms/json/) and [Make](/imagine/paging/make/)
+had each written by hand, and the copy of that guard both carried — **87 lines out, 35 back,
+52 fewer.** Nothing else moved: a string, array, POJO or `Page`-object `children:` behaves
+exactly as before, and a page that declares no function never reaches the new branch. Seam 2,
+a core `redraw()`, stays **refuted** — `content()` is where pages subscribe, the Router holds
+the element, and a rebuilt view orphans every child.
+
+Proof: the 18 urls the proposal names answered identically before and after — same titles,
+same link sets, same page counts — and a cold deep url into each tree with the cache disabled
+drew with no *"Chaining cycle detected for promise"*.
+[`./data-children.md`](/framework/core/Page/doc/data-children/) · `ai/2026-09-17/core-data-children/`.
 
 ## Traps
 
@@ -551,13 +607,61 @@ threads names rather than pages through its call sites.
 **Recommendation: keep, and document the constraint** (done, in
 `./method/nav_for.md`). Revisit if a fourth consumer has to thread names.
 
-### 5. Children that live in data — 2026-09-13
+### 5. Children that live in data — 2026-09-13 — **decided 2026-09-17**
 
-`children` could be a **function** returning a promise of configs, awaited once by `child()`
-and `load_all_children()`, which deletes the two overrides `imagine/cms/json` and
-`imagine/paging/make` each wrote by hand — and the restated guard both shipped the
-"Chaining cycle detected for promise" bug without. A core `redraw()` is **refuted** in the
-same page: [`./data-children.md`](/framework/core/Page/doc/data-children/).
+Seam 1 was applied; seam 2 stays refuted. The record is above, under Decisions.
+
+### 6. `related` — a right aside of links, resolved live — 2026-09-18
+
+The owner: *"a right sidebar — not the property drawer with a different
+background, but an internal right sidebar... related links to other things,
+maybe just an icon and the title. We probably want to import that thing so the
+title and icon update when we update the other thing."*
+
+**`related: "/a/ /b/"`**, read by a new `related_aside()`. One row per url, each
+resolved with `Page.load(url, 0)` — a dynamic import, so no import cycle and
+the target's REAL, current title and icon (a renamed target updates the row by
+itself). The owner's own sentence named `Page.from(url)`; it does not work for
+an ordinary `page.js` page (it reads a `page.json` and returns `null` when
+there is none — every consumer here). `doc/property/related.md` has the full
+comparison and the alternative (a static import of the target's config, which
+would break LOUDLY on a moved target instead of dropping the row silently —
+rejected for now: no caller needs "cannot ship broken" over "still works,
+degraded" yet).
+
+**Three call sites, one method.** A page's own `render()` decides whether core
+can place the aside inside its own grid at all:
+
+- The ordinary page grid (`render()`) — a real fourth grid track, `Page.css`'s
+  "RELATED" block, folding into `main` under `70em` (narrower than `ext/toc`'s
+  `82em`, because this rail is narrower than toc's own — the arithmetic is in
+  `Page.css`).
+- A columns host (`column()`) — no page grid exists there (layout skill Q1), so
+  it is a short list at the end of the column's own prose.
+- A page whose own `render()` fully replaces core's — `ext/Doc`'s well-and-tabs
+  shell, `/framework/ux/Tree/`'s shape — where core cannot reach inside chrome
+  it does not own. `activate()` (generic; Doc does not override it) appends the
+  aside after whatever that chrome built, so it reads as a block at the bottom
+  rather than a right rail. `ext/toc` hits the identical wall on the SAME shape
+  and simply shows nothing there (`ext/toc/doc/decisions.md`, "Traps"); this is
+  the more useful answer available without touching `ext/Doc/**`, which this
+  task's fence excludes.
+
+**Real bug found while shipping this, worth recording because it will recur:**
+two adjacent bracket line-name groups in a `grid-template-columns` value —
+`[bleed-end] [related-start]` — is invalid CSS grammar (`CSS.supports()`
+confirms `false`); Chromium does not warn, it silently drops the ENTIRE
+declaration, and the grid collapses to two tracks with no names at all. The fix
+is one bracket, both names, the same shape the base rule already uses for
+`[wide-start main-start]`: `[bleed-end related-start]`. Caught only because the
+aside rendered full-width instead of in its own column at 1280 — a headless
+crawl that only checks "does `.page-related` exist" would have missed it.
+
+**Verified:** both consumers, 400/1280/1920/3440, headless — rows drawn equal
+urls declared (3/3 each), aside beside content at 1280 and up, folded under at
+400, zero console errors. The columns-host path (`column()`) was sanity-checked
+with an in-memory probe page (no site page uses `columns()` + `related:` yet),
+not crawled at four widths — recorded as unverified-at-width, not skipped.
 
 ## Open
 

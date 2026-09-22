@@ -1,4 +1,5 @@
 import Socket from "/framework/dev/Socket/Socket.js";
+import { edit } from "../Ask/edit.js";
 import Saver from "./Saver.js";
 
 export default class FileSaver extends Saver {
@@ -21,7 +22,7 @@ export default class FileSaver extends Saver {
 
 	async write(item){
 		const socket = Socket.singleton();
-		if (socket.disabled) return this.read_only();
+		if (!edit()) return this.read_only();
 
 		const reply = await socket.async_rpc("write", this.path, JSON.stringify(item, null, "\t"));
 
@@ -36,7 +37,7 @@ export default class FileSaver extends Saver {
 	// Fire and forget: `rm` has a reply nobody waits on, so `true` means sent.
 	async delete(){
 		const socket = Socket.singleton();
-		if (socket.disabled) return this.read_only();
+		if (!edit()) return this.read_only();
 
 		socket.rpc("rm", this.path);
 		return true;

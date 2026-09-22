@@ -11,6 +11,7 @@
 
 import { md, div, p } from "/app.js";
 import Socket from "/framework/dev/Socket/Socket.js";
+import { edit } from "/framework/ext/Ask/edit.js";
 
 // ════ BLOCKS — and the escape hatch ═══════════════════════════════════════
 // A block names a RENDERER; js supplies it. Data can say anything registered here and
@@ -171,9 +172,9 @@ export class Source {
 		return this;
 	}
 
-	// Off localhost there is no dev socket, so the page goes read-only and says so — the
-	// rule ext/Saver and the CMS editor already follow.
-	writable(){ return !Socket.singleton().disabled; }
+	// The one switch every editor control reads (ext/Ask/edit.js) — off localhost, or
+	// with the rail's edit toggle off, the page goes read-only and says so.
+	writable(){ return edit(); }
 
 	async write(url, data){
 		if (!this.writable()) throw new Error("read-only — there is no dev socket here");

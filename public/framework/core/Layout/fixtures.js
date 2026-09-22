@@ -153,7 +153,8 @@ function draw(box, fixture, count){
 
 /* ⚠ `setProperty`, never `el.style[prop]` — one call takes a custom property and a
    kebab-case property alike, and neither depends on the CSSOM's dashed-attribute
-   aliases. Lifted verbatim from `/imagine/layouts/system.js:29`, which learned it. */
+   aliases. Lifted verbatim from `/imagine/layouts/system.js:29` (that realm was deleted
+   2026-09-18; this is the only copy left), which learned it. */
 export function apply($el, decl){
 	for (const prop in decl ?? {}) $el.el.style.setProperty(prop, decl[prop]);
 	return $el;

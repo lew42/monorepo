@@ -4,6 +4,7 @@ import fs from "fs";
 import path from "path";
 import shot from "./Shot.js";
 import stamp from "../stamp.js";
+import Assistant from "./Assistant.js";
 
 const PUBLIC = path.resolve("public");
 const SEGMENT = /^[\w.-]+$/;
@@ -73,13 +74,47 @@ export default class Ask {
         turns.set(key, req.id);
         tab?.claim("ai", String(req.task ?? "").split("/").filter(Boolean).pop() || "chat");
 
+        /* A named preset (today: "assistant") picks the model/effort/tools/system for
+         * the caller — see Assistant.js. It also owns its own session continuity per
+         * browser tab, so a preset caller never has to pass `resume` itself. */
+        const preset = req.preset && Assistant.preset(req.preset);
+        const stream = !!(req.stream || preset);
+        if (preset) req.resume = req.resume || Assistant.resume(tab?.id);
+
+        /* The "assistant" preset does its own record-keeping — the owner's words and
+         * the reply as `card`/`chunk` lines on the board, and a relay to the
+         * mastermind's inbox — because the browser side of this preset (the demo page,
+         * later the dev bar's composer) never passes `task`, so `record()` below has
+         * nothing to write to. `reply_id` is only set for that preset. */
+        const reply_id = req.preset === "assistant" ? Assistant.start({ prompt: req.prompt }) : null;
+
         try {
             const file = req.shot && await shot(req.shot);
-            const reply = await this.turn({ ...req, system: this.system(req),
+            const reply = await this.turn({ ...req, ...preset, stream,
+                system: preset ? preset.system : this.system(req),
+                on_chunk: reply_id ? text => Assistant.chunk(reply_id, text) : undefined,
+                board_id: reply_id,
                 prompt: file ? `Read the screenshot at ${file}, then: ${req.prompt}` : req.prompt });
+
             if (req.task && !reply.error) this.record(req, reply);
+            if (preset && !reply.error) Assistant.remember(tab?.id, reply.session_id);
+            if (reply_id){
+                Assistant.finish(reply_id, reply.error ? `Something went wrong: ${reply.error}` : reply.text);
+                Assistant.relay(req.prompt);
+            }
+            /* `ask_done` is the streaming client's own signal — `ext/Ask/stream.js` — so it
+             * fires whether the turn is fine or failed; the plain `ask()` caller (`Ask.js`'s
+             * own client, `chat.js`) never sees it, because neither passes `stream`. `board_id`
+             * (only set for the "assistant" preset) is the id of the SAME reply as a card on
+             * `board.jsonl` — a caller comparing "first chunk over the rpc" against "first
+             * chunk from tailing the board" needs it to know which board entry to watch. */
+            if (stream) this.socket.rpc("ask_done", { turn: req.id, text: reply.text, session_id: reply.session_id,
+                board_id: reply_id || undefined,
+                ms_to_first_chunk: reply.ms_to_first_chunk, ms_total: reply.ms_total, error: reply.error });
+
             this.socket.send({ index, ...reply });
         } catch (e){
+            if (stream) this.socket.rpc("ask_done", { turn: req.id, error: String(e.message || e) });
             this.socket.send({ index, error: String(e.message || e) });
         } finally {
             turns.delete(key);
@@ -107,23 +142,48 @@ export default class Ask {
     }
 
     /* The whole command line, as data — so what a turn is told is one readable list and
-     * a test can assert on it without spawning anything. */
-    args({ resume, from, model = "sonnet", tools, system }){
+     * a test can assert on it without spawning anything. `effort` is the CLI's own
+     * `--effort low|medium|high|xhigh|max` (confirmed on the installed CLI — there is
+     * no level below "low"). `stream` adds `--include-partial-messages`, which is what
+     * turns the ordinary one-block-at-a-time output (`turn()`'s existing behaviour,
+     * unchanged for a plain `ask()` call) into text arriving as it is generated.
+     * ⚠ `tools: ""` disables only the BUILT-IN tool set — `.mcp.json`'s `site` MCP server
+     * still reaches every headless turn regardless, because `--tools` never governed MCP
+     * servers in the first place (found live: an "assistant" turn given `tools: ""` still
+     * opened a `tool_use` content block, presumably for a `site` tool). `strict_mcp` adds
+     * `--strict-mcp-config` with no `--mcp-config` of its own, which the CLI documents as
+     * "only use MCP servers from --mcp-config" — none named means none loaded; confirmed
+     * with a scratch run showing `mcp_servers: []` and `tools: []` in the turn's own
+     * `system/init` event. A caller wanting a truly tool-free turn passes BOTH. */
+    args({ resume, from, model = "sonnet", tools, system, effort, stream, strict_mcp }){
         const args = ["-p", "--output-format", "stream-json", "--verbose", "--model", model];
         if (resume) args.push("--resume", resume);
         else if (from) args.push("--resume", from, "--fork-session");
         else args.push("--session-id", randomUUID());
         if (tools != null) args.push("--tools", tools);
         if (system) args.push("--append-system-prompt", system);
+        if (effort) args.push("--effort", effort);
+        if (stream) args.push("--include-partial-messages");
+        if (strict_mcp) args.push("--strict-mcp-config");
         return args;
     }
 
     turn(req){
-        const { id, prompt } = req;
+        const { id, prompt, stream, on_chunk, board_id } = req;
         const child = spawn(process.env.CLAUDE_BIN || "claude", this.args(req), { windowsHide: true });
         child.stdin.end(prompt ?? "");
 
-        const state = { id, started: Date.now() };
+        /* A closed browser tab must not leave a turn running to a reply nobody will
+         * ever see — real tokens, for nothing. Scoped to STREAMING turns only: a
+         * plain `ask()` (chat.js's own thread panel) still finishes and records the
+         * exchange even after the tab closes, which is today's behaviour and arguably
+         * the right one there — the owner may reopen the tab and expect the answer
+         * waiting. Streaming is different: it exists only to paint a LIVE tab, so a
+         * gone tab means the turn has no reason left to keep running. */
+        const kill = () => child.kill();
+        if (stream) this.socket.once("closed", kill);
+
+        const state = { id, started: Date.now(), stream, on_chunk, board_id };
         let buf = "", err = "";
 
         child.stdout.on("data", d => {
@@ -136,10 +196,15 @@ export default class Ask {
 
         return new Promise(resolve => {
             child.on("error", e => resolve({ error: `spawn failed: ${e.message}` }));
-            child.on("close", code => resolve(state.result
-                ? { text: state.result.result, session_id: state.session_id,
-                    cost_usd: state.result.total_cost_usd, duration_ms: Date.now() - state.started }
-                : { error: err.trim().slice(-400) || `claude exited ${code} with no result` }));
+            child.on("close", code => {
+                if (stream) this.socket.off("closed", kill);
+                resolve(state.result
+                    ? { text: state.result.result, session_id: state.session_id,
+                        cost_usd: state.result.total_cost_usd, duration_ms: Date.now() - state.started,
+                        ms_to_first_chunk: state.first_chunk_at ? state.first_chunk_at - state.started : null,
+                        ms_total: Date.now() - state.started }
+                    : { error: err.trim().slice(-400) || `claude exited ${code} with no result` });
+            });
         });
     }
 
@@ -148,11 +213,33 @@ export default class Ask {
         try { e = JSON.parse(line); } catch { return; }
         if (e.session_id) state.session_id = e.session_id;
         if (e.type === "result") state.result = e;
+        if (e.type === "stream_event" && state.stream) this.delta(e.event, state);
         if (e.type !== "assistant") return;
 
         for (const c of e.message?.content ?? []){
             if (c.type === "text") this.socket.rpc("ask_event", { id: state.id, text: c.text });
             if (c.type === "tool_use") this.socket.rpc("ask_event", { id: state.id, tool: c.name });
+        }
+    }
+
+    /* One raw event from `--include-partial-messages` — the Anthropic API's own
+     * streaming shape, one level down inside `{type: "stream_event", event}`
+     * (confirmed against the installed CLI with a ten-second scratch run, not the
+     * docs — `ai/2026-09-19/assistant-stream/task.jsonl` has the capture). A
+     * `text_delta` is a word or two of the reply and goes out at once, append-only,
+     * as `ask_chunk`; `ext/Ask/stream.js` is the one reader. A tool starting is never
+     * forwarded as the raw `tool_use` JSON a browser has no business seeing — one
+     * short status chunk instead, same spirit as the existing `ask_event` tool line. */
+    delta(ev, state){
+        if (ev?.type === "content_block_delta" && ev.delta?.type === "text_delta"){
+            const text = ev.delta.text ?? "";
+            if (!state.first_chunk_at) state.first_chunk_at = Date.now();
+            state.seq = (state.seq ?? 0) + 1;
+            this.socket.rpc("ask_chunk", { turn: state.id, seq: state.seq, text, board_id: state.board_id });
+            state.on_chunk?.(text);
+        } else if (ev?.type === "content_block_start" && ev.content_block?.type === "tool_use"){
+            state.seq = (state.seq ?? 0) + 1;
+            this.socket.rpc("ask_chunk", { turn: state.id, seq: state.seq, text: "reading the state… ", board_id: state.board_id });
         }
     }
 

@@ -140,7 +140,7 @@ marked: the expanded row, and the block that **grows on activate**.`);
 
 		md(`Laid out together, the eight are really three shapes with variations: something
 narrow beside something wide, a stack with one member emphasised, and a strip of controls
-over content. That is the same conclusion the [layout study](/imagine/design/layout/)
+over content. That is the same conclusion the [layout study](/layouts/doc/studies/)
 reached by measuring twenty real pages.`);
 	}
 });

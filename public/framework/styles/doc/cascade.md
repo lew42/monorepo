@@ -6,7 +6,7 @@ Split out of `readme.md`.
 moving to `util` too.** `framework.css`'s bare `:first-child { margin-top: 0 }` / `:last-child
 { margin-bottom: 0 }` (§ "collapse a container's outer gap") silently beat `Page.css`'s four-class
 `.page-column-prose > .bleed:not(…):first-child` in `theme`, so a bled block's top/bottom margin
-never actually cancelled — measured on `/imagine/sections/`, a 15px strip of column floor stayed
+never actually cancelled — measured on `/layouts/labs/sections/`, a 15px strip of column floor stayed
 above and below a full-bleed block regardless of the selector written against it. Fixed 2026-09-05
 by moving `Page.css`'s two declarations into `@layer util` beside the rule they were losing to —
 same layer, so the more specific selector wins the ordinary way (`core/Page/doc/columns.md`,

@@ -38,7 +38,7 @@
    ⚠ `decl` — not `rules`. `rules` on this site now means LayoutRules (rules.js);
      these are CSS declarations, which is what `ext/DesignTool/library` calls `decl`. */
 
-const gap = "var(--gap)";
+const gap = "var(--gap, var(--gap-default))";
 
 const COLS  = "/framework/styles/layouts/cols/";
 const WORDS = "/framework/styles/doc/layout-system.md";
@@ -67,7 +67,6 @@ export const LAYOUTS = [
 		tags: ["single-column"],
 		variations: ["measure", "reading-column"],
 		alternatives: ["rows", "section-band"],
-		approved: "2026-09-06",
 		source: "imagine/layouts",
 	},
 
@@ -87,7 +86,6 @@ export const LAYOUTS = [
 		tags: ["single-column", "docs"],
 		variations: ["stack", "reading-column"],
 		alternatives: ["reading-grid"],
-		approved: "2026-09-06",
 		source: "imagine/layouts",
 	},
 
@@ -106,7 +104,6 @@ export const LAYOUTS = [
 		tags: ["single-column", "docs"],
 		variations: ["measure"],
 		alternatives: ["reading-grid", "rail-and-content"],
-		approved: "2026-09-06",
 		source: "DesignTool/library",
 	},
 
@@ -119,13 +116,12 @@ export const LAYOUTS = [
 		room: "page",
 		word: { label: ".wash + .measure.start", href: "/framework/styles/sections/" },
 		config: 'div.c("wash").style({ paddingInline: "clamp(1.5em, 3.5%, 3.5em)" }, () => div.c("measure start flow", …))',
-		decl: { display: "block", background: "var(--wash)", "padding-block": "calc(var(--pad) * 1.5)", "padding-inline": "clamp(1.5em, 3.5%, 3.5em)", "border-radius": "6px" },
+		decl: { display: "block", background: "var(--wash)", "padding-block": "calc(var(--pad-ramp) * 1.5)", "padding-inline": "clamp(1.5em, 3.5%, 3.5em)", "border-radius": "6px" },
 		boxes: [{ label: "The band's prose", note: "back on the measure", kind: "prose", decl: { "max-width": "min(40em, 100%)" } }],
 		widths: [400, 3440],
 		tags: ["single-column", "landing"],
 		variations: ["stack"],
 		alternatives: ["measure"],
-		approved: "2026-09-06",
 		source: "DesignTool/library",
 	},
 
@@ -143,7 +139,6 @@ export const LAYOUTS = [
 		widths: [400, 3440],
 		tags: ["docs"],
 		alternatives: ["dashboard-row"],
-		approved: "2026-09-06",
 		source: "DesignTool/library",
 	},
 
@@ -156,13 +151,12 @@ export const LAYOUTS = [
 		room: "page",
 		word: { label: ".flex.gap.v-center.wrap", href: "/framework/framework.css" },
 		config: 'div.c("flex gap v-center wrap", () => { span("Filter"); …buttons })',
-		decl: { display: "flex", "flex-wrap": "wrap", "align-items": "center", gap, padding: "var(--pad)", border: "1px solid var(--line)", "border-radius": "6px" },
+		decl: { display: "flex", "flex-wrap": "wrap", "align-items": "center", gap, padding: "var(--pad, var(--pad-default))", border: "1px solid var(--line)", "border-radius": "6px" },
 		boxes: [{ label: "Controls", kind: "controls" }],
 		widths: [400, 3440],
 		wraps: true,
 		tags: ["dashboard"],
 		alternatives: ["stat-strip"],
-		approved: "2026-09-06",
 		source: "DesignTool/library",
 	},
 
@@ -173,18 +167,17 @@ export const LAYOUTS = [
 		room: "solo",
 		word: { label: ".page.full.fill.flex.v", href: "/framework/styles/layouts/shell/" },
 		config: 'new Page({ width: "full", content(){ div.c("page full fill flex v", () => { … }); } })',
-		decl: { display: "grid", "grid-template-rows": "auto minmax(0, 1fr) auto", height: "16em", overflow: "hidden", gap },
+		decl: { display: "grid", "grid-template-rows": "auto minmax(0, 1fr) auto", height: "16em", gap },
 		boxes: [
-			{ label: "Header", note: "auto — its content", kind: "bare", decl: { "max-height": "3.5em", overflow: "hidden" } },
+			{ label: "Header", note: "auto — its content", kind: "bare" },
 			{ label: "Body", note: "1fr — the leftover", kind: "prose", decl: { "overflow-y": "auto", "min-height": "0" } },
-			{ label: "Footer", note: "auto again", kind: "bare", decl: { "max-height": "3.5em", overflow: "hidden" } },
+			{ label: "Footer", note: "auto again", kind: "bare" },
 		],
 		widths: [400, 3440],
 		grows: false, overflow: "scroll",
-		tags: ["single-column"],
+		tags: ["single-column", "sticky-header"],
 		variations: ["shell"],
 		alternatives: ["stack"],
-		approved: "2026-09-06",
 		source: "imagine/layouts",
 	},
 
@@ -203,9 +196,8 @@ export const LAYOUTS = [
 		],
 		widths: [400, 3440],
 		grows: false, overflow: "scroll",
-		tags: ["single-column", "landing"],
+		tags: ["single-column", "landing", "sticky-header"],
 		alternatives: ["stack", "rows"],
-		approved: "2026-09-06",
 		source: "imagine/layouts",
 	},
 
@@ -230,7 +222,6 @@ export const LAYOUTS = [
 		tags: ["split-view"],
 		variations: ["golden", "fr", "main-aside"],
 		alternatives: ["thirds"],
-		approved: "2026-09-06",
 		source: "imagine/layouts",
 	},
 
@@ -250,7 +241,6 @@ export const LAYOUTS = [
 		tags: ["split-view"],
 		variations: ["equal", "main-aside", "fr"],
 		alternatives: ["rail-and-content"],
-		approved: "2026-09-06",
 		source: "imagine/layouts",
 	},
 
@@ -270,7 +260,6 @@ export const LAYOUTS = [
 		tags: ["rail-and-content", "split-view"],
 		variations: ["golden", "equal", "fixed-fluid"],
 		alternatives: ["rail-main-aside"],
-		approved: "2026-09-06",
 		source: "imagine/layouts",
 	},
 
@@ -290,7 +279,6 @@ export const LAYOUTS = [
 		tags: ["rail-and-content"],
 		variations: ["main-aside", "rail-and-content"],
 		alternatives: ["rail-main-aside"],
-		approved: "2026-09-06",
 		source: "imagine/layouts",
 	},
 
@@ -310,7 +298,6 @@ export const LAYOUTS = [
 		tags: ["split-view"],
 		variations: ["equal", "golden", "main-aside"],
 		alternatives: ["thirds"],
-		approved: "2026-09-06",
 		source: "imagine/layouts",
 	},
 
@@ -333,7 +320,6 @@ export const LAYOUTS = [
 		tags: ["rail-and-content", "docs"],
 		variations: ["fixed-fluid", "main-aside"],
 		alternatives: ["rail-main-aside", "reading-grid"],
-		approved: "2026-09-06",
 		source: "DesignTool/library",
 	},
 
@@ -356,7 +342,6 @@ export const LAYOUTS = [
 		tags: ["split-view"],
 		variations: ["fixed-fluid"],
 		alternatives: ["scroll"],
-		approved: "2026-09-06",
 		source: "DesignTool/library",
 	},
 
@@ -380,7 +365,6 @@ export const LAYOUTS = [
 		tags: ["single-column"],
 		variations: ["quarters", "equal"],
 		alternatives: ["tile-wall"],
-		approved: "2026-09-06",
 		source: "imagine/layouts",
 	},
 
@@ -401,7 +385,6 @@ export const LAYOUTS = [
 		tags: ["docs-three-region", "rail-and-content", "toc-rail", "docs"],
 		variations: ["rail-and-content", "shell"],
 		alternatives: ["scroll"],
-		approved: "2026-09-06",
 		source: "imagine/layouts",
 	},
 
@@ -422,7 +405,6 @@ export const LAYOUTS = [
 		tags: ["docs-three-region", "docs"],
 		variations: ["rail-main-aside"],
 		alternatives: ["golden"],
-		approved: "2026-09-06",
 		source: "imagine/layouts",
 	},
 
@@ -437,15 +419,14 @@ export const LAYOUTS = [
 		config: 'div.c("flex gap wrap").style("align-items","baseline", () => { …identity; …detail; …figures })',
 		decl: { display: "flex", "flex-wrap": "wrap", "align-items": "baseline", gap, "padding-block": "0.7em", "padding-inline": "clamp(1em, 3.5%, 3.5em)", border: "1px solid var(--line)", "border-radius": "6px" },
 		boxes: [
-			{ label: "Identity", kind: "bare", decl: { flex: "0 0 12em", "min-width": "0" } },
+			{ label: "Identity", kind: "bare", decl: { flex: "0 0 12em" } },
 			{ label: "Detail", kind: "prose", decl: { flex: "1 1 20em", "min-width": "0" } },
-			{ label: "Figures", kind: "bare", decl: { flex: "0 1 auto", "min-width": "0", "margin-inline-start": "auto", "font-variant-numeric": "tabular-nums" } },
+			{ label: "Figures", kind: "bare", decl: { flex: "0 0 auto", "margin-inline-start": "auto", "font-variant-numeric": "tabular-nums" } },
 		],
 		widths: [1000, 3440], fallback: "stack",
 		wraps: true,
 		tags: ["dashboard"],
 		alternatives: ["wide-table", "stat-strip"],
-		approved: "2026-09-06",
 		source: "DesignTool/library",
 	},
 
@@ -456,7 +437,7 @@ export const LAYOUTS = [
 		room: "stage",
 		word: { label: "a grid inside a grid track", href: "/framework/styles/layouts/dashboard/" },
 		config: 'div.c("grid gap").style("grid-template-columns","1fr 1.6fr 1fr", () => { …; div.c("grid gap"); })',
-		decl: { display: "grid", "grid-template-columns": "minmax(0, 1fr) minmax(0, 1.6fr) minmax(0, 1fr)", height: "15em", overflow: "hidden", gap },
+		decl: { display: "grid", "grid-template-columns": "minmax(0, 1fr) minmax(0, 1.6fr) minmax(0, 1fr)", height: "15em", gap },
 		boxes: [
 			{ label: "Left", kind: "prose", decl: { "overflow-y": "auto", "min-height": "0" } },
 			{ label: "Centre", kind: "prose", decl: { "overflow-y": "auto", "min-height": "0" } },
@@ -474,7 +455,6 @@ export const LAYOUTS = [
 		tags: ["dashboard"],
 		variations: ["quad"],
 		alternatives: ["thirds"],
-		approved: "2026-09-06",
 		source: "imagine/layouts",
 	},
 
@@ -485,7 +465,7 @@ export const LAYOUTS = [
 		room: "stage",
 		word: { label: "overflow + scroll-snap on ONE track", href: "/framework/styles/layouts/mail/" },
 		config: 'div.c("grid gap").style({ gridTemplateColumns: "12em 1fr 12em", height: "100dvh" }, …)',
-		decl: { display: "grid", "grid-template-columns": "clamp(6em, 18%, 12em) minmax(0, 1fr) clamp(6em, 18%, 12em)", height: "16em", overflow: "hidden", gap },
+		decl: { display: "grid", "grid-template-columns": "clamp(6em, 18%, 12em) minmax(0, 1fr) clamp(6em, 18%, 12em)", height: "16em", gap },
 		boxes: [
 			{ label: "Rail", note: "does not move", kind: "list", decl: { overflow: "hidden", "min-height": "0" } },
 			{
@@ -501,10 +481,9 @@ export const LAYOUTS = [
 		],
 		widths: [1000, 3440], fallback: "stack",
 		grows: false, overflow: "scroll",
-		tags: ["docs-three-region", "split-view"],
+		tags: ["docs-three-region", "horizontal-scroll"],
 		variations: ["rail-main-aside"],
 		alternatives: ["list-and-detail"],
-		approved: "2026-09-06",
 		source: "imagine/layouts",
 	},
 
@@ -528,7 +507,6 @@ export const LAYOUTS = [
 		tags: ["preview-wall", "gallery"],
 		variations: ["media-gallery", "stat-strip", "masonry"],
 		alternatives: ["thirds", "quarters"],
-		approved: "2026-09-06",
 		source: "DesignTool/library",
 	},
 
@@ -546,7 +524,6 @@ export const LAYOUTS = [
 		tags: ["preview-wall", "gallery"],
 		variations: ["tile-wall", "media-gallery"],
 		alternatives: ["quarters"],
-		approved: "2026-09-06",
 		source: "imagine/layouts",
 	},
 
@@ -566,7 +543,6 @@ export const LAYOUTS = [
 		tags: ["gallery", "preview-wall"],
 		variations: ["tile-wall", "masonry"],
 		alternatives: ["wall"],
-		approved: "2026-09-06",
 		source: "DesignTool/library",
 	},
 
@@ -584,7 +560,6 @@ export const LAYOUTS = [
 		tags: ["gallery", "preview-wall", "notes"],
 		variations: ["tile-wall", "media-gallery"],
 		alternatives: ["wall"],
-		approved: "2026-09-06",
 		source: "styles/layouts",
 	},
 
@@ -604,7 +579,6 @@ export const LAYOUTS = [
 		tags: ["dashboard"],
 		variations: ["tile-wall"],
 		alternatives: ["toolbar-cluster", "quarters"],
-		approved: "2026-09-06",
 		source: "DesignTool/library",
 	},
 
@@ -624,7 +598,6 @@ export const LAYOUTS = [
 		tags: ["docs", "single-column"],
 		variations: ["tile-wall"],
 		alternatives: ["reading-column", "measure"],
-		approved: "2026-09-06",
 		source: "DesignTool/library",
 	},
 
@@ -644,7 +617,6 @@ export const LAYOUTS = [
 		tags: ["dashboard"],
 		variations: ["thirds"],
 		alternatives: ["tile-wall", "stat-strip"],
-		approved: "2026-09-06",
 		source: "imagine/layouts",
 	},
 
@@ -655,7 +627,7 @@ export const LAYOUTS = [
 		room: "stage",
 		word: { label: "a grid inside each track", href: "/framework/styles/layouts/wire/" },
 		config: 'div.c("cols half gap", () => { div.c("grid gap"); div.c("grid gap"); })',
-		decl: { display: "grid", "grid-template-columns": "minmax(0, 1fr) minmax(0, 1fr)", height: "15em", overflow: "hidden", gap },
+		decl: { display: "grid", "grid-template-columns": "minmax(0, 1fr) minmax(0, 1fr)", height: "15em", gap },
 		boxes: [
 			{
 				label: "Left column", kind: "bare",
@@ -679,7 +651,6 @@ export const LAYOUTS = [
 		tags: ["dashboard", "split-view"],
 		variations: ["rows-in-columns", "quarters"],
 		alternatives: ["thirds"],
-		approved: "2026-09-06",
 		source: "imagine/layouts",
 	},
 
@@ -690,7 +661,7 @@ export const LAYOUTS = [
 		room: "solo",
 		word: { label: "styles/layouts/shell", href: "/framework/styles/layouts/shell/" },
 		config: 'new Page({ width: "full", content(){ div.c("page full fill flex v", () => { … }); } })',
-		decl: { display: "grid", "grid-template-rows": "minmax(0, 1fr) auto", height: "16em", overflow: "hidden", gap },
+		decl: { display: "grid", "grid-template-rows": "minmax(0, 1fr) auto", height: "16em", gap },
 		boxes: [
 			{
 				label: "The row", kind: "bare",
@@ -701,14 +672,13 @@ export const LAYOUTS = [
 					{ label: "Aside", kind: "list", decl: { "overflow-y": "auto", "min-height": "0" } },
 				],
 			},
-			{ label: "Status bar", note: "auto", kind: "bare", decl: { "max-height": "3.5em", overflow: "hidden" } },
+			{ label: "Status bar", note: "auto", kind: "bare" },
 		],
 		widths: [1400, 3440], fallback: "rows",
 		grows: false, overflow: "scroll",
 		tags: ["holy-grail", "docs-three-region"],
 		variations: ["rail-main-aside", "rows"],
 		alternatives: ["scroll"],
-		approved: "2026-09-06",
 		source: "imagine/layouts",
 	},
 ];

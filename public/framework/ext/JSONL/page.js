@@ -16,7 +16,7 @@ export default new Doc({
 	overview: [
 		{ title: "TaskJSONL", icon: "checklist", description: "The task manifest as a log — agent lines merge by task.", content(){
 
-			code.js(`static verbs = [...JSONL.verbs, "agent", "chat"];
+			code.js(`static verbs = [...JSONL.verbs, "agent", "chat", "shot", "ask", "decision", "verdict"];
 
 agent(value){
 	const known = this.agents.find(a => a.task === value.task);
@@ -32,7 +32,7 @@ agent(value){
 				p(`${task.agents.length} agent — ${task.agents[0].outcome}, ${task.agents[0].tokens.toLocaleString()} tokens`);
 			}, "Dispatched once, landed later — merged by task into one row, never two.");
 
-			md("`chat` (one browser turn), `shot` (one screenshot taken outside the repo — path, url, viewport width, label), and a `steps`/`step` progress pair follow the same rule: an extra verb or an extra assigned field, never a second file. [TaskJSONL](/framework/ext/JSONL/doc/task-jsonl/) has the full shape, including the subclassing trap the static `verbs` list sets.");
+			md("`ask` does the same by `id` — one thing the owner asked for, kept in their own words with the `uuid` of the message they said it in, so [ext/AITask](/framework/ext/AITask/) can show it as a card that links back to the real sentence. `chat` (one browser turn), `shot` (one screenshot taken outside the repo — path, url, viewport width, label), and a `steps`/`step` progress pair follow the same rule: an extra verb or an extra assigned field, never a second file. `decision` and `verdict` are a PAIR on the same rule: the worker writes down a choice and the alternatives it was made over, the owner presses Approve or Improve on [ext/AITask](/framework/ext/AITask/doc/decisions-tab/)'s Decisions tab, and the press is a verdict line in this same log. [TaskJSONL](/framework/ext/JSONL/doc/task-jsonl/) has the full shape, including the subclassing trap the static `verbs` list sets.");
 		} },
 		{ title: "Streaming", icon: "sensors", description: "A real task.jsonl, streamed from the dev server.", content(){
 

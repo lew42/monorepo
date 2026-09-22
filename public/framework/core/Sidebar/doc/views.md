@@ -1,44 +1,42 @@
-# The four `$` handles — three of them write-only
+# The `$` handles
 
-`Sidebar` stores four child views. Grouped here rather than given a page each,
-because the finding is collective.
+*Rewritten 2026-09-18 — the proposal below the fold was adopted the day it was
+written down: `$bar`, `$menu` and `$mode` measured "assigned, never read,
+by anything, anywhere" and are gone. What is left is what earns its keep.*
 
 | property | assigned | read |
 |---|---|---|
-| `$bar` | `Sidebar.js:38` | **never** |
-| `$menu` | `Sidebar.js:78` | **never** |
-| `$mode` | `Sidebar.js:113` | **never** |
-| `$toggle` | `Sidebar.js:60` | `Sidebar.js:31` (Escape refocus), `72` (`aria-expanded`) |
+| `$toggle` | `toggle()` | Escape refocus (`render()`), `aria-expanded` (`open()`) |
+| `$rail` | `render()` | **never** |
+| `$tree` | `nav()` | `reveal()` — the cold-load fold walk |
 
 ## Usage
 
-Nothing outside the class reads any of them. `grep -rn "\$bar\|\$menu\|\$mode"
-public/` returns the assignments and nothing else.
+`grep -rn "\$toggle\|\$rail\|\$tree" public/` finds the three assignments and
+`reveal()`'s reads of `$tree`; nothing outside the class reads any of them either.
 
 ## Necessity
 
 **`$toggle` is essential** — `open()` cannot write `aria-expanded` without it, and
 the Escape handler cannot return focus.
 
-**The other three are storage with no reader.** Each is a `return this.$x = …` in a
-method whose return value is also discarded, so both halves of the line are unused.
+**`$tree` is essential for the same reason `$toggle` is**: `reveal()` walks
+`this.$tree.nodes` and `this.$tree.rows` to open the branches down to the current
+page, and `adapt_to()` at the end of that walk is a method ON the tree. There is no
+way to do either without holding the tree.
 
-The argument for keeping them: the `$`-prefix convention exists so a site or a
-subclass can reach a part without re-querying, and a component that hides its parts
-forces `el.querySelector` on anyone extending it. That argument is real and
-untested — nobody has extended `Sidebar`.
+**`$rail` is the one carried over from before, on the same terms the original
+`$bar`/`$menu` were kept — and rejected for the same reason.** Nothing reads it;
+it exists because `render()` assigning `this.$rail = div.c(...)` costs nothing
+extra to write and *might* let a subclass reach the sticky box without a query.
+Nobody has ever subclassed `Sidebar`. Dropping it is one line
+(`div.c("sidebar-rail", () => {…});`, no `this.$rail =`) and was left for the next
+pass through this file rather than folded into an already-large rewrite — see
+`doc/decisions.md`'s 2026-09-18 section.
 
 ## Simplicity
 
-The naming rule they follow is worth stating, because it is the reason they read
-cleanly: **name a `$prop` after the class it carries.** `$bar` holds
-`div.c("sidebar-bar")`, kebab class read back as snake_case, so you get from CSS to
-JS and back without opening the other file.
-
-Proposal (readme): drop `$bar`, `$menu` and `$mode`; keep `$toggle`. Three lines
-shorter, and the remaining handle then *means* something — "this one is here
-because something reads it."
-
-Counter-proposal: keep all four, on consistency, and accept that a component's
-parts are public by convention. Either is defensible; the current state — four
-handles, one reader, no note saying which — is not.
+The naming rule still holds: **name a `$prop` after the class it carries.**
+`$tree` holds `new Tree(…)`, kebab class `.ui-tree` (`ux/Tree`'s own, not this
+module's), and `$rail` holds `div.c("sidebar-rail")` — CSS to JS and back with no
+detour.

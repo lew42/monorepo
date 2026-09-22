@@ -51,13 +51,17 @@ retired the same day once its last caller moved to the class.
   exports `ui`, and that cycle breaks on deep reloads only — [doc/decisions.md](./doc/decisions.md)
 - In `page.js`'s `content()`, `this` is the module's Doc, not the Overview section;
   `this.parent` is the framework landing and nothing throws — [doc/decisions.md](./doc/decisions.md)
+- `framework.css` now has a `.card` word (padded `.surface`, by definition) — the one-line
+  spacing rule is region → `.pad`, framed box → `.card`, control or row → its own `em`. The
+  [card](/framework/ui/card/) page below still shows the older `surface pad flex v gap`
+  pattern; it has not been updated to `.card` yet (`/framework/ai/2026-09-19/card-word/`)
 
 ## More
 
 - [Overview](/framework/ui/) · [`doc/decisions.md`](./doc/decisions.md) — the bands, the export
   bar, the 2026-08-12 unification, who uses it · [`doc/record.md`](./doc/record.md) — the long
   per-component ladder and nine findings · `doc/method/` (API tab) · `doc/file/` (Files tab)
-- Surfaces — [card](/framework/ui/card/) · [toolbar](/framework/ui/toolbar/) · [panel](/framework/ui/panel/) · [stats](/framework/ui/stats/) · [accordion](/framework/ui/accordion/)
+- Surfaces — [card](/framework/ui/card/) · [toolbar](/framework/ui/toolbar/) · [panel](/framework/ui/panel/) · [stats](/framework/ui/stats/) · [accordion](/framework/ui/accordion/) · [decision](/framework/ui/decision/) — the options as cards, the chosen one marked; used by every task page's Decisions tab
 - Data — [table](/framework/ui/table/) · [timeline](/framework/ui/timeline/) · [tree](/framework/ui/tree/) · [progress](/framework/ui/progress/) · [pagination](/framework/ui/pagination/) · [crumbs](/framework/ui/crumbs/)
 - Forms — [field](/framework/ui/field/) · [dialog](/framework/ui/dialog/) · [tags](/framework/ui/tags/) · [menu](/framework/ui/menu/) · [tooltip](/framework/ui/tooltip/)
 - Marks — [badge](/framework/ui/badge/) · [alert](/framework/ui/alert/) · [avatar](/framework/ui/avatar/) · [kbd](/framework/ui/kbd/) · [words](/framework/ui/words/)

@@ -86,7 +86,7 @@ before anyone can build a real page with it:
   beside what happened next. The board is one page per working day: every task carries
   the ask verbatim, its own log, and what it landed — so the decisions stay with the
   owner and the typing does not.
-- [/imagine/design/type/](/imagine/design/type/) — *Typography, Prose? Content*, worked
+- [/framework/styles/system/studies/type/](/framework/styles/system/studies/type/) — *Typography, Prose? Content*, worked
   out as a scale rather than a list of tags.
 - [ext/demo](/framework/ext/demo/) — "Merge pages" and "make notes & nav" in practice:
   one demo shell, so an example is never re-typed to be shown twice.

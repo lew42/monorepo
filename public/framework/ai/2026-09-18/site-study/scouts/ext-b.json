@@ -1,0 +1,516 @@
+[
+  {
+    "url": "/framework/ext/grip/",
+    "reads": [
+      "ext/grip/page.js",
+      "ext/grip/readme.md"
+    ],
+    "name": "Grip",
+    "what": "grip",
+    "parts": [],
+    "features": [],
+    "demos": [],
+    "coverage": 50,
+    "gaps": [
+      "is the **whole** of which edge you drag — arithmetic and looks. A start-docked rail i",
+      "Mount it **inside** the rail's box, never straddling the edge — a strip hanging outsi",
+      "carries ; without it the shell's push trails the pointer by 0.18s ·"
+    ],
+    "blurb": "A rail's resize edge — a strip inside the edge it drags",
+    "clarity": 4,
+    "stage": {
+      "kind": null,
+      "cap": null,
+      "should_cap": null
+    }
+  },
+  {
+    "url": "/framework/ext/highlight/",
+    "reads": [
+      "ext/highlight/page.js",
+      "ext/highlight/readme.md"
+    ],
+    "name": "Highlight",
+    "what": "highlight",
+    "parts": [
+      "cache"
+    ],
+    "features": [
+      "lang",
+      "fn",
+      "file",
+      "ext"
+    ],
+    "demos": [],
+    "coverage": 100,
+    "gaps": [
+      "Chaining onto  in argument position inside a sentence is silently discarded — classes",
+      "Only a block that builds its own  reads the FILENAME arg; inline, or inside a hand-bu",
+      "Unregistered languages (, ) render as escaped plain text — no error, no warning; a gr"
+    ],
+    "blurb": "Syntax highlighting for the code() factory, on every page that shows code",
+    "clarity": 4,
+    "stage": {
+      "kind": "wide",
+      "cap": null,
+      "should_cap": null
+    }
+  },
+  {
+    "url": "/framework/ext/layout/",
+    "reads": [
+      "ext/layout/page.js",
+      "ext/layout/readme.md"
+    ],
+    "name": "Layout",
+    "what": "Layout",
+    "parts": [
+      "words"
+    ],
+    "features": [
+      "bar",
+      "context"
+    ],
+    "demos": [],
+    "coverage": 50,
+    "gaps": [
+      "Register  once, on the region — the drawer draws the nearest registration at or above",
+      "returns an empty strip and fills it on the next microtask ( isn't set until  returns)",
+      "The  page word pairs  with an inline , or everything below the fold is clipped:"
+    ],
+    "blurb": "A toolbar over anything, and a drawer that pushes the page over",
+    "clarity": 4,
+    "stage": {
+      "kind": "full bleed",
+      "cap": null,
+      "should_cap": null
+    }
+  },
+  {
+    "url": "/framework/ext/markdown/",
+    "reads": [
+      "ext/markdown/page.js",
+      "ext/markdown/readme.md"
+    ],
+    "name": "Markdown",
+    "what": "Markdown",
+    "parts": [
+      "cache"
+    ],
+    "features": [
+      "file",
+      "details",
+      "c",
+      "resolve"
+    ],
+    "demos": [],
+    "coverage": 100,
+    "gaps": [
+      "/  resolve against , never the document — the SPA fallback makes the document url a r",
+      "A relative link in a fetched  is rewritten against **the file**; but a link between t",
+      "A link to a  **beside the page you are on** is rewritten to its route ( → ), which co"
+    ],
+    "blurb": "md() renders prose; md.file() loads a whole markdown file into a View",
+    "clarity": 4,
+    "stage": {
+      "kind": null,
+      "cap": null,
+      "should_cap": null
+    }
+  },
+  {
+    "url": "/framework/ext/tabs/",
+    "reads": [
+      "ext/tabs/page.js",
+      "ext/tabs/readme.md"
+    ],
+    "name": "Tabs",
+    "what": "Tabs",
+    "parts": [],
+    "features": [
+      "tabs"
+    ],
+    "demos": [],
+    "coverage": 50,
+    "gaps": [
+      "Flush is the default and  is the one word for the rectangle — the reverse of the 2026",
+      "A tab wears the **control grammar's metrics** (2026-09-06) — the same font-size,  and",
+      "Only the first  on a page can own the parent's url; two sets sharing a child name col"
+    ],
+    "blurb": "A bar of links and the panel its children mount into",
+    "clarity": 4,
+    "stage": {
+      "kind": null,
+      "cap": null,
+      "should_cap": null
+    }
+  },
+  {
+    "url": "/framework/ext/toc/",
+    "reads": [
+      "ext/toc/page.js",
+      "ext/toc/readme.md"
+    ],
+    "name": "Toc",
+    "what": "toc",
+    "parts": [],
+    "features": [],
+    "demos": [],
+    "coverage": 35,
+    "gaps": [
+      "Only / (and /) outside demos, file trees, rails and  count — a stat tile's big number",
+      "Silently shows nothing inside a  that also declares  — the catalog mounts one level t",
+      "A hidden page measures every rect at 0,0, so the spy picks the last heading; the scro"
+    ],
+    "blurb": "This page's own headings, as a nav, with the current one marked.",
+    "clarity": 4,
+    "stage": {
+      "kind": null,
+      "cap": null,
+      "should_cap": null
+    }
+  },
+  {
+    "url": "/framework/ui/",
+    "reads": [
+      "ui/page.js",
+      "ui/readme.md"
+    ],
+    "name": "UI",
+    "what": "UI",
+    "parts": [],
+    "features": [
+      "table",
+      "timeline",
+      "keys"
+    ],
+    "demos": [],
+    "coverage": 50,
+    "gaps": [
+      "loads once via , and a css-only component's  never imports its own",
+      "A word can only **replace** a token, never scale one, so it may only touch a token no",
+      "puts a cell straight into a : **no markdown pass**, so a backtick or a"
+    ],
+    "blurb": "Twenty components in four bands, three functions, seventeen copy-paste markup",
+    "clarity": 4,
+    "stage": {
+      "kind": "full bleed",
+      "cap": null,
+      "should_cap": null
+    }
+  },
+  {
+    "url": "/framework/ux/",
+    "reads": [
+      "ux/page.js",
+      "ux/readme.md"
+    ],
+    "name": "UX",
+    "what": "UX",
+    "parts": [],
+    "features": [],
+    "demos": [
+      {
+        "url": "/framework/ux/auth/",
+        "shows": "8 child pages",
+        "covers": 40
+      }
+    ],
+    "coverage": 50,
+    "gaps": [
+      "**A ux never ships a \"compact mode\" or a \"high contrast mode.\"** Both tiers read the ",
+      "**Splitting is the usual answer, not moving.** 's CSS stays  in ; only",
+      "**A ux imports  templates;  must never import .** Imports flow down, and a"
+    ],
+    "blurb": "The behavior tier: ui/ hands you markup, ux/ hands you a class",
+    "clarity": 4,
+    "stage": {
+      "kind": null,
+      "cap": null,
+      "should_cap": null
+    }
+  },
+  {
+    "url": "/framework/styles/",
+    "reads": [
+      "styles/page.js",
+      "styles/readme.md"
+    ],
+    "name": "Styles",
+    "what": "Styles",
+    "parts": [],
+    "features": [],
+    "demos": [
+      {
+        "url": "/framework/styles/system/",
+        "shows": "7 child pages",
+        "covers": 40
+      }
+    ],
+    "coverage": 50,
+    "gaps": [
+      "Every rule lives inside a layer — an unlayered rule beats every layer at any specific",
+      "Four layer names, ; the order is declared once, in , which  loads first — a name outs",
+      "Overriding a  rule is a bug report about  — de-escalate upstream, never escalate down"
+    ],
+    "blurb": "Four layers, six type levels, and as little else as possible.",
+    "clarity": 4,
+    "stage": {
+      "kind": null,
+      "cap": null,
+      "should_cap": null
+    }
+  },
+  {
+    "url": "/framework/ext/catalog/",
+    "reads": [
+      "ext/catalog/readme.md",
+      "ext/catalog/page.js",
+      "ext/catalog/doc/ (decisions.md, method/, file/)"
+    ],
+    "name": "Catalog",
+    "what": "Two arrangements of the same preview cards for an index page: catalog() pins a rail beside the routed child, browse() lays a filterable wall of bands.",
+    "parts": [
+      "catalog() rail",
+      "browse() wall",
+      "band grid",
+      "shared previews() cards"
+    ],
+    "features": [
+      "pin a sticky rail beside a routed child",
+      "lay a filterable wall of bands",
+      "cap cards with show more",
+      "read facet rows off a child page props",
+      "search extra props",
+      "power ext/Doc Overview tab"
+    ],
+    "demos": [
+      {
+        "url": "/framework/ext/catalog/",
+        "shows": "two tiny live demo.app() samples on the page itself, a catalog() rail and a browse() wall, each a few sample pages",
+        "covers": 55
+      }
+    ],
+    "coverage": 55,
+    "gaps": [
+      "the cap (show more), facets and search options are described in prose but never demoed",
+      "the rail collapse to a strip below 64em is stated but not shown live",
+      "the two real 20-30 card sites named (Layouts, UI) are linked, not embedded"
+    ],
+    "blurb": "Same preview cards, two views: a sticky rail or a filterable wall",
+    "clarity": 4,
+    "stage": {
+      "kind": "wide",
+      "cap": null,
+      "should_cap": "the two sample demos are tiny (16-24em tall) inside a wide-class box, harmless now, but a real catalog (Layouts, UI) genuinely wants the width"
+    }
+  },
+  {
+    "url": "/framework/ext/demo/",
+    "reads": [
+      "ext/demo/readme.md",
+      "ext/demo/page.js",
+      "ext/demo/doc/ (decisions.md, record.md, method/, file/)"
+    ],
+    "name": "Demo",
+    "what": "The site one mechanism for showing code and the thing it renders from the same source, with a resizable viewport, four page shapes, and a picture generator for preview cards.",
+    "parts": [
+      "shell (page.demo())",
+      "stage (the one resizable viewport)",
+      "app/exhibit/page/tree/layout shapes",
+      "mini() card pictures",
+      "source column"
+    ],
+    "features": [
+      "show code and run it from one source, so they cannot drift",
+      "resize the render viewport or simulate a device width",
+      "build a whole demo page via four shapes over the shell",
+      "draw a chrome-free thumbnail with mini() for a preview card",
+      "caption and title a demo band"
+    ],
+    "demos": [
+      {
+        "url": "/framework/ext/demo/",
+        "shows": "demo(), demo.stage(), demo.app() and demo.source() shown live on the page itself; exhibit/page/tree/layout are described with code and linked out to other pages that use them",
+        "covers": 60
+      }
+    ],
+    "coverage": 60,
+    "gaps": [
+      "demo.exhibit(), demo.page(), demo.tree() and demo.layout() are documented with code blocks but not demoed live on this page, only linked to other pages that use them",
+      "mini() picture generator (29 words) is described but its gallery is not shown here"
+    ],
+    "blurb": "Show the code, then run it: the site one demo mechanism",
+    "clarity": 5,
+    "stage": {
+      "kind": "wide",
+      "cap": null,
+      "should_cap": "this module sets the site default demo width; a demo() box carries the wide class by default (readme: a demo is something you look at), which is why most demo stages are uncapped everywhere else on the site"
+    }
+  },
+  {
+    "url": "/framework/ext/depth/",
+    "reads": [
+      "ext/depth/readme.md",
+      "ext/depth/page.js",
+      "ext/depth/doc/ (decisions.md, method/, file/)"
+    ],
+    "name": "Depth",
+    "what": "Turns a page into a 3D scene where layered elements drift apart as you scroll and lean toward the pointer.",
+    "parts": [
+      "depth() scene + two sliders",
+      ".depth(n) layer patch",
+      "--depth / --depth-shadow tokens",
+      "perspective container"
+    ],
+    "features": [
+      "scroll parallax between layers",
+      "pointer lean and tilt per layer",
+      "adjust the Depth (scale) and Motion (reaction) sliders",
+      "give any element a depth tier with one CSS var"
+    ],
+    "demos": [
+      {
+        "url": "/framework/ext/depth/",
+        "shows": "the page itself is the demo: scroll it, drag the two sliders, two depth-tiered boxes react live",
+        "covers": 90
+      }
+    ],
+    "coverage": 90,
+    "gaps": [
+      "the 0.75 slider floor and the sliced-card failure it prevents is explained in prose but the reader is never guided to actually drag past it and see the bug"
+    ],
+    "blurb": "A page becomes a 3D scene, layers drift as you scroll",
+    "clarity": 5,
+    "stage": {
+      "kind": "none",
+      "cap": null,
+      "should_cap": "no, a scene explicitly cannot be .page.fill (preserve-3d flattens on overflow/opacity/filter), so this one is structurally not a bleed risk"
+    }
+  },
+  {
+    "url": "/framework/ext/drawer/",
+    "reads": [
+      "ext/drawer/readme.md",
+      "ext/drawer/page.js",
+      "ext/drawer/doc/ (decisions.md, file/)"
+    ],
+    "name": "Drawer",
+    "what": "The right-hand side rail any part of the site can open: one per document, closed only by its own X, and it pushes the page instead of covering it.",
+    "parts": [
+      "drawer() shell",
+      "slot pinned head",
+      "body scrolling content",
+      "drag-to-resize grip (ext/grip)",
+      "--drawer / --drawer-w tokens"
+    ],
+    "features": [
+      "open with any fill function, replacing what was there",
+      "resize by dragging the inline edge",
+      "remember the last width in localStorage",
+      "close(), showing() and refresh() controls"
+    ],
+    "demos": [
+      {
+        "url": "/framework/ext/drawer/",
+        "shows": "live open/refresh/close buttons and a draggable-width rail on the page itself",
+        "covers": 85
+      }
+    ],
+    "coverage": 85,
+    "gaps": [
+      "the sharing rules (fill not hold, dock once) matter most with two competing callers, but only one caller is demoed here"
+    ],
+    "blurb": "The right rail anything can open, closed only by its own X",
+    "clarity": 5,
+    "stage": {
+      "kind": "none",
+      "cap": "--drawer-w (rem, user-dragged, persisted)",
+      "should_cap": "no, width is user-set in rem and remembered, not content that stretches with the viewport"
+    }
+  },
+  {
+    "url": "/framework/ext/editor/",
+    "reads": [
+      "ext/editor/readme.md",
+      "ext/editor/page.js (full)",
+      "ext/editor/doc/ (decisions.md, shell.md, method/, property/, file/)"
+    ],
+    "name": "Editor",
+    "what": "A drag-and-drop page builder you visit, assembled from the Item tree, Sortable, Saver and Panel, for laying out blocks without writing code.",
+    "parts": [
+      "palette panel",
+      "canvas (Sortable blocks)",
+      "layers panel",
+      "properties panel",
+      "status strip",
+      "History undo"
+    ],
+    "features": [
+      "drag blocks from a palette onto a canvas",
+      "select a block and edit its properties live",
+      "rearrange the five-panel workspace itself",
+      "undo by snapshot",
+      "persist to a file on localhost or localStorage elsewhere"
+    ],
+    "demos": [
+      {
+        "url": "/framework/ext/editor/",
+        "shows": "the live editor workspace itself, not a description of one: palette, canvas, layers, properties, status all working",
+        "covers": 75
+      }
+    ],
+    "coverage": 75,
+    "gaps": [
+      "multi-select and copy/paste are stated as deferred, not built, and nothing in the UI says so",
+      "property edits persist but are explicitly not undoable, which is not flagged anywhere in the UI"
+    ],
+    "blurb": "A drag-and-drop block builder: a page you visit, not a module",
+    "clarity": 4,
+    "stage": {
+      "kind": "full bleed",
+      "cap": null,
+      "should_cap": "no, a page-builder workspace is the deliberate exception that should fill the viewport, same as ext/Panel"
+    }
+  },
+  {
+    "url": "/framework/ext/files/",
+    "reads": [
+      "ext/files/readme.md",
+      "ext/files/page.js",
+      "ext/files/doc/ (about.md, decisions.md, fetched.md, panels.md, tree.md, file/)"
+    ],
+    "name": "Files",
+    "what": "Shows a tree of real files fetched from disk next to the one you clicked, as resizable panels: the same mechanism ext/Doc Files tab uses.",
+    "parts": [
+      "file tree panel",
+      "source panel",
+      "optional about (prose) panel",
+      "resizable ext/Panel split"
+    ],
+    "features": [
+      "fetch real files, never string literals, so they cannot drift",
+      "click a row to load its source, cached and highlighted",
+      "add a third prose panel with an about hook",
+      "drag, split or close any of the panels"
+    ],
+    "demos": [
+      {
+        "url": "/framework/ext/files/",
+        "shows": "two live file trees on the page itself: a plain two-panel one, and (in the With about overview tab) a three-panel one with prose",
+        "covers": 80
+      }
+    ],
+    "coverage": 80,
+    "gaps": [
+      "the seeded split-axis rule (column below 640px, row above) is stated but not shown at both sizes on one page"
+    ],
+    "blurb": "A tree of real files, fetched, beside the one you clicked",
+    "clarity": 5,
+    "stage": {
+      "kind": "wide",
+      "cap": null,
+      "should_cap": "the two-or-three-panel browser genuinely benefits from width at 3440, similar to catalog"
+    }
+  }
+]

@@ -1,0 +1,41 @@
+@layer theme {
+
+	/* A ranked row is core's `.page-column-item` plus two things: its place in the
+	   order, and one line of what it is. Layout only — the row's ground, hover and
+	   active mark are core's (Page.css), and copying them here would mean two of them. */
+	.imp-ranked-row {
+		display: grid;
+		grid-template-columns: 1.9em 1fr auto;
+		align-items: baseline;
+		column-gap: .5em;
+	}
+
+	/* The number is the whole point of the column, so it reads as a rank and not as a
+	   bullet: right-aligned so 1 and 10 share an edge, tabular so they never shuffle,
+	   and in the accent, which is the one mark that repeats identically down every
+	   column (the owner's repetition rule, 2026-09-17). A control's own size, in em —
+	   never a spacing clamp. */
+	.imp-ranked-n {
+		text-align: end;
+		font-weight: 700;
+		font-variant-numeric: tabular-nums;
+		color: var(--prim);
+	}
+
+	/* Every cell placed by hand. Auto-placement put the chevron on row 2, beside the
+	   description, because the description claims column 2 of that row. */
+	.imp-ranked-n { grid-column: 1; grid-row: 1; }
+	.imp-ranked-row > .page-column-label { grid-column: 2; grid-row: 1; }
+	.imp-ranked-more { grid-column: 3; grid-row: 1; opacity: .5; }
+
+	/* One line of what the row is, under its own label — clamped to two, because a
+	   summary is a sentence and a column is 17–35em wide. */
+	.imp-ranked-said {
+		grid-column: 2;
+		font-size: .85em;
+		display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+		color: color-mix(in srgb, currentColor 70%, transparent);
+	}
+
+	.imp-ranked-leaf { gap: var(--gap-50); align-items: start; }
+}

@@ -34,3 +34,15 @@ ON CONFLICT (id) DO UPDATE SET
 -- Anything a previous, differently-shaped seed left behind.
 DELETE FROM users WHERE id > 5;
 DELETE FROM likes WHERE user_id NOT IN (SELECT id FROM users);
+
+-- worker/pages.js's proof: three rows under /imagine/cms/d1/, same shape the JSON
+-- pages' page.json nodes use (a title, a description, an icon). Idempotent like the
+-- users upsert above — a second `npm run dev` updates these same three rows in place
+-- instead of erroring or duplicating them.
+INSERT INTO pages (path, json, updated) VALUES
+    ('/imagine/cms/d1/one/',   '{"title":"One","description":"A row in D1 -- path, title, description, icon, nothing else.","icon":"looks_one"}',  strftime('%s', 'now')),
+    ('/imagine/cms/d1/two/',   '{"title":"Two","description":"Same table, same route, a different row.","icon":"looks_two"}',                      strftime('%s', 'now')),
+    ('/imagine/cms/d1/three/', '{"title":"Three","description":"Three rows, one query -- GET /api/pages?under=.","icon":"looks_3"}',                strftime('%s', 'now'))
+ON CONFLICT (path) DO UPDATE SET
+    json    = excluded.json,
+    updated = excluded.updated;

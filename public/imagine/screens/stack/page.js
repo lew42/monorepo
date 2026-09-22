@@ -14,7 +14,7 @@ const here = new URL(".", import.meta.url).pathname;
 export default new Screen({
 	meta: import.meta,
 	title: "Stack",
-	description: "The height has no row, so each band count is a new screen.",
+	description: "The height has no row to open into, so every band count is a new screen — a swap, not a split.",
 	icon: "view_agenda",
 	shapes: ["v1", "v1 1", "v1 1 1"],
 

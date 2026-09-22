@@ -44,7 +44,7 @@ thing that goes wrong at 3440.
   needs no new CSS.
 - **`thirds`** — 7 three-child rows, and most of the ten three-track grids are
   `auto 1fr auto` chrome, which is a frame and not columns. Thin evidence.
-- **`golden`** — zero call sites outside `/imagine/decks/`. A taste word; it earns a lab
+- **`golden`** — zero call sites outside `/layouts/labs/decks/`. A taste word; it earns a lab
   page, not a utility.
 - **`rail-main-aside`** — two real occurrences (`styles.css:174`, `ext/AITask/ai.css:173`),
   both already grids. A three-track documentation frame may simply *be* a grid; this word

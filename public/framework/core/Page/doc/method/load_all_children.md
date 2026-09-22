@@ -20,6 +20,15 @@ until you open it.
 deeper ask tops up. That is the whole of what makes navigation deepen a tree: the
 Router walks `child()` down the chain, and each hop asks for its own `depth`.
 
+**And the guard above is why a data source is awaited HERE.** A page whose children come
+from a `children()` function has nothing in its Map when you land on it — there is no url
+segment to walk, so `child()` never runs — and this is the one method that would notice.
+Two pages used to write that wait as an override of this method, and both had to restate
+the `levels <= this.loaded` guard inside it; both forgot, so the second call read back the
+very promise being assigned on the next line and threw *"Chaining cycle detected for
+promise"* out of the microtask queue with no file and no stack. The guard sits above the
+await here instead. `./source_children.md`, `../data-children.md`.
+
 **Nothing is fetched in the constructor**, and that is the design, not an omission.
 A module page constructs *itself* at import — `export default new Page({ meta })` —
 so a constructor that loaded its subtree hands the budget to nobody: **every** url

@@ -158,7 +158,7 @@ in one slot is one picture.
   edge, but the middle is empty. The honest answer is that a post about software should
   have figures; the layout makes room for them rather than inventing filler. Whether
   something else belongs there (related posts, a persistent index) is a design question,
-  not a layout one — `/imagine/blogx/` is where that is being explored.
+  not a layout one — `/layouts/labs/blogx/` is where that is being explored.
 - **A tall figure and a short section still drift apart**, because `clear: right` pushes
   the next figure below the last one. Two figures in quick succession end up further
   down than their paragraphs.

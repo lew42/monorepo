@@ -1,0 +1,118 @@
+@layer base, theme, site, util;
+
+/* css: .color-swatch, .color-island, .color-chip, .color-fail, .color-pairbox
+ *
+ * The whole point of this sheet: force `light-dark()` to resolve BOTH ways on one
+ * page regardless of the viewer's own mode, by setting `color-scheme` on a small
+ * island rather than the root. `--prim` etc. still come from the ancestor
+ * `.theme-lew42` — only the resolution direction is pinned here. */
+@layer theme {
+	.color-swatch { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+	.color-island { color-scheme: light; padding: 0.9em 0.8em; background: var(--surface); }
+	.color-island.dark { color-scheme: dark; }
+	.color-chip { height: 2.6em; border-radius: 0.2em; border: 1px solid var(--line); margin-block-end: calc(var(--gap) * 0.5); }   /* was margin-block-end 0.5em - 2026-09-05 ramps */
+	.color-pairbox { display: grid; gap: calc(var(--gap) * 0.9); grid-template-columns: repeat(auto-fill, minmax(min(13em, 100%), 1fr)); }   /* was gap 0.9em - 2026-09-05 ramps */
+
+	.color-fail { border-inline-start: 3px solid var(--error); padding-inline-start: 0.8em; }
+	.color-ok   { border-inline-start: 3px solid var(--ok); padding-inline-start: 0.8em; }
+
+	/* ---- the lighten/darken study (2026-09-17) --------------------------------
+	   css: .color-page .color-takeaway .color-wall .color-ground .color-ramp .color-bar
+	        .color-bar-name .color-bar-num .color-lab .color-sliders .color-slider
+	        .color-slider-name .color-slider-value .color-accent-wall .color-accent
+	        .color-accent-swatch .color-accent-cap .color-accent-rows
+
+	   ⚠ Every padding in here is in `em`, not `--pad`. These rows are the SIZE OF A
+	     THING — a one-line cell whose height belongs to its own text — and a spacing
+	     clamp is space between and around content, never the size of a control
+	     (/framework/styles/system/studies/size/). The `--gap` between tiles is the other case, and it
+	     does take the clamp, through the `gap` utility on the wall. */
+
+	/* The sentence the two sliders write, directly under them.
+	   ⚠ `min-height`, and it is not decoration. The sentence is three to five lines
+	     depending on the hue, and every reflow used to shove the five accent tiles under
+	     it up or down by a line while the reader was still dragging (42px at 400,
+	     measured 2026-09-17). Five lines of its own line-height is the tallest it gets;
+	     reserving them costs one line of white and buys a lab that never jumps. */
+	/* ⚠ `--measure` is `40em`, and an `em` is the ELEMENT'S own font size — so setting
+	     this box bigger than its neighbours silently made its measure bigger too, and
+	     it ended 100px to the right of the slider row directly above it at 1280. The
+	     scale is named once and divided back out, so both boxes end on one axis. */
+	.color-takeaway {
+		--takeaway-scale: 1.15;
+		font-size: calc(1em * var(--takeaway-scale));
+		max-width: calc(var(--measure) / var(--takeaway-scale));
+		line-height: 1.45;
+		min-height: calc(1.45em * 5);
+		border-inline-start: 3px solid var(--prim);
+		padding-inline-start: 0.8em;
+	}
+
+	/* ⚠ The record fold's prose had NO measure at all — 3,342px paragraphs at 3440
+	     (measured 2026-09-17). Core caps a column's prose with
+	     `.page-column-prose > :is(p, h1…)`, direct children only, and `md.details`
+	     nests its markdown two levels down inside `.md-details-body`, so the cap never
+	     reached it. Capping it here is the smallest fix; the general one is core's. */
+	.color-record .md-details-body :is(p, ul, ol, h2, h3, h4, h5, blockquote) {
+		max-width: var(--measure);
+	}
+
+	/* One tile per ground, five grounds. 14em is chosen so all five sit in ONE row from
+	   1280 up (measured: 1238px of wall, five 227px tiles) — the grounds are a ladder from
+	   white to black and a ladder that wraps after four reads as two unrelated things. It is
+	   still wide enough for `#ebebeb  8.8:1  text ok` beside the step's name without either
+	   wrapping. Below ~1100 the wall breaks to two tracks and at 400 to one, which is right:
+	   a tile is self-contained.
+	   ⚠ `rem`, not `em`. This site's type scales with the viewport, so `14em` was 182px at
+	     a 400 viewport and the wall put TWO 182px tiles side by side there — narrower than
+	     the numbers inside them. A wrap floor is a real length; only a rail is in `em`. */
+	.color-wall, .color-accent-wall { --column: 14rem; }
+
+	.color-ground, .color-accent { margin: 0; }
+
+	/* The ground itself. Bars butt each other on purpose: the six steps read as one
+	   continuous ramp leaving the ground in both directions. */
+	.color-ramp {
+		border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
+	}
+
+	.color-bar {
+		display: flex; align-items: baseline; justify-content: space-between;
+		gap: 0.6em; padding: 0.4em 0.7em;
+	}
+	.color-bar-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.color-bar-num  { font-family: var(--mono); font-size: 0.72em; white-space: nowrap; flex: none; }
+
+	/* ⚠ `margin`, not `padding`. A caption paints no background of its own, and padding
+	     with no background change is the owner's "floating in midair" case: it is space
+	     BETWEEN the ramp and its caption, which is margin's job (2026-09-17). */
+	.color-ground > figcaption, .color-accent-cap {
+		font-size: 0.85em; color: var(--subtle); margin-block-start: 0.4em;
+	}
+
+	/* ---- the accent lab ----
+	   ⚠ The row is capped at the measure, the same line the prose beside it holds. A
+	     slider is a CONTROL, and a control sized by whatever space is left over is not
+	     sized at all: at the wall's full width each track ran 619px at 1280 and 1,670px
+	     at 3440, with its own value stranded at the far end of it (2026-09-17). */
+	/* ⚠ 14em, not 12: a slider needs a TRACK, and the basis is what decides whether the
+	     two of them share a line or take one each. At 12em they stayed side by side in a
+	     376px box at 400 and the hue track — 360 degrees of it — was 60px long. 14em
+	     wraps them at 400 and still fits both on one line from 1000 up. */
+	.color-sliders { display: flex; flex-wrap: wrap; gap: var(--gap); max-width: var(--measure); }
+	.color-slider  { display: flex; align-items: center; gap: 0.6em; flex: 1 1 14em; min-width: 0; }
+	.color-slider-name  { flex: none; font-weight: 700; }
+	.color-slider input { flex: 1 1 auto; min-width: 0; }
+	.color-slider-value { flex: none; font-family: var(--mono); font-size: 0.85em; min-width: 3.5em; }
+
+	/* The swatch and the five ground rows are ONE box — the accent as a ground on top,
+	   the accent as text underneath — so the tile asks one question, not two. */
+	.color-accent-swatch {
+		border: 1px solid var(--line); border-block-end: none;
+		border-radius: var(--radius) var(--radius) 0 0; overflow: hidden;
+	}
+	.color-accent-rows {
+		border: 1px solid var(--line); border-block-start: none;
+		border-radius: 0 0 var(--radius) var(--radius); overflow: hidden;
+	}
+}

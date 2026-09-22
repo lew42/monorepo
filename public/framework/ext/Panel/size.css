@@ -125,7 +125,7 @@
 	   cannot be mistaken for each other. */
 	.panel-props-set.panel-self .panel-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
-	/* A seat is the third picture a `.panel-btn` can hold, and toolbar.css's own
+	/* A seat is the third picture a `.panel-btn` can hold, and controls.css's own
 	   "a button holding a picture is a square" rule now names it directly
 	   (`:has(> .icon, > .panel-swatch, > .panel-seat)`) — so the scoped duplicate that
 	   used to live here is gone, and the rule is stated once. */

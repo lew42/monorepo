@@ -1,0 +1,18 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>compose test harness — not a real page, never linked</title></head>
+<body>
+<pre id="out">running…</pre>
+<script type="module">
+	import { append, stamp } from "/framework/ext/Ask/reply.js";
+
+	const $out = document.getElementById("out");
+	const url = "framework/ai/2026-09-19/devbar-chat/test/scratch-task.jsonl";
+	const msg = "test message from the compose-test harness — never a real owner prompt";
+
+	const ok = await append(url, [{ chat: { at: stamp(), from: "owner", via: "devbar", msg } }]);
+	const text = await fetch("/" + url).then(r => r.text()).catch(() => "(fetch failed)");
+	$out.textContent = JSON.stringify({ ok, fileTail: text.trim().split("\n").slice(-1)[0] }, null, 2);
+</script>
+</body>
+</html>

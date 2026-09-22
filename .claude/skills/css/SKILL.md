@@ -12,7 +12,8 @@ what applies: the module's own `.css`; the **container's** css when the thing li
 (`core/Page/Page.css` for anything in a page — tracks, previews; the parent component's for
 a card in a rail or a panel); the theme (`styles/layers/theme/lew42/lew42.css`) only when
 colour or type is in play — and a bare `<button>` IS in play with neither written: the theme
-styles every `button, .btn` from `.theme-lew42 :is(button, .btn)` in lew42.css — INSIDE `@layer theme` at (0,2,0), so it wins on specificity and load order, not on layer (corrected 2026-09-04; a component rule at (0,1,0) in the same layer loses) (CTA padding, uppercase, bold), beating any
+styles every `button, .btn` from `.theme-lew42 :is(button, .btn)` in lew42.css — INSIDE `@layer theme` at (0,2,0), so it wins on specificity and load order, not on layer (corrected 2026-09-04; a component rule at (0,1,0) in the same layer loses) (CTA padding, uppercase, bold) — and HEADINGS the same way, `.theme-lew42 :is(h1, .h1)` at (0,2,0), so a single-class `font-size` on an h1/h2/h3 loses whatever the load order (two rules rendered at the skin's size until prefixed, 2026-09-17) —
+beating any
 component `@layer theme` rule by layer order alone — a tree toggle glyph silently got 33px of
 padding (2026-08-19; the fix was a clickable span, not a fight). Most CSS doesn't interact —
 parent layout and theme trickle are where it does.
@@ -26,10 +27,14 @@ COLUMN — the hero measured a few px wide and set its own title one character p
 overflow flag (2026-09-05). Before making any box content-sized — and before reusing another
 module's box inside a container of yours — read back BOTH its `container-type` and whether your
 container stretches it.
+⚠ The other half: a `@container` rule whose subject IS the box that declares the container never
+fires — a box cannot restyle its own container — and nothing throws; a three-card wall stayed at ONE
+column at every width, 3440 included (2026-09-17, the third time this year). Query a DESCENDANT.
 ⚠ A class that does not exist paints nothing and throws nothing — verify a word by reading its rule in framework.css AND reading a computed style back, never by inference from a token: `--tint` is a real token with no `.tint` class, and `div.c("pad flex v gap tint")` shipped on eight layouts looking plausible until a probe read `rgba(0,0,0,0)` on every box.
 
 **2. Climb the ladder, stop at the first rung that works:**
 nothing → a utility class → one of the five layout words (`.page .rail .wall .stage .solo` — `styles/doc/layout-system.md`) → an existing component's class → the module's own `.css`
+⚠ A CONTRACT class can hide the box you built, and nothing throws: `.page` without `default` (or a route) is `display: none` by `@layer util`'s arrangement contract at the top of `core/Page/Page.css` — a columns demo built from core's own classes measured 0×0 and its readout said 0px for both halves of an A/B test, so the failure looked exactly like success (2026-09-17). Read the component's own CSS before wearing its class.
 (layout only: where things sit, how they size) → `/styles.css` (skin, `@layer site`).
 **No inline styles** (`.style(…)`, `style=`) unless there is a good reason — a value only
 known at runtime (a token override like `--column`, a measured size). Static styling
@@ -44,13 +49,19 @@ once, in framework.css — never restate it, never invent a fifth name.
 **4. Constrain the container, not the items.** A child opts out by claiming a wider
 track. Prefer a token (`--gap`, `--column`, `--measure`) to a rule — a subtree
 re-declares it, no specificity war.
-⚠ A spacing clamp (`--pad` / `--gap` / `--flow`) is space BETWEEN and AROUND content
-— a row's gap, a page or card's padding, the rhythm between paragraphs — and never the size OF a
-control: a chip's, button's or nav item's padding, its height, and the gap between its own icon and
-label stay in the control's own `em`. `calc(var(--gap) * 1.3)` is not "1.3em, roomier at 3440":
+⚠ A spacing clamp (`--pad` / `--gap` / `--flow` / `--pad-card`) is space BETWEEN and AROUND
+content — a row's gap, the rhythm between paragraphs — and never the size OF a control: a chip's,
+button's or nav item's padding, its height, and the gap between its own icon and label stay in the
+control's own `em`. **The one-line rule for which spacing word: a page REGION takes `.pad`
+(scales with the page); a framed box takes `.card` (scales with itself, via its own `--pad-card`
+— `.card` already carries it, so nothing extra to write); a control or row keeps its own `em`
+(scales with its own text).** `--pad` sits pinned at its 1em floor under any containing block
+narrower than ~1292px, so a card that reached for `--pad` directly measured 14–18px at every
+width on the SAME word a full-page region ramped to 69.6px on (the padding audit, 2026-09-19,
+`/framework/ai/2026-09-19/card-word/`). `calc(var(--gap) * 1.3)` is not "1.3em, roomier at 3440":
 the clamp caps at 2.6em, so it is 3.38em there, and a homepage nav item stood 67.6px tall. A `vw`
 clamp on a control is the same mistake in different clothes (the paging toolbar, 130.7px of chrome at
-3440) (2026-09-06 — [the size standard](/imagine/design/size/)).
+3440) (2026-09-06 — [the size standard](/framework/styles/system/studies/size/)).
 ⚠ A flex row squeezed under its content width does not overflow first — default `flex-shrink`
 takes each item to min-content, and a multi-word label wraps to lower min-content further: six
 toolbar buttons went two-line before the row ever scrolled, silently (2026-08-19). The fix shape:

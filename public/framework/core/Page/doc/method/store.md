@@ -47,5 +47,20 @@ frame. Every call is wrapped: writes fall back to an in-memory `Map` and warn **
 session, so the page keeps working and only the persistence is lost. A UI that loses its
 buttons because a save failed is worse than one that forgets.
 
+**`id` for a caller that is not a page at all.** `core/Sidebar`'s own resizable rail is
+persistent chrome, not a per-page setting — every `Sidebar` on the site remembers one
+width, so keying it on a page's url would forget it on every navigation. `new
+Page.Store({ id: "sidebar" })` skips the page entirely and uses one fixed key,
+`lew42:sidebar` — the same key that file always wrote (merged 2026-09-18,
+`Sidebar.Store` deleted). `key()` tries `id` first, then falls back to the ordinary
+`store_key ?? page.url` path above.
+
+**`Page.Store.read_raw`/`write_raw`/`clear_raw`** (static) are the guarded
+`localStorage` touch underneath `read`/`set`/`clear` — pulled out 2026-09-18 so
+`ext/Saver`'s `LocalStorageSaver` could call the SAME guard for its own key instead of
+carrying a second copy. `LocalStorageSaver` stays its own class: it needs `write()` to
+report a real boolean (success or failure — `ext/Saver/doc/method/write.md`), which
+`Page.Store`'s own always-degrade-silently contract does not give it.
+
 The record, the three decisions and what was rejected:
 [`doc/decisions.md`](/framework/core/Page/doc/decisions/).

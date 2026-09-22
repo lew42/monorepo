@@ -1,38 +1,11 @@
-import { Page, View, md } from "/app.js";
+import { Page, md } from "/app.js";
 
-/* css: .design-shot — every child's own preview(nav) override on the design/ index. */
-View.stylesheet(import.meta, "design.css");
-
-/* Container: a plain column of /imagine/'s row — the hub calls columns(), so a second
-   call here would be inert (doc/columns.md, "shallowest ancestor" rule); removed rather
-   than left in as a call that does nothing (2026-09-04). Size: `full`, same word every
-   child already wears — an index this size in the ~40em default was the finding
-   (paging/critique's "design" row: 31% of 3440 used, a bare word list). Own layout:
-   `index: true` + previews() — the cards ARE the nav, core leaves its plain row list out.
-   Regions: none. Preview: each child's own (a real screenshot per study now, see readme.md) —
-   the tile wall itself was TRIED as a 3-column card (2026-09-05, doc/layout-alternative.md)
-   and reverted: it measured 4324px/5280px tall at 1280/3440, 5-6× this wall's 786px/734px,
-   for no width or invariant gain over a shape that already scores near-perfectly on both. */
-
-/**
- * The Design crawl — one overnight program (2026-09-01): a program visited every page on
- * the site and saved a screenshot of each. That whole picture library is **Journey**, the
- * first card below. Every other card studies those same screenshots to answer one design
- * question — padding, scale, layout, navigation, color, type, controls, themes — with real
- * examples pulled from the site, not opinions.
- */
 export default new Page({
 	meta: import.meta,
-	title: "Design",
-	description: "The design crawl — screenshots of the whole site, and one study per question: padding, scale, layout, navigation, color, type, controls, themes.",
-	icon: "palette",
-	width: "full",
-	index: true,
-
-	children: "journey padding scale layout navigation color type controls vocabulary system themes spacing size",
-
+	title: "Moved",
+	icon: "moving",
+	description: "This realm split across five places — the studies joined what they proved.",
 	content(){
-		md("A program visited every page on the site overnight and saved a picture of each — that whole collection is **Journey**, the first card below. Every other card studies those same screenshots to answer one design question, with real examples from the site. **Open any card** to see it.");
-		this.previews().style("--column", "20em");
+		md("**This realm moved.** Its thirteen studies (fourteen — `lists/` landed after the split) each joined the module they proved a rule for: nine plus `lists/` are now [Studies](/framework/styles/system/studies/) on the design system's own page, and four became a study inside their own module — [controls](/framework/ui/controls/study/), [layout](/layouts/doc/studies/), [navigation](/web/nav/doc/study/) and [journey](/framework/ext/DesignTool/journey/). Every old `/imagine/design/<name>/` address still answers, each with its own one-line pointer.");
 	},
 });

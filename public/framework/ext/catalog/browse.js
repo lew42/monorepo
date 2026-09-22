@@ -64,16 +64,24 @@ View.stylesheet(import.meta, "browse.css");
  *
  * The heading is the caller's: this returns the row, and a page that wants a title
  * puts one above it. Design record: readme.md.
+ *
+ * `rail: false` — a fourth, optional key in `options`, for a caller that already has
+ * its own filter UI (a sticky tier strip with live approved-counts, say — a search-
+ * and-facets rail would be a second, competing one). Skips the sticky rail entirely;
+ * the wall still renders byte for byte. Every band's own heading always carries
+ * `data-band="<group>"`, rail or none, so a caller with its own strip can scroll
+ * straight to one: `$browse.el.querySelector('[data-band="Global"]')`.
+ * (`/layouts/browse/`, 2026-09-18 — the first caller with its own strip.)
  */
 Page.prototype.browse = function(bands, tokens, options){
-	const opts = { facets: [], search: "", ...options };
+	const opts = { facets: [], search: "", rail: true, ...options };
 	const state = { group: "", text: "", shown: opts.cap ?? Infinity, facet: {} };
 	let $wall;
 
 	const redraw = () => $wall.empty(() => wall(this, bands, state, opts, redraw));
 
 	return div.c("browse flex gap wrap", () => {
-		rail(this, bands, state, opts, () => { state.shown = opts.cap ?? Infinity; redraw(); });
+		if (opts.rail) rail(this, bands, state, opts, () => { state.shown = opts.cap ?? Infinity; redraw(); });
 
 		$wall = div.c("browse-wall flex v gap", () => wall(this, bands, state, opts, redraw))
 			.style(tokens ?? {});
@@ -103,7 +111,7 @@ function wall(page, bands, state, opts, redraw){
 		   tracks, four of them empty. Measured at 3440: 2626px of grid for 1640px of
 		   cards. Out of the grid, the tracks collapse and the band fills its row. */
 		div.c("browse-band flex v gap", () => {
-			h4.c("page-previews-group", group);
+			h4.c("page-previews-group", group).attr("data-band", group);
 			div.c("page-previews", () => shown.forEach(({ page: child, nav }) => child.preview(nav)))
 				.style("--gap", "1em");
 		}).style("--gap", "0.5em");

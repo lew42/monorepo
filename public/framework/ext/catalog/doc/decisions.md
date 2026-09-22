@@ -485,3 +485,53 @@ Full reasoning for each: [`decisions.md`](./decisions.md).
   `scrollHeight` of 9029 on a real day page). Needs the same routed/unrouted
   split its desktop board-mode rule already has. Full account:
   [`decisions.md`](./decisions.md).
+
+## A short band's cards now cap at `28em` (2026-09-18, `stage-cap`)
+
+The site study (`ai/2026-09-18/site-study/`) measured the whole site at 3440
+looking for the owner's "a thing that should be 1000px spreads to 3000"
+complaint, and found one real, live instance of it: `browse()`'s own band
+grid. The "Band sizes are load-bearing" section above already named the risk
+in words — a short band's cards stretch to fill the row — but nothing capped
+it. This is the fix.
+
+**The number.** A real, click-reachable short band was the proof, not a
+guess: on `/framework/core/Layout/`, clicking the Tags facet's `landing`
+value leaves exactly 2 cards in the "One column" band (only two of the
+thirty layouts carry that tag) — headless-measured at **1347px per card at
+3440**, before this fix. That is not a hypothetical "band of three"; it is
+what a real reader reaches by clicking one filter.
+
+**The fix, and the trap in the obvious version of it.**
+
+| option | weighing |
+|---|---|
+| `minmax(MIN, min(28em, 1fr))` — cap the TRACK, the shape `wall()`'s own `minmax(min(var(--column,…), 100%), …)` already uses, just mirrored onto the maximum | ✗ — **invalid CSS.** `fr` cannot appear inside a generic `min()`/`max()`/`clamp()`, only bare inside `minmax()` itself. The browser drops the whole `grid-template-columns` declaration as invalid and falls back to its initial value (`none` — one implicit column spanning the full row). Measured live: every band's cards jumped to 100% of the wall's width, worse than the bug this was meant to fix. |
+| `minmax(MIN, 28em)` — cap the track with a plain length, no `fr` | ✗ — valid CSS, but changes what decides `auto-fit`'s repeat count. The file's own comment three paragraphs up already named this exact trade (`minmax(18em, 26em)` measured **one** column at 1280 where `1fr` measures two): a plain-length maximum is what the repeat count is computed from, not the minimum. Measured: at 1280 this would have taken `/framework/core/Page/`'s 6-card "Building blocks" band from 6 across to 1 column, stacked — a real regression, and exactly the kind the brief's 1280 check exists to catch. |
+| **cap the CARD's rendered width, leave the track's `1fr` alone** | ✓ — `.browse-band > .page-previews > .page-preview { max-width: 28em }`. The grid's own `repeat(auto-fit, minmax(…, 1fr))` is untouched, so `auto-fit`'s repeat-count math still keys off the minimum exactly as before — 1280 column counts are provably unchanged (measured byte-identical, every band, before and after). The card simply stops stretching past 28em inside its own track, leaving the rest of the track as gutter — same visual outcome as capping the track, reached without touching the part of the rule that decides how many columns exist. |
+
+**28em, not a rounder number.** It resolves against the site's fluid body
+font-size (`framework.css`'s clamp on `body`, not `html` — `document.body`'s
+computed `font-size`, confirmed live): **~421px at 1280**, **504px at 3440**
+(the clamp's own ceiling, `1.125rem` = 18px, is reached before 3440 and holds
+flat from there). `28em` was the number named in the finding at hand-off
+(`ai/2026-09-18/site-study/task.jsonl`'s `decision` line); nothing here found
+a reason to move it — the fix's shape mattered far more than the exact number,
+and 500-ish px is in the range the owner's own complaint named ("maximum
+1000 pixels" as the thing that should NOT be exceeded, for what is usually a
+narrower card than a band's is).
+
+**What this does not change.** The band's own OUTER width (`.browse-band`)
+is still uncapped — the alternative on the table, capping the band instead of
+the card, stays a per-caller opt-in rather than the default: it only wins
+when a band is guaranteed to fill a near-complete row (the leftover becomes
+one margin instead of N slightly-too-wide cards), and wastes width on a band
+that is genuinely short, which is the common case a facet filter produces.
+Nothing on the site opts into it today.
+
+**Verified**, headless, private server, zero console errors throughout:
+`/framework/ui/`, `/framework/core/Page/` and `/framework/core/Layout/`
+(filtered to `landing`) at 1280 and 3440 — every 1280 measurement is
+byte-identical before and after (no band, filtered or not, got narrower);
+the one band that actually exceeded 28em at 3440 dropped from 1347px to
+504px per card. Full numbers: `ai/2026-09-18/stage-cap/task.jsonl`.

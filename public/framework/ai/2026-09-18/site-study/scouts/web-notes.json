@@ -1,0 +1,58 @@
+[
+  {
+    "url": "/web/",
+    "name": "Web",
+    "what": "The guide tier showing how to build things on the web, live — nine navigation patterns and seven layout principles, each one clickable and testable.",
+    "parts": ["navigation patterns", "layout principles", "live demos", "catalog rail", "code pane"],
+    "features": ["click into live navigation patterns", "test layout principles at four widths", "drag stage to resize", "view source code", "compare pattern implementations"],
+    "demos": [{"url": "/web/nav/", "shows": "nine clickable navigation patterns plus two studies", "covers": 90}, {"url": "/web/layout/", "shows": "seven layout principles with live toolbars", "covers": 85}],
+    "coverage": 88,
+    "gaps": ["does not show how patterns break at extreme widths", "no side-by-side pattern comparison"],
+    "blurb": "Live guide to web patterns and layout principles.",
+    "clarity": 5,
+    "stage": {"kind": "wide", "cap": null, "should_cap": "no visible spreading at 3440"},
+    "reads": ["public/web/readme.md", "public/web/page.js", "public/web/nav/page.js (20 lines)", "public/web/layout/page.js (20 lines)"]
+  },
+  {
+    "url": "/websites/",
+    "name": "Websites",
+    "what": "Real websites photographed at four widths and tagged by the layout they use — a corpus of tagged sites with screenshots and live viewers.",
+    "parts": ["screenshot strip", "filter tags", "site cards", "individual site pages", "layout pattern analysis"],
+    "features": ["filter sites by tag", "view screenshots at four widths", "load live site in iframe", "click tag to see similar layouts", "analyze layout patterns"],
+    "demos": [{"url": "/websites/", "shows": "47 real sites with four-width strips and tags", "covers": 80}],
+    "coverage": 75,
+    "gaps": ["does not show how a site's layout fails at other widths", "patterns not explicitly named on each site card", "section layout pages need manual discovery"],
+    "blurb": "Real sites tagged by layout, shown at four widths.",
+    "clarity": 4,
+    "stage": {"kind": "wide", "cap": null, "should_cap": "strip scrolls but fits content at 3440"},
+    "reads": ["public/websites/readme.md", "public/websites/page.js", "public/websites/Site.css (50 lines)", "public/websites/doc/"]
+  },
+  {
+    "url": "/notes/",
+    "name": "Notes",
+    "what": "Working notes for the team and photographed notebook pages with transcriptions and links to what they turned into on the site.",
+    "parts": ["photographed notebook spreads", "written team notes", "photo cards", "transcribed notes", "cross-links"],
+    "features": ["view notebook pages as photos", "read transcribed notes", "click link to related page", "sticky photo on wide screens", "grid layout of cards"],
+    "demos": [{"url": "/notes/", "shows": "70 notes with photos and transcriptions", "covers": 100}],
+    "coverage": 100,
+    "gaps": [],
+    "blurb": "Photographed notebook pages, transcribed and linked.",
+    "clarity": 4,
+    "stage": {"kind": "bleed", "cap": null, "should_cap": "no spreading past 1600px photo width"},
+    "reads": ["public/notes/readme.md", "public/notes/page.js", "public/notes/note.js", "public/notes/notes.css"]
+  },
+  {
+    "url": "/blog/",
+    "name": "Blog",
+    "what": "A magazine front and blog with articles in framework, systems, and AI sections — real reading layouts with exhibits and a magazine-style index above the fold.",
+    "parts": ["featured post hero", "post wall cards", "topics rail", "reading page layout", "section navigation"],
+    "features": ["read posts in reading layout", "filter by section", "view featured posts first", "subscribe to Atom feed", "sticky image on wide screens"],
+    "demos": [{"url": "/blog/", "shows": "magazine front with featured post and wall of cards", "covers": 50}],
+    "coverage": 50,
+    "gaps": ["does not show full post reading experience on front", "exhibit column behavior not visible in front", "parts of multi-part posts not shown"],
+    "blurb": "Magazine front and blog with reading-width layout.",
+    "clarity": 5,
+    "stage": {"kind": "column", "cap": null, "should_cap": "sidebar stays 19em, magazine fits measure"},
+    "reads": ["public/blog/readme.md", "public/blog/page.js", "public/blog/Post.js", "public/blog/posts.js", "public/blog/doc/front.md (30 lines)", "public/blog/doc/structure.md", "public/blog/blog.css"]
+  }
+]

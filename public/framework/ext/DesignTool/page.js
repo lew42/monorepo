@@ -8,7 +8,7 @@ export default new Doc({
 	title: "DesignTool",
 	description: "Measures a layout and scores it. Ratios, not eyeballs — and no AI at runtime.",
 	icon: "straighten",
-	children: "library taste tests audit knowledge widths vision diff",
+	children: "library taste tests audit knowledge widths vision diff journey",
 
 	notes: "cost addressing decisions",
 	files: "DesignTool.css DesignTool.js address.js audit/findings.json audit/page.js audit/pages.js audit/twin.js "
@@ -19,7 +19,8 @@ export default new Doc({
 		+ "knowledge/widescreen.md library/bad/page.js library/bad/traps.js library/entry.js library/page.js "
 		+ "library/patterns.js live.js mirror.js page.js polish.js probe.js ratios.js "
 		+ "readme.md report.js rules.js score.js sweep.js tests/cases.js tests/page.js vision.js "
-		+ "widths/page.js widths/readme.md widths/urls.js",
+		+ "widths/page.js widths/readme.md widths/urls.js "
+		+ "journey/page.js journey/journey-data.js journey/journey.css",
 
 	content(){
 		code.js(`import { analyze } from "/framework/ext/DesignTool/DesignTool.js";
@@ -45,6 +46,8 @@ analyze(document.querySelector(".page.active-page"));   // → a report`);
 			+ "ranges with weights, and it is the only tier here that scores, because two clean layouts "
 			+ "both fire nothing and nothing that has "
 			+ "[the layout space](/framework/styles/layouts/space/hunt/) search instead of sample.");
+
+		md("One card below is not a tool: **[Journey](journey/)** is the raw material every score here reads — one overnight crawl, a screenshot of every page on the site. Moved here 2026-09-18 from `/imagine/design/journey/` (`ai/2026-09-18/imagine-move-2/`); the old address still answers.");
 
 		/* ⚠ The wall goes HERE, not at the foot. It used to sit below the live
 		 * report and two screens of prose, which is the same as not existing —

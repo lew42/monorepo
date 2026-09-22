@@ -15,6 +15,13 @@ export default new Paging({
 	description: "One child fills the screen; everything behind it collapses into the trail above.",
 	icon: "open_in_full",
 
+	/* ⚠ ONE DROPDOWN, NOT SEVEN. A mechanism IS a value of the `navigation` word, so
+	     that is the only control this page's bar carries; the other six words are
+	     behind its `More` button, which says how many are in there. `toolbar.js`
+	     `shows()`, and the owner's line on 2026-09-17: *"the number of controls in
+	     the toolbar became way too many."* */
+	bar_axes: ["navigation"],
+
 	content(){
 		this.stage({ navigation: "takeover", content: "article", room: "full", arrangement: "plain", surface: "dark", background: "dark", type: "display" });
 

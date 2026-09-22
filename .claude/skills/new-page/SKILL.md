@@ -15,13 +15,17 @@ description: Run every time you create a page.js — the blessed shape, the pare
        title: "Text",
        description: "One sentence — the card's subtitle everywhere it is previewed.",
        children: "intro guide",     // names in nav order; auto-imported
-       content(){ p("Body."); },
+       content(){ p("Body."); },    // p/div/img are FUNCTIONS, not Views — call them bare
+                                     // or with .c("cls"); img.attr(...) throws, nothing renders
    });
    ```
    A module index is `new Doc({ … })` instead (`documentation` skill). Never name a page
    method `render()` — it collides with core; `draw()`, `report()` are free.
 3. **Add its name to the parent's `children:`.** Nothing crawls; an unlinked page does not
-   exist. ⚠ A name declared in `children:` whose dir has no `page.js` and no `.md` 404s
+   exist. ⚠ `children:` makes it ROUTABLE, not linked: a parent whose `content()` draws its own
+   thing instead of calling `previews()` shows zero links to the new child (`/layouts/` → `browse`,
+   0 anchors at 1920, 2026-09-17) — add one visible line there too, and check by counting
+   `a[href='<child url>']` on the PARENT, never by loading the child's own url. ⚠ A name declared in `children:` whose dir has no `page.js` and no `.md` 404s
    the whole probe — declare only what exists. Backed only by a `.md`, it still renders
    (core's probe tries `page.js` first, `.md` last) but logs a console 404 for the
    missing `page.js` on every page in that subtree — declare the note as a config that

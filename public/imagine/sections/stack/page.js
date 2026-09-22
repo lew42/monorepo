@@ -41,7 +41,6 @@ export default new Page({
 			// ── the lead: what this is, and the one control above a stack ──
 			new SectionsBand({
 				cols: 3, dist: "rail-main-aside", frame: "flush", chrome: "tint", face: "card", stick: "on",
-				axes: ["frame", "chrome"],
 
 				head: () => {
 					span.c("sections-tile-name", "Twelve page shapes, one section each");
@@ -50,12 +49,12 @@ export default new Page({
 
 				side: () => {
 					p.c("sections-text", "A list of related things reads best as one section repeated: the same three columns, in the same order, every time. Your eye learns the shape once, and after that it only has to read what changed.");
-					p.c("sections-text", "Press a word in the last column to change how much room there is between them. With no gap the twelve read as one continuous page; with the gap ramp they read as twelve separate things.");
+					p.c("sections-text", "Press a word on the right to change how much room there is between them. With no gap the twelve read as one continuous page; with the gap ramp they read as twelve separate things.");
 				},
 
 				main: () => {
 					heading("Each one below");
-					p.c("sections-text", "On the left, the shape's name and where it sits in the list. In the middle, what it is and the seven words it is made of. On the right, the way in.");
+					p.c("sections-text", "On the left, the shape's name and the one line that says what it is. In the middle, the seven words it is made of. On the right, the way in.");
 					p.c("sections-note", "The frame's colour walks the five surfaces down the list and every third section is a card, so the repetition never becomes a drone.");
 				},
 

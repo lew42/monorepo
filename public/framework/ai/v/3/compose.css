@@ -1,0 +1,22 @@
+/* compose.js's own look — small enough to load from anywhere composer() is
+   called (the dev bar's mastermind log, the V3 Now view), so it is its OWN
+   stylesheet rather than living inside v3.css, which only the V3 page loads
+   and the dev bar (present on every page of the whole site) cannot assume.
+   `composer()` uses the framework's own utility classes (`flex v-center
+   gap`, `muted`) for everything a bare button/textarea/small do not already
+   get from the theme — only what is left needs a rule of its own here. */
+@layer theme {
+
+	/* `flex: 0 0 auto` — composer() is always the LAST thing in a scrolling
+	   flex column (the mastermind log's own cards above it, or the Now
+	   view's stack of answers), and without it the box would shrink to fit
+	   whatever room is left instead of keeping its own height (`code`#7's
+	   own note, the same bug this file's neighbours hit twice already). */
+	.v3-compose { flex: 0 0 auto; padding-block-start: 0.5em; border-block-start: 1px solid var(--line); }
+	.v3-compose-input {
+		flex: 1 1 auto; min-width: 0; resize: vertical;
+		padding: 0.4em 0.5em; font: inherit; color: inherit;
+		background: var(--surface, var(--paper, #fff));
+		border: 1px solid var(--line); border-radius: var(--radius, 0.35em);
+	}
+}

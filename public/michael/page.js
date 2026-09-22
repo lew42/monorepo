@@ -27,7 +27,7 @@ export default new Page({
 		return this.view ??= div.c("page topic flex fill", () => {
 			new Sidebar({
 				header: () => this.app.brand("Michael", "/michael/"),
-				pages: [...this.children.keys()].map(name => this.nav_for(name)),
+				root: this,
 			});
 
 			this.$pages = div.c("pages", () => {

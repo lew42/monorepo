@@ -1,4 +1,4 @@
-import { View, div, span, p, a, h3, icon } from "/app.js";
+import { View, div, span, p, a, icon } from "/app.js";
 /* The five surface words are CORE's — `core/Page/words.js`, the site's one copy —
    and this realm reads them straight from there rather than through the paging lab,
    which only re-exports them. (2026-09-06, slice 3.) */
@@ -505,16 +505,6 @@ export const lines = (n, word = "This is the middle column. It is the part of a 
 };
 
 export const heading = text => h3.c("sections-title", text);
-
-/* A LIST, long enough to make a section taller than the screen — and the realistic
-   version of that, rather than a box with a forced height and nothing in it. A row of
-   one list may span its box (the spacing decision, U3). */
-export const rows = (n, label = "Row") => div.c("sections-rows", () => {
-	for (let i = 1; i <= n; i++) div.c("sections-row", () => {
-		span.c("sections-row-name", label + " " + i);
-		span.c("sections-note", "One line of a list, and there are " + n + " of them.");
-	});
-});
 
 export const tiles = (n, label = "Tile") => div.c("sections-tiles", () => {
 	for (let i = 1; i <= n; i++) div.c("sections-tile", () => { span.c("sections-tile-name", label + " " + i); });
