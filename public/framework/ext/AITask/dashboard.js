@@ -50,6 +50,23 @@ const kids_of = day => (day.children ?? []).filter(kid => kid.type === "dir");
    never on a click from an already-warm day page. */
 const day_cache = new Map();
 
+/* A NEW TASK DIR USED TO RELOAD THIS PAGE, and that was 203 of the 215 reloads an
+   /framework/ai/ tab took on 2026-09-22 — every file any agent created anywhere
+   under public/ rebuilds directory.json, this board fetched it, and a fetched path
+   counted as stale. It is DATA: the dev socket now says `data` instead of reloading
+   (dev/Socket/Socket.js), and these boards re-read the manifest in place.
+
+   ⚠ Silent off localhost, where there is no socket at all — `?.` the whole way.
+   ⚠ `$v.el.isConnected` because nothing unsubscribes: a board the reader has
+     navigated away from must not redraw, and must not keep the old rows alive. */
+function on_directory(page, $v, reread){
+	page?.app?.socket?.on("data", path => {
+		if (!path.endsWith("/directory.json") || !$v.el.isConnected) return;
+		day_cache.clear();
+		reread();
+	});
+}
+
 export function warm(date){
 	if (!day_cache.has(date)){
 		const entry = { value: undefined };
@@ -194,6 +211,9 @@ export function dashboard(page){
 		const redraw = () => rows && $d.empty(() => groups(rows));
 		rows = await tasks(page, redraw);
 		$d.append(() => groups(rows));
+
+		// A task dir appearing re-reads the manifest here instead of reloading the tab.
+		on_directory(page, $d, async () => { rows = await tasks(page, redraw); redraw(); });
 	});
 
 	timeline(date);   // after the board, fetched once — see its own note
@@ -239,8 +259,9 @@ export function active_strip(list){
  */
 export function rail(page){
 	return div.c("ai-index-rail flow", async $r => {
-		const [usage, list] = await Promise.all([json("/framework/ai/usage.json"), all_tasks()]);
-		$r.append(() => {
+		let [usage, list] = await Promise.all([json("/framework/ai/usage.json"), all_tasks()]);
+
+		const draw = () => $r.empty(() => {
 			// ⚠ ABOVE what is running. A bot can do almost everything here; the few
 			//   things it cannot — a login, a paid account, a deploy — stop a whole
 			//   thread until the owner spends five minutes on them, so they lead the
@@ -253,11 +274,17 @@ export function rail(page){
 				span.c("muted", "Every task of every day, newest first — ");
 				a.c("ai-link", "the whole log").href("/framework/ai/log/");
 			});
+
+			// ⚠ These cards were built after catalog's mark pass, so they missed it —
+			// on a cold deep link nothing in the rail would be lit. Inside draw(), so a
+			// redraw relights the cards it just rebuilt.
+			page?.app?.router?.mark_links();
 		});
 
-		// ⚠ These cards were built after catalog's mark pass, so they missed it —
-		// on a cold deep link nothing in the rail would be lit.
-		page?.app?.router?.mark_links();
+		draw();
+
+		// A task dir appearing re-reads the manifest here instead of reloading the tab.
+		on_directory(page, $r, async () => { list = await all_tasks(); draw(); });
 	});
 }
 

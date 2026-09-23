@@ -1,4 +1,4 @@
-import { Page, md, div, p, span, b } from "/app.js";
+import { Page, md, div, p, span, b, details, summary } from "/app.js";
 
 /* ── layout, answered before the first factory call ───────────────────────────
    1 CONTAINER  a task page on /framework/ai/2026-09-19/'s board — the page grid.
@@ -71,7 +71,13 @@ export default new Page({
 		md("## The changes, ranked by outages prevented per line\n\n| | the change | cost | prevents |\n| --- | --- | --- | --- |\n" +
 			RANKED.map((r, i) => "| " + (i + 1) + " | " + r[1] + " | " + r[2] + " | " + r[3] + " |").join("\n")).ac("wide");
 
-		md("### Applied now (fail-safe)\n\n" +
+		/* ⚠ Presentation pass, 2026-09-22: 3,210px at 1280, four screens of prose.
+		   Nothing deleted — the two closing sections moved behind folds so the
+		   finding, the four findings cards and the ranked table read as one
+		   screen. */
+		details(() => {
+			summary("What was applied, what the owner and mastermind still owe, and what would NOT change");
+			md("### Applied now (fail-safe)\n\n" +
 			"- **minion/SKILL.md** — one line in the Never list: a `Server/` save restarts every supervised server watching this tree, and a file that parses can still fail to boot.\n" +
 			"- **mastermind/improvements.md** — two notes: an enumerated proof list in a brief is read as complete, so anything whose job is *recovery* must be briefed with the broken state it recovers from; and a warning that rides the failing system is not a warning.\n\n" +
 			"### For the owner and the mastermind\n\n" +
@@ -82,6 +88,7 @@ export default new Page({
 			"- **The briefs' wording.** reload-hold's brief said the right thing in the right place and the outage happened anyway; more emphasis would not have helped.\n" +
 			"- **The syntax guard.** It did its job — the file it was asked about parsed. It is not, and should not become, a boot test.\n" +
 			"- **The supervisor itself.** It is the right idea: the owner has been asked to restart by hand three times this week. It needs a boot test and a watchdog, not a retreat.");
+		}).ac("wide");
 
 		p.c("muted", "Evidence, timestamps and the four decision lines with their alternatives: this task's log. Written by the auditor skill, its second run.");
 	},

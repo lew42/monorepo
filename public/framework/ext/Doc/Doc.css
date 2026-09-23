@@ -23,10 +23,19 @@
 	     so `.tabs.block > .tab-bar` is unaffected. */
 	.page.doc-page > .tabs { display: contents; }
 
+	/* ⚠ The `0.8em` inline-end is load-bearing below the wrap (padding-law,
+	   2026-09-22). This was `0` on the right, which is invisible at desktop widths
+	   because `.tab-bar` sits flush beside the well painting the identical `--well`
+	   fill — one band in two boxes, no seam. At 400 the bar wraps to its own line,
+	   the well shrink-wraps to the title, and the module name's last letter sat on
+	   the tint's right edge on all 39 Doc pages. A gutter-wide inset here would
+	   push the tab strip a whole gutter right at every width; `0.8em` is the
+	   smallest thing that is unmistakably padding and moves the strip by nothing
+	   a reader would notice. */
 	.doc-well {
 		background: var(--well);
 		display: flex; align-items: center;
-		padding: 1.5em 0 0.5em var(--gutter-x);
+		padding: 1.5em 0.8em 0.5em var(--gutter-x);
 	}
 	.doc-title { margin: 0; }
 

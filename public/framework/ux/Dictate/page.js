@@ -30,7 +30,7 @@ export default new Doc({
 	icon: "mic",
 
 	files: "Dictate.js capture.js pcm-worklet.js Dictate.css page.js readme.md",
-	notes: "decisions",
+	notes: "decisions silence",
 
 	children: [
 		demo.page("words", words, {

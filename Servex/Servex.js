@@ -1,0 +1,543 @@
+import fs from "fs";
+import path from "path";
+import express from "express";
+import { fileURLToPath } from "url";
+import Server from "../Server/Server.js";
+import Events from "../Server/Events.js";
+import Log from "./Log.js";
+import MCP, { loopback } from "./MCP.js";
+import PortRegistry from "./PortRegistry.js";
+import Process from "./Process.js";
+import Project from "./Project.js";
+import ReverseProxy from "./ReverseProxy.js";
+import Stream from "./Stream.js";
+import { Agents } from "./agents/Agents.js";
+import Assistant from "./agents/Assistant.js";
+import Dispatcher from "./agents/Dispatcher.js";
+import agent_tools from "./agents/tools.js";
+
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const SKIP = new Set(["node_modules", "dist", "build", "coverage"]);
+
+const INSTRUCTIONS = `Servex is the always-on process on this machine. It supervises dev servers`
+    + ` (and whisper-server), owns every log file as the single writer, and answers here.`
+    + ` Claude sessions do NOT start dev servers themselves — call start_server / restart_server /`
+    + ` stop_server and read server_logs. A project is any directory under the scan root with a`
+    + ` package.json; each one keeps a fixed port forever and is reachable through the proxy at`
+    + ` <name>.localhost:<proxy port>, which auto-starts it on the first request. append_log writes`
+    + ` one JSON line into a named log through Servex, so two writers can never tear a line.`;
+
+/* SERVEX — the one process that stays up.
+ *
+ * Five parts, all in one process because there is nothing to gain from more:
+ *
+ *   dashboard  a Server (the same class every project here uses) serving
+ *              Servex/public/ on 127.0.0.1:8090, and carrying /mcp and the
+ *              /log routes on its router.
+ *   proxy      127.0.0.1:8080 — <name>.localhost:8080 reaches the project's
+ *              own port, and auto-starts it if it is not running.
+ *   ports      name -> port, remembered in %LOCALAPPDATA%/lew42/servex/ports.json.
+ *   processes  one supervised child per running server, plus whisper.
+ *   agents     every live Claude session, held in memory and steerable over MCP.
+ *
+ * Start it with `node Servex/index.js` from the repo root. Read
+ * Servex/readme.md first — it is one screen. */
+export default class Servex extends Events {
+
+    initialize(){
+        this.root ??= "C:/Code";
+        this.depth ??= 2;                 // C:/Code/<project> and C:/Code/<org>/<project>
+        this.dashboard_port ??= Number(process.env.SERVEX_PORT) || 8090;
+        this.proxy_port ??= Number(process.env.SERVEX_PROXY_PORT) || 8080;
+
+        this.projects = [];
+        this.processes = new Map();
+
+        this.log = new this.constructor.Log();
+        this.ports = new PortRegistry({ reserved: [80, this.dashboard_port, this.proxy_port] });
+        this.ports.pin("servex", this.dashboard_port);
+
+        this.dashboard = new this.constructor.Dashboard({ port: this.dashboard_port, servex: this });
+        this.mcp = new MCP({ router: this.dashboard.router, instructions: INSTRUCTIONS });
+
+        /* `guard()` has to be the FIRST thing registered on the router — Express
+         * walks a router's middleware/routes in REGISTRATION order, and a plain SSE
+         * handler (Stream's own `GET /api/stream`, below) never calls `next()`. The
+         * loopback check used to be registered in `initialize()`'s own call order,
+         * after this point, so a request for `/api/stream` matched the CORS route
+         * and then Stream's handler and finished before ever reaching it — the one
+         * route that answered a non-loopback caller (board-from-events, 2026-09-22).
+         * Calling it here, before anything else touches the router, closes that. */
+        this.guard();
+
+        /* CORS for the live event stream (board-from-events, 2026-09-22) — a browser
+         * tab on the site's own origin (the AI board) opens `EventSource("/api/
+         * stream")` cross-origin, same as `ux/Dictate`'s POST to `/log/:name` already
+         * does. Registered on the router BEFORE `Stream`'s own `GET /api/stream`
+         * handler below, on purpose: Express walks a router's middleware/routes in
+         * REGISTRATION order, and a plain SSE handler never calls `next()` — a CORS
+         * middleware added after it would simply never run for this path. This one
+         * only sets the header and falls through. */
+        this.dashboard.router.get("/api/stream", (req, res, next) => {
+            res.set("Access-Control-Allow-Origin", "*");
+            next();
+        });
+        this.stream = new Stream({ router: this.dashboard.router });
+
+        /* The prompt log goes out on that same wire (prompt-lifecycle,
+         * 2026-09-22): the owner speaks, the line lands, the fast assistant
+         * answers with three more lines, and an open board draws the whole
+         * thread without ever asking again. `Stream.follow()` says why it is a
+         * named list and not every log on the machine. */
+        this.stream.follow(this.log, ["prompts"]);
+
+        /* The Claude sessions live here, in this process, holding the same `Log`
+         * everything else writes through. That is the whole integration: a tool
+         * call arriving at /mcp reaches a session already running in memory.
+         *
+         * `mcp_url` is what makes an agent able to build a team of its own — every
+         * agent Servex spawns gets this same door in its own tool list, so it can
+         * call `spawn_agent` exactly as the session that spawned it did. */
+        this.agents = new this.constructor.Agents({
+            log: this.log, servex: this,
+            mcp_url: `http://127.0.0.1:${this.dashboard_port}/mcp`
+        });
+
+        /* THE FAST ASSISTANT — one Sonnet session, always up, whose only job is
+         * to turn each sentence the owner speaks into a name, a card and a
+         * refined reading within seconds. `install()` puts its tool on /mcp and
+         * its two routes on the dashboard; `start()` actually spawns it, which
+         * costs a few cents an hour of nothing and answers in about ten seconds
+         * when something is said. `SERVEX_NO_ASSISTANT=1` boots without it —
+         * that is the switch for a proof run, or for a machine nobody is
+         * dictating on. */
+        this.assistant = new this.constructor.Assistant({ servex: this }).install();
+        if (!process.env.SERVEX_NO_ASSISTANT) setImmediate(() => {
+            try { this.assistant.start(); }
+            catch (e){ this.say(`assistant did not start: ${e.message || e}`); }
+        });
+
+        /* THE DISPATCHER — watches the same `prompts` log for a `task` line
+         * the assistant appended (`state: "queued"`) and spawns a task
+         * mastermind to build it, at most two at once. No LLM of its own, so
+         * nothing here costs anything until a task actually queues. */
+        this.dispatcher = new this.constructor.Dispatcher({ servex: this }).install();
+
+        this.routes();
+        this.tools();
+
+        /* Servex is the first project in its own list — it eats its own cooking,
+         * and `servex.localhost:<proxy>` reaches this dashboard like any other.
+         * Listing itself FIRST also claims the name: C:/Code/servex is the old,
+         * retired repo, and letting the scan claim `servex` would point the name
+         * at a second copy trying to bind this very port. */
+        this.projects.push(new Project({ dir: HERE.split(path.sep).join("/"), name: "servex", port: this.dashboard_port, self: true }));
+        this.scan(this.root);
+
+        this.proxy = new ReverseProxy({
+            port: this.proxy_port,
+            ports: this.ports.ports,
+            dashboard: `http://127.0.0.1:${this.dashboard_port}/`,
+            missing: name => this.autostart(name)
+        });
+
+        this.whisper();
+        this.shutdown();
+
+        this.say(`Servex up — dashboard http://127.0.0.1:${this.dashboard_port}/ · proxy http://127.0.0.1:${this.proxy_port}/ · ${this.projects.length} projects under ${this.root}`);
+        console.log(`Servex dashboard  http://127.0.0.1:${this.dashboard_port}/`);
+        console.log(`Servex proxy      http://<name>.localhost:${this.proxy_port}/`);
+        console.log(`Servex mcp        http://127.0.0.1:${this.dashboard_port}/mcp`);
+    }
+
+    /* ── finding projects ─────────────────────────────────────────────── */
+
+    scan(dir, depth = this.depth){
+        let entries = [];
+        try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
+
+        for (const entry of entries){
+            if (!entry.isDirectory() || entry.name.startsWith(".") || SKIP.has(entry.name)) continue;
+            const child = path.join(dir, entry.name);
+
+            if (fs.existsSync(path.join(child, "package.json"))) this.add(child);
+            else if (depth > 1) this.scan(child, depth - 1);
+        }
+    }
+
+    /* First one wins: two directories can share a basename, and a stable name is
+     * worth more than completeness — the name is the URL. */
+    add(dir){
+        const project = new Project({ dir: dir.split(path.sep).join("/") });
+        if (this.projects.some(p => p.name === project.name)) return;
+
+        project.port = this.ports.port(project.name);
+        this.projects.push(project);
+        return project;
+    }
+
+    project(name){
+        return this.projects.find(p => p.name === name);
+    }
+
+    /* ── running them ─────────────────────────────────────────────────── */
+
+    /* The supervised child for a project, built the first time it is asked for.
+     * `NO_WHISPER=1` because Servex owns whisper now — a dev server started from
+     * here must not start a second one. (A dev server you start by hand still
+     * brings up its own, exactly as before: nothing was removed from
+     * Server/plugins/Whisper.js.) */
+    runner(name){
+        if (this.processes.has(name)) return this.processes.get(name);
+
+        const project = this.project(name);
+        if (project?.self || project?.external) return null;   // Servex does not start a second copy of itself, or of a project it did not spawn
+        const start = project?.start_command();
+        if (!start) return null;
+
+        const runner = new Process({
+            name, log: this.log, port: project.port, cwd: project.dir,
+            command: start.command, args: start.args, shell: start.shell,
+            env: { NO_WHISPER: "1", HOST: "127.0.0.1" }
+        });
+        this.processes.set(name, runner);
+        return runner;
+    }
+
+    async command(name, verb){
+        const runner = this.runner(name);
+        if (!runner) throw new Error(`No project called "${name}" that Servex knows how to start.`
+            + ` Startable: ${this.projects.filter(p => p.start_command()).map(p => p.name).join(", ")}`);
+
+        await runner[verb]();
+        return JSON.stringify({ ...runner.toJSON(), url: this.url(name) }, null, 2);
+    }
+
+    /* The proxy calls this when a project's port refuses a connection. It must
+     * answer synchronously — true means "a Starting… page is the right reply". */
+    autostart(name){
+        const runner = this.runner(name);
+        if (!runner) return false;
+        if (runner.status === "launching" || runner.status === "restarting") return true;
+        if (runner.status === "errored") return false;
+
+        runner.start();
+        return true;
+    }
+
+    url(name){
+        return `http://${name}.localhost:${this.proxy_port}/`;
+    }
+
+    list(){
+        return this.projects.map(p => ({
+            ...p.toJSON(),
+            url: this.url(p.name),
+            ...(p.self
+                ? { status: "online", pid: process.pid, said: "this dashboard" }
+                : this.processes.get(p.name)?.toJSON() ?? { status: "stopped", pid: null })
+        }));
+    }
+
+    /* Whisper is one of these too — same supervision, same log file, four boot
+     * cases in Process.Whisper. */
+    whisper(){
+        const home = process.env.WHISPER_HOME || path.join(process.env.LOCALAPPDATA || "", "lew42", "whisper");
+        const port = Number(process.env.WHISPER_PORT) || 8178;
+        const model = path.join(home, "models", "ggml-large-v3-turbo.bin");
+
+        const runner = new Process.Whisper({
+            name: "whisper", log: this.log, model, port,
+            command: path.join(home, "bin", "whisper-server.exe"),
+            args: ["-m", model, "--host", "127.0.0.1", "--port", String(port)]
+        });
+
+        this.processes.set("whisper", runner);
+        runner.start();
+        return runner;
+    }
+
+    /* ── the door ─────────────────────────────────────────────────────── */
+
+    /* Everything binds 127.0.0.1 already; this is the second lock on the same
+     * door, because these routes start processes and write files. */
+    guard(){
+        this.dashboard.router.use((req, res, next) => loopback(req.socket.remoteAddress)
+            ? next()
+            : res.status(403).json({ error: "Servex answers loopback only." }));
+    }
+
+    routes(){
+        const router = this.dashboard.router;
+
+        router.get("/api/projects", (req, res) => res.json(this.list()));
+
+        /* A worktree already runs its own server — this just teaches the proxy
+         * where it is. `external: true` stops `runner()` from ever trying to
+         * start a second copy on the port this one already holds. */
+        router.post("/api/projects", express.json({ limit: "1mb" }), (req, res) => {
+            const { name, path: dir, port } = req.body ?? {};
+            if (!name || !dir) return res.status(400).json({ error: "name and path are required" });
+            if (this.project(name)) return res.status(400).json({ error: `"${name}" is already registered` });
+
+            const project = new Project({ dir: String(dir).split(path.sep).join("/"), name, external: true });
+            project.port = port ? this.ports.pin(name, Number(port)) : this.ports.port(name);
+            this.projects.push(project);
+
+            this.say(`project registered: ${name} -> :${project.port}`, { event: "project", action: "register", name, port: project.port });
+            res.json(project.toJSON());
+        });
+
+        router.delete("/api/projects/:name", (req, res) => {
+            const project = this.project(req.params.name);
+            if (!project) return res.status(404).json({ error: `no project called "${req.params.name}"` });
+
+            this.projects = this.projects.filter(p => p !== project);
+            this.processes.delete(project.name);
+            delete this.ports.ports[project.name];
+            this.ports.save();
+
+            this.say(`project unregistered: ${project.name}`, { event: "project", action: "unregister", name: project.name });
+            res.json({ ok: true });
+        });
+
+        router.post("/api/projects/:name/:verb", async (req, res) => {
+            const { name, verb } = req.params;
+            if (!["start", "stop", "restart"].includes(verb)) return res.status(400).json({ error: "start, stop or restart" });
+            try { res.json(JSON.parse(await this.command(name, verb))); }
+            catch (e){ res.status(400).json({ error: String(e.message || e) }); }
+        });
+
+        /* THE ONLY WAY ANOTHER PROCESS WRITES A LOG. Nobody opens these files
+         * but Log.js — see its comment for why.
+         *
+         * A BROWSER TAB reads and writes here too, which is why these routes answer
+         * CORS: `ux/Dictate` posts every dictated sentence from the site's origin to
+         * this one, and a browser calls that cross-origin and sends a preflight
+         * `OPTIONS` first. With nothing answering the preflight the fetch never
+         * leaves the tab at all — measured 15:17 by the whisper-servex task, which
+         * saw `POST /log/prompts` succeed from curl and fail from a page, and fell
+         * back to the dev server. `GET /agents`, below, reuses this same middleware
+         * for the same reason, from the other direction: the AI board's Agents
+         * strip (board-from-events, 2026-09-22) reads it from the site's origin.
+         *
+         * `*` is safe here and nowhere else would it be: `guard()` has already
+         * refused every non-loopback caller two lines up the router, so `*` can
+         * only ever mean "any page on this machine". */
+        const cors = (req, res, next) => {
+            res.set({
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers": "content-type",
+                "Access-Control-Max-Age": "600"
+            });
+            next();
+        };
+
+        router.options("/log/:name", cors, (req, res) => res.status(204).end());
+
+        /* The naming rules live in `Log.append()` itself (see its own comment) —
+         * this route only turns its answer into the right HTTP status. `ok`
+         * covers both a plain write and one the appender rewrote (`became`);
+         * only an outright refusal answers 409. */
+        router.post("/log/:name", cors, express.json({ limit: "1mb" }), async (req, res) => {
+            try {
+                const outcome = await this.log.append(req.params.name, req.body ?? {});
+                res.status(outcome.ok ? 200 : 409).json(outcome);
+            } catch (e){ res.status(400).json({ error: String(e.message || e) }); }
+        });
+
+        router.get("/log/:name", cors, async (req, res) => {
+            try { res.json(await this.log.tail(req.params.name, Number(req.query.n) || 50)); }
+            catch (e){ res.status(400).json({ error: String(e.message || e) }); }
+        });
+
+        router.get("/api/logs", (req, res) => res.json(this.log.names()));
+
+        /* The dashboard's first paint. After this it hears about every change on
+         * the live stream (`GET /api/stream`) instead of asking again. */
+        router.get("/api/agents", (req, res) => res.json(this.agents.list()));
+
+        /* The registry — every agent ever spawned, surviving a Servex restart the
+         * `live` Map above does not. What `list_agents` and `say.mjs state`'s
+         * `MASTERMINDS` block read from outside this process — and, since
+         * board-from-events (2026-09-22), the AI board's own Agents strip, reading
+         * this cross-origin from the site, hence `cors` (the same star-origin
+         * middleware `/log/:name` already uses, safe for the same reason: `guard()`
+         * above has already refused every non-loopback caller). */
+        router.get("/agents", cors, (req, res) => res.json(this.agents.registry_list()));
+    }
+
+    tools(){
+        const name = { type: "string", description: "The project's name, as `list_servers` reports it." };
+        const one = { type: "object", required: ["name"], properties: { name } };
+
+        this.mcp
+            .tool("list_servers", { description: "Every project Servex found, with its port, its URL through the proxy, whether it is running, and the last line it printed." },
+                () => JSON.stringify(this.list(), null, 2))
+
+            .tool("start_server", { description: "Start a project's dev server under Servex, with its own PORT in the environment. Already running is not an error.", inputSchema: one },
+                a => this.command(a.name, "start"))
+
+            .tool("restart_server", { description: "Stop a project's dev server and start it again. Safe when it is already dead.", inputSchema: one },
+                a => this.command(a.name, "restart"))
+
+            .tool("stop_server", { description: "Stop a project's dev server and leave it stopped.", inputSchema: one },
+                a => this.command(a.name, "stop"))
+
+            .tool("server_logs", { description: "The last lines of a log, newest last. Any log name works, not just a server's — `list_servers` and the dashboard name the ones that exist.",
+                inputSchema: { type: "object", required: ["name"], properties: { name,
+                    n: { type: "number", description: "How many lines. Default 50." } } } },
+                async a => JSON.stringify(await this.log.tail(a.name, a.n || 50), null, 2))
+
+            .tool("append_log", { description: "Append one JSON entry to a named log, through Servex. Servex stamps `at` and is the only writer, so two callers can never tear a line.",
+                inputSchema: { type: "object", required: ["name", "entry"], properties: {
+                    name: { type: "string", description: "Which log. Letters, digits, dot, dash, underscore; it becomes a filename." },
+                    entry: { type: "object", description: "The entry. Any shape; `at` is added for you." } } } },
+                async a => JSON.stringify(await this.log.append(a.name, a.entry ?? {})));
+
+        /* And the agent host's five, through the very same seam — `spawn_agent`,
+         * `send_to_agent`, `interrupt_agent`, `list_agents`, `stop_agent`. Ten
+         * tools on one door; nothing about them is special-cased here. */
+        for (const tool of agent_tools(this.agents)) this.mcp.tool(tool);
+    }
+
+    say(msg, extra){
+        this.log.append("servex", { msg, ...extra }).catch(() => {});
+    }
+
+    /* Every child Servex started dies with it. `terminate()` is synchronous on
+     * purpose — `process.on("exit")` is the only hook Node guarantees, and it
+     * cannot await. A whisper-server that was ALREADY running when Servex
+     * started has no child here, so it is never touched. */
+    shutdown(){
+        const down = () => {
+            for (const agent of this.agents.live.values()) try { agent.stop(); } catch {}
+            for (const runner of this.processes.values()) runner.terminate();
+            this.log.close();
+        };
+        process.on("SIGINT", () => { down(); process.exit(0); });
+        process.on("SIGTERM", () => { down(); process.exit(0); });
+        process.on("exit", down);
+    }
+}
+
+/* SERVEX'S OWN DASHBOARD — the same Server class every project here runs, with
+ * the two things that are wrong for Servex overridden.
+ *
+ * Server serves `public/` relative to the working directory and falls back to
+ * its OWN package's index.html; run from the repo root that would serve the
+ * lew42 site, not Servex. Two static roots fix it: Servex/public first, then the
+ * monorepo's public/, so the dashboard page can `import` the real framework
+ * (`/framework/core/View/View.js`) instead of a copy of it.
+ *
+ * And it binds 127.0.0.1, not 0.0.0.0. */
+Servex.Dashboard = class Dashboard extends Server {
+
+    initialize_express(){
+        this.express = express;
+        this.app = express();
+        this.router = express.Router();
+
+        this.app.use(express.static(path.join(HERE, "public"), { redirect: false }));
+        this.app.use(express.static(path.join(HERE, "..", "public"), { redirect: false }));
+        this.app.use(this.router);
+
+        this.app.use((req, res) => {
+            if (/.+\.[a-zA-Z0-9]+$/.test(req.path)) return res.status(404).end();
+            res.sendFile(path.join(HERE, "public", "index.html"));
+        });
+    }
+
+    listen(port = this.port, host = "127.0.0.1"){
+        super.listen(port, host);
+    }
+};
+
+/* SERVEX'S AGENT HOST — `Servex/agents/Agents.js` with one method overridden.
+ *
+ * `watch()` is the host's own seam: every typed event from every live agent
+ * passes through it on its way to the log. Here it also goes out on the live
+ * stream, so the dashboard shows a token as the agent thinks it rather than
+ * a second and a half later. The agent's card rides along on every event, which
+ * is what lets one frame update the row (state, turns, cost) and its open
+ * transcript at the same time. */
+Servex.Agents = class ServexAgents extends Agents {
+
+    watch(event, agent){
+        this.servex.stream.send("agent", { ...event, card: agent.card() });
+    }
+};
+
+/* SERVEX'S SINGLE WRITER — `Log` with two things added that only a long-lived
+ * process can do (prompt-lifecycle, 2026-09-22).
+ *
+ * 1. IT ANNOUNCES. `append()` emits `("append", <log name>, <the line written>)`
+ *    the instant a line is actually on disk. That one seam is what the live
+ *    wire (`Stream.follow()`) and the fast assistant (`Assistant.listen()`) both
+ *    hang off, and neither of them has to poll a file or be wired in by hand.
+ *    Nothing is emitted for a refusal — a line that was not written did not
+ *    happen.
+ *
+ * 2. IT FINISHES A PROMPT. `ux/Dictate` posts `{type: "prompt", text}` and
+ *    nothing else: no id, no sentences. Both have to exist before anything can
+ *    point at that prompt, and both have to be decided ONCE, by the writer, and
+ *    frozen — an id so a rename never breaks a link, a sentence array so a
+ *    citation like "sentences 0 and 2" can never drift (log-model/events.md
+ *    argues that one out in full). `p-1`, `p-2`, … counting from whatever is
+ *    already in the file, so the ids a person reads on screen are the ones they
+ *    would count themselves.
+ *
+ * ⚠ This second job really belongs in `Log.js`, beside the naming checks that
+ * are already there for the same reason. It is here because the task that wrote
+ * it was fenced out of that file; move it down when `Log.js` is next open, and
+ * nothing above needs to change. */
+Servex.Log = class ServexLog extends Log {
+
+    initialize(){
+        super.initialize();
+        this.counts = new Map();
+    }
+
+    append(name, entry){
+        const line = entry?.type === "prompt" ? this.prompt(name, entry) : entry;
+        return super.append(name, line).then(out => {
+            if (out.ok) this.emit("append", name, out.entry);
+            return out;
+        });
+    }
+
+    prompt(name, entry){
+        const sentences = entry.sentences ?? this.sentences(entry.text ?? "");
+        return { ...entry, sentences, id: entry.id ?? `p-${this.count(name)}` };
+    }
+
+    /* Seeded from the file itself, once, so a Servex restart carries on counting
+     * instead of minting a `p-1` that already exists. */
+    count(name){
+        if (!this.counts.has(name)){
+            let text = "";
+            try { text = fs.readFileSync(this.file(name).path, "utf8"); } catch {}
+            this.counts.set(name, (text.match(/"type":"prompt"/g) ?? []).length);
+        }
+        const next = this.counts.get(name) + 1;
+        this.counts.set(name, next);
+        return next;
+    }
+
+    /* Deliberately blunt: a sentence ends at `.`, `?` or `!` followed by a
+     * space. Dictated speech has no other punctuation to go on, and a split that
+     * is occasionally coarse is far better than one that is clever, because
+     * whatever it decides is frozen on the line forever. */
+    sentences(text){
+        return String(text).split(/(?<=[.?!])\s+/).map(s => s.trim()).filter(Boolean);
+    }
+};
+
+Servex.Assistant = Assistant;
+Servex.Dispatcher = Dispatcher;
+Servex.MCP = MCP;
+Servex.PortRegistry = PortRegistry;
+Servex.Process = Process;
+Servex.Project = Project;
+Servex.ReverseProxy = ReverseProxy;
+Servex.Stream = Stream;

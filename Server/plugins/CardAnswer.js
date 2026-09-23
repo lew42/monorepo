@@ -54,6 +54,83 @@ export default class CardAnswer {
 	constructor(socket){
 		this.socket = socket;
 		socket.on("rpc:card_answer", (args, index) => this.card_answer(args[0] || {}, index));
+		socket.on("rpc:card_say", (args, index) => this.card_say(args[0] || {}, index));
+	}
+
+	/* card_say {id, say, note, quote} — the AI 2 inbox's one write (`public/framework/ai2/`,
+	 * 2026-09-22). Three words, and only three, because an inbox has only three things to
+	 * record about a card:
+	 *
+	 *   read     the owner opened it. Private bookkeeping — nobody is told, nothing rings.
+	 *   improve  the owner flagged it: "not this", with their own sentence, and optionally
+	 *            the exact span of text they had selected when they pressed the flag.
+	 *   reopen   they pressed the flag again and withdrew that.
+	 *
+	 * Every one of them is ONE LINE on `verdicts.jsonl` — the same append-only file, the
+	 * same `{verdict: {id, say, at, by}}` shape, the same merge-by-id rule V3's board
+	 * already reads. Nothing is ever edited or deleted: a flag withdrawn is a second line
+	 * saying `reopen`, exactly as an Approve undone already was.
+	 *
+	 * `improve` and `reopen` also reach the mastermind, the same two ways an answered card
+	 * already does: a `chat` line in the open run's own inbox (b), and a ring (c) — one tiny
+	 * headless turn that pokes that run's live session so it looks. The ring TARGET is read
+	 * off the run's own launch line rather than off the card (`ask_to`), because a flag can
+	 * land on any card at all, including one nobody addressed to anybody.
+	 *
+	 * ⚠ Env override, the same shape Assistant.js's two already have:
+	 *   AI_VERDICTS   the verdicts.jsonl this appends to, so a private test server can write
+	 *                  somewhere harmless. */
+	static SAYS = { read: false, improve: true, reopen: true };   // value = does the mastermind hear about it
+
+	static verdicts(){ return path.resolve(process.env.AI_VERDICTS || "public/framework/ai/verdicts.jsonl"); }
+
+	async card_say({ id, say, note, quote }, index){
+		if (!id || !(say in CardAnswer.SAYS))
+			return this.socket.send({ index, error: "card_say needs {id, say} where say is read, improve or reopen" });
+
+		const at = now();
+		const line = { verdict: { id, say, at, by: "owner" } };
+		if (note) line.verdict.note = note;
+		if (quote) line.verdict.quote = quote;
+
+		const file = CardAnswer.verdicts();
+		fs.mkdirSync(path.dirname(file), { recursive: true });
+		fs.appendFileSync(file, JSON.stringify(line) + "\n");
+
+		// Fast ack, same contract as card_answer above — the ring takes seconds and no
+		// button click should wait on it.
+		this.socket.send({ index, ok: true });
+		if (!CardAnswer.SAYS[say]) return;
+
+		const title = CardAnswer.find_card(id)?.title || id;
+		const said = [`${say} — ${title}`, quote ? `on "${quote}"` : null, note].filter(Boolean).join(" — ");
+		CardAnswer.inbox({ at, from: "owner", via: "flag", card: id, msg: said });
+
+		const run = process.env.ASSISTANT_LEDGER ? null : CardAnswer.mastermind_run();
+		const ask_to = run && CardAnswer.mastermind_session(run);
+		if (!ask_to){
+			console.warn(`CardAnswer: no open mastermind session to ring for ${id} — the inbox line still landed.`);
+			return;
+		}
+		CardAnswer.ring(ask_to, `From the owner, via the AI 2 inbox: ${said} (card ${id})`)
+			.then(() => this.socket.rpc("card_rung", { id, ok: true }))
+			.catch(e => {
+				console.warn(`CardAnswer: ring to ${ask_to} failed —`, e.message || e);
+				this.socket.rpc("card_rung", { id, ok: false, error: String(e.message || e) });
+			});
+	}
+
+	/* The live session id of a running mastermind — its own launch line's `session_id`, the
+	 * one `assign` field every task.jsonl in this repo is opened with. Newest wins, so a run
+	 * that was resumed under a new id rings at the new one. */
+	static mastermind_session(file){
+		let id = null;
+		for (const line of fs.readFileSync(file, "utf8").split("\n")){
+			if (!line.trim()) continue;
+			let e; try { e = JSON.parse(line); } catch { continue; }
+			if (e.assign?.session_id) id = e.assign.session_id;
+		}
+		return id;
 	}
 
 	async card_answer({ id, answer }, index){
@@ -179,7 +256,7 @@ export default class CardAnswer {
 			const args = ["-p", "--output-format", "stream-json", "--verbose",
 				"--model", CardAnswer.MODEL, "--tools", "SendMessage", "--effort", "low",
 				"--strict-mcp-config", "--session-id", randomUUID()];
-			const child = spawn(process.env.CLAUDE_BIN || "claude", args, { windowsHide: true });
+			const child = spawn(process.env.CLAUDE_BIN || "claude", args);   // inherit the server's console: claude runs hooks, and a console-less claude pops a window per hook (2026-09-22)
 			const prompt = `Call the SendMessage tool exactly once: to: ${JSON.stringify(ask_to)}, message: ${JSON.stringify(text)}. Do nothing else -- no other tool, no extra reply.`;
 			child.stdin.end(prompt);
 

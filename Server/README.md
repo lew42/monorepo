@@ -1,6 +1,7 @@
 # Server
 
-Dev only — `node server.js` (port 80, `PORT` to override); production is static.
+Dev only — `node server.js` (port 80, `PORT` to override, `HOST` to bind somewhere
+other than `0.0.0.0` — Servex passes `HOST=127.0.0.1` to the servers it starts).
 Reuse the one already running. ⚠ It used to pin a core (~130%) every few days;
 **fixed 2026-09-06**, but a server started before that is still running the old
 code — restart it. What it was: [`doc/spin.md`](./doc/spin.md).
@@ -15,6 +16,16 @@ headless-checks a page after the file that could have broken it changes, and tel
 the editing agent at its very next write. `HEALTH_BASE` picks which server to load
 pages against (default `http://localhost:8123`, the mastermind's). Full story:
 [`public/framework/ai/health/readme.md`](/framework/ai/health/).
+
+**`node Server/padding-check.mjs <url>`** answers one question about one page, and
+exits non-zero when the answer is no: **does any text on it sit at 0 from an edge** —
+the nav rail, the window, the ToC column, or the border of any box that paints a
+ground of its own. The owner made that a law of the whole system on 2026-09-22.
+Four widths by default (`--width 3440` for one; `--base` picks the server), because
+the bug that prompted it only appears above 1312px and `health.mjs` was looking at
+1280 alone. `health.mjs` now imports the same measurement, so the watcher checks it
+too — one definition, three callers. The before/after over 107 pages:
+[`/framework/ai/2026-09-22/padding-law/`](/framework/ai/2026-09-22/padding-law/).
 
 ## The supervisor
 
@@ -78,13 +89,25 @@ and the proof: [`doc/watch.md`](./doc/watch.md).
 `Directory` rebuilds the two `directory.json` files and reports them by name, so
 a new file reloads the boards that list it without reloading the whole site.
 
-### Holding every reload for a batch of writes
+### Holding the reloads for YOUR OWN files during a batch of writes
 
-`node Server/hold.mjs on "<who> — <what>"` — before a batch of edits that touch a file the
-live site loads, this pauses `LiveReload`'s broadcast for every server watching this repo at
-once (the owner's, the mastermind's, any private one): changes still queue, deduped, but
-nothing gets sent until `node Server/hold.mjs off "<who>"` — one reload, once, for the whole
-batch. `.jsonl` streams (`Tail`, above) are a separate channel and are never held. The lock is
+`node Server/hold.mjs on "<who> — <what>" --paths "public/framework/<yours>/**"` — before a
+batch of edits that touch a file the live site loads, this queues `LiveReload`'s broadcast
+**for the paths you named, and only those**: they still queue, deduped, and nothing about them
+gets sent until `node Server/hold.mjs off "<who>"` — one reload, once, for the whole batch.
+Everything outside your fence keeps reloading normally, for everyone.
+
+⚠ **Quote the globs**, or bash expands `**` before node sees it. A hold with no `--paths` falls
+back to `public/framework/ai/**` and prints a warning naming the holder.
+
+⚠ **It was global until 2026-09-22 and that was the wrong shape.** While any agent held, the
+owner's own save did not reload the owner's own tab — their dev bar said "held by
+board-declutter, 220s" and gave them no way to know that was why. The readout names the fence
+now ("board-declutter holds ai/v/3/\*\*, 220s"), and `Server/hold.mjs`'s `matches()` is the one
+place the glob rules live. Why, and the proof:
+[`reload-rethink`](/framework/ai/2026-09-22/reload-rethink/).
+
+`.jsonl` streams (`Tail`, above) are a separate channel and are never held. The lock is
 one small JSON file at the repo **root** (`.reload-hold.json`, git-ignored, outside
 `public/` — a hold must never itself look like a change to watch), a list so two agents can
 hold at once, and it expires on its own after 5 minutes so it can never stick. `LiveReload`

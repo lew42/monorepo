@@ -1,4 +1,4 @@
-import { Page, md, div, p, span, b } from "/app.js";
+import { Page, md, div, p, span, b, details, summary } from "/app.js";
 
 /* ── layout, answered before the first factory call ───────────────────────────
    1 CONTAINER  a task page on /framework/ai/2026-09-19/'s board — the ordinary
@@ -70,20 +70,29 @@ export default new Page({
 		md("## The five changes, ranked by mistakes prevented per line\n\n| | the change | stops case | status | lines |\n| --- | --- | --- | --- | --- |\n" +
 			RANKED.map(r => "| " + r.join(" | ") + " |").join("\n")).ac("wide");
 
-		md("### Applied now (fail-safe)\n\n" +
+		/* ⚠ Presentation pass, 2026-09-22: this page measured 3,780px at 1280 —
+		   nearly five screens, all prose. Nothing was deleted; the three closing
+		   sections moved behind folds so the top (the finding, the four cases,
+		   the ranked table) reads as one screen. */
+		details(() => {
+			summary("What was applied, and what is waiting on you");
+			md("### Applied now (fail-safe)\n\n" +
 			"- **css/caveats.md** — the backtick line rewritten to name where it sneaks in (a comment quoting a class), what you see (every page blank, one SyntaxError naming no file), and the hook that now blocks it.\n" +
 			"- **css/improvements.md, code/improvements.md** — the two entries asking for exactly that, deleted: they are applied.\n" +
 			"- **code/SKILL.md, minion/SKILL.md** — one clause each, saying the guard exists, so nobody re-litigates a solved trap.\n" +
 			"- **.claude/skills/auditor/** — new, 81 lines, loaded by nobody else.\n\n" +
 			"### Waiting on the owner (Approve / Improve on the Decisions tab)\n\n" +
-			"Proposals 1–4 above, plus: the mastermind's own \"audit a mistake\" section should shrink to two lines pointing at the auditor skill. Each is a decision line in this task's log with its alternative written out.");
+				"Proposals 1–4 above, plus: the mastermind's own \"audit a mistake\" section should shrink to two lines pointing at the auditor skill. Each is a decision line in this task's log with its alternative written out.");
+		}).ac("wide");
 
-		this.auditor();
-
-		md("## What I would not change\n\n" +
-			"- **The css and layout skills' content.** Both already carry the rules these mistakes broke, with measurements. Neither failing agent loaded them. More words there is pure cost.\n" +
-			"- **The briefs.** All three sidebar briefs asked for proof and got honest proof of the wrong kind. The gap is what counts as proof, which is one line in finish-task, not four lines in every brief.\n" +
-			"- **Nothing gets a new rule to punish case 1.** It has a hook now; the remaining sentence is one line, in one place.");
+		details(() => {
+			summary("The decision auditor, and the three things this audit would NOT change");
+			this.auditor();
+			md("## What I would not change\n\n" +
+				"- **The css and layout skills' content.** Both already carry the rules these mistakes broke, with measurements. Neither failing agent loaded them. More words there is pure cost.\n" +
+				"- **The briefs.** All three sidebar briefs asked for proof and got honest proof of the wrong kind. The gap is what counts as proof, which is one line in finish-task, not four lines in every brief.\n" +
+				"- **Nothing gets a new rule to punish case 1.** It has a hook now; the remaining sentence is one line, in one place.");
+		}).ac("wide");
 
 		p.c("muted", "Numbers: 2,295 lines of skill text (other agents are editing skills as this is written, so the day's total is not a clean before/after). This audit's own net on the skills agents load: −2 lines and about 360 words of duplicated backtick prose gone, one line sharpened. The new auditor skill is +81 lines that only an auditor ever reads. Measured evidence, timestamps and the five decision lines: this task's log.");
 	},

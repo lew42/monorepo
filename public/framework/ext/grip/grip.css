@@ -32,15 +32,17 @@
 	   ⚠ Flipping only the strip is what "the grip is offset in a strange way" was: the
 	     strip moved to the right edge and the line stayed anchored to the strip's left,
 	     drawing 10px short of the boundary it resizes (measured on `.pg-tree`, 2026-08-29).
-	   The pill needs no mirror — `inset-inline-start: 50%` centres it in the strip, and a
-	   0.75rem strip's centre is the same point from either side. */
+	   The pill mirrors too, below — it used to sit dead centre in the strip regardless
+	   of which side the line was on, which read as the knob riding a few px off the
+	   line whenever the strip was wider than the line itself (owner, 2026-09-22). */
 	.grip-start { inset-inline-start: auto; inset-inline-end: 0; }
 	.grip-start::before { inset-inline-start: auto; inset-inline-end: 0; }
+	.grip-start .grip-pill { inset-inline-start: 100%; }
 
 	/* `--prim`, the one affordance colour — same hue as the lit line, the open tab
 	   and the lit preset. */
 	.grip-pill {
-		position: absolute; inset-inline-start: 50%; top: var(--grip-y, 50%);
+		position: absolute; inset-inline-start: 0; top: var(--grip-y, 50%);
 		width: 0.375rem; height: 2rem;
 		transform: translate(-50%, -50%);
 		background: var(--prim);

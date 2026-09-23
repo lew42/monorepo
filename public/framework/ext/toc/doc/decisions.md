@@ -237,3 +237,44 @@ this module has no dead importers.
   **Fixed 2026-09-18** (`ai/2026-09-18/cleanup-2/`) — see the dated section below. Left
   here, struck through rather than deleted, so the "was this ever considered" question
   a later reader has is answered without them going to git log for it.
+
+## 2026-09-22 — the rail rule restates the page shell's tracks instead of replacing them
+
+**What was wrong.** `.page:has(> .toc)` said `grid-template-columns: minmax(0, 1fr)
+15rem` and nothing else. A page's left and right padding is not padding at all: it is
+the FIRST and LAST TRACK of `core/Page/Page.css`'s four-track grid, and `.page`'s own
+`padding: var(--page-pad, var(--pad-y) 0)` has no inline half to fall back on. So
+above the 82em breakpoint, every page that called `toc()` silently lost both gutters —
+the owner opened `/framework/styles/` on a wide window and found the `h1` at x = the
+sidebar's right edge, 0px, while the card row below it sat 90px in (a wall pays the
+gutter back out of its own pocket, which is why only the prose looked wrong). The
+sibling rule one file over, `.page:has(> .page-related)` in `Page.css`, adds a right
+rail exactly the same way and has always restated all four tracks.
+
+**The fix.** The template now runs `[bleed-start] gutter · [wide-start main-start] 1fr
+[main-end wide-end] · gutter · [bleed-end toc-start] 15rem [toc-end] · gutter`.
+
+**Three things went with it.**
+
+- `column-gap` is gone. The gutter track between `[wide-end]` and the rail IS the gap;
+  left in, a `column-gap` would also have applied to the two gutter tracks and inset
+  the page twice.
+- `.page:has(> .toc) > * { grid-column: 1 }` is gone too. `.page > *` already sends
+  every child to `main` with `min-width: 0`, and forcing column 1 was what took
+  `.wide` and `.bleed` away from ToC pages — the wall on `/framework/styles/` was
+  paying back a gutter it was no longer being given.
+- `[bleed-end]` lands BEFORE the rail, exactly where the related-aside rule puts it
+  before `[related-start]`, so a `bleed` child spends the prose region's two gutters
+  and stops where the rail begins rather than running under a column that is sticky
+  for 200 rows.
+
+**⚠ Two adjacent line-name brackets are a parse error and the declaration is dropped in
+silence.** The first version of this template wrote `… var(--gutter-x) [bleed-end]
+[toc-start] 15rem …`. Names for one grid line must share ONE bracket. Nothing threw,
+the rule's other declarations still applied, and the page simply kept the template it
+already had — it cost a full re-measure to notice. After writing any
+`grid-template-columns`, read `getComputedStyle(el).gridTemplateColumns` back from the
+live page and count the tracks against what you typed.
+
+The measurement, the before/after over 107 pages, and the check that now guards it:
+[`/framework/ai/2026-09-22/padding-law/`](/framework/ai/2026-09-22/padding-law/).

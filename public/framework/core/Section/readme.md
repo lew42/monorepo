@@ -35,8 +35,9 @@ Section.from("/framework/core/Section/example/").then(section => section.render(
   Storage is inherited and works; writing is an editor's job: [`doc/idea.md`](./doc/idea.md).
 - **The picker lists only what fits this box** — LayoutRule #1 — and a layout below its
   floor is a row saying why, not a disabled button: [`doc/picker.md`](./doc/picker.md).
-- **`fits()` should live in `core/Layout`.** It is `rules.js`'s width rule with the
-  reporting taken off, and a second copy is one edit from disagreeing:
+- **`fits()` lives in `core/Layout`**, not here — Section imports it from
+  `Layout/rules.js`, where the width rule itself calls it, so the two cannot disagree.
+  It used to be a second copy in this file; merged 2026-09-22:
   [`doc/picker.md`](./doc/picker.md).
 - **A child's view is appended, never built inside the captor** — a page memoizes its
   view, so a captured `child.render()` appends nothing on the second draw and the slot

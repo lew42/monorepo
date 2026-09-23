@@ -11,7 +11,7 @@ export default new Doc({
 	subject: devbar,
 	methods: "refresh toggle",
 	notes: "docking sizing structure threads measuring decisions chat",
-	files: "DevBar.js ask.js chat.js log.js sessions.js pathbar.js says.js devbar.css layout.js parts.js readme.md settings.js structure.js tools.js width.js page.js",
+	files: "DevBar.js ask.js blocked.js chat.js hold.js log.js sessions.js pathbar.js says.js devbar.css layout.js parts.js readme.md settings.js structure.js tools.js width.js page.js",
 
 	content(){
 
@@ -29,7 +29,7 @@ navigated(){ devbar.refresh(); },`, "public/app.js");
 
 		md("The `✕` at the head's inline end shuts it — and everything it remembers is one `localStorage` document, so it comes back the way you left it: open or shut, how wide, and which knobs were on.");
 
-		md("**`block`**, beside it, is `window.$BLOCKRELOAD` — the one switch that stops [Socket](/framework/dev/Socket/) reloading the page under you while you are mid-edit in a form. It is the *only* knob that is deliberately **not** remembered: a block that survived a reload would read as live reload being broken.");
+		md("**`block`**, beside it, stops [Socket](/framework/dev/Socket/) reloading the page under you — **in this tab only**, for as long as the tab is open, with a count of the reloads it refused beside it (\"3 held\"); clicking that count takes them in one reload. It used to be a bare `window.$BLOCKRELOAD` remembered nowhere, on the argument that a block surviving a reload would read as live reload being broken. That was the wrong way round: the very first reload it failed to stop also erased it, so a block that \"wasn't working\" was usually a block that had already been wiped — and the count is what keeps \"I paused it\" from reading as \"the site has stopped updating\". It is the **reader's** switch; the hold beside it is the **writer's**, taken by an agent from a terminal. [Why](/framework/ai/2026-09-22/reload-rethink/).");
 
 		h2("Four buttons, four viewports — in the head, beside the width");
 

@@ -50,12 +50,27 @@ export default new Page({
 			"to paste in. [The patch](/framework/ai/2026-09-21/traps-consolidate/skill-patch.md).");
 
 		md("## Still broken or unfinished\n\n" +
-			"- **The patch above isn't pasted in yet.** Nobody is blocked on it.\n" +
-			"- **Today's minions could write but still couldn't run anything** — no `node`, no `git`, not " +
-			"even `node --check` — so several of today's fixes are hand-checked, not proven; whoever acts " +
-			"on this page is the one who actually proves them. [More on this](/framework/ai/handover.md).\n" +
 			"- **Nobody has confirmed what causes the accidental stash** that caused Friday night's scare — " +
-			"still just a leading guess. [The full handover](/framework/ai/handover.md) has what's known.");
+			"still just a leading guess. [The full handover](/framework/ai/handover.md) has what's known.\n" +
+			"- **Six of the seven proposed changes to how agents work are still unapplied** — including the " +
+			"one script that would start, name and track every worker session. " +
+			"[The seven](/framework/ai/2026-09-19/system-eval/)\n" +
+			"- **Three server-side fixes are waiting on one restart window.** Two plugins and a hook still " +
+			"name the old location of the board file, which moved on 2026-09-19.");
+
+		/* ⚠ Corrected 2026-09-22 by `ai/2026-09-22/review-3-days/`: two items that
+		   sat under "Still broken" had since become untrue. The trap patch IS
+		   applied (the code skill carries all 21 traps; its backlog file is down
+		   to seven lines), and a CLI worker CAN now run commands — `acceptEdits`
+		   plus an explicit tool list does both. Both moved into the note below
+		   rather than being deleted. */
+		md("## Fixed since this page was written\n\n" +
+			"- **The 21 coding traps are pasted in.** The rulebook carries every one of them now.\n" +
+			"- **Workers can run commands again.** The launch recipe was wrong, not the permission " +
+			"system: `acceptEdits` with an explicit tool list both writes files and runs them. That is " +
+			"why several of Monday's fixes went unproven, and why they can be proven now.\n" +
+			"- **The phone-width header is fixed and measured** — 133px at 400px wide, down from 255px.\n\n" +
+			"The whole three days, in one page: [the last three days](/framework/ai/2026-09-22/review-3-days/).");
 
 		md("*This is the short version. The [full handover](/framework/ai/handover.md) has the detail this page leaves out on purpose.*").ac("muted");
 	},

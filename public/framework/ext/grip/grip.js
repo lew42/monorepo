@@ -24,13 +24,18 @@ const html = document.documentElement;
  * ⚠ No rAF throttle, unlike ext/demo's `drag()`: `pointermove` is already delivered
  * once per frame, and this sets one custom property rather than re-laying-out a
  * live render. Not worth importing the demo system for. */
-export default function grip({ write, done, reset, from = "end" }){
+export default function grip({ write, done, reset, from = "end", mirror = from === "start" }){
 	let width, edge;
 
-	// `from` is one decision, and grip.css owns every consequence of it: the strip AND its
-	// lit line mirror together (`.grip-start`), so a consumer never compensates in its own
-	// stylesheet — ext/Playground did, and got a line 10px off the edge it drags.
-	return div.c(from === "start" ? "grip grip-start" : "grip", () => span.c("grip-pill"))
+	// `from` picks the pointer arithmetic: which edge of the PARENT is pinned for the
+	// whole drag. `mirror` picks the CSS side the strip and its lit line sit on
+	// (`.grip-start`) — it defaults to matching `from`, right for every rail (the
+	// parent's pinned edge and the strip's own edge are opposite sides of the same
+	// box there), but a consumer whose parent never moves at all — `ai/v/3`'s column
+	// split, positioned by its own inline `left` every frame, not by which side of a
+	// rail it is flush against — can pass `mirror: false` to keep the strip's line
+	// under its own local start regardless of which edge `from` pins.
+	return div.c(mirror ? "grip grip-start" : "grip", () => span.c("grip-pill"))
 		.attr("title", "Drag to resize")
 
 		.on("pointerdown", function(e){
@@ -47,8 +52,14 @@ export default function grip({ write, done, reset, from = "end" }){
 
 		// ⚠ One handler for both jobs, because capture routes the whole drag back
 		// here: the pill tracks the pointer whether or not a button is down.
+		// ⚠ `--grip-y` is read by `top` on an absolutely positioned child (grip.css),
+		// so it has to be relative to THIS box's own top, not the viewport — a plain
+		// `e.clientY` matched the dev rail (`inset-block: 0`, its own top already IS
+		// the viewport's) but landed ~200px low on `ai/v/3`'s column split, whose box
+		// sits partway down the page (measured live, 2026-09-22).
 		.on("pointermove", function(e){
-			this.style("--grip-y", e.clientY + "px");
+			const rect = this.el.getBoundingClientRect();
+			this.style("--grip-y", (e.clientY - rect.top) + "px");
 			if (!html.classList.contains("grip-sizing")) return;
 			const px = from === "start" ? e.clientX - edge : edge - e.clientX;
 			width = write(px) ?? px;

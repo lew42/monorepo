@@ -21,18 +21,57 @@
    has the count. */
 @layer theme {
 
-	.v3 { container-type: inline-size; }
+	/* ⚠ `margin-block-start: 0` is 45 pixels of the owner's "like 200px of dead
+	   space at the top" (board-declutter, 2026-09-22). This board is drawn
+	   inside a `.page.flow`, whose `h1.page-title` is `display: none` — but a
+	   hidden element is still a SIBLING, so framework.css's own owl rule
+	   `:where(.flow) > * + * { margin-block-start: var(--flow) }` handed the
+	   board a full unit of page rhythm to separate it from nothing at all.
+	   Measured at 1280: 45.12px above the head, before a single pixel of
+	   chrome. `:where()` carries zero specificity and sits a layer below this
+	   one, so one plain declaration settles it. */
+	.v3 { container-type: inline-size; margin-block-start: 0; }
 
-	/* The head: the title and the picker on one row, the toolbar (view switch
-	   + track-width) sharing it or wrapping to its own — `flex-wrap`, no
-	   breakpoint written down. Display/wrap/align-items are the `flex wrap
-	   v-center` utility classes (page.js); only the two-value gap (row/column
-	   need different amounts here) is this file's own. */
-	/* The board itself no longer carries the `pad` utility class (full bleed,
-	   above) — the head row keeps its own default padding so the title and
-	   toolbar don't sit flush against the sidebar/viewport edge; no
+	/* ── THE ONE CHROME LINE (board-declutter, 2026-09-22) ──────────────────
+	   The owner counted three rows above the first card — the AI head, the
+	   view switch, and a strip naming five idle agents — and called the whole
+	   thing too much. What stays on the line: the title, the five view words,
+	   whichever agents are actually WORKING, and one `More` at the right end.
+	   What moved into `.v3-more` (below): the four ways out, the version
+	   picker, the count of what is left, Live, the author filter and the
+	   card-width slider. Nothing was deleted but `gallery` and `dashboard`,
+	   two permanently-disabled words that did nothing at any width.
+
+	   There is no breakpoint in this block any more. The fold used to happen
+	   only below 40em; it happens always now, because the row the owner was
+	   looking at was a 1280 screen.
+
+	   ⚠ `display: flex` is WRITTEN HERE, and the markup no longer wears the
+	     `flex wrap v-center` utility classes — the same reason `.v3-ways-out`
+	     and `.v3-track` below already own their own display. `framework.css`'s
+	     `.flex > * { margin: 0 }` sits in `@layer util`, a later layer than
+	     this one, so it beats anything written here at any specificity: with
+	     the utility class on, `.v3-more-btn`'s `margin-inline-start: auto` was
+	     silently zeroed and `More` sat mid-row at x=710 in a 1039px head
+	     (measured 2026-09-22). `css` skill: drop the utility, don't fight it.
+
+	   The board itself no longer carries the `pad` utility class (full bleed,
+	   below) — the head row keeps its own default padding so the title and the
+	   view words don't sit flush against the sidebar edge; no
 	   `padding-block-end`, because the wall/split below supplies its own. */
-	.v3-head { gap: 0.25em 1em; padding: var(--pad) var(--pad) 0; }
+	/* ⚠ The BLOCK padding is the row's own `em`, the INLINE padding is the page's
+	   `--pad`, and the two are different on purpose (board-declutter, 2026-09-22
+	   — the owner: "the head still has a gap above it"). Sideways, this row has
+	   to stand on the same gutter every card on the board stands on, so it takes
+	   the page ramp. Downwards it is a CONTROL ROW, and the `css` skill's rule is
+	   that a control never rides a page ramp: `--pad` is a percentage of the
+	   containing block, so `padding-block-start: var(--pad)` measured 15px at
+	   1280 but 62.1px at 3440 — a band of empty grey above the title that grew
+	   with the screen. 0.6em is about 9px at 1280 and 11px at 3440. */
+	.v3-head {
+		display: flex; flex-wrap: wrap; align-items: center;
+		gap: 0.3em 1em; padding: 0.6em var(--pad) 0;
+	}
 	.page .v3-head > h1.v3-title { margin: 0; font-size: 1.5rem; line-height: 1.2; }   /* the same size V1's title has; outranks the theme's h1 */
 	/* The title is a link home (`page.js`), but a heading that turns link-blue
 	   reads as a stray anchor rather than a title — the owner said so of the
@@ -52,31 +91,29 @@
 	   `--gap` token. `flex-wrap` lets the row itself drop to a second line
 	   at narrow widths instead of shrinking a link's own two words onto two
 	   lines — `white-space: nowrap` on the link is the other half of that. */
-	/* HEAD-MOBILE (2026-09-21) — `display: flex; align-items: center` written
-	   here now, not worn as the `flex v-center` utility classes the markup
-	   used to carry (`page.js`'s own note on `ways_out()`) — a utility class
-	   sits in `@layer util`, always later than this `theme` layer, so the
-	   narrow-width `display: none` below (inside `.v3-head:not(.v3-more-open)`)
-	   could never win the fight against it (`css` skill: "the fix is to drop
-	   the utility from the markup, never to fight it in the sheet"). */
+	/* `display: flex` written here, not worn as the `flex v-center` utility
+	   classes the markup used to carry — a utility class sits in `@layer
+	   util`, always later than this `theme` layer, so a `display` rule of this
+	   file's own could never win the fight against it (`css` skill: "the fix
+	   is to drop the utility from the markup, never to fight it in the
+	   sheet"). A control row, not a page region, so its gap is its own `em`.
+	   These links opt out of framework.css's blue-underline look the same way
+	   the title link above does — subtle by default, ink on hover. */
 	.v3-ways-out { display: flex; align-items: center; flex-wrap: wrap; gap: 0.3em 0.6em; font-size: 0.875rem; }
 	.v3-ways-out-link { color: var(--subtle); text-decoration: none; font-weight: 600; white-space: nowrap; }
 	.v3-ways-out-link:hover, .v3-ways-out-link:focus-visible { color: var(--ink); text-decoration: underline; }
 
-	/* `flex-wrap` (2026-09-19, `v3-timeline`) — found live at 400px: the view
-	   switch and the card-width slider are two groups that never shrink
-	   below their own min-content, so without this the toolbar's own
-	   min-width silently pushed `.v3-head` past the viewport instead of
-	   wrapping (the same `min-width: auto` overflow trap `dashboard-next`'s
-	   own CSS audit already named once for this file). */
-	.v3-toolbar { flex: 1 1 auto; flex-wrap: wrap; justify-content: flex-end; gap: 0.75em; min-width: 0; }
+	/* THE VIEW WORDS. Each is a real `<a href>` now (board-declutter,
+	   2026-09-22) — clicking one is an ordinary navigation to that view's own
+	   url — so the rule has to undo the site's own link look and give an
+	   inline anchor a button's box. `.on` is the view you are looking at. */
 	.v3-views { gap: 0.2em; padding: 0.15em; background: var(--wash); border-radius: 0.4em; }
 	.v3-view-btn {
-		padding: 0.2em 0.6em; font: inherit; cursor: pointer;
+		display: inline-block;
+		padding: 0.2em 0.6em; font: inherit; cursor: pointer; text-decoration: none;
 		color: var(--subtle); background: none; border: 0; border-radius: 0.3em;
 	}
 	.v3-view-btn.on { color: var(--ink); background: var(--surface); }
-	.v3-view-btn:disabled { cursor: default; opacity: 0.5; }
 
 	/* LIVE (v3-axis-fix, 2026-09-20) — the owner: "it should have a primary
 	   background when on and then like more like a disabled look when off...
@@ -96,20 +133,54 @@
 		color: var(--subtle); background: var(--wash); opacity: 0.6;
 	}
 	.v3-live-btn.on { opacity: 1; }
-	/* HEAD-MOBILE (2026-09-21) — same reason as `.v3-ways-out` above: this
-	   file owns `display` outright so the narrow-width hide below can win. */
+	/* Same reason as `.v3-ways-out` above: this file owns `display` outright,
+	   so the fold below can win against a utility class. */
 	.v3-track { display: flex; align-items: center; gap: 0.4em; color: var(--subtle); font-size: 0.875rem; }
 
-	/* HEAD-MOBILE (2026-09-21, `ai/2026-09-21/head-mobile/`) — the "More"
-	   toggle that folds `.v3-ways-out` and `.v3-track` away below 40em (the
-	   `@media` block further down). Hidden above that width — it has nothing
-	   to do there, since both groups already just sit in the row. Quiet, like
-	   `.v3-view-btn`'s own off state, not armed like `.v3-live-btn` — this is
-	   a disclosure, not a mode. */
+	/* MORE — one disclosure at the right end of the chrome line
+	   (board-declutter, 2026-09-22; it began life in `ai/2026-09-21/head-mobile/`
+	   as a below-40em fold, and now it is the fold at every width). Quiet, like
+	   `.v3-view-btn`'s own off state, not armed like `.v3-live-btn` — this is a
+	   disclosure, not a mode. `margin-inline-start: auto` is what puts it at the
+	   END of the line rather than butting against whatever precedes it. */
 	.v3-more-btn {
-		display: none;
+		margin-inline-start: auto;
 		padding: 0.2em 0.6em; font: inherit; cursor: pointer;
 		color: var(--subtle); background: var(--wash); border: 0; border-radius: 0.3em;
+	}
+
+	/* THE PANEL IT OPENS. `flex: 1 1 100%` forces it onto its own line inside
+	   the SAME flex row, so nothing on the line above moves when it opens
+	   (`css` skill's own "force a wrap with a 100% basis"). Shut by default at
+	   every width; `page.js`'s `set_more()` is the one place that flips the
+	   class the selector below reads. */
+	.v3-more { flex: 1 1 100%; display: none; }
+	.v3-head.v3-more-open > .v3-more {
+		display: flex; align-items: center; flex-wrap: wrap;
+		gap: 0.5em 1em; padding-block-start: 0.5em;
+	}
+
+	/* THE AGENTS STRIP (board-from-events, 2026-09-22) — a plain child of
+	   `.v3-head`, sitting ON the one chrome line beside the view words since
+	   board-declutter took its own row away (it used to carry `flex: 1 1 100%`
+	   to force itself onto a line of its own). `[hidden]` is given its own rule
+	   for the same documented reason `.v3-back-top`/`.v3-toast` already need
+	   one: an authored `display` here would otherwise beat the browser's own
+	   `[hidden] { display: none }` regardless of layer (`code`#7's trap). */
+	.v3-agents[hidden] { display: none; }
+	.v3-agents-rows { gap: 0.4em; }
+	.v3-agents-row, .v3-agents-idle {
+		padding: 0.15em 0.6em; font: inherit; font-size: 0.75rem; cursor: pointer;
+		color: var(--subtle); background: var(--wash); border: 0; border-radius: 1em;
+	}
+	.v3-agents-row.on, .v3-agents-idle.on { color: var(--ink); background: var(--surface); border: 1px solid var(--line); }
+	/* The idle count is a fold, not an agent — quieter than a live chip, and it
+	   never carries a name, only how many are waiting. */
+	.v3-agents-idle { font-weight: 600; opacity: 0.75; }
+	.v3-agents-feed {
+		margin-block-start: 0.3em; max-height: 12em; overflow-y: auto; padding: 0.5em 0.7em;
+		background: var(--wash); border-radius: 0.4em; font-size: 0.8125rem; line-height: 1.5;
+		white-space: pre-wrap; word-break: break-word;
 	}
 
 	/* ── the wall: cards, importance-ordered. A face only — an icon when the
@@ -140,9 +211,124 @@
 
 	   Padding the two real containers, not `.v3-wall`, keeps the timeline's
 	   full bleed exactly as it is — `.v3-detail-split` is not matched here. */
-	.v3-cards, .v3-now { padding: var(--pad); }
+	.v3-cards, .v3-now, .v3-days, .v3-prompts { padding: var(--pad); }
 
-	.v3-sort { padding-block-end: 0.25em; }
+	/* ── PROMPTS (prompt-lifecycle, 2026-09-22) — what you said on the left,
+	   what was made of it on the right.
+
+	   The row is a CONTAINER QUERY, not a media query: this view sits in the
+	   board's wall, which is already narrowed by the site sidebar and the dev
+	   rail, so what decides whether two columns fit is the wall's own width,
+	   never the viewport's. Below 46em the two halves stack — your sentences
+	   first, the reading under them — which is the right order to read them in
+	   anyway.
+
+	   Capped at 66em because both halves are READING TEXT: 22em of your own
+	   sentences beside a ~38em reading of them is the measure, and a 3440
+	   screen must not run either one edge to edge (`layout`: "no prose past
+	   the measure"). */
+	.v3-prompts { container-type: inline-size; max-width: 66em; }
+
+	/* The composer (`compose.css`) is styled as the LAST thing in a scrolling
+	   column everywhere else it lives (a top border, no bottom margin) — here
+	   it is the FIRST thing on the tab, so that border becomes a bottom rule
+	   instead, with room before the thread starts (talk-to-assistant, 2026-09-22). */
+	.v3-prompts .v3-compose { border-block-start: 0; border-block-end: 1px solid var(--line); padding-block: 0 var(--gap); margin-block-end: var(--gap); }
+
+	.v3-prompt-row {
+		display: grid;
+		gap: var(--gap-50);
+		padding-block-end: var(--gap-50);
+		border-block-end: 1px solid var(--line);
+	}
+	@container (min-width: 46em) {
+		.v3-prompt-row { grid-template-columns: minmax(0, 22em) minmax(0, 1fr); gap: var(--gap); }
+	}
+
+	.v3-prompt-when { display: block; margin-block-end: 0.3em; font-size: 0.8125rem; }
+	.v3-prompt-sentences { margin: 0; padding-inline-start: 1.6em; }
+	.v3-prompt-sentence { margin-block-end: 0.3em; }
+	/* The citation, made visible: hovering a reading lights exactly the
+	   sentences it says it came from, so the summary can be audited by eye. */
+	.v3-prompt-sentence.lit { background: var(--lighten-2, rgba(0, 0, 0, 0.06)); border-radius: 0.2em; }
+
+	.v3-prompt-refined { font-size: 1.05em; line-height: 1.45; cursor: default; }
+	.v3-prompt-cites { display: block; margin-block-start: 0.2em; font-size: 0.75rem; }
+
+	/* A chip is a CONTROL, so its padding stays in its own em — never a
+	   spacing clamp (`layout`: a clamp is space between content, never the
+	   size of a control). */
+	.v3-chip {
+		display: inline-flex; align-items: center; flex-wrap: wrap; gap: 0.4em;
+		padding: 0.2em 0.55em;
+		border: 1px solid var(--line); border-radius: 0.4em;
+		background: var(--surface); font-size: 0.875rem;
+	}
+	.v3-chip.locked { border-color: var(--ok, #2e7d32); }
+	.v3-chip-name { font-weight: 600; }
+	.v3-chip-kind, .v3-chip-alt { font-size: 0.8125rem; }
+	.v3-chip-lock { color: var(--ok, #2e7d32); }
+	/* A dispute goes UNDER the name it disputes, never beside it — `flex-basis:
+	   100%` forces its own line inside the chip (the `css` skill's own "force a
+	   wrap with a 100% basis"), so a long "what is wrong with it" never stretches
+	   the chip across the column. */
+	.v3-chip-why { flex: 1 1 100%; font-size: 0.8125rem; }
+
+	.v3-prompt-card-title { font-weight: 600; }
+	.v3-prompt-card-text { margin: 0.3em 0 0; }
+	.v3-prompt-stage { display: block; font-size: 0.75rem; }
+	.v3-prompt-proposal .v3-prompt-shape { margin: 0.3em 0 0; padding-inline-start: 1.4em; }
+
+	/* NEVER MANDATORY — the judgment buttons are invisible until the thing
+	   they judge is hovered or focused, so the thread reads as a thread and a
+	   ✓ is something you may do, not something the page is waiting for. */
+	.v3-judge { opacity: 0; transition: opacity 0.12s; }
+	.v3-chip:hover .v3-judge, .v3-chip:focus-within .v3-judge,
+	.v3-prompt-card:hover .v3-judge, .v3-prompt-card:focus-within .v3-judge { opacity: 1; }
+	/* `font: inherit` and `border: 0` are the house pattern for every button in
+	   this file (`.v3-view-btn`, `.v3-agents-row`): the theme dresses a bare
+	   `<button>` as a call to action, and a control inside a thread is not one. */
+	.v3-judge-btn {
+		padding: 0 0.3em; border: 0; background: none;
+		font: inherit; font-size: 0.9375rem; line-height: 1; cursor: pointer; color: var(--subtle);
+	}
+	.v3-judge-btn:hover { color: var(--accent, currentColor); }
+	.v3-judge-why { font-size: 0.8125rem; padding: 0.1em 0.3em; }
+	.v3-judge-said { font-size: 0.8125rem; }
+
+	/* ── DAYS (2026-09-22, `ai/2026-09-22/days-view/`) — what happened, one
+	   fold per landed task; `.v3-days` is `flow` in the markup, so the gap
+	   between one day and the next is already the page's own rhythm and
+	   needs no rule here. Capped like `.v3-now` just below — a headline or a
+	   fold's own markdown is reading text, and reading text never runs the
+	   full width of a 3440 screen (`layout` skill: "no prose past the
+	   measure"). */
+	.v3-days { max-width: 54em; }
+	.v3-day-head { margin-block-end: var(--gap-50); font-size: 1.1em; }
+	/* A day row is a CARD on this board like any other (board-declutter,
+	   2026-09-22): the lightened ground when shut, white once opened. The box
+	   belongs to the whole `<details>`, so the `<summary>` inside it stands
+	   down from framework.css's control grammar — otherwise a bordered control
+	   sits inside a bordered card and the row reads as a box in a box. */
+	.v3-day-row {
+		background: var(--v3-card); border: 1px solid var(--line); border-radius: var(--radius);
+		padding: 0.35em 0.7em;
+	}
+	.v3-day-row[open] { background: var(--surface); }
+	.v3-day-summary {
+		cursor: pointer; font-weight: 600; width: auto; max-width: none;
+		min-height: 0; padding: 0; background: none; border: 0; border-radius: 0;
+	}
+	.v3-day-body { padding-block-start: var(--gap-50); padding-inline-start: 1.2em; }
+
+	/* ⚠ `padding-inline: var(--pad)` — THE LAW OF PADDING (the owner, 2026-09-22:
+	   "that word is nudged against the left side of the page with zero padding.
+	   This is the law of padding that should never be broken"). `.v3-wall` is
+	   `display: contents`, so it cannot inset anything: every child of it has to
+	   claim the page gutter for itself, and the four view containers below
+	   already do. This line was the only one on the board that did not, so its
+	   text sat at x=240.6 — 0px from the rail's own border (measured). */
+	.v3-sort { padding: var(--gap-50) var(--pad) 0.25em; }
 	.v3-sort-note { font-size: 0.875rem; }
 	.v3-sort-toggle {
 		font: inherit; font-size: 0.8125rem; color: var(--prim-ink, var(--prim));
@@ -235,7 +421,16 @@
 	   not one board cut in half with no room to breathe. `flex: 0 0 50%`
 	   plus `grip`'s own `apply_split()` (below) is what actually keeps them
 	   equal — this is only the starting point before the first drag. */
-	.v3-inbox { flex: 0 0 50%; display: flex; flex-direction: column; padding: var(--pad); }
+	/* ⚠ THE BORDER IS NOT DECORATION — it is what the rail's scrollbar stands
+	   on (board-declutter, 2026-09-22). The owner: "the rail's scrollbar is
+	   literally hovering. scrollbars should be at the edge of a clear border."
+	   With nothing here, this column's scrollbar floated in the open gap
+	   between the two columns with no edge beside it. A scroller's bar always
+	   sits just inside its own border edge, so one hairline on the inline-end
+	   puts it exactly where the owner asked — and the drag handle
+	   (`ext/grip`, absolutely positioned at this column's right edge) now
+	   lands on that same line instead of in empty space. */
+	.v3-inbox { flex: 0 0 50%; display: flex; flex-direction: column; padding: var(--pad); border-inline-end: 1px solid var(--line); }
 	.v3-right-col { flex: 1 1 auto; display: flex; flex-direction: column; gap: 0.5em; padding: var(--pad); }
 	/* No padding of its own — `.v3-detail` inside it is the `.card` now,
 	   and a card is padded by definition. */
@@ -250,15 +445,30 @@
 	   same fix, hit `dev/DevBar/says.js`'s own cards earlier the same day —
 	   see that file's own note before removing this on a future pass. */
 	.v3-inbox-card { width: 100%; flex-shrink: 0; }
-	/* Selected — the owner, watching live, REJECTED `.card.selected`'s own
-	   inset ink ring for V3 too ("no black border; less white fill that
-	   lightens on select"): every v3 card now sits a step off pure white
-	   NORMALLY, and the SELECTED one is the one that goes fully white — its
-	   own status edge (`--card-edge`) is untouched either way, no ring, no
-	   border colour change. Scoped to V3 on purpose — `framework.css`'s
-	   `.card.selected` is not touched here; the owner's words are a note for
-	   whoever revisits it next, not a licence to edit it from this task. */
-	.v3-tile { background: color-mix(in srgb, var(--wash) 35%, var(--surface)); }
+	/* ── ONE GROUND FOR EVERY CARD ON THIS BOARD ──────────────────────────
+	   The owner, 2026-09-22: "the ui cards don't have bgs. they should have
+	   lightened (but not white) bg, and the selected card should turn white."
+
+	   Three steps, and every card on every view stands on the same two of
+	   them. The page's own ground is `--wash` (#f2f2f2 in this theme); a card
+	   is `--v3-card`, exactly halfway from that ground to white (#f9f9f9);
+	   the selected or open one is `--surface`, white. Two equal steps of about
+	   6.5 in sRGB, so the card reads as lifted off the page and the selected
+	   one reads as lifted off its neighbours, without a border or a ring —
+	   which the owner rejected in as many words on 2026-09-21 ("no black
+	   border; less white fill that lightens on select").
+
+	   It is a mix of two real tokens, never a hex, so it inverts correctly in
+	   dark mode: there `--wash` is the darker of the pair and a card still
+	   lands one step toward the surface.
+
+	   ⚠ Hover NEVER changes the background (the brief's own rule, and the
+	     reason is that a card whose ground moves on hover reads as selected
+	     for as long as the pointer is over it). The affordance is the title
+	     colour instead, which moves nothing. */
+	.v3 { --v3-card: color-mix(in srgb, var(--wash) 50%, var(--surface)); }
+
+	.v3-tile { background: var(--v3-card); }
 	.v3-tile.selected { background: var(--surface); box-shadow: none; }
 
 	/* The owner's own words, in the inbox — included here (unlike the grid,
@@ -328,13 +538,15 @@
 	.v3-tile-compact {
 		display: flex; align-items: center; gap: 0.4em; width: 100%;
 		padding: 0.3em 0.6em; font: inherit; font-size: 0.8125rem; text-align: start; cursor: pointer;
-		color: inherit; background: var(--wash); border: 0; border-inline-start: 3px solid var(--card-edge, var(--prim)); border-radius: 0.3em;
+		color: inherit; background: var(--v3-card); border: 0; border-inline-start: 3px solid var(--card-edge, var(--prim)); border-radius: 0.3em;
 	}
-	.v3-tile-compact:hover, .v3-tile-compact:focus-visible { background: color-mix(in srgb, var(--prim) 10%, var(--wash)); }
-	/* Selected — the same "goes to white / a stronger tint" idea `.v3-tile`
-	   below uses, scaled down for a control-weight row: no ring, no border
-	   change, just a stronger tint of the same wash it already sits on. */
-	.v3-tile-compact.selected { background: color-mix(in srgb, var(--prim) 16%, var(--wash)); }
+	/* ⚠ `var(--wash)` until 2026-09-22, which is EXACTLY the page's own ground
+	   — so every row in the rail had, visibly, no background at all. That is
+	   the thing the owner was looking at. It rides the one card ground now,
+	   like every other card here. */
+	.v3-tile-compact.selected { background: var(--surface); }
+	/* Hover moves the title, never the ground — see the card-ground note. */
+	.v3-tile-compact:hover .v3-tile-title, .v3-tile-compact:focus-visible .v3-tile-title { color: var(--prim); }
 	.v3-tile-compact > .icon { font-size: 1.1em; color: var(--subtle); flex: 0 0 auto; }
 	.v3-tile-compact .v3-tile-title {
 		font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1 1 auto;
@@ -410,26 +622,14 @@
 	}
 
 	@media (width < 40em) {
-		/* HEAD-MOBILE (2026-09-21, `ai/2026-09-21/head-mobile/`) — the same
-		   phone-width cut already used above for the split view. The brief's
-		   own measurement: `.v3-head` stood 255px tall at 400px wide against
-		   76px at 1920, across eleven controls wrapping into about six lines
-		   — this task's own shell had every measuring tool refused, so that
-		   number is read from the brief, not reproduced here (task.jsonl).
-		   Nothing
-		   is deleted — the two disabled tabs simply do nothing at any width,
-		   so there is nothing on a phone worth a slot for; the ways-out links
-		   and the card-width slider fold behind `.v3-more-btn`
-		   (`set_more()`, page.js) instead of vanishing, and reappear the
-		   instant that button is pressed, still in the exact spot they already
-		   sit in the row — including the two disabled tabs, which fold away
-		   with the rest rather than being deleted from the row outright, even
-		   though nothing is lost by widening back past 40em either way (a
-		   disabled button does nothing at any width). */
-		.v3-more-btn { display: inline-block; }
-		.v3-head:not(.v3-more-open) .v3-ways-out,
-		.v3-head:not(.v3-more-open) .v3-track,
-		.v3-head:not(.v3-more-open) .v3-view-btn:disabled { display: none; }
+		/* HEAD-MOBILE (2026-09-21, `ai/2026-09-21/head-mobile/`) lived here:
+		   below 40em the ways-out links, the card-width slider and the two
+		   disabled view words folded behind `.v3-more-btn`, because `.v3-head`
+		   stood 255px tall at 400px wide. None of that is deleted — it moved
+		   UP, out of this query, and became the fold at every width
+		   (board-declutter, 2026-09-22: the owner was looking at a 1280 screen
+		   when they said the same thing again). The two disabled words are the
+		   only casualty, and they did nothing at any width. */
 
 		/* One pane at a time: the inbox, or the selected card's detail — a
 		   press on any inbox card (`select()`, page.js) adds

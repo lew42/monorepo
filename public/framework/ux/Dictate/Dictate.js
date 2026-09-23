@@ -1,5 +1,6 @@
 import { View, div, span, button, label, input } from "../../core/View/View.js";
 import Capture from "./capture.js";
+import Socket from "/framework/dev/Socket/Socket.js";
 
 View.stylesheet(import.meta, "Dictate.css");
 
@@ -10,6 +11,37 @@ View.stylesheet(import.meta, "Dictate.css");
  * never leaves the machine and, on this GPU, answers in well under a second. */
 const Recognition = globalThis.SpeechRecognition ?? globalThis.webkitSpeechRecognition;
 
+/** **Which microphone**, remembered in this browser. The test bench at
+ *  `ai/2026-09-22/dictate-silence/` writes the owner's pick here, and every
+ *  `Dictate` on the site reads it — so choosing a microphone once, in one place,
+ *  moves the board's own mic too, with nothing to wire. A caller that needs a
+ *  specific device passes `device_id` and that wins over the remembered one. */
+export const DEVICE_KEY = "lew42.dictate.device";
+
+/** Remember (or, with no id, forget) the owner's microphone. Never throws —
+ *  `localStorage` is unreadable in some privacy modes, and a dictation must not
+ *  fail because a preference could not be saved.
+ *
+ *  ⚠ The NAME is stored beside the id on purpose. A `deviceId` is salted per
+ *  origin and is not forever: it changes when the browser clears site data, and
+ *  in a fresh automation profile it changes on every page load (measured —
+ *  `ai/2026-09-22/dictate-silence/`, where the remembered pick silently reverted
+ *  to the default). The id is tried first and is exact; the name is how the pick
+ *  is recovered when that id no longer names anything. */
+export function remember_device(id, label = ""){
+	try { id ? localStorage.setItem(DEVICE_KEY, JSON.stringify({ id, label })) : localStorage.removeItem(DEVICE_KEY); } catch { /* private mode */ }
+}
+
+/** The remembered `{ id, label }`, or null. Tolerates the bare id string an
+ *  earlier build of this wrote, so nobody's pick is lost to the format change. */
+export function remembered_device(){
+	try {
+		const raw = localStorage.getItem(DEVICE_KEY);
+		if (!raw) return null;
+		return raw.startsWith("{") ? JSON.parse(raw) : { id: raw, label: "" };
+	} catch { return null; }
+}
+
 /** `fetch`, but it gives up after `ms` instead of hanging silently forever —
  *  the exact failure mode that made the old dictation look "stuck". */
 async function fetch_timeout(url, opts, ms){
@@ -17,6 +49,20 @@ async function fetch_timeout(url, opts, ms){
 	const timer = setTimeout(() => ctrl.abort(), ms);
 	try { return await fetch(url, { ...opts, signal: ctrl.signal }); }
 	finally { clearTimeout(timer); }
+}
+
+/** POST one entry to Servex's single-writer prompt log; `true` once it took,
+ *  `false` on any failure — never throws, so a caller can fall back with no
+ *  try/catch of its own. Shared by `Dictate`'s own `log_prompt()` (below) and
+ *  `v/3/compose.js`'s typed `send()` — one shape for "did Servex take this
+ *  prompt", not two. */
+export async function post_prompt(entry, url = "http://127.0.0.1:8090/log/prompts"){
+	try {
+		const r = await fetch_timeout(url, {
+			method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(entry),
+		}, 1200);
+		return r.ok;
+	} catch { return false; }
 }
 
 /**
@@ -45,6 +91,11 @@ async function fetch_timeout(url, opts, ms){
  * re-send is still in flight when the next tick comes due, that tick is
  * SKIPPED, never queued — `doc/decisions.md`.
  *
+ * **`mode: "open"`** — the live open mic (`talk`, AI 2's composer): the mic stays on
+ * indefinitely, each finished sentence is its own settled line in the caption (never a
+ * truncated blob), and nothing is ever written into or submitted from the target box —
+ * the box stays exactly as the owner left it. `doc/decisions.md`.
+ *
  * **Ending is always explicit** — the button, or the `Ctrl+Shift+M` shortcut
  * (both say so: the button's tooltip, and the small text beside it once an
  * engine is chosen). Nothing ends a dictation on its own UNLESS the owner
@@ -62,7 +113,14 @@ export default class Dictate extends View {
 		this.settled = "";
 		this.partial_text = "";
 
-		this.$button = button.c("ux-dictate-btn", "🎤").attr("type", "button")
+		// The icon is a child, not the button's own text, so a separate LEVEL BAR
+		// can sit beside it and inherit `--ux-dictate-level` (set every audio
+		// frame in on_level()) without the button itself moving — the owner's own
+		// complaint was the button flickering with sound; now only this bar does.
+		this.$button = button.c("ux-dictate-btn", () => {
+			span.c("ux-dictate-icon", "🎤");
+			span.c("ux-dictate-level");
+		}).attr("type", "button")
 			.attr("title", "dictate — click to start talking, click again to stop (Ctrl+Shift+M)")
 			.on("click", e => { e.stopPropagation(); this.toggle(); });
 
@@ -73,7 +131,7 @@ export default class Dictate extends View {
 				this.$countdown = span.c("ux-dictate-countdown muted");
 				this.$countdown.el.hidden = true;
 
-				label.c("ux-dictate-pause-opt flex v-center muted", () => {
+				if (this.mode !== "open") label.c("ux-dictate-pause-opt flex v-center muted", () => {
 					this.$send_on_pause = input().attr("type", "checkbox")
 						.on("change", e => this.toggle_send_on_pause(e.target.checked));
 					span("stop after a pause");
@@ -82,7 +140,7 @@ export default class Dictate extends View {
 			this.$caption = div.c("ux-dictate-caption muted");
 		}).style("--gap", "0.15em");
 
-		this.$send_on_pause.el.checked = !!this.send_on_pause;
+		if (this.$send_on_pause) this.$send_on_pause.el.checked = !!this.send_on_pause;
 		this.hotkey_bound = e => this.hotkey(e);
 		document.addEventListener("keydown", this.hotkey_bound);
 
@@ -160,6 +218,7 @@ export default class Dictate extends View {
 		this.partial_text = "";
 		this.segment_epoch = 0;
 		this.inflight = null;
+		this.skipped_silent = false;
 		this.on_start?.();
 
 		this.engine = await this.detect_engine();
@@ -194,6 +253,10 @@ export default class Dictate extends View {
 			await this.close_segment();
 			this.capture?.stop();
 			this.set_state("idle");
+			// Never silence about silence: a dictation that heard nothing loud
+			// enough to send now SAYS so, instead of just ending with an empty box.
+			if (!this.settled && this.skipped_silent)
+				this.$status.text("nothing loud enough to transcribe was heard — check the level meter moves while you talk");
 		} else {
 			this.stop_browser();   // set_state("idle") happens in onend, once Chrome truly stops
 		}
@@ -226,8 +289,16 @@ export default class Dictate extends View {
 
 	// ---- whisper: segment, resend, cut ---------------------------------------
 
+	/** The microphone this instance should open: the one the caller named, else
+	 *  the one the owner picked on the test bench, else the system default. */
+	device(){
+		if (this.device_id) return { id: this.device_id, label: this.device_label };
+		return remembered_device() ?? { id: null, label: "" };
+	}
+
 	async start_whisper(){
-		this.capture = new Capture();
+		const { id, label } = this.device();
+		this.capture = new Capture({ device_id: id, device_label: label });
 		this.level = 0;
 		this.has_speech = false;
 		this.segment_started_at = this.last_partial_at = performance.now();
@@ -281,7 +352,7 @@ export default class Dictate extends View {
 		if (this.inflight) return;   // a resend is already in flight — SKIP this tick, never queue
 		const epoch = this.segment_epoch;
 		const samples = this.capture.snapshot();
-		if (!samples.length) return;
+		if (!this.worth_sending(samples)) return;
 
 		this.inflight = this.transcribe(samples);
 		let text;
@@ -299,7 +370,7 @@ export default class Dictate extends View {
 		this.segment_started_at = this.last_loud_at = this.last_partial_at = performance.now();
 		this.partial_text = "";
 		this.draw_caption();
-		if (!samples.length) return;
+		if (!this.worth_sending(samples)) return;
 
 		// Let a partial resend for the OLD segment finish first — whisper-server
 		// answers one request at a time, and its answer is about to be thrown
@@ -314,14 +385,65 @@ export default class Dictate extends View {
 		this.commit(text);
 	}
 
+	/** **Is there any speech in here at all?** Whisper never answers "nothing" —
+	 *  handed silence it invents a plausible sentence, and for this model that
+	 *  sentence is almost always "Thank you." So the recording of the quiet gap
+	 *  between the owner's last word and their press of the button used to be
+	 *  transcribed, committed, typed into the box and logged as a prompt. That
+	 *  was the whole "it just says Thank you" bug (`ai/2026-09-22/dictate-silence/`).
+	 *
+	 *  The test is `Capture.loudness()`'s `loud_ms` — how many milliseconds of the
+	 *  segment are above a speaking floor, not how loud the segment is on average.
+	 *  Measured on the real dumps: silent segments 0ms, the weakest real sentence
+	 *  220ms, so `min_speech_ms` at 120 sits in a gap with nothing in it. */
+	worth_sending(samples){
+		if (!samples.length) return false;
+		const loud = this.last_loudness = this.capture.loudness(samples, this.speech_floor);
+		if (loud.loud_ms >= this.min_speech_ms) return true;
+		this.skipped_silent = true;
+		return false;
+	}
+
 	async transcribe(samples){
+		const wav = this.capture.wav(samples);
+		this.dump(wav, samples);
 		const form = new FormData();
-		form.append("file", this.capture.wav(samples), "segment.wav");
+		form.append("file", wav, "segment.wav");
 		form.append("response_format", "json");
 		const r = await fetch_timeout(this.whisper_url + "/inference", { method: "POST", body: form }, 20000);
 		if (!r.ok) throw new Error("whisper-server answered " + r.status);
 		const body = await r.json();
 		return (body.text ?? "").trim();
+	}
+
+	/** **The debug seam.** Off unless you turn it on, in the console of the tab
+	 *  you are dictating in:
+	 *
+	 *      window.$DICTATE_DUMP = true;   // or a path: "framework/ai/…/dumps.jsonl"
+	 *
+	 *  Every WAV this posts to whisper is then ALSO written, base64, one line per
+	 *  send, into `dump_file` — so the exact bytes the browser sent can be pulled
+	 *  apart on disk afterwards: `node public/framework/ai/2026-09-22/dictate-silence/measure.mjs <that file>`
+	 *  prints each one's sample rate, duration, peak, RMS and whether the header's
+	 *  byte count agrees with the file's real length. Never awaited and never
+	 *  throws into the caller — a debug write failing must not disturb a real
+	 *  dictation. */
+	dump(wav, samples){
+		const where = globalThis.$DICTATE_DUMP;
+		if (!where) return;
+		const file = typeof where === "string" ? where : this.dump_file;
+		wav.arrayBuffer().then(buf => {
+			const bytes = new Uint8Array(buf);
+			let binary = "";
+			for (let i = 0; i < bytes.length; i += 0x8000)   // ⚠ one spread of 500KB blows the call stack
+				binary += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+			const loud = this.capture.loudness(samples, this.speech_floor);
+			return Socket.singleton().async_rpc("append", file, { dump: {
+				at: new Date().toISOString(), rate: this.capture.rate(), seconds: +loud.seconds.toFixed(3),
+				peak: +loud.peak.toFixed(5), rms: +loud.rms.toFixed(5), loud_ms: loud.loud_ms,
+				wav_base64: btoa(binary),
+			} });
+		}).catch(e => console.warn("ux/Dictate: $DICTATE_DUMP could not write:", e));
 	}
 
 	// ---- the browser's own engine --------------------------------------------
@@ -382,12 +504,44 @@ export default class Dictate extends View {
 	/** One finished piece of text — a whisper segment, or a browser `isFinal`
 	 *  result — settles into the caption and lands in the real target. */
 	commit(text){
-		if (!text) return;
+		if (!text || this.annotation(text)) return;
 		this.settled = this.settled ? this.settled + " " + text : text;
+		(this.settled_lines ??= []).push(text);
 		this.partial_text = "";
 		this.draw_caption();
 		this.push_to_target(text);
+		this.log_prompt(text);
 	}
+
+	/* Every finished utterance becomes one log entry, not just words on screen.
+	 * Tried first: Servex's own single-writer log (`POST /log/<name>`, being
+	 * built by the sibling `servex-port` task) — once it is up, this is the
+	 * only writer of prompt history and every dictation across the whole site
+	 * reaches it the same way. Until then, or whenever Servex is down, this
+	 * falls back to the dev server's own existing generic append route
+	 * (`Server/plugins/SocketServer/Append.js`, `rpc:append`) so a dictation
+	 * during today's setup still lands somewhere real instead of vanishing
+	 * once it scrolls off screen. Never throws into the caller — a log write
+	 * failing must not break the dictation the owner is mid-sentence in. */
+	async log_prompt(text){
+		// No `at` sent to Servex on purpose — `Log.append()` stamps its own local-offset
+		// clock only when the entry arrives without one; a client-side `new Date()` used
+		// to override it with a UTC string, so the same log mixed two clocks. The dev-server
+		// fallback below has no clock of its own, so that path still stamps one itself.
+		const entry = { type: "prompt", by: "owner", text, via: "whisper" };
+		if (await post_prompt(entry, this.log_url)) return;
+		try { await Socket.singleton().async_rpc("append", this.log_fallback_file, { at: new Date().toISOString(), ...entry }); }
+		catch (e) { console.warn("ux/Dictate: could not log this utterance (Servex down, dev-server fallback also failed):", e); }
+	}
+
+	/** Whisper does not only return words. A noise that is loud but is not speech
+	 *  comes back as an ANNOTATION — `*shriek*`, `(door closes)`, `[BLANK_AUDIO]`,
+	 *  `♪` — which is whisper being honest, not a mistake, and which must still
+	 *  never be typed into the owner's box or logged as something they said. This
+	 *  is a rule about the SHAPE of the answer, not a list of phrases to ban: a
+	 *  list would have to grow forever, this does not (a real fan noise came back
+	 *  as `*shriek*` while proving this task's fix, 2026-09-22). */
+	annotation(text){ return /^[\s*([♪_-]*[^\w]*$|^([*([♪])[\s\S]*[*)\]♪]$/.test(text); }
 
 	/** Only the finished text ever reaches the caller — the grey, still-moving
 	 *  partial stays in this component's own caption, never the target box.
@@ -395,7 +549,9 @@ export default class Dictate extends View {
 	 *  an edit the owner makes mid-dictation, in a pause, is never clobbered —
 	 *  unlike the old `mic.js`, which rewrote the whole value every time. */
 	push_to_target(chunk){
-		const $in = this.input();
+		// Open mode: the box is for typing, never for the mic — a committed sentence
+		// only ever reaches `on_text` (the caption stream), the box stays untouched.
+		const $in = this.mode !== "open" && this.input();
 		if ($in){
 			const joiner = $in.el.value && !/\s$/.test($in.el.value) ? " " : "";
 			$in.el.value += joiner + chunk;
@@ -405,8 +561,18 @@ export default class Dictate extends View {
 	}
 
 	/* Settled text in the page's own ink, the still-moving guess grey after it —
-	 * capped so a long dictation does not grow the caption without bound. */
+	 * capped so a long dictation does not grow the caption without bound. Open
+	 * mode never runs for long unwatched (a mic left on indefinitely), so instead
+	 * of one truncated blob it keeps every sentence as its own line, appended,
+	 * never moved — the "settled line, never moved" the caption stream promises. */
 	draw_caption(){
+		if (this.mode === "open"){
+			this.$caption.empty(() => {
+				for (const line of this.settled_lines ?? []) div.c("ux-dictate-line").text(line);
+				if (this.partial_text) div.c("ux-dictate-line muted", this.partial_text);
+			});
+			return;
+		}
 		const shown = this.settled.length > 240 ? "…" + this.settled.slice(-240) : this.settled;
 		this.$caption.empty(() => {
 			if (shown) span(shown + (this.partial_text ? " " : ""));
@@ -416,13 +582,21 @@ export default class Dictate extends View {
 }
 
 Dictate.prototype.whisper_url = "http://127.0.0.1:8178";
+Dictate.prototype.log_url = "http://127.0.0.1:8090/log/prompts";       // Servex's single-writer log — not always up yet
+Dictate.prototype.log_fallback_file = "framework/ai/prompts.jsonl";    // dev-server rpc:append fallback, relative under public/
 Dictate.prototype.lang = "en-US";
 Dictate.prototype.pause_ms = 700;        // silence this long closes a segment
 Dictate.prototype.max_segment_ms = 15000; // or this much talking, whichever comes first
 Dictate.prototype.resend_ms = 1500;       // how often the growing segment is re-sent while listening
 Dictate.prototype.silence_at = 0.01;      // rough RMS floor — a starting guess, doc/decisions.md
+Dictate.prototype.speech_floor = 0.02;    // a 20ms frame louder than this counts as speech
+Dictate.prototype.min_speech_ms = 120;    // a segment with less speech than this is never sent — doc/silence.md
+Dictate.prototype.dump_file = "framework/ai/dictate-dumps.jsonl";   // where window.$DICTATE_DUMP writes
+Dictate.prototype.device_id = null;       // a specific microphone; null = the owner's remembered pick
+Dictate.prototype.device_label = "";      // its name, so a stale id can be recovered — capture.js by_label()
 Dictate.prototype.send_on_pause = false;  // opt-in: a checkbox beside the mic turns this on
 Dictate.prototype.end_pause_ms = 2500;    // how long a silence must run before send_on_pause stops it
+Dictate.prototype.mode = null;            // "open" = open-mic: mic stays on, box never written, no auto-stop
 
 /** `dictate(() => this.$input, opts)` — the drop-in shape `ext/Ask/mic.js`'s
  *  `mic()` used, for callers that just want the button. */

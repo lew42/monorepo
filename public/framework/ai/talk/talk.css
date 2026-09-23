@@ -1,0 +1,127 @@
+/* ai/talk — press the mic, talk, see your words in one card that never jumps.
+ *
+ * Almost every rule here exists for that last clause. The page is one column of
+ * plain framework utilities (`.card`, `.flex v gap`); what a utility cannot give
+ * it is the guarantee that the card's top edge stays at one y for a whole
+ * session, and that is what the first block below buys. page.js's own header
+ * comment says why each half is needed; `doc/no-jump.md` has the measurements. */
+@layer theme {
+
+	/* A comfortable reading width for a transcript, set here rather than with
+	   the `.measure` utility on purpose: `.measure` declares `--measure` from
+	   `@layer util`, which beats anything this sheet could say about it. */
+	.talk-page { max-inline-size: 48em; }
+
+	/* THE HEAD RESERVES ITS OWN HEIGHT AND THE MICROPHONE FLOATS INSIDE IT.
+	 *
+	 * `ux/Dictate` writes live text into itself while you talk: which engine it
+	 * found, "listening…", a stop-after-a-pause countdown, and — the worst case —
+	 * a two-line error in plain English. In normal flow every one of those changes
+	 * this box's height and shoves the card down, which is the exact thing the
+	 * owner asked not to happen. Taking the whole widget out of flow makes that
+	 * impossible rather than unlikely: nothing it ever says can move anything.
+	 *
+	 * The cost is that the reserved height is a number, not a measurement, so it
+	 * is generous — and the height is checked at 400 and 1280 whenever Dictate's
+	 * own controls change. */
+	.talk-head { position: relative; min-block-size: 7.5rem; }
+	.talk-page .talk-mic { position: absolute; inset-block-start: 0; inset-inline: 0 9em; }
+	.talk-page .talk-new { position: absolute; inset-block-start: 0; inset-inline-end: 0; }
+
+	/* A BIG button — the one thing on the page you are meant to press. Sized in
+	   its own `em` (a control never reaches for a page spacing clamp), and at
+	   (0,3,0) so it outranks the skin's own `.theme-lew42 :is(button, .btn)` at
+	   (0,2,0) no matter which sheet loads last. */
+	.talk-page .talk-head .ux-dictate-btn {
+		font-size: 2.4em;
+		line-height: 1;
+		padding: 0.35em 0.45em;
+		border-radius: 999px;
+	}
+
+	/* Dictate's own caption strip stays empty here — `TalkMic.draw_caption()`
+	   sends the words to the card instead — so it is hidden outright rather than
+	   left as a gap nobody can see the point of. */
+	.talk-page .ux-dictate-caption { display: none; }
+
+	/* ── the card ──────────────────────────────────────────────────────────── */
+
+	/* THE HEADING IS ALWAYS THERE, ALWAYS ONE LINE. Drawn empty from the first
+	   frame, so the assistant's title arriving two seconds later fills it instead
+	   of inserting a new row and pushing the text down; held to a single line, so
+	   a long title cannot wrap and grow it. The full title is on hover. */
+	.talk-title {
+		font-weight: 600;
+		line-height: 1.5;
+		min-block-size: 1.5em;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	/* The still-changing guess. Grey (`.muted` in the markup) and it collapses to
+	   nothing when there is no guess in flight, so an idle card shows no empty row. */
+	.talk-partial:empty { display: none; }
+
+	/* THE STATUS STRIP — a mastermind took the card and is running with it.
+	   Hidden outright until a `task` line exists at all (`page.js`'s own
+	   `.hide()`/`.show()`, inline styles, so nothing here has to out-rank a
+	   utility layer), so a note or a question never shows an empty pill. The
+	   colour carries the state at a glance — greyed out queued, plain while
+	   working, green landed, amber blocked — and the dot only moves while
+	   working, which is what makes a screenshot of "still going" legible
+	   without the label. */
+	.talk-task {
+		display: flex;
+		align-items: center;
+		gap: 0.5em;
+		width: fit-content;
+		max-inline-size: 100%;
+		padding: 0.25em 0.75em;
+		margin-block-end: 0.5em;
+		border: 1px solid var(--line);
+		border-radius: 999px;
+		font-size: 0.9em;
+	}
+	.talk-task-queued { color: var(--muted); }
+	.talk-task-landed { border-color: var(--ok); color: var(--ok); }
+	.talk-task-blocked { border-color: var(--warn); color: var(--warn); }
+	.talk-task-link { color: inherit; margin-inline-start: 0.35em; }
+
+	.talk-task-dot {
+		inline-size: 0.55em;
+		block-size: 0.55em;
+		border-radius: 50%;
+		background: currentColor;
+		flex: none;
+	}
+	.talk-task-working .talk-task-dot { animation: talk-task-pulse 1.2s ease-in-out infinite; }
+
+	@keyframes talk-task-pulse {
+		0%, 100% { opacity: 0.35; transform: scale(0.8); }
+		50% { opacity: 1; transform: scale(1.2); }
+	}
+
+	/* THE CHIP ROW IS RESERVED TOO — same reason as the heading, one row's worth,
+	   so the first chip to arrive lands in space that was already there. It sits
+	   below the text, so it can only ever grow downwards. */
+	.talk-chips { min-block-size: 1.9em; }
+
+	.talk-chip {
+		display: inline-flex;
+		align-items: baseline;
+		gap: 0.4em;
+		padding: 0.15em 0.6em;
+		border: 1px solid var(--line);
+		border-radius: 999px;
+	}
+
+	/* Dictate's status text can run to two lines at phone width, and the button
+	   is bigger than the row it shares — so the head needs more reserved room
+	   there, for exactly the reason the whole block above exists. */
+	@media (width < 40em) {
+		.talk-head { min-block-size: 11rem; }
+		.talk-page .talk-mic { inset-inline: 0; inset-block-start: 2.6em; }
+		.talk-page .talk-new { inset-block-start: 0; }
+	}
+}

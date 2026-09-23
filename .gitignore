@@ -13,6 +13,9 @@ public/framework/ai/usage.json
 # bulk screenshot dirs under the ai log — browsable on the dev server, never committed (Mike, 2026-08-17)
 public/framework/ai/**/shots/
 
+# the owner's own voice, saved by Server/plugins/Recordings.js and read by Server/whisper-test.mjs — never committed
+public/framework/ai/recordings/
+
 # page-health's day logs — machine-written console/error findings from
 # Server/health.mjs, one file a day, regenerated just by running the watcher;
 # bulky and disposable the way the usage snapshot above is, unlike a task's own
@@ -51,3 +54,9 @@ temp_interactive_push.bat
 .gitignore
 ui-test-out/
 public/notes/inbox/
+
+# the owner's voice recordings for whisper tests (2026-09-22) — never committed
+public/framework/ai/recordings/
+
+# worktree servers write their stdout here (Server/worktree-up.mjs) — never committed
+.worktree-logs/

@@ -2,6 +2,7 @@ import { Page } from "../Page/Page.class.js";
 import View, { div, span } from "../View/View.js";
 import { LAYOUTS, by_name } from "../Layout/layouts.js";
 import { apply } from "../Layout/fixtures.js";
+import { fits } from "../Layout/rules.js";
 import { Dropdown } from "../../ext/Dropdown/dropdown.js";
 
 View.stylesheet(import.meta, "Section.css");
@@ -248,17 +249,6 @@ export class Section extends Page {
 		];
 	}
 }
-
-/* ⚠ THIS BELONGS TO `core/Layout`. It is `rules.js`'s first rule with the reporting
-     taken off, and a second copy of a rule is one edit from disagreeing with the
-     first — `Layout.fits(width)` is where it should live. `core/Layout/` was outside
-     this task's write fence; logged in the task log for whoever owns it next.
-   ⚠ Only the FLOOR is asked. Every entry's ceiling is 3440 and above a ceiling a
-     layout HOLDS rather than stretching (the owner, addendum 4), so a ceiling can
-     never make a layout unfit — it is not a silent omission.
-   ⚠ `!room ||` — a box that has not been laid out yet measures 0, and a picker that
-     greys the whole catalogue because it was asked too early is a lie. */
-export const fits = (layout, room) => !room || room >= (layout.widths?.[0] ?? 0) - 1;
 
 // A picture for the shape, not for the name: how many columns it divides into.
 const GLYPH = { 1: "view_agenda", 2: "view_column", 3: "view_week", 4: "grid_view" };

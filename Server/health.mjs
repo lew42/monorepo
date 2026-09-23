@@ -52,6 +52,13 @@ import { execSync, execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import MtimeFilter from "./MtimeFilter.js";
 import * as Hold from "./hold.mjs";
+import { check_page } from "./padding-check.mjs";
+
+/* The widths this watcher checks the padding law at. 1280 is the viewport it
+   already loads every page in, so it costs one evaluate and no re-layout; 3440
+   is the one that finds the ToC-rail case, and it is the width nothing on this
+   machine was looking at before 2026-09-22. */
+const PADDING_WIDTHS = [1280, 3440];
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const PUBLIC = path.join(ROOT, "public");
@@ -477,6 +484,20 @@ async function check_one(context, url){
 
 		const lint = await page.evaluate(lint_findings);
 		for (const f of lint) add("warning", f.kind, f.text);
+
+		// THE PADDING LAW, at the width that actually breaks it (padding-law,
+		// 2026-09-22). This watcher's viewport is 1280 — just under the 82em
+		// (1312px) breakpoint where `ext/toc`'s rail rule replaces the page
+		// shell's grid and takes its two gutter tracks with it — which is why
+		// the owner's own front pages sat flush against the sidebar for as long
+		// as they did with this watcher running the whole time. One extra width
+		// is the whole fix. The measurement itself lives in padding-check.mjs.
+		for (const width of PADDING_WIDTHS){
+			const pad = await check_page(page, width);
+			for (const f of pad.worst)
+				add("warning", "padding", `${f.gap}px from the ${f.side} of ${f.box} at ${width}px: "${f.text}"`);
+		}
+		await page.setViewportSize({ width: 1280, height: 900 });
 	} catch (e) {
 		add("error", "nav", e?.message || String(e));
 	}

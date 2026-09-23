@@ -34,15 +34,39 @@
 		   shape exactly, at the same (0,2,0) specificity, still one selector.
 		   ⚠ 15rem, not 13: at 13 the rail was 208px of 0.8em text and thirteen of the
 		   FAQ's twenty-eight entries ellipsized. */
+		/* ⚠ RESTATE THE SHELL'S TRACKS, NEVER REPLACE THEM (padding-law, 2026-09-22).
+		   A page's left and right padding is not padding at all: it is the FIRST and
+		   LAST TRACK of `core/Page/Page.css`'s four-track grid, and `.page`'s own
+		   `padding: var(--page-pad, var(--pad-y) 0)` has no inline half to fall back
+		   on. This rule used to be `grid-template-columns: minmax(0, 1fr) 15rem` and
+		   nothing else, so above 82em EVERY page with a ToC silently lost both
+		   gutters: the owner opened `/framework/styles/` on a wide window and found
+		   the `h1` at x = the sidebar's right edge — 0px — while the card row below
+		   it, which pays the gutter back out of its own pocket, sat 90px in. The
+		   sibling rule one file over, `.page:has(> .page-related)` (Page.css:205),
+		   adds a right rail the same way and has always restated all four tracks;
+		   this one now matches it track for track.
+		   ⚠ `[bleed-end]` lands BEFORE the rail, exactly where the related rule puts
+		     it before `[related-start]`: a `bleed` child spends the prose region's
+		     two gutter tracks and stops where the rail begins, instead of running
+		     underneath a column that is sticky for 200 rows.
+		   ⚠ NO `column-gap` any more, and its loss costs nothing: the gutter track
+		     between `[wide-end]` and the rail IS the gap now. Left in, it would also
+		     have applied to the two gutter tracks and inset the page twice over.
+		   ⚠ NO `> * { grid-column: 1 }` either. `.page > *` already sends every child
+		     to `main` with `min-width: 0`, and forcing column 1 was what took `.wide`
+		     and `.bleed` away from ToC pages — the wall on `/framework/styles/` was
+		     paying a gutter back that it was no longer being given. */
 		.page:has(> .toc) {
 			display: grid;
-			grid-template-columns: minmax(0, 1fr) 15rem;
-			column-gap: calc(var(--flow) * 1.5);   /* was column-gap 3rem - 2026-09-05 ramps */
+			grid-template-columns:
+				[bleed-start]           var(--gutter-x)
+				[wide-start main-start] minmax(0, 1fr) [main-end wide-end]
+				                        var(--gutter-x)
+				[bleed-end toc-start]   15rem [toc-end]
+				                        var(--gutter-x);
 			--measure: 78em;
 		}
-
-		/* Everything that is not the rail stacks in column 1, in source order. */
-		.page:has(> .toc) > * { grid-column: 1; min-width: 0; }
 
 		/* ⚠ `span 200`, not `1 / -1`: `-1` counts back from the EXPLICIT grid and
 		   these rows are all implicit, so it resolves to line 1 and spans nothing.
@@ -53,7 +77,7 @@
 		   view, which is what makes hiding it honest. */
 		.page:has(> .toc) > .toc {
 			display: block;
-			grid-column: 2;
+			grid-column: toc;
 			grid-row: 1 / span 200;
 			align-self: start;
 			position: sticky;

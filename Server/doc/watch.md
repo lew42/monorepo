@@ -161,9 +161,18 @@ has been boot-tested, which is the whole point of this page.
 
 ## A hold, so a batch of writes reloads once, not once per file
 
-`Server/hold.mjs` (`node Server/hold.mjs on|off`, `../README.md` has the full shape) pauses
-`LiveReload`'s broadcast — queued, deduped, nothing sent — until the last hold comes off, then
-one reload for the whole batch. Its lock is one file OUTSIDE `public/`, so this supervisor's own
+`Server/hold.mjs` (`node Server/hold.mjs on|off`, `../README.md` has the full shape) queues
+`LiveReload`'s broadcast — deduped, nothing sent — until the last hold comes off, then one
+reload for the whole batch.
+
+⚠ **A hold covers the holder's `--paths` and nothing else** (2026-09-22). `flush()` partitions
+its queue on every pass: a path inside some live holder's fence stays queued, everything else
+goes out immediately. It used to be `if (held) return;`, one switch for the whole checkout —
+so a minion's batch stopped the OWNER's own save from reloading the owner's own tab. The glob
+rules live once, in `hold.mjs`'s `matches()`;
+[`reload-rethink`](/framework/ai/2026-09-22/reload-rethink/) has the proof.
+
+Its lock is one file OUTSIDE `public/`, so this supervisor's own
 watcher never sees it; `LiveReload` polls it every 500ms instead (a hold also expires on a timer
 with no file write at all, so one mechanism covers both jobs, cheaper than a second watch handle
 plus a separate expiry timer would be).

@@ -1,0 +1,35 @@
+@layer theme {
+
+	/* The reject flag on a module card — `page.js`'s `wall()`. It lands on
+	   `.page-preview` (Page.css), which is already `position: relative`, so this only
+	   places the button and hides it until the card asks for it.
+	   ⚠ No `z-index` on purpose: `.page-preview-link::after` covers the whole card for
+	   its click, and this button is appended AFTER that link in the DOM — a later
+	   sibling with `position: absolute` already paints above an earlier one at the
+	   same stacking level, so the flag receives its own click first. */
+	.ux-index-flag {
+		position: absolute;
+		top: 0.6em;
+		inset-inline-end: 0.6em;
+		display: grid;
+		place-items: center;
+		width: 2em;
+		height: 2em;
+		padding: 0;
+		border: none;
+		border-radius: var(--radius);
+		background: var(--surface);
+		box-shadow: 0 1px 2px var(--card-shadow);
+		color: var(--subtle);
+		opacity: 0;
+		transition: opacity 0.15s;
+	}
+
+	.page-preview:hover .ux-index-flag,
+	.page-preview:focus-within .ux-index-flag,
+	.ux-index-flagged .ux-index-flag { opacity: 1; }
+
+	/* The quiet marker: a flagged card keeps its flag visible, tinted, after the
+	   pointer leaves — proof the press landed, with no dialog and no reload. */
+	.ux-index-flagged .ux-index-flag { color: var(--prim); }
+}

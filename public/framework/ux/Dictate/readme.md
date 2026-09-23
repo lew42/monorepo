@@ -23,8 +23,32 @@ new Dictate({ on_text: text => … });
 control usually draws its buttons above its box) or the box itself. Whatever was
 already typed stays put; dictation lands after it.
 
+**`mode: "open"`** — the live open mic (`talk`, AI 2's composer): the mic stays on
+indefinitely, `on_text` fires once per finished sentence with nothing ever written into
+`$input`, and "stop after a pause" is hidden since nothing should stop it. See "Open mic"
+in [`doc/decisions.md`](/framework/ux/Dictate/doc/decisions/).
+
+## Voice → log
+
+Every finished utterance also becomes a log entry, not just words on screen —
+`{at, type: "prompt", by: "owner", text, via: "whisper"}` posted to Servex
+(`http://127.0.0.1:8090/log/prompts`), falling back to the dev server's own append route
+when Servex isn't up yet. See "Voice → log" in
+[`doc/decisions.md`](/framework/ux/Dictate/doc/decisions/).
+
 ## Watch out
 
+- **Silence is never sent.** Whisper answers a recording with no speech in it by inventing
+  a sentence — "Thank you." — so a segment carrying less than `min_speech_ms` (120ms) of
+  actual speech is not transcribed at all, and whisper's non-speech labels (`*shriek*`,
+  `[BLANK_AUDIO]`) are dropped rather than typed into the box. The measurements, and how to
+  capture the exact bytes your browser sent:
+  [`doc/silence.md`](/framework/ux/Dictate/doc/silence/).
+- **Which microphone.** `new Dictate({ device_id })` opens a specific one; with no
+  `device_id` it uses whatever the owner picked on the
+  [test bench](/framework/ai/2026-09-22/dictate-silence/), remembered in this browser under
+  `DEVICE_KEY` (exported here, written by `remember_device()`). A remembered device that has
+  been unplugged falls back to the system default rather than failing.
 - **Whisper is not streaming.** A segment is re-sent to `whisper-server` about every
   1.5s while the owner keeps talking, so the words on screen are always a *guess that
   keeps improving*, shown grey, until a ~700ms pause (or 15s) settles it into plain
@@ -64,6 +88,10 @@ Leave that window open; the component finds it on the next 🎤 press.
   the same box under `ui-contrast ui-compact`
 - [`doc/decisions.md`](/framework/ux/Dictate/doc/decisions/) — the install, the CORS finding, the
   segment/resend mechanics, the RMS numbers, who starts `whisper-server`
+- [`doc/silence.md`](/framework/ux/Dictate/doc/silence/) — why whisper said "Thank you", the
+  20ms-frame measurement that stopped it, and the `$DICTATE_DUMP` seam
+- [Test bench](/framework/ai/2026-09-22/dictate-silence/) — record 3 seconds and see the real
+  numbers, whisper's raw answer, and the WAV itself
 - [`ext/Ask/reply.js`](/framework/ext/Ask/) — the reply mic and the dictate box, now built on this
 - Files: `Dictate.js` (the class), `capture.js` (mic → 16kHz WAV, no library), `pcm-worklet.js`
   (the `AudioWorklet` that reads raw samples), `Dictate.css` (the level meter, the pulse)

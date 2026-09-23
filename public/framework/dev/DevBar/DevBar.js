@@ -6,6 +6,8 @@ import grip from "../../ext/grip/grip.js";
 import width from "./width.js";
 import { edit, set_edit } from "../../ext/Ask/edit.js";
 import pathbar from "./pathbar.js";
+import blocked from "./blocked.js";
+import hold from "./hold.js";
 
 View.stylesheet(import.meta, "devbar.css");
 
@@ -32,15 +34,17 @@ export default function devbar(a){
 				pathbar(app);
 				span.c("dev-hint", "ctrl + \\");
 
-				// ⚠ The global IS the state — Socket reads it live — and this is the one
-				// knob deliberately not persisted through settings.js. Why: readme.md.
-				label.c("dev-knob", () => {
-					const $box = input().attr("type", "checkbox")
-						.on("change", function(){ window.$BLOCKRELOAD = this.el.checked; });
+				// The READER's pause switch: "block", plus a count of the reloads it has
+				// refused. Remembered for the life of the tab — blocked.js says why, and
+				// why it is not the same thing as the hold beside it.
+				blocked();
 
-					if (window.$BLOCKRELOAD) $box.attr("checked", true);
-					span("block");
-				}).attr("title", "Block live reload — window.$BLOCKRELOAD");
+				// The WRITER's hold, read-only: "held by <who>, <n>s" whenever an agent has
+				// taken Server/hold.mjs, and an empty hidden span the rest of the time.
+				// ⚠ hold.js was written for ai/2026-09-19/reload-hold/ and this call was
+				// never added, so the readout had never once appeared on screen. Found and
+				// wired 2026-09-22 (reload-rethink).
+				hold();
 
 				// The one switch every editor control on the site reads instead of its
 				// own dev-socket check (ext/Ask/edit.js). Its own document, not

@@ -170,7 +170,7 @@ export default class Ask {
 
     turn(req){
         const { id, prompt, stream, on_chunk, board_id } = req;
-        const child = spawn(process.env.CLAUDE_BIN || "claude", this.args(req), { windowsHide: true });
+        const child = spawn(process.env.CLAUDE_BIN || "claude", this.args(req));   // inherit the server's console — see CardAnswer.js
         child.stdin.end(prompt ?? "");
 
         /* A closed browser tab must not leave a turn running to a reply nobody will

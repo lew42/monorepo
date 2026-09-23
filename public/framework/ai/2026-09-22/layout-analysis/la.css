@@ -1,0 +1,55 @@
+/* The chain diagram: four real pages, drawn at ACTUAL SIZE. Every bar is as many
+   pixels wide as the inset it stands for, measured at a 1920 window, so the row can
+   be compared to the screenshot above it without doing arithmetic.
+
+   `la-` is this task's namespace. It is not in `framework/styles/css-scopes.txt`
+   because that file is outside this task's write fence — the line to add when someone
+   who can write it passes by is:
+
+       la-          framework/ai/2026-09-22/layout-analysis (the chain diagram)
+
+   ⚠ Every rule inside a layer, and `theme` is the layer a component's own look lives
+     in — `util` would out-rank the framework's utilities, which is not what a diagram
+     wants. */
+@layer theme {
+
+	.la-chain {
+		display: grid;
+		grid-template-columns: 14em 1fr;
+		align-items: center;
+		gap: var(--gap-50);
+		padding-block: var(--gap-35);
+		border-top: 1px solid var(--line);
+	}
+
+	.la-chain-name { font-weight: 600; }
+	.la-chain-name small { display: block; font-weight: 400; color: var(--subtle); }
+
+	/* The rail's edge. Everything in the bar is measured from this line, and a page
+	   with nothing between the line and its text is the whole complaint. */
+	.la-bar {
+		display: flex; align-items: stretch; min-height: 2.4em;
+		border-inline-start: 2px solid var(--prim);
+	}
+
+	/* One box that pays. Its width IS the number of pixels it pays. Written inline,
+	   because a measured size is the one thing that belongs in a style attribute. */
+	.la-pays {
+		flex: 0 0 auto;
+		background: var(--tint);
+		border-inline-end: 1px solid var(--line);
+	}
+
+	/* Where the first text starts. */
+	.la-text { flex: 1 1 auto; align-self: center; padding-inline-start: 0.6em; min-width: 0; }
+	.la-text b { font-weight: 600; }
+	.la-text small { color: var(--subtle); }
+	.la-text .la-note { display: block; font-style: italic; }
+
+	/* The two shots, side by side above ~46em and stacked below it — a before and an
+	   after are only a pair when you can see both at once. */
+	.la-shots { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(22rem, 100%), 1fr)); gap: var(--gap); }
+	.la-shots figure { margin: 0; }
+	.la-shots img { display: block; width: 100%; border: 1px solid var(--line); border-radius: var(--radius); }
+	.la-shots figcaption { color: var(--subtle); font-size: 0.9em; padding-block-start: var(--gap-35); }
+}

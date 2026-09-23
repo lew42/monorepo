@@ -10,35 +10,13 @@ back, govern the budget — and you coordinate **several tasks at once**, each w
 task dir, fences and minions, all logged in your run task. Invocation is the grant of
 autonomy: make the call, log the assumption, never block on a question.
 
-## A minion is a CLI session with its own id (the owner, 2026-09-19)
+## Spawning — `spawn_agent` on Servex, the CLI as the fallback
 
-"When I say spawn, I always mean use the session ID … via the Claude CLI, not using the spawn
-tool — make sure that's very clear." **Spawn, minion, message, fork: each of these means the
-`claude` command line and a session id — never the in-process Agent tool.** An in-process
-subagent can only be reached from the session that made it, shares that session's id (the ledger
-Stop hook then blames the parent for the minion's task), has no effort setting, and is lost when
-the tab is. A CLI session can be found, messaged, forked and reopened by anyone, at any time —
-which is also what lets the board offer "resume this session" beside finished work. The
-in-process tool is left for a throwaway lookup inside your own turn that nobody will need again.
+Never the in-process Agent tool: nobody else can reach, message or reopen one, it shares your session id, and it is lost when the tab is (the owner, 2026-09-19). Servex holds sessions in one long-running process and exposes them as MCP tools, so any session anywhere can steer a running agent — and a child's completion arrives as an **event addressed to its parent**, which is what stops a parent parking.
 
-- **Start** — from the repo root, as a background command (the harness wakes you when it exits;
-  the JSON holds the final message, the turns and the cost):
-  `claude --session-id <new uuid> -p "<prompt naming the brief>" --model <full model id> --effort <low|medium|high|xhigh|max> --output-format json > <scratchpad>/<task>/result.json`
-- **Record** — the id goes in the brief and in the task's `task.jsonl` launch line as
-  `session_id`. That one field is what makes the work resumable later.
-- **Message** — `claude --resume <id> -p "<follow-up>"`, same model and effort. It is a whole
-  turn, run in your process, and the reply is its output. One message at a time per id.
-- **Fork** — preload a *library* session (it reads the files and replies READY, nothing else),
-  then `claude --resume <library id> --fork-session -p "<one job>"`, N at once, each fork getting
-  its own id. The heavy reading is paid once and comes out of the cache for every fork.
-- **Measured 2026-09-19** (an 80k-token library, Sonnet): a fork at the same model AND the same
-  effort read it all from cache — 2 seconds and 2 cents, against 32 cents uncached. **A different
-  effort level, like a different model, is a full cache miss** on its first fork, so a library
-  and its forks name one model and one effort. The library's transcript was untouched by seven
-  forks. Resuming by id works from any folder; start from the repo root anyway, so `CLAUDE.md`,
-  the skills and the hooks load and the session is listed under the repo.
-- The rest — permissions, why to fork a library and never a working session, sizing — is the
-  `fork-claude-session` skill. Where this skill still says `SendMessage`, read *message by id*.
+- **Spawn** — `spawn_agent {role, name, prompt}` on Servex's `/mcp`; `model`, `effort` and `cwd` override the role's defaults, and `role` loads that role's skill before the agent's first turn. Then `send_message`, `interrupt_agent`, `stop_agent` and `list_agents`, from anywhere. The seam is [`Servex/agents/readme.md`](../../../Servex/agents/readme.md); the six roles are [`tiers-design/doc/roles.md`](/framework/ai/2026-09-22/tiers-design/doc/roles.md).
+- **Fallback, when Servex is down** — `claude --session-id <uuid> -p "<prompt naming the brief>" --model <full id> --effort <level> --permission-mode acceptEdits --allowedTools "Bash,Read,Write,Edit,Glob,Grep,Skill,WebFetch,WebSearch" --output-format json`, run from the repo root; `claude --resume <id> -p` for a follow-up; a preloaded library and its forks are the `fork-claude-session` skill. ⚠ Those two permission flags are the whole difference between a minion that works and one that cannot write or run anything (five minions, $8.50, nothing written, 2026-09-19).
+- **Record** — the agent's id and its `session_id` go in the brief and in the task's `task.jsonl` launch line. That one field is what makes the work resumable later.
 
 ## First objective — minimize the chaos
 
@@ -171,24 +149,13 @@ Less is more (ASAP), clarity is the exception, prioritize. Say what the delivera
 long it may be — a report is a screen; a page leads with the thing itself. Then, from the
 2026-08-16 run (31 agents, nine correctly refuted their brief):
 
-- ⚠ A sub-mastermind (an Agent-tool agent that spawns its own minions) must run its minions
-  in the FOREGROUND (`run_in_background: false`, several per message for concurrency) — a
-  nested background minion's completion notifies the MAIN session, never its parent, so a
-  sub-mastermind that ends its turn "awaiting harvest" is parked forever until the supervisor
-  relays by hand. Both Fable sub-masterminds hit this on 2026-08-21, cycle 1 each.
-- Tell a worker how to wait, not just not to (`while (-not (Test-Path …)) { Start-Sleep 15 }`;
-  foreground is the default) — two workers ended a turn on a Monitor mid-run and needed a nudge.
-  ⚠ A worker whose wait is auto-backgrounded (>120 s without `timeout: 600000`) reports
-  **completed with EMPTY output — it is parked, not dead**, and resumes itself when the wait
-  returns. `SendMessage` it; never re-dispatch the brief. 2026-08-19: a duplicate pad/gap
-  agent ran in the same files for 18 minutes before the original landed (no damage, by luck).
-  Better: don't gate a worker on a wait at all — dispatch it when the prerequisite has landed.
-  ⚠ A foreground wait longer than the Bash tool's timeout (120 s default) is auto-backgrounded and the
-  turn ENDS — pass `timeout: 600000` on the wait call, or loop in chunks under it, and re-check each
-  turn (2026-08-19: a minion waiting on a sibling's `landed_at` stopped cold after 120 s).
+- **Running ONE task is a task mastermind's job, not yours.** What that role is handed, what it
+  reports back, and the one rule that stops it parking (its minions run in its own foreground, or
+  are Servex-hosted agents whose completion is an event addressed to it) are the `sub-mastermind`
+  skill and [`tiers-design/doc/roles.md`](/framework/ai/2026-09-22/tiers-design/doc/roles.md).
 - ⚠ **Write every follow-up so a COLD agent can execute it** — file:line, never "as you did
-  before". A landed agent's transcript can vanish (`SendMessage` → "No transcript found"); one
-  Opus could not be resumed for wave 2 after ~45 minutes idle.
+  before". Do not gate a worker on a wait at all when you can dispatch it after the prerequisite
+  has landed instead.
 - A fence that forbids what a mandated skill writes is a trap — name the skill's writes.
 - ⚠ Every brief says in so many words: **never kill or restart the dev server, never drive
   the owner's tabs, never `git stash`** — two different Opus minions broke these on
@@ -234,7 +201,7 @@ asking* — never as *always* / *never* / *the limit*. A hard rule is earned onl
 things time and again, and the skills already carry the few that did. An agent follows a written
 law to the letter, so a law that does not always apply does damage every time it is read.
 
-Every cycle, read the `improvements.md` files. **A fail-safe improvement you may apply straight
+Measure a skill in **words**, never lines, before setting any shrink target — a paragraph here is one physical line, so a line count says nothing (two audits set line targets that were unreachable by construction; `skills-shrink-2`, 2026-09-22). Every cycle, read the `improvements.md` files. **A fail-safe improvement you may apply straight
 to the SKILL.md, no proposal, no asking** — then **delete the entry** (six of eight were stale
 for want of that) and log it in your run task.
 
@@ -279,7 +246,7 @@ assistant** (skill `master-assistant`, Opus) supervises: one or two sentences of
 asked ("don't forget X"), one page on how the process itself is going (`/framework/ai/process/`),
 and the `auditor` skill when a mistake or a wrong judgment call arrives. **You, a mastermind,**
 decide, assign and judge — no hand-written code — and you **own topics**: write
-`{"assign": {"mastermind_session": "<your name from ListAgents>", "topics": ["…"]}}` into your run
+`{"assign": {"mastermind_session": "<your Servex agent id, or your session uuid>", "topics": ["…"]}}` into your run
 ledger at the start, so the fast tier routes to you and a second mastermind never works your
 targets without knowing (two have run at once blind before). **Minions** build, one per page,
 and stay wakeable. The owner's words reach you verbatim as `chat` lines (`from: "owner"`) in your
@@ -312,11 +279,7 @@ log, not this chat, and a six-minute gap reads as nothing happening. So:
   only write to the live site; everything else is a minion's, behind the reload hold
   (`ai/2026-09-19/reload-hold/`).
 
-⚠ **A reverted working tree is a stash until `git stash list` says otherwise.** It is the first
-check, before `git fsck` and before commissioning any reconstruction — `git stash` resets hard
-internally, so it is indistinguishable from destructive loss in the reflog. Skipping it on
-2026-09-19 cost four tasks and ~1.2M tokens rebuilding 1,389 files that were never gone. The
-detail, and how to read a stash safely, is in [`minion/SKILL.md`](../minion/SKILL.md)'s git list.
+⚠ **A reverted working tree is a STASH until `git stash list` says otherwise** — the first check, before `git fsck` and before commissioning any reconstruction. Skipping it cost four tasks and ~1.2M tokens rebuilding 1,389 files that were never gone ([`reset-recovery`](/framework/ai/2026-09-19/reset-recovery/); how to read a stash safely is in [`minion/SKILL.md`](../minion/SKILL.md)).
 
 ## Never break the page; audit a mistake when it happens (the owner, 2026-09-19)
 

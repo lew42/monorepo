@@ -54,14 +54,32 @@ or a custom property on `<html>`, so restoring is only writing them back.
 Knobs are remembered as a list of class names (`["dev-outline"]`, not
 `{xray: true}`) for the same reason: the class already *is* the state.
 
-**`block` writes `window.$BLOCKRELOAD` and stores nothing.** Every other knob
-is a class on `<html>` that `settings.js` remembers; this one is a global
-`Socket` reads live, in `reload()` and `changed()`. Routing it through `knob()`
-would put the same boolean in two stores — the black magic this module avoids —
-and persisting it is worse than useless: a block that quietly survived a reload
-reads as live reload being broken, which is a bug report, not a feature. It
-lives in the *head* rather than a tab because you reach for it mid-edit, with
-whatever tab you were on still open.
+**`block` writes `window.$BLOCKRELOAD` and stores nothing.** *(Superseded
+2026-09-22 — the reasoning and what replaced it are below; kept because the
+first half of it is still why this knob is not a `settings.js` class.)* Every
+other knob is a class on `<html>` that `settings.js` remembers; this one is a
+global `Socket` reads live, in `reload()` and `changed()`. Routing it through
+`knob()` would put the same boolean in two stores — the black magic this module
+avoids — and persisting it is worse than useless: a block that quietly survived
+a reload reads as live reload being broken, which is a bug report, not a
+feature. It lives in the *head* rather than a tab because you reach for it
+mid-edit, with whatever tab you were on still open.
+
+**`block` is remembered per tab now, and shows what it refused** (2026-09-22,
+`blocked.js`; [reload-rethink](/framework/ai/2026-09-22/reload-rethink/)). The
+argument above had it exactly the wrong way round. Not persisting it meant the
+very *first* reload it failed to stop also erased it — so a block that "wasn't
+working" was usually a block that had already been wiped, which is the bug
+report the old reasoning was trying to avoid. It is in `sessionStorage`, not
+`settings.js`: that is a single tab's lifetime, which is the right scope for
+"don't move the page I am reading", and it keeps the boolean out of the shared
+settings document exactly as the paragraph above wants.
+
+The real hazard the old note was circling — a silent switch reading as a broken
+dev server — is answered by the **count** beside it: "3 held", clickable, takes
+the held reloads in one reload. And `Socket` restores the flag at boot, before
+anything can reload the page, so the switch is in force during the window that
+used to erase it.
 
 **The `✕` is pinned by `flex-grow` on the hint, not by an auto margin.**
 `.dev-hint { margin-inline-end: auto }` stood in `devbar.css` for months and

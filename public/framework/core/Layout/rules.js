@@ -43,6 +43,13 @@ export const RULES = {
    list of `{ rule, says, url }`, where `says` is a plain sentence a newcomer can
    act on and `url` is the page that argues it. A violation CITES its rule page
    rather than restating it. */
+/* Only the FLOOR is asked. Every entry's ceiling is 3440 and above a ceiling a
+   layout HOLDS rather than stretching (the owner, addendum 4), so a ceiling can
+   never make a layout unfit — it is not a silent omission.
+   `!room ||` — a box that has not been laid out yet measures 0, and a picker that
+   greys the whole catalogue because it was asked too early is a lie. */
+export const fits = (layout, room) => !room || room >= (layout.widths?.[0] ?? 0) - 1;
+
 export function check(layout, el){
 	if (!dev || !el) return [];
 
@@ -50,7 +57,7 @@ export function check(layout, el){
 	const room = el.clientWidth;
 	const floor = layout.widths?.[0] ?? 0;
 
-	if (room && floor && room < floor - 1)
+	if (room && !fits(layout, room))
 		found.push({
 			rule: "width", url: RULES.width.url,
 			says: `${layout.title} is proven from ${floor}px. This box is ${Math.round(room)}px. `

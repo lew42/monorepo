@@ -26,6 +26,9 @@ navigated(){ devbar.refresh(); },
 - **The head's word "DEV" is gone** — `pathbar.js` draws the active page's own url there instead, scrolled to its own right edge so a deep url truncates from the left: [`doc/chat.md`](./doc/chat.md)
 - **"the mastermind says" is "the mastermind log" now**, and its cards EVOLVE (a later line with the same `id` updates that card in place, never a duplicate) — read `says.js`'s own header comment first, it is the fullest record of five owner passes in one place; `doc/chat.md` has the two bugs worth remembering (`flex-shrink: 0` on every row card; every `[hidden]` override lives in the trailing `@layer util` block).
 
+- **`block` is per-tab, remembered, and counts what it refused** (`blocked.js`, 2026-09-22) — ticking it holds reloads in THAT TAB only, `sessionStorage` keeps it for the life of the tab, and "3 held" beside it says how many reloads were skipped; clicking that takes them in one reload. It used to be a bare `window.$BLOCKRELOAD`, which the very first reload it failed to stop also erased. Not the same thing as the hold beside it: [`/framework/ai/2026-09-22/reload-rethink/`](/framework/ai/2026-09-22/reload-rethink/)
+- **`hold.js` and `ai/health/devbar.js` were both written to be called from the head line and neither call existed.** `hold()` is wired now; `health_devbar()` still is not, so the health readout is dark. A function whose only caller would be one line in someone else's file is not finished until that line exists — neither of these ever threw. (2026-09-22)
+
 ## More
 
 - [Overview](/framework/dev/DevBar/) · [`doc/decisions.md`](./doc/decisions.md) — every decision, trap and open item, verbatim (moved 2026-08-17)
@@ -35,4 +38,4 @@ navigated(){ devbar.refresh(); },
 - [`doc/threads.md`](./doc/threads.md) — the `ai` section: a chat is a task, the directory listing is the index
 - [`doc/structure.md`](./doc/structure.md) — the `structure` section: the nested `.page` chain, the children, and why the display is computed
 - [`doc/measuring.md`](./doc/measuring.md) — the `layout` tab: `.app` as root, the 200ms settle, panel retargeting, the hidden-page trap
-- Files that matter: `DevBar.js` (shell, toggle, refresh) · `tools.js` (sections array, no registry) · `settings.js` (one localStorage document) · `ext/grip` (the resize edge, shared) · `chat.js`/`log.js`/`sessions.js` (the chat tab) · `pathbar.js` (the head's own url) · `says.js` (the mastermind log)
+- Files that matter: `DevBar.js` (shell, toggle, refresh) · `tools.js` (sections array, no registry) · `settings.js` (one localStorage document) · `ext/grip` (the resize edge, shared) · `chat.js`/`log.js`/`sessions.js` (the chat tab) · `pathbar.js` (the head's own url) · `says.js` (the mastermind log) · `blocked.js` (the reader's pause switch) · `hold.js` (the writer's hold, read-only)

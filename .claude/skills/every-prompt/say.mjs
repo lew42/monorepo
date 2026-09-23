@@ -4,8 +4,10 @@
  *   node .claude/skills/every-prompt/say.mjs state            print the run's current state, to answer from
  *   node .claude/skills/every-prompt/say.mjs <file.json>      post what the file says, then delete nothing
  *
- * The JSON file (write it with the Write tool — never pass the owner's words through a
- * shell argument: quotes and apostrophes break) is one object or a list of them:
+ * The JSON file (write it with the Write tool — never a shell argument, and NEVER a bash
+ * heredoc: through the Bash tool on Windows a heredoc double-encodes every non-ASCII
+ * character, and six cards reached the owner's screen as â†' and â€" on 2026-09-22) is one
+ * object or a list of them:
  *
  *   {"card":  {"id": "…", "title": "…", "text": "…", "status": "working|done|needs-you", "links": [{"url","label"}]}}
  *        → appended to the V3 board; it shows at once on /framework/ai/v/3/ and in the dev bar's chat log.
@@ -59,7 +61,25 @@ function mastermind_session(){
 	return state.mastermind_session ?? null;
 }
 
-function state(){
+/* GET /agents is Servex's registry — every mastermind/task-mastermind it has ever
+ * registered, surviving a Servex restart the routing-by-one-field below cannot.
+ * `null` (not `[]`) means Servex is not answering at all, so the caller can fall
+ * back to the old single-session line instead of reporting "none live" by mistake. */
+async function masterminds(){
+	try {
+		const res = await fetch("http://127.0.0.1:8090/agents", { signal: AbortSignal.timeout(800) });
+		if (!res.ok) return null;
+		const rows = await res.json();
+		return rows.filter(r => (r.role === "mastermind" || r.role === "task-mastermind") && r.state !== "stopped");
+	} catch { return null; }
+}
+
+async function state(){
+	const live = await masterminds();
+	console.log(live
+		? "MASTERMINDS\n" + (live.length ? live.map(r => `  ${r.id} — ${r.topics ?? "(no topics)"} — ${r.page ?? "(no page)"}`).join("\n") : "  none live")
+		: "MASTERMINDS  Servex is not answering at 127.0.0.1:8090 — falling back to MASTERMIND SESSION below");
+
 	const file = run();
 	if (!file) return console.log("No mastermind run is open.");
 	const lines = read(file), merged = (verb, key) => {
@@ -71,7 +91,7 @@ function state(){
 	const agents = merged("agent", "task"), asks = merged("ask", "id"), today = now().slice(0, 10);
 	console.log("RUN      " + path.relative(root, file).replaceAll("\\", "/"));
 	// The name other Claude sessions use to SendMessage the mastermind (it writes this itself).
-	if (assign.mastermind_session) console.log("MASTERMIND SESSION  " + assign.mastermind_session + "   ← SendMessage to this name");
+	if (!live && assign.mastermind_session) console.log("MASTERMIND SESSION  " + assign.mastermind_session + "   ← SendMessage to this name");
 	console.log("NOW      " + (assign.now ?? ""));
 	console.log("WORKING  " + (agents.filter(a => !a.outcome).map(a => `${a.task} (${a.model}) — ${a.does ?? ""}`).join("\n         ") || "nothing"));
 	console.log("LANDED   " + (agents.filter(a => a.outcome && String(a.landed_at ?? a.at).startsWith(today)).map(a => a.task).join(", ") || "nothing today"));
@@ -156,7 +176,7 @@ const author = flags.as ?? "assistant";
 const stamp = () => flags.id ?? (author === "assistant" ? "a-" : author.slice(0, 12) + "-") + now().slice(11, 19).replaceAll(":", "");
 const [arg, one, two, three] = argv;
 
-if (!arg || arg === "state") state();
+if (!arg || arg === "state") await state();
 else if (arg === "say") post([{ card: { id: stamp(), author,
 	...(flags.status ? { status: flags.status } : {}), ...(flags.icon ? { icon: flags.icon } : {}), ...(flags.re ? { re: flags.re } : {}), ...(flags.parent ? { parent: flags.parent } : {}), ...(focus ? { focus: true } : {}),
 	...(ask ? { ask, ask_to: flags["ask-to"] ?? null } : {}),

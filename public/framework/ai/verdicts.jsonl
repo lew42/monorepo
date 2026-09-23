@@ -14,3 +14,57 @@
 {"verdict":{"id":"system-eval","say":"reopen","at":"2026-09-19T19:56:19-05:00","by":"inbox-zero-reverify"}}
 {"verdict":{"id":"ready","say":"approve","at":"2026-09-19T20:06:54-05:00","by":"inbox-zero-elig-check"}}
 {"verdict":{"id":"ready","say":"reopen","at":"2026-09-19T20:09:00-05:00","by":"inbox-zero-elig-check"}}
+{"verdict":{"id":"prompts","say":"improve","at":"2026-09-22T17:25:49-05:00","by":"owner","note":"the mic input ui is at the bottom of a 12 page scroll area?  no bueno"}}
+{"verdict":{"id":"p-28","say":"read","at":"2026-09-22T18:20:54-05:00","by":"owner"}}
+{"verdict":{"id":"p-28","say":"improve","at":"2026-09-22T18:20:55-05:00","by":"owner","note":"Proof run: this is the flag sentence."}}
+{"verdict":{"id":"dictate-silence","say":"improve","at":"2026-09-22T18:20:58-05:00","by":"owner","note":"Proof run: not this bit.","quote":"It records until you press sto"}}
+{"verdict":{"id":"p-29","say":"read","at":"2026-09-22T18:26:39-05:00","by":"owner"}}
+{"verdict":{"id":"record","say":"read","at":"2026-09-22T18:27:43-05:00","by":"owner"}}
+{"verdict":{"id":"dictate-silence","say":"read","at":"2026-09-22T18:27:58-05:00","by":"owner"}}
+{"verdict":{"id":"whisper","say":"read","at":"2026-09-22T18:29:17-05:00","by":"owner"}}
+{"verdict":{"id":"grip","say":"read","at":"2026-09-22T18:29:25-05:00","by":"owner"}}
+{"verdict":{"id":"grip-fix","say":"read","at":"2026-09-22T18:29:27-05:00","by":"owner"}}
+{"verdict":{"id":"padding-law","say":"read","at":"2026-09-22T18:29:28-05:00","by":"owner"}}
+{"verdict":{"id":"p-27","say":"read","at":"2026-09-22T18:29:29-05:00","by":"owner"}}
+{"verdict":{"id":"state","say":"read","at":"2026-09-22T18:29:30-05:00","by":"owner"}}
+{"verdict":{"id":"talk","say":"read","at":"2026-09-22T18:32:18-05:00","by":"owner"}}
+{"verdict":{"id":"p-38","say":"read","at":"2026-09-22T18:32:25-05:00","by":"owner"}}
+{"verdict":{"id":"p-60","say":"read","at":"2026-09-22T18:51:40-05:00","by":"owner"}}
+{"verdict":{"id":"p-63","say":"read","at":"2026-09-22T18:51:43-05:00","by":"owner"}}
+{"verdict":{"id":"p-62","say":"read","at":"2026-09-22T18:51:52-05:00","by":"owner"}}
+{"verdict":{"id":"p-69","say":"read","at":"2026-09-22T18:52:31-05:00","by":"owner"}}
+{"verdict":{"id":"p-68","say":"read","at":"2026-09-22T18:52:37-05:00","by":"owner"}}
+{"verdict":{"id":"p-69","say":"read","at":"2026-09-22T18:52:49-05:00","by":"owner"}}
+{"verdict":{"id":"p-70","say":"read","at":"2026-09-22T18:53:06-05:00","by":"owner"}}
+{"verdict":{"id":"p-71","say":"read","at":"2026-09-22T18:53:44-05:00","by":"owner"}}
+{"verdict":{"id":"inbox-model","say":"read","at":"2026-09-22T19:01:25-05:00","by":"owner"}}
+{"verdict":{"id":"inbox-model","say":"read","at":"2026-09-22T19:02:44-05:00","by":"owner"}}
+{"verdict":{"id":"p-87","say":"read","at":"2026-09-22T19:03:08-05:00","by":"owner"}}
+{"verdict":{"id":"p-86","say":"read","at":"2026-09-22T19:03:17-05:00","by":"owner"}}
+{"verdict":{"id":"how-cards-are-stored","say":"read","at":"2026-09-22T19:03:21-05:00","by":"owner"}}
+{"verdict":{"id":"how-cards-are-stored","say":"improve","at":"2026-09-22T19:03:34-05:00","by":"owner","note":"markdown not rendering properly"}}
+{"verdict":{"id":"how-cards-are-stored","say":"reopen","at":"2026-09-22T19:03:38-05:00","by":"owner"}}
+{"verdict":{"id":"how-cards-are-stored","say":"improve","at":"2026-09-22T19:04:03-05:00","by":"owner","note":"i have to click the red flag 2x (after the first message), to send another one. first click turns red flag off, second allows a second message"}}
+{"verdict":{"id":"how-cards-are-stored","say":"reopen","at":"2026-09-22T19:04:08-05:00","by":"owner"}}
+{"verdict":{"id":"how-cards-are-stored","say":"improve","at":"2026-09-22T19:04:29-05:00","by":"owner","note":"does unchecking the redflag remove previous messages?  sending multiple messages is really hard, layout is extremely broken"}}
+{"verdict":{"id":"p-88","say":"read","at":"2026-09-22T19:04:32-05:00","by":"owner"}}
+{"verdict":{"id":"p-88","say":"read","at":"2026-09-22T19:04:51-05:00","by":"owner"}}
+{"verdict":{"id":"p-104","say":"read","at":"2026-09-22T19:06:58-05:00","by":"owner"}}
+{"verdict":{"id":"p-103","say":"read","at":"2026-09-22T19:07:02-05:00","by":"owner"}}
+{"verdict":{"id":"p-103","say":"read","at":"2026-09-22T19:08:08-05:00","by":"owner"}}
+{"verdict":{"id":"zzz-seed-1","say":"read","at":"2026-09-22T19:08:18-05:00","by":"owner"}}
+{"verdict":{"id":"zzz-seed-1","say":"read","at":"2026-09-22T19:08:27-05:00","by":"owner"}}
+{"verdict":{"id":"zzz-seed-3","say":"read","at":"2026-09-22T19:08:29-05:00","by":"owner"}}
+{"verdict":{"id":"card-to-task","say":"read","at":"2026-09-22T19:08:32-05:00","by":"owner"}}
+{"verdict":{"id":"zzz-seed-1","say":"read","at":"2026-09-22T19:08:45-05:00","by":"owner"}}
+{"verdict":{"id":"zzz-seed-1","say":"read","at":"2026-09-22T19:08:54-05:00","by":"owner"}}
+{"verdict":{"id":"zzz-seed-3","say":"read","at":"2026-09-22T19:08:56-05:00","by":"owner"}}
+{"verdict":{"id":"card-to-task","say":"read","at":"2026-09-22T19:08:59-05:00","by":"owner"}}
+{"verdict":{"id":"p-105","say":"read","at":"2026-09-22T19:09:46-05:00","by":"owner"}}
+{"verdict":{"id":"ai2-master-detail","say":"read","at":"2026-09-22T19:11:08-05:00","by":"owner"}}
+{"verdict":{"id":"ai2-master-detail","say":"read","at":"2026-09-22T19:11:22-05:00","by":"owner"}}
+{"verdict":{"id":"p-105","say":"read","at":"2026-09-22T19:11:24-05:00","by":"owner"}}
+{"verdict":{"id":"p-103","say":"read","at":"2026-09-22T19:11:25-05:00","by":"owner"}}
+{"verdict":{"id":"inbox-model","say":"read","at":"2026-09-22T19:13:37-05:00","by":"owner"}}
+{"verdict":{"id":"p-102","say":"read","at":"2026-09-22T19:14:12-05:00","by":"owner"}}
+{"verdict":{"id":"inbox-model","say":"read","at":"2026-09-22T19:14:23-05:00","by":"owner"}}

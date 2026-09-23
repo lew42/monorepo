@@ -232,6 +232,39 @@ move but not a risk-free one this late, and the two engines already read cleanly
 clear `// ----` section breaks. If this file grows further (a third engine, more per-engine
 state), that is the moment to make the split real rather than doing it speculatively today.
 
+## Voice → log, added 2026-09-22
+
+Task log: [`ai/2026-09-22/whisper-servex/`](/framework/ai/2026-09-22/whisper-servex/). Owner's
+words that opened it: "spawn a minion to look into our Whisper system, and see if we can get
+that working with Servex." Everything above still stood — `whisper-server` was already up and
+transcribing correctly — but the transcript only ever reached the screen. `commit()` now also
+calls `log_prompt(text)`, so every finished utterance (each committed whisper segment, or each
+`isFinal` browser result — the same granularity that was already reaching the caption and the
+target box) becomes one log line `{at, type: "prompt", by: "owner", text, via: "whisper"}`.
+
+**Primary target: Servex's own log**, `POST http://127.0.0.1:8090/log/prompts` — one constant
+(`Dictate.prototype.log_url`), a 1.2s timeout so a down Servex never stalls a dictation. Not up
+yet as of this task (`servex-port` is still building it); the moment it answers, this starts
+working with zero further changes to this file.
+
+**Fallback, proven working today:** the dev server's own generic append route. The brief
+guessed the fallback might be `Server/plugins/AILogs.js` or `Ask.js` — checked both and neither
+fits: `AILogs.js` is read-only (serves Claude Code transcripts, no writer at all), and `Ask.js`'s
+socket handlers only append to a `task.jsonl` whose path must contain an `ai` segment, not an
+arbitrary named log. The real generic writer, found by grepping every `rpc:` handler under
+`Server/`, is `Server/plugins/SocketServer/Append.js`'s `rpc:append(file, lines)` — already
+wired into `server.js`, writes any `.jsonl` under `public/`. `log_prompt()` falls back to
+`Socket.singleton().async_rpc("append", "framework/ai/prompts.jsonl", entry)` on any primary
+failure. Proven headless: a fake-mic dictation of the JFK clip on a private server, with Servex
+confirmed down by `curl`, left two real lines in `public/framework/ai/prompts.jsonl` in exactly
+the brief's shape.
+
+**Alternative considered and rejected:** logging only on `stop()` (one line per whole dictation)
+instead of per committed segment. Rejected because `commit()` is already the point where text is
+considered "finished" everywhere else in this file (the caption settles, the target box gets the
+append) — a second, coarser definition of "finished" would need its own buffering and would lag
+behind what the owner already sees on screen for no real benefit.
+
 ## What the headless proof covered, and what it could not
 
 Playwright's fake-audio flag (`--use-file-for-fake-audio-capture`) feeds a WAV file as
@@ -242,3 +275,28 @@ meter reacts to a human's actual voice, or that a real microphone's `NotAllowedE
 device-not-found paths fire exactly as written — those were read against the spec and
 against `ext/Ask/mic.js`'s own prior handling of `not-allowed`, not independently
 observed here.
+
+## "Thank you" — silent segments, fixed 2026-09-22
+
+The one the owner actually hit: whisper kept answering "Thank you" no matter what they
+said. The sound was never lost — the microphone, the 16kHz context, the worklet and the
+WAV header all measured correct end to end. `Dictate` was simply also sending whisper the
+quiet stretches (the tail after a settled sentence, and the 1.5s re-sends before the first
+word), and whisper answers silence by inventing a sentence rather than returning nothing.
+
+`Capture.loudness()` and `Dictate.worth_sending()` now refuse to send a segment carrying
+less than 120ms of speech, counted in 20ms frames rather than as one average — a quiet room
+with a single click in it measures 0.043 RMS, so an average cannot do this job. The full
+measurement, the alternatives rejected, and the `$DICTATE_DUMP` seam that captures the exact
+posted bytes: [`doc/silence.md`](/framework/ux/Dictate/doc/silence/).
+
+## Open mic — 2026-09-22
+
+The owner's own complaint: a segment used to land under the box, then get MOVED into it and
+submitted, all at once — surprising, and wrong for a mic meant to stay on indefinitely while
+a fast assistant listens to every sentence. `mode: "open"` makes both halves explicit instead
+of implicit: `push_to_target()` never touches `$input` at all (the box is for typing, full
+stop), and `draw_caption()` keeps every settled sentence as its own line, appended, instead of
+one string capped at 240 characters. Proven against a private Servex + a concatenated 3x `jfk.wav`
+clip on both `talk` and AI 2's composer: three real whisper segments, the box's `value` stayed
+`""` throughout, "stop after a pause" was absent, zero console errors — `ai/2026-09-22/open-mic/`.

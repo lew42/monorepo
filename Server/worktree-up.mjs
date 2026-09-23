@@ -109,56 +109,82 @@ try {
 	process.exit(1);
 }
 
-/* `node_modules` IS NOT IN THE WORKTREE (found by running this, 2026-09-21 — the
-   author could not execute anything, so it shipped untested). `git worktree add`
-   checks out tracked files only, and `node_modules` is gitignored, so the fresh
-   tree's `node server.js` dies on `Cannot find package 'express'` and the boot
-   wait times out with a worktree left behind.
+/* `node_modules` IS NOT IN THE WORKTREE. `git worktree add` checks out tracked
+   files only, and `node_modules` is gitignored, so the fresh tree's
+   `node server.js` dies on `Cannot find package 'express'` unless something
+   installs it first.
 
-   A junction, not a copy and not `npm install`: the main repo's modules are
-   already correct for this exact commit, a copy would be ~thousands of files per
-   worktree, and an install needs the network. `fs.symlinkSync(..., "junction")`
-   is the Windows form that needs no elevation; on a POSIX host the same call
-   falls back to a normal directory symlink. If it fails we say so and carry on —
-   the server will then fail its own way, with its real error in the log. */
-const modules_src = path.join(ROOT, "node_modules");
-const modules_dst = path.join(target, "node_modules");
-if (fs.existsSync(modules_src) && !fs.existsSync(modules_dst)) {
-	try {
-		fs.symlinkSync(modules_src, modules_dst, "junction");
-		console.log("worktree-up: linked node_modules from the main checkout.");
-	} catch (e) {
-		console.error(`worktree-up: could not link node_modules (${e.code ?? e.message}) — the server will probably fail to boot.`);
-	}
+   A JUNCTION WAS TRIED FIRST AND COST THE MAIN CHECKOUT ITS node_modules
+   (2026-09-22, ~15:05): `fs.symlinkSync(..., "junction")` here made
+   `worktree/<name>/node_modules` a junction pointing back at the main
+   checkout's `node_modules` — and `git worktree remove` follows a junction
+   like any other directory and deletes through it, so tearing down ONE
+   worktree emptied the MAIN tree's `node_modules` (68 packages gone; the live
+   site kept running only because express was already loaded into memory).
+   `npm ci` instead: it needs no network for packages already in the local
+   npm cache from the main checkout's own install, and it cannot ever reach
+   back and delete the main tree's copy. Measured 5s for these 68 packages. */
+console.log("worktree-up: running npm ci in the worktree…");
+try {
+	/* `shell: true` — without it, `npm.cmd` throws `spawnSync npm.cmd EINVAL` on
+	   Windows even called by its exact .cmd name: Node's CVE-2024-27980 guard
+	   refuses to exec a .cmd/.bat directly and needs a shell in between
+	   (found live, worktree-proof 2026-09-22 — npm never even started, so
+	   node_modules was never created and the server then died on
+	   `Cannot find package 'express'`). */
+	execFileSync(process.platform === "win32" ? "npm.cmd" : "npm", ["ci"], { cwd: target, stdio: "inherit", shell: true });
+} catch (e) {
+	console.error("worktree-up: `npm ci` failed — the server will probably fail to boot.");
 }
 
 const port = await free_port();
-const log_path = path.join(target, ".worktree-server.log");
+/* The log lives OUTSIDE the worktree, beside the registry — never inside
+   `target` (see worktree-down.mjs for why: a file inside the worktree makes
+   `git status --porcelain` non-empty forever, which is the bug that stopped
+   worktree-down.mjs from ever being able to remove what this script made). */
+const LOGS_ROOT = path.join(ROOT, ".worktree-logs");
+fs.mkdirSync(LOGS_ROOT, { recursive: true });
+const log_path = path.join(LOGS_ROOT, `${name}.log`);
 const log_fd = fs.openSync(log_path, "a");
 
 console.log(`worktree-up: booting node server.js in ${target} on PORT ${port}…`);
-const child = spawn(process.execPath, ["server.js"], {
-	cwd: target,
-	env: { ...process.env, PORT: String(port) },
-	detached: true,
-	stdio: ["ignore", log_fd, log_fd],
-});
-child.unref();
+/* ⚠ Launched through PowerShell so the server gets a HIDDEN console that its children
+ * inherit. A `detached` node with `windowsHide` has NO console, and then every child it
+ * forks (run.js, boot-test candidates, claude turns, hooks) opens a VISIBLE window — the
+ * 2026-09-22 node-window storm on the owner's desktop. */
+const ps = `$env:PORT='${port}'; $p = Start-Process -FilePath '${process.execPath.replaceAll("'", "''")}' -ArgumentList 'server.js' -WorkingDirectory '${target.replaceAll("'", "''")}' -WindowStyle Hidden -RedirectStandardOutput '${log_path.replaceAll("'", "''")}' -RedirectStandardError '${(log_path + ".err").replaceAll("'", "''")}' -PassThru; $p.Id`;
+const started = spawnSync("powershell.exe", ["-NoProfile", "-Command", ps], { encoding: "utf8", windowsHide: true });
+const child = { pid: Number(String(started.stdout).trim()) || null };
 
 const ok = await wait_for_boot(port);
 if (!ok) {
 	console.error(`worktree-up: server did not answer HTTP 200 within 15s — see ${log_path}. The worktree and its (probably dead) server are left in place; run worktree-down.mjs ${name} to clean up.`);
-	registry[name] = { name, path: target, branch, port, pid: child.pid, created_at: new Date().toISOString(), booted: false };
+	registry[name] = { name, path: target, branch, port, pid: child.pid, log: log_path, created_at: new Date().toISOString(), booted: false };
 	write_registry(registry);
 	process.exit(1);
 }
 
-registry[name] = { name, path: target, branch, port, pid: child.pid, created_at: new Date().toISOString(), booted: true };
+registry[name] = { name, path: target, branch, port, pid: child.pid, log: log_path, created_at: new Date().toISOString(), booted: true };
 write_registry(registry);
+
+/* Servex is optional, always — a worktree must work with it stopped, so this
+   stays silent and succeeds either way. When it answers, it learns the name
+   and port so `<name>.localhost:8080` reaches this worktree through the
+   proxy with no restart (PortRegistry.pin, live-shared with ReverseProxy). */
+let proxy_url = null;
+try {
+	const r = await fetch(`http://127.0.0.1:${process.env.SERVEX_PORT || 8090}/api/projects`, {
+		method: "POST", headers: { "content-type": "application/json" },
+		body: JSON.stringify({ name, path: target, port }),
+		signal: AbortSignal.timeout(2000),
+	});
+	if (r.ok) proxy_url = `http://${name}.localhost:8080/`;
+} catch {}
 
 console.log("");
 console.log(`worktree-up: ready.`);
 console.log(`  url    http://localhost:${port}/`);
+if (proxy_url) console.log(`  proxy  ${proxy_url}`);
 console.log(`  edit   ${target}`);
 console.log(`  branch ${branch}`);
 console.log(`  down   node Server/worktree-down.mjs ${name}`);

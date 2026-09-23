@@ -1,4 +1,4 @@
-import { Page, p, b, md, a } from "/app.js";
+import { Page, p, b, md, a, details, summary } from "/app.js";
 
 /* ── layout ───────────────────────────────────────────────────────────────────
    1 CONTAINER  a task page on the day board — the page grid.
@@ -35,7 +35,13 @@ export default new Page({
 			"- The \"never kill the dev server, never drive the owner's tabs, never `git stash`\" story was told in full here a second time — it already lives in full in `minion/SKILL.md`'s never-list, which every minion reads first. Shrunk to a clause plus a link to [the actual incident](/framework/ai/2026-08-19/mastermind-run-4/).\n" +
 			"- The `server-self` recovery-testing story got a real link to its task log in place of a paragraph explaining the same thing.");
 
-		md("## Three rules I stress-tested\n\n" +
+		/* ⚠ Presentation pass, 2026-09-22: 3,120px at 1280, four screens of prose.
+		   Nothing deleted — the stress tests and the left-alone reasoning moved
+		   behind one fold, so the incident and what actually moved read as one
+		   screen. */
+		details(() => {
+			summary("The three rules I stress-tested, and the four files left alone on purpose");
+			md("## Three rules I stress-tested\n\n" +
 			"For each of these — the three cut hardest — I re-read only the NEW wording and asked: would I still do the right thing, having never seen the long version?\n\n" +
 			"1. **Never kill the dev server, drive the owner's tabs, or `git stash`** (mastermind). The new version is four lines instead of six, but it still names all three prohibitions, still says two different agents caused two live outages doing exactly this on 2026-08-19, and still links to where the damage is spelled out. Yes — the clause alone is enough to not do it.\n" +
 			"2. **The hover-reveal click trap** (ui-test): `click` silently does nothing on an element only an ancestor's `:hover` reveals. The new version keeps the entire fix recipe (hover the ancestor, then the compound selector, then down/up; or a coordinate fallback aimed at a probed centre, never a rect corner) — only the four separate incident write-ups became one clause. Yes — the recipe is what you'd actually follow, and it's untouched.\n" +
@@ -44,6 +50,7 @@ export default new Page({
 		md("## Left alone, on purpose\n\n" +
 			"**`layout/SKILL.md` (292 lines) got zero edits.** I read it start to finish looking for stories to shrink and didn't find any I'd cut. Almost every dated line in it isn't a story — it's a measurement (a pixel count, a percentage, a before/after) that IS the proof the rule is real, for a skill whose whole job is convincing an agent that a CSS mistake is invisible until measured. Cutting those numbers to \"trust me\" would remove the only thing that makes the rule believable, which is exactly the harm this task was told not to cause.\n\n" +
 			"**`css`, `code` and `minion` also got zero edits.** `minion/SKILL.md` is already written in the exact target shape — one bold rule, one incident clause, done — so there was nothing left to compress. `css` and `code` are the same story as `layout`: their dated lines are mostly \"this exact CSS property did this exact wrong thing at this exact pixel size,\" not narrative. The return had already dropped below the stop line (about a line saved per story examined) by the time mastermind was done, so I did not force cuts into files that didn't need them.");
+		}).ac("wide");
 
 		p.c("muted", "Stories examined: about 25 across the two edited files (duplicates, multi-incident traps, cross-skill repeats), plus a full read of layout/css/code/minion looking for more. 9 were compressed (folded into fewer, or linked instead of retold); the rest were kept in full because the specific numbers or the exact fix recipe were the only thing making the rule convincing. Every touched file was re-read end to end after editing. Full trail: ", a("task.jsonl").href("./task.jsonl"), ".");
 	},

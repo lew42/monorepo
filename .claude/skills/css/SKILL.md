@@ -62,6 +62,14 @@ width on the SAME word a full-page region ramped to 69.6px on (the padding audit
 the clamp caps at 2.6em, so it is 3.38em there, and a homepage nav item stood 67.6px tall. A `vw`
 clamp on a control is the same mistake in different clothes (the paging toolbar, 130.7px of chrome at
 3440) (2026-09-06 — [the size standard](/framework/styles/system/studies/size/)).
+⚠ **Text never sits at 0 from an edge — the nav rail, the viewport, the ToC column, or the
+border of any box that paints a ground of its own.** A padding of zero under text is the one
+thing the owner has called a law of the whole system (2026-09-22, after `/framework/styles/` at
+a wide window put its `h1` flush against the sidebar: `ext/toc`'s rail rule replaced the page
+shell's grid, and a page's left and right padding IS the first and last track of that grid).
+Before landing a page, run `node Server/padding-check.mjs <url>` — it loads the page at 400,
+1280, 1920 and 3440 and exits non-zero naming the text and the gap.
+
 ⚠ A flex row squeezed under its content width does not overflow first — default `flex-shrink`
 takes each item to min-content, and a multi-word label wraps to lower min-content further: six
 toolbar buttons went two-line before the row ever scrolled, silently (2026-08-19). The fix shape:

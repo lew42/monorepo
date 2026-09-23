@@ -46,11 +46,14 @@ export default class LiveReload extends Events {
          * on one file costs nothing (contrast the 8,532-handle chokidar history
          * this file's sibling comment tells above).
          *
-         * `held_state` is a plain boolean this instance trusts between polls —
+         * `holders` is the live holder list this instance trusts between polls —
          * flush() reads it instead of hitting the disk on every debounce, so a
          * batch of ten quick writes costs one extra stat every 500ms, not one per
-         * write. `holders_seen` is a signature of the last broadcast `hold` frame,
-         * so sockets only hear about a hold when it actually changes.
+         * write. It is the LIST, not a boolean, because since 2026-09-22 each
+         * holder carries the fence it is writing inside and flush() needs it.
+         * `holders_seen` is a signature of the last broadcast `hold` frame —
+         * `who`, `until` AND `paths` — so sockets hear about a hold only when it
+         * really changes, and a holder narrowing its own fence counts as a change.
          *
          * A hold already on disk when this plugin boots (the supervisor
          * restarting the child mid-hold) is picked up on the very first tick,
@@ -80,7 +83,7 @@ export default class LiveReload extends Events {
          * still. `node --check` only proves a file PARSES; it does not run
          * `initialize()`, so it never caught this — after any Server/ edit,
          * boot it on a private port and curl it before moving on. */
-        this.held_state = false;
+        this.holders = [];
         this.holders_seen = "";
         this.socket_server.server.on("listening", () => {
             if (process.env.BOOT_TEST) return;   // a candidate boot test must never touch the shared reload-hold lock
@@ -95,10 +98,11 @@ export default class LiveReload extends Events {
         for (const holder of expired)
             console.log(`Hold: "${holder.who}" lapsed (its 5 minutes ran out) — flushing what queued.`);
 
-        const was_held = this.held_state;
-        this.held_state = alive.length > 0;
+        // `holders` — not just a boolean — because flush() needs each holder's
+        // FENCE, not merely the fact that somebody is holding something.
+        this.holders = alive;
 
-        const signature = alive.map(h => `${h.who}:${h.until}`).join(",");
+        const signature = alive.map(h => `${h.who}:${h.until}:${(h.paths ?? []).join("|")}`).join(",");
         const changed = signature !== this.holders_seen;
         if (changed) this.holders_seen = signature;
 
@@ -118,10 +122,12 @@ export default class LiveReload extends Events {
             if (changed || is_new) socket.rpc("hold", alive);
         }
 
-        // The only transition that must ACT: held → free, whether a human ran
-        // `hold.mjs off` or the clock did it for them. One flush, right now,
-        // rather than waiting for the next debounced changed() to notice.
-        if (was_held && !this.held_state) {
+        /* Any change to WHO holds WHAT must act, not only the old held → free
+         * edge: a holder dropping out of three, or narrowing its own fence,
+         * frees paths that are sitting in the queue right now, and waiting for
+         * the next unrelated write to notice would strand them. One flush, here;
+         * `flush()` re-partitions and keeps whatever is still fenced. */
+        if (changed) {
             clearTimeout(this.timer);
             this.flush();
         }
@@ -142,21 +148,54 @@ export default class LiveReload extends Events {
         this.timer = setTimeout(() => this.flush(), 300);
     }
 
+    /* ⚠ A HOLD IS A FENCE, NOT A SWITCH (2026-09-22). This used to be
+     * `if (this.held_state) return;` — one agent holding stopped EVERY reload on
+     * this whole checkout, so while a minion wrote its batch the owner's own save
+     * did not reload the owner's own tab. The owner, 17:51: "it says live reload
+     * is held by board-declutter for 220 seconds. My page didn't live reload.
+     * This is crazy and bad."
+     *
+     * So the queue is PARTITIONED on every flush. A path inside some live
+     * holder's fence stays queued, exactly as before. Everything else goes out
+     * now, to everyone — the hold was never meant to reach it. The glob rules
+     * live in Server/hold.mjs's `matches()`, nowhere else. */
     flush() {
-        // Held: leave the queue exactly as it is — DO NOT clear it. The next
-        // real change still debounces into flush() again (a no-op, same as
-        // this one) until poll_hold() sees the hold come off and force-flushes.
-        if (this.held_state) return;
+        const queued = [...this.queue];
+        if (!queued.length) return;   // a force-flush with nothing queued — the common case
 
-        const paths = [...this.queue];
-        this.queue.clear();
-        if (!paths.length) return;   // a force-flush with nothing queued — the common case
+        const holders = this.holders ?? [];
+        const held = [], paths = [];
 
-        console.log(`Changed: ${paths.join(" ")} → ${this.socket_server.sockets.length} sockets.`);
+        for (const file of queued) {
+            /* ⚠ `null` means "the server does not know what changed", which no
+             * fence can answer. Nothing calls changed() that way today, but if
+             * anything ever does, holding it while ANY fence is live is the safe
+             * reading: a reload-everything that escapes mid-batch is the exact
+             * flash the hold exists to prevent. */
+            const fenced = file === null ? holders.length > 0 : Hold.matches(holders, file).length > 0;
+            (fenced ? held : paths).push(file);
+        }
+
+        this.queue = new Set(held);
+        if (!paths.length) return;
+
+        let told = 0;
         for (const socket of this.socket_server.sockets) {
             const send = paths.filter(file => !this.silent(file, socket));
-            if (send.length) socket.rpc("changed", send);
+            if (send.length) { socket.rpc("changed", send); told++; }
         }
+
+        /* ⚠ ONE LINE PER BROADCAST, and it is the only census there is — nothing
+         * captures this server's stdout, so a question like "why does my tab keep
+         * reloading?" can otherwise only be answered by reconstructing it from file
+         * mtimes after the fact (which is how ai/2026-09-22/reload-rethink/ had to
+         * answer it: 215 reloads that day, 203 of them directory.json). First three
+         * paths only — a `git checkout` batch is hundreds and would bury the line.
+         * `told` is sockets actually SENT to, not sockets connected: a socket that
+         * wrote the file itself is muted and hears nothing. */
+        const first = paths.slice(0, 3).join(" ");
+        const fenced = held.length ? `, ${held.length} held by ${holders.map(h => h.who).join(", ")}` : "";
+        console.log(`[reload] ${paths.length} path${paths.length === 1 ? "" : "s"} ${first}${paths.length > 3 ? " …" : ""} → ${told} socket${told === 1 ? "" : "s"} told${fenced}`);
     }
 
     silent(file, socket) {

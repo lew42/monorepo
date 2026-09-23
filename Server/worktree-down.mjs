@@ -48,6 +48,14 @@ if (entry.pid) {
 	}
 }
 
+// Servex is optional, always — stays silent and succeeds whether or not it's
+// answering. Removes the name from the proxy's map the same instant it stops.
+try {
+	await fetch(`http://127.0.0.1:${process.env.SERVEX_PORT || 8090}/api/projects/${encodeURIComponent(name)}`, {
+		method: "DELETE", signal: AbortSignal.timeout(2000),
+	});
+} catch {}
+
 let status = "";
 try {
 	status = execFileSync("git", ["-C", entry.path, "status", "--porcelain"], { encoding: "utf8" });
@@ -75,6 +83,17 @@ try {
 	process.exit(1);
 }
 
+// `git worktree remove` never deletes the branch it was on — do that here,
+// now that the worktree using it is gone, so worktree-up.mjs can reuse the
+// same name later without `-B`.
+try {
+	execFileSync("git", ["branch", "-D", entry.branch], { cwd: ROOT, stdio: "inherit" });
+} catch (e) {
+	console.error(`worktree-down: could not delete branch ${entry.branch} — remove it by hand (\`git branch -D ${entry.branch}\`).`);
+}
+
+if (entry.log) { try { fs.unlinkSync(entry.log); } catch {} }
+
 delete registry[name];
 write_registry(registry);
-console.log(`worktree-down: done. Branch ${entry.branch} still exists (worktree removal doesn't delete branches) — nothing else to clean up.`);
+console.log(`worktree-down: done.`);

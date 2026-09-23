@@ -7,8 +7,16 @@
 
     /* Its own margin, deliberately: an end-of-page rule, not a block in the flow. */
     .md-details { margin-block-start: calc(var(--flow) * 1.75); border-top: 1px solid var(--line); }   /* was margin-block-start 3.5rem - 2026-09-05 ramps */
+    /* ⚠ The inline `0.8em` is not decoration (padding-law, 2026-09-22). This said
+       `padding: 0.6em 0` for as long as a `<summary>` was a bare text toggle —
+       framework.css's own note records what one used to be: "padding, radius, no
+       border at all". The control grammar then gave every `summary` on the site
+       `background-color: var(--fill-a08)` and a `1px solid` hairline, and this
+       rule's inline zero turned into a filled, bordered box with its text flush
+       against both inner edges, on 61 pages. `0.8em` is the same inline value the
+       control grammar itself uses. A regression by cascade, not by edit. */
     .md-details > summary {
-        padding: 0.6em 0;
+        padding: 0.6em 0.8em;
         color: var(--subtle);
         font-size: 0.9em;
     }

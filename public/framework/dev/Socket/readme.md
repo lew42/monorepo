@@ -15,6 +15,9 @@ new App({ socket: Socket.singleton() });   // public/app.js — the one call sit
 - `tab()` is this tab's address, minted in `sessionStorage` and carried by every `hello` — a url path is NOT an address, and two windows on one page used to be indistinguishable. [doc/wire.md](./doc/wire.md)
 - `eval()` must never throw — `message()` has no `catch`, so one escape kills frame dispatch (reloads included); reply `{ error }` instead. [doc/method/eval.md](./doc/method/eval.md)
 - The dev server runs arbitrary JS in this tab — two gates must both hold: localhost-only here, loopback-only `POST /mcp` in `Server/plugins/MCP.js`. Widening either is a production change. [doc/localhost.md](./doc/localhost.md)
+- A changed **data** file (`.json` `.jsonl` `.md` `.txt` `.csv` the tab *fetched*) fires `socket.on("data", path)` instead of reloading — that one rule removed 203 of the 215 reloads an AI-board tab took on 2026-09-22, nearly all of them `directory.json`. [doc/method/changed.md](./doc/method/changed.md)
+- A reload that IS needed stashes the reader's place first — scroll, open `<details>`, the field being typed in — and puts it back. ⚠ `window.scrollY` is always 0 on this site; `.pages` is the scroller. [doc/method/changed.md](./doc/method/changed.md)
+- `window.$BLOCKRELOAD` is per-tab, remembered in `sessionStorage`, and now only stops the *reload* — CSS swaps and data events still run while blocked, and each refusal is counted. Not the same thing as the server-side hold. [doc/method/changed.md](./doc/method/changed.md)
 - `changed()` leans on `performance.setResourceTimingBufferSize(100000)` in `/app.js` — delete it and a long-lived tab silently stops reloading. [doc/method/changed.md](./doc/method/changed.md)
 - The CSS hot-swap mutates the *existing* `<link>` — replacing the element re-registers its `@layer` names last and inverts every override on the site. [doc/method/changed.md](./doc/method/changed.md)
 - `.jsonl` files stream, never reload — a page that does not call `JSONL.live()` sits stale while the file grows. [doc/wire.md](./doc/wire.md)
@@ -24,6 +27,7 @@ new App({ socket: Socket.singleton() });   // public/app.js — the one call sit
 
 ## More
 
+- [/framework/ai/2026-09-22/reload-rethink/](/framework/ai/2026-09-22/reload-rethink/) — why `changed()` grew a `data` branch: the day it reloaded 215 times, what still needs a reload and why
 - [/framework/dev/Socket/](/framework/dev/Socket/) — the page: guard, server-calls-you, what a save does
 - [doc/decisions.md](./doc/decisions.md) — the record: who uses this, the singleton, the reconnect storm, three proposed cuts (none applied)
 - [doc/localhost.md](./doc/localhost.md) — the gate is inside the socket, and why

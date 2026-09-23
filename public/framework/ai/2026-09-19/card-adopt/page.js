@@ -1,4 +1,4 @@
-import { Page, md, div, p, img, b } from "/app.js";
+import { Page, md, div, p, img, b, details, summary } from "/app.js";
 
 /* ── layout ───────────────────────────────────────────────────────────────────
    1 CONTAINER  a task page on the day board — the page grid.
@@ -40,6 +40,11 @@ export default new Page({
 			"- `.dev-chat-minion` — the sessions list row shown above. Same fix, 16px.\n\n" +
 			"**Why not the whole `.card` class, only the token?** `.card`'s own rule gives every child `margin-block-start: var(--gap)` for rhythm, and reserves a 3px accent edge. All three cards above already do their own rhythm with a flex `gap` — wearing the full class would ADD `.card`'s margin on top of that gap, not replace it. And the dev bar's own background is the same `--surface` token `.card` paints with, so a card wearing the full class would blend into the rail it sits in. Both reasons are logged in this task's `task.jsonl`, and the coordinator's own review confirmed this part was the right call.").ac("wide");
 
+		/* ⚠ Presentation pass, 2026-09-22: 5,100px at 1280, over six screens. The
+		   before/after shots earn their height — the three prose sections after
+		   them did not. Nothing deleted; they moved behind one fold. */
+		details(() => {
+		summary("The blast radius, the phone-width bug this did NOT fix, and how many other boxes are cards in all but name");
 		md("## The blast radius of fixing the token — checked, not assumed\n\n`--pad-card` is not used by only 2 things, as this task first (wrongly) reported — it is also live today on `public/framework/ai/v/3/v3.css`'s own inbox and grid cards, out of this task's fence and owned by another minion's rebuild tonight. Checked live, read-only, before and after: a regular V3 tile went from ~10.4px to 16px, a wide tile (already past the floor) stayed at 21.36px, unchanged — screenshotted, and it reads as an improvement there too, not a regression. Raising a floor is a low-risk direction for a shared token: it can only ever add breathing room where a box was already tight, never take room away from a box that wasn't.").ac("wide");
 
 		md("## One thing worth knowing before you trust this everywhere\n\n" +
@@ -47,6 +52,7 @@ export default new Page({
 
 		md("## How many other boxes are cards in all but name\n\n" +
 			"**196** distinct CSS class names across the site contain \"card\" or \"tile\" (207 file+name pairs — close to the padding-audit's own count of 180 hand-rolled card classes). Four checked by hand and confirmed as real, padded, bordered boxes ready to adopt the standard, named here for the next pass rather than swept blindly: `public/websites/Site.css` `.site-card`, `public/layouts/shell/shell.css` `.std-shell-card`, `public/resume/resume.css` `.resume-card`, `public/framework/ux/Popover/Popover.css` `.ux-popover-hostile-card`.").ac("wide");
+		}).ac("wide");
 
 		p.c("muted", "Full measurements, the corrected floor's math, the V3 blast-radius check, and the phone-width bug's exact cause are all in this task's task.jsonl.");
 	},

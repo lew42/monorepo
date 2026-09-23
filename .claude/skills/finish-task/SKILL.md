@@ -34,38 +34,24 @@ board renders it in place of the generic viewer.
 
 Optional, and only when this landing produced something the owner will go looking for later — a tier, a realm, a system, a class, a standard, a post, a tool, a study with a page — append one more line so it draws a card on the front of `/framework/ai/`: `{"assign": {"highlight": {"icon": "<one of layers explore science article build straighten>", "title": "<five words or fewer>", "line": "<one plain sentence>", "url": "<THE THING, never this task page>"}}}` — what earns one and what the six icons mean: [`ext/AITask/doc/highlights.md`](/framework/ext/AITask/doc/highlights.md).
 
-⚠ **A literal blank line in `outcome` needs a SINGLE backslash (`\n\n`) to become a real newline
-once the JSON is parsed — the doubled `\\n\\n` that looks right by eye stays four literal
-characters** (`\`,`n`,`\`,`n`) in the parsed string, not a blank line. `bad: 0` on a re-parse
-check only proves the JSON is valid, not that the STRING inside it holds what you meant — print
-`JSON.parse(line).assign.outcome.slice(...)` back out and read it (2026-09-18).
+**Append the landing line with the helper.** Write it to `<scratchpad>/landing-<your-slug>.json`
+with the **Write tool** (the scratchpad is shared by every agent in the session — a generic name
+was overwritten by a sibling mid-run, 2026-09-04) and run `node .claude/hooks/append.mjs
+<task.jsonl> <that file>`. It stamps every `"NOW"` from the real clock, so `landed_at` cannot
+drift, and it re-parses every line of the file afterwards. Inside the JSON a blank line in
+`outcome` is a SINGLE `\n\n`; the doubled `\\n\\n` that looks right by eye stays four literal
+characters, so print the parsed string back out and read it.
+
+⚠ **The backtick hazard is not only a jsonl one.** Any text you append from the SHELL that
+contains a backtick loses every backticked word silently — a double-quoted shell string eats each
+one as a command substitution, the append succeeds and nothing complains (a 74-line
+`doc/decisions.md` addition landed with every code word blank, 2026-09-19). Write it to a file
+with the Write tool and append that file's bytes, whatever the extension.
 
 `window.after` from `check-claude-usage`; `tokens`/`usage` summed from
-`~/.claude/projects/<cwd-slug>/<session_id>.jsonl` (assistant lines' `message.usage`,
-deduped by `message.id`). A subagent cannot sum its own tokens (its turns are not in that
-file) — write `"tokens": null` and let the parent log the cost from its notification. `landed_at` and `outcome` go **inside** `assign`. Re-read the clock immediately before
-writing `landed_at` — one composed by hand while drafting the outcome landed 7 minutes in the
-future (2026-08-31); the timestamp drifts even in a Write-tool payload. ⚠ Read it in **bash**
-(`NOW=$(date -Iseconds)`) and pass it into a script as an argument: inside `node -e` /
-`execSync("date -Iseconds")` on Windows, `date` resolves to cmd's `date.exe`, which PROMPTS for a
-new date and exits 1 ("The system cannot accept the date entered"), so a script that builds its own
-stamp dies mid-append (2026-09-05). Never write a
-`.jsonl` with `Out-File`/`Set-Content` (BOM) — bash `printf`, `Add-Content`, or the Write tool.
-⚠ **The outcome is full of backticks, and a DOUBLE-QUOTED shell string eats every one as a
-command substitution** — the append succeeds, the JSON parses, and the card renders with the
-code words missing; nothing complains. Bit three times in three days (`node -e` twice,
-`python -c` once). Write the landing line to a scratchpad file NAMED AFTER YOUR SLUG (`landing-<slug>.jsonl` — the scratchpad is shared by every agent in the session, and a sibling overwrote a generic name mid-run, 2026-09-04) with the **Write tool** and
-append the FILE's bytes (`[IO.File]::ReadAllText` → `AppendAllText`, or run the file); then
-re-parse every line of the jsonl before walking away — do this after EVERY append the task
-makes, not only the final landing line: four of twenty-five hand-typed `log` lines once shipped
-missing their second closing brace, `git status` showed nothing wrong, and they would have sat
-silently dropped by the next reader's parser until someone actually ran `JSON.parse` over every
-line (2026-09-18). The same backtick-eats-as-command-substitution hazard is not unique to jsonl
-either — it eats a plain **markdown** doc append from the shell exactly as silently (a 74-line
-`doc/decisions.md` addition landed with every backticked word replaced by nothing, no error
-reported); the rule is general: any text you append from the shell that contains a backtick goes
-through a scratchpad file written with the Write tool, whatever the target file's extension
-(2026-09-19).
+`~/.claude/projects/<cwd-slug>/<session_id>.jsonl` (assistant lines' `message.usage`, deduped by
+`message.id`). A subagent cannot sum its own tokens (its turns are not in that file) — write
+`"tokens": null` and let the parent log the cost. `landed_at` and `outcome` go **inside** `assign`.
 
 ## 4. Close the day
 

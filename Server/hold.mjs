@@ -11,7 +11,19 @@
  * It is git-ignored (.gitignore) because it only ever describes THIS
  * machine's running agents, right now — nothing worth committing.
  *
- * Shape on disk: `{ "holders": [ { who, what, since, until, pid } ] }`.
+ * ⚠ A HOLD IS SCOPED TO ITS HOLDER'S FENCE, NEVER GLOBAL (2026-09-22). It used
+ * to stop EVERY reload on every server watching this checkout, which is exactly
+ * backwards: the hold exists so one agent's half-written batch does not flash the
+ * owner, and instead it stopped the owner seeing their OWN save. The owner, at
+ * 17:51: "in my dev bar, it says live reload is held by board-declutter for 220
+ * seconds. My page didn't live reload. This is crazy and bad." It also cost this
+ * task's own proof run 35 minutes of silent, wrong zeros.
+ *   So a holder now carries `paths` — the globs it is writing — and `LiveReload`
+ * queues only the changes that MATCH a live holder's fence, broadcasting
+ * everything else immediately. `matches()` below is the single place that knows
+ * the glob rules; nothing else reimplements them.
+ *
+ * Shape on disk: `{ "holders": [ { who, what, paths, fenced, since, until, pid } ] }`.
  * `holders` is a LIST — two agents can hold at once, same as two people
  * propping open the same door; reloads resume only once every holder has
  * let go. The file itself disappears the moment the list is empty (`off`
@@ -77,16 +89,84 @@ export function clear(){
 	try { fs.unlinkSync(LOCK_PATH); } catch {}
 }
 
-// Take (or renew) a hold. Renew: calling `on` again with the same `who`
-// replaces that holder's entry — same name, fresh 5 minutes.
-export function add(who, what = "", ttl = ttl_ms()){
+/* The fence a holder gets when it names none. The boards are where agents
+ * actually write in bulk (every `new-task` creates a dir, every append lands a
+ * file), so this is the useful default — and crucially it does NOT cover the
+ * rest of the site, so the owner editing a page still sees their own save. */
+export const DEFAULT_PATHS = ["public/framework/ai/**"];
+
+/* Take (or renew) a hold. Renew: calling `on` again with the same `who` replaces
+ * that holder's entry — same name, fresh 5 minutes.
+ *
+ * ⚠ `paths` omitted on a RENEW keeps the fence the holder already had. The
+ * `.claude/hooks/hold-guard.mjs` hook renews a lapsed hold by calling `add(who,
+ * what, ttl)` with no paths at all, and without this a renewal would silently
+ * widen the holder back to the default fence — a hold quietly getting BIGGER
+ * while nobody is looking is the same class of bug as the global hold itself. */
+export function add(who, what = "", ttl = ttl_ms(), paths = null){
 	const state = read();
 	const now = Date.now();
+	const previous = state.holders.find(h => h.who === who);
+
+	const fence = paths?.length ? paths : previous?.paths ?? DEFAULT_PATHS;
+	const fenced = paths?.length ? true : previous?.fenced ?? false;
+
 	state.holders = state.holders.filter(h => h.who !== who);
-	state.holders.push({ who, what, since: now, until: now + ttl, pid: process.pid });
+	state.holders.push({ who, what, paths: fence, fenced, since: previous?.since ?? now, until: now + ttl, pid: process.pid });
 	write(state);
 	return state;
 }
+
+/* ── THE FENCE ──────────────────────────────────────────────────────────────
+ * One glob language, defined once, because two implementations of "does this
+ * path match" that disagree would hold the wrong files and nothing would throw.
+ *
+ * A pattern is written the way an agent thinks about its own fence — a
+ * repo-relative path, `public/framework/ai/v/3/**`. A path on the wire is a
+ * url-path, `/framework/ai/v/3/v3.css`. `normalise()` is what makes those the
+ * same thing: strip a leading `./` and `public/`, force one leading slash.
+ *
+ * `**` matches anything, `/` included. `*` matches anything WITHIN one segment.
+ * A pattern with no wildcard at all is a DIRECTORY prefix — `--paths
+ * public/framework/ai/v/3` holds that path and everything under it, because
+ * that is plainly what someone typing it means, and the alternative is a fence
+ * that silently matches exactly one file. */
+const normalise = p => "/" + String(p).replace(/\\/g, "/").replace(/^\.?\//, "").replace(/^public\//, "").replace(/^\/+/, "");
+
+function to_regexp(pattern){
+	const p = normalise(pattern).replace(/\/+$/, "");
+	const body = p
+		.split(/(\*\*|\*|\?)/)
+		.map(part => part === "**" ? ".*"
+			: part === "*" ? "[^/]*"
+			: part === "?" ? "[^/]"
+			: part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+		.join("");
+
+	// no wildcard → a directory prefix: the path itself, or anything beneath it
+	return /[*?]/.test(p) ? new RegExp(`^${body}$`) : new RegExp(`^${body}(/.*)?$`);
+}
+
+const cache = new Map();
+const regexp_for = pattern => {
+	if (!cache.has(pattern)) cache.set(pattern, to_regexp(pattern));
+	return cache.get(pattern);
+};
+
+/** Is this changed path inside `holder`'s fence? */
+export function covers(holder, file){
+	const target = normalise(file);
+	return (holder.paths ?? DEFAULT_PATHS).some(p => regexp_for(p).test(target));
+}
+
+/** The holders whose fence covers this path — empty means nobody is holding it. */
+export function matches(holders, file){
+	return holders.filter(h => covers(h, file));
+}
+
+/** `public/framework/ai/v/3/**` → `ai/v/3/**` — what the dev bar shows. */
+export const short = pattern =>
+	normalise(pattern).replace(/^\/framework\//, "").replace(/^\//, "");
 
 // Release one holder. `who` omitted: release the only holder there is —
 // if there is more than one, refuse (no-op) and say so, rather than guess
@@ -135,19 +215,40 @@ const is_main = process.argv[1] && import.meta.url === pathToFileURL(process.arg
 if (is_main) cli();
 
 function cli(){
-	const [, , cmd, arg] = process.argv;
+	const argv = process.argv.slice(2);
+	const cmd = argv[0];
+
+	/* `--paths a,b,c` or `--paths a b c` — both, because both get typed. Anything
+	   after the flag that is not another flag joins the fence. */
+	const flag = argv.indexOf("--paths");
+	const paths = flag === -1 ? [] : argv.slice(flag + 1)
+		.filter(a => !a.startsWith("--"))
+		.flatMap(a => a.split(","))
+		.map(a => a.trim())
+		.filter(Boolean);
+
+	const arg = argv.slice(1, flag === -1 ? undefined : flag)[0];
 
 	if (cmd === "on") {
 		if (!arg) {
-			console.error(`usage: node Server/hold.mjs on "<who> ${EM_DASH} <what>"`);
+			console.error(`usage: node Server/hold.mjs on "<who> ${EM_DASH} <what>" --paths <comma-separated globs>`);
 			process.exit(1);
 		}
 		const sep = arg.indexOf(` ${EM_DASH} `);
 		const who = (sep === -1 ? arg : arg.slice(0, sep)).trim();
 		const what = (sep === -1 ? "" : arg.slice(sep + 3)).trim();
 		const ttl = ttl_ms();
-		const state = add(who, what, ttl);
+		const state = add(who, what, ttl, paths);
+		const mine = state.holders.find(h => h.who === who);
+
 		console.log(`hold ON: "${who}"${what ? ` ${EM_DASH} ${what}` : ""} — expires in ${Math.round(ttl / 1000)}s. Holders now: ${state.holders.length}.`);
+		console.log(`  holding ${mine.paths.map(short).join(" ")}  (everything else still reloads, for everyone)`);
+
+		/* ⚠ Loud on purpose. A hold with no fence is the old global-ish behaviour
+		   narrowed to the boards, and the holder should know it is relying on a
+		   guess rather than on what it actually said it would write. */
+		if (!mine.fenced)
+			console.warn(`  ⚠ "${who}" named no --paths, so it holds only ${DEFAULT_PATHS.map(short).join(" ")}. Writes OUTSIDE that fence will reload tabs mid-batch. Name your fence: --paths ${DEFAULT_PATHS[0]},public/framework/<your module>/**`);
 	} else if (cmd === "off") {
 		const { removed, holders } = release(arg);
 		if (removed) console.log(`hold OFF: "${arg || "(the only holder)"}" released. Holders left: ${holders.length}${holders.length ? " — reload still queued" : " — reload will flush now"}.`);
@@ -167,5 +268,7 @@ function print_status(){
 		const left = Math.round((h.until - now) / 1000);
 		const state = h.expired ? "EXPIRED, awaiting the server's next flush" : `${left}s left`;
 		console.log(`  - ${h.who}${h.what ? ` ${EM_DASH} ${h.what}` : ""} (pid ${h.pid}, ${state})`);
+		console.log(`      holds ${(h.paths ?? DEFAULT_PATHS).map(short).join(" ")}${h.fenced ? "" : "   ⚠ no --paths given; this is the default fence"}`);
 	}
+	console.log("Everything outside those fences reloads normally — a hold is never global (2026-09-22).");
 }

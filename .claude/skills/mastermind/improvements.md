@@ -17,11 +17,4 @@ A recurring line is a rule waiting to be written; the owner promotes.
 - **PROPOSAL, adds a required step:** 2026-09-19 · the mastermind writes `note` and in-flight
   `agent` lines so the v2 board stays live with no reload (ai-v2 leaned on this). Proposed: keep
   doing both on every run the v2 board is meant to show.
-- **PROPOSAL, self-marked NOT fail-safe:** 2026-09-19 (monorepo) · the CLI launch recipe produced
-  five minions that could not write a single file (Write, `Set-Content`, bash redirection all
-  refused, even with `dangerouslyDisableSandbox`) — $8.50 and 291 turns for nothing, across five
-  sessions. The child `claude` process does not inherit the parent's write access, and
-  `--permission-mode bypassPermissions` is itself refused by the auto-mode classifier. Needs the
-  flag that actually works, or a one-line smoke test before any fan-out (one minion writes one
-  file and replies DONE; dispatch the wave only if it exists) — verify first, this session could
-  not.
+

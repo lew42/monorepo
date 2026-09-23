@@ -1,29 +1,87 @@
-import { Doc, md, div, span, h3, button, ui } from "/app.js";
+import { Page, View, md, div, p, h3, button, icon, ui } from "/app.js";
+import Socket from "/framework/dev/Socket/Socket.js";
+import { edit } from "/framework/ext/Ask/edit.js";
+
+View.stylesheet(import.meta, "ux.css");
 
 // The same ui/ template twice — the right one inside a section wearing both config
 // words. It is here rather than only on /framework/ui/words/ because the claim this
 // page makes is that a word re-skins whichever TIER it lands on, and a claim on this
 // page should be visible from this page.
-const box = () => div.c("surface pad flex v gap", () => {
+// ⚠ `.card`, never `"surface pad"` — a FRAMED box reads `--pad-card`, which scales
+// with ITSELF; `.pad` is the page-region token, and it is why this exact card once
+// measured "massive" padding by default and "not nearly enough" under `ui-compact`
+// (which overwrites `--pad`, not `--pad-card`) — the owner, 2026-09-22.
+// `.card`'s children already get `--gap` rhythm for free (framework.css), so the
+// only class this needs is `.card` itself.
+const box = () => div.c("card", () => {
 	div.c("h4 muted", "Core");
 	h3("View");
-	span.c("muted", "A chainable DOM element.");
-	div.c("flex gap", () => { button("Docs"); button.c("prim", "Open"); }).style("--gap", "calc(var(--gap) * 0.3)");
+	p.c("muted", "A chainable DOM element.");
+	div.c("flex gap-35", () => { button("Docs"); button.c("prim", "Open"); });
 });
 
-export default new Doc({
+// One small flag, invisible until the card is hovered or focused — the "reject" half
+// of an approve-or-reject process with no approve button anywhere (the owner,
+// 2026-09-22: "I should be able to hover these and just click reject"). Pressing it
+// asks one line, then writes through the SAME rpc the AI board's own cards use
+// (Server/plugins/CardAnswer.js's `card_say`, `say: "improve"`) — so a flagged
+// module reaches the mastermind's inbox exactly like a flagged board card does.
+// `edit()` is the one switch every write control on the site already reads: off (or
+// off localhost, where there is no server to write to), the flag draws nothing.
+function flaggable(card, id, label){
+	if (!edit()) return card;
+
+	return card.append(() => {
+		button.c("ux-index-flag").attr("type", "button").attr("title", `Flag ${label}`)
+			.append(() => icon("flag"))
+			.click(e => {
+				e.preventDefault();
+				e.stopPropagation();
+
+				const note = window.prompt(`What's wrong with ${label}?`);
+				if (!note) return;
+
+				Socket.singleton().request({ method: "card_say", args: [{ id, say: "improve", note }] })
+					.then(() => card.ac("ux-index-flagged"));
+			});
+	});
+}
+
+// My own wall, not core's `previews()` — the one thing a generic wall can't hand
+// back is the card itself, and a flag needs to land ON it. Each module still draws
+// its OWN card (`page.preview(nav)`, the exact call `previews()` makes); this only
+// appends one button after it.
+function wall(page){
+	return div.c("page-previews bleed", () => {
+		[...page.children].forEach(([name, child]) => {
+			const nav = page.nav_for(name);
+			const card = child ? child.preview(nav) : page.preview_card(nav);
+			flaggable(card, `ux/${name}`, nav.label);
+		});
+	});
+}
+
+export default new Page({
 	meta: import.meta,
 	title: "UX",
 	description: "The behavior tier — ui/ hands you markup, ux/ hands you a class you can extend.",
 	icon: "layers",
 
-	// ⚠ Required on a Doc that is also a nav section, or framework/page.js's sections()
-	// spills Overview - Docs into the site nav as if they were pages (ui/page.js).
-	leaf: true,
-
 	children: "Auth Wizard Tree Course Filter Menu Pagination Tags Dictate Popover",
 
-	notes: "system decisions",
+	// The two long-form docs — `doc/system.md`, `doc/decisions.md` — are NOT declared
+	// children: a declared child is a CARD in the wall below, and a doc page is not a
+	// module. `route()` answers just these two names on demand instead, the same
+	// lever `ext/Doc`'s own member pages use for an address nobody declared — so
+	// `/framework/ux/doc/system/` still resolves (every module readme links it)
+	// without "doc" ever sitting in the wall or the sidebar tree.
+	route(name){
+		return name === "doc" && {
+			title: `${this.title} Docs`,
+			content(){ return md("Two long-form pages: [System](system/) — the tier boundary argued, the config-word contract, the naming rules. [Decisions](decisions/) — every call made and rejected on 2026-08-21."); },
+		};
+	},
 
 	content(){
 
@@ -32,14 +90,16 @@ export default new Doc({
 		// The page's one live thing, and it opens the page: the SAME template twice,
 		// the right one wearing both config words. The argument for it is below.
 		div.c("flex wrap gap", () => {
-			div.c("flex v gap", () => { div.c("h4 muted", "default"); box(); }).style("--gap", "calc(var(--gap) * 0.5)");
-			div.c("flex v gap", () => {
+			div.c("flex v gap-50", () => { div.c("h4 muted", "default"); box(); });
+			div.c("flex v gap-50", () => {
 				div.c("h4 muted", "ui-contrast ui-compact");
 				box().ac("ui-contrast ui-compact");   // on the component itself — a word needs no section
-			}).style("--gap", "calc(var(--gap) * 0.5)");
+			});
 		});
 
-		md("**Eight classes live here now** — [Auth](/framework/ux/Auth/), [Wizard](/framework/ux/Wizard/), [Tree](/framework/ux/Tree/), [Course](/framework/ux/Course/), [Filter](/framework/ux/Filter/), [Menu](/framework/ux/Menu/), [Pagination](/framework/ux/Pagination/), [Tags](/framework/ux/Tags/) — built 2026-08-21 against the contract below.");
+		md("**Ten classes live here — one real page each, not a tab.** Hover a card to flag it.");
+
+		wall(this);
 
 		ui.table(
 			["", "ui/", "ux/"],
@@ -50,7 +110,7 @@ export default new Doc({
 				// ⚠ Plain text only: ui.table() puts a cell straight into a td — no markdown
 				// pass — so a `backtick` or a **star** renders as itself.
 				["a variant is", "a child page: a different THING, not a different value", "a named subclass: class CardHero extends Card"],
-				["today", "20 components", "8"],
+				["today", "20 components", "10"],
 			]);
 
 		md("## The graduation rule");

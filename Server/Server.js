@@ -49,7 +49,7 @@ export default class Server extends Events {
         this.http = http.createServer(this.app);
     }
 
-    listen(port = process.env.PORT || 80, host = '0.0.0.0') {
+    listen(port = process.env.PORT || 80, host = process.env.HOST || '0.0.0.0') {
         this.http.listen(port, host, () => {
             console.log(`Server listening on ${host}:${port}`);
             this.emit("listening", { port, host });

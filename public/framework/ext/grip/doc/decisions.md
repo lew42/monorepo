@@ -131,6 +131,63 @@ reduction (`core/Sidebar/doc/decisions.md` has the hunk-by-hunk count) — bigge
 the overlap study's own ~30-line estimate, which only ever measured the two `.js`
 files against each other and never looked at either file's CSS.
 
+## `mirror`, the pill fix, and the `--grip-y` frame — 2026-09-22
+
+Three bugs the owner reported together, on `ai/v/3`'s column split (`page.js:1508`):
+dragging right narrowed the LEFT column instead of widening it, the knob trailed the
+pointer by ~200px vertically, and it sat 4–5px right of the actual drag line. A fourth,
+adjacent: the dev bar's hidden position left its grip strip exactly 0px off the
+viewport's right edge — findable by a hover right at the screen's edge — which is what
+an earlier session's fix for the 4–5px offset was reaching for and never actually
+solved. `task.jsonl` (`ai/2026-09-22/grip-fix/`) has the measurements.
+
+**Direction.** `ai/v/3` mounts grip as a full-bleed sibling of both columns and moves
+it with an inline `left: px`, so its own box's LOCAL LEFT is always the true boundary —
+the same visual placement `from: "end"` already gives every rail (dev bar, drawer). But
+the WIDTH it needs is the LEFT column's, which needs `from: "start"`'s arithmetic
+(`edge = rect.left`). No existing combination of `from` gave both: `from: "start"` also
+stamped `.grip-start`, which mirrors the strip to the box's own right — 12px off the
+boundary this consumer actually draws at. Added `mirror`, defaulting to `from ===
+"start"` (right for every rail, where the parent's pinned edge and the strip's own edge
+are opposite sides of the same moving box) and overridable — `ai/v/3` passes `from:
+"start", mirror: false`. Verified: pointer +120px → left column width +120px exactly,
+both directions, `.grip` box.left − `.v3-split` box.left before and after.
+
+**The knob's y.** `--grip-y` was set from raw `e.clientY`, but `top: var(--grip-y)` on
+`.grip-pill` resolves against `.grip`'s OWN padding box, not the viewport — correct by
+coincidence for every existing rail (`inset-block: 0`, own top already IS the viewport's
+0) and wrong the instant a consumer's box sits partway down the page. Now reads
+`this.el.getBoundingClientRect().top` on every move and subtracts it. Verified: pill
+centre y equalled the pointer's clientY exactly at three y positions on the column
+split (100, 450, 800).
+
+**The knob's x.** `.grip-pill` centred itself in the whole 0.75rem strip
+(`inset-inline-start: 50%`), which is only "on the line" when the line itself runs
+through the strip's centre — true of nothing here, since rule 1 above puts the strip
+wholly on ONE side of the boundary and the `::before` line at that same side's edge.
+The pill was 6px into the rail from the true boundary on every consumer, all along —
+what the owner's "4–5px right" was seeing on the dev rail itself, before this task ever
+touched `ai/v/3`. Changed to `inset-inline-start: 0` (matching `.grip::before`) with a
+mirrored `.grip-start .grip-pill { inset-inline-start: 100% }`, so the pill is what
+`.grip::before` already was: centred exactly on the box's own edge, whichever edge that
+is. Verified: pill centre x equalled `.grip`'s own `getBoundingClientRect().left`
+exactly, both classes.
+
+**Why the earlier "move it to the right" attempt (named in the owner's brief, not found
+as code — likely this same 50%-centring, read as intentional headroom rather than as a
+bug) never worked:** it treated the KNOB's offset as the fix for the DEV BAR's hidden
+position showing at the edge. Those are unrelated boxes — moving the knob does nothing
+for the rail's own geometry. Deliverable 3 below is the actual fix for that; deliverable
+2 above just needed the knob to stop being offset at all, everywhere.
+
+**The dev bar's hide.** `transform: translateX(100%)` moves a flush-right rail by
+exactly its own width — its hidden LEFT edge lands exactly on `innerWidth`, 0px past
+it, so the 12px grip strip just inside that edge is findable by a hover at the very
+last pixel of the screen. Changed to `translateX(calc(100% + 16px))` — the rail's own
+fixed margin, comfortably past the strip's 12px. Verified:
+`.dev-bar.getBoundingClientRect().left − innerWidth` reads 16 both hidden and after a
+reopen/close round trip; open, unchanged (`transform: none`, grip on the left border).
+
 ## Rejected
 
 - **A `side` option.** Both rails dock at the inline end and grip their inline-start

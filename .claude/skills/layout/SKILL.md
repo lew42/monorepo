@@ -177,6 +177,15 @@ forgetting a second class. If the answer is no, it probably needs no padding at 
 with no background change floats the thing in midair, off the margins its siblings line up
 with — the commonest way a page looks "off" with nothing obviously wrong in it.
 
+**Text never sits at 0 from an edge** — the nav rail, the viewport, the ToC column, or the
+border of any box that paints a ground of its own. The owner made this a law of the whole system
+on 2026-09-22, after `/framework/styles/` at a wide window put its `h1` flush against the
+sidebar: a page's left and right padding is the first and last TRACK of the page shell's grid, so
+any rule that redefines `grid-template-columns` on a `.page` deletes the gutters unless it
+restates them. Run `node Server/padding-check.mjs <url>` before landing a page — four widths,
+non-zero exit, the offending text and its gap. The whole measurement and what counts as an edge:
+[`/framework/ai/2026-09-22/padding-law/`](/framework/ai/2026-09-22/padding-law/).
+
 **Say the ratio out loud for every text-on-ground pair you introduce** — 4.5:1 carries body
 text, 3:1 carries large text and UI shapes, below that nothing — because you cannot see 4.2
 from 4.6. The accent is the pair most likely to fail: its saturation decides whether it can
@@ -290,3 +299,7 @@ with the don'ts beside them. Open the **one** you need; don't read the catalog.
 [`caveats.md`](caveats.md) — what has bitten, one line each. Improve this skill:
 [`improvements.md`](improvements.md). Reminders: `css` for the declaration itself;
 `new-task` if you haven't; `documentation` when done.
+
+## The layout never jumps (the owner, 2026-09-22)
+
+"The layout should never jump. Write that into your layout laws." A dashboard or workspace keeps persistent navigation and persistent work areas: nothing the reader is looking at moves because something else arrived. New items in a live list wait behind a "N new" pill unless the list is already at its top; a selected thing opens in its own column, never by expanding in place; a full navigation to a new page is the one allowed transition. Prove it with a measurement (the top edge of the thing being read, before and after three arrivals) before landing anything live.

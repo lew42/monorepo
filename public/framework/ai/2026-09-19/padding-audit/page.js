@@ -1,4 +1,4 @@
-import { Page, md, div, p, span, b } from "/app.js";
+import { Page, md, div, p, span, b, details, summary } from "/app.js";
 
 /* ── layout ───────────────────────────────────────────────────────────────────
    1 CONTAINER  a task page on the day board — the page grid.
@@ -73,18 +73,27 @@ export default new Page({
 		md("## The changes, ranked by wrong-padding outcomes prevented per line\n\n| | the change | cost | prevents |\n| --- | --- | --- | --- |\n" +
 			RANKED.map((r, i) => "| " + (i + 1) + " | " + r[0] + " | " + r[1] + " | " + r[2] + " |").join("\n")).ac("wide");
 
-		md("## Container queries — the four ways they have actually bitten this site\n\n" +
+		/* ⚠ Presentation pass, 2026-09-22: 3,707px at 1280, nearly five screens of
+		   prose. Nothing deleted — the two closing sections moved behind folds so
+		   the measurement, the cards and the ranked table read as one screen. */
+		details(() => {
+			summary("Container queries — the five ways they have actually bitten this site");
+			md("## Container queries — the four ways they have actually bitten this site\n\n" +
 			"1. **A box cannot query itself.** A three-card wall stayed at one column at every width, 3440 included — the third time this year (`css/caveats.md`).\n" +
 			"2. **`container-type` turns on containment, so a content-sized box collapses.** A flex column measured **0px while holding 963px** of children (2026-08-18); a `Stage` shrank to **307px inside a 1546px frame** (2026-09-05); `/blog/`'s hero set one character per line (2026-09-05).\n" +
 			"3. **`cqi` falls back to the small viewport with no container ancestor** — measured today in the sidebar and the dev bar, above.\n" +
 			"4. **`em` inside a container query resolves against the CONTAINER's font size**, so a threshold picked by dividing viewport widths lands wrong — one box read 96.4em and 165.9em at once (2026-08-30).\n\n" +
 			"A fifth, this site's own: **`container-type` makes the box a containing block for `position: fixed`** (`Page.css` 318, 846). All five are why `.page` and the rails are deliberately not containers — and why change 2 keeps the percentage instead of moving `--pad` to `cqi`.").ac("wide");
+		}).ac("wide");
 
-		md("### Applied now (fail-safe)\n\n" +
+		details(() => {
+			summary("What was applied, and the four decisions waiting on the owner");
+			md("### Applied now (fail-safe)\n\n" +
 			"- **layout/SKILL.md** — the spacing section said multipliers are no longer allowed and then converted a constant with a multiplier, two bullets apart. It now points at the rung.\n" +
 			"- **css/caveats.md** — two measured traps: `--pad` is floor-pinned below a ~1292px containing block, and a `%` inside `calc()` reads back from `getComputedStyle` as a string, so padding must be measured geometrically.\n\n" +
 			"### Waiting on the owner\n\n" +
 			"Four `decision` lines in this task's log, each with its alternative: the **`card` word**; **percentage and two tokens** rather than container units and one; the **rails' own em** instead of `cqi`; and the **page-health lint**. `framework.css` was not edited.").ac("wide");
+		}).ac("wide");
 
 		p.c("muted", "Read-only audit: nothing on the site was changed. Measurements, the performance A/B and the four decisions are in this task's log. The dev bar's own 5.12px came from a hand-written 0.4em 0.5em rule — devbar-chat proved --pad itself resolved correctly there (12.8px, its 1em floor).");
 	},

@@ -155,7 +155,7 @@ function supervise(){
 	/* ── the live child ───────────────────────────────────────────────────── */
 
 	function spawn_live(){
-		const child = fork(entry_for_this_boot(), [], { stdio: "inherit", cwd: __dirname, env: { ...process.env } });
+		const child = fork(entry_for_this_boot(), [], { stdio: "inherit", cwd: __dirname, env: { ...process.env } });   // ⚠ no windowsHide here: a child with NO console makes its own children pop VISIBLE consoles (2026-09-22, the node-window storm); the root is launched with a hidden console and everyone inherits it
 		live = child;
 		const started_at = Date.now();
 

@@ -58,18 +58,22 @@ Which is true: *below its floor a layout stacks to a named fallback*, and a sect
 no layout **is** the stack — its children follow each other down the box. So the empty
 list is not a dead end, it is the correct arrangement already being used.
 
-## `fits()` belongs to core/Layout
+## `fits()` lives in core/Layout
 
-The one-line check lives in `Section.js` as an exported function:
+The one-line check is a single exported function, and it lives next to the rule it
+answers for, in `core/Layout/rules.js`:
 
 ```js
 export const fits = (layout, room) => !room || room >= (layout.widths?.[0] ?? 0) - 1;
 ```
 
-It is `core/Layout/rules.js`'s first rule with the reporting taken off, and **a second
-copy of a rule is one edit away from disagreeing with the first**. It should be
-`Layout.fits(width)`, called from both. `core/Layout/` was outside the write fence of the
-task that built this module, so it is here instead, said out loud, waiting to be moved.
+`Section.js` imports it. So does `rules.js`'s own width rule, which used to re-derive the
+same floor inline — **a second copy of a rule is one edit away from disagreeing with the
+first**, so now there is one copy and both callers read it.
+
+It was a second copy here until 2026-09-22, because `core/Layout/` was outside the write
+fence of the task that built this module. The [reuse audit](/framework/ai/2026-09-22/reuse-audit/)
+merged it.
 
 The `!room ||` guard is load-bearing: a box that has not been laid out yet measures zero,
 and a picker that greys the whole catalogue because it was asked too early is a lie.

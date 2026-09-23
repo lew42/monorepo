@@ -100,10 +100,46 @@
 	}
 
 
-	/* ════ THE PAGE SHELL — one grid, three tracks ═════════════════════════════
+	/* ════ THE PAGE SHELL — one grid, two tracks, the gutter as PADDING ════════
 	   The whole page vocabulary. `main` is the reading column, `wide` is everything
 	   left over, `bleed` is edge to edge — and a page IS this, with no class.
 
+	   ⚠ THE GUTTER IS PADDING ON THE PAGE, NOT TWO GRID TRACKS (layout-analysis,
+	     2026-09-22). It used to be a track on each side of `main`, which meant that
+	     ANY rule replacing `grid-template-columns` silently deleted the page's whole
+	     inset — no error, nothing overflowing, just text flush against the sidebar.
+	     `ext/toc`'s `.page:has(> .toc)` does exactly that above 82em, so /framework/
+	     styles/, /core/, /versus/, /faq/ and /start/ measured a 42px inset at 1280
+	     and 0px at 1920 and 3440: the owner's own complaint, "the text is butting up
+	     against the sidebar with zero pixels of padding". As padding the inset is
+	     orthogonal to the template, so a rule that rewrites the tracks can no longer
+	     reach it. Measured over 133 pages at 400/1280/1920/3440: pages with ink
+	     closer than one rung to the region edge went 6 → 1, and the one left is
+	     `/framework/ai2/`, a `.page.full` that asks for a zero gutter itself.
+	     The census, the alternative model and the one known cost:
+	     `/framework/ai/2026-09-22/layout-analysis/`.
+	   ⚠ A BLEED IS THE ONLY OPT-OUT, AND IT IS ON THE CHILD. `.page > .bleed` spends
+	     the padding back with a negative margin, so a page can never be un-inset by
+	     something else on the page — only a child can leave the box, one child at a
+	     time, which is what `bleed` always meant.
+	     ⚠ It lands 3px short at 1280 and 5px at 1920, and that is not a rounding
+	       error: `--gutter-x` is a clamp holding a PERCENTAGE, and a percentage in a
+	       child's margin resolves against the CHILD's containing block — the page's
+	       CONTENT box, already two gutters narrower — so the negative margin is 4% of
+	       a smaller number than the padding was. The same trap `.page.columns` writes
+	       down below ("`cqi`, never `%` … the inversion stays exact"), and its fix is
+	       the same one: express the gutter in a unit that does not re-resolve. That is
+	       a change to the gutter's own formula and a separate decision, so it is
+	       written up rather than taken here. `@property` cannot rescue it — a
+	       `<length>` syntax rejects a clamp containing a percentage.
+	   ⚠ `--page-pad: initial` so the opt-out CANNOT INHERIT. `ext/Doc` sets
+	     `--page-pad: 0` on `.page.doc-page` and `ext/tabs` sets it again on
+	     `.tab-panel`; both inherit into every nested `.page` under them, and with the
+	     gutter in the padding that zeroed the inset of every doc section on the site
+	     (measured: /framework/ux/ went to 0px at both 1280 and 1920 before this line).
+	     `initial` on a custom property is the guaranteed-invalid value, which is what
+	     makes `var(--page-pad, …)` fall back — the same idiom `--page-column-flex`
+	     uses below, for the same reason.
 	   ⚠ NO GUARD SELECTOR, on purpose. `@layer util` beats `@layer theme`, so a page
 	     wearing `.flex` / `.grid` / `.masonry` keeps its own `display` for free — the
 	     26 hand-typed `c("page full fill flex v")` pages are untouched by this rule.
@@ -112,8 +148,9 @@
 	     `:not()`; the cascade already said it.
 	   ⚠ Its own `--gutter-x`, never `--page-pad`: that is a padding shorthand, and
 	     `minmax(3em 4em, 1fr)` drops the whole template.
-	   ⚠ The main track subtracts the gutters — without that, `min(--measure, 100%)`
-	     resolves to the full page width and the gutters add on top.
+	   ⚠ The main track no longer subtracts the gutters — it is inside them now, so
+	     `min(--measure, 100%)` is measured against the page's content box and the two
+	     insets can never be counted twice.
 	   ⚠ `--measure` is re-declared because `min(none, …)` is invalid at
 	     computed-value time and silently drops the template. A page that wants no
 	     reading cap claims `.wide`; it must never set `--measure: none`.
@@ -132,6 +169,7 @@
 	     every grid page paid the region's inset on top of its own gutters). */
 	.page {
 		--measure: 40em;
+		--page-pad: initial;
 		--gutter-x: clamp(2em, 4%, 5em);
 		/* ⚠ A clamp, was a flat `3em` (2026-08-17). 48px above every `h1` is a quarter
 		   of the fold at 390 — 10 findings on 9 pages. The same idiom `--gutter-x`
@@ -141,19 +179,17 @@
 
 		display: grid;
 		grid-template-columns:
-			[bleed-start]           var(--gutter-x)
-			[wide-start main-start] min(var(--measure), 100% - var(--gutter-x) * 2) [main-end]
-			                        minmax(0, 1fr) [wide-end]
-			                        var(--gutter-x) [bleed-end];
+			[bleed-start wide-start main-start] min(var(--measure), 100%) [main-end]
+			                                    minmax(0, 1fr) [wide-end bleed-end];
 		align-content: start;
 
-		padding: var(--page-pad, var(--pad-y) 0);
+		padding: var(--page-pad, var(--pad-y) var(--gutter-x));
 		max-width: none;
 	}
 
 	.page > *      { grid-column: main; min-width: 0; }
 	.page > .wide  { grid-column: wide; }
-	.page > .bleed { grid-column: bleed; }
+	.page > .bleed { grid-column: bleed; margin-inline: calc(var(--gutter-x) * -1); }
 
 	/* The theme sets every `h1` to a flat `3em` (`lew42.css`). A TITLE THAT IS ONE
 	   LONG WORD has no space to wrap on, so at a phone width that word can be wider
@@ -200,15 +236,18 @@
 	     the gutters have grown by that width. Below 70em, forcing the rail
 	     beside the text would either narrow `main` under its own measure or
 	     squeeze the rail under its own floor; the fold is what avoids both. */
+	/* ⚠ The gutters came OUT of this template with the shell's (layout-analysis,
+	     2026-09-22): the page's own padding already pays both outer insets, so all
+	     this rule still owes is the gap BETWEEN the reading column and the rail —
+	     which is a `column-gap`, and reads as one. Left as four tracks it would have
+	     paid the outer inset a second time, on every page that says `related:`. */
 	@media (min-width: 70em) {
 		.page:has(> .page-related) {
 			grid-template-columns:
-				[bleed-start]           var(--gutter-x)
-				[wide-start main-start] min(var(--measure), 100% - var(--gutter-x) * 2) [main-end]
-				                        minmax(0, 1fr) [wide-end]
-				                        var(--gutter-x)
-				[bleed-end related-start] clamp(14em, 26%, 22em) [related-end]
-				                        var(--gutter-x);
+				[bleed-start wide-start main-start] min(var(--measure), 100%) [main-end]
+				                                    minmax(0, 1fr) [wide-end bleed-end]
+				[related-start]                     clamp(14em, 26%, 22em) [related-end];
+			column-gap: var(--gutter-x);
 		}
 
 		/* `span 200`, not `1 / -1` — the same reason `toc.css` gives: these rows

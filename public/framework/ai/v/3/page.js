@@ -1,7 +1,7 @@
-import { Page, View, div, h1, p, a, span, pre, small, button, input, textarea, demo, md } from "/app.js";
+import { Page, View, div, h1, h2, p, a, b, span, pre, small, button, input, textarea, details, summary, demo, md } from "/app.js";
 import { icon, select, option } from "/framework/core/View/View.js";
 import grip from "/framework/ext/grip/grip.js";
-import { JSONL } from "/framework/ext/JSONL/JSONL.js";
+import { JSONL, TaskJSONL } from "/framework/ext/JSONL/JSONL.js";
 import { edit } from "/framework/ext/Ask/edit.js";
 import Socket from "/framework/dev/Socket/Socket.js";
 import picker from "../versions.js";
@@ -9,7 +9,10 @@ import * as DEMOS from "./demos.js";
 import { Timeline, BOARD, LOG_URL, VERDICTS_URL, clock, text_lines, author_of, author_label, author_kind, status_word } from "./timeline.js";
 import composer from "./compose.js";
 import { ask_controls } from "./ask.js";
+import { agents_strip } from "./agents.js";
+import { prompts_view, prompt_board_cards } from "./prompts.js";
 import { usage_rail } from "/framework/ext/AITask/usage.js";
+import { current } from "/framework/ext/AITask/card.js";
 
 View.stylesheet(import.meta, "v3.css");
 
@@ -255,28 +258,207 @@ export default new Page({
 	icon: "dashboard_customize",
 	description: "What is going on, ranked by what matters — click a card for the whole thing.",
 
-	content() { top_level(this, null); },
+	/* ⚠ The same guard `/framework/ai/`'s own page has carried since
+	   `board-from-events` (2026-09-22), and for the same measured reason:
+	   `Router.activate()` runs the whole chain root-to-leaf, so a deep link to
+	   `/v/3/grid/` or to one card activates THIS page too, cold, on the same
+	   pass — and without the check this built a second, hidden copy of the
+	   entire board (its fetches, its EventSource, its timers) underneath the
+	   real one, and its own `history.replaceState` then overwrote the deeper
+	   page's url with `/v/3/days/`. Measured 2026-09-22: every
+	   `/v/3/<view>/` url landed on the days view with two view words marked
+	   at once. */
+	content() { defer_board(this); },
+	activated() { defer_board(this); },
 
-	/* One card's own url — `/framework/ai/v/3/<id>/`. Always opens the SAME
-	   two-column rail+detail `content()` builds for the bare `/v/3/` url —
-	   arriving on a card's own url is a cold load with no prior rail to keep,
-	   so a fresh build (this one, its own `Page`, its own `content()` call)
-	   costs nothing a reader would notice; it is intra-page clicks, inside
-	   `master_detail()` below, that must NOT go through this at all (see its
-	   own note on `history.pushState`). */
+	/* Two routes under this board, and `board_route()` below owns the first:
+	   a VIEW (`/v/3/grid/`) and, under a view, a CARD.
+
+	   One card's own url — `/framework/ai/v/3/<id>/`, the shape every link
+	   written before 2026-09-22 still uses. Always opens the SAME two-column
+	   rail+detail `content()` builds for the bare `/v/3/` url — arriving on a
+	   card's own url is a cold load with no prior rail to keep, so a fresh
+	   build (this one, its own `Page`, its own `content()` call) costs nothing
+	   a reader would notice; it is intra-page clicks, inside `master_detail()`
+	   below, that must NOT go through this at all (see its own note on
+	   `history.pushState`). */
 	route(id) {
+		const view = board_route(this, id);
+		if (view) return view;
 		if (id.includes(".")) return;   // a real file (favicon.ico &c), not a card
+		const root_page = this, base = this.url;
 		return new Page({
-			title: id, icon: "arrow_back", url: this.url + id + "/",
-			content() { top_level(this, id); },
+			title: id, icon: "arrow_back", url: base + id + "/",
+			content() {
+				this.board_build = () => top_level(this, id, null, base);
+				defer_board(this);
+			},
+			activated() { defer_board(this); },
 		});
 	},
 });
 
+/**
+ * EVERY VIEW IS A URL (board-declutter, 2026-09-22) — the owner's own words:
+ * "the timeline, prompts, grid, now, and days, don't even have a route... a
+ * live reload would navigate me away from this page", and then "that's
+ * literally what routes are for."
+ *
+ * So these five words are five real addresses under whichever board root you
+ * are on — `/framework/ai/days/` and `/framework/ai/v/3/days/` are both real,
+ * because BOTH pages call this from their own `route()`. A view word on screen
+ * is a plain `<a href>`, so clicking one is an ordinary navigation: the back
+ * button works, a paste of the url opens that view, and a live reload puts you
+ * back exactly where you were.
+ *
+ * The order of truth is THE URL FIRST, always. The saved preference
+ * (`prefs.get({view})`) is consulted only when the url names no view at all,
+ * and even then `top_level()` immediately rewrites the url so it does — see
+ * its own note on `history.replaceState`.
+ *
+ * Under a view sits a CARD (`/framework/ai/timeline/<id>/`): the same card
+ * detail the bare `/v/3/<id>/` route above opens, addressed from inside the
+ * view it was opened in, so a reload keeps both the view AND the open card.
+ */
+export const VIEW_WORDS = ["days", "now", "grid", "timeline", "prompts"];
+
+/**
+ * THE ONE FLAG THAT HIDES A VIEW (board-declutter, 2026-09-22 — the owner: "I
+ * don't like the grid. It doesn't make any sense. It's just this huge thing.
+ * Maybe we just hide the grid for now").
+ *
+ * A name in here loses its word on the chrome line, and its url stops being a
+ * view: `/framework/ai/grid/` still RESOLVES — an old link, a bookmark, a
+ * screenshot url — but it lands on the default view and rewrites itself there,
+ * the same one-truth rule the bare board url already follows. Nothing is
+ * deleted: `wall()` and every rule under `.v3-cards` are untouched, and taking
+ * "grid" out of this array brings the whole view back with its url intact.
+ */
+export const HIDDEN_VIEWS = ["grid"];
+export const DEFAULT_VIEW = "days";
+const shown_views = () => VIEW_WORDS.filter(v => !HIDDEN_VIEWS.includes(v));
+
+/**
+ * THE BOARD ROOT DRAWS ITSELF EXACTLY ONCE, AND ONLY WHEN IT IS WHAT SHOWS.
+ *
+ * `Router.activate()` runs the whole chain root-to-leaf, so a deep link to
+ * `/framework/ai/grid/` activates the root page too, cold, on the same pass.
+ * Without the url check below, the root built a SECOND, hidden copy of the
+ * entire board underneath the real one — every fetch, an EventSource, the
+ * timers — and its own `history.replaceState` then overwrote the deeper page's
+ * url with the default view's (measured 2026-09-22: all five `/v/3/<view>/`
+ * urls landed on `days` with two view words marked at once).
+ *
+ * The other half is the one `board_route()` calls on the way back: going UP
+ * the chain activates nothing (`Page.deactivate()`'s own note), so a root that
+ * was built cold and empty would stay empty forever once the reader clicked
+ * back to it from a view. The view page tells the root to draw on its way out.
+ */
+/**
+ * ⚠ ONE TICK LATER, ALWAYS — and this is the whole reason a view word went
+ * blank when the owner clicked it (board-declutter, 2026-09-22).
+ *
+ * `Router.go()` LOADS FIRST AND PUSHES THE URL SECOND (`core/Router/Router.js`:
+ * "Load first, push second, so a failed navigation leaves no history entry").
+ * So while a page's own `content()` runs on a real in-app click,
+ * `location.pathname` is still the url you are LEAVING — `draw_board()`'s check
+ * sees a mismatch, skips, and the reader gets a page with nothing on it but its
+ * own title. Every cold load passed, because there the url is already right,
+ * which is exactly why this shipped.
+ *
+ * `setTimeout(…, 0)` and not `requestAnimationFrame`: `go()` resumes and calls
+ * `pushState` in a MICROTASK after `activate()` returns, so a macrotask is the
+ * first moment the url is certainly final — and unlike a frame callback, a
+ * macrotask still runs in a hidden tab.
+ */
+export function defer_board(page) { setTimeout(() => draw_board(page), 0); }
+
+export function draw_board(page) {
+	if (page.board_drawn) return;
+	if (location.pathname !== page.url) return watch_board(page);
+	page.board_drawn = true;
+	page.board_watch?.disconnect();
+	const build = page.board_build ?? (() => top_level(page, null));
+	// Inside `content()` the captor is already this page's own view; from
+	// `deactivated()` or the observer there is no captor at all, so go through
+	// `append()`.
+	if (page.view) page.view.append(build);
+	else build();
+}
+
+/**
+ * ⚠ THE LAST WAY A BOARD GOES BLANK, and the only one a handoff cannot reach.
+ *
+ * `render()` caches `this.view`, so a page whose `content()` ran while a DEEPER
+ * url was showing keeps that empty view for the rest of the session. Walking
+ * back UP to it activates nothing (`Router.activate()` only touches what
+ * changed), so it is never asked to draw again — and the reader clicks `AI` in
+ * the rail and gets a page holding one word. Every page this file builds hands
+ * back to its parent from `deactivated()`, but a DECLARED child does not:
+ * `/framework/ai/2026-09-22/` has its own `page.js`, outside this board's reach,
+ * and it went blank exactly this way (reproduced headless, 2026-09-22).
+ *
+ * So the page watches its own element instead of trusting anyone to tell it.
+ * The arrangement contract stamps `.active-page` on whichever page is being
+ * shown, so that one class change IS the signal, whatever navigated. One
+ * observer, attributes only, disconnected the moment the board draws.
+ */
+function watch_board(page) {
+	if (page.board_watch || !page.view) return;
+	// ⚠ `defer_board`, not `draw_board`: the class is stamped inside
+	// `Router.activate()`, and a MutationObserver callback is a MICROtask, so it
+	// runs before `go()` resumes and pushes the url — the same one tick early
+	// that started all of this. Measured: the observer fired three times on the
+	// right element with the right class and `draw_board()` still read the old
+	// pathname every time.
+	page.board_watch = new MutationObserver(() => defer_board(page));
+	page.board_watch.observe(page.view.el, { attributes: true, attributeFilter: ["class"] });
+}
+
+export function board_route(root, name) {
+	if (!VIEW_WORDS.includes(name)) return;
+	const base = root.url;
+	// A HIDDEN view's url still resolves, and lands on the default one. Passing
+	// `null` as the view is what does it: `top_level()` then resolves the view
+	// itself, refuses any hidden one, and rewrites the url to what it settled
+	// on — the same one-truth rewrite the bare board url already gets.
+	const named = HIDDEN_VIEWS.includes(name) ? null : name;
+	const view_page = new Page({
+		title: named ?? DEFAULT_VIEW, icon: "dashboard_customize", url: base + name + "/",
+		content() {
+			this.board_build = () => top_level(this, null, named, base);
+			defer_board(this);
+		},
+		// Coming back to this view from a card under it.
+		activated() { defer_board(this); },
+		route(id) {
+			if (id.includes(".")) return;
+			return new Page({
+				title: id, icon: "arrow_back", url: this.url + id + "/",
+				content() {
+					this.board_build = () => top_level(this, id, named, base);
+					defer_board(this);
+				},
+				activated() { defer_board(this); },
+			});
+		},
+	});
+	return view_page;
+}
+
 /* Shared by the bare `/v/3/` Page and every `route(id)` Page — same toolbar,
    same view, same data; only which card starts selected differs. Kept as one
    function so the two can never draw two different heads. */
-export function top_level(page, initial_id) {
+export function top_level(page, initial_id, url_view, root) {
+	/* `root` is the board's own address — `/framework/ai/` or
+	   `/framework/ai/v/3/` — and every url this board ever writes is built
+	   from it, never from a hardcoded path, so the same code serves both
+	   boards. `url_view` is the view the URL already named (null on the bare
+	   root); `initial_id` is the card the URL already named. */
+	root = root || page.url;
+	const view_url = v => root + v + "/";
+	const card_url = id => root + "timeline/" + id + "/";
+
 	// ⚠ `?log=`/`?verdicts=` — the SAME device this function's own `?view=`
 	// already uses (below): a query param nothing but a screenshot/test url
 	// ever sets, so a real visit still reads the real files (`LOG_URL`/
@@ -292,8 +474,8 @@ export function top_level(page, initial_id) {
 	const verdicts = new Verdicts({ url: qs.get("verdicts") || VERDICTS_URL });
 	const sort = new Page.Store({ id: "v3-sort" });
 	const prefs = new Page.Store({ id: "v3-view" });
-	let $board, $wall, $count, $footer, $live_btn, $head, $more_btn;
-	const view_btns = new Map();   // val -> $btn, built once by toolbar() — paint_view_tabs() reads it on every redraw
+	let $board, $wall, $count, $footer, $live_btn, $head, $more_btn, $agents_host;
+	const view_btns = new Map();   // val -> the view word's own link, built once by views_row() — paint_view_tabs() reads it on every redraw
 	let show_approved = prefs.get({ show_approved: false }).show_approved ?? false;
 	// LIVE — live-select, 2026-09-21: this is now the ONE switch for
 	// selection, not an auto-follow mode with its own separate per-visit
@@ -366,9 +548,21 @@ export function top_level(page, initial_id) {
 		}
 	}
 
-	const view_param = new URLSearchParams(location.search).get("view");
-	let view = ["now", "grid", "timeline"].includes(view_param) ? view_param
-		: (prefs.get({ view: "now" }).view ?? "now");
+	/* THE URL DECIDES THE VIEW, ALWAYS (the owner, 2026-09-22: "that's
+	   literally what routes are for"). Three sources, in this fixed order:
+	     1. the PATH — `/framework/ai/grid/` — which is `url_view`;
+	     2. the old `?view=grid` param, still accepted so every link and
+	        screenshot url written before today keeps working;
+	     3. the saved preference, and only when the url named nothing.
+	   Anything that is not one of the five words falls back to `days`. */
+	const view_param = qs.get("view");
+	let view = url_view
+		|| (VIEW_WORDS.includes(view_param) ? view_param : null)
+		|| (prefs.get({ view: DEFAULT_VIEW }).view ?? DEFAULT_VIEW);
+	// A hidden view falls back like a misspelt one — which is what turns
+	// `/framework/ai/grid/`, `?view=grid` and an old saved preference reading
+	// "grid" into the default view instead of a word that is no longer there.
+	if (!VIEW_WORDS.includes(view) || HIDDEN_VIEWS.includes(view)) view = DEFAULT_VIEW;
 
 	// A CARD'S OWN URL ALWAYS SHOWS THAT CARD (approve-loop, 2026-09-20) — found
 	// live: landing on `/v/3/<id>/` while the SAVED view preference read "grid"
@@ -385,8 +579,28 @@ export function top_level(page, initial_id) {
 	// still returns to whatever view the owner had chosen before.
 	if (initial_id) view = "timeline";
 
-	const VIEWS = [["now", "now", "the newest thing, live"], ["grid", "grid", "the importance wall"],
-		["timeline", "timeline", "rail + detail, newest first"], ["gallery", null, "next"], ["dashboard", null, "next"]];
+	/* ONE TRUTH, and it is the url. If we got here on an address that does NOT
+	   name the view — the bare `/framework/ai/`, or an old `?view=grid` link —
+	   rewrite it right now so it does. `replaceState`, never `pushState`: this
+	   is the same visit, not a new one, so the back button still goes wherever
+	   the reader came from. A REDIRECT was the alternative and is wrong:
+	   `/framework/ai/` is the AI section's own root, the rail's nav target and
+	   the version picker's V1 entry, so it has to keep existing.
+	   ⚠ Every other query param is carried over untouched — `?log=`,
+	     `?verdicts=` and `?servex=` are how a proof run points this board at
+	     scratch files, and dropping them would break every such run. */
+	if (!url_view) {
+		const keep = new URLSearchParams(location.search);
+		keep.delete("view");
+		const q = keep.toString();
+		history.replaceState(null, "", (initial_id ? card_url(initial_id) : view_url(view)) + (q ? "?" + q : ""));
+	}
+
+	const VIEW_TITLES = {
+		days: "what happened, newest day first", now: "the newest thing, live",
+		grid: "the importance wall", timeline: "rail + detail, newest first",
+		prompts: "what you said, and what was made of it",
+	};
 
 	// ⚠ The `timeline` and `now` views' own instances survive across a LIVE
 	// data update (a new `card`/`chunk` line) — only `update()` is called
@@ -394,7 +608,7 @@ export function top_level(page, initial_id) {
 	// inbox/reading-position-loses-its-place bug the owner's own brief opens
 	// with. Switching views (or first arriving at one) is the only time
 	// either is (re)built from nothing.
-	let md = null, nv = null;
+	let md = null, nv = null, dv = null, pv = null;
 	const redraw = () => {
 		paint_count();
 		paint_view_tabs();
@@ -405,37 +619,46 @@ export function top_level(page, initial_id) {
 		// `.v3-board`'s own grid row sizing when off, so the other views'
 		// natural page-scroll height is never affected by its presence).
 		if ($footer) $footer.el.hidden = view !== "timeline";
+		// DAYS (2026-09-22) — its own rows come from day.jsonl/task.jsonl, not
+		// `log` (board.jsonl), so a board `card`/`chunk` line arriving while
+		// this view is open must NOT rebuild it — that would blow away every
+		// open `<details>` fold and re-fetch every day.jsonl for nothing.
+		// `dv.update()` is a deliberate no-op; only a real view SWITCH (out of
+		// and back into "days") reads the days list fresh.
+		if (view === "days") {
+			md = null; nv = null; pv = null;
+			if (dv) return dv.update();
+			return $wall.empty(() => { dv = days_view(page); });
+		}
 		if (view === "now") {
-			md = null;
+			md = null; dv = null; pv = null;
 			if (nv) return nv.update();
-			return $wall.empty(() => { nv = now_view($wall, log, page, go_timeline); });
+			return $wall.empty(() => { nv = now_view($wall, log, page, view_url("timeline")); });
+		}
+		// PROMPTS (prompt-lifecycle, 2026-09-22) — its rows come from Servex's
+		// own prompt log, not `board.jsonl`, so a board line arriving while it
+		// is open must not rebuild it (the same rule `days` follows above); it
+		// keeps itself live off `/api/stream` and `update()` is a no-op.
+		if (view === "prompts") {
+			md = null; nv = null; dv = null;
+			if (pv) return pv.update();
+			return $wall.empty(() => { pv = prompts_view(); });
 		}
 		if (view !== "timeline") {
-			md = null; nv = null;
+			md = null; nv = null; dv = null; pv = null;
 			return $wall.empty(() => wall($wall, log, page, sort, verdicts, () => show_approved));
 		}
-		nv = null;
+		nv = null; dv = null; pv = null;
 		if (md) return md.update();
-		$wall.empty(() => { md = master_detail($wall, log, page, prefs, initial_id, verdicts, () => show_approved, () => live, () => author_filter, set_live); });
+		$wall.empty(() => { md = master_detail($wall, log, page, prefs, initial_id, verdicts, () => show_approved, () => live, () => author_filter, set_live, card_url, view_url("timeline")); });
 	};
 
-	// FRONT-DOOR-TODAY (2026-09-21, `ai/2026-09-21/front-door-today/`) — the one
-	// thing `now_view()` cannot do for itself: switch the page's own view. Now
-	// shows a stale-thread banner when the owner's conversation is old and the
-	// board has moved on without it (see `now_view()`'s own note); its button
-	// needs to land on `timeline`, saved as the new preference, the exact same
-	// way clicking the "timeline" tab in the toolbar already does.
-	const go_timeline = () => { view = "timeline"; prefs.patch({ view }); redraw(); };
-
-	// TAB HIGHLIGHT FOLLOWS `view` (2026-09-21) — found live at harvest: the
-	// toolbar's own `on` class was painted once, by `toolbar()`, at build
-	// time — a click on a tab (or `go_timeline()` from the stale banner)
-	// changes `view` and redraws `$wall`, but nothing ever told the tab
-	// STRIP itself to catch up, so it kept showing whichever tab was current
-	// when the page first loaded. Called from `redraw()`, which every path
-	// that changes `view` already calls, so this now follows `view` no
-	// matter what changed it — a tab click, the stale banner's button, or
-	// any future caller — instead of only working for one of them.
+	// TAB HIGHLIGHT FOLLOWS `view` (2026-09-21). Since 2026-09-22 a view word
+	// is a real link and a click rebuilds the whole head at the new url, so
+	// the marked word is right from the first paint — this stays because
+	// `view` can still change without a rebuild (a future in-page switch), and
+	// a highlight that silently disagrees with what is on screen is exactly
+	// the bug this was written to fix.
 	function paint_view_tabs() {
 		view_btns.forEach(($btn, val) => $btn.el.classList.toggle("on", val === view));
 	}
@@ -460,28 +683,67 @@ export function top_level(page, initial_id) {
 		});
 	}
 
-	// "asked earlier, never appeared" (the owner, 17:10) — THIS is that
-	// toolbar: view switch, Live, track width, the author filter, and (in the
-	// head row beside it, `paint_count()` above) the inbox count — one row,
-	// never a second bar, folded together rather than added to.
-	function toolbar() {
-		div.c("v3-toolbar flex v-center", () => {
-			div.c("v3-views flex", () => VIEWS.forEach(([label, val, title]) => {
-				const $btn = button.c("v3-view-btn" + (val === view ? " on" : "")).text(label)
-					.attr("type", "button").attr("title", title);
-				$btn.el.disabled = !val;
-				if (val) { view_btns.set(val, $btn); $btn.click(() => { view = val; prefs.patch({ view }); redraw(); }); }
-			}));
+	/* THE VIEW WORDS, and they are the only chrome left on the line
+	   (board-declutter, 2026-09-22). Each one is a real `<a href>` now, not a
+	   button — clicking it is an ordinary navigation to that view's own url,
+	   so the back button works and a reload lands you back on the same view
+	   (`board_route()` above). `gallery` and `dashboard` are GONE rather than
+	   folded: they were permanently disabled buttons, so there was nothing to
+	   keep reachable. */
+	function views_row() {
+		div.c("v3-views flex", () => {
+			shown_views().forEach(val => {
+				view_btns.set(val, a.c("v3-view-btn" + (val === view ? " on" : "")).text(val)
+					.href(view_url(val)).attr("title", VIEW_TITLES[val]));
+			});
+			/* TALK (2026-09-22, `ai/2026-09-22/talk/`) — the sixth word on this
+			   line, and the only one that is not a view of this board: it is a
+			   PAGE of its own at `/framework/ai/talk/`, where pressing the mic
+			   fills one card with your words as you say them. So it is NOT in
+			   `VIEW_WORDS` (that list is what `board_route()` claims as a view,
+			   and claiming `talk` there would shadow the real page), and its
+			   href is the absolute address rather than `view_url()` — this same
+			   head is drawn under `/framework/ai/v/3/` too, where a relative
+			   view url would point at a page that does not exist. */
+			a.c("v3-view-btn v3-view-talk").text("🎤 talk").href("/framework/ai/talk/")
+				.attr("title", "Press the mic and talk — your words fill one card, live, and nothing on it jumps");
+		});
+	}
+
+	/**
+	 * MORE — everything that is not a view word (board-declutter, 2026-09-22).
+	 * The owner's own list of what was too much: "Todays' board? Everything?
+	 * Process? Start here? V3? 103 left? … LIVE, everyone, card width". None of
+	 * it is deleted — all of it lives here, one click away, opening in place
+	 * under the one chrome line. Four destinations, the version picker, and
+	 * the three controls that used to sit permanently on screen.
+	 *
+	 * Today's link is computed, never hardcoded, and starts pointing at the
+	 * log (always real) — it only swaps to `/framework/ai/<today>/` once
+	 * `Socket.ls()` confirms that dir actually exists, so a visit before the
+	 * day's first task never lands on a 404.
+	 */
+	function more_panel() {
+		let $today;
+		div.c("v3-more", () => {
+			div.c("v3-ways-out", () => {
+				$today = a.c("v3-ways-out-link").href("/framework/ai/log/").text("Today's board");
+				span.c("v3-ways-out-sep muted", "·");
+				a.c("v3-ways-out-link").href("/framework/ai/log/").text("Everything");
+				span.c("v3-ways-out-sep muted", "·");
+				a.c("v3-ways-out-link").href("/framework/ai/process/").text("Process");
+				span.c("v3-ways-out-sep muted", "·");
+				a.c("v3-ways-out-link").href("/framework/ai/2026-09-20/start-here/").text("Start here");
+			});
+
+			picker(root);
+
+			// THE COUNT — still the point, still one press away (`paint_count()`).
+			$count = div.c("v3-count flex v-center");
 
 			// LIVE — see the `let live` declaration above for what it gates,
 			// and `set_live()`/`paint_live_btn()` for how its look and its
-			// saved state stay in sync. Its own `v3-live-btn` class (v3.css),
-			// not the plain view-switch tabs' `v3-view-btn` — this one has to
-			// read as a clearly-armed toggle, not a selected tab. It is the
-			// ONE piece of head-row state that changes on every view,
-			// including `now`/`grid` where nothing here reads `redraw()`'s
-			// own rebuild, so a direct DOM toggle (`paint_live_btn()`) is
-			// simpler and correct either way.
+			// saved state stay in sync.
 			$live_btn = button.c("v3-live-btn" + (live ? " on prim" : "")).text("Live")
 				.attr("type", "button")
 				.attr("title", "Show me the newest, nothing pinned open. On: the newest card is always what's shown, and stays that way as new ones arrive. Selecting any card turns this off and locks your view on it; click Live again to deselect and jump back to the newest.")
@@ -495,9 +757,6 @@ export function top_level(page, initial_id) {
 			$author.el.value = author_filter;
 			$author.on("change", function () { author_filter = this.el.value; prefs.patch({ author_filter }); redraw(); });
 
-			// HEAD-MOBILE — same reason as `.v3-ways-out` above: `.v3-track` now
-			// owns its own `display: flex; align-items: center` in v3.css so the
-			// narrow-width hide isn't out-ranked by a `flex` utility class.
 			div.c("v3-track", () => {
 				span("card width");
 				input().attr("type", "range").attr("min", "18").attr("max", "34").attr("step", "1")
@@ -508,43 +767,6 @@ export function top_level(page, initial_id) {
 						prefs.patch({ track: Number(em) });
 					});
 			});
-		});
-	}
-
-	/**
-	 * WAYS OUT (v3-ways-out, 2026-09-21) — the owner's own words: "there
-	 * should be a link to any important things on V3." V1's whole rail —
-	 * every day, every task, the log, the process page — WAS the AI
-	 * section's only navigation; V3 replaced it with a card stream and
-	 * shipped with no way out at all, not even back to today's own board
-	 * (checked live before this was built, logged in this task's own log: the
-	 * only anchor in the old head row was the title, pointing at itself, and
-	 * the version picker only ever swaps between V1/V2/V3). Four links, not
-	 * a rail — the three the brief names plus the owner's own start-here
-	 * page — in the head row beside the title, not inside the toolbar (see
-	 * this task's own `decision` line: the toolbar is already the busiest
-	 * row on the page, and these are DESTINATIONS, not view controls).
-	 *
-	 * Today's link is computed, never hardcoded, and starts pointing at the
-	 * log (always real) — it only swaps to `/framework/ai/<today>/` once
-	 * `Socket.ls()` confirms that dir actually exists, so a visit before the
-	 * day's first task never lands on a 404 (the brief's own fallback rule).
-	 */
-	function ways_out() {
-		let $today;
-		// HEAD-MOBILE — no `flex v-center` utility classes here (`css` skill:
-		// util beats theme at any specificity) because v3.css needs to be able
-		// to hide this whole row below 40em without a utility class winning the
-		// fight back; `.v3-ways-out` in v3.css now declares its own
-		// `display: flex; align-items: center` instead.
-		div.c("v3-ways-out", () => {
-			$today = a.c("v3-ways-out-link").href("/framework/ai/log/").text("Today's board");
-			span.c("v3-ways-out-sep muted", "·");
-			a.c("v3-ways-out-link").href("/framework/ai/log/").text("Everything");
-			span.c("v3-ways-out-sep muted", "·");
-			a.c("v3-ways-out-link").href("/framework/ai/process/").text("Process");
-			span.c("v3-ways-out-sep muted", "·");
-			a.c("v3-ways-out-link").href("/framework/ai/2026-09-20/start-here/").text("Start here");
 		});
 		const today = today_str();
 		Socket.singleton().ls("/framework/ai/").then(listing => {
@@ -566,24 +788,42 @@ export function top_level(page, initial_id) {
 		// board itself touches the sidebar/viewport edges while its readable
 		// content still has room (`css` skill: "a page region takes `.pad`").
 		$board = div.c("v3-board grid gap", () => {
-			$head = div.c("v3-head flex wrap v-center", () => {
+			/* ONE QUIET LINE OF CHROME (board-declutter, 2026-09-22) — the
+			   owner counted three rows above the first card and called all of
+			   it "bullshit": the AI head, the view switch, and the agents
+			   strip. This is the one line that replaces them: the title, the
+			   five view words, whichever agents are actually working, and
+			   `More` at the right end holding everything else. Nothing was
+			   thrown away except the two permanently-disabled view words. */
+			// ⚠ NO `flex wrap v-center` utility classes here (board-declutter,
+			// 2026-09-22) — v3.css declares this row's own display instead, for
+			// the same documented reason `.v3-ways-out` and `.v3-track` already
+			// do: `framework.css`'s `.flex > * { margin: 0 }` lives in `@layer
+			// util`, a LATER layer than this file's own `theme`, so it beats any
+			// rule here at any specificity — and it silently killed the one
+			// `margin-inline-start: auto` that puts `More` at the end of the
+			// line (measured: the button sat at x=710 in a 1039px row).
+			$head = div.c("v3-head", () => {
 				// The title is the way home (the owner, 2026-09-21: "I want you
 				// to make the AI title on the V3 page link back to framework AI").
 				h1.c("v3-title", () => a.c("v3-title-link").href("/framework/ai/").text("AI"));
-				ways_out();
-				picker("/framework/ai/v/3/");
-				// HEAD-MOBILE — only painted at all below 40em (v3.css); at any
-				// wider width it never enters the flex row, so it never has to
-				// wrap around either. Opens the ways-out links and the
-				// card-width slider in place, right where they already sit —
-				// nothing moves, `set_more()` only ever toggles a class.
+				views_row();
+				// AGENTS STRIP (board-from-events, 2026-09-22, phase-2 item 5) —
+				// every Servex-hosted agent that is actually WORKING, one chip
+				// each, on the same line; the idle ones collapse into a single
+				// count at the end of it (`agents.js`). Built once, like
+				// `$footer` below — never rebuilt on a view switch or a redraw.
+				$agents_host = div.c("v3-agents");
+				$agents_host.el.hidden = true;   // agents_strip() shows it once Servex actually answers
 				$more_btn = button.c("v3-more-btn").attr("type", "button")
 					.attr("aria-expanded", "false")
-					.attr("title", "More: the links above, and the card-width slider — folded away only to save room, always here")
+					.attr("title", "More: the ways out of this board, the version picker, Live, the author filter, the card-width slider and the count of what is left to review — folded away only to save room, always here")
 					.text("More ▾")
 					.click(() => set_more(!more_open));
-				$count = div.c("v3-count flex v-center");
-				toolbar();
+				// Its own line INSIDE the same flex row (`flex: 1 1 100%`,
+				// v3.css), shown only while `more_open` — so the chrome is one
+				// line until you ask for the rest, at every width.
+				more_panel();
 			});
 			$wall = div.c("v3-wall");
 			// USAGE FOOTER (item 5) — "the usage progress bars from the old
@@ -603,7 +843,140 @@ export function top_level(page, initial_id) {
 	});
 	$board.style({ "--v3-track": (prefs.get({ track: 24 }).track ?? 24) + "em" });
 
-	Promise.all([log.live(redraw), verdicts.live(redraw)]).then(redraw);
+	// A landed minion/task-mastermind's own last words become a board card the
+	// same way any other `card` line would — merged straight into `log` (never
+	// written to `board.jsonl`, this task's own fence and `decision` line) —
+	// so every view that already reads `log.cards` shows it with no code of
+	// its own for "an agent finished".
+	agents_strip($agents_host, card => { log.card(card); redraw(); });
+
+	// EVERY CARD THE FAST ASSISTANT MAKES OF YOUR WORDS lands on the normal
+	// timeline and grid too (prompt-lifecycle, 2026-09-22) — merged straight
+	// into `log`, never written to `board.jsonl`, exactly as a landed agent's
+	// card is one line above. Two sources, one destination, and no view here
+	// needs a single line of code for either.
+	// ⚠ Subscribed only AFTER `log.live()` has finished its first read, because
+	// `Timeline.reset()` empties `cards` on every load of `board.jsonl` — a
+	// prompt card merged in before that read simply vanished, silently, and the
+	// grid showed none of them (measured here, 2026-09-22). The agents strip
+	// never hit this because its cards can only arrive much later, when an
+	// agent actually lands.
+	Promise.all([log.live(redraw), verdicts.live(redraw)]).then(() => {
+		prompt_board_cards(card => { log.card(card); redraw(); });
+		redraw();
+	});
+}
+
+/**
+ * DAYS (2026-09-22, `ai/2026-09-22/days-view/`) — the owner's own words: "our
+ * new ai dashboard system still sucks... i never have a nice clean report of
+ * what happened." Every other view here reads `board.jsonl` — activity, not
+ * outcome. This one reads only the line a task writes when it actually LANDS:
+ * newest day first, one row per finished task, the day's own `day.jsonl` for
+ * the list (cheap — one small fetch per day) and that task's own `task.jsonl`
+ * only once its row is opened (this task's own `decision` log explains why:
+ * about 700 task dirs exist across the archive, so reading every one's
+ * `task.jsonl` up front is not viable on a page load — the day log's own
+ * "landed — <one line>" message, a real sentence a task chose for itself at
+ * landing, stands in as the row's headline until then).
+ */
+const DAYS_PAGE = 7;
+
+function days_view(page) {
+	const $days = div.c("v3-days flow");
+	load_days($days);
+	return { update() {} };   // board.jsonl updates never touch this view — see redraw()'s own note
+}
+
+async function load_days($days) {
+	const dates = await list_days();
+	if (!dates.length) return $days.append(() => p.c("muted", "No days logged yet."));
+	let shown = DAYS_PAGE;
+	const draw = () => $days.empty(() => {
+		dates.slice(0, shown).forEach(day_block);
+		if (dates.length > shown) button.c("v3-count-toggle").attr("type", "button")
+			.text(`Show ${Math.min(DAYS_PAGE, dates.length - shown)} more days`)
+			.click(() => { shown += DAYS_PAGE; draw(); });
+	});
+	draw();
+}
+
+async function list_days() {
+	const listing = await Socket.singleton().ls("/framework/ai/").catch(() => null);
+	return (listing?.response ?? [])
+		.filter(e => e.type === "dir" && /^\d{4}-\d{2}-\d{2}$/.test(e.name))
+		.map(e => e.name).sort().reverse();   // newest first — an ISO date sorts correctly as a plain string
+}
+
+/* One day's own log — `{at, task, msg}` per line, never merged, never cached:
+   this file is history the moment the day rolls over. */
+async function day_log(date) {
+	const res = await fetch(`/framework/ai/${date}/day.jsonl`).catch(() => null);
+	if (!res?.ok || (res.headers.get("content-type") ?? "").includes("html")) return [];
+	return JSONL.parse(await res.text()).filter(e => e.log).map(e => e.log);
+}
+
+function day_block(date) {
+	div.c("v3-day", () => {
+		h2.c("v3-day-head", date === today_str() ? `Today — ${date}` : date);
+		const $rows = div.c("v3-day-rows flex v gap-25");
+		load_day_rows($rows, date);
+	});
+}
+
+async function load_day_rows($rows, date) {
+	const lines = await day_log(date);
+	const landed = lines.filter(l => /^landed\b/.test(l.msg ?? ""))
+		.sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
+	const opened = new Set(lines.filter(l => /^task opened\b/.test(l.msg ?? "")).map(l => l.task));
+	// UNLANDED TASKS OF TODAY ONLY — an older day's own opened-but-never-landed
+	// task is a dead run, not "still working"; only today's own in-flight work
+	// gets the quiet line the brief asks for.
+	const working = date === today_str() ? [...opened].filter(t => !landed.some(l => l.task === t)) : [];
+	$rows.append(() => {
+		if (!landed.length && !working.length) return p.c("muted", "Nothing landed.");
+		working.forEach(slug => day_working(date, slug));
+		landed.forEach(l => day_row(date, l));
+	});
+}
+
+/** One finished task, collapsed to the one-line headline it wrote for itself
+    at landing (`day.jsonl`); opening it reads that task's own `task.jsonl`
+    ONCE — the full `outcome` (rendered as markdown, so its own bold headline
+    and inline links show too), the `links` list, and the task page. */
+function day_row(date, l) {
+	const slug = l.task, sentence = (l.msg ?? "").replace(/^landed[\s—-]+/, "");
+	let loaded = false;
+	details.c("v3-day-row", $r => {
+		summary.c("v3-day-summary", () => {
+			b(slug);
+			if (sentence && sentence !== slug) span(" — " + sentence);
+		});
+		const $body = div.c("v3-day-body");
+		$r.on("toggle", async () => {
+			if (loaded || !$r.el.open) return;
+			loaded = true;
+			$body.append(() => p.c("muted", "Loading…"));
+			const t = await new TaskJSONL({ url: `/framework/ai/${date}/${slug}/task.jsonl` }).load();
+			$body.empty(() => {
+				if (t.loaded && t.outcome) md(t.outcome);
+				else p.c("muted", "No landing report on file.");
+				if (t.links?.length) div.c("flex wrap gap-25", () =>
+					t.links.forEach(link => a(link.label ?? link.url).href(link.url)));
+				a("Task page →").href(`/framework/ai/${date}/${slug}/`);
+			});
+		});
+	});
+}
+
+/** A task that opened today and has not landed yet — one quiet line, its own
+    live status (`current()`, the same field a running task's card already
+    reads) fetched once this row exists, never blocking the rest of the day. */
+function day_working(date, slug) {
+	const $w = div.c("v3-day-working muted").text(`working — ${slug}`);
+	new TaskJSONL({ url: `/framework/ai/${date}/${slug}/task.jsonl` }).load().then(t => {
+		if (t.loaded) $w.text(`working — ${current(t) ?? slug}`);
+	});
 }
 
 /**
@@ -640,7 +1013,7 @@ export function top_level(page, initial_id) {
 const hour_start = t => { const d = new Date(t); d.setMinutes(0, 0, 0); return d.getTime(); };
 const hour_label = t => new Date(t).toLocaleTimeString([], { hour: "numeric" });
 
-function master_detail($wall, log, page, prefs, initial_id, verdicts, get_show_approved, get_live, get_author_filter, set_live) {
+function master_detail($wall, log, page, prefs, initial_id, verdicts, get_show_approved, get_live, get_author_filter, set_live, card_url, timeline_url) {
 	/* Newest first, top-level only — AND an owner card that has its own
 	   answer (a card carrying `re: <that owner card's id>`) merges into that
 	   answer's row instead of standing beside it as a second item: `row_of()`
@@ -1121,12 +1494,19 @@ function master_detail($wall, log, page, prefs, initial_id, verdicts, get_show_a
 		rows.forEach((($row, rid) => mark_row(rid, $row)));
 		draw_right();
 		$split_v.ac("v3-mobile-detail");   // a no-op above the <40em breakpoint
-		if (push) history.pushState(null, "", BOARD + id + "/");
+		// `card_url()` is built from the board root this page was opened on
+		// (board-declutter, 2026-09-22) — `/framework/ai/timeline/<id>/` or
+		// `/framework/ai/v/3/timeline/<id>/`, so the view stays in the url
+		// with the card and a reload lands on both.
+		if (push) history.pushState(null, "", card_url(id));
 	}
 
 	function on_pop() {
 		if (!document.contains($wall.el)) { window.removeEventListener("popstate", on_pop); return; }
-		const m = location.pathname.match(/\/v\/3\/([^/]+)\/?$/);
+		// The last path segment is the card id on any of the three shapes this
+		// board has ever written: `<root>timeline/<id>/`, the older
+		// `/v/3/<id>/`, or a bare root (no card — the deselect gesture below).
+		const m = location.pathname.replace(/\/+$/, "").match(/\/([^/]+)$/);
 		const id = m && cards.some(c => c.id === m[1]) ? m[1] : null;
 		// Landing on a real card's own url (Back/Forward) is a selection, the
 		// same as a click — turns Live off. Landing back on the BARE board url
@@ -1221,6 +1601,8 @@ function master_detail($wall, log, page, prefs, initial_id, verdicts, get_show_a
 				return w;
 			},
 			done(w) { prefs.patch({ split: w }); },
+			from: "start",   // the LEFT column's own width, not the right one's
+			mirror: false,   // the strip sits at $grip's own left — where apply_split() puts it
 		});
 		$grip.style({ position: "absolute", inset: "0 auto 0 0" });
 	});
@@ -1301,7 +1683,7 @@ function master_detail($wall, log, page, prefs, initial_id, verdicts, get_show_a
 			selected_id = cards[0]?.id ?? null;
 			return_id = null;
 			unseen_count = 0;
-			history.replaceState(null, "", page.url);
+			history.replaceState(null, "", timeline_url);
 			$left.el.scrollTo({ top: 0, behavior: "smooth" });
 			rows.forEach((($row, rid) => mark_row(rid, $row)));
 			draw_right();
@@ -1340,7 +1722,7 @@ function master_detail($wall, log, page, prefs, initial_id, verdicts, get_show_a
  * with one obvious way to what actually is current. `is_stale()`/
  * `paint_stale()`, below.
  */
-function now_view($wall, log, page, go_timeline) {
+function now_view($wall, log, page, timeline_url) {
 	const STREAM_IDLE_MS = 3000;
 	let heard_id = null, following = true, chunks_seen = 0;
 	let $box, $stale, $heard, $chip, $answers;
@@ -1376,7 +1758,12 @@ function now_view($wall, log, page, go_timeline) {
 				span.c("v3-now-stale-text",
 					`This thread is from ${day_word(owner.at)} — today's newest activity is in the timeline.`);
 			});
-			button.c("v3-now-stale-btn prim").attr("type", "button").text("Show today").click(go_timeline);
+			// A real link, not a button (board-declutter, 2026-09-22): the
+			// timeline is a url now, so landing on it is an ordinary
+			// navigation and the back button brings you straight back here.
+			// `.btn` because it is an anchor now: framework.css's control
+			// grammar only gives a LINK the button box when it wears that word.
+			a.c("v3-now-stale-btn btn prim").href(timeline_url).text("Show today");
 		});
 	}
 

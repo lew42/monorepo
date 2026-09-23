@@ -19,6 +19,7 @@ Opt a real component (not an example) out of the scan: `div.c("toc-skip", …)`.
 - Nothing re-scans — a heading appended later (`md.file()`) is not in the nav; no `h4`: [`doc/decisions.md`](./doc/decisions.md)
 - `toc.css` stays ASCII, comments included — a charset-less host double-encodes UTF-8: [`doc/decisions.md`](./doc/decisions.md)
 - No minimum heading count — it hides only at exactly zero, never "fewer than three": [`doc/decisions.md`](./doc/decisions.md)
+- Fixed 2026-09-22: the rail rule used to REPLACE the page shell's grid, and a page's two gutters are the first and last track of that grid — so above 82em every ToC page put its `h1` flush against the sidebar, and `wide`/`bleed` did not work at all. It restates all the tracks now, like `Page.css`'s related-aside rule: [`doc/decisions.md`](./doc/decisions.md)
 
 ## More
 

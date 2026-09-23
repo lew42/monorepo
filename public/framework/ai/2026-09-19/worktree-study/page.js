@@ -1,4 +1,4 @@
-import { Page, md, div, p, span, b } from "/app.js";
+import { Page, md, div, p, span, b, details, summary } from "/app.js";
 
 /* ── layout, answered before the first factory call ───────────────────────────
    1 CONTAINER  a task page on /framework/ai/2026-09-19/'s board — the ordinary
@@ -87,12 +87,19 @@ export default new Page({
 
 		md("## Measured today\n\n| | |\n| --- | --- |\n" + MEASURED.map(r => "| " + r[0] + " | " + r[1] + " |").join("\n")).ac("wide");
 
-		md("### What the owner does once, to unlock more\n\n" +
-			"- **Commit michael/dev regularly** (even a rough work-in-progress commit) — fixes the uncommitted-work blocker for every future worktree, for free, forever, until it drifts again. This is the single highest-leverage unlock and needs no new rule.\n" +
-			"- **Or grant a standing branch the mastermind may commit to** — more convenient once running, but it is a change to the never-commit rule and only the owner can make that call.\n" +
-			"- Neither is required to start using worktrees for the two hazardous edit classes today — the diff-copy workaround (proven above) already covers it.").ac("wide");
+		/* ⚠ Presentation pass, 2026-09-22: 3,186px at 1280, four screens of prose.
+		   Nothing deleted — the owner's unlock list and the nine-masterminds
+		   addition moved behind one fold, so the verdict, the cards and the
+		   measurements read as one screen. */
+		details(() => {
+			summary("What the owner does once to unlock more — and the nine-masterminds question, answered");
+			md("### What the owner does once, to unlock more\n\n" +
+				"- **Commit michael/dev regularly** (even a rough work-in-progress commit) — fixes the uncommitted-work blocker for every future worktree, for free, forever, until it drifts again. This is the single highest-leverage unlock and needs no new rule.\n" +
+				"- **Or grant a standing branch the mastermind may commit to** — more convenient once running, but it is a change to the never-commit rule and only the owner can make that call.\n" +
+				"- Neither is required to start using worktrees for the two hazardous edit classes today — the diff-copy workaround (proven above) already covers it.").ac("wide");
 
-		this.addition();
+			this.addition();
+		}).ac("wide");
 
 		p.c("muted", "Full evidence, exact commands, and all six decision lines with their alternatives: this task's log.");
 	},

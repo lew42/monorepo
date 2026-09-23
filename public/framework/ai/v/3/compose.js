@@ -1,7 +1,7 @@
 import { View, div, textarea, button, small } from "/app.js";
 import { stream } from "/framework/ext/Ask/stream.js";
 import { edit } from "/framework/ext/Ask/edit.js";
-import Dictate from "/framework/ux/Dictate/Dictate.js";
+import Dictate, { post_prompt } from "/framework/ux/Dictate/Dictate.js";
 
 View.stylesheet(import.meta, "compose.css");
 
@@ -28,7 +28,11 @@ export function composer({ placeholder = "talk to the assistant…" } = {}) {
 	if (!edit()) return null;
 
 	let $input, $note;
-	const NOTE = "sends to the assistant — the reply types itself out above.";
+	const NOTE = "the fast assistant inside Servex · names in ~2 s · ✓ ✗ optional";
+	// `?servex=` — the same test-flag device `prompts.js`'s own `servex_base()`
+	// uses, so a proof run can point this box at a dead port without touching
+	// the real assistant (`ai/2026-09-22/talk-to-assistant/`).
+	const servex_url = () => (new URLSearchParams(location.search).get("servex") || "http://127.0.0.1:8090") + "/log/prompts";
 
 	const $view = div.c("v3-compose flex v", () => {
 		div.c("v3-compose-row flex v-center gap", () => {
@@ -41,11 +45,17 @@ export function composer({ placeholder = "talk to the assistant…" } = {}) {
 
 	$input.on("keydown", e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) send(); });
 
-	function send() {
+	// The Servex assistant is the ONE destination (Prompts tab, ~2s names) —
+	// the old one-shot `assistant` stream preset is a FALLBACK for when Servex
+	// is not answering, never a second send of the same message.
+	async function send() {
 		const msg = $input.el.value.trim();
 		if (!msg) return;
 		$input.el.value = "";
 		note("sending…");
+		const ok = await post_prompt({ type: "prompt", by: "owner", text: msg, via: "typed" }, servex_url());
+		if (ok) return note("sent to the assistant");
+		note("Servex is down — old assistant");
 		stream({
 			preset: "assistant",
 			prompt: msg,

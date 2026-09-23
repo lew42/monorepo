@@ -91,8 +91,13 @@
 	   zoom is off 100%. That gap is the whole point of printing both.
 	   ⚠ Keeps its own margin because the two-up (two.js) puts one under each simulated
 	   pane, where nothing else provides the gap. */
+	/* ⚠ `padding-inline` added 2026-09-22 (padding-law): `text-align: end` inside a
+	   `.demo` whose own padding is deliberately zero landed this readout 1.9px from
+	   the frame's border on 23 pages. `0.7em` is the value the `.bare` variant below
+	   already gives the same readout when it becomes a pill on the border. */
 	.demo-size {
 		margin-top: calc(var(--gap) * 0.6);   /* was margin-top 0.6em - 2026-09-05 ramps */
+		padding-inline: 0.7em;
 		font-size: 0.62em;
 		letter-spacing: 0.1em;
 		text-align: end;

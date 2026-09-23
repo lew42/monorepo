@@ -1,0 +1,7 @@
+# sub-mastermind — improvements
+
+One dated, signed line per time this skill let you down, or per opinion worth keeping.
+Format: `<date> (<who> · <task>) · what happened · what should change, or just the opinion · the evidence`.
+
+- 2026-09-22 (tiers-design) · Written as a draft, never yet run by a real agent. The first agent that loads it files the first real line here.
+- 2026-09-22 (sub-mastermind-live · sub-mastermind-live) · First real Servex-hosted task mastermind ever spawned through this skill (`spawn_agent({role: "task-mastermind"})`). It failed on the FIRST try for a reason this skill doesn't mention: `roles.js` defaulted the role's `permission_mode` to `acceptEdits`, which pre-approves file edits but still asks for approval on a tool call (same as a Bash command) - and a non-interactive Servex-hosted session has nobody to answer that prompt. Both of its `spawn_agent` calls (the very thing this whole role exists to do) were silently refused; it noticed, said so, and stopped cleanly rather than hallucinating success, which is worth a compliment more than a bug report. Fixed in `roles.js` (task-mastermind now defaults to `bypassPermissions`), but the general shape is worth a line here: any role whose "Does" section centers on calling MCP tools (spawn_agent/send_to_agent/list_agents) needs `bypassPermissions`, not `acceptEdits`, or it will spawn successfully and then be unable to do its actual job - check this before trusting a role's default, especially `mastermind` (same acceptEdits default, same exposure, untested as of this writing).

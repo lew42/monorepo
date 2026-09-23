@@ -1,0 +1,571 @@
+@layer theme {
+
+	/* AI 2 — a rail of previews on the left, one card's own page on the right.
+	   Why any of it is the way it is: `doc/decisions.md`.
+
+	   ── the shell ──
+	   THE PAGE ITSELF DOES NOT SCROLL. The rail and the card page each scroll
+	   inside themselves, so a card arriving cannot move what you are reading.
+	   ⚠ `.page.full`, not a bare `.page`: `.page.fill` (core/Page/Page.css) says
+	     `overflow: auto` at the same weight, and load order would decide. */
+	.page.full:has(> .ai2) {
+		display: block;
+		height: 100%;
+		overflow: hidden;
+		padding: 0;
+	}
+
+	/* The page's own "AI 2" heading says what the rail already highlights. */
+	.page:has(> .ai2) > .page-title {
+		display: none;
+	}
+
+	/* `--ai2-rail` is the grip's px override; `em` is the default because a rail
+	   is sized by its own text (331px at 1280).
+	   ⚠ `grid-template-rows: minmax(0, 1fr)` — WITHOUT IT NOTHING SCROLLS. A
+	     grid's implicit row is `auto`, so it grows with its content however tall
+	     the grid is told to be: `.ai2` measured a correct 900px while the rail
+	     inside it stood 23,429px and ran off the bottom — no scrollbar, nothing
+	     in the console. */
+	.ai2 {
+		--ai2-rail: 22em;
+		display: grid;
+		grid-template-columns: var(--ai2-rail) minmax(0, 1fr);
+		grid-template-rows: minmax(0, 1fr);
+		height: 100%;
+		min-height: 0;
+		margin-block-start: 0;
+	}
+
+	/* ── the rail ──
+	   ⚠ `display: flex` declared here, not worn as the `.flex v` utility: util
+	     beats theme at any specificity, so a `.flex` on this box could never be
+	     hidden by the `< 40em` rule at the bottom of this file. */
+	.ai2-rail {
+		position: relative;   /* the grip is absolutely placed inside it */
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+		min-height: 0;
+		background: var(--tint);
+		border-inline-end: 1px solid var(--line);
+	}
+
+	/* ── the composer: ONE LINE, and it never grows ──
+	   The owner, 2026-09-22: "the area on top with the text input is massive,
+	   way too much padding… the microphone at the end of the text area like
+	   normal… it's taking a third of my screen." It measured 277px.
+
+	   The rail's rows sit under this, so a composer that gains a line pushes
+	   every card down. Three things hold the height: the box is a single-line
+	   `<input>`, everything `ux/Dictate` draws that does not shrink is in a
+	   popover taken OUT OF FLOW below, and the mic sits INSIDE the field rather
+	   than beside it. */
+	.ai2-top {
+		flex: none;
+		padding: 0.5em;
+		font-size: 0.85em;
+		background: var(--surface);
+		border-block-end: 1px solid var(--line);
+	}
+
+	.ai2-compose {
+		position: relative;
+		display: flex;
+		align-items: center;
+		gap: 0.35em;
+	}
+
+	/* The field and the microphone are ONE control: the mic is absolutely placed
+	   at the field's right end and the input reserves room for it. */
+	.ai2-field {
+		position: relative;
+		flex: 1;
+		min-width: 0;
+		display: flex;
+	}
+
+	.ai2-compose-input {
+		width: 100%;
+		padding-inline-end: 2.4em;
+	}
+
+	.ai2-mic {
+		position: absolute;
+		inset-inline-end: 0.15em;
+		top: 50%;
+		transform: translateY(-50%);
+		gap: 0;
+	}
+
+	.ai2-mic .ux-dictate-btn {
+		padding: 0 0.25em;
+		border: 0;
+		background: none;
+		line-height: 1;
+	}
+
+	.ai2-compose-send,
+	.ai2-compose-more {
+		flex: none;
+		white-space: nowrap;
+	}
+
+	.ai2-compose-more {
+		padding: 0 0.45em;
+		border: 0;
+		background: none;
+		color: inherit;
+		font: inherit;
+		line-height: 1;
+		opacity: 0.45;
+		cursor: pointer;
+	}
+
+	.ai2-compose.open .ai2-compose-more { opacity: 1; }
+
+	/* EVERYTHING ELSE, OUT OF FLOW. `ux/Dictate`'s engine name, its status and
+	   its "stop after a pause" box are moved here bodily by `compose.js` — one
+	   node, not a copy — and the note with them. `position: absolute`, so
+	   opening this cannot move a single row in the rail.
+
+	   ⚠ `visibility`, NOT `display`, and this is not a style choice. Dictate's
+	   own markup wears the `flex v` utilities, and `@layer util` beats
+	   `@layer theme` at any specificity — so a `display: none` here loses to
+	   `.flex { display: flex }` and the popover stays laid out, invisible,
+	   covering whatever is under it. It was covering "+ New card" and "notes":
+	   both buttons were `checkVisibility() === true` and `elementFromPoint` at
+	   their own centre returned `SPAN.ux-dictate-engine`, so a real click did
+	   nothing and Playwright's own click timed out after 30 s with the right
+	   element resolved. `visibility` is not a property any utility sets, and
+	   `pointer-events: none` is what actually gives the click back. */
+	.ai2-compose > .ux-dictate-info,
+	.ai2-compose-note {
+		position: absolute;
+		z-index: 4;
+		inset-inline: 0;
+		top: calc(100% + 0.3em);
+		padding: 0.5em 0.6em;
+		background: var(--surface);
+		border: 1px solid var(--line);
+		border-radius: 0.3em;
+		box-shadow: 0 4px 12px rgb(0 0 0 / 0.18);
+		visibility: hidden;
+		pointer-events: none;
+	}
+
+	.ai2-compose-note { top: calc(100% + 5.2em); }
+
+	.ai2-compose.open > .ux-dictate-info,
+	.ai2-compose.open > .ai2-compose-note {
+		visibility: visible;
+		pointer-events: auto;
+	}
+
+	/* The one line of words under the composer: New card, the count, notes. */
+	.ai2-chrome {
+		margin-block-start: 0.4em;
+	}
+
+	.ai2-newcard,
+	.ai2-word {
+		flex: none;
+		padding: 0.1em 0.5em;
+		font-size: 0.95em;
+		line-height: 1.5;
+	}
+
+	.ai2-word {
+		border: 0;
+		background: none;
+		color: inherit;
+		opacity: 0.55;
+		cursor: pointer;
+	}
+
+	.ai2-word:hover,
+	.ai2-word.on {
+		opacity: 1;
+		color: var(--prim-ink);
+	}
+
+	.ai2-count {
+		margin-inline-start: auto;
+	}
+
+	.ai2-unread-count {
+		font-weight: 700;
+	}
+
+	.ai2-off {
+		font-style: italic;
+	}
+
+	/* THE "N NEW ↑" PILL — "nothing jumps", made visible. `.prim` is
+	   framework.css's own filled button; this rule only says where it sits.
+	   ⚠ IT FLOATS; it is not a row. Sat in the flow above the rows, its own
+	     arrival pushed every row down 36px — the control whose whole job is to
+	     stop a jump, causing one (first row's top, 150.75 → 186.84). */
+	.ai2-new {
+		display: none;
+		position: absolute;
+		z-index: 2;
+		inset-inline: 0.7em;
+		top: 0.5em;
+		width: auto;
+		box-shadow: 0 2px 8px rgb(0 0 0 / 0.25);
+	}
+
+	.ai2-new.on {
+		display: block;
+	}
+
+	/* The box the pill floats over, so its `top` means the top of the ROWS and
+	   not the top of the rail, where the composer is. */
+	.ai2-stream {
+		position: relative;
+		display: flex;
+		flex: 1 1 auto;
+		min-height: 0;
+	}
+
+	/* The one box on this page that is MEANT to scroll. */
+	.ai2-rows {
+		flex: 1 1 auto;
+		min-width: 0;
+		overflow-y: auto;
+	}
+
+	/* ── a preview ──
+	   A ROW IS AN ANCHOR — a real link to the card's own url, which is what makes
+	   Back, a reload and a pasted url work with no code of ours. `em` padding: a
+	   row is a control and scales with its own text. */
+	.ai2-row {
+		display: block;
+		padding: 0.55em 0.7em;
+		border-block-end: 1px solid var(--line);
+		border-inline-start: 3px solid transparent;
+		color: inherit;
+		text-decoration: none;
+		cursor: pointer;
+	}
+
+	.ai2-row:hover {
+		background: var(--fill-a04);
+	}
+
+	/* `.active` is `Router.mark_links()`'s — the selection is never drawn here. */
+	.ai2-row.active {
+		background: var(--surface);
+		border-inline-start-color: var(--prim);
+	}
+
+	.ai2-row.ai2-flagged {
+		border-inline-start-color: var(--error);
+	}
+
+	/* Archived, never deleted — greyed in place when shown at all (item 12). */
+	.ai2-row.ai2-archived {
+		opacity: 0.45;
+	}
+
+	.ai2-archived-word {
+		display: block;
+		margin: 0.3em 0.7em;
+	}
+
+	/* Beside "+ New card" — a checkbox, not a button, so its own state reads at
+	   a glance without a click (item 10). */
+	.ai2-auto {
+		gap: 0.3em;
+	}
+
+	.ai2-clear {
+		margin-inline-start: auto;
+		flex: none;
+		border: 0;
+		background: none;
+		opacity: 0.55;
+		cursor: pointer;
+	}
+
+	.ai2-clear:hover {
+		opacity: 1;
+	}
+
+	/* ⚠ `visibility`, not `display`: the dot keeps its space, so reading a card
+	     cannot shift the title beside it. */
+	.ai2-dot {
+		width: 0.5em;
+		height: 0.5em;
+		border-radius: 50%;
+		background: var(--prim);
+		flex: none;
+		visibility: hidden;
+	}
+
+	.ai2-row.ai2-unread .ai2-dot {
+		visibility: visible;
+	}
+
+	/* ONE LINE EACH, CLIPPED — a preview whose height cannot change cannot push
+	   its neighbours around. */
+	.ai2-row-title {
+		flex: 1;
+		min-width: 0;
+		font-weight: 600;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.ai2-row-when {
+		flex: none;
+		font-size: 0.8em;
+	}
+
+	.ai2-row-foot {
+		margin-block-start: 0.15em;
+	}
+
+	.ai2-row-line {
+		flex: 1;
+		min-width: 0;
+		font-size: 0.9em;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	/* WHO SAID IT — one word on every row and every page (the owner: "the items
+	   in the inbox need an author so I know who it's coming from, whether it's
+	   something I said"). A quiet grey pill, except for `you`, which is the one
+	   the question is really asking: the accent, so the owner's own sentences
+	   read apart from everything else at a glance. */
+	.ai2-who {
+		flex: none;
+		padding: 0 0.35em;
+		border-radius: 0.25em;
+		background: var(--fill-a08);
+		font-size: 0.75em;
+		text-transform: lowercase;
+		white-space: nowrap;
+		opacity: 0.75;
+	}
+
+	.ai2-who-you {
+		background: var(--prim);
+		color: white;
+		opacity: 1;
+	}
+
+	/* ── the page on the right ──
+	   The two grounds: the rail on `--tint` (3.5% off white), the card's page on
+	   `--surface`. Ink on both, 15.3:1 and 16.1:1. */
+	.ai2-detail {
+		min-width: 0;
+		min-height: 0;
+		overflow-y: auto;
+		background: var(--surface);
+	}
+
+	.ai2-empty {
+		padding: var(--pad);
+	}
+
+	.ai2-empty > small {
+		display: block;
+		margin-block-start: 0.4em;
+	}
+
+	/* Stands down the moment a card page is routed here — `.active-page` is the
+	   arrangement contract's word for "this is what is showing". */
+	.ai2-detail:has(> .page.active-page) > .ai2-empty {
+		display: none;
+	}
+
+	/* TWO FIXED REGIONS: the ideas above, the transcript footer pinned below.
+	   The page is a two-row grid — `minmax(0, 1fr)` for the ideas so they scroll
+	   inside their own box, `auto` for the footer — so neither region can move
+	   the other however many sentences stream in.
+	   ⚠ Two classes: `.page` IS the page grid by default, and one class ties. */
+	/* ⚠ EACH REGION NAMES ITS OWN ROW. Leaving them to fall into the template in
+	   source order is silently wrong: `.ai2-back` is `display: none` above 40em,
+	   so it creates no grid item, the other two shift up a row, and the FOOTER
+	   inherits the `1fr` — it measured 749px tall starting a third of the way
+	   down the column, while every number in the proof still read "unchanged"
+	   because it genuinely never moved. Only the screenshot showed it. */
+	.page.ai2-card-page {
+		display: grid;
+		grid-template-rows: auto minmax(0, 1fr) auto;
+		height: 100%;
+		min-height: 0;
+		padding: 0;
+		--flow: var(--gap-50);
+	}
+
+	.ai2-back { grid-row: 1; }
+	.ai2-full { grid-row: 2; }
+	.ai2-foot { grid-row: 3; }
+
+	.ai2-full {
+		min-height: 0;
+		overflow-y: auto;
+		padding: var(--pad);
+		max-width: none;
+	}
+
+	/* Prose holds a measure even when the column is 2,800px wide — on the text,
+	   not on the scrolling box, so the scrollbar stays at the column's edge. */
+	.ai2-full > * {
+		max-width: var(--measure);
+	}
+
+	/* THE TRANSCRIPT FOOTER — the live words, pinned to the bottom, never moving
+	   (the owner, 2026-09-22: "I don't like that my words disappear… that card
+	   could have, in a footer, the transcription — the last paragraph always on
+	   screen"). Its height is FIXED: the words scroll inside `.ai2-script`, so
+	   ten sentences and one sentence leave the ideas above in exactly the same
+	   place. */
+	.ai2-foot {
+		padding: 0.5em;
+		background: var(--tint);
+		border-block-start: 1px solid var(--line);
+	}
+
+	.ai2-script {
+		height: 5.5em;
+		overflow-y: auto;
+		margin-block-end: 0.45em;
+		font-size: 0.9em;
+	}
+
+	.ai2-said-line {
+		margin-block: 0.15em;
+	}
+
+	/* The guess, still moving. Empty collapses the line, so an idle card shows
+	   no stray row. */
+	.ai2-said-partial:empty {
+		display: none;
+	}
+
+	.ai2-said-partial {
+		margin-block: 0.15em;
+		font-style: italic;
+	}
+
+	/* `title:` is the card's ID, for the tab and the framework, not the reader —
+	   the card's real title is the line below it. */
+	.page.ai2-card-page > .page-title {
+		display: none;
+	}
+
+	.ai2-full-title {
+		font-weight: 700;
+		font-size: 1.2em;
+		flex: 1;
+		min-width: 0;
+		overflow-wrap: anywhere;
+	}
+
+	.ai2-meta {
+		margin-block-start: 0.15em;
+	}
+
+	/* THE FLAG IS NOT A BUTTON-SHAPED BUTTON: the control grammar's padding,
+	   hairline and fill are right for Send, wrong for a glyph beside a title. */
+	.ai2-flag {
+		flex: none;
+		padding: 0 0.3em;
+		border: 0;
+		background: none;
+		color: inherit;
+		font: inherit;
+		line-height: 1;
+		opacity: 0.4;
+	}
+
+	.ai2-flag:hover,
+	.ai2-flag.on {
+		opacity: 1;
+		color: var(--error);
+	}
+
+	.ai2-sentence {
+		margin-block: 0.2em;
+		color: color-mix(in srgb, currentColor 80%, transparent);
+	}
+
+	.ai2-said-head {
+		font-size: 0.85em;
+		cursor: pointer;
+	}
+
+	/* ONE PILL, TWO USES — a minted name, and a link off the card.
+	   ⚠ THE LINKS ALSO WEAR `page-link`, in the markup, and that is the whole fix
+	     for "the links are blue": framework.css scopes link colour to prose
+	     (`:where(p, li, …) a`) so that navigation can opt out, and an anchor in a
+	     bare div got no rule at all. Nothing here restates the theme. */
+	.ai2-chip,
+	.ai2-link {
+		padding: 0.1em 0.5em;
+		border: 1px solid var(--line);
+		border-radius: 1em;
+		font-size: 0.85em;
+		white-space: nowrap;
+		text-decoration: none;
+	}
+
+	.ai2-proposal {
+		border-inline-start: 2px solid var(--line);
+		padding-inline-start: 0.7em;
+	}
+
+	.ai2-proposal-title {
+		display: block;
+		font-weight: 600;
+	}
+
+	.ai2-flag-said,
+	.ai2-flag-input {
+		display: block;
+		width: 100%;
+	}
+
+	/* THE FLAG OVER A SELECTION — fixed, placed from the selection's own rect. */
+	.ai2-selection-flag {
+		display: none;
+		position: fixed;
+		z-index: 5;
+		transform: translateX(-50%);
+		padding: 0.25em 0.6em;
+		border: 1px solid var(--line);
+		border-radius: 1em;
+		background: var(--surface);
+		color: var(--error);
+		font: inherit;
+		line-height: 1;
+		cursor: pointer;
+		box-shadow: 0 2px 8px rgb(0 0 0 / 0.18);
+	}
+
+	.ai2-selection-flag.on {
+		display: block;
+	}
+
+	/* ── one screen at a time, on a phone ──
+	   Below 40em the rail IS the screen and a card's page is the second one.
+	   Which you see is decided by the framework's own marks: the page is an
+	   `.active-ancestor` exactly when a card page is open inside it. */
+	.ai2-back {
+		display: none;
+	}
+
+	@media (width < 40em) {
+		.ai2 { grid-template-columns: minmax(0, 1fr); }
+		.page--ai2.active-ancestor .ai2-rail { display: none; }
+		.page--ai2:not(.active-ancestor) .ai2-detail { display: none; }
+		.ai2-back { display: inline-block; }
+	}
+}

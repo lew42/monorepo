@@ -12,6 +12,7 @@ import AILogs from "./plugins/AILogs.js";
 import Ask from "./plugins/Ask.js";
 import CardAnswer from "./plugins/CardAnswer.js";
 import MCP from "./plugins/MCP.js";
+import Recordings from "./plugins/Recordings.js";
 import Research from "./plugins/Research.js";
 import Screenshots from "./plugins/Screenshots.js";
 import Start from "./plugins/Start.js";
@@ -31,6 +32,7 @@ Server.use(DevSocket);
 Server.use(Directory);
 Server.use(AILogs);
 Server.use(MCP);
+Server.use(Recordings);
 Server.use(Research);   // registers its tools on MCP — after it
 Server.use(Screenshots);
 Server.use(Whisper);    // starts whisper-server for ux/Dictate — Server/plugins/Whisper.js

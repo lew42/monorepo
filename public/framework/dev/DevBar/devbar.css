@@ -25,7 +25,14 @@
 		border-inline-start: 1px solid var(--line);
 		font-family: var(--mono);
 		font-size: 0.8rem;
-		transform: translateX(100%);
+		/* ⚠ `100%` alone lands the rail's own left edge — and the grip strip just
+		   inside it (ext/grip) — EXACTLY on the viewport's right edge, 0px past
+		   it: hovering the last pixel of the screen could still find the strip.
+		   The extra 16px is the dev bar's own fixed margin of safety, well past
+		   ext/grip's 12px hover target, so no part of it is ever reachable while
+		   shut (the owner, 2026-09-22: "move the dev bar off screen by more than
+		   like 10 pixels"). */
+		transform: translateX(calc(100% + 16px));
 		/* ⚠ A CLOSED rail is `visibility: hidden`, delayed until the slide finishes.
 		   Below 34em the media query re-poses it as a bottom sheet (translateY(100%)), so
 		   crossing that width while closed INTERPOLATES translateX(100%) → translateY(100%)
@@ -68,6 +75,26 @@
 	   Empty and `hidden` (native [hidden]{display:none}, nothing here overrides
 	   it) whenever nobody holds live reload. */
 	.dev-hold { color: var(--warn); }
+
+	/* dev/DevBar/blocked.js — "3 held" beside the block checkbox: how many reloads
+	   THIS TAB has refused while blocked. Hidden (native [hidden], nothing here
+	   overrides it) the whole time the count is zero, which is almost always.
+	   It is a real button — clicking it takes the held reloads, in one reload — so
+	   it reads as clickable rather than as another quiet readout like .dev-hold
+	   above it. `--warn` is the same "something is being withheld from you" tone. */
+	.dev-skipped {
+		flex: 0 0 auto;
+		padding: 0 0.4em;
+		color: var(--warn);
+		background: none;
+		border: 1px solid var(--warn);
+		border-radius: var(--radius);
+		cursor: pointer;
+	}
+	/* ⚠ A `--warn` FILL on hover was tried and dropped: there is no ink token that
+	   reads against amber in both themes (`--bg` is one fixed dark, `--surface`
+	   goes white in light mode). `--wash` tints under the same text instead. */
+	.dev-skipped:hover { background: var(--wash); }
 
 	/* THE PATH BAR (pathbar.js) — replaces the word "DEV". One solid
 	   background for the whole bar, never one pill per part (the owner:

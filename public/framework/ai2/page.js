@@ -1,0 +1,471 @@
+import { Page, View, div, p, span, small, a, button, label, input } from "/app.js";
+import grip from "/framework/ext/grip/grip.js";
+import composer from "./compose.js";
+import { row, full, flag_box } from "./card.js";
+import { Board, Says, BOARD_URL, VERDICTS_URL, prompt_stream, day_log, items, say, new_card, archive_card } from "./inbox.js";
+
+View.stylesheet(import.meta, "ai2.css");
+
+/**
+ * AI 2 — A LIST ON THE LEFT, ONE PAGE ON THE RIGHT, AND NOTHING EVER JUMPS
+ * (the owner, 2026-09-22: "as a new card is added, the whole thing gets pushed
+ * down. It's jumpy… We need a left sidebar that previews the things, and then
+ * when we click on one it stays selected and then I have a persistent page").
+ *
+ * THE SELECTION IS THE URL. A preview is a plain `<a>` to `/framework/ai2/<id>/`
+ * and `route()` below makes that a real address, so the Router navigates it,
+ * marks the row, and Back, a reload and a pasted link all just work. Nothing
+ * here draws a selection by hand.
+ *
+ * NOTHING JUMPS, for three separate reasons: the page on the right is a
+ * DIFFERENT PAGE from the list; the rail and the page each SCROLL INSIDE
+ * THEMSELVES; and a new row only enters the list WHEN THE LIST IS QUIET —
+ * otherwise it waits behind the pill. `doc/decisions.md` has the measurements
+ * and what was tried instead.
+ *
+ * The parts: `inbox.js` decides what there is to draw, `card.js` draws a card
+ * (small in the rail, whole on the page), `compose.js` is the box you talk to,
+ * `ai2.css` is the look. This file is the shell and the selection.
+ */
+export default new Page({
+	meta: import.meta,
+	title: "AI 2",
+	description: "Everything that happened and everything you said, as one inbox.",
+	icon: "smart_toy",
+	classes: "full fill",
+
+	/* ⚠ "I present myself, not my children" (core/Page). Without it every card
+	   you open becomes a row in the SITE'S nav tree: `route()` memoises each
+	   card page into `children` and the sidebar walks that map. */
+	leaf: true,
+
+	content(){ this.ai2 = board(this); },
+
+	/* A card's own address. ⚠ A name with a dot in it is a real file, and
+	   claiming it would answer a 404 with a card page that can never load. */
+	route(id){ return id.includes(".") ? undefined : card_page(this, id); },
+});
+
+const RAIL_KEY = "ai2-rail-w";
+const AUTO_KEY = "ai2-auto-transcribe";
+
+/** On by default (item 10) — a card you just opened starts listening unless
+ *  you turned this off, remembered in this browser like `DEVICE_KEY`. */
+const auto_transcribe = () => localStorage.getItem(AUTO_KEY) !== "off";
+
+/* The id "+ New card" just minted, waiting for its page to be built.
+   ⚠ NOT a `?new=1` in the url, which is the obvious way and is silently wrong:
+     `Router.go()` LOADS FIRST AND PUSHES THE URL SECOND, so while the new page's
+     `content()` runs `location.search` still belongs to the page you are
+     LEAVING. One variable, set before the navigation and taken by the page that
+     was asked for, cannot be read at the wrong moment. */
+let opening = null;
+
+function board(page){
+	const log = new Board({ url: BOARD_URL });
+	const says = new Says({ url: VERDICTS_URL });
+	const day = day_log();
+	const stream = prompt_stream();
+
+	let list = [], shown = [], current = null, hovering = false, flagging = null, only_notes = false, show_archived = false;
+	const rows = new Map();        // id → { $row, sig }
+	const waiting = new Set();     // ids that arrived while the list was busy
+	const watching = new Set();    // the card pages on screen, each watching for its own card
+	let $shell, $count, $pill, $rows, $detail, $flagger, $notes, $archived;
+
+	/* `bleed` is the page grid's own word for "the whole region" — without it
+	   this draws inside the prose track and the rail and the page share 52em. */
+	$shell = div.c("ai2 bleed", () => {
+		// ⚠ No `flex v` utility: util beats theme, so a `.flex` here could never
+		// be hidden by the `< 40em` rule. The column is declared in ai2.css.
+		div.c("ai2-rail", () => {
+			/* THE WHOLE CHROME IS TWO LINES: one composer, one row of words.
+			   Nothing else — the owner counted the rows above the first card and
+			   called it "a third of my screen". */
+			div.c("ai2-top", () => {
+				// Typed-only (item 10) — the mic lives on the card's own page now,
+				// one per card, so it never talks into whatever happens to be open.
+				composer({ placeholder: "say anything — it starts a new card", mic: false });
+				div.c("ai2-chrome flex v-center gap-25", () => {
+					// A blank workspace that listens: the card exists on the board
+					// the moment you press this, and the url becomes its own.
+					button.c("ai2-newcard").attr("type", "button")
+						.attr("title", "an empty card that starts listening — everything you say goes into it")
+						.text("+ New card")
+						.click(async () => {
+							const id = await new_card();
+							if (!id) return;
+							opening = id;
+							page.app?.router?.go(page.url + id + "/");
+						});
+					label.c("ai2-auto flex v-center gap-25 muted").attr("title", "a new card starts listening on its own — turn off to start it silent").append(() => {
+						const $auto = input().attr("type", "checkbox");
+						$auto.el.checked = auto_transcribe();
+						$auto.on("change", e => localStorage.setItem(AUTO_KEY, e.target.checked ? "on" : "off"));
+						span("auto-transcribe");
+					});
+					$count = div.c("ai2-count flex v-center gap-25");
+					$notes = button.c("ai2-word").attr("type", "button")
+						.attr("title", "only the mastermind's notes to you")
+						.text("notes").click(() => { only_notes = !only_notes; $notes.el.classList.toggle("on", only_notes); relist(); });
+				});
+			});
+			// The box the pill floats over — in the flow, its own arrival pushed
+			// every row down 36px.
+			div.c("ai2-stream", () => {
+				$pill = button.c("ai2-new prim").attr("type", "button").click(() => flush(true));
+				$rows = div.c("ai2-rows");
+			});
+			// Archived, never deleted — hidden by default; this word shows the
+			// count and, on click, shows them again in the same list, greyed.
+			$archived = button.c("ai2-word ai2-archived-word").attr("type", "button")
+				.click(() => { show_archived = !show_archived; $archived.el.classList.toggle("on", show_archived); relist(); });
+			grip({ from: "start", write: size, done: w => localStorage.setItem(RAIL_KEY, w + "px"),
+				reset: () => { localStorage.removeItem(RAIL_KEY); size(); } });
+		});
+
+		// ⚠ THE RIGHT-HAND COLUMN IS `page.$pages` — core's own word for "where my
+		// child pages mount" (`Page.container()`), and that is the whole
+		// master–detail: a card's page renders here, so the list never has to
+		// know what one looks like.
+		$detail = div.c("ai2-detail", () => {
+			div.c("ai2-empty muted", () => {
+				span("Pick something on the left.");
+				small("It opens here and stays here while the list keeps filling.");
+			});
+		});
+
+		$flagger = button.c("ai2-selection-flag").attr("type", "button")
+			.attr("title", "flag the text you selected").text("⚑");
+	});
+
+	page.$pages = $detail;
+	size(parseInt(localStorage.getItem(RAIL_KEY), 10) || null);
+
+	/* ── the rail's width ───────────────────────────────────────────────── */
+
+	// ⚠ Returns the width it actually applied, which is what `grip` then
+	// remembers — clamped, so a drag past either end cannot hide a column.
+	function size(px){
+		const w = px ? Math.round(Math.max(200, Math.min(px, innerWidth - 320))) : null;
+		$shell.style("--ai2-rail", w ? w + "px" : "");
+		return w;
+	}
+
+	/* ── drawing the list ───────────────────────────────────────────────── */
+
+	// THE LIST IS QUIET when you are at the top of it and not pointing at it.
+	// That is the whole test a new card has to pass to enter on its own.
+	const quiet = () => $rows.el.scrollTop <= 2 && !hovering;
+
+	/* THE `notes` WORD — the mastermind's explanations to the owner, which are
+	   `card` lines whose title starts "Note:" (`inbox.js` gives them
+	   `kind: "note"`). They are always in the rail like any other card; this
+	   word hides everything that is not one, so they can be found.
+	   ⚠ Not a url, unlike the board's view words: `route()` above claims every
+	     path segment as a card id, so `/framework/ai2/notes/` would open a card
+	     called "notes". The url-backed views are item 14, deferred. */
+	const visible = () => {
+		const base = only_notes ? list.filter(it => it.kind === "note") : list;
+		// Archived cards join the SAME list, greyed by `refill()` — a second word
+		// to click, never a second view to build.
+		return show_archived ? [...base, ...(list.archived ?? [])] : base;
+	};
+
+	function relist(){
+		rows.forEach(rec => rec.$row.el.remove());
+		rows.clear();
+		shown = [];
+		waiting.clear();
+		flush(true);
+	}
+
+	function paint(){
+		list = items({ board: log.cards, prompts: stream.entries, landed: day.landings, says });
+		// Archived cards are findable too — a card page left open on one the
+		// owner just cleared should still draw it (greyed, via `full()`), not
+		// suddenly say "no card by that name".
+		const by_id = new Map([...list, ...list.archived].map(it => [it.id, it]));
+
+		count();
+		watching.forEach(h => h.draw(by_id.get(h.id) ?? null));
+
+		visible().forEach(it => { if (!rows.has(it.id)) waiting.add(it.id); });
+		if (quiet()) flush();
+		else pill();
+
+		// Everything already on screen redraws in place, wherever it sits. A
+		// preview is a title and one clamped line, so its height cannot change.
+		shown.forEach(id => { const it = by_id.get(id); if (it) refill(rows.get(id), it); });
+	}
+
+	/* Let the waiting cards in, and apply the sort — which is the ONLY moment
+	   any row moves. `to_top` is the pill's own press: the owner asked for them,
+	   so put them where they can be seen. */
+	function flush(to_top){
+		const here = visible();
+		const by_id = new Map(here.map(it => [it.id, it]));
+		waiting.clear();
+
+		$rows.append(() => { here.forEach(it => { if (!rows.has(it.id)) rows.set(it.id, make(it)); }); });
+		rows.forEach((rec, id) => { if (!by_id.has(id)){ rec.$row.el.remove(); rows.delete(id); } });
+
+		// `appendChild` MOVES a node that is already in the tree, so this is the
+		// sort applied to the DOM that already exists, with nothing rebuilt.
+		shown = here.map(it => it.id);
+		shown.forEach(id => $rows.el.appendChild(rows.get(id).$row.el));
+
+		pill();
+		if (to_top) $rows.el.scrollTo({ top: 0 });
+
+		// ⚠ THE ROWS ARRIVE AFTER THE ROUTER HAS MARKED THE PAGE. On a cold load
+		// of a card's url the Router marks during `activate()`, when this list
+		// is still empty — without this line a pasted url opened the right card
+		// and marked nothing. `mark_links()` is callable bare for exactly this.
+		page.app?.router?.mark_links?.();
+	}
+
+	function pill(){
+		$pill.el.classList.toggle("on", waiting.size > 0);
+		if (waiting.size) $pill.text(waiting.size + (waiting.size === 1 ? " new card ↑" : " new cards ↑"));
+	}
+
+	function count(){
+		const n = visible().length;
+		$count.empty(() => {
+			span.c("ai2-unread-count").text(String(n));
+			span.c("muted").text(only_notes ? "notes" : "cards");
+			if (!stream.ok) span.c("ai2-off muted").text("· the assistant is off");
+		});
+		document.title = n ? "(" + n + ") AI 2" : "AI 2";
+
+		const a_n = list.archived.length;
+		$archived.el.hidden = !a_n && !show_archived;
+		$archived.text("archived (" + a_n + ")");
+	}
+
+	/* A ROW IS AN ANCHOR, and that is why there is no click handler here: the
+	   Router navigates it, `Router.mark_links()` gives it `.active`, and Back
+	   works for free. */
+	function make(it){
+		const rec = { sig: null, $row: a.c("ai2-row").href(page.url + it.id + "/") };
+		refill(rec, it);
+		return rec;
+	}
+
+	// ⚠ The signature is the card's WHOLE record, never a hand-listed set of the
+	// fields the face reads: the first build listed them, forgot one, and the
+	// feature it belonged to silently never rendered. doc/decisions.md.
+	function refill(rec, it){
+		const sig = JSON.stringify(it);
+		if (rec.sig === sig) return;
+		rec.sig = sig;
+		rec.$row.el.classList.toggle("ai2-unread", it.unread);
+		rec.$row.el.classList.toggle("ai2-flagged", !!it.flag);
+		rec.$row.el.classList.toggle("ai2-archived", it.status === "archived");
+		// A note from the mastermind reads as a note in the rail too, not just on
+		// its own page — the `notes` word above is how you find them, this is how
+		// you recognise one when it arrives on its own.
+		rec.$row.el.classList.toggle("ai2-note", it.kind === "note");
+		rec.$row.empty(() => { row(it); });
+	}
+
+	$rows.on("pointerenter", () => { hovering = true; });
+	$rows.on("pointerleave", () => { hovering = false; });
+
+	/* ── flagging a sentence you selected ───────────────────────────────── */
+
+	/* ⚠ IT MUST LAND INSIDE THE WINDOW. A `position: fixed` button at a negative
+	   top is simply gone — no error, no overflow — so selecting text near the
+	   top of the screen made the gesture silently do nothing. Above the
+	   selection when there is room, below it when there is not. */
+	const FLAG_H = 38, FLAG_W = 44;
+
+	function show_flagger(){
+		const sel = document.getSelection();
+		const text = (sel?.toString() ?? "").trim();
+		const node = sel?.anchorNode;
+		const host = node && (node.nodeType === 1 ? node : node.parentElement)?.closest?.(".ai2-full");
+		if (!text || !host || !current) return hide_flagger();
+
+		const box = sel.getRangeAt(0).getBoundingClientRect();
+		const above = box.top - FLAG_H;
+		const top = above >= 4 ? above : Math.min(box.bottom + 8, window.innerHeight - FLAG_H);
+		const left = Math.min(Math.max(box.left + box.width / 2, FLAG_W), window.innerWidth - FLAG_W);
+
+		flagging = text.slice(0, 240);
+		$flagger.style({ left: Math.round(left) + "px", top: Math.round(Math.max(top, 4)) + "px" });
+		$flagger.el.classList.add("on");
+	}
+
+	function hide_flagger(){ flagging = null; $flagger.el.classList.remove("on"); }
+
+	$flagger.click(() => {
+		const quote = flagging;
+		hide_flagger();
+		if (quote && current) current.$box.append(() => flag_box(current.on, quote));
+	});
+
+	$detail.on("mouseup", () => setTimeout(show_flagger, 0));
+	$detail.on("keyup", () => setTimeout(show_flagger, 0));
+	document.addEventListener("mousedown", e => { if (!e.target.closest(".ai2-selection-flag")) hide_flagger(); });
+
+	/* ── the data ───────────────────────────────────────────────────────── */
+
+	/* NOTHING HERE EVER RELOADS THE PAGE. Three logs stream over the dev socket
+	   line by line (`JSONL.live()`); the owner's own sentences come over
+	   Servex's `EventSource`. The one thing that still reloads this page is an
+	   edit to its OWN modules — which is why a minion editing AI 2 works in a
+	   worktree. readme.md. */
+	Promise.all([log.live(paint), says.live(paint), day.live(paint)]).then(paint);
+	stream.ready.then(paint);
+	stream.on(() => paint());
+
+	/* What a card's own page is allowed to ask of the list.
+	   ⚠ OPENING A CARD MARKS NOTHING. It used to write a `read` line here, and
+	     the owner's answer was "when I click on them, they're disappearing…
+	     No no no. I need them all unread again." Looking at a thing is not a
+	     decision about it. `inbox.js`'s `Says` ignores the old lines too. */
+	return {
+		open(h){
+			watching.add(h);
+			current = h;
+			paint();
+			return h;
+		},
+		close(h){ watching.delete(h); if (current === h) current = null; },
+		repaint: paint,
+		flag(id, note, quote){
+			says.flags.set(id, { id, say: "improve", note, quote });
+			say(id, "improve", { note, quote });
+			paint();
+		},
+		unflag(id){ says.flags.delete(id); say(id, "reopen"); paint(); },
+	};
+}
+
+/** Two sentences are the same sentence when they say the same words — whisper
+    re-guesses punctuation between the copy this page committed and the copy
+    Servex logged back, so a raw `===` would show every sentence twice. */
+const norm = t => String(t ?? "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+
+/**
+ * ONE CARD'S OWN PAGE — the thing on the right that does not move.
+ *
+ * TWO FIXED REGIONS, and that is the whole design (the owner, 2026-09-22: "I
+ * don't like that my words disappear… that card could have, in a footer, the
+ * transcription — the last paragraph always on screen"):
+ *
+ *   THE IDEAS, above, scrolling in their own box — the title, the reading, the
+ *   names, the links, each updated in place as the assistant answers.
+ *   THE TRANSCRIPT FOOTER, below, pinned to the bottom of the column — the live
+ *   words as they arrive, grey while they are still a guess and solid once they
+ *   settle, with the newest always visible and a scroll for the rest. The
+ *   composer is one line inside it, and everything you say here is posted with
+ *   `re: <this card's id>`, so it goes INTO this card instead of becoming one.
+ *
+ * Neither region can move the other: the page is a two-row grid, the footer is
+ * a fixed height, and its transcript scrolls inside itself. Measured — both
+ * tops identical across five streamed sentences.
+ */
+function card_page(root, id){
+	let $box, $script, $partial, box, sig = null, held = false, handle;
+	const lines = [];   // every sentence this page has shown, ever; append-only
+
+	/* ⚠ `held` is the one thing that stops a redraw: tearing the box down under
+	   a half-typed sentence is exactly the bug the old board had. */
+	const on = {
+		held: v => { held = v; },
+		flag(note, quote){
+			root.ai2.flag(id, note, quote);
+			setTimeout(() => { held = false; sig = null; root.ai2.repaint(); }, 1200);
+		},
+		unflag: () => root.ai2.unflag(id),
+		// Archive, never delete (item 12) — the same board write `+ New card`
+		// uses, merged onto this id; `items()`'s own filter then hides it.
+		clear: () => { archive_card(id); sig = null; root.ai2.repaint(); },
+	};
+
+	function draw(it){
+		if (it) it.transcript?.forEach(t => t.said.forEach(say_line));
+		const next = JSON.stringify(it);
+		if (held || next === sig) return;
+		sig = next;
+		$box.empty(() => {
+			if (it) full(it, on);
+			else small.c("muted").text("No card by that name yet — it may still be on its way, or it has scrolled out of the log.");
+		});
+	}
+
+	/* ⚠ APPEND, NEVER REWRITE, and never move what is already there. A sentence
+	   reaches this footer twice — once the instant it is spoken, from the
+	   microphone, and again a second later when Servex logs it back — and the
+	   second copy must not draw a second line or shuffle the first one down.
+	   `lines` is the record of what has been shown; matching on the WORDS is
+	   what makes the two copies one. */
+	function say_line(text){
+		const t = String(text ?? "").trim();
+		if (!t || lines.some(l => norm(l) === norm(t))) return;
+		lines.push(t);
+		$script?.append(() => { p.c("ai2-said-line").text(t); });
+		// `appendChild` MOVES a node already in the tree, so the grey guess stays
+		// last however many settled lines land in front of it.
+		if ($partial) $script?.el.appendChild($partial.el);
+		if ($script) $script.el.scrollTop = $script.el.scrollHeight;
+	}
+
+	/* The still-moving guess, grey, under the settled words — one element that is
+	   rewritten in place, so a growing guess cannot add a line. */
+	function partial(text){
+		$partial?.text(text ?? "");
+		if ($script) $script.el.scrollTop = $script.el.scrollHeight;
+	}
+
+	return new Page({
+		title: id,
+		url: root.url + id + "/",
+		classes: "ai2-card-page",
+
+		content(){
+			// Only ever shown below 40em, where the rail is the whole screen and
+			// this page is the second one. See ai2.css.
+			a.c("ai2-back page-link").href(root.url).text("← all cards");
+			$box = div.c("ai2-full");
+
+			div.c("ai2-foot", () => {
+				div.c("ai2-script", $s => {
+					$script = $s;
+					$partial = p.c("ai2-said-partial muted");
+				});
+				// ⚠ `re` is a FUNCTION, asked fresh on every send: this composer
+				// belongs to this card and nothing else, and saying so once here
+				// is what makes "talk into the card you selected" true.
+				const fresh = opening === id;
+				if (fresh) opening = null;
+				box = composer({
+					re: () => id,
+					placeholder: "talk into this card",
+					on_text: say_line,
+					on_partial: partial,
+					autostart: fresh && auto_transcribe(),   // a brand-new card opens listening, unless turned off
+				});
+			});
+		},
+
+		// ⚠ `activated()`, not `content()`: `content()` runs once and the view is
+		// cached, so a card you come back to would watch nothing.
+		activated(){ handle = root.ai2.open({ id, draw, on, $box }); },
+
+		/* ⚠ AND THE MICROPHONE STOPS. A card page's view is CACHED — it stays in
+		   the DOM, deactivated, with its own composer and its own `re`. A mic
+		   left running there would go on posting into a card the owner has
+		   navigated away from, and nothing would say so. Found by the proof run,
+		   which resolved two `.ai2-foot` composers on one page and picked the
+		   wrong one. */
+		deactivated(){
+			root.ai2.close(handle);
+			try { if (box?.mic && !["idle", "error"].includes(box.mic.state)) box.mic.stop(); } catch {}
+			partial("");
+		},
+	});
+}
