@@ -3,6 +3,7 @@ import grip from "/framework/ext/grip/grip.js";
 import composer from "./compose.js";
 import { row, full, flag_box, toc, sub_full } from "./card.js";
 import { Board, Says, BOARD_URL, VERDICTS_URL, prompt_stream, card_stream, day_log, items, sub_rows, sub_row, say, new_card, archive_card } from "./inbox.js";
+import overview from "./overview.js";
 
 View.stylesheet(import.meta, "ai2.css");
 
@@ -39,7 +40,23 @@ export default new Page({
 	   card page into `children` and the sidebar walks that map. */
 	leaf: true,
 
-	content(){ this.ai2 = board(this); },
+	/* THE DEFAULT VIEW IS THE OVERVIEW (deliverable 7, 2026-09-23 — the owner:
+	   "where would you put a report? No matter where, it gets buried"). The
+	   rail + a card's own page — everything `board()` builds below — is the
+	   SECOND view now, shown the instant any card is active; `ai2.css`'s own
+	   `.ai2-shell:has(.ai2-detail > .page:is(.active-page, .active-ancestor))`
+	   decides which one is on screen, off the Router's OWN marks, so this
+	   never has to be re-decided in JS on every navigation. Both are built
+	   unconditionally, once, here — a card's deep link needs `$detail`/`$sub`
+	   to exist the moment `route()` is asked, whichever view happened to be
+	   showing when this page was first activated. */
+	content(){
+		const $shell = div.c("ai2-shell");
+		$shell.append(() => {
+			this.ai2 = board(this, $shell);
+			overview(this, this.ai2, $shell);
+		});
+	},
 
 	/* A card's own address. ⚠ A name with a dot in it is a real file, and
 	   claiming it would answer a 404 with a card page that can never load. */
@@ -61,7 +78,7 @@ const auto_transcribe = () => localStorage.getItem(AUTO_KEY) !== "off";
      was asked for, cannot be read at the wrong moment. */
 let opening = null;
 
-function board(page){
+function board(page, $outer){
 	const log = new Board({ url: BOARD_URL });
 	const says = new Says({ url: VERDICTS_URL });
 	const day = day_log();
@@ -71,6 +88,7 @@ function board(page){
 	const rows = new Map();        // id → { $row, sig }
 	const waiting = new Set();     // ids that arrived while the list was busy
 	const watching = new Set();    // the card pages on screen, each watching for its own card
+	const list_watchers = new Set();   // the overview's own subscription onto this list
 	let $shell, $count, $pill, $rows, $detail, $sub, $flagger, $notes, $archived;
 
 	/* `bleed` is the page grid's own word for "the whole region" — without it
@@ -87,6 +105,11 @@ function board(page){
 				// one per card, so it never talks into whatever happens to be open.
 				composer({ placeholder: "say anything — it starts a new card", mic: false });
 				div.c("ai2-chrome flex v-center gap-25", () => {
+					// "Reachable... and back" (deliverable 7) — closes whatever card
+					// is open (a real navigation to the root) and drops the manual
+					// inbox toggle, so the overview is what shows either way.
+					button.c("ai2-word ai2-ov-back").attr("type", "button").text("← overview")
+						.click(() => { $outer?.el.classList.remove("ai2-mode-inbox"); page.app?.router?.go(page.url); });
 					// A blank workspace that listens: the card exists on the board
 					// the moment you press this, and the url becomes its own.
 					button.c("ai2-newcard").attr("type", "button")
@@ -207,6 +230,11 @@ function board(page){
 		// Everything already on screen redraws in place, wherever it sits. A
 		// preview is a title and one clamped line, so its height cannot change.
 		shown.forEach(id => { const it = by_id.get(id); if (it) refill(rows.get(id), it); });
+
+		// The overview (deliverable 7) reads the SAME list — one data pipeline,
+		// two views — rather than opening its own copy of every log this page
+		// already streams.
+		list_watchers.forEach(fn => fn(list));
 	}
 
 	/* Let the waiting cards in, and apply the sort — which is the ONLY moment
@@ -351,6 +379,12 @@ function board(page){
 			paint();
 		},
 		unflag(id){ says.flags.delete(id); say(id, "reopen"); paint(); },
+		// The overview's own hook onto this list — see `paint()`'s own comment.
+		// Registered synchronously, inside the same `content()` call that built
+		// this shell, always before the first `paint()` (which only ever fires
+		// later, off an async fetch or a live subscription) — so there is no
+		// "already missed the first list" case to special-case here.
+		on_list(fn){ list_watchers.add(fn); return () => list_watchers.delete(fn); },
 	};
 }
 

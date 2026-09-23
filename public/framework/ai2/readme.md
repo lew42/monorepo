@@ -1,9 +1,15 @@
-# ai2 — AI 2, a list on the left and one page on the right
+# ai2 — AI 2, an overview first, then a list on the left and one page on the right
 
-One page at [`/framework/ai2/`](/framework/ai2/). A narrow rail down the left previews every
-card there is, newest first, with a one-line box you talk to at its top. Click one and it opens
-on the right, at its own url, and stays there: the list keeps filling behind it and nothing you
-are reading moves.
+One page at [`/framework/ai2/`](/framework/ai2/). **The default view is an overview** — four
+columns by importance: needs you (flagged or blocked, cleared per item), reports (the
+mastermind's own notes and write-ups), landed (recent task landings), and live (what Servex is
+running now, the usage windows, the last few events). Nothing pushes the top of a column down —
+a new arrival waits behind a small pill.
+
+Click "Open the full inbox →" (or any card in the overview) and the SECOND view takes over: a
+narrow rail down the left previews every card there is, newest first, with a one-line box you
+talk to at its top. Click one and it opens on the right, at its own url, and stays there: the
+list keeps filling behind it and nothing you are reading moves. "← overview" goes back.
 
 **A card you talk into.** `+ New card` puts an empty card on the board, opens it and starts
 listening. While a card is open, everything you say or type goes INTO it — each sentence carries

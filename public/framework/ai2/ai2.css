@@ -8,7 +8,16 @@
 	   inside themselves, so a card arriving cannot move what you are reading.
 	   ⚠ `.page.full`, not a bare `.page`: `.page.fill` (core/Page/Page.css) says
 	     `overflow: auto` at the same weight, and load order would decide. */
-	.page.full:has(> .ai2) {
+	/* ⚠ `.ai2-shell` (deliverable 7, ai2-nested) wraps BOTH views — the overview
+	   and `.ai2` itself — so it is no longer a DIRECT child of `.page.full`;
+	   these two rules drop the `>` to keep matching through it. `display:
+	   contents` is what keeps the wrapper invisible to the grid it sits
+	   inside, so nothing about the page's own height math changes. */
+	.ai2-shell {
+		display: contents;
+	}
+
+	.page.full:has(.ai2) {
 		display: block;
 		height: 100%;
 		overflow: hidden;
@@ -16,7 +25,7 @@
 	}
 
 	/* The page's own "AI 2" heading says what the rail already highlights. */
-	.page:has(> .ai2) > .page-title {
+	.page:has(.ai2) > .page-title {
 		display: none;
 	}
 
@@ -35,6 +44,25 @@
 		height: 100%;
 		min-height: 0;
 		margin-block-start: 0;
+	}
+
+	/* TWO VIEWS, ONE SWITCH (deliverable 7, 2026-09-23) — the overview is the
+	   default; the rail + a card's own page is the second view, reached by
+	   opening any card (a real navigation — `route()` mounts it, the Router
+	   marks it `.active-page`) or the overview's own "open the full inbox"
+	   link (`.ai2-mode-inbox`, a plain class toggle, nothing url-based: this
+	   is a view, not a navigation with its own address, same as the rail's
+	   selected card already is not one either). Off the framework's own marks
+	   either way — no JS has to ask "which view is this" more than once. */
+	.ai2-overview { height: 100%; overflow-y: auto; }
+
+	.ai2-shell.ai2-mode-inbox .ai2-overview,
+	.ai2-shell:has(.ai2-detail > .page:is(.active-page, .active-ancestor)) .ai2-overview {
+		display: none;
+	}
+
+	.ai2-shell:not(.ai2-mode-inbox):not(:has(.ai2-detail > .page:is(.active-page, .active-ancestor))) .ai2 {
+		display: none;
 	}
 
 	/* THE THIRD COLUMN (deliverable 2, ai2-nested) — two columns split the
@@ -728,5 +756,216 @@
 		.ai2:has(.ai2-detail .ai2-card-page.active-ancestor) .ai2-sub { display: block; }
 
 		.ai2-back { display: inline-block; }
+
+		/* The overview stacks in importance order (deliverable 7: "at 400 they
+		   stack in that order") — the DOM order already IS that order, so this
+		   is one property, not a reorder. */
+		.ai2-ov-cols { flex-direction: column; }
+		.ai2-ov-col { max-width: none; }
+	}
+}
+
+/* ── the overview (deliverable 7, ai2-nested, 2026-09-23) ─────────────────── */
+@layer theme {
+
+	.ai2-overview {
+		padding: var(--pad);
+	}
+
+	.ai2-ov-cols {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-start;
+		gap: var(--gap);
+	}
+
+	/* EACH COLUMN'S WIDTH FOLLOWS ITS CONTENT (the owner: "a column with three
+	   items is narrow") — a flex item with no explicit width sizes to its own
+	   content by default; the min/max only keep it from going illegibly thin
+	   or unreasonably wide. */
+	.ai2-ov-col {
+		flex: 0 1 auto;
+		min-width: 16em;
+		max-width: 28em;
+		border: 1px solid var(--line);
+		border-radius: 0.4em;
+		background: var(--surface);
+		overflow: hidden;
+	}
+
+	/* "The whole column disappears when empty" — needs-you's own rule, but
+	   written generically: any column with nothing in it collapses the same
+	   way, so a quiet night hands the fold back to the columns that have
+	   something to say. */
+	.ai2-ov-col.ai2-ov-collapsed {
+		display: none;
+	}
+
+	.ai2-ov-head {
+		padding: 0.5em 0.7em;
+		background: var(--tint);
+		border-block-end: 1px solid var(--line);
+	}
+
+	.ai2-ov-title {
+		font-weight: 700;
+	}
+
+	.ai2-ov-count {
+		margin-inline-start: auto;
+		font-size: 0.85em;
+	}
+
+	.ai2-ov-body {
+		position: relative;
+	}
+
+	.ai2-ov-rows {
+		max-height: 22em;
+		overflow-y: auto;
+	}
+
+	.ai2-ov-empty {
+		display: block;
+		padding: 0.6em 0.7em;
+	}
+
+	/* THE PILL — a new arrival never reorders what is on screen (deliverable
+	   7: "a new arrival never pushes the top of a column down — it enters
+	   below the fold or behind a pill"), the same mechanism the rail itself
+	   already uses for exactly the same reason. */
+	.ai2-ov-pill {
+		display: none;
+		position: absolute;
+		z-index: 2;
+		inset-inline: 0.5em;
+		top: 0.4em;
+		font-size: 0.8em;
+		padding: 0.15em 0.6em;
+	}
+
+	.ai2-ov-pill.on {
+		display: block;
+	}
+
+	.ai2-ov-row {
+		padding: 0.4em 0.7em;
+		border-block-end: 1px solid var(--line);
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 0 0.5em;
+	}
+
+	.ai2-ov-rows > .ai2-ov-row:last-child {
+		border-block-end: 0;
+	}
+
+	.ai2-ov-link {
+		display: flex;
+		align-items: center;
+		gap: 0.35em;
+		min-width: 0;
+		flex: 1 1 auto;
+		text-decoration: none;
+		color: inherit;
+	}
+
+	.ai2-ov-row-title {
+		font-weight: 600;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.ai2-ov-row-when {
+		flex: none;
+		font-size: 0.8em;
+	}
+
+	.ai2-ov-row-line {
+		flex-basis: 100%;
+		font-size: 0.85em;
+	}
+
+	.ai2-ov-clear {
+		flex: none;
+		margin-inline-start: auto;
+		border: 0;
+		background: none;
+		color: inherit;
+		opacity: 0.45;
+		cursor: pointer;
+	}
+
+	.ai2-ov-clear:hover {
+		opacity: 1;
+		color: var(--error);
+	}
+
+	/* `needs-you` reads as the one that matters most — a hairline the other
+	   three don't get. */
+	.ai2-ov-needs {
+		border-color: var(--error);
+	}
+
+	.ai2-ov-agents {
+		max-height: 10em;
+	}
+
+	.ai2-ov-usage {
+		padding: 0.5em 0.7em;
+		border-block-start: 1px solid var(--line);
+	}
+
+	.ai2-ov-usage-row {
+		display: flex;
+		align-items: center;
+		gap: 0.4em;
+		margin-block: 0.2em;
+	}
+
+	.ai2-ov-usage-label {
+		flex: none;
+		width: 6em;
+		text-transform: capitalize;
+	}
+
+	.ai2-ov-usage-track {
+		flex: 1 1 auto;
+		height: 0.5em;
+		border-radius: 0.3em;
+		background: var(--fill-a08);
+		overflow: hidden;
+	}
+
+	.ai2-ov-usage-fill {
+		height: 100%;
+		background: var(--prim);
+	}
+
+	.ai2-ov-usage-critical {
+		background: var(--error);
+	}
+
+	.ai2-ov-usage-pct {
+		flex: none;
+		width: 2.5em;
+		text-align: end;
+	}
+
+	.ai2-ov-stream-feed {
+		padding: 0.4em 0.7em;
+		border-block-start: 1px solid var(--line);
+	}
+
+	.ai2-ov-stream-line {
+		display: block;
+		padding-block: 0.1em;
+	}
+
+	.ai2-ov-open {
+		display: inline-block;
+		margin-block-start: var(--gap-50);
 	}
 }

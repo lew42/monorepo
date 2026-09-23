@@ -470,3 +470,60 @@ a card; the table of contents renders; clicking a row opens the third column at
 `/framework/ai2/<slug>/<sub>/`; the detail column's own top does not move; talking into the
 sub-card lands in `cards/<slug>` with `re: "<slug>/<sub>"` intact; the back link closes the
 third column; the footer and the one-scrollbar measurements. 27 checks, both widths, all green.
+
+# The overview (deliverable 7, 2026-09-23) — the default view is four columns by importance
+
+The owner, 00:25: *"where would you put a report? We have so many dashboards that no matter
+where you put it, it gets buried: new items push old ones down."* This landed FIRST, ahead of
+1–6, on the mastermind's own instruction (11:57 the same day): *"the four-column overview is
+what lands and is proven before anything else."*
+
+## Two views, no url of its own for either
+
+The rail + a card's own page (everything `board()` in `page.js` already builds) is the SECOND
+view now; the overview is the front door. Neither toggle is a navigation with its own address —
+only a CARD's own url is real, same as it always was. `overview.js` is built unconditionally,
+every load, right beside `board()`, both mounted inside one `.ai2-shell` wrapper
+(`display: contents`, so it costs the grid nothing); CSS alone decides which one paints, off two
+signals: a manual class (`.ai2-mode-inbox`, flipped by "open the full inbox" / "← overview") OR
+the framework's own mark that a card is active inside `.ai2-detail`. The alternative — a real url
+segment (`/framework/ai2/inbox/`) or a query param checked once in `content()` — was rejected for
+the same reason a query-param toggle was accepted earlier in this same file for the site's own
+`ai/page.js` V1/V3 picker and then found fragile there: `content()` runs once, before the Router
+necessarily knows what it is navigating to, and a toggle that depends on reading `location` at
+that exact moment inherits every race `ai/page.js`'s own comments document fixing twice already.
+A plain CSS class has none of that: it is applied by a click, after the DOM already exists.
+
+## One data pipeline, two views
+
+`board()`'s own `paint()` already recomputes `items()` on every log change; `on_list(fn)` is one
+line added to its return value, called with the same list every time. `overview.js` never opens
+its own copy of `Board`/`Says`/`day_log`/`prompt_stream` — needs-you, reports and landed are all
+three the SAME list, filtered three ways. `live` is the one column with real data of its own:
+Servex's agent registry (`GET /agents`, cors-enabled — `/api/agents` is not, and a cross-origin
+fetch to it is silently refused by the browser before Servex ever answers), the usage snapshot
+(`/framework/ai/usage.json`, read only), and the last few `agent` events off the SAME
+`EventSource` `inbox.js` already opens for `prompts`/`cards/<slug>` — a second `addEventListener`
+on one connection, not a second connection.
+
+## A new arrival waits behind a pill, per column
+
+The rail already solved "a new arrival must not reorder what you are reading" once; `column()`
+in `overview.js` is that same mechanism, written once and used four times, rather than four
+copies of it. A column with nothing in it collapses to nothing (`ai2-ov-collapsed`), generalised
+from the owner's own words about `needs-you` specifically — the other three rarely go empty in
+practice, and the rule costs nothing extra to apply everywhere.
+
+## Proven
+
+Headless, both widths, against a fresh scratch Servex substitute each run: the overview is the
+default and the rail is not showing; all four columns exist (one collapsed when its list is
+empty); needs-you shows flagged items with a working clear control; reports shows `Note:` cards;
+live shows the registry and three usage bars; "open the full inbox" and "← overview" flip the
+view without a navigation; clicking a report opens the card and the second view takes over, the
+overview hidden. Two screenshots, 1280 and 400 (`ai/2026-09-22/ai2-nested/overview-*.png`). One
+assertion (a report → card navigation, specifically at 400px, in a long test run) was flaky under
+heavy load from dozens of sequential headless browser launches earlier in the same session — the
+identical assertion at 1280px, and a final clean single-pass smoke test on a fresh scratch server
+and a fresh port, both passed; the flake is logged as a test-infrastructure finding, not a
+product one.
