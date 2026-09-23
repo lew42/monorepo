@@ -322,3 +322,208 @@ own page, and a `notes` word beside the count narrows the rail to only those.
 rather than a shortcut: `route()` claims every path segment as a card id, so
 `/framework/ai2/notes/` would open a card called "notes". The url-backed views are item 14,
 deferred with 7, 13, 16 and 20.
+
+# ai2-nested (2026-09-23) — per-card storage, sub-cards in a third column, the footer
+
+The owner: *"split the remaining area in two: the preview column resizable, the detail page
+taking the rest, with a measure; the sub-items within that card open to the right of it... dig
+down and moving back up is important."* Full survey: [`doc/persistence.md`](./persistence.md).
+Full brief: [`requirements.md`](/framework/ai/2026-09-22/ai2-nested/requirements.md).
+
+## The stream stays Servex's; the state (once a card has one) is a directory
+
+Decision `card-storage-2` (2026-09-22 20:05) already drew this line — this task built it, not
+re-decided it. What was said into a card is an append-only fact and stays one, written only
+through `Servex/Log.js`'s single writer, now under the name `cards/<slug>` beside `prompts`.
+What a card *is* — fields, sub-pages — was left for the directory (`ai/cards/<slug>/`) and
+`core/Page`'s existing `data:`/`page.json` rung, which needed no new code at all (landed
+2026-09-18). Nothing forced 300+ near-empty directories into existence: one appears only when a
+card actually gets a page, per the original decision.
+
+## `cards/<slug>`, not `cards-<slug>` or one shared file
+
+`Log.js`'s naming check (`NAME`) never allowed a `/`, on purpose — a log name becomes a
+filename, and a slash was the traversal risk it was built to rule out. The alternative to
+extending it was flattening every card's log into one giant shared file with the slug as a
+field, which throws away the two guarantees `Log.js` exists for: one open stream per file, and
+`Log.append()`'s own per-file naming index. A second, narrower pattern (`CARD_NAME =
+/^cards\/[a-z0-9][a-z0-9-]{0,63}$/i`) keeps the traversal rule (still no `..`, still one
+extra literal segment, not an open door) while letting `place()`'s own `path.join` nest the
+file under `logs/cards/` instead of flattening the whole directory. Proven with a traversal
+attempt (`cards/../../etc`) refused at 400, never written.
+
+## The route Express couldn't give `/log/:name`
+
+`:name` in an Express route never matches a `/`, so `cards/<slug>` needed its own three-line
+route beside the existing `/log/:name` ones, not a change to them — same body, same `cors`, same
+409-on-refusal, only the name handed to `Log.append()`/`Log.tail()` differs. No ordering
+conflict with the generic route: a two-segment url and a one-segment pattern can never both
+match the same request.
+
+## The live wire, without touching `Stream.js`
+
+Servex's SSE stream only broadcasts log names on an explicit list (`Stream.follow(log, names)`),
+by design — re-broadcasting every session transcript on the machine to every open tab was
+rejected once already. `follow()`'s own code only ever calls `names.includes(name)`, so handing
+it `{ includes: n => n === "prompts" || n.startsWith("cards/") }` — a plain object, not an array
+— gets every card's live events onto the one open `EventSource` with no new method and no edit
+to `Stream.js`, which sits outside this task's fence. `inbox.js`'s own `prompt_stream()` became
+`log_stream(name)`, generalised the same way: one shared `EventSource` per Servex base, demuxed
+by log name, so opening several cards' own logs never opens several sockets.
+
+## Talking into a card double-posts — `/log/prompts` unchanged, `/log/cards/<slug>` new
+
+The fast assistant and the Dispatcher (`Servex/agents/Assistant.js`, `Dispatcher.js`) only ever
+watch `prompts` — routing a spoken sentence somewhere else would leave "nobody answered." Both
+are outside this task's fence, so `compose.js`'s `send()` and the microphone's own `log_prompt()`
+now post the SAME entry twice: once to `/log/prompts` (unchanged — the assistant keeps hearing
+it), once to `/log/cards/<slug>` when a card (or sub-card) is selected, fire-and-forget, never
+blocking the first post's own "sent" note. The alternative — one write, read by everything —
+needs the assistant's own log-watching moved or duplicated, which is real work belonging to
+Servex's agents, not this task.
+
+## A sub-card's `re` carries `<slug>/<sub>`; its file is still the PARENT's
+
+Deliverable 6's own words: *"a sentence talked into a sub-card lands in `ai/cards/<slug>.jsonl`
+with `re: <slug>/<sub>`."* A sub-card is not a second log file — `CARD_NAME` only ever allows
+one segment after `cards/`, on purpose, so a task doesn't have to decide how deep the nesting of
+FILES goes. The nesting lives inside the entry's own `re` field instead: `sub_rows()`/`sub_row()`
+(`inbox.js`) read a card's whole log through the same, unmodified `fold()` every other reader of
+these logs trusts, and split it into rows by event `type` (`task`, `proposal`, `refined`) or,
+for a transcript paragraph, one row per `prompt` entry — a sentence is not a sub-card, a spoken
+turn is.
+
+## The slug is the card's own id, not yet the assistant's locked name
+
+The brief's own words: "the slug is the assistant's locked name, kebab-case, unique — the naming
+checks already exist." Building that full integration (the assistant minting and locking a name
+through `Log.js`'s `name`/`rename`/`approve` mechanism, on card creation) belongs on the
+assistant side (`Servex/agents/Assistant.js`), outside this task's fence. `migrate-cards.mjs`
+and the routes both use the card's own `id`, sanitised to kebab-case, as its slug for now — every
+id already seen in practice (`open-mic`, `padding-law`) already reads as a locked name; only an
+auto-minted `topic-<base36>` id is ugly rather than wrong. Logged as a fast-follow.
+
+## The third column reuses `core/Page`'s `$pages` seam, not its columns mechanism
+
+`core/Page`'s `column()`/`$pages`-per-column machinery (`/imagine/paging/`, the 2026-08-26 column
+pages) is built for a page that KNOWS its own column count and widths up front, declared as
+`page-column-*` classes on real DOM regions core itself creates. A card's third column is
+conditional (open only when a sub-card is routed) and lives in a completely different container
+(`.ai2-sub`, a sibling of `.ai2-detail`, not a child of either page). What carried over is the
+one seam that already generalises: `page.$pages` is nothing more than "where my children mount,"
+and a `Page` object never assumes that box is inside its own view — so the card page simply
+points its `$pages` at the shell's `.ai2-sub` div instead of a region inside itself, and
+`core/Page`'s own Router, `mark_links()` and cache-per-view all keep working exactly as they do
+for the rail → detail hop. What that borrowing does NOT give for free: the grid growing a third
+track, and the empty-state visibility rule, both CSS, both `ai2.css`'s own job (see the next
+section) — `core/Page`'s columns mechanism solves that for its own, declared-up-front columns,
+and re-declaring AI 2's two ad hoc regions as real `page-column-*` regions to get it would have
+been the sitewide, cross-cutting change the Fence explicitly reserves for a proposal, not this
+task.
+
+## The real bug, found only by measuring: `.active-ancestor` needed the SAME rule as `.active-page`
+
+`.ai2-detail:has(> .page.active-page) > .ai2-empty { display: none; }` was written when a card
+page was always either the true leaf or nothing was open at all. It is no longer either, once a
+sub-card exists: the card page stays mounted and becomes `.active-ancestor` (not `.active-page`)
+the moment its own child becomes the true leaf, in a DIFFERENT container. The rule stopped
+matching, `.ai2-empty` reappeared above the still-mounted card, and pushed its entire content
+down by its own rendered height — every field in the proof read "unchanged" (nothing in the
+content itself moved) until the screenshot-equivalent (a bounding-box measurement) showed the
+title row at y 45 before, y 130 after. Fixed with `:is(.active-page, .active-ancestor)`, the
+arrangement contract's own words (`core/Page/Page.css` uses the identical pattern repeatedly) for
+"is any of this mine." Same shape as the FOOTER bug two sections up — a region visibility rule
+written against one shape of "what is active" stops matching the moment a second shape exists,
+silently, with every number still agreeing.
+
+## The footer: one control height plus one rung of padding
+
+The owner, 2026-09-22 19:54: *"way taller than it needs to be, grey background that abruptly
+stops with a border on top; it should be flush or bordered properly."* Two separate things were
+adding up: `.ai2-script`'s flat `5.5em` reserved almost three lines even for a card nobody has
+spoken into, and its own padding (`0.5em`) did not match `.ai2-full`'s (`var(--pad)`), so the
+grey ground's inset read as arbitrary rather than a deliberate edge lined up with the column
+above it. Fixed: `.ai2-foot`'s padding is `var(--gap-25) var(--pad)` — a real "rung" (the
+framework's own word for the `--gap-*` tokens) on the block axis, matching the column's own
+inset on the inline axis; `.ai2-script` is a `clamp`-like floor/ceiling (`min-height: 1.5em`,
+`max-height: 3.5em`) instead of a flat reservation. Measured: the footer is 64–70px tall now
+(both widths), down from roughly 180px combining the old fixed script height and its composer.
+
+## One scrollbar: the site-wide region, scoped off for this one page
+
+`core/Page`'s `.pages { overflow-y: scroll }` is deliberate and permanent for every OTHER page —
+a real, reserved gutter so navigating never shifts content sideways. AI 2 does not want it: its
+own columns already scroll inside themselves, so the outer region's own gutter was the second,
+always-empty scrollbar the owner saw. Scoped off with `.pages:has(> .page--ai2) { overflow-y:
+hidden; }` — nothing else on the site loses its gutter. `.ai2-detail`'s own `overflow-y: auto`
+was the SAME bug one level in: the mounted card page manages its own scroll at a fixed
+`height: 100%`, so this region's content never actually overflows, and `auto` there was a second
+region showing an empty scroll track the instant a card page's real content was a pixel taller
+than estimated.
+
+## Proven, not asserted
+
+Headless, both widths, against a scratch Servex substitute (`Log.js` + `Stream.js`, real and
+unmodified, never the live one) seeded by `migrate-cards.mjs` from real historical data
+(`board.jsonl` + the real Servex prompts log, read only — never written to): cold deep link into
+a card; the table of contents renders; clicking a row opens the third column at
+`/framework/ai2/<slug>/<sub>/`; the detail column's own top does not move; talking into the
+sub-card lands in `cards/<slug>` with `re: "<slug>/<sub>"` intact; the back link closes the
+third column; the footer and the one-scrollbar measurements. 27 checks, both widths, all green.
+
+# The overview (deliverable 7, 2026-09-23) — the default view is four columns by importance
+
+The owner, 00:25: *"where would you put a report? We have so many dashboards that no matter
+where you put it, it gets buried: new items push old ones down."* This landed FIRST, ahead of
+1–6, on the mastermind's own instruction (11:57 the same day): *"the four-column overview is
+what lands and is proven before anything else."*
+
+## Two views, no url of its own for either
+
+The rail + a card's own page (everything `board()` in `page.js` already builds) is the SECOND
+view now; the overview is the front door. Neither toggle is a navigation with its own address —
+only a CARD's own url is real, same as it always was. `overview.js` is built unconditionally,
+every load, right beside `board()`, both mounted inside one `.ai2-shell` wrapper
+(`display: contents`, so it costs the grid nothing); CSS alone decides which one paints, off two
+signals: a manual class (`.ai2-mode-inbox`, flipped by "open the full inbox" / "← overview") OR
+the framework's own mark that a card is active inside `.ai2-detail`. The alternative — a real url
+segment (`/framework/ai2/inbox/`) or a query param checked once in `content()` — was rejected for
+the same reason a query-param toggle was accepted earlier in this same file for the site's own
+`ai/page.js` V1/V3 picker and then found fragile there: `content()` runs once, before the Router
+necessarily knows what it is navigating to, and a toggle that depends on reading `location` at
+that exact moment inherits every race `ai/page.js`'s own comments document fixing twice already.
+A plain CSS class has none of that: it is applied by a click, after the DOM already exists.
+
+## One data pipeline, two views
+
+`board()`'s own `paint()` already recomputes `items()` on every log change; `on_list(fn)` is one
+line added to its return value, called with the same list every time. `overview.js` never opens
+its own copy of `Board`/`Says`/`day_log`/`prompt_stream` — needs-you, reports and landed are all
+three the SAME list, filtered three ways. `live` is the one column with real data of its own:
+Servex's agent registry (`GET /agents`, cors-enabled — `/api/agents` is not, and a cross-origin
+fetch to it is silently refused by the browser before Servex ever answers), the usage snapshot
+(`/framework/ai/usage.json`, read only), and the last few `agent` events off the SAME
+`EventSource` `inbox.js` already opens for `prompts`/`cards/<slug>` — a second `addEventListener`
+on one connection, not a second connection.
+
+## A new arrival waits behind a pill, per column
+
+The rail already solved "a new arrival must not reorder what you are reading" once; `column()`
+in `overview.js` is that same mechanism, written once and used four times, rather than four
+copies of it. A column with nothing in it collapses to nothing (`ai2-ov-collapsed`), generalised
+from the owner's own words about `needs-you` specifically — the other three rarely go empty in
+practice, and the rule costs nothing extra to apply everywhere.
+
+## Proven
+
+Headless, both widths, against a fresh scratch Servex substitute each run: the overview is the
+default and the rail is not showing; all four columns exist (one collapsed when its list is
+empty); needs-you shows flagged items with a working clear control; reports shows `Note:` cards;
+live shows the registry and three usage bars; "open the full inbox" and "← overview" flip the
+view without a navigation; clicking a report opens the card and the second view takes over, the
+overview hidden. Two screenshots, 1280 and 400 (`ai/2026-09-22/ai2-nested/overview-*.png`). One
+assertion (a report → card navigation, specifically at 400px, in a long test run) was flaky under
+heavy load from dozens of sequential headless browser launches earlier in the same session — the
+identical assertion at 1280px, and a final clean single-pass smoke test on a fresh scratch server
+and a fresh port, both passed; the flake is logged as a test-infrastructure finding, not a
+product one.

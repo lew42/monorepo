@@ -1,9 +1,15 @@
-# ai2 — AI 2, a list on the left and one page on the right
+# ai2 — AI 2, an overview first, then a list on the left and one page on the right
 
-One page at [`/framework/ai2/`](/framework/ai2/). A narrow rail down the left previews every
-card there is, newest first, with a one-line box you talk to at its top. Click one and it opens
-on the right, at its own url, and stays there: the list keeps filling behind it and nothing you
-are reading moves.
+One page at [`/framework/ai2/`](/framework/ai2/). **The default view is an overview** — four
+columns by importance: needs you (flagged or blocked, cleared per item), reports (the
+mastermind's own notes and write-ups), landed (recent task landings), and live (what Servex is
+running now, the usage windows, the last few events). Nothing pushes the top of a column down —
+a new arrival waits behind a small pill.
+
+Click "Open the full inbox →" (or any card in the overview) and the SECOND view takes over: a
+narrow rail down the left previews every card there is, newest first, with a one-line box you
+talk to at its top. Click one and it opens on the right, at its own url, and stays there: the
+list keeps filling behind it and nothing you are reading moves. "← overview" goes back.
 
 **A card you talk into.** `+ New card` puts an empty card on the board, opens it and starts
 listening. While a card is open, everything you say or type goes INTO it — each sentence carries
@@ -21,10 +27,17 @@ as before. Every row says who it came from; `you` is marked.
 
 It replaces the v3 board (`ai/v/3/`), which is not touched or imported from here.
 
+**A card's table of contents, and a third column.** A card's own page lists its sub-cards —
+every task, proposal, refined reading and transcript paragraph in its own log, each one a row.
+Click a row and it opens beside the card, in a third column, at its own address; talk into it
+and the sentence carries `re: "<card>/<sub>"`. A back link closes it. Two columns split the
+screen when nothing is open, three when a sub-card is.
+
 ## Use
 
 Nothing to call. The page mounts itself; open the url. A card's own url is
-`/framework/ai2/<id>/` — paste it, reload it, press Back; the url is the truth.
+`/framework/ai2/<id>/` — paste it, reload it, press Back; the url is the truth. A sub-card's is
+`/framework/ai2/<id>/<sub>/`, one level deeper.
 
 To draw a card from anywhere, append a line to one of the logs it reads:
 
@@ -64,11 +77,23 @@ To draw a card from anywhere, append a line to one of the logs it reads:
   draws — the first build listed them, forgot one, and the feature silently never rendered.
 - **Servex may be down.** Then the prompt backlog comes from the static `prompts.jsonl`, and the
   page says the assistant is off. Nothing throws.
+- **A region's own visibility rule has to test `:is(.active-page, .active-ancestor)`, not
+  `.active-page` alone**, the moment a page can stay mounted without being the true leaf — a card
+  page does, once a sub-card opens beside it in the third column. Missing the ancestor case
+  reintroduced `.ai2-empty` above a still-showing card and pushed its whole content down by its
+  own height; every measured field still read "unchanged" because nothing in the CONTENT moved.
+- **A card's own event log is `cards/<slug>`**, Servex-owned, not a repo file — `ai/cards/<slug>/`
+  (a real directory, only once a card gets a page) is a different thing: the card's STATE, not
+  its stream. `doc/persistence.md` has the whole split.
 
 ## More
 
 - [`doc/decisions.md`](./doc/decisions.md) — every fork in the road, with the alternative named
-- [`doc/logs.md`](./doc/logs.md) — the four files this page reads and the one it writes
+- [`doc/logs.md`](./doc/logs.md) — every log this page reads, and the ones it writes
+- [`doc/persistence.md`](./doc/persistence.md) — the survey: what each persistence system on this
+  site saves and where, and which one a nested card page uses
 - The rebuild and its measurements: [`ai/2026-09-22/ai2-master-detail/`](/framework/ai/2026-09-22/ai2-master-detail/)
-- Files that matter: `page.js` (the shell and the selection), `card.js` (a card, small and whole),
-  `inbox.js` (what there is to draw), `compose.js` (the box at the top), `ai2.css` (the look)
+- Per-card storage, sub-cards, the footer: [`ai/2026-09-22/ai2-nested/`](/framework/ai/2026-09-22/ai2-nested/)
+- Files that matter: `page.js` (the shell, the selection, the third column), `card.js` (a card
+  and a sub-card, small and whole, plus the table of contents), `inbox.js` (what there is to
+  draw, and the per-card log), `compose.js` (the box you talk into), `ai2.css` (the look)

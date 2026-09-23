@@ -4,8 +4,16 @@ import Events from "../Server/Events.js";
 import { place, stamp } from "./home.js";
 
 /* A log name becomes a filename, so it may not contain a slash, a colon or a
- * `..` — `/log/../../etc/passwd` is a real request somebody can type. */
+ * `..` — `/log/../../etc/passwd` is a real request somebody can type.
+ *
+ * ⚠ ONE NAMESPACE IS THE EXCEPTION: `cards/<slug>` — a card's own append-only
+ * event stream (decision `card-storage`, ai2-nested). It is still checked
+ * against the same "no `..`, no traversal" rule as every other name, just with
+ * one literal `/` allowed after the fixed `cards` segment, so `path.join`
+ * inside `place()` nests it under `logs/cards/<slug>.jsonl` instead of every
+ * card's log flattening into one shared directory. */
 const NAME = /^[a-z0-9][a-z0-9._-]{0,63}$/i;
+const CARD_NAME = /^cards\/[a-z0-9][a-z0-9-]{0,63}$/i;
 const OWNER = "owner";
 
 /* One id's naming state — the same three facts fold.js computes for it:
@@ -104,7 +112,8 @@ export default class Log extends Events {
     }
 
     file(name){
-        if (!NAME.test(name)) throw new Error(`Bad log name "${name}" — letters, digits, dot, dash and underscore only.`);
+        if (!NAME.test(name) && !CARD_NAME.test(name))
+            throw new Error(`Bad log name "${name}" — letters, digits, dot, dash and underscore only (or "cards/<slug>").`);
         if (this.files.has(name)) return this.files.get(name);
 
         const at = place("logs", `${name}.jsonl`);
