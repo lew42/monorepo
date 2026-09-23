@@ -105,6 +105,53 @@ export function full(it, on){
 		.text("flagged" + (it.flag.quote ? " on “" + it.flag.quote + "”" : "") + " — " + (it.flag.note ?? ""));
 }
 
+/**
+ * THE TABLE OF CONTENTS (deliverable 3) — every task, proposal, refined
+ * reading and transcript paragraph in a card's own log, each a row that opens
+ * in the third column. `rows` is `sub_rows()`'s own output from `inbox.js`;
+ * `base` is this card's own url, so a row is a plain `<a>` and the Router
+ * does the navigating — same reason a rail row is a plain `<a>` and not a
+ * click handler (`page.js`'s own comment on `make()`).
+ */
+export function toc(rows, base){
+	details.c("ai2-toc", $d => {
+		summary.c("ai2-toc-head muted").text(rows.length + (rows.length === 1 ? " sub-card" : " sub-cards"));
+		div.c("ai2-toc-rows", () => {
+			rows.forEach(r => {
+				a.c("ai2-toc-row page-link").href(base + r.sub + "/").append(() => {
+					icon(r.icon);
+					div.c("ai2-toc-body", () => {
+						span.c("ai2-toc-title").text(r.title);
+						if (r.line) small.c("ai2-toc-line muted").text(r.line);
+					});
+				});
+			});
+		});
+		$d.el.open = true;
+	});
+}
+
+/** ONE SUB-CARD, WHOLE — the third column's own content. Deliberately smaller
+ *  than `full()`: a sub-card is one task, one proposal, one reading or one
+ *  paragraph, never a second inbox to read. */
+export function sub_full(it){
+	div.c("ai2-full-head flex v-center gap-25", () => {
+		icon(it.icon);
+		span.c("ai2-full-title").text(it.title ?? it.kind);
+	});
+
+	if (it.kind === "said") it.said.filter(Boolean).forEach(s => { p.c("ai2-sentence").text(s); });
+	else if (it.kind === "task") {
+		if (it.state) small.c("muted").text("state: " + it.state);
+		if (it.now) p.c("ai2-refined").text(it.now);
+		if (it.brief) p.c("ai2-text").text(it.brief);
+	} else if (it.kind === "proposal") {
+		(it.shape ?? []).forEach(s => { p.c("ai2-sentence").text(s); });
+	} else if (it.kind === "refined") {
+		if (it.text) p.c("ai2-refined").md(it.text);
+	}
+}
+
 /** The one line you type to say what is wrong. Appended where it is called from,
     so the caller decides where it lands. `on.held()` tells the page to stop
     redrawing under a half-typed sentence — the bug the old board had. */

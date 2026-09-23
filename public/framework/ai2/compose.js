@@ -45,7 +45,16 @@ class ComposerMic extends Dictate {
 		// the DEFAULT and still choose to file a sentence that plainly belongs
 		// elsewhere under a different idea (assistant.md's routing rule).
 		if (re){ entry.re = re; entry.selected = re; }
-		if (await post_prompt(entry, this.log_url)) return;
+		const ok = await post_prompt(entry, this.log_url);
+		// THE CARD'S OWN STORE (decision `card-storage`) — a second, small POST
+		// beside the one above, never instead of it: `/log/prompts` is what the
+		// fast assistant and the Dispatcher are actually watching (Assistant.js,
+		// out of this task's fence), so it keeps working unchanged, while
+		// `cards/<slug>` becomes the durable per-card file deliverable 1 built.
+		// `re` on a sub-card is `<slug>/<sub>` — the log itself is still the
+		// PARENT card's file; `<sub>` only ever lives inside the entry's own `re`.
+		if (re) post_prompt(entry, servex_base() + "/log/cards/" + re.split("/")[0]).catch(() => {});
+		if (ok) return;
 		try { await Socket.singleton().async_rpc("append", this.log_fallback_file, { at: new Date().toISOString(), ...entry }); }
 		catch (e){ console.warn("ai2: could not log this utterance", e); }
 	}
@@ -106,8 +115,9 @@ export function composer({ re = () => null, on_text, on_partial, placeholder, au
 		if (target){ entry.re = target; entry.selected = target; }
 		on_text?.(msg);
 		note("sending…");
-		note(await post_prompt(entry, servex_base() + "/log/prompts")
-			? "sent — the card is on its way" : "Servex is not answering, so nothing was sent");
+		const ok = await post_prompt(entry, servex_base() + "/log/prompts");
+		if (target) post_prompt(entry, servex_base() + "/log/cards/" + target.split("/")[0]).catch(() => {});
+		note(ok ? "sent — the card is on its way" : "Servex is not answering, so nothing was sent");
 	}
 
 	/* ⚠ The status goes in the PLACEHOLDER as well as the folded note, because a

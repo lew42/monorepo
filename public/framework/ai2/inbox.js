@@ -2,6 +2,8 @@ import { JSONL } from "/framework/ext/JSONL/JSONL.js";
 import Socket from "/framework/dev/Socket/Socket.js";
 import { fold } from "/framework/ai/2026-09-22/log-model/fold.js";
 
+export { fold };
+
 /**
  * THE INBOX MODEL — three logs in, one list of cards out.
  *
@@ -102,43 +104,70 @@ export async function say(id, word, { note, quote } = {}){
  */
 export const servex_base = () => new URLSearchParams(location.search).get("servex") || "http://127.0.0.1:8090";
 
+/**
+ * ONE EVENTSOURCE PER BASE, DEMUXED BY LOG NAME. `prompts` was the only log
+ * this page ever read live; a card's own `cards/<slug>` (decision
+ * `card-storage`, ai2-nested) is the second, and there can be dozens of those
+ * open across a session — one `EventSource` each would be dozens of open
+ * sockets for nothing `/api/stream` doesn't already carry on the one it has
+ * open. `sources` holds the one connection per base; `streams` holds one
+ * entry-list per `(base, log name)`, same shape as the original `prompt_stream`
+ * so nothing that already reads `.entries` / `.on()` / `.ready` had to change.
+ */
 const streams = new Map();
+const sources = new Map();
 
-export function prompt_stream(base = servex_base()){
-	if (streams.has(base)) return streams.get(base);
+function demux(base){
+	if (sources.has(base)) return sources.get(base);
+	let source;
+	try { source = new EventSource(`${base}/api/stream`); }
+	catch { return null; }
+	source.addEventListener("log", msg => {
+		let frame;
+		try { frame = JSON.parse(msg.data); } catch { return; }
+		const stream = streams.get(base + "|" + frame.log);
+		if (!stream || !frame.entry) return;
+		stream.entries.push(frame.entry);
+		stream.readers.forEach(reader => reader(frame.entry));
+	});
+	source.onerror = () => {};   // Servex restarting — EventSource retries by itself
+	sources.set(base, source);
+	return source;
+}
+
+/** The backlog for one Servex log, then everything that arrives after, over the
+ *  one shared `EventSource`. `fallback`, when given, is a static file this page
+ *  reads instead when Servex itself is not answering — only `prompts` has one. */
+export function log_stream(name, { base = servex_base(), fallback } = {}){
+	const key = base + "|" + name;
+	if (streams.has(key)) return streams.get(key);
 
 	const stream = { entries: [], readers: new Set(), ok: false, ready: null };
-	streams.set(base, stream);
+	streams.set(key, stream);
 	stream.on = reader => { stream.readers.add(reader); return () => stream.readers.delete(reader); };
 
-	stream.ready = fetch(`${base}/log/prompts?n=400`).then(r => (r.ok ? r.json() : null)).catch(() => null)
+	stream.ready = fetch(`${base}/log/${name}?n=400`).then(r => (r.ok ? r.json() : null)).catch(() => null)
 		.then(list => {
 			if (Array.isArray(list)){
 				stream.ok = true;
 				list.forEach(e => stream.entries.push(e));
-				listen(base, stream);
+				demux(base);
 				return stream;
 			}
-			return fetch(PROMPTS_FALLBACK).then(r => (r.ok ? r.text() : "")).catch(() => "")
+			if (!fallback) return stream;
+			return fetch(fallback).then(r => (r.ok ? r.text() : "")).catch(() => "")
 				.then(text => { JSONL.parse(text).forEach(e => stream.entries.push(e)); return stream; });
 		});
 
 	return stream;
 }
 
-function listen(base, stream){
-	let source;
-	try { source = new EventSource(`${base}/api/stream`); }
-	catch { return; }
-	source.addEventListener("log", msg => {
-		let frame;
-		try { frame = JSON.parse(msg.data); } catch { return; }
-		if (frame.log !== "prompts" || !frame.entry) return;
-		stream.entries.push(frame.entry);
-		stream.readers.forEach(reader => reader(frame.entry));
-	});
-	source.onerror = () => {};   // Servex restarting — EventSource retries by itself
-}
+export const prompt_stream = (base = servex_base()) => log_stream("prompts", { base, fallback: PROMPTS_FALLBACK });
+
+/** One card's own append-only stream, `cards/<slug>` — the store deliverable 1
+ *  adds. No static fallback: a card with Servex down simply shows nothing new
+ *  until it comes back, same as the live prompt stream does today. */
+export const card_stream = (slug, base = servex_base()) => log_stream(`cards/${slug}`, { base });
 
 /* ── today's landings ───────────────────────────────────────────────────── */
 
@@ -363,4 +392,65 @@ export function items({ board, prompts, landed, says }){
 	const shown = list.filter(it => it.status !== "archived").sort((a, b) => Date.parse(b.at ?? 0) - Date.parse(a.at ?? 0));
 	shown.archived = archived;
 	return shown;
+}
+
+/* ── sub-cards: deliverable 3 ──────────────────────────────────────────────
+ *
+ * A CARD'S OWN TABLE OF CONTENTS, read off ITS OWN LOG (`cards/<slug>`) —
+ * `AI 2 SWITCHES ITS READER`, deliverable 1's own words. Every task, proposal
+ * and refined reading is already one thing in `fold()`'s own bins; a
+ * transcript paragraph is not, so one row is made per `prompt` entry, which is
+ * already one paragraph — a sentence is not a sub-card, a spoken turn is.
+ *
+ * `sub` is the THIRD URL SEGMENT (`/framework/ai2/<slug>/<sub>/`) — prefixed
+ * by kind so a task's own event id (say, `t-1`) can never collide with a
+ * proposal's or a prompt's, all three of which mint ids from the same small
+ * alphabet independently. */
+const SUB_KIND = { task: "task_alt", proposal: "science", refined: "auto_awesome", said: "mic" };
+
+export function sub_rows(entries){
+	const out = fold(entries);
+	const rows = [];
+
+	for (const t of Object.values(out.tasks)) rows.push({
+		sub: `task-${t.id}`, kind: "task", icon: SUB_KIND.task,
+		title: t.title ?? "Task", line: t.now ?? t.state ?? "", at: t.at,
+	});
+	for (const p of Object.values(out.proposals)) rows.push({
+		sub: `proposal-${p.id}`, kind: "proposal", icon: SUB_KIND.proposal,
+		title: p.title ?? "Proposal", line: (p.shape ?? []).find(Boolean) ?? "", at: p.at,
+	});
+	for (const r of Object.values(out.refined)) rows.push({
+		sub: `refined-${r.id}`, kind: "refined", icon: SUB_KIND.refined,
+		title: "Refined reading", line: (r.text ?? "").slice(0, 140), at: r.at,
+	});
+	for (const pr of Object.values(out.prompts)){
+		const said = pr.sentences ?? [pr.text ?? ""].filter(Boolean);
+		if (!said.length) continue;
+		rows.push({
+			sub: `said-${pr.id}`, kind: "said", icon: SUB_KIND.said,
+			title: said[0].slice(0, 60), line: said.length > 1 ? `+${said.length - 1} more` : "", at: pr.at,
+		});
+	}
+
+	rows.sort((a, b) => Date.parse(a.at ?? 0) - Date.parse(b.at ?? 0));
+	return rows;
+}
+
+/** One sub-card's own full content, by its `sub` id — used by the third
+ *  column, which needs more than the table-of-contents row (a proposal's
+ *  whole shape, a task's brief, every sentence of a transcript paragraph). */
+export function sub_row(entries, sub){
+	const out = fold(entries);
+	const [kind, ...rest] = sub.split("-");
+	const id = rest.join("-");
+	if (kind === "task") return out.tasks[id] ? { ...out.tasks[id], sub, kind, icon: SUB_KIND.task } : null;
+	if (kind === "proposal") return out.proposals[id] ? { ...out.proposals[id], sub, kind, icon: SUB_KIND.proposal } : null;
+	if (kind === "refined") return out.refined[id] ? { ...out.refined[id], sub, kind, icon: SUB_KIND.refined } : null;
+	if (kind === "said"){
+		const pr = out.prompts[id];
+		if (!pr) return null;
+		return { ...pr, sub, kind, icon: SUB_KIND.said, said: pr.sentences ?? [pr.text ?? ""].filter(Boolean) };
+	}
+	return null;
 }

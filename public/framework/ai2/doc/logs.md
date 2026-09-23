@@ -1,4 +1,4 @@
-# The four logs it reads, and the one it writes
+# The logs it reads, and the ones it writes
 
 **None of them ever reloads the page.** Three stream over the dev socket line by line as they
 are appended; the fourth, the owner's own sentences, comes over Servex's `EventSource`. The one
@@ -40,6 +40,19 @@ the page says "the assistant is off" when it is what got used.
 the dev socket, like the two above, so a task that lands while you are looking arrives on screen
 by itself.
 
+**Servex's `cards/<slug>` log** (decision `card-storage`, ai2-nested, 2026-09-23) — one card's
+own append-only stream: every `prompt`, `refined`, `reply`, `name`, `task`, `proposal`, `flag`
+and `archive` that belongs to it, in order. Read the same way as `prompts` — `GET
+.../log/cards/<slug>?n=400` for the backlog, the same shared `EventSource` for everything after
+— through `log_stream(name)`, the generalised form of what used to be `prompt_stream()` alone.
+A card's own page and its sub-card pages fold this log with the same, unmodified `fold()` used
+everywhere else on the site: `sub_rows()` turns it into the table of contents, `sub_row()` reads
+one row's whole content for the third column. `ai/board.jsonl` stays the index (id, slug, title,
+icon, status, author, at) — nothing above moved into this log; it only ever gains what happens
+to a card AFTER it exists. `Servex/proof/migrate-cards.mjs` folds today's `board.jsonl` +
+Servex's `prompts` log into one `cards/<slug>` file per card, once, so the two counts (events in,
+events out) can be checked against each other.
+
 ⚠ It was one `fetch()` until 2026-09-22, and the fix is not the one it looks like: the dev
 server routes **every** `.jsonl` change to `Tail.changed()` — its own line-streaming wire — and
 never broadcasts it as a reload, so the socket's `data` event never fires for a `.jsonl` at all,
@@ -60,6 +73,15 @@ Nothing is ever edited or deleted. A flag put on and taken off again is two line
 and the file still holds both. The page reads the file back into two separate bins — every id
 ever read, and the ids flagged right now — so a `read` line can never hide a flag and a flag
 can never hide a read, however they interleave.
+
+**Servex's `cards/<slug>` log, again** — a card you talk into writes here too, not only reads.
+`compose.js`'s `send()` (typed) and the microphone's own `log_prompt()` both post the entry
+TWICE: once to `/log/prompts`, unchanged, so the fast assistant and the Dispatcher — which only
+ever watch that one log — keep hearing every sentence exactly as before; once to
+`/log/cards/<slug>`, fire-and-forget, the durable per-card copy this task added. A sentence said
+into a sub-card carries `re: "<slug>/<sub>"` — the file is still the PARENT card's
+(`CARD_NAME` only ever allows one segment after `cards/`), and the sub-card's own identity lives
+entirely inside that `re` field.
 
 ## Why the two numbers can be checked against each other
 

@@ -88,8 +88,17 @@ export default class Servex extends Events {
          * 2026-09-22): the owner speaks, the line lands, the fast assistant
          * answers with three more lines, and an open board draws the whole
          * thread without ever asking again. `Stream.follow()` says why it is a
-         * named list and not every log on the machine. */
-        this.stream.follow(this.log, ["prompts"]);
+         * named list and not every log on the machine.
+         *
+         * ⚠ `cards/<slug>` joins it too (card-storage, ai2-nested) — but there is
+         * no fixed list of every card's name to write out by hand, so this hands
+         * `follow()` an object with an `includes()` of its own instead of a plain
+         * array. `follow()` only ever calls `names.includes(name)`, and nothing
+         * about that call cares whether `names` is really an Array — so one small
+         * object, matched against the same `cards/` prefix `Log.js`'s own
+         * `CARD_NAME` checks, is Stream.js's own seam used exactly as written,
+         * not a second one grown beside it. */
+        this.stream.follow(this.log, { includes: name => name === "prompts" || name.startsWith("cards/") });
 
         /* The Claude sessions live here, in this process, holding the same `Log`
          * everything else writes through. That is the whole integration: a tool
@@ -348,6 +357,26 @@ export default class Servex extends Events {
 
         router.get("/log/:name", cors, async (req, res) => {
             try { res.json(await this.log.tail(req.params.name, Number(req.query.n) || 50)); }
+            catch (e){ res.status(400).json({ error: String(e.message || e) }); }
+        });
+
+        /* THE CARDS SUB-PATH (decision `card-storage`, ai2-nested). One card's
+         * own append-only stream — `cards/<slug>` — a name `:name` above cannot
+         * spell, because an Express route param never matches a `/`. Same body,
+         * same `cors`, same 409-on-refusal; the only difference is the name
+         * `Log.append()`/`Log.tail()` are handed, which is why this is three
+         * lines beside the routes above rather than a second router. */
+        router.options("/log/cards/:slug", cors, (req, res) => res.status(204).end());
+
+        router.post("/log/cards/:slug", cors, express.json({ limit: "1mb" }), async (req, res) => {
+            try {
+                const outcome = await this.log.append(`cards/${req.params.slug}`, req.body ?? {});
+                res.status(outcome.ok ? 200 : 409).json(outcome);
+            } catch (e){ res.status(400).json({ error: String(e.message || e) }); }
+        });
+
+        router.get("/log/cards/:slug", cors, async (req, res) => {
+            try { res.json(await this.log.tail(`cards/${req.params.slug}`, Number(req.query.n) || 200)); }
             catch (e){ res.status(400).json({ error: String(e.message || e) }); }
         });
 

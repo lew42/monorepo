@@ -37,6 +37,46 @@
 		margin-block-start: 0;
 	}
 
+	/* THE THIRD COLUMN (deliverable 2, ai2-nested) — two columns split the
+	   space "generally... in two: the preview column resizable, the detail
+	   page taking the rest, with a measure" (the owner, 2026-09-22); a
+	   sub-card opening is what makes it three. The detail column CLAMPS to
+	   roughly its own prose measure once a third column needs room, rather
+	   than the sub column fighting it for whatever is left over.
+	   ⚠ `:has(.ai2-sub > .page.active-page)` reads the framework's own mark —
+	     no state of this page's own has to agree with the Router about
+	     whether a sub-card is open. */
+	.ai2:has(.ai2-sub > .page.active-page) {
+		grid-template-columns: var(--ai2-rail) minmax(20em, var(--measure, 40em)) minmax(0, 1fr);
+	}
+
+	.ai2-sub {
+		display: none;
+		min-width: 0;
+		min-height: 0;
+		overflow: hidden;
+		background: var(--surface);
+		border-inline-start: 1px solid var(--line);
+	}
+
+	.ai2:has(.ai2-sub > .page.active-page) .ai2-sub {
+		display: block;
+	}
+
+	/* ONE SCROLLBAR, NOT TWO (deliverable 4 — "we have two scrollbars, the
+	   framework page forces overflow-y scroll"). `.pages` is the SITE-WIDE
+	   region every top-level page mounts into (`core/App/App.js`'s own
+	   `$pages`), and its own rule two files up is `overflow-y: scroll` — a
+	   real, permanent gutter, on purpose, for every OTHER page on the site.
+	   AI 2 does not want it: the columns already scroll inside themselves
+	   (`.ai2-full` below), so the outer region showing a second, empty
+	   scrollbar track was never anything but the "two scrollbars" the owner
+	   saw. Scoped to this page only — nothing else on the site loses its own
+	   gutter. */
+	.pages:has(> .page--ai2) {
+		overflow-y: hidden;
+	}
+
 	/* ── the rail ──
 	   ⚠ `display: flex` declared here, not worn as the `.flex v` utility: util
 	     beats theme at any specificity, so a `.flex` on this box could never be
@@ -362,10 +402,17 @@
 	/* ── the page on the right ──
 	   The two grounds: the rail on `--tint` (3.5% off white), the card's page on
 	   `--surface`. Ink on both, 15.3:1 and 16.1:1. */
+	/* ⚠ `hidden`, not `auto` — the mounted card page manages its own scroll
+	   (`.ai2-full` below) at a fixed `height: 100%`, so this region's own
+	   content never actually overflows; `auto` here was the region half of
+	   the "two scrollbars" bug, showing a second, always-empty scroll track
+	   the instant a card page's real content was one pixel taller than
+	   estimated. The empty state is two short lines and never needs to
+	   scroll. */
 	.ai2-detail {
 		min-width: 0;
 		min-height: 0;
-		overflow-y: auto;
+		overflow: hidden;
 		background: var(--surface);
 	}
 
@@ -378,9 +425,18 @@
 		margin-block-start: 0.4em;
 	}
 
-	/* Stands down the moment a card page is routed here — `.active-page` is the
-	   arrangement contract's word for "this is what is showing". */
-	.ai2-detail:has(> .page.active-page) > .ai2-empty {
+	/* Stands down the moment a card page is routed here. ⚠ `:is(.active-page,
+	   .active-ancestor)`, not `.active-page` alone — a card page stays
+	   `.active-ancestor` (not the deepest leaf any more) the instant a
+	   sub-card opens beside it in the THIRD column, a different container
+	   entirely (deliverable 2, ai2-nested). Testing `.active-page` only made
+	   this rule stop matching the moment a sub-card opened, so `.ai2-empty`
+	   reappeared above the still-mounted card page and pushed its whole
+	   content down by its own height (measured: the detail column's own
+	   title row at y 45 → 130 with nothing in the content itself changed).
+	   `:is(.active-page, .active-ancestor)` is the arrangement contract's own
+	   words for "is any of this mine" (core/Page/Page.css). */
+	.ai2-detail:has(> .page:is(.active-page, .active-ancestor)) > .ai2-empty {
 		display: none;
 	}
 
@@ -426,17 +482,31 @@
 	   could have, in a footer, the transcription — the last paragraph always on
 	   screen"). Its height is FIXED: the words scroll inside `.ai2-script`, so
 	   ten sentences and one sentence leave the ideas above in exactly the same
-	   place. */
+	   place.
+	   ⚠ ONE CONTROL HEIGHT PLUS ONE RUNG OF PADDING (the owner, 2026-09-22: "way
+	     taller than it needs to be… it should be flush or bordered properly").
+	     Two things were fighting: `.ai2-script`'s flat `5.5em` reserved almost
+	     three lines even for a silent card, and its own padding (`0.5em`)
+	     didn't match `.ai2-full`'s (`var(--pad)`), so the grey ground's inset
+	     read as arbitrary against the column above it rather than a deliberate
+	     edge. Padding now matches the column it sits under; the script's own
+	     height is a `clamp` that starts at one line and only grows once there
+	     is something to show, capping well short of the old fixed reservation. */
 	.ai2-foot {
-		padding: 0.5em;
+		padding: var(--gap-25) var(--pad);
 		background: var(--tint);
 		border-block-start: 1px solid var(--line);
 	}
 
+	/* ⚠ `min-height`, not `height` — the old fixed `5.5em` reserved room for
+	   three lines even on a card nobody has spoken into yet; `$partial` (the
+	   grey guess) is always in the DOM so `:empty` can never match it, which
+	   is why this is a floor, not a collapse. */
 	.ai2-script {
-		height: 5.5em;
+		min-height: 1.5em;
+		max-height: 3.5em;
 		overflow-y: auto;
-		margin-block-end: 0.45em;
+		margin-block-end: 0.35em;
 		font-size: 0.9em;
 	}
 
@@ -497,6 +567,80 @@
 		color: color-mix(in srgb, currentColor 80%, transparent);
 	}
 
+	/* ── the table of contents (deliverable 3) ──
+	   Every sub-card, a row that opens the third column. Same row shape as a
+	   rail preview — title plus one clamped line — so learning to read one
+	   list teaches the other. */
+	.ai2-toc {
+		margin-block-start: var(--flow);
+	}
+
+	.ai2-toc-head {
+		font-size: 0.85em;
+		cursor: pointer;
+	}
+
+	.ai2-toc-rows {
+		border: 1px solid var(--line);
+		border-radius: 0.3em;
+		overflow: hidden;
+	}
+
+	.ai2-toc-row {
+		display: flex;
+		align-items: center;
+		gap: 0.5em;
+		padding: 0.5em 0.6em;
+		border-block-end: 1px solid var(--line);
+		text-decoration: none;
+		color: inherit;
+	}
+
+	.ai2-toc-row:last-child {
+		border-block-end: 0;
+	}
+
+	.ai2-toc-row:hover {
+		background: var(--fill-a04);
+	}
+
+	.ai2-toc-row.active {
+		background: var(--surface);
+		font-weight: 600;
+	}
+
+	.ai2-toc-body {
+		min-width: 0;
+	}
+
+	.ai2-toc-title {
+		display: block;
+		font-weight: 600;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.ai2-toc-line {
+		display: block;
+		font-size: 0.85em;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	/* The sub-card page's own back link — "← <card>" (deliverable 2: "closes
+	   when the detail is clicked again"). ⚠ Unlike `.ai2-back` (hidden until
+	   40em, where it is the phone's own one-screen-at-a-time nav) this one
+	   shows AT EVERY WIDTH: at 1280 the third column has no other way to say
+	   "done with this sub-card, back to the detail" — closing it is a real
+	   navigation, not a hover state. Two classes on the one link, so this
+	   beats the bare `.ai2-back` rule regardless of source order. */
+	.ai2-back.ai2-sub-back {
+		display: inline-block;
+		margin-block-end: var(--gap-50);
+	}
+
 	.ai2-said-head {
 		font-size: 0.85em;
 		cursor: pointer;
@@ -555,17 +699,34 @@
 	}
 
 	/* ── one screen at a time, on a phone ──
-	   Below 40em the rail IS the screen and a card's page is the second one.
-	   Which you see is decided by the framework's own marks: the page is an
-	   `.active-ancestor` exactly when a card page is open inside it. */
+	   Below 40em EACH LEVEL IS ITS OWN SCREEN (deliverable 2: "At 400 each
+	   level is its own screen with a back link") — the rail, then a card's
+	   page, then a sub-card's page, three deep now instead of two. Which one
+	   shows is decided entirely by the framework's own marks: a page is
+	   `.active-ancestor` exactly when a DEEPER page is open inside it, so
+	   nothing here has to track "how many levels down am I" by hand. */
 	.ai2-back {
 		display: none;
 	}
 
 	@media (width < 40em) {
 		.ai2 { grid-template-columns: minmax(0, 1fr); }
+		.ai2-detail, .ai2-sub { display: none; }
+
+		/* Screen 2: a card is open. Root is `.active-ancestor` either way (a
+		   sub-card open makes it doubly true), so the rail hides and the detail
+		   column shows — then the next rule takes the detail column away again
+		   if a sub-card has been opened beneath it. */
 		.page--ai2.active-ancestor .ai2-rail { display: none; }
-		.page--ai2:not(.active-ancestor) .ai2-detail { display: none; }
+		.page--ai2.active-ancestor .ai2-detail { display: block; }
+
+		/* Screen 3: a sub-card is open. The CARD page itself (not the root) is
+		   now the one with a deeper active page beneath it — that is what
+		   "active-ancestor" means one level down — so its own column stands
+		   aside for the sub column. */
+		.ai2-detail:has(.ai2-card-page.active-ancestor) { display: none; }
+		.ai2:has(.ai2-detail .ai2-card-page.active-ancestor) .ai2-sub { display: block; }
+
 		.ai2-back { display: inline-block; }
 	}
 }
