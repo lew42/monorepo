@@ -34,6 +34,15 @@ export default class Cards {
 		this.base ??= "/framework/ai/";
 		this.queues = new Map();          // file path -> promise chain: one writer per file
 		this.legacies = null;             // legacy id -> card id, built on first use
+		this.listeners = new Set();       // fn(cardId, line, info), told after every write
+	}
+
+	/* Hear every line written to ANY card. Returns a function that stops listening. */
+	on(fn){ this.listeners.add(fn); return () => this.listeners.delete(fn); }
+
+	/* A listener that throws must never break a write. */
+	emit(id, line, info){
+		for (const fn of [...this.listeners]) try { fn(id, line, info); } catch {}
 	}
 
 	/* The one shape a parent uses to list a child. Module A owns the listing
@@ -124,6 +133,7 @@ export default class Cards {
 			const head = { class: CLASS, title: String(title).trim(), type, id, created: stamp(), by, tags: [].concat(tags) };
 			await fs.promises.writeFile(this.file(id), JSON.stringify(head) + "\n", { flag: "wx" });
 			await this.write(home, this.listing(slug));
+			this.emit(id, head, { created: true });
 			return { ok: true, id, url: this.url(id), path: this.file(id) };
 		} catch (e){ return { ok: false, why: String(e.message || e) }; }
 	}
@@ -147,6 +157,7 @@ export default class Cards {
 			}
 			await this.write(card, line);
 			if (line.legacy) this.legacy_map().set(line.legacy, card);
+			this.emit(card, line, line.prompt ? { fresh } : {});
 			return { ok: true, id: card, line, ...(line.prompt ? { fresh, ref: `${card}#${line.prompt.id}` } : {}) };
 		} catch (e){ return { ok: false, why: String(e.message || e) }; }
 	}

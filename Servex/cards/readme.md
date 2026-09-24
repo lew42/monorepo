@@ -18,6 +18,7 @@ ai/2026/09/24/fix-the-sidebar/wider/…      a sub-card — 2026/09/24/fix-the-s
 - `create({parent, title, type, by, tags})` → `{ok, id, url, path}`. No parent (or `"today"`) = today's folder.
 - `append(id, line)` · `read(id)` · `fold(id)` (the latest-wins state) · `resolve(id)` → folder or null
 - `list({view, tag})` — `view` is `today`, `open`, `all`, or a tag. Projects are tags, not folders.
+- `on(fn)` — `fn(cardId, line, info)` hears every line appended to any card (`{fresh}` for a prompt, `{created: true}` for a create); returns a remover. A throwing listener never breaks a write.
 - `attach(id, agent)` · `attached(id)` · `forward(id, prompt)`
 - `routes(router, cors)` — `GET /cards?view=`, `GET /card?id=`, `POST /card/create`, `POST /card/append?id=`
 - `tools()` — `create_card`, `read_card`, `attach_card`, `list_cards`, in `agents/tools.js`'s shape

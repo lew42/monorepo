@@ -127,6 +127,20 @@ await cards.append(b.id, { detach: "assistant-desk" });
 check("detach", !(await cards.attached(b.id)).includes("assistant-desk"));
 check("forward after detach reaches no one", (await cards.forward(b.id, { id: "p-x", text: "hi" })).length === 0);
 
+// listeners hear every write, and can never break one
+const heard = [];
+const off = cards.on((id, line, info) => heard.push({ id, line, info }));
+const off2 = cards.on(() => { throw new Error("bad listener"); });
+const lc = await cards.create({ title: "Listened to" });
+check("listener hears a create", heard.length === 1 && heard[0].id === lc.id && heard[0].info.created === true && heard[0].line.title === "Listened to", heard);
+const lp = await cards.append(lc.id, { prompt: { raw: "hear this" } });
+check("listener hears a prompt with fresh", lp.ok && heard[1]?.id === lc.id && heard[1].info.fresh === true && heard[1].line.prompt.raw === "hear this", heard[1]);
+const lm = await cards.append(lc.id, { status: "open" });
+check("a throwing listener does not break append", lm.ok && heard.length === 3 && heard[2].line.status === "open");
+off(); off2();
+await cards.append(lc.id, { status: "done" });
+check("the remover stops listening", heard.length === 3 && cards.listeners.size === 0);
+
 // the MCP tools
 const tools = Object.fromEntries(cards.tools().map(t => [t.name, t]));
 check("four tools", Object.keys(tools).join() === "create_card,read_card,attach_card,list_cards");
@@ -137,7 +151,7 @@ check("read_card returns the whole log", (await tools.read_card.handler({ card: 
 sends.length = 0;
 const att = JSON.parse(await tools.attach_card.handler({ card: made.id, agent: "assistant-desk" }));
 check("attach_card appends and sends the whole log", att.sent && sends[0]?.id === "assistant-desk" && sends[0].text.includes('"From a tool"'), att);
-check("list_cards", JSON.parse(await tools.list_cards.handler({ view: "all" })).length === 11);
+check("list_cards", JSON.parse(await tools.list_cards.handler({ view: "all" })).length === 12);
 
 // the HTTP routes, on a real port
 const app = express();
@@ -157,7 +171,7 @@ check("POST /card/create refuses with 400", (await post("/card/create", {})).sta
 const g1 = await fetch(`${at}/card?id=${encodeURIComponent(h1.j.id)}`).then(r => r.json());
 check("GET /card folds", g1.title === "Over HTTP" && g1.prompts.length === 1);
 check("GET /card unknown → 404", (await fetch(`${at}/card?id=nope`)).status === 404);
-check("GET /cards?view=all", (await fetch(`${at}/cards?view=all`).then(r => r.json())).length === 12);
+check("GET /cards?view=all", (await fetch(`${at}/cards?view=all`).then(r => r.json())).length === 13);
 await new Promise(r => server.close(r));
 
 fs.rmSync(root, { recursive: true, force: true });
