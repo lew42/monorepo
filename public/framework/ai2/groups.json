@@ -1,0 +1,51 @@
+[
+	{
+		"id": "system-design",
+		"name": "System design",
+		"icon": "account_tree",
+		"about": "How the agents, assistants and masterminds are organised and handed work: roles, layers, recipes, skills.",
+		"card": "2026/09/24/system-design"
+	},
+	{
+		"id": "servex",
+		"name": "Servex",
+		"icon": "dns",
+		"about": "The always-on process: starting and watching servers and agents, restarts, crashes, logs, the machine's health.",
+		"card": "2026/09/24/servex"
+	},
+	{
+		"id": "ai-dashboard",
+		"name": "AI dashboard",
+		"icon": "dashboard",
+		"about": "AI 2 and the task board: the rail, cards, the Live card, chatting with agents, what a task cost.",
+		"card": "2026/09/24/ai-dashboard"
+	},
+	{
+		"id": "pages-markdown",
+		"name": "Pages & markdown",
+		"icon": "description",
+		"about": "How a page is made and read: page.js, page.jsonl, markdown files rendered as pages, links that open them.",
+		"card": "2026/09/24/pages-markdown"
+	},
+	{
+		"id": "cards-content",
+		"name": "Cards & content",
+		"icon": "style",
+		"about": "Card folders, the kinds of card and widget, content modules any page can place, consolidating boxes.",
+		"card": "2026/09/24/cards-content"
+	},
+	{
+		"id": "layout-columns",
+		"name": "Layout & columns",
+		"icon": "view_column",
+		"about": "Where things sit and how big they are: columns, layout names, spacing, padding, widths.",
+		"card": "2026/09/24/layout-columns"
+	},
+	{
+		"id": "audits",
+		"name": "Audits",
+		"icon": "fact_check",
+		"about": "Looking back over what was built: inventories, task audits, loose ends, reviews.",
+		"card": "2026/09/24/audits"
+	}
+]

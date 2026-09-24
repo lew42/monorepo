@@ -151,7 +151,10 @@ export function live_model({ prompts, day }){
 			let at = moment;
 			log.entries.forEach(e => { at = newer(e.at, at); });
 			t.forEach(x => { at = newer(x.at, at); });
-			const last = [...log.entries].reverse().find(e => e.type === "update" || e.type === "reply");
+			// The preview's last words are the last REPLY — a sentence written for
+			// you. An `update` line is "<agent-id> finished a turn", and the owner's
+			// rule is "the id shouldn't be in the card preview on the left".
+			const last = [...log.entries].reverse().find(e => e.type === "reply");
 			const lim = limits();
 			const bars = lim.map(l => ({ kind: l.kind, label: LABELS[l.kind] ?? l.kind, percent: l.percent, severity: l.severity }));
 			return { id: LIVE, kind: "live", icon: "speed", title: "Live", author: "servex", at,
@@ -192,8 +195,8 @@ export function live_row(it){
 		});
 	});
 	div.c("ai2-row-foot flex v-center gap-25", () => {
-		const n = it.agents.length, t = it.tasks.length;
-		small.c("ai2-row-line muted").text(`${n} running · ${t} ${t === 1 ? "task" : "tasks"}` + (it.last ? " · " + it.last : ""));
+		const n = it.agents.length, t = it.tasks.length, w = it.agents.filter(a => a.state === "working").length;
+		small.c("ai2-row-line muted").text(`${n} running (${w} working) · ${t} ${t === 1 ? "task" : "tasks"}` + (it.last ? " · " + it.last : ""));
 	});
 }
 

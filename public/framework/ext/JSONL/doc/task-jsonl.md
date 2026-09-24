@@ -263,6 +263,10 @@ verb every `TaskJSONL` reader gets now, so any other board can render notes
 without redeclaring them, and no reader warns `unknown verb "note"` on a file
 another reader is writing.
 
+## `{"group": "<id>"}` — which AI 2 group the task is filed under (latest line wins)
+
+⚠ Not `assign.group`, the older "effort" field. `TaskJSONL` does not know it yet (one console warning per file); AI 2 reads it — [`ai2/doc/groups.md`](/framework/ai2/doc/groups.md).
+
 ## Progress is two assigned fields, never a verb
 
 `steps` (the outline, declared once at launch) and `step` (the 1-based index
