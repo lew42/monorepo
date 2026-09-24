@@ -69,7 +69,7 @@ export default new Page({
 	// (notes.css `.notes-thumb`). The thumb is inert, so no link goes inside it.
 	preview(nav){
 		return this.preview_card(nav, () => img().attr("src", here + "note.jpg")
-			.attr("alt", "Notebook page: 1920 x 1080 scaled until its height is 1920").c("notes-thumb"));
+			.attr("alt", "Notebook page: 1920 x 1080 scaled until its height is 1920").ac("notes-thumb"));
 	},
 
 	content(){
