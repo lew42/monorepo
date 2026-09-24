@@ -7,7 +7,7 @@ import { servex_base } from "./inbox.js";
  * Compact and Recycle are the two ways to make room.
  *
  * Servex answers `GET /api/card-agents?card=<id>`. This asks NOTHING until Servex
- * says it has the route: a Servex running the code appends `{"card-agents": 1}` to
+ * says it has the route: a Servex running the code appends `{"card_agents": 1}` to
  * its `features` log at boot (the way `cards_ready` reads `{"cards": 1}`). An older
  * Servex has no CORS answer for the route, and the browser would log an error.
  * The rows refresh every 10 seconds, and stop by themselves when the card's
@@ -24,7 +24,7 @@ const ACTIONS = [
 let ready = null;
 const has_route = () => ready ??= fetch(url("/log/features?n=50"))
 	.then(r => (r.ok ? r.json() : []))
-	.then(list => Array.isArray(list) && list.some(e => e?.["card-agents"]))
+	.then(list => Array.isArray(list) && list.some(e => e?.card_agents))
 	.catch(() => false);
 
 export default function agents_panel(card_id){
