@@ -1,4 +1,8 @@
-import { Page, View, div, p, span, small, a, button, label, input } from "/app.js";
+import { Page, View, div, p, span, small, a, button, label, input, details, summary } from "/app.js";
+import { icon } from "/framework/core/View/View.js";
+import { Groups } from "./groups.js";
+import { task_of, task_region } from "./tasks.js";
+import { when } from "./faces.js";
 import grip from "/framework/ext/grip/grip.js";
 import composer from "./compose.js";
 import { row, full, flag_box, toc, sub_full } from "./faces.js";
@@ -107,14 +111,19 @@ function board(page){
 	const live = live_model({ prompts: stream, day });
 	// Every card folder, as Servex lists them; `board.jsonl` is only read when this is not `ok`.
 	const folders = new CardList();
+	// The familiar groups the work is filed under — `groups.json`, `groups.js`.
+	const groups = new Groups();
 	page.auto_transcribe = auto_transcribe;
 
 	let list = [], shown = [], current = null, hovering = false, flagging = null, only_notes = false, show_archived = false;
+	let group_order = [];
 	const rows = new Map();        // id → { $row, sig }
+	const group_rows = new Map();  // group id → { $row, sig }
 	const waiting = new Set();     // ids that arrived while the list was busy
 	const watching = new Set();    // the card pages on screen, each watching for its own card
 	const list_watchers = new Set();   // the overview's own subscription onto this list
 	let $shell, $count, $pill, $rows, $detail, $sub, $flagger, $notes, $archived;
+	let $groups, $pinned, $unfiled, $unfiled_head, $list;
 
 	/* `bleed` is the page grid's own word for "the whole region" — without it
 	   this draws inside the prose track and the rail and the page share 52em. */
@@ -164,7 +173,17 @@ function board(page){
 			// every row down 36px.
 			div.c("ai2-stream", () => {
 				$pill = button.c("ai2-new prim").attr("type", "button").click(() => flush(true));
-				$rows = div.c("ai2-rows");
+				// THE GROUPS FIRST (the owner, 2026-09-24: "the left list of
+				// previews should primarily be GROUPS, familiar groups"), then the
+				// Live card, then — folded and quiet — everything no group holds yet.
+				$rows = div.c("ai2-rows", () => {
+					$groups = div.c("ai2-groups");
+					$pinned = div.c("ai2-pinned");
+					$unfiled = details.c("ai2-unfiled", () => {
+						$unfiled_head = summary.c("ai2-unfiled-head muted");
+						$list = div.c("ai2-list");
+					});
+				});
 			});
 			// Archived, never deleted — hidden by default; this word shows the
 			// count and, on click, shows them again in the same list, greyed.
@@ -177,7 +196,7 @@ function board(page){
 				// rail's edge at its default width — a filter on this list, like archived.
 				$notes = button.c("ai2-word").attr("type", "button")
 					.attr("title", "only the mastermind's notes to you")
-					.text("notes").click(() => { only_notes = !only_notes; $notes.el.classList.toggle("on", only_notes); relist(); });
+					.text("notes").click(() => { only_notes = !only_notes; $notes.el.classList.toggle("on", only_notes); if (only_notes) $unfiled.el.open = true; relist(); });
 				$archived = button.c("ai2-word ai2-archived-word").attr("type", "button")
 					.click(() => { show_archived = !show_archived; $archived.el.classList.toggle("on", show_archived); relist(); });
 			});
@@ -211,6 +230,11 @@ function board(page){
 
 	page.$pages = $detail;
 	page.$sub = $sub;
+
+	// The fold remembers itself in this browser; closed until you open it.
+	const UNFILED_KEY = "ai2-unfiled";
+	try { $unfiled.el.open = localStorage.getItem(UNFILED_KEY) === "open"; } catch {}
+	$unfiled.on("toggle", () => { try { localStorage.setItem(UNFILED_KEY, $unfiled.el.open ? "open" : "closed"); } catch {} });
 	size(parseInt(localStorage.getItem(RAIL_KEY), 10) || null);
 
 	/* ── the rail's width ───────────────────────────────────────────────── */
@@ -237,10 +261,12 @@ function board(page){
 	     path segment as a card id, so `/framework/ai2/notes/` would open a card
 	     called "notes". The url-backed views are item 14, deferred. */
 	const visible = () => {
-		const base = only_notes ? list.filter(it => it.kind === "note") : list;
+		// A thing filed in a group is shown THROUGH its group, never twice.
+		const pool = list.filter(it => !groups.filed(it));
+		const base = only_notes ? pool.filter(it => it.kind === "note") : pool;
 		// Archived cards join the SAME list, greyed by `refill()` — a second word
 		// to click, never a second view to build.
-		return show_archived ? [...base, ...(list.archived ?? [])] : base;
+		return show_archived ? [...base, ...(list.archived ?? []).filter(it => !groups.filed(it))] : base;
 	};
 
 	function relist(){
@@ -271,9 +297,9 @@ function board(page){
 		if (quiet()) flush();
 		else pill();
 
-		// Everything already on screen redraws in place, wherever it sits. A
-		// preview is a title and one clamped line, so its height cannot change.
+		// Everything already on screen redraws in place, wherever it sits.
 		shown.forEach(id => { const it = by_id.get(id); if (it) refill(rows.get(id), it); });
+		draw_groups();
 
 		// The overview (deliverable 7) reads the SAME list — one data pipeline,
 		// two views — rather than opening its own copy of every log this page
@@ -289,13 +315,15 @@ function board(page){
 		const by_id = new Map(here.map(it => [it.id, it]));
 		waiting.clear();
 
-		$rows.append(() => { here.forEach(it => { if (!rows.has(it.id)) rows.set(it.id, make(it)); }); });
+		$list.append(() => { here.forEach(it => { if (!rows.has(it.id)) rows.set(it.id, make(it)); }); });
 		rows.forEach((rec, id) => { if (!by_id.has(id)){ rec.$row.el.remove(); rows.delete(id); } });
 
 		// `appendChild` MOVES a node that is already in the tree, so this is the
-		// sort applied to the DOM that already exists, with nothing rebuilt.
+		// sort applied to the DOM that already exists, with nothing rebuilt. The
+		// Live card sits under the groups, in sight; the rest inside the fold.
 		shown = here.map(it => it.id);
-		shown.forEach(id => $rows.el.appendChild(rows.get(id).$row.el));
+		shown.forEach(id => (id === LIVE ? $pinned : $list).el.appendChild(rows.get(id).$row.el));
+		draw_groups(true);
 
 		pill();
 		if (to_top) $rows.el.scrollTo({ top: 0 });
@@ -305,6 +333,56 @@ function board(page){
 		// is still empty — without this line a pasted url opened the right card
 		// and marked nothing. `mark_links()` is callable bare for exactly this.
 		page.app?.router?.mark_links?.();
+	}
+
+	/* THE GROUP ROWS — one per group, a link to its card. Each redraws in place
+	   when its newest member changes; the ORDER (newest activity first) is only
+	   applied when the list is quiet, like any other row, or when `force`d by a
+	   flush that is already moving rows. */
+	function draw_groups(force){
+		const order = groups.ordered();
+		order.forEach(g => {
+			let rec = group_rows.get(g.id);
+			if (!rec){
+				rec = { sig: null };
+				$groups.append(() => { rec.$row = a.c("ai2-row ai2-group-row").href(page.url + g.card + "/"); });
+				group_rows.set(g.id, rec);
+			}
+			const latest = groups.latest(g.id);
+			const size = groups.members(g.id).filter(m => m.kind !== "said");
+			const sig = JSON.stringify([g, latest, size.length]);
+			if (rec.sig === sig) return;
+			rec.sig = sig;
+			rec.$row.empty(() => { group_face(g, latest, size); });
+		});
+		const next = order.map(g => g.id);
+		if (next.join() !== group_order.join() && (force || quiet() || !group_order.length)){
+			group_order = next;
+			group_order.forEach(id => $groups.el.appendChild(group_rows.get(id).$row.el));
+			page.app?.router?.mark_links?.();
+		}
+	}
+
+	/* A group's preview: its icon and name, the newest member's own words
+	   WHOLE, and when — never a slug. */
+	/* ⚠ ONE UPDATE, NOT THE MEMBER'S WHOLE STORY: all seven groups must fit the
+	   rail at 1000px tall. A running task's first sentence plus its `now` made
+	   one row 319px and pushed two groups off screen (measured, 1920). The
+	   update is the `now` alone — the task's own sentence heads its section on
+	   the group's card, one click away. */
+	function group_face(g, latest, members){
+		const tasks = members.filter(m => m.kind === "task").length, cards = members.length - tasks;
+		const size = [tasks && tasks + (tasks === 1 ? " task" : " tasks"), cards && cards + (cards === 1 ? " card" : " cards")];
+		div.c("ai2-row-head flex v-center gap-25", () => {
+			icon(g.icon);
+			span.c("ai2-row-title").text(g.name);
+			small.c("ai2-row-when muted").text([...size, latest && when(latest.at)].filter(Boolean).join(" · "));
+		});
+		if (!latest) return void small.c("ai2-group-line muted").text("Nothing yet.");
+		const words = latest.kind === "said" ? "You said: " + latest.words
+			: latest.kind === "task" && !latest.landed ? latest.words || latest.title
+			: latest.title || latest.words;
+		div.c("ai2-group-what").text(words);
 	}
 
 	function pill(){
@@ -320,6 +398,9 @@ function board(page){
 			if (!stream.ok) span.c("ai2-off muted").text("· the assistant is off");
 		});
 		document.title = n ? "(" + n + ") AI 2" : "AI 2";
+
+		const loose = visible().filter(it => it.id !== LIVE).length;
+		$unfiled_head.text("Not filed yet (" + loose + ")");
 
 		const a_n = list.archived.length;
 		$archived.el.hidden = !a_n && !show_archived;
@@ -354,7 +435,7 @@ function board(page){
 	}
 
 	$rows.on("pointerenter", () => { hovering = true; });
-	$rows.on("pointerleave", () => { hovering = false; });
+	$rows.on("pointerleave", () => { hovering = false; draw_groups(); });
 
 	/* ── flagging a sentence you selected ───────────────────────────────── */
 
@@ -406,6 +487,8 @@ function board(page){
 	live.on(paint);
 	folders.on(paint);
 	folders.start();
+	groups.on(paint);
+	groups.start({ folders, socket: page.app?.socket });
 
 	/* What a card's own page is allowed to ask of the list.
 	   ⚠ OPENING A CARD MARKS NOTHING. It used to write a `read` line here, and
@@ -426,6 +509,8 @@ function board(page){
 		// for a refresh after it writes a line.
 		cards: folders,
 		cards_changed: () => folders.soon(),
+		// The groups — a group card reads its members off this (`card.js`).
+		groups,
 		flag(id, note, quote){
 			says.flags.set(id, { id, say: "improve", note, quote });
 			say(id, "improve", { note, quote });
@@ -467,7 +552,8 @@ const norm = t => String(t ?? "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim
  */
 function card_page(root, id){
 	let $box, box, talk, sig = null, held = false, handle, stop_clog, stop_live;
-	let latest_it = null;
+	let latest_it = null, $tasks = null;
+	const task_state = {};
 
 	// THE CARD'S OWN LOG (decision `card-storage`) — the store deliverable 1
 	// built, and what the table of contents below is read off, per deliverable
@@ -492,6 +578,10 @@ function card_page(root, id){
 	function draw(it){
 		latest_it = it;
 		talk?.sync();
+		// A card that points at a task shows that task's page below it — outside
+		// `$box`, and ahead of the early return below, so it fills as soon as the
+		// directory listing is in and is never refetched by a redraw (`tasks.js`).
+		if ($tasks) task_region($tasks, root.ai2.groups.task_at(task_of(it)), task_state, { head: false });
 		const next = JSON.stringify(it) + "|" + clog.entries.length;
 		if (held || next === sig) return;
 		sig = next;
@@ -528,7 +618,10 @@ function card_page(root, id){
 			// Only ever shown below 40em, where the rail is the whole screen and
 			// this page is the second one. See ai2.css.
 			a.c("ai2-back page-link").href(root.url).text("← all cards");
-			$box = div.c("ai2-full");
+			// ⚠ The Live card keeps `.ai2-full` as its own box: its columns are
+			// laid out on that box's direct children (live.js, `.ai2-card-live`).
+			if (id === LIVE) $box = div.c("ai2-full");
+			else div.c("ai2-full", () => { $box = div.c("ai2-full-card"); $tasks = div.c("ai2-tasks"); });
 
 			div.c("ai2-foot", () => {
 				talk = chat({ source, keep: mine });

@@ -4,9 +4,16 @@
 [`doc/owner-asks.md`](./doc/owner-asks.md).** Read it before changing the layout.
 
 One page at [`/framework/ai2/`](/framework/ai2/). **The default view is the inbox** (you
-preferred it, 2026-09-23): a narrow rail down the left previews every card there is, newest
-first, with a one-line box you talk to at its top. Click one and it opens on the right, at its
-own url, and stays there: the list keeps filling behind it and nothing you are reading moves.
+preferred it, 2026-09-23): a narrow rail down the left, with a one-line box you talk to at its
+top. Click anything in it and it opens on the right, at its own url, and stays there: the list
+keeps filling behind it and nothing you are reading moves.
+
+**The rail leads with seven groups** (2026-09-24) — System design, Servex, AI dashboard, Pages &
+markdown, Cards & content, Layout & columns, Audits — each an icon, a name, and the newest thing
+that happened inside it, in full. The busiest group is on top. Click one and its card shows the
+real task page of every task in it, newest first. Below the groups sits the Live card, then
+**Not filed yet**, a fold holding every card no group holds. How a thing joins a group:
+[`doc/groups.md`](./doc/groups.md).
 
 The rail's `overview` word opens the **overview** at [`overview/`](/framework/ai2/overview/) — four
 columns by importance: needs you (flagged or blocked, cleared per item), reports (the
@@ -102,8 +109,13 @@ To draw a card from anywhere, append a line to one of the logs it reads:
 - **A card's `id` is its identity for good.** A flag is attached to it, and so is every sentence
   spoken into it. An entry with no id of its own gets one from its timestamp, never its
   position in the log.
-- **The rows must not change height**, or the list can move under the pointer: a preview is a
-  clipped title line and one clipped body line, and the unread dot keeps its space when hidden.
+- **A preview is never clipped** (the owner, 2026-09-24: "render the whole thing as tall as it
+  needs to be"), and never shows a slug or an id. What stops the list jumping is the pill: a
+  new row, or a new group order, only lands while the list is quiet.
+- **A group's `{"group": …}` line is not `assign.group`** (the older "effort"). A method called
+  `group()` on a card or a task reader gets overwritten by that data — [`doc/groups.md`](./doc/groups.md).
+- **A card's task page lives outside the box the card redraws** — rebuilt, it refetches and
+  closes the tab you had open. `tasks.js`.
 - **`refill()` compares the card's WHOLE record**, not a hand-written list of the fields the face
   draws — the first build listed them, forgot one, and the feature silently never rendered.
 - **Servex may be down.** Then the prompt backlog comes from the static `prompts.jsonl`, and the
@@ -124,6 +136,7 @@ To draw a card from anywhere, append a line to one of the logs it reads:
 
 ## More
 
+- [`doc/groups.md`](./doc/groups.md) — the seven groups, how a thing joins one, how a group rises
 - [`doc/owner-asks.md`](./doc/owner-asks.md) — every dashboard ask you made, 17–24 Sep, with its status
 - [`doc/decisions.md`](./doc/decisions.md) — every fork in the road, with the alternative named
 - [`doc/logs.md`](./doc/logs.md) — every log this page reads, and the ones it writes
@@ -136,4 +149,5 @@ To draw a card from anywhere, append a line to one of the logs it reads:
 - [`doc/cards.md`](./doc/cards.md) — card folders: the addresses, `card.js`'s vocabulary, every write
 - Files that matter: `page.js` (the shell, the selection, the third column), `card.js` (a
   card folder's own page), `faces.js` (a board card, small and whole, plus the table of contents), `inbox.js` (what there is to
-  draw, and the per-card log), `compose.js` (the box you talk into), `ai2.css` (the look)
+  draw, and the per-card log), `groups.json` + `groups.js` (the groups and who is in them),
+  `tasks.js` (a task's real page inside a card), `compose.js` (the box you talk into), `ai2.css` (the look)

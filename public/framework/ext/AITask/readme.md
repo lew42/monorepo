@@ -13,6 +13,14 @@ export default new AITask({
 ```
 A task's page is up to five tabs — **Asks · Requirements · Decisions · Report · Session**: `report()` is the outline — `asks` builds Asks; `cost`, `outcome`, `links`, `status`, `checklist`, `extra`, `shots`, `figures` build Report; `chat` + `log` build Session; `head` builds Requirements; `decisions` builds Decisions, and only when the log carries any — override any one. **Asks is first and opens by default whenever the log carries any** — what the owner asked for outranks what a session did about it; without asks, Report opens. A task dir is never declared in `children:` either way: no `page.js` of its own gets this template through its day's `route()` fallback, and one WITH its own `page.js` is found the same way, ahead of the fallback.
 
+To show a task's page inside another page — AI 2's card column does — draw it into whatever box you are building, with the same class and no copy of its view:
+
+```js
+div.c("my-box", () => { AITask.into("/framework/ai/2026-09-24/ai2-groups/", { listing: ["task.jsonl"] }); });
+```
+
+`listing` is optional: the task dir's file names, when you have them, so a missing `requirements.md` is never fetched.
+
 A landing that produced something worth going back to adds one more line, and the front page grows a card for it:
 
 ```json ai/<date>/<slug>/task.jsonl
