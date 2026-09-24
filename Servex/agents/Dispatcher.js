@@ -10,13 +10,25 @@
  * Not a Claude session itself: plain code, one `Map` of who is running, one
  * array of who is waiting. At most `max` run at once; a slot freeing up (a
  * child's wake, done or blocked) starts the next one queued. */
+import fs from "node:fs";
+import path from "node:path";
+
+/* The pause switch — a file, so the owner can flip it with no restart and see it in a
+ * directory listing: `%LOCALAPPDATA%/lew42/servex/dispatch.off`. While it exists a
+ * spoken task is still carded and still logged `queued`, but nothing is spawned (the
+ * owner, 2026-09-23, under weekly budget pressure: "speak directly to the fast agent
+ * without it using any secondary assistants or masterminds"). Delete the file and the
+ * NEXT queued task dispatches; tasks queued while paused are not replayed — say them
+ * again, or restart Servex. */
+const OFF = path.join(process.env.LOCALAPPDATA || "", "lew42", "servex", "dispatch.off");
+
 export default class Dispatcher {
 
 	constructor(...args){ this.assign(this.defaults(), ...args); }
 	assign(...args){ return Object.assign(this, ...args); }
 
 	defaults(){
-		return { id: "dispatcher", log: "prompts", max: 2, running: new Map(), queue: [] };
+		return { id: "dispatcher", log: "prompts", max: 2, running: new Map(), queue: [], paused: new Set(), cards: new Map(), titles: new Map() };
 	}
 
 	install(){ this.hire(); this.listen(); return this; }
@@ -40,13 +52,40 @@ export default class Dispatcher {
 		this.servex.agents.register(agent);
 	}
 
+	/* ⚠ OUR OWN LINES ARE NOT NEWS. `progress()` writes `task` lines onto the
+	 * very log this listens to, and the paused note is itself `state: "queued"`
+	 * — found live 2026-09-23 15:04: each note was heard as a new queued task,
+	 * which wrote another note, 1.2 million lines (294 MB) in ninety seconds
+	 * until Servex ran out of memory. Every line we write carries `by: this.id`
+	 * and is skipped here; `paused` says the paused note once per task. */
 	listen(){
 		this.servex.log.on("append", (name, entry) => {
-			if (name === this.log && entry.type === "task" && entry.state === "queued") this.saw(entry);
+			if (name !== this.log || entry.type !== "task") return;
+			this.mirror(entry);
+			if (entry.by !== this.id && entry.state === "queued") this.saw(entry);
 		});
 	}
 
+	/* A task spoken INTO a card (the fast assistant stamps `card`) shows up in
+	 * that card's own log too — its queued line and every progress line after,
+	 * whoever wrote them, keyed on the task id. */
+	mirror(entry){
+		if (entry.card) this.cards.set(entry.id, entry.card);
+		const card = this.cards.get(entry.id);
+		if (card) this.servex.log.append(`cards/${card}`, entry).catch(() => {});
+		// …and every task moment is one line in the Live card's own chat.
+		const title = entry.title ?? this.titles.get(entry.id) ?? entry.id;
+		if (entry.title) this.titles.set(entry.id, entry.title);
+		this.servex.log.append("cards/live", { type: "update", ref: entry.id,
+			text: `task ${title}: ${entry.state}${entry.now ? " — " + entry.now : ""}` }).catch(() => {});
+	}
+
 	saw(task){
+		if (fs.existsSync(OFF)){
+			if (this.paused.has(task.id)) return;
+			this.paused.add(task.id);
+			return this.progress(task.id, "queued", "dispatch is paused (dispatch.off exists) — carded, not spawned");
+		}
 		if (this.queue.some(t => t.id === task.id) || [...this.running.values()].includes(task.id)) return;
 		this.queue.push(task);
 		this.pump();
@@ -71,7 +110,9 @@ export default class Dispatcher {
 			+ ` \`${post("working", "<one line>")}\` as you start, again with state "blocked" if you`
 			+ ` get stuck, and \`${post("landed", "the page's own url")}\` the moment you land, its`
 			+ " `now` naming the page's own url — exactly that flat shape (`type` at the top, never"
-			+ ' nested under a `"task"` key), or nothing will show it.';
+			+ ' nested under a `"task"` key), or nothing will show it.'
+			+ (task.card ? ` To talk to the owner, call \`card_reply({card: "${task.card}", from: "<your agent id>", text: "<two plain sentences>"})\``
+				+ " — it lands in the card they spoke this into, where they are reading." : "");
 
 		const agent = this.servex.agents.spawn({
 			role: "task-mastermind",
@@ -115,6 +156,6 @@ export default class Dispatcher {
 	}
 
 	progress(id, state, now){
-		this.servex.log.append(this.log, { type: "task", id, state, now }).catch(() => {});
+		this.servex.log.append(this.log, { type: "task", id, state, now, by: this.id }).catch(() => {});
 	}
 }

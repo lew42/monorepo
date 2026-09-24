@@ -97,6 +97,12 @@ const DOCS = [
 		text: "All 19 skills in one table: who loads it, always or on demand, its line count, and keep / shrink / split / merge / retire. Then the lean always-loaded set per role — a minion at 128 lines instead of today's 427.",
 	},
 	{
+		title: "In-process tools",
+		file: "tools.md",
+		icon: "build",
+		text: "The rule from 2026-09-23: anything an agent would do with a shell is a tool whose handler is a node function inside Servex - the LLM triggers, node stamps, logs and follows through. What moves to tools first, and the one case where a shell still wins.",
+	},
+	{
 		title: "The phases",
 		file: "phases.md",
 		icon: "flag",

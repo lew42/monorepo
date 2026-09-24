@@ -30,7 +30,7 @@ const flag = (n, d) => { const i = argv.indexOf("--" + n); return i < 0 ? d : ar
 const list = (n, d) => String(flag(n, d)).split(",").map(s => s.trim()).filter(Boolean);
 
 const opt = {
-    base: flag("base", "http://localhost"), widths: list("widths", "390,1280,3440").map(Number),
+    base: flag("base", "http://monorepo.localhost"), widths: list("widths", "390,1280,3440").map(Number),
     regions: flag("regions", "auto"), prompt: flag("prompt", "critique-full-v1"),
     model: flag("model", "sonnet"), out: flag("out", "public/framework/ai/vision"),
     turn2: flag("turn2", null), max: Number(flag("max-regions", 8)), jobs: Number(flag("jobs", 3)),

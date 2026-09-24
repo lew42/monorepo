@@ -30,7 +30,7 @@ const TOOLS = [{
     name: "shot",
     description: "Screenshot a url with headless chromium; returns the png path on disk, for you to read. Pixels only — `eval` is cheaper for facts.",
     inputSchema: { type: "object", required: ["url"], properties: {
-        url: { type: "string", description: "The page to shoot, e.g. http://localhost/framework/." },
+        url: { type: "string", description: "The page to shoot, e.g. http://monorepo.localhost/framework/." },
         selector: { type: "string", description: "CSS selector — shoots that element instead of the viewport." },
         width: { type: "number", description: "Viewport width, default 1400." },
         height: { type: "number", description: "Viewport height, default 1000." }
@@ -164,7 +164,7 @@ export default class MCP {
         const tabs = this.tabs();
         const list = () => tabs.map(t => `${t.id ?? "(no id — reload it)"} on ${t.page}`).join(", ");
 
-        if (!tabs.length) throw new Error("No connected tab — open http://localhost/ in a browser.");
+        if (!tabs.length) throw new Error("No connected tab — open http://monorepo.localhost/ in a browser.");
 
         if (tab){
             const hit = tabs.find(t => t.id === tab);

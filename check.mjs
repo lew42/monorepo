@@ -12,7 +12,7 @@ for (const url of urls){
 	page.on("console", m => m.type() === "error" && errors.push(m.text()));
 	page.on("pageerror", e => errors.push("PAGEERROR " + e.message));
 
-	await page.goto("http://localhost" + url, { waitUntil: "networkidle" }).catch(e => errors.push("GOTO " + e.message));
+	await page.goto("http://monorepo.localhost" + url, { waitUntil: "networkidle" }).catch(e => errors.push("GOTO " + e.message));
 	await page.waitForTimeout(600);
 
 	const info = await page.evaluate(() => ({

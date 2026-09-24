@@ -17,6 +17,16 @@ listening. While a card is open, everything you say or type goes INTO it — eac
 where the words never disappear and never move. With nothing open, a sentence starts a new card
 as before. Every row says who it came from; `you` is marked.
 
+**Every card is a chat.** The bottom of a card's page is its conversation: what you said, and
+every reply — from the fast assistant, from a helper it started, or from a task mastermind
+working on it. Only one microphone is on at a time; pressing one stops the other.
+
+**The Live card** ([`live/`](/framework/ai2/live/)) is the one card that is not on the board: the
+usage limits, every agent Servex is running, and today's open tasks. It rises to the top of the
+rail whenever any of that changes. Its chat is the log of those changes, and anything you say
+there reaches the assistant along with the list of what is running. The ✕ on an item clears it
+until it changes again.
+
 **Nothing jumps**, and that is three mechanisms, not one:
 
 1. The card on the right is a **separate routed page** from the list, so a card arriving cannot
@@ -49,6 +59,11 @@ To draw a card from anywhere, append a line to one of the logs it reads:
 ```
 
 ## Watch out
+
+- **An agent's words reach a card only through the card's own log, `cards/<slug>`.** The fast
+  assistant writes to `prompts`; until 2026-09-23 nothing copied its replies across, so it
+  "could not respond". Any agent can speak into a card with the `card_reply` MCP tool.
+  [`doc/logs.md`](./doc/logs.md).
 
 - **Content never needs a reload; the page's own modules do.** All four logs stream — three over
   the dev socket, the owner's sentences over Servex's `EventSource`. The only thing that still

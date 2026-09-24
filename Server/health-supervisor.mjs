@@ -88,7 +88,7 @@ const HEARTBEAT_PATH = path.join(ROOT, "public", "framework", "ai", "health", "h
 // Same default as health.mjs's own — decision health-watch-target in this
 // task's task.jsonl. Set once here so it shows up in `ps`/Task Manager
 // command lines too, not just as an invisible fallback inside health.mjs.
-const HEALTH_BASE = process.env.HEALTH_BASE || "http://localhost:80";
+const HEALTH_BASE = process.env.HEALTH_BASE || "http://monorepo.localhost";
 
 const HEARTBEAT_MS = 10_000;      // how often the heartbeat file is refreshed while a child is up
 const BOOT_GRACE_MS = 1500;       // dying before this counts as "never really up" — same idea as server.js's BOOT_GRACE_MS

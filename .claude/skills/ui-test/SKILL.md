@@ -20,7 +20,7 @@ Copy it to the scratchpad only if you need to change it. Nothing here restates
 ## The plan
 
 ```json
-{ "url": "http://localhost/framework/ext/drawer/",
+{ "url": "http://monorepo.localhost/framework/ext/drawer/",
   "viewport": { "width": 1280, "height": 900 },
   "watch": [".drawer"],
   "out": "<scratchpad>/<task>-grip",

@@ -177,3 +177,10 @@ status strip on `/framework/ai2/` and `/framework/ai/talk/` reads.
 `Assistant.js` + `assistant.md` (the always-up fast assistant and its posture) ·
 `roles.js` (role → posture) · `registry.js` (who has ever been spawned) ·
 `demo.mjs` (the proof) · `doc/traps.md` (what the SDK does not tell you)
+
+## Tools are node functions, not HTTP
+
+An agent Servex spawns gets its tools in-process: `tool(name, description, schema, handler)`
++ `createSdkMcpServer` in the spawn's `mcpServers` — the handler runs inside Servex with the
+log, the registry and the agents in scope. The HTTP `/mcp` is for sessions outside Servex.
+Why, and what moves to tools first: [`tiers-design/doc/tools.md`](/framework/ai/2026-09-22/tiers-design/doc/tools.md).

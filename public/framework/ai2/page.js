@@ -2,8 +2,10 @@ import { Page, View, div, p, span, small, a, button, label, input } from "/app.j
 import grip from "/framework/ext/grip/grip.js";
 import composer from "./compose.js";
 import { row, full, flag_box, toc, sub_full } from "./card.js";
-import { Board, Says, BOARD_URL, VERDICTS_URL, prompt_stream, card_stream, day_log, items, sub_rows, sub_row, say, new_card, archive_card } from "./inbox.js";
+import { Board, Says, BOARD_URL, VERDICTS_URL, prompt_stream, card_stream, day_log, items, sub_rows, sub_row, say, new_card, archive_card, refs } from "./inbox.js";
 import overview from "./overview.js";
+import chat from "./chat.js";
+import { LIVE, live_model, live_row, live_full } from "./live.js";
 
 View.stylesheet(import.meta, "ai2.css");
 
@@ -40,27 +42,27 @@ export default new Page({
 	   card page into `children` and the sidebar walks that map. */
 	leaf: true,
 
-	/* THE DEFAULT VIEW IS THE OVERVIEW (deliverable 7, 2026-09-23 — the owner:
-	   "where would you put a report? No matter where, it gets buried"). The
-	   rail + a card's own page — everything `board()` builds below — is the
-	   SECOND view now, shown the instant any card is active; `ai2.css`'s own
-	   `.ai2-shell:has(.ai2-detail > .page:is(.active-page, .active-ancestor))`
-	   decides which one is on screen, off the Router's OWN marks, so this
-	   never has to be re-decided in JS on every navigation. Both are built
-	   unconditionally, once, here — a card's deep link needs `$detail`/`$sub`
-	   to exist the moment `route()` is asked, whichever view happened to be
-	   showing when this page was first activated. */
+	/* THE DEFAULT VIEW IS THE INBOX — the rail + a card's own page (the owner,
+	   2026-09-23: "I prefer the inbox view"). The four-column overview is its
+	   own page with its own address, `overview/`, routed like a card: EVERY
+	   view here is a url, never a class flipped by a button, because a view the
+	   Router does not know about is one the nav cannot get you out of (the
+	   owner, same day: "we can't just have these buttons that when clicked
+	   switch the view manually"). */
 	content(){
-		const $shell = div.c("ai2-shell");
-		$shell.append(() => {
-			this.ai2 = board(this, $shell);
-			overview(this, this.ai2, $shell);
-		});
+		div.c("ai2-shell", () => { this.ai2 = board(this); });
 	},
 
-	/* A card's own address. ⚠ A name with a dot in it is a real file, and
-	   claiming it would answer a 404 with a card page that can never load. */
-	route(id){ return id.includes(".") ? undefined : card_page(this, id); },
+	/* A card's own address — or the overview's. ⚠ A name with a dot in it is a
+	   real file, and claiming it would answer a 404 with a card page that can
+	   never load. `overview` and `live` are reserved: no card can be called
+	   either. `live` is an ordinary card page whose card comes from `live.js`. */
+	route(id){
+		if (id.includes(".")) return undefined;
+		if (id === "overview") return this.overview_page ??= overview_page(this);
+		if (id === LIVE) return this.live_page ??= card_page(this, LIVE);
+		return card_page(this, id);
+	},
 });
 
 const RAIL_KEY = "ai2-rail-w";
@@ -78,11 +80,24 @@ const auto_transcribe = () => localStorage.getItem(AUTO_KEY) !== "off";
      was asked for, cannot be read at the wrong moment. */
 let opening = null;
 
-function board(page, $outer){
+/* The four columns by importance, as a page of its own — it mounts in the
+   detail column like a card does, and `ai2.css` hands it the whole width while
+   it is the active page. */
+function overview_page(root){
+	return new Page({
+		title: "Overview",
+		url: root.url + "overview/",
+		classes: "ai2-overview-page",
+		content(){ overview(root, root.ai2); },
+	});
+}
+
+function board(page){
 	const log = new Board({ url: BOARD_URL });
 	const says = new Says({ url: VERDICTS_URL });
 	const day = day_log();
 	const stream = prompt_stream();
+	const live = live_model({ prompts: stream, day });
 
 	let list = [], shown = [], current = null, hovering = false, flagging = null, only_notes = false, show_archived = false;
 	const rows = new Map();        // id → { $row, sig }
@@ -108,8 +123,7 @@ function board(page, $outer){
 					// "Reachable... and back" (deliverable 7) — closes whatever card
 					// is open (a real navigation to the root) and drops the manual
 					// inbox toggle, so the overview is what shows either way.
-					button.c("ai2-word ai2-ov-back").attr("type", "button").text("← overview")
-						.click(() => { $outer?.el.classList.remove("ai2-mode-inbox"); page.app?.router?.go(page.url); });
+					a.c("ai2-word ai2-ov-back page-link").href(page.url + "overview/").text("overview");
 					// A blank workspace that listens: the card exists on the board
 					// the moment you press this, and the url becomes its own.
 					button.c("ai2-newcard").attr("type", "button")
@@ -215,6 +229,12 @@ function board(page, $outer){
 
 	function paint(){
 		list = items({ board: log.cards, prompts: stream.entries, landed: day.landings, says });
+		// THE LIVE CARD joins the same list and the same newest-first sort, so an
+		// update to anything in it lifts it to the top like any other arrival.
+		const it = live.item();
+		it.unread = true;
+		list.push(it);
+		list.sort((a, b) => Date.parse(b.at ?? 0) - Date.parse(a.at ?? 0));
 		// Archived cards are findable too — a card page left open on one the
 		// owner just cleared should still draw it (greyed, via `full()`), not
 		// suddenly say "no card by that name".
@@ -305,7 +325,8 @@ function board(page, $outer){
 		// its own page — the `notes` word above is how you find them, this is how
 		// you recognise one when it arrives on its own.
 		rec.$row.el.classList.toggle("ai2-note", it.kind === "note");
-		rec.$row.empty(() => { row(it); });
+		rec.$row.el.classList.toggle("ai2-row-live", it.kind === "live");
+		rec.$row.empty(() => { it.kind === "live" ? live_row(it) : row(it); });
 	}
 
 	$rows.on("pointerenter", () => { hovering = true; });
@@ -358,6 +379,7 @@ function board(page, $outer){
 	Promise.all([log.live(paint), says.live(paint), day.live(paint)]).then(paint);
 	stream.ready.then(paint);
 	stream.on(() => paint());
+	live.on(paint);
 
 	/* What a card's own page is allowed to ask of the list.
 	   ⚠ OPENING A CARD MARKS NOTHING. It used to write a `read` line here, and
@@ -373,6 +395,7 @@ function board(page, $outer){
 		},
 		close(h){ watching.delete(h); if (current === h) current = null; },
 		repaint: paint,
+		live,
 		flag(id, note, quote){
 			says.flags.set(id, { id, say: "improve", note, quote });
 			say(id, "improve", { note, quote });
@@ -413,8 +436,7 @@ const norm = t => String(t ?? "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim
  * tops identical across five streamed sentences.
  */
 function card_page(root, id){
-	let $box, $script, $partial, box, sig = null, held = false, handle, stop_clog;
-	const lines = [];   // every sentence this page has shown, ever; append-only
+	let $box, box, talk, sig = null, held = false, handle, stop_clog, stop_live;
 	let latest_it = null;
 
 	// THE CARD'S OWN LOG (decision `card-storage`) — the store deliverable 1
@@ -439,11 +461,12 @@ function card_page(root, id){
 
 	function draw(it){
 		latest_it = it;
-		if (it) it.transcript?.forEach(t => t.said.forEach(say_line));
+		talk?.sync();
 		const next = JSON.stringify(it) + "|" + clog.entries.length;
 		if (held || next === sig) return;
 		sig = next;
 		$box.empty(() => {
+			if (it?.kind === "live") return live_full(it, root.ai2.live);
 			if (it) full(it, on);
 			else small.c("muted").text("No card by that name yet — it may still be on its way, or it has scrolled out of the log.");
 			// THE TABLE OF CONTENTS — every task, proposal, refined reading and
@@ -454,29 +477,12 @@ function card_page(root, id){
 		});
 	}
 
-	/* ⚠ APPEND, NEVER REWRITE, and never move what is already there. A sentence
-	   reaches this footer twice — once the instant it is spoken, from the
-	   microphone, and again a second later when Servex logs it back — and the
-	   second copy must not draw a second line or shuffle the first one down.
-	   `lines` is the record of what has been shown; matching on the WORDS is
-	   what makes the two copies one. */
-	function say_line(text){
-		const t = String(text ?? "").trim();
-		if (!t || lines.some(l => norm(l) === norm(t))) return;
-		lines.push(t);
-		$script?.append(() => { p.c("ai2-said-line").text(t); });
-		// `appendChild` MOVES a node already in the tree, so the grey guess stays
-		// last however many settled lines land in front of it.
-		if ($partial) $script?.el.appendChild($partial.el);
-		if ($script) $script.el.scrollTop = $script.el.scrollHeight;
-	}
-
-	/* The still-moving guess, grey, under the settled words — one element that is
-	   rewritten in place, so a growing guess cannot add a line. */
-	function partial(text){
-		$partial?.text(text ?? "");
-		if ($script) $script.el.scrollTop = $script.el.scrollHeight;
-	}
+	/* THE CHAT (chat.js) — this card's own log as a conversation. A card shows
+	   the lines said into IT, never into one of its sub-cards (those open in
+	   the third column with their own chat); the Live card shows its updates
+	   and today's task lines too. */
+	const mine = e => { const r = refs(e); return !r.length || r.includes(id) || e.type !== "prompt" && e.type !== "reply"; };
+	const source = () => (id === LIVE ? root.ai2.live.entries() : clog.entries);
 
 	return new Page({
 		title: id,
@@ -495,10 +501,7 @@ function card_page(root, id){
 			$box = div.c("ai2-full");
 
 			div.c("ai2-foot", () => {
-				div.c("ai2-script", $s => {
-					$script = $s;
-					$partial = p.c("ai2-said-partial muted");
-				});
+				talk = chat({ source, keep: mine });
 				// ⚠ `re` is a FUNCTION, asked fresh on every send: this composer
 				// belongs to this card and nothing else, and saying so once here
 				// is what makes "talk into the card you selected" true.
@@ -506,9 +509,9 @@ function card_page(root, id){
 				if (fresh) opening = null;
 				box = composer({
 					re: () => id,
-					placeholder: "talk into this card",
-					on_text: say_line,
-					on_partial: partial,
+					placeholder: id === LIVE ? "talk to the assistant about what is running" : "talk into this card",
+					on_text: text => talk.echo(text),
+					on_partial: text => talk.partial(text),
 					autostart: fresh && auto_transcribe(),   // a brand-new card opens listening, unless turned off
 				});
 			});
@@ -531,6 +534,8 @@ function card_page(root, id){
 			// work on a stream nobody is reading.
 			stop_clog = clog.on(() => { sig = null; draw(latest_it); });
 			clog.ready.then(() => { sig = null; draw(latest_it); });
+			// The Live card's chat also carries today's task lines, off the day log.
+			if (id === LIVE) stop_live = root.ai2.live.on(() => talk.sync());
 		},
 
 		/* ⚠ AND THE MICROPHONE STOPS. A card page's view is CACHED — it stays in
@@ -542,8 +547,9 @@ function card_page(root, id){
 		deactivated(){
 			root.ai2.close(handle);
 			try { if (box?.mic && !["idle", "error"].includes(box.mic.state)) box.mic.stop(); } catch {}
-			partial("");
+			talk?.partial("");
 			stop_clog?.();
+			stop_live?.();
 		},
 	});
 }
@@ -561,11 +567,11 @@ function card_page(root, id){
  * never a second subscription to the same url.
  */
 function sub_card_page(root, id, sub, clog){
-	let $box, $script, $partial, box, sig = null, held = false;
-	const lines = [];
+	let $box, box, talk, sig = null, held = false;
 	const re = () => id + "/" + sub;
 
 	function draw(){
+		talk?.sync();
 		const it = sub_row(clog.entries, sub);
 		const next = JSON.stringify(it);
 		if (held || next === sig) return;
@@ -574,20 +580,6 @@ function sub_card_page(root, id, sub, clog){
 			if (it) sub_full(it);
 			else small.c("muted").text("Still on its way, or it has scrolled out of the log.");
 		});
-	}
-
-	const norm_ = t => String(t ?? "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
-	function say_line(text){
-		const t = String(text ?? "").trim();
-		if (!t || lines.some(l => norm_(l) === norm_(t))) return;
-		lines.push(t);
-		$script?.append(() => { p.c("ai2-said-line").text(t); });
-		if ($partial) $script?.el.appendChild($partial.el);
-		if ($script) $script.el.scrollTop = $script.el.scrollHeight;
-	}
-	function partial(text){
-		$partial?.text(text ?? "");
-		if ($script) $script.el.scrollTop = $script.el.scrollHeight;
 	}
 
 	let stop_clog;
@@ -607,11 +599,9 @@ function sub_card_page(root, id, sub, clog){
 			$box = div.c("ai2-full");
 
 			div.c("ai2-foot", () => {
-				div.c("ai2-script", $s => {
-					$script = $s;
-					$partial = p.c("ai2-said-partial muted");
-				});
-				box = composer({ re, placeholder: "talk into this sub-card", on_text: say_line, on_partial: partial });
+				// Its own chat: only what was said into THIS sub-card, and the replies to it.
+				talk = chat({ source: () => clog.entries, keep: e => refs(e).includes(re()) });
+				box = composer({ re, placeholder: "talk into this sub-card", on_text: text => talk.echo(text), on_partial: text => talk.partial(text) });
 			});
 		},
 
@@ -622,7 +612,7 @@ function sub_card_page(root, id, sub, clog){
 
 		deactivated(){
 			try { if (box?.mic && !["idle", "error"].includes(box.mic.state)) box.mic.stop(); } catch {}
-			partial("");
+			talk?.partial("");
 			stop_clog?.();
 		},
 	});

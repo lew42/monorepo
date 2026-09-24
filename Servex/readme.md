@@ -21,7 +21,7 @@ Either way it prints three URLs:
 | | |
 |---|---|
 | `http://127.0.0.1:8090/` | the dashboard — every project, every agent talking live, a log tail |
-| `http://<name>.localhost:8080/` | any project, through the proxy. **Visiting a stopped project starts it.** |
+| `http://<name>.localhost/` | any project, through the proxy on port 80 — `servex.localhost` is this dashboard, `monorepo.localhost` is this repo's site, plain `localhost` is the dashboard too. **Visiting a stopped project starts it.** |
 | `http://127.0.0.1:8090/mcp` | the MCP door every Claude session connects to |
 
 Everything binds `127.0.0.1` and every route refuses a non-loopback caller
@@ -130,8 +130,10 @@ shortcut — if it works for them it works for yours. Six are the servers'
 
 ## Watch out
 
-- **Port 80 is the owner's**, not Servex's. The proxy defaults to 8080; the day
-  Servex takes over, it is `new Servex({ proxy_port: 80 })` and nothing else.
+- **Port 80 is Servex's** (2026-09-23). The monorepo's dev server is a project
+  behind it on its own port — `node server.js` by hand would fight the proxy
+  for 80; start it by visiting `monorepo.localhost`, or give it `PORT`.
+  `SERVEX_PROXY_PORT` moves the proxy if 80 is ever taken.
 - **`node --check` proves a file parses, not that Servex boots.** Start it and
   fetch a page before you walk away.
 - **`node Servex/proof/proof.mjs`** after any change to `Process.js` or
@@ -146,18 +148,28 @@ shortcut — if it works for them it works for yours. Six are the servers'
   which hands back the real pid.
 - **Nothing supervises the keeper.** That is the honest floor of any restart
   chain, and why `sustain.mjs` does one thing. Surviving a machine reboot wants a
-  Scheduled Task that runs it at logon — the owner's own configuration to approve.
+  Scheduled Task that runs it at logon — see below.
 
 ## Surviving a reboot
 
 `sustain.mjs` restarts Servex when it dies, but nothing restarts `sustain.mjs`
-itself after the machine reboots — that wants a Scheduled Task that runs it at
-logon, hidden, from the repo root. Written here, not run — it's the owner's
-own machine configuration to approve:
+itself after the machine reboots. A Scheduled Task named `Servex` does that: at
+logon it runs `sustain.mjs`, hidden, from the repo root. It is registered on the
+owner's machine (2026-09-24). To set it up again, paste this into PowerShell:
 
+```powershell
+$a = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-NoProfile -WindowStyle Hidden -Command "cd ''C:\Code\lew42\monorepo''; node Servex/sustain.mjs"'
+$t = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
+Register-ScheduledTask -TaskName 'Servex' -Action $a -Trigger $t -Force
 ```
-schtasks /Create /TN "Servex" /TR "powershell.exe -NoProfile -WindowStyle Hidden -Command \"cd 'C:\Code\lew42\monorepo'; node Servex/sustain.mjs\"" /SC ONLOGON /RL LIMITED /F
-```
+
+Check it with `Get-ScheduledTask Servex` (state `Ready`). If Servex is already
+running when the task fires, the second `sustain.mjs` refuses and exits — no clash.
+
+> **Note:** the older one-line `schtasks /Create … /TR "…\"…\"…"` form only works
+> in cmd.exe. PowerShell reads the `\"` escapes differently, splits the command at
+> the `;`, and `schtasks` fails with "Mandatory option 'sc' is missing"
+> (2026-09-24). Use the three lines above.
 
 ## More
 

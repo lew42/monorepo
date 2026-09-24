@@ -35,6 +35,17 @@ import { servex_base } from "./inbox.js";
 class ComposerMic extends Dictate {
 	draw_caption(){ this.on_partial?.(this.partial_text ?? ""); }
 
+	/* ONE MICROPHONE AT A TIME. A card's page stays mounted while a sub-card
+	   opens beside it, so its mic never hears `deactivated()` — pressing the
+	   sub-card's mic ran two at once, and every sentence was posted twice (the
+	   owner, 2026-09-23). Starting any mic stops whichever one was on. */
+	async start(){
+		const other = ComposerMic.on;
+		ComposerMic.on = this;
+		if (other && other !== this) try { await other.stop(); } catch {}
+		return super.start();
+	}
+
 	// No `at` sent to Servex — see Dictate.js's own `log_prompt` for why a
 	// client clock must never override Servex's local-offset stamp.
 	async log_prompt(text){

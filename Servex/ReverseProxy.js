@@ -31,7 +31,7 @@ const no_route_page = (host, dashboard) => `<!doctype html>
   <p><a href="${dashboard}">Open the Servex dashboard</a></p>
 </body></html>`;
 
-/* ONE PORT, EVERY PROJECT — `monorepo.localhost:8080` reaches whatever port
+/* ONE PORT, EVERY PROJECT — `monorepo.localhost` reaches whatever port
  * Servex gave the monorepo. Chrome resolves every `*.localhost` name to
  * 127.0.0.1 without any hosts-file entry, which is the whole trick.
  *
@@ -44,25 +44,42 @@ const no_route_page = (host, dashboard) => `<!doctype html>
  * processes; the old Servex listened on every interface, and its own MVP doc
  * calls that out as a bug.
  *
- * ⚠ The port is a field, default 8080. Port 80 is the owner's own dev server.
- * The day Servex takes over from it, that is `new Servex({ proxy_port: 80 })`. */
+ * Port 80 (the owner, 2026-09-23: "the monorepo dev server shouldn't be a
+ * dependency of the servex"), so the names read clean — `servex.localhost`,
+ * `monorepo.localhost`, no port. A request with no name at all (`localhost`,
+ * `127.0.0.1`) goes to `bare` — Servex's own dashboard. */
 export default class ReverseProxy extends Events {
 
     initialize(){
-        this.port ??= 8080;
+        this.port ??= 80;
         this.host ??= "127.0.0.1";
+        this.bare ??= null;         // the project a nameless `localhost` reaches
+        this.site ??= null;         // where a nameless `localhost` PAGE link is sent — see handle()
         this.ports ??= {};
 
         this.proxy = http_proxy.createProxyServer({});
         this.proxy.on("error", (err, req, res) => this.failed(err, req, res));
 
-        this.server = http.createServer((req, res) => this.handle(req, res));
-        this.server.on("upgrade", (req, socket, head) => this.upgrade(req, socket, head));
-        this.server.listen(this.port, this.host, () => this.emit("listening", this.port));
+        /* ⚠ BOTH loopbacks, IPv4 and IPv6. Chrome tries `[::1]` first for every
+         * `*.localhost` name; with nothing there, Windows takes ~2 s to refuse
+         * each connection before Chrome falls back to 127.0.0.1 — a page that
+         * imports 75 modules sat blank in a fresh browser (servex-port-80,
+         * 2026-09-23). Still loopback only: `::1` is this machine, like 127.0.0.1. */
+        this.servers = [this.host, ...(this.host === "127.0.0.1" ? ["::1"] : [])].map(host => {
+            const server = http.createServer((req, res) => this.handle(req, res));
+            server.on("upgrade", (req, socket, head) => this.upgrade(req, socket, head));
+            server.on("clientError", (err, socket) => socket.destroy());
+            server.on("error", err => console.warn(`proxy: could not listen on [${host}]:${this.port} — ${err.code}`));
+            server.listen(this.port, host, () => this.emit("listening", this.port, host));
+            return server;
+        });
+        this.server = this.servers[0];
     }
 
     name(req){
-        return (req.headers?.host || "").split(":")[0].replace(/\.localhost$/, "");
+        const host = (req.headers?.host || "").replace(/:\d+$/, "").toLowerCase();
+        if (host === "localhost" || host === "127.0.0.1" || host === "[::1]") return this.bare ?? host;
+        return host.replace(/\.localhost$/, "");
     }
 
     target(req){
@@ -70,14 +87,31 @@ export default class ReverseProxy extends Events {
         return port ? `http://127.0.0.1:${port}` : null;
     }
 
+    /* An old tab or bookmark at `localhost/framework/…` would otherwise load the
+     * site's files straight off the dashboard (it serves them for its own
+     * imports) with no dev server behind them — a page that looks right and
+     * cannot write. A page load (not a script, not an API call) for anything
+     * but the dashboard itself is sent on to `site` instead. */
     handle(req, res){
+        const host = (req.headers.host || "").replace(/:\d+$/, "").toLowerCase();
+        if (this.site && (host === "localhost" || host === "127.0.0.1" || host === "[::1]")
+            && req.headers["sec-fetch-mode"] === "navigate"
+            && !/^\/(index\.html)?(\?|$)|^\/(api|log|mcp|agents)(\/|\?|$)/.test(req.url))
+            return res.writeHead(302, { Location: `http://${this.site}.localhost${req.url}` }).end();
+
         const target = this.target(req);
         if (!target) return res.writeHead(404, { "Content-Type": "text/html" })
             .end(no_route_page(req.headers.host, this.dashboard ?? "/"));
         this.proxy.web(req, res, { target });
     }
 
+    /* ⚠ The visitor's socket gets its own error listener. An open tab's
+     * live-reload socket that resets (a reload, a closed tab, a target with no
+     * websocket at all) emits ECONNRESET on it, and http-proxy never listens
+     * there — unhandled, that one reset killed Servex on every boot while old
+     * tabs were reconnecting (servex-port-80, 2026-09-23). */
     upgrade(req, socket, head){
+        socket.on("error", () => socket.destroy());
         const target = this.target(req);
         if (!target) return socket.destroy();
         this.proxy.ws(req, socket, head, { target });

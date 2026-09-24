@@ -162,6 +162,15 @@ export function log_stream(name, { base = servex_base(), fallback } = {}){
 	return stream;
 }
 
+/** Every agent moment Servex pushes (`event: agent`), on the SAME connection. */
+export function agent_frames(fn, base = servex_base()){
+	const source = demux(base);
+	if (!source) return () => {};
+	const handler = msg => { try { fn(JSON.parse(msg.data)); } catch {} };
+	source.addEventListener("agent", handler);
+	return () => source.removeEventListener("agent", handler);
+}
+
 export const prompt_stream = (base = servex_base()) => log_stream("prompts", { base, fallback: PROMPTS_FALLBACK });
 
 /** One card's own append-only stream, `cards/<slug>` — the store deliverable 1
@@ -187,13 +196,16 @@ export function today_str(){
  */
 export class Day extends JSONL {
 	landings = [];
+	opened = [];   // `task opened — …` lines: what the Live card calls a task in progress
 	log(value){
 		super.log(value);
+		if (/^task opened\b/.test(value?.msg ?? "")) this.opened.push({ task: value.task, at: value.at,
+			sentence: (value.msg ?? "").replace(/^task opened[\s—–-]+/, "") });
 		if (!/^landed\b/.test(value?.msg ?? "")) return;
 		this.landings.push({ task: value.task, at: value.at, date: this.date,
 			sentence: (value.msg ?? "").replace(/^landed[\s—–-]+/, "") });
 	}
-	reset(){ this.landings = []; return super.reset(); }
+	reset(){ this.landings = []; this.opened = []; return super.reset(); }
 }
 
 export const day_log = (date = today_str()) =>
@@ -327,7 +339,11 @@ export function items({ board, prompts, landed, says }){
 	const known = new Set(by_id.keys());
 
 	threads(prompts).forEach(({ prompt, card, refined, names, proposals, task }) => {
-		const host = refs(prompt).find(id => known.has(id));
+		// A sentence spoken into a SUB-card (`<card>/<sub>`) belongs to its card;
+		// one spoken into the Live card lives in the Live card's own chat.
+		const roots = refs(prompt).map(r => String(r).split("/")[0]);
+		if (roots.includes("live")) return;
+		const host = roots.find(id => known.has(id));
 		if (host){
 			const into = by_id.get(host);
 			(into.transcript ??= []).push({ id: prompt.id, at: prompt.at,

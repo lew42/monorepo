@@ -103,7 +103,7 @@ function start(backoff){
     });
 
     fs.writeFileSync(PIDS, JSON.stringify({ keeper: process.pid, servex: child.pid, started: new Date().toISOString() }, null, 2));
-    note(`Servex up as pid ${child.pid} — dashboard http://127.0.0.1:8090/ · proxy http://127.0.0.1:8080/`);
+    note(`Servex up as pid ${child.pid} — dashboard http://127.0.0.1:8090/ · proxy http://servex.localhost/`);
 
     child.on("exit", (code, signal) => {
         const lived = Date.now() - began;

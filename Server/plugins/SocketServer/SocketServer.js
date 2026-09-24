@@ -11,8 +11,12 @@ import { loopback } from "../MCP.js";
  * address is the one field the caller cannot choose.
  * ⚠ Loopback alone is worth nothing in-browser: a WebSocket upgrade is NOT
  * subject to the same-origin policy, so any site visited in a local tab can
- * open ws://localhost FROM loopback. Origin is what refuses that one. */
-const LOCAL = /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/;
+ * open ws://localhost FROM loopback. Origin is what refuses that one.
+ *
+ * `<name>.localhost` counts as local too (servex-port-80, 2026-09-23): the site
+ * lives at `monorepo.localhost` behind Servex's proxy now, and a browser resolves
+ * every `*.localhost` name to loopback by itself, so no remote page can wear it. */
+const LOCAL = /^https?:\/\/(([a-z0-9-]+\.)*localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/;
 
 function local_only({ origin, req }){
     const from = req.socket.remoteAddress;

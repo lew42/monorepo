@@ -7,7 +7,7 @@ keep it one screen.
 ## The state, in one paragraph
 
 **Servex is running, and it is the always-on process now.** `Servex/` in this repo (ported today
-from `C:/Code/servex`) holds the reverse proxy on 8080, the dashboard on 8090, the single-writer
+from `C:/Code/servex`) holds the reverse proxy on **port 80** (since 2026-09-23: `servex.localhost` / plain `localhost` = dashboard, `monorepo.localhost` = this site, started on first visit), the dashboard on 8090, the single-writer
 log, and Claude sessions held open in memory — `node Servex/sustain.mjs --status` says whether it
 is up, `--stop` stops it. Its `/mcp` at `http://127.0.0.1:8090/mcp` answers eleven tools: six
 for servers, five for agents (`spawn_agent`, `send_to_agent`, `interrupt_agent`, `list_agents`,
@@ -67,22 +67,55 @@ Server/padding-check.mjs <url>` before landing a page; the health watcher measur
 (34 tasks, ~$552, the cost table and timeline, the fifteen laws the owner said more than once with
 where each is written, the state of every tier, what goes where with five ranked suggestions).
 
-**Tomorrow starts with** [`ai/2026-09-22/ai2-nested/`](2026-09-22/ai2-nested/requirements.md): the
-persistence survey (`ext/Saver`, `page.json`, `Page.Store`, Make), then per-card storage (decision
-`card-storage` + `card-storage-2`: the conversation stream stays an append-only per-card log written
-only by Servex; a card's state lives in `ai/cards/<slug>/` through the page persistence system),
-sub-cards opening in a third column, the deferred AI 2 items. Budget: the weekly window ends Tue
-21:59; it sat at ~83% used with ~88% elapsed on Monday night — Sonnet only until the reset.
+**2026-09-23 (Tuesday, updated 13:05).** [`ai2-nested`](2026-09-22/ai2-nested/) landed and is merged
+(`fdbd9f48`): **`/framework/ai2/` opens on four columns by importance** (needs-you · reports · landed ·
+live), the rail + card page is the second view, sub-cards open in a third column, every card has its own
+event file on Servex (`/log/cards/<slug>`, 166 migrated). It cost $27.61 in two rounds because the
+worktree's copy of the brief was stale (fixed: `launch-wt.sh` copies the task dir's `.md` files in) and
+the first live stream event broke the screen (rows built outside a builder; one-line hand fix in
+`overview.js` `draw()`); round 3 is queued in [`next.md`](2026-09-22/ai2-nested/next.md). Also today:
+`Server/plugins/Hosts.js` — **`servex.localhost`, `monorepo.localhost`, `wt-<slug>.localhost` with no
+port**, through the owner's dev server to Servex's proxy (live after the owner restarts their server;
+caveats in decision `caveat-front-door`); **dispatch is paused** by `%LOCALAPPDATA%/lew42/servex/dispatch.off`
+(delete to resume; decision `dispatch-pause`); the mastermind no longer polls when idle (skill step 6;
+one cron at 22:04 dispatches `names-align` after the weekly reset at 21:59). Budget: weekly 91% at 91–93%
+elapsed all day — Sonnet only until the reset.
 
 **Lessons the evening paid for:** on Windows a process started with `windowsHide` has NO
 console, so its children pop VISIBLE consoles — roots get a hidden console (PowerShell
 `Start-Process -WindowStyle Hidden`) and nothing below hides itself (`server.js`, `sustain.mjs`,
 `Process.js`, `CardAnswer/Ask/Assistant.js`, `worktree-up.mjs` all fixed). Minions work in
-worktrees (`launch-wt.sh` in the run's scratchpad: carry-in of the uncommitted tree as a
-per-worktree tag, land by patch or copy); tear one down with `wt-teardown.ps1 <slug>` (kills by
-path first — two orphaned servers burned a core each when the registry's pid went stale). A card
+worktrees (`launch-wt.sh` in the run's scratchpad: a branch off `michael/dev`, the task dir's `.md`
+files copied in because the brief is never committed, the minion commits on its branch); tear one
+down with `wt-teardown.ps1 <slug>` (kills by path first — two orphaned servers burned a core each
+when the registry's pid went stale — then `git merge --no-ff`, then removes the worktree). A card
 JSON through a bash heredoc double-encodes non-ASCII — Write tool only. A launch inside `bash … &`
 never notifies — one `run_in_background` call per minion.
+
+## Stood down 2026-09-23 13:10 — the handoff
+
+The owner stood the Servex run down. **Nothing is in flight**; no cron, no wakeup, no worktree, no
+minion. The next session picks up here, in this order:
+
+1. **`names-align`** — brief not yet written. Skill = role = agent id: `fast-assistant`,
+   `master-assistant`, `mastermind`, `task-mastermind`, `minion`, `log-assistant`; singletons drop
+   the suffix; `Servex/agents/roles.js` is the one table; the master assistant is Opus at low–medium;
+   the CLI launch recipe shrinks to a "fallback" section in the mastermind and minion skills;
+   in-process tools ([`tiers-design/doc/tools.md`](2026-09-22/tiers-design/doc/tools.md)) become the
+   spawn default. One Sonnet minion in a worktree, after the weekly reset (Tue 21:59).
+2. **AI 2 round 3** — [`ai2-nested/next.md`](2026-09-22/ai2-nested/next.md) (eight numbered items:
+   the chain of who touched a card, cost per card, dispatch state on the card, stale agents in Live,
+   the empty word, landed over three days, prove against a live-log replay).
+3. **Small Servex items** from today's questions: a `restart_servex` tool (`process.exit(0)`, the
+   keeper respawns); re-attach agents after a restart; `pause_dispatch`/`resume_dispatch` tools on top
+   of the pause file; the port-management layer (decision `caveat-front-door`).
+
+**Switches left in a state the owner should know:** dispatch is **paused** —
+`%LOCALAPPDATA%\lew42\servex\dispatch.off` exists; delete it and spoken tasks spawn again.
+~~`Server/plugins/Hosts.js`~~ — replaced 2026-09-23 by [`servex-port-80`](2026-09-23/servex-port-80/):
+Servex's proxy owns port 80 and the dev server runs behind it. Servex runs under keeper 40072 (server 21744) with the merged code. The main tree has
+uncommitted work (Hosts.js, run.js, worktree-up.mjs, Dispatcher.js, the skill, ledgers) — the owner
+commits.
 
 ## What the owner is waiting on - in order
 

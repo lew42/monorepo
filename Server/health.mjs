@@ -70,7 +70,7 @@ const ARCHIVE_DIR = path.join(HEALTH_DIR, "archive");
 // batch, the same kind of request any browser tab makes — never written to, never restarted.
 // Decision + the rejected alternative (a private 809x server): this task's task.jsonl,
 // decision id health-watch-target.
-const HEALTH_BASE = (process.env.HEALTH_BASE || "http://localhost:80").replace(/\/+$/, "");
+const HEALTH_BASE = (process.env.HEALTH_BASE || "http://monorepo.localhost").replace(/\/+$/, "");
 const DAY_MS = 24 * 60 * 60 * 1000;
 const MAX_PAGES_PER_BATCH = 8;
 const DEBOUNCE_MS = 1500;

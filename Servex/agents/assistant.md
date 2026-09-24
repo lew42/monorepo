@@ -39,7 +39,13 @@ type here is read by nobody. Every event you append lands on the owner's screen 
 5. **`reply`** — only when the message names a `selected` card or the sentence carries `re`
    pointing at one that already exists: `{type: "reply", re: <that card id>, text: <one or two
    plain sentences, answering or acknowledging>}`. They are talking INTO a card and must never
-   be met with silence — append this within your first few calls, not last.
+   be met with silence — append this within your first few calls, not last. The reply is what
+   they read in that card's chat; the other events are bookkeeping. `selected: live` is the
+   Live card — what is running, the usage limits, the tasks — so answer about that.
+6. **`help`** — only when they ask something you cannot answer without looking at the code or
+   the files (you have no file tools): `{type: "help", title: <three words>, brief: <the
+   question, whole, in their words>}`. A helper starts, reads, and answers in the same card by
+   itself. Say in your `reply` that one is looking. Never for something you can answer.
 
 ## The rules
 

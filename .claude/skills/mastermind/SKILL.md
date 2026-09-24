@@ -123,8 +123,12 @@ went in the log — a Sonnet that did an Opus job is a finding worth more than t
    ⚠ Set `steps` to *this cycle's* plan and bump `step` as each cycle ends: the Stop hook blocks
    a turn whenever `step < steps.length` with no `landed_at`, and a run task never lands until
    the owner stands it down.
-6. **Wakeup** — `ScheduleWakeup` with `/mastermind`: agents in flight → 1200 s fallback; idle
-   and under pace → 1800 s; over pace → 3600 s `noop`. Only the owner's stand-down ends the loop.
+6. **Wakeup** — `ScheduleWakeup` with `/mastermind` only while something is in flight (1200 s
+   fallback; a minion's landing wakes you anyway). **Idle is not a reason to wake** (the owner,
+   2026-09-23: a loop that wakes hourly to say "nothing new" re-reads this whole skill each time —
+   pure token cost). With nothing in flight, stop the loop; the owner's next message or a task
+   notification wakes you, and a wait for a known moment (a window reset) is ONE one-shot
+   `CronCreate`, not a chain of `noop` wakeups.
 
 ## Minions keep their context; text stands beside a demo (the owner, 2026-09-18)
 

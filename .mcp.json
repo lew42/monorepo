@@ -2,7 +2,7 @@
     "mcpServers": {
         "site": {
             "type": "http",
-            "url": "http://localhost/mcp"
+            "url": "http://monorepo.localhost/mcp"
         }
     }
 }

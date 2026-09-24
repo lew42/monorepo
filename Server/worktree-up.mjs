@@ -32,7 +32,7 @@
  * Only `git worktree add` and `git worktree remove` (in the sibling script)
  * ever touch git here — no stash, no reset, no checkout --, no commit. See
  * this task's own requirements.md for why that line is drawn so hard. */
-import { execFileSync, spawn } from "node:child_process";
+import { execFileSync, spawn, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import net from "node:net";
 import path from "node:path";
@@ -169,7 +169,7 @@ write_registry(registry);
 
 /* Servex is optional, always — a worktree must work with it stopped, so this
    stays silent and succeeds either way. When it answers, it learns the name
-   and port so `<name>.localhost:8080` reaches this worktree through the
+   and port so `<name>.localhost` reaches this worktree through the
    proxy with no restart (PortRegistry.pin, live-shared with ReverseProxy). */
 let proxy_url = null;
 try {
@@ -178,7 +178,7 @@ try {
 		body: JSON.stringify({ name, path: target, port }),
 		signal: AbortSignal.timeout(2000),
 	});
-	if (r.ok) proxy_url = `http://${name}.localhost:8080/`;
+	if (r.ok) proxy_url = `http://${name}.localhost/`;
 } catch {}
 
 console.log("");

@@ -83,6 +83,30 @@ into a sub-card carries `re: "<slug>/<sub>"` — the file is still the PARENT ca
 (`CARD_NAME` only ever allows one segment after `cards/`), and the sub-card's own identity lives
 entirely inside that `re` field.
 
+## Who else writes a card's log (2026-09-23)
+
+A card's chat (`chat.js`) is drawn from `cards/<slug>` alone, so anything that should appear
+there has to be written there. Four writers do:
+
+| writer | what it writes | when |
+| --- | --- | --- |
+| the fast assistant (`Assistant.mirror()`) | its `reply`, copied from `prompts` | a sentence was spoken into this card |
+| any agent, via the `card_reply` MCP tool | `{type: "reply", by, re, text}` | a helper answering, a task mastermind reporting |
+| the Dispatcher (`Dispatcher.mirror()`) | every `task` line for a task spoken into this card | queued, working, blocked, landed |
+| Servex's agent host (`moment()`) | `{type: "update", ref, text}` on `cards/live` only | an agent (not the two always-on assistants) starts, ends a turn, stops, errors |
+
+**`cards/live` is the Live card's log**, and it also takes `{type: "clear", ref: <item id>}` from
+the page's ✕ or from any agent (`POST /log/cards/live`). A clear hides that item until its own
+timestamp moves past the clear's. The Live card's chat adds today's `task opened` and `landed`
+lines from `day.jsonl`, which Servex cannot see, so those are read by the page, not copied.
+
+⚠ **The Dispatcher's own `task` lines carry `by: "dispatcher"`, and it ignores them.** Without
+that, its "dispatch is paused" note — itself a `queued` task line — was heard as a new task,
+forever: 1.2 million lines and 294 MB in ninety seconds, then Servex died out of memory
+(2026-09-23 15:04). The trimmed log kept every real line; the bloated original is in
+`%LOCALAPPDATA%/lew42/servex/backup/`, deliberately outside `logs/`, where anything listing
+"every log" would read it whole.
+
 ## Why the two numbers can be checked against each other
 
 Every source contributes an `id`, and an id that two sources share contributes it once: a

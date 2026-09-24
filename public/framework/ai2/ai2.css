@@ -46,24 +46,11 @@
 		margin-block-start: 0;
 	}
 
-	/* TWO VIEWS, ONE SWITCH (deliverable 7, 2026-09-23) — the overview is the
-	   default; the rail + a card's own page is the second view, reached by
-	   opening any card (a real navigation — `route()` mounts it, the Router
-	   marks it `.active-page`) or the overview's own "open the full inbox"
-	   link (`.ai2-mode-inbox`, a plain class toggle, nothing url-based: this
-	   is a view, not a navigation with its own address, same as the rail's
-	   selected card already is not one either). Off the framework's own marks
-	   either way — no JS has to ask "which view is this" more than once. */
-	.ai2-overview { height: 100%; overflow-y: auto; }
-
-	.ai2-shell.ai2-mode-inbox .ai2-overview,
-	.ai2-shell:has(.ai2-detail > .page:is(.active-page, .active-ancestor)) .ai2-overview {
-		display: none;
-	}
-
-	.ai2-shell:not(.ai2-mode-inbox):not(:has(.ai2-detail > .page:is(.active-page, .active-ancestor))) .ai2 {
-		display: none;
-	}
+	/* TWO VIEWS, TWO URLS (2026-09-23) — the inbox (rail + card) is AI 2's
+	   own address; the four-column overview is `overview/`. Which one shows is
+	   decided by the Router's own `.active-page` mark, never a class a button
+	   flips — see the overview rules further down. */
+	.ai2-overview { height: 100%; }
 
 	/* THE THIRD COLUMN (deliverable 2, ai2-nested) — two columns split the
 	   space "generally... in two: the preview column resizable, the detail
@@ -530,9 +517,12 @@
 	   three lines even on a card nobody has spoken into yet; `$partial` (the
 	   grey guess) is always in the DOM so `:empty` can never match it, which
 	   is why this is a floor, not a collapse. */
+	/* ⚠ The max grew from 3.5em to 30vh on 2026-09-23: the footer became the
+	   card's chat (chat.js), and a chat you can only see two lines of is not
+	   one. It still starts at one line and only grows once there is talk. */
 	.ai2-script {
 		min-height: 1.5em;
-		max-height: 3.5em;
+		max-height: 30vh;
 		overflow-y: auto;
 		margin-block-end: 0.35em;
 		font-size: 0.9em;
@@ -757,40 +747,54 @@
 
 		.ai2-back { display: inline-block; }
 
-		/* The overview stacks in importance order (deliverable 7: "at 400 they
-		   stack in that order") — the DOM order already IS that order, so this
-		   is one property, not a reorder. */
-		.ai2-ov-cols { flex-direction: column; }
-		.ai2-ov-col { max-width: none; }
 	}
 }
 
 /* ── the overview (deliverable 7, ai2-nested, 2026-09-23) ─────────────────── */
 @layer theme {
 
+	/* FOUR EQUAL COLUMNS, FULL HEIGHT, EDGE TO EDGE (the owner, 2026-09-23: "these
+	   four columns should be full height and share the full width… no padding on
+	   this page… no borders, radiuses or gap… substantial padding on them").
+	   The page itself has no padding; each column pads like a whole page would —
+	   `--ai2-ov-pad` is `--pad`'s own formula measured against the overview's
+	   width (cqi), not the column's, because `--pad`'s `%` resolves against the
+	   column and a quarter of the screen would floor it at 1em. It scales:
+	   ~1em at 1280, ~2em at 1920, 4em at 3440. Each column scrolls on its own,
+	   the full height of the screen — no short boxes inside it. */
+	/* The overview is a routed page (`overview/`) that mounts in the detail
+	   column like a card — while it is the active page it takes the whole
+	   shell: no rail, no third column, no page padding of its own. */
+	.ai2:has(.ai2-overview-page.active-page) {
+		grid-template-columns: minmax(0, 1fr);
+	}
+	.ai2:has(.ai2-overview-page.active-page) :is(.ai2-rail, .ai2-sub) {
+		display: none;
+	}
+	.ai2-overview-page {
+		height: 100%;
+		padding: 0;
+	}
+
 	.ai2-overview {
-		padding: var(--pad);
+		container-type: inline-size;
+		--ai2-ov-pad: calc(clamp(1em, 2.6cqi - 1.1em, 4em) * var(--size, 1));
+		display: flex;
+		flex-direction: column;
+		padding: 0;
 	}
 
 	.ai2-ov-cols {
 		display: flex;
-		flex-wrap: wrap;
-		align-items: flex-start;
-		gap: var(--gap);
+		flex: 1 1 auto;
+		min-height: 0;
 	}
 
-	/* EACH COLUMN'S WIDTH FOLLOWS ITS CONTENT (the owner: "a column with three
-	   items is narrow") — a flex item with no explicit width sizes to its own
-	   content by default; the min/max only keep it from going illegibly thin
-	   or unreasonably wide. */
 	.ai2-ov-col {
-		flex: 0 1 auto;
-		min-width: 16em;
-		max-width: 28em;
-		border: 1px solid var(--line);
-		border-radius: 0.4em;
-		background: var(--surface);
-		overflow: hidden;
+		flex: 1 1 0;
+		min-width: 0;
+		overflow-y: auto;
+		padding: var(--ai2-ov-pad);
 	}
 
 	/* "The whole column disappears when empty" — needs-you's own rule, but
@@ -802,8 +806,7 @@
 	}
 
 	.ai2-ov-head {
-		padding: 0.5em 0.7em;
-		background: var(--tint);
+		padding-block-end: 0.6em;
 		border-block-end: 1px solid var(--line);
 	}
 
@@ -820,14 +823,16 @@
 		position: relative;
 	}
 
-	.ai2-ov-rows {
-		max-height: 22em;
-		overflow-y: auto;
-	}
-
 	.ai2-ov-empty {
 		display: block;
-		padding: 0.6em 0.7em;
+		padding-block: 0.6em;
+	}
+
+	/* `display: block` above beats the browser's own `[hidden]` rule, so
+	   `$empty.el.hidden = true` did nothing and "nothing here" sat under full
+	   columns. */
+	.ai2-ov-empty[hidden] {
+		display: none;
 	}
 
 	/* THE PILL — a new arrival never reorders what is on screen (deliverable
@@ -849,7 +854,7 @@
 	}
 
 	.ai2-ov-row {
-		padding: 0.4em 0.7em;
+		padding-block: 0.5em;
 		border-block-end: 1px solid var(--line);
 		display: flex;
 		align-items: center;
@@ -903,18 +908,14 @@
 		color: var(--error);
 	}
 
-	/* `needs-you` reads as the one that matters most — a hairline the other
-	   three don't get. */
-	.ai2-ov-needs {
-		border-color: var(--error);
-	}
-
-	.ai2-ov-agents {
-		max-height: 10em;
+	/* `needs-you` reads as the one that matters most — its title in the error
+	   colour, the one mark the other three don't get. */
+	.ai2-ov-needs .ai2-ov-title {
+		color: var(--error);
 	}
 
 	.ai2-ov-usage {
-		padding: 0.5em 0.7em;
+		padding-block: 0.5em;
 		border-block-start: 1px solid var(--line);
 	}
 
@@ -955,7 +956,7 @@
 	}
 
 	.ai2-ov-stream-feed {
-		padding: 0.4em 0.7em;
+		padding-block: 0.4em;
 		border-block-start: 1px solid var(--line);
 	}
 
@@ -965,7 +966,109 @@
 	}
 
 	.ai2-ov-open {
-		display: inline-block;
-		margin-block-start: var(--gap-50);
+		flex: none;
+		padding: 0.5em var(--ai2-ov-pad);
+		border-block-start: 1px solid var(--line);
+	}
+
+	/* The overview stacks in importance order on a phone (deliverable 7: "at
+	   400 they stack in that order") — the DOM order already IS that order.
+	   Written after the rules above, in the same layer, so it wins. */
+	@media (width < 40em) {
+		.ai2-overview { overflow-y: auto; }
+		.ai2-ov-cols { flex-direction: column; flex: none; }
+		.ai2-ov-col { flex: none; overflow: visible; }
+	}
+}
+
+/* ── the chat and the Live card (ai2-live-card, 2026-09-23) ──────────────── */
+@layer theme {
+	/* ONE LINE PER THING SAID — who, then what. Updates are quieter than talk. */
+	.ai2-chat {
+		margin-block: 0.2em;
+	}
+
+	.ai2-chat-who {
+		font-weight: 600;
+		margin-inline-end: 0.45em;
+	}
+
+	.ai2-chat-you .ai2-chat-who {
+		color: var(--prim);
+	}
+
+	.ai2-chat-update {
+		font-size: 0.85em;
+		opacity: 0.65;
+	}
+
+	/* THE LIVE ROW — one line taller than a card row, and always that height:
+	   title, the usage bars, one line of what is running. */
+	.ai2-live-bars {
+		display: flex;
+		gap: 0.35em;
+		margin-block-start: 0.35em;
+		height: 0.35em;
+	}
+
+	.ai2-live-bar {
+		flex: 1;
+		border-radius: 0.2em;
+		background: var(--fill-a08);
+		overflow: hidden;
+	}
+
+	.ai2-live-bar > span {
+		display: block;
+		height: 100%;
+		background: var(--prim);
+	}
+
+	.ai2-live-bar.crit > span {
+		background: var(--error);
+	}
+
+	.ai2-live-section {
+		margin-block-start: 1em;
+	}
+
+	.ai2-live-item {
+		padding-block: 0.3em;
+		border-block-end: 1px solid var(--line);
+	}
+
+	.ai2-live-state {
+		flex: none;
+		width: 5.5em;
+		font-size: 0.8em;
+		opacity: 0.7;
+	}
+
+	.ai2-live-working .ai2-live-state,
+	.ai2-live-state.ai2-live-working {
+		color: var(--prim);
+		opacity: 1;
+	}
+
+	.ai2-live-state.ai2-live-blocked {
+		color: var(--error);
+		opacity: 1;
+	}
+
+	.ai2-live-name {
+		flex: none;
+		font-weight: 600;
+	}
+
+	.ai2-live-item .ai2-clear {
+		margin-inline-start: auto;
+	}
+
+	.ai2-live-line {
+		flex: 1;
+		min-width: 0;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 }

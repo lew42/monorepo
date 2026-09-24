@@ -1,6 +1,7 @@
 # Server
 
-Dev only — `node server.js` (port 80, `PORT` to override, `HOST` to bind somewhere
+Dev only — Servex starts it behind its proxy: `http://monorepo.localhost/` (port 80 is
+Servex's since 2026-09-23). By hand: `PORT=<n> node server.js` (`PORT` defaults to 80, `HOST` to bind somewhere
 other than `0.0.0.0` — Servex passes `HOST=127.0.0.1` to the servers it starts).
 Reuse the one already running. ⚠ It used to pin a core (~130%) every few days;
 **fixed 2026-09-06**, but a server started before that is still running the old

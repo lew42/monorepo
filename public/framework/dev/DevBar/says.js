@@ -51,7 +51,7 @@ import { section } from "./parts.js";
 const STREAM_IDLE_MS = 3000;
 
 export default function says() {
-	if (!/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) return;
+	if (!/^(([a-z0-9-]+\.)*localhost|127\.0\.0\.1)$/.test(location.hostname)) return;   // `monorepo.localhost` too (2026-09-23)
 
 	section("the mastermind log", () => {
 		// ⚠ No DOM after an await: every box is captured now and filled by callbacks.

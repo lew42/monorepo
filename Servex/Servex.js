@@ -34,7 +34,7 @@ const INSTRUCTIONS = `Servex is the always-on process on this machine. It superv
  *   dashboard  a Server (the same class every project here uses) serving
  *              Servex/public/ on 127.0.0.1:8090, and carrying /mcp and the
  *              /log routes on its router.
- *   proxy      127.0.0.1:8080 — <name>.localhost:8080 reaches the project's
+ *   proxy      127.0.0.1:80 — <name>.localhost reaches the project's
  *              own port, and auto-starts it if it is not running.
  *   ports      name -> port, remembered in %LOCALAPPDATA%/lew42/servex/ports.json.
  *   processes  one supervised child per running server, plus whisper.
@@ -48,7 +48,8 @@ export default class Servex extends Events {
         this.root ??= "C:/Code";
         this.depth ??= 2;                 // C:/Code/<project> and C:/Code/<org>/<project>
         this.dashboard_port ??= Number(process.env.SERVEX_PORT) || 8090;
-        this.proxy_port ??= Number(process.env.SERVEX_PROXY_PORT) || 8080;
+        this.proxy_port ??= Number(process.env.SERVEX_PROXY_PORT) || 80;
+        this.bare ??= "servex";           // a nameless `localhost` is the dashboard (the owner, 2026-09-23) — ReverseProxy.name()
 
         this.projects = [];
         this.processes = new Map();
@@ -145,6 +146,8 @@ export default class Servex extends Events {
 
         this.proxy = new ReverseProxy({
             port: this.proxy_port,
+            bare: this.bare,
+            site: "monorepo",
             ports: this.ports.ports,
             dashboard: `http://127.0.0.1:${this.dashboard_port}/`,
             missing: name => this.autostart(name)
@@ -155,7 +158,7 @@ export default class Servex extends Events {
 
         this.say(`Servex up — dashboard http://127.0.0.1:${this.dashboard_port}/ · proxy http://127.0.0.1:${this.proxy_port}/ · ${this.projects.length} projects under ${this.root}`);
         console.log(`Servex dashboard  http://127.0.0.1:${this.dashboard_port}/`);
-        console.log(`Servex proxy      http://<name>.localhost:${this.proxy_port}/`);
+        console.log(`Servex proxy      http://<name>.localhost${this.proxy_port === 80 ? "" : `:${this.proxy_port}`}/`);
         console.log(`Servex mcp        http://127.0.0.1:${this.dashboard_port}/mcp`);
     }
 
@@ -384,7 +387,9 @@ export default class Servex extends Events {
 
         /* The dashboard's first paint. After this it hears about every change on
          * the live stream (`GET /api/stream`) instead of asking again. */
-        router.get("/api/agents", (req, res) => res.json(this.agents.list()));
+        // `cors` since 2026-09-23: AI 2's Live card reads who is running NOW
+        // (this live map), not the registry below, whose rows outlive a restart.
+        router.get("/api/agents", cors, (req, res) => res.json(this.agents.list()));
 
         /* The registry — every agent ever spawned, surviving a Servex restart the
          * `live` Map above does not. What `list_agents` and `say.mjs state`'s
@@ -494,6 +499,20 @@ Servex.Agents = class ServexAgents extends Agents {
 
     watch(event, agent){
         this.servex.stream.send("agent", { ...event, card: agent.card() });
+        this.moment(event, agent);
+    }
+
+    /* THE LIVE CARD'S UPDATES (AI 2's `/framework/ai2/live/`) — an agent
+     * starting, ending a turn, stopping or failing is one line on `cards/live`,
+     * the card's own chat. Tokens and tool calls are not moments, and the two
+     * always-on assistants are skipped: they end a turn on every sentence. */
+    moment(event, agent){
+        if (["assistant-fast", "master-assistant-master"].includes(agent.id)) return;
+        const text = event.type === "agent_msg" && event.first ? "started"
+            : event.type === "result" ? (event.stopped ? "stopped" : "finished a turn")
+            : event.type === "error" ? "hit an error: " + String(event.text ?? "").slice(0, 120)
+            : null;
+        if (text) this.servex.log.append("cards/live", { type: "update", ref: agent.id, text: `${agent.id} ${text}` }).catch(() => {});
     }
 };
 

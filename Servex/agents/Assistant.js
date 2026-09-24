@@ -4,6 +4,11 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
+const REPO = path.join(HERE, "../..");
+
+/* The same pause switch the Dispatcher reads — one file stops every agent the
+ * fast assistant could start, helpers included (Dispatcher.js's own comment). */
+const OFF = path.join(process.env.LOCALAPPDATA || "", "lew42", "servex", "dispatch.off");
 
 /* An id minted from a name, once, and frozen — `Live Board` -> `live-board`.
  * events.md's whole rename story rests on this: the label moves, the address
@@ -31,6 +36,7 @@ export default class Assistant {
 
 	defaults(){
 		return { id: "assistant-fast", role: "assistant", name: "fast", log: "prompts", current: null, minted: [], last_card: null,
+			selected: null, card: null,
 			root: path.join(HERE, "../../public/framework") };
 	}
 
@@ -77,6 +83,11 @@ export default class Assistant {
 	heard(prompt){
 		this.current = prompt.id ?? this.current;
 		this.minted = [];
+		/* THE CARD IT WAS SPOKEN INTO — `selected` is `<slug>` or `<slug>/<sub>`;
+		 * the log is always the root card's (`cards/<slug>`), the sub stays in
+		 * `re`. Remembered for the whole turn, so the reply finds its way back. */
+		this.selected = prompt.selected ?? (typeof prompt.re === "string" ? prompt.re : null);
+		this.card = this.selected?.split("/")[0] ?? null;
 		try { this.start().send(this.words(prompt), { from: "owner", reply_to: `log ${this.log}` }); }
 		catch (e){ this.servex.say(`assistant could not hear a prompt: ${e.message || e}`); }
 		// Started from here, not Servex.js: the fast assistant is already the one
@@ -93,7 +104,17 @@ export default class Assistant {
 	words(prompt){
 		const lines = (prompt.sentences ?? [prompt.text ?? ""]).map((s, i) => `${i}. ${s}`).join("\n");
 		const selected = prompt.selected ? `selected: ${prompt.selected}\n` : "";
-		return `${selected}prompt ${prompt.id}, just spoken:\n${lines}\n\nName what was named, card the idea, then one refined reading citing those sentence numbers.`;
+		return `${selected}${this.live_state(prompt)}prompt ${prompt.id}, just spoken:\n${lines}\n\nName what was named, card the idea, then one refined reading citing those sentence numbers.`;
+	}
+
+	/* Spoken into the Live card, the question is usually "what is running?" —
+	 * and the assistant has no tool to look. So the answer rides in with the
+	 * words: every agent in this process, one line each. */
+	live_state(prompt){
+		if (prompt.selected?.split("/")[0] !== "live") return "";
+		const rows = this.servex.agents.list().filter(a => a.state !== "stopped")
+			.map(a => `- ${a.id}: ${a.state}${a.model ? ", " + a.model : ""}, ${a.turns} turns`);
+		return `running right now (Servex's own list):\n${rows.join("\n") || "- nothing"}\n`;
 	}
 
 	tool(){
@@ -102,7 +123,7 @@ export default class Assistant {
 			description: "Your voice. Appends one typed event to the owner's prompt log, where it appears on their"
 				+ " screen within a second. `by` and `re` are stamped for you — say only what the event IS.",
 			inputSchema: { type: "object", required: ["type"], properties: {
-				type: { type: "string", description: "`name`, `card`, `task`, `refined`, `proposal` or `reply`." },
+				type: { type: "string", description: "`name`, `card`, `task`, `refined`, `proposal`, `reply` or `help`." },
 				id: { type: "string", description: "type `card`: reuse an id you minted earlier THIS conversation to evolve that card instead of starting a new one, when this sentence continues it." },
 				re: { type: "string", description: "type `card`: only to file it under a DIFFERENT already-named id than the one just spoken — say why in `text`. type `reply`: the card id being answered, required. Leave unset otherwise." },
 				name: { type: "string", description: "type `name`: what to call the thing. Two or three words, title case." },
@@ -115,11 +136,68 @@ export default class Assistant {
 				cites: { type: "array", items: { type: "number" }, description: "type `refined`: the sentence numbers it came from." },
 				shape: { type: "array", items: { type: "string" }, description: "type `proposal`: three bullets, no class names." },
 				stage: { type: "string", description: "type `proposal`: `pre` for a sketch." },
-				brief: { type: "string", description: "type `task`: two sentences describing the work, in the owner's own words." },
+				brief: { type: "string", description: "type `task`: two sentences describing the work, in the owner's own words. type `help`: the question a helper should look into and answer." },
 				state: { type: "string", description: "type `task`: always `queued` when you append it." }
 			} },
 			handler: args => this.append(args)
 		});
+
+		/* ANY AGENT'S VOICE INTO A CARD — the fast assistant, a helper it
+		 * started, a task mastermind the Dispatcher started. One line on the
+		 * card's own log, `cards/<slug>`, which is exactly what the card's chat
+		 * on AI 2 streams, so it is on the owner's screen within a second. */
+		this.servex.mcp.tool({
+			name: "card_reply",
+			description: "Say something into a card on the owner's AI 2 page — it appears in that card's chat within a second."
+				+ " Two or three plain sentences; the reader is glancing, not reading code.",
+			inputSchema: { type: "object", required: ["card", "text"], properties: {
+				card: { type: "string", description: "The card id you were given — `topic-…`, `live`, or `<card>/<sub>` for a sub-card." },
+				text: { type: "string", description: "What to say." },
+				from: { type: "string", description: "Your own agent id, so the owner sees who is talking." }
+			} },
+			handler: args => this.card_reply(args)
+		});
+	}
+
+	async card_reply({ card, text, from } = {}){
+		if (!card || !text) return JSON.stringify({ ok: false, why: "card and text are both required" });
+		try {
+			const out = await this.servex.log.append(`cards/${String(card).split("/")[0]}`, { type: "reply", by: from || "agent", re: card, text });
+			return JSON.stringify(out.ok ? { ok: true, id: out.entry.id, shown: true } : out);
+		} catch (e){ return JSON.stringify({ ok: false, why: String(e.message || e) }); }
+	}
+
+	/* THE ASSISTANT'S OWN WORDS REACH THE CARD. Everything it says lands on
+	 * `prompts`; a card's chat reads `cards/<slug>`. Until 2026-09-23 nothing
+	 * copied one to the other, so every reply was written — and never shown on
+	 * the card it answered (the owner: "the fast assistant isn't able to
+	 * respond"). A `reply` aimed at the card being spoken into is copied there. */
+	mirror(entry){
+		if (entry.type !== "reply" || !this.card) return;
+		const re = typeof entry.re === "string" ? entry.re : this.selected;
+		if (re.split("/")[0] !== this.card) return;
+		this.servex.log.append(`cards/${this.card}`, { ...entry, re }).catch(() => {});
+	}
+
+	/* A HELPER — one read-only Sonnet session for a question the fast assistant
+	 * cannot answer without looking (it has no file tools). It reads the repo,
+	 * answers into the card with `card_reply`, and is stopped after its first
+	 * turn so nothing idles on. Paused by the same `dispatch.off` switch. */
+	help(args){
+		const card = this.selected ?? "live";
+		if (fs.existsSync(OFF)) return this.card_reply({ card, from: this.id,
+			text: "I would start a helper to look into that, but helpers are paused (dispatch.off exists). Delete that file and ask again." });
+		const agent = this.servex.agents.spawn({
+			role: "helper", name: slug(args.title ?? "help"), model: "claude-sonnet-5", effort: "low",
+			cwd: REPO, permission_mode: "bypassPermissions",
+			allowed_tools: ["Read", "Grep", "Glob", "mcp__servex__card_reply"],
+			prompt: `${args.brief ?? args.text ?? ""}\n\nYou are a helper: read the repo (read-only) and answer that. `
+				+ `When you know, call card_reply({card: "${card}", from: "<your agent id>", text: <two to four plain sentences>}) once, then stop. `
+				+ "Never write the owner's name; say you."
+		});
+		const result = agent.result.bind(agent);
+		agent.result = message => { result(message); if (!agent.queued) agent.stop(); };
+		return agent;
 	}
 
 	/* Found live (19:48, the owner's own diagnosis): the tool is sometimes called
@@ -145,6 +223,8 @@ export default class Assistant {
 		if (out.ok){
 			this.minted.push(out.entry.id);
 			if (out.entry.type === "card") this.last_card = out.entry.id;
+			this.mirror(out.entry);
+			if (out.entry.type === "help") try { this.help(out.entry); } catch (e){ this.servex.say(`assistant could not start a helper: ${e.message || e}`); }
 		}
 		return JSON.stringify(out.ok ? { ok: true, id: out.entry.id, shown: true } : out);
 	}
@@ -223,7 +303,10 @@ export default class Assistant {
 			: this.current);
 		const cites = type === "refined" && Array.isArray(rest.cites) && this.current
 			? [{ prompt: this.current, sentences: rest.cites }] : rest.cites;
-		return { ...rest, ...(cites ? { cites } : {}), type, id: id ?? this.mint(type, rest), by: this.id, ...(re ? { re } : {}) };
+		// A task spoken into a card carries that card, so the Dispatcher can show
+		// its progress there too (Dispatcher.js's `mirror()`).
+		const card = type === "task" && this.card ? { card: this.card } : {};
+		return { ...rest, ...(cites ? { cites } : {}), ...card, type, id: id ?? this.mint(type, rest), by: this.id, ...(re ? { re } : {}) };
 	}
 
 	mint(type, e){

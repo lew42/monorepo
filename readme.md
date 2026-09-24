@@ -1,6 +1,7 @@
 # Lew42.com Framework Site
 
-`npm install` and then `node server.js`
+`npm install`, then `node Servex/sustain.mjs` and open `http://monorepo.localhost/` —
+Servex holds port 80 and starts the site the first time you visit it (`Servex/readme.md`).
 
 - Maintain static compatibility (server is just for local dev)
 - No bundler or build (pure static hosting)

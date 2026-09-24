@@ -78,9 +78,15 @@ function column(cls, title){
 			const sig = JSON.stringify(rec.render);
 			if (rec.sig === sig) return;
 			rec.sig = sig;
-			if (!rec.$row) rec.$row = div.c("ai2-ov-row");
+			/* ⚠ Built INSIDE `$rows`, never bare: a bare `div.c(...)` goes to whatever is
+			   being built right now — during the first paint that is this column, but a
+			   stream event later lands in no builder at all, and the framework's
+			   fallback is the site-wide `.pages`. Live, 2026-09-23 12:40: dozens of
+			   `.ai2-ov-row`s beside the framework page in that row-flex box, the
+			   framework page squeezed to 0px wide, the whole AI 2 screen gone. The
+			   `isConnected` check then saw a connected row and never moved it. */
+			if (!rec.$row) $rows.append(() => { rec.$row = div.c("ai2-ov-row"); });
 			rec.$row.empty(() => renderers.get(cls)(rec.render));
-			if (!rec.$row.el.isConnected) $rows.el.appendChild(rec.$row.el);
 		});
 	}
 
@@ -166,7 +172,7 @@ async function agents_now(base){
 
 /** `/framework/ai/usage.json` — the mastermind's own snapshot, refreshed on
  *  its own cadence (`check-claude-usage`); this page only ever reads it. */
-async function usage_bars(){
+export async function usage_bars(){
 	try {
 		const data = await (await fetch("/framework/ai/usage.json")).json();
 		return (data?.utilization?.limits ?? []).filter(l => l.kind !== "weekly_scoped" || l.percent > 0)
@@ -189,7 +195,7 @@ function agent_feed(base, on_event){
 	return () => source.close();
 }
 
-function usage_bar(l){
+export function usage_bar(l){
 	div.c("ai2-ov-usage-row", () => {
 		small.c("ai2-ov-usage-label muted").text(l.kind.replace("_", " "));
 		div.c("ai2-ov-usage-track", () => {
@@ -201,7 +207,7 @@ function usage_bar(l){
 
 /* ── the whole overview ───────────────────────────────────────────────────── */
 
-export function overview(page, ai2, $shell){
+export function overview(page, ai2){
 	let $ov, $live_agents, $live_usage, $live_stream;
 	const stream_lines = [];   // last few agent events, newest last, capped
 	let needs, reports, landed;
@@ -227,11 +233,9 @@ export function overview(page, ai2, $shell){
 				});
 			});
 		});
-		// A view toggle, not a navigation — no url of its own, same as the rail's
-		// own selected card already is not one either (only a CARD's own address
-		// is real). `preventDefault()` keeps this a plain class flip.
-		a.c("ai2-ov-open page-link").attr("href", "#").text("Open the full inbox →")
-			.click(e => { e.preventDefault(); $shell.el.classList.add("ai2-mode-inbox"); });
+		// A real link to the inbox, which is AI 2's own address — never a class
+		// flipped in place (the owner, 2026-09-23).
+		a.c("ai2-ov-open page-link").href(page.url).text("Open the inbox →");
 	});
 
 	/* ── needs-you + reports + landed, off the SAME list the rail already

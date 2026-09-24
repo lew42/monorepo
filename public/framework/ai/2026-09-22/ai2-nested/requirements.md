@@ -108,3 +108,31 @@ consecutive final segments until one ends in `.?!` or a silence longer than the 
 prove on the recordings workspace's raw-segments pane (build that pane first: each whisper
 segment with its start/end and text, so the boundaries are visible) with the 33 s JFK clip
 and the owner's `just_a_test.wav`: one line per sentence, none broken, none merged.
+
+## Owner addendum (00:25, 2026-09-23, verbatim excerpts) — deliverable 7: the default view is columns by importance
+
+> If you were to write a report, where would you put it? We have so many dashboards and
+> locations that no matter where you put it, it gets buried: new items push old ones down.
+> The default view should be an overview: a first column for just extremely important things
+> — outstanding items that get cleared off, and the whole column disappears when empty; a
+> second column for mildly important things, like a report from the night before; the next
+> column a log of the important things done recently, a little more verbose; and then a
+> real-time streaming log: what's running, what's in limbo, the usage windows. The columns
+> could be dynamic.
+
+7. **The overview view (default) = four columns by importance, each its own list.**
+   `needs-you` (flagged/blocked/asks; a clear control per item; the column collapses to
+   nothing when empty) · `reports` (Note: cards and landed reports — the day's report goes
+   here; newest first, never pushed out by chatter) · `landed` (tasks landed recently, one
+   line each with its link, a little more verbose) · `live` (what is running now from the
+   registry with its `now` line, what is queued/blocked, the three usage windows as bars,
+   the last few stream events). Items are pinned by importance, not by time: a new arrival
+   never pushes the top of a column down — it enters below the fold or behind a pill. Each
+   column's width follows its content (a column with three items is narrow); at 400 they
+   stack in that order. The rail + page (the inbox) becomes the second view.
+
+## Order (the mastermind, 2026-09-23 11:57)
+
+The owner asked for the prioritized view today. Do deliverable 0 (the survey, short), then **7 first** — the four-column overview is what lands and is proven before anything else — then 1 to 6 in order. If the budget or the hour runs out, 7 alone is a good landing; say what is left in the landing line. Model: Sonnet; effort high. Session id: 1f93064d-041d-4da7-92d5-7bdacd54b256.
+
+Your worktree dev server is on **port 8096** (the launcher line said blank - a launcher bug, fixed).
