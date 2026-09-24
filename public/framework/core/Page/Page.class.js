@@ -1,4 +1,4 @@
-import { View, div, p, h1, h2, h4, a, span, icon, is } from "../View/View.js";
+import { View, div, p, h1, h2, h4, a, span, ul, li, button, icon, is } from "../View/View.js";
 import PageFrame from "./Frame.js";
 import PageLog from "./Log.js";
 
@@ -208,14 +208,126 @@ export class Page extends PageLog {
 			return page && this.add(name, page).load_all_children(levels);
 		}
 
+		// Every page has an `md/`: its markdown files, as pages. Before route(), so a
+		// page that routes every name still has one. Markdown.js.
+		if (name === "md" && known === undefined) return this.add(name, await this.md_folder()).load_all_children(levels);
+
 		const claimed = known === undefined && is.fn(this.route) && this.route(name);
 		if (claimed) return this.add(name, claimed).load_all_children(levels);
 
 		const page = await Page.load(this.url + name + "/", 0);
 		if (page) return this.add(name, page).load_all_children(levels);
 
-		const file = await Page.file(this.url + name + ".md");
-		return file ? this.add(name, file).load_all_children(levels) : null;
+		const file = await Page.file(this.md_dir() + name + ".md");
+		return file ? this.add(name, { ...file, folder: this.md_dir() }).load_all_children(levels) : null;
+	}
+
+	// ⚠ Imported on first use: Markdown extends Page, so a static import is a cycle.
+	async md_folder(){
+		const { default: PageMarkdown } = await import("./Markdown.js");
+		return new PageMarkdown({ folder: this.md_dir(), title: "Markdown" });
+	}
+
+	// ════ WHERE A CLICKED LINK OPENS — the page decides, the link carries no target ══
+	// The Router hands every in-app click to the page that holds the link. doc/open.md.
+
+	// The real folder my own .md files live in. A card whose url is a view of a folder
+	// elsewhere overrides this.
+	md_dir(){ return this.folder ?? this.url; }
+
+	// A url to navigate to, or nothing when I showed the link myself. The default
+	// navigates; in a columns tree, a doc from my own folder opens as the next column.
+	open_link(link){
+		const file = Page.md_file(link);
+		if (!file) return link.pathname;
+
+		const dir = this.md_dir(), rel = dir && file.startsWith(dir) && file.slice(dir.length);
+		if (!rel || !this.column_host()) return Page.md_url(file);
+
+		// A doc beside me becomes my child, so it opens as the very next column.
+		// One in a subfolder goes through my md/, which is a column of its own.
+		if (rel.includes("/")) return this.url + "md/" + rel.replace(/\.md$/i, "/");
+
+		const name = rel.slice(0, -3);
+		if (!this.children.has(name)) this.add(name, Page.md_page(file));
+		return this.url + name + "/";
+	}
+
+	// A page that is one .md file, headed by its file name; the file keeps its own h1.
+	static md_page(file){
+		return {
+			folder: file.replace(/[^/]*$/, ""),
+			content(){ return import("../../ext/markdown/md.js").then(({ md }) => md.file({ url: location.href }, file)); },
+		};
+	}
+
+	// Draw the doc INSIDE me, over what I was showing, with a way back. A card or any
+	// small box says `open_link(link){ return this.swap_link(link); }`.
+	swap_link(link){
+		const file = Page.md_file(link);
+		if (!file) return link.pathname;
+
+		const shown = [...this.view.el.children].filter(el => !el.matches(".page-swap"));
+		shown.forEach(el => el.style.display = "none");
+		this.view.el.querySelector(":scope > .page-swap")?.remove();
+
+		this.view.append(() => {
+			div.c("page-swap", $swap => {
+				button.c("page-swap-back", () => { icon("arrow_back"); span("Back"); }).on("click", () => {
+					$swap.el.remove();
+					shown.forEach(el => el.style.display = "");
+				});
+				Page.file(file).then(doc => {
+					$swap.append(() => { doc ? doc.title && h2(doc.title) : p.c("muted", "Nothing could be read at " + file + "."); });
+					if (doc) $swap.append(doc.content());
+				});
+			});
+		});
+	}
+
+	// My own folder's .md files, as links — the Router hands each click back to me.
+	// `names` when the caller knows them (a card's own file lines); else the dev
+	// server's file list, which production does not have (so: nothing there).
+	md_files(names){
+		const dir = this.md_dir();
+
+		return ul.c("page-md-files", $list => {
+			const list = names ? Promise.resolve(names)
+				: import("./Markdown.js").then(({ default: PageMarkdown }) => PageMarkdown.files(dir));
+
+			list.then(files => $list.append(() => {
+				(files ?? []).filter(name => /\.md$/i.test(name) && !name.includes("/"))
+					.forEach(name => li(() => { a(name.slice(0, -3)).href(dir + name); }));
+			}));
+		});
+	}
+
+	// The .md file a link points at — its href, or what md.route() rewrote it from.
+	static md_file(link){
+		return link.dataset?.md ?? (/\.md$/i.test(link.pathname) && !link.search ? link.pathname : null);
+	}
+
+	/* A .md file's page when nothing nearer claims it: its module's md/. The module is
+	   the folder above `doc/`, or else the file's own folder.
+
+	       /framework/ext/Panel/readme.md    → /framework/ext/Panel/md/readme/
+	       /framework/ext/Panel/doc/flow.md  → /framework/ext/Panel/md/doc/flow/
+
+	   ⚠ THE TRAILING SLASH IS LOAD-BEARING. ext/Panel documents `flow.js` in
+	     `doc/file/flow.js.md`, and a url ending in `.js` is answered as a FILE — a 404,
+	     never the app. Ending in `/`, every route reaches the SPA fallback.
+	   ⚠ A guess: 68 of 2,276 .md files (13 folders with no page.js, measured 2026-09-24)
+	     sit where no page is, and a link to one 404s. */
+	static md_url(file){
+		const doc = file.indexOf("/doc/");
+		const base = doc >= 0 ? file.slice(0, doc + 1) : file.replace(/[^/]*$/, "");
+		return base + "md/" + file.slice(base.length).replace(/\.md$/i, "/");
+	}
+
+	// Which page drew this element — the nearest one up. Filled by render().
+	static views = new WeakMap();
+	static of(el){
+		for (; el; el = el.parentElement) if (Page.views.has(el)) return Page.views.get(el);
 	}
 
 	// Last resort, so a real page.js always wins: a `.md` file beside me IS a page —
@@ -439,6 +551,7 @@ export class Page extends PageLog {
 		//   so nothing about the two branches above has to change.
 		if (this.related) this.view.append(() => { this.related_aside(); });
 
+		Page.views.set(this.view.el, this);
 		return this.view;
 	}
 
@@ -634,6 +747,7 @@ export class Page extends PageLog {
 		// ⚠ No `page-w-*` here: a column's width is already stamped by `column()` below,
 		//   and under a columns host the page grid the width words move things in does
 		//   not exist. The other five words are plain classes and work in both hosts.
+		Page.views.set(this.view.el, this);
 		return this.view.ac(this.name && "page--" + this.name).ac(...this.word_classes()).ac(this.classes);
 	}
 

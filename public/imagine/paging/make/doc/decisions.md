@@ -443,3 +443,11 @@ readers and one file, which is the merge that was actually available.
 
 Task: `ai/2026-09-18/page-json-core/`. The core half:
 [`core/Page/doc/data.md`](/framework/core/Page/doc/data.md).
+
+
+# The description shows, and the tree has a keyboard reorder (2026-09-24)
+
+- **The description** used to be a field in the right pane and was drawn nowhere. `head_parts()` now draws it as one muted line under the title, and the Description field calls `rehead()` so it follows every keystroke.
+- **Alt + arrow keys reorder the tree.** `MakeTree.key()` catches an arrow with Alt held and hands it to `nudge()`, which works out the target and calls `page.move_to()` — the drag's own call — so disk and tree agree. Up/Down step among siblings; Left goes out to sit after the parent; Right goes inside the sibling above. Focus is put back on the moved row afterwards. A plain arrow is still the Tree's own.
+- **Alt** because it is the usual convention for "move this row" and does not collide with the Tree's plain arrows. The help line under the tree says so.
+- **A load bug fixed on the way:** `../toolbar.js` stored a bare span in `this.dots` but `sync()` destructured `{ $dot, label }`, so the toolbar threw "reading 'rc'" and Make would not load. It now stores `{ $dot, label }`.

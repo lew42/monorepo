@@ -136,6 +136,8 @@ browser without anybody declaring anything.
 - **core does not import ext.** The `import()` of `ext/markdown` is dynamic, inside
   the fallback, so the edge exists only on a url that uses it.
 
+**Superseded 2026-09-24 by `md/`** ([markdown.md](/framework/core/Page/doc/markdown.md)): every `.md` link now goes to its module's `md/` route, which reaches any depth. The rule below is kept as the record.
+
 **Beside, and no deeper** — the matching rewrite in `md.resolve` turns a link to a
 `.md` *beside the page you are on* into its route, and leaves every other `.md` link
 alone. That is not caution, it is the same rule: the fallback only ever looks for a

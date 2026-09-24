@@ -34,7 +34,7 @@ page can retune one number (`--page-column-max`) instead of asking for a seventh
 |---|---|---|
 | `small` | `clamp(14em, 16cqi, 24em)` — 14em until the row passes ~87em, then 16% of it | rails, lists, item pickers, an index |
 | `hug` | its content, 6–24em | a rail whose own labels decide the number |
-| *(none)* | **frozen at** `clamp(40em, 42cqi, 46em)`, floor 16em | the default — prose, a form, two columns of content |
+| *(none)* | **frozen at a third of the row**: `clamp(16em, 34cqi, <ceiling>)`, ceiling `clamp(40em, 42cqi, 46em)` | the default — prose, a form, two columns of content |
 | `large` | **frozen at** `clamp(28em, 50cqi, 64em)` — about half the row | a grid, a table, wide content |
 | `fill` | everything left over | the one page in the row that has something to spend it on |
 | `full` | the whole host | one page at a time; the ancestors collapse into the crumb strip |
@@ -57,11 +57,19 @@ from a 100% basis; `fill` *shrinks*, so every column left of it keeps its floor 
 hidden, and it has a 16em floor of its own. There is no `:has()` rule for `fill` and there must
 not be one — collapsing the ancestors is the whole of what makes `full` a different word.
 
-⚠ **`fill` yields to an open child** (2026-09-05): a `fill` page that is also `.active-ancestor`
-— a child column open beside it — falls back to the default flex share and the `large` ceiling
-(64em) instead of claiming the row alone, so the child gets a real width. Both research fronts
+⚠ **`fill` yields to an open child** (2026-09-05, reworked 2026-09-24): a `fill` page that is also
+`.active-ancestor` — a child column open beside it — drops to the default frozen basis (the third of
+the row above) and its ceiling, instead of claiming the row, so the parent keeps a reading width and
+the child opens at its own. A `fill` leaf still fills. Both research fronts
 (`imagine/research/`, `imagine/platform/research/`) are `width: "fill"` again for it. Numbers
 and the rule: `doc/decisions.md`.
+
+*Why the change:* the 2026-09-05 rule set `1 1 0` + 64em, which by 2026-09-18 GREW. With a `fill`
+child too, the parent shrank to a sliver. `/imagine/review/rethink/` (fill parent, fill child):
+parent **241 → 435**, child 829 → 634 at 1280; parent **288 → 828**, child 2720 → 2180 at 3440.
+*The alternative* is keeping the grow (`1 1 0` + 64em): a wider parent, but the child is squeezed
+whenever it is also `fill`. Implementation: the rule now sets `--page-column-flex` and
+`--page-column-max` to `initial`, so the base fallback applies.
 
 ⚠ **`fill` is for a page whose content is not prose.** It removes the ceiling, so at 3440 it hands
 one paragraph a 2410px line — the [`layout`](/framework/styles/rules/) rule "widening a column is
@@ -105,6 +113,20 @@ the default and `small` already use: `0 0 clamp(28em, 50cqi, 64em)`.
 themselves, so the new fallback never reaches them; a drag writes the same token inline; the
 even mode re-declares it at (0,5,0); and the `< 32em` phone regime writes the properties
 directly, later in the file. All five still win.
+
+### Third tuning, 2026-09-24: freeze at a third of the row
+
+The first tuning above froze at the flat `--page-column-recommended` (40em, up to 46em). It fits
+two columns at 1280, and the third click scrolled the row sideways. The basis is now
+`clamp(var(--page-column-min, 16em), 34cqi, <the same ceiling chain max-width reads>)`, so basis
+and ceiling still cannot drift. Measured: 435px at 1280, 828px at 3440, an open column's width
+never changes on a click, and on `uses/docs` at 1280 the sideways scroll went **375px → 0** with
+3/3 columns on screen. *The alternative* — the flat 40–46em basis — reads better per column but
+scrolls sooner. `34cqi` is "about a third", a hair over: three default columns are ~102% of the
+row, so a third still scrolls a few pixels. `--page-column-recommended` and the even mode are untouched.
+
+The column head already pads on the column's own tokens (`--page-column-pad-x` / `-pad-y`) — its
+title starts within a pixel of the prose at 1280 and 3440 — so a retuned `--size` reaches both.
 
 ### What it changed, measured
 

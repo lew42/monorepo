@@ -7,7 +7,7 @@
    loaded by `Program.js`; this file only adds what that stylesheet has no
    words for.
 
-   THE WRAP MECHANISM IS BORROWED, NOT INVENTED — `/imagine/layouts/layouts.css`
+   THE WRAP MECHANISM IS BORROWED, NOT INVENTED — `/imagine/layouts/layouts.css` (since deleted; the card now lives as core/Layout's `card`, /framework/core/Layout/card/)
    reached the same three-track shape first (`.layouts-card`) for the exact
    same three columns, so the percentage-basis-plus-stack-term trick is copied
    from there rather than reinvented: a `rem` floor (never `em` — a floor has

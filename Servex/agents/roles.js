@@ -13,7 +13,7 @@ export const ROLES = {
 	 * a non-interactive SDK session. Found 2026-09-22 (sub-mastermind-live run 1):
 	 * a task mastermind spawned under the old default had both its spawn_agent
 	 * calls refused, said so, and stopped — no files written, no wake to prove. */
-	"task-mastermind":  { skill: "sub-mastermind",   model: "claude-opus-5",    effort: "high", permission_mode: "bypassPermissions" },
+	"task-mastermind":  { skill: "sub-mastermind",   model: "claude-opus-5-5",  effort: "medium", permission_mode: "bypassPermissions" },
 	mastermind:         { skill: "mastermind",       model: "claude-fable-5-1", effort: "high", permission_mode: "acceptEdits" },
 	assistant:          { skill: "every-prompt",     model: "claude-sonnet-5",  effort: "low",  permission_mode: "acceptEdits" },
 	"master-assistant": { skill: "master-assistant", model: "claude-fable-5-1", effort: "high", permission_mode: "plan" },

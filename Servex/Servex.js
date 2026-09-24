@@ -1,4 +1,5 @@
 import fs from "fs";
+import net from "net";
 import path from "path";
 import express from "express";
 import { fileURLToPath } from "url";
@@ -10,6 +11,8 @@ import PortRegistry from "./PortRegistry.js";
 import Process from "./Process.js";
 import Project from "./Project.js";
 import ReverseProxy from "./ReverseProxy.js";
+import { launch as launch_gate } from "./gate.mjs";
+import { place } from "./home.js";
 import Stream from "./Stream.js";
 import { Agents } from "./agents/Agents.js";
 import Assistant from "./agents/Assistant.js";
@@ -36,7 +39,9 @@ const INSTRUCTIONS = `Servex is the always-on process on this machine. It superv
  *              Servex/public/ on 127.0.0.1:8090, and carrying /mcp and the
  *              /log routes on its router.
  *   proxy      127.0.0.1:80 — <name>.localhost reaches the project's
- *              own port, and auto-starts it if it is not running.
+ *              own port, and auto-starts it if it is not running. Port 80
+ *              itself is held by gate.mjs, a separate process that outlives
+ *              Servex and passes bytes on to the proxy on 8079.
  *   ports      name -> port, remembered in %LOCALAPPDATA%/lew42/servex/ports.json.
  *   processes  one supervised child per running server, plus whisper.
  *   agents     every live Claude session, held in memory and steerable over MCP.
@@ -46,17 +51,25 @@ const INSTRUCTIONS = `Servex is the always-on process on this machine. It superv
 export default class Servex extends Events {
 
     initialize(){
+        /* ⚠ Servex died with 0xC0000409 (a native fast-fail) on 2026-09-23, twice,
+         * and on 2026-09-24, and left no trace at all. Next time Node writes a report here. */
+        process.report.directory = path.dirname(place("logs", "reports", "report.json"));
+        process.report.reportOnFatalError = true;
+        process.report.reportOnUncaughtException = true;
+
         this.root ??= "C:/Code";
         this.depth ??= 2;                 // C:/Code/<project> and C:/Code/<org>/<project>
         this.dashboard_port ??= Number(process.env.SERVEX_PORT) || 8090;
-        this.proxy_port ??= Number(process.env.SERVEX_PROXY_PORT) || 80;
+        this.proxy_port ??= Number(process.env.SERVEX_PROXY_PORT) || 80;        // what visitors use — the gate's port
+        this.proxy_internal ??= Number(process.env.SERVEX_PROXY_INTERNAL) || 8079;  // where the proxy itself listens
+        this.gated ??= !process.env.SERVEX_NO_GATE;   // SERVEX_NO_GATE=1: the proxy binds proxy_port itself, as before
         this.bare ??= "servex";           // a nameless `localhost` is the dashboard (the owner, 2026-09-23) — ReverseProxy.name()
 
         this.projects = [];
         this.processes = new Map();
 
         this.log = new this.constructor.Log();
-        this.ports = new PortRegistry({ reserved: [80, this.dashboard_port, this.proxy_port] });
+        this.ports = new PortRegistry({ reserved: [80, this.dashboard_port, this.proxy_port, this.proxy_internal] });
         this.ports.pin("servex", this.dashboard_port);
 
         this.dashboard = new this.constructor.Dashboard({ port: this.dashboard_port, servex: this });
@@ -149,7 +162,7 @@ export default class Servex extends Events {
         this.scan(this.root);
 
         this.proxy = new ReverseProxy({
-            port: this.proxy_port,
+            port: this.gated ? this.proxy_internal : this.proxy_port,
             bare: this.bare,
             site: "monorepo",
             ports: this.ports.ports,
@@ -157,10 +170,11 @@ export default class Servex extends Events {
             missing: name => this.autostart(name)
         });
 
+        this.gate();
         this.whisper();
         this.shutdown();
 
-        this.say(`Servex up — dashboard http://127.0.0.1:${this.dashboard_port}/ · proxy http://127.0.0.1:${this.proxy_port}/ · ${this.projects.length} projects under ${this.root}`);
+        this.say(`Servex up — dashboard http://127.0.0.1:${this.dashboard_port}/ · proxy http://127.0.0.1:${this.proxy_port}/${this.gated ? ` (gate -> :${this.proxy_internal})` : ""} · ${this.projects.length} projects under ${this.root}`);
         console.log(`Servex dashboard  http://127.0.0.1:${this.dashboard_port}/`);
         console.log(`Servex proxy      http://<name>.localhost${this.proxy_port === 80 ? "" : `:${this.proxy_port}`}/`);
         console.log(`Servex mcp        http://127.0.0.1:${this.dashboard_port}/mcp`);
@@ -397,6 +411,27 @@ export default class Servex extends Events {
         // (this live map), not the registry below, whose rows outlive a restart.
         router.get("/api/agents", cors, (req, res) => res.json(this.agents.list()));
 
+        /* SAY SOMETHING TO ONE RUNNING AGENT (agent-chat, 2026-09-24) — the Live
+         * card's inline chat posts here. `send()` queues it behind the agent's
+         * current turn, so a busy agent answers when it is free. Unknown id 404,
+         * stopped 409, no text 400 — each with the plain sentence as `error`.
+         * ⚠ The Dispatcher sits in the same live map as a FAKE agent whose
+         * `send()` means "a child woke me" — so only a real Claude session
+         * (`Agents.Agent`) is accepted; anything else is a 409. */
+        router.options("/api/agents/:id/message", cors, (req, res) => res.status(204).end());
+
+        router.post("/api/agents/:id/message", cors, express.json({ limit: "64kb" }), (req, res) => {
+            const text = String(req.body?.text ?? "").trim();
+            if (!text) return res.status(400).json({ error: "text is required" });
+            let agent;
+            try { agent = this.agents.get(req.params.id); }
+            catch (e){ return res.status(404).json({ error: String(e.message || e) }); }
+            if (!(agent instanceof this.constructor.Agents.Agent))
+                return res.status(409).json({ error: `"${agent.id}" is not a Claude session — it cannot take a message.` });
+            try { res.json(agent.send(text, { from: "owner" }).card()); }
+            catch (e){ res.status(409).json({ error: String(e.message || e) }); }
+        });
+
         /* The registry — every agent ever spawned, surviving a Servex restart the
          * `live` Map above does not. What `list_agents` and `say.mjs state`'s
          * `MASTERMINDS` block read from outside this process — and, since
@@ -450,6 +485,23 @@ export default class Servex extends Events {
      * purpose — `process.on("exit")` is the only hook Node guarantees, and it
      * cannot await. A whisper-server that was ALREADY running when Servex
      * started has no child here, so it is never touched. */
+    /* THE GATE (gate.mjs) holds proxy_port and hands every visitor on to the
+     * proxy, so a Servex restart is a slow page, not an error page.
+     * Servex keeps the gate alive: it launches it at boot and relaunches it
+     * within 5 s if port 80 stops answering; the keeper keeps Servex alive, so
+     * the chain is keeper → Servex → gate. A second gate finds the port taken
+     * and exits, so launching too often costs nothing. */
+    gate(){
+        if (!this.gated) return;
+        const check = () => {
+            const socket = net.connect(this.proxy_port, "127.0.0.1");
+            socket.once("connect", () => socket.destroy());
+            socket.once("error", () => { socket.destroy(); this.say(`gate: ${this.proxy_port} refused — launching it`); launch_gate(this.proxy_port, this.proxy_internal); });
+        };
+        launch_gate(this.proxy_port, this.proxy_internal);
+        setInterval(check, 5000).unref();
+    }
+
     shutdown(){
         const down = () => {
             for (const agent of this.agents.live.values()) try { agent.stop(); } catch {}

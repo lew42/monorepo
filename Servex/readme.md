@@ -39,12 +39,21 @@ class every project here runs. It serves `Servex/public/`, with the monorepo's
 `public/` behind it so the page can import the real `View`. Projects and log
 names are polled; **agents are pushed**, over `Stream.js` — server-sent events, so
 a token shows up in the page as the agent thinks it. `GET /api/stream` is that
-wire; `Servex.Agents`' `watch()` is what feeds it.
+wire; `Servex.Agents`' `watch()` is what feeds it. `POST /api/agents/<id>/message {text}`
+says something to one running agent (queued behind its current turn) — the AI 2 Live card's
+inline chat uses it; an unknown id is a 404, a stopped one a 409.
 
 **Reverse proxy** — `ReverseProxy.js`. Reads the `Host` header, strips
 `.localhost`, forwards to that project's port, HTTP and WebSocket alike. When
 the port refuses, it *starts the project* and serves a page that polls itself
-until it is up.
+until it is up. A page load waits up to 15 s for the project to answer first, so
+a quick restart shows the page late rather than the "Starting…" page.
+
+**The gate** — `gate.mjs`. A tiny separate process holds port 80 and passes every
+connection on to the proxy (on 8079); while Servex restarts or crashes, visitors
+wait instead of getting Chrome's error page. It outlives Servex on purpose;
+Servex keeps it alive: it checks port 80 every 5 s and relaunches the gate if
+nothing answers. `sustain.mjs --stop` stops it, and `SERVEX_NO_GATE=1` turns it off.
 
 **Port registry** — `PortRegistry.js`. A name gets a port and keeps it forever, so
 a project's cookies and localStorage survive a restart. A project outside the scan
@@ -79,6 +88,8 @@ Outside the repo, one folder per machine — `%LOCALAPPDATA%/lew42/servex/`:
 - `ports.json` — name → port
 - `logs/<name>.jsonl` — one file per supervised thing, plus `servex.jsonl` for
   Servex's own events
+- `logs/reports/` — Node's crash report, if Servex ever dies natively again
+  (the 0xC0000409 exits left no trace before); `logs/gate.log` is the gate's
 
 `SERVEX_HOME` moves both. Nothing Servex writes ever lands in git.
 
@@ -168,6 +179,10 @@ Register-ScheduledTask -TaskName 'Servex' -Action $a -Trigger $t -Force
 
 Check it with `Get-ScheduledTask Servex` (state `Ready`). If Servex is already
 running when the task fires, the second `sustain.mjs` refuses and exits — no clash.
+
+The port-80 gate needs nothing registered of its own. After a reboot the
+Scheduled Task starts `sustain.mjs`, the keeper starts Servex, and Servex
+launches the gate at boot.
 
 > **Note:** the older one-line `schtasks /Create … /TR "…\"…\"…"` form only works
 > in cmd.exe. PowerShell reads the `\"` escapes differently, splits the command at

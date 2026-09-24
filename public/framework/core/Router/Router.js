@@ -1,3 +1,5 @@
+import { Page } from "../Page/Page.class.js";
+
 export class Router {
 
 	constructor(...args){
@@ -18,9 +20,16 @@ export class Router {
 
 		e.preventDefault();
 
+		// THE PAGE THAT HOLDS THE LINK DECIDES where it opens: a url to go to, or
+		// nothing when it showed the link itself. The link carries no target.
+		// core/Page/doc/open.md.
+		const page = Page.of(link) ?? this.active;
+		const url = page ? page.open_link(link) : link.pathname;
+		if (!url) return;
+
 		// ⚠ The whole url — `pathname` alone silently ATE the fragment on a
 		// cross-page link. Where it LANDS is still the top; readme.md's Open list.
-		this.go(link.pathname + link.search + link.hash);
+		this.go(url + link.search + link.hash);
 	}
 
 	// the anchor this click should navigate — or null, meaning "not ours"
@@ -32,7 +41,8 @@ export class Router {
 		if (!link || link.target || link.hasAttribute("download")) return null;
 		if (link.origin !== location.origin) return null;                   // external
 		if (link.hash && link.pathname === location.pathname) return null;  // #section
-		if (/\.\w+$/.test(link.pathname)) return null;                      // /readme.md
+		if (/\.md$/i.test(link.pathname)) return link.search ? null : link; // x.md opens its page; x.md?raw the file
+		if (/\.\w+$/.test(link.pathname)) return null;                      // /style.css
 
 		return link;
 	}

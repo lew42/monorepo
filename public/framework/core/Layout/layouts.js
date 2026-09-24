@@ -393,7 +393,7 @@ export const LAYOUTS = [
 		intro: "The technique this whole catalogue is drawn with: a narrow intro, a wide live stage, a narrow readout column. The middle piece is the subject and the two outside it are about it.",
 		when: "Any time you are SHOWING something and talking about it at once — a demo, a specimen, a measured result. It works at 3440 and at any height.",
 		room: "stage",
-		word: { label: ".layouts-card", href: "/imagine/layouts/" },
+		word: { label: "grid-template-columns: 17% 1fr 23%", href: WORDS },
 		config: "new Entry({ entry }).render()   // this realm's own card class",
 		decl: { display: "grid", "grid-template-columns": "minmax(0, 17%) minmax(0, 1fr) minmax(0, 23%)", gap },
 		boxes: [

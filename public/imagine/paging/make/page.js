@@ -706,6 +706,9 @@ export default new Paging({
 
 		h1.c("page-title paging-make-head-title", node.title);
 
+		// The description, one plain line under the title — the field for it is in the right pane.
+		if (node.description) p.c("muted paging-make-description", node.description);
+
 		if (page?.url) a.c("paging-make-url").attr("title", "open " + node.title + " at its own address")
 			.href(page.url).append(() => { span(page.url); icon("open_in_new"); });
 

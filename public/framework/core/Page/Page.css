@@ -423,14 +423,18 @@
 		   of squeezing what is open. That scroll is the price, and it is the deliberate
 		   half of the trade. The before and after, and the alternative tuning with the
 		   sentence that picks between them: doc/columns.md.
-		   ⚠ It reads `--page-column-recommended`, the SAME chain `max-width` reads two
-		     declarations down, so the basis and the ceiling are ONE number: a page that
-		     retunes that token moves the width, the ceiling and the even mode's N
-		     together, and they cannot drift apart.
+		   ⚠ FROZEN AT A THIRD OF THE ROW (2026-09-24, proposal's third tuning): the basis
+		     is `34cqi` between the floor and the SAME ceiling chain `max-width` reads
+		     two declarations down, so basis and ceiling cannot drift. Why a third:
+		     three columns fit at 1280 (a 42cqi basis fit two and scrolled on the
+		     third click), and a 3440 row still fills. The alternative — the flat
+		     `--page-column-recommended` basis (40em to 46em) — reads better per
+		     column but scrolls sooner; a page can still retune that token, which
+		     moves the ceiling and the even mode's N.
 		   ⚠ Every word that sets `--page-column-flex` itself is untouched by this —
 		     `small`, `hug`, `fill`, `full`, a DRAG (inline), the `even` mode, and the
 		     `< 32em` phone regime at the bottom, which writes the property direct. */
-		flex: var(--page-column-flex, 0 0 var(--page-column-recommended, clamp(40em, 42cqi, 46em)));
+		flex: var(--page-column-flex, 0 0 clamp(var(--page-column-min, 16em), 34cqi, var(--page-column-max, var(--page-column-recommended, clamp(40em, 42cqi, 46em)))));
 		min-width: var(--page-column-min, 16em);
 		/* 40em until the row passes ~110em, then up to 46em — a reading column may
 		   spend a little of a 3440 screen, and the growing pad-x keeps the text
@@ -502,8 +506,12 @@
 	     row. `.active-page` is excluded on purpose — the leaf has no child open
 	     beside it, so a `fill` leaf still fills. */
 	.page.active-ancestor > .page-column-body.page-column-fill {
-		--page-column-flex: 1 1 0;
-		--page-column-max: 64em;
+		/* 2026-09-24: `initial` = fall back to the frozen third-of-the-row basis, so the
+		   parent keeps a reading width and the child opens at its own. It was `1 1 0`
+		   (grow) + 64em: with a `fill` child too, the parent shrank to 241px at 1280
+		   (288px at 3440) and the child took the rest. Alternative: keep growing. */
+		--page-column-flex: initial;
+		--page-column-max: initial;
 	}
 
 	/* ── `even` — N columns, all the same width, and N is the room's answer ──
