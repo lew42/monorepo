@@ -9,6 +9,7 @@ import { state } from "./stats.js";
 import { when } from "./card.js";
 import { highlights, more } from "./highlights.js";
 import { needs_all, needs_strip } from "./needs.js";
+import { day_costs, total_line } from "./cost.js";
 
 /* The day dashboard and the ai index rail, over the same rows. A task directory
    speaks through its files: requirements.md alone is PROPOSED, a manifest with
@@ -189,6 +190,10 @@ function groups(rows_of){
 	if (!found.some(([, rows]) => rows.length))
 		return p.c("muted", "Nothing yet — a task appears when its directory holds a requirements.md or a task.jsonl.");
 
+	// What the day cost, and what each effort in it cost — only tasks that ran
+	// (a manifest), so a brief nobody started is not "not tracked". cost.js.
+	day_costs(rows_of.filter(t => t.m));
+
 	found.forEach(([title, rows]) => {
 		if (!rows.length) return;
 		if (title === "Proposed") return fold(`${title} — ${rows.length} not started`, () => list(rows));
@@ -338,8 +343,12 @@ export function effort_board(page, slug){
 	return div.c("ai-effort", async $e => {
 		const list = (await all_tasks()).filter(t => t.m?.group === slug);
 
-		$e.append(() => list.length ? dated(list)
-			: p.c("muted", "No task claims this effort — a task joins one by naming it as `group` in its log."));
+		// The effort's cost across every day first — cost.js.
+		$e.append(() => {
+			if (!list.length) return void p.c("muted", "No task claims this effort — a task joins one by naming it as `group` in its log.");
+			total_line(list, "on this effort, every day");
+			dated(list);
+		});
 
 		page?.app?.router?.mark_links();
 	});

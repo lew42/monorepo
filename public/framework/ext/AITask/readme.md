@@ -11,7 +11,7 @@ export default new AITask({
     extra(){ md("what this one uniquely needs to say"); },
 });
 ```
-A task's page is up to five tabs — **Asks · Requirements · Decisions · Report · Session**: `report()` is the outline — `asks` builds Asks; `outcome`, `links`, `status`, `checklist`, `extra`, `shots`, `figures` build Report; `chat` + `log` build Session; `head` builds Requirements; `decisions` builds Decisions, and only when the log carries any — override any one. **Asks is first and opens by default whenever the log carries any** — what the owner asked for outranks what a session did about it; without asks, Report opens. A task dir is never declared in `children:` either way: no `page.js` of its own gets this template through its day's `route()` fallback, and one WITH its own `page.js` is found the same way, ahead of the fallback.
+A task's page is up to five tabs — **Asks · Requirements · Decisions · Report · Session**: `report()` is the outline — `asks` builds Asks; `cost`, `outcome`, `links`, `status`, `checklist`, `extra`, `shots`, `figures` build Report; `chat` + `log` build Session; `head` builds Requirements; `decisions` builds Decisions, and only when the log carries any — override any one. **Asks is first and opens by default whenever the log carries any** — what the owner asked for outranks what a session did about it; without asks, Report opens. A task dir is never declared in `children:` either way: no `page.js` of its own gets this template through its day's `route()` fallback, and one WITH its own `page.js` is found the same way, ahead of the fallback.
 
 A landing that produced something worth going back to adds one more line, and the front page grows a card for it:
 
@@ -45,6 +45,7 @@ Anything only the owner can do says so, and says how long it will take — those
 ```
 
 ## Watch out
+- **Cost is dollars from one `cost_usd` line, or "not tracked" — never $0.** `Server/task-cost.mjs` writes it (the task's Servex agent plus every agent under it); a tab or CLI session has none. Totals skip a task whose `cost.parent_task` is in the same total — [doc/cost.md](./doc/cost.md).
 - The Asks tab IS the requirements report — a card's own line is its status and `n of m tasks landed`, counted from the serving tasks' `landed_at`, and the two can disagree on purpose — [doc/asks.md](./doc/asks.md).
 - **An ask's `conclusion` outranks everything else as the card's title** — the owner's own words, "lead with the conclusion as the title; if I'm curious I drill down and see what I asked" — and `summary` moves down to the sheet under "you asked" once it does. `minutes` is a second, separate field from `needs.minutes`: how long the CARD takes to read, not how long the owner's own errand takes — [doc/asks.md](./doc/asks.md).
 - The Asks wall is grouped by an ask's optional `topic`, in the order the topics first appear; each band is its own grid, so each has its own detail sheet and closing has to sweep all of them — [doc/asks.md](./doc/asks.md).
