@@ -1149,7 +1149,9 @@
 		grid-template-columns: 5.5em minmax(0, max-content) minmax(0, 1fr) auto;
 		align-items: center;
 		gap: 0.5em;
-		padding-block: 0.3em;
+		/* inline padding too: a selected or hovered row paints a ground, and
+		   text never sits at 0 from the edge of a ground. */
+		padding: 0.3em 0.4em;
 		border-block-end: 1px solid var(--line);
 	}
 
@@ -1214,11 +1216,161 @@
 		max-height: none;
 		overflow: visible;
 	}
+
+	/* Every line of reading text holds the measure — the chat and its
+	   composer too, which used to run the whole width (2,622px at 3440). */
+	.ai2-card-live .ai2-foot > * {
+		max-width: var(--measure);
+	}
+}
+
+/* ── the Live card in columns on a wide screen (live-card-wide, 2026-09-24) ──
+   The owner: "Take a screenshot at 3440 and you'll see that 50% of the page
+   is just empty space… I think we want to rely on columns more."
+
+   The card's parts become columns as its OWN width allows — measured on the
+   detail region it sits in, not the window, because the sidebar and the rail
+   (which you can drag wider) eat into the window first:
+
+     narrower than 60em   one column, as before
+     60em                 two:   usage, tasks, chat  |  running now
+     95em                 three: usage, tasks, chat  |  running now  |  agent
+     130em                four:  usage, tasks  |  running now  |  agent  |  chat
+
+   The agent column is ALWAYS FILLED once it exists — live.js opens a default
+   agent — so picking another never moves or resizes anything else. Below
+   95em there is no column: a clicked agent TAKES OVER the card's body
+   (`.ai2-live-takeover`, below) instead of pushing the list down. The columns are
+   equal `1fr` tracks; the text inside each still stops at `--measure`.
+   Every row the short columns sit in is `auto`, and the last row is `1fr`
+   that only the long columns span, so a long "Running now" never pulls gaps
+   open between usage and tasks. The page is still the ONE scroll box.
+   Rules, numbers and screenshots: doc/columns.md. */
+@layer theme {
+	.ai2-detail:has(> .ai2-card-live) {
+		container: ai2-live / inline-size;
+	}
+
+	.ai2-live-talk-col {
+		display: none;
+		min-width: 0;
+	}
+
+	@container ai2-live (min-width: 60em) {
+		.page.ai2-card-page.ai2-card-live {
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			grid-template-rows: auto auto auto auto minmax(0, 1fr);
+			grid-template-areas:
+				"head  head"
+				"use   run"
+				"tasks run"
+				"chat  run"
+				".     run";
+			align-content: start;
+			align-items: start;
+			column-gap: var(--gap);
+			padding: var(--pad);
+		}
+
+		.ai2-card-live .ai2-full { display: contents; }
+		.ai2-card-live .ai2-full-head { grid-area: head; margin-block-end: var(--gap-50); }
+		.ai2-card-live .ai2-live-usage { grid-area: use; margin-block-start: 0; }
+		.ai2-card-live .ai2-live-running { grid-area: run; margin-block-start: 0; }
+		.ai2-card-live .ai2-live-tasks { grid-area: tasks; }
+		.ai2-card-live .ai2-live-talk-col { grid-area: agent; }
+
+		/* The chat is a box of its own among the columns: its tinted ground
+		   keeps its padding, all the way round. */
+		.ai2-card-live .ai2-foot {
+			grid-area: chat;
+			margin-block-start: 1em;
+			border: 1px solid var(--line);
+			border-radius: 0.4em;
+		}
+
+		.ai2-card-live .ai2-live-section > h3:first-child { margin-block-start: 0; }
+	}
+
+	@container ai2-live (min-width: 95em) {
+		.page.ai2-card-page.ai2-card-live {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			grid-template-areas:
+				"head  head head"
+				"use   run  agent"
+				"tasks run  agent"
+				"chat  run  agent"
+				".     run  agent";
+		}
+
+		/* live.js reads this to know the column is here (`wide()`). */
+		.ai2-card-live .ai2-live-talk-col { display: block; --ai2-live-cols: 3; }
+	}
+
+	@container ai2-live (min-width: 130em) {
+		.page.ai2-card-page.ai2-card-live {
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			grid-template-rows: auto auto auto minmax(0, 1fr);
+			grid-template-areas:
+				"head  head head  head"
+				"use   run  agent chat"
+				"tasks run  agent chat"
+				".     run  agent chat";
+		}
+
+		.ai2-card-live .ai2-foot { margin-block-start: 0; }
+	}
+
+	/* THE TAKEOVER — no room for a column, so the clicked agent's conversation
+	   replaces the card's body: usage, lists and chat step aside, the column
+	   shows, and "← Live" (shown only here) brings them back. One class on the
+	   card page, set by live.js's `place()`; the card is a plain block again so
+	   the two-column grid has nothing to lay out. */
+	.page.ai2-card-page.ai2-card-live.ai2-live-takeover {
+		display: block;
+	}
+
+	.ai2-live-takeover :is(.ai2-live-section, .ai2-foot) {
+		display: none;
+	}
+
+	.ai2-card-live.ai2-live-takeover .ai2-live-talk-col {
+		display: block;
+		margin-block-start: 1em;
+	}
+
+	/* `position: relative` lifts it over the rail's own words, which reach a
+	   few px into this column at 1280 and 1920 and took its clicks. */
+	.ai2-live-back {
+		display: none;
+		position: relative;
+		color: var(--prim);
+		cursor: pointer;
+	}
+
+	.ai2-live-takeover .ai2-live-back {
+		display: inline-block;
+		margin-block-end: 0.75em;
+	}
+
+	/* The conversation says whose it is — its row may be far from it. */
+	.ai2-live-talk-col .ai2-talk-title {
+		display: block;
+		font-weight: 600;
+		margin-block-end: 0.35em;
+	}
+
+	.ai2-live-talk-col .ai2-talk {
+		border: 1px solid var(--line);
+		border-inline-start: 2px solid var(--prim);
+		border-radius: 0.4em;
+	}
+
 }
 
 /* ── talking to one agent from the Live card (agent-chat, 2026-09-24) ─────
-   A "Running now" row is a toggle; its conversation opens right under it,
-   in the same column, and grows with the page: no height cap, no scroll box
+   A "Running now" row selects its agent; the conversation opens in the
+   agent column or takes over the card (the block above), and grows with the page: no height cap, no scroll box
    of its own (the page is the one scroll, see the block above). */
 @layer theme {
 	.ai2-live-talkable {

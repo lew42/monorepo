@@ -1,4 +1,4 @@
-import PageMarkdown from "../Page/Markdown.js";
+import { Page } from "../Page/Page.class.js";
 
 export class Router {
 
@@ -20,14 +20,16 @@ export class Router {
 
 		e.preventDefault();
 
+		// THE PAGE THAT HOLDS THE LINK DECIDES where it opens: a url to go to, or
+		// nothing when it showed the link itself. The link carries no target.
+		// core/Page/doc/open.md.
+		const page = Page.of(link) ?? this.active;
+		const url = page ? page.open_link(link) : link.pathname;
+		if (!url) return;
+
 		// ⚠ The whole url — `pathname` alone silently ATE the fragment on a
 		// cross-page link. Where it LANDS is still the top; readme.md's Open list.
-		this.go(this.markdown(link) + link.search + link.hash);
-	}
-
-	// A link to a `.md` file opens its rendered page — core/Page/Markdown.js.
-	markdown(link){
-		return /\.md$/i.test(link.pathname) ? PageMarkdown.url(link.pathname) : link.pathname;
+		this.go(url + link.search + link.hash);
 	}
 
 	// the anchor this click should navigate — or null, meaning "not ours"

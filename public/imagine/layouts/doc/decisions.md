@@ -1,5 +1,7 @@
 # Layouts — the record
 
+> **Retired 2026-09-24.** The numbered eighteen became the named layouts of `core/Layout`; this file is history, not current advice. See [readme.md](../readme.md).
+
 Built 2026-09-05 from the owner's brief. Every verdict here, with what was measured.
 
 ## Why numbered

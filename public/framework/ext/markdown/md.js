@@ -1,6 +1,6 @@
 import View, { div, details, summary } from "../../core/View/View.js";
 import { marked } from "./marked.esm.js";
-import PageMarkdown from "../../core/Page/Markdown.js";
+import { Page } from "../../core/Page/Page.class.js";
 
 View.stylesheet(import.meta, "md.css");
 
@@ -158,7 +158,8 @@ md.resolve = function(root, base){
 md.route = function(root){
 	root.querySelectorAll("a[href]").forEach(link => {
 		if (link.origin !== location.origin || link.search || !/\.md$/i.test(link.pathname)) return;
-		link.setAttribute("href", PageMarkdown.url(link.pathname) + link.hash);
+		link.dataset.md = link.pathname;   // the page that holds the link may open it its own way
+		link.setAttribute("href", Page.md_url(link.pathname) + link.hash);
 	});
 
 	return root;

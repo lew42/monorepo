@@ -34,7 +34,49 @@ class MakeTree extends Tree {
 	// The path of the row that is currently being edited, so a redraw comes back selected.
 	render(){
 		super.render();
+		MakeTree.live = this;
 		this.show_picked();
+	}
+
+	/* ⚠ ALT + ARROW MOVES THE FOCUSED PAGE, through `page.move_to()` — the very call a drag
+	     makes, so the tree on screen and the files on disk cannot disagree. Up and Down
+	     step one place among its siblings; Left takes it out to sit after its parent;
+	     Right tucks it inside the sibling above. A plain arrow is still the Tree's own
+	     (focus moves, nothing is written), so this is checked first and only when Alt is held. */
+	key(e){
+		const dir = e.altKey && !e.ctrlKey && !e.metaKey && { ArrowUp: "up", ArrowDown: "down", ArrowLeft: "out", ArrowRight: "in" }[e.key];
+		if (!dir || !this.focused) return super.key(e);
+
+		e.preventDefault();
+		this.nudge(this.focused.node.path, dir);
+	}
+
+	nudge(path, dir){
+		const page = this.maker;
+		const tree = page.tree ?? [];
+		const parent = path.length > 1 ? at(tree, path.slice(0, -1)) : null;
+		const list = parent ? parent.children : tree;
+		const i = list.findIndex(kid => kid.name === path.at(-1));
+		const to = path.slice(0, -1);
+		const named = kid => kid ? [...to, kid.name] : null;
+		let go = null;
+
+		if (dir === "up" && i > 0) go = () => page.move_to(path, to, named(list[i - 1]));
+		if (dir === "down" && i < list.length - 1) go = () => page.move_to(path, to, named(list[i + 2]));
+		if (dir === "in" && i > 0) go = () => page.move_to(path, named(list[i - 1]), null);
+		if (dir === "out" && parent){
+			const up = to.slice(0, -1);
+			const aunts = up.length ? at(tree, up).children : tree;
+			const after = aunts[aunts.findIndex(kid => kid.name === to.at(-1)) + 1];
+			go = () => page.move_to(path, up, after ? [...up, after.name] : null);
+		}
+		if (!go) return;
+
+		go();
+
+		// The move redrew the tree; put the keyboard back on the row that moved.
+		const found = [...MakeTree.live.rows.keys()].find(node => same(node.path, page.picked));
+		if (found) MakeTree.live.focus_row(MakeTree.live.rows.get(found));
 	}
 
 	show_picked(){
@@ -81,7 +123,7 @@ export function tree_pane(page){
 
 	/* The one line this pane gets, and it is the one thing the PICTURE cannot say: a grip
 	   is a gesture, and a gesture has no visible state to read. */
-	p.c("muted paging-make-line-note", "Drag a row by its grip: onto the edge of another to sit beside it, onto the middle to go inside it.");
+	p.c("muted paging-make-line-note", "Drag a row by its grip: onto the edge of another to sit beside it, onto the middle to go inside it. From the keyboard, Alt + arrow keys move the focused row: up and down reorder it, left and right take it out of or into its neighbour.");
 
 	/* ⚠ A THIRD GROUP, AND ONLY WHEN ASKED FOR. `?real=<url>` puts a REAL subtree — plain
 	     directories with `page.js` files, the shape every page on this site has — beside
@@ -98,6 +140,7 @@ function pages_tree(page, nodes){
 	return new MakeTree({
 		nodes,
 		picked: page.picked,
+		maker: page,
 		drag: true,
 		acts: "default add remove",
 		classes: "ui-tree paging-make-tree",
