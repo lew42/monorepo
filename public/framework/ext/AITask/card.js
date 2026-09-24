@@ -1,6 +1,7 @@
 import { div, span, a } from "../../core/View/View.js";
 import { Page } from "../../core/Page/Page.class.js";
-import { dur, progress, quiet, spend, state } from "./stats.js";
+import { dur, progress, quiet, state } from "./stats.js";
+import { cost_figure } from "./cost.js";
 import { reply } from "../Ask/reply.js";
 
 /* One task, as a row — who | what | figures, at one type size: hierarchy is
@@ -57,12 +58,14 @@ const route = (url, m) => (web_url(url) ? String(url ?? "") : dir(m) + url)
 	.replace(/^(\/framework\/ai\/\d{4}-\d{2}-\d{2}\/[\w-]+\/[\w-]+)\.md(?=$|#)/, "$1/");
 
 // [value, label] pairs, so the figures column aligns instead of cramming a dotted line.
+// ⚠ The cost is dollars from `cost_usd` (Server/task-cost.mjs) or a muted "not
+//   tracked" — never the old token count, and never $0 (cost.js says why).
 const figures = m => {
 	if (!m) return [];
 	const done = m.agents?.filter(x => x.outcome).length ?? 0, total = m.agents?.length;
 	const idle = quiet(m);
 	return [
-		spend(m),
+		cost_figure(m),
 		m.window?.after != null && [Math.round(m.window.after * 100) + "%", "of window"],
 		total && [done < total ? `${done}/${total}` : String(total), total === 1 ? "agent" : "agents"],
 		idle && [idle, "quiet"],
@@ -123,7 +126,7 @@ export const manifest_card = t => div.c("ai-card surface", () => {
 	}).style("--gap", "0.25em");
 
 	div.c("ai-figures", () => {
-		figures(t.m).forEach(([value, label]) => div(() => { span(value); span.c("muted", " " + label); }));
+		figures(t.m).forEach(([value, label]) => div(() => { span(value).ac(!label && "muted"); if (label) span.c("muted", " " + label); }));
 		if (t.m?.model) div.c("muted", short_model(t.m.model));
 	});
 

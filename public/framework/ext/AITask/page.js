@@ -2,6 +2,24 @@ import { Doc, md, code, demo, AITask } from "/app.js";
 import { manifest_card, segments } from "./card.js";
 import { usage_rail } from "./usage.js";
 import { progress } from "./stats.js";
+import { day_costs, breakdown } from "./cost.js";
+
+/* Three tasks as the cost view sees them: a finished one, one whose agents are
+   still running (the figure can grow), and one run from a tab (nothing measured it).
+   loose-ends carries its real figures from 2026-09-24, rounded; the other two are made up. */
+const COSTED = [
+	{ title: "loose-ends", url: "/framework/ai/2026-09-24/loose-ends/", m: {
+		requested_at: "2026-09-24T09:10:00-05:00", model: "claude-opus-5-5", group: "ai-log", step: 3,
+		steps: ["read every note", "decide or close", "report"], now: "closing the last three notes",
+		cost_usd: 41.94, cost: { root: "task-mastermind-loose-ends", agents: 172, own_usd: 8.58, minions_usd: 33.36, parent_task: null, open: 9 } } },
+	{ title: "md-pages", url: "/framework/ai/2026-09-24/md-pages/", m: {
+		requested_at: "2026-09-24T10:02:00-05:00", landed_at: "2026-09-24T11:40:00-05:00", model: "claude-opus-5-5", group: "pages",
+		outcome: "Every .md file under public/ renders as a page.",
+		cost_usd: 12.53, cost: { root: "task-mastermind-md-pages", agents: 3, own_usd: 7.1, minions_usd: 5.43, parent_task: null, open: 0 } } },
+	{ title: "servex-startup-note", url: "/framework/ai/2026-09-24/servex-startup-note/", m: {
+		requested_at: "2026-09-24T08:30:00-05:00", landed_at: "2026-09-24T08:41:00-05:00", model: "claude-sonnet-5", group: "pages",
+		outcome: "A one-line note on how Servex starts." } },
+];
 
 export default new Doc({
 	meta: import.meta,
@@ -11,9 +29,9 @@ export default new Doc({
 
 	subject: AITask,
 	properties: "src",
-	methods:    "content session legacy base requirements report asks decisions streamed refresh outcome links head status checklist unparsed extra shots figures chat composer log",
-	notes:      "asks ranking decisions-tab highlights manifest effort starting-work pace template waves decisions",
-	files:      "AITask.js ai.css asks.js board.js card.js compose.js conversation.js dashboard.js decisions.js decisions.mjs effort.js highlights.js message.js needs.js prompt.js rank.js shots.js stats.js usage.js page.js readme.md",
+	methods:    "content session legacy base requirements report asks decisions streamed refresh outcome links head status cost checklist unparsed extra shots figures chat composer log",
+	notes:      "cost asks ranking decisions-tab highlights manifest effort starting-work pace template waves decisions",
+	files:      "AITask.js ai.css asks.js board.js card.js compose.js cost.js conversation.js dashboard.js decisions.js decisions.mjs effort.js highlights.js message.js needs.js prompt.js rank.js shots.js stats.js usage.js page.js readme.md",
 	overview:   [
 		{ title: "Task card", content(){
 			demo(() => {
@@ -36,6 +54,14 @@ export default new Doc({
 					agents: [{ task: "wire the dashboard", outcome: "done" }, { task: "verify in the browser" }],
 				} });
 			}, "The same running card whose newest log line is two hours old. A silence over 30 minutes joins the figures as `2h 0m quiet` — computed in the browser from the log the card already holds, and worded as a silence because nothing here can tell a crash from a long think.");
+		} },
+		{ title: "Task cost", content(){
+			demo(() => { COSTED.forEach(manifest_card); },
+				"Each card's figure is dollars: what the task's Servex agent and every agent under it spent. A `+ so far` means some of those agents are still running. A task run from a tab or a plain CLI session has no Servex agent, so it says **not tracked** — never $0. [doc/cost.md](/framework/ext/AITask/doc/cost/).");
+			demo(() => { day_costs(COSTED); },
+				"The day page's first line: the day's total, how many tasks nothing measured, and what each effort (a task's `group`) spent — each one a link to that effort's board, which leads with the same sum across every day.");
+			demo(() => { breakdown(COSTED[0].m); },
+				"The task's own page, Report tab: the total split into the root agent's own share and its minions', and how many agents were summed.");
 		} },
 		{ title: "Usage pace", content(){
 			demo(() => {
