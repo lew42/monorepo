@@ -79,6 +79,7 @@ To draw a card from anywhere, append a line to one of the logs it reads:
   `/framework/ai2/card.js`; a `./Card.js` import is a second module on Windows and a 404 on a
   case-sensitive host. The older board-card faces are `faces.js`. [`doc/cards.md`](./doc/cards.md).
 - **A card is a folder, and only Servex writes into it.** Each card lives at `ai/2026/MM/DD/<slug>/page.jsonl`, dated by the day it was created. Agents make and read cards with the `create_card`, `read_card`, `attach_card` and `list_cards` tools, and speak into one with `card_reply`; never append to the file yourself. [`Servex/cards/readme.md`](/Servex/cards/readme.md), [`doc/persistence.md`](./doc/persistence.md).
+- **An older Servex has no card routes, and AI 2 must not ask it.** Its `/cards` answer has no CORS header, so the browser logs an error nothing can hide. A Servex running the card code writes `{"cards": 1}` to its `features` log at boot; `cards_ready()` in `inbox.js` reads that once, and until it is true every card call returns null without a request — the rail reads `board.jsonl`, and the type picker, `clear` and `+ sub-card` are hidden.
 
 - **Content never needs a reload; the page's own modules do.** All four logs stream — three over
   the dev socket, the owner's sentences over Servex's `EventSource`. The only thing that still

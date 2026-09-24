@@ -3,16 +3,18 @@ import net from "net";
 import path from "path";
 import express from "express";
 import { fileURLToPath } from "url";
+import { spawn } from "child_process";
 import Server from "../Server/Server.js";
 import Events from "../Server/Events.js";
 import Log from "./Log.js";
+import Monitor from "./Monitor.js";
 import MCP, { loopback } from "./MCP.js";
 import PortRegistry from "./PortRegistry.js";
 import Process from "./Process.js";
 import Project from "./Project.js";
 import ReverseProxy from "./ReverseProxy.js";
 import { launch as launch_gate } from "./gate.mjs";
-import { place } from "./home.js";
+import { place, stamp } from "./home.js";
 import Stream from "./Stream.js";
 import { Agents } from "./agents/Agents.js";
 import Assistant from "./agents/Assistant.js";
@@ -23,6 +25,7 @@ import Global from "./agents/Global.js";
 import agent_tools from "./agents/tools.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
+const REPO = path.resolve(HERE, "..");
 const SKIP = new Set(["node_modules", "dist", "build", "coverage"]);
 
 const INSTRUCTIONS = `Servex is the always-on process on this machine. It supervises dev servers`
@@ -151,6 +154,18 @@ export default class Servex extends Events {
          * mastermind to build it, at most two at once. No LLM of its own, so
          * nothing here costs anything until a task actually queues. */
         this.dispatcher = new this.constructor.Dispatcher({ servex: this }).install();
+
+        /* THE MACHINE MONITOR and THE SPAWN GATE (servex-monitor, 2026-09-24).
+         * The monitor samples CPU, RAM, the top processes, the GPU and the live
+         * agents every 5 s (Monitor.js says how, cheaply); while its flag is up,
+         * `admission()` queues new agents instead of starting them, and every
+         * tick tries the queue again. `SERVEX_NO_MONITOR=1` boots without it. */
+        this.admission();
+        if (!process.env.SERVEX_NO_MONITOR){
+            this.monitor = new this.constructor.Monitor({ servex: this }).start();
+            this.checks.push(spec => this.monitor.flag ? this.monitor.flag.reason : null);
+            this.monitor.on("tick", () => this.drain());
+        }
 
         /* THE ASSISTANT LAYERS (ai/2026-09-24/assistant-layers): an assistant and a
          * manager on every card, and the master assistant + mastermind-servex across
@@ -451,6 +466,9 @@ export default class Servex extends Events {
          * middleware `/log/:name` already uses, safe for the same reason: `guard()`
          * above has already refused every non-loopback caller). */
         router.get("/agents", cors, (req, res) => res.json(this.agents.registry_list()));
+
+        /* The machine monitor's latest sample, verdict, flag and spawn queue. */
+        router.get("/api/system", cors, (req, res) => res.json(this.health()));
     }
 
     tools(){
@@ -486,6 +504,122 @@ export default class Servex extends Events {
          * tools on one door; nothing about them is special-cased here. */
         for (const tool of agent_tools(this.agents)) this.mcp.tool(tool);
         for (const tool of this.cards.tools()) this.mcp.tool(tool);
+
+
+        this.mcp.tool("system_health", {
+            description: "Is this machine under strain? The latest sample from Servex's monitor (every 5 s): total CPU %, free RAM,"
+                + " the top 5 processes by CPU, claude/node/chrome counts, live agents (working, and idle ones still holding a"
+                + " claude process), GPU load/temperature/fan, and a one-line verdict. While the flag is up, new agents are"
+                + " queued instead of started — `queue` lists them. The three optional numbers change the flag's thresholds"
+                + " for this Servex until it restarts.",
+            inputSchema: { type: "object", properties: {
+                hot_cpu: { type: "number", description: "Flag when total CPU % stays at or above this. Default 90." },
+                hot_seconds: { type: "number", description: "…for this many seconds. Default 60." },
+                low_ram_gb: { type: "number", description: "Flag when free RAM falls under this many GB. Default 3." }
+            } }
+        }, args => {
+            this.monitor?.set(args ?? {});
+            const health = this.health();
+            return `${health.verdict}\n\n${JSON.stringify(health, null, 2)}`;
+        });
+    }
+
+    health(){
+        if (!this.monitor) return { verdict: "The monitor is off (SERVEX_NO_MONITOR=1).", queue: this.queued() };
+        return { ...this.monitor.health(), queue: this.queued() };
+    }
+
+    /* ── the spawn gate ───────────────────────────────────────────────── */
+
+    /* THE GATE ON NEW AGENTS. `checks` is a list of functions; each is called
+     * as `check(spec)` and returns a reason string to hold that spawn, or null.
+     * `admit(spec)` answers null (start it now) or the first reason. The
+     * monitor's flag is one check; `agents/Global.js` pushes an agent cap onto
+     * the same list. Keep this exact shape — both sides agreed it.
+     *
+     * `agents.spawn` is wrapped on the INSTANCE, so every caller goes through
+     * it: the MCP tool, the Dispatcher, a resume (`spawn({resume, …})`). A held
+     * spec is queued and the caller gets a stand-in whose `card()` says so; the
+     * monitor's tick drains the queue once `admit()` says yes again.
+     *
+     * Some spawns skip the gate, because their callers use the returned agent
+     * for more than `.card()` and a stand-in would break them:
+     *   - `urgent: true` in the spec — the caller's own say-so;
+     *   - role `assistant` / `master-assistant` — Assistant.start() calls
+     *     `.send()` on what it gets back, and these are the owner's front desk;
+     *   - role `helper` — Assistant.help() rebinds `agent.result` at once;
+     *   - a task mastermind whose parent is the Dispatcher — the Dispatcher keys
+     *     its slots on `agent.id`, so it is gated one step earlier instead: its
+     *     `pump()` waits while `admit()` says no, and the tick calls it again. */
+    admission(){
+        this.checks = [];
+        this.queue = [];
+        const spawn = this.agents.spawn.bind(this.agents);
+        this.agents.spawn_now = spawn;
+        this.agents.spawn = spec => {
+            const reason = this.bypass(spec) ? null : this.admit(spec);
+            return reason ? this.hold(spec, reason) : spawn(spec);
+        };
+
+        const pump = this.dispatcher.pump.bind(this.dispatcher);
+        this.dispatcher.pump = () => {
+            const reason = this.dispatcher.queue.length ? this.admit({ role: "task-mastermind", parent: this.dispatcher.id }) : null;
+            if (reason){
+                if (this.dispatch_held !== reason) this.log.append("system", { type: "gate", state: "held", what: "dispatcher",
+                    waiting: this.dispatcher.queue.length, reason }).catch(() => {});
+                this.dispatch_held = reason;
+                return;
+            }
+            this.dispatch_held = null;
+            pump();
+        };
+    }
+
+    bypass(spec = {}){
+        return !!spec.urgent
+            || ["assistant", "master-assistant", "helper"].includes(spec.role)
+            || (spec.role === "task-mastermind" && !!spec.parent && spec.parent === this.dispatcher?.id);
+    }
+
+    admit(spec){
+        for (const check of this.checks){
+            const reason = check(spec);
+            if (reason) return reason;
+        }
+        return null;
+    }
+
+    hold(spec, reason){
+        const entry = { spec, reason, at: stamp() };
+        this.queue.push(entry);
+        this.log.append("system", { type: "gate", state: "queued", role: spec.role ?? null, name: spec.name ?? null,
+            reason, position: this.queue.length }).catch(() => {});
+        const note = `Not started: ${reason}. Servex will start it as soon as that clears; its parent is woken as usual once it runs.`;
+        return {
+            id: null, queued: true, spec,
+            card: () => ({ id: null, state: "queued", queued: true, position: this.queue.indexOf(entry) + 1, reason, note })
+        };
+    }
+
+    queued(){
+        return this.queue.map((entry, i) => ({ position: i + 1, role: entry.spec.role ?? null, name: entry.spec.name ?? null,
+            reason: entry.reason, since: entry.at }));
+    }
+
+    /* Every monitor tick: start what the gate now admits, oldest first. */
+    drain(){
+        while (this.queue.length && !this.admit(this.queue[0].spec)){
+            const { spec, at } = this.queue.shift();
+            try {
+                const agent = this.agents.spawn_now(spec);
+                this.log.append("system", { type: "gate", state: "started", id: agent.id, queued_at: at }).catch(() => {});
+                this.emit("admitted", spec, agent);   // a caller holding the queued stand-in learns the real agent here
+            } catch (e){
+                this.log.append("system", { type: "gate", state: "failed", role: spec.role ?? null, name: spec.name ?? null,
+                    error: String(e.message || e) }).catch(() => {});
+            }
+        }
+        if (this.dispatcher.queue.length) this.dispatcher.pump();
     }
 
     say(msg, extra){
@@ -515,6 +649,7 @@ export default class Servex extends Events {
 
     shutdown(){
         const down = () => {
+            try { this.monitor?.stop(); } catch {}
             for (const agent of this.agents.live.values()) try { agent.stop(); } catch {}
             for (const runner of this.processes.values()) runner.terminate();
             this.log.close();
@@ -570,6 +705,23 @@ Servex.Agents = class ServexAgents extends Agents {
     watch(event, agent){
         this.servex.stream.send("agent", { ...event, card: agent.card() });
         this.moment(event, agent);
+        if (event.type === "result") this.cost(agent.id);
+    }
+
+    /* WHAT A TASK COST — after an agent ends a turn, re-add its task's dollars
+     * (`Server/task-cost.mjs`, which walks up to the root itself). A burst of
+     * results is one run: 5s trailing, per agent. The run is detached and never
+     * throws into `watch()` — a failure is one line in the servex log. */
+    cost(id){
+        clearTimeout((this.cost_timers ??= new Map()).get(id));
+        this.cost_timers.set(id, setTimeout(() => {
+            this.cost_timers.delete(id);
+            try {
+                spawn(process.execPath, [path.join(REPO, "Server", "task-cost.mjs"), "--agent", id],
+                    { cwd: REPO, detached: true, windowsHide: true, stdio: "ignore" })
+                    .on("error", e => console.error(`task-cost ${id}: ${e.message}`)).unref();
+            } catch (e) { console.error(`task-cost ${id}: ${e.message}`); }
+        }, 5000));
     }
 
     /* THE LIVE CARD'S UPDATES (AI 2's `/framework/ai2/live/`) — an agent
@@ -657,6 +809,7 @@ Servex.Cards = Cards;
 Servex.Layers = Layers;
 Servex.Global = Global;
 Servex.MCP = MCP;
+Servex.Monitor = Monitor;
 Servex.PortRegistry = PortRegistry;
 Servex.Process = Process;
 Servex.Project = Project;
