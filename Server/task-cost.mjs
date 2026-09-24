@@ -81,17 +81,20 @@ function ancestors(id){
 function agentCost(id){
 	// A result line seen twice (same time, same cost — a replay) counts once; a resumed session
 	// whose total CONTINUES just keeps growing, so it is never banked twice.
-	let banked = 0, last = 0;
+	// No billed result line (none, or only a $0 stop marker) = nothing billed yet: null (NOT MEASURED), never 0.
+	let banked = 0, last = 0, any = false;
 	const seen = new Set();
 	for (const o of lines(join(SERVEX, "logs", `agent-${id}.jsonl`))) {
 		if (o.type !== "result" || typeof o.cost !== "number") continue;
 		const k = `${o.at}|${o.cost}`;
 		if (seen.has(k)) continue;
 		seen.add(k);
+		// A stop marker (`stopped`, 0 turns, $0) is not a measurement: recipe-lab's only result line.
+		if (o.cost > 0 || o.turns > 0) any = true;
 		if (o.cost < last) banked += last;
 		last = o.cost;
 	}
-	return banked + last;
+	return any ? banked + last : null;
 }
 
 // ---- which task already counts this one (parent_task) ----
@@ -116,8 +119,11 @@ function cost(dir){
 	const me = { dir, key: taskKey(dir), ...rootOf(dir) };
 	if (!me.root) return { key: me.key, tracked: false };
 	const ids = tree(me.root);
-	const own = agentCost(me.root);
-	const total = ids.reduce((s, id) => s + agentCost(id), 0);
+	const each = ids.map(agentCost);
+	// A tree with no result line anywhere has billed nothing yet: not measured, never $0.
+	if (each.every(c => c === null)) return { key: me.key, dir, tracked: false, unmeasured: true, root: me.root };
+	const own = agentCost(me.root) ?? 0;
+	const total = each.reduce((s, c) => s + (c ?? 0), 0);
 	return {
 		key: me.key, dir, tracked: true,
 		cost_usd: r4(total),
@@ -142,6 +148,16 @@ function append(c){
 	return "appended";
 }
 
+// A tree that billed nothing writes no figure. If an earlier run wrote $0 for it, clear that
+// once with nulls, so the board falls back to "not tracked" (ext/AITask/cost.js: non-number).
+function clearZero(c){
+	if (typeof current(c.dir).cost_usd !== "number") return "not measured";
+	const tmp = join(mkdtempSync(join(tmpdir(), "task-cost-")), "line.json");
+	writeFileSync(tmp, JSON.stringify([{ assign: { cost_usd: null, cost: null } }]));
+	execFileSync(process.execPath, [join(root, ".claude", "hooks", "append.mjs"), join(c.dir, "task.jsonl"), tmp], { stdio: "pipe" });
+	return "cleared";
+}
+
 // ---- run ----
 function recentDirs(days){
 	const since = new Date(Date.now() - days * 864e5).toISOString().slice(0, 10);
@@ -159,6 +175,7 @@ const table = [["task", "root", "agents", "own", "minions", "total", "open", "pa
 for (const dir of dirs) {
 	let c;
 	try { c = cost(dir); } catch (e) { if (agent) { console.error(`task-cost: ${taskKey(dir)}: ${e.message}`); continue; } throw e; }
+	if (c.unmeasured) { table.push([c.key, c.root, "", "", "", "not measured", "", "", dry ? (typeof current(c.dir).cost_usd === "number" ? "dry: would clear" : "dry") : clearZero(c)]); continue; }
 	if (!c.tracked) { table.push([c.key, "not tracked", "", "", "", "", "", "", ""]); continue; }
 	const action = dry ? "dry" : append(c);
 	table.push([c.key, c.cost.root, String(c.cost.agents), $(c.cost.own_usd), $(c.cost.minions_usd), $(c.cost_usd), String(c.cost.open), c.cost.parent_task || "", action]);

@@ -3,6 +3,7 @@ import net from "net";
 import path from "path";
 import express from "express";
 import { fileURLToPath } from "url";
+import { spawn } from "child_process";
 import Server from "../Server/Server.js";
 import Events from "../Server/Events.js";
 import Log from "./Log.js";
@@ -21,6 +22,7 @@ import Cards from "./cards/Cards.js";
 import agent_tools from "./agents/tools.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
+const REPO = path.resolve(HERE, "..");
 const SKIP = new Set(["node_modules", "dist", "build", "coverage"]);
 
 const INSTRUCTIONS = `Servex is the always-on process on this machine. It supervises dev servers`
@@ -560,6 +562,23 @@ Servex.Agents = class ServexAgents extends Agents {
     watch(event, agent){
         this.servex.stream.send("agent", { ...event, card: agent.card() });
         this.moment(event, agent);
+        if (event.type === "result") this.cost(agent.id);
+    }
+
+    /* WHAT A TASK COST — after an agent ends a turn, re-add its task's dollars
+     * (`Server/task-cost.mjs`, which walks up to the root itself). A burst of
+     * results is one run: 5s trailing, per agent. The run is detached and never
+     * throws into `watch()` — a failure is one line in the servex log. */
+    cost(id){
+        clearTimeout((this.cost_timers ??= new Map()).get(id));
+        this.cost_timers.set(id, setTimeout(() => {
+            this.cost_timers.delete(id);
+            try {
+                spawn(process.execPath, [path.join(REPO, "Server", "task-cost.mjs"), "--agent", id],
+                    { cwd: REPO, detached: true, windowsHide: true, stdio: "ignore" })
+                    .on("error", e => console.error(`task-cost ${id}: ${e.message}`)).unref();
+            } catch (e) { console.error(`task-cost ${id}: ${e.message}`); }
+        }, 5000));
     }
 
     /* THE LIVE CARD'S UPDATES (AI 2's `/framework/ai2/live/`) — an agent
