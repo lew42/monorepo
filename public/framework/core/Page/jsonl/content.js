@@ -7,6 +7,7 @@ export default function(page, box){
 
 	h2("The file");
 	const $source = pre.c("page-log-source", "…");
+	$source.style({ "white-space": "pre-wrap", "overflow-wrap": "anywhere" });   // a long line wraps, never runs off the box
 	fetch(page.jsonl_url).then(res => res.text()).then(text => $source.text(text.trim()));
 
 	h2("Exists, linked, placed");

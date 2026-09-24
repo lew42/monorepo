@@ -39,8 +39,8 @@ assigned. `Card.jsonl(url)` does the same without the line, because the loader b
 
 ## Three steps, separate on purpose
 
-1. **Exists** — `{"file": "x"}`. Recorded, never drawn. The dev server's `PageFiles` plugin
-   appends these lines itself when a file appears. `{"file": "x", "gone": true}` removes it
+1. **Exists** — `{"file": "x"}`. Recorded, never drawn (see "Who writes the file lines" below).
+   `{"file": "x", "gone": true}` removes it
    (`set()` calls `file("x")`, then `gone(true)`). Lines are keyed by the FIRST path segment,
    as the plugin keys them, so `kid/` and `kid/page.jsonl` are one entry and the latest line wins;
    repeating a line changes nothing.
@@ -56,12 +56,40 @@ assigned. `Card.jsonl(url)` does the same without the line, because the loader b
      `content()`;
    - a child's name draws nothing extra: it is already linked.
 
-## Live on localhost
+## Who writes the file lines
+
+Nobody has to remember them. The dev server's `Server/plugins/PageFiles.js` watches `public/`.
+When a file or folder appears in, or disappears from, a folder that has a `page.jsonl`, it
+appends one line to that log:
+
+```
+{"file": "photo.png"}                  a file appeared
+{"file": "kid/page.jsonl"}             a subfolder with its own page.jsonl
+{"file": "kid/page.js"}                a subfolder with a page.js (wins over its page.jsonl)
+{"file": "kid/"}                       a plain subfolder: listed, not a page
+{"file": "photo.png", "gone": true}    it disappeared
+```
+
+Before each append it replays the log and writes only if the answer would change, so the
+Windows watcher's extra events add nothing. It skips any folder that has a `page.js` (that
+folder uses its `page.js`, and a `page.jsonl` beside it is not the plugin's to fill), dot-files,
+`.json` files and the log itself. On boot it catches up every `page.jsonl` under `public/`.
+You can still write a file line by hand; the plugin will agree with it.
+
+## Live on localhost — `log_draw()` and `log_redraw()`
+
+A page with no `content()` of its own gets `log_view()` as its content. `log_view()` captures one
+box (`.page-log`) and fills it with `log_draw()`, which draws every placed entry in order.
 
 On localhost the log streams through `ext/JSONL/live.js` (imported dynamically — core never
-statically imports ext). A line appended later calls `set()` and redraws the page's content box,
-with no reload. Off localhost it is one plain fetch. `page.jsonl_url` is the log's own address,
-for a module that wants to append back to it.
+statically imports ext). A line appended later goes through `set()` like any other line, and
+then `log_redraw()` empties that one box and runs `log_draw()` again. The title, the sidebar and
+the rest of the page stay put, and nothing reloads. A `content.js` is simply called again, so it
+redraws whatever it drew, `page.listing()` included. If the log is rewritten instead of appended
+to, `log_forget()` clears the files and placements and the whole log replays from line 1.
+
+Off localhost the log is fetched once and nothing streams. `page.jsonl_url` is the log's own
+address, for a module that wants to append a line back to it.
 
 A missing log is `null` — the SPA fallback answers a miss with `index.html` at 200, so the
 content-type is the 404, as in `Page.read_json()`.
