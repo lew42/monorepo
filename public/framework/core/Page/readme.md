@@ -25,6 +25,8 @@ Answer with anything `children:` already takes — a string of names, an array, 
 
 **Every page has an `md/`.** `/framework/ext/Panel/md/` lists the module's markdown files and `md/doc/decisions/` renders `doc/decisions.md`; a link to any `.md` opens its rendered page. Try [/framework/ext/Panel/md/](/framework/ext/Panel/md/): [`doc/markdown.md`](./doc/markdown.md)
 
+**A link carries no target; the page that holds it decides where it opens.** `open_link(link)` navigates by default, opens a doc as the next column in a columns tree, and a card says `open_link(link){ return this.swap_link(link); }` to swap it in place. The same link three ways: [/framework/ext/markdown/open/](/framework/ext/markdown/open/) · [`doc/open.md`](./doc/open.md)
+
 The file is the route: `./x/` renders `./x.md` as markdown when no `page.js` claims `x` — write a `.md` beside a page, link to it, and it is a page. Nothing crawls; the **link** is the naming.
 
 **A right aside of related links is one more line.** `related: "/a/ /b/"` draws a small "Related" list beside the page — each row's icon and title read live off the target, so a renamed target updates itself: [`doc/property/related.md`](./doc/property/related.md)

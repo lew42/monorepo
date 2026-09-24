@@ -49,5 +49,7 @@ reserved, but it gives no index and no subfolders. The choice and its reasons ar
 - **A folder with its own `page.js` isn't listed** in its parent's index, because it has its
   own `md/`.
 
-Files: `Markdown.js` (the `PageMarkdown` class and `PageMarkdown.url()`), `Page.child()`
+Where a clicked doc opens (navigate, next column, or in place) is the page's own choice: [open.md](/framework/core/Page/doc/open.md).
+
+Files: `Markdown.js` (the `PageMarkdown` class), `Page.md_url()` (where a link goes), `Page.child()`
 (the one line that makes the first `md/`), `core/Router/Router.js` `link_clicked()`.

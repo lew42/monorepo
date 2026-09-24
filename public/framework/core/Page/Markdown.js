@@ -13,25 +13,33 @@ import { div, h2, p, ul, li, a } from "../View/View.js";
    doc/markdown.md. */
 export default class PageMarkdown extends Page {
 
-	// `source` is the real directory this page lists, e.g. "/framework/ext/Panel/doc/".
+	// `folder` is the real directory this page lists, e.g. "/framework/ext/Panel/doc/".
 	async child(name, levels){
 		const known = this.children.get(name);
 		if (known) return known.assign({ app: this.app }).load_all_children(levels);
 
 		// The file list answers first, so no folder is fetched as `<folder>.md` and 404s.
 		// With no list (production), try the file, and a miss is taken as a folder.
-		const [dir, md] = await Promise.all([name + "/", name + ".md"].map(path => this.constructor.node(this.source + path)));
+		const [dir, md] = await Promise.all([name + "/", name + ".md"].map(path => this.constructor.node(this.folder + path)));
 
-		const file = dir?.type !== "dir" && md !== null && await Page.file(this.source + name + ".md");
-		if (file) return this.add(name, file).load_all_children(levels);
+		const file = dir?.type !== "dir" && md !== null && await Page.file(this.folder + name + ".md");
+		if (file) return this.add(name, { ...file, folder: this.folder }).load_all_children(levels);
 
 		if (dir === null || dir?.type === "file") return null;
-		return this.add(name, new this.constructor({ source: this.source + name + "/" })).load_all_children(levels);
+		return this.add(name, new this.constructor({ folder: this.folder + name + "/" })).load_all_children(levels);
+	}
+
+	// In columns, a doc in my folder is my own child — the next column, no second md/.
+	open_link(link){
+		const file = Page.md_file(link);
+		if (file && this.column_host() && file.startsWith(this.folder))
+			return this.url + file.slice(this.folder.length).replace(/\.md$/i, "/");
+		return super.open_link(link);
 	}
 
 	content(){
 		div.c("page-md-index", $box => {
-			this.constructor.files(this.source).then(files => $box.append(() => { this.list(files); }));
+			this.constructor.files(this.folder).then(files => $box.append(() => { this.list(files); }));
 		});
 	}
 
@@ -53,7 +61,7 @@ export default class PageMarkdown extends Page {
 	no_list(){
 		p.c("muted", "This server has no file list, so here is the readme.");
 		div.c("page-md-readme", $readme => {
-			Page.file(this.source + "readme.md").then(file => { if (file) $readme.append(file.content()); });
+			Page.file(this.folder + "readme.md").then(file => { if (file) $readme.append(file.content()); });
 		});
 	}
 
@@ -85,22 +93,7 @@ export default class PageMarkdown extends Page {
 
 		return found.sort((x, y) => x.split("/").length - y.split("/").length || x.localeCompare(y));
 	}
-
-	/* WHERE A LINK TO A .md FILE SHOULD GO: its module's md/. The module is the folder
-	   above `doc/`, or else the file's own folder.
-
-	       /framework/ext/Panel/readme.md        → /framework/ext/Panel/md/readme/
-	       /framework/ext/Panel/doc/flow.md      → /framework/ext/Panel/md/doc/flow/
-
-	   ⚠ THE TRAILING SLASH IS LOAD-BEARING. ext/Panel documents `flow.js` in
-	     `doc/file/flow.js.md`, and a url ending in `.js` is answered as a FILE — a 404,
-	     never the app. Ending in `/`, every route reaches the SPA fallback.
-	   ⚠ A guess: 68 of 2,276 .md files (13 folders with no page.js, measured 2026-09-24)
-	     sit where no page is, and a link to one 404s.
-	   Used by ext/markdown (links inside markdown) and the Router (every other link). */
-	static url(file){
-		const doc = file.indexOf("/doc/");
-		const base = doc >= 0 ? file.slice(0, doc + 1) : file.replace(/[^/]*$/, "");
-		return base + "md/" + file.slice(base.length).replace(/\.md$/i, "/");
-	}
 }
+
+// My content IS the list of my children, so a column draws no second rail of them.
+PageMarkdown.prototype.index = true;

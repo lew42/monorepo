@@ -6,6 +6,7 @@ export default new Doc({
 	description: "Markdown as a View addon — md(), view.md(), md.file() — plus a fence that can name its file.",
 	icon: "article",
 
+	children: "open",
 	subject: md,
 	properties: "cache",
 	methods:    "file details c resolve",
@@ -52,6 +53,10 @@ md.details(import.meta, "readme.md")               // collapsed at the bottom`);
 		h2("Relative links in a fetched file");
 
 		md("A link inside a fetched `.md` is rewritten to resolve against **the file**, not the document — so `[base](base/)` in `styles/readme.md` points where the author meant from any url you happen to be on. Without it, a crawl once found 40 broken routes. Full record: [Relative links](/framework/ext/markdown/doc/relative-links/).");
+
+		h2("Where a link to a .md opens");
+
+		md("Every page has an `md/` that renders its markdown files, and a link to a `.md` opens that page. **Where** it opens is up to the page that holds the link: it navigates, opens the next column, or swaps the doc in place. The same link, three ways: [Where a link opens](/framework/ext/markdown/open/).");
 
 		md("Next: [Demo](/framework/ext/demo/) — show the code and run it, from one source. Or [ext/highlight](/framework/ext/highlight/), the other half of the file-label feature above.");
 
