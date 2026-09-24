@@ -28,8 +28,10 @@ to the top of the rail whenever any of that changes. Its chat is the log of thos
 anything you say there reaches the assistant along with the list of what is running. The ✕ on a
 task clears it until it changes again; running agents have none. A task spoken while dispatch was
 paused shows "not started": the Dispatcher never replays it, so say it again. **Click a running
-agent** and its conversation opens beside the list when the card is wide enough, or right under its row when it is not — what it said, live — with a box that
-sends it a message (`POST /api/agents/<id>/message` on Servex); click the row again to close it.
+agent** and its conversation opens in the agent column beside the list when the card is wide enough
+(the column opens on `assistant-fast` by default), or takes over the card with "← Live" to go back
+when it is not — what it said, live — with a box that sends it a message
+(`POST /api/agents/<id>/message` on Servex).
 
 **Nothing jumps**, and that is three mechanisms, not one:
 
