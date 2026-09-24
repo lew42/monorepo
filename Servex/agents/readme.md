@@ -34,6 +34,26 @@ It opens an SDK `query()` in **streaming-input mode**: the prompt is an async it
 never finish, so one `query()` is a session that stays alive between turns instead of ending
 after its first answer.
 
+The same verbs are MCP tools, and so are these. Proofs anyone can run show them working:
+`fork-proof.mjs`, `revive-proof.mjs` and `wake-proof.mjs`.
+
+- **Resume or fork a spawn.** `spawn({ resume: <session uuid>, fork: true })` opens with that
+  whole conversation. Without `fork` it continues the same session; with it, it continues as a copy.
+- **`fork_self({question})`** asks a copy of yourself one question in the background, and returns
+  at once. The copy answers once, stops itself, and its answer reaches you as `fork answer: …`.
+- **`wait_for_agent({id})`** returns when that agent's turn ends (or it stops), with what it said.
+  It is for callers with nobody to wake them, such as a VS Code tab.
+- **`start_job` / `job_result`** hand read, grep, watch, check or decide work to node and answer
+  later as a message: [`doc/jobs.md`](./doc/jobs.md).
+- **`restart_servex`, `pause_dispatch`, `resume_dispatch`** are the operator switches in `ops.js`.
+- **Agents survive a Servex restart.** At boot, `revive()` reopens every agent the last boot
+  left open, under the same id and session. One that was mid-turn is told so.
+- **Stop idle agents freely** (each one held open costs about 250 MB). A message to a stopped
+  agent, or to one that exists only in the registry, wakes it first: the same id, its session, and
+  the spawn `spec` its registry row keeps. Forks are never woken. Proof: `wake-proof.mjs`.
+- **The session id is known at spawn.** Servex mints it and passes it as `sessionId`, so even an
+  agent whose host died during its first turn can be resumed.
+
 `send` wraps your text so the agent can see who asked and where the answer goes —
 
 ```
@@ -78,7 +98,8 @@ the repo. This is the projection a dashboard reads.
   (`new Agents({ log: servex.log })`) so every agent line joins the single writer; a host built
   without one makes its own, which is what `demo.mjs` does.
 - **`Agent.log(entry)`** is still the only thing that writes — one line, through `store()`.
-- **`tools(host)`** in `tools.js` builds the five tools against the host you give it,
+- **`tools(host)`** in `tools.js` builds all twelve agent tools (its own seven, plus `ops.js` and
+  `jobs.js`) against the host you give it,
   `{name, description, inputSchema, schema, handler}` — what `servex.mcp.tool(tool)` takes.
   It is a function, not a constant, so the handlers close over the host that is really running:
   `for (const tool of tools(servex.agents)) servex.mcp.tool(tool);`
@@ -89,7 +110,7 @@ the repo. This is the projection a dashboard reads.
 ## An agent can hire agents
 
 Every agent Servex spawns is handed Servex's own `/mcp` url two ways — `Agent.door()` puts it
-in the SDK's `mcpServers`, so the ten tools are simply in the agent's own tool list, and in
+in the SDK's `mcpServers` (with `?as=<its id>`, so every tool knows who is calling), so Servex's tools are simply in the agent's own tool list, and in
 `SERVEX_MCP` in its environment, so anything it shells out to can pass `--mcp-config`. A
 minion can call `spawn_agent` itself, and the child lands in the **same** registry:
 `list_agents` from anywhere sees both. Proven 2026-09-22 — `minion-foreman` created
@@ -104,7 +125,7 @@ whatever it already has.
 
 ## The wake
 
-A child with a `parent` gets ONE message when its turn ends, it is stopped, or it errors —
+A child with a `parent` gets ONE message when its turn ends, it is stopped mid-turn, or it errors —
 `Agents.wake_parent(child, kind)`, called from `Agent.emit()` on every `result` and `error`
 event, never from `watch()` (Servex overrides that one for its own dashboard stream, so anything
 placed there would stop running the moment Servex became the host). The body is `done: <the
@@ -170,13 +191,25 @@ status strip on `/framework/ai2/` and `/framework/ai/talk/` reads.
   steered.
 - A spawned agent loads this repo's `CLAUDE.md` and hooks by default. `setting_sources: []`
   for a cheap, isolated one.
+- A fork reuses the prompt cache only when it has the SAME tools as the original. With no
+  tools, it pays for the whole context again. So a fork keeps its tools, and every call is refused.
+- A resume must run in the session's original `cwd`, because sessions are stored per project
+  directory.
+- The first restart onto the revive code finds rows with no `boot` field. It revives them when
+  the agent's own log was written in the last 30 minutes, and marks the rest `gone`.
+- Names and aliases for roles and ids: [`doc/names.md`](./doc/names.md).
 
 ## Files
 
 `Agents.js` (the host, the agent, its queue) · `tools.js` (the MCP tools) ·
 `Assistant.js` + `assistant.md` (the always-up fast assistant and its posture) ·
-`roles.js` (role → posture) · `registry.js` (who has ever been spawned) ·
-`demo.mjs` (the proof) · `doc/traps.md` (what the SDK does not tell you)
+`roles.js` (role → posture) · `registry.js` (who has ever been spawned, and which host holds it) ·
+`ops.js` (restart, pause, resume) · `jobs.js` (background work in node) ·
+`demo.mjs` · `fork-proof.mjs` · `revive-proof.mjs` · `wake-proof.mjs` · `jobs-proof.mjs` (the proofs) ·
+`doc/traps.md` (what the SDK does not tell you) · `doc/jobs.md` · `doc/names.md`
+
+How agents should work together (the design, with a picture):
+[/framework/ai/2026-09-24/concurrency/](/framework/ai/2026-09-24/concurrency/).
 
 ## Tools are node functions, not HTTP
 

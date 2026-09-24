@@ -38,7 +38,8 @@ export default class Registry {
 	 *                    setting_sources, revivable: everything `Agents.revive()`
 	 *                    needs to reopen the same session after a restart
 	 * plus `forked_from` / `resumed_from` when the spawn continued another
-	 * session, and `context`: the tokens it holds now (Agent.result()). */
+	 * session, `context`: the tokens it holds now (Agent.result()), and `spec`: the
+ * spawn spec minus the prompt, which `Agents.wake()` reopens a stopped agent with. */
 	row(agent){
 		const { id, role, name, topics, page, state, visibility, session_id, started_at, parent,
 			model, effort, cwd, permission_mode, allowed_tools, setting_sources,
@@ -51,7 +52,8 @@ export default class Registry {
 			permission_mode: permission_mode ?? null, allowed_tools: allowed_tools ?? null,
 			setting_sources: setting_sources ?? null,
 			forked_from: forked_from ?? null, resumed_from: resumed_from ?? null,
-			ended: ended ?? null, context: context ?? null };
+			ended: ended ?? null, context: context ?? null,
+			spec: agent.recipe?.() ?? null };
 	}
 
 	write(agent){

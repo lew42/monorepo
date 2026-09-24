@@ -1,6 +1,10 @@
 import { query, getSessionInfo, getSessionMessages } from "@anthropic-ai/claude-agent-sdk";
+import fs from "node:fs";
+import { randomUUID } from "node:crypto";
+import os from "node:os";
+import path from "node:path";
 import Log from "../Log.js";
-import { stamp } from "../home.js";
+import { stamp, place } from "../home.js";
 import Registry from "./registry.js";
 import { defaults as role_defaults, opening } from "./roles.js";
 
@@ -192,25 +196,35 @@ export class Agents {
 	revive({ window_min = 30 } = {}){
 		const reg = this.reg(), prev = reg.last_boot();
 		reg.mark_boot(this.boot);
-		const out = { revived: [], told: [], gone: [] };
+		const out = { revived: [], told: [], gone: [], legacy: [] };
 		for (const row of reg.list()){
 			if (this.live.has(row.id) || row.state === "stopped") continue;
-			if (SELF_RESTARTED.some(prefix => row.id.startsWith(prefix))){
+			if (self_restarted(row.id)){
 				if (row.state !== "gone") out.gone.push(row.id);
 				continue;
 			}
 			const swept = row.state === "gone" && row.ended === "host process exited";
 			if (row.state === "gone" && !(swept && prev?.boot && row.boot === prev.boot)) continue;
-			const fresh = Date.now() - Date.parse(row.last_at ?? 0) < window_min * 60000;
-			if (!(prev?.boot && row.boot === prev.boot && fresh && row.revivable && row.session_id)){
+			/* A LEGACY row — written by the code before this, with no host-process
+			 * fields at all — counts as the previous Servex's. The first restart
+			 * onto this code is the one with the most agents running, so it must
+			 * revive too: it does when the agent's own log was written in the
+			 * window, which is the only liveness the old code left behind. It
+			 * never recorded system/sdk/in-process servers either; the agents that
+			 * had them are the SELF_RESTARTED ones, already skipped above. */
+			const legacy = !row.boot && !row.pid;
+			const ours = legacy ? this.recent_log(row.id, window_min)
+				: !!prev?.boot && row.boot === prev.boot && Date.now() - Date.parse(row.last_at ?? 0) < window_min * 60000;
+			let agent = null;
+			if (ours && (legacy || row.revivable) && row.session_id)
+				try { agent = this.reopen(row); } catch {}
+			if (!agent){
 				if (row.state !== "gone") out.gone.push(row.id);
 				continue;
 			}
-			const { id, role, name, topics, page, parent, visibility, model, effort, cwd,
-				permission_mode, allowed_tools, setting_sources, started_at, session_id } = row;
-			const agent = this.spawn(strip({ id, role, name, topics, page, parent, visibility, model, effort, cwd,
-				permission_mode, allowed_tools, setting_sources, started_at, resume: session_id }));
+			const id = row.id;
 			out.revived.push(id);
+			if (legacy) out.legacy.push(id);
 			if (row.state === "working"){
 				agent.send("Servex restarted mid-turn; your last tool call may not have finished. Check and continue.",
 					{ from: "servex" });
@@ -241,7 +255,42 @@ export class Agents {
 		throw new Error(`No agent "${id}". Live now: ${open}`);
 	}
 
-	send(id, text, note){ return this.get(id).send(text, note); }
+	/* WAKE ON MESSAGE — so an idle agent can be STOPPED at no cost (one held
+	 * open costs ~250 MB). A message to a stopped agent, or to one that exists
+	 * only in the registry, reopens it first: the same id, `resume` = its
+	 * session, its own recorded spec, no prompt — then delivers. A fork is never
+	 * re-woken. ⚠ `Agent.send()` on a stopped INSTANCE still throws: the live
+	 * card's route turns that throw into a 409. */
+	send(id, text, note){
+		const agent = this.live.get(id);
+		if (agent && agent.state !== "stopped") return agent.send(text, note);
+		return this.wake(id).send(text, note);
+	}
+
+	wake(id){
+		const live = this.live.get(id);
+		const row = this.reg().read()[id];
+		if (!live && !row) return this.get(id);          // throws, naming who IS live
+		if (live?.one_shot || (live?.role ?? row?.role) === "fork")
+			throw new Error(`Agent ${id} is a fork: it answered once and is not woken again.`);
+		if (!live?.session_id && !row?.session_id) throw new Error(`Agent ${id} never got a session, so there is nothing to wake.`);
+		return this.reopen({ ...row, ...(live ? { spec: live.recipe(), session_id: live.session_id } : {}), id });
+	}
+
+	/* Reopen a registry row's session as a live agent under the same id: its
+	 * recorded `spec` when it has one, else the row's own fields; where the
+	 * session ran and its model come from the session file when the row does
+	 * not say. Shared by `wake()` and `revive()`. */
+	reopen(row){
+		const keys = ["role", "name", "topics", "page", "parent", "visibility", "model", "effort", "cwd",
+			"permission_mode", "allowed_tools", "setting_sources"];
+		const base = strip(row.spec ?? Object.fromEntries(keys.map(k => [k, row[k]])));
+		const facts = base.cwd && base.model ? {} : session_facts(row.session_id);
+		const cwd = base.cwd ?? facts.cwd;
+		if (!cwd) throw new Error(`Cannot find where session ${row.session_id} ran, so it cannot be resumed.`);
+		return this.spawn(strip({ ...base, cwd, model: base.model ?? facts.model,
+			id: row.id, started_at: row.started_at, resume: row.session_id }));
+	}
 	interrupt(id){ return this.get(id).interrupt(); }
 	stop(id){ return this.get(id).stop(); }
 
@@ -252,10 +301,20 @@ export class Agents {
 	 * whole switchboard. */
 	watch(){}
 
+	/* Was this agent's own log written in the last `window_min` minutes? The only
+	 * liveness a legacy registry row has. Worked out from the path, never through
+	 * `Log.file()`, which would open a write stream on it. */
+	recent_log(id, window_min){
+		const dir = this.store().dir ?? path.dirname(place("logs", "any.jsonl"));
+		try { return Date.now() - fs.statSync(path.join(dir, `agent-${id}.jsonl`)).mtimeMs < window_min * 60000; }
+		catch { return false; }
+	}
+
 	/* THE WAKE — a child with a `parent` that just ended a turn, stopped, or
 	 * errored gets ONE message, so the parent's own turn ends on real news
 	 * instead of silence. `kind` is "done", "blocked" (the child's last words
-	 * started with that word) or "error"; the body is the child's own last
+	 * started with that word), "error", or "stopped" (stopped MID-TURN; an idle
+	 * child's stop wakes nobody); the body is the child's own last
 	 * words, first 300 chars — a parent reading its own log wants the
 	 * headline, not a replay. Queued behind whatever the parent is doing
 	 * (`Agent.send()`'s own default), never dropped. Off with
@@ -270,7 +329,7 @@ export class Agents {
 		catch { return; }
 		/* A fork's answer IS the payload, so it goes whole (to 4000 chars) — the
 		 * whole turn's text, not only its last block. Any other wake is a headline. */
-		const fork = child.one_shot && kind !== "error";
+		const fork = child.one_shot && (kind === "done" || kind === "blocked");
 		const text = kind === "error" ? child.last_error : fork ? (child.words ?? child.last_text) : child.last_text;
 		const body = fork ? `fork answer: ${(text ?? "").slice(0, 4000)}` : `${kind}: ${(text ?? "").slice(0, 300)}`;
 		child.woke = true;
@@ -279,9 +338,40 @@ export class Agents {
 	}
 }
 
+/* What a session's own file says about it — the `cwd` it ran in (a resume must
+ * run there) and the last `model` that answered in it — for a registry row too
+ * old to have recorded either. Synchronous on purpose: `revive()` runs inside
+ * Servex's constructor. Reads the first 64 KB and the last 256 KB, never the
+ * whole file. */
+export function session_facts(sid){
+	const root = path.join(process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), ".claude"), "projects");
+	let file;
+	try {
+		for (const dir of fs.readdirSync(root)){
+			const f = path.join(root, dir, `${sid}.jsonl`);
+			if (fs.existsSync(f)){ file = f; break; }
+		}
+	} catch {}
+	if (!file) return {};
+	const slice = (from, size) => {
+		const fd = fs.openSync(file, "r");
+		try { const buf = Buffer.alloc(size); return buf.toString("utf8", 0, fs.readSync(fd, buf, 0, size, from)); }
+		finally { fs.closeSync(fd); }
+	};
+	const size = fs.statSync(file).size;
+	const head = slice(0, Math.min(size, 65536));
+	const tail = slice(Math.max(0, size - 262144), Math.min(size, 262144));
+	const cwd = head.match(/"cwd":"((?:[^"\\]|\\.)*)"/)?.[1];
+	const model = [...tail.matchAll(/"model":"(claude-[^"]+)"/g)].pop()?.[1];
+	return strip({ cwd: cwd && JSON.parse(`"${cwd}"`), model, file });
+}
+
 /* Agents whose owner (Layers.js, Assistant.js) spawns them again itself at
- * boot — `revive()` never reopens these; it only marks the old row gone. */
-export const SELF_RESTARTED = ["assistant-", "manager-", "master-assistant", "servex-mastermind"];
+ * boot — `revive()` never reopens these; it only marks the old row gone.
+ * Prefixes, plus exact ids. */
+export const SELF_RESTARTED = { prefixes: ["assistant-", "manager-", "master-assistant"], ids: ["mastermind-servex"] };
+export const self_restarted = id =>
+	SELF_RESTARTED.ids.includes(id) || SELF_RESTARTED.prefixes.some(prefix => id.startsWith(prefix));
 
 /* Drop the undefined and null fields, so a role's defaults can fill them. */
 const strip = spec => Object.fromEntries(Object.entries(spec).filter(([, v]) => v != null));
@@ -318,7 +408,12 @@ Agents.Agent = class Agent {
 	start(){
 		this.queue = new this.constructor.Queue();
 		this.aborter = new AbortController();
+		/* The session id is known AT SPAWN, not at the first `system/init`: a
+		 * fresh spawn or a fork mints one and hands it to the SDK as `sessionId`
+		 * (allowed beside `forkSession`), so the registry row can be resumed even
+		 * if the host dies during the first turn. A plain resume keeps its id. */
 		if (this.resume && !this.fork) this.session_id ??= this.resume;
+		else { this.session_id = randomUUID(); this.minted = true; }
 		this.query = query({ prompt: this.queue.stream(), options: this.options() });
 		this.pump();
 		if (!this.prompt){ this.state = "idle"; return this; }
@@ -332,6 +427,16 @@ Agents.Agent = class Agent {
 	 * restart: `system`, `sdk` and in-process MCP servers are code, not data. */
 	revivable(){
 		return !!this.session_id && !this.system && !this.sdk && !this.mcp_servers && !this.one_shot;
+	}
+
+	/* The spawn spec minus the prompt — what `wake()` reopens it with, kept on
+	 * its registry row as `spec`. Data only: `sdk`, in-process `mcp_servers` and
+	 * `env` are code or secrets and are not kept; a fork keeps none. */
+	recipe(){
+		if (this.one_shot) return null;
+		const keys = ["role", "name", "topics", "page", "parent", "visibility", "model", "effort", "cwd",
+			"permission_mode", "allowed_tools", "setting_sources", "system"];
+		return strip(Object.fromEntries(keys.map(k => [k, this[k]])));
 	}
 
 	/* Resolves when this agent is idle (turn over, nothing queued) or stopped
@@ -378,6 +483,7 @@ Agents.Agent = class Agent {
 			...(this.system ? { systemPrompt: this.system } : {}),
 			...(this.resume ? { resume: this.resume } : {}),
 			...(this.resume && this.fork ? { forkSession: true } : {}),
+			...(this.minted ? { sessionId: this.session_id } : {}),
 			...this.sdk,
 			...(this.one_shot ? this.refusal() : {})
 		};
@@ -452,8 +558,9 @@ Agents.Agent = class Agent {
 		try { this.query.close(); } catch {}
 		try { this.aborter.abort(); } catch {}
 		if (this.state === "stopped") return this;
+		const mid_turn = this.state === "working";
 		this.state = "stopped";
-		this.emit({ type: "result", stopped: true, turns: this.turns, cost: this.cost });
+		this.emit({ type: "result", stopped: true, mid_turn, turns: this.turns, cost: this.cost });
 		this.host?.register?.(this);
 		this.settle();
 		return this;
@@ -492,8 +599,13 @@ Agents.Agent = class Agent {
 		if (event.type === "error") this.last_error = event.text;
 		this.host?.watch(event, this);
 		this.log(event);
-		if (event.type === "result") this.host?.wake_parent?.(this,
-			this.one_shot && event.ok === false ? "error"
+		/* Stopping an IDLE child is not news — its "done" already went out when
+		 * its turn ended. Only a child cut off mid-turn wakes the parent, as
+		 * `stopped: …` (2026-09-24: five finished minions, stopped, each re-sent
+		 * its old "done"). */
+		if (event.type === "result" && !(event.stopped && !event.mid_turn)) this.host?.wake_parent?.(this,
+			event.stopped ? "stopped"
+			: this.one_shot && event.ok === false ? "error"
 			: this.last_text?.startsWith("BLOCKED") ? "blocked" : "done");
 		if (event.type === "error") this.host?.wake_parent?.(this, "error");
 		return event;
