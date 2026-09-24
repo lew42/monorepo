@@ -8,6 +8,7 @@ import { clock, flag_box } from "./faces.js";
 export { clock, row, full, flag_box, toc, sub_full, who, is_you } from "./faces.js";
 import chat from "./chat.js";
 import composer from "./compose.js";
+import agents_panel from "./agents.js";
 import { author_word, type_icon, create_card, append_card, cards_ready } from "./inbox.js";
 
 View.stylesheet(import.meta, "ai2.css");
@@ -200,6 +201,7 @@ export default class Card extends Page {
 			f.tags.forEach(t => { span.c("ai2-chip").text("#" + t); });
 			if (this.attached?.length) small.c("muted").text("on it: " + this.attached.join(", "));
 		});
+		agents_panel(this.id);
 
 		if (this.text) p.c("ai2-text").text(this.text);
 		if (this.description) p.c("ai2-text").text(this.description);

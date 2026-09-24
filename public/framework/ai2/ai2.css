@@ -1487,3 +1487,33 @@
 		}
 	}
 }
+
+/* THE CARD'S AGENT PANEL (agents.js): one row per agent, a thin bar for its context. */
+@layer theme {
+	.ai2-agents {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25em;
+	}
+
+	.ai2-agent-id {
+		font-weight: 600;
+	}
+
+	.ai2-agent-bar {
+		flex: 0 0 5em;
+		height: 0.4em;
+		border-radius: 1em;
+		background: color-mix(in srgb, currentColor 15%, transparent);
+		overflow: hidden;
+	}
+
+	.ai2-agent-fill {
+		height: 100%;
+		background: color-mix(in srgb, currentColor 55%, transparent);
+	}
+
+	.ai2-agent-fill.hot {
+		background: #d9534f;
+	}
+}
