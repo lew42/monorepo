@@ -78,6 +78,29 @@ view](/framework/ai/v/3/?view=prompts) is where all three show up live, beside
 the owner's own words. It never edits a file and never builds; that posture is
 written out in full in `agents/assistant.md`, its whole system prompt.
 
+## Is the machine melting? — the monitor and the spawn queue
+
+`Monitor.js` checks the machine every 5 seconds: total CPU, free RAM, the five
+processes using the most CPU, how many claude, node and chrome processes exist,
+the GPU (through `nvidia-smi`), and how many live agents are **idle but still
+holding a claude process** — the thing that ate the RAM on 2026-09-24. Any session
+asks with the MCP tool **`system_health`** (or `GET /api/system`) and gets one
+plain line first, like "Calm: CPU 22%, 15.4 GB free, GPU 37 °C, 0 idle agents
+holding claude." Once a minute it writes an averaged line to the `system` log.
+It is cheap on purpose: one hidden PowerShell loop and one `nvidia-smi` for its
+whole life, never a new process per sample.
+
+**The flag** goes up when CPU stays above 90% for 60 seconds, or free RAM drops
+under 3 GB (`SERVEX_HOT_CPU`, `SERVEX_HOT_SECONDS`, `SERVEX_LOW_RAM_GB`, or the
+tool's own three arguments while it runs). Going up sends one message to
+`mastermind-servex` and one line to the Live card; clearing says one line more.
+**While it is up, new agents wait in a queue** instead of starting: `spawn_agent`
+answers with a card that says `state: "queued"` and why, and Servex starts them
+by itself, oldest first, once the flag clears. Tasks the Dispatcher picks up
+wait in its own list the same way. The owner's assistants and their helpers are
+never queued (the comment above `admission()` in `Servex.js` says why). CPU temperature and fan speed need admin
+on this machine, so the sample says `null` and gives the reason.
+
 ## Where things live
 
 Outside the repo, one folder per machine — `%LOCALAPPDATA%/lew42/servex/`:
@@ -132,12 +155,12 @@ carry its own `handler` instead, which is the shape a module exporting a whole
 list of tools wants — `for (const tool of tools) servex.mcp.tool(tool);`.
 Registering the same name twice replaces it, so a module can be reloaded.
 
-All eleven tools go on through that one seam in `Servex.tools()`, with no
+All twelve tools go on through that one seam in `Servex.tools()`, with no
 shortcut — if it works for them it works for yours. Six are the servers'
 (`list_servers`, `start_server`, `restart_server`, `stop_server`, `server_logs`,
 `append_log`) and five are the agents' (`spawn_agent`, `send_to_agent`,
 `interrupt_agent`, `list_agents`, `stop_agent`), the second five handed in by
-`agents/tools.js` as one array.
+`agents/tools.js` as one array, and one is the monitor's (`system_health`).
 
 ## Watch out
 
