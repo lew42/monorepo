@@ -88,15 +88,11 @@ export default class Assistant {
 		 * `re`. Remembered for the whole turn, so the reply finds its way back. */
 		this.selected = prompt.selected ?? (typeof prompt.re === "string" ? prompt.re : null);
 		this.card = this.selected?.split("/")[0] ?? null;
+		// A card with its own assistant answers its own prompts; the fast assistant
+		// is the lobby for words spoken with no card.
+		if (this.servex.cards?.canonical?.(prompt.selected)) return;
 		try { this.start().send(this.words(prompt), { from: "owner", reply_to: `log ${this.log}` }); }
 		catch (e){ this.servex.say(`assistant could not hear a prompt: ${e.message || e}`); }
-		// Started from here, not Servex.js: the fast assistant is already the one
-		// thing wired to boot on the first real prompt, so the master listener rides
-		// along instead of a second place in Servex.js needing to know it exists.
-		// `install()` registers ITS OWN listener for every prompt from now on — this
-		// one, the first, is fed by hand because that listener was not up in time
-		// to hear it.
-		if (!this.master){ this.master = new MasterAssistant({ servex: this.servex }).install(); this.master.heard(prompt); }
 	}
 
 	/* The sentences, numbered — those numbers ARE the citation vocabulary, so
@@ -360,111 +356,5 @@ You are a helper: read the repo (read-only) and answer that. `
 			try { res.json(this.start().send(text, { from, reply_to: `log ${this.log}` }).card()); }
 			catch (e){ res.status(500).json({ error: String(e.message || e) }); }
 		});
-	}
-}
-
-/* THE MASTER ASSISTANT — a second, slower opinion, alive alongside the fast one
- * (started from `Assistant.heard()`, not Servex.js — see the comment there).
- * Budget mode: `claude-sonnet-5` at `medium` effort, not the `claude-fable-5-1`
- * `roles.js` would otherwise pick for `master-assistant` — Opus/Fable are not
- * allowed in this run (decision `master-assistant-budget`, 2026-09-22).
- *
- * It stays SILENT — no tool call, no line, no cost — unless it disagrees with
- * the fast assistant's route or name (a `dispute`, which `Log.js`'s naming
- * checks already handle) or a whole thread earns one `refined` summary of its
- * own, at most once per five prompts (said in its own brief, not enforced here
- * — enforcing it would mean reading the fast assistant's own answer first,
- * which costs the very turn budget-mode is trying to save). Its own cost is
- * measured every ten prompts (`measure()`) against `agent.cost` — the SDK's
- * own cumulative total, the only cost Agents.js tracks — and above $0.10 per
- * ten it throttles itself to every other prompt, logging that it did. */
-class MasterAssistant {
-	constructor(...args){ this.assign(this.defaults(), ...args); }
-	assign(...args){ return Object.assign(this, ...args); }
-
-	// ⚠ `id` MUST equal what `Agents.name()` actually mints (`<role>-<name>`)
-	// or `live()` can never find the session it just spawned — found live: a
-	// mismatch here spawned a BRAND NEW master session on every single prompt
-	// (`master-assistant-master`, `-2`, `-3` … seven of them for twelve
-	// prompts) instead of the one always-alive agent the brief asks for.
-	defaults(){ return { id: "master-assistant-master", role: "master-assistant", name: "master",
-		log: "prompts", current: null, count: 0, cost_at: 0, throttled: false }; }
-
-	brief(){
-		return "You are the master assistant — a slower second opinion beside a fast assistant"
-			+ " that already answers every prompt first. You have one tool, `master_review`."
-			+ " STAY SILENT — call nothing — unless: (a) you disagree with the fast assistant's"
-			+ " route or name for this sentence, in which case call it once with `dispute` and"
-			+ " one short, plain reason; or (b) a whole thread of several prompts has earned one"
-			+ " `refined` summary of its own, at most once per five prompts. Never build, never"
-			+ " plan, never ask a question back. Plain words — the reader is glancing at a"
-			+ " screen, not reading code. Never write the owner's name; say *you*.";
-	}
-
-	install(){ this.tool(); this.listen(); return this; }
-	live(){ const a = this.servex.agents.live.get(this.id); return a && a.state !== "stopped" ? a : null; }
-
-	start(){
-		const live = this.live();
-		if (live) return live;
-		this.servex.agents.live.delete(this.id);
-		return this.servex.agents.spawn({
-			role: this.role, name: this.name, model: "claude-sonnet-5", effort: "medium",
-			system: this.brief(), permission_mode: "bypassPermissions",
-			allowed_tools: ["mcp__servex__master_review"],
-			prompt: "You are on duty. The next message is the owner's words. Answer nothing now."
-		});
-	}
-
-	listen(){
-		this.servex.log.on("append", (name, entry) => {
-			if (name === this.log && entry.type === "prompt") this.heard(entry);
-		});
-	}
-
-	heard(prompt){
-		this.current = prompt.id ?? this.current;
-		this.count++;
-		if (this.throttled && this.count % 2 === 0) return;   // over budget — every other prompt only
-		const agent = this.start();
-		try { agent.send(`prompt ${prompt.id}, just spoken: "${(prompt.text ?? "").trim()}"`,
-			{ from: "owner", reply_to: `log ${this.log}` }); }
-		catch (e){ this.servex.say(`master assistant could not hear a prompt: ${e.message || e}`); }
-		if (this.count % 10 === 0) this.measure(agent);
-	}
-
-	/* `agent.cost` is cumulative for the whole session (Agents.js's own
-	 * `result()`) — the delta since the last check is this ten prompts' cost. */
-	measure(agent){
-		const spent = (agent.cost ?? 0) - this.cost_at;
-		this.cost_at = agent.cost ?? 0;
-		this.throttled = spent > 0.10;
-		this.servex.log.append("servex", { type: "decision", by: this.id,
-			text: `master assistant: $${spent.toFixed(3)} over the last 10 prompts`
-				+ (this.throttled ? " — over $0.10, throttling to every other prompt" : "") });
-	}
-
-	tool(){
-		this.servex.mcp.tool({
-			name: "master_review",
-			description: "Your voice — call it ONLY to disagree with the fast assistant's route or"
-				+ " name, or to give one thread its own refined summary. `by`/`re` are stamped for you.",
-			inputSchema: { type: "object", required: ["type", "text"], properties: {
-				type: { type: "string", description: "`dispute` or `refined`." },
-				text: { type: "string", description: "type `dispute`: why, one short sentence. type `refined`: the reading." },
-				cites: { type: "array", items: { type: "number" }, description: "type `refined`: the sentence numbers it came from." }
-			} },
-			handler: args => this.append(args)
-		});
-	}
-
-	async append(raw = {}){
-		// Same defensive unwrap as the fast assistant's — see its `unwrap()`.
-		const { type, text, cites } = raw.type || typeof raw.event !== "string" ? raw
-			: (() => { try { return JSON.parse(raw.event); } catch { return raw; } })();
-		if (!type) return JSON.stringify({ ok: false, why: "no type — dropped, not written" });
-		const id = type === "refined" ? `mr-${this.current}` : `md-${this.current}-${Date.now().toString(36)}`;
-		const out = await this.servex.log.append(this.log, { type, text, ...(cites ? { cites } : {}), id, by: this.id, re: this.current });
-		return JSON.stringify(out.ok ? { ok: true, id: out.entry.id } : out);
 	}
 }

@@ -17,7 +17,7 @@ export class Policy {
 		if(id.startsWith("assistant-")) return "assistant";
 		if(id.startsWith("manager-")) return "manager";
 		if(id.startsWith("master-assistant")) return "master";
-		if(id === "servex-mastermind") return "servex";
+		if(id === "mastermind-servex" || id === "servex-mastermind") return "servex";
 		if(id.startsWith("task-mastermind-")) return "task-mastermind";
 		if(id === "dispatcher") return "system";
 		return "worker";

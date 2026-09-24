@@ -10,7 +10,7 @@ const m = (f, to) => p.message(f, to);
 t(m(null, "minion-a").rule === "owner", "tab is owner");
 t(m("owner", "assistant-a").ok, "owner ok");
 t(m("dispatcher", "minion-a").rule === "system", "dispatcher");
-t(m("servex-mastermind", "manager-b").rule === "system", "servex");
+t(m("mastermind-servex", "manager-b").rule === "system" && m("servex-mastermind", "manager-b").rule === "system", "servex");
 t(m("minion-a", "task-mastermind-x").rule === "tree", "child to parent");
 t(m("task-mastermind-x", "minion-a").rule === "tree", "parent to child");
 t(!m("minion-a", "minion-b").ok, "worker to stranger refused");
