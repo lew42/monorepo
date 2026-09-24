@@ -8,8 +8,9 @@
  * queued task spawns a `task-mastermind` agent to build it.
  *
  * Not a Claude session itself: plain code, one `Map` of who is running, one
- * array of who is waiting. At most `max` run at once; a slot freeing up (a
- * child's wake, done or blocked) starts the next one queued. */
+ * array of who is waiting. `max` caps how many run at once — no cap by default
+ * (the owner, 2026-09-24: "an unnecessary limitation"); set a number to bring
+ * one back, and a slot freeing up (a child's wake) starts the next one queued. */
 import fs from "node:fs";
 import path from "node:path";
 
@@ -28,7 +29,7 @@ export default class Dispatcher {
 	assign(...args){ return Object.assign(this, ...args); }
 
 	defaults(){
-		return { id: "dispatcher", log: "prompts", max: 2, running: new Map(), queue: [], paused: new Set(), cards: new Map(), titles: new Map() };
+		return { id: "dispatcher", log: "prompts", max: Infinity, running: new Map(), queue: [], paused: new Set(), cards: new Map(), titles: new Map() };
 	}
 
 	install(){ this.hire(); this.listen(); return this; }
@@ -95,9 +96,9 @@ export default class Dispatcher {
 		while (this.running.size < this.max && this.queue.length) this.dispatch(this.queue.shift());
 	}
 
-	/* Sonnet at MEDIUM effort — overriding `roles.js`'s own Opus/high default
-	 * for `task-mastermind`: budget mode, no Opus anywhere (decision
-	 * `card-to-task-budget`). `permission_mode` is left at the role's own
+	/* Opus 5.5 at MEDIUM effort — the owner, 2026-09-24, on a fresh weekly
+	 * window: "Opus 5.5 medium effort seems to work pretty well" (was Sonnet
+	 * medium, decision `card-to-task-budget`). `permission_mode` is left at the role's own
 	 * `bypassPermissions` — nobody is there to approve a tool call on a
 	 * non-interactive session. */
 	async dispatch(task){
@@ -117,7 +118,7 @@ export default class Dispatcher {
 		const agent = this.servex.agents.spawn({
 			role: "task-mastermind",
 			name: task.id.replace(/^t-/, ""),
-			model: "claude-sonnet-5", effort: "medium",
+			model: "claude-opus-5-5", effort: "medium",
 			prompt: `${task.brief}\n\n${opening}`,
 			parent: this.id,
 			topics, page
