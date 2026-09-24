@@ -184,5 +184,32 @@ const reset = () => { for (const f of ["claims.json", "global.json"]) fs.rmSync(
 	t(g.admit({ parent: "p3" }, 100) !== null, "a child never skips the memory check");
 }
 
+// mastermind-servex held at the spawn gate: one spawn, messages wait, delivered on admitted
+{
+	reset();
+	const f = fake_servex(), handlers = [], held = [];
+	const REASON = "only 10 MB of memory is free; waiting for 4096 MB";
+	f.servex.on = (ev, fn) => { if (ev === "admitted") handlers.push(fn); };
+	const spawn = f.servex.agents.spawn.bind(f.servex.agents);
+	f.servex.agents.spawn = spec => spec.role !== "mastermind" ? spawn(spec)
+		: (held.push(spec), { id: null, queued: true, spec, card: () => ({ id: null, state: "queued", queued: true, position: 1, reason: REASON }) });
+	f.servex.agents.wake = id => { throw new Error(`the real wake was reached for ${id}`); };
+	const g = new Global({ servex: f.servex }).install(); await g.ready;
+	clearInterval(g.reap_timer);
+	t(held.length === 1 && g.held?.spec === held[0], "boot: mastermind-servex queued, held by its spec object");
+	t(g.mastermind() === g.held.agent && held.length === 1, "asked again while held: the same stand-in, no second spawn");
+	const door = f.servex.agents.send("mastermind-servex", "two cards collide", { from: "manager-a" });
+	t(door.card().state === "queued" && door.card().reason === REASON, "a message while held gets the queued card back");
+	t(f.servex.agents.wake("mastermind-servex").queued === true, "wake is routed to the held door");
+	t(!f.sent.length, "nothing is sent to a stand-in");
+	const real = f.add({ id: "mastermind-servex", role: "mastermind", state: "working", session_id: "s-mm" });
+	f.servex.agents.live.set(real.id, real);
+	for (const h of handlers) h({ ...held[0] }, real);
+	t(!f.sent.length && g.held, "an equal but different spec object is not ours");
+	for (const h of handlers) h(held[0], real);
+	t(!g.held && f.sent.length === 1 && f.sent[0].text === "two cards collide" && f.sent[0].note.from === "manager-a", "admitted: the held message is delivered");
+	t(JSON.parse(fs.readFileSync(path.join(HOME, "global.json"), "utf8")).mastermind.session_id === "s-mm", "admitted: its session id is remembered");
+}
+
 fs.rmSync(HOME, { recursive: true, force: true });
 console.log(`global: ${n} checks passed`);

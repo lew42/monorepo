@@ -19,12 +19,12 @@ import os from "node:os";
 import path from "node:path";
 import { spawn, execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import Global from "./Global.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, "../..");
 const SCRATCH = path.resolve(process.argv[2] || fs.mkdtempSync(path.join(os.tmpdir(), "layers-proof-")));
-const LOCAL = path.join(SCRATCH, `localappdata-${Date.now().toString(36)}`);
+const STAMP = Date.now().toString(36);
+const LOCALS = [];   // one fresh LOCALAPPDATA per boot: the main run, then the two gate boots
 const PORT = 8190, BASE = `http://127.0.0.1:${PORT}`;
 const OUT = path.join(REPO, "public/framework/ai/2026-09-24/assistant-layers/proof.json");
 const AI = path.join(REPO, "public/framework/ai");
@@ -70,18 +70,35 @@ function free(port){
 }
 
 let child = null;
-async function boot(){
+async function boot(tag = "main", extra = {}){
 	for (const p of [8190, 8189, 8188]) if (!free(p)) throw new Error(`port ${p} is already taken; is an earlier proof still running?`);
-	fs.mkdirSync(LOCAL, { recursive: true });
-	const env = { ...process.env, LOCALAPPDATA: LOCAL, SERVEX_PORT: "8190", SERVEX_PROXY_PORT: "8189", SERVEX_PROXY_INTERNAL: "8188",
+	const local = path.join(SCRATCH, `localappdata-${STAMP}-${tag}`);
+	fs.mkdirSync(local, { recursive: true });
+	LOCALS.push(local);
+	const env = { ...process.env, LOCALAPPDATA: local, SERVEX_PORT: "8190", SERVEX_PROXY_PORT: "8189", SERVEX_PROXY_INTERNAL: "8188",
 		SERVEX_NO_GATE: "1", NO_WHISPER: "1", WHISPER_PORT: "8187", SERVEX_CARD_IDLE_MS: "90000", SERVEX_MASTER_BATCH_MS: "5000",
 		SERVEX_REAP_MS: "20000", SERVEX_REAP_EVERY_MS: "5000" };
-	for (const k of ["SERVEX_HOME", "SERVEX_NO_ASSISTANT", "SERVEX_NO_LAYERS", "SERVEX_POLICY", "PORT"]) delete env[k];
-	const log = fs.openSync(path.join(SCRATCH, "servex-child.log"), "a");
+	for (const k of ["SERVEX_HOME", "SERVEX_NO_ASSISTANT", "SERVEX_NO_LAYERS", "SERVEX_NO_MONITOR", "SERVEX_POLICY", "SERVEX_AGENT_CAP", "SERVEX_MIN_FREE_MB", "PORT"]) delete env[k];
+	Object.assign(env, extra);
+	const log = fs.openSync(path.join(SCRATCH, `servex-child-${tag}.log`), "a");
 	child = spawn(process.execPath, ["Servex/index.js"], { cwd: REPO, env, stdio: ["ignore", log, log], windowsHide: true });
-	say(`private Servex pid ${child.pid}, LOCALAPPDATA ${LOCAL}`);
+	say(`private Servex (${tag}) pid ${child.pid}, LOCALAPPDATA ${local}`);
 	const up = await until(async () => Array.isArray(await get("/api/agents")), 30000, 500);
-	if (!up) throw new Error("the private Servex did not answer on :8190 within 30 s; see servex-child.log");
+	if (!up) throw new Error(`the private Servex (${tag}) did not answer on :8190 within 30 s; see servex-child-${tag}.log`);
+}
+
+/* Stop every agent the private Servex started, then kill it and wait for its ports. */
+async function shutdown(){
+	if (!child) return;
+	try {
+		const live = await get("/api/agents");
+		for (const a of Array.isArray(live) ? live : []) if (a.state !== "stopped" && a.id !== "dispatcher") await tool("stop_agent", { id: a.id }).catch(() => {});
+	} catch {}
+	await sleep(1500);
+	try { execFileSync("taskkill", ["/PID", String(child.pid), "/T", "/F"], { stdio: "ignore" }); } catch {}
+	say(`private Servex pid ${child.pid} stopped`);
+	child = null;
+	await until(async () => free(8190) && free(8189) && free(8188), 15000, 500);
 }
 
 // ── cleanup ──────────────────────────────────────────────────────────────
@@ -97,19 +114,13 @@ const dirty = () => { try { return execFileSync("git", ["status", "--porcelain"]
 const dirty_before = new Set(dirty());
 let touched = [];
 async function cleanup(){
-	try {
-		const live = await get("/api/agents");
-		for (const a of Array.isArray(live) ? live : []) if (a.state !== "stopped" && a.id !== "dispatcher") await tool("stop_agent", { id: a.id }).catch(() => {});
-	} catch {}
-	await sleep(1500);
-	if (child?.pid) try { execFileSync("taskkill", ["/PID", String(child.pid), "/T", "/F"], { stdio: "ignore" }); } catch {}
-	await sleep(500);
+	await shutdown();
 	if (!before_year) fs.rmSync(path.join(AI, "2026"), { recursive: true, force: true });
 	else for (const id of made_cards) fs.rmSync(path.join(AI, ...id.split("/")), { recursive: true, force: true });
 	if (day_before) fs.writeFileSync(DAY, day_before);
 	touched = dirty().filter(l => !dirty_before.has(l) && !l.includes("assistant-layers/proof.json"));
 	if (touched.length) say(`the agents changed these files in the tree (left for a person to review): ${touched.join(", ")}`);
-	say(`cleaned up: agents stopped, pid ${child?.pid} killed, ${before_year ? made_cards.length + " card folders" : "public/framework/ai/2026/"} removed`);
+	say(`cleaned up: ${before_year ? made_cards.length + " card folders" : "public/framework/ai/2026/"} removed`);
 }
 
 // ── the run ──────────────────────────────────────────────────────────────
@@ -239,18 +250,7 @@ async function run(){
 		{ callers: [c1, c2], managers: managers.length >= 2, results: race });
 	await tool("release_topic", { topic }, race[0]?.ok ? c1 : c2);
 
-	// 7c. the admission check, called directly (servex.checks is not merged yet)
-	const g = new Global({ servex: { agents: { live: new Map([["p", { id: "p", state: "idle" }], ["x", { id: "x", state: "working" }], ["y", { id: "y", state: "idle" }]]) } }, cap: 3, min_free_mb: 4096 });
-	const free_mb = os.freemem() / 1048576;
-	const at_cap = g.admit({ role: "minion" }, 64000);
-	const child_of_live = g.admit({ role: "minion", parent: "p" }, 64000);
-	const high = new Global({ servex: g.servex, cap: 30, min_free_mb: Math.round(free_mb) + 100000 });
-	const memory = high.admit({ role: "minion" });
-	const queue_wired = /servex\.checks|this\.checks/.test(fs.readFileSync(path.join(REPO, "Servex/Servex.js"), "utf8"));
-	record("7c. admission: queued at the ceiling with a reason, a live parent's child admitted, low memory refused",
-		!!at_cap && child_of_live === null && /memory/.test(memory ?? ""),
-		{ at_cap, child_of_live_parent: child_of_live, memory, free_mb: Math.round(free_mb),
-			queue_then_start: queue_wired ? "servex.checks is wired: rerun with SERVEX_AGENT_CAP=3" : "PENDING: servex.checks/admit() gate not merged (servex-monitor); the queue cannot run yet" });
+	// 7c runs after this, on two boots of its own: see gate()
 
 	// 7d. the reaper
 	const reaped = await until(async () => {
@@ -266,30 +266,80 @@ async function run(){
 	record("identity: every line on the two cards is signed by its own agent id, never a generic 'agent'",
 		![...speakers].some(s => !s || s === "agent"), { speakers: [...speakers] });
 
-	// cost, from the agents' own logs: `cost` is cumulative per running instance and
-	// restarts at 0 when an agent is respawned, so add each run's last value.
 	const agents = await get("/agents");
+	return { cards: { A, B }, agents: agents.map(a => ({ id: a.id, role: a.role, model: a.model, state: a.state, session_id: a.session_id, cost: a.cost ?? null })) };
+}
+
+/* 7c. THE REAL SPAWN GATE (Servex.admission() + Global's check), on two short boots
+ * with no standing agents (SERVEX_NO_ASSISTANT): three Haiku minions fill a ceiling
+ * of 3, a fourth with no parent is queued with its reason, a child of a live one is
+ * admitted anyway, and freeing slots starts the queued one on the next monitor tick.
+ * Then a boot whose memory floor is far above what is free refuses a spawn. */
+async function gate(){
+	const HAIKU = { role: "minion", model: "claude-haiku-4-5-20251001", effort: "low", permission_mode: "plan",
+		prompt: "Reply with the single word: done. Use no tools." };
+	await boot("cap", { SERVEX_AGENT_CAP: "3", SERVEX_NO_ASSISTANT: "1" });
+	const fill = [];
+	for (const n of ["one", "two", "three"]) fill.push(await tool("spawn_agent", { ...HAIKU, name: `cap-${n}` }));
+	const held = await tool("spawn_agent", { ...HAIKU, name: "cap-queued" });
+	const kid = await tool("spawn_agent", { ...HAIKU, name: "cap-child", parent: fill[0]?.id });
+	const queue = (await tool("system_health"))?.queue ?? null;
+	for (const a of [fill[1], fill[2], kid]) if (a?.id) await tool("stop_agent", { id: a.id }).catch(() => {});
+	const started = await until(async () => {
+		const line = (await servex_log("system")).find(e => e.type === "gate" && e.state === "started");
+		if (!line) return null;
+		const row = (await get("/api/agents")).find(a => a.id === line.id);
+		return { line, agent: row ? { id: row.id, state: row.state } : null };
+	}, 60000);
+	await shutdown();
+
+	const free_mb = Math.round(os.freemem() / 1048576);
+	await boot("memory", { SERVEX_NO_ASSISTANT: "1", SERVEX_MIN_FREE_MB: String(free_mb + 100000) });
+	const mem = await tool("spawn_agent", { ...HAIKU, name: "mem-refused" });
+	await shutdown();
+
+	const at_cap = held?.state === "queued" && /ceiling is 3/.test(held?.reason ?? "");
+	const child_in = !!kid?.id && kid?.state !== "queued";
+	const memory = mem?.state === "queued" && /memory/.test(mem?.reason ?? "");
+	record("7c. the real spawn gate: queued at the ceiling with its reason, started when a slot frees, a live parent's child admitted, low memory refused",
+		fill.every(a => a?.id) && at_cap && child_in && !!started && memory,
+		{ filled: fill.map(a => a?.id ?? a), queued_at_cap: held, queue_seen: queue, child_of_live_parent: kid,
+			started_when_freed: started ?? "the queued spawn did not start within 60 s of freeing two slots",
+			low_memory: { free_mb, floor_mb: free_mb + 100000, answer: mem } });
+}
+
+/* Cost, from the agents' own logs: `cost` is cumulative per running instance and
+ * restarts at 0 when an agent is respawned, so add each run's last value. */
+function total_cost(){
 	let cost = 0;
-	const logs = path.join(LOCAL, "lew42", "servex", "logs");
-	for (const f of fs.readdirSync(logs).filter(f => f.startsWith("agent-"))){
-		let prev = 0;
-		for (const line of fs.readFileSync(path.join(logs, f), "utf8").split("\n")){
-			let c; try { c = JSON.parse(line).cost; } catch { continue; }
-			if (typeof c !== "number") continue;
-			if (c < prev) cost += prev;
-			prev = c;
+	for (const local of LOCALS){
+		const logs = path.join(local, "lew42", "servex", "logs");
+		let files = [];
+		try { files = fs.readdirSync(logs).filter(f => f.startsWith("agent-")); } catch {}
+		for (const f of files){
+			let prev = 0;
+			for (const line of fs.readFileSync(path.join(logs, f), "utf8").split("\n")){
+				let c; try { c = JSON.parse(line).cost; } catch { continue; }
+				if (typeof c !== "number") continue;
+				if (c < prev) cost += prev;
+				prev = c;
+			}
+			cost += prev;
 		}
-		cost += prev;
 	}
-	return { cards: { A, B }, agents: agents.map(a => ({ id: a.id, role: a.role, model: a.model, state: a.state, session_id: a.session_id, cost: a.cost ?? null })), cost_usd: Math.round(cost * 10000) / 10000 };
+	return Math.round(cost * 10000) / 10000;
 }
 
 let extra = {}, error = null;
 try { extra = await run(); }
 catch (e){ error = String(e.stack || e); say(`ERROR ${e.message}`); }
 finally { await cleanup(); }
+try { await gate(); }
+catch (e){ error = (error ? error + "\n" : "") + String(e.stack || e); say(`ERROR in the gate boots: ${e.message}`); }
+finally { await shutdown(); }
+extra.cost_usd = total_cost();
 
-const summary = { at: new Date().toISOString(), seconds: secs(), scratch: SCRATCH, localappdata: LOCAL,
+const summary = { at: new Date().toISOString(), seconds: secs(), scratch: SCRATCH, localappdata: LOCALS,
 	passed: results.filter(r => r.pass === true).length, of: results.length, error, results, files_changed_by_agents: touched, ...extra };
 fs.mkdirSync(path.dirname(OUT), { recursive: true });
 fs.writeFileSync(OUT, JSON.stringify(summary, null, 2) + "\n");

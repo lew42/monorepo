@@ -8,6 +8,7 @@ import { Claims } from "./claims.js";
 import { brief, remember_focus } from "./brief.js";
 import { model } from "./tiers.js";
 import { Policy } from "./policy.js";
+import { queued } from "./Layers.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 /* The repo Servex runs from — the main tree, C:/Code/lew42/monorepo, in normal use.
@@ -44,6 +45,7 @@ export default class Global {
 
 	install(){
 		this.claims(); this.tools(); this.policy(); this.route(); this.listen(); this.revive(); this.check(); this.reaper();
+		this.servex.on?.("admitted", (spec, agent) => this.admitted(spec, agent));
 		this.ready = this.load_focus().then(() => { if (!process.env.SERVEX_NO_ASSISTANT) this.boot(); });
 		return this;
 	}
@@ -116,6 +118,7 @@ export default class Global {
 		const id = this.mastermind_id;
 		const live = this.live(id);
 		if (live) return live;
+		if (this.held) return this.held.agent;   // already waiting at the spawn gate: never a second spawn
 		const row = this.registry_row(id), saved = this.state().mastermind ?? {};
 		const sid = row?.session_id ?? saved.session_id ?? null;
 		const tools = ["list_agents", "send_to_agent", "card_reply", "append_log", "claim_topic", "release_topic",
@@ -123,10 +126,36 @@ export default class Global {
 		const spec = { id, role: "mastermind", name: "servex", model: model("architect"), effort: "medium",
 			permission_mode: "bypassPermissions", system: this.system("mastermind-servex.md"),
 			allowed_tools: ["Read", "Grep", "Glob", ...tools] };
-		const agent = sid
-			? this.agents.spawn({ ...spec, resume: sid, cwd: row?.cwd ?? saved.cwd ?? REPO })
-			: this.agents.spawn({ ...spec, cwd: REPO, prompt: "You are on duty. Answer nothing now." });
+		const full = sid ? { ...spec, resume: sid, cwd: row?.cwd ?? saved.cwd ?? REPO } : { ...spec, cwd: REPO, prompt: "You are on duty. Answer nothing now." };
+		const agent = this.agents.spawn(full);
+		if (queued(agent)){
+			/* THE SPAWN GATE held it: a stand-in with no session and no `.send`.
+			 * Kept by its spec OBJECT, which `admitted` hands back; messages wait. */
+			this.held = { spec: agent.spec ?? full, agent, texts: [] };
+			this.say(`mastermind-servex is queued at the spawn gate: ${agent.card?.().reason ?? "no reason given"}`);
+			return agent;
+		}
 		return this.touch(id, this.remember(agent, "mastermind"));
+	}
+
+	/* The gate started the held mastermind-servex: remember its session and hand
+	 * it what was said to it while it waited, oldest first. */
+	admitted(spec, agent){
+		if (!this.held || this.held.spec !== spec) return null;
+		const { texts } = this.held;
+		this.held = null;
+		this.touch(this.mastermind_id, this.remember(agent, "mastermind"));
+		for (const { text, note } of texts) this.agents.send(this.mastermind_id, text, note);
+		return agent;
+	}
+
+	/* What `Agents.send` gets back for a held mastermind-servex: `send()` keeps the
+	 * message for `admitted`, `card()` is the stand-in's own (queued, reason). */
+	door(){
+		const held = this.held;
+		const door = { id: this.mastermind_id, queued: true, card: () => held.agent.card(),
+			send: (text, note) => { held.texts.push({ text, note }); return door; } };
+		return door;
 	}
 
 	touch(id, agent){ this.touched.set(id, Date.now()); return agent; }
@@ -134,15 +163,19 @@ export default class Global {
 	/* A message to a stopped master or mastermind wakes it: `agents.get` is what
 	 * `send_to_agent` goes through, so the two ids resume there, by session id. */
 	revive(){
-		const agents = this.agents, get = agents.get?.bind(agents);
+		const agents = this.agents, get = agents.get?.bind(agents), wake = agents.wake?.bind(agents);
 		if (!get) return;
-		agents.get = id => {
-			if (!process.env.SERVEX_NO_ASSISTANT && !this.live(id)){
-				if (id === this.master_id) return this.master();
-				if (id === this.mastermind_id) return this.mastermind();
-			}
-			return get(id);
+		/* `Agents.send` to a stopped agent goes through `wake`, and `wake` reopens it
+		 * through the gated spawn: routed here instead, so a held mastermind-servex
+		 * is spawned once and its messages wait instead of hitting a stand-in. */
+		const ours = id => {
+			if (process.env.SERVEX_NO_ASSISTANT || this.live(id)) return null;
+			if (id === this.master_id) return this.master();
+			if (id === this.mastermind_id){ const a = this.mastermind(); return queued(a) ? this.door() : a; }
+			return null;
 		};
+		agents.get = id => ours(id) ?? get(id);
+		if (wake) agents.wake = id => ours(id) ?? wake(id);
 	}
 
 	/* Last sign of life: what Agents.js keeps is the agent's own log file, written

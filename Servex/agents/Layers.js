@@ -30,6 +30,10 @@ const json = value => JSON.stringify(value);
  * ⚠ Never `attach` these agents to their card: Cards forwards every new prompt
  * to attached agents, and `heard()` below already delivers it, so each prompt
  * would arrive twice. The context panel reads our state file instead. */
+/* The spawn gate's stand-in for a held spawn: no id, `queued: true`, and its
+ * state only through `card()`. Nothing else may be read off it. */
+export const queued = agent => !!agent && (agent.queued === true || agent.card?.()?.state === "queued");
+
 export default class Layers {
 
 	constructor(...args){ this.assign(this.defaults(), ...args); }
@@ -37,12 +41,14 @@ export default class Layers {
 
 	defaults(){
 		return { file: STATE, repo: REPO, idle_ms: Number(process.env.SERVEX_CARD_IDLE_MS) || 10 * 60 * 1000,
-			state: null, touched: new Map(), recycling: new Set(), timer: null };
+			state: null, touched: new Map(), recycling: new Set(), timer: null, pending: new Map() };
 	}
 
 	/* `features` says "this Servex has card agents": the card view shows its agent panel only then. */
 	install(){
 		this.load(); this.listen(); this.tools(); this.route(); this.watch();
+		this.servex.on?.("admitted", (spec, agent) => this.admitted(spec, agent));
+		this.wakes();
 		this.servex.log?.append?.("features", { card_agents: 1 })?.catch?.(() => {});
 		return this;
 	}
@@ -119,10 +125,11 @@ export default class Layers {
 	heard(card, prompt){
 		const slot = this.record(card).assistant;
 		const was = this.live(slot.id);
+		const held = this.pending.has(slot.id);
 		const agent = this.assistant(card);
-		if (!was && agent.layers_fresh) return agent;
+		if (!was && !held && (agent.layers_fresh || (queued(agent) && this.pending.get(slot.id)?.fresh))) return agent;
 		const on = prompt.on && prompt.on !== card ? `(on ${prompt.on}) ` : "";
-		this.servex.agents.send(slot.id, on + (prompt.text ?? prompt.raw ?? ""), { from: "owner", reply_to: `card ${card}` });
+		this.deliver(slot.id, on + (prompt.text ?? prompt.raw ?? ""), { from: "owner", reply_to: `card ${card}` });
 		this.touch(slot.id);
 		return agent;
 	}
@@ -153,14 +160,73 @@ export default class Layers {
 		const slot = this.record(card)[role];
 		const live = this.live(slot.id);
 		if (live) return live;
+		const waiting = this.pending.get(slot.id);
+		if (waiting) return waiting.agent;   // already queued at the gate: never a second spawn
 		this.servex.agents.live.delete(slot.id);
 		if (slot.session_id && !this.session_exists(slot)) this.lost(card, slot);
 		const how = slot.session_id ? { resume: slot.session_id } : { prompt: prompt() };
-		const agent = this.servex.agents.spawn({ ...this.spec(card, role), id: slot.id, cwd: slot.cwd, ...how });
+		const spec = { ...this.spec(card, role), id: slot.id, cwd: slot.cwd, ...how };
+		const agent = this.servex.agents.spawn(spec);
+		if (queued(agent)){
+			/* THE SPAWN GATE held it (Servex.admission()): the caller got a stand-in
+			 * with no session and no `.send`. Remember it by its spec OBJECT — that
+			 * same object comes back on `admitted` — and deliver later words then. */
+			this.pending.set(slot.id, { spec: agent.spec ?? spec, agent, card, role, fresh: !how.resume, texts: [] });
+			this.log_gate(slot.id, "queued", agent.card?.().reason);
+			return agent;
+		}
 		agent.layers_fresh = !how.resume;   // it read the card's log in its first message: nothing more to send it
 		this.touch(slot.id);
 		this.sync(card);
 		return agent;
+	}
+
+	/* The gate started a spec we were holding: the real agent is here now, so the
+	 * words that arrived while it waited go to it, oldest first. */
+	admitted(spec, agent){
+		for (const [id, p] of this.pending){
+			if (p.spec !== spec) continue;
+			this.pending.delete(id);
+			agent.layers_fresh = p.fresh;
+			this.log_gate(id, "started");
+			for (const { text, note } of p.texts) this.servex.agents.send(id, text, note);
+			this.touch(id);
+			this.sync(p.card);
+			return agent;
+		}
+		return null;
+	}
+
+	log_gate(id, event, reason = null){
+		try { this.servex.log?.append?.("servex", { type: "layers", event, id, reason })?.catch?.(() => {}); } catch {}
+	}
+
+	/* `Agents.send` to a stopped card agent goes through `wake`, which reopens it
+	 * through the gated spawn. For our own ids it goes through `open()` instead,
+	 * so a held one is spawned once and its messages wait for `admitted`. */
+	wakes(){
+		const agents = this.servex.agents, wake = agents.wake?.bind(agents);
+		if (!wake) return;
+		agents.wake = id => {
+			const who = this.owner(id);
+			if (!who || this.live(id) || !(who.slot.session_id || this.pending.has(id))) return wake(id);
+			const agent = this.open(who.card, who.role, () => "");
+			return queued(agent) ? this.door(id) : agent;
+		};
+	}
+
+	/* A held agent's stand-in, with a `send()` that keeps the words for `admitted`. */
+	door(id){
+		const p = this.pending.get(id);
+		const door = { id, queued: true, card: () => p.agent.card(), send: (text, note) => { p.texts.push({ text, note }); return door; } };
+		return door;
+	}
+
+	/* Send now, or keep it for when the gate starts this agent. */
+	deliver(id, text, note){
+		const p = this.pending.get(id);
+		if (p) return void p.texts.push({ text, note });
+		this.servex.agents.send(id, text, note);
 	}
 
 	/* Where the Claude CLI keeps a session: <config>/projects/<cwd, every
@@ -214,14 +280,21 @@ export default class Layers {
 		const root = root_of(sub);
 		if (!root) throw new Error(`"${card}" is not a card; a card id has at least four segments`);
 		const slot = this.record(root).manager;
-		const was = this.live(slot.id);
+		const was = this.live(slot.id), held = this.pending.has(slot.id);
 		const request = `Request from ${from} on ${sub}${task ? ` (task ${task})` : ""}: ${text}`;
 		const agent = this.open(root, "manager", () => `Load the \`sub-mastermind\` skill. You are ${slot.id}, the manager of card ${root}.`
 			+ " Your session is kept for this card's whole life: every later request on this card comes to you, so keep what you learn."
 			+ " First call `claim_topic({topic, card})` for the topic you are about to work on; if it is refused, message mastermind-servex instead of starting."
 			+ ` Start minions with spawn_agent({parent: "${slot.id}"}). Report on the card with card_reply. Keep your own turns short.\n\n`
 			+ this.transcript(root) + "\n\n" + request);
-		if (was || !agent.layers_fresh) this.servex.agents.send(slot.id, request, { from, reply_to: `card ${sub}` });
+		const note = { from, reply_to: `card ${sub}` };
+		if (queued(agent)){
+			// a fresh spec already carries this request in its prompt; a resume, or a later ask, is kept for `admitted`
+			if (held || !this.pending.get(slot.id)?.fresh) this.deliver(slot.id, request, note);
+			this.touch(slot.id);
+			return { ok: true, manager: slot.id, state: "queued", reason: agent.card?.().reason ?? null };
+		}
+		if (was || !agent.layers_fresh) this.servex.agents.send(slot.id, request, note);
 		this.touch(slot.id);
 		return { ok: true, manager: slot.id, state: agent.state };
 	}
@@ -276,7 +349,7 @@ export default class Layers {
 		if (!who) return { ok: false, error: `${id} is not a card agent` };
 		if (!this.live(id) && !who.slot.session_id) return { ok: true, note: "not running and no session: nothing to compact" };
 		if (!this.live(id)) this.open(who.card, who.role, () => "");
-		this.servex.agents.send(id, "Compact now: call card_summary with everything important about this card that is not already in its log:"
+		this.deliver(id, "Compact now: call card_summary with everything important about this card that is not already in its log:"
 			+ " decisions, open questions, and what you were in the middle of. Then stop.", { from: "owner", priority: "next" });
 		this.touch(id);
 		return { ok: true };

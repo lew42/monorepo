@@ -213,5 +213,47 @@ check("a deleted session -> logged, and the same id starts fresh from the card's
 	assert.equal(logged.at(-1).id, id);
 });
 
+/* THE SPAWN GATE (Servex.admission()) returns a stand-in for a held spawn: no id,
+ * no session, no `.send`, its state only through `card()`. A second Layers on a
+ * gated fake: every spawn is held until the test fires `admitted`. */
+check("a manager held at the spawn gate: one spawn, a queued answer, and every word delivered on admitted", () => {
+	const held = [], sent = [], handlers = [];
+	const REASON = "3 agents are running, the ceiling is 3";
+	const gated = {
+		live: new Map(),
+		spawn(spec){ held.push(spec); return { id: null, queued: true, spec, card: () => ({ id: null, state: "queued", queued: true, position: held.length, reason: REASON }) }; },
+		send(id, text, note){ sent.push({ id, text, note }); },
+		wake(id){ throw new Error(`the real wake was reached for ${id}`); },
+		stop(){}
+	};
+	const servex2 = { cards, agents: gated, mcp: { tool(){} }, log, dashboard: { router }, on(ev, fn){ if (ev === "admitted") handlers.push(fn); } };
+	const L = new Layers({ servex: servex2, file: path.join(dir, "gated.json"), idle_ms: 1000, system(){ return "SYSTEM"; }, watch(){},
+		session_exists: () => true }).install();
+	const C = "2026/09/24/gate-card", M = "manager-gate-card";
+	cards.make(C);
+
+	assert.deepEqual(L.ask_manager({ card: C, text: "count the lines", from: "assistant-gate-card" }),
+		{ ok: true, manager: M, state: "queued", reason: REASON });
+	assert.equal(L.ask_manager({ card: C, text: "and the words", from: "assistant-gate-card" }).state, "queued");
+	assert.equal(held.length, 1, "a second ask while held never spawns again");
+	assert.match(held[0].prompt, /count the lines/, "the first request rides in the fresh spec's prompt");
+	assert.ok(logged.some(e => e.event === "queued" && e.id === M && e.reason === REASON), "the hold is logged");
+
+	// send_to_agent while held: Agents.send -> wake -> our door, never the real wake
+	const door = gated.wake(M);
+	assert.equal(door.card().state, "queued");
+	door.send("from the assistant", { from: "assistant-gate-card" });
+	assert.equal(sent.length, 0, "nothing is sent to a stand-in");
+
+	const real = { id: M, state: "working", session_id: "sess-real" };
+	gated.live.set(M, real);
+	for (const h of handlers) h({ ...held[0] }, real);
+	assert.equal(sent.length, 0, "a different spec object, even an equal one, is not ours");
+	for (const h of handlers) h(held[0], real);
+	assert.deepEqual(sent.map(s => s.text), [`Request from assistant-gate-card on ${C}: and the words`, "from the assistant"]);
+	assert.equal(L.pending.size, 0);
+	assert.equal(real.layers_fresh, true);
+});
+
 fs.rmSync(dir, { recursive: true, force: true });
 console.log(`layers: ${checks} checks passed`);
