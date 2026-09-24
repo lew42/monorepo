@@ -69,6 +69,9 @@ view](/framework/ai/v/3/?view=prompts) is where all three show up live, beside
 the owner's own words. It never edits a file and never builds; that posture is
 written out in full in `agents/assistant.md`, its whole system prompt.
 
+**Cards** — `cards/`, one folder per card, and the `create_card` tool that makes
+them. [`cards/readme.md`](./cards/readme.md) defines every line.
+
 ## Where things live
 
 Outside the repo, one folder per machine — `%LOCALAPPDATA%/lew42/servex/`:

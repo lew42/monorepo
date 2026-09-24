@@ -71,10 +71,7 @@ To draw a card from anywhere, append a line to one of the logs it reads:
 - **`card.js` stays lowercase.** It is the `Card` class, and every card's line 1 names
   `/framework/ai2/card.js`; a `./Card.js` import is a second module on Windows and a 404 on a
   case-sensitive host. The older board-card faces are `faces.js`. [`doc/cards.md`](./doc/cards.md).
-- **An agent's words reach a card only through the card's own log, `cards/<slug>`.** The fast
-  assistant writes to `prompts`; until 2026-09-23 nothing copied its replies across, so it
-  "could not respond". Any agent can speak into a card with the `card_reply` MCP tool.
-  [`doc/logs.md`](./doc/logs.md).
+- **A card is a folder, and only Servex writes into it.** Each card lives at `ai/2026/MM/DD/<slug>/page.jsonl`, dated by the day it was created. Agents make and read cards with the `create_card`, `read_card`, `attach_card` and `list_cards` tools, and speak into one with `card_reply`; never append to the file yourself. [`Servex/cards/readme.md`](/Servex/cards/readme.md), [`doc/persistence.md`](./doc/persistence.md).
 
 - **Content never needs a reload; the page's own modules do.** All four logs stream — three over
   the dev socket, the owner's sentences over Servex's `EventSource`. The only thing that still
@@ -108,9 +105,7 @@ To draw a card from anywhere, append a line to one of the logs it reads:
   page does, once a sub-card opens beside it in the third column. Missing the ancestor case
   reintroduced `.ai2-empty` above a still-showing card and pushed its whole content down by its
   own height; every measured field still read "unchanged" because nothing in the CONTENT moved.
-- **A card's own event log is `cards/<slug>`**, Servex-owned, not a repo file — `ai/cards/<slug>/`
-  (a real directory, only once a card gets a page) is a different thing: the card's STATE, not
-  its stream. `doc/persistence.md` has the whole split.
+- **Only the Live card keeps an old-style log** in Servex's out-of-git logs; every other card's history is in its folder.
 
 ## More
 
