@@ -10,7 +10,7 @@ export { clock, row, full, flag_box, toc, sub_full, who, is_you } from "./faces.
 import chat from "./chat.js";
 import composer from "./compose.js";
 import agents_panel from "./agents.js";
-import { author_word, type_icon, create_card, append_card, cards_ready } from "./inbox.js";
+import { author_word, role_word, type_icon, create_card, append_card, cards_ready } from "./inbox.js";
 
 View.stylesheet(import.meta, "ai2.css");
 
@@ -228,11 +228,14 @@ export default class Card extends Page {
 		});
 
 		div.c("ai2-meta flex v-center wrap gap-25", () => {
-			if (this.by) span.c("ai2-who" + (this.by === "owner" ? " ai2-who-you" : "")).text(author_word(this.by));
+			// No author on a group — it is everyone's — and never an agent's id.
+			const who = !g && role_word(this.by);
+			if (who) span.c("ai2-who" + (this.by === "owner" ? " ai2-who-you" : "")).text(who);
 			small.c("muted").text(when(this.created));
 			if (f.status && f.status !== "open") span.c("ai2-chip").text(f.status);
 			f.tags.forEach(t => { span.c("ai2-chip").text("#" + t); });
-			if (this.attached?.length) small.c("muted").text("on it: " + this.attached.join(", "));
+			const on = this.attached?.length;
+			if (on) small.c("muted").text(on === 1 ? "an agent is on it" : on + " agents are on it");
 		});
 		agents_panel(this.id);
 

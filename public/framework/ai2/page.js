@@ -365,19 +365,24 @@ function board(page){
 
 	/* A group's preview: its icon and name, the newest member's own words
 	   WHOLE, and when — never a slug. */
+	/* ⚠ ONE UPDATE, NOT THE MEMBER'S WHOLE STORY: all seven groups must fit the
+	   rail at 1000px tall. A running task's first sentence plus its `now` made
+	   one row 319px and pushed two groups off screen (measured, 1920). The
+	   update is the `now` alone — the task's own sentence heads its section on
+	   the group's card, one click away. */
 	function group_face(g, latest, members){
+		const tasks = members.filter(m => m.kind === "task").length, cards = members.length - tasks;
+		const size = [tasks && tasks + (tasks === 1 ? " task" : " tasks"), cards && cards + (cards === 1 ? " card" : " cards")];
 		div.c("ai2-row-head flex v-center gap-25", () => {
 			icon(g.icon);
 			span.c("ai2-row-title").text(g.name);
-			small.c("ai2-row-when muted").text(latest ? when(latest.at) : "");
+			small.c("ai2-row-when muted").text([...size, latest && when(latest.at)].filter(Boolean).join(" · "));
 		});
-		if (!latest) return void small.c("ai2-group-line muted").text("Nothing filed here yet.");
-		const title = latest.kind === "said" ? "You said" : latest.title;
-		if (title) div.c("ai2-group-what").text(title);
-		if (latest.words) small.c("ai2-group-line muted").text(latest.words);
-		const tasks = members.filter(m => m.kind === "task").length, cards = members.length - tasks;
-		small.c("ai2-group-count muted").text([tasks && tasks + (tasks === 1 ? " task" : " tasks"),
-			cards && cards + (cards === 1 ? " card" : " cards")].filter(Boolean).join(" · "));
+		if (!latest) return void small.c("ai2-group-line muted").text("Nothing yet.");
+		const words = latest.kind === "said" ? "You said: " + latest.words
+			: latest.kind === "task" && !latest.landed ? latest.words || latest.title
+			: latest.title || latest.words;
+		div.c("ai2-group-what").text(words);
 	}
 
 	function pill(){

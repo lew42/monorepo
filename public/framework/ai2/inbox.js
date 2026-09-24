@@ -238,6 +238,18 @@ const AUTHOR_WORD = { owner: "you", assistant: "assistant", mastermind: "masterm
 const author_of = c => c.author ?? (/^o-/.test(c.id ?? "") ? "owner" : /^a-/.test(c.id ?? "") ? "assistant" : "mastermind");
 export const author_word = a => AUTHOR_WORD[a] ?? a;
 
+/** WHO MADE A CARD, as a plain role word — or null. A card folder's `by` is
+    usually an agent's id (`minion-ai2-groups`, `health-watch`), and an id is
+    never shown in a card's head (the owner, 2026-09-24). */
+export const role_word = by => {
+	const b = String(by ?? "");
+	if (AUTHOR_WORD[b]) return AUTHOR_WORD[b];
+	if (/assistant/.test(b)) return "assistant";
+	if (/mastermind/.test(b)) return "mastermind";
+	if (/^minion/.test(b)) return "minion";
+	return null;
+};
+
 /**
  * THE ID OF A LOG ENTRY — its own `id` when it has one, and otherwise one made
  * from its timestamp.

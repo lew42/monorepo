@@ -51,9 +51,9 @@ One line, appended to the member itself. The latest line wins, so a thing can be
 
 Worked out in the page, never written into the group's log: a group's time is the newest line in
 its own card or in any member, and its preview says what that newest member says — a landed
-task's headline, a running task's first sentence and what it is doing now, a card's last message,
+task's headline, what a running task is doing now, a card's last message,
 or the words you said into the group card itself. The order changes only while the rail is quiet
-(at the top, the pointer elsewhere), the same rule that keeps every other row still.
+(at the top, the pointer elsewhere), the same rule that keeps every other row still. The row is one update, not the whole story, so all seven groups fit the rail at 1000px tall; a group with nothing in it still shows, saying "Nothing yet."
 
 ## What the page reads
 
