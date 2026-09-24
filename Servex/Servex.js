@@ -186,6 +186,7 @@ export default class Servex extends Events {
             missing: name => this.autostart(name),
             starting: name => ["launching", "restarting"].includes(this.processes.get(name)?.status)
         });
+        this.proxy.on("proxy_error", e => this.say(`proxy error ${e.code} — ${e.method} ${e.host}${e.path}`, { event: "proxy_error", ...e }));
 
         this.gate();
         this.whisper();
