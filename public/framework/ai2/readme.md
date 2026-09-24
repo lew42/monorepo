@@ -54,9 +54,15 @@ screen when nothing is open, three when a sub-card is.
 
 ## Use
 
-Nothing to call. The page mounts itself; open the url. A card's own url is
-`/framework/ai2/<id>/` — paste it, reload it, press Back; the url is the truth. A sub-card's is
-`/framework/ai2/<id>/<sub>/`, one level deeper.
+Nothing to call. The page mounts itself; open the url. **A card is a folder** under
+`ai/`, and its url on AI 2 is that folder's path: `/framework/ai2/2026/09/24/<slug>/`, a
+sub-card one segment deeper, any depth. Paste it, reload it, press Back; the url is the truth.
+An old id (`/framework/ai2/topic-xyz/`) still opens its card. `view/open/`, `view/today/`,
+`view/all/` and `view/<tag>/` list cards by view. Each card is drawn by [`card.js`](./card.js),
+a real `Page` built from the card's own `page.jsonl` — [`doc/cards.md`](./doc/cards.md).
+
+To make a card from an agent, use Servex's `create_card` tool, never a folder by hand. The
+older way below still draws a card when Servex is down.
 
 To draw a card from anywhere, append a line to one of the logs it reads:
 
@@ -69,10 +75,10 @@ To draw a card from anywhere, append a line to one of the logs it reads:
 
 ## Watch out
 
-- **An agent's words reach a card only through the card's own log, `cards/<slug>`.** The fast
-  assistant writes to `prompts`; until 2026-09-23 nothing copied its replies across, so it
-  "could not respond". Any agent can speak into a card with the `card_reply` MCP tool.
-  [`doc/logs.md`](./doc/logs.md).
+- **`card.js` stays lowercase.** It is the `Card` class, and every card's line 1 names
+  `/framework/ai2/card.js`; a `./Card.js` import is a second module on Windows and a 404 on a
+  case-sensitive host. The older board-card faces are `faces.js`. [`doc/cards.md`](./doc/cards.md).
+- **A card is a folder, and only Servex writes into it.** Each card lives at `ai/2026/MM/DD/<slug>/page.jsonl`, dated by the day it was created. Agents make and read cards with the `create_card`, `read_card`, `attach_card` and `list_cards` tools, and speak into one with `card_reply`; never append to the file yourself. [`Servex/cards/readme.md`](/Servex/cards/readme.md), [`doc/persistence.md`](./doc/persistence.md).
 
 - **Content never needs a reload; the page's own modules do.** All four logs stream — three over
   the dev socket, the owner's sentences over Servex's `EventSource`. The only thing that still
@@ -106,9 +112,7 @@ To draw a card from anywhere, append a line to one of the logs it reads:
   page does, once a sub-card opens beside it in the third column. Missing the ancestor case
   reintroduced `.ai2-empty` above a still-showing card and pushed its whole content down by its
   own height; every measured field still read "unchanged" because nothing in the CONTENT moved.
-- **A card's own event log is `cards/<slug>`**, Servex-owned, not a repo file — `ai/cards/<slug>/`
-  (a real directory, only once a card gets a page) is a different thing: the card's STATE, not
-  its stream. `doc/persistence.md` has the whole split.
+- **Only the Live card keeps an old-style log** in Servex's out-of-git logs; every other card's history is in its folder.
 
 - **No `bleed` on a page with no gutter.** `.page > .bleed` pays the page's padding back with a
   negative margin; the overview page has padding 0, so the payback slid its first column under
@@ -128,6 +132,7 @@ To draw a card from anywhere, append a line to one of the logs it reads:
   site saves and where, and which one a nested card page uses
 - The rebuild and its measurements: [`ai/2026-09-22/ai2-master-detail/`](/framework/ai/2026-09-22/ai2-master-detail/)
 - Per-card storage, sub-cards, the footer: [`ai/2026-09-22/ai2-nested/`](/framework/ai/2026-09-22/ai2-nested/)
-- Files that matter: `page.js` (the shell, the selection, the third column), `card.js` (a card
-  and a sub-card, small and whole, plus the table of contents), `inbox.js` (what there is to
+- [`doc/cards.md`](./doc/cards.md) — card folders: the addresses, `card.js`'s vocabulary, every write
+- Files that matter: `page.js` (the shell, the selection, the third column), `card.js` (a
+  card folder's own page), `faces.js` (a board card, small and whole, plus the table of contents), `inbox.js` (what there is to
   draw, and the per-card log), `compose.js` (the box you talk into), `ai2.css` (the look)

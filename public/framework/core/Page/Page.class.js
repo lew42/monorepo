@@ -1,5 +1,6 @@
 import { View, div, p, h1, h2, h4, a, span, ul, li, button, icon, is } from "../View/View.js";
 import PageFrame from "./Frame.js";
+import PageLog from "./Log.js";
 
 View.stylesheet(import.meta, "Page.css");
 
@@ -17,13 +18,15 @@ const ALIAS = { surface: "card", wash: "tint" };
 const is_address = value => is.str(value) && value.startsWith("/");
 const is_md = url => /\.md(\?|#|$)/i.test(url);
 
-export class Page {
+// `extends PageLog` — `set()`, the `page.jsonl` loader and its three steps. Log.js.
+export class Page extends PageLog {
 
 	// ⚠ Nothing is FETCHED here. A module page constructs ITSELF at import, so a
 	// constructor that loaded its subtree would pull the whole site down from whatever
 	// url you opened — 261 modules for every page under /framework/, measured. The
 	// caller budgets instead: Page.load(), child(), load_all_children(). doc/declaring.md.
 	constructor(...args){
+		super();
 		this.assign(...args);
 		this.naming();
 		this.declare();
@@ -108,7 +111,7 @@ export class Page {
 		if (!(this.children instanceof Map)) this.children = new Map();
 
 		entries.forEach(child => {
-			if (is.str(child)) return this.children.set(child, null);
+			if (is.str(child)) return this.children.set(this.child_file(child), null);   // "kid/page.jsonl" → kid
 
 			if (!is.arr(child)) {
 				const name = child.name ?? Page.slug(child.title);
@@ -198,6 +201,12 @@ export class Page {
 		const known = this.children.get(name);
 
 		if (known) return known.assign({ app: this.app }).load_all_children(levels);
+
+		// A child the listing named as `kid/page.jsonl` is read from that file — no probe.
+		if (this.child_kinds?.get(name) === "jsonl") {
+			const page = await Page.jsonl(this.url + name + "/");
+			return page && this.add(name, page).load_all_children(levels);
+		}
 
 		// Every page has an `md/`: its markdown files, as pages. Before route(), so a
 		// page that routes every name still has one. Markdown.js.

@@ -17,6 +17,7 @@ import Stream from "./Stream.js";
 import { Agents } from "./agents/Agents.js";
 import Assistant from "./agents/Assistant.js";
 import Dispatcher from "./agents/Dispatcher.js";
+import Cards from "./cards/Cards.js";
 import agent_tools from "./agents/tools.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -126,6 +127,9 @@ export default class Servex extends Events {
             mcp_url: `http://127.0.0.1:${this.dashboard_port}/mcp`
         });
 
+        /* CARD FOLDERS — one folder per card under ai/, written only by Cards. */
+        this.cards = new this.constructor.Cards({ agents: this.agents, log: this.log });
+
         /* THE FAST ASSISTANT — one Sonnet session, always up, whose only job is
          * to turn each sentence the owner speaks into a name, a card and a
          * refined reading within seconds. `install()` puts its tool on /mcp and
@@ -146,6 +150,7 @@ export default class Servex extends Events {
          * nothing here costs anything until a task actually queues. */
         this.dispatcher = new this.constructor.Dispatcher({ servex: this }).install();
 
+        this.agents.revive();   // agents alive at the last boot come back (resume, same id); the rest are marked gone
         this.routes();
         this.tools();
 
@@ -397,6 +402,8 @@ export default class Servex extends Events {
             catch (e){ res.status(400).json({ error: String(e.message || e) }); }
         });
 
+        this.cards.routes(router, cors);
+
         router.get("/api/logs", (req, res) => res.json(this.log.names()));
 
         /* The dashboard's first paint. After this it hears about every change on
@@ -468,6 +475,7 @@ export default class Servex extends Events {
          * `send_to_agent`, `interrupt_agent`, `list_agents`, `stop_agent`. Ten
          * tools on one door; nothing about them is special-cased here. */
         for (const tool of agent_tools(this.agents)) this.mcp.tool(tool);
+        for (const tool of this.cards.tools()) this.mcp.tool(tool);
     }
 
     say(msg, extra){
@@ -635,6 +643,7 @@ Servex.Log = class ServexLog extends Log {
 
 Servex.Assistant = Assistant;
 Servex.Dispatcher = Dispatcher;
+Servex.Cards = Cards;
 Servex.MCP = MCP;
 Servex.PortRegistry = PortRegistry;
 Servex.Process = Process;

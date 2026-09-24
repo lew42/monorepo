@@ -1,0 +1,3243 @@
+[
+ {
+  "name": "card",
+  "family": "cards",
+  "what": "The finished box: a surface with border, radius, built-in padding and a gap between its children, plus an optional coloured status edge.",
+  "sources": [
+   {
+    "name": "card",
+    "census": "a",
+    "source": "public/framework/framework.css:489"
+   },
+   {
+    "name": "content card (template)",
+    "census": "a",
+    "source": "public/framework/ui/card/page.js:6"
+   },
+   {
+    "name": "card",
+    "census": "b",
+    "source": "public/framework/framework.css:489"
+   }
+  ],
+  "classes": [
+   ".card",
+   ".card.selected",
+   "--card-edge",
+   ".surface",
+   ".pad",
+   ".flex",
+   ".v",
+   ".gap"
+  ],
+  "render": "import { div, h3, p } from '/app.js'; div.c('card', () => { h3('Title'); p('A card needs no extra CSS.'); });",
+  "used_in": [
+   "/framework/ui/card/",
+   "/framework/styles/",
+   "site-wide"
+  ],
+  "used_count": 379,
+  "padding": "--pad-card (scales with the card itself, clamp(1rem,2.6%,2em)*--size)",
+  "paddings": [
+   "--pad-card (scales with the card itself, clamp(1rem,2.6%,2em)*--size)",
+   "--pad with --gap*0.5",
+   "--pad-card = clamp(1rem, 2.6%, 2em) * --size"
+  ],
+  "padding_rule": "--pad-card",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": false,
+  "duplicates": {
+   "folded": [
+    "content card (template)"
+   ],
+   "twins": [
+    "surface pad",
+    "hand-rolled *-card classes",
+    "surface",
+    "preview card",
+    "decks card",
+    "blog card",
+    "v3 tile",
+    "dev chat card"
+   ]
+  },
+  "notes": "Count is files whose class strings mention card, including hand-rolled ones. Reserves a 3px inline-start edge always, so it is 3px narrower inside than .surface. · The ui/card page still teaches 'surface pad flex v gap', the older form the .card word replaced; the two disagree on gap (0.5*--gap vs --gap). · Count is files with c(\"card. The 3px edge is always reserved. framework.css:456 says 180 hand-rolled card classes were the reason .card exists."
+ },
+ {
+  "name": "surface",
+  "family": "surface words",
+  "what": "The bare box look (background, border, radius) with no padding; the base every component adds its own padding to.",
+  "sources": [
+   {
+    "name": "surface",
+    "census": "a",
+    "source": "public/framework/framework.css:456"
+   },
+   {
+    "name": "surface",
+    "census": "b",
+    "source": "public/framework/framework.css:456"
+   }
+  ],
+  "classes": [
+   ".surface"
+  ],
+  "render": "import { div, p } from '/app.js'; div.c('surface pad', () => p('A surface plus a pad.'));",
+  "used_in": [
+   "/framework/ui/",
+   "/framework/ux/",
+   "site-wide"
+  ],
+  "used_count": 132,
+  "padding": "none; callers add .pad (page-region --pad)",
+  "paddings": [
+   "none; callers add .pad (page-region --pad)",
+   "none; caller adds .pad"
+  ],
+  "padding_rule": "none",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": false,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "card"
+   ]
+  },
+  "notes": "'surface pad' (132 files) does the same job as .card but pads with --pad, not --pad-card, and has no gap rhythm or edge: twin with different spacing. · Twin of .card: forgetting the second word gives an unpadded box, the trap .card was made to remove. Count is files with c(\"surface."
+ },
+ {
+  "name": "wash",
+  "family": "surface words",
+  "what": "A quiet filled background, used for placeholders, media areas and count chips.",
+  "sources": [
+   {
+    "name": "wash",
+    "census": "a",
+    "source": "public/framework/framework.css:503"
+   },
+   {
+    "name": "tint",
+    "census": "a",
+    "source": "public/framework/framework.css:509"
+   },
+   {
+    "name": "wash",
+    "census": "b",
+    "source": "public/framework/framework.css:503"
+   }
+  ],
+  "classes": [
+   ".wash",
+   ".tint"
+  ],
+  "render": "import { div } from '/app.js'; div.c('wash pad', 'A washed band');",
+  "used_in": [
+   "/framework/ui/card/",
+   "/framework/ui/avatar/",
+   "wireframe sets in /framework/styles/",
+   "site-wide"
+  ],
+  "used_count": 207,
+  "padding": "none",
+  "paddings": [
+   "none"
+  ],
+  "padding_rule": "none",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": false,
+  "duplicates": {
+   "folded": [
+    "tint"
+   ],
+   "twins": [
+    "surface"
+   ]
+  },
+  "notes": "wash and tint are two background words for near-identical jobs. · Class was once missing while token existed and painted nothing silently. · --tint once had no class and painted nothing silently (framework.css comment after line 503)."
+ },
+ {
+  "name": "pad",
+  "family": "surface words",
+  "what": "Padding word: gives any box the page-region padding.",
+  "sources": [
+   {
+    "name": "pad",
+    "census": "a",
+    "source": "public/framework/framework.css:822"
+   }
+  ],
+  "classes": [
+   ".pad"
+  ],
+  "render": "import { div } from '/app.js'; div.c('surface pad', 'Padded');",
+  "used_in": [
+   "/framework/ui/*/page.js"
+  ],
+  "used_count": 132,
+  "padding": "--pad",
+  "paddings": [
+   "--pad"
+  ],
+  "padding_rule": "--pad",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": false,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "card (which bakes in --pad-card)"
+   ]
+  },
+  "notes": "Not a box itself; listed because it is the spacing half of surface pad."
+ },
+ {
+  "name": "bleed",
+  "family": "surface words",
+  "what": "Layout word: a block on a five-track page that takes the full width, edge to edge, including the page inset.",
+  "sources": [
+   {
+    "name": "bleed",
+    "census": "a",
+    "source": "public/framework/styles/layouts/fit/page.js:70"
+   }
+  ],
+  "classes": [
+   ".bleed",
+   ".wide"
+  ],
+  "render": null,
+  "used_in": [
+   "/framework/styles/layouts/fit/"
+  ],
+  "used_count": 212,
+  "padding": "none",
+  "paddings": [
+   "none"
+  ],
+  "padding_rule": "none",
+  "bleeds": "yes: spans all five grid tracks",
+  "bleed_label": "bleeds",
+  "interactive": false,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "wide (takes less)"
+   ]
+  },
+  "notes": "Rule lives in the theme layer (page-column-prose > .bleed); not standalone drawable, needs a standard page. Count includes other 'bleed' uses (e.g. ai css).",
+  "undrawable": "It is a layout word, not a box: it only widens a direct child of a five-track page, so it has nothing to draw on its own."
+ },
+ {
+  "name": "stat tile",
+  "family": "cards",
+  "what": "A small surface with a muted label above a big number.",
+  "sources": [
+   {
+    "name": "stat tile",
+    "census": "a",
+    "source": "public/framework/ui/stats/page.js:9"
+   },
+   {
+    "name": "stat tile",
+    "census": "b",
+    "source": "public/framework/styles/sections/stats.js:5"
+   }
+  ],
+  "classes": [
+   ".surface",
+   ".pad",
+   ".h4",
+   ".h2",
+   ".flex",
+   ".v"
+  ],
+  "render": "import { div } from '/app.js'; div.c('surface pad flex v gap', () => { div.c('h4 muted', 'Files'); div.c('h2', '472'); });",
+  "used_in": [
+   "/framework/ui/stats/",
+   "styles/sections/stats.js"
+  ],
+  "used_count": 1,
+  "padding": "--pad",
+  "paddings": [
+   "--pad",
+   ".pad"
+  ],
+  "padding_rule": "--pad",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": false,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "card",
+    "preview card"
+   ]
+  },
+  "notes": "Template only, no export. Same 'label + value' box is hand-built elsewhere. · Built from utility words, not .card: another spelling of a small padded box."
+ },
+ {
+  "name": "alert",
+  "family": "callouts & alerts",
+  "what": "A one-row notice with an icon and message, optional action button, tone by extra class.",
+  "sources": [
+   {
+    "name": "alert",
+    "census": "a",
+    "source": "public/framework/ui/alert/page.js:6"
+   }
+  ],
+  "classes": [
+   ".ui-alert",
+   ".accent",
+   ".error"
+  ],
+  "render": "import { div, p, icon } from '/app.js'; div.c('ui-alert surface pad flex gap accent', () => { icon('info'); p('Heads up').ac('flex-1'); });",
+  "used_in": [
+   "/framework/ui/alert/"
+  ],
+  "used_count": 3,
+  "padding": "--pad",
+  "paddings": [
+   "--pad"
+  ],
+  "padding_rule": "--pad",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": false,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "callout (ext/Doc)",
+    "panel"
+   ]
+  },
+  "notes": "CSS-only template, copy-paste."
+ },
+ {
+  "name": "panel (dialog-look box)",
+  "family": "panels & dialogs",
+  "what": "A surface with a head row, padded body and optional foot; the static look of a modal.",
+  "sources": [
+   {
+    "name": "panel (dialog-look box)",
+    "census": "a",
+    "source": "public/framework/ui/panel/panel.js:6"
+   }
+  ],
+  "classes": [
+   ".ui-panel",
+   ".ui-panel-head",
+   ".ui-panel-foot"
+  ],
+  "render": "import { div, h3, p } from '/app.js'; div.c('ui-panel surface', () => { div.c('ui-panel-head pad flex v-center split gap', () => h3('Title')); div.c('pad', () => p('Body')); });",
+  "used_in": [
+   "/framework/ui/panel/"
+  ],
+  "used_count": 2,
+  "padding": "--pad per region (head, body, foot padded separately)",
+  "paddings": [
+   "--pad per region (head, body, foot padded separately)"
+  ],
+  "padding_rule": "--pad",
+  "bleeds": "head/foot bands touch the edges",
+  "bleed_label": "parts touch edges",
+  "interactive": false,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "dialog",
+    "ext/Panel"
+   ]
+  },
+  "notes": "Name clashes with ext/Panel (a different, layout-editing thing)."
+ },
+ {
+  "name": "dialog",
+  "family": "panels & dialogs",
+  "what": "A native <dialog> element styled as a surface with padding.",
+  "sources": [
+   {
+    "name": "dialog",
+    "census": "a",
+    "source": "public/framework/ui/dialog/page.js:7"
+   }
+  ],
+  "classes": [
+   ".ui-dialog"
+  ],
+  "render": "import { div, el, button } from '/app.js'; div.c('surface pad', () => button('see /ui/dialog/ page'));",
+  "used_in": [
+   "/framework/ui/dialog/"
+  ],
+  "used_count": 2,
+  "padding": "--pad",
+  "paddings": [
+   "--pad"
+  ],
+  "padding_rule": "--pad",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "panel"
+   ]
+  },
+  "notes": "Needs showModal() wiring; render simplified, use the page's own template."
+ },
+ {
+  "name": "badge / pill",
+  "family": "chips & badges",
+  "what": "A small rounded label for status or counts.",
+  "sources": [
+   {
+    "name": "badge / pill",
+    "census": "a",
+    "source": "public/framework/ui/badge/badge.js:6"
+   },
+   {
+    "name": "name chip",
+    "census": "c",
+    "source": "public/framework/ai2/card.js:74"
+   }
+  ],
+  "classes": [
+   ".ui-badge",
+   ".ui-pill",
+   ".accent",
+   ".outline",
+   ".count",
+   ".ai2-chips",
+   ".ai2-chip"
+  ],
+  "render": "import { span } from '/app.js'; span.c('ui-badge ui-pill h4 accent', 'shipped');",
+  "used_in": [
+   "/framework/ui/badge/",
+   "/framework/ui/tags/",
+   "/framework/ux/Filter/",
+   "/framework/ai2/"
+  ],
+  "used_count": 7,
+  "padding": "0.15em 0.5em (count) / own em padding",
+  "paddings": [
+   "0.15em 0.5em (count) / own em padding",
+   "own"
+  ],
+  "padding_rule": "0.15em 0.5em",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": false,
+  "duplicates": {
+   "folded": [
+    "name chip"
+   ],
+   "twins": [
+    "chip (ux/Tags, ux/Filter chip)",
+    "v3-tile-author",
+    "ai-count",
+    ".ai2-ov-pill"
+   ]
+  },
+  "notes": "ui-badge ui-pill is also the tag chip and the filter chip: one visual under three names. · "
+ },
+ {
+  "name": "tag chip",
+  "family": "chips & badges",
+  "what": "A pill holding a tag name with a small × to remove it.",
+  "sources": [
+   {
+    "name": "tag chip",
+    "census": "a",
+    "source": "public/framework/ui/tags/page.js:9"
+   },
+   {
+    "name": "filter chip",
+    "census": "a",
+    "source": "public/framework/ux/Filter/FilterChips.js:28"
+   }
+  ],
+  "classes": [
+   ".ui-pill",
+   ".ui-badge"
+  ],
+  "render": "import { span } from '/app.js'; span.c('ui-pill h4 flex v-center gap', () => { span('core'); span.c('muted', '×'); });",
+  "used_in": [
+   "/framework/ui/tags/",
+   "/framework/ux/Tags/",
+   "/framework/ux/Filter/"
+  ],
+  "used_count": 2,
+  "padding": "pill em padding",
+  "paddings": [
+   "pill em padding"
+  ],
+  "padding_rule": "own rule",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [
+    "filter chip"
+   ],
+   "twins": [
+    "badge / pill"
+   ]
+  },
+  "notes": "ux/Tags gives it real behavior. · Needs a Filter instance; not standalone."
+ },
+ {
+  "name": "avatar stack",
+  "family": "chips & badges",
+  "what": "Overlapping round initials for people, one accent, one wash '+4' overflow.",
+  "sources": [
+   {
+    "name": "avatar stack",
+    "census": "a",
+    "source": "public/framework/ui/avatar/avatar.js:4"
+   }
+  ],
+  "classes": [
+   ".ui-avatar",
+   ".ui-avatars"
+  ],
+  "render": "import { div, span } from '/app.js'; div.c('ui-avatars', () => { span.c('ui-avatar','ML'); span.c('ui-avatar accent','AK'); });",
+  "used_in": [
+   "/framework/ui/avatar/"
+  ],
+  "used_count": 6,
+  "padding": "fixed circle size",
+  "paddings": [
+   "fixed circle size"
+  ],
+  "padding_rule": "own rule",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": false,
+  "duplicates": {
+   "folded": [],
+   "twins": []
+  },
+  "notes": ""
+ },
+ {
+  "name": "crumbs",
+  "family": "navigation",
+  "what": "A row of path segments separated by chevrons or slashes.",
+  "sources": [
+   {
+    "name": "crumbs",
+    "census": "a",
+    "source": "public/framework/ui/crumbs/crumbs.js:7"
+   }
+  ],
+  "classes": [
+   ".ui-crumbs"
+  ],
+  "render": "import { div, span, a } from '/app.js'; div.c('ui-crumbs flex wrap v-center h4 gap', () => { a('Home').href('/'); span('/'); span('Here'); });",
+  "used_in": [
+   "/framework/ui/crumbs/",
+   "/framework/ux/Course/"
+  ],
+  "used_count": 5,
+  "padding": "none",
+  "paddings": [
+   "none"
+  ],
+  "padding_rule": "none",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": false,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "Wizard crumbs (ux-wizard-crumbs)"
+   ]
+  },
+  "notes": ""
+ },
+ {
+  "name": "decision card",
+  "family": "AI log blocks",
+  "what": "A question with a list of options, one marked chosen, each with a reason.",
+  "sources": [
+   {
+    "name": "decision card",
+    "census": "a",
+    "source": "public/framework/ui/decision/decision.js:29"
+   },
+   {
+    "name": "decision row",
+    "census": "c",
+    "source": "public/framework/ext/AITask/decisions.js:72"
+   }
+  ],
+  "classes": [
+   ".ui-decision",
+   ".ui-decision-option",
+   ".chosen",
+   ".ui-decision-mark",
+   ".ai-decision",
+   ".ai-decision-line",
+   ".ai-decision-status"
+  ],
+  "render": "import { div, li, p, span } from '/app.js'; div.c('ui-decision surface', () => { p.c('ui-decision-ask','Which?'); div.c('ui-decision-options', () => li.c('ui-decision-option chosen', () => { div.c('ui-decision-say','A'); p.c('ui-decision-why','because'); })); });",
+  "used_in": [
+   "/framework/ui/decision/",
+   "ext/AITask (same idea)",
+   "/framework/ai/",
+   "/framework/ai/v/2/"
+  ],
+  "used_count": 4,
+  "padding": "--pad (line 56) and 0 for the list (line 43)",
+  "paddings": [
+   "--pad (line 56) and 0 for the list (line 43)",
+   "hairline top + --gap-35 top pad; no side pad (ai.css:270)"
+  ],
+  "padding_rule": "--pad",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [
+    "decision row"
+   ],
+   "twins": [
+    "ext/AITask decision renderer",
+    "ask card",
+    "ux decision (ui-decision-*)"
+   ]
+  },
+  "notes": "Tier C should compare against the AI decision card. · Reuses ui-decision-* classes from the ux tier inside an ai- wrapper. v2.css re-declares the same rules under .v2 (duplicate CSS, also `.ai-group-title`, `.ai-rank-grip`)."
+ },
+ {
+  "name": "menu (dropdown)",
+  "family": "navigation",
+  "what": "A <details> button that opens a small list of items.",
+  "sources": [
+   {
+    "name": "menu (dropdown)",
+    "census": "a",
+    "source": "public/framework/ui/menu/menu.js:7"
+   }
+  ],
+  "classes": [
+   ".ui-menu",
+   ".ui-menu-trigger",
+   ".ui-menu-list",
+   ".ui-menu-item"
+  ],
+  "render": "import { div, span, p, a, button, input, textarea, label, details, summary, progress, icon } from '/app.js'; details.c('ui-menu', $d => { $d.el.open = true; summary.c('ui-menu-trigger btn', 'Menu'); div.c('ui-menu-list', () => { a.c('ui-menu-item', 'Rename').href('#'); a.c('ui-menu-item', 'Duplicate').href('#'); a.c('ui-menu-item', 'Delete').href('#'); }).style('position', 'static').style('margin-top', '.3em'); });",
+  "used_in": [
+   "/framework/ui/menu/",
+   "/framework/ux/Menu/"
+  ],
+  "used_count": 4,
+  "padding": "0.3em list, 0.4em 0.6em item",
+  "paddings": [
+   "0.3em list, 0.4em 0.6em item"
+  ],
+  "padding_rule": "0.3em",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "ux/Popover menu()",
+    "ux/Menu"
+   ]
+  },
+  "notes": "Three menus: ui-menu (css template), ux/Menu, and Popover.menu(); three spacings.",
+  "sheets": []
+ },
+ {
+  "name": "accordion item",
+  "family": "rows & lists",
+  "what": "A <details> row that shows a question and reveals an answer.",
+  "sources": [
+   {
+    "name": "accordion item",
+    "census": "a",
+    "source": "public/framework/ui/accordion/page.js:13"
+   }
+  ],
+  "classes": [
+   ".ui-accordion-item"
+  ],
+  "render": "import { div, details, summary, p } from '/app.js'; div.c('surface flex v', () => details.c('ui-accordion-item pad', () => { summary('Question'); p('Answer'); }));",
+  "used_in": [
+   "/framework/ui/accordion/"
+  ],
+  "used_count": 4,
+  "padding": "--pad on each item",
+  "paddings": [
+   "--pad on each item"
+  ],
+  "padding_rule": "--pad",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [],
+   "twins": []
+  },
+  "notes": ""
+ },
+ {
+  "name": "tooltip",
+  "family": "chips & badges",
+  "what": "A word that shows a small bubble on hover.",
+  "sources": [
+   {
+    "name": "tooltip",
+    "census": "a",
+    "source": "public/framework/ui/tooltip/page.js:11"
+   }
+  ],
+  "classes": [
+   ".ui-tooltip",
+   ".ui-tooltip-word",
+   ".ui-tooltip-bubble"
+  ],
+  "render": "import { span } from '/app.js'; span.c('ui-tooltip', () => { span.c('ui-tooltip-word','hover'); span.c('ui-tooltip-bubble','Hello'); });",
+  "used_in": [
+   "/framework/ui/tooltip/"
+  ],
+  "used_count": 2,
+  "padding": "0.4em 0.7em",
+  "paddings": [
+   "0.4em 0.7em"
+  ],
+  "padding_rule": "0.4em 0.7em",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "ux/Popover tooltip()"
+   ]
+  },
+  "notes": "CSS tooltip vs JS tooltip in ux/Popover."
+ },
+ {
+  "name": "table",
+  "family": "rows & lists",
+  "what": "A table from header names and row arrays; '.num' aligns numbers.",
+  "sources": [
+   {
+    "name": "table",
+    "census": "a",
+    "source": "public/framework/ui/table/table.js:19"
+   }
+  ],
+  "classes": [
+   ".ui-table",
+   ".num"
+  ],
+  "render": "import { table } from '/app.js'; table(['Name','Lines'], [['View',472],['Router',146]]);",
+  "used_in": [
+   "/framework/ui/table/"
+  ],
+  "used_count": 5,
+  "padding": "cell padding",
+  "paddings": [
+   "cell padding"
+  ],
+  "padding_rule": "own rule",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": false,
+  "duplicates": {
+   "folded": [],
+   "twins": []
+  },
+  "notes": ""
+ },
+ {
+  "name": "timeline",
+  "family": "rows & lists",
+  "what": "A vertical list of dated entries joined by a dot and line.",
+  "sources": [
+   {
+    "name": "timeline",
+    "census": "a",
+    "source": "public/framework/ui/timeline/timeline.js:35"
+   }
+  ],
+  "classes": [
+   ".ui-timeline",
+   ".ui-timeline-row",
+   ".ui-timeline-dot"
+  ],
+  "render": "import { timeline } from '/framework/ui/timeline/timeline.js'; timeline(['2026-09', 'Shipped', 'Notes']);",
+  "used_in": [
+   "/framework/ui/timeline/"
+  ],
+  "used_count": 2,
+  "padding": "row gap",
+  "paddings": [
+   "row gap"
+  ],
+  "padding_rule": "own rule",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": false,
+  "duplicates": {
+   "folded": [],
+   "twins": []
+  },
+  "notes": ""
+ },
+ {
+  "name": "keys",
+  "family": "chips & badges",
+  "what": "A row of keyboard key caps joined by +.",
+  "sources": [
+   {
+    "name": "keys",
+    "census": "a",
+    "source": "public/framework/ui/kbd/kbd.js:18"
+   }
+  ],
+  "classes": [
+   ".ui-keys",
+   ".ui-key"
+  ],
+  "render": "import { keys } from '/framework/ui/kbd/kbd.js'; keys('Ctrl', 'K');",
+  "used_in": [
+   "/framework/ui/kbd/"
+  ],
+  "used_count": 1,
+  "padding": "key surface padding",
+  "paddings": [
+   "key surface padding"
+  ],
+  "padding_rule": "own rule",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": false,
+  "duplicates": {
+   "folded": [],
+   "twins": []
+  },
+  "notes": ""
+ },
+ {
+  "name": "toolbar",
+  "family": "controls & widgets",
+  "what": "A padded surface bar holding groups of buttons.",
+  "sources": [
+   {
+    "name": "toolbar",
+    "census": "a",
+    "source": "public/framework/ui/toolbar/page.js:5"
+   }
+  ],
+  "classes": [
+   ".surface",
+   ".pad",
+   ".flex",
+   ".wrap",
+   ".gap"
+  ],
+  "render": "import { div, button } from '/app.js'; div.c('surface pad flex wrap gap v-center', () => { button('One'); button('Two'); });",
+  "used_in": [
+   "/framework/ui/toolbar/"
+  ],
+  "used_count": 1,
+  "padding": "--pad",
+  "paddings": [
+   "--pad"
+  ],
+  "padding_rule": "--pad",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "card action row"
+   ]
+  },
+  "notes": ""
+ },
+ {
+  "name": "progress row",
+  "family": "rows & lists",
+  "what": "A label, optional value and a bar.",
+  "sources": [
+   {
+    "name": "progress row",
+    "census": "a",
+    "source": "public/framework/ui/progress/page.js:6"
+   }
+  ],
+  "classes": [
+   ".flex",
+   ".split"
+  ],
+  "render": "import { div, span, p, a, button, input, textarea, label, details, summary, progress, icon } from '/app.js'; div.c('flex v gap', () => { div.c('flex split v-center', () => { div.c('h4', 'Uploading'); div.c('h4 muted', '70%'); }); progress().attr('max', '100').attr('value', '70').style('width', '100%'); });",
+  "used_in": [
+   "/framework/ui/progress/",
+   "/framework/ux/Course/"
+  ],
+  "used_count": 2,
+  "padding": "none",
+  "paddings": [
+   "none"
+  ],
+  "padding_rule": "none",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": false,
+  "duplicates": {
+   "folded": [],
+   "twins": []
+  },
+  "notes": "Template only in page.js.",
+  "sheets": []
+ },
+ {
+  "name": "pagination",
+  "family": "navigation",
+  "what": "A row of page-number buttons with previous/next.",
+  "sources": [
+   {
+    "name": "pagination",
+    "census": "a",
+    "source": "public/framework/ux/Pagination/Pagination.js"
+   }
+  ],
+  "classes": [
+   ".flex",
+   ".wrap",
+   ".gap"
+  ],
+  "render": "import Pagination from '/framework/ux/Pagination/Pagination.js'; new Pagination({ pages: ['1', '2', '3', '…', '8'], current: 2 });",
+  "used_in": [
+   "/framework/ux/Pagination/",
+   "/framework/ui/pagination/"
+  ],
+  "used_count": 2,
+  "padding": "none",
+  "paddings": [
+   "none"
+  ],
+  "padding_rule": "none",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [],
+   "twins": []
+  },
+  "notes": "ui/pagination is the template, ux/Pagination the class. Not opened in full.",
+  "sheets": []
+ },
+ {
+  "name": "form field",
+  "family": "controls & widgets",
+  "what": "A label above an input or select.",
+  "sources": [
+   {
+    "name": "form field",
+    "census": "a",
+    "source": "public/framework/ui/field/page.js:6"
+   }
+  ],
+  "classes": [
+   ".h4"
+  ],
+  "render": "import { div, span, p, a, button, input, textarea, label, details, summary, progress, icon } from '/app.js'; label.c('flex v gap', () => { div.c('h4', 'Email'); input().attr('type', 'email').attr('value', 'you@example.com'); span.c('muted', 'We never send anything.'); });",
+  "used_in": [
+   "/framework/ui/field/",
+   "/framework/ux/Auth/"
+  ],
+  "used_count": 2,
+  "padding": "none",
+  "paddings": [
+   "none"
+  ],
+  "padding_rule": "none",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [],
+   "twins": []
+  },
+  "notes": "",
+  "sheets": []
+ },
+ {
+  "name": "popover",
+  "family": "panels & dialogs",
+  "what": "A floating box anchored to an element, used for tooltips and action menus.",
+  "sources": [
+   {
+    "name": "popover",
+    "census": "a",
+    "source": "public/framework/ux/Popover/Popover.js:36"
+   }
+  ],
+  "classes": [
+   ".ux-popover",
+   ".ux-popover-item"
+  ],
+  "render": "import { menu } from '/framework/ux/Popover/Popover.js'; import { button } from '/app.js'; const b = button('Click for a menu'); menu(b.el, [{ text: 'Rename' }, { text: 'Duplicate' }, { text: 'Delete' }]);",
+  "used_in": [
+   "/framework/ux/Popover/"
+  ],
+  "used_count": 5,
+  "padding": "own (Popover.css)",
+  "paddings": [
+   "own (Popover.css)"
+  ],
+  "padding_rule": "own rule",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "menu (dropdown)",
+    "tooltip"
+   ]
+  },
+  "notes": "Needs an anchor element.",
+  "sheets": []
+ },
+ {
+  "name": "wizard",
+  "family": "navigation",
+  "what": "A step-by-step flow with a step rail, crumbs, body and Next/Back controls.",
+  "sources": [
+   {
+    "name": "wizard",
+    "census": "a",
+    "source": "public/framework/ux/Wizard/Wizard.js:49"
+   }
+  ],
+  "classes": [
+   ".ux-wizard-steps",
+   ".ux-wizard-crumbs",
+   ".ux-wizard-body"
+  ],
+  "render": "import { Wizard } from '/framework/ux/Wizard/Wizard.js'; import { p } from '/app.js'; new Wizard({ steps: [{ title: 'Name', content: () => p('Step one: name it.') }, { title: 'Options', content: () => p('Step two: pick options.') }, { title: 'Confirm', content: () => p('Step three: confirm.') }] });",
+  "used_in": [
+   "/framework/ux/Wizard/"
+  ],
+  "used_count": 1,
+  "padding": "flex gap",
+  "paddings": [
+   "flex gap"
+  ],
+  "padding_rule": "own rule",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "course rail"
+   ]
+  },
+  "notes": "Needs step definitions; see page.",
+  "sheets": []
+ },
+ {
+  "name": "course",
+  "family": "navigation",
+  "what": "A lesson viewer: a chapter rail card, the lesson, and a 'next up' side card.",
+  "sources": [
+   {
+    "name": "course",
+    "census": "a",
+    "source": "public/framework/ux/Course/Course.js:46"
+   }
+  ],
+  "classes": [
+   ".rail",
+   ".surface",
+   ".pad",
+   ".basis"
+  ],
+  "render": "import { Course } from '/framework/ux/Course/Course.js'; import { p } from '/app.js'; new Course({ chapters: [{ title: 'Basics', lessons: [{ title: 'First lesson', content: () => p('A lesson is one screen.') }, { title: 'Second lesson', content: () => p('Then the next.') }] }] });",
+  "used_in": [
+   "/framework/ux/Course/"
+  ],
+  "used_count": 1,
+  "padding": "--pad on rail and side (surface pad)",
+  "paddings": [
+   "--pad on rail and side (surface pad)"
+  ],
+  "padding_rule": "--pad",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "wizard"
+   ]
+  },
+  "notes": "Uses surface pad twice, not .card.",
+  "sheets": []
+ },
+ {
+  "name": "auth form",
+  "family": "controls & widgets",
+  "what": "Login, signup and reset forms as vertical flex forms with a prim submit.",
+  "sources": [
+   {
+    "name": "auth form",
+    "census": "a",
+    "source": "public/framework/ux/Auth/Auth.js:42"
+   }
+  ],
+  "classes": [
+   ".flex",
+   ".v",
+   ".gap",
+   ".prim"
+  ],
+  "render": "import { Auth } from '/framework/ux/Auth/Auth.js'; new Auth();",
+  "used_in": [
+   "/framework/ux/Auth/"
+  ],
+  "used_count": 1,
+  "padding": "none (host supplies)",
+  "paddings": [
+   "none (host supplies)"
+  ],
+  "padding_rule": "none",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [],
+   "twins": []
+  },
+  "notes": "Needs an auth backend.",
+  "sheets": []
+ },
+ {
+  "name": "tree",
+  "family": "navigation",
+  "what": "An expandable list of nested items, with drag and keyboard support in ux/Tree.",
+  "sources": [
+   {
+    "name": "tree",
+    "census": "a",
+    "source": "public/framework/ux/Tree/Tree.js"
+   }
+  ],
+  "classes": [
+   ".ui-tree-*"
+  ],
+  "render": "import Tree from '/framework/ux/Tree/Tree.js'; new Tree({ nodes: [{ text: 'core', open: true, children: [{ text: 'View' }, { text: 'Router' }] }, { text: 'ext' }] });",
+  "used_in": [
+   "/framework/ux/Tree/",
+   "/framework/ui/tree/"
+  ],
+  "used_count": 2,
+  "padding": "row indent",
+  "paddings": [
+   "row indent"
+  ],
+  "padding_rule": "own rule",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [],
+   "twins": []
+  },
+  "notes": "ui/tree tree() retired 2026-08-21; only its stylesheet remains.",
+  "sheets": []
+ },
+ {
+  "name": "dictate button",
+  "family": "controls & widgets",
+  "what": "A microphone control that records and shows live transcription.",
+  "sources": [
+   {
+    "name": "dictate button",
+    "census": "a",
+    "source": "public/framework/ux/Dictate/Dictate.js"
+   }
+  ],
+  "classes": [
+   ".ux-dictate"
+  ],
+  "render": "import Dictate from '/framework/ux/Dictate/Dictate.js'; import { textarea } from '/app.js'; let ta; new Dictate({ $input: () => ta }); ta = textarea().attr('rows', '2').attr('placeholder', 'click the mic, or type');",
+  "used_in": [
+   "/framework/ux/Dictate/"
+  ],
+  "used_count": 1,
+  "padding": "Dictate.css",
+  "paddings": [
+   "Dictate.css"
+  ],
+  "padding_rule": "own rule",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [],
+   "twins": []
+  },
+  "notes": "Needs microphone access; not opened in full.",
+  "sheets": []
+ },
+ {
+  "name": "preview card",
+  "family": "cards",
+  "what": "A linked tile for one child page: a picture (or a sentence) above its title; the wall an index page is built from.",
+  "sources": [
+   {
+    "name": "preview card",
+    "census": "b",
+    "source": "public/framework/core/Page/Page.class.js:892"
+   }
+  ],
+  "classes": [
+   ".page-preview",
+   ".page-preview-thumb",
+   ".page-preview-link",
+   ".page-preview-desc"
+  ],
+  "render": "import { div, span, p, a, button, input, textarea, label, details, summary, progress, icon } from '/app.js'; div.c('page-previews', () => div.c('page-preview', () => { a.c('page-preview-link', () => span.c('page-preview-title', 'Child page')).href('#'); p.c('page-preview-desc', 'One sentence about the page.'); }));",
+  "used_in": [
+   "/framework/core/Page/",
+   "every index page via previews()"
+  ],
+  "used_count": 309,
+  "padding": "padding 0 and no background at Page.css:1186; the thumb carries the box",
+  "paddings": [
+   "padding 0 and no background at Page.css:1186; the thumb carries the box"
+  ],
+  "padding_rule": "own rule",
+  "bleeds": "no (inside .page-previews.bleed)",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "card",
+    "v3 tile",
+    "decks card",
+    "blog card"
+   ]
+  },
+  "notes": "Needs a Page instance (preview_card(nav, thumb)), so render is null. Count is files of any type mentioning the class.",
+  "sheets": []
+ },
+ {
+  "name": "preview wall",
+  "family": "cards",
+  "what": "The wrapping grid of preview cards that an index page shows for its children; may carry group headings.",
+  "sources": [
+   {
+    "name": "preview wall",
+    "census": "b",
+    "source": "public/framework/core/Page/Page.class.js:856"
+   }
+  ],
+  "classes": [
+   ".page-previews",
+   ".page-previews-group",
+   ".page-walls",
+   ".page-wall"
+  ],
+  "render": "import { div, span, p, a, button, input, textarea, label, details, summary, progress, icon } from '/app.js'; div.c('page-previews', () => { ['One', 'Two', 'Three'].forEach(t => div.c('page-preview', () => a.c('page-preview-link', () => span.c('page-preview-title', t)).href('#'))); });",
+  "used_in": [
+   "/framework/core/Page/"
+  ],
+  "used_count": 0,
+  "padding": "none of its own; padding-inline var(--gutter-x) in .page.standard",
+  "paddings": [
+   "none of its own; padding-inline var(--gutter-x) in .page.standard"
+  ],
+  "padding_rule": "none",
+  "bleeds": "yes: the .bleed word takes the widest grid track",
+  "bleed_label": "bleeds",
+  "interactive": false,
+  "duplicates": {
+   "folded": [],
+   "twins": []
+  },
+  "notes": "walls() (Page.class.js:869) nests one wall per grandchild group. Rail form .rail:has(> .page-preview) forces 11em cards (Page.css:1037).",
+  "sheets": []
+ },
+ {
+  "name": "wireframe picture",
+  "family": "doc blocks",
+  "what": "A chrome-free mini drawing of a page shape (29 words), used as a preview card thumbnail instead of a zoomed live render.",
+  "sources": [
+   {
+    "name": "wireframe picture",
+    "census": "b",
+    "source": "public/framework/ext/demo/mini.js:24"
+   }
+  ],
+  "classes": [
+   ".demo-mini--<word>",
+   ".demo-mini-<part>"
+  ],
+  "render": "import { mini } from '/framework/ext/demo/mini.js'; import { div } from '/app.js'; div.c('card', () => mini('tabs'));",
+  "used_in": [
+   "/framework/core/Page/"
+  ],
+  "used_count": 0,
+  "padding": "none; parts size themselves in em (mini.css)",
+  "paddings": [
+   "none; parts size themselves in em (mini.css)"
+  ],
+  "padding_rule": "none",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": false,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "zoom-25 live thumb"
+   ]
+  },
+  "notes": "Trap from the readme: a PART is .demo-mini-x, a PICTURE .demo-mini--x; one dash misapplies padding."
+ },
+ {
+  "name": "wireframe tile",
+  "family": "cards",
+  "what": "One tiny grey rectangle inside a wireframe picture; a stand-in for a card.",
+  "sources": [
+   {
+    "name": "wireframe tile",
+    "census": "b",
+    "source": "public/framework/ext/demo/mini.css:146"
+   }
+  ],
+  "classes": [
+   ".demo-mini-tile"
+  ],
+  "render": "import { mini } from '/framework/ext/demo/mini.js'; import { div } from '/app.js'; div.c('card', () => mini('cards'));",
+  "used_in": [
+   "ext/demo/mini.css"
+  ],
+  "used_count": 2,
+  "padding": "none, min-height 1.8em",
+  "paddings": [
+   "none, min-height 1.8em"
+  ],
+  "padding_rule": "none",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": false,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "card"
+   ]
+  },
+  "notes": "Another spelling of a box with surface fill and hairline; a drawing, not a real card.",
+  "sheets": []
+ },
+ {
+  "name": "decks card",
+  "family": "cards",
+  "what": "A small tinted, bordered link tile in the decks lab.",
+  "sources": [
+   {
+    "name": "decks card",
+    "census": "b",
+    "source": "public/framework/../imagine/decks/decks.css:177"
+   }
+  ],
+  "classes": [
+   ".decks-card"
+  ],
+  "render": "import { div, span, p, a, button, input, textarea, label, details, summary, progress, icon } from '/app.js'; a.c('decks-card', () => { span('A deck'); p('A small tinted link tile.'); }).href('#');",
+  "used_in": [
+   "/imagine/decks/",
+   "layouts/labs/decks (verbatim copy)"
+  ],
+  "used_count": 5,
+  "padding": "0.8em 0.9em, hard-coded",
+  "paddings": [
+   "0.8em 0.9em, hard-coded"
+  ],
+  "padding_rule": "0.8em 0.9em",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "card",
+    "preview card"
+   ]
+  },
+  "notes": "Duplicate of .card with its own padding; decks.css is copied verbatim under layouts/labs/.",
+  "sheets": [
+   "/imagine/decks/decks.css"
+  ]
+ },
+ {
+  "name": "blog card",
+  "family": "cards",
+  "what": "A surface-coloured article tile with a hairline on two sides and a hover shade.",
+  "sources": [
+   {
+    "name": "blog card",
+    "census": "b",
+    "source": "public/framework/../imagine/blogx/blogx.css:266"
+   }
+  ],
+  "classes": [
+   ".blogx-card"
+  ],
+  "render": "import { div, span, p, a, button, input, textarea, label, details, summary, progress, icon } from '/app.js'; a.c('blogx-card', () => { span('An article title'); p('Two lines of what it says.'); }).href('#');",
+  "used_in": [
+   "/imagine/blogx/",
+   "layouts/labs/blogx (copy)"
+  ],
+  "used_count": 10,
+  "padding": "1em 1.1em 1.2em, hard-coded",
+  "paddings": [
+   "1em 1.1em 1.2em, hard-coded"
+  ],
+  "padding_rule": "1em 1.1em 1.2em",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "card",
+    "decks card"
+   ]
+  },
+  "notes": "A third card padding; box-shadow instead of a border.",
+  "sheets": [
+   "/imagine/blogx/blogx.css"
+  ]
+ },
+ {
+  "name": "three-column card",
+  "family": "cards",
+  "what": "One wide row of three columns (facts, main content, meta) in the imagine realm.",
+  "sources": [
+   {
+    "name": "three-column card",
+    "census": "b",
+    "source": "public/framework/../imagine/imagine.css:479"
+   }
+  ],
+  "classes": [
+   ".imagine-card3",
+   ".imagine-card3-left",
+   ".imagine-card3-center",
+   ".imagine-card3-right"
+  ],
+  "render": "import { div, span, p, a, button, input, textarea, label, details, summary, progress, icon } from '/app.js'; div.c('imagine-card3', () => { div.c('imagine-card3-left', 'facts'); div.c('imagine-card3-center', 'main content'); div.c('imagine-card3-right', 'meta'); });",
+  "used_in": [
+   "/imagine/"
+  ],
+  "used_count": 7,
+  "padding": "no padding; gap var(--gap-default), margin-block-end 1.2em",
+  "paddings": [
+   "no padding; gap var(--gap-default), margin-block-end 1.2em"
+  ],
+  "padding_rule": "1.2em",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": false,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "card"
+   ]
+  },
+  "notes": "Named card but is a grid layout; collapses to one column in a query.",
+  "sheets": [
+   "/imagine/imagine.css"
+  ]
+ },
+ {
+  "name": "inbox tile",
+  "family": "cards",
+  "what": "A card in the v3 board: icon and title on one row, one sentence, the author. Big when it needs the owner.",
+  "sources": [
+   {
+    "name": "v3 tile",
+    "census": "b",
+    "source": "public/framework/ai/v/3/v3.css:345"
+   },
+   {
+    "name": "task card (manifest card)",
+    "census": "c",
+    "source": "public/framework/ext/AITask/card.js:91"
+   },
+   {
+    "name": "v3 tile (inbox card)",
+    "census": "c",
+    "source": "public/framework/ai/v/3/page.js:1185"
+   }
+  ],
+  "classes": [
+   ".v3-tile",
+   ".v3-tile-compact",
+   ".v3-tile-big",
+   ".v3-tile-head",
+   ".v3-tile-title",
+   ".ai-card",
+   ".surface",
+   ".ai-card-title",
+   ".ai-figures",
+   ".card",
+   ".v3-tile-sentence",
+   ".v3-tile-author"
+  ],
+  "render": "import { manifest_card } from '/framework/ext/AITask/card.js'; manifest_card({ title: 'Demo task', url: '/framework/ai/', name: 'demo', brief: 'A task that has not started.', m: null });",
+  "used_in": [
+   "/framework/ai/v/3/",
+   "/framework/ai/"
+  ],
+  "used_count": 22,
+  "padding": "framework .card (--pad-card)",
+  "paddings": [
+   "set elsewhere in v3.css (not read in full)",
+   "ai.css:562 own grid, padding via .surface",
+   "framework .card (--pad-card)"
+  ],
+  "padding_rule": "own rule",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [
+    "v3 tile",
+    "task card (manifest card)"
+   ],
+   "twins": [
+    "card",
+    "preview card",
+    "inbox card (ai2 row)",
+    "tile (v3)",
+    "highlight card",
+    "inbox row",
+    "ask card",
+    "task card"
+   ]
+  },
+  "notes": "Own background token --v3-card and its own selected look (box-shadow none): a fork of .card.selected. · Three-column grid capped at 60em; title ::after spreads the link over the whole card. · Only kind here that wears the framework .card; every other one hand-rolls its padding."
+ },
+ {
+  "name": "dev chat card",
+  "family": "cards",
+  "what": "A message card in the dev bar chat.",
+  "sources": [
+   {
+    "name": "dev chat card",
+    "census": "b",
+    "source": "public/framework/dev/DevBar/devbar.css:466"
+   }
+  ],
+  "classes": [
+   ".dev-chat-card"
+  ],
+  "render": "import { div, span, p, a, button, input, textarea, label, details, summary, progress, icon } from '/app.js'; div.c('dev-chat-card', 'A message in the dev bar chat.');",
+  "used_in": [
+   "dev bar"
+  ],
+  "used_count": 5,
+  "padding": "not read",
+  "paddings": [
+   "not read"
+  ],
+  "padding_rule": "unknown",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": false,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "card"
+   ]
+  },
+  "notes": "A test copy sits in ai/2026-09-19/devbar-chat/test/chat-test.css:54.",
+  "sheets": [
+   "/framework/dev/DevBar/devbar.css"
+  ]
+ },
+ {
+  "name": "ask card",
+  "family": "AI log blocks",
+  "what": "A question or report from an agent to the owner: needs line, title, two clamped lines, status chip, links, a screenshot.",
+  "sources": [
+   {
+    "name": "ai2 card page",
+    "census": "b",
+    "source": "public/framework/ai2/ai2.css:469"
+   },
+   {
+    "name": "ask card",
+    "census": "c",
+    "source": "public/framework/ext/AITask/asks.js:265"
+   },
+   {
+    "name": "ask sheet",
+    "census": "c",
+    "source": "public/framework/ext/AITask/asks.js:426"
+   },
+   {
+    "name": "inbox full card",
+    "census": "c",
+    "source": "public/framework/ai2/card.js:51"
+   }
+  ],
+  "classes": [
+   ".page.ai2-card-page",
+   ".ai-ask",
+   ".surface",
+   ".ai-ask-status",
+   ".ai-ask-foot",
+   ".ai-ask-sheet",
+   ".ai-ask-decision",
+   ".ai2-full",
+   ".ai2-full-head",
+   ".ai2-refined",
+   ".ai2-chip",
+   ".ai2-said",
+   ".ai2-proposal"
+  ],
+  "render": "import { div } from '/app.js'; import { full } from '/framework/ai2/card.js'; div.c('ai2-full', () => full({ title: 'Demo', at: new Date().toISOString(), author: 'owner', kind: 'prompt', text: 'Say it once.', refined: '', names: ['a-name'], said: ['Hello.'], proposals: [{ title: 'Sketch', shape: ['One idea.'] }], links: [{ url: '/framework/ai2/', label: 'AI 2' }] }, { held(){}, flag(){}, unflag(){} }));",
+  "used_in": [
+   "/framework/ai2/",
+   "/framework/ai/"
+  ],
+  "used_count": 5,
+  "padding": "--pad (ai.css:103)",
+  "paddings": [
+   "not read",
+   "--pad (ai.css:103)",
+   "--pad (ai.css:172)",
+   "--pad (ai2.css:482)"
+  ],
+  "padding_rule": "--pad",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [
+    "ai2 card page",
+    "ask sheet",
+    "inbox full card"
+   ],
+   "twins": [
+    "card",
+    "preview card",
+    "decision row",
+    "ai2 inbox card",
+    "v3 tile",
+    "decision body",
+    "v3 detail",
+    "ai-ask-sheet"
+   ]
+  },
+  "notes": "A Page pretending to be a card. · Needs a loaded task log (asks(m, base, to_prompt, redraw)); not drawn standalone. Click opens .ai-ask-sheet under it. · Spans the full grid row (.ai-ask-detail grid-column 1 / -1). · Scrolls itself (overflow-y auto).",
+  "sheets": [
+   "/framework/ai2/ai2.css"
+  ]
+ },
+ {
+  "name": "paging box",
+  "family": "cards",
+  "what": "A vertical stack of headings and paragraphs used as swappable content in the paging lab.",
+  "sources": [
+   {
+    "name": "paging box",
+    "census": "b",
+    "source": "public/framework/../imagine/paging/paging.css:26"
+   }
+  ],
+  "classes": [
+   ".paging-box"
+  ],
+  "render": "import { div, span, p, a, button, input, textarea, label, details, summary, progress, icon } from '/app.js'; div.c('paging-box', () => { p('A heading-ish line.'); p('A paragraph of swappable content.'); });",
+  "used_in": [
+   "/imagine/paging/"
+  ],
+  "used_count": 11,
+  "padding": "none; gap var(--gap-70)",
+  "paddings": [
+   "none; gap var(--gap-70)"
+  ],
+  "padding_rule": "none",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": false,
+  "duplicates": {
+   "folded": [],
+   "twins": []
+  },
+  "notes": "Prose is limited to --measure (paging.css:30).",
+  "sheets": [
+   "/imagine/paging/paging.css"
+  ]
+ },
+ {
+  "name": "section band",
+  "family": "cards",
+  "what": "A full-width themed strip (hero, callout, stats, faq...) from the section library; each section is a function returning a band.",
+  "sources": [
+   {
+    "name": "section band",
+    "census": "b",
+    "source": "public/framework/styles/sections/callout.js:5"
+   }
+  ],
+  "classes": [
+   ".section-band"
+  ],
+  "render": "import callout from '/framework/styles/sections/callout.js'; callout('prim');",
+  "used_in": [
+   "/framework/styles/sections/"
+  ],
+  "used_count": 38,
+  "padding": "inner .measure (62em) plus per-section padding",
+  "paddings": [
+   "inner .measure (62em) plus per-section padding"
+  ],
+  "padding_rule": "62em",
+  "bleeds": "yes: full-width band with an inner .measure",
+  "bleed_label": "bleeds",
+  "interactive": false,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "surface"
+   ]
+  },
+  "notes": "Count is files. Sections hand-build inner boxes (stats uses div.c('pad flex v')) rather than .card."
+ },
+ {
+  "name": "demo shell",
+  "family": "doc blocks",
+  "what": "The whole demo band: path above, render in a stage, source column beside; what page.demo() draws.",
+  "sources": [
+   {
+    "name": "demo shell",
+    "census": "b",
+    "source": "public/framework/ext/demo/shell.css:15"
+   }
+  ],
+  "classes": [
+   ".demo-shell",
+   ".demo-shell-code"
+  ],
+  "render": "import { h1, p } from '/app.js'; import { demo } from '/app.js'; demo(() => { h1('Hello'); }, 'Caption - the code shown IS the code that ran.');",
+  "used_in": [
+   "all demo() callers (readme says 202)"
+  ],
+  "used_count": 19,
+  "padding": "padding-inline var(--gutter-x)",
+  "paddings": [
+   "padding-inline var(--gutter-x)"
+  ],
+  "padding_rule": "own rule",
+  "bleeds": "no (a leaf page stage takes .bleed)",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "demo stage"
+   ]
+  },
+  "notes": "Splits to two columns from ~1310px of its own width."
+ },
+ {
+  "name": "demo stage",
+  "family": "doc blocks",
+  "what": "One resizable viewport with a width readout and preset widths 390/810/1440/3440.",
+  "sources": [
+   {
+    "name": "demo stage",
+    "census": "b",
+    "source": "public/framework/ext/demo/stage.js:29"
+   }
+  ],
+  "classes": [
+   ".demo-stage",
+   ".demo-screen",
+   ".demo-render"
+  ],
+  "render": "import { p } from '/app.js'; import { demo } from '/app.js'; demo.stage(() => p('Drag the handle.'));",
+  "used_in": [
+   "ext/demo",
+   "ext/Panel/Workspace"
+  ],
+  "used_count": 47,
+  "padding": ".demo-screen padding var(--demo-pad, 1.5rem)",
+  "paddings": [
+   ".demo-screen padding var(--demo-pad, 1.5rem)"
+  ],
+  "padding_rule": "1.5rem",
+  "bleeds": "yes: .demo-stage.bleed zeroes the screen padding",
+  "bleed_label": "bleeds",
+  "interactive": true,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "pane (device frame)"
+   ]
+  },
+  "notes": "The three nested boxes cannot merge (overflow). A div is not a viewport: @media inside ignores the handle."
+ },
+ {
+  "name": "demo app",
+  "family": "doc blocks",
+  "what": "A Page tree playing App and Router inside a box.",
+  "sources": [
+   {
+    "name": "demo app",
+    "census": "b",
+    "source": "public/framework/ext/demo/app.js:237"
+   }
+  ],
+  "classes": [
+   ".demo-app"
+  ],
+  "render": "import { demo } from '/app.js'; import sample from '/framework/ext/demo/sample.js'; demo.app(sample());",
+  "used_in": [
+   "ext/demo"
+  ],
+  "used_count": 0,
+  "padding": "none",
+  "paddings": [
+   "none"
+  ],
+  "padding_rule": "none",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "demo stage"
+   ]
+  },
+  "notes": "Defaults urls:false; hides its own width readout inside stages and preview cards. sample.js default export was not verified."
+ },
+ {
+  "name": "demo steps",
+  "family": "doc blocks",
+  "what": "A two-column hero: numbered steps beside a live demo, each step ticking when the demo fires its event.",
+  "sources": [
+   {
+    "name": "demo steps",
+    "census": "b",
+    "source": "public/framework/ext/demo/steps.js:101"
+   }
+  ],
+  "classes": [
+   ".demo-steps"
+  ],
+  "render": "import { demo } from '/app.js'; import { p } from '/app.js'; demo.steps([{ text: 'Do the first thing' }, { text: 'Then the second' }], () => p('The live demo.'));",
+  "used_in": [
+   "ext/demo"
+  ],
+  "used_count": 0,
+  "padding": "steps.css",
+  "paddings": [
+   "steps.css"
+  ],
+  "padding_rule": "own rule",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "demo shell"
+   ]
+  },
+  "notes": "Needs a stage function and event names, so render is null.",
+  "sheets": [
+   "/framework/ext/demo/steps.css"
+  ],
+  "undrawable": "It only works as a direct child of a page (it takes the page grid word wide), so a tile is the wrong frame for it."
+ },
+ {
+  "name": "omnibox",
+  "family": "navigation",
+  "what": "The search box and results in the site chrome.",
+  "sources": [
+   {
+    "name": "omnibox",
+    "census": "b",
+    "source": "public/framework/core/Search/Search.css:11"
+   }
+  ],
+  "classes": [
+   ".omnibox",
+   ".omnibox-bar"
+  ],
+  "render": "import { div, span, p, a, button, input, textarea, label, details, summary, progress, icon } from '/app.js'; div.c('omnibox', () => div.c('omnibox-bar', () => input().attr('placeholder', 'Search the site')));",
+  "used_in": [
+   "site chrome"
+  ],
+  "used_count": 49,
+  "padding": "not read",
+  "paddings": [
+   "not read"
+  ],
+  "padding_rule": "unknown",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [],
+   "twins": []
+  },
+  "notes": "Count is all files mentioning it.",
+  "sheets": [
+   "/framework/core/Search/Search.css"
+  ]
+ },
+ {
+  "name": "tab panel",
+  "family": "panels & dialogs",
+  "what": "The content pane belonging to one tab of a tabbed page.",
+  "sources": [
+   {
+    "name": "tab panel",
+    "census": "b",
+    "source": "public/framework/core/new/1/site/compound/compound.css:69"
+   }
+  ],
+  "classes": [
+   ".tab-panel",
+   ".paging-tab-panel"
+  ],
+  "render": "import { div, span, p, a, button, input, textarea, label, details, summary, progress, icon } from '/app.js'; div.c('tab-panel', () => p('The pane that belongs to one tab.'));",
+  "used_in": [
+   "tabbed pages"
+  ],
+  "used_count": 94,
+  "padding": "panel unset; a direct .page child gets padding 0 (compound.css:73)",
+  "paddings": [
+   "panel unset; a direct .page child gets padding 0 (compound.css:73)"
+  ],
+  "padding_rule": "own rule",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": false,
+  "duplicates": {
+   "folded": [],
+   "twins": []
+  },
+  "notes": "Count is files.",
+  "sheets": [
+   "/framework/core/new/1/site/compound/compound.css"
+  ]
+ },
+ {
+  "name": "panel (Panel item)",
+  "family": "panels & dialogs",
+  "what": "A resizable box that holds content and can split into more panels; the building block of the layout lab.",
+  "sources": [
+   {
+    "name": "editing panel",
+    "census": "b",
+    "source": "public/framework/ext/Panel/panel.css:79"
+   },
+   {
+    "name": "panel (Panel item)",
+    "census": "c",
+    "source": "public/framework/ext/Panel/workspace.js:120"
+   }
+  ],
+  "classes": [
+   ".panel",
+   ".panel-bar",
+   ".panel-body",
+   ".panel-items",
+   ".panel-workspace",
+   ".panel-btn",
+   ".panel-grip"
+  ],
+  "render": "import { p } from '/app.js'; import { panel } from '/framework/ext/Panel/workspace.js'; panel(() => p('A panel'));",
+  "used_in": [
+   "ext/Panel (part C's territory)",
+   "/framework/ext/Panel/",
+   "/framework/ext/Panel/playground/"
+  ],
+  "used_count": 94,
+  "padding": "panel.css own, --panel-hug",
+  "paddings": [
+   "panel own tokens",
+   "panel.css own, --panel-hug"
+  ],
+  "padding_rule": "own rule",
+  "bleeds": "yes: 0px hug/fill seams by design",
+  "bleed_label": "bleeds",
+  "interactive": true,
+  "duplicates": {
+   "folded": [
+    "editing panel"
+   ],
+   "twins": [
+    "card",
+    ".surface",
+    "column page"
+   ]
+  },
+  "notes": "The word panel is overloaded: the 94 .panel rules top the class census; .tab-panel and .paging-tab-panel mean something else. · panel() signature is `seed`; check the seed shape in vocab.js before relying on { text }.",
+  "sheets": [
+   "/framework/ext/Panel/display.css",
+   "/framework/ext/Panel/flow.css",
+   "/framework/ext/Panel/focus.css",
+   "/framework/ext/Panel/grip.css",
+   "/framework/ext/Panel/insert.css",
+   "/framework/ext/Panel/repeat.css",
+   "/framework/ext/Panel/size.css",
+   "/framework/ext/Panel/split.css",
+   "/framework/ext/Panel/text.css",
+   "/framework/ext/Panel/tools.css",
+   "/framework/ext/Panel/toolbar.css",
+   "/framework/ext/Panel/panel.css",
+   "/framework/ext/Panel/templates.css",
+   "/framework/ext/Panel/controls.css",
+   "/framework/ext/Panel/Workspace/workspace.css"
+  ]
+ },
+ {
+  "name": "highlight card",
+  "family": "cards",
+  "what": "A small card a finished task marks as its best result: icon, title link, one line, a log link.",
+  "sources": [
+   {
+    "name": "highlight card",
+    "census": "c",
+    "source": "public/framework/ext/AITask/highlights.js:63"
+   }
+  ],
+  "classes": [
+   ".ai-hl",
+   ".surface",
+   ".ai-hl-wall"
+  ],
+  "render": "import { highlights } from '/framework/ext/AITask/highlights.js'; highlights([{ url: '/framework/ai/2026-09-24/demo/', m: { highlight: { title: 'A demo highlight', line: 'One sentence about it.', url: '/framework/ai/' } } }]);",
+  "used_in": [
+   "/framework/ai/"
+  ],
+  "used_count": 1,
+  "padding": "gap-50 gap-70 (own rule, ai.css:669)",
+  "paddings": [
+   "gap-50 gap-70 (own rule, ai.css:669)"
+  ],
+  "padding_rule": "own rule",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": false,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "task card",
+    "v3 tile"
+   ]
+  },
+  "notes": "Sits in an auto grid `.ai-hl-wall`, 20em columns."
+ },
+ {
+  "name": "needs-you strip",
+  "family": "callouts & alerts",
+  "what": "A box listing every thing only the owner can do, shortest first, with minutes.",
+  "sources": [
+   {
+    "name": "needs-you strip",
+    "census": "c",
+    "source": "public/framework/ext/AITask/needs.js:94"
+   }
+  ],
+  "classes": [
+   ".ai-needs",
+   ".ai-need",
+   ".ai-need-mins",
+   ".surface"
+  ],
+  "render": "import { needs_strip } from '/framework/ext/AITask/needs.js'; needs_strip([{ what: 'Log in to the host', minutes: 5, id: 'x', url: '/framework/ai/', label: 'demo' }]);",
+  "used_in": [
+   "/framework/ai/",
+   "/framework/ai2/"
+  ],
+  "used_count": 1,
+  "padding": "--pad + 3px prim start border (ai.css:207)",
+  "paddings": [
+   "--pad + 3px prim start border (ai.css:207)"
+  ],
+  "padding_rule": "--pad",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": false,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "ask card in Needs column",
+    "ai2 needs column"
+   ]
+  },
+  "notes": "Draws nothing when empty."
+ },
+ {
+  "name": "fold (expando bar)",
+  "family": "rows & lists",
+  "what": "A clickable bar over a hidden body, built only on first open.",
+  "sources": [
+   {
+    "name": "fold (expando bar)",
+    "census": "c",
+    "source": "public/framework/ext/AITask/message.js:15"
+   }
+  ],
+  "classes": [
+   ".ai-fold",
+   ".ai-fold-bar",
+   ".wash",
+   ".ai-fold-body"
+  ],
+  "render": "import { fold } from '/framework/ext/AITask/message.js'; fold('Click to open', () => { p('The hidden body.'); });",
+  "used_in": [
+   "/framework/ai/"
+  ],
+  "used_count": 4,
+  "padding": ".25em .75em raw (ai.css:319)",
+  "paddings": [
+   ".25em .75em raw (ai.css:319)"
+  ],
+  "padding_rule": ".25em .75em",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "ai2 details .ai2-said",
+    "v3 details .v3-day-row",
+    "native details"
+   ]
+  },
+  "notes": "Four copies of the same idea: ai-fold, ai2-said/ai2-toc (details), v3-day-row (details), v2-earlier (details)."
+ },
+ {
+  "name": "chat line",
+  "family": "AI log blocks",
+  "what": "One line of a conversation with a card: who, text, and a reply/update variant.",
+  "sources": [
+   {
+    "name": "transcript message",
+    "census": "c",
+    "source": "public/framework/ext/AITask/message.js:36"
+   },
+   {
+    "name": "turn (transcript turn)",
+    "census": "c",
+    "source": "public/framework/ext/AITask/feed.js:129"
+   },
+   {
+    "name": "chat line",
+    "census": "c",
+    "source": "public/framework/ai2/chat.js:36"
+   }
+  ],
+  "classes": [
+   ".ai-msg",
+   ".ai-tool",
+   ".ai-result",
+   ".ai-img",
+   ".ai-turn",
+   ".wash",
+   ".ai-meta",
+   ".ai-cmd",
+   ".ai2-chat",
+   ".ai2-chat-who",
+   ".ai2-chat-text",
+   ".ai2-chat-you",
+   ".ai2-script"
+  ],
+  "render": "import { message } from '/framework/ext/AITask/message.js'; message({ type: 'assistant', message: { content: 'Hello from an agent.' } });",
+  "used_in": [
+   "/framework/ai/",
+   "/framework/ai2/"
+  ],
+  "used_count": 2,
+  "padding": "own",
+  "paddings": [
+   "none (flow)",
+   ".5em .75em raw (feed.css:8) but ai.css:395 says gap-50 no pad",
+   "own"
+  ],
+  "padding_rule": "none",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": false,
+  "duplicates": {
+   "folded": [
+    "transcript message",
+    "turn (transcript turn)"
+   ],
+   "twins": [
+    "ai2 chat line",
+    "ai2 chat turn",
+    "ai-turn",
+    "ai-you"
+   ]
+  },
+  "notes": " · Two rules for .ai-turn (ai.css and feed.css) disagree on padding; feed.css wins by load order."
+ },
+ {
+  "name": "owner prompt bubble (ai-you)",
+  "family": "AI log blocks",
+  "what": "The owner's own message in a chat replay, a bordered box that lights up when selected.",
+  "sources": [
+   {
+    "name": "owner prompt bubble (ai-you)",
+    "census": "c",
+    "source": "public/framework/ext/AITask/conversation.js:182"
+   }
+  ],
+  "classes": [
+   ".ai-you",
+   ".surface",
+   ".ai-cmd"
+  ],
+  "render": "import { div, span, p, a, button, input, textarea, label, details, summary, progress, icon } from '/app.js'; div.c('ai-you surface', 'Make the sidebar narrower.');",
+  "used_in": [
+   "/framework/ai/"
+  ],
+  "used_count": 1,
+  "padding": "--gap-70 (ai.css:402)",
+  "paddings": [
+   "--gap-70 (ai.css:402)"
+  ],
+  "padding_rule": "own rule",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "ai2 chat-you",
+    ".v3-tile-owner"
+   ]
+  },
+  "notes": "Three different ways to mark the owner's words.",
+  "sheets": [
+   "/framework/ext/AITask/ai.css"
+  ]
+ },
+ {
+  "name": "inbox row (rail preview)",
+  "family": "rows & lists",
+  "what": "The two-line preview in the AI 2 rail: title, time, author and last sentence; always the same height.",
+  "sources": [
+   {
+    "name": "prompt rail row",
+    "census": "c",
+    "source": "public/framework/ext/AITask/conversation.js:288"
+   },
+   {
+    "name": "inbox row (rail preview)",
+    "census": "c",
+    "source": "public/framework/ai2/card.js:28"
+   },
+   {
+    "name": "overview row",
+    "census": "c",
+    "source": "public/framework/ai2/overview.js:88"
+   },
+   {
+    "name": "v3 compact row",
+    "census": "c",
+    "source": "public/framework/ai/v/3/page.js:1188"
+   }
+  ],
+  "classes": [
+   ".ai-prompt",
+   ".ai-prompt-text",
+   ".ai-prompt-at",
+   ".ai-chat-rail",
+   ".ai2-row",
+   ".ai2-row-head",
+   ".ai2-row-foot",
+   ".ai2-dot",
+   ".ai2-ov-row",
+   ".ai2-ov-row-title",
+   ".ai2-ov-row-line",
+   ".ai2-ov-row-when",
+   ".v3-tile-compact",
+   ".v3-inbox-card"
+  ],
+  "render": "import { div } from '/app.js'; import { row } from '/framework/ai2/card.js'; div.c('ai2-row', () => row({ title: 'Demo card', at: new Date().toISOString(), author: 'owner', text: 'The card says one thing.', said: [], refined: '' }));",
+  "used_in": [
+   "/framework/ai/",
+   "/framework/ai2/",
+   "/framework/ai/v/3/"
+  ],
+  "used_count": 3,
+  "padding": ".55em .7em raw (ai2.css:298)",
+  "paddings": [
+   "ai.css:375 own",
+   ".55em .7em raw (ai2.css:298)",
+   "padding-block .5em only (ai2.css:856)",
+   "own"
+  ],
+  "padding_rule": "own rule",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [
+    "prompt rail row",
+    "overview row",
+    "v3 compact row"
+   ],
+   "twins": [
+    "ai2 rail row",
+    "v3 compact tile",
+    "v3 tile",
+    "ai-card",
+    "ai-ask",
+    "ai2-row",
+    "v3-tile-compact",
+    "ai-need",
+    "ai2-ov-row",
+    "ai-prompt"
+   ]
+  },
+  "notes": " · The site's main duplication: the same card as task card, inbox row, v3 tile and ask card. · Third one-line-row style in this realm; a bare div.c built outside its parent has once drawn into the page root (comment at overview.js:82).",
+  "sheets": [
+   "/framework/ai2/ai2.css"
+  ]
+ },
+ {
+  "name": "screenshot thumb",
+  "family": "AI log blocks",
+  "what": "A 4:3 thumbnail of a screenshot a worker logged, linking to full size, with fallback.",
+  "sources": [
+   {
+    "name": "screenshot thumb",
+    "census": "c",
+    "source": "public/framework/ext/AITask/shots.js:19"
+   }
+  ],
+  "classes": [
+   ".ai-shot",
+   ".ai-shot-frame",
+   ".ai-shot-label"
+  ],
+  "render": "import { shot_thumb } from '/framework/ext/AITask/shots.js'; shot_thumb({ path: 'nope.png', label: 'demo shot', width: 800 });",
+  "used_in": [
+   "/framework/ai/"
+  ],
+  "used_count": 1,
+  "padding": "none, label margin gap-35",
+  "paddings": [
+   "none, label margin gap-35"
+  ],
+  "padding_rule": "none",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "ai-ask-pic"
+   ]
+  },
+  "notes": "Shows 'no image' off localhost."
+ },
+ {
+  "name": "usage meter",
+  "family": "rows & lists",
+  "what": "A bar gauge for one usage limit with a clock marker and 'on pace for' note.",
+  "sources": [
+   {
+    "name": "usage meter",
+    "census": "c",
+    "source": "public/framework/ext/AITask/usage.js:42"
+   },
+   {
+    "name": "overview usage bar",
+    "census": "c",
+    "source": "public/framework/ai2/overview.js:198"
+   }
+  ],
+  "classes": [
+   ".ai-meter",
+   ".ai-gauge",
+   ".ai-track",
+   ".ai-fill",
+   ".ai-mark",
+   ".ai2-ov-usage-row",
+   ".ai2-ov-usage-track",
+   ".ai2-ov-usage-fill"
+  ],
+  "render": "import { usage_rail } from '/framework/ext/AITask/usage.js'; usage_rail({ utilization: { limits: [{ kind: 'session', group: 'session', percent: 40, resets_at: new Date(Date.now() + 3e6).toISOString() }] } });",
+  "used_in": [
+   "/framework/ai/",
+   "/framework/ai2/"
+  ],
+  "used_count": 1,
+  "padding": "none",
+  "paddings": [
+   "none",
+   "own"
+  ],
+  "padding_rule": "none",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": false,
+  "duplicates": {
+   "folded": [
+    "overview usage bar"
+   ],
+   "twins": [
+    "ai2-ov-usage-row (ai2 overview bars)",
+    "ai-meter"
+   ]
+  },
+  "notes": "ai2 redraws the same bar with its own ai2-ov-usage-* classes (overview.js:198): a twin. · Duplicate of the AITask usage meter."
+ },
+ {
+  "name": "group heading (ai-group)",
+  "family": "rows & lists",
+  "what": "A small uppercase title with a count above a group of cards.",
+  "sources": [
+   {
+    "name": "group heading (ai-group)",
+    "census": "c",
+    "source": "public/framework/ext/AITask/board.js:50"
+   }
+  ],
+  "classes": [
+   ".ai-group",
+   ".ai-group-title",
+   ".ai-count",
+   ".ai-header"
+  ],
+  "render": "import { div, span } from '/app.js'; div.c('ai-group-title muted', () => { span('Landed'); span.c('ai-count', ' 3'); });",
+  "used_in": [
+   "/framework/ai/",
+   "/framework/ai/v/2/"
+  ],
+  "used_count": 6,
+  "padding": "none",
+  "paddings": [
+   "none"
+  ],
+  "padding_rule": "none",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": false,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "ai2-ov-head",
+    "v3-day-head",
+    "v2-head"
+   ]
+  },
+  "notes": "Four heading styles for the same job."
+ },
+ {
+  "name": "timeline day line",
+  "family": "rows & lists",
+  "what": "A rule with a day label in the day timeline.",
+  "sources": [
+   {
+    "name": "timeline day line",
+    "census": "c",
+    "source": "public/framework/ext/AITask/dashboard.js:136"
+   },
+   {
+    "name": "axis time item",
+    "census": "c",
+    "source": "public/framework/ai/v/3/page.js:1265"
+   }
+  ],
+  "classes": [
+   ".ai-timeline",
+   ".ai-day-line",
+   ".v3-axis-item",
+   ".v3-axis-hour",
+   ".v3-axis-break",
+   ".v3-axis-list"
+  ],
+  "render": "import { div, span, p, a, button, input, textarea, label, details, summary, progress, icon } from '/app.js'; div.c('ai-timeline', () => { div.c('ai-day-line muted', '09:14 — census-a: scanning ui/'); div.c('ai-day-line muted', '09:31 — catalog: merged 101 kinds'); });",
+  "used_in": [
+   "/framework/ai/",
+   "/framework/ai/v/3/"
+  ],
+  "used_count": 1,
+  "padding": "none",
+  "paddings": [
+   "none",
+   "margin scales with gap (0.2em/min)"
+  ],
+  "padding_rule": "none",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": false,
+  "duplicates": {
+   "folded": [
+    "axis time item"
+   ],
+   "twins": [
+    "v3-axis-hour",
+    "v3-day-head",
+    "ai-day-line"
+   ]
+  },
+  "notes": "",
+  "sheets": [
+   "/framework/ext/AITask/ai.css"
+  ]
+ },
+ {
+  "name": "link chip",
+  "family": "chips & badges",
+  "what": "A boxed link to a task or file.",
+  "sources": [
+   {
+    "name": "link chip",
+    "census": "c",
+    "source": "public/framework/ext/AITask/asks.js:338"
+   }
+  ],
+  "classes": [
+   ".ai-link",
+   ".ai-links",
+   ".ai2-link",
+   ".v2-link"
+  ],
+  "render": "import { a } from '/app.js'; a.c('ai-link', 'a link').href('/framework/ai/');",
+  "used_in": [
+   "/framework/ai/",
+   "/framework/ai2/",
+   "/framework/ai/v/2/"
+  ],
+  "used_count": 3,
+  "padding": "ai.css own",
+  "paddings": [
+   "ai.css own"
+  ],
+  "padding_rule": "own rule",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "ai2-link",
+    "v2-link",
+    ".page-link"
+   ]
+  },
+  "notes": "Three link classes, one job."
+ },
+ {
+  "name": "sub-card table of contents",
+  "family": "rows & lists",
+  "what": "A fold listing every task, proposal and paragraph in a card's log, each a link row.",
+  "sources": [
+   {
+    "name": "sub-card table of contents",
+    "census": "c",
+    "source": "public/framework/ai2/card.js:116"
+   },
+   {
+    "name": "v3 day row",
+    "census": "c",
+    "source": "public/framework/ai/v/3/page.js:950"
+   }
+  ],
+  "classes": [
+   ".ai2-toc",
+   ".ai2-toc-row",
+   ".ai2-toc-title",
+   ".v3-day-row",
+   ".v3-day-summary",
+   ".v3-day-body"
+  ],
+  "render": "import { toc } from '/framework/ai2/card.js'; toc([{ icon: 'task_alt', sub: 'a', title: 'Build the wall', line: 'a task' }, { icon: 'lightbulb', sub: 'b', title: 'A first sketch', line: 'a proposal' }], '/framework/ai2/');",
+  "used_in": [
+   "/framework/ai2/",
+   "/framework/ai/v/3/"
+  ],
+  "used_count": 1,
+  "padding": ".5em .6em raw (ai2.css:607)",
+  "paddings": [
+   ".5em .6em raw (ai2.css:607)",
+   ".35em .7em raw (v3.css:313)"
+  ],
+  "padding_rule": ".5em .6em",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [
+    "v3 day row"
+   ],
+   "twins": [
+    "v3 day rows",
+    "ai-decision-line",
+    "ai-fold",
+    "ai2-toc"
+   ]
+  },
+  "notes": "Needs sub_rows(entries) from inbox.js. · A details element wearing a card ground.",
+  "sheets": [
+   "/framework/ai2/ai2.css"
+  ]
+ },
+ {
+  "name": "flag box",
+  "family": "callouts & alerts",
+  "what": "One line for typing what is wrong with a card.",
+  "sources": [
+   {
+    "name": "flag box",
+    "census": "c",
+    "source": "public/framework/ai2/card.js:158"
+   }
+  ],
+  "classes": [
+   ".ai2-flag-box",
+   ".ai2-flag-input",
+   ".ai2-flag"
+  ],
+  "render": "import { div, span, p, a, button, input, textarea, label, details, summary, progress, icon } from '/app.js'; div.c('ai2-flag-box flex v gap-25', () => { input().attr('placeholder', 'what is wrong with it?').ac('ai2-flag-input'); });",
+  "used_in": [
+   "/framework/ai2/"
+  ],
+  "used_count": 1,
+  "padding": "own",
+  "paddings": [
+   "own"
+  ],
+  "padding_rule": "own rule",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "ai-decision-input",
+    "ask-reply"
+   ]
+  },
+  "notes": "",
+  "sheets": [
+   "/framework/ai2/ai2.css"
+  ]
+ },
+ {
+  "name": "proposal quote (sketch)",
+  "family": "callouts & alerts",
+  "what": "The assistant's first sketch, marked by a start border.",
+  "sources": [
+   {
+    "name": "proposal quote (sketch)",
+    "census": "c",
+    "source": "public/framework/ai2/card.js:88"
+   }
+  ],
+  "classes": [
+   ".ai2-proposal"
+  ],
+  "render": "import { div, span, p, a, button, input, textarea, label, details, summary, progress, icon } from '/app.js'; div.c('ai2-proposal', () => { span.c('muted', 'first sketch'); span.c('ai2-proposal-title', 'Ask twice, act once'); p.c('ai2-sentence', 'The assistant wrote this first.'); });",
+  "used_in": [
+   "/framework/ai2/"
+  ],
+  "used_count": 1,
+  "padding": "padding-inline-start .7em, 2px border (ai2.css:682)",
+  "paddings": [
+   "padding-inline-start .7em, 2px border (ai2.css:682)"
+  ],
+  "padding_rule": ".7em",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": false,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "ai-decision-rule",
+    "ai-ask-decision (2px prim border)"
+   ]
+  },
+  "notes": "Three separate left-border quotes with different colors and paddings.",
+  "sheets": [
+   "/framework/ai2/ai2.css"
+  ]
+ },
+ {
+  "name": "overview column",
+  "family": "panels & dialogs",
+  "what": "One of the AI 2 overview columns (Needs, Reports, Landed, Live): header, count, new-items pill, scrolling rows.",
+  "sources": [
+   {
+    "name": "overview column",
+    "census": "c",
+    "source": "public/framework/ai2/overview.js:45"
+   },
+   {
+    "name": "v2 panel / topic",
+    "census": "c",
+    "source": "public/framework/ai/v/2/page.js:100"
+   }
+  ],
+  "classes": [
+   ".ai2-ov-col",
+   ".ai2-ov-head",
+   ".ai2-ov-body",
+   ".ai2-ov-pill",
+   ".ai2-ov-empty",
+   ".v2",
+   ".v2-panel",
+   ".v2-topic",
+   ".v2-row",
+   ".v2-note",
+   ".v2-agent",
+   ".v2-ask"
+  ],
+  "render": "import { div, span, p, a, button, input, textarea, label, details, summary, progress, icon } from '/app.js'; div.c('ai2-ov-col', () => { div.c('ai2-ov-head flex v-center gap-25', () => { span.c('ai2-ov-title', 'Needs'); span.c('ai2-ov-count muted', '2'); }); div.c('ai2-ov-body', () => { div.c('ai2-ov-rows', () => { p('a card'); p('another'); }); }); });",
+  "used_in": [
+   "/framework/ai2/",
+   "/framework/ai/v/2/"
+  ],
+  "used_count": 1,
+  "padding": "--ai2-ov-pad (ai2.css:793)",
+  "paddings": [
+   "--ai2-ov-pad (ai2.css:793)",
+   "calc(.4rem*--size) calc(.55rem*--size) (v2.css:46)"
+  ],
+  "padding_rule": "own rule",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [
+    "v2 panel / topic"
+   ],
+   "twins": [
+    "v3 board",
+    "ai-asks-tab topic",
+    "card",
+    "ai-needs",
+    "ai-ask"
+   ]
+  },
+  "notes": "Built by a streaming function; needs a live source, not standalone. · Own size variable --size; padding is in rem, not the framework's --pad.",
+  "sheets": [
+   "/framework/ai2/ai2.css"
+  ]
+ },
+ {
+  "name": "live item",
+  "family": "rows & lists",
+  "what": "A row in the Live card: state, name, one line, clear button.",
+  "sources": [
+   {
+    "name": "live item",
+    "census": "c",
+    "source": "public/framework/ai2/live.js:198"
+   }
+  ],
+  "classes": [
+   ".ai2-live-item",
+   ".ai2-live-state",
+   ".ai2-live-name",
+   ".ai2-live-line",
+   ".ai2-live-bar"
+  ],
+  "render": "import { live_row } from '/framework/ai2/live.js'; import { div } from '/app.js'; div.c('ai2-row', () => live_row({ icon: 'bolt', title: 'catalog', at: new Date().toISOString(), bars: [{ label: 'session', percent: 40 }], agents: [1], tasks: [], last: '' }));",
+  "used_in": [
+   "/framework/ai2/"
+  ],
+  "used_count": 1,
+  "padding": "padding-block .3em (ai2.css:1037)",
+  "paddings": [
+   "padding-block .3em (ai2.css:1037)"
+  ],
+  "padding_rule": ".3em",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "ai-need",
+    "v3-agents-row"
+   ]
+  },
+  "notes": "",
+  "sheets": [
+   "/framework/ai2/ai2.css"
+  ]
+ },
+ {
+  "name": "composer",
+  "family": "controls & widgets",
+  "what": "The microphone and text box where the owner talks to the assistant.",
+  "sources": [
+   {
+    "name": "composer",
+    "census": "c",
+    "source": "public/framework/ai2/compose.js:81"
+   },
+   {
+    "name": "v3 composer",
+    "census": "c",
+    "source": "public/framework/ai/v/3/compose.js:37"
+   }
+  ],
+  "classes": [
+   ".ai2-compose",
+   ".ai2-field",
+   ".ai2-mic",
+   ".ai2-compose-send",
+   ".v3-compose",
+   ".v3-compose-row",
+   ".v3-compose-input",
+   ".v3-compose-send"
+  ],
+  "render": "import { composer } from '/framework/ai2/compose.js'; composer({ mic: false });",
+  "used_in": [
+   "/framework/ai2/",
+   "/framework/ai/v/3/"
+  ],
+  "used_count": 1,
+  "padding": "own (ai2.css:127)",
+  "paddings": [
+   "own (ai2.css:127)",
+   "padding-block-start .5em"
+  ],
+  "padding_rule": "own rule",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [
+    "v3 composer"
+   ],
+   "twins": [
+    "v3-compose",
+    "ai2-compose"
+   ]
+  },
+  "notes": "Needs speech and a servex stream, so not standalone. A twin of v3's composer (ai/v/3/compose.js:37). · Twin of ai2/compose.js.",
+  "sheets": [
+   "/framework/ai2/ai2.css"
+  ]
+ },
+ {
+  "name": "agents strip chip",
+  "family": "chips & badges",
+  "what": "A chip for one running or idle agent; on = selected.",
+  "sources": [
+   {
+    "name": "agents strip chip",
+    "census": "c",
+    "source": "public/framework/ai/v/3/agents.js:83"
+   }
+  ],
+  "classes": [
+   ".v3-agents-row",
+   ".v3-agents-idle",
+   ".v3-agents-rows"
+  ],
+  "render": "import { div, span, p, a, button, input, textarea, label, details, summary, progress, icon } from '/app.js'; div.c('v3-agents-rows', () => { button.c('v3-agents-row on').attr('type', 'button').text('catalog · minion · working'); button.c('v3-agents-row').attr('type', 'button').text('census-a · minion · idle'); });",
+  "used_in": [
+   "/framework/ai/v/3/"
+  ],
+  "used_count": 1,
+  "padding": "v3.css:172 own",
+  "paddings": [
+   "v3.css:172 own"
+  ],
+  "padding_rule": "own rule",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "ai2-live-item",
+    "v3-view-btn",
+    "ai2-chip"
+   ]
+  },
+  "notes": "Reads an agent host stream, not standalone.",
+  "sheets": [
+   "/framework/ai/v/3/v3.css"
+  ]
+ },
+ {
+  "name": "view button",
+  "family": "controls & widgets",
+  "what": "A small toggle button in the v3 toolbar (sort / view).",
+  "sources": [
+   {
+    "name": "view button",
+    "census": "c",
+    "source": "public/framework/ai/v/3/page.js:696"
+   },
+   {
+    "name": "panel toolbar button",
+    "census": "c",
+    "source": "public/framework/ext/Panel/toolbar.js:56"
+   }
+  ],
+  "classes": [
+   ".v3-view-btn",
+   ".on",
+   ".v2-density-btn",
+   ".panel-btn",
+   ".panel-handle",
+   ".panel-tool",
+   ".panel-zoom",
+   ".panel-gap"
+  ],
+  "render": "import { button } from '/app.js'; button.c('v3-view-btn on', 'Grid').attr('type', 'button');",
+  "used_in": [
+   "/framework/ai/v/3/",
+   "/framework/ai/v/2/",
+   "/framework/ext/Panel/"
+  ],
+  "used_count": 2,
+  "padding": "v3.css:111 own",
+  "paddings": [
+   "v3.css:111 own",
+   "toolbar.css own"
+  ],
+  "padding_rule": "own rule",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [
+    "panel toolbar button"
+   ],
+   "twins": [
+    "v2-density-btn",
+    "panel-btn",
+    "v3-view-btn"
+   ]
+  },
+  "notes": "Three toolbar buttons that do the same thing. · Needs a panel item."
+ },
+ {
+  "name": "undo toast",
+  "family": "callouts & alerts",
+  "what": "A bar with a message and Undo, at the bottom of the board.",
+  "sources": [
+   {
+    "name": "undo toast",
+    "census": "c",
+    "source": "public/framework/ai/v/3/page.js:1096"
+   }
+  ],
+  "classes": [
+   ".v3-toast",
+   ".v3-toast-msg",
+   ".v3-toast-undo"
+  ],
+  "render": "import { div, span, p, a, button, input, textarea, label, details, summary, progress, icon } from '/app.js'; div.c('v3-toast card', () => { span.c('v3-toast-msg', 'Card cleared'); button.c('v3-toast-undo').attr('type', 'button').text('Undo'); });",
+  "used_in": [
+   "/framework/ai/v/3/"
+  ],
+  "used_count": 1,
+  "padding": "margin-top .5em",
+  "paddings": [
+   "margin-top .5em"
+  ],
+  "padding_rule": ".5em",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [],
+   "twins": []
+  },
+  "notes": "",
+  "sheets": [
+   "/framework/ai/v/3/v3.css"
+  ]
+ },
+ {
+  "name": "ask answer buttons",
+  "family": "controls & widgets",
+  "what": "The row of option buttons that answers an ask from a v3 card.",
+  "sources": [
+   {
+    "name": "ask answer buttons",
+    "census": "c",
+    "source": "public/framework/ai/v/3/ask.js:39"
+   }
+  ],
+  "classes": [
+   ".v3-ask",
+   ".v3-ask-options",
+   ".v3-ask-block"
+  ],
+  "render": "import { div, span, p, a, button, input, textarea, label, details, summary, progress, icon } from '/app.js'; div.c('v3-ask v3-ask-options', () => { div.c('card', () => p('Option A')); div.c('card', () => p('Option B')); });",
+  "used_in": [
+   "/framework/ai/v/3/"
+  ],
+  "used_count": 1,
+  "padding": "padding-block-start var(--gap)",
+  "paddings": [
+   "padding-block-start var(--gap)"
+  ],
+  "padding_rule": "own rule",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "ai-decision-acts",
+    "ask-reply"
+   ]
+  },
+  "notes": "",
+  "sheets": [
+   "/framework/ai/v/3/v3.css"
+  ]
+ },
+ {
+  "name": "panel properties row",
+  "family": "rows & lists",
+  "what": "A labelled knob (range, output) in the properties region.",
+  "sources": [
+   {
+    "name": "panel properties row",
+    "census": "c",
+    "source": "public/framework/ext/Panel/properties.js:211"
+   }
+  ],
+  "classes": [
+   ".panel-props",
+   ".panel-props-row",
+   ".panel-knob",
+   ".panel-knob-range",
+   ".panel-knob-out"
+  ],
+  "render": "import { div, span, p, a, button, input, textarea, label, details, summary, progress, icon } from '/app.js'; div.c('panel-props', () => div.c('panel-props-row', () => { span('gap'); input().attr('type', 'range').ac('panel-knob-range'); span.c('panel-knob-out', '12'); }));",
+  "used_in": [
+   "/framework/ext/Panel/"
+  ],
+  "used_count": 2,
+  "padding": "controls.css own",
+  "paddings": [
+   "controls.css own"
+  ],
+  "padding_rule": "own rule",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "ux control rows"
+   ]
+  },
+  "notes": "Needs a focused panel.",
+  "sheets": [
+   "/framework/ext/Panel/panel.css",
+   "/framework/ext/Panel/templates.css",
+   "/framework/ext/Panel/controls.css"
+  ]
+ },
+ {
+  "name": "panel template block",
+  "family": "panels & dialogs",
+  "what": "A ready-made content block dropped into a panel: stat, clock, rail, contents list, brand.",
+  "sources": [
+   {
+    "name": "panel template block",
+    "census": "c",
+    "source": "public/framework/ext/Panel/templates.js:56"
+   }
+  ],
+  "classes": [
+   ".panel-t",
+   ".panel-t-stat",
+   ".panel-t-rail",
+   ".panel-t-toc",
+   ".panel-t-brand",
+   ".panel-t-cell"
+  ],
+  "render": "import { templates } from '/framework/ext/Panel/templates.js'; templates.toc.draw();",
+  "used_in": [
+   "/framework/ext/Panel/"
+  ],
+  "used_count": 2,
+  "padding": "templates.css own",
+  "paddings": [
+   "templates.css own"
+  ],
+  "padding_rule": "own rule",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": false,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "stat tile",
+    "toc"
+   ]
+  },
+  "notes": "Draws inside a panel only.",
+  "sheets": [
+   "/framework/ext/Panel/panel.css",
+   "/framework/ext/Panel/templates.css",
+   "/framework/ext/Panel/controls.css"
+  ]
+ },
+ {
+  "name": "workspace",
+  "family": "panels & dialogs",
+  "what": "Three-region shell: panels, toolbar and viewport list.",
+  "sources": [
+   {
+    "name": "workspace",
+    "census": "c",
+    "source": "public/framework/ext/Panel/Workspace/Workspace.js:23"
+   }
+  ],
+  "classes": [
+   ".panel-workspace"
+  ],
+  "render": "import { p } from '/app.js'; import { panel } from '/framework/ext/Panel/workspace.js'; panel(() => p('A workspace holds panels'));",
+  "used_in": [
+   "/framework/ext/Panel/Workspace/"
+  ],
+  "used_count": 1,
+  "padding": "workspace.css own",
+  "paddings": [
+   "workspace.css own"
+  ],
+  "padding_rule": "own rule",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [],
+   "twins": []
+  },
+  "notes": "A class, not a function; not standalone.",
+  "sheets": [
+   "/framework/ext/Panel/display.css",
+   "/framework/ext/Panel/flow.css",
+   "/framework/ext/Panel/focus.css",
+   "/framework/ext/Panel/grip.css",
+   "/framework/ext/Panel/insert.css",
+   "/framework/ext/Panel/repeat.css",
+   "/framework/ext/Panel/size.css",
+   "/framework/ext/Panel/split.css",
+   "/framework/ext/Panel/text.css",
+   "/framework/ext/Panel/tools.css",
+   "/framework/ext/Panel/toolbar.css",
+   "/framework/ext/Panel/panel.css",
+   "/framework/ext/Panel/templates.css",
+   "/framework/ext/Panel/controls.css",
+   "/framework/ext/Panel/Workspace/workspace.css"
+  ]
+ },
+ {
+  "name": "doc well (page title block)",
+  "family": "doc blocks",
+  "what": "The title strip at the top of every Doc page.",
+  "sources": [
+   {
+    "name": "doc well (page title block)",
+    "census": "c",
+    "source": "public/framework/ext/Doc/Doc.js:270"
+   }
+  ],
+  "classes": [
+   ".doc-well",
+   ".doc-title",
+   ".doc-section",
+   ".doc-page"
+  ],
+  "render": "import { div, span, p, a, button, input, textarea, label, details, summary, progress, icon } from '/app.js'; div.c('doc-well', () => div.c('doc-title h2', 'A Doc page title'));",
+  "used_in": [
+   "/framework/ext/Doc/",
+   "every module Docs tab"
+  ],
+  "used_count": 1,
+  "padding": ".doc-section --pad-y 1.5em (Doc.css:74)",
+  "paddings": [
+   ".doc-section --pad-y 1.5em (Doc.css:74)"
+  ],
+  "padding_rule": "1.5em",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": false,
+  "duplicates": {
+   "folded": [],
+   "twins": [
+    "h1 .page-head"
+   ]
+  },
+  "notes": "Doc has no exhibit or callout blocks of its own; those live in ext/demo (part B). It only builds tabs, well and files browser.",
+  "sheets": [
+   "/framework/ext/Doc/Doc.css"
+  ]
+ },
+ {
+  "name": "doc files browser",
+  "family": "doc blocks",
+  "what": "A files panel wrapped in .doc-files with panel-height 42em.",
+  "sources": [
+   {
+    "name": "doc files browser",
+    "census": "c",
+    "source": "public/framework/ext/Doc/Doc.js:136"
+   }
+  ],
+  "classes": [
+   ".doc-files",
+   ".files"
+  ],
+  "render": null,
+  "used_in": [
+   "/framework/ext/Doc/"
+  ],
+  "used_count": 1,
+  "padding": "padding-block 1em (Doc.css:90)",
+  "paddings": [
+   "padding-block 1em (Doc.css:90)"
+  ],
+  "padding_rule": "1em",
+  "bleeds": "no",
+  "bleed_label": "no bleed",
+  "interactive": true,
+  "duplicates": {
+   "folded": [],
+   "twins": []
+  },
+  "notes": "",
+  "undrawable": "It is a full panels-based file browser fed by a module url; it needs a whole page frame to lay out."
+ }
+]

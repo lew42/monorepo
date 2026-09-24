@@ -1,171 +1,405 @@
-import { div, p, span, small, a, details, summary, button, input, md } from "/app.js";
+import { Page, View, div, p, span, small, a, button, input, select, option } from "/app.js";
 import { icon } from "/framework/core/View/View.js";
-import { author_word } from "./inbox.js";
+import { clock, flag_box } from "./faces.js";
+
+/* The old board-card faces (the rail row, the whole board card) live in
+   `faces.js`. These re-exports keep an older `import { clock } from "./card.js"`
+   (live.js) working unchanged. */
+export { clock, row, full, flag_box, toc, sub_full, who, is_you } from "./faces.js";
+import chat from "./chat.js";
+import composer from "./compose.js";
+import { author_word, type_icon, create_card, append_card, cards_ready } from "./inbox.js";
+
+View.stylesheet(import.meta, "ai2.css");
 
 /**
- * THE TWO FACES OF A CARD — the preview in the rail, and the whole thing on the
- * page. Beside each other in one file on purpose: whatever the full page learns
- * to draw, you can see here whether the preview has to learn to summarise it.
+ * A CARD IS A FOLDER, AND THIS IS ITS PAGE (the owner, 2026-09-24: "we want the
+ * agent to have a card.js or similar, that's basically like a page.js").
+ *
+ *   ai/2026/09/24/fix-the-sidebar/page.jsonl      line 1 names this class
+ *   {"class": "/framework/ai2/card.js", "title": "Fix the sidebar", "type": "request", …}
+ *   {"message": {"by": "assistant-fast", "text": "On it."}}
+ *   {"type": "question"}                           ← the card is a question now
+ *   {"file": "wider/page.jsonl"}                   ← a sub-card, one folder deeper
+ *
+ * `Page.jsonl()` (core/Page/Log.js) builds it from line 1 and calls `set()` with
+ * every later line, live on localhost: a key that names a method below calls
+ * it, anything else (`title`, `text`, `links`) is kept as data. So the methods
+ * below ARE the card's vocabulary — a new kind of line is a new method.
+ *
+ * Inside AI 2 it draws into the page's own chrome: the card in the middle
+ * column, its sub-cards (its `file` lines) as a table of contents, and the
+ * pinned chat at the bottom, which you talk into. `shell` is AI 2's own page,
+ * handed down by whoever built this one; without it the card still draws.
  */
 
-export const clock = at =>
-	at ? new Date(at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "";
+/** What a card can be turned into. The type picker offers these. */
+export const TYPES = ["question", "request", "sub-question", "note", "task"];
 
-/** EVERY ROW SAYS WHO (the owner, 2026-09-22: "the items in the inbox need an
-    author so I know who it's coming from, whether it's something I said"). One
-    word — `you`, `assistant`, `mastermind`, or the minion's own name — and `you`
-    wears its own mark so the owner's sentences read apart from everything else.
-    `is_you` rather than a string test, because a minion could be named "you". */
-export const is_you = it => it.author === "owner";
+/* The words line 1 may carry that are METHODS here. ⚠ Line 1 goes through the
+   constructor's `assign()`, which would REPLACE `type()` and `tags()` with
+   data — Servex writes both on line 1 — so `assign()` below calls them instead. */
+const VERBS = new Set(["type", "tags", "status", "message", "prompt", "attach", "detach", "legacy", "cites"]);
 
-export function who(it){
-	span.c("ai2-who" + (is_you(it) ? " ai2-who-you" : "")).text(author_word(it.author));
-}
+/** Today's time alone; any other day with its date — a list spans weeks. */
+export const when = at => {
+	if (!at) return "";
+	const d = new Date(at);
+	if (d.toDateString() === new Date().toDateString()) return clock(at);
+	return d.toLocaleDateString([], { month: "short", day: "numeric" }) + ", " + clock(at);
+};
 
-/** ONE LINE, AND IT IS ALWAYS THE SAME HEIGHT. The preview is the thing that
-    must not move when the list repaints, so it is exactly two rows of text: the
-    title row, and one clamped line of whatever the card is about. */
-export function row(it){
-	div.c("ai2-row-head flex v-center gap-25", () => {
-		span.c("ai2-dot");                         // always drawn; CSS shows it only when unread
-		if (it.icon) icon(it.icon);
-		span.c("ai2-row-title").text(it.title);
-		small.c("ai2-row-when muted").text(clock(it.at));
-	});
-	div.c("ai2-row-foot flex v-center gap-25", () => {
-		who(it);
-		// The card's CURRENT state, not its first sentence — the last thing said
-		// into it if it is a card you talk to, otherwise what it is about.
-		const last = it.transcript?.length && it.transcript[it.transcript.length - 1].said.filter(Boolean).at(-1);
-		const line = last || it.refined || it.text || it.landed || it.said?.find(Boolean) || "";
-		if (line) small.c("ai2-row-line muted").text(line);
+/** One card summary (`GET /cards`) as a row: icon, title, and what it is. */
+export const summary_line = s => [s.type, s.status && s.status !== "open" && s.status,
+	...(s.tags ?? []).map(t => "#" + t), when(s.last ?? s.created)].filter(Boolean).join(" · ");
+
+export function card_link(s, href){
+	a.c("ai2-toc-row page-link").href(href).append(() => {
+		icon(type_icon(s.type));
+		div.c("ai2-toc-body", () => {
+			span.c("ai2-toc-title").text(s.title || s.id.split("/").at(-1));
+			small.c("ai2-toc-line muted").text(summary_line(s));
+		});
 	});
 }
 
-/**
- * THE WHOLE CARD, on the page that does not move. It reads top down in the order
- * you came to know it: what the assistant made of what you said, the names it
- * minted, your own words, any sketch, the links. `on` is the two things this
- * face cannot do itself — `flag()` and `unflag()`.
- */
-export function full(it, on){
-	div.c("ai2-full-head flex v-center gap-25", () => {
-		if (it.icon) icon(it.icon);
-		// `.md()` — the fast assistant wraps a known page mention in a real link
-		// (`[AI 2](/framework/ai2/)`), open-mic's item 6.
-		span.c("ai2-full-title").md(it.title);
-		button.c("ai2-flag" + (it.flag ? " on" : "")).attr("type", "button")
-			.attr("title", it.flag ? "flagged — press to withdraw" : "not this — say why")
-			.text("⚑").click(() => (it.flag ? on.unflag() : flag_box(on)));
-		if (on.clear) button.c("ai2-clear").attr("type", "button")
-			.attr("title", "archive this card — nothing is deleted").text("clear").click(on.clear);
-	});
+export default class Card extends Page {
 
-	div.c("ai2-meta flex v-center gap-25", () => {
-		who(it);
-		small.c("muted").text(clock(it.at));
-	});
+	static base = "/framework/ai/";
 
-	if (it.refined) p.c("ai2-refined").md(it.refined);
-	if (it.text) p.c("ai2-text").text(it.text);
-	if (it.landed && it.landed !== it.text) p.c("ai2-landed").text(it.landed);
-
-	if (it.kind === "prompt"){
-		if (it.names.length) div.c("ai2-chips flex wrap gap-25", () => {
-			it.names.forEach(n => { span.c("ai2-chip").text(n); });
-		});
-
-		// Before the assistant has answered there is no reading and no title yet,
-		// so the fold stands open on its own — which is the card you see the
-		// instant you stop speaking, and it is already the right card.
-		details.c("ai2-said", $d => {
-			summary.c("ai2-said-head muted").text(it.refined ? "your words" : "just now, in your words");
-			it.said.filter(Boolean).forEach(s => { p.c("ai2-sentence").text(s); });
-			if (!it.refined) $d.el.open = true;
-		});
-
-		it.proposals.forEach(pr => {
-			div.c("ai2-proposal", () => {
-				small.c("muted").text("first sketch");
-				span.c("ai2-proposal-title").text(pr.title);
-				pr.shape.forEach(s => { p.c("ai2-sentence").text(s); });
-			});
-		});
+	assign(...args){
+		for (const obj of args) if (obj) for (const key of Object.keys(obj))
+			VERBS.has(key) ? this[key](obj[key]) : (this[key] = obj[key]);
+		return this;
 	}
 
-	// ⚠ `page-link` is the site's class for a link that is NOT inside prose, and
-	// it is why these are no longer browser-blue: framework.css scopes link
-	// colour to prose, so an anchor in a bare div got no rule at all (measured:
-	// rgb(0, 0, 238) on all twelve). `ai2.css` says the rest.
-	if (it.links.length) div.c("ai2-links flex wrap gap-25", () => {
-		it.links.forEach(l => { a.c("ai2-link page-link").href(l.url).text(l.label ?? l.url); });
-	});
+	initialize(){ this.classes ??= "ai2-card-page"; }
 
-	if (it.flag) small.c("ai2-flag-said muted")
-		.text("flagged" + (it.flag.quote ? " on “" + it.flag.quote + "”" : "") + " — " + (it.flag.note ?? ""));
-}
+	/* ── the vocabulary: one method per kind of line ─────────────────────── */
 
-/**
- * THE TABLE OF CONTENTS (deliverable 3) — every task, proposal, refined
- * reading and transcript paragraph in a card's own log, each a row that opens
- * in the third column. `rows` is `sub_rows()`'s own output from `inbox.js`;
- * `base` is this card's own url, so a row is a plain `<a>` and the Router
- * does the navigating — same reason a rail row is a plain `<a>` and not a
- * click handler (`page.js`'s own comment on `make()`).
- */
-export function toc(rows, base){
-	details.c("ai2-toc", $d => {
-		summary.c("ai2-toc-head muted").text(rows.length + (rows.length === 1 ? " sub-card" : " sub-cards"));
-		div.c("ai2-toc-rows", () => {
-			rows.forEach(r => {
-				a.c("ai2-toc-row page-link").href(base + r.sub + "/").append(() => {
-					icon(r.icon);
-					div.c("ai2-toc-body", () => {
-						span.c("ai2-toc-title").text(r.title);
-						if (r.line) small.c("ai2-toc-line muted").text(r.line);
-					});
+	/** The latest-wins labels. Kept apart because `type`, `tags` and `status` are methods. */
+	facts(){ return this.info ??= { type: "card", tags: [], status: "open" }; }
+
+	type(t){ this.facts().type = t; }
+	tags(t){ this.facts().tags = [].concat(t ?? []); }
+	status(s){ this.facts().status = s; }
+
+	message(m){
+		(this.messages ??= []).push(m);
+		this.talk?.sync();
+	}
+
+	/** The owner's own words. A later line with the SAME id is the cleaned reading, merged in. */
+	prompt(pr){
+		const list = this.prompts ??= [];
+		const had = pr?.id && list.find(x => x.id === pr.id);
+		if (had) Object.assign(had, pr);
+		else list.push({ ...pr });
+		this.talk?.sync();
+	}
+
+	attach(agent){ const list = this.attached ??= []; if (!list.includes(agent)) list.push(agent); }
+	detach(agent){ this.attached = (this.attached ?? []).filter(x => x !== agent); }
+	legacy(id){ (this.legacies ??= []).push(id); }
+	cites(refs){ const list = this.citing ??= []; [].concat(refs).forEach(r => { if (!list.includes(r)) list.push(r); }); }
+
+	// A rewritten (not appended) log replays from line 1 onto a clean slate.
+	log_forget(){
+		super.log_forget();
+		this.info = null;
+		this.messages = [];
+		this.prompts = [];
+		this.attached = [];
+		this.legacies = [];
+		this.citing = [];
+	}
+
+	/* ── sub-cards ─────────────────────────────────────────────────────────── */
+
+	/** Where the log lives — this page's own url is AI 2's, not the folder's. */
+	folder_url(){ return String(this.jsonl_url ?? "").replace(/page\.jsonl$/, ""); }
+
+	/** The sub-card folders, from the `file` lines (Page's own `file()` records them). */
+	subs(){ return [...(this.child_kinds?.keys() ?? [])]; }
+
+	/* ⚠ Core would read a listed child from `this.url + name` — AI 2's address,
+	   where no file is. A sub-card is read from the FOLDER instead, listed or
+	   not, so any depth works and a link to a sub-card made a second ago too. */
+	async child(name, levels){
+		if (this.children.get(name)) return super.child(name, levels);
+		const kid = await this.constructor.jsonl(this.folder_url() + name + "/");
+		if (!kid) return null;
+		kid.assign({ shell: this.shell, classes: "ai2-card-page ai2-sub-page" });
+		return this.add(name, kid).load_all_children(levels);
+	}
+
+	/* ── drawing ─────────────────────────────────────────────────────────────── */
+
+	/* TWO FIXED REGIONS, as every card page here has had since 2026-09-22: the
+	   card above, scrolling in its own box, and the chat pinned below it. A
+	   top-level card's sub-cards open in AI 2's third column, beside it. */
+	content(){
+		const shell = this.shell;
+		const sub = this.parent instanceof Card;
+		if (shell && !sub) this.$pages = shell.$sub;
+
+		if (sub) a.c("ai2-back ai2-sub-back page-link").href(this.parent.url).text("← " + (this.parent.title ?? this.parent.name));
+		else a.c("ai2-back page-link").href(shell?.url ?? "/framework/ai2/").text("← all cards");
+
+		this.$box = div.c("ai2-full", () => { this.draw(); });
+
+		div.c("ai2-foot", () => {
+			this.talk = chat({ source: () => this.chat_entries() });
+			const fresh = !!shell && shell.opening === this.id;
+			if (fresh) shell.opening = null;
+			this.$composer = composer({
+				re: () => this.id,
+				placeholder: sub ? "talk into this sub-card" : "talk into this card",
+				on_text: text => this.talk.echo(text),
+				on_partial: text => this.talk.partial(text),
+				autostart: fresh && shell.auto_transcribe?.(),
+			});
+		});
+		this.talk.sync();
+	}
+
+	/** What `Page.jsonl()` calls after every live batch of lines — the list
+	 *  hears too, because a title, a type or a new sub-card changed. */
+	log_redraw(){
+		this.redraw();
+		this.shell?.ai2?.cards_changed?.();
+	}
+
+	redraw(){
+		if (this.held) return;
+		this.$box?.empty(() => { this.draw(); });
+		this.talk?.sync();
+	}
+
+	draw(){
+		const f = this.facts();
+
+		div.c("ai2-full-head flex v-center gap-25", () => {
+			icon(this.icon ?? type_icon(f.type));
+			span.c("ai2-full-title").md(this.title ?? this.name);
+			// The picker, "clear" and "+ sub-card" write through Servex's card
+			// routes; a Servex without them (not restarted yet) shows none of the three.
+			if (cards_ready.known) this.type_picker();
+			const flag = this.flag_note;
+			button.c("ai2-flag" + (flag ? " on" : "")).attr("type", "button")
+				.attr("title", flag ? "flagged — press to withdraw" : "not this — say why")
+				.text("⚑").click(() => (flag ? this.face().unflag() : this.$box.append(() => { flag_box(this.face()); })));
+			if (this.shell && cards_ready.known) button.c("ai2-clear").attr("type", "button")
+				.attr("title", "archive this card — nothing is deleted").text("clear").click(() => this.clear());
+		});
+
+		div.c("ai2-meta flex v-center wrap gap-25", () => {
+			if (this.by) span.c("ai2-who" + (this.by === "owner" ? " ai2-who-you" : "")).text(author_word(this.by));
+			small.c("muted").text(when(this.created));
+			if (f.status && f.status !== "open") span.c("ai2-chip").text(f.status);
+			f.tags.forEach(t => { span.c("ai2-chip").text("#" + t); });
+			if (this.attached?.length) small.c("muted").text("on it: " + this.attached.join(", "));
+		});
+
+		if (this.text) p.c("ai2-text").text(this.text);
+		if (this.description) p.c("ai2-text").text(this.description);
+		if (this.links?.length) div.c("ai2-links flex wrap gap-25", () => {
+			this.links.forEach(l => { a.c("ai2-link page-link").href(l.url).text(l.label ?? l.url); });
+		});
+		if (this.flag_note) small.c("ai2-flag-said muted")
+			.text("flagged" + (this.flag_note.quote ? " on “" + this.flag_note.quote + "”" : "") + " — " + (this.flag_note.note ?? ""));
+
+		this.contents();
+	}
+
+	/** Turn this card into another kind: one `{"type": …}` line, and the latest wins. */
+	type_picker(){
+		const now = this.facts().type;
+		const words = TYPES.includes(now) ? TYPES : [now, ...TYPES];
+		const $pick = select.c("ai2-type", () => { words.forEach(w => { option(w).attr("value", w); }); });
+		$pick.attr("title", "turn this card into another kind");
+		$pick.el.value = now;
+		$pick.on("change", e => this.retype(e.target.value));
+	}
+
+	retype(type){ return append_card(this.id, { type }); }
+
+	/** Archive, never delete — one `{"status": "archived"}` line; the list then hides it. */
+	clear(){ return append_card(this.id, { status: "archived" }).then(() => this.shell?.ai2?.cards_changed?.()); }
+
+	/* THE TABLE OF CONTENTS — this card's sub-cards, each a row that opens beside
+	   it, and the one button that makes another. */
+	contents(){
+		const subs = this.subs();
+		div.c("ai2-toc ai2-card-toc", () => {
+			div.c("ai2-toc-head flex v-center gap-25", () => {
+				small.c("muted").text(subs.length ? subs.length + (subs.length === 1 ? " sub-card" : " sub-cards") : "no sub-cards yet");
+				if (cards_ready.known) this.sub_adder();
+			});
+			if (subs.length) div.c("ai2-toc-rows", () => {
+				subs.forEach(slug => {
+					const id = this.id + "/" + slug;
+					card_link(this.shell?.ai2?.cards?.card(id) ?? { id, title: slug }, this.url + slug + "/");
 				});
 			});
 		});
-		$d.el.open = true;
-	});
-}
+	}
 
-/** ONE SUB-CARD, WHOLE — the third column's own content. Deliberately smaller
- *  than `full()`: a sub-card is one task, one proposal, one reading or one
- *  paragraph, never a second inbox to read. */
-export function sub_full(it){
-	div.c("ai2-full-head flex v-center gap-25", () => {
-		icon(it.icon);
-		span.c("ai2-full-title").text(it.title ?? it.kind);
-	});
+	/* ⚠ `held` stops every redraw while the title is being typed — a live line
+	   landing mid-sentence would otherwise tear the input down under you. */
+	sub_adder(){
+		const $slot = span.c("ai2-sub-add");
+		const idle = () => $slot.empty(() => {
+			button.c("ai2-word").attr("type", "button")
+				.attr("title", "a card inside this one — it opens beside it").text("+ sub-card").click(ask);
+		});
+		const ask = () => {
+			this.held = true;
+			$slot.empty(() => {
+				const $in = input().attr("placeholder", "what is it? Enter makes it, Esc cancels").ac("ai2-sub-input");
+				$in.on("keydown", e => {
+					if (e.key === "Escape"){ this.held = false; idle(); return; }
+					if (e.key !== "Enter") return;
+					$in.el.disabled = true;
+					this.add_sub($in.el.value.trim() || "New sub-card");
+				});
+				setTimeout(() => $in.el.focus(), 0);
+			});
+		};
+		idle();
+	}
 
-	if (it.kind === "said") it.said.filter(Boolean).forEach(s => { p.c("ai2-sentence").text(s); });
-	else if (it.kind === "task") {
-		if (it.state) small.c("muted").text("state: " + it.state);
-		if (it.now) p.c("ai2-refined").text(it.now);
-		if (it.brief) p.c("ai2-text").text(it.brief);
-	} else if (it.kind === "proposal") {
-		(it.shape ?? []).forEach(s => { p.c("ai2-sentence").text(s); });
-	} else if (it.kind === "refined") {
-		if (it.text) p.c("ai2-refined").md(it.text);
+	async add_sub(title){
+		const made = await create_card({ parent: this.id, title });
+		this.held = false;
+		// Lines that landed while the title was being typed (its own `file` line
+		// among them) were held back — draw them now.
+		this.redraw();
+		if (!made?.ok) return;
+		if (this.shell) this.shell.opening = made.id;   // a new sub-card opens listening, like a new card
+		this.shell?.ai2?.cards_changed?.();
+		this.app?.router?.go(this.url + made.id.split("/").at(-1) + "/");
+	}
+
+	/* ── the chat ──────────────────────────────────────────────────────────── */
+
+	/** The card's own lines as a conversation, in `chat.js`'s shape. */
+	chat_entries(){
+		return [
+			...(this.prompts ?? []).map(pr => ({ type: "prompt", id: pr.id, at: pr.at, by: pr.by, text: pr.raw ?? pr.text })),
+			...(this.messages ?? []).map(m => this.chat_line(m)),
+		];
+	}
+
+	chat_line(m){
+		const kind = m.kind ?? "reply";
+		if (m.raw && !m.text) return { type: "update", at: m.at, text: m.raw };
+		if (kind === "task" || kind === "update" || kind === "clear") return { ...m, type: kind };
+		return { type: "reply", id: m.id, at: m.at, by: m.by, text: m.text ?? m.name ?? m.title };
+	}
+
+	/* ── living inside AI 2 ────────────────────────────────────────────────── */
+
+	/** What the flag, the selection flagger and `clear` ask of this card. */
+	face(){
+		return this.acts ??= {
+			held: v => { this.held = v; if (!v) this.redraw(); },
+			flag: (note, quote) => {
+				this.shell?.ai2?.flag(this.id, note, quote);
+				setTimeout(() => { this.held = false; this.redraw(); }, 1200);
+			},
+			unflag: () => this.shell?.ai2?.unflag(this.id),
+			clear: () => this.clear(),
+		};
+	}
+
+	/** AI 2 hands every open card its list row on each repaint; only a flag change redraws. */
+	flag_changed(it){
+		const flag = it?.flag ?? null;
+		if (JSON.stringify(flag) === JSON.stringify(this.flag_note ?? null)) return;
+		this.flag_note = flag;
+		this.redraw();
+	}
+
+	// ⚠ `activated()`, not `content()`: the view is cached, so a card you come
+	// back to has to re-register and pick up titles that changed meanwhile.
+	activated(){
+		this.handle = this.shell?.ai2?.open({ id: this.id, draw: it => this.flag_changed(it), on: this.face(), $box: this.$box });
+		// The sub-cards' titles come off AI 2's card list, which refreshes on its own clock.
+		this.stop_list = this.shell?.ai2?.cards?.on(() => this.redraw());
+		this.redraw();
+		if (!cards_ready.known) cards_ready().then(ok => ok && this.redraw());
+	}
+
+	/* ⚠ AND THE MICROPHONE STOPS — a cached page stays in the DOM with its own
+	   composer, and a mic left on would keep talking into a card you left. */
+	deactivated(){
+		this.shell?.ai2?.close(this.handle);
+		this.stop_list?.();
+		const mic = this.$composer?.mic;
+		try { if (mic && !["idle", "error"].includes(mic.state)) mic.stop(); } catch {}
+		this.talk?.partial("");
 	}
 }
 
-/** The one line you type to say what is wrong. Appended where it is called from,
-    so the caller decides where it lands. `on.held()` tells the page to stop
-    redrawing under a half-typed sentence — the bug the old board had. */
-export function flag_box(on, quote){
-	on.held(true);
-	div.c("ai2-flag-box flex v gap-25", $box => {
-		if (quote) small.c("ai2-flag-quote muted").text("on “" + quote + "”");
-		const $why = input().attr("placeholder", "what is wrong with it?").ac("ai2-flag-input");
-		$why.on("keydown", e => {
-			if (e.key === "Escape"){ on.held(false); $box.el.remove(); return; }
-			if (e.key !== "Enter") return;
-			$box.empty(() => { small.c("muted").text("sent to the mastermind"); });
-			on.flag($why.el.value.trim() || "Not this.", quote);
+/**
+ * A YEAR, A MONTH OR A DAY — the folders above the cards (`2026/`, `2026/09/`,
+ * `2026/09/24/`). Each lists what is inside it; a day lists its cards. Their
+ * child is read from the folder, so `/framework/ai2/2026/09/24/<slug>/` walks
+ * straight down to the card with nothing probed.
+ */
+Card.Folder = class CardFolder extends Page {
+
+	initialize(){ this.classes ??= "ai2-index-page"; }
+
+	level(){ return this.id.split("/").length; }
+
+	async child(name, levels){
+		if (this.children.get(name)) return super.child(name, levels);
+		const id = this.id + "/" + name;
+		const kid = this.level() < 3
+			? new this.constructor({ id, title: this.constructor.title_of(id), shell: this.shell })
+			: await Card.jsonl(Card.base + id + "/");
+		if (!kid) return null;
+		kid.assign({ shell: this.shell });
+		return this.add(name, kid).load_all_children(levels);
+	}
+
+	/** "2026", "September 2026", "Thursday 24 September". */
+	static title_of(id){
+		const [y, m, d] = id.split("/").map(Number);
+		if (!m) return String(y);
+		if (!d) return new Date(y, m - 1, 1).toLocaleDateString([], { month: "long", year: "numeric" });
+		return new Date(y, m - 1, d).toLocaleDateString([], { weekday: "long", day: "numeric", month: "long" });
+	}
+
+	content(){
+		div.c("ai2-index", $box => {
+			const draw = () => $box.empty(() => { this.folder_rows(); });
+			draw();
+			this.shell?.ai2?.cards?.on(draw);
 		});
-		setTimeout(() => $why.el.focus(), 0);
-	});
-}
+	}
+
+	/** A day lists its cards; a month its days, a year its months, each with a count. */
+	folder_rows(){
+		const all = this.shell?.ai2?.cards?.cards ?? [];
+		const mine = all.filter(c => c.id.startsWith(this.id + "/"));
+		if (!mine.length) return void small.c("muted").text("Nothing here yet.");
+
+		if (this.level() >= 3) return mine.filter(c => c.id.split("/").length === 4)
+			.forEach(c => card_link(c, this.url + c.id.split("/").at(-1) + "/"));
+
+		const groups = new Map();
+		mine.forEach(c => { const seg = c.id.split("/")[this.level()]; groups.set(seg, (groups.get(seg) ?? 0) + 1); });
+		[...groups].sort((x, y) => y[0].localeCompare(x[0])).forEach(([seg, n]) => {
+			a.c("ai2-toc-row page-link").href(this.url + seg + "/").append(() => {
+				icon("folder");
+				div.c("ai2-toc-body", () => {
+					span.c("ai2-toc-title").text(this.constructor.title_of(this.id + "/" + seg));
+					small.c("ai2-toc-line muted").text(n + (n === 1 ? " card" : " cards"));
+				});
+			});
+		});
+	}
+};
