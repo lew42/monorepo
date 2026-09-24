@@ -199,6 +199,10 @@ export class Page {
 
 		if (known) return known.assign({ app: this.app }).load_all_children(levels);
 
+		// Every page has an `md/`: its markdown files, as pages. Before route(), so a
+		// page that routes every name still has one. Markdown.js.
+		if (name === "md" && known === undefined) return this.add(name, await this.md_folder()).load_all_children(levels);
+
 		const claimed = known === undefined && is.fn(this.route) && this.route(name);
 		if (claimed) return this.add(name, claimed).load_all_children(levels);
 
@@ -207,6 +211,12 @@ export class Page {
 
 		const file = await Page.file(this.url + name + ".md");
 		return file ? this.add(name, file).load_all_children(levels) : null;
+	}
+
+	// ⚠ Imported on first use: Markdown extends Page, so a static import is a cycle.
+	async md_folder(){
+		const { default: PageMarkdown } = await import("./Markdown.js");
+		return new PageMarkdown({ source: this.url, title: "Markdown" });
 	}
 
 	// Last resort, so a real page.js always wins: a `.md` file beside me IS a page —

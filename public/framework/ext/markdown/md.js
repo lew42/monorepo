@@ -1,5 +1,6 @@
 import View, { div, details, summary } from "../../core/View/View.js";
 import { marked } from "./marked.esm.js";
+import PageMarkdown from "../../core/Page/Markdown.js";
 
 View.stylesheet(import.meta, "md.css");
 
@@ -149,31 +150,15 @@ md.resolve = function(root, base){
 };
 
 /**
- * A link to a `.md` file BESIDE the page points at its page: `x.md` → `x/`, which
- * core/Page renders as markdown when no `page.js` claims the name — so linking to a
- * file is all the declaring there is (core/Page/doc/declaring.md).
- *
- * Beside the PAGE, not beside the file, and that is the whole safety argument: the
- * fallback looks for `<page url>/<name>.md` and nothing else, so rewriting only a link
- * that already sits there can never invent a url the walk cannot serve. Rewrite by
- * path instead and `doc/method/append.md` becomes a 404 — 153 links across the site
- * point that way, 134 of them at ext/Doc member files whose page is `api/<name>/`
- * (measured 2026-08-18). Those stay raw links, which is what they were.
- *
- * ⚠ The `.md` url itself always serves the file, so `x.md?raw` opts out — a query
- * means the writer wants the file, and the Router hands any `.ext` path to the browser.
+ * Every link to a `.md` file points at its rendered page: `/x/doc/flow.md` →
+ * `/x/md/doc/flow`, which core/Page draws as markdown (core/Page/Markdown.js). The
+ * `.md` url itself still serves the raw file, so `x.md?raw` opts out — a query means
+ * the writer wants the file. Links made anywhere else are caught by the Router.
  */
 md.route = function(root){
-	const here = location.pathname.replace(/[^/]*$/, "");   // the directory on screen
-	const up = here.replace(/[^/]+\/$/, "");                // and one above: this page may BE a .md
-
 	root.querySelectorAll("a[href]").forEach(link => {
-		const href = link.getAttribute("href");
-		const beside = [here, up].some(dir => href.startsWith(dir) && !href.slice(dir.length).includes("/"));
-
-		if (!beside || !/\.md($|#)/.test(href)) return;   // elsewhere, not markdown, or a query
-
-		link.setAttribute("href", href.replace(/\.md(?=$|#)/, "/"));
+		if (link.origin !== location.origin || link.search || !/\.md$/i.test(link.pathname)) return;
+		link.setAttribute("href", PageMarkdown.url(link.pathname) + link.hash);
 	});
 
 	return root;
