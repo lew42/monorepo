@@ -1,7 +1,7 @@
 import { div, input, button, small } from "/app.js";
 import Socket from "/framework/dev/Socket/Socket.js";
 import Dictate, { post_prompt } from "/framework/ux/Dictate/Dictate.js";
-import { servex_base } from "./inbox.js";
+import { servex_base, is_folder_id, card_prompt } from "./inbox.js";
 
 /**
  * ONE LINE. A box you type in, the microphone inside its right end, Send beside
@@ -35,6 +35,10 @@ import { servex_base } from "./inbox.js";
 class ComposerMic extends Dictate {
 	draw_caption(){ this.on_partial?.(this.partial_text ?? ""); }
 
+	// The same Servex the rest of this page talks to — `?servex=` included, so a
+	// test page's microphone never posts into the real one.
+	get log_url(){ return servex_base() + "/log/prompts"; }
+
 	/* ONE MICROPHONE AT A TIME. A card's page stays mounted while a sub-card
 	   opens beside it, so its mic never hears `deactivated()` — pressing the
 	   sub-card's mic ran two at once, and every sentence was posted twice (the
@@ -64,13 +68,26 @@ class ComposerMic extends Dictate {
 		// `cards/<slug>` becomes the durable per-card file deliverable 1 built.
 		// `re` on a sub-card is `<slug>/<sub>` — the log itself is still the
 		// PARENT card's file; `<sub>` only ever lives inside the entry's own `re`.
-		if (re) post_prompt(entry, servex_base() + "/log/cards/" + re.split("/")[0]).catch(() => {});
+		if (re) into_card(re, entry);
 		if (ok) return;
 		try { await Socket.singleton().async_rpc("append", this.log_fallback_file, { at: new Date().toISOString(), ...entry }); }
 		catch (e){ console.warn("ai2: could not log this utterance", e); }
 	}
 }
 ComposerMic.prototype.mode = "open";   // the mic stays on; the box is single-line and never written into
+
+/**
+ * THE CARD'S OWN COPY of a sentence said into it. A folder card (`2026/09/24/x`)
+ * gets ONE first-class `prompt` record through Servex's `POST /card/append` —
+ * the owner's words kept as a quotation, verbatim (`Servex/cards/readme.md`).
+ * An old board card still gets its line on the old per-card log. Either way it
+ * is beside the `/log/prompts` post, never instead of it: that one is what the
+ * fast assistant reads.
+ */
+function into_card(re, entry){
+	if (is_folder_id(re)) return card_prompt(re, entry.text, entry.via).catch(() => null);
+	return post_prompt(entry, servex_base() + "/log/cards/" + re.split("/")[0]).catch(() => {});
+}
 
 /**
  * `re()` is asked fresh on every send, never captured — the card you are talking
@@ -127,7 +144,7 @@ export function composer({ re = () => null, on_text, on_partial, placeholder, au
 		on_text?.(msg);
 		note("sending…");
 		const ok = await post_prompt(entry, servex_base() + "/log/prompts");
-		if (target) post_prompt(entry, servex_base() + "/log/cards/" + target.split("/")[0]).catch(() => {});
+		if (target) into_card(target, entry);
 		note(ok ? "sent — the card is on its way" : "Servex is not answering, so nothing was sent");
 	}
 

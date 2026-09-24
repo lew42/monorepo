@@ -1,0 +1,48 @@
+@layer theme {
+
+	/* The index wall: side by side when there is room, stacked on a phone. */
+	.ux-content-wall {
+		display: grid; gap: var(--gap);
+		grid-template-columns: repeat(auto-fit, minmax(min(22em, 100%), 1fr));
+		align-items: start;
+	}
+
+	/* Decision and Question wear the ui/decision classes for the options wall (same
+	   contrast lessons); this only turns a card into a button and lays out the rest. */
+	.ux-content-decision, .ux-content-question, .ux-content-quotation {
+		display: flex; flex-direction: column; gap: var(--gap-50); min-width: 0;
+	}
+	.ux-content-decision > *, .ux-content-question > *, .ux-content-quotation > * { margin: 0; }
+
+	.ux-content-ask { font-weight: 700; }
+	.ux-content-hint, .ux-content-meta { color: var(--subtle); font-size: .9em; }
+
+	/* An option is a real button (keyboard + screen reader) that looks like the card. */
+	button.ux-content-option {
+		width: 100%; height: 100%; text-align: left; font: inherit; color: inherit; cursor: pointer;
+		align-items: stretch;
+	}
+	button.ux-content-option:hover { border-color: var(--prim); }
+	button.ux-content-option:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+	.ux-content-caveat { color: var(--subtle); font-size: .9em; }
+
+	.ux-content-edit { align-self: flex-start; }
+
+	.ux-content-field {
+		width: 100%; min-height: 4.5em; font: inherit; padding: var(--gap-50);
+		border: 2px solid var(--line); border-radius: .4em; background: var(--surface); color: inherit;
+	}
+	.ux-content-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-50); }
+
+	.ux-content-answer {
+		background: var(--surface); border: 2px solid var(--line); border-radius: .4em;
+		padding: var(--pad); display: flex; flex-direction: column; gap: var(--gap-25);
+	}
+	.ux-content-answer > * { margin: 0; }
+
+	.ux-content-quote {
+		margin: 0; padding-inline-start: .75em; border-inline-start: 2px solid var(--prim);
+		font-size: 1.15em;
+	}
+	.ux-content-quotation details summary { cursor: pointer; color: var(--subtle); }
+}

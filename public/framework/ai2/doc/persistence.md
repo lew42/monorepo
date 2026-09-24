@@ -1,5 +1,9 @@
 # The persistence survey (deliverable 0) — what we already have, and what a card uses
 
+## Superseded 2026-09-24
+
+The split described below, a card's stream in Servex's out-of-git logs and its state in the repo, is gone. A card is now one folder, `ai/2026/MM/DD/<slug>/page.jsonl`, dated by its creation day and written only by Servex. Only the Live card still keeps its old log. Every line of the new format is defined in [`Servex/cards/readme.md`](/Servex/cards/readme.md).
+
 The owner's own words: *"lean into the systems we have... a nested thing is a directory... so
 nobody has to decide how to break a JSONL into files."* This is the one-screen answer.
 

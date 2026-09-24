@@ -19,7 +19,9 @@ import { div, p, span } from "/app.js";
  */
 const norm = t => String(t ?? "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 const WHO = { owner: "you", "assistant-fast": "assistant", "master-assistant-master": "master assistant" };
-const key = e => [e.type, e.id, e.at, e.ref, e.text].join("|");
+// A prompt with an id is ONE line for good: a card folder's later `prompt` line
+// with the same id is its cleaned reading, merged in, never a second sentence.
+const key = e => (e.type === "prompt" && e.id ? "prompt|" + e.id : [e.type, e.id, e.at, e.ref, e.text].join("|"));
 
 export function chat({ source, keep = () => true }){
 	let $script, $partial;

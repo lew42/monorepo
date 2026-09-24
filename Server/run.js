@@ -6,6 +6,7 @@
  * in-process, exactly as `node server.js` always has. */
 import Server from "./Server.js";
 import Directory from "./plugins/Directory.js";
+import PageFiles from "./plugins/PageFiles.js";
 import DevSocket from "./plugins/DevSocket/DevSocket.js";
 import Runtime from "./plugins/SocketServer/Runtime.js";
 import AILogs from "./plugins/AILogs.js";
@@ -30,6 +31,7 @@ DevSocket.Socket.use(Tail);
 DevSocket.Socket.use(Append);
 Server.use(DevSocket);
 Server.use(Directory);
+Server.use(PageFiles);   // appends {"file"} lines to page.jsonl — Server/plugins/PageFiles.js
 Server.use(AILogs);
 Server.use(MCP);
 Server.use(Recordings);
