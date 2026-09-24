@@ -603,6 +603,7 @@ export default class Servex extends Events {
             try {
                 const agent = this.agents.spawn_now(spec);
                 this.log.append("system", { type: "gate", state: "started", id: agent.id, queued_at: at }).catch(() => {});
+                this.emit("admitted", spec, agent);   // a caller holding the queued stand-in learns the real agent here
             } catch (e){
                 this.log.append("system", { type: "gate", state: "failed", role: spec.role ?? null, name: spec.name ?? null,
                     error: String(e.message || e) }).catch(() => {});
