@@ -104,6 +104,7 @@ toc-         ext/toc
 
 # ux
 ux-auth-     ux/Auth
+ux-content-  ux/Content
 ux-dictate-  ux/Dictate
 ux-index-    ux/page.js (the tier's own index — the module wall, its reject flag)
 ux-popover-  ux/Popover
