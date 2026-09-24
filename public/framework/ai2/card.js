@@ -119,6 +119,16 @@ export default class Card extends Page {
 	/** Where the log lives — this page's own url is AI 2's, not the folder's. */
 	folder_url(){ return String(this.jsonl_url ?? "").replace(/page\.jsonl$/, ""); }
 
+	/** Where this card's .md files really are: its folder, not AI 2's address. */
+	md_dir(){ return this.folder_url(); }
+
+	/** A doc opens inside the card, with a Back button. It lives in `this.view`, outside
+	 *  `$box`, so a redraw (a new chat line, a new title) leaves it in place. */
+	open_link(link){ return this.swap_link(link); }
+
+	/** The bare .md names from the card's own `{"file": "notes.md"}` lines. */
+	md_names(){ return [...(this.listed?.values() ?? [])].filter(n => /\.md$/i.test(n) && !n.includes("/")); }
+
 	/** The sub-card folders, from the `file` lines (Page's own `file()` records them). */
 	subs(){ return [...(this.child_kinds?.keys() ?? [])]; }
 
@@ -208,6 +218,9 @@ export default class Card extends Page {
 		});
 		if (this.flag_note) small.c("ai2-flag-said muted")
 			.text("flagged" + (this.flag_note.quote ? " on “" + this.flag_note.quote + "”" : "") + " — " + (this.flag_note.note ?? ""));
+
+		const docs = this.md_names();
+		if (docs.length) this.md_files(docs);
 
 		this.contents();
 	}
