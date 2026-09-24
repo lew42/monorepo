@@ -1,0 +1,5 @@
+{"class":"/framework/ai2/card.js","title":"Verify: assistant tiers - done","type":"card","id":"2026/09/19/verify-assistant","created":"2026-09-19T19:07:21-05:00","by":"verify-assistant","tags":[]}
+{"legacy":"verify-assistant"}
+{"status":"done"}
+{"icon":"fact_check"}
+{"text":"Checked 14 of the 53 audit rows myself. 10 held up; 4 were graded too harshly and move up to done - the assistant tiers are further along than credited."}

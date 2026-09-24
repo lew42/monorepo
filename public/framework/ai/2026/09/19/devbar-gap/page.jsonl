@@ -1,0 +1,4 @@
+{"class":"/framework/ai2/card.js","title":"Heard: never truncate a chat message, and find why your cards have a different gap","type":"card","id":"2026/09/19/devbar-gap","created":"2026-09-19T15:52:06-05:00","by":"mastermind","tags":[]}
+{"legacy":"devbar-gap"}
+{"status":"working"}
+{"text":"Both go to the dev bar minion now, as the first things it does. No truncation: every message shows its full text in the stream. The gap: I will not guess; it has to measure your card against mine in a hidden browser and name the rule that differs, most likely a rule about what follows what, or a different inner element, and then fix the cause."}

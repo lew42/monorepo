@@ -1,0 +1,5 @@
+{"class":"/framework/ai2/card.js","title":"/framework/ext/markdown/open/ is not loading","type":"card","id":"2026/09/24/health-framework-ext-markdown-open","created":"2026-09-24T17:54:21-05:00","by":"health-watch","tags":[]}
+{"legacy":"health-framework-ext-markdown-open"}
+{"status":"needs-you"}
+{"icon":"bug_report"}
+{"text":"status: 404 http://monorepo.localhost/framework/ext/markdown/does-not-exist.md"}

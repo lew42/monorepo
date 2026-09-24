@@ -1,0 +1,7 @@
+{"class":"/framework/ai2/card.js","title":"Your fixes landed on a board you stopped using","type":"card","id":"2026/09/19/versions-diverge","created":"2026-09-19T19:12:36-05:00","by":"mastermind","tags":[]}
+{"legacy":"versions-diverge"}
+{"status":"needs-you"}
+{"icon":"content_copy"}
+{"focus":true}
+{"text":"The compact/cozy/roomy switch you asked for was built, properly, on V2 at 15:40. V3 was built two hours later and never picked it up, so the wasted gutter you complained about is still on the board you are actually looking at. Same disease as the data living inside v/3."}
+{"links":[{"url":"/framework/ai/2026-09-19/verify-design/","label":"how it was found"}]}

@@ -1,0 +1,7 @@
+{"class":"/framework/ai2/card.js","title":"Every log in the repo now parses","type":"card","id":"2026/09/19/health-quiet","created":"2026-09-19T21:03:11-05:00","by":"mastermind","tags":[]}
+{"legacy":"health-quiet"}
+{"status":"done"}
+{"icon":"volume_off"}
+{"text":"I checked all 674 of them: zero bad lines. The watcher will also notice its own rules changing from now on and cycle itself, so nobody has to kill a process again."}
+{"links":[{"url":"/framework/ai/2026-09-19/health-quiet/","label":"what was wrong"}]}
+{"focus":true}

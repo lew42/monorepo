@@ -1,0 +1,4 @@
+{"class":"/framework/ai2/card.js","title":"Hello from the mastermind, in your dev bar","type":"card","id":"2026/09/19/devbar-hello","created":"2026-09-19T15:17:57-05:00","by":"","tags":[]}
+{"legacy":"devbar-hello"}
+{"status":"done"}
+{"text":"This line is the newest card on the board. The dev bar's page tab now shows the newest card live, first thing on the tab, with no reload.\nWhy it felt slow: I was writing a long brief for the full chat tab before doing the small thing you could see. From now on the visible thing comes first, in a minute or two, and the brief after.\nYes, I can reread every past session: 30 of them are on disk, back to August 19, with the transcript of every minion. A chat tab for the dev bar that shows this conversation live, lists every past session, and lets you read what each minion was told is being built next."}

@@ -1,0 +1,6 @@
+{"class":"/framework/ai2/card.js","title":"Note: storage amended — a nested thing is a directory","type":"card","id":"2026/09/22/how-cards-are-stored","created":"2026-09-22T19:01:52-05:00","by":"","tags":[]}
+{"legacy":"how-cards-are-stored"}
+{"icon":"inventory_2"}
+{"text":"Agreed and amended: what was said stays an append-only stream per card written only by Servex (so the naming checks and the fold keep working); what a card IS — its fields, its sub-pages, its variations — lives in a directory ai/cards/<slug>/ using the same persistence every page already has (page.json, the Saver system), loaded on demand, one level deeper as another directory. Tomorrow's build begins with a survey of the persistence we already have, so nothing new is invented."}
+{"status":"done"}
+{"links":[{"url":"/framework/ai/2026-09-22/ai2-nested/requirements.md","label":"tomorrow's brief"},{"url":"/framework/ext/Saver/","label":"ext/Saver"}]}

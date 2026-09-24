@@ -1,0 +1,6 @@
+{"class":"/framework/ai2/card.js","title":"UX is ten real pages, cards breathe, reject on hover","type":"card","id":"2026/09/22/ux-page","created":"2026-09-22T18:09:26-05:00","by":"","tags":[]}
+{"legacy":"ux-page"}
+{"icon":"view_module"}
+{"text":"The tab strip is gone: UX expands in the rail to its ten modules, the index is a wall of ten cards. The docs/open gap was literally zero (a CSS hack computing to nothing) and compact padding was starved by the wrong token — both fixed and measured. Hover a card, press the flag, type one line: it reaches the mastermind."}
+{"status":"done"}
+{"links":[{"url":"/framework/ux/","label":"UX"},{"url":"/framework/ai/2026-09-22/ux-subpages/","label":"the report"}]}

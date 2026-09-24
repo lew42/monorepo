@@ -1,0 +1,5 @@
+{"class":"/framework/ai2/card.js","title":"The sessions dropdown","type":"card","id":"2026/09/19/devbar-q-dropdown","created":"2026-09-19T16:21:53-05:00","by":"mastermind","tags":[]}
+{"legacy":"devbar-q-dropdown"}
+{"icon":"list"}
+{"parent":"devbar-questions"}
+{"text":"It lists every saved Claude conversation on this machine. They are all dated today because every minion and every test run is its own session. As labelled it is useless; it should show each one's first words and time, and hide test runs. Goes in the Sessions follow-up."}

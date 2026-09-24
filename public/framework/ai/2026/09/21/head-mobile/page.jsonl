@@ -1,0 +1,6 @@
+{"class":"/framework/ai2/card.js","title":"The front door reads on a phone","type":"card","id":"2026/09/21/head-mobile","created":"2026-09-21T14:16:10-05:00","by":"mastermind","tags":[]}
+{"legacy":"head-mobile"}
+{"status":"done"}
+{"icon":"smartphone"}
+{"text":"**255px of header down to 133px** at 400px wide - three lines instead of six. Desktop unchanged at 76px. No console errors either width.\n\nThe four links, the card-width slider and the two disabled tabs (gallery, dashboard) now fold behind one **More** button below 40em. Nothing is deleted at any width - Live, the author filter, the count, the picker and the three real tabs never hide.\n\nIt missed the 120px target I set and said so rather than rounding. 133 is the real number."}
+{"links":[{"url":"/framework/ai/","label":"See it (narrow your window)"},{"url":"/framework/ai/2026-09-21/head-mobile/","label":"The task"}]}

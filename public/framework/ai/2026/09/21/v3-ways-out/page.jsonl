@@ -1,0 +1,6 @@
+{"class":"/framework/ai2/card.js","title":"V3 has its way out","type":"card","id":"2026/09/21/v3-ways-out","created":"2026-09-21T12:43:29-05:00","by":"mastermind","tags":[]}
+{"legacy":"v3-ways-out"}
+{"status":"done"}
+{"icon":"explore"}
+{"text":"Four links beside the title: Todays board, Everything, Process, Start here. Todays board is computed from the clock, not hardcoded. Verified - every href right, every target 200, no console errors at 1920 or 400.\n\nOne cost worth knowing: the head row is 76px at 1920 but **255px at 400** - a quarter of a phone screen before any content. It now carries the title, four links, the picker, the count, five view tabs, Live, the author filter and the width slider in one wrapping row. The links added to a problem that was already there. Not fixed today; it wants a toolbar pass."}
+{"links":[{"url":"/framework/ai/","label":"See it"},{"url":"/framework/ai/2026-09-21/v3-ways-out/","label":"The task"}]}

@@ -1,0 +1,5 @@
+{"class":"/framework/ai2/card.js","title":"1. A picture on every change","type":"card","id":"2026/09/19/change-shots-1","created":"2026-09-19T16:35:17-05:00","by":"mastermind","tags":[]}
+{"legacy":"change-shots-1"}
+{"icon":"image"}
+{"parent":"change-shots"}
+{"text":"The page health watcher already reloads each changed page in a hidden browser within two seconds. It will also save a screenshot, and the hook that already talks to the agent who made the edit will hand it that picture at its next step. No new program."}

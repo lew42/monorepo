@@ -1,0 +1,5 @@
+{"class":"/framework/ai2/card.js","title":"Padding audit: add a card word","type":"card","id":"2026/09/19/padding-audit","created":"2026-09-19T16:04:50-05:00","by":"mastermind","tags":[]}
+{"legacy":"padding-audit"}
+{"status":"needs-you"}
+{"text":"The pad token is fine for page regions but gives a nested card only 15 to 18 px at any width, and no skill says what a card's padding is. Recommended: one card class, padded by definition. Four decisions wait for you."}
+{"icon":"straighten"}

@@ -1,0 +1,5 @@
+{"class":"/framework/ai2/card.js","title":"/framework/core/Page/ is not loading","type":"card","id":"2026/09/24/health-framework-core-page","created":"2026-09-24T18:02:05-05:00","by":"health-watch","tags":[]}
+{"legacy":"health-framework-core-page"}
+{"status":"needs-you"}
+{"icon":"bug_report"}
+{"text":"blank: no .page element is drawing more than 50px tall"}

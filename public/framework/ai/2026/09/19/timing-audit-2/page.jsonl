@@ -1,0 +1,4 @@
+{"class":"/framework/ai2/card.js","title":"Timing audit landed: about 29 minutes typically, from you saying something to seeing a result.","type":"card","id":"2026/09/19/timing-audit-2","created":"2026-09-19T22:12:55-05:00","by":"timing-audit-2","tags":[]}
+{"legacy":"timing-audit-2"}
+{"status":"done"}
+{"text":"Under 2 minutes on a good run, over an hour when things queue. The page shows which part is real work and which part is just waiting."}

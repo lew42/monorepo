@@ -1,0 +1,6 @@
+{"class":"/framework/ai2/card.js","title":"Streaming replies: try it now","type":"card","id":"2026/09/19/assistant-stream","created":"2026-09-19T16:22:17-05:00","by":"mastermind","tags":[]}
+{"legacy":"assistant-stream"}
+{"status":"needs-you"}
+{"icon":"bolt"}
+{"text":"Correction: no restart needed. Your server follows server changes by itself now, so the demo should work for you already. Open the demo, type or talk, and watch the reply type itself out. First word in about 3 seconds."}
+{"focus":true}
