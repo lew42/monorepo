@@ -3,7 +3,7 @@
  *   node Servex/sustain.mjs            start Servex and keep it up
  *   node Servex/sustain.mjs --status   is it up? which pids?
  *   node Servex/sustain.mjs --restart  load new Servex code: check it, restart, confirm it came back
- *   node Servex/sustain.mjs --stop     stop both, and the port-80 gate, for good
+ *   node Servex/sustain.mjs --stop     stop both, the port-80 gate and the dev servers, for good
  *
  * Servex supervises everything else on this machine and, until now, nothing
  * supervised Servex: when it died — a crash, an `unhandledRejection`, a stray
@@ -60,11 +60,18 @@ const kill = pid => process.platform === "win32"
     ? spawnSync("taskkill", ["/pid", String(pid), "/t", "/f"], { windowsHide: true })
     : (() => { try { process.kill(pid, "SIGTERM"); } catch {} })();
 
+/* The dev servers Servex started detached (Process.js) — they outlive Servex,
+ * so a tree kill of Servex never reaches them; each has a record here. */
+const PROCS = path.dirname(place("procs", "x.json"));
+const procs = () => { try { return fs.readdirSync(PROCS).filter(f => f.endsWith(".json"))
+    .map(f => ({ name: f.slice(0, -5), file: path.join(PROCS, f), ...read(path.join(PROCS, f)) })).filter(p => p.pid); } catch { return []; } };
+
 /* ── the three commands ─────────────────────────────────────────────────── */
 
 function status(){
     const pids = read(), gate = read(GATE);
     if (gate) console.log(`gate    pid ${gate.pid}  ${alive(gate.pid) ? "alive" : "GONE"}  (${gate.listen} -> ${gate.target})`);
+    for (const p of procs()) console.log(`${p.name.padEnd(7)} pid ${p.pid}  ${alive(p.pid) ? "alive" : "GONE"}  (port ${p.port}, detached dev server)`);
     if (!pids) return console.log(`Servex is not running under a keeper — no ${PIDS}.`);
 
     console.log(`keeper  pid ${pids.keeper}  ${alive(pids.keeper) ? "alive" : "GONE"}`);
@@ -81,13 +88,18 @@ function stop(){
         console.log(`Stopped keeper ${pids.keeper} and Servex ${pids.servex}.`);
     }
 
-    /* The gate (gate.mjs) holds port 80 and outlives Servex on purpose, so the
-     * tree kill above never reaches it. It goes LAST, once nothing is left that
-     * could launch it again. */
+    /* The gate (gate.mjs) and the detached dev servers outlive Servex on
+     * purpose, so the tree kill above never reaches them. They go LAST, once
+     * nothing is left that could launch them again. */
     const gate = read(GATE);
     if (gate && alive(gate.pid)){ kill(gate.pid); console.log(`Stopped the gate ${gate.pid}.`); }
     try { fs.unlinkSync(GATE); } catch {}
-    if (!pids && !gate) console.log("Nothing to stop.");
+    const servers = procs();
+    for (const p of servers){
+        if (alive(p.pid)){ kill(p.pid); console.log(`Stopped ${p.name} ${p.pid} (port ${p.port}).`); }
+        try { fs.unlinkSync(p.file); } catch {}
+    }
+    if (!pids && !gate && !servers.length) console.log("Nothing to stop.");
 }
 
 function keep(){

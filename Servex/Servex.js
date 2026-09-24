@@ -176,6 +176,7 @@ export default class Servex extends Events {
          * at a second copy trying to bind this very port. */
         this.projects.push(new Project({ dir: HERE.split(path.sep).join("/"), name: "servex", port: this.dashboard_port, self: true }));
         this.scan(this.root);
+        this.adopt();
 
         this.proxy = new ReverseProxy({
             port: this.gated ? this.proxy_internal : this.proxy_port,
@@ -246,7 +247,8 @@ export default class Servex extends Events {
         const runner = new Process({
             name, log: this.log, port: project.port, cwd: project.dir,
             command: start.command, args: start.args, shell: start.shell,
-            env: { NO_WHISPER: "1", HOST: "127.0.0.1" }
+            env: { NO_WHISPER: "1", HOST: "127.0.0.1" },
+            detach: true                  // outlives Servex; the next Servex adopts it — Process.js
         });
         this.processes.set(name, runner);
         return runner;
@@ -285,6 +287,15 @@ export default class Servex extends Events {
                 ? { status: "online", pid: process.pid, said: "this dashboard" }
                 : this.processes.get(p.name)?.toJSON() ?? { status: "stopped", pid: null })
         }));
+    }
+
+    /* Every dev server the LAST Servex started and that is still running is
+     * picked back up — the same pid, no restart (Process.adopt). Its record in
+     * procs/<name>.json is what makes it ours. */
+    adopt(){
+        let names = [];
+        try { names = fs.readdirSync(path.dirname(place("procs", "x.json"))).filter(f => f.endsWith(".json")).map(f => f.slice(0, -5)); } catch {}
+        for (const name of names) this.runner(name)?.adopt().catch(e => this.say(`adopt ${name} failed: ${e.message}`));
     }
 
     /* Whisper is one of these too — same supervision, same log file, four boot
@@ -618,10 +629,6 @@ export default class Servex extends Events {
         this.log.append("servex", { msg, ...extra }).catch(() => {});
     }
 
-    /* Every child Servex started dies with it. `terminate()` is synchronous on
-     * purpose — `process.on("exit")` is the only hook Node guarantees, and it
-     * cannot await. A whisper-server that was ALREADY running when Servex
-     * started has no child here, so it is never touched. */
     /* THE GATE (gate.mjs) holds proxy_port and hands every visitor on to the
      * proxy, so a Servex restart is a slow page, not an error page.
      * Servex keeps the gate alive: it launches it at boot and relaunches it
@@ -639,11 +646,16 @@ export default class Servex extends Events {
         setInterval(check, 5000).unref();
     }
 
+    /* Every attached child Servex started dies with it; the detached dev
+     * servers do not — the next Servex adopts them. `terminate()` is
+     * synchronous on purpose — `process.on("exit")` is the only hook Node
+     * guarantees, and it cannot await. A whisper-server that was ALREADY
+     * running when Servex started has no child here, so it is never touched. */
     shutdown(){
         const down = () => {
             try { this.monitor?.stop(); } catch {}
             for (const agent of this.agents.live.values()) try { agent.stop(); } catch {}
-            for (const runner of this.processes.values()) runner.terminate();
+            for (const runner of this.processes.values()) runner.detach ? runner.release() : runner.terminate();   // a detached dev server outlives Servex on purpose
             this.log.close();
         };
         process.on("SIGINT", () => { down(); process.exit(0); });

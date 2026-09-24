@@ -1,9 +1,13 @@
 import fs from "fs";
 import net from "net";
+import { EventEmitter } from "events";
 import { spawn, spawnSync } from "child_process";
 import Events from "../Server/Events.js";
+import { place } from "./home.js";
+import { orphan } from "./orphan.mjs";
 
 const MAX_RESTARTS = 8;
+const alive = pid => { try { process.kill(pid, 0); return true; } catch { return false; } };
 
 /* ONE SUPERVISED CHILD PROCESS — a dev server, whisper-server, anything.
  *
@@ -31,7 +35,16 @@ const MAX_RESTARTS = 8;
  *      of uptime restarts instantly instead of waiting 30 seconds.
  *
  * Servex only ever stops a process IT started. That single rule (borrowed from
- * Server/plugins/Whisper.js) is why the "already running" case below is safe. */
+ * Server/plugins/Whisper.js) is why the "already running" case below is safe.
+ *
+ * DETACHED (`detach: true` — every project dev server, since 2026-09-24): a
+ * Servex restart must not restart the dev servers. Each one is started
+ * through orphan.mjs, so it outlives Servex; its output is APPENDED to
+ * `logs/<name>.out` and `.err` (never a pipe) and tailed back into the same
+ * `<name>` log as before; and `procs/<name>.json` records its pid. The next
+ * Servex ADOPTS it (`adopt()`): the pid is alive and the port answers, so it
+ * is ours — its file says Servex started it — and stop() still kills it by
+ * pid. A port held with no file is still a stranger. Whisper stays attached. */
 export default class Process extends Events {
 
     initialize(){
@@ -48,11 +61,90 @@ export default class Process extends Events {
         this.stopping = false;
         this.timer = null;
         this.said = "";
+        this.detach ??= false;
+        if (this.detach){
+            this.record = place("procs", `${this.name}.json`);
+            this.outs = { stdout: place("logs", `${this.name}.out`), stderr: place("logs", `${this.name}.err`) };
+        }
+    }
+
+    /* A detached server that a previous Servex started and is still running
+     * becomes this runner's child again — no restart. False if there is
+     * nothing to adopt (the stale file is removed).
+     *
+     * ⚠ An alive pid is adopted even if its port does not answer YET — it may
+     * still be booting (Servex died while it was launching), and ready() moves
+     * it to online when it does. Dropping it instead would leave it running
+     * unowned and start a second one onto the same port (EADDRINUSE, seen on
+     * the live system 2026-09-24). */
+    async adopt(){
+        if (!this.detach || this.child) return !!this.child;
+        let rec = null;
+        try { rec = JSON.parse(fs.readFileSync(this.record, "utf8")); } catch { return false; }
+        if (!rec?.pid || !alive(rec.pid)){
+            try { fs.unlinkSync(this.record); } catch {}
+            return false;
+        }
+        const child = this.child = this.handle(rec.pid);
+        this.started_at = Date.parse(rec.started) || Date.now();
+        this.stopping = false;
+        const up = await this.stranger();
+        if (this.child !== child) return true;
+        this.status = up ? "online" : "launching";
+        this.say(`adopted: pid ${rec.pid} on port ${this.port}, started ${rec.started} — still running from the last Servex${up ? "" : ", not answering yet"}.`);
+        this.emit("status", this.status);
+        if (!up) this.ready();
+        return true;
+    }
+
+    /* A stand-in for a ChildProcess when there is only a pid: it says "exit"
+     * when the pid dies (checked once a second), and while it lives its output
+     * files are tailed into the log. */
+    handle(pid){
+        const child = Object.assign(new EventEmitter(), { pid });
+        const tails = Object.entries(this.outs).map(([stream, file]) => this.tail(file, stream));
+        child.on("exit", (code, signal) => { if (this.child === child) this.exited(code, signal); });
+        child.timer = setInterval(() => {
+            tails.forEach(t => t());
+            if (!child.pid || alive(child.pid)) return;          // 0: still launching
+            clearInterval(child.timer);
+            tails.forEach(t => t());
+            try { if (JSON.parse(fs.readFileSync(this.record, "utf8")).pid === child.pid) fs.unlinkSync(this.record); } catch {}
+            child.emit("exit", null, null);
+        }, 1000);
+        return child;
+    }
+
+    /* Read what was appended to `file` since last time, one log line per line.
+     * Starts at the current end: what was printed before is already logged. */
+    tail(file, stream){
+        let at = 0, rest = "";
+        try { at = fs.statSync(file).size; } catch {}
+        return () => {
+            let size = 0;
+            try { size = fs.statSync(file).size; } catch { return; }
+            if (size < at) at = 0;                               // truncated by hand
+            if (size === at) return;
+            const buf = Buffer.alloc(size - at), fd = fs.openSync(file, "r");
+            try { fs.readSync(fd, buf, 0, buf.length, at); } finally { fs.closeSync(fd); }
+            at = size;
+            const lines = (rest + buf.toString("utf8")).split(/\r?\n/);
+            rest = lines.pop();
+            for (const line of lines) if (line.trim()) this.say(line.trim(), { stream });
+        };
+    }
+
+    /* Servex is going away but a detached server is not: stop watching it,
+     * never kill it. */
+    release(){
+        clearTimeout(this.timer);
+        if (this.detach) clearInterval(this.child?.timer);
     }
 
     async start(){
         if (this.child) return this.status;
         this.stopping = false;
+        if (await this.adopt()) return this.status;
 
         if (await this.stranger()) return this.settle("port-taken",
             `port ${this.port} is already held by something Servex did not start — not spawning ${this.name}.`);
@@ -77,6 +169,7 @@ export default class Process extends Events {
     spawn(){
         const env = { ...process.env, ...this.env };
         if (this.port) env.PORT = String(this.port);
+        if (this.detach) return this.spawn_detached(env);
 
         try {
             this.child = spawn(this.command, this.args, { cwd: this.cwd, env, shell: !!this.shell });   // inherit Servex's hidden console — see sustain.mjs
@@ -94,6 +187,26 @@ export default class Process extends Events {
         this.child.on("exit", (code, signal) => this.exited(code, signal));
         this.ready();
 
+        return this.status;
+    }
+
+    spawn_detached(env){
+        const child = this.child = this.handle(0);              // a placeholder until the pid is known
+        this.started_at = Date.now();
+        this.status = "launching";
+        const line = [this.command, ...this.args].join(" ");
+
+        orphan({ command: this.command, args: this.args, cwd: this.cwd, env, out: this.outs.stdout, err: this.outs.stderr }).then(pid => {
+            child.pid = pid;
+            fs.writeFileSync(this.record, JSON.stringify({ pid, port: this.port ?? null, command: line, cwd: this.cwd ?? null, started: new Date().toISOString() }, null, 2));
+            this.say(`started: ${line} (pid ${pid}${this.port ? `, PORT ${this.port}` : ""}, detached — output in ${this.outs.stdout})`);
+            if (this.stopping || this.child !== child) this.kill(pid);           // stopped while it was launching
+        }, e => {
+            clearInterval(child.timer);
+            if (this.child === child) this.child = null;
+            this.settle("errored", `spawn failed: ${e.message}`);
+        });
+        this.ready();
         return this.status;
     }
 
@@ -116,6 +229,7 @@ export default class Process extends Events {
 
     exited(code, signal){
         const alive_for = Date.now() - this.started_at;
+        clearInterval(this.child?.timer);
         this.child = null;
 
         if (this.stopping) return this.settle("stopped", `stopped (code ${code}).`);
@@ -137,7 +251,7 @@ export default class Process extends Events {
         this.stopping = true;
         clearTimeout(this.timer);
         this.timer = null;
-        if (this.child) this.kill(this.child.pid);
+        if (this.child?.pid) this.kill(this.child.pid);
     }
 
     async stop(){
