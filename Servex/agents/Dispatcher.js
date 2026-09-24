@@ -124,6 +124,10 @@ export default class Dispatcher {
 		});
 
 		this.running.set(agent.id, task.id);
+		try {
+			const folder = task.card && this.servex.cards?.canonical(task.card);
+			if (folder) Promise.resolve(this.servex.cards.attach(folder, agent.id)).catch(() => {});
+		} catch {}
 		this.progress(task.id, "working", `spawned ${agent.id}`);
 	}
 
