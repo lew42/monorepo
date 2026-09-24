@@ -50,8 +50,8 @@ export class Policy {
 		if(this.parent(from) === to || this.parent(to) === from) return ok("tree");
 		if(now - (this.told.get(`${from}→${to}`) ?? -Infinity) < REPLY_MS) return ok("reply");
 		if(this.table(from, to)) return ok("table");
-		const may = { assistant: "its own manager, master-assistant or servex-mastermind", manager: "its own assistant or servex-mastermind",
-			master: "any assistant or servex-mastermind", "task-mastermind": "servex-mastermind, its parent and its own children" }[f]
+		const may = { assistant: "its own manager, master-assistant or mastermind-servex", manager: "its own assistant or mastermind-servex",
+			master: "any assistant or mastermind-servex", "task-mastermind": "mastermind-servex, its parent and its own children" }[f]
 			?? "its parent, its own children, and anyone who messaged it in the last 30 minutes";
 		const entry = { at: new Date(now).toISOString(), from, to, why: `${from} may not message ${to}: it may message ${may}.` };
 		this.refuse(entry);
@@ -68,19 +68,19 @@ export class Policy {
 		};
 		if(f === "assistant" || f === "master") return deny(`spawn agents: ${f === "master" ? "the master assistant" : "an assistant"} has its own tools for that.`);
 		if(f === "worker") return ["minion", "helper"].includes(role) ? { ok: true } : deny(`spawn a ${role}: a worker may spawn only a minion or a helper.`);
-		return NO_SPAWN.includes(role) ? deny(`spawn a ${role}: only servex-mastermind may.`) : { ok: true };
+		return NO_SPAWN.includes(role) ? deny(`spawn a ${role}: only mastermind-servex may.`) : { ok: true };
 	}
 
 	refuse(entry){ this.refused.push(entry); if(this.refused.length > 50) this.refused.shift(); this.onrefuse?.(entry); return entry; }
 
 	rules(){ return [
 		{ from: "owner", may: "message anyone; spawn anything" },
-		{ from: "dispatcher, servex-mastermind", may: "message anyone; spawn anything" },
+		{ from: "dispatcher, mastermind-servex", may: "message anyone; spawn anything" },
 		{ from: "any agent", may: "message its parent, its own children, and anyone who messaged it in the last 30 minutes" },
-		{ from: "assistant-X", may: "message manager-X, master-assistant, servex-mastermind; spawn nothing" },
-		{ from: "manager-X", may: "message assistant-X, servex-mastermind; spawn anything except task-mastermind, manager, mastermind, master-assistant, assistant" },
-		{ from: "master-assistant", may: "message any assistant, servex-mastermind; spawn nothing" },
-		{ from: "task-mastermind-*", may: "message servex-mastermind; spawn like a manager" },
+		{ from: "assistant-X", may: "message manager-X, master-assistant, mastermind-servex; spawn nothing" },
+		{ from: "manager-X", may: "message assistant-X, mastermind-servex; spawn anything except task-mastermind, manager, mastermind, master-assistant, assistant" },
+		{ from: "master-assistant", may: "message any assistant, mastermind-servex; spawn nothing" },
+		{ from: "task-mastermind-*", may: "message mastermind-servex; spawn like a manager" },
 		{ from: "worker", may: "spawn only minion and helper" }
 	]; }
 }

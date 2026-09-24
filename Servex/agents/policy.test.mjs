@@ -16,14 +16,14 @@ t(m("task-mastermind-x", "minion-a").rule === "tree", "parent to child");
 t(!m("minion-a", "minion-b").ok, "worker to stranger refused");
 t(m("assistant-a", "manager-a").rule === "table", "assistant to own manager");
 t(m("assistant-a", "master-assistant").ok, "assistant to master");
-t(m("assistant-a", "servex-mastermind").ok, "assistant to servex");
+t(m("assistant-a", "mastermind-servex").ok, "assistant to servex");
 const bad = m("assistant-a", "manager-b");
 t(!bad.ok && bad.why.includes("assistant-a may not message manager-b"), "cross-card refused");
-t(m("manager-a", "assistant-a").ok && m("manager-a", "servex-mastermind").ok, "manager table");
+t(m("manager-a", "assistant-a").ok && m("manager-a", "mastermind-servex").ok, "manager table");
 t(!m("manager-a", "assistant-b").ok, "manager cross-card refused");
-t(m("master-assistant", "assistant-z").ok && m("master-assistant", "servex-mastermind").ok, "master table");
+t(m("master-assistant", "assistant-z").ok && m("master-assistant", "mastermind-servex").ok, "master table");
 t(!m("master-assistant", "manager-a").ok, "master to manager refused");
-t(m("task-mastermind-x", "servex-mastermind").ok, "task-mastermind to servex");
+t(m("task-mastermind-x", "mastermind-servex").ok, "task-mastermind to servex");
 t(!m("task-mastermind-x", "assistant-a").ok, "task-mastermind to assistant refused");
 // reply rule
 t(!m("minion-b", "helper-c").ok, "no reply yet");
@@ -35,7 +35,7 @@ t(!p.message("minion-b", "helper-c", now + 31 * 60 * 1000).ok, "reply expires");
 t(p.kind("master-assistant") === "master" && p.kind("dispatcher") === "system" && p.kind("x") === "worker", "kinds");
 t(p.card("manager-q") === "q" && p.card("minion-q") === null, "card");
 // spawn
-t(p.spawn(null, "manager").ok && p.spawn("servex-mastermind", "assistant").ok && p.spawn("dispatcher", "x").ok, "spawn privileged");
+t(p.spawn(null, "manager").ok && p.spawn("mastermind-servex", "assistant").ok && p.spawn("dispatcher", "x").ok, "spawn privileged");
 t(!p.spawn("assistant-a", "minion").ok && !p.spawn("master-assistant", "minion").ok, "assistant/master spawn nothing");
 t(p.spawn("manager-a", "minion").ok && p.spawn("task-mastermind-x", "helper").ok, "manager spawns workers");
 for(const r of ["task-mastermind", "manager", "mastermind", "master-assistant", "assistant"])
