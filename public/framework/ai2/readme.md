@@ -1,15 +1,18 @@
-# ai2 — AI 2, an overview first, then a list on the left and one page on the right
+# ai2 — AI 2, a list of cards on the left and one card's page on the right
 
-One page at [`/framework/ai2/`](/framework/ai2/). **The default view is an overview** — four
+**What you have asked of this page, word for word, and whether it is done:
+[`doc/owner-asks.md`](./doc/owner-asks.md).** Read it before changing the layout.
+
+One page at [`/framework/ai2/`](/framework/ai2/). **The default view is the inbox** (you
+preferred it, 2026-09-23): a narrow rail down the left previews every card there is, newest
+first, with a one-line box you talk to at its top. Click one and it opens on the right, at its
+own url, and stays there: the list keeps filling behind it and nothing you are reading moves.
+
+The rail's `overview` word opens the **overview** at [`overview/`](/framework/ai2/overview/) — four
 columns by importance: needs you (flagged or blocked, cleared per item), reports (the
 mastermind's own notes and write-ups), landed (recent task landings), and live (what Servex is
 running now, the usage windows, the last few events). Nothing pushes the top of a column down —
-a new arrival waits behind a small pill.
-
-Click "Open the full inbox →" (or any card in the overview) and the SECOND view takes over: a
-narrow rail down the left previews every card there is, newest first, with a one-line box you
-talk to at its top. Click one and it opens on the right, at its own url, and stays there: the
-list keeps filling behind it and nothing you are reading moves. "← overview" goes back.
+a new arrival waits behind a small pill. "← Open the inbox" goes back.
 
 **A card you talk into.** `+ New card` puts an empty card on the board, opens it and starts
 listening. While a card is open, everything you say or type goes INTO it — each sentence carries
@@ -105,8 +108,16 @@ To draw a card from anywhere, append a line to one of the logs it reads:
   (a real directory, only once a card gets a page) is a different thing: the card's STATE, not
   its stream. `doc/persistence.md` has the whole split.
 
+- **No `bleed` on a page with no gutter.** `.page > .bleed` pays the page's padding back with a
+  negative margin; the overview page has padding 0, so the payback slid its first column under
+  the site sidebar with text at 0px (fixed 2026-09-24).
+- **A size container re-bases every `cqi` inside it** — the spacing utilities (`gap-25`…) are
+  `cqi` clamps, so turning a box into a container quietly shrinks the gaps of everything in it.
+  Measure gaps before and after.
+
 ## More
 
+- [`doc/owner-asks.md`](./doc/owner-asks.md) — every dashboard ask you made, 17–24 Sep, with its status
 - [`doc/decisions.md`](./doc/decisions.md) — every fork in the road, with the alternative named
 - [`doc/logs.md`](./doc/logs.md) — every log this page reads, and the ones it writes
 - [`doc/persistence.md`](./doc/persistence.md) — the survey: what each persistence system on this

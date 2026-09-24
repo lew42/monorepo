@@ -8,8 +8,8 @@ boards that a later ask, or the AI 2 rebuild, replaced).
 
 ## Not done yet, clearly wanted
 
-1. [The overview's four columns don't fit the screen](#overview-fit) — at 1920 the first column hides under the site sidebar, the last runs off the right edge, and a big "Overview" title eats the top.
-2. [The rail's top row overflows](#rail-head) — the `notes` word spills into the card pane and "auto-transcribe" wraps onto two lines.
+1. ~~[The overview's four columns don't fit the screen](#overview-fit)~~ — fixed 24 Sep.
+2. ~~[The rail's top row overflows](#rail-head)~~ — fixed 24 Sep.
 3. [Cards in sizes: big for the topics you keep coming back to](#sizes) — every row is the same size today.
 4. [Cards named well, with big familiar icons](#names-icons) — many rows are titled "New card" with a 20px icon.
 5. [A read/unread you control, not a 354-card wall](#unread-wall) — every card is unread, so the orange dot is on every row and means nothing.
@@ -59,7 +59,7 @@ boards that a later ask, or the AI 2 rebuild, replaced).
 #### The overview: four full-height columns sharing the width
 > These four columns should be full height and share the full width... no padding on this page, no borders, radiuses or gap... substantial padding on them... the default padding should scale with size.
 
-2026-09-23 · [task](/framework/ai/2026-09-23/ai2-routes/) · ◐ — the columns exist and their padding scales (29px at 1920), but at 1920 the first column slides under the site sidebar ("ds you" is all that shows of "Needs you"), the fourth runs off the right edge, and a large "Overview" title leaves ~130px of dead space on top.
+2026-09-23 · [task](/framework/ai/2026-09-23/ai2-routes/) · ✅ (24 Sep) — the four columns sit beside the site sidebar, share the width, run full height and pad by the scaling `--ai2-ov-pad`; the giant title is gone. The cause was `bleed` on a page with no gutter to pay back ([task](/framework/ai/2026-09-24/ai2-dashboard/)).
 
 #### Timeline grid lines with the hours marked (old v3 board)
 > I want to see two equal columns. The left side will have the grid lines with timestamps, the every hour, for example, should be marked on the timeline so that we can roughly have spatial reasoning about it.
@@ -216,7 +216,7 @@ boards that a later ask, or the AI 2 rebuild, replaced).
 #### A rail like the main one; minimal, no dead space
 > AI2 cards become read when I click them — no, I need them all unread again. […] AI2 needs a left sidebar rail like the main one. The compose area is massive (277px+), way too much padding; one compact line with the mic at the end of the text area; the dashboard must be minimal, no dead space.
 
-2026-09-22 · [task](/framework/ai/2026-09-22/mastermind-servex/) · ◐ — the rail exists and the typed box is one line, but its second row overflows at 1920: "auto-transcribe" wraps onto two lines and the `notes` word spills past the rail into the card pane, making the head 102px tall.
+2026-09-22 · [task](/framework/ai/2026-09-22/mastermind-servex/) · ✅ (24 Sep) — the rail exists, the typed box is one line, and the words under it wrap as whole words onto a tidy second line inside the rail at any width ([task](/framework/ai/2026-09-24/ai2-dashboard/)).
 
 #### Declutter: dead space, clutter, a hovering scrollbar, card grounds
 > this ai dashboard has way too much bullshit. 1) there's like... 200px of dead space at the top. 2) Todays' board? Everything? Process? Start here? V3? 103 left? days, now, grid, timeline, prompts, gallery, dashboard, LIVE, everyone, card width — then under that, minion-alpha-writer - minion - idle […] then the rail has a bunch of padding on the top, and the rail's scrollbar is literally hovering. scrollbars should be at the edge of a clear border. […] the ui cards don't have bgs. they should have lightened (but not white) bg, and the selected card should turn white.
@@ -570,7 +570,7 @@ boards that a later ask, or the AI 2 rebuild, replaced).
 #### An overview by importance
 > […] Dashboards: it must be real time, but with scales of importance so important things stand out. Where would you put a report? Everything gets buried as new items push old ones down. Default view = an overview: column 1 extremely important / outstanding (clear, the column disappears when empty); column 2 mildly important, e.g. last night's report; column 3 a more verbose log of important things done recently; then a real-time streaming log: what's running, in limbo, the usage windows. […]
 
-2026-09-22 · [task](/framework/ai/2026-09-22/mastermind-servex/) · ◐ — [`overview/`](/framework/ai2/overview/) has these four columns (Needs you, Reports, Landed, Live). It is no longer the default (you preferred the inbox on 23 Sep), and it does not fit the screen at 1920 — see [above](#overview-fit).
+2026-09-22 · [task](/framework/ai/2026-09-22/mastermind-servex/) · ◐ — [`overview/`](/framework/ai2/overview/) has these four columns (Needs you, Reports, Landed, Live). It is no longer the default (you preferred the inbox on 23 Sep), and since 24 Sep it fits the screen — see [above](#overview-fit).
 
 <a id="day-report"></a>
 #### An end-of-day summary, and where the tokens went
