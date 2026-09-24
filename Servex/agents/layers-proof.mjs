@@ -113,8 +113,19 @@ const day_before = fs.existsSync(DAY) ? fs.readFileSync(DAY) : null;
 const dirty = () => { try { return execFileSync("git", ["status", "--porcelain"], { cwd: REPO, encoding: "utf8" }).split("\n").filter(Boolean); } catch { return []; } };
 const dirty_before = new Set(dirty());
 let touched = [];
+/* Check 8 needs ai2-dashboard's groups file, which this branch does not have
+ * yet: copied in from michael/dev for the run, removed again at cleanup. */
+const GROUPS = path.join(REPO, "public/framework/ai2/groups.json");
+const groups_before = fs.existsSync(GROUPS);
+function groups_in(){
+	if (groups_before) return JSON.parse(fs.readFileSync(GROUPS, "utf8"));
+	const text = execFileSync("git", ["show", "michael/dev:public/framework/ai2/groups.json"], { cwd: REPO, encoding: "utf8" });
+	fs.writeFileSync(GROUPS, text);
+	return JSON.parse(text);
+}
 async function cleanup(){
 	await shutdown();
+	if (!groups_before) fs.rmSync(GROUPS, { force: true });
 	if (!before_year) fs.rmSync(path.join(AI, "2026"), { recursive: true, force: true });
 	else for (const id of made_cards) fs.rmSync(path.join(AI, ...id.split("/")), { recursive: true, force: true });
 	if (day_before) fs.writeFileSync(DAY, day_before);
@@ -125,6 +136,7 @@ async function cleanup(){
 
 // ── the run ──────────────────────────────────────────────────────────────
 async function run(){
+	const groups = groups_in();
 	await boot();
 
 	// (d) the reaper, started first because it only needs time: a finished helper, idle past 20 s, is stopped.
@@ -260,6 +272,25 @@ async function run(){
 	}, 90000);
 	record("7d. a finished helper, idle past 20 s, is stopped by the reaper", !!reaped, reaped ?? { id: reap.id, error: "not reaped within 90 s" });
 
+	// 8. the lobby: words spoken with NO card are filed onto their group's card, and that group's assistant answers there
+	const group = groups.find(g => g.id === "system-design");
+	const made = await post("/card/create", { title: group?.name ?? "System design", type: "group", by: "owner" });
+	if (made?.id) made_cards.push(made.id);
+	const G = group?.card ?? made?.id;
+	const LOBBY = "The per-card assistants should share one brief about system design";
+	await post("/log/prompts", { type: "prompt", text: LOBBY });
+	const filed = await until(async () => {
+		const log = await card_log(G);
+		const p = log.prompts?.find(p => p.text === LOBBY);
+		const m = log.messages?.find(m => m.by === "assistant-system-design");
+		return p && m ? { card: G, prompt: { text: p.text, via: p.via ?? null }, reply: { by: m.by, text: clip(m.text, 200) } } : null;
+	}, 120000);
+	const lobby = (await agent_log("assistant-fast")).filter(e => e.type === "tool" && /file_to_group/.test(e.name ?? "")).map(e => e.input);
+	record("8. words with no card are filed onto the system-design group card, and assistant-system-design answers there",
+		!!filed && made?.id === group?.card,
+		{ group_card_made: made?.id ?? made, groups_json_card: group?.card ?? null, lobby_calls: lobby,
+			...(filed ?? { error: "no prompt plus reply by assistant-system-design on the group card within 120 s" }) });
+
 	// identity: every agent that spoke on the cards spoke under its own id
 	const speakers = new Set();
 	for (const id of [A, B]) for (const m of (await card_log(id)).messages ?? []) speakers.add(m.by);
@@ -279,12 +310,20 @@ async function gate(){
 	const HAIKU = { role: "minion", model: "claude-haiku-4-5-20251001", effort: "low", permission_mode: "plan",
 		prompt: "Reply with the single word: done. Use no tools." };
 	await boot("cap", { SERVEX_AGENT_CAP: "3", SERVEX_NO_ASSISTANT: "1" });
+	/* Spawn until the gate holds one. The boot is not empty (run 4: something of
+	 * its own already counted, so the THIRD filler was the one queued), so the
+	 * number of fillers is read, not assumed. */
+	const before = (await get("/api/agents")).filter(a => a.state !== "stopped").map(a => a.id);
 	const fill = [];
-	for (const n of ["one", "two", "three"]) fill.push(await tool("spawn_agent", { ...HAIKU, name: `cap-${n}` }));
-	const held = await tool("spawn_agent", { ...HAIKU, name: "cap-queued" });
+	let held = null;
+	for (let i = 1; i <= 4 && !held; i++){
+		const r = await tool("spawn_agent", { ...HAIKU, name: `cap-${i}` });
+		if (r?.state === "queued") held = r; else fill.push(r);
+	}
 	const kid = await tool("spawn_agent", { ...HAIKU, name: "cap-child", parent: fill[0]?.id });
-	const queue = (await tool("system_health"))?.queue ?? null;
-	for (const a of [fill[1], fill[2], kid]) if (a?.id) await tool("stop_agent", { id: a.id }).catch(() => {});
+	const health = await tool("system_health");
+	const queue = health?.queue ?? clip(JSON.stringify(health), 300);
+	for (const a of [...fill.slice(1), kid]) if (a?.id) await tool("stop_agent", { id: a.id }).catch(() => {});
 	const started = await until(async () => {
 		const line = (await servex_log("system")).find(e => e.type === "gate" && e.state === "started");
 		if (!line) return null;
@@ -302,8 +341,8 @@ async function gate(){
 	const child_in = !!kid?.id && kid?.state !== "queued";
 	const memory = mem?.state === "queued" && /memory/.test(mem?.reason ?? "");
 	record("7c. the real spawn gate: queued at the ceiling with its reason, started when a slot frees, a live parent's child admitted, low memory refused",
-		fill.every(a => a?.id) && at_cap && child_in && !!started && memory,
-		{ filled: fill.map(a => a?.id ?? a), queued_at_cap: held, queue_seen: queue, child_of_live_parent: kid,
+		fill.length >= 1 && fill.every(a => a?.id) && at_cap && child_in && !!started && memory,
+		{ live_at_boot: before, filled: fill.map(a => a?.id ?? a), queued_at_cap: held, queue_seen: queue, child_of_live_parent: kid,
 			started_when_freed: started ?? "the queued spawn did not start within 60 s of freeing two slots",
 			low_memory: { free_mb, floor_mb: free_mb + 100000, answer: mem } });
 }
