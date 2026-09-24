@@ -391,6 +391,27 @@ export default class Servex extends Events {
         // (this live map), not the registry below, whose rows outlive a restart.
         router.get("/api/agents", cors, (req, res) => res.json(this.agents.list()));
 
+        /* SAY SOMETHING TO ONE RUNNING AGENT (agent-chat, 2026-09-24) — the Live
+         * card's inline chat posts here. `send()` queues it behind the agent's
+         * current turn, so a busy agent answers when it is free. Unknown id 404,
+         * stopped 409, no text 400 — each with the plain sentence as `error`.
+         * ⚠ The Dispatcher sits in the same live map as a FAKE agent whose
+         * `send()` means "a child woke me" — so only a real Claude session
+         * (`Agents.Agent`) is accepted; anything else is a 409. */
+        router.options("/api/agents/:id/message", cors, (req, res) => res.status(204).end());
+
+        router.post("/api/agents/:id/message", cors, express.json({ limit: "64kb" }), (req, res) => {
+            const text = String(req.body?.text ?? "").trim();
+            if (!text) return res.status(400).json({ error: "text is required" });
+            let agent;
+            try { agent = this.agents.get(req.params.id); }
+            catch (e){ return res.status(404).json({ error: String(e.message || e) }); }
+            if (!(agent instanceof this.constructor.Agents.Agent))
+                return res.status(409).json({ error: `"${agent.id}" is not a Claude session — it cannot take a message.` });
+            try { res.json(agent.send(text, { from: "owner" }).card()); }
+            catch (e){ res.status(409).json({ error: String(e.message || e) }); }
+        });
+
         /* The registry — every agent ever spawned, surviving a Servex restart the
          * `live` Map above does not. What `list_agents` and `say.mjs state`'s
          * `MASTERMINDS` block read from outside this process — and, since

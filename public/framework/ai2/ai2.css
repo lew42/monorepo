@@ -1105,3 +1105,51 @@
 		overflow: visible;
 	}
 }
+
+/* ── talking to one agent from the Live card (agent-chat, 2026-09-24) ─────
+   A "Running now" row is a toggle; its conversation opens right under it,
+   in the same column, and grows with the page: no height cap, no scroll box
+   of its own (the page is the one scroll, see the block above). */
+@layer theme {
+	.ai2-live-talkable {
+		cursor: pointer;
+	}
+
+	.ai2-live-talkable:hover,
+	.ai2-live-open {
+		background: var(--fill-a08);
+	}
+
+	.ai2-talk {
+		padding: 0.5em 0.75em 0.75em;
+		border-inline-start: 2px solid var(--prim);
+		border-block-end: 1px solid var(--line);
+	}
+
+	.ai2-talk-form {
+		display: flex;
+		align-items: center;
+		gap: 0.35em;
+		margin-block-start: 0.5em;
+	}
+
+	.ai2-talk-input {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.ai2-talk-send {
+		flex: none;
+		white-space: nowrap;
+	}
+
+	.ai2-talk-status:empty {
+		display: none;
+	}
+
+	.ai2-talk-status {
+		display: block;
+		margin-block-start: 0.3em;
+		font-weight: 600;
+	}
+}

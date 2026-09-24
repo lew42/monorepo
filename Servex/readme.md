@@ -39,7 +39,9 @@ class every project here runs. It serves `Servex/public/`, with the monorepo's
 `public/` behind it so the page can import the real `View`. Projects and log
 names are polled; **agents are pushed**, over `Stream.js` — server-sent events, so
 a token shows up in the page as the agent thinks it. `GET /api/stream` is that
-wire; `Servex.Agents`' `watch()` is what feeds it.
+wire; `Servex.Agents`' `watch()` is what feeds it. `POST /api/agents/<id>/message {text}`
+says something to one running agent (queued behind its current turn) — the AI 2 Live card's
+inline chat uses it; an unknown id is a 404, a stopped one a 409.
 
 **Reverse proxy** — `ReverseProxy.js`. Reads the `Host` header, strips
 `.localhost`, forwards to that project's port, HTTP and WebSocket alike. When

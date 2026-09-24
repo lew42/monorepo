@@ -1,4 +1,4 @@
-import { div, span, small, button, h3 } from "/app.js";
+import { div, span, small, button, h3, p, form, input } from "/app.js";
 import { View, icon } from "/framework/core/View/View.js";
 import { usage_rail } from "/framework/ext/AITask/usage.js";
 import { servex_base, card_stream, agent_frames } from "./inbox.js";
@@ -27,6 +27,12 @@ import { clock } from "./card.js";
  * something new happens to it — a cleared task that moves again comes back.
  * Only TASKS carry a ✕: hiding an agent that is still running would make
  * "Running now" lie.
+ *
+ * TALKING TO AN AGENT: click a row in "Running now" and its conversation opens
+ * right under it — its own log, live, and a box that sends it a message
+ * (`AgentTalk`, below; `POST /api/agents/<id>/message` in Servex.js). Click the
+ * row again to close it. The composer at the bottom of the page still talks to
+ * the assistant, as before.
  *
  * A NOT STARTED task was spoken while `dispatch.off` existed. The Dispatcher
  * answers it with "dispatch is paused…" and never replays it (Servex/agents/
@@ -113,7 +119,9 @@ export function live_model({ prompts, day }){
 	}
 
 	function running(){
-		return agents.filter(a => a.state !== "stopped").map(a => ({ id: a.id, title: a.id,
+		// `talkable`: a real Claude session has a model; the Dispatcher (a fake
+		// agent in the same map) has none, and Servex refuses a message to it.
+		return agents.filter(a => a.state !== "stopped").map(a => ({ id: a.id, title: a.id, talkable: !!a.model,
 			state: a.state, line: [a.model, a.turns ? a.turns + " turns" : ""].filter(Boolean).join(" · "),
 			at: a.started_at }));
 	}
@@ -122,6 +130,8 @@ export function live_model({ prompts, day }){
 
 	return {
 		log,
+		/** The agents whose conversation is open on the page, by id (AgentTalk, below). */
+		talks: new Map(),
 		on(fn){ readers.add(fn); return () => readers.delete(fn); },
 
 		/** The card, as the rail and the page draw it. `at` is the newest moment
@@ -179,7 +189,8 @@ export function live_row(it){
 
 /** THE PAGE — one column that scrolls as one: usage (three pace meters),
  *  who is running, the tasks, then the chat. A task has a ✕ that clears it;
- *  the chat says who cleared what. */
+ *  the chat says who cleared what. A running agent's row opens its own
+ *  conversation inline (`AgentTalk`). */
 export function live_full(it, model){
 	div.c("ai2-full-head flex v-center gap-25", () => {
 		icon(it.icon);
@@ -191,20 +202,146 @@ export function live_full(it, model){
 		usage_rail(it.usage, LABELS);
 	});
 
-	const list = (title, items, empty, clearable) => div.c("ai2-live-section", () => {
+	/* An agent row is a toggle: its conversation opens INLINE, right under it.
+	   The open ones live in `model.talks`, so a redraw puts the SAME panel back
+	   (half-typed text and all) instead of building a new one. */
+	const list = (title, items, empty, { clearable, talkable } = {}) => div.c("ai2-live-section", $sec => {
 		h3(title);
 		if (!items.length) small.c("muted").text(empty);
 		items.forEach(x => {
-			div.c("ai2-live-item", () => {
+			const talks = talkable && x.talkable, open = talks && model.talks.has(x.id);
+			const $row = div.c("ai2-live-item" + (talks ? " ai2-live-talkable" : "") + (open ? " ai2-live-open" : ""), () => {
 				span.c("ai2-live-state ai2-live-" + x.state).text(x.state.replace("-", " "));
 				span.c("ai2-live-name").text(x.title);
 				if (x.line) small.c("ai2-live-line muted").text(x.line);
 				if (clearable) button.c("ai2-clear").attr("type", "button").attr("title", "clear — it comes back if it changes again")
 					.text("✕").click(() => model.clear(x.id));
 			});
+			if (!talks) return;
+			$row.attr("title", "click to talk to " + x.id);
+			if (open) model.talks.get(x.id).attach($sec, $row);
+			$row.click(() => {
+				if (model.talks.has(x.id)){
+					model.talks.get(x.id).close();
+					model.talks.delete(x.id);
+					$row.rc("ai2-live-open");
+					return;
+				}
+				$sec.append(() => { model.talks.set(x.id, new AgentTalk({ id: x.id })); });
+				model.talks.get(x.id).attach($sec, $row);
+				$row.ac("ai2-live-open");
+			});
 		});
 	});
 
-	list("Running now", it.agents, "nothing is running", false);
-	list("Tasks", it.tasks, "no task in progress", true);
+	list("Running now", it.agents, "nothing is running", { talkable: true });
+	list("Tasks", it.tasks, "no task in progress", { clearable: true });
 }
+
+/**
+ * TALK TO ONE RUNNING AGENT (agent-chat, 2026-09-24; the owner: "click into
+ * [an agent] and then send it messages just from my browser").
+ *
+ * What it shows: the agent's own log, `agent-<id>` — the last lines from
+ * `GET /log/agent-<id>`, then every new one as Servex pushes it over the page's
+ * one `EventSource` (`agent_frames`). Your messages and the agent's replies are
+ * full lines; a tool call, an error or a stop is one quiet line; token deltas
+ * and the session banner are skipped. Newest at the bottom, and the panel grows
+ * with the page — no scroll box of its own (the Live card scrolls as one).
+ *
+ * What it sends: `POST /api/agents/<id>/message {text}` (Servex.js). Servex
+ * queues it behind the agent's current turn, so a busy agent answers when it
+ * is free. A refusal (unknown id, stopped agent, Servex down) shows under the
+ * box in plain words.
+ *
+ * ⚠ The Live page redraws with `$box.empty()` whenever anything changes. This
+ * panel is built ONCE and re-attached by `attach()`, so the typed text
+ * survives; if the box had focus, it gets it back.
+ */
+export class AgentTalk {
+	constructor(...args){ this.assign(...args); this.initialize(); }
+	assign(...args){ return Object.assign(this, ...args); }
+
+	initialize(){
+		this.seen = new Set();
+		this.focused = false;
+		this.pending = [];
+		this.view = div.c("ai2-talk", () => {
+			this.$lines = div.c("ai2-talk-lines");
+			form.c("ai2-talk-form", () => {
+				this.$input = input.c("ai2-talk-input").attr("type", "text").attr("placeholder", "say something to " + this.id);
+				button.c("ai2-talk-send prim").attr("type", "submit").text("Send");
+			}).on("submit", e => { e.preventDefault(); this.send(); });
+			this.$status = small.c("ai2-talk-status");
+		});
+		this.$input.on("focus", () => { this.focused = true; });
+		// A redraw detaches the box, which can fire `blur` — ask again once it is back.
+		this.$input.on("blur", () => setTimeout(() => { this.focused = document.activeElement === this.$input.el; }, 0));
+		this.off = agent_frames(e => { if (e.agent === this.id) this.ready ? this.line(e) : this.pending.push(e); });
+		this.backlog();
+	}
+
+	backlog(){
+		fetch(servex_base() + "/log/agent-" + encodeURIComponent(this.id) + "?n=" + this.constructor.BACKLOG)
+			.then(r => (r.ok ? r.json() : [])).catch(() => [])
+			.then(list => {
+				(Array.isArray(list) ? list : []).forEach(e => this.line(e));
+				this.ready = true;
+				this.pending.splice(0).forEach(e => this.line(e));
+			});
+	}
+
+	/** Who said it and what, or nothing for a line that is not conversation. */
+	said(e){
+		const clip = t => (t.length > 400 ? t.slice(0, 400) + "…" : t);
+		if (e.type === "agent_msg" && e.from === "owner") return { cls: "ai2-chat-you", who: "you", text: e.text };
+		if (e.type === "agent_msg") return { cls: "ai2-chat-update", who: e.first ? "brief" : (e.from ?? "message"), text: clip(e.text ?? "") };
+		if (e.type === "transcript" && !e.meta) return { cls: "ai2-chat-reply", who: this.id, text: e.text };
+		if (e.type === "tool" && !e.nested) return { cls: "ai2-chat-update", who: "", text: "used " + e.name };
+		if (e.type === "error") return { cls: "ai2-chat-update", who: "error", text: e.text };
+		if (e.type === "result" && e.stopped) return { cls: "ai2-chat-update", who: "", text: "stopped" };
+	}
+
+	line(e){
+		const s = this.said(e);
+		if (!s?.text) return;
+		const key = [e.at, e.type, e.text ?? e.name].join("|");
+		if (this.seen.has(key)) return;
+		this.seen.add(key);
+		this.$lines.append(() => {
+			p.c("ai2-chat " + s.cls, () => {
+				if (s.who) span.c("ai2-chat-who").text(s.who);
+				span.c("ai2-chat-text").text(s.text);
+			});
+		});
+		const el = this.$lines.el;
+		while (el.children.length > this.constructor.KEEP) el.firstElementChild.remove();
+	}
+
+	send(){
+		const text = this.$input.el.value.trim();
+		if (!text) return;
+		this.$status.text("sending…");
+		fetch(servex_base() + "/api/agents/" + encodeURIComponent(this.id) + "/message", {
+			method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text }),
+		})
+			.then(r => r.json().catch(() => ({})).then(body => {
+				if (!r.ok) throw new Error(body.error || "Servex answered " + r.status);
+			}))
+			.then(() => { this.$input.el.value = ""; this.$status.text(""); },
+				e => this.$status.text("Not sent — " + (e.message === "Failed to fetch" ? "Servex is not answering." : e.message)));
+	}
+
+	/** Put the panel right under its row — the first time, and after every redraw. */
+	attach($sec, $row){
+		$sec.el.insertBefore(this.view.el, $row.el.nextSibling);
+		if (this.focused) this.$input.el.focus();
+	}
+
+	close(){
+		this.off?.();
+		this.view.el.remove();
+	}
+}
+AgentTalk.BACKLOG = 300;   // log lines read (most are token deltas, skipped)
+AgentTalk.KEEP = 60;       // conversation lines kept on screen
