@@ -1,0 +1,5 @@
+{"class":"/framework/ai2/card.js","title":"The card class: landed","type":"card","id":"2026/09/19/card-word","created":"2026-09-19T16:37:23-05:00","by":"mastermind","tags":[]}
+{"legacy":"card-word"}
+{"status":"done"}
+{"icon":"crop_square"}
+{"text":"One word, card, now gives the ground, the hairline, the radius, padding that scales with the card, and rhythm between its children, with no flex. A status edge and a clear selected look are built in. V3's cards switch to it next and their own card CSS is deleted."}

@@ -106,8 +106,9 @@ function keep(){
  * Servex tree; the keeper sees the exit and starts the new code a second later.
  * Three guards, because a bad restart takes the MCP down for every session:
  *   1. every Servex .js must pass `node --check` first, or nothing is killed;
- *   2. an agent mid-turn (`working`) dies with the tree — refuse, name it, and
- *      let `--force` override;
+ *   2. an agent mid-turn (`working`) is revived by the new Servex (Agents.revive)
+ *      unless it has no session, is a fork, or is not `revivable` — refuse only
+ *      for those, name them, and let `--force` override;
  *   3. afterwards, wait for /api/agents to answer, and say so if it does not. */
 const API = "http://127.0.0.1:8090/api/agents";
 
@@ -127,10 +128,16 @@ async function restart(force){
     if (bad.length) return console.log(`Not restarting — these files do not parse:\n  ${bad.join("\n  ")}`);
 
     const agents = await fetch(API).then(r => r.json()).catch(() => []);
-    const busy = agents.filter(a => a.state === "working").map(a => a.id);
+    const working = agents.filter(a => a.state === "working");
+    const comesBack = a => !!a.session_id && a.role !== "fork" && a.revivable !== false;
+    const revived = working.filter(comesBack).map(a => a.id);
+    const busy = working.filter(a => !comesBack(a)).map(a => a.id);
+    if (revived.length) console.log(`Mid-turn, will be revived after the restart: ${revived.join(", ")}.`);
+    if (busy.length) console.log(`Mid-turn, would NOT come back: ${busy.join(", ")}.`);
     if (busy.length && !force)
-        return console.log(`Not restarting — these agents are mid-turn and would die: ${busy.join(", ")}.`
-            + ` Wait for them, or add --force.`);
+        return console.log(`Not restarting — wait for those, or add --force.`);
+    if (process.argv.includes("--dry-run"))
+        return console.log(`Dry run: would restart${busy.length ? " (forced)" : ""}; nothing killed.`);
 
     note(`restart asked for${busy.length ? ` (forced past ${busy.join(", ")})` : ""} — killing Servex ${pids.servex}`);
     kill(pids.servex);

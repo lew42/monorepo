@@ -1,0 +1,6 @@
+{"class":"/framework/ai2/card.js","title":"Mic lights up; per-card transcribe; archive and clear","type":"card","id":"2026/09/22/open-mic","created":"2026-09-22T18:47:05-05:00","by":"","tags":[]}
+{"legacy":"open-mic"}
+{"icon":"mic"}
+{"text":"Landed: every microphone shows a solid primary ring while it listens, with a small bar beside it that moves; the rail's box is typed-only and the mic lives on each card's page, with an auto-transcribe box beside + New card; cleared cards leave the rail and come back greyed under 'archived (n)'; page mentions are links. One thing honestly not done: sentences can still break at whisper's segment edges — the fix that was tried merged three sentences into one, so it was reverted and goes to tomorrow with the recordings workspace showing whisper's raw segments."}
+{"status":"done"}
+{"links":[{"url":"/framework/ai2/","label":"AI 2"},{"url":"/framework/ai/talk/","label":"talk"},{"url":"/framework/ai/2026-09-22/open-mic/","label":"the log"}]}

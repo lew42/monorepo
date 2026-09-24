@@ -1,7 +1,7 @@
 import { div, input, button, small } from "/app.js";
 import Socket from "/framework/dev/Socket/Socket.js";
 import Dictate, { post_prompt } from "/framework/ux/Dictate/Dictate.js";
-import { servex_base, is_folder_id, card_prompt } from "./inbox.js";
+import { servex_base, is_folder_id, card_prompt, cards_ready } from "./inbox.js";
 
 /**
  * ONE LINE. A box you type in, the microphone inside its right end, Send beside
@@ -84,9 +84,13 @@ ComposerMic.prototype.mode = "open";   // the mic stays on; the box is single-li
  * is beside the `/log/prompts` post, never instead of it: that one is what the
  * fast assistant reads.
  */
-function into_card(re, entry){
-	if (is_folder_id(re)) return card_prompt(re, entry.text, entry.via).catch(() => null);
-	return post_prompt(entry, servex_base() + "/log/cards/" + re.split("/")[0]).catch(() => {});
+async function into_card(re, entry){
+	// A Servex not yet restarted onto the card code has no `/card/append`: a
+	// folder card's words then go on the old log under its own slug (the last
+	// segment), to be copied across once the card routes are live.
+	if (is_folder_id(re) && await cards_ready()) return card_prompt(re, entry.text, entry.via).catch(() => null);
+	const slug = is_folder_id(re) ? re.split("/").at(-1) : re.split("/")[0];
+	return post_prompt(entry, servex_base() + "/log/cards/" + slug).catch(() => {});
 }
 
 /**

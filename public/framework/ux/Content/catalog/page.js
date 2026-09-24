@@ -135,6 +135,7 @@ export default new Page({
 					[[kinds.length, "kinds of box"], [kinds.filter(has_dup).length, "with a duplicate"], [rules.size, "distinct padding rules"]]
 						.forEach(([n, label]) => div.c("ux-content-catalog-num", () => { span.c("ux-content-catalog-big", String(n)); span(label); }));
 				});
+				a("The plan to shrink this →").href("/framework/ux/Content/plan/");
 			});
 
 			div.c("ux-content-catalog-breaks", () => CLUSTERS.forEach(([title, line, names]) => div.c("ux-content-catalog-break", () => {

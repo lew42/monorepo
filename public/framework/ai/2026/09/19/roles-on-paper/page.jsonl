@@ -1,0 +1,5 @@
+{"class":"/framework/ai2/card.js","title":"The roles exist, the machinery does not","type":"card","id":"2026/09/19/roles-on-paper","created":"2026-09-19T19:46:18-05:00","by":"mastermind","tags":[]}
+{"legacy":"roles-on-paper"}
+{"status":"needs-you"}
+{"icon":"engineering"}
+{"text":"Every role you described is written down. What is missing is the plumbing that makes them real: starting a session, messaging it, forking it, seeing what is alive, and somebody whose job is fixing the skills when they fail. That is the gap, not the descriptions."}

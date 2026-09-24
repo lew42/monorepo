@@ -11,6 +11,7 @@ import { progress, spend } from "./stats.js";
 import { segments, current, links_row } from "./card.js";
 import { shot_wall } from "./shots.js";
 import { chat } from "../Ask/chat.js";
+import { breakdown } from "./cost.js";
 import { streamed as reply_streamed } from "../Ask/reply.js";
 import { fold } from "./message.js";
 
@@ -255,6 +256,9 @@ export class AITask extends Page {
 	   below them. */
 	refresh(m){
 		this.$live.empty(() => {
+			// One line, above the answer: what the answer cost is read WITH it (the owner:
+			// "then we can compare outcomes"), and below a long outcome it was off-screen.
+			this.cost(m);
 			this.outcome(m);
 			this.links(m);
 			this.status(m);
@@ -304,6 +308,11 @@ export class AITask extends Page {
 			div.c("ai-check").ac(i < pr.done ? "done" : i === pr.done && !m.landed_at && "now")
 				.append(() => { span.c("ai-box"); span(s); })));
 	}
+
+	/** What this task cost in dollars — its Servex agent plus every agent under it:
+	    the root, its own share, its minions', how many agents. "Not tracked" when the
+	    log carries no `cost_usd` (`Server/task-cost.mjs` writes it). See cost.js. */
+	cost(m){ return breakdown(m); }
 
 	/** Nothing by default — the hook a task's own page.js fills. */
 	extra(m){}

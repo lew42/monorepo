@@ -1,0 +1,4 @@
+{"class":"/framework/ai2/card.js","title":"The path bar was captured, not lost. The log height is going to the same minion now","type":"card","id":"2026/09/19/path-bar-status","created":"2026-09-19T15:50:40-05:00","by":"mastermind","tags":[]}
+{"legacy":"path-bar-status"}
+{"status":"working"}
+{"text":"Your route request is recorded as the ask named devbar-path-bar, from 3:24: a slim bar in place of the word DEV, a home icon, the path in the code font on one solid background, slashes between parts, each part clickable with its own hover, no label, and the route section removed from the Page tab. It went to the minion that holds the dev bar files at 3:26 and is still being built, together with the timeline. It has not landed yet, which is why you do not see it. The log box is capped at about 24 lines tall and a card's text is cut to its title until you click it; I am telling that minion now to let the log use the full height of the bar and show full text."}

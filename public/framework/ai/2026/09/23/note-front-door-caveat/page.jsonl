@@ -1,0 +1,6 @@
+{"class":"/framework/ai2/card.js","title":"Note: design caveat - the front door and the ports","type":"card","id":"2026/09/23/note-front-door-caveat","created":"2026-09-23T12:22:29-05:00","by":"","tags":[]}
+{"legacy":"note-front-door-caveat"}
+{"icon":"note"}
+{"text":"With the new plugin your dev server is the door for every <name>.localhost, so it is a dependency: while it restarts, the names are down (the :8090 and :8080 addresses still answer). And ports are hard-coded in several places (80, 8080, 8090, 8178, 8123) while Servex hands out free ports for projects - on another machine one could collide. Later: Servex assigns every port and everything else reads them from its registry. Noted, not now."}
+{"status":"done"}
+{"links":[{"url":"/framework/ai/2026-09-22/mastermind-servex/","label":"decision caveat-front-door"}]}

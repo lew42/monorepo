@@ -1,0 +1,6 @@
+{"class":"/framework/ai2/card.js","title":"Note: written — agents call node functions, not shells","type":"card","id":"2026/09/22/tiers","created":"2026-09-22T15:00:42-05:00","by":"","tags":[]}
+{"legacy":"tiers"}
+{"icon":"build"}
+{"text":"Documented on the system-design page as a sixth doc: an agent's tools are node functions inside Servex (the SDK's in-process tool shim — what the assistant already uses). The LLM triggers, node stamps the clock, writes the log, runs and supervises the process, and every call is an event the board can show. What moves first: log, card, decision, open task, land, now, state, run, and a node eval for sketching classes in memory."}
+{"status":"done"}
+{"links":[{"url":"/framework/ai/2026-09-22/tiers-design/doc/tools.md","label":"the doc"},{"url":"/framework/ai/2026-09-22/tiers-design/","label":"the system"}]}

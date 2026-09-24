@@ -1,0 +1,7 @@
+{"class":"/framework/ai2/card.js","title":"Timeline is back: 80% down to 17%","type":"card","id":"2026/09/20/v3-axis-bug","created":"2026-09-20T14:24:54-05:00","by":"mastermind","tags":[]}
+{"legacy":"v3-axis-bug"}
+{"status":"done"}
+{"icon":"check_circle"}
+{"focus":true}
+{"text":"The strip now shows the four most important pinned cards with a plus-21-more, and cannot grow past a hard ceiling however big your backlog gets. On a phone it was worse than you saw - it covered 254% of the column, so no timeline was ever visible there."}
+{"links":[{"url":"/framework/ai/v/3/?view=timeline","label":"open it"}]}

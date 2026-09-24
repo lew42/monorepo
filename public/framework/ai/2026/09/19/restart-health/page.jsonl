@@ -1,0 +1,6 @@
+{"class":"/framework/ai2/card.js","title":"2. One command, 30 seconds","type":"card","id":"2026/09/19/restart-health","created":"2026-09-19T21:23:30-05:00","by":"mastermind","tags":[]}
+{"legacy":"restart-health"}
+{"status":"needs-you"}
+{"icon":"looks_two"}
+{"focus":true}
+{"text":"Stop-Process -Id 34924 -Force. Checked just now: still running, still holding back two watcher rules that were fixed twelve hours ago."}

@@ -1,0 +1,6 @@
+{"class":"/framework/ai2/card.js","title":"Note: who listens when you dictate","type":"card","id":"2026/09/23/note-dictation-path","created":"2026-09-23T12:22:29-05:00","by":"","tags":[]}
+{"legacy":"note-dictation-path"}
+{"icon":"note"}
+{"text":"Your browser records the mic and sends the audio to whisper (a local program your dev server starts). The words come back as text and the page posts them as one line to Servex's prompts log. The fast assistant - one Sonnet session that lives inside Servex - reads every line and writes back a name, a card and a route: note, question or task. Only a task line wakes anyone else: the Dispatcher spawns a task-mastermind for it, which opens a task and its minions. Notes and questions never leave the assistant."}
+{"status":"done"}
+{"links":[{"url":"/framework/ai/2026-09-22/tiers-design/","label":"the system"},{"url":"/framework/ai/2026-09-22/ai2-nested/next.md","label":"round 3: structure + cost on the card"}]}

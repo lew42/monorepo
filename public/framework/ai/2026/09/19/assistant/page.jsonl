@@ -1,0 +1,4 @@
+{"class":"/framework/ai2/card.js","title":"3:36 Ready to try: the assistant","type":"card","id":"2026/09/19/assistant","created":"2026-09-19T15:28:52-05:00","by":"","tags":[]}
+{"legacy":"assistant"}
+{"status":"needs-you"}
+{"text":"Open a second Claude tab in VS Code, pick Sonnet with low effort, and type /assistant. Talk to that tab from then on. It answers in a few seconds, here in the dev bar, from the same logs you see, and it drops your words, exactly as you said them, into my inbox. It builds nothing and reads no code, so its context stays tiny and it stays fast.\nI stay the mastermind in this tab and read the inbox at every step.\nNext step after that: the same assistant answering the box in the dev bar chat tab, so you never need VS Code at all. That comes when the chat tab lands."}

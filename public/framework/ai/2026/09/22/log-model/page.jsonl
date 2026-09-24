@@ -1,0 +1,6 @@
+{"class":"/framework/ai2/card.js","title":"The naming rules are enforced, not written","type":"card","id":"2026/09/22/log-model","created":"2026-09-22T14:59:20-05:00","by":"log-model","tags":[]}
+{"legacy":"log-model"}
+{"status":"done"}
+{"text":"Servex's log writer now checks every name: the first name stands, a rename of something you have seen becomes an alternative beside it, only you can approve, and an approved name refuses every rename. Six proofs pass and the page's fold agrees at every step."}
+{"icon":"receipt_long"}
+{"links":[{"url":"/framework/ai/2026-09-22/naming-checks/","label":"naming-checks"},{"url":"/framework/ai/2026-09-22/log-model/","label":"the log model"}]}

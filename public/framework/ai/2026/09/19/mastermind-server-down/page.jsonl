@@ -1,0 +1,5 @@
+{"class":"/framework/ai2/card.js","title":"Port 8123 is not running","type":"card","id":"2026/09/19/mastermind-server-down","created":"2026-09-19T19:08:12-05:00","by":"mastermind","tags":[]}
+{"legacy":"mastermind-server-down"}
+{"status":"needs-you"}
+{"icon":"dns"}
+{"text":"The mastermind's own dev server is down, and five node processes are sitting idle with no port at all. Your port 80 is fine and untouched. I cannot stop processes from this session, so they need one command from you."}

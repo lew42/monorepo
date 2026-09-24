@@ -1,0 +1,5 @@
+{"class":"/framework/ai2/card.js","title":"I wake on a timer, not when you speak","type":"card","id":"2026/09/19/wake-on-arrival","created":"2026-09-19T22:31:44-05:00","by":"mastermind","tags":[]}
+{"legacy":"wake-on-arrival"}
+{"status":"needs-you"}
+{"icon":"notifications"}
+{"text":"There was a 34-minute stretch tonight where nothing was running and nobody was checking your inbox. That is the one stage worth fixing, and the prompt hook that would fix it is built and switched off, waiting on one line from you."}

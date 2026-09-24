@@ -1,0 +1,6 @@
+{"class":"/framework/ai2/card.js","title":"Prompt cache: one hour","type":"card","id":"2026/09/19/prompt-cache","created":"2026-09-19T16:19:18-05:00","by":"mastermind","tags":[]}
+{"legacy":"prompt-cache"}
+{"status":"done"}
+{"icon":"timer"}
+{"parent":"worktrees"}
+{"text":"Yes. This session's cache lasts one hour, and drops to five minutes only if usage goes into overage. It means waking the same auditor or minion within the hour is cheap, and I do not need short wakeups to keep anything warm."}

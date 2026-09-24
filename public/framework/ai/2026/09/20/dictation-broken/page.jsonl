@@ -1,0 +1,7 @@
+{"class":"/framework/ai2/card.js","title":"Dictation works - reload your tab","type":"card","id":"2026/09/20/dictation-broken","created":"2026-09-20T14:14:27-05:00","by":"mastermind","tags":[]}
+{"legacy":"dictation-broken"}
+{"status":"needs-you"}
+{"icon":"refresh"}
+{"text":"It was broken by last night's revert and fixed at 10:39 this morning, before you reported it. A tab open since before then still runs the old code. Driven four ways headless with real audio and it transcribed every time."}
+{"focus":true}
+{"links":[{"url":"/framework/ai/2026-09-20/dictate-fix/","label":"the proof shots"}]}

@@ -2,6 +2,8 @@ import { createSdkMcpServer, tool as sdk_tool } from "@anthropic-ai/claude-agent
 import { z } from "zod";
 import { agents as singleton } from "./Agents.js";
 import { Policy } from "./policy.js";
+import { ops_tools } from "./ops.js";
+import { job_tools } from "./jobs.js";
 
 /* The seven verbs, as MCP tools. This is the whole point of the host: a normal
  * Claude session — sidebar, terminal, or another agent — cannot hold a child
@@ -32,7 +34,20 @@ const tool = (name, description, properties, required, handler) => {
  * — spawn names the agent, the caller does not. */
 const card = agent => JSON.stringify(agent.card(), null, 2);
 
+/* Everything an agent can call: the seven agent verbs below, the three
+ * operator tools (ops.js) and the two job tools (jobs.js) — so one line in
+ * Servex.js, `for (const tool of tools(servex.agents)) servex.mcp.tool(tool)`,
+ * wires them all, and `server(host)` hands all of them to an in-process agent. */
 export function tools(agents = singleton){
+	return [...own(agents), ...ops_tools(agents), ...job_tools(agents).map(caller_is_from)];
+}
+
+/* start_job's answer comes to `from` — which defaults to whoever is calling
+ * (`?as=` on the door), the same as fork_self, so an agent need not know its id. */
+const caller_is_from = t => t.name !== "start_job" ? t
+	: { ...t, handler: (args = {}, ctx = {}) => t.handler({ ...args, from: args.from ?? ctx.caller ?? undefined }, ctx) };
+
+function own(agents){
 const policy = agents.policy ??= new Policy({ agents });
 return [
 
@@ -162,7 +177,9 @@ return [
  * the property kinds the tools use. `alwaysLoad`: otherwise the CLI defers them
  * behind ToolSearch and a small model reports the tool "not available". */
 export function server(agents = singleton, ctx = { caller: null }){
-	const zod = ({ type, items }) => type === "number" ? z.number() : type === "boolean" ? z.boolean()
+	const zod = ({ type, items, enum: one_of }) => one_of ? z.enum(one_of)
+		: type === "number" ? z.number() : type === "boolean" ? z.boolean()
+		: type === "object" ? z.looseObject({})   // NOT z.record(): one record breaks the SDK server's whole tools/list
 		: type === "array" ? z.array(items?.type === "string" ? z.string() : z.any()) : z.string();
 	return createSdkMcpServer({ name: "servex", alwaysLoad: true, tools: tools(agents).map(t => sdk_tool(t.name, t.description,
 		Object.fromEntries(Object.entries(t.inputSchema.properties).map(([k, p]) =>

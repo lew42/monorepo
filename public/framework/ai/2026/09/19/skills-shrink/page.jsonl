@@ -1,0 +1,5 @@
+{"class":"/framework/ai2/card.js","title":"A git reset wiped two days of uncommitted work tonight, twice","type":"card","id":"2026/09/19/skills-shrink","created":"2026-09-19T23:00:43-05:00","by":"skills-shrink","tags":[]}
+{"legacy":"skills-shrink"}
+{"status":"working"}
+{"icon":"compress"}
+{"text":"Happened at 23:16 mid-task, and also 2026-09-18 -- not me, no hook does it, so another agent broke the never-reset rule. I recovered 6 skill files I had full copies of; many more across the repo (Server, core/Layout, blog, app.js) are still missing and need checking."}

@@ -1,0 +1,7 @@
+{"class":"/framework/ai2/card.js","title":"The safety net is back on","type":"card","id":"2026/09/19/page-health-dead","created":"2026-09-19T19:08:12-05:00","by":"mastermind","tags":[]}
+{"legacy":"page-health-dead"}
+{"status":"done"}
+{"icon":"shield"}
+{"focus":true}
+{"text":"It watches your live site now, not the dead server it used to point at, and it restarts itself when killed. Proved by killing it three times. It caught a real break on a throwaway page, and it is already flagging things on V3 while a minion edits it."}
+{"links":[{"url":"/framework/ai/2026-09-19/health-revive/","label":"the proof, and whether it is alive right now"}]}

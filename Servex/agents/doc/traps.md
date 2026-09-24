@@ -106,6 +106,9 @@ Proofs: `fork-proof.mjs` and `revive-proof.mjs`, beside `Agents.js`.
   hook refuses the calls, which works even under `bypassPermissions`.
 - **A fork is cheap.** It reads about 98% of its input from the parent's cache. The cost is
   its own output.
+- **One `z.record()` in any in-process tool's schema empties the whole tool list.** The SDK's
+  tools/list throws ("Cannot read properties of undefined (reading 'push')"), the server still
+  reports `connected`, and the agent sees no tools at all. Use `z.looseObject({})` for a free-form object.
 - **In-process MCP tools are deferred behind ToolSearch by default.** A Haiku agent then
   says the tool is "not available". Pass `alwaysLoad: true` to `createSdkMcpServer`.
 - **`Agent.door()` used to drop `mcp_servers` when the host had no HTTP url.** A standalone

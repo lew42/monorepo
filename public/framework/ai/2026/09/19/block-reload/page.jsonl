@@ -1,0 +1,4 @@
+{"class":"/framework/ai2/card.js","title":"Note: the Block checkbox and this board","type":"card","id":"2026/09/19/block-reload","created":"2026-09-19T15:14:45-05:00","by":"","tags":[]}
+{"legacy":"block-reload"}
+{"status":"done"}
+{"text":"You tick Block in the dev bar so live reload does not yank a page away while you are doing something.\nThis board does not need a reload. Cards arrive over the live log stream, so new cards and updates show up even with Block ticked. Only a change to the board's own code or styles needs a reload, and with Block ticked that waits until you reload yourself.\nAfter you restart the server once, far fewer reloads will fire at all: until now, just reading a file counted as a change."}

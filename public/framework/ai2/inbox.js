@@ -294,9 +294,29 @@ export const is_folder_id = id => /^\d{4}\//.test(String(id ?? ""));
 const TYPE_ICON = { card: "forum", question: "help", request: "assignment", "sub-question": "contact_support", note: "sticky_note_2", task: "task_alt" };
 export const type_icon = type => TYPE_ICON[type] ?? "forum";
 
+/**
+ * DOES THIS SERVEX HAVE THE CARD ROUTES? Asked once per page: a Servex running
+ * the card code appends `{"cards": 1}` to its `features` log when it boots.
+ * An older Servex answers `/log/features` with `[]` (and a CORS header, so no
+ * console error) — then every card call below returns null WITHOUT a request,
+ * because an old Servex answers `/cards` with no CORS header and the browser
+ * logs that as an error nothing can hide. `cards_ready.known` is the answer
+ * once it is in, for code that draws synchronously.
+ */
+let ready = null;
+export function cards_ready(){
+	return ready ??= fetch(servex_base() + "/log/features?n=20")
+		.then(r => (r.ok ? r.json() : []))
+		.then(list => Array.isArray(list) && list.some(e => e?.cards))
+		.catch(() => false)
+		.then(ok => (cards_ready.known = ok));
+}
+cards_ready.known = false;
+
 /* ⚠ Servex answers an unknown route with its dashboard's HTML at 200, so
  * `r.ok` is not enough — the content-type is the 404, as everywhere here. */
 async function servex_json(path, body){
+	if (!(await cards_ready())) return null;
 	const init = body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : {};
 	const r = await fetch(servex_base() + path, init).catch(() => null);
 	if (!r || !(r.headers.get("content-type") ?? "").includes("json")) return null;

@@ -1,0 +1,5 @@
+{"class":"/framework/ai2/card.js","title":"Worktrees: proven today, not wired in","type":"card","id":"2026/09/19/subtree","created":"2026-09-19T18:42:18-05:00","by":"mastermind","tags":[]}
+{"legacy":"subtree"}
+{"status":"needs-you"}
+{"icon":"call_split"}
+{"text":"A study this afternoon proved git worktrees work here and that the uncommitted tree carries in cleanly. Nothing connects them to the task flow yet. There is one thing only you can decide, below."}

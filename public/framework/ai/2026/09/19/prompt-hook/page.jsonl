@@ -1,0 +1,5 @@
+{"class":"/framework/ai2/card.js","title":"Prompt hook: needs your yes","type":"card","id":"2026/09/19/prompt-hook","created":"2026-09-19T15:58:57-05:00","by":"mastermind","tags":[]}
+{"legacy":"prompt-hook"}
+{"status":"needs-you"}
+{"text":"It echoes every prompt by machine, so the assistant cannot skip it. To switch it on, type in the mastermind tab: yes to the prompt hook. Until then the assistant echoes by hand."}
+{"icon":"bolt"}
