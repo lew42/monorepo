@@ -458,9 +458,11 @@ export default class Servex extends Events {
      * cannot await. A whisper-server that was ALREADY running when Servex
      * started has no child here, so it is never touched. */
     /* THE GATE (gate.mjs) holds proxy_port and hands every visitor on to the
-     * proxy, so a Servex restart is a slow page, not an error page. It is
-     * launched at boot and again whenever proxy_port stops answering — a second
-     * gate finds the port taken and exits, so launching too often costs nothing. */
+     * proxy, so a Servex restart is a slow page, not an error page.
+     * Servex keeps the gate alive: it launches it at boot and relaunches it
+     * within 5 s if port 80 stops answering; the keeper keeps Servex alive, so
+     * the chain is keeper → Servex → gate. A second gate finds the port taken
+     * and exits, so launching too often costs nothing. */
     gate(){
         if (!this.gated) return;
         const check = () => {
@@ -469,7 +471,7 @@ export default class Servex extends Events {
             socket.once("error", () => { socket.destroy(); this.say(`gate: ${this.proxy_port} refused — launching it`); launch_gate(this.proxy_port, this.proxy_internal); });
         };
         launch_gate(this.proxy_port, this.proxy_internal);
-        setInterval(check, 30000).unref();
+        setInterval(check, 5000).unref();
     }
 
     shutdown(){

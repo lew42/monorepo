@@ -50,7 +50,8 @@ a quick restart shows the page late rather than the "Starting…" page.
 **The gate** — `gate.mjs`. A tiny separate process holds port 80 and passes every
 connection on to the proxy (on 8079); while Servex restarts or crashes, visitors
 wait instead of getting Chrome's error page. It outlives Servex on purpose;
-`sustain.mjs --stop` stops it, and `SERVEX_NO_GATE=1` turns it off.
+Servex keeps it alive: it checks port 80 every 5 s and relaunches the gate if
+nothing answers. `sustain.mjs --stop` stops it, and `SERVEX_NO_GATE=1` turns it off.
 
 **Port registry** — `PortRegistry.js`. A name gets a port and keeps it forever, so
 a project's cookies and localStorage survive a restart. A project outside the scan
@@ -173,6 +174,10 @@ Register-ScheduledTask -TaskName 'Servex' -Action $a -Trigger $t -Force
 
 Check it with `Get-ScheduledTask Servex` (state `Ready`). If Servex is already
 running when the task fires, the second `sustain.mjs` refuses and exits — no clash.
+
+The port-80 gate needs nothing registered of its own. After a reboot the
+Scheduled Task starts `sustain.mjs`, the keeper starts Servex, and Servex
+launches the gate at boot.
 
 > **Note:** the older one-line `schtasks /Create … /TR "…\"…\"…"` form only works
 > in cmd.exe. PowerShell reads the `\"` escapes differently, splits the command at
