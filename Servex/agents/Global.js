@@ -239,7 +239,7 @@ export default class Global {
 	}
 
 	tools(){
-		for (const tool of this.claims().tools()) this.servex.mcp.tool(tool);
+		for (const tool of this.claims().tools()) this.servex.mcp.tool(tool.name === "claim_topic" ? this.logged(tool) : tool);
 		this.servex.mcp.tool({
 			name: "set_focus",
 			description: "Write today's focus: one plain sentence every agent sees in its one-screen brief.",
@@ -251,6 +251,20 @@ export default class Global {
 				return JSON.stringify({ ok: out?.ok !== false });
 			}
 		});
+	}
+
+	/* A refused claim is a collision between two cards: it goes in the `policy`
+	 * log beside refused messages, so it is seen by more than the one caller. */
+	logged(tool){
+		return { ...tool, handler: async (args = {}, ctx) => {
+			const out = await tool.handler(args, ctx);
+			try {
+				const r = JSON.parse(out);
+				if (r && r.ok === false && r.holder) this.servex.log.append("policy", { at: new Date().toISOString(), from: ctx?.caller ?? "owner",
+					to: `claim ${args.topic}`, holder: r.holder, card: args.card ?? null, why: r.why })?.catch?.(() => {});
+			} catch {}
+			return out;
+		} };
 	}
 
 	/* Every refused message is logged, and the live rules are one GET away. */

@@ -47,8 +47,12 @@ const mcp = { tool(def){ tools.set(def.name, def); } };
 const routes = new Map();
 const router = { get(p, ...h){ routes.set("GET " + p, h.at(-1)); }, post(p, ...h){ routes.set("POST " + p, h.at(-1)); }, options(){} };
 
-const servex = { cards, agents, mcp, dashboard: { router } };
-const layers = new Layers({ servex, file, idle_ms: 1000, system(){ return "SYSTEM"; }, watch(){} }).install();
+const logged = [];
+const log = { append: (name, e) => (logged.push({ name, ...e }), Promise.resolve()) };
+const servex = { cards, agents, mcp, log, dashboard: { router } };
+const gone = new Set();                       // session ids whose file was deleted
+const layers = new Layers({ servex, file, idle_ms: 1000, system(){ return "SYSTEM"; }, watch(){},
+	session_exists: slot => !gone.has(slot.session_id) }).install();
 const spawns = () => calls.filter(c => c.verb === "spawn");
 const call = (name, args, caller) => tools.get(name).handler(args, { caller }).then(JSON.parse);
 
@@ -193,6 +197,20 @@ check("Dispatcher hands a carded task to the card's manager", () => {
 	assert.equal(spawns().at(-1).spec.id, "manager-new-logo");
 	assert.match(spawns().at(-1).spec.prompt, /Request from dispatcher on 2026\/09\/24\/new-logo \(task t-1\): draw three logos$/);
 	assert.deepEqual(posted.at(-1), { type: "task", id: "t-1", state: "working", now: "handed to manager-new-logo", by: "dispatcher" });
+});
+
+check("a deleted session -> logged, and the same id starts fresh from the card's log", () => {
+	const id = "assistant-fix-the-sidebar", before = spawns().length;
+	gone.add(agents.live.get(id).session_id);
+	agents.live.get(id).state = "stopped";
+	prompt(A, "still there?");
+	const s = spawns().at(-1).spec;
+	assert.equal(spawns().length, before + 1);
+	assert.deepEqual([s.id, s.resume], [id, undefined]);
+	assert.match(s.prompt, /still there\?[\s\S]*Answer them\.$/);
+	assert.notEqual(calls.at(-1).verb, "send");
+	assert.equal(logged.at(-1).event, "session-missing");
+	assert.equal(logged.at(-1).id, id);
 });
 
 fs.rmSync(dir, { recursive: true, force: true });

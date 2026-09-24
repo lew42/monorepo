@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { model } from "./tiers.js";
@@ -112,9 +113,9 @@ export default class Layers {
 	 * live or resumed one is sent it. A prompt spoken on a sub-card says which. */
 	heard(card, prompt){
 		const slot = this.record(card).assistant;
-		const fresh = !this.live(slot.id) && !slot.session_id;
+		const was = this.live(slot.id);
 		const agent = this.assistant(card);
-		if (fresh) return agent;
+		if (!was && agent.layers_fresh) return agent;
 		const on = prompt.on && prompt.on !== card ? `(on ${prompt.on}) ` : "";
 		this.servex.agents.send(slot.id, on + (prompt.text ?? prompt.raw ?? ""), { from: "owner", reply_to: `card ${card}` });
 		this.touch(slot.id);
@@ -148,11 +149,33 @@ export default class Layers {
 		const live = this.live(slot.id);
 		if (live) return live;
 		this.servex.agents.live.delete(slot.id);
+		if (slot.session_id && !this.session_exists(slot)) this.lost(card, slot);
 		const how = slot.session_id ? { resume: slot.session_id } : { prompt: prompt() };
 		const agent = this.servex.agents.spawn({ ...this.spec(card, role), id: slot.id, cwd: slot.cwd, ...how });
+		agent.layers_fresh = !how.resume;   // it read the card's log in its first message: nothing more to send it
 		this.touch(slot.id);
 		this.sync(card);
 		return agent;
+	}
+
+	/* Where the Claude CLI keeps a session: <config>/projects/<cwd, every
+	 * non-alphanumeric a dash>/<session id>.jsonl. A resume of a missing file
+	 * dies on its first message and takes that message with it. */
+	session_file(slot){
+		const home = process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), ".claude");
+		return path.join(home, "projects", String(slot.cwd).replace(/[^a-zA-Z0-9]/g, "-"), slot.session_id + ".jsonl");
+	}
+
+	session_exists(slot){ try { return fs.existsSync(this.session_file(slot)); } catch { return true; } }
+
+	/* The session is gone (deleted, or another machine's): say so in the log and
+	 * start the same id fresh from the card's log, never throw. */
+	lost(card, slot){
+		const entry = { type: "layers", event: "session-missing", card, id: slot.id, session_id: slot.session_id,
+			file: this.session_file(slot), text: `${slot.id}'s session ${slot.session_id} is gone; starting it fresh from the card's log` };
+		try { this.servex.log?.append?.("servex", entry)?.catch?.(() => {}); } catch {}
+		slot.session_id = null;
+		this.save();
 	}
 
 	assistant(card){
@@ -162,9 +185,20 @@ export default class Layers {
 	/* The card's log, from its LAST `summary` line onward when there is one —
 	 * that is what a compacted or recycled agent restarts from. */
 	transcript(card){
-		const lines = String(this.servex.cards.transcript(card) ?? "").split("\n");
+		const lines = this.log_text(card).split("\n");
 		const at = lines.findLastIndex(l => { try { return !!JSON.parse(l).summary; } catch { return false; } });
 		return (at > 0 ? lines.slice(at) : lines).join("\n");
+	}
+
+	/* The card's log as text, read SYNCHRONOUSLY. ⚠ `Cards.transcript()` is async
+	 * and `open()` is not, so calling it here handed a fresh agent "[object Promise]"
+	 * instead of the log (found by the layers proof, 2026-09-24). A card host with
+	 * no `file`/`parse` (the unit test's fake) still answers through `transcript`. */
+	log_text(card){
+		const cards = this.servex.cards, id = cards.canonical(card);
+		if (!id || !cards.file || !cards.parse) return String(cards.transcript(card) ?? "");
+		const lines = cards.parse(fs.readFileSync(cards.file(id), "utf8"));
+		return `Card ${id} — its whole log, ${lines.length} lines, oldest first:\n` + lines.map(l => JSON.stringify(l)).join("\n");
 	}
 
 	/* The door to a card's manager, for the assistant's tool and for code (the
@@ -175,14 +209,14 @@ export default class Layers {
 		const root = root_of(sub);
 		if (!root) throw new Error(`"${card}" is not a card; a card id has at least four segments`);
 		const slot = this.record(root).manager;
-		const fresh = !this.live(slot.id) && !slot.session_id;
+		const was = this.live(slot.id);
 		const request = `Request from ${from} on ${sub}${task ? ` (task ${task})` : ""}: ${text}`;
 		const agent = this.open(root, "manager", () => `Load the \`sub-mastermind\` skill. You are ${slot.id}, the manager of card ${root}.`
 			+ " Your session is kept for this card's whole life: every later request on this card comes to you, so keep what you learn."
 			+ " First call `claim_topic({topic, card})` for the topic you are about to work on; if it is refused, message mastermind-servex instead of starting."
 			+ ` Start minions with spawn_agent({parent: "${slot.id}"}). Report on the card with card_reply. Keep your own turns short.\n\n`
 			+ this.transcript(root) + "\n\n" + request);
-		if (!fresh) this.servex.agents.send(slot.id, request, { from, reply_to: `card ${sub}` });
+		if (was || !agent.layers_fresh) this.servex.agents.send(slot.id, request, { from, reply_to: `card ${sub}` });
 		this.touch(slot.id);
 		return { ok: true, manager: slot.id, state: agent.state };
 	}

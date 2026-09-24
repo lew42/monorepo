@@ -151,7 +151,8 @@ export default class Assistant {
 				text: { type: "string", description: "What to say." },
 				from: { type: "string", description: "Your own agent id, so the owner sees who is talking." }
 			} },
-			handler: args => this.card_reply(args)
+			// the caller Servex stamped (`?as=`) wins over a typed `from`: every agent talks under its own id
+			handler: (args = {}, ctx = {}) => this.card_reply({ ...args, from: ctx.caller ?? args.from })
 		});
 	}
 
