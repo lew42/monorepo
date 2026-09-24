@@ -1,4 +1,5 @@
 import http from "http";
+import net from "net";
 import http_proxy from "http-proxy";
 import Events from "../Server/Events.js";
 
@@ -56,6 +57,7 @@ export default class ReverseProxy extends Events {
         this.bare ??= null;         // the project a nameless `localhost` reaches
         this.site ??= null;         // where a nameless `localhost` PAGE link is sent — see handle()
         this.ports ??= {};
+        this.wait ??= 15000;        // how long a page load waits for a starting project — failed()
 
         this.proxy = http_proxy.createProxyServer({});
         this.proxy.on("error", (err, req, res) => this.failed(err, req, res));
@@ -119,14 +121,40 @@ export default class ReverseProxy extends Events {
 
     /* The target port did not answer — almost always because the project is not
      * running. `missing` is Servex's auto-start; if it says it is starting one,
-     * the visitor gets the polling page instead of an error. */
+     * a page load (GET or HEAD, safe to send twice) simply WAITS: the port is
+     * tried every 250 ms, for up to `wait`, and the request is sent again the
+     * moment it answers — the visitor sees the page, late, instead of a
+     * "Starting…" page. Right after Servex itself restarts, the dev server is
+     * always down (it died with Servex), so this is what makes a reload in that
+     * moment look like nothing happened. Only if the project never answers does
+     * the visitor get the polling page, as before. */
     failed(err, req, res){
-        if (!res?.writeHead) return;
+        if (!res?.writeHead || res.headersSent || res.destroyed) return;
         const name = this.name(req);
 
         if (this.missing?.(name)){
+            const port = this.ports[name];
+            req.servex_deadline ??= Date.now() + this.wait;
+            if (port && /^(GET|HEAD)$/.test(req.method) && Date.now() < req.servex_deadline)
+                return this.retry(req, res, port);
             return res.writeHead(200, { "Content-Type": "text/html", "X-Servex-Starting": "1" }).end(starting_page(name));
         }
         res.writeHead(502, { "Content-Type": "text/html" }).end(no_route_page(req.headers.host, this.dashboard ?? "/"));
+    }
+
+    /* Knock on the port until it answers, then send the request again. A second
+     * refusal lands back in failed(), which knows the deadline from the first. */
+    retry(req, res, port){
+        const knock = () => {
+            if (res.headersSent || res.destroyed) return;
+            const socket = net.connect(port, "127.0.0.1");
+            socket.once("connect", () => { socket.destroy(); this.proxy.web(req, res, { target: `http://127.0.0.1:${port}` }); });
+            socket.once("error", () => {
+                socket.destroy();
+                if (Date.now() < req.servex_deadline) setTimeout(knock, 250);
+                else this.failed(null, req, res);
+            });
+        };
+        setTimeout(knock, 250);
     }
 }
