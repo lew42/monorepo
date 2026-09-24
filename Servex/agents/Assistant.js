@@ -182,21 +182,40 @@ export default class Assistant {
 	/* A HELPER — one read-only Sonnet session for a question the fast assistant
 	 * cannot answer without looking (it has no file tools). It reads the repo,
 	 * answers into the card with `card_reply`, and is stopped after its first
-	 * turn so nothing idles on. Paused by the same `dispatch.off` switch. */
+	 * turn so nothing idles on. Paused by the same `dispatch.off` switch.
+	 *
+	 * ONE VOICE ABOUT HELPERS (2026-09-24, card topic-mufuomsy): the model used
+	 * to say "a helper is looking" in its own reply, and a second later this
+	 * method said "helpers are paused". Now only this method speaks about a
+	 * helper, and only AFTER it knows: started, or paused. `assistant.md` tells
+	 * the model never to announce one itself.
+	 *
+	 * The helper's PARENT is the fast assistant, so Servex wakes it with the
+	 * helper's answer (`Agents.wake_parent`) — the assistant then knows what
+	 * was found. The owner already saw it on the card; `assistant.md` says the
+	 * wake is for the assistant's memory only, and it appends nothing. */
 	help(args){
 		const card = this.selected ?? "live";
-		if (fs.existsSync(OFF)) return this.card_reply({ card, from: this.id,
-			text: "I would start a helper to look into that, but helpers are paused (dispatch.off exists). Delete that file and ask again." });
+		if (fs.existsSync(OFF)){
+			this.card_reply({ card, from: this.id,
+				text: "I would start a helper to look into that, but helpers are paused (dispatch.off exists). Delete that file and ask again." });
+			return null;
+		}
 		const agent = this.servex.agents.spawn({
 			role: "helper", name: slug(args.title ?? "help"), model: "claude-sonnet-5", effort: "low",
+			parent: this.id,
 			cwd: REPO, permission_mode: "bypassPermissions",
 			allowed_tools: ["Read", "Grep", "Glob", "mcp__servex__card_reply"],
-			prompt: `${args.brief ?? args.text ?? ""}\n\nYou are a helper: read the repo (read-only) and answer that. `
-				+ `When you know, call card_reply({card: "${card}", from: "<your agent id>", text: <two to four plain sentences>}) once, then stop. `
+			prompt: `${args.brief ?? args.text ?? ""}
+
+You are a helper: read the repo (read-only) and answer that. `
+				+ `When you know, call card_reply({card: "${card}", from: "<your agent id>", text: <two to four plain sentences>}) once. `
+				+ "Then end with the same answer in one or two sentences as your last words, and stop: those words go back to the fast assistant that asked. "
 				+ "Never write the owner's name; say you."
 		});
 		const result = agent.result.bind(agent);
 		agent.result = message => { result(message); if (!agent.queued) agent.stop(); };
+		this.card_reply({ card, from: this.id, text: "A helper is looking into that now. Its answer will appear here." });
 		return agent;
 	}
 
@@ -224,9 +243,10 @@ export default class Assistant {
 			this.minted.push(out.entry.id);
 			if (out.entry.type === "card") this.last_card = out.entry.id;
 			this.mirror(out.entry);
-			if (out.entry.type === "help") try { this.help(out.entry); } catch (e){ this.servex.say(`assistant could not start a helper: ${e.message || e}`); }
+			if (out.entry.type === "help") try { out.helper = this.help(out.entry) ? "started" : "paused"; }
+			catch (e){ out.helper = "failed"; this.servex.say(`assistant could not start a helper: ${e.message || e}`); }
 		}
-		return JSON.stringify(out.ok ? { ok: true, id: out.entry.id, shown: true } : out);
+		return JSON.stringify(out.ok ? { ok: true, id: out.entry.id, shown: true, ...(out.helper ? { helper: out.helper } : {}) } : out);
 	}
 
 	/* Real, top-level module pages ONLY — `ext/<name>/page.js`, `ux/<name>/page.js`,
