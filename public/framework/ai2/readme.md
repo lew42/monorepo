@@ -1,15 +1,18 @@
-# ai2 — AI 2, an overview first, then a list on the left and one page on the right
+# ai2 — AI 2, a list of cards on the left and one card's page on the right
 
-One page at [`/framework/ai2/`](/framework/ai2/). **The default view is an overview** — four
+**What you have asked of this page, word for word, and whether it is done:
+[`doc/owner-asks.md`](./doc/owner-asks.md).** Read it before changing the layout.
+
+One page at [`/framework/ai2/`](/framework/ai2/). **The default view is the inbox** (you
+preferred it, 2026-09-23): a narrow rail down the left previews every card there is, newest
+first, with a one-line box you talk to at its top. Click one and it opens on the right, at its
+own url, and stays there: the list keeps filling behind it and nothing you are reading moves.
+
+The rail's `overview` word opens the **overview** at [`overview/`](/framework/ai2/overview/) — four
 columns by importance: needs you (flagged or blocked, cleared per item), reports (the
 mastermind's own notes and write-ups), landed (recent task landings), and live (what Servex is
 running now, the usage windows, the last few events). Nothing pushes the top of a column down —
-a new arrival waits behind a small pill.
-
-Click "Open the full inbox →" (or any card in the overview) and the SECOND view takes over: a
-narrow rail down the left previews every card there is, newest first, with a one-line box you
-talk to at its top. Click one and it opens on the right, at its own url, and stays there: the
-list keeps filling behind it and nothing you are reading moves. "← overview" goes back.
+a new arrival waits behind a small pill. "← Open the inbox" goes back.
 
 **A card you talk into.** `+ New card` puts an empty card on the board, opens it and starts
 listening. While a card is open, everything you say or type goes INTO it — each sentence carries
@@ -23,13 +26,15 @@ working on it. Only one microphone is on at a time; pressing one stops the other
 
 **The Live card** ([`live/`](/framework/ai2/live/)) is the one card that is not on the board: the
 usage limits (5-hour, weekly Fable, weekly all, each with the first dashboard's on-pace ▼), every
-agent Servex is running, and today's open tasks, all in one column that scrolls as one. It rises
+agent Servex is running, and today's open tasks, in one page that scrolls as one — split into columns on a wide screen ([`doc/columns.md`](./doc/columns.md)). It rises
 to the top of the rail whenever any of that changes. Its chat is the log of those changes, and
 anything you say there reaches the assistant along with the list of what is running. The ✕ on a
 task clears it until it changes again; running agents have none. A task spoken while dispatch was
 paused shows "not started": the Dispatcher never replays it, so say it again. **Click a running
-agent** and its conversation opens right under its row — what it said, live — with a box that
-sends it a message (`POST /api/agents/<id>/message` on Servex); click the row again to close it.
+agent** and its conversation opens in the agent column beside the list when the card is wide enough
+(the column opens on `assistant-fast` by default), or takes over the card with "← Live" to go back
+when it is not — what it said, live — with a box that sends it a message
+(`POST /api/agents/<id>/message` on Servex).
 
 **Nothing jumps**, and that is three mechanisms, not one:
 
@@ -49,9 +54,15 @@ screen when nothing is open, three when a sub-card is.
 
 ## Use
 
-Nothing to call. The page mounts itself; open the url. A card's own url is
-`/framework/ai2/<id>/` — paste it, reload it, press Back; the url is the truth. A sub-card's is
-`/framework/ai2/<id>/<sub>/`, one level deeper.
+Nothing to call. The page mounts itself; open the url. **A card is a folder** under
+`ai/`, and its url on AI 2 is that folder's path: `/framework/ai2/2026/09/24/<slug>/`, a
+sub-card one segment deeper, any depth. Paste it, reload it, press Back; the url is the truth.
+An old id (`/framework/ai2/topic-xyz/`) still opens its card. `view/open/`, `view/today/`,
+`view/all/` and `view/<tag>/` list cards by view. Each card is drawn by [`card.js`](./card.js),
+a real `Page` built from the card's own `page.jsonl` — [`doc/cards.md`](./doc/cards.md).
+
+To make a card from an agent, use Servex's `create_card` tool, never a folder by hand. The
+older way below still draws a card when Servex is down.
 
 To draw a card from anywhere, append a line to one of the logs it reads:
 
@@ -64,10 +75,10 @@ To draw a card from anywhere, append a line to one of the logs it reads:
 
 ## Watch out
 
-- **An agent's words reach a card only through the card's own log, `cards/<slug>`.** The fast
-  assistant writes to `prompts`; until 2026-09-23 nothing copied its replies across, so it
-  "could not respond". Any agent can speak into a card with the `card_reply` MCP tool.
-  [`doc/logs.md`](./doc/logs.md).
+- **`card.js` stays lowercase.** It is the `Card` class, and every card's line 1 names
+  `/framework/ai2/card.js`; a `./Card.js` import is a second module on Windows and a 404 on a
+  case-sensitive host. The older board-card faces are `faces.js`. [`doc/cards.md`](./doc/cards.md).
+- **A card is a folder, and only Servex writes into it.** Each card lives at `ai/2026/MM/DD/<slug>/page.jsonl`, dated by the day it was created. Agents make and read cards with the `create_card`, `read_card`, `attach_card` and `list_cards` tools, and speak into one with `card_reply`; never append to the file yourself. [`Servex/cards/readme.md`](/Servex/cards/readme.md), [`doc/persistence.md`](./doc/persistence.md).
 
 - **Content never needs a reload; the page's own modules do.** All four logs stream — three over
   the dev socket, the owner's sentences over Servex's `EventSource`. The only thing that still
@@ -101,18 +112,27 @@ To draw a card from anywhere, append a line to one of the logs it reads:
   page does, once a sub-card opens beside it in the third column. Missing the ancestor case
   reintroduced `.ai2-empty` above a still-showing card and pushed its whole content down by its
   own height; every measured field still read "unchanged" because nothing in the CONTENT moved.
-- **A card's own event log is `cards/<slug>`**, Servex-owned, not a repo file — `ai/cards/<slug>/`
-  (a real directory, only once a card gets a page) is a different thing: the card's STATE, not
-  its stream. `doc/persistence.md` has the whole split.
+- **Only the Live card keeps an old-style log** in Servex's out-of-git logs; every other card's history is in its folder.
+
+- **No `bleed` on a page with no gutter.** `.page > .bleed` pays the page's padding back with a
+  negative margin; the overview page has padding 0, so the payback slid its first column under
+  the site sidebar with text at 0px (fixed 2026-09-24).
+- **A size container re-bases every `cqi` inside it** — the spacing utilities (`gap-25`…) are
+  `cqi` clamps, so turning a box into a container quietly shrinks the gaps of everything in it.
+  Measure gaps before and after.
 
 ## More
 
+- [`doc/owner-asks.md`](./doc/owner-asks.md) — every dashboard ask you made, 17–24 Sep, with its status
 - [`doc/decisions.md`](./doc/decisions.md) — every fork in the road, with the alternative named
 - [`doc/logs.md`](./doc/logs.md) — every log this page reads, and the ones it writes
+- [`doc/columns.md`](./doc/columns.md) — how the Live card splits into columns on a wide
+  screen, and how many levels of navigation fit at each width
 - [`doc/persistence.md`](./doc/persistence.md) — the survey: what each persistence system on this
   site saves and where, and which one a nested card page uses
 - The rebuild and its measurements: [`ai/2026-09-22/ai2-master-detail/`](/framework/ai/2026-09-22/ai2-master-detail/)
 - Per-card storage, sub-cards, the footer: [`ai/2026-09-22/ai2-nested/`](/framework/ai/2026-09-22/ai2-nested/)
-- Files that matter: `page.js` (the shell, the selection, the third column), `card.js` (a card
-  and a sub-card, small and whole, plus the table of contents), `inbox.js` (what there is to
+- [`doc/cards.md`](./doc/cards.md) — card folders: the addresses, `card.js`'s vocabulary, every write
+- Files that matter: `page.js` (the shell, the selection, the third column), `card.js` (a
+  card folder's own page), `faces.js` (a board card, small and whole, plus the table of contents), `inbox.js` (what there is to
   draw, and the per-card log), `compose.js` (the box you talk into), `ai2.css` (the look)

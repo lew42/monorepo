@@ -60,8 +60,10 @@ function page_rows(page, node, path, stage){
 		page.rehead();
 	});
 
-	field("Description", node.description ?? "", value =>
-		page.set_at(path, { description: value }, { centre: false, settings: false }));
+	field("Description", node.description ?? "", value => {
+		page.set_at(path, { description: value }, { centre: false, settings: false });
+		page.rehead();
+	});
 
 	/* ⚠ A DROPDOWN, BECAUSE IT IS A LIST OF TEN, and its values say what the PICTURE is
 	     rather than what the font calls it — the raw ligature names read as a broken copy

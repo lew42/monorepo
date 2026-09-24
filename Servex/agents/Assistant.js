@@ -158,6 +158,11 @@ export default class Assistant {
 	async card_reply({ card, text, from } = {}){
 		if (!card || !text) return JSON.stringify({ ok: false, why: "card and text are both required" });
 		try {
+			const folder = this.servex.cards?.canonical(card);
+			if (folder){
+				const out = await this.servex.cards.append(folder, { message: { by: from || "agent", text, kind: "reply" } });
+				return JSON.stringify(out.ok ? { ok: true, id: out.id, shown: true } : out);
+			}
 			const out = await this.servex.log.append(`cards/${String(card).split("/")[0]}`, { type: "reply", by: from || "agent", re: card, text });
 			return JSON.stringify(out.ok ? { ok: true, id: out.entry.id, shown: true } : out);
 		} catch (e){ return JSON.stringify({ ok: false, why: String(e.message || e) }); }
@@ -171,7 +176,12 @@ export default class Assistant {
 	mirror(entry){
 		if (entry.type !== "reply" || !this.card) return;
 		const re = typeof entry.re === "string" ? entry.re : this.selected;
-		if (re.split("/")[0] !== this.card) return;
+		if (re.split("/")[0] !== this.card && re !== this.card) return;
+		const folder = this.servex.cards?.canonical(re) ?? this.servex.cards?.canonical(this.card);
+		if (folder){
+			this.servex.cards.append(folder, { message: { by: entry.by || "agent", text: entry.text, kind: "reply" } }).catch(() => {});
+			return;
+		}
 		this.servex.log.append(`cards/${this.card}`, { ...entry, re }).catch(() => {});
 	}
 

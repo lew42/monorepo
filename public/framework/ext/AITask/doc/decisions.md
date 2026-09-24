@@ -326,3 +326,9 @@ and says "unavailable." Production never depends on it.
 Field-by-field authoritative-vs-derivable verdicts and the schema-v2 proposal:
 [`manifest-vs-log/analysis.md`](/framework/ai/2026-08-13/manifest-vs-log/).
 How the module got here, wave by wave: [`doc/waves.md`](waves.md).
+
+## The option cards are `ux/Content/Decision` (2026-09-24)
+
+The level-2 body draws the shared [`Decision`](/framework/ux/Content/Decision/) card, read-only (`readonly: true`, `bare: true` because the row already says the question). It normalizes every shape a `task.jsonl` decision has come in — options as objects or plain strings, `chose` as an option id, its exact words, the start of them, or a summary matching none, and the old `chose` + `over` / `alternative` form — so none of them draws "undefined" any more. Read-only on purpose: this tab's write path is Approve / Improve (a `verdict` line); a click that appended a second kind of line would give one decision two answers. The row's title falls back through `about`, `topic`, `title`, `what`, `question`, then the id.
+
+Known, not fixed here: `JSONL.decision()` merges by `id`, so old decisions written with no id all collapse into one row. That lives in `ext/JSONL`, outside this change.

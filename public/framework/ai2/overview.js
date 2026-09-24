@@ -1,7 +1,7 @@
 import { div, span, small, a, button, p } from "/app.js";
 import { icon } from "/framework/core/View/View.js";
 import { servex_base, say, author_word } from "./inbox.js";
-import { clock } from "./card.js";
+import { clock } from "./faces.js";
 
 /**
  * THE OVERVIEW — four columns by importance, not one feed by time (the owner,
@@ -212,7 +212,16 @@ export function overview(page, ai2){
 	const stream_lines = [];   // last few agent events, newest last, capped
 	let needs, reports, landed;
 
-	$ov = div.c("ai2-overview bleed", () => {
+	/* ⚠ NO `bleed` (2026-09-24). `.page > .bleed` pays the page's gutter back
+	   with a NEGATIVE margin (core/Page/Page.css), but this page has no gutter —
+	   its padding is 0 — so the payback pulled the whole overview 42px (1280) to
+	   67px (1920) under the site's nav sidebar and off the right edge. The page
+	   is a flex column now (ai2.css), so no track word is needed at all. */
+	$ov = div.c("ai2-overview", () => {
+		// The one small head line: the way back. A real link to the inbox, which
+		// is AI 2's own address — never a class flipped in place (the owner,
+		// 2026-09-23). It replaces the page's own giant "Overview" h1.
+		a.c("ai2-ov-open page-link").href(page.url).text("← Open the inbox");
 		div.c("ai2-ov-cols", () => {
 			// ⚠ Built HERE, inside this callback, not before it — `column()`'s own
 			// `div.c(...)` calls auto-append to whatever the CURRENT CAPTOR is at
@@ -233,9 +242,6 @@ export function overview(page, ai2){
 				});
 			});
 		});
-		// A real link to the inbox, which is AI 2's own address — never a class
-		// flipped in place (the owner, 2026-09-23).
-		a.c("ai2-ov-open page-link").href(page.url).text("Open the inbox →");
 	});
 
 	/* ── needs-you + reports + landed, off the SAME list the rail already

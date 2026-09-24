@@ -1,8 +1,9 @@
 import { Page, View, div, p, span, small, a, button, label, input } from "/app.js";
 import grip from "/framework/ext/grip/grip.js";
 import composer from "./compose.js";
-import { row, full, flag_box, toc, sub_full } from "./card.js";
-import { Board, Says, BOARD_URL, VERDICTS_URL, prompt_stream, card_stream, day_log, items, sub_rows, sub_row, say, new_card, archive_card, refs } from "./inbox.js";
+import { row, full, flag_box, toc, sub_full } from "./faces.js";
+import { Board, Says, BOARD_URL, VERDICTS_URL, prompt_stream, card_stream, day_log, items, sub_rows, sub_row, say, new_card, archive_card, refs, CardList, create_card, resolve_card, is_folder_id } from "./inbox.js";
+import Card, { card_link } from "./card.js";
 import overview from "./overview.js";
 import chat from "./chat.js";
 import { LIVE, live_model, live_row, live_full } from "./live.js";
@@ -61,6 +62,12 @@ export default new Page({
 		if (id.includes(".")) return undefined;
 		if (id === "overview") return this.overview_page ??= overview_page(this);
 		if (id === LIVE) return this.live_page ??= card_page(this, LIVE);
+		// A CARD FOLDER'S ADDRESS starts with its year — `2026/09/24/<slug>/`,
+		// sub-cards one segment deeper, any depth. The year, month and day are
+		// pages too (`Card.Folder`), each reading the next one down from the
+		// folder, so nothing is probed. `view` is reserved like `overview`.
+		if (/^\d{4}$/.test(id)) return new Card.Folder({ id, title: id, shell: this });
+		if (id === "view") return this.views_page ??= views_page(this);
 		return card_page(this, id);
 	},
 });
@@ -78,7 +85,7 @@ const auto_transcribe = () => localStorage.getItem(AUTO_KEY) !== "off";
      `content()` runs `location.search` still belongs to the page you are
      LEAVING. One variable, set before the navigation and taken by the page that
      was asked for, cannot be read at the wrong moment. */
-let opening = null;
+// It lives on the page itself (`page.opening`), because `card.js` reads it too.
 
 /* The four columns by importance, as a page of its own — it mounts in the
    detail column like a card does, and `ai2.css` hands it the whole width while
@@ -98,6 +105,9 @@ function board(page){
 	const day = day_log();
 	const stream = prompt_stream();
 	const live = live_model({ prompts: stream, day });
+	// Every card folder, as Servex lists them; `board.jsonl` is only read when this is not `ok`.
+	const folders = new CardList();
+	page.auto_transcribe = auto_transcribe;
 
 	let list = [], shown = [], current = null, hovering = false, flagging = null, only_notes = false, show_archived = false;
 	const rows = new Map();        // id → { $row, sig }
@@ -130,21 +140,24 @@ function board(page){
 						.attr("title", "an empty card that starts listening — everything you say goes into it")
 						.text("+ New card")
 						.click(async () => {
-							const id = await new_card();
+							// A FOLDER, made by Servex — the only writer of card folders.
+							// Servex down or without the card routes: the old board card.
+							const made = await create_card({ title: "New card" });
+							const id = made?.ok ? made.id : await new_card();
 							if (!id) return;
-							opening = id;
+							if (made?.ok) await folders.refresh();
+							page.opening = id;
 							page.app?.router?.go(page.url + id + "/");
 						});
 					label.c("ai2-auto flex v-center gap-25 muted").attr("title", "a new card starts listening on its own — turn off to start it silent").append(() => {
 						const $auto = input().attr("type", "checkbox");
 						$auto.el.checked = auto_transcribe();
 						$auto.on("change", e => localStorage.setItem(AUTO_KEY, e.target.checked ? "on" : "off"));
-						span("auto-transcribe");
+						// "-transcribe" is its own span so a rail dragged narrow can say just
+						// "auto" and keep the head at two lines (ai2.css, `.ai2-auto-tail`).
+						span(() => { span("auto"); span.c("ai2-auto-tail").text("-transcribe"); });
 					});
 					$count = div.c("ai2-count flex v-center gap-25");
-					$notes = button.c("ai2-word").attr("type", "button")
-						.attr("title", "only the mastermind's notes to you")
-						.text("notes").click(() => { only_notes = !only_notes; $notes.el.classList.toggle("on", only_notes); relist(); });
 				});
 			});
 			// The box the pill floats over — in the flow, its own arrival pushed
@@ -155,8 +168,19 @@ function board(page){
 			});
 			// Archived, never deleted — hidden by default; this word shows the
 			// count and, on click, shows them again in the same list, greyed.
-			$archived = button.c("ai2-word ai2-archived-word").attr("type", "button")
-				.click(() => { show_archived = !show_archived; $archived.el.classList.toggle("on", show_archived); relist(); });
+			// The foot of the rail: the card views — today, open, all, a tag, each
+			// its own address — the notes filter, and the archived word. Down here, not in the
+			// chrome row above, which is already full at the rail's narrowest.
+			div.c("ai2-rail-foot flex v-center", () => {
+				a.c("ai2-word page-link").href(page.url + "view/today/").attr("title", "today, open, all, or a tag").text("views");
+				// Moved down from the chrome row (2026-09-24), which spilled past the
+				// rail's edge at its default width — a filter on this list, like archived.
+				$notes = button.c("ai2-word").attr("type", "button")
+					.attr("title", "only the mastermind's notes to you")
+					.text("notes").click(() => { only_notes = !only_notes; $notes.el.classList.toggle("on", only_notes); relist(); });
+				$archived = button.c("ai2-word ai2-archived-word").attr("type", "button")
+					.click(() => { show_archived = !show_archived; $archived.el.classList.toggle("on", show_archived); relist(); });
+			});
 			grip({ from: "start", write: size, done: w => localStorage.setItem(RAIL_KEY, w + "px"),
 				reset: () => { localStorage.removeItem(RAIL_KEY); size(); } });
 		});
@@ -228,7 +252,7 @@ function board(page){
 	}
 
 	function paint(){
-		list = items({ board: log.cards, prompts: stream.entries, landed: day.landings, says });
+		list = items({ board: log.cards, folders, prompts: stream.entries, landed: day.landings, says });
 		// THE LIVE CARD joins the same list and the same newest-first sort, so an
 		// update to anything in it lifts it to the top like any other arrival.
 		const it = live.item();
@@ -380,6 +404,8 @@ function board(page){
 	stream.ready.then(paint);
 	stream.on(() => paint());
 	live.on(paint);
+	folders.on(paint);
+	folders.start();
 
 	/* What a card's own page is allowed to ask of the list.
 	   ⚠ OPENING A CARD MARKS NOTHING. It used to write a `read` line here, and
@@ -396,6 +422,10 @@ function board(page){
 		close(h){ watching.delete(h); if (current === h) current = null; },
 		repaint: paint,
 		live,
+		// The card folders — `card.js` reads sub-card titles off this, and asks
+		// for a refresh after it writes a line.
+		cards: folders,
+		cards_changed: () => folders.soon(),
 		flag(id, note, quote){
 			says.flags.set(id, { id, say: "improve", note, quote });
 			say(id, "improve", { note, quote });
@@ -505,8 +535,8 @@ function card_page(root, id){
 				// ⚠ `re` is a FUNCTION, asked fresh on every send: this composer
 				// belongs to this card and nothing else, and saying so once here
 				// is what makes "talk into the card you selected" true.
-				const fresh = opening === id;
-				if (fresh) opening = null;
+				const fresh = root.opening === id;
+				if (fresh) root.opening = null;
 				box = composer({
 					re: () => id,
 					placeholder: id === LIVE ? "talk to the assistant about what is running" : "talk into this card",
@@ -525,6 +555,16 @@ function card_page(root, id){
 		// ⚠ `activated()`, not `content()`: `content()` runs once and the view is
 		// cached, so a card you come back to would watch nothing.
 		activated(){
+			// AN OLD ADDRESS STILL OPENS ITS CARD: Servex answers an old board id
+			// with the folder it was migrated into, and the url is swapped for
+			// the new one in place — `replaceState`, so Back never lands on the
+			// old address and bounces forward again.
+			if (id !== LIVE && !is_folder_id(id)) resolve_card(id).then(found => {
+				if (!found || !is_folder_id(found.id) || location.pathname !== this.url) return;
+				const url = root.url + found.id + "/";
+				history.replaceState({}, "", url);
+				root.app?.router?.load(url);
+			});
 			handle = root.ai2.open({ id, draw, on, $box });
 			// A LIVE UPDATE ON THIS CARD'S OWN LOG redraws the table of contents
 			// (and the body, in case a `refined` or `task` line just landed) —
@@ -614,6 +654,77 @@ function sub_card_page(root, id, sub, clog){
 			try { if (box?.mic && !["idle", "error"].includes(box.mic.state)) box.mic.stop(); } catch {}
 			talk?.partial("");
 			stop_clog?.();
+		},
+	});
+}
+
+/* ── the views: today, open, all, a tag ──────────────────────────────────
+ *
+ * EACH VIEW IS AN ADDRESS — `/framework/ai2/view/open/` — drawn in the middle
+ * column like a card, so Back and a pasted link work. The words mean what
+ * `GET /cards?view=` means (`Servex/cards/Cards.js`'s `list()`), filtered here
+ * from the list this page already holds, so a view keeps up with no second
+ * request: `today` is made or touched today, `open` is not done, `all` is
+ * everything, and any other word is a tag.
+ */
+const VIEW_TITLE = { today: "Today's cards", open: "Open cards", all: "Every card" };
+
+function in_view(c, word){
+	if (c.status === "archived" && word !== "all") return false;
+	if (word === "all") return true;
+	if (word === "open") return c.status !== "done";
+	if (word === "today"){
+		const d = new Date(), pad = n => String(n).padStart(2, "0");
+		const day = d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+		return [c.created, c.last].some(t => String(t ?? "").startsWith(day));
+	}
+	return (c.tags ?? []).includes(word);
+}
+
+function view_words(root, word){
+	div.c("ai2-view-words flex wrap v-center gap-25", $row => {
+		const draw = () => $row.empty(() => {
+			const tags = [...new Set(root.ai2.cards.cards.flatMap(c => c.tags ?? []))].sort().slice(0, 12);
+			["today", "open", "all", ...tags].forEach(w => {
+				a.c("ai2-word page-link" + (w === word ? " on" : "")).href(root.url + "view/" + w + "/")
+					.text(VIEW_TITLE[w] ? w : "#" + w);
+			});
+		});
+		draw();
+		root.ai2.cards.on(draw);
+	});
+}
+
+function views_page(root){
+	return new Page({
+		title: "Views",
+		url: root.url + "view/",
+		classes: "ai2-index-page",
+		content(){
+			view_words(root, null);
+			small.c("muted").text("Each view is its own address — pick one.");
+		},
+		route(word){ return word.includes(".") ? undefined : view_page(root, word); },
+	});
+}
+
+function view_page(root, word){
+	return new Page({
+		title: VIEW_TITLE[word] ?? "#" + word,
+		url: root.url + "view/" + word + "/",
+		classes: "ai2-index-page",
+		content(){
+			view_words(root, word);
+			div.c("ai2-index", $box => {
+				const draw = () => $box.empty(() => {
+					const list = root.ai2.cards.cards.filter(c => in_view(c, word));
+					if (!root.ai2.cards.ok) return void small.c("muted").text("Servex is not answering, so there are no card folders to list.");
+					if (!list.length) return void small.c("muted").text("No cards in this view.");
+					list.forEach(c => card_link(c, root.url + c.id + "/"));
+				});
+				draw();
+				root.ai2.cards.on(draw);
+			});
 		},
 	});
 }

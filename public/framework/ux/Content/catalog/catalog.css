@@ -1,0 +1,73 @@
+@layer theme {
+
+	/* The catalog wall. Every rule is prefixed ux-content-catalog- so nothing here can
+	   restyle a card it is only showing. */
+	.ux-content-catalog-head { display: flex; flex-direction: column; gap: var(--gap-50); }
+	.ux-content-catalog-head > * { margin: 0; }
+
+	.ux-content-catalog-nums { display: flex; flex-wrap: wrap; gap: var(--gap-50) var(--gap-70); }
+	.ux-content-catalog-num { display: flex; flex-direction: column; min-width: 0; }
+	.ux-content-catalog-big { font-size: 2.4em; line-height: 1; font-weight: 700; }
+	.ux-content-catalog-num > span:last-child { color: var(--subtle); font-size: .9em; }
+
+	.ux-content-catalog-top {
+		display: grid; gap: var(--gap-70); align-items: start;
+		grid-template-columns: minmax(0, 30em) minmax(0, 1fr);
+	}
+	@media (max-width: 60em) { .ux-content-catalog-top { grid-template-columns: minmax(0, 1fr); } }
+
+	.ux-content-catalog-breaks {
+		display: grid; gap: var(--gap-35);
+		grid-template-columns: repeat(auto-fill, minmax(min(15em, 100%), 1fr));
+	}
+	.ux-content-catalog-break {
+		display: flex; flex-direction: column; gap: .25em; min-width: 0; padding: var(--gap-35);
+		border: 1px solid var(--line); border-radius: .4em; background: var(--surface); font-size: .85em;
+	}
+	.ux-content-catalog-break-title { color: var(--error); font-weight: 700; }
+	.ux-content-catalog-break-line { color: var(--subtle); font-size: .9em; line-height: 1.35;
+		display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+	.ux-content-catalog-break-chips { display: flex; flex-wrap: wrap; gap: .25em; }
+	.ux-content-catalog-jump { font: inherit; font-size: .85em; padding: 0 .5em; border: 1px solid var(--line);
+		border-radius: 99em; background: var(--surface); color: inherit; cursor: pointer; }
+	.ux-content-catalog-jump:hover { border-color: var(--prim); }
+
+	.ux-content-catalog-family { display: flex; flex-direction: column; gap: var(--gap-50); }
+	.ux-content-catalog-family > h2 { margin: 0; }
+	.ux-content-catalog-wall {
+		display: grid; gap: var(--gap-50);
+		grid-template-columns: repeat(auto-fill, minmax(min(17em, 100%), 1fr));
+	}
+
+	.ux-content-catalog-tile {
+		display: flex; flex-direction: column; gap: var(--gap-35); min-width: 0; padding: var(--gap-50);
+		background: var(--surface); border: 1px solid var(--line); border-radius: .5em;
+	}
+	.ux-content-catalog-tile.open { grid-column: 1 / -1; }
+	.ux-content-catalog-tile.flash { outline: 3px solid var(--prim); }
+
+	.ux-content-catalog-stage {
+		position: relative; contain: paint; min-height: 5em; max-height: 14em; overflow: auto; padding: var(--gap-50);
+		border: 1px dashed var(--line); border-radius: .4em;
+		display: flex; flex-direction: column; justify-content: center; align-items: flex-start;
+	}
+	.ux-content-catalog-undrawn { color: var(--subtle); font-size: .85em; font-style: italic; }
+
+	.ux-content-catalog-name { margin: 0; font-size: 1em; font-weight: 700; }
+	.ux-content-catalog-what { margin: 0; color: var(--subtle); font-size: .8em; line-height: 1.4;
+		display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+	.ux-content-catalog-tile.open .ux-content-catalog-what { -webkit-line-clamp: unset; }
+
+	.ux-content-catalog-labels { display: flex; flex-wrap: wrap; gap: .3em; }
+	.ux-content-catalog-label { font-size: .78em; padding: .05em .5em; border: 1px solid var(--line); border-radius: 99em; color: var(--subtle); }
+	.ux-content-catalog-dup { font-size: .78em; padding: .05em .5em; border-radius: 99em; color: var(--error); border: 1px solid var(--error); font-weight: 700; }
+
+	.ux-content-catalog-more { align-self: flex-start; font: inherit; font-size: .85em; background: none; border: 0;
+		padding: 0; color: var(--prim); cursor: pointer; text-decoration: underline; }
+	.ux-content-catalog-detail { display: flex; flex-direction: column; gap: var(--gap-35); font-size: .9em; }
+	.ux-content-catalog-detail[hidden] { display: none; }
+	.ux-content-catalog-detail > * { margin: 0; }
+	.ux-content-catalog-detail ul { margin: 0; padding-inline-start: 1.2em; }
+	.ux-content-catalog-detail h4 { margin: 0; color: var(--subtle); }
+	.ux-content-catalog-detail code { overflow-wrap: anywhere; }
+}

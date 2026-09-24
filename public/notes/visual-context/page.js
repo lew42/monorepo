@@ -103,7 +103,7 @@ export default new Page({
 
 	preview(nav){
 		return this.preview_card(nav, () => img().attr("src", here + "note.jpg")
-			.attr("alt", "Notebook page headed VISUAL CONTEXT").c("notes-thumb"));
+			.attr("alt", "Notebook page headed VISUAL CONTEXT").ac("notes-thumb"));
 	},
 
 	content(){

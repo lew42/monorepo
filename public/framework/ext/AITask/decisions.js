@@ -1,7 +1,8 @@
-import { div, span, p, ul, li, button, input } from "../../core/View/View.js";
+import { div, span, p, button, input } from "../../core/View/View.js";
 import Socket from "../../dev/Socket/Socket.js";
 import { edit } from "../Ask/edit.js";
 import "../../ui/decision/decision.js";
+import Decision from "../../ux/Content/Decision/Decision.js";
 import { Ranking, stamp } from "./rank.js";
 import { reply } from "../Ask/reply.js";
 
@@ -72,11 +73,11 @@ function row(d, m, state, band){
 	div.c("ai-decision").ac(state.open === d.id && "active").append($row => {
 		band?.grip($row, d.id);
 		div.c("ai-decision-line flex split v-baseline wrap").append($line => {
-			span.c("ai-decision-about", d.about ?? d.id);
+			span.c("ai-decision-about", words(d));
 			span.c("ai-decision-chose flex v-center", () => {
 				// A decision with no `chose` is legitimate — the question is
 				// open and the options are laid out for the owner to pick from.
-				span.c("muted", chose(d)?.say || d.chose || "nothing chosen yet");
+				span.c("muted", chose(d)?.say || (typeof d.chose === "string" ? d.chose : "") || "nothing chosen yet");
 				mark(d);
 			});
 			$line.on("click", () => {
@@ -100,28 +101,26 @@ function row(d, m, state, band){
 /** The option that won, found by its id — the row shows its one line. */
 const chose = d => (d.options ?? []).find(o => o.id === d.chose);
 
+/* The row's one line: old records name themselves `about`, `topic`, `title`, `what` or only an id. */
+const words = d => d.about ?? d.topic ?? d.title ?? d.what ?? d.question ?? d.id ?? "a decision";
+
 const mark = d => span.c("ai-decision-status").ac(d.status ?? "open").text(d.status ?? "open");
 
 /* ── level 2: the option cards, in place ───────────────────────────────────── */
 
 function body(d, m, state){
 	div.c("ai-decision-body ui-decision", () => {
-		ul.c("ui-decision-options", () => (d.options ?? []).forEach(o => option(o, o.id === d.chose)));
-		if (d.because) p.c("ui-decision-because", d.because);
+		// The one Decision card (ux/Content), read-only: this tab writes its own verdict
+		// lines (Approve / Improve below), never a second kind of choice. It normalizes
+		// every shape a task.jsonl decision has come in, so none of them draws "undefined".
+		new Decision({ ...d, bare: true, readonly: true });
 		rule(d);
 		if (d.note) p.c("ai-decision-note", `you asked for better: ${d.note}`);
 		acts(d, m, state);
 	});
 }
 
-/* The decision UI itself is `ui/decision` — one class list, no second copy of
-   the markup here. The chosen card is marked by its ground, its outline AND the
-   word "chosen", because the accent is 2.96:1 on white and may carry neither. */
-const option = (o, chosen) => li.c("ui-decision-option").ac(chosen && "chosen").append(() => {
-	if (chosen) span.c("ui-decision-mark", "chosen");
-	div.c("ui-decision-say", o.say ?? o.id);
-	if (o.why) p.c("ui-decision-why", o.why);
-});
+/* The option cards are `ux/Content/Decision` — see `body()`. */
 
 /* ⚠ A CHIP, NOT A LINK. `rule` is `<skill>#<section>` and the skills live in
    `.claude/skills/`, outside `public/` — nothing serves them, so a link here

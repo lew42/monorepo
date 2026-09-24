@@ -130,6 +130,8 @@ hand-wrote (its comment: *"A Doc inside a Doc: no second title band"*) — that
 override is now redundant (produces byte-identical output) but was left in place,
 being outside this change's file fence.
 
+Checked 2026-09-24: `core/new`, `core/new/1` and `ext/DesignTool/taste` each draw one well and a plain `.doc-section` beneath it — nothing left open. (`core/new/0` and `starter` were deleted 2026-08-30.)
+
 ## Traps
 
 - **⚠ `bar()` and the mount region are the same list.** `tabs()` registers a child's

@@ -25,7 +25,7 @@ Clicking a link or a button *in* the drawn page just uses the page; it is a real
 
 | pane | what you do there |
 |---|---|
-| **left** | `New` makes a page at the top level. Click a row to open it in the middle. Drag it by its grip: onto the **edge** of another row to sit beside it, onto the **middle** of one to go inside it. Fold a row with its chevron, or drive the whole tree from the keyboard. The star is "opens first"; `+` adds a page under this one; `×` asks in the right pane, then deletes the directory. Under the pages are the **Documents** — the panel layouts, which open in the [playground](/framework/ext/Panel/playground/). |
+| **left** | `New` makes a page at the top level. Click a row to open it in the middle. Drag it by its grip: onto the **edge** of another row to sit beside it, onto the **middle** of one to go inside it. Fold a row with its chevron, or drive the whole tree from the keyboard. **Alt + ↑ ↓** moves the focused row one place among its siblings; **Alt + ← →** takes it out of, or tucks it into, its neighbour — the same `move_to()` a drag calls. The star is "opens first"; `+` adds a page under this one; `×` asks in the right pane, then deletes the directory. Under the pages are the **Documents** — the panel layouts, which open in the [playground](/framework/ext/Panel/playground/). |
 | **middle** | the page, drawn by the same `PagingStage` it draws at its own url, with that url as a link over it. Everything you press on the right moves it, on the same frame. |
 | **right** | only the selected thing — see the table above. |
 
@@ -86,6 +86,7 @@ page.select(new Pick({ kind: "block", path, at, what }));   // the one write of 
   and a real page's move (`real.js`), both follow the site's one edit switch now
   (`ext/Ask/edit.js`'s `edit()`) rather than checking the dev socket themselves — the rail's
   "edit" checkbox off previews the static-host, this-browser-only behaviour on localhost.
+- **The description is drawn under the title** in the middle (`head_parts()`), and follows the field as you type.
 - **A page you made keeps core's `h1`** (`heading: true`), unlike every other page in this realm.
 - **The star writes one file.** `default_at()` hands back every sibling whose answer is already
   right *untouched*, so `made.js` writes nothing for it. This is the only writer of `mode.default`.

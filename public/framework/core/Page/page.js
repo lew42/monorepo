@@ -31,7 +31,7 @@ export default new Doc({
 	icon: "description",
 
 	subject: Page,
-	children: "generator old",
+	children: "generator old jsonl/page.jsonl",
 	overview: Object.values(BANDS).flatMap(b => b.split(" ")).join(" "),
 
 	// Every member, in the order a reader meets them: the tree, then rendering,
@@ -44,7 +44,7 @@ export default new Doc({
 	properties: "meta title children content url name label icon card classes "
 		+ "description parent app view loading route regions depth related",
 
-	notes: "markdown declaring labels css layout columns roles panels previews findings decisions",
+	notes: "jsonl declaring labels css layout columns roles panels previews findings markdown open decisions",
 
 	// Doc.overview_section()'s default calls catalog() — a rail, wrong for a wall this
 	// size. This override keeps the section's real children (the `overview:` list above,
