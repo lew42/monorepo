@@ -1,0 +1,1561 @@
+{
+	"about": "Step 1 of the card consolidation: the plan only. Nothing on the site changes until a merge below is carried out. files and pages in each merge are counted by count.mjs, never typed.",
+	"from": {
+		"kinds": 75,
+		"padding_rules": 19
+	},
+	"targets": [
+		{
+			"name": "card",
+			"job": "A framed box that holds content: a title, a few lines, a number, a link to somewhere.",
+			"classes": [
+				".card",
+				"--card-edge (a status colour on the leading edge)",
+				".card.selected",
+				"a.card (the whole box is a link)",
+				".size-small (the dense form)"
+			],
+			"padding": "--pad-card",
+			"bleed": "never",
+			"rule": "A framed box pads by --pad-card, which scales with the box itself, so a narrow card and a wide one both look right; its children get --gap between them for free.",
+			"draw": "div.c('card', () => { h3('A card'); p('A heading and a line. No other CSS.'); });"
+		},
+		{
+			"name": "frame",
+			"job": "A framed box whose contents touch its edge: a picture, a table, a list of rows, or a head and a foot bar around a body.",
+			"classes": [
+				".surface",
+				".ui-panel-head",
+				".ui-panel-body (new)",
+				".ui-panel-foot"
+			],
+			"new_classes": [
+				".ui-panel-body — owned by ui/panel"
+			],
+			"new_rules": [
+				".ui-panel-body { padding: var(--pad-card); }",
+				".ui-panel-head, .ui-panel-foot { padding: 0.6em var(--pad-card); }"
+			],
+			"padding": "none",
+			"bleed": "never",
+			"rule": "A frame pads nothing itself; its parts share one inline inset, --pad-card, so the words in the head, the body and the foot line up.",
+			"draw": "div.c('surface', () => { div.c('ui-panel-head h4', 'Head'); div.c('ui-panel-body', () => p('The body pads like a card.')); div.c('ui-panel-foot flex gap reverse', () => { button.c('prim', 'Save'); button('Cancel'); }); });"
+		},
+		{
+			"name": "region",
+			"job": "A band of the page itself: a section, a title strip, a tab's pane, with or without a ground of its own.",
+			"classes": [
+				".pad",
+				".wash",
+				".tint",
+				".bleed",
+				".wide"
+			],
+			"padding": "--pad",
+			"bleed": "paint only",
+			"rule": "A page region pads by --pad, which scales with the page; its background may bleed to the edge of the screen, its text never does.",
+			"draw": "div.c('wash pad', () => { h3('A region'); p('A band of the page, padded by the page.'); });"
+		},
+		{
+			"name": "preview",
+			"job": "A picture of a child page on its parent's index: a thumbnail above a title.",
+			"classes": [
+				".page-preview",
+				".page-preview-link",
+				".page-preview-thumb",
+				".page-preview-desc"
+			],
+			"padding": "none",
+			"bleed": "never",
+			"rule": "A preview is a picture of another page: the thumbnail carries the frame, so the preview itself pads nothing.",
+			"draw": "div.c('page-previews', () => div.c('page-preview', () => { a.c('page-preview-link', () => span.c('page-preview-title', 'Child page')).href('#'); p.c('page-preview-desc', 'One sentence about the page.'); }));"
+		},
+		{
+			"name": "pill",
+			"job": "A small rounded label: a status, a count, a tag, a link to a task.",
+			"classes": [
+				".ui-pill",
+				".ui-badge",
+				".accent",
+				".outline",
+				".count"
+			],
+			"padding": "own em",
+			"padding_value": "0.15em 0.7em",
+			"bleed": "never",
+			"rule": "A pill is a label the size of its text, so it pads in its own em and never by a page or card word.",
+			"draw": "div.c('flex wrap gap-35', () => { span.c('ui-pill', 'core'); span.c('ui-pill ui-badge accent', 'shipped'); span.c('ui-pill ui-badge count', '3'); });"
+		},
+		{
+			"name": "row",
+			"job": "One line in a list, on its parent's ground: a message, an inbox entry, a setting.",
+			"classes": [
+				".ui-row (new)",
+				".selected"
+			],
+			"new_classes": [
+				".ui-row — owned by a new ui/row template"
+			],
+			"new_rules": [
+				".ui-row { display: flex; align-items: center; gap: 0.6em; min-width: 0; padding: 0.45em 0.6em; border-radius: var(--radius); }",
+				".ui-row:hover, .ui-row.selected { background: var(--wash); }"
+			],
+			"padding": "own em",
+			"padding_value": "0.45em 0.6em",
+			"bleed": "never",
+			"rule": "A row is one line in a list: it pads in its own em, takes a ground only when hovered or selected, and never draws a border of its own.",
+			"draw": "div.c('flex v', () => { div.c('ui-row', () => { icon('mail'); span.c('flex-1', 'A row'); span.c('muted', 'now'); }); div.c('ui-row selected', () => { icon('mail'); span.c('flex-1', 'A selected row'); span.c('muted', '2m'); }); });"
+		},
+		{
+			"name": "fold",
+			"job": "A row that opens: a question and its answer, a bar over a hidden body.",
+			"classes": [
+				"details.ui-accordion-item",
+				"summary"
+			],
+			"new_rules": [
+				".ui-accordion-item > summary { padding: 0.45em 0.6em; cursor: pointer; }",
+				".ui-accordion-item > :not(summary) { margin: 0; padding: 0 0.6em 0.6em; }"
+			],
+			"padding": "own em",
+			"padding_value": "0.45em 0.6em",
+			"bleed": "never",
+			"rule": "A fold is a row that opens: its summary pads like a row, and what opens under it keeps the row's inset.",
+			"draw": "details.c('ui-accordion-item', $d => { $d.el.open = true; summary('A question'); p('Its answer, on the same inset.'); });"
+		},
+		{
+			"name": "popover",
+			"job": "A box that floats over the page, anchored to what opened it: a menu, a tooltip, a toast.",
+			"classes": [
+				".ux-popover",
+				".ux-popover-item",
+				".ux-popover-text (new)",
+				"[role=tooltip]"
+			],
+			"padding": "own em",
+			"padding_value": "0.25em; a line of text inside 0.35em 0.6em",
+			"bleed": "never",
+			"rule": "A floating box holds controls, so it pads in its own em like a control, never by the page it floats over.",
+			"draw": "div.c('ux-popover', () => { button.c('ux-popover-item', 'Rename'); button.c('ux-popover-item', 'Duplicate'); button.c('ux-popover-item', 'Delete'); });",
+			"new_classes": [
+				".ux-popover-text — owned by ux/Popover"
+			],
+			"new_rules": [
+				".ux-popover-text { padding: 0.35em 0.6em; flex: none; }"
+			]
+		}
+	],
+	"kinds": [
+		{
+			"name": "card",
+			"into": "card",
+			"after": "div.c('card', () => { h3('Title'); p('A card needs no extra CSS.'); });"
+		},
+		{
+			"name": "surface",
+			"into": "frame",
+			"note": "The bare word stays and means a frame. Worn together with .pad it is a card drawn the old way (see the merge “Every other surface pad becomes .card”).",
+			"after": "div.c('surface', () => div.c('ui-panel-body', () => p('A surface; its body pads.')));"
+		},
+		{
+			"name": "wash",
+			"into": "region",
+			"note": ".tint folds in as the region's second ground.",
+			"after": "div.c('wash pad', 'A washed band');"
+		},
+		{
+			"name": "pad",
+			"into": "region",
+			"note": "Only on a page region. On a framed box it is replaced by .card (see the merge “Every other surface pad becomes .card”).",
+			"after": "div.c('wash pad', 'A page region, padded by --pad.');"
+		},
+		{
+			"name": "bleed",
+			"into": "region",
+			"after": "div.c('wash pad', 'Its ground may reach the screen edge; its text keeps the padded track.');"
+		},
+		{
+			"name": "stat tile",
+			"into": "card",
+			"after": "div.c('card', () => { div.c('h4 muted', 'Files'); div.c('h2', '472'); });"
+		},
+		{
+			"name": "alert",
+			"into": "card",
+			"note": "The tone becomes --card-edge.",
+			"after": "div.c('card', () => div.c('flex gap v-center', () => { icon('info'); p('Heads up').ac('flex-1'); })).style('--card-edge', 'var(--prim)');"
+		},
+		{
+			"name": "panel (dialog-look box)",
+			"into": "frame",
+			"after": "div.c('surface', () => { div.c('ui-panel-head flex v-center split gap', () => h3('Title')); div.c('ui-panel-body', () => p('Body')); });"
+		},
+		{
+			"name": "dialog",
+			"into": "frame",
+			"note": "The <dialog> element stays; it wears .surface and pads its parts.",
+			"after": "div.c('surface', () => div.c('ui-panel-body', () => button('see /ui/dialog/ page')));"
+		},
+		{
+			"name": "badge / pill",
+			"into": "pill",
+			"note": "ai2-chip and the ai2 overview pill fold in.",
+			"after": "span.c('ui-pill ui-badge h4 accent', 'shipped');"
+		},
+		{
+			"name": "tag chip",
+			"into": "pill",
+			"after": "span.c('ui-pill', () => { span('core'); span.c('muted', ' ×'); });"
+		},
+		{
+			"name": "avatar stack",
+			"keep": "A row of people's initials: a widget with a fixed circle size, not a box that holds content.",
+			"padding": "own em"
+		},
+		{
+			"name": "crumbs",
+			"keep": "A path of links: navigation text, not a box.",
+			"padding": "none"
+		},
+		{
+			"name": "decision card",
+			"into": "card",
+			"note": "Its options become rows inside the card.",
+			"after": "div.c('card', () => { p('Which?'); div.c('ui-row selected', () => { span('A'); span.c('muted', 'because'); }); });"
+		},
+		{
+			"name": "menu (dropdown)",
+			"into": "popover",
+			"note": "ui-menu, ux/Menu and Popover.menu() become one: the popover.",
+			"after": "div.c('ux-popover', () => { button.c('ux-popover-item', 'Rename'); button.c('ux-popover-item', 'Duplicate'); button.c('ux-popover-item', 'Delete'); });"
+		},
+		{
+			"name": "accordion item",
+			"into": "fold",
+			"note": "Drops .pad: a fold pads like a row.",
+			"after": "div.c('surface', () => details.c('ui-accordion-item', $d => { $d.el.open = true; summary('Question'); p('Answer'); }));"
+		},
+		{
+			"name": "tooltip",
+			"into": "popover",
+			"after": "div.c('ux-popover', 'Hello').attr('role', 'tooltip');"
+		},
+		{
+			"name": "table",
+			"keep": "A data table: its cells pad in their own em and its frame, when it has one, is a frame around it.",
+			"padding": "own em"
+		},
+		{
+			"name": "timeline",
+			"keep": "A dated list joined by a line: a widget whose spacing is the line between its dots.",
+			"padding": "own em"
+		},
+		{
+			"name": "keys",
+			"keep": "Keyboard key caps: a control-sized label with its own key look.",
+			"padding": "own em"
+		},
+		{
+			"name": "toolbar",
+			"into": "card",
+			"note": "The buttons sit in one flex row inside the card, never on the card itself (a card spaces its children vertically).",
+			"after": "div.c('card', () => div.c('flex wrap gap v-center', () => { button('One'); button('Two'); }));"
+		},
+		{
+			"name": "progress row",
+			"keep": "A gauge: a label and a bar. Its twin is the usage meter; both are widgets, not boxes.",
+			"padding": "none"
+		},
+		{
+			"name": "pagination",
+			"keep": "A row of page buttons: controls, each padded by the button.",
+			"padding": "none"
+		},
+		{
+			"name": "form field",
+			"keep": "A label above an input: a control.",
+			"padding": "none"
+		},
+		{
+			"name": "popover",
+			"into": "popover",
+			"after": "div.c('ux-popover', () => { button.c('ux-popover-item', 'Rename'); button.c('ux-popover-item', 'Duplicate'); button.c('ux-popover-item', 'Delete'); });"
+		},
+		{
+			"name": "wizard",
+			"keep": "A step-by-step flow: a widget with a step rail and a body; its body is a region.",
+			"padding": "own em"
+		},
+		{
+			"name": "course",
+			"keep": "A lesson viewer: a widget. Its two inner boxes (the chapter rail and the next-up side) become cards in the merge “The ui/ templates wear .card”.",
+			"padding": "own em"
+		},
+		{
+			"name": "auth form",
+			"keep": "A login form: controls, padded by whatever box holds it.",
+			"padding": "none"
+		},
+		{
+			"name": "tree",
+			"keep": "A nested, draggable list: its rows indent, a job no row target does.",
+			"padding": "own em"
+		},
+		{
+			"name": "dictate button",
+			"keep": "A microphone control.",
+			"padding": "own em"
+		},
+		{
+			"name": "preview card",
+			"into": "preview",
+			"after": "div.c('page-previews', () => div.c('page-preview', () => { a.c('page-preview-link', () => span.c('page-preview-title', 'Child page')).href('#'); p.c('page-preview-desc', 'One sentence about the page.'); }));"
+		},
+		{
+			"name": "preview wall",
+			"keep": "A layout of previews, not a box: the wall arranges them.",
+			"padding": "none"
+		},
+		{
+			"name": "wireframe picture",
+			"keep": "A drawing of a page shape used as a preview thumbnail.",
+			"padding": "none"
+		},
+		{
+			"name": "wireframe tile",
+			"keep": "One grey rectangle inside a wireframe drawing: a picture of a card, not a card.",
+			"padding": "none"
+		},
+		{
+			"name": "decks card",
+			"into": "card",
+			"note": "A link tile: the whole card is the link, a.card.",
+			"after": "a.c('card', () => { span('A deck'); p('A small tinted link tile.'); }).href('#');"
+		},
+		{
+			"name": "blog card",
+			"into": "card",
+			"note": "A link tile; its shadow becomes the card's hairline.",
+			"after": "a.c('card', () => { span('An article title'); p('Two lines of what it says.'); }).href('#');"
+		},
+		{
+			"name": "three-column card",
+			"into": "region",
+			"note": "Named a card, but it is a three-track layout with no box.",
+			"after": "div.c('pad grid auto gap', () => { div('facts'); div('main content'); div('meta'); });"
+		},
+		{
+			"name": "inbox tile",
+			"into": "card",
+			"note": "Its own --v3-card ground and its own selected look go; .card.selected is the selected look.",
+			"after": "div.c('card', () => { div.c('flex v-center gap-35', () => { icon('task_alt'); span('Demo task'); }); p('A task that has not started.'); });"
+		},
+		{
+			"name": "dev chat card",
+			"into": "card",
+			"after": "div.c('card', 'A message in the dev bar chat.');"
+		},
+		{
+			"name": "ask card",
+			"into": "card",
+			"note": "Its status chip and links become pills.",
+			"after": "div.c('card', () => { h3('Demo'); p('Say it once.'); div.c('flex wrap gap-35', () => { span.c('ui-pill', 'a-name'); a.c('ui-pill', 'AI 2').href('/framework/ai2/'); }); });"
+		},
+		{
+			"name": "paging box",
+			"drop": "A stack of headings and paragraphs is what .flow already is; no box.",
+			"after": "div.c('flow', () => { p('A heading-ish line.'); p('A paragraph of swappable content.'); });"
+		},
+		{
+			"name": "section band",
+			"into": "region",
+			"note": "Each section function keeps its content; the band pads by --pad and its inner boxes become cards.",
+			"after": "div.c('tint pad', () => { h3('A callout band'); p('One band of the page, padded by the page.'); });"
+		},
+		{
+			"name": "demo shell",
+			"keep": "The demo system (ext/demo) frames a live sample at a size; about 200 demos are measured against it.",
+			"padding": "own em"
+		},
+		{
+			"name": "demo stage",
+			"keep": "A resizable viewport around a demo: its 1.5rem inset (--demo-pad) is the stage's own rule, kept because every demo sits inside it.",
+			"padding": "1.5rem"
+		},
+		{
+			"name": "demo app",
+			"keep": "A whole app running in a box: a demo, not a box kind.",
+			"padding": "none"
+		},
+		{
+			"name": "demo steps",
+			"keep": "Numbered steps beside a live demo: a widget of ext/demo.",
+			"padding": "own em"
+		},
+		{
+			"name": "omnibox",
+			"keep": "The site search: chrome, not content.",
+			"padding": "own em"
+		},
+		{
+			"name": "tab panel",
+			"into": "region",
+			"note": "A tab's pane is a band of the page.",
+			"after": "div.c('pad', () => p('The pane that belongs to one tab.'));"
+		},
+		{
+			"name": "panel (Panel item)",
+			"keep": "The layout editor's resizable box (ext/Panel): its job is to be split and dragged.",
+			"padding": "own em"
+		},
+		{
+			"name": "highlight card",
+			"into": "card",
+			"after": "div.c('card', () => { div.c('flex v-center gap-35', () => { icon('star'); a('A demo highlight').href('/framework/ai/'); }); p('One sentence about it.'); });"
+		},
+		{
+			"name": "needs-you strip",
+			"into": "card",
+			"note": "Its 3px accent border is the card's --card-edge.",
+			"after": "div.c('card', () => { div.c('h4 muted', 'Only you can'); div.c('flex split v-center gap', () => { span('Log in to the host'); span.c('ui-pill', '5 min'); }); }).style('--card-edge', 'var(--prim)');"
+		},
+		{
+			"name": "fold (expando bar)",
+			"into": "fold",
+			"note": "Keeps its one behaviour: the body is built on first open.",
+			"after": "details.c('ui-accordion-item', () => { summary('Click to open'); p('The hidden body.'); });"
+		},
+		{
+			"name": "chat line",
+			"into": "row",
+			"after": "div.c('ui-row', () => { span.c('h4 muted', 'agent'); span('Hello from an agent.'); });"
+		},
+		{
+			"name": "owner prompt bubble (ai-you)",
+			"into": "card",
+			"note": "Lit up is .card.selected.",
+			"after": "div.c('card', 'Make the sidebar narrower.');"
+		},
+		{
+			"name": "inbox row (rail preview)",
+			"into": "row",
+			"after": "div.c('ui-row', () => div.c('flex v flex-1', () => { div.c('flex split gap', () => { span('Demo card'); span.c('muted', 'owner · now'); }); span.c('muted', 'The card says one thing.'); }));"
+		},
+		{
+			"name": "screenshot thumb",
+			"into": "frame",
+			"note": "The picture touches the frame; the label is the foot.",
+			"after": "div.c('surface', () => { div.c('wash ux-content-plan-shot'); div.c('ui-panel-foot muted', 'demo shot'); });"
+		},
+		{
+			"name": "usage meter",
+			"keep": "A gauge with a clock mark: a widget. Its twin is the progress row.",
+			"padding": "none"
+		},
+		{
+			"name": "group heading (ai-group)",
+			"drop": "A heading and a count: an h4 and a pill do it, no class of its own.",
+			"after": "div.c('flex v-center gap-35', () => { span.c('h4 muted', 'Landed'); span.c('ui-pill ui-badge count', '3'); });"
+		},
+		{
+			"name": "timeline day line",
+			"keep": "The time axis of the day timeline: part of that widget.",
+			"padding": "none"
+		},
+		{
+			"name": "link chip",
+			"into": "pill",
+			"after": "a.c('ui-pill', 'a link').href('/framework/ai/');"
+		},
+		{
+			"name": "sub-card table of contents",
+			"into": "fold",
+			"note": "Its link rows become rows.",
+			"after": "details.c('ui-accordion-item', $d => { $d.el.open = true; summary('In this card'); div.c('ui-row', () => { icon('task_alt'); span('Build the wall'); }); div.c('ui-row', () => { icon('lightbulb'); span('A first sketch'); }); });"
+		},
+		{
+			"name": "flag box",
+			"drop": "One line to type into: a form field, inside whatever card it belongs to.",
+			"after": "label.c('flex v gap-25', () => { div.c('h4', 'What is wrong with it?'); input().attr('placeholder', 'what is wrong with it?'); });"
+		},
+		{
+			"name": "proposal quote (sketch)",
+			"drop": "A quote with a start border is what a plain blockquote already draws.",
+			"after": "blockquote(() => { span.c('muted', 'first sketch'); p('Ask twice, act once'); p('The assistant wrote this first.'); });"
+		},
+		{
+			"name": "overview column",
+			"into": "frame",
+			"note": "Its --ai2-ov-pad and rem paddings go; the head is the frame's head and the list is rows.",
+			"after": "div.c('surface', () => { div.c('ui-panel-head flex v-center gap-25', () => { span.c('h4', 'Needs'); span.c('ui-pill ui-badge count', '2'); }); div.c('ui-panel-body', () => { div.c('ui-row', 'a card'); div.c('ui-row', 'another'); }); });"
+		},
+		{
+			"name": "live item",
+			"into": "row",
+			"after": "div.c('ui-row', () => { icon('bolt'); span.c('flex-1', 'catalog'); span.c('muted', '40%'); });"
+		},
+		{
+			"name": "composer",
+			"keep": "The microphone and text box: a control. Its v3 twin should become this one, a control merge outside this card plan.",
+			"padding": "own em"
+		},
+		{
+			"name": "agents strip chip",
+			"into": "pill",
+			"note": "On a button, the theme's button look wins over .ui-pill: the merge “The AI chips are pills” must say which look a pill-button wears.",
+			"after": "div.c('flex wrap gap-35', () => { span.c('ui-pill ui-badge accent', 'catalog · minion · working'); span.c('ui-pill', 'census-a · minion · idle'); });"
+		},
+		{
+			"name": "view button",
+			"keep": "A toggle button: a control, padded by the button. Its three copies should become one toggle, a control merge outside this card plan.",
+			"padding": "own em"
+		},
+		{
+			"name": "undo toast",
+			"into": "popover",
+			"note": "Anchored to the board's foot instead of an element.",
+			"after": "div.c('ux-popover flex v-center', () => { span.c('ux-popover-text', 'Card cleared'); button.c('ux-popover-item', 'Undo'); });"
+		},
+		{
+			"name": "ask answer buttons",
+			"drop": "A row of option cards: .flex.wrap.gap holding .card, no class of its own.",
+			"after": "div.c('flex wrap gap', () => { div.c('card', () => p('Option A')); div.c('card', () => p('Option B')); });"
+		},
+		{
+			"name": "panel properties row",
+			"into": "row",
+			"after": "div.c('ui-row', () => { span('gap'); input().attr('type', 'range').ac('flex-1'); span.c('muted', '12'); });"
+		},
+		{
+			"name": "panel template block",
+			"keep": "Ready-made blocks for the layout editor: they belong to ext/Panel.",
+			"padding": "own em"
+		},
+		{
+			"name": "workspace",
+			"keep": "The layout editor's three-region shell: an app, not a box.",
+			"padding": "own em"
+		},
+		{
+			"name": "doc well (page title block)",
+			"into": "region",
+			"note": "The title strip is a band of the page: --pad instead of its own 1.5em.",
+			"after": "div.c('wash pad', () => div.c('h2', 'A Doc page title'));"
+		},
+		{
+			"name": "doc files browser",
+			"into": "frame",
+			"note": "Its 1em block padding goes; its file list is rows.",
+			"after": "div.c('surface', () => { div.c('ui-panel-head h4', 'Files'); div.c('ui-panel-body', () => { div.c('ui-row', 'readme.md'); div.c('ui-row', 'page.js'); }); });"
+		}
+	],
+	"merges": [
+		{
+			"id": "ui-cards",
+			"title": "The ui/ templates wear .card",
+			"into": "card",
+			"kinds": [
+				"stat tile",
+				"alert",
+				"toolbar"
+			],
+			"also": "The two inner boxes of the course viewer.",
+			"grep": "surface pad",
+			"within": [
+				"public/framework/ui/stats/",
+				"public/framework/ui/alert/",
+				"public/framework/ui/toolbar/",
+				"public/framework/ux/Course/",
+				"public/framework/styles/sections/stats.js"
+			],
+			"risk": "low",
+			"risk_why": "Template pages that draw fixed sample content; no live data, no other team edits them.",
+			"visible_change": "Measured live at 1920, each drawn in a box 30rem wide — stat tile: first word 17px → 19px from the left edge, 17px → 17px from the top; height 123px → 135px; alert: first word 19px → 19px from the left edge, 17px → 21px from the top; height 63px → 63px; toolbar: first word 31px → 33px from the left edge, 26px → 26px from the top; height 72px → 72px.",
+			"files": [
+				"public/framework/ui/alert/page.js",
+				"public/framework/ui/stats/page.js",
+				"public/framework/ui/toolbar/page.js",
+				"public/framework/ux/Course/Course.js",
+				"public/framework/ux/Course/page.js"
+			],
+			"pages": [
+				"/framework/ui/alert/",
+				"/framework/ui/stats/",
+				"/framework/ui/toolbar/",
+				"/framework/ux/Course/"
+			]
+		},
+		{
+			"id": "link-tiles",
+			"title": "Link tiles become a.card",
+			"into": "card",
+			"kinds": [
+				"decks card",
+				"blog card"
+			],
+			"grep": "decks-card|blogx-card",
+			"risk": "low",
+			"risk_why": "Two labs in /imagine/ and their verbatim copies under layouts/labs; each class is used only where it is defined.",
+			"visible_change": "Measured live at 1920, each drawn in a box 30rem wide — decks card: first word 15px → 19px from the left edge, 18px → 21px from the top; height 101px → 116px; blog card: first word 18px → 19px from the left edge, 20px → 21px from the top; height 109px → 116px.",
+			"files": [
+				"public/imagine/blogx/Blog.js",
+				"public/imagine/blogx/blogx.css",
+				"public/imagine/blogx/finder/page.js",
+				"public/imagine/decks/deck.js",
+				"public/imagine/decks/decks.css",
+				"public/layouts/labs/blogx/Blog.js",
+				"public/layouts/labs/blogx/blogx.css",
+				"public/layouts/labs/blogx/finder/page.js",
+				"public/layouts/labs/decks/deck.js",
+				"public/layouts/labs/decks/decks.css"
+			],
+			"pages": [
+				"/imagine/blogx/",
+				"/imagine/blogx/finder/",
+				"/imagine/decks/",
+				"/layouts/labs/blogx/",
+				"/layouts/labs/blogx/finder/",
+				"/layouts/labs/decks/"
+			]
+		},
+		{
+			"id": "ui-pills",
+			"title": "The ui/ chips are one pill",
+			"into": "pill",
+			"kinds": [
+				"badge / pill",
+				"tag chip"
+			],
+			"grep": "ui-badge|ui-pill",
+			"without": [
+				"public/framework/ai2/",
+				"public/framework/ai/"
+			],
+			"risk": "low",
+			"risk_why": "They already share .ui-pill; the change is one padding (the count's 0.5em side becomes the pill's 0.7em).",
+			"visible_change": "Measured live at 1920, each drawn in a box 30rem wide — badge / pill: first word 10px → 10px from the left edge, 2px → 2px from the top; height 22px → 22px; tag chip: first word 10px → 11px from the left edge, 2px → 2px from the top; height 24px → 24px.",
+			"files": [
+				"public/framework/styles/layouts/apidoc/page.js",
+				"public/framework/ui/badge/badge.js",
+				"public/framework/ui/badge/page.js",
+				"public/framework/ui/parts.js",
+				"public/framework/ui/tags/page.js",
+				"public/framework/ux/Filter/FilterChips.js",
+				"public/framework/ux/Tags/Tags.js",
+				"public/framework/ux/Tags/page.js"
+			],
+			"pages": [
+				"/framework/styles/layouts/apidoc/",
+				"/framework/ui/",
+				"/framework/ui/badge/",
+				"/framework/ui/tags/",
+				"/framework/ux/Filter/",
+				"/framework/ux/Tags/"
+			]
+		},
+		{
+			"id": "regions",
+			"title": "Bands of a page are regions",
+			"into": "region",
+			"kinds": [
+				"section band",
+				"three-column card",
+				"paging box"
+			],
+			"grep": "section-band|imagine-card3|paging-box",
+			"risk": "med",
+			"risk_why": "The section library feeds several demo pages, and the paging lab and /imagine/ share their stylesheets across a whole realm.",
+			"visible_change": "Measured live at 1920, each drawn in a box 30rem wide — section band: first word 32px → 16px from the left edge, 56px → 18px from the top; height 299px → 118px; three-column card: first word 0px → 16px from the left edge, 4px → 20px from the top; height 56px → 166px; paging box: first word 0px → 0px from the left edge, 4px → 4px from the top; height 106px → 97px.",
+			"files": [
+				"public/framework/core/Layout/layouts.js",
+				"public/framework/ext/DesignTool/library/bad/traps.js",
+				"public/framework/ext/Panel/panel.css",
+				"public/framework/ext/Panel/workspace.js",
+				"public/framework/styles/layouts/400/specs.js",
+				"public/framework/styles/layouts/spec/page.js",
+				"public/framework/styles/sections/callout.js",
+				"public/framework/styles/sections/changelog.js",
+				"public/framework/styles/sections/contact.js",
+				"public/framework/styles/sections/faq.js",
+				"public/framework/styles/sections/features.js",
+				"public/framework/styles/sections/footer.js",
+				"public/framework/styles/sections/hero.js",
+				"public/framework/styles/sections/logos.js",
+				"public/framework/styles/sections/navbar.js",
+				"public/framework/styles/sections/page.js",
+				"public/framework/styles/sections/pricing.js",
+				"public/framework/styles/sections/signup.js",
+				"public/framework/styles/sections/split.js",
+				"public/framework/styles/sections/stats.js",
+				"public/framework/styles/sections/team.js",
+				"public/framework/styles/sections/testimonials.js",
+				"public/imagine/game/page.js",
+				"public/imagine/imagine.css",
+				"public/imagine/paging/paging.css",
+				"public/imagine/paging/templates/templates.css",
+				"public/imagine/paging/templates/theming/page.js"
+			],
+			"pages": [
+				"/framework/core/Layout/",
+				"/framework/ext/DesignTool/library/bad/",
+				"/framework/ext/Panel/",
+				"/framework/styles/layouts/400/",
+				"/framework/styles/layouts/spec/",
+				"/framework/styles/sections/",
+				"/imagine/",
+				"/imagine/game/",
+				"/imagine/paging/",
+				"/imagine/paging/templates/",
+				"/imagine/paging/templates/theming/"
+			]
+		},
+		{
+			"id": "popovers",
+			"title": "Floating boxes are one popover",
+			"into": "popover",
+			"kinds": [
+				"menu (dropdown)",
+				"tooltip",
+				"popover",
+				"undo toast"
+			],
+			"grep": "ui-menu|ui-tooltip|v3-toast",
+			"risk": "med",
+			"risk_why": "These are interactive: a menu that opens, a tooltip on hover. The after picture proves the look, but each gesture must be driven headless (the ui-test skill).",
+			"visible_change": "Measured live at 1920, each drawn in a box 30rem wide — menu (dropdown): first word 14px → 18px from the left edge, 9px → 14px from the top; height 84px → 125px; tooltip: first word 0px → 10px from the left edge, 0px → 9px from the top; height 19px → 38px; popover: first word 14px → 18px from the left edge, 9px → 14px from the top; height 38px → 125px; undo toast: first word 19px → 15px from the left edge, 39px → 15px from the top; height 96px → 50px.",
+			"files": [
+				"public/framework/ai/v/3/page.js",
+				"public/framework/ai/v/3/v3.css",
+				"public/framework/ui/menu/menu.js",
+				"public/framework/ui/menu/page.js",
+				"public/framework/ui/tooltip/page.js",
+				"public/framework/ui/tooltip/tooltip.js",
+				"public/framework/ux/Menu/Menu.js",
+				"public/framework/ux/Menu/page.js"
+			],
+			"pages": [
+				"/framework/ai/v/3/",
+				"/framework/ui/menu/",
+				"/framework/ui/tooltip/",
+				"/framework/ux/Menu/"
+			]
+		},
+		{
+			"id": "folds",
+			"title": "Folds are one details element",
+			"into": "fold",
+			"kinds": [
+				"accordion item",
+				"fold (expando bar)",
+				"sub-card table of contents"
+			],
+			"grep": "ui-accordion-item|ai-fold|ai2-toc|v3-day-row",
+			"risk": "med",
+			"risk_why": "The AI fold builds its body only on first open; that behaviour has to survive the move to a plain details element.",
+			"visible_change": "Measured live at 1920, each drawn in a box 30rem wide — accordion item: first word 48px → 29px from the left edge, 26px → 11px from the top; height 72px → 81px; fold (expando bar): first word 12px → 28px from the left edge, 8px → 10px from the top; height 37px → 40px; sub-card table of contents: first word 26px → 28px from the left edge, 8px → 10px from the top; height 174px → 117px.",
+			"files": [
+				"public/framework/ai/v/3/page.js",
+				"public/framework/ai/v/3/v3.css",
+				"public/framework/ai2/ai2.css",
+				"public/framework/ai2/card.js",
+				"public/framework/ai2/faces.js",
+				"public/framework/ext/AITask/ai.css",
+				"public/framework/ext/AITask/conversation.js",
+				"public/framework/ext/AITask/feed.js",
+				"public/framework/ext/AITask/message.js",
+				"public/framework/ext/AITask/replay.js",
+				"public/framework/ui/accordion/accordion.js",
+				"public/framework/ui/accordion/page.js",
+				"public/imagine/paging/demos.js",
+				"public/imagine/paging/stage.js"
+			],
+			"pages": [
+				"/framework/ai/v/3/",
+				"/framework/ai2/",
+				"/framework/ext/AITask/",
+				"/framework/ui/accordion/",
+				"/imagine/paging/"
+			]
+		},
+		{
+			"id": "frames",
+			"title": "Head-body-foot boxes are frames",
+			"into": "frame",
+			"kinds": [
+				"panel (dialog-look box)",
+				"dialog",
+				"overview column",
+				"screenshot thumb",
+				"doc files browser"
+			],
+			"grep": "ui-panel|ui-dialog|ai2-ov-col|v2-panel|ai-shot|doc-files",
+			"risk": "high",
+			"risk_why": "The files browser is on every module's Docs tab, and the overview column is on the AI 2 dashboard another team is editing now.",
+			"visible_change": "Measured live at 1920, each drawn in a box 30rem wide — panel (dialog-look box): first word 17px → 17px from the left edge, 19px → 13px from the top; height 129px → 117px; dialog: first word 31px → 31px from the left edge, 26px → 26px from the top; height 72px → 72px; overview column: first word 0px → 17px from the left edge, 4px → 18px from the top; height 113px → 174px; screenshot thumb: first word 17px from the left edge after (not drawable before); doc files browser: first word 17px from the left edge after (not drawable before).",
+			"files": [
+				"public/framework/ai/v/2/page.js",
+				"public/framework/ai/v/2/v2.css",
+				"public/framework/ai2/ai2.css",
+				"public/framework/ai2/overview.js",
+				"public/framework/ext/AITask/ai.css",
+				"public/framework/ext/AITask/shots.js",
+				"public/framework/ext/Doc/Doc.css",
+				"public/framework/ext/Doc/Doc.js",
+				"public/framework/ui/dialog/dialog.js",
+				"public/framework/ui/dialog/page.js",
+				"public/framework/ui/panel/page.js",
+				"public/framework/ui/panel/panel.js"
+			],
+			"pages": [
+				"/framework/ai/v/2/",
+				"/framework/ai2/",
+				"/framework/ext/AITask/",
+				"/framework/ext/Doc/",
+				"/framework/ui/dialog/",
+				"/framework/ui/panel/"
+			],
+			"reach": "The files browser is drawn by ext/Doc on every module's Docs tab, beyond the files counted here."
+		},
+		{
+			"id": "tab-panes",
+			"title": "Tab panes are regions",
+			"into": "region",
+			"kinds": [
+				"tab panel"
+			],
+			"grep": "tab-panel",
+			"risk": "high",
+			"risk_why": "ext/tabs draws the pane of every tabbed page on the site, so its padding shows everywhere at once.",
+			"reach": "Every page that uses this.tabs(), beyond the files counted here.",
+			"visible_change": "Measured live at 1920, each drawn in a box 30rem wide — tab panel: first word 0px → 16px from the left edge, 52px → 20px from the top; height 77px → 61px.",
+			"files": [
+				"public/framework/core/Page/Page.css",
+				"public/framework/core/Page/generator/generator.css",
+				"public/framework/core/Page/generator/tree.js",
+				"public/framework/core/Page/overview/columns/uses/uses.css",
+				"public/framework/core/Page/overview/full/page.js",
+				"public/framework/core/Page/overview/region/page.js",
+				"public/framework/core/new/1/Page.class.js",
+				"public/framework/core/new/1/agents/eric/page.js",
+				"public/framework/core/new/1/agents/patterns/page.js",
+				"public/framework/core/new/1/site/a11y/headings/page.js",
+				"public/framework/core/new/1/site/a11y/tabs/page.js",
+				"public/framework/core/new/1/site/compound/compound.css",
+				"public/framework/core/new/1/site/motion/arrangements/arrangements.css",
+				"public/framework/core/new/1/site/perf/css/page.js",
+				"public/framework/core/new/1/site/styles.css",
+				"public/framework/core/new/1/site/versus/css/page.js",
+				"public/framework/ext/AITask/AITask.js",
+				"public/framework/ext/AITask/ai.css",
+				"public/framework/ext/Doc/Doc.css",
+				"public/framework/ext/catalog/catalog.css",
+				"public/framework/ext/demo/app.css",
+				"public/framework/ext/tabs/tabs.css",
+				"public/framework/ext/tabs/tabs.js",
+				"public/framework/ext/toc/toc.css",
+				"public/imagine/paging/demos.js",
+				"public/imagine/paging/mechanisms/swap/swap.js",
+				"public/imagine/paging/navigation/lab.js",
+				"public/imagine/paging/navigation/navigation.css",
+				"public/imagine/paging/navigation/tabs/page.js",
+				"public/imagine/paging/paging.css",
+				"public/web/nav/tabs/page.js"
+			],
+			"pages": [
+				"/framework/core/Page/",
+				"/framework/core/Page/generator/",
+				"/framework/core/Page/overview/columns/uses/",
+				"/framework/core/Page/overview/full/",
+				"/framework/core/Page/overview/region/",
+				"/framework/core/new/1/",
+				"/framework/core/new/1/agents/eric/",
+				"/framework/core/new/1/agents/patterns/",
+				"/framework/core/new/1/site/",
+				"/framework/core/new/1/site/a11y/headings/",
+				"/framework/core/new/1/site/a11y/tabs/",
+				"/framework/core/new/1/site/compound/",
+				"/framework/core/new/1/site/motion/arrangements/",
+				"/framework/core/new/1/site/perf/css/",
+				"/framework/core/new/1/site/versus/css/",
+				"/framework/ext/AITask/",
+				"/framework/ext/Doc/",
+				"/framework/ext/catalog/",
+				"/framework/ext/demo/",
+				"/framework/ext/tabs/",
+				"/framework/ext/toc/",
+				"/imagine/paging/",
+				"/imagine/paging/mechanisms/swap/",
+				"/imagine/paging/navigation/",
+				"/imagine/paging/navigation/tabs/",
+				"/web/nav/tabs/"
+			]
+		},
+		{
+			"id": "doc-well",
+			"title": "The Doc title strip is a region",
+			"into": "region",
+			"kinds": [
+				"doc well (page title block)"
+			],
+			"grep": "doc-well|doc-section",
+			"risk": "high",
+			"risk_why": "It is the top of every module's Docs tab, so one change shows on well over a hundred pages at once.",
+			"visible_change": "Measured live at 1920, each drawn in a box 30rem wide — doc well (page title block): first word 32px → 16px from the left edge, 24px → 16px from the top; height 77px → 77px.",
+			"files": [
+				"public/framework/core/Page/old/page.js",
+				"public/framework/core/Page/overview/inset/page.js",
+				"public/framework/core/Page/page.js",
+				"public/framework/ext/Doc/Doc.css",
+				"public/framework/ext/Doc/Doc.js",
+				"public/framework/ext/Panel/Workspace/page.js",
+				"public/framework/ext/Panel/demo/page.js",
+				"public/framework/ext/toc/toc.css"
+			],
+			"pages": [
+				"/framework/core/Page/",
+				"/framework/core/Page/old/",
+				"/framework/core/Page/overview/inset/",
+				"/framework/ext/Doc/",
+				"/framework/ext/Panel/Workspace/",
+				"/framework/ext/Panel/demo/",
+				"/framework/ext/toc/"
+			],
+			"reach": "ext/Doc draws it at the top of every module's Docs tab, beyond the files counted here."
+		},
+		{
+			"id": "surface-pad",
+			"title": "Every other surface pad becomes .card",
+			"into": "card",
+			"kinds": [
+				"surface",
+				"pad"
+			],
+			"also": "Only where the two words are worn together on one box; a bare .surface stays a frame and a bare .pad stays a region.",
+			"grep": "surface pad",
+			"without": [
+				"public/framework/ui/stats/",
+				"public/framework/ui/alert/",
+				"public/framework/ui/toolbar/",
+				"public/framework/ux/Course/",
+				"public/framework/styles/sections/stats.js"
+			],
+			"risk": "high",
+			"risk_why": "The widest merge by far. Mechanical, but a card spaces its children by itself, so every box that also wears flex v gap would double its gaps unless those words go in the same edit.",
+			"visible_change": "Measured live at 1920, each drawn in a box 30rem wide — surface: first word 17px → 17px from the left edge, 21px → 21px from the top; height 63px → 63px; pad: first word 17px → 16px from the left edge, 21px → 20px from the top; height 63px → 61px.",
+			"files": [
+				"public/framework/ai/process/page.js",
+				"public/framework/core/Page/overview/columns/examples/grids/flush-wall/page.js",
+				"public/framework/core/Page/overview/columns/examples/grids/grids.css",
+				"public/framework/core/Page/overview/inset/page.js",
+				"public/framework/core/Page/overview/measure/page.js",
+				"public/framework/core/Page/overview/region/page.js",
+				"public/framework/core/Search/page.js",
+				"public/framework/ext/AITask/compose.js",
+				"public/framework/ext/Ask/page.js",
+				"public/framework/ext/DesignTool/taste/corpus/page.js",
+				"public/framework/ext/Draggable/page.js",
+				"public/framework/ext/Omnibox/Omnibox.js",
+				"public/framework/ext/depth/page.js",
+				"public/framework/stats.js",
+				"public/framework/styles/layouts/apidoc/page.js",
+				"public/framework/styles/layouts/carousel/page.js",
+				"public/framework/styles/layouts/feed/page.js",
+				"public/framework/styles/layouts/home/page.js",
+				"public/framework/styles/layouts/overlay/page.js",
+				"public/framework/styles/layouts/pricing/page.js",
+				"public/framework/styles/layouts/screens/specs.js",
+				"public/framework/styles/layouts/space/hunt/page.js",
+				"public/framework/styles/layouts/space/words/page.js",
+				"public/framework/styles/layouts/spec/page.js",
+				"public/framework/styles/layouts/web.js",
+				"public/framework/styles/system/page.js",
+				"public/framework/styles/system/studies/lists/page.js",
+				"public/framework/styles/system/studies/spacing/nesting/nesting.js",
+				"public/framework/styles/system/studies/type/anchors/anchors.js",
+				"public/framework/ui/background/page.js",
+				"public/framework/ui/card/page.js",
+				"public/framework/ui/dialog/page.js",
+				"public/framework/ui/kbd/page.js",
+				"public/framework/ui/tags/page.js",
+				"public/framework/ui/words/page.js",
+				"public/framework/ux/Auth/Auth.js",
+				"public/framework/ux/Filter/Filter.js",
+				"public/framework/ux/Filter/page.js",
+				"public/framework/ux/Tags/Tags.js",
+				"public/framework/ux/Tree/drag/page.js",
+				"public/framework/ux/Tree/page.js",
+				"public/imagine/cms/edit/page.js",
+				"public/imagine/cms/json/edit/page.js",
+				"public/imagine/cms/services/page.js",
+				"public/imagine/paging/content.js",
+				"public/imagine/paging/templates/families.js",
+				"public/imagine/platform/workflows/flows.js",
+				"public/imagine/platform/workflows/page.js",
+				"public/imagine/shells/Shell.js",
+				"public/imagine/stream/blocks/page.js",
+				"public/imagine/stream/page.js",
+				"public/imagine/stream/stream.css",
+				"public/imagine/stream/wire/page.js",
+				"public/layouts/labs/shells/Shell.js",
+				"public/layouts/shell/doc/page.js",
+				"public/notes/ai-research-list-ui-ux/page.js",
+				"public/notes/an-element-browser/page.js",
+				"public/notes/anchor-point-optional/page.js",
+				"public/notes/basketball-tower/page.js",
+				"public/notes/column-vs-swap/page.js",
+				"public/notes/doodles/page.js",
+				"public/notes/drop-target-ux/page.js",
+				"public/notes/each-meme-is-a-community/page.js",
+				"public/notes/edge-selection/page.js",
+				"public/notes/just-a-note/page.js",
+				"public/notes/layouts-need-fit/page.js",
+				"public/notes/levels-and-points/page.js",
+				"public/notes/meeting-notes-are-ip/page.js",
+				"public/notes/nested-rendering/page.js",
+				"public/notes/notebook-cooked/page.js",
+				"public/notes/one-video-everywhere/page.js",
+				"public/notes/page-is-not-prose/page.js",
+				"public/notes/page-nav-from-sub/page.js",
+				"public/notes/page-previews-and-columns/page.js",
+				"public/notes/parallel-generation/page.js",
+				"public/notes/personal-specs/page.js",
+				"public/notes/record-long-cut-to-60s/page.js",
+				"public/notes/right-click-hug-fill/page.js",
+				"public/notes/right-people-not-many/page.js",
+				"public/notes/scale-1920-to-3413/page.js",
+				"public/notes/shotgun-or-lav/page.js",
+				"public/notes/sign-up-flow/page.js",
+				"public/notes/standardized-web-services/page.js",
+				"public/notes/switch-or-transition/page.js",
+				"public/notes/tabs-vs-breadcrumbs/page.js",
+				"public/notes/the-editor/page.js",
+				"public/notes/topic-dbs-and-claims/page.js",
+				"public/notes/visual-context/page.js",
+				"public/notes/what-is-openmike/page.js",
+				"public/websites/patterns/page.js"
+			],
+			"pages": [
+				"/framework/",
+				"/framework/ai/process/",
+				"/framework/core/Page/overview/columns/examples/grids/",
+				"/framework/core/Page/overview/columns/examples/grids/flush-wall/",
+				"/framework/core/Page/overview/inset/",
+				"/framework/core/Page/overview/measure/",
+				"/framework/core/Page/overview/region/",
+				"/framework/core/Search/",
+				"/framework/ext/AITask/",
+				"/framework/ext/Ask/",
+				"/framework/ext/DesignTool/taste/corpus/",
+				"/framework/ext/Draggable/",
+				"/framework/ext/Omnibox/",
+				"/framework/ext/depth/",
+				"/framework/styles/layouts/",
+				"/framework/styles/layouts/apidoc/",
+				"/framework/styles/layouts/carousel/",
+				"/framework/styles/layouts/feed/",
+				"/framework/styles/layouts/home/",
+				"/framework/styles/layouts/overlay/",
+				"/framework/styles/layouts/pricing/",
+				"/framework/styles/layouts/screens/",
+				"/framework/styles/layouts/space/hunt/",
+				"/framework/styles/layouts/space/words/",
+				"/framework/styles/layouts/spec/",
+				"/framework/styles/system/",
+				"/framework/styles/system/studies/lists/",
+				"/framework/styles/system/studies/spacing/nesting/",
+				"/framework/styles/system/studies/type/anchors/",
+				"/framework/ui/background/",
+				"/framework/ui/card/",
+				"/framework/ui/dialog/",
+				"/framework/ui/kbd/",
+				"/framework/ui/tags/",
+				"/framework/ui/words/",
+				"/framework/ux/Auth/",
+				"/framework/ux/Filter/",
+				"/framework/ux/Tags/",
+				"/framework/ux/Tree/",
+				"/framework/ux/Tree/drag/",
+				"/imagine/cms/edit/",
+				"/imagine/cms/json/edit/",
+				"/imagine/cms/services/",
+				"/imagine/paging/",
+				"/imagine/paging/templates/",
+				"/imagine/platform/workflows/",
+				"/imagine/shells/",
+				"/imagine/stream/",
+				"/imagine/stream/blocks/",
+				"/imagine/stream/wire/",
+				"/layouts/labs/shells/",
+				"/layouts/shell/doc/",
+				"/notes/ai-research-list-ui-ux/",
+				"/notes/an-element-browser/",
+				"/notes/anchor-point-optional/",
+				"/notes/basketball-tower/",
+				"/notes/column-vs-swap/",
+				"/notes/doodles/",
+				"/notes/drop-target-ux/",
+				"/notes/each-meme-is-a-community/",
+				"/notes/edge-selection/",
+				"/notes/just-a-note/",
+				"/notes/layouts-need-fit/",
+				"/notes/levels-and-points/",
+				"/notes/meeting-notes-are-ip/",
+				"/notes/nested-rendering/",
+				"/notes/notebook-cooked/",
+				"/notes/one-video-everywhere/",
+				"/notes/page-is-not-prose/",
+				"/notes/page-nav-from-sub/",
+				"/notes/page-previews-and-columns/",
+				"/notes/parallel-generation/",
+				"/notes/personal-specs/",
+				"/notes/record-long-cut-to-60s/",
+				"/notes/right-click-hug-fill/",
+				"/notes/right-people-not-many/",
+				"/notes/scale-1920-to-3413/",
+				"/notes/shotgun-or-lav/",
+				"/notes/sign-up-flow/",
+				"/notes/standardized-web-services/",
+				"/notes/switch-or-transition/",
+				"/notes/tabs-vs-breadcrumbs/",
+				"/notes/the-editor/",
+				"/notes/topic-dbs-and-claims/",
+				"/notes/visual-context/",
+				"/notes/what-is-openmike/",
+				"/websites/patterns/"
+			]
+		},
+		{
+			"id": "ai-pills",
+			"title": "The AI chips are pills",
+			"into": "pill",
+			"kinds": [
+				"link chip",
+				"agents strip chip"
+			],
+			"also": "ai2-chip and the ai2 overview pill, folded into the badge kind in the catalog.",
+			"grep": "ai-link\\b|ai2-link|v2-link|v3-agents-row|ai2-chip|ai2-ov-pill",
+			"risk": "high",
+			"risk_why": "The AI dashboards are live and two teams are editing them; and on a button the theme's button look beats .ui-pill, so a pill-button needs a decision first.",
+			"visible_change": "Measured live at 1920, each drawn in a box 30rem wide — link chip: first word 10px → 11px from the left edge, 0px → 2px from the top; height 19px → 24px; agents strip chip: first word 8px → 11px from the left edge, 7px → 6px from the top; height 29px → 34px.",
+			"files": [
+				"public/framework/ai/v/2/page.js",
+				"public/framework/ai/v/2/v2.css",
+				"public/framework/ai/v/3/agents.js",
+				"public/framework/ai/v/3/v3.css",
+				"public/framework/ai2/ai2.css",
+				"public/framework/ai2/card.js",
+				"public/framework/ai2/faces.js",
+				"public/framework/ai2/overview.js",
+				"public/framework/ext/AITask/ai.css",
+				"public/framework/ext/AITask/asks.js",
+				"public/framework/ext/AITask/card.js",
+				"public/framework/ext/AITask/compose.js",
+				"public/framework/ext/AITask/dashboard.js",
+				"public/framework/ext/AITask/needs.js"
+			],
+			"pages": [
+				"/framework/ai/v/2/",
+				"/framework/ai/v/3/",
+				"/framework/ai2/",
+				"/framework/ext/AITask/"
+			]
+		},
+		{
+			"id": "ai-cards",
+			"title": "The AI cards are .card",
+			"into": "card",
+			"kinds": [
+				"inbox tile",
+				"ask card",
+				"highlight card",
+				"needs-you strip",
+				"dev chat card",
+				"owner prompt bubble (ai-you)",
+				"decision card",
+				"proposal quote (sketch)",
+				"flag box",
+				"ask answer buttons"
+			],
+			"grep": "v3-tile|ai-ask\\b|ai2-full|ai-hl\\b|ai-needs?\\b|dev-chat-card|ai-you\\b|ui-decision|ai-decision|ai2-proposal|ai2-flag|v3-ask",
+			"risk": "high",
+			"risk_why": "The owner reads these dashboards all day, two teams are editing them, and the ask card is a Page pretending to be a card, so its padding comes from three places.",
+			"visible_change": "Measured live at 1920, each drawn in a box 30rem wide — inbox tile: first word 43px → 19px from the left edge, 14px → 21px from the top; height 71px → 116px; ask card: first word 16px → 19px from the left edge, 23px → 19px from the top; height 370px → 178px; highlight card: first word 0px → 19px from the left edge, 3px → 21px from the top; height 178px → 116px; needs-you strip: first word 19px → 19px from the left edge, 20px → 17px from the top; height 132px → 111px; dev chat card: first word 16px → 19px from the left edge, 20px → 21px from the top; height 61px → 63px; owner prompt bubble (ai-you): first word 18px → 19px from the left edge, 22px → 21px from the top; height 64px → 63px; decision card: first word 1px → 19px from the left edge, 5px → 21px from the top; height 142px → 130px; proposal quote (sketch): first word 13px → 19px from the left edge, 4px → 4px from the top; height 90px → 166px; flag box: first word 0px from the left edge after (not drawable before); ask answer buttons: first word 19px → 19px from the left edge, 21px → 21px from the top; height 63px → 63px.",
+			"files": [
+				"public/framework/ai/v/2/v2.css",
+				"public/framework/ai/v/3/ask.js",
+				"public/framework/ai/v/3/page.js",
+				"public/framework/ai/v/3/v3.css",
+				"public/framework/ai2/ai2.css",
+				"public/framework/ai2/card.js",
+				"public/framework/ai2/faces.js",
+				"public/framework/ai2/live.js",
+				"public/framework/ai2/page.js",
+				"public/framework/dev/DevBar/devbar.css",
+				"public/framework/dev/DevBar/log.js",
+				"public/framework/ext/AITask/AITask.js",
+				"public/framework/ext/AITask/ai.css",
+				"public/framework/ext/AITask/asks.js",
+				"public/framework/ext/AITask/conversation.js",
+				"public/framework/ext/AITask/decisions.js",
+				"public/framework/ext/AITask/highlights.js",
+				"public/framework/ext/AITask/needs.js",
+				"public/framework/ui/decision/decision.js",
+				"public/framework/ui/decision/page.js",
+				"public/framework/ux/Content/Decision/Decision.js"
+			],
+			"pages": [
+				"/framework/ai/v/2/",
+				"/framework/ai/v/3/",
+				"/framework/ai2/",
+				"/framework/dev/DevBar/",
+				"/framework/ext/AITask/",
+				"/framework/ui/decision/",
+				"/framework/ux/Content/Decision/"
+			]
+		},
+		{
+			"id": "ai-rows",
+			"title": "The AI rows are one row",
+			"into": "row",
+			"kinds": [
+				"inbox row (rail preview)",
+				"live item",
+				"chat line",
+				"panel properties row",
+				"group heading (ai-group)"
+			],
+			"also": "Needs .ui-row to exist first (a new ui/row template).",
+			"grep": "ai-prompt\\b|ai2-row|ai2-ov-row|ai2-live-item|ai-msg\\b|ai-turn\\b|ai2-chat|panel-props-row|ai-group\\b|ai-group-title",
+			"risk": "high",
+			"risk_why": "Needs a new class first, and the rows carry a fixed height the rail depends on (the inbox row is always the same height).",
+			"visible_change": "Measured live at 1920, each drawn in a box 30rem wide — inbox row (rail preview): first word 28px → 10px from the left edge, 13px → 11px from the top; height 76px → 72px; live item: first word 28px → 10px from the left edge, 13px → 12px from the top; height 87px → 43px; chat line: first word 0px → 10px from the left edge, 4px → 12px from the top; height 29px → 43px; panel properties row: first word 8px → 10px from the left edge, 12px → 11px from the top; height 96px → 43px; group heading (ai-group): first word 0px → 0px from the left edge, 3px → 7px from the top; height 26px → 34px.",
+			"files": [
+				"public/framework/ai/v/2/v2.css",
+				"public/framework/ai2/ai2.css",
+				"public/framework/ai2/chat.js",
+				"public/framework/ai2/faces.js",
+				"public/framework/ai2/live.js",
+				"public/framework/ai2/overview.js",
+				"public/framework/ai2/page.js",
+				"public/framework/ext/AITask/AITask.js",
+				"public/framework/ext/AITask/ai.css",
+				"public/framework/ext/AITask/asks.js",
+				"public/framework/ext/AITask/board.js",
+				"public/framework/ext/AITask/conversation.js",
+				"public/framework/ext/AITask/decisions.js",
+				"public/framework/ext/AITask/feed.css",
+				"public/framework/ext/AITask/feed.js",
+				"public/framework/ext/AITask/highlights.js",
+				"public/framework/ext/AITask/message.js",
+				"public/framework/ext/AITask/needs.js",
+				"public/framework/ext/AITask/shots.js",
+				"public/framework/ext/Panel/properties.js",
+				"public/framework/ext/Panel/templates.css"
+			],
+			"pages": [
+				"/framework/ai/v/2/",
+				"/framework/ai2/",
+				"/framework/ext/AITask/",
+				"/framework/ext/Panel/"
+			]
+		}
+	],
+	"order": [
+		{
+			"step": 1,
+			"merge": "ui-cards",
+			"title": "The ui/ templates wear .card",
+			"risk": "low",
+			"screenshot": [
+				"/framework/ui/alert/",
+				"/framework/ui/stats/",
+				"/framework/ui/toolbar/",
+				"/framework/ux/Course/"
+			]
+		},
+		{
+			"step": 2,
+			"merge": "ui-pills",
+			"title": "The ui/ chips are one pill",
+			"risk": "low",
+			"screenshot": [
+				"/framework/styles/layouts/apidoc/",
+				"/framework/ui/",
+				"/framework/ui/badge/",
+				"/framework/ui/tags/",
+				"/framework/ux/Filter/",
+				"/framework/ux/Tags/"
+			]
+		},
+		{
+			"step": 3,
+			"merge": "link-tiles",
+			"title": "Link tiles become a.card",
+			"risk": "low",
+			"screenshot": [
+				"/imagine/blogx/",
+				"/imagine/blogx/finder/",
+				"/imagine/decks/",
+				"/layouts/labs/blogx/",
+				"/layouts/labs/blogx/finder/",
+				"/layouts/labs/decks/"
+			]
+		},
+		{
+			"step": 4,
+			"merge": "popovers",
+			"title": "Floating boxes are one popover",
+			"risk": "med",
+			"screenshot": [
+				"/framework/ai/v/3/",
+				"/framework/ui/menu/",
+				"/framework/ui/tooltip/",
+				"/framework/ux/Menu/"
+			]
+		},
+		{
+			"step": 5,
+			"merge": "folds",
+			"title": "Folds are one details element",
+			"risk": "med",
+			"screenshot": [
+				"/framework/ai/v/3/",
+				"/framework/ai2/",
+				"/framework/ext/AITask/",
+				"/framework/ui/accordion/",
+				"/imagine/paging/"
+			]
+		},
+		{
+			"step": 6,
+			"merge": "regions",
+			"title": "Bands of a page are regions",
+			"risk": "med",
+			"screenshot": [
+				"/framework/core/Layout/",
+				"/framework/ext/DesignTool/library/bad/",
+				"/framework/ext/Panel/",
+				"/framework/styles/layouts/400/",
+				"/framework/styles/layouts/spec/",
+				"/framework/styles/sections/",
+				"/imagine/",
+				"/imagine/game/",
+				"/imagine/paging/",
+				"/imagine/paging/templates/",
+				"/imagine/paging/templates/theming/"
+			]
+		},
+		{
+			"step": 7,
+			"merge": "ai-pills",
+			"title": "The AI chips are pills",
+			"risk": "high",
+			"screenshot": [
+				"/framework/ai/v/2/",
+				"/framework/ai/v/3/",
+				"/framework/ai2/",
+				"/framework/ext/AITask/"
+			]
+		},
+		{
+			"step": 8,
+			"merge": "ai-rows",
+			"title": "The AI rows are one row",
+			"risk": "high",
+			"screenshot": [
+				"/framework/ai/v/2/",
+				"/framework/ai2/",
+				"/framework/ext/AITask/",
+				"/framework/ext/Panel/"
+			]
+		},
+		{
+			"step": 9,
+			"merge": "frames",
+			"title": "Head-body-foot boxes are frames",
+			"risk": "high",
+			"screenshot": [
+				"/framework/ai/v/2/",
+				"/framework/ai2/",
+				"/framework/ext/AITask/",
+				"/framework/ext/Doc/",
+				"/framework/ui/dialog/",
+				"/framework/ui/panel/"
+			]
+		},
+		{
+			"step": 10,
+			"merge": "doc-well",
+			"title": "The Doc title strip is a region",
+			"risk": "high",
+			"screenshot": [
+				"/framework/core/Page/",
+				"/framework/core/Page/old/",
+				"/framework/core/Page/overview/inset/",
+				"/framework/ext/Doc/",
+				"/framework/ext/Panel/Workspace/",
+				"/framework/ext/Panel/demo/",
+				"/framework/ext/toc/"
+			]
+		},
+		{
+			"step": 11,
+			"merge": "ai-cards",
+			"title": "The AI cards are .card",
+			"risk": "high",
+			"screenshot": [
+				"/framework/ai/v/2/",
+				"/framework/ai/v/3/",
+				"/framework/ai2/",
+				"/framework/dev/DevBar/",
+				"/framework/ext/AITask/",
+				"/framework/ui/decision/",
+				"/framework/ux/Content/Decision/"
+			]
+		},
+		{
+			"step": 12,
+			"merge": "tab-panes",
+			"title": "Tab panes are regions",
+			"risk": "high",
+			"screenshot": [
+				"/framework/core/Page/",
+				"/framework/core/Page/generator/",
+				"/framework/core/Page/overview/columns/uses/",
+				"/framework/core/Page/overview/full/",
+				"/framework/core/Page/overview/region/",
+				"/framework/core/new/1/",
+				"/framework/core/new/1/agents/eric/",
+				"/framework/core/new/1/agents/patterns/",
+				"/framework/core/new/1/site/",
+				"/framework/core/new/1/site/a11y/headings/",
+				"/framework/core/new/1/site/a11y/tabs/",
+				"/framework/core/new/1/site/compound/",
+				"/framework/core/new/1/site/motion/arrangements/",
+				"/framework/core/new/1/site/perf/css/",
+				"/framework/core/new/1/site/versus/css/",
+				"/framework/ext/AITask/",
+				"/framework/ext/Doc/",
+				"/framework/ext/catalog/",
+				"/framework/ext/demo/",
+				"/framework/ext/tabs/",
+				"/framework/ext/toc/",
+				"/imagine/paging/",
+				"/imagine/paging/mechanisms/swap/",
+				"/imagine/paging/navigation/",
+				"/imagine/paging/navigation/tabs/",
+				"/web/nav/tabs/"
+			]
+		},
+		{
+			"step": 13,
+			"merge": "surface-pad",
+			"title": "Every other surface pad becomes .card",
+			"risk": "high",
+			"screenshot": [
+				"/framework/",
+				"/framework/ai/process/",
+				"/framework/core/Page/overview/columns/examples/grids/",
+				"/framework/core/Page/overview/columns/examples/grids/flush-wall/",
+				"/framework/core/Page/overview/inset/",
+				"/framework/core/Page/overview/measure/",
+				"/framework/core/Page/overview/region/",
+				"/framework/core/Search/",
+				"/framework/ext/AITask/",
+				"/framework/ext/Ask/",
+				"/framework/ext/DesignTool/taste/corpus/",
+				"/framework/ext/Draggable/",
+				"/framework/ext/Omnibox/",
+				"/framework/ext/depth/",
+				"/framework/styles/layouts/",
+				"/framework/styles/layouts/apidoc/",
+				"/framework/styles/layouts/carousel/",
+				"/framework/styles/layouts/feed/",
+				"/framework/styles/layouts/home/",
+				"/framework/styles/layouts/overlay/",
+				"/framework/styles/layouts/pricing/",
+				"/framework/styles/layouts/screens/",
+				"/framework/styles/layouts/space/hunt/",
+				"/framework/styles/layouts/space/words/",
+				"/framework/styles/layouts/spec/",
+				"/framework/styles/system/",
+				"/framework/styles/system/studies/lists/",
+				"/framework/styles/system/studies/spacing/nesting/",
+				"/framework/styles/system/studies/type/anchors/",
+				"/framework/ui/background/",
+				"/framework/ui/card/",
+				"/framework/ui/dialog/",
+				"/framework/ui/kbd/",
+				"/framework/ui/tags/",
+				"/framework/ui/words/",
+				"/framework/ux/Auth/",
+				"/framework/ux/Filter/",
+				"/framework/ux/Tags/",
+				"/framework/ux/Tree/",
+				"/framework/ux/Tree/drag/",
+				"/imagine/cms/edit/",
+				"/imagine/cms/json/edit/",
+				"/imagine/cms/services/",
+				"/imagine/paging/",
+				"/imagine/paging/templates/",
+				"/imagine/platform/workflows/",
+				"/imagine/shells/",
+				"/imagine/stream/",
+				"/imagine/stream/blocks/",
+				"/imagine/stream/wire/",
+				"/layouts/labs/shells/",
+				"/layouts/shell/doc/",
+				"/notes/ai-research-list-ui-ux/",
+				"/notes/an-element-browser/",
+				"/notes/anchor-point-optional/",
+				"/notes/basketball-tower/",
+				"/notes/column-vs-swap/",
+				"/notes/doodles/",
+				"/notes/drop-target-ux/",
+				"/notes/each-meme-is-a-community/",
+				"/notes/edge-selection/",
+				"/notes/just-a-note/",
+				"/notes/layouts-need-fit/",
+				"/notes/levels-and-points/",
+				"/notes/meeting-notes-are-ip/",
+				"/notes/nested-rendering/",
+				"/notes/notebook-cooked/",
+				"/notes/one-video-everywhere/",
+				"/notes/page-is-not-prose/",
+				"/notes/page-nav-from-sub/",
+				"/notes/page-previews-and-columns/",
+				"/notes/parallel-generation/",
+				"/notes/personal-specs/",
+				"/notes/record-long-cut-to-60s/",
+				"/notes/right-click-hug-fill/",
+				"/notes/right-people-not-many/",
+				"/notes/scale-1920-to-3413/",
+				"/notes/shotgun-or-lav/",
+				"/notes/sign-up-flow/",
+				"/notes/standardized-web-services/",
+				"/notes/switch-or-transition/",
+				"/notes/tabs-vs-breadcrumbs/",
+				"/notes/the-editor/",
+				"/notes/topic-dbs-and-claims/",
+				"/notes/visual-context/",
+				"/notes/what-is-openmike/",
+				"/websites/patterns/"
+			]
+		}
+	],
+	"to": {
+		"kinds": 36,
+		"targets": 8,
+		"kept": 28,
+		"dropped": 5,
+		"merged": 42,
+		"padding_rules": 5,
+		"rules": [
+			"--pad-card",
+			"none",
+			"--pad",
+			"own em",
+			"1.5rem"
+		]
+	}
+}

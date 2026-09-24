@@ -10,7 +10,7 @@ export default new Page({
 	description: "The kinds of card a page is built from — ask a question, make a decision, quote a prompt.",
 	icon: "dashboard_customize",
 
-	children: "catalog Question Decision Quotation built/page.jsonl",
+	children: "catalog plan Question Decision Quotation built/page.jsonl",
 
 	content(){
 
@@ -20,6 +20,7 @@ export default new Page({
 			div.c("h4 muted", "Catalog");
 			p("Every card kind on the site — see each one, where it is used, and which are duplicates.");
 		});
+		a.c("card").attr("href", "/framework/ux/Content/plan/").append(() => { div.c("h4 muted", "Plan"); p("How the 75 kinds shrink to 36: which merge into which, one spacing table, the order."); });
 
 		md("**A content module is one card that remembers something** — an answer, a choice, a quoted prompt. Each one reads and appends to a plain `.jsonl` log, and a page places it with one line. Try all three (they write to throwaway `demo.jsonl` files), or see a page [built only from lines](built/).");
 
