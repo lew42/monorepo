@@ -47,9 +47,15 @@ screen when nothing is open, three when a sub-card is.
 
 ## Use
 
-Nothing to call. The page mounts itself; open the url. A card's own url is
-`/framework/ai2/<id>/` — paste it, reload it, press Back; the url is the truth. A sub-card's is
-`/framework/ai2/<id>/<sub>/`, one level deeper.
+Nothing to call. The page mounts itself; open the url. **A card is a folder** under
+`ai/`, and its url on AI 2 is that folder's path: `/framework/ai2/2026/09/24/<slug>/`, a
+sub-card one segment deeper, any depth. Paste it, reload it, press Back; the url is the truth.
+An old id (`/framework/ai2/topic-xyz/`) still opens its card. `view/open/`, `view/today/`,
+`view/all/` and `view/<tag>/` list cards by view. Each card is drawn by [`card.js`](./card.js),
+a real `Page` built from the card's own `page.jsonl` — [`doc/cards.md`](./doc/cards.md).
+
+To make a card from an agent, use Servex's `create_card` tool, never a folder by hand. The
+older way below still draws a card when Servex is down.
 
 To draw a card from anywhere, append a line to one of the logs it reads:
 
@@ -62,6 +68,9 @@ To draw a card from anywhere, append a line to one of the logs it reads:
 
 ## Watch out
 
+- **`card.js` stays lowercase.** It is the `Card` class, and every card's line 1 names
+  `/framework/ai2/card.js`; a `./Card.js` import is a second module on Windows and a 404 on a
+  case-sensitive host. The older board-card faces are `faces.js`. [`doc/cards.md`](./doc/cards.md).
 - **An agent's words reach a card only through the card's own log, `cards/<slug>`.** The fast
   assistant writes to `prompts`; until 2026-09-23 nothing copied its replies across, so it
   "could not respond". Any agent can speak into a card with the `card_reply` MCP tool.
@@ -111,6 +120,7 @@ To draw a card from anywhere, append a line to one of the logs it reads:
   site saves and where, and which one a nested card page uses
 - The rebuild and its measurements: [`ai/2026-09-22/ai2-master-detail/`](/framework/ai/2026-09-22/ai2-master-detail/)
 - Per-card storage, sub-cards, the footer: [`ai/2026-09-22/ai2-nested/`](/framework/ai/2026-09-22/ai2-nested/)
-- Files that matter: `page.js` (the shell, the selection, the third column), `card.js` (a card
-  and a sub-card, small and whole, plus the table of contents), `inbox.js` (what there is to
+- [`doc/cards.md`](./doc/cards.md) — card folders: the addresses, `card.js`'s vocabulary, every write
+- Files that matter: `page.js` (the shell, the selection, the third column), `card.js` (a
+  card folder's own page), `faces.js` (a board card, small and whole, plus the table of contents), `inbox.js` (what there is to
   draw, and the per-card log), `compose.js` (the box you talk into), `ai2.css` (the look)

@@ -1,7 +1,7 @@
 import { div, span, small, a, button, p } from "/app.js";
 import { icon } from "/framework/core/View/View.js";
 import { servex_base, say, author_word } from "./inbox.js";
-import { clock } from "./card.js";
+import { clock } from "./faces.js";
 
 /**
  * THE OVERVIEW — four columns by importance, not one feed by time (the owner,

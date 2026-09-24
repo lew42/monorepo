@@ -38,7 +38,7 @@ check("year lists month, month lists day", lines(path.join(root, y, "page.jsonl"
 	&& lines(path.join(root, y, m, "page.jsonl"))[1]?.file === `${day.split("/")[2]}/page.jsonl`);
 check("day lists the card", lines(cards.file(day)).some(l => l.file === "fix-the-sidebar-please/page.jsonl"));
 const head = lines(a.path)[0];
-check("line 1 is the constructor", head.class === "/framework/ai2/Card.js" && head.title === "Fix the Sidebar, please!"
+check("line 1 is the constructor", head.class === "/framework/ai2/card.js" && head.title === "Fix the Sidebar, please!"
 	&& head.type === "question" && head.id === a.id && head.by === "owner" && head.tags[0] === "site" && /^\d{4}-\d\d-\d\dT/.test(head.created), head);
 
 // refusals never throw

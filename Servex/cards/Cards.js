@@ -18,7 +18,7 @@ import { stamp } from "../home.js";
  * ONLY writer of these files — `create_card` is the only way a card is made. */
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../public/framework/ai");
-const CLASS = "/framework/ai2/Card.js";
+const CLASS = "/framework/ai2/card.js";
 const OWNER = "owner";            // what ai2/compose.js and ux/Dictate stamp as `by` on the owner's words
 const SLUG = /^[a-z0-9][a-z0-9-]*$/;
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
