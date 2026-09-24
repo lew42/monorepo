@@ -36,14 +36,27 @@ export default class Assistant {
 
 	defaults(){
 		return { id: "assistant-fast", role: "assistant", name: "fast", log: "prompts", current: null, minted: [], last_card: null,
-			selected: null, card: null,
+			selected: null, card: null, prompt: null,
+			groups_file: path.join(REPO, "public/framework/ai2/groups.json"),
 			root: path.join(HERE, "../../public/framework") };
 	}
 
 	/* Its posture, read from disk once. A plain string `systemPrompt` REPLACES
 	 * the CLI's own, which is what keeps this session small and fast — it has
 	 * one job and no need for the coding agent's whole preamble. */
-	brief(){ return this.system ??= fs.readFileSync(path.join(HERE, "assistant.md"), "utf8"); }
+	brief(){
+		this.base ??= fs.readFileSync(path.join(HERE, "assistant.md"), "utf8");
+		const list = this.groups().map(g => `- ${g.id}: ${g.name} — ${g.about}`);
+		return list.length ? `${this.base}\n## Groups\n\n${list.join("\n")}\n` : this.base;
+	}
+
+	/* The owner's groups (`ai2/groups.json`, ai2-dashboard's file), read fresh on
+	 * every call because it is tiny and someone else edits it. Any problem
+	 * reading it is an empty list: the lobby then simply has nowhere to file. */
+	groups(){
+		try { const list = JSON.parse(fs.readFileSync(this.groups_file, "utf8")); return Array.isArray(list) ? list : []; }
+		catch { return []; }
+	}
 
 	install(){ this.tool(); this.route(); this.listen(); return this; }
 
@@ -66,7 +79,7 @@ export default class Assistant {
 			 * (roles.js records the run where that silently stopped an agent
 			 * dead). Safe here only because the tool list below is one tool. */
 			permission_mode: "bypassPermissions",
-			allowed_tools: ["mcp__servex__append_prompt_event"],
+			allowed_tools: ["mcp__servex__append_prompt_event", "mcp__servex__file_to_group"],
 			prompt: "You are on duty. The next message will be the owner's words. Answer nothing now."
 		});
 	}
@@ -91,6 +104,7 @@ export default class Assistant {
 		// A card with its own assistant answers its own prompts; the fast assistant
 		// is the lobby for words spoken with no card.
 		if (this.servex.cards?.canonical?.(prompt.selected)) return;
+		this.prompt = { text: prompt.text ?? (prompt.sentences ?? []).join(" "), raw: prompt.raw ?? prompt.text ?? "" };
 		try { this.start().send(this.words(prompt), { from: "owner", reply_to: `log ${this.log}` }); }
 		catch (e){ this.servex.say(`assistant could not hear a prompt: ${e.message || e}`); }
 	}
@@ -138,6 +152,18 @@ export default class Assistant {
 			handler: args => this.append(args)
 		});
 
+		this.servex.mcp.tool({
+			name: "file_to_group",
+			description: "File the owner's current words into the group they belong to. Pick `group` from the Groups list."
+				+ " Only when nothing fits, give a new `group` id with `name` and `about`, and a group is made.",
+			inputSchema: { type: "object", required: ["group"], properties: {
+				group: { type: "string", description: "A group id from the Groups list, or a new id." },
+				name: { type: "string", description: "New group only: its name." },
+				about: { type: "string", description: "New group only: one sentence saying what it holds." }
+			} },
+			handler: args => this.file_to_group(args)
+		});
+
 		/* ANY AGENT'S VOICE INTO A CARD — the fast assistant, a helper it
 		 * started, a task mastermind the Dispatcher started. One line on the
 		 * card's own log, `cards/<slug>`, which is exactly what the card's chat
@@ -154,6 +180,31 @@ export default class Assistant {
 			// the caller Servex stamped (`?as=`) wins over a typed `from`: every agent talks under its own id
 			handler: (args = {}, ctx = {}) => this.card_reply({ ...args, from: ctx.caller ?? args.from })
 		});
+	}
+
+	/* THE LOBBY FILES, IT DOES NOT ANSWER: the current prompt goes onto the
+	 * group's card, and `Layers.js` hears it there as a fresh owner prompt, so
+	 * that group's own assistant replies on the group card.
+	 *
+	 * A new group gets a card here, but listing it in `groups.json` is
+	 * ai2-dashboard's job, not ours; the `new-group` line on the servex log is
+	 * how they find out. */
+	async file_to_group({ group, name, about } = {}){
+		const fail = why => JSON.stringify({ ok: false, why });
+		try {
+			if (!this.prompt) return fail("no current prompt to file");
+			if (!group) return fail("group is required");
+			let card = this.groups().find(g => g.id === group)?.card;
+			if (!card){
+				if (!name || !about) return fail(`unknown group "${group}" — give name and about to make it`);
+				const made = await this.servex.cards.create({ title: name, type: "group", by: this.id });
+				if (!made.ok) return fail(made.why);
+				card = made.id;
+				await this.servex.log.append("servex", { type: "new-group", id: group, card });
+			}
+			const out = await this.servex.cards.append(card, { prompt: { text: this.prompt.text, raw: this.prompt.raw, via: "lobby" } });
+			return JSON.stringify(out.ok ? { ok: true, card } : out);
+		} catch (e){ return fail(String(e.message || e)); }
 	}
 
 	async card_reply({ card, text, from } = {}){
