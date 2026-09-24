@@ -1,6 +1,7 @@
 import { Page, View, div, p, span, small, a, button, input, select, option } from "/app.js";
 import { icon } from "/framework/core/View/View.js";
-import { clock, flag_box } from "./faces.js";
+import { clock, flag_box, when } from "./faces.js";
+import { task_of, task_region } from "./tasks.js";
 
 /* The old board-card faces (the rail row, the whole board card) live in
    `faces.js`. These re-exports keep an older `import { clock } from "./card.js"`
@@ -42,13 +43,8 @@ export const TYPES = ["question", "request", "sub-question", "note", "task"];
    data — Servex writes both on line 1 — so `assign()` below calls them instead. */
 const VERBS = new Set(["type", "tags", "status", "message", "prompt", "attach", "detach", "legacy", "cites"]);
 
-/** Today's time alone; any other day with its date — a list spans weeks. */
-export const when = at => {
-	if (!at) return "";
-	const d = new Date(at);
-	if (d.toDateString() === new Date().toDateString()) return clock(at);
-	return d.toLocaleDateString([], { month: "short", day: "numeric" }) + ", " + clock(at);
-};
+/** Today's time alone; any other day with its date — `faces.js` holds it now. */
+export { when };
 
 /** One card summary (`GET /cards`) as a row: icon, title, and what it is. */
 export const summary_line = s => [s.type, s.status && s.status !== "open" && s.status,
@@ -157,7 +153,14 @@ export default class Card extends Page {
 		if (sub) a.c("ai2-back ai2-sub-back page-link").href(this.parent.url).text("← " + (this.parent.title ?? this.parent.name));
 		else a.c("ai2-back page-link").href(shell?.url ?? "/framework/ai2/").text("← all cards");
 
-		this.$box = div.c("ai2-full", () => { this.draw(); });
+		// The scrolling region holds two boxes: the card, redrawn on every line,
+		// and the task pages below it, which are drawn only when WHICH tasks
+		// changes — a task page streams its own log and keeps its own open tab.
+		div.c("ai2-full", () => {
+			this.$box = div.c("ai2-full-card", () => { this.draw(); });
+			this.$tasks = div.c("ai2-tasks");
+		});
+		this.fill_tasks();
 
 		div.c("ai2-foot", () => {
 			this.talk = chat({ source: () => this.chat_entries() });
@@ -185,13 +188,33 @@ export default class Card extends Page {
 		if (this.held) return;
 		this.$box?.empty(() => { this.draw(); });
 		this.talk?.sync();
+		this.fill_tasks();
+	}
+
+	/* ── the task pages ──────────────────────────────────────────────────── */
+
+	/** This card's row in `groups.json` when it is a group card, else null.
+	    ⚠ Not `group()`: a member card carries a `{"group": …}` DATA line, which
+	    `assign()` would copy over a method of that name. */
+	group_info(){ return this.shell?.ai2?.groups?.by_card?.get(this.id) ?? null; }
+
+	/** The tasks this card shows whole: a group's members, newest first, or the one task a card points at. */
+	task_list(){
+		const g = this.group_info();
+		if (g) return this.shell.ai2.groups.members(g.id).filter(m => m.kind !== "said");
+		return this.shell?.ai2?.groups?.task_at(task_of(this)) ?? [];
+	}
+
+	fill_tasks(){
+		if (this.$tasks) task_region(this.$tasks, this.task_list(), this.task_state ??= {}, { head: !!this.group_info() });
 	}
 
 	draw(){
 		const f = this.facts();
+		const g = this.group_info();
 
 		div.c("ai2-full-head flex v-center gap-25", () => {
-			icon(this.icon ?? type_icon(f.type));
+			icon(this.icon ?? g?.icon ?? type_icon(f.type));
 			span.c("ai2-full-title").md(this.title ?? this.name);
 			// The picker, "clear" and "+ sub-card" write through Servex's card
 			// routes; a Servex without them (not restarted yet) shows none of the three.
@@ -213,6 +236,8 @@ export default class Card extends Page {
 		});
 		agents_panel(this.id);
 
+		// A group says what belongs in it; its members' task pages follow below.
+		if (g) p.c("ai2-text").text(g.about);
 		if (this.text) p.c("ai2-text").text(this.text);
 		if (this.description) p.c("ai2-text").text(this.description);
 		if (this.links?.length) div.c("ai2-links flex wrap gap-25", () => {
@@ -342,6 +367,8 @@ export default class Card extends Page {
 		this.handle = this.shell?.ai2?.open({ id: this.id, draw: it => this.flag_changed(it), on: this.face(), $box: this.$box });
 		// The sub-cards' titles come off AI 2's card list, which refreshes on its own clock.
 		this.stop_list = this.shell?.ai2?.cards?.on(() => this.redraw());
+		// A member landing, or a task's `now` moving, reorders a group's sections.
+		this.stop_groups = this.shell?.ai2?.groups?.on(() => this.redraw());
 		this.redraw();
 		if (!cards_ready.known) cards_ready().then(ok => ok && this.redraw());
 	}
@@ -351,6 +378,7 @@ export default class Card extends Page {
 	deactivated(){
 		this.shell?.ai2?.close(this.handle);
 		this.stop_list?.();
+		this.stop_groups?.();
 		const mic = this.$composer?.mic;
 		try { if (mic && !["idle", "error"].includes(mic.state)) mic.stop(); } catch {}
 		this.talk?.partial("");

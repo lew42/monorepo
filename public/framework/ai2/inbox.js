@@ -184,6 +184,23 @@ export const card_stream = (slug, base = servex_base()) => log_stream(`cards/${s
 
 /* ── today's landings ───────────────────────────────────────────────────── */
 
+/* ── words for a preview ─────────────────────────────────────────────── */
+
+/** Markdown and link syntax out, whitespace folded — a preview is plain words. */
+export const plain = t => String(t ?? "")
+	.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+	.replace(/[*_`>#]+/g, "")
+	.replace(/\s+/g, " ").trim();
+
+/** The first sentence of some plain words. */
+export const first_sentence = t => (String(t).match(/^.*?[.!?](?=\s|$)/s)?.[0] ?? String(t)).trim();
+
+/** A landing's headline: its leading **bold** part when it has one, else its first sentence. */
+export const headline = t => {
+	const bold = String(t ?? "").trim().match(/^\*\*(.+?)\*\*/s);
+	return plain(bold ? bold[1] : first_sentence(plain(t)));
+};
+
 export function today_str(){
 	const d = new Date(), pad = n => String(n).padStart(2, "0");
 	return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
@@ -291,7 +308,7 @@ export async function archive_card(id){
 /** A folder card's id always starts with its four-digit year; an old board id never does. */
 export const is_folder_id = id => /^\d{4}\//.test(String(id ?? ""));
 
-const TYPE_ICON = { card: "forum", question: "help", request: "assignment", "sub-question": "contact_support", note: "sticky_note_2", task: "task_alt" };
+const TYPE_ICON = { card: "forum", question: "help", request: "assignment", "sub-question": "contact_support", note: "sticky_note_2", task: "task_alt", group: "workspaces" };
 export const type_icon = type => TYPE_ICON[type] ?? "forum";
 
 /**
@@ -406,7 +423,7 @@ export function folder_item(c){
 		type: c.type,
 		at: c.last ?? c.created,
 		icon: type_icon(c.type),
-		title: c.title || c.id.split("/").at(-1),
+		title: c.title || "Untitled card",   // never the slug — the owner reads names, not ids
 		text: "",
 		tags: c.tags ?? [],
 		status: c.status,
@@ -535,7 +552,10 @@ export function items({ board, folders, prompts, landed, says }){
 		}
 		add({
 			id: l.task, kind: "landed", at: l.at, icon: "task_alt",
-			title: l.task, text: l.sentence, author: l.task, landed: l.sentence,
+			// The landing's own headline, never the task's slug (the owner: "task
+			// names that are more like ids").
+			title: headline(l.sentence), text: plain(l.sentence) === headline(l.sentence) ? "" : plain(l.sentence),
+			author: "task", landed: l.sentence,
 			links: [{ url, label: "Task page" }],
 		});
 	});
